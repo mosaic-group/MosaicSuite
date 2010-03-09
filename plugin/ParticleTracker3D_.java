@@ -45,10 +45,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE ETH HAS NO 
  * OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.<p>
  * 
- * @version 1.2. Feb, 2009 (requires: ImageJ 1.36b and Java 5 or higher)
- * @author Guy Levy - Academic guest at the <a href="http://www.cbl.ethz.ch/">Computational Biophysics Lab<a>, ETH Zurich
- * @author Janick Cardinale, PhD Student at CBL, ETHZ
+ * @version 1.2.1 March, 2010 (requires: ImageJ 1.36b and Java 5 or higher)
+ * @author Guy Levy - Academic guest at the <a href="http://www.mosaic.ethz.ch/">Mosaic Group, Inst. of 
+ * theoretical computer science<a>, ETH Zurich
+ * @author Janick Cardinale, PhD Student at Mosaic, ETHZ
  */
+
 public class ParticleTracker3D_ implements PlugInFilter, Measurements, ActionListener, AdjustmentListener   {	
 
 	private final static int SYSTEM = 0;
@@ -172,7 +174,7 @@ public class ParticleTracker3D_ implements PlugInFilter, Measurements, ActionLis
 	public void run(ImageProcessor ip) {
 
 		initializeMembers();
-
+		
 		generatePreviewCanvas();
 
 		/* get user defined params and set more initial params accordingly 	*/	
@@ -1100,12 +1102,11 @@ public class ParticleTracker3D_ implements PlugInFilter, Measurements, ActionLis
 
 			/* Image Restoration - Step 1 of the algorithm */
 			restored_fps = imageRestoration(restored_fps);
-
-//						new StackWindow(new ImagePlus("after restoration",GetSubStackCopyInFloat(restored_fps, 1, 1)));
+			new StackWindow(new ImagePlus("after restoration",GetSubStackCopyInFloat(restored_fps, 1, 1)));
 
 			/* Estimation of the point location - Step 2 of the algorithm */
 			findThreshold(restored_fps, percentile, absIntensityThreshold);
-			//			System.out.println("Threshold found: " + threshold);
+			System.out.println("3D: Threshold found : " + threshold);
 
 			pointLocationsEstimation(restored_fps);
 //
@@ -1353,11 +1354,12 @@ public class ParticleTracker3D_ implements PlugInFilter, Measurements, ActionLis
 
 			switch(preprocessing_mode){
 			case NO_PREPROCESSING:
-				GaussBlur3D(restored, 2*lambda_n);
+				GaussBlur3D(restored, 1*lambda_n);
 				break;
 			case BOX_CAR_AVG:		
-
-				GaussBlur3D(restored, 2*lambda_n);
+				// There was found to be a 2*lambda_n for the sigma of the Gaussian kernel. 
+				// Set it back to 1*lambda_n to match the 2D implementation.
+				GaussBlur3D(restored, 1*lambda_n);
 				//				new StackWindow(new ImagePlus("convolved 3d",GetSubStackCopyInFloat(restored, 1, restored.getSize())));
 
 				boxCarBackgroundSubtractor(restored);//TODO:3D? ->else: pad!
@@ -1365,7 +1367,7 @@ public class ParticleTracker3D_ implements PlugInFilter, Measurements, ActionLis
 
 				break;
 			case BG_SUBTRACTOR:
-				GaussBlur3D(restored, 2*lambda_n);
+				GaussBlur3D(restored, 1*lambda_n);
 				BackgroundSubtractor2_ bgSubtractor = new BackgroundSubtractor2_();
 				for(int s = 1; s <= restored.getSize(); s++) {
 					//					IJ.showProgress(s, restored.getSize());
@@ -1375,7 +1377,7 @@ public class ParticleTracker3D_ implements PlugInFilter, Measurements, ActionLis
 				break;
 			case LAPLACE_OP:
 				//remove noise then do the laplace op
-				GaussBlur3D(restored, 2*lambda_n);
+				GaussBlur3D(restored, 1*lambda_n);
 				repadImageStack3D(restored);
 				restored = Laplace_Separable_3D(restored);
 				break;
@@ -4644,3 +4646,4 @@ public class ParticleTracker3D_ implements PlugInFilter, Measurements, ActionLis
 //		return sb;
 //	}
 }
+
