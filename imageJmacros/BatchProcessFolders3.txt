@@ -1,0 +1,53 @@
+// "BatchProcessFolders"
+//
+// This macro batch processes all the files in a folder and any
+// subfolders in that folder. In this example, it runs the Subtract 
+// Background command of TIFF files. For other kinds of processing,
+// edit the processFile() function at the end of this macro.
+
+   requires("1.33s"); 
+   dir = getDirectory("Choose a directory");
+   //dir = "C:\\Users\\Janigo\\Desktop\\masterarbeit\\images\\alex\\janick4\\Bik13GFP_Spc72GFP\\clone1\\experiment3\\GFP_stacks";
+   //setBatchMode(true);
+   count = 0;
+   countFiles(dir);
+   n = 0;
+   processFiles(dir);
+   //print(count+" files processed");
+   
+   function countFiles(dir) {
+      list = getFileList(dir);
+      for (i=0; i<list.length; i++) {
+          if (endsWith(list[i], "/"))
+              countFiles(""+dir+list[i]);
+          else
+              count++;
+      }
+  }
+
+   function processFiles(dir) {
+      list = getFileList(dir);
+      for (i=0; i<list.length; i++) {
+          if (endsWith(list[i], "/"))
+              processFiles(""+dir+list[i]);
+          else {
+             showProgress(n++, count);
+             path = dir+list[i];		
+             processFile(dir,list[i]);
+          }
+      }
+  }
+
+  function processFile(dir,filename) {
+       if (endsWith(filename, "_t1.tif") || endsWith(filename, "_t1.TIF")) {
+		//print("here we are: "+dir+list[i]);
+                 run("Image Sequence...", "open="+dir+filename+" number=20 starting=1 increment=1 scale=100 file=exp or=[] sort");
+		 run("Properties...", "slices=31 frames=20 unit=nm pixel_width=160 pixel_height=160 voxel_depth=200 ");
+		 run("Save", "save="+dir+"/stack.tif");
+		 run("Z Project...", "start=1 stop=620 projection=[Sum Slices]");
+		 run("Save", "save="+dir+"/SUM_stack.tif");		  
+           close();
+	close();
+      }
+  }
+

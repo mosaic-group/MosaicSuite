@@ -1,0 +1,21 @@
+getSelectionBounds(x,y,width,height);
+dir=getDirectory("image")
+selectWindow("stack.tif");
+makeRectangle(x, y, width, height);
+run("Duplicate...", "title=cell duplicate");
+Dialog.create("Output file parameters");
+Dialog.addMessage("Type in file name parameters!!!");
+Dialog.addNumber("Experiment: ", 1);
+Dialog.addNumber("Cell: ", 1);
+Dialog.show();
+experimentnumber=Dialog.getNumber();
+cellnumber=Dialog.getNumber();
+getDateAndTime(year, month, dayOfWeek, dayOfMonth, hour, minute, second, msec);
+dayString=d2s(dayOfMonth,0);
+monthString=d2s(month,0);
+if(month<10) { monthString="0"+monthString;}
+if(dayOfMonth < 10) { dayString="0"+dayOfMonth;}
+run("Save", "save="+dir+"/"+year+""+monthString+""+dayString+"_exp"+experimentnumber+"_cell"+cellnumber+".tif");
+close();
+
+
