@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Package xmi:version="2.1" xmlns:xmi="http://schema.omg.org/spec/XMI/2.1" xmlns:uml="http://www.eclipse.org/uml2/3.0.0/UML" xmi:id="_7_WgkTD_Ed-qPOr5O75aRw" name="MosaicToolbox">
+  <elementImport xmi:id="_8BDJsDD_Ed-qPOr5O75aRw">
+    <importedElement xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#Boolean"/>
+  </elementImport>
+  <elementImport xmi:id="_8BJ3YDD_Ed-qPOr5O75aRw">
+    <importedElement xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+  </elementImport>
+  <elementImport xmi:id="_8BJ3YTD_Ed-qPOr5O75aRw">
+    <importedElement xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#UnlimitedNatural"/>
+  </elementImport>
+  <elementImport xmi:id="_8BJ3YjD_Ed-qPOr5O75aRw">
+    <importedElement xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#Integer"/>
+  </elementImport>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BijDYDEAEd-qPOr5O75aRw" name="DetectionAndTracking"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_Gm6VIDEAEd-qPOr5O75aRw" name="DetectionAlgorithm"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_IImxYDEAEd-qPOr5O75aRw" name="TrackingAlgorithm"/>
+  <packagedElement xmi:type="uml:Package" xmi:id="_7DXrUDHBEd-YKaTpDbyUlg" name="ij.plugin.filter">
+    <packagedElement xmi:type="uml:Interface" xmi:id="_jvz6sDHAEd-YKaTpDbyUlg" name="PlugInFilter">
+      <ownedOperation xmi:id="_p8dDIDHAEd-YKaTpDbyUlg" name="setup"/>
+      <ownedOperation xmi:id="_xUOh8DHAEd-YKaTpDbyUlg" name="run"/>
+    </packagedElement>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Package" xmi:id="_VI-BkDHKEd-YKaTpDbyUlg" name="ij.measure">
+    <packagedElement xmi:type="uml:Interface" xmi:id="_ZvVvwDHKEd-YKaTpDbyUlg" name="Measurements"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Package" xmi:id="_8ZE6ADHBEd-YKaTpDbyUlg" name="java.awt.event">
+    <packagedElement xmi:type="uml:Interface" xmi:id="_iLGxQDHBEd-YKaTpDbyUlg" name="ActionListener">
+      <generalization xmi:id="_yyeSgDHJEd-YKaTpDbyUlg" general="_GdsVYDHJEd-YKaTpDbyUlg"/>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Interface" xmi:id="_MkulEDHJEd-YKaTpDbyUlg" name="AdjustmentListener">
+      <generalization xmi:id="_3O2-QDHJEd-YKaTpDbyUlg" general="_GdsVYDHJEd-YKaTpDbyUlg"/>
+    </packagedElement>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_svgHoDHCEd-YKaTpDbyUlg" name="ParticleTracker3D_" clientDependency="_5-Jg8DHHEd-YKaTpDbyUlg _S3tbgDHIEd-YKaTpDbyUlg _hQ_OMDHIEd-YKaTpDbyUlg _iYaJQDHIEd-YKaTpDbyUlg">
+    <interfaceRealization xmi:id="_5-Jg8DHHEd-YKaTpDbyUlg" name="" supplier="_jvz6sDHAEd-YKaTpDbyUlg" client="_svgHoDHCEd-YKaTpDbyUlg" contract="_jvz6sDHAEd-YKaTpDbyUlg"/>
+    <interfaceRealization xmi:id="_hQ_OMDHIEd-YKaTpDbyUlg" supplier="_iLGxQDHBEd-YKaTpDbyUlg" client="_svgHoDHCEd-YKaTpDbyUlg" contract="_iLGxQDHBEd-YKaTpDbyUlg"/>
+    <interfaceRealization xmi:id="_S3tbgDHIEd-YKaTpDbyUlg" supplier="_iLGxQDHBEd-YKaTpDbyUlg" client="_svgHoDHCEd-YKaTpDbyUlg" contract="_iLGxQDHBEd-YKaTpDbyUlg"/>
+    <interfaceRealization xmi:id="_iYaJQDHIEd-YKaTpDbyUlg" supplier="_MkulEDHJEd-YKaTpDbyUlg" client="_svgHoDHCEd-YKaTpDbyUlg" contract="_MkulEDHJEd-YKaTpDbyUlg"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Package" xmi:id="_-scmoDHIEd-YKaTpDbyUlg" name="java.util">
+    <packagedElement xmi:type="uml:Interface" xmi:id="_GdsVYDHJEd-YKaTpDbyUlg" name="EventListener"/>
+  </packagedElement>
+</uml:Package>
