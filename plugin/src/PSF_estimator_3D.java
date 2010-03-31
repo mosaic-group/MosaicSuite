@@ -1,4 +1,4 @@
-package ij.plugin;
+
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -7,6 +7,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
 import java.util.Vector;
+
+import mosaic.interpolators.*;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -19,7 +21,6 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.StackStatistics;
 
-import interpolators.*;
 
 //TODO: GUI, edge of map, smart map size, centroid detection tends to grid
 //TODO: see further todo entries.

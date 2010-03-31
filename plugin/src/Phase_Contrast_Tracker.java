@@ -1,24 +1,73 @@
 
 
-import ij.*;
-import ij.plugin.filter.PlugInFilter;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.PlotWindow;
+import ij.gui.Roi;
+import ij.gui.StackWindow;
+import ij.io.FileInfo;
+import ij.io.OpenDialog;
+import ij.io.SaveDialog;
+import ij.measure.Measurements;
 import ij.plugin.filter.Convolver;
 import ij.plugin.filter.Duplicater;
-import ij.process.*;
+import ij.plugin.filter.PlugInFilter;
+import ij.process.Blitter;
+import ij.process.ByteProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.process.StackConverter;
+import ij.process.StackStatistics;
+import ij.text.TextPanel;
 
-import ij.text.*;
-import ij.measure.*;
-import ij.gui.*;
-import ij.io.FileInfo;
-import ij.io.SaveDialog;
-import ij.io.OpenDialog;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.AWTEvent;
+import java.awt.Button;
+import java.awt.Checkbox;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.Label;
+import java.awt.Menu;
+import java.awt.MenuBar;
+import java.awt.MenuItem;
+import java.awt.Panel;
+import java.awt.Point;
+import java.awt.Scrollbar;
+import java.awt.TextField;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -59,20 +108,25 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 	public StackConverter sc;
 	public ImagePlus original_imp;
 	public float global_max, global_min;
-	public MyFrame[] frames;
+	public DetectionResults[] frames;
 	public Vector<Trajectory> all_traj;// = new Vector();
 	public int number_of_trajectories, frames_number, slices_number;
 	public String title;
 
 	/* user defined parameters */
+	/* detection */
+	
 	public double cutoff = 3.0; 		// default
 	public float percentile = 0.001F; 	// default (user input/100)
 	public int absIntensityThreshold = 0; //user input 
 	public int radius = 3; 				// default
+	
+	/* tracking */
 	public int linkrange = 2; 			// default
 	public double displacement = 10.0; 	// default
+	
+	int threshold_mode = PERCENTILE_MODE;
 	int number_of_threads = 4;
-	int threshold_mode = PERCENTILE_MODE; 
 	public GenericDialog gd;
 
 	/*	image Restoration vars	*/
@@ -128,7 +182,10 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 	 * @return a flag word that represents the filters capabilities according to arg String argument
 	 * @see ij.plugin.filter.PlugInFilter#setup(java.lang.String, ij.ImagePlus)
 	 */
-	public int setup(String arg, ImagePlus imp) {		
+	public int setup(String arg, ImagePlus imp) {
+		
+		getUserDefinedParams();
+		
 		if(IJ.versionLessThan("1.38u")){
 			return DONE;
 		}
@@ -162,6 +219,166 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 	}
 
 	/**
+	 * Displays a dialog window to get user defined params and selections, 
+	 * also initialize and sets other params according to the work mode.
+	 * <ul>
+	 * <br>For a sequence of images:
+	 * <ul>
+	 * <li>Gets user defined params:<code> radius, cutoff, precentile, linkrange, displacement</code>
+	 * <li>Displays the preview Button and slider
+	 * <li>Gives the option to convert the image seq to 8Bit if its color
+	 * <li>Initialize and sets params:<code> stack, title, global_max, global_min, mask, kernel</code> 	
+	 * <br></ul>
+	 * For text_files_mode: 
+	 * <ul>
+	 * <li>Gets user defined params:<code> linkrange, displacement </code>
+	 * <li>Initialize and sets params:<code> files_list, title, frames_number, momentum_from_text </code>
+	 * </ul></ul>
+	 * @return false if cancel button clicked or problem with input
+	 * @see #makeKernel(int)
+	 * @see #generateBinaryMask(int)	 
+	 */
+	boolean getUserDefinedParams() {
+	
+		gd = new GenericDialog("Particle Tracker...", IJ.getInstance());
+		GenericDialog text_mode_gd;
+		momentum_from_text = false;
+		zcoord_from_text = false;
+		boolean convert = false;
+		if (text_files_mode) {
+			// gets the input files directory form user
+			files_list  = getFilesList();
+			if (files_list == null) return false;
+	
+			this.title = "text_files";
+			frames_number = 0;
+			// EACH!! file in the given directory is considered as a frame
+			for (int i = 0; i<files_list.length; i++) {
+				if (!files_list[i].startsWith(".") && !files_list[i].endsWith("~")) {
+					frames_number++;
+				}
+			}
+			text_mode_gd = new GenericDialog("input files info", IJ.getInstance());
+			text_mode_gd.addMessage("Please specify the info provided for the Particles...");
+			text_mode_gd.addCheckbox("1st position - x (must)", true);
+			text_mode_gd.addCheckbox("2nd position - y (must)", true);
+			text_mode_gd.addCheckbox("3rd position - z (if 3D data)", true);
+			text_mode_gd.addCheckbox("4rd to 8th positions - momentum (m0) to (m4)", false);
+			//			text_mode_gd.addCheckbox("3rd or 5th position and on- all other data", true);
+	
+			((Checkbox)text_mode_gd.getCheckboxes().elementAt(0)).setEnabled(false);
+			((Checkbox)text_mode_gd.getCheckboxes().elementAt(1)).setEnabled(false);
+			text_mode_gd.showDialog();
+			if (text_mode_gd.wasCanceled()) return false;
+			text_mode_gd.getNextBoolean();
+			text_mode_gd.getNextBoolean();
+			zcoord_from_text = text_mode_gd.getNextBoolean();
+			momentum_from_text = text_mode_gd.getNextBoolean();			
+		} else {
+			gd.addMessage("Particle Detection:");			
+			// These 3 params are only relevant for non text_files_mode
+			gd.addNumericField("Radius", 3, 0);
+			gd.addNumericField("Cutoff", 3.0, 1);
+	
+			//	        gd.addChoice("Threshold mode", new String[]{"Absolute Threshold","Percentile"}, "Percentile");
+			//	        ((Choice)gd.getChoices().firstElement()).addItemListener(new ItemListener(){
+			//				public void itemStateChanged(ItemEvent e) {
+			//					int mode = 0;
+			//					if(e.getItem().toString().equals("Absolute Threshold")) {
+			//						mode = ABS_THRESHOLD_MODE;						
+			//					}
+			//					if(e.getItem().toString().equals("Percentile")) {
+			//						mode = PERCENTILE_MODE;						
+			//					}
+			//					thresholdModeChanged(mode);
+			//				}});
+	
+			//	        gd.addNumericField("Percentile", 0.001, 5);
+			//	        gd.addNumericField("Percentile / Abs.Threshold", 0.1, 5, 6, " % / Intensity");
+			gd.addNumericField("Percentile", 0.1, 5, 6, " %");
+	
+			//	        gd.addPanel(makeThresholdPanel(), GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
+			//	        gd.addChoice("Preprocessing mode", new String[]{"none", "box-car avg.", "BG Subtraction", "Laplace Operation"}, "box-car avg.");	        
+			gd.addPanel(makePreviewPanel(), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));	        
+	
+			// check if the original images are not GRAY8, 16 or 32
+			if (this.original_imp.getType() != ImagePlus.GRAY8 &&
+					this.original_imp.getType() != ImagePlus.GRAY16 &&
+					this.original_imp.getType() != ImagePlus.GRAY32) {
+				gd.addCheckbox("Convert to Gray8 (recommended)", true);
+				convert = true;
+			}  
+		}
+	
+		if (!only_detect) { 
+			gd.addMessage("Particle Linking:\n");
+			// These 2 params are relevant for both working modes
+			gd.addNumericField("Link Range", 2, 0);
+			gd.addNumericField("Displacement", 10.0, 2); 
+		}
+	
+		gd.showDialog();
+	
+		// retrieve params from user
+		if (!text_files_mode) {
+			int rad = (int)gd.getNextNumber();
+			//        	this.radius = (int)gd.getNextNumber();
+			double cut = gd.getNextNumber(); 
+			//            this.cutoff = gd.getNextNumber();   
+			float per = ((float)gd.getNextNumber())/100;
+			int intThreshold = (int)(per*100+0.5);
+			//            this.percentile = ((float)gd.getNextNumber())/100;
+	
+			//        	int thsmode = gd.getNextChoiceIndex();
+			//        	setThresholdMode(thsmode);
+	
+			//        	int mode = gd.getNextChoiceIndex();
+			// even if the frames were already processed (particles detected) but
+			// the user changed the detection params then the frames needs to be processed again
+			if (rad != this.radius || cut != this.cutoff  || (per != this.percentile)){// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode()) {
+				if (this.frames_processed) {
+					this.frames = null;
+					this.frames_processed = false;
+				}        		
+			}
+			this.radius = rad;
+			this.cutoff = cut;
+			this.percentile = per;
+			this.absIntensityThreshold = intThreshold;
+			//        	this.preprocessing_mode = mode;
+	
+	
+			// add the option to convert only if   images are not GRAY8, 16 or 32
+			if (convert) convert = gd.getNextBoolean();
+	
+			// create Mask for Dilation with the user defined radius
+			generateMasks(this.radius);
+	
+		}
+		if (only_detect) {
+			return false;
+		}
+		this.linkrange = (int)gd.getNextNumber();
+		this.displacement = gd.getNextNumber();
+	
+		// if Cancel button was clicked
+		if (gd.wasCanceled()) return false;
+	
+		// if user choose to convert reset stack, title, frames number and global min, max
+		if (convert) {
+			sc = new StackConverter(original_imp);
+			sc.convertToGray8();
+			stack = original_imp.getStack();
+			this.title = original_imp.getTitle();
+			StackStatistics stack_stats = new StackStatistics(original_imp);
+			global_max = (float)stack_stats.max;
+			global_min = (float)stack_stats.min;
+			frames_number = original_imp.getNFrames(); //??maybe not necessary
+		}
+		return true;
+	}
+
+	/**
 	 * This method runs the plugin, what implemented here is what the plugin actually
 	 * does. It takes the image processor it works on as an argument. 
 	 * <br>In this implementation the processor is not used so that the original image is left unchanged. 
@@ -170,6 +387,11 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 	 * @see ij.plugin.filter.PlugInFilter#run(ij.process.ImageProcessor)
 	 */
 	public void run(ImageProcessor ip) {
+		
+		
+		ip.snapshot();
+		
+		
 
 		initializeMembers();
 		
@@ -242,16 +464,16 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 	 * <br>Adds every <code>MyFrame</code> created to the <code>frames</code> array
 	 * <br>Setes the <code>frames_processed</code> flag to true
 	 * <br>If the frames were already processed do nothing and return true
-	 * @see MyFrame
-	 * @see MyFrame#featurePointDetection()
+	 * @see DetectionResults
+	 * @see DetectionResults#featurePointDetection()
 	 */
 	public boolean processFrames() {
 
 		if (frames_processed) return true;
 
 		/* Initialise frames array */
-		frames = new MyFrame[frames_number];
-		MyFrame current_frame = null;
+		frames = new DetectionResults[frames_number];
+		DetectionResults current_frame = null;
 
 		for (int frame_i = 0, file_index = 0; frame_i < frames_number; frame_i++, file_index++) {			
 
@@ -265,14 +487,14 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 				// construct each frame from the conrosponding text file 
 				IJ.showStatus("Reading Particles from file " + files_list[file_index] + 
 						"(" + (frame_i) + "/" + files_list.length + ")");
-				current_frame = new MyFrame(files_dir + files_list[file_index]);
+				current_frame = new DetectionResults(files_dir + files_list[file_index]);
 				if (current_frame.particles == null) return false;
 
 			} else {
 
 				// sequence of images mode:
 				// construct each frame from the corresponding image
-				current_frame = new MyFrame(GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i);
+				current_frame = new DetectionResults(GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i);
 
 				// Detect feature points in this frame
 				IJ.showStatus("Detecting Particles in Frame " + (frame_i+1) + "/" + frames_number);				
@@ -282,166 +504,6 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 			IJ.freeMemory();
 		} // for
 		frames_processed = true;
-		return true;
-	}
-
-	/**
-	 * Displays a dialog window to get user defined params and selections, 
-	 * also initialize and sets other params according to the work mode.
-	 * <ul>
-	 * <br>For a sequence of images:
-	 * <ul>
-	 * <li>Gets user defined params:<code> radius, cutoff, precentile, linkrange, displacement</code>
-	 * <li>Displays the preview Button and slider
-	 * <li>Gives the option to convert the image seq to 8Bit if its color
-	 * <li>Initialize and sets params:<code> stack, title, global_max, global_min, mask, kernel</code> 	
-	 * <br></ul>
-	 * For text_files_mode: 
-	 * <ul>
-	 * <li>Gets user defined params:<code> linkrange, displacement </code>
-	 * <li>Initialize and sets params:<code> files_list, title, frames_number, momentum_from_text </code>
-	 * </ul></ul>
-	 * @return false if cancel button clicked or problem with input
-	 * @see #makeKernel(int)
-	 * @see #generateBinaryMask(int)	 
-	 */
-	boolean getUserDefinedParams() {
-
-		gd = new GenericDialog("Particle Tracker...", IJ.getInstance());
-		GenericDialog text_mode_gd;
-		momentum_from_text = false;
-		zcoord_from_text = false;
-		boolean convert = false;
-		if (text_files_mode) {
-			// gets the input files directory form user
-			files_list  = getFilesList();
-			if (files_list == null) return false;
-
-			this.title = "text_files";
-			frames_number = 0;
-			// EACH!! file in the given directory is considered as a frame
-			for (int i = 0; i<files_list.length; i++) {
-				if (!files_list[i].startsWith(".") && !files_list[i].endsWith("~")) {
-					frames_number++;
-				}
-			}
-			text_mode_gd = new GenericDialog("input files info", IJ.getInstance());
-			text_mode_gd.addMessage("Please specify the info provided for the Particles...");
-			text_mode_gd.addCheckbox("1st position - x (must)", true);
-			text_mode_gd.addCheckbox("2nd position - y (must)", true);
-			text_mode_gd.addCheckbox("3rd position - z (if 3D data)", true);
-			text_mode_gd.addCheckbox("4rd to 8th positions - momentum (m0) to (m4)", false);
-			//			text_mode_gd.addCheckbox("3rd or 5th position and on- all other data", true);
-
-			((Checkbox)text_mode_gd.getCheckboxes().elementAt(0)).setEnabled(false);
-			((Checkbox)text_mode_gd.getCheckboxes().elementAt(1)).setEnabled(false);
-			text_mode_gd.showDialog();
-			if (text_mode_gd.wasCanceled()) return false;
-			text_mode_gd.getNextBoolean();
-			text_mode_gd.getNextBoolean();
-			zcoord_from_text = text_mode_gd.getNextBoolean();
-			momentum_from_text = text_mode_gd.getNextBoolean();			
-		} else {
-			gd.addMessage("Particle Detection:");			
-			// These 3 params are only relevant for non text_files_mode
-			gd.addNumericField("Radius", 3, 0);
-			gd.addNumericField("Cutoff", 3.0, 1);
-
-			//	        gd.addChoice("Threshold mode", new String[]{"Absolute Threshold","Percentile"}, "Percentile");
-			//	        ((Choice)gd.getChoices().firstElement()).addItemListener(new ItemListener(){
-			//				public void itemStateChanged(ItemEvent e) {
-			//					int mode = 0;
-			//					if(e.getItem().toString().equals("Absolute Threshold")) {
-			//						mode = ABS_THRESHOLD_MODE;						
-			//					}
-			//					if(e.getItem().toString().equals("Percentile")) {
-			//						mode = PERCENTILE_MODE;						
-			//					}
-			//					thresholdModeChanged(mode);
-			//				}});
-
-			//	        gd.addNumericField("Percentile", 0.001, 5);
-			//	        gd.addNumericField("Percentile / Abs.Threshold", 0.1, 5, 6, " % / Intensity");
-			gd.addNumericField("Percentile", 0.1, 5, 6, " %");
-
-			//	        gd.addPanel(makeThresholdPanel(), GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
-			//	        gd.addChoice("Preprocessing mode", new String[]{"none", "box-car avg.", "BG Subtraction", "Laplace Operation"}, "box-car avg.");	        
-			gd.addPanel(makePreviewPanel(), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));	        
-
-			// check if the original images are not GRAY8, 16 or 32
-			if (this.original_imp.getType() != ImagePlus.GRAY8 &&
-					this.original_imp.getType() != ImagePlus.GRAY16 &&
-					this.original_imp.getType() != ImagePlus.GRAY32) {
-				gd.addCheckbox("Convert to Gray8 (recommended)", true);
-				convert = true;
-			}  
-		}
-
-		if (!only_detect) { 
-			gd.addMessage("Particle Linking:\n");
-			// These 2 params are relevant for both working modes
-			gd.addNumericField("Link Range", 2, 0);
-			gd.addNumericField("Displacement", 10.0, 2); 
-		}
-
-		gd.showDialog();
-
-		// retrieve params from user
-		if (!text_files_mode) {
-			int rad = (int)gd.getNextNumber();
-			//        	this.radius = (int)gd.getNextNumber();
-			double cut = gd.getNextNumber(); 
-			//            this.cutoff = gd.getNextNumber();   
-			float per = ((float)gd.getNextNumber())/100;
-			int intThreshold = (int)(per*100+0.5);
-			//            this.percentile = ((float)gd.getNextNumber())/100;
-
-			//        	int thsmode = gd.getNextChoiceIndex();
-			//        	setThresholdMode(thsmode);
-
-			//        	int mode = gd.getNextChoiceIndex();
-			// even if the frames were already processed (particles detected) but
-			// the user changed the detection params then the frames needs to be processed again
-			if (rad != this.radius || cut != this.cutoff  || (per != this.percentile)){// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode()) {
-				if (this.frames_processed) {
-					this.frames = null;
-					this.frames_processed = false;
-				}        		
-			}
-			this.radius = rad;
-			this.cutoff = cut;
-			this.percentile = per;
-			this.absIntensityThreshold = intThreshold;
-			//        	this.preprocessing_mode = mode;
-
-
-			// add the option to convert only if   images are not GRAY8, 16 or 32
-			if (convert) convert = gd.getNextBoolean();
-
-			// create Mask for Dilation with the user defined radius
-			generateMasks(this.radius);
-
-		}
-		if (only_detect) {
-			return false;
-		}
-		this.linkrange = (int)gd.getNextNumber();
-		this.displacement = gd.getNextNumber();
-
-		// if Cancel button was clicked
-		if (gd.wasCanceled()) return false;
-
-		// if user choose to convert reset stack, title, frames number and global min, max
-		if (convert) {
-			sc = new StackConverter(original_imp);
-			sc.convertToGray8();
-			stack = original_imp.getStack();
-			this.title = original_imp.getTitle();
-			StackStatistics stack_stats = new StackStatistics(original_imp);
-			global_max = (float)stack_stats.max;
-			global_min = (float)stack_stats.min;
-			frames_number = original_imp.getNFrames(); //??maybe not necessary
-		}
 		return true;
 	}
 
@@ -915,7 +977,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 	 * @see ParticleTracker_#mGlobalMax
 	 * @see ParticleTracker_#mGlobalMin
 	 */
-	public class MyFrame {
+	public class DetectionResults {
 
 		//		Particle[] particles;		// an array Particle, holds all the particles detected in this frame
 		//									// after particle discrimination holds only the "real" particles
@@ -941,7 +1003,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 		 * @param ip the original ImageProcessor upon this MyFrame is based, will remain unchanged!
 		 * @param frame_num the serial number of this frame in the movie
 		 */
-		public MyFrame (ImageStack ips, int frame_num) {
+		public DetectionResults (ImageStack ips, int frame_num) {
 			this.original_ips = ips;
 			this.frame_number = frame_num;
 		}
@@ -953,7 +1015,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 		 * all the particles information is set immediately on construction.
 		 * @param path full path to the file (including full file name) e.g c:\ImageJ\frame0.txt
 		 */
-		public MyFrame (String path) {
+		public DetectionResults (String path) {
 			loadParticlesFromFile (path);
 		}
 
@@ -1072,11 +1134,11 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 		 * <br>Converts the <code>original_ip</code> to <code>FloatProcessor</code>, normalizes it, convolutes and dilates it,
 		 * finds the particles, refine their position and filters out non particles
 		 * @see ImageProcessor#convertToFloat()
-		 * @see MyFrame#normalizeFrameFloat(ImageProcessor)
-		 * @see MyFrame#imageRestoration(ImageProcessor)
-		 * @see MyFrame#pointLocationsEstimation(ImageProcessor)
-		 * @see MyFrame#pointLocationsRefinement(ImageProcessor)
-		 * @see MyFrame#nonParticleDiscrimination()
+		 * @see DetectionResults#normalizeFrameFloat(ImageProcessor)
+		 * @see DetectionResults#imageRestoration(ImageProcessor)
+		 * @see DetectionResults#pointLocationsEstimation(ImageProcessor)
+		 * @see DetectionResults#pointLocationsRefinement(ImageProcessor)
+		 * @see DetectionResults#nonParticleDiscrimination()
 		 */
 		public void featurePointDetection () {		
 
@@ -2019,7 +2081,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 		 * from the particles array. 
 		 * <br>Non particles will be removed from the <code>particles</code> array so if their info is 
 		 * needed, it should be saved before calling this method
-		 * @see MyFrame#nonParticleDiscrimination()
+		 * @see DetectionResults#nonParticleDiscrimination()
 		 */
 		private void removeNonParticle() {
 
@@ -2298,7 +2360,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 		 * Generates (in real time) a "ready to print" StringBuffer with this frame 
 		 * infomation before and after non particles discrimination
 		 * @return a StringBuffer with the info
-		 * @see MyFrame#getFrameInfoAfterDiscrimination()
+		 * @see DetectionResults#getFrameInfoAfterDiscrimination()
 		 * @see #info_before_discrimination
 		 */
 		public StringBuffer getFullFrameInfo() {
@@ -2364,7 +2426,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 		 * @param with_momentum if true, the momentum values (m0, m2) are also included
 		 * if false - only x and y values are included
 		 * @return the <code>StringBuffer</code> with this information
-		 * @see MyFrame#loadParticlesFromFile(String) 
+		 * @see DetectionResults#loadParticlesFromFile(String) 
 		 */
 		private StringBuffer frameDetectedParticlesForSave(boolean with_momentum) {
 
@@ -2632,7 +2694,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 	private class PreviewCanvas extends ImageCanvas {
 
 		private static final long serialVersionUID = 1L;
-		private MyFrame preview_frame;
+		private DetectionResults preview_frame;
 		int magnification = 1;
 
 		/**
@@ -2649,7 +2711,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 			this.magnification = (int)mag;
 		}
 
-		public void setPreviewFrame(MyFrame aPreviewFrame) {
+		public void setPreviewFrame(DetectionResults aPreviewFrame) {
 			this.preview_frame = aPreviewFrame;
 		}
 
@@ -3833,7 +3895,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 	 * Detects particles in the current displayed frame according to the parameters curretly set 
 	 * Draws dots on the positions of the detected partciles on the frame and circles them
 	 * @see #getUserDefinedPreviewParams()
-	 * @see MyFrame#featurePointDetection()
+	 * @see DetectionResults#featurePointDetection()
 	 * @see PreviewCanvas
 	 */
 	public synchronized void preview() {		
@@ -3850,7 +3912,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 
 		int first_slice = (getFrameNumberFromSlice(this.preview_slice_calculated)-1) * slices_number + 1;
 		// create a new MyFrame from the current_slice in the stack
-		MyFrame preview_frame = new MyFrame(GetSubStackCopyInFloat(stack, first_slice, first_slice  + slices_number - 1), getFrameNumberFromSlice(this.preview_slice_calculated)-1);
+		DetectionResults preview_frame = new DetectionResults(GetSubStackCopyInFloat(stack, first_slice, first_slice  + slices_number - 1), getFrameNumberFromSlice(this.preview_slice_calculated)-1);
 
 		// detect particles in this frame
 		preview_frame.featurePointDetection();
@@ -4508,7 +4570,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 	 * <br>It is used to visualize particles and trajectories when working in text-files-mode,
 	 * since there is no visual stack to start with
 	 * @return the created ImageStack
-	 * @see MyFrame#createImage(int, int)
+	 * @see DetectionResults#createImage(int, int)
 	 */
 	public ImageStack createStackFromTextFiles() {
 
@@ -4534,8 +4596,8 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 	 * @return a <code>StringBuffer</code> that holds this information
 	 * @see #getConfiguration()
 	 * @see #getInputFramesInformation()
-	 * @see MyFrame#getFullFrameInfo()
-	 * @see MyFrame#toStringBuffer()	 * @see #getTrajectoriesInfo()
+	 * @see DetectionResults#getFullFrameInfo()
+	 * @see DetectionResults#toStringBuffer()	 * @see #getTrajectoriesInfo()
 	 */
 	public StringBuffer getFullReport() {
 
