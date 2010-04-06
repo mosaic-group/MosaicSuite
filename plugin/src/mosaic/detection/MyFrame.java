@@ -1,60 +1,34 @@
 package mosaic.detection;
 
-import ij.IJ;
-import ij.ImagePlus;
 import ij.ImageStack;
-import ij.plugin.filter.Convolver;
-import ij.process.Blitter;
 import ij.process.ByteProcessor;
-import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import ij.process.ImageStatistics;
-import ij.process.StackStatistics;
-import ij.gui.StackWindow;
-import ij.measure.*;
 
 import java.awt.Color;
-import java.awt.Point;
-import java.awt.geom.Point2D;
 import java.text.NumberFormat;
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import mosaic.core.Particle;
-import mosaic.plugins.BackgroundSubtractor2_;
-import mosaic.plugins.CircleGridIntersectionCalculator;
-import mosaic.plugins.ParticleTracker_;
 
-/**
+	/**
 	 * Defines a MyFrame that is based upon an ImageProcessor or information from a text file.
-	 * <br>MyFrame class has all the necessary methods to detect and report the "real" particles 
-	 * for them to be linked.
-	 * <br>Some of its methods use global variables defined and calculated in <code>ParticleTracker_</code>
-	 * @see ParticleTracker_#mMask
-	 * @see ParticleTracker_#kernel
-	 * @see ParticleTracker_#cutoff
-	 * @see ParticleTracker_#percentile
-	 * @see ParticleTracker_#mMaskRadius
-	 * @see ParticleTracker_#linkrange
-	 * @see ParticleTracker_#mGlobalMax
-	 * @see ParticleTracker_#mGlobalMin
 	 */
 	public class MyFrame {
 
 		//		Particle[] particles;		// an array Particle, holds all the particles detected in this frame
 		//									// after particle discrimination holds only the "real" particles
 		Vector<Particle> particles;
-		int particles_number;		// number of particles initialy detected 
+		int particles_number;				// number of particles initialy detected 
 		public int real_particles_number;	// number of "real" particles discrimination
 		public int frame_number;			// Serial number of this frame in the movie (can be 0)
 		StringBuffer info_before_discrimination;// holdes string with ready to print info
-		// about this frame before particle discrimination 
+											// about this frame before particle discrimination 
 
 		/* only relevant to frames representing real images */
-		ImageStack original_ips;	// the original image (pointer only)
+		ImageStack original_ips;			// the original image (pointer only)
 		//		ImageStack original_fps; // the original image after convertion to float processor (if already float, then a copy)
 		//		ImageStack restored_fps; // the floating processor after image restoration
-		float threshold;			// threshold for particle detection 
+		float threshold;					// threshold for particle detection 
 		boolean normalized = false;
 		
 		/* user defined parameters */
@@ -64,7 +38,7 @@ import mosaic.plugins.ParticleTracker_;
 		/**
 		 * Constructor for ImageProcessor based MyFrame.
 		 * <br>All particles and other information will be derived from the given <code>ImageProcessor</code>
-		 * by applying internal MyFrame methods  
+		 * by applying Detector methods  
 		 * @param ip the original ImageProcessor upon this MyFrame is based, will remain unchanged!
 		 * @param frame_num the serial number of this frame in the movie
 		 */
@@ -174,7 +148,7 @@ import mosaic.plugins.ParticleTracker_;
 
 		/**
 		 * Generates (in real time) a "ready to print" StringBuffer with this frame 
-		 * infomation before and after non particles discrimination
+		 * information before and after non particles discrimination
 		 * @return a StringBuffer with the info
 		 * @see MyFrame#getFrameInfoAfterDiscrimination()
 		 * @see #info_before_discrimination
@@ -234,6 +208,7 @@ import mosaic.plugins.ParticleTracker_;
 		public Vector<Particle> getParticles(){
 			return this.particles;
 		}
+		
 		/**
 		 * Generates (in real time) a "ready to save" <code>StringBuffer</code> with information
 		 * about the detected particles defined in this MyFrame.
@@ -319,27 +294,11 @@ import mosaic.plugins.ParticleTracker_;
 			}
 			return ip;		
 		}
-		
-		public float[] CalculateNormalizedGaussKernel(float aSigma){
-			int vL = (int)aSigma * 3 * 2 + 1;
-			if(vL < 3) vL = 3;
-			float[] vKernel = new float[vL];
-			int vM = vKernel.length/2;
-			for(int vI = 0; vI < vM; vI++){
-				vKernel[vI] = (float)(1f/(2f*Math.PI*aSigma*aSigma) * Math.exp(-(float)((vM-vI)*(vM-vI))/(2f*aSigma*aSigma)));
-				vKernel[vKernel.length - vI - 1] = vKernel[vI];
-			}
-			vKernel[vM] = (float)(1f/(2f*Math.PI*aSigma*aSigma));
 
-			//normalize the kernel numerically:
-			float vSum = 0;
-			for(int vI = 0; vI < vKernel.length; vI++){
-				vSum += vKernel[vI];
-			}
-			float vScale = 1.0f/vSum;
-			for(int vI = 0; vI < vKernel.length; vI++){
-				vKernel[vI] *= vScale;
-			}
-			return vKernel;
+		public void setParticles(Vector<Particle> particles, int particles_number) {
+			this.particles = particles;
+			this.particles_number = particles_number;
 		}
+		
+		
 	}

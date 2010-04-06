@@ -1,29 +1,65 @@
 package mosaic.plugins;
 
-
-import ij.*;
-import ij.plugin.filter.PlugInFilter;
-import ij.plugin.filter.Convolver;
-import ij.plugin.filter.Duplicater;
-import ij.process.*;
-
-import ij.text.*;
-import ij.measure.*;
-import ij.gui.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.PlotWindow;
+import ij.gui.Roi;
+import ij.gui.StackWindow;
 import ij.io.FileInfo;
-import ij.io.SaveDialog;
 import ij.io.OpenDialog;
+import ij.io.SaveDialog;
+import ij.measure.Measurements;
+import ij.plugin.filter.Duplicater;
+import ij.plugin.filter.PlugInFilter;
+import ij.process.ImageProcessor;
+import ij.process.StackConverter;
+import ij.process.StackStatistics;
+import ij.text.TextPanel;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.Point2D;
-import java.io.*;
-import java.text.NumberFormat;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.awt.AWTEvent;
+import java.awt.Button;
+import java.awt.Checkbox;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.Label;
+import java.awt.Menu;
+import java.awt.MenuBar;
+import java.awt.MenuItem;
+import java.awt.Panel;
+import java.awt.Point;
+import java.awt.Scrollbar;
+import java.awt.TextField;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Vector;
 
 import mosaic.core.Particle;
-import mosaic.detection.Detector;
 import mosaic.detection.FeaturePointDetector;
 import mosaic.detection.MyFrame;
 
@@ -59,34 +95,21 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 
 	private final static int SYSTEM = 0;
 	private final static int IJ_RESULTS_WINDOW = 1;
-	public static final int NO_PREPROCESSING = 0, BOX_CAR_AVG = 1, BG_SUBTRACTOR = 2, LAPLACE_OP = 3;  
-	public static final int ABS_THRESHOLD_MODE = 0, PERCENTILE_MODE = 1;
 	public ImageStack stack ,traj_stack;	
 	public StackConverter sc;
 	public ImagePlus original_imp;
-	public float global_max, global_min;
 	public MyFrame[] frames;
 	public Vector<Trajectory> all_traj;// = new Vector();
 	public int number_of_trajectories, frames_number, slices_number;
 	private FeaturePointDetector detector;
 	public String title;
 	
-	/* user defined parameters */
-	//public double cutoff = 3.0; 		// default
-	//public float percentile = 0.001F; 	// default (user input/100)
-	//public int absIntensityThreshold = 0; //user input 
-	//public int radius = 3; 				// default
+	/* user defined parameters for linking*/
 	public int linkrange = 2; 			// default
 	public double displacement = 10.0; 	// default
 
 	public GenericDialog gd;
-
-	/*	image Restoration vars	*/
-	public short[][] binary_mask;
-	public float[][] weighted_mask;
-	public int[][] mask;
-	public float lambda_n = 1;
-	public int preprocessing_mode = BOX_CAR_AVG;	
+	
 	/* flags */	
 	public boolean text_files_mode = false;
 	public boolean only_detect = false;
@@ -231,12 +254,12 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 
 			// get global minimum and maximum
 			StackStatistics stack_stats = new StackStatistics(original_imp);
-			global_max = (float)stack_stats.max;
-			global_min = (float)stack_stats.min;
+			float global_max = (float)stack_stats.max;
+			float global_min = (float)stack_stats.min;
 			frames_number = original_imp.getNFrames();
 			slices_number = original_imp.getNSlices();
 			
-			detector = new FeaturePointDetector(global_min, global_max);
+			detector = new FeaturePointDetector(global_max, global_min);
 			
 		}else {
 			slices_number = 1;
@@ -440,8 +463,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 			stack = original_imp.getStack();
 			this.title = original_imp.getTitle();
 			StackStatistics stack_stats = new StackStatistics(original_imp);
-			global_max = (float)stack_stats.max;
-			global_min = (float)stack_stats.min;
+			detector.global_max = (float)stack_stats.max;
+			detector.global_min = (float)stack_stats.min;
 			frames_number = original_imp.getNFrames(); //??maybe not necessary
 		}
 		return true;
@@ -1994,7 +2017,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 			System.out.println(s);
 			break;
 		case IJ_RESULTS_WINDOW:
-			IJ.write(s.toString());
+			IJ.log(s.toString());
 			break;
 		}		
 	}	
@@ -2268,12 +2291,12 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 			configuration.append("% \tCutoff radius: ");
 			configuration.append(detector.cutoff);
 			configuration.append("\n");
-			if(detector.threshold_mode == PERCENTILE_MODE) {
+			if(detector.threshold_mode == FeaturePointDetector.PERCENTILE_MODE) {
 				configuration.append("% \tPercentile: ");
 				configuration.append((detector.percentile*100));
 				configuration.append("\n");
 			}
-			if(detector.threshold_mode == ABS_THRESHOLD_MODE) {
+			if(detector.threshold_mode == FeaturePointDetector.ABS_THRESHOLD_MODE) {
 				configuration.append("% \tAbsolute threshold: ");
 				configuration.append((detector.absIntensityThreshold));
 				configuration.append("\n");
@@ -2314,10 +2337,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 		info.append(slices_number);
 		info.append(" slices\n");
 		info.append("% \tGlobal minimum: ");
-		info.append(this.global_min);
+		info.append(detector.global_min);
 		info.append("\n");
 		info.append("% \tGlobal maximum: ");
-		info.append(this.global_max);
+		info.append(detector.global_max);
 		info.append("\n");
 		return info;
 	}
@@ -2527,163 +2550,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 		//				and the folder could contain other files
 		String[] list = new File(od.getDirectory()).list();
 		return list;		
-	}
-
-	/**
-	 * (Re)Initialize the binary and weighted masks. This is necessary if the radius changed.
-	 * The memory allocations are performed in advance (in this method) for efficiency reasons.
-	 * @param mask_radius
-	 */
-	public void generateMasks(int mask_radius){
-		//the binary mask can be calculated already:
-		int width = (2 * mask_radius) + 1;
-		this.binary_mask = new short[width][width*width];
-		generateBinaryMask(mask_radius);
-
-		//the weighted mask is just initialized with the new radius:
-		this.weighted_mask = new float[width][width*width];
-
-		//standard boolean mask
-		generateMask(mask_radius);
-
-	}
-
-	/**
-	 * Generates the dilation mask
-	 * <code>mask</code> is a var of class ParticleTracker_ and its modified internally here
-	 * Adapted from Ingo Oppermann implementation
-	 * @param mask_radius the radius of the mask (user defined)
-	 */
-	public void generateBinaryMask(int mask_radius) {    	
-		int width = (2 * mask_radius) + 1;
-		for(int s = -mask_radius; s <= mask_radius; s++){
-			for(int i = -mask_radius; i <= mask_radius; i++) {
-				for(int j = -mask_radius; j <= mask_radius; j++) {
-					int index = coord(i + mask_radius, j + mask_radius, width);
-					if((i * i) + (j * j) + (s * s) <= mask_radius * mask_radius)
-						this.binary_mask[s + mask_radius][index] = 1;
-					else
-						this.binary_mask[s + mask_radius][index] = 0;
-
-				}
-			}
-		}
-		//    	System.out.println("mask crated");
-	}
-
-	/**
-	 * Generates the dilation mask
-	 * <code>mask</code> is a var of class ParticleTracker_ and its modified internally here
-	 * Adapted from Ingo Oppermann implementation
-	 * @param mask_radius the radius of the mask (user defined)
-	 */
-	public void generateMask(int mask_radius) {    	
-
-		int width = (2 * mask_radius) + 1;
-		this.mask = new int[width][width*width];
-		for(int s = -mask_radius; s <= mask_radius; s++){
-			for(int i = -mask_radius; i <= mask_radius; i++) {
-				for(int j = -mask_radius; j <= mask_radius; j++) {
-					int index = coord(i + mask_radius, j + mask_radius, width);
-					if((i * i) + (j * j) + (s * s) <= mask_radius * mask_radius)
-						this.mask[s + mask_radius][index] = 1;
-					else
-						this.mask[s + mask_radius][index] = 0;
-
-				}
-			}
-		}
-	}
-
-	public void generateWeightedMask_old(int mask_radius, float xCenter, float yCenter, float zCenter) {
-		int width = (2 * mask_radius) + 1;
-		for(int iz = -mask_radius; iz <= mask_radius; iz++){
-			for(int iy = -mask_radius; iy <= mask_radius; iy++) {
-				for(int ix = -mask_radius; ix <= mask_radius; ix++) {
-					int index = coord(iy + mask_radius, ix + mask_radius, width);
-
-					float distPxToCenter = (float) Math.sqrt((xCenter-ix)*(xCenter-ix)+(yCenter-iy)*(yCenter-iy)+(zCenter-iz)*(zCenter-iz)); 
-
-					//the weight is approximative the amount of the voxel inside the (spherical) mask.
-					float weight = (float)mask_radius - distPxToCenter + .5f; 
-					if(weight < 0) {
-						weight = 0f;    				
-					} 
-					if(weight > 1) {
-						weight = 1f;
-					}
-					this.weighted_mask[iz + mask_radius][index] = weight;
-				}
-			}
-		}
-	}
-
-	public void generateWeightedMask_2D(int mask_radius, float xCenter, float yCenter, float zCenter) {
-		int width = (2 * mask_radius) + 1;
-		float pixel_radius = 0.5f;		
-		float r = pixel_radius;
-		float R = mask_radius;
-		for(int iy = -mask_radius; iy <= mask_radius; iy++) {
-			for(int ix = -mask_radius; ix <= mask_radius; ix++) {
-				int index = coord(iy + mask_radius, ix + mask_radius, width);
-
-				float distPxCenterToMaskCenter = (float) Math.sqrt((xCenter-ix)*(xCenter-ix)+(yCenter-iy)*(yCenter-iy)); 
-				float d = distPxCenterToMaskCenter;
-				//the weight is approximative the amount of the voxel inside the (spherical) mask. See formula 
-				//http://mathworld.wolfram.com/Circle-CircleIntersection.html
-				float weight = 0;
-				if(distPxCenterToMaskCenter < mask_radius + pixel_radius){
-					weight = 1;
-
-					if(mask_radius < distPxCenterToMaskCenter + pixel_radius) {
-						float v = (float) (pixel_radius*pixel_radius*
-								Math.acos((d*d+r*r-R*R)/(2*d*r))
-								+R*R*Math.acos((d*d+R*R-r*r)/(2*d*R))
-								-0.5f*Math.sqrt((-d+r+R)*(d+r-R)*(d-r+R)*(d+r+R)));
-
-						weight =  (v / ((float)Math.PI * pixel_radius*pixel_radius));
-					}
-				}
-
-				for(int iz = -mask_radius; iz <= mask_radius; iz++){
-					this.weighted_mask[iz + mask_radius][index] = weight;
-				}
-			}
-		}
-
-
-	}
-
-	public void generateWeightedMask_3D(int mask_radius, float xCenter, float yCenter, float zCenter) {
-		int width = (2 * mask_radius) + 1;
-		float voxel_radius = 0.5f;
-		for(int iz = -mask_radius; iz <= mask_radius; iz++){
-			for(int iy = -mask_radius; iy <= mask_radius; iy++) {
-				for(int ix = -mask_radius; ix <= mask_radius; ix++) {
-					int index = coord(iy + mask_radius, ix + mask_radius, width);
-
-					float distPxCenterToMaskCenter = (float) Math.sqrt((xCenter-ix+.5f)*(xCenter-ix+.5f)+(yCenter-iy+.5f)*(yCenter-iy+.5f)+(zCenter-iz+.5f)*(zCenter-iz+.5f)); 
-
-					//the weight is approximative the amount of the voxel inside the (spherical) mask.
-					float weight = 0; 
-					if(distPxCenterToMaskCenter < mask_radius + voxel_radius){
-						weight = 1;
-
-						if(mask_radius < distPxCenterToMaskCenter + voxel_radius) {
-
-							//The volume is given by http://mathworld.wolfram.com/Sphere-SphereIntersection.html
-							float v = (float) (Math.PI*Math.pow(voxel_radius + mask_radius - distPxCenterToMaskCenter ,2)
-									*(distPxCenterToMaskCenter * distPxCenterToMaskCenter +2 * distPxCenterToMaskCenter * mask_radius 
-											- 3 * mask_radius * mask_radius + 2 * distPxCenterToMaskCenter * voxel_radius 
-											+ 6 * mask_radius * voxel_radius - 3 * voxel_radius * voxel_radius) 
-											/ (12 * distPxCenterToMaskCenter));
-							weight = (float) (v / ((4f*Math.PI/3f)*Math.pow(voxel_radius,3)));
-						}
-					}
-					this.weighted_mask[iz + mask_radius][index] = weight;
-				}
-			}
-		}
 	}
 
 	//    /**

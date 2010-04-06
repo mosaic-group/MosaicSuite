@@ -19,42 +19,48 @@ import mosaic.core.Particle;
 import mosaic.plugins.BackgroundSubtractor2_;
 import mosaic.plugins.ParticleTracker_;
 
+	/**
+	 * <br>FeaturePointDetector class has all the necessary methods to detect the "real" particles
+	 * for them to be linked.
+	 * @see ParticleTracker_#mGlobalMax
+	 * @see ParticleTracker_#mGlobalMin
+	 */
+
 public class FeaturePointDetector {
-	
+
 	public static final int ABS_THRESHOLD_MODE = 0, PERCENTILE_MODE = 1;
 	public static final int NO_PREPROCESSING = 0, BOX_CAR_AVG = 1, BG_SUBTRACTOR = 2, LAPLACE_OP = 3; 
-	
+
 	public float global_max, global_min;
 	Vector<Particle> particles;
 	int particles_number;		// number of particles initialy detected 
 	int real_particles_number;	// number of "real" particles discrimination	
-	
+
 	/* user defined parameters */
 	public double cutoff = 3.0; 		// default
 	public float percentile = 0.001F; 	// default (user input/100)
 	public int absIntensityThreshold = 0; //user input 
 	public int radius = 3; 				// default
 	int number_of_threads = 4;
+	public int threshold_mode = PERCENTILE_MODE;
 	
+	private float threshold;
+
 	/*	image Restoration vars	*/
 	public short[][] binary_mask;
 	public float[][] weighted_mask;
 	public int[][] mask;
 	public float lambda_n = 1;
 	public int preprocessing_mode = BOX_CAR_AVG;
-	
-	public int threshold_mode = PERCENTILE_MODE; 
-	private float threshold;
-	
-	
-	
-	public FeaturePointDetector(float globalMin, float globalMax) {
-		global_max = globalMax;
-		global_min = globalMin;
+
+
+
+	public FeaturePointDetector(float global_max, float global_min) {
+		this.global_max = global_max;
+		this.global_min = global_min;
 		// create Mask for Dilation
 		generateMasks(this.radius);
 	}
-	
 
 
 	/**
@@ -63,11 +69,6 @@ public class FeaturePointDetector {
 	 * <br>Converts the <code>original_ip</code> to <code>FloatProcessor</code>, normalizes it, convolutes and dilates it,
 	 * finds the particles, refine their position and filters out non particles
 	 * @see ImageProcessor#convertToFloat()
-	 * @see MyFrame#normalizeFrameFloat(ImageProcessor)
-	 * @see MyFrame#imageRestoration(ImageProcessor)
-	 * @see MyFrame#pointLocationsEstimation(ImageProcessor)
-	 * @see MyFrame#pointLocationsRefinement(ImageProcessor)
-	 * @see MyFrame#nonParticleDiscrimination()
 	 */
 	public void featurePointDetection (MyFrame frame) {		
 
@@ -75,7 +76,7 @@ public class FeaturePointDetector {
 		 * This is a constraint caused by the lack of floating point precision of pixels 
 		 * value in 16bit and 8bit image processors in ImageJ therefore, if the image is not
 		 * converted to 32bit floating point, false particles get detected */
-		
+
 		ImageStack original_ips = frame.original_ips;
 		ImageStack restored_fps = new ImageStack(original_ips.getWidth(),original_ips.getHeight());
 
@@ -99,11 +100,11 @@ public class FeaturePointDetector {
 		System.out.println("3D: Threshold found : " + getThreshold());
 
 		pointLocationsEstimation(restored_fps, frame.frame_number);
-//
-//					System.out.println("particles after location estimation:");
-//					for(Particle p : this.particles) {
-//						System.out.println("particle: " + p.toString());
-//					}
+		//
+		//					System.out.println("particles after location estimation:");
+		//					for(Particle p : this.particles) {
+		//						System.out.println("particle: " + p.toString());
+		//					}
 
 		/* Refinement of the point location - Step 3 of the algorithm */
 		pointLocationsRefinement(restored_fps);
@@ -115,28 +116,24 @@ public class FeaturePointDetector {
 
 		/* Non Particle Discrimination(set a flag to particles) - Step 4 of the algorithm */
 		nonParticleDiscrimination();
-		
-		frame.particles = particles;
-		frame.particles_number = particles_number;
 
 		/* Save frame information before particle discrimination/deletion - it will be lost otherwise*/
+		frame.setParticles(particles, particles_number);
 		frame.generateFrameInfoBeforeDiscrimination();
 
-		/* remove all the "false" particles from paricles array */
+		/* remove all the "false" particles from particles array */
 		removeNonParticle();
-		
-		frame.particles = particles;
-		frame.particles_number = particles_number;
+		frame.setParticles(particles, particles_number);
 	}	
-	
-	
+
+
 	/**
 	 * Normalizes a given <code>ImageProcessor</code> to [0,1].
 	 * <br>According to the pre determend global min and max pixel value in the movie.
 	 * <br>All pixel intensity values I are normalized as (I-gMin)/(gMax-gMin)
+	 * @param ip ImageProcessor to be normalized
 	 * @param global_min 
 	 * @param global_max 
-	 * @param ip ImageProcessor to be normalized
 	 */
 	private void normalizeFrameFloat(ImageStack is, float global_min, float global_max) {
 		for(int s = 1; s <= is.getSize(); s++){
@@ -148,7 +145,7 @@ public class FeaturePointDetector {
 			}
 		}
 	}
-	
+
 	/**
 	 * Finds and sets the threshold value for this frame given the 
 	 * user defined percenticle and an ImageProcessor if the thresholdmode is PERCENTILE.
@@ -206,7 +203,7 @@ public class FeaturePointDetector {
 		this.setThreshold(((float)(thold / 255.0) * (max - min) + min));		
 		//			System.out.println("THRESHOLD: " + this.threshold);
 	}	
-	
+
 	/**
 	 * Estimates the feature point locations in the given <code>ImageProcessor</code>
 	 * <br>Any pixel with the same value before and after dilation and value higher
@@ -218,7 +215,7 @@ public class FeaturePointDetector {
 	private void pointLocationsEstimation(ImageStack ips, int frame_number) {
 		/* do a grayscale dilation */
 		ImageStack dilated_ips = dilateGeneric(ips);
-//		            new StackWindow(new ImagePlus("dilated ", dilated_ips));
+		//		            new StackWindow(new ImagePlus("dilated ", dilated_ips));
 		particles = new Vector<Particle>();
 		/* loop over all pixels */ 
 		int height = ips.getHeight();
@@ -230,7 +227,7 @@ public class FeaturePointDetector {
 				for (int j = 0; j < width; j++){  
 					if (ips_pixels[i*width+j] > this.threshold && 
 							ips_pixels[i*width+j]  == ips_dilated_pixels[i*width+j] ){ //check if pixel is a local maximum
-							
+
 						/* and add each particle that meets the criteria to the particles array */
 						//(the starting point is the middle of the pixel and exactly on a focal plane:)
 						particles.add(new Particle(i+.5f, j+.5f, s, frame_number));
@@ -241,7 +238,7 @@ public class FeaturePointDetector {
 		}
 		particles_number = particles.size();	        	        
 	}
-	
+
 	/**
 	 * Dilates a copy of a given ImageProcessor with a pre calculated <code>mask</code>.
 	 * Adapted as is from Ingo Oppermann implementation
@@ -273,7 +270,7 @@ public class FeaturePointDetector {
 
 		return dilated_ips;
 	}
-	
+
 	private class DilateGenericThread extends Thread{
 		ImageStack ips;
 		ImageProcessor[] dilated_ips;
@@ -337,7 +334,7 @@ public class FeaturePointDetector {
 			}
 		}
 	}
-	
+
 	private void pointLocationsRefinement(ImageStack ips) {
 		int m, k, l, x, y, z, tx, ty, tz;
 		float epsx, epsy, epsz, c;
@@ -515,7 +512,7 @@ public class FeaturePointDetector {
 			}
 		}
 	}
-	
+
 	private static ImageStack GetSubStackInFloat(ImageStack is, int startPos, int endPos){
 		ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
 		if(startPos > endPos || startPos < 0 || endPos < 0)
@@ -525,7 +522,7 @@ public class FeaturePointDetector {
 		}
 		return res;
 	}
-	
+
 	/**
 	 * Corrects imperfections in the given <code>ImageStack</code> by
 	 * convolving it (slice by slice, not 3D) with the pre calculated <code>kernel</code>
@@ -595,7 +592,7 @@ public class FeaturePointDetector {
 
 
 	}
-	
+
 	private ImageProcessor cropImageStack2D(ImageProcessor ip) 
 	{
 		int width = ip.getWidth();
@@ -612,7 +609,7 @@ public class FeaturePointDetector {
 		}
 		return cropped_proc;
 	}
-	
+
 	/**
 	 * crops a 3D image at all of sides of the imagestack cube. 
 	 * @param is a frame to crop
@@ -626,7 +623,7 @@ public class FeaturePointDetector {
 		}
 		return cropped_is;
 	}
-	
+
 	private ImageProcessor padImageStack2D(ImageProcessor ip) {
 		int width = ip.getWidth();
 		int newWidth = width + 2*radius;
@@ -768,7 +765,7 @@ public class FeaturePointDetector {
 			}
 		}
 	}
-	
+
 
 	private void GaussBlur3D(ImageStack is, float aSigma) {
 		float[] vKernel = CalculateNormalizedGaussKernel(aSigma);
@@ -889,7 +886,7 @@ public class FeaturePointDetector {
 		//			new StackWindow(new ImagePlus("after laplace copy",GetSubStackCopyInFloat(vResultStack, 1, vResultStack.getSize())));
 		return vResultStack;	        
 	}
-	
+
 	public float[] CalculateNormalizedGaussKernel(float aSigma){
 		int vL = (int)aSigma * 3 * 2 + 1;
 		if(vL < 3) vL = 3;
@@ -912,7 +909,7 @@ public class FeaturePointDetector {
 		}
 		return vKernel;
 	}
-	
+
 	private static ImageStack GetSubStackCopyInFloat(ImageStack is, int startPos, int endPos){
 		ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
 		if(startPos > endPos || startPos < 0 || endPos < 0)
@@ -923,7 +920,7 @@ public class FeaturePointDetector {
 		return res;
 	}
 
-	
+
 	/**
 	 * (Re)Initialize the binary and weighted masks. This is necessary if the radius changed.
 	 * The memory allocations are performed in advance (in this method) for efficiency reasons.
@@ -1080,7 +1077,7 @@ public class FeaturePointDetector {
 			}
 		}
 	}
-	
+
 	/**
 	 * Returns a * c + b
 	 * @param a: y-coordinate
@@ -1091,7 +1088,7 @@ public class FeaturePointDetector {
 	private int coord (int a, int b, int c) {
 		return (((a) * (c)) + (b));
 	}
-	
+
 	public void setUserDefinedParameters(double cutoff, float percentile, int radius, int intThreshold) {
 		this.cutoff = cutoff;
 		this.percentile = percentile;
@@ -1112,7 +1109,7 @@ public class FeaturePointDetector {
 	float getThreshold() {
 		return threshold;
 	}
-	
+
 	int getThresholdMode() {
 		return threshold_mode;
 	}
@@ -1121,6 +1118,6 @@ public class FeaturePointDetector {
 	public int getRadius() {
 		return radius;
 	}
-	
+
 }
 
