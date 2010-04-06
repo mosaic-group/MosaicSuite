@@ -2,7 +2,7 @@ package mosaic.detection;
 
 import java.util.Vector;
 
-import mosaic.Particle;
+import mosaic.core.Particle;
 
 public class DetectionResult {
 	
