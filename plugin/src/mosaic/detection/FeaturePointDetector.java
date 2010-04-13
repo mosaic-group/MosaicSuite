@@ -3,6 +3,7 @@ package mosaic.detection;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.gui.GenericDialog;
 import ij.gui.StackWindow;
 import ij.measure.Measurements;
 import ij.plugin.filter.Convolver;
@@ -12,6 +13,16 @@ import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
 
+import java.awt.Button;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Label;
+import java.awt.Panel;
+import java.awt.Scrollbar;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -34,7 +45,9 @@ public class FeaturePointDetector {
 	public float global_max, global_min;
 	Vector<Particle> particles;
 	int particles_number;		// number of particles initialy detected 
-	int real_particles_number;	// number of "real" particles discrimination	
+	int real_particles_number;	// number of "real" particles discrimination
+	
+	Label previewLabel;
 
 	/* user defined parameters */
 	public double cutoff = 3.0; 		// default
@@ -1088,7 +1101,12 @@ public class FeaturePointDetector {
 	private int coord (int a, int b, int c) {
 		return (((a) * (c)) + (b));
 	}
-
+	
+	/**
+	 * Sets user defined params that are necessary to particle detection
+	 * and generates the <code>mask</code> according to these params
+	 * @see #generateMasks(int)
+	 */
 	public void setUserDefinedParameters(double cutoff, float percentile, int radius, int intThreshold) {
 		this.cutoff = cutoff;
 		this.percentile = percentile;
@@ -1100,7 +1118,123 @@ public class FeaturePointDetector {
 		generateMasks(this.radius);
 	}
 
+	public void addUserDefinedParametersDialog (GenericDialog gd) {
+		gd.addMessage("Particle Detection:");
+		// These 3 params are only relevant for non text_files_mode
+		gd.addNumericField("Radius", radius, 0);
+		gd.addNumericField("Cutoff", cutoff, 1);
 
+		//	        gd.addChoice("Threshold mode", new String[]{"Absolute Threshold","Percentile"}, "Percentile");
+		//	        ((Choice)gd.getChoices().firstElement()).addItemListener(new ItemListener(){
+		//				public void itemStateChanged(ItemEvent e) {
+		//					int mode = 0;
+		//					if(e.getItem().toString().equals("Absolute Threshold")) {
+		//						mode = ABS_THRESHOLD_MODE;						
+		//					}
+		//					if(e.getItem().toString().equals("Percentile")) {
+		//						mode = PERCENTILE_MODE;						
+		//					}
+		//					thresholdModeChanged(mode);
+		//				}});
+
+		//	        gd.addNumericField("Percentile", 0.001, 5);
+		//	        gd.addNumericField("Percentile / Abs.Threshold", 0.1, 5, 6, " % / Intensity");
+		gd.addNumericField("Percentile", percentile*100, 5, 6, " %");
+
+		//	        gd.addPanel(makeThresholdPanel(), GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
+		//	        gd.addChoice("Preprocessing mode", new String[]{"none", "box-car avg.", "BG Subtraction", "Laplace Operation"}, "box-car avg.");	        
+	}
+
+	/**
+	 * gd has to be shown with showDialog and handles the fields added to the dialog
+	 * with addUserDefinedParamtersDialog(gd).
+	 * @param gd	<code>GenericDialog</code> at which the UserDefinedParameter fields where added.
+	 * @return		true if user changed the parameters and false if the user didn't changed them.
+	 */
+	public Boolean getUserDefinedParameters(GenericDialog gd) {
+		int rad = (int)gd.getNextNumber();
+		//        	this.radius = (int)gd.getNextNumber();
+		double cut = gd.getNextNumber(); 
+		//            this.cutoff = gd.getNextNumber();   
+		float per = ((float)gd.getNextNumber())/100;
+		int intThreshold = (int)(per*100+0.5);
+		//            this.percentile = ((float)gd.getNextNumber())/100;
+
+		//        	int thsmode = gd.getNextChoiceIndex();
+		//        	setThresholdMode(thsmode);
+
+		//        	int mode = gd.getNextChoiceIndex();
+
+		Boolean changed = (rad != radius || cut != cutoff  || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
+		setUserDefinedParameters(cut, per, rad, intThreshold);
+		//        	this.preprocessing_mode = mode;
+		return changed;
+	}
+	
+	/**
+	 * Creates the preview panel that gives the options to preview and save the detected particles,
+	 * and also a scroll bar to navigate through the slices of the movie
+	 * <br>Buttons and scrollbar created here use this ParticleTracker_ as <code>ActionListener</code>
+	 * and <code>AdjustmentListener</code>
+	 * @return the preview panel
+	 */
+
+	public Panel makePreviewPanel(final PreviewInterface previewHandler, final ImagePlus img) {
+
+		Panel preview_panel = new Panel();
+		GridBagLayout gridbag = new GridBagLayout();
+		GridBagConstraints c = new GridBagConstraints();
+		preview_panel.setLayout(gridbag);  
+		c.fill = GridBagConstraints.BOTH;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+
+		/* scroll bar to navigate through the slices of the movie */
+		final Scrollbar preview_scrollbar = new Scrollbar(Scrollbar.HORIZONTAL, img.getCurrentSlice(), 1, 1, img.getStackSize()+1);
+		preview_scrollbar.addAdjustmentListener( new AdjustmentListener() {	
+			public void adjustmentValueChanged(AdjustmentEvent e) {
+				// set the current visible slice to the one selected on the bar
+				img.setSlice(preview_scrollbar.getValue());
+				// update the preview view to this silce
+				//			this.preview();
+			}
+		});
+		preview_scrollbar.setUnitIncrement(1); 
+		preview_scrollbar.setBlockIncrement(1);
+
+		/* button to generate preview of the detected particles */
+		Button preview = new Button("Preview Detected");
+		preview.addActionListener( new ActionListener() {
+            						public void actionPerformed(ActionEvent e) {
+            							previewHandler.preview(e);
+            						}
+        });
+
+		/* button to save the detected particles */
+		Button 	save_detected = new Button("Save Detected");
+		save_detected.addActionListener( new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				previewHandler.saveDetected(e);
+			}
+		});
+		Label seperation = new Label("______________", Label.CENTER); 
+		gridbag.setConstraints(preview, c);
+		preview_panel.add(preview);
+		gridbag.setConstraints(preview_scrollbar, c);	        
+		preview_panel.add(preview_scrollbar);
+		gridbag.setConstraints(save_detected, c);
+		preview_panel.add(save_detected);
+		previewLabel = new Label("");
+		gridbag.setConstraints(previewLabel, c);
+		preview_panel.add(previewLabel);
+		gridbag.setConstraints(seperation, c);
+		preview_panel.add(seperation);
+		return preview_panel;
+	}
+	
+	public void setPreviewLabel(String previewLabelText) {
+		this.previewLabel.setText(previewLabelText);
+	}
+	
 	void setThreshold(float threshold) {
 		this.threshold = threshold;
 	}

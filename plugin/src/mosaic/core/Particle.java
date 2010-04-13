@@ -13,22 +13,22 @@ import java.text.NumberFormat;
 public class Particle {
 
 	public float x, y, z; 					// the originally given coordinates - to be refined 
-	public float original_x; 	// the originally given coordinates - not to be changed 		
+	public float original_x; 				// the originally given coordinates - not to be changed 		
 	public float original_y, original_z;
 	private int frame; 						// the number of the frame this particle belonges to (can be 0)
 	public boolean special; 				// a flag that is used while detecting and linking particles
-	public int[] next; 					// array that holds in position i the particle number in frame i
-	// that this particle is linked to  
+	public int[] next; 						// array that holds in position i the particle number in frame i
+											// that this particle is linked to  
 	public int nbIterations = 0; //debug
 	/* only relevant to particles detected in images */
-	public float m0;		// intensity moment
+	public float m0;						// intensity moment
 	public float m1, m2, m3, m4;
 	public float score; 					// non-particle discrimination score
-	int linkrange; // linking range
+	int linkrange; 							// linking range
 
 	/* only relevant to particles given as input */
 	public String[] all_params; 			// all params that relate to this particle,
-	// 1st 2 should be x and y respectfully
+											// 1st 2 should be x and y respectfully
 
 	/**
 	 * constructor. 

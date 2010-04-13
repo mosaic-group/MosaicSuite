@@ -62,6 +62,8 @@ import java.util.Vector;
 import mosaic.core.Particle;
 import mosaic.detection.FeaturePointDetector;
 import mosaic.detection.MyFrame;
+import mosaic.detection.PreviewCanvas;
+import mosaic.detection.PreviewInterface;
 
 /**
  * <h2>ParticleTracker</h2>
@@ -91,7 +93,7 @@ import mosaic.detection.MyFrame;
  * @author Janick Cardinale, PhD Student at Mosaic, ETHZ
  */
 
-public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, ActionListener, AdjustmentListener   {	
+public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, PreviewInterface  {	
 
 	private final static int SYSTEM = 0;
 	private final static int IJ_RESULTS_WINDOW = 1;
@@ -124,9 +126,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 	public PreviewCanvas preview_canvas = null;
 
 	/* preview vars */
-	public Button preview, save_detected;
-	public Scrollbar preview_scrollbar;
-	public Label previewLabel = new Label("");
+	//public Button preview, save_detected;
+	//public Scrollbar preview_scrollbar;
+	//public Label previewLabel = new Label("");
 	public int preview_slice_calculated;
 
 
@@ -374,31 +376,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 			zcoord_from_text = text_mode_gd.getNextBoolean();
 			momentum_from_text = text_mode_gd.getNextBoolean();			
 		} else {
-			gd.addMessage("Particle Detection:");			
-			// These 3 params are only relevant for non text_files_mode
-			gd.addNumericField("Radius", 3, 0);
-			gd.addNumericField("Cutoff", 3.0, 1);
-
-			//	        gd.addChoice("Threshold mode", new String[]{"Absolute Threshold","Percentile"}, "Percentile");
-			//	        ((Choice)gd.getChoices().firstElement()).addItemListener(new ItemListener(){
-			//				public void itemStateChanged(ItemEvent e) {
-			//					int mode = 0;
-			//					if(e.getItem().toString().equals("Absolute Threshold")) {
-			//						mode = ABS_THRESHOLD_MODE;						
-			//					}
-			//					if(e.getItem().toString().equals("Percentile")) {
-			//						mode = PERCENTILE_MODE;						
-			//					}
-			//					thresholdModeChanged(mode);
-			//				}});
-
-			//	        gd.addNumericField("Percentile", 0.001, 5);
-			//	        gd.addNumericField("Percentile / Abs.Threshold", 0.1, 5, 6, " % / Intensity");
-			gd.addNumericField("Percentile", 0.1, 5, 6, " %");
-
-			//	        gd.addPanel(makeThresholdPanel(), GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
-			//	        gd.addChoice("Preprocessing mode", new String[]{"none", "box-car avg.", "BG Subtraction", "Laplace Operation"}, "box-car avg.");	        
-			gd.addPanel(makePreviewPanel(), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));	        
+			detector.addUserDefinedParametersDialog(gd);
+			
+			gd.addPanel(detector.makePreviewPanel(this, original_imp), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));	        
 
 			// check if the original images are not GRAY8, 16 or 32
 			if (this.original_imp.getType() != ImagePlus.GRAY8 &&
@@ -420,30 +400,16 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 
 		// retrieve params from user
 		if (!text_files_mode) {
-			int rad = (int)gd.getNextNumber();
-			//        	this.radius = (int)gd.getNextNumber();
-			double cut = gd.getNextNumber(); 
-			//            this.cutoff = gd.getNextNumber();   
-			float per = ((float)gd.getNextNumber())/100;
-			int intThreshold = (int)(per*100+0.5);
-			//            this.percentile = ((float)gd.getNextNumber())/100;
-
-			//        	int thsmode = gd.getNextChoiceIndex();
-			//        	setThresholdMode(thsmode);
-
-			//        	int mode = gd.getNextChoiceIndex();
+			Boolean changed = detector.getUserDefinedParameters(gd);
 			// even if the frames were already processed (particles detected) but
 			// the user changed the detection params then the frames needs to be processed again
-			if (rad != detector.radius || cut != detector.cutoff  || (per != detector.percentile)){// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode()) {
+			if (changed) {
 				if (this.frames_processed) {
 					this.frames = null;
 					this.frames_processed = false;
 				}        		
 			}
-			detector.setUserDefinedParameters(cut, per, rad, intThreshold);
-			//        	this.preprocessing_mode = mode;
-
-
+			
 			// add the option to convert only if   images are not GRAY8, 16 or 32
 			if (convert) convert = gd.getNextBoolean();
 		}
@@ -482,10 +448,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 //
 //	}
 	/**
-	 * Gets user defined params that are necessary to display the preview of particle detection
-	 * and generates the <code>kernel</code> and <code>mask</code> according to these params
-	 * @see #makeKernel(int)
-	 * @see #generateBinaryMask(int)
+	 * Gets user defined params that are necessary to display the preview of particle detection.
 	 */
 	void getUserDefinedPreviewParams() {
 
@@ -968,96 +931,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 		}
 	}
 
-	/**
-	 * Defines an overlay Canvas for a given <code>ImagePlus</code> on which the detected particles from 
-	 * a <code>MyFrame</code> are displayed for preview
-	 */
-	private class PreviewCanvas extends ImageCanvas {
-
-		private static final long serialVersionUID = 1L;
-		private MyFrame preview_frame;
-		int magnification = 1;
-
-		/**
-		 * Constructor.
-		 * <br>Creates an instance of PreviewCanvas from a given <code>ImagePlus</code>
-		 * <br>Displays the detected particles from the given <code>MyFrame</code>
-		 * @param aimp - the given image plus on which the detected particles are displayed
-		 * @param preview_f - the <code>MyFrame</code> with the detected particles to display
-		 * @param mag - the magnification factor of the <code>ImagePlus</code> relative to the initial
-		 */
-		private PreviewCanvas(ImagePlus aimp, double mag) {
-			super(aimp);
-			this.preview_frame = null;
-			this.magnification = (int)mag;
-		}
-
-		public void setPreviewFrame(MyFrame aPreviewFrame) {
-			this.preview_frame = aPreviewFrame;
-		}
-
-		/**
-		 * Overloaded Constructor.
-		 * <br>Creates an instance of PreviewCanvas from a given <code>ImagePlus</code>
-		 * <br>Displays the detected particles from the given <code>MyFrame</code>
-		 * <br> sets the magnification factor to 1
-		 * @param aimp
-		 * @param preview_f
-		 */
-		private PreviewCanvas(ImagePlus aimp) {
-			this(aimp, 1);
-		}
-
-		/* (non-Javadoc)
-		 * @see java.awt.Component#paint(java.awt.Graphics)
-		 */
-		public void paint(Graphics g) {            
-			super.paint(g);
-			int frameToDisplay = getFrameNumberFromSlice(this.imp.getCurrentSlice());
-			Vector<Particle> particlesToDisplay = null;
-			if(frameToDisplay == getFrameNumberFromSlice(preview_slice_calculated)) {
-				// the preview display color is set to red
-				g.setColor(Color.red);
-				if(preview_frame != null){
-					particlesToDisplay = preview_frame.getParticles();
-					circleParticles(g, particlesToDisplay);
-				}
-			}
-			if(frames != null){
-				particlesToDisplay = frames[frameToDisplay-1].getParticles();
-				// the located particles display color is set to blue
-				g.setColor(Color.blue);
-				circleParticles(g, particlesToDisplay);
-			}
-
-		}
-		/**
-		 * Inner class method
-		 * <br> Invoked from the <code>paint</code> overwritten method
-		 * <br> draws a dot and circles the detected particle directly of the given <code>Graphics</code>
-		 * @param g
-		 */
-		private void circleParticles(Graphics g, Vector<Particle> particlesToDisplay) {
-			if (particlesToDisplay == null || g == null) return;
-
-			this.magnification = (int)Math.round(original_imp.getWindow().getCanvas().getMagnification());
-			// go over all the detected particle 
-			for (int i = 0; i< particlesToDisplay.size(); i++) {
-				// draw a dot at the detected particle position (oval of hieght and windth of 0)
-				// the members x, y of the Particle object are opposite to the screen X and Y axis
-				// The x-axis points top-down and the y-axis is oriented left-right in the image plane. 
-				g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).y), 
-						this.screenYD(particlesToDisplay.elementAt(i).x), 
-						0, 0);
-				// circle the  the detected particle position according to the set radius
-				g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).y-detector.getRadius()/1.0), 
-						this.screenYD(particlesToDisplay.elementAt(i).x-detector.getRadius()/1.0), 
-						2*detector.getRadius()*this.magnification-1, 2*detector.getRadius()*this.magnification-1); 
-			}
-		}
-
-
-	}
 
 	/**
 	 * Defines a window to display trajectories according to their <code>to_display</code> status.
@@ -2076,41 +1949,41 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 	 * @return the preview panel
 	 */
 
-	private Panel makePreviewPanel() {
-
-		Panel preview_panel = new Panel();
-		GridBagLayout gridbag = new GridBagLayout();
-		GridBagConstraints c = new GridBagConstraints();
-		preview_panel.setLayout(gridbag);  
-		c.fill = GridBagConstraints.BOTH;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-
-		/* scroll bar to navigate through the slices of the movie */
-		preview_scrollbar = new Scrollbar(Scrollbar.HORIZONTAL, original_imp.getCurrentSlice(), 1, 1, original_imp.getStackSize()+1);
-		preview_scrollbar.addAdjustmentListener(this);
-		preview_scrollbar.setUnitIncrement(1); 
-		preview_scrollbar.setBlockIncrement(1);
-
-		/* button to generate preview of the detected particles */
-		preview = new Button("Preview Detected");
-		preview.addActionListener(this);
-
-		/* button to save the detected particles */
-		save_detected = new Button("Save Detected");
-		save_detected.addActionListener(this);
-		Label seperation = new Label("______________", Label.CENTER); 
-		gridbag.setConstraints(preview, c);
-		preview_panel.add(preview);
-		gridbag.setConstraints(preview_scrollbar, c);	        
-		preview_panel.add(preview_scrollbar);
-		gridbag.setConstraints(save_detected, c);
-		preview_panel.add(save_detected);
-		gridbag.setConstraints(previewLabel, c);
-		preview_panel.add(previewLabel);
-		gridbag.setConstraints(seperation, c);
-		preview_panel.add(seperation);
-		return preview_panel;
-	}
+//	private Panel makePreviewPanel() {
+//
+//		Panel preview_panel = new Panel();
+//		GridBagLayout gridbag = new GridBagLayout();
+//		GridBagConstraints c = new GridBagConstraints();
+//		preview_panel.setLayout(gridbag);  
+//		c.fill = GridBagConstraints.BOTH;
+//		c.gridwidth = GridBagConstraints.REMAINDER;
+//
+//		/* scroll bar to navigate through the slices of the movie */
+//		preview_scrollbar = new Scrollbar(Scrollbar.HORIZONTAL, original_imp.getCurrentSlice(), 1, 1, original_imp.getStackSize()+1);
+//		preview_scrollbar.addAdjustmentListener(this);
+//		preview_scrollbar.setUnitIncrement(1); 
+//		preview_scrollbar.setBlockIncrement(1);
+//
+//		/* button to generate preview of the detected particles */
+//		preview = new Button("Preview Detected");
+//		preview.addActionListener(this);
+//
+//		/* button to save the detected particles */
+//		save_detected = new Button("Save Detected");
+//		save_detected.addActionListener(this);
+//		Label seperation = new Label("______________", Label.CENTER); 
+//		gridbag.setConstraints(preview, c);
+//		preview_panel.add(preview);
+//		gridbag.setConstraints(preview_scrollbar, c);	        
+//		preview_panel.add(preview_scrollbar);
+//		gridbag.setConstraints(save_detected, c);
+//		preview_panel.add(save_detected);
+//		gridbag.setConstraints(previewLabel, c);
+//		preview_panel.add(previewLabel);
+//		gridbag.setConstraints(seperation, c);
+//		preview_panel.add(seperation);
+//		return preview_panel;
+//	}
 
 	/** 
 	 * Defines the acation taken upon an <code>ActionEvent</code> triggered from buttons
@@ -2119,41 +1992,41 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 	 * <br><code>Button save_detected</code>
 	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
-	public synchronized void actionPerformed(ActionEvent e) {
-		Object source = e.getSource();
-		if (source==preview) {
-			// set the original_imp window position next to the dialog window
-			this.original_imp.getWindow().setLocation((int)gd.getLocationOnScreen().getX()+gd.getWidth(), (int)gd.getLocationOnScreen().getY());
-			// do preview
-			this.preview();
-			preview_canvas.repaint();
-			return;
-		}
-		if (source==save_detected) {			
-			/* show save file user dialog with default file name 'frame' */
-			SaveDialog sd = new SaveDialog("Save Detected Particles", IJ.getDirectory("image"), "frame", "");
-			// if user cancelled the save dialog 
-			if (sd.getDirectory() == null || sd.getFileName() == null) return;
-
-			/* set the user defined pramars according to the valus in the dialog box */
-			getUserDefinedPreviewParams();
-
-			/* detect particles and save to files*/
-			if (this.processFrames()) { // process the frames
-				// for each frame - save the detected particles
-				for (int i = 0; i<this.frames.length; i++) {					
-					if (!write2File(sd.getDirectory(), sd.getFileName() + "_" + i, 
-							this.frames[i].frameDetectedParticlesForSave(false).toString())) {
-						// upon any problam savingto file - return
-						IJ.write("Problem occured while writing to file.");
-						return;
-					}
-				}
-			}
-			preview_canvas.repaint();
-			return;
-		}
-	}
+//	public synchronized void actionPerformed(ActionEvent e) {
+//		Object source = e.getSource();
+//		if (source==preview) {
+//			// set the original_imp window position next to the dialog window
+//			this.original_imp.getWindow().setLocation((int)gd.getLocationOnScreen().getX()+gd.getWidth(), (int)gd.getLocationOnScreen().getY());
+//			// do preview
+//			this.preview();
+//			preview_canvas.repaint();
+//			return;
+//		}
+//		if (source==save_detected) {			
+//			/* show save file user dialog with default file name 'frame' */
+//			SaveDialog sd = new SaveDialog("Save Detected Particles", IJ.getDirectory("image"), "frame", "");
+//			// if user cancelled the save dialog 
+//			if (sd.getDirectory() == null || sd.getFileName() == null) return;
+//
+//			/* set the user defined pramars according to the valus in the dialog box */
+//			getUserDefinedPreviewParams();
+//
+//			/* detect particles and save to files*/
+//			if (this.processFrames()) { // process the frames
+//				// for each frame - save the detected particles
+//				for (int i = 0; i<this.frames.length; i++) {					
+//					if (!write2File(sd.getDirectory(), sd.getFileName() + "_" + i, 
+//							this.frames[i].frameDetectedParticlesForSave(false).toString())) {
+//						// upon any problam savingto file - return
+//						IJ.log("Problem occured while writing to file.");
+//						return;
+//					}
+//				}
+//			}
+//			preview_canvas.repaint();
+//			return;
+//		}
+//	}
 
 	/**
 	 * Defines the acation taken upon an <code>AdjustmentEvent</code> triggered from manu bars
@@ -2161,19 +2034,19 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 	 * <br> <code>ScrollBar preview_scrollbar</code>
 	 * @see java.awt.event.AdjustmentListener#adjustmentValueChanged(java.awt.event.AdjustmentEvent)
 	 */
-	public synchronized void adjustmentValueChanged(AdjustmentEvent e) {
-		Object source = e.getSource();
-		/* if the preview scrollbar was moved*/
-		if (source == preview_scrollbar) {
-			// set the current visible slice to the one selected on the bar
-			original_imp.setSlice(preview_scrollbar.getValue());
-			// update the preview view to this silce
-			//			this.preview();
-		}
-	}
+//	public synchronized void adjustmentValueChanged(AdjustmentEvent e) {
+//		Object source = e.getSource();
+//		/* if the preview scrollbar was moved*/
+//		if (source == preview_scrollbar) {
+//			// set the current visible slice to the one selected on the bar
+//			original_imp.setSlice(preview_scrollbar.getValue());
+//			// update the preview view to this silce
+//			//			this.preview();
+//		}
+//	}
 
 	/**
-	 * Detects particles in the current displayed frame according to the parameters curretly set 
+	 * Detects particles in the current displayed frame according to the parameters currently set 
 	 * Draws dots on the positions of the detected partciles on the frame and circles them
 	 * @see #getUserDefinedPreviewParams()
 	 * @see MyFrame#featurePointDetection()
@@ -2197,9 +2070,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 
 		// detect particles in this frame
 		detector.featurePointDetection(preview_frame);
-		previewLabel.setText("#Particles: " + preview_frame.getParticles().size());		
+		detector.setPreviewLabel("#Particles: " + preview_frame.getParticles().size());		
 
 		preview_canvas.setPreviewFrame(preview_frame);
+		preview_canvas.setPreviewParticleRadius(detector.getRadius());
+		preview_canvas.setPreviewSliceCalculated(preview_slice_calculated);
 	}
 
 	private void generatePreviewCanvas(){
@@ -2818,5 +2693,42 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Ac
 //		}
 //		return sb;
 //	}
+	
+
+	@Override
+	public void preview(ActionEvent e) {
+		// set the original_imp window position next to the dialog window
+		this.original_imp.getWindow().setLocation((int)gd.getLocationOnScreen().getX()+gd.getWidth(), (int)gd.getLocationOnScreen().getY());
+		// do preview
+		this.preview();
+		preview_canvas.repaint();
+		return;
+	}
+
+	@Override
+	public void saveDetected(ActionEvent e) {
+		/* show save file user dialog with default file name 'frame' */
+		SaveDialog sd = new SaveDialog("Save Detected Particles", IJ.getDirectory("image"), "frame", "");
+		// if user cancelled the save dialog 
+		if (sd.getDirectory() == null || sd.getFileName() == null) return;
+
+		/* set the user defined pramars according to the valus in the dialog box */
+		getUserDefinedPreviewParams();
+
+		/* detect particles and save to files*/
+		if (this.processFrames()) { // process the frames
+			// for each frame - save the detected particles
+			for (int i = 0; i<this.frames.length; i++) {					
+				if (!write2File(sd.getDirectory(), sd.getFileName() + "_" + i, 
+						this.frames[i].frameDetectedParticlesForSave(false).toString())) {
+					// upon any problam savingto file - return
+					IJ.log("Problem occured while writing to file.");
+					return;
+				}
+			}
+		}
+		preview_canvas.repaint();
+		return;
+	}
 }
 
