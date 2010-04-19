@@ -19,6 +19,7 @@ import java.awt.GridBagLayout;
 import java.awt.Label;
 import java.awt.Panel;
 import java.awt.Scrollbar;
+import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -48,6 +49,7 @@ public class FeaturePointDetector {
 	int real_particles_number;	// number of "real" particles discrimination
 	
 	Label previewLabel;
+	MyFrame preview_frame;
 
 	/* user defined parameters */
 	public double cutoff = 3.0; 		// default
@@ -526,7 +528,7 @@ public class FeaturePointDetector {
 		}
 	}
 
-	private static ImageStack GetSubStackInFloat(ImageStack is, int startPos, int endPos){
+	public static ImageStack GetSubStackInFloat(ImageStack is, int startPos, int endPos){
 		ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
 		if(startPos > endPos || startPos < 0 || endPos < 0)
 			return null;
@@ -923,7 +925,7 @@ public class FeaturePointDetector {
 		return vKernel;
 	}
 
-	private static ImageStack GetSubStackCopyInFloat(ImageStack is, int startPos, int endPos){
+	public static ImageStack GetSubStackCopyInFloat(ImageStack is, int startPos, int endPos){
 		ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
 		if(startPos > endPos || startPos < 0 || endPos < 0)
 			return null;
@@ -1172,6 +1174,26 @@ public class FeaturePointDetector {
 	}
 	
 	/**
+	 * Gets user defined params that are necessary to display the preview of particle detection.
+	 */
+	public Boolean getUserDefinedPreviewParams(GenericDialog gd) {
+
+		Vector<TextField> vec = gd.getNumericFields();
+		int rad = Integer.parseInt((vec.elementAt(0)).getText());
+		double cut = Double.parseDouble((vec.elementAt(1)).getText());
+		float per = (Float.parseFloat((vec.elementAt(2)).getText()))/100;
+		int intThreshold = (int)(per*100+0.5);
+		//		int thsmode = ((Choice)gd.getChoices().elementAt(0)).getSelectedIndex();
+		//    	int mode = ((Choice)gd.getChoices().elementAt(1)).getSelectedIndex();
+
+		// even if the frames were already processed (particles detected) but
+		// the user changed the detection params then the frames needs to be processed again
+		Boolean changed = (rad != radius || cut != cutoff  || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();        		
+		setUserDefinedParameters(cut, per, rad, intThreshold);
+		return changed;
+	}
+	
+	/**
 	 * Creates the preview panel that gives the options to preview and save the detected particles,
 	 * and also a scroll bar to navigate through the slices of the movie
 	 * <br>Buttons and scrollbar created here use this ParticleTracker_ as <code>ActionListener</code>
@@ -1235,10 +1257,61 @@ public class FeaturePointDetector {
 		this.previewLabel.setText(previewLabelText);
 	}
 	
+	public PreviewCanvas generatePreviewCanvas(ImagePlus imp){
+		// save the current magnification factor of the current image window
+		double magnification = imp.getWindow().getCanvas().getMagnification();
+
+		// generate the previewCanvas - while generating the drawing will be done 
+		PreviewCanvas preview_canvas = new PreviewCanvas(imp, magnification);
+
+		// display the image and canvas in a stackWindow
+		StackWindow sw = new StackWindow(imp, preview_canvas);
+
+		// magnify the canvas to match the original image magnification
+		while (sw.getCanvas().getMagnification() < magnification) {
+			preview_canvas.zoomIn(0,0);
+		}
+		return preview_canvas;
+	}
+	
+	/**
+	 * Detects particles in the current displayed frame according to the parameters currently set 
+	 * Draws dots on the positions of the detected partciles on the frame and circles them
+	 * @see #getUserDefinedPreviewParams()
+	 * @see MyFrame#featurePointDetection()
+	 * @see PreviewCanvas q
+	 */
+	public synchronized void preview(ImagePlus imp, PreviewCanvas preview, GenericDialog gd) {		
+
+		// the stack of the original loaded image (it can be 1 frame)
+		ImageStack stack = imp.getStack();
+
+		getUserDefinedPreviewParams(gd);
+
+		int first_slice = imp.getCurrentSlice(); //TODO check what should be here, figure out how slices and frames numbers work(getFrameNumberFromSlice(impA.getCurrentSlice())-1) * impA.getNSlices() + 1; 
+		// create a new MyFrame from the current_slice in the stack
+		preview_frame = new MyFrame(FeaturePointDetector.GetSubStackCopyInFloat(stack, first_slice, first_slice  + imp.getNSlices() - 1), getFrameNumberFromSlice(imp.getCurrentSlice(), imp.getNSlices())-1);
+
+		// detect particles in this frame
+		featurePointDetection(preview_frame);
+		setPreviewLabel("#Particles: " + preview_frame.getParticles().size());		
+
+		preview.setPreviewFrame(preview_frame);
+		preview.setPreviewParticleRadius(getRadius());
+		preview.setPreviewSliceCalculated(imp.getCurrentSlice());
+	}
+	
+	/**
+	 * @param sliceIndex: 1..#slices
+	 * @return a frame index: 1..#frames
+	 */
+	public int getFrameNumberFromSlice(int sliceIndex, int slices_number) {
+		return (sliceIndex-1) / slices_number + 1;
+	}
+	
 	void setThreshold(float threshold) {
 		this.threshold = threshold;
 	}
-
 
 	float getThreshold() {
 		return threshold;
@@ -1251,6 +1324,10 @@ public class FeaturePointDetector {
 
 	public int getRadius() {
 		return radius;
+	}
+	
+	public MyFrame getPreviewFrame() {
+		return preview_frame;
 	}
 
 }
