@@ -143,7 +143,7 @@ public class PreviewCanvas extends ImageCanvas {
 			// draw a dot at the detected particle position (oval of hieght and windth of 0)
 			// the members x, y of the Particle object are opposite to the screen X and Y axis
 			// The x-axis points top-down and the y-axis is oriented left-right in the image plane. 
-			g.drawLine(this.screenXD(shiftPositions.get(i).y),this.screenYD(shiftPositions.get(i).x),this.screenXD(shiftPositions.get(i).y+shifts.get(i).y),this.screenYD(shiftPositions.get(i).x+shifts.get(i).x));
+			g.drawLine(this.screenXD(shiftPositions.get(i).y),this.screenYD(shiftPositions.get(i).x),this.screenXD(shiftPositions.get(i).y+shifts.get(i).y*20),this.screenYD(shiftPositions.get(i).x+shifts.get(i).x*20));
 		}
 	}
 

@@ -30,7 +30,7 @@ public class Calibration_ implements PlugIn, PreviewInterface {
 	
 	/* user defined parameters for linking*/
 	int linkrange = 1; 			// default
-	double displacement = 1000.0; 	// default
+	double displacement = 10.0; 	// default
 	int frames_number = 2;
 	
 	
