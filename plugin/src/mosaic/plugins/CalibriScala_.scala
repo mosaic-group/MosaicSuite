@@ -84,24 +84,27 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 		val reg = new SimpleRegression();
 		reg.addData(dataX);
 		val xIntercept = reg.getIntercept()
-		println(xIntercept);
 		val xSlope = reg.getSlope()
-		println(xSlope);
+		println("x intercept " + xIntercept +  ", x slope " + xSlope + ", x MSE " + reg.getMeanSquareError);
 
 		// Regression Y
 		reg.clear
 
 		reg.addData(dataY);
 		val yIntercept = reg.getIntercept()
-		println(yIntercept);
 		val ySlope = reg.getSlope()
-		println(ySlope);
- 
-		scatter(xPos ,new DenseVector(xShifts), DenseVector((xShifts.length))(0.5), DenseVector(xShifts.length)(0.1))
+		println("y intercept " + yIntercept + ", y slope " + ySlope + ", y MSE " + reg.getMeanSquareError) ;
+
+		hold(false)
+		scatter(xPos ,new DenseVector(xShifts), DenseVector((xShifts.length))(0.8), DenseVector(xShifts.length)(0.8))
 		hold(true)
 		plot(xPos, xPos * xSlope +xIntercept)
+		xlabel("x axis")
+		ylabel("y axis")
 		hold(false)
-		scatter(yPos ,new DenseVector(yShifts), DenseVector((yShifts.length))(0.5), DenseVector(yShifts.length)(0.1))
+		subplot(2,1,2)
+		
+		scatter(yPos ,new DenseVector(yShifts), DenseVector((yShifts.length))(0.8), DenseVector(yShifts.length)(0.1))
 		hold(true)
 		plot(yPos, yPos * ySlope +yIntercept)
 		xlabel("x axis")
