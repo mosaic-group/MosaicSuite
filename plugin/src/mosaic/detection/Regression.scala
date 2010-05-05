@@ -1,8 +1,10 @@
 package mosaic.detection
 
 import org.apache.commons.math.stat.regression._
+import scalala.tensor._
+import scalala.tensor.dense._
 
-class Regression {
+object Regression {
 	
 	def regression() {
 		val regression = new OLSMultipleLinearRegression()
@@ -23,6 +25,8 @@ class Regression {
 		 
 		// residuals, if needed
 		val residuals = regression.estimateResiduals()
+		
+		val sepp = new DenseVector(5)(0)
 	}
 
 }

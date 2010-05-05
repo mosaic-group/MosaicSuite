@@ -10,7 +10,11 @@
  
 	<property name="user.name" value="Mosaic" />
 	<property name="jarfilename" value="Mosaic_Toolbox"/>
-
+		
+	<property name="scala.home" value="/usr/local/scala/"/>
+	<property name="scala-compiler.jar" value="${scala.home}/lib/scala-compiler.jar"/>
+	<property name="scala-library.jar" value="${scala.home}/lib/scala-library.jar"/>
+	
 	<target name="main" depends="compress" description="Main target">
 		<echo>
 			Building the .jar file.
@@ -20,7 +24,10 @@
 	 	<jar jarfile="${pluginsDir}/${jarfilename}.jar">
 	 		<fileset dir="." includes="plugins.config" />
 			<fileset dir="${build}" includes="**/*.*" />
-	 		<manifest>
+	 		<fileset dir="../Scalala/target/classes/" includes="**/*.*" />
+	 		<zipfileset src="${scala-library.jar}" includes="**/*.class"/>	
+	 		<zipgroupfileset dir="../lib" includes="*.jar"/>
+			<manifest>
 	 			<attribute name="Built-By" value="${user.name}"/>
 	 		</manifest>
 	 	</jar>
@@ -40,16 +47,12 @@
 		</echo>
 	</target>
 	
-	
-	<property name="scala.home" value="/usr/local/scala/"/>
-	<property name="scala-compiler.jar" value="${scala.home}/lib/scala-compiler.jar"/>
-	<property name="scala-library.jar" value="${scala.home}/lib/scala-library.jar"/>
-	
 	<!-- 2. Define Scala CLASSPATH. -->
 
 	<path id="scala.classpath">
 	  <pathelement location="${scala-compiler.jar}"/>
 	  <pathelement location="${scala-library.jar}"/>
+	  <pathelement location="$basedir/../../Scalala/target/classes/"/>
 	</path>
 
 	<!-- 3. Define project CLASSPATH. -->
@@ -58,7 +61,7 @@
 	  <path refid="scala.classpath"/>
 
 	  <pathelement location="${build}"/>
-	  <pathelement location="../commons-math-2.1.jar"/>
+	  <pathelement location="../lib/commons-math-2.1.jar"/>
 	</path>
 
 	<!-- 4. Define scala compiler command. -->
@@ -67,7 +70,6 @@
 	  <classpath refid="scala.classpath"/>
 	</taskdef>
 
-
 	<!-- 5. Compiles sources by using "scalac" command. -->
 
 	<target name="compile">
@@ -75,6 +77,10 @@
 
 	  <scalac srcdir="${src}" destdir="${build}" classpathref="project.classpath" force="changed">
 	    <include name="**/*.scala"/>
+	  	<include name="**/*.java"/>
 	  </scalac>
+	</target>
+	<target name="compileJ" depends="">
+	  <javac srcdir="${src}" destdir="${build}" classpath="scala-library.jar:${build}"/>
 	</target>
 </project>
