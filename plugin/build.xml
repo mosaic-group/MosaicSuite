@@ -39,4 +39,42 @@
 			... done.
 		</echo>
 	</target>
+	
+	
+	<property name="scala.home" value="/usr/local/scala/"/>
+	<property name="scala-compiler.jar" value="${scala.home}/lib/scala-compiler.jar"/>
+	<property name="scala-library.jar" value="${scala.home}/lib/scala-library.jar"/>
+	
+	<!-- 2. Define Scala CLASSPATH. -->
+
+	<path id="scala.classpath">
+	  <pathelement location="${scala-compiler.jar}"/>
+	  <pathelement location="${scala-library.jar}"/>
+	</path>
+
+	<!-- 3. Define project CLASSPATH. -->
+
+	<path id="project.classpath">
+	  <path refid="scala.classpath"/>
+
+	  <pathelement location="${build}"/>
+	  <pathelement location="../commons-math-2.1.jar"/>
+	</path>
+
+	<!-- 4. Define scala compiler command. -->
+
+	<taskdef resource="scala/tools/ant/antlib.xml">
+	  <classpath refid="scala.classpath"/>
+	</taskdef>
+
+
+	<!-- 5. Compiles sources by using "scalac" command. -->
+
+	<target name="compile">
+	  <mkdir dir="${build}"/>
+
+	  <scalac srcdir="${src}" destdir="${build}" classpathref="project.classpath" force="changed">
+	    <include name="**/*.scala"/>
+	  </scalac>
+	</target>
 </project>

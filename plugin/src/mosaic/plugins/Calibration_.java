@@ -33,6 +33,9 @@ public class Calibration_ implements PlugIn, PreviewInterface {
 	double displacement = 10.0; 	// default
 	int frames_number = 2;
 	
+	Vector<Vector3f> shifts ;
+	Vector<Vector3f> shiftPositions;
+	
 	
 	@Override
 	public void run(String arg) {
@@ -40,10 +43,18 @@ public class Calibration_ implements PlugIn, PreviewInterface {
 		detect();
 		linkParticles();
 		calculateShifts();
+		regression();
 	}
 
 	
 	
+	private void regression() {
+		
+		
+	}
+
+
+
 	private void calculateShifts() {
 		Vector<Particle> particlesA, particlesB;
 		particlesA = frames[0].getParticles();
