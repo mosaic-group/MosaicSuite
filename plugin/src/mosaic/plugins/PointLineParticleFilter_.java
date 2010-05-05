@@ -1,4 +1,4 @@
-package mosaic.plugins;
+package mosaic.plugins; 
 
 
 import ij.IJ;
@@ -63,7 +63,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 	public int mNbParticles = 200;	
 	public int mRepSteps = 5;
 	public float mResamplingThreshold = mNbParticles*mRepSteps/2;//mResamplingThreshold = 10; //mNbParticles/2;//TODO:etwas einfallen lassen...bzw. untersuchen
-	public float mBackground = 10f;//Achtung: Minimum 1 ->Lösung ausdenken -> ok
+	public float mBackground = 10f;//Achtung: Minimum 1 ->Lï¿½sung ausdenken -> ok
 	public float mSigmaOfRandomWalk = 1f;//in PIxel
 //	public float[] mSigmaOfRandomWalkA = new float[]{
 //			mSigmaOfRandomWalk,
@@ -74,7 +74,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 //			mSigmaOfRandomWalk * 2f/ (2.0f * (float)Math.PI),
 //			mSigmaOfRandomWalk,
 //			mSigmaOfRandomWalk};
-	public float mScaleSigma = 1/3f; //.6 für die iterations auf 1 frame //1f //1.15 //1.3
+	public float mScaleSigma = 1/3f; //.6 fï¿½r die iterations auf 1 frame //1f //1.15 //1.3
 	public float[] mSigmaOfRandomWalkA = new float[]{
 			3f * mScaleSigma,
 			3f* mScaleSigma,
@@ -105,7 +105,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 	public FloatProcessor mIdealImageMonitorProcessor; 
 	public FloatProcessor mLikelihoodMonitorProcessor;
 	/** - Frames, FeaturePoint, Particles, Particle(x,y,Intensity,weight)*/
-	public Vector<Vector<Vector<float[]>>> mParticleMonitor = new Vector<Vector<Vector<float[]>>>(); //init grösse?	
+	public Vector<Vector<Vector<float[]>>> mParticleMonitor = new Vector<Vector<Vector<float[]>>>(); //init grï¿½sse?	
 	
 	/*
 	 * Options
@@ -137,13 +137,13 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 	 * <li> [6]: the intensity of the line<br>
 	 * <li> [7]: the intensity of the point<br>
 	 */
-	public Vector<float[]> mStateVectors = new Vector<float []>(); //möglich in Array zu packen
+	public Vector<float[]> mStateVectors = new Vector<float []>(); //mï¿½glich in Array zu packen
 
 	/**
 	 * Stores the state vectors for each frame. The first frame is at position 0.
 	 * The states are completed by <code>mZCoordinates</code>.
 	 */
-	public Vector<Vector<float[]>> mStateVectorsMemory = new Vector<Vector<float[]>>(); //grösse->evt in setup() initialisieren
+	public Vector<Vector<float[]>> mStateVectorsMemory = new Vector<Vector<float[]>>(); //grï¿½sse->evt in setup() initialisieren
 	/**
 	 * Completes the state vectors stored in <code>mStateVectorsMemory</code> with the restored z-coordinate.
 	 * Dimensions of variable: Frames -> Objects -> z-coordinates[of line start, of line end(nearer to tip), of tip]
@@ -162,7 +162,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 	 * <li> [7]: the intensity of the point<br>
 	 * <li> [8]: the particles weight (always at position 'length - 1'), a weight equal to -1 means that this particle is not valuable.<br>
 	 */
-	public Vector<Vector<float[]>> mParticles = new Vector<Vector<float[]>>(); //grösse?
+	public Vector<Vector<float[]>> mParticles = new Vector<Vector<float[]>>(); //grï¿½sse?
 	/**
 	 * A scalar to quantify the track for each frame
 	 */
@@ -1673,7 +1673,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 		aParticle[5] = (float)(aParticle[5] % (Math.PI*2));
 		
 		//validate(just a check that the tip all 3 objects do not leave the image space)
-		//TODO:etwas schlauer...könnte lange dauern
+		//TODO:etwas schlauer...kï¿½nnte lange dauern
 //		float vSPB2x = aParticle[0] + (aParticle[2]/2f)*(float)Math.cos(aParticle[3]);
 //		float vSPB2y = aParticle[1] + (aParticle[2]/2f)*(float)Math.sin(aParticle[3]);
 //		float vTipx = vSPB2x + aParticle[4]*(float)Math.cos(aParticle[3] + aParticle[5]);

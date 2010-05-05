@@ -20,6 +20,12 @@ import mosaic.detection.PreviewInterface;
 import mosaic.detection.Regression;
 
 import scala.collection.mutable.ListBuffer
+import scala.collection.JavaConversions._
+
+import org.apache.commons.math.stat.regression._
+import javax.vecmath._
+import scalala.tensor.dense._
+import scalala.Scalala._
 
 
 class CalibriScala_ extends PlugIn with PreviewInterface {
@@ -32,7 +38,7 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 	var gd: GenericDialog = null;
 	
 	/* user defined parameters for linking*/
-	val linkrange: Int = 1; 			// default
+	val linkrange: Int =  1; 			// default
 	val displacement: Double = 10.0; 	// default
 	val frames_number: Int = 2;
 	
@@ -42,12 +48,65 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 		allocateTwoImages();
 		detect();
 		detector.linkParticles(frames, frames_number, linkrange, displacement);
-		calculateShifts();
-		regression(calculateShifts());
+		val shiftsWithPosition = calculateShifts();
+		regression(shiftsWithPosition);
 	}
 
 	private def regression(shiftsWithPosition: Array[Array[Double]] ) {
-		Regression.regression(shiftsWithPosition);
+		
+		val xShifts = new Array[Double](shiftsWithPosition.length)
+		val yShifts = new Array[Double](shiftsWithPosition.length)
+		val dataX = new Array[Array[Double]](shiftsWithPosition.length,2)
+		val dataY = new Array[Array[Double]](shiftsWithPosition.length,2)
+		val xPos = new DenseVector(shiftsWithPosition.length)
+		val yPos = new DenseVector(shiftsWithPosition.length)
+		for (i <- Iterator.range(0, shiftsWithPosition.length-1)) {
+			xShifts(i) = shiftsWithPosition(i)(0);
+			yShifts(i) = shiftsWithPosition(i)(1);
+			dataX(i)(1) = shiftsWithPosition(i)(0);
+			dataY(i)(1) = shiftsWithPosition(i)(1);
+			xPos(i) = shiftsWithPosition(i)(3)
+			yPos(i) = shiftsWithPosition(i)(4)
+			dataX(i)(0) = shiftsWithPosition(i)(3)
+			dataY(i)(0) = shiftsWithPosition(i)(4)
+			}
+				
+		val regression = new OLSMultipleLinearRegression()
+//		// example from apache: http://commons.apache.org/math/userguide/stat.html#a1.5_Multiple_linear_regression
+		regression.newSampleData(xPos.toArray , dataX)
+
+		val beta = regression.estimateRegressionParameters()
+		println("betas: " + beta.map("%.3f".format(_)).mkString(", "))
+//		// residuals, if needed
+		val residuals = regression.estimateResiduals()
+		
+		// Regression X
+		val reg = new SimpleRegression();
+		reg.addData(dataX);
+		val xIntercept = reg.getIntercept()
+		println(xIntercept);
+		val xSlope = reg.getSlope()
+		println(xSlope);
+
+		// Regression Y
+		reg.clear
+
+		reg.addData(dataY);
+		val yIntercept = reg.getIntercept()
+		println(yIntercept);
+		val ySlope = reg.getSlope()
+		println(ySlope);
+ 
+		scatter(xPos ,new DenseVector(xShifts), DenseVector((xShifts.length))(0.5), DenseVector(xShifts.length)(0.1))
+		hold(true)
+		plot(xPos, xPos * xSlope +xIntercept)
+		hold(false)
+		scatter(yPos ,new DenseVector(yShifts), DenseVector((yShifts.length))(0.5), DenseVector(yShifts.length)(0.1))
+		hold(true)
+		plot(yPos, yPos * ySlope +yIntercept)
+		xlabel("x axis")
+		ylabel("y axis")
+		 
 	}
 
 	private def calculateShifts():Array[Array[Double]] = {
@@ -57,11 +116,11 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 		val shifts = new ListBuffer[Vector3f];
 		val shiftPositions = new ListBuffer[Vector3f]();
 		val shiftPart = new ListBuffer[Particle]();
+		var i = 0;
+		var tempVec = new Array[Double](3);
 			
 		for (parA <- particlesA)
 		{
-			var i = 0;
-			var tempVec = new Array[Double](3);
 			if (parA.next(0) >= 0) {
 				var parB = particlesB.get(parA.next(0));
 				shifts += new Vector3f(parB.x -parA.x,parB.y -parA.y, parB.z -parA.z);
@@ -77,10 +136,11 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 				i = i+1;
 			}
 		}
-		previewA.shifts = new java.util.Vector[Vector3f](scala.collection.JavaConversions.asCollection(shifts));
-		previewA.shiftPositions = new java.util.Vector[Vector3f](scala.collection.JavaConversions.asCollection(shiftPositions));
-		previewA.particlesShiftedToDisplay = new java.util.Vector[Particle](scala.collection.JavaConversions.asCollection(shiftPart));
-		shiftsWithPosition
+		var output = shiftsWithPosition.slice(0, i-1)
+		previewA.shifts = new java.util.Vector[Vector3f](shifts);
+		previewA.shiftPositions = new java.util.Vector[Vector3f](shiftPositions);
+		previewA.particlesShiftedToDisplay = new java.util.Vector[Particle](shiftPart);
+		output
 	}
 
 

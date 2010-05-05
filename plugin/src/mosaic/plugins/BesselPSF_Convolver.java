@@ -1,6 +1,5 @@
 package mosaic.plugins;
-
-
+ 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -151,7 +150,7 @@ public class BesselPSF_Convolver implements PlugInFilter{
 
 	}
 	/**
-	 * @author © Tao Pang 2006                                                                             
+	 * @author ï¿½ Tao Pang 2006                                                                             
 	 *
 	 *(1) This Java program is part of the book, "An Introduction to        
 	 *Computational Physics, 2nd Edition," written by Tao Pang and      

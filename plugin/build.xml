@@ -14,8 +14,34 @@
 	<property name="scala.home" value="/usr/local/scala/"/>
 	<property name="scala-compiler.jar" value="${scala.home}/lib/scala-compiler.jar"/>
 	<property name="scala-library.jar" value="${scala.home}/lib/scala-library.jar"/>
+	<path id="scala.classpath">
+		<pathelement location="${scala-compiler.jar}"/>
+		<pathelement location="${scala-library.jar}"/>
+	</path>
 	
-	<target name="main" depends="compress" description="Main target">
+	<!-- classpath for project build -->   
+	    <path id="build.classpath">
+	      <pathelement location="${scala-library.jar}"/>
+	      <fileset dir="../lib">
+	        <include name="*.jar"/>
+	      </fileset>
+	      <pathelement location="${build}"/>
+	    	
+	    	<!-- classpath IJ --> 	
+	      <pathelement location="../IJ/bin"/>
+	    	<!-- classpath Scalala -->
+	    	<pathelement location="../Scalala/target/classes"/>
+	    	<fileset dir="../Scalala/lib">
+	    		        <include name="*.jar"/>
+	    	</fileset>
+	    </path>
+
+	
+	<taskdef resource="scala/tools/ant/antlib.xml">
+		<classpath refid="scala.classpath"/>
+	</taskdef>
+	
+	<target name="main" depends="clean,build,compress" description="Main target">
 		<echo>
 			Building the .jar file.
 		</echo>
@@ -29,7 +55,7 @@
 	 		<!--Add Scala, Scalala and there dependencies to Mosaic Toolbox jar -->
 	 		
 	 			<fileset dir="../Scalala/target/classes/" includes="**/*.*" />
-	 			<zipfileset src="${scala-library.jar}" includes="**/*.class"/>	
+	 			<!--<zipfileset src="${scala-library.jar} " includes="**/*.class"/>	-->
 	 			<zipgroupfileset dir="../lib" includes="*.jar"/>
 	 		
 	 		
@@ -52,5 +78,15 @@
 		<echo>
 			... done.
 		</echo>
+	</target>
+	
+	<target name="build">
+	    <scalac srcdir="src/" destdir="bin/" classpathref="build.classpath" scalacdebugging="true">
+	        <include name="**/*.scala"/>
+	        <include name="**/*.java"/>
+	    </scalac>
+	 
+	    <javac srcdir="src/" destdir="bin" 
+	           classpath="bin"/>
 	</target>
 </project>

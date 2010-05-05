@@ -1,4 +1,4 @@
-package mosaic.plugins;
+package mosaic.plugins; 
 
 
 import ij.*;
@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>This class implements the feature point detection and tracking algorithm as described in:
  * <br>I. F. Sbalzarini and P. Koumoutsakos. 
  * <br>Feature point tracking and trajectory analysis for video imaging in cell biology. 
- * <br>J. Struct. Biol., 151(2): 182–195, 2005.
+ * <br>J. Struct. Biol., 151(2): 182ï¿½195, 2005.
  * <p>Any publications that made use of this plugin should cite the above reference.
  * <br>This helps to ensure the financial support of our project at ETH and will 
  * enable us to provide further updates and support.
@@ -419,7 +419,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
             "The plugin implements the feature point detection and tracking algorithm as described in:\n" +
             "I. F. Sbalzarini and P. Koumoutsakos.\n" +
             "Feature point tracking and trajectory analysis for video imaging in cell biology.\n" +
-            "J. Struct. Biol., 151(2): 182–195, 2005.\n" +
+            "J. Struct. Biol., 151(2): 182ï¿½195, 2005.\n" +
             "Any publications that made use of this plugin should cite the above reference.\n" +
             "This helps to ensure the financial support of our project at ETH and will enable us to provide further updates and support.\n" +
             "Thanks for your help!\n" +
@@ -499,7 +499,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 			int focus_y = Math.max((int)min_x - 8, 0);
 			int focus_height = (int)max_x - focus_y + 8;
 			int focus_width = (int)max_y - focus_x + 8;			
-			// make sure that the -8 or +8 didn’t create an ROI with bounds outside of the window
+			// make sure that the -8 or +8 didnï¿½t create an ROI with bounds outside of the window
 			if (focus_x + focus_width > original_imp.getWidth()) {
 				focus_width = original_imp.getWidth() - focus_x;
 			}
@@ -2069,7 +2069,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 					generateTrajFocusView(chosen_traj-1, magnification_factor);
 				} else {
 					// single-click - mark the selected trajectory by setting the ROI to the 
-					// trajectory’s mouse_selection_area
+					// trajectoryï¿½s mouse_selection_area
 					this.imp.setRoi(((Trajectory)all_traj.elementAt(chosen_traj-1)).mouse_selection_area);
 				}
 			} else {
@@ -3153,7 +3153,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 		}
 		
 		// Create a new canvas based on the image - the canvas is the view
-		// The trajectories are drawn on this canvas when it’s constructed and not on the image
+		// The trajectories are drawn on this canvas when itï¿½s constructed and not on the image
 		// Canvas is an overlay window on top of the ImagePlus
 		tc = new TrajectoryCanvas(duplicated_imp);
 		
@@ -3488,7 +3488,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 	/**
 	 * Writes the given <code>info</code> to given file information.
 	 * <code>info</code> will be written to the beginning of the file, overwriting older information
-	 * If the file doesn’t exists it will be created.
+	 * If the file doesnï¿½t exists it will be created.
 	 * Any problem creating, writing to or closing the file will generate an ImageJ error   
 	 * @param directory location of the file to write to 
 	 * @param file_name file name to write to
