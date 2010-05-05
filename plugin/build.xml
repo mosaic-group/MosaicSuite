@@ -20,18 +20,25 @@
 			Building the .jar file.
 		</echo>
 	</target>
+	
 	<target name="compress" depends="" description="generate the distribution">
 	 	<jar jarfile="${pluginsDir}/${jarfilename}.jar">
 	 		<fileset dir="." includes="plugins.config" />
 			<fileset dir="${build}" includes="**/*.*" />
-	 		<fileset dir="../Scalala/target/classes/" includes="**/*.*" />
-	 		<zipfileset src="${scala-library.jar}" includes="**/*.class"/>	
-	 		<zipgroupfileset dir="../lib" includes="*.jar"/>
+	 		
+	 		<!--Add Scala, Scalala and there dependencies to Mosaic Toolbox jar -->
+	 		
+	 			<fileset dir="../Scalala/target/classes/" includes="**/*.*" />
+	 			<zipfileset src="${scala-library.jar}" includes="**/*.class"/>	
+	 			<zipgroupfileset dir="../lib" includes="*.jar"/>
+	 		
+	 		
 			<manifest>
 	 			<attribute name="Built-By" value="${user.name}"/>
 	 		</manifest>
 	 	</jar>
 	</target>
+	
 	<target name="clean" description="deletes all binaries and jars">
 		<echo>
 			Deleting files...
@@ -45,42 +52,5 @@
 		<echo>
 			... done.
 		</echo>
-	</target>
-	
-	<!-- 2. Define Scala CLASSPATH. -->
-
-	<path id="scala.classpath">
-	  <pathelement location="${scala-compiler.jar}"/>
-	  <pathelement location="${scala-library.jar}"/>
-	  <pathelement location="$basedir/../../Scalala/target/classes/"/>
-	</path>
-
-	<!-- 3. Define project CLASSPATH. -->
-
-	<path id="project.classpath">
-	  <path refid="scala.classpath"/>
-
-	  <pathelement location="${build}"/>
-	  <pathelement location="../lib/commons-math-2.1.jar"/>
-	</path>
-
-	<!-- 4. Define scala compiler command. -->
-
-	<taskdef resource="scala/tools/ant/antlib.xml">
-	  <classpath refid="scala.classpath"/>
-	</taskdef>
-
-	<!-- 5. Compiles sources by using "scalac" command. -->
-
-	<target name="compile">
-	  <mkdir dir="${build}"/>
-
-	  <scalac srcdir="${src}" destdir="${build}" classpathref="project.classpath" force="changed">
-	    <include name="**/*.scala"/>
-	  	<include name="**/*.java"/>
-	  </scalac>
-	</target>
-	<target name="compileJ" depends="">
-	  <javac srcdir="${src}" destdir="${build}" classpath="scala-library.jar:${build}"/>
 	</target>
 </project>
