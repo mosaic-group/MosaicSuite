@@ -11,6 +11,7 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.util.Vector;
+import javax.vecmath.*;
 
 import mosaic.core.Particle;
 import mosaic.detection.FeaturePointDetector;
@@ -47,16 +48,24 @@ public class Calibration_ implements PlugIn, PreviewInterface {
 		Vector<Particle> particlesA, particlesB;
 		particlesA = frames[0].getParticles();
 		particlesB = frames[1].getParticles();
-		Vector<Float> shifts;
+		Vector<Vector3f> shifts = new Vector<Vector3f>();
+		Vector<Vector3f> shiftPositions = new Vector<Vector3f>();
+		Vector<Particle> shiftPart = new Vector<Particle>();
+		
 		
 		for (Particle parA : particlesA)
 		{
+			if (parA.next[0] >= 0) {
 			Particle parB = particlesB.get(parA.next[0]);
-			
-			
+			shifts.add(new Vector3f(parB.x -parA.x,parB.y -parA.y, parB.z -parA.z));
+			shiftPositions.add(new Vector3f(parA.x,parA.y,parA.z));
+			shiftPart.add(parB);
+			}
 		}
-
 		
+		previewA.shifts = shifts;
+		previewA.shiftPositions = shiftPositions;
+		previewA.particlesShiftedToDisplay = shiftPart;
 	}
 
 

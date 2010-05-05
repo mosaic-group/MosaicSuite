@@ -4,8 +4,11 @@ import ij.ImagePlus;
 import ij.gui.ImageCanvas;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics;
 import java.util.Vector;
+
+import javax.vecmath.Vector3f;
 
 import mosaic.core.Particle;
 
@@ -20,6 +23,10 @@ public class PreviewCanvas extends ImageCanvas {
 	int magnification = 1;
 	private int preview_slice_calculated;
 	private int radius;
+	
+	public Vector<Vector3f> shifts;
+	public Vector<Vector3f> shiftPositions;
+	public Vector<Particle> particlesShiftedToDisplay;
 
 	/**
 	 * Constructor.
@@ -73,6 +80,11 @@ public class PreviewCanvas extends ImageCanvas {
 			if(preview_frame != null){
 				particlesToDisplay = preview_frame.getParticles();
 				circleParticles(g, particlesToDisplay);
+				if (shifts != null) {
+					g.setColor(Color.PINK);
+					paintShiftArrows(g, shifts, shiftPositions);
+					circleParticles(g, particlesShiftedToDisplay);
+				}
 			}
 		}
 //		if(frames != null){
@@ -95,7 +107,7 @@ public class PreviewCanvas extends ImageCanvas {
 		this.magnification = (int)Math.round(imp.getWindow().getCanvas().getMagnification());
 		// go over all the detected particle 
 		for (int i = 0; i< particlesToDisplay.size(); i++) {
-			// draw a dot at the detected particle position (oval of hieght and windth of 0)
+			// draw a dot at the detected particle position (oval of height and width of 0)
 			// the members x, y of the Particle object are opposite to the screen X and Y axis
 			// The x-axis points top-down and the y-axis is oriented left-right in the image plane. 
 			g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).y), 
@@ -114,6 +126,25 @@ public class PreviewCanvas extends ImageCanvas {
 	 */
 	private int getFrameNumberFromSlice(int sliceIndex) {
 		return (sliceIndex-1) / imp.getNSlices() + 1;
+	}
+	
+	/**
+	 * Inner class method
+	 * <br> Invoked from the <code>paint</code> overwritten method
+	 * <br> draws an arrow from detected particle directly of the given <code>Graphics</code>
+	 * @param g
+	 */
+	private void paintShiftArrows(Graphics g, Vector<Vector3f> shifts, Vector<Vector3f> shiftPositions ) {
+		if (shifts == null || g == null) return;
+
+		this.magnification = (int)Math.round(imp.getWindow().getCanvas().getMagnification());
+		// go over all the detected particle 
+		for (int i = 0; i< shifts.size(); i++) {
+			// draw a dot at the detected particle position (oval of hieght and windth of 0)
+			// the members x, y of the Particle object are opposite to the screen X and Y axis
+			// The x-axis points top-down and the y-axis is oriented left-right in the image plane. 
+			g.drawLine(this.screenXD(shiftPositions.get(i).y),this.screenYD(shiftPositions.get(i).x),this.screenXD(shiftPositions.get(i).y+shifts.get(i).y),this.screenYD(shiftPositions.get(i).x+shifts.get(i).x));
+		}
 	}
 
 }
