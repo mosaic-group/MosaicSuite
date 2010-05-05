@@ -7,5 +7,6 @@
 	<classpathentry kind="lib" path="../lib/Jama-1.0.2.jar"/>
 	<classpathentry kind="lib" path="../lib/commons-math-2.1.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Scalala"/>
+	<classpathentry kind="lib" path="../Scalala/target/classes"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
