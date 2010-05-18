@@ -136,7 +136,7 @@ public class PreviewCanvas extends ImageCanvas {
 	 */
 	private void paintShiftArrows(Graphics g, Vector<Vector3f> shifts, Vector<Vector3f> shiftPositions ) {
 		if (shifts == null || g == null) return;
-
+		//System.out.println("Shifts " +shifts.size());
 		this.magnification = (int)Math.round(imp.getWindow().getCanvas().getMagnification());
 		// go over all the detected particle 
 		for (int i = 0; i< shifts.size(); i++) {
@@ -144,6 +144,8 @@ public class PreviewCanvas extends ImageCanvas {
 			// the members x, y of the Particle object are opposite to the screen X and Y axis
 			// The x-axis points top-down and the y-axis is oriented left-right in the image plane. 
 			g.drawLine(this.screenXD(shiftPositions.get(i).y),this.screenYD(shiftPositions.get(i).x),this.screenXD(shiftPositions.get(i).y+shifts.get(i).y*20),this.screenYD(shiftPositions.get(i).x+shifts.get(i).x*20));
+			g.drawLine(this.screenXD(shiftPositions.get(i).y),this.screenYD(shiftPositions.get(i).x),this.screenXD(shiftPositions.get(i).y),this.screenYD(shiftPositions.get(i).x+shifts.get(i).x*20));
+			g.drawLine(this.screenXD(shiftPositions.get(i).y),this.screenYD(shiftPositions.get(i).x),this.screenXD(shiftPositions.get(i).y+shifts.get(i).y*20),this.screenYD(shiftPositions.get(i).x));
 		}
 	}
 

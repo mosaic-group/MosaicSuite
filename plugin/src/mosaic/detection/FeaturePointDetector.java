@@ -29,13 +29,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import mosaic.core.Particle;
 import mosaic.plugins.BackgroundSubtractor2_;
-import mosaic.plugins.ParticleTracker_;
 
 	/**
 	 * <br>FeaturePointDetector class has all the necessary methods to detect the "real" particles
 	 * for them to be linked.
-	 * @see ParticleTracker_#mGlobalMax
-	 * @see ParticleTracker_#mGlobalMin
 	 */
 
 public class FeaturePointDetector {
@@ -108,7 +105,7 @@ public class FeaturePointDetector {
 
 		/* Image Restoration - Step 1 of the algorithm */
 		restored_fps = imageRestoration(restored_fps);
-		new StackWindow(new ImagePlus("after restoration",GetSubStackCopyInFloat(restored_fps, 1, 1)));
+		//new StackWindow(new ImagePlus("after restoration",GetSubStackCopyInFloat(restored_fps, 1, 1)));
 
 		/* Estimation of the point location - Step 2 of the algorithm */
 		findThreshold(restored_fps, percentile, absIntensityThreshold);
@@ -259,7 +256,6 @@ public class FeaturePointDetector {
 	 * Adapted as is from Ingo Oppermann implementation
 	 * @param ip ImageProcessor to do the dilation with
 	 * @return the dilated copy of the given <code>ImageProcessor</code> 
-	 * @see ParticleTracker_#mMask
 	 */		
 	private ImageStack dilateGeneric(ImageStack ips) {
 		FloatProcessor[] dilated_procs = new FloatProcessor[ips.getSize()];
@@ -544,7 +540,6 @@ public class FeaturePointDetector {
 	 * @param is ImageStack to be restored
 	 * @return the restored <code>ImageProcessor</code>
 	 * @see Convolver#convolve(ij.process.ImageProcessor, float[], int, int)
-	 * @see ParticleTracker_#kernel
 	 */
 	private ImageStack imageRestoration(ImageStack is) {  
 		//remove the clutter
@@ -957,7 +952,6 @@ public class FeaturePointDetector {
 
 	/**
 	 * Generates the dilation mask
-	 * <code>mask</code> is a var of class ParticleTracker_ and its modified internally here
 	 * Adapted from Ingo Oppermann implementation
 	 * @param mask_radius the radius of the mask (user defined)
 	 */
@@ -975,12 +969,11 @@ public class FeaturePointDetector {
 				}
 			}
 		}
-		//    	System.out.println("mask crated");
+		//    	System.out.println("mask created");
 	}
 
 	/**
 	 * Generates the dilation mask
-	 * <code>mask</code> is a var of class ParticleTracker_ and its modified internally here
 	 * Adapted from Ingo Oppermann implementation
 	 * @param mask_radius the radius of the mask (user defined)
 	 */
@@ -1196,7 +1189,7 @@ public class FeaturePointDetector {
 	/**
 	 * Creates the preview panel that gives the options to preview and save the detected particles,
 	 * and also a scroll bar to navigate through the slices of the movie
-	 * <br>Buttons and scrollbar created here use this ParticleTracker_ as <code>ActionListener</code>
+	 * <br>Buttons and scrollbar created here use this PreviewInterface previewHandler as <code>ActionListener</code>
 	 * and <code>AdjustmentListener</code>
 	 * @return the preview panel
 	 */

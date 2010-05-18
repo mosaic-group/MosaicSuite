@@ -48,113 +48,115 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 		allocateTwoImages();
 		detect();
 		detector.linkParticles(frames, frames_number, linkrange, displacement);
-		val shiftsWithPosition = calculateShifts();
-		regression(shiftsWithPosition);
+		val (shifts, shiftsPosition) = calculateShifts();
+		regression(shifts, shiftsPosition);
 	}
 
-	private def regression(shiftsWithPosition: Array[Array[Double]] ) {
+	private def regression(shifts: Array[Array[Double]], shiftsPosition: Array[Array[Double]] ) {
 		
-		val xShifts = new Array[Double](shiftsWithPosition.length)
-		val yShifts = new Array[Double](shiftsWithPosition.length)
-		val dataX = new Array[Array[Double]](shiftsWithPosition.length,2)
-		val dataY = new Array[Array[Double]](shiftsWithPosition.length,2)
-		val xPos = new DenseVector(shiftsWithPosition.length)
-		val yPos = new DenseVector(shiftsWithPosition.length)
-		for (i <- Iterator.range(0, shiftsWithPosition.length-1)) {
-			xShifts(i) = shiftsWithPosition(i)(0);
-			yShifts(i) = shiftsWithPosition(i)(1);
-			dataX(i)(1) = shiftsWithPosition(i)(0);
-			dataY(i)(1) = shiftsWithPosition(i)(1);
-			xPos(i) = shiftsWithPosition(i)(3)
-			yPos(i) = shiftsWithPosition(i)(4)
-			dataX(i)(0) = shiftsWithPosition(i)(3)
-			dataY(i)(0) = shiftsWithPosition(i)(4)
+		val n = shifts.length
+		val xShifts = new Array[Double](n)
+		val yShifts = new Array[Double](n)
+		val dataX = new Array[Array[Double]](n,2)
+		val dataY = new Array[Array[Double]](n,2)
+		val xPos = new DenseVector(n)
+		val yPos = new DenseVector(n)
+		for (i <- Iterator.range(0, n)) {
+			xShifts(i) = shifts(i)(0);
+			yShifts(i) = shifts(i)(1);
+			xPos(i) = shiftsPosition(i)(0)
+			yPos(i) = shiftsPosition(i)(1)
+			dataX(i)(1) = shifts(i)(0);
+			dataY(i)(1) = shifts(i)(1);
+			dataX(i)(0) = shiftsPosition(i)(0)
+			dataY(i)(0) = shiftsPosition(i)(1)
 			}
-				
-		val regression = new OLSMultipleLinearRegression()
-//		// example from apache: http://commons.apache.org/math/userguide/stat.html#a1.5_Multiple_linear_regression
-		regression.newSampleData(xPos.toArray , dataX)
-
-		val beta = regression.estimateRegressionParameters()
-		println("betas: " + beta.map("%.3f".format(_)).mkString(", "))
-//		// residuals, if needed
-		val residuals = regression.estimateResiduals()
 		
 		// Regression X
-		val reg = new SimpleRegression();
-		reg.addData(dataX);
-		val xIntercept = reg.getIntercept()
-		val xSlope = reg.getSlope()
-		println("x intercept " + xIntercept +  ", x slope " + xSlope + ", x MSE " + reg.getMeanSquareError);
+		clf()
+		println ("Regression X coord")
+		executeRegression(dataX, xShifts, xPos, n)
 
-		// Regression Y
-		reg.clear
-
-		reg.addData(dataY);
-		val yIntercept = reg.getIntercept()
-		val ySlope = reg.getSlope()
-		println("y intercept " + yIntercept + ", y slope " + ySlope + ", y MSE " + reg.getMeanSquareError) ;
-
-		hold(false)
-		scatter(xPos ,new DenseVector(xShifts), DenseVector((xShifts.length))(0.8), DenseVector(xShifts.length)(0.8))
-		hold(true)
-		plot(xPos, xPos * xSlope +xIntercept)
-		xlabel("x axis")
-		ylabel("y axis")
-		hold(false)
 		subplot(2,1,2)
+		// Regression Y
+		println ("Regression Y coord")
+		executeRegression(dataY, yShifts, yPos, n)
+	}
+	
+	private def executeRegression(data: Array[Array[Double]], shifts: Array[Double], pos: DenseVector, n: Int) {
+		val reg = new SimpleRegression();
+		reg.addData(data);
+		var intercept :Double = 0
+		var slope :Double = 0
+		var mse :Double = 0
 		
-		scatter(yPos ,new DenseVector(yShifts), DenseVector((yShifts.length))(0.8), DenseVector(yShifts.length)(0.1))
+		var redo = true
+		while(redo) {
+			intercept = reg.getIntercept
+			slope = reg.getSlope
+			mse = reg.getMeanSquareError
+			println("intercept " + intercept +  ", slope " + slope + ", MSE " + mse);
+			
+			val shiftsReg: DenseVector = (pos * slope + intercept)
+			redo = false
+			val zipped = shifts zip shiftsReg zip pos
+			for (((shift,(_,shiftReg)),(_,p)) <-zipped; if isOutlier(scala.Math.sqrt(mse), shift, shiftReg)) {
+				reg.removeData(p, shift)
+				println("MSE new " + reg.getMeanSquareError)
+				redo = true
+			}
+		}		
+
+		scatter(pos ,new DenseVector(shifts), DenseVector(n)(0.8), DenseVector(n)(0.8))
 		hold(true)
-		plot(yPos, yPos * ySlope +yIntercept)
-		xlabel("x axis")
-		ylabel("y axis")
-		 
+		plot(pos, pos * slope + intercept)
+		xlabel("coordinates " + "Nbr: " + pos.size)
+		ylabel("shifts")
+		hold(false)
+	}
+	
+	
+	private def isOutlier(std: Double, y: Double, yEstimated : Double) : Boolean= {
+		//println(scala.Math.abs( y- yEstimated))
+		//TODO outlier detection with std, how can MSE be 0?
+		((scala.Math.abs( y- yEstimated)  > 3 *std) && (std > 00000.1))
 	}
 
-	private def calculateShifts():Array[Array[Double]] = {
+	private def calculateShifts():(Array[Array[Double]],Array[Array[Double]]) = {
 		val particlesA = frames(0).getParticles().toArray(new Array[Particle](0))
 		val particlesB = frames(1).getParticles();
-		val shiftsWithPosition = new Array[Array[Double]](particlesA.size,6);
-		val shifts = new ListBuffer[Vector3f];
-		val shiftPositions = new ListBuffer[Vector3f]();
-		val shiftPart = new ListBuffer[Particle]();
+		val maxNbrShifts = scala.Math.min(particlesA.size, particlesB.size)
+		// TODO find a data representation that fits Regression, Frame and plotting API
+		val shifts = new Array[Array[Double]](maxNbrShifts,3);
+		val shiftsPosition = new Array[Array[Double]](maxNbrShifts,3);
+		val shiftsVec = new java.util.Vector[Vector3f];
+		val shiftsPositionsVec = new java.util.Vector[Vector3f];
+		val shiftPartVec = new java.util.Vector[Particle];
 		var i = 0;
-		var tempVec = new Array[Double](3);
 			
 		for (parA <- particlesA)
 		{
 			if (parA.next(0) >= 0) {
 				var parB = particlesB.get(parA.next(0));
-				shifts += new Vector3f(parB.x -parA.x,parB.y -parA.y, parB.z -parA.z);
-				shiftPositions +=new Vector3f(parA.x,parA.y,parA.z);
+				var shift = Array(parB.x -parA.x,parB.y -parA.y, parB.z -parA.z)
 				
-				//TODO clean up: makes data structure scala compatible
-				(new Vector3d(shifts(i))).get(tempVec);
-				System.arraycopy(tempVec, 0, shiftsWithPosition(i), 0, 3);
-				(new Vector3d(shiftPositions(i))).get(tempVec);
-				System.arraycopy(tempVec, 0, shiftsWithPosition(i), 3, 3);
+				shiftsVec += new Vector3f(shift);
+				shiftsPositionsVec +=new Vector3f(parA.x,parA.y,parA.z);
+				shiftPartVec += parB;
 				
-				shiftPart += parB;
+				shifts(i) = Array(shift(0),shift(1),shift(2))
+				shiftsPosition(i) = Array(parA.x,parA.y,parA.z)
+				
 				i = i+1;
 			}
 		}
-		var output = shiftsWithPosition.slice(0, i-1)
-		previewA.shifts = new java.util.Vector[Vector3f](shifts);
-		previewA.shiftPositions = new java.util.Vector[Vector3f](shiftPositions);
-		previewA.particlesShiftedToDisplay = new java.util.Vector[Particle](shiftPart);
-		output
+		previewA.shifts = shiftsVec;
+		previewA.shiftPositions = shiftsPositionsVec;
+		previewA.particlesShiftedToDisplay = shiftPartVec;
+		
+		(shifts.slice(0, i), shiftsPosition.slice(0, i))
 	}
 
-
-	/**
-	 * Returns a * c + b
-	 * @param a: y-coordinate
-	 * @param b: x-coordinate
-	 * @param c: width
-	 * @return
-	 */
-	private def coord (a: Int, b: Int, c : Int):Int = (((a) * (c)) + (b));
 
 	private def detect() {
 		// TODO Do we use the same detector for both images or two different detectors?
@@ -173,7 +175,9 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 		previewB = detector.generatePreviewCanvas(impB);
 		gd.showDialog();
 		detector.getUserDefinedParameters(gd);
-		// Detection done with preview. TODO
+
+		//TODO Detection done with preview. 
+		preview(null)
 	}
 
 	/**
@@ -199,7 +203,7 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 			true;
 		} else if (windowList.length > 2) {
 			// Select images
-			// TODO
+			// TODO Select images from windowList
 			false;
 		} else {
 			// Two image open.
@@ -233,7 +237,7 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 	 */
 	private def showAbout() {
 		IJ.showMessage("Calibration...",
-				"TODO, shift the blame on the developper." //TODO     
+				"TODO, shift the blame on the developper." //TODO showAbout   
 		);
 	}
 
