@@ -33,8 +33,9 @@
 	 		
 	 			<fileset dir="../Scalala/target/classes/" includes="**/*.*" />
 	 			<!--<zipfileset src="${scala-library.jar} " includes="**/*.class"/>	-->
-	 			<zipgroupfileset dir="../lib" includes="*.jar"/>
 	 		
+	 			<!-- Add needed libs directly to the IJ eclipse project and not into the MosaicToobox.jar, for faster debugging -->
+	 			<!-- <zipgroupfileset dir="../lib" includes="*.jar"/>-->	
 	 		
 			<manifest>
 	 			<attribute name="Built-By" value="${user.name}"/>
