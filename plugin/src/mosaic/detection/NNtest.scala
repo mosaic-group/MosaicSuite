@@ -1,30 +1,51 @@
 package mosaic.detection
 
 import scalala.Scalala._;
+import scalala.tensor.dense._
 import weka.core.DenseInstance
 
 
 object NNtest {
   def main(args : Array[String]) : Unit = {
 	  
-	  
-	  val n = 10000
-//	  val n = 10000000 //uses approx. 1 GB ram
+	  val d = 2
 
-	  var refPoints = (for (i <- Iterator.range(0,n)) yield rand(2).toArray)
-	  
 	  val nn = new NearestNeighbour
-	  var xx = new Array[Array[Double]](n,2)
-	  refPoints.copyToArray(xx)
-	  nn.setReferenceGroup(xx)
 	  
-
-	   val dist = nn.getDistance(rand(2).toArray) 
-	   println(dist)
-	   println(nn.getDistance(rand(2).toArray))
-	   println(nn.getDistance(rand(2).toArray))
-	   println(nn.getDistance(rand(2).toArray))
-	   println(nn.getDistance(rand(2).toArray))
-	   println(nn.getDistance(rand(2).toArray))
+	  val nbrRefPoints = 100
+//	  val nbrRefpoints = 10000000 //uses approx. 1 GB ram
+	  // independent randomly placed reference objects
+//	  var refPoints = Array.fill(nbrRefPoints)(rand(d).toArray)
+	  // regularly placed reference objects
+	  var refPoints = nn.getMesh(1, 5, 1, 5)
+	  
+	  val nbrQueryPoints = 1000
+	  // independent randomly placed query objects
+//	  val queryPoints = Array.fill(nbrQueryPoints)(rand(d).toArray)
+	  // regularly placed query objects
+	  val queryPoints = nn.getMesh(1, 1000, 1, 2000)
+	  
+	  
+	  val time = (new java.util.Date()).getTime()
+	  // generate KDTree
+	  nn.setReferenceGroup(refPoints)
+	  println("Generation KDtree "+((new java.util.Date()).getTime() - time)*0.001)
+	  // find NN
+      val dist = nn.getDistances(queryPoints) 
+      println("Generation + Search KDtree "+((new java.util.Date()).getTime() - time)*0.001)
+	  dist.slice(0,5).map(println(_))
+	  
+	  
+	  // estimate q(d)
+	  val est = new KernelDensityEstimator()
+	  est.addValues(dist)
+	  
+	  val maxDist = dist.reduceLeft(Math.max(_,_))
+	  val minDist = dist.reduceLeft(Math.min(_,_))
+	  
+	  val x = linspace(minDist, maxDist, 100)
+	  val prob = est.getProbabilities(x.toArray)
+	  plot(x, new DenseVector(prob))
+	  
   }
 }
