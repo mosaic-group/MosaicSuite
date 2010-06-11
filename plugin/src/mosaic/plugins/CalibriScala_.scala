@@ -1,5 +1,6 @@
 package mosaic.plugins
 
+import mosaic.core.ImagePreparation
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
@@ -7,16 +8,11 @@ import ij.gui.GenericDialog;
 import ij.plugin.PlugIn;
 import ij.process.StackStatistics;
 
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
+
 import java.awt.event.ActionEvent;
 import javax.vecmath._;
 
 import mosaic.core.Particle;
-import mosaic.detection.FeaturePointDetector;
-import mosaic.detection.MyFrame;
-import mosaic.detection.PreviewCanvas;
-import mosaic.detection.PreviewInterface;
 import mosaic.detection.Regression;
 
 import scala.collection.mutable.ListBuffer
@@ -28,14 +24,7 @@ import scalala.tensor.dense._
 import scalala.Scalala._
 
 
-class CalibriScala_ extends PlugIn with PreviewInterface {
-	
-	var impA: ImagePlus= null; var impB:ImagePlus= null
-	var detector: FeaturePointDetector = null
-	
-	var  previewA: PreviewCanvas = null; var  previewB: PreviewCanvas = null;
-	val frames = new Array[MyFrame](2);
-	var gd: GenericDialog = null;
+class CalibriScala_ extends PlugIn with ImagePreparation {
 	
 	/* user defined parameters for linking*/
 	val linkrange: Int =  1; 			// default
@@ -160,81 +149,6 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 		
 		(shifts.slice(0, i), shiftsPosition.slice(0, i))
 	}
-
-
-	private def detect() {
-		// TODO Do we use the same detector for both images or two different detectors?
-		// get global minimum and maximum 
-		val stack_statsA = new StackStatistics(impA);
-		val stack_statsB = new StackStatistics(impB);
-		val global_max = Math.max(stack_statsA.max, stack_statsB.max);
-		val global_min = Math.min(stack_statsA.min, stack_statsB.min);
-		detector = new FeaturePointDetector(global_max.asInstanceOf[Float], global_min.asInstanceOf[Float]);
-		
-		gd = new GenericDialog("Particle detection...", IJ.getInstance());
-		detector.addUserDefinedParametersDialog(gd);
-		gd.addPanel(detector.makePreviewPanel(this, impA), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));	        
-
-		previewA = detector.generatePreviewCanvas(impA);
-		previewB = detector.generatePreviewCanvas(impB);
-		gd.showDialog();
-		detector.getUserDefinedParameters(gd);
-
-		//TODO Detection done with preview. 
-		preview(null)
-	}
-
-	/**
-	 * Initializes imgA and imgB so that 2 images are available.
-	 * @return
-	 */
-	private def allocateTwoImages(): Boolean = {
-		// Get 2 Images ready and store them in imgA and imgB.
-		val windowList = WindowManager.getIDList();
-		
-		if (windowList == null) {
-			// No images open, have to open 2 images.
-			impA = IJ.openImage();
-			impA.show();
-			impB = IJ.openImage();
-			impB.show();
-			true;
-		} else if (windowList.length == 1) {
-			// One image open, have to open another one.
-			impB = IJ.openImage();
-			impB.show();
-			impA = WindowManager.getImage(windowList(0));
-			true;
-		} else if (windowList.length > 2) {
-			// Select images
-			// TODO Select images from windowList
-			false;
-		} else {
-			// Two image open.
-			impA = WindowManager.getImage(windowList(0));
-			impB = WindowManager.getImage(windowList(1));
-			true;
-		}
-	}
-		
-	@Override
-	def preview(e: ActionEvent) {
-		// do preview
-		detector.preview(impA, previewA, gd);
-		frames(0) = detector.getPreviewFrame();
-		detector.preview(impB, previewB, gd);
-		frames(1) = detector.getPreviewFrame();
-		previewA.repaint();
-		previewB.repaint();
-		return;
-	}
-
-	@Override
-	def saveDetected(e: ActionEvent) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	
 	/**
 	 * Shows an ImageJ message with info about this plugin
