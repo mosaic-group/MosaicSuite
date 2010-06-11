@@ -55,6 +55,7 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 	private def regression(shifts: Array[Array[Double]], shiftsPosition: Array[Array[Double]] ) {
 		
 		val n = shifts.length
+//TODO refactor 2map		val xShifts = shifts.map(_.apply(0))
 		val xShifts = new Array[Double](n)
 		val yShifts = new Array[Double](n)
 		val dataX = new Array[Array[Double]](n,2)
@@ -90,6 +91,10 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 		var slope :Double = 0
 		var mse :Double = 0
 		
+		val shiftsReg: DenseVector = (pos * slope + intercept)
+		val zipped = shifts zip shiftsReg zip pos zip Array.range(0, shifts.size)
+		val removed = Array.fill(shifts.size)(false)
+		
 		var redo = true
 		while(redo) {
 			intercept = reg.getIntercept
@@ -97,14 +102,14 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 			mse = reg.getMeanSquareError
 			println("intercept " + intercept +  ", slope " + slope + ", MSE " + mse);
 			
-			val shiftsReg: DenseVector = (pos * slope + intercept)
 			redo = false
-			val zipped = shifts zip shiftsReg zip pos
-			for (((shift,(_,shiftReg)),(_,p)) <-zipped; if isOutlier(scala.Math.sqrt(mse), shift, shiftReg)) {
+			for ((((shift,(_,shiftReg)),(_,p)),i) <- zipped; if (!removed(i) && isOutlier(scala.Math.sqrt(mse), shift, shiftReg))) {
+				val str = reg.getMeanSquareError
 				reg.removeData(p, shift)
-				println("MSE new " + reg.getMeanSquareError)
+				removed(i) = true
+				println("MSE " + str+ " new " + reg.getMeanSquareError +" "+p+ " "+shift)
 				redo = true
-			}
+			}			
 		}		
 
 		scatter(pos ,new DenseVector(shifts), DenseVector(n)(0.8), DenseVector(n)(0.8))
@@ -118,8 +123,7 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 	
 	private def isOutlier(std: Double, y: Double, yEstimated : Double) : Boolean= {
 		//println(scala.Math.abs( y- yEstimated))
-		//TODO outlier detection with std, how can MSE be 0?
-		((scala.Math.abs( y- yEstimated)  > 3 *std) && (std > 00000.1))
+		(scala.Math.abs( y- yEstimated)  > 10 *std)// && (std > 00000.1))
 	}
 
 	private def calculateShifts():(Array[Array[Double]],Array[Array[Double]]) = {
@@ -184,7 +188,7 @@ class CalibriScala_ extends PlugIn with PreviewInterface {
 	 * Initializes imgA and imgB so that 2 images are available.
 	 * @return
 	 */
-	def allocateTwoImages(): Boolean = {
+	private def allocateTwoImages(): Boolean = {
 		// Get 2 Images ready and store them in imgA and imgB.
 		val windowList = WindowManager.getIDList();
 		
