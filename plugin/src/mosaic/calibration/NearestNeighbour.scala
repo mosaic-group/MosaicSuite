@@ -1,4 +1,4 @@
-package mosaic.detection
+package mosaic.calibration
 
 import java.util.ArrayList
 import weka.core.Attribute
@@ -12,8 +12,8 @@ import scalala.Scalala._
 	/**
 	 * <br>NearestNeighbour class is a wrapper for the NearestNeighbourSearch implemented through KDTree from the WEKA library
 	 */
-
 class NearestNeighbour(d: Int = 2) {
+	// TODO make generic for d: nbr of dimensions
 	
 	private var instances : Instances = null
 	private val kdtree = new KDTree()
@@ -21,9 +21,7 @@ class NearestNeighbour(d: Int = 2) {
 	def setReferenceGroup(points: Array[Array[Double]]) {
 		
 		val atts: ArrayList[Attribute] = new ArrayList[Attribute]();
-		// TODO make generic for d: nbr of dimensions
-		atts.add(new Attribute("x"))
-		atts.add(new Attribute("y"))
+		for (i <- Iterator.range(0, d)) atts.add(new Attribute("cood" + i))
 		instances = new Instances("ReferencePoints", atts, points.length)
 		for (point <-points) instances.add(new DenseInstance(1, point))
 		kdtree.setInstances(instances)

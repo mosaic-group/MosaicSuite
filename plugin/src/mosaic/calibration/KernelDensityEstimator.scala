@@ -1,4 +1,4 @@
-package mosaic.detection
+package mosaic.calibration
 
 import weka.estimators.KernelEstimator
 
