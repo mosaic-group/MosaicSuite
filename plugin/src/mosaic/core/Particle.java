@@ -139,6 +139,11 @@ public class Particle {
 
 	public int getFrame() {
 		return frame;
-	}		
+	}
+	
+	public double[] getPosition() {
+		double[] result =  {(double) x,(double) y,(double) z};
+		return result;
+	}
 }
 

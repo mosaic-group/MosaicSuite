@@ -8,13 +8,13 @@ import weka.core.DenseInstance
 object NNtest {
   def main(args : Array[String]) : Unit = {
 	  
-	  //NNBasic
-	  logLikliTest
+	  NNBasic
+//	  logLikliTest
 	  //mseTest
   }
   
   def NNBasic {
-	  val d = 2
+	  val d = 3
 
 	  val nn = new NearestNeighbour(d)
 	  
@@ -23,13 +23,13 @@ object NNtest {
 	  // independent randomly placed reference objects
 //	  var refPoints = Array.fill(nbrRefPoints)(rand(d).toArray)
 	  // regularly placed reference objects
-	  var refPoints = nn.getMesh(1, 5, 1, 5)
+	  var refPoints = nn.getMesh(List((1, 5),(1, 5),(1, 5)))
 	  
-	  val nbrQueryPoints = 1000
+	  val nbrQueryPoints = 100
 	  // independent randomly placed query objects
-//	  val queryPoints = Array.fill(nbrQueryPoints)(rand(d).toArray)
+	  val queryPoints = Array.fill(nbrQueryPoints)(rand(d).toArray)
 	  // regularly placed query objects
-	  val queryPoints = nn.getMesh(1, 1000, 1, 2000)
+//	  val queryPoints = nn.getMesh(List((1, 1*nbrQueryPoints),(1, 2*nbrQueryPoints),(1, 2*nbrQueryPoints)))
 	  
 	  
 	  val time = (new java.util.Date()).getTime()

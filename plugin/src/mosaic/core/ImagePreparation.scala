@@ -111,5 +111,12 @@ trait ImagePreparation extends PreviewInterface {
 	def saveDetected(e: ActionEvent) {
 		// TODO Auto-generated method stub
 	}
+	
+	def getParticlePositions(i : Int): Array[Array[Double]] = {
+		for (particle <- frames(i).getParticles.toArray) yield {
+			val part = particle.asInstanceOf[Particle]
+			part.getPosition()
+		}
+	}
 
 }
