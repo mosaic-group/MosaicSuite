@@ -1,4 +1,4 @@
-package mosaic.calibration
+package mosaic.interaction
 
 import cma._
 import cma.fitness._
@@ -7,10 +7,11 @@ import mosaic.calibration._
 object CMALiklihoodExample {
 	
 	def main(args : Array[String]) : Unit = {
+		val i = 0
 		
-		val DCell = ReadMat.getDenseVector("DCell.mat", "DCell")
-		val ddCell = ReadMat.getDenseVector("ddCell.mat", "dCell")
-		val qCell = ReadMat.getDenseVector("qCell.mat", "qCell" )
+		val DCell = ReadMat.getDenseVector("DCell.mat", "DCell",i)
+		val ddCell = ReadMat.getDenseVector("ddCell.mat", "dCell",i)
+		val qCell = ReadMat.getDenseVector("qCell.mat", "qCell" ,i)
 		
 		
 		def fitfun: AbstractObjectiveFunction = new LikelihoodOptimizer(qCell, ddCell,DCell);
@@ -19,9 +20,9 @@ object CMALiklihoodExample {
 		val cma = new CMAEvolutionStrategy();
 		cma.readProperties(); // read options, see file CMAEvolutionStrategy.properties
 		cma.setDimension(1); // overwrite some loaded properties
-		cma.setInitialX(0.5); // in each dimension, also setTypicalX can be used
-		cma.setInitialStandardDeviation(10); // also a mandatory setting 
-		cma.options.stopFitness = 1e-9;       // optional setting
+		cma.setInitialX(1); // in each dimension, also setTypicalX can be used
+		cma.setInitialStandardDeviation(0.2); // also a mandatory setting 
+		cma.options.stopFitness = 1e-12;       // optional setting
 
 		// initialize cma and get fitness array to fill in later
 		val fitness = cma.init();  // new double[cma.parameters.getPopulationSize()];
@@ -69,7 +70,8 @@ object CMALiklihoodExample {
 				+ " at evaluation " + cma.getBestEvaluationNumber());
 			
 		// we might return cma.getBestSolution() or cma.getBestX()
-
+		
+		println(fitfun.valueOf(Array(-0.021777343750001)))
 	} // main  
 
 }

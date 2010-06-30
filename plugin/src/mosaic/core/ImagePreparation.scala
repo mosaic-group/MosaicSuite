@@ -8,19 +8,18 @@ import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.GenericDialog
-import mosaic.core.Particle
 import mosaic.detection.FeaturePointDetector
 import ij.process.StackStatistics
 import scala.collection.JavaConversions
 
 
-trait ImagePreparation extends PreviewInterface {
+trait ImagePreparation {//extends PreviewInterface {
 	
 	var impA: ImagePlus= null; var impB:ImagePlus= null
 	val frames = new Array[MyFrame](2);
 	
 	var detector: FeaturePointDetector = null
-	
+	 
 	var gd: GenericDialog = null;
 	
 	var  previewA: PreviewCanvas = null; var  previewB: PreviewCanvas = null;
@@ -80,7 +79,7 @@ trait ImagePreparation extends PreviewInterface {
 		
 		gd = new GenericDialog("Particle detection...", IJ.getInstance());
 		detector.addUserDefinedParametersDialog(gd);
-		gd.addPanel(detector.makePreviewPanel(this, impA), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));	        
+//		gd.addPanel(detector.makePreviewPanel(this, impA), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));	        
 
 		previewA = detector.generatePreviewCanvas(impA);
 		previewB = detector.generatePreviewCanvas(impB);
@@ -91,9 +90,6 @@ trait ImagePreparation extends PreviewInterface {
 		preview(null)
 	}
 	
-//	protected def getParticles(): (List[Particle], List[Particle]) =  {
-//		(frames(0).getParticles, frames(1).getParticles.toArray)
-//	}
 	
 	@Override
 	def preview(e: ActionEvent) {
@@ -107,16 +103,14 @@ trait ImagePreparation extends PreviewInterface {
 		return;
 	}
 	
-	@Override
-	def saveDetected(e: ActionEvent) {
-		// TODO Auto-generated method stub
-	}
-	
 	def getParticlePositions(i : Int): Array[Array[Double]] = {
 		for (particle <- frames(i).getParticles.toArray) yield {
 			val part = particle.asInstanceOf[Particle]
 			part.getPosition()
 		}
 	}
+//	protected def getParticles(): (List[Particle], List[Particle]) =  {
+//		(frames(0).getParticles, frames(1).getParticles.toArray)
+//	}
 
 }

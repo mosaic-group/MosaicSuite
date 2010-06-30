@@ -1,4 +1,4 @@
-package mosaic.calibration
+package mosaic.interaction
 
 import cma.fitness.AbstractObjectiveFunction
 import scalala.Scalala._
@@ -36,7 +36,8 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 //		% STEP 1: compute Z, use trapezoidal rule
 //			    g_of_r = exp(-epsilon*shape(d/sigma));
 //			val fEvaluated = potentialShape(this.di,potentialParam(1), potentialParam(2)) * (-potentialParam(0)) value
-			val fEvaluated = potentialShape(this.di,1.1476, 0) * (-potentialParam(0)) value
+			val fEvaluated = potentialShape(this.di,1.1476, 0) * (-potentialParam(0)) value;
+			System.out.format("%.100f%n", double2Double(q(0)));
 			val g_of_r = new DenseVector(fEvaluated.toArray.map(Math.exp(_)))
 //			support = g_of_r.*q;
 			var support = g_of_r :* this.q value
@@ -51,6 +52,9 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 			val diArray = this.di.toArray
 			val diff: DenseVector = new DenseVector (for ((x,y) <-  diArray.take(di.size-1).zip(diArray.drop(1))) yield y-x)
 //			Z = sum(integrand.*dd);
+//			val ss = integrand :* diff value
+			System.out.format("%.100f%n", double2Double(integrand(0)));
+			val s1 = integrand(0) * diff(0)
 			val Z = sum(integrand :* diff)
 //			% STEP 2: compute p(d)
 			val p = g_of_r :* this.q * 1/Z
@@ -69,7 +73,7 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 	 * @see calculatePofD
 	 */
 	def negLogLikelihood(q :DenseVector, di: DenseVector, sampleDistances: DenseVector, potentialShape: ((DenseVector,Double,Double) => DenseVector), potentialParam: Double*):Double = {
-		val p = calculatePofD(q :DenseVector, di: DenseVector, sampleDistances, potentialShape, potentialParam :_*)
+		val p = calculatePofD(q :DenseVector, di: DenseVector, sampleDistances, potentialShape,1) // TODO potentialParam :_*)
 		val logP = new DenseVector(p.toArray.map(Math.log(_)))
 		-sum(logP)
 		/*
@@ -91,36 +95,7 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 		
 		nll = -sum(log(p));*/
 	}
-	
-	 /** step potential function
-	 * @param d
-	 * @param sigma		scale parameter, default = 1
-	 * @param t			shift parameter, default = 0
-	 * @return
-	 */
-	def potentialShapeStepFunction(d: DenseVector, sigma: Double = 1, t: Double = 0):DenseVector = {
-		val fStep = new DenseVector(d.toArray.map(x => if((x - t)<0) -1d else 0d))
-		fStep
-	}
-	
-	/**	% f_plummer: shape of the Plummer potential
-	 * @param  d :   	distances
-	 * @param sigma :		scale parameter, default = 1
-	 * @param t	:		shift parameter, default = 0
-	 * @return  f :  	shape function sampled at d
-	 */
-	def potentialShapePlummer(d: DenseVector, sigma: Double = 1, t: Double = 0):DenseVector = {
-		val dScaled = new DenseVector(d.toArray.map(x => x/sigma))
-		//f = -1./sqrt(d.*d + 1);
-		val f = dScaled :* dScaled + 1
-		val fPlummer = new DenseVector(f.toArray.map(x => -1/ Math.sqrt(x)))
-		//f(d<=0) = -1;
-		val iter = d.filter(x => x match {case (i,k) => k <= 0; case _ => false})
-		for ((i, k) <- iter) fPlummer(i) = -1
-		fPlummer
-	}
-
-	
+		
 	/** interpolates to find yi, the values of the underlying function Y at the points in the vector or array xi
 	 * @param Y underlying Function Y
 	 * @param x positions where the underlying function Y is specified
@@ -186,7 +161,7 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 	}
 	
 	def valueOf(data: Array[Double]): Double ={
-		val x = negLogLikelihood(this.q, this.di, this.d_s, potentialShapePlummer, data :_*)
+		val x = negLogLikelihood(this.q, this.di, this.d_s, PotentialFunctions.potentialShapePlummer, data :_*)
 		println(data(0) + ": Epsilon , nll: "+ x)
 		x
 	}

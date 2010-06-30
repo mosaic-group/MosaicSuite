@@ -45,7 +45,7 @@ public class FeaturePointDetector {
 	int particles_number;		// number of particles initialy detected 
 	int real_particles_number;	// number of "real" particles discrimination
 	
-	Label previewLabel;
+	Label previewLabel =  new Label("");
 	MyFrame preview_frame;
 
 	/* user defined parameters */
@@ -1238,7 +1238,6 @@ public class FeaturePointDetector {
 		preview_panel.add(preview_scrollbar);
 		gridbag.setConstraints(save_detected, c);
 		preview_panel.add(save_detected);
-		previewLabel = new Label("");
 		gridbag.setConstraints(previewLabel, c);
 		preview_panel.add(previewLabel);
 		gridbag.setConstraints(seperation, c);
