@@ -16,28 +16,54 @@ object ReadMat {
 
 		val data = DCell.get(0).asInstanceOf[MLDouble].getArray
 		val data1 = getDenseVector("DCell.mat", "DCell", 0)
-		println("sdfdsf")
+
 		//		val data : Array[Array[Double]] = ((mfr.getMLArray( "resultsAd2" )).asInstanceOf[MLDouble]).getArray;
 		println(data.length +" " + data(0).length + " " + data(0)(0));
+		
+		val doubleArray = ReadMat.readMatDoubleArrayFile("/Users/marksutt/Desktop/01green/Output/Mask.mat", "Mask")
+		println("")
 	}
 	
 	def getDenseVector(file: String,cellName : String, i: Int = 0): DenseVector = {
 		val cell = readMatCellFile(file, cellName)
 		val dArray = cell.get(i).asInstanceOf[MLDouble].getArray
+		
+//		TODO cleanup 
+//		debug
+		val x = 1.21231231231231231245646546546546545646545645646546513134654465464564
+		System.out.format("%.100f%n", dArray(0)(0): java.lang.Double);
+//		System.out.format("%.100f%n", x: java.lang.Double);
+		Console.printf("%.100f%n", x);
+//		end debug
+
 		new DenseVector(dArray.map(_.apply(0)))
 	}
 	
+	def readMatFile(filename : String):MatFileReader = {
+			var mfr: MatFileReader = null;
+			try {
+					mfr = new MatFileReader(sketchPath + filename);
+			} catch {
+				case e :IOException => {e.printStackTrace();exit();}
+			}
+			mfr
+	}
+	
 	def readMatCellFile(filename : String, cellName : String):MLCell = {
-		var mfr: MatFileReader = null;
-		try {
-			mfr = new MatFileReader(sketchPath + filename);
-		} catch {
-		case e :IOException => {e.printStackTrace();exit();}
-		}
+		val mfr = readMatFile(filename)
 	    var dataCell: MLCell = null
 		if (mfr != null) {
 			dataCell = mfr.getMLArray(cellName).asInstanceOf[MLCell]
 		}
 	    dataCell
+	}
+	
+	def readMatDoubleArrayFile(filename : String, doubleArrayName : String):Array[Array[Double]] = {
+		val mfr = readMatFile(filename)
+	    var data: MLDouble = null
+		if (mfr != null) {
+			data = mfr.getMLArray(doubleArrayName).asInstanceOf[MLDouble]
+		}
+	    data.getArray
 	}
 }

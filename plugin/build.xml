@@ -6,7 +6,7 @@
 	<property name="build" location="bin" />
 	<property name="dist"  location="dist" />
  
-	<property name="pluginsDir"  location="$basedir/../../IJ/plugins/Mosaic_Toolbox/" />
+	<property name="pluginsDir"  location="$basedir/../../IJ/plugins/Mosaic_Toolbox" />
  
 	<property name="user.name" value="Mosaic" />
 	<property name="jarfilename" value="Mosaic_Toolbox"/>
@@ -25,9 +25,10 @@
 		<echo>
 			Building the .jar file.
 		</echo>
-	 	<jar jarfile="${pluginsDir}/${jarfilename}.jar">
+	 	<jar jarfile="${pluginsDir}/${jarfilename}.jar" update="true">
 	 		<fileset dir="." includes="plugins.config" />
 			<fileset dir="${build}" includes="**/*.*" />
+			<fileset dir="." includes="macros/*.ijm" /> 
 	 		
 	 		<!--Add Scala, Scalala and there dependencies to Mosaic Toolbox jar -->
 	 		

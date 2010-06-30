@@ -41,7 +41,7 @@ class NearestNeighbour(dim: Int = 2) {
 	/** 
 	 * @param List
 	 */
-	def getSampling(dim: List[(Int,Int)]) : Array[Array[Double]]= {
+	def getSampling(dim: List[(Int,Int)]) : List[Array[Double]]= {
 		def recPermutation(lists : List[Array[Double]]): List[List[Double]] = lists match {
 			case Nil => Nil
 			case h::Nil => (for (i <- h) yield List(i)).toList
@@ -55,9 +55,8 @@ class NearestNeighbour(dim: Int = 2) {
 				result
 			}
 		}
-
 		val dimCoordinates = for ((n, nbr) <- dim) yield linspace(0,n,nbr).toArray
-		(for (res <- recPermutation(dimCoordinates)) yield res.toArray).toArray
+		(for (res <- recPermutation(dimCoordinates)) yield res.toArray)
 	}
 //	def getSampling(n:Int, hNbr: Int, m:Int, vNbr: Int ) : Array[Array[Double]]= {
 //		val x = linspace(0,n,hNbr).toArray

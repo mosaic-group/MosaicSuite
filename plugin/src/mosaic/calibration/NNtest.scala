@@ -34,7 +34,7 @@ object NNtest {
 	  
 	  val time = (new java.util.Date()).getTime()
 	  // generate KDTree
-	  nn.setReferenceGroup(refPoints)
+	  nn.setReferenceGroup(refPoints.toArray)
 	  println("Generation KDtree "+((new java.util.Date()).getTime() - time)*0.001)
 	  // find NN
       val dist = nn.getDistances(queryPoints) 

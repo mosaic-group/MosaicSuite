@@ -1,5 +1,6 @@
 package mosaic.interaction
 
+import ij.plugin.Macro_Runner
 import mosaic.core.Particle
 import mosaic.core.ImagePreparation
 import mosaic.calibration.KernelDensityEstimator
@@ -13,20 +14,27 @@ import scalala.tensor.dense._
 import cma.fitness.AbstractObjectiveFunction
 
 class InteractionPlugin extends PlugIn with ImagePreparation {
-	val dim = 3 //Image dimensions
+	// Image/domain dimension, normally 2 or 3
+	val dim = 3 
+	// 
 	val nn = new NearestNeighbour(dim)
 
-	
 	@Override
 	def run(arg: String) {
 		println("Run Interaction Plugin")
+		
+		//			IJ.runMacroFile("JAR:StacksOpen.ijm") // TODO Remove debug
+			(new Macro_Runner).run("JAR:macros/StacksOpen_.ijm") // TODO Remove debug
+					
 		allocateTwoImages()
 		detect()
+		cellOutlineGeneration()
+		val isInDomain = cellOutlines(0).inRoi(_)
 		initNearestNeighbour()
-		val domainSize = Array[Double](impA.getHeight, impA.getWidth, 1) // TODO fix correct domain sizes for dim dimensions
+		val domainSize = Array[Int](imp(0).getHeight, imp(0).getWidth, imp(0).getNSlices)
 //		no images below here
 		
-		val (d, qOfD) = calculateQofD(domainSize)
+		val (qOfD, d) = calculateQofD(domainSize, isInDomain)
 		val dd = findD()
 		val shape = selectPotential()
 
@@ -35,25 +43,40 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		potentialParamEst(fitfun)
 	}
 	
-	def selectPotential(): ((DenseVector,Double,Double) => DenseVector)= {
+	/** 
+	 * Shows a dialog to the user, where he can choose one of the available potentials.
+	 * The potential has to be defined in object PotentialFunctions
+	 * @return by user selected potential
+	 */
+	def selectPotential(): ((DenseVector,Double,Double) => DenseVector) = {
 		gd = new GenericDialog("Potential selection...", IJ.getInstance());
 		gd.addChoice("Potential shape", PotentialFunctions.functions, PotentialFunctions.functions(0))
 		gd.showDialog();
 		PotentialFunctions.potentialShape(gd.getNextChoiceIndex)
 	}
-	
-//		qOfD with NN and Kernel estimation
-	def calculateQofD(domainSize: Array[Double]):(Array[Double],Array[Double])= {
+		
+	/**
+	 * qOfD with NN and Kernel estimation
+	 * @param domainSize size of domain, in which state density q should be sampled
+	 * @return state density as tuple (q,d) with values of state density q and distances d, at which q is specified
+	 */
+	def calculateQofD(domainSize: Array[Int], isInDomain: (Array[Double] => Boolean)):(Array[Double],Array[Double])= {
 	  
-	  val nbrQueryPoints = 100
-	  val scale = new DenseVector(domainSize)
+	  val nbrQueryPoints = 10
+	  val scale = new DenseVector(domainSize map(_.toDouble))
+	   
 	  // independent randomly placed query objects
-	  val queryPoints = Array.fill(nbrQueryPoints)((rand(dim) :*scale).toArray)
-
-	  // regularly placed query objects
-//	  val queryPoints = nn.getSampling(List((domainSize(0), nbrQueryPoints),(domainSize(1), nbrQueryPoints))//,(domainSize(2), nbrQueryPoints)))
+//	  val queryPoints = List.fill(nbrQueryPoints)((rand(dim) :*scale).toArray)
 	  
-	  val dist = getDistances(queryPoints)
+	  // regularly placed query objects
+	  val queryPoints = nn.getSampling(List((domainSize(0), nbrQueryPoints),(domainSize(1), nbrQueryPoints),(domainSize(2), nbrQueryPoints)))
+	  // only take samples in the cell/domain
+	  println("Number of query points: " + queryPoints.size)
+	  val validQueryPoints = queryPoints.filter(isInDomain(_))
+	  println("Number of valid query points: " + validQueryPoints.size)
+	   
+	   //TODO Fix Z Coord.
+	  val dist = getDistances(validQueryPoints.toArray)
       
       // estimate q(d)
 	  val est = new KernelDensityEstimator()
@@ -66,7 +89,9 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	  val xArray = x.toArray
 	  val prob = est.getProbabilities(xArray)
 	  plot(x, new DenseVector(prob))
-	  (xArray, prob)
+	  title("q(D)"); xlabel("d"); ylabel("q(d)")
+
+	  (prob, xArray)
 	}
 	
 	//		D with NN
@@ -75,6 +100,11 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	  getDistances(queryPoints)
 	}
 	
+	/**
+	 * Calculate distances of queryPoints (X) to nearest neighbor of reference group (Y)
+	 * @param queryPoints for which we measure the distance to the nearest neighbor in the reference group
+	 * @return distance of each query point to it's nearest neighbor
+	 */
 	private def getDistances(queryPoints: Array[Array[Double]]):Array[Double]= {
 			// find NN
 				val time = (new java.util.Date()).getTime()
@@ -83,6 +113,9 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 			dist
 	}
 	
+	/**
+	 * Initializes KDTree with reference group (Y), to allow fast nearest neigbhor search
+	 */
 	private def initNearestNeighbour() {
 		val refPoints : Array[Array[Double]] = getParticlePositions(0)
 			val time = (new java.util.Date()).getTime()
@@ -91,6 +124,10 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 			println("Generation KDtree "+((new java.util.Date()).getTime() - time)*0.001)
 	}
 	
+	/**
+	 * Estimates parameter of potential
+	 * @param fitfun function to optimize, which has potential parameter as parameter 
+	 */
 	def potentialParamEst(fitfun: AbstractObjectiveFunction){
 		CMAOptimization.optimize(fitfun)
 	}

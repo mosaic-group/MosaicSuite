@@ -35,7 +35,7 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 			% OUT:  p_s:    value of distance density at d_s*/
 //		% STEP 1: compute Z, use trapezoidal rule
 //			    g_of_r = exp(-epsilon*shape(d/sigma));
-//			val fEvaluated = potentialShape(this.di,potentialParam(1), potentialParam(2)) * (-potentialParam(0)) value
+//TODO				val fEvaluated = potentialShape(this.di,potentialParam(1), potentialParam(2)) * (-potentialParam(0)) value
 			val fEvaluated = potentialShape(this.di,1.1476, 0) * (-potentialParam(0)) value;
 			System.out.format("%.100f%n", double2Double(q(0)));
 			val g_of_r = new DenseVector(fEvaluated.toArray.map(Math.exp(_)))
@@ -121,12 +121,12 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 	 */
 	
 //	@inline
-	def interpolateLinear(x0 :Double, y0:Double, x1:Double, y1:Double, x:Double) :Double = {
+	private def interpolateLinear(x0 :Double, y0:Double, x1:Double, y1:Double, x:Double) :Double = {
 		y0+ (x-x0)* ((y1-y0)/(x1-x0))
 	}
 	
 	/**
-	 * pos0 pos1 x0 pos2 pos3 x1 x2 pos4
+	 * e.g. pos0 pos1 x0 pos2 pos3 x1 x2 pos4
 	 * @param pos (pos0, pos1, pos2, pos3, pos4)
 	 * @param x (x0, x1, x2)
 	 * @param counter (default parameter,used for recursion)
@@ -160,6 +160,10 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 		nll
 	}
 	
+	/** 
+	 * @param data  a point (candidate solution) in the pre-image of the objective function 
+     * @return  objective function value of the input search point  
+     */
 	def valueOf(data: Array[Double]): Double ={
 		val x = negLogLikelihood(this.q, this.di, this.d_s, this.potentialShape , data :_*)
 		println(data(0) + ": Epsilon , nll: "+ x)
