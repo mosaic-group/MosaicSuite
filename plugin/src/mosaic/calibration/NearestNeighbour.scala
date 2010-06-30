@@ -12,7 +12,7 @@ import scalala.Scalala._
 	/**
 	 * <br>NearestNeighbour class is a wrapper for the NearestNeighbourSearch implemented through KDTree from the WEKA library
 	 */
-class NearestNeighbour(d: Int = 2) {
+class NearestNeighbour(dim: Int = 2) {
 
 	private var instances : Instances = null
 	private val kdtree = new KDTree()
@@ -20,7 +20,7 @@ class NearestNeighbour(d: Int = 2) {
 	def setReferenceGroup(points: Array[Array[Double]]) {
 		
 		val atts: ArrayList[Attribute] = new ArrayList[Attribute]();
-		for (i <- Iterator.range(0, d)) atts.add(new Attribute("coord" + i))
+		for (i <- Iterator.range(0, dim)) atts.add(new Attribute("coord" + i))
 		instances = new Instances("ReferencePoints", atts, points.length)
 		for (point <-points) instances.add(new DenseInstance(1, point))
 		kdtree.setInstances(instances)
@@ -41,28 +41,25 @@ class NearestNeighbour(d: Int = 2) {
 	/** 
 	 * @param List
 	 */
-	def getMesh(dim: List[(Int,Int)]) : Array[Array[Double]]= {
-		def recPermutation(lists : List[Array[Double]]): List[List[Double]] ={
-			lists match {
-				case Nil => Nil
-				case h::Nil => (for (i <- h) yield List(i)).toList
-				case h::tail => {
-					var result:List[List[Double]] = Nil
-					for (permutation <- recPermutation(tail)) {
-						for (i <- h) {
-							result = (i:: permutation)::result
-						}
+	def getSampling(dim: List[(Int,Int)]) : Array[Array[Double]]= {
+		def recPermutation(lists : List[Array[Double]]): List[List[Double]] = lists match {
+			case Nil => Nil
+			case h::Nil => (for (i <- h) yield List(i)).toList
+			case h::tail => {
+				var result:List[List[Double]] = Nil
+				for (permutation <- recPermutation(tail)) {
+					for (i <- h) {
+						result = (i:: permutation)::result
 					}
-					result
 				}
+				result
 			}
 		}
-		
+
 		val dimCoordinates = for ((n, nbr) <- dim) yield linspace(0,n,nbr).toArray
-		
 		(for (res <- recPermutation(dimCoordinates)) yield res.toArray).toArray
 	}
-//	def getMesh(n:Int, hNbr: Int, m:Int, vNbr: Int ) : Array[Array[Double]]= {
+//	def getSampling(n:Int, hNbr: Int, m:Int, vNbr: Int ) : Array[Array[Double]]= {
 //		val x = linspace(0,n,hNbr).toArray
 //		val y = linspace(0,m,vNbr).toArray
 //		for (i <- x; j <- y) yield Array(i,j)

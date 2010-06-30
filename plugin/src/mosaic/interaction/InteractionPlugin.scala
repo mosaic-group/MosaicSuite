@@ -14,13 +14,19 @@ import cma.fitness.AbstractObjectiveFunction
 
 class InteractionPlugin extends PlugIn with ImagePreparation {
 	val dim = 3 //Image dimensions
+	val nn = new NearestNeighbour(dim)
+
 	
 	@Override
 	def run(arg: String) {
 		println("Run Interaction Plugin")
-		allocateTwoImages();
-		detect();
-		val (d, qOfD) = calculateQofD()
+		allocateTwoImages()
+		detect()
+		initNearestNeighbour()
+		val domainSize = Array[Double](impA.getHeight, impA.getWidth, 1) // TODO fix correct domain sizes for dim dimensions
+//		no images below here
+		
+		val (d, qOfD) = calculateQofD(domainSize)
 		val dd = findD()
 		val shape = selectPotential()
 
@@ -37,13 +43,15 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	}
 	
 //		qOfD with NN and Kernel estimation
-	def calculateQofD():(Array[Double],Array[Double])= {
+	def calculateQofD(domainSize: Array[Double]):(Array[Double],Array[Double])= {
 	  
 	  val nbrQueryPoints = 100
+	  val scale = new DenseVector(domainSize)
 	  // independent randomly placed query objects
-	  val queryPoints = Array.fill(nbrQueryPoints)(rand(dim).toArray)
+	  val queryPoints = Array.fill(nbrQueryPoints)((rand(dim) :*scale).toArray)
+
 	  // regularly placed query objects
-//	  val queryPoints = nn.getMesh(List((1, 1*nbrQueryPoints),(1, 2*nbrQueryPoints),(1, 2*nbrQueryPoints)))
+//	  val queryPoints = nn.getSampling(List((domainSize(0), nbrQueryPoints),(domainSize(1), nbrQueryPoints))//,(domainSize(2), nbrQueryPoints)))
 	  
 	  val dist = getDistances(queryPoints)
       
@@ -52,7 +60,7 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	  est.addValues(dist)
 	  
 	  val maxDist = dist.reduceLeft(Math.max(_,_))
-	  val minDist = dist.reduceLeft(Math.min(_,_))
+	  val minDist = Math.min(0,dist.reduceLeft(Math.min(_,_))) //TODO correct? with 0?
 	  
 	  val x = linspace(minDist, maxDist, 100)
 	  val xArray = x.toArray
@@ -68,16 +76,19 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	}
 	
 	private def getDistances(queryPoints: Array[Array[Double]]):Array[Double]= {
-			val nn = new NearestNeighbour(dim)
-			val refPoints : Array[Array[Double]] = getParticlePositions(0)
-			val time = (new java.util.Date()).getTime()
-			// generate KDTree
-			nn.setReferenceGroup(refPoints)
-			println("Generation KDtree "+((new java.util.Date()).getTime() - time)*0.001)
 			// find NN
+				val time = (new java.util.Date()).getTime()
 			val dist = nn.getDistances(queryPoints) 
-			println("Generation + Search KDtree "+((new java.util.Date()).getTime() - time)*0.001)
+				println("Search nearest neighbour in KDtree "+((new java.util.Date()).getTime() - time)*0.001)
 			dist
+	}
+	
+	private def initNearestNeighbour() {
+		val refPoints : Array[Array[Double]] = getParticlePositions(0)
+			val time = (new java.util.Date()).getTime()
+		// generate KDTree
+		nn.setReferenceGroup(refPoints)
+			println("Generation KDtree "+((new java.util.Date()).getTime() - time)*0.001)
 	}
 	
 	def potentialParamEst(fitfun: AbstractObjectiveFunction){

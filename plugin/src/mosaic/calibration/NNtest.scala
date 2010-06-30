@@ -23,7 +23,7 @@ object NNtest {
 	  // independent randomly placed reference objects
 //	  var refPoints = Array.fill(nbrRefPoints)(rand(d).toArray)
 	  // regularly placed reference objects
-	  var refPoints = nn.getMesh(List((1, 5),(1, 5),(1, 5)))
+	  var refPoints = nn.getSampling(List((1, 5),(1, 5),(1, 5)))
 	  
 	  val nbrQueryPoints = 100
 	  // independent randomly placed query objects

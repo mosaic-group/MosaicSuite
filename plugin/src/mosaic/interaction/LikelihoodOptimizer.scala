@@ -73,7 +73,7 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 	 * @see calculatePofD
 	 */
 	def negLogLikelihood(q :DenseVector, di: DenseVector, sampleDistances: DenseVector, potentialShape: ((DenseVector,Double,Double) => DenseVector), potentialParam: Double*):Double = {
-		val p = calculatePofD(q :DenseVector, di: DenseVector, sampleDistances, potentialShape,1) // TODO potentialParam :_*)
+		val p = calculatePofD(q :DenseVector, di: DenseVector, sampleDistances, potentialShape, potentialParam :_*)
 		val logP = new DenseVector(p.toArray.map(Math.log(_)))
 		-sum(logP)
 		/*
