@@ -11,7 +11,7 @@ import scalala.tensor.dense._
  * @param di:     distances at which q is specified
  * @param d_s:	  distances at which p should be sampled
  */
-class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseVector) extends AbstractObjectiveFunction {
+class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseVector, var potentialShape: ((DenseVector,Double,Double) => DenseVector)) extends AbstractObjectiveFunction {
 	
 	
 	
@@ -161,7 +161,7 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 	}
 	
 	def valueOf(data: Array[Double]): Double ={
-		val x = negLogLikelihood(this.q, this.di, this.d_s, PotentialFunctions.potentialShapePlummer, data :_*)
+		val x = negLogLikelihood(this.q, this.di, this.d_s, this.potentialShape , data :_*)
 		println(data(0) + ": Epsilon , nll: "+ x)
 		x
 	}

@@ -14,7 +14,7 @@ object CMALiklihoodExample {
 		val qCell = ReadMat.getDenseVector("qCell.mat", "qCell" ,i)
 		
 		
-		def fitfun: AbstractObjectiveFunction = new LikelihoodOptimizer(qCell, ddCell,DCell);
+		def fitfun: AbstractObjectiveFunction = new LikelihoodOptimizer(qCell, ddCell,DCell, PotentialFunctions.potentialShape(1));
 		
 		// new a CMA-ES and set some initial values
 		val cma = new CMAEvolutionStrategy();

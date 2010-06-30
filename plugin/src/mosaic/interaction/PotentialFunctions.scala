@@ -5,6 +5,15 @@ import scalala.tensor.dense._
 
 object PotentialFunctions {
 	
+	val functions = Array("Step function","Plummer potential")
+	
+	def potentialShape(i:Int): ((DenseVector,Double,Double) => DenseVector) = {
+		i match {
+			case 0 => potentialShapeStepFunction(_,_,_)
+			case 1 => potentialShapePlummer(_,_,_)
+		}
+	}
+	
 	/** step potential function
 	 * @param d
 	 * @param sigma		scale parameter, default = 1
