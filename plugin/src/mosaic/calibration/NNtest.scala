@@ -1,6 +1,6 @@
 package mosaic.calibration
 
-import scalala.Scalala._;
+import scalala.Scalala._
 import scalala.tensor.dense._
 import weka.core.DenseInstance
 
@@ -21,9 +21,9 @@ object NNtest {
 	  val nbrRefPoints = 100
 //	  val nbrRefpoints = 10000000 //uses approx. 1 GB ram
 	  // independent randomly placed reference objects
-//	  var refPoints = Array.fill(nbrRefPoints)(rand(d).toArray)
+	  var refPoints = List.fill(nbrRefPoints)(rand(d).toArray)
 	  // regularly placed reference objects
-	  var refPoints = nn.getSampling(List((1, 5),(1, 5),(1, 5)))
+//	  var refPoints = nn.getSampling(List((1, 5),(1, 5),(1, 5)))
 	  
 	  val nbrQueryPoints = 100
 	  // independent randomly placed query objects
@@ -41,6 +41,9 @@ object NNtest {
       println("Generation + Search KDtree "+((new java.util.Date()).getTime() - time)*0.001)
 	  dist.slice(0,5).map(println(_))
 	  
+	  val distbrut = nn.bruteForceNN(queryPoints)
+	  distbrut.slice(0,5).map(println(_))
+
 	  
 	  // estimate q(d)
 	  val est = new KernelDensityEstimator()

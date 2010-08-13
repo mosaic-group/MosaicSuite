@@ -112,8 +112,10 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	private def getDistances(queryPoints: Array[Array[Double]]):Array[Double]= {
 			// find NN
 				val time = (new java.util.Date()).getTime()
-			val dist = nn.getDistances(queryPoints) 
-				println("Search nearest neighbour in KDtree "+((new java.util.Date()).getTime() - time)*0.001)
+//			val dist = nn.getDistances(queryPoints) 
+//				println("Search nearest neighbour in KDtree "+((new java.util.Date()).getTime() - time)*0.001)
+			val dist = nn.bruteForceNN(queryPoints) 
+			    println("brute force nearest neighbour search "+((new java.util.Date()).getTime() - time)*0.001)
 			dist
 	}
 	

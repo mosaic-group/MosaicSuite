@@ -1,5 +1,6 @@
 package mosaic.calibration
 
+import scalala.tensor.dense.DenseVector
 import java.util.ArrayList
 import weka.core.Attribute
 import weka.core.DenseInstance
@@ -8,6 +9,7 @@ import weka.core.Instances
 import weka.core.neighboursearch.KDTree
 
 import scalala.Scalala._
+import scalala.Scalala
 
 	/**
 	 * <br>NearestNeighbour class is a wrapper for the NearestNeighbourSearch implemented through KDTree from the WEKA library
@@ -17,10 +19,14 @@ class NearestNeighbour(dim: Int = 2) {
 	private var instances : Instances = null
 	private val kdtree = new KDTree()
 	
+	private var refPoints:Array[Array[Double]] = null
+	
 	/** Initialize KDTree with reference group, so we can later find the nearest neighbor out of this points.
 	 * @param points reference points
 	 */
 	def setReferenceGroup(points: Array[Array[Double]]) {
+		
+		refPoints = points
 		
 		val atts: ArrayList[Attribute] = new ArrayList[Attribute]();
 		for (i <- Iterator.range(0, dim)) atts.add(new Attribute("coord" + i))
@@ -64,7 +70,7 @@ class NearestNeighbour(dim: Int = 2) {
 						result = (i:: permutation)::result
 					}
 				}
-				result
+				result 
 			}
 		}
 		val dimCoordinates = for ((n, nbr) <- domain) yield linspace(0,n,nbr).toArray
@@ -75,4 +81,12 @@ class NearestNeighbour(dim: Int = 2) {
 //		val y = linspace(0,m,vNbr).toArray
 //		for (i <- x; j <- y) yield Array(i,j)
 //	}
+	
+	def bruteForceNN(queries : Array[Array[Double]]): Array[Double] ={
+		def dist(aV: DenseVector, b: Array[Double]):Double ={
+			val bV = new DenseVector(b)
+			norm(aV-bV,2)
+		}
+		queries.map( x => {val xV = new DenseVector(x); refPoints.map(dist(xV,_)).reduceLeft(_.min(_))})
+	}
 }
