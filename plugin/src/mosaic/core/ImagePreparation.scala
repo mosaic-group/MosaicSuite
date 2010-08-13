@@ -108,7 +108,7 @@ trait ImagePreparation {//extends PreviewInterface {
 		import java.awt.GridBagConstraints;
 		import java.awt.Insets;
 		
-		val detectors = imp.map(getDetector(_))
+		detectors = imp.map(getDetector(_))
 		
 		gd = new GenericDialog("Particle detection...", IJ.getInstance());
 		detectors(0).addUserDefinedParametersDialog(gd);

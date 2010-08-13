@@ -45,5 +45,20 @@ object PotentialFunctions {
 		for ((i, k) <- iter) fPlummer(i) = -1
 		fPlummer
 	}
-
+	
+	/** Make sure that all 3 parameters (epsilon: strength, sigma: length-scale, t: shift along distance axis) are set.
+	 * @param data : parameters, which are already specified
+	 * @return parameters with default values added, if they were not specified.
+	 */
+	def defaultParameters(data: Array[Double]):Array[Double] = {
+		val sigma = 1 	//default for sigma: length-scale
+		val t = 0 		//default for t: shift along distance axis
+		val parameter:Array[Double] = data.length match {
+			case 1 => Array(data(0),sigma, t)
+			case 2 => Array(data(0),data(1), t)
+			case 3 => data
+			case _ => throw new IllegalArgumentException("Only arrays with length between 1 and 3.")
+		}
+		parameter
+	}
 }

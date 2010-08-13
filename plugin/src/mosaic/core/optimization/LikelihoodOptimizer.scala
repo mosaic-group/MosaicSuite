@@ -1,6 +1,5 @@
 package mosaic.core.optimization
 
-import mosaic.core.optimization.DiffAbstractObjectiveFunction
 import scalala.Scalala._
 import scalala.tensor.dense._
 import scalala.tensor.Vector
@@ -163,17 +162,10 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
      * @return  objective function value of the input search point  
      */
 	def valueOf(data: Array[Double]): Double ={
-		// Make sure that all 3 parameters (epsilon: strength, sigma: length-scale, t: shift along distance axis) are set.
-		val sigma = 1 	//default for sigma: length-scale
-		val t = 0 		//default for t: shift along distance axis
-		val parameter:Array[Double] = data.length match {
-			case 1 => Array(data(0),sigma, t)
-			case 2 => Array(data(0),data(1), t)
-			case 3 => data
-			case _ => throw new IllegalArgumentException("Only arrays with length between 1 and 3")
-		}
 		
-		val x = negLogLikelihood(this.q, this.di, this.d_s, this.potentialShape , parameter :_*)
+		val parameters = mosaic.interaction.PotentialFunctions.defaultParameters(data)
+		
+		val x = negLogLikelihood(this.q, this.di, this.d_s, this.potentialShape , parameters :_*)
 		println(data(0) + ": Epsilon , nll: "+ x)
 		x
 	}

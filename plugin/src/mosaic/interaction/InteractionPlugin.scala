@@ -148,7 +148,8 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		val initGuess = rand(nbrParameter)
 		val stochasticSteepestDescent = new StochasticGradientDescent[Int, Vector](alpha, maxIter, batchSize)
 		val minGuess = stochasticSteepestDescent.minimize(fitfun,initGuess)
-		println("Stochastic Steepest Descent: param: " + minGuess + " min. value: " + fitfun.valueAt(minGuess))
+		val solSteepestDescent = (fitfun.valueAt(minGuess), minGuess)
+		println("Stochastic Steepest Descent: param: " + solSteepestDescent._2(0) + " min. value: " + solSteepestDescent._1)
 	}
 	
 	/**
