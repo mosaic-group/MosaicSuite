@@ -70,9 +70,14 @@ trait ImagePreparation {//extends PreviewInterface {
 			val gd = new GenericDialog(imp.getTitle())
 			gd.addMessage("Unit of Length: "+cal.getZUnit);
 			gd.addNumericField("Voxel_Depth:", cal.pixelDepth, 4, 8, null)
+			var global1 = imp.getGlobalCalibration()!=null
+			gd.addCheckbox("Global", global1)
 			gd.showDialog()
 			if (!gd.wasCanceled()) {
 				cal.pixelDepth = gd.getNextNumber()
+				if (gd.getNextBoolean()) {
+					imp.setGlobalCalibration(cal)					
+				}
 			}
 		}
 	}
