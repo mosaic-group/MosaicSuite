@@ -1,6 +1,7 @@
 package mosaic.interaction
 
 import scalala.Scalala._
+import scalala.tensor._
 import scalala.tensor.dense._
 
 object PotentialFunctions {
@@ -34,7 +35,10 @@ object PotentialFunctions {
 	def potentialShapePlummer(d: DenseVector, sigma: Double = 1, t: Double = 0):DenseVector = {
 		val dScaled = new DenseVector(d.toArray.map(x => x/sigma))
 		//f = -1./sqrt(d.*d + 1);
-		val f = dScaled :* dScaled + 1
+		
+		// Important: d :* d +1 in Scalala is not the same as in Matlab
+		// (d :* d) +1 in Scalala is (d.*d + 1) in Matlab
+		val f:Vector = (dScaled :* dScaled) + 1
 		val fPlummer = new DenseVector(f.toArray.map(x => -1/ Math.sqrt(x)))
 		//f(d<=0) = -1;
 		val iter = d.filter(x => x match {case (i,k) => k <= 0; case _ => false})
