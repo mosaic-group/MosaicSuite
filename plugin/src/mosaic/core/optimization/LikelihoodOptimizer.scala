@@ -1,8 +1,9 @@
-package mosaic.interaction
+package mosaic.core.optimization
 
-import cma.fitness.AbstractObjectiveFunction
+import mosaic.core.optimization.DiffAbstractObjectiveFunction
 import scalala.Scalala._
 import scalala.tensor.dense._
+import scalala.tensor.Vector
 
 /**
  * @author marksutt
@@ -11,7 +12,7 @@ import scalala.tensor.dense._
  * @param di:     distances at which q is specified
  * @param d_s:	  distances at which p should be sampled
  */
-class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseVector, var potentialShape: ((DenseVector,Double,Double) => DenseVector)) extends AbstractObjectiveFunction {
+class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseVector, var potentialShape: ((DenseVector,Double,Double) => DenseVector)) extends DiffAbstractObjectiveFunction {
 	
 	
 	
@@ -22,6 +23,11 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 	 * @return value of distance density at d_s
 	 */
 	def calculatePofD(q :DenseVector, di: DenseVector, sampleDistances: DenseVector, potentialShape: ((DenseVector,Double,Double) => DenseVector), potentialParam: Double*):DenseVector = {
+		
+			val sumD = sum(di) //TODO
+			val sumq = sum(q) //TODO
+			val sumthisq = sum(this.q) //TODO
+			val sumsampDis = sum(sampleDistances)//TODO
 			/*
 			% p_of_d: computes the density of the NN-interaction Gibbs process
 			%
@@ -35,12 +41,14 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 			% OUT:  p_s:    value of distance density at d_s*/
 //		% STEP 1: compute Z, use trapezoidal rule
 //			    g_of_r = exp(-epsilon*shape(d/sigma));
-//TODO				val fEvaluated = potentialShape(this.di,potentialParam(1), potentialParam(2)) * (-potentialParam(0)) value
-			val fEvaluated = potentialShape(this.di,1.1476, 0) * (-potentialParam(0)) value;
+			val fEvaluated:Vector = potentialShape(this.di,potentialParam(1), potentialParam(2)) * (-potentialParam(0))
+			val sumfEvaluated = sum(fEvaluated)//TODO
 			System.out.format("%.100f%n", double2Double(q(0)));
 			val g_of_r = new DenseVector(fEvaluated.toArray.map(Math.exp(_)))
+			val sumg_of_r = sum(g_of_r)//TODO
 //			support = g_of_r.*q;
 			var support = g_of_r :* this.q value
+			val sumSupp = sum(support)//TODO
 //			integrand = (support(1:end-1) + support(2:end))/2;
 			var integrand = new DenseVector(support.size -1)
 			integrand(0 until integrand.size) = support(0 until (support.size-1))
@@ -55,6 +63,8 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 //			val ss = integrand :* diff value
 			System.out.format("%.100f%n", double2Double(integrand(0)));
 			val s1 = integrand(0) * diff(0)
+			val sumInt = sum(integrand)//TODO
+			val sumDiff = sum(diff)//TODO
 			val Z = sum(integrand :* diff)
 //			% STEP 2: compute p(d)
 			val p = g_of_r :* this.q * 1/Z
@@ -103,12 +113,15 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 	 * @return yi interpolated values
 	 */
 	def interpolate(x:DenseVector = this.di,Y:DenseVector,  xi: DenseVector): DenseVector = {
-		var xiSorted = (for ((_,s) <- xi.toList) yield s).sort(_ < _)
-		val intervallPos = findIntervall((for ((_,x) <- x.toList) yield x),(for (x <- xiSorted) yield x))
-		
-		val interpolated = new DenseVector((for ((d_si,k) <- xiSorted zip intervallPos) 
-			yield interpolateLinear(x(k), Y(k), x(k+1), Y(k+1),d_si)).toArray)
-		interpolated
+		// sort xi
+		val xiSorted = xi.toList.sort(_._2 < _._2)
+		val (xiSortedPos,xiSortedValues) = xiSorted.unzip
+		val intervallPos = findIntervall((for ((_,x) <- x.toList) yield x),(for (x <- xiSortedValues) yield x))
+		val interpols = for ((d_si,k) <- xiSortedValues zip intervallPos) 
+			yield interpolateLinear(x(k), Y(k), x(k+1), Y(k+1),d_si)
+		// sort interpolated values with original indices sort key to get same order as in xi
+		val interpolatedUnsorted = interpols.zip(xiSortedPos).sort(_._2 < _._2).unzip._1
+		new DenseVector(interpolatedUnsorted.toArray)
 	}
 	
 	/** Interpolates at x linearly between two known points given by the coordinates (x0,y0) and (x1,y1)
@@ -119,7 +132,6 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 	 * @param x
 	 * @return y(x)
 	 */
-	
 //	@inline
 	private def interpolateLinear(x0 :Double, y0:Double, x1:Double, y1:Double, x:Double) :Double = {
 		y0+ (x-x0)* ((y1-y0)/(x1-x0))
@@ -171,4 +183,36 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 	}
 	
 	override def isFeasible(data: Array[Double]):Boolean = true
+	
+	def calculate(x:Vector, batch: Seq[Int]): (Double,Vector) ={
+		// TODO calculate gradient at x
+		(valueOf(x.toArray),grad(x))
+	}
+	
+	def grad(x:Vector):Vector = {
+		// forward difference
+		// f'(x) = (f(x+h) - f(x))/h
+		
+		// step size for finite difference
+		val h = 1
+		val hInv = 1/h
+		val fx = valueAt(x)
+		val fh = for (val i <- (0 to (x.size-1))) yield {
+			val xTmp = x; 
+			xTmp(i) = x(i) + h; 
+			valueAt(xTmp)
+		}
+		val gradi = new DenseVector((fh.map(fhi => (fhi-fx) * hInv)).toArray)
+		gradi
+	}
+		
+	override def fullRange: Seq[Int] = {
+		//TODO fix full range?
+		1 to 10
+	}
+	
+	override def valueAt(x:Vector):Double ={
+		valueOf(x.toArray)
+	}
+
 }

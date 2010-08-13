@@ -1,4 +1,4 @@
-package mosaic.interaction
+package mosaic.core.optimization
 
 import cma.fitness.AbstractObjectiveFunction
 import cma.CMAEvolutionStrategy
@@ -52,7 +52,7 @@ object CMAOptimization {
 		cma.setFitnessOfMeanX(fitfun.valueOf(cma.getMeanX())); // updates the best ever solution 
 
 		// final output
-		cma.writeToDefaultFiles(1);
+//TODO write to file CMA		cma.writeToDefaultFiles(1);
 		cma.println();
 		cma.println("Terminated due to");
 		for (s <- cma.stopConditions.getMessages())

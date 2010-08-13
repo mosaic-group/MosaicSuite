@@ -2,6 +2,7 @@ package mosaic.interaction
 
 import ij.plugin.Macro_Runner
 import mosaic.core.Particle
+import mosaic.core.optimization._
 import mosaic.core.ImagePreparation
 import mosaic.calibration.KernelDensityEstimator
 import mosaic.calibration.NearestNeighbour
@@ -11,6 +12,8 @@ import ij.plugin.PlugIn
 import ij.gui.GenericDialog
 import scalala.Scalala._
 import scalala.tensor.dense._
+import scalala.tensor.Vector
+import scalanlp.optimize.StochasticGradientDescent
 import cma.fitness.AbstractObjectiveFunction
 
 class InteractionPlugin extends PlugIn with ImagePreparation {
@@ -21,7 +24,7 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 
 	@Override
 	def run(arg: String) {
-		println("Run Interaction Plugin")
+		println("Run Interaction Plugin ")
 		
 			(new Macro_Runner).run("JAR:macros/StacksOpen_.ijm") // TODO Remove debug
 					
@@ -39,8 +42,9 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		val shape = selectPotential()
 
 //		nll optimization CMA
+		val nbrPara = 1
 		val fitfun = new LikelihoodOptimizer(new DenseVector(qOfD), new DenseVector(d),new DenseVector(dd), shape);
-		potentialParamEst(fitfun)
+		potentialParamEst(fitfun,nbrPara)
 		
 //		hypothesis testing
 //		Monte Carlo sample Tk with size K from the null distribution of T obtained by sampling N distances di from q(d)
@@ -134,8 +138,20 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	 * Estimates parameter of potential
 	 * @param fitfun function to optimize, which has potential parameter as parameter 
 	 */
-	def potentialParamEst(fitfun: AbstractObjectiveFunction){
-		CMAOptimization.optimize(fitfun)
+	def potentialParamEst(fitfun: DiffAbstractObjectiveFunction, nbrParameter:Int){
+		
+		// CMA Optimization
+		val sol = CMAOptimization.optimize(fitfun)
+		println("CMA Optimization: param: " + sol._2(0) + " min. value: " + sol._1)
+		
+		// Stochastic Steepest Descent
+		val alpha = 0.0001
+		val maxIter = 1000
+		val batchSize = 10
+		val initGuess = rand(nbrParameter)
+		val stochasticSteepestDescent = new StochasticGradientDescent[Int, Vector](alpha, maxIter, batchSize)
+		val minGuess = stochasticSteepestDescent.minimize(fitfun,initGuess)
+		println("Stochastic Steepest Descent: param: " + minGuess + " min. value: " + fitfun.valueAt(minGuess))
 	}
 	
 	/**
