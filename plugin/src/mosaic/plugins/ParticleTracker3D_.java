@@ -50,6 +50,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Janick Cardinale, PhD Student at Mosaic, ETHZ
  */
 
+/**
+* @deprecated
+* replaced by ParticleTracker3DModular_ class
+*/
 public class ParticleTracker3D_ implements PlugInFilter, Measurements, ActionListener, AdjustmentListener   {	
 
 	private final static int SYSTEM = 0;
