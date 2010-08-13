@@ -38,23 +38,15 @@ import java.awt.MenuBar;
 import java.awt.MenuItem;
 import java.awt.Panel;
 import java.awt.Point;
-import java.awt.Scrollbar;
-import java.awt.TextField;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
@@ -122,7 +114,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	private int magnification_factor = 6;
 	private int chosen_traj = -1;
 	public ResultsWindow results_window;
-	public PrintWriter print_writer = null;
 	public PreviewCanvas preview_canvas = null;
 
 	/* preview vars */
@@ -1361,7 +1352,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				// if user cancelled the save dialog - return
 				if (sd.getDirectory() == null || sd.getFileName() == null) return; 
 				// write full report to file
-				write2File(sd.getDirectory(), sd.getFileName(), getFullReport().toString());
+				detector.write2File(sd.getDirectory(), sd.getFileName(), getFullReport().toString());
 				return;
 			}
 			/* display full report on the text_panel*/
@@ -1646,7 +1637,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		//		}
 		//		// write data to file
 		//		write2File(newDir.getAbsolutePath(), vFI.fileName + "PT3D.txt", getFullReport().toString());
-		write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
+		detector.write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
 	}
 
 	/**
@@ -2121,31 +2112,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		return (sliceIndex-1) / slices_number + 1;
 	}
 
-	/**
-	 * Writes the given <code>info</code> to given file information.
-	 * <code>info</code> will be written to the beginning of the file, overwriting older information
-	 * If the file doesn�t exists it will be created.
-	 * Any problem creating, writing to or closing the file will generate an ImageJ error   
-	 * @param directory location of the file to write to 
-	 * @param file_name file name to write to
-	 * @param info info the write to file
-	 * @see java.io.FileOutputStream#FileOutputStream(java.lang.String)
-	 */
-	public boolean write2File(String directory, String file_name, String info) {
-		try {
-			FileOutputStream fos = new FileOutputStream(new File(directory, file_name));
-			BufferedOutputStream bos = new BufferedOutputStream(fos);
-			print_writer = new PrintWriter(bos);
-			print_writer.print(info);
-			print_writer.close();
-			return true;
-		}
-		catch (IOException e) {
-			IJ.error("" + e);
-			return false;
-		}    			
-
-	}
 
 	/**
 	 * Creates a new <code>ImageStack</code> and draws particles on it according to
@@ -2291,25 +2257,12 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 	@Override
 	public void saveDetected(ActionEvent e) {
-		/* show save file user dialog with default file name 'frame' */
-		SaveDialog sd = new SaveDialog("Save Detected Particles", IJ.getDirectory("image"), "frame", "");
-		// if user cancelled the save dialog 
-		if (sd.getDirectory() == null || sd.getFileName() == null) return;
-
 		/* set the user defined pramars according to the valus in the dialog box */
 		detector.getUserDefinedPreviewParams(gd);
 
 		/* detect particles and save to files*/
 		if (this.processFrames()) { // process the frames
-			// for each frame - save the detected particles
-			for (int i = 0; i<this.frames.length; i++) {					
-				if (!write2File(sd.getDirectory(), sd.getFileName() + "_" + i, 
-						this.frames[i].frameDetectedParticlesForSave(false).toString())) {
-					// upon any problam savingto file - return
-					IJ.log("Problem occured while writing to file.");
-					return;
-				}
-			}
+			detector.saveDetected(this.frames);
 		}
 		preview_canvas.repaint();
 		return;

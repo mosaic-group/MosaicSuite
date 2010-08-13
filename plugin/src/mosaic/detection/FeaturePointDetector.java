@@ -5,6 +5,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.GenericDialog;
 import ij.gui.StackWindow;
+import ij.io.SaveDialog;
 import ij.measure.Measurements;
 import ij.plugin.filter.Convolver;
 import ij.process.Blitter;
@@ -24,6 +25,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -1526,6 +1532,51 @@ public class FeaturePointDetector {
 			for(n = 0; n < linkrange; n++)
 				frames[frames_number - 1].getParticles().elementAt(i).next[n] = -1;
 		}
+	}
+	
+	public void saveDetected(MyFrame[] frames) {
+		/* show save file user dialog with default file name 'frame' */
+		SaveDialog sd = new SaveDialog("Save Detected Particles", IJ.getDirectory("image"), "frame", "");
+		// if user cancelled the save dialog 
+		if (sd.getDirectory() == null || sd.getFileName() == null) return;
+
+		// for each frame - save the detected particles
+			for (int i = 0; i<frames.length; i++) {					
+				if (!write2File(sd.getDirectory(), sd.getFileName() + "_" + i, 
+						frames[i].frameDetectedParticlesForSave(false).toString())) {
+					// upon any problam savingto file - return
+					IJ.log("Problem occured while writing to file.");
+					return;
+				}
+			}
+
+		return;
+	}
+	
+	/**
+	 * Writes the given <code>info</code> to given file information.
+	 * <code>info</code> will be written to the beginning of the file, overwriting older information
+	 * If the file doesn�t exists it will be created.
+	 * Any problem creating, writing to or closing the file will generate an ImageJ error   
+	 * @param directory location of the file to write to 
+	 * @param file_name file name to write to
+	 * @param info info the write to file
+	 * @see java.io.FileOutputStream#FileOutputStream(java.lang.String)
+	 */
+	public boolean write2File(String directory, String file_name, String info) {
+		try {
+			FileOutputStream fos = new FileOutputStream(new File(directory, file_name));
+			BufferedOutputStream bos = new BufferedOutputStream(fos);
+			PrintWriter print_writer = new PrintWriter(bos);
+			print_writer.print(info);
+			print_writer.close();
+			return true;
+		}
+		catch (IOException e) {
+			IJ.error("" + e);
+			return false;
+		}    			
+
 	}
 
 }
