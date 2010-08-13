@@ -29,13 +29,13 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		allocateTwoImages()
 		detect()
 		cellOutlineGeneration()
-		val isInDomain = cellOutlines(0).inRoi(_)
+		val isInDomain = cellOutline.inRoi(_)
 		initNearestNeighbour()
 		val domainSize = Array[Int](imp(0).getHeight, imp(0).getWidth, imp(0).getNSlices)
 //		no images below here
 		
 		val (qOfD, d) = calculateQofD(domainSize, isInDomain)
-		val dd = findD()
+		val dd = findD(isInDomain)
 		val shape = selectPotential()
 
 //		nll optimization CMA
@@ -94,10 +94,10 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	  (prob, xArray)
 	}
 	
-	//		D with NN
-	def findD():Array[Double]= {
+	//	D with NN
+	def findD(isInDomain: (Array[Double] => Boolean)):Array[Double]= {
 	  val queryPoints: Array[Array[Double]] = getParticlePositions(1)
-	  getDistances(queryPoints)
+	  getDistances(queryPoints.filter(isInDomain(_)))
 	}
 	
 	/**

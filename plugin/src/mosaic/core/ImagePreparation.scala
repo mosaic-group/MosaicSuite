@@ -22,7 +22,7 @@ trait ImagePreparation {//extends PreviewInterface {
 	val imageNbr = 2
 	var imp = new Array[ImagePlus](imageNbr)
 	val frames = new Array[MyFrame](imageNbr);
-	var cellOutlines = new Array[CellOutline](imageNbr)
+	var cellOutline: CellOutline = null
 	
 	var detector: FeaturePointDetector = null
 	 
@@ -106,7 +106,7 @@ trait ImagePreparation {//extends PreviewInterface {
 	
 			
 	protected def cellOutlineGeneration() {
-		cellOutlines = imp.map(new CellOutline(_))
+		cellOutline = new CellOutline(imp(0))
 	}
 	
 	/**
