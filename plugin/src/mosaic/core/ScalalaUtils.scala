@@ -5,7 +5,7 @@ package mosaic.core
 
 import scalala.Scalala._
 import scalala.tensor.dense._
-import scalala.tensor.Vector
+import scalala.tensor._
 
 /**
  * @author marksutt
@@ -63,6 +63,46 @@ object ScalalaUtils {
 			}
 			case _ => Nil			
 		}
-	}	
+	}
+	
+	
+	/**
+	 * @param A:	a vector A 
+	 * @return 		the mean value of A
+	 */
+	def mean(vec: Vector): Double = {
+		sum(vec)/vec.size
+	}
+	
+	def mean(matrix: Matrix, dim : Int = 1): Vector = {
+		val size = List(matrix.rows, matrix.cols)
+		val sumColorRow: Matrix = sum(matrix, dim)
+		val mean = (sumColorRow/size(dim-1))
+		dim match { 
+			case 1 => mean.getRow(0); 
+			case 2 => mean.getCol(0)
+		}
+	}
 
+	/**
+	 *   cov(x), if x is a vector, returns the variance.  For matrices,
+	 *   where each row is an observation, and each column a variable,
+	 *   cov(x) is the covariance matrix. 
+	 *   The mean is removed from each column before calculating the
+	 *	 result.
+	 * @param x
+	 * @param flag	flag == 0 normalizes by (N-1), flag == 1 normalizes by N
+	 * @return 	covariance matrix
+	 */
+	def cov(x: Matrix, flag:Int = 0) : Matrix = {
+		val size = List(x.rows, x.cols)
+		// Remove mean
+		val xc = new DenseMatrix(size(0),size(1))
+		val means = mean(x)
+		for (i <- 0 until size(0)) {
+			xc.getRow(i) := x.getRow(i) - means
+		}	
+		val cov = xc.transpose * xc
+		cov/(size(1) - (flag match { case 0 => 1; case 1 => 0})) 
+	}
 }
