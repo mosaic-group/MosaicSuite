@@ -6,12 +6,13 @@ import scalala.tensor.dense._
 
 object PotentialFunctions {
 	
-	val functions = Array("Step function","Plummer potential")
+	val functions = Array("Step function","Plummer potential", "Hermquist potential")
 	
 	def potentialShape(i:Int): ((DenseVector,Double,Double) => DenseVector) = {
 		i match {
 			case 0 => potentialShapeStepFunction(_,_,_)
 			case 1 => potentialShapePlummer(_,_,_)
+			case 2 => potentialShapeHermquist(_,_,_)
 		}
 	}
 	
@@ -44,6 +45,24 @@ object PotentialFunctions {
 		val iter = d.filter(x => x match {case (i,k) => k <= 0; case _ => false})
 		for ((i, k) <- iter) fPlummer(i) = -1
 		fPlummer
+	}
+	
+	/**	% f_hermquist: shape of the Hermquist potential
+	 * @param  d :   	distances
+	 * @param sigma :	scale parameter, default = 1
+	 * @param t	:		shift parameter, default = 0
+	 * @return  f :  	shape function sampled at d
+	 */
+	def potentialShapeHermquist(d: DenseVector, sigma: Double = 1, t: Double = 0):DenseVector = {
+		val dScaled = new DenseVector(d.toArray.map(x => x/sigma))
+		//f = -1./(d + 1);
+		
+		val f:Vector = dScaled + 1
+		val fHerm = new DenseVector(f.toArray.map(x => -1/x))
+		//f(d<=0) = -(1-d);
+		val iter = d.filter(x => x match {case (i,k) => k <= 0; case _ => false})
+		for ((i, k) <- iter) fHerm(i) = -(1-d(i))
+		fHerm
 	}
 	
 	/** Make sure that all 3 parameters (epsilon: strength, sigma: length-scale, t: shift along distance axis) are set.
