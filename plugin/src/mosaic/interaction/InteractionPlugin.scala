@@ -135,11 +135,12 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	 * Estimates parameter of potential
 	 * @param fitfun function to optimize, which has potential parameter as parameter 
 	 */
-	def potentialParamEst(fitfun: DiffAbstractObjectiveFunction, nbrParameter:Int){
+	def potentialParamEst(fitfun: LikelihoodOptimizer, nbrParameter:Int){
 		
 		// CMA Optimization
-		val sol = CMAOptimization.optimize(fitfun)
-		println("CMA Optimization: param: " + sol._2(0) + " min. value: " + sol._1)
+		val sol = CMAOptimization.optimize(fitfun, nbrParameter)
+		val solOutput = "CMA Optimization: " + PotentialFunctions.parametersToString(sol._2) + " min. value: " + sol._1
+		println(solOutput)
 		
 		// Stochastic Steepest Descent
 		val alpha = 0.0001
@@ -149,7 +150,31 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		val stochasticSteepestDescent = new StochasticGradientDescent[Int, Vector](alpha, maxIter, batchSize)
 		val minGuess = stochasticSteepestDescent.minimize(fitfun,initGuess)
 		val solSteepestDescent = (fitfun.valueAt(minGuess), minGuess)
-		println("Stochastic Steepest Descent: param: " + solSteepestDescent._2(0) + " min. value: " + solSteepestDescent._1)
+		val solSteepestDescentOutput = "Stochastic Steepest Descent:  " + PotentialFunctions.parametersToString(solSteepestDescent._2.toArray) + " min. value: " + solSteepestDescent._1
+		println(solSteepestDescentOutput)
+		
+		plotPotential(fitfun.potentialShape, sol._2)
+		plotPotential(fitfun.potentialShape, solSteepestDescent._2.toArray)
+		
+		IJ.showMessage("Interaction Plugin: parameter estimation", solOutput + '\n' + solSteepestDescentOutput);
+		
+	}
+	
+	/** Plots potential with specified shape and parameters
+	 * @param shape :		potential shape
+	 * @param parameters :	potential parameters
+	 */
+	def plotPotential(shape: (DenseVector,Double,Double) => DenseVector, parameters: Array[Double]) ={
+		
+		val para = PotentialFunctions.defaultParameters(parameters)
+		val x = linspace(-5,100)
+		val y = shape(x,para(1),para(2)) * para(0)
+		
+		val fig = figure()
+		subplot(fig.rows+1,fig.cols,fig.rows * fig.cols +1)
+		
+		plot(x,y)
+		title("phi(d) with " + PotentialFunctions.parametersToString(parameters) ); xlabel("d");	ylabel("phi(d)")	
 	}
 	
 	/**

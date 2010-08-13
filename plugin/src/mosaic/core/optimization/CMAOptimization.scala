@@ -5,12 +5,12 @@ import cma.CMAEvolutionStrategy
 
 object CMAOptimization {
 	
-	def optimize(fitfun: AbstractObjectiveFunction):(Double,Array[Double]) = {
+	def optimize(fitfun: AbstractObjectiveFunction, dim:Int):(Double,Array[Double]) = {
 	
 		// new a CMA-ES and set some initial values
 		val cma = new CMAEvolutionStrategy();
 		cma.readProperties(); // read options, see file CMAEvolutionStrategy.properties
-		cma.setDimension(1); // overwrite some loaded properties
+		cma.setDimension(dim); // overwrite some loaded properties
 		cma.setInitialX(0.5); // in each dimension, also setTypicalX can be used
 		cma.setInitialStandardDeviation(0.2); // also a mandatory setting 
 		cma.options.stopFitness = 1e-12;       // optional setting

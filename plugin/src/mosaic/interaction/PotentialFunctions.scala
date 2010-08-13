@@ -61,4 +61,13 @@ object PotentialFunctions {
 		}
 		parameter
 	}
+	
+	def parametersToString(parameters: Array[Double]): String = {
+		parameters.length match {
+			case 1 => "epsilon: " + parameters(0)
+			case 2 => "epsilon: " + parameters(0) + " sigma: " + parameters(1)
+			case 3 => "epsilon: " + parameters(0) + " sigma: " + parameters(1) + " t: " + parameters(2)
+			case _ => throw new IllegalArgumentException("Only arrays with length between 1 and 3.")
+		}
+	}
 }

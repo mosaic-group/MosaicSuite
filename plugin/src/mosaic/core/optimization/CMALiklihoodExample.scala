@@ -16,7 +16,7 @@ object CMALiklihoodExample {
 		
 		def fitfun: AbstractObjectiveFunction = new LikelihoodOptimizer(qCell, ddCell,DCell, PotentialFunctions.potentialShape(1));
 		
-		CMAOptimization.optimize(fitfun)
+		CMAOptimization.optimize(fitfun,1)
 		
 		println(fitfun.valueOf(Array(-0.021777343750001)))
 	} // main  
