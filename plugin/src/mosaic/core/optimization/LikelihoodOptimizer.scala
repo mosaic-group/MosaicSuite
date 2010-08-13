@@ -24,10 +24,6 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 	 */
 	def calculatePofD(q :DenseVector, di: DenseVector, sampleDistances: DenseVector, potentialShape: ((DenseVector,Double,Double) => DenseVector), potentialParam: Double*):DenseVector = {
 		
-			val sumD = sum(di) //TODO
-			val sumq = sum(q) //TODO
-			val sumthisq = sum(this.q) //TODO
-			val sumsampDis = sum(sampleDistances)//TODO
 			/*
 			% p_of_d: computes the density of the NN-interaction Gibbs process
 			%
@@ -42,13 +38,9 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 //		% STEP 1: compute Z, use trapezoidal rule
 //			    g_of_r = exp(-epsilon*shape(d/sigma));
 			val fEvaluated:Vector = potentialShape(this.di,potentialParam(1), potentialParam(2)) * (-potentialParam(0))
-			val sumfEvaluated = sum(fEvaluated)//TODO
-			System.out.format("%.100f%n", double2Double(q(0)));
 			val g_of_r = new DenseVector(fEvaluated.toArray.map(Math.exp(_)))
-			val sumg_of_r = sum(g_of_r)//TODO
 //			support = g_of_r.*q;
 			var support = g_of_r :* this.q value
-			val sumSupp = sum(support)//TODO
 //			integrand = (support(1:end-1) + support(2:end))/2;
 			var integrand = new DenseVector(support.size -1)
 			integrand(0 until integrand.size) = support(0 until (support.size-1))
@@ -59,12 +51,6 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 //			dd = diff(d);
 			val diArray = this.di.toArray
 			val diff: DenseVector = new DenseVector (for ((x,y) <-  diArray.take(di.size-1).zip(diArray.drop(1))) yield y-x)
-//			Z = sum(integrand.*dd);
-//			val ss = integrand :* diff value
-			System.out.format("%.100f%n", double2Double(integrand(0)));
-			val s1 = integrand(0) * diff(0)
-			val sumInt = sum(integrand)//TODO
-			val sumDiff = sum(diff)//TODO
 			val Z = sum(integrand :* diff)
 //			% STEP 2: compute p(d)
 			val p = g_of_r :* this.q * 1/Z
@@ -177,7 +163,17 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
      * @return  objective function value of the input search point  
      */
 	def valueOf(data: Array[Double]): Double ={
-		val x = negLogLikelihood(this.q, this.di, this.d_s, this.potentialShape , data :_*)
+		// Make sure that all 3 parameters (epsilon: strength, sigma: length-scale, t: shift along distance axis) are set.
+		val sigma = 1 	//default for sigma: length-scale
+		val t = 0 		//default for t: shift along distance axis
+		val parameter:Array[Double] = data.length match {
+			case 1 => Array(data(0),sigma, t)
+			case 2 => Array(data(0),data(1), t)
+			case 3 => data
+			case _ => throw new IllegalArgumentException("Only arrays with length between 1 and 3")
+		}
+		
+		val x = negLogLikelihood(this.q, this.di, this.d_s, this.potentialShape , parameter :_*)
 		println(data(0) + ": Epsilon , nll: "+ x)
 		x
 	}
