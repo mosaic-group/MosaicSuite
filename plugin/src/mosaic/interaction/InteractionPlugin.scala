@@ -26,8 +26,6 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	def run(arg: String) {
 		println("Run Interaction Plugin ")
 		
-			(new Macro_Runner).run("JAR:macros/StacksOpen_.ijm") // TODO Remove debug
-					
 		allocateTwoImages()
 		detect()
 		cellOutlineGeneration()
@@ -83,7 +81,6 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	  val validQueryPoints = queryPoints.filter(isInDomain(_))
 	  println("Number of valid query points: " + validQueryPoints.size)
 	   
-	   //TODO Fix Z Coord.
 	  val dist = getDistances(validQueryPoints.toArray)
       
       // estimate q(d)

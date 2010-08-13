@@ -22,10 +22,10 @@ trait ImagePreparation {//extends PreviewInterface {
 	
 	val imageNbr = 2
 	var imp = new Array[ImagePlus](imageNbr)
-	val frames = new Array[MyFrame](imageNbr);
+	val frames = new Array[MyFrame](imageNbr)
 	var cellOutline: CellOutline = null
 	
-	var detector: FeaturePointDetector = null
+	var detectors = new Array[FeaturePointDetector](imageNbr)
 	 
 	var gd: GenericDialog = null;
 	
@@ -37,7 +37,12 @@ trait ImagePreparation {//extends PreviewInterface {
 	 */
 	protected def allocateTwoImages() = {
 		// Get 2 Images ready and store them in imp(0) and imp(1).
-		val windowList = WindowManager.getIDList();
+		var windowList = WindowManager.getIDList();
+		
+		if (windowList == null){
+			(new Macro_Runner).run("JAR:macros/StacksOpen_.ijm") // TODO Remove debug
+			windowList = WindowManager.getIDList();
+		}	
 		
 		if (windowList == null) {
 			// No images open, have to open 2 images.
@@ -102,25 +107,27 @@ trait ImagePreparation {//extends PreviewInterface {
 	protected def detect() {
 		import java.awt.GridBagConstraints;
 		import java.awt.Insets;
-		// TODO Do we use the same detector for both images or two different detectors?
-		// get global minimum and maximum 
-		val stack_statsA = new StackStatistics(imp(0));
-		val stack_statsB = new StackStatistics(imp(1));
-		val global_max = Math.max(stack_statsA.max, stack_statsB.max);
-		val global_min = Math.min(stack_statsA.min, stack_statsB.min);
-		detector = new FeaturePointDetector(global_max.asInstanceOf[Float], global_min.asInstanceOf[Float]);
+		
+		val detectors = imp.map(getDetector(_))
 		
 		gd = new GenericDialog("Particle detection...", IJ.getInstance());
-		detector.addUserDefinedParametersDialog(gd);
+		detectors(0).addUserDefinedParametersDialog(gd);
 //		gd.addPanel(detector.makePreviewPanel(this, impA), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));	        
 
-		previewCanvas(0) = detector.generatePreviewCanvas(imp(0));
-		previewCanvas(1) = detector.generatePreviewCanvas(imp(1));
+		previewCanvas(0) = detectors(0).generatePreviewCanvas(imp(0));
+		previewCanvas(1) = detectors(1).generatePreviewCanvas(imp(1));
 		gd.showDialog();
-		detector.getUserDefinedParameters(gd);
+		detectors(0).getUserDefinedParameters(gd);
+		detectors(1).setUserDefinedParameters(detectors(0).cutoff,detectors(0).percentile,detectors(0).radius,detectors(0).absIntensityThreshold)
 
 		//TODO Detection done with preview. 
 		preview(null)
+	}
+	
+	private def getDetector(imp: ImagePlus): FeaturePointDetector ={
+		// get global minimum and maximum 
+		val stack_stats = new StackStatistics(imp);
+		new FeaturePointDetector(stack_stats.max.asInstanceOf[Float], stack_stats.min.asInstanceOf[Float]);
 	}
 	
 			
@@ -134,10 +141,10 @@ trait ImagePreparation {//extends PreviewInterface {
 	@Override
 	def preview(e: ActionEvent) {
 		// do preview
-		detector.preview(imp(0), previewCanvas(0), gd);
-		frames(0) = detector.getPreviewFrame();
-		detector.preview(imp(1), previewCanvas(1), gd);
-		frames(1) = detector.getPreviewFrame();
+		detectors(0).preview(imp(0), previewCanvas(0), gd);
+		frames(0) = detectors(0).getPreviewFrame();
+		detectors(1).preview(imp(1), previewCanvas(1), gd);
+		frames(1) = detectors(1).getPreviewFrame();
 		previewCanvas(0).repaint();
 		previewCanvas(1).repaint();
 		return;

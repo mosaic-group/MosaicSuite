@@ -36,7 +36,7 @@ class CalibriScala_ extends PlugIn with ImagePreparation {
 	def run(arg: String) {
 		allocateTwoImages();
 		detect();
-		detector.linkParticles(frames, frames_number, linkrange, displacement);
+		detectors(0).linkParticles(frames, frames_number, linkrange, displacement);
 		val (shifts, shiftsPosition) = calculateShifts();
 		regression(shifts, shiftsPosition);
 	}
