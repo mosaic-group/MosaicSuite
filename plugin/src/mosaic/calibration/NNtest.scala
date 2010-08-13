@@ -85,7 +85,7 @@ object NNtest {
   def mseTest {
 	   import org.apache.commons.math.stat.regression._
 
-	   val cali = new mosaic.plugins.CalibriScala_
+	   val cali = new mosaic.calibration.CalibriScala_
 	   
 		val reg = new SimpleRegression();
 	    reg.addData(0, 0)

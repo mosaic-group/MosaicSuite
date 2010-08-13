@@ -1,4 +1,4 @@
-package mosaic.plugins
+package mosaic.calibration
 
 import mosaic.core.ImagePreparation
 import ij.IJ;
@@ -26,7 +26,7 @@ import scalala.Scalala._
 
 class CalibriScala_ extends PlugIn with ImagePreparation {
 	
-	/* user defined parameters for linking*/
+	/* parameters for linking*/
 	val linkrange: Int =  1; 			// default
 	val displacement: Double = 10.0; 	// default
 	val frames_number: Int = 2;
@@ -45,6 +45,7 @@ class CalibriScala_ extends PlugIn with ImagePreparation {
 		
 		val n = shifts.length
 //TODO refactor 2map		val xShifts = shifts.map(_.apply(0))
+		
 		val xShifts = new Array[Double](n)
 		val yShifts = new Array[Double](n)
 		val dataX = new Array[Array[Double]](n,2)
@@ -116,9 +117,9 @@ class CalibriScala_ extends PlugIn with ImagePreparation {
 	}
 
 	private def calculateShifts():(Array[Array[Double]],Array[Array[Double]]) = {
-		val particlesA = frames(0).getParticles().toArray(new Array[Particle](0))
-		val particlesB = frames(1).getParticles();
-		val maxNbrShifts = scala.Math.min(particlesA.size, particlesB.size)
+		val particles0 = frames(0).getParticles().toArray(new Array[Particle](0))
+		val particles1 = frames(1).getParticles();
+		val maxNbrShifts = scala.Math.min(particles0.size, particles1.size)
 		// TODO find a data representation that fits Regression, Frame and plotting API
 		val shifts = new Array[Array[Double]](maxNbrShifts,3);
 		val shiftsPosition = new Array[Array[Double]](maxNbrShifts,3);
@@ -127,10 +128,10 @@ class CalibriScala_ extends PlugIn with ImagePreparation {
 		val shiftPartVec = new java.util.Vector[Particle];
 		var i = 0;
 			
-		for (parA <- particlesA)
+		for (parA <- particles0)
 		{
 			if (parA.next(0) >= 0) {
-				var parB = particlesB.get(parA.next(0));
+				var parB = particles1.get(parA.next(0));
 				var shift = Array(parB.x -parA.x,parB.y -parA.y, parB.z -parA.z)
 				
 				shiftsVec += new Vector3f(shift);
@@ -143,9 +144,9 @@ class CalibriScala_ extends PlugIn with ImagePreparation {
 				i = i+1;
 			}
 		}
-		previewA.shifts = shiftsVec;
-		previewA.shiftPositions = shiftsPositionsVec;
-		previewA.particlesShiftedToDisplay = shiftPartVec;
+		previewCanvas(0).shifts = shiftsVec;
+		previewCanvas(0).shiftPositions = shiftsPositionsVec;
+		previewCanvas(0).particlesShiftedToDisplay = shiftPartVec;
 		
 		(shifts.slice(0, i), shiftsPosition.slice(0, i))
 	}

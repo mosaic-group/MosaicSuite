@@ -11,6 +11,11 @@ class CellOutline {
 	var rois : Array[Roi] = null
 	var mask : ImagePlus = null
 
+	def this(imp: ImagePlus) = {
+		this()
+		init(imp)
+	}
+	
 	/** Is this data point inside the cell outlined by a ROI?
 	 * @param coord query coordinate
 	 * @return true, if data point is inside the cell

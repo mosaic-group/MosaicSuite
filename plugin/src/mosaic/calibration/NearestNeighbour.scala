@@ -17,6 +17,9 @@ class NearestNeighbour(dim: Int = 2) {
 	private var instances : Instances = null
 	private val kdtree = new KDTree()
 	
+	/** Initialize KDTree with reference group, so we can later find the nearest neighbor out of this points.
+	 * @param points reference points
+	 */
 	def setReferenceGroup(points: Array[Array[Double]]) {
 		
 		val atts: ArrayList[Attribute] = new ArrayList[Attribute]();
@@ -26,22 +29,31 @@ class NearestNeighbour(dim: Int = 2) {
 		kdtree.setInstances(instances)
 	}
 	
-	private def getDistance(queryPoint: Array[Double]):Double ={
-		val inst = new DenseInstance(1,queryPoint)
-		inst.setDataset(instances)
-		kdtree.nearestNeighbour(inst)
-		(kdtree.getDistances())(0)
-	}
-	
+	/** Find nearest neighbor in reference group for each query point and return the distance to it.
+	 * @param queries query points for which we want to find nearest neighbor distances
+	 * @return distances to nearest neighbor for each query point
+	 */
 	def getDistances(queries : Array[Array[Double]]): Array[Double] ={
 		queries.map(getDistance(_))
 	}
 	
-	
-	/** 
-	 * @param List
+	/** Find nearest neighbor in reference group for the query point and return the distance to it.
+	 * @param queryPoint query point for which we want to find nearest neighbor distance
+	 * @return distance to nearest neighbor for the query point
 	 */
-	def getSampling(dim: List[(Int,Int)]) : List[Array[Double]]= {
+	private def getDistance(queryPoint: Array[Double]):Double ={
+			val inst = new DenseInstance(1,queryPoint)
+			inst.setDataset(instances)
+			kdtree.nearestNeighbour(inst)
+			(kdtree.getDistances())(0)
+	}
+	
+	/** Generates a sampling grid from 0 to the value of the first element of the tuple with 
+	 * the value of the second tuple element as number of grid points.
+	 * Each tuple in the parameter list is a dimension in the domain
+	 * @param domain For each dimension a tuple (max value of dimension, nbr of samples in this dimension)
+	 */
+	def getSampling(domain: List[(Int,Int)]) : List[Array[Double]]= {
 		def recPermutation(lists : List[Array[Double]]): List[List[Double]] = lists match {
 			case Nil => Nil
 			case h::Nil => (for (i <- h) yield List(i)).toList
@@ -55,7 +67,7 @@ class NearestNeighbour(dim: Int = 2) {
 				result
 			}
 		}
-		val dimCoordinates = for ((n, nbr) <- dim) yield linspace(0,n,nbr).toArray
+		val dimCoordinates = for ((n, nbr) <- domain) yield linspace(0,n,nbr).toArray
 		(for (res <- recPermutation(dimCoordinates)) yield res.toArray)
 	}
 //	def getSampling(n:Int, hNbr: Int, m:Int, vNbr: Int ) : Array[Array[Double]]= {

@@ -28,23 +28,23 @@ trait ImagePreparation {//extends PreviewInterface {
 	 
 	var gd: GenericDialog = null;
 	
-	var  previewA: PreviewCanvas = null; var  previewB: PreviewCanvas = null;
+	var previewCanvas = new Array[PreviewCanvas](imageNbr)
 	
 	/**
-	 * Initializes imgA and imgB so that 2 images are available.
-	 * @return
+	 * Initializes imp so that 2 images are available.
+	 * @return true, if images are available
 	 */
 	protected def allocateTwoImages(): Boolean = {
-		// Get 2 Images ready and store them in imgA and imgB.
+		// Get 2 Images ready and store them in imp(0) and imp(1).
 		val windowList = WindowManager.getIDList();
 		
 		if (windowList == null) {
 			// No images open, have to open 2 images.
-			val imp = openImages(2)
+			val imp = openImages(imageNbr)
 			true;
 		} else if (windowList.length == 1) {
 			// One image open, have to open another one.
-			val imgs = openImages(1)
+			val imgs = openImages(imageNbr-1)
 			imp(1) = imgs(0)
 			imp(0) = WindowManager.getImage(windowList(0));
 			true;
@@ -95,8 +95,8 @@ trait ImagePreparation {//extends PreviewInterface {
 		detector.addUserDefinedParametersDialog(gd);
 //		gd.addPanel(detector.makePreviewPanel(this, impA), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));	        
 
-		previewA = detector.generatePreviewCanvas(imp(0));
-		previewB = detector.generatePreviewCanvas(imp(1));
+		previewCanvas(0) = detector.generatePreviewCanvas(imp(0));
+		previewCanvas(1) = detector.generatePreviewCanvas(imp(1));
 		gd.showDialog();
 		detector.getUserDefinedParameters(gd);
 
@@ -106,10 +106,7 @@ trait ImagePreparation {//extends PreviewInterface {
 	
 			
 	protected def cellOutlineGeneration() {
-		cellOutlines(0) = new CellOutline() 
-		cellOutlines(0).init(imp(0))
-		cellOutlines(1) = new CellOutline() 
-		cellOutlines(1).init(imp(1))
+		cellOutlines = imp.map(new CellOutline(_))
 	}
 	
 	/**
@@ -118,12 +115,12 @@ trait ImagePreparation {//extends PreviewInterface {
 	@Override
 	def preview(e: ActionEvent) {
 		// do preview
-		detector.preview(imp(0), previewA, gd);
+		detector.preview(imp(0), previewCanvas(0), gd);
 		frames(0) = detector.getPreviewFrame();
-		detector.preview(imp(1), previewB, gd);
+		detector.preview(imp(1), previewCanvas(1), gd);
 		frames(1) = detector.getPreviewFrame();
-		previewA.repaint();
-		previewB.repaint();
+		previewCanvas(0).repaint();
+		previewCanvas(1).repaint();
 		return;
 	}
 	
