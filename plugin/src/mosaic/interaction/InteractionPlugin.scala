@@ -23,15 +23,15 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	def run(arg: String) {
 		println("Run Interaction Plugin")
 		
-		//			IJ.runMacroFile("JAR:StacksOpen.ijm") // TODO Remove debug
 			(new Macro_Runner).run("JAR:macros/StacksOpen_.ijm") // TODO Remove debug
 					
 		allocateTwoImages()
 		detect()
 		cellOutlineGeneration()
-		val isInDomain = cellOutline.inRoi(_)
+		val voxelDepth = imp(0).getCalibration.pixelDepth.toInt
+		val isInDomain = (x:Array[Double]) => {x(2) = x(2)/voxelDepth; cellOutline.inRoi(x)}
 		initNearestNeighbour()
-		val domainSize = Array[Int](imp(0).getHeight, imp(0).getWidth, imp(0).getNSlices)
+		val domainSize = Array[Int](imp(0).getHeight, imp(0).getWidth, imp(0).getNSlices * voxelDepth)
 //		no images below here
 		
 		val (qOfD, d) = calculateQofD(domainSize, isInDomain)
@@ -41,6 +41,10 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 //		nll optimization CMA
 		val fitfun = new LikelihoodOptimizer(new DenseVector(qOfD), new DenseVector(d),new DenseVector(dd), shape);
 		potentialParamEst(fitfun)
+		
+//		hypothesis testing
+//		Monte Carlo sample Tk with size K from the null distribution of T obtained by sampling N distances di from q(d)
+//		additional Monte Carlo sample Uk to rank U
 	}
 	
 	/** 

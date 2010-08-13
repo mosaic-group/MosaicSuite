@@ -1,5 +1,6 @@
 package mosaic.core
 
+import ij.plugin.filter.ImageProperties
 import ij.plugin.Macro_Runner
 import ij.plugin.Duplicator
 import mosaic.detection.MyFrame
@@ -34,31 +35,45 @@ trait ImagePreparation {//extends PreviewInterface {
 	 * Initializes imp so that 2 images are available.
 	 * @return true, if images are available
 	 */
-	protected def allocateTwoImages(): Boolean = {
+	protected def allocateTwoImages() = {
 		// Get 2 Images ready and store them in imp(0) and imp(1).
 		val windowList = WindowManager.getIDList();
 		
 		if (windowList == null) {
 			// No images open, have to open 2 images.
 			val imp = openImages(imageNbr)
-			true;
 		} else if (windowList.length == 1) {
 			// One image open, have to open another one.
 			val imgs = openImages(imageNbr-1)
 			imp(1) = imgs(0)
 			imp(0) = WindowManager.getImage(windowList(0));
-			true;
 		} else if (windowList.length > 2) {
 			// Select images
 			// TODO Select images from windowList
 			imp(0) = WindowManager.getImage(windowList(0));
 			imp(1) = WindowManager.getImage(windowList(1));
-			true;
 		} else {
 			// Two image open.
 			imp(0) = WindowManager.getImage(windowList(0));
 			imp(1) = WindowManager.getImage(windowList(1));
-			true;
+		}
+		imp.map(checkVoxelDepth(_))
+	}
+	
+	/** Checks current voxel depth and shows a dialog to change it, if it's set to 1 pixel.
+	 * @param imp image processor to check
+	 */
+	private def checkVoxelDepth(imp: ImagePlus) = {
+		val cal = imp.getCalibration
+		if ((cal.pixelDepth == 1) & (cal.getZUnit == "pixel")) {
+//			similiar to ij.plugin.filter.ImageProperties
+			val gd = new GenericDialog(imp.getTitle())
+			gd.addMessage("Unit of Length: "+cal.getZUnit);
+			gd.addNumericField("Voxel_Depth:", cal.pixelDepth, 4, 8, null)
+			gd.showDialog()
+			if (!gd.wasCanceled()) {
+				cal.pixelDepth = gd.getNextNumber()
+			}
 		}
 	}
 	
@@ -73,8 +88,7 @@ trait ImagePreparation {//extends PreviewInterface {
 			case (x,y) if x == y => images
 			case (x,y) if x > y => openImages(x, {val n = IJ.openImage(); if (n== null) images else  n.show(); n::images})
 		}
-	}
-	
+	}	
 	
 	/**
 	 * Detects particles in imp(0) and imp(1), 
@@ -128,9 +142,6 @@ trait ImagePreparation {//extends PreviewInterface {
 		for (particle <- frames(i).getParticles.toArray) yield {
 			val part = particle.asInstanceOf[Particle]
 			part.getPosition()
-			
-			
-			// TODO fix z coord.
 		}
 	}
 //	protected def getParticles(): (List[Particle], List[Particle]) =  {
