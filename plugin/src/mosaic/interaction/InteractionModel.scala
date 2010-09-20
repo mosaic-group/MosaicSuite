@@ -17,7 +17,7 @@ class InteractionModel {
 	val dim = 3 
 	// 
 	val nn = new NearestNeighbour(dim)
-	var potentialShape:Potential = null
+	var potentialShape:Potential = PotentialFunctions.potentials(0)
 	
 	/**
 	 * qOfD with NN and Kernel estimation
