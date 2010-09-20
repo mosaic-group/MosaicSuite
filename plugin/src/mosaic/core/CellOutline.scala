@@ -95,5 +95,10 @@ class CellOutline {
 //		IJ.run("GenerateMask ")
 		(new Macro_Runner).run("JAR:macros/GenerateMask_.ijm")
 	}
+	
+	def setMask(newMask: ImagePlus) = {
+		mask = newMask
+		generateRois()
+	}
 
 }

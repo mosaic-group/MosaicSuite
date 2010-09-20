@@ -24,6 +24,7 @@ trait ImagePreparation {//extends PreviewInterface {
 	var imp = new Array[ImagePlus](imageNbr)
 	val frames = new Array[MyFrame](imageNbr)
 	var cellOutline: CellOutline = null
+	var voxelDepth = 1
 	
 	var detectors = new Array[FeaturePointDetector](imageNbr)
 	 
@@ -159,5 +160,15 @@ trait ImagePreparation {//extends PreviewInterface {
 //	protected def getParticles(): (List[Particle], List[Particle]) =  {
 //		(frames(0).getParticles, frames(1).getParticles.toArray)
 //	}
-
+	
+	def generateModelInputFromImages :(Array[Int],(Array[Double] => Boolean),Array[Array[Double]],Array[Array[Double]])= {
+		allocateTwoImages()
+		detect(true)
+		cellOutlineGeneration()
+		voxelDepth = imp(0).getCalibration.pixelDepth.toInt
+		val isInDomain = (x:Array[Double]) => {x(2) = x(2)/voxelDepth; cellOutline.inRoi(x)}
+		val refGroup = getParticlePositions(0)
+		val domainSize = Array[Int](imp(0).getHeight, imp(0).getWidth, imp(0).getNSlices * voxelDepth)
+		(domainSize, isInDomain, refGroup, getParticlePositions(1))
+	}
 }

@@ -1,5 +1,6 @@
 package mosaic.interaction
 
+import mosaic.core.CellOutline
 import ij.plugin.Macro_Runner
 import mosaic.core.Particle
 import mosaic.core.optimization._
@@ -26,17 +27,19 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	def run(arg: String) {
 		println("Run Interaction Plugin ")
 		
-		allocateTwoImages()
-		detect()
-		cellOutlineGeneration()
-		val voxelDepth = imp(0).getCalibration.pixelDepth.toInt
-		val isInDomain = (x:Array[Double]) => {x(2) = x(2)/voxelDepth; cellOutline.inRoi(x)}
-		initNearestNeighbour()
-		val domainSize = Array[Int](imp(0).getHeight, imp(0).getWidth, imp(0).getNSlices * voxelDepth)
+		
+		gd = new GenericDialog("Input selection...", IJ.getInstance());
+		gd.addChoice("Input soutce:", Array("Image","Matlab"), "Image")
+		gd.showDialog();
+		val (domainSize,isInDomain,refGroup, testGroup) = gd.getNextChoiceIndex match {
+				case 0 => generateModelInputFromImages
+				case 1 => readMatlabData
+			}
 //		no images below here
 		
+		initNearestNeighbour(refGroup)
 		val (qOfD, d) = calculateQofD(domainSize, isInDomain)
-		val dd = findD(isInDomain)
+		val dd = findD(testGroup, isInDomain)
 		val shape = selectPotential()
 
 //		nll optimization CMA
@@ -68,14 +71,14 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	 */
 	def calculateQofD(domainSize: Array[Int], isInDomain: (Array[Double] => Boolean)):(Array[Double],Array[Double])= {
 	  
-	  val nbrQueryPoints = 10
+	  val nbrQueryPoints = 50
 	  val scale = new DenseVector(domainSize map(_.toDouble))
 	   
 	  // independent randomly placed query objects
 //	  val queryPoints = List.fill(nbrQueryPoints)((rand(dim) :*scale).toArray)
 	  
 	  // regularly placed query objects
-	  val queryPoints = nn.getSampling(List((domainSize(0), nbrQueryPoints),(domainSize(1), nbrQueryPoints),(domainSize(2), nbrQueryPoints)))
+	  val queryPoints = nn.getSampling(List((domainSize(0), nbrQueryPoints),(domainSize(1), nbrQueryPoints),(domainSize(2), Math.floor(nbrQueryPoints/10).toInt))) //TODO less queries in z direction.
 	  // only take samples in the cell/domain
 	  println("Number of query points: " + queryPoints.size)
 	  val validQueryPoints = queryPoints.filter(isInDomain(_))
@@ -93,15 +96,15 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	  val x = linspace(minDist, maxDist, 100)
 	  val xArray = x.toArray
 	  val prob = est.getProbabilities(xArray)
-	  plot(x, new DenseVector(prob))
+	  // TODO check prob. with integration equals 1.
+	  plot(x, (new DenseVector(prob)) * 100)
 	  title("q(D)"); xlabel("d"); ylabel("q(d)")
 
 	  (prob, xArray)
 	}
 	
 	//	D with NN
-	def findD(isInDomain: (Array[Double] => Boolean)):Array[Double]= {
-	  val queryPoints: Array[Array[Double]] = getParticlePositions(1)
+	def findD(queryPoints: Array[Array[Double]], isInDomain: (Array[Double] => Boolean)):Array[Double]= {
 	  getDistances(queryPoints.filter(isInDomain(_)))
 	}
 	
@@ -121,10 +124,9 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	}
 	
 	/**
-	 * Initializes KDTree with reference group (Y), to allow fast nearest neigbhor search
+	 * Initializes KDTree with reference group (Y), to allow fast nearest neighbor search
 	 */
-	private def initNearestNeighbour() {
-		val refPoints : Array[Array[Double]] = getParticlePositions(0)
+	private def initNearestNeighbour(refPoints : Array[Array[Double]]) {
 			val time = (new java.util.Date()).getTime()
 		// generate KDTree
 		nn.setReferenceGroup(refPoints)
@@ -184,5 +186,21 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		IJ.showMessage("Interaction estimation based on statistical object-based co-localization framework",
 				"TODO, shift the blame on the developper." //TODO showAbout   
 		);
+	}
+	
+	private def readMatlabData():(Array[Int],(Array[Double] => Boolean),Array[Array[Double]],Array[Array[Double]]) = {
+		import mosaic.calibration.ReadMat
+		val path = "/Users/marksutt/Documents/MA/data/"
+		val matFileName = "TestPlugin/EndVir.mat"
+		val refGroup = ReadMat.readMatDoubleArrayFile(path + matFileName,"Endosomes3D")
+		val queryGroup = ReadMat.readMatDoubleArrayFile(path + matFileName,"Viruses3D")
+		val maskOpenMacro = "run(\"Image Sequence...\", \"open=" +path + "/3Ddata/Endosomes/Mask_2/3110.tif number=14 starting=0 increment=1 scale=100 file=[] or=[] sort\");"
+		IJ.runMacro(maskOpenMacro)
+		val maskLoaded = IJ.getImage()
+		val outline = (new CellOutline())
+		outline.setMask(maskLoaded)
+		val isInDomain = outline.inRoi(_)
+		val domainSize = Array[Int](maskLoaded.getHeight, maskLoaded.getWidth, maskLoaded.getNSlices * voxelDepth)
+		(domainSize, isInDomain, refGroup, queryGroup)
 	}
 }
