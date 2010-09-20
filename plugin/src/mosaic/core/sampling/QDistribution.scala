@@ -40,7 +40,7 @@ class QDistribution(qofD:Vector, xis:Vector) extends ContinuousDistr[Double] {
 	def inverseCdf(u: Double): Double = {
 		val uPos = Fj.filter(ui => ui._2 <= u).size
 		// interpolate between two data points
-		ScalalaUtils.interpolateLinear(xj(uPos - 1), Fj(uPos - 1), xj(uPos), Fj(uPos), u)
+		ScalalaUtils.interpolateLinear(Fj(uPos - 1),xj(uPos - 1), Fj(uPos), xj(uPos), u)
 	}
 	
 	def Cdf(x: Double): Double = {
@@ -53,6 +53,7 @@ class QDistribution(qofD:Vector, xis:Vector) extends ContinuousDistr[Double] {
 		
 		CdfqofD = Vector((0.0::partialSums(qofD.toArray.toList)) : _*)
 		
+		CdfqofD /= max(CdfqofD)
 		def partialSums(items:List[Double], currentSum:Double = 0):List[Double] = {
 				items match {
 					case Nil => Nil
