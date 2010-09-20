@@ -120,7 +120,7 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	 */
 	def meshInCell(domainSize: Array[Int], isInDomain: (Array[Double] => Boolean)) : Array[Array[Double]]= {
 	  
-	  val nbrQueryPointLimit = 1000
+	  val nbrQueryPointLimit = 100000
 	  val zQueryPointRes = domainSize(2)
 	  var xQueryPointRes = 1
 	  while (zQueryPointRes * (xQueryPointRes+1) * (xQueryPointRes+1) < nbrQueryPointLimit ){

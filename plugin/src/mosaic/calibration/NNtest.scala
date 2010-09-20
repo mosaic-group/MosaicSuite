@@ -7,8 +7,14 @@ import weka.core.DenseInstance
 
 object NNtest {
   def main(args : Array[String]) : Unit = {
-	  
-	  NNBasic
+
+	  val nn = new NearestNeighbour(2)
+	nn.setReferenceGroup(Array(Array(1d,0),Array(1d,0),Array(2d,0),Array(3d,0),Array(4d,0),Array(5d,0)))
+	val query = Array(Array(0d,0),Array(0.5d,0),Array(1d,0),Array(2.5d,0),Array(10d,0))
+	val distKDTree = nn.getDistances(query)
+	val distBrute = nn.bruteForceNN(query)
+	println("")
+//	  NNBasic
 //	  logLikliTest
 	  //mseTest
   }

@@ -115,7 +115,7 @@ class LikelihoodOptimizer(var q :Vector,var di: Vector,var d_s: Vector, var pote
 		val parameters = mosaic.interaction.PotentialFunctions.defaultParameters(data)
 		
 		val x = negLogLikelihood(this.q, this.di, this.d_s, this.potentialShape , parameters :_*)
-		println(data(0) + ": Epsilon , nll: "+ x)
+		//println(data(0) + ": Epsilon , nll: "+ x)
 		x
 	}
 	

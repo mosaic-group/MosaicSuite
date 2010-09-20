@@ -37,7 +37,7 @@ object InteractionModelTest {
 		
 		
 		// check optimization scriptMarkus.m, params_he =  6.2870    3.7056
-		val (q,dq,dval) =ReadTestData.readOptimTest(test.InteractionModelTest.path)
+		val (q,dq,dval) =ReadTestData.readOptimTest(InteractionModelTest.path)
 		val fitfunTest = new LikelihoodOptimizer(q, dq,dval, shape);
 		InteractionModel.potentialParamEst(fitfunTest,nbrPara)
 		

@@ -46,7 +46,8 @@ object InteractionModel {
 	  title("q(D)"); xlabel("d"); ylabel("q(d)")
 	  val fig = figure()
 	  subplot(fig.rows+1,fig.cols,fig.rows * fig.cols +1)
-	  val histH = hist(new DenseVector(distances),new DenseVector(Array(0d,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17)))
+	  val xbins = linspace(minDist, maxDist, 100)
+	  val histH = hist(new DenseVector(distances),xbins)
 	  
 	  (prob, xArray)
 	}
@@ -87,7 +88,7 @@ object InteractionModel {
 	def plotPotential(shape: (Vector,Double,Double) => Vector, parameters: Array[Double]) ={
 		
 		val para = PotentialFunctions.defaultParameters(parameters)
-		val x = linspace(-5,100)
+		val x = linspace(-5,50)
 		val y = shape(x,para(1),para(2)) * para(0)
 		
 		val fig = figure()

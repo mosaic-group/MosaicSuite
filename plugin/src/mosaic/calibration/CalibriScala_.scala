@@ -67,11 +67,13 @@ class CalibriScala_ extends PlugIn with ImagePreparation {
 		clf()
 		println ("Regression X coord")
 		executeRegression(dataX, xShifts, xPos, n)
-
+		title("x axis")
+		
 		subplot(2,1,2)
 		// Regression Y
 		println ("Regression Y coord")
 		executeRegression(dataY, yShifts, yPos, n)
+		title("y axis")
 	}
 	
 	private def executeRegression(data: Array[Array[Double]], shifts: Array[Double], pos: DenseVector, n: Int) {
