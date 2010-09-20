@@ -36,11 +36,17 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 				case 0 => generateModelInputFromImages
 				case 1 => readMatlabData
 			}
+		
+		println("Image size " + domainSize(0) + "," + domainSize(1) + "," + domainSize(2) +  ", Sizes of refGroup, testGroup: " + refGroup.size + "," + testGroup.size)
 //		no images below here
 		
-		initNearestNeighbour(refGroup)
+		val refGroupInDomain = refGroup.filter(isInDomain)
+		val testGroupInDomain = testGroup.filter(isInDomain)
+		println("In domain: Sizes of refGroupInDomain, testGroupInDomain: " + refGroupInDomain.size + "," + testGroupInDomain.size)
+
+		initNearestNeighbour(refGroupInDomain)
 		val (qOfD, d) = calculateQofD(domainSize, isInDomain)
-		val dd = findD(testGroup, isInDomain)
+		val dd = findD(testGroupInDomain)
 		val shape = selectPotential()
 
 //		nll optimization CMA
@@ -72,20 +78,26 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	 */
 	def calculateQofD(domainSize: Array[Int], isInDomain: (Array[Double] => Boolean)):(Array[Double],Array[Double])= {
 	  
-	  val nbrQueryPoints = 50
+	  val nbrQueryPointLimit = 1000
+	  val zQueryPointRes = domainSize(2)
+	  var xQueryPointRes = 1
+	  while (zQueryPointRes * (xQueryPointRes+1) * (xQueryPointRes+1) < nbrQueryPointLimit ){
+	 	  xQueryPointRes = xQueryPointRes + 1
+	  }
+	  
 	  val scale = new DenseVector(domainSize map(_.toDouble))
 	   
 	  // independent randomly placed query objects
 //	  val queryPoints = List.fill(nbrQueryPoints)((rand(dim) :*scale).toArray)
 	  
 	  // regularly placed query objects
-	  val queryPoints = nn.getSampling(List((domainSize(0), nbrQueryPoints),(domainSize(1), nbrQueryPoints),(domainSize(2), Math.floor(nbrQueryPoints/10).toInt))) //TODO less queries in z direction.
+	  val queryPoints = nn.getSampling(List((domainSize(0), xQueryPointRes),(domainSize(1), xQueryPointRes),(domainSize(2), zQueryPointRes))).toArray //TODO less queries in z direction.
 	  // only take samples in the cell/domain
 	  println("Number of query points: " + queryPoints.size)
 	  val validQueryPoints = queryPoints.filter(isInDomain(_))
 	  println("Number of valid query points: " + validQueryPoints.size)
 	   
-	  val dist = getDistances(validQueryPoints.toArray)
+	  val dist = getDistances(validQueryPoints)
       
       // estimate q(d)
 	  val est = new KernelDensityEstimator()
@@ -105,8 +117,8 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	}
 	
 	//	D with NN
-	def findD(queryPoints: Array[Array[Double]], isInDomain: (Array[Double] => Boolean)):Array[Double]= {
-	  getDistances(queryPoints.filter(isInDomain(_)))
+	def findD(queryPoints: Array[Array[Double]]):Array[Double]= {
+	  getDistances(queryPoints)
 	}
 	
 	/**
