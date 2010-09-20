@@ -11,6 +11,7 @@ import mosaic.calibration.KernelDensityEstimator
 
 
 object InteractionModel {
+	var potentialShape:Potential = null
 	
 	/**
 	 * qOfD with NN and Kernel estimation

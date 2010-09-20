@@ -5,8 +5,10 @@ import scalala.tensor._
 import scalala.tensor.dense._
 
 object PotentialFunctions {
-	
+		
 	val functions = Array("Step function","Plummer potential", "Hermquist potential","Non parametric potential")
+	val potentials = functions.zipWithIndex.map(i => Potential(i._1,potentialShape(i._2),
+			potentialParameters(i._2)._1,potentialParameters(i._2)._2)).toList
 	
 	def potentialShape(i:Int): ((Vector,List[Double]) => Vector) = {
 		i match {
