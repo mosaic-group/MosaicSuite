@@ -97,7 +97,7 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	  val xArray = x.toArray
 	  val prob = est.getProbabilities(xArray)
 	  // TODO check prob. with integration equals 1.
-	  plot(x, (new DenseVector(prob)) * 100)
+	  plot(x, (new DenseVector(prob)))
 	  title("q(D)"); xlabel("d"); ylabel("q(d)")
 
 	  (prob, xArray)
