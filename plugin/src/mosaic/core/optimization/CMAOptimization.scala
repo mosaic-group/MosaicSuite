@@ -19,7 +19,7 @@ object CMAOptimization {
 		val fitness = cma.init();  // new double[cma.parameters.getPopulationSize()];
 
 		// initial output to files
-		cma.writeToDefaultFilesHeaders(0); // 0 == overwrites old files
+		//TODO write to file CMA cma.writeToDefaultFilesHeaders(0); // 0 == overwrites old files
 
 		// iteration loop
 		while(cma.stopConditions.getNumber() == 0) {

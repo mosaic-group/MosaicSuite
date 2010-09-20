@@ -10,9 +10,9 @@ object CMALiklihoodExample {
 	def main(args : Array[String]) : Unit = {
 		val i = 0
 		
-		val DCell = ReadMat.getVector(ReadMat.sketchPath + "DCell.mat", "DCell",i)
-		val ddCell = ReadMat.getVector(ReadMat.sketchPath +"ddCell.mat", "dCell",i)
-		val qCell = ReadMat.getVector(ReadMat.sketchPath +"qCell.mat", "qCell" ,i)
+		val DCell = ReadMat.getVectorFromCellFile(ReadMat.sketchPath + "DCell.mat", "DCell",i)
+		val ddCell = ReadMat.getVectorFromCellFile(ReadMat.sketchPath +"ddCell.mat", "dCell",i)
+		val qCell = ReadMat.getVectorFromCellFile(ReadMat.sketchPath +"qCell.mat", "qCell" ,i)
 		
 		def fitfun: AbstractObjectiveFunction = new LikelihoodOptimizer(qCell, ddCell,DCell, PotentialFunctions.potentialShape(1));
 		

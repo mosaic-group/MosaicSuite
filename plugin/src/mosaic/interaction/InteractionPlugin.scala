@@ -30,8 +30,8 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		gd.showDialog();
 		val (domainSize,isInDomain,refGroup, testGroup) = gd.getNextChoiceIndex match {
 				case 0 => generateModelInputFromImages
-				case 1 => readMatlabData
-			}
+				case 1 => InteractionModelTest.readMatlabData
+		}
 		
 		println("Image size " + domainSize(0) + "," + domainSize(1) + "," + domainSize(2) +  ", Sizes of refGroup, testGroup: " + refGroup.size + "," + testGroup.size)
 //		no images below here
@@ -40,6 +40,7 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		val testGroupInDomain = testGroup.filter(isInDomain)
 		println("In domain: Sizes of refGroupInDomain, testGroupInDomain: " + refGroupInDomain.size + "," + testGroupInDomain.size)
 
+// nearest neighbor search(2x)
 		initNearestNeighbour(refGroupInDomain)
 		val (qOfD, d) = InteractionModel.calculateQofD(meshInCell(domainSize, isInDomain), getDistances)
 		val dd = findD(testGroupInDomain)
@@ -110,36 +111,6 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		IJ.showMessage("Interaction estimation based on statistical object-based co-localization framework",
 				"TODO, shift the blame on the developper." //TODO showAbout   
 		);
-	}
-	
-	private def readMatlabData():(Array[Int],(Array[Double] => Boolean),Array[Array[Double]],Array[Array[Double]]) = {
-		import mosaic.calibration.ReadMat
-		val path = "/Users/marksutt/Documents/MA/data/"
-		val matFileName = "TestPlugin/EndVir.mat"
-		val delx:Double = 160; val delz:Double = 400; val voxDepthFactor = delz/delx ; val res:Double = 80
-		val refGroup = ReadMat.getMatrix(path + matFileName,"Endosomes3D")
-		val queryGroup = ReadMat.getMatrix(path + matFileName,"Viruses3D")
-		def scaleCoord(coord: Matrix, voxDepthFactor:Double, pixelSize:Double = 1) {
-			// the upper left pixel in the first slice is (0.5,0.5,0.0) in the output of
-			// the 3D tracker. Shift z component!
-			val voxelDepth = voxDepthFactor * pixelSize
-			coord.getCol(0) *= pixelSize; coord.getCol(1) *= pixelSize;  
-			coord.getCol(2) *= voxelDepth; coord.getCol(2) += voxelDepth/2;
-		}
-		scaleCoord(refGroup, voxDepthFactor)
-		scaleCoord(queryGroup, voxDepthFactor)
-		val arr:Array[Array[Double]] = (for (i <- (0 until refGroup.rows)) yield refGroup.getRow(i).toArray).toArray
-		val arrQuery:Array[Array[Double]] = (for (i <- (0 until queryGroup.rows)) yield queryGroup.getRow(i).toArray).toArray
-		
-		val maskOpenMacro = "run(\"Image Sequence...\", \"open=" +path + "/3Ddata/Endosomes/Mask_2/3110.tif number=14 starting=0 increment=1 scale=100 file=[] or=[] sort\");"
-		IJ.runMacro(maskOpenMacro)
-		val maskLoaded = IJ.getImage()
-		val outline = (new CellOutline())
-		outline.setMask(maskLoaded)
-		//val isInDomain = (x:Array[Double]) => outline.inCell(x.map((d:Double) => Math.floor(d/delx + 0.5)))
-		val isInDomain = (x:Array[Double]) => {x(2) = x(2) / voxDepthFactor; outline.inCell(x)}
-		val domainSize = Array[Int](maskLoaded.getWidth, maskLoaded.getHeight, maskLoaded.getNSlices)
-		(domainSize, isInDomain, arr, arrQuery)
 	}
 	
 	/**

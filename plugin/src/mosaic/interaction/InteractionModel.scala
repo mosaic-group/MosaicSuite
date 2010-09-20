@@ -22,11 +22,21 @@ object InteractionModel {
 	  val dist = calculateDistance(mesh)
       
       // estimate q(d)
-	  val est = new KernelDensityEstimator()
-	  est.addValues(dist)
+	  estimateDensity(dist)
+	}
+	
+		
+	/**
+	 * p(d) with Kernel estimation
+	 * @param distances
+	 * @return state density as tuple (q,d) with values of state density q and distances d, at which q is specified
+	 */
+	def estimateDensity(distances:Array[Double]):(Array[Double],Array[Double])= {
+		val est = new KernelDensityEstimator()
+	  est.addValues(distances)
 	  
-	  val maxDist = dist.reduceLeft(Math.max(_,_))
-	  val minDist = Math.min(0,dist.reduceLeft(Math.min(_,_))) //TODO correct? with 0?
+	  val maxDist = distances.reduceLeft(Math.max(_,_))
+	  val minDist = Math.min(0,distances.reduceLeft(Math.min(_,_))) //TODO correct? with 0?
 	  
 	  val x = linspace(minDist, maxDist, 1000)
 	  val xArray = x.toArray
@@ -34,9 +44,10 @@ object InteractionModel {
 	  // TODO check prob. with integration equals 1.
 	  plot(x, (new DenseVector(prob)))
 	  title("q(D)"); xlabel("d"); ylabel("q(d)")
-	  figure.hold = true
-	  hist(new DenseVector(dist),100)
-
+	  val fig = figure()
+	  subplot(fig.rows+1,fig.cols,fig.rows * fig.cols +1)
+	  val histH = hist(new DenseVector(distances),new DenseVector(Array(0d,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17)))
+	  
 	  (prob, xArray)
 	}
 	
