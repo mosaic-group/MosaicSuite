@@ -1,5 +1,6 @@
 package mosaic.interaction
 
+import scalala.tensor.Matrix
 import mosaic.core.CellOutline
 import ij.plugin.Macro_Runner
 import mosaic.core.Particle
@@ -192,15 +193,29 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		import mosaic.calibration.ReadMat
 		val path = "/Users/marksutt/Documents/MA/data/"
 		val matFileName = "TestPlugin/EndVir.mat"
-		val refGroup = ReadMat.readMatDoubleArrayFile(path + matFileName,"Endosomes3D")
-		val queryGroup = ReadMat.readMatDoubleArrayFile(path + matFileName,"Viruses3D")
+		val delx:Double = 160; val delz:Double = 400; val voxDepthFactor = delz/delx ; val res:Double = 80
+		val refGroup = ReadMat.getMatrix(path + matFileName,"Endosomes3D")
+		val queryGroup = ReadMat.getMatrix(path + matFileName,"Viruses3D")
+		def scaleCoord(coord: Matrix, voxDepthFactor:Double, pixelSize:Double = 1) {
+			// the upper left pixel in the first slice is (0.5,0.5,0.0) in the output of
+			// the 3D tracker. Shift z component!
+			val voxelDepth = voxDepthFactor * pixelSize
+			coord.getCol(0) *= pixelSize; coord.getCol(1) *= pixelSize;  
+			coord.getCol(2) *= voxelDepth; coord.getCol(2) += voxelDepth/2;
+		}
+		scaleCoord(refGroup, voxDepthFactor)
+		scaleCoord(queryGroup, voxDepthFactor)
+		val arr:Array[Array[Double]] = (for (i <- (0 until refGroup.rows)) yield refGroup.getRow(i).toArray).toArray
+		val arrQuery:Array[Array[Double]] = (for (i <- (0 until queryGroup.rows)) yield queryGroup.getRow(i).toArray).toArray
+		
 		val maskOpenMacro = "run(\"Image Sequence...\", \"open=" +path + "/3Ddata/Endosomes/Mask_2/3110.tif number=14 starting=0 increment=1 scale=100 file=[] or=[] sort\");"
 		IJ.runMacro(maskOpenMacro)
 		val maskLoaded = IJ.getImage()
 		val outline = (new CellOutline())
 		outline.setMask(maskLoaded)
-		val isInDomain = outline.inRoi(_)
-		val domainSize = Array[Int](maskLoaded.getHeight, maskLoaded.getWidth, maskLoaded.getNSlices * voxelDepth)
-		(domainSize, isInDomain, refGroup, queryGroup)
+		//val isInDomain = (x:Array[Double]) => outline.inCell(x.map((d:Double) => Math.floor(d/delx + 0.5)))
+		val isInDomain = (x:Array[Double]) => {x(2) = x(2) / voxDepthFactor; outline.inCell(x)}
+		val domainSize = Array[Int](maskLoaded.getWidth, maskLoaded.getHeight, maskLoaded.getNSlices)
+		(domainSize, isInDomain, arr, arrQuery)
 	}
 }
