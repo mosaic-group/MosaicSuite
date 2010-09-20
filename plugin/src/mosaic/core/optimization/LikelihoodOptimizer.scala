@@ -12,9 +12,10 @@ import mosaic.core.ScalalaUtils
  * @param di:     distances at which q is specified
  * @param d_s:	  distances at which p should be sampled
  */
-class LikelihoodOptimizer(var q :Vector,var di: Vector,var d_s: Vector, var potentialShape: ((Vector,Double,Double) => Vector)) extends DiffAbstractObjectiveFunction {
+class LikelihoodOptimizer(var q :Vector,var di: Vector,var d_s: Vector, var potentialShape: ((Vector,List[Double]) => Vector)) extends DiffAbstractObjectiveFunction {
 	
-	
+	var nbrParameter = 2
+	var nonParametric = false
 	
 	/** computes the density of the NN-interaction Gibbs process
 	 * @param sampleDistances distances at which p should be sampled
@@ -22,7 +23,7 @@ class LikelihoodOptimizer(var q :Vector,var di: Vector,var d_s: Vector, var pote
 	 * @param potentialParam parameters of potential (epsilon: strength, sigma: length-scale, t: shift along distance axis)
 	 * @return value of distance density at d_s
 	 */
-	def calculatePofD(q :Vector, di: Vector, sampleDistances: Vector, potentialShape: ((Vector,Double,Double) => Vector), potentialParam: Double*):Vector = {
+	def calculatePofD(q :Vector, di: Vector, sampleDistances: Vector, potentialEvaluated: Vector):Vector = {
 		
 			/*
 			% p_of_d: computes the density of the NN-interaction Gibbs process
@@ -37,8 +38,7 @@ class LikelihoodOptimizer(var q :Vector,var di: Vector,var d_s: Vector, var pote
 			% OUT:  p_s:    value of distance density at d_s*/
 //		% STEP 1: compute Z, use trapezoidal rule
 //			    g_of_r = exp(-epsilon*shape(d/sigma));
-			val fEvaluated:Vector = potentialShape(this.di,potentialParam(1), potentialParam(2)) * (-potentialParam(0))
-			val g_of_r = new DenseVector(fEvaluated.toArray.map(Math.exp(_)))
+			val g_of_r = new DenseVector(potentialEvaluated.toArray.map(Math.exp(_)))
 //			support = g_of_r.*q;
 			var support = g_of_r :* this.q value
 //			integrand = (support(1:end-1) + support(2:end))/2;
@@ -68,10 +68,14 @@ class LikelihoodOptimizer(var q :Vector,var di: Vector,var d_s: Vector, var pote
 	 * @return value of negative log-likelihood
 	 * @see calculatePofD
 	 */
-	def negLogLikelihood(q :Vector, di: Vector, sampleDistances: Vector, potentialShape: ((Vector,Double,Double) => Vector), potentialParam: Double*):Double = {
-		val p = calculatePofD(q :Vector, di: Vector, sampleDistances, potentialShape, potentialParam :_*)
+	def negLogLikelihood(q :Vector, di: Vector, sampleDistances: Vector, potentialShape: ((Vector,List[Double]) => Vector), potentialParam: List[Double]):Double = {
+		val params = potentialParam ::: List(0d) // the weight of the last point is fixed to 0.
+		
+		val fEvaluated:Vector = potentialShape(this.di,params.tail) * (-params(0))
+
+		val p = calculatePofD(q :Vector, di: Vector, sampleDistances, fEvaluated)
 		val logP = new DenseVector(p.toArray.map(Math.log(_)))
-		-sum(logP)
+		val loglikeli:Double = -sum(logP)
 		/*
 		% negloglik: computes the negative log-likelihood of the NN-interaction
 		% Gibbs process
@@ -90,16 +94,26 @@ class LikelihoodOptimizer(var q :Vector,var di: Vector,var d_s: Vector, var pote
 		p = p_of_d(q,d,params,shape,D);
 		
 		nll = -sum(log(p));*/
+		if (nonParametric) {
+			var weightsPenalty = 0d
+			val s = 2 //TODO hard coded parameter: smoothness of non parametric potentials
+			val wp:Vector = new DenseVector(params.drop(3).toArray)
+			val diffPairs = wp(0 until (wp.size-1)).zip( wp(1 until wp.size))
+			weightsPenalty = diffPairs.map(x => {val tmp = (x._1 - x._2)/s; tmp*tmp}).reduceLeft(_+_)
+			loglikeli + weightsPenalty
+		} else {
+			loglikeli
+		}
 	}	
 	
-	def pooledNegLogliklihood(qCell:Array[Vector],dCell:Array[Vector],DCell:Array[Vector], potentialShape: ((Vector,Double,Double) => Vector), potentialParam: Double*): Double = {
+	def pooledNegLogliklihood(qCell:Array[Vector],dCell:Array[Vector],DCell:Array[Vector], potentialShape: ((Vector,List[Double]) => Vector), potentialParam: List[Double]): Double = {
 		var nll = 0d;
 		for (i <- Iterator.range(0, qCell.length)) {
 			var q = qCell(i);
 			var d = dCell(i);
 			var D = DCell(i);
 			
-			var nllt = negLogLikelihood(q,d,D,potentialShape,potentialParam:_*);
+			var nllt = negLogLikelihood(q,d,D,potentialShape,potentialParam);
 
 			nll = nll + nllt;
 		}
@@ -114,8 +128,11 @@ class LikelihoodOptimizer(var q :Vector,var di: Vector,var d_s: Vector, var pote
 		
 		val parameters = mosaic.interaction.PotentialFunctions.defaultParameters(data)
 		
-		val x = negLogLikelihood(this.q, this.di, this.d_s, this.potentialShape , parameters :_*)
-		//println(data(0) + ": Epsilon , nll: "+ x)
+		val x = negLogLikelihood(this.q, this.di, this.d_s, this.potentialShape , parameters)
+		println(data(0) + ": Epsilon , nll: "+ x)
+		if (x.isNaN) {
+			println("problem")
+		}
 		x
 	}
 	

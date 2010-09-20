@@ -47,9 +47,9 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		val shape = selectPotential()
 
 //		nll optimization CMA
-		val nbrPara = 1
-		val fitfun = new LikelihoodOptimizer(new DenseVector(qOfD), new DenseVector(d),new DenseVector(dd), shape);
-		InteractionModel.potentialParamEst(fitfun,nbrPara)
+		val fitfun = new LikelihoodOptimizer(new DenseVector(qOfD), new DenseVector(d),new DenseVector(dd), PotentialFunctions.potentialShape(shape));
+		PotentialFunctions.potentialParameters(shape) match { case (nbr,flag) => fitfun.nbrParameter = nbr;fitfun.nonParametric = flag }
+		InteractionModel.potentialParamEst(fitfun)
 		
 //		hypothesis testing
 //		Monte Carlo sample Tk with size K from the null distribution of T obtained by sampling N distances di from q(d)
@@ -61,13 +61,13 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	 * The potential has to be defined in object PotentialFunctions
 	 * @return by user selected potential
 	 */
-	def selectPotential(): ((Vector,Double,Double) => Vector) = {
+	def selectPotential():Int = {
 		gd = new GenericDialog("Potential selection...", IJ.getInstance());
 		gd.addChoice("Potential shape", PotentialFunctions.functions, PotentialFunctions.functions(0))
 		gd.showDialog();
-		PotentialFunctions.potentialShape(gd.getNextChoiceIndex)
+		val choice = gd.getNextChoiceIndex
+		choice
 	}
-		
 	
 	
 	//	D with NN
@@ -88,9 +88,12 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 //			val distf = nn.bruteForceNN(queryPoints) 
 //			    println("brute force nearest neighbour search "+((new java.util.Date()).getTime() - time)*0.001)
 // histogram of distances
-//			   val fig = figure()
-//			    subplot(fig.rows+1,fig.cols,fig.rows * fig.cols +1)
-//			hist(new DenseVector(dist),new DenseVector(Array(0d,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17)))
+			   val fig = figure()
+			   if (fig.rows > 1) {
+			    subplot(fig.rows+1,fig.cols,fig.rows * fig.cols +1)
+			   }
+			    val xbins = linspace(0, dist.reduceLeft(Math.max(_, _)), 20)
+			hist(new DenseVector(dist),xbins)
 			dist
 	}
 	

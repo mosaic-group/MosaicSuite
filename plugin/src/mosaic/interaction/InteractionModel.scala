@@ -56,7 +56,8 @@ object InteractionModel {
 	 * Estimates parameter of potential
 	 * @param fitfun function to optimize, which has potential parameter as parameter 
 	 */
-	def potentialParamEst(fitfun: LikelihoodOptimizer, nbrParameter:Int){
+	def potentialParamEst(fitfun: LikelihoodOptimizer){
+		val nbrParameter = fitfun.nbrParameter
 		
 		// CMA Optimization
 		val sol = CMAOptimization.optimize(fitfun, nbrParameter)
@@ -85,11 +86,11 @@ object InteractionModel {
 	 * @param shape :		potential shape
 	 * @param parameters :	potential parameters
 	 */
-	def plotPotential(shape: (Vector,Double,Double) => Vector, parameters: Array[Double]) ={
+	def plotPotential(shape: (Vector,List[Double]) => Vector, parameters: Array[Double]) ={
 		
 		val para = PotentialFunctions.defaultParameters(parameters)
 		val x = linspace(-5,50)
-		val y = shape(x,para(1),para(2)) * para(0)
+		val y = shape(x,para.tail) * para(0)
 		
 		val fig = figure()
 		subplot(fig.rows+1,fig.cols,fig.rows * fig.cols +1)

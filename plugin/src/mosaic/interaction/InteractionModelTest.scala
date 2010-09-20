@@ -31,15 +31,16 @@ object InteractionModelTest {
 		val shape = PotentialFunctions.potentialShape(2) //hermquist
 
 //		nll optimization CMA
-		val nbrPara = 2
 		val fitfun = new LikelihoodOptimizer(new DenseVector(qOfD), new DenseVector(d),new DenseVector(dd), shape);
-		InteractionModel.potentialParamEst(fitfun,nbrPara)
+		fitfun.nbrParameter = 2
+		InteractionModel.potentialParamEst(fitfun)
 		
 		
 		// check optimization scriptMarkus.m, params_he =  6.2870    3.7056
 		val (q,dq,dval) =ReadTestData.readOptimTest(InteractionModelTest.path)
 		val fitfunTest = new LikelihoodOptimizer(q, dq,dval, shape);
-		InteractionModel.potentialParamEst(fitfunTest,nbrPara)
+		fitfunTest.nbrParameter = 2
+		InteractionModel.potentialParamEst(fitfunTest)
 		
 //		hypothesis testing
 //		Monte Carlo sample Tk with size K from the null distribution of T obtained by sampling N distances di from q(d)
