@@ -1,5 +1,6 @@
 package mosaic.core
 
+import ij.Prefs
 import ij.plugin.filter.ImageProperties
 import ij.plugin.Macro_Runner
 import ij.plugin.Duplicator
@@ -42,14 +43,9 @@ trait ImagePreparation {//extends PreviewInterface {
 		// Get 2 Images ready and store them in imp(0) and imp(1).
 		var windowList = WindowManager.getIDList();
 		
-		if (windowList == null){
-			(new Macro_Runner).run("JAR:macros/StacksOpen_.ijm") // TODO Remove debug
-			windowList = WindowManager.getIDList();
-		}	
-		
 		if (windowList == null) {
 			// No images open, have to open 2 images.
-			val imp = openImages(imageNbr)
+			imp = openImages(imageNbr).toArray
 		} else if (windowList.length == 1) {
 			// One image open, have to open another one.
 			val imgs = openImages(imageNbr-1)
@@ -65,7 +61,6 @@ trait ImagePreparation {//extends PreviewInterface {
 			imp(0) = WindowManager.getImage(windowList(0));
 			imp(1) = WindowManager.getImage(windowList(1));
 		}
-		imp.map(checkVoxelDepth(_))
 	}
 	
 	/** Checks current voxel depth and shows a dialog to change it, if it's set to 1 pixel.
@@ -73,9 +68,12 @@ trait ImagePreparation {//extends PreviewInterface {
 	 */
 	private def checkVoxelDepth(imp: ImagePlus) = {
 		val cal = imp.getCalibration
-		if ((cal.pixelDepth == 1) & (cal.getZUnit == "pixel")) {
+		val title = "ia."+  imp.getTitle
+		val isChecked = Prefs.get(title, false)
+		if ((cal.pixelDepth == 1) & (cal.getZUnit == "pixel")  & !isChecked) {
 //			similiar to ij.plugin.filter.ImageProperties
 			IJ.runPlugIn("ij.plugin.filter.ImageProperties", "")
+			Prefs.set(title, true)
 //			val gd = new GenericDialog(imp.getTitle())
 //			gd.addMessage("Unit of Length: "+cal.getZUnit);
 //			gd.addNumericField("Voxel_Depth:", cal.pixelDepth, 4, 8, null)
@@ -106,6 +104,7 @@ trait ImagePreparation {//extends PreviewInterface {
 	
 	def setImage(ip: ImagePlus, i : Int) {
 		    imp(i) = ip
+		    checkVoxelDepth(imp(i))
 			// analyze only within ROI, if one exists.
 		    if (imp(0) != null)
 		    	roi = imp(0).getRoi

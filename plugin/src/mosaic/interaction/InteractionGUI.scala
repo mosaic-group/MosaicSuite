@@ -52,9 +52,18 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	     analyze.addActionListener(this);
 
 		 val gd = new GenericDialog("Input selection...", IJ.getInstance());
-		 gd.addChoice("Input source:", Array("Image","Matlab"), "Image")
+		 gd.addChoice("Input source:", Array("Image","Matlab", "Debug"), "Image")
 		 gd.showDialog()
 		 inputSource = gd.getNextChoiceIndex
+		 
+		 // TODO Remove debugging
+		 if (inputSource == 2) {
+			 if (WindowManager.getIDList == null){
+				(new ij.plugin.Macro_Runner).run("JAR:macros/StacksOpen_.ijm") 
+			}
+			 inputSource = 0
+		 }
+		 
 		 if (inputSource == 0) {
 			 //imgTab
 			 imgTab = new JPanel(new GridLayout(2,2))
