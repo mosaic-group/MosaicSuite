@@ -31,12 +31,12 @@ object HypothesisTesting {
 	/**
 	 * @param dist
 	 */
-	def testHypothesis(dist: Rand[Double]) = {
+	def testHypothesis(qDist: Rand[Double], pDist: Rand[Double]) = {
 		// See subsection 8.3 'Test for Interaction' in paper "Beyond co-localization: ..."
 		// Sample T from the null distribution to calculate E(T) and Cov(T)
 		val TsforEandCov = new DenseMatrix(K,L)
 		for (i <- (0 until K)) {
-			TsforEandCov.getRow(i) := distanceCounts(dist.sample(N))
+			TsforEandCov.getRow(i) := distanceCounts(qDist.sample(N))
 		}
 
 		val EofT = ScalalaUtils.mean(TsforEandCov)
@@ -55,7 +55,7 @@ object HypothesisTesting {
 		val TsforU = new DenseMatrix(K,L)
 		val Us = new Array[Double](K)
 		for (i <- (0 until K)) {
-			TsforU.getRow(i) := distanceCounts(dist.sample(N))
+			TsforU.getRow(i) := distanceCounts(qDist.sample(N))
 			Us(i) = calculateU(TsforU.getRow(i), EofT, covOfTInverse)
 
 		}
@@ -64,7 +64,7 @@ object HypothesisTesting {
 		
 		// Rank U
 		// If it ranked higher than (1 − α)K-th, H0 was rejected on the significance level α.
-		val T = distanceCounts(dist.sample(N)) // TODO get real samples from p(d)
+		val T = distanceCounts(pDist.sample(N)) // TODO get real samples from p(d)
 		val U = calculateU(T, EofT, covOfTInverse)
 		val rankK = Us.findIndexOf(_ > U) + 1
 		
