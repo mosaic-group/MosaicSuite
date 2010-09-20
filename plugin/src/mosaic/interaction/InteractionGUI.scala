@@ -26,6 +26,7 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	 var tabs: JTabbedPane = null
 	 var linkPDF, analyze: JButton = null
 	 var imgA, imgB: JComboBox = null
+	 var imgAS, imgBS: ComboBox[ImagePlus] = null
 	 var warning: JLabel = null
 	 val warText = "Please check red labeled tabs before launching analysis"
 	 var inputSource = 0
@@ -59,16 +60,28 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 			 imgTab = new JPanel(new GridLayout(2,2))
 			 imgTab.setPreferredSize(new Dimension(380, 45));
 			 superPanel.add(imgTab)
+
 			 
-			 imgA=new JComboBox();
-			 imgB=new JComboBox();
+			 imgAS = new ComboBox(getImgList) {
+				 renderer = swing.ListView.Renderer(_.getTitle) // The renderer is just the title field of the ImagePlus class.
+			 }
+			 imgAS.peer.addActionListener((e:ActionEvent) => setImage(imgAS.selection.item,0) )
 			 imgTab.add(new JLabel("Image of reference group Y"));
-			 imgTab.add(imgA);
-			 imgA.addActionListener(this);
-		     imgTab.add(new JLabel("Image of group X"));
-		     imgTab.add(imgB);
-		     imgB.addActionListener(this);
-		     updateImgList(null)
+			 imgTab.add(imgAS.peer)
+			 
+			 imgBS = new ComboBox(getImgList) {
+				 renderer = swing.ListView.Renderer(_.getTitle) // The renderer is just the title field of the ImagePlus class.
+			 }
+			 imgBS.peer.addActionListener((e:ActionEvent) => setImage(imgBS.selection.item,1) )
+			 imgTab.add(new JLabel("Image of group X"));
+			 imgTab.add(imgBS.peer)
+//			 imgA=new JComboBox();
+//			 imgB=new JComboBox();
+//			 imgTab.add(imgA);
+//			 imgA.addActionListener(this);
+//		     imgTab.add(imgB);
+//		     imgB.addActionListener(this);
+//		     updateImgList(null)
 		 }
 		 		
 		 superPanel.add(tabs)
@@ -145,14 +158,9 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 
     }
 	 
-	def updateImgList(img: ImagePlus){
-        var nbImg=0;
-        
-        var selectA=imgA.getSelectedIndex()
-        var selectB=imgB.getSelectedIndex()
-        var imgList:List[String] = Nil
-        
-        if (WindowManager.getImageCount()==0){
+	def getImgList: List[ImagePlus] = {
+    		var imgList:List[ImagePlus] = Nil
+		if (WindowManager.getImageCount()==0){
         	allocateTwoImages()
         }        
         
@@ -161,46 +169,59 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
             for (val i <- (0 until IDList.length)){
                 val currImg=WindowManager.getImage(IDList(i));
                 if (currImg.getBitDepth()!=24 && currImg.getBitDepth()!=32){
-                    nbImg = nbImg + 1
-                    imgList = currImg.getTitle::imgList
+                    imgList = currImg::imgList
                 }
             }
         }
+        imgList
+	}
+	 
+	def updateImgList(img: ImagePlus){
+		// changes
+    	imgAS.peer.removeAllItems()
+    	imgBS.peer.removeAllItems()
+    	val imgList = getImgList
+        imgList.map(imgAS.peer.addItem(_))
+        imgList.map(imgBS.peer.addItem(_))		
+        
+//        var selectA=imgA.getSelectedIndex()
+//        var selectB=imgB.getSelectedIndex()
+        
+        var nbImg= imgList.size
         
         if (nbImg<2){
             tabs.setSelectedIndex(0);
             tabs.setEnabled(false);
             analyze.setEnabled(false);
-            warning.setText("At least 2 images should be opened to run colocalisation analysis");
+            warning.setText("At least 2 images should be opened to run interaction analysis");
         }else{
             tabs.setEnabled(true);
             analyze.setEnabled(true);
             warning.setText(warText);
         
         
-	        imgA.removeActionListener(this);
-	        imgB.removeActionListener(this);
-	        
-	        imgA.removeAllItems();
-	        imgB.removeAllItems();
-	        
-	        for (i <- imgList){
-	            imgA.addItem(i)
-	            imgB.addItem(i)
-	        }
-	        
-	        imgA.addActionListener(this);
-	        imgB.addActionListener(this);
-	        
-	        selectA=Math.max(selectA, 0);
-	        selectB=Math.max(selectB, 0);
-	        if (nbImg<2) selectB=1;
-	        imgA.setSelectedIndex(selectA);
-	        imgB.setSelectedIndex(selectB);
-        
+//	        imgA.removeActionListener(this);
+//	        imgB.removeActionListener(this);
+//	        
+//	        imgA.removeAllItems();
+//	        imgB.removeAllItems();
+//	        
+//	        for (i <- imgList){
+//	            imgA.addItem(i)
+//	            imgB.addItem(i)
+//	        }
+//	        
+//	        imgA.addActionListener(this);
+//	        imgB.addActionListener(this);
+//	        
+//	        selectA=Math.max(selectA, 0);
+//	        selectB=Math.max(selectB, 0);
+//	        if (nbImg<2) selectB=1;
+//	        imgA.setSelectedIndex(selectA);
+//	        imgB.setSelectedIndex(selectB);        
         }
     }
-	 
+		 
 	def imageOpened(imp: ImagePlus){
         updateImgList(imp)
     }

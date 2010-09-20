@@ -5,6 +5,7 @@ import ij.plugin.Macro_Runner
 import ij.plugin.Duplicator
 import mosaic.detection.MyFrame
 import mosaic.detection.PreviewCanvas
+import mosaic.interaction._
 import java.awt.event.ActionEvent
 import mosaic.detection.PreviewInterface
 import ij.IJ
@@ -23,6 +24,7 @@ trait ImagePreparation {//extends PreviewInterface {
 	val imageNbr = 2
 	var imp = new Array[ImagePlus](imageNbr)
 	val frames = new Array[MyFrame](imageNbr)
+	var roi: Roi = null
 	var cellOutline: CellOutline = null
 	var voxelDepth = 1
 	
@@ -102,6 +104,16 @@ trait ImagePreparation {//extends PreviewInterface {
 		}
 	}	
 	
+	def setImage(ip: ImagePlus, i : Int) {
+		    imp(i) = ip
+			// analyze only within ROI, if one exists.
+		    if (imp(0) != null)
+		    	roi = imp(0).getRoi
+			if (roi == null) {
+				roi = imp(i).getRoi
+			}
+	}
+	
 	/**
 	 * Detects particles in imp(0) and imp(1), 
 	 * based on parameters entered by the user into the dialog 
@@ -167,13 +179,20 @@ trait ImagePreparation {//extends PreviewInterface {
 //	}
 	
 	def generateModelInputFromImages :(Array[Int],(Array[Double] => Boolean),Array[Array[Double]],Array[Array[Double]])= {
-		allocateTwoImages()
-		detect(true)
+//		allocateTwoImages()
+		detect(false)
 		cellOutlineGeneration()
 		voxelDepth = imp(0).getCalibration.pixelDepth.toInt
-		val isInDomain = (x:Array[Double]) => {x(2) = x(2)/voxelDepth; cellOutline.inRoi(x)}
+		// in (cell) domain and in user specified ROI. 
+		val isInDomainAndRoi = (coord:Array[Double]) => {cellOutline.inRoi(ReadTestData.scale2Pixel(coord,voxelDepth)) && {
+			val (x,y,z) = cellOutline.toInt(coord);
+			if (roi == null) 
+				true
+			else
+				roi.contains(x, y)
+		}}
 		val refGroup = getParticlePositions(0)
 		val domainSize = Array[Int](imp(0).getHeight, imp(0).getWidth, imp(0).getNSlices * voxelDepth)
-		(domainSize, isInDomain, refGroup, getParticlePositions(1))
+		(domainSize, isInDomainAndRoi, refGroup, getParticlePositions(1))
 	}
 }
