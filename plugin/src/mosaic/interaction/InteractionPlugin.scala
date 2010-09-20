@@ -1,12 +1,10 @@
 package mosaic.interaction
 
-import scalala.tensor.Matrix
 import mosaic.core.CellOutline
 import ij.plugin.Macro_Runner
 import mosaic.core.Particle
 import mosaic.core.optimization._
 import mosaic.core.ImagePreparation
-import mosaic.calibration.KernelDensityEstimator
 import mosaic.calibration.NearestNeighbour
 
 import ij.IJ
@@ -14,8 +12,7 @@ import ij.plugin.PlugIn
 import ij.gui.GenericDialog
 import scalala.Scalala._
 import scalala.tensor.dense._
-import scalala.tensor.Vector
-import scalanlp.optimize.StochasticGradientDescent
+import scalala.tensor._
 import cma.fitness.AbstractObjectiveFunction
 
 class InteractionPlugin extends PlugIn with ImagePreparation {
@@ -27,7 +24,6 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	@Override
 	def run(arg: String) {
 		println("Run Interaction Plugin ")
-		
 		
 		gd = new GenericDialog("Input selection...", IJ.getInstance());
 		gd.addChoice("Input soutce:", Array("Image","Matlab"), "Image")
@@ -45,14 +41,14 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		println("In domain: Sizes of refGroupInDomain, testGroupInDomain: " + refGroupInDomain.size + "," + testGroupInDomain.size)
 
 		initNearestNeighbour(refGroupInDomain)
-		val (qOfD, d) = calculateQofD(domainSize, isInDomain)
+		val (qOfD, d) = InteractionModel.calculateQofD(meshInCell(domainSize, isInDomain), getDistances)
 		val dd = findD(testGroupInDomain)
 		val shape = selectPotential()
 
 //		nll optimization CMA
 		val nbrPara = 1
 		val fitfun = new LikelihoodOptimizer(new DenseVector(qOfD), new DenseVector(d),new DenseVector(dd), shape);
-		potentialParamEst(fitfun,nbrPara)
+		InteractionModel.potentialParamEst(fitfun,nbrPara)
 		
 //		hypothesis testing
 //		Monte Carlo sample Tk with size K from the null distribution of T obtained by sampling N distances di from q(d)
@@ -71,50 +67,7 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		PotentialFunctions.potentialShape(gd.getNextChoiceIndex)
 	}
 		
-	/**
-	 * qOfD with NN and Kernel estimation
-	 * @param domainSize size of domain, in which state density q should be sampled
-	 * @return state density as tuple (q,d) with values of state density q and distances d, at which q is specified
-	 */
-	def calculateQofD(domainSize: Array[Int], isInDomain: (Array[Double] => Boolean)):(Array[Double],Array[Double])= {
-	  
-	  val nbrQueryPointLimit = 1000
-	  val zQueryPointRes = domainSize(2)
-	  var xQueryPointRes = 1
-	  while (zQueryPointRes * (xQueryPointRes+1) * (xQueryPointRes+1) < nbrQueryPointLimit ){
-	 	  xQueryPointRes = xQueryPointRes + 1
-	  }
-	  
-	  val scale = new DenseVector(domainSize map(_.toDouble))
-	   
-	  // independent randomly placed query objects
-//	  val queryPoints = List.fill(nbrQueryPoints)((rand(dim) :*scale).toArray)
-	  
-	  // regularly placed query objects
-	  val queryPoints = nn.getSampling(List((domainSize(0), xQueryPointRes),(domainSize(1), xQueryPointRes),(domainSize(2), zQueryPointRes))).toArray //TODO less queries in z direction.
-	  // only take samples in the cell/domain
-	  println("Number of query points: " + queryPoints.size)
-	  val validQueryPoints = queryPoints.filter(isInDomain(_))
-	  println("Number of valid query points: " + validQueryPoints.size)
-	   
-	  val dist = getDistances(validQueryPoints)
-      
-      // estimate q(d)
-	  val est = new KernelDensityEstimator()
-	  est.addValues(dist)
-	  
-	  val maxDist = dist.reduceLeft(Math.max(_,_))
-	  val minDist = Math.min(0,dist.reduceLeft(Math.min(_,_))) //TODO correct? with 0?
-	  
-	  val x = linspace(minDist, maxDist, 100)
-	  val xArray = x.toArray
-	  val prob = est.getProbabilities(xArray)
-	  // TODO check prob. with integration equals 1.
-	  plot(x, (new DenseVector(prob)))
-	  title("q(D)"); xlabel("d"); ylabel("q(d)")
-
-	  (prob, xArray)
-	}
+	
 	
 	//	D with NN
 	def findD(queryPoints: Array[Array[Double]]):Array[Double]= {
@@ -144,52 +97,6 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		// generate KDTree
 		nn.setReferenceGroup(refPoints)
 			println("Generation KDtree "+((new java.util.Date()).getTime() - time)*0.001)
-	}
-	
-	/**
-	 * Estimates parameter of potential
-	 * @param fitfun function to optimize, which has potential parameter as parameter 
-	 */
-	def potentialParamEst(fitfun: LikelihoodOptimizer, nbrParameter:Int){
-		
-		// CMA Optimization
-		val sol = CMAOptimization.optimize(fitfun, nbrParameter)
-		val solOutput = "CMA Optimization: " + PotentialFunctions.parametersToString(sol._2) + " min. value: " + sol._1
-		println(solOutput)
-		
-		// Stochastic Steepest Descent
-		val alpha = 0.0001
-		val maxIter = 1000
-		val batchSize = 10
-		val initGuess = rand(nbrParameter)
-		val stochasticSteepestDescent = new StochasticGradientDescent[Int, Vector](alpha, maxIter, batchSize)
-		val minGuess = stochasticSteepestDescent.minimize(fitfun,initGuess)
-		val solSteepestDescent = (fitfun.valueAt(minGuess), minGuess)
-		val solSteepestDescentOutput = "Stochastic Steepest Descent:  " + PotentialFunctions.parametersToString(solSteepestDescent._2.toArray) + " min. value: " + solSteepestDescent._1
-		println(solSteepestDescentOutput)
-		
-		plotPotential(fitfun.potentialShape, sol._2)
-		plotPotential(fitfun.potentialShape, solSteepestDescent._2.toArray)
-		
-		IJ.showMessage("Interaction Plugin: parameter estimation", solOutput + '\n' + solSteepestDescentOutput);
-		
-	}
-	
-	/** Plots potential with specified shape and parameters
-	 * @param shape :		potential shape
-	 * @param parameters :	potential parameters
-	 */
-	def plotPotential(shape: (Vector,Double,Double) => Vector, parameters: Array[Double]) ={
-		
-		val para = PotentialFunctions.defaultParameters(parameters)
-		val x = linspace(-5,100)
-		val y = shape(x,para(1),para(2)) * para(0)
-		
-		val fig = figure()
-		subplot(fig.rows+1,fig.cols,fig.rows * fig.cols +1)
-		
-		plot(x,y)
-		title("phi(d) with " + PotentialFunctions.parametersToString(parameters) ); xlabel("d");	ylabel("phi(d)")	
 	}
 	
 	/**
@@ -229,5 +136,33 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 		val isInDomain = (x:Array[Double]) => {x(2) = x(2) / voxDepthFactor; outline.inCell(x)}
 		val domainSize = Array[Int](maskLoaded.getWidth, maskLoaded.getHeight, maskLoaded.getNSlices)
 		(domainSize, isInDomain, arr, arrQuery)
+	}
+	
+	/**
+	 * mesh to estimate q(d)
+	 * @param domainSize size of domain, in which state density q should be sampled
+	 * @return mesh
+	 */
+	def meshInCell(domainSize: Array[Int], isInDomain: (Array[Double] => Boolean)) : Array[Array[Double]]= {
+	  
+	  val nbrQueryPointLimit = 1000
+	  val zQueryPointRes = domainSize(2)
+	  var xQueryPointRes = 1
+	  while (zQueryPointRes * (xQueryPointRes+1) * (xQueryPointRes+1) < nbrQueryPointLimit ){
+	 	  xQueryPointRes = xQueryPointRes + 1
+	  }
+	  
+	  //val scale = new DenseVector(domainSize map(_.toDouble))
+	   
+	  // independent randomly placed query objects
+//	  val queryPoints = List.fill(nbrQueryPoints)((rand(dim) :*scale).toArray)
+	  
+	  // regularly placed query objects
+	  val queryPoints = nn.getSampling(List((domainSize(0), xQueryPointRes),(domainSize(1), xQueryPointRes),(domainSize(2), zQueryPointRes))).toArray //TODO less queries in z direction.
+	  // only take samples in the cell/domain
+	  println("Number of query points: " + queryPoints.size)
+	  val validQueryPoints = queryPoints.filter(isInDomain(_))
+	  println("Number of valid query points: " + validQueryPoints.size)
+	  validQueryPoints
 	}
 }
