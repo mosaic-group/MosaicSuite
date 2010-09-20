@@ -51,10 +51,10 @@ class InteractionModel {
 	  // TODO check prob. with integration equals 1.
 	  plot(x, (new DenseVector(prob)))
 	  title("q(D)"); xlabel("d"); ylabel("q(d)")
-	  val fig = figure()
-	  subplot(fig.rows+1,fig.cols,fig.rows * fig.cols +1)
-	  val xbins = linspace(minDist, maxDist, 100)
-	  val histH = hist(new DenseVector(distances),xbins)
+//	  val fig = figure()
+//	  subplot(fig.rows+1,fig.cols,fig.rows * fig.cols +1)
+//	  val xbins = linspace(minDist, maxDist, 100)
+//	  val histH = hist(new DenseVector(distances),xbins)
 	  
 	  (prob, xArray)
 	}
@@ -63,7 +63,7 @@ class InteractionModel {
 	 * Estimates parameter of potential
 	 * @param fitfun function to optimize, which has potential parameter as parameter 
 	 */
-	def potentialParamEst(fitfun: LikelihoodOptimizer){
+	def potentialParamEst(fitfun: LikelihoodOptimizer) : Array[Double] = {
 		val nbrParameter = fitfun.nbrParameter
 		
 		// CMA Optimization
@@ -83,10 +83,12 @@ class InteractionModel {
 		println(solSteepestDescentOutput)
 		
 		plotPotential(fitfun.potentialShape, sol._2)
-		plotPotential(fitfun.potentialShape, solSteepestDescent._2.toArray)
+		//plotPotential(fitfun.potentialShape, solSteepestDescent._2.toArray)
 		
 		IJ.showMessage("Interaction Plugin: parameter estimation", solOutput + '\n' + solSteepestDescentOutput);
 		
+		//CMA solution parameter
+		sol._2
 	}
 	
 	/** Plots potential with specified shape and parameters

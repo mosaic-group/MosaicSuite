@@ -24,23 +24,24 @@ object InteractionModelTest {
 		println("In domain: Sizes of refGroupInDomain, testGroupInDomain: " + refGroupInDomain.size + "," + testGroupInDomain.size)
 
 // nearest neighbor search(2x)
+		val model = new InteractionModel
 		nn.setReferenceGroup(refGroupInDomain)
 		val dist = Array(0d,2,3,4,5,6,75,4)
-		val (qOfD, d) = InteractionModel.estimateDensity(dist)
+		val (qOfD, d) = model.estimateDensity(dist)
 		val dd = getDistances(testGroupInDomain)
 		val shape = PotentialFunctions.potentialShape(2) //hermquist
 
 //		nll optimization CMA
 		val fitfun = new LikelihoodOptimizer(new DenseVector(qOfD), new DenseVector(d),new DenseVector(dd), shape);
 		fitfun.nbrParameter = 2
-		InteractionModel.potentialParamEst(fitfun)
+		model.potentialParamEst(fitfun)
 		
 		
 		// check optimization scriptMarkus.m, params_he =  6.2870    3.7056
 		val (q,dq,dval) =ReadTestData.readOptimTest(InteractionModelTest.path)
 		val fitfunTest = new LikelihoodOptimizer(q, dq,dval, shape);
 		fitfunTest.nbrParameter = 2
-		InteractionModel.potentialParamEst(fitfunTest)
+		model.potentialParamEst(fitfunTest)
 		
 //		hypothesis testing
 //		Monte Carlo sample Tk with size K from the null distribution of T obtained by sampling N distances di from q(d)

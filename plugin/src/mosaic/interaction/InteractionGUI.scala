@@ -251,33 +251,23 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 		model.initNearestNeighbour(refGroupInDomain)
 		val (qOfD, d) = model.calculateQofD(model.meshInCell(domainSize, isInDomain), model.getDistances)
 		val dd = model.findD(testGroupInDomain)
-		val sum = dd.reduceLeft(_+_)
+		val (pOfD, dP) = model.estimateDensity(dd)
 
 //		nll optimization CMA
 		val fitfun = new LikelihoodOptimizer(new DenseVector(qOfD), new DenseVector(d),new DenseVector(dd), model.potentialShape.function);
 		(model.potentialShape.nbrParam,model.potentialShape.nonParamFlag) match { case (nbr,flag) => fitfun.nbrParameter = nbr;fitfun.nonParametric = flag }
-		model.potentialParamEst(fitfun)
-		println(fitfun.valueOf(Array(6.2781,3.7444)))
+		val estimatedPotentialParameter = model.potentialParamEst(fitfun)
 		
 //		hypothesis testing
 //		Monte Carlo sample Tk with size K from the null distribution of T obtained by sampling N distances di from q(d)
 //		additional Monte Carlo sample Uk to rank U
 		val qD = new QDistribution(new DenseVector(qOfD), new DenseVector(d))
-		val samp = new DenseVector(qD.sample(1000).toArray)
-		hist(samp,100)
-		HypothesisTesting.testHypothesis(qD, qD)
-	}
-	
-	/** 
-	 * Shows a dialog to the user, where he can choose one of the available potentials.
-	 * The potential has to be defined in object PotentialFunctions
-	 * @return by user selected potential
-	 */
-	def selectPotential():Int = {
-		gd = new GenericDialog("Potential selection...", IJ.getInstance());
-		gd.addChoice("Potential shape", PotentialFunctions.functions, PotentialFunctions.functions(0))
-		gd.showDialog();
-		val choice = gd.getNextChoiceIndex
-		choice
+		val pD = new QDistribution(new DenseVector(pOfD), new DenseVector(dP))
+		//val samp = new DenseVector(qD.sample(1000).toArray)
+		//hist(samp,100)
+		HypothesisTesting.N = dd.size
+		HypothesisTesting.f = model.potentialShape.function(_,PotentialFunctions.defaultParameters(estimatedPotentialParameter).tail)
+		HypothesisTesting.testHypothesis(qD, pD)
+		HypothesisTesting.testNonParamHypothesis(qD, pD)
 	}
 }
