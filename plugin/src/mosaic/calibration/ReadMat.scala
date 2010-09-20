@@ -1,6 +1,8 @@
 package mosaic.calibration
 
 import scalala.tensor.dense.DenseVector
+import scalala.tensor._
+import scalala.tensor.dense.DenseMatrix
 import java.io.IOException
 import com.jmatio.io._
 import com.jmatio.types._
@@ -10,12 +12,12 @@ object ReadMat {
 	 
 	def main(args : Array[String]) : Unit = {
 			
-		val DCell = ReadMat.readMatCellFile("DCell.mat", "DCell")
-		val ddCell = ReadMat.readMatCellFile("ddCell.mat", "dCell")
-		val qCell = ReadMat.readMatCellFile("qCell.mat", "qCell")
+		val DCell = ReadMat.readMatCellFile(sketchPath +"DCell.mat", "DCell")
+		val ddCell = ReadMat.readMatCellFile(sketchPath +"ddCell.mat", "dCell")
+		val qCell = ReadMat.readMatCellFile(sketchPath +"qCell.mat", "qCell")
 
 		val data = DCell.get(0).asInstanceOf[MLDouble].getArray
-		val data1 = getDenseVector("DCell.mat", "DCell", 0)
+		val data1 = getVector(sketchPath +"DCell.mat", "DCell", 0)
 
 		//		val data : Array[Array[Double]] = ((mfr.getMLArray( "resultsAd2" )).asInstanceOf[MLDouble]).getArray;
 		println(data.length +" " + data(0).length + " " + data(0)(0));
@@ -24,7 +26,7 @@ object ReadMat {
 		println("")
 	}
 	
-	def getDenseVector(file: String,cellName : String, i: Int = 0): DenseVector = {
+	def getVector(file: String,cellName : String, i: Int = 0): Vector = {
 		val cell = readMatCellFile(file, cellName)
 		val dArray = cell.get(i).asInstanceOf[MLDouble].getArray
 		
@@ -42,7 +44,7 @@ object ReadMat {
 	def readMatFile(filename : String):MatFileReader = {
 			var mfr: MatFileReader = null;
 			try {
-					mfr = new MatFileReader(sketchPath + filename);
+					mfr = new MatFileReader(filename);
 			} catch {
 				case e :IOException => {e.printStackTrace();exit();}
 			}

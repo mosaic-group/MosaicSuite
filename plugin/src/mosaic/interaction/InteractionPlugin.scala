@@ -54,7 +54,7 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	 * The potential has to be defined in object PotentialFunctions
 	 * @return by user selected potential
 	 */
-	def selectPotential(): ((DenseVector,Double,Double) => DenseVector) = {
+	def selectPotential(): ((Vector,Double,Double) => Vector) = {
 		gd = new GenericDialog("Potential selection...", IJ.getInstance());
 		gd.addChoice("Potential shape", PotentialFunctions.functions, PotentialFunctions.functions(0))
 		gd.showDialog();
@@ -164,7 +164,7 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	 * @param shape :		potential shape
 	 * @param parameters :	potential parameters
 	 */
-	def plotPotential(shape: (DenseVector,Double,Double) => DenseVector, parameters: Array[Double]) ={
+	def plotPotential(shape: (Vector,Double,Double) => Vector, parameters: Array[Double]) ={
 		
 		val para = PotentialFunctions.defaultParameters(parameters)
 		val x = linspace(-5,100)

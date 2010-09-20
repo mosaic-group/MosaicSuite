@@ -8,7 +8,7 @@ object PotentialFunctions {
 	
 	val functions = Array("Step function","Plummer potential", "Hermquist potential")
 	
-	def potentialShape(i:Int): ((DenseVector,Double,Double) => DenseVector) = {
+	def potentialShape(i:Int): ((Vector,Double,Double) => Vector) = {
 		i match {
 			case 0 => potentialShapeStepFunction(_,_,_)
 			case 1 => potentialShapePlummer(_,_,_)
@@ -22,7 +22,7 @@ object PotentialFunctions {
 	 * @param t			shift parameter, default = 0
 	 * @return
 	 */
-	def potentialShapeStepFunction(d: DenseVector, sigma: Double = 1, t: Double = 0):DenseVector = {
+	def potentialShapeStepFunction(d: Vector, sigma: Double = 1, t: Double = 0):Vector = {
 		val fStep = new DenseVector(d.toArray.map(x => if((x - t)<0) -1d else 0d))
 		fStep
 	}
@@ -33,7 +33,7 @@ object PotentialFunctions {
 	 * @param t	:		shift parameter, default = 0
 	 * @return  f :  	shape function sampled at d
 	 */
-	def potentialShapePlummer(d: DenseVector, sigma: Double = 1, t: Double = 0):DenseVector = {
+	def potentialShapePlummer(d: Vector, sigma: Double = 1, t: Double = 0):Vector = {
 		val dScaled = new DenseVector(d.toArray.map(x => x/sigma))
 		//f = -1./sqrt(d.*d + 1);
 		
@@ -53,7 +53,7 @@ object PotentialFunctions {
 	 * @param t	:		shift parameter, default = 0
 	 * @return  f :  	shape function sampled at d
 	 */
-	def potentialShapeHermquist(d: DenseVector, sigma: Double = 1, t: Double = 0):DenseVector = {
+	def potentialShapeHermquist(d: Vector, sigma: Double = 1, t: Double = 0):Vector = {
 		val dScaled = new DenseVector(d.toArray.map(x => x/sigma))
 		//f = -1./(d + 1);
 		

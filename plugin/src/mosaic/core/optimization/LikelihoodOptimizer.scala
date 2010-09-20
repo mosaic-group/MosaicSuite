@@ -12,7 +12,7 @@ import mosaic.core.ScalalaUtils
  * @param di:     distances at which q is specified
  * @param d_s:	  distances at which p should be sampled
  */
-class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseVector, var potentialShape: ((DenseVector,Double,Double) => DenseVector)) extends DiffAbstractObjectiveFunction {
+class LikelihoodOptimizer(var q :Vector,var di: Vector,var d_s: Vector, var potentialShape: ((Vector,Double,Double) => Vector)) extends DiffAbstractObjectiveFunction {
 	
 	
 	
@@ -22,7 +22,7 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 	 * @param potentialParam parameters of potential (epsilon: strength, sigma: length-scale, t: shift along distance axis)
 	 * @return value of distance density at d_s
 	 */
-	def calculatePofD(q :DenseVector, di: DenseVector, sampleDistances: DenseVector, potentialShape: ((DenseVector,Double,Double) => DenseVector), potentialParam: Double*):DenseVector = {
+	def calculatePofD(q :Vector, di: Vector, sampleDistances: Vector, potentialShape: ((Vector,Double,Double) => Vector), potentialParam: Double*):Vector = {
 		
 			/*
 			% p_of_d: computes the density of the NN-interaction Gibbs process
@@ -50,7 +50,7 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 			integrand /= 2
 //			dd = diff(d);
 			val diArray = this.di.toArray
-			val diff: DenseVector = new DenseVector (for ((x,y) <-  diArray.take(di.size-1).zip(diArray.drop(1))) yield y-x)
+			val diff: Vector = new DenseVector (for ((x,y) <-  diArray.take(di.size-1).zip(diArray.drop(1))) yield y-x)
 			val Z = sum(integrand :* diff)
 //			% STEP 2: compute p(d)
 			val p = g_of_r :* this.q * 1/Z
@@ -68,8 +68,8 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 	 * @return value of negative log-likelihood
 	 * @see calculatePofD
 	 */
-	def negLogLikelihood(q :DenseVector, di: DenseVector, sampleDistances: DenseVector, potentialShape: ((DenseVector,Double,Double) => DenseVector), potentialParam: Double*):Double = {
-		val p = calculatePofD(q :DenseVector, di: DenseVector, sampleDistances, potentialShape, potentialParam :_*)
+	def negLogLikelihood(q :Vector, di: Vector, sampleDistances: Vector, potentialShape: ((Vector,Double,Double) => Vector), potentialParam: Double*):Double = {
+		val p = calculatePofD(q :Vector, di: Vector, sampleDistances, potentialShape, potentialParam :_*)
 		val logP = new DenseVector(p.toArray.map(Math.log(_)))
 		-sum(logP)
 		/*
@@ -92,7 +92,7 @@ class LikelihoodOptimizer(var q :DenseVector,var di: DenseVector,var d_s: DenseV
 		nll = -sum(log(p));*/
 	}	
 	
-	def pooledNegLogliklihood(qCell:Array[DenseVector],dCell:Array[DenseVector],DCell:Array[DenseVector], potentialShape: ((DenseVector,Double,Double) => DenseVector), potentialParam: Double*): Double = {
+	def pooledNegLogliklihood(qCell:Array[Vector],dCell:Array[Vector],DCell:Array[Vector], potentialShape: ((Vector,Double,Double) => Vector), potentialParam: Double*): Double = {
 		var nll = 0d;
 		for (i <- Iterator.range(0, qCell.length)) {
 			var q = qCell(i);

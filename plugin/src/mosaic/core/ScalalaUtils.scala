@@ -19,7 +19,7 @@ object ScalalaUtils {
 	 * @param xi positions where we want to interpolate the function Y
 	 * @return yi interpolated values
 	 */
-	def interpolate(x:DenseVector ,Y:DenseVector,  xi: DenseVector): DenseVector = {
+	def interpolate(x:Vector ,Y:Vector,  xi: Vector): Vector = {
 		// sort xi
 		val xiSorted = xi.toList.sort(_._2 < _._2)
 		val (xiSortedPos,xiSortedValues) = xiSorted.unzip
