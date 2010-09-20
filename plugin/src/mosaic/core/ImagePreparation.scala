@@ -192,6 +192,17 @@ trait ImagePreparation {//extends PreviewInterface {
 		}}
 		val refGroup = getParticlePositions(0)
 		val domainSize = Array[Int](imp(0).getHeight, imp(0).getWidth, imp(0).getNSlices * voxelDepth)
-		(domainSize, isInDomainAndRoi, refGroup, getParticlePositions(1))
+		val queryGroupShifted = getParticlePositions(1)
+		chromaticAberration(queryGroupShifted)
+		(domainSize, isInDomainAndRoi, refGroup, queryGroupShifted)
 	}
+	
+	def chromaticAberration(positions:Array[Array[Double]]) {
+		shiftPositions(positions, 0 , Prefs.get("ia.xIntercept", 0d), Prefs.get("ia.xSlope", 1d))
+		shiftPositions(positions, 1 , Prefs.get("ia.yIntercept", 0d), Prefs.get("ia.ySlope", 1d))
+		def shiftPositions(positions:Array[Array[Double]], coord:Int , intercept:Double, slope:Double) {
+			positions.map(pos => pos(coord) = intercept + slope * pos(coord))
+		}
+	}
+	
 }

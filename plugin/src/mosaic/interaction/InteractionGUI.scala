@@ -1,5 +1,6 @@
 package mosaic.interaction
 
+import javax.swing.JTextField
 import mosaic.core.sampling.HypothesisTesting
 import mosaic.core.sampling.QDistribution
 import scalala.tensor.dense.DenseVector
@@ -25,7 +26,6 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	 var superPanel,imgTab: JPanel = null
 	 var tabs: JTabbedPane = null
 	 var linkPDF, analyze: JButton = null
-	 var imgA, imgB: JComboBox = null
 	 var imgAS, imgBS: ComboBox[ImagePlus] = null
 	 var warning: JLabel = null
 	 val warText = "Please check red labeled tabs before launching analysis"
@@ -74,6 +74,7 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 			 imgAS = new ComboBox(getImgList) {
 				 renderer = swing.ListView.Renderer(_.getTitle) // The renderer is just the title field of the ImagePlus class.
 			 }
+			 setImage(imgAS.selection.item,0)
 			 imgAS.peer.addActionListener((e:ActionEvent) => setImage(imgAS.selection.item,0) )
 			 imgTab.add(new JLabel("Image of reference group Y"));
 			 imgTab.add(imgAS.peer)
@@ -81,68 +82,97 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 			 imgBS = new ComboBox(getImgList) {
 				 renderer = swing.ListView.Renderer(_.getTitle) // The renderer is just the title field of the ImagePlus class.
 			 }
+			 setImage(imgBS.selection.item,1) 
 			 imgBS.peer.addActionListener((e:ActionEvent) => setImage(imgBS.selection.item,1) )
 			 imgTab.add(new JLabel("Image of group X"));
 			 imgTab.add(imgBS.peer)
-//			 imgA=new JComboBox();
-//			 imgB=new JComboBox();
-//			 imgTab.add(imgA);
-//			 imgA.addActionListener(this);
-//		     imgTab.add(imgB);
-//		     imgB.addActionListener(this);
-//		     updateImgList(null)
 		 }
 		 		
 		 superPanel.add(tabs)
 		 
 	     //add tabs
 	     aboutTab
+	     chromaticAberTab
 	     potentialTab
 	   
         superPanel.add(warning);
 	    superPanel.add(analyze);
-        
-	 }
 	 
-	 def aboutTab {
-		val aboutTab = new JPanel();
-        aboutTab.setPreferredSize(new Dimension(380, 200));
-		val aboutsubTab1=new JPanel();
-        aboutsubTab1.setPreferredSize(new Dimension(380, 145));
-        val aboutTxt = new JTextArea("Please refer to and cite:\n Helmuth colocalization  .\n\n\nFreely downloadable from:\nhttp://www.biomedcentral.com/1471-2105/11/372");
-        aboutTxt.setSize(380,155);
-        aboutTxt.setLineWrap(true);
-        aboutTxt.setEditable(false);
-        aboutTxt.setBackground(frame.getBackground());
-        aboutsubTab1.add(aboutTxt);
-        aboutTab.add(aboutsubTab1);
-        
-        val aboutsubTab2=new JPanel();
-        aboutsubTab2.setPreferredSize(new Dimension(380, 45));
-        linkPDF=new JButton("Click here to download the pdf");
-        linkPDF.addActionListener(this);
-        aboutsubTab2.add(linkPDF);
-        aboutTab.add(aboutsubTab2);
-        
-        tabs.add("About", aboutTab)
-	 }
-	 
-	 def potentialTab {
-		 val potentialTab = new JPanel(new GridLayout(1,2))
-		 potentialTab.add(new JLabel("Potential shape"))
-		 val scalaCB: ComboBox[Potential] = new ComboBox(PotentialFunctions.potentials) {
-			 renderer = swing.ListView.Renderer(_.name) // The renderer is just the name field of the Potential class.
+		 def aboutTab {
+			val aboutTab = new JPanel();
+	        aboutTab.setPreferredSize(new Dimension(380, 200));
+			val aboutsubTab1=new JPanel();
+	        aboutsubTab1.setPreferredSize(new Dimension(380, 145));
+	        val aboutTxt = new JTextArea("Please refer to and cite:\n Helmuth colocalization  .\n\n\nFreely downloadable from:\nhttp://www.biomedcentral.com/1471-2105/11/372");
+	        aboutTxt.setSize(380,155);
+	        aboutTxt.setLineWrap(true);
+	        aboutTxt.setEditable(false);
+	        aboutTxt.setBackground(frame.getBackground());
+	        aboutsubTab1.add(aboutTxt);
+	        aboutTab.add(aboutsubTab1);
+	        
+	        val aboutsubTab2=new JPanel();
+	        aboutsubTab2.setPreferredSize(new Dimension(380, 45));
+	        linkPDF=new JButton("Click here to download the pdf");
+	        linkPDF.addActionListener(this);
+	        aboutsubTab2.add(linkPDF);
+	        aboutTab.add(aboutsubTab2);
+	        
+	        tabs.add("About", aboutTab)
 		 }
-	     scalaCB.peer.addActionListener((e:ActionEvent) => model.potentialShape = scalaCB.selection.item)
-	     potentialTab.add(scalaCB.peer)
-// scala swing style seems not to work, probably problem with event types (scala and java mixed)
-//	     scalaCB.listenTo(scalaCB)
-//	     scalaCB.reactions += {
-//	            case scala.swing.event.SelectionChanged(`scalaCB`) => {
-//	            	model.potentialShape = scalaCB.selection.item
-//	            }
-//	     }
-		 tabs.add("Potential", potentialTab)
+		 
+		 def potentialTab {
+			 val potentialTab = new JPanel(new GridLayout(1,2))
+			 potentialTab.setPreferredSize(new Dimension(380, 200));
+	
+			 potentialTab.add(new JLabel("Potential shape"))
+			 val scalaCB: ComboBox[Potential] = new ComboBox(PotentialFunctions.potentials) {
+				 renderer = swing.ListView.Renderer(_.name) // The renderer is just the name field of the Potential class.
+			 }
+		     scalaCB.peer.addActionListener((e:ActionEvent) => model.potentialShape = scalaCB.selection.item)
+		     potentialTab.add(scalaCB.peer)
+	// scala swing style seems not to work, probably problem with event types (scala and java mixed)
+	//	     scalaCB.listenTo(scalaCB)
+	//	     scalaCB.reactions += {
+	//	            case scala.swing.event.SelectionChanged(`scalaCB`) => {
+	//	            	model.potentialShape = scalaCB.selection.item
+	//	            }
+	//	     }
+			 tabs.add("Potential", potentialTab)
+		 }
+		 
+		 // Chromatic aberration tab
+		 def chromaticAberTab {
+			val chroTab = new JPanel(new GridLayout(2,1));
+	        chroTab.setPreferredSize(new Dimension(380, 200));
+	
+	        chroTab.add(new JLabel("Chromatic aberration"));
+	
+	        val xIntecept = new JTextField("0.0");
+	        xIntecept.addActionListener((e:ActionEvent) => Prefs.set("ia.xIntercept", (xIntecept.getText()).toDouble))
+	        val yIntecept = new JTextField("0.0");
+	        yIntecept.addActionListener((e:ActionEvent) => Prefs.set("ia.yIntecept", (yIntecept.getText()).toDouble))
+	        val xSlope = new JTextField("1.0");
+	        xSlope.addActionListener((e:ActionEvent) => Prefs.set("ia.xSlope", (xSlope.getText()).toDouble))
+	        val ySlope = new JTextField("1.0");
+	        ySlope.addActionListener((e:ActionEvent) => Prefs.set("ia.ySlope", (ySlope.getText()).toDouble))
+	
+	        val chroValTab = new JPanel(new GridLayout(3,3));
+	        
+	        chroValTab.add(new JLabel("Coord."));
+	        chroValTab.add(new JLabel("intercept:"));
+	        chroValTab.add(new JLabel("slope:"));
+	        chroValTab.add(new JLabel("X"));
+	        chroValTab.add(xIntecept)
+	        chroValTab.add(xSlope)
+	        chroValTab.add(new JLabel("Y"));
+	        chroValTab.add(yIntecept)
+	        chroValTab.add(ySlope)
+	        chroTab.add(chroValTab)
+	        
+	        tabs.add("Chromatic aberration", chroTab)
+		 }
+	 
 	 }
 	 
 	 def actionPerformed(e: ActionEvent) {
@@ -155,16 +185,6 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
         
         
         if (origin==analyze) runModel
-        
-        if (origin==imgA) {
-        	val index=imgA.getSelectedIndex()
-        	imp(0) = WindowManager.getImage(imgA.getItemAt(index).asInstanceOf[String])
-        }
-        if (origin==imgB){
-        	val index=imgB.getSelectedIndex()
-        	imp(1) = WindowManager.getImage(imgB.getItemAt(index).asInstanceOf[String])
-        }
-
     }
 	 
 	def getImgList: List[ImagePlus] = {
@@ -191,10 +211,7 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
     	imgBS.peer.removeAllItems()
     	val imgList = getImgList
         imgList.map(imgAS.peer.addItem(_))
-        imgList.map(imgBS.peer.addItem(_))		
-        
-//        var selectA=imgA.getSelectedIndex()
-//        var selectB=imgB.getSelectedIndex()
+        imgList.map(imgBS.peer.addItem(_))
         
         var nbImg= imgList.size
         
@@ -206,28 +223,15 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
         }else{
             tabs.setEnabled(true);
             analyze.setEnabled(true);
-            warning.setText(warText);
-        
-        
-//	        imgA.removeActionListener(this);
-//	        imgB.removeActionListener(this);
-//	        
-//	        imgA.removeAllItems();
-//	        imgB.removeAllItems();
-//	        
-//	        for (i <- imgList){
-//	            imgA.addItem(i)
-//	            imgB.addItem(i)
-//	        }
-//	        
-//	        imgA.addActionListener(this);
-//	        imgB.addActionListener(this);
-//	        
-//	        selectA=Math.max(selectA, 0);
-//	        selectB=Math.max(selectB, 0);
-//	        if (nbImg<2) selectB=1;
-//	        imgA.setSelectedIndex(selectA);
-//	        imgB.setSelectedIndex(selectB);        
+            warning.setText(warText); 
+            
+            if (imp(0) == null)
+            	imp(0) = imgList(0)
+            	imgAS.selection.item = imp(0)
+            if (imp(1) == null)
+            	imp(1) = imgList(1)
+            	imgBS.selection.item = imp(1)
+
         }
     }
 		 
