@@ -41,6 +41,11 @@ object ReadMat {
 		new DenseVector(dArray.map(_.apply(0)))
 	}
 	
+	def getMatrix(file: String,matrixName : String): Matrix = {
+			val dArray = readMatDoubleArrayFile(file, matrixName)			
+			(new DenseMatrix(dArray.size,dArray(0).size,dArray.flatten)).transpose
+	}
+
 	def readMatFile(filename : String):MatFileReader = {
 			var mfr: MatFileReader = null;
 			try {
