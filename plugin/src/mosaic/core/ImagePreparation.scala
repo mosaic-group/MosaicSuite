@@ -73,18 +73,19 @@ trait ImagePreparation {//extends PreviewInterface {
 		val cal = imp.getCalibration
 		if ((cal.pixelDepth == 1) & (cal.getZUnit == "pixel")) {
 //			similiar to ij.plugin.filter.ImageProperties
-			val gd = new GenericDialog(imp.getTitle())
-			gd.addMessage("Unit of Length: "+cal.getZUnit);
-			gd.addNumericField("Voxel_Depth:", cal.pixelDepth, 4, 8, null)
-			var global1 = imp.getGlobalCalibration()!=null
-			gd.addCheckbox("Global", global1)
-			gd.showDialog()
-			if (!gd.wasCanceled()) {
-				cal.pixelDepth = gd.getNextNumber()
-				if (gd.getNextBoolean()) {
-					imp.setGlobalCalibration(cal)					
-				}
-			}
+			IJ.runPlugIn("ij.plugin.filter.ImageProperties", "")
+//			val gd = new GenericDialog(imp.getTitle())
+//			gd.addMessage("Unit of Length: "+cal.getZUnit);
+//			gd.addNumericField("Voxel_Depth:", cal.pixelDepth, 4, 8, null)
+//			var global1 = imp.getGlobalCalibration()!=null
+//			gd.addCheckbox("Global", global1)
+//			gd.showDialog()
+//			if (!gd.wasCanceled()) {
+//				cal.pixelDepth = gd.getNextNumber()
+//				if (gd.getNextBoolean()) {
+//					imp.setGlobalCalibration(cal)					
+//				}
+//			}
 		}
 	}
 	
@@ -105,7 +106,7 @@ trait ImagePreparation {//extends PreviewInterface {
 	 * Detects particles in imp(0) and imp(1), 
 	 * based on parameters entered by the user into the dialog 
 	 */
-	protected def detect() {
+	protected def detect(saveToFileFlag: Boolean = false) {
 		import java.awt.GridBagConstraints;
 		import java.awt.Insets;
 		
@@ -123,6 +124,10 @@ trait ImagePreparation {//extends PreviewInterface {
 
 		//TODO Detection done with preview. 
 		preview(null)
+		
+		if (saveToFileFlag) {
+			detectors(0).saveDetected(frames)
+		}
 	}
 	
 	private def getDetector(imp: ImagePlus): FeaturePointDetector ={

@@ -34,7 +34,7 @@ class CellOutline {
 	 * @param coord query coordinate
 	 * @return true, if data point is inside the cell
 	 */
-	private def inCell(coord: Array[Double]): Boolean = {
+	def inCell(coord: Array[Double]): Boolean = {
 		val x = coord(0).round.toInt
 		val y = coord(1).round.toInt
 		val z = coord(2).round.toInt
