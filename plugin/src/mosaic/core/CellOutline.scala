@@ -21,9 +21,10 @@ class CellOutline {
 	 * @return true, if data point is inside the cell
 	 */
 	def inRoi(coord: Array[Double]): Boolean = {
-			val x = coord(0).floor.toInt
-			val y = coord(1).floor.toInt
-			var z = coord(2).floor.toInt
+//			val x = coord(0).floor.toInt
+//			val y = coord(1).floor.toInt
+//			var z = coord(2).floor.toInt
+			var (x,y,z) = toInt(coord)
 			if ( z == rois.size) {
 				z = z-1
 			}
@@ -35,13 +36,17 @@ class CellOutline {
 	 * @return true, if data point is inside the cell
 	 */
 	def inCell(coord: Array[Double]): Boolean = {
-		val x = (coord(0) +0.5).round.toInt
-		val y = (coord(1)+0.5).round.toInt
-		val z = (coord(2)+0.5).round.toInt
+		val (x,y,z) = toInt(coord)
 		mask.setSlice(z)
 		val value = mask.getPixel(x, y)
 		(value(0) != 0)
 	}
+	
+	def toInt(coord:Array[Double]): (Int,Int,Int) = {
+		val coordInt = coord.map(i => (i + 0.5).round.toInt)
+		(coordInt(0),coordInt(1),coordInt(2))
+	}
+	
 	
 	/** Generate cell outline
 	 * @param imp image, for which we want to generate cell outline
