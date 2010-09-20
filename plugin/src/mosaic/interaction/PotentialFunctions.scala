@@ -34,7 +34,7 @@ object PotentialFunctions {
 	 * @return  f :  	shape function sampled at d
 	 */
 	def potentialShapePlummer(d: Vector, sigma: Double = 1, t: Double = 0):Vector = {
-		val dScaled = new DenseVector(d.toArray.map(x => x/sigma))
+		val dScaled = new DenseVector(d.toArray.map(x => (x-t)/sigma))
 		//f = -1./sqrt(d.*d + 1);
 		
 		// Important: d :* d +1 in Scalala is not the same as in Matlab
@@ -42,7 +42,7 @@ object PotentialFunctions {
 		val f:Vector = (dScaled :* dScaled) + 1
 		val fPlummer = new DenseVector(f.toArray.map(x => -1/ Math.sqrt(x)))
 		//f(d<=0) = -1;
-		val iter = d.filter(x => x match {case (i,k) => k <= 0; case _ => false})
+		val iter = dScaled.filter(x => x match {case (i,k) => k <= 0; case _ => false})
 		for ((i, k) <- iter) fPlummer(i) = -1
 		fPlummer
 	}
@@ -54,14 +54,14 @@ object PotentialFunctions {
 	 * @return  f :  	shape function sampled at d
 	 */
 	def potentialShapeHermquist(d: Vector, sigma: Double = 1, t: Double = 0):Vector = {
-		val dScaled = new DenseVector(d.toArray.map(x => x/sigma))
+		val z = new DenseVector(d.toArray.map(x => (x-t)/sigma))
 		//f = -1./(d + 1);
 		
-		val f:Vector = dScaled + 1
+		val f:Vector = z + 1
 		val fHerm = new DenseVector(f.toArray.map(x => -1/x))
 		//f(d<=0) = -(1-d);
-		val iter = d.filter(x => x match {case (i,k) => k <= 0; case _ => false})
-		for ((i, k) <- iter) fHerm(i) = -(1-d(i))
+		val iter = z.filter(x => x match {case (i,k) => k <= 0; case _ => false})
+		for ((i, k) <- iter) fHerm(i) = -(1-z(i))
 		fHerm
 	}
 	
