@@ -35,9 +35,9 @@ class CellOutline {
 	 * @return true, if data point is inside the cell
 	 */
 	def inCell(coord: Array[Double]): Boolean = {
-		val x = coord(0).round.toInt
-		val y = coord(1).round.toInt
-		val z = coord(2).round.toInt
+		val x = (coord(0) +0.5).round.toInt
+		val y = (coord(1)+0.5).round.toInt
+		val z = (coord(2)+0.5).round.toInt
 		mask.setSlice(z)
 		val value = mask.getPixel(x, y)
 		(value(0) != 0)
