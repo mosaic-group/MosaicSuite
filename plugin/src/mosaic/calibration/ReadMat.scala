@@ -43,7 +43,11 @@ object ReadMat {
 	
 	def getMatrix(file: String,matrixName : String): Matrix = {
 			val dArray = readMatDoubleArrayFile(file, matrixName)			
-			(new DenseMatrix(dArray.size,dArray(0).size,dArray.flatten)).transpose
+			val matrix = new DenseMatrix(dArray.size,dArray(0).size)
+			 for (i <- 0 until dArray.length) {
+				matrix.getRow(i) := new DenseVector(dArray(i))
+			}
+			matrix
 	}
 
 	def readMatFile(filename : String):MatFileReader = {
