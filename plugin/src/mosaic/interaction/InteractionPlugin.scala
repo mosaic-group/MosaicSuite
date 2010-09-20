@@ -82,10 +82,14 @@ class InteractionPlugin extends PlugIn with ImagePreparation {
 	private def getDistances(queryPoints: Array[Array[Double]]):Array[Double]= {
 			// find NN
 				val time = (new java.util.Date()).getTime()
-//			val dist = nn.getDistances(queryPoints) 
-//				println("Search nearest neighbour in KDtree "+((new java.util.Date()).getTime() - time)*0.001)
-			val dist = nn.bruteForceNN(queryPoints) 
-			    println("brute force nearest neighbour search "+((new java.util.Date()).getTime() - time)*0.001)
+			val dist = nn.getDistances(queryPoints) 
+				println("Search nearest neighbour in KDtree "+((new java.util.Date()).getTime() - time)*0.001)
+//			val distf = nn.bruteForceNN(queryPoints) 
+//			    println("brute force nearest neighbour search "+((new java.util.Date()).getTime() - time)*0.001)
+// histogram of distances
+//			   val fig = figure()
+//			    subplot(fig.rows+1,fig.cols,fig.rows * fig.cols +1)
+//			hist(new DenseVector(dist),new DenseVector(Array(0d,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17)))
 			dist
 	}
 	

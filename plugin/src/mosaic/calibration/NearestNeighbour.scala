@@ -1,5 +1,6 @@
 package mosaic.calibration
 
+import weka.core.EuclideanDistance
 import scalala.tensor.dense.DenseVector
 import java.util.ArrayList
 import weka.core.Attribute
@@ -32,6 +33,8 @@ class NearestNeighbour(dim: Int = 2) {
 		for (i <- Iterator.range(0, dim)) atts.add(new Attribute("coord" + i))
 		instances = new Instances("ReferencePoints", atts, points.length)
 		for (point <-points) instances.add(new DenseInstance(1, point))
+		//set don't normalize flag, otherwise we get normalized distances. 
+		(kdtree.getDistanceFunction).asInstanceOf[EuclideanDistance].setDontNormalize(true)
 		kdtree.setInstances(instances)
 	}
 	
@@ -50,7 +53,7 @@ class NearestNeighbour(dim: Int = 2) {
 	private def getDistance(queryPoint: Array[Double]):Double ={
 			val inst = new DenseInstance(1,queryPoint)
 			inst.setDataset(instances)
-			kdtree.nearestNeighbour(inst)
+			val nn = kdtree.nearestNeighbour(inst)
 			(kdtree.getDistances())(0)
 	}
 	
