@@ -28,7 +28,13 @@ class CellOutline {
 			if ( z == rois.size) {
 				z = z-1
 			}
-			rois(z).contains(x, y)
+			try {
+				rois(z).contains(x, y)
+			} catch {
+				case e: Exception => {println("in roi except: z: " + z + " size: "+ rois.size ); 
+				false}
+			}
+
 	}
 		
 	/** Is this data point inside the cell, outlined by binary mask?
@@ -95,10 +101,15 @@ class CellOutline {
 	 * @param imp image for which the mask will be generated
 	 */
 	private def generateMask(imp: ImagePlus) = {
+		val roi = imp.getRoi
+		imp.setRoi(null:Roi)
+		
 		mask = new Duplicator().run(imp)
 		mask.show()
 //		IJ.run("GenerateMask ")
 		(new Macro_Runner).run("JAR:macros/GenerateMask_.ijm")
+		
+		imp.setRoi(roi)
 	}
 	
 	def setMask(newMask: ImagePlus) = {
