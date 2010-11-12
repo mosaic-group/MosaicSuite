@@ -19,7 +19,7 @@ import scalala.Scalala._
 
 trait InteractionGUI extends ImageListener with ActionListener with ImagePreparation  {
 	
-	val model = new InteractionModel
+	 val model = new InteractionModel
 
 	 var frame: JFrame = null
 	 var superPanel,imgTab: JPanel = null
@@ -50,10 +50,13 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	     analyze=new JButton("Analyze");
 	     analyze.addActionListener(this);
 
-		 val gd = new GenericDialog("Input selection...", IJ.getInstance());
-		 gd.addChoice("Input source:", Array("Image","Matlab", "Matlab Debug", "Debug"), "Image")
+	     // Input type selection
+		 val gd = new GenericDialog("Input type selection...", IJ.getInstance());
+		 gd.addChoice("Input source:", Array("Images","Matlab File .mat", "Matlab Debug", "Debug"), "Images")
+		 gd.addChoice("Dimensions:", Array("2D","3D"), "3D")
 		 gd.showDialog()
 		 inputSource = gd.getNextChoiceIndex
+		 model.dim = gd.getNextChoiceIndex + 2
 		 
 		 // TODO Remove debugging
 		 if (inputSource == 3) {
@@ -233,7 +236,10 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
         }
         
         
-        if (origin==analyze) runModel
+        if (origin==analyze) {
+        	calculateDistances
+        	analyzeDistances
+        }
     }
 	 
 	def getImgList: List[ImagePlus] = {
@@ -295,7 +301,7 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
     def imageUpdated(imp: ImagePlus){}
     
     
-    def runModel {
+    def calculateDistances {
     
     	val (domainSize,isInDomain,refGroup, testGroup) = inputSource match {
 				case 0 => generateModelInputFromImages
@@ -303,10 +309,7 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 				case 2 => InteractionModelTest.readMatlabData
 		}
     	if (refGroup != null) {
-    	
-    	
-			model.dim = refGroup(0).size
-	    	
+    		    	
 			println("Image size " + domainSize(0) + "," + domainSize(1) + "," + domainSize(2) +  ", Sizes of refGroup, testGroup: " + refGroup.size + "," + testGroup.size)
 	//		no images below here
 			
@@ -316,26 +319,28 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	
 	// nearest neighbor search(2x)
 			model.initNearestNeighbour(refGroupInDomain)
-			val (qOfD, d) = model.calculateQofD(model.meshInCell(domainSize, isInDomain), model.getDistances)
-			val dd = model.findD(testGroupInDomain)
-			val (pOfD, dP) = model.estimateDensity(dd)
+			model.qOfd = model.calculateQofD(model.meshInCell(domainSize, isInDomain), model.getDistances)
+			model.D = model.findD(testGroupInDomain)
+			model.pOfD = model.estimateDensity(model.D)
+    	}
+    }
 	
+	def analyzeDistances {
 	//		nll optimization CMA
-			val fitfun = new LikelihoodOptimizer(new DenseVector(qOfD), new DenseVector(d),new DenseVector(dd), model.potentialShape.function);
+			val fitfun = new LikelihoodOptimizer(new DenseVector(model.qOfd._1), new DenseVector(model.qOfd._2),new DenseVector(model.D), model.potentialShape.function);
 			(model.potentialShape.nbrParam,model.potentialShape.nonParamFlag) match { case (nbr,flag) => fitfun.nbrParameter = nbr;fitfun.nonParametric = flag }
 			val estimatedPotentialParameter = model.potentialParamEst(fitfun)
 			
 	//		hypothesis testing
 	//		Monte Carlo sample Tk with size K from the null distribution of T obtained by sampling N distances di from q(d)
 	//		additional Monte Carlo sample Uk to rank U
-			val qD = new QDistribution(new DenseVector(qOfD), new DenseVector(d))
-			val pD = new QDistribution(new DenseVector(pOfD), new DenseVector(dP))
+			val qD = new QDistribution(new DenseVector(model.qOfd._1), new DenseVector(model.qOfd._2))
+			val pD = new QDistribution(new DenseVector(model.pOfD._1), new DenseVector(model.pOfD._2))
 			//val samp = new DenseVector(qD.sample(1000).toArray)
 			//hist(samp,100)
-			HypothesisTesting.N = dd.size
+			HypothesisTesting.N = model.D.size
 			HypothesisTesting.f = model.potentialShape.function(_,PotentialFunctions.defaultParameters(estimatedPotentialParameter).tail)
 			HypothesisTesting.testHypothesis(qD, pD)
 			HypothesisTesting.testNonParamHypothesis(qD, pD)
-    	}
 	}
 }

@@ -18,6 +18,12 @@ class InteractionModel {
 	var nn :NearestNeighbour = null
 	var potentialShape:Potential = PotentialFunctions.potentials(0)
 	
+	// Distances
+	var qOfd = (Array(0d),Array(0d)) // (q(d),d)
+	
+	var D: Array[Double] = Array(0d) // D
+	var pOfD = (Array(0d),Array(0d)) // (p(D),d)
+	
 	/**
 	 * qOfD with NN and Kernel estimation
 	 * @param domainSize size of domain, in which state density q should be sampled
