@@ -25,6 +25,7 @@ object HypothesisTesting {
 	 */
 	def testHypothesis(qDist: Rand[Double], D: Vector): (Boolean, Int, String) = {
 		// See section 5. 'Improving statistical power with Non-step potential' in paper "Beyond co-localization: ..."
+		N = D.size
 		val Ts = new Array[Double](K)
 		for (i <- (0 until K)) {
 			Ts(i) = calculateT(scalala.tensor.Vector(qDist.sample(N):_*))
@@ -56,6 +57,7 @@ object HypothesisTesting {
 	def testNonParamHypothesis(qDist: Rand[Double], D:Vector): (Boolean, Int, String) = {
 		// See subsection 8.3 'Test for Interaction' in paper "Beyond co-localization: ..."
 		// Sample T from the null distribution to calculate E(T) and Cov(T)
+		N = D.size
 		val TsforEandCov = new DenseMatrix(K,L)
 		for (i <- (0 until K)) {
 			TsforEandCov.getRow(i) := distanceCounts(qDist.sample(N))
@@ -64,6 +66,7 @@ object HypothesisTesting {
 		val EofT = ScalalaUtils.mean(TsforEandCov)
 		val covOfT = ScalalaUtils.cov(TsforEandCov)
 		
+//		val covOfTInverse:Matrix = covOfT \ eye(L)
 		val covOfTInverse = new DenseMatrix(L,L) // TODO scalala.inverse with \ operator
 			// uses weka Matrix inverse method
 			val mat = new WekaMatrix(L,L)
