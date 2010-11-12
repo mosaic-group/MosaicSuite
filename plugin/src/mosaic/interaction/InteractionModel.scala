@@ -1,22 +1,21 @@
 package mosaic.interaction
 
-import mosaic.calibration.NearestNeighbour
 import ij.IJ
 import scalanlp.optimize.StochasticGradientDescent
 import mosaic.core.optimization.CMAOptimization
 import mosaic.core.optimization.LikelihoodOptimizer
+import mosaic.core.distance._
 import scalala.Scalala._
 import scalala.tensor.dense._
 import scalala.tensor._
-import mosaic.calibration.KernelDensityEstimator
 
 
 class InteractionModel {
 	
 	// Image/domain dimension, normally 2 or 3
-	val dim = 3 
+	var dim = 3 
 	// 
-	val nn = new NearestNeighbour(dim)
+	var nn :NearestNeighbour = null
 	var potentialShape:Potential = PotentialFunctions.potentials(0)
 	
 	/**
@@ -141,6 +140,7 @@ class InteractionModel {
 	def initNearestNeighbour(refPoints : Array[Array[Double]]) {
 			val time = (new java.util.Date()).getTime()
 		// generate KDTree
+		nn = new NearestNeighbour(dim)
 		nn.setReferenceGroup(refPoints)
 			println("Generation KDtree "+((new java.util.Date()).getTime() - time)*0.001)
 	}
@@ -153,10 +153,14 @@ class InteractionModel {
 	def meshInCell(domainSize: Array[Int], isInDomain: (Array[Double] => Boolean)) : Array[Array[Double]]= {
 	  
 	  val nbrQueryPointLimit = 100000
-	  val zQueryPointRes = domainSize(2)
 	  var xQueryPointRes = 1
-	  while (zQueryPointRes * (xQueryPointRes+1) * (xQueryPointRes+1) < nbrQueryPointLimit ){
-	 	  xQueryPointRes = xQueryPointRes + 1
+	  var zQueryPointRes = Math.max(domainSize(2),0)
+	  if (dim == 3) {
+		  while (zQueryPointRes * (xQueryPointRes+1) * (xQueryPointRes+1) < nbrQueryPointLimit ){
+		 	  xQueryPointRes = xQueryPointRes + 1
+		  }
+	  } else {
+	 	  xQueryPointRes = Math.sqrt(nbrQueryPointLimit).toInt
 	  }
 	  
 	  //val scale = new DenseVector(domainSize map(_.toDouble))
@@ -165,7 +169,8 @@ class InteractionModel {
 //	  val queryPoints = List.fill(nbrQueryPoints)((rand(dim) :*scale).toArray)
 	  
 	  // regularly placed query objects
-	  val queryPoints = nn.getSampling(List((domainSize(0), xQueryPointRes),(domainSize(1), xQueryPointRes),(domainSize(2), zQueryPointRes))).toArray //TODO less queries in z direction.
+	  val domain = List((domainSize(0), xQueryPointRes),(domainSize(1), xQueryPointRes),(domainSize(2), zQueryPointRes))
+	  val queryPoints = nn.getSampling(domain.dropRight(3-dim)).toArray //TODO less queries in z direction.
 	  // only take samples in the cell/domain
 	  println("Number of query points: " + queryPoints.size)
 	  val validQueryPoints = queryPoints.filter(isInDomain(_))

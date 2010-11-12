@@ -1,13 +1,13 @@
 package mosaic.interaction
 
-import mosaic.core.MatlabData
+import mosaic.interaction.input.MatlabData
 import javax.swing.JTextField
 import mosaic.core.sampling.HypothesisTesting
 import mosaic.core.sampling.QDistribution
 import scalala.tensor.dense.DenseVector
 import mosaic.core.optimization.LikelihoodOptimizer
 import ij.gui.GenericDialog
-import mosaic.core.ImagePreparation
+import mosaic.interaction.input.ImagePreparation
 import ij._
 import javax.swing.{JFrame, JPanel,JTabbedPane,JButton, JComboBox, JLabel, JTextArea, SwingConstants}
 import swing._
@@ -302,35 +302,40 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 				case 1 => MatlabData.readModelInput
 				case 2 => InteractionModelTest.readMatlabData
 		}
-		
-		println("Image size " + domainSize(0) + "," + domainSize(1) + "," + domainSize(2) +  ", Sizes of refGroup, testGroup: " + refGroup.size + "," + testGroup.size)
-//		no images below here
-		
-		val refGroupInDomain = refGroup.filter(isInDomain)
-		val testGroupInDomain = testGroup.filter(isInDomain)
-		println("In domain: Sizes of refGroupInDomain, testGroupInDomain: " + refGroupInDomain.size + "," + testGroupInDomain.size)
-
-// nearest neighbor search(2x)
-		model.initNearestNeighbour(refGroupInDomain)
-		val (qOfD, d) = model.calculateQofD(model.meshInCell(domainSize, isInDomain), model.getDistances)
-		val dd = model.findD(testGroupInDomain)
-		val (pOfD, dP) = model.estimateDensity(dd)
-
-//		nll optimization CMA
-		val fitfun = new LikelihoodOptimizer(new DenseVector(qOfD), new DenseVector(d),new DenseVector(dd), model.potentialShape.function);
-		(model.potentialShape.nbrParam,model.potentialShape.nonParamFlag) match { case (nbr,flag) => fitfun.nbrParameter = nbr;fitfun.nonParametric = flag }
-		val estimatedPotentialParameter = model.potentialParamEst(fitfun)
-		
-//		hypothesis testing
-//		Monte Carlo sample Tk with size K from the null distribution of T obtained by sampling N distances di from q(d)
-//		additional Monte Carlo sample Uk to rank U
-		val qD = new QDistribution(new DenseVector(qOfD), new DenseVector(d))
-		val pD = new QDistribution(new DenseVector(pOfD), new DenseVector(dP))
-		//val samp = new DenseVector(qD.sample(1000).toArray)
-		//hist(samp,100)
-		HypothesisTesting.N = dd.size
-		HypothesisTesting.f = model.potentialShape.function(_,PotentialFunctions.defaultParameters(estimatedPotentialParameter).tail)
-		HypothesisTesting.testHypothesis(qD, pD)
-		HypothesisTesting.testNonParamHypothesis(qD, pD)
+    	if (refGroup != null) {
+    	
+    	
+			model.dim = refGroup(0).size
+	    	
+			println("Image size " + domainSize(0) + "," + domainSize(1) + "," + domainSize(2) +  ", Sizes of refGroup, testGroup: " + refGroup.size + "," + testGroup.size)
+	//		no images below here
+			
+			val refGroupInDomain = refGroup.filter(isInDomain)
+			val testGroupInDomain = testGroup.filter(isInDomain)
+			println("In domain: Sizes of refGroupInDomain, testGroupInDomain: " + refGroupInDomain.size + "," + testGroupInDomain.size)
+	
+	// nearest neighbor search(2x)
+			model.initNearestNeighbour(refGroupInDomain)
+			val (qOfD, d) = model.calculateQofD(model.meshInCell(domainSize, isInDomain), model.getDistances)
+			val dd = model.findD(testGroupInDomain)
+			val (pOfD, dP) = model.estimateDensity(dd)
+	
+	//		nll optimization CMA
+			val fitfun = new LikelihoodOptimizer(new DenseVector(qOfD), new DenseVector(d),new DenseVector(dd), model.potentialShape.function);
+			(model.potentialShape.nbrParam,model.potentialShape.nonParamFlag) match { case (nbr,flag) => fitfun.nbrParameter = nbr;fitfun.nonParametric = flag }
+			val estimatedPotentialParameter = model.potentialParamEst(fitfun)
+			
+	//		hypothesis testing
+	//		Monte Carlo sample Tk with size K from the null distribution of T obtained by sampling N distances di from q(d)
+	//		additional Monte Carlo sample Uk to rank U
+			val qD = new QDistribution(new DenseVector(qOfD), new DenseVector(d))
+			val pD = new QDistribution(new DenseVector(pOfD), new DenseVector(dP))
+			//val samp = new DenseVector(qD.sample(1000).toArray)
+			//hist(samp,100)
+			HypothesisTesting.N = dd.size
+			HypothesisTesting.f = model.potentialShape.function(_,PotentialFunctions.defaultParameters(estimatedPotentialParameter).tail)
+			HypothesisTesting.testHypothesis(qD, pD)
+			HypothesisTesting.testNonParamHypothesis(qD, pD)
+    	}
 	}
 }

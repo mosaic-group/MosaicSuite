@@ -41,7 +41,7 @@ object CMAOptimization {
             // --- end core iteration step ---
 
 			// output to files and console 
-			cma.writeToDefaultFiles();
+			//TODO write to file CMA	cma.writeToDefaultFiles();
 			val outmod = 150;
 			if (cma.getCountIter() % (15*outmod) == 1)
 				cma.printlnAnnotation(); // might write file as well

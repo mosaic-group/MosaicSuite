@@ -4,7 +4,7 @@ import scalala.Scalala._
 import scalala.tensor._
 import scalala.tensor.dense._
 import scalanlp.stats.sampling.Rand
-import mosaic.core.ScalalaUtils
+import mosaic.interaction.ScalalaUtils
 import weka.core.matrix.{Matrix => WekaMatrix}
 
 object HypothesisTesting {

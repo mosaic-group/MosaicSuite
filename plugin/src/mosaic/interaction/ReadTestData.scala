@@ -1,9 +1,9 @@
 package mosaic.interaction
 
 import scalala.tensor.dense.DenseMatrix
-import mosaic.calibration.ReadMat
+import mosaic.interaction.input.ReadMat
 import scalala.tensor._
-import mosaic.core.CellOutline
+import mosaic.interaction.input.CellOutline
 import ij.IJ
 object ReadTestData {
 	val delx:Double = 160; val delz:Double = 400; val voxDepthFactor = delz/delx ; val res:Double = 80

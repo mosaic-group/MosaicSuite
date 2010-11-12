@@ -1,4 +1,4 @@
-package mosaic.calibration
+package mosaic.core.distance
 
 import weka.core.EuclideanDistance
 import scalala.tensor.dense.DenseVector

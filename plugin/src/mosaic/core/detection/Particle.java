@@ -1,4 +1,4 @@
-package mosaic.core;
+package mosaic.core.detection;
 
 import java.text.NumberFormat;
 

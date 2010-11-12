@@ -1,21 +1,18 @@
-package mosaic.core
+package mosaic.interaction.input
 
 import ij.Prefs
 import ij.plugin.filter.ImageProperties
 import ij.plugin.Macro_Runner
 import ij.plugin.Duplicator
-import mosaic.detection.MyFrame
-import mosaic.detection.PreviewCanvas
 import mosaic.interaction._
 import java.awt.event.ActionEvent
-import mosaic.detection.PreviewInterface
+import mosaic.core.detection._
 import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.GenericDialog
 import ij.gui.Roi
 
-import mosaic.detection.FeaturePointDetector
 import ij.process.StackStatistics
 import scala.collection.JavaConversions
 

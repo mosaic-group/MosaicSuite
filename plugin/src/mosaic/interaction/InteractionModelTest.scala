@@ -2,7 +2,7 @@ package mosaic.interaction
 
 import scalala.tensor.dense.DenseVector
 import mosaic.core.optimization.LikelihoodOptimizer
-import mosaic.calibration.NearestNeighbour
+import mosaic.core.distance.NearestNeighbour
 import mosaic.interaction._
 
 object InteractionModelTest {
@@ -50,12 +50,12 @@ object InteractionModelTest {
 	}
 	
 	def readMatlabData():(Array[Int],(Array[Double] => Boolean),Array[Array[Double]],Array[Array[Double]]) = {
-		import mosaic.calibration.ReadMat
+		import mosaic.interaction.input.ReadMat
 		
 
 		val (refGroup,queryGroup) =	ReadTestData.readPositions(path)
-		val arr:Array[Array[Double]] = (for (i <- (0 until refGroup.rows)) yield refGroup.getRow(i).toArray).toArray
-		val arrQuery:Array[Array[Double]] = (for (i <- (0 until queryGroup.rows)) yield queryGroup.getRow(i).toArray).toArray
+		val arr:Array[Array[Double]] = ScalalaUtils.matrix2Array(refGroup)
+		val arrQuery:Array[Array[Double]] =  ScalalaUtils.matrix2Array(queryGroup)
 		
 		val (domainSize,isInDomain) = ReadTestData.readOutlinefromImages(path)
 		(domainSize, isInDomain, arr, arrQuery)

@@ -1,4 +1,4 @@
-package mosaic.detection;
+package mosaic.core.detection;
 
 import java.awt.event.ActionEvent;
 

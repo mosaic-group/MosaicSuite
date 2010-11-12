@@ -1,7 +1,7 @@
 /**
  * 
  */
-package mosaic.core
+package mosaic.interaction
 
 import scalala.Scalala._
 import scalala.tensor.dense._

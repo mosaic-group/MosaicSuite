@@ -1,4 +1,6 @@
-package mosaic.calibration
+package mosaic.core.distance
+
+import mosaic.core.distance._
 
 import scalala.Scalala._
 import scalala.tensor.dense._
@@ -94,7 +96,7 @@ object NNtest {
   def mseTest {
 	   import org.apache.commons.math.stat.regression._
 
-	   val cali = new mosaic.calibration.CalibriScala_
+	   val cali = new mosaic.interaction.ChromaticAberration
 	   
 		val reg = new SimpleRegression();
 	    reg.addData(0, 0)

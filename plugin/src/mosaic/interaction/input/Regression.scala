@@ -1,4 +1,4 @@
-package mosaic.detection
+package mosaic.interactio.input
 
 import org.apache.commons.math.stat.regression._
 import javax.vecmath._

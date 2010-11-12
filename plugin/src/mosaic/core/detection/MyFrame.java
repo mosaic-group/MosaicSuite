@@ -1,4 +1,4 @@
-package mosaic.detection;
+package mosaic.core.detection;
 
 import ij.ImageStack;
 import ij.process.ByteProcessor;
@@ -7,8 +7,6 @@ import ij.process.ImageProcessor;
 import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.Vector;
-
-import mosaic.core.Particle;
 
 	/**
 	 * Defines a MyFrame that is based upon an ImageProcessor or information from a text file.

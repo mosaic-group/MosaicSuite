@@ -1,4 +1,4 @@
-package mosaic.core
+package mosaic.interaction.input
 
 import ij.plugin.Macro_Runner
 import ij.plugin.Duplicator

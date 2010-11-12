@@ -14,12 +14,11 @@ import java.lang.reflect.Array;
 import java.util.Vector;
 import javax.vecmath.*;
 
-import mosaic.core.Particle;
-import mosaic.detection.FeaturePointDetector;
-import mosaic.detection.MyFrame;
-import mosaic.detection.PreviewCanvas;
-import mosaic.detection.PreviewInterface;
-import mosaic.detection.Regression$;
+import mosaic.core.detection.FeaturePointDetector;
+import mosaic.core.detection.MyFrame;
+import mosaic.core.detection.Particle;
+import mosaic.core.detection.PreviewCanvas;
+import mosaic.core.detection.PreviewInterface;
 
 
 public class Calibration_ implements PlugIn, PreviewInterface {

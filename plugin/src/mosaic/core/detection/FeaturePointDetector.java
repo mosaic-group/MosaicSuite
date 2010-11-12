@@ -1,4 +1,4 @@
-package mosaic.detection;
+package mosaic.core.detection;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -33,7 +33,7 @@ import java.io.PrintWriter;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import mosaic.core.Particle;
+
 import mosaic.plugins.BackgroundSubtractor2_;
 
 	/**

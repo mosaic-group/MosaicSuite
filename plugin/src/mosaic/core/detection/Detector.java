@@ -1,4 +1,4 @@
-package mosaic.detection;
+package mosaic.core.detection;
 
 public interface Detector {
 

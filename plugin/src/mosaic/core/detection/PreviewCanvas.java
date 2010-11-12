@@ -1,4 +1,4 @@
-package mosaic.detection;
+package mosaic.core.detection;
 
 import ij.ImagePlus;
 import ij.gui.ImageCanvas;
@@ -10,7 +10,7 @@ import java.util.Vector;
 
 import javax.vecmath.Vector3f;
 
-import mosaic.core.Particle;
+import mosaic.core.detection.MyFrame;
 
 /**
  * Defines an overlay Canvas for a given <code>ImagePlus</code> on which the detected particles from 

@@ -1,4 +1,4 @@
-package mosaic.calibration
+package mosaic.interaction.input
 
 import scalala.tensor.dense.DenseVector
 import scalala.tensor._

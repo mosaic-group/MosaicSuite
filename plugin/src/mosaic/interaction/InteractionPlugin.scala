@@ -2,10 +2,6 @@ package mosaic.interaction
 
 import ij.IJ
 import ij.plugin.PlugIn
-import scalala.Scalala._
-import scalala.tensor.dense._
-import scalala.tensor._
-import cma.fitness.AbstractObjectiveFunction
 
 class InteractionPlugin extends PlugIn with InteractionGUI {
 

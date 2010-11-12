@@ -2,7 +2,7 @@ package mosaic.core.optimization
 
 import cma._
 import cma.fitness._
-import mosaic.calibration._
+import mosaic.interaction.input._
 import mosaic.interaction._
 
 object CMALiklihoodExample {

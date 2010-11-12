@@ -1,6 +1,5 @@
-package mosaic.calibration
+package mosaic.interaction
 
-import mosaic.core.ImagePreparation
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
@@ -9,11 +8,8 @@ import ij.plugin.PlugIn;
 import ij.process.StackStatistics;
 
 
-import java.awt.event.ActionEvent;
-import javax.vecmath._;
-
-import mosaic.core.Particle;
-import mosaic.detection.Regression;
+import mosaic.core.detection.Particle
+import mosaic.interaction.input._
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.JavaConversions._
@@ -24,14 +20,15 @@ import scalala.tensor.dense._
 import scalala.Scalala._
 
 
-class CalibriScala_ extends PlugIn with ImagePreparation {
+class ChromaticAberration extends PlugIn with ImagePreparation {
 	
 	/* parameters for linking*/
 	val linkrange: Int =  1; 			// default
 	val displacement: Double = 10.0; 	// default
 	val frames_number: Int = 2;
 	
-	
+	val outlierThresholdFactor = 10
+		
 	@Override
 	def run(arg: String) {
 		allocateTwoImages();
@@ -115,7 +112,7 @@ class CalibriScala_ extends PlugIn with ImagePreparation {
 	
 	private def isOutlier(std: Double, y: Double, yEstimated : Double) : Boolean= {
 		//println(scala.Math.abs( y- yEstimated))
-		(scala.Math.abs( y- yEstimated)  > 10 *std)// && (std > 00000.1))
+		(scala.Math.abs( y- yEstimated)  > outlierThresholdFactor *std)// && (std > 00000.1))
 	}
 
 	private def calculateShifts():(Array[Array[Double]],Array[Array[Double]]) = {

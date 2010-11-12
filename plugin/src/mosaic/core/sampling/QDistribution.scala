@@ -4,7 +4,7 @@ import scalanlp.stats.sampling._
 import scalala.Scalala._
 import scalala.tensor.Vector
 import scalala.tensor.dense.DenseVector
-import mosaic.core.ScalalaUtils
+import mosaic.interaction.ScalalaUtils
 
 class QDistribution(qofD:Vector, xis:Vector) extends ContinuousDistr[Double] {
 
