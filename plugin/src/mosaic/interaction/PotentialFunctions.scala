@@ -6,7 +6,7 @@ import scalala.tensor.dense._
 
 object PotentialFunctions {
 		
-	val functions = Array("Step function","Plummer potential", "Hermquist potential","Non parametric potential")
+	val functions = Array("Step function","Plummer potential", "Hermquist potential","Non parametric potential","Linear potential, type 1", "Linear potential, type 2")
 	val potentials = functions.zipWithIndex.map(i => Potential(i._1,potentialShape(i._2),
 			potentialParameters(i._2)._1,potentialParameters(i._2)._2)).toList
 			
@@ -19,6 +19,8 @@ object PotentialFunctions {
 			case 1 => potentialShapePlummer(_,_)
 			case 2 => potentialShapeHermquist(_,_)
 			case 3 => potentialNonParametric(_,_)
+			case 4 => potentialLinearType1(_,_)
+			case 5 => potentialLinearType2(_,_)
 		}
 	}
 	
@@ -28,6 +30,8 @@ object PotentialFunctions {
 			case 1 => (2,false)
 			case 2 => (2,false)
 			case 3 => (8,true)
+			case 4 => (2,false)
+			case 5 => (2,false)
 		}
 	}
 	
@@ -95,10 +99,54 @@ object PotentialFunctions {
 	def potentialNonParametric(d: Vector, param: List[Double]):Vector = {
 		val wp = new DenseVector(param.drop(2).toArray)
 		val P = wp.size //TODO hard coded constant non parametric potential
-		val dp = linspace(-5,20,P) //TODO hard coded constant non parametric potential
+		val dp = linspace(-1,15,P) //TODO hard coded constant non parametric potential
 		val h = dp(1)-dp(0)
 		potentialNonParametricBasic(d,dp,wp,h,param(0),param(1))
 	}
+	
+	/**	shape of the Linear Type 1 potential
+	 * @param  d :   	distances
+	 * @param sigma :	scale parameter, default = 1
+	 * @param t	:		shift parameter, default = 0
+	 * @return  f :  	shape function sampled at d
+	 */
+	def potentialLinearType1(d: Vector, param: List[Double]):Vector = {
+		val sigma =param(0)
+		val t = param(1)
+		val z = new DenseVector(d.toArray.map(x => (x-t)/sigma))
+		//f = 0;
+
+		val fLinearT1 = DenseVector(z.size)(0)
+		//f(d<=1) = -(1-d);
+		val iter = z.filter(x => x match {case (i,k) => k <= 1; case _ => false})
+		for ((i, k) <- iter) fLinearT1(i) = -(1-z(i))
+		fLinearT1
+	}
+	
+	/**	shape of the Linear Type 2 potential
+	 * @param  d :   	distances
+	 * @param sigma :	scale parameter, default = 1
+	 * @param t	:		shift parameter, default = 0
+	 * @return  f :  	shape function sampled at d
+	 */
+	def potentialLinearType2(d: Vector, param: List[Double]):Vector = {
+		val sigma =param(0)
+		val t = param(1)
+		val z = new DenseVector(d.toArray.map(x => (x-t)/sigma))
+		
+		//f = 0;
+		val fLinearT2 = DenseVector(z.size)(0)
+		
+		//f(d<=1 && d>=0) = -(1-d);
+		val iter = z.filter(x => x match {case (i,k) => k <= 1; case _ => false})
+		for ((i, k) <- iter) fLinearT2(i) = -(1-z(i))
+		
+		//f(d<0) = -1;
+		val iter2 = z.filter(x => x match {case (i,k) => k < 0; case _ => false})
+		for ((i, k) <- iter2) fLinearT2(i) = -1
+		fLinearT2
+	}
+	
 	
 	/** Make sure that all 3 parameters (epsilon: strength, sigma: length-scale, t: shift along distance axis) are set.
 	 * @param data : parameters, which are already specified
