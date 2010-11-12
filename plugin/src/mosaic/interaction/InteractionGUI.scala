@@ -58,10 +58,12 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 		 tabs = new JTabbedPane(SwingConstants.TOP)
 		 tabs.setOpaque(true)
 		 aboutTab
+		 chromaticAberTab
 		 
 		 analyzingTabs = new JTabbedPane(SwingConstants.BOTTOM)
 		 analyzingTabs.setOpaque(true)
 		 analyzingTabs.setPreferredSize(new Dimension(400, 200));
+		 analyzingTabs.setMaximumSize(new Dimension(600, 200));
 
 		 warning=new JLabel(warText)
 		 warning.setForeground(Color.RED);
@@ -111,7 +113,6 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 				 // add this, that it get informed by open/close/update changes of images.
 				 //ImagePlus.addImageListener(this)
 	
-				 chromaticAberTab
 				 maskTab
 			 }
 			 case _ =>
@@ -469,6 +470,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
     		    	
 			println("Image size " + domainSize(0) + "," + domainSize(1) + "," + domainSize(2) +  ", Sizes of refGroup, testGroup: " + refGroup.size + "," + testGroup.size)
 			
+			chromaticAberration(testGroup)
 			val refGroupInDomain = refGroup.filter(isInDomain)
 			val testGroupInDomain = testGroup.filter(isInDomain)
 			println("In domain: Sizes of refGroupInDomain, testGroupInDomain: " + refGroupInDomain.size + "," + testGroupInDomain.size)

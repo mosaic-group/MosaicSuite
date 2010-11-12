@@ -205,7 +205,7 @@ trait ImagePreparation {//extends PreviewInterface {
 		val refGroup = getParticlePositions(0)
 		val domainSize = Array[Int](imp(0).getHeight, imp(0).getWidth, imp(0).getNSlices * voxelDepth)
 		val queryGroupShifted = getParticlePositions(1)
-		chromaticAberration(queryGroupShifted)
+		
 		(domainSize, isInDomainAndRoi, refGroup, queryGroupShifted)
 	}
 	
