@@ -69,17 +69,20 @@ object ReadTestData {
 			coord.getCol(2) -= voxelDepth/2; coord.getCol(2) /= voxelDepth; 
 	}
 		
-	def scale2Tracker3DCoords(coord: Array[Double], voxDepthFactor:Double, pixelSize:Double = 1):Array[Double]= {
+	def scale2Tracker3DCoords(coord: Array[Double], voxDepthFactor:Double = 1, pixelSize:Double = 1):Array[Double]= {
 			// the upper left pixel in the first slice is (0.5,0.5,0.0) in the output of
 			// the 3D tracker. Shift z component!
 			val voxelDepth = voxDepthFactor * pixelSize
 			Array(coord(0)/pixelSize,coord(1)/pixelSize, (coord(2)-voxelDepth/2)/voxelDepth)
 	}
 	
-	def scale2Pixel(coord: Array[Double], voxDepthFactor:Double, pixelSize:Double = 1):Array[Double]= {
-			// the upper left pixel in the first slice is (0.5,0.5,0.0) in the output of
-			// the 3D tracker. Shift z component!
-			val voxelDepth = voxDepthFactor * pixelSize
-			Array(coord(0)/pixelSize,coord(1)/pixelSize, (coord(2))/voxelDepth)
+	def scale2Pixel(coord: Array[Double], voxDepthFactor:Double = 1, pixelSize:Double = 1):Array[Double]= {
+			coord.length match {
+				case 2 => Array(coord(0)/pixelSize,coord(1)/pixelSize)
+				case 3 => {// the upper left pixel in the first slice is (0.5,0.5,0.0) in the output of
+					// the 3D tracker. Shift z component!
+					val voxelDepth = voxDepthFactor * pixelSize
+					Array(coord(0)/pixelSize,coord(1)/pixelSize, (coord(2))/voxelDepth)}
+			}
 	}
 }

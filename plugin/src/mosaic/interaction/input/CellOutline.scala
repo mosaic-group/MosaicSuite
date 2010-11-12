@@ -11,9 +11,14 @@ class CellOutline {
 	var rois : Array[Roi] = null
 	var mask : ImagePlus = null
 
-	def this(imp: ImagePlus) = {
+	def this(imp: ImagePlus, isBinaryMask: Boolean = false) = {
 		this()
-		init(imp)
+		if (isBinaryMask) {
+			mask = imp
+		} else {
+			generateMask(imp) 			
+		}
+		generateRois()
 	}
 	
 	/** Is this data point inside the cell outlined by a ROI?
@@ -50,7 +55,11 @@ class CellOutline {
 	
 	def toInt(coord:Array[Double]): (Int,Int,Int) = {
 		val coordInt = coord.map(i => (i + 0.5).round.toInt)
-		(coordInt(0),coordInt(1),coordInt(2))
+		val z = coordInt.length match {
+			case 2 => 0
+			case 3 => coordInt(2)
+		}
+		(coordInt(0),coordInt(1),z)
 	}
 	
 	
@@ -110,6 +119,7 @@ class CellOutline {
 		(new Macro_Runner).run("JAR:macros/GenerateMask_.ijm")
 		
 		imp.setRoi(roi)
+		mask.changes = false
 	}
 	
 	def setMask(newMask: ImagePlus) = {

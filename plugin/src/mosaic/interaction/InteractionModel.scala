@@ -115,7 +115,7 @@ class InteractionModel {
 	
 		//	D with NN
 	def findD(queryPoints: Array[Array[Double]]):Array[Double]= {
-	  getDistances(queryPoints)
+	  getDistances(queryPoints.map(_.take(dim)))
 	}
 	
 	/**
@@ -147,7 +147,7 @@ class InteractionModel {
 			val time = (new java.util.Date()).getTime()
 		// generate KDTree
 		nn = new NearestNeighbour(dim)
-		nn.setReferenceGroup(refPoints)
+		nn.setReferenceGroup(refPoints.map(_.take(dim)))
 			println("Generation KDtree "+((new java.util.Date()).getTime() - time)*0.001)
 	}
 	

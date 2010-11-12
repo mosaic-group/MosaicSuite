@@ -57,6 +57,7 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 		 gd.showDialog()
 		 inputSource = gd.getNextChoiceIndex
 		 model.dim = gd.getNextChoiceIndex + 2
+		 dim = model.dim
 		 
 		 // TODO Remove debugging
 		 if (inputSource == 3) {
@@ -130,8 +131,10 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	        matlabTab.add(dx)
 	        matlabTab.add(new JLabel("Domain y"));
 	        matlabTab.add(dy)
-	        matlabTab.add(new JLabel("Domain z"));
-	        matlabTab.add(dz)
+	        if (model.dim == 3) {
+	        	matlabTab.add(new JLabel("Domain z"));
+	        	matlabTab.add(dz)
+	        }
 	        
 	        matlabPath.addActionListener((e:ActionEvent) => setPrefs)
 	        matY.addActionListener((e:ActionEvent) => setPrefs)
@@ -195,11 +198,14 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 		 
 		 // Chromatic aberration tab
 		 def chromaticAberTab {
-			val chroTab = new JPanel(new GridLayout(2,1));
+			val chroTab = new JPanel(new GridLayout(3,1));
 	        chroTab.setPreferredSize(new Dimension(380, 200));
 	
 	        chroTab.add(new JLabel("Chromatic aberration"));
 	
+	        val chromPlugin = new JButton("Find Chromatic aberration with plugin.")
+	        chromPlugin.addActionListener((e:ActionEvent) => {val x = IJ.runPlugIn("mosaic.interaction.ChromaticAberration","openImages")})
+	        chroTab.add(chromPlugin)
 	        val xIntecept = new JTextField("0.0");
 	        xIntecept.addActionListener((e:ActionEvent) => Prefs.set("ia.xIntercept", (xIntecept.getText()).toDouble))
 	        val yIntecept = new JTextField("0.0");
@@ -223,6 +229,22 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	        chroTab.add(chroValTab)
 	        
 	        tabs.add("Chromatic aberration", chroTab)
+		 }
+		 def maskTab {
+			val maskT = new JPanel(new GridLayout(3,1));
+	        maskT.setPreferredSize(new Dimension(380, 200));
+	
+	        val openMask = new JButton("Open an existing binary "+ model.dim +"D image as mask.")
+	        openMask.addActionListener((e:ActionEvent) => {
+	        	cellOutline = new input.CellOutline(openImage(model.dim), true)
+	        })
+	        maskT.add(openMask)
+	        val generateMask = new JButton("Generate mask automaticly based on the reference image.")
+	        generateMask.addActionListener((e:ActionEvent) => cellOutlineGeneration)
+	        maskT.add(generateMask)
+	        
+	        tabs.add("Mask", maskT)
+			 
 		 }
 	 
 	 }

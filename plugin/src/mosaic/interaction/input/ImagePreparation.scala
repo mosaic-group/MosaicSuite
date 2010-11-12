@@ -20,6 +20,7 @@ import scala.collection.JavaConversions
 trait ImagePreparation {//extends PreviewInterface {
 	
 	val imageNbr = 2
+	var dim = 2
 	var imp = new Array[ImagePlus](imageNbr)
 	val frames = new Array[MyFrame](imageNbr)
 	var roi: Roi = null
@@ -36,11 +37,11 @@ trait ImagePreparation {//extends PreviewInterface {
 	 * Initializes imp so that 2 images are available.
 	 * @return true, if images are available
 	 */
-	protected def allocateTwoImages() = {
+	protected def allocateTwoImages(useOpen:Boolean = true) = {
 		// Get 2 Images ready and store them in imp(0) and imp(1).
 		var windowList = WindowManager.getIDList();
 		
-		if (windowList == null) {
+		if (windowList == null || !useOpen) {
 			// No images open, have to open 2 images.
 			imp = openImages(imageNbr).toArray
 		} else if (windowList.length == 1) {
@@ -95,9 +96,16 @@ trait ImagePreparation {//extends PreviewInterface {
 	private def openImages(nbr: Int, images :List[ImagePlus] = Nil):List[ImagePlus]  = {
 		(nbr, images.length ) match{
 			case (x,y) if x == y => images
-			case (x,y) if x > y => openImages(x, {val n = IJ.openImage(); if (n== null) images else  n.show(); n::images})
+			case (x,y) if x > y => openImages(x, {val n = openImage(dim); if (n== null) images else  n.show(); n::images})
 		}
-	}	
+	}
+	
+	def openImage(dim: Int = 2):ImagePlus = {
+		dim match {
+	        		case 2 => IJ.openImage()
+	        		case 3 => {IJ.run("Image Sequence..."); IJ.getImage}
+		}
+	}
 	
 	def setImage(ip: ImagePlus, i : Int) {
 		    imp(i) = ip
@@ -176,8 +184,9 @@ trait ImagePreparation {//extends PreviewInterface {
 	
 	def generateModelInputFromImages :(Array[Int],(Array[Double] => Boolean),Array[Array[Double]],Array[Array[Double]])= {
 //		allocateTwoImages()
+		
 		detect(false)
-		cellOutlineGeneration()
+		//cellOutlineGeneration()
 		voxelDepth = imp(0).getCalibration.pixelDepth.toInt
 		// in (cell) domain and in user specified ROI. 
 		val isInDomainAndRoi = (coord:Array[Double]) => {cellOutline.inRoi(ReadTestData.scale2Pixel(coord,voxelDepth)) && {
