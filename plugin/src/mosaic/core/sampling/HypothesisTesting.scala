@@ -13,7 +13,7 @@ object HypothesisTesting {
 	var N = 100 //TODO: = |D|
 	val K = 50 	// 1000
 	
-	val alpha = 0.05 // significance level α
+	val alpha = 0.05 // significance level alpha
 	
 	var range = 15d
 	
@@ -23,7 +23,7 @@ object HypothesisTesting {
 	 * @param qDist : H0 null hypothesis q(d)
 	 * @param pDist : H1 p(d)
 	 */
-	def testHypothesis(qDist: Rand[Double], pDist: Rand[Double]) = {
+	def testHypothesis(qDist: Rand[Double], D: Vector) = {
 		// See section 5. 'Improving statistical power with Non-step potential' in paper "Beyond co-localization: ..."
 		val Ts = new Array[Double](K)
 		for (i <- (0 until K)) {
@@ -35,8 +35,8 @@ object HypothesisTesting {
 		
 		
 		// Rank T
-		// If it ranked higher than (1 − α)K-th, H0 was rejected on the significance level α.
-		val T = calculateT(scalala.tensor.Vector(pDist.sample(N) :_*)) // TODO get real samples from p(d)
+		// If it ranked higher than (1 -alpha)K-th, H0 was rejected on the significance level alpha.
+		val T = calculateT(D)
 		
 		val H0  = isH0rejected(T, Ts)
 		println("Hypothesis alternative is " + H0._1 + ", ranked as: " + H0._2 + " of K = " + K + ". N = " + N)	
@@ -50,7 +50,7 @@ object HypothesisTesting {
 	/**
 	 * @param dist
 	 */
-	def testNonParamHypothesis(qDist: Rand[Double], pDist: Rand[Double]) = {
+	def testNonParamHypothesis(qDist: Rand[Double], D:Vector) = {
 		// See subsection 8.3 'Test for Interaction' in paper "Beyond co-localization: ..."
 		// Sample T from the null distribution to calculate E(T) and Cov(T)
 		val TsforEandCov = new DenseMatrix(K,L)
@@ -82,8 +82,8 @@ object HypothesisTesting {
 		
 		
 		// Rank U
-		// If it ranked higher than (1 − α)K-th, H0 was rejected on the significance level α.
-		val T = distanceCounts(pDist.sample(N)) // TODO get real samples from p(d)
+		// If it ranked higher than (1 -alpha)K-th, H0 was rejected on the significance level alpha.
+		val T = distanceCounts(D.toArray.toList) 
 		val U = calculateU(T, EofT, covOfTInverse)
 		
 		val H0 = isH0rejected(U, Us)

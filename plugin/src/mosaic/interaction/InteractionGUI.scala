@@ -335,12 +335,13 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	//		Monte Carlo sample Tk with size K from the null distribution of T obtained by sampling N distances di from q(d)
 	//		additional Monte Carlo sample Uk to rank U
 			val qD = new QDistribution(new DenseVector(model.qOfd._1), new DenseVector(model.qOfd._2))
-			val pD = new QDistribution(new DenseVector(model.pOfD._1), new DenseVector(model.pOfD._2))
+			//val pD = new QDistribution(new DenseVector(model.pOfD._1), new DenseVector(model.pOfD._2))
 			//val samp = new DenseVector(qD.sample(1000).toArray)
 			//hist(samp,100)
 			HypothesisTesting.N = model.D.size
 			HypothesisTesting.f = model.potentialShape.function(_,PotentialFunctions.defaultParameters(estimatedPotentialParameter).tail)
-			HypothesisTesting.testHypothesis(qD, pD)
-			HypothesisTesting.testNonParamHypothesis(qD, pD)
+			val D = new DenseVector(model.D)
+			HypothesisTesting.testHypothesis(qD, D)
+			HypothesisTesting.testNonParamHypothesis(qD, D)
 	}
 }
