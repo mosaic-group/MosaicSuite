@@ -26,6 +26,9 @@ class CellOutline {
 	 * @return true, if data point is inside the cell
 	 */
 	def inRoi(coord: Array[Double]): Boolean = {
+			if (rois == null) {
+				return true
+			}
 //			val x = coord(0).floor.toInt
 //			val y = coord(1).floor.toInt
 //			var z = coord(2).floor.toInt
@@ -47,6 +50,9 @@ class CellOutline {
 	 * @return true, if data point is inside the cell
 	 */
 	def inCell(coord: Array[Double]): Boolean = {
+		if (mask == null) {
+			return true
+		}
 		val (x,y,z) = toInt(coord)
 		mask.setSlice(z)
 		val value = mask.getPixel(x, y)

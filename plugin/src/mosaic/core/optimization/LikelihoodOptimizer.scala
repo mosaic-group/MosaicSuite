@@ -16,6 +16,7 @@ class LikelihoodOptimizer(var q :Vector,var di: Vector,var d_s: Vector, var pote
 	
 	var nbrParameter = 2
 	var nonParametric = false
+	var nonParametricSmoothness = 2d //TODO hard coded parameter: smoothness of non parametric potentials
 	
 	/** computes the density of the NN-interaction Gibbs process
 	 * @param sampleDistances distances at which p should be sampled
@@ -96,7 +97,7 @@ class LikelihoodOptimizer(var q :Vector,var di: Vector,var d_s: Vector, var pote
 		nll = -sum(log(p));*/
 		if (nonParametric) {
 			var weightsPenalty = 0d
-			val s = 2 //TODO hard coded parameter: smoothness of non parametric potentials
+			val s = nonParametricSmoothness 
 			val wp:Vector = new DenseVector(params.drop(3).toArray)
 			val diffPairs = wp(0 until (wp.size-1)).zip( wp(1 until wp.size))
 			weightsPenalty = diffPairs.map(x => {val tmp = (x._1 - x._2)/s; tmp*tmp}).reduceLeft(_+_)

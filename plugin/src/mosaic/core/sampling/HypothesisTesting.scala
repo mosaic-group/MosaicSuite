@@ -9,13 +9,13 @@ import weka.core.matrix.{Matrix => WekaMatrix}
 
 object HypothesisTesting {
 	
-	val L = 20 	// 20
-	var N = 100 //TODO: = |D|
-	val K = 50 	// 1000
+	var L = 20 	// 20
+	var N = 100 // := |D|
+	var K = 50 	// 1000
 	
-	val alpha = 0.05 // significance level alpha
+	var alpha = 0.05 // significance level alpha
 	
-	var range = 15d
+	var maxdInDomain = 15d // arg max q(d) >=0
 	
 	var f: (Vector => Vector) = null
 
@@ -90,7 +90,7 @@ object HypothesisTesting {
 		println("Non-param: Hypothesis alternative is " + H0._1 + ", ranked as: " + H0._2 + " of K = " + K + ". N = " + N)	
 	}
 		
-	def distanceCounts(samples : List[Double], range: Double = this.range): Vector = {
+	def distanceCounts(samples : List[Double], range: Double = this.maxdInDomain): Vector = {
 		val tls = linspace(0,range,L+1).toArray
 		val indicator = (d:Double, t:Tuple2[Double,Double]) => (t._1 < d && d <= t._2)
 		

@@ -24,7 +24,7 @@ trait ImagePreparation {//extends PreviewInterface {
 	var imp = new Array[ImagePlus](imageNbr)
 	val frames = new Array[MyFrame](imageNbr)
 	var roi: Roi = null
-	var cellOutline: CellOutline = null
+	var cellOutline: CellOutline = new CellOutline
 	var voxelDepth = 1
 	
 	var detectors = new Array[FeaturePointDetector](imageNbr)
@@ -112,10 +112,7 @@ trait ImagePreparation {//extends PreviewInterface {
 		    checkVoxelDepth(imp(i))
 			// analyze only within ROI, if one exists.
 		    if (imp(0) != null)
-		    	roi = imp(0).getRoi
-			if (roi == null) {
-				roi = imp(i).getRoi
-			}
+		    	updateRoi(i)
 	}
 	
 	/**
@@ -182,6 +179,14 @@ trait ImagePreparation {//extends PreviewInterface {
 //		(frames(0).getParticles, frames(1).getParticles.toArray)
 //	}
 	
+	def updateRoi(i:Int = 1) {
+			// analyze only within ROI, if one exists.
+		    roi = imp(0).getRoi
+			if (roi == null) {
+				roi = imp(i).getRoi
+			}
+	}
+	
 	def generateModelInputFromImages :(Array[Int],(Array[Double] => Boolean),Array[Array[Double]],Array[Array[Double]])= {
 //		allocateTwoImages()
 		
@@ -189,6 +194,7 @@ trait ImagePreparation {//extends PreviewInterface {
 		//cellOutlineGeneration()
 		voxelDepth = imp(0).getCalibration.pixelDepth.toInt
 		// in (cell) domain and in user specified ROI. 
+		updateRoi()
 		val isInDomainAndRoi = (coord:Array[Double]) => {cellOutline.inRoi(ReadTestData.scale2Pixel(coord,voxelDepth)) && {
 			val (x,y,z) = cellOutline.toInt(coord);
 			if (roi == null) 
