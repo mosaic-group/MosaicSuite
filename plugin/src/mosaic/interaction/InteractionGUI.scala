@@ -9,7 +9,7 @@ import mosaic.core.optimization.LikelihoodOptimizer
 import ij.gui.GenericDialog
 import mosaic.interaction.input.ImagePreparation
 import ij._
-import javax.swing.{JFrame, JPanel,JTabbedPane,JButton, JComboBox, JLabel, JTextArea, SwingConstants}
+import javax.swing.{JFrame, JPanel,JTabbedPane,JButton, JComboBox, JLabel, JTextArea, SwingConstants, DefaultComboBoxModel}
 import swing._
 import java.awt.{GridLayout, Dimension, Color}
 import java.awt.event._
@@ -17,40 +17,25 @@ import ij.plugin.BrowserLauncher
 import scalala.Scalala._
 
 
-trait InteractionGUI extends ImageListener with ActionListener with ImagePreparation  {
+trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePreparation  {
 	
 	 val model = new InteractionModel
 
 	 var frame: JFrame = null
 	 var superPanel,imgTab: JPanel = null
-	 var tabs: JTabbedPane = null
-	 var linkPDF, analyze: JButton = null
+	 var tabs, analyzingTabs: JTabbedPane = null
+	 var linkPDF, distCalc, paramPot, nonParamPot, nonParamTest: JButton = null
 	 var imgAS, imgBS: ComboBox[ImagePlus] = null
 	 var warning: JLabel = null
 	 val warText = "Please check red labeled tabs before launching analysis"
 	 var inputSource = 0
 		
-	// no ActionListner needed
+	// no ActionListener needed
 	implicit def actionPerformedWrapper(func: (ActionEvent) => Unit) = 
     new ActionListener { def actionPerformed(e:ActionEvent) = func(e) }
-
 	 
 	 def GUI() {
-		 frame = new JFrame("Co-Localization Interaction Plugin")
-		 frame.setSize(400, 585)
-		 frame.setResizable(true)
-		 frame.setVisible(true)
-		 
-		 superPanel = new JPanel()
-		 frame.getContentPane().add(superPanel)
-		 tabs = new JTabbedPane(SwingConstants.BOTTOM);
-	     tabs.setOpaque(true);
-	     warning=new JLabel(warText);
-	     warning.setForeground(Color.RED);
-	     analyze=new JButton("Analyze");
-	     analyze.addActionListener(this);
-
-	     // Input type selection
+		 // Input type selection dialog
 		 val gd = new GenericDialog("Input type selection...", IJ.getInstance());
 		 gd.addChoice("Input source:", Array("Images","Matlab File .mat", "Matlab Debug", "Debug"), "Images")
 		 gd.addChoice("Dimensions:", Array("2D","3D"), "3D")
@@ -59,50 +44,85 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 		 model.dim = gd.getNextChoiceIndex + 2
 		 dim = model.dim
 		 
-		 // TODO Remove debugging
+		 
+		 // Main GUI
+		 frame = new JFrame("Co-Localization Interaction Plugin")
+		 frame.setSize(400, 720)
+		 frame.setResizable(true)
+		 frame.setVisible(true)
+
+		 superPanel = new JPanel()
+		 frame.getContentPane().add(superPanel)
+		 
+		 // Initialization
+		 tabs = new JTabbedPane(SwingConstants.TOP)
+		 tabs.setOpaque(true)
+		 aboutTab
+		 
+		 analyzingTabs = new JTabbedPane(SwingConstants.BOTTOM)
+		 analyzingTabs.setOpaque(true)
+		 analyzingTabs.setPreferredSize(new Dimension(400, 200));
+
+		 warning=new JLabel(warText)
+		 warning.setForeground(Color.RED);
+		 distCalc=new JButton("Calculate Distances")
+		 distCalc.addActionListener(this)
+		 paramPot=new JButton("Estimate Parametric Potential and Test")
+		 paramPot.addActionListener(this)
+		 nonParamPot=new JButton("Estimate Non-Parametric Potential")
+		 nonParamPot.addActionListener(this)
+		 nonParamTest=new JButton("Test with Non-Parametric Statistic")
+		 nonParamTest.addActionListener(this)
+
+
+		 
+		 
+		 // TODO Remove debugging input
 		 if (inputSource == 3) {
 			 if (WindowManager.getIDList == null){
-				(new ij.plugin.Macro_Runner).run("JAR:macros/StacksOpen_.ijm") 
-			}
+				 (new ij.plugin.Macro_Runner).run("JAR:macros/StacksOpen_.ijm") 
+			 }
 			 inputSource = 0
 		 }
-		 
-		 if (inputSource == 0) {
-			 //imgTab
-			 imgTab = new JPanel(new GridLayout(2,2))
-			 imgTab.setPreferredSize(new Dimension(380, 45));
-			 superPanel.add(imgTab)
 
-			 
-			 imgAS = new ComboBox(getImgList) {
-				 renderer = swing.ListView.Renderer(_.getTitle) // The renderer is just the title field of the ImagePlus class.
+		 inputSource match {
+			 case 1 => matlabInput
+			 case 0 =>  {
+				 //imgTab
+				 imgTab = new JPanel(new GridLayout(2,2))
+				 imgTab.setPreferredSize(new Dimension(380, 45));
+				 superPanel.add(imgTab)
+				 val imgList = getImgList
+	
+				 imgAS = getComboBox(imgList,0)
+	//			 imgAS.peer.removeAllItems()
+	//			 imgList.foreach(imgAS.peer.addItem(_))
+				 
+				 setImage(imgList(0),0)
+				 imgTab.add(new JLabel("Image of reference group Y"));
+				 imgTab.add(imgAS.peer)
+	
+				 imgBS = getComboBox(imgList,1)
+				 setImage(imgList(1),1) 
+				 imgTab.add(new JLabel("Image of group X"));
+				 imgTab.add(imgBS.peer)
+				 updateImgList(null)
+				 
+				 // add this, that it get informed by open/close/update changes of images.
+				 //ImagePlus.addImageListener(this)
+	
+				 chromaticAberTab
+				 maskTab
 			 }
-			 setImage(imgAS.selection.item,0)
-			 imgAS.peer.addActionListener((e:ActionEvent) => setImage(imgAS.selection.item,0) )
-			 imgTab.add(new JLabel("Image of reference group Y"));
-			 imgTab.add(imgAS.peer)
-			 
-			 imgBS = new ComboBox(getImgList) {
-				 renderer = swing.ListView.Renderer(_.getTitle) // The renderer is just the title field of the ImagePlus class.
-			 }
-			 setImage(imgBS.selection.item,1) 
-			 imgBS.peer.addActionListener((e:ActionEvent) => setImage(imgBS.selection.item,1) )
-			 imgTab.add(new JLabel("Image of group X"));
-			 imgTab.add(imgBS.peer)
+			 case _ =>
 		 }
-		 if (inputSource == 1) 
-			 matlabInput
-		 
-		 		
-		 superPanel.add(tabs)
-		 
-	     //add tabs
-	     aboutTab
-	     chromaticAberTab
-	     potentialTab
-	   
-        superPanel.add(warning);
-	    superPanel.add(analyze);
+		superPanel.add(tabs)
+		//superPanel.add(warning);
+		superPanel.add(distCalc);
+
+		analyzingGUI
+		
+		
 	    
 	    def matlabInput {
 			 val matlabTab = new JPanel(new GridLayout(6,2))
@@ -110,16 +130,16 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 			 superPanel.add(matlabTab)
 			 
 			// object positions
-			val matlabPath = new JTextField("filepath");
-	        val matY = new JTextField("Matrix Y");
-	        val matX = new JTextField("Matrix X");
+			val matlabPath = new JTextField("Path incl. name of .mat-file.");
+	        val matY = new JTextField("Y");
+	        val matX = new JTextField("X");
 	
 	        val chroValTab = new JPanel(new GridLayout(3,3));
 	        
 	        matlabTab.add(matlabPath)
 	        matlabTab.add(new JLabel(""))
-	        matlabTab.add(new JLabel("reference group Y:"));
-	        matlabTab.add(new JLabel("group X:"));
+	        matlabTab.add(new JLabel("Reference Group Y:"));
+	        matlabTab.add(new JLabel("Group X:"));
 	        matlabTab.add(matY)
 	        matlabTab.add(matX)
 	        
@@ -158,7 +178,10 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	        aboutTab.setPreferredSize(new Dimension(380, 200));
 			val aboutsubTab1=new JPanel();
 	        aboutsubTab1.setPreferredSize(new Dimension(380, 145));
-	        val aboutTxt = new JTextArea("Please refer to and cite:\n Helmuth colocalization  .\n\n\nFreely downloadable from:\nhttp://www.biomedcentral.com/1471-2105/11/372");
+	        val aboutTxt = new JTextArea("Please refer to and cite:\n "+
+	        			"Jo A. Helmuth, Beyond co-localization: inferring spatial \n "+
+	        			"interactions between sub-cellular structures from microscopy images "+
+	        			"\n\n\nFreely downloadable from:\nhttp://www.biomedcentral.com/1471-2105/11/372");
 	        aboutTxt.setSize(380,155);
 	        aboutTxt.setLineWrap(true);
 	        aboutTxt.setEditable(false);
@@ -168,44 +191,25 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	        
 	        val aboutsubTab2=new JPanel();
 	        aboutsubTab2.setPreferredSize(new Dimension(380, 45));
-	        linkPDF=new JButton("Click here to download the pdf");
+	        linkPDF=new JButton("Download the paper as pdf");
 	        linkPDF.addActionListener(this);
 	        aboutsubTab2.add(linkPDF);
 	        aboutTab.add(aboutsubTab2);
 	        
 	        tabs.add("About", aboutTab)
 		 }
-		 
-		 def potentialTab {
-			 val potentialTab = new JPanel(new GridLayout(1,2))
-			 potentialTab.setPreferredSize(new Dimension(380, 200));
-	
-			 potentialTab.add(new JLabel("Potential shape"))
-			 val scalaCB: ComboBox[Potential] = new ComboBox(PotentialFunctions.potentials) {
-				 renderer = swing.ListView.Renderer(_.name) // The renderer is just the name field of the Potential class.
-			 }
-		     scalaCB.peer.addActionListener((e:ActionEvent) => model.potentialShape = scalaCB.selection.item)
-		     potentialTab.add(scalaCB.peer)
-	// scala swing style seems not to work, probably problem with event types (scala and java mixed)
-	//	     scalaCB.listenTo(scalaCB)
-	//	     scalaCB.reactions += {
-	//	            case scala.swing.event.SelectionChanged(`scalaCB`) => {
-	//	            	model.potentialShape = scalaCB.selection.item
-	//	            }
-	//	     }
-			 tabs.add("Potential", potentialTab)
-		 }
+
 		 
 		 // Chromatic aberration tab
 		 def chromaticAberTab {
-			val chroTab = new JPanel(new GridLayout(3,1));
+			val chroTab = new JPanel(new GridLayout(2,1));
 	        chroTab.setPreferredSize(new Dimension(380, 200));
 	
-	        chroTab.add(new JLabel("Chromatic aberration"));
-	
+	        //chroTab.add(new JLabel("Chromatic aberration"));
 	        val chromPlugin = new JButton("Find Chromatic aberration with plugin.")
 	        chromPlugin.addActionListener((e:ActionEvent) => {val x = IJ.runPlugIn("mosaic.interaction.ChromaticAberration","openImages")})
 	        chroTab.add(chromPlugin)
+	        
 	        val xIntecept = new JTextField("0.0");
 	        xIntecept.addActionListener((e:ActionEvent) => Prefs.set("ia.xIntercept", (xIntecept.getText()).toDouble))
 	        val yIntecept = new JTextField("0.0");
@@ -216,20 +220,22 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	        ySlope.addActionListener((e:ActionEvent) => Prefs.set("ia.ySlope", (ySlope.getText()).toDouble))
 	
 	        val chroValTab = new JPanel(new GridLayout(3,3));
+	        chroValTab.setPreferredSize(new Dimension(380, 150))
 	        
 	        chroValTab.add(new JLabel("Coord."));
 	        chroValTab.add(new JLabel("intercept:"));
 	        chroValTab.add(new JLabel("slope:"));
-	        chroValTab.add(new JLabel("X"));
+	        chroValTab.add(new JLabel("x axis (horizontal)"));
 	        chroValTab.add(xIntecept)
 	        chroValTab.add(xSlope)
-	        chroValTab.add(new JLabel("Y"));
+	        chroValTab.add(new JLabel("y axis (vertical)"));
 	        chroValTab.add(yIntecept)
 	        chroValTab.add(ySlope)
 	        chroTab.add(chroValTab)
 	        
 	        tabs.add("Chromatic aberration", chroTab)
 		 }
+		 
 		 def maskTab {
 			val maskT = new JPanel(new GridLayout(3,1));
 	        maskT.setPreferredSize(new Dimension(380, 200));
@@ -246,7 +252,122 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	        tabs.add("Mask", maskT)
 			 
 		 }
+	 }
 	 
+	 def analyzingGUI {
+		 	analyzingTabs.setVisible(false) // setVisible(true), when q(d) and D is available
+		    superPanel.add(analyzingTabs)
+        	potentialTab
+			nonParametricPotTab
+			nonParamTestTab
+		 		 
+		 		 
+		 def potentialTab {
+			 val potentialTab = new JPanel()
+			 potentialTab.setPreferredSize(new Dimension(400, 100));
+	
+			 val potentialPanel = new JPanel(new GridLayout(3,2))
+			 potentialPanel.setPreferredSize(new Dimension(380, 100));
+
+			 potentialPanel.add(new JLabel("Potential shape"))
+			 val scalaCB: ComboBox[Potential] = new ComboBox(PotentialFunctions.parametricPotentials) {
+				 renderer = swing.ListView.Renderer(_.name) // The renderer is just the name field of the Potential class.
+			 }
+		     scalaCB.peer.addActionListener((e:ActionEvent) => model.potentialShape = scalaCB.selection.item)
+		     potentialPanel.add(scalaCB.peer)
+	// scala swing style seems not to work, probably problem with event types (scala and java mixed)
+	//	     scalaCB.listenTo(scalaCB)
+	//	     scalaCB.reactions += {
+	//	            case scala.swing.event.SelectionChanged(`scalaCB`) => {
+	//	            	model.potentialShape = scalaCB.selection.item
+	//	            }
+	//	     }
+		     potentialTab.add(potentialPanel)
+		     
+		     val mcSamples = new JTextField("1000");
+	         val alpha = new JTextField("0.05");
+		     
+		     potentialPanel.add(new JLabel("Monte Carlo Samples"))
+		     potentialPanel.add(mcSamples)
+		     potentialPanel.add(new JLabel("Significance Level"))
+		     potentialPanel.add(alpha)
+		     def setPrefs {
+	        	HypothesisTesting.K = (mcSamples.getText()).toInt//; Prefs.set("pPT.mcSamples", HypothesisTesting.K)
+	        	HypothesisTesting.alpha = (alpha.getText()).toDouble//; Prefs.set("pPT.alpha", HypothesisTesting.alpha)
+	        }
+		     
+		     
+		     potentialTab.add(paramPot)
+		     paramPot.addActionListener((e:ActionEvent) => {setPrefs;parametricPotentialEstimation})
+
+			 analyzingTabs.add("Parametric Potential", potentialTab)
+		 }
+		 
+		 def nonParametricPotTab {
+			  val nonParPotTab = new JPanel()
+			 nonParPotTab.setPreferredSize(new Dimension(400, 100));
+	
+			 val potentialPanel = new JPanel(new GridLayout(3,2))
+			 potentialPanel.setPreferredSize(new Dimension(380, 100));
+			 potentialPanel.add(new JLabel("Potential"))
+			 val scalaCB: ComboBox[Potential] = new ComboBox(PotentialFunctions.nonParametricPotentials) {
+				 renderer = swing.ListView.Renderer(_.name) // The renderer is just the name field of the Potential class.
+			 }
+		     scalaCB.peer.addActionListener((e:ActionEvent) => model.potentialShape = scalaCB.selection.item)
+		     potentialPanel.add(scalaCB.peer)
+			 
+		     val smoothness = new JTextField("2");
+		     val nbrParameter = new JTextField("10");
+	        
+		     potentialPanel.add(new JLabel("# Support Points"))
+		     potentialPanel.add(nbrParameter)
+		     potentialPanel.add(new JLabel("Smoothness"))
+		     potentialPanel.add(smoothness)
+		     
+		     def setPrefs {
+		    	 Prefs.set("nPP.smoothness",(smoothness.getText()).toDouble)
+		    	 Prefs.set("nPP.nbrParameter", (nbrParameter.getText()).toInt)
+	        }
+
+		     nonParPotTab.add(potentialPanel)
+		     
+
+			 nonParPotTab.add(nonParamPot)
+			 nonParamPot.addActionListener((e:ActionEvent) => {
+				 setPrefs
+				 nonParametricPotentialEstimation
+			 })
+			 analyzingTabs.add("Non-Parametric Potential", nonParPotTab)
+		 }
+		 
+		 def nonParamTestTab {
+			 val nonParTestTab = new JPanel(new GridLayout(4,2))
+			 
+			val bins = new JTextField("20");
+	        val mcSamples = new JTextField("1000");
+	        val alpha = new JTextField("0.05");
+	        
+	        nonParTestTab.add(new JLabel("Distance Count Bins"))
+	        nonParTestTab.add(bins)
+	        nonParTestTab.add(new JLabel("Monte Carlo Samples"))
+	        nonParTestTab.add(mcSamples)
+	        nonParTestTab.add(new JLabel("Significance Level"))
+			nonParTestTab.add(alpha)
+			 
+			def setPrefs {
+	        	HypothesisTesting.L = (bins.getText()).toInt//; Prefs.set("nPT.bins",HypothesisTesting.L)
+	        	HypothesisTesting.K = (mcSamples.getText()).toInt//; Prefs.set("nPT.mcSamples", HypothesisTesting.K)
+	        	HypothesisTesting.alpha = (alpha.getText()).toDouble//; Prefs.set("nPT.alpha", HypothesisTesting.alpha)
+	        }
+			 
+			 nonParTestTab.add(nonParamTest)
+			 nonParamTest.addActionListener((e:ActionEvent) => {
+				 setPrefs
+				 nonParametricTest})
+			 analyzingTabs.add("Non-Parametric Test", nonParTestTab)
+			 
+		 }
+		 
 	 }
 	 
 	 def actionPerformed(e: ActionEvent) {
@@ -258,9 +379,12 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
         }
         
         
-        if (origin==analyze) {
+        if (origin==distCalc) {
         	calculateDistances
-        	analyzeDistances
+        	
+        	// analyzing GUI
+        	analyzingTabs.setVisible(true)
+
         }
     }
 	 
@@ -287,19 +411,19 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
     	imgAS.peer.removeAllItems()
     	imgBS.peer.removeAllItems()
     	val imgList = getImgList
-        imgList.map(imgAS.peer.addItem(_))
-        imgList.map(imgBS.peer.addItem(_))
+        imgList.foreach(imgAS.peer.addItem(_))
+        imgList.foreach(imgBS.peer.addItem(_))
         
         var nbImg= imgList.size
         
         if (nbImg<2){
             tabs.setSelectedIndex(0);
             tabs.setEnabled(false);
-            analyze.setEnabled(false);
+            distCalc.setEnabled(false);
             warning.setText("At least 2 images should be opened to run interaction analysis");
         }else{
             tabs.setEnabled(true);
-            analyze.setEnabled(true);
+            distCalc.setEnabled(true);
             warning.setText(warText); 
             
             if (imp(0) == null)
@@ -311,6 +435,14 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 
         }
     }
+	
+	def getComboBox(imgList: List[ImagePlus], i:Int): ComboBox[ImagePlus] = {
+		 new ComboBox(imgList) {
+				 renderer = swing.ListView.Renderer(_.getTitle) // The renderer is just the title field of the ImagePlus class.
+				 peer.addActionListener((e:ActionEvent) => setImage(selection.item,i) )
+				 peer.setModel(new DefaultComboBoxModel) // <- to be mutable
+			 }
+	}
 		 
 	def imageOpened(imp: ImagePlus){
         updateImgList(imp)
@@ -328,26 +460,34 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
     	val (domainSize,isInDomain,refGroup, testGroup) = inputSource match {
 				case 0 => generateModelInputFromImages
 				case 1 => MatlabData.readModelInput
-				case 2 => InteractionModelTest.readMatlabData
+				case 2 => InteractionModelTest.readMatlabData // Debug input
 		}
+    	
+    	//	no image data is used after point detection, so now images below here
+
     	if (refGroup != null) {
     		    	
 			println("Image size " + domainSize(0) + "," + domainSize(1) + "," + domainSize(2) +  ", Sizes of refGroup, testGroup: " + refGroup.size + "," + testGroup.size)
-	//		no images below here
 			
 			val refGroupInDomain = refGroup.filter(isInDomain)
 			val testGroupInDomain = testGroup.filter(isInDomain)
 			println("In domain: Sizes of refGroupInDomain, testGroupInDomain: " + refGroupInDomain.size + "," + testGroupInDomain.size)
-	
-	// nearest neighbor search(2x)
-			model.initNearestNeighbour(refGroupInDomain)
-			model.qOfd = model.calculateQofD(model.meshInCell(domainSize, isInDomain), model.getDistances)
-			model.D = model.findD(testGroupInDomain)
-			model.pOfD = model.estimateDensity(model.D)
-    	}
+		
+			if (refGroupInDomain.size < 1 || testGroupInDomain.size < 10) {
+				IJ.showMessage("Warning","Not enough points in domain: Reference Y, X: " + refGroupInDomain.size + "," + testGroupInDomain.size + ".\n Check mask, ROI and domain size.")
+			}else {
+				// (2x) nearest neighbor search, for q(d) and for D
+				model.initNearestNeighbour(refGroupInDomain)
+				model.qOfd = model.calculateQofD(model.meshInCell(domainSize, isInDomain), model.getDistances)
+				model.D = model.findD(testGroupInDomain)
+				// kernel density estimation for q(d)
+				model.pOfD = model.estimateDensity(model.D)
+    		}
+		}
+    	
     }
 	
-	def analyzeDistances {
+	def parametricPotentialEstimation {
 	//		nll optimization CMA
 			val fitfun = new LikelihoodOptimizer(new DenseVector(model.qOfd._1), new DenseVector(model.qOfd._2),new DenseVector(model.D), model.potentialShape.function);
 			(model.potentialShape.nbrParam,model.potentialShape.nonParamFlag) match { case (nbr,flag) => fitfun.nbrParameter = nbr;fitfun.nonParametric = flag }
@@ -363,7 +503,26 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 			HypothesisTesting.N = model.D.size
 			HypothesisTesting.f = model.potentialShape.function(_,PotentialFunctions.defaultParameters(estimatedPotentialParameter).tail)
 			val D = new DenseVector(model.D)
-			HypothesisTesting.testHypothesis(qD, D)
-			HypothesisTesting.testNonParamHypothesis(qD, D)
+			val testResult = HypothesisTesting.testHypothesis(qD, D)
+			IJ.showMessage("Parametric Potential Test: Results", testResult._3)
+
+	}
+	
+	def nonParametricPotentialEstimation{
+			//		nll optimization CMA
+			val fitfun = new LikelihoodOptimizer(new DenseVector(model.qOfd._1), new DenseVector(model.qOfd._2),new DenseVector(model.D), model.potentialShape.function);
+			fitfun.nonParametricSmoothness = Prefs.get("nPP.smoothness",2)
+			fitfun.nbrParameter = Prefs.get("nPP.nbrParameter",5).toInt
+			fitfun.nonParametric = true
+			val estimatedPotentialParameter = model.potentialParamEst(fitfun)
+	}
+	
+	def nonParametricTest {
+		val qD = new QDistribution(new DenseVector(model.qOfd._1), new DenseVector(model.qOfd._2))
+		HypothesisTesting.N = model.D.size
+		HypothesisTesting.maxdInDomain = model.qOfd._2.last // greatest distance for which q(d) > 0
+		val D = new DenseVector(model.D)
+		val testResult = HypothesisTesting.testNonParamHypothesis(qD, D)
+		IJ.showMessage("Non-Parametric Test: Results", testResult._3)
 	}
 }
