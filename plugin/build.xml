@@ -14,6 +14,8 @@
 	<property name="scala.home" value="/usr/local/scala/"/>
 	<property name="scala-compiler.jar" value="${scala.home}/lib/scala-compiler.jar"/>
 	<property name="scala-library.jar" value="${scala.home}/lib/scala-library.jar"/>
+	<property name="scala-swing.jar" value="${scala.home}/lib/scala-swing.jar"/>
+
 	
 	<target name="main" depends="clean,build,compress" description="Main target">
 		<echo>
@@ -28,19 +30,22 @@
 	 	<jar jarfile="${pluginsDir}/${jarfilename}.jar" update="true">
 	 		<fileset dir="." includes="plugins.config" />
 			<fileset dir="${build}" includes="**/*.*" />
-			<fileset dir="." includes="macros/*.ijm" /> 
+			<fileset dir="." includes="macros/*.ijm" />
 	 		
 	 		<!--Add Scala, Scalala, ScalaNLP and there dependencies to Mosaic Toolbox jar -->
 
  			<!-- Add needed libs directly to the IJ eclipse project and not into the MosaicToobox.jar, for faster debugging -->
-
-	 		<!--<fileset dir="../Scalala/target/classes/" includes="**/*.*" />
-	 			<fileset dir="../scalanlp-core/learn/target/classes/" includes="**/*.*" />
-	 			<fileset dir="../scalanlp-core/data/target/classes/" includes="**/*.*" /> -->
-	 			<!--<zipfileset src="${scala-library.jar} " includes="**/*.class"/>	-->
+			<!--
 	 		
-	 			<!-- Add needed libs directly to the IJ eclipse project and not into the MosaicToobox.jar, for faster debugging -->
-	 			<!-- <zipgroupfileset dir="../lib" includes="*.jar"/>-->	
+	 			<fileset dir="../Scalala/target/classes/" includes="**/*.*" />
+	 			<fileset dir="../scalanlp-core/learn/target/classes/" includes="**/*.*" />
+	 			<fileset dir="../scalanlp-core/data/target/classes/" includes="**/*.*" /> 
+	 			<zipfileset src="${scala-library.jar}" includes="**/*.class"/>
+	 			<zipfileset src="${scala-swing.jar}" includes="**/*.class"/>
+	 		
+	 			<zipgroupfileset dir="../lib" includes="*.jar"/>
+ 				<zipgroupfileset dir="../Scalala/lib" includes="*.jar"/>
+			-->
 	 		
 			<manifest>
 	 			<attribute name="Built-By" value="${user.name}"/>
