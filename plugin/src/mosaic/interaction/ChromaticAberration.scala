@@ -76,17 +76,17 @@ class ChromaticAberration extends PlugIn with ImagePreparation {
 		clf()
 		println ("Regression X coord")
 		val (xIntecept,xSlope) = executeRegression(dataX, xShifts, xPos, n)
-		title("x axis")
+		title("x Axis")
 		
 		subplot(2,1,2)
 		// Regression Y
 		println ("Regression Y coord")
 		val (yIntecept,ySlope) = executeRegression(dataY, yShifts, yPos, n)
-		title("y axis")
+		title("y Axis")
 		
 		IJ.showMessage("Estimated Chromatic Aberration",
-				"x axis: intercept = " + xIntecept + " , slope = " + xSlope +"\n"+
-				"y axis: intercept = " + yIntecept + " , slope = " + ySlope  )
+				"x Axis: Intercept = " + xIntecept + " , Slope = " + xSlope +"\n"+
+				"y Axis: Intercept = " + yIntecept + " , Slope = " + ySlope  )
 	}
 	
 	private def executeRegression(data: Array[Array[Double]], shifts: Array[Double], pos: DenseVector, n: Int): (Double,Double) = {
@@ -120,8 +120,8 @@ class ChromaticAberration extends PlugIn with ImagePreparation {
 		scatter(pos ,new DenseVector(shifts), DenseVector(n)(0.8), DenseVector(n)(0.8))
 		hold(true)
 		plot(pos, pos * slope + intercept)
-		xlabel("coordinates " + " Nbr: " + pos.size)
-		ylabel("shifts")
+		xlabel("Coordinates")// + " Nbr: " + pos.size)
+		ylabel("Shifts")
 		hold(false)
 		(intercept, slope)
 	}

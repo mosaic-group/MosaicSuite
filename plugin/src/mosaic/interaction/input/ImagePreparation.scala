@@ -125,7 +125,7 @@ trait ImagePreparation {//extends PreviewInterface {
 		
 		detectors = imp.map(getDetector(_))
 		
-		gd = new GenericDialog("Particle detection...", IJ.getInstance());
+		gd = new GenericDialog("Particle Detection...", IJ.getInstance());
 		detectors(0).addUserDefinedParametersDialog(gd);
 //		gd.addPanel(detector.makePreviewPanel(this, impA), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));	        
 

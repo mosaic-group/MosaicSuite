@@ -46,7 +46,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 		 
 		 
 		 // Main GUI
-		 frame = new JFrame("Co-Localization Interaction Plugin")
+		 frame = new JFrame("Object-based Interaction Analysis Plugin")
 		 frame.setSize(400, 720)
 		 frame.setResizable(true)
 		 frame.setVisible(true)
@@ -73,7 +73,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 		 paramPot.addActionListener(this)
 		 nonParamPot=new JButton("Estimate Non-Parametric Potential")
 		 nonParamPot.addActionListener(this)
-		 nonParamTest=new JButton("Test with Non-Parametric Statistic")
+		 nonParamTest=new JButton("Non-Parametric Test")
 		 nonParamTest.addActionListener(this)
 
 
@@ -180,8 +180,8 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 			val aboutsubTab1=new JPanel();
 	        aboutsubTab1.setPreferredSize(new Dimension(380, 145));
 	        val aboutTxt = new JTextArea("Please refer to and cite:\n "+
-	        			"Jo A. Helmuth, Beyond co-localization: inferring spatial \n "+
-	        			"interactions between sub-cellular structures from microscopy images "+
+	        			"Jo A. Helmuth et al.,   Beyond co-localization: \n inferring spatial "+
+	        			"interactions between \n sub-cellular structures from microscopy images "+
 	        			"\n\n\nFreely downloadable from:\nhttp://www.biomedcentral.com/1471-2105/11/372");
 	        aboutTxt.setSize(380,155);
 	        aboutTxt.setLineWrap(true);
@@ -207,7 +207,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 	        chroTab.setPreferredSize(new Dimension(380, 200));
 	
 	        //chroTab.add(new JLabel("Chromatic aberration"));
-	        val chromPlugin = new JButton("Find Chromatic aberration with plugin.")
+	        val chromPlugin = new JButton("Find Chromatic Aberration with plugin.")
 	        chromPlugin.addActionListener((e:ActionEvent) => {val x = IJ.runPlugIn("mosaic.interaction.ChromaticAberration","openImages")})
 	        chroTab.add(chromPlugin)
 	        
@@ -224,24 +224,24 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 	        chroValTab.setPreferredSize(new Dimension(380, 150))
 	        
 	        chroValTab.add(new JLabel("Coord."));
-	        chroValTab.add(new JLabel("intercept:"));
-	        chroValTab.add(new JLabel("slope:"));
-	        chroValTab.add(new JLabel("x axis (horizontal)"));
+	        chroValTab.add(new JLabel("Intercept:"));
+	        chroValTab.add(new JLabel("Slope:"));
+	        chroValTab.add(new JLabel("x Axis (horizontal)"));
 	        chroValTab.add(xIntecept)
 	        chroValTab.add(xSlope)
-	        chroValTab.add(new JLabel("y axis (vertical)"));
+	        chroValTab.add(new JLabel("y Axis (vertical)"));
 	        chroValTab.add(yIntecept)
 	        chroValTab.add(ySlope)
 	        chroTab.add(chroValTab)
 	        
-	        tabs.add("Chromatic aberration", chroTab)
+	        tabs.add("Chromatic Aberration", chroTab)
 		 }
 		 
 		 def maskTab {
 			val maskT = new JPanel(new GridLayout(3,1));
 	        maskT.setPreferredSize(new Dimension(380, 200));
 	
-	        val openMask = new JButton("Open an existing binary "+ model.dim +"D image as mask.")
+	        val openMask = new JButton("Open an existing binary "+ model.dim +"D image as a mask.")
 	        openMask.addActionListener((e:ActionEvent) => {
 	        	cellOutline = new input.CellOutline(openImage(model.dim), true)
 	        })
@@ -270,7 +270,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 			 val potentialPanel = new JPanel(new GridLayout(3,2))
 			 potentialPanel.setPreferredSize(new Dimension(380, 100));
 
-			 potentialPanel.add(new JLabel("Potential shape"))
+			 potentialPanel.add(new JLabel("Potential Shape"))
 			 val scalaCB: ComboBox[Potential] = new ComboBox(PotentialFunctions.parametricPotentials) {
 				 renderer = swing.ListView.Renderer(_.name) // The renderer is just the name field of the Potential class.
 			 }
@@ -421,7 +421,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
             tabs.setSelectedIndex(0);
             tabs.setEnabled(false);
             distCalc.setEnabled(false);
-            warning.setText("At least 2 images should be opened to run interaction analysis");
+            warning.setText("At least 2 images should be opened to run Interaction Analysis");
         }else{
             tabs.setEnabled(true);
             distCalc.setEnabled(true);

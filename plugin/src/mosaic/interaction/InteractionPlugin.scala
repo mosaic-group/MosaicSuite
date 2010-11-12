@@ -11,7 +11,7 @@ class InteractionPlugin extends PlugIn with InteractionGUI  {
 		if (arg == "about") {
 			showAbout
 		} else {
-			println("Run Interaction Plugin ")
+			println("Run the Object-based Interaction Analyis Plugin ")
 			GUI()			
 		}	
 	}
@@ -20,8 +20,8 @@ class InteractionPlugin extends PlugIn with InteractionGUI  {
 	 * Shows an ImageJ message with info about this plugin
 	 */
 	private def showAbout() {
-		IJ.showMessage("Interaction estimation based on statistical object-based co-localization framework",
-				"TODO, shift the blame on the developper." //TODO showAbout   
+		IJ.showMessage("Interaction estimation based on a statistical object-based co-localization framework.",
+				"Shift the blame on the developper, for everything." //TODO showAbout   
 		);
 	}
 }
