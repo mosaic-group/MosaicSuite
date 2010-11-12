@@ -23,7 +23,7 @@ object HypothesisTesting {
 	 * @param qDist : H0 null hypothesis q(d)
 	 * @param pDist : H1 p(d)
 	 */
-	def testHypothesis(qDist: Rand[Double], D: Vector) = {
+	def testHypothesis(qDist: Rand[Double], D: Vector): (Boolean, Int, String) = {
 		// See section 5. 'Improving statistical power with Non-step potential' in paper "Beyond co-localization: ..."
 		val Ts = new Array[Double](K)
 		for (i <- (0 until K)) {
@@ -39,7 +39,10 @@ object HypothesisTesting {
 		val T = calculateT(D)
 		
 		val H0  = isH0rejected(T, Ts)
-		println("Hypothesis alternative is " + H0._1 + ", ranked as: " + H0._2 + " of K = " + K + ". N = " + N)	
+		val result = "Hypothesis alternative is " + H0._1 + ", ranked as: " + H0._2 + " of K = " + K + ". Monte Carlo Samples N = " + N
+
+		println(result)	
+		(H0._1, H0._2, result)
 	}
 	
 	def calculateT(d:scalala.tensor.Vector): Double ={
@@ -50,7 +53,7 @@ object HypothesisTesting {
 	/**
 	 * @param dist
 	 */
-	def testNonParamHypothesis(qDist: Rand[Double], D:Vector) = {
+	def testNonParamHypothesis(qDist: Rand[Double], D:Vector): (Boolean, Int, String) = {
 		// See subsection 8.3 'Test for Interaction' in paper "Beyond co-localization: ..."
 		// Sample T from the null distribution to calculate E(T) and Cov(T)
 		val TsforEandCov = new DenseMatrix(K,L)
@@ -87,7 +90,10 @@ object HypothesisTesting {
 		val U = calculateU(T, EofT, covOfTInverse)
 		
 		val H0 = isH0rejected(U, Us)
-		println("Non-param: Hypothesis alternative is " + H0._1 + ", ranked as: " + H0._2 + " of K = " + K + ". N = " + N)	
+		val result = "Hypothesis alternative is " + H0._1 + ", ranked as: " + H0._2 + " of K = " + K + ". Monte Carlo Samples N = " + N
+
+		println("Non-param: "+ result)	
+		(H0._1, H0._2, result)
 	}
 		
 	def distanceCounts(samples : List[Double], range: Double = this.maxdInDomain): Vector = {
