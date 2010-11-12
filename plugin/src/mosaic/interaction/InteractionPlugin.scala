@@ -3,13 +3,17 @@ package mosaic.interaction
 import ij.IJ
 import ij.plugin.PlugIn
 
-class InteractionPlugin extends PlugIn with InteractionGUI {
+class InteractionPlugin extends PlugIn with InteractionGUI  {
 
 		
 	@Override
 	def run(arg: String) {
-		println("Run Interaction Plugin ")
-		GUI()
+		if (arg == "about") {
+			showAbout
+		} else {
+			println("Run Interaction Plugin ")
+			GUI()			
+		}	
 	}
 	
 	/**

@@ -31,17 +31,29 @@ class ChromaticAberration extends PlugIn with ImagePreparation {
 		
 	@Override
 	def run(arg: String) {
-		allocateTwoImages();
+		if (arg == "about") {
+			showAbout
+			return
+		}
+		if (arg == "openImages") {
+			allocateTwoImages(false)
+		} else {			
+			allocateTwoImages()
+		}
 		detect();
 		detectors(0).linkParticles(frames, frames_number, linkrange, displacement);
 		val (shifts, shiftsPosition) = calculateShifts();
+		
+		// close second image, first image shows chromatic shifts
+		imp(1).changes = false; imp(1).close
+		
 		regression(shifts, shiftsPosition);
 	}
 
 	private def regression(shifts: Array[Array[Double]], shiftsPosition: Array[Array[Double]] ) {
 		
 		val n = shifts.length
-//TODO refactor 2map		val xShifts = shifts.map(_.apply(0))
+//TODO  may refactor 2map		val xShifts = shifts.map(_.apply(0))
 		
 		val xShifts = new Array[Double](n)
 		val yShifts = new Array[Double](n)
@@ -63,17 +75,21 @@ class ChromaticAberration extends PlugIn with ImagePreparation {
 		// Regression X
 		clf()
 		println ("Regression X coord")
-		executeRegression(dataX, xShifts, xPos, n)
+		val (xIntecept,xSlope) = executeRegression(dataX, xShifts, xPos, n)
 		title("x axis")
 		
 		subplot(2,1,2)
 		// Regression Y
 		println ("Regression Y coord")
-		executeRegression(dataY, yShifts, yPos, n)
+		val (yIntecept,ySlope) = executeRegression(dataY, yShifts, yPos, n)
 		title("y axis")
+		
+		IJ.showMessage("Estimated Chromatic Aberration",
+				"x axis: intercept = " + xIntecept + " , slope = " + xSlope +"\n"+
+				"y axis: intercept = " + yIntecept + " , slope = " + ySlope  )
 	}
 	
-	private def executeRegression(data: Array[Array[Double]], shifts: Array[Double], pos: DenseVector, n: Int) {
+	private def executeRegression(data: Array[Array[Double]], shifts: Array[Double], pos: DenseVector, n: Int): (Double,Double) = {
 		val reg = new SimpleRegression();
 		reg.addData(data);
 		var intercept :Double = 0
@@ -104,9 +120,10 @@ class ChromaticAberration extends PlugIn with ImagePreparation {
 		scatter(pos ,new DenseVector(shifts), DenseVector(n)(0.8), DenseVector(n)(0.8))
 		hold(true)
 		plot(pos, pos * slope + intercept)
-		xlabel("coordinates " + "Nbr: " + pos.size)
+		xlabel("coordinates " + " Nbr: " + pos.size)
 		ylabel("shifts")
 		hold(false)
+		(intercept, slope)
 	}
 	
 	
@@ -154,8 +171,9 @@ class ChromaticAberration extends PlugIn with ImagePreparation {
 	 * Shows an ImageJ message with info about this plugin
 	 */
 	private def showAbout() {
-		IJ.showMessage("Calibration...",
-				"TODO, shift the blame on the developper." //TODO showAbout   
+		IJ.showMessage("Chromatic Aberration Plugin",
+				"Based on a dual bead and the images of the two channels, \n " + 
+				"a linear model is fitted independently for each dimension." //TODO showAbout   
 		);
 	}
 
