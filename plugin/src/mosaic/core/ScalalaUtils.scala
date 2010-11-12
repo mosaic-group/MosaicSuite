@@ -105,4 +105,10 @@ object ScalalaUtils {
 		val cov = xc.transpose * xc
 		cov/(size(1) - (flag match { case 0 => 1; case 1 => 0})) 
 	}
+	
+	def matrix2Array(x:Matrix):Array[Array[Double]] = {
+		val array:Array[Array[Double]] = (for (i <- (0 until x.rows)) yield x.getRow(i).toArray).toArray
+		array
+	}
+	
 }

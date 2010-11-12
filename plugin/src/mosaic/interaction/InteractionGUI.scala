@@ -1,5 +1,6 @@
 package mosaic.interaction
 
+import mosaic.core.MatlabData
 import javax.swing.JTextField
 import mosaic.core.sampling.HypothesisTesting
 import mosaic.core.sampling.QDistribution
@@ -10,9 +11,7 @@ import mosaic.core.ImagePreparation
 import ij._
 import javax.swing.{JFrame, JPanel,JTabbedPane,JButton, JComboBox, JLabel, JTextArea, SwingConstants}
 import swing._
-import java.awt.GridLayout
-import java.awt.Dimension
-import java.awt.Color
+import java.awt.{GridLayout, Dimension, Color}
 import java.awt.event._
 import ij.plugin.BrowserLauncher
 import scalala.Scalala._
@@ -52,12 +51,12 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	     analyze.addActionListener(this);
 
 		 val gd = new GenericDialog("Input selection...", IJ.getInstance());
-		 gd.addChoice("Input source:", Array("Image","Matlab", "Debug"), "Image")
+		 gd.addChoice("Input source:", Array("Image","Matlab", "Matlab Debug", "Debug"), "Image")
 		 gd.showDialog()
 		 inputSource = gd.getNextChoiceIndex
 		 
 		 // TODO Remove debugging
-		 if (inputSource == 2) {
+		 if (inputSource == 3) {
 			 if (WindowManager.getIDList == null){
 				(new ij.plugin.Macro_Runner).run("JAR:macros/StacksOpen_.ijm") 
 			}
@@ -87,6 +86,9 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 			 imgTab.add(new JLabel("Image of group X"));
 			 imgTab.add(imgBS.peer)
 		 }
+		 if (inputSource == 1) 
+			 matlabInput
+		 
 		 		
 		 superPanel.add(tabs)
 		 
@@ -97,6 +99,53 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
 	   
         superPanel.add(warning);
 	    superPanel.add(analyze);
+	    
+	    def matlabInput {
+			 val matlabTab = new JPanel(new GridLayout(6,2))
+			 matlabTab.setPreferredSize(new Dimension(380, 200));
+			 superPanel.add(matlabTab)
+			 
+			// object positions
+			val matlabPath = new JTextField("filepath");
+	        val matY = new JTextField("Matrix Y");
+	        val matX = new JTextField("Matrix X");
+	
+	        val chroValTab = new JPanel(new GridLayout(3,3));
+	        
+	        matlabTab.add(matlabPath)
+	        matlabTab.add(new JLabel(""))
+	        matlabTab.add(new JLabel("reference group Y:"));
+	        matlabTab.add(new JLabel("group X:"));
+	        matlabTab.add(matY)
+	        matlabTab.add(matX)
+	        
+	        // object domain
+	        val dx = new JTextField("1");
+	        val dy = new JTextField("1");
+	        val dz = new JTextField("1");
+	        matlabTab.add(new JLabel("Domain x"));
+	        matlabTab.add(dx)
+	        matlabTab.add(new JLabel("Domain y"));
+	        matlabTab.add(dy)
+	        matlabTab.add(new JLabel("Domain z"));
+	        matlabTab.add(dz)
+	        
+	        matlabPath.addActionListener((e:ActionEvent) => setPrefs)
+	        matY.addActionListener((e:ActionEvent) => setPrefs)
+	        matX.addActionListener((e:ActionEvent) => setPrefs)
+
+	        dx.addActionListener((e:ActionEvent) => setPrefs)
+	        dx.addActionListener((e:ActionEvent) => setPrefs)
+	        dx.addActionListener((e:ActionEvent) => setPrefs)
+	        def setPrefs {
+	        	Prefs.set("ia.matlabPath", matlabPath.getText())
+	        	Prefs.set("ia.MatrixY", matY.getText())
+	        	Prefs.set("ia.MatrixX", matX.getText())
+	        	Prefs.set("ia.dx", (dx.getText()).toInt)
+	        	Prefs.set("ia.dy", (dy.getText()).toInt)
+	        	Prefs.set("ia.dz", (dz.getText()).toInt)
+	        }
+		 }
 	 
 		 def aboutTab {
 			val aboutTab = new JPanel();
@@ -250,7 +299,8 @@ trait InteractionGUI extends ImageListener with ActionListener with ImagePrepara
     
     	val (domainSize,isInDomain,refGroup, testGroup) = inputSource match {
 				case 0 => generateModelInputFromImages
-				case 1 => InteractionModelTest.readMatlabData
+				case 1 => MatlabData.readModelInput
+				case 2 => InteractionModelTest.readMatlabData
 		}
 		
 		println("Image size " + domainSize(0) + "," + domainSize(1) + "," + domainSize(2) +  ", Sizes of refGroup, testGroup: " + refGroup.size + "," + testGroup.size)
