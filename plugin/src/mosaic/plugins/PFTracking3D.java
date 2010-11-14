@@ -24,6 +24,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Random;
@@ -42,6 +43,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
+
+import mosaic.plugins.Generate_PSF.Point3D;
 
 import Jama.Matrix;
 
@@ -92,29 +95,35 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	
 	/*
 	 * Parameters
-	 */
+	 */  
+	private boolean mDebug = false;
+	private boolean mDebugWriteParticles = false;
 	protected int mNbThreads = 8;
-	protected int mNbParticles = 200;	
+	protected int mNbParticles = 120;	
 //	protected int mRepSteps = 10;
-	protected int mNbMCMCmoves = 60;
-	protected int mNbMCMCburnInMoves = 30;//mNbMCMCmoves / 2;
-	protected int mResamplingThreshold = mNbParticles / 5;
+	protected int mNbMCMCmoves = 150;
+	protected int mNbMCMCburnInMoves = 50;
+//	protected int mNbAnnealingMoves = 40;
+	protected int mResamplingThreshold; // this is set in getUserDefinedParameter
 	protected float mBackground = 10f;
 	protected String[] mDimensionsDescription;
-	protected float mSigmaPSFxy = 110f;//219;
-	protected float mSigmaPSFz = 333f;//in nm
+	protected float mSigmaPSFxy = 130f; //130 fitted to measure
+	protected float mSigmaPSFz = 255f; //255 fitted to measure
 	protected long mSeed = 8889;
 	protected int mWavelengthInNm = 515;
 	protected float mNA = 1.2f;
 	protected float mn = 1.3f;
 	protected int mTrackTillFrame = 0;
 	protected int mGaussBlurRadius = 1;
-	protected float mCovMatrixBackwardTimeHorizon = 1f; //approx 37% of information is older than x generation (except for x = 1)
+	// TODO: the following parameter is not active currently (?)
+	protected float mCovMatrixBackwardTimeHorizon = 2f; //approx 37% of information is older than x generation (except for x = 1)
 	protected boolean mEMCCDMode = false;
 	protected int mGain = 1200;
 	protected int mEMStages = 500;
 	protected float mEMStageSigma = 0.002f;
-
+	// Note that even if (mUseLikelihoodOnly==true), the particles are drawn from the prior (=proposal). 
+	protected boolean mUseLikelihoodOnly = false;	
+	
 	/*
 	 * Options
 	 */
@@ -126,8 +135,8 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	/*
 	 * Monitoring variables 
 	 */
-	protected boolean mDoMonitorIdealImage = false; //TODO: entfernen!
-	protected boolean mDoMonitorParticles = true;
+	protected boolean mDoMonitorIdealImage = false; //TODO: remove
+	protected boolean mDoMonitorParticles = false;
 	protected ImageStack mIdealImageMonitorStack; 
 
 
@@ -226,9 +235,11 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 //			System.out.println("file exists");
 			try{
 				mPSF = IJ.openImage(vFI.directory.concat("/PSF.tif"));
+				// shift scale the image to the [0,1]- range
+				ShiftScaleIPTo0To1(mPSF.getProcessor());
 				return true;
 			} catch(Exception e){
-//				System.out.println("exceptaion raised:" + e.getMessage());
+//				System.out.println("exception raised:" + e.getMessage());
 				return false;				
 			}
 		}
@@ -241,84 +252,15 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 			IJ.showMessage("No valid initialization. No calculation started");
 			return;
 		}
-		//
-		//DEBUG Likelihood plotter
-		//
-		if(false) {
-			//CONFIG
-			int vFrameToProcess = 3;
-			int vNSamplesPerDim = 80; 
-			mNbParticles = vNSamplesPerDim*vNSamplesPerDim;//*vNSamplesPerDim;
-			mNFrames = 3; //heap space issue
-			FeatureObject vFO = new FeatureObject(new float[]{
-					4342.222f,3244.6897f,3699.7817f,
-					3492.6204f,3020.8813f,3669.8538f,
-					2840.188f,2373.5547f,3718.037f,
-					99.25847f,107.99541f,70.88709f},vFrameToProcess);
-			float vAS = 2840.188f - 60f; float vAInc = 1f; //7px x 160 nm
-			float vBS = 2373.5547f - 80f; float vBInc = 1f;
-			int vADim = 6;
-			int vBDim = 7;
-			
-			//ENDCONFIG
-			
-			
-			mFeatureObjects.add(vFO);
-			//create particles
-			createParticles(vFO,vFrameToProcess);
 
-			float vA = vAS;
-			float vB = vBS;
-			for(int vPC = 0; vPC < mNbParticles; vPC++){
-				vFO.mParticles[vPC][vADim] = vA;
-				vFO.mParticles[vPC][vBDim] = vB;
-				
-				vA += vAInc;
-				if((vPC+1)%vNSamplesPerDim==0) {
-					vA = vAS;
-					vB += vBInc;
-				}
-			}
-			 
-			updateParticleWeights(getAFrameCopy(mOriginalImagePlus, vFrameToProcess), vFO.mParticles);
-			normalizeWeights(vFO.mParticles);
-			//write the weights in a file
-			BufferedWriter vW = null;
-			try {
-				vW = new BufferedWriter(new FileWriter(getTextFile("_TOPLOT.txt")));
-				int vPCounter = 0;
-				for(float [] vP : vFO.mParticles) {
-					vW.write(vP[vADim] + "\t" + vP[vBDim] + "\t" + vP[12] + "\t" + vP[13] + "\n");
-					vPCounter++;
-//					if(vPCounter%vNSamplesPerDim == 0) {
-//						vW.newLine();
-//					}
-				}
-				
-			}catch(IOException aIOE) {
-				aIOE.printStackTrace();
-				return;
-			}
-			finally {
-				try { vW.close(); } catch(IOException aIOE) { 
-					aIOE.printStackTrace();
-					return;
-				}
-			}
-			return;
-		}
-		
-		//
-		//END DEBUG
-		//
 		if (!showParameterDialog()) return;
 		
 		mStartingFrame = mZProjectedImagePlus.getCurrentSlice();
 		
 		initVisualization();
 		
-		runParticleFilter(mOriginalImagePlus);
-
+		runParticleFilter(mOriginalImagePlus);		
+		
 		//
 		// save or write data to screen
 		//
@@ -462,7 +404,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		for(int vFrameIndex = mStartingFrame; vFrameIndex <= mNFrames && vFrameIndex <= mTrackTillFrame; vFrameIndex++){
 			IJ.showProgress(vFrameIndex,aImagePlus.getNFrames());	
 			IJ.showStatus("Particle Filter in progress at frame: " + vFrameIndex);
-		
+//		System.out.println("f"+vFrameIndex);
 			//
 			// preprocess the frame
 			//
@@ -475,40 +417,10 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 			//
 			// begin processing the frame
 			//
-			// save a copy of the original sigma to restore it afterwards
-//			float[] vSigmaOfRWSave = new float[mSigmaOfRandomWalk.length];
-//			for(int vI = 0; vI < mSigmaOfRandomWalk.length; vI++) {
-//				vSigmaOfRWSave[vI] = mSigmaOfRandomWalk[vI];
-//			}
+
 			for(FeatureObject vFO : mFeatureObjects) {
-				//DEBUG test single particle
-				if(false){
-					int vNbParticles = 200;
-					float[][] vParticles = new float[vNbParticles][];
-					for(int i = 0; i < vNbParticles; i++){
-						vParticles[0+i] = new float[]{1505.8484f,3077.6335f,2335.8364f,2296.7537f,3140.6672f,2391.5461f,3791.4932f,3779.231f,2344.6138f,50+i,61.033524f,68.07729f,0f,0f};
-//						vParticles[10+i] = new float[]{1.8344e3f, 3.0877e3f-50+10*i, 2.4096e3f, 0.857e3f, 0.0015e3f, 0.0001e3f, 1.6362e3f, 0.0001e3f, 0.0003e3f, 0.1192e3f, 0.1192e3f, 0.1192e3f, 0f, 0f};
-//						vParticles[20+i] = new float[]{1.8344e3f, 3.0877e3f, 2.4096e3f-50+10*i, 0.8557e3f, 0.0015e3f, 0.0001e3f, 1.6362e3f, 0.0001e3f, 0.0003e3f, 0.1192e3f, 0.1192e3f, 0.1192e3f, 0f, 0f};
-//						vParticles[30+i] = new float[]{1.8344e3f, 3.0877e3f, 2.4096e3f, 0.8557e3f-50+10*i, 0.0015e3f, 0.0001e3f, 1.6362e3f, 0.0001e3f, 0.0003e3f, 0.1192e3f, 0.1192e3f, 0.1192e3f, 0f, 0f};
-//						vParticles[40+i] = new float[]{1.8344e3f, 3.0877e3f, 2.4096e3f, 0.8557e3f, 0.0015e3f, 0.0001e3f, 1.6362e3f-50+10*i, 0.0001e3f, 0.0003e3f, 0.1192e3f, 0.1192e3f, 0.1192e3f, 0f, 0f};
-					}
-					float[][] vStackProcs = new float[mNSlices][];
-					float vPxWidthInNm = getPixelWidthInNm();
-					float vPxDepthInNm = getPixelDepthInNm();
-					for(int vZ = 0; vZ < mNSlices; vZ++){
-						vStackProcs[vZ] = (float[])vCurrentFloatFrame.getProcessor(vZ+1).getPixels();
-					}
-					boolean[][][] vBitmap = generateParticlesIntensityBitmap_3D(vParticles, mWidth, mHeight, mNSlices);
-					for(int i = 0; i < vNbParticles; i++) {
-						vParticles[i][12] = calculateLogLikelihood_3D(vStackProcs, generateIdealImage_3D(mWidth, mHeight, mNSlices, vParticles[i], (int)mBackground, vPxWidthInNm, vPxDepthInNm), 
-								vBitmap);
-					}
-					printParticleSet(vParticles,"");
-					return;
-				}
-				//END DEBUG
 				
-				
+								
 				//check if this object is already running/aborted or has a valid initialisation at the current frame
 				if(vFO.checkObjectForInitializationAtFrame(vFrameIndex)) {
 					//if yes, particles have to be newly created for this object!
@@ -526,9 +438,11 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 
 				float[] vNewState = new float[vFO.getDimension()];
 
+				float[][] vCopyOfParticles = copyParticleVector(vFO.mParticles);
+				
 				drawNewParticles(vFO.mParticles); //draw the particles at the appropriate position.
 
-				updateParticleWeights(vCurrentFloatFrame,vFO.mParticles);
+				updateParticleWeights(vCurrentFloatFrame, vFO.mParticles, vCopyOfParticles);
 				normalizeWeights(vFO.mParticles);
 
 
@@ -547,9 +461,11 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 					
 				//To get a good initialization for the mcmc moves, a resampling is appropriate here
 //				forcedResample(vFO.mParticles);
-				performMCMCMovesWithResampling(vCurrentFloatFrame, vFO, vFrameIndex);
+				
+				performMCMCMovesWithResampling(vCurrentFloatFrame, vFO, vFrameIndex, vCopyOfParticles);
 				
 				float[][] vFinalParticleSet = integrateMCMCHistoryToParticleSet(vFO, vFrameIndex, mNbMCMCburnInMoves+1, mNbMCMCmoves);
+				
 				//TODO: The next step is wrong. it does not yield the recursive scheme of the sequential mc->to do bridging steps
 //				calculateWeigthsFromLogLikelihoods(vFinalParticleSet);
 				
@@ -618,6 +534,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		System.out.println("end of run method");
 	}
 	
 	protected boolean createParticleVisualization(float[][] aSetOfParticles) {
@@ -880,14 +797,33 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 //		}
 //	}
 
+	public float[][] copyMatrix(float[][] aSource)
+	{
+		float vCopy[][] = new float[aSource.length][aSource[0].length];
+		for (int vA=0;vA < aSource.length; vA++)
+		{
+			System.arraycopy(aSource[vA],0,vCopy[vA],0,aSource[vA].length);
+		}
+		return vCopy;
+	}
+
+
+
 	private void updateCovMatrix(float[][] aMatrixToUpdate, float[][] aMatrix, float aBackwardTimeHorizon) {
-		
-			scaleMatrix(aMatrix, 1f / aBackwardTimeHorizon);
-			scaleMatrix(aMatrixToUpdate,  1f - (1f / aBackwardTimeHorizon));
-			addMatrixBtoA(aMatrixToUpdate, aMatrix);
-		
+		float vUpdater[][] = copyCovarianceMatrix(aMatrix);
+		scaleMatrix(vUpdater, 1f / aBackwardTimeHorizon);
+		scaleMatrix(aMatrixToUpdate,  1f - (1f / aBackwardTimeHorizon));
+		addMatrixBtoA(aMatrixToUpdate, vUpdater);
+		regularizeProposalMatrix(aMatrixToUpdate);
 	}
 	
+	private void regularizeProposalMatrix(float[][] aMatrixToRegularize) {
+		for(int vI = 0; vI < aMatrixToRegularize.length; vI++) {
+			aMatrixToRegularize[vI][vI] += 1; //TODO: application class should specify this value.
+		}
+		
+	}
+
 	private void scaleMatrix(float[][] aMatrix, float aScale) {
 		for(int vI = 0; vI < aMatrix.length; vI++) {
 			for(int vJ = 0; vJ < aMatrix[vI].length; vJ++) {
@@ -960,8 +896,8 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		float[] vWeightedMean = new float[vDimOfState];
 		for (float[] vParticle : aPartilces) {
 			for(int vI = 0; vI < vDimOfState; vI++) {
-				vWeightedMean[vI] += vParticle[vI] / (float)vNbParticles;// * vParticle[vDimOfState + 1];//falsch!
-			}
+				vWeightedMean[vI] += vParticle[vI] / (float)vNbParticles;// * vParticle[vDimOfState + 1]; // wrong !
+			} 
 		}
 		
 		//update the matrix
@@ -1144,15 +1080,15 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 				if(vI >= vNbParticles) //...so we also have to consider this case
 					break;
 			}
-			for(int vK = 0; vK <= vDimOfState; vK++){ //copy all entires, even the likelihoods!
+			for(int vK = 0; vK <= vDimOfState; vK++){ //copy all entires, also the likelihoods!
 				aParticles[vParticleCounter][vK] = vParticlesCopy[vI-1][vK];
 			}
-			aParticles[vParticleCounter][vDimOfState + 1] = VNBPARTICLES_1;
+			aParticles[vParticleCounter][vDimOfState + 1] = VNBPARTICLES_1; // set the new weight
 			vU += VNBPARTICLES_1;
 		}
 	}
+	
 	/**
-	 * 
 	 * @param aParticles set of parameters to resample.
 	 * @return true if resampling was performed, false if not.
 	 */
@@ -1166,7 +1102,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		if(vNeff > mResamplingThreshold) {
 			return false; 
 		}
-		System.out.println("Resampling");
+//		System.out.println("Resampling");
 		forcedResample(aParticles);
 
 		return true;
@@ -1231,16 +1167,16 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	 * @param aFrameIS ImageStack to calculate the weights of the particles
 	 * @param aFO The FeatureObject where the particles will perform mcmc moves
 	 * @param aFrameIndex The frame-index (1..N) of this current frame(to read out proposaldensity from covmatrix)
+	 * @param aReferenceParticleSet The particle set x_{t-1} that is used to calculate the prior pdf: p( x_t | x_{t-1} ) 
 	 */
-	private void performMCMCMovesWithResampling(ImageStack aFrameIS, FeatureObject aFO, int aFrameIndex) {
+	private void performMCMCMovesWithResampling(ImageStack aFrameIS, FeatureObject aFO, int aFrameIndex, float[][] aReferenceParticleSet) {
 		int vDimOfState = aFO.getDimension();
 		int vNbNotAccepted = 0;
 		int vNbAccepted = 0;
-		int vIterationsAfterAnnealing = 0;
-		float[][] vEstimatedCovMatrixOfLastMCMCStep = null;
+		
 		//
 		//The annealing is a part of the burn in phase. If the annealing does not end before the burn in phase is over, 
-		//a warning is written to standard out. Annealing stops if no resampling happens ->see resampling threshold.
+		//a warning is written to standard out. 
 		//
 		boolean vAnnealingPhase = true; 
 		
@@ -1254,22 +1190,32 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		//Poss 1
 		//
 //		aFO.mCovMatrix[aFrameIndex-1] = getInitialCovarianceMatrix();
+		
 		//
 		//Poss 2 (old)
 		//
 //		for(int vI = 0; vI < aFO.mCovMatrix[aFrameIndex-1].length; vI++){
 //			aFO.mCovMatrix[aFrameIndex-1][vI][vI] = mSigmaOfRandomWalk[vI]*mSigmaOfRandomWalk[vI];
 //		}
+		
 		//
 		// Poss 3
 		//
 		aFO.mCovMatrix[aFrameIndex-1] = estimateCovMatrixFromParticlePositions(aFO.mParticles);
-		System.out.println("Frame " + aFrameIndex + "\n-------------------\n");
+//		System.out.println("Frame " + aFrameIndex + "\n-------------------\n");
+		
+		// Initialize some statistics to decide when to abort
+		float[] vKLDistProposalToCurrentParticleSet = new float[mNbMCMCmoves];
+//		Arrays.fill(vKLDistProposalToCurrentParticleSet, Float.MAX_VALUE);
+		float[] vKLDistProposalToHistory = new float[mNbMCMCmoves];
+		int[] vAcceptedMoves = new int[mNbMCMCmoves];
+		float[] vNeff = new float[mNbMCMCmoves];
+		
 		for(int vMCMCStep = 0; vMCMCStep < mNbMCMCmoves; vMCMCStep++) {
+			
 			float[][] vProposalSet = new float[aFO.mParticles.length][vDimOfState+2];
 			
-			
-			System.out.println("Neff = " + calculateNeff(aFO.mParticles));
+			//			System.out.println("Neff = " + calculateNeff(aFO.mParticles));
 //			forcedResample(aFO.mParticles);
 			/*
 			if(vAnnealingPhase){
@@ -1303,70 +1249,50 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 				}
 			}
 			*/
-			float[][] mcmcHistory = integrateMCMCHistoryToParticleSet(aFO, aFrameIndex, Math.max(0, vMCMCStep-0), vMCMCStep);
-			float[][] vEstimatedCovFromHist = estimateCovMatrixFromParticlePositions(mcmcHistory);
-			if(vAnnealingPhase) {
+			
+			/// The mcmcHistory should represent the target distribution as good as p ossible since the proposal
+			/// will be adapted towards this distribution. The first entry in the mcmc history is the distribution proposed
+			/// by the particle filter, we will disregard this first entry.
+			float[][] vEstimatedCovFromHist = null;
+			if(vMCMCStep > 0) {
+				// TODO: how many steps should be integrated should depend on the number of accepted states:
+				float[][] mcmcHistory = integrateMCMCHistoryToParticleSet(aFO, aFrameIndex, Math.max(1, vMCMCStep-5), vMCMCStep);
+				vEstimatedCovFromHist = estimateCovMatrixFromParticlePositions(mcmcHistory);
+			}
+			if(vMCMCStep < mNbMCMCburnInMoves) { 
 				
-				if(vMCMCStep >= mNbMCMCburnInMoves) {
-//					IJ.write("Particle Filter: Warning in frame " + aFrameIndex+". There was no convergence in the annealing phase.");
-					vAnnealingPhase = false;
-				}
-				//the resampling we have to do while annealing and also in the last annealing iteration!
-				forcedResample(aFO.mParticles);
-				if(vMCMCStep > 0) { //after first iteration
-//					updateCovMatrix(aFrameIndex,aFO,2,false);
-					
-					updateCovMatrix(aFO.mCovMatrix[aFrameIndex-1], vEstimatedCovFromHist,2);
-				}
-			}
-			
-						
-			float[][] vEstimatedMatrix = estimateCovMatrixFromParticlePositions(aFO.mParticles);
-			
-			
-			float vKLDist = Float.MAX_VALUE;
-			float vKLDist2 = Float.MAX_VALUE;
-			try{
-				vKLDist = calculateKLDistance(aFO.mCovMatrix[aFrameIndex-1], vEstimatedMatrix);
-			}catch(RuntimeException vRE) {
-				//TODO: not important
-			}
-			try{
-				vKLDist2 = calculateKLDistance(aFO.mCovMatrix[aFrameIndex-1], vEstimatedCovFromHist);
-			}catch(RuntimeException vRE) {
-				//TODO: not important
-			}
-			
-			if(Math.abs(vKLDist) < 1. && vAnnealingPhase) {
-				vAnnealingPhase = false;
-//				scaleMatrix(aFO.mCovMatrix[aFrameIndex-1], 2);
-				System.out.println("annealing ended due to KL Distance.");
-			}
-			
-			System.out.println("matrix used:\n"+matrixToString(aFO.mCovMatrix[aFrameIndex-1]));
-			System.out.println("estimated cov matrix from particle set: \n" + matrixToString(vEstimatedMatrix));
-			System.out.println("D_KL(Proposal || particles): " + vKLDist);
-			System.out.println("D_KL(Proposal || mcmcHistory): " + vKLDist2);
-			
-//			//DEBUG
-//			aFO.mCovMatrix[aFrameIndex-1][3][3] = 0;
-//			//DEBUG end
-			
-			if(!vAnnealingPhase) {
-				float vKLDist3 = Float.MAX_VALUE;				
-				try{
-					vKLDist3 = calculateKLDistance(vEstimatedMatrix, vEstimatedCovMatrixOfLastMCMCStep);
-				}catch(RuntimeException vRE) {
-					//TODO: not important
-				}
-				System.out.println("D_KL( new estimate || old estimate) = " + vKLDist3);
-			}
-			vEstimatedCovMatrixOfLastMCMCStep = copyCovarianceMatrix(vEstimatedMatrix);
-			
-//			if(!vAnnealingPhase) {
-//				updateCovMatrix(aFrameIndex,aFO,2,false);				
-//			}						
 
+				if(vAnnealingPhase) {
+					//the resampling we have to do while annealing and also in the last annealing iteration!
+//					System.out.println("resampling in annealing!");
+					forcedResample(aFO.mParticles);
+				}
+				if(vMCMCStep > 0) { //after first iteration
+//					updateCovMatrix(aFrameIndex,aFO,2,false);					
+					updateCovMatrix(aFO.mCovMatrix[aFrameIndex-1], vEstimatedCovFromHist, mCovMatrixBackwardTimeHorizon);
+				}
+			} else {
+//				if(vAnnealingPhase) {
+//					IJ.write("Particle Filter: Warning in frame " + aFrameIndex+". There was no convergence in the annealing phase.");
+//				}
+				vAnnealingPhase = false;
+			}
+									
+			float[][] vEstimatedMatrix = estimateCovMatrixFromParticlePositions(aFO.mParticles);
+
+			try{
+				vKLDistProposalToCurrentParticleSet[vMCMCStep] = calculateKLDistance(aFO.mCovMatrix[aFrameIndex-1], vEstimatedMatrix);
+			}catch(RuntimeException vRE) {
+				//TODO: not important
+			}
+			try{
+				vKLDistProposalToHistory[vMCMCStep] = calculateKLDistance(aFO.mCovMatrix[aFrameIndex-1], vEstimatedCovFromHist);
+			}catch(RuntimeException vRE) {
+				//TODO: not important
+			}
+			
+
+		
 			
 //			if(!vAnnealingPhase) {
 //				vIterationsAfterAnnealing++;
@@ -1419,10 +1345,16 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 
 			}
 			 */
+			
+			
+			//
+			// Generate propsoal set
+			//
 			for(int vP = 0; vP < aFO.mParticles.length; vP++) {
 				//copy particles and move particles according to mcmc-proposal density
 				for(int vI = 0; vI < vDimOfState; vI++) {
-					vProposalSet[vP][vI] = aFO.mParticles[vP][vI] + (float)mRandomGenerator.nextGaussian() * (float)Math.sqrt(aFO.mCovMatrix[aFrameIndex-1][vI][vI]);
+					vProposalSet[vP][vI] = aFO.mParticles[vP][vI] + 
+						(float)mRandomGenerator.nextGaussian() * (float)Math.sqrt(aFO.mCovMatrix[aFrameIndex-1][vI][vI]);
 				}
 //				for(int vI = 0; vI < vDimOfState; vI++) {
 //					vProposalSet[vP][vI] = aFO.mParticles[vP][vI] + (float)mRandomGenerator.nextGaussian() * mSigmaOfRandomWalk[vI];
@@ -1436,47 +1368,45 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 			//
 			// Update the weights (if necessary also the weights of already existing particles)
 			//
-			boolean[][][] vNewIntensityBitmap = generateParticlesIntensityBitmap_3D(vProposalSet, mWidth, mHeight, mNSlices);
-			if(!isSubset(vIntensityBitmap, vNewIntensityBitmap)) {
-				orOperation(vIntensityBitmap, vNewIntensityBitmap);
-				
-				if(vAnnealingPhase) {
-					//if we are in the annealing phase we can update the particle weights here since a Resampling procedure
-					//was perfermed before (all the particles have the same weight).
-					updateParticleWeights(aFrameIS, aFO.mParticles, vIntensityBitmap);
-				} else{
-					//if we are not in the annealing phase we just calculate the likelihoods and do not update the weights.
-					calculateLogLikelihoods(aFrameIS, aFO.mParticles, vIntensityBitmap);
-				}
-			}
-			if(vAnnealingPhase) {
-				//if we are in the annealing phase we can update the particle weights here since a Resampling procedure
-				//was perfermed before (all the particles have the same weight). We must overwrite the weights in order
-				//to prepare for the next resampling procedure.
-				updateParticleWeights(aFrameIS, vProposalSet, vIntensityBitmap);
-			} else{
-				//if we are not in the annealing phase we just calculate the likelihoods and do not update the weights.
-				calculateLogLikelihoods(aFrameIS, vProposalSet, vIntensityBitmap);
-			}
+//			boolean[][][] vNewIntensityBitmap = generateParticlesIntensityBitmap_3D(vProposalSet, mWidth, mHeight, mNSlices);
+//			if(!isSubset(vIntensityBitmap, vNewIntensityBitmap)) {
+//				orOperation(vIntensityBitmap, vNewIntensityBitmap);
+//				
+//				if(vAnnealingPhase) {
+//					//if we are in the annealing phase we can update the particle weights here since a Resampling procedure
+//					//was perfermed before (all the particles have the same weight).
+//					updateParticleWeights(aFrameIS, aFO.mParticles, vIntensityBitmap);
+//				} else {
+//					//if we are not in the annealing phase we just calculate the likelihoods and do not update the weights.
+//					calculateLogLikelihoods(aFrameIS, aFO.mParticles, vIntensityBitmap);
+//				}
+//			}
+					
+			calculateLogLikelihoods(aFrameIS, vProposalSet, vIntensityBitmap);
 			
 			//
-			//decision to move based on likelihoods only:
+			// Metropolis-Hastings (decision to move)
 			//
-			vNbAccepted = 0;
-			vNbNotAccepted = 0;
+			vNbAccepted = 0;			
 			for(int vI = 0; vI < vProposalSet.length; vI++) {
-//				float vA = vProposalSet[vI][vDimOfState + 1] / aFO.mParticles[vI][vDimOfState+1];
-				//Do not just use the weight due to numerical reason: they are close to 0 
+				
 				float vLogLikOld = aFO.mParticles[vI][vDimOfState];// - Math.max(aFO.mParticles[vI][vDimOfState], vProposalSet[vI][vDimOfState]);
 				float vLogLikNew = vProposalSet[vI][vDimOfState];// - Math.max(aFO.mParticles[vI][vDimOfState], vProposalSet[vI][vDimOfState]);
-//				float vNormalizer = vLogLikOld + vLogLikNew;
-//				vLogLikNew -= vNormalizer;
-//				vLogLikOld -= vNormalizer;
+				float vLogPriorOld = (float) Math.log(calculatePriorPDF(aFO.mParticles[vI], aReferenceParticleSet[vI])); // this cannot be -infinite since it was once accepted before
+				float vPriorNew = calculatePriorPDF(vProposalSet[vI], aReferenceParticleSet[vI]);
+
+				if(mUseLikelihoodOnly) {
+					vLogPriorOld = 0;
+					vPriorNew = 1;
+				}
 				
-				//since we are operating on particles with equal weights and the proposal distribution is the same as the 
-				//prior, we can only use the likelihood to decide if the move happens or not.
-				float vA = (float)Math.exp(vLogLikNew - vLogLikOld);
-				
+				float vA = 0; // if the prior for the proposal is 0, we will not accept the new state.
+				if(vPriorNew > Float.MIN_VALUE){
+					float vLogPriorNew = (float) Math.log(vPriorNew);
+					// subtract in log space cause of numerics.
+					vA = (float)Math.exp(vLogLikNew + vLogPriorNew - vLogLikOld - vLogPriorOld);
+				} 
+								
 				boolean vMove = false;
 				if(vA >= 1) {
 					vMove = true;
@@ -1487,7 +1417,6 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 						vNbAccepted++;
 					} else {
 						vMove = false;
-						vNbNotAccepted++;
 					}
 				}
 				float[] vWinner = null;
@@ -1497,15 +1426,82 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 				} else {
 					vWinner = aFO.mParticles[vI];
 				}
-				
-				//
-				//update history
-				//
-//				aFO.mParticleHistory.elementAt(aFrameIndex).elementAt(vI).setElementAt(copyStateVector(vWinner), vMCMCStep);
 			}
-			normalizeWeights(aFO.mParticles);
+			
+			
+			if(vAnnealingPhase) {
+				// if we are in the annealing phase we can update the particle weights here since a Resampling procedure
+				// was perfermed before (all the particles have the same weight). We must overwrite the weights in order
+				// to prepare for the next resampling procedure. The log likelihoods were computed before the MCMC moves.
+				calculateNormalizedWeigthsFromLogLikelihoods(aFO.mParticles, aReferenceParticleSet);
+			}
+			
+			//
+			// Update statistics
+			//
+			vAcceptedMoves[vMCMCStep] = vNbAccepted;
+			vNeff[vMCMCStep] = calculateNeff(aFO.mParticles);
+
+			//
+			// Annealing abort criterion
+			//
+			//TODO: this is not like in the ISBI paper, several time points  need to be considered for the derivative of (D_KL)'
+			if(vMCMCStep > 10) { // TODO: make relative to number of burn-in moves
+				if(!Float.isNaN(vKLDistProposalToHistory[vMCMCStep]) &&
+						!Float.isNaN(vKLDistProposalToHistory[vMCMCStep - 1]) &&
+						!Float.isNaN(vKLDistProposalToHistory[vMCMCStep - 2]) && 
+						!Float.isNaN(vKLDistProposalToHistory[vMCMCStep - 4])) {
+					if(Math.abs(vKLDistProposalToHistory[vMCMCStep]) < 1  || //TODO: find reasonnable value 
+							vNeff[vMCMCStep-3] > mNbParticles/4 &&
+							vNeff[vMCMCStep-2] > mNbParticles/2 &&
+							vNeff[vMCMCStep-1] > mNbParticles/2 &&
+							vNeff[vMCMCStep-0] > mNbParticles/2) {
+						vAnnealingPhase = false;
+						if(mDebug){
+							if(Math.abs(vKLDistProposalToHistory[vMCMCStep]) < 1. ) {
+								System.out.println("annealing ended due to KL Distance.");
+							} else {
+								System.out.println("annealing ended due to N_eff.");
+							}
+						}
+					}
+				}
+			}
+
+			
+			//
+			//update history
+			//
 			aFO.mParticleHistory[aFrameIndex - 1][vMCMCStep + 1] = copyParticleVector(aFO.mParticles);
-			System.out.println("Frame " + aFrameIndex + ", MCMCstep " + vMCMCStep +": Accepted: " + vNbAccepted + ", not accepted: " + vNbNotAccepted);
+
+			if(mDebug) {
+				if(mDebugWriteParticles){
+					printParticleSet(aFO.mParticles, "_particlesAtMCMCmove_" + vMCMCStep);
+				}
+				
+				System.out.println("Frame " + aFrameIndex + ", MCMCstep " + vMCMCStep + ": Acceptance rate: " + (100.0 / mNbParticles * vNbAccepted)+"%.");
+				System.out.println("D_KL(Proposal || particles): " + vKLDistProposalToCurrentParticleSet[vMCMCStep]);
+				System.out.println("D_KL(Proposal || mcmcHistory): " + vKLDistProposalToHistory[vMCMCStep]);
+				System.out.println("N_eff (approx. weight distribution variance) before resampling: " + calculateNeff(aFO.mParticles));
+				System.out.println("N_eff (approx. weight distribution variance) after moves: " + vNeff[vMCMCStep]);
+				System.out.println("Updated proposal cov matrix:\n" + matrixToString(aFO.mCovMatrix[aFrameIndex-1]));
+				System.out.println("estimated cov matrix from current particle set before MCMC moves: \n" + matrixToString(vEstimatedMatrix));
+				System.out.println("estimated cov matrix from current particle set after MCMC moves: \n" + matrixToString(estimateCovMatrixFromParticlePositions(aFO.mParticles)));
+				System.out.println("estimated cov matrix from hist(this matrix updated the proposal above):\n" + matrixToString(vEstimatedCovFromHist));
+				if(vMCMCStep > mNbMCMCburnInMoves) {
+					float[][] vFinalParticleSet = integrateMCMCHistoryToParticleSet(aFO, aFrameIndex, mNbMCMCburnInMoves+1, vMCMCStep);;
+					float[][] vTempCovMatrix = estimateCovMatrixFromParticlePositions(vFinalParticleSet);
+					System.out.println("MCMC accepted states cov matrix: \n" + matrixToString(vTempCovMatrix));
+				}
+				System.out.println("----");
+			}
+		}
+		if(mDebug) {
+			// Write the statistics to files:
+			writeTextFile(Arrays.toString(vNeff), getTextFile("_Neff.txt"));
+			writeTextFile(Arrays.toString(vKLDistProposalToCurrentParticleSet), getTextFile("_KLdistProposalToCurrentParticleSet.txt"));
+			writeTextFile(Arrays.toString(vKLDistProposalToHistory), getTextFile("_KLdistProposalToHistory.txt"));
+			writeTextFile(Arrays.toString(vAcceptedMoves), getTextFile("_NbAcceptedMCMCmoves.txt"));
 		}
 	}
 
@@ -1552,29 +1548,30 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	}
 	
 	
-	private void updateParticleWeights(ImageStack aObservationStack, float[][] aSetOfParticles) {
+	private void updateParticleWeights(ImageStack aObservationStack, float[][] aSetOfParticles, float[][] aReferenceParticleSet) {
 		boolean[][][] vBitmap = generateParticlesIntensityBitmap_3D(aSetOfParticles, mWidth, mHeight, mNSlices);
-		updateParticleWeights(aObservationStack, aSetOfParticles, vBitmap);
+		updateParticleWeights(aObservationStack, aSetOfParticles, aReferenceParticleSet ,vBitmap);
 	}
 	
 		
-	private void updateParticleWeights(ImageStack aObservationStack, float[][] aSetOfParticles, boolean[][][] aROIBitmap)
+	private void updateParticleWeights(ImageStack aObservationStack, float[][] aSetOfParticles, float[][] aReferenceParticleSet, boolean[][][] aROIBitmap)
 	{
 		calculateLogLikelihoods(aObservationStack, aSetOfParticles, aROIBitmap);
-		calculateWeigthsFromLogLikelihoods(aSetOfParticles);
+		calculateNormalizedWeigthsFromLogLikelihoods(aSetOfParticles, aReferenceParticleSet);
 	}		
 	
+
 	/**
 	 * Updates the weights of the particles in the sequential Monte Carlo scheme. Note, that first the likelihood entries
-	 * have to be updated.
+	 * have to be updated. The weights of the given particle set is normalized in the sense that they sum up to 1. 
 	 * @param aParticleSet
 	 */
-	private void calculateWeigthsFromLogLikelihoods(float[][] aParticleSet){
+	private void calculateNormalizedWeigthsFromLogLikelihoods(float[][] aParticleSet, float[][] aReferenceParticleSet){
 		int vDimOfState = aParticleSet[0].length - 2;
 		float vMaxLogLikelihood = Float.NEGATIVE_INFINITY;
 		
 		//
-		// Search max to maintain numerical stability
+		// Search max for the reference value.
 		//
 		for(int vI = 0; vI < mNbParticles; vI++) {				
 			if(aParticleSet[vI][vDimOfState] > vMaxLogLikelihood){
@@ -1582,19 +1579,36 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 			}
 		}
 		
+		//
 		// sum up the likelihoods
+		//
 		float vLogLikSum = 0;
-		for(float[] vParticle : aParticleSet){
+		for(float[] vParticle : aParticleSet) {
 			vLogLikSum += Math.exp(vParticle[vDimOfState] - vMaxLogLikelihood);
 		}
-		vLogLikSum = (float) Math.log(vLogLikSum);
+		vLogLikSum = (float) Math.log(vLogLikSum);	
+		
+		for(int vI = 0; vI < aParticleSet.length; vI++) {
+
+			//
+			// Update the weights with normalized likelihoods
+			//
+			aParticleSet[vI][vDimOfState + 1] = aParticleSet[vI][vDimOfState + 1] * 
+			(float)Math.exp(aParticleSet[vI][vDimOfState] - vLogLikSum - vMaxLogLikelihood);
+			
+			//
+			// Update the weights with the prior
+			//
+			if(!mUseLikelihoodOnly) {
+				aParticleSet[vI][vDimOfState + 1] = aParticleSet[vI][vDimOfState + 1] * 
+				calculatePriorPDF(aParticleSet[vI], aReferenceParticleSet[vI]);
+			}
+		}
 		
 		//
-		// Iterate again and update the weights with normalized likelihoods
+		// return normalized weights...
 		//
-		for(float[] vParticle : aParticleSet){
-			vParticle[vDimOfState + 1] = vParticle[vDimOfState + 1] * (float)Math.exp(vParticle[vDimOfState] - vLogLikSum - vMaxLogLikelihood);
-		}
+		normalizeWeights(aParticleSet);
 	}
 
 	/**
@@ -1626,6 +1640,10 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		}
 	}
 
+	/**
+	 * Linearly rescale the all weights such that they sum up to 1.
+	 * @param aSetOfParticles
+	 */
 	private void normalizeWeights(float[][] aSetOfParticles) {
 		float vSumOfWeights = 0;
 		int vDim = aSetOfParticles[0].length - 2;
@@ -1731,9 +1749,12 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		}
 		return mIntensityBitmap;
 	}
+	
+	abstract protected float calculatePriorPDF(float[] aSample, float[] aReferenceParticle);
 
 	/**
-	 * This method should be overrided. It declares an initial guess for the covariance matrix of the gaussian MCMC proposal distribution.
+	 * This method should be overrided. It declares an initial guess for the covariance matrix of 
+	 * the gaussian MCMC proposal distribution.
 	 * Or, since this distribution should in the optimal case be the same as the posterior distr,
 	 * this can also declare a initial guess of the accuracy of the final result.
 	 * @param aFO
@@ -1793,7 +1814,8 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 			for(int vY = 0; vY < mHeight; vY++){
 				for(int vX = 0; vX < mWidth; vX++){			
 					if(aBitmap[vZ][vY][vX]){
-						vLogLikelihood += -aGivenImage[vZ][vY][vX] + (float)aObservation[vZ][vY*mWidth+vX] * (float)Math.log(aGivenImage[vZ][vY][vX]);
+						vLogLikelihood += -aGivenImage[vZ][vY][vX] + 
+						(float)aObservation[vZ][vY*mWidth+vX] * (float)Math.log(aGivenImage[vZ][vY][vX]);
 //						if(Float.isNaN(vLogLikelihood)){
 //							System.out.println("NAN at vz = " + vZ +", vY = " + vY + ", vX = " + vX);
 //						}
@@ -1861,9 +1883,9 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 				for(int vX = 0; vX < mWidth; vX++){			
 					vLogLikelihood += -(Math.pow(aObservation[vZ][vY*mWidth+vX] - mGain*aGivenImage[vZ][vY][vX],2)/
 							(2f * vENF2 * mGain * mGain * aGivenImage[vZ][vY][vX])); 
-					if(Float.isNaN(vLogLikelihood)){
-						System.out.println("NAN at (vz = " + vZ +", vY = " + vY + ", vX = " + vX + "); aObservation = " + aObservation[vZ][vY*mWidth+vX] + ", aGivenImage = " + aGivenImage[vZ][vY][vX]);
-					}
+//					if(Float.isNaN(vLogLikelihood)){
+//						System.out.println("NAN at (vz = " + vZ +", vY = " + vY + ", vX = " + vX + "); aObservation = " + aObservation[vZ][vY*mWidth+vX] + ", aGivenImage = " + aGivenImage[vZ][vY][vX]);
+//					}
 				}
 			}
 		}
@@ -1952,6 +1974,24 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		return true;
 	}
 
+	protected boolean writeTextFile(String aText, File aFile) {
+		BufferedWriter vW = null;
+		try {
+			vW = new BufferedWriter(new FileWriter(aFile));
+			vW.write(aText); 
+		}catch(IOException aIOE) {
+			aIOE.printStackTrace();
+			return false;
+		}
+		finally {
+			try { vW.close(); } catch(IOException aIOE) { 
+				aIOE.printStackTrace();
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	/**
 	 * Writes the results to the result file.
 	 * @see getResultFile()
@@ -2364,6 +2404,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 			}
 		}
 		vGenericDialog.addNumericField("Track till frame", mTrackTillFrame, 0);
+		vGenericDialog.addNumericField("Seed", mSeed, 0);
 		vGenericDialog.addMessage("_____________");
 		vGenericDialog.addCheckbox("Electron multiplying mode", mEMCCDMode);
 		vGenericDialog.addNumericField("Linear gain", mGain, 0);
@@ -2394,6 +2435,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 			}
 		}
 		mTrackTillFrame = (int)vGenericDialog.getNextNumber();
+		mSeed = (int)vGenericDialog.getNextNumber();
 		mEMCCDMode = vGenericDialog.getNextBoolean();
 		mGain = (int)vGenericDialog.getNextNumber();
 		mEMStages = (int)vGenericDialog.getNextNumber();
@@ -2752,6 +2794,17 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		return res;
 	}
 
+	public static ImageStack convert3DArrayToImageStack(float[][][] aArray) {
+		int vNx = aArray[0][0].length;
+		int vNy = aArray[0].length;
+		int vNz = aArray.length;
+		ImageStack vIS = new ImageStack(vNy, vNx);
+		for(int vZ = 0;vZ < vNz; vZ++) {
+			vIS.addSlice("", new FloatProcessor(aArray[vZ]));			
+		}
+		return vIS;
+	}
+	
 	/**
 	 * 
 	 * @param aImageStack: the stack to crop	
@@ -2814,13 +2867,16 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 			}
 		}	
 	}
+	
 	protected void addPSF(float[][][] aPixelArray, Point3D aPoint, float aIntensity, float aPxWidthInNm, float aPxDepthInNm, float[][] aGhostImage) {
     	//the origin in the PSF map is at (offset, 0)
     	int vZOffsetPSFCoord = mPSF.getWidth() / 2;
     	
     	//calculate the maximal distance of the influence of the PSF.
-    	int vZMaxInPx = (int) ((mPSF.getWidth() / 2) * (mPSF.getCalibration().pixelWidth / aPxDepthInNm));
-    	int vRMaxInPx = (int) (mPSF.getHeight()      * (mPSF.getCalibration().pixelWidth / aPxWidthInNm));
+    	float vPSFPixelWidth = (float) mPSF.getCalibration().pixelWidth;
+    	float vPSFPixelHeight = (float) mPSF.getCalibration().pixelHeight;
+    	int vZMaxInPx = (int) Math.ceil(((float)mPSF.getWidth() / 2.0) * (vPSFPixelWidth / aPxDepthInNm));
+    	int vRMaxInPx = (int) Math.ceil(((float)mPSF.getHeight()       * (vPSFPixelHeight / aPxWidthInNm)));
     	
     	float vPX = aPoint.mX/aPxWidthInNm;
     	float vPY = aPoint.mY/aPxWidthInNm;
@@ -2832,6 +2888,13 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
     	int vZDim = mPSF.getWidth();
     	//for all the pixel in the given influence region...
     	for(int vZ = -vZMaxInPx; vZ <= vZMaxInPx; vZ++) {
+    		// calculate the distance (in z) of the px center to the voxels focal plane
+    		float vDistZInPx = (float) (Math.floor(vPZ) + vZ) - vPZ;
+//    		float vDistZInPx = (float) (Math.floor(vPZ) + vZ) - vPZ + 0.5;
+    		//check, if the distance to the true position is not too large.	
+    		if(vDistZInPx < -vZMaxInPx || vDistZInPx > vZMaxInPx) {
+    			continue;
+    		}
     		for(int vY = -vRMaxInPx; vY <= vRMaxInPx; vY++) {
     			for(int vX = -vRMaxInPx; vX <= vRMaxInPx; vX++) {
     				//check if we are in the image that is created:
@@ -2840,25 +2903,185 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
     						(int)vPX+vX < 0 || (int)vPX+vX >= mWidth) {
     					continue;
     				}
+ 
     				//calculate the distance of the true position aX to the voxel to be filled
-    				float vDistX = ((float)Math.floor(vPX) + vX + .5f) - vPX; 
-    				float vDistY = ((float)Math.floor(vPY) + vY + .5f) - vPY;
+    				float vDistXInPx = ((float)Math.floor(vPX) + vX - .5f) - vPX; 
+    				float vDistYInPx = ((float)Math.floor(vPY) + vY - .5f) - vPY;
+//    				float vDistXInPx = ((float)Math.floor(vPX) + vX ) - vPX; 
+//    				float vDistYInPx = ((float)Math.floor(vPY) + vY ) - vPY;
     				
-    				float vDistRInPx = (float) Math.sqrt(vDistX*vDistX + vDistY*vDistY); 
-    				float vDistZInPx = (float) (Math.floor(vPZ) + vZ +.5f) - vPZ;
+    	    		// calculate the distance (in r) of the px center to the point center in pixel
+    				float vDistRInPx = (float) Math.sqrt(vDistXInPx*vDistXInPx + vDistYInPx*vDistYInPx);// + 1.5f; 
     				
-    				//check, if the distance is to the true position is not too large.
-    				if(vDistRInPx > vRMaxInPx) {
+    				//check, if the distance to the point position is not too large.
+    				if(vDistRInPx > vRMaxInPx || vDistRInPx < 0) {
+    					continue;
+    				}
+    				 
+    				//convert the distances to the coordinates in the PSF map (the point we wish to sample)
+    				float vPSFCoordinateR =  vDistRInPx * (aPxWidthInNm/vPSFPixelHeight);
+    				
+    				float vPSFCoordinateZ =  vZOffsetPSFCoord + vDistZInPx * (aPxDepthInNm/vPSFPixelWidth);
+    				
+    				//
+    				// Bilinear interpolation: PSFmap values between 4 pixel with center next to point we wish to sample
+    				//
+    				// calc the vector from the pixel center to the point to sample:
+    				float vCenterOfCenterPixelR = (float) (Math.floor(vPSFCoordinateR) + 0.5f);
+    				float vCenterOfCenterPixelZ = (float) (Math.floor(vPSFCoordinateZ) + 0.5f);
+    				float vSignedDist_Center_P_R = (float) (vPSFCoordinateR - vCenterOfCenterPixelR);
+    				float vSignedDist_Center_P_Z = (float) (vPSFCoordinateZ - vCenterOfCenterPixelZ);
+    				
+    				// check in what quadrant of the pixel we are to figure out which 4 pixel to look at:
+    				int vRoff = 1;
+    				int vZoff = 1; 
+    				if(vSignedDist_Center_P_R < 0) vRoff = -1;
+    				if(vSignedDist_Center_P_Z < 0) vZoff = -1;
+    				
+    				// get the 4 PSF values from the lookup table (we apply Neumann boundary conditions)
+    				float vPSFValue_CC = 0; // psf value of the center pixel: (c_r, c_z)
+    				float vPSFValue_CR = 0; // psf value of the pixel: (c_r + vRoff, c_z)    				
+    				float vPSFValue_CZ = 0; // psf value of the pixel: (c_r, c_z + vZoff)
+    				float vPSFValue_RZ = 0; // psf value of the pixel: (c_r + vRoff, c_z + vZoff)
+    				
+    				if((int)vCenterOfCenterPixelZ < vZDim && (int)vCenterOfCenterPixelZ >= 0 &&  
+    						(int)vCenterOfCenterPixelR < vRDim && (int)vCenterOfCenterPixelR >= 0) {
+    					vPSFValue_CC = vPSFPixelArray[(int)vCenterOfCenterPixelZ][(int)vCenterOfCenterPixelR]; 
+    				}
+    				if((int)vCenterOfCenterPixelZ < vZDim && (int)vCenterOfCenterPixelZ >= 0 && 
+    						(int)vCenterOfCenterPixelR + vRoff < vRDim && (int)vCenterOfCenterPixelR + vRoff >= 0) {
+    					vPSFValue_CR = vPSFPixelArray[(int)vCenterOfCenterPixelZ][(int)vCenterOfCenterPixelR + vRoff]; 
+    				}
+    				if((int)vCenterOfCenterPixelZ + vZoff < vZDim && (int)vCenterOfCenterPixelZ + vZoff >= 0 && 
+    						(int)vCenterOfCenterPixelR < vRDim && (int)vCenterOfCenterPixelR >= 0) {
+    					vPSFValue_CZ = vPSFPixelArray[(int)vCenterOfCenterPixelZ + vZoff][(int)vCenterOfCenterPixelR]; 
+    				}
+    				if((int)vCenterOfCenterPixelZ + vZoff < vZDim && (int)vCenterOfCenterPixelZ + vZoff >= 0 && 
+    						(int)vCenterOfCenterPixelR + vRoff < vRDim && (int)vCenterOfCenterPixelR + vRoff >= 0) {
+    					vPSFValue_RZ = vPSFPixelArray[(int)vCenterOfCenterPixelZ + vZoff][(int)vCenterOfCenterPixelR + vRoff]; 
+    				}
+
+    				// boundary conditions:
+    				if(vCenterOfCenterPixelR + vRoff < 0) {
+    					vPSFValue_CR = vPSFValue_CC;
+    					vPSFValue_RZ = vPSFValue_CZ;
+    				}
+    				
+    				
+    				// interpolate in R direction to get 2 PSFValues_interpR
+    				float vAbsDist_Center_P_Z = Math.abs(vSignedDist_Center_P_Z);
+    				float vAbsDist_Center_P_R = Math.abs(vSignedDist_Center_P_R);
+    				float vPSFValue_interp1 = vAbsDist_Center_P_Z * vPSFValue_CZ + (1 - vAbsDist_Center_P_Z) * vPSFValue_CC;
+    				float vPSFValue_interp2 = vAbsDist_Center_P_Z * vPSFValue_RZ + (1 - vAbsDist_Center_P_Z) * vPSFValue_CR;
+    					
+    				float vPSFValue = vAbsDist_Center_P_R * vPSFValue_interp2 + (1-vAbsDist_Center_P_R) * vPSFValue_interp1;
+//    				if(Float.isNaN(vPSFValue)) {
+//    					System.out.println("stop it");
+//    				}
+    				aPixelArray[(int)vPZ+vZ][(int)vPY+vY][(int)vPX+vX] += (aIntensity)*vPSFValue;
+//    				aPixelArray[(int)vPZ+vZ][(int)vPY+vY][(int)vPX+vX] += (aIntensity)*vPSFValue_CC;
+        		}
+    		}
+    	}
+    	
+    }
+	
+	protected void addPSFOld(float[][][] aPixelArray, Point3D aPoint, float aIntensity, float aPxWidthInNm, float aPxDepthInNm, float[][] aGhostImage) {
+    	//the origin in the PSF map is at (offset, 0)
+    	int vZOffsetPSFCoord = mPSF.getWidth() / 2;
+    	
+    	//calculate the maximal distance of the influence of the PSF.
+    	float vPSFPixelWidth = (float) mPSF.getCalibration().pixelWidth;
+    	float vPSFPixelHeight = (float) mPSF.getCalibration().pixelHeight;
+    	int vZMaxInPx = (int) Math.ceil(((float)mPSF.getWidth() / 2.0) * (vPSFPixelWidth / aPxDepthInNm));
+    	int vRMaxInPx = (int) Math.ceil(((float)mPSF.getHeight()       * (vPSFPixelHeight / aPxWidthInNm)));
+    	
+    	float vPX = aPoint.mX/aPxWidthInNm;
+    	float vPY = aPoint.mY/aPxWidthInNm;
+    	float vPZ = aPoint.mZ/aPxDepthInNm;
+    	
+    	//for speedup, get the pixelarray:
+    	float[][] vPSFPixelArray = mPSF.getProcessor().getFloatArray();
+    	int vRDim = mPSF.getHeight();
+    	int vZDim = mPSF.getWidth();
+    	//for all the pixel in the given influence region...
+    	for(int vZ = -vZMaxInPx; vZ <= vZMaxInPx; vZ++) {
+    		// calculate the distance (in z) of the px center to the point center in pixel
+    		float vDistZInPx = (float) (Math.floor(vPZ) + vZ +.5f) - vPZ;
+    		//check, if the distance to the true position is not too large.	
+    		if(vDistZInPx < -vZMaxInPx || vDistZInPx > vZMaxInPx) {
+    			continue;
+    		}
+    		for(int vY = -vRMaxInPx; vY <= vRMaxInPx; vY++) {
+    			for(int vX = -vRMaxInPx; vX <= vRMaxInPx; vX++) {
+    				//check if we are in the image that is created:
+    				if((int)vPZ+vZ < 0 || (int)vPZ+vZ >= mNSlices ||
+    						(int)vPY+vY < 0 || (int)vPY+vY >= mHeight || 
+    						(int)vPX+vX < 0 || (int)vPX+vX >= mWidth) {
+    					continue;
+    				}
+
+    				//calculate the distance of the true position aX to the voxel to be filled
+    				float vDistXInPx = ((float)Math.floor(vPX) + vX + .5f) - vPX; 
+    				float vDistYInPx = ((float)Math.floor(vPY) + vY + .5f) - vPY;
+    				
+    	    		// calculate the distance (in r) of the px center to the point center in pixel
+    				float vDistRInPx = (float) Math.sqrt(vDistXInPx*vDistXInPx + vDistYInPx*vDistYInPx); 
+    				
+    				//check, if the distance to the point position is not too large.
+    				if(vDistRInPx > vRMaxInPx || vDistRInPx < 0) {
     					continue;
     				}
     				
-    				//convert the distances to the coordinates in the PSF map
-    				int vPSFCoordinateR = (int) (vDistRInPx *(aPxWidthInNm/mPSF.getCalibration().pixelHeight)+.5f);
-    				int vPSFCoordinateZ = (int) (vZOffsetPSFCoord + vDistZInPx * (aPxDepthInNm/mPSF.getCalibration().pixelWidth)+.5f);
-    				float vPSFValue = 0;
-    				if(vPSFCoordinateR < vRDim && vPSFCoordinateZ < vZDim){
-    					vPSFValue = vPSFPixelArray[vPSFCoordinateZ][vPSFCoordinateR];
+    				//convert the distances to the coordinates in the PSF map (the point we wish to sample)
+    				float vPSFCoordinateR =  vDistRInPx * (aPxWidthInNm/vPSFPixelHeight);
+    				float vPSFCoordinateZ =  vZOffsetPSFCoord + vDistZInPx * (aPxDepthInNm/vPSFPixelWidth);
+    				
+    				//
+    				// Linearly interpolate PSFmap values between 4 pixel with center next to point we wish to sample
+    				//
+    				// calc the vector from the pixel center to the point to sample:
+    				float vCenterOfCenterPixelR = (float) (Math.floor(vPSFCoordinateR) + 0.5f);
+    				float vCenterOfCenterPixelZ = (float) (Math.floor(vPSFCoordinateZ) + 0.5f);
+    				float vDist_Center_P_R = (float) (vPSFCoordinateR - vCenterOfCenterPixelR);
+    				float vDist_Center_P_Z = (float) (vPSFCoordinateZ - vCenterOfCenterPixelZ);
+    				
+    				// check in what quadrant of the pixel we are to figure out which 4 pixel to look at:
+    				int vRoff = 0;
+    				int vZoff = 0;
+    				if(vDist_Center_P_R < 0) vRoff = -1;
+    				if(vDist_Center_P_Z < 0) vZoff = -1;
+    				
+    				// get the 4 PSF values from the lookup table (if it happens that they are outside the lookup table,
+    				// the value is set to 0).
+    				float vPSFValue_CC = 0; // psf value of the center pixel: (c_r, c_z)
+    				float vPSFValue_CR = 0; // psf value of the pixel: (c_r + vRoff, c_z)    				
+    				float vPSFValue_CZ = 0; // psf value of the pixel: (c_r, c_z + vZoff)
+    				float vPSFValue_RZ = 0; // psf value of the pixel: (c_r + vRoff, c_z + vZoff)
+    				
+    				if((int)vCenterOfCenterPixelZ < vZDim && (int)vCenterOfCenterPixelZ >= 0 &&  
+    						(int)vCenterOfCenterPixelR < vRDim && (int)vCenterOfCenterPixelR >= 0) {
+    					vPSFValue_CC = vPSFPixelArray[(int)vCenterOfCenterPixelZ][(int)vCenterOfCenterPixelR]; 
     				}
+    				if((int)vCenterOfCenterPixelZ < vZDim && (int)vCenterOfCenterPixelZ >= 0 && 
+    						(int)vCenterOfCenterPixelR + vRoff < vRDim && (int)vCenterOfCenterPixelR + vRoff >= 0) {
+    					vPSFValue_CR = vPSFPixelArray[(int)vCenterOfCenterPixelZ][(int)vCenterOfCenterPixelR + vRoff]; 
+    				}
+    				if((int)vCenterOfCenterPixelZ + vZoff < vZDim && (int)vCenterOfCenterPixelZ + vZoff >= 0 && 
+    						(int)vCenterOfCenterPixelR < vRDim && (int)vCenterOfCenterPixelR >= 0) {
+    					vPSFValue_CZ = vPSFPixelArray[(int)vCenterOfCenterPixelZ + vZoff][(int)vCenterOfCenterPixelR]; 
+    				}
+    				if((int)vCenterOfCenterPixelZ + vZoff < vZDim && (int)vCenterOfCenterPixelZ + vZoff >= 0 && 
+    						(int)vCenterOfCenterPixelR + vRoff < vRDim && (int)vCenterOfCenterPixelR + vRoff >= 0) {
+    					vPSFValue_RZ = vPSFPixelArray[(int)vCenterOfCenterPixelZ + vZoff][(int)vCenterOfCenterPixelR + vRoff]; 
+    				}
+    				
+    				
+    				// interpolate in R direction to get 2 PSFValues_interpR
+    				float vPSFValue_interp1 = vDist_Center_P_Z * vPSFValue_CZ + (1 - vDist_Center_P_Z) * vPSFValue_CC;
+    				float vPSFValue_interp2 = vDist_Center_P_Z * vPSFValue_RZ + (1 - vDist_Center_P_Z) * vPSFValue_CR;
+    					
+    				float vPSFValue = vDist_Center_P_R * vPSFValue_interp2 + (1-vDist_Center_P_R) * vPSFValue_interp1;
 //    				if(Float.isNaN(vPSFValue)) {
 //    					System.out.println("stop it");
 //    				}
@@ -2868,6 +3091,13 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
     	}
     	
     }
+	
+	public void ShiftScaleIPTo0To1(ImageProcessor aIP) {
+		aIP.add(aIP.getMin());
+		aIP.resetMinAndMax();
+		aIP.multiply(1.0 / aIP.getMax());
+		aIP.resetMinAndMax();
+	}
 	
 	protected class FeatureObject {
 		protected float[][] mStateVectorsMemory;
@@ -2954,8 +3184,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		}
 	}
 
-	//private int mControllingParticleIndex = 0;
-	private AtomicInteger mControllingParticleIndex = new AtomicInteger(0);
+
 
 	@SuppressWarnings("serial")
 	private class DrawCanvas extends ImageCanvas {
@@ -3091,9 +3320,10 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 						mNSlices,
 						mParticles[vI],
 						(int)(mBackground + .5),
-						mPxWidthInNm,
+						mPxWidthInNm, 
 						mPxDepthInNm);	
 				
+//				new StackWindow(new ImagePlus("idealimage",convert3DArrayToImageStack(vIdealImage)));
 				//calculate likelihood and store at second last position
 				if(!mEMCCDMode) {
 					mParticles[vI][mParticles[vI].length - 2] = calculateLogLikelihood_3D(mStackProcs, vIdealImage, mBitmap);
@@ -3101,19 +3331,26 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 					mParticles[vI][mParticles[vI].length - 2] = calculateEMCCDLogLikelihood3D(mStackProcs, vIdealImage, mBitmap);
 				}
 			}
-			
-			
-		}
 
-		synchronized int getNewParticleIndex(){
-			if(mControllingParticleIndex.intValue() < mNbParticles &&
-					mControllingParticleIndex.intValue() >= 0){				
-				return mControllingParticleIndex.incrementAndGet() - 1;
-			}
-			mControllingParticleIndex.set(-1);
-			return -1;
 		}
 	}
+
+	private AtomicInteger mControllingParticleIndex = new AtomicInteger(0);
+	// This method has to be outside the tread!!! Synchronize locks the method of a particular instance only. 
+	synchronized int getNewParticleIndex() {
+		//		System.out.println("Thread " + this.getId() + ": enter. i = " + mControllingParticleIndex.intValue());
+		if(mControllingParticleIndex.intValue() < mNbParticles &&
+				mControllingParticleIndex.intValue() >= 0){		
+			//			System.out.println("Thread " + this.getId() + ": exit (standard). i = " + + mControllingParticleIndex.intValue());
+//			System.out.flush();
+			return mControllingParticleIndex.incrementAndGet() - 1;
+		}
+		mControllingParticleIndex.set(-1);
+		//		System.out.println("Thread " + this.getId() + ": exit after setting controlling index to -1. i = " + mControllingParticleIndex.intValue());
+//		System.out.flush();
+		return -1;
+	}
+	
 	/**
 	 * Method to override optionally. The body of the method in the base class is empty.
 	 * @param aEvent
@@ -3631,6 +3868,9 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	}		
 	
 	public String matrixToString(float[][] aMatrix){
+		if (aMatrix == null) {
+			return "Matrix not defined.\n";
+		}
 		String vS = "";
 		NumberFormat nfFormat = NumberFormat.getInstance();
 		for(float[] vL : aMatrix) {

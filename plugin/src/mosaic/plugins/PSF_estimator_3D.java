@@ -1,12 +1,10 @@
 package mosaic.plugins;
 
-
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.geom.Point2D;
 import java.util.Vector;
 
 import mosaic.interpolators.*;
@@ -14,29 +12,36 @@ import mosaic.interpolators.*;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.gui.GenericDialog;
 import ij.gui.ImageCanvas;
 import ij.gui.StackWindow;
+import ij.plugin.ZProjector;
 import ij.plugin.filter.Convolver;
 import ij.plugin.filter.PlugInFilter;
+import ij.process.Blitter;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.StackStatistics;
 
-
-//TODO: GUI, edge of map, smart map size, centroid detection tends to grid
+//TODO: GUI, 
+//TODO: print number of points considered.
+//TODO: now, the BG subtraction is per bead based max(PSF-0.1*PSF,0) 
+//		and also the mean bead is 'cleaned' with 0.005 perc. threshold. (very heuristically)
+//TODO: edge of map, 
+//TODO: smart map size, 
 //TODO: see further todo entries.
 public class PSF_estimator_3D implements  PlugInFilter{
 	//parameters
-	int mMaskRadius = 2;
-	double mRInc = 0.005; //in px
+	int mMaskRadius = 5;
+	double mRInc = 0.001; //in px
 	double mPhiInc = Math.PI / 20.;
-	int mRMaxInNm = 750;
-	int mZMaxInNm = 1*1500; //only in one direction!!!!
-	int mMapSizeR = 100;
-	int mMapSizeZ = 200;
+	int mRMaxInNm = 800;
+	int mZMaxInNm = 1*1600; //only in one direction, the generated map will be twice as large.
+	int mMapSizeR = 1000;
+	int mMapSizeZ = 1000; // in both direction (total image width)
 	float mGaussPreprocessRadius = 1;
 	
-	//member variables
+	//member variables 
 	int mMask[][][];	
 	int mHeight;
 	int mWidth;
@@ -47,18 +52,21 @@ public class PSF_estimator_3D implements  PlugInFilter{
 	double mPxWidthInNm;
 	double mPxDepthInNm;
 	protected ImagePlus mZProjectedImagePlus;
-	ImagePlus mOriginalImagePlus;
+	ImagePlus mOriginalImagePlus; 
+	ImageStack mPreprocessedFrameImage;
+	int mPreprocessedFrameNb = 0;
 	Vector<Bead> mBeads = new Vector<Bead>();
 	Bead mBeadMean = null;
-	
+	ImagePlus mBeadImage;
 	
 	//int mMaskHeight = 10;
-	
+	 
 	public int setup(String arg, ImagePlus aOrigImp) {
-		if (aOrigImp == null) {
-			IJ.showMessage("Please open an image with beads first");
+		if (aOrigImp == null) { 
+			IJ.showMessage("Please open an image with beads first.");
 			return DONE;
 		}
+		
 		while(true) {
 			String vUnit = aOrigImp.getCalibration().getUnit();
 			if(vUnit.equals("nm")) {
@@ -77,11 +85,16 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			IJ.showMessage("Please enter correct voxel sizes in nm, " + IJ.micronSymbol + "m or mm");
 			IJ.run("Properties...");
 		}
+		
 		mOriginalImagePlus = aOrigImp;
 		mHeight = aOrigImp.getHeight();
 		mWidth = aOrigImp.getWidth();
 		mNFrames = aOrigImp.getNFrames();
-		mNSlices = aOrigImp.getNSlices();
+		mNSlices = aOrigImp.getNSlices(); 
+		
+		if(!getUserDefinedParams()) return DONE;
+		
+		mRInc = 1./((double)mMapSizeR*1.1);
 		
 		StackStatistics vSS = new StackStatistics(aOrigImp);
 		mGlobalMin = (float)vSS.min;
@@ -91,6 +104,8 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		
 		doZProjection(mOriginalImagePlus);
 		initVisualization();
+			
+		
 		
 		return DONE;
 	}
@@ -104,11 +119,22 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		//centroid detection
 		//
 		int vFrame = mZProjectedImagePlus.getCurrentSlice();
-		ImageStack vIS = getAFrameCopy(mOriginalImagePlus, vFrame);	
-		normalizeFrameFloat(vIS);
-		gaussBlur3D(vIS, mGaussPreprocessRadius);
-		double[] vCentroid = centroidDetection(vIS, aX, aY, calculateExpectedZPositionAt(aX, aY, vIS));
+		if(mPreprocessedFrameNb != vFrame) {
+			mPreprocessedFrameImage = getAFrameCopy(mOriginalImagePlus, vFrame);	
+			normalizeFrameFloat(mPreprocessedFrameImage);
+			gaussBlur3D(mPreprocessedFrameImage, mGaussPreprocessRadius);
+//			new StackWindow(new ImagePlus("after gauss blur", getSubStackFloatCopy(mPreprocessedFrameImage, 1, 30)));
+			boxCarBackgroundSubtractor(mPreprocessedFrameImage);
+//			new StackWindow(new ImagePlus("after BG subtraction", getSubStackFloatCopy(mPreprocessedFrameImage, 1, 30)));
+			mPreprocessedFrameNb = vFrame;
+//			new StackWindow(new ImagePlus("preprocessed image", getSubStackFloatCopy(mPreprocessedFrameImage, 1, 30)));
+		}
 		
+//		double[] vCentroid = centroidDetectionRefinement(mPreprocessedFrameImage, 
+//				aX, aY, calculateExpectedZPositionAt(aX, aY, mPreprocessedFrameImage));
+		double[] vCentroid = centroidDetectionRefinement(mPreprocessedFrameImage, 
+				aX, aY, getBrightestSliceIndexAt(aX, aY, mPreprocessedFrameImage));
+
 		//
 		//	Check if bead was already used via centroid
 		//
@@ -121,21 +147,60 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			}
 		}
 		
+		//.thresholdPSFMap(0.005f)
+		// create the bead using the data of a non-preprocessed image
 		//
-		//create the bead
-		//
-		vIS = getAFrameCopy(mOriginalImagePlus, vFrame);	
+		ImageStack vIS = getAFrameCopy(mOriginalImagePlus, vFrame);	
 		mBeads.add(new Bead(vCentroid[0],vCentroid[1],vCentroid[2],vFrame,vIS));
+//		mBeads.add(new Bead(vCentroid[0],vCentroid[1],vCentroid[2],vFrame,mPreprocessedFrameImage));
 		
-		meanBeads(mBeads).showBead();
+		Bead meanBead = meanBeads(mBeads);
+		meanBead.thresholdPSFMap(0.005f);
+		meanBead.showBead();
+		
 		return true;
 	}
-	protected double[] centroidDetection(ImageStack aIS, float aX, float aY, float aZ){
+	
+	public void boxCarBackgroundSubtractor(ImageStack is) {
+		Convolver convolver = new Convolver();
+		float[] kernel = new float[mMaskRadius * 2 +1];
+		int n = kernel.length;
+		for(int i = 0; i < kernel.length; i++)
+			kernel[i] = 1f/(float)n;
+		for(int s = 1; s <= is.getSize(); s++) {
+			ImageProcessor bg_proc = is.getProcessor(s).duplicate();
+			convolver.convolveFloat(bg_proc, kernel, 1, n);
+			convolver.convolveFloat(bg_proc, kernel, n, 1);
+			is.getProcessor(s).copyBits(bg_proc, 0, 0, Blitter.SUBTRACT);
+		}
+	}
+	
+	protected double[] centroidDetectionRefinement(ImageStack aIS, float aX, float aY, float aZ){
 		double vEpsX = 1.0;
 		double vEpsY = 1.0;
 		double vEpsZ = 1.0;
 		int vRadius = mMaskRadius;
-		while (vEpsX > 0.5 || vEpsX < -0.5 || vEpsY > 0.5 || vEpsY < -0.5 || vEpsZ < 0.5 || vEpsZ > 0.5) {
+		int vCounter = 10;
+		
+		for(int s = 0; s < aIS.getSize(); s++) {
+			//				for (int i = 0; i < ips.getHeight(); i++) {
+			//					for (int j = 0; j < ips.getWidth(); j++) {
+			//						if(ips.getProcessor(s + 1).getPixelValue(j, i) < 0.0)
+			//							ips.getProcessor(s + 1).putPixelValue(j, i, 0.0);
+			//
+			//					}
+			//				}
+			float[] pixels = (float[])aIS.getPixels(s+1);
+			for(int i = 0; i < pixels.length; i++) {
+				if(pixels[i] < 0) {
+					pixels[i] = 0f;
+				}
+			}
+		}
+		
+		while (vCounter > 0 && 
+				(vEpsX > 0.5 || vEpsX < -0.5 || vEpsY > 0.5 || vEpsY < -0.5 || vEpsZ < 0.5 || vEpsZ > 0.5)) {
+			vCounter--;
 			float vM0 = 0.0F;
 
 			vEpsX = 0.0F;
@@ -163,6 +228,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 					}
 				}
 			}
+			if(vCounter <= 0) System.out.println("no convergence in centroid detection!");
 
 			vEpsX /= vM0;
 			vEpsY /= vM0;
@@ -174,20 +240,20 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			int tz = (int)(10.0 * vEpsZ);
 
 			if((double)(tx)/10.0 > 0.5) {
-				if((int)aY + 1 < aIS.getHeight())
-					aY++;
-			}
-			else if((double)(tx)/10.0 < -0.5) {
-				if((int)aY - 1 >= 0)
-					aY--;						
-			}
-			if((double)(ty)/10.0 > 0.5) {
-				if((int)aX + 1 < aIS.getWidth())
+				if((int)aX + 1 < aIS.getHeight())
 					aX++;
 			}
-			else if((double)(ty)/10.0 < -0.5) {
+			else if((double)(tx)/10.0 < -0.5) {
 				if((int)aX - 1 >= 0)
-					aX--;
+					aX--;						
+			}
+			if((double)(ty)/10.0 > 0.5) {
+				if((int)aY + 1 < aIS.getWidth())
+					aY++;
+			}
+			else if((double)(ty)/10.0 < -0.5) {
+				if((int)aY - 1 >= 0)
+					aY--;
 			}
 			if((double)(tz)/10.0 > 0.5) {
 				if((int)aZ + 1 < aIS.getSize())
@@ -208,46 +274,46 @@ public class PSF_estimator_3D implements  PlugInFilter{
 	}
 
 	/**
-     * Generates the dilation mask
-     * <code>mask</code> is a var of class ParticleTracker_ and its modified internally here
-     * Adapted from Ingo Oppermann implementation
-     * @param mask_radius the radius of the mask (user defined)
-     */
-    public int[][][] generateMask(int mask_radius) {    	
-    	
-    	int width = (2 * mask_radius) + 1;
-    	int[][][] vMask = new int[width][width][width];
-    	for(int s = -mask_radius; s <= mask_radius; s++){
-    		for(int i = -mask_radius; i <= mask_radius; i++) {
-    			for(int j = -mask_radius; j <= mask_radius; j++) {
-    				if((i * i) + (j * j) + (s * s) <= mask_radius * mask_radius)
-    					vMask[s + mask_radius][j + mask_radius][i + mask_radius] = 1;
-    				else
-    					vMask[s + mask_radius][j + mask_radius][i + mask_radius] = 0;
+   * Generates the dilation mask
+   * <code>mask</code> is a var of class ParticleTracker_ and its modified internally here
+   * Adapted from Ingo Oppermann implementation
+   * @param mask_radius the radius of the mask (user defined)
+   */
+  public int[][][] generateMask(int mask_radius) {    	
+  	
+  	int width = (2 * mask_radius) + 1;
+  	int[][][] vMask = new int[width][width][width];
+  	for(int s = -mask_radius; s <= mask_radius; s++){
+  		for(int i = -mask_radius; i <= mask_radius; i++) {
+  			for(int j = -mask_radius; j <= mask_radius; j++) {
+  				if((i * i) + (j * j) + (s * s) <= mask_radius * mask_radius)
+  					vMask[s + mask_radius][j + mask_radius][i + mask_radius] = 1;
+  				else
+  					vMask[s + mask_radius][j + mask_radius][i + mask_radius] = 0;
 
-    			}
-    		}
-    	}
-    	return vMask;
-    }
+  			}
+  		}
+  	}
+  	return vMask;
+  }
 
-    /**
-     * Normalizes a given <code>ImageProcessor</code> to [0,1].
-     * <br>According to the pre determend global min and max pixel value in the movie.
-     * <br>All pixel intensity values I are normalized as (I-gMin)/(gMax-gMin)
-     * @param ip ImageProcessor to be normalized
-     */
-    private void normalizeFrameFloat(ImageStack is) {
-    	for(int s = 1; s <= is.getSize(); s++){
-    		float[] pixels=(float[])is.getPixels(s);
-    		float tmp_pix_value;
-    		for (int i = 0; i < pixels.length; i++) {
-    			tmp_pix_value = (pixels[i]-mGlobalMin)/(mGlobalMax - mGlobalMin);
-    			pixels[i] = (float)(tmp_pix_value);
-    		}
-    	}
-    }
-    
+  /**
+   * Normalizes a given <code>ImageProcessor</code> to [0,1].
+   * <br>According to the pre determend global min and max pixel value in the movie.
+   * <br>All pixel intensity values I are normalized as (I-gMin)/(gMax-gMin)
+   * @param ip ImageProcessor to be normalized
+   */
+  private void normalizeFrameFloat(ImageStack is) {
+  	for(int s = 1; s <= is.getSize(); s++){
+  		float[] pixels=(float[])is.getPixels(s);
+  		float tmp_pix_value;
+  		for (int i = 0; i < pixels.length; i++) {
+  			tmp_pix_value = (pixels[i]-mGlobalMin)/(mGlobalMax - mGlobalMin);
+  			pixels[i] = (float)(tmp_pix_value);
+  		}
+  	}
+  }
+  
 	private void gaussBlur3D(ImageStack is, float aRadius) {
 				float[] vKernel = CalculateNormalizedGaussKernel(aRadius);
 				int kernel_radius = vKernel.length / 2;
@@ -331,14 +397,14 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		return getSubStackFloatCopy(aMovie.getStack(), (aFrameNumber-1) * vS + 1, aFrameNumber * vS);
 	}
 	
-    /**
-     * 
-     * @param is
-     * @param startPos
-     * @param endPos
-     * @return
-     */
-    private static ImageStack getSubStackFloatCopy(ImageStack is, int startPos, int endPos){
+  /**
+   * 
+   * @param is
+   * @param startPos
+   * @param endPos
+   * @return
+   */
+  private static ImageStack getSubStackFloatCopy(ImageStack is, int startPos, int endPos){
 		ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
 		if(startPos > endPos || startPos < 0 || endPos < 0)
 			return null;
@@ -347,7 +413,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		}
 		return res;
 	}
-    
+  
 	protected void doZProjection(ImagePlus aIMP)
 	{
 		ImageStack vZProjectedStack = new ImageStack(mWidth, mHeight);
@@ -365,7 +431,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 	}
 	
 	/**
-	 * Calculates the expected mean of a gaussian fitted to a Ray trough the imagestack.
+	 * Calculates the expected mean of a gaussian fitted to a ray trough the imagestack.
 	 * @param aX The x position of the ray
 	 * @param aY The y position of the ray
 	 * @param aIS The imageStack where the intensities are read out.
@@ -392,6 +458,19 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			vRes += (vZ + 1) * aIS.getProcessor(vZ).getf(aX, aY);
 		}
 		return vRes / vSumOfIntensities;
+	}
+	
+	public int getBrightestSliceIndexAt(int aX, int aY, ImageStack aIS) {
+		float vMaxInt = 0;
+		int vMaxSlice = 0;
+		for(int vZ = 0; vZ < mNSlices; vZ++) {
+			float vThisInt;
+			if((vThisInt = aIS.getProcessor(vZ+1).getf(aX, aY)) > vMaxInt) {
+				vMaxInt =  vThisInt;
+				vMaxSlice = vZ;
+			}			
+		}
+		return vMaxSlice;
 	}
 	
 	protected void initVisualization()
@@ -432,7 +511,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		 */
 		public Bead(double aX, double aY, double aZ, int aFrame, ImageStack aIS) {
 			mCentroidX = aX;
-			mCentroidY = aY;
+			mCentroidY = aY; 
 			mCentroidZ = aZ;
 			mFrame = aFrame;
 			
@@ -440,6 +519,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			double[] vCentroid = new double[]{mCentroidX, mCentroidY, mCentroidZ};
 			System.out.println("Centroid: x = " + mCentroidX + ", y = " + mCentroidY + "z = " + mCentroidZ);
 			mPSFMap = generatePSFmap(aIS, vCentroid, mRMaxInNm, mZMaxInNm, mMapSizeR, mMapSizeZ);
+//			thresholdPSFMap(0.1f);
 			normalizePSFMap();			
 		}
 		
@@ -452,11 +532,58 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			for(int vZ = 0; vZ < mPSFMap.length; vZ++) {
 				 for(int vR = 0; vR < mPSFMap[0].length; vR++) {
 					 vMap[vZ][vR] = (float)mPSFMap[vZ][vR];
-				 }
+				 } 
 			}
-			new ImagePlus("bsp map",new FloatProcessor(vMap)).show();
+			
+			if(mBeadImage != null) {
+				mBeadImage.changes = false;
+				mBeadImage.close(); // TODO: doesn't work
+			}
+			mBeadImage = new ImagePlus("bsp map",new FloatProcessor(vMap));
+			mBeadImage.getCalibration().setUnit("nm");
+			mBeadImage.getCalibration().pixelWidth = (2f*(float)mZMaxInNm / (float)mMapSizeZ);
+			mBeadImage.getCalibration().pixelHeight = ((float)mRMaxInNm / (float)mMapSizeR);
+			mBeadImage.show();
 		}
 				
+		protected void thresholdPSFMap(float aPercentile){
+			// get min and max:
+			double vMin = Double.MAX_VALUE;
+			double vMax = Double.MIN_VALUE; 
+			for (int vI = 0; vI < mPSFMap.length; vI++) {
+				for (int vJ = 0; vJ < mPSFMap[0].length; vJ++) {
+					if(mPSFMap[vI][vJ] < vMin) {
+						vMin = mPSFMap[vI][vJ];
+					}
+					if(mPSFMap[vI][vJ] > vMax) {
+						vMax = mPSFMap[vI][vJ];
+					}
+				}
+			}
+			// shift to 0:
+			for (int vI = 0; vI < mPSFMap.length; vI++) {
+				for (int vJ = 0; vJ < mPSFMap[0].length; vJ++) {
+					mPSFMap[vI][vJ] -= vMin;
+				}
+			}
+			// the new max value:
+			vMax -= vMin;
+			
+			// shift to 0:
+			for (int vI = 0; vI < mPSFMap.length; vI++) {
+				for (int vJ = 0; vJ < mPSFMap[0].length; vJ++) {
+					double vNewVal = mPSFMap[vI][vJ] - aPercentile * vMax;
+					if(vNewVal < 0) {
+						mPSFMap[vI][vJ] = 0;
+					} else  {
+						mPSFMap[vI][vJ] = vNewVal;
+					}
+				}
+					
+			}
+			
+			
+		}
 		
 		protected void normalizePSFMap() {
 			float vSum = 0;
@@ -486,8 +613,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 							vValuableZIndices.add(vZ);
 							vRowAlreadyChosen = true;
 							continue;
-						}
-						
+						}						
 					}
 					
 				}
@@ -518,7 +644,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 				IJ.showMessage("Too small sampling rate !!");
 			}
 			interpolatePSFmap(vPSFmap);
-			fillPSFmapEdges(vPSFmap);
+//			fillPSFmapEdges(vPSFmap); depricated! 
 			return vPSFmap;
 			
 		}
@@ -536,6 +662,13 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			return true;
 		}
 		
+		/**
+		 * This method is depricated: It constantly diffuses intensity in axial direction
+		 * leading to a bias of too large PSF maps in z-direction if there is indeed a 0 entry
+		 * at the boarder of the sparse map. It seems to be better to
+		 * leave the edges unchanged and recording a lot of beads :-)
+		 * @param aMap
+		 */
 		protected void fillPSFmapEdges(double[][] aMap) {
 			int vFirstZ = -1;
 			int vLastZ = -1;
@@ -595,20 +728,23 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			double vRIncrementPerPxInPx = vMaxRInPx / aMapSizeR; //map coordinate grid increment
 			double vZIncrementPerPxInPx = 2*vMaxZInPx / aMapSizeZ;
 			
-			int vZStart = (int)(aCentroid[2] - vMaxZInPx)+1;// - 1);
+			int vZStart = (int)(aCentroid[2] - vMaxZInPx);// - 1);
 			int vYStart = (int)(aCentroid[1] - vMaxRInPx);// - 1);
 			int vXStart = (int)(aCentroid[0] - vMaxRInPx);// - 1);
-			int vZEnd = (int)(aCentroid[2] + vMaxZInPx)-1;// + 1);
+			int vZEnd = (int)(aCentroid[2] + vMaxZInPx)+1;// + 1);
 			int vYEnd = (int)(aCentroid[1] + vMaxRInPx);// + 1);
 			int vXEnd = (int)(aCentroid[0] + vMaxRInPx);// + 1);
 			
 			
 			if(vZStart < 0 || vZEnd >= mNSlices || vYStart < 0 || vYEnd >= mHeight || vXStart < 0 || vXEnd >= mWidth) {
-				System.out.println("Achtung!");
+				System.out.println("Warning: sampling region is partly out of the image domain.");
 				//TODO: test boundaries
 
 			}
 			for(int vZ = vZStart; vZ <= vZEnd; vZ++) {
+				if(vZ < 1 || vZStart < 0 || vZEnd > mNSlices) {
+					continue;
+				}
 //				BicubicInterpolator vBI = new BicubicInterpolator();
 				BilinearInterpolator vBI = new BilinearInterpolator();
 				vBI.setImageProcessor(aIS.getProcessor(vZ));
@@ -617,7 +753,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 					for(double vPhi = 0; vPhi < Math.PI*2; vPhi = vPhi + mPhiInc) {											
 						//+.5 offset since we want the distance from the centroid to the middle of a voxel.
 						//						float vRDistInPx = (float)Math.sqrt((vX+.5-aCentroid[0])*(vX+.5-aCentroid[0])+(vY+.5-aCentroid[1])*(vY+.5-aCentroid[1]));
-						float vZDistInPx = (float) ((vZ + .5) - aCentroid[2]); //might be negative
+						float vZDistInPx = (float) ((vZ ) - aCentroid[2]); //might be negative
 
 						double vX = (aCentroid[0] + vR*Math.cos(vPhi));
 						double vY =  (aCentroid[1] + vR*Math.sin(vPhi));
@@ -625,7 +761,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 						int vYs = (int)vY; 
 						
 						//
-						// Gourad Shading
+						// Bilinear interpolation
 						//
 						double vXRest;
 						double vYRest;
@@ -636,7 +772,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 								//3rd quadrant
 								vYRest *= -1f;
 								double vInterpolatedOnNorthGridEdge = (1f-vXRest)*aIS.getProcessor(vZ).getPixelValue(vXs, vYs)
-								+ vYRest*aIS.getProcessor(vZ).getPixelValue(vXs-1, vYs);
+								+ vXRest*aIS.getProcessor(vZ).getPixelValue(vXs-1, vYs);
 								
 								double vInterpolatedOnSouthGridEdge = (1f-vXRest)*aIS.getProcessor(vZ).getPixelValue(vXs, vYs-1)
 								+ vXRest*aIS.getProcessor(vZ).getPixelValue(vXs-1, vYs-1);
@@ -646,7 +782,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 							} else {
 								//2nd quadrant
 								double vInterpolatedOnSouthGridEdge = (1f-vXRest)*aIS.getProcessor(vZ).getPixelValue(vXs, vYs)
-								+ vYRest*aIS.getProcessor(vZ).getPixelValue(vXs-1, vYs);
+								+ vXRest*aIS.getProcessor(vZ).getPixelValue(vXs-1, vYs);
 								
 								double vInterpolatedOnNorthGridEdge = (1f-vXRest)*aIS.getProcessor(vZ).getPixelValue(vXs, vYs+1)
 								+ vXRest*aIS.getProcessor(vZ).getPixelValue(vXs-1, vYs+1);
@@ -658,7 +794,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 								//4th quadrant
 								vYRest *= -1f;
 								double vInterpolatedOnNorthGridEdge = (1f-vXRest)*aIS.getProcessor(vZ).getPixelValue(vXs, vYs)
-								+ vYRest*aIS.getProcessor(vZ).getPixelValue(vXs+1, vYs);
+								+ vXRest*aIS.getProcessor(vZ).getPixelValue(vXs+1, vYs);
 								
 								double vInterpolatedOnSouthGridEdge = (1f-vXRest)*aIS.getProcessor(vZ).getPixelValue(vXs, vYs-1)
 								+ vXRest*aIS.getProcessor(vZ).getPixelValue(vXs+1, vYs-1);
@@ -667,7 +803,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 							} else {
 								//1st quadrant
 								double vInterpolatedOnSouthGridEdge = (1f-vXRest)*aIS.getProcessor(vZ).getPixelValue(vXs, vYs)
-								+ vYRest*aIS.getProcessor(vZ).getPixelValue(vXs+1, vYs);
+								+ vXRest*aIS.getProcessor(vZ).getPixelValue(vXs+1, vYs);
 								
 								double vInterpolatedOnNorthGridEdge = (1f-vXRest)*aIS.getProcessor(vZ).getPixelValue(vXs, vYs+1)
 								+ vXRest*aIS.getProcessor(vZ).getPixelValue(vXs+1, vYs+1);
@@ -676,13 +812,15 @@ public class PSF_estimator_3D implements  PlugInFilter{
 								
 							}
 						}
-					
-
-						if((int)((vZDistInPx + vMaxZInPx) / vZIncrementPerPxInPx) < 0) {
-							System.out.println("stop");
-						}
+						// TODO: the next check is dirty and slow: choose reasonnable sampling domain(in Z and R)
+						if((int)((vZDistInPx + vMaxZInPx) / vZIncrementPerPxInPx) < 0 || (int)((vZDistInPx + vMaxZInPx) / vZIncrementPerPxInPx) >= vMap.length || 
+								(int)(vR / vRIncrementPerPxInPx) >= mMapSizeR || (int)(vR / vRIncrementPerPxInPx) < 0) {
+							continue;
+						} 
 						
-						
+//						if((int)((vZDistInPx + vMaxZInPx) / vZIncrementPerPxInPx) >= 1000 || (int)(vR / vRIncrementPerPxInPx) >= 1000) {
+//							System.out.print("stop");
+//						}
 //						vMap[(int)((vZDistInPx + vMaxZInPx) / vZIncrementPerPxInPx)][(int)(vR / vRIncrementPerPxInPx)] += 
 //							vBI.getInterpolatedPixel(new Point2D.Float(vX+.5f,vY+.5f));
 						vMap[(int)((vZDistInPx + vMaxZInPx) / vZIncrementPerPxInPx)][(int)(vR / vRIncrementPerPxInPx)] += 
@@ -810,4 +948,29 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		}
 	}
 	
+	boolean getUserDefinedParams(){
+		// Start Dialog to get necessary plugin parameters
+		GenericDialog gd = new GenericDialog("Configuration");
+		gd.addMessage("Pease make sure to have correctly set the\n pixel size in nm in the image properties");
+		gd.addMessage("--------");
+		gd.addMessage("Please enter necessary Information");
+//		gd.addNumericField("Apparent Radius of Point Sources [Pixel]", 3, 2);
+		gd.addNumericField("Maximum lateral sampling radius[nm]", mRMaxInNm, 0);
+		gd.addNumericField("Maximum axial sampling radius[nm]", mZMaxInNm, 0);
+		gd.addNumericField("Final lateral PSF map size [px]", mMapSizeR, 0);
+		gd.addNumericField("Final axial PSF map size [px]", mMapSizeZ, 0);
+
+		gd.showDialog();
+		if (gd.wasCanceled()) {
+			return false;
+		}
+		// Read user inputs
+//		radius = gd.getNextNumber();
+		mRMaxInNm = (int)gd.getNextNumber();
+		mZMaxInNm = (int)gd.getNextNumber();
+		mMapSizeR = (int)gd.getNextNumber();
+		mMapSizeZ = (int)gd.getNextNumber();
+
+		return true;
+	}
 }

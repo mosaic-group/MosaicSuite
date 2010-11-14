@@ -39,9 +39,9 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 			300,
 			.5f,
 			0.5f,
-			1,
-			1,
-			1};
+			1f,
+			1f,
+			1f};
 	protected float[] mInitialCovMatrix = new float[]{30f, 30f, 30f, 30f, 30f, 30f, 30f, 30f, 30f, 1f, 1f, 1f};
 	
 	protected String[] mDimensionsDescription = new String[]{
@@ -107,12 +107,44 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 				aParticle[7], 
 				aParticle[8]);
 		float[] vParticleInSphere = getSphereCoordinates(vPoints[0], vPoints[1], vPoints[2], aParticle[9], aParticle[10], aParticle[11]);
+		
+		// Sample
 		for(int vI = 0; vI < aParticle.length-2; vI++) {
 //			vParticleInSphere[vI] += (float)mRandomGenerator.nextGaussian() * mSigmaOfDynamicsInSphereCoords[vI];
 			vParticleInSphere[vI] += (mRandomGenerator.nextFloat()-.5f) * 2f * mSigmaOfDynamicsInSphereCoords[vI];
 		}
+		
+		
+		// check the intensity for a negative value
+		//
+		if(vParticleInSphere[9] < mBackground) vParticleInSphere[9] = mBackground+1;
+		if(vParticleInSphere[10] < mBackground) vParticleInSphere[10] = mBackground+1; 
+		if(vParticleInSphere[11] < mBackground) vParticleInSphere[11] =  mBackground+1; 
+		
+		//
+		// check if the orientation(sign) of D or L has changed
+		//
+		if(vParticleInSphere[3] < 0) vParticleInSphere[3] *= -1;
+		if(vParticleInSphere[6] < 0) vParticleInSphere[6] *= -1;
+		
+		// Convert to Cartesian coordinates		
 		vPoints = getPointsFromSphereCoordinates(vParticleInSphere);
-
+		
+		// Check for all the particle boundaries (image boundaries for the coordinates)
+		// If a position is outside the domain, it is orthogonally projected to the
+		// domain
+		for(int i = 0; i < 3; i++) {
+			if(vPoints[i].mX/aPxWidthInNm < 1) vPoints[i].mX = aPxWidthInNm;
+			if(vPoints[i].mX/aPxWidthInNm > mWidth) vPoints[i].mX = (mWidth-1)*aPxWidthInNm;
+			if(vPoints[i].mY/aPxWidthInNm < 1) vPoints[i].mY = aPxWidthInNm;
+			if(vPoints[i].mY/aPxWidthInNm > mWidth) vPoints[i].mY = (mHeight-1)*aPxWidthInNm;
+			if(vPoints[i].mZ/aPxDepthInNm < 1) vPoints[i].mZ = aPxDepthInNm;
+			if(vPoints[i].mZ/aPxDepthInNm > mNSlices) vPoints[i].mZ = (mNSlices-1)*aPxDepthInNm;
+		}
+		
+		// 
+		// Copy the values back to the return argument:
+		//
 		aParticle[0] = vPoints[0].mX;
 		aParticle[1] = vPoints[0].mY;
 		aParticle[2] = vPoints[0].mZ;
@@ -124,20 +156,31 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 		aParticle[8] = vPoints[2].mZ;
 		aParticle[9] = vParticleInSphere[9];
 		aParticle[10] = vParticleInSphere[10];
-		aParticle[11] = vParticleInSphere[11];
-		
-		// TODO: Check for all the particle boundaries (image boundaries for the coordinates)
+		aParticle[11] = vParticleInSphere[11];		
+	}
+	
+	@Override
+	protected float calculatePriorPDF(float[] aSample,
+			float[] aReferenceParticle) {
+
+		//
+		// Check the boundaries of the image
+		//
+		for (int i = 0; i < 3; i++) {
+			if(aSample[0+3*i] < 0 || aSample[0+3*i] >= (mWidth-1)*mPxWidthInNm ||
+					aSample[1+3*i] < 0 || aSample[1+3*i] >= (mHeight-1)*mPxWidthInNm || 
+					aSample[2+3*i] < 0 || aSample[2+3*i] >= (mNSlices-1)*mPxDepthInNm)	{	
+				return 0.0f;
+			}
+		}
+
 		//
 		// check the intensity for a negative value
 		//
-		if(vParticleInSphere[9] < 1) vParticleInSphere[9] = 1;
-		if(vParticleInSphere[10] < 1) vParticleInSphere[10] = 1; 
-		if(vParticleInSphere[11] < 1) vParticleInSphere[11] =  1; 
-		//
-		// check if the orientation(sign) of D or L change
-		//
-		if(vParticleInSphere[3] < 0) vParticleInSphere[3] *= -1;
-		if(vParticleInSphere[6] < 0) vParticleInSphere[6] *= -1;
+		if(aSample[9] < mBackground || aSample[10] < mBackground || aSample[11] < mBackground) 
+			return 0.0f;
+		
+		return 1.0f;
 	}
 	
 //	boolean mTestFirst = true;
@@ -386,12 +429,12 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 	protected void paintOnCanvas(Graphics aG, float[] vState,
 			double aMagnification) {
 		float vPxWidth = getPixelWidthInNm();
-		int vSPB1x = (int)Math.round(vState[0]*aMagnification/vPxWidth+1);
-		int vSPB1y = (int)Math.round(vState[1]*aMagnification/vPxWidth+1);
-		int vSPB2x = (int)Math.round(vState[3]*aMagnification/vPxWidth+1);
-		int vSPB2y = (int)Math.round(vState[4]*aMagnification/vPxWidth+1);
-		int vTipx = (int)Math.round(vState[6]*aMagnification/vPxWidth+1);
-		int vTipy = (int)Math.round(vState[7]*aMagnification/vPxWidth+1);
+		int vSPB1x = (int)Math.round(vState[0]*aMagnification/vPxWidth)+(int)aMagnification;
+		int vSPB1y = (int)Math.round(vState[1]*aMagnification/vPxWidth)+(int)aMagnification;
+		int vSPB2x = (int)Math.round(vState[3]*aMagnification/vPxWidth)+(int)aMagnification;
+		int vSPB2y = (int)Math.round(vState[4]*aMagnification/vPxWidth)+(int)aMagnification;
+		int vTipx = (int)Math.round(vState[6]*aMagnification/vPxWidth)+(int)aMagnification;
+		int vTipy = (int)Math.round(vState[7]*aMagnification/vPxWidth)+(int)aMagnification;
 
 		aG.setColor(Color.yellow);
 		aG.drawLine(vSPB1x - 5, vSPB1y, vSPB1x + 5, vSPB1y);
@@ -413,43 +456,39 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 		float radiusX = (float)Math.sqrt(mFeatureObjects.elementAt(0).mCovMatrix[vCurrentFrame-1][6][6]*aMagnification*3f/getPixelWidthInNm());
 		float radiusY = (float)Math.sqrt(mFeatureObjects.elementAt(0).mCovMatrix[vCurrentFrame-1][7][7]*aMagnification*3f/getPixelWidthInNm());
 		float radiusZ = (float)Math.sqrt(mFeatureObjects.elementAt(0).mCovMatrix[vCurrentFrame-1][8][8]*aMagnification*3f/getPixelWidthInNm());
-		float xPos=(float) (aMagnification*vState[6]/getPixelWidthInNm());
-		float yPos=(float) (aMagnification*vState[7]/getPixelWidthInNm());
-		aG.fillOval((int)(xPos-radiusX+.5f),
-			(int)(yPos-radiusY+.5f),
+
+		aG.fillOval((int)(vTipx-radiusX+.5f),
+			(int)(vTipy-radiusY+.5f),
 			(int)(2*radiusX),
 			(int)(2*radiusY));
 		aG.setColor(new Color(0f,0f,1f));
-		aG.drawPolyline(new int[]{(int) (xPos-10+.5), (int) (xPos-10+.5)}, new int[]{(int) (yPos-10+.5), (int) (yPos-5+radiusZ+.5)}, 2);
+		aG.drawPolyline(new int[]{(int) (vTipx-10+.5), (int) (vTipx-10+.5)}, new int[]{(int) (vTipy-10+.5), (int) (vTipy-5+radiusZ+.5)}, 2);
 		
 		//uncertainties: spb1 
 		aG.setColor(new Color(1f, 1f, 0f, 0.6f));	
 		radiusX = (float)Math.sqrt(mFeatureObjects.elementAt(0).mCovMatrix[vCurrentFrame-1][0][0]*aMagnification*3f/getPixelWidthInNm());
 		radiusY = (float)Math.sqrt(mFeatureObjects.elementAt(0).mCovMatrix[vCurrentFrame-1][1][1]*aMagnification*3f/getPixelWidthInNm());
 		radiusZ = (float)Math.sqrt(mFeatureObjects.elementAt(0).mCovMatrix[vCurrentFrame-1][2][2]*aMagnification*3f/getPixelWidthInNm());
-		xPos=(float) (aMagnification*vState[0]/getPixelWidthInNm());
-		yPos=(float) (aMagnification*vState[1]/getPixelWidthInNm());
-		aG.fillOval((int)(xPos-radiusX+.5f),
-			(int)(yPos-radiusY+.5f),
+		
+		aG.fillOval((int)(vSPB1x-radiusX+.5f),
+			(int)(vSPB1y-radiusY+.5f),
 			(int)(2*radiusX),
 			(int)(2*radiusY));
 		aG.setColor(new Color(0f,0f,1f));
-		aG.drawPolyline(new int[]{(int) (xPos-10+.5), (int) (xPos-10+.5)}, new int[]{(int) (yPos-10+.5), (int) (yPos-5+radiusZ+.5)}, 2);
+		aG.drawPolyline(new int[]{(int) (vSPB1x-10+.5), (int) (vSPB1x-10+.5)}, new int[]{(int) (vSPB1y-10+.5), (int) (vSPB1y-5+radiusZ+.5)}, 2);
 		
 		
 		//uncertainties: spb2
 		aG.setColor(new Color(1f, 1f, 0f, 0.6f));		
 		radiusX = (float)Math.sqrt(mFeatureObjects.elementAt(0).mCovMatrix[vCurrentFrame-1][3][3]*aMagnification*3f/getPixelWidthInNm());
 		radiusY = (float)Math.sqrt(mFeatureObjects.elementAt(0).mCovMatrix[vCurrentFrame-1][4][4]*aMagnification*3f/getPixelWidthInNm());
-		radiusZ = (float)Math.sqrt(mFeatureObjects.elementAt(0).mCovMatrix[vCurrentFrame-1][5][5]*aMagnification*3f/getPixelWidthInNm());
-		xPos=(float) (aMagnification*vState[3]/getPixelWidthInNm());
-		yPos=(float) (aMagnification*vState[4]/getPixelWidthInNm());
-		aG.fillOval((int)(xPos-radiusX+.5f),
-			(int)(yPos-radiusY+.5f),
+		radiusZ = (float)Math.sqrt(mFeatureObjects.elementAt(0).mCovMatrix[vCurrentFrame-1][5][5]*aMagnification*3f/getPixelWidthInNm());	
+		aG.fillOval((int)(vSPB2x-radiusX+.5f),
+			(int)(vSPB2y-radiusY+.5f),
 			(int)(2*radiusX),
 			(int)(2*radiusY));
 		aG.setColor(new Color(0f,0f,1f));
-		aG.drawPolyline(new int[]{(int) (xPos-10+.5), (int) (xPos-10+.5)}, new int[]{(int) (yPos-10+.5), (int) (yPos-5+radiusZ+.5)}, 2);
+		aG.drawPolyline(new int[]{(int) (vSPB2x-10+.5), (int) (vSPB2x-10+.5)}, new int[]{(int) (vSPB2y-10+.5), (int) (vSPB2y-5+radiusZ+.5)}, 2);
 		
 		
 //		if(radius < .5f*magnification) radius = .5f * (float)magnification;
@@ -916,5 +955,7 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 			getTextFile(COV_FILE2_SUFFIX).delete();
 		super.deleteAllButtonPressed();
 	}
+
+
 
 }

@@ -16,6 +16,7 @@ import Jama.EigenvalueDecomposition;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1513,9 +1514,12 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 		 */
 		private StringBuffer getFrameInfoAfterDiscrimination() {
 			
-			NumberFormat nf = NumberFormat.getInstance();
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6);
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
+			
 			
 			// I work with StringBuffer since its faster than String
 			StringBuffer info = new StringBuffer("%\tParticles after non-particle discrimination (");

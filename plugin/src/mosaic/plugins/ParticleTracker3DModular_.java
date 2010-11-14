@@ -80,9 +80,10 @@ import mosaic.core.detection.PreviewInterface;
  * OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.<p>
  * 
  * @version 1.2.1 March, 2010 (requires: ImageJ 1.36b and Java 5 or higher)
- * @author Guy Levy - Academic guest at the <a href="http://www.mosaic.ethz.ch/">Mosaic Group, Inst. of 
- * theoretical computer science<a>, ETH Zurich
- * @author Janick Cardinale, PhD Student at Mosaic, ETHZ
+ * @author Guy Levy - Academic guest CBL 
+ * @author Janick Cardinale, PhD Student at Mosaic 
+ * <a href="http://www.mosaic.ethz.ch/">Mosaic Group, Inst. of theoretical computer 
+ * science<a>, ETH Zurich 
  */
 
 public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, PreviewInterface  {	
@@ -106,17 +107,17 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	
 	/* flags */	
 	public boolean text_files_mode = false;
-	public boolean only_detect = false;
+	public boolean only_detect = false; 
 	private boolean frames_processed = false;
 
 	/* results display and file */	
 	private int trajectory_tail;
 	private int magnification_factor = 6;
 	private int chosen_traj = -1;
-	public ResultsWindow results_window;
+	public ResultsWindow results_window; 
 	public PreviewCanvas preview_canvas = null;
 
-	/* preview vars */
+	/* preview vars */ 
 	//public Button preview, save_detected;
 	//public Scrollbar preview_scrollbar;
 	//public Label previewLabel = new Label("");

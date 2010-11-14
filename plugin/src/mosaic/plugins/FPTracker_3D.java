@@ -2,10 +2,8 @@ package mosaic.plugins;
 
 
 import ij.IJ;
-import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.GenericDialog;
-import ij.io.FileInfo;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -16,7 +14,7 @@ import java.awt.Graphics;
  * a feature point tracker without any further dynamic model (random walk).  
  * @author Janick Cardinale, ETHZ 2008
  * @version 1.0
- * @see PFTracking3D
+ * @see PFTracking3D  
  * 
  * <p><b>Disclaimer</b>
  * <br>IN NO EVENT SHALL THE ETH BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, 
@@ -29,7 +27,7 @@ import java.awt.Graphics;
  *
  */
 public class FPTracker_3D extends PFTracking3D {
-	private float[] mSigmaOfDynamics = {300, 300, 300, 1};
+	private float[] mSigmaOfDynamics = {150, 150, 150, 5};  
 	
 //	int debugiterator = 0;
 	
@@ -39,7 +37,8 @@ public class FPTracker_3D extends PFTracking3D {
 			float pxDepthInNm) {
 		float[][][] vIdealImage = new float[as][ah][aw];
 		addBackgroundToImage(vIdealImage, mBackground);
-		addFeaturePointTo3DImage(vIdealImage, new Point3D(particle[0],particle[1],particle[2]), particle[3], pxWidthInNm, pxDepthInNm, null);
+		addFeaturePointTo3DImage(vIdealImage, new Point3D(particle[0],particle[1],particle[2]), 
+				particle[3], pxWidthInNm, pxDepthInNm, null);
 
 		
 		//		debugiterator++;
@@ -85,7 +84,15 @@ public class FPTracker_3D extends PFTracking3D {
 		return new float[]{vRes / vSumOfIntensities, vMaxInt};
 	}
 	
-	
+	protected float calculatePriorPDF(float[] aSample, float[] aReferenceParticle){
+		int mDim = aSample.length - 2;
+		for(int i = 0; i < mDim; i++)	{
+			if(Math.abs(aSample[i] - aReferenceParticle[i]) > mSigmaOfDynamics[i]) {
+				return 0;
+			}
+		}
+		return 1;
+	}
 	
 	@Override
 	protected void drawFromProposalDistribution(float[] particle, 

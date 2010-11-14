@@ -17,6 +17,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.io.*;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 
@@ -1697,9 +1698,11 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 		 */
 		private StringBuffer getFrameInfoAfterDiscrimination() {
 			
-			NumberFormat nf = NumberFormat.getInstance();
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6);
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
 			
 			// I work with StringBuffer since its faster than String
 			StringBuffer info = new StringBuffer("%\tParticles after non-particle discrimination (");
@@ -1722,9 +1725,11 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 		 * @see #info_before_discrimination
 		 */
 		private void generateFrameInfoBeforeDiscrimination() {
-			NumberFormat nf = NumberFormat.getInstance();
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6);
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
 			
 			// I work with StringBuffer since its faster than String
 			StringBuffer info = new StringBuffer("% Frame ");
@@ -1784,9 +1789,12 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 		public StringBuffer toStringBuffer() {
 			
 			// I work with StringBuffer since its faster than String
-			NumberFormat nf = NumberFormat.getInstance();
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6);
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
+			
 			StringBuffer sb = new StringBuffer("% Frame ");
 			sb.append(this.frame_number);
 			sb.append("\n");
@@ -1821,9 +1829,11 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 		 */
 		private StringBuffer frameDetectedParticlesForSave(boolean with_momentum) {
 			
-			NumberFormat nf = NumberFormat.getInstance();
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6);
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
 			StringBuffer info1 = new StringBuffer("frame ");
 			info1.append(this.frame_number);
 			info1.append("\n");
