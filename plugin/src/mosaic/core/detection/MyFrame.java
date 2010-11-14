@@ -5,6 +5,7 @@ import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 
 import java.awt.Color;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Vector;
 
@@ -175,7 +176,7 @@ import java.util.Vector;
 		 */	
 		public StringBuffer toStringBuffer() {
 
-			// I work with StringBuffer since its faster than String
+			// work with StringBuffer since its faster than String
 			NumberFormat nf = NumberFormat.getInstance();
 			nf.setMaximumFractionDigits(6);
 			nf.setMinimumFractionDigits(6);
@@ -219,9 +220,12 @@ import java.util.Vector;
 		 */
 		public StringBuffer frameDetectedParticlesForSave(boolean with_momentum) {
 
-			NumberFormat nf = NumberFormat.getInstance();
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6); 
+			 
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
 			StringBuffer info1 = new StringBuffer("frame ");
 			info1.append(this.frame_number);
 			info1.append("\n");
