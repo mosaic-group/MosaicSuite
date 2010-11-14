@@ -1,5 +1,6 @@
 package mosaic.core.detection;
 
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 /**
@@ -105,9 +106,11 @@ public class Particle {
 		StringBuffer sp = new StringBuffer(" ");
 
 		// format the number to look nice in print (same number of digits)
-		NumberFormat nf = NumberFormat.getInstance();			
-		nf.setMaximumFractionDigits(6);
-		nf.setMinimumFractionDigits(6);
+//		NumberFormat nf = NumberFormat.getInstance();			
+//		nf.setMaximumFractionDigits(6);
+//		nf.setMinimumFractionDigits(6);
+		DecimalFormat nf = new DecimalFormat("######0.000000");
+		nf.setGroupingUsed(false);
 		sb.append(this.getFrame());
 
 		sb.append(sp);
