@@ -1966,11 +1966,16 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 			// At the end convert to String and return
 			StringBuffer sb = new StringBuffer();
 			StringBuffer sp = new StringBuffer(" ");
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6); 
+			 
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
+
 			
 			// format the number to look nice in print (same number of digits)
-			NumberFormat nf = NumberFormat.getInstance();			
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
+
 			sb.append(this.frame);
 			if (text_files_mode) {
 				for (int i = 0; i<all_params.length; i++) {

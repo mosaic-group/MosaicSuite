@@ -1544,10 +1544,13 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 		 * @see #info_before_discrimination
 		 */
 		private void generateFrameInfoBeforeDiscrimination() {
-			NumberFormat nf = NumberFormat.getInstance();
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
-			
+
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6); 
+			 
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
 			// I work with StringBuffer since its faster than String
 			StringBuffer info = new StringBuffer("% Frame ");
 			info.append(this.frame_number);
@@ -1608,11 +1611,14 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 		 * @return a <code>StringBuffer</code> with the info
 		 */	
 		public StringBuffer toStringBuffer() {
+
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6); 
+			 
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
 			
-			// I work with StringBuffer since its faster than String
-			NumberFormat nf = NumberFormat.getInstance();
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
 			StringBuffer sb = new StringBuffer("% Frame ");
 			sb.append(this.frame_number);
 			sb.append("\n");
@@ -1652,9 +1658,13 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 		 */
 		private StringBuffer frameDetectedParticlesForSave(boolean with_momentum) {
 			
-			NumberFormat nf = NumberFormat.getInstance();
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
+
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6); 
+			 
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
 			StringBuffer info1 = new StringBuffer("frame ");
 			info1.append(this.frame_number);
 			info1.append("\n");
@@ -1799,10 +1809,13 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 			StringBuffer sb = new StringBuffer();
 			StringBuffer sp = new StringBuffer(" ");
 			
-			// format the number to look nice in print (same number of digits)
-			NumberFormat nf = NumberFormat.getInstance();			
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
+
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6); 
+			 
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
 			sb.append(this.frame);
 			if (text_files_mode) {
 				for (int i = 0; i<all_params.length; i++) {
