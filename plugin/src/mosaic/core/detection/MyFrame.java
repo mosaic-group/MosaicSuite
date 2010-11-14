@@ -6,7 +6,6 @@ import ij.process.ImageProcessor;
 
 import java.awt.Color;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Vector;
 
 	/**
@@ -53,10 +52,13 @@ import java.util.Vector;
 		 */
 		private StringBuffer getFrameInfoAfterDiscrimination() {
 
-			NumberFormat nf = NumberFormat.getInstance();
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
 
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6); 
+			 
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
 			// I work with StringBuffer since its faster than String
 			StringBuffer info = new StringBuffer("%\tParticles after non-particle discrimination (");
 			info.append(this.real_particles_number);
@@ -96,9 +98,13 @@ import java.util.Vector;
 		 * @see #info_before_discrimination
 		 */
 		public void generateFrameInfoBeforeDiscrimination() {
-			NumberFormat nf = NumberFormat.getInstance();
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
+
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6); 
+			 
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
 
 			// I work with StringBuffer since its faster than String
 			StringBuffer info = new StringBuffer("% Frame ");
@@ -177,9 +183,13 @@ import java.util.Vector;
 		public StringBuffer toStringBuffer() {
 
 			// work with StringBuffer since its faster than String
-			NumberFormat nf = NumberFormat.getInstance();
-			nf.setMaximumFractionDigits(6);
-			nf.setMinimumFractionDigits(6);
+
+//			NumberFormat nf = NumberFormat.getInstance();
+//			nf.setMaximumFractionDigits(6);
+//			nf.setMinimumFractionDigits(6); 
+			 
+			DecimalFormat nf = new DecimalFormat("#####0.000000");
+			nf.setGroupingUsed(false);
 			StringBuffer sb = new StringBuffer("% Frame ");
 			sb.append(this.frame_number);
 			sb.append("\n");

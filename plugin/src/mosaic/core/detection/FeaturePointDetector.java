@@ -115,8 +115,7 @@ public class FeaturePointDetector {
 
 		/* Estimation of the point location - Step 2 of the algorithm */
 		findThreshold(restored_fps, percentile, absIntensityThreshold);
-		System.out.println("3D: Threshold found : " + getThreshold());
-
+		
 		pointLocationsEstimation(restored_fps, frame.frame_number);
 		//
 		//					System.out.println("particles after location estimation:");
