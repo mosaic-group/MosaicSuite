@@ -1,0 +1,35 @@
+\contentsline {section}{\numberline {1}Introduction}{1}{section.1}
+\contentsline {section}{\numberline {2}Preparation}{2}{section.2}
+\contentsline {subsection}{\numberline {2.1}Programming environment}{2}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Movies}{2}{subsection.2.2}
+\contentsline {section}{\numberline {3}An Example - Description of the System}{2}{section.3}
+\contentsline {paragraph}{Point Spread Function}{2}{section*.2}
+\contentsline {paragraph}{Dynamics}{3}{section*.3}
+\contentsline {paragraph}{Background}{3}{section*.4}
+\contentsline {section}{\numberline {4}Members and Data Structures}{3}{section.4}
+\contentsline {subsection}{\numberline {4.1}Important Member Variables}{3}{subsection.4.1}
+\contentsline {paragraph}{\texttt {mStateVectors}}{3}{section*.5}
+\contentsline {paragraph}{\texttt {mStateVectorsMemory}}{3}{section*.6}
+\contentsline {paragraph}{\texttt {mParticles}}{3}{section*.7}
+\contentsline {paragraph}{\texttt {mParticlesMemory}}{4}{section*.8}
+\contentsline {subsection}{\numberline {4.2}The Algorithms Parameters}{4}{subsection.4.2}
+\contentsline {paragraph}{\texttt {mNbOfThreads} - Number of Threads}{4}{section*.9}
+\contentsline {paragraph}{\texttt {mNbOfParticles} - Number of Particles $\#p$}{4}{section*.10}
+\contentsline {paragraph}{\texttt {mRepSteps} - Number of Optimization Iterations}{4}{section*.11}
+\contentsline {paragraph}{\texttt {mResamplingThreshold} - Threshold $\theta $ for the Resampling Step}{4}{section*.12}
+\contentsline {paragraph}{\texttt {mBackground} - Constant Background Intensity}{5}{section*.13}
+\contentsline {paragraph}{\texttt {mSeed} - The Seed}{5}{section*.14}
+\contentsline {paragraph}{\texttt {mWaveLengthInNm} - Wave Length in Nanometer}{5}{section*.15}
+\contentsline {paragraph}{\texttt {mNA} - Numerical Apparture}{5}{section*.16}
+\contentsline {paragraph}{\texttt {mn} - The Refractive Index}{5}{section*.17}
+\contentsline {paragraph}{\texttt {mStateOfFilter} - State of the Plugin}{5}{section*.18}
+\contentsline {paragraph}{\texttt {RESULT\_FILE\_SUFFIX}}{5}{section*.19}
+\contentsline {paragraph}{\texttt {INIT\_FILE\_SUFFIX}}{5}{section*.20}
+\contentsline {section}{\numberline {5}Methods to Override}{5}{section.5}
+\contentsline {subsection}{\numberline {5.1}Abstract Methods}{6}{subsection.5.1}
+\contentsline {paragraph}{The Generation of an Expected Image}{6}{section*.21}
+\contentsline {paragraph}{Dynamics}{6}{section*.22}
+\contentsline {paragraph}{Visualization}{7}{section*.23}
+\contentsline {paragraph}{Getter Methods}{8}{section*.24}
+\contentsline {subsection}{\numberline {5.2}Methods that should be overrided}{8}{subsection.5.2}
+\contentsline {section}{\numberline {6}Disclaimer}{10}{section.6}

@@ -1,0 +1,6 @@
+The file Cell1_5frames shows kinetochores in a humen cell in the beginning of a mitosis. The kinetochores were marked
+with a GFP. The image was sampled down to 8 bit. The movie was recorded by the group of Prof. Patrick Meraldi at the institute of Biochemistry at the ETHZ.
+pixel width = 110nm
+pixel height = 110nm
+voxel depth = 500nm
+focal planes = 25
