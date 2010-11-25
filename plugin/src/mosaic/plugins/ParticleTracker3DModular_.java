@@ -14,6 +14,7 @@ import ij.io.FileInfo;
 import ij.io.OpenDialog;
 import ij.io.SaveDialog;
 import ij.measure.Measurements;
+import ij.measure.ResultsTable;
 import ij.plugin.filter.Duplicater;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
@@ -56,6 +57,7 @@ import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
+import mosaic.plugins.ParticleTrackerKota_.Trajectory;
 
 /**
  * <h2>ParticleTracker</h2>
@@ -79,11 +81,21 @@ import mosaic.core.detection.PreviewInterface;
  * THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE ETH HAS NO 
  * OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.<p>
  * 
- * @version 1.2.1 March, 2010 (requires: ImageJ 1.36b and Java 5 or higher)
+ * @version 1.3, November 2010 (requires: ImageJ 1.36b and Java 5 or higher)
+ * 
  * @author Guy Levy - Academic guest CBL 
+ * 2d algorithm and GUI implementation
+ *  
  * @author Janick Cardinale, PhD Student at Mosaic 
  * <a href="http://www.mosaic.ethz.ch/">Mosaic Group, Inst. of theoretical computer 
- * science<a>, ETH Zurich 
+ * science<a>, ETH Zurich  
+ * 3D extension, memory efficiency, parallelism, algorithmic speed up, batch processing
+ *
+ * feature extension made by:
+ * 
+ * @version 1.6 November 2010 (requires: ImageJ 1.44 or higher)
+ * @author Kota Miura - CMCI, EMBL Heidelberg  (http://cmci.embl.de)
+ * add functionality to automatically transfer resulting data to result table in ImageJ, 
  */
 
 public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, PreviewInterface  {	
@@ -1101,6 +1113,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		private Button view_static, save_report, display_report, dummy,
 		plot_particle, trajectory_focus, trajectory_info, traj_in_area_info, area_focus;
 
+		private Button transfer_particles, transfer_trajs; //in panel left
+		private Button transfer_particle, transfer_traj; //in panel center
+
 		private Label per_traj_label, area_label, all_label;
 		private MenuItem tail, mag_factor, relink_particles;
 
@@ -1162,7 +1177,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			display_report = new Button(" Display Full Report");
 			display_report.addActionListener(this);
 			view_static = new Button(" Visualize All Trajectories ");	
-			view_static.addActionListener(this);	        
+			view_static.addActionListener(this);
+			transfer_particles = new Button(" Segmented Particles to Table");	
+			transfer_particles.addActionListener(this);	 
+			transfer_trajs = new Button(" All Trajectories to Table");	
+			transfer_trajs.addActionListener(this);	
 
 			/* Add the Label and 3 buttons to the all_options Panel */
 			gridbag.setConstraints(all_label, c);
@@ -1173,6 +1192,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			all_options.add(save_report);
 			gridbag.setConstraints(display_report, c);
 			all_options.add(display_report);
+	        gridbag.setConstraints(transfer_particles, c);
+	        all_options.add(transfer_particles);
+	        gridbag.setConstraints(transfer_trajs, c);
+	        all_options.add(transfer_trajs);
+
 			/*--------------------------------------------------*/
 
 
@@ -1193,6 +1217,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			trajectory_info.addActionListener(this);
 			plot_particle = new Button(" Plot ");
 			plot_particle.addActionListener(this);
+        	transfer_particle = new Button("");
+        	transfer_particle.addActionListener(this);
+        	transfer_traj = new Button("Selected Trajectory to Table");
+        	transfer_traj.addActionListener(this);
 
 			/* Add the Label and 3 buttons to the per_traj_options Panel */
 			gridbag.setConstraints(per_traj_label, c);
@@ -1203,10 +1231,16 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			per_traj_options.add(trajectory_info);
 			gridbag.setConstraints(plot_particle, c);
 			per_traj_options.add(plot_particle);
-			// the plot_particle option is only avalible for text_files_mode
+        	gridbag.setConstraints(transfer_particle, c);
+        	per_traj_options.add(transfer_particle);
+        	gridbag.setConstraints(transfer_traj, c);
+        	per_traj_options.add(transfer_traj);
+
+        	// the plot_particle option is only avalible for text_files_mode
 			if (!text_files_mode) plot_particle.setEnabled(false);
 			/*--------------------------------------------------*/
 
+			transfer_particle.setEnabled(false); 		//TODO			
 
 			/*----------------------------------------*/
 			/* Panel to hold buttons for area options */
@@ -1309,6 +1343,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		 * <br><code>Button view_static</code>
 		 * <br><code>Button save_report</code>
 		 * <br><code>Button display_report</code>
+		 * <br><code>Button transfer_particles</code>
+    	 * <br><code>Button transfer_trajs</code>
+    	 * <br><code>Button transfer_traj</code>
 		 * <br><code>Button plot_particle</code>
 		 * <br><code>Button trajectory_focus</code>
 		 * <br><code>Button trajectory_info</code>
@@ -1363,7 +1400,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				text_panel.append(getFullReport().toString());
 				return;				
 			}
-			/* check vadilty of state for area seletion*/
+			/* check validity of state for area selection*/
 			if (source == area_focus || source == traj_in_area_info) {
 				// for these options, an area (ROI) has to be selected on the display
 				// varify it here
@@ -1403,7 +1440,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				return;
 			}
 			/* check vadilty of state for Trajectory seletion */
-			if (source == trajectory_focus || source == trajectory_info) {
+			if (source == trajectory_focus || source == trajectory_info || source == transfer_traj) {
 				// These options can only be requested after selecting a trajectory from the view 
 				// varify it here
 				if (chosen_traj == -1) {
@@ -1430,6 +1467,12 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				results_window.text_panel.append(traj.toString());
 				return;
 			}
+			
+			if (source == transfer_traj) {
+				Trajectory traj = all_traj.elementAt(chosen_traj-1);
+				transferSelectedTrajectoriesToResultTable(traj);
+			}
+			
 			/* define the trajectory displyed tail*/
 			if (source == tail) {
 				int ch_num = Math.max(frames_number/50+2,2);
@@ -1488,6 +1531,17 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				results_window.text_panel.clearSelection();
 				results_window.text_panel.appendLine("Relinking DONE!");
 				results_window.text_panel.appendLine("Found " + number_of_trajectories + " Trajectories");
+			}
+			/* transfer segmented particle coordinates to ImageJ results window*/
+			if (source == transfer_particles) {
+				transferParticlesToResultsTable(); // ver 1.4 20101115
+				return;
+			}
+
+			/* transfer trajectory coordinates to ImageJ results window*/
+			if (source == transfer_trajs) {
+				transferTrajectoriesToResultTable();
+				return;
 			}
 		}		
 	}
@@ -2267,6 +2321,124 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		}
 		preview_canvas.repaint();
 		return;
+	}
+
+	/** Extracts spot segmentation results <br>and show in in ImageJ static Results Table
+	 * <br>Invoked by clicking button in ParticleTracker Results Window. 
+	 * @author  Kota Miura <a href="http://cmci.embl.de">cmci.embl.de</a>
+	 * @see ResultsWindow
+	 */
+	
+	public void transferParticlesToResultsTable(){
+		ResultsTable rt = null; 
+		try {
+			rt = ResultsTable.getResultsTable();//static, the one in Analyze
+		} catch (Exception e) {}
+		if ((rt.getCounter() != 0) || (rt.getLastColumn() != -1)) {
+			if (IJ.showMessageWithCancel("Results Table", "Reset Results Table?")){
+				rt.reset();
+			} else
+				return;
+		}
+	
+		int rownum = 0;
+		for (int i = 0; i < frames.length; i++) {
+			Vector<Particle> particles = this.frames[i].getParticles();
+			for (Particle p : particles) {
+				rt.incrementCounter();
+				rownum = rt.getCounter()-1;
+				rt.setValue("frame", rownum, p.getFrame());
+				rt.setValue("x", rownum, p.x);
+				rt.setValue("y", rownum, p.y);
+				rt.setValue("z", rownum, p.z);
+				rt.setValue("m0", rownum, p.m0);
+				rt.setValue("m1", rownum, p.m1);
+				rt.setValue("m2", rownum, p.m2);
+				rt.setValue("m3", rownum, p.m3);
+				rt.setValue("m4", rownum, p.m4);
+				rt.setValue("NPscore", rownum, p.score);
+			}
+		}			
+		rt.show("Results");
+	}
+
+	/** Extracts tracking results <br>and show in in ImageJ static Results Table
+	 * <br>Invoked by clicking button in ParticleTracker Results Window. 
+	 * @author Kota Miura <a href="http://cmci.embl.de">cmci.embl.de</a>
+	 * @see ResultsWindow
+	 */	
+	public void transferTrajectoriesToResultTable(){
+		ResultsTable rt = null; 
+		try {
+			rt = ResultsTable.getResultsTable();//static, the one in Analyze
+		} catch (Exception e) {}
+		if ((rt.getCounter() != 0) || (rt.getLastColumn() != -1)) {
+			if (IJ.showMessageWithCancel("Results Table", "Reset Results Table?")){
+				rt.reset();
+			} else
+				return;
+		}
+		Iterator<Trajectory> iter = all_traj.iterator();
+		int rownum = 0;
+		while (iter.hasNext()) {
+			Trajectory curr_traj = iter.next();
+			Particle[] pts = curr_traj.existing_particles; 
+			for (Particle p : pts){	
+				rt.incrementCounter();
+				rownum = rt.getCounter()-1;
+				rt.setValue("Trajectory", rownum, curr_traj.serial_number); 
+				rt.setValue("Frame", rownum, p.getFrame());
+				rt.setValue("x", rownum, p.x);
+				rt.setValue("y", rownum, p.y);
+				rt.setValue("z", rownum, p.z);
+				rt.setValue("m0", rownum, p.m0);
+				rt.setValue("m1", rownum, p.m1);
+				rt.setValue("m2", rownum, p.m2);
+				rt.setValue("m3", rownum, p.m3);
+				rt.setValue("m4", rownum, p.m4);
+				rt.setValue("NPscore", rownum, p.score);
+			}
+		}
+		rt.show("Results");
+	}
+
+	/**
+	 * corrdinates of selected trajectory (as argument) will be copied to 
+	 * ImageJ results table. 
+	 *  
+	 * @param traj
+	 */
+	public void transferSelectedTrajectoriesToResultTable(Trajectory traj){
+		ResultsTable rt = null; 
+		try {
+			rt = ResultsTable.getResultsTable();//static, the one in Analyze
+		} catch (Exception e) {}
+		if ((rt.getCounter() != 0) || (rt.getLastColumn() != -1)) {
+			if (IJ.showMessageWithCancel("Results Table", "Reset Results Table?")){
+				rt.reset();
+			} else
+				return;
+		}
+		Trajectory curr_traj = traj;
+		int rownum = 0;
+		Particle[] pts = curr_traj.existing_particles; 
+
+		for (Particle p : pts){	
+			rt.incrementCounter();
+			rownum = rt.getCounter()-1;
+			rt.setValue("Trajectory", rownum, curr_traj.serial_number);
+			rt.setValue("Frame", rownum, p.getFrame());
+			rt.setValue("x", rownum, p.x);
+			rt.setValue("y", rownum, p.y);
+			rt.setValue("z", rownum, p.z);
+			rt.setValue("m0", rownum, p.m0);
+			rt.setValue("m1", rownum, p.m1);
+			rt.setValue("m2", rownum, p.m2);
+			rt.setValue("m3", rownum, p.m3);
+			rt.setValue("m4", rownum, p.m4);
+			rt.setValue("NPscore", rownum, p.score);
+		}
+		rt.show("Results");
 	}
 }
 
