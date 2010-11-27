@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2010.8.28)  21 NOV 2010 16:39
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2010.11.24)  26 NOV 2010 19:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -177,7 +177,7 @@ File: graphics.cfg 2009/08/28 v1.8 graphics configuration of TeX Live
 Package graphics Info: Driver file: pdftex.def on input line 91.
 
 (/usr/share/texmf-texlive/tex/latex/pdftex-def/pdftex.def
-File: pdftex.def 2009/08/25 v0.04m Graphics/color for pdfTeX
+File: pdftex.def 2010/03/12 v0.04p Graphics/color for pdfTeX
 \Gread@gobject=\count100
 ))
 \Gin@req@height=\dimen112
@@ -226,16 +226,16 @@ File: images/alle2.png Graphic file (type png)
 
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <./images/alle2.png (PNG co
-py)>] <images/BGSschema.png, id=11, 380.17032pt x 609.77812pt>
+py)>] <images/BGSschema.png, id=10, 380.17032pt x 609.77812pt>
 File: images/BGSschema.png Graphic file (type png)
 
 <use images/BGSschema.png> [2] [3 <./images/BGSschema.png>] [4]
 (./BGS_manual.aux) ) 
 Here is how much of TeX's memory you used:
- 2762 strings out of 495021
- 37065 string characters out of 1181035
- 110958 words of memory out of 3000000
- 5940 multiletter control sequences out of 15000+50000
+ 2765 strings out of 495061
+ 37118 string characters out of 1182620
+ 111220 words of memory out of 3000000
+ 5928 multiletter control sequences out of 15000+50000
  14544 words of font info for 57 fonts, out of 3000000 for 9000
  28 hyphenation exceptions out of 8191
  35i,7n,35p,615b,253s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -247,7 +247,7 @@ fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texmf-texlive/fonts/type1/p
 ublic/amsfonts/cm/cmssbx10.pfb></usr/share/texmf-texlive/fonts/type1/public/ams
 fonts/cm/cmsy10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cm
 tt10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on BGS_manual.pdf (4 pages, 269969 bytes).
+Output written on BGS_manual.pdf (4 pages, 269994 bytes).
 PDF statistics:
  53 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

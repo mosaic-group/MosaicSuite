@@ -30,7 +30,7 @@ The convolution kernel of size $w \times h$ reads\cite{danuser}:
 PSF(x,y) & = & \left(\frac{2J_1(a \sqrt{x^2+y^2})}{\sqrt{(x^2+y^2)}} \right) \\
 a & = & \frac{2\pi\;{NA}}{\lambda} \nonumber
 \end{eqnarray}
-with $x\in\left[-w/2,w/2\right]$ and $y\in\left[-h/2,h/2\right]$ the coordinates measured from the center of the kernel. $w$ and $h$ are equal to the user defined parameter $r_{max}$. $J_1(x)$ stands for the Bessel function of order one. The implementation of this function is taken from \cite{Pang}. The convolution is performed by ImageJs \texttt{ImageProcessor} classes.
+with $x\in\left[-w/2,w/2\right]$ and $y\in\left[-h/2,h/2\right]$ the coordinates measured from the center of the kernel. $w$ and $h$ are equal to the user defined parameter $r_{max}$. $J_1(x)$ stands for the Bessel function of order one. The implementation of this function is taken from \cite{Pang}. The convolution is performed by the ImageJs \texttt{ImageProcessor} classes.
 
 \section{Installation}
 Copy the \texttt{mosaic\_plugins.jar} file to the ImageJs \texttt{plugins} directory. Restart ImageJ. The plugin can be launched from the \texttt{Mosaic} submenu in ImageJs plugin menu. 
@@ -40,7 +40,7 @@ The plugin handles 8-bit, 16-bit and 32-bit grayscale images or stacks.
 Prerequisits: At least Java 5.0 and ImageJ 1.36.
 
 \section{How to use the plugin}
-Open the image or an image stack in ImageJ to process. Make sure that pixel width and height is set correctly in the image properties dialog. Use the \texttt{Ctrl-p} shortcut to open this dialog. Please note that the plugin only recognizes the metric system. 
+Open the image or an image stack in ImageJ to process. Make sure that the \textit{pixel width} and \textit{pixel height} properties are set correctly in the image properties dialog. Use the \texttt{Ctrl-p} shortcut to open this dialog. Please note that the plugin only recognizes the metric system. 
 
 Start processing by selecting the \texttt{BesselPSF Convolver} entry in the \texttt{plugin$\rightarrow$mosaic} menu. You might process only one slice or even the whole stack.
 

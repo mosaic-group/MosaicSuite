@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2010.8.28)  21 NOV 2010 16:09
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2010.11.24)  26 NOV 2010 20:00
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -178,7 +178,7 @@ File: graphics.cfg 2009/08/28 v1.8 graphics configuration of TeX Live
 Package graphics Info: Driver file: pdftex.def on input line 91.
 
 (/usr/share/texmf-texlive/tex/latex/pdftex-def/pdftex.def
-File: pdftex.def 2009/08/25 v0.04m Graphics/color for pdfTeX
+File: pdftex.def 2010/03/12 v0.04p Graphics/color for pdfTeX
 \Gread@gobject=\count100
 ))
 \Gin@req@height=\dimen112
@@ -272,10 +272,10 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
 
 (./BesselPSFConvolver_manual.bbl) [2] (./BesselPSFConvolver_manual.aux) ) 
 Here is how much of TeX's memory you used:
- 4215 strings out of 495021
- 58052 string characters out of 1181035
- 160028 words of memory out of 3000000
- 7369 multiletter control sequences out of 15000+50000
+ 4218 strings out of 495061
+ 58105 string characters out of 1182620
+ 160188 words of memory out of 3000000
+ 7357 multiletter control sequences out of 15000+50000
  13359 words of font info for 52 fonts, out of 3000000 for 9000
  28 hyphenation exceptions out of 8191
  35i,8n,40p,630b,255s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -291,7 +291,7 @@ texlive/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-texlive/fon
 ts/type1/public/amsfonts/cm/cmti10.pfb></usr/share/texmf-texlive/fonts/type1/pu
 blic/amsfonts/cm/cmtt10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfon
 ts/cm/cmtt12.pfb>
-Output written on BesselPSFConvolver_manual.pdf (2 pages, 149258 bytes).
+Output written on BesselPSFConvolver_manual.pdf (2 pages, 149791 bytes).
 PDF statistics:
  57 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

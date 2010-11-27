@@ -23,7 +23,8 @@
 
 \section{Introduction}
 \label{sec:intro}
-This small ImageJ plugin inserts Poisson distributed noise to each pixel of an image or an imagestack like it appear on images of a confocal microscopy due to photon counting. This might be useful to test algorithms on generated (artificial) data. 
+Due to the descrete character of light, images acquired using photon counting devices such as CCD cameras suffer from \textit{photon counting noise}: During the exposure time of a given time $T$, a photon might or might not hit the sensor (since it is a non-continuous event). Such a process can be modeled using a Poisson distribution.  
+This ImageJ plugin inserts Poisson distributed noise into an image or an imagestack to simulate the acquisition of an image. The noise realization is independent for each pixel. The distribution parameter $\lambda$ is set to the original intensity value.
 
 \section{Installation}
 Copy the \texttt{mosaic\_plugins.jar} file to the ImageJs \texttt{plugins} directory. Restart ImageJ. The plugin can be launched from the \texttt{Mosaic} submenu in ImageJs plugin menu. 

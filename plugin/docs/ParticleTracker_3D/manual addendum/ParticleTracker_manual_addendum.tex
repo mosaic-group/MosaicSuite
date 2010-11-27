@@ -18,15 +18,15 @@
 \label{sec:intro}
 The ImageJ plugin \texttt{ParticleTracker\_} version 1.2 is a straight forward extension to three space dimensions of the ImageJ Plugin ParticleTracker\_ written by Guy Levy. \textbf{This version handles both, 2D movies and 3D movies. Also, the plugin might be used for feature point detection only in 2D and 3D.} Both versions can be downloaded from the Mosaic\footnote{http://www.mosaic.ethz.ch/Downloads/index} web-page. 
 
-In this addendum, changes for the user to the user manual of the \texttt{ParticleTracker\_} plugin are described. Generally, the extension is designed such that it does not affect the handling of the plugin. At the moment, there is no visualization of the z-coordinate. Only z-projected trajectories can be displayed.
+This document complements the user manual of the \texttt{ParticleTracker\_} plugin. Generally, the extensions to the plugin are designed such that it does not affect the handling of the plugin. Currently there is no visualization of the z-coordinate. Only z-projected trajectories can be displayed.
 
 \section{Extensions and Changes}
 \label{sec:pluginstart}
 \subsection{Installation}
-Please note that the plugin needs a Java Runtime Environment (JRE) version 5 or higher and ImageJ version 1.36b or higher. To install the plugin, copy the \texttt{mosaic\_plugins.jar} archive to ImageJ's plugin folder and restart ImageJ. After restarting ImageJ, the plugin should appear in the \texttt{plugins$\rightarrow$Mosaic} submenu.
+Please note that the plugin needs a Java Runtime Environment (JRE) version 5 or higher and ImageJ in version 1.36b or newer. To install the plugin, copy the \texttt{mosaic\_plugins.jar} archive to ImageJ's plugin folder and restart ImageJ. After restarting ImageJ, the plugin should appear in the \texttt{plugins$\rightarrow$Mosaic} submenu.
 
 \subsection{Load movie and start}
-Open a 4D image stack. \textbf{In the image properties dialog (shortcut \texttt{Ctrl-p}) check if the number of slices and frames is set correctly}.
+Open a image or an image stack. \textbf{In the image properties dialog (shortcut \texttt{Ctrl-p}) check if the number of slices and frames is set correctly}. From this information, the software will detect if it is a 2D image, 2D movie, 3D image, or 3D movie.
 
 % If the plugin is started, a new selection for the background subtraction appears. There are 4 possible choices:
 
@@ -41,8 +41,9 @@ Open a 4D image stack. \textbf{In the image properties dialog (shortcut \texttt{
 
 \subsection{Visualization}
 \label{sec:visualizing}
-If you like to only detect particles (not link them), click on the \texttt{Save Detected} button. The detected particles are shown if you slide through the image stack using the sliding bar on the parameter window. 
-
+\subsubsection{Detection}
+If you like to only detect particles (not link them), click on the \texttt{Save Detected} button. The detected particle positions are drawn on the image. Use the sliding bar on the parameter window to watch at the result for other frames.
+\subsubsection{Tracking}
 Note that, while visualizing the trajectories, a frame consists of $n$ slices. If you would like to export movies, select a trajectory or an area and focus on your selection using the appropriate button in the result window. This generates  a RGB image that you may z-project using the Image5D framework for ImageJ.
 
 \subsection{Batchprocessing}
@@ -51,90 +52,82 @@ The plugin supports batch processing using standard ImageJ macros. If the plugin
 \subsection{Results}
 \label{sec:results}
 \paragraph{Trajectory information format}
-This format is saved to disk if you saved a report or if the report was printed to the text panel. The output from the 2D version differs only slightly from the the output of newest 3D version differs: the z-coordinate, the first, third, and fourth intensity momentum was added. The z-coordinate starts from the first slice with value 1 and ends with the number of slices per frame of your movie. If the image to process is in 2D, the z-coordinate is set to 0.0. The resulting text format is then:
-\begin{table}[ht]
-		%\centering
-		\ttfamily
-		\begin{tabular}{*{10}{l}}	
-			\multicolumn{10}{l}{ \%Trajectory n} \\		
-			f	&	x & y & z & I$_0$ & I$_1$ & I$_2$ & I$_3$ & I$_4$ & s					
-		\end{tabular}
-\end{table}
+This format is written to disk if you saved a report or if the report was printed to the text panel. The output only slightly differs from the 2D version. In this version, the z-coordinate, the first, third, and fourth intensity momentum are added to the outuoput. The z-coordinate starts from the first slice with value 1 and ends with the number of slices per frame of your movie. If the image to process is in 2D, the z-coordinate is set to 0.0. The resulting text format is then:
 
+\begin{tabbing}
+
+  12\=123456\=123456\=123456\=123456\=123456\=123456\=123456\=123456\=123456\=123456 \kill
+  \>\texttt{\%Trajectory n}  \\
+  \>  \texttt{f} \> \texttt{x} \> \texttt{y} \> \texttt{z} \> \texttt{I}$_0$ \> \texttt{I}$_1$ \> \texttt{I}$_2$ \> \texttt{I}$_3$ \> \texttt{I}$_4$ \> \texttt{s} \\
+
+\end{tabbing}
 with
-\begin{table}[ht]
-	\centering
-	\begin{tabular}{cp{10cm}}
-		\texttt{x} & The x coordinate of the particle in pixel from left to right \\
-		\texttt{y} & The y coordinate of the particle in pixel from top to down \\
-		\texttt{z} & The z coordinate of the particle in slices from the first to the last slice of the frame\\
-		\texttt{I}$_k$ & The intensity momentum of order k \\
-		\texttt{s} & The particles score in the non particle discrimination \\
-	\end{tabular}
-\end{table}
+\begin{itemize}
+\item \texttt{x} The x coordinate of the particle in pixel from left to right
+\item \texttt{y} The y coordinate of the particle in pixel from top to down
+\item \texttt{z}  The z coordinate of the particle in slices from the first to the last slice of the frame
+\item \texttt{I}$_k$  The intensity momentum of order k
+\item \texttt{s}  The particles score evaluated during the non particle discrimination step\\
+\end{itemize}
 
-\paragraph{Particles information (Frame) format}
-This format is written to disk if one detected particles only (by clicking the button ``Save detected'' in the parameter dialog). It is also the format that can be read by the plugin. The format does not contain any information about trajectories. Using the same shortcuts as in the paragraph above, the frame format is:
-\begin{flushleft}
-\begin{table}[h]		
-		\ttfamily
-		\begin{tabular}{*{8}{l}}	
-			\multicolumn{5}{l}{frame f} \\		
-			x & y & z & I$_0$ & I$_1$ & I$_2$ & I$_3$ & I$_4$ 
-		\end{tabular}
-\end{table}
-\end{flushleft}
+\paragraph{Particles information format}
+This format is written to disk if when clicking the button ``Save detected'' in the parameter dialog. It is also the format that can be read by the plugin when starting without having an image open. The format does not contain any information about trajectories. Using the same shortcuts as in the paragraph above, the frame format is:
+{  \ttfamily
+  \begin{tabbing}
+    \=1234\=1234\=1234\=1234\=1234\=1234\=1234\=1234\=1234\=1234\kill
+    \>frame f\\		
+    \>  x \> y \> z \> I$_0$ \> I$_1$ \> I$_2$ \> I$_3$ \> I$_4$ 
+  \end{tabbing}
+}
 The numbers are separated by the white-space character.
 \paragraph{Full report format}
 The header is supplemented by the line (the right arrow $\rightarrow$ stands for a tab character): 
 \begin{flushleft}
-\ttfamily
-\begin{tabbing}
-\%frame\= \kill \\
-\%Frames information \\
-\%$\rightarrow$\>Depth: s slices
-\end{tabbing}
+  \ttfamily
+  \begin{tabbing}
+    \%frame\= \kill \\
+    \%Frames information \\
+    \%$\rightarrow$\>Depth: s slices
+  \end{tabbing}
 \end{flushleft}
-where \texttt{s} represents the amount of slices per frame. 
-%If \texttt{Absolute Threshold} is used, the percentile parameter is replaced by the line:
+with \texttt{s} being the amount of slices per frame. 
+% If \texttt{Absolute Threshold} is used, the percentile parameter is replaced by the line:
 % \begin{flushleft}
-% \ttfamily
-% \begin{tabbing}
-% \%frame\= \kill \\
-% \%Frames information \\
-% \%$\rightarrow$\>Absolute threshold: x
-%\end{tabbing}
-%\end{flushleft} 
+%   \ttfamily
+%   \begin{tabbing}
+%     \%frame\= \kill \\
+%     \%Frames information \\
+%     \%$\rightarrow$\>Absolute threshold: x
+%   \end{tabbing}
+% \end{flushleft} 
 The following information are in the same format as in the 2D version except that for the particles the z coordinate is appended:
 \begin{flushleft}
-\ttfamily
-\begin{tabbing}
-\%\=12345\=12345\=12345\=y12345\=z \kill
-\%\>Frame f:\\
-\%\>$\rightarrow$\>n particles found\\
-\%\>$\rightarrow$\>Detected particle positions: \\
-\%\>$\rightarrow$\>$\rightarrow$\>x$\rightarrow$\>y$\rightarrow$\>z
-\end{tabbing}
+  \ttfamily
+  \begin{tabbing}
+    \%\=12345\=12345\=12345\=y12345\=z \kill
+    \%\>Frame f:\\
+    \%\>$\rightarrow$\>n particles found\\
+    \%\>$\rightarrow$\>Detected particle positions: \\
+    \%\>$\rightarrow$\>$\rightarrow$\>x$\rightarrow$\>y$\rightarrow$\>z
+  \end{tabbing}
 \end{flushleft}
 \paragraph{Export to ImageJ Table}
-Particles and trajectory information can be exported to a ImageJ-compatible format using ImageJ tables. In the result window, you can export particle or trajectory information using the appropriate button:
+Particles and trajectory information can be exported to a ImageJ-compatible format using ImageJs tables. In the result window, you can export particle or trajectory information using the appropriate button:
 \begin{itemize}
-\item Table content when exporting particles to ImageJ tables:\\
-  \begin{table}[ht]
-    % \centering
-    \ttfamily
-    \begin{tabular}{*{11}{l}}	
-      row\_nb & frame & x & y & z & I$_0$ & I$_1$ & I$_2$ & I$_3$ & I$_4$ & s					
-    \end{tabular}
-  \end{table}
-\item Table content when exporting trajectories to a ImageJ table:\\
-  \begin{table}[ht]
-    % \centering
-    \ttfamily
-    \begin{tabular}{*{12}{l}}	
-      row\_nb & trajectory\_nb & frame & x & y & z & I$_0$ & I$_1$ & I$_2$ & I$_3$ & I$_4$ & s					
-    \end{tabular}
-  \end{table}
+\item Table content when exporting particles to ImageJ tables:
+  { \ttfamily
+    \begin{tabbing}
+      123456890\=1frame6\=1234\=1234\=1234\=1234\=1234\=1234\=1234\=1234\=1234\kill
+      row\_nb \> frame \> x \> y \> z \> I$_0$ \> I$_1$ \> I$_2$ \> I$_3$ \> I$_4$ \> s\\	
+    \end{tabbing}
+  }
+\item Table content when exporting trajectories to a ImageJ table:
+  {    \ttfamily
+    \begin{tabbing}
+      1234567890\=1trajectorysnb6\=1frame4\=1234\=1234\=1234\=1234\=1234\=1234\=1234\=1234\=1234\=1234\=1234\kill
+      row\_nb \> trajectory\_nb \> frame \> x \> y \> z \> I$_0$ \> I$_1$ \> I$_2$ \> I$_3$ \> I$_4$ \> s
+    \end{tabbing}
+  }
 \end{itemize}
 \section{Acknowledgments}
 Many thanks to Dr. Kota Miura, Centre for Molecular and Cellular Imaging, EMBL, for contributing the export to ImageJ table feature.

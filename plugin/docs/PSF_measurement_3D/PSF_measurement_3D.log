@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2010.8.28)  22 NOV 2010 10:31
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2010.11.24)  27 NOV 2010 17:00
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -178,7 +178,7 @@ File: graphics.cfg 2009/08/28 v1.8 graphics configuration of TeX Live
 Package graphics Info: Driver file: pdftex.def on input line 91.
 
 (/usr/share/texmf-texlive/tex/latex/pdftex-def/pdftex.def
-File: pdftex.def 2009/08/25 v0.04m Graphics/color for pdfTeX
+File: pdftex.def 2010/03/12 v0.04p Graphics/color for pdfTeX
 \Gread@gobject=\count100
 ))
 \Gin@req@height=\dimen112
@@ -261,36 +261,40 @@ File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 ) [1
 
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] <psfmap.pdf, id=13, 473.17
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] <psfmap.pdf, id=12, 473.17
 853pt x 319.08926pt>
 File: psfmap.pdf Graphic file (type pdf)
 
 <use psfmap.pdf>
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 60.
- (/usr/share/texmf-texlive/tex/latex/base/omscmr.fd
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 62.
+(/usr/share/texmf-texlive/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 60.
- [2 <./psfmap.pdf>] (./PSF_measurement_3D.bbl) [3] (./PSF_measurement_3D.aux) )
- 
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 62.
+ [2]
+(./PSF_measurement_3D.bbl) [3 <./psfmap.pdf>] (./PSF_measurement_3D.aux) ) 
 Here is how much of TeX's memory you used:
- 4220 strings out of 495021
- 58026 string characters out of 1181035
- 160028 words of memory out of 3000000
- 7373 multiletter control sequences out of 15000+50000
+ 4223 strings out of 495061
+ 58079 string characters out of 1182620
+ 162188 words of memory out of 3000000
+ 7361 multiletter control sequences out of 15000+50000
  13345 words of font info for 52 fonts, out of 3000000 for 9000
  28 hyphenation exceptions out of 8191
  35i,8n,40p,623b,255s stack positions out of 5000i,500n,10000p,200000b,50000s
-</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share
-/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-texli
-ve/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-texlive/fonts/typ
-e1/public/amsfonts/cm/cmr8.pfb></usr/share/texmf-texlive/fonts/type1/public/ams
-fonts/cm/cmssbx10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/
-cmsy10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share
-/texmf-texlive/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on PSF_measurement_3D.pdf (3 pages, 150185 bytes).
+</usr
+/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texm
+f-texlive/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-texlive/fo
+nts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-texlive/fonts/type1/pu
+blic/amsfonts/cm/cmr8.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts
+/cm/cmssbx10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy1
+0.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr
+/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmtt10.pfb></usr/share/texm
+f-texlive/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
+Output written on PSF_measurement_3D.pdf (3 pages, 149901 bytes).
 PDF statistics:
  143 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
