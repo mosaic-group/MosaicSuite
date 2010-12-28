@@ -96,7 +96,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	/*
 	 * Parameters
 	 */  
-	private boolean mDebug = false;
+	private boolean mDebug = false;  
 	private boolean mDebugWriteParticles = false;
 	protected int mNbThreads = 8;
 	protected int mNbParticles = 120;	
@@ -126,7 +126,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	
 	/*
 	 * Options
-	 */
+	 */ 
 	protected boolean mDoUseTheoreticalPSF = false;
 	protected boolean mDoPrintStates = true;
 	protected boolean mDoGaussianBlur = false;

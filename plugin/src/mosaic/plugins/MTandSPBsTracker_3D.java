@@ -37,11 +37,11 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 			0.5f,
 			0.5f,
 			300,
-			.5f,
 			0.5f,
-			1f,
-			1f,
-			1f};
+			0.5f,
+			5f,
+			5f,
+			5f};
 	protected float[] mInitialCovMatrix = new float[]{30f, 30f, 30f, 30f, 30f, 30f, 30f, 30f, 30f, 1f, 1f, 1f};
 	
 	protected String[] mDimensionsDescription = new String[]{
@@ -133,11 +133,11 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 		// Check for all the particle boundaries (image boundaries for the coordinates)
 		// If a position is outside the domain, it is orthogonally projected to the
 		// domain
-		for(int i = 0; i < 3; i++) {
+		for(int i = 0; i < 3; i++) { 
 			if(vPoints[i].mX/aPxWidthInNm < 1) vPoints[i].mX = aPxWidthInNm;
 			if(vPoints[i].mX/aPxWidthInNm > mWidth) vPoints[i].mX = (mWidth-1)*aPxWidthInNm;
 			if(vPoints[i].mY/aPxWidthInNm < 1) vPoints[i].mY = aPxWidthInNm;
-			if(vPoints[i].mY/aPxWidthInNm > mWidth) vPoints[i].mY = (mHeight-1)*aPxWidthInNm;
+			if(vPoints[i].mY/aPxWidthInNm > mHeight) vPoints[i].mY = (mHeight-1)*aPxWidthInNm;
 			if(vPoints[i].mZ/aPxDepthInNm < 1) vPoints[i].mZ = aPxDepthInNm;
 			if(vPoints[i].mZ/aPxDepthInNm > mNSlices) vPoints[i].mZ = (mNSlices-1)*aPxDepthInNm;
 		}
@@ -180,6 +180,17 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 		if(aSample[9] < mBackground || aSample[10] < mBackground || aSample[11] < mBackground) 
 			return 0.0f;
 		
+		//
+		// Set up rules
+		//
+		float[] vRefParticleInSphere = getSphereCoordinateParticle(aReferenceParticle);
+		float[] vSampleParticleInSphere = getSphereCoordinateParticle(aSample);
+		
+		for(int i = 0; i < 8; i++){
+			if(Math.abs(vRefParticleInSphere[i] - vSampleParticleInSphere[i]) > mSigmaOfDynamicsInSphereCoords[i]){
+				return 0f;
+			}					
+		}
 		return 1.0f;
 	}
 	
