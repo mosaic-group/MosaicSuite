@@ -43,6 +43,13 @@ public class SPBsTracker_ extends PFTracking3D {
 		return vIdealImage;
 	}
 	
+	@Override
+	protected float calculatePriorPDF(float[] aSample,
+			float[] aReferenceParticle) {
+		// TODO Auto-generated method stub
+		return 1;
+	}
+
 	float[] mInitFirstPoint;
 	@Override
 	protected void mouseReleased(int ax, int ay) {

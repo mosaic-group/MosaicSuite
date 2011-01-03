@@ -85,6 +85,13 @@ public class PointLineParticleFilter_3D extends PFTracking3D{
 		return false;
 	}
 	
+	@Override
+	protected float calculatePriorPDF(float[] aSample,
+			float[] aReferenceParticle) {
+		// TODO Auto-generated method stub
+		return 1;
+	}
+
 	protected boolean autoInitFilter(ImageStack aImageStack)
 	{	
 		return false;

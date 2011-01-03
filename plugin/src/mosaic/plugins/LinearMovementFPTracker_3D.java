@@ -48,6 +48,13 @@ public class LinearMovementFPTracker_3D extends PFTracking3D {
 	}
 	
 	@Override
+	protected float calculatePriorPDF(float[] aSample,
+			float[] aReferenceParticle) {
+		// TODO Auto-generated method stub
+		return 1;
+	}
+
+	@Override
 	protected void mouseReleased(int ax, int ay) {
 		if(getMStateOfFilter() == PFTracking3D.STATE_OF_FILTER.INIT) {
 			setMStateOfFilter(STATE_OF_FILTER.READY_TO_RUN);
