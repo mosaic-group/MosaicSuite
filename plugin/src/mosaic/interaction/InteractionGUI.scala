@@ -47,7 +47,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 		 
 		 // Main GUI
 		 frame = new JFrame("Object-based Interaction Analysis Plugin")
-		 frame.setSize(400, 720)
+		 frame.setSize(400, 600)
 		 frame.setResizable(true)
 		 frame.setVisible(true)
 
@@ -57,13 +57,13 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 		 // Initialization
 		 tabs = new JTabbedPane(SwingConstants.TOP)
 		 tabs.setOpaque(true)
+		 tabs.setPreferredSize(new Dimension(400, 300))
 		 aboutTab
 		 chromaticAberTab
 		 
-		 analyzingTabs = new JTabbedPane(SwingConstants.BOTTOM)
+		 analyzingTabs = new JTabbedPane(SwingConstants.TOP)
 		 analyzingTabs.setOpaque(true)
 		 analyzingTabs.setPreferredSize(new Dimension(400, 200));
-		 analyzingTabs.setMaximumSize(new Dimension(600, 200));
 
 		 warning=new JLabel(warText)
 		 warning.setForeground(Color.RED);
@@ -176,12 +176,13 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 	 
 		 def aboutTab {
 			val aboutTab = new JPanel();
-	        aboutTab.setPreferredSize(new Dimension(380, 200));
+	        aboutTab.setPreferredSize(new Dimension(400, 200));
 			val aboutsubTab1=new JPanel();
 	        aboutsubTab1.setPreferredSize(new Dimension(380, 145));
 	        val aboutTxt = new JTextArea("Please refer to and cite:\n "+
 	        			"Jo A. Helmuth et al.,   Beyond co-localization: \n inferring spatial "+
-	        			"interactions between \n sub-cellular structures from microscopy images "+
+	        			"interactions between \n sub-cellular structures from microscopy images. \n "+
+	        			"BMC Bioinformatics, 11:372, 2010 " +
 	        			"\n\n\nFreely downloadable from:\nhttp://www.biomedcentral.com/1471-2105/11/372");
 	        aboutTxt.setSize(380,155);
 	        aboutTxt.setLineWrap(true);
@@ -204,7 +205,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 		 // Chromatic aberration tab
 		 def chromaticAberTab {
 			val chroTab = new JPanel(new GridLayout(4,1));
-	        chroTab.setPreferredSize(new Dimension(380, 200));
+	        chroTab.setPreferredSize(new Dimension(380, 300));
 	
 	        //chroTab.add(new JLabel("Chromatic aberration"));
 	        val chromPlugin = new JButton("Find Chromatic Aberration with plugin,")
@@ -260,7 +261,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 	        	cellOutline = new input.CellOutline(openImage(model.dim), true)
 	        })
 	        maskT.add(openMask)
-	        val generateMask = new JButton("Generate mask automaticly based on the reference image.")
+	        val generateMask = new JButton("Generate automaticly based on the reference image.")
 	        generateMask.addActionListener((e:ActionEvent) => cellOutlineGeneration)
 	        maskT.add(generateMask)
 	        
@@ -411,7 +412,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
         
         if (WindowManager.getImageCount()!=0){
             val IDList=WindowManager.getIDList();
-            for (val i <- (0 until IDList.length)){
+            for (i <- (0 until IDList.length)){
                 val currImg=WindowManager.getImage(IDList(i));
                 if (currImg.getBitDepth()!=24 && currImg.getBitDepth()!=32){
                     imgList = currImg::imgList
