@@ -86,6 +86,12 @@ class ChromaticAberration extends PlugIn with ImagePreparation {
 		IJ.showMessage("Estimated Chromatic Aberration",
 				"x Axis: Intercept = " + xIntecept + " , Slope = " + xSlope +"\n"+
 				"y Axis: Intercept = " + yIntecept + " , Slope = " + ySlope  )
+		
+		// store in Prefs estimated CA parameters, to use them in other IJ plugins
+		ij.Prefs.set("CA.output.xIntecept", xIntecept)
+		ij.Prefs.set("CA.output.xSlope", xSlope)
+		ij.Prefs.set("CA.output.yIntecept", yIntecept)
+		ij.Prefs.set("CA.output.ySlope", ySlope)
 	}
 	
 	private def executeRegression(data: Array[Array[Double]], shifts: Array[Double], pos: DenseVector, n: Int): (Double,Double) = {

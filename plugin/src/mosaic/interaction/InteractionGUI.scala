@@ -203,12 +203,11 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 		 
 		 // Chromatic aberration tab
 		 def chromaticAberTab {
-			val chroTab = new JPanel(new GridLayout(2,1));
+			val chroTab = new JPanel(new GridLayout(4,1));
 	        chroTab.setPreferredSize(new Dimension(380, 200));
 	
 	        //chroTab.add(new JLabel("Chromatic aberration"));
-	        val chromPlugin = new JButton("Find Chromatic Aberration with plugin.")
-	        chromPlugin.addActionListener((e:ActionEvent) => {val x = IJ.runPlugIn("mosaic.interaction.ChromaticAberration","openImages")})
+	        val chromPlugin = new JButton("Find Chromatic Aberration with plugin,")
 	        chroTab.add(chromPlugin)
 	        
 	        val xIntecept = new JTextField("0.0");
@@ -219,9 +218,21 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 	        xSlope.addActionListener((e:ActionEvent) => Prefs.set("ia.xSlope", (xSlope.getText()).toDouble))
 	        val ySlope = new JTextField("1.0");
 	        ySlope.addActionListener((e:ActionEvent) => Prefs.set("ia.ySlope", (ySlope.getText()).toDouble))
+	        
+	        chromPlugin.addActionListener((e:ActionEvent) => {
+	        	val x = IJ.runPlugIn("mosaic.interaction.ChromaticAberration","openImages")
+	        	// fill in values from ChromaticAberration Plugin
+	        	xIntecept.setText(Prefs.get("CA.output.xIntecept", "0.0"))
+	        	xSlope.setText(Prefs.get("CA.output.xSlope", "1.0"))
+	        	yIntecept.setText(Prefs.get("CA.output.yIntecept", "0.0"))
+	        	ySlope.setText(Prefs.get("CA.output.ySlope", "1.0"))     		        		   	
+	        })
+
 	
 	        val chroValTab = new JPanel(new GridLayout(3,3));
 	        chroValTab.setPreferredSize(new Dimension(380, 150))
+	        
+	        chroTab.add(new JLabel("or enter it manually:"))
 	        
 	        chroValTab.add(new JLabel("Coord."));
 	        chroValTab.add(new JLabel("Intercept:"));
@@ -235,6 +246,9 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 	        chroTab.add(chroValTab)
 	        
 	        tabs.add("Chromatic Aberration", chroTab)
+	        
+	        val kozubek2000 = "M. Kozubek and P. Matula(2000), An efficient algorithm \nfor measurement and correction of chromatic aberrations \nin fluorescence microscopy. \nJournal of Microscopy, 200: 206–217."
+		    chroTab.add(new JTextArea(kozubek2000))
 		 }
 		 
 		 def maskTab {
