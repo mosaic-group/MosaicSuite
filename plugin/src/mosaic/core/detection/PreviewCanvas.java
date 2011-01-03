@@ -4,11 +4,8 @@ import ij.ImagePlus;
 import ij.gui.ImageCanvas;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Graphics;
 import java.util.Vector;
-
-import javax.vecmath.Vector3f;
 
 import mosaic.core.detection.MyFrame;
 
@@ -24,8 +21,8 @@ public class PreviewCanvas extends ImageCanvas {
 	private int preview_slice_calculated;
 	private int radius;
 	
-	public Vector<Vector3f> shifts;
-	public Vector<Vector3f> shiftPositions;
+	public Vector<double[]> shifts;
+	public Vector<double[]> shiftPositions;
 	public Vector<Particle> particlesShiftedToDisplay;
 
 	/**
@@ -134,18 +131,18 @@ public class PreviewCanvas extends ImageCanvas {
 	 * <br> draws an arrow from detected particle directly of the given <code>Graphics</code>
 	 * @param g
 	 */
-	private void paintShiftArrows(Graphics g, Vector<Vector3f> shifts, Vector<Vector3f> shiftPositions ) {
+	private void paintShiftArrows(Graphics g, Vector<double[]> shifts, Vector<double[]> shiftPositions ) {
 		if (shifts == null || g == null) return;
 		//System.out.println("Shifts " +shifts.size());
 		this.magnification = (int)Math.round(imp.getWindow().getCanvas().getMagnification());
 		// go over all the detected particle 
 		for (int i = 0; i< shifts.size(); i++) {
-			// draw a dot at the detected particle position (oval of hieght and windth of 0)
+			// draw a dot at the detected particle position (oval of height and width of 0)
 			// the members x, y of the Particle object are opposite to the screen X and Y axis
 			// The x-axis points top-down and the y-axis is oriented left-right in the image plane. 
-			g.drawLine(this.screenXD(shiftPositions.get(i).y),this.screenYD(shiftPositions.get(i).x),this.screenXD(shiftPositions.get(i).y+shifts.get(i).y*20),this.screenYD(shiftPositions.get(i).x+shifts.get(i).x*20));
-			g.drawLine(this.screenXD(shiftPositions.get(i).y),this.screenYD(shiftPositions.get(i).x),this.screenXD(shiftPositions.get(i).y),this.screenYD(shiftPositions.get(i).x+shifts.get(i).x*20));
-			g.drawLine(this.screenXD(shiftPositions.get(i).y),this.screenYD(shiftPositions.get(i).x),this.screenXD(shiftPositions.get(i).y+shifts.get(i).y*20),this.screenYD(shiftPositions.get(i).x));
+			g.drawLine(this.screenXD(shiftPositions.get(i)[1]),this.screenYD(shiftPositions.get(i)[0]),this.screenXD(shiftPositions.get(i)[1]+shifts.get(i)[1]*20),this.screenYD(shiftPositions.get(i)[0]+shifts.get(i)[0]*20));
+			g.drawLine(this.screenXD(shiftPositions.get(i)[1]),this.screenYD(shiftPositions.get(i)[0]),this.screenXD(shiftPositions.get(i)[1]),this.screenYD(shiftPositions.get(i)[0]+shifts.get(i)[0]*20));
+			g.drawLine(this.screenXD(shiftPositions.get(i)[1]),this.screenYD(shiftPositions.get(i)[0]),this.screenXD(shiftPositions.get(i)[1]+shifts.get(i)[1]*20),this.screenYD(shiftPositions.get(i)[0]));
 		}
 	}
 

@@ -1,7 +1,6 @@
 package mosaic.interactio.input
 
 import org.apache.commons.math.stat.regression._
-import javax.vecmath._
 import scalala.tensor.dense._
 import scalala.Scalala._
 

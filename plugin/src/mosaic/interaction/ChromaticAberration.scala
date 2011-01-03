@@ -15,7 +15,6 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.JavaConversions._
 
 import org.apache.commons.math.stat.regression._
-import javax.vecmath._
 import scalala.tensor.dense._
 import scalala.Scalala._
 
@@ -139,8 +138,8 @@ class ChromaticAberration extends PlugIn with ImagePreparation {
 		// TODO find a data representation that fits Regression, Frame and plotting API
 		val shifts = new Array[Array[Double]](maxNbrShifts,3);
 		val shiftsPosition = new Array[Array[Double]](maxNbrShifts,3);
-		val shiftsVec = new java.util.Vector[Vector3f];
-		val shiftsPositionsVec = new java.util.Vector[Vector3f];
+		val shiftsVec = new java.util.Vector[Array[Double]];
+		val shiftsPositionsVec = new java.util.Vector[Array[Double]];
 		val shiftPartVec = new java.util.Vector[Particle];
 		var i = 0;
 			
@@ -148,10 +147,10 @@ class ChromaticAberration extends PlugIn with ImagePreparation {
 		{
 			if (parA.next(0) >= 0) {
 				var parB = particles1.get(parA.next(0));
-				var shift = Array(parB.x -parA.x,parB.y -parA.y, parB.z -parA.z)
+				var shift = Array[Double](parB.x -parA.x,parB.y -parA.y, parB.z -parA.z)
 				
-				shiftsVec += new Vector3f(shift);
-				shiftsPositionsVec +=new Vector3f(parA.x,parA.y,parA.z);
+				shiftsVec += shift;
+				shiftsPositionsVec += Array(parA.x,parA.y,parA.z);
 				shiftPartVec += parB;
 				
 				shifts(i) = Array(shift(0),shift(1),shift(2))
