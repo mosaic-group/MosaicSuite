@@ -25,19 +25,19 @@ public class Particle {
 	public float m0;						// intensity moment
 	public float m1, m2, m3, m4;
 	public float score; 					// non-particle discrimination score
-	int linkrange; 							// linking range
+	
 
 	/* only relevant to particles given as input */
 	public String[] all_params; 			// all params that relate to this particle,
 											// 1st 2 should be x and y respectfully
-
+	int linkrange;	
 	/**
 	 * constructor. 
 	 * @param x - original x coordinates
 	 * @param y - original y coordinates
 	 * @param frame_num - the number of the frame this particle belonges to
 	 */
-	public Particle (float x, float y, float z, int frame_num) {
+	public Particle (float x, float y, float z, int frame_num, int linkrange) {
 		this.x = x;
 		this.original_x = x;
 		this.y = y;
@@ -46,8 +46,8 @@ public class Particle {
 		this.original_z = z;
 		this.special = true;
 		this.setFrame(frame_num);
-		//this.linkrange = linkrange;
-		//this.next = new int[linkrange];
+		this.linkrange = linkrange;
+		this.next = new int[linkrange];
 	}
 
 	/**
@@ -57,7 +57,7 @@ public class Particle {
 	 * @param frame_num - the number of the frame this particle is in
 	 * @param params - all params that relate to this particle, first 2 should be x and y respectfully 
 	 */
-	public Particle (float x, float y, float z, int frame_num, String[] params) {
+	public Particle (float x, float y, float z, int frame_num, String[] params, int linkrange) {
 		this.x = x;
 		this.original_x = x;
 		this.y = y;
@@ -67,6 +67,7 @@ public class Particle {
 		this.all_params = params;
 		this.special = true;
 		this.setFrame(frame_num);
+		this.linkrange = linkrange;
 		this.next = new int[linkrange];
 		this.score = 0.0F;
 		this.m0 = 0.0F;

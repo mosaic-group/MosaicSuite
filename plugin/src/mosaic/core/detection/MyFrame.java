@@ -8,6 +8,8 @@ import java.awt.Color;
 import java.text.DecimalFormat;
 import java.util.Vector;
 
+import mosaic.plugins.ParticleTracker3DModular_;
+
 	/**
 	 * Defines a MyFrame that is based upon an ImageProcessor or information from a text file.
 	 */
@@ -28,11 +30,7 @@ import java.util.Vector;
 		//		ImageStack restored_fps; // the floating processor after image restoration
 		float threshold;					// threshold for particle detection 
 		boolean normalized = false;
-		
-		/* user defined parameters */
-		public int linkrange = 2; 			// default
-
-
+		int linkrange;
 		/**
 		 * Constructor for ImageProcessor based MyFrame.
 		 * <br>All particles and other information will be derived from the given <code>ImageProcessor</code>
@@ -40,9 +38,10 @@ import java.util.Vector;
 		 * @param ip the original ImageProcessor upon this MyFrame is based, will remain unchanged!
 		 * @param frame_num the serial number of this frame in the movie
 		 */
-		public MyFrame (ImageStack ips, int frame_num) {
+		public MyFrame (ImageStack ips, int frame_num, int aLinkrange) {
 			this.original_ips = ips;
 			this.frame_number = frame_num;
+			this.linkrange = aLinkrange;
 		}
 
 		/**

@@ -116,7 +116,7 @@ public class FeaturePointDetector {
 		/* Estimation of the point location - Step 2 of the algorithm */
 		findThreshold(restored_fps, percentile, absIntensityThreshold);
 		
-		pointLocationsEstimation(restored_fps, frame.frame_number);
+		pointLocationsEstimation(restored_fps, frame.frame_number, frame.linkrange);
 		//
 		//					System.out.println("particles after location estimation:");
 		//					for(Particle p : this.particles) {
@@ -229,7 +229,7 @@ public class FeaturePointDetector {
 	 * <br>Mostly adapted from Ingo Oppermann implementation
 	 * @param ip ImageProcessor, should be after conversion, normalization and restoration 
 	 */
-	private void pointLocationsEstimation(ImageStack ips, int frame_number) {
+	private void pointLocationsEstimation(ImageStack ips, int frame_number, int linkrange) {
 		/* do a grayscale dilation */
 		ImageStack dilated_ips = dilateGeneric(ips);
 		//		            new StackWindow(new ImagePlus("dilated ", dilated_ips));
@@ -247,7 +247,7 @@ public class FeaturePointDetector {
 
 						/* and add each particle that meets the criteria to the particles array */
 						//(the starting point is the middle of the pixel and exactly on a focal plane:)
-						particles.add(new Particle(i+.5f, j+.5f, s, frame_number));
+						particles.add(new Particle(i+.5f, j+.5f, s, frame_number, linkrange));
 
 					} 
 				}
@@ -1286,8 +1286,8 @@ public class FeaturePointDetector {
 		getUserDefinedPreviewParams(gd);
 
 		int first_slice = imp.getCurrentSlice(); //TODO check what should be here, figure out how slices and frames numbers work(getFrameNumberFromSlice(impA.getCurrentSlice())-1) * impA.getNSlices() + 1; 
-		// create a new MyFrame from the current_slice in the stack
-		preview_frame = new MyFrame(FeaturePointDetector.GetSubStackCopyInFloat(stack, first_slice, first_slice  + imp.getNSlices() - 1), getFrameNumberFromSlice(imp.getCurrentSlice(), imp.getNSlices())-1);
+		// create a new MyFrame from the current_slice in the stack, linkrange should not matter for a previewframe
+		preview_frame = new MyFrame(FeaturePointDetector.GetSubStackCopyInFloat(stack, first_slice, first_slice  + imp.getNSlices() - 1), getFrameNumberFromSlice(imp.getCurrentSlice(), imp.getNSlices())-1, 1);
 
 		// detect particles in this frame
 		featurePointDetection(preview_frame);
