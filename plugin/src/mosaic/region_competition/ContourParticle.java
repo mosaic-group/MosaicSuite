@@ -1,3 +1,5 @@
+package mosaic.region_competition;
+
 
 public class ContourParticle 
 {
@@ -5,4 +7,5 @@ public class ContourParticle
 	int label = 0;
 	int candidateLabel = 0;
 	float energyDifference = 0f;
+	
 }
