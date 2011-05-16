@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 
 import ij.ImagePlus;
 import ij.gui.Roi;
+import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
@@ -22,13 +23,8 @@ public class LabelImage //extends ShortProcessor
 	ImagePlus originalIP;
 	ImageProcessor labelImage;
 	
-	public ImageProcessor getLabelImage() {
-		return labelImage;
-	}
-
 	HashMap<Point, ContourParticle> contourContainer;
 	HashMap<Integer, LabelInformation> labelMap;
-	
 	
 	public LabelImage(ImagePlus ip) 
 	{
@@ -106,6 +102,25 @@ public class LabelImage //extends ShortProcessor
 			}
 		} // for all pixel
 	}
+	
+	
+	public void showStatistics()
+	{
+		ResultsTable rt = new ResultsTable();
+		for(Entry<Integer, LabelInformation> entry: labelMap.entrySet())
+		{
+			LabelInformation info = entry.getValue();
+			
+			rt.incrementCounter();
+			rt.addValue("label", info.label);
+			rt.addValue("n", info.n);
+			rt.addValue("mean", info.mean);
+			rt.addValue("variance", info.var);
+		}
+		rt.show("statistics");
+		
+	}
+	
 	
 	/**
 	 * marks the contour of each region
@@ -311,6 +326,10 @@ public class LabelImage //extends ShortProcessor
 		return (label == forbiddenLabel);
 	}
 	
+	public ImageProcessor getLabelImage() {
+		return labelImage;
+	}
+
 	/**
 	 * @param label a label
 	 * @return if label was a contour label, get the absolut/inner label

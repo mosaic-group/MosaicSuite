@@ -23,13 +23,16 @@ public class Region_Competition implements PlugInFilter{
 	
 	public int setup(String aArgs, ImagePlus aImp) 
 	{
+		originalIP = aImp;
+		
 		if (aImp == null) {
 			createEmptyIP();
 			initializeLabelImageAndContourContainer();
 		} else {
 			initWithCustom(aImp);
 		}
-		originalIP = aImp;
+		
+		labelImage.showStatistics();
 		
 		return DOES_ALL + DONE;
 	}
