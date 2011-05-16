@@ -1,34 +1,21 @@
 package mosaic.plugins;
 
-import java.awt.Color;
-import java.awt.Image;
-
+import mosaic.region_competition.Connectivity2D_4;
+import mosaic.region_competition.Connectivity;
 import mosaic.region_competition.LabelImage;
+import mosaic.region_competition.Point;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
-import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
 
 /**
- * This plugin immediately ends ImageJ with return code 0.
- * The purpose of the plugin is to end ImageJ via the Macro language when running on a cluster
- * with a virtual frame buffer.
- * @author Janick Cardinale, ETH Zurich
- * @version 1.0, September 2010
- * 
- * <p><b>Disclaimer</b>
- * <br>IN NO EVENT SHALL THE ETH BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, 
- * OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND
- * ITS DOCUMENTATION, EVEN IF THE ETH HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
- * THE ETH SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. 
- * THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE ETH HAS NO 
- * OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.<p>
- *
+ * @author Stephan Semmler, ETH Zurich
+ * @version 14.5.2011
  */
+
 public class Region_Competition implements PlugInFilter{
 		
 	LabelImage labelImage;
@@ -36,20 +23,22 @@ public class Region_Competition implements PlugInFilter{
 	
 	public int setup(String aArgs, ImagePlus aImp) 
 	{
-		if(aImp == null) {
-//			IJ.showMessage("Select an Image.");
-//			return DONE;
-			
-			//DEGUG create empty image
-			aImp = new ImagePlus("empty test image", new ShortProcessor(400, 300));
-			
+		if (aImp == null) {
+			createEmptyIP();
+			initializeLabelImageAndContourContainer();
+		} else {
+			initWithCustom(aImp);
 		}
 		originalIP = aImp;
 		
-		initWithCustom();
-//		initializeLabelImageAndContourContainer();
-		
 		return DOES_ALL + DONE;
+	}
+	
+	
+	void createEmptyIP()
+	{
+		IJ.showMessage("No image selected. Debug mode, create empty 400*300 image");
+		originalIP = new ImagePlus("empty test image", new ShortProcessor(400, 300));
 	}
 	
 	public void run(ImageProcessor aImageProcessor) 
@@ -57,17 +46,36 @@ public class Region_Competition implements PlugInFilter{
 		
 	}
 	
-	void initWithCustom()
+	
+	/**
+	 * does overwriting of static part in Connectivity work?
+	 */
+	void testConnStaticInheritance()
 	{
-		ImageProcessor oProc = originalIP.getChannelProcessor();
-		labelImage = new LabelImage(originalIP);
+		Connectivity conn;
+		conn = new Connectivity2D_4();
+		
+		for(Point p:conn)
+		{
+			System.out.println(p);
+		}
+	}
+	
+	/**
+	 * treats Input image as a label image / guess. 
+	 * Does boundary, contour and statistics
+	 */
+	void initWithCustom(ImagePlus ip)
+	{
+		ImageProcessor oProc = ip.getChannelProcessor();
+		labelImage = new LabelImage(ip);
 //		labelImage = oProc.duplicate();
-		labelImage.insert(oProc, 0, 0);
+		labelImage.getLabelImage().insert(oProc, 0, 0);
 		labelImage.initBoundary();
 		labelImage.generateContour();
 		labelImage.computeStatistics();
 		
-		new ImagePlus("LabelImage", labelImage).show();
+		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
 	}
 	
 	/** 
@@ -82,7 +90,7 @@ public class Region_Competition implements PlugInFilter{
 		labelImage.generateContour();
 		labelImage.computeStatistics();
 		
-		new ImagePlus("LabelImage", labelImage).show();
+		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
 	}
 
 

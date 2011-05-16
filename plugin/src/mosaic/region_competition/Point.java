@@ -52,10 +52,19 @@ public class Point
 		}
 		return result;
 	}
-
+	
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
-		// TODO Auto-generated method stub
-		return super.clone();
+	public String toString() 
+	{
+		String result="[";
+		int i=0;
+		for(i=0; i<x.length-1; i++)
+		{
+			result=result+x[i]+", ";
+		}
+		result=result+x[i]+"]";
+		return result;
 	}
+
+
 }

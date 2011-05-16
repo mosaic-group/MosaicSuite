@@ -1,32 +1,41 @@
 package mosaic.region_competition;
-//import java.awt.Point;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
 import ij.ImagePlus;
 import ij.gui.Roi;
+import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
 
-public class LabelImage extends ShortProcessor{
-	
+public class LabelImage //extends ShortProcessor
+{
 	static int forbiddenLabel=Short.MAX_VALUE;
 	static int bgLabel = 0;
 	static int negOfs=1000;			// 
 	
-	
-	int dim=2;
+	int width;
+	int height;
 	
 	// data structures
 	ImagePlus originalIP;
+	ImageProcessor labelImage;
+	
+	public ImageProcessor getLabelImage() {
+		return labelImage;
+	}
+
 	HashMap<Point, ContourParticle> contourContainer;
 	HashMap<Integer, LabelInformation> labelMap;
 	
 	
 	public LabelImage(ImagePlus ip) 
 	{
-		super(ip.getWidth(), ip.getHeight());
+		width=ip.getWidth();
+		height=ip.getHeight();
+		labelImage= new ShortProcessor(width, height);
+//		super(ip.getWidth(), ip.getHeight());
 		//TODO initial capacities
 		contourContainer = new HashMap<Point, ContourParticle>();
 		labelMap = new HashMap<Integer, LabelInformation>();
@@ -49,14 +58,14 @@ public class LabelImage extends ShortProcessor{
 	 */
 	public void initBoundary()
 	{
-		for(int y = 0; y < getHeight(); y++){
+		for(int y = 0; y < height; y++){
 			set(0, y, forbiddenLabel);
-			set(getWidth()-1,y,forbiddenLabel);
+			set(width-1,y,forbiddenLabel);
 		}
 		
-		for(int x = 0; x < getWidth(); x++){
+		for(int x = 0; x < width; x++){
 			set(x, 0, forbiddenLabel);
-			set(x, getHeight()-1, forbiddenLabel);
+			set(x, height-1, forbiddenLabel);
 		}
 	}
 	
@@ -66,8 +75,8 @@ public class LabelImage extends ShortProcessor{
 	public void initialGuess()
 	{
 		Roi vRectangleROI = new Roi(10, 10, originalIP.getWidth()-20, originalIP.getHeight()-20);
-		setValue(1);
-		fill(vRectangleROI);
+		labelImage.setValue(1);
+		labelImage.fill(vRectangleROI);
 	}
 	
 	/**
@@ -76,9 +85,10 @@ public class LabelImage extends ShortProcessor{
 	 */
 	public void computeStatistics() 
 	{
-		for (int x = 0; x < getWidth(); x++) 
+		//TODO seems to be slow
+		for (int x = 0; x < width; x++) 
 		{
-			for (int y = 0; y < getHeight(); y++) 
+			for (int y = 0; y < height; y++) 
 			{
 				int label = get(x, y);
 				int absLabel = getAbsLabel(label);
@@ -104,19 +114,20 @@ public class LabelImage extends ShortProcessor{
 	public void generateContour()
 	{
 		// finds and saves contour particles
-		for(int y = 1; y < getHeight()-1; y++)
+		for(int y = 1; y < height-1; y++)
 		{
-			for(int x = 1; x < getWidth()-1; x++)
+			for(int x = 1; x < width-1; x++)
 			{
 				int label=get(x, y);
 				if(label!=bgLabel && label!=forbiddenLabel) // region pixel
 					// && label<negOfs
 				{
-					Connectivity conn = new Connectivity();
-					for(Point connOfs:conn)
+					Connectivity conn = new Connectivity2D_4();
+					
+					Point p = new Point(x,y);
+					for(Point neighbor : conn.getNeighbors(p))
 					{
-						Point p = new Point(x,y);
-						int neighborLabel=get(p.add(connOfs));
+						int neighborLabel=get(neighbor);
 						if(neighborLabel!=label)
 //						if(getAbsLabel(neighborLabel)!=label) // TODO insert if there exists already contour
 						{
@@ -129,8 +140,26 @@ public class LabelImage extends ShortProcessor{
 							break;
 						}
 					}
+					
+					// version 2: without Connectivity.getNeighbors(Point) 
+//					for(Point connOfs:conn)
+//					{
+//						Point p = new Point(x,y);
+//						int neighborLabel=get(p.add(connOfs));
+//						if(neighborLabel!=label)
+////						if(getAbsLabel(neighborLabel)!=label) // TODO insert if there exists already contour
+//						{
+//							ContourParticle particle = new ContourParticle();
+//							particle.label=label;
+//							//TODO grayscale
+//							particle.intensity=originalIP.getProcessor().get(x,y);
+//							contourContainer.put(p, particle);
+//							
+//							break;
+//						}
+//					}
 
-//					//old, non iterator connectivity version
+//					//version 1, non iterator connectivity version
 //					int neighbors[][] = {{-1,0}, {1, 0}, {0,-1}, {0, 1}};
 //					//TODO is length ok?
 //					for(int i=0; i<neighbors.length; i++)
@@ -154,13 +183,10 @@ public class LabelImage extends ShortProcessor{
 		}
 		
 		// set contour to -label
-		Iterator<Entry<Point, ContourParticle>> it = contourContainer.entrySet().iterator();
-		while(it.hasNext())
+		for(Entry<Point, ContourParticle> entry:contourContainer.entrySet())
 		{
-			Entry<Point, ContourParticle> next = it.next();
-			
-			Point key = next.getKey();
-			ContourParticle value = next.getValue();
+			Point key = entry.getKey();
+			ContourParticle value = entry.getValue();
 			//TODO cannot set neg values to ShortProcessor
 			set(key, getNegLabel(value.label));
 		}
@@ -171,28 +197,24 @@ public class LabelImage extends ShortProcessor{
 	void shrink()
 	{
 		//iterate over contour particles
-		Iterator<Entry<Point, ContourParticle>> it = contourContainer.entrySet().iterator();
-		while(it.hasNext())
+		for(Entry<Point, ContourParticle> entry : contourContainer.entrySet()) 
 		{
-			Entry<Point, ContourParticle> next = it.next();
-			Point particlePoint = next.getKey();
-			ContourParticle particle = next.getValue();
+			Point particlePoint = entry.getKey();
+			ContourParticle particle = entry.getValue();
 			
 			particle.candidateLabel=bgLabel;
 			//TODO hier weiter
 			particle.energyDifference=0;
 			
 			
-			
 			// wegverlängerung, 2D, 4-connected
-			
 			int nSameNeighbors=0;
+			Connectivity conn = new Connectivity2D_4();
 			
-			// TODO connectivity
-			Connectivity conn = new Connectivity();
-			for(Point connOfs:conn)
+			// version 3 with COnnectivity.getNeighbots(Point)
+			for(Point neighbor:conn.getNeighbors(particlePoint))
 			{
-				int neighborLabel=get(particlePoint.add(connOfs));
+				int neighborLabel=get(neighbor);
 				neighborLabel=getAbsLabel(neighborLabel);
 				if(neighborLabel==particle.label)
 				{
@@ -200,7 +222,18 @@ public class LabelImage extends ShortProcessor{
 				}
 			}
 			
-// version with awt point and without connectivity
+//			//version 2
+//			for(Point connOfs:conn)
+//			{
+//				int neighborLabel=get(particlePoint.add(connOfs));
+//				neighborLabel=getAbsLabel(neighborLabel);
+//				if(neighborLabel==particle.label)
+//				{
+//					nSameNeighbors++;
+//				}
+//			}
+			
+// version 1 with awt point and without connectivity
 //			int neighbors[][] = {{-1,0}, {1, 0}, {0,-1}, {0, 1}};
 //			for(int i=0; i<neighbors.length; i++)
 //			{
@@ -221,7 +254,41 @@ public class LabelImage extends ShortProcessor{
 	
 	void grow()
 	{
+		HashMap<Point, ContourParticle> M;
 		// M = candidate list
+		M=(HashMap<Point, ContourParticle>) contourContainer.clone();
+		
+		Connectivity conn = new Connectivity2D_4();
+		
+		// iterate over all particles
+		for(Entry<Point,ContourParticle> entry:M.entrySet())
+		{
+			Point particlePoint = entry.getKey();
+			ContourParticle motherParticle = entry.getValue();
+			for(Point negOfs:conn)
+			{
+				int label=get(particlePoint.add(negOfs));
+				int absLabel=getAbsLabel(label);
+				if(absLabel==bgLabel)
+				{
+					// grow in BG
+					// TODO create new particle and add to M
+				} 
+				else if(absLabel != motherParticle.label && absLabel != forbiddenLabel)
+				{
+//					grow to other region
+					//TODO energy
+				}
+				else
+				{
+					// self or forbidden. do nothing
+				}
+			} // for neighbors
+			
+		}
+		
+		
+		
 		// neighboring points of different region: register p as mother
 			// for bg labels: create particle and add to M
 		// set daughter flag of q
@@ -269,14 +336,31 @@ public class LabelImage extends ShortProcessor{
 	}
 	
 	
+	/**
+	 * @param p
+	 * @return Returns the value of the LabelImage at x,y
+	 */
+	private int get(int x, int y) {
+		return labelImage.get(x,y);
+	}
+
+	/**
+	 * @param p
+	 * @return Returns the value of the LabelImage at Point p
+	 */
 	private int get(Point p) {
 		//TODO multidimension
 		return get(p.x[0], p.x[1]);
 	}
 
+	private void set(int x, int y, int val) 
+	{
+		labelImage.set(x,y,val);
+	}
+
 	private void set(Point p, int value) {
 		//TODO multidimension
-		super.set(p.x[0], p.x[1], value);
+		labelImage.set(p.x[0], p.x[1], value);
 	}
 	
 	
