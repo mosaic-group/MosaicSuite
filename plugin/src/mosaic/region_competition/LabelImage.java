@@ -97,7 +97,7 @@ public class LabelImage //extends ShortProcessor
 					}
 					LabelInformation stats = labelMap.get(absLabel);
 					// TODO grayscale
-					stats.add(originalIP.getPixel(x, y)[0]);
+					stats.add(getIntensity(x, y));
 				}
 			}
 		} // for all pixel
@@ -149,7 +149,7 @@ public class LabelImage //extends ShortProcessor
 							ContourParticle particle = new ContourParticle();
 							particle.label=label;
 							//TODO grayscale
-							particle.intensity=originalIP.getProcessor().get(x,y);
+							particle.intensity=getIntensity(x, y);
 							contourContainer.put(p, particle);
 							
 							break;
@@ -207,68 +207,10 @@ public class LabelImage //extends ShortProcessor
 		}
 	}
 	
-
-
-	void shrink()
-	{
-		//iterate over contour particles
-		for(Entry<Point, ContourParticle> entry : contourContainer.entrySet()) 
-		{
-			Point particlePoint = entry.getKey();
-			ContourParticle particle = entry.getValue();
-			
-			particle.candidateLabel=bgLabel;
-			//TODO hier weiter
-			particle.energyDifference=0;
-			
-			
-			// wegverlängerung, 2D, 4-connected
-			int nSameNeighbors=0;
-			Connectivity conn = new Connectivity2D_4();
-			
-			// version 3 with COnnectivity.getNeighbots(Point)
-			for(Point neighbor:conn.getNeighbors(particlePoint))
-			{
-				int neighborLabel=get(neighbor);
-				neighborLabel=getAbsLabel(neighborLabel);
-				if(neighborLabel==particle.label)
-				{
-					nSameNeighbors++;
-				}
-			}
-			
-//			//version 2
-//			for(Point connOfs:conn)
-//			{
-//				int neighborLabel=get(particlePoint.add(connOfs));
-//				neighborLabel=getAbsLabel(neighborLabel);
-//				if(neighborLabel==particle.label)
-//				{
-//					nSameNeighbors++;
-//				}
-//			}
-			
-// version 1 with awt point and without connectivity
-//			int neighbors[][] = {{-1,0}, {1, 0}, {0,-1}, {0, 1}};
-//			for(int i=0; i<neighbors.length; i++)
-//			{
-//				int neighborLabel=get(particlePoint.x+neighbors[i][0], particlePoint.y+neighbors[i][1]);
-//				neighborLabel=getAbsLabel(neighborLabel);
-//				if(neighborLabel==particle.label)
-//				{
-//					nSameNeighbors++;
-//				}
-//			}  // for neighbors
-			
-			int nOtherNeighbors=4-nSameNeighbors;
-			int dGamma = nSameNeighbors - nOtherNeighbors;
-			
-		}
-	}
-	
-	
 	void grow()
 	{
+		// TODO chaos with motherlist / daughterlist / count. 
+		
 		HashMap<Point, ContourParticle> M;
 		// M = candidate list
 		M=(HashMap<Point, ContourParticle>) contourContainer.clone();
@@ -278,37 +220,116 @@ public class LabelImage //extends ShortProcessor
 		// iterate over all particles
 		for(Entry<Point,ContourParticle> entry:M.entrySet())
 		{
-			Point particlePoint = entry.getKey();
-			ContourParticle motherParticle = entry.getValue();
-			for(Point negOfs:conn)
+			Point pIndex = entry.getKey();			// coords of motherpoint
+			ContourParticle p = entry.getValue();	// mother particle
+			int pLabel = p.label;					// label of motherpoint 
+			
+			// particle-label to background label (shrinking)
+			p.candidateLabel=bgLabel;
+			p.energyDifference=calcEnergy(entry);
+			
+			
+			// particle label to nieghbor labels (growing)
+			for(Point qIndex:conn.getNeighbors(pIndex))
 			{
-				int label=get(particlePoint.add(negOfs));
-				int absLabel=getAbsLabel(label);
-				if(absLabel==bgLabel)
+				int label=get(qIndex);
+				int qLabel=getAbsLabel(label);
+				
+				if(qLabel == forbiddenLabel || qLabel == pLabel)
+				{
+					// forbidden or self. do nothing
+					continue;
+				}
+				
+				ContourParticle q = contourContainer.get(qIndex);
+				
+				if(q==null) // (absLabel==bgLabel)
 				{
 					// grow in BG
-					// TODO create new particle and add to M
+					// create new particle and add to M
+					q = new ContourParticle();
+					q.label=bgLabel;
+					q.candidateLabel=pLabel;
+					q.intensity=getIntensity(qIndex);
+					q.energyDifference = calcEnergy(entry);
+					q.getMotherList().add(p);
+					q.daughterFlag=true;
+					
+					//TODO !!! this may make problems with "for(entry : M.entrySet())"
+					// consider javadoc to entrySet() "the results of the iteration are undefined"
+					// construct a afterparty list M', add to a after the party
+					M.put(qIndex, q);
 				} 
-				else if(absLabel != motherParticle.label && absLabel != forbiddenLabel)
+				else // nonforbidden, nonself, existing, other label
 				{
-//					grow to other region
-					//TODO energy
-				}
-				else
-				{
-					// self or forbidden. do nothing
-				}
+					if(q.candidateLabel==pLabel) // supported already by same region
+					{
+						q.getMotherList().add(p);
+					}
+					else // grow to other region
+					{
+						float dE=calcEnergy(entry);
+						if(q.energyDifference > dE)
+						{
+							q.candidateLabel=qLabel;
+							q.energyDifference=dE;
+							
+						}
+					}
+				} // else
+				
+				// neighborParticle is q in Algorithm 2 (Optimization)
+				//TODO dont know yet where it is used
+				
+				q.getMotherList().add(p);
+				
 			} // for neighbors
-			
 		}
-		
-		
-		
-		// neighboring points of different region: register p as mother
-			// for bg labels: create particle and add to M
-		// set daughter flag of q
 	}
 
+	
+	
+	
+	float calcEnergy(Entry<Point,ContourParticle> entry)
+	{
+		float E_gamma = calcGammaEnergy(entry);
+		float E_tot=E_gamma + 0 + 0; //TODO other energies
+		return E_tot;
+	}
+	
+	
+	static float wGamma = 0.003f;
+	float calcGammaEnergy(Entry<Point,ContourParticle> entry)
+	{
+		Point pIndex = entry.getKey();			// coords of motherpoint
+		ContourParticle p = entry.getValue();	// mother particle
+		int pLabel = p.label;					// label of motherpoint 
+		
+		int nSameNeighbors=0;
+		Connectivity conn = new Connectivity2D_4();
+		
+		// version 3 with COnnectivity.getNeighbots(Point)
+		for(Point neighbor:conn.getNeighbors(pIndex))
+		{
+			int neighborLabel=get(neighbor);
+			neighborLabel=getAbsLabel(neighborLabel);
+			if(neighborLabel==pLabel)
+			{
+				nSameNeighbors++;
+			}
+		}
+		
+		int nOtherNeighbors=4-nSameNeighbors;
+		int dGamma = nSameNeighbors - nOtherNeighbors;
+		
+		return wGamma*dGamma;
+	}
+	
+	
+	
+	
+	
+	
 	
 	/**
 	 * @param label
@@ -371,12 +392,29 @@ public class LabelImage //extends ShortProcessor
 		//TODO multidimension
 		return get(p.x[0], p.x[1]);
 	}
+	
+	//TODO merge with int getIntensity(int x, int y)
+	int getIntensity(Point p)
+	{
+		return getIntensity(p.x[0], p.x[1]);
+	}
+	
+	int getIntensity(int x, int y)
+	{
+		return originalIP.getPixel(x, y)[0];
+	}
 
+	/**
+	 * sets the labelImage to val at point x,y
+	 */
 	private void set(int x, int y, int val) 
 	{
 		labelImage.set(x,y,val);
 	}
 
+	/**
+	 * sets the labelImage to val at Point p
+	 */
 	private void set(Point p, int value) {
 		//TODO multidimension
 		labelImage.set(p.x[0], p.x[1], value);
