@@ -42,16 +42,16 @@ public class Point
 		return result;
 	}
 	
-	public Point sub(Point p)
-	{
-		Point result = new Point();
-		result.init(dim);
-		for(int i=0; i<dim; i++)
-		{
-			result.x[i]= x[i]-p.x[i];
-		}
-		return result;
-	}
+//	public Point sub(Point p)
+//	{
+//		Point result = new Point();
+//		result.init(dim);
+//		for(int i=0; i<dim; i++)
+//		{
+//			result.x[i]= x[i]-p.x[i];
+//		}
+//		return result;
+//	}
 	
 	@Override
 	public String toString() 

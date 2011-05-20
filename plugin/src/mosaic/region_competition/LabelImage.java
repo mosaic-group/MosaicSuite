@@ -1,6 +1,5 @@
 package mosaic.region_competition;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map.Entry;
 
 import ij.ImagePlus;
@@ -9,6 +8,14 @@ import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
+/*
+//TODO TODOs
+- refactor LabelImage, extract what's not supposed to be there (eg energy calc)
+- let ContourParticle have ref to Point / inherit from? 
+- what to do with mother/daughter list
+- getter/setter efficiency
+- datastructure for labels, supporting neg values
+*/
 
 public class LabelImage //extends ShortProcessor
 {
@@ -96,7 +103,6 @@ public class LabelImage //extends ShortProcessor
 						labelMap.put(absLabel, new LabelInformation(absLabel));
 					}
 					LabelInformation stats = labelMap.get(absLabel);
-					// TODO grayscale
 					stats.add(getIntensity(x, y));
 				}
 			}
@@ -140,7 +146,7 @@ public class LabelImage //extends ShortProcessor
 					Connectivity conn = new Connectivity2D_4();
 					
 					Point p = new Point(x,y);
-					for(Point neighbor : conn.getNeighbors(p))
+					for(Point neighbor : conn.getNeighborIterable(p))
 					{
 						int neighborLabel=get(neighbor);
 						if(neighborLabel!=label)
@@ -148,7 +154,6 @@ public class LabelImage //extends ShortProcessor
 						{
 							ContourParticle particle = new ContourParticle();
 							particle.label=label;
-							//TODO grayscale
 							particle.intensity=getIntensity(x, y);
 							contourContainer.put(p, particle);
 							
@@ -166,7 +171,6 @@ public class LabelImage //extends ShortProcessor
 //						{
 //							ContourParticle particle = new ContourParticle();
 //							particle.label=label;
-//							//TODO grayscale
 //							particle.intensity=originalIP.getProcessor().get(x,y);
 //							contourContainer.put(p, particle);
 //							
@@ -185,13 +189,11 @@ public class LabelImage //extends ShortProcessor
 //						{
 //							ContourParticle particle = new ContourParticle();
 //							particle.label=label;
-//							//TODO grayscale
 //							particle.intensity=originalIP.getProcessor().get(x,y);
 //							contourContainer.put(new Point(x, y), particle);
 //							break;
 //						}
 //					}  // for neighbors
-
 					
 				} // if region pixel
 			}
@@ -206,6 +208,82 @@ public class LabelImage //extends ShortProcessor
 			set(key, getNegLabel(value.label));
 		}
 	}
+	
+	/**
+	 * Removes a contour particle from its labelregion, 
+	 * generates the newly produced contourpixels and updates statistics
+	 */
+	void removeFromContour(Point pIndex)
+	{
+		
+		//TODO ??? where is the removal of p in itk
+		// 
+		
+		ContourParticle p = contourContainer.get(pIndex);
+		
+		Connectivity2D_4 conn = new Connectivity2D_4();
+		for(Point qIndex:conn.getNeighborIterable(pIndex))
+		{
+			int qLabel = get(qIndex);
+			if(qLabel == p.label) // q is a inner point with the same label as p
+			{
+				ContourParticle q = new ContourParticle();
+				q.intensity = getIntensity(qIndex);
+				contourContainer.put(qIndex, q);
+				
+				set(pIndex, getNegLabel(qLabel));
+			}
+			else if(getAbsLabel(qLabel) == p.label) // q is contour of the same label
+			{
+				//TODO itk Line 1520, modifiedcounter
+			}
+		}
+	}
+	
+	
+	void addToContour(Point pIndex)
+	{
+		ContourParticle p = contourContainer.get(pIndex);
+//		int pLabel = p.label;
+		set(pIndex, getNegLabel(p.label));
+		
+		Connectivity conn = new Connectivity2D_8();
+		for(Point qIndex: conn.getNeighborIterable(pIndex))
+		{
+			// from itk:
+            /// It might happen that a point, that was already accepted as a 
+            /// candidate, gets enclosed by other candidates. This
+            /// points must not be added to the container afterwards and thus
+            /// removed from the main list.
+			if(get(qIndex)==getNegLabel(p.label) && isEnclosedByLabel(qIndex, p.label))
+			{
+				contourContainer.remove(qIndex);
+				set(qIndex, p.label);
+			}
+		}
+		
+		if(isEnclosedByLabel(pIndex, p.label))
+		{
+			contourContainer.remove(p);
+			set(pIndex, p.label);
+		}
+		
+	}
+	
+	boolean isEnclosedByLabel(Point pIndex, int pLabel)
+	{
+		
+		Connectivity conn = new Connectivity2D_4();
+		for(Point qIndex : conn.getNeighborIterable(pIndex))
+		{
+			if(get(qIndex)!=pLabel)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+	
 	
 	void grow()
 	{
@@ -230,7 +308,7 @@ public class LabelImage //extends ShortProcessor
 			
 			
 			// particle label to nieghbor labels (growing)
-			for(Point qIndex:conn.getNeighbors(pIndex))
+			for(Point qIndex:conn.getNeighborIterable(pIndex))
 			{
 				int label=get(qIndex);
 				int qLabel=getAbsLabel(label);
@@ -298,9 +376,44 @@ public class LabelImage //extends ShortProcessor
 	}
 	
 	
+//	float CalculateCVEnergyDifference(InputPixelType aValue, unsigned int aFrom, unsigned int aTo) {
+//        /**
+//         * Here we have the possibility to either put the current pixel
+//         * value to the BG, calculate the BG-mean and then calculate the
+//         * squared distance of the pixel to both means, BG and the mean
+//         * of the region (where the pixel currently still belongs to).
+//         *
+//         * The second option is to remove the pixel from the region and
+//         * calculate the new mean of this region. Then compare the squared
+//         * distance to both means. This option needs a region to be larger
+//         * than 1 pixel/voxel.
+//         */
+//        EnergyDifferenceType vNewToMean = (m_Means[aTo] * m_Count[aTo] + aValue) / (m_Count[aTo] + 1);
+//        return (aValue - vNewToMean) * (aValue - vNewToMean) -
+//                (aValue - m_Means[aFrom]) * (aValue - m_Means[aFrom]);
+//    }
+//
+//    float CalculateMSEnergyDifference(InputPixelType aValue, int aFrom, int aTo) {
+//        float aNewToMean = (m_Means[aTo] * m_Count[aTo] + aValue) / (m_Count[aTo] + 1);
+//        if (m_Variances[aFrom] <= 0 || m_Variances[aTo] <= 0) {
+//            assert("Region has negative variance.");
+//        }
+//
+//        return (aValue - aNewToMean) * (aValue - aNewToMean) / (2.0 * m_Variances[aTo]) +
+//                0.5 * log(2.0 * Math.PI * m_Variances[aTo]) -
+//                ((aValue - m_Means[aFrom]) * (aValue - m_Means[aFrom]) /
+//                (2.0 * m_Variances[aFrom]) +
+//                0.5 * log(2.0 * Math.PI * m_Variances[aFrom]));
+//    }
+	
+	
+	
 	static float wGamma = 0.003f;
 	float calcGammaEnergy(Entry<Point,ContourParticle> entry)
 	{
+		
+		//TODO ? this only calcs energy for one region
+		
 		Point pIndex = entry.getKey();			// coords of motherpoint
 		ContourParticle p = entry.getValue();	// mother particle
 		int pLabel = p.label;					// label of motherpoint 
@@ -309,7 +422,7 @@ public class LabelImage //extends ShortProcessor
 		Connectivity conn = new Connectivity2D_4();
 		
 		// version 3 with COnnectivity.getNeighbots(Point)
-		for(Point neighbor:conn.getNeighbors(pIndex))
+		for(Point neighbor:conn.getNeighborIterable(pIndex))
 		{
 			int neighborLabel=get(neighbor);
 			neighborLabel=getAbsLabel(neighborLabel);
@@ -326,11 +439,6 @@ public class LabelImage //extends ShortProcessor
 	}
 	
 	
-	
-	
-	
-	
-	
 	/**
 	 * @param label
 	 * @return true, if label is a contour label
@@ -342,6 +450,19 @@ public class LabelImage //extends ShortProcessor
 			return (label > negOfs);
 		}
 	}
+	
+	boolean isInnerLabel(int label)
+	{
+		if(label==forbiddenLabel || label==bgLabel || isContourLabel(label))
+		{
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	
 
 	boolean isForbiddenLabel(int label) {
 		return (label == forbiddenLabel);

@@ -6,7 +6,7 @@ import java.util.List;
 
 public class ContourParticle 
 {
-	int label = 0;
+	int label = 0;				// absLabel
 	int intensity = 0;
 	int candidateLabel = 0;
 	float energyDifference = 0f;

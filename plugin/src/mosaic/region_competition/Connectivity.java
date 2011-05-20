@@ -6,8 +6,9 @@ public abstract class Connectivity implements Iterable<Point>
 {
 	private int size;
 	static Point neighborsP[];
-	Iterator<Point> ofsIterator;
-	Iterator<Point> neighborIterator;
+	
+//	private Iterator<Point> ofsIterator;
+//	private Iterator<Point> neighborIterator;
 	
 	// in subclasses
 	//	static
@@ -24,7 +25,7 @@ public abstract class Connectivity implements Iterable<Point>
 	public Connectivity() 
 	{
 		size=neighborsP.length;
-		ofsIterator = new OfsIterator();
+//		ofsIterator = new OfsIterator();
 	}
 
 	@Override
@@ -32,9 +33,9 @@ public abstract class Connectivity implements Iterable<Point>
 		return new OfsIterator();
 	}
 	
-	Iterable<Point> getNeighbors(Point point)
+	Iterable<Point> getNeighborIterable(Point point)
 	{
-		return new ConnectivityNeighbor(point);
+		return new ConnectivityNeighborIterable(point);
 	}
 	
 	/**
@@ -72,10 +73,10 @@ public abstract class Connectivity implements Iterable<Point>
 	 * Iterates through neighbors and returns Points 
 	 * @author Stephan
 	 */
-	class ConnectivityNeighbor implements Iterable<Point>
+	class ConnectivityNeighborIterable implements Iterable<Point>
 	{
 		Point point;
-		public ConnectivityNeighbor(Point p) 
+		public ConnectivityNeighborIterable(Point p) 
 		{
 			point = p;
 		}
@@ -91,7 +92,6 @@ public abstract class Connectivity implements Iterable<Point>
 		{
 			@Override
 			public Point next() {
-				// TODO Auto-generated method stub
 				Point ofs = super.next();
 				return point.add(ofs);
 			}
