@@ -98,15 +98,77 @@ public class LabelImage //extends ShortProcessor
 
 				if (absLabel != bgLabel && absLabel != forbiddenLabel) 
 				{
-					if (!labelMap.containsKey(absLabel)) 
+					// version 1: implicitly get()" twice (in contain() and in get())
+//					if (!labelMap.containsKey(absLabel)) 
+//					{
+//						labelMap.put(absLabel, new LabelInformation(absLabel));
+//					}
+//					LabelInformation stats = labelMap.get(absLabel);
+					
+					//version 2. only get()s twice, if label does not exist
+					LabelInformation stats = labelMap.get(absLabel);
+					if(stats==null)
 					{
 						labelMap.put(absLabel, new LabelInformation(absLabel));
+						stats = labelMap.get(absLabel);
 					}
-					LabelInformation stats = labelMap.get(absLabel);
+					
 					stats.add(getIntensity(x, y));
 				}
 			}
 		} // for all pixel
+	}
+	
+	
+	/**
+	 * as computeStatistics, does not use iterative approach
+	 * (first computes sum of values and sum of values^2)
+	 */
+	public void renewStatistics()
+	{
+		for (int x = 0; x < width; x++) 
+		{
+			for (int y = 0; y < height; y++) 
+			{
+				int label = get(x, y);
+				int absLabel = getAbsLabel(label);
+
+				if (absLabel != bgLabel && absLabel != forbiddenLabel) 
+				{
+					// version 1: implicitly get()" twice (in contain() and in get())
+//					if (!labelMap.containsKey(absLabel)) 
+//					{
+//						labelMap.put(absLabel, new LabelInformation(absLabel));
+//					}
+//					LabelInformation stats = labelMap.get(absLabel);
+					
+					//TODO save the last label, the next label will be likely the same label, 
+					// so you can save one map lookup (by the cost of 1 integer comparison)
+					
+					//version 2. only get()s twice, if label does not exist
+					LabelInformation stats = labelMap.get(absLabel);
+					if(stats==null)
+					{
+						labelMap.put(absLabel, new LabelInformation(absLabel));
+						stats = labelMap.get(absLabel);
+					}
+					int val = getIntensity(x,y);
+					stats.n++;
+					stats.mean+=val;
+					stats.var+=val*val;
+				}
+			}
+		} // for all pixel
+		
+		//now we have in all LabelInformation in mean the sum of the values, int var the sum of val^2
+		for(LabelInformation stat: labelMap.values())
+		{
+			stat.mean=stat.mean/stat.n;
+			stat.var=stat.var/()
+			//TODO hier weiter
+		}
+		
+		
 	}
 	
 	

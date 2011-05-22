@@ -33,10 +33,17 @@ public class Region_Competition implements PlugInFilter{
 		}
 		
 		labelImage.showStatistics();
-		
+		macroContrast();
 		return DOES_ALL + DONE;
 	}
 	
+	void macroContrast()
+	{
+		IJ.run("Brightness/Contrast...");
+		IJ.setMinAndMax(0, 2048);
+		//call("ij.ImagePlus.setDefault16bitRange", 0);
+		IJ.run("Close");
+	}
 	
 	void createEmptyIP()
 	{
