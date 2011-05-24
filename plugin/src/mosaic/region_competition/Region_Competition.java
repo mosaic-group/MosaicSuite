@@ -4,6 +4,7 @@ import mosaic.region_competition.Connectivity2D_4;
 import mosaic.region_competition.Connectivity;
 import mosaic.region_competition.LabelImage;
 import mosaic.region_competition.Point;
+import mosaic.region_competition.Timer;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
@@ -25,10 +26,14 @@ public class Region_Competition implements PlugInFilter{
 	{
 		originalIP = aImp;
 		
-		if (aImp == null) {
+		testStatistics();
+		
+		if (aImp == null) 
+		{
 			createEmptyIP();
 			initializeLabelImageAndContourContainer();
-		} else {
+		} else 
+		{
 			initWithCustom(aImp);
 		}
 		
@@ -70,6 +75,41 @@ public class Region_Competition implements PlugInFilter{
 			System.out.println(p);
 		}
 	}
+	
+	
+	void testStatistics()
+	{
+		ImagePlus ip = originalIP;
+		ImageProcessor oProc = ip.getChannelProcessor();
+		labelImage = new LabelImage(ip);
+		labelImage.getLabelImage().insert(oProc, 0, 0);
+		labelImage.initBoundary();
+		labelImage.generateContour();
+		
+		Timer t = new Timer();
+		
+		for(int i=0; i<10; i++)
+		{
+			t.tic(); 
+			labelImage.computeStatistics();
+			long time=t.toc();
+			System.out.println("compute time: "+time);
+//			labelImage.showStatistics();
+			
+			t.tic();
+			labelImage.renewStatistics();
+			time=t.toc();
+			System.out.println("renew time: "+time);
+//			labelImage.showStatistics();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	/**
 	 * treats Input image as a label image / guess. 

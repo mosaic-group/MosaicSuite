@@ -13,6 +13,15 @@ public class LabelInformation
 		this.label=label;
 	}
 	
+	public void reset()
+	{
+		label=0;
+		n=0;
+		mean=0;
+		M2=0;
+		var=0;
+	}
+	
 // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#On-line_algorithm
 //	A numerically stable algorithm is given below. It also computes the mean. This algorithm is due to Knuth,[1] who cites Welford.[2]
 //	def online_variance(data):

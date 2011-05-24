@@ -88,6 +88,9 @@ public class LabelImage //extends ShortProcessor
 	 */
 	public void computeStatistics() 
 	{
+		
+		clearStats();
+		
 		//TODO seems to be slow
 		for (int x = 0; x < width; x++) 
 		{
@@ -119,6 +122,16 @@ public class LabelImage //extends ShortProcessor
 		} // for all pixel
 	}
 	
+	void clearStats()
+	{
+		//clear stats
+		
+		for(LabelInformation stat: labelMap.values())
+		{
+			stat.reset();
+		}
+	}
+	
 	
 	/**
 	 * as computeStatistics, does not use iterative approach
@@ -126,6 +139,10 @@ public class LabelImage //extends ShortProcessor
 	 */
 	public void renewStatistics()
 	{
+		
+		clearStats();
+
+		
 		for (int x = 0; x < width; x++) 
 		{
 			for (int y = 0; y < height; y++) 
@@ -163,9 +180,14 @@ public class LabelImage //extends ShortProcessor
 		//now we have in all LabelInformation in mean the sum of the values, int var the sum of val^2
 		for(LabelInformation stat: labelMap.values())
 		{
-			stat.mean=stat.mean/stat.n;
-			stat.var=stat.var/()
-			//TODO hier weiter
+			int n= stat.n;
+            if (n > 1) {
+                stat.var = (stat.var - stat.mean*stat.mean / n) / (n-1);
+            } else {
+                stat.var = 0;
+            }
+            stat.mean = stat.mean/n;
+//TODO itk: was in itk            m_Intensities[vAbsLabel] = m_Means[vAbsLabel];
 		}
 		
 		
@@ -272,14 +294,15 @@ public class LabelImage //extends ShortProcessor
 	}
 	
 	/**
-	 * Removes a contour particle from its labelregion, 
-	 * generates the newly produced contourpixels and updates statistics
+	 * Removes a contour particle from its label region (moves it to bg), 
+	 * generates the new contour particles, adds to container
+	 * itk::AddNeighborsAtRemove
 	 */
 	void removeFromContour(Point pIndex)
 	{
 		
-		//TODO ??? where is the removal of p in itk
-		// 
+		//TODO removal of p in itk; in ChangeContourPointLabelToCandidateLabel
+		//TODO statistic update? 
 		
 		ContourParticle p = contourContainer.get(pIndex);
 		
@@ -290,6 +313,8 @@ public class LabelImage //extends ShortProcessor
 			if(qLabel == p.label) // q is a inner point with the same label as p
 			{
 				ContourParticle q = new ContourParticle();
+				q.label=p.label;
+				q.candidateLabel=bgLabel;
 				q.intensity = getIntensity(qIndex);
 				contourContainer.put(qIndex, q);
 				
@@ -303,10 +328,17 @@ public class LabelImage //extends ShortProcessor
 	}
 	
 	
+	/**
+	 * 
+	 * itk::MaintainNeighborsAtAdd
+	 */
 	void addToContour(Point pIndex)
 	{
 		ContourParticle p = contourContainer.get(pIndex);
-//		int pLabel = p.label;
+		
+        // itk 1646: we set the pixel value already to ensure the that the 'enclosed' check
+        // afterwards works.
+		//TODO is p.label (always) the correct label?
 		set(pIndex, getNegLabel(p.label));
 		
 		Connectivity conn = new Connectivity2D_8();
@@ -347,6 +379,9 @@ public class LabelImage //extends ShortProcessor
 	}
 	
 	
+	/**
+	 * itk::RebuildCandidateList
+	 */
 	void grow()
 	{
 		// TODO chaos with motherlist / daughterlist / count. 
@@ -354,6 +389,9 @@ public class LabelImage //extends ShortProcessor
 		HashMap<Point, ContourParticle> M;
 		// M = candidate list
 		M=(HashMap<Point, ContourParticle>) contourContainer.clone();
+		
+		HashMap<Point, ContourParticle> M2 = new HashMap<Point, ContourParticle>();
+		
 		
 		Connectivity conn = new Connectivity2D_4();
 		
@@ -366,10 +404,13 @@ public class LabelImage //extends ShortProcessor
 			
 			// particle-label to background label (shrinking)
 			p.candidateLabel=bgLabel;
-			p.energyDifference=calcEnergy(entry);
+			p.ismother=true;
+			p.isDaughter=false;
+			
+			p.energyDifference=calcEnergy(entry); //TODO this to bg
 			
 			
-			// particle label to nieghbor labels (growing)
+			// particle label to neighbor labels (growing)
 			for(Point qIndex:conn.getNeighborIterable(pIndex))
 			{
 				int label=get(qIndex);
@@ -383,45 +424,88 @@ public class LabelImage //extends ShortProcessor
 				
 				ContourParticle q = contourContainer.get(qIndex);
 				
+				// itk::Tell the mother about the daughter:
+				p.getDaughterList().add(qIndex);
+				
 				if(q==null) // (absLabel==bgLabel)
 				{
 					// grow in BG
 					// create new particle and add to M
 					q = new ContourParticle();
-					q.label=bgLabel;
 					q.candidateLabel=pLabel;
+					q.label=bgLabel;
 					q.intensity=getIntensity(qIndex);
-					q.energyDifference = calcEnergy(entry);
-					q.getMotherList().add(p);
-					q.daughterFlag=true;
+					q.isDaughter=true;
+					q.ismother=false;
+//					q.isProcessed=false; //TODO itk::3483
+					q.referenceCount=1;
+					q.energyDifference = calcEnergy(entry); //TODO change neighbor to plabel
+					
+					q.setLabelHasBeenTested(pLabel);
+					
+					q.getMotherList().add(pIndex);
 					
 					//TODO !!! this may make problems with "for(entry : M.entrySet())"
 					// consider javadoc to entrySet() "the results of the iteration are undefined"
-					// construct a afterparty list M', add to a after the party
-					M.put(qIndex, q);
+					
+					//TODO is this ok?
+					// construct a afterparty list M2, add to a after the party
+					M2.put(qIndex, q);
 				} 
 				else // nonforbidden, nonself, existing, other label
 				{
-					if(q.candidateLabel==pLabel) // supported already by same region
+					
+					q.isDaughter=true;
+					q.getMotherList().add(pIndex);
+					
+					//itk::3501
+                    /// Check if the energy difference for this candiate
+                    /// label has not yet been calculated.
+					if(!q.hasLabelBeenTested(pLabel))
 					{
-						q.getMotherList().add(p);
-					}
-					else // grow to other region
-					{
-						float dE=calcEnergy(entry);
-						if(q.energyDifference > dE)
+						q.setLabelHasBeenTested(pLabel);
+						float dE=calcEnergy(entry); //TODO change neighbor to plabel
+						if(dE < q.energyDifference)
 						{
-							q.candidateLabel=qLabel;
+							q.candidateLabel=pLabel;
 							q.energyDifference=dE;
-							
+							q.referenceCount=1;
 						}
+						
 					}
+					else {
+						//itk::3512
+                        /// If the propagating label is the same as the candidate label,
+                        /// we have found 2 or more mothers of for this contour point.ten
+                        if (q.candidateLabel == pLabel) {
+//                            if(m_iteration_counter == 30 && vLabelOfPropagatingRegion == 30){
+//                                std::cout << "halt at rebuildcandlist: " << vContourPointItr->second << std::endl;
+//                            }
+                            q.referenceCount++;
+                        }
+                    }
+					
+					
+					//non-itk version (paper algorithm?)
+//					if(q.candidateLabel==pLabel) // supported already by same region
+//					{
+//						q.getMotherList().add(pIndex);
+//					}
+//					else // grow to other region
+//					{
+//						float dE=calcEnergy(entry);
+//						if(q.energyDifference > dE)
+//						{
+//							q.candidateLabel=qLabel;
+//							q.energyDifference=dE;
+//						}
+//					}
 				} // else
 				
 				// neighborParticle is q in Algorithm 2 (Optimization)
 				//TODO dont know yet where it is used
 				
-				q.getMotherList().add(p);
+				q.getMotherList().add(pIndex);
 				
 			} // for neighbors
 		}
