@@ -66,5 +66,10 @@ public class Point
 		return result;
 	}
 
+	@Override
+	public int hashCode() {
+		// TODO write own hashCode
+		return super.hashCode();
+	}
 
 }

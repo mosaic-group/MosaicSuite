@@ -12,33 +12,29 @@ public class ContourParticle
 	float energyDifference = 0f;
 	
 	boolean isDaughter = false;
-	boolean ismother = false;
+	boolean isMother = false;
 	int referenceCount = 0;
 	
-	//TODO ? list of ContourParticle or Point?
-	private List<Point> motherList=null;
-	private List<Point> daughterList=null;
+	boolean m_processed = false; //TODO 
 	
-	List<Point> getMotherList()
-	{
-		if(motherList==null)
-		{
-			motherList = new LinkedList<Point>();
-		}
+	//TODO ? list of ContourParticle or Point?
+	private List<Point> motherList = new LinkedList<Point>();
+	private List<Point> daughterList = new LinkedList<Point>();
+	private List<Integer> testedList = new LinkedList<Integer>();
+	
+	List<Point> getMotherList() {
 		return motherList;
 	}
 	
-	List<Point> getDaughterList()
-	{
-		if(daughterList==null)
-		{
-			daughterList = new LinkedList<Point>();
-		}
+	List<Point> getDaughterList() {
 		return daughterList;
 	}
 
+	List<Integer> getTestedList() {
+		return testedList;
+	}
+
 	
-	private List<Integer> testedList = new LinkedList<Integer>();
     boolean hasLabelBeenTested(int aLabel) {
         return testedList.contains(aLabel);
     }
@@ -46,7 +42,6 @@ public class ContourParticle
     void setLabelHasBeenTested(int aLabel) {
         testedList.add(aLabel);
     }
-	
 	
 	
 	void reset()
@@ -57,9 +52,13 @@ public class ContourParticle
 		energyDifference = 0f;
 		
 		isDaughter = false;
-		ismother = false;
+		isMother = false;
 		referenceCount = 0;
 		
+		m_processed = false; 
+		
+		motherList.clear();
+		daughterList.clear();
 		testedList.clear();
 	}
 	

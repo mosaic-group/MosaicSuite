@@ -7,6 +7,8 @@ import mosaic.region_competition.Point;
 import mosaic.region_competition.Timer;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
+import ij.WindowManager;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
@@ -21,23 +23,36 @@ public class Region_Competition implements PlugInFilter{
 		
 	LabelImage labelImage;
 	ImagePlus originalIP;
+	ImageStack stack;
 	
-	public int setup(String aArgs, ImagePlus aImp) 
+	
+	public int setup(String aArgs, ImagePlus aImp)
 	{
+		
+		IJ.open("C:\\Users\\Stephan\\Desktop\\Clipboard01.png");
+		aImp = WindowManager.getCurrentImage();
 		originalIP = aImp;
 		
-		testStatistics();
-		
-		if (aImp == null) 
-		{
+		if(aImp == null) {
 			createEmptyIP();
+			testStatistics();
 			initializeLabelImageAndContourContainer();
-		} else 
+		} 
+		else 
 		{
-			initWithCustom(aImp);
+			//stack
+			ImageProcessor myIp = aImp.getProcessor();
+			stack = new ImageStack(myIp.getWidth(), myIp.getHeight());
+			
+//			stack.addSlice("Original", myIp);
+		frontsCompetitionImageFilter();
+			
+			ImagePlus myTargetImPlus = new ImagePlus("Stack of "+aImp.getTitle(), myIp);	//The .getTitle() method, recuperates the title of the image. 
+			myTargetImPlus.show();
+			myTargetImPlus.setStack(null, stack);		
 		}
-		
-		labelImage.showStatistics();
+
+//		labelImage.showStatistics();
 		macroContrast();
 		return DOES_ALL + DONE;
 	}
@@ -76,7 +91,9 @@ public class Region_Competition implements PlugInFilter{
 		}
 	}
 	
-	
+	/**
+	 * compares runtime of recursive and explicit statistics
+	 */
 	void testStatistics()
 	{
 		ImagePlus ip = originalIP;
@@ -105,7 +122,26 @@ public class Region_Competition implements PlugInFilter{
 	}
 	
 	
-	
+	void frontsCompetitionImageFilter()
+	{
+		ImagePlus ip = originalIP;
+		
+		labelImage = new LabelImage(ip);
+		labelImage.initZero();
+		labelImage.initBoundary();
+		labelImage.initialGuess();
+		labelImage.generateContour();
+		
+		labelImage.setStack(stack);
+//	stack.addSlice("ip", ip.getProcessor());
+//	stack.addSlice("Original", labelImage.getLabelImage());
+		labelImage.GenerateData();
+//	stack.addSlice("Original2", labelImage.getLabelImage());
+//	stack.addSlice("Final", labelImage.getLabelImage());
+		
+		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
+		
+	}
 	
 	
 	

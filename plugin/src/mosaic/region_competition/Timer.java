@@ -3,11 +3,13 @@ package mosaic.region_competition;
 public class Timer 
 {
 	
-	long start;
-	long end;
+	private long start;
+	private long end;
+	private long duration=0;
 	
 	public long tic()
 	{
+		duration = 0;
 		start=System.nanoTime(); 
 		return start;
 	}
@@ -15,7 +17,13 @@ public class Timer
 	public long toc()
 	{
 		end = System.nanoTime();
-		return (end-start)/1000;
+		duration = end-start;
+		return (duration)/1000;
+	}
+	
+	public long lastResult()
+	{
+		return duration/1000;
 	}
 
 }

@@ -3,7 +3,7 @@ package mosaic.region_competition;
 public class LabelInformation 
 {
 	int label=0;	// label
-	int n;			// number of pixels of label
+	int count;			// number of pixels of label
 	float mean=0;	// mean of intensity
 	float M2=0;
 	float var=0;	// variance of intensity
@@ -16,7 +16,7 @@ public class LabelInformation
 	public void reset()
 	{
 		label=0;
-		n=0;
+		count=0;
 		mean=0;
 		M2=0;
 		var=0;
@@ -40,32 +40,32 @@ public class LabelInformation
 	
 	public void add(int x)
 	{
-		n++;
+		count++;
 		float delta = x-mean;
-		mean = mean + delta/n;
+		mean = mean + delta/count;
 		M2 = M2 + delta*(x-mean);  // This expression uses the new value of mean
-		if (n <= 1) {
+		if (count <= 1) {
 			var = 0;
 		} else {
-			var = M2 / (n - 1);
+			var = M2 / (count - 1);
 		}
 	}
 	
 	public void remove(int x) {
-		n--;
-		if (n == 0) {
+		count--;
+		if (count == 0) {
 			mean = 0;
 			M2 = 0;
 			var = 0;
 		} else {
 			float delta = x - mean;
-			mean = mean - delta / n;
+			mean = mean - delta / count;
 			// TODO correct?
 			M2 = M2 - delta * (x - mean); // This expression uses the new value // of mean
-			if (n <= 1) {
+			if (count <= 1) {
 				var = 0;
 			} else {
-				var = M2 / (n - 1);
+				var = M2 / (count - 1);
 			}
 		}
 	}
