@@ -1,5 +1,7 @@
 package mosaic.region_competition;
 
+import java.util.Arrays;
+
 public class Point 
 {
 	int x[];
@@ -66,10 +68,27 @@ public class Point
 		return result;
 	}
 
+	@Override public boolean equals(Object o) 
+	{
+		return Arrays.equals(x, ((Point)o).x);
+//		return x.equals(((Point)o).x);
+//		for(int i=0; i<dim; i++)
+//		{
+//			if(this.x[i]!=((Point)o).x[i]) return false;
+//		}
+//		return true;
+	};
+	
 	@Override
 	public int hashCode() {
 		// TODO write own hashCode
-		return super.hashCode();
+		int sum=0;
+		for(int i=0; i<dim; i++)
+		{
+			sum=sum*1024+x[i];
+		}
+		return sum;
+//		return super.hashCode();
 	}
 
 }

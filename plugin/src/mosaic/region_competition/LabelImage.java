@@ -1,4 +1,5 @@
 package mosaic.region_competition;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,6 +72,8 @@ public class LabelImage //extends ShortProcessor
     static int m_OscillationHistoryLength = 10;
 //    FixedArray<unsigned int, m_OscillationHistoryLength> m_OscillationsNumberHist;
 //    FixedArray<float, m_OscillationHistoryLength> m_OscillationsEnergyHist;
+    int m_OscillationsNumberHist[] = new int[m_OscillationHistoryLength];
+    float m_OscillationsEnergyHist[] = new float[m_OscillationHistoryLength];
 
     float m_AcceptedPointsReductionFactor;
     float m_AcceptedPointsFactor;
@@ -118,7 +121,7 @@ public class LabelImage //extends ShortProcessor
 		/**
 		 * Initialize control members
 		 */
-		m_MaxNbIterations = 100;
+		m_MaxNbIterations = 150;
 		m_converged = false;
 		m_AreaThreshold = 1; ///TODO find a good heuristic or stat test.
 
@@ -166,10 +169,10 @@ public class LabelImage //extends ShortProcessor
 		m_RegionMergingThreshold = 0.1f;
 		m_iteration_counter = 0;
 
-		// for (int vI = 0; vI < m_OscillationHistoryLength; vI++) {
-		// m_OscillationsNumberHist[vI] = 0;
-		// m_OscillationsEnergyHist[vI] = 0;
-		// }
+		for(int vI = 0; vI < m_OscillationHistoryLength; vI++) {
+			m_OscillationsNumberHist[vI] = 0;
+			m_OscillationsEnergyHist[vI] = 0;
+		}
 		m_AcceptedPointsFactor = 1;
 		m_AcceptedPointsReductionFactor = 0.5f;
 	}
@@ -1278,26 +1281,6 @@ public class LabelImage //extends ShortProcessor
 	        /**
 	         * Read the topology-dependency graphs and build containers:
 	         */
-
-		class ContourPointWithIndexType implements Comparable<ContourPointWithIndexType> 
-		{
-			Point pIndex;
-			ContourParticle p;
-
-			public ContourPointWithIndexType(Point index, ContourParticle p) {
-				this.pIndex = index;
-				this.p = p;
-			}
-
-			@Override
-			public int compareTo(ContourPointWithIndexType o) {
-				// ! TODO ascending / descending
-				if (this.p.energyDifference > o.p.energyDifference)
-					return 1;
-				else
-					return -1;
-			}
-		}
 		
 //	        typedef std::list<ContourPointWithIndexType> NetworkMembersListType;
 
@@ -1402,15 +1385,9 @@ public class LabelImage //extends ShortProcessor
 	                 * Filtering: Accept all members in ascending order that are
 	                 * compatible with the already selected members in the network.
 	                 */
-//	                typedef std::set< ContourIndexType > ContourIndexSetType;
-//	                ContourIndexSetType vSelectedCandidateIndices;
 	                
 	                //TODO HashSet problem (maybe need hashmap)
 	                HashSet<Point> vSelectedCandidateIndices = new HashSet<Point>();
-
-//	                typename NetworkMembersListType::iterator vNetworkIt = vSortedNetworkMembers.begin();
-//	                typename NetworkMembersListType::iterator vNetworkItEnd = vSortedNetworkMembers.end();
-
 
 	                //                ContourIndexType vFirstIndex = vNetworkIt->m_ContourIndex;
 	                //                vSelectedCandidateIndices.insert(vFirstIndex);
@@ -1468,15 +1445,9 @@ public class LabelImage //extends ShortProcessor
 	                    ///
 	                    if (vLegalMove && vNetworkIt.p.isMother) {
 	                        /// Iterate the daughters and check their reference count
-//	                        typename ContourPointWithIndexType::ContourPointType::MotherIndexListType::iterator
-//	                        vDaughterIndicesIterator = vNetworkIt->m_ContourPoint.m_daughterIndices.begin();
-//	                        typename ContourPointWithIndexType::ContourPointType::MotherIndexListType::iterator
-//	                        vDaughterIndicesIteratorEnd = vNetworkIt->m_ContourPoint.m_daughterIndices.end();
 
 	                        boolean vRule3Fulfilled = false;
 
-//	                        for (; vDaughterIndicesIterator != vDaughterIndicesIteratorEnd;
-//	                                ++vDaughterIndicesIterator) {
 	                        for(Point vDaughterIndicesIterator: vNetworkIt.p.getDaughterList())
 	                        {
 
@@ -1487,8 +1458,8 @@ public class LabelImage //extends ShortProcessor
 
 	                            ///
 	                            /// rule 2:
-//	                            typename ContourIndexSetType::iterator vAcceptedDaugtherIt =
-//                                    vSelectedCandidateIndices.find(*vDaughterIndicesIterator);
+//	                            typename ContourIndexSetType::iterator 
+//	                            vAcceptedDaugtherIt = vSelectedCandidateIndices.find(*vDaughterIndicesIterator);
 	                            boolean vAcceptedDaugtherItContained = vSelectedCandidateIndices.contains(vDaughterIndicesIterator);
 	                            //TODO HashSet problem (maybe need hashmap)
 //	                            Point vAcceptedDaugtherIt = null;
@@ -1516,6 +1487,7 @@ public class LabelImage //extends ShortProcessor
 	                                	
 	                                    /// the daughter has been accepted, but may
 	                                    /// have another candidate label(rule 3b):
+	                                	
 //	                                    if(m_AllCandidates.get(vAcceptedDaugtherIt).candidateLabel !=
 //	                                            vNetworkIt.ContourPoint.label) {
 //	                                        vRule3Fulfilled = true;
@@ -1601,7 +1573,36 @@ public class LabelImage //extends ShortProcessor
 	         * Detect oscillations and store values in history.
 	         */
 	        
-	        //TODO
+	        float vSum = SumAllEnergies(m_AllCandidates);
+	        debug("sum of energies: "+vSum);
+	        for (int vI = 0; vI < m_OscillationHistoryLength; vI++) {
+	            float vSumOld = m_OscillationsEnergyHist[vI];
+//	            debug("check nb: " + vAllCandidates.size() + " against " + m_OscillationsNumberHist[0]);
+	            debug("m_AllCandidates.size()="+m_AllCandidates.size()+
+	            		"m_OscillationsNumberHist[vI]="+m_OscillationsNumberHist[vI]);
+	            
+	            if (m_AllCandidates.size() == m_OscillationsNumberHist[vI] &&
+	                    Math.abs(vSum - vSumOld) <= 1e-5 * Math.abs(vSum)) {
+	            	
+//TODO wird noch nie aufgerufen
+	            	
+	                /// here we assume that we're oscillating, so we decrease the
+	                /// acceptance factor:
+	                m_AcceptedPointsFactor *= m_AcceptedPointsReductionFactor;
+	                debug("nb of accepted points reduced to: "+m_AcceptedPointsFactor);
+	            }
+	        }
+//	        std::cout << "nb cand: " << m_AllCandidates.size() << "\t energy: " << vSum << std::endl;
+	        /// Shift the old elements:
+	        //TODO sts maybe optimize by modulo list?
+	        for ( int vI = 1; vI < m_OscillationHistoryLength; vI++) {
+	            m_OscillationsEnergyHist[vI - 1] = m_OscillationsEnergyHist[vI];
+	            m_OscillationsNumberHist[vI - 1] = m_OscillationsNumberHist[vI];
+	        }
+
+	        /// Fill the new elements:
+	        m_OscillationsEnergyHist[m_OscillationHistoryLength - 1] = vSum;
+	        m_OscillationsNumberHist[m_OscillationHistoryLength - 1] = m_AllCandidates.size();
 
 
 	        /**
@@ -1737,7 +1738,7 @@ stack.addSlice("iteration "+m_iteration_counter, this.labelImage.getPixelsCopy()
         m_converged = vConvergence;
         
         timer.toc();
-        System.out.println(timer.lastResult());
+        debug(timer.lastResult());
 
        
         
@@ -1753,12 +1754,12 @@ stack.addSlice("iteration "+m_iteration_counter, this.labelImage.getPixelsCopy()
 
         
         long executionTime = timer.lastResult();
-        System.out.println("time per iteration: " + executionTime/m_iteration_counter);
+        debug("time per iteration: " + executionTime/m_iteration_counter);
 
         if (m_converged) {
-            System.out.println("convergence after " + m_iteration_counter +" iterations.");
+            debug("convergence after " + m_iteration_counter +" iterations.");
         } else {
-            System.out.println("no convergence !");
+            debug("no convergence !");
         }
     
 	}
@@ -1767,13 +1768,6 @@ stack.addSlice("iteration "+m_iteration_counter, this.labelImage.getPixelsCopy()
 	boolean DoOneIteration()
 	{
 
-		//TODO start dummy variables
-//		EnergyFunctionalType m_EnergyFunctional = EnergyFunctionalType.e_CV;
-//		int m_iteration_counter = 0;
-//		boolean m_UseShapePrior = false;
-//		boolean m_RemoveNonSignificantRegions = false;
-		//END dummy variables
-		
         boolean vConvergenceA;
         vConvergenceA = true;
 
@@ -1881,7 +1875,6 @@ stack.addSlice("iteration "+m_iteration_counter, this.labelImage.getPixelsCopy()
                 FreeLabelStatistics(vActiveLabelsIt.getKey());
             }
     	}
-		System.out.println("cleanup ok");
 	}
 
     void FreeLabelStatistics(int aLabelAbs) 
@@ -1917,10 +1910,7 @@ stack.addSlice("iteration "+m_iteration_counter, this.labelImage.getPixelsCopy()
                 ChangeContourPointLabelToCandidateLabel(vIt);
             }
         }
-
         CleanUp();
-        
-        System.out.println("RemoveSinglePointRegions ok");
     }
 	
     void ChangeContourPointLabelToCandidateLabel(Entry<Point, ContourParticle> aParticle) 
@@ -2109,8 +2099,6 @@ stack.addSlice("iteration "+m_iteration_counter, this.labelImage.getPixelsCopy()
         }
 //        std::cout << "number of removed labels = " << vNRemovedRegions << std::endl;
         CleanUp();
-        
-        System.out.println("RemoveNotSignificantRegions ok");
         }
 	
 	
@@ -2164,7 +2152,7 @@ stack.addSlice("iteration "+m_iteration_counter, this.labelImage.getPixelsCopy()
             //TODO ??? why should i do that?
             //Refill the container
             if (labelMap.get(aLabel).count > 0) {
-            	System.out.println("refilling in remove fg region! count: "+labelMap.get(aLabel).count);
+            	debug("refilling in remove fg region! count: "+labelMap.get(aLabel).count);
 //                vIt = m_InnerContourContainer.entrySet();
 //                vEnd = m_InnerContourContainer.end();
                 for (Entry<Point, ContourParticle> vIt: m_InnerContourContainer.entrySet()) {
@@ -2175,6 +2163,11 @@ stack.addSlice("iteration "+m_iteration_counter, this.labelImage.getPixelsCopy()
             }
         }
     	}
+	
+	static void debug(Object s)
+	{
+		System.out.println(s);
+	}
 	
 }
 
