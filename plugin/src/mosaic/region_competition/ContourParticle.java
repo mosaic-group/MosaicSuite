@@ -9,7 +9,7 @@ public class ContourParticle
 	int label = 0;				// absLabel
 	int intensity = 0;
 	int candidateLabel = 0;
-	float energyDifference = 0f;
+	double energyDifference = 0;
 	
 	boolean isDaughter = false;
 	boolean isMother = false;

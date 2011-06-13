@@ -5,6 +5,7 @@ import java.util.Iterator;
 public abstract class Connectivity implements Iterable<Point>
 {
 	private int size;
+	private int dimension;
 	static Point neighborsP[];
 	
 //	private Iterator<Point> ofsIterator;
@@ -25,6 +26,7 @@ public abstract class Connectivity implements Iterable<Point>
 	public Connectivity() 
 	{
 		size=neighborsP.length;
+		dimension=neighborsP[0].x.length;
 //		ofsIterator = new OfsIterator();
 	}
 
@@ -98,6 +100,17 @@ public abstract class Connectivity implements Iterable<Point>
 		}
 		
 	}
+
+	public int GetNeighborhoodSize()
+	{
+		return size;
+	}
+	
+	public int Dimension()
+	{
+		return dimension;
+	}
+	
 	
 }
 

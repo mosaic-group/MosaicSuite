@@ -4,9 +4,9 @@ public class LabelInformation
 {
 	int label=0;	// label
 	int count;			// number of pixels of label
-	float mean=0;	// mean of intensity
-	float M2=0;
-	float var=0;	// variance of intensity
+	double mean=0;	// mean of intensity
+	double M2=0;
+	double var=0;	// variance of intensity
 	
 	public LabelInformation(int label) 
 	{
@@ -41,7 +41,7 @@ public class LabelInformation
 	public void add(int x)
 	{
 		count++;
-		float delta = x-mean;
+		double delta = x-mean;
 		mean = mean + delta/count;
 		M2 = M2 + delta*(x-mean);  // This expression uses the new value of mean
 		if (count <= 1) {
@@ -58,7 +58,7 @@ public class LabelInformation
 			M2 = 0;
 			var = 0;
 		} else {
-			float delta = x - mean;
+			double delta = x - mean;
 			mean = mean - delta / count;
 			// TODO correct?
 			M2 = M2 - delta * (x - mean); // This expression uses the new value // of mean
