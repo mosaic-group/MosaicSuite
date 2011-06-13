@@ -29,7 +29,7 @@ public class Region_Competition implements PlugInFilter{
 	public int setup(String aArgs, ImagePlus aImp)
 	{
 		
-		IJ.open("C:\\Users\\Stephan\\Desktop\\Clipboard01.png");
+		IJ.open("Clipboard01.png");
 		aImp = WindowManager.getCurrentImage();
 		originalIP = aImp;
 		
