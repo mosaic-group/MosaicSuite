@@ -2,103 +2,39 @@ package mosaic.region_competition;
 
 import java.util.Iterator;
 
-public class Connectivity implements Iterable<Point>
+public abstract class ConnectivityOLD implements Iterable<Point>
 {
-	private int VDim;				// dimension
-	private int VCellDim;			// connectivity
+	private int size;				// Number Of Neighbors
+	private int dimension;			// Dimension of Points
 	private int m_NeighborhoodSize;	// complete neighborhood
+	static Point neighborsP[];
 	
-	private int size;				// m_NumberOfNeighbors
-	static Point[] neighborsP;
-	static int[] neighborsOfs;
 	
-	public Connectivity(int VDim, int VCellDim) 
+//	private Iterator<Point> ofsIterator;
+//	private Iterator<Point> neighborIterator;
+	
+	// in subclasses
+	//	static
+	//	{
+	//		int neighbors[][] = {{-1,0}, {1, 0}, {0,-1}, {0, 1}};
+	//		neighborsP = new Point[neighbors.length];
+	//		neighborsP[0]= new Point(neighbors[0]);
+	//		neighborsP[1]= new Point(neighbors[1]);
+	//		neighborsP[2]= new Point(neighbors[2]);
+	//		neighborsP[3]= new Point(neighbors[3]);
+	//	}
+	
+	
+	public ConnectivityOLD() 
 	{
-		this.VDim = VDim;
-		this.VCellDim = VCellDim;
-		m_NeighborhoodSize = (int)Math.pow(3, VDim);
-		size = ComputeNumberOfNeighbors();
+		//TODO work with getInstance
 		
-		neighborsP = new Point[size];
-		neighborsOfs = new int[size];
-		
-		initOffsets();
-		
+		size=neighborsP.length;
+		dimension=neighborsP[0].x.length;
+		m_NeighborhoodSize = (int)Math.pow(3, dimension);
+//		ofsIterator = new OfsIterator();
 	}
 
-	private void initOffsets()
-	{
-		int currentNbNeighbors = 0;
-
-		for(int i = 0; i < m_NeighborhoodSize; ++i) {
-			Point p = OffsetToPoint(i);
-
-			int numberOfZeros = countZeros(p);
-
-			if(numberOfZeros != VDim && numberOfZeros >= VCellDim) 
-			{
-				neighborsP[currentNbNeighbors] = p;
-				neighborsOfs[currentNbNeighbors] = i;
-				currentNbNeighbors++;
-			}
-		}
-
-	}
-	
-	public Point OffsetToPoint(int offset)
-	{
-		
-		//TODO dublicated in unitCube
-		
-		int remainder = offset;
-		Point p = Point.PointWithDim(this.VDim);
-
-		for(int i = 0; i < this.VDim; ++i) {
-			p.x[i] = remainder % 3;
-			remainder -= p.x[i];
-			remainder /= 3;
-			p.x[i]--;
-		}
-
-		return p;
-	}
-	
-	
-	private int countZeros(Point p)
-	{
-		int count = 0;
-		for(int i: p.x)
-		{
-			if(i==0) count++;
-		}
-		return count;
-	}
-	
-	
-	private int ComputeNumberOfNeighbors()
-	{
-		int numberOfNeighbors = 0;
-		for(int i = VCellDim; i <= VDim - 1; ++i) 
-		{
-			numberOfNeighbors += 
-				factorialrec(VDim)/(factorialrec(VDim - i) * factorialrec(i)) * (1<<(VDim-i));
-		}
-
-		return numberOfNeighbors;
-	}
-
-	private int factorialrec(int n)
-	{
-		int fac=1;
-		for(int i=1; i<=n; i++)
-		{
-			fac=i*fac;
-		}
-		return fac;
-
-	}
-	
-	
 	@Override
 	public Iterator<Point> iterator() {
 		return new OfsIterator();
@@ -179,7 +115,7 @@ public class Connectivity implements Iterable<Point>
 	
 	public int Dimension()
 	{
-		return this.VDim;
+		return dimension;
 	}
 	
 	/**

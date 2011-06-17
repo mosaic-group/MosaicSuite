@@ -1,8 +1,8 @@
 package mosaic.plugins;
 
-import mosaic.region_competition.Connectivity2D_4;
 import mosaic.region_competition.Connectivity;
-import mosaic.region_competition.Connectivity2D_8;
+import mosaic.region_competition.ConnectivityOLD;
+import mosaic.region_competition.ConnectivityOLD_2D_4;
 import mosaic.region_competition.LabelImage;
 import mosaic.region_competition.Point;
 import mosaic.region_competition.Timer;
@@ -30,8 +30,15 @@ public class Region_Competition implements PlugInFilter{
 	
 	public int setup(String aArgs, ImagePlus aImp)
 	{
+
+		//tests
 		
-		testTopo();
+		
+//		testConnNew();
+//		testTopo();
+		
+		
+		////////////////////
 		
 		IJ.open("Clipboard01.png");
 		aImp = WindowManager.getCurrentImage();
@@ -86,8 +93,7 @@ public class Region_Competition implements PlugInFilter{
 	 */
 	void testConnStaticInheritance()
 	{
-		Connectivity conn;
-		conn = new Connectivity2D_4();
+		ConnectivityOLD conn = new ConnectivityOLD_2D_4();
 		
 		for(Point p:conn)
 		{
@@ -148,6 +154,18 @@ public class Region_Competition implements PlugInFilter{
 	}
 	
 	
+	void testConnNew()
+	{
+		
+		Connectivity conn= new Connectivity(2,0);
+		for(Point p : conn)
+		{
+			System.out.println(p);
+		}
+		
+		
+	}
+	
 	void testTopo()
 	{
 		
@@ -159,7 +177,12 @@ public class Region_Competition implements PlugInFilter{
 		//debug
 		lbl.initWithIP(aImp);
 		Point index = new Point(10,10);
-		TopologicalNumberImageFunction topo = new TopologicalNumberImageFunction(lbl, new Connectivity2D_4(), new Connectivity2D_8());
+		
+		
+		Connectivity connFG = new Connectivity(2,1);
+		Connectivity connBG = new Connectivity(2,0);
+		
+		TopologicalNumberImageFunction topo = new TopologicalNumberImageFunction(lbl, connFG, connBG);
 		topo.EvaluateAdjacentRegionsFGTNAtIndex(index);
 	}
 	

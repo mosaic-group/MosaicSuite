@@ -43,6 +43,9 @@ public class LabelImage //extends ShortProcessor
 	private HashMap<Point, ContourParticle> m_InnerContourContainer;
 	private HashMap<Integer, LabelInformation> labelMap;
 	
+	Connectivity connFG;
+	Connectivity connBG;
+	
 	
 	/**
 	 * creates a new LabelImage with size of ip
@@ -60,9 +63,19 @@ public class LabelImage //extends ShortProcessor
 		originalIP=ip;
 		
 		initMembers();
+		initConnectivities();
 	}
 	
 	
+	private void initConnectivities()
+	{
+		//TODO generic
+		int dim = 2;
+		connFG = new Connectivity(dim, dim-1);
+		connBG = new Connectivity(dim, dim-2);
+	}
+
+
 	public void setStack(ImageStack stack)
 	{
 		this.stack=stack;
@@ -359,6 +372,10 @@ public class LabelImage //extends ShortProcessor
 	 */
 	public void generateContour()
 	{
+		//TODO dummy
+		Connectivity conn = connFG;
+		//END
+		
 		// finds and saves contour particles
 		for(int y = 1; y < height-1; y++)
 		{
@@ -368,8 +385,6 @@ public class LabelImage //extends ShortProcessor
 				if(label!=bgLabel && label!=forbiddenLabel) // region pixel
 					// && label<negOfs
 				{
-					Connectivity conn = new Connectivity2D_4();
-					
 					Point p = new Point(x,y);
 					for(Point neighbor : conn.getNeighborIterable(p))
 					{
@@ -441,13 +456,17 @@ public class LabelImage //extends ShortProcessor
 	void AddNeighborsAtRemove(int aAbsLabel, Point pIndex)
 	{
 		
+		//TODO dummy
+		Connectivity conn = connFG;
+		//END dummy
+		
+		
 		//TODO removal of p in itk; in ChangeContourPointLabelToCandidateLabel
 		//TODO statistic update? 
 		
 		//TODO p is not used
 		ContourParticle p = m_InnerContourContainer.get(pIndex);
 		
-		Connectivity2D_4 conn = new Connectivity2D_4();
 		for(Point qIndex:conn.getNeighborIterable(pIndex))
 		{
 			int qLabel = get(qIndex);
@@ -497,7 +516,7 @@ public class LabelImage //extends ShortProcessor
 		//TODO is p.label (always) the correct label?
 		set(pIndex, labelToNeg(aLabelAbs));
 		
-		Connectivity conn = new Connectivity2D_8();
+		Connectivity conn = connBG;
 		for(Point qIndex: conn.getNeighborIterable(pIndex))
 		{
 			// from itk:
@@ -526,7 +545,7 @@ public class LabelImage //extends ShortProcessor
 	boolean isEnclosedByLabel(Point pIndex, int pLabel)
 	{
 		int absLabel = labelToAbs(pLabel);
-		Connectivity conn = new Connectivity2D_4();
+		Connectivity conn = connFG;
 		for(Point qIndex : conn.getNeighborIterable(pIndex))
 		{
 			if(labelToAbs(get(qIndex))!=absLabel)
@@ -553,7 +572,7 @@ public class LabelImage //extends ShortProcessor
 		HashMap<Point, ContourParticle> M2 = new HashMap<Point, ContourParticle>();
 		
 		
-		Connectivity conn = new Connectivity2D_4();
+		Connectivity conn = connFG;
 		
 		// iterate over all particles
 		for(Entry<Point,ContourParticle> entry:M.entrySet())
@@ -734,7 +753,7 @@ public class LabelImage //extends ShortProcessor
 	            int vLabelOfPropagatingRegion = vVal.label;
 	//            vLabelImageIterator.SetLocation(vCurrentIndex);
 	
-	            Connectivity2D_4 conn = new Connectivity2D_4();
+	            Connectivity conn = connFG;
 	            for (Point q : conn.getNeighborIterable(vCurrentIndex)) {
 	//                InputImageOffsetType vOff = m_NeighborsOffsets_FG_Connectivity[vI];
 	                int vLabelOfDefender = labelToAbs(get(q));
@@ -874,7 +893,7 @@ public class LabelImage //extends ShortProcessor
 		int pLabel = p.label;					// label of motherpoint 
 		
 		int nSameNeighbors=0;
-		Connectivity conn = new Connectivity2D_4();
+		Connectivity conn = connFG;
 		
 		// version 3 with COnnectivity.getNeighbots(Point)
 		for(Point neighbor:conn.getNeighborIterable(pIndex))
