@@ -7,7 +7,7 @@ public class Point
 	int x[];
 	private int dim;
 	
-	private Point() {}
+	public Point() {}
 	
 	public Point(int... coords) {
 		
@@ -19,6 +19,13 @@ public class Point
 			x[i]=coord;
 			i++;
 		}
+	}
+	
+	public static Point PointWithDim(int dimension)
+	{
+		Point p= new Point();
+		p.init(dimension);
+		return p;
 	}
 	
 	private void init(int dimension)
@@ -44,16 +51,16 @@ public class Point
 		return result;
 	}
 	
-//	public Point sub(Point p)
-//	{
-//		Point result = new Point();
-//		result.init(dim);
-//		for(int i=0; i<dim; i++)
-//		{
-//			result.x[i]= x[i]-p.x[i];
-//		}
-//		return result;
-//	}
+	public Point sub(Point p)
+	{
+		Point result = new Point();
+		result.init(dim);
+		for(int i=0; i<dim; i++)
+		{
+			result.x[i]= x[i]-p.x[i];
+		}
+		return result;
+	}
 	
 	@Override
 	public String toString() 
@@ -91,4 +98,8 @@ public class Point
 //		return super.hashCode();
 	}
 
+	public int getDimension()
+	{
+		return dim;
+	}
 }

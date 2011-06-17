@@ -2,9 +2,11 @@ package mosaic.plugins;
 
 import mosaic.region_competition.Connectivity2D_4;
 import mosaic.region_competition.Connectivity;
+import mosaic.region_competition.Connectivity2D_8;
 import mosaic.region_competition.LabelImage;
 import mosaic.region_competition.Point;
 import mosaic.region_competition.Timer;
+import mosaic.region_competition.TopologicalNumberImageFunction;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -28,6 +30,8 @@ public class Region_Competition implements PlugInFilter{
 	
 	public int setup(String aArgs, ImagePlus aImp)
 	{
+		
+		testTopo();
 		
 		IJ.open("Clipboard01.png");
 		aImp = WindowManager.getCurrentImage();
@@ -144,7 +148,20 @@ public class Region_Competition implements PlugInFilter{
 	}
 	
 	
-	
+	void testTopo()
+	{
+		
+		IJ.open("rand.png");
+		ImagePlus aImp = WindowManager.getCurrentImage();
+		originalIP = aImp;
+		
+		LabelImage lbl = new LabelImage(aImp);
+		//debug
+		lbl.initWithIP(aImp);
+		Point index = new Point(10,10);
+		TopologicalNumberImageFunction topo = new TopologicalNumberImageFunction(lbl, new Connectivity2D_4(), new Connectivity2D_8());
+		topo.EvaluateAdjacentRegionsFGTNAtIndex(index);
+	}
 	
 	
 	/**

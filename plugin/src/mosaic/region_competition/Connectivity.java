@@ -4,9 +4,11 @@ import java.util.Iterator;
 
 public abstract class Connectivity implements Iterable<Point>
 {
-	private int size;
-	private int dimension;
+	private int size;				// Number Of Neighbors
+	private int dimension;			// Dimension of Points
+	private int m_NeighborhoodSize;	// complete neighborhood
 	static Point neighborsP[];
+	
 	
 //	private Iterator<Point> ofsIterator;
 //	private Iterator<Point> neighborIterator;
@@ -25,8 +27,11 @@ public abstract class Connectivity implements Iterable<Point>
 	
 	public Connectivity() 
 	{
+		//TODO work with getInstance
+		
 		size=neighborsP.length;
 		dimension=neighborsP[0].x.length;
+		m_NeighborhoodSize = (int)Math.pow(3, dimension);
 //		ofsIterator = new OfsIterator();
 	}
 
@@ -35,6 +40,9 @@ public abstract class Connectivity implements Iterable<Point>
 		return new OfsIterator();
 	}
 	
+	/**
+	 * Iterates through the neighbors of Point point
+	 */
 	Iterable<Point> getNeighborIterable(Point point)
 	{
 		return new ConnectivityNeighborIterable(point);
@@ -42,7 +50,6 @@ public abstract class Connectivity implements Iterable<Point>
 	
 	/**
 	 * Iterates through all neighbors and returns offsets
-	 * @author Stephan
 	 */
 	class OfsIterator implements Iterator<Point> {
 		
@@ -103,12 +110,35 @@ public abstract class Connectivity implements Iterable<Point>
 
 	public int GetNeighborhoodSize()
 	{
-		return size;
+		return m_NeighborhoodSize;
 	}
 	
 	public int Dimension()
 	{
 		return dimension;
+	}
+	
+	/**
+	 * 
+	 * @param ofs Point representing offset to midpoint
+	 * @return 
+	 */
+	boolean isInNeighborhood(Point ofs)
+	{
+		for(Point p:this)
+		{
+			if(ofs.equals(p))
+			{
+				return true;
+				
+			}
+		}
+		return false;
+	}
+	
+	boolean areNeighbors(Point p1, Point p2)
+	{
+		return isInNeighborhood(p1.sub(p2));
 	}
 	
 	

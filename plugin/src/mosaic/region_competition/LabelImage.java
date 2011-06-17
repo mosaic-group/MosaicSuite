@@ -40,8 +40,8 @@ public class LabelImage //extends ShortProcessor
 	ImageProcessor labelImage;
 	ImageStack stack;
 	
-	HashMap<Point, ContourParticle> m_InnerContourContainer;
-	HashMap<Integer, LabelInformation> labelMap;
+	private HashMap<Point, ContourParticle> m_InnerContourContainer;
+	private HashMap<Integer, LabelInformation> labelMap;
 	
 	
 	/**
@@ -191,6 +191,11 @@ public class LabelImage //extends ShortProcessor
 		}
 	}
 	
+	public void initWithIP(ImagePlus ip)
+	{
+		this.labelImage=ip.getProcessor().duplicate();
+	}
+	
 	/**
 	 * sets the outermost pixels of the labelimage to the forbidden label
 	 */
@@ -233,7 +238,7 @@ public class LabelImage //extends ShortProcessor
 			for (int y = 0; y < height; y++) 
 			{
 				int label = get(x, y);
-				int absLabel = getAbsLabel(label);
+				int absLabel = labelToAbs(label);
 
 				if (absLabel != bgLabel && absLabel != forbiddenLabel) 
 				{
@@ -284,7 +289,7 @@ public class LabelImage //extends ShortProcessor
 			for (int y = 0; y < height; y++) 
 			{
 				int label = get(x, y);
-				int absLabel = getAbsLabel(label);
+				int absLabel = labelToAbs(label);
 
 				if (absLabel != forbiddenLabel /* && absLabel != bgLabel*/) 
 				{
@@ -424,7 +429,7 @@ public class LabelImage //extends ShortProcessor
 			Point key = entry.getKey();
 			ContourParticle value = entry.getValue();
 			//TODO cannot set neg values to ShortProcessor
-			set(key, getNegLabel(value.label));
+			set(key, labelToNeg(value.label));
 		}
 	}
 	
@@ -456,7 +461,7 @@ public class LabelImage //extends ShortProcessor
 				q.candidateLabel=bgLabel;
 				q.intensity = getIntensity(qIndex);
 				
-				set(qIndex, getNegLabel(aAbsLabel));
+				set(qIndex, labelToNeg(aAbsLabel));
 				m_InnerContourContainer.put(qIndex, q);
 			}
 			else if(isContourLabel(qLabel)&& qLabel == aAbsLabel) // q is contour of the same label
@@ -485,12 +490,12 @@ public class LabelImage //extends ShortProcessor
 	{
 		ContourParticle p = m_InnerContourContainer.get(pIndex);
 		
-		int aLabelNeg = getNegLabel(aLabelAbs);
+		int aLabelNeg = labelToNeg(aLabelAbs);
 		
         // itk 1646: we set the pixel value already to ensure the that the 'enclosed' check
         // afterwards works.
 		//TODO is p.label (always) the correct label?
-		set(pIndex, getNegLabel(aLabelAbs));
+		set(pIndex, labelToNeg(aLabelAbs));
 		
 		Connectivity conn = new Connectivity2D_8();
 		for(Point qIndex: conn.getNeighborIterable(pIndex))
@@ -520,11 +525,11 @@ public class LabelImage //extends ShortProcessor
 	
 	boolean isEnclosedByLabel(Point pIndex, int pLabel)
 	{
-		int absLabel = getAbsLabel(pLabel);
+		int absLabel = labelToAbs(pLabel);
 		Connectivity conn = new Connectivity2D_4();
 		for(Point qIndex : conn.getNeighborIterable(pIndex))
 		{
-			if(getAbsLabel(get(qIndex))!=absLabel)
+			if(labelToAbs(get(qIndex))!=absLabel)
 			{
 				return false;
 			}
@@ -569,7 +574,7 @@ public class LabelImage //extends ShortProcessor
 			for(Point qIndex:conn.getNeighborIterable(pIndex))
 			{
 				int label=get(qIndex);
-				int qLabel=getAbsLabel(label);
+				int qLabel=labelToAbs(label);
 				
 				if(qLabel == forbiddenLabel || qLabel == pLabel)
 				{
@@ -732,7 +737,7 @@ public class LabelImage //extends ShortProcessor
 	            Connectivity2D_4 conn = new Connectivity2D_4();
 	            for (Point q : conn.getNeighborIterable(vCurrentIndex)) {
 	//                InputImageOffsetType vOff = m_NeighborsOffsets_FG_Connectivity[vI];
-	                int vLabelOfDefender = getAbsLabel(get(q));
+	                int vLabelOfDefender = labelToAbs(get(q));
 	                if (vLabelOfDefender == forbiddenLabel) {
 	                    continue;
 	                }
@@ -875,7 +880,7 @@ public class LabelImage //extends ShortProcessor
 		for(Point neighbor:conn.getNeighborIterable(pIndex))
 		{
 			int neighborLabel=get(neighbor);
-			neighborLabel=getAbsLabel(neighborLabel);
+			neighborLabel=labelToAbs(neighborLabel);
 			if(neighborLabel==pLabel)
 			{
 				nSameNeighbors++;
@@ -926,7 +931,7 @@ public class LabelImage //extends ShortProcessor
 	 * @param label a label
 	 * @return if label was a contour label, get the absolut/inner label
 	 */
-	int getAbsLabel(int label) {
+	int labelToAbs(int label) {
 		if (isContourLabel(label)) {
 			return label - negOfs;
 		} else {
@@ -938,7 +943,7 @@ public class LabelImage //extends ShortProcessor
 	 * @param label a label
 	 * @return the contour form of the label
 	 */
-	int getNegLabel(int label) {
+	int labelToNeg(int label) {
 		if (label==bgLabel || isForbiddenLabel(label) || isContourLabel(label)) {
 			return label;
 		} else {
@@ -959,10 +964,17 @@ public class LabelImage //extends ShortProcessor
 	 * @param p
 	 * @return Returns the value of the LabelImage at Point p
 	 */
-	private int get(Point p) {
+	public int get(Point p) {
 		//TODO multidimension
 		return get(p.x[0], p.x[1]);
 	}
+	
+	public int getAbs(Point p)
+	{
+		return labelToAbs(get(p));
+	}
+	
+	
 	
 	//TODO merge with int getIntensity(int x, int y)
 	int getIntensity(Point p)
@@ -2053,7 +2065,7 @@ stack.addSlice("iteration "+m_iteration_counter, this.labelImage.getPixelsCopy()
         /// Update the label image. The new point is either a contour point or 0,
         /// therefor the negative label value is set.
         ///
-    	set(vCurrentIndex, getNegLabel(vToLabel));
+    	set(vCurrentIndex, labelToNeg(vToLabel));
 
         ///
         /// STATISTICS UPDATE

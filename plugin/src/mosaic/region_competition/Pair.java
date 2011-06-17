@@ -6,8 +6,8 @@ package mosaic.region_competition;
 http://stackoverflow.com/questions/156275/what-is-the-equivalent-of-the-c-pairl-r-in-java
  */
 public class Pair<A, B> {
-    private A first;
-    private B second;
+    public A first;
+    public B second;
 
     public Pair(A first, B second) {
     	super();
