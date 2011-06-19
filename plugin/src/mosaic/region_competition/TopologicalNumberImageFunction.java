@@ -46,6 +46,8 @@ public class TopologicalNumberImageFunction
         m_Offsets = new Point[imageSize];
         
         initOffsets();
+        
+        int dummy = 0;
 	}
 	
 	private void initOffsets()
@@ -93,7 +95,7 @@ public class TopologicalNumberImageFunction
         readImageData(index);
         
         //TODO das sollte man nicht immer wieder aufrufen müssen...
-        UnitCubeCCCounter unitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity);
+        UnitCubeCCCounter unitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity, TBGConnectivity);
         
         for (Point p: TFGConnectivity) 
         {
@@ -124,7 +126,7 @@ public class TopologicalNumberImageFunction
             
             Pair<Integer, Integer> vFGBGTopoPair = new Pair<Integer, Integer>(0, 0);
             
-            UnitCubeCCCounter m_ForegroundUnitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity);
+            UnitCubeCCCounter m_ForegroundUnitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity, TBGConnectivity);
 			m_ForegroundUnitCubeCCCounter.SetImage(m_SubImage);
             vFGBGTopoPair.first = m_ForegroundUnitCubeCCCounter.connectedComponents();
 
@@ -139,7 +141,7 @@ public class TopologicalNumberImageFunction
             
             // Topological number in the background
             
-            UnitCubeCCCounter m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(TBGConnectivity);
+            UnitCubeCCCounter m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity, TBGConnectivity);
             m_BackgroundUnitCubeCCCounter.SetImage(m_SubImage);
             vFGBGTopoPair.second = m_BackgroundUnitCubeCCCounter.connectedComponents();
 

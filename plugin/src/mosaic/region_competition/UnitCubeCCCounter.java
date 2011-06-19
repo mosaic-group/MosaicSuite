@@ -7,23 +7,26 @@ import java.util.Queue;
 public class UnitCubeCCCounter
 {
 	//TODO not used?
-//	boolean[] m_NeighborhoodConnectivityTest;
+	boolean[] m_NeighborhoodConnectivityTest;
 	boolean[] m_ConnectivityTest;
 	
 	char[] m_Image;
 	Connectivity TConnectivity;
+	Connectivity TNeighborhoodConnectivity;
 	private int dimension;
 	
-	public UnitCubeCCCounter(Connectivity TConnectivity) 
+	public UnitCubeCCCounter(Connectivity TConnectivity, Connectivity TNeighborhoodConnectivity) 
 	{
 		this.TConnectivity = TConnectivity;
+		this.TNeighborhoodConnectivity = TNeighborhoodConnectivity;
+		
 		this.dimension = TConnectivity.Dimension();
 		//TODO überflüssig? (siehe setimage)
 		m_Image = new char[TConnectivity.GetNeighborhoodSize()];
 		
 		
-		//TODO not used?
-//		m_NeighborhoodConnectivityTest = CreateConnectivityTest(TNeighborhoodConnectivity);
+		//TODO m_NeighborhoodConnectivityTest not used?
+		m_NeighborhoodConnectivityTest = CreateConnectivityTest(TNeighborhoodConnectivity);
 		m_ConnectivityTest = CreateConnectivityTest(TConnectivity);
 	}
 	
@@ -36,14 +39,14 @@ public class UnitCubeCCCounter
 	{
 		
 		//TODO dummy variable
-		
 		Connectivity conn = TConnectivity;
 
         int neighborhoodSize = conn.GetNeighborhoodSize();
         int seed = 0;
         // Find first seed
-        while (seed != neighborhoodSize &&
-                (m_Image[seed] == 0 || !m_ConnectivityTest[seed])) {
+        while (seed != neighborhoodSize && (m_Image[seed] == 0 || !m_ConnectivityTest[seed])) 
+        {
+//        	System.out.println(seed+" "+ m_Image[seed]+" "+m_ConnectivityTest[seed]);
             seed++;
         }
 

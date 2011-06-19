@@ -1,9 +1,12 @@
 package mosaic.plugins;
 
+import java.util.List;
+
 import mosaic.region_competition.Connectivity;
 import mosaic.region_competition.ConnectivityOLD;
 import mosaic.region_competition.ConnectivityOLD_2D_4;
 import mosaic.region_competition.LabelImage;
+import mosaic.region_competition.Pair;
 import mosaic.region_competition.Point;
 import mosaic.region_competition.Timer;
 import mosaic.region_competition.TopologicalNumberImageFunction;
@@ -33,10 +36,8 @@ public class Region_Competition implements PlugInFilter{
 
 		//tests
 		
-		
 //		testConnNew();
 //		testTopo();
-		
 		
 		////////////////////
 		
@@ -142,6 +143,8 @@ public class Region_Competition implements PlugInFilter{
 		labelImage.initialGuess();
 		labelImage.generateContour();
 		
+//		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
+		
 		labelImage.setStack(stack);
 //	stack.addSlice("ip", ip.getProcessor());
 //	stack.addSlice("Original", labelImage.getLabelImage());
@@ -183,7 +186,9 @@ public class Region_Competition implements PlugInFilter{
 		Connectivity connBG = new Connectivity(2,0);
 		
 		TopologicalNumberImageFunction topo = new TopologicalNumberImageFunction(lbl, connFG, connBG);
-		topo.EvaluateAdjacentRegionsFGTNAtIndex(index);
+		List<Pair<Integer, Pair<Integer, Integer>>> result = topo.EvaluateAdjacentRegionsFGTNAtIndex(index);
+		
+		System.out.println(result);
 	}
 	
 	

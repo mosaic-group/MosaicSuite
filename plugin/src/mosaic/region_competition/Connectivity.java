@@ -9,8 +9,8 @@ public class Connectivity implements Iterable<Point>
 	private int m_NeighborhoodSize;	// complete neighborhood
 	
 	private int size;				// m_NumberOfNeighbors
-	static Point[] neighborsP;
-	static int[] neighborsOfs;
+	private Point[] neighborsP;
+	private int[] neighborsOfs;
 	
 	public Connectivity(int VDim, int VCellDim) 
 	{
@@ -45,36 +45,6 @@ public class Connectivity implements Iterable<Point>
 
 	}
 	
-	public Point OffsetToPoint(int offset)
-	{
-		
-		//TODO dublicated in unitCube
-		
-		int remainder = offset;
-		Point p = Point.PointWithDim(this.VDim);
-
-		for(int i = 0; i < this.VDim; ++i) {
-			p.x[i] = remainder % 3;
-			remainder -= p.x[i];
-			remainder /= 3;
-			p.x[i]--;
-		}
-
-		return p;
-	}
-	
-	
-	private int countZeros(Point p)
-	{
-		int count = 0;
-		for(int i: p.x)
-		{
-			if(i==0) count++;
-		}
-		return count;
-	}
-	
-	
 	private int ComputeNumberOfNeighbors()
 	{
 		int numberOfNeighbors = 0;
@@ -87,17 +57,77 @@ public class Connectivity implements Iterable<Point>
 		return numberOfNeighbors;
 	}
 
-	private int factorialrec(int n)
-	{
-		int fac=1;
-		for(int i=1; i<=n; i++)
-		{
-			fac=i*fac;
-		}
-		return fac;
+	
 
+	/**
+	 * @param ofs Point representing offset to midpoint
+	 * @return 
+	 */
+	public boolean isInNeighborhood(Point ofs)
+	{
+		for(Point p : this) 
+		{
+			if(ofs.equals(p)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
+	public boolean areNeighbors(Point p1, Point p2)
+	{
+		return isInNeighborhood(p1.sub(p2));
+	}
+	
+	
+	public Point OffsetToPoint(int offset)
+	{
+		
+		//TODO dublicated in unitCube
+		
+		int remainder = offset;
+		Point p = Point.PointWithDim(this.VDim);
+	
+		for(int i = 0; i < this.VDim; ++i) {
+			p.x[i] = remainder % 3;
+			remainder -= p.x[i];
+			remainder /= 3;
+			p.x[i]--;
+		}
+	
+		return p;
+	}
+
+	public int GetNeighborhoodSize()
+	{
+		return m_NeighborhoodSize;
+	}
+
+	public int Dimension()
+	{
+		return this.VDim;
+	}
+
+	private int countZeros(Point p)
+	{
+		int count = 0;
+		for(int i: p.x)
+		{
+			if(i==0) count++;
+		}
+		return count;
+	}
+
+	
+	private int factorialrec(int n)
+	{
+		int fac = 1;
+		for(int i = 1; i <= n; i++) {
+			fac = i * fac;
+		}
+		return fac;
+	}
+
 	
 	@Override
 	public Iterator<Point> iterator() {
@@ -107,15 +137,24 @@ public class Connectivity implements Iterable<Point>
 	/**
 	 * Iterates through the neighbors of Point point
 	 */
-	Iterable<Point> getNeighborIterable(Point point)
+	Iterable<Point> itNeighborsOf(final Point point)
 	{
-		return new ConnectivityNeighborIterable(point);
+		return new Iterable<Point>() {
+			
+			@Override
+			public Iterator<Point> iterator()
+			{
+				return new NeighborIterator(point);
+			}
+		};
+//		return new ConnectivityNeighborIterable(point);
 	}
 	
 	/**
 	 * Iterates through all neighbors and returns offsets
 	 */
-	class OfsIterator implements Iterator<Point> {
+	class OfsIterator implements Iterator<Point> 
+	{
 		
 		private int cursor=0;
 		
@@ -136,75 +175,43 @@ public class Connectivity implements Iterable<Point>
 
 		@Override
 		public void remove() {
-			// TODO Auto-generated method stub
 			// do nothing
 		}
 
 	}
 	
-	/**
-	 * Iterates through neighbors and returns Points 
-	 * @author Stephan
-	 */
-	class ConnectivityNeighborIterable implements Iterable<Point>
+	class NeighborIterator extends OfsIterator
 	{
 		Point point;
-		public ConnectivityNeighborIterable(Point p) 
+		NeighborIterator(Point p)
 		{
-			point = p;
+			this.point=p;
 		}
+		
 		@Override
-		public Iterator<Point> iterator() 
-		{
-			return new NeighborIterator();
+		public Point next() {
+			Point ofs = super.next();
+			return point.add(ofs);
 		}
-		
-		
-		//TODO now thats ugly. inner inner class inheriting from inner class
-		class NeighborIterator extends OfsIterator
-		{
-			@Override
-			public Point next() {
-				Point ofs = super.next();
-				return point.add(ofs);
-			}
-		}
-		
-	}
-
-	public int GetNeighborhoodSize()
-	{
-		return m_NeighborhoodSize;
 	}
 	
-	public int Dimension()
-	{
-		return this.VDim;
-	}
-	
-	/**
-	 * 
-	 * @param ofs Point representing offset to midpoint
-	 * @return 
-	 */
-	boolean isInNeighborhood(Point ofs)
-	{
-		for(Point p:this)
-		{
-			if(ofs.equals(p))
-			{
-				return true;
-				
-			}
-		}
-		return false;
-	}
-	
-	boolean areNeighbors(Point p1, Point p2)
-	{
-		return isInNeighborhood(p1.sub(p2));
-	}
-	
+//	/**
+//	 * Iterates through neighbors and returns Points 
+//	 * @author Stephan
+//	 */
+//	class ConnectivityNeighborIterable implements Iterable<Point>
+//	{
+//		Point point;
+//		public ConnectivityNeighborIterable(Point p) 
+//		{
+//			point = p;
+//		}
+//		@Override
+//		public Iterator<Point> iterator() 
+//		{
+//			return new NeighborIterator(point);
+//		}
+//	}
 	
 }
 
