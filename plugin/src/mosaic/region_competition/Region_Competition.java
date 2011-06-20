@@ -26,55 +26,40 @@ import ij.process.ShortProcessor;
 
 public class Region_Competition implements PlugInFilter{
 		
+	
+	Region_Competition MVC;
 	LabelImage labelImage;
 	ImagePlus originalIP;
 	ImageStack stack;
+	ImagePlus stackImPlus;
 	
 	
 	public int setup(String aArgs, ImagePlus aImp)
 	{
+		
+		MVC=this;
 
-		//tests
-		
-//		testConnNew();
-//		testTopo();
-		
 		////////////////////
 		
-		IJ.open("Clipboard01.png");
+		// open standard file
+		String fileName= "Clipboard01.png";
+		IJ.open(fileName);
 		aImp = WindowManager.getCurrentImage();
 		originalIP = aImp;
 		
-		if(aImp == null) {
-			createEmptyIP();
-			testStatistics();
-			initializeLabelImageAndContourContainer();
+		while(originalIP == null) {
+			//file not found, open menu
+//			IJ.showMessage("File "+fileName+" not found of incompatible, please select manually");
+			IJ.open();
+			originalIP = WindowManager.getCurrentImage();
 		} 
-		else 
-		{
-			//stack
-			ImageProcessor myIp = aImp.getProcessor();
-			stack = new ImageStack(myIp.getWidth(), myIp.getHeight());
-			
-//			stack.addSlice("Original", myIp);
+
+		initStackIP();
 		frontsCompetitionImageFilter();
-			
-			ImagePlus myTargetImPlus = new ImagePlus("Stack of "+aImp.getTitle(), myIp);	//The .getTitle() method, recuperates the title of the image. 
-			myTargetImPlus.show();
-			myTargetImPlus.setStack(null, stack);		
-		}
 
 //		labelImage.showStatistics();
 		macroContrast();
 		return DOES_ALL + DONE;
-	}
-	
-	void macroContrast()
-	{
-		IJ.run("Brightness/Contrast...");
-		IJ.setMinAndMax(0, 2048);
-		//call("ij.ImagePlus.setDefault16bitRange", 0);
-		IJ.run("Close");
 	}
 	
 	void createEmptyIP()
@@ -89,106 +74,19 @@ public class Region_Competition implements PlugInFilter{
 	}
 	
 	
-	/**
-	 * does overwriting of static part in Connectivity work?
-	 */
-	void testConnStaticInheritance()
-	{
-		ConnectivityOLD conn = new ConnectivityOLD_2D_4();
-		
-		for(Point p:conn)
-		{
-			System.out.println(p);
-		}
-	}
-	
-	/**
-	 * compares runtime of recursive and explicit statistics
-	 */
-	void testStatistics()
-	{
-		ImagePlus ip = originalIP;
-		ImageProcessor oProc = ip.getChannelProcessor();
-		labelImage = new LabelImage(ip);
-		labelImage.getLabelImage().insert(oProc, 0, 0);
-		labelImage.initBoundary();
-		labelImage.generateContour();
-		
-		Timer t = new Timer();
-		
-		for(int i=0; i<10; i++)
-		{
-			t.tic(); 
-			labelImage.computeStatistics();
-			long time=t.toc();
-			System.out.println("compute time: "+time);
-//			labelImage.showStatistics();
-			
-			t.tic();
-			labelImage.renewStatistics();
-			time=t.toc();
-			System.out.println("renew time: "+time);
-//			labelImage.showStatistics();
-		}
-	}
-	
-	
 	void frontsCompetitionImageFilter()
 	{
-		ImagePlus ip = originalIP;
+		labelImage = new LabelImage(MVC);
 		
-		labelImage = new LabelImage(ip);
 		labelImage.initZero();
 		labelImage.initBoundary();
 		labelImage.initialGuess();
 		labelImage.generateContour();
-		
-//		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
-		
-		labelImage.setStack(stack);
-//	stack.addSlice("ip", ip.getProcessor());
-//	stack.addSlice("Original", labelImage.getLabelImage());
+
 		labelImage.GenerateData();
-//	stack.addSlice("Original2", labelImage.getLabelImage());
-//	stack.addSlice("Final", labelImage.getLabelImage());
 		
 		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
 		
-	}
-	
-	
-	void testConnNew()
-	{
-		
-		Connectivity conn= new Connectivity(2,0);
-		for(Point p : conn)
-		{
-			System.out.println(p);
-		}
-		
-		
-	}
-	
-	void testTopo()
-	{
-		
-		IJ.open("rand.png");
-		ImagePlus aImp = WindowManager.getCurrentImage();
-		originalIP = aImp;
-		
-		LabelImage lbl = new LabelImage(aImp);
-		//debug
-		lbl.initWithIP(aImp);
-		Point index = new Point(10,10);
-		
-		
-		Connectivity connFG = new Connectivity(2,1);
-		Connectivity connBG = new Connectivity(2,0);
-		
-		TopologicalNumberImageFunction topo = new TopologicalNumberImageFunction(lbl, connFG, connBG);
-		List<Pair<Integer, Pair<Integer, Integer>>> result = topo.EvaluateAdjacentRegionsFGTNAtIndex(index);
-		
-		System.out.println(result);
 	}
 	
 	
@@ -199,7 +97,7 @@ public class Region_Competition implements PlugInFilter{
 	void initWithCustom(ImagePlus ip)
 	{
 		ImageProcessor oProc = ip.getChannelProcessor();
-		labelImage = new LabelImage(ip);
+		labelImage = new LabelImage(MVC);
 //		labelImage = oProc.duplicate();
 		labelImage.getLabelImage().insert(oProc, 0, 0);
 		labelImage.initBoundary();
@@ -209,19 +107,117 @@ public class Region_Competition implements PlugInFilter{
 		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
 	}
 	
-	/** 
-	 * Generates a labelImage filled with bgLabel and a one-pixel boundary of value forbiddenLabel
-	 */
-	private void initializeLabelImageAndContourContainer() 
+	void initStackIP()
 	{
-		labelImage = new LabelImage(originalIP);
-		labelImage.initZero();
-		labelImage.initBoundary();
-		labelImage.initialGuess();
-		labelImage.generateContour();
-		labelImage.computeStatistics();
+		ImageProcessor myIp = originalIP.getProcessor();
+		stack = new ImageStack(myIp.getWidth(), myIp.getHeight());
+		stackImPlus = new ImagePlus("Stack of "+originalIP.getTitle(), myIp); 
 		
-		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
+		stack.addSlice("original", myIp.convertToShort(false).getPixelsCopy());
+		
+		stackImPlus.setStack(null, stack);
+		stackImPlus.show();
+	}
+	
+	public void addSliceToStackAndShow(String title, Object pixels)
+	{
+		stack.addSlice(title, pixels);
+		stackImPlus.setStack(stack);
+		stackImPlus.setPosition(stack.getSize());
+//		stackImPlus.updateAndDraw();
+//		stackImPlus.updateAndRepaintWindow();
+//		stackImPlus.show();
+//		stackImPlus.draw();
+//		stackImPlus.getWindow().updateImage(stackImPlus);
+	}
+
+	public ImagePlus getStackImPlus()
+	{
+		return this.stackImPlus;
+	}
+
+	public ImagePlus getOriginalImPlus()
+	{
+		return this.originalIP;
+	}
+
+	void macroContrast()
+	{
+		IJ.run("Brightness/Contrast...");
+		IJ.setMinAndMax(0, 2048);
+		//call("ij.ImagePlus.setDefault16bitRange", 0);
+		IJ.run("Close");
+	}
+
+	void testConnNew()
+	{
+		Connectivity conn = new Connectivity(2, 0);
+		for(Point p : conn) {
+			System.out.println(p);
+		}
+	}
+
+	void testTopo()
+	{
+		
+		IJ.open("rand.png");
+		ImagePlus aImp = WindowManager.getCurrentImage();
+		originalIP = aImp;
+		
+		LabelImage lbl = new LabelImage(MVC);
+		//debug
+		lbl.initWithIP(aImp);
+		Point index = new Point(10,10);
+		
+		Connectivity connFG = new Connectivity(2,1);
+		Connectivity connBG = new Connectivity(2,0);
+		
+		TopologicalNumberImageFunction topo = new TopologicalNumberImageFunction(lbl, connFG, connBG);
+		List<Pair<Integer, Pair<Integer, Integer>>> result = topo.EvaluateAdjacentRegionsFGTNAtIndex(index);
+		
+		System.out.println(result);
+	}
+
+	/**
+		 * compares runtime of recursive and explicit statistics
+		 */
+		void testStatistics()
+		{
+			ImagePlus ip = originalIP;
+			ImageProcessor oProc = ip.getChannelProcessor();
+			labelImage = new LabelImage(MVC);
+			labelImage.getLabelImage().insert(oProc, 0, 0);
+			labelImage.initBoundary();
+			labelImage.generateContour();
+			
+			Timer t = new Timer();
+			
+			for(int i=0; i<10; i++)
+			{
+				t.tic(); 
+				labelImage.computeStatistics();
+				long time=t.toc();
+				System.out.println("compute time: "+time);
+	//			labelImage.showStatistics();
+				
+				t.tic();
+				labelImage.renewStatistics();
+				time=t.toc();
+				System.out.println("renew time: "+time);
+	//			labelImage.showStatistics();
+			}
+		}
+
+	/**
+	 * does overwriting of static part in Connectivity work?
+	 */
+	void testConnStaticInheritance()
+	{
+		ConnectivityOLD conn = new ConnectivityOLD_2D_4();
+
+		for(Point p : conn) {
+			System.out.println(p);
+		}
 	}
 
 
