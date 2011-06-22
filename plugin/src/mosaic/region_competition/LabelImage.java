@@ -6,13 +6,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 
 import mosaic.plugins.Region_Competition;
 
 import ij.ImagePlus;
-import ij.ImageStack;
+import ij.gui.OvalRoi;
 import ij.gui.Roi;
 import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
@@ -216,6 +217,46 @@ public class LabelImage //extends ShortProcessor
 		labelIP.fill(vRectangleROI);
 	}
 	
+	public void initialGuessGrowing(double r)
+	{
+		int w = (int)(r*width);
+		int h = (int)(r*height);
+		int x = (width-w)/2;
+		int y = (height-h)/2;
+		
+		Roi vRectangleROI = new Roi(x, y, w, h);
+		labelIP.setValue(1);
+		labelIP.fill(vRectangleROI);
+	}
+	
+	public void initialGuessRandom()
+	{
+		Random rand = new Random();
+		int n=1+rand.nextInt(5);
+		System.out.println(n);
+		
+		for(int i=0; i<n; i++)
+		{
+			int w=rand.nextInt(width/2);
+			int h=rand.nextInt(height/2);
+			
+			int x = w+rand.nextInt(width-2*w);
+			int y = h+rand.nextInt(height-2*h);
+			
+			System.out.println(x+" "+y+" "+w+" "+h);
+			
+			Roi roi = new OvalRoi(x, y, w, h);
+			labelIP.setValue(i+1);
+			labelIP.fill(roi);
+			
+		}
+
+		
+		
+	}
+	
+	
+	
 	/**
 	 * compute the statistics for each region, 
 	 * stores them in labelMap for the corresponding label
@@ -360,6 +401,7 @@ public class LabelImage //extends ShortProcessor
 	public void generateContour()
 	{
 		//TODO dummy
+		//TODO which connectivity?!
 		Connectivity conn = connFG;
 		//END
 		
@@ -594,8 +636,7 @@ public class LabelImage //extends ShortProcessor
 		//TODO dummy?
 		HashMap<Point, ContourParticle> m_AllCandidates = new HashMap<Point, ContourParticle>();
 
-		// TODO !!! set initially to boolean vConvergence = true;
-		boolean vConvergence = false;
+		boolean vConvergence = true;
 
 		m_AllCandidates.clear();
 
@@ -896,9 +937,9 @@ public class LabelImage //extends ShortProcessor
 		{
 			double vSumOld = m_OscillationsEnergyHist[vI];
 // debug("check nb: " + vAllCandidates.size() + " against " + m_OscillationsNumberHist[0]);
-			debug("m_AllCandidates.size()=" + m_AllCandidates.size()
-					+ "m_OscillationsNumberHist[vI]="
-					+ m_OscillationsNumberHist[vI]);
+//			debug("m_AllCandidates.size()=" + m_AllCandidates.size()
+//					+ "m_OscillationsNumberHist[vI]="
+//					+ m_OscillationsNumberHist[vI]);
 
 			if(m_AllCandidates.size() == m_OscillationsNumberHist[vI]
 					&& Math.abs(vSum - vSumOld) <= 1e-5 * Math.abs(vSum)) 
@@ -1115,7 +1156,15 @@ public class LabelImage //extends ShortProcessor
 		int vNSplits = 0;
 		for(Pair<Point, Integer> vSeedIt : vSeeds) 
 		{
-			if(labelMap.get(vSeedIt.second).count > 1) 
+			// TODO debug
+			int debugcount=0;
+			try {
+				debugcount = labelMap.get(vSeedIt.second).count;
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if(debugcount > 1) 
 			{
 				RelabelAnAdjacentRegionAfterTopologicalChange(this, vSeedIt.first, vSeedIt.second);
 				vSplit = true;

@@ -60,7 +60,7 @@ public class Settings
 		/**
 		 * Initialize control members
 		 */
-		m_MaxNbIterations = 150;
+		m_MaxNbIterations = 200;
 		m_AreaThreshold = 1; ///TODO find a good heuristic or stat test.
 
 		/**

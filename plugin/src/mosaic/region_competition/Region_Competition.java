@@ -1,5 +1,7 @@
 package mosaic.plugins;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.List;
 
 import mosaic.region_competition.Connectivity;
@@ -14,6 +16,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
+import ij.gui.Roi;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
@@ -38,27 +41,34 @@ public class Region_Competition implements PlugInFilter{
 	{
 		
 		MVC=this;
+		originalIP = aImp;
 
 		////////////////////
 		
-		// open standard file
-		String fileName= "Clipboard01.png";
-		IJ.open(fileName);
-		aImp = WindowManager.getCurrentImage();
-		originalIP = aImp;
-		
-		while(originalIP == null) {
-			//file not found, open menu
-//			IJ.showMessage("File "+fileName+" not found of incompatible, please select manually");
-			IJ.open();
+		if(originalIP == null)
+		{
+			// try to open standard file
+			String fileName= "Clipboard01.png";
+			IJ.open(fileName);
 			originalIP = WindowManager.getCurrentImage();
-		} 
+			
+			while(originalIP == null) 
+			{
+				//file not found, open menu
+//			IJ.showMessage("File "+fileName+" not found of incompatible, please select manually");
+				IJ.open();
+				originalIP = WindowManager.getCurrentImage();
+			} 
+			
+		}
+		
+		manualSelect();
 
-		initStackIP();
-		frontsCompetitionImageFilter();
+//		initStackIP();
+//		frontsCompetitionImageFilter();
 
 //		labelImage.showStatistics();
-		macroContrast();
+//		macroContrast();
 		return DOES_ALL + DONE;
 	}
 	
@@ -80,14 +90,75 @@ public class Region_Competition implements PlugInFilter{
 		
 		labelImage.initZero();
 		labelImage.initBoundary();
-		labelImage.initialGuess();
+//		labelImage.initialGuessGrowing(0.2);
+		
+		labelImage.initialGuessGrowing(0.9);
+//		labelImage.initialGuessRandom();
 		labelImage.generateContour();
+		addSliceToStackAndShow("init", labelImage.getLabelImage().getPixelsCopy());
 
 		labelImage.GenerateData();
 		
-		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
+//		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
 		
 	}
+	
+	
+	void manualSelect()
+	{
+		IJ.showMessage("Select initial guesses (holding shift). press space to process");
+		
+		KeyListener keyListener = new KeyListener() 
+		{
+			@Override
+			public void keyTyped(KeyEvent e)
+			{
+//				System.out.println("code " + e.getKeyCode());
+//				System.out.println("id " + e.getID());
+//				System.out.println("char " + ((int)e.getKeyChar()));
+
+				if(e.getKeyChar() == KeyEvent.VK_SPACE) 
+				{
+//					e.consume();
+					Roi roi = originalIP.getRoi();
+					
+					ImageProcessor guessProcessor = new ShortProcessor(originalIP.getWidth(), originalIP.getHeight());
+					ImagePlus guess = new ImagePlus("Guess", guessProcessor);
+					
+//					guess.show();
+					
+					guess.setRoi(roi);
+					guessProcessor.setValue(1);
+					guessProcessor.fill(roi);
+					
+					// remove keylistener afterwards
+					originalIP.getCanvas().removeKeyListener(this);
+					
+					labelImage = new LabelImage(MVC);
+					labelImage.initWithIP(guess);
+					labelImage.initBoundary();
+					labelImage.generateContour();
+					
+					initStackIP();
+					
+					labelImage.GenerateData();
+				}
+			}
+			@Override
+			public void keyReleased(KeyEvent e){
+				// TODO Auto-generated method stub
+			}
+			@Override
+			public void keyPressed(KeyEvent e){
+				// TODO Auto-generated method stub
+			}
+		};
+		
+		
+		originalIP.getCanvas().addKeyListener(keyListener);
+//		originalIP.getWindow().addKeyListener(keyListener);
+//		IJ.getInstance().addKeyListener(keyListener);
+}
 	
 	
 	/**
@@ -121,14 +192,14 @@ public class Region_Competition implements PlugInFilter{
 	
 	public void addSliceToStackAndShow(String title, Object pixels)
 	{
+		if(stack==null)
+		{
+			System.out.println("stack is null");
+			return;
+		}
 		stack.addSlice(title, pixels);
 		stackImPlus.setStack(stack);
 		stackImPlus.setPosition(stack.getSize());
-//		stackImPlus.updateAndDraw();
-//		stackImPlus.updateAndRepaintWindow();
-//		stackImPlus.show();
-//		stackImPlus.draw();
-//		stackImPlus.getWindow().updateImage(stackImPlus);
 	}
 
 	public ImagePlus getStackImPlus()
