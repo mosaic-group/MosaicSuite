@@ -12,6 +12,7 @@ import mosaic.region_competition.Pair;
 import mosaic.region_competition.Point;
 import mosaic.region_competition.Timer;
 import mosaic.region_competition.TopologicalNumberImageFunction;
+import mosaic.region_competition.UnitCubeCCCounter;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -62,10 +63,10 @@ public class Region_Competition implements PlugInFilter{
 			
 		}
 		
-		manualSelect();
+//		manualSelect();
 
-//		initStackIP();
-//		frontsCompetitionImageFilter();
+		initStackIP();
+		frontsCompetitionImageFilter();
 
 //		labelImage.showStatistics();
 //		macroContrast();
@@ -92,8 +93,8 @@ public class Region_Competition implements PlugInFilter{
 		labelImage.initBoundary();
 //		labelImage.initialGuessGrowing(0.2);
 		
-		labelImage.initialGuessGrowing(0.9);
-//		labelImage.initialGuessRandom();
+//		labelImage.initialGuessGrowing(0.4);
+		labelImage.initialGuessRandom();
 		labelImage.generateContour();
 		addSliceToStackAndShow("init", labelImage.getLabelImage().getPixelsCopy());
 
@@ -127,7 +128,7 @@ public class Region_Competition implements PlugInFilter{
 					
 //					guess.show();
 					
-					guess.setRoi(roi);
+//					guess.setRoi(roi);
 					guessProcessor.setValue(1);
 					guessProcessor.fill(roi);
 					
@@ -289,6 +290,31 @@ public class Region_Competition implements PlugInFilter{
 		for(Point p : conn) {
 			System.out.println(p);
 		}
+	}
+	
+	void testCCC()
+	{
+//		Connectivity connFG = new Connectivity(2, 1);
+//		Connectivity connBG = new Connectivity(2, 0);
+		
+		Connectivity connFG = new Connectivity(3, 1);
+		Connectivity connBG = new Connectivity(3, 0);
+		
+		
+		UnitCubeCCCounter cube = new UnitCubeCCCounter(connFG, connBG);
+		
+		boolean[][] orig=UnitCubeCCCounter.UnitCubeNeighbors(cube, connFG, connBG);
+		System.out.println("original:");
+		System.out.println(orig);
+		
+		boolean[][] sts=cube.UnitCubeNeighborsSTS(cube, connFG, connBG);
+		System.out.println("sts:");
+		System.out.println(sts);
+		
+		System.out.println("end");
+		
+		
+		
 	}
 
 

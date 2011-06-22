@@ -27,6 +27,11 @@ public class UnitCubeCCCounter
 		m_ConnectivityTest = CreateConnectivityTest(TConnectivity);
 	}
 	
+	/**
+	 * Set the sub image (data of unitcube)
+	 * midpoint has to be 0!
+	 * @param data of unitcube as linear array
+	 */
 	void SetImage(char[] subImage)
 	{
 		m_Image=Arrays.copyOf(subImage, subImage.length);
@@ -37,6 +42,60 @@ public class UnitCubeCCCounter
 	 * @return Number of connected components
 	 */
 	int connectedComponents()
+	{
+		// TODO immer FG conn?
+		//TODO neu geschrieben, noch korrekt?
+		
+		Connectivity conn = TConnectivity;
+		int neighborhoodSize = conn.GetNeighborhoodSize();
+
+		boolean[] vProcessed_new = new boolean[neighborhoodSize];
+		// TODO is fill necessary?
+		Arrays.fill(vProcessed_new, false);
+		int nbCC = 0;
+
+		for(int i=0; i<neighborhoodSize; i++)
+		{
+			if(m_Image[i] == 0 || !m_ConnectivityTest[i] ||  vProcessed_new[i])
+			{
+				// i is not a seed
+				continue;
+			}
+			
+			int seed = i;
+			
+			nbCC++; 	// 
+			vProcessed_new[seed] = true;
+
+			Queue<Integer> q = new LinkedList<Integer>();
+			q.add(seed);
+
+			// "Floodfill" seed, setting pixels to processed 
+			while(!q.isEmpty()) 
+			{
+				int current = q.poll();
+				
+				// For each pixel in subimage, check if it is a neighbor of current.
+				for(int neighbor = 0; neighbor < neighborhoodSize; neighbor++) 
+				{
+					if(!vProcessed_new[neighbor] && m_Image[neighbor] != 0 && isUnitCubeNeighbors(conn, current, neighbor)) 
+					{
+						// TODO: rather than checking if m_Image[neighbor] != 0 one
+						// should check if m_Image[neighbor] == currentLabelvalue ???
+						q.add(neighbor);
+						vProcessed_new[neighbor] = true;
+					}
+				}
+			}
+
+		}
+		
+		vProcessed_new = null;
+		return nbCC;
+	}
+	
+	
+	int connectedComponentsOLD()
 	{
 		// TODO dummy variable.
 		// TODO immer FG conn?
@@ -91,6 +150,7 @@ public class UnitCubeCCCounter
 		return nbCC;
 
 	}
+	
 	
 	
 	/**
@@ -194,21 +254,14 @@ public class UnitCubeCCCounter
         return test;
     }
     
-}
-
-
-//TODO UnitCubeNeighbors never used?
-/**
- * Precalculate check if two offsets are neighbors within unitcube
- */
-class UnitCubeNeighbors
-{
-	boolean neighborsInUnitCube[][];
 	
-	public UnitCubeNeighbors(UnitCubeCCCounter unitCubeCCCounter, Connectivity connectivity, Connectivity neighborhoodConnectivity) 
+	
+	
+	public static boolean [][] UnitCubeNeighbors(UnitCubeCCCounter unitCubeCCCounter, Connectivity connectivity, Connectivity neighborhoodConnectivity) 
 	{
 		int neighborhoodSize = connectivity.GetNeighborhoodSize();
 		
+		boolean neighborsInUnitCube[][];
 		//TODO initialize?
 		neighborsInUnitCube = new boolean[neighborhoodSize][neighborhoodSize];
 		
@@ -242,11 +295,37 @@ class UnitCubeNeighbors
 				// TODO maybe fill with false?
 			}
 		}
+		
+		return neighborsInUnitCube;
 
 	}
+	
+	
+	public boolean[][] UnitCubeNeighborsSTS(UnitCubeCCCounter unitCubeCCCounter, 
+			Connectivity connectivity, Connectivity neighborhoodConnectivity)
+	{
 
+		int neighborhoodSize = connectivity.GetNeighborhoodSize();
+
+		boolean neighborsInUnitCube[][];
+		neighborsInUnitCube = new boolean[neighborhoodSize][neighborhoodSize];
+
+		for(int i = 0; i < neighborhoodSize; i++) {
+			for(int j = 0; j < neighborhoodSize; j++) {
+
+				if(isUnitCubeNeighbors(connectivity, i, j)) {
+					neighborsInUnitCube[i][j] = true;
+				} else {
+					neighborsInUnitCube[i][j] = false;
+				}
+			}
+		}
+
+		return neighborsInUnitCube;
+
+	}
+	
+	
 }
-
-
 
 

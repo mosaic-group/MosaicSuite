@@ -237,8 +237,9 @@ public class LabelImage //extends ShortProcessor
 		
 		for(int i=0; i<n; i++)
 		{
-			int w=rand.nextInt(width/2);
-			int h=rand.nextInt(height/2);
+			int min = 10;
+			int w=min+rand.nextInt(width/2-min);
+			int h=min+rand.nextInt(height/2-min);
 			
 			int x = w+rand.nextInt(width-2*w);
 			int y = h+rand.nextInt(height-2*h);
@@ -1102,8 +1103,7 @@ public class LabelImage //extends ShortProcessor
 					if(vSplit) 
 					{
 						if(settings.m_AllowFission) {
-							vSeeds.add(new Pair<Point, Integer>(vCurrentIndex,
-									vCurrentLabel));
+							vSeeds.add(new Pair<Point, Integer>(vCurrentIndex, vCurrentLabel));
 						} else {
 							// / disallow the move.
 							vValidPoint = false;
@@ -1156,15 +1156,15 @@ public class LabelImage //extends ShortProcessor
 		int vNSplits = 0;
 		for(Pair<Point, Integer> vSeedIt : vSeeds) 
 		{
+			LabelInformation info = labelMap.get(vSeedIt.second);
 			// TODO debug
-			int debugcount=0;
-			try {
-				debugcount = labelMap.get(vSeedIt.second).count;
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			if(info == null) {
+				System.out.println("label not found");
+				continue;
 			}
-			if(debugcount > 1) 
+			int count  = info.count;
+
+			if(count > 1) 
 			{
 				RelabelAnAdjacentRegionAfterTopologicalChange(this, vSeedIt.first, vSeedIt.second);
 				vSplit = true;
@@ -1527,6 +1527,8 @@ public class LabelImage //extends ShortProcessor
         /// therefor the negative label value is set.
         ///
 		set(vCurrentIndex, labelToNeg(vToLabel));
+//TODO sts inserted following line
+second.label=labelToAbs(vToLabel);
 	
         ///
         /// STATISTICS UPDATE
@@ -1721,7 +1723,14 @@ public class LabelImage //extends ShortProcessor
 		{
 			ContourParticle vWorkingIt = vIt.getValue();
 			// if (m_Count[vWorkingIt->second.m_label] == 1) {
-			if(labelMap.get(vWorkingIt.label).count == 1) {
+			
+			LabelInformation info = labelMap.get(vWorkingIt.label);
+			if(info==null)
+			{
+				//TODO debug
+				System.out.println("info is null");
+			}
+			if(info.count == 1) {
 				vWorkingIt.candidateLabel = bgLabel;
 				// TODO changed from
 				// ChangeContourPointLabelToCandidateLabel(vWorkingIt);
@@ -2218,7 +2227,7 @@ public class LabelImage //extends ShortProcessor
 				double vLengthEnergy = 0;
 
                 while(vLit.hasNext())
- {
+                {
 					// InputPixelType vImageValue = vDit.Get();
 					Point vCurrentIndex = vLit.next();
 					int vLabelValue = this.get(vCurrentIndex);
@@ -2228,12 +2237,21 @@ public class LabelImage //extends ShortProcessor
 					vVisitedOldLabels.add(labelToAbs((vLabelValue)));
 
 					set(vCurrentIndex, vNewLabel);
-					if(isContourLabel(vLabelValue)) {
-						// TODO: GetIndex() in the floodFillIterator seems to be very expensive.
-						// Maybe there is a more convenient way: When ContourContainer will
-						// be semistructured, then just iterate through the object boundaries.
-
-						// TODO: Cast from index to contourIndex doesn't work.
+//TODO sts relabeling
+					//TODO debug
+					if(!isContourLabel(vLabelValue))
+					{
+						ContourParticle cp = m_InnerContourContainer.get(vCurrentIndex);
+						if(cp!=null)
+						{
+							System.out.println("labelimages says is no contour, but it is!");
+						}
+					}
+					
+					
+					
+					if(isContourLabel(vLabelValue)) 
+					{
 						// m_InnerContourContainer[static_cast<ContourIndexType>(vLit.GetIndex())].first = vNewLabel;
 						// ContourIndexType vCurrentIndex = static_cast<ContourIndexType>(vLit.GetIndex());
 						Point vCurrentCIndex = Point.PointWithDim(dim);
@@ -2252,25 +2270,23 @@ public class LabelImage //extends ShortProcessor
 
 				}
 
-                // profiling:
-//                std::cout << "finished." << std::endl;
 
                 /// Delete the contour points that are not needed anymore:
-//                typename ContourIndexSetType::iterator vCPIt = vSetOfAncientContourIndices.begin();
-//                typename ContourIndexSetType::iterator vCPItEnd = vSetOfAncientContourIndices.end();
                 for(Point vCPIt: vSetOfAncientContourIndices) 
                 {
                     Point vCurrentCIndex = vCPIt;
                      
-                    if (isBoundaryPoint(vCurrentCIndex)) {
-                        ContourParticle vPoint = m_InnerContourContainer.get(vCurrentCIndex);
-                        vPoint.label = vNewLabel;
+                    if (isBoundaryPoint(vCurrentCIndex)) 
+                    {
 //TODO vPoint.modifiedCounter = 0;
 
 //                        vLengthEnergy += m_ContourLengthFunction->EvaluateAtIndex(vCurrentCIndex);
 
 //                        vLit.Set(-vNewLabel); // keep the contour negative
                         m_LabelImage.set(vCurrentCIndex, labelToNeg(vNewLabel));
+                        
+                        ContourParticle vPoint = m_InnerContourContainer.get(vCurrentCIndex);
+                        vPoint.label = vNewLabel;
                     } else {
                         m_InnerContourContainer.remove(vCurrentCIndex);
 //                        m_LabelImage->SetPixel(vCurrentCIndex, vNewLabel);
