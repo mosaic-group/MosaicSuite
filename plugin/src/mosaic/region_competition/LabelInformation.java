@@ -70,4 +70,12 @@ public class LabelInformation
 		}
 	}
 	
+	@Override
+	public String toString()
+	{
+		return 	"L: " + label
+				+ " count: " + count + " " 
+				+ " mean: " + mean;
+	}
+	
 }

@@ -12,7 +12,7 @@ class ContourPointWithIndexType implements Comparable<ContourPointWithIndexType>
 
 	@Override
 	public int compareTo(ContourPointWithIndexType o) {
-		// ! TODO ascending / descending
+		// !!!!!!! TODO ascending / descending
 		if (this.p.energyDifference > o.p.energyDifference)
 			return 1;
 		else

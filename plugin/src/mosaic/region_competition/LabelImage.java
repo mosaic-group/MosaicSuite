@@ -1,5 +1,6 @@
 package mosaic.region_competition;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -233,7 +234,9 @@ public class LabelImage //extends ShortProcessor
 	{
 		Random rand = new Random();
 		int n=1+rand.nextInt(5);
-		System.out.println(n);
+		
+		System.out.println(n+" Random Ellipses: ");
+		System.out.println("x, y, w, h, label");
 		
 		for(int i=0; i<n; i++)
 		{
@@ -244,16 +247,12 @@ public class LabelImage //extends ShortProcessor
 			int x = w+rand.nextInt(width-2*w);
 			int y = h+rand.nextInt(height-2*h);
 			
-			System.out.println(x+" "+y+" "+w+" "+h);
-			
 			Roi roi = new OvalRoi(x, y, w, h);
 			labelIP.setValue(i+1);
 			labelIP.fill(roi);
 			
+			System.out.println(x+" "+y+" "+w+" "+h+" "+(i+1));
 		}
-
-		
-		
 	}
 	
 	
@@ -614,8 +613,13 @@ public class LabelImage //extends ShortProcessor
 	        
 	
 		if(settings.m_RemoveNonSignificantRegions) {
-			RemoveSinglePointRegions();
-			RemoveNotSignificantRegions();
+			try {
+				RemoveSinglePointRegions();
+				RemoveNotSignificantRegions();
+			} catch (ConcurrentModificationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 		vConvergenceA = IterateContourContainerAndAdd();
@@ -633,54 +637,44 @@ public class LabelImage //extends ShortProcessor
 		 */
 	boolean IterateContourContainerAndAdd()
 	{
-		// TODO to be used in IterateContourContainerAndAdd(). elsewhere?
 		//TODO dummy?
 		HashMap<Point, ContourParticle> m_AllCandidates = new HashMap<Point, ContourParticle>();
-
+		//END dummy
+		
 		boolean vConvergence = true;
-
-		m_AllCandidates.clear();
 
 		List<Point> vLegalIndices = new LinkedList<Point>();
 		List<Point> vIllegalIndices = new LinkedList<Point>();
 
-		/// clear the competing regions map, it will be refilled in RebuildCandidateList:
+		/// clear the competing regions map, it will be refilled in RebuildCandidateList: (via CalculateEnergyDifferenceForLabel)
 		m_CompetingRegionsMap.clear();
+		
+		m_AllCandidates.clear();
 		RebuildCandidateList(m_AllCandidates);
 	
-	
-        /**
-         * Read the topology-dependency graphs and build containers:
-         */
-	
-//	        typedef std::list<ContourPointWithIndexType> NetworkMembersListType;
-
+		
         /**
          * Find topologically compatible candidates and store their indices in
          * vLegalIndices.
          */
-		        
-        for (Entry<Point,ContourParticle> vPointIterator : m_AllCandidates.entrySet())
-        {
-
+		for(Entry<Point,ContourParticle> vPointIterator : m_AllCandidates.entrySet()) 
+		{
 			Point pIndex = vPointIterator.getKey();
 			ContourParticle p = vPointIterator.getValue();
 
-			/// Check if this point already was processed
-            if(!p.m_processed) 
-            {
+			// Check if this point already was processed
+			if(!p.m_processed) 
+			{
+				// Check if it is a mother: only mothers can be seed points
+				// of topological networks. Daughters are always part of a
+				// topo network of a mother.
+				if(!p.isMother) {
+					continue;
+				}
 
-                /// Check if it is a mother: only mothers can be seed points
-                /// of topological networks. Daughters are always part of a
-                /// topo network of a mother.
-                if(!p.isMother)
-                {
-                	continue;
-                }
-
-                /**
-                 * Build the dependency network for this seed point:
-                 */
+				/**
+				 * Build the dependency network for this seed point:
+				 */
 				Stack<Point> vIndicesToVisit = new Stack<Point>();
 				List<ContourPointWithIndexType> vSortedNetworkMembers = new LinkedList<ContourPointWithIndexType>();
 				vIndicesToVisit.push(pIndex);
@@ -906,6 +900,7 @@ public class LabelImage //extends ShortProcessor
 		for(Point vIlligalIndicesIt : vIllegalIndices) {
 			m_AllCandidates.remove(vIlligalIndicesIt);
 		}
+		
         //
         //        std::stringstream vSS4;
         //        vSS4 << "contourPointsAfterErasingIllegals" << (m_iteration_counter + 10000) << ".txt";
@@ -919,11 +914,9 @@ public class LabelImage //extends ShortProcessor
 		while(it.hasNext()) 
 		{
 			Entry<Point, ContourParticle> vStoreIt = it.next(); // iterator to work with
-			// it.next(); // safely increment (before erasing anything in the container)
 			if(vStoreIt.getValue().energyDifference >= 0) {
-				// !!!!! TODO is iterator working vs remove?
-//				it.remove();
-				m_AllCandidates.remove(vStoreIt);
+				it.remove();
+//				m_AllCandidates.remove(vStoreIt);
 			}
 		}
         //        WriteContourPointContainer("contourPointsAfterEnergyCheck.txt", vAllCandidates);
@@ -933,7 +926,7 @@ public class LabelImage //extends ShortProcessor
          */
 		        
         double vSum = SumAllEnergies(m_AllCandidates);
-        debug("sum of energies: "+vSum);
+//        debug("sum of energies: "+vSum);
 		for(int vI = 0; vI < m_OscillationHistoryLength; vI++) 
 		{
 			double vSumOld = m_OscillationsEnergyHist[vI];
@@ -971,7 +964,6 @@ public class LabelImage //extends ShortProcessor
 
         if(m_AcceptedPointsFactor < 0.99) 
         {
-        	//TODO mein testbild verliert ein auge!
             FilterCandidatesContainerUsingRanks(m_AllCandidates);
         }
 
@@ -1023,6 +1015,7 @@ public class LabelImage //extends ShortProcessor
 					if(vSimple) 
 					{
 						vChange = true;
+						//TODO iterator: in following call: m_InnerContourContainer.remove(vCurrentIndex);
 						ChangeContourPointLabelToCandidateLabel(vStoreIt);
 						// TODO iterator remove problem OR is the same as line below?
 						vPointIterator.remove();
@@ -1140,15 +1133,17 @@ public class LabelImage //extends ShortProcessor
         /// relabeling. All moves remaining in the candidate list can now
         /// be performed.
 		        
-	
-        //TODO iterator erase problem? entry removal in ChangeContourPointLabelToCandidateLabel
+//	displaySlice("pre ChangeContourPointLabelToCandidateLabel");
+		
 		for(Entry<Point, ContourParticle> entry : m_AllCandidates.entrySet()) 
 		{
+			//TODO iterator problem? entry removal in ChangeContourPointLabelToCandidateLabel
 			ChangeContourPointLabelToCandidateLabel(entry);
 			vConvergence = false;
 		}
 		        
-		        
+//		displaySlice("post ChangeContourPointLabelToCandidateLabel");
+		
         /// Perform relabeling of the regions that did a split:
 		boolean vSplit = false;
 		boolean vMerge = false;
@@ -1157,13 +1152,15 @@ public class LabelImage //extends ShortProcessor
 		for(Pair<Point, Integer> vSeedIt : vSeeds) 
 		{
 			LabelInformation info = labelMap.get(vSeedIt.second);
-			// TODO debug
 			if(info == null) {
-				System.out.println("label not found");
+				// TODO debug
+				// This might happen, if there are multiple seeds for a split. The region was then 
+				// relabeled in the first seed, and the label of the next seeds are not found anymore. 
+//				displaySlice("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
+				System.out.println("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
 				continue;
 			}
 			int count  = info.count;
-
 			if(count > 1) 
 			{
 				RelabelAnAdjacentRegionAfterTopologicalChange(this, vSeedIt.first, vSeedIt.second);
@@ -1192,7 +1189,7 @@ public class LabelImage //extends ShortProcessor
 				Relabel2AdjacentRegionsAfterToplogicalChange(this,vCRit.getValue(), vLabel1, vLabel2);
 				vMerge = true;
 			}
-			System.out.println("merged " + m_MergingHist.size()+ " region pairs.");
+//			debug("merged " + m_MergingHist.size()+ " region pairs.");
 		}
 
 		if(vSplit || vMerge) 
@@ -1210,18 +1207,18 @@ public class LabelImage //extends ShortProcessor
 	}
 
 
+	/**
+	 * Iterates through ContourParticles in m_InnerContourContainer
+	 * @param aReturnContainer
+	 */
 	void RebuildCandidateList(HashMap<Point, ContourParticle> aReturnContainer)
 	{
 		aReturnContainer.clear();
+
+        /// Add all the mother points - this is copying the inner contour list.
+        /// (Things get easier afterwards if this is done in advance.)
 		
-		//        LabelImageNeighborhoodIteratorRadiusType vLabelImageIteratorRadius;
-		//        vLabelImageIteratorRadius.Fill(1);
-		//        LabelImageNeighborhoodIteratorType vLabelImageIterator(vLabelImageIteratorRadius,
-		//                m_LabelImage,
-		//                m_LabelImage->GetBufferedRegion());
-		
-		        /// Add all the mother points - this is copying the inner contour list.
-		        /// (Things get easier afterwards if this is done in advance.)
+		//calculate energy for change to BG (shrinking)
 		for(Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) 
 		{
 			Point vCurrentIndex = vPointIterator.getKey();
@@ -1251,9 +1248,9 @@ public class LabelImage //extends ShortProcessor
 			aReturnContainer.put(vCurrentIndex, vVal);
 		}
 		
-		        /// Iterate the contour list and visit all the neighbors in the
-		        /// FG-Neighborhood.
-		//        vPointIterator = m_InnerContourContainer.begin();
+        /// Iterate the contour list and visit all the neighbors in the
+        /// FG-Neighborhood.
+		//calculate energy for expanding into neighborhood (growing)
 		for(Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) 
 		{
 			Point vCurrentIndex = vPointIterator.getKey();
@@ -1271,31 +1268,27 @@ public class LabelImage //extends ShortProcessor
 			Connectivity conn = connFG;
 			for(Point q : conn.itNeighborsOf(vCurrentIndex)) 
 			{
-				// InputImageOffsetType vOff = m_NeighborsOffsets_FG_Connectivity[vI];
-				int vLabelOfDefender = labelToAbs(get(q));
+				int vLabelOfDefender = getAbs(q);
 				if(vLabelOfDefender == forbiddenLabel) {
 					continue;
 				}
+				
+				// expanding into other region / label. (into same region: nothing happens)
 				if(vLabelOfDefender != vLabelOfPropagatingRegion) 
 				{
 					Point vNeighborIndex = q;
 
-					// / Tell the mother about the daughter:
+					// Tell the mother about the daughter:
 					aReturnContainer.get(vCurrentIndex).getDaughterList().add(vNeighborIndex);
 		
-//                    CellListedHashMapIteratorType vContourPointItr = aReturnContainer->find(vNeighborIndex);
 					ContourParticle vContourPointItr = aReturnContainer.get(vNeighborIndex);
 					if(vContourPointItr == null) 
 					{
-						// / create a new entry (a daughter), the contour point
-						// / has not been part of the contour so far.
-
-						// OuterContourContainerValueType::ContourPointCandidateElement
-						// vCandidateElement(vLabelOfPropagatingRegion, 0);
+						// create a new entry (a daughter), the contour point
+						// has not been part of the contour so far.
 
 						ContourParticle vOCCValue = new ContourParticle();
-						// vOCCValue.m_candidates.insert(vCandidateElement);
-						//
+						//itk commented // vOCCValue.m_candidates.insert(vCandidateElement);
 						vOCCValue.candidateLabel = vLabelOfPropagatingRegion;
 						vOCCValue.label = vLabelOfDefender;
 						vOCCValue.intensity = getIntensity(vNeighborIndex);
@@ -1307,7 +1300,7 @@ public class LabelImage //extends ShortProcessor
 						// vOCCValue.m_modifiedCounter = 0;
 						vOCCValue.energyDifference = CalculateEnergyDifferenceForLabel(vNeighborIndex, vOCCValue, vLabelOfPropagatingRegion);
 						vOCCValue.setLabelHasBeenTested(vLabelOfPropagatingRegion);
-						// / Tell the daughter about the mother:
+						// Tell the daughter about the mother:
 						vOCCValue.getMotherList().add(vCurrentIndex);
 
 						aReturnContainer.put(vNeighborIndex, vOCCValue);
@@ -1316,7 +1309,7 @@ public class LabelImage //extends ShortProcessor
 					else /// the point is already part of the candidate list
 					{
 						vContourPointItr.isDaughter = true;
-						/// Tell the daughter about the mother(label does not matter!):
+						/// Tell the daughter about the mother (label does not matter!):
 						vContourPointItr.getMotherList().add(vCurrentIndex);
 
 						/// Check if the energy difference for this candiate
@@ -1324,9 +1317,9 @@ public class LabelImage //extends ShortProcessor
 						if(!vContourPointItr.hasLabelBeenTested((vLabelOfPropagatingRegion))) 
 						{
 							vContourPointItr.setLabelHasBeenTested(vLabelOfPropagatingRegion);
-							double vEnergyDiff = 
-								CalculateEnergyDifferenceForLabel(vNeighborIndex, (vContourPointItr),vLabelOfPropagatingRegion);
-							if(vEnergyDiff < vContourPointItr.energyDifference) {
+							double vEnergyDiff = CalculateEnergyDifferenceForLabel(vNeighborIndex, (vContourPointItr),vLabelOfPropagatingRegion);
+							if(vEnergyDiff < vContourPointItr.energyDifference) 
+							{
 								vContourPointItr.candidateLabel = vLabelOfPropagatingRegion;
 								vContourPointItr.energyDifference = vEnergyDiff;
 								vContourPointItr.referenceCount = 1;
@@ -1337,10 +1330,6 @@ public class LabelImage //extends ShortProcessor
 							/// If the propagating label is the same as the candidate label,
 							/// we have found 2 or more mothers of for this contour point.ten
 							if(vContourPointItr.candidateLabel == vLabelOfPropagatingRegion) {
-								// if(m_iteration_counter == 30 && vLabelOfPropagatingRegion == 30){
-								// std::cout << "halt at rebuildcandlist: " <<
-								// vContourPointItr->second << std::endl;
-								// }
 								vContourPointItr.referenceCount++;
 							}
 						}
@@ -1371,142 +1360,14 @@ public class LabelImage //extends ShortProcessor
 			}
 
 
-	/**
-		 * itk::RebuildCandidateList
-		 * ij::RebuildCandidateList see below
+
+		/**
+		 * called while iterating over m_InnerContourContainer
+		 * 
+		 * calling
+		 * m_InnerContourContainer.remove(vCurrentIndex);
+		 * m_InnerContourContainer.put(vCurrentIndex, vContourPoint);
 		 */
-		void grow()
-		{
-			// TODO chaos with motherlist / daughterlist / count. 
-			
-			HashMap<Point, ContourParticle> M;
-			// M = candidate list
-			M=(HashMap<Point, ContourParticle>) m_InnerContourContainer.clone();
-			
-			HashMap<Point, ContourParticle> M2 = new HashMap<Point, ContourParticle>();
-			
-			
-			Connectivity conn = connFG;
-			
-			// iterate over all particles
-			for(Entry<Point,ContourParticle> entry:M.entrySet())
-			{
-				Point pIndex = entry.getKey();			// coords of motherpoint
-				ContourParticle p = entry.getValue();	// mother particle
-				int pLabel = p.label;					// label of motherpoint 
-				
-				// particle-label to background label (shrinking)
-				p.candidateLabel=bgLabel;
-				p.isMother=true;
-				p.isDaughter=false;
-				
-				p.energyDifference=calcEnergy(entry); //TODO this to bg
-				
-				
-				// particle label to neighbor labels (growing)
-				for(Point qIndex:conn.itNeighborsOf(pIndex))
-				{
-					int label=get(qIndex);
-					int qLabel=labelToAbs(label);
-					
-					if(qLabel == forbiddenLabel || qLabel == pLabel)
-					{
-						// forbidden or self. do nothing
-						continue;
-					}
-					
-					ContourParticle q = m_InnerContourContainer.get(qIndex);
-					
-					// itk::Tell the mother about the daughter:
-					p.getDaughterList().add(qIndex);
-					
-					if(q==null) // (absLabel==bgLabel)
-					{
-						// grow in BG
-						// create new particle and add to M
-						
-						q = new ContourParticle();
-						//TODO was wird hier implizit doppelt gesetzt nach constructor
-						q.candidateLabel=pLabel;
-						q.label=bgLabel;
-						q.intensity=getIntensity(qIndex);
-						q.isDaughter=true;
-						q.isMother=false;
-						q.m_processed=false;
-						q.referenceCount=1;
-						q.energyDifference = calcEnergy(entry); //TODO change neighbor to plabel
-						
-						q.setLabelHasBeenTested(pLabel);
-						
-						q.getMotherList().add(pIndex);
-						
-						//TODO !!! this may make problems with "for(entry : M.entrySet())"
-						// consider javadoc to entrySet() "the results of the iteration are undefined"
-						
-						//TODO is this ok?
-						// construct a afterparty list M2, add to a after the party
-						M2.put(qIndex, q);
-					} 
-					else // nonforbidden, nonself, existing, other label
-					{
-						
-						q.isDaughter=true;
-						q.getMotherList().add(pIndex);
-						
-						//itk::3501
-	                    /// Check if the energy difference for this candiate
-	                    /// label has not yet been calculated.
-						if(!q.hasLabelBeenTested(pLabel))
-						{
-							q.setLabelHasBeenTested(pLabel);
-							double dE=calcEnergy(entry); //TODO change neighbor to plabel
-							if(dE < q.energyDifference)
-							{
-								q.candidateLabel=pLabel;
-								q.energyDifference=dE;
-								q.referenceCount=1;
-							}
-							
-						}
-						else {
-							//itk::3512
-	                        /// If the propagating label is the same as the candidate label,
-	                        /// we have found 2 or more mothers of for this contour point.ten
-	                        if (q.candidateLabel == pLabel) {
-	//                            if(m_iteration_counter == 30 && vLabelOfPropagatingRegion == 30){
-	//                                std::cout << "halt at rebuildcandlist: " << vContourPointItr->second << std::endl;
-	//                            }
-	                            q.referenceCount++;
-	                        }
-	                    }
-						
-						
-						//non-itk version (paper algorithm?)
-	//					if(q.candidateLabel==pLabel) // supported already by same region
-	//					{
-	//						q.getMotherList().add(pIndex);
-	//					}
-	//					else // grow to other region
-	//					{
-	//						float dE=calcEnergy(entry);
-	//						if(q.energyDifference > dE)
-	//						{
-	//							q.candidateLabel=qLabel;
-	//							q.energyDifference=dE;
-	//						}
-	//					}
-					} // else
-					
-					// neighborParticle is q in Algorithm 2 (Optimization)
-					//TODO dont know yet where it is used
-					
-					q.getMotherList().add(pIndex);
-					
-				} // for neighbors
-			}
-		}
-
-
 	void ChangeContourPointLabelToCandidateLabel(Entry<Point, ContourParticle> aParticle)
 	{
 		ContourParticle second = aParticle.getValue();
@@ -1638,6 +1499,9 @@ second.label=labelToAbs(vToLabel);
      *   has a different label.
      */
 //	old: void addToContour(Point pIndex)
+	/**
+	 * m_InnerContourContainer.remove(qIndex);
+	 */
     void MaintainNeighborsAtAdd(int aLabelAbs, Point pIndex) 
 	{
 		ContourParticle p = m_InnerContourContainer.get(pIndex);
@@ -1672,7 +1536,6 @@ second.label=labelToAbs(vToLabel);
 			m_InnerContourContainer.remove(pIndex);
 			set(pIndex, aLabelAbs);
 		}
-		
 	}
 	
 	/**
@@ -1719,6 +1582,8 @@ second.label=labelToAbs(vToLabel);
 
 	void RemoveSinglePointRegions()
 	{
+		
+//TODO java.util.ConcurrentModificationException		
 		for(Entry<Point, ContourParticle> vIt : m_InnerContourContainer.entrySet()) 
 		{
 			ContourParticle vWorkingIt = vIt.getValue();
@@ -1728,9 +1593,12 @@ second.label=labelToAbs(vToLabel);
 			if(info==null)
 			{
 				//TODO debug
-				System.out.println("info is null");
+				displaySlice("***info is null for: "+vIt.getKey());
+				System.out.println("***info is null for: "+vIt.getKey());
+				continue;
 			}
-			if(info.count == 1) {
+			if(info.count == 1) 
+			{
 				vWorkingIt.candidateLabel = bgLabel;
 				// TODO changed from
 				// ChangeContourPointLabelToCandidateLabel(vWorkingIt);
@@ -2170,6 +2038,9 @@ second.label=labelToAbs(vToLabel);
 	}
 
 
+	/**
+	 * m_InnerContourContainer.remove(vCurrentCIndex);
+	 */
 	void ForestFire(LabelImage aLabelImage, Point aIndex, MultipleThresholdImageFunction aMultiThsFunctionPtr)
 	{
 
@@ -2180,6 +2051,8 @@ second.label=labelToAbs(vToLabel);
 		Set<Integer> vVisitedNewLabels = new HashSet<Integer>();
 		Set<Integer> vVisitedOldLabels = new HashSet<Integer>();
 
+//		displaySlice("forestfire um "+aIndex);
+		
 		for(Point p : connFG.itNeighborsOf(aIndex)) 
 		{
 			int vLabel = get(p);
@@ -2199,15 +2072,7 @@ second.label=labelToAbs(vToLabel);
 //                typedef FloodFilledImageFunctionConditionalIterator<LabelImageType, MultipleThsFunctionType> LabelIteratorType;
 //
             	
-            	
-            	
-//                typedef FloodFilledImageFunctionConditionalConstIterator<
-//                        InputImageType, MultipleThsFunctionType> DataIteratorType;
-//                typedef FloodFilledImageFunctionConditionalIterator<
-//                        LabelImageType, MultipleThsFunctionType> LabelIteratorType;
-
-
-                //                DataIteratorType vDit = DataIteratorType(this->GetInput(), aFunction, aIndex + vOff);
+//                DataIteratorType vDit = DataIteratorType(this->GetInput(), aFunction, aIndex + vOff);
 //                LabelIteratorType vLit = LabelIteratorType(aLabelImage, aMultiThsFunctionPtr, p);
 
 				FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, p);
@@ -2234,21 +2099,31 @@ second.label=labelToAbs(vToLabel);
 					int vImageValue = this.getIntensity(vCurrentIndex);
 
 					// the visited labels statistics will be removed later.
+					
+					//TODO here be dragons! 
+					/* may be eg label 1. and there might be a nonadjacent (to aIndex) region with label 1 
+					 * (since there is another seed for it)
+					 * this other label 1 region will NOT be relabeled. 
+					 * but since label 1 is put into vVisitedOldLabels, 
+					 * the LabelInformation for label 1 will get erased! 
+					 * 
+					 */
+					
+					
+					// label 1 region
 					vVisitedOldLabels.add(labelToAbs((vLabelValue)));
 
 					set(vCurrentIndex, vNewLabel);
-//TODO sts relabeling
-					//TODO debug
-					if(!isContourLabel(vLabelValue))
-					{
-						ContourParticle cp = m_InnerContourContainer.get(vCurrentIndex);
-						if(cp!=null)
-						{
-							System.out.println("labelimages says is no contour, but it is!");
-						}
-					}
-					
-					
+////TODO sts relabeling
+//					//TODO debug
+//					if(!isContourLabel(vLabelValue))
+//					{
+//						ContourParticle cp = m_InnerContourContainer.get(vCurrentIndex);
+//						if(cp!=null)
+//						{
+//							System.out.println("labelimages says is no contour, but it is!");
+//						}
+//					}
 					
 					if(isContourLabel(vLabelValue)) 
 					{
@@ -2268,7 +2143,7 @@ second.label=labelToAbs(vToLabel);
 
 					// ++vDit; // this expensive increments can be avoided:done.
 
-				}
+				} // while iterating over floodfill area
 
 
                 /// Delete the contour points that are not needed anymore:
@@ -2283,7 +2158,7 @@ second.label=labelToAbs(vToLabel);
 //                        vLengthEnergy += m_ContourLengthFunction->EvaluateAtIndex(vCurrentCIndex);
 
 //                        vLit.Set(-vNewLabel); // keep the contour negative
-                        m_LabelImage.set(vCurrentCIndex, labelToNeg(vNewLabel));
+                        set(vCurrentCIndex, labelToNeg(vNewLabel));
                         
                         ContourParticle vPoint = m_InnerContourContainer.get(vCurrentCIndex);
                         vPoint.label = vNewLabel;
@@ -2310,25 +2185,28 @@ second.label=labelToAbs(vToLabel);
 // TODO m_Lengths[vNewLabel] = vLengthEnergy;
 				m_MaxNLabels++;
 
-			}
-        
-
-        /// Clean up the statistics of non valid regions.
-
-			for(int vVisitedIt : vVisitedOldLabels) {
-				FreeLabelStatistics(vVisitedIt);
-			}
-			CleanUp();
-
-        /// TODO: this must as well be only performed for the affected
-        ///       regions! A call to this function may result in segmentation
-        ///       faults since the labelimage is not 'consistent': It may contain
-        ///       still regions with 'old' labels. This happens if the 'old'
-        ///       region has 2 topological changes at once.
-        //        if (m_EnergyFunctional == e_Deconvolution) {
-        //            RenewDeconvolutionStatistics(m_LabelImage, this->GetDataInput());
-        //        }
+				
+			} // if neighbor label ok
+			
+		} // end for neighbord
+		
+		/// Clean up the statistics of non valid regions.
+		
+		for(int vVisitedIt : vVisitedOldLabels) {
+			System.out.println("FreeLabelStatistics(vVisitedIt) removed from code");
+//			FreeLabelStatistics(vVisitedIt);
 		}
+		CleanUp();
+		
+		/// TODO: this must as well be only performed for the affected
+		///       regions! A call to this function may result in segmentation
+		///       faults since the labelimage is not 'consistent': It may contain
+		///       still regions with 'old' labels. This happens if the 'old'
+		///       region has 2 topological changes at once.
+		//        if (m_EnergyFunctional == e_Deconvolution) {
+		//            RenewDeconvolutionStatistics(m_LabelImage, this->GetDataInput());
+		//        }
+		
 	}
 	
 
@@ -2443,9 +2321,6 @@ second.label=labelToAbs(vToLabel);
 	
 	void RemoveFGRegion(int aLabel) 
 	{
-
-		// TODO iterator/remove problem
-
 		/// Get the contour points of that label and copy them to vContainer:
 		HashMap<Point, ContourParticle> vContainer = new HashMap<Point, ContourParticle>();
 
@@ -2490,20 +2365,26 @@ second.label=labelToAbs(vToLabel);
                 for (Entry<Point, ContourParticle> vIt: m_InnerContourContainer.entrySet()) {
                     if (vIt.getValue().label == aLabel) {
                     	vContainer.put(vIt.getKey(), vIt.getValue());
-                    }
-                }
-            }
-        }
-    	}
+					}
+				}
+			}
+		}
+	}
 	
 	private void CleanUp()
 	{
 		// UIntStatisticsContainerType::iterator vActiveLabelsIt = m_Count.begin();
-		for(Entry<Integer, LabelInformation> vActiveLabelsIt : labelMap.entrySet()) 
-		{
-			if(vActiveLabelsIt.getValue().count == 0) {
-				FreeLabelStatistics(vActiveLabelsIt.getKey());
+		//TODO ConcurrentModificationException
+		try {
+			for(Entry<Integer, LabelInformation> vActiveLabelsIt : labelMap.entrySet()) 
+			{
+				if(vActiveLabelsIt.getValue().count == 0) {
+					FreeLabelStatistics(vActiveLabelsIt.getKey());
+				}
 			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -2616,6 +2497,26 @@ second.label=labelToAbs(vToLabel);
 	
 		return idx;
 	}
+	
+	
+	//TODO !!! test, is this correct?
+	Point indexToPoint(int idx)
+	{
+		
+		int index=idx;
+		Point result = Point.PointWithDim(this.dim);
+		
+		for(int i = 0; i < dim; i++) 
+		{
+			int r=index%dimensions[i];
+			result.x[i]=r;
+			index=index-r;
+			index=index/dimensions[i];
+		}
+		
+		int dummy=pointToIndex(result);
+		return result;
+	}
 
 
 	int get(int index)
@@ -2661,6 +2562,10 @@ second.label=labelToAbs(vToLabel);
 		return labelToAbs(get(p));
 	}
 
+	public int getAbs(int idx)
+	{
+		return labelToAbs(get(idx));
+	}
 
 	//TODO merge with int getIntensity(int x, int y)
 	/**
@@ -2711,8 +2616,48 @@ second.label=labelToAbs(vToLabel);
 		System.out.println(s);
 	}
 	
+	/**
+	 * is contourContainer consistent with labelImage?
+	 */
+	void consistencyCheck()
+	{
+		for(Entry<Point, ContourParticle> e : m_InnerContourContainer.entrySet())
+		{
+			int imageLabel = getAbs(e.getKey());
+			int contourLabel = e.getValue().label;
+			if(imageLabel!=contourLabel)
+			{
+				System.out.println("*** Inconsistency!!! ***");
+				int dummy=0;
+			}
+		}
+	}
+	
+	boolean checkForGhostLabel(int abslabel)
+	{
+		int size = m_LabelImage.height*m_LabelImage.width;
+		for(int i=0; i<m_LabelImage.height*m_LabelImage.width; i++)
+		{
+			if(getAbs(i)==abslabel)
+			{
+				displaySlice("found a ghost label at "+ indexToPoint(i));
+				System.out.println("found a ghost label at "+ indexToPoint(i));
+				return true;
+			}
+		}
+		return false;
+	}
 	
 	
+	void displaySlice()
+	{
+		displaySlice(null);
+	}
+	
+	void displaySlice(String s)
+	{
+		MVC.addSliceToStackAndShow(s, labelIP.getPixelsCopy());
+	}
 	
 }
 

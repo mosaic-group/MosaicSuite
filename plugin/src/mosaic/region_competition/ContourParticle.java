@@ -66,12 +66,12 @@ public class ContourParticle
 	//TODO Ref to Point?
 	
 	@Override
-	public String toString() 
+	public String toString()
 	{
-		return 	"L: "		+ label +
-				" val: "	+ intensity+ 
-				"L'"		+ candidateLabel+
-				" deltaE"	+ energyDifference;
+		return 	"L: " + label 
+				+ " val: " + intensity 
+				+ "L': " + candidateLabel;
+		//		+ " deltaE" + energyDifference;
 	}
 	
 }

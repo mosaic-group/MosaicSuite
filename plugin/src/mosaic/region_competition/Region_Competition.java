@@ -68,7 +68,7 @@ public class Region_Competition implements PlugInFilter{
 		initStackIP();
 		frontsCompetitionImageFilter();
 
-//		labelImage.showStatistics();
+		labelImage.showStatistics();
 //		macroContrast();
 		return DOES_ALL + DONE;
 	}
