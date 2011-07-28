@@ -94,7 +94,7 @@ public class FeaturePointDetector {
 		 * This is a constraint caused by the lack of floating point precision of pixels 
 		 * value in 16bit and 8bit image processors in ImageJ therefore, if the image is not
 		 * converted to 32bit floating point, false particles get detected */
-
+ 
 		ImageStack original_ips = frame.original_ips;
 		ImageStack restored_fps = new ImageStack(original_ips.getWidth(),original_ips.getHeight());
 
@@ -248,6 +248,17 @@ public class FeaturePointDetector {
 						/* and add each particle that meets the criteria to the particles array */
 						//(the starting point is the middle of the pixel and exactly on a focal plane:)
 						particles.add(new Particle(i+.5f, j+.5f, s, frame_number, linkrange));
+						
+						/* 
+						 * now we found a local maximum, we have to prevent that all connected pixel do
+						 * not generate a new particle. We thus set the dilated image around the current
+						 * location to 0.
+						 */
+//						for (int ii = Math.max(i-radius+1,0); ii < Math.min(height, i+radius-1); ii++){
+//							for (int jj = Math.max(j-radius, 0); jj < Math.min(width, j+radius-1); jj++){
+//								ips_dilated_pixels[i*width+j] = -1;
+//							}
+//						}
 
 					} 
 				}
@@ -480,12 +491,17 @@ public class FeaturePointDetector {
 
 		int j, k;
 		double score;
+		int max_x = 1, max_y = 1, max_z = 1;
 		this.real_particles_number = this.particles_number;
 		if(this.particles.size() == 1){
 			this.particles.elementAt(0).score = Float.MAX_VALUE;
 		}
 		for(j = 0; j < this.particles.size(); j++) {		
 			//				int accepted = 1;
+			max_x = Math.max((int)this.particles.elementAt(j).x,max_x);	
+			max_y = Math.max((int)this.particles.elementAt(j).y,max_y);	
+			max_z = Math.max((int)this.particles.elementAt(j).z,max_z);
+			
 			for(k = j + 1; k < this.particles.size(); k++) {
 				score = (double)((1.0 / (2.0 * Math.PI * 0.1 * 0.1)) * 
 						Math.exp(-(this.particles.elementAt(j).m0 - this.particles.elementAt(k).m0) *
@@ -501,7 +517,43 @@ public class FeaturePointDetector {
 				//					accepted = 0;
 			}
 			//				System.out.println(j + "\t" + this.particles.elementAt(j).m0 + "\t" + this.particles.elementAt(j).m2 + "\t" + accepted);
-		}				
+		}	
+		
+		/*
+		 * Remove duplicates (happens when dealing with artificial images)
+		 */
+		// Create a bitmap (with ghostlayers to not have to perform bounds checking)
+		boolean[][][] vBitmap = new boolean[max_z+3][max_y+3][max_x+3];
+		for(int z = 0; z < max_z+3; z++){
+			for(int y = 0; y < max_y+3; y++) {
+				for(int x =0;x < max_x+3;x++) {				
+					vBitmap[z][y][x] = false;
+				}
+			}
+		} 
+
+		for(j = 0; j < this.particles.size(); j++) {	
+//			for(k = j + 1; k < this.particles.size(); k++) {
+//			}
+			boolean vParticleInNeighborhood = false;
+			for(int oz = -1; !vParticleInNeighborhood && oz <=1; oz++){ 
+				for(int oy = -1; !vParticleInNeighborhood && oy <=1; oy++){
+					for(int ox = -1; !vParticleInNeighborhood && ox <=1; ox++){
+						if(vBitmap[(int)this.particles.elementAt(j).z+1+oz][(int)this.particles.elementAt(j).y+1+oy][(int)this.particles.elementAt(j).x+1+ox]) {
+							vParticleInNeighborhood = true; 
+						}
+					}
+				}
+			}
+				
+			if(vParticleInNeighborhood){
+				this.particles.elementAt(j).special = false;
+				this.real_particles_number--;		
+			} else {
+				vBitmap[(int)this.particles.elementAt(j).z+1][(int)this.particles.elementAt(j).y+1][(int)this.particles.elementAt(j).x+1] = true;
+			}
+		}
+		
 	}
 
 	/**
@@ -1555,7 +1607,7 @@ public class FeaturePointDetector {
 	/**
 	 * Writes the given <code>info</code> to given file information.
 	 * <code>info</code> will be written to the beginning of the file, overwriting older information
-	 * If the file doesn�t exists it will be created.
+	 * If the file does not exists it will be created.
 	 * Any problem creating, writing to or closing the file will generate an ImageJ error   
 	 * @param directory location of the file to write to 
 	 * @param file_name file name to write to

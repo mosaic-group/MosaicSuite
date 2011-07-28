@@ -57,7 +57,6 @@ import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
-import mosaic.plugins.ParticleTrackerKota_.Trajectory;
 
 /**
  * <h2>ParticleTracker</h2>
@@ -65,7 +64,7 @@ import mosaic.plugins.ParticleTrackerKota_.Trajectory;
  * <p>This class implements a to 3d extended feature point detection and tracking algorithm as described in:
  * <br>I. F. Sbalzarini and P. Koumoutsakos. 
  * <br>Feature point tracking and trajectory analysis for video imaging in cell biology. 
- * <br>J. Struct. Biol., 151(2): 182�195, 2005.
+ * <br>J. Struct. Biol., 151(2), 2005.
  * <p>Any publications that made use of this plugin should cite the above reference.
  * <br>This helps to ensure the financial support of our project at ETH and will 
  * enable us to provide further updates and support.
@@ -310,7 +309,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 				// sequence of images mode:
 				// construct each frame from the corresponding image
-				current_frame = new MyFrame(FeaturePointDetector.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i);
+				current_frame = new MyFrame(FeaturePointDetector.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i, linkrange);
 
 				// Detect feature points in this frame
 				IJ.showStatus("Detecting Particles in Frame " + (frame_i+1) + "/" + frames_number);				
@@ -461,7 +460,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				"The plugin implements an extended version of the feature point detection and tracking algorithm as described in:\n" +
 				"I. F. Sbalzarini and P. Koumoutsakos.\n" +
 				"Feature point tracking and trajectory analysis for video imaging in cell biology.\n" +
-				"J. Struct. Biol., 151(2): 182�195, 2005.\n" +
+				"J. Struct. Biol., 151(2): 182195, 2005.\n" +
 				"Any publications that made use of this plugin should cite the above reference.\n" +
 				"This helps to ensure the financial support of our project at ETH and will enable us to provide further updates and support.\n" +
 				"Thanks for your help!\n" +
@@ -541,7 +540,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			int focus_y = Math.max((int)min_x - 8, 0);
 			int focus_height = (int)max_x - focus_y + 8;
 			int focus_width = (int)max_y - focus_x + 8;			
-			// make sure that the -8 or +8 didn�t create an ROI with bounds outside of the window
+			// make sure that the -8 or +8 did not create an ROI with bounds outside of the window
 			if (focus_x + focus_width > original_imp.getWidth()) {
 				focus_width = original_imp.getWidth() - focus_x;
 			}
@@ -1059,7 +1058,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 					generateTrajFocusView(chosen_traj-1, magnification_factor);
 				} else {
 					// single-click - mark the selected trajectory by setting the ROI to the 
-					// trajectory�s mouse_selection_area
+					// trajectory mouse_selection_area
 					this.imp.setRoi((all_traj.elementAt(chosen_traj-1)).mouse_selection_area);
 				}
 			} else {
@@ -1733,7 +1732,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 		int first_slice = (getFrameNumberFromSlice(this.preview_slice_calculated)-1) * slices_number + 1;
 		// create a new MyFrame from the current_slice in the stack
-		MyFrame preview_frame = new MyFrame(FeaturePointDetector.GetSubStackCopyInFloat(stack, first_slice, first_slice  + slices_number - 1), getFrameNumberFromSlice(this.preview_slice_calculated)-1);
+		MyFrame preview_frame = new MyFrame(FeaturePointDetector.GetSubStackCopyInFloat(stack, first_slice, first_slice  + slices_number - 1), getFrameNumberFromSlice(this.preview_slice_calculated)-1, linkrange);
 
 		// detect particles in this frame
 		detector.featurePointDetection(preview_frame);
@@ -1904,7 +1903,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		}
 
 		// Create a new canvas based on the image - the canvas is the view
-		// The trajectories are drawn on this canvas when it�s constructed and not on the image
+		// The trajectories are drawn on this canvas when it is constructed and not on the image
 		// Canvas is an overlay window on top of the ImagePlus
 		tc = new TrajectoryCanvas(duplicated_imp);
 
@@ -2439,6 +2438,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			rt.setValue("NPscore", rownum, p.score);
 		}
 		rt.show("Results");
+	}
+	
+	public int getLinkRange() {
+		return linkrange;
 	}
 }
 
