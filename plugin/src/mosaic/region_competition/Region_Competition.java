@@ -95,6 +95,13 @@ public class Region_Competition implements PlugInFilter{
 		
 //		labelImage.initialGuessGrowing(0.4);
 		labelImage.initialGuessRandom();
+		
+//		labelImage.initialGuessEllipsesFromString("4 " +
+//				"152 79 147 12 1 " +
+//				"130 91 117 79 2 " +
+//				"78 18 40 10 3 " +
+//				"134 107 88 104 4 ");
+		
 		labelImage.generateContour();
 		addSliceToStackAndShow("init", labelImage.getLabelImage().getPixelsCopy());
 
