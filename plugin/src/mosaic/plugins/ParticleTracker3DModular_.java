@@ -57,6 +57,8 @@ import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
+import mosaic.core.particleLinking.ParticleLinker;
+import mosaic.core.utils.MosaicUtils;
 
 /**
  * <h2>ParticleTracker</h2>
@@ -108,6 +110,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	public Vector<Trajectory> all_traj;// = new Vector();
 	public int number_of_trajectories, frames_number, slices_number;
 	private FeaturePointDetector detector;
+	private ParticleLinker linker;
 	public String title;
 	
 	/* user defined parameters for linking*/
@@ -139,7 +142,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	public String files_dir;
 	String[] files_list;
 	boolean momentum_from_text, zcoord_from_text;	
-	int max_coord = 0;			// max value of the loaded particle coordinates
+	
 
 
 	/** 
@@ -163,6 +166,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 * @see ij.plugin.filter.PlugInFilter#setup(java.lang.String, ij.ImagePlus)
 	 */
 	public int setup(String arg, ImagePlus imp) {		
+		
 		if(IJ.versionLessThan("1.38u")){
 			return DONE;
 		}
@@ -206,8 +210,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	public void run(ImageProcessor ip) {
 
 		initializeMembers();
-		
-		preview_canvas = detector.generatePreviewCanvas(original_imp);
+		 
+		if(!text_files_mode) {
+			preview_canvas = detector.generatePreviewCanvas(original_imp);	
+		} 
 
 		/* get user defined params and set more initial params accordingly 	*/	
 		if (!getUserDefinedParams()) return;				
@@ -222,7 +228,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 		/* link the particles found */
 		IJ.showStatus("Linking Particles");		
-		detector.linkParticles(frames, frames_number, linkrange, displacement);
+		linker.linkParticles(frames, frames_number, linkrange, displacement);
 		IJ.freeMemory();
 
 		/* generate trajectories */		 
@@ -269,6 +275,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		}else {
 			slices_number = 1;
 		}
+		
+		linker = new ParticleLinker();
 	}
 
 	/** 
@@ -302,15 +310,15 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				// construct each frame from the conrosponding text file 
 				IJ.showStatus("Reading Particles from file " + files_list[file_index] + 
 						"(" + (frame_i) + "/" + files_list.length + ")");
-				//current_frame = new MyFrame(files_dir + files_list[file_index]);
+				current_frame = new MyFrame(files_dir + files_list[file_index], frame_i, linkrange);
 				if (current_frame.getParticles() == null) return false;
 
 			} else {
 
 				// sequence of images mode:
 				// construct each frame from the corresponding image
-				current_frame = new MyFrame(FeaturePointDetector.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i, linkrange);
-
+				current_frame = new MyFrame(MosaicUtils.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i, linkrange);
+				
 				// Detect feature points in this frame
 				IJ.showStatus("Detecting Particles in Frame " + (frame_i+1) + "/" + frames_number);				
 				detector.featurePointDetection(current_frame);
@@ -617,7 +625,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				current_frame = existing_particles[i].getFrame()+1-removed_frames;
 				while (current_frame - previous_frame > 1) {
 					previous_frame++;
-					ImageStack previousFrameStack = GetSubStack(traj_stack, (previous_frame-1)*slices_number+1, 
+					ImageStack previousFrameStack = MosaicUtils.GetSubStack(traj_stack, (previous_frame-1)*slices_number+1, 
 							previous_frame*slices_number);
 					draw4Dynamic(previousFrameStack, i, magnification);
 					drawGaps4Dynamic(previousFrameStack, i, magnification);
@@ -626,7 +634,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				// of a particle will not correspond with frame number in the stack.
 				// by subtracting the number of removed frames from the particle frame number,
 				// we will get the right frame in traj_stack.
-				ImageStack currentFrameStack = GetSubStack(traj_stack, (current_frame-1)*slices_number+1, 
+				ImageStack currentFrameStack = MosaicUtils.GetSubStack(traj_stack, (current_frame-1)*slices_number+1, 
 						current_frame*slices_number);
 				draw4Dynamic(currentFrameStack, i, magnification);
 				drawGaps4Dynamic(currentFrameStack, i, magnification);
@@ -1389,7 +1397,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				// if user cancelled the save dialog - return
 				if (sd.getDirectory() == null || sd.getFileName() == null) return; 
 				// write full report to file
-				detector.write2File(sd.getDirectory(), sd.getFileName(), getFullReport().toString());
+				MosaicUtils.write2File(sd.getDirectory(), sd.getFileName(), getFullReport().toString());
 				return;
 			}
 			/* display full report on the text_panel*/
@@ -1513,7 +1521,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 				/* link the particles found */
 				IJ.showStatus("Linking Particles");		
-				detector.linkParticles(frames, frames_number, linkrange, displacement);
+				linker.linkParticles(frames, frames_number, linkrange, displacement);
 				IJ.freeMemory();
 
 				/* generate trajectories */		 
@@ -1691,7 +1699,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		//		}
 		//		// write data to file
 		//		write2File(newDir.getAbsolutePath(), vFI.fileName + "PT3D.txt", getFullReport().toString());
-		detector.write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
+		MosaicUtils.write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
 	}
 
 	/**
@@ -1730,9 +1738,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 		detector.getUserDefinedPreviewParams(gd);		
 
-		int first_slice = (getFrameNumberFromSlice(this.preview_slice_calculated)-1) * slices_number + 1;
+		int first_slice = (MosaicUtils.getFrameNumberFromSlice(this.preview_slice_calculated, slices_number)-1) * slices_number + 1;
 		// create a new MyFrame from the current_slice in the stack
-		MyFrame preview_frame = new MyFrame(FeaturePointDetector.GetSubStackCopyInFloat(stack, first_slice, first_slice  + slices_number - 1), getFrameNumberFromSlice(this.preview_slice_calculated)-1, linkrange);
+		MyFrame preview_frame = new MyFrame(MosaicUtils.GetSubStackCopyInFloat(stack, first_slice, first_slice  + slices_number - 1), 
+				MosaicUtils.getFrameNumberFromSlice(this.preview_slice_calculated, slices_number)-1, linkrange);
+		
 
 		// detect particles in this frame
 		detector.featurePointDetection(preview_frame);
@@ -2124,47 +2134,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	//    	}
 	//    }
 
-	public float[] CalculateNormalizedGaussKernel(float aSigma){
-		int vL = (int)aSigma * 3 * 2 + 1;
-		if(vL < 3) vL = 3;
-		float[] vKernel = new float[vL];
-		int vM = vKernel.length/2;
-		for(int vI = 0; vI < vM; vI++){
-			vKernel[vI] = (float)(1f/(2f*Math.PI*aSigma*aSigma) * Math.exp(-(float)((vM-vI)*(vM-vI))/(2f*aSigma*aSigma)));
-			vKernel[vKernel.length - vI - 1] = vKernel[vI];
-		}
-		vKernel[vM] = (float)(1f/(2f*Math.PI*aSigma*aSigma));
-
-		//normalize the kernel numerically:
-		float vSum = 0;
-		for(int vI = 0; vI < vKernel.length; vI++){
-			vSum += vKernel[vI];
-		}
-		float vScale = 1.0f/vSum;
-		for(int vI = 0; vI < vKernel.length; vI++){
-			vKernel[vI] *= vScale;
-		}
-		return vKernel;
-	}
-
-	private static ImageStack GetSubStack(ImageStack is, int startPos, int endPos){
-		ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
-		if(startPos > endPos || startPos < 0 || endPos < 0)
-			return null;
-		for(int i = startPos; i <= endPos; i++) {
-			res.addSlice(is.getSliceLabel(i), is.getProcessor(i));
-		}
-		return res;
-	}
 
 
-	/**
-	 * @param sliceIndex: 1..#slices
-	 * @return a frame index: 1..#frames
-	 */
-	public int getFrameNumberFromSlice(int sliceIndex) {
-		return (sliceIndex-1) / slices_number + 1;
-	}
+
+
 
 
 	/**
@@ -2176,13 +2149,38 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 * @see MyFrame#createImage(int, int)
 	 */
 	public ImageStack createStackFromTextFiles() {
-
-		/* Create a new, empty, square ImageStack with 10 pixels padding from the max particle position*/
-		ImageStack from_text = new ImageStack(max_coord+10, max_coord+10);
+		int[] vMax = {0,0,0};	
+		/* find the max coordinates for each coordinate */
+		for (int i = 0; i < frames.length; i++) {
+			for (int p = 0; p < frames[i].getParticles().size(); p++) {
+				Particle vParticle = frames[i].getParticles().elementAt(p);
+				if(vParticle.x > vMax[0]) {
+					vMax[0] = (int) Math.ceil(vParticle.x);
+				}
+				if(vParticle.y > vMax[1]) {
+					vMax[1] = (int) Math.ceil(vParticle.y);
+				}
+				if(vParticle.z > vMax[2]) {
+					vMax[2] = (int) Math.ceil(vParticle.z);
+				}
+			}
+		}
 		
-		/* for each frame we have add a slice (ImageParocessor) to the stack*/
+		
+		/* Create a new, empty, square ImageStack with 10 pixels padding from the max particle position*/
+		ImageStack from_text = new ImageStack(vMax[0]+10, vMax[1]+10);
+		
+		/* for each frame we have add a stack to the image */
 		for (int i = 0; i<frames.length; i++) {
-			from_text.addSlice("" + i, frames[i].createImage(max_coord+10, max_coord+10));
+			// 2D
+			if (vMax[2] < 1) {
+				from_text.addSlice("" + i, frames[i].createImage(vMax[0]+10, vMax[1]+10));
+			} else { // 3D
+				for (int s = 0; s <= vMax[2]+1; s++) {
+					from_text.addSlice("" + i, frames[i].createImage(vMax[0]+10, vMax[1]+10));
+				}
+			}
+			
 		}
 		return from_text;
 	}
@@ -2227,16 +2225,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		report.append(getTrajectoriesInfo());
 
 		return report;
-	}
-	/**
-	 * Returns a * c + b
-	 * @param a: y-coordinate
-	 * @param b: x-coordinate
-	 * @param c: width
-	 * @return
-	 */
-	private int coord (int a, int b, int c) {
-		return (((a) * (c)) + (b));
 	}
 
 

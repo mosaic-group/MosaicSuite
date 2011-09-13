@@ -1,11 +1,15 @@
 package mosaic.core.detection;
 
+import ij.IJ;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 
 import java.awt.Color;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.text.DecimalFormat;
+import java.util.Iterator;
 import java.util.Vector;
 
 import mosaic.plugins.ParticleTracker3DModular_;
@@ -25,7 +29,7 @@ import mosaic.plugins.ParticleTracker3DModular_;
 											// about this frame before particle discrimination 
 
 		/* only relevant to frames representing real images */
-		ImageStack original_ips;			// the original image (pointer only)
+		private ImageStack original_ips;	// the original image, this is used for the featurePointDetector to access  corresponding the image data. 
 		//		ImageStack original_fps; // the original image after convertion to float processor (if already float, then a copy)
 		//		ImageStack restored_fps; // the floating processor after image restoration
 		float threshold;					// threshold for particle detection 
@@ -42,6 +46,110 @@ import mosaic.plugins.ParticleTracker3DModular_;
 			this.original_ips = ips;
 			this.frame_number = frame_num;
 			this.linkrange = aLinkrange;
+		}
+
+		
+		/**
+		 * Constructor for text mode
+		 */
+		public MyFrame (String path, int frame_num, int aLinkrange) {
+			loadParticlesFromFile(path);
+		}
+		/**
+		 * ONLY FOR text_files_mode.
+		 * <br>Loads particles information for this frame from the file located 
+		 * at the given path and adds these particles to the <code>particles</code> array. 
+		 * <br>These particles are considered to be "after discrimination".
+		 * <br>File must have the word 'frame' (case sensitive) at the beginning of the first line
+		 * followed by any number of space characters (\t \n) and the frame number.
+		 * <br>Each next line represents a particle in the frame number given at the first line.
+		 * <br>Each line must have 2 numbers or more separated by one or more space characters.
+		 * <br>The 2 first numbers represents the X and Y coordinates of the particle (respectfully).
+		 * <br>The next numbers represent other information of value about the particle
+		 * (this information can be plotted later along a trajectory).
+		 * <br>The number of parameters must be equal for all particles.
+		 * <br>For more about X and Y coordinates (they are not in the usual graph coord) see <code>Particle</code>  
+		 * @param path full path to the file (including full file name) e.g c:\ImageJ\frame0.txt
+		 * @return false if there was any problem
+		 * @see Particle   
+		 */
+		private boolean loadParticlesFromFile (String path) {
+	        
+			Vector<String[]> particles_info = new Vector<String[]>(); 	// a vector to hold all particles info as String[]
+			String[] particle_info; 				// will hold all the info for one particle (splitted)
+			String[] frame_number_info;				// will fold the frame info line (splitted)
+			String line;
+			
+	        try {	        	
+	            /* open the file */
+	        	BufferedReader r = new BufferedReader(new FileReader(path));
+	            
+	            /* set this frame number from the first line*/
+	            line = r.readLine();
+	            if (line == null || !line.startsWith("frame")) {
+	            	IJ.error("File: " + path + "\ndoesnt have the string 'frame' in the begining if the first line");
+	            	return false;
+	            }
+	            line = line.trim();
+	            frame_number_info = line.split("\\s+");
+	            if (frame_number_info[1] != null) {
+	            	this.frame_number = Integer.parseInt(frame_number_info[1]);
+	            }
+	            
+		        /* go over all lines, count number of particles and save the information as String */
+	            while (true) {
+		            line = r.readLine();		            
+		            if (line == null) break;
+		            line = line.trim();
+					if (line.startsWith("%"))	line = line.substring(1);
+					line = line.trim();
+					particles_info.addElement(line.split("\\s+"));
+					this.particles_number++;
+		        }
+	            /* close file */
+	            r.close();
+	        }
+	        catch (Exception e) {
+	            IJ.error(e.getMessage());
+	            return false;
+	        }
+	        
+	        /* initialise the particles array */
+	        this.particles = new Vector<Particle>();
+	        
+	        Iterator<String[]> iter = particles_info.iterator();
+	        int counter = 0;
+	        
+	        /* go over all particles String info and construct Particles Ojectes from it*/
+	        while (iter.hasNext()) {
+	        	particle_info = iter.next();
+	        	this.particles.addElement(new Particle(
+	        			Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), 
+	        			this.frame_number, particle_info, linkrange));
+	        	
+	        	//max_coord = Math.max((int)Math.max(this.particles.elementAt(counter).x, this.particles.elementAt(counter).y), max_coord);
+	        	//if (momentum_from_text) {
+	        	if (particle_info.length < 8 || particle_info[3] == null || particle_info[4] == null || particle_info[5] == null || particle_info[6] == null || particle_info[7] == null ||particle_info[8] == null) {
+//	        		IJ.error("File: " + path + "\ndoes not have momentum values at positions 4 to 8 for all particles");
+//	        		this.particles = null;
+//	        		return false;
+	        		this.particles.elementAt(counter).m0 = 0;
+	        		this.particles.elementAt(counter).m1 = 0;
+	        		this.particles.elementAt(counter).m2 = 0;
+	        		this.particles.elementAt(counter).m3 = 0;
+	        		this.particles.elementAt(counter).m4 = 0;
+	        	} else {
+	        		this.particles.elementAt(counter).m0 = Float.parseFloat(particle_info[3]);
+	        		this.particles.elementAt(counter).m1 = Float.parseFloat(particle_info[4]);
+	        		this.particles.elementAt(counter).m2 = Float.parseFloat(particle_info[5]);
+	        		this.particles.elementAt(counter).m3 = Float.parseFloat(particle_info[6]);
+	        		this.particles.elementAt(counter).m4 = Float.parseFloat(particle_info[7]);
+	        	}
+	        	//}
+	        	counter++;
+	        }
+	        if (particles_info != null) particles_info.removeAllElements();
+	        return true;
 		}
 
 		/**
@@ -311,5 +419,8 @@ import mosaic.plugins.ParticleTracker3DModular_;
 			this.particles_number = particles_number;
 		}
 		
+		public ImageStack getOriginalImageStack(){
+			return this.original_ips;
+		}
 		
 	}

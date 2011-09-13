@@ -34,6 +34,8 @@ import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
+import mosaic.core.utils.MosaicImageProcessingTools;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BackgroundSubtractor2_;
 
 	/**
@@ -65,8 +67,8 @@ public class FeaturePointDetector {
 	private float threshold;
 
 	/*	image Restoration vars	*/
-	public short[][] binary_mask;
-	public float[][] weighted_mask;
+//	public short[][] binary_mask;
+//	public float[][] weighted_mask;
 	public int[][] mask;
 	public float lambda_n = 1;
 	public int preprocessing_mode = BOX_CAR_AVG;
@@ -95,7 +97,7 @@ public class FeaturePointDetector {
 		 * value in 16bit and 8bit image processors in ImageJ therefore, if the image is not
 		 * converted to 32bit floating point, false particles get detected */
  
-		ImageStack original_ips = frame.original_ips;
+		ImageStack original_ips = frame.getOriginalImageStack();
 		ImageStack restored_fps = new ImageStack(original_ips.getWidth(),original_ips.getHeight());
 
 
@@ -231,7 +233,7 @@ public class FeaturePointDetector {
 	 */
 	private void pointLocationsEstimation(ImageStack ips, int frame_number, int linkrange) {
 		/* do a grayscale dilation */
-		ImageStack dilated_ips = dilateGeneric(ips);
+		ImageStack dilated_ips = MosaicImageProcessingTools.dilateGeneric(ips,radius,4);
 		//		            new StackWindow(new ImagePlus("dilated ", dilated_ips));
 		particles = new Vector<Particle>();
 		/* loop over all pixels */ 
@@ -265,101 +267,6 @@ public class FeaturePointDetector {
 			}
 		}
 		particles_number = particles.size();	        	        
-	}
-
-	/**
-	 * Dilates a copy of a given ImageProcessor with a pre calculated <code>mask</code>.
-	 * Adapted as is from Ingo Oppermann implementation
-	 * @param ip ImageProcessor to do the dilation with
-	 * @return the dilated copy of the given <code>ImageProcessor</code> 
-	 */		
-	private ImageStack dilateGeneric(ImageStack ips) {
-		FloatProcessor[] dilated_procs = new FloatProcessor[ips.getSize()];
-		AtomicInteger z  = new AtomicInteger(-1);
-		Vector<Thread> threadsVector = new Vector<Thread>();
-		for(int thread_counter = 0; thread_counter < number_of_threads; thread_counter++){
-			threadsVector.add(new DilateGenericThread(ips,dilated_procs,z));
-		}
-		for(Thread t : threadsVector){
-			t.start();                               
-		}
-		for(Thread t : threadsVector){
-			try {
-				t.join();                                        
-			}catch (InterruptedException ie) {
-				IJ.showMessage("Calculation interrupted. An error occured in parallel dilation:\n" + ie.getMessage());
-			}
-		}
-		ImageStack dilated_ips = new ImageStack(ips.getWidth(), ips.getHeight());
-		for(int s = 0; s < ips.getSize(); s++)
-			dilated_ips.addSlice(null, dilated_procs[s]);
-		//			new StackWindow(new ImagePlus("dilated image", dilated_ips));
-
-		return dilated_ips;
-	}
-
-	private class DilateGenericThread extends Thread{
-		ImageStack ips;
-		ImageProcessor[] dilated_ips;
-		AtomicInteger atomic_z;
-		int kernel_width;
-		int image_width;
-		int image_height;
-		int radius;
-
-		public DilateGenericThread(ImageStack is, ImageProcessor[] dilated_is, AtomicInteger z) {
-			ips = is;
-			dilated_ips = dilated_is;
-			atomic_z = z;
-
-			radius = getRadius();
-			kernel_width = (getRadius()*2) + 1;
-			image_width = ips.getWidth();
-			image_height = ips.getHeight();
-		}
-
-		public void run() {
-			float max;
-			int z;
-			while((z = atomic_z.incrementAndGet()) < ips.getSize()) {
-				//					IJ.showStatus("Dilate Image: " + (z+1));
-				//					IJ.showProgress(z, ips.getSize());
-				FloatProcessor out_p = new FloatProcessor(image_width, image_height);
-				float[] output = (float[])out_p.getPixels();
-				float[] dummy_processor = (float[])ips.getPixels(z+1);
-				for(int y = 0; y < image_height; y++) {
-					for(int x = 0; x < image_width; x++) {
-						//little big speed-up:
-						if(dummy_processor[y*image_width+x] < threshold) {
-							continue;
-						}
-						max = 0;
-						//a,b,c are the kernel coordinates corresponding to x,y,z
-						for(int s = -radius; s <= radius; s++ ) {
-							if(z + s < 0 || z + s >= ips.getSize())
-								continue;
-							float[] current_processor_pixels = (float[])ips.getPixels(z+s+1);
-							for(int b = -radius; b <= radius; b++ ) {
-								if(y + b < 0 || y + b >= ips.getHeight())
-									continue;
-								for(int a = -radius; a <= radius; a++ ) {
-									if(x + a < 0 || x + a >= ips.getWidth())
-										continue;
-									if(binary_mask[s + radius][(a + radius)* kernel_width+ (b + radius)] == 1) {
-										float t;
-										if((t = current_processor_pixels[(y + b)* image_width +  (x + a)]) > max) {
-											max = t;
-										}
-									}
-								}
-							}
-						}
-						output[y*image_width + x]= max;
-					}
-				}
-				dilated_ips[z] = out_p;
-			}
-		}
 	}
 
 	private void pointLocationsRefinement(ImageStack ips) {
@@ -581,15 +488,7 @@ public class FeaturePointDetector {
 		}
 	}
 
-	public static ImageStack GetSubStackInFloat(ImageStack is, int startPos, int endPos){
-		ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
-		if(startPos > endPos || startPos < 0 || endPos < 0)
-			return null;
-		for(int i = startPos; i <= endPos; i++) {
-			res.addSlice(is.getSliceLabel(i), is.getProcessor(i).convertToFloat());
-		}
-		return res;
-	}
+
 
 	/**
 	 * Corrects imperfections in the given <code>ImageStack</code> by
@@ -605,10 +504,10 @@ public class FeaturePointDetector {
 		//pad the imagestack 	
 		if(is.getSize() > 1) {
 			//3D mode (we also have to convolve and pad in third dimension)
-			restored = padImageStack3D(is);
+			restored = MosaicUtils.padImageStack3D(is,radius);
 		} else {
 			//we're in 2D mode (separated to do no unnecessary operations).
-			ImageProcessor rp= padImageStack2D(is.getProcessor(1));
+			ImageProcessor rp= MosaicUtils.padImageStack2D(is.getProcessor(1),radius);
 			restored = new ImageStack(rp.getWidth(), rp.getHeight());
 			restored.addSlice("", rp);
 		}
@@ -639,7 +538,7 @@ public class FeaturePointDetector {
 		case LAPLACE_OP:
 			//remove noise then do the laplace op
 			GaussBlur3D(restored, 1*lambda_n);
-			repadImageStack3D(restored);
+			MosaicUtils.repadImageStack3D(restored, radius);
 			restored = Laplace_Separable_3D(restored);
 			break;
 		default:
@@ -647,10 +546,10 @@ public class FeaturePointDetector {
 		}
 		if(is.getSize() > 1) {
 			//again, 3D crop
-			restored = cropImageStack3D(restored);
+			restored = MosaicUtils.cropImageStack3D(restored,radius);
 		} else {
 			//2D crop
-			ImageProcessor rp= cropImageStack2D(restored.getProcessor(1));
+			ImageProcessor rp= MosaicUtils.cropImageStack2D(restored.getProcessor(1),radius);
 			restored = new ImageStack(rp.getWidth(), rp.getHeight());
 			restored.addSlice("", rp);
 		}
@@ -658,179 +557,6 @@ public class FeaturePointDetector {
 		return restored;
 
 
-	}
-
-	private ImageProcessor cropImageStack2D(ImageProcessor ip) 
-	{
-		int width = ip.getWidth();
-		int newWidth = width - 2*radius;
-		FloatProcessor cropped_proc = new FloatProcessor(ip.getWidth()-2*radius, ip.getHeight()-2*radius);
-		float[] croppedpx = (float[])cropped_proc.getPixels();
-		float[] origpx = (float[])ip.getPixels();
-		int offset = radius*width;
-		for(int i = offset, j = 0; j < croppedpx.length; i++, j++) {
-			croppedpx[j] = origpx[i];		
-			if(j%newWidth == 0 || j%newWidth == newWidth - 1) {
-				i+=radius;
-			}
-		}
-		return cropped_proc;
-	}
-
-	/**
-	 * crops a 3D image at all of sides of the imagestack cube. 
-	 * @param is a frame to crop
-	 * @see pad ImageStack3D
-	 * @return the cropped image
-	 */
-	private ImageStack cropImageStack3D(ImageStack is) {
-		ImageStack cropped_is = new ImageStack(is.getWidth()-2*radius, is.getHeight()-2*radius);
-		for(int s = radius + 1; s <= is.getSize()-radius; s++) {
-			cropped_is.addSlice("", cropImageStack2D(is.getProcessor(s)));
-		}
-		return cropped_is;
-	}
-
-	private ImageProcessor padImageStack2D(ImageProcessor ip) {
-		int width = ip.getWidth();
-		int newWidth = width + 2*radius;
-		FloatProcessor padded_proc = new FloatProcessor(ip.getWidth() + 2*radius, ip.getHeight() + 2*radius);
-		float[] paddedpx = (float[])padded_proc.getPixels();
-		float[] origpx = (float[])ip.getPixels();
-		//first r pixel lines
-		for(int i = 0; i < radius*newWidth; i++) {
-			if(i%newWidth < radius) { 			//right corner
-				paddedpx[i] = origpx[0];
-				continue;
-			}
-			if(i%newWidth >= radius + width) {
-				paddedpx[i] = origpx[width-1];	//left corner
-				continue;
-			}
-			paddedpx[i] = origpx[i%newWidth-radius];
-		}
-
-		//the original pixel lines and left & right edges				
-		for(int i = 0, j = radius*newWidth; i < origpx.length; i++,j++) {
-			int xcoord = i%width;
-			if(xcoord==0) {//add r pixel rows (left)
-				for(int a = 0; a < radius; a++) {
-					paddedpx[j] = origpx[i];
-					j++;
-				}
-			}
-			paddedpx[j] = origpx[i];
-			if(xcoord==width-1) {//add r pixel rows (right)
-				for(int a = 0; a < radius; a++) {
-					j++;
-					paddedpx[j] = origpx[i];
-				}
-			}
-		}
-
-		//last r pixel lines
-		int lastlineoffset = origpx.length-width;
-		for(int j = (radius+ip.getHeight())*newWidth, i = 0; j < paddedpx.length; j++, i++) {
-			if(i%width == 0) { 			//left corner
-				for(int a = 0; a < radius; a++) {
-					paddedpx[j] = origpx[lastlineoffset];
-					j++;
-				}
-				//					continue;
-			}
-			if(i%width == width-1) {	
-				for(int a = 0; a < radius; a++) {
-					paddedpx[j] = origpx[lastlineoffset+width-1];	//right corner
-					j++;
-				}
-				//					continue;
-			}
-			paddedpx[j] = origpx[lastlineoffset + i % width];
-		}
-		return padded_proc;
-	}
-
-	/**
-	 * Before convolving, the image is padded such that no artifacts occure at the edge of an image.
-	 * @param is a frame (not a movie!)
-	 * @see cropImageStack3D(ImageStack)
-	 * @return the padded imagestack to (w+2*r, h+2r, s+2r) by copying the last pixel row/line/slice
-	 */
-	private ImageStack padImageStack3D(ImageStack is) 
-	{
-		ImageStack padded_is = new ImageStack(is.getWidth() + 2*radius, is.getHeight() + 2*radius);
-		for(int s = 0; s < is.getSize(); s++){
-			ImageProcessor padded_proc = padImageStack2D(is.getProcessor(s+1));
-			//if we are on the top or bottom of the stack, add r slices
-			if(s == 0 || s == is.getSize() - 1) {
-				for(int i = 0; i < radius; i++) {
-					padded_is.addSlice("", padded_proc);
-				}
-			} 
-			padded_is.addSlice("", padded_proc);
-		}
-
-		return padded_is;
-	}
-	/**
-	 * Does the same as padImageStack3D but does not create a new image. It recreates the edge of the
-	 * cube (frame).
-	 * @see padImageStack3D, cropImageStack3D
-	 * @param aIS
-	 */
-	private void repadImageStack3D(ImageStack aIS){
-		if(aIS.getSize() > 1) { //only in the 3D case
-			for(int s = 1; s <= radius; s++) {
-				aIS.deleteSlice(1);
-				aIS.deleteLastSlice();
-			}
-		}
-		for(int s = 1; s <= aIS.getSize(); s++) {
-			float[] pixels = (float[])aIS.getProcessor(s).getPixels();
-			int width = aIS.getWidth();
-			int height = aIS.getHeight();
-			for(int i = 0; i < pixels.length; i++) {
-				int xcoord = i%width;
-				int ycoord = i/width;
-				if(xcoord < radius && ycoord < radius) {
-					pixels[i] = pixels[radius*width+radius];
-					continue;
-				}
-				if(xcoord < radius && ycoord >= height-radius) {
-					pixels[i] = pixels[(height-radius-1)*width+radius];
-					continue;
-				}
-				if(xcoord >= width-radius && ycoord < radius) {
-					pixels[i] = pixels[(radius + 1) * width - radius - 1];
-					continue;
-				}
-				if(xcoord >= width-radius && ycoord >= height-radius) {
-					pixels[i] = pixels[(height-radius)*width - radius - 1];
-					continue;
-				}
-				if(xcoord < radius) {
-					pixels[i] = pixels[ycoord*width+radius];
-					continue;
-				}
-				if(xcoord >= width - radius) {
-					pixels[i] = pixels[(ycoord+1)*width - radius - 1];
-					continue;
-				}
-				if(ycoord < radius) {
-					pixels[i] = pixels[radius*width + xcoord];
-					continue;
-				}
-				if(ycoord >= height-radius) {
-					pixels[i] = pixels[(height-radius-1)*width + xcoord];
-				}
-			}
-		}
-		if(aIS.getSize() > 1) {
-			for(int s = 1; s <= radius; s++) { //only in 3D case
-				aIS.addSlice("", aIS.getProcessor(1).duplicate(),1);
-				aIS.addSlice("", aIS.getProcessor(aIS.getSize()).duplicate());
-			}
-		}
 	}
 
 
@@ -977,15 +703,6 @@ public class FeaturePointDetector {
 		return vKernel;
 	}
 
-	public static ImageStack GetSubStackCopyInFloat(ImageStack is, int startPos, int endPos){
-		ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
-		if(startPos > endPos || startPos < 0 || endPos < 0)
-			return null;
-		for(int i = startPos; i <= endPos; i++) {
-			res.addSlice(is.getSliceLabel(i), is.getProcessor(i).convertToFloat().duplicate());
-		}
-		return res;
-	}
 
 
 	/**
@@ -995,165 +712,19 @@ public class FeaturePointDetector {
 	 */
 	public void generateMasks(int mask_radius){
 		//the binary mask can be calculated already:
-		int width = (2 * mask_radius) + 1;
-		this.binary_mask = new short[width][width*width];
-		generateBinaryMask(mask_radius);
+//		int width = (2 * mask_radius) + 1;
+//		this.binary_mask = new short[width][width*width];
+//		generateBinaryMask(mask_radius);
 
 		//the weighted mask is just initialized with the new radius:
-		this.weighted_mask = new float[width][width*width];
+//		this.weighted_mask = new float[width][width*width];
 
 		//standard boolean mask
-		generateMask(mask_radius);
+		mask = MosaicImageProcessingTools.generateMask(mask_radius);
 
 	}
 
-	/**
-	 * Generates the dilation mask
-	 * Adapted from Ingo Oppermann implementation
-	 * @param mask_radius the radius of the mask (user defined)
-	 */
-	public void generateBinaryMask(int mask_radius) {    	
-		int width = (2 * mask_radius) + 1;
-		for(int s = -mask_radius; s <= mask_radius; s++){
-			for(int i = -mask_radius; i <= mask_radius; i++) {
-				for(int j = -mask_radius; j <= mask_radius; j++) {
-					int index = coord(i + mask_radius, j + mask_radius, width);
-					if((i * i) + (j * j) + (s * s) <= mask_radius * mask_radius)
-						this.binary_mask[s + mask_radius][index] = 1;
-					else
-						this.binary_mask[s + mask_radius][index] = 0;
 
-				}
-			}
-		}
-		//    	System.out.println("mask created");
-	}
-
-	/**
-	 * Generates the dilation mask
-	 * Adapted from Ingo Oppermann implementation
-	 * @param mask_radius the radius of the mask (user defined)
-	 */
-	public void generateMask(int mask_radius) {    	
-
-		int width = (2 * mask_radius) + 1;
-		this.mask = new int[width][width*width];
-		for(int s = -mask_radius; s <= mask_radius; s++){
-			for(int i = -mask_radius; i <= mask_radius; i++) {
-				for(int j = -mask_radius; j <= mask_radius; j++) {
-					int index = coord(i + mask_radius, j + mask_radius, width);
-					if((i * i) + (j * j) + (s * s) <= mask_radius * mask_radius)
-						this.mask[s + mask_radius][index] = 1;
-					else
-						this.mask[s + mask_radius][index] = 0;
-
-				}
-			}
-		}
-	}
-
-	public void generateWeightedMask_old(int mask_radius, float xCenter, float yCenter, float zCenter) {
-		int width = (2 * mask_radius) + 1;
-		for(int iz = -mask_radius; iz <= mask_radius; iz++){
-			for(int iy = -mask_radius; iy <= mask_radius; iy++) {
-				for(int ix = -mask_radius; ix <= mask_radius; ix++) {
-					int index = coord(iy + mask_radius, ix + mask_radius, width);
-
-					float distPxToCenter = (float) Math.sqrt((xCenter-ix)*(xCenter-ix)+(yCenter-iy)*(yCenter-iy)+(zCenter-iz)*(zCenter-iz)); 
-
-					//the weight is approximative the amount of the voxel inside the (spherical) mask.
-					float weight = (float)mask_radius - distPxToCenter + .5f; 
-					if(weight < 0) {
-						weight = 0f;    				
-					} 
-					if(weight > 1) {
-						weight = 1f;
-					}
-					this.weighted_mask[iz + mask_radius][index] = weight;
-				}
-			}
-		}
-	}
-
-	public void generateWeightedMask_2D(int mask_radius, float xCenter, float yCenter, float zCenter) {
-		int width = (2 * mask_radius) + 1;
-		float pixel_radius = 0.5f;		
-		float r = pixel_radius;
-		float R = mask_radius;
-		for(int iy = -mask_radius; iy <= mask_radius; iy++) {
-			for(int ix = -mask_radius; ix <= mask_radius; ix++) {
-				int index = coord(iy + mask_radius, ix + mask_radius, width);
-
-				float distPxCenterToMaskCenter = (float) Math.sqrt((xCenter-ix)*(xCenter-ix)+(yCenter-iy)*(yCenter-iy)); 
-				float d = distPxCenterToMaskCenter;
-				//the weight is approximative the amount of the voxel inside the (spherical) mask. See formula 
-				//http://mathworld.wolfram.com/Circle-CircleIntersection.html
-				float weight = 0;
-				if(distPxCenterToMaskCenter < mask_radius + pixel_radius){
-					weight = 1;
-
-					if(mask_radius < distPxCenterToMaskCenter + pixel_radius) {
-						float v = (float) (pixel_radius*pixel_radius*
-								Math.acos((d*d+r*r-R*R)/(2*d*r))
-								+R*R*Math.acos((d*d+R*R-r*r)/(2*d*R))
-								-0.5f*Math.sqrt((-d+r+R)*(d+r-R)*(d-r+R)*(d+r+R)));
-
-						weight =  (v / ((float)Math.PI * pixel_radius*pixel_radius));
-					}
-				}
-
-				for(int iz = -mask_radius; iz <= mask_radius; iz++){
-					this.weighted_mask[iz + mask_radius][index] = weight;
-				}
-			}
-		}
-
-
-	}
-
-	public void generateWeightedMask_3D(int mask_radius, float xCenter, float yCenter, float zCenter) {
-		int width = (2 * mask_radius) + 1;
-		float voxel_radius = 0.5f;
-		for(int iz = -mask_radius; iz <= mask_radius; iz++){
-			for(int iy = -mask_radius; iy <= mask_radius; iy++) {
-				for(int ix = -mask_radius; ix <= mask_radius; ix++) {
-					int index = coord(iy + mask_radius, ix + mask_radius, width);
-
-					float distPxCenterToMaskCenter = (float) Math.sqrt((xCenter-ix+.5f)*(xCenter-ix+.5f)+(yCenter-iy+.5f)*(yCenter-iy+.5f)+(zCenter-iz+.5f)*(zCenter-iz+.5f)); 
-
-					//the weight is approximative the amount of the voxel inside the (spherical) mask.
-					float weight = 0; 
-					if(distPxCenterToMaskCenter < mask_radius + voxel_radius){
-						weight = 1;
-
-						if(mask_radius < distPxCenterToMaskCenter + voxel_radius) {
-
-							//The volume is given by http://mathworld.wolfram.com/Sphere-SphereIntersection.html
-							float v = (float) (Math.PI*Math.pow(voxel_radius + mask_radius - distPxCenterToMaskCenter ,2)
-									*(distPxCenterToMaskCenter * distPxCenterToMaskCenter +2 * distPxCenterToMaskCenter * mask_radius 
-											- 3 * mask_radius * mask_radius + 2 * distPxCenterToMaskCenter * voxel_radius 
-											+ 6 * mask_radius * voxel_radius - 3 * voxel_radius * voxel_radius) 
-											/ (12 * distPxCenterToMaskCenter));
-							weight = (float) (v / ((4f*Math.PI/3f)*Math.pow(voxel_radius,3)));
-						}
-					}
-					this.weighted_mask[iz + mask_radius][index] = weight;
-				}
-			}
-		}
-	}
-
-	/**
-	 * Returns a * c + b
-	 * @param a: y-coordinate
-	 * @param b: x-coordinate
-	 * @param c: width
-	 * @return
-	 */
-	private int coord (int a, int b, int c) {
-		return (((a) * (c)) + (b));
-	}
-	
 	/**
 	 * Sets user defined params that are necessary to particle detection
 	 * and generates the <code>mask</code> according to these params
@@ -1339,8 +910,8 @@ public class FeaturePointDetector {
 
 		int first_slice = imp.getCurrentSlice(); //TODO check what should be here, figure out how slices and frames numbers work(getFrameNumberFromSlice(impA.getCurrentSlice())-1) * impA.getNSlices() + 1; 
 		// create a new MyFrame from the current_slice in the stack, linkrange should not matter for a previewframe
-		preview_frame = new MyFrame(FeaturePointDetector.GetSubStackCopyInFloat(stack, first_slice, first_slice  + imp.getNSlices() - 1), getFrameNumberFromSlice(imp.getCurrentSlice(), imp.getNSlices())-1, 1);
-
+		preview_frame = new MyFrame(MosaicUtils.GetSubStackCopyInFloat(stack, first_slice, first_slice  + imp.getNSlices() - 1), getFrameNumberFromSlice(imp.getCurrentSlice(), imp.getNSlices())-1, 1);
+		
 		// detect particles in this frame
 		featurePointDetection(preview_frame);
 		setPreviewLabel("#Particles: " + preview_frame.getParticles().size());		
@@ -1379,211 +950,211 @@ public class FeaturePointDetector {
 		return preview_frame;
 	}
 	
-	/**
-	 * Second phase of the algorithm - 
-	 * <br>Identifies points corresponding to the 
-	 * same physical particle in subsequent frames and links the positions into trajectories
-	 * <br>The length of the particles next array will be reset here according to the current linkrange
-	 * <br>Adapted from Ingo Oppermann implementation
-	 */
-	public void linkParticles(MyFrame[] frames, int frames_number, int linkrange, double displacement) {
-
-		int m, i, j, k, nop, nop_next, n;
-		int ok, prev, prev_s, x = 0, y = 0, curr_linkrange;
-		int[] g;
-		double min, z, max_cost;
-		double[] cost;
-		Vector<Particle> p1, p2;
-
-		// set the length of the particles next array according to the linkrange
-		// it is done now since link range can be modified after first run
-		for (int fr = 0; fr<frames.length; fr++) {
-			for (int pr = 0; pr<frames[fr].getParticles().size(); pr++) {
-				frames[fr].getParticles().elementAt(pr).next = new int[linkrange];
-			}
-		}
-		curr_linkrange = linkrange;
-
-		/* If the linkrange is too big, set it the right value */
-		if(frames_number < (curr_linkrange + 1))
-			curr_linkrange = frames_number - 1;
-
-		max_cost = displacement * displacement;
-
-		for(m = 0; m < frames_number - curr_linkrange; m++) {
-			nop = frames[m].getParticles().size();
-			for(i = 0; i < nop; i++) {
-				frames[m].getParticles().elementAt(i).special = false;
-				for(n = 0; n < linkrange; n++)
-					frames[m].getParticles().elementAt(i).next[n] = -1;
-			}
-
-			for(n = 0; n < curr_linkrange; n++) {
-				max_cost = (double)(n + 1) * displacement * (double)(n + 1) * displacement;
-
-				nop_next = frames[m + (n + 1)].getParticles().size();
-
-				/* Set up the cost matrix */
-				cost = new double[(nop + 1) * (nop_next + 1)];
-
-				/* Set up the relation matrix */
-				g = new int[(nop + 1) * (nop_next + 1)];
-
-				/* Set g to zero */
-				for (i = 0; i< g.length; i++) g[i] = 0;
-
-				p1 = frames[m].getParticles();
-				p2 = frames[m + (n + 1)].getParticles();
-				//    			p1 = frames[m].particles;
-				//    			p2 = frames[m + (n + 1)].particles;
-
-
-				/* Fill in the costs */
-				for(i = 0; i < nop; i++) {
-					for(j = 0; j < nop_next; j++) {
-						cost[coord(i, j, nop_next + 1)] = 
-							(p1.elementAt(i).x - p2.elementAt(j).x)*(p1.elementAt(i).x - p2.elementAt(j).x) + 
-							(p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) + 
-							(p1.elementAt(i).z - p2.elementAt(j).z)*(p1.elementAt(i).z - p2.elementAt(j).z) + 
-							(p1.elementAt(i).m0 - p2.elementAt(j).m0)*(p1.elementAt(i).m0 - p2.elementAt(j).m0) + 
-							(p1.elementAt(i).m2 - p2.elementAt(j).m2)*(p1.elementAt(i).m2 - p2.elementAt(j).m2);
-					}
-				}
-
-				for(i = 0; i < nop + 1; i++)
-					cost[coord(i, nop_next, nop_next + 1)] = max_cost;
-				for(j = 0; j < nop_next + 1; j++)
-					cost[coord(nop, j, nop_next + 1)] = max_cost;
-				cost[coord(nop, nop_next, nop_next + 1)] = 0.0;
-
-				/* Initialize the relation matrix */
-				for(i = 0; i < nop; i++) { // Loop over the x-axis
-					min = max_cost;
-					prev = 0;
-					for(j = 0; j < nop_next; j++) { // Loop over the y-axis
-						/* Let's see if we can use this coordinate */
-						ok = 1;
-						for(k = 0; k < nop + 1; k++) {
-							if(g[coord(k, j, nop_next + 1)] == 1) {
-								ok = 0;
-								break;
-							}
-						}
-						if(ok == 0) // No, we can't. Try the next column
-							continue;
-
-						/* This coordinate is OK */
-						if(cost[coord(i, j, nop_next + 1)] < min) {
-							min = cost[coord(i, j, nop_next + 1)];
-							g[coord(i, prev, nop_next + 1)] = 0;
-							prev = j;
-							g[coord(i, prev, nop_next + 1)] = 1;
-						}
-					}
-
-					/* Check if we have a dummy particle */
-					if(min == max_cost) {
-						g[coord(i, prev, nop_next + 1)] = 0;
-						g[coord(i, nop_next, nop_next + 1)] = 1;
-					}
-				}
-
-				/* Look for columns that are zero */
-				for(j = 0; j < nop_next; j++) {
-					ok = 1;
-					for(i = 0; i < nop + 1; i++) {
-						if(g[coord(i, j, nop_next + 1)] == 1)
-							ok = 0;
-					}
-
-					if(ok == 1)
-						g[coord(nop, j, nop_next + 1)] = 1;
-				}
-
-				/* The relation matrix is initilized */
-
-				/* Now the relation matrix needs to be optimized */
-				min = -1.0;
-				while(min < 0.0) {
-					min = 0.0;
-					prev = 0;
-					prev_s = 0;
-					for(i = 0; i < nop + 1; i++) {
-						for(j = 0; j < nop_next + 1; j++) {
-							if(i == nop && j == nop_next)
-								continue;
-
-							if(g[coord(i, j, nop_next + 1)] == 0 && 
-									cost[coord(i, j, nop_next + 1)] <= max_cost) {
-								/* Calculate the reduced cost */
-
-								// Look along the x-axis, including
-								// the dummy particles
-								for(k = 0; k < nop + 1; k++) {
-									if(g[coord(k, j, nop_next + 1)] == 1) {
-										x = k;
-										break;
-									}
-								}
-
-								// Look along the y-axis, including
-								// the dummy particles
-								for(k = 0; k < nop_next + 1; k++) {
-									if(g[coord(i, k, nop_next + 1)] == 1) {
-										y = k;
-										break;
-									}
-								}
-
-								/* z is the reduced cost */
-								if(j == nop_next)
-									x = nop;
-								if(i == nop)
-									y = nop_next;
-
-								z = cost[coord(i, j, nop_next + 1)] + 
-								cost[coord(x, y, nop_next + 1)] - 
-								cost[coord(i, y, nop_next + 1)] - 
-								cost[coord(x, j, nop_next + 1)];
-								if(z > -1.0e-10)
-									z = 0.0;
-								if(z < min) {
-									min = z;
-									prev = coord(i, j, nop_next + 1);
-									prev_s = coord(x, y, nop_next + 1);
-								}
-							}
-						}
-					}
-
-					if(min < 0.0) {
-						g[prev] = 1;
-						g[prev_s] = 1;
-						g[coord(prev / (nop_next + 1), prev_s % (nop_next + 1), nop_next + 1)] = 0;
-						g[coord(prev_s / (nop_next + 1), prev % (nop_next + 1), nop_next + 1)] = 0;
-					}
-				}
-
-				/* After optimization, the particles needs to be linked */
-				for(i = 0; i < nop; i++) {
-					for(j = 0; j < nop_next; j++) {
-						if(g[coord(i, j, nop_next + 1)] == 1)
-							p1.elementAt(i).next[n] = j;
-					}
-				}
-			}
-
-			if(m == (frames_number - curr_linkrange - 1) && curr_linkrange > 1)
-				curr_linkrange--;
-		}
-
-		/* At the last frame all trajectories end */
-		for(i = 0; i < frames[frames_number - 1].getParticles().size(); i++) {
-			frames[frames_number - 1].getParticles().elementAt(i).special = false;
-			for(n = 0; n < linkrange; n++)
-				frames[frames_number - 1].getParticles().elementAt(i).next[n] = -1;
-		}
-	}
+//	/**
+//	 * Second phase of the algorithm - 
+//	 * <br>Identifies points corresponding to the 
+//	 * same physical particle in subsequent frames and links the positions into trajectories
+//	 * <br>The length of the particles next array will be reset here according to the current linkrange
+//	 * <br>Adapted from Ingo Oppermann implementation
+//	 */
+//	public void linkParticles(MyFrame[] frames, int frames_number, int linkrange, double displacement) {
+//
+//		int m, i, j, k, nop, nop_next, n;
+//		int ok, prev, prev_s, x = 0, y = 0, curr_linkrange;
+//		int[] g;
+//		double min, z, max_cost;
+//		double[] cost;
+//		Vector<Particle> p1, p2;
+//
+//		// set the length of the particles next array according to the linkrange
+//		// it is done now since link range can be modified after first run
+//		for (int fr = 0; fr<frames.length; fr++) {
+//			for (int pr = 0; pr<frames[fr].getParticles().size(); pr++) {
+//				frames[fr].getParticles().elementAt(pr).next = new int[linkrange];
+//			}
+//		}
+//		curr_linkrange = linkrange;
+//
+//		/* If the linkrange is too big, set it the right value */
+//		if(frames_number < (curr_linkrange + 1))
+//			curr_linkrange = frames_number - 1;
+//
+//		max_cost = displacement * displacement;
+//
+//		for(m = 0; m < frames_number - curr_linkrange; m++) {
+//			nop = frames[m].getParticles().size();
+//			for(i = 0; i < nop; i++) {
+//				frames[m].getParticles().elementAt(i).special = false;
+//				for(n = 0; n < linkrange; n++)
+//					frames[m].getParticles().elementAt(i).next[n] = -1;
+//			}
+//
+//			for(n = 0; n < curr_linkrange; n++) {
+//				max_cost = (double)(n + 1) * displacement * (double)(n + 1) * displacement;
+//
+//				nop_next = frames[m + (n + 1)].getParticles().size();
+//
+//				/* Set up the cost matrix */
+//				cost = new double[(nop + 1) * (nop_next + 1)];
+//
+//				/* Set up the relation matrix */
+//				g = new int[(nop + 1) * (nop_next + 1)];
+//
+//				/* Set g to zero */
+//				for (i = 0; i< g.length; i++) g[i] = 0;
+//
+//				p1 = frames[m].getParticles();
+//				p2 = frames[m + (n + 1)].getParticles();
+//				//    			p1 = frames[m].particles;
+//				//    			p2 = frames[m + (n + 1)].particles;
+//
+//
+//				/* Fill in the costs */
+//				for(i = 0; i < nop; i++) {
+//					for(j = 0; j < nop_next; j++) {
+//						cost[coord(i, j, nop_next + 1)] = 
+//							(p1.elementAt(i).x - p2.elementAt(j).x)*(p1.elementAt(i).x - p2.elementAt(j).x) + 
+//							(p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) + 
+//							(p1.elementAt(i).z - p2.elementAt(j).z)*(p1.elementAt(i).z - p2.elementAt(j).z) + 
+//							(p1.elementAt(i).m0 - p2.elementAt(j).m0)*(p1.elementAt(i).m0 - p2.elementAt(j).m0) + 
+//							(p1.elementAt(i).m2 - p2.elementAt(j).m2)*(p1.elementAt(i).m2 - p2.elementAt(j).m2);
+//					}
+//				}
+//
+//				for(i = 0; i < nop + 1; i++)
+//					cost[coord(i, nop_next, nop_next + 1)] = max_cost;
+//				for(j = 0; j < nop_next + 1; j++)
+//					cost[coord(nop, j, nop_next + 1)] = max_cost;
+//				cost[coord(nop, nop_next, nop_next + 1)] = 0.0;
+//
+//				/* Initialize the relation matrix */
+//				for(i = 0; i < nop; i++) { // Loop over the x-axis
+//					min = max_cost;
+//					prev = 0;
+//					for(j = 0; j < nop_next; j++) { // Loop over the y-axis
+//						/* Let's see if we can use this coordinate */
+//						ok = 1;
+//						for(k = 0; k < nop + 1; k++) {
+//							if(g[coord(k, j, nop_next + 1)] == 1) {
+//								ok = 0;
+//								break;
+//							}
+//						}
+//						if(ok == 0) // No, we can't. Try the next column
+//							continue;
+//
+//						/* This coordinate is OK */
+//						if(cost[coord(i, j, nop_next + 1)] < min) {
+//							min = cost[coord(i, j, nop_next + 1)];
+//							g[coord(i, prev, nop_next + 1)] = 0;
+//							prev = j;
+//							g[coord(i, prev, nop_next + 1)] = 1;
+//						}
+//					}
+//
+//					/* Check if we have a dummy particle */
+//					if(min == max_cost) {
+//						g[coord(i, prev, nop_next + 1)] = 0;
+//						g[coord(i, nop_next, nop_next + 1)] = 1;
+//					}
+//				}
+//
+//				/* Look for columns that are zero */
+//				for(j = 0; j < nop_next; j++) {
+//					ok = 1;
+//					for(i = 0; i < nop + 1; i++) {
+//						if(g[coord(i, j, nop_next + 1)] == 1)
+//							ok = 0;
+//					}
+//
+//					if(ok == 1)
+//						g[coord(nop, j, nop_next + 1)] = 1;
+//				}
+//
+//				/* The relation matrix is initilized */
+//
+//				/* Now the relation matrix needs to be optimized */
+//				min = -1.0;
+//				while(min < 0.0) {
+//					min = 0.0;
+//					prev = 0;
+//					prev_s = 0;
+//					for(i = 0; i < nop + 1; i++) {
+//						for(j = 0; j < nop_next + 1; j++) {
+//							if(i == nop && j == nop_next)
+//								continue;
+//
+//							if(g[coord(i, j, nop_next + 1)] == 0 && 
+//									cost[coord(i, j, nop_next + 1)] <= max_cost) {
+//								/* Calculate the reduced cost */
+//
+//								// Look along the x-axis, including
+//								// the dummy particles
+//								for(k = 0; k < nop + 1; k++) {
+//									if(g[coord(k, j, nop_next + 1)] == 1) {
+//										x = k;
+//										break;
+//									}
+//								}
+//
+//								// Look along the y-axis, including
+//								// the dummy particles
+//								for(k = 0; k < nop_next + 1; k++) {
+//									if(g[coord(i, k, nop_next + 1)] == 1) {
+//										y = k;
+//										break;
+//									}
+//								}
+//
+//								/* z is the reduced cost */
+//								if(j == nop_next)
+//									x = nop;
+//								if(i == nop)
+//									y = nop_next;
+//
+//								z = cost[coord(i, j, nop_next + 1)] + 
+//								cost[coord(x, y, nop_next + 1)] - 
+//								cost[coord(i, y, nop_next + 1)] - 
+//								cost[coord(x, j, nop_next + 1)];
+//								if(z > -1.0e-10)
+//									z = 0.0;
+//								if(z < min) {
+//									min = z;
+//									prev = coord(i, j, nop_next + 1);
+//									prev_s = coord(x, y, nop_next + 1);
+//								}
+//							}
+//						}
+//					}
+//
+//					if(min < 0.0) {
+//						g[prev] = 1;
+//						g[prev_s] = 1;
+//						g[coord(prev / (nop_next + 1), prev_s % (nop_next + 1), nop_next + 1)] = 0;
+//						g[coord(prev_s / (nop_next + 1), prev % (nop_next + 1), nop_next + 1)] = 0;
+//					}
+//				}
+//
+//				/* After optimization, the particles needs to be linked */
+//				for(i = 0; i < nop; i++) {
+//					for(j = 0; j < nop_next; j++) {
+//						if(g[coord(i, j, nop_next + 1)] == 1)
+//							p1.elementAt(i).next[n] = j;
+//					}
+//				}
+//			}
+//
+//			if(m == (frames_number - curr_linkrange - 1) && curr_linkrange > 1)
+//				curr_linkrange--;
+//		}
+//
+//		/* At the last frame all trajectories end */
+//		for(i = 0; i < frames[frames_number - 1].getParticles().size(); i++) {
+//			frames[frames_number - 1].getParticles().elementAt(i).special = false;
+//			for(n = 0; n < linkrange; n++)
+//				frames[frames_number - 1].getParticles().elementAt(i).next[n] = -1;
+//		}
+//	}
 	
 	public void saveDetected(MyFrame[] frames) {
 		/* show save file user dialog with default file name 'frame' */
@@ -1593,7 +1164,7 @@ public class FeaturePointDetector {
 
 		// for each frame - save the detected particles
 			for (int i = 0; i<frames.length; i++) {					
-				if (!write2File(sd.getDirectory(), sd.getFileName() + "_" + i, 
+				if (!MosaicUtils.write2File(sd.getDirectory(), sd.getFileName() + "_" + i, 
 						frames[i].frameDetectedParticlesForSave(false).toString())) {
 					// upon any problam savingto file - return
 					IJ.log("Problem occured while writing to file.");
@@ -1604,31 +1175,7 @@ public class FeaturePointDetector {
 		return;
 	}
 	
-	/**
-	 * Writes the given <code>info</code> to given file information.
-	 * <code>info</code> will be written to the beginning of the file, overwriting older information
-	 * If the file does not exists it will be created.
-	 * Any problem creating, writing to or closing the file will generate an ImageJ error   
-	 * @param directory location of the file to write to 
-	 * @param file_name file name to write to
-	 * @param info info the write to file
-	 * @see java.io.FileOutputStream#FileOutputStream(java.lang.String)
-	 */
-	public boolean write2File(String directory, String file_name, String info) {
-		try {
-			FileOutputStream fos = new FileOutputStream(new File(directory, file_name));
-			BufferedOutputStream bos = new BufferedOutputStream(fos);
-			PrintWriter print_writer = new PrintWriter(bos);
-			print_writer.print(info);
-			print_writer.close();
-			return true;
-		}
-		catch (IOException e) {
-			IJ.error("" + e);
-			return false;
-		}    			
 
-	}
 
 }
 
