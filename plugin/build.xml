@@ -2,19 +2,25 @@
     <description>
         Mosaic Toolbox build file
     </description>
+	
+	<!-- Adapt paths to your environment -->
+	<property name="pluginsDir"  location="../IJ/plugins/Mosaic_Toolbox" />
+ 
+	<property name="scala.home" value="lib"/>
+	<property name="scala-compiler.jar" value="${scala.home}/scala-compiler-2.8.1.jar"/>
+	<property name="scala-library.jar" value="${scala.home}/scala-library-2.8.1.jar"/>
+	<property name="scala-swing.jar" value="${scala.home}/scala-swing-2.8.1.jar"/>
+	
+	<property name="proguard.jar" value="${scala.home}/proguard.jar"/>
+	
+	<!-- Shouldn't be necessary to change something below here, except you know what you are doing. -->
+
 	<property name="src" location="src" />
 	<property name="build" location="bin" />
 	<property name="dist"  location="dist" />
  
-	<property name="pluginsDir"  location="$basedir/../../IJ/plugins/Mosaic_Toolbox" />
- 
 	<property name="user.name" value="Mosaic" />
 	<property name="jarfilename" value="Mosaic_Toolbox"/>
-		
-	<property name="scala.home" value="/usr/local/scala/"/>
-	<property name="scala-compiler.jar" value="${scala.home}/lib/scala-compiler.jar"/>
-	<property name="scala-library.jar" value="${scala.home}/lib/scala-library.jar"/>
-	<property name="scala-swing.jar" value="${scala.home}/lib/scala-swing.jar"/>
 
 	
 	<target name="main" depends="clean,build,compress" description="Main target">
@@ -32,26 +38,42 @@
 			<fileset dir="${build}" includes="**/*.*" />
 			<fileset dir="." includes="macros/*.ijm" />
 	 		
-	 		<!--Add Scala, Scalala, ScalaNLP and there dependencies to Mosaic Toolbox jar -->
+ 			<!-- Add needed libs directly to the IJ eclipse project and not into this ant target "compress", for faster debugging 
+ 				 Add the libs to the target "compressLibs", to get a working plugin for other ImageJ instances outside of eclipse -->
 
- 			<!-- Add needed libs directly to the IJ eclipse project and not into the MosaicToobox.jar, for faster debugging -->
-			<!--
-	 		
-	 			<fileset dir="../Scalala/target/classes/" includes="**/*.*" />
-	 			<fileset dir="../scalanlp-core/learn/target/classes/" includes="**/*.*" />
-	 			<fileset dir="../scalanlp-core/data/target/classes/" includes="**/*.*" /> 
-	 			<zipfileset src="${scala-library.jar}" includes="**/*.class"/>
-	 			<zipfileset src="${scala-swing.jar}" includes="**/*.class"/>
-	 		
-	 			<zipgroupfileset dir="../lib" includes="*.jar"/>
- 				<zipgroupfileset dir="../Scalala/lib" includes="*.jar"/>
-			-->
-	 		
-			<manifest>
+	 		<manifest>
 	 			<attribute name="Built-By" value="${user.name}"/>
 	 		</manifest>
 	 	</jar>
 	</target>
+	
+	<target name="compressLibs" depends="compress" description="generate the distribution with all libs">
+			<echo>
+				Adding all libs to the .jar.
+			</echo>
+		 	<jar jarfile="${pluginsDir}/${jarfilename}.jar" update="true">
+		 		
+		 		<!--Add Scala, Scalala, ScalaNLP and there dependencies to Mosaic Toolbox jar -->
+
+	 			<!-- You also need to add needed libs directly to the IJ eclipse project to debug .-->
+		 		
+		 		<!--	<zipgroupfileset dir="../lib" includes="*.jar"/> -->
+		 		<zipgroupfileset dir="${scala.home}" includes="jfreechart-1.0.13.jar"/>
+		 		<zipgroupfileset dir="${scala.home}" includes="*.jar"/>
+		 		
+		 			<zipfileset src="${scala-library.jar}" includes="**/*.class"/>
+		 			<zipfileset src="${scala-swing.jar}" includes="**/*.class"/>
+
+      			<!-- <fileset dir="../Scalala/target/classes/" includes="**/*.*" /> 
+		 			<fileset dir="../scalanlp-core/learn/target/classes/" includes="**/*.*" />
+		 			<fileset dir="../scalanlp-core/data/target/classes/" includes="**/*.*" /> -->
+	 				<zipgroupfileset dir="../Scalala/lib" includes="*.jar"/>
+				
+		 		<manifest>
+		 			<attribute name="Built-By" value="${user.name}"/>
+		 		</manifest>
+		 	</jar>
+		</target>
 	
 	<target name="clean" description="deletes all binaries and jars">
 		<echo>
@@ -71,24 +93,46 @@
 	<path id="scala.classpath">
 		<pathelement location="${scala-compiler.jar}"/>
 		<pathelement location="${scala-library.jar}"/>
+		<pathelement location="${scala-swing.jar}"/>
+		<fileset dir="../IJ">
+			    		    		      	<include name="ij.jar"/>
+			    		    		      </fileset>
 	</path>
 	
 	<!-- classpath for project build -->   
 	    <path id="build.classpath">
+	    	<fileset dir="../IJ">
+	    		    		      	<include name="ij.jar"/>
+	    		    		      </fileset>
+	    	  	
 	      <pathelement location="${scala-library.jar}"/>
-	      <fileset dir="../lib">
-	        <include name="*/*.jar"/>
+	    	<pathelement location="${scala-swing.jar}"/>
+	      <fileset dir="${scala.home}">
+	      	 <include name="*/*.jar"/>
 	      	<include name="*.jar"/>
 	      </fileset>
+	    	
+	    <!--	<fileset dir="/Users/arun/Documents/Programs_APIs">
+	    		      	<include name="junit-3.8.1.jar"/>
+	    		
+	    		<include name="jfreechart-1.0.13.jar"/>
+	    		
+	    		      </fileset>
+	    		      
+	    		      -->
+	    	
 	      <pathelement location="${build}"/>
 	    	
 	    	<!-- classpath IJ --> 	
-	      <pathelement location="../IJ/bin"/>
+	      <pathelement location="bin"/>
+	    	
 	    	<!-- classpath Scalala -->
 	    	<pathelement location="../Scalala/target/classes"/>
 	    	<fileset dir="../Scalala/lib">
 	    		        <include name="*.jar"/>
 	    	</fileset>
+	    	
+	    	<pathelement location="bin"/>
 	    </path>
 
 	
@@ -102,7 +146,25 @@
 	        <include name="**/*.java"/>
 	    </scalac>
 	 
-	    <javac srcdir="src/" destdir="bin" 
-	           classpath="bin"/>
+	    <javac srcdir="src/" destdir="bin/" classpathref="build.classpath"
+	           classpath="${build.classpath}"/>
 	</target>
-</project>
+	
+	<target name="proguard" depends="compressLibs">
+	  <taskdef resource="proguard/ant/task.properties"
+	           classpath="${proguard.jar}" />
+	  <proguard configuration="MosaicToolbox.pro"/>
+	</target>
+
+	
+	
+	 <target name="docs" >
+	    <mkdir dir="docs"   />
+	    <scaladoc
+	      srcdir="src/" destdir="docs/" classpathref="build.classpath"
+	      deprecation="yes" unchecked="yes"
+	      doctitle="&lt;div&gt;liftweb 0.1.0&lt;/div&gt;">
+	        <include name="**/*.scala"   />
+	    </scaladoc>
+	  </target>
+		 </project>
