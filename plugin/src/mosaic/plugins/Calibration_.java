@@ -18,6 +18,7 @@ import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
+import mosaic.core.particleLinking.ParticleLinker;
 
 
 public class Calibration_ implements PlugIn, PreviewInterface {
@@ -40,15 +41,16 @@ public class Calibration_ implements PlugIn, PreviewInterface {
 	public void run(String arg) {
 		allocateTwoImages();
 		detect();
-		detector.linkParticles(frames, frames_number, linkrange, displacement);
+		// changed by arun to affect janick's refactoring
+		new ParticleLinker().linkParticles(frames, frames_number, linkrange, displacement);
+		//
 		calculateShifts();
 		regression();
 	}
 
 	private void regression() {
 		
-		// Commented by Arun. Not sure what's the purpose of this code. It gives compile error. In SVN this was not commented. But in Sutter's 
-		//code (in the CD with Ivo, this is commented). So I am commenting it for the time being --Arun
+		// Commented by Arun.Was giving compile error, code not used.
 	//	Regression$.MODULE$.regression(shiftsWithPosition);
 	}
 
