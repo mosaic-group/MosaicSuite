@@ -76,7 +76,9 @@ object HypothesisTesting {
 				covOfTInverse.getRow(ii) := new DenseVector(invCovArray(ii))
 			}
 				
-		// Sample T again to learn distribution of U = (E0(T) − T)t Cov0(T)−1 (E0(T) − T) .
+		
+
+
 		val TsforU = new DenseMatrix(K,L)
 		val Us = new Array[Double](K)
 		for (i <- (0 until K)) {

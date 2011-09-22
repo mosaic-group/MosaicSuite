@@ -10,6 +10,7 @@ import ij.process.StackStatistics;
 
 import mosaic.core.detection.Particle
 import mosaic.interaction.input._
+import mosaic.core.particleLinking.ParticleLinker
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.JavaConversions._
@@ -40,7 +41,10 @@ class ChromaticAberration extends PlugIn with ImagePreparation {
 			allocateTwoImages()
 		}
 		detect();
-		detectors(0).linkParticles(frames, frames_number, linkrange, displacement);
+		val pl=new ParticleLinker()
+		// arun's edit to incorporate janick's refactoring
+	//	detectors(0).linkParticles(frames, frames_number, linkrange, displacement);
+		pl.linkParticles(frames, frames_number, linkrange, displacement);
 		val (shifts, shiftsPosition) = calculateShifts();
 		
 		// close second image, first image shows chromatic shifts

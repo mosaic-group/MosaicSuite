@@ -37,9 +37,14 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 	 def GUI() {
 		 // Input type selection dialog
 		 val gd = new GenericDialog("Input type selection...", IJ.getInstance());
-		 gd.addChoice("Input source:", Array("Images","Matlab File .mat", "Matlab Debug", "Debug"), "Images")
+		 //arun comments on 9/9/11
+		 //gd.addChoice("Input source:", Array("Images","Matlab File .mat", "Matlab Debug", "Debug"), "Images")
+		 gd.addChoice("Input source:", Array("Images","Matlab File .mat"), "Images")
 		 gd.addChoice("Dimensions:", Array("2D","3D"), "3D")
 		 gd.showDialog()
+		 //arun, to remove cancel bug, 9/9/11
+		 if (gd.wasCanceled()) return;
+		 //
 		 inputSource = gd.getNextChoiceIndex
 		 model.dim = gd.getNextChoiceIndex + 2
 		 dim = model.dim
@@ -91,15 +96,19 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 			 case 1 => matlabInput
 			 case 0 =>  {
 				 //imgTab
+				 
 				 imgTab = new JPanel(new GridLayout(2,2))
 				 imgTab.setPreferredSize(new Dimension(380, 45));
 				 superPanel.add(imgTab)
 				 val imgList = getImgList
-	
+				 //arun: 9/9/11. to remove the bug if the user cancels the open dialog
+				 if(imgList.size<2)
+				   return
+				   //
 				 imgAS = getComboBox(imgList,0)
 	//			 imgAS.peer.removeAllItems()
 	//			 imgList.foreach(imgAS.peer.addItem(_))
-				 
+			
 				 setImage(imgList(0),0)
 				 imgTab.add(new JLabel("Image of reference group Y"));
 				 imgTab.add(imgAS.peer)
@@ -132,13 +141,13 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 			 
 			// object positions
 			val matlabPath = new JTextField("Path incl. name of .mat-file.");
-	        val matY = new JTextField("Y");
-	        val matX = new JTextField("X");
+	        val matY = new JTextField("Var name for Y in .mat file");
+	        val matX = new JTextField("Var name for X in .mat file");
 	
 	        val chroValTab = new JPanel(new GridLayout(3,3));
 	        
 	        matlabTab.add(matlabPath)
-	        matlabTab.add(new JLabel(""))
+	        matlabTab.add(new JLabel(" Update all fields and ENTER"))
 	        matlabTab.add(new JLabel("Reference Group Y:"));
 	        matlabTab.add(new JLabel("Group X:"));
 	        matlabTab.add(matY)
@@ -162,16 +171,20 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 	        matX.addActionListener((e:ActionEvent) => setPrefs)
 
 	        dx.addActionListener((e:ActionEvent) => setPrefs)
-	        dx.addActionListener((e:ActionEvent) => setPrefs)
-	        dx.addActionListener((e:ActionEvent) => setPrefs)
+	        dy.addActionListener((e:ActionEvent) => setPrefs)
+	        dz.addActionListener((e:ActionEvent) => setPrefs)
 	        def setPrefs {
+	          
+
 	        	Prefs.set("ia.matlabPath", matlabPath.getText())
 	        	Prefs.set("ia.MatrixY", matY.getText())
 	        	Prefs.set("ia.MatrixX", matX.getText())
 	        	Prefs.set("ia.dx", (dx.getText()).toInt)
 	        	Prefs.set("ia.dy", (dy.getText()).toInt)
 	        	Prefs.set("ia.dz", (dz.getText()).toInt)
+	        	  
 	        }
+	      
 		 }
 	 
 		 def aboutTab {
@@ -248,7 +261,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 	        
 	        tabs.add("Chromatic Aberration", chroTab)
 	        
-	        val kozubek2000 = "M. Kozubek and P. Matula(2000), An efficient algorithm \nfor measurement and correction of chromatic aberrations \nin fluorescence microscopy. \nJournal of Microscopy, 200: 206–217."
+	        val kozubek2000 = "M. Kozubek and P. Matula(2000), An efficient algorithm \nfor measurement and correction of chromatic aberrations \nin fluorescence microscopy. \nJournal of Microscopy, 200: 206-217."
 		    chroTab.add(new JTextArea(kozubek2000))
 		 }
 		 
@@ -407,6 +420,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 	def getImgList: List[ImagePlus] = {
     		var imgList:List[ImagePlus] = Nil
 		if (WindowManager.getImageCount()==0){
+		  
         	allocateTwoImages()
         }        
         
@@ -454,6 +468,7 @@ trait InteractionGUI extends ActionListener with ij.ImageListener with ImagePrep
 	
 	def getComboBox(imgList: List[ImagePlus], i:Int): ComboBox[ImagePlus] = {
 		 new ComboBox(imgList) {
+		
 				 renderer = swing.ListView.Renderer(_.getTitle) // The renderer is just the title field of the ImagePlus class.
 				 peer.addActionListener((e:ActionEvent) => setImage(selection.item,i) )
 				 peer.setModel(new DefaultComboBoxModel) // <- to be mutable

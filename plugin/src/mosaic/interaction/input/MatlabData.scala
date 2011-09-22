@@ -12,6 +12,7 @@ object MatlabData {
 		val path = Prefs.get("ia.matlabPath", "")
 		val yName = Prefs.get("ia.MatrixY", "")
 		val xName = Prefs.get("ia.MatrixX", "")
+	
 		var y: Array[Array[Double]] = null
 		var x: Array[Array[Double]] = null
 		
@@ -19,7 +20,7 @@ object MatlabData {
 			y = ScalalaUtils.matrix2Array(ReadMat.getMatrix(path,yName))
 			x = ScalalaUtils.matrix2Array(ReadMat.getMatrix(path,xName))		
 		} catch {
-			case e:java.io.FileNotFoundException => IJ.showMessage("File not found: "+ path)
+			case e:java.io.FileNotFoundException => { IJ.showMessage("File not found: "+ path)}
 		}
 			val dx = Prefs.get("ia.dx", 1).toInt
 			val dy = Prefs.get("ia.dy", 1).toInt

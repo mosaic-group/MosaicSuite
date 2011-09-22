@@ -46,7 +46,10 @@ public class Calibration_ implements PlugIn, PreviewInterface {
 	}
 
 	private void regression() {
-		Regression$.MODULE$.regression(shiftsWithPosition);
+		
+		// Commented by Arun. Not sure what's the purpose of this code. It gives compile error. In SVN this was not commented. But in Sutter's 
+		//code (in the CD with Ivo, this is commented). So I am commenting it for the time being --Arun
+	//	Regression$.MODULE$.regression(shiftsWithPosition);
 	}
 
 

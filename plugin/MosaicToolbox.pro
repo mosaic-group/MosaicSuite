@@ -1,19 +1,22 @@
--injars /home/marksutt/ethmat/MA/workspace/IJ/plugins/Mosaic_Toolbox/Mosaic_Toolbox.jar
--outjars /home/marksutt/Desktop/ImageJ/plugins/Mosaic_Toolbox.min03jan2011.jar
+-injars /Users/arun/Documents/workspace2/IJ/plugins/Mosaic_Toolbox/Mosaic_Toolbox.jar
+-outjars /Users/arun/Documents/workspace2/IJ/plugins/Mosaic_Toolbox/Mosaic_Toolbox.min.jar
 
--libraryjars /usr/lib/jvm/java-6-sun-1.6.0.22/jre/lib/rt.jar
--libraryjars /home/marksutt/ethmat/MA/workspace/lib/ij.jar
+-libraryjars /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Classes/classes.jar
+-libraryjars /Users/arun/Documents/workspace2/IJ/bin/ij.jar
 
 -dontoptimize
 -dontobfuscate
-
+-dontskipnonpubliclibraryclasses
 -ignorewarnings
 
 # Ignore scala specific warnings
 -dontwarn **$$anonfun$*
 -dontwarn scala.collection.immutable.RedBlack$Empty
 -dontwarn scala.tools.**,plugintemplate.**
-
+-overloadaggressively
+-repackageclasses ''
+-allowaccessmodification
+-dontnote
 
 -keep class * extends ij.plugin.PlugIn
 

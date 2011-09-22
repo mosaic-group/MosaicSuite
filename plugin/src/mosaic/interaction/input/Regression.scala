@@ -1,4 +1,4 @@
-package mosaic.interactio.input
+package mosaic.interaction.input
 
 import org.apache.commons.math.stat.regression._
 import scalala.tensor.dense._

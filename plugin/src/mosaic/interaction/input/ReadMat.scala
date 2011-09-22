@@ -8,7 +8,9 @@ import com.jmatio.io._
 import com.jmatio.types._
 
 object ReadMat {
-	val sketchPath = "/Users/marksutt/Documents/MA/matlab/"
+	//Commented by Arun on 9/9/11. These have hard coded code and hence must be useless. But its used in cmalikelihoodexample.not deleting for now. think its ok.
+	 
+	  val sketchPath = "/Users/marksutt/Documents/MA/matlab/"
 	 
 	def main(args : Array[String]) : Unit = {
 			
@@ -25,7 +27,7 @@ object ReadMat {
 		val doubleArray = ReadMat.readMatDoubleArrayFile("/Users/marksutt/Desktop/01green/Output/Mask.mat", "Mask")
 		val maskMatrix = ReadMat.getMatrix("/Users/marksutt/Desktop/01green/Output/Mask.mat", "Mask")
 		println("")
-	}
+	  }
 	
 	def getVector(file: String,vectorName : String, i: Int = 0): Vector = {
 		val matrix = getMatrix(file,vectorName)
