@@ -418,7 +418,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 	{
 		ImageStack vZProjectedStack = new ImageStack(mWidth, mHeight);
 		ZProjector vZProjector = new ZProjector(aIMP);
-		vZProjector.setMethod(ZProjector.SUM_METHOD);//.MAX_METHOD);
+		vZProjector.setMethod(ZProjector.MAX_METHOD);
 		for(int vC = 0; vC < aIMP.getNFrames(); vC++){
 			vZProjector.setStartSlice(vC * mNSlices + 1);
 			vZProjector.setStopSlice((vC + 1) * mNSlices);

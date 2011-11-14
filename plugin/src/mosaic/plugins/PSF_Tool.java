@@ -122,7 +122,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	
 	
 	/**
-	 * This method runs the plugin, what implemented here is what the plugin actually
+	 * This method runs the plugin, what implemented here is what the plugin actually 
 	 * does. It takes the image processor it works on as an argument. 
 	 * @see PlugInFilter#run(ij.process.ImageProcessor)
 	 */

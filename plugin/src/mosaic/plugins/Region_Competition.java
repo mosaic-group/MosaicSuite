@@ -1,85 +1,295 @@
 package mosaic.plugins;
 
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.List;
 
-
-
-import java.util.HashMap;
-
-import javax.vecmath.Point2d;
-
-import mosaic.region_competition.ContourParticle;
-
+import mosaic.region_competition.Connectivity;
+import mosaic.region_competition.ConnectivityOLD;
+import mosaic.region_competition.ConnectivityOLD_2D_4;
+import mosaic.region_competition.LabelImage;
+import mosaic.region_competition.Pair;
+import mosaic.region_competition.Point;
+import mosaic.region_competition.Timer;
+import mosaic.region_competition.TopologicalNumberImageFunction;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
+import ij.WindowManager;
 import ij.gui.Roi;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
+
 /**
- * This plugin immediately ends ImageJ with return code 0.
- * The purpose of the plugin is to end ImageJ via the Macro language when running on a cluster
- * with a virtual frame buffer.
- * @author Janick Cardinale, ETH Zurich
- * @version 1.0, September 2010
- * 
- * <p><b>Disclaimer</b>
- * <br>IN NO EVENT SHALL THE ETH BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, 
- * OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND
- * ITS DOCUMENTATION, EVEN IF THE ETH HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
- * THE ETH SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. 
- * THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE ETH HAS NO 
- * OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.<p>
- *
+ * @author Stephan Semmler, ETH Zurich
+ * @version 14.5.2011
  */
+
 public class Region_Competition implements PlugInFilter{
 		
-	HashMap<Point2d, ContourParticle> mContourContainer;
-	ImageProcessor mLabelImage;
-	ImagePlus mOriginalIP;
-	int mForbiddenLabel = Integer.MAX_VALUE;
+	
+	Region_Competition MVC;
+	LabelImage labelImage;
+	ImagePlus originalIP;
+	ImageStack stack;
+	ImagePlus stackImPlus;
 	
 	
-	
-	public int setup(String aArgs, ImagePlus aImp) {
-		if(aImp == null) {
-			IJ.showMessage("Select an Image.");
-			return DONE;
+	public int setup(String aArgs, ImagePlus aImp)
+	{
+		
+		MVC=this;
+		originalIP = aImp;
+
+		////////////////////
+		
+		if(originalIP == null)
+		{
+			// try to open standard file
+			String fileName= "Clipboard01.png";
+			IJ.open(fileName);
+			originalIP = WindowManager.getCurrentImage();
+			
+			while(originalIP == null) 
+			{
+				//file not found, open menu
+//			IJ.showMessage("File "+fileName+" not found of incompatible, please select manually");
+				IJ.open();
+				originalIP = WindowManager.getCurrentImage();
+			} 
+			
 		}
-		mOriginalIP = aImp;
 		
-		initializeLabelImageAndContourContainer();
-		
+		manualSelect();
+
+//		initStackIP();
+//		frontsCompetitionImageFilter();
+
+//		labelImage.showStatistics();
+//		macroContrast();
 		return DOES_ALL + DONE;
 	}
 	
-	public void run(ImageProcessor aImageProcessor) {
+	void createEmptyIP()
+	{
+		IJ.showMessage("No image selected. Debug mode, create empty 400*300 image");
+		originalIP = new ImagePlus("empty test image", new ShortProcessor(400, 300));
+	}
+	
+	public void run(ImageProcessor aImageProcessor) 
+	{
 		
 	}
 	
-	private void initializeLabelImageAndContourContainer() {
-		mLabelImage=new ShortProcessor(mOriginalIP.getWidth(), mOriginalIP.getHeight());
-		for(int vY = 0; vY < mOriginalIP.getHeight(); vY++){
-			mLabelImage.set(0, vY, mForbiddenLabel);
-			mLabelImage.set(mOriginalIP.getWidth()-1,vY,mForbiddenLabel);
-		}
-		for(int vX = 0; vX < mOriginalIP.getWidth(); vX++){
-			mLabelImage.set(vX, 0, mForbiddenLabel);
-			mLabelImage.set(vX, mOriginalIP.getHeight()-1, mForbiddenLabel);
-		}
+	
+	void frontsCompetitionImageFilter()
+	{
+		labelImage = new LabelImage(MVC);
 		
-		Roi vRectangleROI = new Roi(10, 10, mOriginalIP.getWidth()-20, mOriginalIP.getHeight()-20);
-		mLabelImage.setValue(1);
-		mLabelImage.fill(vRectangleROI);
+		labelImage.initZero();
+		labelImage.initBoundary();
+//		labelImage.initialGuessGrowing(0.2);
 		
-		for(int vY = 0; vY < mOriginalIP.getHeight(); vY++){
-			for(int vX = 0; vX < mOriginalIP.getWidth(); vX++){
-				///hier weiter:
+		labelImage.initialGuessGrowing(0.9);
+//		labelImage.initialGuessRandom();
+		labelImage.generateContour();
+		addSliceToStackAndShow("init", labelImage.getLabelImage().getPixelsCopy());
+
+		labelImage.GenerateData();
+		
+//		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
+		
+	}
+	
+	
+	void manualSelect()
+	{
+		IJ.showMessage("Select initial guesses (holding shift). press space to process");
+		
+		KeyListener keyListener = new KeyListener() 
+		{
+			@Override
+			public void keyTyped(KeyEvent e)
+			{
+//				System.out.println("code " + e.getKeyCode());
+//				System.out.println("id " + e.getID());
+//				System.out.println("char " + ((int)e.getKeyChar()));
+
+				if(e.getKeyChar() == KeyEvent.VK_SPACE) 
+				{
+//					e.consume();
+					Roi roi = originalIP.getRoi();
+					
+					ImageProcessor guessProcessor = new ShortProcessor(originalIP.getWidth(), originalIP.getHeight());
+					ImagePlus guess = new ImagePlus("Guess", guessProcessor);
+					
+//					guess.show();
+					
+					guess.setRoi(roi);
+					guessProcessor.setValue(1);
+					guessProcessor.fill(roi);
+					
+					// remove keylistener afterwards
+					originalIP.getCanvas().removeKeyListener(this);
+					
+					labelImage = new LabelImage(MVC);
+					labelImage.initWithIP(guess);
+					labelImage.initBoundary();
+					labelImage.generateContour();
+					
+					initStackIP();
+					
+					labelImage.GenerateData();
+				}
+			}
+			@Override
+			public void keyReleased(KeyEvent e){
+				// TODO Auto-generated method stub
+			}
+			@Override
+			public void keyPressed(KeyEvent e){
+				// TODO Auto-generated method stub
+			}
+		};
+		
+		
+		originalIP.getCanvas().addKeyListener(keyListener);
+//		originalIP.getWindow().addKeyListener(keyListener);
+//		IJ.getInstance().addKeyListener(keyListener);
+}
+	
+	
+	/**
+	 * treats Input image as a label image / guess. 
+	 * Does boundary, contour and statistics
+	 */
+	void initWithCustom(ImagePlus ip)
+	{
+		ImageProcessor oProc = ip.getChannelProcessor();
+		labelImage = new LabelImage(MVC);
+//		labelImage = oProc.duplicate();
+		labelImage.getLabelImage().insert(oProc, 0, 0);
+		labelImage.initBoundary();
+		labelImage.generateContour();
+		labelImage.computeStatistics();
+		
+		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
+	}
+	
+	void initStackIP()
+	{
+		ImageProcessor myIp = originalIP.getProcessor();
+		stack = new ImageStack(myIp.getWidth(), myIp.getHeight());
+		stackImPlus = new ImagePlus("Stack of "+originalIP.getTitle(), myIp); 
+		
+		stack.addSlice("original", myIp.convertToShort(false).getPixelsCopy());
+		
+		stackImPlus.setStack(null, stack);
+		stackImPlus.show();
+	}
+	
+	public void addSliceToStackAndShow(String title, Object pixels)
+	{
+		if(stack==null)
+		{
+			System.out.println("stack is null");
+			return;
+		}
+		stack.addSlice(title, pixels);
+		stackImPlus.setStack(stack);
+		stackImPlus.setPosition(stack.getSize());
+	}
+
+	public ImagePlus getStackImPlus()
+	{
+		return this.stackImPlus;
+	}
+
+	public ImagePlus getOriginalImPlus()
+	{
+		return this.originalIP;
+	}
+
+	void macroContrast()
+	{
+		IJ.run("Brightness/Contrast...");
+		IJ.setMinAndMax(0, 2048);
+		//call("ij.ImagePlus.setDefault16bitRange", 0);
+		IJ.run("Close");
+	}
+
+	void testConnNew()
+	{
+		Connectivity conn = new Connectivity(2, 0);
+		for(Point p : conn) {
+			System.out.println(p);
+		}
+	}
+
+	void testTopo()
+	{
+		
+		IJ.open("rand.png");
+		ImagePlus aImp = WindowManager.getCurrentImage();
+		originalIP = aImp;
+		
+		LabelImage lbl = new LabelImage(MVC);
+		//debug
+		lbl.initWithIP(aImp);
+		Point index = new Point(10,10);
+		
+		Connectivity connFG = new Connectivity(2,1);
+		Connectivity connBG = new Connectivity(2,0);
+		
+		TopologicalNumberImageFunction topo = new TopologicalNumberImageFunction(lbl, connFG, connBG);
+		List<Pair<Integer, Pair<Integer, Integer>>> result = topo.EvaluateAdjacentRegionsFGTNAtIndex(index);
+		
+		System.out.println(result);
+	}
+
+	/**
+		 * compares runtime of recursive and explicit statistics
+		 */
+		void testStatistics()
+		{
+			ImagePlus ip = originalIP;
+			ImageProcessor oProc = ip.getChannelProcessor();
+			labelImage = new LabelImage(MVC);
+			labelImage.getLabelImage().insert(oProc, 0, 0);
+			labelImage.initBoundary();
+			labelImage.generateContour();
+			
+			Timer t = new Timer();
+			
+			for(int i=0; i<10; i++)
+			{
+				t.tic(); 
+				labelImage.computeStatistics();
+				long time=t.toc();
+				System.out.println("compute time: "+time);
+	//			labelImage.showStatistics();
 				
+				t.tic();
+				labelImage.renewStatistics();
+				time=t.toc();
+				System.out.println("renew time: "+time);
+	//			labelImage.showStatistics();
 			}
 		}
-		
-		new ImagePlus("LabelImage", mLabelImage).show();
+
+	/**
+	 * does overwriting of static part in Connectivity work?
+	 */
+	void testConnStaticInheritance()
+	{
+		ConnectivityOLD conn = new ConnectivityOLD_2D_4();
+
+		for(Point p : conn) {
+			System.out.println(p);
+		}
 	}
+
+
 }
