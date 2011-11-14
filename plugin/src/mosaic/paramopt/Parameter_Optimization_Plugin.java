@@ -17,13 +17,13 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 
-import mosaic.plugin.es.CMAHansen;
-import mosaic.plugin.es.EvolutionStrategy;
-import mosaic.plugin.es.VarMuFixLambdaWithSigmaAdaption;
-import mosaic.plugin.ui.IParameterRankingUI;
-import mosaic.plugin.ui.IParameterSelectionUI;
-import mosaic.plugin.ui.ParameterRankingUI;
-import mosaic.plugin.ui.ParameterSelectionUI;
+import mosaic.paramopt.es.CMAHansen;
+import mosaic.paramopt.es.EvolutionStrategy;
+import mosaic.paramopt.es.VarMuFixLambdaWithSigmaAdaption;
+import mosaic.paramopt.ui.IParameterRankingUI;
+import mosaic.paramopt.ui.IParameterSelectionUI;
+import mosaic.paramopt.ui.ParameterRankingUI;
+import mosaic.paramopt.ui.ParameterSelectionUI;
 
 
 public class Parameter_Optimization_Plugin implements PlugInFilter,

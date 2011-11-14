@@ -7,9 +7,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 
-import mosaic.plugin.macro.ParameterSettings;
-import mosaic.plugin.macro.ParameterizedMacro;
-import mosaic.plugin.macro.ParameterizedMacroParser;
+import mosaic.paramopt.macro.ParameterSettings;
+import mosaic.paramopt.macro.ParameterizedMacro;
+import mosaic.paramopt.macro.ParameterizedMacroParser;
 
 
 public class Configuration {

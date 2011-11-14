@@ -4,8 +4,8 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-import mosaic.plugin.macro.ParameterSettings;
-import mosaic.plugin.macro.ParameterizedMacro;
+import mosaic.paramopt.macro.ParameterSettings;
+import mosaic.paramopt.macro.ParameterizedMacro;
 
 public class ParameterTableModel extends AbstractTableModel {
 
