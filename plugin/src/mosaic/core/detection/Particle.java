@@ -1,7 +1,8 @@
 package mosaic.core.detection;
 
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
+
+
 
 /**
  * Defines a particle that holds all the relevant info for it.

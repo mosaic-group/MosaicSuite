@@ -9,7 +9,6 @@ import ij.io.SaveDialog;
 import ij.measure.Measurements;
 import ij.plugin.filter.Convolver;
 import ij.process.Blitter;
-import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
@@ -25,13 +24,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
+
 import java.util.Vector;
-import java.util.concurrent.atomic.AtomicInteger;
+
 
 
 import mosaic.core.utils.MosaicImageProcessingTools;
@@ -799,6 +794,7 @@ public class FeaturePointDetector {
 	 */
 	public Boolean getUserDefinedPreviewParams(GenericDialog gd) {
 
+		@SuppressWarnings("unchecked") // the warning is due to old imagej code.
 		Vector<TextField> vec = gd.getNumericFields();
 		int rad = Integer.parseInt((vec.elementAt(0)).getText());
 		double cut = Double.parseDouble((vec.elementAt(1)).getText());

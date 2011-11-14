@@ -237,7 +237,7 @@ public class ParameterRankingUI extends JFrame implements IParameterRankingUI,
 			// Create infoIconLabel
 			GridBagConstraints gbcInfoIconLabel = new GridBagConstraints();
 			gbcInfoIconLabel.gridx = 2;
-			gbcInfoIconLabel.gridy = 0;
+			gbcInfoIconLabel.gridy = 0; 
 			ImageIcon infoIcon = new ImageIcon(getClass()
 					.getResource("/info.png"));
 			infoIconLabel = new JLabel(infoIcon);

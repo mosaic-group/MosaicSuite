@@ -9,7 +9,6 @@ import java.io.PrintWriter;
 
 import ij.IJ;
 import ij.ImageStack;
-import ij.io.OpenDialog;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 

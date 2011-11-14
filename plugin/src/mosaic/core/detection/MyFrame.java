@@ -12,7 +12,6 @@ import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.Vector;
 
-import mosaic.plugins.ParticleTracker3DModular_;
 
 	/**
 	 * Defines a MyFrame that is based upon an ImageProcessor or information from a text file.
@@ -374,6 +373,7 @@ import mosaic.plugins.ParticleTracker3DModular_;
 		 * @return the created processor
 		 * @see ImageProcessor#drawDot(int, int)
 		 */
+		@SuppressWarnings("unused")
 		private ImageStack createImage(int width, int height, int depth) {
 			ImageStack is = new ImageStack(width, height);
 			for(int d = 0; d < depth; d++) {

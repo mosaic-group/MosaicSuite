@@ -48,6 +48,7 @@ public class PreviewCanvas extends ImageCanvas {
 	 * @param aimp
 	 * @param preview_f
 	 */
+	@SuppressWarnings("unused")
 	private PreviewCanvas(ImagePlus aimp) {
 		this(aimp, 1);
 	}
