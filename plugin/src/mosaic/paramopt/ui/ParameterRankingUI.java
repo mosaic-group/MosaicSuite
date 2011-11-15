@@ -239,11 +239,11 @@ public class ParameterRankingUI extends JFrame implements IParameterRankingUI,
 			gbcInfoIconLabel.gridx = 2;
 			gbcInfoIconLabel.gridy = 0; 
 			ImageIcon infoIcon = new ImageIcon(getClass()
-					.getResource("mosaic/pictures/info.png"));
+					.getResource("/mosaic/pictures/info.png"));
 			infoIconLabel = new JLabel(infoIcon);
 			// Add mouse listener to show and hide the info text.
 			infoIconLabel.addMouseListener(new MouseListener() {
-				@Override
+				@Override 
 				public void mouseClicked(MouseEvent e) {}
 				@Override
 				public void mousePressed(MouseEvent e) {}

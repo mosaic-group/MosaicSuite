@@ -1839,22 +1839,26 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		//the squared excess noise factor
 		float vENF2 = 1f;
 		if(mGain >= 2) {
-			//TODO: the if-statement is too expensive here.
 			vENF2 = 2f - 1f/mGain + mEMStageSigma * mEMStages * (1f - 1f/mGain) / (float)Math.log(mGain);
 		} 
-		for(int vZ = 0; vZ < mNSlices; vZ++){
+		boolean vNANFailed = false;
+		for(int vZ = 0; vZ < mNSlices; vZ++){ 
 			for(int vY = 0; vY < mHeight; vY++){
 				for(int vX = 0; vX < mWidth; vX++){			
 					if(aBitmap[vZ][vY][vX]){
 						vLogLikelihood += -(Math.pow(aObservation[vZ][vY*mWidth+vX] - mGain*aGivenImage[vZ][vY][vX],2)/
 								(2f * vENF2 * mGain * mGain * aGivenImage[vZ][vY][vX])); 
 						if(Float.isNaN(vLogLikelihood)){
-							System.out.println("NAN at (vz = " + vZ +", vY = " + vY + ", vX = " + vX + "); aObservation = " + aObservation[vZ][vY*mWidth+vX] + ", aGivenImage = " + aGivenImage[vZ][vY][vX]);
+							vNANFailed = true;
+							//System.out.println("");
+							//System.out.println("NAN at (vz = " + vZ +", vY = " + vY + ", vX = " + vX + "); aObservation = " + aObservation[vZ][vY*mWidth+vX] + ", aGivenImage = " + aGivenImage[vZ][vY][vX]);
 						}
 					}
 				}
 			}
 		}
+		if(vNANFailed)
+			return -1;
 		return vLogLikelihood;
 	}
 	
@@ -3319,7 +3323,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 						mHeight,
 						mNSlices,
 						mParticles[vI],
-						(int)(mBackground + .5),
+						Math.max((int)(mBackground + .5), 1),
 						mPxWidthInNm, 
 						mPxDepthInNm);	
 				
