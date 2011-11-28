@@ -4,7 +4,8 @@ import java.util.Arrays;
 
 public class Point 
 {
-	int x[];
+	
+	public int x[];		//TODO private?
 	private int dim;
 	
 	public Point() {}

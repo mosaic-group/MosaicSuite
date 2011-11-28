@@ -34,18 +34,23 @@ public class LabelImage //extends ShortProcessor
 {
 	static int forbiddenLabel=Short.MAX_VALUE;
 	private static int bgLabel = 0;
-	private static int negOfs=1000;			// 
+	private static int negOfs=1000;			// labels above this number stands for "negative numbers" (problem with displaying negative numbers in ij.ShortProcessor)
 	
 	int dim;			// number of dimension
-	int[] dimensions;	// dimensions (width/height)
-	private int width;
+	int[] dimensions;	// dimensions (width, height, depth, ...)
+	private int width;	// TODO multidim
 	private int height;
 	
-	// data structures
-	private ImagePlus originalIP;
-	private ImageProcessor labelIP;
+	private ImagePlus originalIP;		// input image
 	
+	
+	// data structures
+	private ImageProcessor labelIP;		// map positions -> labels
+	
+	/** stores the contour particles. acces via coordinates */
 	private HashMap<Point, ContourParticle> m_InnerContourContainer;
+	
+	/** Maps the label(-number) to the information of a label */
 	private HashMap<Integer, LabelInformation> labelMap;
 
 	private HashMap<Point, Point> m_CompetingRegionsMap;
@@ -59,10 +64,11 @@ public class LabelImage //extends ShortProcessor
 	private List<Integer> m_FramesHist;
 	
 	
-	private Region_Competition MVC;
+	private Region_Competition MVC; 	/** interface to image program */
 	
 	
 	private LabelImage m_LabelImage;
+	
 	/**
 	 * creates a new LabelImage with size of ip
 	 * @param ip is saved as originalIP
@@ -83,6 +89,7 @@ public class LabelImage //extends ShortProcessor
 			dimensions[i]=ip.getDimensions()[i];
 		}
 		
+		//TODO multidim
 		width=ip.getWidth();
 		height=ip.getHeight();
 		
@@ -97,16 +104,15 @@ public class LabelImage //extends ShortProcessor
 		m_FramesHist = new LinkedList<Integer>();
 		
 		initMembers();
-		initConnectivities();
+		initConnectivities(dim);
 	}
 	
 	
-	private void initConnectivities()
+	private void initConnectivities(int d)
 	{
 		//TODO generic
-		int dim = 2;
-		connFG = new Connectivity(dim, dim-1);
-		connBG = new Connectivity(dim, dim-2);
+		connFG = new Connectivity(d, d-1);
+		connBG = new Connectivity(d, d-2);
 		m_TopologicalNumberFunction = new TopologicalNumberImageFunction(this, connFG, connBG);
 	}
 
@@ -163,6 +169,9 @@ public class LabelImage //extends ShortProcessor
 
 	
 	
+    /**
+     * Initializes label image data to all zero
+     */
 	public void initZero()
 	{
 		
@@ -176,20 +185,15 @@ public class LabelImage //extends ShortProcessor
 		{
 			labelIP.set(i, 0);
 		}
-		
-		
-//		for(int i=0; i<this.width; i++)
-//		{
-//			for(int j=0; j<this.height; j++)
-//			{
-//				set(i, j, 0);
-//			}
-//		}
 	}
 	
+	/**
+	 * Initializes label image with a predefined IP (by copying it)
+	 */
 	public void initWithIP(ImagePlus ip)
 	{
 		this.labelIP=ip.getProcessor().duplicate();
+		//TODO check for dimensions etc
 	}
 	
 	/**
@@ -219,6 +223,10 @@ public class LabelImage //extends ShortProcessor
 		labelIP.fill(vRectangleROI);
 	}
 	
+	/**
+	 * creates an initial guess (of the size r*labelImageSize)
+	 * @param r fraction of sizes of the guess
+	 */
 	public void initialGuessGrowing(double r)
 	{
 		int w = (int)(r*width);
@@ -231,6 +239,9 @@ public class LabelImage //extends ShortProcessor
 		labelIP.fill(vRectangleROI);
 	}
 	
+	/**
+	 * initial guess by generating random ellipses (may overlap)
+	 */
 	public void initialGuessRandom()
 	{
 		Random rand = new Random();
@@ -275,6 +286,10 @@ public class LabelImage //extends ShortProcessor
 		
 	}
 
+	/**
+	 * creates an initial guess from an array of ellipses. 
+	 * @param ellipses array of ellipses
+	 */
 	public void initialGuessEllipses(int ellipses[][])
 	{
 		int x, y, w, h;
@@ -334,10 +349,7 @@ public class LabelImage //extends ShortProcessor
 			e[2*dim]=scanner.nextInt();
 			
 		}
-		
 		initialGuessEllipses(ellipses);
-		
-		
 	}
 	
 	
@@ -464,6 +476,8 @@ public class LabelImage //extends ShortProcessor
 	public void showStatistics()
 	{
 		ResultsTable rt = new ResultsTable();
+		
+		// over all labels
 		for(Entry<Integer, LabelInformation> entry: labelMap.entrySet())
 		{
 			LabelInformation info = entry.getValue();
@@ -475,7 +489,6 @@ public class LabelImage //extends ShortProcessor
 			rt.addValue("variance", info.var);
 		}
 		rt.show("statistics");
-		
 	}
 	
 	
@@ -620,7 +633,8 @@ public class LabelImage //extends ShortProcessor
 	        boolean vConvergenceA;
 	        vConvergenceA = true;
 	
-	        if (m_EnergyFunctional == EnergyFunctionalType.e_Deconvolution && m_iteration_counter % 1 == 0) {
+	        if (m_EnergyFunctional == EnergyFunctionalType.e_Deconvolution && m_iteration_counter % 1 == 0) 
+	        {
 	//TODO sts
 	//            RenewDeconvolutionStatistics(m_LabelImage, this->GetDataInput());
 	        }
@@ -1238,7 +1252,7 @@ public class LabelImage //extends ShortProcessor
 		{
 			LabelInformation info = labelMap.get(vSeedIt.second);
 			if(info == null) {
-				// TODO debug
+				// TODO !!! Seed label not found
 				// This might happen, if there are multiple seeds for a split. The region was then 
 				// relabeled in the first seed, and the label of the next seeds are not found anymore. 
 //				displaySlice("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
@@ -1446,13 +1460,13 @@ public class LabelImage //extends ShortProcessor
 
 
 
-		/**
-		 * called while iterating over m_InnerContourContainer
-		 * 
-		 * calling
-		 * m_InnerContourContainer.remove(vCurrentIndex);
-		 * m_InnerContourContainer.put(vCurrentIndex, vContourPoint);
-		 */
+	/**
+	 * called while iterating over m_InnerContourContainer
+	 * 
+	 * calling
+	 * m_InnerContourContainer.remove(vCurrentIndex);
+	 * m_InnerContourContainer.put(vCurrentIndex, vContourPoint);
+	 */
 	void ChangeContourPointLabelToCandidateLabel(Entry<Point, ContourParticle> aParticle)
 	{
 		ContourParticle second = aParticle.getValue();
@@ -1471,10 +1485,19 @@ public class LabelImage //extends ShortProcessor
         ///
         /// Update the label image. The new point is either a contour point or 0,
         /// therefor the negative label value is set.
+		//TODO sts is this true? what about enclosed pixels? 
+		// ie first was like a 'U', then 'O' and now the hole is filled, then it is an inner point
+		// where is this handled?
         ///
 		set(vCurrentIndex, labelToNeg(vToLabel));
-//TODO sts inserted following line
-second.label=labelToAbs(vToLabel);
+		
+//TODO sts inserted following lines
+		if(labelToAbs(vToLabel)!=vToLabel)
+		{
+			debug("changed label to absolute value. is this valid?\n");
+			second.label=labelToAbs(vToLabel);
+		} 
+// END inserted sts
 	
         ///
         /// STATISTICS UPDATE
@@ -1507,9 +1530,12 @@ second.label=labelToAbs(vToLabel);
 		/// the background. Else, add the point to the container (or replace it
 		/// in case it has been there already).
 		///
-		if(vToLabel == 0) {
+		if(vToLabel == bgLabel) {
 			m_InnerContourContainer.remove(vCurrentIndex);
 		} else {
+			
+			//TODO compare with itk. vContourPoint = second is unnecessary in java. was this a copy in c++?
+			
 			ContourParticle vContourPoint = second;
 			vContourPoint.label = vToLabel;
 			/// The point may or may not exist already in the m_InnerContainer.
@@ -1521,17 +1547,19 @@ second.label=labelToAbs(vToLabel);
 
 		/// Remove 'enclosed' contour points from the container. For the BG this
 		/// makes no sense.
-		if(vToLabel != 0) {
+		if(vToLabel != bgLabel) {
 			MaintainNeighborsAtAdd(vToLabel, vCurrentIndex);
 		}
 	}
 
 
-	/**
-	 * Removes a contour particle from its label region (moves it to bg), 
-	 * generates the new contour particles, adds to container
-	 * itk::AddNeighborsAtRemove
-	 */
+/**
+ * Removing a point / changing its label generates new contour points in general
+ * This method generates the new contour particles and adds them to container
+ * itk::AddNeighborsAtRemove
+ * @param pIndex 		changing point		
+ * @param aAbsLabel 	old label of this point
+ */
 	void AddNeighborsAtRemove(int aAbsLabel, Point pIndex)
 	{
 		
@@ -1550,7 +1578,13 @@ second.label=labelToAbs(vToLabel);
 		{
 			int qLabel = get(qIndex);
 			
-			//can the labels be negative? somewhere, they are set (maybe only temporary) to neg values
+			//TODO can the labels be negative? somewhere, they are set (maybe only temporary) to neg values
+			if(isContourLabel(aAbsLabel))
+			{
+				debug("AddNeighborsAtRemove. one label is not absLabel\n");
+				int dummy=0;
+				dummy=dummy+0;
+			}
 			
 			if(isInnerLabel(qLabel) && qLabel==aAbsLabel) // q is a inner point with the same label as p
 			{
@@ -1562,6 +1596,8 @@ second.label=labelToAbs(vToLabel);
 				set(qIndex, labelToNeg(aAbsLabel));
 				m_InnerContourContainer.put(qIndex, q);
 			}
+			//TODO this never can be true 
+			// (since isContourLabel==> neg values AND (qLabel == aAbsLabel) => pos labels
 			else if(isContourLabel(qLabel)&& qLabel == aAbsLabel) // q is contour of the same label
 			{
 				//TODO itk Line 1520, modifiedcounter
@@ -1668,6 +1704,12 @@ second.label=labelToAbs(vToLabel);
 	void RemoveSinglePointRegions()
 	{
 		
+		//TODO: here we go first through contour points to find different labels 
+		// and then checking for labelInfo.count==1.
+		// instead, we could iterate over all labels (fewer labels than contour points), 
+		// detecting if one with count==1 exists, and only IFF one such label exists searching for the point.
+		// but atm, im happy that it detects "orphan"-contourPoints (without attached labelInfo)
+		
 //TODO java.util.ConcurrentModificationException		
 		for(Entry<Point, ContourParticle> vIt : m_InnerContourContainer.entrySet()) 
 		{
@@ -1680,6 +1722,7 @@ second.label=labelToAbs(vToLabel);
 				//TODO debug
 				displaySlice("***info is null for: "+vIt.getKey());
 				System.out.println("***info is null for: "+vIt.getKey());
+				MVC.selectPoint(vIt.getKey());
 				continue;
 			}
 			if(info.count == 1) 
@@ -1689,8 +1732,8 @@ second.label=labelToAbs(vToLabel);
 				// ChangeContourPointLabelToCandidateLabel(vWorkingIt);
 				// to this:
 
-				// TODO!!!! vIt could be removed from container in
-// ChangeContourPointLabelToCandidateLabel
+				// TODO!!!! vIt could be removed from container 
+				// in ChangeContourPointLabelToCandidateLabel
 				ChangeContourPointLabelToCandidateLabel(vIt);
 			}
 		}
@@ -1789,7 +1832,7 @@ second.label=labelToAbs(vToLabel);
 	double calcEnergy(Entry<Point, ContourParticle> entry)
 	{
 		double E_gamma = calcGammaEnergy(entry);
-		double E_tot = E_gamma + 0 + 0; // TODO other energies
+		double E_tot = E_gamma + 0 + 0; // TODO !! other energies
 		return E_tot;
 	}
 
@@ -2128,6 +2171,8 @@ second.label=labelToAbs(vToLabel);
 	 */
 	void ForestFire(LabelImage aLabelImage, Point aIndex, MultipleThresholdImageFunction aMultiThsFunctionPtr)
 	{
+		
+		displaySlice("pre forestfire");
 
 //        Set<LabelAbsPixelType> LabelAbsPxSetType;
 //		LabelAbsPxSetType vVisitedNewLabels;
@@ -2185,7 +2230,7 @@ second.label=labelToAbs(vToLabel);
 
 					// the visited labels statistics will be removed later.
 					
-					//TODO here be dragons! 
+					//TODO !!! here be dragons! 
 					/* may be eg label 1. and there might be a nonadjacent (to aIndex) region with label 1 
 					 * (since there is another seed for it)
 					 * this other label 1 region will NOT be relabeled. 
@@ -2275,10 +2320,14 @@ second.label=labelToAbs(vToLabel);
 			
 		} // end for neighbord
 		
+		displaySlice("after forestfire");
+		
 		/// Clean up the statistics of non valid regions.
 		
 		for(int vVisitedIt : vVisitedOldLabels) {
-			System.out.println("FreeLabelStatistics(vVisitedIt) removed from code");
+			System.out.println("FreeLabelStatistics(vVisitedIt="+vVisitedIt+") removed from code");
+			int i=0;
+			i=i+i;
 //			FreeLabelStatistics(vVisitedIt);
 		}
 		CleanUp();
@@ -2294,18 +2343,24 @@ second.label=labelToAbs(vToLabel);
 		
 	}
 	
+	
+	
+	void FreeLabelStatistics(Iterator<Entry<Integer, LabelInformation>> vActiveLabelsIt) 
+	{
+		vActiveLabelsIt.remove();
+	}
+	
+	void FreeLabelStatistics(int vVisitedIt) 
+	{
+		labelMap.remove(vVisitedIt);
 
-	void FreeLabelStatistics(int aLabelAbs) 
-	    {
-	    	labelMap.remove(aLabelAbs);
-	    	
-	//        m_Means.erase(aLabelAbs);
-	//        m_Variances.erase(aLabelAbs);
-	//        m_Count.erase(aLabelAbs);
-	//        m_Lengths.erase(aLabelAbs);
-	//        m_Intensities.erase(aLabelAbs);
-	    	///m_BBoxes.erase(aLabelAbs);
-	    }
+		//        m_Means.erase(aLabelAbs);
+		//        m_Variances.erase(aLabelAbs);
+		//        m_Count.erase(aLabelAbs);
+		//        m_Lengths.erase(aLabelAbs);
+		//        m_Intensities.erase(aLabelAbs);
+		///m_BBoxes.erase(aLabelAbs);
+	}
 
 
 	private void UpdateStatisticsWhenJump(Entry<Point,ContourParticle> aParticle, 
@@ -2357,7 +2412,7 @@ second.label=labelToAbs(vToLabel);
         /// ContourLengthFunction gives back the overall length change when changing
         /// aFromLabel to aToLabel. This change applies to both regions.
 
-        //TODO 
+        //TODO  m_ContourLengthFunction
         /*
         double vLC = m_ContourLengthFunction->EvaluateLengthChange(
                 aParticle->first, aFromLabel, aToLabel);
@@ -2441,7 +2496,7 @@ second.label=labelToAbs(vToLabel);
             	
             }
 
-            //TODO ??? why should i do that?
+            //TODO ??? why should i do that? answer: ogres are like onions
             //Refill the container
             if (labelMap.get(aLabel).count > 0) {
             	debug("refilling in remove fg region! count: "+labelMap.get(aLabel).count);
@@ -2460,17 +2515,18 @@ second.label=labelToAbs(vToLabel);
 	{
 		// UIntStatisticsContainerType::iterator vActiveLabelsIt = m_Count.begin();
 		//TODO ConcurrentModificationException
-		try {
-			for(Entry<Integer, LabelInformation> vActiveLabelsIt : labelMap.entrySet()) 
-			{
-				if(vActiveLabelsIt.getValue().count == 0) {
-					FreeLabelStatistics(vActiveLabelsIt.getKey());
-				}
+		
+		Iterator<Entry<Integer, LabelInformation>> vActiveLabelsIt = labelMap.entrySet().iterator();
+		
+		while(vActiveLabelsIt.hasNext()) 
+		{
+			Entry<Integer, LabelInformation> entry = vActiveLabelsIt.next();
+			
+			if(entry.getValue().count == 0) {
+				FreeLabelStatistics(vActiveLabelsIt);
 			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
+
 	}
 
 	/**
@@ -2540,7 +2596,17 @@ second.label=labelToAbs(vToLabel);
 	{
 		return labelIP;
 	}
-
+	
+	public HashMap<Integer, LabelInformation> getLabelMap()
+	{
+		return labelMap;
+	}
+	
+	public HashMap<Point, ContourParticle> getContourContainer()
+	{
+		return m_InnerContourContainer;
+	}
+	
 
 	/**
 	 * @param label a label
@@ -2584,10 +2650,8 @@ second.label=labelToAbs(vToLabel);
 	}
 	
 	
-	//TODO !!! test, is this correct?
 	Point indexToPoint(int idx)
 	{
-		
 		int index=idx;
 		Point result = Point.PointWithDim(this.dim);
 		
@@ -2599,7 +2663,13 @@ second.label=labelToAbs(vToLabel);
 			index=index/dimensions[i];
 		}
 		
+		//TODO !!! test, is this correct?
 		int dummy=pointToIndex(result);
+		if(dummy!=idx)
+		{
+			System.out.println("indexToPoint is not correct");
+			return null;
+		}
 		return result;
 	}
 
@@ -2618,12 +2688,12 @@ second.label=labelToAbs(vToLabel);
 		
 		//TODO debug
 		int result=0;
-		try {
+//		try {
 			result = labelIP.get(x,y);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 		return result;
 	}
@@ -2743,6 +2813,7 @@ second.label=labelToAbs(vToLabel);
 	{
 		MVC.addSliceToStackAndShow(s, labelIP.getPixelsCopy());
 	}
+	
 	
 }
 
