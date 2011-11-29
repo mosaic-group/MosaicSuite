@@ -968,8 +968,8 @@ public class LabelImage //extends ShortProcessor
                         /// with accepted candidates of this network.
                         vSelectedCandidateIndices.add(vNetworkIt.pIndex);
 
-                        /// also store the candidate in the global candidate
-                        /// index container:
+                        /// also store the candidate in the global candidate index container:
+                        //TODO used nowhere
                         vLegalIndices.add(vNetworkIt.pIndex);
 
                         /// decrease the references of its daughters(with the same 'old' label).
@@ -1219,13 +1219,14 @@ public class LabelImage //extends ShortProcessor
 				// m_AllCandidates.erase(vStoreIt);
 			}
 			
-//itk commented
+//				itk commented
 //	            if (vValidPoint) {
 //	                ChangeContourPointLabelToCandidateLabel(&(*vStoreIt));
 //	                m_AllCandidates.erase(vStoreIt);
 //	                vConvergence = false;
 //	            }
-	        }
+			
+	        } // while(vPointIterator.hasNext())
 		        
 		        
         /// Now we filtered non valid points and collected the seeds for
@@ -1247,6 +1248,16 @@ public class LabelImage //extends ShortProcessor
 		boolean vSplit = false;
 		boolean vMerge = false;
 		        
+		
+		//TODO seed output == debugging
+		debug("Seed points:");
+		for(Pair<Point, Integer> vSeedIt : vSeeds) 
+		{
+			debug(" "+vSeedIt.first+" label="+vSeedIt.second);
+		}
+		debug("End Seed points:");
+		
+		
 		int vNSplits = 0;
 		for(Pair<Point, Integer> vSeedIt : vSeeds) 
 		{
@@ -1260,7 +1271,7 @@ public class LabelImage //extends ShortProcessor
 				continue;
 			}
 			int count  = info.count;
-			if(count > 1) 
+//			if(count > 1) //WRONG!
 			{
 				RelabelAnAdjacentRegionAfterTopologicalChange(this, vSeedIt.first, vSeedIt.second);
 				vSplit = true;
@@ -1275,7 +1286,7 @@ public class LabelImage //extends ShortProcessor
 			//TODO !!!! m_CompetingRegionsMap is always empty?
 			for(Entry<Point, Point> vCRit : m_CompetingRegionsMap.entrySet()) 
 			{
-            	//TODO itk 3030 irgendwie komisch? missbrauch wegen hash?
+            	//TODO itk 3781 irgendwie komisch? missbrauch wegen hash?
 				int vLabel1 = vCRit.getKey().x[0];
 				int vLabel2 = vCRit.getKey().x[1];
 //	                std::cout << "relabeling 2 regions invoked at " << vCRit->second
@@ -1461,7 +1472,7 @@ public class LabelImage //extends ShortProcessor
 
 
 	/**
-	 * called while iterating over m_InnerContourContainer
+	 * called while iterating over m_InnerContourContainer in RemoveSinglePointRegions()
 	 * 
 	 * calling
 	 * m_InnerContourContainer.remove(vCurrentIndex);
@@ -1554,7 +1565,10 @@ public class LabelImage //extends ShortProcessor
 
 
 /**
- * Removing a point / changing its label generates new contour points in general
+ * 
+ * iterator problem: calling m_InnerContourContainer.put() <br>
+ * 
+ * Removing a point / changing its label generates new contour points in general <br>
  * This method generates the new contour particles and adds them to container
  * itk::AddNeighborsAtRemove
  * @param pIndex 		changing point		
@@ -1612,17 +1626,15 @@ public class LabelImage //extends ShortProcessor
 	
 	/**
 	 * 
+	 * iterator problem: m_InnerContourContainer.remove 
+	 * <br> 
 	 * itk::MaintainNeighborsAtAdd
-     * Maintain the inner contour container:
+     * Maintain the inner contour container: <br>
      * - Remove all the indices in the BG-connected neighborhood, that are
-     *   interior points, from the contour container.
+     *   interior points, from the contour container. <br>
      *   Interior here means that none neighbors in the FG-Neighborhood
      *   has a different label.
      */
-//	old: void addToContour(Point pIndex)
-	/**
-	 * m_InnerContourContainer.remove(qIndex);
-	 */
     void MaintainNeighborsAtAdd(int aLabelAbs, Point pIndex) 
 	{
 		ContourParticle p = m_InnerContourContainer.get(pIndex);
@@ -2240,8 +2252,8 @@ public class LabelImage //extends ShortProcessor
 					 */
 					
 					
-					// label 1 region
-					vVisitedOldLabels.add(labelToAbs((vLabelValue)));
+					// the visited labels statistics will be removed later.
+					vVisitedOldLabels.add(labelToAbs(vLabelValue));
 
 					set(vCurrentIndex, vNewLabel);
 ////TODO sts relabeling
@@ -2259,11 +2271,10 @@ public class LabelImage //extends ShortProcessor
 					{
 						// m_InnerContourContainer[static_cast<ContourIndexType>(vLit.GetIndex())].first = vNewLabel;
 						// ContourIndexType vCurrentIndex = static_cast<ContourIndexType>(vLit.GetIndex());
-						Point vCurrentCIndex = Point.PointWithDim(dim);
-						for(int vD = 0; vD < dim; vD++) {
-							vCurrentCIndex.x[vD] = vCurrentIndex.x[vD];
-						}
-							//TODO why generating a new index?
+						
+						
+						//TODO ? why generating a new index?
+						Point vCurrentCIndex = new Point(vCurrentIndex);
 						vSetOfAncientContourIndices.add(vCurrentCIndex);
 					}
 
@@ -2283,6 +2294,8 @@ public class LabelImage //extends ShortProcessor
                      
                     if (isBoundaryPoint(vCurrentCIndex)) 
                     {
+                    	ContourParticle vPoint = m_InnerContourContainer.get(vCurrentCIndex);
+                    	vPoint.label = vNewLabel;
 //TODO vPoint.modifiedCounter = 0;
 
 //                        vLengthEnergy += m_ContourLengthFunction->EvaluateAtIndex(vCurrentCIndex);
@@ -2290,8 +2303,6 @@ public class LabelImage //extends ShortProcessor
 //                        vLit.Set(-vNewLabel); // keep the contour negative
                         set(vCurrentCIndex, labelToNeg(vNewLabel));
                         
-                        ContourParticle vPoint = m_InnerContourContainer.get(vCurrentCIndex);
-                        vPoint.label = vNewLabel;
                     } else {
                         m_InnerContourContainer.remove(vCurrentCIndex);
 //                        m_LabelImage->SetPixel(vCurrentCIndex, vNewLabel);
@@ -2299,7 +2310,7 @@ public class LabelImage //extends ShortProcessor
                     }
                 }
 
-                //TODO was soll das bedeuten? welche vectors?
+                //TODO ? was soll das bedeuten? welche vectors?
                 /// Store the statistics of the new region (the vectors will
                 /// store more and more trash of old regions).
 				double vN_ = vN;
@@ -2323,12 +2334,11 @@ public class LabelImage //extends ShortProcessor
 		displaySlice("after forestfire");
 		
 		/// Clean up the statistics of non valid regions.
-		
 		for(int vVisitedIt : vVisitedOldLabels) {
 			System.out.println("FreeLabelStatistics(vVisitedIt="+vVisitedIt+") removed from code");
 			int i=0;
 			i=i+i;
-//			FreeLabelStatistics(vVisitedIt);
+			FreeLabelStatistics(vVisitedIt);
 		}
 		CleanUp();
 		

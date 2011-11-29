@@ -2,13 +2,19 @@ package mosaic.region_competition;
 
 import java.util.Arrays;
 
-public class Point 
+public class Point
 {
 	
 	public int x[];		//TODO private?
-	private int dim;
+	private int dim;	
 	
 	public Point() {}
+	
+	public Point(Point p)
+	{
+		this.dim=p.dim;
+		this.x=p.x.clone();
+	}
 	
 	public Point(int... coords) {
 		
@@ -86,6 +92,7 @@ public class Point
 //		}
 //		return true;
 	};
+	
 	
 	@Override
 	public int hashCode() {
