@@ -2238,6 +2238,7 @@ public class LabelImage //extends ShortProcessor
 					// InputPixelType vImageValue = vDit.Get();
 					Point vCurrentIndex = vLit.next();
 					int vLabelValue = this.get(vCurrentIndex);
+					int absLabel = labelToAbs(vLabelValue);
 					int vImageValue = this.getIntensity(vCurrentIndex);
 
 					// the visited labels statistics will be removed later.
@@ -2253,10 +2254,13 @@ public class LabelImage //extends ShortProcessor
 					
 					
 					// the visited labels statistics will be removed later.
-					vVisitedOldLabels.add(labelToAbs(vLabelValue));
-
+					vVisitedOldLabels.add(absLabel);
 					set(vCurrentIndex, vNewLabel);
+					
 ////TODO sts relabeling
+					LabelInformation labelInfo = labelMap.get(absLabel);
+					labelInfo.count--;
+					
 //					//TODO debug
 //					if(!isContourLabel(vLabelValue))
 //					{
@@ -2272,10 +2276,16 @@ public class LabelImage //extends ShortProcessor
 						// m_InnerContourContainer[static_cast<ContourIndexType>(vLit.GetIndex())].first = vNewLabel;
 						// ContourIndexType vCurrentIndex = static_cast<ContourIndexType>(vLit.GetIndex());
 						
-						
 						//TODO ? why generating a new index?
 						Point vCurrentCIndex = new Point(vCurrentIndex);
 						vSetOfAncientContourIndices.add(vCurrentCIndex);
+						
+						//TODO relabeling
+						//sts: decrease count in labelMap, so we can determine later if all particles were removed
+						// (if the seed was part of a "bridge"==multiple connected seeds, not every seed is connected to 
+						// both parts of the bridge. Then relabeling is not finished after one execution of forestfire
+						// (one side of the bridge still old label) and we cannot remove label yet.)
+						
 					}
 
 					vN++;
@@ -2296,11 +2306,11 @@ public class LabelImage //extends ShortProcessor
                     {
                     	ContourParticle vPoint = m_InnerContourContainer.get(vCurrentCIndex);
                     	vPoint.label = vNewLabel;
-//TODO vPoint.modifiedCounter = 0;
+//TODO 					vPoint.modifiedCounter = 0;
 
-//                        vLengthEnergy += m_ContourLengthFunction->EvaluateAtIndex(vCurrentCIndex);
-
-//                        vLit.Set(-vNewLabel); // keep the contour negative
+//						vLengthEnergy += m_ContourLengthFunction->EvaluateAtIndex(vCurrentCIndex);
+//						vLit.Set(-vNewLabel); // keep the contour negative
+                    	
                         set(vCurrentCIndex, labelToNeg(vNewLabel));
                         
                     } else {
@@ -2334,12 +2344,27 @@ public class LabelImage //extends ShortProcessor
 		displaySlice("after forestfire");
 		
 		/// Clean up the statistics of non valid regions.
-		for(int vVisitedIt : vVisitedOldLabels) {
+		for(int vVisitedIt : vVisitedOldLabels) 
+		{
 			System.out.println("FreeLabelStatistics(vVisitedIt="+vVisitedIt+") removed from code");
-			int i=0;
-			i=i+i;
-			FreeLabelStatistics(vVisitedIt);
+			
+			LabelInformation oldLabelInfo = labelMap.get(vVisitedIt);
+			int count = oldLabelInfo.count;
+			System.out.println("oldlabel="+vVisitedIt+" count="+count);
+			
+			if(count < 0)
+			{
+				//TODO debug remove
+				throw new RuntimeException("labelInfo.count < 0 in forestfire");
+			}
+			if(count==0)
+			{
+				FreeLabelStatistics(vVisitedIt);
+			}
+			
+			
 		}
+		
 		CleanUp();
 		
 		/// TODO: this must as well be only performed for the affected
@@ -2539,11 +2564,6 @@ public class LabelImage //extends ShortProcessor
 
 	}
 
-	/**
-	 * is point surrounded by points of the same (abs) label
-	 * @param aIndex
-	 * @return
-	 */
 	private boolean isBoundaryPoint(Point aIndex)
 	{
 		int vLabelAbs = getAbs(aIndex);
@@ -2557,6 +2577,11 @@ public class LabelImage //extends ShortProcessor
 	}
 
 
+	/**
+	 * is point surrounded by points of the same (abs) label
+	 * @param aIndex
+	 * @return
+	 */
 	boolean isEnclosedByLabel(Point pIndex, int pLabel)
 	{
 		int absLabel = labelToAbs(pLabel);

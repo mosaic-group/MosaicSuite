@@ -85,6 +85,10 @@ public class TopologicalNumberImageFunction
         }
 	}
 	
+	/**
+	 * @param index
+	 * @return			List(AbjacentLabel, (nFGconnected, nBGconnected))
+	 */
     public List<Pair<Integer, Pair<Integer, Integer>>> EvaluateAdjacentRegionsFGTNAtIndex(Point index) 
     {
 
