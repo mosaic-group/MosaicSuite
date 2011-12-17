@@ -1,0 +1,16 @@
+UpdateStatisticsWhenJump: 
+
+	Possible divisions by zero? 
+        double vNewMeanFromLabel = (vNFrom * m_Means[aFromLabel] - vCurrentImageValue) / (vNFrom - 1.0);
+        m_Variances[aFromLabel] = (1.0 / (vNFrom - 2.0)) * (
+
+ForestFire
+                m_Variances[vNewLabel] = (vSqSum - vSum * vSum / vN_) / (vN_ - 1);
+				
+				
+CalculateKLMergingCriterion
+
+	vVar12 == 0
+        StatisticsRealType vDKL1 = (aMu1 - vMu12) * (aMu1 - vMu12) / (2.0f * vVar12)
+                + 0.5f * (aVar1 / vVar12 - 1.0f - log(aVar1 / vVar12));
+				
