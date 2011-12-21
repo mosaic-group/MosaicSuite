@@ -1,7 +1,5 @@
 package mosaic.region_competition;
 
-import java.util.Iterator;
-
 public class SphereBitmapImageSource
 {
 	int m_Size[];
@@ -67,7 +65,7 @@ public class SphereBitmapImageSource
 			// is point in region inside original data
 			if(labelImage.iterator.isInBound(p))
 			{
-				int[] vIndex = p.x;
+				int[] vIndex = (p.sub(origin)).x;
 
 				float vHypEllipse = 0;
 				for(int vD = 0; vD < dim; vD++)
@@ -75,7 +73,8 @@ public class SphereBitmapImageSource
 					vHypEllipse += (vIndex[vD] - (m_Size[vD]-1) / 2.0)*(vIndex[vD] - (m_Size[vD]-1) / 2.0)
 									/(m_Radius[vD] * m_Radius[vD]);
 				}
-
+				
+//				System.out.println(""+p+" "+vHypEllipse);
 				if(vHypEllipse <= 1.0f)
 				{
 //					outIt.Set((m_ForegroundValue));
