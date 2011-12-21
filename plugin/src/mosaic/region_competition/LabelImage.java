@@ -32,14 +32,16 @@ import ij.process.ShortProcessor;
 
 public class LabelImage //extends ShortProcessor
 {
-	static int forbiddenLabel=Short.MAX_VALUE;
-	private static int bgLabel = 0;
-	private static int negOfs=1000;			// labels above this number stands for "negative numbers" (problem with displaying negative numbers in ij.ShortProcessor)
+	static final int forbiddenLabel=Short.MAX_VALUE;
+	static final int bgLabel = 0;
+	static final int negOfs=10000;			// labels above this number stands for "negative numbers" (problem with displaying negative numbers in ij.ShortProcessor)
 	
 	int dim;			// number of dimension
 	int[] dimensions;	// dimensions (width, height, depth, ...)
 	private int width;	// TODO multidim
 	private int height;
+	
+	IndexIterator iterator;
 	
 	private ImagePlus originalIP;		// input image
 	
@@ -88,6 +90,9 @@ public class LabelImage //extends ShortProcessor
 			//TODO does this work for n-dim?
 			dimensions[i]=ip.getDimensions()[i];
 		}
+		
+		iterator= new IndexIterator(dimensions);
+		
 		
 		//TODO multidim
 		width=ip.getWidth();
@@ -450,7 +455,8 @@ public class LabelImage //extends ShortProcessor
 					int val = getIntensity(x,y);
 					stats.count++;
 					stats.mean+=val;
-					stats.var+=val*val;
+					stats.setVar(stats.var+val*val);
+//					stats.var=stats.var+val*val;
 				}
 			}
 		} // for all pixel
@@ -460,7 +466,9 @@ public class LabelImage //extends ShortProcessor
 		{
 			int n= stat.count;
             if (n > 1) {
-                stat.var = (stat.var - stat.mean*stat.mean / n) / (n-1);
+            	double var = (stat.var - stat.mean*stat.mean / n) / (n-1);
+            	stat.setVar(var);
+//                stat.var = (stat.var - stat.mean*stat.mean / n) / (n-1);
             } else {
                 stat.var = 0;
             }
@@ -504,6 +512,8 @@ public class LabelImage //extends ShortProcessor
 		//END
 		
 		// finds and saves contour particles
+		
+		//TODO multidim
 		for(int y = 1; y < height-1; y++)
 		{
 			for(int x = 1; x < width-1; x++)
@@ -512,7 +522,9 @@ public class LabelImage //extends ShortProcessor
 				if(label!=bgLabel && label!=forbiddenLabel) // region pixel
 					// && label<negOfs
 				{
-					Point p = new Point(x,y);
+					
+					int xs[]={x,y};
+					Point p = new Point(xs);
 					for(Point neighbor : conn.itNeighborsOf(p))
 					{
 						int neighborLabel=get(neighbor);
@@ -590,6 +602,7 @@ public class LabelImage //extends ShortProcessor
 		while(settings.m_MaxNbIterations > m_iteration_counter && !(vConvergence)) 
 		{
 			m_iteration_counter++;
+			debug("=== iteration " + m_iteration_counter+" ===");
 
 			// std::cout << "number of points: "<<m_InnerContourContainer.size() << std::endl;
 			// m_ManyPointsToBeAdded.clear();
@@ -1249,13 +1262,16 @@ public class LabelImage //extends ShortProcessor
 		boolean vMerge = false;
 		        
 		
-		//TODO seed output == debugging
-		debug("Seed points:");
-		for(Pair<Point, Integer> vSeedIt : vSeeds) 
+		if(vSeeds.size()>0)
 		{
-			debug(" "+vSeedIt.first+" label="+vSeedIt.second);
+			//TODO seed output == debugging
+			debug("Seed points:");
+			for(Pair<Point, Integer> vSeedIt : vSeeds) 
+			{
+				debug(" "+vSeedIt.first+" label="+vSeedIt.second);
+			}
+			debug("End Seed points:");
 		}
-		debug("End Seed points:");
 		
 		
 		int vNSplits = 0;
@@ -1722,9 +1738,18 @@ public class LabelImage //extends ShortProcessor
 		// detecting if one with count==1 exists, and only IFF one such label exists searching for the point.
 		// but atm, im happy that it detects "orphan"-contourPoints (without attached labelInfo)
 		
-//TODO java.util.ConcurrentModificationException		
-		for(Entry<Point, ContourParticle> vIt : m_InnerContourContainer.entrySet()) 
+//TODO java.util.ConcurrentModificationException
+		
+		
+		
+		//TODO ugly casting
+		
+		Object[] copy = m_InnerContourContainer.entrySet().toArray();
+		for(Object o : copy) 
+//		for(Entry<Point, ContourParticle> vIt : copy) 
 		{
+			Entry<Point, ContourParticle> vIt = (Entry<Point, ContourParticle>) o;
+			
 			ContourParticle vWorkingIt = vIt.getValue();
 			// if (m_Count[vWorkingIt->second.m_label] == 1) {
 			
@@ -1966,6 +1991,35 @@ public class LabelImage //extends ShortProcessor
             }
         }
 		
+		//TODO dummy
+		float m_EnergyContourLengthCoeff = settings.m_EnergyContourLengthCoeff;
+		// end dummy
+		
+		if (settings.m_EnergyUseCurvatureRegularization &&
+		        m_EnergyFunctional != EnergyFunctionalType.e_PSwithCurvatureFlow &&
+		        m_EnergyContourLengthCoeff != 0) {
+		    if (m_EnergyFunctional == EnergyFunctionalType.e_Deconvolution) {
+//		        vEnergy += //m_Intensities[aToLabel] * m_Intensities[aToLabel] *
+//		        		m_EnergyContourLengthCoeff * CalculateCurvatureBasedGradientFlow(
+//		                this->GetDataInput(), m_LabelImage, aContourIndex,
+//		                vCurrentLabel, aToLabel);
+		    } else if (m_EnergyFunctional == EnergyFunctionalType.e_CV) 
+		    {
+		    	
+		    	double eCurv = CalculateCurvatureBasedGradientFlow(originalIP, m_LabelImage, aContourIndex,vCurrentLabel, aToLabel);
+		    	debug("eCurv="+eCurv);
+		        vEnergy += //m_Means[aToLabel] * // m_Means[aToLabel] *
+		        		m_EnergyContourLengthCoeff * eCurv;
+		    } else {
+		        vEnergy += m_EnergyContourLengthCoeff * CalculateCurvatureBasedGradientFlow(
+		                originalIP, m_LabelImage, aContourIndex,
+		                vCurrentLabel, aToLabel);
+		    }
+		}
+		
+
+
+        
 		
 /* 
 		
@@ -2104,13 +2158,20 @@ public class LabelImage //extends ShortProcessor
 //		        StatisticsRealType vDKL2 = (vMu2 - vMu12) * (vMu2 - vMu12) / (2.0f * vVar12)
 //		                + 0.5f * (vVar2 / vVar12 - 1.0f - log(vVar2 / vVar12));
 
-		return CalculateKLMergingCriterion(vMu1, vMu2, vVar1, vVar2, vN1, vN2);
+//		debug("l1="+L1+" L2="+L2);
+		
+		double result = CalculateKLMergingCriterion(vMu1, vMu2, vVar1, vVar2, vN1, vN2);
+		if(Double.isNaN(result))
+		{
+			debug("CalculateKLMergingCriterion is NaN");
+		}
+		assert(!Double.isNaN(result));
+		return result;
 
 	}
 	
 	double CalculateKLMergingCriterion(double aMu1, double aMu2, double aVar1, double aVar2, int aN1, int aN2)
 	{
-
 		double vMu12 = (aN1 * aMu1 + aN2 * aMu2) / (aN1 + aN2);
 
 		double vSumOfSq1 = aVar1 * (aN1 - 1) + aN1 * aMu1 * aMu1;
@@ -2118,6 +2179,13 @@ public class LabelImage //extends ShortProcessor
 
 		double vVar12 = (1.0 / (aN1 + aN2 - 1.0))
 				* (vSumOfSq1 + vSumOfSq2 - (aN1 + aN2) * vMu12 * vMu12);
+		
+		if(vVar12==0)
+		{
+			System.out.print("vVar12==0");
+//			debug("vVar12==0");
+			return 0;
+		}
 
 		double vDKL1 = (aMu1 - vMu12) * (aMu1 - vMu12) / (2.0f * vVar12) + 0.5f
 				* (aVar1 / vVar12 - 1.0f - Math.log(aVar1 / vVar12));
@@ -2163,6 +2231,29 @@ public class LabelImage //extends ShortProcessor
 				+ 0.5 * Math.log(2.0*M_PI*to.var) 
 				- ( (aValue-from.mean)*(aValue-from.mean)/(2.0*from.var) + 0.5*Math.log(2.0*M_PI*from.var) ) );
 	}
+	
+	
+
+//    template <class TInputImage, class TInitImage, class TOutputImage >
+//    inline
+//    typename FrontsCompetitionImageFilter<TInputImage, TInitImage, TOutputImage>::
+//    EnergyDifferenceType
+//    FrontsCompetitionImageFilter<TInputImage, TInitImage, TOutputImage>::
+//    CalculateCurvatureBasedGradientFlow(
+//    InputImagePointerType aDataImage,
+//    LabelImagePointerType aLabelImage,
+//    ContourIndexType aIndex,
+//    unsigned int aFrom, unsigned int aTo) {
+	
+	
+double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
+		LabelImage aLabelImage, Point aIndex, int aFrom, int aTo) 
+{
+	SphereBitmapImageSource sphere = new SphereBitmapImageSource(dim, aLabelImage);
+	
+	return sphere.GenerateData(aIndex, aFrom, aTo);
+
+}
 	
 	
 	
@@ -2331,7 +2422,18 @@ public class LabelImage //extends ShortProcessor
 
 				newLabelInformation.mean = vSum / vN_;
 // TODO m_Intensities[vNewLabel] = m_Means[vNewLabel];
-				newLabelInformation.var = (vSqSum - vSum * vSum / vN_) / (vN_ - 1);
+				//TODO !! vN_ can be 1;
+				double var;
+				if(vN_>1)
+				{
+					var = (vSqSum - vSum * vSum / vN_) / (vN_ - 1);
+				}
+				else
+				{
+					var=0.0;
+				}
+				newLabelInformation.setVar(var);
+//				newLabelInformation.var = var;
 				newLabelInformation.count = vN;
 // TODO m_Lengths[vNewLabel] = vLengthEnergy;
 				m_MaxNLabels++;
@@ -2409,39 +2511,62 @@ public class LabelImage //extends ShortProcessor
 		LabelInformation aFromLabel = labelMap.get(aFromLabelIdx);
 
 		double vNTo = aToLabel.count;
-        double vNFrom = aFromLabel.count;
+		double vNFrom = aFromLabel.count;
 
         /// Before changing the mean, compute the sum of squares of the samples:
-        double vToLabelSumOfSq = aToLabel.var * (vNTo - 1.0) +
-                vNTo * aToLabel.mean * aToLabel.mean;
-        double vFromLabelSumOfSq = aFromLabel.var * (aFromLabel.count - 1.0) +
-                vNFrom * aFromLabel.mean * aFromLabel.mean;
+		double vToLabelSumOfSq = aToLabel.var * (vNTo - 1.0) +
+			vNTo * aToLabel.mean * aToLabel.mean;
+		double vFromLabelSumOfSq = aFromLabel.var * (aFromLabel.count - 1.0) +
+				vNFrom * aFromLabel.mean * aFromLabel.mean;
 
         /// Calculate the new means for the background and the label:
-        double vNewMeanToLabel = (aToLabel.mean * vNTo + vCurrentImageValue) / (vNTo + 1.0);
-        double vNewMeanFromLabel = (vNFrom * aFromLabel.mean - vCurrentImageValue) / (vNFrom - 1.0);
+		double vNewMeanToLabel = (aToLabel.mean * vNTo + vCurrentImageValue) / (vNTo + 1.0);
+		
+		//TODO divide by zero. why does this not happen at itk?
+		double vNewMeanFromLabel;
+		
+		if(vNFrom>1)
+		{
+			vNewMeanFromLabel = (vNFrom * aFromLabel.mean - vCurrentImageValue) / (vNFrom - 1.0);
+		}
+		else
+		{
+			vNewMeanFromLabel = 0.0;
+		}
 
         /// Calculate the new variances:
-        aToLabel.var = ((1.0 / (vNTo)) * (
-                vToLabelSumOfSq + vCurrentImageValue * vCurrentImageValue
-                - 2.0 * vNewMeanToLabel * (aToLabel.mean * vNTo + vCurrentImageValue)
-                + (vNTo + 1.0) * vNewMeanToLabel * vNewMeanToLabel));
+		double var;
+		var = ((1.0 / (vNTo)) * (
+				vToLabelSumOfSq + vCurrentImageValue * vCurrentImageValue 
+				- 2.0 * vNewMeanToLabel * (aToLabel.mean * vNTo + vCurrentImageValue)
+				+ (vNTo + 1.0) * vNewMeanToLabel*vNewMeanToLabel));
+		aToLabel.setVar(var);
 
-        aFromLabel.var = ((1.0 / (vNFrom - 2.0)) * (
-                vFromLabelSumOfSq - vCurrentImageValue * vCurrentImageValue
-                - 2.0 * vNewMeanFromLabel * (aFromLabel.mean * vNFrom - vCurrentImageValue)
-                + (vNFrom - 1.0) * vNewMeanFromLabel * vNewMeanFromLabel));
+		if(vNFrom==2)
+		{
+			var=0.0;
+		}
+		else
+		{
+			var = ( 1.0/(vNFrom - 2.0) ) * (
+					vFromLabelSumOfSq - vCurrentImageValue * vCurrentImageValue 
+					- 2.0 * vNewMeanFromLabel * (aFromLabel.mean * vNFrom - vCurrentImageValue) 
+					+ (vNFrom - 1.0) * vNewMeanFromLabel*vNewMeanFromLabel);
+			
+		}
+		
+		aFromLabel.setVar(var);
 
-        /// Update the means:
-        aToLabel.mean = vNewMeanToLabel;
-        aFromLabel.mean = vNewMeanFromLabel;
-        //        m_Means[0] = 0;
-        //        m_Means[1] = 1.0403;
-        //        m_Means[2] = 1.0403;
+		// / Update the means:
+		aToLabel.mean = vNewMeanToLabel;
+		aFromLabel.mean = vNewMeanFromLabel;
+		// m_Means[0] = 0;
+		// m_Means[1] = 1.0403;
+		// m_Means[2] = 1.0403;
 
-        /// Add a sample point to the BG and remove it from the label-region:
-        aToLabel.count++;
-        aFromLabel.count--;
+		// / Add a sample point to the BG and remove it from the label-region:
+		aToLabel.count++;
+		aFromLabel.count--;
 
         /// Update the lengths for each region:
         /// ContourLengthFunction gives back the overall length change when changing
@@ -2669,46 +2794,6 @@ public class LabelImage //extends ShortProcessor
 		}
 	}
 
-
-	int pointToIndex(Point p)
-	{
-		// TODO test
-	
-		int idx = 0;
-		int fac = 1;
-		for(int i = 0; i < dim; i++) {
-			idx += fac * p.x[i];
-			fac *= dimensions[i];
-		}
-	
-		return idx;
-	}
-	
-	
-	Point indexToPoint(int idx)
-	{
-		int index=idx;
-		Point result = Point.PointWithDim(this.dim);
-		
-		for(int i = 0; i < dim; i++) 
-		{
-			int r=index%dimensions[i];
-			result.x[i]=r;
-			index=index-r;
-			index=index/dimensions[i];
-		}
-		
-		//TODO !!! test, is this correct?
-		int dummy=pointToIndex(result);
-		if(dummy!=idx)
-		{
-			System.out.println("indexToPoint is not correct");
-			return null;
-		}
-		return result;
-	}
-
-
 	int get(int index)
 	{
 		return labelIP.get(index);
@@ -2830,8 +2915,8 @@ public class LabelImage //extends ShortProcessor
 		{
 			if(getAbs(i)==abslabel)
 			{
-				displaySlice("found a ghost label at "+ indexToPoint(i));
-				System.out.println("found a ghost label at "+ indexToPoint(i));
+				displaySlice("found a ghost label at "+ iterator.indexToPoint(i));
+				System.out.println("found a ghost label at "+ iterator.indexToPoint(i));
 				return true;
 			}
 		}
@@ -2847,6 +2932,15 @@ public class LabelImage //extends ShortProcessor
 	void displaySlice(String s)
 	{
 		MVC.addSliceToStackAndShow(s, labelIP.getPixelsCopy());
+	}
+	
+	private void checkForNan(double...fs)
+	{
+		for(double f:fs)
+		{
+			if(Double.isNaN(f))
+				debug("sth is NaN");
+		}
 	}
 	
 	

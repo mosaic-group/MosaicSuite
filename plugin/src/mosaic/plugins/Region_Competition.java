@@ -53,6 +53,7 @@ public class Region_Competition implements PlugInFilter
 		{
 			// try to open standard file
 			String fileName= "Clipboard01.png";
+//			String fileName= "icecream3_shaded_130x130.tif";
 			IJ.open(fileName);
 			originalIP = WindowManager.getCurrentImage();
 			
@@ -341,7 +342,8 @@ public class Region_Competition implements PlugInFilter
 		LabelImage lbl = new LabelImage(MVC);
 		//debug
 		lbl.initWithIP(aImp);
-		Point index = new Point(10,10);
+		int[] xs = new int[]{10,10};
+		Point index = new Point(xs);
 		
 		Connectivity connFG = new Connectivity(2,1);
 		Connectivity connBG = new Connectivity(2,0);

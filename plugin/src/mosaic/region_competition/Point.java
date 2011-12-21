@@ -16,7 +16,7 @@ public class Point
 		this.x=p.x.clone();
 	}
 	
-	public Point(int... coords) {
+	public Point(int coords[]) {
 		
 		//TODO efficiency
 		init(coords.length);
@@ -68,6 +68,29 @@ public class Point
 		}
 		return result;
 	}
+	
+	public Point mult(int f)
+	{
+		Point result = new Point();
+		result.init(dim);
+		for(int i=0; i<dim; i++)
+		{
+			result.x[i]= (x[i]*f);
+		}
+		return result;
+	}
+	
+	public Point div(int f)
+	{
+		Point result = new Point();
+		result.init(dim);
+		for(int i=0; i<dim; i++)
+		{
+			result.x[i]= (x[i]/f);
+		}
+		return result;
+	}
+	
 	
 	@Override
 	public String toString() 

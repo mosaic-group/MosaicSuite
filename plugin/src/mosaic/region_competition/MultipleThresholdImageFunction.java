@@ -53,7 +53,7 @@ public class MultipleThresholdImageFunction
 
         boolean EvaluateAtIndex(Point p)
 		{
-			int idx = labelImage.pointToIndex(p);
+			int idx = labelImage.iterator.pointToIndex(p);
 			return EvaluateAtIndex(idx);
 		}
 

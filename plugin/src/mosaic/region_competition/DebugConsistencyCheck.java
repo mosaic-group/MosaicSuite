@@ -73,7 +73,7 @@ public class DebugConsistencyCheck
 			int label=labelImage.get(i);
 			if(labelImage.isContourLabel(label))
 			{
-				Point p = labelImage.indexToPoint(i);
+				Point p = labelImage.iterator.indexToPoint(i);
 				ContourParticle c = contourContainer.get(p);
 				if(c==null)
 				{

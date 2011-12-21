@@ -8,6 +8,23 @@ public class LabelInformation
 	double M2=0;
 	double var=0;	// variance of intensity
 	
+	
+	void setVar(double v)
+	{
+		//TODO setVar only for debugging
+		
+		// very small vars are due to numerical errors
+		if(v<0 && v > -0.01)
+		{
+			v = 0.0;
+			System.out.println("var<0 && var > -0.01 0.0");
+		}
+		
+		
+		assert(v>=0.0) : "setVar <0 ("+v+")";
+		var=v;
+	}
+	
 	public LabelInformation(int label) 
 	{
 		this.label=label;
