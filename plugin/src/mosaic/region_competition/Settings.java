@@ -16,7 +16,7 @@ public class Settings
     float m_EnergyRegionCoeff;
     float m_EnergySphericityCoeff;
     float m_BalloonForceCoeff;
-    boolean m_EnergyUseCurvatureRegularization;
+	public boolean m_EnergyUseCurvatureRegularization;
 
     float m_RegionMergingThreshold;
 //    ArrayType m_SigmaPSF;
@@ -70,7 +70,7 @@ public class Settings
 		// ContourLengthApproxImageFunction<LabelImageType>::New();
 
 		m_EnergyFunctional = EnergyFunctionalType.e_CV;
-		m_EnergyUseCurvatureRegularization = true;
+		m_EnergyUseCurvatureRegularization = false;
 		m_EnergyContourLengthCoeff = 0.003f; // 0.04;//0.003f;
 		m_EnergyRegionCoeff = 1.0f;
 

@@ -90,6 +90,10 @@ public class Region_Competition implements PlugInFilter
 		
 		labelImage.initZero();
 		
+		
+		// Input Processing
+		labelImage.settings.m_EnergyUseCurvatureRegularization=userDialog.useRegularization();
+		
 		if(userDialog.doUser)
 		{
 			System.out.println("manualSelect");

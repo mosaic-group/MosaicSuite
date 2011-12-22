@@ -130,7 +130,7 @@ public class LabelImage //extends ShortProcessor
 	//////////////////////////////////////////////////
 	
 	
-	Settings settings;
+	public Settings settings;
 	
     boolean m_converged;
     float m_AcceptedPointsFactor;
@@ -1997,7 +1997,8 @@ public class LabelImage //extends ShortProcessor
 		
 		if (settings.m_EnergyUseCurvatureRegularization &&
 		        m_EnergyFunctional != EnergyFunctionalType.e_PSwithCurvatureFlow &&
-		        m_EnergyContourLengthCoeff != 0) {
+		        m_EnergyContourLengthCoeff != 0) 
+		{
 		    if (m_EnergyFunctional == EnergyFunctionalType.e_Deconvolution) {
 //		        vEnergy += //m_Intensities[aToLabel] * m_Intensities[aToLabel] *
 //		        		m_EnergyContourLengthCoeff * CalculateCurvatureBasedGradientFlow(
@@ -2007,7 +2008,7 @@ public class LabelImage //extends ShortProcessor
 		    {
 		    	
 		    	double eCurv = CalculateCurvatureBasedGradientFlow(originalIP, m_LabelImage, aContourIndex,vCurrentLabel, aToLabel);
-		    	debug("eCurv="+eCurv);
+		    	debug("eCurv="+eCurv+" vEnergy="+vEnergy);
 		        vEnergy += //m_Means[aToLabel] * // m_Means[aToLabel] *
 		        		m_EnergyContourLengthCoeff * eCurv;
 		    } else {

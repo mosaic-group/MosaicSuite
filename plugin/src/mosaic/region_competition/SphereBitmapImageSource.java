@@ -1,5 +1,7 @@
 package mosaic.region_competition;
 
+import java.util.Iterator;
+
 public class SphereBitmapImageSource
 {
 	int m_Size[];
@@ -13,21 +15,28 @@ public class SphereBitmapImageSource
 	LabelImage labelImage;
 	IndexIterator iterator;
 	
+	static int mask[]=null;
+	
+	
+	
 	SphereBitmapImageSource(int NDimensions, LabelImage labelImage)
 	{
 		dim=NDimensions;
 		this.labelImage=labelImage;
 		
+		m_BackgroundValue = 0;
+		m_ForegroundValue = 1;
+		
 		m_Size = new int[dim];
 		
-		int[] vSize = new int[dim];
+//		int[] vSize = new int[dim];
 //		int[] vIndex = new int[dim];
 		m_Radius = new int[dim];
 		
 		//Initial image is 64 wide in each direction.
 		for (int i = 0; i < dim; i++) 
 		{
-			m_Size[i] = 64;
+			m_Size[i] = 24;
 //		    m_Spacing[i] = 1.0;
 //		    m_Origin[i] = 0.0;
 //		    vSize[i] = 0;
@@ -36,36 +45,34 @@ public class SphereBitmapImageSource
 		}
 		
 		iterator = new IndexIterator(m_Size);
+		
+		if(mask==null)
+		{
+			mask = new int[iterator.getSize()];
+			fillMask();			
+		}
+		
 //		m_Direction.SetIdentity();
 		
 		
-		m_BackgroundValue = 0;
-		m_ForegroundValue = 1;
 
     }
 	
-	double GenerateData(Point origin, int aFrom, int aTo)
+	void fillMask()
 	{
 		
+//		System.out.println("fillmask start");
+		
 		Point half = (new Point(m_Size)).div(2);
-		
-		Point start = origin.sub(half);				// "upper left point"
-		
-		int vNFrom=0;
-		int vNto=0;
-		
-		//TODO precalculate this!
 		
 		int size = iterator.getSize();
 		for(int i=0; i<size; i++)	// over region
 		{
 			Point ofs = iterator.indexToPoint(i);
-			Point p = start.add(ofs);
 			
 			// is point in region inside original data
-			if(labelImage.iterator.isInBound(p))
 			{
-				int[] vIndex = (p.sub(origin)).x;
+				int[] vIndex = (ofs).x;
 
 				float vHypEllipse = 0;
 				for(int vD = 0; vD < dim; vD++)
@@ -77,9 +84,46 @@ public class SphereBitmapImageSource
 //				System.out.println(""+p+" "+vHypEllipse);
 				if(vHypEllipse <= 1.0f)
 				{
+					mask[i]=m_ForegroundValue;
+//					System.out.print("1");
 //					outIt.Set((m_ForegroundValue));
-// std::cout << "1 ";
 					
+				} // is in region
+				else
+				{
+//					System.out.print("0");					
+					mask[i]=m_BackgroundValue;
+//					outIt.Set((m_BackgroundValue));
+				}
+			}
+		}//for
+		
+//		System.out.println("fillmask end");
+	}
+	
+	
+	double GenerateData(Point origin, int aFrom, int aTo)
+	{
+
+		Point half = (new Point(m_Size)).div(2);
+		Point start = origin.sub(half);				// "upper left point"
+		
+		int vNFrom=0;
+		int vNto=0;
+		
+		int size = iterator.getSize();
+		for(int i=0; i<size; i++)	// over region
+		{
+			Point ofs = iterator.indexToPoint(i);
+			Point p = start.add(ofs);
+			
+			// is point in region inside original data
+			if(labelImage.iterator.isInBound(p))
+			{
+
+//				System.out.println(""+p+" "+vHypEllipse);
+				if(mask[i]==m_ForegroundValue)
+				{
 					int absLabel=labelImage.getAbs(p);
 					if(absLabel==aTo)
 					{
@@ -92,8 +136,7 @@ public class SphereBitmapImageSource
 				} // is in region
 				else
 				{
-//					outIt.Set((m_BackgroundValue));
-// std::cout << "0 ";
+//					mask[i]==m_BackgroundValue;
 				}
 			}
 			else
@@ -101,6 +144,7 @@ public class SphereBitmapImageSource
 				// not in bound
 			}
 		}//for
+		
 		
 		
 		///////////////////////////////////////////////////////////////////////
@@ -179,5 +223,37 @@ public class SphereBitmapImageSource
 	}
 	
 }
+
+
+class Region implements Iterator<Point>
+{
+
+	@Override
+	public boolean hasNext()
+	{
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Point next()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void remove()
+	{
+		// TODO Auto-generated method stub
+		
+	}
+	
+}
+
+
+
+
+
 
 

@@ -20,11 +20,15 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class UserDialog
 {
+	
+	private JCheckBox cb;
 	
 	public boolean doUser;
 	public boolean doRand;
@@ -48,16 +52,16 @@ public class UserDialog
 		
 		final GenericDialog gd = new GenericDialog(title);
 		
-		gd.addMessage("addMessage");
+		
+//		gd.addMessage("addMessage");
 //		gd.addChoice("choice", new String[]{"choice 1", "choice 2"}, "choice 2");
 //		gd.addCheckbox("yes or no", false);
 //		gd.addSlider("myslider", -20, 42, 13);
 		
 		Panel panel = new Panel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		
 		Button bUser = new Button("UserDefined");
-		Button bRand = new Button("RandomEllipse");
-		Button bRect = new Button("Rectangle");
 		
 		bUser.addActionListener(new ActionListener() {
 			
@@ -69,6 +73,7 @@ public class UserDialog
 			}
 		});
 		
+		Button bRand = new Button("RandomEllipse");
 		bRand.addActionListener(new ActionListener() {
 			
 			@Override
@@ -79,6 +84,7 @@ public class UserDialog
 			}
 		});
 		
+		Button bRect = new Button("Rectangle");
 		bRect.addActionListener(new ActionListener() {
 			
 			@Override
@@ -149,11 +155,13 @@ public class UserDialog
 			@Override
 			public void dragEnter(DropTargetDragEvent dtde){}
 		};
-		
 		new DropTarget(tf, myDragDropListener);
-		
 		panel.add(tf);
 		
+		
+		cb = new JCheckBox("Use Regularization");
+		cb.setSelected(true);
+		panel.add(cb);
 		
 //
 		gd.add(panel);
@@ -161,4 +169,10 @@ public class UserDialog
 		
 		gd.showDialog();
 	}
+
+	public boolean useRegularization()
+	{
+		return cb.isSelected();
+	}
+	
 }
