@@ -36,12 +36,12 @@ public class SphereBitmapImageSource
 		//Initial image is 64 wide in each direction.
 		for (int i = 0; i < dim; i++) 
 		{
-			m_Size[i] = 24;
+			m_Size[i] = 18;
 //		    m_Spacing[i] = 1.0;
 //		    m_Origin[i] = 0.0;
 //		    vSize[i] = 0;
 //		    vIndex[i] = 0;
-		    m_Radius[i] = 10;
+		    m_Radius[i] = 8;
 		}
 		
 		iterator = new IndexIterator(m_Size);

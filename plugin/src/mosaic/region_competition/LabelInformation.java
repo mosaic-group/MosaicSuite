@@ -55,7 +55,7 @@ public class LabelInformation
 //    variance = M2/(n - 1)
 //    return variance
 	
-	public void add(int x)
+	public void add(float x)
 	{
 		count++;
 		double delta = x-mean;
@@ -68,7 +68,7 @@ public class LabelInformation
 		}
 	}
 	
-	public void remove(int x) {
+	public void remove(float x) {
 		count--;
 		if (count == 0) {
 			mean = 0;

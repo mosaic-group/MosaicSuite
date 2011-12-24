@@ -98,7 +98,7 @@ public class TopologicalNumberImageFunction
         
         readImageData(index);
         
-        //TODO das sollte man nicht immer wieder aufrufen müssen...
+        //TODO das sollte man nicht immer wieder aufrufen muessen...
         UnitCubeCCCounter unitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity, TBGConnectivity);
         
         for (Point p: TFGConnectivity) 

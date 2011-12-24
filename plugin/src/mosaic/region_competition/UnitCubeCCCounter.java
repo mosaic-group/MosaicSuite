@@ -265,7 +265,7 @@ public class UnitCubeCCCounter
 		//TODO initialize?
 		neighborsInUnitCube = new boolean[neighborhoodSize][neighborhoodSize];
 		
-		//TODO ist das nicht symmetrisch? --> nur bis zur hälfte berechnen, spiegeln
+		//TODO ist das nicht symmetrisch? --> nur bis zur haelfte berechnen, spiegeln
 		for(int i=0; i<neighborhoodSize; i++)
 		{
 			Point p1 = unitCubeCCCounter.ofsToPoint(i);

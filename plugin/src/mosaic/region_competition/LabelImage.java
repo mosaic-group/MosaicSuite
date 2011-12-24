@@ -452,7 +452,7 @@ public class LabelImage //extends ShortProcessor
 						labelMap.put(absLabel, new LabelInformation(absLabel));
 						stats = labelMap.get(absLabel);
 					}
-					int val = getIntensity(x,y);
+					float val = getIntensity(x,y);
 					stats.count++;
 					stats.mean+=val;
 					stats.setVar(stats.var+val*val);
@@ -1912,7 +1912,7 @@ public class LabelImage //extends ShortProcessor
     //            OuterContourContainerKeyType vCurrentIndex = aContourPointPtr->first;
 		double vEnergy = 0;
 
-		int vCurrentImageValue = aContourPointPtr.intensity;
+		float vCurrentImageValue = aContourPointPtr.intensity;
 		int vCurrentLabel = aContourPointPtr.label;
 
         /// For the full-region based energy models, register competing regions
@@ -2197,7 +2197,7 @@ public class LabelImage //extends ShortProcessor
 		return (double)vDKL1 + (double)vDKL2;
 	}
 	
-    double CalculateCVEnergyDifference(int aValue, int fromLabel, int toLabel) {
+    double CalculateCVEnergyDifference(float aValue, int fromLabel, int toLabel) {
         /**
          * Here we have the possibility to either put the current pixel
          * value to the BG, calculate the BG-mean and then calculate the
@@ -2216,7 +2216,7 @@ public class LabelImage //extends ShortProcessor
 		return (aValue-vNewToMean)*(aValue-vNewToMean) - (aValue-from.mean)*(aValue-from.mean);
     }
 	
-	double CalculateMSEnergyDifference(int aValue, int fromLabel, int toLabel)
+	double CalculateMSEnergyDifference(float aValue, int fromLabel, int toLabel)
 	{
 		LabelInformation to = labelMap.get(toLabel);
 		LabelInformation from = labelMap.get(fromLabel);
@@ -2331,7 +2331,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 					Point vCurrentIndex = vLit.next();
 					int vLabelValue = this.get(vCurrentIndex);
 					int absLabel = labelToAbs(vLabelValue);
-					int vImageValue = this.getIntensity(vCurrentIndex);
+					float vImageValue = this.getIntensity(vCurrentIndex);
 
 					// the visited labels statistics will be removed later.
 					
@@ -2506,7 +2506,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	{
 		Point vCurrentIndex = aParticle.getKey();
 		ContourParticle vOCCV = aParticle.getValue();
-		int vCurrentImageValue = vOCCV.intensity;
+		float vCurrentImageValue = vOCCV.intensity;
 
 		LabelInformation aToLabel = labelMap.get(aToLabelIdx);
 		LabelInformation aFromLabel = labelMap.get(aFromLabelIdx);
@@ -2847,15 +2847,16 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	/**
 	 * returns the image data of the originalIP at Point p
 	 */
-	int getIntensity(Point p)
+	float getIntensity(Point p)
 	{
 		return getIntensity(p.x[0], p.x[1]);
 	}
 
 
-	int getIntensity(int x, int y)
+	float getIntensity(int x, int y)
 	{
-		return originalIP.getPixel(x, y)[0];
+		//TODO !!!!!!!!!! prenormalize image!!!
+		return originalIP.getPixel(x, y)[0]/255.0f;
 	}
 
 
