@@ -7,13 +7,20 @@ public class Timer
 	private long end;
 	private long duration=0;
 	
+	/**
+	 * starts the timer 
+	 * @return starttime in ms
+	 */
 	public long tic()
 	{
 		duration = 0;
 		start=System.nanoTime(); 
-		return start;
+		return start/1000;
 	}
 	
+	/**
+	 * @return time elapsed since tic() in ms
+	 */
 	public long toc()
 	{
 		end = System.nanoTime();
@@ -25,5 +32,6 @@ public class Timer
 	{
 		return duration/1000;
 	}
+	
 
 }

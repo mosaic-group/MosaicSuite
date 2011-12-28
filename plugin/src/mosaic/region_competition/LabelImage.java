@@ -47,7 +47,7 @@ public class LabelImage //extends ShortProcessor
 	
 	
 	// data structures
-	private ImageProcessor labelIP;		// map positions -> labels
+	 ImageProcessor labelIP;		// map positions -> labels
 	
 	/** stores the contour particles. acces via coordinates */
 	private HashMap<Point, ContourParticle> m_InnerContourContainer;
@@ -617,7 +617,7 @@ public class LabelImage //extends ShortProcessor
 		m_converged = vConvergence;
 
 		timer.toc();
-		debug(timer.lastResult());
+		debug("Total time: "+timer.lastResult());
 
 		/**
 		 * Write the label image in a convenient form to the filters output image
@@ -2116,14 +2116,23 @@ public class LabelImage //extends ShortProcessor
 			vEnergy += m_EnergyShapePriorCoeff * vChangeInShapeEnergy;
             //            std::cout << "Energy difference of a contour point from label: " << vCurrentLabel << " to label: " << aToLabel << ": " << vEnergy << std::endl;
         }
-
-        /// add a bolloon force:
-        if(vCurrentLabel == 0) {
-			vEnergy -= m_BalloonForceCoeff * vCurrentImageValue;
+*/
+		
+        /// add a bolloon force and a constant outward flow. If fronts were
+        /// touching, no constant flow is imposed (cancels out).
+        if(vCurrentLabel == 0)  // growing
+        {
+            vEnergy -= settings.m_ConstantOutwardFlow;
+            if (settings.m_BalloonForceCoeff > 0) { // outward flow
+                vEnergy -= settings.m_BalloonForceCoeff * vCurrentImageValue;
+            } else {
+                vEnergy -= -settings.m_BalloonForceCoeff * (1 - vCurrentImageValue);
+            }
+        } else if (aToLabel == 0) // shrinking
+        {
+            vEnergy += settings.m_ConstantOutwardFlow;
         }
-
-        //        }
- */
+        
         return vEnergy;
 
     }
@@ -2252,7 +2261,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 {
 	SphereBitmapImageSource sphere = new SphereBitmapImageSource(dim, aLabelImage);
 	
-	return sphere.GenerateData(aIndex, aFrom, aTo);
+	return sphere.GenerateData2(aIndex, aFrom, aTo);
 
 }
 	
@@ -2276,7 +2285,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	void ForestFire(LabelImage aLabelImage, Point aIndex, MultipleThresholdImageFunction aMultiThsFunctionPtr)
 	{
 		
-		displaySlice("pre forestfire");
+//		displaySlice("pre forestfire");
 
 //        Set<LabelAbsPixelType> LabelAbsPxSetType;
 //		LabelAbsPxSetType vVisitedNewLabels;
@@ -2444,7 +2453,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 			
 		} // end for neighbord
 		
-		displaySlice("after forestfire");
+//		displaySlice("after forestfire");
 		
 		/// Clean up the statistics of non valid regions.
 		for(int vVisitedIt : vVisitedOldLabels) 
