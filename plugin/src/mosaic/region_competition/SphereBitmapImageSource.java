@@ -1,7 +1,5 @@
 package mosaic.region_competition;
 
-import java.util.Iterator;
-
 public class SphereBitmapImageSource
 {
 	int m_Size[];
@@ -15,7 +13,7 @@ public class SphereBitmapImageSource
 	LabelImage labelImage;
 	IndexIterator iterator;
 	
-	static int mask[]=null;
+	int mask[]=null;
 	
 	
 	
@@ -46,7 +44,7 @@ public class SphereBitmapImageSource
 		
 		iterator = new IndexIterator(m_Size);
 		
-		if(mask==null)
+//		if(mask==null)
 		{
 			mask = new int[iterator.getSize()];
 			fillMask();			

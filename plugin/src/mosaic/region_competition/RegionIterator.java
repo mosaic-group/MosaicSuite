@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.sun.corba.se.spi.ior.MakeImmutable;
-
 public class RegionIterator implements Iterator<Integer>
 {
 
@@ -183,7 +181,6 @@ public class RegionIterator implements Iterator<Integer>
 	
 	public static void tester()
 	{
-		int dim=3;
 		int[] testinput={100,100,100};
 		int[] testofs={-50,-50,-50};
 		int[] testregion = {200,200,200};

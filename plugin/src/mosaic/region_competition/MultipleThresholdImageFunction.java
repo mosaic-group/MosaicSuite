@@ -10,8 +10,9 @@ public class MultipleThresholdImageFunction
     List<Pair<Integer, Integer>> m_Thresholds;
     int m_NThresholds; // to not call size() of the vector at each evaluation.
 	
-	public MultipleThresholdImageFunction() 
+	public MultipleThresholdImageFunction(LabelImage aLabelImage) 
 	{
+		SetInputImage(aLabelImage);
 		m_NThresholds = 0;
 		m_Thresholds = new ArrayList<Pair<Integer,Integer>>();
 	}

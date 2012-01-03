@@ -11,6 +11,7 @@ import ij.ImageStack;
 import ij.WindowManager;
 import ij.gui.ImageCanvas;
 import ij.gui.Roi;
+import ij.io.FileInfo;
 import ij.io.FileSaver;
 import ij.io.Opener;
 import ij.plugin.filter.PlugInFilter;
@@ -27,6 +28,7 @@ public class Region_Competition implements PlugInFilter
 {
 		
 	Region_Competition MVC;		// interface to image application (imageJ)
+	public Settings settings;
 	LabelImage labelImage;		// data structure mapping pixels to labels
 	ImagePlus originalIP;		// IP of the input image
 	ImageStack stack;			// stack saving the segmentation progress images
@@ -38,15 +40,17 @@ public class Region_Competition implements PlugInFilter
 	public int setup(String aArgs, ImagePlus aImp)
 	{
 		
-//		IJ.showMessage("version 2011 11 15");
-		
-		userDialog = new UserDialog("starterpanel");
-		userDialog.showDialog();
-		
-				
+		settings = new Settings();
 		MVC=this;
 		originalIP = aImp;
-
+		
+	//	RegionIterator.tester();
+//		IJ.showMessage("version 2011 11 15");
+		
+		userDialog = new UserDialog(settings);
+//		userDialog.showDialog();
+		userDialog.showNetbeans();
+		
 		////////////////////
 		
 		if(originalIP == null)
@@ -135,10 +139,18 @@ public class Region_Competition implements PlugInFilter
 		{
 //			String s = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
 //			System.out.println(s);
-			String d = originalIP.getOriginalFileInfo().directory;
-			ImagePlus ip = new ImagePlus("", stackImPlus.getProcessor());
-			FileSaver fs = new FileSaver(ip);
-			fs.saveAsTiff(d+"initialLabelImage.tiff");
+			FileInfo fi = originalIP.getOriginalFileInfo();
+			if(fi!=null)
+			{
+				String d = fi.directory;
+				ImagePlus ip = new ImagePlus("", stackImPlus.getProcessor());
+				FileSaver fs = new FileSaver(ip);
+				fs.saveAsTiff(d+"initialLabelImage.tiff");
+			}
+			else
+			{
+				System.out.println("image was created using file/new. initial label was not saved");
+			}
 		}
 				
 		labelImage.initBoundary();
@@ -163,80 +175,86 @@ public class Region_Competition implements PlugInFilter
 	
 	void manualSelect(final LabelImage labelImg)
 	{
-//		IJ.showMessage("Select initial guesses (holding shift). press space to process");
 		
-		KeyListener keyListener = new KeyListener() 
+		Roi roi=null;
+		roi = originalIP.getRoi();
+		if(roi==null)
 		{
-			@Override
-			public void keyTyped(KeyEvent e)
+			System.out.println("no ROIs yet. Get from UserInput");
+	//		IJ.showMessage("Select initial guesses (holding shift). press space to process");
+			
+			ImageCanvas canvas = originalIP.getCanvas();
+			
+			// save old keylisteners, remove them (so we can use all keys to select guess ROIs)
+			KeyListener[] kls = canvas.getKeyListeners();
+			for(KeyListener kl: kls)
 			{
-//				System.out.println("code " + e.getKeyCode());
-//				System.out.println("id " + e.getID());
-//				System.out.println("char " + ((int)e.getKeyChar()));
-
-//				if(e.getKeyChar() == KeyEvent.VK_SPACE) 
+				canvas.removeKeyListener(kl);
+			}
+			
+			KeyListener keyListener = new KeyListener() 
+			{
+				@Override
+				public void keyTyped(KeyEvent e)
 				{
-//					e.consume();
+					//				System.out.println("code " + e.getKeyCode());
+					//				System.out.println("id " + e.getID());
+					//				System.out.println("char " + ((int)e.getKeyChar()));
 					
-					synchronized(labelImg) 
+					//				if(e.getKeyChar() == KeyEvent.VK_SPACE) 
 					{
-						labelImg.notifyAll();
+						//					e.consume();
+						
+						synchronized(labelImg) 
+						{
+							labelImg.notifyAll();
+						}
+					}
+				}
+				@Override
+				public void keyReleased(KeyEvent e){
+					// TODO Auto-generated method stub
+				}
+				@Override
+				public void keyPressed(KeyEvent e){
+					// TODO Auto-generated method stub
+				}
+			};
+			canvas.addKeyListener(keyListener);
+			
+			// try to get a ROI from user
+			while(roi==null)
+			{
+				synchronized(labelImg)
+				{
+					try {
+						System.out.println("Waiting for user input (pressing space");
+						labelImg.wait();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+					roi = originalIP.getRoi();
+					if(roi==null)
+					{
+						IJ.showMessage("No ROI selcted. maybe wrong window");
 					}
 				}
 			}
-			@Override
-			public void keyReleased(KeyEvent e){
-				// TODO Auto-generated method stub
-			}
-			@Override
-			public void keyPressed(KeyEvent e){
-				// TODO Auto-generated method stub
-			}
-		};
-		
-		ImageCanvas canvas = originalIP.getCanvas();
-		
-		// save old keylisteners, remove them (so we can use all keys to select guess ROIs)
-		KeyListener[] kls = canvas.getKeyListeners();
-		for(KeyListener kl: kls)
-		{
-			canvas.removeKeyListener(kl);
-		}
-		
-		canvas.addKeyListener(keyListener);
-		
-		Roi roi=null;
-		// try to get a ROI from user
-		while(roi==null)
-		{
-			synchronized(labelImg)
+			//we have a roi, remove keylistener and reattach the old ones
+			canvas.removeKeyListener(keyListener);
+			for(KeyListener kl: kls)
 			{
-				try {
-					System.out.println("Waiting for user input (pressing space");
-					labelImg.wait();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-				System.out.println("end waiting (button was pressed)");
-				
-				roi = originalIP.getRoi();
-				if(roi==null)
-				{
-					IJ.showMessage("No ROI selcted. maybe wrong window");
-				}
+				canvas.addKeyListener(kl);
 			}
 		}
-		//we have a roi, remove keylistener and reattach the old ones
-		canvas.removeKeyListener(keyListener);
-		for(KeyListener kl: kls)
-		{
-			canvas.addKeyListener(kl);
-		}
+		
+		// now we have a roi
 		
 		labelImg.getLabelImage().setValue(1);
 		labelImg.getLabelImage().fill(roi);
+		labelImg.connectedComponents(labelImg);
 //		labelImg.initBoundary();
 		
 //		originalIP.getWindow().addKeyListener(keyListener);

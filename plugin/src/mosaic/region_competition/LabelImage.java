@@ -80,6 +80,7 @@ public class LabelImage //extends ShortProcessor
 		m_LabelImage = this;
 		
 		MVC=region_competition;
+		settings=MVC.settings;
 		ImagePlus ip = MVC.getOriginalImPlus();
 		originalIP=ip;
 		
@@ -144,13 +145,16 @@ public class LabelImage //extends ShortProcessor
 
 	private int m_MaxNLabels;
     
+	SphereBitmapImageSource sphereMaskIterator;
 
     
 	// ///////////////////////////////////////////////////
 
     void initMembers()
     {
-    	settings = new Settings();
+//    	settings = new Settings();
+    	sphereMaskIterator = new SphereBitmapImageSource(dim, m_LabelImage);
+
     	
     	//TODO half dummy
         m_EnergyFunctional = settings.m_EnergyFunctional;
@@ -1695,8 +1699,7 @@ public class LabelImage //extends ShortProcessor
 	void RelabelAnAdjacentRegionAfterTopologicalChange(LabelImage aLabelImage, Point aIndex, int aLabel)
 	{
 		// template <class TInputImage, class TInitImage, class TOutputImage >
-		MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdImageFunction();
-		vMultiThsFunction.SetInputImage(aLabelImage);
+		MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdImageFunction(aLabelImage);
 		vMultiThsFunction.AddThresholdBetween(aLabel, aLabel);
 		int negLabel = labelToNeg(aLabel);
 		vMultiThsFunction.AddThresholdBetween(negLabel, negLabel);
@@ -1717,8 +1720,7 @@ public class LabelImage //extends ShortProcessor
 		int aL2Neg = labelToNeg(aL2);
 		
 		
-	    MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdImageFunction();
-	    vMultiThsFunction.SetInputImage(aLabelImage);
+	    MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdImageFunction(aLabelImage);
 	    vMultiThsFunction.AddThresholdBetween(aL1, aL1);
 	    vMultiThsFunction.AddThresholdBetween(aL1Neg, aL1Neg);
 	
@@ -2008,7 +2010,7 @@ public class LabelImage //extends ShortProcessor
 		    {
 		    	
 		    	double eCurv = CalculateCurvatureBasedGradientFlow(originalIP, m_LabelImage, aContourIndex,vCurrentLabel, aToLabel);
-		    	debug("eCurv="+eCurv+" vEnergy="+vEnergy);
+//		    	debug("eCurv="+eCurv+" vEnergy="+vEnergy);
 		        vEnergy += //m_Means[aToLabel] * // m_Means[aToLabel] *
 		        		m_EnergyContourLengthCoeff * eCurv;
 		    } else {
@@ -2259,9 +2261,9 @@ public class LabelImage //extends ShortProcessor
 double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		LabelImage aLabelImage, Point aIndex, int aFrom, int aTo) 
 {
-	SphereBitmapImageSource sphere = new SphereBitmapImageSource(dim, aLabelImage);
+//	SphereBitmapImageSource sphereMaskIterator = new SphereBitmapImageSource(dim, aLabelImage);
 	
-	return sphere.GenerateData2(aIndex, aFrom, aTo);
+	return sphereMaskIterator.GenerateData2(aIndex, aFrom, aTo);
 
 }
 	
@@ -2489,7 +2491,68 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		//        }
 		
 	}
-	
+
+	/**
+	 * Gives disconnected components in a labelImage distinct labels
+	 * bg and forbidden label stay the same
+	 * contour labels are treated as normal labels, 
+	 * so use this function only for BEFORE contour particles are added to the labelImage
+	 * (eg. to process user input for region guesses)
+	 * @param li LabelImage
+	 */
+	public static void connectedComponents(LabelImage li)
+	{
+		//TODO ! test this
+		
+		HashSet<Integer> oldLabels = new HashSet<Integer>();
+		int newLabel=1;
+		
+		
+		int dims[] = li.dimensions;
+		int size=1;
+		for(int d:dims){
+			size*=d;
+		}
+		
+		// what are the old labels?
+		for(int i=0; i<size; i++)
+		{
+			int l=li.get(i);
+			if(l==li.forbiddenLabel || l==li.bgLabel)
+			{
+				continue;
+			}
+			oldLabels.add(l);
+		}
+		
+		for(int i=0; i<size; i++)
+		{
+			int l=li.get(i);
+			if(l==li.forbiddenLabel || l==li.bgLabel)
+			{
+				continue;
+			}
+			if(oldLabels.contains(l))
+			{
+				// l is an old label
+				MultipleThresholdImageFunction aMultiThsFunctionPtr = new MultipleThresholdImageFunction(li);
+				aMultiThsFunctionPtr.AddThresholdBetween(l, l);
+				FloodFill ff = new FloodFill(li, aMultiThsFunctionPtr, li.iterator.indexToPoint(i));
+				
+				//find a new label
+				while(oldLabels.contains(newLabel)){
+					newLabel++;
+				}
+				// set region to new label
+				for(Point p:ff)
+				{
+					li.set(p, newLabel);
+				}
+				// next new label
+				newLabel++;
+			}
+		}
+	}
 	
 	
 	void FreeLabelStatistics(Iterator<Entry<Integer, LabelInformation>> vActiveLabelsIt) 
@@ -2790,6 +2853,11 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		}
 	}
 
+//	int labelToAbs(int label) 
+//	{
+//		return Math.abs(label);
+//	}	
+	
 
 	/**
 	 * @param label a label
@@ -2804,6 +2872,12 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		}
 	}
 
+//	int labelToNeg(int label) 
+//	{
+//		return -Math.abs(label);
+//	}	
+	
+	
 	int get(int index)
 	{
 		return labelIP.get(index);
@@ -2897,6 +2971,18 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	}
 
 
+	void displaySlice()
+	{
+		displaySlice(null);
+	}
+
+
+	void displaySlice(String s)
+	{
+		MVC.addSliceToStackAndShow(s, labelIP.getPixelsCopy());
+	}
+
+
 	static void debug(Object s)
 	{
 		System.out.println(s);
@@ -2934,16 +3020,6 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		return false;
 	}
 	
-	
-	void displaySlice()
-	{
-		displaySlice(null);
-	}
-	
-	void displaySlice(String s)
-	{
-		MVC.addSliceToStackAndShow(s, labelIP.getPixelsCopy());
-	}
 	
 	private void checkForNan(double...fs)
 	{

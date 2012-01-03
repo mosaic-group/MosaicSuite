@@ -12,7 +12,7 @@ public class Settings
 		 * Initialize control members
 		 */
 		m_MaxNbIterations = 600;
-		m_AreaThreshold = 1; ///TODO find a good heuristic or stat test.
+		m_AreaThreshold = 2; ///TODO find a good heuristic or stat test.
 	
 		/**
 		 * Initialize energy related parameters
@@ -21,7 +21,7 @@ public class Settings
 		// ContourLengthApproxImageFunction<LabelImageType>::New();
 	
 		m_EnergyFunctional = EnergyFunctionalType.e_CV;
-		m_EnergyUseCurvatureRegularization = false;
+		m_EnergyUseCurvatureRegularization = true;
 		m_EnergyContourLengthCoeff = 0.04f; // 0.04;//0.003f;
 		m_EnergyRegionCoeff = 1.0f;
 	
@@ -55,7 +55,7 @@ public class Settings
 		// m_LocalCVEnergyRadius[vD] = 1;
 		// }
 		m_LocalLiEnergySigma = 5;
-		m_CurvatureMaskRadius = 4;
+		m_CurvatureMaskRadius = 8;
 		m_RegionMergingThreshold = 0.1f;
 	
 		m_AcceptedPointsFactor = 1;
