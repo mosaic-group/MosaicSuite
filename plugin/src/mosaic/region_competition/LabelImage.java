@@ -1276,31 +1276,32 @@ public class LabelImage //extends ShortProcessor
 		boolean vMerge = false;
 		        
 		
-		if(vSeeds.size()>0)
-		{
-			//TODO seed output == debugging
-			debug("Seed points:");
-			for(Pair<Point, Integer> vSeedIt : vSeeds) 
-			{
-				debug(" "+vSeedIt.first+" label="+vSeedIt.second);
-			}
-			debug("End Seed points:");
-		}
+		//debug seeds
+//		if(vSeeds.size()>0)
+//		{
+//			//TODO seed output == debugging
+//			debug("Seed points:");
+//			for(Pair<Point, Integer> vSeedIt : vSeeds) 
+//			{
+//				debug(" "+vSeedIt.first+" label="+vSeedIt.second);
+//			}
+//			debug("End Seed points:");
+//		}
 		
 		
 		int vNSplits = 0;
 		for(Pair<Point, Integer> vSeedIt : vSeeds) 
 		{
-			LabelInformation info = labelMap.get(vSeedIt.second);
-			if(info == null) {
-				// TODO !!! Seed label not found
-				// This might happen, if there are multiple seeds for a split. The region was then 
-				// relabeled in the first seed, and the label of the next seeds are not found anymore. 
-//				displaySlice("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
-				System.out.println("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
-				continue;
-			}
-			int count  = info.count;
+//			LabelInformation info = labelMap.get(vSeedIt.second);
+//			if(info == null) {
+//				// TODO !!! Seed label not found
+//				// This might happen, if there are multiple seeds for a split. The region was then 
+//				// relabeled in the first seed, and the label of the next seeds are not found anymore. 
+////				displaySlice("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
+//				debug("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
+//				continue;
+//			}
+//			int count  = info.count;
 //			if(count > 1) //WRONG!
 			{
 				RelabelAnAdjacentRegionAfterTopologicalChange(this, vSeedIt.first, vSeedIt.second);
@@ -1770,7 +1771,7 @@ public class LabelImage //extends ShortProcessor
 			{
 				//TODO debug
 				displaySlice("***info is null for: "+vIt.getKey());
-				System.out.println("***info is null for: "+vIt.getKey());
+				debug("***info is null for: "+vIt.getKey());
 				MVC.selectPoint(vIt.getKey());
 				continue;
 			}
@@ -2276,7 +2277,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	//TODO Z finishing: take faster one
 	double result;
 	
-	if(MVC.userDialog.useNewRegionIterator)
+	if(MVC.userDialog.useOldRegionIterator)
 	{
 		result = sphereMaskIterator.GenerateData(aIndex, aFrom, aTo);
 	}
@@ -2482,15 +2483,16 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		/// Clean up the statistics of non valid regions.
 		for(int vVisitedIt : vVisitedOldLabels) 
 		{
-			System.out.println("FreeLabelStatistics(vVisitedIt="+vVisitedIt+") removed from code");
+			debug("FreeLabelStatistics(vVisitedIt="+vVisitedIt+") removed from code");
 			
 			LabelInformation oldLabelInfo = labelMap.get(vVisitedIt);
 			int count = oldLabelInfo.count;
-			System.out.println("oldlabel="+vVisitedIt+" count="+count);
+			debug("oldlabel="+vVisitedIt+" count="+count);
 			
 			if(count < 0)
 			{
 				//TODO debug remove
+				debug("labelInfo.count < 0 in forestfire");
 				throw new RuntimeException("labelInfo.count < 0 in forestfire");
 			}
 			if(count==0)
@@ -3024,7 +3026,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 			int contourLabel = e.getValue().label;
 			if(imageLabel!=contourLabel)
 			{
-				System.out.println("*** Inconsistency!!! ***");
+				debug("*** Inconsistency!!! ***");
 				int dummy=0;
 			}
 		}
@@ -3038,7 +3040,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 			if(getAbs(i)==abslabel)
 			{
 				displaySlice("found a ghost label at "+ iterator.indexToPoint(i));
-				System.out.println("found a ghost label at "+ iterator.indexToPoint(i));
+				debug("found a ghost label at "+ iterator.indexToPoint(i));
 				return true;
 			}
 		}

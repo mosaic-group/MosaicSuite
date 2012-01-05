@@ -28,6 +28,16 @@ public class Timer
 		return (duration)/1000;
 	}
 	
+//	public void pause()
+//	{
+//		end = System.nanoTime();
+//		duration += end-start;
+//	}
+//	public void resume()
+//	{
+//		start = System.nanoTime();
+//	}
+	
 	public long lastResult()
 	{
 		return duration/1000;

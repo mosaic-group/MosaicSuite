@@ -76,7 +76,7 @@ public class OptionPanel extends javax.swing.JPanel {
             }
         });
 
-        spinnerRectRatio.setModel(new javax.swing.SpinnerNumberModel(0.75d, 0.0d, 1.0d, 0.01d));
+        spinnerRectRatio.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.75f), Float.valueOf(0.0f), Float.valueOf(1.0f), Float.valueOf(0.01f)));
 
         bInputEllipses.setText("Random Ellipses");
         bInputEllipses.addActionListener(new java.awt.event.ActionListener() {
@@ -96,11 +96,11 @@ public class OptionPanel extends javax.swing.JPanel {
 
         checkRegularization.setText("use Regularization");
 
-        spinnerRad.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(4), Integer.valueOf(0), null, Integer.valueOf(1)));
+        spinnerRad.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(4.0f), Float.valueOf(0.0f), null, Float.valueOf(1.0f)));
 
         labelRad.setText("Radius");
 
-        spinnerWeight.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(0.04d), Double.valueOf(0.0d), null, Double.valueOf(0.01d)));
+        spinnerWeight.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.04f), Float.valueOf(0.0f), null, Float.valueOf(0.01f)));
 
         labelWeight.setText("Weight");
 
@@ -200,41 +200,41 @@ public class OptionPanel extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void bInputRectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bInputRectActionPerformed
+    void bInputRectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bInputRectActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_bInputRectActionPerformed
 
-    private void bInputEllipsesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bInputEllipsesActionPerformed
+    void bInputEllipsesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bInputEllipsesActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_bInputEllipsesActionPerformed
 
-    private void bInputUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bInputUserActionPerformed
+    void bInputUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bInputUserActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_bInputUserActionPerformed
 
-    private void bCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bCancelActionPerformed
+    void bCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bCancelActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_bCancelActionPerformed
 
-    private void comboRegularizationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboRegularizationActionPerformed
+    void comboRegularizationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comboRegularizationActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_comboRegularizationActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    javax.swing.JButton bCancel;
-    javax.swing.JButton bInputEllipses;
-    javax.swing.JButton bInputRect;
-    javax.swing.JButton bInputUser;
-    javax.swing.JCheckBox checkRegularization;
-    javax.swing.JComboBox comboRegularization;
-    javax.swing.JScrollPane jScrollPane1;
-    javax.swing.JSeparator jSeparatorVert;
-    javax.swing.JTextArea jTextArea1;
-    javax.swing.JLabel labelRad;
-    javax.swing.JLabel labelWeight;
-    javax.swing.JSpinner spinnerNEllipses;
-    javax.swing.JSpinner spinnerRad;
-    javax.swing.JSpinner spinnerRectRatio;
-    javax.swing.JSpinner spinnerWeight;
+    protected javax.swing.JButton bCancel;
+    protected javax.swing.JButton bInputEllipses;
+    protected javax.swing.JButton bInputRect;
+    protected javax.swing.JButton bInputUser;
+    protected javax.swing.JCheckBox checkRegularization;
+    protected javax.swing.JComboBox comboRegularization;
+    protected javax.swing.JScrollPane jScrollPane1;
+    protected javax.swing.JSeparator jSeparatorVert;
+    protected javax.swing.JTextArea jTextArea1;
+    protected javax.swing.JLabel labelRad;
+    protected javax.swing.JLabel labelWeight;
+    protected javax.swing.JSpinner spinnerNEllipses;
+    protected javax.swing.JSpinner spinnerRad;
+    protected javax.swing.JSpinner spinnerRectRatio;
+    protected javax.swing.JSpinner spinnerWeight;
     // End of variables declaration//GEN-END:variables
 }

@@ -67,13 +67,16 @@ public class Settings
 	{
 		initMembers();
 	}
-
+	
+	//////////////////////////////////////////////////////
+	
+	
 	int m_OscillationHistoryLength;
 	
     float m_AcceptedPointsReductionFactor;
     float m_AcceptedPointsFactor;
     
-    float m_EnergyContourLengthCoeff;
+    public float m_EnergyContourLengthCoeff;
     float m_SigmaOfLoGFilter;
     /// Pushes the curve towards edges in the image
     float m_EnergyEdgeAttractionCoeff;
@@ -100,7 +103,7 @@ public class Settings
     int m_AreaThreshold;
 //    ArrayType m_LocalCVEnergyRadius;
     int m_LocalLiEnergySigma;
-    float m_CurvatureMaskRadius;
+    public float m_CurvatureMaskRadius;
 //    int m_ForbiddenRegionLabel;
 //    typedef GaussianImageSource<InternalImageType> GaussianImageSourceType;
 //    typename GaussianImageSourceType::Pointer m_GaussianImageSource;

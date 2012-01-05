@@ -32,24 +32,10 @@ public class GUIFrame extends javax.swing.JFrame {
 
         jTabbedPane1 = new javax.swing.JTabbedPane();
         optionPanel1 = new mosaic.region_competition.netbeansGUI.OptionPanel();
-        debugPanel1 = new mosaic.region_competition.netbeansGUI.DebugPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jTabbedPane1.addTab("tab1", optionPanel1);
-
-        javax.swing.GroupLayout debugPanel1Layout = new javax.swing.GroupLayout(debugPanel1);
-        debugPanel1.setLayout(debugPanel1Layout);
-        debugPanel1Layout.setHorizontalGroup(
-            debugPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 466, Short.MAX_VALUE)
-        );
-        debugPanel1Layout.setVerticalGroup(
-            debugPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 307, Short.MAX_VALUE)
-        );
-
-        jTabbedPane1.addTab("tab2", debugPanel1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -108,7 +94,6 @@ public class GUIFrame extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private mosaic.region_competition.netbeansGUI.DebugPanel debugPanel1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private mosaic.region_competition.netbeansGUI.OptionPanel optionPanel1;
     // End of variables declaration//GEN-END:variables

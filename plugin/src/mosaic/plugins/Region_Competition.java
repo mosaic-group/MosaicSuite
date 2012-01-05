@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 import mosaic.region_competition.*;
+import mosaic.region_competition.netbeansGUI.UserDialog;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -49,11 +50,11 @@ public class Region_Competition implements PlugInFilter
 		originalIP = aImp;
 		
 	//	RegionIterator.tester();
-//		IJ.showMessage("version 2011 11 15");
+//		IJ.showMessage("version 1");
 		
 		userDialog = new UserDialog(settings);
-		userDialog.showDialog();
-//		userDialog.showNetbeans();
+//		userDialog.showDialog();
+		userDialog.showNetbeans();
 		
 		////////////////////
 		
@@ -129,7 +130,11 @@ public class Region_Competition implements PlugInFilter
 		}
 		else
 		{
-			System.out.println("no valid input option in User Input");
+			// was aborted
+			System.out.println("no valid input option in User Input. Abort");
+			labelImage=null;
+			return;
+//			throw new RuntimeException("no valid input option in User Input. Abort");
 		}
 		
 		initialLabelImageProcessor = labelImage.getLabelImageProcessor().duplicate();
@@ -182,8 +187,8 @@ public class Region_Competition implements PlugInFilter
 			// next stack image is start of algo
 			addSliceToStackAndShow("init", labelImage.getLabelImageProcessor().getPixelsCopy());
 			IJ.run("3-3-2 RGB"); // stack has to contain at least 2 slices so this LUT applies to all future slices.
-			//		LutLoader lutloader = new LutLoader();
-			//		lutloader.run("3-3-2 RGB");
+//					LutLoader lutloader = new LutLoader();
+//					lutloader.run("3-3-2 RGB");
 		}
 	}
 	
@@ -192,6 +197,10 @@ public class Region_Competition implements PlugInFilter
 	{
 		
 		initLabelImage();
+		if(labelImage==null) // input was aborted
+		{
+			return;
+		}
 		initStack();
 
 		if(userDialog.kbest>0)
