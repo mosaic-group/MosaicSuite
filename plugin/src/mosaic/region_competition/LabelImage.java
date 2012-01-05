@@ -49,7 +49,7 @@ public class LabelImage //extends ShortProcessor
 	// data structures
 	 ImageProcessor labelIP;		// map positions -> labels
 	
-	/** stores the contour particles. acces via coordinates */
+	/** stores the contour particles. access via coordinates */
 	private HashMap<Point, ContourParticle> m_InnerContourContainer;
 	
 	/** Maps the label(-number) to the information of a label */
@@ -198,11 +198,18 @@ public class LabelImage //extends ShortProcessor
 	
 	/**
 	 * Initializes label image with a predefined IP (by copying it)
+	 * ip: without contour pixels/boundary
+	 * (invoke initBoundary() and generateContour();
 	 */
+	public void initWithImageProc(ImageProcessor ip)
+	{
+		//TODO check for dimensions etc
+		this.labelIP=ip.duplicate();
+	}
+	
 	public void initWithIP(ImagePlus ip)
 	{
-		this.labelIP=ip.getProcessor().duplicate();
-		//TODO check for dimensions etc
+		initWithImageProc(ip.getProcessor());
 	}
 	
 	/**
@@ -210,6 +217,8 @@ public class LabelImage //extends ShortProcessor
 	 */
 	public void initBoundary()
 	{
+		
+		//TODO multidim
 		for(int y = 0; y < height; y++){
 			set(0, y, forbiddenLabel);
 			set(width-1,y,forbiddenLabel);
@@ -613,8 +622,9 @@ public class LabelImage //extends ShortProcessor
 			// m_ManyPointsToBeDeleted.clear();
 			vConvergence = DoOneIteration();
 
-			MVC.addSliceToStackAndShow("iteration " + m_iteration_counter,
-					this.labelIP.getPixelsCopy());
+			displaySlice("iteration " + m_iteration_counter);
+//			MVC.addSliceToStackAndShow("iteration " + m_iteration_counter,
+//					this.labelIP.getPixelsCopy());
 
 		}
 		
@@ -1056,8 +1066,8 @@ public class LabelImage //extends ShortProcessor
 			{
 				/// here we assume that we're oscillating, so we decrease the
 				/// acceptance factor:
-				m_AcceptedPointsFactor *= settings.m_AcceptedPointsReductionFactor;
 				debug("nb of accepted points reduced to: " + m_AcceptedPointsFactor);
+				m_AcceptedPointsFactor *= settings.m_AcceptedPointsReductionFactor;
 			}
 		}
 
@@ -2263,7 +2273,19 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 {
 //	SphereBitmapImageSource sphereMaskIterator = new SphereBitmapImageSource(dim, aLabelImage);
 	
-	return sphereMaskIterator.GenerateData2(aIndex, aFrom, aTo);
+	//TODO Z finishing: take faster one
+	double result;
+	
+	if(MVC.userDialog.useNewRegionIterator)
+	{
+		result = sphereMaskIterator.GenerateData(aIndex, aFrom, aTo);
+	}
+	else
+	{
+		result = sphereMaskIterator.GenerateData2(aIndex, aFrom, aTo);
+	}
+	
+	return result;
 
 }
 	
@@ -2825,7 +2847,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	}
 
 
-	public ImageProcessor getLabelImage()
+	public ImageProcessor getLabelImageProcessor()
 	{
 		return labelIP;
 	}
@@ -2979,7 +3001,10 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 
 	void displaySlice(String s)
 	{
-		MVC.addSliceToStackAndShow(s, labelIP.getPixelsCopy());
+		if(MVC.userDialog.useStack)
+		{
+			MVC.addSliceToStackAndShow(s, labelIP.getPixelsCopy());
+		}
 	}
 
 
@@ -3008,7 +3033,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	boolean checkForGhostLabel(int abslabel)
 	{
 		int size = m_LabelImage.height*m_LabelImage.width;
-		for(int i=0; i<m_LabelImage.height*m_LabelImage.width; i++)
+		for(int i=0; i<size; i++)
 		{
 			if(getAbs(i)==abslabel)
 			{

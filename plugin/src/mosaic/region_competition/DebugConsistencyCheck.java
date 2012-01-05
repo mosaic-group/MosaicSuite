@@ -32,7 +32,7 @@ public class DebugConsistencyCheck
 	{
 		this.labelImage=labelImage;
 		
-		data=labelImage.getLabelImage();
+		data=labelImage.getLabelImageProcessor();
 		pixels=(short[])data.getPixels();
 		
 		//TODO these seems to be 2D methods

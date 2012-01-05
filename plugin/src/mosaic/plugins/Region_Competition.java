@@ -2,6 +2,8 @@ package mosaic.plugins;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import mosaic.region_competition.*;
@@ -34,7 +36,9 @@ public class Region_Competition implements PlugInFilter
 	ImageStack stack;			// stack saving the segmentation progress images
 	ImagePlus stackImPlus;		// IP showing the stack
 	
-	UserDialog userDialog;
+	ImageProcessor initialLabelImageProcessor; // copy of the initial guess (without contour/boundary)
+	
+	public UserDialog userDialog;
 	
 	
 	public int setup(String aArgs, ImagePlus aImp)
@@ -48,8 +52,8 @@ public class Region_Competition implements PlugInFilter
 //		IJ.showMessage("version 2011 11 15");
 		
 		userDialog = new UserDialog(settings);
-//		userDialog.showDialog();
-		userDialog.showNetbeans();
+		userDialog.showDialog();
+//		userDialog.showNetbeans();
 		
 		////////////////////
 		
@@ -88,12 +92,10 @@ public class Region_Competition implements PlugInFilter
 	}
 	
 	
-	void frontsCompetitionImageFilter()
+	void initLabelImage()
 	{
 		labelImage = new LabelImage(MVC);
-		
 		labelImage.initZero();
-		
 		
 		// Input Processing
 		labelImage.settings.m_EnergyUseCurvatureRegularization=userDialog.useRegularization();
@@ -114,7 +116,7 @@ public class Region_Competition implements PlugInFilter
 			
 			labelImage.initWithIP(ip);
 		}
-		else
+		else if(userDialog.doRect)
 		{
 	//		labelImage.initialGuessGrowing(0.2);
 			labelImage.initialGuessGrowing(0.4);
@@ -125,17 +127,17 @@ public class Region_Competition implements PlugInFilter
 	//				"78 18 40 10 3 " +
 	//				"134 107 88 104 4 ");
 		}
+		else
+		{
+			System.out.println("no valid input option in User Input");
+		}
 		
+		initialLabelImageProcessor = labelImage.getLabelImageProcessor().duplicate();
 		
-		initStackIP();
-		// first stack image without boundary&contours
-		addSliceToStackAndShow("init", labelImage.getLabelImage().getPixelsCopy());
-		
-
-		// save the initial guess (random/user defindet/whatever) to a tiff
+		// save the initial guess (random/user defined/whatever) to a tiff
 		// so we can reuse it for debugging
-		boolean doSave=true;
-		if(doSave)
+		boolean doSaveGuess=true;
+		if(doSaveGuess)
 		{
 //			String s = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
 //			System.out.println(s);
@@ -143,7 +145,7 @@ public class Region_Competition implements PlugInFilter
 			if(fi!=null)
 			{
 				String d = fi.directory;
-				ImagePlus ip = new ImagePlus("", stackImPlus.getProcessor());
+				ImagePlus ip = new ImagePlus("", labelImage.getLabelImageProcessor());
 				FileSaver fs = new FileSaver(ip);
 				fs.saveAsTiff(d+"initialLabelImage.tiff");
 			}
@@ -152,24 +154,102 @@ public class Region_Competition implements PlugInFilter
 				System.out.println("image was created using file/new. initial label was not saved");
 			}
 		}
-				
+		
 		labelImage.initBoundary();
 		labelImage.generateContour();
-		// next stack image is start of algo
-		addSliceToStackAndShow("init", labelImage.getLabelImage().getPixelsCopy());
+				
+	}
+	
+	void initStack()
+	{
+		if(userDialog.useStack)
+		{
+			
+			ImageProcessor myIp = originalIP.getProcessor();
+//			ImageProcessor myIp = originalIP.getProcessor().convertToShort(false);
 
-		IJ.run("3-3-2 RGB"); // stack has to contain at least 2 slices so this LUT applies to all future slices.
+//			stack= originalIP.createEmptyStack();
+			stack = new ImageStack(myIp.getWidth(), myIp.getHeight());
+			stackImPlus = new ImagePlus("Stack of "+originalIP.getTitle(), myIp); 
+					
+			stackImPlus.show();
+			
+			stack.addSlice("original", myIp.convertToShort(false).getPixelsCopy());
+			
+			// first stack image without boundary&contours
+			addSliceToStackAndShow("init", initialLabelImageProcessor.getPixelsCopy());
+			
+			// next stack image is start of algo
+			addSliceToStackAndShow("init", labelImage.getLabelImageProcessor().getPixelsCopy());
+			IJ.run("3-3-2 RGB"); // stack has to contain at least 2 slices so this LUT applies to all future slices.
+			//		LutLoader lutloader = new LutLoader();
+			//		lutloader.run("3-3-2 RGB");
+		}
+	}
+	
 
-		labelImage.GenerateData();
+	void frontsCompetitionImageFilter()
+	{
 		
-//		LutLoader lutloader = new LutLoader();
-//		lutloader.run("3-3-2 RGB");
+		initLabelImage();
+		initStack();
 
-		labelImage.showStatistics();
+		if(userDialog.kbest>0)
+		{
+			
+			Timer t = new Timer();
+			
+			ArrayList<Long> list = new ArrayList<Long>();
+
+			for(int i=0; i<userDialog.kbest; i++)
+			{
+				labelImage = new LabelImage(MVC);
+				
+				labelImage.initWithImageProc(initialLabelImageProcessor);
+				labelImage.initBoundary();
+				labelImage.generateContour();
+				
+				t.tic();
+				labelImage.GenerateData();
+				t.toc();
+				list.add(t.lastResult());
+				showFinalResult(labelImage, i);
+			}
+			
+			Collections.sort(list);
+			for(Long l:list)
+			{
+				System.out.println(l);
+			}
+		}
+		else
+		{
+			labelImage.GenerateData();
+			showFinalResult(labelImage);
+		}
+		
+		
+
+		if(userDialog.showStatistics)
+		{
+			labelImage.showStatistics();
+		}
+		
 //		macroContrast();
-		
 //		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
 		
+	}
+	
+	void showFinalResult(LabelImage li, Object title)
+	{
+		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.getLabelImageProcessor());
+		imp.show();
+		IJ.run("3-3-2 RGB");
+	}
+	
+	void showFinalResult(LabelImage li)
+	{
+		showFinalResult(li,"");
 	}
 	
 	
@@ -252,8 +332,8 @@ public class Region_Competition implements PlugInFilter
 		
 		// now we have a roi
 		
-		labelImg.getLabelImage().setValue(1);
-		labelImg.getLabelImage().fill(roi);
+		labelImg.getLabelImageProcessor().setValue(1);
+		labelImg.getLabelImageProcessor().fill(roi);
 		labelImg.connectedComponents(labelImg);
 //		labelImg.initBoundary();
 		
@@ -271,33 +351,15 @@ public class Region_Competition implements PlugInFilter
 		ImageProcessor oProc = ip.getChannelProcessor();
 		labelImage = new LabelImage(MVC);
 //		labelImage = oProc.duplicate();
-		labelImage.getLabelImage().insert(oProc, 0, 0);
+		labelImage.getLabelImageProcessor().insert(oProc, 0, 0);
 		labelImage.initBoundary();
 		labelImage.generateContour();
 		labelImage.computeStatistics();
 		
-		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
+		new ImagePlus("LabelImage", labelImage.getLabelImageProcessor()).show();
 	}
 	
 	/**
-	 * Initializes the stackIP, putting the originalIP in the first slice
-	 */
-	void initStackIP()
-	{
-		ImageProcessor myIp = originalIP.getProcessor();
-//		ImageProcessor myIp = originalIP.getProcessor().convertToShort(false);
-
-//		stack= originalIP.createEmptyStack();
-		stack = new ImageStack(myIp.getWidth(), myIp.getHeight());
-		stackImPlus = new ImagePlus("Stack of "+originalIP.getTitle(), myIp); 
-		
-		stack.addSlice("original", myIp.convertToShort(false).getPixelsCopy());
-				
-		stackImPlus.setStack(null, stack);
-		stackImPlus.show();
-	}
-	
-/**
  * Adds a new slice pixels to the end of the stack, 
  * and sets the new stack position to this slice
  * @param title		Title of the stack slice
@@ -310,11 +372,13 @@ public class Region_Competition implements PlugInFilter
 			System.out.println("stack is null");
 			return;
 		}
+		else
+		{
+			stack.addSlice(title, pixels);
+			stackImPlus.setStack(stack);
+			stackImPlus.setPosition(stack.getSize());
 //		stackImPlus.getStack().addSlice(title, pixels);
-		
-		stack.addSlice(title, pixels);
-		stackImPlus.setStack(stack);
-		stackImPlus.setPosition(stack.getSize());
+		}
 	}
 	
 	/**
@@ -385,7 +449,7 @@ public class Region_Competition implements PlugInFilter
 		ImagePlus ip = originalIP;
 		ImageProcessor oProc = ip.getChannelProcessor();
 		labelImage = new LabelImage(MVC);
-		labelImage.getLabelImage().insert(oProc, 0, 0);
+		labelImage.getLabelImageProcessor().insert(oProc, 0, 0);
 		labelImage.initBoundary();
 		labelImage.generateContour();
 		
