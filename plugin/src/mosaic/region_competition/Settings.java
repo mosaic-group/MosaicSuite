@@ -45,9 +45,9 @@ public class Settings
 		m_UseFastEvolution = false;
 		// m_SigmaPSF.Fill(1);
 	
-		///use competing regions istead the concept of DT if fusion is
+		///use competing regions instead the concept of DT if fusion is
 		// disallowed.
-		m_UseRegionCompetition = true; // still has errors.
+		m_UseRegionCompetition = true;
 	
 		// m_ForbiddenRegionLabel = NumericTraits<LabelPixelType>::max();
 	

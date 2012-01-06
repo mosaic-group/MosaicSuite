@@ -104,7 +104,7 @@ public class SphereBitmapImageSource
 		RegionIterator it = new RegionIterator(labelImage.dimensions, this.m_Size, start.x);
 		RegionIterator maskIt = new RegionIteratorMask(labelImage.dimensions, this.m_Size, start.x);
 		
-		while(it.hasNext())	// over region
+		while(it.hasNext())	// iterate over sphere region
 		{
 			int idx = it.next();
 			
@@ -119,6 +119,14 @@ public class SphereBitmapImageSource
 			if(maskvalue==m_ForegroundValue)
 			{
 				int absLabel=labelImage.getAbs(idx);
+				
+				// only 1-2% faster
+//				int absLabel=labelImage.labelIP.get(idx);
+//				if(absLabel >= LabelImage.negOfs)
+//					absLabel-=LabelImage.negOfs;
+				
+				
+				
 				
 				if(absLabel==aTo)
 				{

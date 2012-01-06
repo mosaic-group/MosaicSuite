@@ -32,10 +32,12 @@ public class GUIFrame extends javax.swing.JFrame {
 
         jTabbedPane1 = new javax.swing.JTabbedPane();
         optionPanel1 = new mosaic.region_competition.netbeansGUI.OptionPanel();
+        optionPanel21 = new mosaic.region_competition.netbeansGUI.OptionPanel2();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jTabbedPane1.addTab("tab1", optionPanel1);
+        jTabbedPane1.addTab("tab2", optionPanel21);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -96,5 +98,6 @@ public class GUIFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTabbedPane jTabbedPane1;
     private mosaic.region_competition.netbeansGUI.OptionPanel optionPanel1;
+    private mosaic.region_competition.netbeansGUI.OptionPanel2 optionPanel21;
     // End of variables declaration//GEN-END:variables
 }

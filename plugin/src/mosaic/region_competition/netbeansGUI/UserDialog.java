@@ -1,7 +1,6 @@
 package mosaic.region_competition.netbeansGUI;
 
 import ij.gui.GenericDialog;
-import java.awt.Panel;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -11,17 +10,14 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.List;
-import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
+
+import javax.swing.JComboBox;
 import javax.swing.JSpinner;
-import javax.swing.JTextArea;
 
 import mosaic.region_competition.Settings;
 
@@ -37,7 +33,7 @@ public class UserDialog extends OptionPanel
 	public boolean useStack = true;
 	public boolean showStatistics = false;
 	public boolean useOldRegionIterator=false;
-	public int kbest=0;
+//	public int kbest=5;
 	
 	public String filename;
 
@@ -68,6 +64,16 @@ public class UserDialog extends OptionPanel
 		spinnerWeight.setValue(settings.m_EnergyContourLengthCoeff);
 		checkRegularization.setSelected(settings.m_EnergyUseCurvatureRegularization);
 		spinnerNEllipses.setValue(5);
+		
+		if(!settings.m_EnergyUseCurvatureRegularization){
+			comboRegularization.setSelectedIndex(0);
+		} else {
+			if(useOldRegionIterator){
+				comboRegularization.setSelectedIndex(1);
+			} else {
+				comboRegularization.setSelectedIndex(2);
+			}
+		}
 		
 		addLabelImageInputDrop();
 		addWheel();
@@ -192,15 +198,54 @@ public class UserDialog extends OptionPanel
 	void bCancelActionPerformed(java.awt.event.ActionEvent evt) {
 		dispose();
     }
+	
+	@Override
+	void comboRegularizationActionPerformed(ActionEvent evt)
+	{
+		JComboBox combo = (JComboBox)evt.getSource();	
+		int i = combo.getSelectedIndex();
+		
+		if(i==0)
+			checkRegularization.setSelected(false);
+		if(i==1){
+			checkRegularization.setSelected(true);
+			useOldRegionIterator=true;
+		}
+		if(i==2){
+			checkRegularization.setSelected(true);
+			useOldRegionIterator=false;
+		}
+		
+		System.out.println("combo action "+i);
+	}
     
+	
+	public int getNEllipses()
+	{
+		return (Integer)spinnerNEllipses.getValue();
+	}
 	
 	public boolean useRegularization()
 	{
 		return checkRegularization.isSelected();
 	}
 	
+	public int getKBest()
+	{
+		return (Integer)spinnerKbest.getValue();
+	}
+	
+	void writeBack()
+	{
+		settings.m_CurvatureMaskRadius=(Float)spinnerRad.getValue();
+		settings.m_EnergyContourLengthCoeff = (Float)spinnerWeight.getValue();
+		settings.m_EnergyUseCurvatureRegularization = checkRegularization.isSelected();
+		
+	}
+	
 	void dispose()
 	{
+		writeBack();
 		gd.dispose();
 	}
 	

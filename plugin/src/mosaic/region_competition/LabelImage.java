@@ -71,6 +71,10 @@ public class LabelImage //extends ShortProcessor
 	
 	private LabelImage m_LabelImage;
 	
+	
+	
+	private final float imageMax;
+	
 	/**
 	 * creates a new LabelImage with size of ip
 	 * @param ip is saved as originalIP
@@ -83,6 +87,7 @@ public class LabelImage //extends ShortProcessor
 		settings=MVC.settings;
 		ImagePlus ip = MVC.getOriginalImPlus();
 		originalIP=ip;
+		imageMax=(float)originalIP.getStatistics().max;
 		
 		dim = ip.getNDimensions();
 		dimensions = new int[dim];
@@ -2958,12 +2963,17 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	{
 		return getIntensity(p.x[0], p.x[1]);
 	}
-
+	
+//	float getIntensity(int idx)
+//	{
+//		//TODO !!!!!!!!!! prenormalize image!!!
+//		return originalIP.getProcessor().get(idx)/imageMax;
+//	}
 
 	float getIntensity(int x, int y)
 	{
 		//TODO !!!!!!!!!! prenormalize image!!!
-		return originalIP.getPixel(x, y)[0]/255.0f;
+		return originalIP.getPixel(x, y)[0]/imageMax;
 	}
 
 

@@ -76,6 +76,12 @@ public class Region_Competition implements PlugInFilter
 			
 		}
 		
+//		IJ.run("8-bit");
+//		originalIP.changes=false;
+//		System.out.println("statmax "+ originalIP.getStatistics().max);
+//		System.out.println("statmin "+ originalIP.getStatistics().min);
+		
+		
 		frontsCompetitionImageFilter();
 
 		return DOES_ALL + DONE;
@@ -203,14 +209,14 @@ public class Region_Competition implements PlugInFilter
 		}
 		initStack();
 
-		if(userDialog.kbest>0)
+		if(userDialog.getKBest()>0)
 		{
 			
 			Timer t = new Timer();
 			
 			ArrayList<Long> list = new ArrayList<Long>();
 
-			for(int i=0; i<userDialog.kbest; i++)
+			for(int i=0; i<userDialog.getKBest(); i++)
 			{
 				labelImage = new LabelImage(MVC);
 				
