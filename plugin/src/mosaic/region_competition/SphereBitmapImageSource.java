@@ -17,10 +17,10 @@ public class SphereBitmapImageSource
 	
 	
 	
-	SphereBitmapImageSource(int NDimensions, LabelImage labelImage)
+	SphereBitmapImageSource(LabelImage labelImage, int radius)
 	{
-		dim=NDimensions;
 		this.labelImage=labelImage;
+		dim=labelImage.dim;
 		
 		m_BackgroundValue = 0;
 		m_ForegroundValue = 1;
@@ -34,8 +34,8 @@ public class SphereBitmapImageSource
 		//Initial image is 64 wide in each direction.
 		for (int i = 0; i < dim; i++) 
 		{
-			m_Radius[i] = (int) labelImage.settings.m_CurvatureMaskRadius;
-			m_Size[i] = 2*m_Radius[i]+1;
+			m_Radius[i] = radius;
+			m_Size[i] = 2*m_Radius[i]+1; 			//TODO +0
 //		    m_Spacing[i] = 1.0;
 //		    m_Origin[i] = 0.0;
 //		    vSize[i] = 0;
@@ -44,15 +44,10 @@ public class SphereBitmapImageSource
 		
 		iterator = new IndexIterator(m_Size);
 		
-//		if(mask==null)
-		{
-			mask = new int[iterator.getSize()];
-			fillMask();			
-		}
+		mask = new int[iterator.getSize()];
+		fillMask();			
 		
 //		m_Direction.SetIdentity();
-		
-		
 
     }
 	
@@ -74,17 +69,14 @@ public class SphereBitmapImageSource
 					/(m_Radius[vD] * m_Radius[vD]);
 			}
 			
-//				System.out.println(""+p+" "+vHypEllipse);
 			if(vHypEllipse <= 1.0f)
 			{
 				mask[i]=m_ForegroundValue;
-//					System.out.print("1");
 //					outIt.Set((m_ForegroundValue));
 				
 			} // is in region
 			else
 			{
-//					System.out.print("0");					
 				mask[i]=m_BackgroundValue;
 //					outIt.Set((m_BackgroundValue));
 			}
@@ -93,6 +85,14 @@ public class SphereBitmapImageSource
 //		System.out.println("fillmask end");
 	}
 	
+	/**
+	 * Faster version with new Iterator, Index-based
+	 * 
+	 * @param origin	Midpoint in input image
+	 * @param aFrom		label from
+	 * @param aTo		label to
+	 * @return			vCurvatureFlow
+	 */
 	double GenerateData2(Point origin, int aFrom, int aTo)
 	{
 		Point half = (new Point(m_Size)).div(2);
@@ -101,38 +101,33 @@ public class SphereBitmapImageSource
 		int vNFrom=0;
 		int vNto=0;
 		
+		//TODO change region iterator so one can reuse the iterator and just set the new ofs
 		RegionIterator it = new RegionIterator(labelImage.dimensions, this.m_Size, start.x);
-		RegionIterator maskIt = new RegionIteratorMask(labelImage.dimensions, this.m_Size, start.x);
+		RegionIteratorMask maskIt = new RegionIteratorMask(labelImage.dimensions, this.m_Size, start.x);
 		
 		while(it.hasNext())	// iterate over sphere region
 		{
 			int idx = it.next();
 			
-			//TODO MASK DEACTIVATED (FASTER)
 			int maskIdx = maskIt.next();
 			int maskvalue = mask[maskIdx];
 			
-//			int maskIdx = 1;
-//			int maskvalue = 1;
-			
-
 			if(maskvalue==m_ForegroundValue)
 			{
+				
 				int absLabel=labelImage.getAbs(idx);
 				
-				// only 1-2% faster
+				//directly access data; only 1-2% faster
 //				int absLabel=labelImage.labelIP.get(idx);
 //				if(absLabel >= LabelImage.negOfs)
 //					absLabel-=LabelImage.negOfs;
-				
-				
 				
 				
 				if(absLabel==aTo)
 				{
 					vNto++;
 				}
-				if(absLabel==aFrom)
+				else if(absLabel==aFrom)
 				{
 					vNFrom++;
 				}
@@ -141,7 +136,7 @@ public class SphereBitmapImageSource
 			{
 //					mask[i]==m_BackgroundValue;
 			}
-		}//for
+		}
 		
 		
 		
@@ -151,23 +146,21 @@ public class SphereBitmapImageSource
 		double vVolume;
 		
 		//TODO dummy
-		float m_CurvatureMaskRadius= labelImage.settings.m_CurvatureMaskRadius;
+		final float rad= labelImage.settings.m_CurvatureMaskRadius;
 		// end dummy
 		
 		if(dim == 2)
 		{
-			vVolume = 3.141592f * m_CurvatureMaskRadius * m_CurvatureMaskRadius;
+			vVolume = 3.141592f * rad * rad;
 		} 
 		else if(dim == 3)
 		{
 			vVolume = 1.3333333f * 3.141592f * 
-				m_CurvatureMaskRadius * m_CurvatureMaskRadius * m_CurvatureMaskRadius;
+				rad * rad * rad;
 		} 
 		else
 		{
 			vVolume = 0.0;
-			//TODO viel exceptions
-			assert(dim == 2 || dim == 3) : "Curvature flow only implemented for 2D and 3D";
 			throw new RuntimeException("Curvature flow only implemented for 2D and 3D");
 		}
 		
@@ -175,42 +168,42 @@ public class SphereBitmapImageSource
 		///////////////////////////////////////////////
 		
 		
-		if(aFrom==LabelImage.bgLabel)	// growing
+		if(aFrom==labelImage.bgLabel)	// growing
 		{
 			int vN=vNto;
 			if (dim== 2) {
-				vCurvatureFlow -= 3.0f * 3.141592f / m_CurvatureMaskRadius *
+				vCurvatureFlow -= 3.0f * 3.141592f / rad *
 				((vN) / vVolume - 0.5f);
 			} else if (dim == 3) {
-				vCurvatureFlow -= 16.0f / (3.0f * m_CurvatureMaskRadius)*
+				vCurvatureFlow -= 16.0f / (3.0f * rad)*
 				((vN) / vVolume - 0.5f);
 			}
 		}
 		else
 		{
-		    if (aTo == LabelImage.bgLabel) //proper shrinking
+		    if (aTo == labelImage.bgLabel) //proper shrinking
 	    	{
 		        int vN = vNFrom;
 		        // This is a point on the contour (innerlist) OR
 		        // touching the contour (Outer list)
 		        if (dim == 2) {
-		            vCurvatureFlow += 3.0f * 3.141592f / m_CurvatureMaskRadius *
+		            vCurvatureFlow += 3.0f * 3.141592f / rad *
 		                    ((vN) / vVolume - 0.5f);
 		        } else if (dim == 3) {
-		            vCurvatureFlow += 16.0f / (3.0f * m_CurvatureMaskRadius)*
+		            vCurvatureFlow += 16.0f / (3.0f * rad)*
 		                    ((vN) / vVolume - 0.5f);
 		        }
 		    } else  // fighting fronts
 		    {
 		        if (dim == 2) {
-		            vCurvatureFlow -= 3.0f * 3.141592f / m_CurvatureMaskRadius *
+		            vCurvatureFlow -= 3.0f * 3.141592f / rad *
 		                    ((vNto) / vVolume - 0.5f);
-		            vCurvatureFlow += 3.0f * 3.141592f / m_CurvatureMaskRadius *
+		            vCurvatureFlow += 3.0f * 3.141592f / rad *
 		                    ((vNFrom) / vVolume - 0.5f);
 		        } else if (dim == 3) {
-		            vCurvatureFlow -= 16.0f / (3.0f * m_CurvatureMaskRadius)*
+		            vCurvatureFlow -= 16.0f / (3.0f * rad)*
 		                    ((vNto) / vVolume - 0.5f);
-		            vCurvatureFlow += 16.0f / (3.0f * m_CurvatureMaskRadius)*
+		            vCurvatureFlow += 16.0f / (3.0f * rad)*
 		                    ((vNFrom) / vVolume - 0.5f);
 		        }
 		        //                vCurvatureFlow *= 0.5f;
@@ -221,6 +214,15 @@ public class SphereBitmapImageSource
 		return vCurvatureFlow;
 		}
 	
+	
+	/**
+	 * Slower old version, Point-based
+	 * 
+	 * @param origin	Midpoint in input image
+	 * @param aFrom		label from
+	 * @param aTo		label to
+	 * @return			vCurvatureFlow
+	 */
 	double GenerateData(Point origin, int aFrom, int aTo)
 	{
 
@@ -244,15 +246,6 @@ public class SphereBitmapImageSource
 				if(mask[i]==m_ForegroundValue)
 				{
 					int absLabel=labelImage.getAbs(p);
-					
-					/*
-					int absLabel=labelImage.labelIP.get(p.x[0], p.x[1]);
-					if(absLabel==labelImage.forbiddenLabel)
-					{
-						//System.out.println("should not happen. forbidden label in sphere");
-					} else if(absLabel >= LabelImage.negOfs)
-						absLabel-=LabelImage.negOfs;
-*/
 					
 					if(absLabel==aTo)
 					{
@@ -297,7 +290,6 @@ public class SphereBitmapImageSource
 		else
 		{
 			vVolume = 0.0;
-			assert(dim == 2 || dim == 3) : "Curvature flow only implemented for 2D and 3D";
 			throw new RuntimeException("Curvature flow only implemented for 2D and 3D");
 		}
 		
@@ -305,7 +297,7 @@ public class SphereBitmapImageSource
 		///////////////////////////////////////////////
 		
 		
-		if(aFrom==LabelImage.bgLabel)	// growing
+		if(aFrom==labelImage.bgLabel)	// growing
 		{
 			int vN=vNto;
 			if (dim== 2) {
@@ -354,6 +346,46 @@ public class SphereBitmapImageSource
 }
 
 
+
+class BubbleDrawer extends SphereBitmapImageSource
+{
+//TODO make nicer class hierarchiy
+	public BubbleDrawer(LabelImage labelImage, int radius)
+	{
+		super(labelImage, radius);
+	}
+	
+	/**
+	 * @param start upper left point
+	 * @param val 	value to draw inside the sphere
+	 */
+	void doSphereIteration(Point start, int val)
+	{
+		
+		//TODO change region iterator so one can reuse the iterator and just set the new ofs
+		RegionIterator it = new RegionIterator(labelImage.dimensions, this.m_Size, start.x);
+		RegionIteratorMask maskIt = new RegionIteratorMask(labelImage.dimensions, this.m_Size, start.x);
+		
+		while(it.hasNext())	// iterate over sphere region
+		{
+			int idx = it.next();
+			
+			int maskIdx = maskIt.next();
+			int maskvalue = mask[maskIdx];
+			
+			if(maskvalue==m_ForegroundValue)
+			{
+				labelImage.set(idx, val);
+			}
+			else
+			{
+				labelImage.set(idx, labelImage.bgLabel);
+			}
+
+		}
+		
+	}
+}
 
 
 

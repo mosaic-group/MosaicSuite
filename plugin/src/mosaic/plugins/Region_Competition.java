@@ -1,17 +1,24 @@
 package mosaic.plugins;
 
+import java.awt.Checkbox;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Vector;
 
 import mosaic.region_competition.*;
+import mosaic.region_competition.netbeansGUI.GenericDialogGUI;
+import mosaic.region_competition.netbeansGUI.InputReadable;
 import mosaic.region_competition.netbeansGUI.UserDialog;
+import mosaic.region_competition.netbeansGUI.InputReadable.LabelImageInput;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.GenericDialog;
 import ij.gui.ImageCanvas;
 import ij.gui.Roi;
 import ij.io.FileInfo;
@@ -39,42 +46,34 @@ public class Region_Competition implements PlugInFilter
 	
 	ImageProcessor initialLabelImageProcessor; // copy of the initial guess (without contour/boundary)
 	
-	public UserDialog userDialog;
+	public InputReadable userDialog;
 	
 	
 	public int setup(String aArgs, ImagePlus aImp)
 	{
-		
 		settings = new Settings();
 		MVC=this;
 		originalIP = aImp;
 		
-	//	RegionIterator.tester();
+		userDialog = new GenericDialogGUI(settings);
+		boolean success=userDialog.processInput();
+		if(!success)
+		{
+			return DONE;
+		}
+
+		
+//		RegionIterator.tester();
 //		IJ.showMessage("version 1");
 		
+		/*
 		userDialog = new UserDialog(settings);
 //		userDialog.showDialog();
 		userDialog.showNetbeans();
+		*/
 		
 		////////////////////
-		
-		if(originalIP == null)
-		{
-			// try to open standard file
-			String fileName= "Clipboard01.png";
-//			String fileName= "icecream3_shaded_130x130.tif";
-			IJ.open(fileName);
-			originalIP = WindowManager.getCurrentImage();
-			
-			while(originalIP == null) 
-			{
-				//file not found, open menu
-//			IJ.showMessage("File "+fileName+" not found or incompatible, please select manually");
-				IJ.open();
-				originalIP = WindowManager.getCurrentImage();
-			} 
-			
-		}
+
 		
 //		IJ.run("8-bit");
 //		originalIP.changes=false;
@@ -98,6 +97,55 @@ public class Region_Competition implements PlugInFilter
 		
 	}
 	
+	void initInputImage()
+	{
+		
+		ImagePlus ip = null;
+		Opener o = new Opener();
+		
+		// first try: filepath of inputReader
+		String file = userDialog.getInputImageFilename(); 
+		if(!file.isEmpty())
+		{
+			ip = o.openImage(file);
+		}
+		
+		// next try: opened image
+		if(ip==null)
+		{
+			ip=originalIP;
+		}
+		
+		//debug
+		// next try: default image
+		if(ip==null)
+		{
+			String dir= IJ.getDirectory("current");
+			String fileName= "Clipboard01.png";
+			//		String fileName= "icecream3_shaded_130x130.tif";
+			ip=o.openImage(dir+fileName);
+		}
+			
+		if(ip!=null)
+		{
+			originalIP = ip;
+			// image loaded
+			boolean showOriginal = true;
+			if(showOriginal)
+			{
+				ip.show();
+			}
+		}
+		
+		if(ip==null)
+		{
+			// failed to load anything
+			originalIP=null;
+			//TODO maybe show image opener dialog
+			throw new RuntimeException("Failed to load an input image.");
+		}
+
+	}
 	
 	void initLabelImage()
 	{
@@ -107,40 +155,52 @@ public class Region_Competition implements PlugInFilter
 		// Input Processing
 		labelImage.settings.m_EnergyUseCurvatureRegularization=userDialog.useRegularization();
 		
-		if(userDialog.doUser)
+		LabelImageInput input = userDialog.getLabelImageInput();
+		
+		switch(input)
 		{
-			System.out.println("manualSelect");
-			manualSelect(labelImage);
-		}
-		else if(userDialog.doRand)
-		{
-			labelImage.initialGuessRandom();
-		}
-		else if(userDialog.doFile)
-		{
-			Opener o = new Opener();
-			ImagePlus ip = o.openImage(userDialog.filename);
-			
-			labelImage.initWithIP(ip);
-		}
-		else if(userDialog.doRect)
-		{
-	//		labelImage.initialGuessGrowing(0.2);
-			labelImage.initialGuessGrowing(0.4);
-	//		
-	//		labelImage.initialGuessEllipsesFromString("4 " +
-	//				"152 79 147 12 1 " +
-	//				"130 91 117 79 2 " +
-	//				"78 18 40 10 3 " +
-	//				"134 107 88 104 4 ");
-		}
-		else
-		{
-			// was aborted
-			System.out.println("no valid input option in User Input. Abort");
-			labelImage=null;
-			return;
-//			throw new RuntimeException("no valid input option in User Input. Abort");
+			case UserDefinedROI:
+			{
+				System.out.println("manualSelect");
+				manualSelect(labelImage);
+				break;
+			}
+			case Rectangle:
+			{
+				labelImage.initialGuessGrowing(0.4);
+				break;
+			}
+			case Ellipses:
+			{
+				labelImage.initialGuessRandom();
+				break;
+			}
+			case Bubbles:
+			{
+				labelImage.initialGuessBubbles();
+				break;
+			}
+			case File:
+			{
+				Opener o = new Opener();
+				ImagePlus ip = o.openImage(userDialog.getLabelImageFilename());
+				if(ip!=null){
+					labelImage.initWithIP(ip);
+				} else {
+					labelImage=null;
+					throw new RuntimeException("Failed to load LabelImage");
+				}
+	
+				break;
+			}
+			default:
+			{
+				// was aborted
+				System.out.println("no valid input option in User Input. Abort");
+				labelImage = null;
+				return;
+	// throw new RuntimeException("no valid input option in User Input. Abort");
+			}
 		}
 		
 		initialLabelImageProcessor = labelImage.getLabelImageProcessor().duplicate();
@@ -173,7 +233,7 @@ public class Region_Competition implements PlugInFilter
 	
 	void initStack()
 	{
-		if(userDialog.useStack)
+		if(userDialog.useStack())
 		{
 			
 			ImageProcessor myIp = originalIP.getProcessor();
@@ -201,6 +261,8 @@ public class Region_Competition implements PlugInFilter
 
 	void frontsCompetitionImageFilter()
 	{
+		
+		initInputImage();
 		
 		initLabelImage();
 		if(labelImage==null) // input was aborted
@@ -245,7 +307,7 @@ public class Region_Competition implements PlugInFilter
 		
 		
 
-		if(userDialog.showStatistics)
+		if(userDialog.showStatistics())
 		{
 			labelImage.showStatistics();
 		}
@@ -520,7 +582,7 @@ public class Region_Competition implements PlugInFilter
 		System.out.println("end");
 		
 	}
-
+	
 }
 
 

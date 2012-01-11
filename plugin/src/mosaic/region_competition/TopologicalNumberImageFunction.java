@@ -38,7 +38,7 @@ public class TopologicalNumberImageFunction
 		this.labelImage=aLabelImage;
 		this.dimension=TFGConnectivity.Dimension();
 
-        m_IgnoreLabel = LabelImage.forbiddenLabel;
+        m_IgnoreLabel = labelImage.forbiddenLabel;
         imageSize = TFGConnectivity.GetNeighborhoodSize();
 
         m_SubImage = new char[imageSize];
