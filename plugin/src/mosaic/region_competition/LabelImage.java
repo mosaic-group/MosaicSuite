@@ -2015,10 +2015,10 @@ public class LabelImage //extends ShortProcessor
 		//TODO dummy
 		float m_EnergyContourLengthCoeff = settings.m_EnergyContourLengthCoeff;
 		// end dummy
-		
+
 		if (settings.m_EnergyUseCurvatureRegularization &&
-		        m_EnergyFunctional != EnergyFunctionalType.e_PSwithCurvatureFlow &&
-		        m_EnergyContourLengthCoeff != 0) 
+				m_EnergyFunctional != EnergyFunctionalType.e_PSwithCurvatureFlow &&
+				m_EnergyContourLengthCoeff != 0) 
 		{
 		    if (m_EnergyFunctional == EnergyFunctionalType.e_Deconvolution) {
 //		        vEnergy += //m_Intensities[aToLabel] * m_Intensities[aToLabel] *
@@ -2257,9 +2257,11 @@ public class LabelImage //extends ShortProcessor
 //    CalculateCurvatureBasedGradientFlow(
 //    InputImagePointerType aDataImage,
 //    LabelImagePointerType aLabelImage,
-//    ContourIndexType aIndex,
-//    unsigned int aFrom, unsigned int aTo) {
-	
+	//    ContourIndexType aIndex,
+	//    unsigned int aFrom, unsigned int aTo) {
+		
+
+		
 	
 double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		LabelImage aLabelImage, Point aIndex, int aFrom, int aTo) 

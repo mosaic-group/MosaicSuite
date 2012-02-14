@@ -242,7 +242,7 @@ public class Parameter_Optimization_Plugin implements PlugInFilter,
 	 * @return the current macro code.
 	 */
 	public String getMacro() {
-		return config.getMacro().getMacro();
+		return config.getMacro().getMacroCode();
 	}
 	
 	/**
@@ -392,11 +392,11 @@ public class Parameter_Optimization_Plugin implements PlugInFilter,
 		// Apply the macro with the selected parameters on the original image.
 		config.getMacro().setParameterValues(mean);
 		WindowManager.setTempCurrentImage(originalImp);
-		IJ.runMacro(config.getMacro().getMacro());
+		IJ.runMacro(config.getMacro().getMacroCode());
 		WindowManager.setTempCurrentImage(originalImp);
 		
 		// Display the applied macro in a TextWindow
-		new TextWindow("Applied macro", config.getMacro().getMacro(), 300, 300);
+		new TextWindow("Applied macro", config.getMacro().getMacroCode(), 300, 300);
 		
 		// Write history of parameters into a file which can be imported into
 		// MATLAB to analyze the optimization process.
@@ -493,7 +493,9 @@ public class Parameter_Optimization_Plugin implements PlugInFilter,
 			// Set the parameter values.
 			config.getMacro().setParameterValues(currentPopulation[i]);
 			// Create a duplicate of the original image.
-			images[i] = originalImp.duplicate();
+			//images[i] = originalImp.duplicate();
+			images[i] = (new ij.plugin.Duplicator()).run(originalImp); 
+			
 			
 			// Create a window for the new image and set its title.
 			ImageWindow win = new ImageWindow(images[i]);
@@ -504,7 +506,7 @@ public class Parameter_Optimization_Plugin implements PlugInFilter,
 //			WindowManager.setTempCurrentImage(images[i]);
 			
 			// Run the macro on the current image.
-			IJ.runMacro(config.getMacro().getMacro());
+			IJ.runMacro(config.getMacro().getMacroCode());
 			
 			// Set the image to ignore flush calls to avoid it being flushed
 			// when the window is closed.
@@ -555,7 +557,9 @@ public class Parameter_Optimization_Plugin implements PlugInFilter,
 		rankingUI = new ParameterRankingUI(imageCount, selectionMin,
 				selectionMax, this);
 		rankingUI.setSliceMaximum(originalImp.getStackSize());
-		rankingUI.setOverlay(originalImp.duplicate());
+//		rankingUI.setOverlay(originalImp.duplicate());
+		rankingUI.setOverlay((new ij.plugin.Duplicator()).run(originalImp));
+		
 		
 		// Display the ranking UI.
 		rankingUI.setVisible(true);
@@ -571,8 +575,8 @@ public class Parameter_Optimization_Plugin implements PlugInFilter,
 		// the macro with the values of the parameters to a copy of the original
 		// image and update the displayed images.
 		// After each updated image the UI is notified through the setProgress
-		// method.
-		createNextImages();
+		// method. 
+		createNextImages(); 
 	}
 	
 }

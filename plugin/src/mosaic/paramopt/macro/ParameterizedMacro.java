@@ -191,7 +191,7 @@ public class ParameterizedMacro {
 	 * 
 	 * @return macro code with current parameter values
 	 */
-	public String getMacro() {
+	public String getMacroCode() {
 		String macro = "";
 		for (Object o : codeList) {
 			macro += o.toString();

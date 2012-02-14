@@ -243,7 +243,7 @@ public class Visual_Parameter_Optimization implements PlugInFilter,
 	 * @return the current macro code.
 	 */
 	public String getMacro() {
-		return config.getMacro().getMacro();
+		return config.getMacro().getMacroCode();
 	}
 	
 	/**
@@ -393,11 +393,11 @@ public class Visual_Parameter_Optimization implements PlugInFilter,
 		// Apply the macro with the selected parameters on the original image.
 		config.getMacro().setParameterValues(mean);
 		WindowManager.setTempCurrentImage(originalImp);
-		IJ.runMacro(config.getMacro().getMacro());
+		IJ.runMacro(config.getMacro().getMacroCode());
 		WindowManager.setTempCurrentImage(originalImp);
 		
 		// Display the applied macro in a TextWindow
-		new TextWindow("Applied macro", config.getMacro().getMacro(), 300, 300);
+		new TextWindow("Applied macro", config.getMacro().getMacroCode(), 300, 300);
 		
 		// Write history of parameters into a file which can be imported into
 		// MATLAB to analyze the optimization process.
@@ -505,7 +505,7 @@ public class Visual_Parameter_Optimization implements PlugInFilter,
 //			WindowManager.setTempCurrentImage(images[i]);
 			
 			// Run the macro on the current image.
-			IJ.runMacro(config.getMacro().getMacro());
+			IJ.runMacro(config.getMacro().getMacroCode());
 			
 			// Set the image to ignore flush calls to avoid it being flushed
 			// when the window is closed.
