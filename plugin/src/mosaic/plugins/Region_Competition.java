@@ -12,7 +12,7 @@ import mosaic.region_competition.*;
 import mosaic.region_competition.netbeansGUI.GenericDialogGUI;
 import mosaic.region_competition.netbeansGUI.InputReadable;
 import mosaic.region_competition.netbeansGUI.UserDialog;
-import mosaic.region_competition.netbeansGUI.InputReadable.LabelImageInput;
+import mosaic.region_competition.netbeansGUI.InputReadable.LabelImageInitType;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -105,7 +105,7 @@ public class Region_Competition implements PlugInFilter
 		
 		// first try: filepath of inputReader
 		String file = userDialog.getInputImageFilename(); 
-		if(!file.isEmpty())
+		if(file!=null && !file.isEmpty())
 		{
 			ip = o.openImage(file);
 		}
@@ -155,7 +155,7 @@ public class Region_Competition implements PlugInFilter
 		// Input Processing
 		labelImage.settings.m_EnergyUseCurvatureRegularization=userDialog.useRegularization();
 		
-		LabelImageInput input = userDialog.getLabelImageInput();
+		LabelImageInitType input = userDialog.getLabelImageInitType();
 		
 		switch(input)
 		{
@@ -182,8 +182,15 @@ public class Region_Competition implements PlugInFilter
 			}
 			case File:
 			{
-				Opener o = new Opener();
-				ImagePlus ip = o.openImage(userDialog.getLabelImageFilename());
+				ImagePlus ip=null;
+				
+				String fileName = userDialog.getLabelImageFilename();
+				if(fileName!=null && !fileName.isEmpty())
+				{
+					Opener o = new Opener();
+					ip = o.openImage(fileName);
+				}
+				
 				if(ip!=null){
 					labelImage.initWithIP(ip);
 				} else {

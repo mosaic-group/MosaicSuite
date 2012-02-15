@@ -1,5 +1,10 @@
 package mosaic.region_competition.netbeansGUI;
 
+
+/**
+ * Input interface <br>
+ * Implement this to read from user input
+ */
 public interface InputReadable
 {
 	
@@ -11,7 +16,7 @@ public interface InputReadable
 	
 	// Input
 	
-	public LabelImageInput getLabelImageInput();
+	public LabelImageInitType getLabelImageInitType();
 	public String getLabelImageFilename();
 	
 	/**
@@ -32,7 +37,10 @@ public interface InputReadable
 
 	public boolean useRegularization();
 	
-	public enum LabelImageInput
+	/**
+	 * enum to determine type of initialization
+	 */
+	public enum LabelImageInitType
 	{
 		Rectangle, Ellipses, UserDefinedROI, File, Bubbles
 	}

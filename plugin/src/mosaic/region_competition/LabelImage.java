@@ -542,10 +542,8 @@ public class LabelImage //extends ShortProcessor
 	 */
 	public void generateContour()
 	{
-		//TODO dummy
 		//TODO which connectivity?!
 		Connectivity conn = connFG;
-		//END
 		
 		// finds and saves contour particles
 		
@@ -565,7 +563,6 @@ public class LabelImage //extends ShortProcessor
 					{
 						int neighborLabel=get(neighbor);
 						if(neighborLabel!=label)
-//						if(getAbsLabel(neighborLabel)!=label) // TODO insert if there exists already contour
 						{
 							ContourParticle particle = new ContourParticle();
 							particle.label=label;

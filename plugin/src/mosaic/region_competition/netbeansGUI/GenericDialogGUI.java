@@ -1,29 +1,17 @@
 package mosaic.region_competition.netbeansGUI;
 
 import java.awt.Button;
-import java.awt.Choice;
-import java.awt.Dialog;
 import java.awt.FileDialog;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.Panel;
 import java.awt.TextArea;
 import java.awt.TextField;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetDragEvent;
-import java.awt.dnd.DropTargetDropEvent;
-import java.awt.dnd.DropTargetEvent;
-import java.awt.dnd.DropTargetListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.awt.event.TextEvent;
-import java.awt.event.TextListener;
+import java.awt.dnd.*;
+import java.awt.event.*;
+
 import java.io.File;
 import java.util.List;
 import java.util.Vector;
@@ -32,27 +20,28 @@ import mosaic.region_competition.Settings;
 import ij.IJ;
 import ij.gui.GenericDialog;
 
+/**
+ * Adapts GenericDialog from ImageJ for our purposes
+ */
 public class GenericDialogGUI implements InputReadable
 {
-	public Settings settings;
-	GenericDialog gd;
+	private Settings settings;
+	private GenericDialog gd;
 	
-	public String filenameInput;
-	public String filenameLabelImage;
+	private String filenameInput;		// image to be processed
+	private String filenameLabelImage;	// initialization
 	
-	private LabelImageInput labelImageInput;
+	private LabelImageInitType labelImageInitType;
 	
-	public boolean useStack = true;
-	public boolean showStatistics = false;
-	
-	boolean useRegularization;
-	public boolean useOldRegionIterator=false;
+	private boolean useStack = true;
+	private boolean showStatistics = false;
+	private boolean useRegularization;
+	private boolean useOldRegionIterator=false;
 	
 	static final String Regularization = "Regularization";
 	static final String No_Regularization="No_Regularization";
 	static final String Sphere_Regularization="Sphere_Regularization";
 	static final String Sphere_Regularization_OLD="Sphere_Regularization_OLD";
-	
 	
 	static final String Initialization = "Initialization";
 	static final String Rectangular_Initialization="Rectangular_Initialization";
@@ -61,7 +50,10 @@ public class GenericDialogGUI implements InputReadable
 	static final String Bubbles_Initialization="Bubbles_Initialization";
 	static final String File_Initalization="File_Initalization";
 	
-	static final String TextDefaultInputImage="Drop Input Image here, or insert Path to file";
+	static final String TextDefaultInputImage="Input Image: \n\n" +
+			"Drop image here,\n" +
+			"insert Path to file,\n" +
+			"or press Button below";
 	static final String TextDefaultLabelImage="Drop Label Image here, or insert Path to file";
 	
 	
@@ -72,13 +64,19 @@ public class GenericDialogGUI implements InputReadable
 		this.settings=s;
 		gd = new GenericDialog("Region Competition");
 		
+		
+		// Regularization
+		
 		String[] regularizationItems= {
 				No_Regularization,
 				Sphere_Regularization, 
 				Sphere_Regularization_OLD};
 		gd.addChoice(Regularization, regularizationItems, regularizationItems[1]);
-		//save reference to this choice, so we can handle it
+//		save reference to this choice, so we can handle it
 //		initializationChoice = (Choice)gd.getChoices().lastElement();
+		
+		
+		// Label Image Initialization
 		
 		String[] initializationItems= {
 				Rectangular_Initialization, 
@@ -87,6 +85,9 @@ public class GenericDialogGUI implements InputReadable
 				Bubbles_Initialization, 
 				File_Initalization};
 		gd.addChoice(Initialization, initializationItems, initializationItems[0]);
+		
+		
+		// Numeric Fields
 		
 		gd.addNumericField("m_CurvatureMaskRadius", settings.m_CurvatureMaskRadius, 0);
 		gd.addNumericField("m_EnergyContourLengthCoeff", settings.m_EnergyContourLengthCoeff, 4);
@@ -97,8 +98,6 @@ public class GenericDialogGUI implements InputReadable
 		new TextAreaListener(this, gd.getTextArea1(), TextDefaultInputImage);
 		new TextAreaListener(this, gd.getTextArea2(), TextDefaultLabelImage);
 		
-//		TextArea ta = gd.getTextArea1();
-//		addLabelImageInputDrop(ta);
 		
 		Panel p = new Panel();
 			Button b = new Button("Open Input Image");
@@ -108,15 +107,22 @@ public class GenericDialogGUI implements InputReadable
 			b = new Button("Open Label Image");
 			b.addActionListener(new FileOpenerActionListener(gd, gd.getTextArea2()));
 			p.add(b);
-		gd.addPanel(p);
+			
+		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));
+//		gd.addPanel(p);
 		
 //		gd.add(b);
 		
 		addWheelListeners();
 		
+		gd.addCheckbox("Show_Statistics", showStatistics);
+		
 		gd.showDialog();
 	}
 	
+	/**
+	 * Adds MouseWheelListeners to each NumericField in GenericDialog
+	 */
 	private void addWheelListeners()
 	{
 		Vector<TextField> v = gd.getNumericFields();
@@ -135,14 +141,10 @@ public class GenericDialogGUI implements InputReadable
 ////		ItemEvent ie = new ItemEvent(initializationChoice, id, initializationChoice, stateChange);
 //	}
 	
-//	private void addLabelImageInputDrop(TextArea ta)
-//	{
-//		DropTargetListener dropLabelImage = new DnDListener(ta);
-//		new DropTarget(ta, dropLabelImage);
-//	}
 	
 	/**
-	 * Reads out the values from the input mask and saves them into the settings object. <br>
+	 * Reads out the values from the input mask 
+	 * and saves them into the settings object. <br>
 	 * Input Processing (valid values)
 	 */
 	@Override
@@ -189,28 +191,28 @@ public class GenericDialogGUI implements InputReadable
 		//TODO put this into enum
 		if(initialization.equals(Rectangular_Initialization))
 		{
-			labelImageInput=LabelImageInput.Rectangle;
+			labelImageInitType=LabelImageInitType.Rectangle;
 		}
 		else if(initialization.equals(Random_Ellipses_Initialization))
 		{
-			labelImageInput=LabelImageInput.Ellipses;
+			labelImageInitType=LabelImageInitType.Ellipses;
 		}
 		else if(initialization.equals(User_Defined_Initialization))
 		{
-			labelImageInput=LabelImageInput.UserDefinedROI;
+			labelImageInitType=LabelImageInitType.UserDefinedROI;
 		}
 		else if(initialization.equals(Bubbles_Initialization))
 		{
-			labelImageInput=LabelImageInput.Bubbles;
+			labelImageInitType=LabelImageInitType.Bubbles;
 		}
 		else if(initialization.equals(File_Initalization))
 		{
-			labelImageInput=LabelImageInput.File;
+			labelImageInitType=LabelImageInitType.File;
 		}
 		else
 		{
 			IJ.log("No valid LabelImage Choice");
-			labelImageInput=null;
+			labelImageInitType=null;
 			success = false;
 		}
 		
@@ -232,14 +234,16 @@ public class GenericDialogGUI implements InputReadable
 		}
 		filenameLabelImage=gd.getNextText();
 		
+		showStatistics=gd.getNextBoolean();
+		
 		return success;
 	}
 
 
 	@Override
-	public LabelImageInput getLabelImageInput()
+	public LabelImageInitType getLabelImageInitType()
 	{
-		return labelImageInput;
+		return labelImageInitType;
 	}
 
 
@@ -299,7 +303,7 @@ public class GenericDialogGUI implements InputReadable
 
 /**
  * DropTargetListener for TextArea, so one can drag&drop a File into the textArea 
- * and the filesource gets written in. 
+ * and the file source gets written in. 
  * Usage: Just create a new instance, 
  * with TextArea and DefaultText (Text shown in TextArea) in constructor
  */
@@ -377,6 +381,9 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 	@Override
 	public void textValueChanged(TextEvent e)
 	{
+		// Change input choice to file if text in textfield was changed explicitly
+		
+		/* 
 		String text = textArea.getText();
 		if(text.isEmpty() || text.equals(defaultText))
 		{
@@ -385,20 +392,20 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 		else
 		{
 			// there was a non-default change in the textfield. 
-			// set input choise to file if it was TextArea for labelImage 
-//			if(defaultText.equals(gd.TextDefaultLabelImage))
-//			{
-//				gd.setLabelImageToFileInput();
-//			}
+			// set input choice to file if it was TextArea for labelImage 
+			if(defaultText.equals(gd.TextDefaultLabelImage))
+			{
+				gd.setLabelImageToFileInput();
+			}
 		}
 		System.out.println("test changed to: "+textArea.getText());
+		*/
 	}
 
 
 	@Override
 	public void focusGained(FocusEvent e)
 	{
-		System.out.println("focus gained");
 		if(textArea.getText().equals(defaultText))
 		{
 			// delete defaultText on focus gain to allow input
@@ -458,9 +465,14 @@ class FileOpenerActionListener implements ActionListener
 	}
 }
 
-
+/**
+ * MouseWheelListener for NumericField <br>
+ * Value in NumericField grows/shrinks by factor fac per MouseWheel "click"
+ * Field is assumed to be floating point. 
+ */
 class NumericFieldWheelListener implements MouseWheelListener
 {
+	double fac = 0.1;
 	TextField tf;
 	
 	public NumericFieldWheelListener(TextField tf)
@@ -472,11 +484,11 @@ class NumericFieldWheelListener implements MouseWheelListener
 	{
 		int n = e.getWheelRotation();
 		
-		double fac = 0.1;
+		double f = 1.0;
 		if(n>0)
-			fac = 1-fac;
+			f = 1-fac;
 		else
-			fac = 1+fac;
+			f = 1+fac;
 		
 		n=Math.abs(n);
 		
@@ -484,7 +496,7 @@ class NumericFieldWheelListener implements MouseWheelListener
 		System.out.println(val);
 		for(int i=0; i<n; i++)
 		{
-			val*=fac;
+			val*=f;
 		}
 		tf.setText(Double.toString(val));
 		System.out.println("wheeee "+val);
