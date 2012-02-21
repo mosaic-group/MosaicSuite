@@ -9,6 +9,10 @@ public class IndexIterator
 	private int dim;
 	private int size;
 	
+	/**
+	 * 
+	 * @param dims integer array of dimensions (width/height/depth/...)
+	 */
 	public IndexIterator(int[] dims)
 	{
 		dimensions = dims.clone();
@@ -21,13 +25,20 @@ public class IndexIterator
 		}
 	}
 
-	
+	/**
+	 * 
+	 * @return total number of pixels = width*height*...
+	 */
 	int getSize()
 	{
 		return size;
 	}
 	
-	
+	/**
+	 * Converts a Point index into an integer index
+	 * @param p Point index
+	 * @return integer index
+	 */
 	int pointToIndex(Point p)
 	{
 		// TODO test
@@ -42,7 +53,11 @@ public class IndexIterator
 		return idx;
 	}
 	
-	
+	/**
+	 * Converts an integer index into a Point index
+	 * @param idx integer index
+	 * @return Point index
+	 */
 	Point indexToPoint(int idx)
 	{
 		int index=idx;
@@ -66,7 +81,11 @@ public class IndexIterator
 		return result;
 	}
 	
-	
+	/**
+	 * 
+	 * @param p Point index
+	 * @return true, if Point is within bounds of this Iterator
+	 */
 	boolean isInBound(Point p)
 	{
 		for(int d=0; d<dim; d++)

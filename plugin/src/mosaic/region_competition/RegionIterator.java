@@ -1,6 +1,7 @@
 package mosaic.region_competition;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -13,11 +14,11 @@ public class RegionIterator implements Iterator<Integer>, Iterable<Integer>
 {
 
 	int dimensions;
-	int[] region;
-	int[] ofs;
-	int[] input;
+	int[] region;		// dimensions of region
+	int[] ofs;			// offset
+	int[] input;		// dimensions of input
 	
-	int size;
+	int size;			// size of (cropped) region
 	
 	/**
 	 * 
@@ -54,7 +55,7 @@ public class RegionIterator implements Iterator<Integer>, Iterable<Integer>
 	/**
 	 * Call crop() afterwards
 	 */
-	protected void setRegion(int[] region)
+	void setRegion(int[] region)
 	{
 		//TODO if public, maybe crop here, save old ofs and region sizes
 
@@ -71,7 +72,7 @@ public class RegionIterator implements Iterator<Integer>, Iterable<Integer>
 	/**
 	 * Call crop() afterwards
 	 */
-	protected void setOfs(int[] ofs)
+	void setOfs(int[] ofs)
 	{
 		//TODO if public, maybe crop here, save old ofs and region sizes
 		
@@ -93,28 +94,30 @@ public class RegionIterator implements Iterator<Integer>, Iterable<Integer>
 	 * TODO ofs[] and region[] are overwritten, so stay cropped forever 
 	 * if they were cropped once. 
 	 */
-	protected void crop()
+	void crop()
 	{
-		// crop small values
 		for(int i=0; i<dimensions; i++)
 		{
+			// crop small values
 			if(ofs[i]<0){
 				region[i]+=ofs[i]; // shrink region for left border alignment
 				ofs[i]=0;
 			}
+			// crop large values
 			//TODO correct? reuse of region, ofs
 			if(ofs[i]+region[i]>input[i]){
 				region[i]=input[i]-ofs[i];	//shrink region for right border alignment
 			}
 		}
 		
-		// crop large values
+		// recalculate size
 		size=1;
 		for(int i=0; i<dimensions; i++)
 		{
 			size*=region[i];
 		}
 		
+		// recalculate first index
 		calcStartIndex();
 	}
 
@@ -124,20 +127,20 @@ public class RegionIterator implements Iterator<Integer>, Iterable<Integer>
 	private void calcStartIndex()
 	{
 		// calc startindex
-		itStart=0;
+		itInput=0;
 		int fac = 1;
 		for(int i=0; i<dimensions; i++)
 		{
-			itStart+=ofs[i]*fac;
+			itInput+=ofs[i]*fac;
 			fac *= input[i]; 
 		}
 	}
 
 	////////////// Iterator ///////////////
 	
-	private int it;
-	private int itStart=0;
-	private int[] itCounter;
+	private int it;				// iterator in cropped region
+	private int itInput=0;		// iterator in input
+	private int[] itDim;		// counts dimension wraps
 	
 	@Override
 	public boolean hasNext() 
@@ -149,22 +152,25 @@ public class RegionIterator implements Iterator<Integer>, Iterable<Integer>
 	@Override
 	public Integer next() 
 	{
-		int result=itStart;
+		int result=itInput;
+		
+		// calculate indices for next step
 		
 		it++;
-		itStart++;
-		itCounter[0]++;
+		itInput++;
+		itDim[0]++;
 		
 		//TODO ersetze itCounter durch it%region[i]==0 oder so
 		int prod = 1;
 		for(int i=0; i<dimensions; i++)
 		{
-			if(itCounter[i]>=region[i]) // some dimension(s) wrap(s)
+			if(itDim[i]>=region[i]) // some dimension(s) wrap(s)
 			{
 				//TODO prod*(...) sind schritte, die man nicht macht. merke diese, und wisse, wo man absolut wäre?
-				itStart = itStart+prod*(input[i]-region[i]);
-				itCounter[i]=0;
-				itCounter[(i+1)%dimensions]++; 		// % last point doesn't exceeds array bounds
+				// we reached the end of region in this dimension, so add the step not made in input to the input iterator 
+				itInput = itInput+prod*(input[i]-region[i]);
+				itDim[i]=0;
+				itDim[(i+1)%dimensions]++; 		// '%' : last point doesn't exceeds array bounds
 				prod*=input[i];
 				//continue, wrap over other dimensions
 			}
@@ -184,11 +190,18 @@ public class RegionIterator implements Iterator<Integer>, Iterable<Integer>
 		// not needed in this context
 	}
 	
+	@Override
+	public Iterator<Integer> iterator()
+	{
+		return this;
+	}
+
+
 	public void reset()
 	{
 		it=0;
-		itCounter = new int[dimensions];
-		itStart=0;
+		itDim = new int[dimensions];
+		itInput=0;
 		
 		calcStartIndex();
 	}
@@ -314,24 +327,22 @@ public class RegionIterator implements Iterator<Integer>, Iterable<Integer>
 		
 		return list;
 	}
-
-
-	@Override
-	public Iterator<Integer> iterator()
-	{
-		return this;
-	}
 	
 }
 
 
 /**
- * @author Stephan
  * Iterates over a Region within an InputImage, 
  * but returns indices relative to the region
  */
 class RegionIteratorMask extends RegionIterator
 {
+	/**
+	 * Iterating over region is implemented in such a way, 
+	 * that region is used as input (for RegionIterator) and
+	 * the part of the region within input is used as region. 
+	 * So the indices are returned relative to region. 
+	 */
 	public RegionIteratorMask(int[] input, int[] region, int[] ofs) 
 	{
 		
@@ -339,6 +350,8 @@ class RegionIteratorMask extends RegionIterator
 		
 		int[] maskSizes= region.clone();
 		int[] maskOfs = new int[dimensions];
+		Arrays.fill(maskOfs, 0);
+		
 		for(int i=0; i<dimensions; i++)
 		{
 			if(ofs[i]<0)

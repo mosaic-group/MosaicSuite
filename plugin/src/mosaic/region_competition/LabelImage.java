@@ -32,22 +32,27 @@ import ij.process.ShortProcessor;
 
 public class LabelImage //extends ShortProcessor
 {
-	final int forbiddenLabel=Short.MAX_VALUE;
-	final int bgLabel = 0;
-	final int negOfs=10000;			// labels above this number stands for "negative numbers" (problem with displaying negative numbers in ij.ShortProcessor)
+	
+	private Region_Competition MVC; 	/** interface to image program */
+	private LabelImage m_LabelImage; 	// == this, exists for easier refactoring
+	
+	private ImagePlus originalIP;	// input image
+	private final float imageMax; 	// maximal intensity of input image
+	
+	ImageProcessor labelIP;				// map positions -> labels
 	
 	int dim;			// number of dimension
 	int[] dimensions;	// dimensions (width, height, depth, ...)
 	private int width;	// TODO multidim
 	private int height;
+	IndexIterator iterator; // iterates over the labelImage
 	
-	IndexIterator iterator;
 	
-	private ImagePlus originalIP;		// input image
-	
+	final int forbiddenLabel=Short.MAX_VALUE;
+	final int bgLabel = 0;
+	final int negOfs=10000;			// labels above this number stands for "negative numbers" (problem with displaying negative numbers in ij.ShortProcessor)
 	
 	// data structures
-	 ImageProcessor labelIP;		// map positions -> labels
 	
 	/** stores the contour particles. access via coordinates */
 	private HashMap<Point, ContourParticle> m_InnerContourContainer;
@@ -66,14 +71,6 @@ public class LabelImage //extends ShortProcessor
 	private List<Integer> m_FramesHist;
 	
 	
-	private Region_Competition MVC; 	/** interface to image program */
-	
-	
-	private LabelImage m_LabelImage;
-	
-	
-	
-	private final float imageMax;
 	
 	/**
 	 * creates a new LabelImage with size of ip
@@ -150,8 +147,10 @@ public class LabelImage //extends ShortProcessor
 
 	private int m_MaxNLabels;
     
-	SphereBitmapImageSource sphereMaskIterator;
-
+	SphereBitmapImageSource sphereMaskIterator; // regularization
+	
+	SphereBitmapImageSource m_SphereMaskForLocalEnergy;
+	int m_GaussPSEnergyRadius; //TODO really, only 1?
     
 	// ///////////////////////////////////////////////////
 
@@ -159,6 +158,8 @@ public class LabelImage //extends ShortProcessor
     {
 //    	settings = new Settings();
     	sphereMaskIterator = new SphereBitmapImageSource(m_LabelImage, (int)settings.m_CurvatureMaskRadius);
+    	m_GaussPSEnergyRadius=1;
+    	m_SphereMaskForLocalEnergy = new SphereBitmapImageSource(this, m_GaussPSEnergyRadius);
 
     	
     	//TODO half dummy
@@ -180,7 +181,6 @@ public class LabelImage //extends ShortProcessor
 		
 		m_MaxNLabels=0;
     }
-
 	
 	
     /**
@@ -188,7 +188,6 @@ public class LabelImage //extends ShortProcessor
      */
 	public void initZero()
 	{
-		
 		int size=1;
 		for(int d=0; d<dim; d++)
 		{
@@ -262,6 +261,7 @@ public class LabelImage //extends ShortProcessor
 		labelIP.fill(vRectangleROI);
 	}
 	
+	
 	/**
 	 * initial guess by generating random ellipses (may overlap)
 	 */
@@ -274,10 +274,8 @@ public class LabelImage //extends ShortProcessor
 		
 		int ellipses[][]= new int[n][5];
 		
-		
 		System.out.println("generating "+n+" random ellipses: ");
 		System.out.println("x, y, w, h, label");
-		
 		System.out.println(n);
 		
 		for(int i=0; i<n; i++)
@@ -305,8 +303,6 @@ public class LabelImage //extends ShortProcessor
 		}
 		
 		initialGuessEllipses(ellipses);
-		
-		
 	}
 
 	/**
@@ -321,8 +317,8 @@ public class LabelImage //extends ShortProcessor
 
 		System.out.println(n);
 
-		for(int i = 0; i < n; i++) {
-
+		for(int i = 0; i < n; i++) 
+		{
 			int e[] = ellipses[i];
 			x = e[0];
 			y = e[1];
@@ -335,9 +331,7 @@ public class LabelImage //extends ShortProcessor
 			labelIP.fill(roi);
 
 			System.out.println(x + " " + y + " " + w + " " + h + " " + label + " ");
-
 		}
-
 	}
 	
 	
@@ -353,24 +347,17 @@ public class LabelImage //extends ShortProcessor
 		
 		for(int i = 0; i < n; i++) 
 		{
-			
 			int e[]=ellipses[i];
-			
 			//coords
-			for(int j=0; j<dim; j++)
-			{
+			for(int j=0; j<dim; j++){
 				e[j]=scanner.nextInt();
 			}
-			
 			//sizes
-			for(int j=dim; j<2*dim; j++)
-			{
+			for(int j=dim; j<2*dim; j++){
 				e[j]=scanner.nextInt();
 			}
-			
 			//label
 			e[2*dim]=scanner.nextInt();
-			
 		}
 		initialGuessEllipses(ellipses);
 	}
@@ -408,8 +395,6 @@ public class LabelImage //extends ShortProcessor
 			bubbleIndex++;
 			bd.doSphereIteration(ofs, bubbleIndex);
 		}
-		
-		
 	}
 	
 	/**
@@ -439,14 +424,11 @@ public class LabelImage //extends ShortProcessor
 				stats.add(getIntensity(i));
 			}
 		}
-		
-
 	}
 	
 	void clearStats()
 	{
 		//clear stats
-		
 		for(LabelInformation stat: labelMap.values())
 		{
 			stat.reset();
@@ -1928,15 +1910,15 @@ public class LabelImage //extends ShortProcessor
     //        for (; vCandLabelIt != vCandLabelItend; ++vCandLabelIt) {
     //            LabelAbsPixelType aToLabel = aContourPointPtr->m_candidateLabel;
     //            OuterContourContainerKeyType vCurrentIndex = aContourPointPtr->first;
-		double vEnergy = 0;
 
 		float vCurrentImageValue = aContourPointPtr.intensity;
 		int vCurrentLabel = aContourPointPtr.label;
 
         /// For the full-region based energy models, register competing regions
         /// undergo a merge.
-        if (m_EnergyFunctional == EnergyFunctionalType.e_CV || m_EnergyFunctional == EnergyFunctionalType.e_MS ||
-                m_EnergyFunctional == EnergyFunctionalType.e_Deconvolution) 
+		if (m_EnergyFunctional == EnergyFunctionalType.e_CV 
+				|| m_EnergyFunctional == EnergyFunctionalType.e_MS 
+				|| m_EnergyFunctional == EnergyFunctionalType.e_Deconvolution)
         {
             /// If we are competing (this is detected when the defender
             /// label is not equal to the background label; we checked
@@ -1965,49 +1947,34 @@ public class LabelImage //extends ShortProcessor
 			}
 		}
 
-
-//TODO expand to itk version below
         /// Calculate the change in energy due to the change of intensity when changing
         /// from one label 'from' to another 'to'.
         
         float m_EnergyRegionCoeff = settings.m_EnergyRegionCoeff;
-        
-        if (m_EnergyRegionCoeff != 0) {
-            if (m_EnergyFunctional == EnergyFunctionalType.e_PSwithCurvatureFlow) 
-            {
-//                vEnergy += CalculatePSwithCurvatureFlowEnergyDifference(
-//                        this->GetDataInput(), m_LabelImage, aContourIndex,
-//                        vCurrentImageValue, vCurrentLabel, aToLabel);
-            } 
-            else if (m_EnergyFunctional == EnergyFunctionalType.e_CV) 
-            {
-                vEnergy += m_EnergyRegionCoeff * CalculateCVEnergyDifference(
+		double vEnergy = 0.0;
+		boolean vMerge = false;
+		
+		if (m_EnergyRegionCoeff != 0)
+		{
+			if(m_EnergyFunctional == EnergyFunctionalType.e_CV)
+			{
+				vEnergy += m_EnergyRegionCoeff * 
+					CalculateCVEnergyDifference(vCurrentImageValue, vCurrentLabel, aToLabel);
+			}
+			else if(m_EnergyFunctional == EnergyFunctionalType.e_GaussPS)
+			{
+                Pair<Double, Boolean> vV = CalculateGaussPSEnergyDifference(aContourIndex,
                         vCurrentImageValue, vCurrentLabel, aToLabel);
-            } 
+                vEnergy += m_EnergyRegionCoeff * vV.first;
+                vMerge = vV.second;
+			}
             else if (m_EnergyFunctional == EnergyFunctionalType.e_MS) 
             {
                 vEnergy += m_EnergyRegionCoeff * CalculateMSEnergyDifference(
                         vCurrentImageValue, vCurrentLabel, aToLabel);
             } 
-            else if (m_EnergyFunctional == EnergyFunctionalType.e_LocalCV) 
-            {
-//                vEnergy += m_EnergyRegionCoeff * CalculateLocalCVEnergyDifference(
-//                        this->GetDataInput(), m_LabelImage, aContourIndex,
-//                        vCurrentImageValue, vCurrentLabel, aToLabel);
-            } 
-            else if (m_EnergyFunctional == EnergyFunctionalType.e_LocalLi) 
-            {
-//                vEnergy += m_EnergyRegionCoeff * CalculateLiEnergyDifference_Full(
-//                        this->GetDataInput(), m_LabelImage, aContourIndex,
-//                        vCurrentImageValue, vCurrentLabel, aToLabel);
-            } 
-            else if (m_EnergyFunctional == EnergyFunctionalType.e_Deconvolution) 
-            {
-//                vEnergy += m_EnergyRegionCoeff * CalculateDeconvolutionEnergyDifference(
-//                        this->GetDataInput(), m_LabelImage, aContourIndex,
-//                        vCurrentImageValue, vCurrentLabel, aToLabel);
-            }
         }
+		//TODO hier weiter
 		
 		//TODO dummy
 		float m_EnergyContourLengthCoeff = settings.m_EnergyContourLengthCoeff;
@@ -2036,105 +2003,6 @@ public class LabelImage //extends ShortProcessor
 		    }
 		}
 		
-
-
-        
-		
-/* 
-		
-        /// Calculate the change in energy due to the change of intensity when changing
-        /// from one label 'from' to another 'to'.
-        if (m_EnergyRegionCoeff != 0) {
-            if (m_EnergyFunctional == EnergyFunctionalType.e_PSwithCurvatureFlow) {
-                vEnergy += CalculatePSwithCurvatureFlowEnergyDifference(
-                        this->GetDataInput(), m_LabelImage, aContourIndex,
-                        vCurrentImageValue, vCurrentLabel, aToLabel);
-            } else if (m_EnergyFunctional == EnergyFunctionalType.e_CV) {
-                vEnergy += m_EnergyRegionCoeff * CalculateCVEnergyDifference(
-                        vCurrentImageValue, vCurrentLabel, aToLabel);
-            } else if (m_EnergyFunctional == EnergyFunctionalType.e_MS) {
-                vEnergy += m_EnergyRegionCoeff * CalculateMSEnergyDifference(
-                        vCurrentImageValue, vCurrentLabel, aToLabel);
-            } else if (m_EnergyFunctional == EnergyFunctionalType.e_LocalCV) {
-                vEnergy += m_EnergyRegionCoeff * CalculateLocalCVEnergyDifference(
-                        this->GetDataInput(), m_LabelImage, aContourIndex,
-                        vCurrentImageValue, vCurrentLabel, aToLabel);
-            } else if (m_EnergyFunctional == EnergyFunctionalType.e_LocalLi) {
-                vEnergy += m_EnergyRegionCoeff * CalculateLiEnergyDifference_Full(
-                        this->GetDataInput(), m_LabelImage, aContourIndex,
-                        vCurrentImageValue, vCurrentLabel, aToLabel);
-            } else if (m_EnergyFunctional == EnergyFunctionalType.e_Deconvolution) {
-                vEnergy += m_EnergyRegionCoeff * CalculateDeconvolutionEnergyDifference(
-                        this->GetDataInput(), m_LabelImage, aContourIndex,
-                        vCurrentImageValue, vCurrentLabel, aToLabel);
-            }
-        }
-
-		if (m_EnergyUseCurvatureRegularization &&
-                m_EnergyFunctional != EnergyFunctionalType.e_PSwithCurvatureFlow &&
-                m_EnergyContourLengthCoeff != 0) {
-            if (m_EnergyFunctional == EnergyFunctionalType.e_Deconvolution) {
-                vEnergy += //m_Intensities[aToLabel] * m_Intensities[aToLabel] *
-                        m_EnergyContourLengthCoeff * CalculateCurvatureBasedGradientFlow(
-                        this->GetDataInput(), m_LabelImage, aContourIndex,
-                        vCurrentLabel, aToLabel);
-            } else if (m_EnergyFunctional == EnergyFunctionalType.e_CV) {
-                vEnergy += //m_Means[aToLabel] * // m_Means[aToLabel] *
-                        m_EnergyContourLengthCoeff * CalculateCurvatureBasedGradientFlow(
-                        this->GetDataInput(), m_LabelImage, aContourIndex,
-                        vCurrentLabel, aToLabel);
-            } else {
-                vEnergy += m_EnergyContourLengthCoeff * CalculateCurvatureBasedGradientFlow(
-                        this->GetDataInput(), m_LabelImage, aContourIndex,
-                        vCurrentLabel, aToLabel);
-            }
-        }
-
-		if (!m_EnergyUseCurvatureRegularization &&
-                m_EnergyFunctional == EnergyFunctionalType.e_PSwithCurvatureFlow &&
-                (m_EnergyContourLengthCoeff != 0 || m_EnergySphericityCoeff != 0)) {
-            // calculate the change in energy due to the length of the contour
-            float vChangeInLength = -m_ContourLengthFunction->EvaluateLengthChange(aContourIndex, aToLabel);
-            vEnergy += m_EnergyContourLengthCoeff * vChangeInLength;
-
-            //            // calculate the change in energy due to sphericity for all regions
-            //            // but the BG:
-            //            // TODO: use specialized BG label instead of 0
-            //            double vSphericityToBefore = 1.0;
-            //            double vSphericityFromBefore = 1.0;
-            //            double vSphericityToAfter = 1.0;
-            //            double vSphericityFromAfter = 1.0;
-            //            if (aTo != 0) {
-            //                vSphericityToBefore = (m_PI_1_3 * pow(6.0 * m_Lengths[aTo], 2.0 / 3.0))
-            //                        / (m_Count[aTo]);
-            //                vSphericityToAfter = (m_PI_1_3) * pow(6.0 * m_Lengths[aTo] + vChangeInLength, 2.0 / 3.0)
-            //                        / (m_Count[aTo] + 1);
-            //                vEnergy += m_EnergySphericityCoeff *
-            //                        ((1.0 - vSphericityToAfter) - (1.0 - vSphericityToBefore));
-            //            }
-            //            if(vCurrentLabel != 0) {
-            //                vSphericityFromBefore = (m_PI_1_3 * pow(6.0 * m_Lengths[vCurrentLabel], 2.0 / 3.0))
-            //                        / (m_Count[vCurrentLabel]);
-            //                vSphericityFromAfter = (m_PI_1_3) * pow(6.0 * m_Lengths[vCurrentLabel] + vChangeInLength, 2.0 / 3.0)
-            //                        / (m_Count[vCurrentLabel] - 1);
-            //                vEnergy += m_EnergySphericityCoeff *
-            //                        ((1.0 - vSphericityFromAfter) - (1.0 - vSphericityFromBefore));
-            //            }
-        }
-
-		if (m_EnergyEdgeAttractionCoeff != 0) {
-            // calculate the change in energy due to edge attraction:
-            float vChangeInEdgeAttractionEnergy = -m_EdgeImage->GetPixel(aContourIndex);
-            vEnergy += m_EnergyEdgeAttractionCoeff * vChangeInEdgeAttractionEnergy;
-        }
-
-		if (m_UseShapePrior) {
-            float vChangeInShapeEnergy =
-                    CalculateShapePriorEnergyDifference(aContourIndex, vCurrentLabel, aToLabel, m_Moments2D);
-			vEnergy += m_EnergyShapePriorCoeff * vChangeInShapeEnergy;
-            //            std::cout << "Energy difference of a contour point from label: " << vCurrentLabel << " to label: " << aToLabel << ": " << vEnergy << std::endl;
-        }
-*/
 		
         /// add a bolloon force and a constant outward flow. If fronts were
         /// touching, no constant flow is imposed (cancels out).
@@ -2226,6 +2094,108 @@ public class LabelImage //extends ShortProcessor
 		double vNewToMean = (to.mean*to.count + aValue)/(to.count+1);
 		return (aValue-vNewToMean)*(aValue-vNewToMean) - (aValue-from.mean)*(aValue-from.mean);
     }
+    
+    Pair<Double, Boolean> CalculateGaussPSEnergyDifference(Point aCenterIndex, double aValue,
+			int aFromLabel, int aToLabel)
+	{
+
+		// vOffset is basically the difference of the center and the start of the window
+		int[] vOffset;
+
+		//read out the size of the mask
+		// vRegion is the size of our temporary window
+		int[] vRegion;
+			
+		Point half = (new Point(m_SphereMaskForLocalEnergy.m_Size)).div(2);
+		Point start = aCenterIndex.sub(half);				// "upper left point"
+		
+		RegionIterator vLabelIt = new RegionIterator(m_LabelImage.dimensions, m_SphereMaskForLocalEnergy.m_Size, start.x);
+		RegionIterator vDataIt = new RegionIterator(m_LabelImage.dimensions, m_SphereMaskForLocalEnergy.m_Size, start.x);
+		RegionIteratorMask vMaskIt = new RegionIteratorMask(m_LabelImage.dimensions, m_SphereMaskForLocalEnergy.m_Size, start.x);
+
+		double vSumFrom = -aValue; // we ignore the value of the center point
+		double vSumTo = 0;
+		double vSumOfSqFrom = -aValue * aValue; // ignore the value of the center point.
+		double vSumOfSqTo = 0.0;
+		int vNFrom = -1;
+		int vNTo = 0;
+
+		while(vLabelIt.hasNext())
+		{
+			int labelIdx = vLabelIt.next();
+			int dataIdx = vDataIt.next();
+			int maskIdx = vMaskIt.next();
+			
+			if(m_SphereMaskForLocalEnergy.isInMask(maskIdx))
+			{
+				int absLabel=getAbs(labelIdx);
+				if(absLabel == aFromLabel)
+				{
+					double data = getIntensity(dataIdx);
+					vSumFrom += data;
+					vSumOfSqFrom += data*data;
+					vNFrom++;
+				}
+				else if(absLabel == aToLabel)
+				{
+					double data = getIntensity(dataIdx);
+					vSumTo += data;
+					vSumOfSqTo += data*data;
+					vNTo++;
+				}
+			}
+		}
+
+		double vMeanTo;
+		double vVarTo;
+		double vMeanFrom;
+		double vVarFrom;
+		if(vNTo == 0)
+		{ // this should only happen with the BG label
+			
+			LabelInformation info = labelMap.get(aToLabel);
+			vMeanTo = info.mean;
+			vVarTo = info.var;
+		}
+		else
+		{
+			vMeanTo = vSumTo / vNTo;
+// vVarTo = (vSumOfSqTo - vSumTo * vSumTo / vNTo) / (vNTo - 1);
+			vVarTo = (vSumOfSqTo - vSumTo * vSumTo / vNTo) / (vNTo);
+		}
+
+		if(vNFrom == 0)
+		{
+			LabelInformation info = labelMap.get(aFromLabel);
+			vMeanFrom = info.mean;
+			vVarFrom = info.var;
+		}
+		else
+		{
+			vMeanFrom = vSumFrom / vNFrom;
+			vVarFrom = (vSumOfSqFrom - vSumFrom * vSumFrom / vNFrom) / (vNFrom);
+		}
+
+		// double vVarFrom = (vSumOfSqFrom - vSumFrom * vSumFrom / vNFrom) / (vNFrom - 1);
+
+		boolean vMerge = false;
+		if(aFromLabel != 0 && aToLabel != 0)
+		{
+			if(CalculateKLMergingCriterion(vMeanFrom, vMeanTo, vVarFrom, vVarTo, vNFrom, vNTo) < settings.m_RegionMergingThreshold)
+			{
+				vMerge = true;
+			}
+		}
+// if(isnan(aValue) || isnan(vMeanTo) || isnan(vMeanFrom) || )
+		// return abs(aValue - vMeanTo) - abs(aValue - vMeanFrom); doesnt work
+
+		double vEnergyDiff = (aValue - vMeanTo) * (aValue - vMeanTo) - (aValue - vMeanFrom) * (aValue - vMeanFrom);
+
+		return new Pair<Double, Boolean>(vEnergyDiff, vMerge);
+    }
+	
+	
+	
 	
 	double CalculateMSEnergyDifference(float aValue, int fromLabel, int toLabel)
 	{
@@ -3065,8 +3035,11 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	
 }
 
-enum EnergyFunctionalType {
-	e_CV, e_MS, e_LocalCV, e_LocalLi, e_Deconvolution, e_PSwithCurvatureFlow
+enum EnergyFunctionalType 
+{
+	e_CV, 
+	e_GaussPS, 
+	e_MS, e_LocalCV, e_LocalLi, e_Deconvolution, e_PSwithCurvatureFlow
 }
 
 

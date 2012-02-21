@@ -35,7 +35,7 @@ public class SphereBitmapImageSource
 		for (int i = 0; i < dim; i++) 
 		{
 			m_Radius[i] = radius;
-			m_Size[i] = 2*m_Radius[i]+1; 			//TODO +0
+			m_Size[i] = 2*m_Radius[i]+0; 			//TODO not tested: changed from 1 to 0
 //		    m_Spacing[i] = 1.0;
 //		    m_Origin[i] = 0.0;
 //		    vSize[i] = 0;
@@ -84,6 +84,13 @@ public class SphereBitmapImageSource
 		
 //		System.out.println("fillmask end");
 	}
+	
+	public boolean isInMask(int maskIdx)
+	{
+		int maskvalue = mask[maskIdx];
+		return maskvalue==m_ForegroundValue;
+	}
+	
 	
 	/**
 	 * Faster version with new Iterator, Index-based

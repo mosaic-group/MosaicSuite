@@ -91,6 +91,7 @@ public class GenericDialogGUI implements InputReadable
 		
 		gd.addNumericField("m_CurvatureMaskRadius", settings.m_CurvatureMaskRadius, 0);
 		gd.addNumericField("m_EnergyContourLengthCoeff", settings.m_EnergyContourLengthCoeff, 4);
+		gd.addNumericField("m_MaxNbIterations", settings.m_MaxNbIterations, 0);
 		
 		
 		gd.addTextAreas(TextDefaultInputImage, 
@@ -131,15 +132,6 @@ public class GenericDialogGUI implements InputReadable
 			tf.addMouseWheelListener(new NumericFieldWheelListener(tf));
 		}
 	}
-	
-//	void setLabelImageToFileInput()
-//	{
-//		//TODO this does not work
-//		initializationChoice.select(File_Initalization);
-////		int id=0;
-////		int stateChange=0;
-////		ItemEvent ie = new ItemEvent(initializationChoice, id, initializationChoice, stateChange);
-//	}
 	
 	
 	/**
@@ -184,6 +176,7 @@ public class GenericDialogGUI implements InputReadable
 		
 		settings.m_CurvatureMaskRadius=(int)gd.getNextNumber();
 		settings.m_EnergyContourLengthCoeff=(float)gd.getNextNumber();
+		settings.m_MaxNbIterations = (int)gd.getNextNumber();
 		
 		// Initial Choice
 		String initialization = gd.getNextChoice();
@@ -294,6 +287,12 @@ public class GenericDialogGUI implements InputReadable
 	public boolean useRegularization()
 	{
 		return useRegularization;
+	}
+
+	@Override
+	public int getNumIterations()
+	{
+		return settings.m_MaxNbIterations;
 	}
 
 

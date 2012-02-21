@@ -18,6 +18,7 @@ public interface InputReadable
 	
 	public LabelImageInitType getLabelImageInitType();
 	public String getLabelImageFilename();
+	public int getNumIterations();
 	
 	/**
 	 * @return The filepath as String or empty String if no file was chosen.

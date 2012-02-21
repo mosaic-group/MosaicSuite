@@ -108,9 +108,7 @@ public class Settings
 //    typedef GaussianImageSource<InternalImageType> GaussianImageSourceType;
 //    typename GaussianImageSourceType::Pointer m_GaussianImageSource;
 
-	//Private:
-    
-	int m_MaxNbIterations;
+	public int m_MaxNbIterations;
 	boolean m_InitializeFromRegion;
 	EnergyFunctionalType m_EnergyFunctional;
 	
