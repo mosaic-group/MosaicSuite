@@ -80,6 +80,9 @@ public class Point
 		return result;
 	}
 	
+	/**
+	 * integer division
+	 */
 	public Point div(int f)
 	{
 		Point result = new Point();

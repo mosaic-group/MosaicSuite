@@ -110,7 +110,7 @@ public class Settings
 
 	public int m_MaxNbIterations;
 	boolean m_InitializeFromRegion;
-	EnergyFunctionalType m_EnergyFunctional;
+	public EnergyFunctionalType m_EnergyFunctional;
 	
 	
 }

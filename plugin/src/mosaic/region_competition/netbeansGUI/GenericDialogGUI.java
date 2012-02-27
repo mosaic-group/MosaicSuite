@@ -16,6 +16,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Vector;
 
+import mosaic.region_competition.EnergyFunctionalType;
 import mosaic.region_competition.Settings;
 import ij.IJ;
 import ij.gui.GenericDialog;
@@ -37,6 +38,12 @@ public class GenericDialogGUI implements InputReadable
 	private boolean showStatistics = false;
 	private boolean useRegularization;
 	private boolean useOldRegionIterator=false;
+	
+	static final String EnergyFunctional = "EnergyFunctional";
+	static final String e_CV = "e_CV";
+	static final String e_GaussPS = "e_GaussPS";
+	
+	
 	
 	static final String Regularization = "Regularization";
 	static final String No_Regularization="No_Regularization";
@@ -63,6 +70,15 @@ public class GenericDialogGUI implements InputReadable
 	{
 		this.settings=s;
 		gd = new GenericDialog("Region Competition");
+		
+		
+		// energy
+		
+		String[] energyItems= {
+				e_CV,
+				e_GaussPS};
+		gd.addChoice(EnergyFunctional, energyItems, energyItems[1]);
+
 		
 		
 		// Regularization
@@ -147,6 +163,25 @@ public class GenericDialogGUI implements InputReadable
 			return false;
 		
 		boolean success = true;
+		
+		// Energy Choice
+		
+		String energy = gd.getNextChoice();
+		if(energy.equals(e_CV))
+		{
+			settings.m_EnergyFunctional = EnergyFunctionalType.e_CV;
+			
+		} 
+		else if (energy.equals(e_GaussPS))
+		{
+			settings.m_EnergyFunctional = EnergyFunctionalType.e_GaussPS;
+		}
+		else
+		{
+			success = false;
+		}
+
+		
 		
 		// Regularization Choice
 		
@@ -294,7 +329,6 @@ public class GenericDialogGUI implements InputReadable
 	{
 		return settings.m_MaxNbIterations;
 	}
-
 
 
 }

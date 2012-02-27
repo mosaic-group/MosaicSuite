@@ -16,8 +16,12 @@ public class SphereBitmapImageSource
 	int mask[]=null;
 	
 	
-	
-	SphereBitmapImageSource(LabelImage labelImage, int radius)
+	/**
+	 * @param labelImage
+	 * @param radius		radius of sphere
+	 * @param size			size of the region
+	 */
+	SphereBitmapImageSource(LabelImage labelImage, int radius, int size)
 	{
 		this.labelImage=labelImage;
 		dim=labelImage.dim;
@@ -35,7 +39,7 @@ public class SphereBitmapImageSource
 		for (int i = 0; i < dim; i++) 
 		{
 			m_Radius[i] = radius;
-			m_Size[i] = 2*m_Radius[i]+0; 			//TODO not tested: changed from 1 to 0
+			m_Size[i] = size;
 //		    m_Spacing[i] = 1.0;
 //		    m_Origin[i] = 0.0;
 //		    vSize[i] = 0;
@@ -357,9 +361,9 @@ public class SphereBitmapImageSource
 class BubbleDrawer extends SphereBitmapImageSource
 {
 //TODO make nicer class hierarchiy
-	public BubbleDrawer(LabelImage labelImage, int radius)
+	public BubbleDrawer(LabelImage labelImage, int radius, int size)
 	{
-		super(labelImage, radius);
+		super(labelImage, radius, size);
 	}
 	
 	/**

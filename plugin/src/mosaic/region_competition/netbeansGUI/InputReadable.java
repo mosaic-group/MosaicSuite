@@ -1,5 +1,7 @@
 package mosaic.region_competition.netbeansGUI;
 
+import mosaic.region_competition.EnergyFunctionalType;
+
 
 /**
  * Input interface <br>
@@ -24,6 +26,7 @@ public interface InputReadable
 	 * @return The filepath as String or empty String if no file was chosen.
 	 */
 	public String getInputImageFilename();
+	
 	
 	// UI
 	
