@@ -282,7 +282,8 @@ class DilateGenericThread extends Thread{
 					if(dummy_processor[y*image_width+x] < threshold) {
 						continue;
 					}
-					max = 0;
+					max = Float.MIN_VALUE; 
+					
 					//a,b,c are the kernel coordinates corresponding to x,y,z
 					for(int s = -radius; s <= radius; s++ ) {
 						if(z + s < 0 || z + s >= ips.getSize())
