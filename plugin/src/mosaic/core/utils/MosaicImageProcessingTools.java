@@ -282,7 +282,7 @@ class DilateGenericThread extends Thread{
 					if(dummy_processor[y*image_width+x] < threshold) {
 						continue;
 					}
-					max = Float.MIN_VALUE; 
+					max = Float.NEGATIVE_INFINITY; 
 					
 					//a,b,c are the kernel coordinates corresponding to x,y,z
 					for(int s = -radius; s <= radius; s++ ) {
