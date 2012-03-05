@@ -77,7 +77,9 @@ public class GenericDialogGUI implements InputReadable
 		String[] energyItems= {
 				e_CV,
 				e_GaussPS};
-		gd.addChoice(EnergyFunctional, energyItems, energyItems[1]);
+		//TODO default choice
+		gd.addChoice(EnergyFunctional, energyItems, energyItems[0]);
+		
 
 		
 		

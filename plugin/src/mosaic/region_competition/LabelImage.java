@@ -62,7 +62,7 @@ public class LabelImage //extends ShortProcessor
 	/** Maps the label(-number) to the information of a label */
 	private HashMap<Integer, LabelInformation> labelMap;
 
-	private HashMap<Point, Point> m_CompetingRegionsMap;
+	private HashMap<Point, Pair<Integer, Integer>> m_CompetingRegionsMap;
 	
 	
 	private Connectivity connFG;
@@ -109,7 +109,7 @@ public class LabelImage //extends ShortProcessor
 		m_InnerContourContainer = new HashMap<Point, ContourParticle>();
 		m_Candidates = new HashMap<Point, ContourParticle>();
 		labelMap = new HashMap<Integer, LabelInformation>();
-		m_CompetingRegionsMap = new HashMap<Point, Point>();
+		m_CompetingRegionsMap = new HashMap<Point, Pair<Integer, Integer>>();
 		
 		m_MergingHist = new LinkedList<Integer>();
 		m_FramesHist = new LinkedList<Integer>();
@@ -687,6 +687,12 @@ public class LabelImage //extends ShortProcessor
 
 		return vConvergenceA;
 	}
+	
+	
+	private void MinimizeEnergy()
+	{
+		
+	}
 
 
 	/**
@@ -707,14 +713,455 @@ public class LabelImage //extends ShortProcessor
 		m_CompetingRegionsMap.clear();
 		
 		RebuildCandidateList(m_AllCandidates);
+		FilterCandidates(m_AllCandidates);
+		DetectOscillations(m_AllCandidates);
+
+
+		/**
+		 * Intermediate step: filter the candidates according to their rank
+		 * and spatial position.
+		 */
+        if(m_AcceptedPointsFactor < 0.99) 
+        {
+            FilterCandidatesContainerUsingRanks(m_AllCandidates);
+        }
+
+        /**
+         * Move all the points that are simple. Non simple points remain in the
+         * candidates list.
+         */
+		        
 	
-		List<Point> vLegalIndices = new LinkedList<Point>();
-		List<Point> vIllegalIndices = new LinkedList<Point>();
+        /// We first move all the FG-simple points. This we do because it happens
+        /// that points that are not simple at the first place get simple after
+        /// the change of other points. The non-simple points will be treated
+        /// in a separate loop afterwards.
+		
+        boolean vChange = true;
+		List<Pair<Integer, Pair<Integer, Integer>>> vFGTNvector;
+		        
+		while(vChange && !m_AllCandidates.isEmpty()) 
+		{
+			vChange = false;
+			
+			Iterator<Entry<Point, ContourParticle>> vPointIterator = m_AllCandidates.entrySet().iterator();
+			while(vPointIterator.hasNext()) 
+			{
+				Entry<Point, ContourParticle> vStoreIt = vPointIterator.next();
+				Point vCurrentIndex = vStoreIt.getKey();
+
+				vFGTNvector = m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex);
+				boolean vSimple = true;
+				// / Check for FG-simplicity:
+				for(Pair<Integer, Pair<Integer, Integer>> vTopoNbItr : vFGTNvector) 
+				{
+					if(vTopoNbItr.second.first != 1 || vTopoNbItr.second.second != 1) {
+						// This is a FG simple point; perform the move.
+						vSimple = false;
+					}
+				}
+				if(vSimple) 
+				{
+					vChange = true;
+					ChangeContourPointLabelToCandidateLabel(vStoreIt);
+					vPointIterator.remove();
+					vConvergence = false;
+				}
+			}
+		}
+		        
+        /// Now we know that all the points in the list are 'currently' not simple.
+        /// We move them anyway (if no constraints about this topological event
+        /// is set) and record where to relabel using the seed set.
+		        
+		Set<Pair<Point, Integer>> vSeeds = new HashSet<Pair<Point,Integer>>();
+		Iterator<Entry<Point, ContourParticle>> vPointIterator = m_AllCandidates.entrySet().iterator();
+		
+		while(vPointIterator.hasNext())
+		{
+			Entry<Point, ContourParticle> e = vPointIterator.next();
+			ContourParticle vStoreIt = e.getValue();
+			Point vCurrentIndex = e.getKey();
+
+			int vCurrentLabel = vStoreIt.label;
+			int vCandidateLabel = vStoreIt.candidateLabel;
+
+			// int vTopoNb;
+			boolean vValidPoint = true;
+
+			if(settings.m_UseRegionCompetition) 
+			{
+				vFGTNvector = (m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex));
+//	                FGTNIteratorType vTopoNbItr;
+//	                FGTNIteratorType vTopoNbItrEnd = vFGTNvector.end();
+
+                /// Check for handles:
+                /// if the point was not disqualified already and we disallow
+                /// introducing handles (not only self fusion!), we check if
+                /// there is an introduction of a handle.
+                if (vValidPoint && !settings.m_AllowHandles) 
+                {
+                	
+                    for (Pair<Integer, Pair<Integer, Integer>> vTopoNbItr : vFGTNvector ) 
+                    {
+                        if (vTopoNbItr.first == vCandidateLabel) {
+                            if (vTopoNbItr.second.first > 1) {
+                                vValidPoint = false;
+                                //break;
+                            }
+                        }
+
+                        /// criterion to detect surface points (only 3D?)
+                        if (vTopoNbItr.second.first == 1 && vTopoNbItr.second.second > 1) {
+                            vValidPoint = false;
+                            //break;
+                        }
+                    }
+                }
+
+                /// Check for splits:
+                /// This we have to do either to forbid
+                /// the change in topology or to register the seed point for
+                /// relabeling.
+                /// if the point was not disqualified already and we disallow
+                /// splits, then we check if the 'old' label undergoes a split.
+				if(vValidPoint) 
+				{
+					// - "allow introducing holes": T_FG(x, L = l') > 1
+					// - "allow splits": T_FG > 2 && T_BG == 1
+					boolean vSplit = false;
+					for(Pair<Integer, Pair<Integer, Integer>> vTopoNbItr : vFGTNvector) 
+					{
+						if(vTopoNbItr.first == vCurrentLabel) {
+							if(vTopoNbItr.second.first > 1) {
+								vSplit = true;
+							}
+						}
+					}
+					if(vSplit) 
+					{
+						if(settings.m_AllowFission) {
+							vSeeds.add(new Pair<Point, Integer>(vCurrentIndex, vCurrentLabel));
+						} else {
+							/// disallow the move.
+							vValidPoint = false;
+						}
+					}
+				}
+			}
+			
+			if(!vValidPoint) {
+				// TODO check
+				vPointIterator.remove();
+				// m_AllCandidates.erase(vStoreIt);
+			}
+			
+		} // while(vPointIterator.hasNext())
+		        
+		        
+        /// Now we filtered non valid points and collected the seeds for
+        /// relabeling. All moves remaining in the candidate list can now
+        /// be performed.
+		        
+//	displaySlice("pre ChangeContourPointLabelToCandidateLabel");
+		
+		for(Entry<Point, ContourParticle> entry : m_AllCandidates.entrySet()) 
+		{
+			ChangeContourPointLabelToCandidateLabel(entry);
+			vConvergence = false;
+		}
+		        
+//		displaySlice("post ChangeContourPointLabelToCandidateLabel");
+		
+        /// Perform relabeling of the regions that did a split:
+		boolean vSplit = false;
+		boolean vMerge = false;
+		        
+		
+		//debug seeds
+//		if(vSeeds.size()>0)
+//		{
+//			//TODO seed output == debugging
+//			debug("Seed points:");
+//			for(Pair<Point, Integer> vSeedIt : vSeeds) 
+//			{
+//				debug(" "+vSeedIt.first+" label="+vSeedIt.second);
+//			}
+//			debug("End Seed points:");
+//		}
+		
+		
+		int vNSplits = 0;
+		for(Pair<Point, Integer> vSeedIt : vSeeds) 
+		{
+//			LabelInformation info = labelMap.get(vSeedIt.second);
+//			if(info == null) {
+//				// TODO !!! Seed label not found
+//				// This might happen, if there are multiple seeds for a split. The region was then 
+//				// relabeled in the first seed, and the label of the next seeds are not found anymore. 
+////				displaySlice("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
+//				debug("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
+//				continue;
+//			}
+//			int count  = info.count;
+//			if(count > 1) //WRONG!
+			{
+				RelabelAnAdjacentRegionAfterTopologicalChange(this, vSeedIt.first, vSeedIt.second);
+				vSplit = true;
+				vNSplits++;
+			}
+		}
+		        
+        /// Merge the the competing regions if they meet merging criterion.
+		if(settings.m_UseRegionCompetition && settings.m_AllowFusion) 
+		{
+			
+			for(Entry<Point, Pair<Integer, Integer>> vCRit : m_CompetingRegionsMap.entrySet()) 
+			{
+//TODO !!!! m_CompetingRegionsMap is always empty?
+				
+				Point idx = vCRit.getKey();
+				Pair<Integer, Integer> labels= vCRit.getValue();
+				
+				int vLabel1 = labels.first;
+				int vLabel2 = labels.second;
+                
+                //TODO ist das debug?
+				m_MergingHist.add(m_iteration_counter);
+				m_MergingHist.add(vLabel1);
+				m_MergingHist.add(vLabel2);
+				
+//TODO !!!!! funktion aus itk uebernehmen
+//				RelabelAdjacentRegionsAfterToplogicalChange(m_LabelImage,idx, vLabel1, vLabel2);
+				
+				Relabel2AdjacentRegionsAfterToplogicalChange(m_LabelImage, idx, vLabel1, vLabel2);
+				vMerge = true;
+			}
+//			debug("merged " + m_MergingHist.size()+ " region pairs.");
+		}
+
+		if(vSplit || vMerge) 
+		{
+			if(m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) 
+			{
+				// TODO: this can be removed when the statistics are updated using
+				// seeds and flood fill iteartors.
+				//TODO sts
+				// RenewDeconvolutionStatistics(m_LabelImage, this->GetDataInput());
+			}
+		}
+
+		return vConvergence;
+	}
+
+
+	/**
+	 * Detect oscillations and store values in history.
+	 */
+	private void DetectOscillations(HashMap<Point, ContourParticle> m_AllCandidates)
+	{
+		        
+        double vSum = SumAllEnergies(m_AllCandidates);
+//        debug("sum of energies: "+vSum);
+		for(int vI = 0; vI < m_OscillationHistoryLength; vI++) 
+		{
+			double vSumOld = m_OscillationsEnergyHist[vI];
+// debug("check nb: " + vAllCandidates.size() + " against " + m_OscillationsNumberHist[0]);
+//			debug("m_AllCandidates.size()=" + m_AllCandidates.size()
+//					+ "m_OscillationsNumberHist[vI]="
+//					+ m_OscillationsNumberHist[vI]);
+
+			if(m_AllCandidates.size() == m_OscillationsNumberHist[vI]
+					&& Math.abs(vSum - vSumOld) <= 1e-5 * Math.abs(vSum)) 
+			{
+				/// here we assume that we're oscillating, so we decrease the
+				/// acceptance factor:
+				debug("nb of accepted points reduced to: " + m_AcceptedPointsFactor);
+				m_AcceptedPointsFactor *= settings.m_AcceptedPointsReductionFactor;
+			}
+		}
+
+		/// Shift the old elements:
+		//TODO sts maybe optimize by modulo list?
+		for (int vI = 1; vI < m_OscillationHistoryLength; vI++) {
+		    m_OscillationsEnergyHist[vI-1] = m_OscillationsEnergyHist[vI];
+		    m_OscillationsNumberHist[vI-1] = m_OscillationsNumberHist[vI];
+		}
+
+		/// Fill the new elements:
+		m_OscillationsEnergyHist[m_OscillationHistoryLength-1] = vSum;
+		m_OscillationsNumberHist[m_OscillationHistoryLength-1] = m_AllCandidates.size();
+
+		
+	}
+
+
+	/**
+	 * Iterates through ContourParticles in m_InnerContourContainer <br>
+	 * Builds mothers, daughters, computes energies and <br>
+	 * fills m_CompetingRegionsMap
+	 * @param aReturnContainer
+	 */
+	void RebuildCandidateList(HashMap<Point, ContourParticle> aReturnContainer)
+	{
+		aReturnContainer.clear();
+
+        /// Add all the mother points - this is copying the inner contour list.
+        /// (Things get easier afterwards if this is done in advance.)
+		
+		//calculate energy for change to BG (shrinking)
+		for(Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) 
+		{
+			Point vCurrentIndex = vPointIterator.getKey();
+			ContourParticle vVal = vPointIterator.getValue();
+		
+		
+			vVal.candidateLabel = 0;
+			vVal.referenceCount = 0; // doesn't matter for the BG
+			vVal.isMother = true;
+			vVal.isDaughter = false;
+			vVal.m_processed = false;
+			vVal.energyDifference = CalculateEnergyDifferenceForLabel(vCurrentIndex, vVal, bgLabel).first;
+			vVal.getMotherList().clear(); // this is indeed necessary!
+			vVal.getDaughterList().clear(); // this is necessary!!
+
+			vVal.getTestedList().clear();
+			vVal.setLabelHasBeenTested(bgLabel);
+
+			aReturnContainer.put(vCurrentIndex, vVal);
+		}
+		
+        /// Iterate the contour list and visit all the neighbors in the
+        /// FG-Neighborhood.
+		//calculate energy for expanding into neighborhood (growing)
+		for(Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) 
+		{
+			Point vCurrentIndex = vPointIterator.getKey();
+			ContourParticle vVal = vPointIterator.getValue();
+
+			int vLabelOfPropagatingRegion = vVal.label;
+			// vLabelImageIterator.SetLocation(vCurrentIndex);
+		
+			Connectivity conn = connFG;
+			for(Point q : conn.itNeighborsOf(vCurrentIndex)) 
+			{
+				int vLabelOfDefender = getAbs(q);
+				if(vLabelOfDefender == forbiddenLabel) {
+					continue;
+				}
+				
+				// expanding into other region / label. (into same region: nothing happens)
+				if(vLabelOfDefender != vLabelOfPropagatingRegion) 
+				{
+					Point vNeighborIndex = q;
+
+					// Tell the mother about the daughter:
+					//TODO sinnloser lookup? use vVal instead of aReturnContainer.get(vCurrentIndex)
+					aReturnContainer.get(vCurrentIndex).getDaughterList().add(vNeighborIndex);
+		
+					ContourParticle vContourPointItr = aReturnContainer.get(vNeighborIndex);
+					if(vContourPointItr == null) 
+					{
+						// create a new entry (a daughter), the contour point
+						// has not been part of the contour so far.
+
+						ContourParticle vOCCValue = new ContourParticle();
+						//itk commented // vOCCValue.m_candidates.insert(vCandidateElement);
+						vOCCValue.candidateLabel = vLabelOfPropagatingRegion;
+						vOCCValue.label = vLabelOfDefender;
+						vOCCValue.intensity = getIntensity(vNeighborIndex);
+						vOCCValue.isDaughter = true;
+						vOCCValue.isMother = false;
+						vOCCValue.m_processed = false;
+						vOCCValue.referenceCount = 1;
+						vOCCValue.energyDifference = CalculateEnergyDifferenceForLabel(vNeighborIndex, vOCCValue, vLabelOfPropagatingRegion).first;
+						vOCCValue.setLabelHasBeenTested(vLabelOfPropagatingRegion);
+						// Tell the daughter about the mother:
+						vOCCValue.getMotherList().add(vCurrentIndex);
+
+						aReturnContainer.put(vNeighborIndex, vOCCValue);
+
+					} 
+					else /// the point is already part of the candidate list
+					{
+						vContourPointItr.isDaughter = true;
+						/// Tell the daughter about the mother (label does not matter!):
+						vContourPointItr.getMotherList().add(vCurrentIndex);
+
+						/// Check if the energy difference for this candidate label 
+						/// has not yet been calculated.
+						if(!vContourPointItr.hasLabelBeenTested((vLabelOfPropagatingRegion))) 
+						{
+							vContourPointItr.setLabelHasBeenTested(vLabelOfPropagatingRegion);
+							
+							Pair<Double, Boolean> energyAndMerge = CalculateEnergyDifferenceForLabel(
+									vNeighborIndex, vContourPointItr, vLabelOfPropagatingRegion);
+							
+							double vEnergyDiff = energyAndMerge.first;
+							boolean aMerge = energyAndMerge.second;
+							if(vEnergyDiff < vContourPointItr.energyDifference) 
+							{
+								vContourPointItr.candidateLabel = vLabelOfPropagatingRegion;
+								vContourPointItr.energyDifference = vEnergyDiff;
+								vContourPointItr.referenceCount = 1;
+
+//TODO new sts merge 05.03.2012
+//								if((*aMerge)[vP] && vParticle.m_label != 0 && vParticle.m_candidateLabel != 0)
+// this is ALWAYS merging
+								if(aMerge && vContourPointItr.label != bgLabel && vContourPointItr.candidateLabel != bgLabel)
+								{
+									int L1 = vContourPointItr.candidateLabel;
+									int L2 = vContourPointItr.label;
+									Pair<Integer, Integer> pair;
+									if(L1<L2)
+										pair = new Pair<Integer, Integer>(L1, L2);
+									else
+										pair = new Pair<Integer, Integer>(L2, L1);
+
+									m_CompetingRegionsMap.put(vCurrentIndex, pair);
+									
+									
+//TODO removed from itk
+						            /// Ensure the point does not move since we'd like to merge
+						            /// here. Todo so, we set the energy to a large value.
+						            //            vParticle.m_energyDifference = return NumericTraits<EnergyDifferenceType>::max();
+//									aReturnContainer.remove(vCurrentIndex);
+								}
+								
+							}
+						} 
+						else 
+						{
+							/// If the propagating label is the same as the candidate label,
+							/// we have found 2 or more mothers of for this contour point.ten
+							if(vContourPointItr.candidateLabel == vLabelOfPropagatingRegion) {
+								vContourPointItr.referenceCount++;
+							}
+						}
+						
+					} // else the point is already part of the candidate list
+				}
+
+			} // for(Point q : conn.itNeighborsOf(vCurrentIndex))
+
+		}
+
+	}
+
+
+	/**
+	 * Filters topological incompatible candidates (topological dependencies) 
+	 * and non-improving energies. 
+	 */
+	private void FilterCandidates(HashMap<Point, ContourParticle> m_AllCandidates)
+	{
 		
         /**
          * Find topologically compatible candidates and store their indices in
          * vLegalIndices.
          */
+		List<Point> vLegalIndices = new LinkedList<Point>();
+		List<Point> vIllegalIndices = new LinkedList<Point>();
 		for(Entry<Point,ContourParticle> vPointIterator : m_AllCandidates.entrySet()) 
 		{
 			Point pIndex = vPointIterator.getKey();
@@ -935,415 +1382,7 @@ public class LabelImage //extends ShortProcessor
 		}
         //        WriteContourPointContainer("contourPointsAfterEnergyCheck.txt", vAllCandidates);
 
-        /**
-         * Detect oscillations and store values in history.
-         */
-		        
-        double vSum = SumAllEnergies(m_AllCandidates);
-//        debug("sum of energies: "+vSum);
-		for(int vI = 0; vI < m_OscillationHistoryLength; vI++) 
-		{
-			double vSumOld = m_OscillationsEnergyHist[vI];
-// debug("check nb: " + vAllCandidates.size() + " against " + m_OscillationsNumberHist[0]);
-//			debug("m_AllCandidates.size()=" + m_AllCandidates.size()
-//					+ "m_OscillationsNumberHist[vI]="
-//					+ m_OscillationsNumberHist[vI]);
-
-			if(m_AllCandidates.size() == m_OscillationsNumberHist[vI]
-					&& Math.abs(vSum - vSumOld) <= 1e-5 * Math.abs(vSum)) 
-			{
-				/// here we assume that we're oscillating, so we decrease the
-				/// acceptance factor:
-				debug("nb of accepted points reduced to: " + m_AcceptedPointsFactor);
-				m_AcceptedPointsFactor *= settings.m_AcceptedPointsReductionFactor;
-			}
-		}
-
-		/// Shift the old elements:
-		//TODO sts maybe optimize by modulo list?
-		for (int vI = 1; vI < m_OscillationHistoryLength; vI++) {
-		    m_OscillationsEnergyHist[vI-1] = m_OscillationsEnergyHist[vI];
-		    m_OscillationsNumberHist[vI-1] = m_OscillationsNumberHist[vI];
-		}
-
-		/// Fill the new elements:
-		m_OscillationsEnergyHist[m_OscillationHistoryLength-1] = vSum;
-		m_OscillationsNumberHist[m_OscillationHistoryLength-1] = m_AllCandidates.size();
-
-
-        /**
-         * Intermediate step: filter the candidates according to their rank
-         * and spacial position.
-         */
-
-        if(m_AcceptedPointsFactor < 0.99) 
-        {
-            FilterCandidatesContainerUsingRanks(m_AllCandidates);
-        }
-
-        /**
-         * Move all the points that are simple. Non simple points remain in the
-         * candidates list.
-         */
-		        
-        //TODO
-//	        typedef typename TopologicalNumberCalculatorType::ForegroundTopologicalNumbersType FGTNType;
-//	        typedef typename FGTNType::iterator FGTNIteratorType;
-//	        FGTNType vFGTNvector;
-        boolean vChange = true;
-
-//	        typedef std::pair<ContourIndexType, unsigned int> SeedType;
-//	        typedef std::set<SeedType> SeedSetType;
-//	        typedef typename SeedSetType::iterator SeedSetIteratorType;
-        Set<Pair<Point, Integer>> vSeeds = new HashSet<Pair<Point,Integer>>();
-	        
-	
-        /// We first move all the FG-simple points. This we do because it happens
-        /// that points that are not simple at the first place get simple after
-        /// the change of other points. The non-simple points will be treated
-        /// in a separate loop afterwards.
-		        
-		List<Pair<Integer, Pair<Integer, Integer>>> vFGTNvector;
-		        
-		while(vChange && !m_AllCandidates.isEmpty()) 
-		{
-			vChange = false;
-			
-			Iterator<Entry<Point, ContourParticle>> vPointIterator = m_AllCandidates.entrySet().iterator();
-			while(vPointIterator.hasNext()) 
-			{
-				Entry<Point, ContourParticle> vStoreIt = vPointIterator.next();
-				Point vCurrentIndex = vStoreIt.getKey();
-				if(settings.m_UseRegionCompetition) 
-				{
-					vFGTNvector = m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex);
-					boolean vSimple = true;
-					// / Check for FG-simplicity:
-					for(Pair<Integer, Pair<Integer, Integer>> vTopoNbItr : vFGTNvector) 
-					{
-						if(vTopoNbItr.second.first != 1 || vTopoNbItr.second.second != 1) {
-							// This is a FG simple point; perform the move.
-							vSimple = false;
-						}
-					}
-					if(vSimple) 
-					{
-						vChange = true;
-						//TODO iterator: in following call: m_InnerContourContainer.remove(vCurrentIndex);
-						ChangeContourPointLabelToCandidateLabel(vStoreIt);
-						// TODO iterator remove problem OR is the same as line below?
-						vPointIterator.remove();
-						// m_AllCandidates.remove(vStoreIt.getKey());
-						vConvergence = false;
-					}
-				}
-			}
-		}
-		        
-        /// Now we know that all the points in the list are 'currently' not simple.
-        /// We move them anyway (if no constraints about this topological event
-        /// is set) and record where to relabel using the seed set.
-		        
-		        
-		Iterator<Entry<Point, ContourParticle>> vPointIterator = m_AllCandidates.entrySet().iterator();
-		while(vPointIterator.hasNext())
-// for(Entry<Point, ContourParticle> vPointIterator : m_AllCandidates.entrySet())
-		{
-			Entry<Point, ContourParticle> e = vPointIterator.next();
-			ContourParticle vStoreIt = e.getValue();
-			Point vCurrentIndex = e.getKey();
-
-			int vCurrentLabel = vStoreIt.label;
-			int vCandidateLabel = vStoreIt.candidateLabel;
-
-			// int vTopoNb;
-			boolean vValidPoint = true;
-
-			if(settings.m_UseRegionCompetition) 
-			{
-				vFGTNvector = (m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex));
-//	                FGTNIteratorType vTopoNbItr;
-//	                FGTNIteratorType vTopoNbItrEnd = vFGTNvector.end();
-
-                /// Check for handles:
-                /// if the point was not disqualified already and we disallow
-                /// introducing handles (not only self fusion!), we check if
-                /// there is an introduction of a handle.
-                if (vValidPoint && !settings.m_AllowHandles) 
-                {
-                	
-                    for (Pair<Integer, Pair<Integer, Integer>> vTopoNbItr : vFGTNvector ) 
-                    {
-                        if (vTopoNbItr.first == vCandidateLabel) {
-                            if (vTopoNbItr.second.first > 1) {
-                                vValidPoint = false;
-                                //break;
-                            }
-                        }
-
-                        /// criterion to detect surface points (only 3D?)
-                        if (vTopoNbItr.second.first == 1 && vTopoNbItr.second.second > 1) {
-                            vValidPoint = false;
-                            //break;
-                        }
-                    }
-                }
-
-                /// Check for splits:
-                /// This we have to do either to forbid
-                /// the change in topology or to register the seed point for
-                /// relabelling.
-                /// if the point was not disqualified already and we disallow
-                /// splits, then we check if the 'old' label undergoes a split.
-				if(vValidPoint) 
-				{
-					// - "allow introducing holes": T_FG(x, L = l') > 1
-					// - "allow splits": T_FG > 2 && T_BG == 1
-					boolean vSplit = false;
-					for(Pair<Integer, Pair<Integer, Integer>> vTopoNbItr : vFGTNvector) 
-					{
-						if(vTopoNbItr.first == vCurrentLabel) {
-							if(vTopoNbItr.second.first > 1) {
-								vSplit = true;
-							}
-						}
-					}
-					if(vSplit) 
-					{
-						if(settings.m_AllowFission) {
-							vSeeds.add(new Pair<Point, Integer>(vCurrentIndex, vCurrentLabel));
-						} else {
-							// / disallow the move.
-							vValidPoint = false;
-						}
-					}
-				}
-			}
-			
-			if(!vValidPoint) {
-				// TODO check
-				vPointIterator.remove();
-				// m_AllCandidates.erase(vStoreIt);
-			}
-			
-		} // while(vPointIterator.hasNext())
-		        
-		        
-        /// Now we filtered non valid points and collected the seeds for
-        /// relabeling. All moves remaining in the candidate list can now
-        /// be performed.
-		        
-//	displaySlice("pre ChangeContourPointLabelToCandidateLabel");
 		
-		for(Entry<Point, ContourParticle> entry : m_AllCandidates.entrySet()) 
-		{
-			//TODO iterator problem? entry removal in ChangeContourPointLabelToCandidateLabel
-			ChangeContourPointLabelToCandidateLabel(entry);
-			vConvergence = false;
-		}
-		        
-//		displaySlice("post ChangeContourPointLabelToCandidateLabel");
-		
-        /// Perform relabeling of the regions that did a split:
-		boolean vSplit = false;
-		boolean vMerge = false;
-		        
-		
-		//debug seeds
-//		if(vSeeds.size()>0)
-//		{
-//			//TODO seed output == debugging
-//			debug("Seed points:");
-//			for(Pair<Point, Integer> vSeedIt : vSeeds) 
-//			{
-//				debug(" "+vSeedIt.first+" label="+vSeedIt.second);
-//			}
-//			debug("End Seed points:");
-//		}
-		
-		
-		int vNSplits = 0;
-		for(Pair<Point, Integer> vSeedIt : vSeeds) 
-		{
-//			LabelInformation info = labelMap.get(vSeedIt.second);
-//			if(info == null) {
-//				// TODO !!! Seed label not found
-//				// This might happen, if there are multiple seeds for a split. The region was then 
-//				// relabeled in the first seed, and the label of the next seeds are not found anymore. 
-////				displaySlice("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
-//				debug("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
-//				continue;
-//			}
-//			int count  = info.count;
-//			if(count > 1) //WRONG!
-			{
-				RelabelAnAdjacentRegionAfterTopologicalChange(this, vSeedIt.first, vSeedIt.second);
-				vSplit = true;
-				vNSplits++;
-			}
-		}
-		        
-        /// Merge the the competing regions if they meet merging criterion.
-		if(settings.m_UseRegionCompetition && settings.m_AllowFusion) 
-		{
-			
-			for(Entry<Point, Point> vCRit : m_CompetingRegionsMap.entrySet()) 
-			{
-				//TODO !!!! m_CompetingRegionsMap is always empty?
-            	//TODO itk 3781 irgendwie komisch? missbrauch wegen hash?
-				int vLabel1 = vCRit.getKey().x[0];
-				int vLabel2 = vCRit.getKey().x[1];
-//	                std::cout << "relabeling 2 regions invoked at " << vCRit->second
-//	                        << " for label pair (" << vLabel1 << ", " << vLabel2 << ")" << std::endl;
-                
-                //TODO ist das debug?
-				m_MergingHist.add(m_iteration_counter);
-				m_MergingHist.add(vLabel1);
-				m_MergingHist.add(vLabel2);
-				Relabel2AdjacentRegionsAfterToplogicalChange(this,vCRit.getValue(), vLabel1, vLabel2);
-				vMerge = true;
-			}
-//			debug("merged " + m_MergingHist.size()+ " region pairs.");
-		}
-
-		if(vSplit || vMerge) 
-		{
-			if(m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) 
-			{
-				// TODO: this can be removed when the statistics are updated using
-				// seeds and flood fill iteartors.
-				//TODO sts
-				// RenewDeconvolutionStatistics(m_LabelImage, this->GetDataInput());
-			}
-		}
-
-		return vConvergence;
-	}
-
-
-	/**
-	 * Iterates through ContourParticles in m_InnerContourContainer
-	 * @param aReturnContainer
-	 */
-	void RebuildCandidateList(HashMap<Point, ContourParticle> aReturnContainer)
-	{
-		aReturnContainer.clear();
-
-        /// Add all the mother points - this is copying the inner contour list.
-        /// (Things get easier afterwards if this is done in advance.)
-		
-		//calculate energy for change to BG (shrinking)
-		for(Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) 
-		{
-			Point vCurrentIndex = vPointIterator.getKey();
-			ContourParticle vVal = vPointIterator.getValue();
-		
-		
-			vVal.candidateLabel = 0;
-			vVal.referenceCount = 0; // doesn't matter for the BG
-			vVal.isMother = true;
-			vVal.isDaughter = false;
-			vVal.m_processed = false;
-//TODO itk: line 3420 ist doppelt drin?
-//            vVal.m_modifiedCounter = vVal.m_modifiedCounter + 1;
-//            vPointIterator->second.m_modifiedCounter++;
-			vVal.energyDifference = CalculateEnergyDifferenceForLabel(vCurrentIndex, vVal, bgLabel).first;
-			vVal.getMotherList().clear(); // this is indeed necessary!
-			vVal.getDaughterList().clear(); // this is necessary!!
-
-			vVal.getTestedList().clear();
-			vVal.setLabelHasBeenTested(bgLabel);
-
-			aReturnContainer.put(vCurrentIndex, vVal);
-		}
-		
-        /// Iterate the contour list and visit all the neighbors in the
-        /// FG-Neighborhood.
-		//calculate energy for expanding into neighborhood (growing)
-		for(Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) 
-		{
-			Point vCurrentIndex = vPointIterator.getKey();
-			ContourParticle vVal = vPointIterator.getValue();
-
-			int vLabelOfPropagatingRegion = vVal.label;
-			// vLabelImageIterator.SetLocation(vCurrentIndex);
-		
-			Connectivity conn = connFG;
-			for(Point q : conn.itNeighborsOf(vCurrentIndex)) 
-			{
-				int vLabelOfDefender = getAbs(q);
-				if(vLabelOfDefender == forbiddenLabel) {
-					continue;
-				}
-				
-				// expanding into other region / label. (into same region: nothing happens)
-				if(vLabelOfDefender != vLabelOfPropagatingRegion) 
-				{
-					Point vNeighborIndex = q;
-
-					// Tell the mother about the daughter:
-					aReturnContainer.get(vCurrentIndex).getDaughterList().add(vNeighborIndex);
-		
-					ContourParticle vContourPointItr = aReturnContainer.get(vNeighborIndex);
-					if(vContourPointItr == null) 
-					{
-						// create a new entry (a daughter), the contour point
-						// has not been part of the contour so far.
-
-						ContourParticle vOCCValue = new ContourParticle();
-						//itk commented // vOCCValue.m_candidates.insert(vCandidateElement);
-						vOCCValue.candidateLabel = vLabelOfPropagatingRegion;
-						vOCCValue.label = vLabelOfDefender;
-						vOCCValue.intensity = getIntensity(vNeighborIndex);
-						vOCCValue.isDaughter = true;
-						vOCCValue.isMother = false;
-						vOCCValue.m_processed = false;
-						vOCCValue.referenceCount = 1;
-						// TODO modified counter
-						// vOCCValue.m_modifiedCounter = 0;
-						vOCCValue.energyDifference = CalculateEnergyDifferenceForLabel(vNeighborIndex, vOCCValue, vLabelOfPropagatingRegion).first;
-						vOCCValue.setLabelHasBeenTested(vLabelOfPropagatingRegion);
-						// Tell the daughter about the mother:
-						vOCCValue.getMotherList().add(vCurrentIndex);
-
-						aReturnContainer.put(vNeighborIndex, vOCCValue);
-
-					} 
-					else /// the point is already part of the candidate list
-					{
-						vContourPointItr.isDaughter = true;
-						/// Tell the daughter about the mother (label does not matter!):
-						vContourPointItr.getMotherList().add(vCurrentIndex);
-
-						/// Check if the energy difference for this candiate
-						/// label has not yet been calculated.
-						if(!vContourPointItr.hasLabelBeenTested((vLabelOfPropagatingRegion))) 
-						{
-							vContourPointItr.setLabelHasBeenTested(vLabelOfPropagatingRegion);
-							double vEnergyDiff = CalculateEnergyDifferenceForLabel(vNeighborIndex, (vContourPointItr),vLabelOfPropagatingRegion).first;
-							if(vEnergyDiff < vContourPointItr.energyDifference) 
-							{
-								vContourPointItr.candidateLabel = vLabelOfPropagatingRegion;
-								vContourPointItr.energyDifference = vEnergyDiff;
-								vContourPointItr.referenceCount = 1;
-							}
-						} 
-						else 
-						{
-							/// If the propagating label is the same as the candidate label,
-							/// we have found 2 or more mothers of for this contour point.ten
-							if(vContourPointItr.candidateLabel == vLabelOfPropagatingRegion) {
-								vContourPointItr.referenceCount++;
-							}
-						}
-						
-					} // else the point is already part of the candidate list
-				}
-
-			} // for(Point q : conn.itNeighborsOf(vCurrentIndex))
-
-		}
-
 	}
 
 
@@ -1629,88 +1668,86 @@ public class LabelImage //extends ShortProcessor
 	}
 
 	
+	/**
+	 * Use only top vNbElements * m_AcceptedPointsFactor Elements. 
+	 */
 	private void FilterCandidatesContainerUsingRanks(HashMap<Point, ContourParticle> aContainer)
 	{
+	
+		// Copy the candidates to a set (of ContourPointWithIndex). This
+		// will sort them according to their energy gradients.
+		List<ContourPointWithIndexType> vSortedList = new LinkedList<ContourPointWithIndexType>();
 
-		if(aContainer.size() > 0) 
+		for(Entry<Point, ContourParticle> vPointIterator : aContainer.entrySet()) 
 		{
-			// Copy the candidates to a set (of ContourPointWithIndex). This
-			// will sort them according to their energy gradients.
-			List<ContourPointWithIndexType> vSortedList = new LinkedList<ContourPointWithIndexType>();
+			ContourPointWithIndexType vCand = new ContourPointWithIndexType(vPointIterator.getKey(),vPointIterator.getValue());
+			vSortedList.add(vCand);
+		}
 
-			for(Entry<Point, ContourParticle> vPointIterator : aContainer.entrySet()) 
+		Collections.sort(vSortedList);
+
+		// EnergyDifferenceType vBestEnergy = vSortedList.front().m_ContourPoint.m_energyDifference;
+
+		int vNbElements = vSortedList.size();
+		vNbElements = (int)(vNbElements * m_AcceptedPointsFactor + 0.5);
+		// if(vNbElements < 1) {
+		// vNbElements = 1;
+		// }
+
+		/// Fill the container with the best candidate first, then
+		/// the next best that does not intersect the tabu region of
+		/// all inserted points before.
+		aContainer.clear();
+
+		for(ContourPointWithIndexType vSortedListIterator : vSortedList)
+		{
+			if(!(vNbElements >= 1)) break;
+
+			vNbElements--;
+			Point vCandCIndex = vSortedListIterator.pIndex;
+			Iterator<Entry<Point, ContourParticle>> vAcceptedCandIterator = aContainer.entrySet().iterator();
+			boolean vValid = true;
+			while(vAcceptedCandIterator.hasNext())
 			{
-				ContourPointWithIndexType vCand = new ContourPointWithIndexType(vPointIterator.getKey(),vPointIterator.getValue());
-				vSortedList.add(vCand);
+				Point vCIndex = vAcceptedCandIterator.next().getKey();
+
+				// TODO nothing happens in here. itk::2074
+				// itk commented
+
+				// float vDist = 0;
+				// for (unsigned int vD = 0; vD < m_Dim; vD++) {
+				// vDist += (vCIndex[vD] - vCandCIndex[vD]) * (vCIndex[vD] - vCandCIndex[vD]);
+				// }
+				// InternalImageSizeType vPSFsize = m_PSF->GetLargestPossibleRegion().GetSize();
+
+				// gong_test
+				// if (sqrt(vDist) < 0.001) {//< vPSFsize[vD] / 400) {
+				// /// This candidate didn't pass. Abort the test.
+				// vValid = false;
+				// break;
+				// }
+
+				/*
+				 * if(vNbElements > vConstNbElements * 0.9 && vNbElements < vConstNbElements *
+				 * 0.5){
+				 * vValid = false;
+				 * }
+				 */
+
+				/*
+				 * if(vSortedListIterator->m_ContourPoint.m_energyDifference > 0.2 * vBestEnergy
+				 * || vSortedListIterator->m_ContourPoint.m_energyDifference < 0.7 *
+				 * vBestEnergy)
+				 * {
+				 * vValid=false;
+				 * }
+				 */
 			}
-
-			Collections.sort(vSortedList);
-	
-			// EnergyDifferenceType vBestEnergy = vSortedList.front().m_ContourPoint.m_energyDifference;
-
-			int vNbElements = vSortedList.size();
-			vNbElements = (int)(vNbElements * m_AcceptedPointsFactor + 0.5);
-			// if(vNbElements < 1) {
-			// vNbElements = 1;
-			// }
-	
-			/// Fill the container with the best candidate first, then
-			/// the next best that does not intersect the tabu region of
-			/// all inserted points before.
-			aContainer.clear();
-	            for(ContourPointWithIndexType vSortedListIterator : vSortedList)
-	            {
-	            	if(! (vNbElements >= 1))
-	            	{
-	            		break;
-	            	}
-	
-	                vNbElements--;
-	                Point vCandCIndex = vSortedListIterator.pIndex;
-	                Iterator<Entry<Point, ContourParticle>> vAcceptedCandIterator = aContainer.entrySet().iterator();
-	                boolean vValid = true;
-				for(; vAcceptedCandIterator.hasNext();) {
-					Point vCIndex = vAcceptedCandIterator.next().getKey();
-
-					// TODO nothing happens in here. itk::2074
-					// itk commented
-
-					// float vDist = 0;
-					// for (unsigned int vD = 0; vD < m_Dim; vD++) {
-					// vDist += (vCIndex[vD] - vCandCIndex[vD]) * (vCIndex[vD] - vCandCIndex[vD]);
-					// }
-					// InternalImageSizeType vPSFsize = m_PSF->GetLargestPossibleRegion().GetSize();
-
-					// gong_test
-					// if (sqrt(vDist) < 0.001) {//< vPSFsize[vD] / 400) {
-					// /// This candidate didn't pass. Abort the test.
-					// vValid = false;
-					// break;
-					// }
-
-					/*
-					 * if(vNbElements > vConstNbElements * 0.9 && vNbElements < vConstNbElements *
-					 * 0.5){
-					 * vValid = false;
-					 * }
-					 */
-
-					/*
-					 * if(vSortedListIterator->m_ContourPoint.m_energyDifference > 0.2 * vBestEnergy
-					 * || vSortedListIterator->m_ContourPoint.m_energyDifference < 0.7 *
-					 * vBestEnergy)
-					 * {
-					 * vValid=false;
-					 * }
-					 */
-				}
-				if(vValid) 
-				{
-					/// This candidate passed the test and is added to the TempRemoveCotainer:
-					// TODO iterator problem
-					aContainer.put(vSortedListIterator.pIndex, vSortedListIterator.p);
-					// aContainer[vSortedListIterator.pIndex] = vSortedListIterator.m_ContourPoint;
-				}
+			if(vValid)
+			{
+				/// This candidate passed the test and is added to the TempRemoveCotainer:
+				aContainer.put(vSortedListIterator.pIndex, vSortedListIterator.p);
+				// aContainer[vSortedListIterator.pIndex] = vSortedListIterator.m_ContourPoint;
 			}
 		}
 		// std::cout << "container size: " << aContainer->size() << std::endl;
@@ -1795,7 +1832,7 @@ public class LabelImage //extends ShortProcessor
 		
 		
 //TODO hier weiter
-//		System.out.println("*********hier weiter");
+		System.out.println("*********hier weiter");
 		
 		//TODO dummy
 		float m_EnergyContourLengthCoeff = settings.m_EnergyContourLengthCoeff;
