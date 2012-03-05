@@ -771,26 +771,40 @@ public class LabelImage //extends ShortProcessor
 		}
 		        
         /// Now we know that all the points in the list are 'currently' not simple.
-        /// We move them anyway (if no constraints about this topological event
-        /// is set) and record where to relabel using the seed set.
+        /// We move them anyway (if topological constraints allow) but record
+        /// (for every particle) where to relabel (using the seed set). Placing
+        /// the seed is necessary for every particle to ensure relabeling even
+        /// if a bunch of neighboring particles change. The seed will be ignored
+        /// later on if the corresponding FG region is not present in the
+        /// neighborhood anymore. We perform the following code twice: First we
+        /// iterate and filter for validity and place seeds. In the second iteration
+        /// we perform the moves and check again the topological
+        /// numbers since they might have changed due to the movement of 
+        /// neighbors. For example a point with T=(1,2) might have changed to
+        /// T=(2,1) and hence will actually perform a split (and not insert a
+        /// handle).
+        /// TODO: The following code is dependent on the iteration order if splits/handles
+        /// are not allowed. A solution would be to sort the candidates beforehand.
+        /// This should be computationally not too expensive since we assume there
+        /// are not many non-simple points.
 		        
 		Set<Pair<Point, Integer>> vSeeds = new HashSet<Pair<Point,Integer>>();
 		Iterator<Entry<Point, ContourParticle>> vPointIterator = m_AllCandidates.entrySet().iterator();
 		
-		while(vPointIterator.hasNext())
+		for(int vRep=0; vRep<2; vRep++)
 		{
-			Entry<Point, ContourParticle> e = vPointIterator.next();
-			ContourParticle vStoreIt = e.getValue();
-			Point vCurrentIndex = e.getKey();
-
-			int vCurrentLabel = vStoreIt.label;
-			int vCandidateLabel = vStoreIt.candidateLabel;
-
-			// int vTopoNb;
-			boolean vValidPoint = true;
-
-			if(settings.m_UseRegionCompetition) 
+			while(vPointIterator.hasNext())
 			{
+				Entry<Point, ContourParticle> e = vPointIterator.next();
+				ContourParticle vStoreIt = e.getValue();
+				Point vCurrentIndex = e.getKey();
+	
+				int vCurrentLabel = vStoreIt.label;
+				int vCandidateLabel = vStoreIt.candidateLabel;
+	
+				// int vTopoNb;
+				boolean vValidPoint = true;
+	
 				vFGTNvector = (m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex));
 //	                FGTNIteratorType vTopoNbItr;
 //	                FGTNIteratorType vTopoNbItrEnd = vFGTNvector.end();
@@ -848,16 +862,30 @@ public class LabelImage //extends ShortProcessor
 						}
 					}
 				}
-			}
-			
-			if(!vValidPoint) {
-				// TODO check
-				vPointIterator.remove();
-				// m_AllCandidates.erase(vStoreIt);
-			}
-			
-		} // while(vPointIterator.hasNext())
-		        
+				
+				if(!vValidPoint) {
+					// TODO check
+					vPointIterator.remove();
+					// m_AllCandidates.erase(vStoreIt);
+				}
+				
+                /// If the move doesn't change topology or is allowed (and registered
+                /// as seed) to change the topology, perform the move (in the
+                /// second iteration; in the first iteration seed points need to
+                /// be collected):
+                if (vRep>0) {
+                    if (vValidPoint) {
+                        ChangeContourPointLabelToCandidateLabel(e);
+                        vConvergence = false;
+                    }
+
+                    /// safely remove the last element BEFORE the iterator
+//                    m_Candidates.erase(vStoreIt);
+                    vPointIterator.remove();                }
+				
+			} // while(vPointIterator.hasNext())
+
+		}
 		        
         /// Now we filtered non valid points and collected the seeds for
         /// relabeling. All moves remaining in the candidate list can now
@@ -1396,8 +1424,8 @@ public class LabelImage //extends ShortProcessor
 	void ChangeContourPointLabelToCandidateLabel(Entry<Point, ContourParticle> aParticle)
 	{
 		ContourParticle second = aParticle.getValue();
-
 		Point vCurrentIndex = aParticle.getKey();
+		
 		int vFromLabel = second.label;
 		int vToLabel = second.candidateLabel;
 	
