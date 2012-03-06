@@ -46,16 +46,16 @@ public class GenericDialogGUI implements InputReadable
 	
 	
 	static final String Regularization = "Regularization";
-	static final String No_Regularization="No_Regularization";
-	static final String Sphere_Regularization="Sphere_Regularization";
-	static final String Sphere_Regularization_OLD="Sphere_Regularization_OLD";
+	static final String No_Regularization="No Regularization";
+	static final String Sphere_Regularization="Sphere Regularization";
+	static final String Sphere_Regularization_OLD="Sphere Regularization OLD";
 	
 	static final String Initialization = "Initialization";
-	static final String Rectangular_Initialization="Rectangular_Initialization";
-	static final String Random_Ellipses_Initialization="Random_Ellipses_Initialization";
-	static final String User_Defined_Initialization="User_Defined_Initialization";
-	static final String Bubbles_Initialization="Bubbles_Initialization";
-	static final String File_Initalization="File_Initalization";
+	static final String Rectangular_Initialization="Rectangular Initialization";
+	static final String Random_Ellipses_Initialization="Random Ellipses Initialization";
+	static final String User_Defined_Initialization="User Defined Initialization";
+	static final String Bubbles_Initialization="Bubbles Initialization";
+	static final String File_Initalization="File Initalization";
 	
 	static final String TextDefaultInputImage="Input Image: \n\n" +
 			"Drop image here,\n" +
@@ -90,6 +90,7 @@ public class GenericDialogGUI implements InputReadable
 				Sphere_Regularization, 
 				Sphere_Regularization_OLD};
 		gd.addChoice(Regularization, regularizationItems, regularizationItems[1]);
+		
 //		save reference to this choice, so we can handle it
 //		initializationChoice = (Choice)gd.getChoices().lastElement();
 		
@@ -519,23 +520,38 @@ class NumericFieldWheelListener implements MouseWheelListener
 	{
 		int n = e.getWheelRotation();
 		
+		boolean inc=false;
 		double f = 1.0;
-		if(n>0)
+		if(n>0){
 			f = 1-fac;
-		else
+		}
+		else{
 			f = 1+fac;
+			inc=true;
+		}
 		
 		n=Math.abs(n);
 		
 		double val = Double.valueOf(tf.getText());
+		
+		boolean isInteger=false;
+		if(val==Math.floor(val))
+			isInteger=true;
+		
+		
 		System.out.println(val);
 		for(int i=0; i<n; i++)
 		{
 			val*=f;
 		}
+		if(isInteger && !inc)
+			val=Math.floor(val);
+		if(isInteger && inc)
+			val=Math.ceil(val);
+		if(inc && val==0)
+			val=1;
 		tf.setText(Double.toString(val));
 		System.out.println("wheeee "+val);
-		
 	}
 	
 }
