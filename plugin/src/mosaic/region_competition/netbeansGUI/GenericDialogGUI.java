@@ -1,6 +1,7 @@
 package mosaic.region_competition.netbeansGUI;
 
 import java.awt.Button;
+import java.awt.Choice;
 import java.awt.FileDialog;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -16,6 +17,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.swing.JTextArea;
@@ -67,8 +69,6 @@ public class GenericDialogGUI implements InputReadable
 	static final String TextDefaultLabelImage="Drop Label Image here, or insert Path to file";
 	
 	
-//	private Choice initializationChoice;
-	
 	public GenericDialogGUI(Settings s)
 	{
 		this.settings=s;
@@ -94,8 +94,6 @@ public class GenericDialogGUI implements InputReadable
 				Sphere_Regularization_OLD};
 		gd.addChoice(Regularization, regularizationItems, regularizationItems[1]);
 		
-//		save reference to this choice, so we can handle it
-//		initializationChoice = (Choice)gd.getChoices().lastElement();
 		
 		
 		// Label Image Initialization
@@ -108,6 +106,9 @@ public class GenericDialogGUI implements InputReadable
 				File_Initalization};
 		gd.addChoice(Initialization, initializationItems, initializationItems[0]);
 		
+//		save reference to this choice, so we can handle it
+		initializationChoice = (Choice)gd.getChoices().lastElement();
+//		lastInitChoice=initializationChoice.getSelectedItem();
 		
 		// Numeric Fields
 		
@@ -337,6 +338,21 @@ public class GenericDialogGUI implements InputReadable
 		return settings.m_MaxNbIterations;
 	}
 
+	////////////////////////////
+	
+	private Choice initializationChoice; 	// reference to the awt.Choice for initialization
+//	private String lastInitChoice; 			// choice before File_choice was set automatically
+	
+	void setInitToFileInput()
+	{
+//		lastInitChoice=initializationChoice.getSelectedItem();
+		initializationChoice.select(File_Initalization);
+	}
+//	void setInitToLastChoice()
+//	{
+//		System.out.println("change to last="+lastInitChoice);
+//		initializationChoice.select(lastInitChoice);
+//	}
 
 }
 
@@ -401,7 +417,20 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 				{
 					JTextArea ta = new JTextArea();
 					ta.read(new InputStreamReader((InputStream)transferable.getTransferData(flavor)), "from system clipboard");
-					textArea.setText(ta.getText().trim());
+					
+					String dndString = ta.getText().trim();
+					StringTokenizer tokenizer = new StringTokenizer(dndString);
+					String elem="";
+					while(tokenizer.hasMoreElements())
+					{
+						elem = (String)tokenizer.nextToken();
+						if(elem.startsWith("file"))
+							break;
+						else
+							elem="";
+					}
+
+					textArea.setText(elem);
 					ta.setText(null);
 					break;
 				}
@@ -433,11 +462,10 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 	{
 		// Change input choice to file if text in textfield was changed explicitly
 		
-		/* 
 		String text = textArea.getText();
 		if(text.isEmpty() || text.equals(defaultText))
 		{
-			//do nothing
+			// changed to default, do nothing
 		}
 		else
 		{
@@ -445,11 +473,10 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 			// set input choice to file if it was TextArea for labelImage 
 			if(defaultText.equals(gd.TextDefaultLabelImage))
 			{
-				gd.setLabelImageToFileInput();
+				gd.setInitToFileInput();
 			}
 		}
-		System.out.println("test changed to: "+textArea.getText());
-		*/
+//		System.out.println("tf changed to: "+textArea.getText());
 	}
 
 
