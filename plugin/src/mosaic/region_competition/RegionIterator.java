@@ -2,7 +2,6 @@ package mosaic.region_competition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -10,7 +9,8 @@ import java.util.List;
  * Iterator to iterate over a (arbitrary dimensional) rectangular region 
  * in the context of / relative to a input image (with the same dimension) 
  */
-public class RegionIterator implements Iterator<Integer>, Iterable<Integer>
+public class RegionIterator 
+//implements Iterator<Integer>, Iterable<Integer> // performance gain
 {
 
 	int dimensions;
@@ -142,15 +142,15 @@ public class RegionIterator implements Iterator<Integer>, Iterable<Integer>
 	private int itInput=0;		// iterator in input
 	private int[] itDim;		// counts dimension wraps
 	
-	@Override
+//	@Override
 	public boolean hasNext() 
 	{
 		return (it<size);
 	}
 
 
-	@Override
-	public Integer next() 
+//	@Override
+	public int next() 
 	{
 		int result=itInput;
 		
@@ -184,17 +184,17 @@ public class RegionIterator implements Iterator<Integer>, Iterable<Integer>
 	}
 
 
-	@Override
-	public void remove() 
-	{
-		// not needed in this context
-	}
-	
-	@Override
-	public Iterator<Integer> iterator()
-	{
-		return this;
-	}
+//	@Override
+//	public void remove() 
+//	{
+//		// not needed in this context
+//	}
+//	
+//	@Override
+//	public Iterator<Integer> iterator()
+//	{
+//		return this;
+//	}
 
 
 	public void reset()

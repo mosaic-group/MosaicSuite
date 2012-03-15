@@ -1,6 +1,5 @@
 package mosaic.region_competition;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1860,7 +1859,7 @@ public class LabelImage //extends ShortProcessor
 		
 		
 //TODO hier weiter
-		System.out.println("*********hier weiter");
+//		System.out.println("*********hier weiter");
 		
 		//TODO dummy
 		float m_EnergyContourLengthCoeff = settings.m_EnergyContourLengthCoeff;

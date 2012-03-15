@@ -13,8 +13,12 @@ import java.awt.dnd.*;
 import java.awt.event.*;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Vector;
+
+import javax.swing.JTextArea;
 
 import mosaic.region_competition.EnergyFunctionalType;
 import mosaic.region_competition.Settings;
@@ -33,7 +37,8 @@ public class GenericDialogGUI implements InputReadable
 	private String filenameLabelImage;	// initialization
 	
 	private LabelImageInitType labelImageInitType;
-	
+
+	private int kbest = 1;
 	private boolean useStack = true;
 	private boolean showStatistics = false;
 	private boolean useRegularization;
@@ -42,8 +47,6 @@ public class GenericDialogGUI implements InputReadable
 	static final String EnergyFunctional = "EnergyFunctional";
 	static final String e_CV = "e_CV";
 	static final String e_GaussPS = "e_GaussPS";
-	
-	
 	
 	static final String Regularization = "Regularization";
 	static final String No_Regularization="No Regularization";
@@ -136,6 +139,7 @@ public class GenericDialogGUI implements InputReadable
 		addWheelListeners();
 		
 		gd.addCheckbox("Show_Statistics", showStatistics);
+		gd.addCheckbox("Show Stack", useStack);
 		
 		gd.showDialog();
 	}
@@ -266,6 +270,7 @@ public class GenericDialogGUI implements InputReadable
 		filenameLabelImage=gd.getNextText();
 		
 		showStatistics=gd.getNextBoolean();
+		useStack=gd.getNextBoolean();
 		
 		return success;
 	}
@@ -316,8 +321,7 @@ public class GenericDialogGUI implements InputReadable
 	@Override
 	public int getKBest()
 	{
-		//TODO kbest
-		return 0;
+		return kbest;
 	}
 
 
@@ -393,6 +397,16 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 						System.out.println("File path is '" + filename + "'.");
 					}
 				}
+				else if (flavor.isRepresentationClassInputStream())
+				{
+					JTextArea ta = new JTextArea();
+					ta.read(new InputStreamReader((InputStream)transferable.getTransferData(flavor)), "from system clipboard");
+					textArea.setText(ta.getText().trim());
+					ta.setText(null);
+					break;
+				}
+				
+				
 			} catch (Exception e) {
 				// Print out the error stack
 				e.printStackTrace();
