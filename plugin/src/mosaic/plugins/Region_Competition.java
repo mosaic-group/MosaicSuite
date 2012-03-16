@@ -188,6 +188,7 @@ public class Region_Competition implements PlugInFilter
 				
 				if(ip!=null){
 					labelImage.initWithIP(ip);
+					labelImage.connectedComponents(labelImage);
 				} else {
 					labelImage=null;
 					throw new RuntimeException("Failed to load LabelImage");

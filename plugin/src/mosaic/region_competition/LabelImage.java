@@ -2485,12 +2485,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		HashSet<Integer> oldLabels = new HashSet<Integer>();
 		int newLabel=1;
 		
-		
-		int dims[] = li.dimensions;
-		int size=1;
-		for(int d:dims){
-			size*=d;
-		}
+		int size=li.iterator.getSize();
 		
 		// what are the old labels?
 		for(int i=0; i<size; i++)

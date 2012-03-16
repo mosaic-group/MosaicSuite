@@ -137,11 +137,12 @@ public class GenericDialogGUI implements InputReadable
 		
 //		gd.add(b);
 		
-		addWheelListeners();
 		
 		gd.addCheckbox("Show_Statistics", showStatistics);
-		gd.addCheckbox("Show Stack", useStack);
+		gd.addCheckbox("Show_Stack", useStack);
+		gd.addNumericField("kbest", 0, 0);
 		
+		addWheelListeners();
 		gd.showDialog();
 	}
 	
@@ -259,6 +260,11 @@ public class GenericDialogGUI implements InputReadable
 			//set text to empty string if nothing was edited. 
 			gd.getTextArea1().setText("");
 		}
+		else
+		{
+			String s = filenameInput.replace('\\', '/');
+			gd.getTextArea1().setText(s);
+		}
 		filenameInput=gd.getNextText();
 
 		
@@ -268,10 +274,17 @@ public class GenericDialogGUI implements InputReadable
 			//set text to empty string if nothing was edited. 
 			gd.getTextArea2().setText("");
 		}
+		else
+		{
+			String s = filenameLabelImage.replace('\\', '/');
+			gd.getTextArea2().setText(s);
+		}
 		filenameLabelImage=gd.getNextText();
 		
 		showStatistics=gd.getNextBoolean();
 		useStack=gd.getNextBoolean();
+		
+		kbest = (int)gd.getNextNumber();
 		
 		return success;
 	}
