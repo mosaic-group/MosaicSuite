@@ -259,7 +259,8 @@ public class Region_Competition implements PlugInFilter
 			// next stack image is start of algo
 			addSliceToStackAndShow("init", labelImage.getLabelImageProcessor().getPixelsCopy());
 			
-			IJ.run("3-3-2 RGB"); // stack has to contain at least 2 slices so this LUT applies to all future slices.
+			IJ.setMinAndMax(stackImPlus, 0, maxLabel);
+			IJ.run(stackImPlus, "3-3-2 RGB", null); // stack has to contain at least 2 slices so this LUT applies to all future slices.
 //					LutLoader lutloader = new LutLoader();
 //					lutloader.run("3-3-2 RGB");
 		}
@@ -297,6 +298,12 @@ public class Region_Competition implements PlugInFilter
 				labelImage.GenerateData();
 				t.toc();
 				list.add(t.lastResult());
+				
+				if(stackImPlus!=null)
+				{
+					IJ.setMinAndMax(stackImPlus, 0, labelImage.m_MaxNLabels);
+				}
+//				stackImPlus.updateAndDraw();
 				showFinalResult(labelImage, i);
 			}
 			
@@ -311,6 +318,14 @@ public class Region_Competition implements PlugInFilter
 		else
 		{
 			labelImage.GenerateData();
+			
+			if(stackImPlus!=null)
+			{
+				IJ.setMinAndMax(stackImPlus, 0, labelImage.m_MaxNLabels);
+			}
+			
+//			stackImPlus.updateAndDraw();
+			
 			showFinalResult(labelImage);
 		}
 		
@@ -326,11 +341,15 @@ public class Region_Competition implements PlugInFilter
 		
 	}
 	
-	void showFinalResult(LabelImage li, Object title)
+	ImagePlus showFinalResult(LabelImage li, Object title)
 	{
 		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.getLabelImageProcessor());
+		IJ.setMinAndMax(imp, 0, li.m_MaxNLabels);
+		IJ.run(imp, "3-3-2 RGB", null);
 		imp.show();
-		IJ.run("3-3-2 RGB");
+		//IJ.run("3-3-2 RGB");
+		
+		return imp;
 	}
 	
 	void showFinalResult(LabelImage li)
@@ -451,6 +470,11 @@ public class Region_Competition implements PlugInFilter
  * @param title		Title of the stack slice
  * @param pixels	data of the new slice (pixel array)
  */
+	
+	
+	
+	
+	private int maxLabel=100;
 	public void addSliceToStackAndShow(String title, Object pixels)
 	{
 		if(stack==null)
@@ -460,6 +484,14 @@ public class Region_Competition implements PlugInFilter
 		}
 		else
 		{
+			if(labelImage.m_MaxNLabels>maxLabel)
+			{
+				
+				maxLabel*=2;
+				IJ.setMinAndMax(stackImPlus, 0, maxLabel);
+				IJ.run(stackImPlus, "3-3-2 RGB", null);
+			}
+			
 			stack.addSlice(title, pixels);
 			stackImPlus.setStack(stack);
 			stackImPlus.setPosition(stack.getSize());
