@@ -147,7 +147,7 @@ public class LabelImage //extends ShortProcessor
     EnergyFunctionalType m_EnergyFunctional;
     int m_OscillationHistoryLength;
 
-	private int m_MaxNLabels;
+	public int m_MaxNLabels;
     
 	SphereBitmapImageSource sphereMaskIterator; // regularization
 	
@@ -2051,8 +2051,8 @@ public class LabelImage //extends ShortProcessor
 		
 		if(vVar12==0)
 		{
-			System.out.print("vVar12==0");
-//			debug("vVar12==0");
+//			System.out.print("vVar12==0");
+			debug("vVar12==0");
 			return 0;
 		}
 

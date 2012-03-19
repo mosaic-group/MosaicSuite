@@ -50,7 +50,7 @@ public class Region_Competition implements PlugInFilter
 		MVC=this;
 		originalIP = aImp;
 		
-		userDialog = new GenericDialogGUI(settings);
+		userDialog = new GenericDialogGUI(this);
 		boolean success=userDialog.processInput();
 		if(!success)
 		{
@@ -115,10 +115,10 @@ public class Region_Competition implements PlugInFilter
 		// next try: default image
 		if(ip==null)
 		{
-			String dir= IJ.getDirectory("current");
+			String dir = IJ.getDirectory("current");
 			String fileName= "Clipboard01.png";
 			//		String fileName= "icecream3_shaded_130x130.tif";
-			ip=o.openImage(dir+fileName);
+			ip = o.openImage(dir+fileName);
 		}
 			
 		if(ip!=null)
@@ -261,8 +261,6 @@ public class Region_Competition implements PlugInFilter
 			
 			IJ.setMinAndMax(stackImPlus, 0, maxLabel);
 			IJ.run(stackImPlus, "3-3-2 RGB", null); // stack has to contain at least 2 slices so this LUT applies to all future slices.
-//					LutLoader lutloader = new LutLoader();
-//					lutloader.run("3-3-2 RGB");
 		}
 	}
 	
@@ -271,17 +269,17 @@ public class Region_Competition implements PlugInFilter
 	{
 		
 		initInputImage();
-		
 		initLabelImage();
+		
 		if(labelImage==null) // input was aborted
 		{
 			return;
 		}
+		
 		initStack();
 
 		if(userDialog.getKBest()>0)
 		{
-			
 			Timer t = new Timer();
 			
 			ArrayList<Long> list = new ArrayList<Long>();
@@ -315,7 +313,7 @@ public class Region_Competition implements PlugInFilter
 				System.out.println(l);
 			}
 		}
-		else
+		else // no kbest
 		{
 			labelImage.GenerateData();
 			
@@ -323,21 +321,14 @@ public class Region_Competition implements PlugInFilter
 			{
 				IJ.setMinAndMax(stackImPlus, 0, labelImage.m_MaxNLabels);
 			}
-			
-//			stackImPlus.updateAndDraw();
-			
 			showFinalResult(labelImage);
 		}
-		
 		
 
 		if(userDialog.showStatistics())
 		{
 			labelImage.showStatistics();
 		}
-		
-//		macroContrast();
-//		new ImagePlus("LabelImage", labelImage.getLabelImage()).show();
 		
 	}
 	
@@ -347,7 +338,6 @@ public class Region_Competition implements PlugInFilter
 		IJ.setMinAndMax(imp, 0, li.m_MaxNLabels);
 		IJ.run(imp, "3-3-2 RGB", null);
 		imp.show();
-		//IJ.run("3-3-2 RGB");
 		
 		return imp;
 	}
@@ -358,9 +348,12 @@ public class Region_Competition implements PlugInFilter
 	}
 	
 	
+	/**
+	 * Initializes labelImage with ROI <br>
+	 * If there was no ROI in input image, asks user to draw a roi. 
+	 */
 	void manualSelect(final LabelImage labelImg)
 	{
-		
 		Roi roi=null;
 		roi = originalIP.getRoi();
 		if(roi==null)
@@ -439,78 +432,47 @@ public class Region_Competition implements PlugInFilter
 		
 		labelImg.getLabelImageProcessor().setValue(1);
 		labelImg.getLabelImageProcessor().fill(roi);
+		labelImg.initBoundary();
 		labelImg.connectedComponents(labelImg);
-//		labelImg.initBoundary();
 		
 //		originalIP.getWindow().addKeyListener(keyListener);
 //		IJ.getInstance().addKeyListener(keyListener);
 }
 	
 	
-	/**
-	 * treats Input image as a label image / guess. 
-	 * Does boundary, contour and statistics
-	 */
-	void initWithCustom(ImagePlus ip)
-	{
-		ImageProcessor oProc = ip.getChannelProcessor();
-		labelImage = new LabelImage(MVC);
-//		labelImage = oProc.duplicate();
-		labelImage.getLabelImageProcessor().insert(oProc, 0, 0);
-		labelImage.initBoundary();
-		labelImage.generateContour();
-		labelImage.computeStatistics();
-		
-		new ImagePlus("LabelImage", labelImage.getLabelImageProcessor()).show();
-	}
 	
-	/**
+	private int maxLabel=100;
+/**
  * Adds a new slice pixels to the end of the stack, 
  * and sets the new stack position to this slice
  * @param title		Title of the stack slice
  * @param pixels	data of the new slice (pixel array)
  */
-	
-	
-	
-	
-	private int maxLabel=100;
 	public void addSliceToStackAndShow(String title, Object pixels)
 	{
-		if(stack==null)
+		if(stackImPlus!=null)
 		{
-			System.out.println("stack is null");
-			return;
-		}
-		else
-		{
-			if(labelImage.m_MaxNLabels>maxLabel)
-			{
-				
-				maxLabel*=2;
-				IJ.setMinAndMax(stackImPlus, 0, maxLabel);
-				IJ.run(stackImPlus, "3-3-2 RGB", null);
-			}
+			stack = stackImPlus.getStack();
 			
 			stack.addSlice(title, pixels);
 			stackImPlus.setStack(stack);
 			stackImPlus.setPosition(stack.getSize());
-//			stackImPlus.show();
-//		stackImPlus.getStack().addSlice(title, pixels);
+			
+			if(labelImage.m_MaxNLabels>maxLabel)
+			{
+				maxLabel*=2;
+				IJ.setMinAndMax(stackImPlus, 0, maxLabel);
+				IJ.run(stackImPlus, "3-3-2 RGB", null);
+			}
 		}
+		else
+		{
+			// stack was closed by user
+			System.out.println("stackImPlus is null");
+		}
+
 	}
 	
-	/**
-	 * Debug: selects a point in the current image to see it faster in the GUI.
-	 */
-	public void selectPoint(Point p)
-	{
-		//TODO multidim
-//		stackImPlus.setRoi(p.x[0], p.x[1], 1, 1);
-		IJ.makePoint(p.x[0], p.x[1]);
-//		stackImPlus.draw();
-	}
-
 	public ImagePlus getStackImPlus()
 	{
 		return this.stackImPlus;
@@ -521,12 +483,16 @@ public class Region_Competition implements PlugInFilter
 		return this.originalIP;
 	}
 
-	void macroContrast()
+	
+/**
+ * Debug: selects a point in the current image to see it faster in the GUI.
+ */
+	public void selectPoint(Point p)
 	{
-		IJ.run("Brightness/Contrast...");
-		IJ.setMinAndMax(0, 2048);
-		//call("ij.ImagePlus.setDefault16bitRange", 0);
-		IJ.run("Close");
+		//TODO multidim
+//		stackImPlus.setRoi(p.x[0], p.x[1], 1, 1);
+		IJ.makePoint(p.x[0], p.x[1]);
+//		stackImPlus.draw();
 	}
 
 	void testConnNew()

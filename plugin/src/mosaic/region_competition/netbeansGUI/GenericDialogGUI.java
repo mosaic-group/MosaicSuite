@@ -22,9 +22,11 @@ import java.util.Vector;
 
 import javax.swing.JTextArea;
 
+import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.EnergyFunctionalType;
 import mosaic.region_competition.Settings;
 import ij.IJ;
+import ij.ImagePlus;
 import ij.gui.GenericDialog;
 
 /**
@@ -69,9 +71,9 @@ public class GenericDialogGUI implements InputReadable
 	static final String TextDefaultLabelImage="Drop Label Image here, or insert Path to file";
 	
 	
-	public GenericDialogGUI(Settings s)
+	public GenericDialogGUI(Region_Competition region_Competition)
 	{
-		this.settings=s;
+		this.settings=region_Competition.settings;
 		gd = new GenericDialog("Region Competition");
 		
 		
@@ -104,7 +106,15 @@ public class GenericDialogGUI implements InputReadable
 				User_Defined_Initialization, 
 				Bubbles_Initialization, 
 				File_Initalization};
-		gd.addChoice(Initialization, initializationItems, initializationItems[0]);
+		
+			// default choice
+		String defaultInit = Bubbles_Initialization;
+		ImagePlus imp = region_Competition.getOriginalImPlus();
+		if(imp!=null && imp.getRoi()!=null)
+		{
+			defaultInit=User_Defined_Initialization;
+		}
+		gd.addChoice(Initialization, initializationItems, defaultInit);
 		
 //		save reference to this choice, so we can handle it
 		initializationChoice = (Choice)gd.getChoices().lastElement();
