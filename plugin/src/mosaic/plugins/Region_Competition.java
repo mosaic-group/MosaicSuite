@@ -1,10 +1,15 @@
 package mosaic.plugins;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
 
 import mosaic.region_competition.*;
 import mosaic.region_competition.netbeansGUI.GenericDialogGUI;
@@ -21,7 +26,6 @@ import ij.io.FileSaver;
 import ij.io.Opener;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
 
 
 /**
@@ -42,12 +46,14 @@ public class Region_Competition implements PlugInFilter
 	ImageProcessor initialLabelImageProcessor; // copy of the initial guess (without contour/boundary)
 	
 	public InputReadable userDialog;
+	JFrame cancelButton;
 	
 	
 	public int setup(String aArgs, ImagePlus aImp)
 	{
 		settings = new Settings();
 		MVC=this;
+		
 		originalIP = aImp;
 		
 		userDialog = new GenericDialogGUI(this);
@@ -56,24 +62,33 @@ public class Region_Competition implements PlugInFilter
 		{
 			return DONE;
 		}
+		else
+		{
+			cancelButton = new JFrame();
+			JButton b = new JButton("Cancel");
+			b.addActionListener(new ActionListener() 
+			{
+				@Override
+				public void actionPerformed(ActionEvent e)
+				{
+					labelImage.stop();
+					cancelButton.dispose();
+					// TODO Auto-generated method stub
+					
+				}
+			});
+//			p.setUndecorated(true);
+			cancelButton.add(b);
+			cancelButton.pack();
+			cancelButton.setLocationByPlatform(true);
+			cancelButton.setVisible(true);
+		}
 
 		
 //		RegionIterator.tester();
 //		IJ.showMessage("version 1");
 		
-		/*
-		userDialog = new UserDialog(settings);
-//		userDialog.showDialog();
-		userDialog.showNetbeans();
-		*/
-		
 		////////////////////
-
-		
-//		IJ.run("8-bit");
-//		originalIP.changes=false;
-//		System.out.println("statmax "+ originalIP.getStatistics().max);
-//		System.out.println("statmin "+ originalIP.getStatistics().min);
 		
 		
 		frontsCompetitionImageFilter();
@@ -81,11 +96,6 @@ public class Region_Competition implements PlugInFilter
 		return DOES_ALL + DONE;
 	}
 	
-	void createEmptyIP()
-	{
-		IJ.showMessage("No image selected. Debug mode, create empty 400*300 image");
-		originalIP = new ImagePlus("empty test image", new ShortProcessor(400, 300));
-	}
 	
 	public void run(ImageProcessor aImageProcessor) 
 	{
@@ -124,6 +134,7 @@ public class Region_Competition implements PlugInFilter
 		if(ip!=null)
 		{
 			originalIP = ip;
+			
 			// image loaded
 			boolean showOriginal = true;
 			if(showOriginal)
@@ -144,11 +155,12 @@ public class Region_Competition implements PlugInFilter
 	
 	void initLabelImage()
 	{
+//		labelImage = LabelImage.getLabelImageNeg(MVC);
 		labelImage = new LabelImage(MVC);
 		labelImage.initZero();
 		
 		// Input Processing
-		labelImage.settings.m_EnergyUseCurvatureRegularization=userDialog.useRegularization();
+		labelImage.settings.m_EnergyUseCurvatureRegularization = userDialog.useRegularization();
 		
 		LabelImageInitType input = userDialog.getLabelImageInitType();
 		
@@ -210,7 +222,7 @@ public class Region_Competition implements PlugInFilter
 		
 		// save the initial guess (random/user defined/whatever) to a tiff
 		// so we can reuse it for debugging
-		boolean doSaveGuess=true;
+		boolean doSaveGuess = true;
 		if(doSaveGuess)
 		{
 //			String s = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
@@ -329,6 +341,8 @@ public class Region_Competition implements PlugInFilter
 		{
 			labelImage.showStatistics();
 		}
+		
+		cancelButton.dispose();
 		
 	}
 	

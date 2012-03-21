@@ -18,6 +18,7 @@ import ij.gui.OvalRoi;
 import ij.gui.Roi;
 import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
 import ij.process.ShortProcessor;
 
 /*
@@ -35,7 +36,9 @@ public class LabelImage //extends ShortProcessor
 	private Region_Competition MVC; 	/** interface to image program */
 	private LabelImage m_LabelImage; 	// == this, exists for easier refactoring
 	
-	private ImagePlus originalIP;	// input image
+	ImagePlus imageIP;	// input image
+	ImageProcessor imageProc;
+	
 	private final float imageMax; 	// maximal intensity of input image
 	
 	ImageProcessor labelIP;				// map positions -> labels
@@ -84,8 +87,9 @@ public class LabelImage //extends ShortProcessor
 		MVC=region_competition;
 		settings=MVC.settings;
 		ImagePlus ip = MVC.getOriginalImPlus();
-		originalIP=ip;
-		imageMax=(float)originalIP.getStatistics().max;
+		imageIP=ip;
+		imageProc=ip.getProcessor();
+		imageMax=(float)imageIP.getStatistics().max;
 		
 		dim = ip.getNDimensions();
 		dimensions = new int[dim];
@@ -95,14 +99,15 @@ public class LabelImage //extends ShortProcessor
 			dimensions[i]=ip.getDimensions()[i];
 		}
 		
-		iterator= new IndexIterator(dimensions);
+		iterator = new IndexIterator(dimensions);
 		
 		
 		//TODO multidim
 		width=ip.getWidth();
 		height=ip.getHeight();
 		
-		labelIP= new ShortProcessor(width, height);
+		// TODO does init twice if guess loaded from file
+		labelIP = new ShortProcessor(width, height);
 		
 		//TODO initial capacities
 		m_InnerContourContainer = new HashMap<Point, ContourParticle>();
@@ -242,7 +247,7 @@ public class LabelImage //extends ShortProcessor
 	 */
 	public void initialGuess()
 	{
-		Roi vRectangleROI = new Roi(10, 10, originalIP.getWidth()-20, originalIP.getHeight()-20);
+		Roi vRectangleROI = new Roi(10, 10, imageIP.getWidth()-20, imageIP.getHeight()-20);
 		labelIP.setValue(1);
 		labelIP.fill(vRectangleROI);
 	}
@@ -616,7 +621,7 @@ public class LabelImage //extends ShortProcessor
 
 		boolean vConvergence = false;
 
-		while(settings.m_MaxNbIterations > m_iteration_counter && !(vConvergence)) 
+		while(settings.m_MaxNbIterations > m_iteration_counter && !(vConvergence) && !abort) 
 		{
 			m_iteration_counter++;
 			debug("=== iteration " + m_iteration_counter+" ===");
@@ -1878,13 +1883,13 @@ public class LabelImage //extends ShortProcessor
 		    {
 		    	
 		    	double eCurv = CalculateCurvatureBasedGradientFlow(
-		    			originalIP, m_LabelImage, aContourIndex,vCurrentLabel, aToLabel);
+		    			imageIP, m_LabelImage, aContourIndex,vCurrentLabel, aToLabel);
 //		    	debug("eCurv="+eCurv+" vEnergy="+vEnergy);
 		        vEnergy += //m_Means[aToLabel] * // m_Means[aToLabel] *
 		        		m_EnergyContourLengthCoeff * eCurv;
 		    } else {
 		        vEnergy += m_EnergyContourLengthCoeff * CalculateCurvatureBasedGradientFlow(
-		                originalIP, m_LabelImage, aContourIndex, vCurrentLabel, aToLabel);
+		                imageIP, m_LabelImage, aContourIndex, vCurrentLabel, aToLabel);
 		    }
 		}
 		
@@ -2768,19 +2773,6 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	}
 
 
-	/**
-	 * @param label
-	 * @return true, if label is a contour label
-	 */
-	boolean isContourLabel(int label)
-	{
-		if(isForbiddenLabel(label)) {
-			return false;
-		} else {
-			return (label > negOfs);
-		}
-	}
-
 
 	boolean isInnerLabel(int label)
 	{
@@ -2814,6 +2806,8 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	}
 	
 
+	// ofset version for contour particles representation
+
 	/**
 	 * @param label a label
 	 * @return if label was a contour label, get the absolut/inner label
@@ -2825,12 +2819,6 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 			return label;
 		}
 	}
-
-//	int labelToAbs(int label) 
-//	{
-//		return Math.abs(label);
-//	}	
-	
 
 	/**
 	 * @param label a label
@@ -2845,11 +2833,6 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		}
 	}
 
-//	int labelToNeg(int label) 
-//	{
-//		return -Math.abs(label);
-//	}	
-	
 	
 	int get(int index)
 	{
@@ -2861,19 +2844,62 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	 * @param p
 	 * @return Returns the value of the LabelImage at x,y
 	 */
-	private int get(int x, int y) {
-		
-		//TODO debug
-		int result=0;
-//		try {
-			result = labelIP.get(x,y);
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-		return result;
+	int get(int x, int y) 
+	{
+		return labelIP.get(x,y);
 	}
+	
+	
+	/**
+	 * @param label
+	 * @return true, if label is a contour label
+	 * ofset version
+	 */
+	boolean isContourLabel(int label)
+	{
+		if(isForbiddenLabel(label)) {
+			return false;
+		} else {
+			return (label > negOfs);
+		}
+	}
+	
+
+	
+	// version with neg contour particles. see class LabelImageNeg
+	// only works with short datatype
+//
+//	int labelToAbs(int label)
+//	{
+//		return Math.abs((short)(label));
+//	}
+//	
+//	int labelToNeg(int label)
+//	{
+//		// TODO Auto-generated method stub
+//		if(label==forbiddenLabel)
+//			return label;
+//		else
+//			return -(label);
+//	}
+//	
+//	int get(int index)
+//	{
+//		return (short)labelIP.get(index);
+//	}
+//
+//	int get(int x, int y) 
+//	{
+//		return (short) labelIP.get(x,y);
+//	}
+//	
+//	
+//	boolean isContourLabel(int label)
+//	{
+//		return label<0;
+//
+//	} 
+	
 
 
 	/**
@@ -2911,13 +2937,19 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	float getIntensity(int idx)
 	{
 		//TODO !!!!!!!!!! prenormalize image!!!
-		return originalIP.getProcessor().get(idx)/imageMax;
+		//TODO getPixel does index check
+//		return imageProc.getf(idx);
+		return imageProc.get(idx)/imageMax;
 	}
 
 	float getIntensity(int x, int y)
 	{
 		//TODO !!!!!!!!!! prenormalize image!!!
-		return originalIP.getPixel(x, y)[0]/imageMax;
+		//TODO getPixel does index check
+//		return imageProc.getf(x, y);
+		return imageProc.get(x, y)/imageMax;
+		
+//		return originalIP.getPixel(x, y)[0]/imageMax;
 	}
 
 
@@ -3018,9 +3050,114 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 				debug("sth is NaN");
 		}
 	}
+
+
+	boolean abort = false;
+	/**
+	 * Stops the algorithm after actual iteration
+	 */
+	public void stop()
+	{
+		abort=true;
+	}
+
 	
+	public static LabelImageNeg getLabelImageNeg(Region_Competition rc)
+	{
+		return new LabelImageNeg(rc);
+	}
+	public static LabelImageFloat getLabelImageFloat(Region_Competition rc)
+	{
+		return new LabelImageFloat(rc);
+	}
+}
+
+
+/**
+ * In this version contour particles are represented by negative values
+ * (super class: offset by 10000, all are pos) <br>
+ * Expects data (label image) to be in <b>short</b>
+ *
+ */
+class LabelImageNeg extends LabelImage
+{
+
+	public LabelImageNeg(Region_Competition region_competition)
+	{
+		super(region_competition);
+		// TODO Auto-generated constructor stub
+	}
+	
+
+	int labelToAbs(int label)
+	{
+		return Math.abs((short)(label));
+	}
+	
+	int labelToNeg(int label)
+	{
+		// TODO Auto-generated method stub
+		if(label==forbiddenLabel)
+			return label;
+		else
+			return -(label);
+	}
+	
+	boolean isContourLabel(int label)
+	{
+		return label<0;
+
+	}
+	
+	int get(int index)
+	{
+		return (short)labelIP.get(index);
+	}
+
+	int get(int x, int y) 
+	{
+		return (short) labelIP.get(x,y);
+	}
 	
 }
+
+
+/**
+ * Input image is converted to a [0,1] normalized floatProcessor
+ *
+ */
+class LabelImageFloat extends LabelImage
+{
+
+	public LabelImageFloat(Region_Competition region_competition)
+	{
+		super(region_competition);
+		normalizeImage();
+	}
+	
+	void normalizeImage()
+	{
+		imageProc=imageProc.convertToFloat();
+		double max = ImageStatistics.getStatistics(imageProc, ImageStatistics.MIN_MAX, null).max;
+		
+		double fac = 1.0/max;
+		imageProc.multiply(fac);
+		imageIP.setProcessor(imageProc);
+	}
+	
+	float getIntensity(int idx)
+	{
+		return imageProc.getf(idx);
+	}
+
+	float getIntensity(int x, int y)
+	{
+		return imageProc.getf(x, y);
+	}
+	
+}
+
+
 
 
 
