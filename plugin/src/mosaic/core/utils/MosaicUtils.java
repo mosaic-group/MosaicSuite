@@ -21,18 +21,18 @@ public class MosaicUtils {
 		FloatProcessor cropped_proc = new FloatProcessor(ip.getWidth()-2*cropsize, ip.getHeight()-2*cropsize);
 		float[] croppedpx = (float[])cropped_proc.getPixels();
 		float[] origpx = (float[])ip.getPixels();
-		int offset = cropsize*width;
+		int offset = cropsize*width+cropsize;
 		for(int i = offset, j = 0; j < croppedpx.length; i++, j++) {
 			croppedpx[j] = origpx[i];		
-			if(j%newWidth == 0 || j%newWidth == newWidth - 1) {
-				i+=cropsize;
+			if(j%newWidth == newWidth - 1) {
+				i+=2*cropsize;
 			}
-		}
+		} 
 		return cropped_proc;
 	}
 	
 	/**
-	 * crops a 3D image at all of sides of the imagestack cube. 
+	 * crops a 3D image at all of sides of the imagestack cube.  
 	 * @param is a frame to crop
 	 * @see pad ImageStack3D
 	 * @return the cropped image
@@ -105,7 +105,7 @@ public class MosaicUtils {
 	}
 	
 	/**
-	 * Before convolving, the image is padded such that no artifacts occure at the edge of an image.
+	 * Before convolution, the image is padded such that no artifacts occure at the edge of an image.
 	 * @param is a frame (not a movie!)
 	 * @see cropImageStack3D(ImageStack)
 	 * @return the padded imagestack to (w+2*r, h+2r, s+2r) by copying the last pixel row/line/slice

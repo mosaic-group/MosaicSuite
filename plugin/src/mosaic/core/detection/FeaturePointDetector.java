@@ -103,12 +103,12 @@ public class FeaturePointDetector {
 
 		/* The algorithm is initialized by normalizing the frame*/
 		normalizeFrameFloat(restored_fps, global_min, global_max);
-		//			new StackWindow(new ImagePlus("after normalization",restored_fps));
+		//new StackWindow(new ImagePlus("after normalization",restored_fps));
 
 
 		/* Image Restoration - Step 1 of the algorithm */
 		restored_fps = imageRestoration(restored_fps);
-		//new StackWindow(new ImagePlus("after restoration",GetSubStackCopyInFloat(restored_fps, 1, 1)));
+		//new StackWindow(new ImagePlus("after restoration",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored_fps, 1, restored_fps.getSize())));
 
 		/* Estimation of the point location - Step 2 of the algorithm */
 		findThreshold(restored_fps, percentile, absIntensityThreshold);
@@ -122,7 +122,7 @@ public class FeaturePointDetector {
 
 		/* Refinement of the point location - Step 3 of the algorithm */
 		pointLocationsRefinement(restored_fps);
-		//			new StackWindow(new ImagePlus("after location ref",restored_fps));
+		//new StackWindow(new ImagePlus("after location ref",restored_fps));
 		//			System.out.println("particles after location refinement:");
 		//			for(Particle p : this.particles) {
 		//				System.out.println("particle: " + p.toString());
@@ -215,7 +215,7 @@ public class FeaturePointDetector {
 		}
 		thold = 255 - thold + 1;
 		this.setThreshold(((float)(thold / 255.0) * (max - min) + min));		
-		//			System.out.println("THRESHOLD: " + this.threshold);
+		System.out.println("THRESHOLD: " + this.threshold);
 	}	
 
 	/**
@@ -498,10 +498,10 @@ public class FeaturePointDetector {
 
 		//pad the imagestack 	
 		if(is.getSize() > 1) {
-			//3D mode (we also have to convolve and pad in third dimension)
+			//3D mode 
 			restored = MosaicUtils.padImageStack3D(is,radius);
 		} else {
-			//we're in 2D mode (separated to do no unnecessary operations).
+			//we're in 2D mode 
 			ImageProcessor rp= MosaicUtils.padImageStack2D(is.getProcessor(1),radius);
 			restored = new ImageStack(rp.getWidth(), rp.getHeight());
 			restored.addSlice("", rp);
@@ -515,10 +515,10 @@ public class FeaturePointDetector {
 			// There was found to be a 2*lambda_n for the sigma of the Gaussian kernel. 
 			// Set it back to 1*lambda_n to match the 2D implementation.
 			GaussBlur3D(restored, 1*lambda_n);
-			//				new StackWindow(new ImagePlus("convolved 3d",GetSubStackCopyInFloat(restored, 1, restored.getSize())));
+			//new StackWindow(new ImagePlus("convolved 3d",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
 
 			boxCarBackgroundSubtractor(restored);//TODO:3D? ->else: pad!
-			//				new StackWindow(new ImagePlus("after bg subtraction",GetSubStackCopyInFloat(restored, 1, restored.getSize())));
+			//new StackWindow(new ImagePlus("after bg subtraction",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
 
 			break;
 		case BG_SUBTRACTOR:
@@ -537,10 +537,11 @@ public class FeaturePointDetector {
 			restored = Laplace_Separable_3D(restored);
 			break;
 		default:
-			break;
+			break; 
 		}
 		if(is.getSize() > 1) {
 			//again, 3D crop
+//			new StackWindow(new ImagePlus("before cropping",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
 			restored = MosaicUtils.cropImageStack3D(restored,radius);
 		} else {
 			//2D crop
@@ -565,7 +566,7 @@ public class FeaturePointDetector {
 			Convolver convolver = new Convolver();
 			// no need to normalize the kernel - its already normalized
 			convolver.setNormalize(false);
-			//the gaussian kernel is separable and can done in 3x 1D convolutions!
+			//the gaussian kernel is separable and can done in 3x 1D convolutions.
 			convolver.convolve(restored_proc, vKernel, vKernel.length , 1);  
 			convolver.convolve(restored_proc, vKernel, 1 , vKernel.length);  
 		}
@@ -586,7 +587,7 @@ public class FeaturePointDetector {
 			vOrigProcessors[s] = (float[])is.getProcessor(s + 1).getPixelsCopy();
 			vRestoredProcessors[s] = (float[])is.getProcessor(s + 1).getPixels();
 		}
-		//begin convolution with 1D gaussian in 3rd dimension:
+		// convolution with 1D gaussian in 3rd dimension:
 		for(int y = kernel_radius; y < is.getHeight() - kernel_radius; y++){
 			for(int x = kernel_radius; x < is.getWidth() - kernel_radius; x++){
 				for(int s = kernel_radius + 1; s <= is.getSize() - kernel_radius; s++) {

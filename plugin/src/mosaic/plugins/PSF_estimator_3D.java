@@ -25,7 +25,7 @@ import ij.process.StackStatistics;
 
 //TODO: GUI, 
 //TODO: print number of points considered.
-//TODO: now, the BG subtraction is per bead based max(PSF-0.1*PSF,0) 
+//TODO: currently the BG subtraction is per bead based max(PSF-0.1*PSF,0) 
 //		and also the mean bead is 'cleaned' with 0.005 perc. threshold. (very heuristically)
 //TODO: edge of map, 
 //TODO: smart map size, 
@@ -136,7 +136,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 				aX, aY, getBrightestSliceIndexAt(aX, aY, mPreprocessedFrameImage));
 
 		//
-		//	Check if bead was already used via centroid
+		//	Check if bead was already used. We use the centroid as an identifier.
 		//
 		for(int vB = 0; vB < mBeads.size(); vB++) {
 			if(Math.abs(mBeads.elementAt(vB).mCentroidX - vCentroid[0]) < 0.5 && 
@@ -147,7 +147,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			}
 		}
 		
-		//.thresholdPSFMap(0.005f)
+		//
 		// create the bead using the data of a non-preprocessed image
 		//
 		ImageStack vIS = getAFrameCopy(mOriginalImagePlus, vFrame);	
@@ -484,15 +484,40 @@ public class PSF_estimator_3D implements  PlugInFilter{
 	
 	public Bead meanBeads(Vector<Bead> aBeads) {
 		double[][] vMeanMap = new double[mMapSizeZ][mMapSizeR];
-		float vScaler = 1f / (float)aBeads.size();
+		int[][] vMeanMapScaler = new int[mMapSizeZ][mMapSizeR];
+		
+		
+		for(int vZ = 0; vZ < mMapSizeZ; vZ++) {
+			for(int vR = 0; vR < mMapSizeR; vR++) {
+				vMeanMap[vZ][vR] = 0;
+				vMeanMapScaler[vZ][vR] = 0;
+			}
+		}
+		
+		//float vScaler = 1f / (float)aBeads.size();
 		for(Bead vB : aBeads) {
-			double[][] vM = vB.getPSFMap();
+			double[][] vBeadMap = vB.getPSFMap();
 			for(int vZ = 0; vZ < mMapSizeZ; vZ++) {
 				for(int vR = 0; vR < mMapSizeR; vR++) {
-					vMeanMap[vZ][vR] += vM[vZ][vR] * vScaler;
+					//if(vB.mPSFMapValid[vZ][vR]) {
+					if(vBeadMap[vZ][vR]>0) {
+						vMeanMap[vZ][vR] += vBeadMap[vZ][vR];// * vScaler[][];
+						vMeanMapScaler[vZ][vR] += 1;
+					}
 				}
 			}
 		}
+		
+		for(int vZ = 0; vZ < mMapSizeZ; vZ++) {
+			for(int vR = 0; vR < mMapSizeR; vR++) {
+				if(vMeanMapScaler[vZ][vR] > 0) {
+					vMeanMap[vZ][vR] /= vMeanMapScaler[vZ][vR];
+				} else {
+					vMeanMap[vZ][vR] = 0;
+				}
+			}
+		}
+		//new ImagePlus("map normalizer",new FloatProcessor(vMeanMapScaler)).show();
 		return new Bead(vMeanMap);
 	}
 	
@@ -515,7 +540,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			mCentroidZ = aZ;
 			mFrame = aFrame;
 			
-						
+			
 			double[] vCentroid = new double[]{mCentroidX, mCentroidY, mCentroidZ};
 			System.out.println("Centroid: x = " + mCentroidX + ", y = " + mCentroidY + "z = " + mCentroidZ);
 			mPSFMap = generatePSFmap(aIS, vCentroid, mRMaxInNm, mZMaxInNm, mMapSizeR, mMapSizeZ);
@@ -527,11 +552,12 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			mPSFMap = meanMap;
 		}
 		
-		public void showBead() {
-			float[][] vMap = new float[mPSFMap.length][mPSFMap[0].length];
-			for(int vZ = 0; vZ < mPSFMap.length; vZ++) {
-				 for(int vR = 0; vR < mPSFMap[0].length; vR++) {
-					 vMap[vZ][vR] = (float)mPSFMap[vZ][vR];
+
+		public void showBead(double[][] aPSFmap) {
+			float[][] vMap = new float[aPSFmap.length][aPSFmap[0].length];
+			for(int vZ = 0; vZ < aPSFmap.length; vZ++) {
+				 for(int vR = 0; vR < aPSFmap[0].length; vR++) {
+					 vMap[vZ][vR] = (float)aPSFmap[vZ][vR];
 				 } 
 			}
 			
@@ -544,6 +570,10 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			mBeadImage.getCalibration().pixelWidth = (2f*(float)mZMaxInNm / (float)mMapSizeZ);
 			mBeadImage.getCalibration().pixelHeight = ((float)mRMaxInNm / (float)mMapSizeR);
 			mBeadImage.show();
+		}
+		
+		public void showBead() {
+			showBead(mPSFMap);	
 		}
 				
 		protected void thresholdPSFMap(float aPercentile){
@@ -606,14 +636,15 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			Vector<Integer> vValuableZIndices = new Vector<Integer>();
 			
 			for(int vZ = 0; vZ < aMap.length; vZ++) {				
-				boolean vRowAlreadyChosen = false;
+				//boolean vRowAlreadyChosen = false;
 				for(int vR = 0; vR < aMap[vZ].length; vR++) {
 					if(aMap[vZ][vR] > 0f) {
-						if(!vRowAlreadyChosen) {
+						//if(!vRowAlreadyChosen) {
 							vValuableZIndices.add(vZ);
-							vRowAlreadyChosen = true;
-							continue;
-						}						
+							//vRowAlreadyChosen = true;
+							//continue;
+							break;
+						//}						
 					}
 					
 				}
@@ -628,10 +659,12 @@ public class PSF_estimator_3D implements  PlugInFilter{
 					vNodeX[vI] = (float)vValuableZIndices.elementAt(vI);
 					vNodeY[vI] = (float)aMap[vValuableZIndices.elementAt(vI)][vR];
 				}
+				if(vValuableZIndices.isEmpty()) continue; /// a empty line in R
 				for(int vZ = vValuableZIndices.elementAt(0); vZ <= vValuableZIndices.lastElement(); vZ++) {
 					if(aMap[vZ][vR] > 0f) continue;
 //					aMap[vZ][vR] = interpolateQuadratic(vZ, vNodeX, vNodeY);
 					aMap[vZ][vR] = interpolateLinear(vZ, vNodeX, vNodeY);
+
 				}
 			}
 			return true;
@@ -643,8 +676,9 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			if(!checkSparseMap(vPSFmap)) {
 				IJ.showMessage("Too small sampling rate !!");
 			}
+			
 			interpolatePSFmap(vPSFmap);
-//			fillPSFmapEdges(vPSFmap); depricated! 
+//			fillPSFmapEdges(vPSFmap); deprecated! 
 			return vPSFmap;
 			
 		}
@@ -663,7 +697,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		}
 		
 		/**
-		 * This method is depricated: It constantly diffuses intensity in axial direction
+		 * This method is deprecated: It constantly diffuses intensity in axial direction
 		 * leading to a bias of too large PSF maps in z-direction if there is indeed a 0 entry
 		 * at the boarder of the sparse map. It seems to be better to
 		 * leave the edges unchanged and recording a lot of beads :-)
@@ -738,7 +772,13 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			
 			if(vZStart < 0 || vZEnd >= mNSlices || vYStart < 0 || vYEnd >= mHeight || vXStart < 0 || vXEnd >= mWidth) {
 				System.out.println("Warning: sampling region is partly out of the image domain.");
-				//TODO: test boundaries
+				//TODO: give appropriate output
+				vZStart = Math.max(0, vZStart);
+				vYStart = Math.max(0, vYStart);
+				vXStart = Math.max(0, vXStart);
+				vZEnd = Math.min(vZEnd, mNSlices-1);
+				vYEnd = Math.min(vYEnd, mHeight-1);
+				vXEnd = Math.min(vXEnd, mWidth-1);
 
 			}
 			for(int vZ = vZStart; vZ <= vZEnd; vZ++) {
@@ -812,7 +852,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 								
 							}
 						}
-						// TODO: the next check is dirty and slow: choose reasonnable sampling domain(in Z and R)
+						// TODO: the next check is dirty and slow: choose a reasonable sampling domain(in Z and R)
 						if((int)((vZDistInPx + vMaxZInPx) / vZIncrementPerPxInPx) < 0 || (int)((vZDistInPx + vMaxZInPx) / vZIncrementPerPxInPx) >= vMap.length || 
 								(int)(vR / vRIncrementPerPxInPx) >= mMapSizeR || (int)(vR / vRIncrementPerPxInPx) < 0) {
 							continue;

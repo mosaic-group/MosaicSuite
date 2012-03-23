@@ -48,9 +48,24 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Vector;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import mosaic.core.detection.FeaturePointDetector;
 import mosaic.core.detection.MyFrame;
@@ -210,15 +225,15 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	public void run(ImageProcessor ip) {
 
 		initializeMembers();
-		 
-		if(!text_files_mode) {
+		 System.out.println("IJ macro is running: " + IJ.isMacro());
+		if(!text_files_mode && !IJ.isMacro()) {
 			preview_canvas = detector.generatePreviewCanvas(original_imp);	
 		} 
 
 		/* get user defined params and set more initial params accordingly 	*/	
 		if (!getUserDefinedParams()) return;				
-
-		if (!processFrames()) return;		
+ 
+		if (!processFrames()) return; 		
 
 		if (text_files_mode) {
 
@@ -227,7 +242,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		}
 
 		/* link the particles found */
-		IJ.showStatus("Linking Particles");		
+		IJ.showStatus("Linking Particles");		 
 		linker.linkParticles(frames, frames_number, linkrange, displacement);
 		IJ.freeMemory();
 
@@ -1688,7 +1703,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		// get original file location 
 		FileInfo vFI = this.original_imp.getOriginalFileInfo();
 		if(vFI == null) {
-			IJ.error("You're running a macros. Data are written to disk at the directory where your image is stored. Please store youre image first.");
+			IJ.error("You're running a macro. Data are written to disk at the directory where your image is stored. Please store youre image first.");
 			return;
 		}
 		// create new directory
@@ -1700,6 +1715,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		//		// write data to file
 		//		write2File(newDir.getAbsolutePath(), vFI.fileName + "PT3D.txt", getFullReport().toString());
 		MosaicUtils.write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
+		writeXMLFormatReport(new File(vFI.directory, title + "_PT3Dresults.xml").getAbsolutePath());
 	}
 
 	/**
@@ -2225,6 +2241,68 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		report.append(getTrajectoriesInfo());
 
 		return report;
+	}
+	
+	public void writeXMLFormatReport(String aFilename) {
+		
+		try {
+			 
+			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+	 
+			// root elements
+			Document doc = docBuilder.newDocument();
+			Element rootElement = doc.createElement("root");
+			doc.appendChild(rootElement);
+	 
+			// staff elements
+			Element TrackContest = doc.createElement("TrackContestISBI2012");
+			rootElement.appendChild(TrackContest);
+	 
+			// set attributes
+			TrackContest.setAttribute("SNR", "__SNR__");
+			TrackContest.setAttribute("density", "__density__");	
+			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm::ss z yyyy");
+			TrackContest.setAttribute("generationDateTime", sdf.format(Calendar.getInstance().getTime()));
+			TrackContest.setAttribute("info", "http://bioimageanalysis.org/track/");
+			TrackContest.setAttribute("scenario", "__scenario__");
+	 
+			
+						
+			// for each trajectory, generate a (ISBI-)particle element:
+			Iterator<Trajectory> iter = all_traj.iterator();
+			while (iter.hasNext()) {
+				Element particleElement = doc.createElement("particle");
+				Trajectory curr_traj = iter.next();
+				
+				for(Particle vP : curr_traj.existing_particles) {
+					Element detectionElement = doc.createElement("detection");
+					detectionElement.setAttribute("t", "" + vP.getFrame());
+					detectionElement.setAttribute("x", "" + (vP.y-0.5f));
+					detectionElement.setAttribute("y", "" + (vP.x-0.5f));
+					detectionElement.setAttribute("z", "" + vP.z);
+					particleElement.appendChild(detectionElement);
+				}
+				TrackContest.appendChild(particleElement);
+			}
+			
+			// write the content into xml file
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			Transformer transformer = transformerFactory.newTransformer();
+			DOMSource source = new DOMSource(doc);
+			StreamResult result = new StreamResult(new File(aFilename));
+	 
+			// Output to console for testing
+			// StreamResult result = new StreamResult(System.out);
+	 
+			transformer.transform(source, result);
+	 
+		  } catch (ParserConfigurationException pce) {
+			pce.printStackTrace();
+		  } catch (TransformerException tfe) {
+			tfe.printStackTrace();
+		  }
+
 	}
 
 

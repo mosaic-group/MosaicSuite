@@ -31,7 +31,7 @@ public class Settings
 		m_EnergySphericityCoeff = 0; ///EXPERIMENTAL!
 		m_EnergyShapePriorCoeff = 0.0f;
 	
-		m_BalloonForceCoeff = 0.0f; /// Experimental
+		m_BalloonForceCoeff = 0.05f; /// Experimental
 		m_ConstantOutwardFlow = 0.0f;
 	
 		m_AllowFusion = true;
@@ -56,7 +56,7 @@ public class Settings
 		// }
 		m_LocalLiEnergySigma = 5;
 		m_CurvatureMaskRadius = 8;
-		m_RegionMergingThreshold = 0.1f;
+		m_RegionMergingThreshold = 0.02f;
 	
 		m_AcceptedPointsFactor = 1;
 		m_AcceptedPointsReductionFactor = 0.5f;
