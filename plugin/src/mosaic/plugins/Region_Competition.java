@@ -35,7 +35,6 @@ import ij.process.ImageProcessor;
 
 public class Region_Competition implements PlugInFilter
 {
-		
 	Region_Competition MVC;		// interface to image application (imageJ)
 	public Settings settings;
 	LabelImage labelImage;		// data structure mapping pixels to labels
@@ -47,6 +46,8 @@ public class Region_Competition implements PlugInFilter
 	
 	public InputReadable userDialog;
 	JFrame cancelButton;
+	
+	String defaultInputFile= "C:/Users/Stephan/Desktop/BA/imagesAndPaper/icecream5_410x410.tif";
 	
 	
 	public int setup(String aArgs, ImagePlus aImp)
@@ -125,10 +126,12 @@ public class Region_Competition implements PlugInFilter
 		// next try: default image
 		if(ip==null)
 		{
-			String dir = IJ.getDirectory("current");
-			String fileName= "Clipboard01.png";
+//			String dir = IJ.getDirectory("current");
+//			String fileName= "Clipboard01.png";
 			//		String fileName= "icecream3_shaded_130x130.tif";
-			ip = o.openImage(dir+fileName);
+//			ip = o.openImage(dir+fileName);
+			
+			ip = o.openImage(defaultInputFile);
 		}
 			
 		if(ip!=null)
@@ -317,8 +320,13 @@ public class Region_Competition implements PlugInFilter
 				showFinalResult(labelImage, i);
 			}
 			
-			System.out.println("sorted kbest: (set in GenericDialogGui.kbest)");
+			System.out.println("--- kbest: (set in GenericDialogGui.kbest) ---");
 			
+			for(Long l:list)
+			{
+				System.out.println(l);
+			}
+			System.out.println("--- sorted ---");
 			Collections.sort(list);
 			for(Long l:list)
 			{

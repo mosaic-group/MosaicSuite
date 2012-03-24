@@ -10,7 +10,6 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.Stack;
-import java.util.TreeSet;
 
 import mosaic.plugins.Region_Competition;
 
@@ -116,8 +115,8 @@ public class LabelImage //extends ShortProcessor
 		labelMap = new HashMap<Integer, LabelInformation>();
 		m_CompetingRegionsMap = new HashMap<Point, Pair<Integer, Integer>>();
 		
-		m_MergingHist = new LinkedList<Integer>();
-		m_FramesHist = new LinkedList<Integer>();
+//		m_MergingHist = new LinkedList<Integer>();
+//		m_FramesHist = new LinkedList<Integer>();
 		
 		initMembers();
 		initConnectivities(dim);
@@ -395,7 +394,7 @@ public class LabelImage //extends ShortProcessor
 		IndexIterator it = new IndexIterator(grid);
 		for(Point ofs:it.getPointIterable())
 		{
-			System.out.println(ofs);
+//			debug(ofs);
 			ofs=ofs.mult(displ).add(gapPoint); // left upper startpoint of a bubble+spacing
 //			RegionIterator rit = new RegionIterator(m_LabelImage.dimensions, region, ofs.x);
 			
@@ -710,6 +709,7 @@ public class LabelImage //extends ShortProcessor
 		boolean vConvergence = true;
 		
 		m_Candidates.clear();
+		m_Seeds.clear();
 
 
 		/// clear the competing regions map, it will be refilled in RebuildCandidateList: (via CalculateEnergyDifferenceForLabel)
@@ -800,20 +800,17 @@ public class LabelImage //extends ShortProcessor
 				int vCurrentLabel = vStoreIt.label;
 				int vCandidateLabel = vStoreIt.candidateLabel;
 	
-				// int vTopoNb;
 				boolean vValidPoint = true;
 	
 				vFGTNvector = (m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex));
-//	                FGTNIteratorType vTopoNbItr;
-//	                FGTNIteratorType vTopoNbItrEnd = vFGTNvector.end();
 
                 /// Check for handles:
                 /// if the point was not disqualified already and we disallow
                 /// introducing handles (not only self fusion!), we check if
                 /// there is an introduction of a handle.
+				
                 if (vValidPoint && !settings.m_AllowHandles) 
                 {
-                	
                     for (Pair<Integer, Pair<Integer, Integer>> vTopoNbItr : vFGTNvector ) 
                     {
                         if (vTopoNbItr.first == vCandidateLabel) {
@@ -852,10 +849,9 @@ public class LabelImage //extends ShortProcessor
 					}
 					if(vSplit) 
 					{
-						if(settings.m_AllowFission) {
-							
+						if(settings.m_AllowFission)
+						{
 							RegisterSeedsAfterSplit(this, vCurrentIndex, vCurrentLabel, m_Candidates);
-
 						} else {
 							/// disallow the move.	
 							vValidPoint = false;
@@ -864,9 +860,8 @@ public class LabelImage //extends ShortProcessor
 				}
 				
 				if(!vValidPoint) {
-					// TODO check
-					vPointIterator.remove();
 					// m_Candidates.erase(vStoreIt);
+					vPointIterator.remove();
 				}
 				
                 /// If the move doesn't change topology or is allowed (and registered
@@ -878,10 +873,14 @@ public class LabelImage //extends ShortProcessor
 					ChangeContourPointLabelToCandidateLabel(e);
 					vConvergence = false;
 					
-					if(e.getValue().m_processed) {
-						
-						RegisterSeedsAfterSplit(this, vCurrentIndex, vCandidateLabel, m_Candidates);
-						m_Seeds.remove(new Pair<Point,Integer>(vCurrentIndex, vCurrentLabel));
+					if(e.getValue().m_processed) 
+					{
+						RegisterSeedsAfterSplit(this, vCurrentIndex, vCurrentLabel, m_Candidates);
+						boolean wasContained = m_Seeds.remove(new Pair<Point,Integer>(vCurrentIndex, vCurrentLabel));
+						if(!wasContained)
+						{
+							throw new RuntimeException("no seed in set");
+						}
 					}
 				}
 
@@ -927,47 +926,40 @@ public class LabelImage //extends ShortProcessor
 		int vNSplits = 0;
 		for(Pair<Point, Integer> vSeedIt : m_Seeds) 
 		{
-//			LabelInformation info = labelMap.get(vSeedIt.second);
-//			if(info == null) {
-//				// TODO !!! Seed label not found
-//				// This might happen, if there are multiple seeds for a split. The region was then 
-//				// relabeled in the first seed, and the label of the next seeds are not found anymore. 
-////				displaySlice("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
-//				debug("label not found for point "+ vSeedIt.first+ " label "+vSeedIt.second);
-//				continue;
-//			}
-//			int count  = info.count;
-//			if(count > 1) //WRONG!
-			{
-				RelabelRegionsAfterSplit(this, vSeedIt.first, vSeedIt.second);
-				vSplit = true;
-				vNSplits++;
-			}
+			RelabelRegionsAfterSplit(this, vSeedIt.first, vSeedIt.second);
+			vSplit = true;
+			vNSplits++;
 		}
 		        
         /// Merge the the competing regions if they meet merging criterion.
-		if(settings.m_UseRegionCompetition && settings.m_AllowFusion) 
+		if(settings.m_AllowFusion) 
 		{
+			
+			Set<Integer> vCheckedLabels = new HashSet<Integer>();
 			
 			for(Entry<Point, Pair<Integer, Integer>> vCRit : m_CompetingRegionsMap.entrySet()) 
 			{
-//TODO !!!! m_CompetingRegionsMap is always empty?
+//				Entry<Point, Pair<Integer, Integer>> vCRit=competingRegions[i];
 				
 				Point idx = vCRit.getKey();
-				Pair<Integer, Integer> labels= vCRit.getValue();
+				Pair<Integer, Integer> labels = vCRit.getValue();
 				
 				int vLabel1 = labels.first;
 				int vLabel2 = labels.second;
                 
-                //TODO ist das debug?
-				m_MergingHist.add(m_iteration_counter);
-				m_MergingHist.add(vLabel1);
-				m_MergingHist.add(vLabel2);
+//				m_MergingHist.add(m_iteration_counter);
+//				m_MergingHist.add(vLabel1);
+//				m_MergingHist.add(vLabel2);
 				
-//TODO !!!!! funktion aus itk uebernehmen
-//				RelabelAdjacentRegionsAfterToplogicalChange(m_LabelImage,idx, vLabel1, vLabel2);
-				
-				RelabelRegionsAfterFusion(m_LabelImage, idx, vLabel1);
+				if(vCheckedLabels.contains(vLabel1) || vCheckedLabels.contains(vLabel2))
+				{
+					// do nothing, since this label was already in a fusion-chain
+				}
+				else
+				{
+//					vCheckedLabels.clear(); //TODO WEGWEGWEG
+					RelabelRegionsAfterFusion(m_LabelImage, idx, vLabel1, vCheckedLabels);
+				}
 				vMerge = true;
 			}
 //			debug("merged " + m_MergingHist.size()+ " region pairs.");
@@ -994,13 +986,11 @@ public class LabelImage //extends ShortProcessor
 		for (Point vSeedIndex : connFG.itNeighborsOf(aIndex)) {
 			int vLabel = getAbs(vSeedIndex);
 
-			if (vLabel == aLabel) {
+			if (vLabel == aLabel) 
+			{
 				Pair<Point, Integer> vSeed = new Pair<Point, Integer>(vSeedIndex, vLabel);
 
-				if(vLabel == 0)
-					System.out.println("here");
 				m_Seeds.add(vSeed);
-
 
 				/// At the position where we put the seed, inform the particle
 				/// that it has to inform its neighbor in case it moves (if there
@@ -1416,10 +1406,6 @@ public class LabelImage //extends ShortProcessor
             }
         }
 	
-        //        std::stringstream vSS3;
-        //        vSS3 << "contourPointsAfterNetworkingStuffAtIt_" << (m_iteration_counter + 10000) << ".txt";
-        //        WriteContourPointContainer(vSS3.str().c_str(), vAllCandidates);
-
         /**
          * Filter all candidates with the illigal indices
          */
@@ -1472,7 +1458,7 @@ public class LabelImage //extends ShortProcessor
 	
         ///
         /// Update the label image. The new point is either a contour point or 0,
-        /// therefor the negative label value is set.
+        /// therefore the negative label value is set.
 		//TODO sts is this true? what about enclosed pixels? 
 		// ie first was like a 'U', then 'O' and now the hole is filled, then it is an inner point
 		// where is this handled?
@@ -1650,9 +1636,11 @@ public class LabelImage //extends ShortProcessor
 	 */
 	void RelabelRegionsAfterSplit(LabelImage aLabelImage, Point aIndex, int aLabel)
 	{
-		System.out.println("Split at " + aIndex.toString() + " of label " + aLabel);
+//		debug("Split at " + aIndex.toString() + " of label " + aLabel);
+//		MVC.selectPoint(aIndex);
 		// template <class TInputImage, class TInitImage, class TOutputImage >
-		if(getAbs(aIndex)==aLabel) {
+		if(getAbs(aIndex)==aLabel) 
+		{
 			MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdImageFunction(aLabelImage);
 			vMultiThsFunction.AddThresholdBetween(aLabel, aLabel);
 			int negLabel = labelToNeg(aLabel);
@@ -1669,43 +1657,60 @@ public class LabelImage //extends ShortProcessor
 	/// Relabel2AdjacentRegionsAfterToplogicalChange expects the label image to
 	/// be updated already: both methods are connected via the seedpoint. This
 	/// method may be used to fuse 2 regions in the region competition mode.
-	void RelabelRegionsAfterFusion(LabelImage aLabelImage, Point aIndex, int aL1) 
+	
+	void RelabelRegionsAfterFusion(LabelImage aLabelImage, Point aIndex, int aL1, Set<Integer> aCheckedLabels) 
 	{
-		System.out.println("Relabel after fusion at " + aIndex.toString() + " of label " + aL1);
+//		debug("Relabel after fusion at " + aIndex.toString() + " of label " + aL1);
+//		if(m_iteration_counter==6)
+//		{
+//			System.out.println(6);
+//		}
+//		MVC.selectPoint(aIndex);
+		
 		int aL1Neg = labelToNeg(aL1);
 
 		MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdImageFunction(aLabelImage);
 		
-		LinkedList<Integer> vLabelsToCheck = new LinkedList<Integer>();
-		Set<Integer> vCheckedLabels = new TreeSet<Integer>();
+		Stack<Integer> vLabelsToCheck = new Stack<Integer>();
+//		LinkedList<Integer> vLabelsToCheck = new LinkedList<Integer>();
+
 		
-		vLabelsToCheck.addLast(aL1);
+		vLabelsToCheck.push(aL1);
 	    vMultiThsFunction.AddThresholdBetween(aL1, aL1);
 	    vMultiThsFunction.AddThresholdBetween(aL1Neg, aL1Neg);
-	    vCheckedLabels.add(aL1);		
+	    aCheckedLabels.add(aL1);		
 	    
-	    for(int vLabelToCheck : vLabelsToCheck) {
+//	    for(int vLabelToCheck : vLabelsToCheck) 
+	    while(!vLabelsToCheck.isEmpty())
+	    {
+	    	int vLabelToCheck = vLabelsToCheck.pop();
 	    	for(Pair<Integer,Integer> vMergingLabelsPair : m_CompetingRegionsMap.values()) {
 	    		int vLabel1 = vMergingLabelsPair.first;
 	    		int vLabel2 = vMergingLabelsPair.second;
 	    		
-	    		if(vLabel1 == vLabelToCheck && !vCheckedLabels.contains(vLabel2)){
+	    		if(vLabel1 == vLabelToCheck && !aCheckedLabels.contains(vLabel2)){
 	    		    vMultiThsFunction.AddThresholdBetween(vLabel2, vLabel2);
 	    		    vMultiThsFunction.AddThresholdBetween(labelToNeg(vLabel2), labelToNeg(vLabel2));
-	    		    vCheckedLabels.add(vLabel2);
-	    		    vLabelsToCheck.addLast(vLabel2);
+	    		    aCheckedLabels.add(vLabel2);
+	    		    vLabelsToCheck.push(vLabel2);
 	    		}
-	    		if(vLabel2 == vLabelToCheck && !vCheckedLabels.contains(vLabel1)){
+	    		if(vLabel2 == vLabelToCheck && !aCheckedLabels.contains(vLabel1)){
 	    		    vMultiThsFunction.AddThresholdBetween(vLabel1, vLabel1);
 	    		    vMultiThsFunction.AddThresholdBetween(labelToNeg(vLabel1), labelToNeg(vLabel1));
-	    		    vCheckedLabels.add(vLabel1);
-	    		    vLabelsToCheck.addLast(vLabel1);
+	    		    aCheckedLabels.add(vLabel1);
+	    		    vLabelsToCheck.push(vLabel1);
 	    		}
 	    	}
 	    }
 		if(vMultiThsFunction.EvaluateAtIndex(aIndex)){
 		    ForestFire(aLabelImage, aIndex, vMultiThsFunction, m_MaxNLabels++);
 		}
+		
+//		if(m_iteration_counter==6)
+//		{
+//			displaySlice(aIndex.toString());
+//		}
+		
 	}
 
 
@@ -2326,124 +2331,85 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		
 //		displaySlice("pre forestfire");
 
-//        Set<LabelAbsPixelType> LabelAbsPxSetType;
-//		LabelAbsPxSetType vVisitedNewLabels;
-//		LabelAbsPxSetType vVisitedOldLabels;
-		
 		//Set<Integer> vVisitedNewLabels = new HashSet<Integer>();
 		Set<Integer> vVisitedOldLabels = new HashSet<Integer>();
 
-//		displaySlice("forestfire um "+aIndex);
-		
-		//for(Point p : connFG.itNeighborsOf(aIndex)) 
-		//{
-			//int vLabel = get(p);
+		FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, aIndex);
+		Iterator<Point> vLit = ff.iterator();
 
-//			if(vLabel != 0 && vLabel != aLabelImage.forbiddenLabel 
-//					&& !vVisitedNewLabels.contains(labelToAbs(vLabel))
-//					&& aMultiThsFunctionPtr.EvaluateAtIndex(p)) 
-//			{
+		Set<Point> vSetOfAncientContourIndices = new HashSet<Point>(); // ContourIndexType
 
-				FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, aIndex);
-				Iterator<Point> vLit = ff.iterator();
+		double vSum = 0;
+		double vSqSum = 0;
+		int vN = 0;
+		double vLengthEnergy = 0;
 
+        while(vLit.hasNext())
+        {
+			// InputPixelType vImageValue = vDit.Get();
+			Point vCurrentIndex = vLit.next();
+			int vLabelValue = get(vCurrentIndex);
+			int absLabel = labelToAbs(vLabelValue);
+			float vImageValue = getIntensity(vCurrentIndex);
+			
+			// the visited labels statistics will be removed later.
+			vVisitedOldLabels.add(absLabel);
+			
+			set(vCurrentIndex, aNewLabel);
+			
+			if(isContourLabel(vLabelValue)) 
+			{
+				// m_InnerContourContainer[static_cast<ContourIndexType>(vLit.GetIndex())].first = vNewLabel;
+				// ContourIndexType vCurrentIndex = static_cast<ContourIndexType>(vLit.GetIndex());
+				
+				vSetOfAncientContourIndices.add(vCurrentIndex);
+				
+			}
 
-				Set<Point> vSetOfAncientContourIndices = new HashSet<Point>(); // ContourIndexType
+			vN++;
+			vSum += vImageValue;
+			vSqSum += vImageValue * vImageValue;
 
-				// profiling:
-				// std::cout << "starting floodfilling..." << std::endl;
-
-				double vSum = 0;
-				double vSqSum = 0;
-				int vN = 0;
-				double vLengthEnergy = 0;
-
-                while(vLit.hasNext())
-                {
-					// InputPixelType vImageValue = vDit.Get();
-					Point vCurrentIndex = vLit.next();
-					int vLabelValue = this.get(vCurrentIndex);
-					int absLabel = labelToAbs(vLabelValue);
-					float vImageValue = this.getIntensity(vCurrentIndex);
-
-		
-					
-					//TODO !!! here be dragons! 
-					/* may be eg label 1. and there might be a nonadjacent (to aIndex) region with label 1 
-					 * (since there is another seed for it)
-					 * this other label 1 region will NOT be relabeled. 
-					 * but since label 1 is put into vVisitedOldLabels, 
-					 * the LabelInformation for label 1 will get erased! 
-					 * 
-					 */
-					
-					
-					// the visited labels statistics will be removed later.
-					vVisitedOldLabels.add(absLabel);
-					set(vCurrentIndex, aNewLabel);
-					
-					
-					if(isContourLabel(vLabelValue)) 
-					{
-						// m_InnerContourContainer[static_cast<ContourIndexType>(vLit.GetIndex())].first = vNewLabel;
-						// ContourIndexType vCurrentIndex = static_cast<ContourIndexType>(vLit.GetIndex());
-						
-						vSetOfAncientContourIndices.add(vCurrentIndex);
-						
-					}
-
-					vN++;
-					vSum += vImageValue;
-					vSqSum += vImageValue * vImageValue;
-
-				} // while iterating over floodfill area
+		} // while iterating over floodfill area
 
 
-                /// Delete the contour points that are not needed anymore:
-                for(Point vCurrentCIndex: vSetOfAncientContourIndices) 
-                {
-                    if (isBoundaryPoint(vCurrentCIndex)) 
-                    {
-                    	ContourParticle vPoint = m_InnerContourContainer.get(vCurrentCIndex);
-                    	vPoint.label = aNewLabel;
-//	 					vPoint.modifiedCounter = 0;
+        /// Delete the contour points that are not needed anymore:
+        for(Point vCurrentCIndex: vSetOfAncientContourIndices) 
+        {
+            if (isBoundaryPoint(vCurrentCIndex)) 
+            {
+            	ContourParticle vPoint = m_InnerContourContainer.get(vCurrentCIndex);
+            	vPoint.label = aNewLabel;
+//	 			vPoint.modifiedCounter = 0;
 
 //						vLengthEnergy += m_ContourLengthFunction->EvaluateAtIndex(vCurrentCIndex);
-                        set(vCurrentCIndex, labelToNeg(aNewLabel));
-                    } else {
-                        m_InnerContourContainer.remove(vCurrentCIndex);
-//                        m_LabelImage->SetPixel(vCurrentCIndex, vNewLabel);
-//                        vLit.Set(vNewLabel);
-                    }
-                }
+                set(vCurrentCIndex, labelToNeg(aNewLabel));
+            } else {
+                m_InnerContourContainer.remove(vCurrentCIndex);
+            }
+        }
 
-                /// Store the statistics of the new region (the vectors will
-                /// store more and more trash of old regions).
-				double vN_ = vN;
+        /// Store the statistics of the new region (the vectors will
+        /// store more and more trash of old regions).
+		double vN_ = vN;
 
-				// create a labelInformation for the new label, add to container
-				LabelInformation newLabelInformation = new LabelInformation(aNewLabel);
-				labelMap.put(aNewLabel, newLabelInformation);
+		// create a labelInformation for the new label, add to container
+		LabelInformation newLabelInformation = new LabelInformation(aNewLabel);
+		labelMap.put(aNewLabel, newLabelInformation);
 
-				newLabelInformation.mean = vSum / vN_;
-				// TODO m_Intensities[vNewLabel] = m_Means[vNewLabel];
-				// TODO !! vN_ can be 1;
-				double var = (vN_>1)?(vSqSum - vSum * vSum / vN_) / (vN_ - 1):0;
-				newLabelInformation.setVar(var);
-//				newLabelInformation.var = var;
-				newLabelInformation.count = vN;
-				// TODO m_Lengths[vNewLabel] = vLengthEnergy;
+		newLabelInformation.mean = vSum / vN_;
+		// TODO m_Intensities[vNewLabel] = m_Means[vNewLabel];
+		double var = (vN_>1)?(vSqSum - vSum * vSum / vN_) / (vN_ - 1) : 0;
+		newLabelInformation.setVar(var);
+		newLabelInformation.count = vN;
+		// TODO m_Lengths[vNewLabel] = vLengthEnergy;
 
-			//} // if neighbor label ok
-			
-
-		
 //		displaySlice("after forestfire");
 		
 		/// Clean up the statistics of non valid regions.
 		for(int vVisitedIt : vVisitedOldLabels) 
 		{
-			System.out.println("Freed label " + vVisitedIt);
+//			debug("Freed label " + vVisitedIt);
 			FreeLabelStatistics(vVisitedIt);
 		}
 		

@@ -31,7 +31,7 @@ public class Settings
 		m_EnergySphericityCoeff = 0; ///EXPERIMENTAL!
 		m_EnergyShapePriorCoeff = 0.0f;
 	
-		m_BalloonForceCoeff = 0.05f; /// Experimental
+		m_BalloonForceCoeff = 0.00f; /// Experimental
 		m_ConstantOutwardFlow = 0.0f;
 	
 		m_AllowFusion = true;
