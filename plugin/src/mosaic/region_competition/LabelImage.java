@@ -1,4 +1,6 @@
 package mosaic.region_competition;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,6 +12,7 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 
 import mosaic.plugins.Region_Competition;
 
@@ -17,6 +20,8 @@ import ij.ImagePlus;
 import ij.gui.OvalRoi;
 import ij.gui.Roi;
 import ij.measure.ResultsTable;
+import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.ShortProcessor;
@@ -32,7 +37,6 @@ import ij.process.ShortProcessor;
 
 public class LabelImage //extends ShortProcessor
 {
-	
 	private Region_Competition MVC; 	/** interface to image program */
 	private LabelImage m_LabelImage; 	// == this, exists for easier refactoring
 	
@@ -45,14 +49,16 @@ public class LabelImage //extends ShortProcessor
 	
 	int dim;			// number of dimension
 	int[] dimensions;	// dimensions (width, height, depth, ...)
-	private int width;	// TODO multidim
-	private int height;
+	int width;	// TODO multidim
+	int height;
 	IndexIterator iterator; // iterates over the labelImage
 	
 	
 	final int forbiddenLabel=Short.MAX_VALUE;
 	final int bgLabel = 0;
-	final int negOfs=10000;			// labels above this number stands for "negative numbers" (problem with displaying negative numbers in ij.ShortProcessor)
+	final int negOfs = 10000;			// labels above this number stands for "negative numbers" (problem with displaying negative numbers in ij.ShortProcessor)
+	LabelDispenser labelDispenser;
+	
 	
 	// data structures
 	
@@ -64,7 +70,7 @@ public class LabelImage //extends ShortProcessor
 	/** Maps the label(-number) to the information of a label */
 	private HashMap<Integer, LabelInformation> labelMap;
 
-	private HashMap<Point, Pair<Integer, Integer>> m_CompetingRegionsMap;
+	private HashMap<Point, LabelPair> m_CompetingRegionsMap;
 	
 	
 	private Connectivity connFG;
@@ -101,25 +107,24 @@ public class LabelImage //extends ShortProcessor
 		
 		iterator = new IndexIterator(dimensions);
 		
-		
 		//TODO multidim
 		width=ip.getWidth();
 		height=ip.getHeight();
 		
-		// TODO does init twice if guess loaded from file
-		labelIP = new ShortProcessor(width, height);
-		
-		//TODO initial capacities
-		m_InnerContourContainer = new HashMap<Point, ContourParticle>();
-		m_Candidates = new HashMap<Point, ContourParticle>();
-		labelMap = new HashMap<Integer, LabelInformation>();
-		m_CompetingRegionsMap = new HashMap<Point, Pair<Integer, Integer>>();
-		
 //		m_MergingHist = new LinkedList<Integer>();
 //		m_FramesHist = new LinkedList<Integer>();
 		
-		initMembers();
 		initConnectivities(dim);
+		
+		initMembers();
+	}
+	
+	void initLabelProc()
+	{
+		// TODO does init twice if guess loaded from file
+//		labelIP = new ColorProcessor(width, height);
+		labelIP = new ShortProcessor(width, height);
+//		labelIP = new FloatProcessor(width, height);
 	}
 	
 	
@@ -152,7 +157,7 @@ public class LabelImage //extends ShortProcessor
     EnergyFunctionalType m_EnergyFunctional;
     int m_OscillationHistoryLength;
 
-	public int m_MaxNLabels;
+	private int m_MaxNLabels;
     
 	SphereBitmapImageSource sphereMaskIterator; // regularization
 	
@@ -161,8 +166,17 @@ public class LabelImage //extends ShortProcessor
     
 	// ///////////////////////////////////////////////////
 
-    void initMembers()
+	public void initMembers()
     {
+    	initLabelProc();
+    	
+		//TODO initial capacities
+		m_InnerContourContainer = new HashMap<Point, ContourParticle>();
+		m_Candidates = new HashMap<Point, ContourParticle>();
+		labelMap = new HashMap<Integer, LabelInformation>();
+		m_CompetingRegionsMap = new HashMap<Point, LabelPair>();
+    	
+    	
 //    	settings = new Settings();
     	sphereMaskIterator = new SphereBitmapImageSource(m_LabelImage, (int)settings.m_CurvatureMaskRadius, 2*(int)settings.m_CurvatureMaskRadius+1);
     	m_GaussPSEnergyRadius=8;
@@ -186,6 +200,7 @@ public class LabelImage //extends ShortProcessor
 			m_OscillationsEnergyHist[vI] = 0;
 		}
 		
+		labelDispenser = new LabelDispenser(negOfs);
 		m_MaxNLabels=0;
     }
 	
@@ -203,7 +218,7 @@ public class LabelImage //extends ShortProcessor
 		
 		for(int i=0; i<size; i++)
 		{
-			labelIP.set(i, 0);
+			set(i, 0);
 		}
 	}
 	
@@ -249,6 +264,7 @@ public class LabelImage //extends ShortProcessor
 	{
 		Roi vRectangleROI = new Roi(10, 10, imageIP.getWidth()-20, imageIP.getHeight()-20);
 		labelIP.setValue(1);
+//		labelIP.setValue(labelDispenser.getNewLabel());
 		labelIP.fill(vRectangleROI);
 	}
 	
@@ -265,6 +281,7 @@ public class LabelImage //extends ShortProcessor
 		
 		Roi vRectangleROI = new Roi(x, y, w, h);
 		labelIP.setValue(1);
+//		labelIP.setValue(labelDispenser.getNewLabel());
 		labelIP.fill(vRectangleROI);
 	}
 	
@@ -295,6 +312,7 @@ public class LabelImage //extends ShortProcessor
 			int y = h+rand.nextInt(height-2*h);
 			
 			int label=i+1;
+//			int label=i+labelDispenser.getNewLabel();
 			
 			ellipses[i][0]=x;
 			ellipses[i][1]=y;
@@ -401,35 +419,7 @@ public class LabelImage //extends ShortProcessor
 			BubbleDrawer bd = new BubbleDrawer(m_LabelImage, rad, 2*rad);
 			bubbleIndex++;
 			bd.doSphereIteration(ofs, bubbleIndex);
-		}
-	}
-	
-	/**
-	 * compute the statistics for each region, 
-	 * stores them in labelMap for the corresponding label
-	 */
-	public void computeStatistics()
-	{
-		clearStats();
-		
-		int size = iterator.getSize();
-		for(int i=0; i<size; i++)
-		{
-			int absLabel = getAbs(i);
-
-			if (absLabel != bgLabel && absLabel != forbiddenLabel) 
-			{
-				LabelInformation stats = labelMap.get(absLabel);
-				if(stats==null)
-				{
-//					labelMap.put(absLabel, new LabelInformation(absLabel));
-//					stats = labelMap.get(absLabel);
-
-					stats = new LabelInformation(absLabel);
-					labelMap.put(absLabel, stats);
-				}
-				stats.add(getIntensity(i));
-			}
+//			bd.doSphereIteration(ofs, labelDispenser.getNewLabel());
 		}
 	}
 	
@@ -453,6 +443,8 @@ public class LabelImage //extends ShortProcessor
 	{
 		clearStats();
 		
+		HashSet<Integer> usedLabels = new HashSet<Integer>();
+		
 		int size = iterator.getSize();
 		for(int i=0; i<size; i++)
 		{
@@ -463,13 +455,11 @@ public class LabelImage //extends ShortProcessor
 
 			if (absLabel != forbiddenLabel /* && absLabel != bgLabel*/) 
 			{
+				usedLabels.add(absLabel);
 				if(absLabel > m_MaxNLabels)
 				{
 					m_MaxNLabels = absLabel;
 				}
-				
-				//TODO save the last label, the next label will be likely the same label, 
-				// so you can save one map lookup (by the cost of 1 integer comparison)
 				
 				LabelInformation stats = labelMap.get(absLabel);
 				if(stats==null)
@@ -490,9 +480,9 @@ public class LabelImage //extends ShortProcessor
 		// in mean the sum of the values, in var the sum of val^2
 		for(LabelInformation stat: labelMap.values())
 		{
-			int n= stat.count;
+			int n = stat.count;
             if (n > 1) {
-            	double var = (stat.var - stat.mean*stat.mean / n) / (n-1);
+            	double var = (stat.var-stat.mean*stat.mean/n)/(n-1);
             	stat.setVar(var);
 //                stat.var = (stat.var - stat.mean*stat.mean / n) / (n-1);
             } else {
@@ -502,7 +492,8 @@ public class LabelImage //extends ShortProcessor
 		}
 		
         m_MaxNLabels++; // this number points to the a free label.
-		
+        
+        labelDispenser.setLabelsInUse(usedLabels);
 	}
 	
 	
@@ -686,8 +677,13 @@ public class LabelImage //extends ShortProcessor
 			RemoveNotSignificantRegions();
 		}
 
+		labelDispenser.addTempFree();
+		
 		vConvergenceA = IterateContourContainerAndAdd();
 		CleanUp();
+		
+		debug("labelmap: "+labelMap.size());
+		debug("dispenser: "+labelDispenser.labels.size());
 
 		return vConvergenceA;
 	}
@@ -937,12 +933,12 @@ public class LabelImage //extends ShortProcessor
 			
 			Set<Integer> vCheckedLabels = new HashSet<Integer>();
 			
-			for(Entry<Point, Pair<Integer, Integer>> vCRit : m_CompetingRegionsMap.entrySet()) 
+			for(Entry<Point, LabelPair> vCRit : m_CompetingRegionsMap.entrySet()) 
 			{
 //				Entry<Point, Pair<Integer, Integer>> vCRit=competingRegions[i];
 				
 				Point idx = vCRit.getKey();
-				Pair<Integer, Integer> labels = vCRit.getValue();
+				LabelPair labels = vCRit.getValue();
 				
 				int vLabel1 = labels.first;
 				int vLabel2 = labels.second;
@@ -1164,11 +1160,8 @@ public class LabelImage //extends ShortProcessor
 								{
 									int L1 = vContourPointItr.candidateLabel;
 									int L2 = vContourPointItr.label;
-									Pair<Integer, Integer> pair;
-									if(L1<L2)
-										pair = new Pair<Integer, Integer>(L1, L2);
-									else
-										pair = new Pair<Integer, Integer>(L2, L1);
+									
+									LabelPair pair = new LabelPair(L1, L2);
 
 									m_CompetingRegionsMap.put(vCurrentIndex, pair);
 									
@@ -1646,7 +1639,8 @@ public class LabelImage //extends ShortProcessor
 			int negLabel = labelToNeg(aLabel);
 			vMultiThsFunction.AddThresholdBetween(negLabel, negLabel);
 
-			ForestFire(aLabelImage, aIndex, vMultiThsFunction, m_MaxNLabels++);
+//			ForestFire(aLabelImage, aIndex, vMultiThsFunction, m_MaxNLabels++);
+			ForestFire(aLabelImage, aIndex, vMultiThsFunction, labelDispenser.getNewLabel());
 		}
 	}
 
@@ -1667,43 +1661,45 @@ public class LabelImage //extends ShortProcessor
 //		}
 //		MVC.selectPoint(aIndex);
 		
-		int aL1Neg = labelToNeg(aL1);
-
 		MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdImageFunction(aLabelImage);
 		
-		Stack<Integer> vLabelsToCheck = new Stack<Integer>();
 //		LinkedList<Integer> vLabelsToCheck = new LinkedList<Integer>();
-
+		Stack<Integer> vLabelsToCheck = new Stack<Integer>();
 		
 		vLabelsToCheck.push(aL1);
 	    vMultiThsFunction.AddThresholdBetween(aL1, aL1);
+	    int aL1Neg=labelToNeg(aL1);
 	    vMultiThsFunction.AddThresholdBetween(aL1Neg, aL1Neg);
 	    aCheckedLabels.add(aL1);		
 	    
 //	    for(int vLabelToCheck : vLabelsToCheck) 
-	    while(!vLabelsToCheck.isEmpty())
-	    {
-	    	int vLabelToCheck = vLabelsToCheck.pop();
-	    	for(Pair<Integer,Integer> vMergingLabelsPair : m_CompetingRegionsMap.values()) {
-	    		int vLabel1 = vMergingLabelsPair.first;
-	    		int vLabel2 = vMergingLabelsPair.second;
-	    		
-	    		if(vLabel1 == vLabelToCheck && !aCheckedLabels.contains(vLabel2)){
-	    		    vMultiThsFunction.AddThresholdBetween(vLabel2, vLabel2);
-	    		    vMultiThsFunction.AddThresholdBetween(labelToNeg(vLabel2), labelToNeg(vLabel2));
-	    		    aCheckedLabels.add(vLabel2);
-	    		    vLabelsToCheck.push(vLabel2);
-	    		}
-	    		if(vLabel2 == vLabelToCheck && !aCheckedLabels.contains(vLabel1)){
-	    		    vMultiThsFunction.AddThresholdBetween(vLabel1, vLabel1);
-	    		    vMultiThsFunction.AddThresholdBetween(labelToNeg(vLabel1), labelToNeg(vLabel1));
-	    		    aCheckedLabels.add(vLabel1);
-	    		    vLabelsToCheck.push(vLabel1);
-	    		}
-	    	}
-	    }
+		while(!vLabelsToCheck.isEmpty())
+		{
+			int vLabelToCheck = vLabelsToCheck.pop();
+			for(LabelPair vMergingLabelsPair : m_CompetingRegionsMap.values())
+			{
+				int vLabel1 = vMergingLabelsPair.first;
+				int vLabel2 = vMergingLabelsPair.second;
+
+				if(vLabel1 == vLabelToCheck && !aCheckedLabels.contains(vLabel2))
+				{
+					vMultiThsFunction.AddThresholdBetween(vLabel2, vLabel2);
+					vMultiThsFunction.AddThresholdBetween(labelToNeg(vLabel2), labelToNeg(vLabel2));
+					aCheckedLabels.add(vLabel2);
+					vLabelsToCheck.push(vLabel2);
+				}
+				if(vLabel2 == vLabelToCheck && !aCheckedLabels.contains(vLabel1))
+				{
+					vMultiThsFunction.AddThresholdBetween(vLabel1, vLabel1);
+					vMultiThsFunction.AddThresholdBetween(labelToNeg(vLabel1), labelToNeg(vLabel1));
+					aCheckedLabels.add(vLabel1);
+					vLabelsToCheck.push(vLabel1);
+				}
+			}
+		}
 		if(vMultiThsFunction.EvaluateAtIndex(aIndex)){
-		    ForestFire(aLabelImage, aIndex, vMultiThsFunction, m_MaxNLabels++);
+//		    ForestFire(aLabelImage, aIndex, vMultiThsFunction, m_MaxNLabels++);
+		    ForestFire(aLabelImage, aIndex, vMultiThsFunction, labelDispenser.getNewLabel());
 		}
 		
 //		if(m_iteration_counter==6)
@@ -2434,20 +2430,22 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	 * (eg. to process user input for region guesses)
 	 * @param li LabelImage
 	 */
-	public static void connectedComponents(LabelImage li)
+	public void connectedComponents()
 	{
 		//TODO ! test this
 		
-		HashSet<Integer> oldLabels = new HashSet<Integer>();
+		HashSet<Integer> oldLabels = new HashSet<Integer>();		// set of the old labels
+		ArrayList<Integer> newLabels = new ArrayList<Integer>();	// set of new labels
+		
 		int newLabel=1;
 		
-		int size=li.iterator.getSize();
+		int size=iterator.getSize();
 		
 		// what are the old labels?
 		for(int i=0; i<size; i++)
 		{
-			int l=li.get(i);
-			if(l==li.forbiddenLabel || l==li.bgLabel)
+			int l=get(i);
+			if(l==forbiddenLabel || l==bgLabel)
 			{
 				continue;
 			}
@@ -2456,42 +2454,56 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		
 		for(int i=0; i<size; i++)
 		{
-			int l=li.get(i);
-			if(l==li.forbiddenLabel || l==li.bgLabel)
+			int l=get(i);
+			if(l==forbiddenLabel || l==bgLabel)
 			{
 				continue;
 			}
 			if(oldLabels.contains(l))
 			{
 				// l is an old label
-				MultipleThresholdImageFunction aMultiThsFunctionPtr = new MultipleThresholdImageFunction(li);
+				MultipleThresholdImageFunction aMultiThsFunctionPtr = new MultipleThresholdImageFunction(this);
 				aMultiThsFunctionPtr.AddThresholdBetween(l, l);
-				FloodFill ff = new FloodFill(li, aMultiThsFunctionPtr, li.iterator.indexToPoint(i));
+				FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, iterator.indexToPoint(i));
 				
 				//find a new label
 				while(oldLabels.contains(newLabel)){
 					newLabel++;
 				}
+				
+				// newLabel is now an unused label
+				newLabels.add(newLabel);
+				
 				// set region to new label
 				for(Point p:ff)
 				{
-					li.set(p, newLabel);
+					set(p, newLabel);
 				}
 				// next new label
 				newLabel++;
 			}
 		}
+		
+//		labelDispenser.setLabelsInUse(newLabels);
+//		for(int label: oldLabels)
+//		{
+//			labelDispenser.addFreedUpLabel(label);
+//		}
+		
 	}
 	
-	
+	// calls: cleanup
 	void FreeLabelStatistics(Iterator<Entry<Integer, LabelInformation>> vActiveLabelsIt) 
 	{
+//		in caller: labelDispenser.addFreedUpLabel(entry.getKey());
 		vActiveLabelsIt.remove();
 	}
 	
+	// calls: doOne.Iterate.RelabelRegions.ForestFire.foo
 	void FreeLabelStatistics(int vVisitedIt) 
 	{
 		labelMap.remove(vVisitedIt);
+		labelDispenser.addFreedUpLabel(vVisitedIt);
 
 		//        m_Means.erase(aLabelAbs);
 		//        m_Variances.erase(aLabelAbs);
@@ -2660,7 +2672,8 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 
             //TODO ??? why should i do that? answer: ogres are like onions
             //Refill the container
-            if (labelMap.get(aLabel).count > 0) {
+            if (labelMap.get(aLabel).count > 0) 
+            {
             	debug("refilling in remove fg region! count: "+labelMap.get(aLabel).count);
 //                vIt = m_InnerContourContainer.entrySet();
 //                vEnd = m_InnerContourContainer.end();
@@ -2684,7 +2697,9 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		{
 			Entry<Integer, LabelInformation> entry = vActiveLabelsIt.next();
 			
-			if(entry.getValue().count == 0) {
+			if(entry.getValue().count == 0) 
+			{
+				labelDispenser.addFreedUpLabel(entry.getKey());
 				FreeLabelStatistics(vActiveLabelsIt);
 			}
 		}
@@ -3013,13 +3028,23 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	}
 
 	
-	public static LabelImageNeg getLabelImageNeg(Region_Competition rc)
+	public static LabelImageShortNeg getLabelImageNeg(Region_Competition rc)
 	{
-		return new LabelImageNeg(rc);
+		return new LabelImageShortNeg(rc);
 	}
-	public static LabelImageFloat getLabelImageFloat(Region_Competition rc)
+	public static LabelImageFloatInput getLabelImageFloat(Region_Competition rc)
 	{
-		return new LabelImageFloat(rc);
+		return new LabelImageFloatInput(rc);
+	}
+	public static LabelImageFloatNeg getLabelImageFloatNeg(Region_Competition rc)
+	{
+		return new LabelImageFloatNeg(rc);
+	}
+	
+	public int getBiggestLabel()
+	{
+//		return m_MaxNLabels;
+		return labelDispenser.getHighestLabelInUse();
 	}
 }
 
@@ -3030,15 +3055,19 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
  * Expects data (label image) to be in <b>short</b>
  *
  */
-class LabelImageNeg extends LabelImage
+class LabelImageShortNeg extends LabelImage
 {
 
-	public LabelImageNeg(Region_Competition region_competition)
+	public LabelImageShortNeg(Region_Competition region_competition)
 	{
 		super(region_competition);
-		// TODO Auto-generated constructor stub
 	}
 	
+	@Override
+	void initLabelProc()
+	{
+		labelIP = new ShortProcessor(width, height);
+	}
 
 	int labelToAbs(int label)
 	{
@@ -3047,7 +3076,6 @@ class LabelImageNeg extends LabelImage
 	
 	int labelToNeg(int label)
 	{
-		// TODO Auto-generated method stub
 		if(label==forbiddenLabel)
 			return label;
 		else
@@ -3057,17 +3085,94 @@ class LabelImageNeg extends LabelImage
 	boolean isContourLabel(int label)
 	{
 		return label<0;
-
 	}
 	
 	int get(int index)
 	{
+		// int get() == return pixels[index]&0x(0000)ffff;
+		// so this will return an int 0x0000short which is a positive integer. 
+		// convert it back to short!
 		return (short)labelIP.get(index);
 	}
 
 	int get(int x, int y) 
 	{
-		return (short) labelIP.get(x,y);
+		return (short)labelIP.get(x,y);
+	}
+	
+}
+
+class LabelImageFloatNeg extends LabelImage
+{
+
+	public LabelImageFloatNeg(Region_Competition region_competition)
+	{
+		super(region_competition);
+	}
+	
+	@Override
+	void initLabelProc()
+	{
+		labelIP = new FloatProcessor(width, height);
+	}
+
+	int labelToAbs(int label)
+	{
+		return Math.abs(label);
+	}
+	
+	int labelToNeg(int label)
+	{
+		if(label==forbiddenLabel)
+			return label;
+		else
+			return -Math.abs(label);
+	}
+	
+	boolean isContourLabel(int label)
+	{
+		return label<0;
+	}
+	
+	
+
+	int get(int index)
+	{
+		// int get() == return pixels[index]&0x(0000)ffff;
+		// so this will return an int 0x0000short which is a positive integer. 
+		// convert it back to short!
+		return (int)labelIP.getf(index);
+	}
+
+	int get(int x, int y) 
+	{
+		return (int)labelIP.getf(x,y);
+	}
+	
+
+	/**
+	 * sets the labelImage to val at point x,y
+	 */
+	void set(int x, int y, int val) 
+	{
+		labelIP.setf(x,y,val);
+	}
+	
+	/**
+	 * sets the labelImage to val at point x,y
+	 */
+	void set(int index, int val) 
+	{
+		labelIP.setf(index, val);
+	}
+
+
+	/**
+	 * sets the labelImage to val at Point p
+	 */
+	void set(Point p, int value) {
+		//TODO multidimension
+		labelIP.setf(p.x[0], p.x[1], value);
 	}
 	
 }
@@ -3075,12 +3180,11 @@ class LabelImageNeg extends LabelImage
 
 /**
  * Input image is converted to a [0,1] normalized floatProcessor
- *
  */
-class LabelImageFloat extends LabelImage
+class LabelImageFloatInput extends LabelImage
 {
 
-	public LabelImageFloat(Region_Competition region_competition)
+	public LabelImageFloatInput(Region_Competition region_competition)
 	{
 		super(region_competition);
 		normalizeImage();
@@ -3109,11 +3213,131 @@ class LabelImageFloat extends LabelImage
 }
 
 
+/**
+ * A pair of labels, used to save 2 competing labels. 
+ * Is comparable. 
+ */
+class LabelPair implements Comparable<LabelPair>
+{
+	int first;		// smaller value
+	int second;		// bigger value
+	
+	public LabelPair(int l1, int l2)
+	{
+		if(l1<l2){
+			first=l1;
+			second=l2;
+		}
+		else{
+			first=l2;
+			second=l1;
+		}
+	}
+	
+	public int getSmaller(){
+		return first;
+	}
+	
+	public int getBigger(){
+		return second;
+	}
+
+	/**
+	 * Compares this object with the specified object for order. 
+	 * Returns a negative integer, zero, or a positive integer 
+	 * as this object is less than, equal to, or greater than the specified object. 
+	 */
+	@Override
+	public int compareTo(LabelPair o)
+	{
+		int result = this.first-o.first;
+		if(result == 0)
+		{
+			result = this.second - o.second;
+		}
+		return result;
+	}
+	
+}
 
 
+class LabelDispenser
+{
+	TreeSet<Integer> labels;
+//	LinkedList<Integer> labels;
+	
+	/**
+	 * Labels freed up during an iteration gets collected in here
+	 * and added to labels at the end of the iteration. 
+	 */
+	TreeSet<Integer> tempList;
+	
+	private int highestLabelInUse;
+	
+	/**
+	 * @param maxLabels maximal number of labels
+	 */
+	public LabelDispenser(int maxLabels)
+	{
+		labels = new TreeSet<Integer>();
+//		labels = new LinkedList<Integer>();
+		tempList = new TreeSet<Integer>();
+		
+		highestLabelInUse = 0;
+		for(int i=1; i<maxLabels; i++) // dont start at 0
+		{
+			labels.add(i);
+		}
+	}
 
-
-
+	/**
+	 * Adds a freed up label to the list of free labels
+	 * @param label Has to be absLabel (non-contour)
+	 */
+	public void addFreedUpLabel(int label)
+	{
+		tempList.add(label);
+//		labels.add(label);
+	}
+	
+	/**
+	 * add the tempList to labels at the end of an iteration
+	 */
+	public void addTempFree()
+	{
+//		for(int label : tempList)
+//		{
+//			labels.addFirst(label);
+//		}
+		labels.addAll(tempList);
+		
+		tempList.clear();
+	}
+	
+	/**
+	 * @return an unused label
+	 * @throws NoSuchElementException - if this list is empty
+	 */
+	public int getNewLabel()
+	{
+		int result = labels.pollFirst();
+		if(result>highestLabelInUse)
+			highestLabelInUse=result;
+		
+		return result;
+	}
+	
+	public int getHighestLabelInUse()
+	{
+		return highestLabelInUse;
+	}
+	
+	public void setLabelsInUse(Collection<Integer> used)
+	{
+		labels.removeAll(used);
+	}
+	
+}
 
 
 

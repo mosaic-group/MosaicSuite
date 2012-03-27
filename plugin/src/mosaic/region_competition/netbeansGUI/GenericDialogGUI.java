@@ -2,6 +2,7 @@ package mosaic.region_competition.netbeansGUI;
 
 import java.awt.Button;
 import java.awt.Choice;
+import java.awt.Component;
 import java.awt.FileDialog;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import javax.swing.JButton;
 import javax.swing.JTextArea;
 
 import mosaic.plugins.Region_Competition;
@@ -75,7 +77,7 @@ public class GenericDialogGUI implements InputReadable
 	{
 		this.settings=region_Competition.settings;
 		gd = new GenericDialog("Region Competition");
-		
+//		gd = new EmptyGenericDialog("Region Competition");
 		
 		// energy
 		
@@ -622,5 +624,50 @@ class NumericFieldWheelListener implements MouseWheelListener
 
 
 
-
+class EmptyGenericDialog extends GenericDialog
+{
+	public EmptyGenericDialog(String title)
+	{
+		super(title);
+		
+		final GenericDialog gd = this;
+		// here do all the gd stuff.
+		// later on, transfer data from new gui to these fields
+		// and read it out by getNext...() for macro
+		gd.addNumericField("numfield1", 12, 5);
+		
+		
+		// build my own GUI
+		
+		JButton b = new JButton("ok");
+		b.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				e.setSource(gd.getButtons()[0]);
+				gd.actionPerformed(e);
+			}
+		});
+		super.add(b);
+		this.pack();
+	}
+	
+	/** 
+	 * overrides adding of components in GenericDialog, so getting an empty dialog
+	 */
+	@Override
+	public Component add(Component comp)
+	{
+		return comp;
+	}
+	
+	/**
+	 * 	the original add method 
+	 */
+	public Component addNew(Component comp)
+	{
+		return super.add(comp);
+	}
+}
 

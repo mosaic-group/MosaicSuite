@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import mosaic.region_competition.*;
 import mosaic.region_competition.netbeansGUI.GenericDialogGUI;
@@ -25,7 +26,10 @@ import ij.io.FileInfo;
 import ij.io.FileSaver;
 import ij.io.Opener;
 import ij.plugin.filter.PlugInFilter;
+import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 
 
 /**
@@ -63,28 +67,6 @@ public class Region_Competition implements PlugInFilter
 		{
 			return DONE;
 		}
-		else
-		{
-			cancelButton = new JFrame();
-			JButton b = new JButton("Cancel");
-			b.addActionListener(new ActionListener() 
-			{
-				@Override
-				public void actionPerformed(ActionEvent e)
-				{
-					labelImage.stop();
-					cancelButton.dispose();
-					// TODO Auto-generated method stub
-					
-				}
-			});
-//			p.setUndecorated(true);
-			cancelButton.add(b);
-			cancelButton.pack();
-			cancelButton.setLocationByPlatform(true);
-			cancelButton.setVisible(true);
-		}
-
 		
 //		RegionIterator.tester();
 //		IJ.showMessage("version 1");
@@ -158,8 +140,10 @@ public class Region_Competition implements PlugInFilter
 	
 	void initLabelImage()
 	{
-//		labelImage = LabelImage.getLabelImageNeg(MVC);
-		labelImage = new LabelImage(MVC);
+//		labelImage = new LabelImage(MVC);
+//		labelImage = LabelImage.getLabelImageNeg(this);
+		labelImage = LabelImage.getLabelImageFloatNeg(this);
+//		labelImage = new LabelImage(MVC);
 		labelImage.initZero();
 		
 		// Input Processing
@@ -203,7 +187,7 @@ public class Region_Competition implements PlugInFilter
 				
 				if(ip!=null){
 					labelImage.initWithIP(ip);
-					labelImage.connectedComponents(labelImage);
+					labelImage.connectedComponents();
 				} else {
 					labelImage=null;
 					throw new RuntimeException("Failed to load LabelImage");
@@ -254,19 +238,35 @@ public class Region_Competition implements PlugInFilter
 		if(userDialog.useStack())
 		{
 			
-			ImageProcessor myIp = originalIP.getProcessor();
-//			ImageProcessor myIp = originalIP.getProcessor().convertToShort(false);
-
-			stack= originalIP.createEmptyStack();
-//			stack = new ImageStack(myIp.getWidth(), myIp.getHeight());
-			stack.addSlice("original", originalIP.getProcessor().convertToShort(false).getPixelsCopy());
+			ImageProcessor labelImageProc = labelImage.getLabelImageProcessor();
+			ImagePlus labelImPlus = new ImagePlus("dummy", labelImageProc);
+			stack = labelImPlus.createEmptyStack();
+			
+			// add input image to stack
+			// (convert it to the same type as labelImage)
+			ImageProcessor originalProc = originalIP.getProcessor();
+			Object originalPixels = null;
+			if(labelImageProc instanceof FloatProcessor)
+			{
+				originalPixels = originalProc.convertToFloat().getPixelsCopy();
+			} 
+			else if(labelImageProc instanceof ShortProcessor)
+			{
+				originalPixels = originalProc.convertToShort(false).getPixelsCopy();
+			} 
+			else if(labelImageProc instanceof ColorProcessor)
+			{
+				originalPixels = originalProc.convertToRGB().getPixelsCopy();
+			} 
+			else
+			{
+				throw new RuntimeException("Unsupported LabelImage Format");
+			}
+			stack.addSlice("original", originalPixels);
+			
 
 			stackImPlus = new ImagePlus("Stack of "+originalIP.getTitle(), stack); 
-					
 			stackImPlus.show();
-			
-//			stack.addSlice("original", myIp.convertToShort(false).getPixelsCopy());
-//			addSliceToStackAndShow("original", myIp.convertToShort(false).getPixelsCopy());
 			
 			// first stack image without boundary&contours
 			addSliceToStackAndShow("init", initialLabelImageProcessor.getPixelsCopy());
@@ -277,6 +277,36 @@ public class Region_Competition implements PlugInFilter
 			IJ.setMinAndMax(stackImPlus, 0, maxLabel);
 			IJ.run(stackImPlus, "3-3-2 RGB", null); // stack has to contain at least 2 slices so this LUT applies to all future slices.
 		}
+	}
+	
+	
+	void initStopButton()
+	{
+		cancelButton = new JFrame();
+		JPanel panel = new JPanel();
+		
+		JButton b = new JButton("Stop");
+		b.setToolTipText("Stops Algorithm after current iteration");
+		b.addActionListener(new ActionListener() 
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				labelImage.stop();
+//				cancelButton.setVisible(false);
+				cancelButton.dispose();
+			}
+		});
+//		p.setUndecorated(true);
+		panel.add(b);
+		cancelButton.add(panel);
+		cancelButton.pack();
+		cancelButton.setLocationByPlatform(true);
+//		cancelButton.setLocationRelativeTo(IJ.getInstance());
+//		java.awt.Point p = cancelButton.getLocation();
+//		p.x-=150;
+//		cancelButton.setLocation(p);
+		cancelButton.setVisible(true);
 	}
 	
 
@@ -292,6 +322,7 @@ public class Region_Competition implements PlugInFilter
 		}
 		
 		initStack();
+		initStopButton();
 
 		if(userDialog.getKBest()>0)
 		{
@@ -302,8 +333,7 @@ public class Region_Competition implements PlugInFilter
 			for(int i=0; i<userDialog.getKBest(); i++)
 			{
 				t.tic();
-				labelImage = new LabelImage(MVC);
-				
+				labelImage.initMembers();
 				labelImage.initWithImageProc(initialLabelImageProcessor);
 				labelImage.initBoundary();
 				labelImage.generateContour();
@@ -314,7 +344,7 @@ public class Region_Competition implements PlugInFilter
 				
 				if(stackImPlus!=null)
 				{
-					IJ.setMinAndMax(stackImPlus, 0, labelImage.m_MaxNLabels);
+					IJ.setMinAndMax(stackImPlus, 0, labelImage.getBiggestLabel());
 				}
 //				stackImPlus.updateAndDraw();
 				showFinalResult(labelImage, i);
@@ -339,7 +369,7 @@ public class Region_Competition implements PlugInFilter
 			
 			if(stackImPlus!=null)
 			{
-				IJ.setMinAndMax(stackImPlus, 0, labelImage.m_MaxNLabels);
+				IJ.setMinAndMax(stackImPlus, 0, labelImage.getBiggestLabel());
 			}
 			showFinalResult(labelImage);
 		}
@@ -356,8 +386,10 @@ public class Region_Competition implements PlugInFilter
 	
 	ImagePlus showFinalResult(LabelImage li, Object title)
 	{
-		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.getLabelImageProcessor());
-		IJ.setMinAndMax(imp, 0, li.m_MaxNLabels);
+		ImageProcessor imProc = li.getLabelImageProcessor();
+		imProc.abs();
+		ImagePlus imp = new ImagePlus("ResultWindow "+title, imProc);
+		IJ.setMinAndMax(imp, 0, li.getBiggestLabel());
 		IJ.run(imp, "3-3-2 RGB", null);
 		imp.show();
 		
@@ -455,7 +487,7 @@ public class Region_Competition implements PlugInFilter
 		labelImg.getLabelImageProcessor().setValue(1);
 		labelImg.getLabelImageProcessor().fill(roi);
 		labelImg.initBoundary();
-		labelImg.connectedComponents(labelImg);
+		labelImg.connectedComponents();
 		
 //		originalIP.getWindow().addKeyListener(keyListener);
 //		IJ.getInstance().addKeyListener(keyListener);
@@ -480,7 +512,7 @@ public class Region_Competition implements PlugInFilter
 			stackImPlus.setStack(stack);
 			stackImPlus.setPosition(stack.getSize());
 			
-			if(labelImage.m_MaxNLabels>maxLabel)
+			if(labelImage.getBiggestLabel()>maxLabel)
 			{
 				maxLabel*=2;
 				IJ.setMinAndMax(stackImPlus, 0, maxLabel);
@@ -547,36 +579,6 @@ public class Region_Competition implements PlugInFilter
 		System.out.println(result);
 	}
 
-	
-	/**
-	 * compares runtime of recursive and explicit statistics
-	 */
-	void testStatistics()
-	{
-		ImagePlus ip = originalIP;
-		ImageProcessor oProc = ip.getChannelProcessor();
-		labelImage = new LabelImage(MVC);
-		labelImage.getLabelImageProcessor().insert(oProc, 0, 0);
-		labelImage.initBoundary();
-		labelImage.generateContour();
-		
-		Timer t = new Timer();
-		
-		for(int i=0; i<10; i++)
-		{
-			t.tic(); 
-			labelImage.computeStatistics();
-			long time=t.toc();
-			System.out.println("compute time: "+time);
-//			labelImage.showStatistics();
-			
-			t.tic();
-			labelImage.renewStatistics();
-			time=t.toc();
-			System.out.println("renew time: "+time);
-//			labelImage.showStatistics();
-		}
-	}
 
 	/**
 	 * does overwriting of static part in Connectivity work?
@@ -612,6 +614,34 @@ public class Region_Competition implements PlugInFilter
 		System.out.println("end");
 		
 	}
+	
+
+	void testProcessors()
+	{
+		int width = 10;
+		int height = 10;
+		
+		int index = 3;
+		int value = -42;
+		
+		ImageProcessor p = new FloatProcessor(width, height);
+		
+		p.set(index, value);
+		
+		// high number
+		int result = p.get(index);
+		result = (int)p.get(index);
+		
+		// -43
+		p.setf(index, value);
+		float f = p.getf(index); // -42.0
+		
+		p.set(index, value);
+		f = p.getf(index);		//NaN
+		
+		System.out.println(result);
+	}
+	
 	
 }
 
