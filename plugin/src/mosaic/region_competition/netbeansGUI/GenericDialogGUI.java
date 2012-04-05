@@ -17,6 +17,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -75,9 +76,18 @@ public class GenericDialogGUI implements InputReadable
 	
 	public GenericDialogGUI(Region_Competition region_Competition)
 	{
+		
+//		EmptyGenericDialog gde = new EmptyGenericDialog("Region Competition");
+//		if(gde!= null)
+//		{
+//			gde.showDialog();
+//			gde.recordValues();
+//			return;
+//		}
+		
 		this.settings=region_Competition.settings;
 		gd = new GenericDialog("Region Competition");
-//		gd = new EmptyGenericDialog("Region Competition");
+		
 		
 		// energy
 		
@@ -128,6 +138,8 @@ public class GenericDialogGUI implements InputReadable
 		gd.addNumericField("m_EnergyContourLengthCoeff", settings.m_EnergyContourLengthCoeff, 4);
 		gd.addNumericField("m_MaxNbIterations", settings.m_MaxNbIterations, 0);
 		
+		gd.addNumericField("Balloon_force", settings.m_BalloonForceCoeff, 4);
+		
 		
 		gd.addTextAreas(TextDefaultInputImage, 
 						TextDefaultLabelImage, 10, 30);
@@ -153,6 +165,7 @@ public class GenericDialogGUI implements InputReadable
 		gd.addCheckbox("Show_Statistics", showStatistics);
 		gd.addCheckbox("Show_Stack", useStack);
 		gd.addNumericField("kbest", 0, 0);
+		
 		
 		addWheelListeners();
 		gd.showDialog();
@@ -191,7 +204,6 @@ public class GenericDialogGUI implements InputReadable
 		if(energy.equals(e_CV))
 		{
 			settings.m_EnergyFunctional = EnergyFunctionalType.e_CV;
-			
 		} 
 		else if (energy.equals(e_GaussPS))
 		{
@@ -234,6 +246,8 @@ public class GenericDialogGUI implements InputReadable
 		settings.m_EnergyContourLengthCoeff=(float)gd.getNextNumber();
 		settings.m_MaxNbIterations = (int)gd.getNextNumber();
 		
+		settings.m_BalloonForceCoeff = (float)gd.getNextNumber();
+		
 		// Initial Choice
 		String initialization = gd.getNextChoice();
 		
@@ -269,8 +283,10 @@ public class GenericDialogGUI implements InputReadable
 		filenameInput=gd.getTextArea1().getText();
 		if(filenameInput==null || filenameInput.isEmpty() || filenameInput.equals(TextDefaultInputImage))
 		{
-			//set text to empty string if nothing was edited. 
-			gd.getTextArea1().setText("");
+			//TODO 
+			// set text to [] due to a bug in GenericDialog
+			// if bug gets fixed, this will cause problems!
+			gd.getTextArea1().setText("[]");
 		}
 		else
 		{
@@ -283,8 +299,10 @@ public class GenericDialogGUI implements InputReadable
 		filenameLabelImage=gd.getTextArea2().getText();
 		if(filenameLabelImage==null || filenameLabelImage.isEmpty() || filenameLabelImage.equals(TextDefaultLabelImage))
 		{
-			//set text to empty string if nothing was edited. 
-			gd.getTextArea2().setText("");
+			//TODO 
+			// set text to [] due to a bug in GenericDialog
+			// if bug gets fixed, this will cause problems!
+			gd.getTextArea2().setText("[]");
 		}
 		else
 		{
@@ -388,7 +406,7 @@ public class GenericDialogGUI implements InputReadable
  * Usage: Just create a new instance, 
  * with TextArea and DefaultText (Text shown in TextArea) in constructor
  */
-class TextAreaListener implements DropTargetListener, TextListener, FocusListener
+class TextAreaListener implements DropTargetListener, TextListener, FocusListener //, MouseListener
 {
 	TextArea textArea;
 	String defaultText;
@@ -402,6 +420,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 		new DropTarget(ta, this);
 		ta.addTextListener(this);
 		ta.addFocusListener(this);
+//		ta.addMouseListener(this);
 	}
 
 	
@@ -434,6 +453,9 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 					for(File file : files) {
 						filename=file.getPath();
 						textArea.setText(filename);
+						
+						IJ.open(filename);
+						
 						// Print out the file path
 						System.out.println("File path is '" + filename + "'.");
 					}
@@ -472,13 +494,19 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 	}
 	
 	@Override
-	public void dragOver(DropTargetDragEvent dtde){}
+	public void dragOver(DropTargetDragEvent dtde){
+		System.out.println("dragOver "+dtde);
+	}
 	
 	@Override
-	public void dragExit(DropTargetEvent dte){}
+	public void dragExit(DropTargetEvent dte){
+		System.out.println("dragExit "+dte);
+	}
 	
 	@Override
-	public void dragEnter(DropTargetDragEvent dtde){}
+	public void dragEnter(DropTargetDragEvent dtde){
+		System.out.println("dragEnter "+dtde);
+	}
 
 	// TextListener
 	
@@ -533,6 +561,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 			// do nothing if text was edited
 		}
 	}
+
 	
 }
 
@@ -626,16 +655,59 @@ class NumericFieldWheelListener implements MouseWheelListener
 
 class EmptyGenericDialog extends GenericDialog
 {
+	List<GDElement> list;
+	GenericDialog gd;
+	
 	public EmptyGenericDialog(String title)
 	{
 		super(title);
+		gd = this;
+		list = new LinkedList<EmptyGenericDialog.GDElement>();
 		
-		final GenericDialog gd = this;
+		
 		// here do all the gd stuff.
 		// later on, transfer data from new gui to these fields
 		// and read it out by getNext...() for macro
-		gd.addNumericField("numfield1", 12, 5);
+//		gd.addNumericField("numfield1", 12, 5);
 		
+		
+		
+		GDElement gde = new GDElement(list) {
+			
+			@Override
+			void add()
+			{
+				addNumericField("anumeric_1234", 1234, 3);
+			}
+			
+			@Override
+			void getvalue()
+			{
+				getNextNumber();
+			}
+		};
+		
+		gde = new GDElement(list) {
+			
+			@Override
+			void getvalue()
+			{
+				getNextString();
+			}
+			
+			@Override
+			void add()
+			{
+				addStringField("astring", "defaulttext");
+			}
+		};
+		
+		
+		// add the elements to the gd
+		for(GDElement e : list)
+		{
+			e.add();
+		}
 		
 		// build my own GUI
 		
@@ -651,6 +723,15 @@ class EmptyGenericDialog extends GenericDialog
 		});
 		super.add(b);
 		this.pack();
+	}
+	
+	void recordValues()
+	{
+		// record the values for macro
+		for(GDElement e : list)
+		{
+			e.getvalue();
+		}
 	}
 	
 	/** 
@@ -669,5 +750,27 @@ class EmptyGenericDialog extends GenericDialog
 	{
 		return super.add(comp);
 	}
+	
+	
+	
+	abstract class GDElement
+	{
+		
+		public GDElement(List<GDElement> list)
+		{
+			list.add(this);
+		}
+		
+//		public GDElement(GenericDialog gd)
+//		{
+//			this.gd = gd;
+//		}
+		
+		abstract void add();
+		abstract void getvalue();
+	}
+
+	
+	
 }
 

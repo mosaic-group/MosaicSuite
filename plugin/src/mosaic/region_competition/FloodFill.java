@@ -30,9 +30,9 @@ class FloodFill implements Iterable<Point>
 		{
 			Point p = stack.pop();
 			
-			for(Point q: labelImage.getConnFG().itNeighborsOf(p))
+			for(Point q: labelImage.getConnFG().iterateNeighbors(p))
 			{
-				if(foo.EvaluateAtIndex(q) && !isPointChecked(q))
+				if(foo.EvaluateAtIndex(labelImage.iterator.pointToIndex(q)) && !isPointChecked(q))
 				{
 					stack.add(q);
 				}

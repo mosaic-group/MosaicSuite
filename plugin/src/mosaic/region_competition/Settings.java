@@ -84,7 +84,7 @@ public class Settings
     float m_EnergyRegionCoeff;
     float m_EnergySphericityCoeff;
     
-    float m_BalloonForceCoeff;
+    public float m_BalloonForceCoeff;
 	float m_ConstantOutwardFlow;
     
 	public boolean m_EnergyUseCurvatureRegularization;

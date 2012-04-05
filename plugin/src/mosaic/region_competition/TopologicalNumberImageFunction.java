@@ -24,6 +24,10 @@ public class TopologicalNumberImageFunction
   Connectivity TFGConnectivity;
   Connectivity TBGConnectivity;
   
+  
+  UnitCubeCCCounter m_ForegroundUnitCubeCCCounter;
+  UnitCubeCCCounter m_BackgroundUnitCubeCCCounter;
+  
   LabelImage labelImage;
   int dimension;
   int imageSize;
@@ -35,19 +39,22 @@ public class TopologicalNumberImageFunction
 	{
 		this.TFGConnectivity = aTFGConnectivity;
 		this.TBGConnectivity = aTBGConnectivity;
+		
+		//TODO!!!!!!! is this correct? switching ok?
+		this.m_ForegroundUnitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity, TBGConnectivity);
+		this.m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(TBGConnectivity, TFGConnectivity);
+		
 		this.labelImage=aLabelImage;
-		this.dimension=TFGConnectivity.Dimension();
+		this.dimension=TFGConnectivity.getDim();
 
         m_IgnoreLabel = labelImage.forbiddenLabel;
         imageSize = TFGConnectivity.GetNeighborhoodSize();
 
         m_SubImage = new char[imageSize];
         m_DataSubImage = new int[imageSize];
-        m_Offsets = new Point[imageSize];
+        m_Offsets = new Point[imageSize];		// maps indexes to Points
         
         initOffsets();
-        
-        int dummy = 0;
 	}
 	
 	private void initOffsets()
@@ -55,21 +62,22 @@ public class TopologicalNumberImageFunction
         // allocate points
         for(int i=0; i<imageSize; i++)
         {
-        	m_Offsets[i] = Point.PointWithDim(dimension);
+        	m_Offsets[i] = new Point(dimension);
         }
 
         // get the ofs for the whole neighborhood.
         //TODO could be done in Conn
         for (int i = 0; i < imageSize; ++i) {
-            int remainder = i;
 
-            // Get current offset
-            for (int j = 0; j < TFGConnectivity.Dimension(); ++j) {
-                m_Offsets[i].x[j] = remainder % 3;
-                remainder -= m_Offsets[i].x[j];
-                remainder /= 3;
-                m_Offsets[i].x[j]--;
-            }
+//            // Get current offset
+//            int remainder = i;
+//            for (int j = 0; j < TFGConnectivity.getDim(); ++j) {
+//                m_Offsets[i].x[j] = remainder % 3;
+//                remainder -= m_Offsets[i].x[j];
+//                remainder /= 3;
+//                m_Offsets[i].x[j]--;
+//            }
+        	m_Offsets[i]=TFGConnectivity.ofsIndexToPoint(i);
         }
 	}
 	
@@ -79,7 +87,6 @@ public class TopologicalNumberImageFunction
         	//TODO CubeIterator at Connectivity?
             m_DataSubImage[i] = labelImage.getAbs(p.add(m_Offsets[i]));
             if (m_DataSubImage[i] == m_IgnoreLabel) {
-            	//TODO
             	m_DataSubImage[i] = Zero;
             }
         }
@@ -98,12 +105,15 @@ public class TopologicalNumberImageFunction
         
         readImageData(index);
         
-        //TODO das sollte man nicht immer wieder aufrufen muessen...
-        UnitCubeCCCounter unitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity, TBGConnectivity);
-        
-        for (Point p: TFGConnectivity) 
+//        UnitCubeCCCounter unitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity, TBGConnectivity);
+//        for (Point p: TFGConnectivity) {
+//            int vLinearIndex = unitCubeCCCounter.pointToOfs(p);
+//            if (m_DataSubImage[vLinearIndex] != Zero) {
+//                vAdjacentLabels.add(m_DataSubImage[vLinearIndex]);
+//            }
+//        }
+        for(int vLinearIndex:TFGConnectivity.itOfsInt())
         {
-            int vLinearIndex = unitCubeCCCounter.pointToOfs(p);
             if (m_DataSubImage[vLinearIndex] != Zero) {
                 vAdjacentLabels.add(m_DataSubImage[vLinearIndex]);
             }
@@ -111,26 +121,16 @@ public class TopologicalNumberImageFunction
 
         for(int vLabelsIt : vAdjacentLabels)
         {
-            for (int i = 0; i < imageSize; ++i) {
+            for (int i = 0; i < imageSize; ++i) 
+            {
                 m_SubImage[i] = (char)((m_DataSubImage[i] == vLabelsIt) ? 255 : 0);
             }
-
-        //TODO integer division?
             int middle = imageSize / 2;
-
             m_SubImage[middle] = 0;
 
-            // Topological number in the foreground
-
-//            class FGandBGTopoNbPairType extends Pair<Integer, Integer>{
-//            	public FGandBGTopoNbPairType(int a, int b) {
-//					super(a,b);
-//				}
-//            };
-            
             Pair<Integer, Integer> vFGBGTopoPair = new Pair<Integer, Integer>(0, 0);
             
-            UnitCubeCCCounter m_ForegroundUnitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity, TBGConnectivity);
+            // Topological number in the foreground
 			m_ForegroundUnitCubeCCCounter.SetImage(m_SubImage);
             vFGBGTopoPair.first = m_ForegroundUnitCubeCCCounter.connectedComponents();
 
@@ -145,7 +145,9 @@ public class TopologicalNumberImageFunction
             
             // Topological number in the background
             
-            UnitCubeCCCounter m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity, TBGConnectivity);
+//            UnitCubeCCCounter m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity, TBGConnectivity);
+//            UnitCubeCCCounter m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(TBGConnectivity, TFGConnectivity);
+
             m_BackgroundUnitCubeCCCounter.SetImage(m_SubImage);
             vFGBGTopoPair.second = m_BackgroundUnitCubeCCCounter.connectedComponents();
 

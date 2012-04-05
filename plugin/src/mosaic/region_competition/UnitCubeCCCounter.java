@@ -1,6 +1,5 @@
 package mosaic.region_competition;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -9,6 +8,8 @@ public class UnitCubeCCCounter
 	//TODO not used?
 	boolean[] m_NeighborhoodConnectivityTest;
 	boolean[] m_ConnectivityTest;
+	
+	boolean offsetNeighbors[][];
 	
 	char[] m_Image;
 	Connectivity TConnectivity;
@@ -20,11 +21,14 @@ public class UnitCubeCCCounter
 		this.TConnectivity = TConnectivity;
 		this.TNeighborhoodConnectivity = TNeighborhoodConnectivity;
 		
-		this.dimension = TConnectivity.Dimension();
+		this.dimension = TConnectivity.getDim();
 		
 		//TODO m_NeighborhoodConnectivityTest not used?
 		m_NeighborhoodConnectivityTest = CreateConnectivityTest(TNeighborhoodConnectivity);
 		m_ConnectivityTest = CreateConnectivityTest(TConnectivity);
+		
+//		offsetNeighbors = UnitCubeNeighbors(this, TConnectivity, TNeighborhoodConnectivity);
+//		offsetNeighbors = UnitCubeNeighborsSTS(this, TConnectivity, TNeighborhoodConnectivity);
 	}
 	
 	/**
@@ -34,7 +38,7 @@ public class UnitCubeCCCounter
 	 */
 	void SetImage(char[] subImage)
 	{
-		m_Image=Arrays.copyOf(subImage, subImage.length);
+		m_Image=subImage.clone();
 	}
 	
 	/**
@@ -49,28 +53,33 @@ public class UnitCubeCCCounter
 		Connectivity conn = TConnectivity;
 		int neighborhoodSize = conn.GetNeighborhoodSize();
 
-		boolean[] vProcessed_new = new boolean[neighborhoodSize];
-		// TODO is fill necessary?
-		Arrays.fill(vProcessed_new, false);
+		boolean[] visited = new boolean[neighborhoodSize];
+//		java default: is initialized to false
+//		Arrays.fill(vProcessed_new, false);
+		
+		Queue<Integer> q = new LinkedList<Integer>();
+		
 		int nbCC = 0;
-
 		for(int i=0; i<neighborhoodSize; i++)
 		{
-			if(m_Image[i] == 0 || !m_ConnectivityTest[i] ||  vProcessed_new[i])
+			//find next seed
+			if(m_Image[i] == 0 || !m_ConnectivityTest[i] || visited[i])
 			{
 				// i is not a seed
+				// since it is BG || not a neighbor of midpoint|| already visited
 				continue;
 			}
 			
+			// i is a seed now
 			int seed = i;
+			visited[seed] = true;
 			
-			nbCC++; 	// 
-			vProcessed_new[seed] = true;
+			nbCC++; 	// increase number of connected components
 
-			Queue<Integer> q = new LinkedList<Integer>();
+			q.clear();
 			q.add(seed);
 
-			// "Floodfill" seed, setting pixels to processed 
+			// "Floodfill" seed, setting visited pixels to processed 
 			while(!q.isEmpty()) 
 			{
 				int current = q.poll();
@@ -78,79 +87,19 @@ public class UnitCubeCCCounter
 				// For each pixel in subimage, check if it is a neighbor of current.
 				for(int neighbor = 0; neighbor < neighborhoodSize; neighbor++) 
 				{
-					if(!vProcessed_new[neighbor] && m_Image[neighbor] != 0 && isUnitCubeNeighbors(conn, current, neighbor)) 
+					if(!visited[neighbor] && m_Image[neighbor] != 0 && isUnitCubeNeighbors(conn, current, neighbor)) 
 					{
 						// TODO: rather than checking if m_Image[neighbor] != 0 one
 						// should check if m_Image[neighbor] == currentLabelvalue ???
+						visited[neighbor] = true;
 						q.add(neighbor);
-						vProcessed_new[neighbor] = true;
 					}
 				}
-			}
+			} //while
 
 		}
-		
-		vProcessed_new = null;
 		return nbCC;
 	}
-	
-	
-	int connectedComponentsOLD()
-	{
-		// TODO dummy variable.
-		// TODO immer FG conn?
-		//TODO merge "findseed-whileloops"
-		
-		Connectivity conn = TConnectivity;
-		int neighborhoodSize = conn.GetNeighborhoodSize();
-		int seed = 0;
-
-		boolean[] vProcessed_new = new boolean[neighborhoodSize];
-		// TODO is fill necessary?
-		Arrays.fill(vProcessed_new, false);
-		int nbCC = 0;
-
-		// Find first seed
-		while(seed != neighborhoodSize && (m_Image[seed] == 0 || !m_ConnectivityTest[seed])) {
-			seed++;
-		}
-		
-		// "Floodfill" seed, setting pixels to processed 
-		while(seed < neighborhoodSize)
-		{
-			nbCC++;
-			vProcessed_new[seed] = true;
-
-			Queue<Integer> q = new LinkedList<Integer>();
-			q.add(seed);
-
-			while(!q.isEmpty()) 
-			{
-				int current = q.poll();
-				
-				// For each pixel in subimage, check if it is a neighbor of current.
-				for(int neighbor = 0; neighbor < neighborhoodSize; neighbor++) 
-				{
-					if(!vProcessed_new[neighbor] && m_Image[neighbor] != 0 && isUnitCubeNeighbors(conn, current, neighbor)) 
-					{
-						// TODO: rather than checking if m_Image[neighbor] != 0 one
-						// should check if m_Image[neighbor] == currentLabelvalue ???
-						q.add(neighbor);
-						vProcessed_new[neighbor] = true;
-					}
-				}
-			}
-
-			// Look for next seed (not connected with previous seed == unprocessed)
-			while(seed != neighborhoodSize && (vProcessed_new[seed] || m_Image[seed] == 0 || !m_ConnectivityTest[seed])) {
-				++seed;
-			}
-		}
-		vProcessed_new = null;
-		return nbCC;
-
-	}
-	
 	
 	
 	/**
@@ -162,126 +111,134 @@ public class UnitCubeCCCounter
 	 */
 	private boolean isUnitCubeNeighbors(Connectivity conn, int current, int neighbor)
 	{
-		//TODO precalculate this for each combination of points
+		// precalculate this for each combination of points
+		// precalculation is slower!
+//		boolean precalculated = offsetNeighbors[current][neighbor];
 		
-		Point pCurrent = ofsToPoint(current);
-		Point pNeighbor = ofsToPoint(neighbor);
-		Point diff = pCurrent.sub(pNeighbor);
-		return conn.isInNeighborhood(diff);
+		Point pCurrent = ofsIndexToPoint(current);
+		Point pNeighbor = ofsIndexToPoint(neighbor);
+//		return conn.isNeighborhoodOfs(pCurrent.sub(pNeighbor));
+		boolean onthefly = conn.areNeighbors(pCurrent, pNeighbor);
+		
+//		if(precalculated != onthefly)
+//			System.out.println("precalculated and onthefly not the same");
+		return onthefly;
+		
 	}
     
 	
 	
 /**
  * Converts an offset in the context of the dimension of this UnitCube
- * @param p 	Point representing an offset
- * @return 		The same offset as integer index
+ * @param p 	Point representing an offset, eg. [-1,-1]
+ * @return 		The same offset as integer index, eg. 0
  */
-	public int pointToOfs(Point p)
+	protected int pointToOfs(Point p)
 	{
 		int offset = 0;
 		int factor = 1;
-		for(int i = 0; i < this.dimension; ++i) {
+		for(int i = 0; i < dimension; i++) {
 			offset += factor * (p.x[i] + 1);
 			factor *= 3;
 		}
-
 		return offset;
 	}
 	
-//	public int pointToOfs(Point p)
-//	{
-//		return pointToOfs(p, this.dimension);
-//	}
-	
-//	public static int pointToOfs(Point p, int dim)
-//	{
-//		int offset = 0;
-//		int factor = 1;
-//		for(int i = 0; i < dim; ++i) {
-//			offset += factor * (p.x[i] + 1);
-//			factor *= 3;
-//		}
-//
-//		return offset;
-//	}
-	
     
 	/**
-	 * Converts an offset in the context of the dimension of this UnitCube
-	 * @param offset Offset represented by an integer index
-	 * @return The offset represented by a Point
+	 * Converts an integer (midpoint-) offset to a Point offset
+	 * @param offset integer value in [0, m_NeighborhoodSize] 
+	 * @return Point/Vector representation of the offset (e.g [-1,-1] for the upper left corner in 2D)
 	 */
-	public Point ofsToPoint(int offset)
+	private Point ofsIndexToPoint(int offset)
 	{
-		int remainder = offset;
-		Point p = Point.PointWithDim(this.dimension);
-
-		for(int i = 0; i < this.dimension; ++i) {
-			p.x[i] = remainder % 3;
-			remainder -= p.x[i];
-			remainder /= 3;
-			p.x[i]--;
-		}
-
-		return p;
+		return TConnectivity.ofsIndexToPoint(offset);
+		
+		// COPIED FROM Connectivity
+//		int remainder = offset;
+//		int x[] = new int[dimension];
+//	
+//		for(int i = 0; i < dimension; ++i) 
+//		{
+//			x[i] = remainder % 3;	// x for this dimension
+//			remainder -= x[i]; 		// 
+//			remainder /= 3;			// get rid of this dimension
+//			x[i]--;					// x would have range [0, 1, 2]
+//									// but we want ofs from midpoint [-1,0,1]
+//		}
+//		return Point.CopyLessArray(x);
 	}
+	
+	/**
+	 * Converts an integer (midpoint-) offset to a Point offset
+	 * @param offset integer value in [0, m_NeighborhoodSize] 
+	 * @return Point/Vector representation of the offset (e.g [-1,-1] for the upper left corner in 2D)
+	 */
+	private static Point ofsIndexToPoint(int offset, int dim)
+	{
+//		return TConnectivity.ofsIndexToPoint(offset);
+		
+		// COPIED FROM Connectivity
+		int remainder = offset;
+		int x[] = new int[dim];
+	
+		for(int i = 0; i < dim; ++i) 
+		{
+			x[i] = remainder % 3;	// x for this dimension
+			remainder -= x[i]; 		// 
+			remainder /= 3;			// get rid of this dimension
+			x[i]--;					// x would have range [0, 1, 2]
+									// but we want ofs from midpoint [-1,0,1]
+		}
+		return Point.CopyLessArray(x);
+	}
+	
+	
+	
 
 	/**
-	 * @param TConnectivity
-	 * @return Boolean array, entry at position <tt>i</tt> indicating if offset i is in neighborhood for <tt>TConnectivity</tt>
+	 * @param conn
+	 * @return Boolean array, entry at position <tt>i</tt> indicating 
+	 * if offset i is in neighborhood for <tt>conn</tt>
 	 */
-	private boolean[] CreateConnectivityTest(Connectivity TConnectivity) 
+	private boolean[] CreateConnectivityTest(Connectivity conn) 
 	{
-		//TODO dummy variable
-		Connectivity conn = TConnectivity;
-		//END dummy
-		
         int neighborhoodSize = conn.GetNeighborhoodSize();
         boolean[] test = new boolean[neighborhoodSize];
 		for(int i = 0; i < neighborhoodSize; i++) 
 		{
-			// via point
-//			Point p = ofsToPoint(i);
-//			boolean bool = conn.isInNeighborhood(p);
-//			test[i] = bool;
-			
-			//TODO to be tested
-			//directly via index
-			test[i] = conn.isInNeighborhood(i);
+			test[i] = conn.isNeighborhoodOfs(i);
 		}
 
         return test;
     }
     
 	
-	
-	
-	public static boolean [][] UnitCubeNeighbors(UnitCubeCCCounter unitCubeCCCounter, Connectivity connectivity, Connectivity neighborhoodConnectivity) 
+	// precalculate, but this is slower...
+	public static boolean[][] UnitCubeNeighbors(UnitCubeCCCounter unitCubeCCCounter, Connectivity connectivity, Connectivity neighborhoodConnectivity) 
 	{
 		int neighborhoodSize = connectivity.GetNeighborhoodSize();
 		
 		boolean neighborsInUnitCube[][];
-		//TODO initialize?
 		neighborsInUnitCube = new boolean[neighborhoodSize][neighborhoodSize];
 		
-		//TODO ist das nicht symmetrisch? --> nur bis zur haelfte berechnen, spiegeln
 		for(int i=0; i<neighborhoodSize; i++)
 		{
-			Point p1 = unitCubeCCCounter.ofsToPoint(i);
-			if(neighborhoodConnectivity.isInNeighborhood(p1))
+			Point p1 = unitCubeCCCounter.ofsIndexToPoint(i);
+			if(neighborhoodConnectivity.isNeighborhoodOfs(p1))
 			{
 				for(int j=0; j<neighborhoodSize; j++)
 				{
-					Point p2 = unitCubeCCCounter.ofsToPoint(j);
+					Point p2 = unitCubeCCCounter.ofsIndexToPoint(j);
 					//TODO ??? why add? read itk UnitCubeNeighbors. dont understand
 					Point sum = p1.add(p2);
 					int sumOffset = unitCubeCCCounter.pointToOfs(sum);
 					
 					boolean inUnitCube = true;
-					for(int dim=0; dim < connectivity.Dimension() && inUnitCube; dim++)
+					int dim = connectivity.getDim();
+					for(int d=0; d < dim && inUnitCube; d++)
 					{
-						if (sum.x[dim] < -1 || sum.x[dim] > +1) {
+						if (sum.x[d] < -1 || sum.x[d] > +1) {
 							inUnitCube = false;
 						}
 					}
@@ -290,10 +247,6 @@ public class UnitCubeCCCounter
 					}
 				}
 			} 
-			else 
-			{
-				// TODO maybe fill with false?
-			}
 		}
 		
 		return neighborsInUnitCube;
@@ -301,7 +254,7 @@ public class UnitCubeCCCounter
 	}
 	
 	
-	public boolean[][] UnitCubeNeighborsSTS(UnitCubeCCCounter unitCubeCCCounter, 
+	public static boolean[][] UnitCubeNeighborsSTS(UnitCubeCCCounter unitCubeCCCounter, 
 			Connectivity connectivity, Connectivity neighborhoodConnectivity)
 	{
 
@@ -312,8 +265,12 @@ public class UnitCubeCCCounter
 
 		for(int i = 0; i < neighborhoodSize; i++) {
 			for(int j = 0; j < neighborhoodSize; j++) {
-
-				if(isUnitCubeNeighbors(connectivity, i, j)) {
+				
+				boolean areUnitCubeNeighbors = connectivity.areNeighbors(
+						connectivity.ofsIndexToPoint(i), 
+						connectivity.ofsIndexToPoint(j));
+//				if(isUnitCubeNeighbors(connectivity, i, j)) {
+				if(areUnitCubeNeighbors){
 					neighborsInUnitCube[i][j] = true;
 				} else {
 					neighborsInUnitCube[i][j] = false;
@@ -325,6 +282,66 @@ public class UnitCubeCCCounter
 
 	}
 	
+	public static boolean test()
+	{
+		Connectivity fg = new Connectivity(2, 1);
+		Connectivity bg = new Connectivity(2, 0);
+		UnitCubeCCCounter ccc;
+		ccc = new UnitCubeCCCounter(fg, bg);
+		
+		boolean[][] their;
+		boolean[][] mine;
+		boolean same;
+		
+		// FG BG
+		their = UnitCubeCCCounter.UnitCubeNeighbors(ccc, fg, bg);
+		mine = UnitCubeCCCounter.UnitCubeNeighborsSTS(ccc, fg, bg);
+		same = compare(their, mine);
+		
+		if(same)
+			System.out.println("first was ok");
+		else
+			System.out.println("first was BAAAAAD");
+		
+		// BG FG
+		
+		boolean same2=true;
+		ccc = new UnitCubeCCCounter(bg, fg);
+		their = UnitCubeCCCounter.UnitCubeNeighbors(ccc, bg, fg);
+		mine = UnitCubeCCCounter.UnitCubeNeighborsSTS(ccc, bg, fg);
+		same2 = compare(their, mine);
+		
+		if(same)
+			System.out.println("second was ok");
+		else
+			System.out.println("second was BAAAAAD");
+		
+		return same&&same2;
+	}
+	
+	private static boolean compare(boolean[][] their, boolean[][] mine)
+	{
+		boolean same = true;
+		
+		for(int i=0; i<their.length; i++)
+		{
+			for(int j=0; j<their[i].length; j++)
+			{
+				if(their[i][j]==mine[i][j])
+				{
+//					System.out.println("same");
+				}
+				else
+				{
+					System.out.println("different ("+i+" "+j+"): mine=" + mine[i][j] + " their=" + their[i][j]);
+					same=false;
+				}
+			}
+		}
+		
+		return same;
+		
+	}
 	
 }
 

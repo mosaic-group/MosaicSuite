@@ -8,38 +8,46 @@ public class Point
 	public int x[];		//TODO private?
 	private int dim;	
 	
-	public Point() {}
-	
-	public Point(Point p)
+	public Point(int dimension)
 	{
-		this.dim=p.dim;
-		this.x=p.x.clone();
+		this.dim = dimension;
+		this.x = new int[dim];
 	}
 	
-	public Point(int coords[]) {
-		
-		//TODO efficiency
-		init(coords.length);
-		int i=0;
-		for(int coord:coords)
-		{
-			x[i]=coord;
-			i++;
-		}
+	private Point(){};
+	
+//	public Point(Point p)
+//	{
+//		this.dim=p.dim;
+//		this.x=p.x.clone();
+//	}
+	
+	public Point(int coords[]) 
+	{
+		this.dim = coords.length;
+		this.x = coords.clone();
 	}
 	
-	public static Point PointWithDim(int dimension)
+	public static Point CopyLessArray(int array[])
 	{
-		Point p= new Point();
-		p.init(dimension);
+		Point p = new Point();
+		p.dim = array.length;
+		p.x=array;
 		return p;
 	}
 	
-	private void init(int dimension)
-	{
-		dim = dimension;
-		x= new int[dim];
-	}
+//	public static Point PointWithDim(int dimension)
+//	{
+//		Point p = new Point();
+//		p.init(dimension);
+//		return p;
+//	}
+//	
+//	private void init(int dimension)
+//	{
+//		dim = dimension;
+//		x = new int[dim];
+//	}
 	
 //	private void set(int p[])
 //	{
@@ -49,8 +57,7 @@ public class Point
 	
 	public Point add(Point p)
 	{
-		Point result = new Point();
-		result.init(dim);
+		Point result = new Point(dim);
 		for(int i=0; i<dim; i++)
 		{
 			result.x[i]= x[i]+p.x[i];
@@ -60,8 +67,7 @@ public class Point
 	
 	public Point sub(Point p)
 	{
-		Point result = new Point();
-		result.init(dim);
+		Point result = new Point(dim);
 		for(int i=0; i<dim; i++)
 		{
 			result.x[i]= x[i]-p.x[i];
@@ -71,8 +77,7 @@ public class Point
 	
 	public Point mult(int f)
 	{
-		Point result = new Point();
-		result.init(dim);
+		Point result = new Point(dim);
 		for(int i=0; i<dim; i++)
 		{
 			result.x[i]= (x[i]*f);
@@ -85,8 +90,7 @@ public class Point
 	 */
 	public Point div(int f)
 	{
-		Point result = new Point();
-		result.init(dim);
+		Point result = new Point(dim);
 		for(int i=0; i<dim; i++)
 		{
 			result.x[i]= (x[i]/f);
@@ -136,4 +140,27 @@ public class Point
 	{
 		return dim;
 	}
+	
+	
+	public static class PointFactory implements PointFactoryInterface<Point>
+	{
+		@Override
+		public Point pointFromArray(int vec[])
+		{
+			return new Point(vec);
+		}
+
+		@Override
+		public Point copylessPointFromArray(int[] array)
+		{
+			return Point.CopyLessArray(array);
+		}
+	}
+	
+}
+
+interface PointFactoryInterface<T>
+{
+	T pointFromArray(int array[]);
+	T copylessPointFromArray(int array[]);
 }

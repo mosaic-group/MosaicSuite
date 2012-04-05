@@ -61,15 +61,17 @@ public class IndexIterator
 	Point indexToPoint(int idx)
 	{
 		int index=idx;
-		Point result = Point.PointWithDim(this.dim);
+		int x[] = new int[this.dim];
 		
 		for(int i = 0; i < dim; i++) 
 		{
 			int r=index%dimensions[i];
-			result.x[i]=r;
+			x[i]=r;
 			index=index-r;
 			index=index/dimensions[i];
 		}
+		
+		Point result = Point.CopyLessArray(x);
 		
 		//TODO !!! test, is this correct?
 		int dummy=pointToIndex(result);

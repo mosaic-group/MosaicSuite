@@ -20,6 +20,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
+import ij.gui.GenericDialog;
 import ij.gui.ImageCanvas;
 import ij.gui.Roi;
 import ij.io.FileInfo;
@@ -53,15 +54,63 @@ public class Region_Competition implements PlugInFilter
 	
 	String defaultInputFile= "C:/Users/Stephan/Desktop/BA/imagesAndPaper/icecream5_410x410.tif";
 	
+	boolean testMacroBug()
+	{
+		GenericDialog gd = new GenericDialog("test");
+		gd.addTextAreas(null, null, 1, 1);
+		gd.addNumericField("dummyfield", 0, 0);
+		gd.addStringField("stringdield", "");
+		gd.addCheckbox("show_me", true);
+		
+		gd.showDialog();
+		
+		gd.getNextText();
+		gd.getNextText();
+		gd.getNextNumber();
+		gd.getNextString();
+		boolean showme = gd.getNextBoolean();
+		IJ.showMessage("showme was "+ showme);
+		
+		return true;
+		
+	}
+	
+	static void testNumbers()
+	{
+		Double d = 14.2;
+		Integer i = 12;
+		
+		Number n1 = d;
+		Number n2 = i;
+//		boolean b = n1>n2; //error
+		boolean b = d<i; // ok
+		
+		Comparable<Number> c1 = (Comparable<Number>)n1;
+		Comparable c2 = (Comparable)n2;
+		c1.compareTo(n2);
+		c2.compareTo(c1);
+	}
 	
 	public int setup(String aArgs, ImagePlus aImp)
 	{
+//		if(testMacroBug())
+//			return DONE;
+		
+		UnitCubeCCCounter.test();
+		
 		settings = new Settings();
 		MVC=this;
 		
 		originalIP = aImp;
 		
 		userDialog = new GenericDialogGUI(this);
+		
+//		if(userDialog!=null)
+//		{
+//			System.out.println("testing: abort for testing");
+//			return DONE;
+//		}
+		
 		boolean success=userDialog.processInput();
 		if(!success)
 		{
@@ -140,9 +189,9 @@ public class Region_Competition implements PlugInFilter
 	
 	void initLabelImage()
 	{
-//		labelImage = new LabelImage(MVC);
+		labelImage = new LabelImage(MVC);
 //		labelImage = LabelImage.getLabelImageNeg(this);
-		labelImage = LabelImage.getLabelImageFloatNeg(this);
+//		labelImage = LabelImage.getLabelImageFloatNeg(this);
 //		labelImage = new LabelImage(MVC);
 		labelImage.initZero();
 		

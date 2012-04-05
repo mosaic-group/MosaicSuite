@@ -35,7 +35,7 @@ import ij.process.ShortProcessor;
 - datastructure for labels, supporting neg values
 */
 
-public class LabelImage //extends ShortProcessor
+public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<Integer>  //extends ShortProcessor
 {
 	private Region_Competition MVC; 	/** interface to image program */
 	private LabelImage m_LabelImage; 	// == this, exists for easier refactoring
@@ -539,7 +539,7 @@ public class LabelImage //extends ShortProcessor
 					
 					int xs[]={x,y};
 					Point p = new Point(xs);
-					for(Point neighbor : conn.itNeighborsOf(p))
+					for(Point neighbor : conn.iterateNeighbors(p))
 					{
 						int neighborLabel=get(neighbor);
 						if(neighborLabel!=label)
@@ -682,18 +682,12 @@ public class LabelImage //extends ShortProcessor
 		vConvergenceA = IterateContourContainerAndAdd();
 		CleanUp();
 		
-		debug("labelmap: "+labelMap.size());
-		debug("dispenser: "+labelDispenser.labels.size());
+//		debug("labelmap: "+labelMap.size());
+//		debug("dispenser: "+labelDispenser.labels.size());
 
 		return vConvergenceA;
 	}
 	
-	
-	private void MinimizeEnergy()
-	{
-		
-	}
-
  
 	/**
 	 * comments with // on the left border are itk-code-fragments to check correctness of java translation
@@ -757,6 +751,7 @@ public class LabelImage //extends ShortProcessor
 					if(vTopoNbItr.second.first != 1 || vTopoNbItr.second.second != 1) {
 						// This is a FG simple point; perform the move.
 						vSimple = false;
+//						debug("0");
 					}
 				}
 				if(vSimple) 
@@ -765,6 +760,7 @@ public class LabelImage //extends ShortProcessor
 					ChangeContourPointLabelToCandidateLabel(vStoreIt);
 					vPointIterator.remove();
 					vConvergence = false;
+//					debug("1");
 				}
 				/// we will reuse the processed flag to indicate if a particle is a seed
 				vStoreIt.getValue().m_processed = false;
@@ -979,7 +975,7 @@ public class LabelImage //extends ShortProcessor
 			HashMap<Point, ContourParticle> aCandidateContainer) {
 
 
-		for (Point vSeedIndex : connFG.itNeighborsOf(aIndex)) {
+		for (Point vSeedIndex : connFG.iterateNeighbors(aIndex)) {
 			int vLabel = getAbs(vSeedIndex);
 
 			if (vLabel == aLabel) 
@@ -1091,7 +1087,7 @@ public class LabelImage //extends ShortProcessor
 			// vLabelImageIterator.SetLocation(vCurrentIndex);
 		
 			Connectivity conn = connFG;
-			for(Point q : conn.itNeighborsOf(vCurrentIndex)) 
+			for(Point q : conn.iterateNeighbors(vCurrentIndex)) 
 			{
 				int vLabelOfDefender = getAbs(q);
 				if(vLabelOfDefender == forbiddenLabel) {
@@ -1540,7 +1536,7 @@ public class LabelImage //extends ShortProcessor
 		//TODO statistic update? 
 		
 //		ContourParticle p = m_InnerContourContainer.get(pIndex);
-		for(Point qIndex:conn.itNeighborsOf(pIndex))
+		for(Point qIndex:conn.iterateNeighbors(pIndex))
 		{
 			int qLabel = get(qIndex);
 			
@@ -1598,7 +1594,7 @@ public class LabelImage //extends ShortProcessor
 		set(pIndex, labelToNeg(aLabelAbs));
 		
 		Connectivity conn = connBG;
-		for(Point qIndex: conn.itNeighborsOf(pIndex))
+		for(Point qIndex: conn.iterateNeighbors(pIndex))
 		{
 			// from itk:
             /// It might happen that a point, that was already accepted as a 
@@ -1634,7 +1630,7 @@ public class LabelImage //extends ShortProcessor
 		// template <class TInputImage, class TInitImage, class TOutputImage >
 		if(getAbs(aIndex)==aLabel) 
 		{
-			MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdImageFunction(aLabelImage);
+			MultipleThresholdImageFunction<Integer> vMultiThsFunction = new MultipleThresholdImageFunction<Integer>(aLabelImage);
 			vMultiThsFunction.AddThresholdBetween(aLabel, aLabel);
 			int negLabel = labelToNeg(aLabel);
 			vMultiThsFunction.AddThresholdBetween(negLabel, negLabel);
@@ -1661,7 +1657,7 @@ public class LabelImage //extends ShortProcessor
 //		}
 //		MVC.selectPoint(aIndex);
 		
-		MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdImageFunction(aLabelImage);
+		MultipleThresholdImageFunction<Integer> vMultiThsFunction = new MultipleThresholdImageFunction<Integer>(aLabelImage);
 		
 //		LinkedList<Integer> vLabelsToCheck = new LinkedList<Integer>();
 		Stack<Integer> vLabelsToCheck = new Stack<Integer>();
@@ -1697,7 +1693,7 @@ public class LabelImage //extends ShortProcessor
 				}
 			}
 		}
-		if(vMultiThsFunction.EvaluateAtIndex(aIndex)){
+		if(vMultiThsFunction.EvaluateAtIndex(iterator.pointToIndex(aIndex))){
 //		    ForestFire(aLabelImage, aIndex, vMultiThsFunction, m_MaxNLabels++);
 		    ForestFire(aLabelImage, aIndex, vMultiThsFunction, labelDispenser.getNewLabel());
 		}
@@ -1854,7 +1850,7 @@ public class LabelImage //extends ShortProcessor
 		Connectivity conn = connFG;
 		
 		// version 3 with COnnectivity.getNeighbots(Point)
-		for(Point neighbor:conn.itNeighborsOf(pIndex))
+		for(Point neighbor:conn.iterateNeighbors(pIndex))
 		{
 			int neighborLabel=get(neighbor);
 			neighborLabel=labelToAbs(neighborLabel);
@@ -2338,7 +2334,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		double vSum = 0;
 		double vSqSum = 0;
 		int vN = 0;
-		double vLengthEnergy = 0;
+//		double vLengthEnergy = 0;
 
         while(vLit.hasNext())
         {
@@ -2462,7 +2458,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 			if(oldLabels.contains(l))
 			{
 				// l is an old label
-				MultipleThresholdImageFunction aMultiThsFunctionPtr = new MultipleThresholdImageFunction(this);
+				MultipleThresholdImageFunction<Integer> aMultiThsFunctionPtr = new MultipleThresholdImageFunction<Integer>(this);
 				aMultiThsFunctionPtr.AddThresholdBetween(l, l);
 				FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, iterator.indexToPoint(i));
 				
@@ -2709,7 +2705,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	private boolean isBoundaryPoint(Point aIndex)
 	{
 		int vLabelAbs = getAbs(aIndex);
-		for(Point q : connFG.itNeighborsOf(aIndex)) 
+		for(Point q : connFG.iterateNeighbors(aIndex)) 
 		{
 			if(getAbs(q) != vLabelAbs)
 				return true;
@@ -2728,7 +2724,7 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	{
 		int absLabel = labelToAbs(pLabel);
 		Connectivity conn = connFG;
-		for(Point qIndex : conn.itNeighborsOf(pIndex))
+		for(Point qIndex : conn.iterateNeighbors(pIndex))
 		{
 			if(labelToAbs(get(qIndex))!=absLabel)
 			{
@@ -3044,7 +3040,13 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	public int getBiggestLabel()
 	{
 //		return m_MaxNLabels;
-		return labelDispenser.getHighestLabelInUse();
+		return labelDispenser.getHighestLabelEverUsed();
+	}
+
+	@Override
+	public Integer getT(int idx)
+	{
+		return get(idx);
 	}
 }
 
@@ -3272,7 +3274,7 @@ class LabelDispenser
 	 */
 	TreeSet<Integer> tempList;
 	
-	private int highestLabelInUse;
+	private int highestLabelEverUsed;
 	
 	/**
 	 * @param maxLabels maximal number of labels
@@ -3283,7 +3285,7 @@ class LabelDispenser
 //		labels = new LinkedList<Integer>();
 		tempList = new TreeSet<Integer>();
 		
-		highestLabelInUse = 0;
+		highestLabelEverUsed = 0;
 		for(int i=1; i<maxLabels; i++) // dont start at 0
 		{
 			labels.add(i);
@@ -3321,24 +3323,48 @@ class LabelDispenser
 	public int getNewLabel()
 	{
 		int result = labels.pollFirst();
-		if(result>highestLabelInUse)
-			highestLabelInUse=result;
-		
+		checkAndSetNewMax(result);
 		return result;
 	}
 	
-	public int getHighestLabelInUse()
+	void checkAndSetNewMax(int newMax)
 	{
-		return highestLabelInUse;
+		if(newMax>highestLabelEverUsed)
+			highestLabelEverUsed=newMax;
+	}
+	
+	public int getHighestLabelEverUsed()
+	{
+		return highestLabelEverUsed;
 	}
 	
 	public void setLabelsInUse(Collection<Integer> used)
 	{
 		labels.removeAll(used);
+		int max = Collections.max(used);
+		checkAndSetNewMax(max);
 	}
 	
 }
 
+
+class LabelImageG<T> extends LabelImage
+{
+
+	public LabelImageG(Region_Competition region_competition)
+	{
+		super(region_competition);
+		// TODO Auto-generated constructor stub
+	}
+	
+	public T getG(int idx)
+	{
+		int i = get(idx);
+		T t=  (T)new Integer(i);
+		
+		return t;
+	}
+}
 
 
 
