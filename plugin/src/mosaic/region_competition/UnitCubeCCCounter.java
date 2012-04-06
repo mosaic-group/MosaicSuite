@@ -215,8 +215,11 @@ public class UnitCubeCCCounter
     
 	
 	// precalculate, but this is slower...
-	public static boolean[][] UnitCubeNeighbors(UnitCubeCCCounter unitCubeCCCounter, Connectivity connectivity, Connectivity neighborhoodConnectivity) 
+	public static boolean[][] UnitCubeNeighbors(Connectivity connectivity, Connectivity neighborhoodConnectivity) 
 	{
+		
+		UnitCubeCCCounter unitCubeCCCounter = new UnitCubeCCCounter(connectivity, neighborhoodConnectivity);
+		
 		int neighborhoodSize = connectivity.GetNeighborhoodSize();
 		
 		boolean neighborsInUnitCube[][];
@@ -254,7 +257,7 @@ public class UnitCubeCCCounter
 	}
 	
 	
-	public static boolean[][] UnitCubeNeighborsSTS(UnitCubeCCCounter unitCubeCCCounter, 
+	public static boolean[][] UnitCubeNeighborsSTS(
 			Connectivity connectivity, Connectivity neighborhoodConnectivity)
 	{
 
@@ -284,8 +287,8 @@ public class UnitCubeCCCounter
 	
 	public static boolean test()
 	{
-		Connectivity fg = new Connectivity(2, 1);
-		Connectivity bg = new Connectivity(2, 0);
+		Connectivity fg = new Connectivity(3, 2);
+		Connectivity bg = new Connectivity(3, 1);
 		UnitCubeCCCounter ccc;
 		ccc = new UnitCubeCCCounter(fg, bg);
 		
@@ -294,8 +297,14 @@ public class UnitCubeCCCounter
 		boolean same;
 		
 		// FG BG
-		their = UnitCubeCCCounter.UnitCubeNeighbors(ccc, fg, bg);
-		mine = UnitCubeCCCounter.UnitCubeNeighborsSTS(ccc, fg, bg);
+		mine = UnitCubeCCCounter.UnitCubeNeighborsSTS(fg, bg);
+		their = UnitCubeCCCounter.UnitCubeNeighbors(fg, bg);
+		
+		System.out.println("FG mine");
+		printArray(mine);
+		System.out.println("FG their");
+		printArray(their);
+		
 		same = compare(their, mine);
 		
 		if(same)
@@ -307,9 +316,13 @@ public class UnitCubeCCCounter
 		
 		boolean same2=true;
 		ccc = new UnitCubeCCCounter(bg, fg);
-		their = UnitCubeCCCounter.UnitCubeNeighbors(ccc, bg, fg);
-		mine = UnitCubeCCCounter.UnitCubeNeighborsSTS(ccc, bg, fg);
+		mine = UnitCubeCCCounter.UnitCubeNeighborsSTS(bg, fg);
+		their = UnitCubeCCCounter.UnitCubeNeighbors(bg, fg);
 		same2 = compare(their, mine);
+		System.out.println("bg mine");
+		printArray(mine);
+		System.out.println("bg their");
+		printArray(their);
 		
 		if(same)
 			System.out.println("second was ok");
@@ -317,6 +330,19 @@ public class UnitCubeCCCounter
 			System.out.println("second was BAAAAAD");
 		
 		return same&&same2;
+	}
+	
+	private static void printArray(boolean[][] array)
+	{
+		System.out.println("array "+array.length);
+		
+		for(int i=0; i<array.length; i++)
+		{
+			for(int j=0; j<array[i].length; j++)
+			{
+				System.out.println(i+"\t"+j+"\t" + array[i][j]);
+			}
+		}
 	}
 	
 	private static boolean compare(boolean[][] their, boolean[][] mine)
