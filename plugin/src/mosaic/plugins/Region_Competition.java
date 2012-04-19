@@ -652,11 +652,11 @@ public class Region_Competition implements PlugInFilter
 		
 		UnitCubeCCCounter cube = new UnitCubeCCCounter(connFG, connBG);
 		
-		boolean[][] orig=UnitCubeCCCounter.UnitCubeNeighbors(cube, connFG, connBG);
+		boolean[][] orig=UnitCubeCCCounter.UnitCubeNeighbors(connFG, connBG);
 		System.out.println("original:");
 		System.out.println(orig);
 		
-		boolean[][] sts=cube.UnitCubeNeighborsSTS(cube, connFG, connBG);
+		boolean[][] sts=cube.UnitCubeNeighborsSTS(connFG, connBG);
 		System.out.println("sts:");
 		System.out.println(sts);
 		
