@@ -18,7 +18,8 @@ public class ParticleLinker_MarkKittisopikul{
 	 * <br>Identifies points corresponding to the 
 	 * same physical particle in subsequent frames and links the positions into trajectories
 	 * <br>The length of the particles next array will be reset here according to the current linkrange
-	 * <br>Adapted from Ingo Oppermann implementation
+	 * 
+	 * @author Mark Kittisopikul, UT Southwestern
 	 */
 	public void linkParticles(MyFrame[] frames, int frames_number, int linkrange, double displacement) {
 

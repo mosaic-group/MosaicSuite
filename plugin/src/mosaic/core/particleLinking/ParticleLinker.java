@@ -16,16 +16,24 @@ public class ParticleLinker {
 	 * same physical particle in subsequent frames and links the positions into trajectories
 	 * <br>The length of the particles next array will be reset here according to the current linkrange
 	 * <br>Adapted from Ingo Oppermann implementation
+	 * <br> Refactored by Janick Cardinale, ETHZ, 1.6.2012
+	 * <br> Optimized with ideas from Mark Kittisopikul, UT Southwestern
 	 */
 	public void linkParticles(MyFrame[] frames, int frames_number, int linkrange, float displacement) {
 
 		int m, i, j, k, nop, nop_next, n;
 		int ok, prev, prev_s, x = 0, y = 0, curr_linkrange;
+		/** The association matirx g */
 		boolean[][] g;
-		int[] xv,yv;
+		/** g_x stores the index of the currently associated particle, and vice versa.
+		 * It is another representation for the association matrix g. */
+		int[] g_x,g_y; 
+		/** okv is a helper vector in the initialization phase. It keeps track of the empty columns
+		 * in g. */
 		boolean[] okv;
 		double min, z;
 		float max_cost;
+		/** The cost matrix - TODO: it is quite sparse and one should take advantage of that. */
 		float[][] cost;
 		Vector<Particle> p1, p2;
 
@@ -63,8 +71,8 @@ public class ParticleLinker {
 				
 				/* Set up the relation matrix */
 				g = new boolean[nop+1][nop_next+1];
-				xv = new int[nop_next+1];
-				yv = new int[nop+1];
+				g_x = new int[nop_next+1];
+				g_y = new int[nop+1];
 				
 				okv = new boolean[nop_next+1];
 				for (i = 0; i< okv.length; i++) okv[i] = true;
@@ -147,8 +155,8 @@ public class ParticleLinker {
 				//	for(j = 0; j < nop_next+1; j++) {
 					for(j = 0; j < nop_next + 1; j++) {
 						if(g[i][j]) {
-							xv[j] = i;
-							yv[i] = j;
+							g_x[j] = i;
+							g_y[i] = j;
 						}
 					}
 					/*if(g[i][nop_next]) {
@@ -156,8 +164,8 @@ public class ParticleLinker {
 						yv[i] = nop_next;
 					}*/
 				}
-				xv[nop_next] = nop;
-				yv[nop] = nop_next;
+				g_x[nop_next] = nop;
+				g_y[nop] = nop_next;
 				
 			/* The relation matrix is initilized */
 			
@@ -179,11 +187,11 @@ public class ParticleLinker {
 
 								// Look along the x-axis, including
 								// the dummy particles
-								x = xv[j];
+								x = g_x[j];
 
 								// Look along the y-axis, including
 								// the dummy particles
-								y = yv[i];
+								y = g_y[i];
 								
 								
 								/* z is the reduced cost */
@@ -208,17 +216,17 @@ public class ParticleLinker {
 
 					if(min < 0.0) {
 						g[prev_i][prev_j] = true;
-						xv[prev_j] = prev_i;
-						yv[prev_i] = prev_j;
+						g_x[prev_j] = prev_i;
+						g_y[prev_i] = prev_j;
 						g[prev_x][prev_y] = true;
-						xv[prev_y] = prev_x;
-						yv[prev_x] = prev_y;
+						g_x[prev_y] = prev_x;
+						g_y[prev_x] = prev_y;
 						g[prev_i][prev_y] = false;
 						g[prev_x][prev_j] = false;
 						
 						// ensure the dummies still map to each other
-						xv[nop_next] = nop;
-						yv[nop] = nop_next;
+						g_x[nop_next] = nop;
+						g_y[nop] = nop_next;
 					}
 				}
 
