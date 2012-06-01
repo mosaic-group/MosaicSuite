@@ -56,6 +56,7 @@ public class FeaturePointDetector {
 	public float percentile = 0.001F; 	// default (user input/100)
 	public int absIntensityThreshold = 0; //user input 
 	public int radius = 3; 				// default
+	public float sigma_factor = 3;
 	int number_of_threads = 4;
 	public int threshold_mode = PERCENTILE_MODE;
 	
@@ -108,7 +109,7 @@ public class FeaturePointDetector {
 
 		/* Image Restoration - Step 1 of the algorithm */
 		restored_fps = imageRestoration(restored_fps);
-		//new StackWindow(new ImagePlus("after restoration",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored_fps, 1, restored_fps.getSize())));
+//		new StackWindow(new ImagePlus("after restoration",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored_fps, 1, restored_fps.getSize())));
 
 		/* Estimation of the point location - Step 2 of the algorithm */
 		findThreshold(restored_fps, percentile, absIntensityThreshold);
@@ -181,14 +182,20 @@ public class FeaturePointDetector {
 		/* find this ImageStacks min and max pixel value */
 		float min = 0f;
 		float max = 0f;
+		float mode = 0f;
+		float std = 0f;
 		if(ips.getSize() > 1) {
 			StackStatistics sstats = new StackStatistics(new ImagePlus(null,ips));
 			min = (float)sstats.min;
 			max = (float)sstats.max;
+			mode = (float)sstats.dmode;	
+			std = (float)sstats.stdDev;
 		} else { //speeds up the 2d version:
-			ImageStatistics istats = ImageStatistics.getStatistics(ips.getProcessor(1), Measurements.MIN_MAX, null);
+			ImageStatistics istats = ImageStatistics.getStatistics(ips.getProcessor(1), Measurements.MIN_MAX + Measurements.MODE + Measurements.STD_DEV, null);
 			min = (float)istats.min;
 			max = (float)istats.max;
+			std = (float)istats.stdDev;
+			mode = (float)istats.dmode;
 		}
 
 		double[] hist = new double[256];
@@ -214,8 +221,13 @@ public class FeaturePointDetector {
 				break;				
 		}
 		thold = 255 - thold + 1;
-		this.setThreshold(((float)(thold / 255.0) * (max - min) + min));		
+		this.setThreshold(((float)(thold / 255.0) * (max - min) + min));
+		
+		this.setThreshold(mode+sigma_factor*std);
+		System.out.println("min= " + min + ", max=" + max );
 		System.out.println("THRESHOLD: " + this.threshold);
+		System.out.println("simga_fac=" + this.sigma_factor);
+		
 	}	
 
 	/**
@@ -726,10 +738,11 @@ public class FeaturePointDetector {
 	 * and generates the <code>mask</code> according to these params
 	 * @see #generateMasks(int)
 	 */
-	public void setUserDefinedParameters(double cutoff, float percentile, int radius, int intThreshold) {
+	public void setUserDefinedParameters(double cutoff, float percentile, int radius, int intThreshold, float sigma_factor) {
 		this.cutoff = cutoff;
 		this.percentile = percentile;
 		this.absIntensityThreshold = intThreshold;
+		this.sigma_factor = sigma_factor; 
 		//    	this.preprocessing_mode = mode;
 		//    	this.setThresholdMode(thsmode);
 		this.radius = radius;
@@ -759,7 +772,7 @@ public class FeaturePointDetector {
 		//	        gd.addNumericField("Percentile", 0.001, 5);
 		//	        gd.addNumericField("Percentile / Abs.Threshold", 0.1, 5, 6, " % / Intensity");
 		gd.addNumericField("Percentile", percentile*100, 5, 6, " %");
-
+		gd.addNumericField("sigma factor", sigma_factor, 5);
 		//	        gd.addPanel(makeThresholdPanel(), GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
 		//	        gd.addChoice("Preprocessing mode", new String[]{"none", "box-car avg.", "BG Subtraction", "Laplace Operation"}, "box-car avg.");	        
 	}
@@ -783,9 +796,10 @@ public class FeaturePointDetector {
 		//        	setThresholdMode(thsmode);
 
 		//        	int mode = gd.getNextChoiceIndex();
-
+		float sigma_fac = ((float)gd.getNextNumber());
+		
 		Boolean changed = (rad != radius || cut != cutoff  || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
-		setUserDefinedParameters(cut, per, rad, intThreshold);
+		setUserDefinedParameters(cut, per, rad, intThreshold, sigma_fac);
 		//        	this.preprocessing_mode = mode;
 		return changed;
 	}
@@ -800,6 +814,7 @@ public class FeaturePointDetector {
 		int rad = Integer.parseInt((vec.elementAt(0)).getText());
 		double cut = Double.parseDouble((vec.elementAt(1)).getText());
 		float per = (Float.parseFloat((vec.elementAt(2)).getText()))/100;
+		float sigma_fac = (Float.parseFloat((vec.elementAt(3)).getText()));
 		int intThreshold = (int)(per*100+0.5);
 		//		int thsmode = ((Choice)gd.getChoices().elementAt(0)).getSelectedIndex();
 		//    	int mode = ((Choice)gd.getChoices().elementAt(1)).getSelectedIndex();
@@ -807,7 +822,7 @@ public class FeaturePointDetector {
 		// even if the frames were already processed (particles detected) but
 		// the user changed the detection params then the frames needs to be processed again
 		Boolean changed = (rad != radius || cut != cutoff  || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();        		
-		setUserDefinedParameters(cut, per, rad, intThreshold);
+		setUserDefinedParameters(cut, per, rad, intThreshold, sigma_fac);
 		return changed;
 	}
 	

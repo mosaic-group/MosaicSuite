@@ -73,6 +73,7 @@ import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
 import mosaic.core.particleLinking.ParticleLinker;
+import mosaic.core.particleLinking.ParticleLinker_old;
 import mosaic.core.utils.MosaicUtils;
 
 /**
@@ -243,7 +244,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 		/* link the particles found */
 		IJ.showStatus("Linking Particles");		 
-		linker.linkParticles(frames, frames_number, linkrange, displacement);
+		linker.linkParticles(frames, frames_number, linkrange, (float)displacement);
 		IJ.freeMemory();
 
 		/* generate trajectories */		 
@@ -1536,7 +1537,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 				/* link the particles found */
 				IJ.showStatus("Linking Particles");		
-				linker.linkParticles(frames, frames_number, linkrange, displacement);
+				linker.linkParticles(frames, frames_number, linkrange, (float)displacement);
 				IJ.freeMemory();
 
 				/* generate trajectories */		 
@@ -1715,13 +1716,17 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		//		// write data to file
 		//		write2File(newDir.getAbsolutePath(), vFI.fileName + "PT3D.txt", getFullReport().toString());
 		MosaicUtils.write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
-		writeXMLFormatReport(new File(vFI.directory, title + "_PT3Dresults.xml").getAbsolutePath());
+		writeXMLFormatReport(new File(vFI.directory, title +
+				"_r_"+ detector.radius +
+				"_c_"+ detector.cutoff +
+				"_sigma_"+ detector.sigma_factor + 
+				"_PT3Dresults.xml").getAbsolutePath());
 	}
 
 	/**
 	 * debug helper method
 	 * @param s
-	 */
+	 */ 
 	private void write(StringBuffer s) {
 
 		int output = IJ_RESULTS_WINDOW;	
