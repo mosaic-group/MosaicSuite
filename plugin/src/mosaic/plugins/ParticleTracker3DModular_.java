@@ -1719,7 +1719,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		writeXMLFormatReport(new File(vFI.directory, title +
 				"_r_"+ detector.radius +
 				"_c_"+ detector.cutoff +
-				"_sigma_"+ detector.sigma_factor + 
+				"_perc_"+ detector.percentile + 
 				"_PT3Dresults.xml").getAbsolutePath());
 	}
 
@@ -2265,12 +2265,12 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			rootElement.appendChild(TrackContest);
 	 
 			// set attributes
-			TrackContest.setAttribute("SNR", "__SNR__");
-			TrackContest.setAttribute("density", "__density__");	
+//			TrackContest.setAttribute("SNR", "__SNR__");
+//			TrackContest.setAttribute("density", "__density__");	
 			SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm::ss z yyyy");
-			TrackContest.setAttribute("generationDateTime", sdf.format(Calendar.getInstance().getTime()));
-			TrackContest.setAttribute("info", "http://bioimageanalysis.org/track/");
-			TrackContest.setAttribute("scenario", "__scenario__");
+//			TrackContest.setAttribute("generationDateTime", sdf.format(Calendar.getInstance().getTime()));
+//			TrackContest.setAttribute("info", "http://bioimageanalysis.org/track/");
+//			TrackContest.setAttribute("scenario", "__scenario__");
 	 
 			
 						

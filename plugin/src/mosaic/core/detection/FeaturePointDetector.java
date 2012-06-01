@@ -56,7 +56,7 @@ public class FeaturePointDetector {
 	public float percentile = 0.001F; 	// default (user input/100)
 	public int absIntensityThreshold = 0; //user input 
 	public int radius = 3; 				// default
-	public float sigma_factor = 3;
+	//public float sigma_factor = 3;
 	int number_of_threads = 4;
 	public int threshold_mode = PERCENTILE_MODE;
 	
@@ -223,10 +223,10 @@ public class FeaturePointDetector {
 		thold = 255 - thold + 1;
 		this.setThreshold(((float)(thold / 255.0) * (max - min) + min));
 		
-		this.setThreshold(mode+sigma_factor*std);
-		System.out.println("min= " + min + ", max=" + max );
-		System.out.println("THRESHOLD: " + this.threshold);
-		System.out.println("simga_fac=" + this.sigma_factor);
+//		this.setThreshold(mode+sigma_factor*std);
+//		System.out.println("min= " + min + ", max=" + max );
+//		System.out.println("THRESHOLD: " + this.threshold);
+//		System.out.println("simga_fac=" + this.sigma_factor);
 		
 	}	
 
@@ -738,11 +738,11 @@ public class FeaturePointDetector {
 	 * and generates the <code>mask</code> according to these params
 	 * @see #generateMasks(int)
 	 */
-	public void setUserDefinedParameters(double cutoff, float percentile, int radius, int intThreshold, float sigma_factor) {
+	public void setUserDefinedParameters(double cutoff, float percentile, int radius, int intThreshold){//, float sigma_factor) {
 		this.cutoff = cutoff;
 		this.percentile = percentile;
 		this.absIntensityThreshold = intThreshold;
-		this.sigma_factor = sigma_factor; 
+//		this.sigma_factor = sigma_factor; 
 		//    	this.preprocessing_mode = mode;
 		//    	this.setThresholdMode(thsmode);
 		this.radius = radius;
@@ -772,7 +772,7 @@ public class FeaturePointDetector {
 		//	        gd.addNumericField("Percentile", 0.001, 5);
 		//	        gd.addNumericField("Percentile / Abs.Threshold", 0.1, 5, 6, " % / Intensity");
 		gd.addNumericField("Percentile", percentile*100, 5, 6, " %");
-		gd.addNumericField("sigma factor", sigma_factor, 5);
+//		gd.addNumericField("sigma factor", sigma_factor, 5);
 		//	        gd.addPanel(makeThresholdPanel(), GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
 		//	        gd.addChoice("Preprocessing mode", new String[]{"none", "box-car avg.", "BG Subtraction", "Laplace Operation"}, "box-car avg.");	        
 	}
@@ -796,10 +796,10 @@ public class FeaturePointDetector {
 		//        	setThresholdMode(thsmode);
 
 		//        	int mode = gd.getNextChoiceIndex();
-		float sigma_fac = ((float)gd.getNextNumber());
+//		float sigma_fac = ((float)gd.getNextNumber());
 		
 		Boolean changed = (rad != radius || cut != cutoff  || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
-		setUserDefinedParameters(cut, per, rad, intThreshold, sigma_fac);
+		setUserDefinedParameters(cut, per, rad, intThreshold);
 		//        	this.preprocessing_mode = mode;
 		return changed;
 	}
@@ -814,7 +814,7 @@ public class FeaturePointDetector {
 		int rad = Integer.parseInt((vec.elementAt(0)).getText());
 		double cut = Double.parseDouble((vec.elementAt(1)).getText());
 		float per = (Float.parseFloat((vec.elementAt(2)).getText()))/100;
-		float sigma_fac = (Float.parseFloat((vec.elementAt(3)).getText()));
+		//float sigma_fac = (Float.parseFloat((vec.elementAt(3)).getText()));
 		int intThreshold = (int)(per*100+0.5);
 		//		int thsmode = ((Choice)gd.getChoices().elementAt(0)).getSelectedIndex();
 		//    	int mode = ((Choice)gd.getChoices().elementAt(1)).getSelectedIndex();
@@ -822,7 +822,7 @@ public class FeaturePointDetector {
 		// even if the frames were already processed (particles detected) but
 		// the user changed the detection params then the frames needs to be processed again
 		Boolean changed = (rad != radius || cut != cutoff  || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();        		
-		setUserDefinedParameters(cut, per, rad, intThreshold, sigma_fac);
+		setUserDefinedParameters(cut, per, rad, intThreshold);//, sigma_fac);
 		return changed;
 	}
 	
