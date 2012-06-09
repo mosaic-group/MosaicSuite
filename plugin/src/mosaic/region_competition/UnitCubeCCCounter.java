@@ -6,46 +6,69 @@ import java.util.Queue;
 public class UnitCubeCCCounter
 {
 	//TODO not used?
-	boolean[] m_NeighborhoodConnectivityTest;
 	boolean[] m_ConnectivityTest;
+//	boolean[] m_NeighborhoodConnectivityTest;
 	
-	boolean offsetNeighbors[][];
+//	boolean offsetNeighbors[][];
+	boolean m_UnitCubeNeighbors[][];
 	
 	char[] m_Image;
 	Connectivity TConnectivity;
 	Connectivity TNeighborhoodConnectivity;
 	private int dimension;
 	
-	public UnitCubeCCCounter(Connectivity TConnectivity, Connectivity TNeighborhoodConnectivity) 
+	public UnitCubeCCCounter(Connectivity TConnectivity, 
+			Connectivity TNeighborhoodConnectivity) 
 	{
 		this.TConnectivity = TConnectivity;
 		this.TNeighborhoodConnectivity = TNeighborhoodConnectivity;
 		
 		this.dimension = TConnectivity.getDim();
 		
-		//TODO m_NeighborhoodConnectivityTest not used?
-		m_NeighborhoodConnectivityTest = CreateConnectivityTest(TNeighborhoodConnectivity);
 		m_ConnectivityTest = CreateConnectivityTest(TConnectivity);
+		//TODO m_NeighborhoodConnectivity Test not used?
+//		m_NeighborhoodConnectivityTest = CreateConnectivityTest(TNeighborhoodConnectivity);
 		
-//		offsetNeighbors = UnitCubeNeighbors(this, TConnectivity, TNeighborhoodConnectivity);
-//		offsetNeighbors = UnitCubeNeighborsSTS(this, TConnectivity, TNeighborhoodConnectivity);
+		m_UnitCubeNeighbors = initUnitCubeNeighbors(TConnectivity, 
+				TNeighborhoodConnectivity);
 	}
+	
 	
 	/**
 	 * Set the sub image (data of unitcube)
 	 * midpoint has to be 0!
 	 * @param data of unitcube as linear array
 	 */
-	void SetImage(char[] subImage)
+	public void SetImage(char[] subImage)
 	{
 		m_Image=subImage.clone();
 	}
+	
+	
+	/**
+	 * @param conn
+	 * @return Boolean array, entry at position <tt>i</tt> indicating 
+	 * if offset i is in neighborhood for <tt>conn</tt>
+	 */
+	private static boolean[] CreateConnectivityTest(Connectivity conn) 
+	{
+        int neighborhoodSize = conn.GetNeighborhoodSize();
+        boolean[] result = new boolean[neighborhoodSize];
+        
+		for(int i = 0; i < neighborhoodSize; i++) 
+		{
+			result[i] = conn.isNeighborhoodOfs(i);
+		}
+        return result;
+    }
+	
+	
 	
 	/**
 	 * Computes the number of connected components in the subimage set with SetImage
 	 * @return Number of connected components
 	 */
-	int connectedComponents()
+	public int connectedComponents()
 	{
 		// TODO immer FG conn?
 		//TODO neu geschrieben, noch korrekt?
@@ -87,7 +110,10 @@ public class UnitCubeCCCounter
 				// For each pixel in subimage, check if it is a neighbor of current.
 				for(int neighbor = 0; neighbor < neighborhoodSize; neighbor++) 
 				{
-					if(!visited[neighbor] && m_Image[neighbor] != 0 && isUnitCubeNeighbors(conn, current, neighbor)) 
+					if(!visited[neighbor] && m_Image[neighbor] != 0 
+//							&& isUnitCubeNeighbors(conn, current, neighbor)) 
+						    && m_UnitCubeNeighbors[current][neighbor]) 
+						
 					{
 						// TODO: rather than checking if m_Image[neighbor] != 0 one
 						// should check if m_Image[neighbor] == currentLabelvalue ???
@@ -96,10 +122,10 @@ public class UnitCubeCCCounter
 					}
 				}
 			} //while
-
 		}
 		return nbCC;
 	}
+	
 	
 	
 	/**
@@ -109,14 +135,15 @@ public class UnitCubeCCCounter
 	 * @param neighbor	An other offset as integer index
 	 * @return			True, if the two Points are neighbors within the Connectivity
 	 */
+
 	private boolean isUnitCubeNeighbors(Connectivity conn, int current, int neighbor)
 	{
 		// precalculate this for each combination of points
 		// precalculation is slower!
 //		boolean precalculated = offsetNeighbors[current][neighbor];
 		
-		Point pCurrent = ofsIndexToPoint(current);
-		Point pNeighbor = ofsIndexToPoint(neighbor);
+		Point pCurrent = conn.ofsIndexToPoint(current);
+		Point pNeighbor = conn.ofsIndexToPoint(neighbor);
 //		return conn.isNeighborhoodOfs(pCurrent.sub(pNeighbor));
 		boolean onthefly = conn.areNeighbors(pCurrent, pNeighbor);
 		
@@ -125,142 +152,55 @@ public class UnitCubeCCCounter
 		return onthefly;
 		
 	}
-    
-	
-	
-/**
- * Converts an offset in the context of the dimension of this UnitCube
- * @param p 	Point representing an offset, eg. [-1,-1]
- * @return 		The same offset as integer index, eg. 0
- */
-	protected int pointToOfs(Point p)
-	{
-		int offset = 0;
-		int factor = 1;
-		for(int i = 0; i < dimension; i++) {
-			offset += factor * (p.x[i] + 1);
-			factor *= 3;
-		}
-		return offset;
-	}
-	
-    
-	/**
-	 * Converts an integer (midpoint-) offset to a Point offset
-	 * @param offset integer value in [0, m_NeighborhoodSize] 
-	 * @return Point/Vector representation of the offset (e.g [-1,-1] for the upper left corner in 2D)
-	 */
-	private Point ofsIndexToPoint(int offset)
-	{
-		return TConnectivity.ofsIndexToPoint(offset);
-		
-		// COPIED FROM Connectivity
-//		int remainder = offset;
-//		int x[] = new int[dimension];
-//	
-//		for(int i = 0; i < dimension; ++i) 
-//		{
-//			x[i] = remainder % 3;	// x for this dimension
-//			remainder -= x[i]; 		// 
-//			remainder /= 3;			// get rid of this dimension
-//			x[i]--;					// x would have range [0, 1, 2]
-//									// but we want ofs from midpoint [-1,0,1]
-//		}
-//		return Point.CopyLessArray(x);
-	}
-	
-	/**
-	 * Converts an integer (midpoint-) offset to a Point offset
-	 * @param offset integer value in [0, m_NeighborhoodSize] 
-	 * @return Point/Vector representation of the offset (e.g [-1,-1] for the upper left corner in 2D)
-	 */
-	private static Point ofsIndexToPoint(int offset, int dim)
-	{
-//		return TConnectivity.ofsIndexToPoint(offset);
-		
-		// COPIED FROM Connectivity
-		int remainder = offset;
-		int x[] = new int[dim];
-	
-		for(int i = 0; i < dim; ++i) 
-		{
-			x[i] = remainder % 3;	// x for this dimension
-			remainder -= x[i]; 		// 
-			remainder /= 3;			// get rid of this dimension
-			x[i]--;					// x would have range [0, 1, 2]
-									// but we want ofs from midpoint [-1,0,1]
-		}
-		return Point.CopyLessArray(x);
-	}
-	
-	
-	
 
 	/**
-	 * @param conn
-	 * @return Boolean array, entry at position <tt>i</tt> indicating 
-	 * if offset i is in neighborhood for <tt>conn</tt>
+	 * Precalculates neighborhood within the unit cube and stores them into boolean array. 
+	 * Access array by the integer offsets for the points to be checked. 
+	 * Array at position idx1, idx2 is true, 
+	 * if idx1, idx2 are unit cube neighbors with respect to their connectivities
+	 * @param connectivity Connectivity to be checked
+	 * @param neighborhoodConnectivity Neighborhood connectivity. This has to be more lax (reach more neighbors) than connectivity
+	 * @return 
 	 */
-	private boolean[] CreateConnectivityTest(Connectivity conn) 
+	private static boolean[][] initUnitCubeNeighbors(Connectivity connectivity, Connectivity neighborhoodConnectivity)
 	{
-        int neighborhoodSize = conn.GetNeighborhoodSize();
-        boolean[] test = new boolean[neighborhoodSize];
-		for(int i = 0; i < neighborhoodSize; i++) 
-		{
-			test[i] = conn.isNeighborhoodOfs(i);
-		}
-
-        return test;
-    }
-    
-	
-	// precalculate, but this is slower...
-	public static boolean[][] UnitCubeNeighbors(Connectivity connectivity, Connectivity neighborhoodConnectivity) 
-	{
-		
-		UnitCubeCCCounter unitCubeCCCounter = new UnitCubeCCCounter(connectivity, neighborhoodConnectivity);
-		
 		int neighborhoodSize = connectivity.GetNeighborhoodSize();
-		
-		boolean neighborsInUnitCube[][];
-		neighborsInUnitCube = new boolean[neighborhoodSize][neighborhoodSize];
-		
-		for(int i=0; i<neighborhoodSize; i++)
+		boolean neighborsInUnitCube[][] = new boolean[neighborhoodSize][neighborhoodSize];
+
+		for(int neighbor1 = 0; neighbor1 < neighborhoodSize; neighbor1++)
 		{
-			Point p1 = unitCubeCCCounter.ofsIndexToPoint(i);
+			Point p1 = connectivity.ofsIndexToPoint(neighbor1);
+
 			if(neighborhoodConnectivity.isNeighborhoodOfs(p1))
 			{
-				for(int j=0; j<neighborhoodSize; j++)
+				for(int neighbor2 = 0; neighbor2 < neighborhoodSize; neighbor2++)
 				{
-					Point p2 = unitCubeCCCounter.ofsIndexToPoint(j);
-					//TODO ??? why add? read itk UnitCubeNeighbors. dont understand
+					Point p2 = connectivity.ofsIndexToPoint(neighbor2);
+
 					Point sum = p1.add(p2);
-					int sumOffset = unitCubeCCCounter.pointToOfs(sum);
-					
+					int sumOffset = connectivity.pointToOffset(sum);
+
 					boolean inUnitCube = true;
-					int dim = connectivity.getDim();
-					for(int d=0; d < dim && inUnitCube; d++)
+					for(int dim = 0; dim < connectivity.getDim() && inUnitCube; dim++)
 					{
-						if (sum.x[d] < -1 || sum.x[d] > +1) {
+						if(sum.x[dim] < -1 || sum.x[dim] > +1){
 							inUnitCube = false;
 						}
 					}
-                    if (inUnitCube && connectivity.areNeighbors(p1, sum)) {
-                        neighborsInUnitCube[i][sumOffset] = true;
+
+					if(inUnitCube && connectivity.areNeighbors(p1, sum)){
+						neighborsInUnitCube[neighbor1][sumOffset] = true;
 					}
 				}
-			} 
+			}
 		}
-		
 		return neighborsInUnitCube;
-
 	}
 	
 	
-	public static boolean[][] UnitCubeNeighborsSTS(
+	private static boolean[][] UnitCubeNeighborsSTS(
 			Connectivity connectivity, Connectivity neighborhoodConnectivity)
 	{
-
 		int neighborhoodSize = connectivity.GetNeighborhoodSize();
 
 		boolean neighborsInUnitCube[][];
@@ -273,7 +213,15 @@ public class UnitCubeCCCounter
 						connectivity.ofsIndexToPoint(i), 
 						connectivity.ofsIndexToPoint(j));
 //				if(isUnitCubeNeighbors(connectivity, i, j)) {
-				if(areUnitCubeNeighbors){
+				if(areUnitCubeNeighbors 
+						// TODO lamy solution doesnt seem to be symmetric
+						// eg [0,3] is false but [3, 0] is true in ITK (3,2)
+						// uncommenting following lines "swaps" in THIS solution exactly these values, 
+						// that are non symmetric in LAMY
+//						&& neighborhoodConnectivity.isNeighborhoodOfs(i)
+//						&& neighborhoodConnectivity.isNeighborhoodOfs(j)
+						)
+				{
 					neighborsInUnitCube[i][j] = true;
 				} else {
 					neighborsInUnitCube[i][j] = false;
@@ -287,18 +235,80 @@ public class UnitCubeCCCounter
 	
 	public static boolean test()
 	{
+		
+		int itk3DFG[][] = {
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{1,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,1,0,1,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,1,0,1,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{1,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0},
+				{0,1,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0},
+				{0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0},
+				{0,0,0,1,0,0,0,0,0,1,0,0,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0},
+				{0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0},
+				{0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,0,0,1,0},
+				{0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,1},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1,0,1,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,1,0,1,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,0,0,1},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1,0,1},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}};
+		
+		int itk3dbg[][] = {
+				{0,1,0,1,1,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{1,0,1,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,1,0,0,1,1,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0},
+				{1,1,0,0,1,0,1,1,0,1,1,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0},
+				{1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0},
+				{0,1,1,0,1,0,0,1,1,0,1,1,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0},
+				{0,0,0,1,1,0,0,1,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0},
+				{0,0,0,1,1,1,1,0,1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0},
+				{0,0,0,0,1,1,0,1,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0,0},
+				{1,1,0,1,1,0,0,0,0,0,1,0,1,1,0,0,0,0,1,1,0,1,1,0,0,0,0},
+				{1,1,1,1,1,1,0,0,0,1,0,1,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0},
+				{0,1,1,0,1,1,0,0,0,0,1,0,0,1,1,0,0,0,0,1,1,0,1,1,0,0,0},
+				{1,1,0,1,1,0,1,1,0,1,1,0,0,1,0,1,1,0,1,1,0,1,1,0,1,1,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+				{0,1,1,0,1,1,0,1,1,0,1,1,0,1,0,0,1,1,0,1,1,0,1,1,0,1,1},
+				{0,0,0,1,1,0,1,1,0,0,0,0,1,1,0,0,1,0,0,0,0,1,1,0,1,1,0},
+				{0,0,0,1,1,1,1,1,1,0,0,0,1,1,1,1,0,1,0,0,0,1,1,1,1,1,1},
+				{0,0,0,0,1,1,0,1,1,0,0,0,0,1,1,0,1,0,0,0,0,0,1,1,0,1,1},
+				{0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,1,0,1,1,0,0,0,0},
+				{0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,1,0,1,1,1,1,0,0,0},
+				{0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,1,0,0,1,1,0,0,0},
+				{0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,1,1,0,1,1,0,0,1,0,1,1,0},
+				{0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1},
+				{0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,1,1,0,1,1,0,1,0,0,1,1},
+				{0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,1,1,0,0,1,0},
+				{0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,1,1,1,1,0,1},
+				{0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,1,1,0,1,0}};
+		
+		
 		Connectivity fg = new Connectivity(3, 2);
-		Connectivity bg = new Connectivity(3, 1);
-		UnitCubeCCCounter ccc;
-		ccc = new UnitCubeCCCounter(fg, bg);
+		Connectivity fgN = new Connectivity(3, 1);
+		Connectivity bg = new Connectivity(3, 0);
+		Connectivity bgN = bg;
 		
 		boolean[][] their;
 		boolean[][] mine;
 		boolean same;
 		
-		// FG BG
-		mine = UnitCubeCCCounter.UnitCubeNeighborsSTS(fg, bg);
-		their = UnitCubeCCCounter.UnitCubeNeighbors(fg, bg);
+		
+		// FG
+		mine = UnitCubeCCCounter.UnitCubeNeighborsSTS(fg, fgN);
+//		mine = UnitCubeCCCounter.UnitCubeNeighbors(fg, fgN);
+		their = UnitCubeCCCounter.initUnitCubeNeighbors(fg, fgN);
 		
 		System.out.println("FG mine");
 		printArray(mine);
@@ -306,28 +316,49 @@ public class UnitCubeCCCounter
 		printArray(their);
 		
 		same = compare(their, mine);
-		
 		if(same)
-			System.out.println("first was ok");
+			System.out.println("FG was ok");
 		else
-			System.out.println("first was BAAAAAD");
+			System.out.println("FG was BAAAAAD");
 		
-		// BG FG
 		
+		// FG compare with itk
+		// (3,2) (3,1) for FG seems to be correct
+		System.out.println("compare theirs with itk");
+		same = compare(intToBooleanArray(itk3DFG), their);
+		System.out.println("compare theirs with itk");
+		if(same)
+			System.out.println("FG was ok");
+		else
+			System.out.println("FG was BAAAAAD");
+		
+		
+		// BG
 		boolean same2=true;
-		ccc = new UnitCubeCCCounter(bg, fg);
-		mine = UnitCubeCCCounter.UnitCubeNeighborsSTS(bg, fg);
-		their = UnitCubeCCCounter.UnitCubeNeighbors(bg, fg);
-		same2 = compare(their, mine);
+		mine = UnitCubeCCCounter.UnitCubeNeighborsSTS(bg, bgN);
+//		mine = UnitCubeCCCounter.UnitCubeNeighbors(bg, bgN);
+		their = UnitCubeCCCounter.initUnitCubeNeighbors(bg, bgN);
 		System.out.println("bg mine");
 		printArray(mine);
 		System.out.println("bg their");
 		printArray(their);
 		
-		if(same)
-			System.out.println("second was ok");
+		same2 = compare(their, mine);
+		if(same2)
+			System.out.println("BG was ok");
 		else
-			System.out.println("second was BAAAAAD");
+			System.out.println("BG was BAAAAAD");
+		
+		
+		// compare with itk
+		// (3,0) (3,0) for BG seems to be correct
+		System.out.println("compare itk with theirs");
+		same2 = compare(intToBooleanArray(itk3dbg), their);
+		System.out.println("compare theirs with itk");
+		if(same2)
+			System.out.println("BG was ok");
+		else
+			System.out.println("BG was BAAAAAD");
 		
 		return same&&same2;
 	}
@@ -340,9 +371,25 @@ public class UnitCubeCCCounter
 		{
 			for(int j=0; j<array[i].length; j++)
 			{
-				System.out.println(i+"\t"+j+"\t" + array[i][j]);
+				System.out.println(i+"\t"+j+"\t" + (array[i][j] ? 1 : 0) );
 			}
 		}
+	}
+	
+	private static boolean[][] intToBooleanArray(int[][] array)
+	{
+		boolean[][] b = new boolean[array.length][];
+		
+		for(int i=0; i<array.length; i++)
+		{
+			b[i] = new boolean[array[i].length];
+			for(int j=0; j<array[i].length; j++)
+			{
+				b[i][j] = (array[i][j] == 1) ? true : false;
+			}
+		}
+		
+		return b;
 	}
 	
 	private static boolean compare(boolean[][] their, boolean[][] mine)
@@ -359,7 +406,10 @@ public class UnitCubeCCCounter
 				}
 				else
 				{
-					System.out.println("different ("+i+" "+j+"): mine=" + mine[i][j] + " their=" + their[i][j]);
+					System.out.println("different ("+i+" "+j+"): "+
+							" their=" + ((their[i][j])? 1 : 0) +
+							" mine=" + ((mine[i][j])? 1 : 0) + 
+							"");
 					same=false;
 				}
 			}
@@ -370,5 +420,101 @@ public class UnitCubeCCCounter
 	}
 	
 }
+
+
+
+
+// done this twice, is now initUnitCubeNeighbors
+
+//// precalculate, but this is slower...
+//// this is the old version
+//public static boolean[][] UnitCubeNeighbors(Connectivity connectivity, Connectivity neighborhoodConnectivity) 
+//{
+//	int neighborhoodSize = connectivity.GetNeighborhoodSize();
+//	UnitCubeCCCounter unitCubeCCCounter = new UnitCubeCCCounter(connectivity, neighborhoodConnectivity);
+//	
+//	boolean neighborsInUnitCube[][];
+//	neighborsInUnitCube = new boolean[neighborhoodSize][neighborhoodSize];
+//	
+//	for(int i=0; i<neighborhoodSize; i++)
+//	{
+//		Point p1 = unitCubeCCCounter.ofsIndexToPoint(i);
+//		if(neighborhoodConnectivity.isNeighborhoodOfs(p1))
+//		{
+//			for(int j=0; j<neighborhoodSize; j++)
+//			{
+//				Point p2 = unitCubeCCCounter.ofsIndexToPoint(j);
+//				//TODO ??? why add? read itk UnitCubeNeighbors. dont understand
+//				Point sum = p1.add(p2);
+//				int sumOffset = unitCubeCCCounter.pointToOfs(sum);
+//				
+//				boolean inUnitCube = true;
+//				int dim = connectivity.getDim();
+//				for(int d=0; d < dim && inUnitCube; d++)
+//				{
+//					if (sum.x[d] < -1 || sum.x[d] > +1) {
+//						inUnitCube = false;
+//					}
+//				}
+//                if (inUnitCube && connectivity.areNeighbors(p1, sum)) {
+//                    neighborsInUnitCube[i][sumOffset] = true;
+//				}
+//			}
+//		} 
+//	}
+//	
+//	return neighborsInUnitCube;
+//
+//}
+
+
+// moved to Connectivity
+
+///**
+//* TODO this is in {@link Connectivity}, too <br>
+//* Converts an offset in the context of the dimension of this UnitCube
+//* @param p 	Point representing an offset, eg. [-1,-1]
+//* @return 		The same offset as integer index, eg. 0
+//*/
+//	protected int pointToOfs(Point p)
+//	{
+//		return TConnectivity.pointToOffset(p);
+//		
+////		int offset = 0;
+////		int factor = 1;
+////		for(int i = 0; i < dimension; i++) {
+////			offset += factor * (p.x[i] + 1);
+////			factor *= 3;
+////		}
+////		return offset;
+//	}
+//	
+//  
+//	/**
+//	 * Converts an integer (midpoint-) offset to a Point offset
+//	 * @param offset integer value in [0, m_NeighborhoodSize] 
+//	 * @return Point/Vector representation of the offset (e.g [-1,-1] for the upper left corner in 2D)
+//	 */
+//	private Point ofsIndexToPoint(int offset)
+//	{
+//		return TConnectivity.ofsIndexToPoint(offset);
+//		
+//		// COPIED FROM Connectivity
+////		int remainder = offset;
+////		int x[] = new int[dimension];
+////	
+////		for(int i = 0; i < dimension; ++i) 
+////		{
+////			x[i] = remainder % 3;	// x for this dimension
+////			remainder -= x[i]; 		// 
+////			remainder /= 3;			// get rid of this dimension
+////			x[i]--;					// x would have range [0, 1, 2]
+////									// but we want ofs from midpoint [-1,0,1]
+////		}
+////		return Point.CopyLessArray(x);
+//	}
+
+
+
 
 

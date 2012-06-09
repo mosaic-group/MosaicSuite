@@ -41,8 +41,8 @@ public class TopologicalNumberImageFunction
 		this.TBGConnectivity = aTBGConnectivity;
 		
 		//TODO!!!!!!! is this correct? switching ok?
-		this.m_ForegroundUnitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity, TBGConnectivity);
-		this.m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(TBGConnectivity, TFGConnectivity);
+		this.m_ForegroundUnitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity, TFGConnectivity.getNeighborhoodConnectivity());
+		this.m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(TBGConnectivity, TBGConnectivity.getNeighborhoodConnectivity());
 		
 		this.labelImage=aLabelImage;
 		this.dimension=TFGConnectivity.getDim();

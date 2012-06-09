@@ -25,6 +25,46 @@ public class Connectivity implements Iterable<Point>
 		
 		initOffsets();
 	}
+	
+	
+	
+	private Connectivity neighborhoodConnectivity;
+	
+	private void initNeighborhoodConnectivity()
+	{
+		int VCellDimN = (VCellDim==0) ? 0 : VCellDim-1;
+		neighborhoodConnectivity = new Connectivity(VDim, VCellDimN);
+	}
+	
+	/**
+	 * This is NOT the corresponding BG connectivity. 
+	 * It is used for UnitCubeCCCounter and Topo numbers. 
+	 * It returns a connectivity that's "one dimension more lax", 
+	 * that is, reaches minimal more neighbors than THIS connectivity
+	 * @return A new created NeighborhoodConnectivity
+	 */
+	public Connectivity getNeighborhoodConnectivity()
+	{
+		if(neighborhoodConnectivity==null)
+		{
+			initNeighborhoodConnectivity();
+		}
+		return neighborhoodConnectivity;
+	}
+	
+	
+	/**
+	 * @return Corresponding foreground/background connectivity 
+	 * such they are compatible (Jordan's theorem) <br>
+	 * (d,d-1) if this is not, and (d,0) otherwise
+	 */
+	public Connectivity getOtherConnectivity()
+	{
+		if(VDim == VCellDim-1)
+			return new Connectivity(VDim, 0);
+		else
+			return new Connectivity(VDim, VDim-1);
+	}
 
 	
 	/**
@@ -133,6 +173,24 @@ public class Connectivity implements Iterable<Point>
 		}
 		return Point.CopyLessArray(x);
 	}
+	
+	/**
+	 * Converts an a Point offset to an integer (midpoint-) offset <br>
+	 * Inverse to ofsIndexToPoint()
+	 * @param p Point offset
+	 * @return Integer offset
+	 */
+	public int pointToOffset(Point p)
+	{
+		 int offset=0;
+		 int factor=1;
+		 for(int i=0; i<VDim; i++)
+		 {
+			 offset += factor * (p.x[i]+1);
+			 factor*=3;
+		 }
+		 return offset;
+	}
 
 	/**
 	 * @return Number of elements in the unitcube
@@ -147,7 +205,7 @@ public class Connectivity implements Iterable<Point>
 	 */
 	public int getDim()
 	{
-		return this.VDim;
+		return VDim;
 	}
 
 	/**

@@ -22,6 +22,10 @@ class MultipleThresholdImageFunctionDOUBLE
 		this.labelImage = labelImage;
 	}
 	
+	void AddThreshold(double value)
+	{
+		AddThresholdBetween(value, value);
+	}
 	
 	/** Values that lie between lower and upper inclusive are inside. */
     void AddThresholdBetween(double lower, double upper) 
@@ -73,9 +77,9 @@ class MultipleThresholdImageFunctionDOUBLE
  * interface ParamGetter<T>
  * 
  */
-class MultipleThresholdImageFunction<N extends Number & Comparable<N>>
+class MultipleThresholdImageFunction<N extends Comparable<? super N>>
+//class MultipleThresholdImageFunction<N extends Comparable<N>>
 {
-	
 	public interface ParamGetter<T>
 	{
 		T getT(int idx);
@@ -95,6 +99,10 @@ class MultipleThresholdImageFunction<N extends Number & Comparable<N>>
 		m_Thresholds = new ArrayList<Pair<N,N>>();
 	}
 	
+	void AddThreshold(N val)
+	{
+		AddThresholdBetween(val, val);
+	}
 	
 	/** Values that lie between lower and upper inclusive are inside. */
     void AddThresholdBetween(N lower, N upper) 
@@ -129,6 +137,22 @@ class MultipleThresholdImageFunction<N extends Number & Comparable<N>>
             }
             return false;
         }
+        
+        // TODO reuse in EvaluateAtIndex
+        boolean EvaluateForValue(N value)
+        {
+            for (int vI = 0; vI < m_NThresholds; vI++) 
+            {
+            	N first = m_Thresholds.get(vI).first;
+            	N second = m_Thresholds.get(vI).second;
+                if (first.compareTo(value)<=0 
+                		&& value.compareTo(second) <=0) 
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
 
 		/** Get the lower threshold value. */
@@ -140,6 +164,32 @@ class MultipleThresholdImageFunction<N extends Number & Comparable<N>>
             m_NThresholds = 0;
         }
 
+        
+        //TODO this is a function, delete
+        <T extends Comparable<T>>void test(T nnn)
+        {
+//        	MultipleThresholdImageFunction<?> foo = new MultipleThresholdImageFunction<Integer>(null);
+//        	foo.AddThresholdBetween((Integer) 5, (Integer) 5);
+        	
+//        	MultipleThresholdImageFunction<Comparable> foobar;
+        	MultipleThresholdImageFunction<Double> foobar = null;
+        	foobar.AddThreshold(5.5);
+        	
+        	
+        	ParamGetter<T> ggg = new ParamGetter<T>() {
+				@Override
+				public T getT(int idx){return null;}
+			};
+			
+			MultipleThresholdImageFunction<T> foo;
+        	foo = new MultipleThresholdImageFunction<T>(ggg);
+        	foo.AddThresholdBetween((T)null, null);
+        	
+        	
+        	MultipleThresholdImageFunction<Double> bar = new MultipleThresholdImageFunction<Double>(null);
+        	bar.AddThresholdBetween(3.1, 5.2);
+        }
+        
     }
 
 //
@@ -199,7 +249,38 @@ class MultipleThresholdImageFunction<N extends Number & Comparable<N>>
 //	
 //}
 
+// tests
 
+class CompSuper implements Comparable<CompSuper>
+{
+
+	@Override
+	public int compareTo(CompSuper o)
+	{
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	
+	
+	void test()
+	{
+		MultipleThresholdImageFunction<CompSub1> foo = null;
+		foo.AddThreshold(new CompSub1());
+
+		MultipleThresholdImageFunction<CompSuper> bar = null;
+		bar.AddThreshold(new CompSub1());
+		
+	}
+	
+}
+
+class CompSub1 extends CompSuper
+{
+}
+
+class CompSub2 extends CompSuper
+{
+}
 
 
 
