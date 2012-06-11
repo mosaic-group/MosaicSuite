@@ -84,7 +84,7 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 	
 	/**
 	 * creates a new LabelImage with size of ip
-	 * @param ip is saved as originalIP
+	 * @param proc is saved as originalIP
 	 */
 	public LabelImage(Region_Competition region_competition) 
 	{
@@ -132,7 +132,8 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 	{
 		//TODO generic
 		connFG = new Connectivity(d, d-1);
-		connBG = new Connectivity(d, d-2);
+//		connBG = new Connectivity(d, d-2);
+		connBG = connFG.getComplementaryConnectivity();
 		m_TopologicalNumberFunction = new TopologicalNumberImageFunction(this, connFG, connBG);
 	}
 

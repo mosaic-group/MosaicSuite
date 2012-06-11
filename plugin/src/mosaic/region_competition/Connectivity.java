@@ -1,6 +1,11 @@
 package mosaic.region_competition;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
+
+import com.sun.org.apache.bcel.internal.generic.NEW;
 
 public class Connectivity implements Iterable<Point>
 {
@@ -11,6 +16,38 @@ public class Connectivity implements Iterable<Point>
 	private int nNeighbors;				// m_NumberOfNeighbors
 	private Point[] neighborsP;
 	private int[] neighborsOfs;
+	
+	private static ArrayList<Connectivity[]> connectivities = new ArrayList<Connectivity[]>();
+	
+	/**
+	 * @param VDim
+	 * @param VCellDim
+	 * @return Singleton connectivity of type (VDim, VCellDim)
+	 */
+	public static Connectivity getConnectivity(int VDim, int VCellDim)
+	{
+		// ensure there is place for connectivities of dimension VDim 
+		connectivities.ensureCapacity(VDim+1);
+		
+		int size = connectivities.size();
+		while(size<=VDim)
+		{
+			size++;
+			connectivities.add(new Connectivity[size]);
+		}
+		
+		Connectivity[] conns = connectivities.get(VDim);
+		Connectivity conn = conns[VCellDim];
+		
+		if(conn==null){
+			conn = new Connectivity(VDim, VCellDim);
+			conns[VCellDim]=conn;
+		}
+		return conn;
+	}
+	
+	
+	
 	
 	public Connectivity(int VDim, int VCellDim) 
 	{
@@ -58,9 +95,9 @@ public class Connectivity implements Iterable<Point>
 	 * such they are compatible (Jordan's theorem) <br>
 	 * (d,d-1) if this is not, and (d,0) otherwise
 	 */
-	public Connectivity getOtherConnectivity()
+	public Connectivity getComplementaryConnectivity()
 	{
-		if(VDim == VCellDim-1)
+		if(VCellDim == VDim-1)
 			return new Connectivity(VDim, 0);
 		else
 			return new Connectivity(VDim, VDim-1);
@@ -237,6 +274,17 @@ public class Connectivity implements Iterable<Point>
 		}
 		return fac;
 	}
+	
+	@Override
+	public String toString()
+	{
+		String result = "Connectivity ("+VDim+", "+VCellDim+")";
+		result = result + " = " + nNeighbors + "-Connectivity";
+		return result;
+	}
+	
+	
+	///////////////////// Iterators /////////////////////////////
 
 	
 	/**
@@ -346,6 +394,22 @@ public class Connectivity implements Iterable<Point>
 			Point ofs = super.next();
 			return point.add(ofs);
 		}
+	}
+	
+	public static boolean test()
+	{
+		Connectivity c;
+		c = Connectivity.getConnectivity(1, 1);
+		c = Connectivity.getConnectivity(3, 2);
+		c = Connectivity.getConnectivity(3, 2);
+		c = Connectivity.getConnectivity(3, 1);
+		c = Connectivity.getConnectivity(3, 0);
+		c = Connectivity.getConnectivity(2, 2);
+		c = Connectivity.getConnectivity(2, 2);
+		c = Connectivity.getConnectivity(2, 1);
+		c = Connectivity.getConnectivity(0, 0);
+		
+		return true;
 	}
 	
 }

@@ -54,6 +54,7 @@ public class Region_Competition implements PlugInFilter
 	
 	String defaultInputFile= "C:/Users/Stephan/Desktop/BA/imagesAndPaper/icecream5_410x410.tif";
 	
+	
 	boolean testMacroBug()
 	{
 		GenericDialog gd = new GenericDialog("test");
@@ -96,7 +97,8 @@ public class Region_Competition implements PlugInFilter
 //		if(testMacroBug())
 //			return DONE;
 		
-		UnitCubeCCCounter.test();
+//		Connectivity.test();
+//		UnitCubeCCCounter.test();
 		
 		settings = new Settings();
 		MVC=this;
@@ -639,29 +641,6 @@ public class Region_Competition implements PlugInFilter
 		for(Point p : conn) {
 			System.out.println(p);
 		}
-	}
-	
-	void testCCC()
-	{
-//		Connectivity connFG = new Connectivity(2, 1);
-//		Connectivity connBG = new Connectivity(2, 0);
-		
-		Connectivity connFG = new Connectivity(3, 1);
-		Connectivity connBG = new Connectivity(3, 0);
-		
-		
-		UnitCubeCCCounter cube = new UnitCubeCCCounter(connFG, connBG);
-		
-		boolean[][] orig=UnitCubeCCCounter.UnitCubeNeighbors(connFG, connBG);
-		System.out.println("original:");
-		System.out.println(orig);
-		
-		boolean[][] sts=cube.UnitCubeNeighborsSTS(connFG, connBG);
-		System.out.println("sts:");
-		System.out.println(sts);
-		
-		System.out.println("end");
-		
 	}
 	
 

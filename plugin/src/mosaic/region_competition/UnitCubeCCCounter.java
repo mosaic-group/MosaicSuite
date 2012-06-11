@@ -111,6 +111,7 @@ public class UnitCubeCCCounter
 				for(int neighbor = 0; neighbor < neighborhoodSize; neighbor++) 
 				{
 					if(!visited[neighbor] && m_Image[neighbor] != 0 
+							// statically or dynamically
 //							&& isUnitCubeNeighbors(conn, current, neighbor)) 
 						    && m_UnitCubeNeighbors[current][neighbor]) 
 						
@@ -197,7 +198,12 @@ public class UnitCubeCCCounter
 		return neighborsInUnitCube;
 	}
 	
-	
+	/**
+	 * Precalculation with non-lamy method. just checks if the both are connected
+	 * @param connectivity
+	 * @param neighborhoodConnectivity
+	 * @return
+	 */
 	private static boolean[][] UnitCubeNeighborsSTS(
 			Connectivity connectivity, Connectivity neighborhoodConnectivity)
 	{
@@ -233,9 +239,31 @@ public class UnitCubeCCCounter
 
 	}
 	
+	
+	
+	@Override
+	public String toString()
+	{
+		String result="UnitCubeCCCounter " +
+			TConnectivity + " " + 
+			TNeighborhoodConnectivity;
+		
+		return result;
+	}
+	
+	
+	
+	
+	
+	
+	
+	///////////////////////////// test ////////////////////////////////////////
+	
+	
+	
 	public static boolean test()
 	{
-		
+		// this is the result of the itk code
 		int itk3DFG[][] = {
 				{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 				{1,0,1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -295,10 +323,12 @@ public class UnitCubeCCCounter
 				{0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,1,1,0,1,0}};
 		
 		
-		Connectivity fg = new Connectivity(3, 2);
+		Connectivity fg =  new Connectivity(3, 2);
 		Connectivity fgN = new Connectivity(3, 1);
-		Connectivity bg = new Connectivity(3, 0);
-		Connectivity bgN = bg;
+		fgN = fg.getNeighborhoodConnectivity();
+		Connectivity bg =  new Connectivity(3, 0);
+		Connectivity bgN = new Connectivity(3, 0);
+		bgN = bg.getNeighborhoodConnectivity();
 		
 		boolean[][] their;
 		boolean[][] mine;
@@ -400,12 +430,10 @@ public class UnitCubeCCCounter
 		{
 			for(int j=0; j<their[i].length; j++)
 			{
-				if(their[i][j]==mine[i][j])
-				{
+				if(their[i][j]==mine[i][j]){
 //					System.out.println("same");
 				}
-				else
-				{
+				else{
 					System.out.println("different ("+i+" "+j+"): "+
 							" their=" + ((their[i][j])? 1 : 0) +
 							" mine=" + ((mine[i][j])? 1 : 0) + 
@@ -413,14 +441,11 @@ public class UnitCubeCCCounter
 					same=false;
 				}
 			}
-		}
+		} // for
 		
 		return same;
-		
 	}
-	
 }
-
 
 
 

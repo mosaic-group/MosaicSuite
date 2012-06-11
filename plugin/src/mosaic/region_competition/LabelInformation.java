@@ -13,15 +13,16 @@ public class LabelInformation
 	{
 		//TODO setVar only for debugging
 		
-		// very small vars are due to numerical errors
-		if(v<0 && v > -0.01)
-		{
-			v = 0.0;
-			System.out.println("var<0 && var > -0.01 0.0");
-		}
+//		if(v<0 && v > -0.01) // very small vars are due to numerical errors
+//		{
+//			v = 0.0;
+//			System.out.println("var<0 && var > -0.01 0.0");
+//		}
+//		assert(v>=0.0) : "setVar <0 ("+v+")";
 		
-		
-		assert(v>=0.0) : "setVar <0 ("+v+")";
+		if(v<0)
+			v=0;
+
 		var=v;
 	}
 	
