@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,6 +27,9 @@ import ij.gui.Roi;
 import ij.io.FileInfo;
 import ij.io.FileSaver;
 import ij.io.Opener;
+import ij.plugin.GroupedZProjector;
+import ij.plugin.HyperStackConverter;
+import ij.plugin.ZProjector;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
@@ -35,7 +39,7 @@ import ij.process.ShortProcessor;
 
 /**
  * @author Stephan Semmler, ETH Zurich
- * @version 14.5.2011
+ * @version 2012.06.11
  */
 
 public class Region_Competition implements PlugInFilter
@@ -43,7 +47,8 @@ public class Region_Competition implements PlugInFilter
 	Region_Competition MVC;		// interface to image application (imageJ)
 	public Settings settings;
 	LabelImage labelImage;		// data structure mapping pixels to labels
-	ImagePlus originalIP;		// IP of the input image
+	private ImagePlus originalIP;		// IP of the input image
+	ImagePlus dataNormalizedIP;		// input image scaled to [0,1]
 	ImageStack stack;			// stack saving the segmentation progress images
 	ImagePlus stackImPlus;		// IP showing the stack
 	
@@ -166,17 +171,59 @@ public class Region_Competition implements PlugInFilter
 			
 			ip = o.openImage(defaultInputFile);
 		}
+		
 			
 		if(ip!=null)
 		{
 			originalIP = ip;
 			
+			// scale all values in all slices to floats between 0.0 and 1.0
+			int nSlices = ip.getStackSize();
+			
+			ImageStack stack = ip.getStack();
+			
+			double max = ip.getStatistics().max;
+			double f = 1.0/max;
+			
+//			if(nSlices==1)
+//			{
+//				int i=1;
+//				ImageProcessor p = stack.getProcessor(i);
+//				FloatProcessor fp = (FloatProcessor)p.convertToFloat();
+//				fp.multiply(f);
+//				
+//				stack.setPixels(fp.getPixels(), i);
+//			}
+			
+			ImageStack normalizedStack = new ImageStack(stack.getWidth(), stack.getHeight());
+			
+			for(int i=1; i<=nSlices; i++)
+			{
+				ImageProcessor p = stack.getProcessor(i);
+				FloatProcessor fp = (FloatProcessor)p.convertToFloat();
+				fp.multiply(f);
+				
+				normalizedStack.addSlice("z="+i, fp);
+				
+//				stack.setPixels(fp.getPixels(), i);
+			}
+			
+			stack = normalizedStack;
+			
+			dataNormalizedIP = new ImagePlus("Normalized Input Image", stack);
+			
 			// image loaded
 			boolean showOriginal = true;
 			if(showOriginal)
 			{
-				ip.show();
+				originalIP.show();
 			}
+			boolean showNormalized = true;
+			if(showNormalized)
+			{
+				dataNormalizedIP.show();
+			}
+			
 		}
 		
 		if(ip==null)
@@ -191,10 +238,18 @@ public class Region_Competition implements PlugInFilter
 	
 	void initLabelImage()
 	{
-		labelImage = new LabelImage(MVC);
+//		if(this.originalIP.getNSlices()>1)
+//		{
+//			labelImage = LabelImage.getLabelImage3D(MVC);
+//		}
+//		else
+		{
+			labelImage = new LabelImage(MVC);
 //		labelImage = LabelImage.getLabelImageNeg(this);
 //		labelImage = LabelImage.getLabelImageFloatNeg(this);
 //		labelImage = new LabelImage(MVC);
+			
+		}
 		labelImage.initZero();
 		
 		// Input Processing
@@ -256,11 +311,15 @@ public class Region_Competition implements PlugInFilter
 			}
 		}
 		
-		initialLabelImageProcessor = labelImage.getLabelImageProcessor().duplicate();
+//		TODO sts 3D_comment
+//		if(labelImage.getDim()==2)
+		{
+			initialLabelImageProcessor = labelImage.getLabelImageProcessor().duplicate();
+		}
 		
 		// save the initial guess (random/user defined/whatever) to a tiff
 		// so we can reuse it for debugging
-		boolean doSaveGuess = true;
+		boolean doSaveGuess = false;
 		if(doSaveGuess)
 		{
 //			String s = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
@@ -288,8 +347,7 @@ public class Region_Competition implements PlugInFilter
 	{
 		if(userDialog.useStack())
 		{
-			
-			ImageProcessor labelImageProc = labelImage.getLabelImageProcessor();
+			ImageProcessor labelImageProc = labelImage.getLabelImageProcessor().convertToShort(false);
 			ImagePlus labelImPlus = new ImagePlus("dummy", labelImageProc);
 			stack = labelImPlus.createEmptyStack();
 			
@@ -320,10 +378,11 @@ public class Region_Competition implements PlugInFilter
 			stackImPlus.show();
 			
 			// first stack image without boundary&contours
-			addSliceToStackAndShow("init", initialLabelImageProcessor.getPixelsCopy());
+			addSliceToStackAndShow("init", initialLabelImageProcessor.convertToShort(false).getPixelsCopy());
 			
 			// next stack image is start of algo
-			addSliceToStackAndShow("init", labelImage.getLabelImageProcessor().getPixelsCopy());
+//			addSliceToStackAndShow("init", labelImage.getLabelImageProcessor().getPixelsCopy());
+			labelImage.displaySlice("init");
 			
 			IJ.setMinAndMax(stackImPlus, 0, maxLabel);
 			IJ.run(stackImPlus, "3-3-2 RGB", null); // stack has to contain at least 2 slices so this LUT applies to all future slices.
@@ -437,12 +496,37 @@ public class Region_Competition implements PlugInFilter
 	
 	ImagePlus showFinalResult(LabelImage li, Object title)
 	{
+		if(this.originalIP.getNSlices()>1)
+		{
+			return showFinalResult3D(li, title);
+		}
+		
+		// Colorprocessor doesn't support abs() (does nothing). 
+		// convert it to short
+		li.absAll();
 		ImageProcessor imProc = li.getLabelImageProcessor();
-		imProc.abs();
-		ImagePlus imp = new ImagePlus("ResultWindow "+title, imProc);
+//		System.out.println(Arrays.toString((int[])(imProc.getPixels())));
+		ImagePlus imp = new ImagePlus("ResultWindow "+title, imProc.convertToShort(false));
 		IJ.setMinAndMax(imp, 0, li.getBiggestLabel());
 		IJ.run(imp, "3-3-2 RGB", null);
 		imp.show();
+		
+		return imp;
+	}
+	
+	public ImagePlus showFinalResult3D(LabelImage li, Object title)
+	{
+		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.get3DStack());
+		IJ.setMinAndMax(imp, 0, li.getBiggestLabel());
+		IJ.run(imp, "3-3-2 RGB", null);
+		
+		imp.show();
+		
+//		IJ.run(imp, "Z Project...", "start=1 stop="+z+" projection=[Average Intensity]");
+
+//		HyperStackConverter hs = new HyperStackConverter();
+		
+//		imp.show();
 		
 		return imp;
 	}
@@ -587,6 +671,11 @@ public class Region_Competition implements PlugInFilter
 	{
 		return this.originalIP;
 	}
+	
+	public ImagePlus getNormalizedIP()
+	{
+		return this.dataNormalizedIP;
+	}
 
 	
 /**
@@ -672,5 +761,3 @@ public class Region_Competition implements PlugInFilter
 	
 	
 }
-
-

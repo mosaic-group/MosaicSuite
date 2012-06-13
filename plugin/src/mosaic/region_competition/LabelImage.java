@@ -1,5 +1,6 @@
 package mosaic.region_competition;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,10 +17,14 @@ import java.util.TreeSet;
 
 import mosaic.plugins.Region_Competition;
 
+import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.gui.OvalRoi;
 import ij.gui.Roi;
 import ij.measure.ResultsTable;
+import ij.plugin.GroupedZProjector;
+import ij.plugin.ZProjector;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
@@ -43,10 +48,13 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 	ImagePlus imageIP;	// input image
 	ImageProcessor imageProc;
 	
-	private final float imageMax; 	// maximal intensity of input image
+//	private final float imageMax; 	// maximal intensity of input image
 	
 	ImageProcessor labelIP;				// map positions -> labels
+	public float[] dataIntensity;
+	public short[] dataLabel;
 	
+	int size;
 	int dim;			// number of dimension
 	int[] dimensions;	// dimensions (width, height, depth, ...)
 	int width;	// TODO multidim
@@ -89,42 +97,99 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 	public LabelImage(Region_Competition region_competition) 
 	{
 		m_LabelImage = this;
+
+		MVC = region_competition;
+		settings = MVC.settings;
 		
-		MVC=region_competition;
-		settings=MVC.settings;
-		ImagePlus ip = MVC.getOriginalImPlus();
-		imageIP=ip;
-		imageProc=ip.getProcessor();
-		imageMax=(float)imageIP.getStatistics().max;
-		
-		dim = ip.getNDimensions();
-		dimensions = new int[dim];
-		for(int i=0; i<dim; i++)
-		{
-			//TODO does this work for n-dim?
-			dimensions[i]=ip.getDimensions()[i];
-		}
-		
+		initIntensityData();
+		initDimensions();
 		iterator = new IndexIterator(dimensions);
-		
-		//TODO multidim
-		width=ip.getWidth();
-		height=ip.getHeight();
-		
-//		m_MergingHist = new LinkedList<Integer>();
-//		m_FramesHist = new LinkedList<Integer>();
+		initLabelProc();
 		
 		initConnectivities(dim);
+//		imageMax = calcMaxIntensity();
 		
 		initMembers();
 	}
 	
+	void initIntensityData()
+	{
+		ImagePlus ip = MVC.getNormalizedIP();
+		imageIP = ip;
+		imageProc = ip.getProcessor();
+		
+		initDimensions();
+		int nSlices =ip.getNSlices();
+		int area = width*height;
+		
+		dataIntensity = new float[size];
+		
+		ImageStack stack = ip.getStack();
+		float[] pixels;
+		for(int i=1; i<=nSlices; i++)
+		{
+			pixels = (float[])stack.getPixels(i);
+			for(int y=0; y<height; y++)
+			{
+				for(int x=0; x<width; x++)
+				{
+					dataIntensity[(i-1)*area+y*width+x] = pixels[y*width+x];
+				}
+			}
+		}
+	}
+	
+	void initDimensions()
+	{
+		ImagePlus ip = imageIP;
+		
+		size=1;
+		dim = ip.getNDimensions();
+		dimensions = new int[dim];
+		for(int i=0; i<2; i++)
+		{
+			//TODO does this work for n-dim?
+			dimensions[i]=ip.getDimensions()[i];
+			size*=dimensions[i];
+		}
+		
+		if(dim==3)
+		{
+			dimensions[2]=ip.getNSlices();
+			size*=dimensions[2];
+		}
+		
+		//TODO multidim
+		width=ip.getWidth();
+		height=ip.getHeight();
+	}
+	
+	/**
+	 * used to assign to final field imageMax
+	 * @return
+	 */
+//	float calcMaxIntensity()
+//	{
+//		return (float)imageIP.getStatistics().max;
+//	}
+	
 	void initLabelProc()
 	{
-		// TODO does init twice if guess loaded from file
-//		labelIP = new ColorProcessor(width, height);
-		labelIP = new ShortProcessor(width, height);
+		if(dim==3){
+			labelIP = null;
+			dataLabel = new short[size];
+		}
+		else
+		{
+			// TODO does init twice if guess loaded from file
+//			labelIP = new ColorProcessor(width, height);
+			labelIP = new ShortProcessor(width, height);
+//		labelIP = new ShortProcessor(width, height);
+			dataLabel = (short[])labelIP.getPixels();
 //		labelIP = new FloatProcessor(width, height);
+		}
+		System.out.println("dataLabel.length="+dataLabel.length);
+		
 	}
 	
 	
@@ -169,8 +234,9 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 
 	public void initMembers()
     {
-    	initLabelProc();
-    	
+//		m_MergingHist = new LinkedList<Integer>();
+//		m_FramesHist = new LinkedList<Integer>();
+		
 		//TODO initial capacities
 		m_InnerContourContainer = new HashMap<Point, ContourParticle>();
 		m_Candidates = new HashMap<Point, ContourParticle>();
@@ -211,12 +277,6 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
      */
 	public void initZero()
 	{
-		int size=1;
-		for(int d=0; d<dim; d++)
-		{
-			size*=dimensions[d];
-		}
-		
 		for(int i=0; i<size; i++)
 		{
 			set(i, 0);
@@ -232,6 +292,7 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 	{
 		//TODO check for dimensions etc
 		this.labelIP=ip.duplicate();
+		this.dataLabel=(short[])ip.getPixels();
 	}
 	
 	public void initWithIP(ImagePlus ip)
@@ -245,16 +306,30 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 	public void initBoundary()
 	{
 		
-		//TODO multidim
-		for(int y = 0; y < height; y++){
-			set(0, y, forbiddenLabel);
-			set(width-1,y,forbiddenLabel);
+		for(int idx: iterator.getIndexIterable())
+		{
+			Point p = iterator.indexToPoint(idx);
+			int xs[] = p.x;
+			for(int d=0; d<dim; d++)
+			{
+				int x = xs[d];
+				if(x == 0 || x==dimensions[d]-1)
+				{
+					set(idx, forbiddenLabel);
+					break;
+				}
+			}
 		}
 		
-		for(int x = 0; x < width; x++){
-			set(x, 0, forbiddenLabel);
-			set(x, height-1, forbiddenLabel);
-		}
+//		for(int y = 0; y < height; y++){
+//			set(0, y, forbiddenLabel);
+//			set(width-1,y,forbiddenLabel);
+//		}
+//		
+//		for(int x = 0; x < width; x++){
+//			set(x, 0, forbiddenLabel);
+//			set(x, height-1, forbiddenLabel);
+//		}
 	}
 	
 	/**
@@ -263,7 +338,7 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 	 */
 	public void initialGuess()
 	{
-		Roi vRectangleROI = new Roi(10, 10, imageIP.getWidth()-20, imageIP.getHeight()-20);
+		Roi vRectangleROI = new Roi(10, 10, width-20, height-20);
 		labelIP.setValue(1);
 //		labelIP.setValue(labelDispenser.getNewLabel());
 		labelIP.fill(vRectangleROI);
@@ -422,6 +497,9 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 			bd.doSphereIteration(ofs, bubbleIndex);
 //			bd.doSphereIteration(ofs, labelDispenser.getNewLabel());
 		}
+		
+//		System.out.println(Arrays.toString(dataLabel));
+		
 	}
 	
 	void clearStats()
@@ -523,39 +601,30 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 	 */
 	public void generateContour()
 	{
-		//TODO which connectivity?!
 		Connectivity conn = connFG;
 		
-		// finds and saves contour particles
-		
-		//TODO multidim
-		for(int y = 1; y < height-1; y++)
+		for(int i: iterator.getIndexIterable())
 		{
-			for(int x = 1; x < width-1; x++)
+			int label=get(i);
+			if(label!=bgLabel && label!=forbiddenLabel) // region pixel
+				// && label<negOfs
 			{
-				int label=get(x, y);
-				if(label!=bgLabel && label!=forbiddenLabel) // region pixel
-					// && label<negOfs
+				Point p = iterator.indexToPoint(i);
+				for(Point neighbor : conn.iterateNeighbors(p))
 				{
-					
-					int xs[]={x,y};
-					Point p = new Point(xs);
-					for(Point neighbor : conn.iterateNeighbors(p))
+					int neighborLabel=get(neighbor);
+					if(neighborLabel!=label)
 					{
-						int neighborLabel=get(neighbor);
-						if(neighborLabel!=label)
-						{
-							ContourParticle particle = new ContourParticle();
-							particle.label=label;
-							particle.intensity=getIntensity(x, y);
-							m_InnerContourContainer.put(p, particle);
-							
-							break;
-						}
+						ContourParticle particle = new ContourParticle();
+						particle.label=label;
+						particle.intensity=getIntensity(i);
+						m_InnerContourContainer.put(p, particle);
+						
+						break;
 					}
-					
-				} // if region pixel
-			}
+				}
+				
+			} // if region pixel
 		}
 		
 		// set contour to -label
@@ -567,6 +636,59 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 			set(key, labelToNeg(value.label));
 		}
 	}
+	
+//	
+//	/**
+//	 * marks the contour of each region
+//	 * stores the contour particles in contourContainer
+//	 */
+//	public void generateContour2D()
+//	{
+//		//TODO which connectivity?!
+//		Connectivity conn = connFG;
+//		
+//		// finds and saves contour particles
+//		
+//		
+//		//TODO multidim
+//		for(int y = 1; y < height-1; y++)
+//		{
+//			for(int x = 1; x < width-1; x++)
+//			{
+//				int label=get(x, y);
+//				if(label!=bgLabel && label!=forbiddenLabel) // region pixel
+//					// && label<negOfs
+//				{
+//					
+//					int xs[]={x,y};
+//					Point p = new Point(xs);
+//					for(Point neighbor : conn.iterateNeighbors(p))
+//					{
+//						int neighborLabel=get(neighbor);
+//						if(neighborLabel!=label)
+//						{
+//							ContourParticle particle = new ContourParticle();
+//							particle.label=label;
+//							particle.intensity=getIntensity(x, y);
+//							m_InnerContourContainer.put(p, particle);
+//							
+//							break;
+//						}
+//					}
+//					
+//				} // if region pixel
+//			}
+//		}
+//		
+//		// set contour to -label
+//		for(Entry<Point, ContourParticle> entry:m_InnerContourContainer.entrySet())
+//		{
+//			Point key = entry.getKey();
+//			ContourParticle value = entry.getValue();
+//			//TODO cannot set neg values to ShortProcessor
+//			set(key, labelToNeg(value.label));
+//		}
+//	}
 	
 	public void GenerateData()
 	{
@@ -1937,13 +2059,13 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 		    {
 		    	
 		    	double eCurv = CalculateCurvatureBasedGradientFlow(
-		    			imageIP, m_LabelImage, aContourIndex,vCurrentLabel, aToLabel);
+		    			m_LabelImage, aContourIndex,vCurrentLabel, aToLabel);
 //		    	debug("eCurv="+eCurv+" vEnergy="+vEnergy);
 		        vEnergy += //m_Means[aToLabel] * // m_Means[aToLabel] *
 		        		m_EnergyContourLengthCoeff * eCurv;
 		    } else {
 		        vEnergy += m_EnergyContourLengthCoeff * CalculateCurvatureBasedGradientFlow(
-		                imageIP, m_LabelImage, aContourIndex, vCurrentLabel, aToLabel);
+		                m_LabelImage, aContourIndex, vCurrentLabel, aToLabel);
 		    }
 		}
 		
@@ -2281,8 +2403,8 @@ public class LabelImage implements MultipleThresholdImageFunction.ParamGetter<In
 
 		
 	
-double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
-		LabelImage aLabelImage, Point aIndex, int aFrom, int aTo) 
+double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage, 
+		Point aIndex, int aFrom, int aTo) 
 {
 //	SphereBitmapImageSource sphereMaskIterator = new SphereBitmapImageSource(dim, aLabelImage);
 	
@@ -2755,6 +2877,9 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 
 	public ImageProcessor getLabelImageProcessor()
 	{
+		if(dim==3){
+			return getProjected3D().getProcessor();
+		}
 		return labelIP;
 	}
 	
@@ -2776,11 +2901,12 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	 * @return if label was a contour label, get the absolut/inner label
 	 */
 	int labelToAbs(int label) {
-		if (isContourLabel(label)) {
-			return label - negOfs;
-		} else {
-			return label;
-		}
+		return Math.abs(label);
+//		if (isContourLabel(label)) {
+//			return label - negOfs;
+//		} else {
+//			return label;
+//		}
 	}
 
 	/**
@@ -2792,14 +2918,16 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 		if (label==bgLabel || isForbiddenLabel(label) || isContourLabel(label)) {
 			return label;
 		} else {
-			return label + negOfs;
+			return -label;
+//			return label + negOfs;
 		}
 	}
 
 	
 	int get(int index)
 	{
-		return labelIP.get(index);
+		return dataLabel[index];
+//		return labelIP.get(index);
 	}
 
 
@@ -2807,10 +2935,10 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	 * @param p
 	 * @return Returns the value of the LabelImage at x,y
 	 */
-	int get(int x, int y) 
-	{
-		return labelIP.get(x,y);
-	}
+//	int get(int x, int y) 
+//	{
+//		return labelIP.get(x,y);
+//	}
 	
 	
 	/**
@@ -2820,48 +2948,14 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	 */
 	boolean isContourLabel(int label)
 	{
-		if(isForbiddenLabel(label)) {
-			return false;
-		} else {
-			return (label > negOfs);
-		}
+		return (label<0);
+//		if(isForbiddenLabel(label)) {
+//			return false;
+//		} else {
+//			return (label > negOfs);
+//		}
 	}
 	
-
-	
-	// version with neg contour particles. see class LabelImageNeg
-	// only works with short datatype
-//
-//	int labelToAbs(int label)
-//	{
-//		return Math.abs((short)(label));
-//	}
-//	
-//	int labelToNeg(int label)
-//	{
-//		// TODO Auto-generated method stub
-//		if(label==forbiddenLabel)
-//			return label;
-//		else
-//			return -(label);
-//	}
-//	
-//	int get(int index)
-//	{
-//		return (short)labelIP.get(index);
-//	}
-//
-//	int get(int x, int y) 
-//	{
-//		return (short) labelIP.get(x,y);
-//	}
-//	
-//	
-//	boolean isContourLabel(int label)
-//	{
-//		return label<0;
-//
-//	} 
 	
 
 
@@ -2870,8 +2964,8 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	 * @return Returns the (raw; contour information) value of the LabelImage at Point p. 
 	 */
 	public int get(Point p) {
-		//TODO multidimension
-		return get(p.x[0], p.x[1]);
+		int idx = iterator.pointToIndex(p);
+		return get(idx);
 	}
 
 
@@ -2894,54 +2988,58 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	 */
 	float getIntensity(Point p)
 	{
-		return getIntensity(p.x[0], p.x[1]);
+		return getIntensity(iterator.pointToIndex(p));
 	}
 	
 	float getIntensity(int idx)
 	{
+		return dataIntensity[idx];
+		
 		//TODO !!!!!!!!!! prenormalize image!!!
 		//TODO getPixel does index check
 //		return imageProc.getf(idx);
-		return imageProc.get(idx)/imageMax;
+//		return imageProc.getf(idx)/imageMax;
 	}
 
-	float getIntensity(int x, int y)
-	{
-		//TODO !!!!!!!!!! prenormalize image!!!
-		//TODO getPixel does index check
-//		return imageProc.getf(x, y);
-		return imageProc.get(x, y)/imageMax;
-		
-//		return originalIP.getPixel(x, y)[0]/imageMax;
-	}
-
-
-	/**
-	 * sets the labelImage to val at point x,y
-	 */
-	void set(int x, int y, int val) 
-	{
-		labelIP.set(x,y,val);
-	}
 	
 	/**
 	 * sets the labelImage to val at point x,y
 	 */
 	void set(int index, int val) 
 	{
-		labelIP.set(index, val);
+//		dataLabel[index]=val;
+		dataLabel[index]=(short)val;
+//		labelIP.set(index, val);
 	}
 
 
 	/**
 	 * sets the labelImage to val at Point p
 	 */
-	void set(Point p, int value) {
-		//TODO multidimension
-		labelIP.set(p.x[0], p.x[1], value);
+	void set(Point p, int val) {
+		int idx = iterator.pointToIndex(p);
+		set(idx, val);
+	}
+	
+	public void absAll()
+	{
+		for(int i=0; i<size; i++)
+		{
+//			dataLabel[i]=Math.abs(dataLabel[i]);
+			dataLabel[i]=(short)Math.abs(dataLabel[i]);
+		}
 	}
 
+	public int getDim()
+	{
+		return this.dim;
+	}
 
+	public int[] getDimensions()
+	{
+		return this.dimensions;
+	}
+	
 	public Connectivity getConnFG() {
 		return connFG;
 	}
@@ -2952,18 +3050,80 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	}
 
 
-	void displaySlice()
+	public void displaySlice()
 	{
 		displaySlice(null);
 	}
 
 
-	void displaySlice(String s)
+	public void displaySlice(String s)
 	{
 		if(MVC.userDialog.useStack())
 		{
-			MVC.addSliceToStackAndShow(s, labelIP.getPixelsCopy());
+			MVC.addSliceToStackAndShow(s, getShortCopy());
 		}
+	}
+	
+	
+	private short[] getShortCopy()
+	{
+		if(dim==3)
+		{
+			return (short[])getProjected3D().getProcessor().getPixels();
+		}
+		
+		short[] shortData = new short[size];
+		for(int i=0; i<this.size; i++)
+		{
+			shortData[i] = (short)dataLabel[i];
+		}
+		return shortData;
+	}
+	
+	/**
+	 * if 3D image, converts to a stack of ShortProcessors
+	 * @return
+	 */
+	public ImageStack get3DStack()
+	{
+		int dims[] = getDimensions();
+		short labeldata[] = dataLabel;
+		
+		int w,h,z, size;
+		w=dims[0];
+		h=dims[1];
+		z=dims[2];
+		size=w*h*z;
+		int area = w*h;
+		
+		short shortData[] = new short[size];
+		for(int i=0; i<size; i++){
+			shortData[i]=(short)labeldata[i];
+		}
+
+		ImageStack stack = new ImageStack(w,h);
+		for(int i=0; i<z; i++)
+		{
+			Object pixels = Arrays.copyOfRange(shortData, i*area, (i+1)*area);
+			stack.addSlice("", pixels);
+		}
+		
+		return stack;
+	}
+	
+	public ImagePlus getProjected3D()
+	{
+		ImageStack stack = get3DStack();
+		int z = getDimensions()[2];
+
+		ImagePlus imp = new ImagePlus("Projection stack ", stack);
+		IJ.setMinAndMax(imp, 0, getBiggestLabel());
+		IJ.run(imp, "3-3-2 RGB", null);
+		
+		StackProjector projector = new StackProjector();
+		imp = projector.doIt(imp, z);
+		
+		return imp;
 	}
 
 
@@ -3029,13 +3189,13 @@ double CalculateCurvatureBasedGradientFlow(ImagePlus aDataImage,
 	{
 		return new LabelImageShortNeg(rc);
 	}
-	public static LabelImageFloatInput getLabelImageFloat(Region_Competition rc)
-	{
-		return new LabelImageFloatInput(rc);
-	}
 	public static LabelImageFloatNeg getLabelImageFloatNeg(Region_Competition rc)
 	{
 		return new LabelImageFloatNeg(rc);
+	}
+	public static LabelImage3D getLabelImage3D(Region_Competition rc)
+	{
+		return new LabelImage3D(rc);
 	}
 	
 	public int getBiggestLabel()
@@ -3180,40 +3340,180 @@ class LabelImageFloatNeg extends LabelImage
 	
 }
 
-
-/**
- * Input image is converted to a [0,1] normalized floatProcessor
- */
-class LabelImageFloatInput extends LabelImage
+class LabelImage3D extends LabelImage
 {
 
-	public LabelImageFloatInput(Region_Competition region_competition)
+	public LabelImage3D(Region_Competition region_competition)
 	{
 		super(region_competition);
-		normalizeImage();
+		// TODO Auto-generated constructor stub
 	}
 	
-	void normalizeImage()
+	
+	void initDimensions()
 	{
-		imageProc=imageProc.convertToFloat();
-		double max = ImageStatistics.getStatistics(imageProc, ImageStatistics.MIN_MAX, null).max;
+		ImagePlus ip = imageIP;
 		
-		double fac = 1.0/max;
-		imageProc.multiply(fac);
-		imageIP.setProcessor(imageProc);
+		size=1;
+		dim = ip.getNDimensions();
+		dimensions = new int[dim];
+		for(int i=0; i<2; i++)
+		{
+			//TODO does this work for n-dim?
+			dimensions[i]=ip.getDimensions()[i];
+			size*=dimensions[i];
+		}
+		
+		if(dim==3)
+		{
+			dimensions[2]=ip.getNSlices();
+			size*=dimensions[2];
+		}
+		
+		//TODO multidim
+		width=ip.getWidth();
+		height=ip.getHeight();
+	}
+	
+	
+	void initLabelProc()
+	{
+		if(dim==3){
+			labelIP = null;
+			dataLabel = new short[size];
+		}
+		else
+		{
+			// TODO does init twice if guess loaded from file
+			labelIP = new ColorProcessor(width, height);
+//		labelIP = new ShortProcessor(width, height);
+			dataLabel = (short[])labelIP.getPixels();
+//		labelIP = new FloatProcessor(width, height);
+		}
+		System.out.println("dataLabel.length="+dataLabel.length);
+		
+	}
+	
+	public ImageProcessor getLabelImageProcessor()
+	{
+		if(dim==3){
+			return getProjected3D().getProcessor();
+		}
+		return labelIP;
+	}
+	
+	int labelToAbs(int label) {
+		return Math.abs(label);
+//		if (isContourLabel(label)) {
+//			return label - negOfs;
+//		} else {
+//			return label;
+//		}
+	}
+	
+	int labelToNeg(int label) 
+	{
+		if (label==bgLabel || isForbiddenLabel(label) || isContourLabel(label)) {
+			return label;
+		} else {
+			return -label;
+//			return label + negOfs;
+		}
+	}
+	
+	
+	int get(int index)
+	{
+		return dataLabel[index];
+//		return labelIP.get(index);
+	}
+	
+	boolean isContourLabel(int label)
+	{
+		return (label<0);
+//		if(isForbiddenLabel(label)) {
+//			return false;
+//		} else {
+//			return (label > negOfs);
+//		}
 	}
 	
 	float getIntensity(int idx)
 	{
-		return imageProc.getf(idx);
-	}
-
-	float getIntensity(int x, int y)
-	{
-		return imageProc.getf(x, y);
+		return dataIntensity[idx];
 	}
 	
+	void set(int index, int val) 
+	{
+//		dataLabel[index]=val;
+		dataLabel[index]=(short)val;
+//		labelIP.set(index, val);
+	}
+	
+	private short[] getShortCopy()
+	{
+		if(dim==3)
+		{
+			return (short[])getProjected3D().getProcessor().getPixels();
+		}
+		
+		short[] shortData = new short[size];
+		for(int i=0; i<this.size; i++)
+		{
+			shortData[i] = (short)dataLabel[i];
+		}
+		return shortData;
+	}
+	
+	
+	/**
+	 * if 3D image, converts to a stack of ShortProcessors
+	 * @return
+	 */
+	public ImageStack get3DStack()
+	{
+		int dims[] = getDimensions();
+		short labeldata[] = dataLabel;
+		
+		int w,h,z, size;
+		w=dims[0];
+		h=dims[1];
+		z=dims[2];
+		size=w*h*z;
+		int area = w*h;
+		
+		short shortData[] = new short[size];
+		for(int i=0; i<size; i++){
+			shortData[i]=(short)labeldata[i];
+		}
+
+		ImageStack stack = new ImageStack(w,h);
+		for(int i=0; i<z; i++)
+		{
+			Object pixels = Arrays.copyOfRange(shortData, i*area, (i+1)*area);
+			stack.addSlice("", pixels);
+		}
+		
+		return stack;
+	}
+	
+	public ImagePlus getProjected3D()
+	{
+		ImageStack stack = get3DStack();
+		int z = getDimensions()[2];
+
+		ImagePlus imp = new ImagePlus("Projection stack ", stack);
+		IJ.setMinAndMax(imp, 0, getBiggestLabel());
+		IJ.run(imp, "3-3-2 RGB", null);
+		
+		StackProjector projector = new StackProjector();
+		imp = projector.doIt(imp, z);
+		
+		return imp;
+	}
+
 }
+
 
 
 /**
@@ -3368,6 +3668,16 @@ class LabelImageG<T> extends LabelImage
 }
 
 
+class StackProjector extends GroupedZProjector
+{
+	public ImagePlus doIt(ImagePlus imp, int groupSize)
+	{
+		int method = ZProjector.AVG_METHOD;
+		ImagePlus imp2 = groupZProject(imp, method, groupSize);
+		
+		return imp2;
+	}
+}
 
 
 
