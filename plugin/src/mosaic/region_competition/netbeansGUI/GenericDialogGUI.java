@@ -1,6 +1,7 @@
 package mosaic.region_competition.netbeansGUI;
 
 import java.awt.Button;
+import java.awt.Checkbox;
 import java.awt.Choice;
 import java.awt.Component;
 import java.awt.FileDialog;
@@ -30,6 +31,7 @@ import mosaic.region_competition.EnergyFunctionalType;
 import mosaic.region_competition.Settings;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.WindowManager;
 import ij.gui.GenericDialog;
 
 /**
@@ -39,9 +41,13 @@ public class GenericDialogGUI implements InputReadable
 {
 	private Settings settings;
 	private GenericDialog gd;
+	private ImagePlus aImp; // active ImagePlus (argument of Plugin)
 	
 	private String filenameInput;		// image to be processed
 	private String filenameLabelImage;	// initialization
+	
+	private String inputImageTitle;
+	private String labelImageTitle;
 	
 	private LabelImageInitType labelImageInitType;
 
@@ -86,18 +92,25 @@ public class GenericDialogGUI implements InputReadable
 //		}
 		
 		this.settings=region_Competition.settings;
+		aImp = region_Competition.getOriginalImPlus();
 		gd = new GenericDialog("Region Competition");
+		
+		
+		// components: 
+		final TextField tfBalloonForce;
+		final Choice choiceEnergy;
+		
 		
 		
 		// energy
 		
-		String[] energyItems= {
+		String[] energyItems = {
 				e_CV,
-				e_GaussPS};
+				e_GaussPS, 
+				};
 		//TODO default choice
 		gd.addChoice(EnergyFunctional, energyItems, energyItems[0]);
-		
-
+		choiceEnergy = (Choice)gd.getChoices().lastElement();
 		
 		
 		// Regularization
@@ -105,7 +118,8 @@ public class GenericDialogGUI implements InputReadable
 		String[] regularizationItems= {
 				No_Regularization,
 				Sphere_Regularization, 
-				Sphere_Regularization_OLD};
+				Sphere_Regularization_OLD, 
+				};
 		gd.addChoice(Regularization, regularizationItems, regularizationItems[1]);
 		
 		
@@ -117,16 +131,17 @@ public class GenericDialogGUI implements InputReadable
 				Random_Ellipses_Initialization, 
 				User_Defined_Initialization, 
 				Bubbles_Initialization, 
-				File_Initalization};
+				File_Initalization, 
+				};
 		
-			// default choice
+		// default choice
 		String defaultInit = Bubbles_Initialization;
-		ImagePlus imp = region_Competition.getOriginalImPlus();
-		if(imp!=null && imp.getRoi()!=null)
+		if(aImp!=null && aImp.getRoi()!=null)
 		{
 			defaultInit=User_Defined_Initialization;
 		}
 		gd.addChoice(Initialization, initializationItems, defaultInit);
+		
 		
 //		save reference to this choice, so we can handle it
 		initializationChoice = (Choice)gd.getChoices().lastElement();
@@ -136,16 +151,24 @@ public class GenericDialogGUI implements InputReadable
 		
 		gd.addNumericField("m_CurvatureMaskRadius", settings.m_CurvatureMaskRadius, 0);
 		gd.addNumericField("m_EnergyContourLengthCoeff", settings.m_EnergyContourLengthCoeff, 4);
+		gd.addNumericField("merge_Threshold", settings.m_RegionMergingThreshold, 4);
+
+		
 		gd.addNumericField("m_MaxNbIterations", settings.m_MaxNbIterations, 0);
 		
 		gd.addNumericField("Balloon_force", settings.m_BalloonForceCoeff, 4);
+		tfBalloonForce=(TextField)gd.getNumericFields().lastElement();
 		
+		
+		// File path text areas
 		
 		gd.addTextAreas(TextDefaultInputImage, 
 						TextDefaultLabelImage, 10, 30);
 		new TextAreaListener(this, gd.getTextArea1(), TextDefaultInputImage);
 		new TextAreaListener(this, gd.getTextArea2(), TextDefaultLabelImage);
 		
+		
+		// File opener Buttons
 		
 		Panel p = new Panel();
 			Button b = new Button("Open Input Image");
@@ -156,19 +179,116 @@ public class GenericDialogGUI implements InputReadable
 			b.addActionListener(new FileOpenerActionListener(gd, gd.getTextArea2()));
 			p.add(b);
 			
-		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));
+		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
 //		gd.addPanel(p);
-		
 //		gd.add(b);
 		
+		
+		addOpenedImageChooser();
 		
 		gd.addCheckbox("Show_Statistics", showStatistics);
 		gd.addCheckbox("Show_Stack", useStack);
 		gd.addNumericField("kbest", 0, 0);
 		
 		
+		// components 2
+		
+		choiceEnergy.addItemListener(new ItemListener() 
+		{
+			@Override
+			public void itemStateChanged(ItemEvent e)
+			{
+				System.out.println(e.getItem());
+				if(((Choice)e.getSource()).getSelectedItem().equals(e_GaussPS))
+				{
+					tfBalloonForce.setText("0.01");
+				}
+				else if(e.getItem().equals(e_CV))
+				{
+					tfBalloonForce.setText("0.0");
+				}
+			}
+		});
+		
 		addWheelListeners();
+		
 		gd.showDialog();
+	}
+	
+	
+	// Choice for open images in IJ
+	
+	private int nOpenedImages = 0;
+	Choice choiceLabelImage;
+	Choice choiceInputImage;
+	private void addOpenedImageChooser()
+	{
+		nOpenedImages = 0;
+		int[] ids = WindowManager.getIDList();
+		
+		if(ids!=null){
+			nOpenedImages = ids.length;
+		}
+		
+		// show opened image titles
+//		for(int id: ids)
+//		{
+//			ImagePlus ip = WindowManager.getImage(id);
+//			System.out.println("ID: "+id+" "+ip.getTitle());
+//		}
+		
+		String[] names = new String[nOpenedImages+1];
+		names[0]="";
+		for(int i = 0; i<nOpenedImages; i++)
+		{
+			names[i+1] = WindowManager.getImage(ids[i]).getTitle();
+		}
+		
+//		if(nOpenedImages>0)
+		{
+			// Input Image
+			gd.addChoice("InputImage", names, names[0]);
+			choiceInputImage = (Choice)gd.getChoices().lastElement();
+			if(aImp!=null){
+				String title = aImp.getTitle();
+				choiceInputImage.select(title);
+			}
+			
+			// Label Image
+			gd.addChoice("LabelImage", names, names[0]);
+			choiceLabelImage = (Choice)gd.getChoices().lastElement();
+			
+			// add listener to change labelImage initialization to file
+			choiceLabelImage.addItemListener(new ItemListener() 
+			{
+				@Override
+				public void itemStateChanged(ItemEvent e)
+				{
+					Choice choice = (Choice)e.getSource();
+					int idx = choice.getSelectedIndex();
+					
+					if(idx>0){
+						setInitToFileInput();
+					}
+				}
+			});
+		}
+		
+	}
+	
+	private void readOpenedImageChooser()
+	{
+//		if(nOpenedImages>0)
+		if(true)
+		{
+			inputImageTitle = gd.getNextChoice();
+			labelImageTitle = gd.getNextChoice();
+		}
+		else
+		{
+			inputImageTitle = null;
+			labelImageTitle = null;
+		}
 	}
 	
 	/**
@@ -244,6 +364,7 @@ public class GenericDialogGUI implements InputReadable
 		
 		settings.m_CurvatureMaskRadius=(int)gd.getNextNumber();
 		settings.m_EnergyContourLengthCoeff=(float)gd.getNextNumber();
+		settings.m_RegionMergingThreshold = (float)gd.getNextNumber();
 		settings.m_MaxNbIterations = (int)gd.getNextNumber();
 		
 		settings.m_BalloonForceCoeff = (float)gd.getNextNumber();
@@ -299,8 +420,9 @@ public class GenericDialogGUI implements InputReadable
 		filenameLabelImage=gd.getTextArea2().getText();
 		if(filenameLabelImage==null || filenameLabelImage.isEmpty() || filenameLabelImage.equals(TextDefaultLabelImage))
 		{
-			//TODO 
+			//TODO IJ BUG
 			// set text to [] due to a bug in GenericDialog
+			// (cannot macro read boolean after empty text field)
 			// if bug gets fixed, this will cause problems!
 			gd.getTextArea2().setText("[]");
 		}
@@ -310,6 +432,15 @@ public class GenericDialogGUI implements InputReadable
 			gd.getTextArea2().setText(s);
 		}
 		filenameLabelImage=gd.getNextText();
+		
+		// TODO IJ BUG
+		if(filenameLabelImage.equals("[]")){
+			filenameLabelImage="";
+		}
+		
+		
+		
+		readOpenedImageChooser();
 		
 		showStatistics=gd.getNextBoolean();
 		useStack=gd.getNextBoolean();
@@ -396,6 +527,37 @@ public class GenericDialogGUI implements InputReadable
 //		System.out.println("change to last="+lastInitChoice);
 //		initializationChoice.select(lastInitChoice);
 //	}
+	
+	void setInputImageChoiceEmpty()
+	{
+		if(choiceInputImage != null)
+		{
+			choiceInputImage.select(0);
+		}
+	}
+	
+	void setLabelImageChoiceEmpty()
+	{
+		if(choiceLabelImage != null)
+		{
+			choiceLabelImage.select(0);
+		}
+	}
+	
+
+	@Override
+	public ImagePlus getInputImage()
+	{
+		return WindowManager.getImage(inputImageTitle);
+	}
+	
+	
+	@Override
+	public ImagePlus getLabelImage()
+	{
+		return WindowManager.getImage(labelImageTitle);
+	}
+
 
 }
 
@@ -527,6 +689,11 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 			if(defaultText.equals(gd.TextDefaultLabelImage))
 			{
 				gd.setInitToFileInput();
+				gd.setLabelImageChoiceEmpty();
+			}
+			if(defaultText.equals(gd.TextDefaultInputImage))
+			{
+				gd.setInputImageChoiceEmpty();
 			}
 		}
 //		System.out.println("tf changed to: "+textArea.getText());
@@ -653,124 +820,6 @@ class NumericFieldWheelListener implements MouseWheelListener
 
 
 
-class EmptyGenericDialog extends GenericDialog
-{
-	List<GDElement> list;
-	GenericDialog gd;
-	
-	public EmptyGenericDialog(String title)
-	{
-		super(title);
-		gd = this;
-		list = new LinkedList<EmptyGenericDialog.GDElement>();
-		
-		
-		// here do all the gd stuff.
-		// later on, transfer data from new gui to these fields
-		// and read it out by getNext...() for macro
-//		gd.addNumericField("numfield1", 12, 5);
-		
-		
-		
-		GDElement gde = new GDElement(list) {
-			
-			@Override
-			void add()
-			{
-				addNumericField("anumeric_1234", 1234, 3);
-			}
-			
-			@Override
-			void getvalue()
-			{
-				getNextNumber();
-			}
-		};
-		
-		gde = new GDElement(list) {
-			
-			@Override
-			void getvalue()
-			{
-				getNextString();
-			}
-			
-			@Override
-			void add()
-			{
-				addStringField("astring", "defaulttext");
-			}
-		};
-		
-		
-		// add the elements to the gd
-		for(GDElement e : list)
-		{
-			e.add();
-		}
-		
-		// build my own GUI
-		
-		JButton b = new JButton("ok");
-		b.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e)
-			{
-				e.setSource(gd.getButtons()[0]);
-				gd.actionPerformed(e);
-			}
-		});
-		super.add(b);
-		this.pack();
-	}
-	
-	void recordValues()
-	{
-		// record the values for macro
-		for(GDElement e : list)
-		{
-			e.getvalue();
-		}
-	}
-	
-	/** 
-	 * overrides adding of components in GenericDialog, so getting an empty dialog
-	 */
-	@Override
-	public Component add(Component comp)
-	{
-		return comp;
-	}
-	
-	/**
-	 * 	the original add method 
-	 */
-	public Component addNew(Component comp)
-	{
-		return super.add(comp);
-	}
-	
-	
-	
-	abstract class GDElement
-	{
-		
-		public GDElement(List<GDElement> list)
-		{
-			list.add(this);
-		}
-		
-//		public GDElement(GenericDialog gd)
-//		{
-//			this.gd = gd;
-//		}
-		
-		abstract void add();
-		abstract void getvalue();
-	}
 
-	
-	
-}
+
 

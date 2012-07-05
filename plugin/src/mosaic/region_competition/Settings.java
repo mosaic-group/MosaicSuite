@@ -6,12 +6,12 @@ public class Settings
     private void initMembers() 
 	{
 	
-		m_OscillationHistoryLength = 10;
+		m_OscillationHistoryLength = 20;
 		
 		/**
 		 * Initialize control members
 		 */
-		m_MaxNbIterations = 600;
+		m_MaxNbIterations = 300;
 		m_AreaThreshold = 2; ///TODO find a good heuristic or stat test.
 	
 		/**
@@ -89,7 +89,7 @@ public class Settings
     
 	public boolean m_EnergyUseCurvatureRegularization;
 
-    float m_RegionMergingThreshold;
+    public float m_RegionMergingThreshold;
 //    ArrayType m_SigmaPSF;
     boolean m_AllowFusion;
     boolean m_AllowFission;

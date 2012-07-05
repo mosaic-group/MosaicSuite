@@ -19,14 +19,32 @@ public interface InputReadable
 	// Input
 	
 	public LabelImageInitType getLabelImageInitType();
+	
+	
+	/**
+	 * @return The filepath as String or empty String if no file was chosen.
+	 */
 	public String getLabelImageFilename();
-	public int getNumIterations();
+	
+	
+	/**
+	 * @return Reference to the label image. Type depends on Implementation. 
+	 */
+	public Object getLabelImage();
 	
 	/**
 	 * @return The filepath as String or empty String if no file was chosen.
 	 */
 	public String getInputImageFilename();
 	
+	
+	/**
+	 * @return Reference to the input image. Type depends on Implementation. 
+	 */
+	public Object getInputImage();
+	
+	
+	public int getNumIterations();
 	
 	// UI
 	

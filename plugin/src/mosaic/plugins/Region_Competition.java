@@ -5,7 +5,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,13 +26,11 @@ import ij.gui.Roi;
 import ij.io.FileInfo;
 import ij.io.FileSaver;
 import ij.io.Opener;
-import ij.plugin.GroupedZProjector;
-import ij.plugin.HyperStackConverter;
-import ij.plugin.ZProjector;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
 import ij.process.ShortProcessor;
 
 
@@ -57,45 +54,20 @@ public class Region_Competition implements PlugInFilter
 	public InputReadable userDialog;
 	JFrame cancelButton;
 	
-	String defaultInputFile= "C:/Users/Stephan/Desktop/BA/imagesAndPaper/icecream5_410x410.tif";
-	
-	
-	boolean testMacroBug()
+	static String defaultInputFile;
+	static
 	{
-		GenericDialog gd = new GenericDialog("test");
-		gd.addTextAreas(null, null, 1, 1);
-		gd.addNumericField("dummyfield", 0, 0);
-		gd.addStringField("stringdield", "");
-		gd.addCheckbox("show_me", true);
+		String defaultDir = "C:/Users/Stephan/Desktop/BA/";
+		String defaultFile ="";
+		defaultFile = "imagesAndPaper/Cell1_nuclei_w460.tif";
+		defaultFile = "imagesAndPaper/icecream5_410x410.tif";
+//		defaultFile = "sphere_3d_z56.tif";
 		
-		gd.showDialog();
-		
-		gd.getNextText();
-		gd.getNextText();
-		gd.getNextNumber();
-		gd.getNextString();
-		boolean showme = gd.getNextBoolean();
-		IJ.showMessage("showme was "+ showme);
-		
-		return true;
+		defaultInputFile = defaultDir + defaultFile;
 		
 	}
+
 	
-	static void testNumbers()
-	{
-		Double d = 14.2;
-		Integer i = 12;
-		
-		Number n1 = d;
-		Number n2 = i;
-//		boolean b = n1>n2; //error
-		boolean b = d<i; // ok
-		
-		Comparable<Number> c1 = (Comparable<Number>)n1;
-		Comparable c2 = (Comparable)n2;
-		c1.compareTo(n2);
-		c2.compareTo(c1);
-	}
 	
 	public int setup(String aArgs, ImagePlus aImp)
 	{
@@ -106,7 +78,7 @@ public class Region_Competition implements PlugInFilter
 //		UnitCubeCCCounter.test();
 		
 		settings = new Settings();
-		MVC=this;
+		MVC = this;
 		
 		originalIP = aImp;
 		
@@ -145,19 +117,39 @@ public class Region_Competition implements PlugInFilter
 	{
 		
 		ImagePlus ip = null;
-		Opener o = new Opener();
+		
+		String file = userDialog.getInputImageFilename();
+		ImagePlus choiceIP = (ImagePlus)userDialog.getInputImage();
 		
 		// first try: filepath of inputReader
-		String file = userDialog.getInputImageFilename(); 
 		if(file!=null && !file.isEmpty())
 		{
+			Opener o = new Opener();
 			ip = o.openImage(file);
+		}
+		else // selected opened file
+		{
+			ip = choiceIP;
 		}
 		
 		// next try: opened image
 		if(ip==null)
 		{
 			ip=originalIP;
+			
+			// manually open image in a new frame.
+//			if(ip!=null)
+//			{
+//				Image image = ip.getImage();
+//				JFrame f = new JFrame();
+//				JPanel p = new JPanel();
+//				f.add(p);
+//				
+//				JLabel jl = new JLabel(new ImageIcon(image));
+//				p.add(jl);
+//				f.pack();
+//				f.show();
+//			}
 		}
 		
 		//debug
@@ -168,7 +160,7 @@ public class Region_Competition implements PlugInFilter
 //			String fileName= "Clipboard01.png";
 			//		String fileName= "icecream3_shaded_130x130.tif";
 //			ip = o.openImage(dir+fileName);
-			
+			Opener o = new Opener();
 			ip = o.openImage(defaultInputFile);
 		}
 		
@@ -181,8 +173,11 @@ public class Region_Competition implements PlugInFilter
 			int nSlices = ip.getStackSize();
 			
 			ImageStack stack = ip.getStack();
+			ImageStatistics stat = ip.getStatistics();
 			
-			double max = ip.getStatistics().max;
+			double min = stat.min;
+			double max = stat.max;
+			double range = max-min;
 			double f = 1.0/max;
 			
 //			if(nSlices==1)
@@ -201,7 +196,10 @@ public class Region_Competition implements PlugInFilter
 			{
 				ImageProcessor p = stack.getProcessor(i);
 				FloatProcessor fp = (FloatProcessor)p.convertToFloat();
-				fp.multiply(f);
+				fp.subtract(min);
+				fp.multiply(1.0/range);
+				double newMax = fp.getStatistics().max;
+				System.out.println(newMax);
 				
 				normalizedStack.addSlice("z="+i, fp);
 				
@@ -218,11 +216,11 @@ public class Region_Competition implements PlugInFilter
 			{
 				originalIP.show();
 			}
-			boolean showNormalized = true;
-			if(showNormalized)
-			{
-				dataNormalizedIP.show();
-			}
+//			boolean showNormalized = false;
+//			if(showNormalized)
+//			{
+//				dataNormalizedIP.show();
+//			}
 			
 		}
 		
@@ -285,14 +283,23 @@ public class Region_Competition implements PlugInFilter
 				ImagePlus ip=null;
 				
 				String fileName = userDialog.getLabelImageFilename();
+				ImagePlus choiceIP = (ImagePlus)userDialog.getLabelImage();
+				
+			
+				// first priority: filename was entered
 				if(fileName!=null && !fileName.isEmpty())
 				{
 					Opener o = new Opener();
 					ip = o.openImage(fileName);
 				}
+				else // no filename. fileName == null || fileName()
+				{
+					ip = choiceIP;
+				}
 				
 				if(ip!=null){
 					labelImage.initWithIP(ip);
+					labelImage.initBoundary();
 					labelImage.connectedComponents();
 				} else {
 					labelImage=null;
@@ -395,8 +402,36 @@ public class Region_Competition implements PlugInFilter
 		cancelButton = new JFrame();
 		JPanel panel = new JPanel();
 		
-		JButton b = new JButton("Stop");
-		b.setToolTipText("Stops Algorithm after current iteration");
+		JButton b;
+		final JButton resumeButton;
+		
+		resumeButton = new JButton("Pause");
+		resumeButton.setToolTipText("Pauses/Resumes algorithm after current iteration");
+		resumeButton.addActionListener(new ActionListener() {
+			
+			boolean isPaused = false;
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				if(!isPaused){
+					isPaused = true;
+					resumeButton.setText("Resume");
+					labelImage.pause();
+				} else {
+					isPaused = false;
+					resumeButton.setText("Pause");
+					labelImage.resume();
+				}
+				
+				cancelButton.pack();
+				cancelButton.validate();
+			}
+		});
+		panel.add(resumeButton);
+		
+		
+		b = new JButton("Stop");
+		b.setToolTipText("Stops algorithm after current iteration");
 		b.addActionListener(new ActionListener() 
 		{
 			@Override
@@ -409,6 +444,7 @@ public class Region_Competition implements PlugInFilter
 		});
 //		p.setUndecorated(true);
 		panel.add(b);
+		
 		cancelButton.add(panel);
 		cancelButton.pack();
 		cancelButton.setLocationByPlatform(true);
@@ -422,7 +458,6 @@ public class Region_Competition implements PlugInFilter
 
 	void frontsCompetitionImageFilter()
 	{
-		
 		initInputImage();
 		initLabelImage();
 		
@@ -450,6 +485,8 @@ public class Region_Competition implements PlugInFilter
 				
 				labelImage.GenerateData();
 				t.toc();
+				
+				updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
 				list.add(t.lastResult());
 				
 				if(stackImPlus!=null)
@@ -477,6 +514,8 @@ public class Region_Competition implements PlugInFilter
 		{
 			labelImage.GenerateData();
 			
+			updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
+			
 			if(stackImPlus!=null)
 			{
 				IJ.setMinAndMax(stackImPlus, 0, labelImage.getBiggestLabel());
@@ -494,6 +533,13 @@ public class Region_Competition implements PlugInFilter
 		
 	}
 	
+	
+	void showFinalResult(LabelImage li)
+	{
+		showFinalResult(li,"");
+	}
+	
+	
 	ImagePlus showFinalResult(LabelImage li, Object title)
 	{
 		if(this.originalIP.getNSlices()>1)
@@ -502,21 +548,33 @@ public class Region_Competition implements PlugInFilter
 		}
 		
 		// Colorprocessor doesn't support abs() (does nothing). 
-		// convert it to short
-		li.absAll();
+//		li.absAll();
 		ImageProcessor imProc = li.getLabelImageProcessor();
 //		System.out.println(Arrays.toString((int[])(imProc.getPixels())));
-		ImagePlus imp = new ImagePlus("ResultWindow "+title, imProc.convertToShort(false));
+		
+		// convert it to short
+		short[] shorts = li.getShortCopy();
+		for(int i=0; i<shorts.length; i++){
+			shorts[i] = (short)Math.abs(shorts[i]);
+		}
+		ShortProcessor shortProc = new ShortProcessor(imProc.getWidth(), imProc.getHeight());
+		shortProc.setPixels(shorts);
+		
+//		TODO !!!! imProc.convertToShort() does not work, first converts to byte, then to short...
+		String s = "ResultWindow "+title;
+		String titleUnique = WindowManager.getUniqueName(s);
+		
+		ImagePlus imp = new ImagePlus(titleUnique, shortProc);
 		IJ.setMinAndMax(imp, 0, li.getBiggestLabel());
 		IJ.run(imp, "3-3-2 RGB", null);
 		imp.show();
-		
 		return imp;
 	}
 	
+	
 	public ImagePlus showFinalResult3D(LabelImage li, Object title)
 	{
-		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.get3DStack());
+		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.get3DShortStack(false));
 		IJ.setMinAndMax(imp, 0, li.getBiggestLabel());
 		IJ.run(imp, "3-3-2 RGB", null);
 		
@@ -531,9 +589,13 @@ public class Region_Competition implements PlugInFilter
 		return imp;
 	}
 	
-	void showFinalResult(LabelImage li)
+	
+	/**
+	 * Invoke this method after done an itation
+	 */
+	public void updateProgress(int iteration, int maxIterations)
 	{
-		showFinalResult(li,"");
+		IJ.showProgress(iteration, maxIterations);
 	}
 	
 	
@@ -688,6 +750,21 @@ public class Region_Competition implements PlugInFilter
 		IJ.makePoint(p.x[0], p.x[1]);
 //		stackImPlus.draw();
 	}
+	
+	
+	void testOpenedImages()
+	{
+		int[] ids = WindowManager.getIDList();
+		if(ids!=null)
+		{
+			for(int id: ids)
+			{
+				ImagePlus ip = WindowManager.getImage(id);
+				System.out.println(ip.getTitle());
+			}
+		}
+		
+	}
 
 	void testConnNew()
 	{
@@ -757,6 +834,44 @@ public class Region_Competition implements PlugInFilter
 		f = p.getf(index);		//NaN
 		
 		System.out.println(result);
+	}
+	
+
+	boolean testMacroBug()
+	{
+		GenericDialog gd = new GenericDialog("test");
+		gd.addTextAreas(null, null, 1, 1);
+		gd.addNumericField("dummyfield", 0, 0);
+		gd.addStringField("stringdield", "");
+		gd.addCheckbox("show_me", true);
+		
+		gd.showDialog();
+		
+		gd.getNextText();
+		gd.getNextText();
+		gd.getNextNumber();
+		gd.getNextString();
+		boolean showme = gd.getNextBoolean();
+		IJ.showMessage("showme was "+ showme);
+		
+		return true;
+		
+	}
+	
+	static void testNumbers()
+	{
+		Double d = 14.2;
+		Integer i = 12;
+		
+		Number n1 = d;
+		Number n2 = i;
+//		boolean b = n1>n2; //error
+		boolean b = d<i; // ok
+		
+		Comparable<Number> c1 = (Comparable<Number>)n1;
+		Comparable c2 = (Comparable)n2;
+		c1.compareTo(n2);
+		c2.compareTo(c1);
 	}
 	
 	
