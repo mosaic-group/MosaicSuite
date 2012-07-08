@@ -211,7 +211,10 @@ public class GenericDialogGUI implements InputReadable
 		});
 		
 		addWheelListeners();
-		
+	}
+	
+	public void showDialog()
+	{
 		gd.showDialog();
 	}
 	

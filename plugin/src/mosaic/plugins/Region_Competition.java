@@ -1,18 +1,15 @@
 package mosaic.plugins;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 import mosaic.region_competition.*;
+import mosaic.region_competition.netbeansGUI.ControllerFrame;
 import mosaic.region_competition.netbeansGUI.GenericDialogGUI;
 import mosaic.region_competition.netbeansGUI.InputReadable;
 import mosaic.region_competition.netbeansGUI.InputReadable.LabelImageInitType;
@@ -23,9 +20,11 @@ import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.ImageCanvas;
 import ij.gui.Roi;
+import ij.gui.StackWindow;
 import ij.io.FileInfo;
 import ij.io.FileSaver;
 import ij.io.Opener;
+import ij.plugin.HyperStackConverter;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
@@ -52,7 +51,7 @@ public class Region_Competition implements PlugInFilter
 	ImageProcessor initialLabelImageProcessor; // copy of the initial guess (without contour/boundary)
 	
 	public InputReadable userDialog;
-	JFrame cancelButton;
+	JFrame controllerFrame;
 	
 	static String defaultInputFile;
 	static
@@ -61,7 +60,7 @@ public class Region_Competition implements PlugInFilter
 		String defaultFile ="";
 		defaultFile = "imagesAndPaper/Cell1_nuclei_w460.tif";
 		defaultFile = "imagesAndPaper/icecream5_410x410.tif";
-//		defaultFile = "sphere_3d_z56.tif";
+		defaultFile = "sphere_3d_z56.tif";
 		
 		defaultInputFile = defaultDir + defaultFile;
 		
@@ -77,6 +76,7 @@ public class Region_Competition implements PlugInFilter
 //		Connectivity.test();
 //		UnitCubeCCCounter.test();
 		
+		
 		settings = new Settings();
 		MVC = this;
 		
@@ -90,6 +90,8 @@ public class Region_Competition implements PlugInFilter
 //			return DONE;
 //		}
 		
+		//TODO ugly
+		((GenericDialogGUI)userDialog).showDialog();
 		boolean success=userDialog.processInput();
 		if(!success)
 		{
@@ -178,7 +180,6 @@ public class Region_Competition implements PlugInFilter
 			double min = stat.min;
 			double max = stat.max;
 			double range = max-min;
-			double f = 1.0/max;
 			
 //			if(nSlices==1)
 //			{
@@ -399,60 +400,8 @@ public class Region_Competition implements PlugInFilter
 	
 	void initStopButton()
 	{
-		cancelButton = new JFrame();
-		JPanel panel = new JPanel();
-		
-		JButton b;
-		final JButton resumeButton;
-		
-		resumeButton = new JButton("Pause");
-		resumeButton.setToolTipText("Pauses/Resumes algorithm after current iteration");
-		resumeButton.addActionListener(new ActionListener() {
-			
-			boolean isPaused = false;
-			@Override
-			public void actionPerformed(ActionEvent e)
-			{
-				if(!isPaused){
-					isPaused = true;
-					resumeButton.setText("Resume");
-					labelImage.pause();
-				} else {
-					isPaused = false;
-					resumeButton.setText("Pause");
-					labelImage.resume();
-				}
-				
-				cancelButton.pack();
-				cancelButton.validate();
-			}
-		});
-		panel.add(resumeButton);
-		
-		
-		b = new JButton("Stop");
-		b.setToolTipText("Stops algorithm after current iteration");
-		b.addActionListener(new ActionListener() 
-		{
-			@Override
-			public void actionPerformed(ActionEvent e)
-			{
-				labelImage.stop();
-//				cancelButton.setVisible(false);
-				cancelButton.dispose();
-			}
-		});
-//		p.setUndecorated(true);
-		panel.add(b);
-		
-		cancelButton.add(panel);
-		cancelButton.pack();
-		cancelButton.setLocationByPlatform(true);
-//		cancelButton.setLocationRelativeTo(IJ.getInstance());
-//		java.awt.Point p = cancelButton.getLocation();
-//		p.x-=150;
-//		cancelButton.setLocation(p);
-		cancelButton.setVisible(true);
+		controllerFrame = new ControllerFrame(this);
+		controllerFrame.setVisible(true);
 	}
 	
 
@@ -529,7 +478,7 @@ public class Region_Competition implements PlugInFilter
 			labelImage.showStatistics();
 		}
 		
-		cancelButton.dispose();
+		controllerFrame.dispose();
 		
 	}
 	
@@ -691,7 +640,6 @@ public class Region_Competition implements PlugInFilter
 }
 	
 	
-	
 	private int maxLabel=100;
 /**
  * Adds a new slice pixels to the end of the stack, 
@@ -701,29 +649,93 @@ public class Region_Competition implements PlugInFilter
  */
 	public void addSliceToStackAndShow(String title, Object pixels)
 	{
-		if(stackImPlus!=null)
+		if(stackImPlus==null)
 		{
-			stack = stackImPlus.getStack();
-			
-			stack.addSlice(title, pixels);
-			stackImPlus.setStack(stack);
-			stackImPlus.setPosition(stack.getSize());
-			
-			if(labelImage.getBiggestLabel()>maxLabel)
-			{
-				maxLabel*=2;
-				IJ.setMinAndMax(stackImPlus, 0, maxLabel);
-				IJ.run(stackImPlus, "3-3-2 RGB", null);
-			}
-		}
-		else
-		{
-			// stack was closed by user
+			// stack was closed by user, don't reopen
 			System.out.println("stackImPlus is null");
+			return;
 		}
 
+		stack = stackImPlus.getStack();
+		
+		stack.addSlice(title, pixels);
+		stackImPlus.setStack(stack);
+		stackImPlus.setPosition(stack.getSize());
+		
+		adjustLUT();
 	}
 	
+	
+	public void addSliceToHyperstack(String title, ImageStack stackslice)
+	{
+		if(stackImPlus==null)
+		{
+			// stack was closed by user, dont reopen
+			System.out.println("stackImPlus is null");
+			return;
+		}
+		
+		stack = stackImPlus.getStack();
+		
+		// clean the stack, hyperstack must not contain additional slices
+		while(stack.getSize() % stackslice.getSize() != 0){
+			stack.deleteLastSlice();
+		}
+		
+		// in first iteration, convert to hyperstack
+		if(!stackImPlus.isHyperStack())
+		{
+//			new HyperStackConverter().run("stacktohs");
+			ImagePlus imp2 = stackImPlus;
+			imp2.setOpenAsHyperStack(true);
+			new StackWindow(imp2);
+		}
+		
+		int lastSlice = stackImPlus.getSlice();
+		int lastFrame = stackImPlus.getFrame();
+		boolean wasLastFrame = lastFrame == stackImPlus.getDimensions()[4];
+		
+		for(int i=1; i<=stackslice.getSize(); i++)
+		{
+			stack.addSlice(title+i, stackslice.getProcessor(i));
+		}
+		
+		int total = stack.getSize();
+		int depth = stackslice.getSize();
+		int timeSlices = total/depth;
+		
+//		imp.setDimensions(nChannels, nSlices, nFrames)
+		stackImPlus.setDimensions(1, depth, timeSlices);
+		
+		// scroll lock on last frame
+		int nextFrame = lastFrame;
+		if(wasLastFrame){
+			nextFrame++;
+		}
+		
+		stackImPlus.setPosition(1, lastSlice, nextFrame);
+
+		
+		adjustLUT();
+
+	}
+
+	
+	private void adjustLUT()
+	{
+		if(labelImage.getBiggestLabel()>maxLabel)
+		{
+			maxLabel*=2;
+			IJ.setMinAndMax(stackImPlus, 0, maxLabel);
+			IJ.run(stackImPlus, "3-3-2 RGB", null);
+		}
+	}
+	
+	public LabelImage getLabelImage()
+	{
+		return this.labelImage;
+	}
+
 	public ImagePlus getStackImPlus()
 	{
 		return this.stackImPlus;
@@ -873,6 +885,7 @@ public class Region_Competition implements PlugInFilter
 		c1.compareTo(n2);
 		c2.compareTo(c1);
 	}
-	
-	
 }
+	
+	
+	

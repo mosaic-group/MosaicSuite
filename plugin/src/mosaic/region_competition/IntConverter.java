@@ -114,31 +114,61 @@ public class IntConverter
 	
 	public static short[] intToShort(int[] proc)
 	{
-		return intToShort(proc, false, false);
+		return intToShort(proc, false, false, true);
 	}
 	
-	public static short[] intToShort(int[] proc, boolean abs, boolean borderRemove)
+	
+	/**
+	 * 
+	 * @param ints int[] array
+	 * @param abs Math.abs() the array
+	 * @param borderRemove Short.MAX_VALUE to Zero
+	 * @param clamp Values > Short.MAX_VALUE to Short.MAX_VALUE (same for MIN_VALUE)
+	 * @return
+	 */
+	public static short[] intToShort(int[] ints, boolean abs, boolean borderRemove, boolean clamp)
 	{
-		int n = proc.length;
-		short[] pixels = new short[n];
+		int n = ints.length;
+		short[] shorts = new short[n];
 		
 		if(abs){
 			for(int i=0; i<n; i++) {
-				pixels[i] = (short)Math.abs(proc[i]);
+				int a = Math.abs(ints[i]);
+				if(clamp)
+				{
+					if(a>Short.MAX_VALUE)
+						a=Short.MAX_VALUE;
+				}
+				shorts[i] = (short)a;
 			}
 		} else {
 			for(int i=0; i<n; i++) {
-				pixels[i] = (short)proc[i];
+				int a = ints[i];
+				if(clamp)
+				{
+					if(a>Short.MAX_VALUE)
+						a=Short.MAX_VALUE;
+					else if(a<Short.MIN_VALUE)
+						a=Short.MIN_VALUE;
+				}
+				shorts[i] = (short)a;
 			}
 		}
 		
-		if(borderRemove){
-			for(int i=0; i<n; i++) {
-				pixels[i] = (pixels[i]==Short.MAX_VALUE ? 0 : pixels[i]);
+		if(borderRemove)
+		{
+			for(int i=0; i<n; i++) 
+			{
+				short a = shorts[i];
+				if(a==Short.MAX_VALUE){
+					a=0;
+				}
+				shorts[i]=a;
 			}
 		}
+
 		
-		return pixels;
+		return shorts;
 	}
 	
 	
@@ -163,6 +193,27 @@ public class IntConverter
 	}
 	
 	
+	
+	public static ImageStack intArrayToShortStack(int[] intData, int[] dims, boolean abs)
+	{
+		short shortData[] = IntConverter.intToShort(intData, abs, false, false);
+
+		int w,h,z;
+		w=dims[0];
+		h=dims[1];
+		z=dims[2];
+		int area = w*h;
+		
+		ImageStack stack = new ImageStack(w,h);
+		for(int i=0; i<z; i++)
+		{
+			Object pixels = Arrays.copyOfRange(shortData, i*area, (i+1)*area);
+			stack.addSlice("", pixels);
+		}
+		
+		return stack;
+		
+	}
 	
 	
 	

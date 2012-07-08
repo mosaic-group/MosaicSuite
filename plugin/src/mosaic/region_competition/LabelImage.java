@@ -2676,6 +2676,12 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 	// calls: doOne.Iterate.RelabelRegions.ForestFire.foo
 	void FreeLabelStatistics(int vVisitedIt) 
 	{
+		if(vVisitedIt==bgLabel)
+		{
+//TODO this is debug only
+			debug("LabelImage.FreeLabelStatistics()");
+			throw new RuntimeException("free bglabel in FreeLabelStatistics()");
+		}
 		labelMap.remove(vVisitedIt);
 		labelDispenser.addFreedUpLabel(vVisitedIt);
 
@@ -2871,8 +2877,14 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 		{
 			Entry<Integer, LabelInformation> entry = vActiveLabelsIt.next();
 			
+			
 			if(entry.getValue().count == 0) 
 			{
+				if(entry.getKey()==bgLabel){
+					debug("bglabel in"); System.out.println("LabelImage.CleanUp()");
+					continue;
+//					throw new RuntimeException("tried to remove bglabel in cleanUp()");
+				}
 				labelDispenser.addFreedUpLabel(entry.getKey());
 				FreeLabelStatistics(vActiveLabelsIt);
 			}
@@ -3121,7 +3133,14 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 	{
 		if(MVC.userDialog.useStack())
 		{
-			MVC.addSliceToStackAndShow(title, getShortCopy());
+			if(dim==3)
+			{
+				MVC.addSliceToHyperstack(title, get3DShortStack(false));
+			}
+			else
+			{
+				MVC.addSliceToStackAndShow(title, getShortCopy());
+			}
 		}
 	}
 	
@@ -3154,37 +3173,12 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 	{
 		int dims[] = getDimensions();
 		int labeldata[] = dataLabel;
-//		short labeldataShort[] = dataLabel;
 		
-		int w,h,z, size;
-		w=dims[0];
-		h=dims[1];
-		z=dims[2];
-		size=w*h*z;
-		int area = w*h;
+		ImageStack stack = IntConverter.intArrayToShortStack(labeldata, dims, abs);
 		
-		short shortData[] = new short[size];
-		if(abs)
-		{
-			for(int i=0; i<size; i++){
-				shortData[i]=(short)Math.abs(labeldata[i]);
-			}
-		}
-		else
-		{
-			for(int i=0; i<size; i++){
-				shortData[i]=(short)labeldata[i];
-			}
-		}
-		
-		
-
-		ImageStack stack = new ImageStack(w,h);
-		for(int i=0; i<z; i++)
-		{
-			Object pixels = Arrays.copyOfRange(shortData, i*area, (i+1)*area);
-			stack.addSlice("", pixels);
-		}
+//		ImagePlus ip = new ImagePlus();
+//		ip.setStack(stack);
+//		ip.show();
 		
 		return stack;
 	}
