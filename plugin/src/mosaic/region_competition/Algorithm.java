@@ -22,7 +22,7 @@ import ij.measure.ResultsTable;
 public class Algorithm
 {
 	private Region_Competition MVC; 	/** interface to image program */
-	private LabelImage labelImage; 	// == this, exists for easier refactoring
+	private LabelImage labelImage;
 	private float[] dataIntensity;
 //	public int[] dataLabel;
 	
@@ -120,9 +120,9 @@ public class Algorithm
 
 	private int m_MaxNLabels;
     
-	SphereBitmapImageSource sphereMaskIterator; // regularization
+	private SphereBitmapImageSource sphereMaskIterator; // regularization
 	
-	SphereBitmapImageSource m_SphereMaskForLocalEnergy;
+	private SphereBitmapImageSource m_SphereMaskForLocalEnergy;
 	int m_GaussPSEnergyRadius;
     
 	// ///////////////////////////////////////////////////
@@ -1794,7 +1794,7 @@ public class Algorithm
 		double vVar12 = (1.0 / (aN1 + aN2 - 1.0))
 				* (vSumOfSq1 + vSumOfSq2 - (aN1 + aN2) * vMu12 * vMu12);
 		
-		if(vVar12==0)
+		if(vVar12<=0)
 		{
 //			System.out.print("vVar12==0");
 			debug("vVar12==0");

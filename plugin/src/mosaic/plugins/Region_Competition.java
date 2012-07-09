@@ -59,8 +59,10 @@ public class Region_Competition implements PlugInFilter
 		String defaultDir = "C:/Users/Stephan/Desktop/BA/";
 		String defaultFile ="";
 		defaultFile = "imagesAndPaper/Cell1_nuclei_w460.tif";
-		defaultFile = "imagesAndPaper/icecream5_410x410.tif";
 		defaultFile = "sphere_3d_z56.tif";
+		defaultFile = "imagesAndPaper/sphere_3d.tif";
+		defaultFile = "imagesAndPaper/icecream5_410x410.tif";
+		
 		
 		defaultInputFile = defaultDir + defaultFile;
 		
@@ -106,13 +108,15 @@ public class Region_Competition implements PlugInFilter
 		
 		frontsCompetitionImageFilter();
 
+		
+		System.out.println("Region_Competition.setup()");
 		return DOES_ALL + DONE;
 	}
 	
 	
 	public void run(ImageProcessor aImageProcessor) 
 	{
-		
+		System.out.println("Region_Competition.run()");
 	}
 	
 	void initInputImage()
@@ -429,10 +433,13 @@ public class Region_Competition implements PlugInFilter
 				t.tic();
 				labelImage.initMembers();
 				labelImage.initWithImageProc(initialLabelImageProcessor);
-				labelImage.initBoundary();
-				labelImage.generateContour();
+//				labelImage.initBoundary();
+//				labelImage.generateContour();
 				
-				labelImage.GenerateData();
+				
+				Algorithm algo = new Algorithm(this);
+				algo.GenerateData();
+//				labelImage.GenerateData();
 				t.toc();
 				
 				updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
@@ -523,7 +530,7 @@ public class Region_Competition implements PlugInFilter
 	
 	public ImagePlus showFinalResult3D(LabelImage li, Object title)
 	{
-		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.get3DShortStack(false));
+		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.get3DShortStack(true));
 		IJ.setMinAndMax(imp, 0, li.getBiggestLabel());
 		IJ.run(imp, "3-3-2 RGB", null);
 		
