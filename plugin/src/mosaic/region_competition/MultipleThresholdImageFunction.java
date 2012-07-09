@@ -45,7 +45,7 @@ class MultipleThresholdImageFunctionDOUBLE
          * calling the method. */
         boolean EvaluateAtIndex(int index) 
         {
-            int value = labelImage.get(index);
+            int value = labelImage.getLabel(index);
             for (int vI = 0; vI < m_NThresholds; vI++) {
                 if (m_Thresholds.get(vI).first <= value && value <= m_Thresholds.get(vI).second) {
                     return true;

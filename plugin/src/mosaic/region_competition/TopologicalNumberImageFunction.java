@@ -85,7 +85,7 @@ public class TopologicalNumberImageFunction
 	{
         for (int i = 0; i < imageSize; ++i) {
         	//TODO CubeIterator at Connectivity?
-            m_DataSubImage[i] = labelImage.getAbs(p.add(m_Offsets[i]));
+            m_DataSubImage[i] = labelImage.getLabelAbs(p.add(m_Offsets[i]));
             if (m_DataSubImage[i] == m_IgnoreLabel) {
             	m_DataSubImage[i] = Zero;
             }

@@ -126,7 +126,7 @@ public class SphereBitmapImageSource
 			if(maskvalue==m_ForegroundValue)
 			{
 				
-				int absLabel=labelImage.getAbs(idx);
+				int absLabel=labelImage.getLabelAbs(idx);
 				
 				//directly access data; only 1-2% faster
 //				int absLabel=labelImage.labelIP.get(idx);
@@ -157,7 +157,7 @@ public class SphereBitmapImageSource
 		double vVolume;
 		
 		//TODO dummy
-		final float rad= labelImage.settings.m_CurvatureMaskRadius;
+		final float rad = labelImage.settings.m_CurvatureMaskRadius;
 		// end dummy
 		
 		if(dim == 2)
@@ -256,7 +256,7 @@ public class SphereBitmapImageSource
 //				System.out.println(""+p+" "+vHypEllipse);
 				if(mask[i]==m_ForegroundValue)
 				{
-					int absLabel=labelImage.getAbs(p);
+					int absLabel=labelImage.getLabelAbs(p);
 					
 					if(absLabel==aTo)
 					{
@@ -386,11 +386,11 @@ class BubbleDrawer extends SphereBitmapImageSource
 			
 			if(maskvalue==m_ForegroundValue)
 			{
-				labelImage.set(idx, val);
+				labelImage.setLabel(idx, val);
 			}
 			else
 			{
-				labelImage.set(idx, labelImage.bgLabel);
+				labelImage.setLabel(idx, labelImage.bgLabel);
 			}
 
 		}

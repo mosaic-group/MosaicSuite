@@ -193,10 +193,26 @@ public class IntConverter
 	}
 	
 	
-	
-	public static ImageStack intArrayToShortStack(int[] intData, int[] dims, boolean abs)
+	public static ImageStack intArrayToShortStack(int[] intData, int[] dims)
 	{
-		short shortData[] = IntConverter.intToShort(intData, abs, false, false);
+		return intArrayToShortStack(intData, dims, false, false, false);
+		
+	}
+	
+	/**
+	 * @param clean Takes absolute values, clamp to short values and remove boundary
+	 */
+	public static ImageStack intArrayToShortStack(int[] intData, int[] dims, 
+			boolean clean)
+	{
+		return intArrayToShortStack(intData, dims, clean, clean, clean);
+		
+	}
+	
+	public static ImageStack intArrayToShortStack(int[] intData, int[] dims, 
+			boolean abs, boolean borderRemove, boolean clamp)
+	{
+		short shortData[] = IntConverter.intToShort(intData, abs, borderRemove, clamp);
 
 		int w,h,z;
 		w=dims[0];

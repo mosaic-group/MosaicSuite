@@ -1,9 +1,7 @@
 package mosaic.region_competition.netbeansGUI;
 
 import java.awt.Button;
-import java.awt.Checkbox;
 import java.awt.Choice;
-import java.awt.Component;
 import java.awt.FileDialog;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
@@ -18,12 +16,10 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import javax.swing.JButton;
 import javax.swing.JTextArea;
 
 import mosaic.plugins.Region_Competition;
@@ -79,6 +75,7 @@ public class GenericDialogGUI implements InputReadable
 			"or press Button below";
 	static final String TextDefaultLabelImage="Drop Label Image here, or insert Path to file";
 	
+	static final String emptyOpenedImage = "";
 	
 	public GenericDialogGUI(Region_Competition region_Competition)
 	{
@@ -233,18 +230,13 @@ public class GenericDialogGUI implements InputReadable
 			nOpenedImages = ids.length;
 		}
 		
-		// show opened image titles
-//		for(int id: ids)
-//		{
-//			ImagePlus ip = WindowManager.getImage(id);
-//			System.out.println("ID: "+id+" "+ip.getTitle());
-//		}
 		
 		String[] names = new String[nOpenedImages+1];
-		names[0]="";
+		names[0]=emptyOpenedImage;
 		for(int i = 0; i<nOpenedImages; i++)
 		{
-			names[i+1] = WindowManager.getImage(ids[i]).getTitle();
+			ImagePlus ip = WindowManager.getImage(ids[i]);
+			names[i+1] = ip.getTitle();
 		}
 		
 //		if(nOpenedImages>0)
@@ -260,6 +252,15 @@ public class GenericDialogGUI implements InputReadable
 			// Label Image
 			gd.addChoice("LabelImage", names, names[0]);
 			choiceLabelImage = (Choice)gd.getChoices().lastElement();
+			
+			// select second image
+			if(nOpenedImages>=2 && aImp!= null)
+			{
+				WindowManager.putBehind();
+				String title = WindowManager.getCurrentImage().getTitle();
+				choiceLabelImage.select(title);
+				WindowManager.toFront(aImp.getWindow());
+			}
 			
 			// add listener to change labelImage initialization to file
 			choiceLabelImage.addItemListener(new ItemListener() 

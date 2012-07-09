@@ -59,10 +59,10 @@ public class DebugConsistencyCheck
 			ContourParticle c = e.getValue();
 			int label = c.label;
 			
-			if(labelImage.getAbs(p)!=label)
+			if(labelImage.getLabelAbs(p)!=label)
 			{
 				System.out.println("contourparticle.label != labelImage.label");
-				System.out.println(label+"!="+labelImage.getAbs(p));
+				System.out.println(label+"!="+labelImage.getLabelAbs(p));
 			}
 		}
 		
@@ -70,7 +70,7 @@ public class DebugConsistencyCheck
 		
 		for(int i=0; i<liSize; i++)
 		{
-			int label=labelImage.get(i);
+			int label=labelImage.getLabel(i);
 			if(labelImage.isContourLabel(label))
 			{
 				Point p = labelImage.iterator.indexToPoint(i);
@@ -133,7 +133,7 @@ public class DebugConsistencyCheck
 	{
 		for(int i=0; i<liSize; i++)
 		{
-			int label=labelImage.getAbs(i);
+			int label=labelImage.getLabelAbs(i);
 			hist[label]+=1;
 		}
 		System.out.println(hist);
