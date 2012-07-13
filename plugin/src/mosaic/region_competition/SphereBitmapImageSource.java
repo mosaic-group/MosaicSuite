@@ -4,6 +4,7 @@ public class SphereBitmapImageSource
 {
 	int m_Size[];
 	int m_Radius[];
+	float rad;
 	
 	int m_BackgroundValue;
 	int m_ForegroundValue;
@@ -24,7 +25,8 @@ public class SphereBitmapImageSource
 	SphereBitmapImageSource(LabelImage labelImage, int radius, int size)
 	{
 		this.labelImage=labelImage;
-		dim=labelImage.dim;
+		dim = labelImage.dim;
+		rad = radius;
 		
 		m_BackgroundValue = 0;
 		m_ForegroundValue = 1;
@@ -157,7 +159,9 @@ public class SphereBitmapImageSource
 		double vVolume;
 		
 		//TODO dummy
-		final float rad = labelImage.settings.m_CurvatureMaskRadius;
+//		final float rad = labelImage.settings.m_CurvatureMaskRadius;
+//		float m_CurvatureMaskRadius = this.rad;
+		float rad = this.rad;
 		// end dummy
 		
 		if(dim == 2)
@@ -286,17 +290,19 @@ public class SphereBitmapImageSource
 		double vVolume;
 		
 		//TODO dummy
-		float m_CurvatureMaskRadius= labelImage.settings.m_CurvatureMaskRadius;
+//		float m_CurvatureMaskRadius= labelImage.settings.m_CurvatureMaskRadius;
+//		float m_CurvatureMaskRadius = this.rad;
+		float rad = this.rad;
 		// end dummy
 		
 		if(dim == 2)
 		{
-			vVolume = 3.141592f * m_CurvatureMaskRadius * m_CurvatureMaskRadius;
+			vVolume = 3.141592f * rad * rad;
 		} 
 		else if(dim == 3)
 		{
 			vVolume = 1.3333333f * 3.141592f * 
-				m_CurvatureMaskRadius * m_CurvatureMaskRadius * m_CurvatureMaskRadius;
+				rad * rad * rad;
 		} 
 		else
 		{
@@ -312,10 +318,10 @@ public class SphereBitmapImageSource
 		{
 			int vN=vNto;
 			if (dim== 2) {
-				vCurvatureFlow -= 3.0f * 3.141592f / m_CurvatureMaskRadius *
+				vCurvatureFlow -= 3.0f * 3.141592f / rad *
 				((vN) / vVolume - 0.5f);
 			} else if (dim == 3) {
-				vCurvatureFlow -= 16.0f / (3.0f * m_CurvatureMaskRadius)*
+				vCurvatureFlow -= 16.0f / (3.0f * rad)*
 				((vN) / vVolume - 0.5f);
 			}
 		}
@@ -327,23 +333,23 @@ public class SphereBitmapImageSource
 		        // This is a point on the contour (innerlist) OR
 		        // touching the contour (Outer list)
 		        if (dim == 2) {
-		            vCurvatureFlow += 3.0f * 3.141592f / m_CurvatureMaskRadius *
+		            vCurvatureFlow += 3.0f * 3.141592f / rad *
 		                    ((vN) / vVolume - 0.5f);
 		        } else if (dim == 3) {
-		            vCurvatureFlow += 16.0f / (3.0f * m_CurvatureMaskRadius)*
+		            vCurvatureFlow += 16.0f / (3.0f * rad)*
 		                    ((vN) / vVolume - 0.5f);
 		        }
 		    } else  // fighting fronts
 		    {
 		        if (dim == 2) {
-		            vCurvatureFlow -= 3.0f * 3.141592f / m_CurvatureMaskRadius *
+		            vCurvatureFlow -= 3.0f * 3.141592f / rad *
 		                    ((vNto) / vVolume - 0.5f);
-		            vCurvatureFlow += 3.0f * 3.141592f / m_CurvatureMaskRadius *
+		            vCurvatureFlow += 3.0f * 3.141592f / rad *
 		                    ((vNFrom) / vVolume - 0.5f);
 		        } else if (dim == 3) {
-		            vCurvatureFlow -= 16.0f / (3.0f * m_CurvatureMaskRadius)*
+		            vCurvatureFlow -= 16.0f / (3.0f * rad)*
 		                    ((vNto) / vVolume - 0.5f);
-		            vCurvatureFlow += 16.0f / (3.0f * m_CurvatureMaskRadius)*
+		            vCurvatureFlow += 16.0f / (3.0f * rad)*
 		                    ((vNFrom) / vVolume - 0.5f);
 		        }
 		        //                vCurvatureFlow *= 0.5f;

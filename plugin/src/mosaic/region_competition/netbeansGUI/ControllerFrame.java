@@ -8,12 +8,13 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import mosaic.plugins.Region_Competition;
-import mosaic.region_competition.LabelImage;
+import mosaic.region_competition.Algorithm;
 
 public class ControllerFrame extends JFrame
 {
 	Region_Competition MVC;
-	LabelImage labelImage;
+//	Algorithm algorithm;
+	
 	JFrame controllerFrame;
 	JPanel panel;
 	
@@ -22,13 +23,13 @@ public class ControllerFrame extends JFrame
 	JButton editButton;
 	
 	
-	public ControllerFrame(Region_Competition aMVC)
+	public ControllerFrame(Region_Competition mvc)
 	{
-		this.MVC = aMVC;
-		labelImage=aMVC.getLabelImage();
-		controllerFrame=this;
-		panel = new JPanel();
+		this.MVC = mvc;
 		
+		controllerFrame=this;
+		
+		panel = new JPanel();
 		
 		// Pause/Resume
 		resumeButton = new JButton("Pause");
@@ -39,14 +40,16 @@ public class ControllerFrame extends JFrame
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
+				Algorithm algorithm = MVC.getAlgorithm();
+				
 				if(!isPaused){
 					isPaused = true;
 					resumeButton.setText("Resume");
-					labelImage.pause();
+					algorithm.pause();
 				} else {
 					isPaused = false;
 					resumeButton.setText("Pause");
-					labelImage.resume();
+					algorithm.resume();
 				}
 				
 				controllerFrame.pack();
@@ -64,7 +67,8 @@ public class ControllerFrame extends JFrame
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				labelImage.stop();
+				Algorithm algorithm = MVC.getAlgorithm();
+				algorithm.stop();
 //				cancelButton.setVisible(false);
 				controllerFrame.dispose();
 			}

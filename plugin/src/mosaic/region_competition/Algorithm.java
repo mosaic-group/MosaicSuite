@@ -23,50 +23,34 @@ public class Algorithm
 {
 	private Region_Competition MVC; 	/** interface to image program */
 	private LabelImage labelImage;
-	private float[] dataIntensity;
-//	public int[] dataLabel;
+	private IntensityImage intensityImage;
 	
 	
-//	ImagePlus imageIP;	// input image
-//	ImageProcessor imageProc;
 	
-//	private final float imageMax; 	// maximal intensity of input image
-	
-//	ImagePlus labelPlus;				
-//	ImageProcessor labelIP;				// map positions -> labels
-//	public short[] dataLabelShort;
-	
-	
-//	int size;
-//	int dim;			// number of dimension
-//	int[] dimensions;	// dimensions (width, height, depth, ...)
-//	int width;	// TODO multidim
-//	int height;
-	
+	// labelImage
 	private IndexIterator iterator; // iterates over the labelImage
 	
 	private final int bgLabel;
 	private final int forbiddenLabel;
 	
-	private LabelDispenser labelDispenser;
+	public LabelDispenser labelDispenser;
 	
 	
 	// data structures
 	
 	/** stores the contour particles. access via coordinates */
-	private HashMap<Point, ContourParticle> m_InnerContourContainer;
-	
+	HashMap<Point, ContourParticle> m_InnerContourContainer;
 	private HashMap<Point, ContourParticle> m_Candidates;
 	
 	/** Maps the label(-number) to the information of a label */
-	private HashMap<Integer, LabelInformation> labelMap;
+	HashMap<Integer, LabelInformation> labelMap;
 
 	private HashMap<Point, LabelPair> m_CompetingRegionsMap;
-	
 	
 	private Connectivity connFG;
 	private Connectivity connBG;
 	private TopologicalNumberImageFunction m_TopologicalNumberFunction;
+	private ForestFire forestFire;
 
 	private List<Integer> m_MergingHist;
 	private List<Integer> m_FramesHist;
@@ -77,20 +61,20 @@ public class Algorithm
 	 * creates a new LabelImage with size of ip
 	 * @param proc is saved as originalIP
 	 */
-	public Algorithm(Region_Competition region_competition) 
+	public Algorithm(IntensityImage intensityImage, LabelImage labelImage, Settings settings, Region_Competition mvc) 
 	{
 
-		MVC = region_competition;
-		labelImage = MVC.getLabelImage();
+		this.MVC = mvc;
+		this.labelImage = labelImage;
+		this.intensityImage = intensityImage;
 //		dataLabel = labelImage.dataLabel;
-		settings = MVC.settings;
+		this.settings=settings;
 		
 		bgLabel = labelImage.bgLabel;
 		forbiddenLabel = labelImage.forbiddenLabel;
 		
-		dataIntensity = labelImage.dataIntensity;
+//		dataIntensity = intensityImage.dataIntensity;
 //		initIntensityData();
-		
 		
 		iterator = labelImage.iterator;
 		
@@ -98,6 +82,7 @@ public class Algorithm
 		connBG = labelImage.getConnBG();
 		
 		initMembers();
+		
 		labelImage.initBoundary();
 		initContour();
 	}
@@ -133,15 +118,16 @@ public class Algorithm
 //		m_MergingHist = new LinkedList<Integer>();
 //		m_FramesHist = new LinkedList<Integer>();
 		
-		//TODO initial capacities
 		m_InnerContourContainer = new HashMap<Point, ContourParticle>();
 		m_Candidates = new HashMap<Point, ContourParticle>();
 		labelMap = new HashMap<Integer, LabelInformation>();
 		m_CompetingRegionsMap = new HashMap<Point, LabelPair>();
     	
 		m_TopologicalNumberFunction = new TopologicalNumberImageFunction(labelImage, connFG, connBG);
+		forestFire = new ForestFire(this, labelImage, intensityImage);
+		
     	sphereMaskIterator = new SphereBitmapImageSource(labelImage, (int)settings.m_CurvatureMaskRadius, 2*(int)settings.m_CurvatureMaskRadius+1);
-    	m_GaussPSEnergyRadius=8;
+    	m_GaussPSEnergyRadius=settings.m_GaussPSEnergyRadius;
     	m_SphereMaskForLocalEnergy = new SphereBitmapImageSource(labelImage, m_GaussPSEnergyRadius, 2*m_GaussPSEnergyRadius+1);
 
     	
@@ -191,7 +177,7 @@ public class Algorithm
 					{
 						ContourParticle particle = new ContourParticle();
 						particle.label=label;
-						particle.intensity=getIntensity(i);
+						particle.intensity=intensityImage.getIntensity(i);
 						m_InnerContourContainer.put(p, particle);
 						
 						break;
@@ -258,7 +244,7 @@ public class Algorithm
 					stats = new LabelInformation(absLabel);
 					labelMap.put(absLabel, stats);
 				}
-				double val = getIntensity(i);
+				double val = intensityImage.getIntensity(i);
 				stats.count++;
 				
 				stats.mean+=val; // only sum up, mean and var are computed below
@@ -380,14 +366,18 @@ public class Algorithm
 			// m_ManyPointsToBeDeleted.clear();
 			vConvergence = DoOneIteration();
 
-			labelImage.displaySlice("iteration " + m_iteration_counter);
+			
+//			labelImage.displaySlice("iteration " + m_iteration_counter);
+			MVC.addSlice(labelImage, "iteration " + m_iteration_counter);
+			
 			MVC.updateProgress(m_iteration_counter, settings.m_MaxNbIterations);
 //			MVC.addSliceToStackAndShow("iteration " + m_iteration_counter,
 //					this.labelIP.getPixelsCopy());
 
 		}
 		
-		labelImage.displaySlice("final image iteration " + m_iteration_counter);
+		MVC.addSlice(labelImage, "final image iteration " + m_iteration_counter);
+//		labelImage.displaySlice("final image iteration " + m_iteration_counter);
 		
 		m_converged = vConvergence;
 
@@ -874,7 +864,7 @@ public class Algorithm
 						//itk commented // vOCCValue.m_candidates.insert(vCandidateElement);
 						vOCCValue.candidateLabel = vLabelOfPropagatingRegion;
 						vOCCValue.label = vLabelOfDefender;
-						vOCCValue.intensity = getIntensity(vNeighborIndex);
+						vOCCValue.intensity = intensityImage.getIntensity(vNeighborIndex);
 						vOCCValue.isDaughter = true;
 						vOCCValue.isMother = false;
 						vOCCValue.m_processed = false;
@@ -1314,7 +1304,7 @@ public class Algorithm
 				ContourParticle q = new ContourParticle();
 				q.label=aAbsLabel;
 				q.candidateLabel=bgLabel;
-				q.intensity = getIntensity(qIndex);
+				q.intensity = intensityImage.getIntensity(qIndex);
 				
 				labelImage.setLabel(qIndex, labelImage.labelToNeg(aAbsLabel));
 				m_InnerContourContainer.put(qIndex, q);
@@ -1397,7 +1387,8 @@ public class Algorithm
 			vMultiThsFunction.AddThresholdBetween(negLabel, negLabel);
 
 //			ForestFire(aLabelImage, aIndex, vMultiThsFunction, m_MaxNLabels++);
-			ForestFire(aLabelImage, aIndex, vMultiThsFunction, labelDispenser.getNewLabel());
+//			ForestFire(aLabelImage, aIndex, vMultiThsFunction, labelDispenser.getNewLabel());
+			forestFire.fire(aIndex, labelDispenser.getNewLabel(), vMultiThsFunction);
 		}
 	}
 
@@ -1456,7 +1447,8 @@ public class Algorithm
 		}
 		if(vMultiThsFunction.EvaluateAtIndex(iterator.pointToIndex(aIndex))){
 //		    ForestFire(aLabelImage, aIndex, vMultiThsFunction, m_MaxNLabels++);
-		    ForestFire(aLabelImage, aIndex, vMultiThsFunction, labelDispenser.getNewLabel());
+//		    ForestFire(aLabelImage, aIndex, vMultiThsFunction, labelDispenser.getNewLabel());
+		    forestFire.fire(aIndex, labelDispenser.getNewLabel(), vMultiThsFunction);
 		}
 		
 //		if(m_iteration_counter==6)
@@ -1493,9 +1485,10 @@ public class Algorithm
 			if(info==null)
 			{
 				//TODO debug
-				labelImage.displaySlice("***info is null for: "+vIt.getKey());
+				MVC.addSlice(labelImage, "***info is null for: "+vIt.getKey());
+//				labelImage.displaySlice("***info is null for: "+vIt.getKey());
 				debug("***info is null for: "+vIt.getKey());
-				MVC.selectPoint(vIt.getKey());
+//				MVC.selectPoint(vIt.getKey());
 				continue;
 			}
 			if(info.count == 1) 
@@ -1869,14 +1862,14 @@ public class Algorithm
 				int absLabel=labelImage.getLabelAbs(labelIdx);
 				if(absLabel == aFromLabel)
 				{
-					double data = getIntensity(dataIdx);
+					double data = intensityImage.getIntensity(dataIdx);
 					vSumFrom += data;
 					vSumOfSqFrom += data*data;
 					vNFrom++;
 				}
 				else if(absLabel == aToLabel)
 				{
-					double data = getIntensity(dataIdx);
+					double data = intensityImage.getIntensity(dataIdx);
 					vSumTo += data;
 					vSumOfSqTo += data*data;
 					vNTo++;
@@ -2002,108 +1995,6 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 	}
 
 
-	/**
-	 * m_InnerContourContainer.remove(vCurrentCIndex);
-	 */
-	void ForestFire(LabelImage aLabelImage, Point aIndex, MultipleThresholdImageFunction aMultiThsFunctionPtr, int aNewLabel)
-	{
-		
-//		displaySlice("pre forestfire");
-
-		//Set<Integer> vVisitedNewLabels = new HashSet<Integer>();
-		Set<Integer> vVisitedOldLabels = new HashSet<Integer>();
-
-		FloodFill ff = new FloodFill(aLabelImage, aMultiThsFunctionPtr, aIndex);
-		Iterator<Point> vLit = ff.iterator();
-
-		Set<Point> vSetOfAncientContourIndices = new HashSet<Point>(); // ContourIndexType
-
-		double vSum = 0;
-		double vSqSum = 0;
-		int vN = 0;
-//		double vLengthEnergy = 0;
-
-        while(vLit.hasNext())
-        {
-			// InputPixelType vImageValue = vDit.Get();
-			Point vCurrentIndex = vLit.next();
-			int vLabelValue = labelImage.getLabel(vCurrentIndex);
-			int absLabel = labelImage.labelToAbs(vLabelValue);
-			float vImageValue = getIntensity(vCurrentIndex);
-			
-			// the visited labels statistics will be removed later.
-			vVisitedOldLabels.add(absLabel);
-			
-			labelImage.setLabel(vCurrentIndex, aNewLabel);
-			
-			if(labelImage.isContourLabel(vLabelValue)) 
-			{
-				// m_InnerContourContainer[static_cast<ContourIndexType>(vLit.GetIndex())].first = vNewLabel;
-				// ContourIndexType vCurrentIndex = static_cast<ContourIndexType>(vLit.GetIndex());
-				
-				vSetOfAncientContourIndices.add(vCurrentIndex);
-				
-			}
-
-			vN++;
-			vSum += vImageValue;
-			vSqSum += vImageValue * vImageValue;
-
-		} // while iterating over floodfill area
-
-
-        /// Delete the contour points that are not needed anymore:
-        for(Point vCurrentCIndex: vSetOfAncientContourIndices) 
-        {
-            if (labelImage.isBoundaryPoint(vCurrentCIndex)) 
-            {
-            	ContourParticle vPoint = m_InnerContourContainer.get(vCurrentCIndex);
-            	vPoint.label = aNewLabel;
-//	 			vPoint.modifiedCounter = 0;
-
-//						vLengthEnergy += m_ContourLengthFunction->EvaluateAtIndex(vCurrentCIndex);
-            	labelImage.setLabel(vCurrentCIndex, labelImage.labelToNeg(aNewLabel));
-            } else {
-                m_InnerContourContainer.remove(vCurrentCIndex);
-            }
-        }
-
-        /// Store the statistics of the new region (the vectors will
-        /// store more and more trash of old regions).
-		double vN_ = vN;
-
-		// create a labelInformation for the new label, add to container
-		LabelInformation newLabelInformation = new LabelInformation(aNewLabel);
-		labelMap.put(aNewLabel, newLabelInformation);
-
-		newLabelInformation.mean = vSum / vN_;
-		// TODO m_Intensities[vNewLabel] = m_Means[vNewLabel];
-		double var = (vN_>1)?(vSqSum - vSum * vSum / vN_) / (vN_ - 1) : 0;
-		newLabelInformation.setVar(var);
-		newLabelInformation.count = vN;
-		// TODO m_Lengths[vNewLabel] = vLengthEnergy;
-
-//		displaySlice("after forestfire");
-		
-		/// Clean up the statistics of non valid regions.
-		for(int vVisitedIt : vVisitedOldLabels) 
-		{
-//			debug("Freed label " + vVisitedIt);
-			FreeLabelStatistics(vVisitedIt);
-		}
-		
-		CleanUp();
-		
-		/// TODO: this must as well be only performed for the affected
-		///       regions! A call to this function may result in segmentation
-		///       faults since the labelimage is not 'consistent': It may contain
-		///       still regions with 'old' labels. This happens if the 'old'
-		///       region has 2 topological changes at once.
-		//        if (m_EnergyFunctional == e_Deconvolution) {
-		//            RenewDeconvolutionStatistics(m_LabelImage, this->GetDataInput());
-		//        }
-		
-	}
 
 	
 	// calls: cleanup
@@ -2134,7 +2025,7 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 	}
 
 
-	private void UpdateStatisticsWhenJump(Entry<Point,ContourParticle> aParticle, 
+	void UpdateStatisticsWhenJump(Entry<Point,ContourParticle> aParticle, 
 			int aFromLabelIdx, int aToLabelIdx)
 	{
 		Point vCurrentIndex = aParticle.getKey();
@@ -2306,7 +2197,7 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 		}
 	}
 	
-	private void CleanUp()
+	void CleanUp()
 	{
 		// UIntStatisticsContainerType::iterator vActiveLabelsIt = m_Count.begin();
 		//TODO ConcurrentModificationException
@@ -2332,22 +2223,6 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 
 	}
 
-	
-	
-	
-	
-	float getIntensity(int idx)
-	{
-		return dataIntensity[idx];
-	}
-	
-	float getIntensity(Point p)
-	{
-		int idx = iterator.pointToIndex(p);
-		return dataIntensity[idx];
-	}
-	
-	
 
 	
 	static void debug(Object s)
@@ -2389,6 +2264,18 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 			pauseMonitor.notify();
 		}
 	}
+	
+	
+	
+	
+	public int getBiggestLabel()
+	{
+//		return m_MaxNLabels;
+		return labelDispenser.getHighestLabelEverUsed();
+	}
+	
+	
+	
 	
 	///////////////////////////////////////////
 //	

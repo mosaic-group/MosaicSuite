@@ -6,11 +6,10 @@ import java.util.Set;
 import java.util.Stack;
 
 
-
 class FloodFill implements Iterable<Point>
 {
-	
 	LabelImage labelImage;
+	Connectivity conn;
 	
 	Stack<Point> stack;
 	Set<Point> checkedSet;
@@ -18,19 +17,16 @@ class FloodFill implements Iterable<Point>
 	public FloodFill(LabelImage labelImage, MultipleThresholdImageFunction foo, Point seed) 
 	{
 		this.labelImage = labelImage;
+		this.conn = labelImage.getConnFG();
 		
 		stack = new Stack<Point>();
 		checkedSet = new HashSet<Point>();
-		
-		//TODO what's about the seed point? set on fire / flood or not? test MultipleThresholdImageFunction?
 		stack.add(seed);
-
 		
 		while(!stack.isEmpty())
 		{
 			Point p = stack.pop();
-			
-			for(Point q: labelImage.getConnFG().iterateNeighbors(p))
+			for(Point q: conn.iterateNeighbors(p))
 			{
 				if(foo.EvaluateAtIndex(labelImage.iterator.pointToIndex(q)) && !isPointChecked(q))
 				{
@@ -39,7 +35,6 @@ class FloodFill implements Iterable<Point>
 			}
 			setPointChecked(p);
 		}
-		
 	}
 	
 	private void setPointChecked(Point p)
@@ -52,7 +47,6 @@ class FloodFill implements Iterable<Point>
 		return checkedSet.contains(p);
 	}
 
-	
 	
 	//Iterable
 	@Override

@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 import ij.process.ImageProcessor;
 
 /**
+ * TODO VERY OLD
  * checks the consistency of the LabelImage
  * 
  * is every contour point in the container? and vice versa
@@ -20,7 +21,7 @@ public class DebugConsistencyCheck
 	
 	LabelImage labelImage;
 	ImageProcessor data;
-	short pixels[];
+	int[] pixels;
 	int liSize;
 	
 	int hist[];
@@ -28,18 +29,19 @@ public class DebugConsistencyCheck
 	HashMap<Integer, LabelInformation> labelMap;
 	HashMap<Point, ContourParticle> contourContainer;
 
-	public DebugConsistencyCheck(LabelImage labelImage) 
+	public DebugConsistencyCheck(LabelImage labelImage, Algorithm algo) 
 	{
 		this.labelImage=labelImage;
+		this.contourContainer = algo.m_InnerContourContainer;
+		
 		
 		data=labelImage.getLabelImageProcessor();
-		pixels=(short[])data.getPixels();
+		pixels=labelImage.dataLabel;
 		
 		//TODO these seems to be 2D methods
 		liSize=pixels.length;
 		liSize=data.getPixelCount();
 		
-		contourContainer = labelImage.getContourContainer();
 		labelMap = labelImage.getLabelMap();
 		
 		hist = new int[Short.MAX_VALUE];

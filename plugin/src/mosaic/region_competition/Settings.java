@@ -20,6 +20,9 @@ public class Settings
 	public float m_CurvatureMaskRadius = 8;
 	public float m_EnergyContourLengthCoeff = 0.04f; // 0.04;//0.003f;
 
+	
+	public int m_GaussPSEnergyRadius=8;
+	
 	public int m_OscillationHistoryLength = 20;
 
 	public float m_AcceptedPointsFactor = 1;

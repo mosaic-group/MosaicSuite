@@ -3,14 +3,14 @@ package mosaic.region_competition;
 import java.util.ArrayList;
 import java.util.List;
 
-class MultipleThresholdImageFunctionDOUBLE
+class MultipleThresholdImageFunction<N>
 {
 	LabelImage labelImage;
 	
     List<Pair<Double, Double>> m_Thresholds;
     int m_NThresholds; // to not call size() of the vector at each evaluation.
 	
-	public MultipleThresholdImageFunctionDOUBLE(LabelImage aLabelImage) 
+	public MultipleThresholdImageFunction(LabelImage aLabelImage) 
 	{
 		SetInputImage(aLabelImage);
 		m_NThresholds = 0;
@@ -77,7 +77,7 @@ class MultipleThresholdImageFunctionDOUBLE
  * interface ParamGetter<T>
  * 
  */
-class MultipleThresholdImageFunction<N extends Comparable<? super N>>
+class MultipleThresholdImageFunctionGEN<N extends Comparable<? super N>>
 //class MultipleThresholdImageFunction<N extends Comparable<N>>
 {
 	public interface ParamGetter<T>
@@ -92,7 +92,7 @@ class MultipleThresholdImageFunction<N extends Comparable<? super N>>
     List<Pair<N, N>> m_Thresholds;
     int m_NThresholds; // to not call size() of the vector at each evaluation.
 	
-	public MultipleThresholdImageFunction(ParamGetter<N> getter) 
+	public MultipleThresholdImageFunctionGEN(ParamGetter<N> getter) 
 	{
 		this.getter=getter;
 		m_NThresholds = 0;
@@ -165,30 +165,30 @@ class MultipleThresholdImageFunction<N extends Comparable<? super N>>
         }
 
         
-        //TODO this is a function, delete
-        <T extends Comparable<T>>void test(T nnn)
-        {
-//        	MultipleThresholdImageFunction<?> foo = new MultipleThresholdImageFunction<Integer>(null);
-//        	foo.AddThresholdBetween((Integer) 5, (Integer) 5);
-        	
-//        	MultipleThresholdImageFunction<Comparable> foobar;
-        	MultipleThresholdImageFunction<Double> foobar = null;
-        	foobar.AddThreshold(5.5);
-        	
-        	
-        	ParamGetter<T> ggg = new ParamGetter<T>() {
-				@Override
-				public T getT(int idx){return null;}
-			};
-			
-			MultipleThresholdImageFunction<T> foo;
-        	foo = new MultipleThresholdImageFunction<T>(ggg);
-        	foo.AddThresholdBetween((T)null, null);
-        	
-        	
-        	MultipleThresholdImageFunction<Double> bar = new MultipleThresholdImageFunction<Double>(null);
-        	bar.AddThresholdBetween(3.1, 5.2);
-        }
+        //TODO this is a test function, delete
+//        <T extends Comparable<T>>void test(T nnn)
+//        {
+////        	MultipleThresholdImageFunction<?> foo = new MultipleThresholdImageFunction<Integer>(null);
+////        	foo.AddThresholdBetween((Integer) 5, (Integer) 5);
+//        	
+////        	MultipleThresholdImageFunction<Comparable> foobar;
+//        	MultipleThresholdImageFunction<Double> foobar = null;
+//        	foobar.AddThreshold(5.5);
+//        	
+//        	
+//        	ParamGetter<T> ggg = new ParamGetter<T>() {
+//				@Override
+//				public T getT(int idx){return null;}
+//			};
+//			
+//			MultipleThresholdImageFunction<T> foo;
+//        	foo = new MultipleThresholdImageFunction<T>(ggg);
+//        	foo.AddThresholdBetween((T)null, null);
+//        	
+//        	
+//        	MultipleThresholdImageFunction<Double> bar = new MultipleThresholdImageFunction<Double>(null);
+//        	bar.AddThresholdBetween(3.1, 5.2);
+//        }
         
     }
 
@@ -250,37 +250,37 @@ class MultipleThresholdImageFunction<N extends Comparable<? super N>>
 //}
 
 // tests
-
-class CompSuper implements Comparable<CompSuper>
-{
-
-	@Override
-	public int compareTo(CompSuper o)
-	{
-		// TODO Auto-generated method stub
-		return 0;
-	}
-	
-	
-	void test()
-	{
-		MultipleThresholdImageFunction<CompSub1> foo = null;
-		foo.AddThreshold(new CompSub1());
-
-		MultipleThresholdImageFunction<CompSuper> bar = null;
-		bar.AddThreshold(new CompSub1());
-		
-	}
-	
-}
-
-class CompSub1 extends CompSuper
-{
-}
-
-class CompSub2 extends CompSuper
-{
-}
+//
+//class CompSuper implements Comparable<CompSuper>
+//{
+//
+//	@Override
+//	public int compareTo(CompSuper o)
+//	{
+//		// TODO Auto-generated method stub
+//		return 0;
+//	}
+//	
+//	
+//	void test()
+//	{
+//		MultipleThresholdImageFunction<CompSub1> foo = null;
+//		foo.AddThreshold(new CompSub1());
+//
+//		MultipleThresholdImageFunction<CompSuper> bar = null;
+//		bar.AddThreshold(new CompSub1());
+//		
+//	}
+//	
+//}
+//
+//class CompSub1 extends CompSuper
+//{
+//}
+//
+//class CompSub2 extends CompSuper
+//{
+//}
 
 
 

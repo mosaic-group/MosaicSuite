@@ -4,8 +4,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-
 import javax.swing.JFrame;
 
 import mosaic.region_competition.*;
@@ -24,12 +22,9 @@ import ij.gui.StackWindow;
 import ij.io.FileInfo;
 import ij.io.FileSaver;
 import ij.io.Opener;
-import ij.plugin.HyperStackConverter;
 import ij.plugin.filter.PlugInFilter;
-import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import ij.process.ImageStatistics;
 import ij.process.ShortProcessor;
 
 
@@ -42,9 +37,13 @@ public class Region_Competition implements PlugInFilter
 {
 	Region_Competition MVC;		// interface to image application (imageJ)
 	public Settings settings;
+	
+	Algorithm algorithm;
 	LabelImage labelImage;		// data structure mapping pixels to labels
+	IntensityImage intensityImage; 
 	private ImagePlus originalIP;		// IP of the input image
-	ImagePlus dataNormalizedIP;		// input image scaled to [0,1]
+	
+//	ImagePlus dataNormalizedIP;		// input image scaled to [0,1]
 	ImageStack stack;			// stack saving the segmentation progress images
 	ImagePlus stackImPlus;		// IP showing the stack
 	
@@ -60,8 +59,9 @@ public class Region_Competition implements PlugInFilter
 		String defaultFile ="";
 		defaultFile = "imagesAndPaper/Cell1_nuclei_w460.tif";
 		defaultFile = "sphere_3d_z56.tif";
-		defaultFile = "imagesAndPaper/sphere_3d.tif";
 		defaultFile = "imagesAndPaper/icecream5_410x410.tif";
+		defaultFile = "imagesAndPaper/sphere_3d.tif";
+		defaultFile = "/imagesAndPaper/icecream_shaded_130x130.tif";
 		
 		
 		defaultInputFile = defaultDir + defaultFile;
@@ -106,18 +106,31 @@ public class Region_Competition implements PlugInFilter
 		////////////////////
 		
 		
-		frontsCompetitionImageFilter();
+		try
+		{
+			frontsCompetitionImageFilter();
+		}
+		catch (Exception e)
+		{
+			if(controllerFrame!=null)
+				controllerFrame.dispose();
+			e.printStackTrace();
+		}
 
-		
-		System.out.println("Region_Competition.setup()");
-		return DOES_ALL + DONE;
+		return DONE;
 	}
 	
 	
 	public void run(ImageProcessor aImageProcessor) 
 	{
-		System.out.println("Region_Competition.run()");
 	}
+	
+	
+	void initAlgorithm()
+	{
+		algorithm = new Algorithm(intensityImage, labelImage, settings, this);
+	}
+	
 	
 	void initInputImage()
 	{
@@ -175,45 +188,8 @@ public class Region_Competition implements PlugInFilter
 		{
 			originalIP = ip;
 			
-			// scale all values in all slices to floats between 0.0 and 1.0
-			int nSlices = ip.getStackSize();
-			
-			ImageStack stack = ip.getStack();
-			ImageStatistics stat = ip.getStatistics();
-			
-			double min = stat.min;
-			double max = stat.max;
-			double range = max-min;
-			
-//			if(nSlices==1)
-//			{
-//				int i=1;
-//				ImageProcessor p = stack.getProcessor(i);
-//				FloatProcessor fp = (FloatProcessor)p.convertToFloat();
-//				fp.multiply(f);
-//				
-//				stack.setPixels(fp.getPixels(), i);
-//			}
-			
-			ImageStack normalizedStack = new ImageStack(stack.getWidth(), stack.getHeight());
-			
-			for(int i=1; i<=nSlices; i++)
-			{
-				ImageProcessor p = stack.getProcessor(i);
-				FloatProcessor fp = (FloatProcessor)p.convertToFloat();
-				fp.subtract(min);
-				fp.multiply(1.0/range);
-				double newMax = fp.getStatistics().max;
-				System.out.println(newMax);
-				
-				normalizedStack.addSlice("z="+i, fp);
-				
-//				stack.setPixels(fp.getPixels(), i);
-			}
-			
-			stack = normalizedStack;
-			
-			dataNormalizedIP = new ImagePlus("Normalized Input Image", stack);
+			intensityImage = new IntensityImage(originalIP);
+//			dataNormalizedIP = new ImagePlus("Normalized Input Image", stack);
 			
 			// image loaded
 			boolean showOriginal = true;
@@ -221,11 +197,11 @@ public class Region_Competition implements PlugInFilter
 			{
 				originalIP.show();
 			}
-//			boolean showNormalized = false;
-//			if(showNormalized)
-//			{
-//				dataNormalizedIP.show();
-//			}
+			boolean showNormalized = true;
+			if(showNormalized)
+			{
+				intensityImage.imageIP.show();
+			}
 			
 		}
 		
@@ -241,22 +217,7 @@ public class Region_Competition implements PlugInFilter
 	
 	void initLabelImage()
 	{
-//		if(this.originalIP.getNSlices()>1)
-//		{
-//			labelImage = LabelImage.getLabelImage3D(MVC);
-//		}
-//		else
-		{
-			labelImage = new LabelImage(MVC);
-//		labelImage = LabelImage.getLabelImageNeg(this);
-//		labelImage = LabelImage.getLabelImageFloatNeg(this);
-//		labelImage = new LabelImage(MVC);
-			
-		}
-		labelImage.initZero();
-		
-		// Input Processing
-		labelImage.settings.m_EnergyUseCurvatureRegularization = userDialog.useRegularization();
+		labelImage = new LabelImage(intensityImage.getDimensions());
 		
 		LabelImageInitType input = userDialog.getLabelImageInitType();
 		
@@ -316,12 +277,16 @@ public class Region_Competition implements PlugInFilter
 			default:
 			{
 				// was aborted
-				System.out.println("no valid input option in User Input. Abort");
 				labelImage = null;
-				return;
-	// throw new RuntimeException("no valid input option in User Input. Abort");
+				throw new RuntimeException("No valid input option in User Input. Abort");
 			}
 		}
+		
+		if(labelImage == null)
+		{
+			throw new RuntimeException("Not able to build a LabelImage.");
+		}
+		
 		
 //		TODO sts 3D_comment
 //		if(labelImage.getDim()==2)
@@ -329,6 +294,14 @@ public class Region_Competition implements PlugInFilter
 			initialLabelImageProcessor = labelImage.getLabelImageProcessor().duplicate();
 		}
 		
+		saveInitialLabelImage();
+		
+		labelImage.initBoundary();
+	}
+	
+	
+	void saveInitialLabelImage()
+	{
 		// save the initial guess (random/user defined/whatever) to a tiff
 		// so we can reuse it for debugging
 		boolean doSaveGuess = false;
@@ -349,44 +322,26 @@ public class Region_Competition implements PlugInFilter
 				System.out.println("image was created using file/new. initial label was not saved");
 			}
 		}
-		
-		labelImage.initBoundary();
-		labelImage.generateContour();
-				
 	}
+	
 	
 	void initStack()
 	{
 		if(userDialog.useStack())
 		{
-			ImageProcessor labelImageProc = labelImage.getLabelImageProcessor().convertToShort(false);
+			
+			ImageProcessor labelImageProc; // = labelImage.getLabelImageProcessor().convertToShort(false);
+			
+			int[] dims = labelImage.getDimensions();
+			int width = dims[0];
+			int height = dims[1];
+			
+			labelImageProc = new ShortProcessor(width, height);
 			ImagePlus labelImPlus = new ImagePlus("dummy", labelImageProc);
 			stack = labelImPlus.createEmptyStack();
 			
-			// add input image to stack
-			// (convert it to the same type as labelImage)
-			ImageProcessor originalProc = originalIP.getProcessor();
-			Object originalPixels = null;
-			if(labelImageProc instanceof FloatProcessor)
-			{
-				originalPixels = originalProc.convertToFloat().getPixelsCopy();
-			} 
-			else if(labelImageProc instanceof ShortProcessor)
-			{
-				originalPixels = originalProc.convertToShort(false).getPixelsCopy();
-			} 
-			else if(labelImageProc instanceof ColorProcessor)
-			{
-				originalPixels = originalProc.convertToRGB().getPixelsCopy();
-			} 
-			else
-			{
-				throw new RuntimeException("Unsupported LabelImage Format");
-			}
-			stack.addSlice("original", originalPixels);
-			
-
-			stackImPlus = new ImagePlus("Stack of "+originalIP.getTitle(), stack); 
+			stackImPlus = new ImagePlus(null, labelImageProc);
+//			stackImPlus = new ImagePlus("Stack of "+originalIP.getTitle(), stack); 
 			stackImPlus.show();
 			
 			// first stack image without boundary&contours
@@ -394,7 +349,7 @@ public class Region_Competition implements PlugInFilter
 			
 			// next stack image is start of algo
 //			addSliceToStackAndShow("init", labelImage.getLabelImageProcessor().getPixelsCopy());
-			labelImage.displaySlice("init");
+			addSlice(labelImage, "init");
 			
 			IJ.setMinAndMax(stackImPlus, 0, maxLabel);
 			IJ.run(stackImPlus, "3-3-2 RGB", null); // stack has to contain at least 2 slices so this LUT applies to all future slices.
@@ -402,7 +357,7 @@ public class Region_Competition implements PlugInFilter
 	}
 	
 	
-	void initStopButton()
+	void initControls()
 	{
 		controllerFrame = new ControllerFrame(this);
 		controllerFrame.setVisible(true);
@@ -413,19 +368,27 @@ public class Region_Competition implements PlugInFilter
 	{
 		initInputImage();
 		initLabelImage();
-		
-		if(labelImage==null) // input was aborted
-		{
-			return;
-		}
+		initAlgorithm();
 		
 		initStack();
-		initStopButton();
+		initControls();
+		
+		int n = userDialog.getKBest();
+		if(n<1) n = 1;
+		Timer t = new Timer();
+		ArrayList<Long> timeList = new ArrayList<Long>();
+		
+//		for(int i=0; i<n; i++)
+//		{
+//			t.tic();
+//			labelImage.initMembers();
+//			labelImage.initWithIP(asdfasdf);
+//			t.toc();
+//		}
+		
 
 		if(userDialog.getKBest()>0)
 		{
-			Timer t = new Timer();
-			
 			ArrayList<Long> list = new ArrayList<Long>();
 
 			for(int i=0; i<userDialog.getKBest(); i++)
@@ -437,9 +400,8 @@ public class Region_Competition implements PlugInFilter
 //				labelImage.generateContour();
 				
 				
-				Algorithm algo = new Algorithm(this);
-				algo.GenerateData();
-//				labelImage.GenerateData();
+				initAlgorithm();
+				algorithm.GenerateData();
 				t.toc();
 				
 				updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
@@ -447,7 +409,7 @@ public class Region_Competition implements PlugInFilter
 				
 				if(stackImPlus!=null)
 				{
-					IJ.setMinAndMax(stackImPlus, 0, labelImage.getBiggestLabel());
+					IJ.setMinAndMax(stackImPlus, 0, algorithm.getBiggestLabel());
 				}
 //				stackImPlus.updateAndDraw();
 				showFinalResult(labelImage, i);
@@ -468,13 +430,13 @@ public class Region_Competition implements PlugInFilter
 		}
 		else // no kbest
 		{
-			labelImage.GenerateData();
+			algorithm.GenerateData();
 			
 			updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
 			
 			if(stackImPlus!=null)
 			{
-				IJ.setMinAndMax(stackImPlus, 0, labelImage.getBiggestLabel());
+				IJ.setMinAndMax(stackImPlus, 0, algorithm.getBiggestLabel());
 			}
 			showFinalResult(labelImage);
 		}
@@ -482,7 +444,7 @@ public class Region_Competition implements PlugInFilter
 
 		if(userDialog.showStatistics())
 		{
-			labelImage.showStatistics();
+			algorithm.showStatistics();
 		}
 		
 		controllerFrame.dispose();
@@ -521,7 +483,7 @@ public class Region_Competition implements PlugInFilter
 		String titleUnique = WindowManager.getUniqueName(s);
 		
 		ImagePlus imp = new ImagePlus(titleUnique, shortProc);
-		IJ.setMinAndMax(imp, 0, li.getBiggestLabel());
+		IJ.setMinAndMax(imp, 0, algorithm.getBiggestLabel());
 		IJ.run(imp, "3-3-2 RGB", null);
 		imp.show();
 		return imp;
@@ -531,7 +493,7 @@ public class Region_Competition implements PlugInFilter
 	public ImagePlus showFinalResult3D(LabelImage li, Object title)
 	{
 		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.get3DShortStack(true));
-		IJ.setMinAndMax(imp, 0, li.getBiggestLabel());
+		IJ.setMinAndMax(imp, 0, algorithm.getBiggestLabel());
 		IJ.run(imp, "3-3-2 RGB", null);
 		
 		imp.show();
@@ -646,8 +608,19 @@ public class Region_Competition implements PlugInFilter
 //		IJ.getInstance().addKeyListener(keyListener);
 }
 	
-	
-	private int maxLabel=100;
+	public void addSlice(LabelImage labelImage, String title)
+	{
+		int dim = labelImage.getDim();
+		if(dim==2)
+		{
+			addSliceToStackAndShow(title, labelImage.getSlice());
+		}
+		if(dim==3)
+		{
+			addSliceToHyperstack(title, labelImage.get3DShortStack(false));
+		}
+	}
+
 /**
  * Adds a new slice pixels to the end of the stack, 
  * and sets the new stack position to this slice
@@ -656,14 +629,14 @@ public class Region_Competition implements PlugInFilter
  */
 	public void addSliceToStackAndShow(String title, Object pixels)
 	{
-		if(stackImPlus==null)
+		if(stack==null)
 		{
 			// stack was closed by user, don't reopen
-			System.out.println("stackImPlus is null");
+			System.out.println("stack is null");
 			return;
 		}
 
-		stack = stackImPlus.getStack();
+//		stack = stackImPlus.getStack();
 		
 		stack.addSlice(title, pixels);
 		stackImPlus.setStack(stack);
@@ -675,14 +648,14 @@ public class Region_Competition implements PlugInFilter
 	
 	public void addSliceToHyperstack(String title, ImageStack stackslice)
 	{
-		if(stackImPlus==null)
+		if(stack==null)
 		{
 			// stack was closed by user, dont reopen
-			System.out.println("stackImPlus is null");
+			System.out.println("stack is null");
 			return;
 		}
 		
-		stack = stackImPlus.getStack();
+//		stack = stackImPlus.getStack();
 		
 		// clean the stack, hyperstack must not contain additional slices
 		while(stack.getSize() % stackslice.getSize() != 0){
@@ -690,7 +663,7 @@ public class Region_Competition implements PlugInFilter
 		}
 		
 		// in first iteration, convert to hyperstack
-		if(!stackImPlus.isHyperStack())
+		if(stackImPlus.getNFrames()<=2)
 		{
 //			new HyperStackConverter().run("stacktohs");
 			ImagePlus imp2 = stackImPlus;
@@ -727,10 +700,10 @@ public class Region_Competition implements PlugInFilter
 
 	}
 
-	
+	private int maxLabel=100;
 	private void adjustLUT()
 	{
-		if(labelImage.getBiggestLabel()>maxLabel)
+		if(algorithm.getBiggestLabel()>maxLabel)
 		{
 			maxLabel*=2;
 			IJ.setMinAndMax(stackImPlus, 0, maxLabel);
@@ -741,6 +714,11 @@ public class Region_Competition implements PlugInFilter
 	public LabelImage getLabelImage()
 	{
 		return this.labelImage;
+	}
+	
+	public Algorithm getAlgorithm()
+	{
+		return this.algorithm;
 	}
 
 	public ImagePlus getStackImPlus()
@@ -753,10 +731,10 @@ public class Region_Competition implements PlugInFilter
 		return this.originalIP;
 	}
 	
-	public ImagePlus getNormalizedIP()
-	{
-		return this.dataNormalizedIP;
-	}
+//	public ImagePlus getNormalizedIP()
+//	{
+//		return this.dataNormalizedIP;
+//	}
 
 	
 /**
@@ -791,28 +769,6 @@ public class Region_Competition implements PlugInFilter
 		for(Point p : conn) {
 			System.out.println(p);
 		}
-	}
-
-	void testTopo()
-	{
-		
-		IJ.open("rand.png");
-		ImagePlus aImp = WindowManager.getCurrentImage();
-		originalIP = aImp;
-		
-		LabelImage lbl = new LabelImage(MVC);
-		//debug
-		lbl.initWithIP(aImp);
-		int[] xs = new int[]{10,10};
-		Point index = new Point(xs);
-		
-		Connectivity connFG = new Connectivity(2,1);
-		Connectivity connBG = new Connectivity(2,0);
-		
-		TopologicalNumberImageFunction topo = new TopologicalNumberImageFunction(lbl, connFG, connBG);
-		List<Pair<Integer, Pair<Integer, Integer>>> result = topo.EvaluateAdjacentRegionsFGTNAtIndex(index);
-		
-		System.out.println(result);
 	}
 
 
@@ -861,7 +817,7 @@ public class Region_Competition implements PlugInFilter
 		GenericDialog gd = new GenericDialog("test");
 		gd.addTextAreas(null, null, 1, 1);
 		gd.addNumericField("dummyfield", 0, 0);
-		gd.addStringField("stringdield", "");
+		gd.addStringField("stringfield", "");
 		gd.addCheckbox("show_me", true);
 		
 		gd.showDialog();
