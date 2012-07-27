@@ -23,8 +23,11 @@ import ij.ImageStack;
 import ij.gui.OvalRoi;
 import ij.gui.Roi;
 import ij.measure.ResultsTable;
+import ij.plugin.Duplicator;
 import ij.plugin.GroupedZProjector;
 import ij.plugin.ZProjector;
+import ij.plugin.filter.Filters;
+import ij.plugin.filter.MaximumFinder;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
@@ -209,7 +212,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	{
 		ImagePlus ip = IntConverter.IPtoInt(imagePlus);
 		
-		if(dim==3)
+//		if(dim==3)
 		{
 			this.labelPlus = ip; 
 			ImageStack stack = ip.getImageStack();
@@ -373,6 +376,109 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		}
 		initialGuessEllipses(ellipses);
 	}
+	
+	
+	public void initBrightBubbles(IntensityImage intensityImage)
+	{
+		ImagePlus imp = intensityImage.imageIP;
+		imp = new Duplicator().run(imp);
+		IJ.run(imp, "Gaussian Blur...", "sigma=3 stack");
+		
+		ImageStack stack = imp.getStack();
+		int n = stack.getSize();
+		
+		ImageStack byteStack = new ImageStack(stack.getWidth(), stack.getHeight());
+		
+		MaximumFinder finder = new MaximumFinder();
+		for(int i=0; i<n; i++)
+		{
+			ImageProcessor proc = stack.getProcessor(i+1);
+			ImageProcessor maxima = finder.findMaxima(proc, 0.01, 0, MaximumFinder.IN_TOLERANCE, false, false);
+			byteStack.addSlice(maxima);
+		}
+		imp.setStack(byteStack);
+		imp.setTitle("after findmax");
+		imp.show();
+		
+		initWithIP(imp);
+		connectedComponents();
+		
+//		IJ.run(imp, "Find Maxima...", "noise=0.01 output=[Maxima Within Tolerance]");
+	}
+	
+	
+	public ImagePlus findMaximaStack(ImagePlus imp, double tolerance)
+	{
+		ImageStack stack = imp.getStack();
+		int n = stack.getSize();
+		
+		ImageStack byteStack = new ImageStack(stack.getWidth(), stack.getHeight());
+		
+		MaximumFinder finder = new MaximumFinder();
+		for(int i=0; i<n; i++)
+		{
+			ImageProcessor proc = stack.getProcessor(i+1);
+			ImageProcessor maxima = finder.findMaxima(proc, tolerance, ImageProcessor.NO_THRESHOLD, MaximumFinder.IN_TOLERANCE, false, false);
+			byteStack.addSlice(maxima);
+		}
+		ImagePlus result = new ImagePlus("findMax"+imp, byteStack);
+//		result.show();
+		
+		return result;
+	}
+	
+	public void initSwissCheese(IntensityImage intensityImage)
+	{
+		ImagePlus imp = intensityImage.imageIP;
+		imp = new Duplicator().run(imp);
+		IJ.run(imp, "Gaussian Blur...", "sigma=3 stack");
+//		imp.show();
+		ImagePlus holes = new Duplicator().run(imp);
+		
+		// thresholding
+		IJ.setAutoThreshold(imp, "Otsu dark stack");
+		IJ.run(imp, "Convert to Mask", "  black");
+		ImageStack stack1 = imp.getImageStack();
+		
+		// holes
+		IJ.run(holes, "Invert", "stack");
+		holes.setTitle("swiss cheese holes");
+		holes = findMaximaStack(holes, 0.01);
+		ImageStack stack2 = holes.getImageStack();
+
+		
+//		IJ.run(holes, "Find Maxima...", "noise=0 output=[Maxima Within Tolerance] light");
+		
+		
+		int nSlizes = stack1.getSize();
+		for(int i=0; i<nSlizes; i++)
+		{
+			ImageProcessor proc1 = stack1.getProcessor(i+1);
+			ImageProcessor proc2 = stack2.getProcessor(i+1);
+			
+			int size = proc1.getPixelCount();
+			for(int idx=0; idx<size; idx++)
+			{
+				int v1 = proc1.get(idx);
+				int v2 = proc2.get(idx);
+				
+				if(v2!=0) // on hole (hole is non zero), set black in main imp
+				{
+					proc1.set(idx, 0);
+				}
+			}
+			
+		}
+//		imp.show();
+//		holes.show();
+		
+		imp.show();
+		initWithIP(imp);
+		connectedComponents();
+		
+	}
+	
+	
 	
 	public void initialGuessBubbles()
 	{

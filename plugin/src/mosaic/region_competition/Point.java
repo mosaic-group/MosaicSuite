@@ -15,19 +15,22 @@ public class Point
 	}
 	
 	private Point(){};
-	
-//	public Point(Point p)
-//	{
-//		this.dim=p.dim;
-//		this.x=p.x.clone();
-//	}
-	
+
+	/**
+	 * Constructs a Point by copying the coords
+	 * @param coords
+	 */
 	public Point(int coords[]) 
 	{
 		this.dim = coords.length;
 		this.x = coords.clone();
 	}
 	
+	/**
+	 * Makes a Point from an Array, without copying the array. 
+	 * @param array Coordinates of the Point
+	 * @return Point
+	 */
 	public static Point CopyLessArray(int array[])
 	{
 		Point p = new Point();

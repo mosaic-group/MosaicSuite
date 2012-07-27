@@ -12,7 +12,7 @@ import ij.process.StackStatistics;
 public class IntensityImage
 {
 	
-	float[] dataIntensity;
+	public float[] dataIntensity;
 	IndexIterator iterator;
 	public ImagePlus imageIP;
 	

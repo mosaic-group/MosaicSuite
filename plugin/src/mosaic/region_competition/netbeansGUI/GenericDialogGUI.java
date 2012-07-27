@@ -49,25 +49,26 @@ public class GenericDialogGUI implements InputReadable
 
 	private int kbest = 1;
 	private boolean useStack = true;
+	private boolean showNormalized = true;
 	private boolean showStatistics = false;
 	private boolean useRegularization;
 	private boolean useOldRegionIterator=false;
 	
 	static final String EnergyFunctional = "EnergyFunctional";
-	static final String e_CV = "e_CV";
-	static final String e_GaussPS = "e_GaussPS";
+//	static final String e_CV = "e_CV";
+//	static final String e_GaussPS = "e_GaussPS";
 	
 	static final String Regularization = "Regularization";
 	static final String No_Regularization="No Regularization";
 	static final String Sphere_Regularization="Sphere Regularization";
 	static final String Sphere_Regularization_OLD="Sphere Regularization OLD";
 	
-	static final String Initialization = "Initialization";
-	static final String Rectangular_Initialization="Rectangular Initialization";
-	static final String Random_Ellipses_Initialization="Random Ellipses Initialization";
-	static final String User_Defined_Initialization="User Defined Initialization";
-	static final String Bubbles_Initialization="Bubbles Initialization";
-	static final String File_Initalization="File Initalization";
+	private static final String Initialization = "Initialization";
+//	private static final String Rectangular_Initialization="Rectangular Initialization";
+//	private static final String Random_Ellipses_Initialization="Random Ellipses Initialization";
+//	private static final String User_Defined_Initialization="User Defined Initialization";
+//	private static final String Bubbles_Initialization="Bubbles Initialization";
+//	private static final String File_Initalization="File Initalization";
 	
 	static final String TextDefaultInputImage="Input Image: \n\n" +
 			"Drop image here,\n" +
@@ -98,15 +99,16 @@ public class GenericDialogGUI implements InputReadable
 		final Choice choiceEnergy;
 		
 		
-		
+		EnergyFunctionalType[] energyValues = EnergyFunctionalType.values();
+		String[] energyItems = new String[energyValues.length];
 		// energy
+		for(int i=0; i<energyItems.length; i++)
+		{
+			energyItems[i]=energyValues[i].name();
+		}
 		
-		String[] energyItems = {
-				e_CV,
-				e_GaussPS, 
-				};
-		//TODO default choice
-		gd.addChoice(EnergyFunctional, energyItems, energyItems[0]);
+		
+		gd.addChoice(EnergyFunctional, energyItems, settings.m_EnergyFunctional.name());
 		choiceEnergy = (Choice)gd.getChoices().lastElement();
 		
 		
@@ -123,20 +125,20 @@ public class GenericDialogGUI implements InputReadable
 		
 		// Label Image Initialization
 		
-		String[] initializationItems= {
-				Rectangular_Initialization, 
-				Random_Ellipses_Initialization, 
-				User_Defined_Initialization, 
-				Bubbles_Initialization, 
-				File_Initalization, 
-				};
+		LabelImageInitType[] initTypes = LabelImageInitType.values();
+		String[] initializationItems = new String[initTypes.length];
+		
+		for(int i=0; i<initializationItems.length; i++)
+		{
+			initializationItems[i]=initTypes[i].name();
+		}
 		
 		// default choice
-		String defaultInit = Bubbles_Initialization;
-		if(aImp!=null && aImp.getRoi()!=null)
-		{
-			defaultInit=User_Defined_Initialization;
-		}
+		String defaultInit = LabelImageInitType.Bubbles.name(); //Bubbles_Initialization;
+//		if(aImp!=null && aImp.getRoi()!=null)
+//		{
+//			defaultInit=User_Defined_Initialization;
+//		}
 		gd.addChoice(Initialization, initializationItems, defaultInit);
 		
 		
@@ -153,6 +155,7 @@ public class GenericDialogGUI implements InputReadable
 		
 		gd.addNumericField("m_MaxNbIterations", settings.m_MaxNbIterations, 0);
 		
+		gd.addNumericField("m_GaussPSEnergyRadius", settings.m_GaussPSEnergyRadius, 0);
 		gd.addNumericField("Balloon_force", settings.m_BalloonForceCoeff, 4);
 		tfBalloonForce=(TextField)gd.getNumericFields().lastElement();
 		
@@ -184,6 +187,7 @@ public class GenericDialogGUI implements InputReadable
 		addOpenedImageChooser();
 		
 		gd.addCheckbox("Show_Statistics", showStatistics);
+		gd.addCheckbox("Show_Normalized", showNormalized);
 		gd.addCheckbox("Show_Stack", useStack);
 		gd.addNumericField("kbest", 0, 0);
 		
@@ -195,12 +199,13 @@ public class GenericDialogGUI implements InputReadable
 			@Override
 			public void itemStateChanged(ItemEvent e)
 			{
-				System.out.println(e.getItem());
-				if(((Choice)e.getSource()).getSelectedItem().equals(e_GaussPS))
+				String name = (String)e.getItem();
+				EnergyFunctionalType type = EnergyFunctionalType.valueOf(name);
+				if(type == EnergyFunctionalType.e_GaussPS)
 				{
 					tfBalloonForce.setText("0.01");
 				}
-				else if(e.getItem().equals(e_CV))
+				else if (type == EnergyFunctionalType.e_CV)
 				{
 					tfBalloonForce.setText("0.0");
 				}
@@ -325,19 +330,7 @@ public class GenericDialogGUI implements InputReadable
 		// Energy Choice
 		
 		String energy = gd.getNextChoice();
-		if(energy.equals(e_CV))
-		{
-			settings.m_EnergyFunctional = EnergyFunctionalType.e_CV;
-		} 
-		else if (energy.equals(e_GaussPS))
-		{
-			settings.m_EnergyFunctional = EnergyFunctionalType.e_GaussPS;
-		}
-		else
-		{
-			success = false;
-		}
-
+		settings.m_EnergyFunctional=EnergyFunctionalType.valueOf(energy);
 		
 		
 		// Regularization Choice
@@ -371,38 +364,42 @@ public class GenericDialogGUI implements InputReadable
 		settings.m_RegionMergingThreshold = (float)gd.getNextNumber();
 		settings.m_MaxNbIterations = (int)gd.getNextNumber();
 		
+		settings.m_GaussPSEnergyRadius = (int)gd.getNextNumber();
 		settings.m_BalloonForceCoeff = (float)gd.getNextNumber();
 		
 		// Initial Choice
 		String initialization = gd.getNextChoice();
 		
-		//TODO put this into enum
-		if(initialization.equals(Rectangular_Initialization))
-		{
-			labelImageInitType=LabelImageInitType.Rectangle;
-		}
-		else if(initialization.equals(Random_Ellipses_Initialization))
-		{
-			labelImageInitType=LabelImageInitType.Ellipses;
-		}
-		else if(initialization.equals(User_Defined_Initialization))
-		{
-			labelImageInitType=LabelImageInitType.UserDefinedROI;
-		}
-		else if(initialization.equals(Bubbles_Initialization))
-		{
-			labelImageInitType=LabelImageInitType.Bubbles;
-		}
-		else if(initialization.equals(File_Initalization))
-		{
-			labelImageInitType=LabelImageInitType.File;
-		}
-		else
-		{
-			IJ.log("No valid LabelImage Choice");
-			labelImageInitType=null;
-			success = false;
-		}
+		LabelImageInitType type = LabelImageInitType.valueOf(initialization);
+		labelImageInitType = type;
+//		
+//		//TODO put this into enum
+//		if(initialization.equals(Rectangular_Initialization))
+//		{
+//			labelImageInitType=LabelImageInitType.Rectangle;
+//		}
+//		else if(initialization.equals(Random_Ellipses_Initialization))
+//		{
+//			labelImageInitType=LabelImageInitType.Ellipses;
+//		}
+//		else if(initialization.equals(User_Defined_Initialization))
+//		{
+//			labelImageInitType=LabelImageInitType.UserDefinedROI;
+//		}
+//		else if(initialization.equals(Bubbles_Initialization))
+//		{
+//			labelImageInitType=LabelImageInitType.Bubbles;
+//		}
+//		else if(initialization.equals(File_Initalization))
+//		{
+//			labelImageInitType=LabelImageInitType.File;
+//		}
+//		else
+//		{
+//			IJ.log("No valid LabelImage Choice");
+//			labelImageInitType=null;
+//			success = false;
+//		}
 		
 		//only record valid inputs
 		filenameInput=gd.getTextArea1().getText();
@@ -446,7 +443,8 @@ public class GenericDialogGUI implements InputReadable
 		
 		readOpenedImageChooser();
 		
-		showStatistics=gd.getNextBoolean();
+		showStatistics = gd.getNextBoolean();
+		showNormalized = gd.getNextBoolean();
 		useStack=gd.getNextBoolean();
 		
 		kbest = (int)gd.getNextNumber();
@@ -475,7 +473,12 @@ public class GenericDialogGUI implements InputReadable
 		return filenameInput;
 	}
 
-
+	@Override
+	public boolean showNormalized()
+	{
+		return showNormalized;
+	}
+	
 	@Override
 	public boolean useStack()
 	{
@@ -524,7 +527,7 @@ public class GenericDialogGUI implements InputReadable
 	void setInitToFileInput()
 	{
 //		lastInitChoice=initializationChoice.getSelectedItem();
-		initializationChoice.select(File_Initalization);
+		initializationChoice.select(LabelImageInitType.File.name());
 	}
 //	void setInitToLastChoice()
 //	{
@@ -620,7 +623,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 						filename=file.getPath();
 						textArea.setText(filename);
 						
-						IJ.open(filename);
+//						IJ.open(filename);
 						
 						// Print out the file path
 						System.out.println("File path is '" + filename + "'.");

@@ -1,10 +1,13 @@
 package mosaic.region_competition;
 
-public class Settings
+import java.io.Serializable;
+
+public class Settings implements Serializable
 {
-
-	// ////////////////////////////////////////////////////
-
+	private static final long serialVersionUID = 1526978719506239136L;
+	
+	
+	
 	public EnergyFunctionalType m_EnergyFunctional = EnergyFunctionalType.e_CV;
 	public int m_MaxNbIterations = 300;
 
@@ -21,7 +24,7 @@ public class Settings
 	public float m_EnergyContourLengthCoeff = 0.04f; // 0.04;//0.003f;
 
 	
-	public int m_GaussPSEnergyRadius=8;
+	public int m_GaussPSEnergyRadius=16;
 	
 	public int m_OscillationHistoryLength = 20;
 

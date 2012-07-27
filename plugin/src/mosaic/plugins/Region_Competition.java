@@ -2,9 +2,16 @@ package mosaic.plugins;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import javax.swing.JFrame;
+
+//import view4d.Timeline;
 
 import mosaic.region_competition.*;
 import mosaic.region_competition.netbeansGUI.ControllerFrame;
@@ -22,10 +29,12 @@ import ij.gui.StackWindow;
 import ij.io.FileInfo;
 import ij.io.FileSaver;
 import ij.io.Opener;
+import ij.plugin.Duplicator;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
+import ij3d.Image3DUniverse;
 
 
 /**
@@ -60,9 +69,10 @@ public class Region_Competition implements PlugInFilter
 		defaultFile = "imagesAndPaper/Cell1_nuclei_w460.tif";
 		defaultFile = "sphere_3d_z56.tif";
 		defaultFile = "imagesAndPaper/icecream5_410x410.tif";
-		defaultFile = "imagesAndPaper/sphere_3d.tif";
 		defaultFile = "/imagesAndPaper/icecream_shaded_130x130.tif";
+		defaultFile = "imagesAndPaper/sphere_3d.tif";
 		
+		defaultFile = "imagesAndPaper/JZ_111207_SchMax_T_t0051-1.tif";
 		
 		defaultInputFile = defaultDir + defaultFile;
 		
@@ -79,18 +89,38 @@ public class Region_Competition implements PlugInFilter
 //		UnitCubeCCCounter.test();
 		
 		
-		settings = new Settings();
+		// load
+		
+		String dir = IJ.getDirectory("temp");
+		String file = dir+"/rc_settings.dat";
+		System.out.println(file);
+		
+		try
+		{
+			FileInputStream fin = new FileInputStream(file);
+			ObjectInputStream ois = new ObjectInputStream(fin);
+			settings = (Settings)ois.readObject();
+			ois.close();
+		}
+		catch (FileNotFoundException e)
+		{
+			System.err.println("Settings File not found "+file);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		
+		
+		if(settings == null){
+			settings = new Settings();
+		}
+		
 		MVC = this;
-		
 		originalIP = aImp;
-		
 		userDialog = new GenericDialogGUI(this);
 		
-//		if(userDialog!=null)
-//		{
-//			System.out.println("testing: abort for testing");
-//			return DONE;
-//		}
 		
 		//TODO ugly
 		((GenericDialogGUI)userDialog).showDialog();
@@ -99,6 +129,21 @@ public class Region_Competition implements PlugInFilter
 		{
 			return DONE;
 		}
+		
+
+		// save
+		try
+		{
+			FileOutputStream fout = new FileOutputStream(file);
+			ObjectOutputStream oos = new ObjectOutputStream(fout);
+			oos.writeObject(settings);
+			oos.close();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
 		
 //		RegionIterator.tester();
 //		IJ.showMessage("version 1");
@@ -197,8 +242,8 @@ public class Region_Competition implements PlugInFilter
 			{
 				originalIP.show();
 			}
-			boolean showNormalized = true;
-			if(showNormalized)
+			
+			if(userDialog.showNormalized())
 			{
 				intensityImage.imageIP.show();
 			}
@@ -368,10 +413,16 @@ public class Region_Competition implements PlugInFilter
 	{
 		initInputImage();
 		initLabelImage();
-		initAlgorithm();
+//		labelImage.initZero();
+//		labelImage.initBrightBubbles(intensityImage);
+//		labelImage.initSwissCheese(intensityImage);
+//		labelImage.initBoundary();
 		
+		initAlgorithm();
 		initStack();
 		initControls();
+		
+//		localMax(intensityImage);
 		
 		int n = userDialog.getKBest();
 		if(n<1) n = 1;
@@ -451,7 +502,7 @@ public class Region_Competition implements PlugInFilter
 		
 	}
 	
-	
+
 	void showFinalResult(LabelImage li)
 	{
 		showFinalResult(li,"");
@@ -489,14 +540,51 @@ public class Region_Competition implements PlugInFilter
 		return imp;
 	}
 	
+	public void show3DViewer()
+	{
+		if(stackImPlus==null)
+			return;
+		ImagePlus imp = new Duplicator().run(stackImPlus);
+		ImageStack stack = imp.getImageStack();
+		
+		// clean up
+		int n = stack.getSize();
+		for(int i=1; i<=n; i++)
+		{
+			short[] pixels = (short[])stack.getPixels(i);
+			for(int j=0; j<pixels.length; j++)
+			{
+				short val = pixels[j];
+				if(val<0) 
+					pixels[j] = (short)(-val);
+				if(val == Short.MAX_VALUE)
+					pixels[j] = 0;
+			}
+		}
+		
+		
+		IJ.run(imp, "8-bit", "");
+		Image3DUniverse univ = new Image3DUniverse();
+		univ.show();
+		univ.addVoltex(imp, null, "Name", 0, new boolean[] {true, true, true}, 1);
+//		univ.addVoltex(stackImPlus, null, null, 1, 1, 1);
+//		univ.addVoltex(imp);
+		
+		// uncomment to see 3D
+//		Timeline tl = univ.getTimeline();
+//		tl.play();
+	}
 	
 	public ImagePlus showFinalResult3D(LabelImage li, Object title)
 	{
+		
 		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.get3DShortStack(true));
+		
 		IJ.setMinAndMax(imp, 0, algorithm.getBiggestLabel());
 		IJ.run(imp, "3-3-2 RGB", null);
 		
 		imp.show();
+		show3DViewer();
 		
 //		IJ.run(imp, "Z Project...", "start=1 stop="+z+" projection=[Average Intensity]");
 
@@ -693,6 +781,10 @@ public class Region_Competition implements PlugInFilter
 			nextFrame++;
 		}
 		
+		//go to mid in first iteration
+		if(timeSlices<=2){
+			lastSlice = depth/2;
+		}
 		stackImPlus.setPosition(1, lastSlice, nextFrame);
 
 		
@@ -848,6 +940,67 @@ public class Region_Competition implements PlugInFilter
 		c1.compareTo(n2);
 		c2.compareTo(c1);
 	}
+	
+	
+	
+
+	private ArrayList<Point> localMax(IntensityImage intensityImage)
+	{
+		ArrayList<Point> list = new ArrayList<Point>();
+		
+		ImagePlus imp = intensityImage.imageIP;
+		
+		MaximumFinder3D locmax = new MaximumFinder3D(intensityImage.getDimensions());
+		int[][] points = locmax.getMaxima(intensityImage.dataIntensity, 0.001, true);
+		if(points==null)
+		{
+			System.out.println("no maxima");
+			return list;
+		}
+		int[] xs = points[0];
+		int[] ys = points[1];
+		int[] zs = points[2];
+
+		int n = xs.length;
+		for(int i=0; i<n; i++)
+		{
+			int x = xs[i];
+			int y = ys[i];
+			int z = zs[i];
+//			System.out.println(x+" "+y+" "+" "+z);
+			
+			Point p = Point.CopyLessArray(new int[]{x,y,z});
+			list.add(p);
+		}
+		
+		// view immediately
+		
+		boolean showPoints = false;
+		
+		if(showPoints)
+		{
+			ImagePlus imp2 = new Duplicator().run(imp);
+			imp2.setTitle("points");
+			IJ.run(imp2, "Set...", "value=255 stack");
+			
+			ImageStack stack = imp2.getStack();
+			for(int i=0; i<n; i++)
+			{
+				int x = xs[i];
+				int y = ys[i];
+				int z = zs[i];
+				stack.getProcessor(z+1).set(x, y, 0);
+			}
+			imp2.show();
+		}
+		
+//		MaximumFinder
+//		IJ.run(imp, "Find Maxima...", "noise=4 output=[Maxima Within Tolerance] light");
+		
+		return list;
+	}
+	
+	
 }
 	
 	

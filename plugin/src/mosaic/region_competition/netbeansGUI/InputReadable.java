@@ -1,7 +1,5 @@
 package mosaic.region_competition.netbeansGUI;
 
-import mosaic.region_competition.EnergyFunctionalType;
-
 
 /**
  * Input interface <br>
@@ -49,6 +47,7 @@ public interface InputReadable
 	// UI
 	
 	public boolean useStack();
+	public boolean showNormalized();
 	public boolean showStatistics();
 
 	
