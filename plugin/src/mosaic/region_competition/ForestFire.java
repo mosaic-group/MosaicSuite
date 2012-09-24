@@ -33,7 +33,7 @@ public class ForestFire
 		//Set<Integer> vVisitedNewLabels = new HashSet<Integer>();
 		Set<Integer> vVisitedOldLabels = new HashSet<Integer>();
 
-		FloodFill ff = new FloodFill(labelImage, aMultiThsFunctionPtr, aIndex);
+		FloodFill ff = new FloodFill(labelImage.getConnFG(), aMultiThsFunctionPtr, aIndex);
 		Iterator<Point> vLit = ff.iterator();
 
 		Set<Point> vSetOfAncientContourIndices = new HashSet<Point>(); // ContourIndexType
@@ -49,7 +49,7 @@ public class ForestFire
 			Point vCurrentIndex = vLit.next();
 			int vLabelValue = labelImage.getLabel(vCurrentIndex);
 			int absLabel = labelImage.labelToAbs(vLabelValue);
-			float vImageValue = intensityImage.getIntensity(vCurrentIndex);
+			float vImageValue = intensityImage.get(vCurrentIndex);
 			
 			// the visited labels statistics will be removed later.
 			vVisitedOldLabels.add(absLabel);
@@ -99,7 +99,7 @@ public class ForestFire
 		newLabelInformation.mean = vSum / vN_;
 		// TODO m_Intensities[vNewLabel] = m_Means[vNewLabel];
 		double var = (vN_>1)?(vSqSum - vSum * vSum / vN_) / (vN_ - 1) : 0;
-		newLabelInformation.setVar(var);
+		newLabelInformation.var=(var);
 		newLabelInformation.count = vN;
 		// TODO m_Lengths[vNewLabel] = vLengthEnergy;
 

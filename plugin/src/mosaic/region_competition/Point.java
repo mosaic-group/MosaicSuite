@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class Point
 {
 	
-	public int x[];		//TODO private?
+	public int x[];
 	private int dim;	
 	
 	public Point(int dimension)
@@ -126,17 +126,20 @@ public class Point
 //		return true;
 	};
 	
+	@Override
+	protected Object clone() throws CloneNotSupportedException
+	{
+		return new Point(this.x);
+	}
 	
 	@Override
 	public int hashCode() {
-		// TODO write own hashCode
 		int sum=0;
 		for(int i=0; i<dim; i++)
 		{
 			sum=sum*1024+x[i];
 		}
 		return sum;
-//		return super.hashCode();
 	}
 
 	public int getDimension()
@@ -144,6 +147,11 @@ public class Point
 		return dim;
 	}
 	
+	public interface PointFactoryInterface<T>
+	{
+		T pointFromArray(int array[]);
+		T copylessPointFromArray(int array[]);
+	}
 	
 	public static class PointFactory implements PointFactoryInterface<Point>
 	{
@@ -162,8 +170,3 @@ public class Point
 	
 }
 
-interface PointFactoryInterface<T>
-{
-	T pointFromArray(int array[]);
-	T copylessPointFromArray(int array[]);
-}

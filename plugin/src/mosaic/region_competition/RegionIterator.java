@@ -1,13 +1,14 @@
 package mosaic.region_competition;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+
+import mosaic.region_competition.utils.Timer;
 
 /**
  * @author Stephan
  * Iterator to iterate over a (arbitrary dimensional) rectangular region 
- * in the context of / relative to a input image (with the same dimension) 
+ * in the context of / relative to a input image
  */
 public class RegionIterator 
 //implements Iterator<Integer>, Iterable<Integer> // performance gain
@@ -104,7 +105,7 @@ public class RegionIterator
 				ofs[i]=0;
 			}
 			// crop too large values
-			//TODO correct? reuse of region, ofs
+			//TODO reuse of region, ofs
 			if(ofs[i]+region[i]>input[i]){
 				region[i]=input[i]-ofs[i];	//shrink region for right border alignment
 			}
@@ -138,7 +139,7 @@ public class RegionIterator
 
 	////////////// Iterator ///////////////
 	
-	private int it;				// iterator in cropped region
+	private int it=0;			// iterator in cropped region
 	private int itInput=0;		// iterator in input
 	private int[] itDim;		// counts dimension wraps
 	
@@ -156,8 +157,8 @@ public class RegionIterator
 		
 		// calculate indices for next step
 		
-		it++;
 		itInput++;
+		it++;
 		itDim[0]++;
 		
 		//TODO ersetze itCounter durch it%region[i]==0 oder so
@@ -166,7 +167,7 @@ public class RegionIterator
 		{
 			if(itDim[i]>=region[i]) // some dimension(s) wrap(s)
 			{
-				//TODO prod*(...) sind schritte, die man nicht macht. merke diese, und wisse, wo man absolut wäre?
+				//TODO prod*(...) sind schritte, die man nicht macht. merke diese, und wisse, wo man absolut ware?
 				// we reached the end of region in this dimension, so add the step not made in input to the input iterator 
 				itInput = itInput+prod*(input[i]-region[i]);
 				itDim[i]=0;
@@ -199,9 +200,9 @@ public class RegionIterator
 
 	public void reset()
 	{
+		itInput=0;
 		it=0;
 		itDim = new int[dimensions];
-		itInput=0;
 		
 		calcStartIndex();
 	}
@@ -228,7 +229,7 @@ public class RegionIterator
 		
 		while(regionIt.hasNext())
 		{
-			int idx = regionIt.next();
+//			int idx = regionIt.next();
 			int imask = maskIt.next();
 			
 			int x=mask[imask];
@@ -326,73 +327,6 @@ public class RegionIterator
 		System.out.println("naive it  = "+t.lastResult());
 		
 		return list;
-	}
-	
-}
-
-
-/**
- * Iterates over a Region within an InputImage, 
- * but returns indices relative to the region
- */
-class RegionIteratorMask extends RegionIterator
-{
-	/**
-	 * Iterating over region is implemented in such a way, 
-	 * that region is used as input' (for RegionIterator) and
-	 * the intersection(input,region) ist used as region'. 
-	 * Offset' ist old(Offset) to intersection
-	 * So the indices are returned relative to old(region). 
-	 */
-	public RegionIteratorMask(int[] input, int[] region, int[] ofs) 
-	{
-		
-		// sets the "input size" to the region size
-		super(region, region, ofs);
-		
-		
-//		//alternative: 2012.03.31, untested
-//		super(input, region, ofs);
-//		// now region is cropped, and ofs too
-//		newofs = this.ofs-rawofs 
-//		// if raw was negative, then this.ofs is now 0, and new ofs gets the correct new positive ofs
-//		// if raw was positive, this.ofs is the same, and newofs is 0 -> start at first point of region
-//		this.input = region; // new input size is the raw region size
-//		this.region = this.region // the intersection
-//		crop(); // crop again, dosnt crop actually, but sets the starts and sizes
-		
-		
-		int[] maskSizes = region.clone();
-		int[] maskOfs = new int[dimensions];
-		
-		
-		//TODO: this is cropping, actually? 
-		for(int i=0; i<dimensions; i++)
-		{
-			if(ofs[i]<0)
-			{
-				// if ofs < 0, then region is cropped, and the iterator' doesnt start at 0,0
-				// but starts at an ofs which points to the intersection(input, region)
-				maskOfs[i]= (-ofs[i]);	// start in mask and not at 0,0
-				maskSizes[i]+=ofs[i];	// this may be done in crop?
-			}
-			else
-			{
-				// the startpoint of region' is within old(input), so the region'-iterator starts at 0,0
-				maskOfs[i]=0;
-			}
-			//mask overflow
-			if(ofs[i]+region[i]>input[i])
-			{
-				int diff=ofs[i]+region[i]-input[i];
-				maskSizes[i]-=diff;
-			}
-		}
-		
-		setRegion(maskSizes);
-		setOfs(maskOfs);
-		crop(); // recalculates startindex and new size, cropping should be done already. 
-		
 	}
 	
 }

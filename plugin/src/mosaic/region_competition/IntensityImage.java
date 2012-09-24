@@ -1,17 +1,13 @@
 package mosaic.region_competition;
 
-import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.Macro;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
-import ij.process.StackStatistics;
 
 public class IntensityImage
 {
-	
 	public float[] dataIntensity;
 	IndexIterator iterator;
 	public ImagePlus imageIP;
@@ -148,12 +144,12 @@ public class IntensityImage
 	/**
 	 * returns the image data of the originalIP at Point p
 	 */
-	public float getIntensity(Point p)
+	public float get(Point p)
 	{
-		return getIntensity(iterator.pointToIndex(p));
+		return get(iterator.pointToIndex(p));
 	}
 	
-	public float getIntensity(int idx)
+	public float get(int idx)
 	{
 		return dataIntensity[idx];
 	}

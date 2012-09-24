@@ -2,34 +2,17 @@ package mosaic.region_competition;
 
 public class LabelInformation 
 {
-	int label=0;	// label
-	int count;			// number of pixels of label
-	double mean=0;	// mean of intensity
-	double M2=0;
-	double var=0;	// variance of intensity
-	
-	
-	void setVar(double v)
-	{
-		//TODO setVar only for debugging
-		
-//		if(v<0 && v > -0.01) // very small vars are due to numerical errors
-//		{
-//			v = 0.0;
-//			System.out.println("var<0 && var > -0.01 0.0");
-//		}
-//		assert(v>=0.0) : "setVar <0 ("+v+")";
-		
-		if(v<0)
-			v=0;
-
-		var=v;
-	}
+	public int label=0;	// label
+	public int count;		// number of pixels of label
+	public double mean=0;	// mean of intensity
+	public double M2=0;
+	public double var=0;	// variance of intensity
 	
 	public LabelInformation(int label) 
 	{
 		this.label=label;
 	}
+	
 	
 	public void reset()
 	{

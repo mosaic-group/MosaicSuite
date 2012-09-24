@@ -5,19 +5,19 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Stack;
 
+import mosaic.region_competition.topology.Connectivity;
 
-class FloodFill implements Iterable<Point>
+
+public class FloodFill implements Iterable<Point>
 {
-	LabelImage labelImage;
 	Connectivity conn;
 	
 	Stack<Point> stack;
 	Set<Point> checkedSet;
 	
-	public FloodFill(LabelImage labelImage, MultipleThresholdImageFunction foo, Point seed) 
+	public FloodFill(Connectivity conn, MultipleThresholdImageFunction foo, Point seed) 
 	{
-		this.labelImage = labelImage;
-		this.conn = labelImage.getConnFG();
+		this.conn = conn;
 		
 		stack = new Stack<Point>();
 		checkedSet = new HashSet<Point>();
@@ -28,7 +28,7 @@ class FloodFill implements Iterable<Point>
 			Point p = stack.pop();
 			for(Point q: conn.iterateNeighbors(p))
 			{
-				if(foo.EvaluateAtIndex(labelImage.iterator.pointToIndex(q)) && !isPointChecked(q))
+				if(foo.EvaluateAtIndex(q) && !isPointChecked(q))
 				{
 					stack.add(q);
 				}
@@ -41,6 +41,7 @@ class FloodFill implements Iterable<Point>
 	{
 		checkedSet.add(p);
 	}
+	
 	
 	private boolean isPointChecked(Point p)
 	{

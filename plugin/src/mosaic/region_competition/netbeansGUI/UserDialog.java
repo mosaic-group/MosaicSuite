@@ -62,18 +62,8 @@ public class UserDialog extends OptionPanel
 	{
 		spinnerRad.setValue(settings.m_CurvatureMaskRadius);
 		spinnerWeight.setValue(settings.m_EnergyContourLengthCoeff);
-		checkRegularization.setSelected(settings.m_EnergyUseCurvatureRegularization);
 		spinnerNEllipses.setValue(5);
 		
-		if(!settings.m_EnergyUseCurvatureRegularization){
-			comboRegularization.setSelectedIndex(0);
-		} else {
-			if(useOldRegionIterator){
-				comboRegularization.setSelectedIndex(1);
-			} else {
-				comboRegularization.setSelectedIndex(2);
-			}
-		}
 		
 		addLabelImageInputDrop();
 		addWheel();
@@ -239,7 +229,6 @@ public class UserDialog extends OptionPanel
 	{
 		settings.m_CurvatureMaskRadius=(Float)spinnerRad.getValue();
 		settings.m_EnergyContourLengthCoeff = (Float)spinnerWeight.getValue();
-		settings.m_EnergyUseCurvatureRegularization = checkRegularization.isSelected();
 		
 	}
 	
