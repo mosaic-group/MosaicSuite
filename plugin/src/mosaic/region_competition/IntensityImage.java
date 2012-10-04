@@ -1,59 +1,53 @@
 package mosaic.region_competition;
 
+import java.io.File;
+
+import java.util.Iterator;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
+import net.imglib2.exception.IncompatibleTypeException;
+import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.io.ImgIOException;
+import net.imglib2.io.ImgOpener;
+import net.imglib2.type.numeric.real.FloatType;
 
 public class IntensityImage
 {
-	public float[] dataIntensity;
+	public Img<FloatType> dataIntensity;
 	IndexIterator iterator;
-	public ImagePlus imageIP;
+//	public ImagePlus imageIP;
 	
 	private int width;
 	private int height;
-	private int dim;
-	private int[] dimensions;
+//	private int dim;
+//	private int[] dimensions;
 	private int size;
 	
-	public IntensityImage(ImagePlus ip)
+	public IntensityImage(ImagePlus img)
 	{
-		this.imageIP = ip;
+//		this.imageIP = ip;
 		
-		int[] dims = dimensionsFromIP(ip);
-		initDimensions(dims);
-		iterator = new IndexIterator(dims);
+//		int[] dims = dimensionsFromIP(ip);
+//		initDimensions(dims);
 		
-		this.imageIP = normalize(ip);
-		initIntensityData(imageIP);
+//		this.imageIP = normalize(ip);
+		
+		initIntensityData(img);
+		long dim[] = new long [dataIntensity.numDimensions()];
+		dataIntensity.dimensions(dim);
+		iterator = new IndexIterator(dim);
 	}
 	
-	
-	private void initDimensions(int[] dims)
+	private void initIntensityData(ImagePlus img)
 	{
-		this.dimensions = dims;
-		this.dim = dimensions.length;
-		if(dim>3)
-		{
-			throw new RuntimeException("Dim > 3 not supported");
-		}
-		
-		this.width = dims[0];
-		this.height = dims[1];
-		
-		size=1;
-		for(int i=0; i<dim; i++)
-		{
-			size *= dimensions[i];
-		}
-	}
-	
-	
-	private void initIntensityData(ImagePlus ip)
-	{
-		ImageProcessor proc = ip.getProcessor();
+/*		ImageProcessor proc = ip.getProcessor();
 		Object test = proc.getPixels();
 		if(! (test instanceof float[])){
 			throw new RuntimeException("ImageProcessor has to be of type FloatProcessor");
@@ -61,30 +55,84 @@ public class IntensityImage
 		
 		
 		int nSlices = ip.getNSlices();
-		int area = width*height;
+		int area = width*height;*/
 		
-		dataIntensity = new float[size];
+		ImgFactory< FloatType > imgFactory = new ArrayImgFactory< FloatType >();
 		
-		ImageStack stack = ip.getStack();
+		int[] dims = dimensionsFromIP(img);
+		dataIntensity = imgFactory.create(dims, new FloatType());
 		
+		RandomAccess<FloatType> vCrs = dataIntensity.randomAccess();
+		
+		ImageStack stack = img.getStack();
+		
+		int nSlices = img.getNSlices();
 		float[] pixels;
+		int crd[] = new int [dims.length];
 		for(int i=1; i<=nSlices; i++)
 		{
+			crd[0] = i-1;
 			pixels = (float[])stack.getPixels(i);
 			for(int y=0; y<height; y++)
 			{
+				crd[1] = y;
 				for(int x=0; x<width; x++)
 				{
-					dataIntensity[(i-1)*area+y*width+x] = pixels[y*width+x];
+					crd[2] = x;
+					vCrs.setPosition(crd);
+					vCrs.get().set(pixels[y*width+x]);
 				}
 			}
 		}
+		
+		normalize(dataIntensity);
 	}
 	
 	
-	public static ImagePlus normalize(ImagePlus ip)
+	public static void normalize(/*ImagePlus ip*/Img<FloatType> img)
 	{
-		ImagePlus dataNormalizedIP;
+		final FloatType min = new FloatType();
+		final FloatType max = new FloatType();
+        final Iterator< FloatType > iterator = img.iterator();
+        
+        // initialize min and max with the first image value
+        FloatType type = iterator.next();
+ 
+        min.set( type );
+        max.set( type );
+ 
+        // loop over the rest of the data and determine min and max value
+        while ( iterator.hasNext() )
+        {
+            // we need this type more than once
+            type = iterator.next();
+ 
+            if ( type.compareTo( min ) < 0 )
+                min.set( type );
+ 
+            if ( type.compareTo( max ) > 0 )
+                max.set( type );
+        }
+		
+        Cursor<FloatType> crs = img.cursor();
+        float range = max.get() - min.get();
+        
+        while ( crs.hasNext() )
+        {
+            // Increment
+            crs.fwd();
+            
+			crs.get().set(crs.get().get() - min.get());
+			crs.get().set(crs.get().get() * 1.0f/range);
+            
+            if ( type.compareTo( min ) < 0 )
+                min.set( type );
+ 
+            if ( type.compareTo( max ) > 0 )
+                max.set( type );
+        }
+        
+/*		ImagePlus dataNormalizedIP;
 		
 		// scale all values in all slices to floats between 0.0 and 1.0
 		int nSlices = ip.getStackSize();
@@ -134,7 +182,7 @@ public class IntensityImage
 		
 		dataNormalizedIP = new ImagePlus("Normalized", stack);
 		
-		return dataNormalizedIP;
+		return dataNormalizedIP;*/
 	}
 	
 	
@@ -151,20 +199,23 @@ public class IntensityImage
 	
 	public float get(int idx)
 	{
-		return dataIntensity[idx];
+		Cursor<FloatType> dI = dataIntensity.cursor();
+		dI.jumpFwd(idx);
+		return dI.get().get();
 	}
 	
 	
 	public int[] getDimensions()
 	{
-		return this.dimensions;
+		int dim[] = new int [dataIntensity.numDimensions()];
+		return dim;
 	}
 
 	public static int[] dimensionsFromIP(ImagePlus ip)
 	{
 		// IJ 1.46r bug, force to update internal dim 
 		// call before getNDimensions() or it won't return the correct value
-		ip.getNSlices(); 
+		ip.getNSlices();
 		
 		int dim = ip.getNDimensions();
 		int[] dims = new int[dim];

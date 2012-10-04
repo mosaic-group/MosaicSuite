@@ -13,6 +13,15 @@ public class IndexIterator
 	 * 
 	 * @param dims integer array of dimensions (width/height/depth/...)
 	 */
+	public IndexIterator(long[] dims)
+	{
+		init(dims);
+	}
+	
+	/**
+	 * 
+	 * @param dims integer array of dimensions (width/height/depth/...)
+	 */
 	public IndexIterator(int[] dims)
 	{
 		init(dims);
@@ -30,6 +39,18 @@ public class IndexIterator
 		}
 	}
 
+	private void init(long[] dims)
+	{
+		dim = dimensions.length;
+		for (int i = 0 ; i < dims.length ; i++) {dimensions[i] = (int)dims[i];}
+		
+		size=1;
+		for(int i=0; i<dim; i++)
+		{
+			size*=dimensions[i];
+		}
+	}
+	
 	/**
 	 * 
 	 * @return total number of pixels = width*height*...
