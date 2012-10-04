@@ -14,16 +14,27 @@ public class Point
 		this.x = new int[dim];
 	}
 	
+	
 	private Point(){};
 
 	/**
 	 * Constructs a Point by copying the coords
-	 * @param coords
+	 * @param coords (int)
 	 */
 	public Point(int coords[]) 
 	{
 		this.dim = coords.length;
 		this.x = coords.clone();
+	}
+	
+	/**
+	 * Constructs a Point by copying the coords
+	 * @param coords (long)
+	 */
+	public Point(long coords[]) 
+	{
+		this.dim = coords.length;
+		for (int i = 0 ; i < coords.length ; i++)	{x[i] = (int) coords[i];}
 	}
 	
 	/**
@@ -101,6 +112,16 @@ public class Point
 		return result;
 	}
 	
+	/**
+	 * set coord to zero
+	 */
+	public void zero()
+	{
+		for(int i=0; i<dim; i++)
+		{
+			x[i]= 0;
+		}
+	}
 	
 	@Override
 	public String toString() 

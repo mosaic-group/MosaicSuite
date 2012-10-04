@@ -7,6 +7,7 @@ public class LabelInformation
 	public double mean=0;	// mean of intensity
 	public double M2=0;
 	public double var=0;	// variance of intensity
+	public double median=0;
 	
 	public LabelInformation(int label) 
 	{
