@@ -83,7 +83,7 @@ public class E_Deconvolution extends ExternalEnergy
 		new FFTConvolution< FloatType > (vModelImage,aPSFImage);
 	}
 	
-	void RenewDeconvolution(LabelImage aInitImage)
+	public void RenewDeconvolution(LabelImage aInitImage)
 	{
         //        std::cout << "iteration " << m_iteration_counter << std::endl;
         //        std::cout << "Begin of renew deconv stats:" << std::endl;
@@ -329,7 +329,7 @@ public class E_Deconvolution extends ExternalEnergy
     }
 
 
-    void UpdateConvolvedImage(Point aIndex,
+    public void UpdateConvolvedImage(Point aIndex,
     		LabelImage aLabelImage,
     		int aFromLabel,
     		int aToLabel) 

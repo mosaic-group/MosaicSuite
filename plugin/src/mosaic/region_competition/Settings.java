@@ -50,7 +50,7 @@ public class Settings implements Serializable
 	public boolean m_AllowHandles = true;
 //	private boolean m_UseRegionCompetition = true;
 //	private boolean m_UseForbiddenRegion = false;
-//	private boolean m_UseGaussianPSF = true;
+	public boolean m_UseGaussianPSF = true;
 	public boolean m_UseShapePrior = false;
 //	private boolean m_UseFastEvolution = false;
 //	private int m_LocalLiEnergySigma = 5;

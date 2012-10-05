@@ -16,6 +16,10 @@ import java.util.HashMap;
 
 import javax.swing.JFrame;
 
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.type.numeric.real.FloatType;
+
 //import view4d.Timeline;
 
 import mosaic.region_competition.*;
@@ -238,6 +242,11 @@ public class Region_Competition implements PlugInFilter
 				e_merge = e_merge_KL;
 				break;
 			}
+			case e_DeconvolutionPC:
+			{
+				int dims[] = intensityImage.getDimensions();
+				e_data = new E_Deconvolution(intensityImage,labelMap,(ImgFactory< FloatType >)new ArrayImgFactory< FloatType >(),dims);
+			}
 			default : 
 			{
 				String s = "Unsupported Energy functional";
@@ -358,7 +367,8 @@ public class Region_Competition implements PlugInFilter
 			
 			if(userDialog.showNormalized())
 			{
-				intensityImage.imageIP.show();
+//				ImagePlusAdapter a;
+//				originalIP.show();
 			}
 			
 		}

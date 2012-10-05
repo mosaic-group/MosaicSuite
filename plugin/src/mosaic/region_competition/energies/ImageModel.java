@@ -21,6 +21,16 @@ public class ImageModel
 		this.settings = settings;
 	}
 	
+	public Energy getEdata()
+	{
+		return e_data;
+	}
+	
+	public EnergyFunctionalType getEdataType()
+	{
+		return settings.m_EnergyFunctional;
+	}
+	
 	public void updateStatisticsAtStart()
 	{
 		//TODO

@@ -6,5 +6,5 @@ public enum EnergyFunctionalType
 	e_GaussPS, 
 	e_GaussPS_Sphis, 
 	e_GaussWithVariancePC, 
-	e_MS, e_LocalCV, e_LocalLi, e_DeconvolutionPC, e_PSwithCurvatureFlow
+	e_MS, e_LocalCV, e_LocalLi, e_DeconvolutionPC, e_PSwithCurvatureFlow,
 }

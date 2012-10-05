@@ -1,28 +1,20 @@
 package mosaic.region_competition;
 
-import java.io.File;
-
 import java.util.Iterator;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
-import ij.process.ImageStatistics;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
-import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.io.ImgIOException;
-import net.imglib2.io.ImgOpener;
 import net.imglib2.type.numeric.real.FloatType;
 
 public class IntensityImage
 {
 	public Img<FloatType> dataIntensity;
 	IndexIterator iterator;
-//	public ImagePlus imageIP;
+	public ImageStack imageIP;
 	
 	private int width;
 	private int height;
@@ -30,22 +22,27 @@ public class IntensityImage
 //	private int[] dimensions;
 	private int size;
 	
+	public IntensityImage(ImageStack img)
+	{
+
+	}
+	
 	public IntensityImage(ImagePlus img)
 	{
-//		this.imageIP = ip;
+		this.imageIP = img.getImageStack();
 		
 //		int[] dims = dimensionsFromIP(ip);
 //		initDimensions(dims);
 		
 //		this.imageIP = normalize(ip);
 		
-		initIntensityData(img);
+		initIntensityData(this.imageIP);
 		long dim[] = new long [dataIntensity.numDimensions()];
 		dataIntensity.dimensions(dim);
 		iterator = new IndexIterator(dim);
 	}
 	
-	private void initIntensityData(ImagePlus img)
+	private void initIntensityData(ImageStack img)
 	{
 /*		ImageProcessor proc = ip.getProcessor();
 		Object test = proc.getPixels();
@@ -59,20 +56,18 @@ public class IntensityImage
 		
 		ImgFactory< FloatType > imgFactory = new ArrayImgFactory< FloatType >();
 		
-		int[] dims = dimensionsFromIP(img);
+		int[] dims = dimensionsFromIS(img);
 		dataIntensity = imgFactory.create(dims, new FloatType());
 		
 		RandomAccess<FloatType> vCrs = dataIntensity.randomAccess();
 		
-		ImageStack stack = img.getStack();
-		
-		int nSlices = img.getNSlices();
+		int nSlices = img.getSize();
 		float[] pixels;
 		int crd[] = new int [dims.length];
 		for(int i=1; i<=nSlices; i++)
 		{
 			crd[0] = i-1;
-			pixels = (float[])stack.getPixels(i);
+			pixels = (float[])img.getPixels(i);
 			for(int y=0; y<height; y++)
 			{
 				crd[1] = y;
@@ -88,6 +83,10 @@ public class IntensityImage
 		normalize(dataIntensity);
 	}
 	
+	public int getDim()
+	{
+		return dataIntensity.numDimensions();
+	}
 	
 	public static void normalize(/*ImagePlus ip*/Img<FloatType> img)
 	{
@@ -211,22 +210,25 @@ public class IntensityImage
 		return dim;
 	}
 
-	public static int[] dimensionsFromIP(ImagePlus ip)
+	public static int[] dimensionsFromIS(ImageStack ip)
 	{
 		// IJ 1.46r bug, force to update internal dim 
 		// call before getNDimensions() or it won't return the correct value
-		ip.getNSlices();
+		int nsl = ip.getSize();
+		int dim;
 		
-		int dim = ip.getNDimensions();
+		if (nsl != 1)
+		{dim = 2;}
+		else
+		{dim = 3;}
+		
 		int[] dims = new int[dim];
 		
-		for(int i=0; i<2; i++)
-		{
-			dims[i]=ip.getDimensions()[i];
-		}
+		dims[0]=ip.getWidth();
+		dims[1]=ip.getHeight();
 		if(dim==3)
 		{
-			dims[2]=ip.getNSlices();
+			dims[2]=ip.getSize();
 		}
 		
 		return dims;

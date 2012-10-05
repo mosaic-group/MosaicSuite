@@ -24,6 +24,7 @@ public class Generate_PSF implements  PlugInFilter{
 	int mHeight;
 	int mNSlices;
 	String mPSFDirectory;
+	ImageStack vGaussIS;
 	
 	@Override
 	public int setup(String arg, ImagePlus imp) {
@@ -54,12 +55,25 @@ public class Generate_PSF implements  PlugInFilter{
 		ImageStack vPSFmapIS = convert3DArrayToImageStack(vPSFmapImage);
 		new ImagePlus("Sampled from PSF lookup table", vPSFmapIS).show();
 		
-		ImageStack vGaussIS = convert3DArrayToImageStack(vGaussBlobImage);
+		vGaussIS = convert3DArrayToImageStack(vGaussBlobImage);
 		new ImagePlus("Sampled from gaussian pdf", vGaussIS).show();
 		
 		return DONE;
 	}
-
+	
+	public ImageStack getGauss2DPsf()
+	{
+		int nSlices = vGaussIS.getSize();
+		
+		return convert1DArrayToImageStack((float [])vGaussIS.getProcessor(nSlices/2).getPixels(),vGaussIS.getWidth(), vGaussIS.getHeight());
+	}
+	
+	public ImageStack getGauss3DPsf()
+	{
+		return vGaussIS;
+	}
+	
+	
 	@Override
 	public void run(ImageProcessor ip) {
 		// TODO Auto-generated method stub
@@ -255,7 +269,13 @@ public class Generate_PSF implements  PlugInFilter{
 		}
 		return vIS;
 	}
-
+	
+	public static ImageStack convert1DArrayToImageStack(float[] aArray, int Nx, int Ny) {
+		ImageStack vIS = new ImageStack(Ny, Nx);
+		vIS.addSlice("", new FloatProcessor(Nx,Ny,aArray));			
+		return vIS;
+	}
+	
 	public class Point3D{
 		public float mX,mY,mZ;
 		public Point3D () {

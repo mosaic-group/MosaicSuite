@@ -9,6 +9,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
+import net.imglib2.img.Img;
+import net.imglib2.type.numeric.real.FloatType;
+
+import mosaic.plugins.Generate_PSF;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.LabelDispenser.LabelDispenserInc;
 import mosaic.region_competition.energies.EnergyFunctionalType;
@@ -21,8 +25,10 @@ import mosaic.region_competition.topology.TopologicalNumberImageFunction;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction.TopologicalNumberResult;
 import mosaic.region_competition.utils.Pair;
 import mosaic.region_competition.utils.Timer;
+import mosaic.region_competition.energies.*;
 
 import ij.IJ;
+import ij.ImageStack;
 import ij.measure.ResultsTable;
 
 public class Algorithm
@@ -54,7 +60,11 @@ public class Algorithm
 	
 	/** Maps the label(-number) to the information of a label */
 	HashMap<Integer, LabelInformation> labelMap;
+	
+	/** Deconvolution Image **/
 
+	Img <FloatType> devImage;
+	
 	private HashMap<Point, LabelPair> m_CompetingRegionsMap;
 	
 	private Connectivity connFG;
@@ -324,7 +334,7 @@ public class Algorithm
 		/**
 		 * Depending on the functional to use, prepare stuff for faster computation.
 		 */
-		// PrepareEnergyCaluclation();
+		 PrepareEnergyCaluclation();
 
 		/**
 		 * Start time measurement
@@ -411,6 +421,49 @@ public class Algorithm
 		}
 
 	}
+
+
+	private void PrepareEnergyCaluclation() 
+	{
+        /**
+         * Deconvolution:
+         * - prepare the PSF (if not set manually by the user)
+         * - Alocate and initialize the 'ideal image'
+         */
+        if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) 
+        {
+
+        	ImageStack gPsfIS = new ImageStack();
+            if (settings.m_UseGaussianPSF)
+            {
+                // Here, no PSF has been set by the user. Hence, a Gaussian
+                // approximation is used.
+
+            	Generate_PSF gPsf = new Generate_PSF();
+            	gPsf.setup(null, null);
+            	if (intensityImage.getDim() == 2)
+            		gPsfIS = gPsf.getGauss2DPsf();
+            	else
+            		gPsfIS = gPsf.getGauss3DPsf();
+            	
+            }
+
+            //            InternalImageType::Pointer vIdealImage = InternalImageType::New();
+            //            vIdealImage->SetRequestedRegion(m_LabelImage->GetRequestedRegion());
+            //            vIdealImage->SetLargestPossibleRegion(m_LabelImage->GetLargestPossibleRegion());
+            //            vIdealImage->SetBufferedRegion(m_LabelImage->GetBufferedRegion());
+            //            vIdealImage->Allocate();
+
+            /// First, generate a rough estimate of the model image using the means
+            /// as an intensity estimate. In a second step refine the estimates
+            /// in RenewDeconvolutionStatistics().
+
+            ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, (new IntensityImage(gPsfIS)).dataIntensity, labelMap);
+            ((E_Deconvolution)imageModel.getEdata()).RenewDeconvolution(labelImage);
+        }
+	}
+
+
 
 
 	boolean DoOneIteration()
@@ -1256,6 +1309,10 @@ public class Algorithm
         /// Update the statistics of the propagating and the loser region.
         ///
 		UpdateStatisticsWhenJump(aParticle, vFromLabel, vToLabel);
+        if (imageModel.getEdataType() == EnergyFunctionalType.e_DeconvolutionPC)
+        {
+            ((E_Deconvolution)imageModel.getEdata()).UpdateConvolvedImage(vCurrentIndex,labelImage, vFromLabel, vToLabel);
+        }
 		imageModel.updateStatisticsWhenJump();
 
 

@@ -20,7 +20,7 @@ public class ThresholdWithHolesInitializer extends DataDrivenInitializer
 
 	public void initSwissCheese()
 	{
-		ImagePlus imp = intensityImage.imageIP;
+		ImagePlus imp = new ImagePlus("tmp_rg",intensityImage.imageIP);
 		imp = new Duplicator().run(imp);
 		IJ.run(imp, "Gaussian Blur...", "sigma=3 stack");
 //		imp.show();

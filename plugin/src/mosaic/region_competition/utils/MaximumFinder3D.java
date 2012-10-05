@@ -9,6 +9,10 @@ import ij.process.*;
 import java.awt.Label;
 import java.util.*;
 
+import net.imglib2.Cursor;
+import net.imglib2.img.Img;
+import net.imglib2.type.numeric.real.FloatType;
+
 import mosaic.region_competition.IndexIterator;
 import mosaic.region_competition.Point;
 import mosaic.region_competition.topology.Connectivity;
@@ -147,6 +151,25 @@ public class MaximumFinder3D implements MaximumFinderInterface
 
     }
 
+    public List<Point> getMaximaPointList(Img< FloatType > pixels, double tolerance, boolean excludeOnEdges)
+    {
+		float pixels_prc[] = new float [(int) pixels.size()];
+		Cursor < FloatType > vCrs = pixels.cursor();
+		
+		int loc[] = new int [2];
+		
+		while (vCrs.hasNext())
+		{
+			vCrs.fwd();
+			vCrs.localize(loc);
+			pixels_prc[loc[1]*width+loc[0]] = vCrs.get().get();
+		}
+		
+		List<Point> list = getMaximaPointList(pixels_prc,tolerance,excludeOnEdges);
+    	
+    	return list;
+    }
+    
     /** Here the processing is done: Find the maxima of an image (does not find minima).
      * @param ip             The input image
      * @param tolerance      Height tolerance: maxima are accepted only if protruding more than this value
