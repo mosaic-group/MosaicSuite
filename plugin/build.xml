@@ -161,10 +161,8 @@
     <classpath refid="scala.classpath"/>
   </taskdef>
   
-  <target name="build">
-
+  <target name="build">  
     <javac debug="true" includeantruntime="false" srcdir="src/" destdir="bin/" classpathref="build.classpath"
-
 	   classpath="${build.classpath}"/>
   </target>
   

@@ -34,6 +34,7 @@ public class Point
 	public Point(long coords[]) 
 	{
 		this.dim = coords.length;
+		this.x = new int[dim];
 		for (int i = 0 ; i < coords.length ; i++)	{x[i] = (int) coords[i];}
 	}
 	

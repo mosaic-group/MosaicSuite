@@ -12,8 +12,8 @@ import ij.process.ImageProcessor;
 
 public class Generate_PSF implements  PlugInFilter{
 	
-	float mSigmaPSFxy = 160;
-	float mSigmaPSFz = 220;
+	float mSigmaPSFxy = 20;
+	float mSigmaPSFz = 20;
 	int mSigmaPxSizeInNm = 2;
 	int mSigmaFocalPlaneDistInNm = 20;
 	float mIntensity = 100;
@@ -65,7 +65,7 @@ public class Generate_PSF implements  PlugInFilter{
 	{
 		int nSlices = vGaussIS.getSize();
 		
-		return convert1DArrayToImageStack((float [])vGaussIS.getProcessor(nSlices/2).getPixels(),vGaussIS.getWidth(), vGaussIS.getHeight());
+		return convert1DArrayToImageStack((float [])vGaussIS.getPixels(nSlices/2),vGaussIS.getWidth(), vGaussIS.getHeight());
 	}
 	
 	public ImageStack getGauss3DPsf()
@@ -271,7 +271,7 @@ public class Generate_PSF implements  PlugInFilter{
 	}
 	
 	public static ImageStack convert1DArrayToImageStack(float[] aArray, int Nx, int Ny) {
-		ImageStack vIS = new ImageStack(Ny, Nx);
+		ImageStack vIS = new ImageStack(Nx, Ny);
 		vIS.addSlice("", new FloatProcessor(Nx,Ny,aArray));			
 		return vIS;
 	}

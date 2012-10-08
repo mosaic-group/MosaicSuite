@@ -246,6 +246,7 @@ public class Region_Competition implements PlugInFilter
 			{
 				int dims[] = intensityImage.getDimensions();
 				e_data = new E_Deconvolution(intensityImage,labelMap,(ImgFactory< FloatType >)new ArrayImgFactory< FloatType >(),dims);
+				break;
 			}
 			default : 
 			{

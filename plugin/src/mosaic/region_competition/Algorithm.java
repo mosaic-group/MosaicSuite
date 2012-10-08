@@ -458,6 +458,7 @@ public class Algorithm
             /// as an intensity estimate. In a second step refine the estimates
             /// in RenewDeconvolutionStatistics().
 
+            ((E_Deconvolution)imageModel.getEdata()).setPSF((new IntensityImage(gPsfIS)).dataIntensity);
             ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, (new IntensityImage(gPsfIS)).dataIntensity, labelMap);
             ((E_Deconvolution)imageModel.getEdata()).RenewDeconvolution(labelImage);
         }

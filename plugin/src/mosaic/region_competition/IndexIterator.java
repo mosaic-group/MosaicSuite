@@ -41,7 +41,8 @@ public class IndexIterator
 
 	private void init(long[] dims)
 	{
-		dim = dimensions.length;
+		dim = dims.length;
+		dimensions = new int [dims.length];
 		for (int i = 0 ; i < dims.length ; i++) {dimensions[i] = (int)dims[i];}
 		
 		size=1;

@@ -14,27 +14,44 @@ import mosaic.region_competition.Point;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessible;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.Views;
 import net.imglib2.algorithm.fft2.*;
+import net.imglib2.img.display.imagej.ImageJFunctions;
 
 public class E_Deconvolution extends ExternalEnergy
-{	
-	final private Img< FloatType > vModelImage;
+{
 	final private Img< FloatType > DevImage;
-	final private Img< FloatType > m_PSF;
+	public RandomAccessible< FloatType> infDevAccess;
+	public RandomAccess< FloatType > infDevAccessIt;	
+	
+	private Img< FloatType > m_PSF;
 	private HashMap<Integer, LabelInformation> labelMap;
 	private IntensityImage aDataImage;
 	
 	public E_Deconvolution(IntensityImage aDI, HashMap<Integer, LabelInformation> labelMap, ImgFactory< FloatType > imgFactory, int dim[])
 	{
 		super(null, null);
-		vModelImage = imgFactory.create(dim, new FloatType());
 		DevImage = imgFactory.create(dim, new FloatType());
-		m_PSF = imgFactory.create(dim, new FloatType());
+		
+		/* Create boundary strategy 0.0 outside the image */
+		
+        infDevAccess = Views.extendValue( DevImage, new FloatType( 0 ) );
+        infDevAccessIt = infDevAccess.randomAccess();
+		
+		m_PSF = null;
+		
+//		m_PSF = imgFactory.create(dim, new FloatType());
 		this.labelMap = labelMap;
 		aDataImage = aDI;
+	}
+	
+	public void setPSF( Img <FloatType> psfImg)
+	{
+		m_PSF = psfImg;
 	}
 	
 	@Override
@@ -64,7 +81,7 @@ public class E_Deconvolution extends ExternalEnergy
 		    Img< FloatType > aPSFImage,
 		    HashMap<Integer, LabelInformation> labelMap)
 	{ 
-		Cursor< FloatType > cVModelImage = vModelImage.cursor();
+		Cursor< FloatType > cVModelImage = DevImage.cursor();
         int size = aLabelImage.getSize();
 		for(int i=0; i < size && cVModelImage.hasNext() ; i++)
 		{
@@ -80,7 +97,12 @@ public class E_Deconvolution extends ExternalEnergy
 //        typedef ConvolutionImageFilter<InternalImageType, InternalImageType> ConvolutionFilterType;
         
 		
-		new FFTConvolution< FloatType > (vModelImage,aPSFImage);
+//		ImageJFunctions.show( vModelImage );
+//		ImageJFunctions.show( aPSFImage );
+		
+		new FFTConvolution< FloatType > (DevImage,aPSFImage);
+		
+//		ImageJFunctions.show( vModelImage );
 	}
 	
 	public void RenewDeconvolution(LabelImage aInitImage)
@@ -289,9 +311,6 @@ public class E_Deconvolution extends ExternalEnergy
 
     	/// Iterate through the region and subtract the psf from the conv image.
     
-    	Cursor< FloatType > vPSF = m_PSF.localizingCursor();
-    	RandomAccess< FloatType > vModelIt = vModelImage.randomAccess();
-    
     	long dimlen[] = new long [m_PSF.numDimensions()];;
     	m_PSF.dimensions(dimlen);
     
@@ -299,11 +318,12 @@ public class E_Deconvolution extends ExternalEnergy
     
     	for (int i = 0 ; i < m_PSF.numDimensions() ; i++)	{dimlen[i] = dimlen[i] / 2;}
     	Point middle = new Point(dimlen);
-    	middle.add(aIndex);
+    	middle = aIndex.sub(middle);
     
     	Point pos = new Point(dimlen);
     	int loc[] = new int [m_PSF.numDimensions()];
-    
+    	Cursor< FloatType > vPSF = m_PSF.localizingCursor();
+    	
     	while (vPSF.hasNext())
     	{
     		vPSF.fwd();
@@ -311,15 +331,16 @@ public class E_Deconvolution extends ExternalEnergy
     	
     		pos.zero();    	
 			vPSF.localize(loc);
-			pos.add(new Point (loc));
-    		
-    		vModelIt.setPosition(pos.x);
-    	
-    		float vEOld = (vModelIt.get().get() - aDataImage.get(pos));
+			pos = pos.add(new Point(loc));
+			
+			pos = pos.add(middle);
+			infDevAccessIt.setPosition(pos.x);
+			
+    		float vEOld = (infDevAccessIt.get().get() - aDataImage.get(pos));
     		vEOld = vEOld * vEOld;
     		//            vEOld = fabs(vEOld);
-    		float vENew = (vModelIt.get().get() - (vIntensity_FromLabel - vIntensity_ToLabel) *
-                vPSF.next().get()) - aDataImage.get(pos);
+    		float vENew = (infDevAccessIt.get().get() - (vIntensity_FromLabel - vIntensity_ToLabel) *
+                vPSF.get().get()) - aDataImage.get(pos);
     		vENew = vENew * vENew;
 
     		vEnergyDiff.energyDifference += vENew - vEOld;
@@ -356,9 +377,6 @@ public class E_Deconvolution extends ExternalEnergy
 
     	/// Iterate through the region and subtract the psf from the conv image.
     
-    	Cursor< FloatType > vPSF = m_PSF.localizingCursor();
-    	RandomAccess< FloatType > vIt = DevImage.randomAccess();
-    
     	long dimlen[] = new long [m_PSF.numDimensions()];
     	m_PSF.dimensions(dimlen);
     
@@ -366,29 +384,31 @@ public class E_Deconvolution extends ExternalEnergy
     
     	for (int i = 0 ; i < m_PSF.numDimensions() ; i++)	{dimlen[i] = dimlen[i] / 2;}
     	Point middle = new Point(dimlen);
-    	middle.add(aIndex);
+    	middle = aIndex.sub(middle);
     	
     	Point pos = new Point(m_PSF.numDimensions());
     	int loc[] = new int [m_PSF.numDimensions()];
     
+    	Cursor< FloatType > vPSF = m_PSF.localizingCursor();
+    	
     	if (aToLabel == 0)
     	{ // ...the point is removed and set to BG
     		// To avoid the operator map::[] in the loop:
     		float vIntensity_FromLabel = (float)aLabelImage.getLabelMap().get(aFromLabel).median;
     		float vIntensity_BGLabel = (float)aLabelImage.getLabelMap().get(aToLabel).median;
     		while (vPSF.hasNext())
-    		{
-    			vPSF.fwd();
-            
-    			pos.zero();
-    			pos.add(middle);
-    			
+    		{    			
+    	   		vPSF.fwd();
+        		// Add aindex to cursor
+        	
+        		pos.zero();    	
     			vPSF.localize(loc);
-    			pos.add(new Point (loc));
-        	
-    			vIt.setPosition(pos.x);
-        	
-    			vIt.get().set(vIt.get().get() - (vIntensity_FromLabel - vIntensity_BGLabel) * vPSF.get().get());
+    			pos = pos.add(new Point(loc));
+    			
+    			pos = pos.add(middle);
+    			infDevAccessIt.setPosition(pos.x);
+    			
+    			infDevAccessIt.get().set(infDevAccessIt.get().get() - (vIntensity_FromLabel - vIntensity_BGLabel) * vPSF.get().get());
     		}
     	}
     	else
@@ -397,7 +417,17 @@ public class E_Deconvolution extends ExternalEnergy
     		float vIntensity_BGLabel = (float)aLabelImage.getLabelMap().get(0).median;
     		while (vPSF.hasNext())
     		{
-    			vIt.get().set(vIt.get().get() + (vIntensity_ToLabel - vIntensity_BGLabel) * vPSF.get().get());
+    	   		vPSF.fwd();
+        		// Add aindex to cursor
+        	
+        		pos.zero();    	
+    			vPSF.localize(loc);
+    			pos = pos.add(new Point(loc));
+    			
+    			pos = pos.add(middle);
+    			infDevAccessIt.setPosition(pos.x);
+    			
+    			infDevAccessIt.get().set(infDevAccessIt.get().get() + (vIntensity_ToLabel - vIntensity_BGLabel) * vPSF.get().get());
     		}
     	}
     }

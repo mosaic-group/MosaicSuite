@@ -23,10 +23,6 @@ public class MultipleThresholdIntenityImageFunction extends MultipleThresholdIma
 	@Override
 	public boolean EvaluateAtIndex(Point p)
 	{
-		// Check bounds for intensity image
-		if(!image.iterator.isInBound(p))
-			return false;
-		
 		float value = image.get(p);
 		return Evaluate(value);
 	}
