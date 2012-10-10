@@ -2,6 +2,10 @@ package mosaic.region_competition.utils;
 
 import java.util.Arrays;
 
+import net.imglib2.Cursor;
+import net.imglib2.img.Img;
+import net.imglib2.type.numeric.integer.IntType;
+
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ColorProcessor;
@@ -171,6 +175,68 @@ public class IntConverter
 		return shorts;
 	}
 	
+	/**
+	 * 
+	 * @param ints int[] array
+	 * @param abs Math.abs() the array
+	 * @param borderRemove Short.MAX_VALUE to Zero
+	 * @param clamp Values > Short.MAX_VALUE to Short.MAX_VALUE (same for MIN_VALUE)
+	 * @return
+	 */
+	public static short[] ImgToShort(Img <IntType> ints, boolean abs, boolean borderRemove, boolean clamp)
+	{
+		int n = (int)ints.size();
+		short[] shorts = new short[n];
+		
+		Cursor <IntType> cur = ints.cursor();
+		
+		if(abs)
+		{
+			for(int i=0; i<n && cur.hasNext(); i++) 
+			{
+				cur.fwd();
+				int a = Math.abs(cur.get().get());
+				if(clamp)
+				{
+					if(a>Short.MAX_VALUE)
+						a=Short.MAX_VALUE;
+				}
+				shorts[i] = (short)a;
+			}
+		} 
+		else 
+		{
+			for(int i=0; i<n && cur.hasNext(); i++) 
+			{
+				cur.fwd();
+				int a = Math.abs(cur.get().get());
+				if(clamp)
+				{
+					if(a>Short.MAX_VALUE)
+						a=Short.MAX_VALUE;
+					else if(a<Short.MIN_VALUE)
+						a=Short.MIN_VALUE;
+				}
+				shorts[i] = (short)a;
+			}
+		}
+		
+		if(borderRemove)
+		{
+			for(int i=0; i<n; i++) 
+			{
+				short a = shorts[i];
+				if(a==Short.MAX_VALUE){
+					a=0;
+				}
+				shorts[i]=a;
+			}
+		}
+
+		
+		return shorts;
+	}
+	
 	
 	
 	public static int[] intStackToArray(ImageStack stack)
@@ -209,10 +275,42 @@ public class IntConverter
 		
 	}
 	
+	/**
+	 * @param clean Takes absolute values, clamp to short values and remove boundary
+	 */
+	public static ImageStack ImgToShortStack(Img<IntType> intData, int[] dims, 
+			boolean clean)
+	{
+		return ImgToShortStack(intData, dims, clean, clean, clean);
+		
+	}
+	
 	public static ImageStack intArrayToShortStack(int[] intData, int[] dims, 
 			boolean abs, boolean borderRemove, boolean clamp)
 	{
 		short shortData[] = IntConverter.intToShort(intData, abs, borderRemove, clamp);
+
+		int w,h,z;
+		w=dims[0];
+		h=dims[1];
+		z=dims[2];
+		int area = w*h;
+		
+		ImageStack stack = new ImageStack(w,h);
+		for(int i=0; i<z; i++)
+		{
+			Object pixels = Arrays.copyOfRange(shortData, i*area, (i+1)*area);
+			stack.addSlice("", pixels);
+		}
+		
+		return stack;
+		
+	}
+	
+	public static ImageStack ImgToShortStack(Img <IntType> intData, int[] dims, 
+			boolean abs, boolean borderRemove, boolean clamp)
+	{
+		short shortData[] = IntConverter.ImgToShort(intData, abs, borderRemove, clamp);
 
 		int w,h,z;
 		w=dims[0];
@@ -253,6 +351,38 @@ public class IntConverter
 		for(int i=0; i<z; i++)
 		{
 			Object pixels = Arrays.copyOfRange(intData, i*area, (i+1)*area);
+			stack.addSlice("", pixels);
+		}
+		
+		return stack;
+	}
+
+	public static ImageStack ImgToStack(Img<IntType> initData, int[] dims) 
+	{
+		int dim = dims.length;
+		
+		int w,h,z;
+		w=dims[0];
+		h=dims[1];
+		z=1;
+		if(dim==3){
+			z=dims[2];
+		}
+		int area = w*h;
+		
+		ImageStack stack = new ImageStack(w,h);
+		int pixels[] = new int[area];
+		
+		Cursor<IntType> cur = initData.cursor();
+		
+		for(int i=0; i<z && cur.hasNext(); i++)
+		{
+			for (int j = 0 ; j < area && cur.hasNext() ; j++)
+			{
+				cur.fwd();
+				pixels[j] = cur.get().get();
+			}
+			
 			stack.addSlice("", pixels);
 		}
 		

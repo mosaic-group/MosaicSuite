@@ -476,8 +476,7 @@ public class Region_Competition implements PlugInFilter
 //		TODO sts 3D_comment
 //		if(labelImage.getDim()==2)
 		{
-			int[] data = labelImage.dataLabel;
-			initialStack = IntConverter.intArrayToStack(data, labelImage.getDimensions());
+			initialStack = IntConverter.ImgToStack(labelImage.dataLabel, labelImage.getDimensions());
 //			initialLabelImageProcessor = labelImage.getLabelImageProcessor().duplicate();
 		}
 		

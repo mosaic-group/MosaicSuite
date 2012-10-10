@@ -269,14 +269,21 @@ public class Algorithm
 		for(LabelInformation stat: labelMap.values())
 		{
 			int n = stat.count;
-            if (n > 1) {
-            	double var = (stat.var-stat.mean*stat.mean/n)/(n-1);
-            	stat.var=(var);
-//                stat.var = (stat.var - stat.mean*stat.mean / n) / (n-1);
-            } else {
-                stat.var = 0;
-            }
-            stat.mean = stat.mean/n;
+			if (n > 1)
+			{
+				double var = (stat.var-stat.mean*stat.mean/n)/(n-1);
+				stat.var=(var);
+//      	        	stat.var = (stat.var - stat.mean*stat.mean / n) / (n-1);
+			}
+			else
+			{
+				stat.var = 0;
+			}
+			stat.mean = stat.mean/n;
+			
+			// Median on start set equal to mean
+			
+			stat.median = stat.mean;
 		}
 		
         m_MaxNLabels++; // this number points to the a free label.
@@ -476,7 +483,7 @@ public class Algorithm
 		if(m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC && m_iteration_counter % 1 == 0)
 		{
 			// TODO sts
-			// RenewDeconvolutionStatistics(m_LabelImage, this->GetDataInput());
+			((E_Deconvolution)imageModel.getEdata()).RenewDeconvolution(labelImage);
 		}
 
 		if(settings.m_UseShapePrior)
@@ -790,7 +797,7 @@ public class Algorithm
 				// TODO: this can be removed when the statistics are updated using
 				// seeds and flood fill iteartors.
 				//TODO sts
-				// RenewDeconvolutionStatistics(m_LabelImage, this->GetDataInput());
+				((E_Deconvolution)imageModel.getEdata()).RenewDeconvolution(labelImage);
 			}
 		}
 

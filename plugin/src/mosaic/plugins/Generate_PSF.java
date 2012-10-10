@@ -12,8 +12,8 @@ import ij.process.ImageProcessor;
 
 public class Generate_PSF implements  PlugInFilter{
 	
-	float mSigmaPSFxy = 20;
-	float mSigmaPSFz = 20;
+	float mSigmaPSFxy = 25;
+	float mSigmaPSFz = 50;
 	int mSigmaPxSizeInNm = 2;
 	int mSigmaFocalPlaneDistInNm = 20;
 	float mIntensity = 100;

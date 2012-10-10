@@ -6,6 +6,17 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
 
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessible;
+import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.ops.parse.token.Int;
+import net.imglib2.type.numeric.integer.IntType;
+import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.Views;
+
 import mosaic.region_competition.topology.Connectivity;
 import mosaic.region_competition.utils.IntConverter;
 
@@ -34,7 +45,13 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	ImageProcessor labelIP;				// map positions -> labels
 	ImagePlus labelPlus;				
 //	public float[] dataIntensity;
-	public int[] dataLabel;
+//	public int[] dataLabel;
+	
+	public Img <IntType> dataLabel;
+	private RandomAccessible< IntType> infAccess;
+	private RandomAccess< IntType > infAccessIt;
+	private Cursor<IntType> curDi;
+	
 //	public short[] dataLabelShort;
 	
 	
@@ -73,7 +90,16 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	
 	public LabelImage(int dims[]) 
 	{
+		ImgFactory< IntType > imgFactory = new ArrayImgFactory< IntType >();
+		dataLabel = imgFactory.create(dims, new IntType());
+		
 		init(dims);
+		
+		// Extends bound
+		
+        infAccess = Views.extendValue( dataLabel, new IntType( 0 ) );
+        infAccessIt = infAccess.randomAccess();
+        curDi = dataLabel.cursor();
 	}
 	
 	
@@ -125,7 +151,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		if(dim==3){
 			labelPlus = null;
 			labelIP = null;
-			dataLabel = new int[size];
+			
 //			dataLabelShort = new short[size];
 		}
 		else
@@ -134,12 +160,24 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 			labelIP = new ColorProcessor(width, height);
 //			labelIP = new ShortProcessor(width, height);
 //			labelIP = new FloatProcessor(width, height);
-			dataLabel = (int[])labelIP.getPixels();
+			
+			copyPixels((int[])labelIP.getPixels(),labelIP.getHeight()*labelIP.getWidth());
 			
 			labelPlus = new ImagePlus("LabelImage", labelIP);
 		}
 	}
 	
+	private void copyPixels(int pixels[], int size)
+	{
+		Cursor<IntType> cur = dataLabel.cursor();
+		
+		for (int i = 0 ; i < size && cur.hasNext() ; i++)
+		{
+			cur.fwd();
+			
+			cur.get().set(pixels[i]);
+		}		
+	}
 	
 	public void initMembers()
     {
@@ -185,7 +223,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	{
 		//TODO check for dimensions etc
 		this.labelIP=IntConverter.procToIntProc(ip);
-		this.dataLabel=(int[])labelIP.getPixels();
+		copyPixels((int[])labelIP.getPixels(),labelIP.getHeight()*labelIP.getWidth());
 		this.labelPlus = new ImagePlus("labelImage", labelIP);
 //		this.dataLabelShort =(short[])ip.getPixels();
 	}
@@ -201,7 +239,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		{
 			this.labelPlus = ip; 
 			ImageStack stack = ip.getImageStack();
-			this.dataLabel = IntConverter.intStackToArray(stack);
+			copyPixels(IntConverter.intStackToArray(stack),stack.getHeight()*stack.getWidth()*stack.getSize());
 			this.labelIP = null;
 		}
 		if(dim==2)
@@ -218,7 +256,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	 */
 	public void initWithStack(ImageStack stack)
 	{
-		this.dataLabel = IntConverter.intStackToArray(stack);
+		copyPixels(IntConverter.intStackToArray(stack),stack.getHeight()*stack.getWidth()*stack.getSize());
 		initBoundary();
 	}
 	
@@ -406,18 +444,20 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	
 	public int getLabel(int index)
 	{
-		return dataLabel[index];
-//		return labelIP.get(index);
+		curDi.reset();
+		curDi.jumpFwd(index+1);
+		
+		return curDi.get().get();
 	}
 	
 	/**
 	 * @param p
 	 * @return Returns the (raw; contour information) value of the LabelImage at Point p. 
 	 */
-	public int getLabel(Point p) {
-		int idx = iterator.pointToIndex(p);
-		return dataLabel[idx];
-//		return getLabel(idx);
+	public int getLabel(Point p) 
+	{
+		infAccessIt.setPosition(p.x);
+		return infAccessIt.get().get();
 	}
 	
 
@@ -426,15 +466,16 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	 */
 	public int getLabelAbs(Point p)
 	{
-		int idx = iterator.pointToIndex(p);
-		return Math.abs(dataLabel[idx]);
-//		return labelToAbs(getLabel(p));
+		infAccessIt.setPosition(p.x);
+		return Math.abs(infAccessIt.get().get());
 	}
 
 	public int getLabelAbs(int idx)
 	{
-		return Math.abs(dataLabel[idx]);
-//		return labelToAbs(getLabel(idx));
+		curDi.reset();
+		curDi.jumpFwd(idx+1);
+		
+		return Math.abs(curDi.get().get());
 	}
 
 	
@@ -443,7 +484,11 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	 */
 	public void setLabel(int idx, int label) 
 	{
-		dataLabel[idx]=label;
+		curDi.reset();
+		curDi.jumpFwd(idx+1);
+		
+		curDi.get().set(label);
+		
 //		dataLabel[idx]=(short)val;
 //		labelIP.set(idx, val);
 	}
@@ -451,22 +496,27 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	/**
 	 * sets the labelImage to val at Point p
 	 */
-	public void setLabel(Point p, int label) {
-		int idx = iterator.pointToIndex(p);
-		dataLabel[idx]=label;
-//		setLabel(idx, label);
+	public void setLabel(Point p, int label) 
+	{
+		infAccessIt.setPosition(p.x);
+		infAccessIt.get().set(label);
 	}
 	
 	void setLabelNeg(Point p, int label)
 	{
-		int idx = iterator.pointToIndex(p);
-		dataLabel[idx]=-Math.abs(label);
+		infAccessIt.setPosition(p.x);
+		infAccessIt.get().set(-Math.abs(label));
+		
 //		setLabel(p, labelToNeg(label));
 	}
 	
 	void setLabelNeg(int idx, int label)
 	{
-		dataLabel[idx]=-Math.abs(label);
+		curDi.reset();
+		curDi.jumpFwd(idx+1);
+		
+		curDi.get().set(-Math.abs(label));
+		
 //		setLabel(idx, labelToNeg(label));
 	}
 	
@@ -566,12 +616,15 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 			return (short[])getProjected3D(false).getProcessor().getPixels();
 		}
 		
-		final int n = dataLabel.length;
+		final int n = (int) dataLabel.size();
+		curDi.reset();
 		
 		short[] shortData = new short[n];
-		for(int i=0; i<n; i++)
+		
+		for(int i = 0 ; i < n && curDi.hasNext() ; i++)
 		{
-			shortData[i] = (short)dataLabel[i];
+			curDi.fwd();
+			shortData[i] = (short)curDi.get().get();
 		}
 		return shortData;
 	}
@@ -583,9 +636,8 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	public ImageStack get3DShortStack(boolean clean)
 	{
 		int dims[] = getDimensions();
-		int labeldata[] = dataLabel;
 		
-		ImageStack stack = IntConverter.intArrayToShortStack(labeldata, dims, clean);
+		ImageStack stack = IntConverter.ImgToShortStack(dataLabel, dims, clean);
 		
 //		ImagePlus ip = new ImagePlus();
 //		ip.setStack(stack);

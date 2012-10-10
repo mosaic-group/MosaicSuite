@@ -1,5 +1,7 @@
 package mosaic.region_competition.deprecated;
 
+import ij.process.ImageProcessor;
+
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -8,8 +10,6 @@ import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelImage;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Point;
-
-import ij.process.ImageProcessor;
 
 /**
  * TODO VERY OLD
@@ -27,7 +27,6 @@ public class DebugConsistencyCheck
 	
 	LabelImage labelImage;
 	ImageProcessor data;
-	int[] pixels;
 	int liSize;
 	
 	int hist[];
@@ -42,10 +41,10 @@ public class DebugConsistencyCheck
 		
 		
 		data=labelImage.getLabelImageProcessor();
-		pixels=labelImage.dataLabel;
+//		pixels=labelImage.dataLabel;
 		
 		//TODO these seems to be 2D methods
-		liSize=pixels.length;
+//		liSize=pixels.length;
 		liSize=data.getPixelCount();
 		
 		labelMap = algo.getLabelMap();
