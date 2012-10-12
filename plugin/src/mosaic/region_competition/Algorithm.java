@@ -16,6 +16,7 @@ import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.io.ImgIOException;
 import net.imglib2.io.ImgOpener;
 import net.imglib2.type.numeric.real.FloatType;
@@ -455,14 +456,24 @@ public class Algorithm
                 // approximation is used.
 
             	Generate_PSF gPsf = new Generate_PSF();
+            	gPsf.setParametersGUI();
+            	gPsf.hideResult(true);
             	gPsf.setup(null, null);
             	if (intensityImage.getDim() == 2)
             		gPsfIS = gPsf.getGauss2DPsf();
             	else
             		gPsfIS = gPsf.getGauss3DPsf();
             	
-            	((E_Deconvolution)imageModel.getEdata()).setPSF((new IntensityImage(gPsfIS)).dataIntensity);
-            	((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, (new IntensityImage(gPsfIS)).dataIntensity, labelMap);
+            	Img<FloatType> tmp = (new IntensityImage(gPsfIS)).dataIntensity;
+				float Vol = IntensityImage.volume_image(tmp);
+				IntensityImage.rescale_image(tmp,1.0f/Vol);
+            	
+				// Show PSF Image
+				
+				ImageJFunctions.show(tmp);
+				
+            	((E_Deconvolution)imageModel.getEdata()).setPSF(tmp);
+            	((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage,tmp, labelMap);
             }
             else
             {

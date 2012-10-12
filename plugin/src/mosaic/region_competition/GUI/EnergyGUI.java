@@ -88,6 +88,7 @@ class Deconvolution_GUI extends EnergyGUI
 		Button b = new Button("Open PSF Image");
 		b.addActionListener(new FileOpenerActionListener(gd, gd.getTextArea1()));
 		gd.add(b);
+		gd.addCheckbox("Generate", settings.m_UseGaussianPSF);
 	}
 
 	@Override
@@ -103,7 +104,7 @@ class Deconvolution_GUI extends EnergyGUI
 		}
 		else
 		{
-			settings.m_UseGaussianPSF = false;
+			settings.m_UseGaussianPSF = gd.getNextBoolean();
 			settings.m_PSFImg = filenameInput.replace('\\', '/');
 		}
 		settings.m_GaussPSEnergyRadius = (int)gd.getNextNumber();

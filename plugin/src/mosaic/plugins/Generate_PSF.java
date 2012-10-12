@@ -5,6 +5,7 @@ import java.io.File;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.gui.GenericDialog;
 import ij.io.FileInfo;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.FloatProcessor;
@@ -20,6 +21,7 @@ public class Generate_PSF implements  PlugInFilter{
 	
 	ImagePlus mPSF = null;
 	boolean mUsePSFMap = false;
+	boolean mHideResult = false;
 	int mWidth;
 	int mHeight;
 	int mNSlices;
@@ -29,7 +31,9 @@ public class Generate_PSF implements  PlugInFilter{
 	@Override
 	public int setup(String arg, ImagePlus imp) {
 		// TODO Auto-generated method stub
-		mPSFDirectory = IJ.getDirectory("Enter the path to PSF.tif");
+		
+		if (mUsePSFMap == true)
+			mPSFDirectory = IJ.getDirectory("Enter the path to PSF.tif");
 
 		mUsePSFMap = usePSFMap();
 		mWidth = (int)Math.ceil(8.0f * mSigmaPSFxy / mSigmaPxSizeInNm);
@@ -53,12 +57,51 @@ public class Generate_PSF implements  PlugInFilter{
 		addGaussBlob(vGaussBlobImage, vMu, mIntensity, mSigmaPxSizeInNm, mSigmaFocalPlaneDistInNm);
 		
 		ImageStack vPSFmapIS = convert3DArrayToImageStack(vPSFmapImage);
-		new ImagePlus("Sampled from PSF lookup table", vPSFmapIS).show();
+		
+		if (mHideResult == false)
+			new ImagePlus("Sampled from PSF lookup table", vPSFmapIS).show();
 		
 		vGaussIS = convert3DArrayToImageStack(vGaussBlobImage);
-		new ImagePlus("Sampled from gaussian pdf", vGaussIS).show();
+		
+		if (mHideResult == false)
+			new ImagePlus("Sampled from gaussian pdf", vGaussIS).show();
 		
 		return DONE;
+	}
+	
+	public void hideResult(boolean SH)
+	{
+		mHideResult = SH;
+	}
+	
+	private void processGUI(GenericDialog gd)
+	{
+		mSigmaPSFxy = (float)gd.getNextNumber();
+		mSigmaPSFz = (float)gd.getNextNumber();
+		mSigmaPxSizeInNm = (int)gd.getNextNumber();
+		mSigmaFocalPlaneDistInNm = (int)gd.getNextNumber();
+	}
+	
+	public void setParametersGUI()
+	{
+		GenericDialog gd = new GenericDialog("Generate PSF");
+		
+		// Numeric Fields
+		
+		gd.addNumericField("SigmaXY (Nm)", mSigmaPSFxy, 4);
+		gd.addNumericField("SigmaZ (Nm)", mSigmaPSFz, 4);
+		gd.addNumericField("Sigma Pixel size (Nm)", mSigmaPxSizeInNm , 0);
+		gd.addNumericField("Sigma Focal Plane Distance (Nm)", mSigmaFocalPlaneDistInNm , 0);
+		
+		gd.hideCancelButton();
+		
+		gd.showDialog();
+		
+		// Dialog destroyed
+		// On OK, read parameters
+		
+		if (gd.wasOKed())
+			processGUI(gd);
 	}
 	
 	public ImageStack getGauss2DPsf()

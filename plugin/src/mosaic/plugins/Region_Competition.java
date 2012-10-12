@@ -364,6 +364,7 @@ public class Region_Competition implements PlugInFilter
 			// failed to load anything
 			originalIP=null;
 			//TODO maybe show image opener dialog
+			IJ.noImage();
 			throw new RuntimeException("Failed to load an input image.");
 		}
 
