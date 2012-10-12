@@ -1,4 +1,6 @@
 package mosaic.region_competition;
+
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,7 +11,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
+import net.imglib2.Cursor;
+import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.io.ImgIOException;
+import net.imglib2.io.ImgOpener;
 import net.imglib2.type.numeric.real.FloatType;
 
 import mosaic.plugins.Generate_PSF;
@@ -430,7 +438,7 @@ public class Algorithm
 	}
 
 
-	private void PrepareEnergyCaluclation() 
+	private void PrepareEnergyCaluclation()
 	{
         /**
          * Deconvolution:
@@ -453,6 +461,35 @@ public class Algorithm
             	else
             		gPsfIS = gPsf.getGauss3DPsf();
             	
+            	((E_Deconvolution)imageModel.getEdata()).setPSF((new IntensityImage(gPsfIS)).dataIntensity);
+            	((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, (new IntensityImage(gPsfIS)).dataIntensity, labelMap);
+            }
+            else
+            {
+                File file = new File( settings.m_PSFImg );
+                
+                // open with ImgOpener using an ArrayImgFactory, here the return type will be
+                // defined by the opener
+                // the opener will ignore the Type of the ArrayImgFactory
+                
+                ImgFactory< FloatType > imgFactory = new ArrayImgFactory< FloatType >();
+                Img<FloatType> tmp = null;
+				try 
+				{
+					tmp = new ImgOpener().openImg( file.getAbsolutePath(), imgFactory , new FloatType() );
+					float Vol = IntensityImage.volume_image(tmp);
+					IntensityImage.rescale_image(tmp,1.0f/Vol);
+					Vol = IntensityImage.volume_image(tmp);
+				}
+				catch (Exception e)
+				{
+					
+				}
+				
+				///////////////////////////////////
+				
+                ((E_Deconvolution)imageModel.getEdata()).setPSF(tmp);
+                ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage,tmp, labelMap);
             }
 
             //            InternalImageType::Pointer vIdealImage = InternalImageType::New();
@@ -465,8 +502,7 @@ public class Algorithm
             /// as an intensity estimate. In a second step refine the estimates
             /// in RenewDeconvolutionStatistics().
 
-            ((E_Deconvolution)imageModel.getEdata()).setPSF((new IntensityImage(gPsfIS)).dataIntensity);
-            ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, (new IntensityImage(gPsfIS)).dataIntensity, labelMap);
+            
             ((E_Deconvolution)imageModel.getEdata()).RenewDeconvolution(labelImage);
         }
 	}

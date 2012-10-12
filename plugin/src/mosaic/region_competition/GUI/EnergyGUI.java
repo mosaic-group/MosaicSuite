@@ -1,5 +1,9 @@
 package mosaic.region_competition.GUI;
 
+import java.awt.Button;
+import java.awt.Panel;
+import java.awt.TextField;
+
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.EnergyFunctionalType;
 
@@ -16,9 +20,14 @@ public abstract class EnergyGUI extends GUImeMore
 		
 		switch(type)
 		{
-			case e_GaussPS:
+			case e_PS:
 			{
 				result = new PS_GUI(settings);
+				break;
+			}
+			case e_DeconvolutionPC:
+			{
+				result = new Deconvolution_GUI(settings);
 				break;
 			}
 			default:
@@ -49,14 +58,54 @@ class PS_GUI extends EnergyGUI
 
 	@Override
 	public void createDialog()
+	{	
+		gd.setTitle("Gauss PS Options");	
+		gd.addNumericField("Radius", settings.m_GaussPSEnergyRadius, 0);
+		gd.addNumericField("Beta E_Balloon", settings.m_BalloonForceCoeff, 4);
+	}
+
+	@Override
+	public void process()
+	{	
+		settings.m_GaussPSEnergyRadius = (int)gd.getNextNumber();
+		settings.m_BalloonForceCoeff = (float)gd.getNextNumber();
+	}
+}
+
+class Deconvolution_GUI extends EnergyGUI
+{
+	public Deconvolution_GUI(Settings settings)
 	{
-		gd.setTitle("Gauss PS Options");
-		gd.addNumericField("Local_Radius", settings.m_GaussPSEnergyRadius, 0);
+		super(settings);
+	}
+
+	@Override
+	public void createDialog()
+	{	
+		gd.setTitle("Deconvolution Options");
+		
+		gd.addTextAreas(settings.m_PSFImg, null, 1, 20);
+		Button b = new Button("Open PSF Image");
+		b.addActionListener(new FileOpenerActionListener(gd, gd.getTextArea1()));
+		gd.add(b);
 	}
 
 	@Override
 	public void process()
 	{
+		String filenameInput=gd.getTextArea1().getText();
+		if(filenameInput==null || filenameInput.isEmpty())
+		{
+			//TODO 
+			// set text to [] due to a bug in GenericDialog
+			// if bug gets fixed, this will cause problems!
+			settings.m_UseGaussianPSF = true;
+		}
+		else
+		{
+			settings.m_UseGaussianPSF = false;
+			settings.m_PSFImg = filenameInput.replace('\\', '/');
+		}
 		settings.m_GaussPSEnergyRadius = (int)gd.getNextNumber();
 	}
 }

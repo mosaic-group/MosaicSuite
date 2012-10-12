@@ -31,6 +31,35 @@ public class IntensityImage
 	private int[] dimensions;
 	private int size;
 	
+	public static float volume_image(Img <FloatType> img)
+	{
+		float Vol = 0.0f;
+		Cursor<FloatType> cur = img.cursor();
+		
+		while( cur.hasNext() )
+		{
+			cur.fwd();
+			
+			Vol += cur.get().get();
+			
+		}
+		
+		return Vol;
+	}
+	
+	public static void rescale_image(Img <FloatType> img,float r)
+	{		
+		Cursor<FloatType> cur = img.cursor();
+		
+		while( cur.hasNext() )
+		{
+			cur.fwd();
+			
+			cur.get().set((float)cur.get().get()*r);
+			
+		}			
+	}
+	
 	public static void normalize_image(Img <FloatType> img)
 	{
 		

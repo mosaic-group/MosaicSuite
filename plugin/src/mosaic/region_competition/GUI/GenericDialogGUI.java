@@ -60,9 +60,9 @@ public class GenericDialogGUI implements InputReadable
 //	private boolean useRegularization;
 	private boolean useOldRegionIterator=false;
 	
-	static final String EnergyFunctional = "EnergyFunctional";
+	static final String EnergyFunctional = "E_data";
 	EnergyGUI energyGUI;
-	static final String Regularization = "Regularization";
+	static final String Regularization = "E_lenght";
 	RegularizationGUI regularizationGUI;
 	
 	private static final String Initialization = "Initialization";
@@ -202,7 +202,7 @@ public class GenericDialogGUI implements InputReadable
 		int gridx=2;
 		
 		// components: 
-		final TextField tfBalloonForce;
+
 		final Choice choiceEnergy;
 		final Choice choiceRegularization;
 		
@@ -218,7 +218,7 @@ public class GenericDialogGUI implements InputReadable
 		
 		
 		gd_p.addChoice(EnergyFunctional, energyItems, settings.m_EnergyFunctional.name());
-		choiceEnergy = (Choice)gd.getChoices().lastElement();
+		choiceEnergy = (Choice)gd_p.getChoices().lastElement();
 		{
 			optionButton = new Button("Additional Options");
 			c = new GridBagConstraints();
@@ -331,16 +331,11 @@ public class GenericDialogGUI implements InputReadable
 		
 		// Numeric Fields
 		
-		gd_p.addNumericField("Curvature_Radius", settings.m_CurvatureMaskRadius, 0);
-		gd_p.addNumericField("Contour_Length_Coeff", settings.m_EnergyContourLengthCoeff, 4);
-		gd_p.addNumericField("Merge_Threshold", settings.m_RegionMergingThreshold, 4);
+		gd_p.addNumericField("Lambda E_lenght", settings.m_EnergyContourLengthCoeff, 4);
+		gd_p.addNumericField("Theta E_merge", settings.m_RegionMergingThreshold, 4);
 
 		
 		gd_p.addNumericField("Max_Iterations", settings.m_MaxNbIterations, 0);
-		
-		gd_p.addNumericField("PS_Radius", settings.m_GaussPSEnergyRadius, 0);
-		gd_p.addNumericField("Balloon_Force", settings.m_BalloonForceCoeff, 4);
-		tfBalloonForce=(TextField)gd_p.getNumericFields().lastElement();
 		
 		gd_p.showDialog();
 		
@@ -477,13 +472,9 @@ public class GenericDialogGUI implements InputReadable
 		String regularization = gd_p.getNextChoice();
 		settings.regularizationType = RegularizationType.valueOf(regularization);
 
-		settings.m_CurvatureMaskRadius=(int)gd_p.getNextNumber();
 		settings.m_EnergyContourLengthCoeff=(float)gd_p.getNextNumber();
 		settings.m_RegionMergingThreshold = (float)gd_p.getNextNumber();
 		settings.m_MaxNbIterations = (int)gd_p.getNextNumber();
-		
-		settings.m_GaussPSEnergyRadius = (int)gd_p.getNextNumber();
-		settings.m_BalloonForceCoeff = (float)gd_p.getNextNumber();
 		
 		
 		// Initialization

@@ -48,6 +48,8 @@
       <!-- Add needed libs directly to the IJ eclipse project and not into this ant target "compress", for faster debugging 
 	   Add the libs to the target "compressLibs", to get a working plugin for other ImageJ instances outside of eclipse -->
 
+      <zipgroupfileset dir="lib" includes="imglib2-*.jar" excludes="*.config"/>
+      
       <manifest>
 	<attribute name="Built-By" value="${user.name}"/>
       </manifest>

@@ -212,34 +212,19 @@ public class Region_Competition implements PlugInFilter
 		
 		switch(type)
 		{
-			case e_GaussPC: 
+			case e_PC: 
 			{
 				e_data = new E_CV(labelMap);
 				e_merge = e_merge_KL;
 				break;
 			}
-			case e_GaussPS_Sphis: 
-			{
-				e_data = new E_PS_sphis(labelImage, intensityImage, 
-						labelMap, 
-						settings.m_GaussPSEnergyRadius, 
-						settings.m_RegionMergingThreshold);
-				e_merge = e_merge_NONE;
-				break;
-			}
-			case e_GaussPS: 
+			case e_PS: 
 			{
 				e_data = new E_PS(labelImage, intensityImage, 
 						labelMap, 
 						settings.m_GaussPSEnergyRadius, 
 						settings.m_RegionMergingThreshold);
 				e_merge = e_merge_NONE;
-				break;
-			}
-			case e_MS: 
-			{
-				e_data = new E_MS(labelImage, intensityImage, labelMap);
-				e_merge = e_merge_KL;
 				break;
 			}
 			case e_DeconvolutionPC:

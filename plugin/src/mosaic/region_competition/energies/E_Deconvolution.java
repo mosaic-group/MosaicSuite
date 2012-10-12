@@ -26,8 +26,8 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 public class E_Deconvolution extends ExternalEnergy
 {
 	final private Img< FloatType > DevImage;
-	public RandomAccessible< FloatType> infDevAccess;
-	public RandomAccess< FloatType > infDevAccessIt;	
+	private RandomAccessible< FloatType> infDevAccess;
+	private RandomAccess< FloatType > infDevAccessIt;	
 	
 	private Img< FloatType > m_PSF;
 	private HashMap<Integer, LabelInformation> labelMap;
@@ -107,11 +107,9 @@ public class E_Deconvolution extends ExternalEnergy
 		
 		// normalize DevImage
 		
-		IntensityImage.normalize_image(DevImage);
-		
-		for (int i = 0 ; i < 400 ; i++)
+		for (int i = 0 ; i < DevImage.dimension(0) ; i++)
 		{
-			for (int j = 0 ; j < 400 ; j++)
+			for (int j = 0 ; j < DevImage.dimension(1) ; j++)
 			{
 				int crd[] = new int[2];
 				crd[0] = i;
@@ -148,7 +146,7 @@ public class E_Deconvolution extends ExternalEnergy
 
         /// The BG region is not fitted above(since it may be very large and thus
         /// the mean is a good approx), set it to the mean value:
-        double vOldBG = aInitImage.getLabelMap().get(0).mean;
+        double vOldBG = aInitImage.getLabelMap().get(0).median;
         //        m_Intensities[0] = m_Means[0];
 
 
@@ -361,13 +359,12 @@ public class E_Deconvolution extends ExternalEnergy
 			float vEOld = (infDevAccessIt.get().get() - aDataImage.get(pos));
 			vEOld = vEOld * vEOld;
 			//            vEOld = fabs(vEOld);
-			float vENew = (infDevAccessIt.get().get() + ((float)vIntensity_ToLabel - (float)vIntensity_FromLabel)*vPSF.get().get() - aDataImage.get(pos));
+			float vENew = (infDevAccessIt.get().get() - aDataImage.get(pos) + ((float)vIntensity_ToLabel - (float)vIntensity_FromLabel)*vPSF.get().get());
 			vENew = vENew * vENew;
 
 			vEnergyDiff.energyDifference += vENew - vEOld;
 		
-    	}
-		
+    	}    	
     	
     	if (aIndex.x[0] == 50 || aIndex.x[0] == 51 || aIndex.x[0] == 49 || aIndex.x[0] == 52)
     	{

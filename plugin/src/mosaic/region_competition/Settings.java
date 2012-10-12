@@ -15,7 +15,7 @@ public class Settings implements Serializable
 	public int m_MaxNbIterations = 300;
 	public boolean shrinkFirstOnly = false;
 
-	public EnergyFunctionalType m_EnergyFunctional = EnergyFunctionalType.e_GaussPC;
+	public EnergyFunctionalType m_EnergyFunctional = EnergyFunctionalType.e_PC;
 	public int m_GaussPSEnergyRadius=8;
 
 	public float m_RegionMergingThreshold = 0.02f;
@@ -55,7 +55,7 @@ public class Settings implements Serializable
 //	private boolean m_UseFastEvolution = false;
 //	private int m_LocalLiEnergySigma = 5;
 	
-	
+	public String m_PSFImg;
 	
 	// SettingsListener ////////////////////////////////
 	// To update values on the fly
