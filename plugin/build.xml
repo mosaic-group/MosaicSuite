@@ -4,12 +4,12 @@
   </description>
   
   <!-- Adapt paths to your environment -->
-  <property name="pluginsDir"  location="../IJ/plugins/Mosaic_Toolbox" />
+  <property name="pluginsDir"  location="../../../Fiji_dev/fiji/plugins/Mosaic_Toolbox" />
   
-  <property name="scala.home" value="lib"/>
-  <property name="scala-compiler.jar" value="${scala.home}/scala-compiler-2.8.1.jar"/>
-  <property name="scala-library.jar" value="${scala.home}/scala-library-2.8.1.jar"/>
-  <property name="scala-swing.jar" value="${scala.home}/scala-swing-2.8.1.jar"/>
+  <property name="scala.home" value="lib/"/>
+  <property name="scala-compiler.jar" value="${scala.home}/scala-compiler.jar"/>
+  <property name="scala-library.jar" value="${scala.home}/scala-library.jar"/>
+  <property name="scala-swing.jar" value="${scala.home}/scala-swing.jar"/>
   
   <property name="proguard.jar" value="${scala.home}/proguard.jar"/>
   
@@ -29,6 +29,31 @@
     </echo>
   </target>
   
+  <target name="main_debug" depends="clean,build,compress_debug" description="Main target">
+    <echo>
+      Clean, compile and compressing the .jar file.
+    </echo>
+  </target>
+  
+  <target name="compress_debug" depends="" description="generate the distribution">
+    <echo>
+      Building the .jar file.
+    </echo>
+    <jar jarfile="${pluginsDir}/${jarfilename}.jar" update="true">
+      <fileset dir="." includes="plugins.config" />
+      <fileset dir="${build}" includes="**/*.*" />
+      <fileset dir="${src}" includes="**/*.java"/>
+      <fileset dir="." includes="macros/*.ijm" />
+      
+      <!-- Add needed libs directly to the IJ eclipse project and not into this ant target "compress", for faster debugging 
+	   Add the libs to the target "compressLibs", to get a working plugin for other ImageJ instances outside of eclipse -->
+
+      <manifest>
+	<attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+    </jar>
+  </target>
+  
   <target name="compress" depends="" description="generate the distribution">
     <echo>
       Building the .jar file.
@@ -41,6 +66,8 @@
       <!-- Add needed libs directly to the IJ eclipse project and not into this ant target "compress", for faster debugging 
 	   Add the libs to the target "compressLibs", to get a working plugin for other ImageJ instances outside of eclipse -->
 
+      <zipgroupfileset dir="lib" includes="imglib2-*.jar" excludes="*.config"/>
+      
       <manifest>
 	<attribute name="Built-By" value="${user.name}"/>
       </manifest>
@@ -67,7 +94,7 @@
       <!-- <fileset dir="../Scalala/target/classes/" includes="**/*.*" /> 
 	   <fileset dir="../scalanlp-core/learn/target/classes/" includes="**/*.*" />
 	   <fileset dir="../scalanlp-core/data/target/classes/" includes="**/*.*" /> -->
-      <zipgroupfileset dir="../Scalala/lib" includes="*.jar"/>
+      <zipgroupfileset dir="lib/" includes="scalala_2.9.2-1.0.0.RC3-SNAPSHOT.jar"/>
       
       <manifest>
 	<attribute name="Built-By" value="${user.name}"/>
@@ -94,22 +121,15 @@
     <pathelement location="${scala-compiler.jar}"/>
     <pathelement location="${scala-library.jar}"/>
     <pathelement location="${scala-swing.jar}"/>
-    <fileset dir="../IJ">
+    <fileset dir="lib/">
       <include name="ij.jar"/>
     </fileset>
   </path>
   
   <!-- classpath for project build -->   
   <path id="build.classpath">
-    <fileset dir="../IJ">
+    <fileset dir="lib/">
       <include name="ij.jar"/>
-    </fileset>
-    
-    <pathelement location="${scala-library.jar}"/>
-    <pathelement location="${scala-swing.jar}"/>
-    <fileset dir="${scala.home}">
-      <include name="*/*.jar"/>
-      <include name="*.jar"/>
     </fileset>
     
     <!--	<fileset dir="/Users/arun/Documents/Programs_APIs">
@@ -123,16 +143,15 @@
     
     <pathelement location="${build}"/>
     
-    <!-- classpath IJ --> 	
-    <pathelement location="bin"/>
+    <pathelement path="lib"/>
     
     <!-- classpath Scalala -->
-    <pathelement location="../Scalala/target/classes"/>
-    <fileset dir="../Scalala/lib">
+    <!-- <pathelement location="../Scalala/target/scala-2.9.2/classes"/> -->
+    <fileset dir="lib/">
       <include name="*.jar"/>
     </fileset>
     
-    <pathelement location="bin"/>
+    
   </path>
 
   
@@ -141,12 +160,8 @@
   </taskdef>
   
   <target name="build">
-    <scalac srcdir="src/" destdir="bin/" classpathref="build.classpath" scalacdebugging="true">
-      <include name="**/*.scala"/>
-      <include name="**/*.java"/>
-    </scalac>
     
-    <javac srcdir="src/" destdir="bin/" classpathref="build.classpath"
+    <javac debug="true" includeantruntime="false" srcdir="src/" destdir="bin/" classpathref="build.classpath"
 	   classpath="${build.classpath}"/>
   </target>
   
