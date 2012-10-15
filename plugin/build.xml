@@ -67,6 +67,8 @@
 	   Add the libs to the target "compressLibs", to get a working plugin for other ImageJ instances outside of eclipse -->
 
       <zipgroupfileset dir="lib" includes="imglib2-*.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="jtransforms-2.4.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="javaml-0.1.7.jar" excludes="*.config"/>
       
       <manifest>
 	<attribute name="Built-By" value="${user.name}"/>
