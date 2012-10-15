@@ -1,4 +1,4 @@
-
+package mosaic.plugins;
 
 import bregman.GUI;
 import bregman.GenericGUI;
