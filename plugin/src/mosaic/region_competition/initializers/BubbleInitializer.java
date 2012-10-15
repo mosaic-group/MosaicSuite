@@ -1,5 +1,6 @@
 package mosaic.region_competition.initializers;
 
+import ij.IJ;
 import mosaic.region_competition.IndexIterator;
 import mosaic.region_competition.LabelImage;
 import mosaic.region_competition.Point;
@@ -26,12 +27,31 @@ public class BubbleInitializer extends Initializer
 	{
 		int[] grid = new int[dim];
 		int[] gap = new int[dim];
+		
+		// Check we have at least one bubble
+		
+		for(int i = 0; i < dim; i++)
+		{
+			int size = dimensions[i];
+			
+			// only one bubble
+			
+			if (size < displ)
+					displ = size;
+			
+			if (2*rad > size)
+				rad = size/2;
+			if (rad == 0)
+			{rad = 1;}
+		}
+		
 		for(int i = 0; i < dim; i++)
 		{
 			int size = dimensions[i];
 			int n = (size)/displ; // how many bubbles per length
-			grid[i] = n; 
+			grid[i] = n;
 			gap[i] = (size%displ+displ)/2-rad;
+			if (gap[i] < 0)	{gap[i] = 0;}       // when displ < 2 rad ( with only one bubble displ is meaningless )
 		}
 		Point gapPoint = new Point(gap);
 		

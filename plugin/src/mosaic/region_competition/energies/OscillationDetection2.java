@@ -22,7 +22,7 @@ public class OscillationDetection2 extends OscillationDetection
 	private boolean isFirstRound;
 	
 	private int length = 10; 
-	private double threshold=0.001;
+	private double threshold=0.02;
 	
 	public OscillationDetection2(Algorithm algo, Settings settings)
 	{

@@ -141,16 +141,14 @@ public class GenericDialogGUI implements InputReadable
 		
 		String[] strings = new String[]{
 				"Show_Progress",
-				"Keep_Frames", 
-				"Show_3D_Result", 
+				"Keep_Frames",  
 				"Show_Normalized", 
 				"Show_Statistics", 
 				};
 		
 		boolean[] bools = new boolean[]{
 				useStack, 
-				keepAllFrames, 
-				show3DResult, 
+				keepAllFrames,  
 				showNormalized, 
 				showStatistics, 
 				};
@@ -220,7 +218,7 @@ public class GenericDialogGUI implements InputReadable
 		gd_p.addChoice(EnergyFunctional, energyItems, settings.m_EnergyFunctional.name());
 		choiceEnergy = (Choice)gd_p.getChoices().lastElement();
 		{
-			optionButton = new Button("Additional Options");
+			optionButton = new Button("Options");
 			c = new GridBagConstraints();
 			c.gridx=gridx; c.gridy=gridy++; c.anchor = GridBagConstraints.EAST;
 			gd_p.add(optionButton,c);
@@ -253,7 +251,7 @@ public class GenericDialogGUI implements InputReadable
 		choiceRegularization = (Choice)gd_p.getChoices().lastElement();
 		
 		{
-			optionButton = new Button("Additional Options");
+			optionButton = new Button("Options");
 			c = new GridBagConstraints(); c.anchor = GridBagConstraints.EAST;
 			c.gridx=gridx; c.gridy=gridy++;
 			gd_p.add(optionButton,c);
@@ -296,7 +294,7 @@ public class GenericDialogGUI implements InputReadable
 //		lastInitChoice=initializationChoice.getSelectedItem();
 		
 		{
-			optionButton = new Button("Additional Options");
+			optionButton = new Button("Options");
 			c = new GridBagConstraints();
 			c.gridx=gridx; c.gridy=gridy++; c.anchor = GridBagConstraints.EAST;
 			gd.add(optionButton,c);
@@ -555,7 +553,6 @@ public class GenericDialogGUI implements InputReadable
 		
 		useStack=gd.getNextBoolean();
 		keepAllFrames = gd.getNextBoolean();
-		show3DResult = gd.getNextBoolean();
 		showNormalized = gd.getNextBoolean();
 		showStatistics = gd.getNextBoolean();
 		
