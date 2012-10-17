@@ -11,7 +11,6 @@ import mosaic.region_competition.IntensityImage;
 import mosaic.region_competition.LabelImage;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Point;
-import mosaic.region_competition.energies.Energy.EnergyResult;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
@@ -21,7 +20,6 @@ import net.imglib2.img.ImgFactory;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 import net.imglib2.algorithm.fft2.*;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 
 public class E_Deconvolution extends ExternalEnergy
 {
@@ -45,7 +43,6 @@ public class E_Deconvolution extends ExternalEnergy
 		
 		m_PSF = null;
 		
-//		m_PSF = imgFactory.create(dim, new FloatType());
 		this.labelMap = labelMap;
 		aDataImage = aDI;
 	}
@@ -79,7 +76,6 @@ public class E_Deconvolution extends ExternalEnergy
 	
 	public void GenerateModelImage(Img< FloatType > aPointerToResultImage,
 			LabelImage aLabelImage,
-		    Img< FloatType > aPSFImage,
 		    HashMap<Integer, LabelInformation> labelMap)
 	{ 
 		Cursor< FloatType > cVModelImage = DevImage.cursor();
@@ -96,48 +92,15 @@ public class E_Deconvolution extends ExternalEnergy
 			cVModelImage.get().set((float)labelMap.get(vLabel).median);
 
 		}
-
-//        typedef ConvolutionImageFilter<InternalImageType, InternalImageType> ConvolutionFilterType;
-        
 		
-//		ImageJFunctions.show( DevImage );
-//		ImageJFunctions.show( aPSFImage );
+		// Convolve
 		
-		new FFTConvolution< FloatType > (DevImage,aPSFImage).run();
+		new FFTConvolution< FloatType > (DevImage,m_PSF).run();
 		
-		// normalize DevImage
-		
-		for (int i = 0 ; i < DevImage.dimension(0) ; i++)
-		{
-			for (int j = 0 ; j < DevImage.dimension(1) ; j++)
-			{
-				int crd[] = new int[2];
-				crd[0] = i;
-				crd[1] = j;
-				Point p = new Point(crd);
-				
-				infDevAccessIt.setPosition(p.x);
-				
-				float vEOld = infDevAccessIt.get().get();
-				
-				if (vEOld >= 10.1)
-				{
-					int debug = 0;
-					debug = debug + 1;
-				}
-			}
-		}
-		
-//		ImageJFunctions.show( DevImage );
 	}
 	
 	public void RenewDeconvolution(LabelImage aInitImage)
 	{
-        //        std::cout << "iteration " << m_iteration_counter << std::endl;
-        //        std::cout << "Begin of renew deconv stats:" << std::endl;
-        //        std::cout << "BG mean: "  << m_Means[0] << std::endl;
-
-
         /**
          * Generate a model image using rough estimates of the intensities. Here,
          * we use the old intensity values.
@@ -147,42 +110,17 @@ public class E_Deconvolution extends ExternalEnergy
         /// The BG region is not fitted above(since it may be very large and thus
         /// the mean is a good approx), set it to the mean value:
         double vOldBG = aInitImage.getLabelMap().get(0).median;
-        //        m_Intensities[0] = m_Means[0];
-
-
-        //        std::stringstream vSS;
-        //        vSS << "DivisionImage_" << m_iteration_counter << ".tif";
-        //        WriteInputImageTypeToFile(vSS.str().c_str(), vDivisionFilter->GetOutput(), 1000);
-
-        // Using ITK: median to inaccurate since limited to bin accuracy? speed?
-
-        //        typedef itk::AbsImageFilter<LabelImageType, LabelImageType> AbsImageFilterType;
-        //        typename AbsImageFilterType::Pointer vAbsFilter = AbsImageFilterType::New();
-        //        vAbsFilter->SetInput(aInitImage);
-        //
-        //        /**
-        //         * get statistics of each label
-        //         */
-        //        typedef itk::LabelStatisticsImageFilter<InputImageType, LabelImageType>
-        //                LabelStatisticsFilterType;
-        //        typename LabelStatisticsFilterType::Pointer vLabelStats = LabelStatisticsFilterType::New();
-        //        vLabelStats->SetInput(aDataImage);
-        //        vLabelStats->SetLabelInput(vAbsFilter->GetOutput());
-        //        vLabelStats->SetUseHistograms(true); // we're interested in the median.
-        //        vLabelStats->Update();
 
 
         // Time vs. Memory:
         // Memory efficient: iterate the label image: for all new seed points (new label found),
-        // iterate through the label usinga floodfill iterator. While iterating,
+        // iterate through the label using a floodfill iterator. While iterating,
         // read out the data and model image. Put the quotient of those into an
         // 'new' array. Sort the array, read out the median and delete the array.
         //
         // Time efficient: iterate the label image. Store all quotients found in
         // an array corresponding to the label. This is another 32-bit copy of
         // the image.
-
-
 
         /// Set up a map datastructure that maps from labels to arrays of data
         /// values. These arrays will be sorted to read out the median.
@@ -259,11 +197,6 @@ public class E_Deconvolution extends ExternalEnergy
                 if (vMedian < 0) 
                 {
                     vMedian = 0;
-                    //                    if (this->GetDebug()) {
-                    //                        std::cout <<
-                    //                                "In itk::FrontsCompetitionImageFilter::RenewDeconvolutionStatistics: "
-                    //                                << "BG intensity estimation negative. Reset to 0." << std::endl;
-                    //                    }
                 }
                 aInitImage.getLabelMap().get(vLabel.getKey()).median = vMedian;
             }
@@ -272,40 +205,10 @@ public class E_Deconvolution extends ExternalEnergy
             	aInitImage.getLabelMap().get(vLabel.getKey()).median =
                         (aInitImage.getLabelMap().get(vLabel.getKey()).median - vOldBG) * vMedian + aInitImage.getLabelMap().get(0).median;
             }
-
-            //            std::cout << "Array read out in label " << vLabelAbs << " until " <<
-            //                    vLabelCounter[vLabelAbs] << std::endl;
-            //
-            //            std::cout << "m_Intensities[" << vLabelAbs << "]: "
-            //                    << m_Intensities[vLabelAbs] << "\tmedian: " << vMedian
-            //                    << "\tcount[" << vLabelAbs << "] = " << m_Count[vLabelAbs] << std::endl;
-
         }
 
-        /// Update the model image with the new intensities:
-        /// - Remove the old BG value
-        /// - Scale the signal with the correction factor (median from above)
-        /// - Add the new BG value.
-        //        ImageRegionIterator<InputImageType> vModelImageIt(m_DeconvolutionModelImage,
-        //                m_DeconvolutionModelImage->GetBufferedRegion());
-        //
-        //        for (vLabelIt.GoToBegin(), vModelImageIt.GoToBegin(); !vModelImageIt.IsAtEnd();
-        //                ++vLabelIt, ++vModelImageIt) {
-        //            LabelAbsPixelType vLabelAbs = abs(vLabelIt.Get());
-        //            InternalPixelType vNewValue = vModelImageIt.Get() - vOldBG;
-        //            if (vLabelAbs != 0 && vLabelAbs != static_cast<unsigned int>(m_ForbiddenRegionLabel)) {
-        //                vNewValue *= vMedians[vLabelAbs];
-        //            }
-        //            vNewValue += m_Intensities[0];
-        //            vModelImageIt.Set(vNewValue);
-        //        }
-
-        //        m_Intensities[0] = 100;
-        //        m_Intensities[1] = 250.0;
-        //        m_Intensities[2] = 234.0;
-
         // The model image has to be renewed as well to match the new statistic values:
-        GenerateModelImage(DevImage, aInitImage, m_PSF, aInitImage.getLabelMap());
+        GenerateModelImage(DevImage, aInitImage, aInitImage.getLabelMap());
 	}
 
 
@@ -336,12 +239,6 @@ public class E_Deconvolution extends ExternalEnergy
     	Point pos = new Point(dimlen);
     	int loc[] = new int [m_PSF.numDimensions()];
     	Cursor< FloatType > vPSF = m_PSF.localizingCursor();
-		
-    	if (aIndex.x[0] == 50 || aIndex.x[1] == 29)
-    	{
-    		int debug = 0;
-    		debug++;
-    	}
     	
     	while (vPSF.hasNext())
     	{
@@ -364,12 +261,6 @@ public class E_Deconvolution extends ExternalEnergy
 
 			vEnergyDiff.energyDifference += vENew - vEOld;
 		
-    	}    	
-    	
-    	if (aIndex.x[0] == 50 || aIndex.x[0] == 51 || aIndex.x[0] == 49 || aIndex.x[0] == 52)
-    	{
-    		int debug = 0;
-    		debug++;
     	}
     	
 		return vEnergyDiff;
@@ -396,22 +287,6 @@ public class E_Deconvolution extends ExternalEnergy
     	/**
     	 * Subtract a scaled psf from the ideal image
     	 */
-    	/*    InputImageRegionType vRegion;
-    InputImageSizeType vRegionSize = m_PSF->GetLargestPossibleRegion().GetSize();
-
-    InputImageOffsetType vOffset;
-    vOffset.Fill(vRegionSize[0] / 2); // we assume the region to be a hypercube.
-    vRegion.SetSize(vRegionSize);
-    vRegion.SetIndex(aIndex - vOffset);
-
-    /// Move the PSF window such that the center is on aIndex
-    InputImageRegionType vPSFRegion = m_PSF->GetLargestPossibleRegion().GetSize();
-    vPSFRegion.SetIndex(vRegion.GetIndex());
-    m_PSF->SetBufferedRegion(vPSFRegion);
-
-    /// After the cropping at the data-image boundaries, vRegion will be the
-    /// region to treat in the data-image space.
-    vRegion.Crop(m_DeconvolutionModelImage->GetBufferedRegion());*/
 
     	/// Iterate through the region and subtract the psf from the conv image.
     

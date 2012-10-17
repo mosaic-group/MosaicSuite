@@ -54,6 +54,7 @@ public class Settings implements Serializable
 	public boolean m_UseShapePrior = false;
 //	private boolean m_UseFastEvolution = false;
 //	private int m_LocalLiEnergySigma = 5;
+	public double m_OscillationThreshold = 0.02;
 	
 	public String m_PSFImg;
 	

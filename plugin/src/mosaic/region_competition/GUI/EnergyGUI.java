@@ -107,7 +107,6 @@ class Deconvolution_GUI extends EnergyGUI
 			settings.m_UseGaussianPSF = gd.getNextBoolean();
 			settings.m_PSFImg = filenameInput.replace('\\', '/');
 		}
-		settings.m_GaussPSEnergyRadius = (int)gd.getNextNumber();
 	}
 }
 

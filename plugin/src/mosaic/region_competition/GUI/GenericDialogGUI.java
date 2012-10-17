@@ -11,10 +11,12 @@ import java.awt.TextArea;
 import java.awt.TextField;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.*;
 import java.awt.event.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
@@ -318,13 +320,11 @@ public class GenericDialogGUI implements InputReadable
 		gd_p.addCheckboxGroup(1, 4, new String[]{
 				"Fusion", 
 				"Fission", 
-				"Handles", 
-				"Shrink_First"},
+				"Handles"},
 				new boolean[]{
 				settings.m_AllowFusion, 
 				settings.m_AllowFission, 
-				settings.m_AllowHandles, 
-				settings.shrinkFirstOnly});
+				settings.m_AllowHandles});
 		
 		
 		// Numeric Fields
@@ -334,6 +334,7 @@ public class GenericDialogGUI implements InputReadable
 
 		
 		gd_p.addNumericField("Max_Iterations", settings.m_MaxNbIterations, 0);
+		gd_p.addNumericField("Oscillation threshold (Convergence)", settings.m_OscillationThreshold, 4);
 		
 		gd_p.showDialog();
 		
@@ -473,7 +474,7 @@ public class GenericDialogGUI implements InputReadable
 		settings.m_EnergyContourLengthCoeff=(float)gd_p.getNextNumber();
 		settings.m_RegionMergingThreshold = (float)gd_p.getNextNumber();
 		settings.m_MaxNbIterations = (int)gd_p.getNextNumber();
-		
+		settings.m_OscillationThreshold = (double)gd_p.getNextNumber();
 		
 		// Initialization
 		String initialization = gd_p.getNextChoice();
@@ -488,7 +489,6 @@ public class GenericDialogGUI implements InputReadable
 		settings.m_AllowFusion = gd_p.getNextBoolean();
 		settings.m_AllowFission = gd_p.getNextBoolean();
 		settings.m_AllowHandles = gd_p.getNextBoolean();
-		settings.shrinkFirstOnly = gd_p.getNextBoolean();
 		
 		return success;
 	}
@@ -714,6 +714,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 	@Override
 	public void drop(DropTargetDropEvent event)
 	{
+		boolean failed = true;
 		String filename;
 		
 		// Accept copy drops
@@ -730,7 +731,8 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 
 			try {
 				// If the drop items are files
-				if(flavor.isFlavorJavaFileListType()) {
+				if(flavor.isFlavorJavaFileListType()) 
+				{
 					// Get all of the dropped files
 					List<File> files = (List<File>)transferable.getTransferData(flavor);
 					// Loop them through
@@ -742,6 +744,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 						
 						// Print out the file path
 						System.out.println("File path is '" + filename + "'.");
+						failed = false;
 					}
 				}
 				else if (flavor.isRepresentationClassInputStream())
@@ -765,14 +768,59 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 					ta.setText(null);
 					break;
 				}
-				
+
 				
 			} catch (Exception e) {
 				// Print out the error stack
 				e.printStackTrace();
+			}			
+		}
+		
+		
+		if (failed == true)
+		{			
+			// This is for Linux, ( and maybe OSX )
+		
+			String data = null;
+			
+			DataFlavor nixFileDataFlavor;
+			try 
+			{
+				nixFileDataFlavor = new DataFlavor("text/uri-list;class=java.lang.String");
+				data = (String)transferable.getTransferData(nixFileDataFlavor);
+			}
+			catch (ClassNotFoundException e) 
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 
+			catch (UnsupportedFlavorException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			for(StringTokenizer st = new StringTokenizer(data, "\r\n"); st.hasMoreTokens();)
+			{
+				String token = st.nextToken().trim();
+				if(token.startsWith("#") || token.isEmpty())
+				{
+					// comment line, by RFC 2483
+					continue;
+				}
+		    
+				textArea.setText(token);
+			
+//				IJ.open(filename);
+			
+				// Print out the file path
+				System.out.println("File path is '" + token + "'.");
 			}
 		}
-
+		
 		// Inform that the drop is complete
 		event.dropComplete(true);
 	}

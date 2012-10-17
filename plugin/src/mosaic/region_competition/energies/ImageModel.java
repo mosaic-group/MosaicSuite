@@ -81,10 +81,13 @@ public class ImageModel
 	        if(vCurrentLabel == 0)  // growing
 	        {
 	            vEnergy -= settings.m_ConstantOutwardFlow;
-	            if (settings.m_BalloonForceCoeff > 0) { // outward flow
-	                vEnergy -= settings.m_BalloonForceCoeff * vCurrentImageValue;
-	            } else {
-	                vEnergy -= -settings.m_BalloonForceCoeff * (1 - vCurrentImageValue);
+	            if (settings.m_EnergyFunctional == EnergyFunctionalType.e_PS)
+	            {
+	            	if (settings.m_BalloonForceCoeff > 0) { // outward flow
+	            		vEnergy -= settings.m_BalloonForceCoeff * vCurrentImageValue;
+	            	} else {
+	            		vEnergy -= -settings.m_BalloonForceCoeff * (1 - vCurrentImageValue);
+	            	}
 	            }
 	        } else if (aToLabel == 0) // shrinking
 	        {

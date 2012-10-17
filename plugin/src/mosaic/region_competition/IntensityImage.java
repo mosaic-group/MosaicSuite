@@ -335,7 +335,7 @@ public class IntensityImage
 		for(int i=1; i<=nSlices; i++)
 		{
 			ImageProcessor p = ip.getProcessor(i);
-			p.setColorModel(null); // force IJ to directly convert to float (else it would first go to RGB)
+			/*p.setColorModel(null);*/ // force IJ to directly convert to float (else it would first go to RGB)
 			FloatProcessor fp = (FloatProcessor)p.convertToFloat();
 			fp.subtract(minimum);
 			fp.multiply(1.0/range);
@@ -515,7 +515,7 @@ public class IntensityImage
 		for(int i=1; i<=nSlices; i++)
 		{
 			ImageProcessor p = stack.getProcessor(i);
-			p.setColorModel(null); // force IJ to directly convert to float (else it would first go to RGB)
+			/*p.setColorModel(null);*/ // force IJ to directly convert to float (else it would first go to RGB)
 			FloatProcessor fp = (FloatProcessor)p.convertToFloat();
 			fp.subtract(minimum);
 			fp.multiply(1.0/range);

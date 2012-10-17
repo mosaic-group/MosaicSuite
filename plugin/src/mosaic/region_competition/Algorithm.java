@@ -473,7 +473,7 @@ public class Algorithm
 				ImageJFunctions.show(tmp);
 				
             	((E_Deconvolution)imageModel.getEdata()).setPSF(tmp);
-            	((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage,tmp, labelMap);
+            	((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
             }
             else
             {
@@ -499,8 +499,9 @@ public class Algorithm
 				
 				///////////////////////////////////
 				
+				ImageJFunctions.show(tmp);
                 ((E_Deconvolution)imageModel.getEdata()).setPSF(tmp);
-                ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage,tmp, labelMap);
+                ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
             }
 
             //            InternalImageType::Pointer vIdealImage = InternalImageType::New();
