@@ -246,17 +246,16 @@ public class E_Deconvolution extends ExternalEnergy
     		vPSF.fwd();
     		// Add aindex to cursor
     	
-    		pos.zero();    	
+    		pos = new Point(middle);    	
 			vPSF.localize(loc);
 			pos = pos.add(new Point(loc));
 			
-			pos = pos.add(middle);
 			infDevAccessIt.setPosition(pos.x);
     		
-			float vEOld = (infDevAccessIt.get().get() - aDataImage.get(pos));
+			float vEOld = (infDevAccessIt.get().get() - aDataImage.getCheck(pos));
 			vEOld = vEOld * vEOld;
 			//            vEOld = fabs(vEOld);
-			float vENew = (infDevAccessIt.get().get() - aDataImage.get(pos) + ((float)vIntensity_ToLabel - (float)vIntensity_FromLabel)*vPSF.get().get());
+			float vENew = (infDevAccessIt.get().get() - aDataImage.getCheck(pos) + ((float)vIntensity_ToLabel - (float)vIntensity_FromLabel)*vPSF.get().get());
 			vENew = vENew * vENew;
 
 			vEnergyDiff.energyDifference += vENew - vEOld;

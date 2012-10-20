@@ -52,8 +52,7 @@ public class MaximaBubbles extends DataDrivenInitializer
 	 */
 	private void smoothIntensityImage()
 	{
-		ImagePlus imp = new ImagePlus("tmp_rg",intensityImage.imageIP);
-		imp.setStack(intensityImage.imageIP);
+		ImagePlus imp = intensityImage.imageIP;;
 		imp = new Duplicator().run(imp);
 		IJ.run(imp, "Gaussian Blur...", "sigma="+sigma+" stack");
 		this.intensityImage = new IntensityImage(imp);

@@ -21,7 +21,7 @@ public class BrightBubbles extends DataDrivenInitializer
 
 	public void initBrightBubbles()
 	{
-		ImagePlus imp = new ImagePlus("tmp_rg",intensityImage.imageIP);
+		ImagePlus imp = intensityImage.imageIP;
 		imp = new Duplicator().run(imp);
 		IJ.run(imp, "Gaussian Blur...", "sigma=3 stack");
 		

@@ -231,7 +231,6 @@ public class Algorithm
 		m_MaxNLabels = 0;
 	}
 	
-	
 	/**
 	 * as computeStatistics, does not use iterative approach
 	 * (first computes sum of values and sum of values^2)
@@ -464,7 +463,7 @@ public class Algorithm
             	else
             		gPsfIS = gPsf.getGauss3DPsf();
             	
-            	Img<FloatType> tmp = (new IntensityImage(gPsfIS)).dataIntensity;
+            	Img<FloatType> tmp = IntensityImage.convertToImg(gPsfIS);
 				float Vol = IntensityImage.volume_image(tmp);
 				IntensityImage.rescale_image(tmp,1.0f/Vol);
             	

@@ -18,6 +18,16 @@ public class Point
 	private Point(){};
 
 	/**
+	 * Constructs a Point by copying a Point
+	 * @param Point
+	 */
+	public Point(Point p) 
+	{
+		this.dim = p.x.length;
+		this.x = p.x.clone();
+	}
+	
+	/**
 	 * Constructs a Point by copying the coords
 	 * @param coords (int)
 	 */
