@@ -11,6 +11,7 @@ import mosaic.region_competition.IntensityImage;
 import mosaic.region_competition.LabelImage;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Point;
+import mosaic.region_competition.RegionIterator;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
@@ -231,50 +232,72 @@ public class E_Deconvolution extends ExternalEnergy
     	m_PSF.dimensions(dimlen);
     
     	// middle coord
-    
+    	
+    	Point sizeP = new Point (dimlen);
+    	
     	for (int i = 0 ; i < m_PSF.numDimensions() ; i++)	{dimlen[i] = dimlen[i] / 2;}
     	Point middle = new Point(dimlen);
-    	middle = aIndex.sub(middle);
+    	Point LowerCorner = aIndex.sub(middle);
     
     	Point pos = new Point(dimlen);
     	int loc[] = new int [m_PSF.numDimensions()];
     	Cursor< FloatType > vPSF = m_PSF.localizingCursor();
     	
-    	while (vPSF.hasNext())
-    	{
+    	Point UpperCorner = LowerCorner.add(sizeP);
     	
-    		vPSF.fwd();
-    		// Add aindex to cursor
+    	// if we are
     	
-    		pos = new Point(middle);    	
-			vPSF.localize(loc);
-			pos = pos.add(new Point(loc));
+/*    	if (aDataImage.isOutOfBound(LowerCorner) == true && aDataImage.isOutOfBound(UpperCorner) == true)
+    	{*/
+    	
+    		while (vPSF.hasNext())
+    		{
+    	
+    			vPSF.fwd();
+    			// Add aindex to cursor
+    	
+    			pos = new Point(LowerCorner);    	
+    			vPSF.localize(loc);
+    			pos = pos.add(new Point(loc));
 			
-			infDevAccessIt.setPosition(pos.x);
+    			infDevAccessIt.setPosition(pos.x);
     		
-			float vEOld = (infDevAccessIt.get().get() - aDataImage.getCheck(pos));
-			vEOld = vEOld * vEOld;
-			//            vEOld = fabs(vEOld);
-			float vENew = (infDevAccessIt.get().get() - aDataImage.getCheck(pos) + ((float)vIntensity_ToLabel - (float)vIntensity_FromLabel)*vPSF.get().get());
-			vENew = vENew * vENew;
+    			float vEOld = (infDevAccessIt.get().get() - aDataImage.getSafe(pos));
+    			vEOld = vEOld * vEOld;
+    			//            vEOld = fabs(vEOld);
+    			float vENew = (infDevAccessIt.get().get() - aDataImage.getSafe(pos) + ((float)vIntensity_ToLabel - (float)vIntensity_FromLabel)*vPSF.get().get());
+    			vENew = vENew * vENew;
 
-			vEnergyDiff.energyDifference += vENew - vEOld;
+    			vEnergyDiff.energyDifference += vENew - vEOld;
 		
-    	}
+    		}
+/*    	}
+    	else
+    	{
+    		while (vPSF.hasNext())
+    		{
+    	
+    			vPSF.fwd();
+    			// Add aindex to cursor
+    	
+    			pos = new Point(middle);    	
+    			vPSF.localize(loc);
+    			pos = pos.add(new Point(loc));
+			
+    			infDevAccessIt.setPosition(pos.x);
+    		
+    			float vEOld = (infDevAccessIt.get().get() - aDataImage.get(pos));
+    			vEOld = vEOld * vEOld;
+    			//            vEOld = fabs(vEOld);
+    			float vENew = (infDevAccessIt.get().get() - aDataImage.get(pos) + ((float)vIntensity_ToLabel - (float)vIntensity_FromLabel)*vPSF.get().get());
+    			vENew = vENew * vENew;
+
+    			vEnergyDiff.energyDifference += vENew - vEOld;
+		
+    		}
+    	}*/
     	
 		return vEnergyDiff;
-		
-    	/**
-    	 * Do not really subtract / add the scaled PSF to the 'ideal image'.
-    	 * Example for the case where the energyDiff is calculated for a possible
-    	 * change to the background (removal):
-    	 * Calc (J' - I)^2  -  (J - I)^2
-    	 * = (J - (c-BG) * PSF - I)^2 - (J - I)^2
-    	 */
-
-    	/// Define the region of influence:
-    	
-
     }
 
 

@@ -18,6 +18,7 @@ public class RegionIterator
 	int[] input;		// dimensions of input
 	int[] region;		// dimensions of region
 	int[] ofs;			// offset
+	int[] crop_size;      // crop
 	
 	int size;			// size of (cropped) region
 	
@@ -34,6 +35,8 @@ public class RegionIterator
 		setInput(input);
 		setRegion(region);
 		setOfs(ofs);
+		
+		crop_size = new int [input.length];
 		
 		reset();
 		
@@ -87,6 +90,14 @@ public class RegionIterator
 		}
 	}
 
+	/**
+	 * Get cropped region
+	 */
+	
+	public int [] getCrop()
+	{
+		return this.crop_size.clone();
+	}
 
 	/**
 	 * Crops, i.e recalculates sizes of the offsets and sizes of the region 
@@ -94,19 +105,26 @@ public class RegionIterator
 	 * 
 	 * TODO ofs[] and region[] are overwritten, so stay cropped forever 
 	 * if they were cropped once. 
+	 * 
+	 * TODO Bug if region is bigger that input
+	 * 
 	 */
 	void crop()
 	{
 		for(int i=0; i<dimensions; i++)
 		{
 			// crop too small values
-			if(ofs[i]<0){
+			if(ofs[i]<0)
+			{
+				crop_size[i] = ofs[i];
 				region[i]+=ofs[i]; // shrink region for left border alignment
 				ofs[i]=0;
 			}
 			// crop too large values
 			//TODO reuse of region, ofs
-			if(ofs[i]+region[i]>input[i]){
+			if(ofs[i]+region[i]>input[i])
+			{
+				crop_size[i] = -(region[i] - (input[i]-ofs[i]));
 				region[i]=input[i]-ofs[i];	//shrink region for right border alignment
 			}
 		}

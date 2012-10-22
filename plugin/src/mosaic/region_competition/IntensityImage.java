@@ -24,6 +24,13 @@ public class IntensityImage
 	private int[] dimensions;
 	private int size;
 	
+	public boolean isOutOfBound(Point p)
+	{
+		for (int i = 0 ; i < p.x.length ; i++)
+		{if (p.x[i] < 0) return true; if (p.x[i] >= dimensions[i]) return true;}
+		return true;
+	}
+	
 	public int getDim()
 	{
 		return dim;
@@ -275,12 +282,10 @@ public class IntensityImage
 		return get(iterator.pointToIndex(p));
 	}
 	
-	public float getCheck(Point p)
+	public float getSafe(Point p)
 	{
-		if (p.x[0] < 0) return 0.0f;
-		if (p.x[1] < 0) return 0.0f;
-		if (p.x[0] >= dimensions[0]) return 0.0f;
-		if (p.x[1] >= dimensions[1]) return 0.0f;
+		for (int i = 0 ; i < p.x.length ; i++)	
+		{if (p.x[i] < 0) return 0.0f; if (p.x[i] >= dimensions[i]) return 0.0f;}
 		
 		return get(iterator.pointToIndex(p));
 	}
