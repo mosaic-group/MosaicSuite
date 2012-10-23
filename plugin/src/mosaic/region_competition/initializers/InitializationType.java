@@ -9,6 +9,5 @@ public enum InitializationType
 	Bubbles, 
 	LocalMax, 
 	ROI_2D, 
-	Ellipses, 
 	File
 }

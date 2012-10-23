@@ -401,7 +401,7 @@ public class Region_Competition implements PlugInFilter
 				BubbleInitializer bi = new BubbleInitializer(labelImage);
 //				bi.runInitialization();
 //				bi.initBySize(10, 50);
-				bi.initSizePaddig(10, 10);
+				bi.initSizePaddig(settings.m_BubblesRadius, settings.m_BubblesDispl);
 //				bi.initWidthCount(5, 0.5);
 //				labelImage.initialGuessBubbles();
 				break;

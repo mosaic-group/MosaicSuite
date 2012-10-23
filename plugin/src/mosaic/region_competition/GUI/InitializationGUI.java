@@ -57,9 +57,8 @@ class BubblesInitGUI extends InitializationGUI
 	@Override
 	public void createDialog()
 	{
-		gd.addNumericField("Bubble_Radius", 5, 0);
-		gd.addNumericField("Bubble_Padding", 15, 0);
-		
+		gd.addNumericField("Bubble_Radius", settings.m_BubblesRadius, 0);
+		gd.addNumericField("Bubble_Padding", settings.m_BubblesRadius, 0);
 	}
 
 	@Override
@@ -68,11 +67,8 @@ class BubblesInitGUI extends InitializationGUI
 		if(gd.wasCanceled())
 			return;
 		
-		double rad = gd.getNextNumber();
-		double padding = gd.getNextNumber();
-		
-		//TODO save to settings
-		
+		settings.m_BubblesRadius = (int)gd.getNextNumber();
+		settings.m_BubblesDispl = (int)gd.getNextNumber();		
 	}
 }
 

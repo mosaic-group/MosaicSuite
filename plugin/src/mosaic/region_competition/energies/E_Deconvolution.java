@@ -247,8 +247,8 @@ public class E_Deconvolution extends ExternalEnergy
     	
     	// if we are
     	
-/*    	if (aDataImage.isOutOfBound(LowerCorner) == true && aDataImage.isOutOfBound(UpperCorner) == true)
-    	{*/
+    	if (aDataImage.isOutOfBound(LowerCorner) == true && aDataImage.isOutOfBound(UpperCorner) == true)
+    	{
     	
     		while (vPSF.hasNext())
     		{
@@ -271,7 +271,7 @@ public class E_Deconvolution extends ExternalEnergy
     			vEnergyDiff.energyDifference += vENew - vEOld;
 		
     		}
-/*    	}
+    	}
     	else
     	{
     		while (vPSF.hasNext())
@@ -295,7 +295,7 @@ public class E_Deconvolution extends ExternalEnergy
     			vEnergyDiff.energyDifference += vENew - vEOld;
 		
     		}
-    	}*/
+    	}
     	
 		return vEnergyDiff;
     }

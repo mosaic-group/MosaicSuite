@@ -292,14 +292,14 @@ public class GenericDialogGUI implements InputReadable
 //		}
 		gd_p.addChoice(Initialization, initializationItems, defaultInit);
 //		save reference to this choice, so we can handle it
-		initializationChoice = (Choice)gd.getChoices().lastElement();
+		initializationChoice = (Choice)gd_p.getChoices().lastElement();
 //		lastInitChoice=initializationChoice.getSelectedItem();
 		
 		{
 			optionButton = new Button("Options");
 			c = new GridBagConstraints();
 			c.gridx=gridx; c.gridy=gridy++; c.anchor = GridBagConstraints.EAST;
-			gd.add(optionButton,c);
+			gd_p.add(optionButton,c);
 			
 			optionButton.addActionListener(new ActionListener() 
 			{
@@ -307,7 +307,6 @@ public class GenericDialogGUI implements InputReadable
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					IJ.showMessage("Only for demo purposes, values will not be saved");
 					String type = initializationChoice.getSelectedItem();
 					InitializationGUI gui = InitializationGUI.factory(settings, type);
 					gui.createDialog();

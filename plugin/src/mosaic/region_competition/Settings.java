@@ -57,6 +57,8 @@ public class Settings implements Serializable
 	public double m_OscillationThreshold = 0.02;
 	
 	public String m_PSFImg;
+	public int m_BubblesRadius = 10;
+	public int m_BubblesDispl = 10;
 	
 	// SettingsListener ////////////////////////////////
 	// To update values on the fly
