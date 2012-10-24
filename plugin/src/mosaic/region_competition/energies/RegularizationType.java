@@ -2,8 +2,7 @@ package mosaic.region_competition.energies;
 
 public enum RegularizationType
 {
-	Sphere_Regularization, 
-	Sphere_Regularization_OLD, 
+	Sphere_Regularization,  
 	Approximative, 
 	None,
 }

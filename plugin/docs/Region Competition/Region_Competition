@@ -117,6 +117,18 @@ Use paper [1] for a detailed explanation of each model, term and parameter
 <br>
 <br>
 <h3>Energy lenght model</h3>
+<table>
+  <tbody>
+    <tr>
+      <td>
+	<IMG src="Cont_lenght_lf.gif" width="100" height="100" align="left" border="0">
+      </td>
+      <td>
+	From a practical point of view, this energy is responsible to localy fill concavity, reduce tip, and globaly reduce the lenght of the countor region. The image show ad image segmentation driven only by the Sphere Regularization energy term
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 <table>
   <tbody>
@@ -129,22 +141,48 @@ Use paper [1] for a detailed explanation of each model, term and parameter
 	<strong>Radius</strong>: Radius of the hypersphere in the curvature regularization<br>
       </td>
     </tr>
+    <tr>
+      <td>
+<IMG src="E_lenght_approximative.jpg" width="120" height="24" align="left" border="0">
+      </td>
+      <td>
+<h3>Approximative</h3><br>
+	Countor lenght regularization, no other parameters needed<br>
+      </td>
+    </tr>
    </tbody>
 </table>
 
-[1] for a detailed explanation
 
-Sphere: No additional paramenters
+<h3>Energy Merge</h3>
 
-<h4>Energy Merge</h4>
+<table>
+  <tbody>
+    <tr>
+      <td>
+<IMG src="E_merge.jpg" width="378" height="31" align="left" border="0">
+      </td>
+      <td>
+<h3>Kullback-Leibler</h3>
+This parameter is tuned int the global region competition parameters (Green box)
+      </td>
+    </tr>
+   </tbody>
+</table>
 
-[1] for a detailed explanation
+<h3>Initialization</h3>
 
 
-Only one model has been implemented and one paramenter is required
-
-
-<h4>Initialization</h4>
+<table>
+  <tbody>
+    <tr>
+      <td>
+      </td>
+      <td>
+      </td>
+    </tr>
+   </tbody>
+</table>
 
 Local Maxima: Create label regions over over local maxima
 Rectangle: Use rectangular label image

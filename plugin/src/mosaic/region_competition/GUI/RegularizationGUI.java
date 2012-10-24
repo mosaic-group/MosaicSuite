@@ -21,11 +21,6 @@ public abstract class RegularizationGUI extends GUImeMore
 				result = new CurvatureFlowGUI(settings);
 				break;
 			}
-			case Sphere_Regularization_OLD: 
-			{
-				result = new CurvatureFlowGUI(settings);
-				break;
-			}
 			default:
 			{
 				result = new DefaultRegularizationGUI();

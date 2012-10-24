@@ -251,12 +251,6 @@ public class Region_Competition implements PlugInFilter
 				e_length = new E_CurvatureFlow(labelImage, rad);
 				break;
 			}
-			case Sphere_Regularization_OLD:
-			{
-				int rad = (int)settings.m_CurvatureMaskRadius;
-				e_length = new E_CurvatureBasedGradientFlow_sphis(labelImage, rad);
-				break;
-			}
 			case Approximative:
 			{
 				e_length = new E_Gamma(labelImage);

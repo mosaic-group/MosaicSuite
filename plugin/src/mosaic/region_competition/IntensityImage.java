@@ -243,6 +243,14 @@ public class IntensityImage
 		
 		double range = maximum-minimum;
 		
+		if (range == 0.0)
+		{
+			if (maximum != 0.0)
+			{range = maximum; minimum = 0.0;}
+			else
+			{range = 1.0; minimum = 0.0;}
+		}
+		
 		for(int i=1; i<=nSlices; i++)
 		{
 			ImageProcessor p = stack.getProcessor(i);

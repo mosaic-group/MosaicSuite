@@ -6,6 +6,7 @@ import java.awt.TextField;
 
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.EnergyFunctionalType;
+import mosaic.region_competition.GUI.*;
 
 public abstract class EnergyGUI extends GUImeMore
 {

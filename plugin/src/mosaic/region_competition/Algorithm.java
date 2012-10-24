@@ -271,6 +271,14 @@ public class Algorithm
 			}
 		}
 
+		// if background label do not exist add it
+		
+		LabelInformation stats = labelMap.get(0);
+		if(stats==null)
+		{
+			stats = new LabelInformation(0);
+			labelMap.put(0, stats);
+		}
 		
 		// now we have in all LabelInformation: 
 		// in mean the sum of the values, in var the sum of val^2
@@ -287,7 +295,11 @@ public class Algorithm
 			{
 				stat.var = 0;
 			}
-			stat.mean = stat.mean/n;
+			
+			if (n > 0)
+				stat.mean = stat.mean/n;
+			else
+				stat.mean = 0.0;
 			
 			// Median on start set equal to mean
 			
