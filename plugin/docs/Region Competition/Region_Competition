@@ -60,7 +60,7 @@ The algorithm require the following inputs and produce the following outputs<br>
     <tr>
       <td><IMG src="RegionCM.jpg" width="579" height="422" align="left" border="0"></td>
       <td><h3>Select an image</h3>
-Press OpenImage button and choose the file, or drag and drop the file inside the Open Image rectangle. if the file is is already opened in ImageJ, choose it from input selector.</td>
+Press OpenImage button and choose the file, or drag and drop the file inside the rectangle. if the file is is already opened in ImageJ, choose it from the input selector.</td>
     </tr>
   </tbody>
 </table>
@@ -70,12 +70,12 @@ Press OpenImage button and choose the file, or drag and drop the file inside the
     <tr>
       <td><IMG src="RegionPAR.jpg" width="617" height="341" align="left" border="0"></td>
       <td><h3>Select paramenters</h3>
-Press Parameters button in the main window, you can tune global parameters like Maxium numer of iteration and Oscillation threshold that control the convergence of the alghorithm and global energy parameters, like Lambda and Theta.<br>
+Press Parameters button in the main window, you can tune global parameters like the maxium number of iteration and the oscillation threshold that control the convergence of the algorithm. You can also tune global parameters related to the energy, like Lambda and Theta that we will explain below.<br>
 <br>
-<strong>Lambda E lenght</strong>: Is a scaling factor for the Energy lenght, this energy in general control the shape of the region<br>
-<strong>Theta E merge</strong>: Is a factor needed for the merging energy function, this energy implement model that control the merging of two regions<br>
-<strong>Max Iteration</strong>: Is the maxiumum number of iteration<br>
-<strong>Oscillation Threadshold</strong>: This parameter control the convergence of the algorithm in this way, at each iteration the global energy is stored and the standard deviation is calculated along all history, and the last 10 iterations, if <IMG src="Oscillation.jpg" width="182" height="57" align="left" border="0"> the number of fixed particles needed to converge is reduced by a factor two<br>
+<strong>Lambda E length</strong>: Lambda E length: Is a scaling factor for the Energy length, this term in general is sensitive to the shape of the region<br>
+<strong>Theta E merge</strong>:  Is a factor needed for the merging energy function, this term implements model that controls the merging of two regions<br>
+<strong>Max Iteration</strong>: Is the maximum number of iteration<br>
+<strong>Oscillation Threadshold</strong>: This parameter controls the convergence of the algorithm in this way, at each iteration the global energy is stored, the standard deviation is calculated along all history and starting from the last 10 iterations. <IMG src="Oscillation.jpg" width="182" height="57" align="left" border="0"> Each time the event in fig A occurs the number of fixed particles needed to converge is reduced by a factor two<br>
     </tr>
   </tbody>
 </table>
@@ -94,8 +94,8 @@ This is the Energy part that depend from the input image, each model have an "op
     <tr>
       <td><IMG src="E_ps.jpg" width="503" height="254" align="left" border="0"></td>
       <td><h3>PS</h3><br>
-	<strong>Radius</strong>: Radius of the sphere where the intensity mean is calculated<br>
-	<strong>Beta Ballon force</strong>: Beta control the strenght of the Ballon force<br>
+	<strong>Radius</strong>: Radius of the sphere where the mean of the intensity is calculated<br>
+	<strong>Beta Balloon force</strong>: Beta controls the strenght of the Balloon force<br>
       </td>
     </tr>
     <tr>
@@ -111,7 +111,7 @@ This is the Energy part that depend from the input image, each model have an "op
 Use paper [1] for a detailed explanation of each model, term and parameter
 <br>
 <br>
-<h3>Energy lenght model</h3>
+<h3>Energy length model</h3>
 <table>
   <tbody>
     <tr>
@@ -119,7 +119,7 @@ Use paper [1] for a detailed explanation of each model, term and parameter
 	<IMG src="Cont_lenght_lf.gif" width="100" height="100" align="left" border="0">
       </td>
       <td>
-	From a practical point of view, this energy is responsible to localy reduce concavity, tip, and globaly the lenght of the countor region. The image show ad image segmentation driven only by the Sphere Regularization energy term
+	From a practical point of view, this energy locally reduces concavity, tips , and globally the length of the countor region. The image show what happen when the segmentation is driven only by the Sphere Regularization energy term
       </td>
     </tr>
   </tbody>
@@ -142,7 +142,7 @@ Use paper [1] for a detailed explanation of each model, term and parameter
       </td>
       <td>
 <h3>Approximative</h3><br>
-	Countor lenght regularization, no other parameters needed<br>
+	Countor length regularization, no other parameters needed<br>
       </td>
     </tr>
    </tbody>
@@ -159,7 +159,7 @@ Use paper [1] for a detailed explanation of each model, term and parameter
       </td>
       <td>
 <h3>Kullback-Leibler</h3>
-This parameter is tuned in the global region competition parameters (Theta E Merge)
+This parameter is controlled in the global region competition parameters (Theta E Merge)
       </td>
     </tr>
    </tbody>
@@ -193,7 +193,7 @@ Create a rectangle in the center of the image, the ratio is the division of the 
       </td>
       <td>
 <h3>ROI</h3>
-Before the simulation start, the normalized intensity image is shown, and It ask the user to draw a starting region using the selection tools of ImageJ, when done press shift to start the simulation
+Before the simulation start, the normalized intensity image is shown, and it ask to user to draw a starting region using the selection tools of ImageJ, when done press shift to start the simulation
       </td>
     </tr>
     <tr>
@@ -211,9 +211,7 @@ Initial regions are created around local maxima of the image
 
 <h3>Handle, fission, fusion</h3>
 
-The algorithm handle topologies changes, you can enable or disable the creation of handles, and fission and fusion of regions
-
-
+The algorithm is able to manage changes of topology, you can enable or disable the creation of handles, and fission and fusion of regions
 
 <table>
   <tbody>
@@ -268,7 +266,7 @@ The algorithm handle topologies changes, you can enable or disable the creation 
 <TD>
 <br>
 <strong>Show progress</strong>: Show the progress of the segmentation process during computation<br>
-<strong>Keep frames</strong>: Save all frames produced by the alghorithm<br>
+<strong>Keep frames</strong>: Save all frames produced by the algorithm<br>
 <strong>Show normalized</strong>: Show the floating point normalized image<br>
 <strong>Show statistics</strong>: Show statistics of the segmentation<br>
 <IMG src="statistics.jpg" width="462" height="256" align="left" border="0">
@@ -289,7 +287,7 @@ The algorithm handle topologies changes, you can enable or disable the creation 
       <td><trong><h2>PC</h2>
       <strong>Oscillation threshold</strong>: 0.00001<br>
       <strong>Theta E merge</strong>: 0.2<br>
-      <strong>Lambda E lenght</strong>: 0.04<br>
+      <strong>Lambda E length</strong>: 0.04<br>
       <strong>R_k</strong>: 8<br>
       <strong>Bubble radius</strong>: 20<br>
       <strong>Bubble padding</strong>: 20<br>
@@ -303,7 +301,7 @@ The algorithm handle topologies changes, you can enable or disable the creation 
       <td><h2>PS</h2>
       <strong>Oscillation threshold</strong>: 0.01<br>
       <strong>Theta E merge</strong>: 0.4<br>
-      <strong>Lambda E lenght</strong>: 0.04<br>
+      <strong>Lambda E length</strong>: 0.04<br>
       <strong>R_k</strong>: 4<br>
       <strong>PS Radius</strong>: 8<br>
       <strong>Beta Ballon</strong>: 0.05<br>
@@ -316,7 +314,7 @@ The algorithm handle topologies changes, you can enable or disable the creation 
       <td><h2>Deconvolution</h2>
       <strong>Oscillation threshold</strong>: 0.18<br>
       <strong>Theta E merge</strong>: 0.2<br>
-      <strong>Lambda E lenght</strong>: 0.07<br>
+      <strong>Lambda E length</strong>: 0.07<br>
       <strong>R_k</strong>: 4<br>
       <strong>fill ratio</strong>: 0.80<br>
     </tr>

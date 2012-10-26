@@ -64,7 +64,7 @@ public class GenericDialogGUI implements InputReadable
 	
 	static final String EnergyFunctional = "E_data";
 	EnergyGUI energyGUI;
-	static final String Regularization = "E_lenght";
+	static final String Regularization = "E_length";
 	RegularizationGUI regularizationGUI;
 	
 	private static final String Initialization = "Initialization";
@@ -328,7 +328,7 @@ public class GenericDialogGUI implements InputReadable
 		
 		// Numeric Fields
 		
-		gd_p.addNumericField("Lambda E_lenght", settings.m_EnergyContourLengthCoeff, 4);
+		gd_p.addNumericField("Lambda E_length", settings.m_EnergyContourLengthCoeff, 4);
 		gd_p.addNumericField("Theta E_merge", settings.m_RegionMergingThreshold, 4);
 
 		
