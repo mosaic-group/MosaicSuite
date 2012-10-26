@@ -58,7 +58,7 @@ The algorithm require the following inputs and produce the following outputs<br>
 <table>
   <tbody>
     <tr>
-      <td><IMG src="RegionCM.jpg" width="579" height="422" align="left" border="0"></td>
+      <td><IMG src="images/RegionCM.jpg" width="579" height="422" align="left" border="0"></td>
       <td><h3>Select an image</h3>
 Press OpenImage button and choose the file, or drag and drop the file inside the rectangle. if the file is is already opened in ImageJ, choose it from the input selector.</td>
     </tr>
@@ -68,14 +68,14 @@ Press OpenImage button and choose the file, or drag and drop the file inside the
 <table>
   <tbody>
     <tr>
-      <td><IMG src="RegionPAR.jpg" width="617" height="341" align="left" border="0"></td>
+      <td><IMG src="images/RegionPAR.jpg" width="617" height="341" align="left" border="0"></td>
       <td><h3>Select paramenters</h3>
 Press Parameters button in the main window, you can tune global parameters like the maxium number of iteration and the oscillation threshold that control the convergence of the algorithm. You can also tune global parameters related to the energy, like Lambda and Theta that we will explain below.<br>
 <br>
 <strong>Lambda E length</strong>: Lambda E length: Is a scaling factor for the Energy length, this term in general is sensitive to the shape of the region<br>
 <strong>Theta E merge</strong>:  Is a factor needed for the merging energy function, this term implements model that controls the merging of two regions<br>
 <strong>Max Iteration</strong>: Is the maximum number of iteration<br>
-<strong>Oscillation Threadshold</strong>: This parameter controls the convergence of the algorithm in this way, at each iteration the global energy is stored, the standard deviation is calculated along all history and starting from the last 10 iterations. <IMG src="Oscillation.jpg" width="182" height="57" align="left" border="0"> Each time the event in fig A occurs the number of fixed particles needed to converge is reduced by a factor two<br>
+<strong>Oscillation Threadshold</strong>: This parameter controls the convergence of the algorithm in this way, at each iteration the global energy is stored, the standard deviation is calculated along all history and starting from the last 10 iterations. <IMG src="images/Oscillation.jpg" width="182" height="57" align="left" border="0"> Each time the event in fig A occurs the number of fixed particles needed to converge is reduced by a factor two<br>
     </tr>
   </tbody>
 </table>
@@ -88,18 +88,18 @@ This is the Energy part that depend from the input image, each model have an "op
 <table>
   <tbody>
     <tr>
-      <td><IMG src="E_pc.jpg" width="253" height="79" align="left" border="0"></td>
+      <td><IMG src="images/E_pc.jpg" width="253" height="79" align="left" border="0"></td>
       <td><h3>PC</h3><br> No Additional options are available</td>
     </tr>
     <tr>
-      <td><IMG src="E_ps.jpg" width="503" height="254" align="left" border="0"></td>
+      <td><IMG src="images/E_ps.jpg" width="503" height="254" align="left" border="0"></td>
       <td><h3>PS</h3><br>
 	<strong>Radius</strong>: Radius of the sphere where the mean of the intensity is calculated<br>
 	<strong>Beta Balloon force</strong>: Beta controls the strenght of the Balloon force<br>
       </td>
     </tr>
     <tr>
-      <td><IMG src="E_dev.jpg" width="425" height="304" align="left" border="0"></td>
+      <td><IMG src="images/E_dev.jpg" width="425" height="304" align="left" border="0"></td>
       <td><h3>Deconvolution</h3><br>
 	<strong>Open PSF Image</strong>: Open an image and use it as Point Spread Function<br>
 	<strong>Generate:</strong>Generate a gaussian PSF Image, before starting the simulation<br>
@@ -116,7 +116,7 @@ Use paper [1] for a detailed explanation of each model, term and parameter
   <tbody>
     <tr>
       <td>
-	<IMG src="Cont_lenght_lf.gif" width="100" height="100" align="left" border="0">
+	<IMG src="images/Cont_lenght_lf.gif" width="100" height="100" align="left" border="0">
       </td>
       <td>
 	From a practical point of view, this energy locally reduces concavity, tips , and globally the length of the countor region. The image show what happen when the segmentation is driven only by the Sphere Regularization energy term
@@ -129,7 +129,7 @@ Use paper [1] for a detailed explanation of each model, term and parameter
   <tbody>
     <tr>
       <td>
-<IMG src="E_lenght.jpg" width="301" height="242" align="left" border="0">
+<IMG src="images/E_lenght.jpg" width="301" height="242" align="left" border="0">
       </td>
       <td>
 <h3>Sphere Regularization</h3><br>
@@ -138,7 +138,7 @@ Use paper [1] for a detailed explanation of each model, term and parameter
     </tr>
     <tr>
       <td>
-<IMG src="E_lenght_approximative.jpg" width="120" height="24" align="left" border="0">
+<IMG src="images/E_lenght_approximative.jpg" width="120" height="24" align="left" border="0">
       </td>
       <td>
 <h3>Approximative</h3><br>
@@ -155,7 +155,7 @@ Use paper [1] for a detailed explanation of each model, term and parameter
   <tbody>
     <tr>
       <td>
-<IMG src="E_merge.jpg" width="378" height="31" align="left" border="0">
+<IMG src="images/E_merge.jpg" width="378" height="31" align="left" border="0">
       </td>
       <td>
 <h3>Kullback-Leibler</h3>
@@ -172,7 +172,7 @@ This parameter is controlled in the global region competition parameters (Theta 
   <tbody>
     <tr>
       <td>
-<IMG src="bubbles.jpg" width="350" height="268" align="left" border="0">
+<IMG src="images/bubbles.jpg" width="350" height="268" align="left" border="0">
       </td>
       <td>
 <h3>Bubbles</h3>
@@ -181,7 +181,7 @@ Create a grid of bubbles with a specified radius and padding
     </tr>
     <tr>
       <td>
-<IMG src="Rectangle.jpg" width="319" height="228" align="left" border="0">
+<IMG src="images/Rectangle.jpg" width="319" height="228" align="left" border="0">
       </td>
       <td>
 <h3>Rectangle</h3>
@@ -217,42 +217,42 @@ The algorithm is able to manage changes of topology, you can enable or disable t
   <tbody>
     <tr>
       <TD>
-<IMG src="Fusion_on.jpg" width="70" height="28" align="left" border="0">
+<IMG src="images/Fusion_on.jpg" width="70" height="28" align="left" border="0">
       </TD>
       <TD>
-<IMG src="Fusion_off.jpg" width="72" height="31" align="left" border="0">
+<IMG src="images/Fusion_off.jpg" width="72" height="31" align="left" border="0">
       </TD>
       <TD>
-<IMG src="Fission_on.jpg" width="76" height="28" align="left" border="0">
+<IMG src="images/Fission_on.jpg" width="76" height="28" align="left" border="0">
       </TD>
       <TD>
-<IMG src="Fission_off.jpg" width="72" height="31" align="left" border="0">
+<IMG src="images/Fission_off.jpg" width="72" height="31" align="left" border="0">
       </TD>
       <TD>
-<IMG src="Handles_on.jpg" width="77" height="28" align="left" border="0">
+<IMG src="images/Handles_on.jpg" width="77" height="28" align="left" border="0">
       </TD>
       <TD>
-<IMG src="Handles_off.jpg" width="97" height="31" align="left" border="0">
+<IMG src="images/Handles_off.jpg" width="97" height="31" align="left" border="0">
       </TD>
     </tr>
     <tr>
       <TD>
-<IMG src="Ball_region_ffusion.gif" width="100" height="100" align="left" border="0">
+<IMG src="images/Ball_region_ffusion.gif" width="100" height="100" align="left" border="0">
       </TD>
       <TD>
-<IMG src="Ball_region_fusion.gif" width="100" height="100" align="left" border="0">
+<IMG src="images/Ball_region_fusion.gif" width="100" height="100" align="left" border="0">
       </TD>
       <TD>
-<IMG src="flo_fission.gif" width="100" height="100" align="left" border="0">
+<IMG src="images/flo_fission.gif" width="100" height="100" align="left" border="0">
       </TD>
       <TD>
-<IMG src="flo_no_fission.gif" width="100" height="100" align="left" border="0">
+<IMG src="images/flo_no_fission.gif" width="100" height="100" align="left" border="0">
       </TD>
       <TD>
-<IMG src="Ball_with_holes_H.gif" width="100" height="100" align="left" border="0">
+<IMG src="images/Ball_with_holes_H.gif" width="100" height="100" align="left" border="0">
       </TD>
       <TD>
-<IMG src="Ball_with_holes_nH.gif" width="100" height="100" align="left" border="0">
+<IMG src="images/Ball_with_holes_nH.gif" width="100" height="100" align="left" border="0">
       </TD>
     </tr>
   </tbody>
@@ -269,7 +269,7 @@ The algorithm is able to manage changes of topology, you can enable or disable t
 <strong>Keep frames</strong>: Save all frames produced by the algorithm<br>
 <strong>Show normalized</strong>: Show the floating point normalized image<br>
 <strong>Show statistics</strong>: Show statistics of the segmentation<br>
-<IMG src="statistics.jpg" width="462" height="256" align="left" border="0">
+<IMG src="images/statistics.jpg" width="462" height="256" align="left" border="0">
 </TD>
     </tr>
   </tbody>
@@ -282,8 +282,8 @@ The algorithm is able to manage changes of topology, you can enable or disable t
 <table>
   <tbody>
     <tr>
-      <td><IMG src="icecream5_410x410.jpg" width="410" height="410" align="left" border="0"></td>
-      <td><IMG src="icecream5_rs.gif" width="410" height="410" align="left" border="0"></td>
+      <td><IMG src="images/icecream5_410x410.jpg" width="410" height="410" align="left" border="0"></td>
+      <td><IMG src="images/icecream5_rs.gif" width="410" height="410" align="left" border="0"></td>
       <td><trong><h2>PC</h2>
       <strong>Oscillation threshold</strong>: 0.00001<br>
       <strong>Theta E merge</strong>: 0.2<br>
@@ -296,8 +296,8 @@ The algorithm is able to manage changes of topology, you can enable or disable t
     <tr>
     </tr>
     <tr>
-      <td><IMG src="icecream_shaded_130x130.jpg" width="260" height="260" align="left" border="0"></td>
-      <td><IMG src="ps_bubble_rs.gif" width="260" height="260" align="left" border="0"></td>
+      <td><IMG src="images/icecream_shaded_130x130.jpg" width="260" height="260" align="left" border="0"></td>
+      <td><IMG src="images/ps_bubble_rs.gif" width="260" height="260" align="left" border="0"></td>
       <td><h2>PS</h2>
       <strong>Oscillation threshold</strong>: 0.01<br>
       <strong>Theta E merge</strong>: 0.4<br>
@@ -309,8 +309,8 @@ The algorithm is able to manage changes of topology, you can enable or disable t
       <strong>Bubble padding</strong>: 8<br>
     </tr>
     <tr>
-      <td><IMG src="uc_data.jpg" width="196" height="288" align="left" border="0"></td>
-      <td><IMG src="Dev_res_rs.gif" width="196" height="288" align="left" border="0"></td>
+      <td><IMG src="images/uc_data.jpg" width="196" height="288" align="left" border="0"></td>
+      <td><IMG src="images/Dev_res_rs.gif" width="196" height="288" align="left" border="0"></td>
       <td><h2>Deconvolution</h2>
       <strong>Oscillation threshold</strong>: 0.18<br>
       <strong>Theta E merge</strong>: 0.2<br>
