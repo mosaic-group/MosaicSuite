@@ -90,12 +90,11 @@ public class KDTreeNearestNeighbor {
 		 return D;
 		
 	}
-	
-	
-	
+
 	
 	
 
+	
 	
 	public double  getNNDistance(Point3d p) throws Exception 
 	{

@@ -140,18 +140,18 @@ public class PotentialCalculator {
 			for(int i=0;i<D_sample.length;i++)
 			{
 				double threshold=Math.abs(params[1]);
-		
+				
 				potential[i]=PotentialFunctions.stepPotential(D_sample[i], threshold);
 				sumPotential=sumPotential+potential[i];
 				gibbspotential[i]=Math.exp(-1*potential[i]);
 			}
+			
 			break;
 		case 2: //hernquist
 			for(int i=0;i<D_sample.length;i++)
 			{
 				double threshold=0;
 				double sigma=Math.abs(params[1]);
-				
 				potential[i]=PotentialFunctions.hernquistPotential(D_sample[i], threshold, sigma);
 				sumPotential=sumPotential+potential[i];
 				gibbspotential[i]=Math.exp(-1*potential[i]);

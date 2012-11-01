@@ -48,6 +48,7 @@ public class PotentialFunctions {
 	
 	 static double hernquistPotential(double di, double threshold, double sigma)
 	{
+		
 		double z=(di-threshold)/sigma;
 		if(z>0)
 			return -1/(1+z);
