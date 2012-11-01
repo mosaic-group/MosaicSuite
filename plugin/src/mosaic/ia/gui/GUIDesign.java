@@ -4,6 +4,7 @@ package mosaic.ia.gui;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
+import ij.measure.Calibration;
 
 import java.awt.EventQueue;
 
@@ -70,10 +71,12 @@ public class GUIDesign implements ActionListener  {
 	
 	 private Analysis a;
 	 private int monteCarloRunsForTest=1000;
-
+	 private int numReRuns=10;
+private double qkernelWeight=.001;
+private double pkernelWeight=.1;
 
 		private double alpha=.05;
-		private JFormattedTextField mCRuns, numSupport,smoothnessNP,gridSizeInp;
+		private JFormattedTextField mCRuns, numSupport,smoothnessNP,gridSizeInp,reRuns,kernelWeightq, kernelWeightp;
 		
 		private JFormattedTextField alphaField;
 	
@@ -91,6 +94,8 @@ public class GUIDesign implements ActionListener  {
 	    private JFormattedTextField txtYmax;
 	    private JFormattedTextField txtZmax;
 	    private double xmin=Double.MAX_VALUE,ymin=Double.MAX_VALUE,zmin=Double.MAX_VALUE,xmax=Double.MAX_VALUE,ymax=Double.MAX_VALUE,zmax=Double.MAX_VALUE;
+	    private JLabel lblKernelWeightq,lblKernelWeightp;
+	
 	  
 	 //   private int state=GUIStates.LOAD_IMAGES;
 	    
@@ -262,7 +267,7 @@ public class GUIDesign implements ActionListener  {
 		 estimate = new JButton("Estimate");
 		estimate.setActionCommand("Estimate");
 		
-		JLabel lblPotentialShape = new JLabel("Potential shape:");
+		JLabel lblPotentialShape = new JLabel("Potential:");
 		
 		numSupport = new JFormattedTextField();
 
@@ -288,6 +293,12 @@ public class GUIDesign implements ActionListener  {
 		 lblSmoothness = new JLabel("Smoothness:");
 		lblSmoothness.setEnabled(false);
 		
+		JLabel lblRepeatEstimation = new JLabel("Repeat estimation:");
+		
+		reRuns = new JFormattedTextField();
+		reRuns.setColumns(10);
+		reRuns.setText(numReRuns+"");
+		reRuns.addActionListener(this);
 		GroupLayout gl_panel_5 = new GroupLayout(panel_5);
 		gl_panel_5.setHorizontalGroup(
 			gl_panel_5.createParallelGroup(Alignment.TRAILING)
@@ -300,8 +311,8 @@ public class GUIDesign implements ActionListener  {
 					.addComponent(lblPotentialEstimation)
 					.addContainerGap(133, Short.MAX_VALUE))
 				.addGroup(gl_panel_5.createSequentialGroup()
-					.addGroup(gl_panel_5.createParallelGroup(Alignment.TRAILING)
-						.addGroup(Alignment.LEADING, gl_panel_5.createSequentialGroup()
+					.addGroup(gl_panel_5.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_panel_5.createSequentialGroup()
 							.addGap(10)
 							.addComponent(lblsupportPts)
 							.addPreferredGap(ComponentPlacement.RELATED)
@@ -311,11 +322,15 @@ public class GUIDesign implements ActionListener  {
 							.addGap(18)
 							.addComponent(smoothnessNP, GroupLayout.PREFERRED_SIZE, 71, GroupLayout.PREFERRED_SIZE))
 						.addGroup(gl_panel_5.createSequentialGroup()
-							.addGap(21)
+							.addContainerGap()
 							.addComponent(lblPotentialShape)
-							.addPreferredGap(ComponentPlacement.RELATED, 66, Short.MAX_VALUE)
-							.addComponent(jcb, GroupLayout.PREFERRED_SIZE, 209, GroupLayout.PREFERRED_SIZE)))
-					.addGap(24))
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(jcb, GroupLayout.PREFERRED_SIZE, 126, GroupLayout.PREFERRED_SIZE)
+							.addGap(18)
+							.addComponent(lblRepeatEstimation)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(reRuns, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE)))
+					.addContainerGap())
 		);
 		gl_panel_5.setVerticalGroup(
 			gl_panel_5.createParallelGroup(Alignment.TRAILING)
@@ -324,8 +339,10 @@ public class GUIDesign implements ActionListener  {
 					.addComponent(lblPotentialEstimation)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_5.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblPotentialShape)
 						.addComponent(jcb, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblPotentialShape))
+						.addComponent(lblRepeatEstimation)
+						.addComponent(reRuns, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_5.createParallelGroup(Alignment.BASELINE)
 						.addComponent(smoothnessNP, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -392,31 +409,57 @@ public class GUIDesign implements ActionListener  {
 		 gridSizeInp.addActionListener(this);
 		 
 		 JLabel lblGridSize = new JLabel("Grid size:");
+		 
+		 lblKernelWeightq = new JLabel("Kernel weight(q):");
+		 
+		 kernelWeightq=new JFormattedTextField();
+		 kernelWeightq.setText(qkernelWeight+"");
+		 kernelWeightq.addActionListener(this);
+		 
+		 lblKernelWeightp = new JLabel("Kernel weight(p):");
+		 
+		 kernelWeightp= new JFormattedTextField();
+		 kernelWeightp.setText("0.1");
 		 GroupLayout gl_panel_4 = new GroupLayout(panel_4);
 		 gl_panel_4.setHorizontalGroup(
 		 	gl_panel_4.createParallelGroup(Alignment.LEADING)
 		 		.addGroup(gl_panel_4.createSequentialGroup()
-		 			.addGap(20)
-		 			.addComponent(lblGridSize)
-		 			.addPreferredGap(ComponentPlacement.RELATED)
-		 			.addComponent(gridSizeInp, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE)
-		 			.addPreferredGap(ComponentPlacement.RELATED, 35, Short.MAX_VALUE)
-		 			.addComponent(btnCalculateDistances, GroupLayout.PREFERRED_SIZE, 211, GroupLayout.PREFERRED_SIZE)
-		 			.addGap(24))
+		 			.addGroup(gl_panel_4.createParallelGroup(Alignment.LEADING)
+		 				.addGroup(gl_panel_4.createSequentialGroup()
+		 					.addContainerGap()
+		 					.addComponent(lblGridSize)
+		 					.addGap(2)
+		 					.addComponent(gridSizeInp, GroupLayout.PREFERRED_SIZE, 44, GroupLayout.PREFERRED_SIZE)
+		 					.addPreferredGap(ComponentPlacement.RELATED)
+		 					.addComponent(lblKernelWeightq)
+		 					.addPreferredGap(ComponentPlacement.RELATED)
+		 					.addComponent(kernelWeightq, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
+		 					.addPreferredGap(ComponentPlacement.RELATED)
+		 					.addComponent(lblKernelWeightp, GroupLayout.PREFERRED_SIZE, 107, GroupLayout.PREFERRED_SIZE)
+		 					.addPreferredGap(ComponentPlacement.RELATED, 3, Short.MAX_VALUE)
+		 					.addComponent(kernelWeightp, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE))
+		 				.addGroup(gl_panel_4.createSequentialGroup()
+		 					.addGap(113)
+		 					.addComponent(btnCalculateDistances, GroupLayout.PREFERRED_SIZE, 209, GroupLayout.PREFERRED_SIZE)))
+		 			.addContainerGap())
 		 );
 		 gl_panel_4.setVerticalGroup(
 		 	gl_panel_4.createParallelGroup(Alignment.TRAILING)
 		 		.addGroup(gl_panel_4.createSequentialGroup()
-		 			.addContainerGap(11, Short.MAX_VALUE)
+		 			.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		 			.addGroup(gl_panel_4.createParallelGroup(Alignment.BASELINE)
-		 				.addComponent(gridSizeInp, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 		 				.addComponent(lblGridSize)
-		 				.addComponent(btnCalculateDistances))
-		 			.addContainerGap())
+		 				.addComponent(gridSizeInp, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+		 				.addComponent(lblKernelWeightq)
+		 				.addComponent(kernelWeightq, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+		 				.addComponent(lblKernelWeightp)
+		 				.addComponent(kernelWeightp, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+		 			.addGap(21)
+		 			.addComponent(btnCalculateDistances))
 		 );
 		 panel_4.setLayout(gl_panel_4);
+		 kernelWeightp.addActionListener(this);
 		 
-	
 		 btnCalculateDistances.addActionListener(this);
 		
 		JPanel panel_2 = new JPanel();
@@ -573,13 +616,11 @@ public class GUIDesign implements ActionListener  {
 					.addComponent(tabbedPane_1, GroupLayout.PREFERRED_SIZE, 440, GroupLayout.PREFERRED_SIZE))
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGap(17)
-					.addComponent(panel_4, GroupLayout.PREFERRED_SIZE, 422, GroupLayout.PREFERRED_SIZE))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(17)
 					.addComponent(panel_6, GroupLayout.PREFERRED_SIZE, 422, GroupLayout.PREFERRED_SIZE))
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGap(17)
 					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
+						.addComponent(panel_4, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
 						.addComponent(panel_5, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
 						.addComponent(panel_7, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 422, Short.MAX_VALUE)))
 		);
@@ -590,9 +631,9 @@ public class GUIDesign implements ActionListener  {
 					.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, 113, GroupLayout.PREFERRED_SIZE)
 					.addGap(6)
 					.addComponent(tabbedPane_1, GroupLayout.PREFERRED_SIZE, 121, GroupLayout.PREFERRED_SIZE)
-					.addGap(6)
-					.addComponent(panel_4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addGap(12)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(panel_4, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(panel_5, GroupLayout.PREFERRED_SIZE, 131, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(panel_7, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -608,14 +649,16 @@ public class GUIDesign implements ActionListener  {
 	}
 	
 	public void actionPerformed(ActionEvent e) {
+		
 		// TODO Auto-generated method stub
 		if(e.getSource()==browseX)
 		{
 		//	 imgx=new ImagePlus();
+			//a=null; garbage collection OK?
 			 imgx=ImageProcessUtils.openImage("Open Image X", "");
 			 if(imgx==null)
 			 {
-				 IJ.showMessage("Filetype not recognized");
+				 IJ.showMessage("Cancelled/Filetype not recognized");
 				 return;
 			 }
 			 imgx.show("Image X");
@@ -626,20 +669,26 @@ public class GUIDesign implements ActionListener  {
 			 if(!checkIfImagesAreRightSize())	
 				{
 					System.out.println("Distance calc: different image sizes");
-					IJ.showMessage("Error: Image sizes do not match");
+					IJ.showMessage("Error: Image sizes/scale/unit do not match");
 					return;	
 				}
 				a=new Analysis(imgx,imgy);
+				a.setCmaReRunTimes(numReRuns);
+				a.setKernelWeightq(qkernelWeight);
+				a.setKernelWeightp(pkernelWeight);
+				System.out.println("p set to:"+pkernelWeight);
 			 }
 			 return;
 		}
 		if(e.getSource()==browseY)
 		{
+		//	a=null;
 		//	imgy=new ImagePlus();
 			 imgy=ImageProcessUtils.openImage("Open Image Y", "");
+			 
 			 if(imgy==null)
 			 {
-				 IJ.showMessage("Filetype not recognized");
+				 IJ.showMessage("Cancelled/Filetype not recognized");
 				 return;
 			 }
 			 imgy.show("Image Y");
@@ -650,10 +699,14 @@ public class GUIDesign implements ActionListener  {
 			 if(!checkIfImagesAreRightSize())	
 				{
 					System.out.println("Distance calc: different image sizes");
-					IJ.showMessage("Error: Image sizes do not match");
+					IJ.showMessage("Error: Image sizes/scale do not match");
 					return;	
 				}
 				a=new Analysis(imgx,imgy);
+				a.setCmaReRunTimes(numReRuns);
+				a.setKernelWeightq(qkernelWeight);
+				a.setKernelWeightp(pkernelWeight);
+				System.out.println("p set to:"+pkernelWeight);
 			 }
 			 return;
 		}
@@ -674,7 +727,12 @@ public class GUIDesign implements ActionListener  {
 			}
 			System.out.println("Loaded X with size"+Xcoords.length);
 			if(Xcoords!=null && Ycoords!=null)
+			{
 				a=new Analysis(Xcoords,Ycoords);
+				a.setCmaReRunTimes(numReRuns);
+				a.setKernelWeightq(qkernelWeight);
+				a.setKernelWeightp(pkernelWeight);
+			}
 			return;
 		}
 		
@@ -694,7 +752,12 @@ public class GUIDesign implements ActionListener  {
 		//	ImageProcessUtils.openCSVFile("Open CSV file for image Y", "");
 			//a.loadYCoordinates();
 			if(Xcoords!=null && Ycoords!=null)
+			{
 				a=new Analysis(Xcoords,Ycoords);
+				a.setCmaReRunTimes(numReRuns);
+				a.setKernelWeightq(qkernelWeight);
+				a.setKernelWeightp(pkernelWeight);
+			}
 			return;
 		}
 		
@@ -763,7 +826,19 @@ public class GUIDesign implements ActionListener  {
 			a.setPotentialType(potentialType);
 	      return;
 		}
-		
+		if(e.getSource()==kernelWeightq)
+		{
+			qkernelWeight=Double.parseDouble(e.getActionCommand());
+			a.setKernelWeightq(qkernelWeight);
+			
+		}
+		if(e.getSource()==kernelWeightp)
+		{
+			pkernelWeight=Double.parseDouble(e.getActionCommand());
+			System.out.println("p set to:"+pkernelWeight);
+			a.setKernelWeightp(pkernelWeight);
+			
+		}
 		if(e.getSource()==btnCalculateDistances)
 		{
 			
@@ -790,7 +865,11 @@ public class GUIDesign implements ActionListener  {
 			return;
 		}
 		
-	
+		if(e.getSource()==reRuns)
+		{
+			numReRuns=Integer.parseInt(e.getActionCommand());
+			a.setCmaReRunTimes(numReRuns);
+		}
 		
 		if(e.getSource()==estimate)
 		{
@@ -940,7 +1019,9 @@ public class GUIDesign implements ActionListener  {
 		}
 		private boolean checkIfImagesAreRightSize()
 		{
-			if((imgx.getWidth()==imgy.getWidth())&&(imgx.getHeight()==imgy.getHeight())&&(imgx.getStackSize()==imgy.getStackSize()))
+			Calibration imgxc =imgx.getCalibration();
+			Calibration imgyc =imgy.getCalibration();
+			if((imgx.getWidth()==imgy.getWidth())&&(imgx.getHeight()==imgy.getHeight())&&(imgx.getStackSize()==imgy.getStackSize())&& (imgxc.pixelDepth==imgyc.pixelDepth) && (imgxc.pixelHeight==imgyc.pixelHeight)&&(imgxc.pixelWidth==imgyc.pixelWidth) &&(imgxc.getUnit()==imgyc.getUnit()) )
 					return true;
 			else 
 					return false;

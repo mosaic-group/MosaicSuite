@@ -13,16 +13,20 @@ public class IAPUtils {
 	{
 		double [] QofD=new double[qofD.length];
 		double sum=0;
+	
+		
 		for(int i=0;i<qofD.length;i++)
 		{
 			QofD[i]=sum+qofD[i];
 			sum=sum+qofD[i];
 		}
-		
+
+		System.out.println("QofD before norm:"+QofD[QofD.length-1]);
 		for(int i=0;i<qofD.length;i++)
 		{
 			QofD[i]=QofD[i]/QofD[QofD.length-1];
 		}
+		System.out.println("QofD after norm:"+QofD[QofD.length-1]);
 		
 		return QofD;
 	}
@@ -115,6 +119,7 @@ public class IAPUtils {
 	{	
 		double precision=100d;
 		KernelEstimator ker=new KernelEstimator(1/precision);
+		System.out.println("Weight:"+weight);
 		for (int i=0;i<distances.length;i++)
 			ker.addValue(distances[i], weight); //weight is important, since bandwidth is calculated with it: http://stackoverflow.com/questions/3511012/how-ist-the-bandwith-calculated-in-weka-kernelestimator-class
 		//depending on the changes to the grid, this might have to be changed.
@@ -125,6 +130,7 @@ public class IAPUtils {
 	{	
 		double precision=100d;
 		KernelEstimator ker=new KernelEstimator(1/precision);
+		System.out.println("Weight:"+weight);
 		for (int i=0;i<distances.length;i++)
 			ker.addValue(distances[i], weight); //weight is important, since bandwidth is calculated with it: http://stackoverflow.com/questions/3511012/how-ist-the-bandwith-calculated-in-weka-kernelestimator-class
 		//depending on the changes to the grid, this might have to be changed.

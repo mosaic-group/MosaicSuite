@@ -1,12 +1,15 @@
 package mosaic.ia.nn;
 
 import ij.ImagePlus;
+
+import java.util.Random;
 import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
 import mosaic.ia.utils.IAPUtils;
 import mosaic.ia.utils.ImageProcessUtils;
+import mosaic.ia.utils.PlotUtils;
 
 
 
@@ -28,7 +31,9 @@ public abstract class DistanceCalculations {
 	protected Point3d[] particleXSetCoord;
 	protected Point3d[] particleYSetCoord;
 	
-
+    protected double zscale=1;
+    protected double xscale=1;
+    protected double yscale=1;
 	
 	
 	public DistanceCalculations(ImagePlus mask, double gridSize) {
@@ -91,15 +96,47 @@ public abstract class DistanceCalculations {
 	
 	
 	
+	protected float [] genRandomDdist(double xmax,double ymax,double zmax)
+	{
+		KDTreeNearestNeighbor kdtnn=new KDTreeNearestNeighbor();
+		kdtnn.createKDTree(particleYSetCoord);
+		//assume image. 
+	//	Point3d [] xPtsRand =new Point3d[particleXSetCoord.length];
+		
+		float [] distRand=new float[particleXSetCoord.length*1000];
+		for(int i=0; i<1000; i++) // 1000 MC runs
+		{
+			
+			for(int j=0;j<particleXSetCoord.length;j++)
+			{
+				Random rn = new Random(System.nanoTime());
+				System.out.println("Running "+j);
+				try {
+					distRand[i*particleXSetCoord.length+j]=(float) kdtnn.getNNDistance(new Point3d(rn.nextDouble()*xmax,rn.nextDouble()*ymax,0));
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+			
+		}
+		
+		return distRand;
+		
+		
+	}
+	
 
 	
 
 	 protected float [] genCubeGridDist(double x1,double y1,double z1, double x2, double y2, double z2){ //diagonal ends of the cube
 	// need to perfect the size part.
 		 
-		int x_size=(int)Math.floor((Math.abs(x1-x2)+1)/gridSize);  //x1=0,x2=0=> x_size=1. 
-		int y_size=(int)Math.floor((Math.abs(y1-y2)+1)/gridSize);
-		int z_size=(int)Math.floor((Math.abs(z1-z2)+1)/gridSize);
+		int x_size=(int)Math.floor((Math.abs(x1-x2)+1)*xscale/gridSize);  //x1=0,x2=0=> x_size=1. 
+		int y_size=(int)Math.floor((Math.abs(y1-y2)+1)*yscale/gridSize);
+		int z_size=(int)Math.floor((Math.abs(z1-z2)+1)*zscale/gridSize);
 		
 		if(z_size==(int)Math.floor(1/gridSize)) //2D
 			z_size=1;
@@ -112,10 +149,11 @@ public abstract class DistanceCalculations {
 		double [] tempPosition=new double[3];
 			KDTreeNearestNeighbor kdtnn=new KDTreeNearestNeighbor();
 			kdtnn.createKDTree(particleYSetCoord);
-		
+	//	PlotUtils.histPlotDoubleArray_imageJ("HistYvsYcoords", kdtnn.getNNDistances(particleYSetCoord));
 		int lastIndex=0;
 		if(mask==null)
 		{
+	//		griddd=genRandomDdist(x2, y2, z2);
 			griddd=new float[total_size];
 		for(int i=0;i<x_size;i++)
 		{
@@ -199,7 +237,8 @@ public abstract class DistanceCalculations {
 				points[i].get(coords);
 				if(isInsideMask(coords))
 						{
-						vectorPoints.add(points[i]);
+						vectorPoints.add(new Point3d(coords[0]*xscale,coords[1]*yscale,coords[2]*zscale));
+						//vectorPoints.add(points[i]);
 						count++;
 						}
 			}

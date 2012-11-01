@@ -13,7 +13,21 @@ public class PlotUtils {
 		
 	}
 	
-	public static void histPlotDoubleArray(String title, double [] array)
+	public static void plotDoubleArrayPts(String title,String xlabel, String ylabel, double [] xvalues, double [] yvalues)
+	{
+		Plot plot=new Plot(title,xlabel,ylabel,xvalues,yvalues);
+		plot.addPoints(xvalues, yvalues, Plot.CIRCLE);
+		plot.show();
+		
+	}
+	
+	public static void histPlotDoubleArray_imageJ(String title, double [] array)
+	{
+		histPlotDoubleArray_imageJ(title,array,256);
+	}
+	
+
+	public static void histPlotDoubleArray_imageJ(String title, double [] array, int bins)
 	{
 		float floatArray [][]=new float[array.length][1];
 		for(int i=0;i<array.length;i++)
@@ -22,7 +36,7 @@ public class PlotUtils {
 			
 		}	
 		FloatProcessor hist=new FloatProcessor(floatArray);
-	    new ij.gui.HistogramWindow(new ImagePlus(title,hist));
+	    new ij.gui.HistogramWindow(title,new ImagePlus(title,hist),bins);
 	}
 
 	public static void plotDoubleArray(String title, double[] xvalues, int[] yvalues) {
@@ -35,5 +49,7 @@ public class PlotUtils {
 	
 		plot.show();
 	}
+	
+	
 
 }

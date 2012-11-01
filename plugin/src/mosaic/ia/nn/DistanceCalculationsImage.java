@@ -1,7 +1,9 @@
 package mosaic.ia.nn;
 
+import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.measure.Calibration;
 import ij.process.ImageProcessor;
 
 import java.util.Iterator;
@@ -34,6 +36,13 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 	
 	private Point3d [] extractParticles(ImagePlus image)
 	{
+		
+		Calibration calibration =image.getCalibration();
+		
+		zscale=calibration.pixelDepth;
+		xscale=calibration.pixelHeight;
+		yscale=calibration.pixelWidth;
+			
 		Vector<Particle> particle =new Vector<Particle>();
 		
 	try{

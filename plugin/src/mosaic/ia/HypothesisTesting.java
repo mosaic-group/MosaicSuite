@@ -10,6 +10,7 @@ import java.util.Random;
 import weka.estimators.KernelEstimator;
 
 import mosaic.ia.utils.IAPUtils;
+import mosaic.ia.utils.PlotUtils;
 
 public class HypothesisTesting {
 	private double [] CDFGrid;
@@ -24,13 +25,13 @@ public class HypothesisTesting {
 	private double alpha;
 	private double Tob;
 	
-	public HypothesisTesting(double[] cDFGrid, double[] dGrid,double[] D, int N,
+	public HypothesisTesting(double[] cDFGrid, double[] dGrid,double[] D,
 			double[] params, int type, int K, double alpha) {
 		super();
 		CDFGrid = cDFGrid;
 		DGrid = dGrid;
 	//	System.out.println("CDFGrid size:"+cDFGrid.length+" Dgrid size"+dGrid.length);
-		this.N = N;
+		this.N = dGrid.length;
 		this.params = params;
 		this.type = type;
 		this.D=D;
@@ -43,13 +44,26 @@ public class HypothesisTesting {
 		calculateT();
 		PotentialCalculator pcOb=new PotentialCalculator(D, params, type);
 		pcOb.calculateWOEpsilon();
+	//	PlotUtils.plotDoubleArray("Estimated Pot", D, pcOb.getPotential());
 		Tob= -1*pcOb.getSumPotential();
-		int i=0;
+		
 	//double [] oneToK=new double[K];
 	//	for(i=0;i<K;i++)
 		//{
 			//oneToK[i]=(double)i;
 		//}
+		double maxT=Double.MIN_VALUE,minT=Double.MAX_VALUE;
+		
+		
+		for(int i=0;i<K;i++)
+		{
+			if(minT>T[i])
+				minT=T[i];
+			if(maxT<T[i])
+				maxT=T[i];
+			
+		}
+		int i=0;
 		for(i=0;i<K;i++)
 		{
 			if(Tob<=T[i])
@@ -58,7 +72,8 @@ public class HypothesisTesting {
 		
 	//	PlotUtils.histPlotDoubleArray("T", T);
 	//	PlotUtils.plotDoubleArray("T", oneToK, T);
-		System.out.println("T obs: "+Tob);
+		System.out.println("MinT: "+minT+" maxT: "+maxT);
+		System.out.println("T obs: "+Tob+" found at rank: "+i);
 		if(i>(int)((1-alpha)*K))
 		{
 			System.out.println("Null hypothesis rejected, rank: "+i+" out of "+K);
@@ -79,7 +94,7 @@ public class HypothesisTesting {
 
 	private void calculateT()
 	{
-		DRand=new double[N];
+		DRand=new double[D.length];
 		T=new double[K];
 		
 		for(int i=0;i<K;i++)
@@ -88,6 +103,7 @@ public class HypothesisTesting {
 			T[i]=calculateTk();
 		}
 		
+		
 		Arrays.sort(T);
 		
 	}
@@ -95,7 +111,7 @@ public class HypothesisTesting {
 	private void displayResult()
 	{
 		int no=100;
-		KernelEstimator kde=IAPUtils.createkernelDensityEstimator(T, 1);
+		KernelEstimator kde=IAPUtils.createkernelDensityEstimator(T, .01);
 		double [] Tlinspace=new double[no],Tdens=new double[no];
 		double Tdiff=(T[T.length-1]-T[0])/no;
 		double sum=0,max=0,min=Double.MAX_VALUE;
@@ -137,7 +153,7 @@ public class HypothesisTesting {
         plot.setColor(Color.black);
         plot.addLabel(.75, .3, "H0: True - Estimated");
         plot.draw();
-     
+        plot.show();
         
 	}
 	
@@ -147,6 +163,7 @@ public class HypothesisTesting {
 		generateRandomD();
 		PotentialCalculator pc=new PotentialCalculator(DRand, params, type);
 		pc.calculateWOEpsilon();
+	//	PlotUtils.plotDoubleArray("Null Hyp Pot", D, pc.getPotential());
 		/*for(int i=0;i<N;i++)
 		{
 			
@@ -163,13 +180,20 @@ public class HypothesisTesting {
 		// not erasing contents of DRAND
 		Random rn = new Random(System.nanoTime());
 		double R=0;
-		for(int i=0;i<N;i++)
+//		System.out.println("CDFGrid[0]: "+CDFGrid[0]);
+	//	System.out.println("CDFGrid[N-1]: "+CDFGrid[N-1]);
+		
+		for(int i=0;i<D.length;)
 		{
-		while((R=rn.nextDouble())<CDFGrid[0]); /// to make sure that random value will be gte the least in cdf
-		DRand[i]=findD(R);
+		R=rn.nextDouble();
+		if(R>=CDFGrid[0]) /// to make sure that random value will be gte the least in cdf
+		{
+			DRand[i]=findD(R);
+			i++;
+		}
 	//	System.out.print(R+":"+DRand[i]+",");
 		}
-		//System.out.println(" ");
+	//	System.out.println(");
 		
 
 	}
@@ -186,7 +210,7 @@ public class HypothesisTesting {
 			}
 		}
 		//System.out.println("CDFGrid size:"+CDFGrid.length+" Dgrid size"+DGrid.length+"current i:"+i);
-		//System.out.println("R: "+R+" CDF[length-1]"+CDFGrid[0]);
+		//System.out.println("R: "+R+" CDF[0]"+CDFGrid[0]);
 		return IAPUtils.linearInterpolation(DGrid[i], CDFGrid[i],DGrid[i+1], CDFGrid[i+1], R);
 	}
 	
