@@ -4,7 +4,7 @@
   </description>
   
   <!-- Adapt paths to your environment -->
-  <property name="pluginsDir"  location="../../../Fiji_dev/fiji/plugins/Mosaic_Toolbox" />
+  <property name="pluginsDir"  location="../../../imageJ/Fiji_dev/fiji/plugins/Mosaic_Toolbox" />
   
   <property name="scala.home" value="lib/"/>
   <property name="scala-compiler.jar" value="${scala.home}/scala-compiler.jar"/>

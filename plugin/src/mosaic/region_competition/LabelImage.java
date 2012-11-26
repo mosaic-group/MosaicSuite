@@ -77,6 +77,13 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	}
 	
 	
+	public boolean isOutOfBound(Point p)
+	{
+		for (int i = 0 ; i < p.x.length ; i++)
+		{if (p.x[i] < 0) return true; if (p.x[i] >= dimensions[i]) return true;}
+		return false;
+	}
+	
 //	public LabelImage(IntensityImage intensityImage)
 //	{
 //		int[] dims = intensityImage.getDimensions();

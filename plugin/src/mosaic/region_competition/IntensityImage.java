@@ -28,7 +28,7 @@ public class IntensityImage
 	{
 		for (int i = 0 ; i < p.x.length ; i++)
 		{if (p.x[i] < 0) return true; if (p.x[i] >= dimensions[i]) return true;}
-		return true;
+		return false;
 	}
 	
 	public int getDim()
@@ -193,7 +193,7 @@ public class IntensityImage
 		}
 		
 		
-		int nSlices = ip.getNSlices();
+		int nSlices = ip.getStackSize();
 		int area = width*height;
 		
 		dataIntensity = new float[size];
@@ -254,7 +254,7 @@ public class IntensityImage
 		for(int i=1; i<=nSlices; i++)
 		{
 			ImageProcessor p = stack.getProcessor(i);
-			p.setColorModel(null); // force IJ to directly convert to float (else it would first go to RGB)
+//			p.setColorModel(null); // force IJ to directly convert to float (else it would first go to RGB)
 			FloatProcessor fp = (FloatProcessor)p.convertToFloat();
 			fp.subtract(minimum);
 			fp.multiply(1.0/range);
@@ -313,7 +313,7 @@ public class IntensityImage
 	{
 		// IJ 1.46r bug, force to update internal dim 
 		// call before getNDimensions() or it won't return the correct value
-		ip.getNSlices(); 
+		ip.getStackSize(); 
 		
 		int dim = ip.getNDimensions();
 		int[] dims = new int[dim];
@@ -324,7 +324,7 @@ public class IntensityImage
 		}
 		if(dim==3)
 		{
-			dims[2]=ip.getNSlices();
+			dims[2]=ip.getStackSize();
 		}
 		
 		return dims;

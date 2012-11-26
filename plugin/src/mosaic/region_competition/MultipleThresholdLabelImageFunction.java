@@ -33,6 +33,8 @@ public class MultipleThresholdLabelImageFunction extends MultipleThresholdImageF
 	@Override
 	public boolean EvaluateAtIndex(Point p)
 	{
+		if (labelImage.isOutOfBound(p) == true)
+			return false;
 		double value = labelImage.getLabel(p);
 		return Evaluate(value);
 	}

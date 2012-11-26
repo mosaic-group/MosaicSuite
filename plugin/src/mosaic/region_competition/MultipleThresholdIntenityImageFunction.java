@@ -23,6 +23,8 @@ public class MultipleThresholdIntenityImageFunction extends MultipleThresholdIma
 	@Override
 	public boolean EvaluateAtIndex(Point p)
 	{
+		if (image.isOutOfBound(p) == true)
+			return false;
 		float value = image.get(p);
 		return Evaluate(value);
 	}
