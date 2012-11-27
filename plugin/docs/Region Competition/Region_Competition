@@ -281,6 +281,18 @@ The algorithm is able to manage changes of topology, you can enable or disable t
 
 <table>
   <tbody>
+      <tr>
+      <td><IMG src="images/nucleis.jpg" width="198" height="238" align="left" border="0"></td>
+      <td><IMG src="images/nucleis.gif" width="198" height="238" align="left" border="0"></td>
+      <td><trong><h2>PC</h2>
+      <strong>Oscillation threshold</strong>: 0.001<br>
+      <strong>Theta E merge</strong>: 0.01<br>
+      <strong>Lambda E length</strong>: 0.4<br>
+      <strong>R_k</strong>: 12<br>
+      <strong>Bubble radius</strong>: 10<br>
+      <strong>Bubble padding</strong>: 17<br>
+      </td>
+    </tr>
     <tr>
       <td><IMG src="images/icecream5_410x410.jpg" width="410" height="410" align="left" border="0"></td>
       <td><IMG src="images/icecream5_rs.gif" width="410" height="410" align="left" border="0"></td>
@@ -296,17 +308,50 @@ The algorithm is able to manage changes of topology, you can enable or disable t
     <tr>
     </tr>
     <tr>
+      <td>
+	<video width="492" height="324" controls="controls" autoplay="autoplay" loop="loop">
+	<source src="images/3D_scr.mp4"></source>
+	<source type="video/mp4" src="images/3D_scr.mp4"></source>
+	<source type="video/webm" src="images/3D_scr.webm"></source>
+	<source type="video/ogg" src="images/3D_scr.ogg"></source>
+	</video>
+      </td>
+      <td>
+	<video width="492" height="324" controls="controls" autoplay="autoplay" loop="loop">
+	<source src="images/3D.mp4"></source>
+	<source type="video/mp4" src="images/3D.mp4"></source>
+	<source type="video/webm" src="images/3D.webm"></source>
+	<source type="video/ogg" src="images/3D.ogg"></source>
+	</video>
+      </td>
+      <td><h2>PS</h2>
+      <strong>Oscillation threshold</strong>: 0.02<br>
+      <strong>Theta E merge</strong>: 0.2<br>
+      <strong>Lambda E length</strong>: 0.07<br>
+      <strong>R_k</strong>: 4<br>
+      <strong>Rectangle fill ratio</strong>: 0.80<br></td>
+    </tr>
+    <tr>
       <td><IMG src="images/icecream_shaded_130x130.jpg" width="260" height="260" align="left" border="0"></td>
       <td><IMG src="images/ps_bubble_rs.gif" width="260" height="260" align="left" border="0"></td>
       <td><h2>PS</h2>
       <strong>Oscillation threshold</strong>: 0.01<br>
       <strong>Theta E merge</strong>: 0.4<br>
-      <strong>Lambda E length</strong>: 0.04<br>
+      <strong>Lambda E length</strong>: 0.08<br>
       <strong>R_k</strong>: 4<br>
-      <strong>PS Radius</strong>: 8<br>
-      <strong>Beta Ballon</strong>: 0.05<br>
-      <strong>Bubble radius</strong>: 8<br>
-      <strong>Bubble padding</strong>: 8<br>
+      <strong>PS Radius</strong>: 4<br>
+      <strong>Beta Ballon</strong>: 0.01<br>
+      <strong>Rectangle fill ratio</strong>: 0.80<br></td>
+    </tr>
+    <tr>
+      <td><IMG src="images/endo.jpg" width="512" height="386" align="left" border="0"></td>
+      <td><IMG src="images/endo.gif" width="512" height="386" align="left" border="0"></td>
+      <td><h2>Deconvolution</h2>
+      <strong>Oscillation threshold</strong>: 0.8<br>
+      <strong>Theta E merge</strong>: 0.1<br>
+      <strong>Lambda E length</strong>: 0.15<br>
+      <strong>R_k</strong>: 2<br>
+      <strong>Local Maxima</strong></td>
     </tr>
     <tr>
       <td><IMG src="images/uc_data.jpg" width="196" height="288" align="left" border="0"></td>
@@ -316,7 +361,7 @@ The algorithm is able to manage changes of topology, you can enable or disable t
       <strong>Theta E merge</strong>: 0.2<br>
       <strong>Lambda E length</strong>: 0.07<br>
       <strong>R_k</strong>: 4<br>
-      <strong>fill ratio</strong>: 0.80<br>
+      <strong>Rectangle fill ratio</strong>: 0.80<br></td>
     </tr>
   </body>
 </html>
