@@ -9,6 +9,13 @@ public class SphereMask extends Mask
 	int m_Radius[];
 	
 	IndexIterator iterator;
+	int fgPoints = 0;
+	
+	/*
+	 * Get the number or Foreground points in the mask
+	*/
+	@Override
+	public int getFgPoints() {return fgPoints;};
 	
 	/**
 	 * @param radius 	Radius of the sphere
@@ -56,6 +63,8 @@ public class SphereMask extends Mask
 			
 			if(vHypEllipse <= 1.0f)
 			{
+				fgPoints++;
+				
 				// is in region
 				mask[i]=fgVal;
 			} 

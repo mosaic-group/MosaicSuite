@@ -10,7 +10,7 @@ import mosaic.region_competition.utils.Timer;
  * Iterator to iterate over a (arbitrary dimensional) rectangular region 
  * in the context of / relative to a input image
  */
-public class RegionIterator 
+public class RegionIterator
 //implements Iterator<Integer>, Iterable<Integer> // performance gain
 {
 
@@ -21,6 +21,8 @@ public class RegionIterator
 	int[] crop_size;      // crop
 	
 	int size;			// size of (cropped) region
+	
+	public int getSize() {return size;}
 	
 	/**
 	 * 
@@ -153,20 +155,36 @@ public class RegionIterator
 			itInput+=ofs[i]*fac;
 			fac *= input[i]; 
 		}
+		itInputStart = itInput;
 	}
 
+	////////////// Bitwise Mask ///////////
+	
+	int BitMaskN;
+	int BitMaskO;
+	
+	public int getRMask()
+	{
+		return BitMaskO;
+	}
+	
 	////////////// Iterator ///////////////
 	
 	private int it=0;			// iterator in cropped region
 	private int itInput=0;		// iterator in input
+	private int itInputStart=0; // On start iterator
 	private int[] itDim;		// counts dimension wraps
+	
+	public int getItInput()
+	{
+		return itInputStart;
+	}
 	
 //	@Override
 	public boolean hasNext() 
 	{
 		return (it<size);
 	}
-
 
 //	@Override
 	public int next() 
@@ -202,6 +220,60 @@ public class RegionIterator
 		return result;
 	}
 
+	/*
+	 * Get the iteration point
+	 */
+	public Point getPoint()
+	{
+		Point tmp = new Point(dimensions);
+		for (int i = 0 ; i < dimensions ; i++)
+		{
+			tmp.x[i] = itDim[i] + ofs[i];
+		}
+		
+		return tmp;
+	}
+	
+	public int nextRmask() 
+	{
+		int result=itInput;
+		
+		// calculate indices for next step
+		
+		itInput++;
+		it++;
+		itDim[0]++;
+		
+		int rSet = 1;
+		BitMaskO = BitMaskN;
+		BitMaskN = 0;
+		
+		//TODO ersetze itCounter durch it%region[i]==0 oder so
+		int prod = 1;
+		for(int i=0; i<dimensions; i++)
+		{
+			if(itDim[i]>=region[i]) // some dimension(s) wrap(s)
+			{
+				//TODO prod*(...) sind schritte, die man nicht macht. merke diese, und wisse, wo man absolut ware?
+				// we reached the end of region in this dimension, so add the step not made in input to the input iterator 
+				itInput = itInput+prod*(input[i]-region[i]);
+				itDim[i]=0;
+				itDim[(i+1)%dimensions]++; 		// '%' : last point doesn't exceeds array bounds
+				prod*=input[i];
+				//continue, wrap over other dimensions
+				
+				BitMaskN |= rSet;
+			}
+			else // no wrap
+			{
+				break;
+			}
+			rSet = rSet << 1;
+		}
+		
+		return result - itInputStart;
+	}
+	
 
 //	@Override
 //	public void remove() 

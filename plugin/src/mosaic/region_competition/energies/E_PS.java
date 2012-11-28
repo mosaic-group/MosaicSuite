@@ -42,7 +42,8 @@ public class E_PS extends ExternalEnergy
 		sphere = new SphereMask(rad, 2*rad+1, labelImage.getDim());
 		
 		// sphereIt is slower than separate version
-//		sphereIt = new RegionIteratorSphere(sphere, dimensions);
+		
+		sphereIt = new RegionIteratorSphere(sphere, dimensions);
 	}
 
 	
@@ -85,6 +86,27 @@ public class E_PS extends ExternalEnergy
 
 		final byte[] mask = sphere.mask;
 		final byte fgVal = sphere.fgVal;
+		
+/*		while (sphereIt.hasNext())
+		{
+			int labelIdx = sphereIt.next();
+			int dataIdx = labelIdx;
+			int absLabel=labelImage.getLabelAbs(labelIdx);
+			if(absLabel == fromLabel)
+			{
+				double data = intensityImage.get(dataIdx);
+				vSumFrom += data;
+				vSumOfSqFrom += data*data;
+				vNFrom++;
+			}
+			else if(absLabel == toLabel)
+			{
+				double data = intensityImage.get(dataIdx);
+				vSumTo += data;
+				vSumOfSqTo += data*data;
+				vNTo++;
+			}
+		}*/
 		
 		while(vLabelIt.hasNext())
 		{

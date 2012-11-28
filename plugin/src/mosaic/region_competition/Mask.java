@@ -12,4 +12,5 @@ public abstract class Mask
 	 */
 	public abstract boolean isInMask(int idx);
 	public abstract int[] getDimensions();
+	public abstract int getFgPoints();
 }
