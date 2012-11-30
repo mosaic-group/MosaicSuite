@@ -261,11 +261,11 @@ public class RegionIteratorSphere
 		}
 		else if (p.p.x[i] >= crop_e[i])
 		{
-			p.p.x[i]=crop_s[i];
-			val = false;
+			p.idx = m_Size[i]*fac;
+			return false;
 		}
 		
-		p.idx += p.p.x[i]*m_Size[i];
+		p.idx += p.p.x[i]*fac;
 		
 		return val;
 	}

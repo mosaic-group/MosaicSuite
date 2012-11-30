@@ -68,63 +68,63 @@ public class E_PS extends ExternalEnergy
 		
     	// read out the size of the mask
     	// vRegion is the size of our temporary window
-    	int[] vRegion = sphere.getDimensions();
+ //   	int[] vRegion = sphere.getDimensions();
 
-		if (contourPoint.x[0] == 474 && contourPoint.x[1] == 54)
+/*		if (contourPoint.x[0] == 474 && contourPoint.x[1] == 54)
 		{
 			int debug = 0;
 			debug++;
-		}
+		}*/
     	
     	sphereIt.setMidPoint(contourPoint);
     	
 		// vOffset is basically the difference of the center and the start of the window
-		Point vOffset = (new Point(vRegion)).div(2);
+/*		Point vOffset = (new Point(vRegion)).div(2);
 			
 		Point start = contourPoint.sub(vOffset);				// "upper left point"
 		
 		RegionIterator vLabelIt = new RegionIterator(dimensions, vRegion, start.x);
 //		RegionIterator vDataIt = new RegionIterator(dimensions, vRegion, start.x);
-		RegionIteratorMask vMaskIt = new RegionIteratorMask(dimensions, vRegion, start.x);
+		RegionIteratorMask vMaskIt = new RegionIteratorMask(dimensions, vRegion, start.x);*/
 		
-		double vSumFromS = -value; // we ignore the value of the center point
-		double vSumToS = 0;
-		double vSumOfSqFromS = -value * value; // ignore the value of the center point.
-		double vSumOfSqToS = 0.0;
-		int vNFromS = -1;
-		int vNToS = 0;
+		double vSumFrom = -value; // we ignore the value of the center point
+		double vSumTo = 0;
+		double vSumOfSqFrom = -value * value; // ignore the value of the center point.
+		double vSumOfSqTo = 0.0;
+		int vNFrom = -1;
+		int vNTo = 0;
 
 		final byte[] mask = sphere.mask;
 		final byte fgVal = sphere.fgVal;
 		
-		List<Integer> DioCane = new ArrayList<Integer>();
-		List<Integer> DioMaiale = new ArrayList<Integer>();
+//		List<Integer> DioCane = new ArrayList<Integer>();
+//		List<Integer> DioMaiale = new ArrayList<Integer>();
 		
 		while (sphereIt.hasNext())
 		{
 			int labelIdx = sphereIt.next();
 			
-			DioCane.add(labelIdx);
+//			DioCane.add(labelIdx);
 			
 			int dataIdx = labelIdx;
 			int absLabel=labelImage.getLabelAbs(labelIdx);
 			if(absLabel == fromLabel)
 			{
 				double data = intensityImage.get(dataIdx);
-				vSumFromS += data;
-				vSumOfSqFromS += data*data;
-				vNFromS++;
+				vSumFrom += data;
+				vSumOfSqFrom += data*data;
+				vNFrom++;
 			}
 			else if(absLabel == toLabel)
 			{
 				double data = intensityImage.get(dataIdx);
-				vSumToS += data;
-				vSumOfSqToS += data*data;
-				vNToS++;
+				vSumTo += data;
+				vSumOfSqTo += data*data;
+				vNTo++;
 			}
 		}
 		
-		double vSumFrom = -value; // we ignore the value of the center point
+/*		double vSumFrom = -value; // we ignore the value of the center point
 		double vSumTo = 0;
 		double vSumOfSqFrom = -value * value; // ignore the value of the center point.
 		double vSumOfSqTo = 0.0;
@@ -140,7 +140,7 @@ public class E_PS extends ExternalEnergy
 			
 			if(mask[maskIdx]==fgVal)
 			{
-				DioMaiale.add(labelIdx);
+//				DioMaiale.add(labelIdx);
 				
 				int absLabel=labelImage.getLabelAbs(labelIdx);
 				if(absLabel == fromLabel)
@@ -182,7 +182,7 @@ public class E_PS extends ExternalEnergy
 		{
 			int debug = 0;
 			debug++;
-		}
+		}*/
 		
 		double vMeanTo;
 		double vVarTo;

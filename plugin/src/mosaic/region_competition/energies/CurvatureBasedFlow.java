@@ -45,10 +45,32 @@ class CurvatureBasedFlow
 		int vNto = 0;
 		int vNFrom = 0;
 		
-		Point half = (new Point(m_Size)).div(2);
-		Point start = origin.sub(half);				// "upper left point"
+/*		Point half = (new Point(m_Size)).div(2);
+		Point start = origin.sub(half);				// "upper left point"*/
 
-		final byte fgVal = sphere.fgVal;
+		sphereIt.setMidPoint(origin);
+		
+		while (sphereIt.hasNext())
+		{
+			int idx = sphereIt.next();
+			int absLabel=labelImage.getLabelAbs(idx);
+			
+			//directly access data; only 1-2% faster
+//			int absLabel=labelImage.labelIP.get(idx);
+//			if(absLabel >= LabelImage.negOfs)
+//				absLabel-=LabelImage.negOfs;
+			
+			if(absLabel==aTo)
+			{
+				vNto++;
+			}
+			else if(absLabel==aFrom)
+			{
+				vNFrom++;
+			}
+		}
+		
+/*		final byte fgVal = sphere.fgVal;
 		
 		RegionIterator it = new RegionIterator(labelImage.getDimensions(), this.m_Size, start.x);
 		RegionIteratorMask maskIt = new RegionIteratorMask(inputDims, this.m_Size, start.x);
@@ -78,7 +100,7 @@ class CurvatureBasedFlow
 					vNFrom++;
 				}
 			} // is in region
-		}
+		}*/
 
 		double vCurvatureFlow = 0.0;
 		double vVolume;
