@@ -10,7 +10,6 @@ import net.imglib2.img.Img;
 import net.imglib2.type.numeric.real.FloatType;
 
 import mosaic.region_competition.Point;
-import ij.plugin.filter.MaximumFinder;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
@@ -30,7 +29,7 @@ public class MaximumFinder2D extends MaximumFinder implements MaximumFinderInter
 	@Override
     public List<Point> getMaximaPointList(float[] pixels, double tolerance, boolean excludeOnEdges)
     {
-    	ImageProcessor ip = new FloatProcessor(width, height, pixels);
+    	ImageProcessor ip = new FloatProcessor(width, height, pixels,null);
     	Polygon poly = getMaxima(ip, tolerance, excludeOnEdges);
     	int n = poly.npoints;
     	int[] xs = poly.xpoints;

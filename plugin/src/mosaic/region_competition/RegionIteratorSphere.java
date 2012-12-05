@@ -107,13 +107,22 @@ public class RegionIteratorSphere
 	public RegionIteratorSphere(Mask mask, int[] inputSize)
 	{
 		this.input = inputSize;
+		int [] tmpInputSize = new int [inputSize.length];
 		this.mask = mask;
 		m_Size = mask.getDimensions();
 		
 		int x[] = new int [inputSize.length];
 		for (int i = 0 ; i < inputSize.length ; i++) {x[i] = 0;}
-		regionIt = new RegionIterator(input, this.m_Size, x);
-		maskIt = new RegionIteratorMask(input, this.m_Size, x);
+		
+		// We need that regionIt span all mask space without crop
+		
+		for (int i = 0 ; i < inputSize.length ; i++)
+		{if (this.m_Size[i] >= inputSize[i])	{tmpInputSize[i] = m_Size[i];}
+		else {tmpInputSize[i] = inputSize[i];}}
+		
+		regionIt = new RegionIterator(tmpInputSize, this.m_Size, x);
+		
+		maskIt = new RegionIteratorMask(tmpInputSize, this.m_Size, x);
 		fillJump();
     }
 	

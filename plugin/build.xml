@@ -4,14 +4,7 @@
   </description>
   
   <!-- Adapt paths to your environment -->
-  <property name="pluginsDir"  location="../../../imageJ/Fiji_dev/fiji/plugins/Mosaic_Toolbox" />
-  
-  <property name="scala.home" value="lib/"/>
-  <property name="scala-compiler.jar" value="${scala.home}/scala-compiler.jar"/>
-  <property name="scala-library.jar" value="${scala.home}/scala-library.jar"/>
-  <property name="scala-swing.jar" value="${scala.home}/scala-swing.jar"/>
-  
-  <property name="proguard.jar" value="${scala.home}/proguard.jar"/>
+  <property name="pluginsDir"  location="../../../imageJ/ImageJ_1.45/ImageJ/plugins/Mosaic_Toolbox" />
   
   <!-- Shouldn't be necessary to change something below here, except you know what you are doing. -->
 
@@ -73,6 +66,7 @@
       <zipgroupfileset dir="lib" includes="javaml-0.1.7.jar" excludes="*.config"/>
       <zipgroupfileset dir="lib" includes="mines-jtk-20100113.jar" excludes="*.config"/>
       <zipgroupfileset dir="lib" includes="loci_tools.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="ij-1.47c.jar" excludes="*.config"/>
       
       <manifest>
 	<attribute name="Built-By" value="${user.name}"/>
@@ -84,24 +78,7 @@
     <echo>
       Adding all libs to the .jar.
     </echo>
-    <jar jarfile="${pluginsDir}/${jarfilename}.jar" update="true">
-      
-      <!--Add Scala, Scalala, ScalaNLP and there dependencies to Mosaic Toolbox jar -->
-
-      <!-- You also need to add needed libs directly to the IJ eclipse project to debug .-->
-      
-      <!--	<zipgroupfileset dir="../lib" includes="*.jar"/> -->
-      <zipgroupfileset dir="${scala.home}" includes="jfreechart-1.0.13.jar"/>
-      <zipgroupfileset dir="${scala.home}" includes="*.jar"/>
-      
-      <zipfileset src="${scala-library.jar}" includes="**/*.class"/>
-      <zipfileset src="${scala-swing.jar}" includes="**/*.class"/>
-
-      <!-- <fileset dir="../Scalala/target/classes/" includes="**/*.*" /> 
-	   <fileset dir="../scalanlp-core/learn/target/classes/" includes="**/*.*" />
-	   <fileset dir="../scalanlp-core/data/target/classes/" includes="**/*.*" /> -->
-      <zipgroupfileset dir="lib/" includes="scalala_2.9.2-1.0.0.RC3-SNAPSHOT.jar"/>
-      
+    <jar jarfile="${pluginsDir}/${jarfilename}.jar" update="true"> 
       <manifest>
 	<attribute name="Built-By" value="${user.name}"/>
       </manifest>
@@ -122,15 +99,6 @@
       ... done.
     </echo>
   </target>
-  
-  <path id="scala.classpath">
-    <pathelement location="${scala-compiler.jar}"/>
-    <pathelement location="${scala-library.jar}"/>
-    <pathelement location="${scala-swing.jar}"/>
-    <fileset dir="lib/">
-      <include name="ij.jar"/>
-    </fileset>
-  </path>
   
   <!-- classpath for project build -->   
   <path id="build.classpath">
@@ -159,11 +127,6 @@
     
     
   </path>
-
-  
-  <taskdef resource="scala/tools/ant/antlib.xml">
-    <classpath refid="scala.classpath"/>
-  </taskdef>
   
   <target name="build">  
     <javac debug="true" includeantruntime="false" srcdir="src/" destdir="bin/" classpathref="build.classpath"
@@ -180,11 +143,5 @@
   
   <target name="docs" >
     <mkdir dir="docs"   />
-    <scaladoc
-	srcdir="src/" destdir="docs/" classpathref="build.classpath"
-	deprecation="yes" unchecked="yes"
-	doctitle="&lt;div&gt;liftweb 0.1.0&lt;/div&gt;">
-      <include name="**/*.scala"   />
-    </scaladoc>
   </target>
 </project>

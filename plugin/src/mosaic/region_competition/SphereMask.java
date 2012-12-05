@@ -1,5 +1,6 @@
 package mosaic.region_competition;
 
+
 public class SphereMask extends Mask
 {
 	int dim;
@@ -45,6 +46,7 @@ public class SphereMask extends Mask
 	
 	private void fillMask()
 	{
+		fgPoints = 0;
 		int size = iterator.getSize();
 		for(int i=0; i<size; i++)	// over region
 		{
