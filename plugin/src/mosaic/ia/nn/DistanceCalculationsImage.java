@@ -22,8 +22,8 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 
 
 	private ImagePlus X,Y;
-	public DistanceCalculationsImage(ImagePlus X,ImagePlus Y,ImagePlus mask, double gridSize) {
-		super(mask, gridSize);
+	public DistanceCalculationsImage(ImagePlus X,ImagePlus Y,ImagePlus mask, double gridSize,double kernelWeightq,int discretizationSize) {
+		super(mask, gridSize,kernelWeightq,discretizationSize);
 		this.X=X;
 		this.Y=Y;
 			
@@ -62,10 +62,10 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 	
 	
 
-	private float [] genD_grid()
+	private void genStateDensityForImages()
 	{
 		
-			return genCubeGridDist(0,0,0,X.getHeight()-1,X.getWidth()-1,X.getNSlices()-1);
+		stateDensity(0,0,0,X.getHeight()-1,X.getWidth()-1,X.getNSlices()-1);
 			
 		
 	}
@@ -77,7 +77,8 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 
 		particleXSetCoord = extractParticles(X);
 		particleYSetCoord = extractParticles(Y);
-		DGrid=genD_grid();
+	//	DGrid=genD_grid();
+		genStateDensityForImages();
 		calcD();
 		
 	}

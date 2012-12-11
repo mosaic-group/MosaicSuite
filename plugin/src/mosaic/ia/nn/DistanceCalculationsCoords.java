@@ -11,8 +11,8 @@ import javax.vecmath.Point3d;
 public class DistanceCalculationsCoords extends DistanceCalculations {
 	
 	
-	public DistanceCalculationsCoords(Point3d []X, Point3d [] Y,ImagePlus mask,double xmin,double ymin,double zmin, double xmax,double ymax, double zmax, double gridSize) {
-		super(mask, gridSize);
+	public DistanceCalculationsCoords(Point3d []X, Point3d [] Y,ImagePlus mask,double xmin,double ymin,double zmin, double xmax,double ymax, double zmax, double gridSize,double kernelWeightq,int discretizationSize) {
+		super(mask, gridSize,kernelWeightq,discretizationSize);
 		this.X=X;
 		this.Y=Y;
 		x1=xmin;
@@ -38,10 +38,15 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
 			particleXSetCoord=applyBoundaryandgetCoordinates(particleXSetCoord);
 			particleYSetCoord=applyBoundaryandgetCoordinates(particleYSetCoord);
 		}
-		DGrid=genD_grid();
+	//	DGrid=genD_grid();
+		 genStateDensityForCoords();
 		calcD();
 		
 		
+	}
+	private void  genStateDensityForCoords()
+	{
+		 stateDensity(x1,y1,z1,x2,y2,z2);
 	}
 	private float[] genD_grid() {
 		// TODO Auto-generated method stub

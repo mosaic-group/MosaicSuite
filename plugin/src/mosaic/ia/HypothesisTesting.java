@@ -7,6 +7,13 @@ import java.awt.Color;
 import java.util.Arrays;
 import java.util.Random;
 
+import org.math.array.LinearAlgebra;
+import org.math.array.StatisticSample;
+
+import Jama.Matrix;
+
+
+
 import weka.estimators.KernelEstimator;
 
 import mosaic.ia.utils.IAPUtils;
@@ -23,7 +30,16 @@ public class HypothesisTesting {
 	private int type;
 	private int K;
 	private double alpha;
-	private double Tob;
+	private double Tob,Uob;
+	private int binNum=20;
+	private double binSpace;
+	private double [] Tl;
+	private double [][] Td1,Td2;
+	//private double [] tempTd;
+	private double [] TdMean;
+	private double [][]  TdCov, TdInvCov;
+	private double [] U;
+	
 	
 	public HypothesisTesting(double[] cDFGrid, double[] dGrid,double[] D,
 			double[] params, int type, int K, double alpha) {
@@ -38,6 +54,209 @@ public class HypothesisTesting {
 		this.K=K;
 		this.alpha=alpha;
 	//	PlotUtils.plotDoubleArray("CDF", dGrid, cDFGrid);
+	}
+	
+	
+	private void displayResultNonParam()
+	{
+		int no=100;
+		KernelEstimator kde=IAPUtils.createkernelDensityEstimator(U, .01);
+		double [] Ulinspace=new double[no],Udens=new double[no];
+		double Udiff=(U[U.length-1]-U[0])/no;
+		double sum=0,max=0,min=Double.MAX_VALUE;
+		for(int i=0;i<no;i++)
+		{
+			Ulinspace[i]=U[0]+Udiff*i;
+			Udens[i]=kde.getProbability(Ulinspace[i]);
+			sum=sum+Udens[i];
+		}
+	//	PlotUtils.histPlotDoubleArray("Statistic:T",T);
+		for(int i=0;i<no;i++)
+		{
+		
+			Udens[i]=Udens[i]/sum;
+			if(Udens[i]>max)
+				max=Udens[i];
+			if(Udens[i]<min)
+				min=Udens[i];
+		}
+		Plot plot = new Plot("Result: NonParam Hypothesis testing","U","Probability density",Ulinspace,Udens);
+		
+		plot.setLimits(Math.min(Ulinspace[0],Uob),Math.max(Ulinspace[Ulinspace.length-1],Uob)+Udiff*50, min, max);
+		
+		plot.setColor(Color.BLUE);
+       // plot.setLimits(0, 1, 0, 10);
+        plot.setLineWidth(2);
+        plot.addLabel(.7, .2, "----  ");
+        plot.draw();
+        plot.setColor(Color.black);
+        plot.addLabel(.75, .2, "H0: True - Random");
+        plot.draw();
+        double [] Tx={Uob,Uob};
+        double [] Ty={0, max};
+        
+        plot.setColor(Color.RED);
+        plot.addPoints(Tx, Ty, Plot.LINE);
+        plot.setLineWidth(2);
+        plot.addLabel(.7, .3, "----  ");
+        plot.draw();
+        plot.setColor(Color.black);
+        plot.addLabel(.75, .3, "H0: True - Estimated");
+        plot.draw();
+        plot.show();
+        System.out.println("Uob at plot stage:"+Uob);
+	}
+	
+	
+	public boolean nonParametricTest(){
+		
+		binNum=IAPUtils.getNBins(D, 8, (int)Math.floor(D.length/8));
+		System.out.println("Bin no for nonparametric: "+binNum);
+		//generate thresholds
+		Tl=new double[binNum];
+	//	tempTd=new double[binNum];
+		
+		Td1=new double[K][Tl.length]; 
+		Td2=new double[K][Tl.length]; 
+		TdMean=new double[binNum];
+
+		
+		binSpace= (DGrid[DGrid.length-1]-DGrid[0])/binNum;
+		Tl[0]=DGrid[0];
+		for (int i=1;i<Tl.length;i++ )
+			Tl[i]=Tl[i-1]+binSpace;
+		
+		
+		//generate N samples of d from Q ,  MCx2 times.
+	
+		Td1=calculateTd();
+		
+		
+		
+	/*	for(int i=0;i<K;i++)
+		{
+			//generate d
+			
+			
+			for(int j=0;j<Tl.length;j++)
+				System.out.print("Td1["+i+"]["+j+"]:"+Td1[i][j]+",");
+			System.out.println(";");
+
+		}*/
+		
+			Td2=calculateTd();
+			
+		
+		//System.out.println("1st term of Td1: "+Td1[0][0]);
+		//	RealMatrix rmTd1= new RealMatrixImpl(Td1);
+		//System.out.println("1st term of rmTd1: "+rmTd1.getEntry(0, 0));
+		/*for(int i=0;i<Td1.length;i++){
+			for(int j=0;j<Td1[0].length;j++)
+				System.out.print(Td1[i][j]+",");
+			System.out.println("");
+		}*/
+			System.out.println("Mean:");
+			for(int i=0;i<Tl.length;i++)
+			{
+				for(int j=0;j<K;j++)
+				{
+					TdMean[i]=TdMean[i]+Td1[j][i];
+					
+				}
+				TdMean[i]=TdMean[i]/K;
+				System.out.print(TdMean[i]);
+				
+			}
+			System.out.println("");
+			PlotUtils.histPlotDoubleArray_imageJ("TdMean:nonparam", TdMean,binNum);
+	    
+	        TdCov = new double[Tl.length][Tl.length];
+	   
+	        double c;
+	    
+	        for (int i = 0; i < Tl.length; i++) {
+	            for (int j = 0; j < Tl.length; j++) {
+	                c = 0;
+	           
+	            
+	                for (int k = 0; k < K; k++)
+	                {
+	                    c += (Td1[k][i] - TdMean[i]) * (Td1[k][j] - TdMean[j]);
+	                }
+	                TdCov[i][j] = c /(K - 1);
+	            }
+	        }
+
+	    
+	
+		TdInvCov= IAPUtils.pseudoInverse(new Matrix(TdCov)).getArray();
+
+		
+		U=new double[K];
+		double [] dT=new double[Tl.length];
+		for(int i=0;i<K;i++)
+		{
+			
+			for(int j=0;j<Tl.length;j++)
+			{
+				dT[j]=TdMean[j]-Td2[i][j];
+			}
+		//	U[i]=MatrixUtils.createColumnRealMatrix(dT).multiply(TdInvCov.multiply(MatrixUtils.createRowRealMatrix(dT))).getEntry(0, 0); 
+			U[i]=LinearAlgebra.times(dT,LinearAlgebra.times(TdInvCov,dT))[0];
+					
+			
+		}
+		
+		PlotUtils.histPlotDoubleArray_imageJ("dT:nonparam:q:1sample", dT,binNum);
+		Arrays.sort(U);
+		//now for D
+		double [] tempTD=new double[Tl.length];
+	
+		for(int i=0;i<D.length;i++)
+		{
+			for(int j=0;j<Tl.length-1;j++){
+				if(D[i]>= Tl[j] && D[i]< Tl[j+1])
+				{
+					tempTD[j]++;
+					break;
+				}
+				
+			}
+		}
+		
+
+		for(int j=0;j<Tl.length;j++)
+		{
+			dT[j]=TdMean[j]-tempTD[j];
+		}
+		PlotUtils.histPlotDoubleArray_imageJ("dT:nonparam:p", dT,binNum);
+//		double U1=MatrixUtils.createColumnRealMatrix(dT).multiply(TdInvCov.multiply(MatrixUtils.createRowRealMatrix(dT))).getEntry(0, 0); 
+		Uob=LinearAlgebra.times(dT,LinearAlgebra.times(TdInvCov,dT))[0];
+		//rank
+		int i;
+		for(i=0;i<K;i++)
+		{
+			if(Uob<=U[i])
+				break;
+		}
+		
+		if(i>(int)((1-alpha)*K) )
+		{
+			System.out.println("NonParametric: Null hypothesis rejected, rank: "+i+" out of "+K);
+			IJ.showMessage("NonParametric with "+binNum+" bins: Null hypothesis: No interaction - Rejected, rank: "+i+" out of "+K+"MC runs with alpha= "+alpha);
+			//displayResultNonParam();
+			System.out.println("NullMax:"+U[U.length-1]+" observed U:"+Uob);
+			return true;
+		}	
+		else
+		{
+			IJ.showMessage("NonParametric with "+binNum+" bins:  Null hypothesis accepted, rank: "+i+" out of "+K+" MC runs with alpha= "+alpha);
+			System.out.println("NonParametric: Null hypothesis: No interaction - Accepted, rank: "+i+" out of "+K+" MC runs with alpha= "+alpha);
+	//		displayResultNonParam();
+			System.out.println("NullMax:"+U[U.length-1]+" observed U:"+Uob);
+			return false;
+		}
+		
 	}
 	
 	public boolean rankTest(){
@@ -78,14 +297,14 @@ public class HypothesisTesting {
 		{
 			System.out.println("Null hypothesis rejected, rank: "+i+" out of "+K);
 			IJ.showMessage("Null hypothesis: No interaction - Rejected, rank: "+i+" out of "+K+"MC runs with alpha= "+alpha);
-			displayResult();
+			//displayResult();
 			return true;
 		}	
 		else
 		{
 			IJ.showMessage("Null hypothesis accepted, rank: "+i+" out of "+K+" MC runs with alpha= "+alpha);
 			System.out.println("Null hypothesis: No interaction - Accepted, rank: "+i+" out of "+K+" MC runs with alpha= "+alpha);
-			displayResult();
+		//	displayResult();
 			return false;
 		}
 		
@@ -155,6 +374,29 @@ public class HypothesisTesting {
         plot.draw();
         plot.show();
         
+	}
+	
+	private double [][] calculateTd()
+	{
+		double [][] tempTd=new double[K][Tl.length];
+		for(int k=0;k<K;k++)
+		{
+			//generate d
+			generateRandomD();
+			for(int i=0;i<DRand.length;i++)
+			{
+				{
+				for(int j=0;j<Tl.length-1;j++){
+					if(DRand[i]>= Tl[j] && DRand[i]< Tl[j+1]){
+						tempTd[k][j]++;
+						break;
+						
+						}
+					}
+				}
+			}
+		}
+		return tempTd;
 	}
 	
 	

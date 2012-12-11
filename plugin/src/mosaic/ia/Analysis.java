@@ -12,6 +12,7 @@ import ij.plugin.filter.Analyzer;
 import ij.process.ImageProcessor;
 
 import java.awt.Color;
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Random;
@@ -156,26 +157,34 @@ public class Analysis {
 		boolean ret;
 		DistanceCalculations dci;
 		if (isImage == true) {
-			dci = new DistanceCalculationsImage(X, Y, mask, gridSize);
+			dci = new DistanceCalculationsImage(X, Y, mask, gridSize,kernelWeightq,dgrid_size);
 			dci.calcDistances();
 
 		} else {
 			dci = new DistanceCalculationsCoords(particleXSetCoordUnfiltered,
 					particleYSetCoordUnfiltered, genMask, x1, y1, z1, x2, y2,
-					z2, gridSize);
+					z2, gridSize,kernelWeightq,dgrid_size);
 			dci.calcDistances();
 		}
 		D = dci.getD();
+		
+		
+		dgrid=dci.getqOfD()[0];
+		q=dci.getqOfD()[1];
+		q_D_grid=q;	//q_D_grid is supposed to be not normalized - will be normalized again in CMAObj... but its OK.
 		System.out.println("p set to:"+kernelWeightp);
+//		System.out.println("Weka weight:"+IAPUtils.calcWekaWeights(D));
 		kep = IAPUtils.createkernelDensityEstimator(D, kernelWeightp);
-		ke = IAPUtils.createkernelDensityEstimator(dci.getDGrid(), kernelWeightq);
-		fillQofD_grid(dci.getDGrid());
+		
+	//	ke = IAPUtils.createkernelDensityEstimator(dci.getDGrid(), kernelWeightq);
+		//fillQofD_grid(dci.getDGrid());
+		generateKernelDensityforD();
 		ret = true;
 		if (ret == true) {
-			q = normalize(q_D_grid);
-			nnObserved = normalize(NN_D_grid);
+			//q = normalize(q_D_grid);
+			nnObserved = IAPUtils.normalize(NN_D_grid);
 			plotQP(dgrid, q, nnObserved);
-			PlotUtils.histPlotDoubleArray_imageJ("ObservedDistances", D,D.length/10);
+			PlotUtils.histPlotDoubleArray_imageJ("ObservedDistances", D,IAPUtils.getNBins(D, 8, (int)D.length/8));
 			double[] minMaxMean = IAPUtils.getMinMaxMeanD(D);
 			minD = minMaxMean[0];
 			maxD = minMaxMean[1];
@@ -192,7 +201,9 @@ public class Analysis {
 		D1=D;
 		Arrays.sort(D1);
 		SumNormQ[0]=q[0];
-		
+	//	ImageProcessUtils.saveArraytoFile(new File("/Users/arun/Documents/matlab/nonParam/q.txt"), q);
+		//ImageProcessUtils.saveArraytoFile(new File("/Users/arun/Documents/matlab/nonParam/d.txt"), dgrid);
+		//ImageProcessUtils.saveArraytoFile(new File("/Users/arun/Documents/matlab/nonParam/Dfile.txt"), D);
 		for(int i=1;i<dgrid.length;i++)
 			SumNormQ[i]=SumNormQ[i-1]+q[i];
 		
@@ -219,6 +230,7 @@ public class Analysis {
 			
 				
 		}
+		IAPUtils.updateMacheps(); // for hyp testing...
 		/*PlotUtils.plotDoubleArrayPts("dVSQNorm","d","Normalized cumulative Q", D1, QD);
 		PlotUtils.histPlotDoubleArray_imageJ("QDsum", QD);
 		PlotUtils.plotDoubleArrayPts("nVSQNorm","n (Number of d_i < d)","Normalized cumulative Q", n, QD);
@@ -234,10 +246,24 @@ public class Analysis {
 		PlotUtils.plotDoubleArrayPts("LikelihoodRatio for strength="+(j*.01+.51), "Threshold", "Likelihood ratio for strength="+(j*.01+.51), D1, likRatio);
 	
 		}*/
-		
+		IJ.showMessage("Suggested Kernel wt(p): "+IAPUtils.calcWekaWeights(D));
 		
 		return ret;
 	}
+	
+	private void generateKernelDensityforD() // just to run kernel density
+	{
+
+		// double min=Double.MAX_VALUE;
+	
+		NN_D_grid = new double[dgrid.length];
+		NN_D_grid[0] = kep.getProbability(dgrid[0]);
+		for (int i = 1; i < dgrid.length; i++) {
+			NN_D_grid[i] = kep.getProbability(dgrid[i]);
+		}
+		
+	}
+
 
 	private void fillQofD_grid(float D_grid[]) // just to run kernel density
 	{
@@ -349,7 +375,7 @@ public class Analysis {
 		// IAPUtils.calculateCDF(iam.getQ_D_grid()));
 
 		CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(
-				dgrid, q_D_grid, D, potentialType,normalize(NN_D_grid));
+				dgrid, q_D_grid, D, potentialType,IAPUtils.normalize(NN_D_grid));
 		/*
 		 * double [] P1=fitfun.likelihood(initGuess);
 		 * PlotUtils.plotDoubleArray("Loglikelihood", iam.getD(), P1); return
@@ -380,7 +406,7 @@ public class Analysis {
 			cma.readProperties(); // read options, see file
 									// CMAEvolutionStrategy.properties
 			cma.options.stopFitness = 1e-12; // optional setting
-			cma.options.stopTolFun = 1e-12;
+			cma.options.stopTolFun = 1e-15;
 			Random rn = new Random(System.nanoTime());
 			if (potentialType == PotentialFunctions.NONPARAM) {
 				cma.setDimension(PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1);
@@ -551,6 +577,7 @@ public class Analysis {
 	
 		if (!showAllRerunResults) { //show only best
 			double[] fitPotential = fitfun.getPotential(best[bestFitnessindex]);
+			fitfun.l2Norm(best[bestFitnessindex]); 		//to calc pgrid for best params
 			Plot plot = new Plot("Estimated potential", "distance",
 					"Potential value", fitfun.getD_grid(), fitPotential);
 			double min = Double.MAX_VALUE, max = Double.MIN_VALUE;
@@ -635,7 +662,7 @@ public class Analysis {
 			}
 			System.out.println("Number of d< sigma: " + count);*/
 
-			P_grid = normalize(P_grid);
+			P_grid = IAPUtils.normalize(P_grid);
 
 			plotQPNN(dgrid, P_grid, q, nnObserved,best[bestFitnessindex][0],best[bestFitnessindex][1],allFitness[bestFitnessindex]);
 
@@ -652,16 +679,7 @@ public class Analysis {
 
 	}
 
-	private double[] normalize(double[] array) {
-
-		double sum = 0;
-		double[] retarray = new double[array.length];
-		for (int i = 0; i < array.length; i++)
-			sum = sum + array[i];
-		for (int i = 0; i < array.length; i++)
-			retarray[i] = array[i] / sum;
-		return retarray;
-	}
+	
 
 	private void plotQP(double[] d, double[] q, double[] nn) {
 		String xlabel ="Distance";
@@ -698,11 +716,9 @@ public class Analysis {
 		plot.draw();
 		plot.setColor(Color.black);
 		plot.draw();
-		plot.addLabel(.75, .3, "q(d): Random");
+		plot.addLabel(.75, .3, "q(d): Cellular context");
 		
 	
-		
-
 		plot.show();
 
 	}
@@ -746,7 +762,7 @@ public class Analysis {
 		plot.draw();
 		plot.setColor(Color.black);
 		plot.draw();
-		plot.addLabel(.7, .3, "q(d): Random");
+		plot.addLabel(.7, .3, "q(d): Cellular context");
 
 		plot.setColor(Color.green);
 		plot.addPoints(d, p, PlotWindow.LINE);
@@ -826,6 +842,7 @@ public class Analysis {
 				IAPUtils.calculateCDF(q_D_grid), dgrid, D, best[bestFitnessindex],
 				potentialType, monteCarloRunsForTest, alpha);
 		ht.rankTest();
+		ht.nonParametricTest();
 		return true;
 	}
 

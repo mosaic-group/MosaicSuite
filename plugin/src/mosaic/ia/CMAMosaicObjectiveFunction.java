@@ -226,7 +226,7 @@ public class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 			sum=sum+diff*diff;
 		}
 	//	System.out.println(sum/(s*s));
-		return sum/(s*s);
+		return sum*s*s;
 		
 	}
 	
@@ -250,7 +250,7 @@ public class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 			double []minmaxmeanD=IAPUtils.getMinMaxMeanD(D);
 		//	System.out.println(x[0]+" "+x[1]+" "+"min:"+minmaxmean[0]+"max:"+minmaxmean[1]);
 			
-			if(x[0]>=0&&x[0]<=30 && x[1]>=Math.min(minmaxmeanDg[0],minmaxmeanD[0]) && x[1]<=Math.max(minmaxmeanDg[1],minmaxmeanD[1]))
+			if(x[0]>=IAPUtils.MACHEPS&&x[0]<=50 && x[1]>=Math.max(Math.min(minmaxmeanDg[0],minmaxmeanD[0]),IAPUtils.MACHEPS) && x[1]<=Math.max(minmaxmeanDg[1],minmaxmeanD[1])) // 50 is aribtrary. but log(Double.MAXVAL)= log((2-(2^-52))*(2^1023))= 709.7827
 				return true;
 			else
 				return false;

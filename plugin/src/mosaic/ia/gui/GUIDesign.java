@@ -51,6 +51,7 @@ import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.ia.Analysis;
 import mosaic.ia.PotentialFunctions;
+import mosaic.ia.utils.IAPUtils;
 import mosaic.ia.utils.ImageProcessUtils;
 import net.miginfocom.swing.MigLayout;
 import javax.swing.SpringLayout;
@@ -73,7 +74,7 @@ public class GUIDesign implements ActionListener  {
 	 private int monteCarloRunsForTest=1000;
 	 private int numReRuns=10;
 private double qkernelWeight=.001;
-private double pkernelWeight=.1;
+private double pkernelWeight=1;
 
 		private double alpha=.05;
 		private JFormattedTextField mCRuns, numSupport,smoothnessNP,gridSizeInp,reRuns,kernelWeightq, kernelWeightp;
@@ -408,15 +409,15 @@ private double pkernelWeight=.1;
 		 gridSizeInp.setColumns(10);
 		 gridSizeInp.addActionListener(this);
 		 
-		 JLabel lblGridSize = new JLabel("Grid size:");
+		 JLabel lblGridSize = new JLabel("Grid spacing:");
 		 
-		 lblKernelWeightq = new JLabel("Kernel weight(q):");
+		 lblKernelWeightq = new JLabel("Kernel wt(q):");
 		 
 		 kernelWeightq=new JFormattedTextField();
 		 kernelWeightq.setText(qkernelWeight+"");
 		 kernelWeightq.addActionListener(this);
 		 
-		 lblKernelWeightp = new JLabel("Kernel weight(p):");
+		 lblKernelWeightp = new JLabel("Kernel wt(p):");
 		 
 		 kernelWeightp= new JFormattedTextField();
 		 kernelWeightp.setText("0.1");
@@ -428,20 +429,21 @@ private double pkernelWeight=.1;
 		 				.addGroup(gl_panel_4.createSequentialGroup()
 		 					.addContainerGap()
 		 					.addComponent(lblGridSize)
-		 					.addGap(2)
+		 					.addPreferredGap(ComponentPlacement.RELATED)
 		 					.addComponent(gridSizeInp, GroupLayout.PREFERRED_SIZE, 44, GroupLayout.PREFERRED_SIZE)
 		 					.addPreferredGap(ComponentPlacement.RELATED)
 		 					.addComponent(lblKernelWeightq)
 		 					.addPreferredGap(ComponentPlacement.RELATED)
-		 					.addComponent(kernelWeightq, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE)
+		 					.addComponent(kernelWeightq, GroupLayout.PREFERRED_SIZE, 48, GroupLayout.PREFERRED_SIZE)
 		 					.addPreferredGap(ComponentPlacement.RELATED)
-		 					.addComponent(lblKernelWeightp, GroupLayout.PREFERRED_SIZE, 107, GroupLayout.PREFERRED_SIZE)
-		 					.addPreferredGap(ComponentPlacement.RELATED, 3, Short.MAX_VALUE)
-		 					.addComponent(kernelWeightp, GroupLayout.PREFERRED_SIZE, 36, GroupLayout.PREFERRED_SIZE))
+		 					.addComponent(lblKernelWeightp, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		 					.addPreferredGap(ComponentPlacement.RELATED)
+		 					.addComponent(kernelWeightp, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
+		 					.addPreferredGap(ComponentPlacement.RELATED))
 		 				.addGroup(gl_panel_4.createSequentialGroup()
 		 					.addGap(113)
 		 					.addComponent(btnCalculateDistances, GroupLayout.PREFERRED_SIZE, 209, GroupLayout.PREFERRED_SIZE)))
-		 			.addContainerGap())
+		 			.addGap(0))
 		 );
 		 gl_panel_4.setVerticalGroup(
 		 	gl_panel_4.createParallelGroup(Alignment.TRAILING)
@@ -620,9 +622,9 @@ private double pkernelWeight=.1;
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGap(17)
 					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
-						.addComponent(panel_4, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
 						.addComponent(panel_5, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
-						.addComponent(panel_7, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 422, Short.MAX_VALUE)))
+						.addComponent(panel_7, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 422, Short.MAX_VALUE)
+						.addComponent(panel_4, Alignment.LEADING, 0, 0, Short.MAX_VALUE)))
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
@@ -843,6 +845,7 @@ private double pkernelWeight=.1;
 		{
 			
 		//	a.setImageList(imgx, imgy);
+			
 			if(!a.getIsImage())
 			{
 				if(xmin>Double.MAX_VALUE-1|| xmax>Double.MAX_VALUE-1|| ymin> Double.MAX_VALUE-1 || ymax> Double.MAX_VALUE-1 || zmin>Double.MAX_VALUE-1 || zmax>Double.MAX_VALUE-1
@@ -860,8 +863,10 @@ private double pkernelWeight=.1;
 			
 			}
 			
+			
 			if(!a.calcDist(gridSize))
 				IJ.showMessage("No X and Y images/coords loaded. Cannot calculate distance");
+		
 			return;
 		}
 		
@@ -1021,10 +1026,14 @@ private double pkernelWeight=.1;
 		{
 			Calibration imgxc =imgx.getCalibration();
 			Calibration imgyc =imgy.getCalibration();
-			if((imgx.getWidth()==imgy.getWidth())&&(imgx.getHeight()==imgy.getHeight())&&(imgx.getStackSize()==imgy.getStackSize())&& (imgxc.pixelDepth==imgyc.pixelDepth) && (imgxc.pixelHeight==imgyc.pixelHeight)&&(imgxc.pixelWidth==imgyc.pixelWidth) &&(imgxc.getUnit()==imgyc.getUnit()) )
+			if((imgx.getWidth()==imgy.getWidth())&&(imgx.getHeight()==imgy.getHeight())&&(imgx.getStackSize()==imgy.getStackSize())&& (imgxc.pixelDepth==imgyc.pixelDepth) && (imgxc.pixelHeight==imgyc.pixelHeight)&&(imgxc.pixelWidth==imgyc.pixelWidth) &&(imgxc.getUnit().equals(imgyc.getUnit())) )
 					return true;
-			else 
+			else {
+				System.out.println(imgx.getWidth()+","+imgy.getWidth()+","+imgx.getHeight()+","+imgy.getHeight()+","+imgx.getStackSize()+","+imgy.getStackSize()+","+imgxc.pixelDepth+","+imgyc.pixelDepth+","+imgxc.pixelHeight+","+imgyc.pixelHeight+","+imgxc.pixelWidth+","+imgyc.pixelWidth+","+imgxc.getUnit()+","+imgyc.getUnit());
+				
 					return false;
+					
+			}
 		}
 	public JTextArea getTextArea() {
 		return textArea;
