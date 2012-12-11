@@ -302,6 +302,24 @@ public class ImageProcessUtils {
 	}
 	
 	
+	public static void saveArraytoFile(File file, double [] array)
+	{
+		
+		PrintWriter pw=null;
+		try {
+			pw = new PrintWriter(file);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String doubleString=null;
+		for(int i=0;i<array.length;i++)
+			doubleString=doubleString+Double.toString(array[i])+",";
+		System.out.println(doubleString);
+		pw.write(doubleString);
+		pw.flush();
+	}
+	
 	public static ImagePlus openImage(String title, String path)
 	{
 		// open image dialog and opens it and returns
