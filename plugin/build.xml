@@ -1,13 +1,13 @@
 <project name="MosaicToolbox" default="" basedir=".">
     <description>
-    	MosaicToolbox_.jar build file
+    	IAPMosaic_.jar build file
     </description>
   <property name="src" location="src" />
   <property name="build" location="bin" />
   <property name="dist"  location="dist" />
 	<property name="lib" value="lib"/>
 	 <property name="pluginsDir"  location="$basedir/../../IJ/plugins/" />
-
+<property name="jarfilename" value="MosaicToolbox_" />
   <property name="user.name" value="Arun Shivanandan" />
 <target name="main" depends="clean,build,compress,compressLibs" description="Main target">
 	<echo>
