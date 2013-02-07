@@ -25,6 +25,7 @@ import ij.text.TextPanel;
 import java.awt.AWTEvent;
 import java.awt.Button;
 import java.awt.Checkbox;
+import java.awt.Choice;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -44,10 +45,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -157,7 +162,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	/* vars for text_files_mode*/
 	public String files_dir;
 	String[] files_list;
-	boolean momentum_from_text, zcoord_from_text;	
+	boolean one_file_multiple_frame;	
 	
 
 
@@ -311,37 +316,64 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		if (frames_processed) return true;
 
 		/* Initialise frames array */
+		
 		frames = new MyFrame[frames_number];
 		MyFrame current_frame = null;
 
-		for (int frame_i = 0, file_index = 0; frame_i < frames_number; frame_i++, file_index++) {			
+		if (one_file_multiple_frame == false)
+		{
+			for (int frame_i = 0, file_index = 0; frame_i < frames_number; frame_i++, file_index++) {			
 
-			if (text_files_mode) {
-				if (files_list[file_index].startsWith(".") || files_list[file_index].endsWith("~")) {
-					frame_i--;
-					continue;
-				}
+				if (text_files_mode) {
+					if (files_list[file_index].startsWith(".") || files_list[file_index].endsWith("~")) {
+						frame_i--;
+						continue;
+					}
 
-				// text_files_mode:
-				// construct each frame from the conrosponding text file 
-				IJ.showStatus("Reading Particles from file " + files_list[file_index] + 
-						"(" + (frame_i) + "/" + files_list.length + ")");
-				current_frame = new MyFrame(files_dir + files_list[file_index], frame_i, linkrange);
-				if (current_frame.getParticles() == null) return false;
+					// text_files_mode:
+					// construct each frame from the conrosponding text file 
+					IJ.showStatus("Reading Particles from file " + files_list[file_index] + 
+							"(" + (frame_i) + "/" + files_list.length + ")");
+					current_frame = new MyFrame(files_dir + files_list[file_index], frame_i, linkrange);
+					if (current_frame.getParticles() == null) return false;
 
-			} else {
+				} else {
 
-				// sequence of images mode:
-				// construct each frame from the corresponding image
-				current_frame = new MyFrame(MosaicUtils.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i, linkrange);
+					// sequence of images mode:
+					// construct each frame from the corresponding image
+					current_frame = new MyFrame(MosaicUtils.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i, linkrange);
 				
-				// Detect feature points in this frame
-				IJ.showStatus("Detecting Particles in Frame " + (frame_i+1) + "/" + frames_number);				
-				detector.featurePointDetection(current_frame);
+					// Detect feature points in this frame
+					IJ.showStatus("Detecting Particles in Frame " + (frame_i+1) + "/" + frames_number);				
+					detector.featurePointDetection(current_frame);
+				}
+				frames[current_frame.frame_number] = current_frame;
+				IJ.freeMemory();
+			} // for
+		}
+		else
+		{
+			int frame_i = 0;
+			BufferedReader r;
+			try {
+				r = new BufferedReader(new FileReader(files_list[0]));
 			}
-			frames[current_frame.frame_number] = current_frame;
-			IJ.freeMemory();
-		} // for
+			catch (Exception e) {
+				IJ.error(e.getMessage());
+				return false;
+			}
+			
+			current_frame = new MyFrame(r,files_list[0],0, linkrange);
+			frame_i++;
+			
+			while (current_frame.getParticles() != null)
+			{
+				current_frame = new MyFrame(r,files_list[0],frame_i, linkrange);
+
+				frames[current_frame.frame_number] = current_frame;
+				IJ.freeMemory();
+			} // for
+		}
 		frames_processed = true;
 		return true;
 	}
@@ -360,7 +392,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 * For text_files_mode: 
 	 * <ul>
 	 * <li>Gets user defined params:<code> linkrange, displacement </code>
-	 * <li>Initialize and sets params:<code> files_list, title, frames_number, momentum_from_text </code>
+	 * <li>Initialize and sets params:<code> files_list, title, frames_number, one_file_multiple_frame </code>
 	 * </ul></ul>
 	 * @return false if cancel button clicked or problem with input
 	 * @see #makeKernel(int)
@@ -370,10 +402,36 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 		gd = new GenericDialog("Particle Tracker...", IJ.getInstance());
 		GenericDialog text_mode_gd;
-		momentum_from_text = false;
-		zcoord_from_text = false;
+		one_file_multiple_frame = false;
 		boolean convert = false;
 		if (text_files_mode) {
+			
+			text_mode_gd = new GenericDialog("input files info", IJ.getInstance());
+			text_mode_gd.addMessage("Please specify the info provided for the Particles...");
+			text_mode_gd.addCheckbox("one file multiple frame", false);
+			//			text_mode_gd.addCheckbox("3rd or 5th position and on- all other data", true);
+			text_mode_gd.showDialog();
+			if (text_mode_gd.wasCanceled()) return false;
+
+			one_file_multiple_frame = text_mode_gd.getNextBoolean();
+			
+			if (one_file_multiple_frame == true)
+			{
+				int[] ids = WindowManager.getIDList();
+				
+				ImagePlus ip;
+				if(ids.length != 0)
+				{
+					ip = WindowManager.getImage(ids[0]);
+					FileInfo fi = ip.getFileInfo();
+					files_list[0] = new String(fi.directory + fi.fileName);
+				}
+				else
+				{
+					// Open a dialog
+				}
+			}
+			
 			// gets the input files directory form user
 			files_list  = getFilesList();
 			if (files_list == null) return false;
@@ -385,23 +443,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				if (!files_list[i].startsWith(".") && !files_list[i].endsWith("~")) {
 					frames_number++;
 				}
-			}
-			text_mode_gd = new GenericDialog("input files info", IJ.getInstance());
-			text_mode_gd.addMessage("Please specify the info provided for the Particles...");
-			text_mode_gd.addCheckbox("1st position - x (must)", true);
-			text_mode_gd.addCheckbox("2nd position - y (must)", true);
-			text_mode_gd.addCheckbox("3rd position - z (if 3D data)", true);
-			text_mode_gd.addCheckbox("4rd to 8th positions - momentum (m0) to (m4)", false);
-			//			text_mode_gd.addCheckbox("3rd or 5th position and on- all other data", true);
-
-			((Checkbox)text_mode_gd.getCheckboxes().elementAt(0)).setEnabled(false);
-			((Checkbox)text_mode_gd.getCheckboxes().elementAt(1)).setEnabled(false);
-			text_mode_gd.showDialog();
-			if (text_mode_gd.wasCanceled()) return false;
-			text_mode_gd.getNextBoolean();
-			text_mode_gd.getNextBoolean();
-			zcoord_from_text = text_mode_gd.getNextBoolean();
-			momentum_from_text = text_mode_gd.getNextBoolean();			
+			}		
 		} else {
 			detector.addUserDefinedParametersDialog(gd);
 			
@@ -2085,6 +2127,17 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 	}
 
+	/**
+	 * Opens a dialog where the user can select a text mode particles file
+	 * @return an array of All the file names in the selected folder 
+	 * 			or null if the user cancelled the selection. 
+	 * 			is some O.S (e.g. Linux) this may include '.' and '..'
+	 * @see ij.io.OpenDialog#OpenDialog(java.lang.String, java.lang.String, java.lang.String)
+	 * @see java.io.File#list() 
+	 */
+	
+	
+	
 	/**
 	 * Opens an 'open file' dialog where the user can select a folder
 	 * @return an array of All the file names in the selected folder 

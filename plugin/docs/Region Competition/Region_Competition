@@ -198,12 +198,20 @@ Before the simulation start, the normalized intensity image is shown, and it ask
     </tr>
     <tr>
       <td>
+<IMG src="images/LocalMaxima.jpg" width="461" height="245" align="left" border="0">
       </td>
       <td>
 <br>
 <br>
 <h3>Local Maxima</h3>
-Initial regions are created around local maxima of the image
+the initial regions are created around the local maxima of the image, and the following three steps are performed<br>
+<br>
+1) <strong>Sigma</strong>:The first stage is to apply a gaussian blur filter to the image with sigma variance<br>
+<br>
+2) <strong>Tolerance</strong>: Find out the locals maxima according to the tollerance parameter. The maxima are accepted only if protruding more than this value from the ridge to a higher maximum. High value of tollerance means that only high local maxima will be accepted, reducing the Tolerance, increases the group of possible maxima accepted (from left to right in the image)<br>
+<br>
+3) <strong>Region Tol</strong>:Filter the regions found such that: If the region is smaller that "Region Tol", creates a bubble with radius (<strong>Radius</strong>) [1], otherwise leave the region unchanged [2]<br>
+<br><br>
       </td>
     </tr>
    </tbody>
@@ -287,10 +295,11 @@ The algorithm is able to manage changes of topology, you can enable or disable t
       <td><trong><h2>PC</h2>
       <strong>Oscillation threshold</strong>: 0.001<br>
       <strong>Theta E merge</strong>: 0.01<br>
-      <strong>Lambda E length</strong>: 0.4<br>
-      <strong>R_k</strong>: 12<br>
-      <strong>Bubble radius</strong>: 10<br>
-      <strong>Bubble padding</strong>: 17<br>
+      <strong>Lambda E length</strong>: 0.2<br>
+      <strong>R_k</strong>: 8<br>
+      <strong>Local Max Radius </strong>: 5<br>
+      <strong>Local Max Sigma </strong>: 8<br>
+      <strong>Local Max Tolarance</strong>: 0.002<br>
       </td>
     </tr>
     <tr>
