@@ -27,6 +27,11 @@ public abstract class InitializationGUI extends GUImeMore
 				result = new BoxInitGUI(settings);
 				break;
 			}
+			case LocalMax:
+			{
+				result = new LocalMaxGUI(settings);
+				break;
+			}
 			default:
 			{
 				result = new DefaultInitGUI();
@@ -96,6 +101,39 @@ class BoxInitGUI extends InitializationGUI
 			return;
 		
 		double ratio = gd.getNextNumber();
+		
+		//TODO save to settings
+		
+	}
+}
+
+class LocalMaxGUI extends InitializationGUI
+{
+	protected LocalMaxGUI(Settings settings)
+	{
+		super(settings);
+		gd.setTitle("Local Max Initialization");
+	}
+
+	@Override
+	public void createDialog()
+	{
+		gd.addNumericField("Radius", settings.l_BubblesRadius, 1);
+		gd.addNumericField("Sigma", settings.l_Sigma, 1);
+		gd.addNumericField("Tolerance", settings.l_Tolerance, 5);
+		gd.addNumericField("Region Tol", settings.l_RegionTolerance, 1);
+	}
+
+	@Override
+	public void process()
+	{
+		if(gd.wasCanceled())
+			return;
+		
+		settings.l_BubblesRadius = (int)gd.getNextNumber();
+		settings.l_Sigma = (int)gd.getNextNumber();
+		settings.l_Tolerance = gd.getNextNumber();
+		settings.l_RegionTolerance = (int)gd.getNextNumber();
 		
 		//TODO save to settings
 		
