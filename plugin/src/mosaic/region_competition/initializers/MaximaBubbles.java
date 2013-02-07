@@ -27,7 +27,7 @@ public class MaximaBubbles extends DataDrivenInitializer
 	
 	int regionThreshold = 4; // regions smaller than this values will be bubbled
 	
-	public MaximaBubbles(IntensityImage intensityImage, LabelImage labelImage)
+	public MaximaBubbles(IntensityImage intensityImage, LabelImage labelImage, int rad_t, int sigma_t, double tol_t, int r_t)
 	{
 		super(intensityImage, labelImage);
 		int dim = labelImage.getDim();
@@ -43,6 +43,11 @@ public class MaximaBubbles extends DataDrivenInitializer
 		{
 			throw new RuntimeException("Not supported dimension for MaximumFinder");
 		}
+		
+		rad = rad_t;
+		sigma = sigma_t;
+		tolerance = tol_t;
+		regionThreshold = r_t;
 	}
 
 	
@@ -83,10 +88,12 @@ public class MaximaBubbles extends DataDrivenInitializer
 				n++;
 			}
 			
+			System.out.print("Region " + n);
+			
 			// if region was very small, draw a bubble
 			if(n<regionThreshold)
 			{
-				BubbleDrawer bd = new BubbleDrawer(labelImage, regionThreshold/2, regionThreshold);
+				BubbleDrawer bd = new BubbleDrawer(labelImage, rad/2, rad);
 				bd.drawCenter(p, color);
 			}
 			
