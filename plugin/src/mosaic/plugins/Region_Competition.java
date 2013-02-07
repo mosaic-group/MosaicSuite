@@ -402,7 +402,7 @@ public class Region_Competition implements PlugInFilter
 			}
 			case LocalMax: 
 			{
-				MaximaBubbles mb = new MaximaBubbles(intensityImage, labelImage);
+				MaximaBubbles mb = new MaximaBubbles(intensityImage, labelImage, settings.l_BubblesRadius, settings.l_Sigma,settings.l_Tolerance, settings.l_RegionTolerance);
 //				mb.initBrightBubbles();
 				mb.initFloodFilled();
 				break;
