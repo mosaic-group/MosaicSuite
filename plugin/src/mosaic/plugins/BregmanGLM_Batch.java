@@ -1,7 +1,7 @@
+package mosaic.plugins;
 
-
-import bregman.GUI;
-import bregman.GenericGUI;
+import mosaic.bregman.GUI;
+import mosaic.bregman.GenericGUI;
 import ij.plugin.PlugIn;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
