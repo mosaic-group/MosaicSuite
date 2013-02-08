@@ -102,9 +102,6 @@
   
   <!-- classpath for project build -->   
   <path id="build.classpath">
-    <fileset dir="lib/">
-      <include name="ij.jar"/>
-    </fileset>
     
     <!--	<fileset dir="/Users/arun/Documents/Programs_APIs">
 	<include name="junit-3.8.1.jar"/>
