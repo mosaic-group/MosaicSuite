@@ -40,7 +40,7 @@ public class MasksDisplay {
 	//static ImagePlus imgda=new ImagePlus();
 	//static ImagePlus imgdb=new ImagePlus();
 	ImagePlus imgda, imgdb;
-	
+
 	//static boolean dispa=true;
 	//static boolean dispb=true;
 
@@ -126,10 +126,12 @@ public class MasksDisplay {
 		if(channel==0){
 			imgda.setProcessor(s + " X" ,imp);
 			if(firstdispa){ imgda.show(); firstdispa=false;}
+			imgda.changes=false;
 		}
 		else{
 			imgdb.setProcessor(s + " Y" ,imp);
 			if(firstdispb){ imgdb.show(); firstdispb=false;}
+			imgdb.changes=false;
 		}
 	}
 
@@ -174,7 +176,7 @@ public class MasksDisplay {
 		imgtemp.show(); 
 		return imgtemp;
 	}
-	
+
 	public  ImagePlus display2regionsnewboolean(boolean [] [] array, String s, int channel){
 
 		float [] [] temp= new float [ni][nj];
@@ -218,6 +220,7 @@ public class MasksDisplay {
 		else
 			imgtemp.setProcessor(s + "Y",imp);
 		imgtemp.show(); 
+		imgtemp.changes=false;
 		return imgtemp;
 	}
 
@@ -238,12 +241,14 @@ public class MasksDisplay {
 			ImageProcessor imp= new FloatProcessor(temp);
 			img3temp.addSlice("", imp);
 		}
-		
+
 		if(channel==0)
 			imgtemp.setStack(s + "X",img3temp);
 		else
 			imgtemp.setStack(s + "Y",img3temp);
+		
 		imgtemp.show(); 
+		imgtemp.changes=false;
 		return imgtemp;
 	}
 
@@ -330,8 +335,8 @@ public class MasksDisplay {
 			//float [] [] temp= new float [ni][nj];
 			byte[] temp = new byte[ni*nj];
 
-			for (int i=0; i<ni; i++) {  
-				for (int j=0;j< nj; j++) {  	
+			for (int j=0;j< nj; j++) {  	
+				for (int i=0; i<ni; i++) {  
 					temp[j * p.ni + i]= (byte) ( (int)(array[z][i][j]));//(float) array[z][i][j];
 					//ims3d.setVoxel(i, j, z, array[z][i][j]);
 				}	
@@ -479,28 +484,31 @@ public class MasksDisplay {
 
 	public void displaycoloc(ArrayList<Region> regionslistA,ArrayList<Region> regionslistB){
 
-		int [][][][] imagecolor = new int [nz][ni][nj][3];
+		
+		
+		byte [] imagecolor = new byte [nz*ni*nj*3];
 
 		//set all to zero
 		for (int z=0; z<nz; z++) {  
-			for (int i=0;i<ni;i++) {  
+			for (int i=0;i<ni;i++) { 
+				int t=z*ni*nj*3+i*nj*3;
 				for (int j=0;j< nj;j++){  
-					imagecolor[z][i][j][0]=0;//Red channel
-					imagecolor[z][i][j][1]=0;//Green channel
-					imagecolor[z][i][j][2]=0;//Blue channel
+					imagecolor[t+j*3+0]=0;//Red channel
+					imagecolor[t+j*3+1]=0;//Green channel
+					imagecolor[t+j*3+2]=0;//Blue channel
 				}
 			}
 		}
 
 		//set green  pixels 
-
+		imagecolor[1]=(byte) 255;
 		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();){
 			Region r = it.next();
 
 			for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
 				Pix p = it2.next();
-
-				imagecolor[p.pz][p.px][p.py][1]=255;
+				int t=p.pz*ni*nj*3+p.px*nj*3;
+				imagecolor[t+p.py*3+1]=(byte) 255;
 				//green
 			}	
 		}
@@ -512,19 +520,29 @@ public class MasksDisplay {
 
 			for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
 				Pix p = it2.next();
-				imagecolor[p.pz][p.px][p.py][0]=255;
+				int t=p.pz*ni*nj*3+p.px*nj*3;
+				imagecolor[t+p.py*3+0]=(byte) 255;
 				//red
 				//cpcoloc.putPixel(p.px, p.py, color);
 			}
 		}
 
+
+				
+			
+		int [] tabt= new int [3];
+		
 		this.imgcolocastack=new ImageStack(ni,nj);
 		for (int z=0; z<nz; z++) {  
-
 			ColorProcessor cpcoloc= new ColorProcessor(ni,nj);
 			for (int i=0;i<ni;i++) {  
-				for (int j=0;j< nj;j++){  
-					cpcoloc.putPixel(i, j, imagecolor[z][i][j]);
+				int t=z*ni*nj*3+i*nj*3;
+				for (int j=0;j< nj;j++){
+					tabt[0]=imagecolor[t+j*3 + 0] & 0xFF;
+					tabt[1]=imagecolor[t+j*3 + 1] & 0xFF;
+					tabt[2]=imagecolor[t+j*3 + 2] & 0xFF;	
+					//if(i==0 && j==0){IJ.log("tabt0 :" + tabt[0] + "t1 :" + tabt[1] + "t2:" + tabt[2]);}
+					cpcoloc.putPixel(i, j, tabt);
 				}
 			}
 			this.imgcolocastack.addSlice("Colocalization", cpcoloc);
@@ -547,12 +565,9 @@ public class MasksDisplay {
 			//			if (Analysis.p.nz >1) fs.saveAsTiffStack(savepath);
 			//			else fs.saveAsTiff(savepath);	
 		}
-
-
 	}
 
-
-
+	
 
 	public void displaycolocpositiveA(ArrayList<Region> regionslistA){
 

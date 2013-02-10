@@ -87,7 +87,7 @@ public class FindConnectedRegions  {
 	public static ImagePlus regsresultx=new ImagePlus();
 	public static ImagePlus regsresulty=new ImagePlus();
 	public ImagePlus imagePlus;
-	int [] [] [] tempres;
+	short [] [] [] tempres;
 	public ArrayList<Region> results = new ArrayList<Region>();
 
 
@@ -100,17 +100,17 @@ public class FindConnectedRegions  {
 	public FindConnectedRegions(ImagePlus mask, byte [][][] smask){
 		this.imagePlus= mask;
 		this.softmask= smask;
-		this.tempres=new int [Analysis.p.nz][Analysis.p.ni][Analysis.p.nj];
+		this.tempres=new short [Analysis.p.nz][Analysis.p.ni][Analysis.p.nj];
 	}
 
 	public FindConnectedRegions(ImagePlus mask, int nx, int ny, int nz){
 		this.imagePlus= mask;
-		this.tempres=new int [nz][nx][ny];
+		this.tempres=new short [nz][nx][ny];
 	}
 
 	public FindConnectedRegions(ImagePlus mask){
 		this.imagePlus= mask;
-		this.tempres=new int [Analysis.p.nz][Analysis.p.ni][Analysis.p.nj];
+		this.tempres=new short [Analysis.p.nz][Analysis.p.ni][Analysis.p.nj];
 	}
 
 
@@ -178,6 +178,7 @@ public class FindConnectedRegions  {
 		float beta_in;
 		float beta_out;
 		boolean singlec;
+		double coloc_o_int;
 		public int compareTo(Object otherRegion) {
 			Region o = (Region) otherRegion;
 			return (value < o.value) ? 1 : ((value  > o.value) ? -1 : 0);
@@ -649,7 +650,7 @@ public class FindConnectedRegions  {
 
 							if (status == ADDED) {
 								if(region.points<= maxvesiclesize){
-									tempres[z][x][y]= tag;//tag;
+									tempres[z][x][y]= (short) tag;//tag;
 									region.pixels.add(new Pix(z,x,y));
 									region.value=tag;
 									//region.intensity=;
@@ -765,7 +766,7 @@ public class FindConnectedRegions  {
 
 
 
-	public void displayRegions(int [][][] regions, int width,int height,int depth, int channel, boolean displ, boolean save){
+	public void displayRegions(short [][][] regions, int width,int height,int depth, int channel, boolean displ, boolean save){
 		if(channel==0){
 			regstackx=new ImageStack(width,height);
 
@@ -802,12 +803,15 @@ public class FindConnectedRegions  {
 
 			//IJ.log("in fcr dispcolors" + Analysis.p.dispcolors);
 			if(displ && Analysis.p.dispcolors && Analysis.p.dispwindows){// && !Analysis.p.save_images
+				regsresultx.setTitle("Colorized objectsfirst, channel 1");
 				regsresultx.show();
 			}
 
 			if(displ && Analysis.p.displabels  && Analysis.p.dispwindows){// && !Analysis.p.save_images
-				IJ.run(regsresultx, "Grays", "");
-				regsresultx.show();
+				ImagePlus dupx= regsresultx.duplicate();
+				dupx.setTitle("Labelized objects, channel 1");
+				IJ.run(dupx, "Grays", "");
+				dupx.show();
 			}
 
 
@@ -820,7 +824,7 @@ public class FindConnectedRegions  {
 
 			if(save && Analysis.p.save_images && Analysis.p.dispcolors){
 				IJ.run(regsresultx,"RGB Color", "");
-				savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1_RGB" +".zip";
+				savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1_RGBfirst" +".zip";
 				IJ.saveAs(regsresultx, "ZIP", savepath);
 			}
 
@@ -872,12 +876,15 @@ public class FindConnectedRegions  {
 
 
 			if(displ && Analysis.p.dispcolors  && Analysis.p.dispwindows){// && !Analysis.p.save_images
+				regsresulty.setTitle("Colorized objects, channel 2");
 				regsresulty.show();
 			}
 
 			if(displ && Analysis.p.displabels  && Analysis.p.dispwindows){// && !Analysis.p.save_images
-				IJ.run(regsresulty, "Grays", "");
-				regsresulty.show();
+				ImagePlus dupy= regsresulty.duplicate();
+				dupy.setTitle("Labelized objects, channel 2");
+				IJ.run(dupy, "Grays", "");
+				dupy.show();
 			}
 
 

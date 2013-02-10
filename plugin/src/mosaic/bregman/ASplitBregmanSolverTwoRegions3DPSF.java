@@ -12,10 +12,12 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 	double c0,c1;
 	public double [] energytab2;
 
+	
+	
 	public ASplitBregmanSolverTwoRegions3DPSF(Parameters params,
 			double [] [] [] image, double [] [] [] [] speedData, double [] [] [] [] mask,
-			MasksDisplay md, int channel){
-		super(params,image,speedData,mask,md, channel);
+			MasksDisplay md, int channel, AnalysePatch ap){
+		super(params,image,speedData,mask,md, channel , ap);
 		this.c0=params.cl[0];
 		this.c1=params.cl[1];
 		this.energytab2 = new double [p.nthreads];

@@ -14,8 +14,8 @@ public class ASplitBregmanSolverTwoRegions3D  extends ASplitBregmanSolverTwoRegi
 
 	public ASplitBregmanSolverTwoRegions3D(Parameters params, 
 			double [] [] [] image, double [] [] [] [] speedData, double [] [] [] [] mask,
-			MasksDisplay md, int channel){
-		super(params,image,speedData,mask,md, channel);
+			MasksDisplay md, int channel, AnalysePatch ap){
+		super(params,image,speedData,mask,md, channel,ap);
 		this.w2zk= new double [nl] [nz] [ni] [nj];
 		this.ukz= new double [nl] [nz] [ni] [nj];
 		this.b2zk= new double [nl] [nz] [ni] [nj];
@@ -155,13 +155,12 @@ public class ASplitBregmanSolverTwoRegions3D  extends ASplitBregmanSolverTwoRegi
 					b2yk[l][z][i][j]=b2yk[l][z][i][j] + temp4[l][z][i][j]-temp2[l][z][i][j];
 					b2zk[l][z][i][j]=b2zk[l][z][i][j] + ukz[l][z][i][j]-w2zk[l][z][i][j];
 					//mask[l][z][i][j]=w3k[l][z][i][j];
-				}	
+				}
 			}
 		}
 		//Tools.disp_vals(b2xk[l][5], "b2xk");
 
-		
-		
+				
 //		normtab[l]=0;
 //		for (int z=0; z<nz; z++){
 //			for (int i=0; i<ni; i++) {  

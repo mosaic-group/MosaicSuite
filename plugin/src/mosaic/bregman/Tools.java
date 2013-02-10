@@ -16,6 +16,8 @@ public class Tools {
 
 	//convolution with symmetric boundaries extension
 
+	
+	
 	public Tools(int nni, int nnj, int nnz){
 		this.ni=nni;
 		this.nj=nnj;
@@ -29,6 +31,27 @@ public class Tools {
 		this.nz=nnz;
 		this.nlevels=nnl;
 	}
+	
+	public static void showmem(){
+		// Get current size of heap in bytes
+		long heapSize = Runtime.getRuntime().totalMemory();
+
+		// Get maximum size of heap in bytes. The heap cannot grow beyond this size.
+		// Any attempt will result in an OutOfMemoryException.
+		long heapMaxSize = Runtime.getRuntime().maxMemory();
+
+		// Get amount of free memory within the heap in bytes. This size will increase
+		// after garbage collection and decrease as new objects are created.
+		long heapFreeSize = Runtime.getRuntime().freeMemory();
+		
+		IJ.log(" ");
+		IJ.log("Total mem" + heapSize/Math.pow(2, 20));
+		IJ.log("Max mem" + heapMaxSize/Math.pow(2, 20));
+		IJ.log("Free mem" + heapFreeSize/Math.pow(2, 20));
+		IJ.log(" ");
+	}
+
+	
 	public  void setDims(int i, int j, int z, int n){
 		ni=i;nj=j;nz=z;nlevels=n;
 	}
@@ -876,12 +899,15 @@ public class Tools {
 	private double noise(double im, double mu){
 		//
 		double res;
+		if(mu<0)mu=0.0001;
 		if(Analysis.p.noise_model==0){//poisson
 
 			if(im !=0)
 				res=(im*Math.log(im/mu) +mu -im);
 			else
 				res=mu;
+			
+			if(mu==0)res=im;
 		}
 		else//gauss
 		{
@@ -1314,7 +1340,66 @@ public class Tools {
 
 		double energy= ldata *energyData +lreg *energyPrior;
 //		IJ.log("ldata" + ldata + "lreg" +lreg);
-//		IJ.log("energy" + energy + " data" + energyData +" energyPrior"+energyPrior  );
+		//IJ.log("energy" + energy + " data" + energyData +" energyPrior"+energyPrior  );
+		return energy;
+
+
+	}
+	
+	
+	public  double computeEnergyPSF_weighted(
+			double [] [] [] speedData, double [] [] [] mask, 
+			double [] [] []  maskx, double [] [] []  masky,
+			double [][][] weights,  
+			double ldata, double lreg, Parameters p, double c0, double c1, double [][][] image) {
+
+		// mu = (betaMLE_in-betaMLE_out)*imfilter(mask,PSF,'symmetric')+betaMLE_out;
+
+		//		Tools.disp_vals(mask[0], "mask");
+		//		Tools.disp_valsc(p.PSF[0], "PSF");
+		//		IJ.log("ni nj px py" + ni +" " + nj +" "+p.px +" "+p.py );
+
+		//Tools.convolve2D(speedData[0], mask[0], ni, nj, p.PSF[0], p.px, p.py);
+		Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, p.kernelx, p.kernely, p.px, p.py, maskx[0], 0, ni);
+
+
+		//for (int z=0; z<nz; z++){
+		for (int i=0; i<ni	; i++) {  
+			for (int j=0;j< nj; j++) {  	
+				speedData[0][i][j]= (c1-c0)*speedData[0][i][j] + c0;
+			}	
+		}
+
+		//}
+		//nllMeanPoisson2(speedData, image, speedData, 1, ldata, iStart, iEnd);
+		nllMean(speedData, image, speedData, 1, ldata, 0, ni);
+		double energyData=0;
+		//for (int z=0; z<nz; z++){
+		for (int i=0; i<ni; i++) {  
+			for (int j=0;j< nj; j++) {
+				energyData+= speedData[0][i][j]*weights[0][i][j];
+			}	
+		}
+		//}
+
+
+		fgradx2D(maskx, mask, 0, nj);
+		fgrady2D(masky, mask, 0, ni);
+
+
+		double energyPrior=0;
+		for (int z=0; z<nz; z++){
+			for (int i=0; i<ni; i++) {  
+				for (int j=0;j< nj; j++) {  	
+					energyPrior+= Math.sqrt(Math.pow(maskx[z][i][j], 2)+Math.pow(masky[z][i][j], 2) );
+				}	
+			}
+		}
+
+
+		double energy= ldata *energyData +lreg *energyPrior;
+//		IJ.log("ldata" + ldata + "lreg" +lreg);
+		//IJ.log("energy" + energy + " data" + energyData +" energyPrior"+energyPrior  );
 		return energy;
 
 
@@ -1566,6 +1651,96 @@ public class Tools {
 	}
 
 
+	
+	public  double computeEnergyPSF3D_weighted(
+			double [] [] [] speedData, double [] [] [] mask, 
+			double [] [] []  temp,double [] [] []  temp2, 
+			double [][][] weights,
+			double ldata, double lreg, Parameters p, double c0, double c1, double [][][] image
+
+			){
+
+		// mu = (betaMLE_in-betaMLE_out)*imfilter(mask,PSF,'symmetric')+betaMLE_out;
+
+		//		Tools.disp_vals(mask[0], "mask");
+		//		Tools.disp_valsc(p.PSF[0], "PSF");
+		//		IJ.log("ni nj px py" + ni +" " + nj +" "+p.px +" "+p.py );
+
+		Tools.convolve3Dseparable(speedData, mask, 
+				ni, nj, nz, 
+				p.kernelx,p.kernely, p.kernelz,
+				p.px, p.py, p.pz, temp);
+
+
+
+
+		//for (int z=0; z<nz; z++){
+		for (int z=0; z<nz; z++){
+			for (int i=0; i<ni	; i++) {  
+				for (int j=0;j< nj; j++) {  	
+					speedData[z][i][j]= (c1-c0)*speedData[z][i][j] + c0;
+				}	
+			}
+		}
+
+		//}
+		//nllMeanPoisson2(speedData, image, speedData, 1, ldata);
+		nllMean(speedData, image, speedData, 1, ldata);
+		double energyData=0;
+		for (int z=0; z<nz; z++){
+			for (int i=0; i<ni; i++) {  
+				for (int j=0;j< nj; j++) {  	
+					energyData+= speedData[z][i][j] *weights[z][i][j];
+				}	
+			}
+		}
+
+
+		fgradx2D(temp, mask);
+		for (int z=0; z<nz; z++){
+			for (int i=0; i<ni; i++) {  
+				for (int j=0;j< nj; j++) {  	
+					temp2[z][i][j]= Math.pow(temp[z][i][j], 2);
+				}	
+			}
+		}
+
+
+		fgrady2D(temp, mask);
+		for (int z=0; z<nz; z++){
+			for (int i=0; i<ni; i++) {  
+				for (int j=0;j< nj; j++) {  	
+					temp2[z][i][j]+= Math.pow(temp[z][i][j], 2);
+				}	
+			}
+		}
+		fgradz2D(temp, mask);
+		for (int z=0; z<nz; z++){
+			for (int i=0; i<ni; i++) {  
+				for (int j=0;j< nj; j++) {  	
+					temp2[z][i][j]+= Math.pow(temp[z][i][j], 2);
+				}	
+			}
+		}
+
+		double energyPrior=0;
+		for (int z=0; z<nz; z++){
+			for (int i=0; i<ni; i++) {  
+				for (int j=0;j< nj; j++) {  	
+					energyPrior+= Math.sqrt(temp2[z][i][j]);
+				}	
+			}
+		}
+
+
+		double energy= ldata *energyData +lreg *energyPrior;
+		//IJ.log("energy" + energy + " data" + energyData +" energyPrior"+energyPrior  );
+//		IJ.log("ldata" + ldata + "lreg" +lreg);
+//		IJ.log("energy" + energy + " data" + energyData +" energyPrior"+energyPrior  );
+		return energy;
+
+
+	}
 
 	public  void mydivergence(double [] [] [] res , double [] [] [] m1, double [] [] [] m2){
 		mydivergence( res ,  m1, m2, 0, ni, 0,nj);

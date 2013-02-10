@@ -104,13 +104,18 @@ public class NRegions implements Runnable{
 				}	
 			}
 		}
+		
+		//IJ.log("before, max : " + max + " min : " + min);
 
 
 		if(p.usecellmaskX && channel==0)
-			Analysis.cellMaskABinary=createBinaryCellMask(Analysis.p.thresholdcellmask*max, img, channel, osz);
+			Analysis.cellMaskABinary=createBinaryCellMask(Analysis.p.thresholdcellmask*(max-min) +min, img, channel, osz);
 		if(p.usecellmaskY && channel==1)
-			Analysis.cellMaskBBinary=createBinaryCellMask(Analysis.p.thresholdcellmasky*max, img, channel, osz);
+			Analysis.cellMaskBBinary=createBinaryCellMask(Analysis.p.thresholdcellmasky*(max-min) +min, img, channel, osz);
 		//get imagedata and copy to array image
+
+		max=0;
+		min=Double.POSITIVE_INFINITY;
 
 		for (int z=0; z<nz; z++){
 			img.setSlice(z/osz+1);
@@ -124,6 +129,8 @@ public class NRegions implements Runnable{
 			//slidingparaboloid version test (do both lines)
 			//bs.rollingBallBackground(imp, 0.1, false, false, true, true, true);
 			//bs.rollingBallBackground(imp, 0.2, false, false, true, false, true);
+			
+			
 			for (int i=0; i<ni; i++){  
 				for (int j=0;j< nj; j++){  
 					image[z][i][j]=imp.getPixel(i/os,j/os);		
@@ -131,7 +138,18 @@ public class NRegions implements Runnable{
 					if(image[z][i][j]<min)min=image[z][i][j];
 				}	
 			}
+			
 		}
+		
+		//IJ.log("after, max : " + max + " min : " + min);
+		if(p.livedisplay){
+			ImagePlus back=img.duplicate();
+			back.setTitle("Background reduction channel " + (channel+1));
+			back.changes=false;
+			back.setDisplayRange(min,max);
+			back.show();
+		}
+		
 
 		//IJ.log("max"+max+"min"+min);
 		//rescale between 0 and 1
@@ -418,9 +436,9 @@ public class NRegions implements Runnable{
 		IJ.run(maska_im, "Invert", "stack");
 		//maska_im.show("mask");
 
-		if(Analysis.p.dispwindows){
-			maska_im.show("Cell mask channel" + channel);
-		}
+//		if(Analysis.p.dispwindows){
+//			maska_im.show("Cell mask channel" + channel);
+//		}
 
 
 		if (Analysis.p.save_images){

@@ -1,6 +1,5 @@
 package mosaic.bregman;
 
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -43,13 +42,13 @@ public class Analysis {
 	public static String dir;
 
 	public static int positiveA, positiveB;
-	public static int [] [] [] regionsA;
-	public static int [] [] [] regionsB;
+	public static short [] [] [] regionsA;
+	public static short [] [] [] regionsB;
 	public static ArrayList<Region> regionslistA;
 	public static ArrayList<Region> regionslistB;
 
-	public static int [][][][] imagecolor_c1;
-	public static int [][][][] imagecolor_c2;
+	public static byte [] imagecolor_c1;
+	public static byte [] imagecolor_c2;
 
 	public static CountDownLatch DoneSignala;
 	public static CountDownLatch DoneSignalb;
@@ -112,10 +111,12 @@ public class Analysis {
 
 		setimageb();
 		//imgB.setTitle("B2");
-		if(p.dispwindows){
-			imgA.show("Channel 1");
-			imgB.show("Channel 2");
-		}
+//		if(p.dispwindows){
+//			imgA.setTitle(imgA.getShortTitle() + " ch1");
+//			imgB.setTitle(imgB.getShortTitle() + " ch2");
+//			imgA.show("");
+//			imgB.show("");
+//		}
 		//IJ.log("imga:"+imgA.getTitle());
 
 	}
@@ -146,9 +147,10 @@ public class Analysis {
 		imgA.setStack(img2.getTitle(),imga_s);
 		setimagea();
 
-		if(p.dispwindows){
-			imgA.show("Image");
-		}
+//		if(p.dispwindows){
+//			imgA.setTitle(imgA.getShortTitle());
+//			imgA.show("");
+//		}
 		//imgA.setTitle("A2");
 
 	}
@@ -176,6 +178,15 @@ public class Analysis {
 		p.nz=imgB.getNSlices();
 	}
 
+	
+	public static double[] pearson_corr(){
+
+		Pearson ps = new Pearson(imgA, imgB, p);
+		return ps.run();
+		
+	}
+	
+	
 	public static void segmentA(){
 
 		//NRxegions nreg= new NRegions(img, p);
@@ -300,8 +311,9 @@ public class Analysis {
 		}
 
 		
+		//fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,false,true);
 		if(p.debug)
-			fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,true,p.save_images&&(!p.refinement));
+			fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,true,p.save_images);//&&(!p.refinement)
 		else
 			fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,p.dispcolors&&(!p.refinement),p.save_images&&(!p.refinement));
 
@@ -359,7 +371,7 @@ public class Analysis {
 			for(int z=0; z<p.nz; z++){
 				for (int i=0; i<p.ni; i++) {  
 					for (int j=0; j<p.nj; j++) {  
-						Ri[z][i][j]=(float) p.min_intensity;
+						Ri[z][i][j]=(float) p.min_intensityY;
 					}
 				}
 			}
@@ -454,8 +466,8 @@ public class Analysis {
 					p.nz=imgA.getNSlices();
 
 					Analysis.coloc_levels();
-					IJ.log("Mean vals  " + list[i] + "," + a3b3 + "," + a2b2 + "," + a3b2  );	
-					out.print(list[i] + "," + a3b3 + "," + a2b2  +"," + a3b2 );
+					IJ.log("Mean vals  " + list[i] + ";" + a3b3 + ";" + a2b2 + ";" + a3b2  );	
+					out.print(list[i] + ";" + a3b3 + ";" + a2b2  +";" + a3b2 );
 					out.println();
 					out.flush();
 					//		fstream.newLine();
@@ -622,11 +634,11 @@ public class Analysis {
 			out.print(Arrays.toString(list));
 			out.println();
 
-			out.print("File"+ "," + "Objects ch X" + "," + "Mean size ch X"  +"," 
-					+ "Objects ch Y"+"," + "Mean size ch Y" +"," + "Colocalization X in Y"
-					+"," + "Colocalization Y in X"
-					+"," + "Mean Y intensity in X objects"
-					+"," + "Mean X intensity in Y objects");
+			out.print("File"+ ";" + "Objects ch X" + ";" + "Mean size ch X"  +";" 
+					+ "Objects ch Y"+";" + "Mean size ch Y" +";" + "Colocalization X in Y"
+					+";" + "Colocalization Y in X"
+					+";" + "Mean Y intensity in X objects"
+					+";" + "Mean X intensity in Y objects");
 			out.println();
 
 
@@ -702,25 +714,25 @@ public class Analysis {
 
 						//out2.print("Cell"+ list[i]);
 						///out2.println();
-						if(i==0){out2.print("Image number" + "," + "Region in X"+ "," + "Overlap with Y" + "," + "Size" + "," +
-								"Intensity" + "," + "MColoc size" + ","+ "MColoc Intensity" + "," + "Single Coloc" + ","  + "Coord X"+ "," + "Coord Y"+ "," + "Coord Z");
+						if(i==0){out2.print("Image number" + ";" + "Region in X"+ ";" + "Overlap with Y" + ";" + "Size" + ";" +
+								"Intensity" + ";" + "MColoc size" + ";"+ "MColoc Intensity" + ";" + "Single Coloc" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 						out2.println();}
 						double colocAB=Tools.round(colocsegAB(out2, i/2),4);
 
 						//out3.print("Cell"+ list[i]);
 						//out3.println();
-						if(i==0){out3.print("Image number" + "," + "Region in Y"+ "," + "Overlap with X" + "," + "Size" + "," +
-								"Intensity" + "," + "MColoc size" + ","+ "MColoc Intensity" + "," + "Single Coloc" + ","  + "Coord X"+ "," + "Coord Y"+ "," + "Coord Z");
+						if(i==0){out3.print("Image number" + ";" + "Region in Y"+ ";" + "Overlap with X" + ";" + "Size" + ";" +
+								"Intensity" + ";" + "MColoc size" + ";"+ "MColoc Intensity" + ";" + "Single Coloc" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 						out3.println();}
 						double colocBA=Tools.round(colocsegBA(out3, i/2),4);
 						double colocA=Tools.round(colocsegA(null),4);
 						double colocB=Tools.round(colocsegB(null),4);
-						out.print(list[i] + "," + na + "," +
-								Tools.round(meana , 4)  +"," + nb +"," + 
-								Tools.round(meanb , 4) +"," +
-								colocAB +"," + 
-								colocBA + ","+
-								colocA+ ","+
+						out.print(list[i] + ";" + na + ";" +
+								Tools.round(meana , 4)  +";" + nb +";" + 
+								Tools.round(meanb , 4) +";" +
+								colocAB +";" + 
+								colocBA + ";"+
+								colocA+ ";"+
 								colocB);
 						out.println();
 						out.flush();
@@ -728,7 +740,7 @@ public class Analysis {
 						out3.flush();
 					}
 					else{
-						out.print(list[i] + ","); 
+						out.print(list[i] + ";"); 
 						p.min_intensity=0.15;
 						p.min_intensityY=0.15;
 						p.minves_size=5;
@@ -749,7 +761,7 @@ public class Analysis {
 							//									"Min intensity Y" + p.min_intensityY+" " +
 							//									"Min vesicle size " + p.minves_size+" " +
 							//									"Max vesicle size " + p.maxves_size+" " +
-							//									"Overlap threshold " + p.colocthreshold + ","
+							//									"Overlap threshold " + p.colocthreshold + ";"
 							//									);
 							computeRegions();
 
@@ -882,10 +894,10 @@ public class Analysis {
 			}
 			out.println();
 			out.println();
-			out.print("Min intensity X " + p.min_intensity +"," +
-					"Min intensity Y" + p.min_intensityY+"," +
-					"Min vesicle size" + p.minves_size+"," +
-					"Max vesicle size" + p.maxves_size+"," +
+			out.print("Min intensity X " + p.min_intensity +";" +
+					"Min intensity Y" + p.min_intensityY+";" +
+					"Min vesicle size" + p.minves_size+";" +
+					"Max vesicle size" + p.maxves_size+";" +
 					"Overlap threshold" + p.colocthreshold
 					);
 			out.flush();
@@ -955,26 +967,26 @@ public class Analysis {
 
 	public static double colocsegA(PrintWriter out){
 
-		maxb=0;
-		minb=Double.POSITIVE_INFINITY;
-		//IJ.log("imgb test " + imgb.getTitle());
-		ImageProcessor imp;
-
-		//IJ.log("nz " + p.nz + "ni " + p.ni+ "nj " + p.nj);
-		imageb= new double [p.nz][p.ni][p.nj];
-
-		for (int z=0; z<p.nz; z++){
-			imgB.setSlice(z+1);
-			imp=imgB.getProcessor();
-			for (int i=0; i<p.ni; i++){  
-				for (int j=0;j< p.nj; j++){  
-					imageb[z][i][j]=imp.getPixel(i,j);	
-					//IJ.log("deb"+ imageb[z][i][j]);
-					if(imageb[z][i][j]>maxb)maxb=imageb[z][i][j];
-					if(imageb[z][i][j]<minb)minb=imageb[z][i][j];
-				}	
-			}
-		}
+//		maxb=0;
+//		minb=Double.POSITIVE_INFINITY;
+//		//IJ.log("imgb test " + imgb.getTitle());
+//		ImageProcessor imp;
+//
+//		//IJ.log("nz " + p.nz + "ni " + p.ni+ "nj " + p.nj);
+//		imageb= new double [p.nz][p.ni][p.nj];
+//
+//		for (int z=0; z<p.nz; z++){
+//			imgB.setSlice(z+1);
+//			imp=imgB.getProcessor();
+//			for (int i=0; i<p.ni; i++){  
+//				for (int j=0;j< p.nj; j++){  
+//					imageb[z][i][j]=imp.getPixel(i,j);	
+//					//IJ.log("deb"+ imageb[z][i][j]);
+//					if(imageb[z][i][j]>maxb)maxb=imageb[z][i][j];
+//					if(imageb[z][i][j]<minb)minb=imageb[z][i][j];
+//				}	
+//			}
+//		}
 
 		double sum=0;
 		int objects=0;
@@ -984,7 +996,8 @@ public class Analysis {
 			sum+=regionsum(r,imageb,out);
 		}
 
-		return (((sum/objects) - minb)/(maxb-minb));
+		return (sum/objects);
+		//return (((sum/objects) - minb)/(maxb-minb));
 
 
 	}
@@ -1096,6 +1109,10 @@ public class Analysis {
 
 	public static double colocsegAB(PrintWriter out, int imgnumber){
 
+		double totalsignal=0;
+		double colocsignal=0;
+		
+		
 		int objectscoloc=0;
 		int objects=0;
 		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) {
@@ -1103,33 +1120,79 @@ public class Analysis {
 			objects++;
 			if (regioncoloc(r,regionslistB, regionsB,maskA,out, imgnumber))objectscoloc++;
 			//IJ.log(r.toString() + "ncoloc"+ objectscoloc);
+		totalsignal+=r.rsize*r.intensity;
+		colocsignal+=r.rsize*r.intensity*r.overlap;
+		}
+
+		
+		positiveA=objectscoloc;
+		//return (((double)objectscoloc)/objects);
+		return (colocsignal/totalsignal);
+	}
+	
+	public static double colocsegABnumber(){
+
+			
+		int objectscoloc=0;
+		int objects=0;
+		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) {
+			Region r = it.next();
+			objects++;
+			if (r.colocpositive)objectscoloc++;
+			//IJ.log(r.toString() + "ncoloc"+ objectscoloc);
 		}
 
 		positiveA=objectscoloc;
 		return (((double)objectscoloc)/objects);
+	}
+	
+	public static double colocsegBAnumber(){
+
+		
+		
+		int objectscoloc=0;
+		int objects=0;
+		for (Iterator<Region> it = regionslistB.iterator(); it.hasNext();) {
+			Region r = it.next();
+			//IJ.log("obj" + r.value);
+			objects++;
+			if (r.colocpositive)objectscoloc++;
+			//if(p.livedisplay)IJ.log(r.toString() + "ncoloc"+ objectscoloc);
+
+		}
+		positiveB=objectscoloc;
+		return ( ((double)objectscoloc)/objects);
+
 
 	}
 
 
 	public static double colocsegBA(PrintWriter out, int imgnumber){
 
+		double totalsignal=0;
+		double colocsignal=0;
+		
 		int objectscoloc=0;
 		int objects=0;
 		for (Iterator<Region> it = regionslistB.iterator(); it.hasNext();) {
 			Region r = it.next();
+			//IJ.log("obj" + r.value);
 			objects++;
 			if (regioncoloc(r,regionslistA, regionsA,maskB,out, imgnumber))objectscoloc++;
 			//if(p.livedisplay)IJ.log(r.toString() + "ncoloc"+ objectscoloc);
+			totalsignal+=r.rsize*r.intensity;
+			colocsignal+=r.rsize*r.intensity*r.overlap;
 		}
 		positiveB=objectscoloc;
-		return ( ((double)objectscoloc)/objects);
+		//return ( ((double)objectscoloc)/objects);
+		return (colocsignal/totalsignal);
 
 	}
 
 
 
 
-	public static boolean regioncoloc(Region r,ArrayList<Region> regionlist, int [] [] [] regions,byte [][][] mask, PrintWriter out, int imgnumber){
+	public static boolean regioncoloc(Region r,ArrayList<Region> regionlist, short [] [] [] regions,byte [][][] mask, PrintWriter out, int imgnumber){
 		boolean positive=false;
 		int count=0;
 		int countcoloc=0;
@@ -1138,9 +1201,11 @@ public class Analysis {
 		boolean oneColoc=true;
 		double intColoc=0;
 		double sizeColoc=0;
+		int osxy=Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 			Pix p = it.next();
 			valcoloc=regions[p.pz][p.px][p.py];
+			//IJ.log("valcoloc " + valcoloc);
 			if(valcoloc > 0){
 				countcoloc++;
 				if(previousvalcoloc!=0 && valcoloc!=previousvalcoloc)oneColoc=false;
@@ -1155,6 +1220,11 @@ public class Analysis {
 		r.colocpositive=positive;
 		r.overlap=(float) Tools.round(((double)countcoloc)/count,3) ;
 		r.over_size=(float) Tools.round(((double)sizeColoc)/countcoloc,3);
+		if(p.nz==1)
+			r.over_size=(float) Tools.round( r.over_size/(osxy*osxy),3);
+		else
+			r.over_size=(float) Tools.round( r.over_size/(osxy*osxy*osxy),3);
+		
 		r.over_int=(float) Tools.round(((double)intColoc)/countcoloc,3);
 		r.singlec=oneColoc;
 
@@ -1212,35 +1282,35 @@ public class Analysis {
 		//			Pix p = it.next();
 		////			count++;
 		//		}
-
+		//IJ.log("print object " + r.value);
 		if(out != null && p.nchannels==1){
 			//regionIntensityAndCenter(r,mask);
 			regionCenter(r);
 
 			if(p.nz>1){
 				out.print(imgnumber 
-						+"," + r.value  
-						+","+ r.rsize //size
-						+","+ Tools.round(r.perimeter,3) //perimeter
-						//+","+ r.length // no length in 3D 
-						+","+ Tools.round(r.intensity,3)					
-						+","+ Tools.round(r.cx,2)
-						+","+ Tools.round(r.cy,2)
-						+","+ Tools.round(r.cz,2)
+						+";" + r.value  
+						+";"+ r.rsize //size
+						+";"+ Tools.round(r.perimeter,3) //perimeter
+						+";"+ r.length // no length in 3D 
+						+";"+ Tools.round(r.intensity,3)					
+						+";"+ Tools.round(r.cx,2)
+						+";"+ Tools.round(r.cy,2)
+						+";"+ Tools.round(r.cz,2)
 						);
 				out.println();			
 			}
 			else
 			{
 				out.print(imgnumber 
-						+"," + r.value  
-						+","+ r.rsize //size
-						+","+ Tools.round(r.perimeter,3) //perimeter
-						+","+ r.length //length
-						+","+ Tools.round(r.intensity,3)					
-						+","+ Tools.round(r.cx,2)
-						+","+ Tools.round(r.cy,2)
-						+","+ Tools.round(r.cz,2)
+						+";" + r.value  
+						+";"+ r.rsize //size
+						+";"+ Tools.round(r.perimeter,3) //perimeter
+						+";"+ r.length //length
+						+";"+ Tools.round(r.intensity,3)					
+						+";"+ Tools.round(r.cx,2)
+						+";"+ Tools.round(r.cy,2)
+						+";"+ Tools.round(r.cz,2)
 						);
 				out.println();			
 			}
@@ -1255,18 +1325,19 @@ public class Analysis {
 			//regionIntensityAndCenter(r,mask);
 			regionCenter(r);
 			out.print(imgnumber 
-					+"," + r.value  
-					+","+ Tools.round(r.rsize,3) //size
-					+","+ Tools.round(r.perimeter,3) //perimeter
-					+","+ r.length //length
-					+","+ Tools.round(r.intensity,3)					
-					+","+ Tools.round(r.overlap,3)
-					+","+ Tools.round(r.over_size,3)
-					+","+ Tools.round(r.over_int,3)
-					+","+ r.singlec
-					+","+ Tools.round(r.cx,2)
-					+","+ Tools.round(r.cy,2)
-					+","+ Tools.round(r.cz,2)
+					+";" + r.value  
+					+";"+ Tools.round(r.rsize,3) //size
+					+";"+ Tools.round(r.perimeter,3) //perimeter
+					+";"+ r.length //length
+					+";"+ Tools.round(r.intensity,3)					
+					+";"+ Tools.round(r.overlap,3)
+					+";"+ Tools.round(r.over_size,3)
+					+";"+ Tools.round(r.over_int,3)
+					+";"+ r.singlec
+					+";"+ Tools.round(r.coloc_o_int,3)
+					+";"+ Tools.round(r.cx,2)
+					+";"+ Tools.round(r.cy,2)
+					+";"+ Tools.round(r.cz,2)
 					);
 			out.println();
 		}
@@ -1435,6 +1506,7 @@ public class Analysis {
 			x=r.pixels.get(0).px;
 			y=r.pixels.get(0).py;
 			z=r.pixels.get(0).pz;
+			//IJ.log("region" + r.value+ "x "+x +  " y "+y + " z " +z + "label " + ri[z][x][y]);
 			r.rvoronoi=regionsvoronoi.get((int) ri[z][x][y]);
 
 		}
@@ -1458,11 +1530,15 @@ public class Analysis {
 
 	public static double regionsum(Region r, double [] [] [] image, PrintWriter out){
 
+		int factor2 =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
+		int fz2;
+		if(Analysis.p.nz>1)fz2=factor2; else fz2=1;
+		
 		int count=0;
 		double sum=0;
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 			Pix p = it.next();
-			sum+=image[p.pz][p.px][p.py];
+			sum+=image[p.pz/fz2][p.px/factor2][p.py/factor2];
 			count++;
 		}
 
@@ -1470,7 +1546,8 @@ public class Analysis {
 		//			out.print("");
 		//			out.println();
 		//		}
-		//print IJ.log("region" + r.value + "mean is " + (sum/count) );
+		//IJ.log("region" + r.value + "mean is " + (sum/count) );
+		r.coloc_o_int=(sum/count);
 		return (sum/count);
 
 	}
@@ -1646,6 +1723,38 @@ public class Analysis {
 	//	}
 
 
+	public static double meansurface(ArrayList<Region> regionslist){
+
+		double totalsize=0;
+		int objects=0;
+		for (Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
+			Region r = it.next();
+			objects++;	       			
+			totalsize+= r.perimeter;
+		}
+
+		if(Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
+		else return(totalsize/objects);
+
+	}
+
+	public static double meanlength(ArrayList<Region> regionslist){
+
+		double totalsize=0;
+		int objects=0;
+		for (Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
+			Region r = it.next();
+			objects++;	       			
+			totalsize+= r.length;
+		}
+		
+		if(Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
+		else return(totalsize/objects);
+
+	}
+	
+	
+	
 	public static double meansize(ArrayList<Region> regionslist){
 
 		double totalsize=0;
@@ -1656,7 +1765,8 @@ public class Analysis {
 			totalsize+= r.points;
 		}
 
-		return(totalsize/objects);
+		if(Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
+		else return(totalsize/objects);
 
 	}
 
@@ -1725,7 +1835,7 @@ public class Analysis {
 			if(overallCellMaskBinary[px.pz/fz2][px.px/factor2][px.py/factor2])inside++;
 			size++;
 		}
-		return ((inside/size)>0.5);
+		return ((inside/size)>0.1);
 	}
 
 	public static void computeOverallMask(){
@@ -1777,13 +1887,15 @@ public class Analysis {
 
 
 
-	public static void setRegionsLabels( ArrayList<Region> regionslist, int [] [] [] regions){
-
+	public static void setRegionsLabels( ArrayList<Region> regionslist, short [] [] [] regions){
+		int factor2 =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
+		int fz2;
+		if(Analysis.p.nz>1)fz2=factor2; else fz2=1;
 		int index=1;
 
-		for (int z=0; z<p.nz; z++){
-			for (int i=0; i<p.ni; i++){  
-				for (int j=0;j< p.nj; j++){  
+		for (int z=0; z<p.nz*fz2; z++){
+			for (int i=0; i<p.ni*factor2; i++){  
+				for (int j=0;j< p.nj*factor2; j++){  
 					regions[z][i][j]=0;
 				}
 			}
@@ -1792,17 +1904,20 @@ public class Analysis {
 
 		for (Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
 			Region r = it.next();
-			//r.value=index; keep old index in csv file  : do not update
+			//r.value=index; keep old index in csv file  : do not  (because displaying happens before, with the previous values)
 			setRegionLabel(r,regions, index);
+			//IJ.log(" "+index);
 			index++;
 		}
+		
+
 	}
 
-	public static void setRegionLabel(Region r, int [] [] [] regions, int label){
+	public static void setRegionLabel(Region r, short [] [] [] regions, int label){
 
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {	
 			Pix px = it.next();
-			regions[px.pz][px.px][px.py]=label;
+			regions[px.pz][px.px][px.py]= (short) label;
 		}
 
 	}
@@ -1812,33 +1927,33 @@ public class Analysis {
 
 	public static void calcColoc(PrintWriter out, PrintWriter out2, String[] list, int i){
 
-		//		out2.print("Min intensity X " + p.min_intensity +"," +
-		//				"Min intensity Y" + p.min_intensityY+"," +
-		//				"Min vesicle size" + p.minves_size+"," +
-		//				"Max vesicle size" + p.maxves_size+"," +
+		//		out2.print("Min intensity X " + p.min_intensity +";" +
+		//				"Min intensity Y" + p.min_intensityY+";" +
+		//				"Min vesicle size" + p.minves_size+";" +
+		//				"Max vesicle size" + p.maxves_size+";" +
 		//				"Overlap threshold" + p.colocthreshold
 		//				);
 		//		out2.println();
 		//		out2.print("Cell"+ list[i]);
 		//		out2.println();
-		//		out2.print("Region in X"+ "," + "Overlap with Y" + "," + "Size");
+		//		out2.print("Region in X"+ ";" + "Overlap with Y" + ";" + "Size");
 		//		out2.println();
 		double colocAB=Tools.round(colocsegAB(null,0),4);
-		//		out2.print("Region in Y"+ "," + "Overlap with X" + "," + "Size");
+		//		out2.print("Region in Y"+ ";" + "Overlap with X" + ";" + "Size");
 		//		out2.println();
 
 		double colocBA=Tools.round(colocsegBA(null,0),4);
 		double colocA=Tools.round(colocsegA(null),4);
 		double colocB=Tools.round(colocsegB(null),4);
 		out.print(
-				na + "," +
-						Tools.round(meana , 4)  +","
-						+ nb +"," + 
-						Tools.round(meanb , 4) +"," +
-						colocAB +"," + 
-						colocBA + ","+
-						colocA+ ","+
-						colocB+ ",");
+				na + ";" +
+						Tools.round(meana , 4)  +";"
+						+ nb +";" + 
+						Tools.round(meanb , 4) +";" +
+						colocAB +";" + 
+						colocBA + ";"+
+						colocA+ ";"+
+						colocB+ ";");
 		//out.println();
 		//out.flush();
 		//out2.flush();

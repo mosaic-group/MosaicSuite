@@ -36,10 +36,10 @@ public class ImagePatches {
 	int sy;
 	int sz;//size of full image with oversampling
 	Parameters p;
-	public int [] [] [] regions_refined;
+	public short [] [] [] regions_refined;
 	double [][][] image;
 	double [][][] w3kbest;
-	int [][][][] imagecolor_c1;//for display ints = new int [dz][di][dj][3];
+	byte [] imagecolor_c1;//for display ints = new int [dz][di][dj][3];
 
 	public ArrayList<Region> regionslist_refined;
 	private ArrayList<Region> globalList;
@@ -48,12 +48,12 @@ public class ImagePatches {
 
 
 
-	public ImagePatches(Parameters pa,ArrayList<Region> regionslist, double [][][] imagei, int channeli){
+	public ImagePatches(Parameters pa,ArrayList<Region> regionslist, double [][][] imagei, int channeli, double [][][] w3k){
 		if (!pa.subpixel){pa.oversampling2ndstep=1; pa.interpolation=1;}
 		else{pa.oversampling2ndstep=2;}
 		this.regsresulty=new ImagePlus();
 		this.regsresultx=new ImagePlus();
-		//this.w3kbest=w3k;
+		this.w3kbest=w3k;
 		//		this.iwx= new ImageWindow("Objects X");
 		//		this.iwy= new ImageWindow("Objects Y");
 		//		fcallx=true;
@@ -79,9 +79,21 @@ public class ImagePatches {
 			this.sz=p.nz*p.oversampling2ndstep*pa.interpolation;
 			this.osz=p.oversampling2ndstep*pa.interpolation;
 		}
-		regions_refined= new int[sz][sx][sy];
+		//IJ.log("regions refined");
+		//Tools.showmem();
+		//Runtime.getRuntime().gc();
+		//Tools.showmem();
+
+		regions_refined= new short[sz][sx][sy];
+		//Tools.showmem();
+
 		if(p.dispint){
-			imagecolor_c1 = new int [sz][sx][sy][3]; // add fill background
+			//IJ.log("disp int");
+			//Tools.showmem();
+			//Runtime.getRuntime().gc();
+			//Tools.showmem();
+			imagecolor_c1 = new byte [sz*sx*sy*3]; // add fill background
+			//Tools.showmem();
 			int b0, b1, b2;
 			b0=(int) Math.min(255, 255*Analysis.p.betaMLEoutdefault);
 			b1= (int) Math.min(255, 255*Math.sqrt(Analysis.p.betaMLEoutdefault)) ;
@@ -90,11 +102,12 @@ public class ImagePatches {
 
 			//set all to background
 			for (int z=0; z<sz; z++) {  
-				for (int i=0;i<sx;i++) {  
+				for (int i=0;i<sx;i++) { 
+					int t=z*sx*sy*3+i*sy*3;
 					for (int j=0;j< sy;j++){  
-						imagecolor_c1[z][i][j][0]=b0 ; //Red
-						imagecolor_c1[z][i][j][1]= b1 ; //Green
-						imagecolor_c1[z][i][j][2]= b2 ; //Blue
+						imagecolor_c1[t+j*3+0]= (byte) b0 ; //Red
+						imagecolor_c1[t+j*3+1]= (byte) b1 ; //Green
+						imagecolor_c1[t+j*3+2]= (byte) b2 ; //Blue
 					}
 				}
 			}
@@ -121,8 +134,12 @@ public class ImagePatches {
 		//assuming rvoronoi and regionslists (objects)  in same order (and same length)
 
 		final LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
-		ThreadPoolExecutor threadPool=new ThreadPoolExecutor(p.nthreads, p.nthreads,
-				1, TimeUnit.DAYS, queue);
+		ThreadPoolExecutor threadPool;
+		if(p.debug){threadPool=new ThreadPoolExecutor(1, 1,
+				1, TimeUnit.DAYS, queue);}
+		else{
+		threadPool=new ThreadPoolExecutor(p.nthreads, p.nthreads,
+				1, TimeUnit.DAYS, queue);}
 
 
 		nb_jobs=regionslist_refined.size();
@@ -138,7 +155,7 @@ public class ImagePatches {
 
 			if(p.mode_voronoi2){
 				threadPool.execute(ap);
-				//	IJ.log("size q:"+ queue.size());
+				//IJ.log("size q:"+ queue.size());
 			}
 			else{
 				//	ap.run();//execute
@@ -190,10 +207,12 @@ public class ImagePatches {
 			threadPool2.shutdown();
 			try{
 				//IJ.log("await termination");
+				//Tools.showmem();
 				threadPool2.awaitTermination(1, TimeUnit.DAYS);
 			}catch (InterruptedException ex) {}
 		}
 
+		//Tools.showmem();
 		int no=regionslist_refined.size();
 		if(channel==0){
 			IJ.log(no + " objects found in X.");
@@ -205,11 +224,11 @@ public class ImagePatches {
 
 		//IJ.log("Objects found 2nd pass:" + regionslist_refined.size());
 		//else{
-		if(p.dispcolors)displayRegions(regions_refined, sx, sy, sz, channel, true, p.save_images, true);
+		if(p.dispcolors || p.displabels)displayRegions(regions_refined, sx, sy, sz, channel, true, p.save_images, true);
 		//}
 		long lEndTime = new Date().getTime(); //start time
 		long difference = lEndTime - lStartTime; //check different
-		//IJ.log("Elapsed milliseconds fcr: " + difference);
+		//IJ.log("Elapsed milliseconds object properties: " + difference);
 
 
 	}
@@ -224,7 +243,7 @@ public class ImagePatches {
 				for (int i=0;i<ap.sx; i++){  
 					for (int j=0;j< ap.sy; j++){  
 						if (ap.object[z][i][j]==1){
-							regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy] = ap.r.value;
+							regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy] = (short) ap.r.value;
 							//if(ap.r.value ==3){IJ.log("z" + z +" i" +i+" j" +j);
 							//IJ.log("offsetz x  y " + ap.offsetz +" " + ap.offsetx +" " + ap.offsety+ "osz xy " + osz +" " + osxy);}
 						}
@@ -237,7 +256,7 @@ public class ImagePatches {
 				for (int i=0;i<ap.isx; i++){  
 					for (int j=0;j< ap.isy; j++){  
 						if (ap.interpolated_object[z][i][j]==1){
-							regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy]=ap.r.value;
+							regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy]= (short) ap.r.value;
 
 						}
 					}
@@ -283,53 +302,53 @@ public class ImagePatches {
 		return y;
 	}
 
-	private void find_regions(){
-
-		//IJ.log("find regions vo 2");
-		//find connected regions
-		ImagePlus maska_im= new ImagePlus();
-		ImageStack maska_ims= new ImageStack(sx,sy);
-
-		for (int z=0; z<sz; z++){  
-			byte[] maska_bytes = new byte[sx*sy];
-			for (int i=0; i<sx; i++){  
-				for (int j=0;j< sy; j++){  
-					if(regions_refined[z][i][j]>=1){maska_bytes[j * sx + i] = (byte) (regions_refined[z][i][j]);}
-					else
-					{maska_bytes[j * sx + i] = (byte) 0;}
-				}
-			}
-			ByteProcessor bp = new ByteProcessor(sx, sy);
-			bp.setPixels(maska_bytes);
-			maska_ims.addSlice("", bp);
-		}
-
-		maska_im.setStack("test Mask vo2",maska_ims);
-		//maska_im.show();
-
-		FindConnectedRegions fcr= new FindConnectedRegions(maska_im, sx,sy,sz);//maska_im only
-
-
-
-		double thr=0.5;
-
-		float [][][]	Ri = new float [sz][sx][sy];
-		for (int z=0; z<sz; z++){
-			for (int i=0; i<sx; i++) {  
-				for (int j=0; j<sy; j++) {  
-					Ri[z][i][j]= (float)thr;
-				}
-			}
-		}
-
-		fcr.run(thr,channel,sx*sy*sz,3*osxy,0,Ri,true,false);//min size was 5//5*osxy
-		//fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,true,p.save_images&&(!p.refinement));
-		regionslist_refined=fcr.results;
-		IJ.log("Objects found 2nd pass:" + regionslist_refined.size());
-		//fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,true,p.save_images&&(!p.refinement));
-		regions_refined=fcr.tempres;
-
-	}
+//	private void find_regions(){
+//
+//		//IJ.log("find regions vo 2");
+//		//find connected regions
+//		ImagePlus maska_im= new ImagePlus();
+//		ImageStack maska_ims= new ImageStack(sx,sy);
+//
+//		for (int z=0; z<sz; z++){  
+//			byte[] maska_bytes = new byte[sx*sy];
+//			for (int j=0;j< sy; j++){  
+//				for (int i=0; i<sx; i++){  
+//					if(regions_refined[z][i][j]>=1){maska_bytes[j * sx + i] = (byte) (regions_refined[z][i][j]);}
+//					else
+//					{maska_bytes[j * sx + i] = (byte) 0;}
+//				}
+//			}
+//			ByteProcessor bp = new ByteProcessor(sx, sy);
+//			bp.setPixels(maska_bytes);
+//			maska_ims.addSlice("", bp);
+//		}
+//
+//		maska_im.setStack("test Mask vo2",maska_ims);
+//		//maska_im.show();
+//
+//		FindConnectedRegions fcr= new FindConnectedRegions(maska_im, sx,sy,sz);//maska_im only
+//
+//
+//
+//		double thr=0.5;
+//
+//		float [][][]	Ri = new float [sz][sx][sy];
+//		for (int z=0; z<sz; z++){
+//			for (int i=0; i<sx; i++) {  
+//				for (int j=0; j<sy; j++) {  
+//					Ri[z][i][j]= (float)thr;
+//				}
+//			}
+//		}
+//
+//		fcr.run(thr,channel,sx*sy*sz,3*osxy,0,Ri,true,false);//min size was 5//5*osxy
+//		//fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,true,p.save_images&&(!p.refinement));
+//		regionslist_refined=fcr.results;
+//		IJ.log("Objects found 2nd pass:" + regionslist_refined.size());
+//		//fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,true,p.save_images&&(!p.refinement));
+//		regions_refined=fcr.tempres;
+//
+//	}
 
 
 	private void assemble_result(AnalysePatch ap, Region r){
@@ -340,7 +359,7 @@ public class ImagePatches {
 			for (int i=0;i<ap.sx; i++){  
 				for (int j=0;j< ap.sy; j++){  
 					if (ap.object[z][i][j]==1){
-						regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy] = r.value;
+						regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy] =(short) r.value;
 						rpixels.add(new Pix(z+ap.offsetz*osz,i+ap.offsetx*osxy,j+ap.offsety*osxy));
 						//rpixels.add(new Pix(z,i,j));
 						pixcount++;
@@ -369,7 +388,7 @@ public class ImagePatches {
 			for (int i=0;i<ap.isx; i++){  
 				for (int j=0;j< ap.isy; j++){  
 					if (ap.interpolated_object[z][i][j]==1){
-						regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy]=r.value;
+						regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy]= (short) r.value;
 						rpixels.add(new Pix(z+ap.offsetz*osz,i+ap.offsetx*osxy,j+ap.offsety*osxy));
 						//rpixels.add(new Pix(z+ap.offsetz*osz,i+ap.offsetx*osxy,i+ap.offsetx*osxy));
 						pixcount++;
@@ -408,7 +427,7 @@ public class ImagePatches {
 
 	}
 	//display function
-	public void displayRegions(int [][][] regions, int width,int height,int depth, int channel, boolean displ, boolean save, boolean invert){
+	public void displayRegions(short [][][] regions, int width,int height,int depth, int channel, boolean displ, boolean save, boolean invert){
 		ImageStack regstackx;
 		ImageStack regstacky;
 
@@ -438,20 +457,37 @@ public class ImagePatches {
 			regstackx.setColorModel(backgroundAndSpectrum(Math.min(regionslist_refined.size(),255), invert));				
 			regsresultx.setStack("Regions X",regstackx);
 
-			if(displ && p.dispwindows){
-				//IJ.log("displaying");
-				regsresultx.show(); 
-				//ImageWindow iw= ij.WindowManager.getCurrentWindow();
-				//	iw.setLocationAndSize(100,100,512,512);
-				//regsresultx.setActivated();
-				//				if(fcallx){
-				//					iwx= new ImageWindow(regsresultx);
-				//					fcallx=false;
-				//				}
-				//				else{
-				//				iwx.updateImage(regsresultx);
-				//				}
+
+
+
+
+			if(displ && p.dispcolors && p.dispwindows){// && !Analysis.p.save_images
+				regsresultx.setTitle("Colorized objects, channel 1");
+				regsresultx.show();
 			}
+
+			if(displ && p.displabels  && p.dispwindows){// && !Analysis.p.save_images
+				ImagePlus dupx= regsresultx.duplicate();
+				dupx.setTitle("Labelized objects, channel 1");
+				IJ.run(dupx, "Grays", "");
+				dupx.show();
+			}
+
+
+			//			if(displ && p.dispwindows){
+			//				//IJ.log("displaying");
+			//				regsresultx.show(); 
+			//				//ImageWindow iw= ij.WindowManager.getCurrentWindow();
+			//				//	iw.setLocationAndSize(100,100,512,512);
+			//				//regsresultx.setActivated();
+			//				//				if(fcallx){
+			//				//					iwx= new ImageWindow(regsresultx);
+			//				//					fcallx=false;
+			//				//				}
+			//				//				else{
+			//				//				iwx.updateImage(regsresultx);
+			//				//				}
+			//			}
 
 			String savepath;
 			if(save && Analysis.p.save_images && Analysis.p.displabels){
@@ -489,12 +525,25 @@ public class ImagePatches {
 
 			regstacky.setColorModel(backgroundAndSpectrum(Math.min(regionslist_refined.size(),255), invert));				
 			regsresulty.setStack("Regions Y",regstacky);
-			if(displ && p.dispwindows){
-				regsresulty.show(); 
-				regsresulty.setActivated();
+			//			if(displ && p.dispwindows){
+			//				regsresulty.show(); 
+			//				regsresulty.setActivated();
+			//			}
+
+
+			if(displ && p.dispcolors && p.dispwindows){// && !Analysis.p.save_images
+				regsresulty.setTitle("Colorized objects, channel 2");
+				regsresulty.show();
 			}
 
-			
+			if(displ && p.displabels  && p.dispwindows){// && !Analysis.p.save_images
+				ImagePlus dupy= regsresulty.duplicate();
+				dupy.setTitle("Labelized objects, channel 2");
+				IJ.run(dupy, "Grays", "");
+				dupy.show();
+			}
+
+
 			String savepath;
 			if(save && Analysis.p.save_images && Analysis.p.displabels){
 				savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c2" +".zip";
@@ -506,7 +555,7 @@ public class ImagePatches {
 				savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c2_RGB" +".zip";
 				IJ.saveAs(regsresulty, "ZIP", savepath);
 			}
-			
+
 
 		}
 

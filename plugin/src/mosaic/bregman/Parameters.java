@@ -9,7 +9,8 @@ public class Parameters {
 	public boolean save_images=false;
 	public String wd="/Users/arizk/Documents/work/workspace_eclipse/BregmanGLM/TestImages/";
 
-	public boolean debug=false;
+	public boolean pearson = false;
+	public boolean debug=true;
 	public boolean blackbackground;
 	public int noise_model=1; //0: poisson, 1:gauss
 	public boolean firstphase=true;
@@ -45,11 +46,12 @@ public class Parameters {
 	public double colocthreshold = 0.5;
 	public double sigma_gaussian = 0.8;
 	public double zcorrec = 1;// was 2
-	public int RSSmodulo = 3000;
+	public int RSSmodulo = 5000;
 	public boolean RSSinit = false;
 	public boolean initRegionsIntensity = false;
 	public boolean findregionthresh = true;
 	public double regionthresh = 0.19; // pour mitochondria 0.25 //0.19
+	public double regionthreshy = 0.19; // pour mitochondria 0.25 //0.19
 	public boolean dispvoronoi = false;
 	public int RegionsIntensitymodulo = 3000;
 	public int nthreads = 8;
@@ -57,8 +59,8 @@ public class Parameters {
 	public boolean usecellmaskY = false;
 	public boolean dispvesicles = true;
 	public double thresholdcellmask = 0.0015;
-	public double thresholdcellmasky = 0.035;
-	public int energyEvaluationModulo = 1;
+	public double thresholdcellmasky = 0.035;//(RAB channel)
+	public int energyEvaluationModulo = 5;
 	public int dispEmodulo = 10;
 	public int regionSegmentLevel = 2;
 	public boolean remask=false;
@@ -193,6 +195,7 @@ public class Parameters {
 		this.initRegionsIntensity = p.initRegionsIntensity;
 		this.findregionthresh = p.findregionthresh;
 		this.regionthresh = p.regionthresh; // pour mitochondria 0.25 
+		this.regionthreshy = p.regionthreshy; // pour mitochondria 0.25 
 		this.dispvoronoi = p.dispvoronoi;
 		this.RegionsIntensitymodulo = p.RegionsIntensitymodulo;
 		this.nthreads = p.nthreads;

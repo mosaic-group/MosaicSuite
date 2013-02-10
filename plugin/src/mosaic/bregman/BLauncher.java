@@ -36,7 +36,6 @@ public class BLauncher {
 		if(processdirectory){
 			//IJ.log("Processing directory");
 			Headless_directory();
-
 		}
 		else{
 			//IJ.log("Processing file");
@@ -64,14 +63,13 @@ public class BLauncher {
 
 				if(Analysis.p.nchannels==2){
 					//IJ.log("looking for files at " + wpath);
-					out  = new PrintWriter(savepath+"_coloc"+ ".csv");
+					out  = new PrintWriter(savepath+"_ImagesData"+ ".csv");
 					//out2 = new PrintWriter(savepath+"_Xdata"+ ".csv");
-					out2 = new PrintWriter(savepath+"_Objectsdata_c1"+ ".csv");
-					out3 = new PrintWriter(savepath+"_Objectsdata_c2"+ ".csv");
+					out2 = new PrintWriter(savepath+"_ObjectsData_c1"+ ".csv");
+					out3 = new PrintWriter(savepath+"_ObjectsData_c2"+ ".csv");
 					//out3 = new PrintWriter(savepath+"_Ydata"+ ".csv");
 					//PrintWriter out = new PrintWriter(dir1.replaceAll("/", "_") + ".csv");
 					//IJ.log("files open");
-
 					//					out.print(
 					//							"background removal" + Analysis.p.removebackground +
 					//							"rolling ball window size" + Analysis.p.size_rollingball +
@@ -80,30 +78,45 @@ public class BLauncher {
 					//							"lambda prior" + Analysis.p.lreg  +
 					//							"Min intensity " + Analysis.p.min_intensity +"," +
 					//							"subpixel" + Analysis.p.subpixel +
-					//							"Intensity estimï¿½ation" + choice1[Analysis.p.mode_intensity] +
+					//							"Intensity estimation" + choice1[Analysis.p.mode_intensity] +
 					//							"Noise model" + choice1[Analysis.p.noise_model]
 					//							);
 
 					out.println();
-					out.print("File"+ "," +"Image number" + ","+ "Objects ch X" + "," + "Mean size ch X"  +"," 
-							+ "Objects ch Y"+"," + "Mean size ch Y" +"," + "Colocalization X in Y"
-							+"," + "Colocalization Y in X"
-							+"," + "Mean Y intensity in X objects"
-							+"," + "Mean X intensity in Y objects");
+					out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch1"  +";" + "Mean surface in ch1"  +";"+ "Mean length in ch1"  +";"  
+							+ "Objects ch2"+";" + "Mean size in ch2" +";" + "Mean surface in ch2"  +";"+ "Mean length in ch2"  +";"+ "Colocalization ch1 in ch2 (signal based)"
+							+";" + "Colocalization ch2 in ch1 (signal based)"
+							+";" + "Colocalization ch1 in ch2 (objects numbers)"
+							+";" + "Colocalization ch2 in ch1 (objects numbers)"
+							+";" + "Mean ch2 intensity of ch1 objects"
+							+";" + "Mean ch1 intensity of ch2 objects");
 					out.println();
 
 
-					out2.print("Image number" + "," + "Region in 1"+ "," 
-							+ "Size" + "," + "Perimeter" + "," + "Length" + "," +"Intensity" + "," 
-							+ "Overlap with 2" +","+ "MColoc size" + ","+ "MColoc Intensity" + "," + "Single Coloc" + ","  + "Coord X"+ "," + "Coord Y"+ "," + "Coord Z");
-					out2.println();
 
 
-					out3.print("Image number" + "," + "Region in 2" +","
-							+ "Size" + "," + "Perimeter" + "," + "Length" + "," +"Intensity" + ","
-							+ "Overlap with 1" +","+ "MColoc size" + ","+ "MColoc Intensity" + "," + "Single Coloc" + ","  + "Coord X"+ "," + "Coord Y"+ "," + "Coord Z");
 
-					out3.println();
+					if(Analysis.p.nz>1){
+						out2.print("Image ID" + ";" + "Object ID"+ ";" 
+								+ "Size" + ";" + "Surface"  + ";" + "Length" + ";" +"Intensity" + ";" 
+								+ "Overlap with ch2" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity" + ";" + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
+						out2.println();
+						out3.print("Image ID" + ";" + "Object ID" +";"
+								+ "Size" + ";" + "Surface" + ";" + "Length" + ";" +"Intensity" + ";"
+								+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
+						out3.println();
+					}
+					else{
+						out2.print("Image ID" + ";" + "Object ID"+ ";" 
+								+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";" 
+								+ "Overlap with ch2" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
+						out2.println();
+						out3.print("Image ID" + ";" + "Object ID" +";"
+								+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";"
+								+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
+						out3.println();		
+					}
+
 
 
 					out.flush();
@@ -112,13 +125,29 @@ public class BLauncher {
 
 				else
 				{
-					out2 = new PrintWriter(savepath+"_Objectsdata"+ ".csv");
 
 
-					out2.print("Image number" + "," + "Region in X"+ "," + "Size" + "," + "Perimeter" + "," + "Length" + "," +
-							"Intensity" + ","  + "Coord X"+ "," + "Coord Y"+ "," + "Coord Z");
-					out2.println();
+					out  = new PrintWriter(savepath+"_ImagesData"+ ".csv");
+					out.println();
+					out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch1"  +";" + "Mean surface in ch1"  +";"+ "Mean length in ch1");
+					out.println();
 
+
+					out2 = new PrintWriter(savepath+"_ObjectsData"+ ".csv");
+
+
+					if(Analysis.p.nz>1){
+						out2.print("Image ID" + ";" + "Object ID"+ ";" + "Size" + ";" + "Surface" + ";" + "Length" + ";" +  
+								"Intensity" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
+						out2.println();
+						out2.flush();
+					}
+					else{
+						out2.print("Image ID" + ";" + "Object ID"+ ";" + "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +
+								"Intensity" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
+						out2.println();
+						out2.flush();					
+					}
 
 					out2.flush();
 
@@ -137,18 +166,28 @@ public class BLauncher {
 						"Automatic", "Medium layer","High layer"};
 				String choice2[] = {
 						"Poisson", "Gauss"};
-	
-				out.print(
-						"background removal " + Analysis.p.removebackground + "," +
-						"rolling ball window size " + Analysis.p.size_rollingball + "," +
-						"stddev PSF xy " + Analysis.p.sigma_gaussian+ "," +
-						"stddev PSF z " + Analysis.p.sigma_gaussian/Analysis.p.zcorrec+ "," +
-						"lambda prior " + Analysis.p.lreg  + "," +
-						"Min intensity " + Analysis.p.min_intensity +"," +
-						"subpixel " + Analysis.p.subpixel + "," +
-						"Intensity estimation " + choice1[Analysis.p.mode_intensity] + "," +
-						"Noise model " + choice2[Analysis.p.noise_model]
-						);
+				if(out!=null){
+					out.println();
+					out.print(
+							"Parameters:" + ";" + 
+									"background removal " + "; "+ Analysis.p.removebackground  + ";  " +
+									"window size " + Analysis.p.size_rollingball + ";" +
+									"stddev PSF xy " + Tools.round(Analysis.p.sigma_gaussian, 5) + ";" +
+									"stddev PSF z " + Tools.round(Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 5)+ ";" +
+									"Regularization " + Analysis.p.lreg  + ";" +
+									"Min intensity ch1 " + Analysis.p.min_intensity +";" +
+									"Min intensity ch2 " + Analysis.p.min_intensityY +";" +
+									"subpixel " + Analysis.p.subpixel + ";" +
+									"Cell mask ch1 " + Analysis.p.usecellmaskX + ";" +
+									"mask threshold ch1 " + Analysis.p.thresholdcellmask + ";" +
+									"Cell mask ch2 " + Analysis.p.usecellmaskY + ";" +
+									"mask threshold ch2 " + Analysis.p.thresholdcellmasky + ";" +									
+									"Intensity estimation " + choice1[Analysis.p.mode_intensity] + ";" +
+									"Noise model " + choice2[Analysis.p.noise_model]+ ";"
+							);
+					out.flush();
+				}
+				finish();
 			}
 
 		}catch (Exception e){//Catch exception if any
@@ -180,7 +219,7 @@ public class BLauncher {
 			int ii=0;
 			boolean imgfound=false;
 			while (ii<list.length && !imgfound) {
-				IJ.log("read"+list[ii]);
+				if(Analysis.p.debug){IJ.log("read"+list[ii]);}
 				boolean isDir = (new File(wpath+list[ii])).isDirectory();
 				if (	!isDir &&
 						!list[ii].startsWith(".")&&
@@ -191,7 +230,7 @@ public class BLauncher {
 						!list[ii].endsWith("_seg_c2.tif")&&
 						!list[ii].endsWith("_mask_c1.tif")&&
 						!list[ii].endsWith("_mask_c2.tif")&&
-						!list[ii].endsWith("_coloc.tif")&&
+						!list[ii].endsWith("_ImageData.tif")&&
 						!list[ii].endsWith(".zip")&&
 						(list[ii].endsWith(".tif") || list[ii].endsWith(".tiff") ) 
 						){
@@ -218,11 +257,11 @@ public class BLauncher {
 				//IJ.log(directrories[nl-1]);
 				String savepath=(directrories[nl-1]).replaceAll("\\"+File.separator, ""); 
 				//IJ.log("3");
-				IJ.log(savepath);
+				//IJ.log(savepath);
 				//				IJ.log("1");
-				out  = new PrintWriter(wpath+savepath+"_coloc"+ ".csv");
-				out2 = new PrintWriter(wpath+savepath+"_Objectsdata_c1"+ ".csv");
-				out3 = new PrintWriter(wpath+savepath+"_Objectsdata_c2"+ ".csv");
+				out  = new PrintWriter(wpath+savepath+"_ImageData"+ ".csv");
+				out2 = new PrintWriter(wpath+savepath+"_ObjectsData_c1"+ ".csv");
+				out3 = new PrintWriter(wpath+savepath+"_ObjectsData_c2"+ ".csv");
 
 
 				//				out  = new PrintWriter(wpath +"Colocalization"+ Time   + ".csv");
@@ -239,33 +278,35 @@ public class BLauncher {
 				//						);
 
 				out.println();
-				out.print("File"+ "," +"Image number" + ","+ "Objects ch X" + "," + "Mean size ch X"  +"," 
-						+ "Objects ch Y"+"," + "Mean size ch Y" +"," + "Colocalization X in Y"
-						+"," + "Colocalization Y in X"
-						+"," + "Mean Y intensity in X objects"
-						+"," + "Mean X intensity in Y objects");
+				out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch1"  +";" + "Mean surface in ch1"  +";"+ "Mean length in ch1"  +";"
+						+ "Objects ch2"+";" + "Mean size in ch2" +";" + "Mean surface in ch2"  +";"+ "Mean length in ch2"  +";"+ "Colocalization ch1 in ch2 (signal based)"
+						+";" + "Colocalization ch2 in ch1 (signal based)"
+						+";" + "Colocalization ch1 in ch2 (objects numbers)"
+						+";" + "Colocalization ch2 in ch1 (objects numbers)"
+						+";" + "Mean ch2 intensity of ch1 objects"
+						+";" + "Mean ch1 intensity of ch2 objects");
 				out.println();
 
 
 
 				if(Analysis.p.nz>1){
-					out2.print("Image number" + "," + "Region in 1"+ "," 
-							+ "Size" + "," + "Surface"  + "," +"Intensity" + "," 
-							+ "Overlap with 2" +","+ "MColoc size" + ","+ "MColoc Intensity" + "," + "Single Coloc" + ","  + "Coord X"+ "," + "Coord Y"+ "," + "Coord Z");
+					out2.print("Image ID" + ";" + "Object ID"+ ";" 
+							+ "Size" + ";" + "Surface"  + ";" + "Length" + ";" +"Intensity" + ";" 
+							+ "Overlap with ch2" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 					out2.println();
-					out3.print("Image number" + "," + "Region in 2" +","
-							+ "Size" + "," + "Surface" + "," +"Intensity" + ","
-							+ "Overlap with 1" +","+ "MColoc size" + ","+ "MColoc Intensity" + "," + "Single Coloc" + ","  + "Coord X"+ "," + "Coord Y"+ "," + "Coord Z");
+					out3.print("Image ID" + ";" + "Object ID" +";"
+							+ "Size" + ";" + "Surface" + ";" + "Length" + ";" +"Intensity" + ";"
+							+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 					out3.println();
 				}
 				else{
-					out2.print("Image number" + "," + "Region in 1"+ "," 
-							+ "Size" + "," + "Perimeter" + "," + "Length" + "," +"Intensity" + "," 
-							+ "Overlap with 2" +","+ "MColoc size" + ","+ "MColoc Intensity" + "," + "Single Coloc" + ","  + "Coord X"+ "," + "Coord Y"+ "," + "Coord Z");
+					out2.print("Image ID" + ";" + "Object ID"+ ";" 
+							+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";" 
+							+ "Overlap with ch2" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 					out2.println();
-					out3.print("Image number" + "," + "Region in 2" +","
-							+ "Size" + "," + "Perimeter" + "," + "Length" + "," +"Intensity" + ","
-							+ "Overlap with 1" +","+ "MColoc size" + ","+ "MColoc Intensity" + "," + "Single Coloc" + ","  + "Coord X"+ "," + "Coord Y"+ "," + "Coord Z");
+					out3.print("Image ID" + ";" + "Object ID" +";"
+							+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";"
+							+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 					out3.println();		
 				}
 
@@ -279,20 +320,41 @@ public class BLauncher {
 			else
 			{
 
-				out2 = new PrintWriter(wpath +"Objects_data"+ Time + ".csv");
+				String [] directrories=  wpath.split("\\"+File.separator);
+				int nl = directrories.length;
+				String savepath=(directrories[nl-1]).replaceAll("\\"+File.separator, ""); 
+				out  = new PrintWriter(wpath+savepath+"_Images_data"+ ".csv");
+				out2 = new PrintWriter(wpath +savepath+"_Objects_data" + ".csv");
 
 
-				out2.print("Image number" + "," + "Region in X"+ "," + "Size" + "," + "Perimeter" + "," + "Length" + "," +
-						"Intensity" + ","  + "Coord X"+ "," + "Coord Y"+ "," + "Coord Z");
-				out2.println();
 
-				out2.flush();
+				out.println();
+				out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch 1" + ";" + "Mean surface in ch1"  +";"+ "Mean length in ch1"  );
+				out.println();
+
+
+
+
+
+
+				if(Analysis.p.nz>1){
+					out2.print("Image ID" + ";" + "Object in ch1"+ ";" + "Size" + ";" + "Surface" + ";" + "Length" + ";" +
+							"Intensity" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
+					out2.println();
+					out2.flush();
+				}
+				else{
+					out2.print("Image ID" + ";" + "Object in ch1"+ ";" + "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +
+							"Intensity" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
+					out2.println();
+					out2.flush();					
+				}
 
 
 			}
 
 			for (int i=0; i<list.length; i++) {
-				IJ.log("read"+list[i]);
+				if(Analysis.p.debug){IJ.log("read"+list[i]);}
 				boolean isDir = (new File(wpath+list[i])).isDirectory();
 				if (	!isDir &&
 						!list[i].startsWith(".") &&
@@ -304,36 +366,51 @@ public class BLauncher {
 						!list[i].endsWith("_seg_c2.tif")&&
 						!list[i].endsWith("_mask_c1.tif")&&
 						!list[i].endsWith("_mask_c2.tif")&&
-						!list[i].endsWith("_coloc.tif")&&
+						!list[i].endsWith("_ImageData.tif")&&
 						list[i].endsWith(".tif")&&
 						!list[i].endsWith(".zip")
 						){
 					IJ.log("Analyzing " + list[i]+ "... ");
 					ImagePlus img=IJ.openImage(wpath+list[i]);
 					//IJ.log("opened");
-					bcolocheadless(img);
+
+					if(Analysis.p.pearson)
+						bcolocheadless_pearson(img);
+					else
+						bcolocheadless(img);
 					//IJ.log("done");
+
+					Runtime.getRuntime().gc();
 				}
 			}
 			IJ.log("");
 			IJ.log("Done");
 
 			String choice1[] = {
-					"Automatic", "Medium layer","High layer"};
+					"Automatic", "Medium layer", "High layer"};
 			String choice2[] = {
 					"Poisson", "Gauss"};
+			if(out!=null){
+				out.println();
+				out.print(
+						"Parameters:" + ";" + 
+								"background removal " + "; "+ Analysis.p.removebackground  + ";  " +
+								"window size " + Analysis.p.size_rollingball + ";" +
+								"stddev PSF xy " + Tools.round(Analysis.p.sigma_gaussian, 5) + ";" +
+								"stddev PSF z " + Tools.round(Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 5)+ ";" +
+								"Regularization " + Analysis.p.lreg  + ";" +
+								"Min intensity ch1 " + Analysis.p.min_intensity +";" +
+								"Min intensity ch2 " + Analysis.p.min_intensityY +";" +
+								"subpixel " + Analysis.p.subpixel + ";" +
+								"Cell mask ch1 " + Analysis.p.usecellmaskX + ";" +
+								"mask threshold ch1 " + Analysis.p.thresholdcellmask + ";" +
+								"Cell mask ch2 " + Analysis.p.usecellmaskY + ";" +
+								"mask threshold ch2 " + Analysis.p.thresholdcellmasky + ";" +									
+								"Intensity estimation " + choice1[Analysis.p.mode_intensity] + ";" +
+								"Noise model " + choice2[Analysis.p.noise_model ] + ";"
 
-			out.print(
-					"background removal " + Analysis.p.removebackground + "," +
-					"rolling ball window size " + Analysis.p.size_rollingball + "," +
-					"stddev PSF xy " + Analysis.p.sigma_gaussian+ "," +
-					"stddev PSF z " + Analysis.p.sigma_gaussian/Analysis.p.zcorrec+ "," +
-					"lambda prior " + Analysis.p.lreg  + "," +
-					"Min intensity " + Analysis.p.min_intensity +"," +
-					"subpixel " + Analysis.p.subpixel + "," +
-					"Intensity estimation " + choice1[Analysis.p.mode_intensity] + "," +
-					"Noise model " + choice2[Analysis.p.noise_model]
-					);
+						);
+			}
 
 			finish();
 		}catch (Exception e){//Catch exception if any
@@ -342,10 +419,68 @@ public class BLauncher {
 		Analysis.doingbatch=false;
 	}
 
+
+	public void bcolocheadless_pearson(ImagePlus img2){
+		double Ttime=0;
+		long lStartTime = new Date().getTime(); //start time
+
+		//Analysis.p.livedisplay=false;
+
+
+
+
+
+		Analysis.p.blackbackground=ij.Prefs.blackBackground;
+		ij.Prefs.blackBackground=false;
+		Analysis.p.nchannels=img2.getNChannels();
+
+		//IJ.log("dialog j" + ij.Prefs.useJFileChooser);
+
+		if(Analysis.p.nchannels==2){
+			Analysis.load2channels(img2);
+		}
+
+
+		int nni,nnj,nnz;
+		nni=Analysis.imgA.getWidth();
+		nnj=Analysis.imgA.getHeight();
+		nnz=Analysis.imgA.getNSlices();
+
+		Analysis.p.ni=nni;
+		Analysis.p.nj=nnj;
+		Analysis.p.nz=nnz;
+
+		Tools= new Tools(nni, nnj, nnz);
+		Analysis.Tools=Tools;
+
+		double corr_mask, corr, corr_zero;
+		double [] temp;
+		temp=Analysis.pearson_corr();
+		corr=temp[0];
+		corr_mask=temp[1];
+		corr_zero=temp[2];
+
+		if(out!=null){
+			out.print(img2.getTitle() + ";" + Tools.round(corr,3) + ";" + Tools.round(corr_mask,3)+ ";" + Tools.round(corr_zero,3));
+			out.println();
+			out.flush();
+		}
+
+
+
+		long lEndTime = new Date().getTime(); //start time
+
+		long difference = lEndTime - lStartTime; //check different
+		Ttime +=difference;
+		IJ.log("Total Time : " + Ttime/1000 + "s");
+
+	}
+
+
 	public void bcolocheadless(ImagePlus img2){
 		double Ttime=0;
 		long lStartTime = new Date().getTime(); //start time
-		
+
 		//Analysis.p.livedisplay=false;
 
 		Analysis.p.blackbackground=ij.Prefs.blackBackground;
@@ -428,11 +563,11 @@ public class BLauncher {
 			int factor2 =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 			int fz2;
 			if(Analysis.p.nz>1)fz2=factor2; else fz2=1;
-			//IJ.log("ici");
+
 			MasksDisplay md= new MasksDisplay(Analysis.p.ni*factor2,Analysis.p.nj*factor2,Analysis.p.nz*fz2,Analysis.p.nlevels,Analysis.p.cl,Analysis.p);
 			md.displaycoloc(Analysis.regionslistA,Analysis.regionslistB);
 
-			//IJ.log("la");
+
 			if(Analysis.p.dispoutline){
 				//IJ.log("disp outline");
 				int factor =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
@@ -462,6 +597,7 @@ public class BLauncher {
 			//					Analysis.setlength(Analysis.regionslistB,Analysis.regionsB);
 			//				}
 			//			}
+			//IJ.log("na");
 			Analysis.na=Analysis.regionslistA.size();
 			Analysis.nb=Analysis.regionslistB.size();
 
@@ -470,28 +606,52 @@ public class BLauncher {
 
 			//}
 
-			//IJ.log("a");
+
 			double colocAB=Tools.round(Analysis.colocsegAB(out2, hcount),4);
-			//IJ.log("b");
+
+			double colocABnumber = Tools.round(Analysis.colocsegABnumber(),4);
+			
 			double colocBA=Tools.round(Analysis.colocsegBA(out3, hcount),4);
-			//IJ.log("c");
-			double colocA=0;
-			double colocB=0;
-			//double colocA=Tools.round(Analysis.colocsegA(null),4);
-			//IJ.log("d");
-			//double colocB=Tools.round(Analysis.colocsegB(null),4);
+			
+			double colocBAnumber = Tools.round(Analysis.colocsegBAnumber(),4);
+			
+
+			//double colocA=0;
+			//double colocB=0;
+			double colocA=Tools.round(Analysis.colocsegA(null),4);
+
+			double colocB=Tools.round(Analysis.colocsegB(null),4);
 			//IJ.log("e");
 
 			Analysis.meana=Analysis.meansize(Analysis.regionslistA);
 			Analysis.meanb=Analysis.meansize(Analysis.regionslistB);
+
+			double meanSA= Analysis.meansurface(Analysis.regionslistA);
+			double meanSB= Analysis.meansurface(Analysis.regionslistB);
+
+			double meanLA= Analysis.meanlength(Analysis.regionslistA);
+			double meanLB= Analysis.meanlength(Analysis.regionslistB);
+
 			//IJ.log("f");
+
+			//if(Analysis.p.dispwindows){
+			IJ.log("Colocalization ch1 in ch2: " +colocAB);
+			IJ.log("Colocalization ch2 in ch1: " +colocBA);
+			//}
 			if(Analysis.p.save_images){
-				out.print(img2.getTitle() + "," + hcount +","+ Analysis.na + "," +
-						Tools.round(Analysis.meana , 4)  +"," + Analysis.nb +"," + 
-						Tools.round(Analysis.meanb , 4) +"," +
-						colocAB +"," + 
-						colocBA + ","+
-						colocA+ ","+
+				out.print(img2.getTitle() + ";" + hcount +";"+ Analysis.na + ";" +
+						Tools.round(Analysis.meana , 4)  +";" + 
+						Tools.round(meanSA , 4)  +";" +
+						Tools.round(meanLA , 4)  +";" +
+						+ Analysis.nb +";" + 
+						Tools.round(Analysis.meanb , 4) +";" +
+						Tools.round(meanSB , 4)  +";" +
+						Tools.round(meanLB , 4)  +";" +
+						colocAB +";" + 
+						colocBA + ";"+
+						colocABnumber +";" + 
+						colocBAnumber + ";"+
+						colocA+ ";"+
 						colocB);
 				out.println();
 				out.flush();
@@ -500,8 +660,6 @@ public class BLauncher {
 				Analysis.printobjectsB(out3, hcount);
 				out2.flush();
 				out3.flush();
-
-
 			}
 
 			Analysis.doingbatch=false;
@@ -571,8 +729,33 @@ public class BLauncher {
 			//			}
 
 
+
+
+
+			//IJ.log("mean size");
+			Analysis.meana=Analysis.meansize(Analysis.regionslistA);
+
+			double meanSA= Analysis.meansurface(Analysis.regionslistA);			
+			double meanLA= Analysis.meanlength(Analysis.regionslistA);
+
+
+
+			//IJ.log("save");
 			if(Analysis.p.save_images){
+
+				if(out!=null){
+					out.print(img2.getTitle() + ";" + hcount +";"+ Analysis.na + ";" +
+							Tools.round(Analysis.meana , 4)+";"+
+							Tools.round(meanSA , 4)+";"+
+							Tools.round(meanLA , 4)
+							);
+					out.println();
+					out.flush();
+				}
+
+				//IJ.log("print objects");
 				Analysis.printobjects(out2, hcount);
+				//IJ.log("print objects done");
 				out2.flush();
 			}
 
@@ -586,7 +769,7 @@ public class BLauncher {
 		}
 		ij.Prefs.blackBackground=Analysis.p.blackbackground;
 
-		
+
 		long lEndTime = new Date().getTime(); //start time
 
 		long difference = lEndTime - lStartTime; //check different
@@ -595,7 +778,7 @@ public class BLauncher {
 
 	}
 
-	public void displayoutline(int [][][] regions, double [][][] image, int dz, int di, int dj, int channel){
+	public void displayoutline(short [][][] regions, double [][][] image, int dz, int di, int dj, int channel){
 		ImageStack objS;
 		ImagePlus objcts= new ImagePlus();
 
@@ -611,7 +794,7 @@ public class BLauncher {
 					if(regions[z][i][j]> 0)
 						mask_bytes[j * di + i]= 0;
 					else
-						mask_bytes[j * dj + i]=(byte) 255;
+						mask_bytes[j * di + i]=(byte) 255;
 				}
 			}
 
@@ -635,7 +818,7 @@ public class BLauncher {
 			byte[] mask_bytes = new byte[Analysis.p.ni*Analysis.p.nj];
 			for (int i=0; i<Analysis.p.ni; i++) {  
 				for (int j=0; j<Analysis.p.nj; j++) {  
-					mask_bytes[j * Analysis.p.nj + i]=(byte) ((int) 255*image[z][i][j]);
+					mask_bytes[j * Analysis.p.ni + i]=(byte) ((int) 255*image[z][i][j]);
 				}
 			}
 
@@ -721,6 +904,7 @@ public class BLauncher {
 		//		over.setStack("Outlines overlay c" +channel, overS);
 
 		if(Analysis.p.dispwindows){
+			over.setTitle("Objects outlines, channel " + channel);
 			over.show();
 		}
 
@@ -736,7 +920,7 @@ public class BLauncher {
 
 
 
-	public void displayintensities(ArrayList<Region> regionslist,int dz, int di, int dj, int channel, int [][][][] imagecolor){
+	public void displayintensities(ArrayList<Region> regionslist,int dz, int di, int dj, int channel, byte [] imagecolor){
 		ImageStack intS;
 		ImagePlus intensities= new ImagePlus();
 
@@ -791,17 +975,22 @@ public class BLauncher {
 		//build stack and imageplus
 		intS=new ImageStack(di,dj);
 		for (int z=0; z<dz; z++) {  
+			int [] tabt= new int [3];
 
 			ColorProcessor cpcoloc= new ColorProcessor(di,dj);
-			for (int i=0;i<di;i++) {  
-				for (int j=0;j< dj;j++){  
-					cpcoloc.putPixel(i, j, imagecolor[z][i][j]);
+			for (int i=0;i<di;i++) {
+				int t=z*di*dj*3+i*dj*3;
+				for (int j=0;j< dj;j++){
+					tabt[0]=imagecolor[t+j*3+0] & 0xFF;
+					tabt[1]=imagecolor[t+j*3+1] & 0xFF;
+					tabt[2]=imagecolor[t+j*3+2] & 0xFF;
+					cpcoloc.putPixel(i, j, tabt);
 				}
 			}
-			intS.addSlice("Intensities reconstruction c" + channel, cpcoloc);
+			intS.addSlice("Intensities reconstruction, channel " + channel, cpcoloc);
 
 		}
-		intensities.setStack("Intensities reconstruction c" +channel, intS);
+		intensities.setStack("Intensities reconstruction, channel " +channel, intS);
 		if(Analysis.p.dispwindows){
 			intensities.show();
 		}
@@ -822,7 +1011,10 @@ public class BLauncher {
 				out3.close();
 			}
 			else
+			{
+				if(out!=null) out.close();
 				out2.close();
+			}
 		}
 	}
 

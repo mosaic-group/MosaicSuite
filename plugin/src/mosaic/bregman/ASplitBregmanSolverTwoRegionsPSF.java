@@ -14,8 +14,8 @@ ASplitBregmanSolverTwoRegions {
 
 	public ASplitBregmanSolverTwoRegionsPSF(Parameters params,
 			double [] [] [] image, double [] [] [] [] speedData, double [] [] [] [] mask,
-			MasksDisplay md, int channel){
-		super(params,image,speedData,mask,md, channel);
+			MasksDisplay md, int channel, AnalysePatch ap){
+		super(params,image,speedData,mask,md, channel,ap);
 		this.c0=params.cl[0];
 		this.c1=params.cl[1];
 		eigenPSF = new double [nz][ni][nj];

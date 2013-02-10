@@ -33,10 +33,12 @@ import mosaic.bregman.FindConnectedRegions.Region;
 
 public class AnalysePatch implements Runnable{
 	//add oversampling here
-	Tools Tools;
+	Tools ATools;
 	ImagePatches impa;
 	int interpolation;
 	int interpolationz;
+	boolean obj =false;
+	boolean border_attained=false;
 	double mint;//min threshold
 	double cin, cout, cout_front;//estimated intensities
 	double intmin, intmax;
@@ -61,6 +63,7 @@ public class AnalysePatch implements Runnable{
 	int isx;
 	int isy;
 	int isz; //interpolated object sizes
+	double min_thresh;
 	double [][][] patch;
 	double [][][] object;
 	double [][][] interpolated_object;
@@ -69,19 +72,22 @@ public class AnalysePatch implements Runnable{
 	public Parameters p;
 	Region r;
 	int channel;
-	double rescaled_min_int;
+	double rescaled_min_int, rescaled_min_int_all;
 	double [][][][] temp1;
 	double [][][][] temp2;
 	double [][][][] temp3;
 	double [][][] weights;
+	double firstminval;
 	//double [][][] w3kbest;
-	double [][][] w3kpatch;
-	double [][][] refined_mask;
-	int [][][] regions_refined;
+	double [][][][] w3kpatch;
+	//	double [][][] refined_mask;
+	short [][][] regions_refined;
+	double t_high;
+	ASplitBregmanSolver A_solver;
 
 
 
-	public AnalysePatch(double [][][] image, Region r, Parameters pa, int oversampling, int channel, int [][][] regionsf, ImagePatches impa){
+	public AnalysePatch(double [][][] image, Region r, Parameters pa, int oversampling, int channel, short [][][] regionsf, ImagePatches impa){
 		//IJ.log("creating patch :"+ r.value);
 		//	this.w3kbest=w3k;
 		mint=0.2;
@@ -96,7 +102,7 @@ public class AnalysePatch implements Runnable{
 		oz=pa.nz;
 		margin=4;// add margin to size of object to create patch
 		if(pa.mode_voronoi2)margin=4;
-		zmargin=2;
+		zmargin=1;// was 2
 		this.regions_refined=regionsf;
 
 		//create local parameters
@@ -120,9 +126,11 @@ public class AnalysePatch implements Runnable{
 		//create patch image with oversampling
 		this.patch = new double [sz][sx][sy];
 		fill_patch(image);
-		//this.w3kpatch = new double [sz][sx][sy];
-		//fill_w3kpatch(impa.w3kbest);
-		fill_refined_mask(r);
+		//for testing
+		this.w3kpatch = new double [1] [sz][sx][sy];
+		fill_w3kpatch(impa.w3kbest);
+		//
+		//fill_refined_mask(r); //used ?
 
 
 
@@ -135,7 +143,7 @@ public class AnalysePatch implements Runnable{
 
 		//set size
 		p.ni=sx;p.nj=sy;p.nz=sz;
-		this.Tools= new Tools(p.ni,p.nj,p.nz);
+		this.ATools= new Tools(p.ni,p.nj,p.nz);
 		//set psf
 		if ( p.nz>1){
 			Tools.gaussian3Dbis(p.PSF, p.kernelx, p.kernely, p.kernelz, 7, p.sigma_gaussian*oversampling, p.zcorrec*oversampling);//todo verif zcorrec
@@ -147,23 +155,49 @@ public class AnalysePatch implements Runnable{
 		//normalize
 		normalize();
 
+		//double firstminval;
+		if(channel==0){
+			firstminval=p.min_intensity ;}
+		else{
+			firstminval=p.min_intensityY ;
+		}
+
+		rescaled_min_int_all=firstminval/0.86; //first val with 1% margin (15 % compensated in find_best_t_and_int...)
+
 		//estimate ints	
 		if(p.mode_voronoi2){
 			if(p.debug)	
 				IJ.log("object :" + r.value);
 			if(p.mode_intensity==0)
-				estimate_int_weighted(mask[0]);
+				find_best_thresh_and_int(w3kpatch[0]); 
+			//estimate_int_weighted(mask[0]);
 			//estimate_int_weighted(w3kpatch);
-			else
-				estimate_int_clustering(p.mode_intensity);
-			p.cl[0]=cout;
-			p.cl[1]=cin;
+			else{
+				if(p.mode_intensity==1)
+					estimate_int_weighted(mask[0]);
+				//estimate_int_weighted(w3kpatch[0]);
+				else if(p.mode_intensity==2)
+					estimate_int_clustering(p.mode_intensity-1);// (-1 to correct for old numbering)
+			}
+			p.cl[0]=Math.max(cout,0);
+			p.cl[1]=Math.max(0.75*(firstminval- intmin)/(intmax-intmin), cin);
+
+			if(p.mode_intensity==3)//mode high
+			{
+				p.cl[0]=p.betaMLEoutdefault;
+				p.cl[1]=1;	
+				t_high=cin;
+			}
 		}
 		else{
 			estimate_int_weighted(mask[0]);
 			p.cl[0]=cout;
 			p.cl[1]=cin;		
 		}
+
+
+		rescaled_min_int_all= Math.max(0, (rescaled_min_int -cout)/(cin-cout)); // /cin
+		if(p.debug)IJ.log(r.value + "min all "+rescaled_min_int_all);
 
 		//max iterations
 		p.max_nsb=101;
@@ -176,8 +210,8 @@ public class AnalysePatch implements Runnable{
 
 		p.thresh=0.75;
 		p.remask=false;
-		p.lreg=p.lreg*oversampling;
-
+		p.lreg=p.lreg*oversampling;// *(intmax-intmin);
+		//IJ.log("lreg region" + r.value +" : " + p.lreg + "ratio :" + (intmax-intmin));
 		//IJ.log("patch :"+ r.value + "created");
 	}
 
@@ -190,14 +224,16 @@ public class AnalysePatch implements Runnable{
 		//IJ.log("region " + r.value);
 		MasksDisplay md= new MasksDisplay(sx,sy,sz,2,p.cl,p);
 
-//								if(r.value==3 ||r.value==16)
-//								//{md.display2regionsnew(patch[0], "Patch "+r.value, channel);}
-//				{md.display2regions3Dnew(patch, "Patch "+r.value, channel);}
+		if(p.debug && (r.value==2 || r.value==92))
+			//{md.display2regionsnew(patch[0], "Patch "+r.value, channel);}
+		{md.display2regions3Dnew(patch, "Patch "+r.value, channel);}
 		//md.display2regionsnewd(mask[0][0],"mask binaire" +r.value, channel);
 		//md.display2regionsnew(patch[0], "Mask" +r.value, channel);
 		//md.display2regionsnewd(weights[0],"weights" +r.value, channel);
 		//md.display2regionsnewd(refined_mask[0],"rmask" +r.value, channel);
-		ASplitBregmanSolver A_solver;
+		
+		
+		//ASplitBregmanSolver A_solver;
 
 		//IJ.log("pni " + p.ni + "pnj" + p.nj+ "pnz" + p.nz +"nlevels" +p.nlevels);
 		//Tools.setDims(sx, sy, sz, p.nlevels);
@@ -209,26 +245,66 @@ public class AnalysePatch implements Runnable{
 		p.nthreads=1;
 		p.firstphase=false;
 		//IJ.log("noise "+p.noise_model);
-		
-		
+
+
+		//p.cl[0]=0.1;
+		//p.cl[1]=p.betaMLEindefault;
+
+		if(p.debug && (r.value==2 || r.value==92))
+			//{md.display2regionsnew(A_solver.w3kbest[0][0], "Mask Patch "+r.value, channel);}
+		{md.display2regions3Dnew(w3kpatch[0], "Mask Patch Init"+r.value, channel);}
+
+		//		IJ.log("levels init region" + r.value);
+		//		mask_clustering(w3kpatch[0],1);
+		//		
+		//		IJ.log("levels init image" + r.value + "");
+		//		estimate_int_clustering(2);// (-1 to correct for old numbering)
+
 		if (p.nz>1){
-			A_solver= new ASplitBregmanSolverTwoRegions3DPSF(p,patch,speedData,mask,md,channel);
+			A_solver= new ASplitBregmanSolverTwoRegions3DPSF(p,patch,speedData,w3kpatch,md,channel, this);//mask instead of w3kpatch
 		}
 		else
 		{
-			A_solver= new ASplitBregmanSolverTwoRegionsPSF(p,patch,speedData,mask,md,channel);
+			A_solver= new ASplitBregmanSolverTwoRegionsPSF(p,patch,speedData,w3kpatch,md,channel, this);//mask instead of w3kpatch
 		}
 
 		try {
 			A_solver.first_run();
 			//md.display2regions(A_solver.w3kbest[0][0], "Mask patch" + r.value, channel);
-//												if(r.value==3 || r.value==16)
-//												//{md.display2regionsnew(A_solver.w3kbest[0][0], "Mask Patch "+r.value, channel);}
-//						{md.display2regions3Dnew(A_solver.w3kbest[0], "Mask Patch "+r.value, channel);}
+			if(p.debug && (r.value==2 || r.value==92))
+				//{md.display2regionsnew(A_solver.w3kbest[0][0], "Mask Patch "+r.value, channel);}
+			{md.display2regions3Dnew(A_solver.w3kbest[0], "Mask Patch "+r.value, channel);}
 			cout=p.cl[0];
 			cin=p.cl[1];
 			//IJ.log("cout " + cout + "cin" + cin);
+
+			int ll =p.mode_intensity;
+			if(ll==0 || ll==1) 
+				min_thresh=rescaled_min_int_all*0.85;
+			else
+				min_thresh=0.25;
+			//min_thresh= 0.99*mask_clustering(A_solver.w3kbest[0],ll);//allow 1% margin
+
+			if(p.debug){
+				IJ.log("region" + r.value +"minth " + min_thresh);
+
+			}
+
+
 			double t=find_best_thresh(A_solver.w3kbest[0]);
+
+			if(p.mode_intensity==3)//mode high
+			{
+				
+				estimate_int_clustering(2);// (-1
+				t_high=cin;
+				if(p.debug){
+					IJ.log("obj"+r.value+ " effetcive t:" +t_high);
+				}
+				t=t_high-0.04;
+				t=rescaled_min_int;
+			}
+
 			//todo : compute best threshold  for p.thresh
 			if(p.debug)	
 				IJ.log("best thresh : " + t +"region" + r.value);
@@ -249,17 +325,31 @@ public class AnalysePatch implements Runnable{
 			assemble_patch();
 
 		}catch (InterruptedException ex) {}
-
 	}
 
 
 	private void set_object(double [][][] w3kbest, double t){
-
+		obj=false;
+		border_attained=false;
 		for (int z=0; z<sz; z++){
 			for (int i=0;i<sx; i++){  
 				for (int j=0;j< sy; j++){  
 					if(w3kbest[z][i][j]>t && weights[z][i][j]==1)
+					{
 						this.object[z][i][j] = 1;
+						obj=true;
+						//do not check  the border in 3D
+						//						if(sz>1 && offsetz!=0 && (offsetz + sz/os)!=oz){						
+						//							if( i==0 || i==(sx-1)  || j==0 || j==(sy-1))// z==0 || z==(sz-1)\\ : causes probblem if added because of inexact object separation by voronoi in 3D
+						//								border_attained=true;
+						//						}
+						//						else
+						//						{			
+						if(sz <= 1)
+							if((i==0 && offsetx!=0) || ( i==(sx-1) && (offsetx+ sx/os)!=ox )   || (j==0 && offsety!=0) || (j==(sy-1)&& (offsety+ sy/os)!=oy ))
+								border_attained=true;
+						//						}
+					}
 					else
 						this.object[z][i][j] = 0;
 				}
@@ -327,7 +417,6 @@ public class AnalysePatch implements Runnable{
 			interpolationz=interpolation;
 		}
 
-
 	}
 
 
@@ -359,7 +448,7 @@ public class AnalysePatch implements Runnable{
 		for (int z=0; z<sz; z++){
 			for (int i=0;i<sx; i++){  
 				for (int j=0;j< sy; j++){  
-					this.w3kpatch[z][i][j] = w3k[z/osz+offsetz][i/os+offsetx][j/os+offsety];	
+					this.w3kpatch[0][z][i][j] = w3k[z/osz+offsetz][i/os+offsetx][j/os+offsety];	
 				}
 			}
 		}
@@ -369,12 +458,11 @@ public class AnalysePatch implements Runnable{
 				for (int i=0;i<sx; i++){  
 					for (int j=0;j< sy; j++){ 
 						if(weights[z][i][j]==0)
-							this.w3kpatch[z][i][j] = 0;	
+							this.w3kpatch[0][z][i][j] = 0;	
 					}
 				}
 			}
 		}
-
 	}
 
 
@@ -391,7 +479,12 @@ public class AnalysePatch implements Runnable{
 			}
 		}
 
-		rescaled_min_int=((p.min_intensity - intmin)/(intmax-intmin));
+		if(channel==0){
+			rescaled_min_int=((p.min_intensity - intmin)/(intmax-intmin));}
+		else{
+			rescaled_min_int=((p.min_intensityY - intmin)/(intmax-intmin));
+
+		}
 		//IJ.log("max:"+intmax+" min:"+intmin);
 		//IJ.log("rescaled min int: " + ((p.min_intensity - intmin)/(intmax-intmin)));
 		//rescale between 0 and 1
@@ -402,6 +495,35 @@ public class AnalysePatch implements Runnable{
 				}	
 			}
 		}
+		
+		if(p.mode_intensity==3){
+			
+			double intmin2=Double.MAX_VALUE;
+			double intmax2=0;
+			for (int z=0; z<sz; z++){	
+				for (int i=0; i<sx; i++){  
+					for (int j=0;j< sy; j++){  		
+						if(w3kpatch[0][z][i][j]>intmax2)intmax2=w3kpatch[0][z][i][j];
+						if(w3kpatch[0][z][i][j]<intmin2)intmin2=w3kpatch[0][z][i][j];
+					}	
+				}
+			}
+			
+			
+			
+		for (int z=0; z<sz; z++){
+			for (int i=0; i<sx; i++){  
+				for (int j=0;j<sy; j++){  
+					w3kpatch[0][z][i][j]= (w3kpatch[0][z][i][j] - intmin2)/(intmax2-intmin2);		
+				}	
+			}
+		}
+		
+		
+		}
+		
+		
+		
 
 	}
 
@@ -429,8 +551,8 @@ public class AnalysePatch implements Runnable{
 	private void estimate_int_weighted(double [][][] mask){
 		RegionStatisticsSolver RSS;
 
-
-		RSS= new RegionStatisticsSolver(temp1[0],temp2[0], temp3[0], patch,weights, 10,p);
+		if(p.debug){IJ.log("estimate int weighted");}
+		RSS= new RegionStatisticsSolver(temp1[0],temp2[0], temp3[0], patch, weights, 10,p);
 		RSS.eval(mask);
 		//Analysis.p.cl[0]=RSS.betaMLEout;
 		//Analysis.p.cl[1]=RSS.betaMLEin;
@@ -443,36 +565,52 @@ public class AnalysePatch implements Runnable{
 		//mint=Math.min(0.25, (rescaled_min_int-cout)/(cin-cout)-0.05);
 
 		if(p.debug){
-		IJ.log("mint "+ mint);
-		IJ.log("rescaled min int" + rescaled_min_int);
-		IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e", cout,cin));	
+			IJ.log("mint "+ mint);
+			IJ.log("reg" + r.value+"rescaled min int" + rescaled_min_int);
+			IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e", cout,cin));	
 		}
 
 	}
 
 
 	private void estimate_int_clustering(int level){
+		//clustering done on original image data (not on soft mask)
+		//test doing it on soft mask ? // but original soft mask patch extracted from whole image is not normalized..
 		//IJ.log("level" +level);
+		if(p.debug){
+			IJ.log("init obj:"+r.value);
+		}
+
 		int nk;
 		if(level==1)nk=4; else nk=3;//3level culstering for low (removed) and high, 4 levels for medium
-
+		//
+		//nk=4;//test high mode
+		
+		
 		int nk_in=0;
 		//if(level==0)nk_in=1;//low
 		if(level==2)nk_in=2;//high
 		if(level==1)nk_in=2;//medium
+		
+		
+		//nk_in=3;// test high mode
 		//int nk=4;//3
 		double [] pixel = new double[1];
 		double [] levels= new double[nk];
 		double [] levels2= new double[4];
 
+
+		int cpt_vals=0;
 		Dataset data = new DefaultDataset();
 		for (int z=0; z<sz; z++){
 			for (int i=0; i<sx; i++){  
 				for (int j=0;j<sy; j++){  
 					pixel[0]=patch[z][i][j];
+					if(level==2)
+						pixel[0]=A_solver.w3kbest[0][z][i][j];	//w3kpatch[0]
 					Instance instance = new DenseInstance(pixel);
 					if(p.mode_voronoi2){
-						if(weights[z][i][j]==1)data.add(instance);
+						if(weights[z][i][j]==1){data.add(instance);cpt_vals++;}
 					}
 					else
 						data.add(instance);
@@ -480,72 +618,87 @@ public class AnalysePatch implements Runnable{
 			}
 		}
 
+		if(p.debug){IJ.log("inst" +r.value+ " nbvals"+cpt_vals);}
 
 
 
-
-//		
-//				/* Create Weka classifier */
-//				SimpleKMeans xm4 = new SimpleKMeans();
-//		
-//		
-//				try{
-//					xm4.setNumClusters(nk);//3
-//					xm4.setMaxIterations(100);
-//				}catch (Exception ex) {}
-//		
-//		
-//		
-//		
-//				/* Wrap Weka clusterer in bridge */
-//				Clusterer jmlxm4 = new WekaClusterer(xm4);
-//				/* Perform clustering */
-//				Dataset[] data2 = jmlxm4.cluster(data);
-//				/* Output results */
-//				//System.out.println(clusters.length);
-
+		//		
+		//				/* Create Weka classifier */
+		//				SimpleKMeans xm4 = new SimpleKMeans();
+		//		
+		//		
+		//				try{
+		//					xm4.setNumClusters(nk);//3
+		//					xm4.setMaxIterations(100);
+		//				}catch (Exception ex) {}
+		//		
+		//		
+		//		
+		//		
+		//				/* Wrap Weka clusterer in bridge */
+		//				Clusterer jmlxm4 = new WekaClusterer(xm4);
+		//				/* Perform clustering */
+		//				Dataset[] data2 = jmlxm4.cluster(data);
+		//				/* Output results */
+		//				//System.out.println(clusters.length);
 
 
+		if(cpt_vals>3){
 
-		//IJ.log("clust .. ");
-		Clusterer km = new KMeans(nk,100);
-		//Clusterer km = new KMeans(3,200);
-		/* Cluster the data, it will be returned as an array of data sets, with
-		 * each dataset representing a cluster. */
-		Dataset[] data2 = km.cluster(data);
-		//IJ.log("clust done ");
+			//IJ.log("clust .. ");
+			Clusterer km = new KMeans(nk,100);
+			//Clusterer km = new KMeans(3,200);
+			/* Cluster the data, it will be returned as an array of data sets, with
+			 * each dataset representing a cluster. */
+			Dataset[] data2 = km.cluster(data);
+			//IJ.log("clust done ");
 
 
 
-		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
-		for (int i=0; i<nk; i++) {  
-			//Instance inst =DatasetTools.minAttributes(data2[i]);
-			Instance inst =DatasetTools.average(data2[i]);
-			levels[i]=inst.value(0);
-		}
+			nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
+			for (int i=0; i<nk; i++) {  
+				//Instance inst =DatasetTools.minAttributes(data2[i]);
+				Instance inst =DatasetTools.average(data2[i]);
+				levels[i]=inst.value(0);
+			}
 
-		Arrays.sort(levels);
-		//IJ.log("nk " + nk + "parameter " + Analysis.p.regionSegmentLevel + "level" + levels[Math.min(Analysis.p.regionSegmentLevel, nk-1)] );
-		nk=Math.min(nk_in, nk-1);
-		cin=Math.max(rescaled_min_int, levels[nk]);//-1;
-		//betaMLEout=levels[0];
-		int nkm1=Math.max(nk-1, 0);
-		cout_front=levels[nkm1];
-		cout=levels[0];
-		mint=0.25;
-		//mint=Math.min(0.25, (rescaled_min_int-cout)/(cin-cout)  -0.05);
+			Arrays.sort(levels);
+			//IJ.log("nk " + nk + "parameter " + Analysis.p.regionSegmentLevel + "level" + levels[Math.min(Analysis.p.regionSegmentLevel, nk-1)] );
+			int nk2;
+			nk2=Math.min(nk_in, nk-1);
+			cin=Math.max(rescaled_min_int, levels[nk2]);//-1;
+			//betaMLEout=levels[0];
+			int nkm1=Math.max(nk2-1, 0);
+			cout_front=levels[nkm1];
+			cout=levels[0];
+			if(level==2)cout=cout_front;
 
-		if(p.debug){
-			IJ.log("mint "+ mint);
+			mint=0.25;
 
-			IJ.log("rescaled min int" + rescaled_min_int);
-			IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e",cout,cin));	
+			if(p.debug){
+				IJ.log("mint "+ mint);
 
-			IJ.log("levels :");
-			for (int i=0; i<4; i++) {  
-				IJ.log("level "+(i+1) + " : " + levels[i]);
+				IJ.log("rescaled min int" + rescaled_min_int);
+				IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e",cout,cin));	
+
+				IJ.log("levels :");
+				for (int i=0; i<nk; i++) {  
+					IJ.log("level r" + r.value+" " +(i+1) + " : " + levels[i]);
+				}
 			}
 		}
+		else //too few values for clustering..
+		{
+			cin=1;
+			cout_front=p.betaMLEoutdefault;
+			cout=p.betaMLEoutdefault;
+			mint=0.25;	
+
+			if(p.debug){IJ.log("usuing default intensity for r"+r.value);}
+		}
+		//mint=Math.min(0.25, (rescaled_min_int-cout)/(cin-cout)  -0.05);
+
+
 
 
 		//
@@ -592,6 +745,85 @@ public class AnalysePatch implements Runnable{
 	}
 
 
+	private double mask_clustering(double [][][] w3kbest, int level){
+
+		int nk;
+		//if(level==1) 
+		nk=4;
+		//else
+		//	nk=3;
+
+
+
+		//nk=5;
+		int nkr;
+
+
+
+		double [] pixel = new double[1];
+		double [] levels= new double[nk];
+		double [] levels2= new double[nk];
+
+		Dataset data = new DefaultDataset();
+		for (int z=0; z<sz; z++){
+			for (int i=0; i<sx; i++){  
+				for (int j=0;j<sy; j++){  
+					pixel[0]=w3kbest[z][i][j];
+					Instance instance = new DenseInstance(pixel);
+					if(p.mode_voronoi2){
+						if(weights[z][i][j]==1)data.add(instance);
+					}
+					else
+						data.add(instance);
+				}	
+			}
+		}
+
+
+		Clusterer km = new KMeans(nk,100);
+		Dataset[] data2 = km.cluster(data);
+
+
+
+
+		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
+		for (int i=0; i<nk; i++) {  
+
+			Instance inst =DatasetTools.average(data2[i]);
+			Instance inst2 =DatasetTools.maxAttributes(data2[i]);
+			levels[i]=inst.value(0);
+			levels2[i]=inst2.value(0);
+		}
+
+		Arrays.sort(levels);
+		Arrays.sort(levels2);
+		nkr=2;
+		if(level==1)
+			nkr=Math.min(2,nk);
+		else if (level==3)
+			nkr=Math.min(3,nk);
+		else if (level == 2)
+			nkr=Math.min(2,nk);
+
+		if(p.debug){
+			IJ.log("levels :");
+			for (int i=0; i<nk; i++) {  
+				IJ.log("level "+(i+1) + " : " + levels[i]);
+			}
+			Instance inst2 =DatasetTools.maxAttributes(data2[2]);
+			IJ.log("sep" + inst2.value(0));
+		}
+
+
+		double res;
+		if(level==1 || level==3) res=levels[nkr];
+		else{ 
+			res=levels2[nkr];
+		}
+		return (res);
+
+	}
+
 
 	//	Arrays.sort(levels);
 	//		IJ.log("");
@@ -601,10 +833,6 @@ public class AnalysePatch implements Runnable{
 	//		IJ.log("level 3 : " + levels[2]);
 	//		IJ.log("level 4 : " + levels[3]);
 
-	//		IJ.log("levels :");
-	//		for (int i=0; i<nk; i++) {  
-	//			IJ.log("level "+(i+1) + " : " + levels[i]);
-	//		}
 
 
 
@@ -814,70 +1042,148 @@ public class AnalysePatch implements Runnable{
 	}
 
 
-	private void fill_refined_mask(Region r){// a corriger comme fill weights pour l'utiliser eventuellement
-		this.refined_mask= new double [sz][sx][sy];
-
-		for (int z=0; z<sz; z++){
-			for (int i=0;i<sx; i++){  
-				for (int j=0;j< sy; j++){  
-					this.refined_mask[z][i][j] = 0;	
-				}
-			}
-		}
-
-		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-			Pix p = it.next();
-			int rzmin,rxmin,rymin;
-			int rzmax,rxmax,rymax;
-
-			if(sz>1){
-				rzmin=Math.max(0, os*(p.pz-offsetz)-rmmar);
-				rzmax=Math.min(sz, rzmin+osz+rmmar);
-			}else{
-				rzmin=0;
-				rzmax=1;
-			}
-
-			rxmin=Math.max(0, os*(p.px-offsetx) -rmmar);
-			rymin=Math.max(0, os*(p.py-offsety) -rmmar);
-
-			rxmax=Math.min(sx, rxmin+os+rmmar);
-			rymax=Math.min(sy, rymin+os+rmmar);
-
-			for (int z=rzmin; z<rzmax; z++){
-				for (int i=rxmin;i<rxmax; i++){  
-					for (int j=rymin;j< rymax; j++){  
-						this.refined_mask[z][i][j] = 1;	
-					}
-				}
-			}
-		}
-	}
+	//	private void fill_refined_mask(Region r){// a corriger comme fill weights pour l'utiliser eventuellement
+	//		this.refined_mask= new double [sz][sx][sy];
+	//
+	//		for (int z=0; z<sz; z++){
+	//			for (int i=0;i<sx; i++){  
+	//				for (int j=0;j< sy; j++){  
+	//					this.refined_mask[z][i][j] = 0;	
+	//				}
+	//			}
+	//		}
+	//
+	//		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+	//			Pix p = it.next();
+	//			int rzmin,rxmin,rymin;
+	//			int rzmax,rxmax,rymax;
+	//
+	//			if(sz>1){
+	//				rzmin=Math.max(0, os*(p.pz-offsetz)-rmmar);
+	//				rzmax=Math.min(sz, rzmin+osz+rmmar);
+	//			}else{
+	//				rzmin=0;
+	//				rzmax=1;
+	//			}
+	//
+	//			rxmin=Math.max(0, os*(p.px-offsetx) -rmmar);
+	//			rymin=Math.max(0, os*(p.py-offsety) -rmmar);
+	//
+	//			rxmax=Math.min(sx, rxmin+os+rmmar);
+	//			rymax=Math.min(sy, rymin+os+rmmar);
+	//
+	//			for (int z=rzmin; z<rzmax; z++){
+	//				for (int i=rxmin;i<rxmax; i++){  
+	//					for (int j=rymin;j< rymax; j++){  
+	//						this.refined_mask[z][i][j] = 1;	
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
 
 
 	private double find_best_thresh(double [][][] w3kbest){
 		double t;
 		double energy=Double.MAX_VALUE;
-		double threshold=0.1;
+		double threshold=0.75;//defulat value for threshold
 		double temp;
 		//	IJ.log("lreg ap " + p.lreg);
-		for (t=0.95;t> mint; t-=0.05){  
+
+		//IJ.log("find bess thresh"  +r.value +"cin " + cin + " coutfront " + cout_front);
+		for (t=1;t> min_thresh; t-=0.02){  //mint //rescaled_min_int_all*0.85 0.5*cout
 			set_object(w3kbest, t);
 
-			if(p.nz==1){
-				temp=Tools.computeEnergyPSF(temp1[0], object, temp2[0], temp3[0],
-						p.ldata, p.lreg,p,cout_front,cin,patch);
-			}
-			else{
-				temp=Tools.computeEnergyPSF3D(temp1[0], object, temp2[0], temp3[0],
-						p.ldata, p.lreg,p,cout_front,cin,patch);	
+			if(obj && !border_attained){
+				if(p.nz==1){
+					temp=ATools.computeEnergyPSF_weighted(temp1[0], object, temp2[0], temp3[0],weights,
+							p.ldata, p.lreg,p,cout_front,cin,patch);
+				}
+				else{
+					temp=ATools.computeEnergyPSF3D_weighted(temp1[0], object, temp2[0], temp3[0],weights,
+							p.ldata, p.lreg,p,cout_front,cin,patch);	
+				}
+
+				if(p.debug)	
+					IJ.log("energy " + temp + " t " + t + "region"+ r.value);
+				if (temp<energy) {energy=temp;threshold=t; }
 			}
 
-			if(p.debug)	
-				IJ.log("energy " + temp + " t " + t + "region"+ r.value);
-			if (temp<energy) {energy=temp;threshold=t; }
 
 		}
+		return threshold;
+
+
+	}
+
+
+
+	public double find_best_thresh_and_int(double [][][] w3kbest){
+		double t;
+		double energy=Double.MAX_VALUE;
+		double threshold=0.75;
+		double temp;
+		double tbest=0.95;
+		double cinbest, coutbest;
+		//	IJ.log("lreg ap " + p.lreg);
+
+		//		double minval;
+		//		if(channel==0){
+		//			minval=p.min_intensity ;}
+		//		else{
+		//			minval=p.min_intensityY ;
+		//		}
+		cinbest=1;
+		coutbest=0.0001;
+		for (t=0.95;t> rescaled_min_int_all*0.85; t-=0.02){  //minval
+			set_object(w3kbest, t);
+
+			//test
+			//cin=1;
+			//cout_front=0.001;
+
+
+			//			MasksDisplay md= new MasksDisplay(sx,sy,sz,2,p.cl,p);
+			//
+			//			md.display2regionsnew(w3kbest[0], "w3kbest "+r.value, channel);
+			//			md.display2regionsnew(object[0], "object "+r.value, channel);
+			//			md.display2regionsnew(patch[0], "patch "+r.value, channel);
+			if(obj && !border_attained){
+				estimate_int_weighted(object);
+
+				if(p.nz==1){
+					temp=ATools.computeEnergyPSF_weighted(temp1[0], object, temp2[0], temp3[0],weights,
+							p.ldata, p.lreg,p,cout_front,cin,patch);
+				}
+				else{
+					temp=ATools.computeEnergyPSF3D_weighted(temp1[0], object, temp2[0], temp3[0],weights,
+							p.ldata, p.lreg,p,cout_front,cin,patch);	
+				}
+
+				if(p.debug)	
+					IJ.log("energy and int " + temp + " t " + t + "region"+ r.value +" cin " + cin + " cout " + cout +" obj " +obj);
+				if (temp<energy) {energy=temp;threshold=t;cinbest=cin; coutbest=cout; tbest=t; }
+			}
+			else
+			{
+				cin=1;cout_front=0;
+			}
+
+
+
+
+		}
+
+		cin=cinbest;
+		cout=coutbest;
+		cout_front=cout;
+
+		rescaled_min_int_all= Math.max((rescaled_min_int -cout)/(cin-cout), 0);
+		if(p.debug)IJ.log("fbest"+ r.value +  "min all "+rescaled_min_int_all);
+
+		if(p.debug)	
+			IJ.log(" best energy and int " + energy + " t " + tbest + "region"+ r.value +" cin " + cin + " cout " + cout);
+
 		return threshold;
 
 
@@ -907,7 +1213,7 @@ public class AnalysePatch implements Runnable{
 			for (int i=0;i<isx; i++){  
 				for (int j=0;j< isy; j++){  
 					if (object[z][i][j]==1){
-						regions_refined[z+offsetz*fsz][i+offsetx*fsxy][j+offsety*fsxy]=r.value;
+						regions_refined[z+offsetz*fsz][i+offsetx*fsxy][j+offsety*fsxy]= (short) r.value;
 
 					}
 				}
@@ -962,10 +1268,10 @@ public class AnalysePatch implements Runnable{
 			}
 		}
 
-		fcr.run(thr,channel,isx*isy*isz,3*fsxy,0,Ri,false,false);//min size was 5//5*osxy
+		fcr.run(thr,channel,isx*isy*isz,0*fsxy,0,Ri,false,false);//min size was 5//5*osxy
 		//fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,true,p.save_images&&(!p.refinement));
 
-		//add to list with ciritical section
+		//add to list with critical section
 		impa.addRegionstoList(fcr.results);
 
 		//add to regions refined with correct indexes
@@ -986,7 +1292,7 @@ public class AnalysePatch implements Runnable{
 				Pix v = it2.next();
 				npixels.add(new Pix(v.pz+offsetz*fsz,v.px+offsetx*fsxy,v.py+offsety*fsxy));
 				//count number of free edges
-				regions_refined[v.pz+offsetz*fsz][v.px+offsetx*fsxy][v.py+offsety*fsxy]=r.value;
+				regions_refined[v.pz+offsetz*fsz][v.px+offsetx*fsxy][v.py+offsety*fsxy]= (short) r.value;
 
 			}				
 			r.pixels=npixels;

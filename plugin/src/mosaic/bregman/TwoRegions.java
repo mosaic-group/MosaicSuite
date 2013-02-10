@@ -54,12 +54,12 @@ public class TwoRegions extends NRegions {
 		p.nlevels=1;
 
 		//IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
-
+		//Tools.showmem();
 		if (p.usePSF && p.nz>1){
 
 			Tools.gaussian3Dbis(p.PSF, p.kernelx, p.kernely, p.kernelz, 7, p.sigma_gaussian*p.model_oversampling, p.zcorrec);
 
-			A_solver= new ASplitBregmanSolverTwoRegions3DPSF(p,image,SpeedData,mask,md,channel);
+			A_solver= new ASplitBregmanSolverTwoRegions3DPSF(p,image,SpeedData,mask,md,channel,null);
 		}
 		else if (p.usePSF && p.nz==1)
 		{
@@ -68,19 +68,21 @@ public class TwoRegions extends NRegions {
 			Tools.gaussian2D(p.PSF[0], p.kernelx, p.kernely, 7, p.sigma_gaussian*p.model_oversampling);
 			//Tools.disp_valsc(p.PSF[1], "PSF computed 1");
 
-			A_solver= new ASplitBregmanSolverTwoRegionsPSF(p,image,SpeedData,mask,md,channel);
+			A_solver= new ASplitBregmanSolverTwoRegionsPSF(p,image,SpeedData,mask,md,channel,null);
 
 		}
 		else if (!p.usePSF && p.nz>1){
 			//Tools.gaussian3D(p.PSF, p.kernelx, p.kernely,p.kernelz, 7, 1);
-			A_solver= new ASplitBregmanSolverTwoRegions3D(p,image,SpeedData,mask,md,channel);
+			A_solver= new ASplitBregmanSolverTwoRegions3D(p,image,SpeedData,mask,md,channel,null);
 		}
 		else //if (!p.usePSF && p.nz==1)
-			A_solver= new ASplitBregmanSolverTwoRegions(p,image,SpeedData,mask,md,channel);
+			A_solver= new ASplitBregmanSolverTwoRegions(p,image,SpeedData,mask,md,channel,null);
 
 		//first run
 		try {
+			//Tools.showmem();
 			A_solver.first_run();
+			//Tools.showmem();
 		}catch (InterruptedException ex) {}
 		if(channel==0){	
 
@@ -100,12 +102,12 @@ public class TwoRegions extends NRegions {
 
 			ArrayList<Region> regions=A_solver.regionsvoronoi;
 
-			A_solver=null;
+			//A_solver=null; //for testing
 
 			if(!Analysis.p.looptest){
 				if(p.findregionthresh)Analysis.compute_connected_regions_a((int) 255*p.thresh,RiN);
 				else Analysis.compute_connected_regions_a((int) 255*p.thresh,null);
-				A_solver=null;
+				//A_solver=null; // for testing
 				//test
 				//IJ.log("start test" + "nlevels " +p.nlevels);
 				if(Analysis.p.refinement&& Analysis.p.mode_voronoi2){
@@ -114,18 +116,22 @@ public class TwoRegions extends NRegions {
 					IJ.showStatus("Computing segmentation  " + 55 + "%");
 					IJ.showProgress(0.55);
 					
-					ImagePatches ipatches= new ImagePatches(p,Analysis.regionslistA,image,channel);
+					//Tools.showmem();
+					
+					ImagePatches ipatches= new ImagePatches(p,Analysis.regionslistA,image,channel, A_solver.w3kbest[0]);
+					A_solver=null;
 					ipatches.run();
 					Analysis.regionslistA=ipatches.regionslist_refined;
 					Analysis.regionsA=ipatches.regions_refined;
 					Analysis.imagecolor_c1=ipatches.imagecolor_c1;
-					
+					//Tools.showmem();
 				}
 
 
 
 				if(Analysis.p.refinement && Analysis.p.mode_classic){
-					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslistA,image,channel);
+					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslistA,image,channel, A_solver.w3kbest[0]);
+					A_solver=null;
 					ipatches.run();
 					Analysis.regionslistA=ipatches.regionslist_refined;
 					Analysis.regionsA=ipatches.regions_refined;
@@ -153,13 +159,13 @@ public class TwoRegions extends NRegions {
 
 					ArrayList<Region> regions=A_solver.regionsvoronoi;
 
-			A_solver=null;
+			//A_solver=null;
 			
 			
 			if(!Analysis.p.looptest){
 				if(p.findregionthresh)Analysis.compute_connected_regions_b((int) 255*p.thresh,RiN);
 				else Analysis.compute_connected_regions_b((int) 255*p.thresh,null);
-				A_solver=null;
+				//A_solver=null;
 
 
 				if(Analysis.p.refinement&& Analysis.p.mode_voronoi2){
@@ -168,7 +174,8 @@ public class TwoRegions extends NRegions {
 					IJ.showStatus("Computing segmentation  " + 55 + "%");
 					IJ.showProgress(0.55);
 					
-					ImagePatches ipatches= new ImagePatches(p,Analysis.regionslistB,image,channel);
+					ImagePatches ipatches= new ImagePatches(p,Analysis.regionslistB,image,channel, A_solver.w3kbest[0]);
+					A_solver=null;
 					ipatches.run();
 					Analysis.regionslistB=ipatches.regionslist_refined;
 					Analysis.regionsB=ipatches.regions_refined;
@@ -178,7 +185,8 @@ public class TwoRegions extends NRegions {
 
 
 				if(Analysis.p.refinement && Analysis.p.mode_classic){
-					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslistB,image,channel);
+					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslistB,image,channel, A_solver.w3kbest[0]);
+					A_solver=null;
 					ipatches.run();
 					Analysis.regionslistB=ipatches.regionslist_refined;
 					Analysis.regionsB=ipatches.regions_refined;

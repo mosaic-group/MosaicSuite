@@ -12,8 +12,8 @@ public class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 
 	public ASplitBregmanSolverTwoRegions(Parameters params, 
 			double [] [] [] image, double [] [] [] [] speedData, double [] [] [] [] mask,
-			MasksDisplay md, int channel){
-		super(params,image,speedData,mask,md, channel);
+			MasksDisplay md, int channel, AnalysePatch ap){
+		super(params,image,speedData,mask,md, channel, ap);
 		
 
 	}

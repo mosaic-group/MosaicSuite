@@ -148,9 +148,15 @@ public class RegionStatisticsSolver {
 			//   detK = K11*K22-K12^2;
 			// betaMLE_out = ( K22*U1-K12*U2)/detK;
 			// betaMLE_in  = (-K12*U1+K11*U2)/detK;
-			detK = K11*K22-Math.pow(K12,2);		
+			detK = K11*K22-Math.pow(K12,2);	
+			if(detK!=0){
 			betaMLEout = ( K22*U1-K12*U2)/detK;	
 			betaMLEin  = (-K12*U1+K11*U2)/detK;
+			}
+			else{
+				betaMLEout=p.betaMLEoutdefault;	
+				betaMLEin=p.betaMLEindefault;
+			}
 
 			//IJ.log(String.format("K11 %7.2e K22 %7.2e K12 %7.2e U1 %7.2e U2 %7.2e detK %7.2e %n", K11,K22,K12,U1,U2, detK));
 
@@ -216,14 +222,15 @@ public class RegionStatisticsSolver {
 		}
 		//IJ.log("max"+max+"min"+min);
 
-		for (int z=0; z<nz; z++){
-			for (int i=0; i<ni; i++){  
-				for (int j=0;j<nj; j++){  
-					ScaledMask[z][i][j]= (Mask[z][i][j] -min)/(max-min);		
-				}	
+		if((max-min)!=0){
+			for (int z=0; z<nz; z++){
+				for (int i=0; i<ni; i++){  
+					for (int j=0;j<nj; j++){  
+						ScaledMask[z][i][j]= (Mask[z][i][j] -min)/(max-min);		
+					}	
+				}
 			}
 		}
-
 
 
 	}
@@ -411,11 +418,11 @@ public class RegionStatisticsSolver {
 
 
 			Arrays.sort(levels);
-//			IJ.log("");
-//			IJ.log("levels :");
-//			IJ.log("level 1 : " + levels[0]);
-//			IJ.log("level 2 : " + levels[1]);
-//			IJ.log("level 3 : " + levels[2]);
+			//			IJ.log("");
+			//			IJ.log("levels :");
+			//			IJ.log("level 1 : " + levels[0]);
+			//			IJ.log("level 2 : " + levels[1]);
+			//			IJ.log("level 3 : " + levels[2]);
 
 
 
@@ -466,7 +473,7 @@ public class RegionStatisticsSolver {
 
 		for (Iterator<Region> itr = regionslist.iterator(); itr.hasNext();) {
 			Region r = itr.next();
-
+			//IJ.log("region" + r.value);
 			for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 
 				Pix p = it.next();
@@ -474,6 +481,7 @@ public class RegionStatisticsSolver {
 				int j=p.py;
 				int z=p.pz;
 				Ri[z][i][j]=regionslist.indexOf(r);
+				//IJ.log("i"+i +"j"+j + "index" +regionslist.indexOf(r));
 			}	
 
 		}

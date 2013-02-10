@@ -19,7 +19,7 @@ public class ObjectProperties implements Runnable {
 	double cout;
 	double cin;
 	double [][][] patch;
-	int [][][] regions;
+	short [][][] regions;
 	int margin;
 	int zmargin;
 	int sx, sy, sz;//size for object
@@ -28,10 +28,10 @@ public class ObjectProperties implements Runnable {
 	int cx,cy,cz;// coord of patch in full work zone (offset)
 	int osxy, osz;
 	public double [][][][] mask;//nregions nslices ni nj
-	int [][][][] imagecolor_c1;
+	byte [] imagecolor_c1;
 
-	public ObjectProperties(double [][][] im, Region reg, int nx, int ny, int nz, Parameters p1, int osxy, int osz, int [][][][] color_c1,
-			int [][][]regs){
+	public ObjectProperties(double [][][] im, Region reg, int nx, int ny, int nz, Parameters p1, int osxy, int osz, byte [] color_c1,
+			short [][][]regs){
 		this.regions=regs;
 		this.p=new Parameters(p1);
 		this.image=im;
@@ -76,9 +76,9 @@ public class ObjectProperties implements Runnable {
 
 	public void run(){
 
-//		if(region.value==21){
-//			IJ.log("la");
-//		}
+		//		if(region.value==21){
+		//			IJ.log("la");
+		//		}
 
 		fill_patch(image);
 		normalize();
@@ -101,6 +101,8 @@ public class ObjectProperties implements Runnable {
 			if(Analysis.p.nz==1){
 				setlength(region, regions);
 			}
+			else
+				setlength3D(region, regions);
 		}
 		//IJ.log("int :" +region.intensity +"r"+ region.value );
 		//IJ.log(" " );
@@ -122,9 +124,10 @@ public class ObjectProperties implements Runnable {
 		for (Iterator<Pix> it2 = region.pixels.iterator(); it2.hasNext();) {
 			Pix p = it2.next();
 			//set correct color
-			imagecolor_c1[p.pz][p.px][p.py][0]=c0;
-			imagecolor_c1[p.pz][p.px][p.py][1]=c1;
-			imagecolor_c1[p.pz][p.px][p.py][2]=c2;
+			int t=p.pz*nx*ny*3+p.px*ny*3;
+			imagecolor_c1[t+p.py*3+0]=(byte) c0;
+			imagecolor_c1[t+p.py*3+1]=(byte) c1;
+			imagecolor_c1[t+p.py*3+2]=(byte) c2;
 			//green
 		}	
 
@@ -133,7 +136,7 @@ public class ObjectProperties implements Runnable {
 	private void fill_patch(double [][][] image){
 		this.patch = new double [sz][sx][sy];
 		for (int z=0; z<sz; z++){
-			for (int i=0;i<sx; i++){  
+			for (int i=0;i<sx; i++){
 				for (int j=0;j< sy; j++){  
 					this.patch[z][i][j] = image[(cz+z)/osz][(cx+i)/osxy][(cy+j)/osxy];	
 				}
@@ -269,7 +272,7 @@ public class ObjectProperties implements Runnable {
 
 	}
 
-	public  void setPerimeter(Region r, int [][][] regionsA){
+	public  void setPerimeter(Region r, short [][][] regionsA){
 
 		if(p.nz==1)
 			regionPerimeter(r,regionsA);
@@ -280,7 +283,7 @@ public class ObjectProperties implements Runnable {
 	}
 
 
-	public  void regionPerimeter(Region r, int [] [] [] regionsA){
+	public  void regionPerimeter(Region r, short [] [] [] regionsA){
 		//2 Dimensions only
 		double pr=0;
 		int rvalue= r.value;
@@ -296,9 +299,14 @@ public class ObjectProperties implements Runnable {
 				if(regionsA[v.pz][v.px][v.py-1]==0)edges++;
 				if(regionsA[v.pz][v.px][v.py+1]==0)edges++;//!=rvalue
 			}
-			if(edges==1)pr+=1;
-			if(edges==2)pr+=Math.sqrt(2);
-			if(edges==3)pr+=2;
+			else
+				edges++;
+			//			if(edges==1)pr+=1;
+			//			if(edges==2)pr+=Math.sqrt(2);
+			//			if(edges==3)pr+=2;
+
+			pr+=edges; // real number of edges (should be used with the subpixel)
+
 			//IJ.log("coord " + v.px + ", " + v.py +", "+ v.pz +"edges " + edges);
 
 
@@ -311,7 +319,7 @@ public class ObjectProperties implements Runnable {
 
 	}
 
-	public  void regionPerimeter3D(Region r, int [] [] [] regionsA){
+	public  void regionPerimeter3D(Region r, short [] [] [] regionsA){
 		//2 Dimensions only
 		double pr=0;
 		int rvalue= r.value;
@@ -327,12 +335,16 @@ public class ObjectProperties implements Runnable {
 				if(regionsA[v.pz][v.px][v.py+1]==0)edges++;
 				if(regionsA[v.pz+1][v.px][v.py]==0)edges++;
 				if(regionsA[v.pz-1][v.px][v.py]==0)edges++;
-			}
-			if(edges==1)pr+=1;
-			if(edges==2)pr+=Math.sqrt(2);
-			if(edges==3)pr+=Math.sqrt(2);
-			if(edges==4)pr+=Math.sqrt(2);
-			if(edges==5)pr+=2*Math.sqrt(2);
+			}else
+				edges++;
+			//			if(edges==1)pr+=1;
+			//			if(edges==2)pr+=Math.sqrt(2);
+			//			if(edges==3)pr+=Math.sqrt(2);
+			//			if(edges==4)pr+=Math.sqrt(2);
+			//			if(edges==5)pr+=2*Math.sqrt(2);
+
+			pr+=edges;
+
 			//IJ.log("coord " + v.px + ", " + v.py +", "+ v.pz +"edges " + edges);
 
 
@@ -393,7 +405,7 @@ public class ObjectProperties implements Runnable {
 	}
 
 
-	public  void setlength(Region r, int [][][] regionsA){
+	public  void setlength(Region r, short [][][] regionsA){
 		//2D only yet
 		ImagePlus skeleton= new ImagePlus();
 		//compute skeletonization
@@ -432,6 +444,88 @@ public class ObjectProperties implements Runnable {
 		//		}
 
 		regionlength(r, skeleton);
+
+
+	}
+
+
+	public  void setlength3D(Region r, short [][][] regionsA){
+		//2D only yet
+		ImagePlus skeleton= new ImagePlus();
+		//compute skeletonization
+		//	int osxy=1;
+		//	int osz=1;
+		//		if(p.subpixel && p.refinement){
+		//			osxy=p.oversampling2ndstep*p.interpolation;
+		//			if(p.nz>1){
+		//				osz=p.oversampling2ndstep*p.interpolation;
+		//			}
+		//		}
+		//		int di,dj;
+		//		di=p.ni *osxy;
+		//		dj=p.nj *osxy;
+
+		//set all to zero
+		byte[] mask_bytes = new byte[sx*sy];
+		for (int i=0; i<sx; i++) {
+			for (int j=0; j<sy; j++) {  
+				mask_bytes[j * sx + i]= (byte) 255;
+			}
+		}
+
+
+		for (int i=0; i<sx; i++) {
+			for (int j=0; j<sy; j++) {
+				for (int k=0; k<sz; k++) {
+					if(regionsA[cz+k][cx+i][cy+j]>0)
+						mask_bytes[j * sx + i]= (byte) 0;
+					//else
+					//	mask_bytes[j * sx + i]=(byte) 255;
+				}
+			}
+		}
+		ByteProcessor bp = new ByteProcessor(sx, sy);
+		bp.setPixels(mask_bytes);
+		skeleton.setProcessor("Skeleton",bp);
+		//skeleton.show();
+
+
+		//do voronoi in 2D on Z projection
+		IJ.run(skeleton, "Skeletonize", "");
+		//if(region.value==6 ||region.value==19)
+		//skeleton.show();
+
+
+		//		if (Analysis.p.save_images){
+		//		String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_skel_c1" +".zip";
+		//		IJ.saveAs(skeleton, "ZIP", savepath);
+		//		}
+
+		regionlength3D(r, skeleton);
+
+
+
+	}
+
+	public  void regionlength3D(Region r, ImagePlus skel){
+		//2 Dimensions only
+		int length=0;
+		int x,y;
+		x= skel.getWidth();
+		y=skel.getHeight();
+		//IJ.log("object length "+ r.value);
+		for (int i=0; i<x; i++) {
+			for (int j=0; j<y; j++) {
+				//Pix v = it.next();
+				//count number of pixels in skeleton
+				if(skel.getProcessor().getPixel(i, j)==0)length++;
+				//if(skel.getProcessor().getPixel(v.px, v.py)==0)IJ.log("coord " + v.px + ", " + v.py);
+
+			}
+		}
+		//return (sum/count);
+		r.length=length;
+		if(osxy>1){r.length= ((double)length)/osxy;}
 
 
 
