@@ -162,7 +162,7 @@ public class AnalysePatch implements Runnable{
 			firstminval=p.min_intensityY ;
 		}
 
-		rescaled_min_int_all=firstminval/0.86; //first val with 1% margin (15 % compensated in find_best_t_and_int...)
+		rescaled_min_int_all=firstminval/0.96; //first val with 1% margin (15 % compensated in find_best_t_and_int...)
 
 		//estimate ints	
 		if(p.mode_voronoi2){
@@ -224,7 +224,7 @@ public class AnalysePatch implements Runnable{
 		//IJ.log("region " + r.value);
 		MasksDisplay md= new MasksDisplay(sx,sy,sz,2,p.cl,p);
 
-		if(p.debug && (r.value==2 || r.value==92))
+		if(p.debug && (r.value==102 || r.value==91))
 			//{md.display2regionsnew(patch[0], "Patch "+r.value, channel);}
 		{md.display2regions3Dnew(patch, "Patch "+r.value, channel);}
 		//md.display2regionsnewd(mask[0][0],"mask binaire" +r.value, channel);
@@ -250,7 +250,7 @@ public class AnalysePatch implements Runnable{
 		//p.cl[0]=0.1;
 		//p.cl[1]=p.betaMLEindefault;
 
-		if(p.debug && (r.value==2 || r.value==92))
+		if(p.debug && (r.value==102 || r.value==91))
 			//{md.display2regionsnew(A_solver.w3kbest[0][0], "Mask Patch "+r.value, channel);}
 		{md.display2regions3Dnew(w3kpatch[0], "Mask Patch Init"+r.value, channel);}
 
@@ -271,7 +271,7 @@ public class AnalysePatch implements Runnable{
 		try {
 			A_solver.first_run();
 			//md.display2regions(A_solver.w3kbest[0][0], "Mask patch" + r.value, channel);
-			if(p.debug && (r.value==2 || r.value==92))
+			if(p.debug && (r.value==102 || r.value==91))
 				//{md.display2regionsnew(A_solver.w3kbest[0][0], "Mask Patch "+r.value, channel);}
 			{md.display2regions3Dnew(A_solver.w3kbest[0], "Mask Patch "+r.value, channel);}
 			cout=p.cl[0];
@@ -280,7 +280,7 @@ public class AnalysePatch implements Runnable{
 
 			int ll =p.mode_intensity;
 			if(ll==0 || ll==1) 
-				min_thresh=rescaled_min_int_all*0.85;
+				min_thresh=rescaled_min_int_all*0.95;
 			else
 				min_thresh=0.25;
 			//min_thresh= 0.99*mask_clustering(A_solver.w3kbest[0],ll);//allow 1% margin
@@ -560,6 +560,7 @@ public class AnalysePatch implements Runnable{
 
 		cout=RSS.betaMLEout;
 		cout_front=cout;
+		if(p.debug){IJ.log("r"+ r.value+ "RSS" + RSS.betaMLEin);}
 		cin=Math.min(1, RSS.betaMLEin);
 		mint=0.25;
 		//mint=Math.min(0.25, (rescaled_min_int-cout)/(cin-cout)-0.05);
@@ -1124,7 +1125,8 @@ public class AnalysePatch implements Runnable{
 		double threshold=0.75;
 		double temp;
 		double tbest=0.95;
-		double cinbest, coutbest;
+		double cinbest, coutbest, cin_previous, cout_previous;
+		cin_previous=cin;cout_previous=cout;
 		//	IJ.log("lreg ap " + p.lreg);
 
 		//		double minval;
@@ -1135,7 +1137,7 @@ public class AnalysePatch implements Runnable{
 		//		}
 		cinbest=1;
 		coutbest=0.0001;
-		for (t=0.95;t> rescaled_min_int_all*0.85; t-=0.02){  //minval
+		for (t=0.95;t> rescaled_min_int_all*0.95; t-=0.02){  //minval
 			set_object(w3kbest, t);
 
 			//test
@@ -1170,13 +1172,16 @@ public class AnalysePatch implements Runnable{
 			}
 
 
-
+			
 
 		}
 
 		cin=cinbest;
 		cout=coutbest;
 		cout_front=cout;
+		
+		if(!obj){cin=cin_previous;cout=cout_previous;}
+		
 
 		rescaled_min_int_all= Math.max((rescaled_min_int -cout)/(cin-cout), 0);
 		if(p.debug)IJ.log("fbest"+ r.value +  "min all "+rescaled_min_int_all);

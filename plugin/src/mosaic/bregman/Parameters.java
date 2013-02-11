@@ -10,7 +10,7 @@ public class Parameters {
 	public String wd="/Users/arizk/Documents/work/workspace_eclipse/BregmanGLM/TestImages/";
 
 	public boolean pearson = false;
-	public boolean debug=true;
+	public boolean debug=false;
 	public boolean blackbackground;
 	public int noise_model=1; //0: poisson, 1:gauss
 	public boolean firstphase=true;

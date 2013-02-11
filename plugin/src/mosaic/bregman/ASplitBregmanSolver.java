@@ -284,7 +284,8 @@ public class ASplitBregmanSolver {
 			//if(p.livedisplay){
 
 			if(stepk % modulo ==0 && p.livedisplay && p.firstphase)
-				IJ.log(String.format("Energy at step %d : %7.6e", stepk, energy));	
+				IJ.log(String.format("Energy at step %d : %7.6e", stepk, energy));
+				//if(p.debug)IJ.log("cout " + p.cl[1]);
 			//IJ.log("Energy at step :" + stepk+ " : " +Tools.round(energy,3));
 
 			//IJ.log("Best energy step: " + stepk + " : " + Tools.round(bestNrj , 3));+ " norm between masks " + Tools.round(norm, 2));
@@ -299,20 +300,20 @@ public class ASplitBregmanSolver {
 				IJ.log(String.format("Photometry :%n backgroung %10.8e %n foreground %10.8e", RSS.betaMLEout,RSS.betaMLEin));	
 			}
 
-			if(!p.firstphase  && p.mode_intensity==0 && (stepk==30 || stepk==60) ){ // && new mode automatic intensity && p.mode_intensity==0 // do it all the time
+			if(!p.firstphase  && p.mode_intensity==0 && (stepk==40 || stepk==70) ){ // && new mode automatic intensity && p.mode_intensity==0 // do it all the time
 				//Analysepat
 				//Analysis.p.cl[0]=RSS.betaMLEout;
 				//Analysis.p.cl[1]=RSS.betaMLEin;
 				
 				
-				if(p.debug && stepk==30 && (Ap.r.value==92 || Ap.r.value==13)){
+				if(p.debug && stepk==40 && (Ap.r.value==91 || Ap.r.value==102)){
 				MasksDisplay md= new MasksDisplay(Ap.sx,Ap.sy,Ap.sz,2,p.cl,p);
-				md.display2regions3Dnew(w3k[0], "Mask Patch 30 "+Ap.r.value, channel);
+				md.display2regions3Dnew(w3k[0], "Mask Patch 40 "+Ap.r.value, channel);
 				}
 				
-				if(p.debug && stepk==60 && (Ap.r.value==92 || Ap.r.value==13)){
+				if(p.debug && stepk==70 && (Ap.r.value==91 || Ap.r.value==102)){
 					MasksDisplay md= new MasksDisplay(Ap.sx,Ap.sy,Ap.sz,2,p.cl,p);
-					md.display2regions3Dnew(w3k[0], "Mask Patch 60 "+Ap.r.value, channel);
+					md.display2regions3Dnew(w3k[0], "Mask Patch 70 "+Ap.r.value, channel);
 					}
 				
 				
@@ -322,8 +323,9 @@ public class ASplitBregmanSolver {
 				p.cl[1]=Math.max(0.75*(Ap.firstminval- Ap.intmin)/(Ap.intmax-Ap.intmin), Ap.cin);//lower bound withg some margin
 				//p.cl[1]=Ap.cin;
 				this.init();
-				if(p.debug)
-					IJ.log("region" + Ap.r.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", Ap.cout, Ap.cin));	
+				if(p.debug){
+					IJ.log("region" + Ap.r.value +" pcout" + p.cl[1] );
+					IJ.log("region" + Ap.r.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", Ap.cout, Ap.cin));}	
 			}
 
 			if(p.RegionsIntensitymodulo ==stepk && stepk!=0){
@@ -468,6 +470,7 @@ public class ASplitBregmanSolver {
 	}
 
 	public void init(){
+		if(p.debug)IJ.log("init super");
 	}
 
 	public void compute_eigenPSF(){

@@ -21,8 +21,10 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		this.c0=params.cl[0];
 		this.c1=params.cl[1];
 		this.energytab2 = new double [p.nthreads];
-		c0=p.betaMLEoutdefault;//0.0027356;
-		c1=p.betaMLEindefault;//0.2340026;//sometimes not here ???
+		//c0=p.betaMLEoutdefault;//0.0027356;
+		//c1=p.betaMLEindefault;//0.2340026;//sometimes not here ???
+		
+		
 		eigenPSF = new double [Math.max(7,nz)][Math.max(7,ni)][Math.max(7,nj)];
 		//IJ.log("nl " + nl);
 
@@ -62,6 +64,32 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 
 	}
 
+	@Override
+	public void init(){
+		this.compute_eigenPSF();
+		
+		
+		//IJ.log("init");
+		//IJ.log("init c0 " + c0 + "c1 " + c1);
+		Tools.convolve3Dseparable(temp3[l], w3k[l],  ni, nj, nz, p.kernelx,p.kernely, p.kernelz, p.px, p.py, p.pz, temp4[l]);
+		for (int z=0; z<nz; z++){
+			for (int i=0; i<ni; i++) {  
+				for (int j=0; j<nj; j++) {  
+					w1k[l][z][i][j]=(c1-c0)*temp3[l][z][i][j] + c0;
+				}	
+			}
+		}  
+
+
+		for(int i =0; i< nl;i++){
+			//temp1=w2xk temp2=w2yk
+			Tools.fgradx2D(temp1[i], w3k[i]);
+			Tools.fgrady2D(temp2[i], w3k[i]);			
+		}
+
+	}
+	
+	
 	@Override
 	protected void step() throws InterruptedException {
 		long lStartTime = new Date().getTime(); //start time
@@ -337,6 +365,9 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 
 
 	public void compute_eigenPSF3D(){
+		this.c0=p.cl[0];
+		this.c1=p.cl[1];
+		
 		//  PSF2   = imfilter(PSF,PSF,'symmetric');		
 
 //		for (int i=0;i< 7; i++){  
@@ -348,6 +379,7 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 //	for (int i=0;i< 7; i++){  
 //		IJ.log("psfz" + p.kernelz[i]);			
 //	}
+		
 		
 		
 		Tools.convolve3Dseparable(
