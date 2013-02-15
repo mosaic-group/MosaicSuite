@@ -90,6 +90,8 @@ public class AnalysePatch implements Runnable{
 	public AnalysePatch(double [][][] image, Region r, Parameters pa, int oversampling, int channel, short [][][] regionsf, ImagePatches impa){
 		//IJ.log("creating patch :"+ r.value);
 		//	this.w3kbest=w3k;
+		cout=0;
+		cin=1;
 		mint=0.2;
 		this.impa=impa;
 		this.os=oversampling;
@@ -162,7 +164,7 @@ public class AnalysePatch implements Runnable{
 			firstminval=p.min_intensityY ;
 		}
 
-		rescaled_min_int_all=firstminval/0.96; //first val with 1% margin (15 % compensated in find_best_t_and_int...)
+		rescaled_min_int_all=firstminval/0.99; //first val with ~3% margin (15 % compensated in find_best_t_and_int...)
 
 		//estimate ints	
 		if(p.mode_voronoi2){
@@ -224,7 +226,7 @@ public class AnalysePatch implements Runnable{
 		//IJ.log("region " + r.value);
 		MasksDisplay md= new MasksDisplay(sx,sy,sz,2,p.cl,p);
 
-		if(p.debug && (r.value==102 || r.value==91))
+		if(p.debug && (r.value==98 || r.value==32))
 			//{md.display2regionsnew(patch[0], "Patch "+r.value, channel);}
 		{md.display2regions3Dnew(patch, "Patch "+r.value, channel);}
 		//md.display2regionsnewd(mask[0][0],"mask binaire" +r.value, channel);
@@ -250,7 +252,7 @@ public class AnalysePatch implements Runnable{
 		//p.cl[0]=0.1;
 		//p.cl[1]=p.betaMLEindefault;
 
-		if(p.debug && (r.value==102 || r.value==91))
+		if(p.debug && (r.value==98 || r.value==32))
 			//{md.display2regionsnew(A_solver.w3kbest[0][0], "Mask Patch "+r.value, channel);}
 		{md.display2regions3Dnew(w3kpatch[0], "Mask Patch Init"+r.value, channel);}
 
@@ -271,7 +273,7 @@ public class AnalysePatch implements Runnable{
 		try {
 			A_solver.first_run();
 			//md.display2regions(A_solver.w3kbest[0][0], "Mask patch" + r.value, channel);
-			if(p.debug && (r.value==102 || r.value==91))
+			if(p.debug && (r.value==98 || r.value==32))
 				//{md.display2regionsnew(A_solver.w3kbest[0][0], "Mask Patch "+r.value, channel);}
 			{md.display2regions3Dnew(A_solver.w3kbest[0], "Mask Patch "+r.value, channel);}
 			cout=p.cl[0];
@@ -280,7 +282,7 @@ public class AnalysePatch implements Runnable{
 
 			int ll =p.mode_intensity;
 			if(ll==0 || ll==1) 
-				min_thresh=rescaled_min_int_all*0.95;
+				min_thresh=rescaled_min_int_all*0.96;
 			else
 				min_thresh=0.25;
 			//min_thresh= 0.99*mask_clustering(A_solver.w3kbest[0],ll);//allow 1% margin
@@ -289,20 +291,23 @@ public class AnalysePatch implements Runnable{
 				IJ.log("region" + r.value +"minth " + min_thresh);
 
 			}
-
-
-			double t=find_best_thresh(A_solver.w3kbest[0]);
+			double t=0;
+			if(p.mode_intensity!=3)
+			t=find_best_thresh(A_solver.w3kbest[0]);
 
 			if(p.mode_intensity==3)//mode high
 			{
 				
 				estimate_int_clustering(2);// (-1
+	
 				t_high=cin;
+				//double t2=find_best_thresh(A_solver.w3kbest[0]);
 				if(p.debug){
-					IJ.log("obj"+r.value+ " effetcive t:" +t_high);
+					IJ.log("obj"+r.value+ " effective t:" +t_high);// +"test2" +t2);
 				}
 				t=t_high-0.04;
-				t=rescaled_min_int;
+				//t=t2;
+				//t=rescaled_min_int;
 			}
 
 			//todo : compute best threshold  for p.thresh
@@ -1137,7 +1142,7 @@ public class AnalysePatch implements Runnable{
 		//		}
 		cinbest=1;
 		coutbest=0.0001;
-		for (t=0.95;t> rescaled_min_int_all*0.95; t-=0.02){  //minval
+		for (t=0.95;t> rescaled_min_int_all*0.96; t-=0.02){  //minval
 			set_object(w3kbest, t);
 
 			//test
