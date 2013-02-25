@@ -12,7 +12,7 @@ public class Parameters {
 	public boolean pearson = false;
 	public boolean debug=false;
 	public boolean blackbackground;
-	public int noise_model=1; //0: poisson, 1:gauss
+	public int noise_model=0; //0: poisson, 1:gauss
 	public boolean firstphase=true;
 	public boolean dispwindows=true;
 	public boolean automatic_int=false;

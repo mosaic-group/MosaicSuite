@@ -162,7 +162,7 @@ public class FindConnectedRegions  {
 
 		ArrayList<Pix> pixels = new ArrayList<Pix>();
 		//boolean byteImage;
-		int points;
+		public int points;
 		float rsize;
 		//String materialName;
 		int value;

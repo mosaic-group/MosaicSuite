@@ -1733,8 +1733,8 @@ public class Analysis {
 			totalsize+= r.perimeter;
 		}
 
-		if(Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
-		else return(totalsize/objects);
+		//if(Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
+		return(totalsize/objects);
 
 	}
 
@@ -1748,8 +1748,8 @@ public class Analysis {
 			totalsize+= r.length;
 		}
 		
-		if(Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
-		else return(totalsize/objects);
+		//if(Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
+		return(totalsize/objects);
 
 	}
 	
@@ -1864,7 +1864,7 @@ public class Analysis {
 
 
 	public static void computeRegions(){
-
+		IJ.log("deprecated");
 		if(p.usePSF==true || p.nz>1 ||p.nlevels==1 ){
 			if(p.findregionthresh)compute_connected_regions_a((int) 255*p.thresh,solverX.Ri[0]);
 			else compute_connected_regions_a((int) 255*p.thresh,null);

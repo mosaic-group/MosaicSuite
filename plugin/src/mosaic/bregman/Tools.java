@@ -962,6 +962,7 @@ public class Tools {
 
 		for (int l=0; l<nlevels; l++){
 			if(nlevels>2)thr=cl[l]; else thr=cl[1];//if only two regions only first mask is used
+			if(thr==1) thr=0.5;// should not have threhold to 1: creates empty mask and wrong behavior in dct3D  computation
 			for (int z=0; z<nz; z++){
 				for (int i=0; i<ni; i++) {  
 					for (int j=0;j< nj; j++) {
