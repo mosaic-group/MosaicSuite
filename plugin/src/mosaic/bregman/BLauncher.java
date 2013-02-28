@@ -89,7 +89,10 @@ public class BLauncher {
 							+";" + "Colocalization ch1 in ch2 (objects numbers)"
 							+";" + "Colocalization ch2 in ch1 (objects numbers)"
 							+";" + "Mean ch2 intensity of ch1 objects"
-							+";" + "Mean ch1 intensity of ch2 objects");
+							+";" + "Mean ch1 intensity of ch2 objects"
+							+";" + "Pearson correlation"
+							+";" + "Pearson correlation inside cell masks"
+							);
 					out.println();
 
 
@@ -163,26 +166,26 @@ public class BLauncher {
 
 			if(Analysis.p.save_images){
 				String choice1[] = {
-						"Automatic", "Medium layer","High layer"};
+						"Automatic", "Low layer", "Medium layer","High layer"};
 				String choice2[] = {
 						"Poisson", "Gauss"};
 				if(out!=null){
 					out.println();
 					out.print(
-							"Parameters:" + ";" + 
-									"background removal " + "; "+ Analysis.p.removebackground  + ";  " +
-									"window size " + Analysis.p.size_rollingball + ";" +
-									"stddev PSF xy " + Tools.round(Analysis.p.sigma_gaussian, 5) + ";" +
-									"stddev PSF z " + Tools.round(Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 5)+ ";" +
-									"Regularization " + Analysis.p.lreg  + ";" +
-									"Min intensity ch1 " + Analysis.p.min_intensity +";" +
-									"Min intensity ch2 " + Analysis.p.min_intensityY +";" +
-									"subpixel " + Analysis.p.subpixel + ";" +
-									"Cell mask ch1 " + Analysis.p.usecellmaskX + ";" +
-									"mask threshold ch1 " + Analysis.p.thresholdcellmask + ";" +
-									"Cell mask ch2 " + Analysis.p.usecellmaskY + ";" +
-									"mask threshold ch2 " + Analysis.p.thresholdcellmasky + ";" +									
-									"Intensity estimation " + choice1[Analysis.p.mode_intensity] + ";" +
+							"Parameters:" + " " + 
+									"background removal " + " "+ Analysis.p.removebackground  + " " +
+									"window size " + Analysis.p.size_rollingball + " " +
+									"stddev PSF xy " + " "+ Tools.round(Analysis.p.sigma_gaussian, 5) + " " +
+									"stddev PSF z " + " "+ Tools.round(Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 5)+ " " +
+									"Regularization " + Analysis.p.lreg  + " " +
+									"Min intensity ch1 " + Analysis.p.min_intensity +" " +
+									"Min intensity ch2 " + Analysis.p.min_intensityY +" " +
+									"subpixel " + Analysis.p.subpixel + " " +
+									"Cell mask ch1 " + Analysis.p.usecellmaskX + " " +
+									"mask threshold ch1 " + Analysis.p.thresholdcellmask + " " +
+									"Cell mask ch2 " + Analysis.p.usecellmaskY + " " +
+									"mask threshold ch2 " + Analysis.p.thresholdcellmasky + " " +									
+									"Intensity estimation " + choice1[Analysis.p.mode_intensity] + " " +
 									"Noise model " + choice2[Analysis.p.noise_model]+ ";"
 							);
 					out.flush();
@@ -284,7 +287,10 @@ public class BLauncher {
 						+";" + "Colocalization ch1 in ch2 (objects numbers)"
 						+";" + "Colocalization ch2 in ch1 (objects numbers)"
 						+";" + "Mean ch2 intensity of ch1 objects"
-						+";" + "Mean ch1 intensity of ch2 objects");
+						+";" + "Mean ch1 intensity of ch2 objects"
+						+";" + "Pearson correlation"
+						+";" + "Pearson correlation inside cell masks"
+						);
 				out.println();
 
 
@@ -387,26 +393,26 @@ public class BLauncher {
 			IJ.log("Done");
 
 			String choice1[] = {
-					"Automatic", "Medium layer", "High layer"};
+					"Automatic", "Low layer", "Medium layer", "High layer"};
 			String choice2[] = {
 					"Poisson", "Gauss"};
 			if(out!=null){
 				out.println();
 				out.print(
-						"Parameters:" + ";" + 
-								"background removal " + "; "+ Analysis.p.removebackground  + ";  " +
-								"window size " + Analysis.p.size_rollingball + ";" +
-								"stddev PSF xy " + Tools.round(Analysis.p.sigma_gaussian, 5) + ";" +
-								"stddev PSF z " + Tools.round(Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 5)+ ";" +
-								"Regularization " + Analysis.p.lreg  + ";" +
-								"Min intensity ch1 " + Analysis.p.min_intensity +";" +
-								"Min intensity ch2 " + Analysis.p.min_intensityY +";" +
-								"subpixel " + Analysis.p.subpixel + ";" +
-								"Cell mask ch1 " + Analysis.p.usecellmaskX + ";" +
-								"mask threshold ch1 " + Analysis.p.thresholdcellmask + ";" +
-								"Cell mask ch2 " + Analysis.p.usecellmaskY + ";" +
-								"mask threshold ch2 " + Analysis.p.thresholdcellmasky + ";" +									
-								"Intensity estimation " + choice1[Analysis.p.mode_intensity] + ";" +
+						"Parameters:" + " " + 
+								"background removal " + " "+ Analysis.p.removebackground  + " " +
+								"window size " + Analysis.p.size_rollingball + " " +
+								"stddev PSF xy " + Tools.round(Analysis.p.sigma_gaussian, 5) + " " +
+								"stddev PSF z " + Tools.round(Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 5)+ " " +
+								"Regularization " + Analysis.p.lreg  + " " +
+								"Min intensity ch1 " + Analysis.p.min_intensity +" " +
+								"Min intensity ch2 " + Analysis.p.min_intensityY +" " +
+								"subpixel " + Analysis.p.subpixel + " " +
+								"Cell mask ch1 " + Analysis.p.usecellmaskX + " " +
+								"mask threshold ch1 " + Analysis.p.thresholdcellmask + " " +
+								"Cell mask ch2 " + Analysis.p.usecellmaskY + " " +
+								"mask threshold ch2 " + Analysis.p.thresholdcellmasky + " " +									
+								"Intensity estimation " + choice1[Analysis.p.mode_intensity] + " " +
 								"Noise model " + choice2[Analysis.p.noise_model ] + ";"
 
 						);
@@ -522,6 +528,8 @@ public class BLauncher {
 		Tools= new Tools(nni, nnj, nnz);
 		Analysis.Tools=Tools;
 
+		
+		
 		//IJ.log("dispcolors" + Analysis.p.dispcolors);
 		Analysis.segmentA();			 
 
@@ -632,6 +640,17 @@ public class BLauncher {
 			double meanLA= Analysis.meanlength(Analysis.regionslistA);
 			double meanLB= Analysis.meanlength(Analysis.regionslistB);
 
+			
+			
+			double corr_mask, corr;
+			double [] temp;
+			temp=Analysis.pearson_corr();
+			corr=temp[0];
+			corr_mask=temp[1];
+			//IJ.log("corr" + corr + " corr_mask" + corr_mask);
+			
+			 
+			
 			//IJ.log("f");
 
 			//if(Analysis.p.dispwindows){
@@ -652,7 +671,10 @@ public class BLauncher {
 						colocABnumber +";" + 
 						colocBAnumber + ";"+
 						colocA+ ";"+
-						colocB);
+						colocB+ ";"+
+						Tools.round(corr, 4) +";"+
+						Tools.round(corr_mask, 4)
+						);
 				out.println();
 				out.flush();
 

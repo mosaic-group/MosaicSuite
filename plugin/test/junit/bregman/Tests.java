@@ -804,7 +804,7 @@ public class Tests {
 		//	//pb mettre 5 levels partout : la ne marche pas
 
 		//load image
-		ImagePlus img=IJ.openImage("/Users/arizk/Documents/work/SCOL_utils/Matlab_test_files/Rab4_HEK_br_jtest.tif");
+		ImagePlus img=IJ.openImage("test_images/Rab4_HEK_br_jtest.tif");
 		Analysis.load1channel(img);
 
 		int nni,nnj,nnz;

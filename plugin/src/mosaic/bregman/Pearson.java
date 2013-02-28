@@ -1,5 +1,7 @@
 package mosaic.bregman;
 
+import java.util.Arrays;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -17,6 +19,7 @@ public class Pearson {
 	double Amean, Bmean;
 	boolean [][][] cellmaskA;
 	boolean [][][] cellmaskB;
+	//boolean [][][] cellmask;
 	int ni,nj,nz;
 	Parameters p;
 	int osz;
@@ -79,9 +82,11 @@ public class Pearson {
 			}
 		}
 
-		cellmaskA=createBinaryCellMask(Analysis.p.thresholdcellmask*maxA, ipA, 0, osz);		
-		cellmaskB=createBinaryCellMask(Analysis.p.thresholdcellmasky*maxB, ipB, 1, osz);
-
+		double tx,ty;
+		if(Analysis.p.usecellmaskX)tx=Analysis.p.thresholdcellmask*maxA; else tx=0;
+		if(Analysis.p.usecellmaskY)ty=Analysis.p.thresholdcellmasky*maxB; else ty=0;
+		cellmaskA=createBinaryCellMask(tx, ipA, 0, osz);		
+		cellmaskB=createBinaryCellMask(ty, ipB, 1, osz);
 
 	}
 
@@ -153,9 +158,9 @@ public class Pearson {
 			for (int i=0; i<ni; i++){  
 				for (int j=0;j< nj; j++){  
 					boolean cond;
-					if(mask==1) cond =Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB  && cellmaskB[z][i][j] && cellmaskA[z][i][j];
+					if(mask==1) cond =(Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB  && cellmaskB[z][i][j] && cellmaskA[z][i][j]);
 					else
-						cond = Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB ;
+						cond = (Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB) ;
 					if (cond){
 						if(mask==2 && (!cellmaskB[z][i][j] || !cellmaskA[z][i][j])){
 							count++;	
@@ -181,9 +186,9 @@ public class Pearson {
 			for (int i=0; i<ni; i++){  
 				for (int j=0;j< nj; j++){  
 					boolean cond;
-					if(mask==1) cond =Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB  && cellmaskB[z][i][j] && cellmaskA[z][i][j];
+					if(mask==1) cond =(Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB  && cellmaskB[z][i][j] && cellmaskA[z][i][j]);
 					else
-						cond = Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB ;
+						cond = (Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB)  ;
 					if (cond){
 						if(mask==2 && (!cellmaskB[z][i][j] || !cellmaskA[z][i][j])){
 							
@@ -212,6 +217,18 @@ public class Pearson {
 	boolean [][][] createBinaryCellMask(double threshold, ImagePlus img, int channel, int osz){
 		boolean [][][] cellmask= new boolean [nz] [ni] [nj];
 
+		if(threshold==0){ 
+		for (int z=0; z<nz; z++){
+			for (int i=0; i<ni; i++){  
+				for (int j=0;j< nj; j++){  
+					cellmask[z][i][j]=true;
+				}	
+			}
+		}
+		
+		return cellmask;
+		}
+		
 		ImagePlus maska_im= new ImagePlus();
 		ImageStack maska_ims= new ImageStack(ni,nj);
 		ImageProcessor imp;
