@@ -293,8 +293,10 @@ public class BLauncher {
 						);
 				out.println();
 
-
-
+  
+				
+				
+				
 				if(Analysis.p.nz>1){
 					out2.print("Image ID" + ";" + "Object ID"+ ";" 
 							+ "Size" + ";" + "Surface"  + ";" + "Length" + ";" +"Intensity" + ";" 
@@ -528,8 +530,16 @@ public class BLauncher {
 		Tools= new Tools(nni, nnj, nnz);
 		Analysis.Tools=Tools;
 
-		
-		
+
+		double corr_raw=0;
+		double [] temp;
+		if(Analysis.p.nchannels==2 && Analysis.p.save_images){
+			temp=Analysis.pearson_corr();
+			corr_raw=temp[0];
+		}
+
+
+
 		//IJ.log("dispcolors" + Analysis.p.dispcolors);
 		Analysis.segmentA();			 
 
@@ -618,11 +628,11 @@ public class BLauncher {
 			double colocAB=Tools.round(Analysis.colocsegAB(out2, hcount),4);
 
 			double colocABnumber = Tools.round(Analysis.colocsegABnumber(),4);
-			
+
 			double colocBA=Tools.round(Analysis.colocsegBA(out3, hcount),4);
-			
+
 			double colocBAnumber = Tools.round(Analysis.colocsegBAnumber(),4);
-			
+
 
 			//double colocA=0;
 			//double colocB=0;
@@ -640,17 +650,11 @@ public class BLauncher {
 			double meanLA= Analysis.meanlength(Analysis.regionslistA);
 			double meanLB= Analysis.meanlength(Analysis.regionslistB);
 
-			
-			
-			double corr_mask, corr;
-			double [] temp;
-			temp=Analysis.pearson_corr();
-			corr=temp[0];
-			corr_mask=temp[1];
-			//IJ.log("corr" + corr + " corr_mask" + corr_mask);
-			
-			 
-			
+
+
+
+
+
 			//IJ.log("f");
 
 			//if(Analysis.p.dispwindows){
@@ -658,6 +662,13 @@ public class BLauncher {
 			IJ.log("Colocalization ch2 in ch1: " +colocBA);
 			//}
 			if(Analysis.p.save_images){
+				//pearson after background reduction
+				double corr_mask;
+				temp=Analysis.pearson_corr();
+				corr_mask=temp[1];
+
+
+
 				out.print(img2.getTitle() + ";" + hcount +";"+ Analysis.na + ";" +
 						Tools.round(Analysis.meana , 4)  +";" + 
 						Tools.round(meanSA , 4)  +";" +
@@ -672,7 +683,7 @@ public class BLauncher {
 						colocBAnumber + ";"+
 						colocA+ ";"+
 						colocB+ ";"+
-						Tools.round(corr, 4) +";"+
+						Tools.round(corr_raw, 4) +";"+
 						Tools.round(corr_mask, 4)
 						);
 				out.println();
