@@ -11,6 +11,7 @@
   <property name="src" location="src" />
   <property name="build" location="bin" />
   <property name="dist"  location="dist" />
+<<<<<<< HEAD
   
   <property name="user.name" value="Mosaic" />
   <property name="jarfilename" value="Mosaic_Toolbox"/>
