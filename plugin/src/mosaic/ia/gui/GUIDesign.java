@@ -232,8 +232,8 @@ private double pkernelWeight=1;
 						.addGroup(gl_panel_7.createSequentialGroup()
 							.addGap(148)
 							.addGroup(gl_panel_7.createParallelGroup(Alignment.TRAILING)
-								.addComponent(alphaField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(mCRuns, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(alphaField)
+								.addComponent(mCRuns))
 							.addGap(23))))
 				.addGroup(gl_panel_7.createSequentialGroup()
 					.addGap(101)
@@ -612,35 +612,35 @@ private double pkernelWeight=1;
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGap(6)
-					.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, 444, GroupLayout.PREFERRED_SIZE))
+					.addComponent(tabbedPane))
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGap(6)
-					.addComponent(tabbedPane_1, GroupLayout.PREFERRED_SIZE, 440, GroupLayout.PREFERRED_SIZE))
+					.addComponent(tabbedPane_1))
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGap(17)
-					.addComponent(panel_6, GroupLayout.PREFERRED_SIZE, 422, GroupLayout.PREFERRED_SIZE))
+					.addComponent(panel_6))
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGap(17)
 					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
-						.addComponent(panel_5, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
-						.addComponent(panel_7, Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 422, Short.MAX_VALUE)
-						.addComponent(panel_4, Alignment.LEADING, 0, 0, Short.MAX_VALUE)))
+						.addComponent(panel_5, Alignment.LEADING)
+						.addComponent(panel_7, Alignment.LEADING)
+						.addComponent(panel_4, Alignment.LEADING)))
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGap(6)
-					.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, 113, GroupLayout.PREFERRED_SIZE)
+					.addComponent(tabbedPane)
 					.addGap(6)
-					.addComponent(tabbedPane_1, GroupLayout.PREFERRED_SIZE, 121, GroupLayout.PREFERRED_SIZE)
+					.addComponent(tabbedPane_1,100,100,100)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel_4, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
+					.addComponent(panel_4)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel_5, GroupLayout.PREFERRED_SIZE, 131, GroupLayout.PREFERRED_SIZE)
+					.addComponent(panel_5)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel_7, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addComponent(panel_7)
 					.addGap(6)
-					.addComponent(panel_6, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					.addComponent(panel_6))
 		);
 		frmInteractionAnalysis.getContentPane().setLayout(groupLayout);
 		frmInteractionAnalysis.pack();
@@ -828,7 +828,7 @@ private double pkernelWeight=1;
 			a.setPotentialType(potentialType);
 	      return;
 		}
-		if(e.getSource()==kernelWeightq)
+/*		if(e.getSource()==kernelWeightq)
 		{
 			qkernelWeight=Double.parseDouble(e.getActionCommand());
 			a.setKernelWeightq(qkernelWeight);
@@ -838,11 +838,21 @@ private double pkernelWeight=1;
 		{
 			pkernelWeight=Double.parseDouble(e.getActionCommand());
 			System.out.println("p set to:"+pkernelWeight);
-			a.setKernelWeightp(pkernelWeight);
+			a.setKernelWeightp();
 			
-		}
+		}*/
 		if(e.getSource()==btnCalculateDistances)
 		{
+			xmin=Double.parseDouble(txtXmin.getText());
+			ymin=Double.parseDouble(txtYmin.getText());
+			zmin=Double.parseDouble(txtZmin.getText());
+			xmax=Double.parseDouble(txtXmin.getText());
+			ymax=Double.parseDouble(txtYmin.getText());
+			zmax=Double.parseDouble(txtZmin.getText());
+			
+			gridSize=Double.parseDouble(gridSizeInp.getText());
+			a.setKernelWeightq(Double.parseDouble(kernelWeightq.getText()));
+			a.setKernelWeightp(Double.parseDouble(kernelWeightp.getText()));
 			
 		//	a.setImageList(imgx, imgy);
 			
@@ -870,14 +880,17 @@ private double pkernelWeight=1;
 			return;
 		}
 		
-		if(e.getSource()==reRuns)
+/*		if(e.getSource()==reRuns)
 		{
 			numReRuns=Integer.parseInt(e.getActionCommand());
 			a.setCmaReRunTimes(numReRuns);
-		}
+		}*/
 		
 		if(e.getSource()==estimate)
 		{
+			numReRuns= Integer.parseInt(reRuns.getText());
+			a.setCmaReRunTimes(numReRuns);
+			
 			System.out.println("Estimating with potential type:"+potentialType);
 			if(potentialType==PotentialFunctions.NONPARAM)
 				PotentialFunctions.initializeNonParamWeights(a.getMinD(), a.getMaxD());
@@ -890,19 +903,22 @@ private double pkernelWeight=1;
 		
 		if(e.getSource()==test)
 		{
+			monteCarloRunsForTest = Integer.parseInt(mCRuns.getText());
+			alpha = Double.parseDouble(alphaField.getText());
+			
 			if(!a.hypTest(monteCarloRunsForTest,alpha))
 				IJ.showMessage("Error: Run estimation first");
 			return;
 		}
 		
-		if(e.getSource()==gridSizeInp)
+/*		if(e.getSource()==gridSizeInp)
 		{
 			gridSize=Double.parseDouble(e.getActionCommand());
 			
 			System.out.println("Grid size changed to:"+gridSize);
 
 			return;
-		}
+		}*/
 		if(e.getSource()==numSupport)
 		{
 			PotentialFunctions.NONPARAM_WEIGHT_SIZE=Integer.parseInt(e.getActionCommand());
@@ -918,12 +934,12 @@ private double pkernelWeight=1;
 			System.out.println("Smoothness:"+PotentialFunctions.NONPARAM_SMOOTHNESS);
 			return;
 		}
-		if(e.getSource()==mCRuns)
+/*		if(e.getSource()==mCRuns)
 		{
 			monteCarloRunsForTest=Integer.parseInt(e.getActionCommand());
 			return;
-		}
-		if(e.getSource()==txtXmin)
+		}*/
+/*		if(e.getSource()==txtXmin)
 		{
 			xmin=Double.parseDouble(e.getActionCommand());
 			System.out.println("xmin:"+xmin);
@@ -959,13 +975,13 @@ private double pkernelWeight=1;
 			zmax=Double.parseDouble(e.getActionCommand());
 			System.out.println("zmax:"+zmax);
 			return;
-		}
+		}*/
 		
-		if(e.getSource()==alphaField)
+/*		if(e.getSource()==alphaField)
 		{
 			alpha=Double.parseDouble(e.getActionCommand());
 			return;
-		}
+		}*/
 		if(e.getSource()==genMask)
 		{
 			if(!a.getIsImage())
