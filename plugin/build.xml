@@ -6,7 +6,7 @@
   <property name="build" location="bin" />
   <property name="dist"  location="dist" />
 	<property name="lib" value="lib"/>
-	 <property name="pluginsDir"  location="$basedir/../../IJ/plugins/" />
+	 <property name="pluginsDir"  location="../../../imageJ/ImageJ_1.45/ImageJ/plugins/Mosaic_Toolbox" />
 <property name="jarfilename" value="MosaicToolbox_" />
   <property name="user.name" value="Arun Shivanandan" />
 <target name="main" depends="clean,build,compress,compressLibs" description="Main target">
@@ -39,8 +39,34 @@
 			<echo>
 				... done.
 			</echo>
-		</target>
+	</target>
 	
+  <path id="build.classpath">
+    <fileset dir="lib/">
+      <include name="ij.jar"/>
+    </fileset>
+    
+    <!--	<fileset dir="/Users/arun/Documents/Programs_APIs">
+	<include name="junit-3.8.1.jar"/>
+	
+	<include name="jfreechart-1.0.13.jar"/>
+	
+	</fileset>
+	
+    -->
+    
+    <pathelement location="${build}"/>
+    
+    <pathelement path="lib"/>
+    
+    <!-- classpath Scalala -->
+    <!-- <pathelement location="../Scalala/target/scala-2.9.2/classes"/> -->
+    <fileset dir="lib/">
+      <include name="*.jar"/>
+    </fileset>
+    
+    
+  </path>
 	
 	<target name="build">
 	    
