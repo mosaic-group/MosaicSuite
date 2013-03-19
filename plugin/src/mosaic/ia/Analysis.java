@@ -20,8 +20,6 @@ import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
-import com.sun.xml.internal.messaging.saaj.packaging.mime.util.QPDecoderStream;
-
 import mosaic.ia.nn.DistanceCalculations;
 import mosaic.ia.nn.DistanceCalculationsCoords;
 import mosaic.ia.nn.DistanceCalculationsImage;
