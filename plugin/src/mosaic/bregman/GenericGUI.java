@@ -546,8 +546,14 @@ public class GenericGUI {
 		if(clustermode){
 			Analysis.p.removebackground=true;
 			//Analysis.p.automatic_int=false;
-			Analysis.p.usecellmaskX=true;
-			Analysis.p.usecellmaskY=true;
+			if(Analysis.p.thresholdcellmask >0)
+				Analysis.p.usecellmaskX=true;
+			else
+				Analysis.p.usecellmaskX=false;
+			if(Analysis.p.thresholdcellmasky >0)
+				Analysis.p.usecellmaskY=true;
+			else
+				Analysis.p.usecellmaskY=false;
 			Analysis.p.livedisplay=false;
 			Analysis.p.dispcolors=true;
 			//Analysis.p.dispint=true;

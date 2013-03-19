@@ -32,7 +32,7 @@ public class Tools {
 		this.nlevels=nnl;
 	}
 	
-	public static void showmem(){
+	public void showmem(){
 		// Get current size of heap in bytes
 		long heapSize = Runtime.getRuntime().totalMemory();
 
@@ -44,10 +44,13 @@ public class Tools {
 		// after garbage collection and decrease as new objects are created.
 		long heapFreeSize = Runtime.getRuntime().freeMemory();
 		
+		long used = heapSize- heapFreeSize;
+		
 		IJ.log(" ");
-		IJ.log("Total mem" + heapSize/Math.pow(2, 20));
-		IJ.log("Max mem" + heapMaxSize/Math.pow(2, 20));
-		IJ.log("Free mem" + heapFreeSize/Math.pow(2, 20));
+		IJ.log("Total mem" + round(heapSize/Math.pow(2, 20),2));
+		IJ.log("Max mem" + round(heapMaxSize/Math.pow(2, 20),2));
+		IJ.log("Free mem" + round(heapFreeSize/Math.pow(2, 20),2));
+		IJ.log("Used mem" + round(used/Math.pow(2, 20),2));
 		IJ.log(" ");
 	}
 

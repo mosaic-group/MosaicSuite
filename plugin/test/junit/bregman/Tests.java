@@ -17,6 +17,8 @@ public class Tests {
 	
 	public static double TestEnergy2DPSF(){
 
+		
+		IJ.log("energy");
 		//load image
 		ImagePlus img=IJ.openImage("test_images/Rab4_HEK_br_jtest.tif");
 		
@@ -46,7 +48,9 @@ public class Tests {
 		Tools Tools;
 		Tools= new Tools(nni, nnj, nnz);
 		Analysis.Tools=Tools;
-
+		
+		Tools.showmem();
+		
 		//IJ.log("dispcolors" + Analysis.p.dispcolors);
 		Analysis.segmentA();			 
 
@@ -54,7 +58,13 @@ public class Tests {
 			Analysis.DoneSignala.await();
 		}catch (InterruptedException ex) {}
 
+		
+		Tools.showmem();
+		Runtime.getRuntime().gc();
+		
 		return Analysis.bestEnergyX;
+		
+		
 
 	}
 
@@ -105,7 +115,7 @@ public class Tests {
 		try {
 			DoneSignala.await();
 		}catch (InterruptedException ex) {}
-
+		Runtime.getRuntime().gc();
 
 		//return best energy
 		//return Analysis.bestEnergyX;
@@ -115,6 +125,7 @@ public class Tests {
 	
 	public static void TestObjects2DPSF_firstphase(){
 		//load image
+		IJ.log("2DPSF1");
 		ImagePlus img=IJ.openImage("test_images/Rab4_HEK_br_jtest.tif");
 		Analysis.load1channel(img);
 
@@ -161,13 +172,19 @@ public class Tests {
 		Tools Tools;
 		Tools= new Tools(nni, nnj, nnz);
 		Analysis.Tools=Tools;
+		Tools.showmem();
 
 		//IJ.log("dispcolors" + Analysis.p.dispcolors);
 		Analysis.segmentA();			 
 
+		
+		
 		try{
 			Analysis.DoneSignala.await();
 		}catch (InterruptedException ex) {}
+		
+		Tools.showmem();
+		Runtime.getRuntime().gc();
 		
 
 	}
@@ -175,6 +192,9 @@ public class Tests {
 	
 	
 	public static double TestObjects2DPSF_secondphase(){
+		
+		IJ.log("2DPSF2");
+		
 		//load image
 		ImagePlus img=IJ.openImage("test_images/Rab4_HEK_br_jtest.tif");
 		Analysis.load1channel(img);
@@ -229,6 +249,8 @@ public class Tests {
 		Tools= new Tools(nni, nnj, nnz);
 		Analysis.Tools=Tools;
 
+		Tools.showmem();
+		
 		//IJ.log("dispcolors" + Analysis.p.dispcolors);
 		Analysis.segmentA();			 
 
@@ -243,7 +265,8 @@ public class Tests {
 
 		double meanSA= Analysis.meansurface(Analysis.regionslistA);			
 
-		
+		Tools.showmem();
+		Runtime.getRuntime().gc();
 		
 		return(meanSA);			
 
@@ -253,6 +276,7 @@ public class Tests {
 	
 	public static void TestObjects2DPSF_secondphase_subpixel(){
 		//load image
+		IJ.log("2DPSFsub");
 		ImagePlus img=IJ.openImage("test_images/Rab4_HEK_br_jtest.tif");
 		Analysis.load1channel(img);
 
@@ -303,6 +327,8 @@ public class Tests {
 		//launch computation
 		Tools= new Tools(nni, nnj, nnz);
 		Analysis.Tools=Tools;
+		
+		Tools.showmem();
 
 		//IJ.log("dispcolors" + Analysis.p.dispcolors);
 		Analysis.segmentA();			 
@@ -318,6 +344,9 @@ public class Tests {
 
 		meanSA= Analysis.meansurface(Analysis.regionslistA);			
 		meanLA= Analysis.meanlength(Analysis.regionslistA);
+		
+		Tools.showmem();
+		Runtime.getRuntime().gc();
 		
 
 	}
@@ -392,7 +421,7 @@ public class Tests {
 		meanSA= Analysis.meansurface(Analysis.regionslistA);			
 		meanLA= Analysis.meanlength(Analysis.regionslistA);
 		//IJ.log("na" + Analysis.na + "menS"+Analysis.meana+"meanSA"+meanSA +"meanLA"+meanLA);
-
+		Runtime.getRuntime().gc();
 	}
 	
 	
@@ -466,6 +495,7 @@ public class Tests {
 		meanSA= Analysis.meansurface(Analysis.regionslistA);			
 		meanLA= Analysis.meanlength(Analysis.regionslistA);
 		IJ.log("na" + Analysis.na + "menS"+Analysis.meana+"meanSA"+meanSA +"meanLA"+meanLA);
+		Runtime.getRuntime().gc();
 
 	}
 	
@@ -540,12 +570,14 @@ public class Tests {
 		meanSA= Analysis.meansurface(Analysis.regionslistA);			
 		meanLA= Analysis.meanlength(Analysis.regionslistA);
 		IJ.log("na" + Analysis.na + "menS"+Analysis.meana+"meanSA"+meanSA +"meanLA"+meanLA);
-
+		
+		Runtime.getRuntime().gc();
 	}
 	
 	
 	public static void TestColoc2DPSF(){
 		//load image
+		IJ.log("2DPSFcoloc");
 		ImagePlus img=IJ.openImage("test_images/Rab5_2channels.tif");
 		Analysis.load2channels(img);
 
@@ -596,9 +628,12 @@ public class Tests {
 		//launch computation
 		Tools= new Tools(nni, nnj, nnz);
 		Analysis.Tools=Tools;
-
+		Tools.showmem();
+		
 		//IJ.log("dispcolors" + Analysis.p.dispcolors);
-		Analysis.segmentA();			 
+		Analysis.segmentA();	
+		
+		Runtime.getRuntime().gc();
 
 		try{
 			Analysis.DoneSignala.await();
@@ -620,6 +655,9 @@ public class Tests {
 		colocBAnumber = Tools.round(Analysis.colocsegBAnumber(),4);
 		//IJ.log("AB" + colocAB+"ABn"+colocABnumber +"BA"+colocBA +"BAn"+colocBAnumber);
 		
+		Tools.showmem();
+		Runtime.getRuntime().gc();
+		
 
 		
 
@@ -627,6 +665,7 @@ public class Tests {
 	
 	public static void TestObjects3DPSF(){
 		//load image
+		IJ.log("3DPSF");
 		ImagePlus img=IJ.openImage("test_images/C1-120412_HEK_Rabx_H2B4.lif - HEK_Rab4_wt_H2B4_5x_P13.tif");
 		Analysis.load1channel(img);
 
@@ -681,6 +720,8 @@ public class Tests {
 		Tools= new Tools(nni, nnj, nnz);
 		Analysis.Tools=Tools;
 
+		Tools.showmem();
+		
 		//IJ.log("dispcolors" + Analysis.p.dispcolors);
 		Analysis.segmentA();			 
 
@@ -695,6 +736,9 @@ public class Tests {
 
 		meanSA= Analysis.meansurface(Analysis.regionslistA);			
 		meanLA= Analysis.meanlength(Analysis.regionslistA);
+		
+		Tools.showmem();
+		Runtime.getRuntime().gc();
 		
 
 	}
@@ -861,6 +905,7 @@ public class Tests {
 
 
 		//return best energy
+		Runtime.getRuntime().gc();
 		return Analysis.bestEnergyX;
 
 	}
