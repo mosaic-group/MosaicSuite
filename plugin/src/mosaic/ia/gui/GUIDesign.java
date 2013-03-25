@@ -21,10 +21,13 @@ import javax.swing.JComboBox;
 import java.awt.GridLayout;
 
 import javax.swing.BorderFactory;
+import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
 import javax.swing.JTabbedPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
 import org.eclipse.wb.swing.FocusTraversalOnArray;
 
 import sun.security.provider.SystemSigner;
@@ -77,12 +80,13 @@ private double qkernelWeight=.001;
 private double pkernelWeight=1;
 
 		private double alpha=.05;
+		private JDialog dialog;
 		private JFormattedTextField mCRuns, numSupport,smoothnessNP,gridSizeInp,reRuns,kernelWeightq, kernelWeightp;
 		
 		private JFormattedTextField alphaField;
 	
 	    
-	    private JButton browseY, browseX, btnCalculateDistances,estimate,test,genMask, applyMask, loadMask, resetMask,btnLoadCsvFileX,btnLoadCsvFileY;
+	    private JButton browseY, browseX, btnCalculateDistances,estimate,test,genMask, loadMask, resetMask,btnLoadCsvFileX,btnLoadCsvFileY;
 	    private Border blackBorder;
 	    private JTextArea textArea;
 	  
@@ -97,7 +101,6 @@ private double pkernelWeight=1;
 	    private double xmin=Double.MAX_VALUE,ymin=Double.MAX_VALUE,zmin=Double.MAX_VALUE,xmax=Double.MAX_VALUE,ymax=Double.MAX_VALUE,zmax=Double.MAX_VALUE;
 	    private JLabel lblKernelWeightq,lblKernelWeightp;
 	
-	  
 	 //   private int state=GUIStates.LOAD_IMAGES;
 	    
 	/**
@@ -127,7 +130,8 @@ private double pkernelWeight=1;
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		frmInteractionAnalysis = new JFrame();
+		
+		frmInteractionAnalysis = new JFrame("Interaction Analysis");
 		blackBorder=BorderFactory.createLineBorder(Color.black);
 	    browseX = new JButton("Open");
 	
@@ -152,51 +156,16 @@ private double pkernelWeight=1;
 			gl_panel_6.createParallelGroup(Alignment.TRAILING)
 				.addGroup(gl_panel_6.createSequentialGroup()
 					.addContainerGap()
-					.addComponent(textArea, GroupLayout.PREFERRED_SIZE, 430, Short.MAX_VALUE)
+					.addComponent(textArea)
 					.addContainerGap())
 		);
 		gl_panel_6.setVerticalGroup(
 			gl_panel_6.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panel_6.createSequentialGroup()
-					.addComponent(textArea, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE)
+					.addComponent(textArea)
 					.addContainerGap(9, Short.MAX_VALUE))
 		);
 		panel_6.setLayout(gl_panel_6);
-		
-/*		JLabel lblImageX = new JLabel("Image X");
-		
-		JLabel lblImageY = new JLabel("Reference image Y");
-		GroupLayout gl_panel = new GroupLayout(panel);
-		gl_panel.setHorizontalGroup(
-			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel.createSequentialGroup()
-					.addGap(98)
-					.addComponent(lblImageX)
-					.addGap(74)
-					.addComponent(browseX, GroupLayout.PREFERRED_SIZE, 176, GroupLayout.PREFERRED_SIZE))
-				.addGroup(gl_panel.createSequentialGroup()
-					.addGap(33)
-					.addComponent(lblImageY)
-					.addGap(74)
-					.addComponent(browseY, GroupLayout.PREFERRED_SIZE, 176, GroupLayout.PREFERRED_SIZE))
-		);
-		gl_panel.setVerticalGroup(
-			gl_panel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_panel.createSequentialGroup()
-					.addGap(6)
-					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_panel.createSequentialGroup()
-							.addGap(5)
-							.addComponent(lblImageX))
-						.addComponent(browseX))
-					.addGap(6)
-					.addGroup(gl_panel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_panel.createSequentialGroup()
-							.addGap(5)
-							.addComponent(lblImageY))
-						.addComponent(browseY)))
-		);
-		panel.setLayout(gl_panel);*/
 		
 		JLabel lblHypothesisTesting = new JLabel("Hypothesis testing");
 		
@@ -227,7 +196,7 @@ private double pkernelWeight=1;
 					.addGroup(gl_panel_7.createParallelGroup(Alignment.TRAILING)
 						.addGroup(gl_panel_7.createSequentialGroup()
 							.addGap(21)
-							.addComponent(lblHypothesisTesting, GroupLayout.PREFERRED_SIZE, 129, GroupLayout.PREFERRED_SIZE)
+							.addComponent(lblHypothesisTesting)
 							.addContainerGap(152, Short.MAX_VALUE))
 						.addGroup(gl_panel_7.createSequentialGroup()
 							.addGap(148)
@@ -237,7 +206,7 @@ private double pkernelWeight=1;
 							.addGap(23))))
 				.addGroup(gl_panel_7.createSequentialGroup()
 					.addGap(101)
-					.addComponent(test, GroupLayout.PREFERRED_SIZE, 233, GroupLayout.PREFERRED_SIZE)
+					.addComponent(test)
 					.addContainerGap(104, Short.MAX_VALUE))
 		);
 		gl_panel_7.setVerticalGroup(
@@ -247,12 +216,12 @@ private double pkernelWeight=1;
 					.addComponent(lblHypothesisTesting)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_7.createParallelGroup(Alignment.BASELINE)
-						.addComponent(mCRuns, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(mCRuns)
 						.addComponent(lblMonteCarloRuns))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_7.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblSignificanceLevel)
-						.addComponent(alphaField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(alphaField))
 					.addPreferredGap(ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
 					.addComponent(test)
 					.addContainerGap())
@@ -265,7 +234,7 @@ private double pkernelWeight=1;
 		//jcb.setModel(new DefaultComboBoxModel(potentialOptions));
 		jcb.addActionListener(this);
 		
-		 estimate = new JButton("Estimate");
+		estimate = new JButton("Estimate");
 		estimate.setActionCommand("Estimate");
 		
 		JLabel lblPotentialShape = new JLabel("Potential:");
@@ -298,14 +267,16 @@ private double pkernelWeight=1;
 		
 		reRuns = new JFormattedTextField();
 		reRuns.setColumns(10);
+		reRuns.setHorizontalAlignment(SwingConstants.CENTER);
 		reRuns.setText(numReRuns+"");
 		reRuns.addActionListener(this);
+		
 		GroupLayout gl_panel_5 = new GroupLayout(panel_5);
 		gl_panel_5.setHorizontalGroup(
 			gl_panel_5.createParallelGroup(Alignment.TRAILING)
 				.addGroup(gl_panel_5.createSequentialGroup()
 					.addGap(107)
-					.addComponent(estimate, GroupLayout.PREFERRED_SIZE, 221, GroupLayout.PREFERRED_SIZE)
+					.addComponent(estimate)
 					.addContainerGap(92, Short.MAX_VALUE))
 				.addGroup(gl_panel_5.createSequentialGroup()
 					.addGap(161)
@@ -317,20 +288,20 @@ private double pkernelWeight=1;
 							.addGap(10)
 							.addComponent(lblsupportPts)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(numSupport, GroupLayout.PREFERRED_SIZE, 74, GroupLayout.PREFERRED_SIZE)
+							.addComponent(numSupport)
 							.addPreferredGap(ComponentPlacement.RELATED, 51, Short.MAX_VALUE)
 							.addComponent(lblSmoothness)
 							.addGap(18)
-							.addComponent(smoothnessNP, GroupLayout.PREFERRED_SIZE, 71, GroupLayout.PREFERRED_SIZE))
+							.addComponent(smoothnessNP))
 						.addGroup(gl_panel_5.createSequentialGroup()
 							.addContainerGap()
 							.addComponent(lblPotentialShape)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(jcb, GroupLayout.PREFERRED_SIZE, 126, GroupLayout.PREFERRED_SIZE)
+							.addComponent(jcb)
 							.addGap(18)
 							.addComponent(lblRepeatEstimation)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(reRuns, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE)))
+							.addComponent(reRuns)))
 					.addContainerGap())
 		);
 		gl_panel_5.setVerticalGroup(
@@ -341,14 +312,14 @@ private double pkernelWeight=1;
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_5.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblPotentialShape)
-						.addComponent(jcb, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(jcb)
 						.addComponent(lblRepeatEstimation)
-						.addComponent(reRuns, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(reRuns))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_5.createParallelGroup(Alignment.BASELINE)
-						.addComponent(smoothnessNP, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(smoothnessNP)
 						.addComponent(lblsupportPts)
-						.addComponent(numSupport, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
+						.addComponent(numSupport)
 						.addComponent(lblSmoothness))
 					.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 					.addComponent(estimate)
@@ -364,85 +335,71 @@ private double pkernelWeight=1;
 		JPanel panel_3 = new JPanel();
 		tabbedPane_1.addTab("Apply mask", null, panel_3, null);
 		tabbedPane_1.setEnabledAt(0, true);
-		SpringLayout sl_panel_3 = new SpringLayout();
-		panel_3.setLayout(sl_panel_3);
 		
 		 genMask = new JButton("Generate");
 		 genMask.setToolTipText("Generate a new mask from the opened Reference image");
-		 sl_panel_3.putConstraint(SpringLayout.NORTH, genMask, 16, SpringLayout.NORTH, panel_3);
-		 sl_panel_3.putConstraint(SpringLayout.WEST, genMask, 0, SpringLayout.WEST, panel_3);
-		 sl_panel_3.putConstraint(SpringLayout.EAST, genMask, 123, SpringLayout.WEST, panel_3);
 		 panel_3.add(genMask);
 		 genMask.addActionListener(this);
 		 
 		 loadMask = new JButton("Load");
 		 loadMask.setToolTipText("Load an existing mask from a file");
-		 sl_panel_3.putConstraint(SpringLayout.NORTH, loadMask, 0, SpringLayout.NORTH, genMask);
-		 sl_panel_3.putConstraint(SpringLayout.WEST, loadMask, 2, SpringLayout.EAST, genMask);
 		 panel_3.add(loadMask);
 		 loadMask.addActionListener(this);
-		 
-		 applyMask = new JButton("Apply");
-		 applyMask.setToolTipText("Apply the open mask");
-		 sl_panel_3.putConstraint(SpringLayout.EAST, applyMask, -107, SpringLayout.EAST, panel_3);
-		 sl_panel_3.putConstraint(SpringLayout.EAST, loadMask, -6, SpringLayout.WEST, applyMask);
-		 sl_panel_3.putConstraint(SpringLayout.NORTH, applyMask, 0, SpringLayout.NORTH, genMask);
-		 panel_3.add(applyMask);
-		 applyMask.addActionListener(this);
 		 
 		 
 		 resetMask = new JButton("Reset");
 		 resetMask.setToolTipText("Reset mask ");
-		 sl_panel_3.putConstraint(SpringLayout.WEST, resetMask, 6, SpringLayout.EAST, applyMask);
-		 sl_panel_3.putConstraint(SpringLayout.NORTH, resetMask, 0, SpringLayout.NORTH, genMask);
-		 sl_panel_3.putConstraint(SpringLayout.EAST, resetMask, -10, SpringLayout.EAST, panel_3);
 		 panel_3.add(resetMask);
 		 resetMask.addActionListener(this);
-		JPanel panel_4 = new JPanel();
+		 JPanel panel_4 = new JPanel();
 		
 		 btnCalculateDistances = new JButton("Calculate distances");
+		 btnCalculateDistances.setAlignmentX(SwingConstants.CENTER);
 		 
 		 gridSizeInp = new JFormattedTextField();
 		 gridSizeInp.setHorizontalAlignment(SwingConstants.CENTER);
 
 		 gridSizeInp.setText(""+gridSize);
-		 gridSizeInp.setColumns(10);
-		 gridSizeInp.addActionListener(this);
+		 gridSizeInp.setColumns(6);
 		 
 		 JLabel lblGridSize = new JLabel("Grid spacing:");
 		 
 		 lblKernelWeightq = new JLabel("Kernel wt(q):");
 		 
 		 kernelWeightq=new JFormattedTextField();
+		 kernelWeightq.setHorizontalAlignment(SwingConstants.CENTER);
 		 kernelWeightq.setText(qkernelWeight+"");
-		 kernelWeightq.addActionListener(this);
+		 kernelWeightq.setColumns(6);
 		 
 		 lblKernelWeightp = new JLabel("Kernel wt(p):");
 		 
 		 kernelWeightp= new JFormattedTextField();
+		 kernelWeightp.setHorizontalAlignment(SwingConstants.CENTER);
 		 kernelWeightp.setText("0.1");
+		 kernelWeightp.setColumns(6);
 		 GroupLayout gl_panel_4 = new GroupLayout(panel_4);
 		 gl_panel_4.setHorizontalGroup(
 		 	gl_panel_4.createParallelGroup(Alignment.LEADING)
 		 		.addGroup(gl_panel_4.createSequentialGroup()
 		 			.addGroup(gl_panel_4.createParallelGroup(Alignment.LEADING)
 		 				.addGroup(gl_panel_4.createSequentialGroup()
-		 					.addContainerGap()
 		 					.addComponent(lblGridSize)
-		 					.addPreferredGap(ComponentPlacement.RELATED)
-		 					.addComponent(gridSizeInp, GroupLayout.PREFERRED_SIZE, 44, GroupLayout.PREFERRED_SIZE)
-		 					.addPreferredGap(ComponentPlacement.RELATED)
+		 					.addPreferredGap(ComponentPlacement.RELATED,0,Short.MAX_VALUE)
+		 					.addComponent(gridSizeInp)
+		 					.addPreferredGap(ComponentPlacement.RELATED,0,Short.MAX_VALUE)
 		 					.addComponent(lblKernelWeightq)
-		 					.addPreferredGap(ComponentPlacement.RELATED)
-		 					.addComponent(kernelWeightq, GroupLayout.PREFERRED_SIZE, 48, GroupLayout.PREFERRED_SIZE)
-		 					.addPreferredGap(ComponentPlacement.RELATED)
-		 					.addComponent(lblKernelWeightp, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		 					.addPreferredGap(ComponentPlacement.RELATED)
-		 					.addComponent(kernelWeightp, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
-		 					.addPreferredGap(ComponentPlacement.RELATED))
+		 					.addPreferredGap(ComponentPlacement.RELATED,0,Short.MAX_VALUE)
+		 					.addComponent(kernelWeightq)
+		 					.addPreferredGap(ComponentPlacement.RELATED,0,Short.MAX_VALUE)
+		 					.addComponent(lblKernelWeightp)
+		 					.addPreferredGap(ComponentPlacement.RELATED,0,Short.MAX_VALUE)
+		 					.addComponent(kernelWeightp)
+		 					.addPreferredGap(ComponentPlacement.RELATED,0,Short.MAX_VALUE))
 		 				.addGroup(gl_panel_4.createSequentialGroup()
-		 					.addGap(113)
-		 					.addComponent(btnCalculateDistances, GroupLayout.PREFERRED_SIZE, 209, GroupLayout.PREFERRED_SIZE)))
+		 					.addPreferredGap(ComponentPlacement.RELATED,0,Short.MAX_VALUE)
+		 					.addComponent(btnCalculateDistances)
+		 					.addPreferredGap(ComponentPlacement.RELATED,0,Short.MAX_VALUE)
+		 					))
 		 			.addGap(0))
 		 );
 		 gl_panel_4.setVerticalGroup(
@@ -451,11 +408,11 @@ private double pkernelWeight=1;
 		 			.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 		 			.addGroup(gl_panel_4.createParallelGroup(Alignment.BASELINE)
 		 				.addComponent(lblGridSize)
-		 				.addComponent(gridSizeInp, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+		 				.addComponent(gridSizeInp)
 		 				.addComponent(lblKernelWeightq)
-		 				.addComponent(kernelWeightq, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+		 				.addComponent(kernelWeightq)
 		 				.addComponent(lblKernelWeightp)
-		 				.addComponent(kernelWeightp, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+		 				.addComponent(kernelWeightp))
 		 			.addGap(21)
 		 			.addComponent(btnCalculateDistances))
 		 );
@@ -483,12 +440,12 @@ private double pkernelWeight=1;
 					.addGap(98)
 					.addComponent(label)
 					.addGap(74)
-					.addComponent(browseX, GroupLayout.PREFERRED_SIZE, 176, GroupLayout.PREFERRED_SIZE))
+					.addComponent(browseX))
 				.addGroup(gl_panel_2.createSequentialGroup()
 					.addGap(33)
 					.addComponent(label_1)
 					.addGap(74)
-					.addComponent(browseY, GroupLayout.PREFERRED_SIZE, 176, GroupLayout.PREFERRED_SIZE))
+					.addComponent(browseY))
 		);
 		gl_panel_2.setVerticalGroup(
 			gl_panel_2.createParallelGroup(Alignment.LEADING)
@@ -526,32 +483,32 @@ private double pkernelWeight=1;
 		
 		txtXmin = new JFormattedTextField();
 		txtXmin.setText("xmin");
-		txtXmin.setColumns(10);
+		txtXmin.setColumns(6);
 		txtXmin.addActionListener(this);
 		
 		txtYmin = new JFormattedTextField();
 		txtYmin.setText("ymin");
-		txtYmin.setColumns(10);
+		txtYmin.setColumns(6);
 		txtYmin.addActionListener(this);
 		
 		txtZmin = new JFormattedTextField();
 		txtZmin.setText("zmin");
-		txtZmin.setColumns(10);
+		txtZmin.setColumns(6);
 		txtZmin.addActionListener(this);
 		
 		txtXmax = new JFormattedTextField();
 		txtXmax.setText("xmax");
-		txtXmax.setColumns(10);
+		txtXmax.setColumns(6);
 		txtXmax.addActionListener(this);
 		
 		txtYmax = new JFormattedTextField();
 		txtYmax.setText("ymax");
-		txtYmax.setColumns(10);
+		txtYmax.setColumns(6);
 		txtYmax.addActionListener(this);
 		
 		txtZmax = new JFormattedTextField();
 		txtZmax.setText("zmax");
-		txtZmax.setColumns(10);
+		txtZmax.setColumns(6);
 		txtZmax.addActionListener(this);
 		GroupLayout gl_panel_8 = new GroupLayout(panel_8);
 		gl_panel_8.setHorizontalGroup(
@@ -566,25 +523,25 @@ private double pkernelWeight=1;
 						.addGroup(gl_panel_8.createSequentialGroup()
 							.addComponent(btnLoadCsvFileY)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(txtXmax, 0, 0, Short.MAX_VALUE))
+							.addComponent(txtXmax))
 						.addGroup(gl_panel_8.createSequentialGroup()
 							.addComponent(btnLoadCsvFileX)
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(txtXmin, GroupLayout.PREFERRED_SIZE, 53, GroupLayout.PREFERRED_SIZE)))
+							.addComponent(txtXmin)))
 					.addGroup(gl_panel_8.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_panel_8.createSequentialGroup()
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(txtYmin, GroupLayout.PREFERRED_SIZE, 47, GroupLayout.PREFERRED_SIZE))
+							.addComponent(txtYmin))
 						.addGroup(Alignment.TRAILING, gl_panel_8.createSequentialGroup()
 							.addPreferredGap(ComponentPlacement.RELATED)
-							.addComponent(txtYmax, GroupLayout.PREFERRED_SIZE, 47, GroupLayout.PREFERRED_SIZE)))
-					.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(txtYmax)))
+					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_8.createParallelGroup(Alignment.TRAILING)
 						.addGroup(gl_panel_8.createSequentialGroup()
-							.addComponent(txtZmin, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
+							.addComponent(txtZmin)
 							.addContainerGap())
 						.addGroup(gl_panel_8.createSequentialGroup()
-							.addComponent(txtZmax, GroupLayout.PREFERRED_SIZE, 47, GroupLayout.PREFERRED_SIZE)
+							.addComponent(txtZmax)
 							.addGap(11))))
 		);
 		gl_panel_8.setVerticalGroup(
@@ -594,16 +551,16 @@ private double pkernelWeight=1;
 					.addGroup(gl_panel_8.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblCsvFileOf)
 						.addComponent(btnLoadCsvFileX)
-						.addComponent(txtXmin, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtYmin, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtZmin, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(txtXmin)
+						.addComponent(txtYmin)
+						.addComponent(txtZmin))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_8.createParallelGroup(Alignment.BASELINE)
 						.addComponent(label_2)
 						.addComponent(btnLoadCsvFileY)
-						.addComponent(txtXmax, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtYmax, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtZmax, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(txtXmax)
+						.addComponent(txtYmax)
+						.addComponent(txtZmax))
 					.addGap(13))
 		);
 		panel_8.setLayout(gl_panel_8);
@@ -621,10 +578,13 @@ private double pkernelWeight=1;
 					.addComponent(panel_6))
 				.addGroup(groupLayout.createSequentialGroup()
 					.addGap(17)
-					.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
-						.addComponent(panel_5, Alignment.LEADING)
-						.addComponent(panel_7, Alignment.LEADING)
-						.addComponent(panel_4, Alignment.LEADING)))
+				    .addComponent(panel_5))
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(17)
+				    .addComponent(panel_7))
+				.addGroup(groupLayout.createSequentialGroup()
+					.addGap(17)
+				    .addComponent(panel_4))
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
@@ -632,7 +592,7 @@ private double pkernelWeight=1;
 					.addGap(6)
 					.addComponent(tabbedPane)
 					.addGap(6)
-					.addComponent(tabbedPane_1,100,100,100)
+					.addComponent(tabbedPane_1)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addComponent(panel_4)
 					.addPreferredGap(ComponentPlacement.RELATED)
@@ -718,8 +678,6 @@ private double pkernelWeight=1;
 			
 		//	IJ.showMessage("TestX");
 			
-			
-	
 		//	Problem: how to make masks, how to calculate q(d), etc
 			Xcoords=ImageProcessUtils.openCSVFile("Open CSV file for image X", "");
 			if(Xcoords==null)
@@ -828,28 +786,8 @@ private double pkernelWeight=1;
 			a.setPotentialType(potentialType);
 	      return;
 		}
-/*		if(e.getSource()==kernelWeightq)
-		{
-			qkernelWeight=Double.parseDouble(e.getActionCommand());
-			a.setKernelWeightq(qkernelWeight);
-			
-		}
-		if(e.getSource()==kernelWeightp)
-		{
-			pkernelWeight=Double.parseDouble(e.getActionCommand());
-			System.out.println("p set to:"+pkernelWeight);
-			a.setKernelWeightp();
-			
-		}*/
 		if(e.getSource()==btnCalculateDistances)
-		{
-			xmin=Double.parseDouble(txtXmin.getText());
-			ymin=Double.parseDouble(txtYmin.getText());
-			zmin=Double.parseDouble(txtZmin.getText());
-			xmax=Double.parseDouble(txtXmin.getText());
-			ymax=Double.parseDouble(txtYmin.getText());
-			zmax=Double.parseDouble(txtZmin.getText());
-			
+		{			
 			gridSize=Double.parseDouble(gridSizeInp.getText());
 			a.setKernelWeightq(Double.parseDouble(kernelWeightq.getText()));
 			a.setKernelWeightp(Double.parseDouble(kernelWeightp.getText()));
@@ -858,6 +796,13 @@ private double pkernelWeight=1;
 			
 			if(!a.getIsImage())
 			{
+				xmin=Double.parseDouble(txtXmin.getText());
+				ymin=Double.parseDouble(txtYmin.getText());
+				zmin=Double.parseDouble(txtZmin.getText());
+				xmax=Double.parseDouble(txtXmin.getText());
+				ymax=Double.parseDouble(txtYmin.getText());
+				zmax=Double.parseDouble(txtZmin.getText());
+				
 				if(xmin>Double.MAX_VALUE-1|| xmax>Double.MAX_VALUE-1|| ymin> Double.MAX_VALUE-1 || ymax> Double.MAX_VALUE-1 || zmin>Double.MAX_VALUE-1 || zmax>Double.MAX_VALUE-1
 						|| xmax<xmin || ymax<ymin || zmax<zmin)
 				{
@@ -873,18 +818,11 @@ private double pkernelWeight=1;
 			
 			}
 			
-			
 			if(!a.calcDist(gridSize))
 				IJ.showMessage("No X and Y images/coords loaded. Cannot calculate distance");
-		
+			
 			return;
 		}
-		
-/*		if(e.getSource()==reRuns)
-		{
-			numReRuns=Integer.parseInt(e.getActionCommand());
-			a.setCmaReRunTimes(numReRuns);
-		}*/
 		
 		if(e.getSource()==estimate)
 		{
@@ -911,14 +849,6 @@ private double pkernelWeight=1;
 			return;
 		}
 		
-/*		if(e.getSource()==gridSizeInp)
-		{
-			gridSize=Double.parseDouble(e.getActionCommand());
-			
-			System.out.println("Grid size changed to:"+gridSize);
-
-			return;
-		}*/
 		if(e.getSource()==numSupport)
 		{
 			PotentialFunctions.NONPARAM_WEIGHT_SIZE=Integer.parseInt(e.getActionCommand());
@@ -934,54 +864,6 @@ private double pkernelWeight=1;
 			System.out.println("Smoothness:"+PotentialFunctions.NONPARAM_SMOOTHNESS);
 			return;
 		}
-/*		if(e.getSource()==mCRuns)
-		{
-			monteCarloRunsForTest=Integer.parseInt(e.getActionCommand());
-			return;
-		}*/
-/*		if(e.getSource()==txtXmin)
-		{
-			xmin=Double.parseDouble(e.getActionCommand());
-			System.out.println("xmin:"+xmin);
-			
-			return;
-		}
-		if(e.getSource()==txtYmin)
-		{
-			ymin=Double.parseDouble(e.getActionCommand());
-			System.out.println("ymin:"+ymin);
-			return;
-		}
-		if(e.getSource()==txtZmin)
-		{
-			zmin=Double.parseDouble(e.getActionCommand());
-			System.out.println("zmin:"+zmin);
-			return;
-		}
-		if(e.getSource()==txtXmax)
-		{
-			xmax=Double.parseDouble(e.getActionCommand());
-			System.out.println("xmax:"+xmax);
-			return;
-		}
-		if(e.getSource()==txtYmax)
-		{
-			ymax=Double.parseDouble(e.getActionCommand());
-			System.out.println("ymax:"+ymax);
-			return;
-		}
-		if(e.getSource()==txtZmax)
-		{
-			zmax=Double.parseDouble(e.getActionCommand());
-			System.out.println("zmax:"+zmax);
-			return;
-		}*/
-		
-/*		if(e.getSource()==alphaField)
-		{
-			alpha=Double.parseDouble(e.getActionCommand());
-			return;
-		}*/
 		if(e.getSource()==genMask)
 		{
 			if(!a.getIsImage())
@@ -1001,20 +883,15 @@ private double pkernelWeight=1;
 			}
 			return;
 		}
-		
-		if(e.getSource()==applyMask)
+		if(e.getSource()==loadMask)
 		{
+			
+			a.loadMask();
 			
 			if(a.applyMask()==true)
 				IJ.showMessage("Mask set to:"+a.getMaskTitle());
 			else
 				IJ.showMessage("No mask to apply! Load/Generate a mask.");
-			return;
-		}
-		if(e.getSource()==loadMask)
-		{
-			
-			a.loadMask();
 			return;
 		}
 		
@@ -1025,9 +902,6 @@ private double pkernelWeight=1;
 			IJ.showMessage("Mask reset to Null");
 			return;
 		}
-		
-		
-
 	}
 		
 
