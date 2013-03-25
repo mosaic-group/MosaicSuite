@@ -13,6 +13,7 @@ import javax.vecmath.Point3d;
 
 
 import mosaic.core.detection.Particle;
+import mosaic.ia.gui.GUIDesign;
 import mosaic.ia.utils.ImageProcessUtils;
 
 public class DistanceCalculationsImage extends DistanceCalculations {
@@ -78,7 +79,9 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 		particleXSetCoord = extractParticles(X);
 		particleYSetCoord = extractParticles(Y);
 	//	DGrid=genD_grid();
+		
 		genStateDensityForImages();
+		
 		calcD();
 		
 	}

@@ -70,7 +70,7 @@
 	
 	<target name="build">
 	    
-	    <javac srcdir="src/" destdir="bin/" classpathref="build.classpath"
+	    <javac srcdir="src/" debug="true"  destdir="bin/" classpathref="build.classpath"
 	           classpath="${build.classpath}"/>
 	</target>
 	
