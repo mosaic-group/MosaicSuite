@@ -20,7 +20,6 @@ import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
-import mosaic.ia.gui.GUIDesign;
 import mosaic.ia.nn.DistanceCalculations;
 import mosaic.ia.nn.DistanceCalculationsCoords;
 import mosaic.ia.nn.DistanceCalculationsImage;
@@ -245,8 +244,7 @@ public class Analysis {
 		PlotUtils.plotDoubleArrayPts("LikelihoodRatio for strength="+(j*.01+.51), "Threshold", "Likelihood ratio for strength="+(j*.01+.51), D1, likRatio);
 	
 		}*/
-		
-		GUIDesign.ItSelf.ClosePleaseWait();
+
 		
 		IJ.showMessage("Suggested Kernel wt(p): "+IAPUtils.calcWekaWeights(D));
 		
