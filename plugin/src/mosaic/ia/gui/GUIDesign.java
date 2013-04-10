@@ -133,9 +133,7 @@ private double pkernelWeight=1;
 		
 		frmInteractionAnalysis = new JFrame("Interaction Analysis");
 		blackBorder=BorderFactory.createLineBorder(Color.black);
-	    browseX = new JButton("Open");
-	
-		
+	    browseX = new JButton("Open");	
 		browseY = new JButton("Open");
 		
 		JPanel panel_5 = new JPanel();
@@ -799,9 +797,9 @@ private double pkernelWeight=1;
 				xmin=Double.parseDouble(txtXmin.getText());
 				ymin=Double.parseDouble(txtYmin.getText());
 				zmin=Double.parseDouble(txtZmin.getText());
-				xmax=Double.parseDouble(txtXmin.getText());
-				ymax=Double.parseDouble(txtYmin.getText());
-				zmax=Double.parseDouble(txtZmin.getText());
+				xmax=Double.parseDouble(txtXmax.getText());
+				ymax=Double.parseDouble(txtYmax.getText());
+				zmax=Double.parseDouble(txtZmax.getText());
 				
 				if(xmin>Double.MAX_VALUE-1|| xmax>Double.MAX_VALUE-1|| ymin> Double.MAX_VALUE-1 || ymax> Double.MAX_VALUE-1 || zmin>Double.MAX_VALUE-1 || zmax>Double.MAX_VALUE-1
 						|| xmax<xmin || ymax<ymin || zmax<zmin)
@@ -815,6 +813,7 @@ private double pkernelWeight=1;
 				a.setY2(ymax);
 				a.setZ1(zmin);
 				a.setZ2(zmax);
+				System.out.println("Boundary:"+xmin+","+xmax+";"+ymin+","+ymax+";"+zmin+","+zmax);
 			
 			}
 			

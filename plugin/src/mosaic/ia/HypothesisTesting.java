@@ -260,6 +260,9 @@ public class HypothesisTesting {
 	}
 	
 	public boolean rankTest(){
+		
+		
+		
 		calculateT();
 		PotentialCalculator pcOb=new PotentialCalculator(D, params, type);
 		pcOb.calculateWOEpsilon();
