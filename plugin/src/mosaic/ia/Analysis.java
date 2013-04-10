@@ -149,7 +149,7 @@ public class Analysis {
 	public boolean getIsImage() {
 		return isImage;
 	}
-	
+
 	public boolean calcDist(double gridSize) {
 
 		boolean ret;
@@ -244,8 +244,11 @@ public class Analysis {
 		PlotUtils.plotDoubleArrayPts("LikelihoodRatio for strength="+(j*.01+.51), "Threshold", "Likelihood ratio for strength="+(j*.01+.51), D1, likRatio);
 	
 		}*/
+<<<<<<< HEAD
 
 		
+=======
+>>>>>>> merging gui changes by pietro with some changes on hyp testing; a little bugfixing on pietro's change
 		IJ.showMessage("Suggested Kernel wt(p): "+IAPUtils.calcWekaWeights(D));
 		
 		return ret;
@@ -835,14 +838,23 @@ public class Analysis {
 
 	public boolean hypTest(int monteCarloRunsForTest, double alpha) {
 		if (best == null)
+		{
+			IJ.showMessage("Error: Run estimation first");
+		
+		
+		}
+		else if(potentialType==PotentialFunctions.NONPARAM)	{
+			IJ.showMessage("Hypothesis test is not applicable for Non Parametric potential \n since it does not have 'strength' parameter");
 			return false;
+		}
+			
 		System.out.println("Running test with " + monteCarloRunsForTest
 				+ " and " + alpha);
 		HypothesisTesting ht = new HypothesisTesting(
 				IAPUtils.calculateCDF(q_D_grid), dgrid, D, best[bestFitnessindex],
 				potentialType, monteCarloRunsForTest, alpha);
 		ht.rankTest();
-		ht.nonParametricTest();
+	//	ht.nonParametricTest();
 		return true;
 	}
 

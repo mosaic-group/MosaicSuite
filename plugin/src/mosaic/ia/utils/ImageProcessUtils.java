@@ -276,9 +276,9 @@ public class ImageProcessUtils {
 	
 	public static void saveCoordinates(Point3d [] particleXSetCoord, Point3d [] particleYSetCoord  )
 	{
-		SaveDialog sdx=new SaveDialog("Select a file to save coordinates of X", "/Users/arun/Documents/matlab/controlIntAnalysis","SegRes50ColocA",".csv");
+		SaveDialog sdx=new SaveDialog("Select a file to save coordinates of X", "/Users/arun/Documents/PhD/Work_Documentation/Manual/Data","Virus",".csv");
 		saveIntoTextFile(new File(sdx.getDirectory()+sdx.getFileName()),particleXSetCoord);
-		SaveDialog sdy=new SaveDialog("Select a file to save coordinates of Y", "/Users/arun/Documents/matlab/controlIntAnalysis","SegRes50ColocB",".csv");
+		SaveDialog sdy=new SaveDialog("Select a file to save coordinates of Y", "/Users/arun/Documents/PhD/Work_Documentation/Manual/Data","Endosome",".csv");
 		saveIntoTextFile(new File(sdy.getDirectory()+sdy.getFileName()),particleYSetCoord);
 		
 	}

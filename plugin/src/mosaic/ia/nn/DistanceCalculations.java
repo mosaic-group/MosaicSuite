@@ -231,7 +231,7 @@ public abstract class DistanceCalculations {
 		for (int i = 1; i < discretizationSize; i++) {
 			qOfD[0][i] = qOfD[0][i - 1] + bin_size;
 			q[i] = ker.getProbability(qOfD[0][i]); 
-			System.out.println("q,i"+q[i]+","+i);
+	//		System.out.println("q,i"+q[i]+","+i);
 		}
 		qOfD[1]=IAPUtils.normalize(q);
 //		return qOfD;

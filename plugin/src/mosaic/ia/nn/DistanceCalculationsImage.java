@@ -6,6 +6,7 @@ import ij.ImageStack;
 import ij.measure.Calibration;
 import ij.process.ImageProcessor;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -13,7 +14,6 @@ import javax.vecmath.Point3d;
 
 
 import mosaic.core.detection.Particle;
-import mosaic.ia.gui.GUIDesign;
 import mosaic.ia.utils.ImageProcessUtils;
 
 public class DistanceCalculationsImage extends DistanceCalculations {
@@ -78,10 +78,10 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 
 		particleXSetCoord = extractParticles(X);
 		particleYSetCoord = extractParticles(Y);
+//		ImageProcessUtils.saveCoordinates(particleXSetCoord, particleYSetCoord);
+		
 	//	DGrid=genD_grid();
-		
 		genStateDensityForImages();
-		
 		calcD();
 		
 	}
