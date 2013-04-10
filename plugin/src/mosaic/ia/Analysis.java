@@ -244,11 +244,7 @@ public class Analysis {
 		PlotUtils.plotDoubleArrayPts("LikelihoodRatio for strength="+(j*.01+.51), "Threshold", "Likelihood ratio for strength="+(j*.01+.51), D1, likRatio);
 	
 		}*/
-<<<<<<< HEAD
 
-		
-=======
->>>>>>> merging gui changes by pietro with some changes on hyp testing; a little bugfixing on pietro's change
 		IJ.showMessage("Suggested Kernel wt(p): "+IAPUtils.calcWekaWeights(D));
 		
 		return ret;
