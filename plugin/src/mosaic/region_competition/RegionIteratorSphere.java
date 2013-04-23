@@ -251,11 +251,22 @@ public class RegionIteratorSphere
 			if (p.p.x[i] < crop_s[i])	
 			{
 				p.p.x[i] = crop_s[i];
+				for (int s = 0 ; s < i-1 ; s++)	{p.p.x[s] = 0;}
+				p.idx = 0;
 				val = false;
 			}
 			else if (p.p.x[i] >= crop_e[i])
 			{
-				p.p.x[i]=crop_s[i];
+				p.idx = 0;
+				int faci = 1;
+			    for (int s = 0 ; s < i-1 ; s++) 
+			    {
+			    	p.p.x[s]=crop_s[s];
+			    	p.idx += crop_s[s] * faci;
+			    	faci *= m_Size[s];
+			    }
+			    p.idx += crop_s[i]*faci;
+			    p.p.x[i]=crop_s[i];
 				p.p.x[i+1]++;
 				val = false;
 			}
@@ -266,6 +277,8 @@ public class RegionIteratorSphere
 		if (p.p.x[i] < crop_s[i])	
 		{
 			p.p.x[i] = crop_s[i];
+		    for (int s = i-1 ; s >= 0  ; s--) {p.p.x[s] = 0;}
+		    p.idx = 0;
 			val = false;
 		}
 		else if (p.p.x[i] >= crop_e[i])
