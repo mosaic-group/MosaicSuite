@@ -66,6 +66,7 @@
       <zipgroupfileset dir="lib" includes="mines-jtk-20100113.jar" excludes="*.config"/>
       <zipgroupfileset dir="lib" includes="loci_tools.jar" excludes="*.config"/>
       <zipgroupfileset dir="lib" includes="ij-1.47c.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="edu_mines_jtk.jar" excludes="*.config"/>
       
       <manifest>
 	<attribute name="Built-By" value="${user.name}"/>
