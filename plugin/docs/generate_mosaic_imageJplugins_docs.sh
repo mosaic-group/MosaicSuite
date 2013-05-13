@@ -7,5 +7,8 @@ zip mosaic_ImageJplugins_docs.zip PoissonNoise/manual/PoissonNoise_manual.pdf
 zip mosaic_ImageJplugins_docs.zip PSF_measurement_3D/PSF_measurement_3D.pdf
 zip mosaic_ImageJplugins_docs.zip PSF_Tool/sample_image/sample.tif
 zip mosaic_ImageJplugins_docs.zip PSF_Tool/Tutorial/PSFtool.pdf
-
+zip mosaic_ImageJplugins_docs.zip Region_Competition/Region_Competition.html
+zip mosaic_ImageJplugins_docs.zip Region_Competition/images/*
+zip mosaic_ImageJplugins_docs.zip Interaction_Analysis/IAPManual.pdf
+zip mosaic_ImageJplugins_docs.zip Seg_Bregman/SplitBregmanSeg.pdf
 

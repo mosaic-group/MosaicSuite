@@ -4,7 +4,7 @@
   </description>
   
   <!-- Adapt paths to your environment -->
-  <property name="pluginsDir"  location="../../../imageJ/ImageJ_1.45/ImageJ/plugins/Mosaic_Toolbox" />
+  <property name="pluginsDir"  location="../../../imageJ/ImageJ_1.45/ImageJ/plugins/Mosaic_ToolSuite" />
   
   <!-- Shouldn't be necessary to change something below here, except you know what you are doing. -->
 
@@ -12,7 +12,7 @@
   <property name="build" location="bin" />
   <property name="dist"  location="dist" />
   <property name="user.name" value="Mosaic" />
-  <property name="jarfilename" value="Mosaic_Toolbox"/>
+  <property name="jarfilename" value="Mosaic_ToolSuite"/>
 
   
   <target name="main" depends="clean,build,compress" description="Main target">
