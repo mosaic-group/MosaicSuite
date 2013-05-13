@@ -5,6 +5,7 @@ import java.io.File;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.gui.GenericDialog;
 import ij.io.FileInfo;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.FloatProcessor;
@@ -12,23 +13,27 @@ import ij.process.ImageProcessor;
 
 public class Generate_PSF implements  PlugInFilter{
 	
-	float mSigmaPSFxy = 160;
-	float mSigmaPSFz = 220;
+	float mSigmaPSFxy = 25;
+	float mSigmaPSFz = 50;
 	int mSigmaPxSizeInNm = 2;
 	int mSigmaFocalPlaneDistInNm = 20;
 	float mIntensity = 100;
 	
 	ImagePlus mPSF = null;
 	boolean mUsePSFMap = false;
+	boolean mHideResult = false;
 	int mWidth;
 	int mHeight;
 	int mNSlices;
 	String mPSFDirectory;
+	ImageStack vGaussIS;
 	
 	@Override
 	public int setup(String arg, ImagePlus imp) {
 		// TODO Auto-generated method stub
-		mPSFDirectory = IJ.getDirectory("Enter the path to PSF.tif");
+		
+		if (mUsePSFMap == true)
+			mPSFDirectory = IJ.getDirectory("Enter the path to PSF.tif");
 
 		mUsePSFMap = usePSFMap();
 		mWidth = (int)Math.ceil(8.0f * mSigmaPSFxy / mSigmaPxSizeInNm);
@@ -52,14 +57,66 @@ public class Generate_PSF implements  PlugInFilter{
 		addGaussBlob(vGaussBlobImage, vMu, mIntensity, mSigmaPxSizeInNm, mSigmaFocalPlaneDistInNm);
 		
 		ImageStack vPSFmapIS = convert3DArrayToImageStack(vPSFmapImage);
-		new ImagePlus("Sampled from PSF lookup table", vPSFmapIS).show();
 		
-		ImageStack vGaussIS = convert3DArrayToImageStack(vGaussBlobImage);
-		new ImagePlus("Sampled from gaussian pdf", vGaussIS).show();
+		if (mHideResult == false)
+			new ImagePlus("Sampled from PSF lookup table", vPSFmapIS).show();
+		
+		vGaussIS = convert3DArrayToImageStack(vGaussBlobImage);
+		
+		if (mHideResult == false)
+			new ImagePlus("Sampled from gaussian pdf", vGaussIS).show();
 		
 		return DONE;
 	}
-
+	
+	public void hideResult(boolean SH)
+	{
+		mHideResult = SH;
+	}
+	
+	private void processGUI(GenericDialog gd)
+	{
+		mSigmaPSFxy = (float)gd.getNextNumber();
+		mSigmaPSFz = (float)gd.getNextNumber();
+		mSigmaPxSizeInNm = (int)gd.getNextNumber();
+		mSigmaFocalPlaneDistInNm = (int)gd.getNextNumber();
+	}
+	
+	public void setParametersGUI()
+	{
+		GenericDialog gd = new GenericDialog("Generate PSF");
+		
+		// Numeric Fields
+		
+		gd.addNumericField("SigmaXY (Nm)", mSigmaPSFxy, 4);
+		gd.addNumericField("SigmaZ (Nm)", mSigmaPSFz, 4);
+		gd.addNumericField("Sigma Pixel size (Nm)", mSigmaPxSizeInNm , 0);
+		gd.addNumericField("Sigma Focal Plane Distance (Nm)", mSigmaFocalPlaneDistInNm , 0);
+		
+		gd.hideCancelButton();
+		
+		gd.showDialog();
+		
+		// Dialog destroyed
+		// On OK, read parameters
+		
+		if (gd.wasOKed())
+			processGUI(gd);
+	}
+	
+	public ImageStack getGauss2DPsf()
+	{
+		int nSlices = vGaussIS.getSize();
+		
+		return convert1DArrayToImageStack((float [])vGaussIS.getPixels(nSlices/2),vGaussIS.getWidth(), vGaussIS.getHeight());
+	}
+	
+	public ImageStack getGauss3DPsf()
+	{
+		return vGaussIS;
+	}
+	
+	
 	@Override
 	public void run(ImageProcessor ip) {
 		// TODO Auto-generated method stub
@@ -255,7 +312,13 @@ public class Generate_PSF implements  PlugInFilter{
 		}
 		return vIS;
 	}
-
+	
+	public static ImageStack convert1DArrayToImageStack(float[] aArray, int Nx, int Ny) {
+		ImageStack vIS = new ImageStack(Nx, Ny);
+		vIS.addSlice("", new FloatProcessor(Nx,Ny,aArray));			
+		return vIS;
+	}
+	
 	public class Point3D{
 		public float mX,mY,mZ;
 		public Point3D () {

@@ -5,7 +5,7 @@ import java.util.Arrays;
 public class Point
 {
 	
-	public int x[];		//TODO private?
+	public int x[];
 	private int dim;	
 	
 	public Point(int dimension)
@@ -14,16 +14,38 @@ public class Point
 		this.x = new int[dim];
 	}
 	
+	
 	private Point(){};
 
 	/**
+	 * Constructs a Point by copying a Point
+	 * @param Point
+	 */
+	public Point(Point p) 
+	{
+		this.dim = p.x.length;
+		this.x = p.x.clone();
+	}
+	
+	/**
 	 * Constructs a Point by copying the coords
-	 * @param coords
+	 * @param coords (int)
 	 */
 	public Point(int coords[]) 
 	{
 		this.dim = coords.length;
 		this.x = coords.clone();
+	}
+	
+	/**
+	 * Constructs a Point by copying the coords
+	 * @param coords (long)
+	 */
+	public Point(long coords[]) 
+	{
+		this.dim = coords.length;
+		this.x = new int[dim];
+		for (int i = 0 ; i < coords.length ; i++)	{x[i] = (int) coords[i];}
 	}
 	
 	/**
@@ -101,6 +123,16 @@ public class Point
 		return result;
 	}
 	
+	/**
+	 * set coord to zero
+	 */
+	public void zero()
+	{
+		for(int i=0; i<dim; i++)
+		{
+			x[i]= 0;
+		}
+	}
 	
 	@Override
 	public String toString() 
@@ -126,17 +158,20 @@ public class Point
 //		return true;
 	};
 	
+	@Override
+	protected Object clone() throws CloneNotSupportedException
+	{
+		return new Point(this.x);
+	}
 	
 	@Override
 	public int hashCode() {
-		// TODO write own hashCode
 		int sum=0;
 		for(int i=0; i<dim; i++)
 		{
 			sum=sum*1024+x[i];
 		}
 		return sum;
-//		return super.hashCode();
 	}
 
 	public int getDimension()
@@ -144,6 +179,11 @@ public class Point
 		return dim;
 	}
 	
+	public interface PointFactoryInterface<T>
+	{
+		T pointFromArray(int array[]);
+		T copylessPointFromArray(int array[]);
+	}
 	
 	public static class PointFactory implements PointFactoryInterface<Point>
 	{
@@ -162,8 +202,3 @@ public class Point
 	
 }
 
-interface PointFactoryInterface<T>
-{
-	T pointFromArray(int array[]);
-	T copylessPointFromArray(int array[]);
-}

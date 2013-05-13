@@ -1,58 +1,111 @@
 <project name="MosaicToolbox" default="" basedir=".">
-    <description>
-    	IAPMosaic_.jar build file
-    </description>
+  <description>
+    Mosaic Toolbox build file
+  </description>
+  
+  <!-- Adapt paths to your environment -->
+  <property name="pluginsDir"  location="../../../imageJ/ImageJ_1.45/ImageJ/plugins/Mosaic_ToolSuite" />
+  
+  <!-- Shouldn't be necessary to change something below here, except you know what you are doing. -->
+
   <property name="src" location="src" />
   <property name="build" location="bin" />
   <property name="dist"  location="dist" />
-	<property name="lib" value="lib"/>
-	 <property name="pluginsDir"  location="../../../imageJ/ImageJ_1.45/ImageJ/plugins/Mosaic_Toolbox" />
-<property name="jarfilename" value="MosaicToolbox_" />
-  <property name="user.name" value="Arun Shivanandan" />
-<target name="main" depends="clean,build,compress,compressLibs" description="Main target">
-	<echo>
-		Building the .jar file.
-	</echo>
-</target>
- <target name="compress" depends="" description="generate the distribution">
- 	<jar jarfile="MosaicToolbox_.jar">
-		<fileset dir="${build}" includes="**/*.*" />
- 		<fileset dir="." includes="macros/*.ijm" />
- 		<fileset dir="." includes="plugins.config" />
- 		<manifest>	
- 		 	 	      <attribute name="Built-By" value="${user.name}"/>
- 		</manifest> 
- 	</jar>
-    <copy file="MosaicToolbox_.jar" toDir="${pluginsDir}" />
+  <property name="user.name" value="Mosaic" />
+  <property name="jarfilename" value="Mosaic_ToolSuite"/>
+
+  
+  <target name="main" depends="clean,build,compress" description="Main target">
+    <echo>
+      Clean, compile and compressing the .jar file.
+    </echo>
   </target>
-	
-	<target name="clean" description="deletes all binaries and jars">
-			<echo>
-				Deleting files...
-			</echo>
-			<delete>
-				<fileset dir="${pluginsDir}" includes="${jarfilename}.jar" />
-			</delete>
-			<delete>
-				<fileset dir="${build}" includes="*.class" />
-			</delete>
-			<echo>
-				... done.
-			</echo>
-	</target>
-	
+  
+  <target name="main_debug" depends="clean,build,compress_debug" description="Main target">
+    <echo>
+      Clean, compile and compressing the .jar file.
+    </echo>
+  </target>
+  
+  <target name="compress_debug" depends="" description="generate the distribution">
+    <echo>
+      Building the .jar file.
+    </echo>
+    <jar jarfile="${pluginsDir}/${jarfilename}.jar" update="true">
+      <fileset dir="." includes="plugins.config" />
+      <fileset dir="${build}" includes="**/*.*" />
+      <fileset dir="${src}" includes="**/*.java"/>
+      <fileset dir="." includes="macros/*.ijm" />
+      
+      <!-- Add needed libs directly to the IJ eclipse project and not into this ant target "compress", for faster debugging 
+	   Add the libs to the target "compressLibs", to get a working plugin for other ImageJ instances outside of eclipse -->
+
+      <zipgroupfileset dir="lib" includes="imglib2-*.jar" excludes="*.config"/>
+      
+      <manifest>
+	<attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+    </jar>
+  </target>
+  
+  <target name="compress" depends="" description="generate the distribution">
+    <echo>
+      Building the .jar file.
+    </echo>
+    <jar jarfile="${pluginsDir}/${jarfilename}.jar" update="true">
+      <fileset dir="." includes="plugins.config" />
+      <fileset dir="${build}" includes="**/*.*" />
+      <fileset dir="." includes="macros/*.ijm" />
+      
+      <!-- Add needed libs directly to the IJ eclipse project and not into this ant target "compress", for faster debugging 
+	   Add the libs to the target "compressLibs", to get a working plugin for other ImageJ instances outside of eclipse -->
+
+      <zipgroupfileset dir="lib" includes="imglib2-*.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="jtransforms-2.4.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="javaml-0.1.7.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="mines-jtk-20100113.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="loci_tools.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="ij-1.47c.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="edu_mines_jtk.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="weka-3-7-5-monolithic.jar" excludes="*.config"/>
+      
+      <manifest>
+	<attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+    </jar>
+  </target>
+  
+  <target name="compressLibs" depends="compress" description="generate the distribution with all libs">
+    <echo>
+      Adding all libs to the .jar.
+    </echo>
+    <jar jarfile="${pluginsDir}/${jarfilename}.jar" update="true"> 
+      <manifest>
+	<attribute name="Built-By" value="${user.name}"/>
+      </manifest>
+    </jar>
+  </target>
+  
+  <target name="clean" description="deletes all binaries and jars">
+    <echo>
+      Deleting files...
+    </echo>
+    <delete>
+      <fileset dir="${pluginsDir}" includes="${jarfilename}.jar" />
+    </delete>
+    <delete>
+      <fileset dir="${build}" includes="*.class" />
+    </delete>
+    <echo>
+      ... done.
+    </echo>
+  </target>
+  
+  <!-- classpath for project build -->   
   <path id="build.classpath">
-    <fileset dir="lib/">
-      <include name="ij.jar"/>
-    </fileset>
     
     <!--	<fileset dir="/Users/arun/Documents/Programs_APIs">
 	<include name="junit-3.8.1.jar"/>
-	
-	<include name="jfreechart-1.0.13.jar"/>
-	
-	</fileset>
-	
     -->
     
     <pathelement location="${build}"/>
@@ -67,25 +120,21 @@
     
     
   </path>
-	
-	<target name="build">
-	    
-	    <javac srcdir="src/" debug="true"  destdir="bin/" classpathref="build.classpath"
-	           classpath="${build.classpath}"/>
-	</target>
-	
-	<target name="compressLibs" depends="compress" description="generate the distribution with all libs">
-				<echo>
-					Adding all libs to the .jar.
-				</echo>
-			 	<jar jarfile="${pluginsDir}/${jarfilename}.jar" update="true">
-			 		
-			 		<zipgroupfileset dir="${lib}" includes="*.jar"/>
-			 		
-		
-			 		<manifest>
-			 			<attribute name="Built-By" value="${user.name}"/>
-			 		</manifest>
-			 	</jar>
-			</target>
+  
+  <target name="build">  
+    <javac debug="true" includeantruntime="false" srcdir="src/" destdir="bin/" classpathref="build.classpath"
+	   classpath="${build.classpath}"/>
+  </target>
+  
+  <target name="proguard" depends="compressLibs">
+    <taskdef resource="proguard/ant/task.properties"
+	     classpath="${proguard.jar}" />
+    <proguard configuration="MosaicToolbox.pro"/>
+  </target>
+
+  
+  
+  <target name="docs" >
+    <mkdir dir="docs"   />
+  </target>
 </project>

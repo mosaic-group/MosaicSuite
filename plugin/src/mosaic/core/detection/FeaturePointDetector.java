@@ -14,6 +14,7 @@ import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
 
 import java.awt.Button;
+import java.awt.Checkbox;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Label;
@@ -54,8 +55,9 @@ public class FeaturePointDetector {
 	/* user defined parameters */
 	public double cutoff = 3.0; 		// default
 	public float percentile = 0.001F; 	// default (user input/100)
-	public int absIntensityThreshold = 0; //user input 
+	public float absIntensityThreshold = 0.0f; //user input 
 	public int radius = 3; 				// default
+	public boolean absolute = false;
 	//public float sigma_factor = 3;
 	int number_of_threads = 4;
 	public int threshold_mode = PERCENTILE_MODE;
@@ -168,12 +170,12 @@ public class FeaturePointDetector {
 	 * used, either percent or aIntensityThreshold depending on the threshold mode.
 	 * @param ip ImageProcessor after conversion, normalization and restoration
 	 * @param percent the upper rth percentile to be considered as candidate Particles
-	 * @param aIntensityThreshold a intensity value which defines a threshold.
+	 * @param absIntensityThreshold2 a intensity value which defines a threshold.
 	 */
-	private void findThreshold(ImageStack ips, double percent, int aIntensityThreshold) {
+	private void findThreshold(ImageStack ips, double percent, float absIntensityThreshold2) {
 		if(getThresholdMode() == ABS_THRESHOLD_MODE){
 			//the percent parameter corresponds to an absolute value (not percent)
-			this.setThreshold((float)(aIntensityThreshold - global_min)/(global_max-global_min));
+			this.setThreshold(absIntensityThreshold2 - global_min/(global_max-global_min));
 			return;
 		}
 		int s, i, j, thold, width;
@@ -738,14 +740,19 @@ public class FeaturePointDetector {
 	 * and generates the <code>mask</code> according to these params
 	 * @see #generateMasks(int)
 	 */
-	public void setUserDefinedParameters(double cutoff, float percentile, int radius, int intThreshold){//, float sigma_factor) {
+	public void setUserDefinedParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute){//, float sigma_factor) {
 		this.cutoff = cutoff;
 		this.percentile = percentile;
-		this.absIntensityThreshold = intThreshold;
+		this.absIntensityThreshold = Threshold;
 //		this.sigma_factor = sigma_factor; 
 		//    	this.preprocessing_mode = mode;
 		//    	this.setThresholdMode(thsmode);
 		this.radius = radius;
+		if (absolute == true)
+			this.threshold_mode = ABS_THRESHOLD_MODE;
+		else
+			this.threshold_mode = PERCENTILE_MODE;
+
 		// create Mask for Dilation with the user defined radius
 		generateMasks(this.radius);
 	}
@@ -755,7 +762,10 @@ public class FeaturePointDetector {
 		// These 3 params are only relevant for non text_files_mode
 		gd.addNumericField("Radius", radius, 0);
 		gd.addNumericField("Cutoff", cutoff, 1);
+		gd.addNumericField("Per/Abs", percentile*100, 5, 6, " ");
 
+		gd.addCheckbox("Absolute", absolute);
+		
 		//	        gd.addChoice("Threshold mode", new String[]{"Absolute Threshold","Percentile"}, "Percentile");
 		//	        ((Choice)gd.getChoices().firstElement()).addItemListener(new ItemListener(){
 		//				public void itemStateChanged(ItemEvent e) {
@@ -771,7 +781,6 @@ public class FeaturePointDetector {
 
 		//	        gd.addNumericField("Percentile", 0.001, 5);
 		//	        gd.addNumericField("Percentile / Abs.Threshold", 0.1, 5, 6, " % / Intensity");
-		gd.addNumericField("Percentile", percentile*100, 5, 6, " %");
 //		gd.addNumericField("sigma factor", sigma_factor, 5);
 		//	        gd.addPanel(makeThresholdPanel(), GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
 		//	        gd.addChoice("Preprocessing mode", new String[]{"none", "box-car avg.", "BG Subtraction", "Laplace Operation"}, "box-car avg.");	        
@@ -789,7 +798,9 @@ public class FeaturePointDetector {
 		double cut = gd.getNextNumber(); 
 		//            this.cutoff = gd.getNextNumber();   
 		float per = ((float)gd.getNextNumber())/100;
-		int intThreshold = (int)(per*100+0.5);
+		float intThreshold = per*100;
+	    absolute = gd.getNextBoolean();
+		
 		//            this.percentile = ((float)gd.getNextNumber())/100;
 
 		//        	int thsmode = gd.getNextChoiceIndex();
@@ -799,7 +810,7 @@ public class FeaturePointDetector {
 //		float sigma_fac = ((float)gd.getNextNumber());
 		
 		Boolean changed = (rad != radius || cut != cutoff  || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
-		setUserDefinedParameters(cut, per, rad, intThreshold);
+		setUserDefinedParameters(cut, per, rad, intThreshold,absolute);
 		//        	this.preprocessing_mode = mode;
 		return changed;
 	}
@@ -815,14 +826,16 @@ public class FeaturePointDetector {
 		double cut = Double.parseDouble((vec.elementAt(1)).getText());
 		float per = (Float.parseFloat((vec.elementAt(2)).getText()))/100;
 		//float sigma_fac = (Float.parseFloat((vec.elementAt(3)).getText()));
-		int intThreshold = (int)(per*100+0.5);
+		float intThreshold = (float)(per*100);
+		Vector<Checkbox> vecb = gd.getCheckboxes();
+		boolean absolute = vecb.elementAt(0).getState();
 		//		int thsmode = ((Choice)gd.getChoices().elementAt(0)).getSelectedIndex();
 		//    	int mode = ((Choice)gd.getChoices().elementAt(1)).getSelectedIndex();
 
 		// even if the frames were already processed (particles detected) but
 		// the user changed the detection params then the frames needs to be processed again
 		Boolean changed = (rad != radius || cut != cutoff  || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();        		
-		setUserDefinedParameters(cut, per, rad, intThreshold);//, sigma_fac);
+		setUserDefinedParameters(cut, per, rad, intThreshold,absolute);//, sigma_fac);
 		return changed;
 	}
 	

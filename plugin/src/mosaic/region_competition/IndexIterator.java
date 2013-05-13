@@ -13,7 +13,21 @@ public class IndexIterator
 	 * 
 	 * @param dims integer array of dimensions (width/height/depth/...)
 	 */
+	public IndexIterator(long[] dims)
+	{
+		init(dims);
+	}
+	
+	/**
+	 * 
+	 * @param dims integer array of dimensions (width/height/depth/...)
+	 */
 	public IndexIterator(int[] dims)
+	{
+		init(dims);
+	}
+	
+	private void init(int[] dims)
 	{
 		dimensions = dims.clone();
 		dim = dimensions.length;
@@ -25,11 +39,24 @@ public class IndexIterator
 		}
 	}
 
+	private void init(long[] dims)
+	{
+		dim = dims.length;
+		dimensions = new int [dims.length];
+		for (int i = 0 ; i < dims.length ; i++) {dimensions[i] = (int)dims[i];}
+		
+		size=1;
+		for(int i=0; i<dim; i++)
+		{
+			size*=dimensions[i];
+		}
+	}
+	
 	/**
 	 * 
 	 * @return total number of pixels = width*height*...
 	 */
-	int getSize()
+	public int getSize()
 	{
 		return size;
 	}
@@ -39,7 +66,7 @@ public class IndexIterator
 	 * @param p Point index
 	 * @return integer index
 	 */
-	int pointToIndex(Point p)
+	public int pointToIndex(Point p)
 	{
 		// TODO test
 	
@@ -58,7 +85,7 @@ public class IndexIterator
 	 * @param idx integer index
 	 * @return Point index
 	 */
-	Point indexToPoint(int idx)
+	public Point indexToPoint(int idx)
 	{
 		int index=idx;
 		int x[] = new int[this.dim];
@@ -88,7 +115,7 @@ public class IndexIterator
 	 * @param p Point index
 	 * @return true, if Point is within bounds of this Iterator
 	 */
-	boolean isInBound(Point p)
+	public boolean isInBound(Point p)
 	{
 		for(int d=0; d<dim; d++)
 		{
@@ -100,18 +127,6 @@ public class IndexIterator
 		return true;
 	}
 	
-	
-	public Iterable<Point> getPointIterable()
-	{
-		return new Iterable<Point>() {
-
-			@Override
-			public Iterator<Point> iterator()
-			{
-				return getPointIterator();
-			}
-		};
-	}
 	
 	public Iterator<Point> getPointIterator()
 	{
@@ -139,17 +154,23 @@ public class IndexIterator
 		};
 	}
 	
-	public Iterable<Integer> getIndexIterable()
+	
+	/**
+	 * Iterable for extended for-loops
+	 * @return Iterable<Point>
+	 */
+	public Iterable<Point> getPointIterable()
 	{
-		return new Iterable<Integer>() {
+		return new Iterable<Point>() {
 
 			@Override
-			public Iterator<Integer> iterator()
+			public Iterator<Point> iterator()
 			{
-				return getIndexIterator();
+				return getPointIterator();
 			}
 		};
 	}
+	
 	
 	public Iterator<Integer> getIndexIterator()
 	{
@@ -174,6 +195,23 @@ public class IndexIterator
 			public void remove()
 			{
 				// not needed
+			}
+		};
+	}
+	
+	
+	/**
+	 * Iterable for extended for-loops, returns Integer indexes
+	 * @return Iterable<Integer>
+	 */
+	public Iterable<Integer> getIndexIterable()
+	{
+		return new Iterable<Integer>() {
+
+			@Override
+			public Iterator<Integer> iterator()
+			{
+				return getIndexIterator();
 			}
 		};
 	}

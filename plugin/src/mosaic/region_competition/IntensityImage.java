@@ -1,17 +1,19 @@
 package mosaic.region_competition;
 
-import ij.IJ;
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
+import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.type.numeric.real.FloatType;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.Macro;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
-import ij.process.StackStatistics;
 
 public class IntensityImage
 {
-	
 	public float[] dataIntensity;
 	IndexIterator iterator;
 	public ImagePlus imageIP;
@@ -21,6 +23,133 @@ public class IntensityImage
 	private int dim;
 	private int[] dimensions;
 	private int size;
+	
+	public boolean isOutOfBound(Point p)
+	{
+		for (int i = 0 ; i < p.x.length ; i++)
+		{if (p.x[i] < 0) return true; if (p.x[i] >= dimensions[i]) return true;}
+		return false;
+	}
+	
+	public int getDim()
+	{
+		return dim;
+	}
+	
+	public static int[] dimensionsFromIS(ImageStack ip)
+	{
+		// IJ 1.46r bug, force to update internal dim 
+		// call before getNDimensions() or it won't return the correct value
+		int nsl = ip.getSize();
+		int dim;
+		
+		if (nsl != 1)
+		{dim = 3;}
+		else
+		{dim = 2;}
+		
+		int[] dims = new int[dim];
+		
+		dims[0]=ip.getWidth();
+		dims[1]=ip.getHeight();
+		if(dim==3)
+		{
+			dims[2]=ip.getSize();
+		}
+		
+		return dims;
+	}
+	
+	public static Img <FloatType> convertToImg(ImageStack stack)
+	{	
+		ImageProcessor proc = stack.getProcessor(1);
+		Object test = proc.getPixels();
+		if(! (test instanceof float[]))
+		{
+			throw new RuntimeException("ImageProcessor has to be of type FloatProcessor");
+		}
+		
+//		int[] dims = dimensionsFromIP(ip);
+//		initDimensions(dims);
+		
+//		this.imageIP = normalize(ip);
+		
+		ImgFactory< FloatType > imgFactory = new ArrayImgFactory< FloatType >();
+		
+		int[] dims = dimensionsFromIS(stack);
+		Img<FloatType> dataIntensity = imgFactory.create(dims, new FloatType());
+		
+		/* Get image iterator to set pixels */
+		
+		RandomAccess<FloatType> vCrs = dataIntensity.randomAccess();
+		
+		int nSlices = stack.getSize();
+		float[] pixels;
+		int crd[] = new int [dims.length];
+		if (dims.length == 3)
+		{
+			for(int i=1; i<=nSlices; i++)
+			{
+				crd[2] = i-1;
+				pixels = (float[])stack.getPixels(i);
+				for(int y=0; y<dims[1]; y++)
+				{
+					crd[1] = y;
+					for(int x=0; x<dims[0]; x++)
+					{
+						crd[0] = x;
+						vCrs.setPosition(crd);
+						vCrs.get().set(pixels[y*dims[0]+x]);
+					}
+				}
+			}
+		}
+		else
+		{
+			pixels = (float[])stack.getPixels(1);
+			for(int y=0; y<dims[1]; y++)
+			{
+				crd[1] = y;
+				for(int x=0; x<dims[0]; x++)
+				{
+					crd[0] = x;
+					vCrs.setPosition(crd);
+					vCrs.get().set(pixels[y*dims[0]+x]);
+				}
+			}
+		}
+		
+		return dataIntensity;
+	}
+	
+	public static float volume_image(Img <FloatType> img)
+	{
+		float Vol = 0.0f;
+		Cursor<FloatType> cur = img.cursor();
+		
+		while( cur.hasNext() )
+		{
+			cur.fwd();
+			
+			Vol += cur.get().get();
+			
+		}
+		
+		return Vol;
+	}
+	
+	public static void rescale_image(Img <FloatType> img,float r)
+	{		
+		Cursor<FloatType> cur = img.cursor();
+		
+		while( cur.hasNext() )
+		{
+			cur.fwd();
+			
+			cur.get().set((float)cur.get().get()*r);
+			
+		}			
+	}
 	
 	public IntensityImage(ImagePlus ip)
 	{
@@ -64,7 +193,7 @@ public class IntensityImage
 		}
 		
 		
-		int nSlices = ip.getNSlices();
+		int nSlices = ip.getStackSize();
 		int area = width*height;
 		
 		dataIntensity = new float[size];
@@ -114,10 +243,18 @@ public class IntensityImage
 		
 		double range = maximum-minimum;
 		
+		if (range == 0.0)
+		{
+			if (maximum != 0.0)
+			{range = maximum; minimum = 0.0;}
+			else
+			{range = 1.0; minimum = 0.0;}
+		}
+		
 		for(int i=1; i<=nSlices; i++)
 		{
 			ImageProcessor p = stack.getProcessor(i);
-			p.setColorModel(null); // force IJ to directly convert to float (else it would first go to RGB)
+//			p.setColorModel(null); // force IJ to directly convert to float (else it would first go to RGB)
 			FloatProcessor fp = (FloatProcessor)p.convertToFloat();
 			fp.subtract(minimum);
 			fp.multiply(1.0/range);
@@ -148,12 +285,20 @@ public class IntensityImage
 	/**
 	 * returns the image data of the originalIP at Point p
 	 */
-	public float getIntensity(Point p)
+	public float get(Point p)
 	{
-		return getIntensity(iterator.pointToIndex(p));
+		return get(iterator.pointToIndex(p));
 	}
 	
-	public float getIntensity(int idx)
+	public float getSafe(Point p)
+	{
+		for (int i = 0 ; i < p.x.length ; i++)	
+		{if (p.x[i] < 0) return 0.0f; if (p.x[i] >= dimensions[i]) return 0.0f;}
+		
+		return get(iterator.pointToIndex(p));
+	}
+	
+	public float get(int idx)
 	{
 		return dataIntensity[idx];
 	}
@@ -168,7 +313,7 @@ public class IntensityImage
 	{
 		// IJ 1.46r bug, force to update internal dim 
 		// call before getNDimensions() or it won't return the correct value
-		ip.getNSlices(); 
+		ip.getStackSize(); 
 		
 		int dim = ip.getNDimensions();
 		int[] dims = new int[dim];
@@ -179,7 +324,7 @@ public class IntensityImage
 		}
 		if(dim==3)
 		{
-			dims[2]=ip.getNSlices();
+			dims[2]=ip.getStackSize();
 		}
 		
 		return dims;

@@ -302,7 +302,6 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 	        gd.addNumericField("Cutoff", 3.0, 1);
 //	        gd.addNumericField("Percentile", 0.001, 5);
 	        gd.addNumericField("Percentile", 0.1, 5, 6, "%");
-	       
 	        
 	        gd.addPanel(makePreviewPanel(), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));
 	        // initialize ImageStack stack
@@ -1541,7 +1540,7 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 			ImageStatistics stats = ImageStatistics.getStatistics(ip, MIN_MAX, null);
 			float min = (float)stats.min;
 			float max = (float)stats.max;
-
+			
 			double[] hist = new double[256];
 			for (i = 0; i< hist.length; i++) {
 				hist[i] = 0;

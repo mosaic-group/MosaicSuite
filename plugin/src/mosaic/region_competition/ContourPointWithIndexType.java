@@ -15,7 +15,9 @@ class ContourPointWithIndexType implements Comparable<ContourPointWithIndexType>
 		// !!!!!!! TODO ascending / descending
 		if (this.p.energyDifference > o.p.energyDifference)
 			return 1;
-		else
+		else if (this.p.energyDifference < o.p.energyDifference)
 			return -1;
+		else
+			return 0;
 	}
 }

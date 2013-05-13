@@ -1,35 +1,42 @@
 package mosaic.region_competition;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.EventListener;
+
+import mosaic.region_competition.energies.EnergyFunctionalType;
+import mosaic.region_competition.energies.RegularizationType;
+import mosaic.region_competition.initializers.InitializationType;
 
 public class Settings implements Serializable
 {
-	private static final long serialVersionUID = 1526978719506239136L;
+	private static final long serialVersionUID = 1777976540627904860L;
 	
-	
-	
-	public EnergyFunctionalType m_EnergyFunctional = EnergyFunctionalType.e_CV;
 	public int m_MaxNbIterations = 300;
+	public boolean shrinkFirstOnly = false;
+
+	public EnergyFunctionalType m_EnergyFunctional = EnergyFunctionalType.e_PC;
+	public int m_GaussPSEnergyRadius=8;
 
 	public float m_RegionMergingThreshold = 0.02f;
 
-	public boolean m_RemoveNonSignificantRegions = true;
-	public 	int m_AreaThreshold = 2;
-
 	public float m_BalloonForceCoeff = 0.0f;
+	public final float default_PSballoonForceCoeff = 0.05f;
 	public float m_ConstantOutwardFlow = 0.0f;
 
-	public boolean m_EnergyUseCurvatureRegularization = true;
+	
+	public RegularizationType regularizationType = RegularizationType.Sphere_Regularization;
 	public float m_CurvatureMaskRadius = 8;
 	public float m_EnergyContourLengthCoeff = 0.04f; // 0.04;//0.003f;
+	public boolean m_RemoveNonSignificantRegions = true;
+	public int m_AreaThreshold = 1;
 
-	
-	public int m_GaussPSEnergyRadius=16;
-	
-	public int m_OscillationHistoryLength = 20;
-
+	public int m_OscillationHistoryLength = 10;
 	public float m_AcceptedPointsFactor = 1;
 	public float m_AcceptedPointsReductionFactor = 0.5f;
+	
+	public InitializationType labelImageInitType = InitializationType.Bubbles;
+
 
 //	private float m_SigmaOfLoGFilter = 2.f;
 	// / Pushes the curve towards edges in the image
@@ -43,9 +50,44 @@ public class Settings implements Serializable
 	public boolean m_AllowHandles = true;
 //	private boolean m_UseRegionCompetition = true;
 //	private boolean m_UseForbiddenRegion = false;
-//	private boolean m_UseGaussianPSF = true;
+	public boolean m_UseGaussianPSF = true;
 	public boolean m_UseShapePrior = false;
 //	private boolean m_UseFastEvolution = false;
 //	private int m_LocalLiEnergySigma = 5;
-
+	public double m_OscillationThreshold = 0.02;
+	
+	public String m_PSFImg;
+	public int m_BubblesRadius = 10;
+	public int m_BubblesDispl = 10;
+	
+	public int l_BubblesRadius = 5;
+	public int l_Sigma = 2;
+	public double l_Tolerance = 0.005;
+	public int l_RegionTolerance = 4;
+	
+	// SettingsListener ////////////////////////////////
+	// To update values on the fly
+	
+	public static interface SettingsListener extends EventListener
+	{
+		public void settingsChanged(Settings settings);
+	}
+	
+	ArrayList<SettingsListener> listeners = new ArrayList<Settings.SettingsListener>();
+	public void addSettingsListener(SettingsListener listener)
+	{
+		listeners.add(listener);
+	}
+	
+	public void settingsChanged()
+	{
+		for(SettingsListener l : listeners)
+		{
+			l.settingsChanged(this);
+		}
+	}
+	
 }
+
+
+

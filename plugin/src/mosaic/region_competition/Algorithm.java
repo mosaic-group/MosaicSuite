@@ -1,4 +1,6 @@
 package mosaic.region_competition;
+
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,21 +11,44 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
+import net.imglib2.Cursor;
+import net.imglib2.exception.IncompatibleTypeException;
+import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.io.ImgIOException;
+import net.imglib2.io.ImgOpener;
+import net.imglib2.type.numeric.real.FloatType;
+
+import mosaic.plugins.Generate_PSF;
 import mosaic.plugins.Region_Competition;
+import mosaic.region_competition.LabelDispenser.LabelDispenserInc;
+import mosaic.region_competition.energies.EnergyFunctionalType;
+import mosaic.region_competition.energies.Energy.EnergyResult;
+import mosaic.region_competition.energies.ImageModel;
+import mosaic.region_competition.energies.OscillationDetection;
+import mosaic.region_competition.energies.OscillationDetection2;
+import mosaic.region_competition.topology.Connectivity;
+import mosaic.region_competition.topology.TopologicalNumberImageFunction;
+import mosaic.region_competition.topology.TopologicalNumberImageFunction.TopologicalNumberResult;
+import mosaic.region_competition.utils.Pair;
+import mosaic.region_competition.utils.Timer;
+import mosaic.region_competition.energies.*;
 
+import ij.IJ;
+import ij.ImageStack;
 import ij.measure.ResultsTable;
-
-/*
-//TODO TODOs
-- refactor LabelImage, extract what's not supposed to be there (eg energy calc)
-- does merging criterion have to be testet multiple times?
-*/
 
 public class Algorithm
 {
+	boolean shrinkFirst=false;
+	
+	
 	private Region_Competition MVC; 	/** interface to image program */
 	private LabelImage labelImage;
 	private IntensityImage intensityImage;
+	private ImageModel imageModel;
 	
 	
 	
@@ -39,12 +64,16 @@ public class Algorithm
 	// data structures
 	
 	/** stores the contour particles. access via coordinates */
-	HashMap<Point, ContourParticle> m_InnerContourContainer;
+	public HashMap<Point, ContourParticle> m_InnerContourContainer;
 	private HashMap<Point, ContourParticle> m_Candidates;
 	
 	/** Maps the label(-number) to the information of a label */
 	HashMap<Integer, LabelInformation> labelMap;
+	
+	/** Deconvolution Image **/
 
+	Img <FloatType> devImage;
+	
 	private HashMap<Point, LabelPair> m_CompetingRegionsMap;
 	
 	private Connectivity connFG;
@@ -52,34 +81,38 @@ public class Algorithm
 	private TopologicalNumberImageFunction m_TopologicalNumberFunction;
 	private ForestFire forestFire;
 
-	private List<Integer> m_MergingHist;
-	private List<Integer> m_FramesHist;
+//	private List<Integer> m_MergingHist;
+//	private List<Integer> m_FramesHist;
 	
 	private Set<Pair<Point, Integer>> m_Seeds = new HashSet<Pair<Point, Integer>>();
+	
 	
 	/**
 	 * creates a new LabelImage with size of ip
 	 * @param proc is saved as originalIP
 	 */
-	public Algorithm(IntensityImage intensityImage, LabelImage labelImage, Settings settings, Region_Competition mvc) 
+	public Algorithm(IntensityImage intensityImage, LabelImage labelImage, ImageModel model, Settings settings, Region_Competition mvc) 
 	{
+		
+		if(shrinkFirst)
+			IJ.showMessage("shrinkfirst=true");
 
 		this.MVC = mvc;
 		this.labelImage = labelImage;
 		this.intensityImage = intensityImage;
-//		dataLabel = labelImage.dataLabel;
+		this.imageModel = model;
+		
 		this.settings=settings;
 		
 		bgLabel = labelImage.bgLabel;
 		forbiddenLabel = labelImage.forbiddenLabel;
 		
-//		dataIntensity = intensityImage.dataIntensity;
-//		initIntensityData();
-		
 		iterator = labelImage.iterator;
 		
 		connFG = labelImage.getConnFG();
 		connBG = labelImage.getConnBG();
+		
+		labelMap = labelImage.getLabelMap();
 		
 		initMembers();
 		
@@ -94,21 +127,18 @@ public class Algorithm
 	public Settings settings;
 	
     boolean m_converged;
-    float m_AcceptedPointsFactor;
+    public float m_AcceptedPointsFactor;
     int m_iteration_counter; // member for debugging
     
-    int m_OscillationsNumberHist[];
-    double m_OscillationsEnergyHist[];
-    
-    EnergyFunctionalType m_EnergyFunctional;
-    int m_OscillationHistoryLength;
+//    int m_OscillationsNumberHist[];
+//    double m_OscillationsEnergyHist[];
+//    
+//    public int m_OscillationHistoryLength;
+    OscillationDetection oscillationDetection;
 
+    EnergyFunctionalType m_EnergyFunctional;
 	private int m_MaxNLabels;
-    
-	private SphereBitmapImageSource sphereMaskIterator; // regularization
 	
-	private SphereBitmapImageSource m_SphereMaskForLocalEnergy;
-	int m_GaussPSEnergyRadius;
     
 	// ///////////////////////////////////////////////////
 
@@ -120,35 +150,25 @@ public class Algorithm
 		
 		m_InnerContourContainer = new HashMap<Point, ContourParticle>();
 		m_Candidates = new HashMap<Point, ContourParticle>();
-		labelMap = new HashMap<Integer, LabelInformation>();
+//		labelMap = new HashMap<Integer, LabelInformation>();
 		m_CompetingRegionsMap = new HashMap<Point, LabelPair>();
     	
 		m_TopologicalNumberFunction = new TopologicalNumberImageFunction(labelImage, connFG, connBG);
 		forestFire = new ForestFire(this, labelImage, intensityImage);
 		
-    	sphereMaskIterator = new SphereBitmapImageSource(labelImage, (int)settings.m_CurvatureMaskRadius, 2*(int)settings.m_CurvatureMaskRadius+1);
-    	m_GaussPSEnergyRadius=settings.m_GaussPSEnergyRadius;
-    	m_SphereMaskForLocalEnergy = new SphereBitmapImageSource(labelImage, m_GaussPSEnergyRadius, 2*m_GaussPSEnergyRadius+1);
-
-    	
     	//TODO half dummy
         m_EnergyFunctional = settings.m_EnergyFunctional;
-        m_OscillationHistoryLength = settings.m_OscillationHistoryLength;
-    	//END half dummy
+        //END half dummy
+        
+//        m_OscillationHistoryLength = settings.m_OscillationHistoryLength;
+		oscillationDetection = new OscillationDetection2(this, settings);
     	
     	m_iteration_counter = 0;
     	m_converged = false;
     	m_AcceptedPointsFactor = settings.m_AcceptedPointsFactor;
     	
-        m_OscillationsNumberHist = new int[m_OscillationHistoryLength];
-        m_OscillationsEnergyHist = new double[m_OscillationHistoryLength];
-    	
-		for(int vI = 0; vI < m_OscillationHistoryLength; vI++) {
-			m_OscillationsNumberHist[vI] = 0;
-			m_OscillationsEnergyHist[vI] = 0;
-		}
-		
 		labelDispenser = new LabelDispenser(10000);
+		labelDispenser = new LabelDispenserInc();
 		m_MaxNLabels=0;
     }
 	
@@ -177,7 +197,7 @@ public class Algorithm
 					{
 						ContourParticle particle = new ContourParticle();
 						particle.label=label;
-						particle.intensity=intensityImage.getIntensity(i);
+						particle.intensity=intensityImage.get(i);
 						m_InnerContourContainer.put(p, particle);
 						
 						break;
@@ -211,7 +231,6 @@ public class Algorithm
 		m_MaxNLabels = 0;
 	}
 	
-	
 	/**
 	 * as computeStatistics, does not use iterative approach
 	 * (first computes sum of values and sum of values^2)
@@ -244,28 +263,47 @@ public class Algorithm
 					stats = new LabelInformation(absLabel);
 					labelMap.put(absLabel, stats);
 				}
-				double val = intensityImage.getIntensity(i);
+				double val = intensityImage.get(i);
 				stats.count++;
 				
 				stats.mean+=val; // only sum up, mean and var are computed below
-				stats.setVar(stats.var+val*val);
+				stats.var = (stats.var+val*val);
 			}
 		}
 
+		// if background label do not exist add it
+		
+		LabelInformation stats = labelMap.get(0);
+		if(stats==null)
+		{
+			stats = new LabelInformation(0);
+			labelMap.put(0, stats);
+		}
 		
 		// now we have in all LabelInformation: 
 		// in mean the sum of the values, in var the sum of val^2
 		for(LabelInformation stat: labelMap.values())
 		{
 			int n = stat.count;
-            if (n > 1) {
-            	double var = (stat.var-stat.mean*stat.mean/n)/(n-1);
-            	stat.setVar(var);
-//                stat.var = (stat.var - stat.mean*stat.mean / n) / (n-1);
-            } else {
-                stat.var = 0;
-            }
-            stat.mean = stat.mean/n;
+			if (n > 1)
+			{
+				double var = (stat.var-stat.mean*stat.mean/n)/(n-1);
+				stat.var=(var);
+//      	        	stat.var = (stat.var - stat.mean*stat.mean / n) / (n-1);
+			}
+			else
+			{
+				stat.var = 0;
+			}
+			
+			if (n > 0)
+				stat.mean = stat.mean/n;
+			else
+				stat.mean = 0.0;
+			
+			// Median on start set equal to mean
+			
+			stat.median = stat.mean;
 		}
 		
         m_MaxNLabels++; // this number points to the a free label.
@@ -323,7 +361,7 @@ public class Algorithm
 		/**
 		 * Depending on the functional to use, prepare stuff for faster computation.
 		 */
-		// PrepareEnergyCaluclation();
+		 PrepareEnergyCaluclation();
 
 		/**
 		 * Start time measurement
@@ -357,14 +395,21 @@ public class Algorithm
 				}
 			}
 			
-			
 			m_iteration_counter++;
 			debug("=== iteration " + m_iteration_counter+" ===");
-
 			// std::cout << "number of points: "<<m_InnerContourContainer.size() << std::endl;
 			// m_ManyPointsToBeAdded.clear();
 			// m_ManyPointsToBeDeleted.clear();
 			vConvergence = DoOneIteration();
+			debug("time: "+timer.toc());
+			
+			if(shrinkFirst && vConvergence)
+			{
+				debug("Done with shrinking, now allow growing");
+				vConvergence=false;
+				shrinkFirst=false;
+				m_AcceptedPointsFactor = settings.m_AcceptedPointsFactor;
+			}
 
 			
 //			labelImage.displaySlice("iteration " + m_iteration_counter);
@@ -405,6 +450,89 @@ public class Algorithm
 	}
 
 
+	private void PrepareEnergyCaluclation()
+	{
+        /**
+         * Deconvolution:
+         * - prepare the PSF (if not set manually by the user)
+         * - Alocate and initialize the 'ideal image'
+         */
+        if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) 
+        {
+
+        	ImageStack gPsfIS = new ImageStack();
+            if (settings.m_UseGaussianPSF)
+            {
+                // Here, no PSF has been set by the user. Hence, a Gaussian
+                // approximation is used.
+
+            	Generate_PSF gPsf = new Generate_PSF();
+            	gPsf.setParametersGUI();
+            	gPsf.hideResult(true);
+            	gPsf.setup(null, null);
+            	if (intensityImage.getDim() == 2)
+            		gPsfIS = gPsf.getGauss2DPsf();
+            	else
+            		gPsfIS = gPsf.getGauss3DPsf();
+            	
+            	Img<FloatType> tmp = IntensityImage.convertToImg(gPsfIS);
+				float Vol = IntensityImage.volume_image(tmp);
+				IntensityImage.rescale_image(tmp,1.0f/Vol);
+            	
+				// Show PSF Image
+				
+				ImageJFunctions.show(tmp);
+				
+            	((E_Deconvolution)imageModel.getEdata()).setPSF(tmp);
+            	((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
+            }
+            else
+            {
+                File file = new File( settings.m_PSFImg );
+                
+                // open with ImgOpener using an ArrayImgFactory, here the return type will be
+                // defined by the opener
+                // the opener will ignore the Type of the ArrayImgFactory
+                
+                ImgFactory< FloatType > imgFactory = new ArrayImgFactory< FloatType >();
+                Img<FloatType> tmp = null;
+				try 
+				{
+					tmp = new ImgOpener().openImg( file.getAbsolutePath(), imgFactory , new FloatType() );
+					float Vol = IntensityImage.volume_image(tmp);
+					IntensityImage.rescale_image(tmp,1.0f/Vol);
+					Vol = IntensityImage.volume_image(tmp);
+				}
+				catch (Exception e)
+				{
+					
+				}
+				
+				///////////////////////////////////
+				
+				ImageJFunctions.show(tmp);
+                ((E_Deconvolution)imageModel.getEdata()).setPSF(tmp);
+                ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
+            }
+
+            //            InternalImageType::Pointer vIdealImage = InternalImageType::New();
+            //            vIdealImage->SetRequestedRegion(m_LabelImage->GetRequestedRegion());
+            //            vIdealImage->SetLargestPossibleRegion(m_LabelImage->GetLargestPossibleRegion());
+            //            vIdealImage->SetBufferedRegion(m_LabelImage->GetBufferedRegion());
+            //            vIdealImage->Allocate();
+
+            /// First, generate a rough estimate of the model image using the means
+            /// as an intensity estimate. In a second step refine the estimates
+            /// in RenewDeconvolutionStatistics().
+
+            
+            ((E_Deconvolution)imageModel.getEdata()).RenewDeconvolution(labelImage);
+        }
+	}
+
+
+
+
 	boolean DoOneIteration()
 	{
 	
@@ -414,7 +542,7 @@ public class Algorithm
 		if(m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC && m_iteration_counter % 1 == 0)
 		{
 			// TODO sts
-			// RenewDeconvolutionStatistics(m_LabelImage, this->GetDataInput());
+			((E_Deconvolution)imageModel.getEdata()).RenewDeconvolution(labelImage);
 		}
 
 		if(settings.m_UseShapePrior)
@@ -436,54 +564,63 @@ public class Algorithm
 //		debug("labelmap: "+labelMap.size());
 //		debug("dispenser: "+labelDispenser.labels.size());
 
+		MVC.showStatus("Done");
 		return vConvergenceA;
 	}
 	
  
-	/**
-	 * comments with // on the left border are itk-code-fragments to check correctness of java translation
-	 * comments with indentation and/or triple-/// is commented code from itk
-	 */
+
 	boolean IterateContourContainerAndAdd()
 	{
-		/// Convergence is set to false if a point moved:
-		boolean vConvergence = true;
-		
 		m_Candidates.clear();
 		m_Seeds.clear();
+		
+		// Convergence is set to false if a point moved
+		boolean convergence;
 
-
-		/// clear the competing regions map, it will be refilled in RebuildCandidateList: (via CalculateEnergyDifferenceForLabel)
+		/// clear the competing regions map, it will be refilled in RebuildCandidateList:
 		m_CompetingRegionsMap.clear();
 		
+		MVC.showStatus("Rebuild Candidates");
 		RebuildCandidateList(m_Candidates);
+		
+		MVC.showStatus("Filter Candidates");
 		FilterCandidates(m_Candidates);
-		DetectOscillations(m_Candidates); 
+		
+		MVC.showStatus("Detect Oscillations");
+		DetectOscillations(m_Candidates);
 
+        FilterCandidatesContainerUsingRanks(m_Candidates);
+        
+        MVC.showStatus("Move Points");
+        convergence = MoveCandidates(m_Candidates);
 
-		/**
-		 * Intermediate step: filter the candidates according to their rank
-		 * and spatial position.
-		 */
-        if(m_AcceptedPointsFactor < 0.99) 
-        {
-            FilterCandidatesContainerUsingRanks(m_Candidates);
-        }
+		return convergence;
+	}
+
+	/**
+	 * Move the points in the candidate list
+	 * @param m_Candidates
+	 * @return 
+	 */
+	boolean MoveCandidates(HashMap<Point, ContourParticle> m_Candidates)
+	{
 
         /**
          * Move all the points that are simple. Non simple points remain in the
          * candidates list.
          */
-		        
 	
         /// We first move all the FG-simple points. This we do because it happens
         /// that points that are not simple at the first place get simple after
         /// the change of other points. The non-simple points will be treated
         /// in a separate loop afterwards.
-		
+        
         boolean vChange = true;
-		List<Pair<Integer, Pair<Integer, Integer>>> vFGTNvector;
-		        
+        boolean vConvergence = true;
+        
+		List<TopologicalNumberResult> vFGTNvector;
+
 		while(vChange && !m_Candidates.isEmpty()) 
 		{
 			vChange = false;
@@ -497,9 +634,9 @@ public class Algorithm
 				vFGTNvector = m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex);
 				boolean vSimple = true;
 				// / Check for FG-simplicity:
-				for(Pair<Integer, Pair<Integer, Integer>> vTopoNbItr : vFGTNvector) 
+				for(TopologicalNumberResult vTopoNbItr : vFGTNvector) 
 				{
-					if(vTopoNbItr.second.first != 1 || vTopoNbItr.second.second != 1) {
+					if(vTopoNbItr.topologicalNumberPair.FGNumber!= 1 || vTopoNbItr.topologicalNumberPair.BGNumber != 1) {
 						// This is a FG simple point; perform the move.
 						vSimple = false;
 //						debug("0");
@@ -533,105 +670,109 @@ public class Algorithm
 		
 		Iterator<Entry<Point, ContourParticle>> vPointIterator = m_Candidates.entrySet().iterator();
 		
+		while(vPointIterator.hasNext())
+		{
+			Entry<Point, ContourParticle> e = vPointIterator.next();
+			ContourParticle vStoreIt = e.getValue();
+			Point vCurrentIndex = e.getKey();
 
-			while(vPointIterator.hasNext())
-			{
-				Entry<Point, ContourParticle> e = vPointIterator.next();
-				ContourParticle vStoreIt = e.getValue();
-				Point vCurrentIndex = e.getKey();
-	
-				int vCurrentLabel = vStoreIt.label;
-				int vCandidateLabel = vStoreIt.candidateLabel;
-	
-				boolean vValidPoint = true;
-	
-				vFGTNvector = (m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex));
+			int vCurrentLabel = vStoreIt.label;
+			int vCandidateLabel = vStoreIt.candidateLabel;
 
-                /// Check for handles:
-                /// if the point was not disqualified already and we disallow
-                /// introducing handles (not only self fusion!), we check if
-                /// there is an introduction of a handle.
-				
-                if (vValidPoint && !settings.m_AllowHandles) 
+			boolean vValidPoint = true;
+
+			vFGTNvector = (m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex));
+
+            /// Check for handles:
+            /// if the point was not disqualified already and we disallow
+            /// introducing handles (not only self fusion!), we check if
+            /// there is an introduction of a handle.
+			
+            if (vValidPoint && !settings.m_AllowHandles) 
+            {
+                for (TopologicalNumberResult vTopoNbItr : vFGTNvector ) 
                 {
-                    for (Pair<Integer, Pair<Integer, Integer>> vTopoNbItr : vFGTNvector ) 
-                    {
-                        if (vTopoNbItr.first == vCandidateLabel) {
-                            if (vTopoNbItr.second.first > 1) {
-                                vValidPoint = false;
-                                //break;
-                            }
-                        }
-
-                        /// criterion to detect surface points (only 3D?)
-                        if (vTopoNbItr.second.first == 1 && vTopoNbItr.second.second > 1) {
+                    if (vTopoNbItr.label == vCandidateLabel) {
+                        if (vTopoNbItr.topologicalNumberPair.FGNumber> 1) {
                             vValidPoint = false;
                             //break;
                         }
                     }
+
+                    /// criterion to detect surface points (only 3D?)
+                    if (vTopoNbItr.topologicalNumberPair.FGNumber == 1 && vTopoNbItr.topologicalNumberPair.BGNumber > 1) {
+                        vValidPoint = false;
+                        //break;
+                    }
                 }
+            }
 
-                /// Check for splits:
-                /// This we have to do either to forbid
-                /// the change in topology or to register the seed point for
-                /// relabeling.
-                /// if the point was not disqualified already and we disallow
-                /// splits, then we check if the 'old' label undergoes a split.
-				if(vValidPoint) 
+            /// Check for splits:
+            /// This we have to do either to forbid
+            /// the change in topology or to register the seed point for
+            /// relabeling.
+            /// if the point was not disqualified already and we disallow
+            /// splits, then we check if the 'old' label undergoes a split.
+			if(vValidPoint) 
+			{
+				// - "allow introducing holes": T_FG(x, L = l') > 1
+				// - "allow splits": T_FG > 2 && T_BG == 1
+				boolean vSplit = false;
+				for(TopologicalNumberResult vTopoNbItr : vFGTNvector) 
 				{
-					// - "allow introducing holes": T_FG(x, L = l') > 1
-					// - "allow splits": T_FG > 2 && T_BG == 1
-					boolean vSplit = false;
-					for(Pair<Integer, Pair<Integer, Integer>> vTopoNbItr : vFGTNvector) 
-					{
-						if(vTopoNbItr.first == vCurrentLabel) {
-							if(vTopoNbItr.second.first > 1) {
-								vSplit = true;
-							}
-						}
-					}
-					if(vSplit) 
-					{
-						if(settings.m_AllowFission)
-						{
-							RegisterSeedsAfterSplit(this, vCurrentIndex, vCurrentLabel, m_Candidates);
-						} else {
-							/// disallow the move.	
-							vValidPoint = false;
+					if(vTopoNbItr.label == vCurrentLabel) {
+						if(vTopoNbItr.topologicalNumberPair.FGNumber > 1) {
+							vSplit = true;
 						}
 					}
 				}
-				
-				if(!vValidPoint) {
-					// m_Candidates.erase(vStoreIt);
-					vPointIterator.remove();
-				}
-				
-                /// If the move doesn't change topology or is allowed (and registered
-                /// as seed) to change the topology, perform the move (in the
-                /// second iteration; in the first iteration seed points need to
-                /// be collected):
-
-				if (vValidPoint) {
-					ChangeContourPointLabelToCandidateLabel(e);
-					vConvergence = false;
-					
-					if(e.getValue().m_processed) 
+				if(vSplit) 
+				{
+					if(settings.m_AllowFission)
 					{
 						RegisterSeedsAfterSplit(this, vCurrentIndex, vCurrentLabel, m_Candidates);
-						boolean wasContained = m_Seeds.remove(new Pair<Point,Integer>(vCurrentIndex, vCurrentLabel));
-						if(!wasContained)
-						{
-							throw new RuntimeException("no seed in set");
-						}
+					} else {
+						/// disallow the move.	
+						vValidPoint = false;
 					}
 				}
+			}
+			
+			if(!vValidPoint) {
+				// m_Candidates.erase(vStoreIt);
+				vPointIterator.remove();
+			}
+			
+            /// If the move doesn't change topology or is allowed (and registered
+            /// as seed) to change the topology, perform the move (in the
+            /// second iteration; in the first iteration seed points need to
+            /// be collected):
 
-				/// safely remove the last element BEFORE the iterator
-				//                    m_Candidates.erase(vStoreIt);
-				vPointIterator.remove();                
+			if (vValidPoint) {
+				ChangeContourPointLabelToCandidateLabel(e);
+				vConvergence = false;
+				
+				if(e.getValue().m_processed) 
+				{
+					RegisterSeedsAfterSplit(this, vCurrentIndex, vCurrentLabel, m_Candidates);
+					boolean wasContained = m_Seeds.remove(new Pair<Point,Integer>(vCurrentIndex, vCurrentLabel));
+					if(!wasContained)
+					{
+						throw new RuntimeException("no seed in set");
+					}
+				}
+			}
 
-			} // while(vPointIterator.hasNext())
+			/// safely remove the last element BEFORE the iterator
+			//                    m_Candidates.erase(vStoreIt);
+//				vPointIterator.remove();
+//				m_Candidates.remove(vCurrentIndex);
+			if(m_Candidates.containsKey(vCurrentIndex))
+			{
+				vPointIterator.remove();
+			}
+
+		} // while(vPointIterator.hasNext())
 
 		        
         /// Now we filtered non valid points and collected the seeds for
@@ -715,13 +856,14 @@ public class Algorithm
 				// TODO: this can be removed when the statistics are updated using
 				// seeds and flood fill iteartors.
 				//TODO sts
-				// RenewDeconvolutionStatistics(m_LabelImage, this->GetDataInput());
+				((E_Deconvolution)imageModel.getEdata()).RenewDeconvolution(labelImage);
 			}
 		}
 
 		return vConvergence;
 	}
-
+	
+	
 	private void RegisterSeedsAfterSplit(Algorithm aLabelImage, Point aIndex, int aLabel, 
 			HashMap<Point, ContourParticle> aCandidateContainer) {
 
@@ -755,39 +897,7 @@ public class Algorithm
 	 */
 	private void DetectOscillations(HashMap<Point, ContourParticle> m_Candidates)
 	{
-		        
-        double vSum = SumAllEnergies(m_Candidates);
-//        debug("sum of energies: "+vSum);
-		for(int vI = 0; vI < m_OscillationHistoryLength; vI++) 
-		{
-			double vSumOld = m_OscillationsEnergyHist[vI];
-// debug("check nb: " + vAllCandidates.size() + " against " + m_OscillationsNumberHist[0]);
-//			debug("m_Candidates.size()=" + m_Candidates.size()
-//					+ "m_OscillationsNumberHist[vI]="
-//					+ m_OscillationsNumberHist[vI]);
-
-			if(m_Candidates.size() == m_OscillationsNumberHist[vI]
-					&& Math.abs(vSum - vSumOld) <= 1e-5 * Math.abs(vSum)) 
-			{
-				/// here we assume that we're oscillating, so we decrease the
-				/// acceptance factor:
-				debug("nb of accepted points reduced to: " + m_AcceptedPointsFactor);
-				m_AcceptedPointsFactor *= settings.m_AcceptedPointsReductionFactor;
-			}
-		}
-
-		/// Shift the old elements:
-		//TODO sts maybe optimize by modulo list?
-		for (int vI = 1; vI < m_OscillationHistoryLength; vI++) {
-		    m_OscillationsEnergyHist[vI-1] = m_OscillationsEnergyHist[vI];
-		    m_OscillationsNumberHist[vI-1] = m_OscillationsNumberHist[vI];
-		}
-
-		/// Fill the new elements:
-		m_OscillationsEnergyHist[m_OscillationHistoryLength-1] = vSum;
-		m_OscillationsNumberHist[m_OscillationHistoryLength-1] = m_Candidates.size();
-
-		
+		oscillationDetection.DetectOscillations(m_Candidates);
 	}
 
 
@@ -805,34 +915,64 @@ public class Algorithm
         /// (Things get easier afterwards if this is done in advance.)
 		
 		//calculate energy for change to BG (shrinking)
+		int counter = 0;
+		int size = m_InnerContourContainer.size();
 		for(Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) 
 		{
+			MVC.updateProgress(counter++, size);
+			
 			Point vCurrentIndex = vPointIterator.getKey();
 			ContourParticle vVal = vPointIterator.getValue();
-		
-		
+			
 			vVal.candidateLabel = 0;
 			vVal.referenceCount = 0; // doesn't matter for the BG
 			vVal.isMother = true;
 			vVal.isDaughter = false;
 			vVal.m_processed = false;
-			vVal.energyDifference = CalculateEnergyDifferenceForLabel(vCurrentIndex, vVal, bgLabel).first;
+			vVal.energyDifference = CalculateEnergyDifferenceForLabel(vCurrentIndex, vVal, bgLabel).energyDifference;
+//			System.out.println("vVal.energyDifference "+vVal.energyDifference);
 			vVal.getMotherList().clear(); // this is indeed necessary!
 			vVal.getDaughterList().clear(); // this is necessary!!
-
 			vVal.getTestedList().clear();
 			vVal.setLabelHasBeenTested(bgLabel);
+			
+			if(vVal.newlyCreated)
+			{
+				// this point was created in the last iteration, don't delete it in this one. 
+				// if balloon force is set, created pixels tend to disappear again. 
+				// (balloon force boosts particles toward BG - without balloon force, 
+				// deleting them again may be the move with the lowest energy)
+				// so let them at least one round to allow merging 
+				// (if "delete" is the best energy, it will not merge)
+				
+//				vVal.energyDifference = Short.MAX_VALUE;
+			}
 
 			aReturnContainer.put(vCurrentIndex, vVal);
+		}
+		
+
+
+		
+		if(shrinkFirst)
+		{
+	        //        WriteContourPointContainer("contourPointsAfterEnergyCheck.txt", vAllCandidates);
+			return;
 		}
 		
         /// Iterate the contour list and visit all the neighbors in the
         /// FG-Neighborhood.
 		//calculate energy for expanding into neighborhood (growing)
+		counter=0;
+		size = m_InnerContourContainer.size();
 		for(Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) 
 		{
+			MVC.updateProgress(counter++, size);
+			
 			Point vCurrentIndex = vPointIterator.getKey();
 			ContourParticle vVal = vPointIterator.getValue();
+			
+			vVal.newlyCreated = false; 
 
 			int vLabelOfPropagatingRegion = vVal.label;
 			// vLabelImageIterator.SetLocation(vCurrentIndex);
@@ -851,8 +991,16 @@ public class Algorithm
 					Point vNeighborIndex = q;
 
 					// Tell the mother about the daughter:
-					//TODO sinnloser lookup? use vVal instead of aReturnContainer.get(vCurrentIndex)
+					//TODO senseless lookup? use vVal instead of aReturnContainer.get(vCurrentIndex)
 					aReturnContainer.get(vCurrentIndex).getDaughterList().add(vNeighborIndex);
+					
+					//TODO test only
+//						ContourParticle testtest = aReturnContainer.get(vCurrentIndex);
+//						if(testtest!=vVal)
+//						{
+//							System.out.println("Algorithm.RebuildCandidateList()");
+//							throw new RuntimeException("doch kein sinnloser lookup");
+//						}
 		
 					ContourParticle vContourPointItr = aReturnContainer.get(vNeighborIndex);
 					if(vContourPointItr == null) 
@@ -862,14 +1010,16 @@ public class Algorithm
 
 						ContourParticle vOCCValue = new ContourParticle();
 						//itk commented // vOCCValue.m_candidates.insert(vCandidateElement);
+						vOCCValue.newlyCreated = true;
+						
 						vOCCValue.candidateLabel = vLabelOfPropagatingRegion;
 						vOCCValue.label = vLabelOfDefender;
-						vOCCValue.intensity = intensityImage.getIntensity(vNeighborIndex);
+						vOCCValue.intensity = intensityImage.get(vNeighborIndex);
 						vOCCValue.isDaughter = true;
 						vOCCValue.isMother = false;
 						vOCCValue.m_processed = false;
 						vOCCValue.referenceCount = 1;
-						vOCCValue.energyDifference = CalculateEnergyDifferenceForLabel(vNeighborIndex, vOCCValue, vLabelOfPropagatingRegion).first;
+						vOCCValue.energyDifference = CalculateEnergyDifferenceForLabel(vNeighborIndex, vOCCValue, vLabelOfPropagatingRegion).energyDifference;
 						vOCCValue.setLabelHasBeenTested(vLabelOfPropagatingRegion);
 						// Tell the daughter about the mother:
 						vOCCValue.getMotherList().add(vCurrentIndex);
@@ -889,26 +1039,27 @@ public class Algorithm
 						{
 							vContourPointItr.setLabelHasBeenTested(vLabelOfPropagatingRegion);
 							
-							Pair<Double, Boolean> energyAndMerge = CalculateEnergyDifferenceForLabel(
+							EnergyResult energyAndMerge = CalculateEnergyDifferenceForLabel(
 									vNeighborIndex, vContourPointItr, vLabelOfPropagatingRegion);
 							
-							double vEnergyDiff = energyAndMerge.first;
-							boolean aMerge = energyAndMerge.second;
+							double vEnergyDiff = energyAndMerge.energyDifference;
+							boolean aMerge = energyAndMerge.merge;
 							if(vEnergyDiff < vContourPointItr.energyDifference) 
 							{
+								
 								vContourPointItr.candidateLabel = vLabelOfPropagatingRegion;
 								vContourPointItr.energyDifference = vEnergyDiff;
 								vContourPointItr.referenceCount = 1;
 
 //TODO new sts merge 05.03.2012
 //								if((*aMerge)[vP] && vParticle.m_label != 0 && vParticle.m_candidateLabel != 0)
-// this is ALWAYS merging
 								if(aMerge && vContourPointItr.label != bgLabel && vContourPointItr.candidateLabel != bgLabel)
 								{
 									int L1 = vContourPointItr.candidateLabel;
 									int L2 = vContourPointItr.label;
 									
 									LabelPair pair = new LabelPair(L1, L2);
+//									System.out.println("merge pair: "+pair.first + " " +pair.second);
 
 									m_CompetingRegionsMap.put(vCurrentIndex, pair);
 									
@@ -947,6 +1098,21 @@ public class Algorithm
 	 */
 	private void FilterCandidates(HashMap<Point, ContourParticle> m_Candidates)
 	{
+		
+		
+		if(shrinkFirst)
+		{
+	        Iterator<Entry<Point, ContourParticle>> it = m_Candidates.entrySet().iterator();
+			while(it.hasNext()) 
+			{
+				Entry<Point, ContourParticle> vStoreIt = it.next(); // iterator to work with
+				if(vStoreIt.getValue().energyDifference >= 0) {
+					it.remove();
+//					m_Candidates.remove(vStoreIt);
+				}
+			}
+			return;
+		}
 		
         /**
          * Find topologically compatible candidates and store their indices in
@@ -1147,7 +1313,7 @@ public class Algorithm
         }
 	
         /**
-         * Filter all candidates with the illigal indices
+         * Filter all candidates with the illegal indices
          */
 		        
 		for(Point vIlligalIndicesIt : vIllegalIndices) {
@@ -1205,24 +1371,17 @@ public class Algorithm
         ///
 		labelImage.setLabel(vCurrentIndex, labelImage.labelToNeg(vToLabel));
 		
-//TODO sts inserted following lines
-		if(labelImage.labelToAbs(vToLabel)!=vToLabel)
-		{
-			debug("changed label to absolute value. is this valid?\n");
-			second.label=labelImage.labelToAbs(vToLabel);
-		} 
-// END inserted sts
-	
         ///
         /// STATISTICS UPDATE
         /// Update the statistics of the propagating and the loser region.
         ///
 		UpdateStatisticsWhenJump(aParticle, vFromLabel, vToLabel);
+        if (imageModel.getEdataType() == EnergyFunctionalType.e_DeconvolutionPC)
+        {
+            ((E_Deconvolution)imageModel.getEdata()).UpdateConvolvedImage(vCurrentIndex,labelImage, vFromLabel, vToLabel);
+        }
+		imageModel.updateStatisticsWhenJump();
 
-		if(m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
-			// TODO
-			// UpdateConvolvedImage(vCurrentIndex, vFromLabel, vToLabel);
-		}
 
 		/// TODO: A bit a dirty hack: we store the old label for the relabeling
 		/// procedure later on...either introduce a new variable or rename the
@@ -1246,7 +1405,9 @@ public class Algorithm
 		///
 		if(vToLabel == bgLabel) {
 			m_InnerContourContainer.remove(vCurrentIndex);
-		} else {
+		} 
+		else 
+		{
 			
 			//TODO compare with itk. vContourPoint = second is unnecessary in java. was this a copy in c++?
 			
@@ -1304,7 +1465,7 @@ public class Algorithm
 				ContourParticle q = new ContourParticle();
 				q.label=aAbsLabel;
 				q.candidateLabel=bgLabel;
-				q.intensity = intensityImage.getIntensity(qIndex);
+				q.intensity = intensityImage.get(qIndex);
 				
 				labelImage.setLabel(qIndex, labelImage.labelToNeg(aAbsLabel));
 				m_InnerContourContainer.put(qIndex, q);
@@ -1381,7 +1542,7 @@ public class Algorithm
 		// template <class TInputImage, class TInitImage, class TOutputImage >
 		if(aLabelImage.getLabelAbs(aIndex)==aLabel) 
 		{
-			MultipleThresholdImageFunction<Integer> vMultiThsFunction = new MultipleThresholdImageFunction<Integer>(aLabelImage);
+			MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdLabelImageFunction(aLabelImage);
 			vMultiThsFunction.AddThresholdBetween(aLabel, aLabel);
 			int negLabel = aLabelImage.labelToNeg(aLabel);
 			vMultiThsFunction.AddThresholdBetween(negLabel, negLabel);
@@ -1409,7 +1570,7 @@ public class Algorithm
 //		}
 //		MVC.selectPoint(aIndex);
 		
-		MultipleThresholdImageFunction<Integer> vMultiThsFunction = new MultipleThresholdImageFunction<Integer>(aLabelImage);
+		MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdLabelImageFunction(aLabelImage);
 		
 //		LinkedList<Integer> vLabelsToCheck = new LinkedList<Integer>();
 		Stack<Integer> vLabelsToCheck = new Stack<Integer>();
@@ -1445,7 +1606,7 @@ public class Algorithm
 				}
 			}
 		}
-		if(vMultiThsFunction.EvaluateAtIndex(iterator.pointToIndex(aIndex))){
+		if(vMultiThsFunction.EvaluateAtIndex(aIndex)){
 //		    ForestFire(aLabelImage, aIndex, vMultiThsFunction, m_MaxNLabels++);
 //		    ForestFire(aLabelImage, aIndex, vMultiThsFunction, labelDispenser.getNewLabel());
 		    forestFire.fire(aIndex, labelDispenser.getNewLabel(), vMultiThsFunction);
@@ -1468,10 +1629,6 @@ public class Algorithm
 		// detecting if one with count==1 exists, and only IFF one such label exists searching for the point.
 		// but atm, im happy that it detects "orphan"-contourPoints (without attached labelInfo)
 		
-		
-//TODO java.util.ConcurrentModificationException
-		//TODO ugly casting
-		
 		Object[] copy = m_InnerContourContainer.entrySet().toArray();
 		for(Object o : copy) 
 //		for(Entry<Point, ContourParticle> vIt : copy) 
@@ -1485,21 +1642,15 @@ public class Algorithm
 			if(info==null)
 			{
 				//TODO debug
-				MVC.addSlice(labelImage, "***info is null for: "+vIt.getKey());
+//				MVC.addSlice(labelImage, "***info is null for: "+vIt.getKey());
 //				labelImage.displaySlice("***info is null for: "+vIt.getKey());
-				debug("***info is null for: "+vIt.getKey());
 //				MVC.selectPoint(vIt.getKey());
+				debug("***info is null for: "+vIt.getKey());
 				continue;
 			}
 			if(info.count == 1) 
 			{
 				vWorkingIt.candidateLabel = bgLabel;
-				// TODO changed from
-				// ChangeContourPointLabelToCandidateLabel(vWorkingIt);
-				// to this:
-
-				// TODO!!!! vIt could be removed from container 
-				// in ChangeContourPointLabelToCandidateLabel
 				ChangeContourPointLabelToCandidateLabel(vIt);
 			}
 		}
@@ -1512,6 +1663,13 @@ public class Algorithm
 	 */
 	private void FilterCandidatesContainerUsingRanks(HashMap<Point, ContourParticle> aContainer)
 	{
+		
+        if(m_AcceptedPointsFactor >=1) 
+        {
+        	// accept all
+        	// nothing to do here
+        	return;
+        }
 	
 		// Copy the candidates to a set (of ContourPointWithIndex). This
 		// will sort them according to their energy gradients.
@@ -1525,7 +1683,6 @@ public class Algorithm
 
 		Collections.sort(vSortedList);
 
-		// EnergyDifferenceType vBestEnergy = vSortedList.front().m_ContourPoint.m_energyDifference;
 
 		int vNbElements = vSortedList.size();
 		vNbElements = (int)(vNbElements * m_AcceptedPointsFactor + 0.5);
@@ -1589,439 +1746,31 @@ public class Algorithm
 				// aContainer[vSortedListIterator.pIndex] = vSortedListIterator.m_ContourPoint;
 			}
 		}
-		// std::cout << "container size: " << aContainer->size() << std::endl;
-	}
-
-
-	static float wGamma = 0.003f;
-	double calcGammaEnergy(Entry<Point,ContourParticle> entry)
-	{
-		Point pIndex = entry.getKey();			// coords of motherpoint
-		ContourParticle p = entry.getValue();	// mother particle
-		int pLabel = p.label;					// label of motherpoint 
-		
-		int nSameNeighbors=0;
-		Connectivity conn = connFG;
-		
-		// version 3 with COnnectivity.getNeighbots(Point)
-		for(Point neighbor:conn.iterateNeighbors(pIndex))
-		{
-			int neighborLabel=labelImage.getLabelAbs(neighbor);
-//			int neighborLabel=labelImage.getLabel(neighbor);
-//			neighborLabel=labelImage.labelToAbs(neighborLabel);
-			if(neighborLabel==pLabel)
-			{
-				nSameNeighbors++;
-			}
-		}
-		
-		int nOtherNeighbors=4-nSameNeighbors;
-		int dGamma = nSameNeighbors - nOtherNeighbors;
-		
-		return wGamma*dGamma;
-	}
-	
-	
-	private Pair<Double, Boolean> CalculateEnergyDifferenceForLabel(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel) {
-    //        typedef ContourPoint::ContourPointCandidateListType::iterator CandLabelItType;
-    //        CandLabelItType vCandLabelIt = aContourPointIt->second.m_candidates.begin();
-    //        CandLabelItType vCandLabelItend = aContourPointIt->second.m_candidates.end();
-    //
-    //        for (; vCandLabelIt != vCandLabelItend; ++vCandLabelIt) {
-    //            LabelAbsPixelType aToLabel = aContourPointPtr->m_candidateLabel;
-    //            OuterContourContainerKeyType vCurrentIndex = aContourPointPtr->first;
-
-		float m_EnergyRegionCoeff = settings.m_EnergyRegionCoeff;
-		
-		float vCurrentImageValue = aContourPointPtr.intensity;
-		int vCurrentLabel = aContourPointPtr.label;
-		double vEnergy = 0.0;
-		boolean vMerge = false;
-
-        /// Calculate the change in energy due to the change of intensity when changing
-        /// from one label 'from' to another 'to'.
-        
-		
-		if (m_EnergyRegionCoeff != 0)
-		{
-			if(m_EnergyFunctional == EnergyFunctionalType.e_CV)
-			{
-				vEnergy += m_EnergyRegionCoeff * 
-					CalculateCVEnergyDifference(vCurrentImageValue, vCurrentLabel, aToLabel);
-			}
-			else if(m_EnergyFunctional == EnergyFunctionalType.e_GaussPS)
-			{
-                Pair<Double, Boolean> vV = CalculateGaussPSEnergyDifference(aContourIndex,
-                        vCurrentImageValue, vCurrentLabel, aToLabel);
-                vEnergy += m_EnergyRegionCoeff * vV.first;
-                vMerge = vV.second;
-			}
-			else if (m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC)
-			{
-			}
-            else if (m_EnergyFunctional == EnergyFunctionalType.e_MS) 
-            {
-                vEnergy += m_EnergyRegionCoeff * CalculateMSEnergyDifference(
-                        vCurrentImageValue, vCurrentLabel, aToLabel);
-            } 
-        }
-		
-		
-		
-//TODO hier weiter
-//		System.out.println("*********hier weiter");
-		
-		//TODO dummy
-		float m_EnergyContourLengthCoeff = settings.m_EnergyContourLengthCoeff;
-		// end dummy
-
-		if (settings.m_EnergyUseCurvatureRegularization &&
-				m_EnergyFunctional != EnergyFunctionalType.e_PSwithCurvatureFlow &&
-				m_EnergyContourLengthCoeff != 0) 
-		{
-		    if (m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
-//		        vEnergy += //m_Intensities[aToLabel] * m_Intensities[aToLabel] *
-//		        		m_EnergyContourLengthCoeff * CalculateCurvatureBasedGradientFlow(
-//		                this->GetDataInput(), m_LabelImage, aContourIndex,
-//		                vCurrentLabel, aToLabel);
-		    } else if (m_EnergyFunctional == EnergyFunctionalType.e_CV) 
-		    {
-		    	
-		    	double eCurv = CalculateCurvatureBasedGradientFlow(
-		    			labelImage, aContourIndex,vCurrentLabel, aToLabel);
-//		    	debug("eCurv="+eCurv+" vEnergy="+vEnergy);
-		        vEnergy += //m_Means[aToLabel] * // m_Means[aToLabel] *
-		        		m_EnergyContourLengthCoeff * eCurv;
-		    } else {
-		        vEnergy += m_EnergyContourLengthCoeff * CalculateCurvatureBasedGradientFlow(
-		        		labelImage, aContourIndex, vCurrentLabel, aToLabel);
-		    }
-		}
-		
-		
-        /// add a bolloon force and a constant outward flow. If fronts were
-        /// touching, no constant flow is imposed (cancels out).
-        if(vCurrentLabel == 0)  // growing
-        {
-            vEnergy -= settings.m_ConstantOutwardFlow;
-            if (settings.m_BalloonForceCoeff > 0) { // outward flow
-                vEnergy -= settings.m_BalloonForceCoeff * vCurrentImageValue;
-            } else {
-                vEnergy -= -settings.m_BalloonForceCoeff * (1 - vCurrentImageValue);
-            }
-        } else if (aToLabel == 0) // shrinking
-        {
-            vEnergy += settings.m_ConstantOutwardFlow;
-        }
-        
-        
-        /// For the full-region based energy models, register competing regions
-        /// undergo a merge.
-		if (m_EnergyFunctional == EnergyFunctionalType.e_CV || 
-			m_EnergyFunctional == EnergyFunctionalType.e_GaussWithVariancePC || 
-			m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC)
-        {
-			vMerge = CalculateMergingEnergyForLabel(vCurrentLabel, aToLabel);
-        }
-        
-        return new Pair<Double, Boolean>(vEnergy, vMerge);
-
-    }
-	
-
-	boolean CalculateMergingEnergyForLabel(int aLabelA, int aLabelB)
-	{
-		/// store this event to check afterwards if we should merge
-		/// the 2 regions.
-
-		if(aLabelA != bgLabel && aLabelB != bgLabel) // we are competeing.
-		{ 
-			/// test if merge should be performed:
-			double value = CalculateKLMergingCriterion(aLabelA, aLabelB);
-//			debug("KL: it="+m_iteration_counter+" "+aLabelA+" "+aLabelB+" "+value);
-			if(value < settings.m_RegionMergingThreshold)
-			{
-				return true;
-			}
-		}
-
-		return false;
-
 	}
 
 	
-	double CalculateKLMergingCriterion(int L1, int L2)
+	private EnergyResult CalculateEnergyDifferenceForLabel(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel)
 	{
-
-		LabelInformation aL1 = labelMap.get(L1);
-		LabelInformation aL2 = labelMap.get(L2);
-
-		double vMu1 = aL1.mean;
-		double vMu2 = aL2.mean;
-		double vVar1 = aL1.var;
-		double vVar2 = aL2.var;
-		int vN1 = aL1.count;
-		int vN2 = aL2.count;
-
-//		debug("l1="+L1+" L2="+L2);
-		
-		double result = CalculateKLMergingCriterion(vMu1, vMu2, vVar1, vVar2, vN1, vN2);
-//		debug("KL: it="+m_iteration_counter+" "+L1+" "+L2+" "+result);
-		if(Double.isNaN(result))
-		{
-			debug("CalculateKLMergingCriterion is NaN");
-			throw new RuntimeException("Double.isNaN in CalculateKLMergingCriterion");
-		}
-		assert(!Double.isNaN(result));
+		EnergyResult result = imageModel.CalculateEnergyDifferenceForLabel(aContourIndex, aContourPointPtr, aToLabel);
 		return result;
-
-	}
-	
-	double CalculateKLMergingCriterion(double aMu1, double aMu2, double aVar1, double aVar2, int aN1, int aN2)
-	{
-		double vMu12 = (aN1 * aMu1 + aN2 * aMu2) / (aN1 + aN2);
-
-		double vSumOfSq1 = aVar1 * (aN1 - 1) + aN1 * aMu1 * aMu1;
-		double vSumOfSq2 = aVar2 * (aN2 - 1) + aN2 * aMu2 * aMu2;
-
-		double vVar12 = (1.0 / (aN1 + aN2 - 1.0))
-				* (vSumOfSq1 + vSumOfSq2 - (aN1 + aN2) * vMu12 * vMu12);
-		
-		if(vVar12<=0)
-		{
-//			System.out.print("vVar12==0");
-			debug("vVar12==0");
-			return 0;
-		}
-
-		double vDKL1 = (aMu1 - vMu12) * (aMu1 - vMu12) / (2.0 * vVar12) + 0.5
-				* (aVar1 / vVar12 - 1.0 - Math.log(aVar1 / vVar12));
-
-		double vDKL2 = (aMu2 - vMu12) * (aMu2 - vMu12) / (2.0 * vVar12) + 0.5
-				* (aVar2 / vVar12 - 1.0 - Math.log(aVar2 / vVar12));
-
-		return (double)vDKL1 + (double)vDKL2;
-	}
-	
-    double CalculateCVEnergyDifference(float aValue, int fromLabel, int toLabel) {
-        /**
-         * Here we have the possibility to either put the current pixel
-         * value to the BG, calculate the BG-mean and then calculate the
-         * squared distance of the pixel to both means, BG and the mean
-         * of the region (where the pixel currently still belongs to).
-         *
-         * The second option is to remove the pixel from the region and
-         * calculate the new mean of this region. Then compare the squared
-         * distance to both means. This option needs a region to be larger
-         * than 1 pixel/voxel.
-         */
-    	
-		LabelInformation to = labelMap.get(toLabel);
-		LabelInformation from = labelMap.get(fromLabel);
-		double vNewToMean = (to.mean*to.count + aValue)/(to.count+1);
-		return (aValue-vNewToMean)*(aValue-vNewToMean) - (aValue-from.mean)*(aValue-from.mean);
-    }
-    
-    
-    Pair<Double, Boolean> 
-    CalculateGaussPSEnergyDifference(Point aCenterIndex, double aValue, int aFromLabel, int aToLabel)
-	{
-    	//read out the size of the mask
-    	// vRegion is the size of our temporary window
-    	int[] vRegion = m_SphereMaskForLocalEnergy.m_Size;
-
-		// vOffset is basically the difference of the center and the start of the window
-		Point vOffset = (new Point(vRegion)).div(2);
-			
-		Point start = aCenterIndex.sub(vOffset);				// "upper left point"
-		
-		RegionIterator vLabelIt = new RegionIterator(labelImage.dimensions, vRegion, start.x);
-		RegionIterator vDataIt = new RegionIterator(labelImage.dimensions, vRegion, start.x);
-		RegionIteratorMask vMaskIt = new RegionIteratorMask(labelImage.dimensions, vRegion, start.x);
-
-		double vSumFrom = -aValue; // we ignore the value of the center point
-		double vSumTo = 0;
-		double vSumOfSqFrom = -aValue * aValue; // ignore the value of the center point.
-		double vSumOfSqTo = 0.0;
-		int vNFrom = -1;
-		int vNTo = 0;
-
-		while(vLabelIt.hasNext())
-		{
-			int labelIdx = vLabelIt.next();
-			int dataIdx = vDataIt.next();
-			int maskIdx = vMaskIt.next();
-			
-//			IndexIterator iii = new IndexIterator(m_LabelImage.dimensions);
-//			System.out.println(iii.indexToPoint(labelIdx));
-			
-//			System.out.println(labelIdx+" "+maskIdx);
-			
-			if(m_SphereMaskForLocalEnergy.isInMask(maskIdx))
-			{
-				int absLabel=labelImage.getLabelAbs(labelIdx);
-				if(absLabel == aFromLabel)
-				{
-					double data = intensityImage.getIntensity(dataIdx);
-					vSumFrom += data;
-					vSumOfSqFrom += data*data;
-					vNFrom++;
-				}
-				else if(absLabel == aToLabel)
-				{
-					double data = intensityImage.getIntensity(dataIdx);
-					vSumTo += data;
-					vSumOfSqTo += data*data;
-					vNTo++;
-				}
-			}
-		}
-
-		double vMeanTo;
-		double vVarTo;
-		double vMeanFrom;
-		double vVarFrom;
-		if(vNTo == 0) // this should only happen with the BG label
-		{
-			LabelInformation info = labelMap.get(aToLabel);
-			vMeanTo = info.mean;
-			vVarTo = info.var;
-		}
-		else
-		{
-			vMeanTo = vSumTo / vNTo;
-// vVarTo = (vSumOfSqTo - vSumTo * vSumTo / vNTo) / (vNTo - 1);
-			vVarTo = (vSumOfSqTo - vSumTo*vSumTo/vNTo) / (vNTo);
-		}
-
-		if(vNFrom == 0)
-		{
-			LabelInformation info = labelMap.get(aFromLabel);
-			vMeanFrom = info.mean;
-			vVarFrom = info.var;
-		}
-		else
-		{
-			vMeanFrom = vSumFrom / vNFrom;
-			vVarFrom = (vSumOfSqFrom - vSumFrom * vSumFrom / vNFrom) / (vNFrom);
-		}
-
-		// double vVarFrom = (vSumOfSqFrom - vSumFrom * vSumFrom / vNFrom) / (vNFrom - 1);
-
-		boolean vMerge = false;
-		if(aFromLabel != bgLabel && aToLabel != bgLabel)
-		{
-			if(CalculateKLMergingCriterion(vMeanFrom, vMeanTo, vVarFrom, vVarTo, vNFrom, vNTo) < settings.m_RegionMergingThreshold)
-			{
-				vMerge = true;
-			}
-		}
-// if(isnan(aValue) || isnan(vMeanTo) || isnan(vMeanFrom) || )
-		// return abs(aValue - vMeanTo) - abs(aValue - vMeanFrom); doesnt work
-
-		double vEnergyDiff = (aValue - vMeanTo) * (aValue - vMeanTo) - (aValue - vMeanFrom) * (aValue - vMeanFrom);
-
-		return new Pair<Double, Boolean>(vEnergyDiff, vMerge);
-    }
-	
-	
-	
-	
-	double CalculateMSEnergyDifference(float aValue, int fromLabel, int toLabel)
-	{
-		LabelInformation to = labelMap.get(toLabel);
-		LabelInformation from = labelMap.get(fromLabel);
-
-		double aNewToMean = (to.mean*to.count + aValue)/(to.count+1);
-// if (aFrom.var <= 0 || aTo.var <= 0) {
-// assert("Region has negative variance.");
-// }
-
-		double M_PI = Math.PI;
-
-		return ( (aValue-aNewToMean)*(aValue-aNewToMean)/(2.0*to.var) 
-				+ 0.5 * Math.log(2.0*M_PI*to.var) 
-				- ( (aValue-from.mean)*(aValue-from.mean)/(2.0*from.var) + 0.5*Math.log(2.0*M_PI*from.var) ) );
-	}
-	
-	
-
-//    template <class TInputImage, class TInitImage, class TOutputImage >
-//    inline
-//    typename FrontsCompetitionImageFilter<TInputImage, TInitImage, TOutputImage>::
-//    EnergyDifferenceType
-//    FrontsCompetitionImageFilter<TInputImage, TInitImage, TOutputImage>::
-//    CalculateCurvatureBasedGradientFlow(
-//    InputImagePointerType aDataImage,
-//    LabelImagePointerType aLabelImage,
-	//    ContourIndexType aIndex,
-	//    unsigned int aFrom, unsigned int aTo) {
-		
-
-		
-	
-double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage, 
-		Point aIndex, int aFrom, int aTo) 
-{
-//	SphereBitmapImageSource sphereMaskIterator = new SphereBitmapImageSource(dim, aLabelImage);
-	
-	//TODO Z finishing: take faster one
-	double result;
-	
-	if(MVC.userDialog.useOldRegionIterator())
-	{
-		result = sphereMaskIterator.GenerateData(aIndex, aFrom, aTo);
-	}
-	else
-	{
-		result = sphereMaskIterator.GenerateData2(aIndex, aFrom, aTo);
-	}
-	
-	return result;
-
-}
-	
-	
-	
-	private double SumAllEnergies(HashMap<Point, ContourParticle> aContainer) 
-	{
-	
-	    double vTotalEnergyDiff = 0;
-	    
-	    for (ContourParticle vPointIterator : aContainer.values()) {
-	        vTotalEnergyDiff += vPointIterator.energyDifference;
-	    }
-	    return vTotalEnergyDiff;
 	}
 
-
-
 	
-	// calls: cleanup
 	void FreeLabelStatistics(Iterator<Entry<Integer, LabelInformation>> vActiveLabelsIt) 
 	{
-//		in caller: labelDispenser.addFreedUpLabel(entry.getKey());
 		vActiveLabelsIt.remove();
 	}
 	
-	// calls: doOne.Iterate.RelabelRegions.ForestFire.foo
 	void FreeLabelStatistics(int vVisitedIt) 
 	{
-		if(vVisitedIt==bgLabel)
-		{
-//TODO this is debug only
-			debug("LabelImage.FreeLabelStatistics()");
-			throw new RuntimeException("free bglabel in FreeLabelStatistics()");
-		}
+//		if(vVisitedIt==bgLabel)
+//		{
+//			//debug only
+//			debug("LabelImage.FreeLabelStatistics()");
+//			throw new RuntimeException("free bglabel in FreeLabelStatistics()");
+//		}
 		labelMap.remove(vVisitedIt);
 		labelDispenser.addFreedUpLabel(vVisitedIt);
-
-		//        m_Means.erase(aLabelAbs);
-		//        m_Variances.erase(aLabelAbs);
-		//        m_Count.erase(aLabelAbs);
-		//        m_Lengths.erase(aLabelAbs);
-		//        m_Intensities.erase(aLabelAbs);
-		///m_BBoxes.erase(aLabelAbs);
 	}
 
 
@@ -2065,7 +1814,7 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 				vToLabelSumOfSq + vCurrentImageValue * vCurrentImageValue 
 				- 2.0 * vNewMeanToLabel * (aToLabel.mean * vNTo + vCurrentImageValue)
 				+ (vNTo + 1.0) * vNewMeanToLabel*vNewMeanToLabel));
-		aToLabel.setVar(var);
+		aToLabel.var=(var);
 
 		if(vNFrom==2)
 		{
@@ -2080,14 +1829,11 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 			
 		}
 		
-		aFromLabel.setVar(var);
+		aFromLabel.var = (var);
 
 		// / Update the means:
 		aToLabel.mean = vNewMeanToLabel;
 		aFromLabel.mean = vNewMeanFromLabel;
-		// m_Means[0] = 0;
-		// m_Means[1] = 1.0403;
-		// m_Means[2] = 1.0403;
 
 		// / Add a sample point to the BG and remove it from the label-region:
 		aToLabel.count++;
@@ -2120,27 +1866,20 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 	void RemoveNotSignificantRegions()
 	{
 		// Iterate through the active labels and check for significance.
-		for(Entry<Integer, LabelInformation> vActiveLabelsIt : labelMap.entrySet()) 
+		for(Entry<Integer, LabelInformation> vActiveLabelsIt : labelMap.entrySet())
 		{
 			int vLabelAbs = vActiveLabelsIt.getKey();
-			if(vLabelAbs == bgLabel) {
+			if(vLabelAbs == bgLabel){
 				continue;
 			}
 
-			if (vActiveLabelsIt.getValue().count <= settings.m_AreaThreshold) {// &&
-//                if (!(m_Means[vLabelAbs] < m_Means[0] - 3 * sqrt(m_Variances[0]) ||
-//                        m_Means[0] + 3 * sqrt(m_Variances[0]) < m_Means[vLabelAbs])) {
-                    RemoveFGRegion(vActiveLabelsIt.getKey());
-//                    vNRemovedRegions++;
-//                    std::cout << "removed label : " << vActiveLabelsIt->first
-//                            << ", count = " << vActiveLabelsIt->second << std::endl;
-//                }
-            }
-
-        }
-//        std::cout << "number of removed labels = " << vNRemovedRegions << std::endl;
-        CleanUp();
-        }
+			if(vActiveLabelsIt.getValue().count <= settings.m_AreaThreshold)
+			{
+				RemoveFGRegion(vActiveLabelsIt.getKey());
+			}
+		}
+		CleanUp();
+	}
 	
 	
 	
@@ -2162,17 +1901,9 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
         /// loop, new points are added to vContainer.
         while(!vContainer.isEmpty()) 
         {
-//            std::cout << "container size in remove fg region: " << vContainer.size() << std::endl;
             Iterator<Entry<Point, ContourParticle>> vRemIt = vContainer.entrySet().iterator();
-//            HashMapIteratorType vRemEnd = vContainer.end();
-            while(vRemIt.hasNext()) {
-//                HashMapIteratorType vTempIt = vRemIt;
-//                ++vRemIt;
-////                std::cout << "(should not happen) point to remove in removeFGregion: \n" << vTempIt->first << "\n" << vTempIt->second << std::endl;
-//                vTempIt->second.m_candidateLabel = bgLabel;
-//                ChangeContourPointLabelToCandidateLabel(vTempIt);
-//                vContainer.erase(vTempIt);
-            	
+            while(vRemIt.hasNext()) 
+            {
             	//TODO! does it really remove from first to last?
             	Entry<Point, ContourParticle> vTempIt = vRemIt.next();
             	vTempIt.getValue().candidateLabel=bgLabel;
@@ -2199,9 +1930,6 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 	
 	void CleanUp()
 	{
-		// UIntStatisticsContainerType::iterator vActiveLabelsIt = m_Count.begin();
-		//TODO ConcurrentModificationException
-		
 		Iterator<Entry<Integer, LabelInformation>> vActiveLabelsIt = labelMap.entrySet().iterator();
 		
 		while(vActiveLabelsIt.hasNext()) 
@@ -2238,6 +1966,7 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 	Object pauseMonitor = new Object();
 	boolean pause = false;
 	boolean abort = false;
+	
 	/**
 	 * Stops the algorithm after actual iteration
 	 */
@@ -2266,71 +1995,16 @@ double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage,
 	}
 	
 	
-	
-	
 	public int getBiggestLabel()
 	{
-//		return m_MaxNLabels;
 		return labelDispenser.getHighestLabelEverUsed();
 	}
-	
-	
-	
-	
-	///////////////////////////////////////////
-//	
-//	int getLabelAbs(Point p)
-//	{
-//		int idx = iterator.pointToIndex(p);
-//		return Math.abs(dataLabel[idx]);
-//	}
-//
-//	int getLabelAbs(int idx)
-//	{
-//		return Math.abs(dataLabel[idx]);
-//	}
-//
-//
-//	int getLabel(int idx)
-//	{
-//		return dataLabel[idx];
-////		return labelIP.get(index);
-//	}
-//	
-//	/**
-//	 * @param p
-//	 * @return Returns the (raw; contour information) value of the LabelImage at Point p. 
-//	 */
-//	int getLabel(Point p) {
-//		int idx = iterator.pointToIndex(p);
-//		return (dataLabel[idx]);
-//	}
-//
-//	/**
-//	 * sets the labelImage to val at point x,y
-//	 */
-//	void setLabel(int idx, int label) 
-//	{
-//		dataLabel[idx]=label;
-////		dataLabel[index]=(short)val;
-////		labelIP.set(index, val);
-//	}
-//
-//	/**
-//	 * sets the labelImage to val at Point p
-//	 */
-//	void setLabel(Point p, int label) {
-//		int idx = iterator.pointToIndex(p);
-//		dataLabel[idx]=label;
-//	}
 
-	
-	
-	
-	
-	
-	
-	
+
+	public HashMap<Integer, LabelInformation> getLabelMap()
+	{
+		return labelMap;
+	}
 	
 }
 

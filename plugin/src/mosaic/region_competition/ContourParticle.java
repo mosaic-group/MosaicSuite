@@ -6,10 +6,16 @@ import java.util.List;
 
 public class ContourParticle 
 {
-	int label = 0;				// absLabel
-	float intensity = 0.0f;
-	int candidateLabel = 0;
-	double energyDifference = 0;
+	//TODO Ref to Point?
+	
+	boolean newlyCreated;
+	
+	
+	public int label = 0;			// absLabel
+	public float intensity = 0.0f;
+	
+	public int candidateLabel = 0;
+	public double energyDifference = 0;
 	
 	boolean isDaughter = false;
 	boolean isMother = false;
@@ -17,7 +23,6 @@ public class ContourParticle
 	
 	boolean m_processed = false; //TODO 
 	
-	//TODO ? list of ContourParticle or Point?
 	private List<Point> motherList = new LinkedList<Point>();
 	private List<Point> daughterList = new LinkedList<Point>();
 	private List<Integer> testedList = new LinkedList<Integer>();
@@ -61,9 +66,6 @@ public class ContourParticle
 		daughterList.clear();
 		testedList.clear();
 	}
-	
-	
-	//TODO Ref to Point?
 	
 	@Override
 	public String toString()
