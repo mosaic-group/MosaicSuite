@@ -20,6 +20,7 @@ import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
+
 import mosaic.ia.nn.DistanceCalculations;
 import mosaic.ia.nn.DistanceCalculationsCoords;
 import mosaic.ia.nn.DistanceCalculationsImage;
@@ -244,7 +245,6 @@ public class Analysis {
 		PlotUtils.plotDoubleArrayPts("LikelihoodRatio for strength="+(j*.01+.51), "Threshold", "Likelihood ratio for strength="+(j*.01+.51), D1, likRatio);
 	
 		}*/
-
 		IJ.showMessage("Suggested Kernel wt(p): "+IAPUtils.calcWekaWeights(D));
 		
 		return ret;
@@ -557,7 +557,7 @@ public class Analysis {
 			rt.addValue("Strength", best[k][0]);
 			rt.addValue("Threshold/Scale", best[k][1]);
 			}
-			rt.addValue("Fitness", allFitness[k]);
+			rt.addValue("Residual", allFitness[k]);
 			
 			
 		}
@@ -613,7 +613,7 @@ public class Analysis {
 				Plot plotWeight = new Plot("Estimated Nonparam weights for best fitness:",
 						"Support", "Weight", new double[1], new double[1]);
 				plot.addLabel(.65, .3,
-						"Best fitness: " +format.format(allFitness[bestFitnessindex]));
+						"Residual: " +format.format(allFitness[bestFitnessindex]));
 
 				plotWeight.setLimits(dp[0],
 						dp[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1 - 1],
@@ -635,7 +635,7 @@ public class Analysis {
 				plot.addLabel(.65, .3, "Strength: " + format.format(best[bestFitnessindex][0]));
 				plot.addLabel(.65, .4, "Threshold: " + format.format(best[bestFitnessindex][1]));
 				plot.addLabel(.65, .5,
-						"Best fitness: " + format.format(allFitness[bestFitnessindex]));
+						"Residual: " + format.format(allFitness[bestFitnessindex]));
 
 			} else {
 				best[bestFitnessindex][0] = Math.abs(best[bestFitnessindex][0]);
@@ -647,7 +647,7 @@ public class Analysis {
 				plot.addLabel(.65, .3, "Strength: " + format.format(best[bestFitnessindex][0]));
 				plot.addLabel(.65, .4, "Scale: " + format.format(best[bestFitnessindex][1]));
 				plot.addLabel(.65, .5,
-						"Best fitness: " + format.format(allFitness[bestFitnessindex]));
+						"Residual: " + format.format(allFitness[bestFitnessindex]));
 			}
 			System.out.println("N= " + D.length);
 			plot.show();
@@ -715,7 +715,7 @@ public class Analysis {
 		plot.draw();
 		plot.setColor(Color.black);
 		plot.draw();
-		plot.addLabel(.75, .3, "q(d): Cellular context");
+		plot.addLabel(.75, .3, "q(d): Context");
 		
 	
 		plot.show();
@@ -761,7 +761,7 @@ public class Analysis {
 		plot.draw();
 		plot.setColor(Color.black);
 		plot.draw();
-		plot.addLabel(.7, .3, "q(d): Cellular context");
+		plot.addLabel(.7, .3, "q(d): Context");
 
 		plot.setColor(Color.green);
 		plot.addPoints(d, p, PlotWindow.LINE);
@@ -776,19 +776,19 @@ public class Analysis {
 			plot.addLabel(.65, .6, "Strength: " + format.format(best[bestFitnessindex][0]));
 			plot.addLabel(.65, .7, "Threshold: " + format.format(best[bestFitnessindex][1]));
 			plot.addLabel(.65, .8,
-					"Best fitness: " + format.format(allFitness[bestFitnessindex]));
+					"Residual: " + format.format(allFitness[bestFitnessindex]));
 		}
 		else if(potentialType==PotentialFunctions.NONPARAM)
 		{
 			plot.addLabel(.65, .6,
-					"Best fitness: " + format.format(allFitness[bestFitnessindex]));
+					"Residual: " + format.format(allFitness[bestFitnessindex]));
 		}	
 		else
 		{
 			plot.addLabel(.65, .6, "Strength: " + format.format(best[bestFitnessindex][0]));
 			plot.addLabel(.65, .7, "Scale: " + format.format(best[bestFitnessindex][1]));
 			plot.addLabel(.65, .8,
-					"Best fitness: " + format.format(allFitness[bestFitnessindex]));
+					"Residual: " + format.format(allFitness[bestFitnessindex]));
 		}
 		
 /*		//calculate l1norm

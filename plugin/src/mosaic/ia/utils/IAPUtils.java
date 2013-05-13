@@ -228,12 +228,7 @@ public class IAPUtils {
 	  System.out.println("Machine epsilon: "+MACHEPS);
 	 }
 	 
-	 /**
-	     * Computes the Moore–Penrose pseudoinverse using the SVD method.
-	     *
-	     * Modified version of the original implementation by Kim van der Linde.
-	 */
-
+	
 	 
 		/**
 		 * Returns an estimate of the <code>p</code>th percentile of the values
@@ -274,59 +269,26 @@ public class IAPUtils {
 		/**
 		 * Return the optimal bin number for a histogram of the data given in array, using the 
 		 * Freedman and Diaconis rule (bin_space = 2*IQR/n^(1/3)).
-		 * It is ensured that the bin number returned is not smaller and no bigger than the bounds given
-		 * in argument.
-		 * http://fiji.sc/cgi-bin/gitweb.cgi?p=fiji.git;a=blob;f=src-plugins/TrackMate_/src/main/java/fiji/plugin/trackmate/util/TMUtils.java;h=a8593908b05466681c4705c1379ab9eb83be6418;hb=HEAD
+		 * Inspired from Fiji TMUtils.java
 		 */
-		public static  int getNBins(final double[] values, int minBinNumber, int maxBinNumber) {
+		public static  int getOptimBins(double[] values, int minBinNumber, int maxBinNumber) {
 			 int size = values.length;
 			 double q1 = getPercentile(values, 0.25);
 			 double q3 = getPercentile(values, 0.75);
-			System.out.println("percentiles: q25: "+q1+" q75: "+q3);
-			 double iqr = q3 - q1;
-			 double binWidth = 2 * iqr * Math.pow(size, -0.33);
+			 double interQRange = q3 - q1;
+			 double binWidth = 2 * interQRange * Math.pow(size, -0.33);
 			 double[] range = IAPUtils.getMinMaxMeanD(values);
-			System.out.println("bin width:"+binWidth);
-			System.out.println("max:"+maxBinNumber);
-			System.out.println("range:"+(range[1]-range[0]) );
 			
-			int nBin = (int) ( (range[1]-range[0]) / binWidth + 1 );
-			if (nBin > maxBinNumber)
-				nBin = maxBinNumber;
-			else if (nBin < minBinNumber)
-				nBin = minBinNumber;
-			return  nBin;
+			int noBins = (int) ( (range[1]-range[0]) / binWidth + 1 );
+			if (noBins > maxBinNumber)
+				noBins = maxBinNumber;
+			else if (noBins < minBinNumber)
+				noBins = minBinNumber;
+			return  noBins;
 		}
 		
 	
 
 
-
-	 public static Matrix pseudoInverse(Matrix matrix) {
-	  if (matrix.rank() < 1)
-	   return null;
-	 
-	  if (matrix.getColumnDimension() > matrix.getRowDimension())
-	   return pseudoInverse(matrix.transpose()).transpose();
-	  
-	  SingularValueDecomposition singularValueDecomposition = new SingularValueDecomposition(matrix);
-	  double [] singVals = singularValueDecomposition.getSingularValues();
-	  double tolerance = Math.max(matrix.getColumnDimension(), matrix.getRowDimension()) * singVals[0] * MACHEPS;
-	  double[] singValsReciprocals = new double[singVals.length];
-	  for (int i = 0; i < singVals.length; i++)
-		  singValsReciprocals[i] = Math.abs(singVals[i]) < tolerance ? 0 : (1.0 / singVals[i]);
-	  
-	  double[][] u = singularValueDecomposition.getU().getArray();
-	  double[][] v = singularValueDecomposition.getV().getArray();
-	  int min = Math.min(matrix.getColumnDimension(), u[0].length);
-
-	  double[][] inverse = new double[matrix.getColumnDimension()][matrix.getRowDimension()];
-	  for (int i = 0; i < matrix.getColumnDimension(); i++)
-	   for (int j = 0; j < u.length; j++)
-	    for (int k = 0; k < min; k++)
-	     inverse[i][j] += v[i][k] * singValsReciprocals[k] * u[j][k];
-	  
-	  return new Matrix(inverse);
-	 }
 
 }

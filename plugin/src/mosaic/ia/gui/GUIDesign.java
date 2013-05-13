@@ -142,25 +142,22 @@ private double pkernelWeight=1;
 		panel_7.setBorder(blackBorder);
 		JPanel panel_6 = new JPanel();
 		panel_6.setBorder(blackBorder);
-		textArea = new JTextArea("Please refer to and cite: " +
-		        "Jo A. Helmuth et al., Beyond co-localization:\n  inferring spatial " +
-		        "interactions between sub-cellular structures from  \n microscopy images. " +
-		        "BMC Bioinformatics, 11:372, 2010 " +
-		        "\nFreely downloadable from:\n http://www.biomedcentral.com/1471-2105/11/372");
+		textArea = new JTextArea("Please refer to and cite: Jo A. Helmuth, Gregory Paul and Ivo F. Sbalzarini,\n"+
+								 "Beyond co-localization:  inferring spatial interactions between sub-\n"+
+								 "cellular structures from microscopy images. BMC Bioinformatics, 11:372, 2010\n " +
+		        				 "Freely downloadable from: http://www.biomedcentral.com/1471-2105/11/372"); 
+		
 		textArea.setBackground(UIManager.getColor("Button.background"));
 		
 		GroupLayout gl_panel_6 = new GroupLayout(panel_6);
 		gl_panel_6.setHorizontalGroup(
-			gl_panel_6.createParallelGroup(Alignment.TRAILING)
-				.addGroup(gl_panel_6.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(textArea)
-					.addContainerGap())
+			gl_panel_6.createParallelGroup(Alignment.LEADING)
+				.addComponent(textArea, GroupLayout.DEFAULT_SIZE, 526, Short.MAX_VALUE)
 		);
 		gl_panel_6.setVerticalGroup(
 			gl_panel_6.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panel_6.createSequentialGroup()
-					.addComponent(textArea)
+					.addComponent(textArea, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addContainerGap(9, Short.MAX_VALUE))
 		);
 		panel_6.setLayout(gl_panel_6);
@@ -185,7 +182,7 @@ private double pkernelWeight=1;
 		 test = new JButton("Test");
 		GroupLayout gl_panel_7 = new GroupLayout(panel_7);
 		gl_panel_7.setHorizontalGroup(
-			gl_panel_7.createParallelGroup(Alignment.LEADING)
+			gl_panel_7.createParallelGroup(Alignment.TRAILING)
 				.addGroup(gl_panel_7.createSequentialGroup()
 					.addGap(24)
 					.addGroup(gl_panel_7.createParallelGroup(Alignment.LEADING)
@@ -195,17 +192,17 @@ private double pkernelWeight=1;
 						.addGroup(gl_panel_7.createSequentialGroup()
 							.addGap(21)
 							.addComponent(lblHypothesisTesting)
-							.addContainerGap(152, Short.MAX_VALUE))
+							.addContainerGap(252, Short.MAX_VALUE))
 						.addGroup(gl_panel_7.createSequentialGroup()
-							.addGap(148)
-							.addGroup(gl_panel_7.createParallelGroup(Alignment.TRAILING)
-								.addComponent(alphaField)
-								.addComponent(mCRuns))
+							.addGap(175)
+							.addGroup(gl_panel_7.createParallelGroup(Alignment.TRAILING, false)
+								.addComponent(mCRuns, Alignment.LEADING)
+								.addComponent(alphaField, Alignment.LEADING))
 							.addGap(23))))
 				.addGroup(gl_panel_7.createSequentialGroup()
-					.addGap(101)
+					.addContainerGap(244, Short.MAX_VALUE)
 					.addComponent(test)
-					.addContainerGap(104, Short.MAX_VALUE))
+					.addGap(233))
 		);
 		gl_panel_7.setVerticalGroup(
 			gl_panel_7.createParallelGroup(Alignment.LEADING)
@@ -214,12 +211,12 @@ private double pkernelWeight=1;
 					.addComponent(lblHypothesisTesting)
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_7.createParallelGroup(Alignment.BASELINE)
-						.addComponent(mCRuns)
+						.addComponent(mCRuns, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
 						.addComponent(lblMonteCarloRuns))
 					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_panel_7.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblSignificanceLevel)
-						.addComponent(alphaField))
+						.addComponent(alphaField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 					.addPreferredGap(ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
 					.addComponent(test)
 					.addContainerGap())
@@ -566,39 +563,40 @@ private double pkernelWeight=1;
 		groupLayout.setHorizontalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(6)
-					.addComponent(tabbedPane))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(6)
-					.addComponent(tabbedPane_1))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(17)
-					.addComponent(panel_6))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(17)
-				    .addComponent(panel_5))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(17)
-				    .addComponent(panel_7))
-				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(17)
-				    .addComponent(panel_4))
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addGroup(groupLayout.createSequentialGroup()
+							.addGap(17)
+							.addComponent(panel_4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(tabbedPane_1, GroupLayout.PREFERRED_SIZE, 546, GroupLayout.PREFERRED_SIZE))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addGap(17)
+							.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
+								.addComponent(panel_6, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
+								.addComponent(panel_7, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
+								.addComponent(panel_5, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+						.addGroup(groupLayout.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, 536, GroupLayout.PREFERRED_SIZE)))
+					.addContainerGap(9, Short.MAX_VALUE))
 		);
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
-					.addGap(6)
-					.addComponent(tabbedPane)
-					.addGap(6)
-					.addComponent(tabbedPane_1)
+					.addContainerGap()
+					.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel_4)
+					.addComponent(tabbedPane_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel_5)
+					.addComponent(panel_4, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
-					.addComponent(panel_7)
-					.addGap(6)
-					.addComponent(panel_6))
+					.addComponent(panel_5, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(panel_7, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(panel_6, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap())
 		);
 		frmInteractionAnalysis.getContentPane().setLayout(groupLayout);
 		frmInteractionAnalysis.pack();
