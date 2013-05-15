@@ -108,9 +108,13 @@ public class HypothesisTesting {
 	}
 	
 	
-	public boolean nonParametricTest(){
+
+	 
+	/*
+	 public boolean nonParametricTest(){
+	
 		
-		binNum=IAPUtils.getNBins(D, 8, (int)Math.floor(D.length/8));
+		binNum=IAPUtils.getOptimBins(D, 8, (int)Math.floor(D.length/8));
 		System.out.println("Bin no for nonparametric: "+binNum);
 		//generate thresholds
 		Tl=new double[binNum];
@@ -142,7 +146,9 @@ public class HypothesisTesting {
 				System.out.print("Td1["+i+"]["+j+"]:"+Td1[i][j]+",");
 			System.out.println(";");
 
-		}*/
+		}
+		
+	
 		
 			Td2=calculateTd();
 			
@@ -150,11 +156,11 @@ public class HypothesisTesting {
 		//System.out.println("1st term of Td1: "+Td1[0][0]);
 		//	RealMatrix rmTd1= new RealMatrixImpl(Td1);
 		//System.out.println("1st term of rmTd1: "+rmTd1.getEntry(0, 0));
-		/*for(int i=0;i<Td1.length;i++){
+		for(int i=0;i<Td1.length;i++){
 			for(int j=0;j<Td1[0].length;j++)
 				System.out.print(Td1[i][j]+",");
 			System.out.println("");
-		}*/
+		}
 			System.out.println("Mean:");
 			for(int i=0;i<Tl.length;i++)
 			{
@@ -258,7 +264,9 @@ public class HypothesisTesting {
 		}
 		
 	}
+	*/
 	
+
 	public boolean rankTest(){
 		
 		
