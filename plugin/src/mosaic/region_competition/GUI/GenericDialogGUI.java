@@ -30,10 +30,12 @@ import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.EnergyFunctionalType;
 import mosaic.region_competition.energies.RegularizationType;
 import mosaic.region_competition.initializers.InitializationType;
+import mosaic.region_competition.wizard.RCWizard;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
+import ij.gui.NonBlockingGenericDialog;
 
 /**
  * Adapts GenericDialog from ImageJ for our purposes
@@ -43,7 +45,7 @@ public class GenericDialogGUI implements InputReadable
 	private Region_Competition MVC;
 	
 	private Settings settings;
-	private GenericDialog gd;
+	private NonBlockingGenericDialog gd;
 	private GenericDialog gd_p;
 	private ImagePlus aImp; // active ImagePlus (argument of Plugin)
 	
@@ -94,7 +96,7 @@ public class GenericDialogGUI implements InputReadable
 		this.MVC = region_Competition;
 		this.settings=region_Competition.settings;
 		aImp = region_Competition.getOriginalImPlus();
-		gd = new GenericDialog("Region Competition");
+		gd = new NonBlockingGenericDialog("Region Competition");
 		
 		
 		// File path text areas
@@ -174,6 +176,24 @@ public class GenericDialogGUI implements InputReadable
 //			});
 //			gd.add(b);
 //		}
+		
+		// Parameter opener Buttons
+		
+		p = new Panel();
+		b = new Button("Wizard");
+		b.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				RCWizard w = new RCWizard();
+				w.StartWizard();
+				
+			}
+		});
+		p.add(b);
+		
+		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
 		
 		addWheelListeners();
 	}

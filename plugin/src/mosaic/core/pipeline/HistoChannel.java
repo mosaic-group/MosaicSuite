@@ -55,7 +55,7 @@ public class HistoChannel implements PlugInFilter
 		mean = st.mean;
 		stdDev = st.stdDev;
 		
-		Kull_Lulla = new double [5];
+/*		Kull_Lulla = new double [5];
 		
 		// Five step of gaussian blur
 		
@@ -65,7 +65,7 @@ public class HistoChannel implements PlugInFilter
 			
 			
 			Knull_();
-		}
+		}*/
 	}
 
 	@Override
@@ -94,7 +94,4 @@ public class HistoChannel implements PlugInFilter
 		return mean;
 	}
 	
-	public int getPeaks(int )
-	{
-	}
 }

@@ -8,12 +8,17 @@ import java.awt.event.WindowListener;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import mosaic.region_competition.wizard.*;
 import javax.swing.JFrame;
 
 import net.imglib2.img.array.ArrayImgFactory;
@@ -78,26 +83,37 @@ public class Region_Competition implements PlugInFilter
 	JFrame controllerFrame;
 	
 	
-	
-	static String defaultInputFile;
-	static
+	static public void SaveConfigFile(String sv, Settings settings) throws IOException
 	{
-		String defaultDir = "C:/Users/Stephan/Desktop/BA/";
-		String defaultFile ="";
-		defaultFile = "imagesAndPaper/Cell1_nuclei_w460.tif";
-		defaultFile = "sphere_3d_z56.tif";
-		defaultFile = "imagesAndPaper/icecream5_410x410.tif";
-//		defaultFile = "/imagesAndPaper/icecream_shaded_130x130.tif";
-//		defaultFile = "imagesAndPaper/sphere_3d.tif";
-//		defaultFile = "imagesAndPaper/JZ_111207_SchMax_T_t0051-1.tif";
-		
-		defaultInputFile = defaultDir + defaultFile;
-		
+		FileOutputStream fout = new FileOutputStream(sv);
+		ObjectOutputStream oos = new ObjectOutputStream(fout);
+		oos.writeObject(settings);
+		oos.close();
 	}
 
-	public boolean saveSettings = true;
-	public String savedSettings = null;
 	
+	private boolean LoadConfigFile(String savedSettings)
+	{
+		System.out.println(savedSettings);
+		try
+		{
+			FileInputStream fin = new FileInputStream(savedSettings);
+			ObjectInputStream ois = new ObjectInputStream(fin);
+			settings = (Settings)ois.readObject();
+			ois.close();
+		}
+		catch (FileNotFoundException e)
+		{
+			System.err.println("Settings File not found "+savedSettings);
+			return false;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return true;
+	}
 	
 	public int setup(String aArgs, ImagePlus aImp)
 	{
@@ -107,32 +123,42 @@ public class Region_Competition implements PlugInFilter
 //		Connectivity.test();
 //		UnitCubeCCCounter.test();
 		
-		
-		// load
-		
-		String dir = IJ.getDirectory("temp");
-		savedSettings = dir+"rc_settings.dat";
-		if(saveSettings)
+		if (aArgs != null)
 		{
-			System.out.println(savedSettings);
-			try
+			// Command line interface search for config file
+			
+			String path;
+			Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+			Pattern config = Pattern.compile("config");
+			Pattern pathp = Pattern.compile("[a-zA-Z0-9/]+");
+			
+			Matcher matcher = config.matcher(aArgs);
+			if (matcher.find())
 			{
-				FileInputStream fin = new FileInputStream(savedSettings);
-				ObjectInputStream ois = new ObjectInputStream(fin);
-				settings = (Settings)ois.readObject();
-				ois.close();
+				matcher = spaces.matcher(aArgs.substring(matcher.start()));
+				if (matcher.find())
+				{
+					matcher = pathp.matcher(aArgs.substring(matcher.start()));
+					if (matcher.find())
+					{
+						path = matcher.group(0);
+						
+						if (LoadConfigFile(path))
+						{
+							return DOES_ALL+NO_CHANGES;
+						}
+					}
+				}
 			}
-			catch (FileNotFoundException e)
-			{
-				System.err.println("Settings File not found "+savedSettings);
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-			}
+			
+			// no config file open the GUI
 		}
 		
+		// load config file
 		
+		String dir = IJ.getDirectory("temp");
+		String sv = dir+"rc_settings.dat";
+		LoadConfigFile(sv);
 		
 		if(settings == null){
 			settings = new Settings();
@@ -153,19 +179,13 @@ public class Region_Competition implements PlugInFilter
 		
 
 		// save
-		if(saveSettings)
+		try
 		{
-			try
-			{
-				FileOutputStream fout = new FileOutputStream(savedSettings);
-				ObjectOutputStream oos = new ObjectOutputStream(fout);
-				oos.writeObject(settings);
-				oos.close();
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-			}
+			SaveConfigFile(sv,settings);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
 		}
 		
 		
@@ -175,6 +195,12 @@ public class Region_Competition implements PlugInFilter
 		////////////////////
 		
 		
+		return DOES_ALL+NO_CHANGES;
+	}
+	
+	
+	public void run(ImageProcessor aImageProcessor) 
+	{
 		try
 		{
 			frontsCompetitionImageFilter();
@@ -185,13 +211,6 @@ public class Region_Competition implements PlugInFilter
 				controllerFrame.dispose();
 			e.printStackTrace();
 		}
-
-		return DONE;
-	}
-	
-	
-	public void run(ImageProcessor aImageProcessor) 
-	{
 	}
 	
 	
@@ -327,7 +346,6 @@ public class Region_Competition implements PlugInFilter
 			//		String fileName= "icecream3_shaded_130x130.tif";
 //			ip = o.openImage(dir+fileName);
 			Opener o = new Opener();
-			ip = o.openImage(defaultInputFile);
 		}
 		
 			

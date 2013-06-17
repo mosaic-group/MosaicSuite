@@ -21,13 +21,13 @@ public class MaximaBubbles extends DataDrivenInitializer
 {
 	MaximumFinderInterface maximumFinder;
 	int rad = 5;	// bubble size
-	int sigma = 2; 	// smoothing gauss sigma
+	double sigma = 2.0; 	// smoothing gauss sigma
 	double tolerance = 0.005;		// localmax tolerance
 	boolean excludeOnEdges = false;
 	
 	int regionThreshold = 4; // regions smaller than this values will be bubbled
 	
-	public MaximaBubbles(IntensityImage intensityImage, LabelImage labelImage, int rad_t, int sigma_t, double tol_t, int r_t)
+	public MaximaBubbles(IntensityImage intensityImage, LabelImage labelImage, int rad_t, double sigma_t, double tol_t, int r_t)
 	{
 		super(intensityImage, labelImage);
 		int dim = labelImage.getDim();
@@ -38,7 +38,6 @@ public class MaximaBubbles extends DataDrivenInitializer
 		} else if(dim==3)
 		{
 			maximumFinder = new MaximumFinder3D(labelImage.getDimensions());
-			
 		} else
 		{
 			throw new RuntimeException("Not supported dimension for MaximumFinder");
@@ -60,6 +59,7 @@ public class MaximaBubbles extends DataDrivenInitializer
 		ImagePlus imp = intensityImage.imageIP;;
 		imp = new Duplicator().run(imp);
 		IJ.run(imp, "Gaussian Blur...", "sigma="+sigma+" stack");
+		IJ.wait(40);
 		this.intensityImage = new IntensityImage(imp);
 	}
 	
@@ -88,7 +88,7 @@ public class MaximaBubbles extends DataDrivenInitializer
 				n++;
 			}
 			
-			System.out.print("Region " + n);
+//			System.out.print("Region " + n);
 			
 			// if region was very small, draw a bubble
 			if(n<regionThreshold)

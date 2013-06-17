@@ -10,12 +10,15 @@ import mosaic.region_competition.topology.Connectivity;
 import mosaic.region_competition.utils.IntConverter;
 
 
+import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.WindowManager;
 import ij.plugin.GroupedZProjector;
 import ij.plugin.ZProjector;
 import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 
 /*
 //TODO TODOs
@@ -25,7 +28,6 @@ import ij.process.ImageProcessor;
 
 public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<Integer>
 {
-	
 //	ImagePlus imageIP;	// input image
 //	ImageProcessor imageProc;
 	
@@ -250,7 +252,115 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		}
 	}
 	
+	void clearStats()
+	{
+		//clear stats
+		for(LabelInformation stat: labelMap.values())
+		{
+			stat.reset();
+		}
+	}
 	
+	public ImagePlus show(Object title, int maxl)
+	{
+		if(getDim()==3)
+		{
+			System.out.println("Unsupported for now");
+			return null;
+		}
+		
+		// Colorprocessor doesn't support abs() (does nothing). 
+//		li.absAll();
+		ImageProcessor imProc = getLabelImageProcessor();
+//		System.out.println(Arrays.toString((int[])(imProc.getPixels())));
+		
+		// convert it to short
+		short[] shorts = getShortCopy();
+		for(int i=0; i<shorts.length; i++){
+			shorts[i] = (short)Math.abs(shorts[i]);
+		}
+		ShortProcessor shortProc = new ShortProcessor(imProc.getWidth(), imProc.getHeight());
+		shortProc.setPixels(shorts);
+		
+//		TODO !!!! imProc.convertToShort() does not work, first converts to byte, then to short...
+		String s = "ResultWindow "+title;
+		String titleUnique = WindowManager.getUniqueName(s);
+		
+		ImagePlus imp = new ImagePlus(titleUnique, shortProc);
+		IJ.setMinAndMax(imp, 0, maxl);
+		IJ.run(imp, "3-3-2 RGB", null);
+		imp.show();
+		return imp;
+	}
+	
+	public int createStatistics(IntensityImage intensityImage)
+	{	
+		getLabelMap().clear();
+		
+		HashSet<Integer> usedLabels = new HashSet<Integer>();
+		
+		int size = iterator.getSize();
+		for(int i=0; i<size; i++)
+		{
+//			int label = get(x, y);
+//			int absLabel = labelToAbs(label);
+			
+			int absLabel= getLabelAbs(i);
+
+			if (absLabel != forbiddenLabel /* && absLabel != bgLabel*/) 
+			{
+				usedLabels.add(absLabel);
+				
+				LabelInformation stats = labelMap.get(absLabel);
+				if(stats==null)
+				{
+					stats = new LabelInformation(absLabel);
+					labelMap.put(absLabel, stats);
+				}
+				double val = intensityImage.get(i);
+				stats.count++;
+				
+				stats.mean+=val; // only sum up, mean and var are computed below
+				stats.var = (stats.var+val*val);
+			}
+		}
+
+		// if background label do not exist add it
+		
+		LabelInformation stats = labelMap.get(0);
+		if(stats==null)
+		{
+			stats = new LabelInformation(0);
+			labelMap.put(0, stats);
+		}
+		
+		// now we have in all LabelInformation: 
+		// in mean the sum of the values, in var the sum of val^2
+		for(LabelInformation stat: labelMap.values())
+		{
+			int n = stat.count;
+			if (n > 1)
+			{
+				double var = (stat.var-stat.mean*stat.mean/n)/(n-1);
+				stat.var=(var);
+//      	        	stat.var = (stat.var - stat.mean*stat.mean / n) / (n-1);
+			}
+			else
+			{
+				stat.var = 0;
+			}
+			
+			if (n > 0)
+				stat.mean = stat.mean/n;
+			else
+				stat.mean = 0.0;
+			
+			// Median on start set equal to mean
+			
+			stat.median = stat.mean;
+		}
+		return usedLabels.size();
+	}
 
 	/**
 	 * Gives disconnected components in a labelImage distinct labels
