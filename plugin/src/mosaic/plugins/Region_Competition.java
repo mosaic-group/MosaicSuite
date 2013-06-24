@@ -35,12 +35,14 @@ import mosaic.region_competition.deprecated.E_CurvatureBasedGradientFlow_sphis;
 import mosaic.region_competition.deprecated.E_PS_sphis;
 import mosaic.region_competition.energies.*;
 import mosaic.region_competition.initializers.*;
+import mosaic.region_competition.netbeansGUI.UserDialog;
 import mosaic.region_competition.topology.Connectivity;
 import mosaic.region_competition.utils.IntConverter;
 import mosaic.region_competition.utils.Timer;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.Macro;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.ImageCanvas;
@@ -64,6 +66,8 @@ import ij3d.Image3DUniverse;
 
 public class Region_Competition implements PlugInFilter
 {
+	private String output_label;
+	private String config;
 	Region_Competition MVC;		// interface to image application (imageJ)
 	public Settings settings;
 	
@@ -123,22 +127,54 @@ public class Region_Competition implements PlugInFilter
 //		Connectivity.test();
 //		UnitCubeCCCounter.test();
 		
-		if (aArgs != null)
+        String options = Macro.getOptions();
+		
+		if (options != null)
 		{
 			// Command line interface search for config file
 			
 			String path;
 			Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
 			Pattern config = Pattern.compile("config");
-			Pattern pathp = Pattern.compile("[a-zA-Z0-9/]+");
+			Pattern output = Pattern.compile("output");
+			Pattern par[] = new Pattern[6];
+			par[0] = Pattern.compile("method");
+			par[1] = Pattern.compile("init");
+			par[2] = Pattern.compile("ps_radius");
+			par[3] = Pattern.compile("b_force");
+			par[4] = Pattern.compile("c_flow_coeff");
+			par[5] = Pattern.compile("c_flow_radius");
+			Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
 			
-			Matcher matcher = config.matcher(aArgs);
+			// output
+			
+			Matcher matcher = output.matcher(options);
 			if (matcher.find())
 			{
-				matcher = spaces.matcher(aArgs.substring(matcher.start()));
+				String sub = options.substring(matcher.end());
+				matcher = spaces.matcher(sub);
 				if (matcher.find())
 				{
-					matcher = pathp.matcher(aArgs.substring(matcher.start()));
+					sub = sub.substring(matcher.end());
+					matcher = pathp.matcher(sub);
+					if (matcher.find())
+					{
+						output_label = matcher.group(0);
+					}
+				}
+			}
+			
+			// config
+			
+			matcher = config.matcher(options);
+			if (matcher.find())
+			{
+				String sub = options.substring(matcher.end());
+				matcher = spaces.matcher(sub);
+				if (matcher.find())
+				{
+					sub = sub.substring(matcher.end());
+					matcher = pathp.matcher(sub);
 					if (matcher.find())
 					{
 						path = matcher.group(0);
@@ -150,6 +186,10 @@ public class Region_Competition implements PlugInFilter
 					}
 				}
 			}
+			
+			// Match setting
+			
+			
 			
 			// no config file open the GUI
 		}
@@ -203,7 +243,14 @@ public class Region_Competition implements PlugInFilter
 	{
 		try
 		{
-			frontsCompetitionImageFilter();
+			frontsCompetitionImageFilter(aImageProcessor);
+			
+			// save label on output_label
+			
+			if (output_label != null)
+			{
+				labelImage.save(output_label);
+			}
 		}
 		catch (Exception e)
 		{
@@ -298,23 +345,30 @@ public class Region_Competition implements PlugInFilter
 	}
 	
 	
-	void initInputImage()
+	void initInputImage(ImageProcessor aImageProcessor)
 	{
 		
 		ImagePlus ip = null;
 		
-		String file = userDialog.getInputImageFilename();
-		ImagePlus choiceIP = (ImagePlus)userDialog.getInputImage();
+		if (aImageProcessor == null)
+		{
+			String file = userDialog.getInputImageFilename();
+			ImagePlus choiceIP = (ImagePlus)userDialog.getInputImage();
 		
-		// first try: filepath of inputReader
-		if(file!=null && !file.isEmpty())
-		{
-			Opener o = new Opener();
-			ip = o.openImage(file);
+			// first try: filepath of inputReader
+			if(file!=null && !file.isEmpty())
+			{
+				Opener o = new Opener();
+				ip = o.openImage(file);
+			}
+			else // selected opened file
+			{
+				ip = choiceIP;
+			}
 		}
-		else // selected opened file
+		else
 		{
-			ip = choiceIP;
+			ip = new ImagePlus("test",aImageProcessor);
 		}
 		
 		// next try: opened image
@@ -358,12 +412,12 @@ public class Region_Competition implements PlugInFilter
 			
 			// image loaded
 			boolean showOriginal = true;
-			if(showOriginal)
+			if(showOriginal && userDialog != null)
 			{
 				originalIP.show();
 			}
 			
-			if(userDialog.showNormalized())
+			if(userDialog != null && userDialog.showNormalized())
 			{
 //				ImagePlusAdapter a;
 //				originalIP.show();
@@ -385,8 +439,12 @@ public class Region_Competition implements PlugInFilter
 	void initLabelImage()
 	{
 		labelImage = new LabelImage(intensityImage.getDimensions());
+		InitializationType input;
 		
-		InitializationType input = userDialog.getLabelImageInitType();
+		if (userDialog != null)
+			input = userDialog.getLabelImageInitType();
+		else
+			input = settings.labelImageInitType;
 		
 		switch(input)
 		{
@@ -511,9 +569,12 @@ public class Region_Competition implements PlugInFilter
 	
 	void initStack()
 	{
-		if(userDialog.useStack())
+		if((userDialog != null && userDialog.useStack()) || settings.RC_free == true)
 		{
-			stackKeepFrames = userDialog.showAllFrames();
+			if (userDialog != null)
+				stackKeepFrames = userDialog.showAllFrames();
+			else
+				stackKeepFrames = false;
 			
 			ImageProcessor labelImageProc; // = labelImage.getLabelImageProcessor().convertToShort(false);
 			
@@ -591,10 +652,9 @@ public class Region_Competition implements PlugInFilter
 		});
 	}
 	
-
-	void frontsCompetitionImageFilter()
+	void frontsCompetitionImageFilter(ImageProcessor aImageProcessor)
 	{
-		initInputImage();
+		initInputImage(aImageProcessor);
 		initLabelImage();
 //		labelImage.initZero();
 //		labelImage.initBrightBubbles(intensityImage);
@@ -609,7 +669,9 @@ public class Region_Competition implements PlugInFilter
 		
 //		localMax(intensityImage);
 		
-		int n = userDialog.getKBest();
+		int n = 1;
+		if (userDialog != null)
+			n = userDialog.getKBest();
 		if(n<1) n = 1;
 		Timer t = new Timer();
 		ArrayList<Long> timeList = new ArrayList<Long>();
@@ -623,7 +685,7 @@ public class Region_Competition implements PlugInFilter
 //		}
 		
 
-		if(userDialog.getKBest()>0)
+		if(userDialog != null && userDialog.getKBest()>0)
 		{
 			ArrayList<Long> list = new ArrayList<Long>();
 
@@ -654,7 +716,8 @@ public class Region_Competition implements PlugInFilter
 					IJ.setMinAndMax(stackImPlus, 0, algorithm.getBiggestLabel());
 				}
 //				stackImPlus.updateAndDraw();
-				showFinalResult(labelImage, i);
+				if (userDialog != null)
+					showFinalResult(labelImage, i);
 			}
 			
 			System.out.println("--- kbest: (set in GenericDialogGui.kbest) ---");
@@ -684,7 +747,7 @@ public class Region_Competition implements PlugInFilter
 		}
 		
 
-		if(userDialog.showStatistics())
+		if(userDialog != null && userDialog.showStatistics())
 		{
 			algorithm.showStatistics();
 		}
@@ -1217,6 +1280,38 @@ public class Region_Competition implements PlugInFilter
 		@Override
 		public void windowActivated(WindowEvent e){}
 	
+	}
+
+	public Region_Competition()
+	{
+		
+	}
+	
+	public Algorithm getAlghorithm()
+	{
+		return algorithm;
+	}
+	
+	public Region_Competition(ImageProcessor img, Settings s)
+	{
+		RC_free_image = img;
+		settings = s;
+	}
+
+	ImageProcessor RC_free_image;
+	
+	public void runP()
+	{
+		try
+		{
+			frontsCompetitionImageFilter(RC_free_image);
+		}
+		catch (Exception e)
+		{
+			if(controllerFrame!=null)
+				controllerFrame.dispose();
+			e.printStackTrace();
+		}		
 	}
 }
 	

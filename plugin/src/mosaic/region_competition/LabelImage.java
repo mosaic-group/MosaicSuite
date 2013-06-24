@@ -14,9 +14,11 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
+import ij.io.FileSaver;
 import ij.plugin.GroupedZProjector;
 import ij.plugin.ZProjector;
 import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
@@ -221,6 +223,31 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		initBoundary();
 	}
 	
+	public ImagePlus createMeanImage()
+	{
+		int nSlices = labelPlus.getNSlices();
+		int area = width*height;
+		
+		for(int i=1; i<=nSlices; i++)
+		{
+			ImageProcessor ipr = new FloatProcessor(labelIP.getWidth(),labelIP.getHeight());
+			float [] pixels = (float[])ipr.getPixels();
+			int [] labid = (int [])labelIP.getPixels();
+			for(int y=0; y<height; y++)
+			{
+				for(int x=0; x<width; x++)
+				{
+					if (labelMap.get(Math.abs(labid[y*width+x])) != null )
+						pixels[y*width+x] = (float) labelMap.get(Math.abs(labid[y*width+x])).mean;
+				}
+			}
+			
+			ImagePlus ip = new ImagePlus("label_mean",ipr);
+			return ip;
+		}
+		
+		return null;
+	}
 	
 	/**
 	 * @param stack Stack of Int processors
@@ -261,7 +288,15 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		}
 	}
 	
-	public ImagePlus show(Object title, int maxl)
+	public void save(String file)
+	{
+		FileSaver fs = new FileSaver(convert("save",256));
+		
+		fs.saveAsTiff(file);
+	}
+	
+	
+	public ImagePlus convert(Object title, int maxl)
 	{
 		if(getDim()==3)
 		{
@@ -289,6 +324,12 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		ImagePlus imp = new ImagePlus(titleUnique, shortProc);
 		IJ.setMinAndMax(imp, 0, maxl);
 		IJ.run(imp, "3-3-2 RGB", null);
+		return imp;
+	}
+	
+	public ImagePlus show(Object title, int maxl)
+	{		
+		ImagePlus imp = convert(title,maxl);
 		imp.show();
 		return imp;
 	}

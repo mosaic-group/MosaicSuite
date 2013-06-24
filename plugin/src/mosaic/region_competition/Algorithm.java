@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
+import java.util.Vector;
 
 import net.imglib2.Cursor;
 import net.imglib2.exception.IncompatibleTypeException;
@@ -118,6 +119,7 @@ public class Algorithm
 		
 		labelImage.initBoundary();
 		initContour();
+		RC_op = new Vector<RCMean>();
 	}
 
 	
@@ -330,6 +332,35 @@ public class Algorithm
 		rt.show("statistics");
 	}
 	
+	private Vector<RCMean> RC_op;
+	
+	public synchronized void Process(RCMean r)
+	{
+		if (r == null)
+		{
+			for (RCMean rm : RC_op)
+			{
+				LabelInformation linf = labelMap.get(rm.id);
+				if (linf != null)
+					linf.mean = rm.mean;
+				
+/*				boolean first = true;
+				for (LabelInformation l : labelMap.values())
+				{
+					if (first == true)
+					{first = false;}
+					else
+					{l.mean = rm.mean;}
+				}*/
+				
+			}
+			
+			
+			RC_op.clear();
+		}
+		else
+			RC_op.add(r);
+	}
 	
 	public void GenerateData()
 	{
@@ -376,7 +407,7 @@ public class Algorithm
 
 		boolean vConvergence = false;
 
-		while(settings.m_MaxNbIterations > m_iteration_counter && !(vConvergence)) 
+		while(settings.RC_free == true || (settings.m_MaxNbIterations > m_iteration_counter && !(vConvergence))) 
 		{
 			synchronized(pauseMonitor)
 			{
@@ -400,8 +431,23 @@ public class Algorithm
 			// std::cout << "number of points: "<<m_InnerContourContainer.size() << std::endl;
 			// m_ManyPointsToBeAdded.clear();
 			// m_ManyPointsToBeDeleted.clear();
+			
+			Process(null);
+			
 			vConvergence = DoOneIteration();
 			debug("time: "+timer.toc());
+			
+/*			boolean first = true;
+			double FG = 0.20;
+			
+			for (LabelInformation l : labelImage.getLabelMap().values())
+			{
+				if (first == false)
+					l.mean = FG;
+				else
+					l.mean = 0.0;
+				first = false;
+			}*/
 			
 			if(shrinkFirst && vConvergence)
 			{
@@ -897,7 +943,8 @@ public class Algorithm
 	 */
 	private void DetectOscillations(HashMap<Point, ContourParticle> m_Candidates)
 	{
-		oscillationDetection.DetectOscillations(m_Candidates);
+		if (settings.RC_free == false)
+			oscillationDetection.DetectOscillations(m_Candidates);
 	}
 
 
@@ -1339,7 +1386,6 @@ public class Algorithm
 		
 	}
 
-
 	/**
 	 * called while iterating over m_InnerContourContainer in RemoveSinglePointRegions()
 	 * 
@@ -1375,7 +1421,9 @@ public class Algorithm
         /// STATISTICS UPDATE
         /// Update the statistics of the propagating and the loser region.
         ///
-		UpdateStatisticsWhenJump(aParticle, vFromLabel, vToLabel);
+		
+		if (settings.RC_free == false)
+			UpdateStatisticsWhenJump(aParticle, vFromLabel, vToLabel);
         if (imageModel.getEdataType() == EnergyFunctionalType.e_DeconvolutionPC)
         {
             ((E_Deconvolution)imageModel.getEdata()).UpdateConvolvedImage(vCurrentIndex,labelImage, vFromLabel, vToLabel);

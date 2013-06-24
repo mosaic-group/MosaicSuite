@@ -3,19 +3,26 @@ package mosaic.region_competition.wizard;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageWindow;
 import ij.gui.Roi;
+import ij.io.Opener;
 import ij.plugin.frame.RoiManager;
 import ij.process.ImageProcessor;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Rectangle;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
 import java.awt.GridLayout;
 import java.awt.GridBagLayout;
 import javax.swing.JButton;
@@ -28,6 +35,8 @@ import java.awt.event.MouseListener;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JDialog;
+import javax.swing.JSlider;
+import javax.swing.JTextArea;
 import javax.swing.SpringLayout;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
@@ -43,14 +52,20 @@ import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.IntensityImage;
 import mosaic.region_competition.LabelImage;
 import mosaic.region_competition.LabelInformation;
+import mosaic.region_competition.Point;
 import mosaic.region_competition.Settings;
+import mosaic.region_competition.energies.EnergyFunctionalType;
+import mosaic.region_competition.initializers.InitializationType;
 import mosaic.region_competition.initializers.MaximaBubbles;
+import mosaic.region_competition.Settings;
+import mosaic.region_competition.RCMean;
 
 import java.awt.Color;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.regex.Matcher;
 
 public class RCWWin extends JDialog implements MouseListener, Runnable
 {
@@ -157,7 +172,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	/**
 	 * Create the frame.
 	 */
-	public RCWWin() 
+	public RCWWin()
 	{
 //		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
@@ -323,6 +338,11 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				inc_step[i] = 1;
 		}
 		
+		int [] getObject()
+		{
+			return off;
+		}
+		
 		@Override
 		public double valueOf(double[] x) 
 		{
@@ -341,7 +361,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				Map.remove(0);  // remove background
 				for (LabelInformation lb : Map.values())
 				{
-					result += 4.0*Math.abs((double)lb.count - l[im].getSize()/4.0)/l[im].getSize()/off[im];
+					result += 4.0*Math.abs((double)lb.count - l[im].getSize()/4.0/off[im])/l[im].getSize();
 				}
 				result += Math.abs(c - (off[im]+1)) /**l[im].getSize()*/;
 				
@@ -371,11 +391,191 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		}
 	}
 	
+	class RCThread implements Runnable
+	{
+		Settings s;
+		ImageProcessor img;
+		Region_Competition rg;
+		
+		RCThread(ImageProcessor img_, Settings set)
+		{
+			img = img_;
+			s = set;
+		}
+		
+		Region_Competition getRC()
+		{
+			return rg;
+		}
+		
+		@Override
+		public void run() 
+		{
+			// TODO Auto-generated method stub
+		
+			rg = new Region_Competition(img,s);
+			rg.runP();
+		}
+		
+	}
+	
+	class PickRegion implements MouseListener, ChangeListener
+	{
+		JSlider slid;
+		JTextArea text;
+		ImageCanvas canvas;
+		RCThread t;
+		int id = -1;
+		
+		PickRegion(RCThread th, JSlider js, JTextArea tx)
+		{
+			ImageWindow win = th.getRC().getStackImPlus().getWindow();
+			canvas = win.getCanvas();
+			canvas.addMouseListener(this);
+			slid = js;
+			text = tx;
+			t = th;
+		}
+		
+		@Override
+		public void mouseClicked(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mouseExited(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) 
+		{
+			// TODO Auto-generated method stub
+			
+			int x = e.getX();
+			int y = e.getY();
+			int offscreenX = canvas.offScreenX(x);
+			int offscreenY = canvas.offScreenY(y);
+			
+			ImagePlus img = t.getRC().getStackImPlus();
+			
+			LabelImage lb = t.getRC().getLabelImage();
+			int size[] = lb.getDimensions();
+			
+			id = lb.getLabel(offscreenX+offscreenY*size[0]);
+			Double r_FG = lb.getLabelMap().get(id).mean;
+			text.setText(r_FG.toString());
+			slid.setValue((int)(r_FG * 1000.0));
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void stateChanged(ChangeEvent arg0) {
+			// TODO Auto-generated method stub
+			
+			text.setText(String.valueOf(slid.getValue()/1000.0));
+			
+			if (id != -1)
+			{
+				LabelImage lb = t.getRC().getLabelImage();
+				double bg = lb.getLabelMap().get(0).mean;
+				
+				if (bg < slid.getValue()/1000.0 || id == 0)
+				{
+					RCMean rcm = new RCMean(id,slid.getValue()/1000.0);
+			
+					t.getRC().getAlgorithm().Process(rcm);
+				}
+			}
+		}
+		
+	}
+	
+	JDialog g;
+	
+	LabelImage RCPainter(ImagePlus aImg, Settings s)
+	{
+		double result = 0.0;
+		
+		s.RC_free = true;
+		s.m_EnergyContourLengthCoeff = (float) 0.001;
+		s.m_RegionMergingThreshold = (float) 0.0;
+		
+		// Create the drawing window
+		
+		g = new JDialog();
+		
+		g.setTitle("RC Painter");
+		g.setBounds(100, 100, 150, 100);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		g.setContentPane(contentPane);
+		contentPane.setLayout(new GridLayout(0, 1, 0, 0));
+		
+		JLabel lblNewLabel = new JLabel("Pick a region and move the cursor");
+		contentPane.add(lblNewLabel);
+		
+		JSlider slid = new JSlider();
+		slid.setMaximum(1000);
+		slid.setMinimum(0);
+		
+		JTextArea text = new JTextArea("0.5");
+		contentPane.add(slid);
+		contentPane.add(text);
+		
+		RCThread RCT = new RCThread(aImg.getProcessor(),s);
+		Thread t = new Thread(RCT);
+		t.start();
+		
+		// Delay we have to start
+		
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		PickRegion pc = new PickRegion(RCT,slid,text);
+		
+        slid.addChangeListener(pc);
+		
+		g.addMouseListener(pc);
+		
+		g.show();
+		
+		try {
+			t.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return RCT.getRC().getLabelImage();
+		
+		//
+		
+//		t.stop();
+	}
+	
 	// Score function try to find out the best segmentation with PC on all area selected
 	// use setPS() to select PS
 	
 	class ScoreFunctionRC implements ScoreFunction
 	{
+		private int off[];
 		private double aTol;
 		private double sigma;
 		
@@ -383,13 +583,15 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		LabelImage l[];
 		Algorithm al;
 		
-		ScoreFunctionRC(IntensityImage i_[], LabelImage l_[], double aTol_, double sigma_)
+		ScoreFunctionRC(IntensityImage i_[], LabelImage l_[], double sigma_, double aTol_, int off_[])
 		{
 			i = i_;
 			l = l_;
 			
 			aTol = aTol_;
 			sigma = sigma_;
+			
+			off = off_;
 		}
 
 		@Override
@@ -401,8 +603,15 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			s.m_RegionMergingThreshold = (float) x[0];
 			s.m_EnergyContourLengthCoeff = (float) x[1];
 			s.m_CurvatureMaskRadius = (float) x[2];
+			if (s.m_GaussPSEnergyRadius > 2.0)
+				s.m_EnergyFunctional = EnergyFunctionalType.e_PS;
+			else
+				s.m_EnergyFunctional = EnergyFunctionalType.e_PC;
+			s.m_GaussPSEnergyRadius = (int) x[3];
+			s.m_BalloonForceCoeff = (float)x[4];
 			s.l_Sigma = sigma;
 			s.l_Tolerance = aTol;
+			s.labelImageInitType = InitializationType.LocalMax;
 			
 			// write the settings
 			
@@ -415,14 +624,21 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			
 			for (int im = 0 ; im < i.length ; im++)
 			{
-				IJ.run("Region_Competition","config="+IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_"+x[2] + "  " + "output=" +IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_"+x[2]+".tif");
+				IJ.run(i[im].imageIP,"Region Competition","config="+IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_"+x[2] + "  " + "output=" +IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_"+x[2]+".tif");
 				
 				// Read Label Image
 				
+				Opener o = new Opener();
+				ImagePlus ip = o.openImage(IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_"+x[2]+".tif");
+
+				l[im].initWithIP(ip);
+				l[im].createStatistics(i[im]);
+				
 				// Scoring
 				
-				result += Math.abs(l[im].getLabelMap().size()-1)*l[im].getSize();
+				result += Math.abs(l[im].getLabelMap().size()-off[im]);
 				
+				int count = 0;
 				double a1 = 0.0;
 				double a2 = 0.0;
 				
@@ -430,9 +646,15 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				
 				
 				a1 = ((LabelInformation)li.toArray()[0]).mean;
-				a2 = ((LabelInformation)li.toArray()[1]).mean;
 				
-				result += Math.abs(a1 - a2)/(i[im].imageIP.getStatistics().max - i[im].imageIP.getStatistics().min);
+				for (int i = 1 ; i < li.toArray().length ; i++)
+				{
+					a2 += ((LabelInformation)li.toArray()[i]).mean*((LabelInformation)li.toArray()[i]).count;
+					count += ((LabelInformation)li.toArray()[i]).count;
+				}
+				a2 /= count;
+				
+				result += 10.0/Math.abs(a1 - a2);
 			}
 			
 			return result;
@@ -441,7 +663,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		@Override
 		public boolean isFeasible(double[] x) 
 		{
-			if (x[0] <= 0.0 || x[1] <= 0.0 || x[2] <= 0.0)
+			if (x[0] <= 0.0 || x[1] <= 0.0 || x[2] <= 0.0 || x[3] <= 0.0 || x[4] <= 0.0)
 				return false;
 			
 			// TODO Auto-generated method stub
@@ -462,7 +684,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		
 	}
 	
-	CMAEvolutionStrategy OptimizeWithCMA(ScoreFunction fi,double aMean[], double aDev[], String Question)
+	CMAEvolutionStrategy OptimizeWithCMA(ScoreFunction fi,double aMean[], double aDev[], String Question, boolean debug)
 	{
 		CMAEvolutionStrategy solver = null;
 		boolean restart = true;
@@ -502,30 +724,22 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				
 					fitness[i] = fi.valueOf(pop[i]);
 				}
-				System.out.println("Pop 0");
-				System.out.println(pop[0][0]);
-				System.out.println(pop[0][1]);
-				System.out.println(fitness[0]);
-				System.out.println("Pop 1");
-				System.out.println(pop[1][0]);
-				System.out.println(pop[1][1]);
-				System.out.println(fitness[1]);
-				System.out.println("Pop 2");
-				System.out.println(pop[2][0]);
-				System.out.println(pop[2][1]);
-				System.out.println(fitness[2]);
-				System.out.println("Pop 3");
-				System.out.println(pop[3][0]);
-				System.out.println(pop[3][1]);
-				System.out.println(fitness[3]);
-				System.out.println("Pop 4");
-				System.out.println(pop[4][0]);
-				System.out.println(pop[4][1]);
-				System.out.println(fitness[4]);
+				for (int i = 0 ; i < pop.length ; i++)
+				{
+					System.out.println("Pop " + i);
+					for (int j = 0 ; j < pop[i].length ; j++)
+					{
+						System.out.println(pop[i][j]);
+					}
+					System.out.println("fitness " + fitness[i]);
+				}
 			
-//				System.out.println("Press Enter to continue");
-//				try{System.in.read();}
-//				catch (Exception e) {}		
+				if (debug == true)
+				{
+					System.out.println("Press Enter to continue");
+					try{System.in.read();}
+					catch (Exception e) {}
+				}
 			
 				solver.updateDistribution(fitness);
 			
@@ -543,10 +757,10 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				System.out.println(n_it);
 			}
 			// evaluate mean value as it is the best estimator for the optimum
-			solver.setFitnessOfMeanX(fi.valueOf(solver.getMeanX()));
+			solver.setFitnessOfMeanX(fi.valueOf(solver.getBestX()));
 		
-			System.out.println((solver.getMeanX())[0]);
-			System.out.println((solver.getMeanX())[1]);
+			System.out.println((solver.getBestX())[0]);
+			System.out.println((solver.getBestX())[1]);
 		
 			fi.valueOf(solver.getMeanX());
 			fi.show();
@@ -584,6 +798,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		// Start with standard settings
 		
 		Settings s = new Settings();
+		s.labelImageInitType = InitializationType.LocalMax;
 		
 		// if is a Tissue produce pow(2,d) < r < pow(3,d) regions (region tol 8)
 		// if is a Cell produce 1 region (region tol 16)
@@ -637,7 +852,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			
 		}
 		else 
-		{/*fi = new ScoreFunctionInit(in,lb,r_t,rad, (int) Math.pow(2,in[0].getDim()));*/}
+		{fi = new ScoreFunctionInit(in,lb,r_t,rad);}
 		
 		double aMean[] = new double[2];
 		double aDev[] = new double[2];
@@ -646,26 +861,43 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		aDev[0] = 0.5;
 		aDev[1] = 0.005;
 		
-		CMAEvolutionStrategy solver = OptimizeWithCMA(fi,aMean,aDev,"Check whenever all objects has at least 1 or more region (Yes = 1)");
+		CMAEvolutionStrategy solver = OptimizeWithCMA(fi,aMean,aDev,"Check whenever all objects has at least 1 or more region (Yes = 1)",false);
 		
-		// we work on E_lenght and R_k E_merge  // we fix on PC
+		// we work on E_lenght and R_k E_merge  PS_radius Ballon
 		
 		double LM[] = solver.getMeanX();
 		
-		aMean = new double [3];
-		aDev = new double [3];
+		aMean = new double [5];
+		aDev = new double [5];
+	
+		s.l_Sigma = LM[0];
+		s.l_Tolerance = LM[1];
+		s.labelImageInitType = InitializationType.LocalMax;
+		s.m_EnergyFunctional = EnergyFunctionalType.e_PC;
+		s.m_CurvatureMaskRadius = 4;
+//		s.m_ConstantOutwardFlow = (float) 0.04;
+		
+/*		img[0].show();
+		lb[0] = RCPainter(img[0],s);
+		
+		ImagePlus lb_m = lb[0].createMeanImage();
+		lb_m.show();*/
 		
 		aMean[0] = 0.04;
-		aMean[2] = 0.02;
-		aMean[1] = 4.0;
+		aMean[1] = 0.02;
+		aMean[2] = 4.0;
+		aMean[3] = 1.0;
+		aMean[4] = 0.0;
 		
-		aDev[0] = 0.005;
-		aDev[1] = 0.001;
+		aDev[0] = 0.05;
+		aDev[1] = 0.01;
 		aDev[2] = 0.2;
+		aDev[3] = 3.0;
+		aDev[4] = 0.01;
 		
-		ScoreFunctionRC fiRC = new ScoreFunctionRC(in,lb,LM[0],LM[1]);
+		ScoreFunctionRC fiRC = new ScoreFunctionRC(in,lb,LM[0],LM[1],fi.getObject());
 		
-		solver = OptimizeWithCMA(fiRC,aMean,aDev,"Check whenever the segmentation is reasonable");
+		solver = OptimizeWithCMA(fiRC,aMean,aDev,"Check whenever the segmentation is reasonable", true);
 		
 			// run Region Competition on all images
 		
@@ -675,7 +907,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		
 			// N(nr) + a/(Iman - Imin) * N
 		
-			// Selection
+			// Selection*/
 		
 	}
 }

@@ -75,6 +75,8 @@ public class Settings implements Serializable
 	}
 	
 	ArrayList<SettingsListener> listeners = new ArrayList<Settings.SettingsListener>();
+
+	public boolean RC_free;
 	public void addSettingsListener(SettingsListener listener)
 	{
 		listeners.add(listener);

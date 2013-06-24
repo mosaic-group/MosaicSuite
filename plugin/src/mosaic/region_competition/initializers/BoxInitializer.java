@@ -11,7 +11,7 @@ public class BoxInitializer extends Initializer
 		super(labelImage);
 	}
 	
-	double ratio = 0.8;
+	double ratio = 0.95;
 	
 
 	/**
