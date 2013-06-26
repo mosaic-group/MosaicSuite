@@ -180,7 +180,7 @@ public class Region_Competition implements PlugInFilter
 						path = matcher.group(0);
 						
 						if (LoadConfigFile(path))
-						{
+						{							
 							return DOES_ALL+NO_CHANGES;
 						}
 					}
@@ -244,8 +244,6 @@ public class Region_Competition implements PlugInFilter
 		try
 		{
 			frontsCompetitionImageFilter(aImageProcessor);
-			
-			// save label on output_label
 			
 			if (output_label != null)
 			{
@@ -743,7 +741,8 @@ public class Region_Competition implements PlugInFilter
 			{
 				IJ.setMinAndMax(stackImPlus, 0, algorithm.getBiggestLabel());
 			}
-			showFinalResult(labelImage);
+			if (userDialog != null)
+				showFinalResult(labelImage);
 		}
 		
 

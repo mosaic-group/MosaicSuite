@@ -53,7 +53,10 @@ import mosaic.region_competition.IntensityImage;
 import mosaic.region_competition.LabelImage;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Point;
+import mosaic.region_competition.RegionIterator;
 import mosaic.region_competition.Settings;
+import mosaic.region_competition.energies.CurvatureBasedFlow;
+import mosaic.region_competition.energies.E_CurvatureFlow;
 import mosaic.region_competition.energies.EnergyFunctionalType;
 import mosaic.region_competition.initializers.InitializationType;
 import mosaic.region_competition.initializers.MaximaBubbles;
@@ -62,6 +65,7 @@ import mosaic.region_competition.RCMean;
 
 import java.awt.Color;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -96,7 +100,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		});
 	}
 	
-	private int Ask(String title,String message)
+	private double Ask(String title,String message)
 	{
 		GenericDialog ask = new GenericDialog(title);
 		ask.addNumericField(message, 1, 1);
@@ -105,7 +109,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		if(ask.wasCanceled())
 			return -1;
 		else
-			return (int) ask.getNextNumber();
+			return ask.getNextNumber();
 	}
 	
 	/**
@@ -387,7 +391,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		public void show()
 		{
 			for (int im = 0 ;  im < l.length ; im++)
-				l[im].show("init", 10);
+				l[im].show("init", 255);
 		}
 	}
 	
@@ -423,7 +427,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	{
 		JSlider slid;
 		JTextArea text;
-		ImageCanvas canvas;
+ 		ImageCanvas canvas;
 		RCThread t;
 		int id = -1;
 		
@@ -573,50 +577,73 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	// Score function try to find out the best segmentation with PC on all area selected
 	// use setPS() to select PS
 	
-	class ScoreFunctionRC implements ScoreFunction
+	class ScoreFunctionRCvol implements ScoreFunction
 	{
-		private int off[];
-		private double aTol;
-		private double sigma;
+		private int Area[];
 		
 		IntensityImage i[];
 		LabelImage l[];
 		Algorithm al;
+		Settings s;
 		
-		ScoreFunctionRC(IntensityImage i_[], LabelImage l_[], double sigma_, double aTol_, int off_[])
+		ScoreFunctionRCvol(IntensityImage i_[], LabelImage l_[], Settings s_)
 		{
 			i = i_;
 			l = l_;
 			
-			aTol = aTol_;
-			sigma = sigma_;
-			
-			off = off_;
+			s = s_;
 		}
 
+		public LabelImage getLabel(int im)
+		{
+			return l[im];
+		}
+		
+		public void setArea(int a[])
+		{
+			Area = a;
+		}
+		
+		public int Area(LabelImage l)
+		{	
+			int count = 0;
+			double a1 = 0.0;
+			double a2 = 0.0;
+			
+			Collection<LabelInformation> li = l.getLabelMap().values();
+			
+			
+			a1 = ((LabelInformation)li.toArray()[0]).mean;
+			
+			for (int i = 1 ; i < li.toArray().length ; i++)
+			{
+				/*a2 += ((LabelInformation)li.toArray()[i]).mean*((LabelInformation)li.toArray()[i]).count;*/
+				count += ((LabelInformation)li.toArray()[i]).count;
+			}
+//			a2 /= count;
+
+			return count;
+		}
+		
 		@Override
 		public double valueOf(double[] x) 
 		{	
 			double result = 0.0;
 			
-			Settings s = new Settings();
-			s.m_RegionMergingThreshold = (float) x[0];
-			s.m_EnergyContourLengthCoeff = (float) x[1];
-			s.m_CurvatureMaskRadius = (float) x[2];
+//			s.m_RegionMergingThreshold = (float) x[0];
+//			s.m_EnergyContourLengthCoeff = (float) x[1];
+//			s.m_CurvatureMaskRadius = (float) x[2];
+			s.m_GaussPSEnergyRadius = (int) x[0];
+			s.m_BalloonForceCoeff = (float)x[1];
 			if (s.m_GaussPSEnergyRadius > 2.0)
 				s.m_EnergyFunctional = EnergyFunctionalType.e_PS;
 			else
 				s.m_EnergyFunctional = EnergyFunctionalType.e_PC;
-			s.m_GaussPSEnergyRadius = (int) x[3];
-			s.m_BalloonForceCoeff = (float)x[4];
-			s.l_Sigma = sigma;
-			s.l_Tolerance = aTol;
-			s.labelImageInitType = InitializationType.LocalMax;
 			
 			// write the settings
 			
 			try {
-				Region_Competition.SaveConfigFile(IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_"+x[2], s);
+				Region_Competition.SaveConfigFile(IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1], s);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -624,19 +651,19 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			
 			for (int im = 0 ; im < i.length ; im++)
 			{
-				IJ.run(i[im].imageIP,"Region Competition","config="+IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_"+x[2] + "  " + "output=" +IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_"+x[2]+".tif");
+				IJ.run(i[im].imageIP,"Region Competition","config="+IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1] + "  " + "output=" +IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+".tif");
 				
 				// Read Label Image
 				
 				Opener o = new Opener();
-				ImagePlus ip = o.openImage(IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_"+x[2]+".tif");
+				ImagePlus ip = o.openImage(IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+".tif");
 
 				l[im].initWithIP(ip);
 				l[im].createStatistics(i[im]);
 				
 				// Scoring
 				
-				result += Math.abs(l[im].getLabelMap().size()-off[im]);
+//				result += Math.abs(l[im].getLabelMap().size()-off[im]);
 				
 				int count = 0;
 				double a1 = 0.0;
@@ -649,12 +676,14 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				
 				for (int i = 1 ; i < li.toArray().length ; i++)
 				{
-					a2 += ((LabelInformation)li.toArray()[i]).mean*((LabelInformation)li.toArray()[i]).count;
+					/*a2 += ((LabelInformation)li.toArray()[i]).mean*((LabelInformation)li.toArray()[i]).count;*/
 					count += ((LabelInformation)li.toArray()[i]).count;
 				}
-				a2 /= count;
+//				a2 /= count;
+	
+				result = (count - Area[im])*(count - Area[im]);
 				
-				result += 10.0/Math.abs(a1 - a2);
+//				result += 10.0/Math.abs(a1 - a2);
 			}
 			
 			return result;
@@ -663,7 +692,19 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		@Override
 		public boolean isFeasible(double[] x) 
 		{
-			if (x[0] <= 0.0 || x[1] <= 0.0 || x[2] <= 0.0 || x[3] <= 0.0 || x[4] <= 0.0)
+			int minSz = Integer.MAX_VALUE;
+			for (LabelImage lbt : l)
+			{
+				for (int d : lbt.getDimensions())
+				{
+					if (d < minSz)
+					{
+						minSz = d;
+					}
+				}
+			}
+			
+			if (x[0] <= 0.0 || x[1] <= 0.0 || x[0] > minSz/2 || x[1] > 1.0)
 				return false;
 			
 			// TODO Auto-generated method stub
@@ -679,12 +720,230 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		@Override
 		public void show() {
 			// TODO Auto-generated method stub
+		
+			for (int im = 0 ;  im < l.length ; im++)
+				l[im].show("init", 10);
+			
+		}
+	}
+	
+	class ScoreFunctionRCsmo implements ScoreFunction
+	{
+		private double smooth[];
+		
+		IntensityImage i[];
+		LabelImage l[];
+		Algorithm al;
+		Settings s;
+		
+		ScoreFunctionRCsmo(IntensityImage i_[], LabelImage l_[], Settings s_)
+		{
+			i = i_;
+			l = l_;
+			
+			s = s_;
+		}
+
+		public LabelImage getLabel(int im)
+		{
+			return l[im];
+		}
+		
+		public void setSmooth(double a[])
+		{
+			smooth = a;
+		}
+		
+		private double frm(double t)
+		{
+			return 1.0/(1.0 + Math.exp(-t));
+		}
+		
+		public double Smooth(LabelImage l)
+		{	
+			// Scan for particles
+			
+			int off[] = l.getDimensions().clone();
+			Arrays.fill(off, 0);
+			
+			double eCurv2_p = 0.0;
+			double eCurv2_n = 0.0;
+			
+			double eCurv4_p = 0.0;
+			double eCurv4_n = 0.0;
+			
+			double eCurv8_p = 0.0;
+			double eCurv8_n = 0.0;
+			
+			double eCurv16_p = 0.0;
+			double eCurv16_n = 0.0;
+			
+			double eCurv_tot_p = 0.0;
+			double eCurv_tot_n = 0.0;
+			
+			RegionIterator img = new RegionIterator(l.getDimensions(),l.getDimensions(),off);
+			
+			while (img.hasNext())
+			{
+				Point p = img.getPoint();
+				int i = img.next();
+				if (l.dataLabel[i] < 0)
+				{
+					int id = Math.abs(l.dataLabel[i]);
+					
+					CurvatureBasedFlow f2 = new CurvatureBasedFlow(2,l);
+					CurvatureBasedFlow f4 = new CurvatureBasedFlow(4,l);
+					CurvatureBasedFlow f8 = new CurvatureBasedFlow(8,l);
+					CurvatureBasedFlow f16 = new CurvatureBasedFlow(16,l);
+
+					double eCurv2 = f2.generateData(p,0,id);
+					double eCurv4 = f4.generateData(p,0,id);
+					double eCurv8 = f8.generateData(p,0,id);
+					double eCurv16 = f16.generateData(p,0,id);
+					
+					double c2 = 1.0/*frm(l.getLabelMap().get(id).count - 4*Math.PI*2)*/;
+					double c4 = 1.0/*frm(l.getLabelMap().get(id).count - 4*Math.PI)*/;
+					double c8 = 1.0/*frm(l.getLabelMap().get(id).count - 4*Math.PI)*/;
+					double c16 = 1.0/*frm(l.getLabelMap().get(id).count - 4*Math.PI)*/;
+					
+					if (eCurv2 > 0.0)
+						eCurv2_p += c2*eCurv2;
+					else
+						eCurv2_n += c2*eCurv2;
+					
+					if (eCurv4 > 0.0)
+						eCurv4_p += c4*eCurv4;
+					else
+						eCurv4_n += c4*eCurv4;
+					
+					if (eCurv8 > 0.0)
+						eCurv8_p += c8*eCurv8;
+					else
+						eCurv8_n += c8*eCurv8;
+					
+					if (eCurv16 > 0.0)
+						eCurv16_p += c16*eCurv16;
+					else
+						eCurv16_n += c16*eCurv16;
+					
+					// Get the module of the curvature flow
+				}
+			}
+			
+			// Sum 2 4 8 16
+			
+			eCurv_tot_p = eCurv2_p + eCurv4_p + eCurv8_p + eCurv16_p;
+			eCurv_tot_n = eCurv2_n + eCurv4_n + eCurv8_n + eCurv16_n;
+			
+			// Smooth
+
+			return eCurv_tot_p - eCurv_tot_n;
+		}
+		
+		@Override
+		public double valueOf(double[] x) 
+		{	
+			double result = 0.0;
+			
+			s.m_EnergyContourLengthCoeff = (float) x[1];
+			s.m_CurvatureMaskRadius = (float) x[0];
+			if (s.m_GaussPSEnergyRadius > 2.0)
+				s.m_EnergyFunctional = EnergyFunctionalType.e_PS;
+			else
+				s.m_EnergyFunctional = EnergyFunctionalType.e_PC;
+			
+			
+			// write the settings
+			
+			try {
+				Region_Competition.SaveConfigFile(IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1], s);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			for (int im = 0 ; im < i.length ; im++)
+			{
+				IJ.run(i[im].imageIP,"Region Competition","config="+IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1] + "  " + "output=" +IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1]+".tif");
+				
+				// Read Label Image
+				
+				Opener o = new Opener();
+				ImagePlus ip = o.openImage(IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1]+".tif");
+
+				l[im].initWithIP(ip);
+				l[im].createStatistics(i[im]);
+				
+				// Scoring
+		 		
+				int count = 0;
+				double a1 = 0.0;
+				double a2 = 0.0;
+				
+				Collection<LabelInformation> li = l[im].getLabelMap().values();
+				
+				
+				a1 = ((LabelInformation)li.toArray()[0]).mean;
+				
+				for (int i = 1 ; i < li.toArray().length ; i++)
+				{
+					/*a2 += ((LabelInformation)li.toArray()[i]).mean*((LabelInformation)li.toArray()[i]).count;*/
+					count += ((LabelInformation)li.toArray()[i]).count;
+				}
+//				a2 /= count;
+	
+				l[im].initBoundary();
+				l[im].initContour();
+				
+				result = (Smooth(l[im]) - smooth[im])*(Smooth(l[im]) - smooth[im]);
+				
+//				result += 10.0/Math.abs(a1 - a2);
+			}
+			
+			return result;
+		}
+
+		@Override
+		public boolean isFeasible(double[] x) 
+		{
+			int minSz = Integer.MAX_VALUE;
+			for (LabelImage lbt : l)
+			{
+				for (int d : lbt.getDimensions())
+				{
+					if (d < minSz)
+					{
+						minSz = d;
+					}
+				}
+			}
+			
+			if (x[0] <= 2.0 || x[1] <= 0.0 || x[0] > minSz/2 || x[1] > 1.0)
+				return false;
+			
+			// TODO Auto-generated method stub
+			return true;
+		}
+
+		@Override
+		public void incrementStep() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void show() {
+			// TODO Auto-generated method stub
+		
+			for (int im = 0 ;  im < l.length ; im++)
+				l[im].show("init", 10);
 			
 		}
 		
 	}
 	
-	CMAEvolutionStrategy OptimizeWithCMA(ScoreFunction fi,double aMean[], double aDev[], String Question, boolean debug)
+	
+	CMAEvolutionStrategy OptimizeWithCMA(ScoreFunction fi,double aMean[], double aDev[], String Question, double stop ,boolean debug)
 	{
 		CMAEvolutionStrategy solver = null;
 		boolean restart = true;
@@ -697,7 +956,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			solver.setDimension(aMean.length);
 			solver.setInitialX(aMean);
 			solver.setInitialStandardDeviations(aDev);
-			solver.options.stopFitness = 0.3;
+			solver.options.stopFitness = stop;
 		
 			// initialize cma and get fitness array to fill in later
 		
@@ -759,9 +1018,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			// evaluate mean value as it is the best estimator for the optimum
 			solver.setFitnessOfMeanX(fi.valueOf(solver.getBestX()));
 		
-			System.out.println((solver.getBestX())[0]);
-			System.out.println((solver.getBestX())[1]);
-		
 			fi.valueOf(solver.getMeanX());
 			fi.show();
 		
@@ -775,9 +1031,11 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			solver.println("best function value " + solver.getBestFunctionValue() +
 					 " at evaluation " + solver.getBestEvaluationNumber());
 		
+			System.out.println("Parameter 0: " + (solver.getBestX())[0]);
+			System.out.println("Parameter 1: " + (solver.getBestX())[1]);
 			
-			int ans = Ask("Question",Question);
-			if (ans == 1)
+			double ans = Ask("Question",Question);
+			if (ans == 1.0)
 				restart = false;
 			else
 			{
@@ -786,7 +1044,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			}
 			
 			restart_it++;
-			
 		}
 		
 		return solver;
@@ -847,7 +1104,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				fi = new ScoreFunctionInit(in,lb,r_t,rad);
 				lb[i] = new LabelImage(in[i].getDimensions());
 				in[i].imageIP.show();
-				fi.setObject(i,Ask("Question", "How many object do you see ?"));
+				fi.setObject(i,(int)Ask("Question", "How many object do you see ?"));
 			}
 			
 		}
@@ -861,20 +1118,22 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		aDev[0] = 0.5;
 		aDev[1] = 0.005;
 		
-		CMAEvolutionStrategy solver = OptimizeWithCMA(fi,aMean,aDev,"Check whenever all objects has at least 1 or more region (Yes = 1)",false);
+		CMAEvolutionStrategy solver = OptimizeWithCMA(fi,aMean,aDev,"Check whenever all objects has at least 1 or more region (Yes = 1)",0.3,false);
 		
 		// we work on E_lenght and R_k E_merge  PS_radius Ballon
 		
 		double LM[] = solver.getMeanX();
 		
-		aMean = new double [5];
-		aDev = new double [5];
+		aMean = new double [2];
+		aDev = new double [2];
 	
 		s.l_Sigma = LM[0];
 		s.l_Tolerance = LM[1];
 		s.labelImageInitType = InitializationType.LocalMax;
 		s.m_EnergyFunctional = EnergyFunctionalType.e_PC;
 		s.m_CurvatureMaskRadius = 4;
+		s.m_BalloonForceCoeff = 0.03f;
+		s.m_GaussPSEnergyRadius = 22;
 //		s.m_ConstantOutwardFlow = (float) 0.04;
 		
 /*		img[0].show();
@@ -883,22 +1142,110 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		ImagePlus lb_m = lb[0].createMeanImage();
 		lb_m.show();*/
 		
-		aMean[0] = 0.04;
-		aMean[1] = 0.02;
-		aMean[2] = 4.0;
-		aMean[3] = 1.0;
-		aMean[4] = 0.0;
+		int sizeA[] = new int [1];
+		double sizeS[] = new double [1];
+		int sizeT[] = new int [1];
+		int stop[] = new int [1];
+		double stopd[] = new double [1];
 		
-		aDev[0] = 0.05;
-		aDev[1] = 0.01;
-		aDev[2] = 0.2;
-		aDev[3] = 3.0;
-		aDev[4] = 0.01;
+		{
+			ScoreFunctionRCvol tmpA = new ScoreFunctionRCvol(in,lb,s);
+			sizeA[0] = tmpA.Area(lb[0]);
+			LabelImage lbtmp = new LabelImage(lb[0]);
+			ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in,lb,s);
+			lbtmp.initBoundary();
+			lbtmp.initContour();
+			sizeS[0] = tmpS.Smooth(lbtmp);
+		}
 		
-		ScoreFunctionRC fiRC = new ScoreFunctionRC(in,lb,LM[0],LM[1],fi.getObject());
+		int fun = 0;
 		
-		solver = OptimizeWithCMA(fiRC,aMean,aDev,"Check whenever the segmentation is reasonable", true);
+		while (fun <= 3)
+		{
+			// choose the score
+			
+			fun = (int) Ask("Choose the scoring function","Choose the scooring function 1 = volume, 2 = Topology, 3=Smooth");
+			
+			//
+			
+			if (fun == 1)
+			{
+				aDev[0] = 3.0;
+				aDev[1] = 0.01;
+				
+				ScoreFunctionRCvol fiRC = new ScoreFunctionRCvol(in,lb,s);
+			
+				double factor = Ask("Area fix","Increase the region by a factor");
+
+				stop[0] = (int) (Math.abs(((factor * sizeA[0]) - sizeA[0]))/100.0*50.0);
+				sizeA[0] = (int) (factor * sizeA[0]);
+				fiRC.setArea(sizeA);
+			
+				
+				solver = OptimizeWithCMA(fiRC,aMean,aDev,"Check whenever the segmentation is reasonable",stop[0],false);
+				
+				s.m_GaussPSEnergyRadius = (int)solver.getBestX()[0];
+				s.m_BalloonForceCoeff = (float)solver.getBestX()[1];
+				
+				// Recalculate Area and smooth
+				
+				sizeA[0] = fiRC.Area(fiRC.getLabel(0));
+				ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in,lb,s);
+				LabelImage lbtmp = fiRC.getLabel(0);
+				lbtmp.initBoundary();
+				lbtmp.initContour();
+				sizeS[0] = tmpS.Smooth(lbtmp);
+				
+				// Print out
+				
+				System.out.println("Mask radius  " + s.m_CurvatureMaskRadius);
+				System.out.println("Outward Flow  " + s.m_ConstantOutwardFlow);
+				System.out.println("Baloon force " + s.m_BalloonForceCoeff);
+				System.out.println("PS radius " + s.m_GaussPSEnergyRadius);
+				System.out.println("Area target " + fiRC.Area[0] + "  Area reached: " + sizeA[0]);
+				System.out.println("Smooth " + sizeS[0]);
+				
+			}
+			else if (fun == 2)
+			{
+
+			}
+			else if (fun == 3)
+			{
+				aDev[0] = 2.0;
+				aDev[1] = 0.005;
+				
+				aMean[0] = s.m_CurvatureMaskRadius;
+				aMean[1] = s.m_ConstantOutwardFlow;
+				
+				ScoreFunctionRCsmo fiRC = new ScoreFunctionRCsmo(in,lb,s);
+				
+				double factor = Ask("Smooth fix","Increase the smooth of the region");
+
+				sizeS[0] = factor * sizeS[0];
+				stopd[0] = (Math.abs(((factor * sizeS[0]) - sizeS[0]))/100.0*50.0);
+				fiRC.setSmooth(sizeS);
+
+				solver = OptimizeWithCMA(fiRC,aMean,aDev,"Check whenever the segmentation is reasonable",stopd[0],false);
+
+				s.m_CurvatureMaskRadius = (int)solver.getBestX()[0];
+				s.m_ConstantOutwardFlow = (float)solver.getBestX()[1];
 		
+				// Recalculate Area
+				
+				ScoreFunctionRCvol tmpA = new ScoreFunctionRCvol(in,lb,s);
+				sizeA[0] = tmpA.Area(fiRC.getLabel(0));
+				
+				// Print out
+				
+				System.out.println("Mask radius  " + s.m_CurvatureMaskRadius);
+				System.out.println("Outward Flow  " + s.m_ConstantOutwardFlow);
+				System.out.println("Baloon force " + s.m_BalloonForceCoeff);
+				System.out.println("PS radius " + s.m_GaussPSEnergyRadius);
+				System.out.println("Smooth target " + fiRC.smooth[0] + "  Smooth reached: " + fiRC.Smooth(fiRC.getLabel(0)));
+				System.out.println("Area " + sizeA[0]);
+			}
+		}
 			// run Region Competition on all images
 		
 			// Filter out with ROI

@@ -220,8 +220,6 @@ public class Algorithm
 	}
 	
 	
-	
-	
 	void clearStats()
 	{
 		//clear stats

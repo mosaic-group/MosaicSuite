@@ -74,7 +74,13 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 //	private TopologicalNumberImageFunction m_TopologicalNumberFunction;
 //	Set<Pair<Point, Integer>> m_Seeds = new HashSet<Pair<Point, Integer>>();
 
-	
+	public LabelImage(LabelImage l)
+	{
+		init(l.getDimensions());
+		initWithIP(l.labelPlus);
+		iterator = new IndexIterator(l.getDimensions());
+	}
+		
 	public LabelImage(int dims[]) 
 	{
 		init(dims);
@@ -473,7 +479,32 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		
 	}
 
-
+	public void initContour()
+	{
+		Connectivity conn = connFG;
+		
+		for(int i: iterator.getIndexIterable())
+		{
+			int label=getLabelAbs(i);
+			if(label!=bgLabel && label!=forbiddenLabel) // region pixel
+				// && label<negOfs
+			{
+				Point p = iterator.indexToPoint(i);
+				for(Point neighbor : conn.iterateNeighbors(p))
+				{
+					int neighborLabel=getLabelAbs(neighbor);
+					if(neighborLabel!=label)
+					{
+						setLabel(p, labelToNeg(label));
+						
+						break;
+					}
+				}
+				
+			} // if region pixel
+		}
+	}	
+	
 	public boolean isBoundaryPoint(Point aIndex)
 	{
 		int vLabelAbs = getLabelAbs(aIndex);
@@ -585,12 +616,25 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	public int getLabelAbs(Point p)
 	{
 		int idx = iterator.pointToIndex(p);
+		
+		if (idx >= dataLabel.length)
+		{
+			int debug = 0;
+			debug++;
+		}
+		
 		return Math.abs(dataLabel[idx]);
 //		return labelToAbs(getLabel(p));
 	}
 
 	public int getLabelAbs(int idx)
 	{
+		if (idx >= dataLabel.length)
+		{
+			int debug = 0;
+			debug++;
+		}
+		
 		return Math.abs(dataLabel[idx]);
 //		return labelToAbs(getLabel(idx));
 	}

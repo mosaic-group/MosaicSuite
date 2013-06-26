@@ -7,7 +7,7 @@ import mosaic.region_competition.RegionIteratorMask;
 import mosaic.region_competition.RegionIteratorSphere;
 import mosaic.region_competition.SphereMask;
 
-class CurvatureBasedFlow
+public class CurvatureBasedFlow
 {
 	RegionIteratorSphere sphereIt;
 	LabelImage labelImage;
@@ -40,7 +40,7 @@ class CurvatureBasedFlow
 	 * uglier but faster version without sphere iterator 
 	 * but field accesses
 	 */
-	double generateData(Point origin, int aFrom, int aTo)
+	public double generateData(Point origin, int aFrom, int aTo)
 	{
 		int vNto = 0;
 		int vNFrom = 0;
@@ -182,7 +182,8 @@ class CurvatureBasedFlow
 		/**
 		 * nicer but slower version with sphere iterator
 		 */
-		@Override double generateData(Point origin, int fromLabel, int toLabel)
+		@Override
+		public double generateData(Point origin, int fromLabel, int toLabel)
 		{
 			int vNto = 0;
 			int vNFrom = 0;
