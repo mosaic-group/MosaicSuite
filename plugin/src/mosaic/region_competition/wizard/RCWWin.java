@@ -303,6 +303,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	{
 		abstract void incrementStep();
 		abstract void show();
+		abstract int getNImg();
 	}
 	
 	class ScoreFunctionInit implements ScoreFunction
@@ -392,6 +393,12 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		{
 			for (int im = 0 ;  im < l.length ; im++)
 				l[im].show("init", 255);
+		}
+
+		@Override
+		public int getNImg() {
+			// TODO Auto-generated method stub
+			return l.length;
 		}
 	}
 	
@@ -725,6 +732,12 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				l[im].show("init", 10);
 			
 		}
+
+		@Override
+		public int getNImg() {
+			// TODO Auto-generated method stub
+			return l.length;
+		}
 	}
 	
 	class ScoreFunctionRCsmo implements ScoreFunction
@@ -939,12 +952,20 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				l[im].show("init", 10);
 			
 		}
+
+		@Override
+		public int getNImg() {
+			// TODO Auto-generated method stub
+			return l.length;
+		}
 		
 	}
 	
 	
 	CMAEvolutionStrategy OptimizeWithCMA(ScoreFunction fi,double aMean[], double aDev[], String Question, double stop ,boolean debug)
 	{
+		RCProgressWin RCp = new RCProgressWin(4,fi.getNImg());
+		RCp.show();
 		CMAEvolutionStrategy solver = null;
 		boolean restart = true;
 		int restart_it = 0;
