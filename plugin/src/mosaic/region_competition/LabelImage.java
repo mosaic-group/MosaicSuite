@@ -22,6 +22,7 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
+
 /*
 //TODO TODOs
 - refactor LabelImage, extract what's not supposed to be there (eg energy calc)
@@ -176,7 +177,10 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		connBG = connFG.getComplementaryConnectivity();
 	}
 	
-	
+	public ImagePlus getLabelPlus()
+	{
+		return labelPlus;
+	}
 	
 	//////////////////////////////////////////////////////////////////
 	
@@ -409,6 +413,67 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		return usedLabels.size();
 	}
 
+	/* Particles delete */
+	
+	public void deleteParticles()
+	{
+		for(int i=0; i<size; i++)
+		{
+			setLabel(i,getLabelAbs(i));
+		}
+	}
+	
+	public PointCM[] createCMModel()
+	{
+		//TODO ! test this
+		
+		HashMap<Integer,PointCM> Labels = new HashMap<Integer,PointCM>();		// set of the old labels
+		
+		int newLabel=1;
+		
+		int size=iterator.getSize();
+		
+		// what are the old labels?
+		for(int i=0; i<size; i++)
+		{
+			int l=getLabel(i);
+			if(l==forbiddenLabel || l==bgLabel)
+			{
+				continue;
+			}
+			PointCM tmp = new PointCM();
+			tmp.p = new Point();
+			Labels.put(l,tmp);
+		}
+		
+		int[] off = new int[] {0,0}; 
+		
+		RegionIterator img = new RegionIterator(getDimensions(),getDimensions(),off);
+		
+		while (img.hasNext())
+		{
+			Point p = img.getPoint();
+			int i = img.next();
+			if (dataLabel[i] != bgLabel && dataLabel[i] != forbiddenLabel)
+			{
+				int id = Math.abs(dataLabel[i]);
+				
+				Labels.get(id).p.add(p);
+				Labels.get(id).count++;
+				
+				// Get the module of the curvature flow
+			}
+		}
+		
+//		labelDispenser.setLabelsInUse(newLabels);
+//		for(int label: oldLabels)
+//		{
+//			labelDispenser.addFreedUpLabel(label);
+//		}
+		
+		return Labels.values().toArray(new PointCM[Labels.size()]);
+	}
+	
 	/**
 	 * Gives disconnected components in a labelImage distinct labels
 	 * bg and forbidden label stay the same

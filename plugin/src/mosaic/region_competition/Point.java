@@ -15,7 +15,7 @@ public class Point
 	}
 	
 	
-	private Point(){};
+	public Point(){};
 
 	/**
 	 * Constructs a Point by copying a Point
@@ -79,6 +79,16 @@ public class Point
 //		//TODO efficiency
 //		x=p.clone();
 //	}
+	
+	public double distance(Point p)
+	{
+		double ret = 0.0;
+		for (int i = 0 ; i < dim ; i++)
+		{
+			ret += (p.x[i] - x[i])*(p.x[i] - x[i]);
+		}
+		return Math.sqrt(ret);
+	}
 	
 	public Point add(Point p)
 	{

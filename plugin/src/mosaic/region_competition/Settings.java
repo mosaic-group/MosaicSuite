@@ -77,6 +77,61 @@ public class Settings implements Serializable
 	ArrayList<SettingsListener> listeners = new ArrayList<Settings.SettingsListener>();
 
 	public boolean RC_free;
+	
+	public Settings()
+	{
+		
+	}
+	
+	public Settings(Settings s) 
+	{
+		m_MaxNbIterations = s.m_MaxNbIterations;
+		shrinkFirstOnly = s.shrinkFirstOnly;
+
+		m_EnergyFunctional = s.m_EnergyFunctional;
+		m_GaussPSEnergyRadius = s.m_GaussPSEnergyRadius;
+
+		m_RegionMergingThreshold = s.m_RegionMergingThreshold;
+
+		m_BalloonForceCoeff = s.m_BalloonForceCoeff;
+		m_ConstantOutwardFlow = s.m_ConstantOutwardFlow;
+
+		
+		regularizationType = s.regularizationType;
+		m_CurvatureMaskRadius = s.m_CurvatureMaskRadius;
+		m_EnergyContourLengthCoeff = s.m_EnergyContourLengthCoeff; // 0.04;//0.003f;
+		m_RemoveNonSignificantRegions = s.m_RemoveNonSignificantRegions;
+		m_AreaThreshold = s.m_AreaThreshold;
+
+		m_OscillationHistoryLength = s.m_OscillationHistoryLength;
+		m_AcceptedPointsFactor = s.m_AcceptedPointsFactor;
+		m_AcceptedPointsReductionFactor = 0.5f;
+		
+		labelImageInitType = s.labelImageInitType;
+		m_EnergyRegionCoeff = s.m_EnergyRegionCoeff;
+//		private float m_EnergySphericityCoeff = 0;
+
+		m_AllowFusion = s.m_AllowFusion;
+		m_AllowFission = s.m_AllowFission;
+		m_AllowHandles = s.m_AllowHandles;
+//		private boolean m_UseRegionCompetition = true;
+//		private boolean m_UseForbiddenRegion = false;
+		m_UseGaussianPSF = s.m_UseGaussianPSF;
+		m_UseShapePrior = s.m_UseShapePrior;
+//		private boolean m_UseFastEvolution = false;
+//		private int m_LocalLiEnergySigma = 5;
+		m_OscillationThreshold = s.m_OscillationThreshold;
+		
+		m_PSFImg = s.m_PSFImg;
+		m_BubblesRadius = s.m_BubblesRadius;
+		m_BubblesDispl = s.m_BubblesDispl;
+		
+		l_BubblesRadius = s.l_BubblesRadius;
+		l_Sigma = s.l_Sigma;
+		l_Tolerance = s.l_Tolerance;
+		l_RegionTolerance = s.l_RegionTolerance;
+	}
+
 	public void addSettingsListener(SettingsListener listener)
 	{
 		listeners.add(listener);
