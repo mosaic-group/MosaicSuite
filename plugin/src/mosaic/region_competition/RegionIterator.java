@@ -23,6 +23,16 @@ public class RegionIterator
 	int size;			// size of (cropped) region
 	
 	public int getSize() {return size;}
+
+	/**
+	 * 
+	 * @param input 	dimensions of the input image
+	 */
+	public RegionIterator(int[] input) 
+	{
+		this(input,input,new int [input.length]);
+	}
+	
 	
 	/**
 	 * 

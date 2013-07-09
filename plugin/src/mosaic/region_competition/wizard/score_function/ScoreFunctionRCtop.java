@@ -96,71 +96,66 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	}
 	
 	
-	public double Topo(LabelImage l, PointCM pntMod[])
+	public double Topo(LabelImage l, PointCM pntMod[], double pop[])
 	{
 		int off[] = l.getDimensions().clone();
 		Arrays.fill(off, 0);
-		HashMap<Integer,PointCM> Reg = new HashMap<Integer,PointCM>();
 		RegionIterator img = new RegionIterator(l.getDimensions(),l.getDimensions(),off);
 		
-		while (img.hasNext())
-		{
-			Point p = img.getPoint();
-			int i = img.next();
-			if (l.dataLabel[i] != 0)
-			{
-				int id = Math.abs(l.dataLabel[i]);
-				
-				PointCM pCM = Reg.get(id);
-				
-				pCM.count++;
-				pCM.p.add(p);
-				
-				// Get the module of the curvature flow
-			}
-		}
+		PointCM Reg[] = l.createCMModel();
 		
-		for (PointCM pCM : Reg.values())
-		{
-			pCM.p.div(pCM.count);
-		}
+		Vector<PointCM> pntModV = new Vector<PointCM>(Arrays.asList(pntMod));
+		Vector<PointCM> RegV = new Vector<PointCM>(Arrays.asList(Reg));
 		
 		// Reorder
 		
 		double Min = Double.MAX_VALUE;
-		PointCM pMin = null;
-		PointCM reoMod[] = new PointCM[Reg.size()];
+		PointCM pMin1 = null;
+		PointCM pMin2 = null;
+		PointCM reoMod2[] = new PointCM[Reg.length];
+		PointCM reoMod1[] = new PointCM[pntMod.length];
 		int k = 0;
 		
-		for (PointCM pCM : pntMod)
+		int it = 0;
+		
+		while (pntModV.size() != 0 && RegV.size() != 0)
 		{
-			if (Reg.size() != 0)
+			Min = Double.MAX_VALUE;
+			for (PointCM pCM : pntModV)
 			{
-				for (PointCM pReg : Reg.values())
+				for (PointCM pReg : RegV)
 				{
 					double d = pReg.p.distance(pCM.p);
 					if (d < Min)
 					{
 						Min = d;
-						pMin = pReg;
+						pMin1 = pCM;
+						pMin2 = pReg;
 					}
 				}
-				reoMod[k] = pMin;
-				k++;
 			}
+			
+			reoMod1[k] = pMin1;
+			reoMod2[k] = pMin2;
+			k++;
+			
+			pntModV.remove(pMin1);
+			RegV.remove(pMin2);
 		}
 			
 		// Calculate
 
 		double ret = 0.0;
 		
-		for (int i = 0 ; i < reoMod.length || i < pntMod.length ; i++)
+		for (int i = 0 ; i < reoMod1.length && i < reoMod2.length ; i++)
 		{
-			ret += reoMod[k].p.distance(pntMod[k].p);
+			ret += reoMod1[i].p.distance(reoMod2[i].p);
 		}
 		
 		double expo = 1.0 / (double)l.getDim();
-		ret += Math.abs(reoMod.length - pntMod.length)*Math.pow(l.getSize()/pntMod.length,expo);
+		ret += Math.abs(reoMod1.length - reoMod2.length)*Math.pow(l.getSize()/pntMod.length,expo);
+		
+		ret += (reoMod1.length - reoMod2.length) * 1000.0 * pop[0];
 		
 		return ret;
 	}
@@ -188,7 +183,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 			// Read Label Image
 		
 			Opener o = new Opener();
-			file[im] = new String(IJ.getDirectory("temp")+"RC_smo"+x[0]+".tif");
+			file[im] = new String(IJ.getDirectory("temp")+"RC_top"+x[0]+".tif");
 			ImagePlus ip = o.openImage(file[im]);
 
 			l[im].initWithIP(ip);
@@ -200,11 +195,11 @@ public class ScoreFunctionRCtop implements ScoreFunction
 			double a1 = 0.0;
 			double a2 = 0.0;
 			
-			result = Topo(l[im],pntMod[im]);
+			result = Topo(l[im],pntMod[im],x);
 				
 //			result += 10.0/Math.abs(a1 - a2);
 		}
-			
+		
 		return result;
 	}
 
@@ -410,6 +405,8 @@ public class ScoreFunctionRCtop implements ScoreFunction
 			int from;
 			int to;
 			
+			int Col[] = new int [3];
+			
 			// TODO Auto-generated method stub
 			
 			for (int i = 0 ; i < ip.length ; i++)
@@ -420,15 +417,20 @@ public class ScoreFunctionRCtop implements ScoreFunction
 					from = ip[i].getLabel(pC.get(j));
 					to = ip[i].getLabel(pC.get(j+1));
 					
-					for (int k = 0 ; k < ip[i].getSize() ; k++)
+					RegionIterator itImg = new RegionIterator(ip[i].getDimensions());
+					
+					Col[0] = to;
+					while (itImg.hasNext())
 					{
+						int k = itImg.next();
+						Point p = itImg.getPoint();
 						if (ip[i].getLabel(k) == from)
 							ip[i].setLabel(k, to);
+						ipp[i].getProcessor().putPixel(p.x[0], p.x[1], Col);
 					}
 				}
 			}
 		}
-		
 	}
 	
 	JDialog frm;

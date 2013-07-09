@@ -595,8 +595,8 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			solver.println("best function value " + solver.getBestFunctionValue() +
 					 " at evaluation " + solver.getBestEvaluationNumber());
 		
-			System.out.println("Parameter 0: " + (solver.getBestX())[0]);
-			System.out.println("Parameter 1: " + (solver.getBestX())[1]);
+/*			System.out.println("Parameter 0: " + (solver.getBestX())[0]);
+			System.out.println("Parameter 1: " + (solver.getBestX())[1]);*/
 			
 			RCp.SetStatusMessage(Question);
 			RCp.waitClose();

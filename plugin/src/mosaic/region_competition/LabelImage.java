@@ -441,9 +441,12 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 			{
 				continue;
 			}
-			PointCM tmp = new PointCM();
-			tmp.p = new Point();
-			Labels.put(l,tmp);
+			if (Labels.get(l) == null)
+			{
+				PointCM tmp = new PointCM();
+				tmp.p = new Point(getDimensions().length);
+				Labels.put(l,tmp);
+			}
 		}
 		
 		int[] off = new int[] {0,0}; 
@@ -458,11 +461,16 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 			{
 				int id = Math.abs(dataLabel[i]);
 				
-				Labels.get(id).p.add(p);
+				Labels.get(id).p = Labels.get(id).p.add(p);
 				Labels.get(id).count++;
 				
 				// Get the module of the curvature flow
 			}
+		}
+		
+		for (PointCM p : Labels.values())
+		{
+			p.p = p.p.div(p.count);
 		}
 		
 //		labelDispenser.setLabelsInUse(newLabels);
