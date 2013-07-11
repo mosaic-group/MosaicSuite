@@ -89,17 +89,20 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		Other
 	}
 	
+	private Settings ref_save;
 	private JPanel contentPane;
 	private JComboBox b1;
 	private ImagePlus img[];
 	private segType sT;
 	
-	public void start()
+	public void start(Settings s)
 	{
+		ref_save = s;
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					RCWWin frame = new RCWWin();
+					frame.ref_save = ref_save;
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -118,28 +121,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			return -1;
 		else
 			return ask.getNextNumber();
-	}
-	
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) 
-	{
-		EventQueue.invokeLater(new Runnable() 
-		{
-			public void run() 
-			{
-				try 
-				{
-					RCWWin frame = new RCWWin();
-					frame.setVisible(true);
-				} 
-				catch (Exception e) 
-				{
-					e.printStackTrace();
-				}
-			}
-		});
 	}
 
 	private String[] GetROI()
@@ -185,7 +166,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	 * Create the frame.
 	 */
 	public RCWWin()
-	{
+	{		
 //		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
 		contentPane = new JPanel();
@@ -503,7 +484,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		int restart_it = 0;
 		while (restart == true && restart_it < 5)
 		{
-			
 			solver = new CMAEvolutionStrategy();
 			solver.readProperties();
 			solver.setDimension(aMean.length);
@@ -630,7 +610,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	{		
 		// Start with standard settings
 		
-		Settings s = new Settings();
+		Settings s = ref_save;
 		s.labelImageInitType = InitializationType.LocalMax;
 		
 		// if is a Tissue produce pow(2,d) < r < pow(3,d) regions (region tol 8)
@@ -698,7 +678,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		aDev[0] = 0.5;
 		aDev[1] = 0.005;
 		
-		s = OptimizeWithCMA(fi,s,aDev,"Check whenever all objects has at least 1 or more region (Yes = 1)",0.3,false);
+		s.copy(OptimizeWithCMA(fi,s,aDev,"Check whenever all objects has at least 1 or more region (Yes = 1)",0.3,false));
 		
 		// we work on E_lenght and R_k E_merge  PS_radius Ballon
 		
@@ -757,7 +737,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				fiRC.setArea(sizeA);
 			
 				
-				s = OptimizeWithCMA(fiRC,s,aDev,"Check and choose the best segmentation",stop[0],false);
+				s.copy(OptimizeWithCMA(fiRC,s,aDev,"Check and choose the best segmentation",stop[0],false));
 				
 //				s.m_GaussPSEnergyRadius = (int)solver.getBestX()[0];
 //				s.m_BalloonForceCoeff = (float)solver.getBestX()[1];
@@ -806,7 +786,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 					fiRC.setCMModel(mod,i);
 				}
 				
-				s = OptimizeWithCMA(fiRC,s,aDev,"Check whenever the segmentation is reasonable",stopd[0],false);
+				s.copy(OptimizeWithCMA(fiRC,s,aDev,"Check whenever the segmentation is reasonable",stopd[0],false));
 			}
 			else if (fun == 3)
 			{
@@ -831,7 +811,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 					fiRC.setArea(sizeA);
 				}
 				
-				s = OptimizeWithCMA(fiRC,s,aDev,"Check whenever the segmentation is reasonable",stopd[0],false);
+				s.copy(OptimizeWithCMA(fiRC,s,aDev,"Check whenever the segmentation is reasonable",stopd[0],false));
 		
 				// Recalculate Area
 				
@@ -860,6 +840,11 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			// N(nr) + a/(Iman - Imin) * N
 		
 			// Selection*/
-		
+	}
+	
+	Settings getSet()
+	{
+		return ref_save;
 	}
 }
+

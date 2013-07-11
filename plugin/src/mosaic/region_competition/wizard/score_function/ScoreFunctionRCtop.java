@@ -155,7 +155,10 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		double expo = 1.0 / (double)l.getDim();
 		ret += Math.abs(reoMod1.length - reoMod2.length)*Math.pow(l.getSize()/pntMod.length,expo);
 		
-		ret += (reoMod1.length - reoMod2.length) * 1000.0 * pop[0];
+		if (reoMod1.length - reoMod2.length > 0)
+			ret += Math.abs(reoMod1.length - reoMod2.length) * 1000.0 * pop[0];
+		else
+			ret += Math.abs(reoMod1.length - reoMod2.length) * 500 * (1.0 - pop[0]);
 		
 		return ret;
 	}
@@ -238,7 +241,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		// TODO Auto-generated method stub
 	
 		for (int im = 0 ;  im < l.length ; im++)
-			l[im].show("init", 10);
+			l[im].show("init", 255);
 		
 	}
 
@@ -424,11 +427,15 @@ public class ScoreFunctionRCtop implements ScoreFunction
 					{
 						int k = itImg.next();
 						Point p = itImg.getPoint();
-						if (ip[i].getLabel(k) == from)
+						if (ip[i].getLabelAbs(k) == from)
+						{
 							ip[i].setLabel(k, to);
-						ipp[i].getProcessor().putPixel(p.x[0], p.x[1], Col);
+							ipp[i].getProcessor().putPixel(p.x[0], p.x[1], Col);
+						}
 					}
 				}
+				pC.clear();
+				ipp[i].updateAndDraw();
 			}
 		}
 	}

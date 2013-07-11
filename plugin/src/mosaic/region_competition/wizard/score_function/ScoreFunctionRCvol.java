@@ -158,7 +158,7 @@ public class ScoreFunctionRCvol implements ScoreFunction
 			}
 		}
 			
-		if (x[0] <= 0.0 || x[1] <= 0.0 || x[0] > minSz/2 || x[1] > 1.0)
+		if (x[0] <= 0.0 || x[1] <= 0.0 || x[0] > minSz/8 || x[1] > 1.0)
 			return false;
 			
 		// TODO Auto-generated method stub
@@ -176,7 +176,7 @@ public class ScoreFunctionRCvol implements ScoreFunction
 		// TODO Auto-generated method stub
 		
 		for (int im = 0 ;  im < l.length ; im++)
-			l[im].show("init", 10);
+			l[im].show("init", 255);
 			
 	}
 

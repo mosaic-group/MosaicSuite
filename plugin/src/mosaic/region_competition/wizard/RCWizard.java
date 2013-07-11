@@ -1,5 +1,7 @@
 package mosaic.region_competition.wizard;
 
+import mosaic.region_competition.Settings;
+
 /**
  * @author      Incardona Pietro <incardon@mpi-cbg.de>
  * @version     1.0
@@ -12,12 +14,11 @@ package mosaic.region_competition.wizard;
 
 public class RCWizard
 {
-
-	public void StartWizard()
-	{
-		RCWWin w = new RCWWin();
-		w.start();
-	}
-
+	RCWWin w;
 	
+	public void StartWizard(Settings s)
+	{
+		w = new RCWWin();
+		w.start(s);
+	}
 }

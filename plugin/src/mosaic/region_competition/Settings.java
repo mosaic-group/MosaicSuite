@@ -77,13 +77,8 @@ public class Settings implements Serializable
 	ArrayList<SettingsListener> listeners = new ArrayList<Settings.SettingsListener>();
 
 	public boolean RC_free;
-	
-	public Settings()
-	{
-		
-	}
-	
-	public Settings(Settings s) 
+
+	public void copy(Settings s)
 	{
 		m_MaxNbIterations = s.m_MaxNbIterations;
 		shrinkFirstOnly = s.shrinkFirstOnly;
@@ -130,6 +125,16 @@ public class Settings implements Serializable
 		l_Sigma = s.l_Sigma;
 		l_Tolerance = s.l_Tolerance;
 		l_RegionTolerance = s.l_RegionTolerance;
+	}
+	
+	public Settings()
+	{
+		
+	}
+	
+	public Settings(Settings s) 
+	{
+		copy(s);
 	}
 
 	public void addSettingsListener(SettingsListener listener)

@@ -19,6 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import mosaic.region_competition.wizard.*;
+
 import javax.swing.JFrame;
 
 import net.imglib2.img.array.ArrayImgFactory;
@@ -1311,6 +1312,13 @@ public class Region_Competition implements PlugInFilter
 				controllerFrame.dispose();
 			e.printStackTrace();
 		}		
+	}
+
+
+	public void setSettings(Settings set) {
+		// TODO Auto-generated method stub
+		
+		settings = set;
 	}
 }
 	

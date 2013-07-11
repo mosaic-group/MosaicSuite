@@ -83,7 +83,7 @@ public class GenericDialogGUI implements InputReadable
 	* Create main plugins dialog
 	*/
 	
-	public GenericDialogGUI(Region_Competition region_Competition)
+	public GenericDialogGUI(final Region_Competition region_Competition)
 	{
 		
 //		EmptyGenericDialog gde = new EmptyGenericDialog("Region Competition");
@@ -187,8 +187,7 @@ public class GenericDialogGUI implements InputReadable
 			public void actionPerformed(ActionEvent e)
 			{
 				RCWizard w = new RCWizard();
-				w.StartWizard();
-				
+				w.StartWizard(settings);
 			}
 		});
 		p.add(b);

@@ -338,7 +338,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 			// TODO Auto-generated method stub
 		
 			for (int im = 0 ;  im < l.length ; im++)
-				l[im].show("init", 10);
+				l[im].show("init", 255);
 			
 		}
 
