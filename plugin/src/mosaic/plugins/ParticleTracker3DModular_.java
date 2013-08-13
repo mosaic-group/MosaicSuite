@@ -13,6 +13,7 @@ import ij.gui.StackWindow;
 import ij.io.FileInfo;
 import ij.io.OpenDialog;
 import ij.io.SaveDialog;
+import ij.measure.Calibration;
 import ij.measure.Measurements;
 import ij.measure.ResultsTable;
 import ij.plugin.filter.Duplicater;
@@ -559,6 +560,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		Roi mouse_selection_area;			// The Roi area where a mouse click will select this trajectory
 		Roi focus_area;						// The Roi for focus display of this trajectory
 
+		double scaling[];
 
 		/**
 		 * Constructor.
@@ -576,6 +578,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			color = Color.red; //default
 		}
 
+		/**
+		 * Set the <code>scaling</code> for this trajectory
+		 */
+		public void setScaling(double scaling_[])
+		{
+			scaling = scaling_;
+		}
+		
 		/**
 		 * Set the <code>focus_area</code> for this trajectory - it defines the area (ROI) focused
 		 * on when the user selects this trajectory to focus on
@@ -1713,13 +1723,41 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 * </ul>
 	 * @return a <code>StringBuffer</code> that holds this information
 	 */
-	private StringBuffer getTrajectoriesInfo() {
+	private StringBuffer getTrajectoriesInfo() 
+	{
 
+		/* Get Calibration */
+		
+		double scaling[] = new double[3];
+		boolean set_unit = false;
+		String unit = new String();
+		
+		Calibration cal = original_imp.getCalibration();
+		
+		if ( cal.getValueUnit() == null )
+		{
+			// No calibration everything in pixel
+			
+			unit = new String("Pixel");
+			scaling[0] = 1.0;
+			scaling[1] = 1.0;
+			scaling[2] = 1.0;
+		}
+		else
+		{
+			unit = new String(cal.getValueUnit());
+			
+			scaling[0] = cal.pixelWidth;
+			scaling[1] = cal.pixelHeight;
+			scaling[2] = cal.pixelDepth;
+		}
+		
+			
 		StringBuffer traj_info = new StringBuffer("%% Trajectories:\n");
 		traj_info.append("%%\t 1st column: frame number\n");
-		traj_info.append("%%\t 2nd column: x coordinate top-down\n");
-		traj_info.append("%%\t 3rd column: y coordinate left-right\n");
-		traj_info.append("%%\t 4th column: z coordinate bottom-top\n");
+		traj_info.append("%%\t 2nd column: x coordinate top-down" + "(" + unit + ")" + "\n");
+		traj_info.append("%%\t 3rd column: y coordinate left-right" + "(" + unit + ")" + "\n");
+		traj_info.append("%%\t 4th column: z coordinate bottom-top" + "(" + unit + ")" + "\n");
 		if (text_files_mode) {
 			traj_info.append("%%\t next columns: other information provided for each particle in the given order\n");
 		} else {
@@ -1733,9 +1771,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		traj_info.append("\n");
 
 		Iterator<Trajectory> iter = all_traj.iterator();
-		while (iter.hasNext()) {
+		while (iter.hasNext()) 
+		{
 			Trajectory curr_traj = iter.next();
 			traj_info.append("%% Trajectory " + curr_traj.serial_number +"\n");
+			traj_info.append(" x (" + unit +  ")       y (" + unit + ")      z (" + unit + ")      m0 " + "       m1 " + "       m2 " + "      m3 " + "       m4 " + "       s ");
+			if (set_unit == true)
+				curr_traj.setScaling(scaling);
+				
 			traj_info.append(curr_traj.toStringBuffer());
 		}
 

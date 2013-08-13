@@ -100,7 +100,7 @@ class BoxInitGUI extends InitializationGUI
 		if(gd.wasCanceled())
 			return;
 		
-		double ratio = gd.getNextNumber();
+		settings.l_BoxRatio = gd.getNextNumber();
 		
 		//TODO save to settings
 		

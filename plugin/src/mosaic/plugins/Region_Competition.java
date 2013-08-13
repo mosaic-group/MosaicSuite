@@ -382,7 +382,7 @@ public class Region_Competition implements PlugInFilter
 			{
 //				labelImage.initialGuessGrowing(0.8);
 				BoxInitializer bi = new BoxInitializer(labelImage);
-				bi.initRatio(0.8);
+				bi.initRatio(settings.l_BoxRatio);
 				break;
 			}
 //			case Ellipses:

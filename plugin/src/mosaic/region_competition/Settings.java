@@ -64,6 +64,7 @@ public class Settings implements Serializable
 	public int l_Sigma = 2;
 	public double l_Tolerance = 0.005;
 	public int l_RegionTolerance = 4;
+	public double l_BoxRatio = 0.8;
 	
 	// SettingsListener ////////////////////////////////
 	// To update values on the fly

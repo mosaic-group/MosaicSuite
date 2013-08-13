@@ -26,12 +26,13 @@ public class Particle {
 	public float m0;						// intensity moment
 	public float m1, m2, m3, m4;
 	public float score; 					// non-particle discrimination score
-	
+	private double scaling[];
 
 	/* only relevant to particles given as input */
 	public String[] all_params; 			// all params that relate to this particle,
 											// 1st 2 should be x and y respectfully
 	int linkrange;	
+	
 	/**
 	 * constructor. 
 	 * @param x - original x coordinates
@@ -51,6 +52,15 @@ public class Particle {
 		this.next = new int[linkrange];
 	}
 
+	/**
+	 * Set scaling factor for x,y,z position, affect only the toStringBuffer function
+	 * @param scaling_
+	 */
+	public void setScaling(double scaling_[])
+	{
+		scaling = scaling_;
+	}
+	
 	/**
 	 * constructor for particles created from text files.  
 	 * @param x - original x coordinates
@@ -116,11 +126,11 @@ public class Particle {
 		sb.append(this.getFrame());
 
 		sb.append(sp);
-		sb.append(nf.format(this.x));
+		sb.append(nf.format(this.x*scaling[0]));
 		sb.append(sp);
-		sb.append(nf.format(this.y));
+		sb.append(nf.format(this.y*scaling[1]));
 		sb.append(sp);
-		sb.append(nf.format(this.z));
+		sb.append(nf.format(this.z*scaling[2]));
 		sb.append(sp);
 		sb.append(nf.format(this.m0));
 		sb.append(sp);
