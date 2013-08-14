@@ -50,6 +50,10 @@ public class Particle {
 		this.setFrame(frame_num);
 		this.linkrange = linkrange;
 		this.next = new int[linkrange];
+		scaling = new double[3];
+		scaling[0] = 1.0;
+		scaling[1] = 1.0;
+		scaling[2] = 1.0;
 	}
 
 	/**
@@ -86,6 +90,10 @@ public class Particle {
 		this.m2 = 0.0F;
 		this.m3 = 0.0F;
 		this.m4 = 0.0F;
+		scaling = new double[3];
+		scaling[0] = 1.0;
+		scaling[1] = 1.0;
+		scaling[2] = 1.0;
 	}
 
 	/* (non-Javadoc)
@@ -124,7 +132,7 @@ public class Particle {
 		DecimalFormat nf = new DecimalFormat("######0.000000");
 		nf.setGroupingUsed(false);
 		sb.append(this.getFrame());
-
+		
 		sb.append(sp);
 		sb.append(nf.format(this.x*scaling[0]));
 		sb.append(sp);

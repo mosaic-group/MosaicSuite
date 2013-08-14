@@ -102,19 +102,28 @@ public class PreviewCanvas extends ImageCanvas {
 	private void circleParticles(Graphics g, Vector<Particle> particlesToDisplay) {
 		if (particlesToDisplay == null || g == null) return;
 
+		// get the slice number
+		
+		int c_slice = this.imp.getCurrentSlice()%imp.getNSlices();
+		
 		this.magnification = (int)Math.round(imp.getWindow().getCanvas().getMagnification());
 		// go over all the detected particle 
 		for (int i = 0; i< particlesToDisplay.size(); i++) {
 			// draw a dot at the detected particle position (oval of height and width of 0)
 			// the members x, y of the Particle object are opposite to the screen X and Y axis
 			// The x-axis points top-down and the y-axis is oriented left-right in the image plane. 
-			g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).y), 
-					this.screenYD(particlesToDisplay.elementAt(i).x), 
-					0, 0);
-			// circle the  the detected particle position according to the set radius
-			g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).y-radius/1.0), 
-					this.screenYD(particlesToDisplay.elementAt(i).x-radius/1.0), 
-					2*radius*this.magnification-1, 2*radius*this.magnification-1); 
+			double z = particlesToDisplay.elementAt(i).z + 1;
+			
+			if (z <= c_slice + 1 && z >= c_slice - 1)
+			{
+				g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).y), 
+						this.screenYD(particlesToDisplay.elementAt(i).x), 
+						0, 0);
+				// circle the  the detected particle position according to the set radius
+				g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).y-radius/1.0), 
+						this.screenYD(particlesToDisplay.elementAt(i).x-radius/1.0), 
+						2*radius*this.magnification-1, 2*radius*this.magnification-1); 
+			}
 		}
 	}
 
