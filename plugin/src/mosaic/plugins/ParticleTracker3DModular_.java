@@ -759,6 +759,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		 */
 		private void draw4Dynamic(ImageStack is, int last_frame, int magnification)
 		{
+			boolean draw_line = false;
+			
 			for(int s = 1; s <= is.getSize(); s++) 
 			{
 				ImageProcessor ip = is.getProcessor(s);
@@ -776,36 +778,30 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				
 				int radius = 2;
 				
-				int c_slice = s % original_imp.getNSlices();
-				if (c_slice - 1 < this.existing_particles[i].z && c_slice + 1 > this.existing_particles[i].z)
+				int c_slice = s % (original_imp.getNSlices()+1);
+				if (c_slice - 1 < this.existing_particles[last_frame].z+1 && c_slice + 1 > this.existing_particles[last_frame].z+1)
 				{
-					ip.drawOval(getXDisplayPosition(existing_particles[i].y,magnification), 
-							getYDisplayPosition(existing_particles[i].x,magnification), 
-							0, 0);
-					// circle the  the detected particle position according to the set radius
-					ip.drawOval(getXDisplayPosition(existing_particles[i].y-radius/1.0f,magnification), 
-							getYDisplayPosition(existing_particles[i].x-radius/1.0f,magnification), 
-							2*radius*magnification-1, 2*radius*magnification-1); 
-				}
-				
-				ip.moveTo(getXDisplayPosition(this.existing_particles[i].y, magnification), 
-						getYDisplayPosition(this.existing_particles[i].x, magnification));
-				i++;
-				ip.lineTo(getXDisplayPosition(this.existing_particles[i].y, magnification),
-						getYDisplayPosition(this.existing_particles[i].x, magnification));
-				for (i++; i<= last_frame; i++ ) 
-				{
-					if (c_slice - 1 < this.existing_particles[i].z && c_slice + 1 > this.existing_particles[i].z)
-					{
-						ip.drawOval(getXDisplayPosition(existing_particles[i].y,magnification), 
-								getYDisplayPosition(existing_particles[i].x,magnification), 
+						ip.drawOval(getXDisplayPosition(existing_particles[last_frame].y,magnification), 
+								getYDisplayPosition(existing_particles[last_frame].x,magnification), 
 								0, 0);
 						// circle the  the detected particle position according to the set radius
-						ip.drawOval(getXDisplayPosition(existing_particles[i].y-radius/1.0f,magnification), 
-								getYDisplayPosition(existing_particles[i].x-radius/1.0f,magnification), 
-								2*radius*magnification-1, 2*radius*magnification-1); 
-					}
-					
+						ip.drawOval(getXDisplayPosition(existing_particles[last_frame].y-radius/1.0f,magnification), 
+								getYDisplayPosition(existing_particles[last_frame].x-radius/1.0f,magnification), 
+								2*radius*magnification-1, 2*radius*magnification-1);
+						
+						draw_line = true;
+				}
+
+				if (draw_line == true && last_frame > 0)
+				{
+					ip.drawLine(getXDisplayPosition(this.existing_particles[last_frame-1].y, magnification),
+							getYDisplayPosition(this.existing_particles[last_frame-1].x, magnification), 
+							getXDisplayPosition(this.existing_particles[last_frame].y, magnification),
+							getYDisplayPosition(this.existing_particles[last_frame].x, magnification));
+				}
+				
+				for (i = 1 ; i< last_frame; i++ ) 
+				{
 					ip.drawLine(getXDisplayPosition(this.existing_particles[i-1].y, magnification),
 							getYDisplayPosition(this.existing_particles[i-1].x, magnification), 
 							getXDisplayPosition(this.existing_particles[i].y, magnification),
