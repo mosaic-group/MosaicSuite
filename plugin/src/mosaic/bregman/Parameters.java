@@ -1,6 +1,12 @@
 package mosaic.bregman;
 
-public class Parameters {
+import java.io.Serializable;
+
+public class Parameters  implements Serializable
+{
+	
+	private static final long serialVersionUID = 1894956510127964860L;
+	
 	// method parameters
 	public  boolean mode_classic=false;
 	public  boolean mode_watershed=false;
@@ -150,7 +156,8 @@ public class Parameters {
 
 	// todo : clean code by using ni nj nz in this parameters class
 
-	public Parameters() {
+	public Parameters() 
+	{
 		int max = Math.max(2, nlevels);
 		cl = new double[max]; // can also be created and allocated in NRegions
 		this.PSF = new double[7][7][7];
@@ -158,7 +165,8 @@ public class Parameters {
 	}
 
 	//copy constructor
-	public Parameters(Parameters p){
+	public Parameters(Parameters p)
+	{
 		this.save_images=p.save_images;
 		this.wd=p.wd;
 

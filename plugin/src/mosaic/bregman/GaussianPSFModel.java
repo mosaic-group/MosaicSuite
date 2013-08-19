@@ -30,20 +30,20 @@ public class GaussianPSFModel {
 		}
 	
 	
-		double lateral_WFFM(){
+		public double lateral_WFFM(){
 			double res;
 			res= Math.sqrt(2)/(kem*NA);
 			return res;
 		}
 		
-		double axial_WFFM(){
+		public double axial_WFFM(){
 			double res;
 			res= 2*Math.sqrt(6)*n/(kem*NA*NA);
 			return res;
 		}
 		
 		
-		double lateral_LSCM(){
+		public double lateral_LSCM(){
 			double res;
 			double j0=PsfBessel.j0(c2);
 			double j1=PsfBessel.j1(c2);
@@ -56,7 +56,7 @@ public class GaussianPSFModel {
 		}
 		
 		
-		double axial_LSCM(){
+		public double axial_LSCM(){
 			double res;
 			
 			double num=48*c2*c2*(Math.pow(PsfBessel.j0(c2),2)+ Math.pow(PsfBessel.j1(c2),2)) - 192*Math.pow(PsfBessel.j1(c2),2);

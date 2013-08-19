@@ -43,6 +43,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
@@ -53,6 +54,12 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import mosaic.bregman.GUI.BackgroundSubGUI;
+import mosaic.bregman.GUI.ColocalizationGUI;
+import mosaic.bregman.GUI.PSFWindow;
+import mosaic.bregman.GUI.SegmentationGUI;
+import mosaic.bregman.GUI.VisualizationGUI;
 
 
 //import java.awt.event.FocusEvent;
@@ -169,33 +176,30 @@ public class GenericGUI {
 	//	}
 
 
-	public void run(String arg) {
+	public void run(String arg) 
+	{
 		Font bf = new Font(null, Font.BOLD,12);
 		String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
 		boolean bgroup1[] = {false, false};
 
-
-
 		GenericDialogCustom  gd = new GenericDialogCustom("Bregman Segmentation");
 
-		//GenericDialog  gd = new GenericDialog("Bregman Segmentation");
-		//		gd.addMessage("");
-		//		gd.addMessage("Image __________________", new Font(null, Font.BOLD,12));
-		//		gd.addMessage("");
-
 		gd.setInsets(-10,0,3);
-		if(!clustermode){
+		if(!clustermode)
+		{
 			gd.addTextAreas("Input Image: \n" +
 					"insert Path to file or folder, " +
 					"or press Button below.", 
-					null, 2, 90);
+					null, 2, 40);
 		}
-		if(clustermode){
+		if(clustermode)
+		{
 			gd.addStringField("Filepath","path",10);
 		}
 
 		//panel with button
-		if(!clustermode){
+		if(!clustermode)
+		{
 			//FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
 			FlowLayout fl = new FlowLayout(FlowLayout.LEFT,75,3);
 			Panel p = new Panel(fl);
@@ -208,11 +212,6 @@ public class GenericGUI {
 			b.addActionListener(new FileOpenerActionListener(p,gd, gd.getTextArea1()));
 			p.add(b);
 
-
-			Button bp = new Button("Estimate PSF");
-			bp.addActionListener(new PSFOpenerActionListener(p,gd));
-			p.add(bp);
-
 			Button bp3 = new Button("Preview Cell Masks");
 			bp3.addActionListener(new MaskOpenerActionListener(p,gd));
 			p.add(bp3);
@@ -222,126 +221,100 @@ public class GenericGUI {
 			p.add(bh);
 
 			gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
-
-
 		}
 
+		// Background Options
+		
+		Button backOption = new Button("Options");
+		Label label = new Label("Background subtraction");
+		label.setFont(bf);
+		Panel p = new Panel();
+		p.add(label);
+		p.add(backOption);
+		backOption.addActionListener(new ActionListener() 
+		{
 
-		//		if(!clustermode){
-		//			Panel p = new Panel();
-		//			Button b = new Button("Estimate PSF");
-		//			b.addActionListener(new PSFOpenerActionListener(p,gd));
-		//			p.add(b);
-		//			gd.addPanel(p, GridBagConstraints.EAST, new Insets(-5, 0, 0, 0));
-		//		}
+			@Override
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				// TODO Auto-generated method stub
+				
+				BackgroundSubGUI gds = new BackgroundSubGUI();
+				gds.run("");
+			}
+		});
+		gd.addPanel(p);
 
-		if(!clustermode)gd.addMessage("Segmentation parameters __________________________________________________________________________________________________________________",bf);
+		// seg Option button
+		
+		Button segOption = new Button("Options");
+		label = new Label("Segmentation parameters");
+		label.setFont(bf);
+		p = new Panel();
+		p.add(label);
+		p.add(segOption);
+		segOption.addActionListener(new ActionListener() 
+		{
 
-		if(!clustermode)gd.addCheckbox("Remove background", true);
-		else gd.addCheckbox("Remove background", false);
+			@Override
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				// TODO Auto-generated method stub
+				
+				SegmentationGUI gds = new SegmentationGUI();
+				gds.run("");
+			}
+		});
+		gd.addPanel(p);
 
-		gd.addNumericField("rolling ball window size (in pixels)", 10, 0);
-		//gd.addMessage("Load PSF");
+		
+		Button colOption = new Button("Options");
+		label = new Label("Colocalization (two channels images)");
+		label.setFont(bf);
+		p = new Panel();
+		p.add(label);
+		p.add(colOption);
+		colOption.addActionListener(new ActionListener() 
+		{
 
-		gd.addNumericField("Gaussian_PSF_approximation,_stddev_xy  (in pixels)", 0.9, 2);
-		gd.addNumericField("Gaussian_PSF_approximation,_stddev_z (in pixels)", 0.8, 2);
-
-
-		//		Button bh = new Button("PSF estimation");
-		//		bh.addActionListener(new PSFOpenerActionListener(p,gd, gd.getTextArea1()));
-		//		p.add(bh);
-		//		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
-
-		gd.addNumericField("Regularization (>0)", 0.15, 3);
-
-		//gd.addNumericField("Minimum_object_size: ", 5, 0);
-		//gd.addNumericField("Maximum_object_size: ", -1, 0);
-		gd.addNumericField("Minimum_object_intensity,_channel_1 (0 to 1)", 0.15, 3);
-		gd.addNumericField("Minimum_object_intensity,_channel_2 (0 to 1)", 0.15, 3);
-		//gd.addNumericField("Minimum_object_intensity_channel_2: ", 0.2, 2);
-
-		//if(!clustermode)gd.addMessage("First segmentation step ______________________________________________________________________________________________________________________________",bf);
-
-
-		//gd.addCheckbox("Local thresholding", true);
-		//gd.addNumericField("Voronoi thresh: ", 0.2, 2);
-
-
-		//add threshold value
-
-		//if(!clustermode)gd.addMessage("Second segmentation step (object segmentation refinement)_________________________________________________________________________________________",bf);
-		//gd.addCheckboxGroup(1, 2, sgroup1, bgroup1);
-		gd.addCheckbox("Subpixel segmentation", false);
-		//gd.addCheckbox("Segmentation refinement", false);
-		//gd.addCheckbox(" .. with subpixel", false);
-		//gd.addNumericField("model oversampling", 2, 0);
-		//gd.addNumericField("soft mask interpolation", 4, 0);
-
-
-
-		if(!clustermode)gd.addMessage("Colocalization options (for two channels images)_________________________________________________________________________________________",bf);
-		String sgroup3[] = {"Cell_mask_channel_1", "Cell_mask_channel_2"};
-		boolean bgroup3[] = {false, false};
-
-		//gd.addCheckbox("Cell_mask_channel_1", false);
-		//gd.addCheckbox("Cell_mask_channel_2", false);
-		gd.addCheckboxGroup(1, 2, sgroup3, bgroup3);
-		gd.addNumericField("threshold_channel_1 (0 to 1)", 0.0015, 4);
-		gd.addNumericField("threshold_channel_2 (0 to 1)", 0.035, 4);
-		//gd.addNumericField("Number of levels",2,0);
-
-
-		//gd.addMessage("Select file or folder:");
-		//gd.addStringField("Path: ", "/working_directory",30);
-		//if(!clustermode)gd.addMessage("");
-		if(!clustermode)gd.addMessage("Vizualization and output _________________________________________________________________________________________________________________",bf);
+			@Override
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				// TODO Auto-generated method stub
+				
+				ColocalizationGUI gds = new ColocalizationGUI();
+				gds.run("");
+			}
+		});
+		gd.addPanel(p);
+		
 		//gd.addMessage("");
 
-		String sgroup2[] = {
-				"Intermediate steps", "Colorized objects","Objects intensities",
-				"Labelized objects","Outlines overlay","Save objects characteristics and images"};
-		boolean bgroup2[] =
-			{
-				false, false,false,
-				false,true,false
-			};
-		gd.addCheckboxGroup(2, 3, sgroup2, bgroup2);
-		//		gd.addCheckbox("Live segmentation",true);
-		//		gd.addCheckbox("Random color objects",true);
-		//		gd.addCheckbox("Intensities reconstruction",false);
-		//		gd.addCheckbox("Objects labels",false);
-		//		gd.addCheckbox("Outline overlay",false);
-		//		gd.addCheckbox("Display colocalization",false);
-		//		
-		//		gd.addCheckbox("Save object data in .csv file and save images", false);
+		Button visOption = new Button("Options");
+		label = new Label("Vizualization and output");
+		label.setFont(bf);
+		p = new Panel();
+		p.add(label);
+		p.add(visOption);
+		visOption.addActionListener(new ActionListener() 
+		{
 
-		if(!clustermode)gd.addMessage("Advanced options____________________________________________________________________________________________________________________________",bf);
-		if(clustermode){
+			@Override
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				// TODO Auto-generated method stub
+				
+				VisualizationGUI gds = new VisualizationGUI();
+				gds.run("");
+			}
+		});
+		gd.addPanel(p);
+
+//		if(!clustermode)gd.addMessage("Advanced options ",bf);
+		if(clustermode)
+		{
 			gd.addNumericField("number of threads", 4, 0);
 		}
-		String choice1[] = {
-				"Automatic (best energy)", "Low layer", "Medium layer (clustering)","High layer (clustering)"};
-		gd.addChoice("Local intensity_estimation ", choice1, "Automatic");
-
-
-		String choice2[] = {
-				"Poisson", "Gauss"};
-		gd.addChoice("Noise Model ", choice2, "Poisson");
-
-
-
-
-
-		//		gd.addMessage("todo :");
-		//		gd.addMessage("noise choice");
-		//		gd.addMessage("load PSF");
-		//	gd.addNumericField("Intensitiy layer (0, 1 or 2): ", 0, 0);
-
-
-		//		gd.addNumericField("Background intensity (0 to 1): ", 0.003, 3);
-		//		gd.addNumericField("Objects intensity (0 to 1): ", 0.3, 3);
-		//		gd.addCheckbox("automatic intensities ", false);
-
 
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
@@ -368,81 +341,11 @@ public class GenericGUI {
 		}
 		//IJ.log("path: " + wpath);
 
-		//general options	
+/*		//general options	
 		Analysis.p.removebackground=gd.getNextBoolean();
 		//IJ.log("rem back:" +  Analysis.p.removebackground);
 		Analysis.p.size_rollingball=(int) gd.getNextNumber();
-		//Analysis.p.usePSF=gd.getNextBoolean();
-		Analysis.p.sigma_gaussian=gd.getNextNumber();
-		Analysis.p.zcorrec=Analysis.p.sigma_gaussian/gd.getNextNumber();
-
-		//IJ.log("nbthreads:" +  Analysis.p.nthreads);
-		Analysis.p.lreg= gd.getNextNumber();
-
-		//Analysis.p.minves_size=(int) gd.getNextNumber();
-		//Analysis.p.maxves_size=(int) gd.getNextNumber();
-		Analysis.p.min_intensity=gd.getNextNumber();
-		//Analysis.p.min_intensityY=Analysis.p.min_intensity;
-		Analysis.p.min_intensityY=gd.getNextNumber();
-
-
-		//first step
-
-		//IJ.log("aut int:" +  Analysis.p.automatic_int);
-		//Analysis.p.findregionthresh= gd.getNextBoolean();
-		//Analysis.p.regionthresh= gd.getNextNumber();
-
-
-
-		//second step
-		//Analysis.p.refinement= gd.getNextBoolean();
-		//IJ.log("refinement:" +  Analysis.p.refinement);
-		//IJ.log("subpixel before setting" + Analysis.p.subpixel);
-
-		Analysis.p.subpixel= gd.getNextBoolean();
-		//IJ.log("subpixel:" +  Analysis.p.subpixel);
-		//Analysis.p.oversampling2ndstep=(int) gd.getNextNumber();
-		//Analysis.p.interpolation=(int) gd.getNextNumber();
-
-		//colocalization step
-		//IJ.log("subpixel after setting" + Analysis.p.subpixel);
-
-		Analysis.p.usecellmaskX= gd.getNextBoolean();
-		//IJ.log("maskX:" +  Analysis.p.usecellmaskX);
-		Analysis.p.usecellmaskY= gd.getNextBoolean();
-		//IJ.log("maskY:" +  Analysis.p.usecellmaskY);
-		Analysis.p.thresholdcellmask= gd.getNextNumber();
-		Analysis.p.thresholdcellmasky= gd.getNextNumber();
-		//Analysis.p.nlevels=(int) gd.getNextNumber();
-
-		Analysis.p.save_images= true;
-
-		//Vizualization
-		Analysis.p.livedisplay= gd.getNextBoolean();
-		//IJ.log("live:" +  Analysis.p.livedisplay);
-		Analysis.p.dispcolors= gd.getNextBoolean();
-		//IJ.log("colors:" +  Analysis.p.dispcolors);
-		Analysis.p.dispint= gd.getNextBoolean();
-		//IJ.log("dispint:" +  Analysis.p.dispint);
-		Analysis.p.displabels= gd.getNextBoolean();
-		//IJ.log("displabels:" +  Analysis.p.displabels);
-		Analysis.p.dispoutline= gd.getNextBoolean();
-		//IJ.log("dispoutline:" +  Analysis.p.dispoutline);
-		//Analysis.p.dispcoloc= gd.getNextBoolean();
-
-		Analysis.p.save_images= gd.getNextBoolean();
-		//IJ.log("save images:" +  Analysis.p.save_images);
-		//IJ.log(Analysis.p.wd);
-		//Analysis.p.dispvesicles = false;
-
-
-		//		      ImagePlus imagePlus = IJ.getImage();
-		//				if (imagePlus == null) {
-		//					IJ.error("No image to operate on.");
-		//					return;
-		//				}
-		//IJ.log("path" +wpath);
-		//IJ.log("disp colors" + Analysis.p.dispcolors);
+		//Analysis.p.usePSF=gd.getNextBoolean();*/
 
 		//Expert options
 
@@ -470,7 +373,8 @@ public class GenericGUI {
 
 		//parameters for cluster(chekboxes not working)
 
-		if(Analysis.p.mode_voronoi2){
+		if(Analysis.p.mode_voronoi2)
+		{
 			//betamleout to be determined by clustering of whole image
 
 			Analysis.p.betaMLEindefault=1;						
@@ -488,62 +392,14 @@ public class GenericGUI {
 
 			//Analysis.p.subpixel=false;
 
-			//estimation des intensitŽs des zones ?
-			//dans ce mode il ne faut pas thresholder le masque pour avoir les objets (car il est calculŽ avec int=1)
+			//estimation des intensitï¿½s des zones ?
+			//dans ce mode il ne faut pas thresholder le masque pour avoir les objets (car il est calculï¿½ avec int=1)
 			// -> calculer les objets en faisant tourner l'algo dans la zone voronoi
 			//par RSS ou par clustering ?
 		}
 
-		//IJ.log("nt " + Analysis.p.nthreads);
-
-		//		IJ.log("Read parameters : " + 
-		//				//Analysis.p.removebackground=gd.getNextBoolean();
-		//				//Analysis.p.size_rollingball=(int) gd.getNextNumber();
-		//				"wpath" + wpath + "\n" + 
-		//				"remove" + Analysis.p.removebackground + "\n" +
-		//				"rolling " +Analysis.p.size_rollingball+ "\n" + 
-		//				"sigma " +Analysis.p.sigma_gaussian+ "\n" + 
-		//				"sigmaz " +Analysis.p.zcorrec+ "\n" + 
-		//				"lreg " +Analysis.p.lreg+ "\n" + 
-		//				"min_int " +Analysis.p.min_intensity+ "\n" + 
-		//
-		//				"subpixel " +Analysis.p.subpixel+ "\n" +
-		//				"cellmaskx "+Analysis.p.usecellmaskX+ "\n" + 
-		//				"cellmasky " +Analysis.p.usecellmaskY+ "\n" + 
-		//				"tcellmaskx " +Analysis.p.thresholdcellmask+ "\n" + 
-		//				"tcellmasky " +Analysis.p.thresholdcellmasky+ "\n" + 
-		//				"live " +Analysis.p.livedisplay+ "\n" + 
-		//				"colors " +Analysis.p.dispcolors+ "\n" + 
-		//				"intensity " +Analysis.p.dispint+ "\n" + 
-		//				"labels " +Analysis.p.displabels+ "\n" + 
-		//				"outline " +Analysis.p.dispoutline+ "\n" + 
-		//				"save " +Analysis.p.save_images+ "\n" + 
-		//				"nthreads " +Analysis.p.nthreads+ "\n" + 
-		//				"mode " +Analysis.p.mode_intensity+ "\n" + 
-		//				"noise model " +Analysis.p.noise_model
-		//				);
-
-		//		IJ.log(" ");
-		////		IJ.log("test get value" +
-		////		getValue("filepath=/gpfs/home/rizk_a/Serotonin/180minsub/ rolling=10 gaussian_psf_" +
-		////				"approximation,_stddev_xy=0.90 gaussian_psf_approximation,_stddev_z=0.80 lambda=0.10 minimum_object_intensity=0.11" +
-		////				" subpixel= cell_mask_channel_1 cell_mask_channel_2 threshold_1=0.0015 threshold_2=0.0350 colorized objects outline save" +
-		////				" number=4 intensity_estimation=[Automatic (Fisher scoring MLE)] noise=Poisson", "subpixel", null)
-		////		);
-		//		IJ.log("subpixel test " + getMacroParameter("Subpixel segmentation", false));
-		//		IJ.log("remove test " + getMacroParameter("Remove background", true));
-		//		IJ.log(" ");
-		//		
-		//		IJ.log("new test: ");
-		//		//		Vector cbs = gd.getCheckboxes(); 
-		//		//        Checkbox cb0 = (Checkbox) cbs.get(0); 
-		//		//        String label = cb0.getLabel();
-		//		//        IJ.log("checkbox " + label + " is " + cb0.getState());
-		//		IJ.log("macro options : " + Macro.getOptions());
-		//		//        String key = Macro.trimKey(label);
-		//		//        IJ.log("key : " + key);
-
-		if(clustermode){
+		if(clustermode)
+		{
 			Analysis.p.removebackground=true;
 			//Analysis.p.automatic_int=false;
 			if(Analysis.p.thresholdcellmask >0)
@@ -859,39 +715,39 @@ public class GenericGUI {
 					+"<br>"
 					+"<div align=\"justify\">"
 					+ "<h4>**File selection**</h4>"
-					+ "¥ Select file (processes one or two channels, 2D or Z-stacks image file), select folder (processes all image files contained) or paste path to file/folder."
+					+ "ï¿½ Select file (processes one or two channels, 2D or Z-stacks image file), select folder (processes all image files contained) or paste path to file/folder."
 					+"<br>"
 					+"<br>"
 					+"<h4>**Segmentation**</h4>"
-					+"¥ Remove background: performs background removal through rolling ball method."
+					+"ï¿½ Remove background: performs background removal through rolling ball method."
 					+" If activated set size of rolling ball window in pixels. Should be larger than searched objects diameter."
 					+"<br>"
-					+"¥ Point spread function (PSF): set standard deviation in pixels of the gaussian distribution (in x/y and in z) used to approximate microscope's PSF. Use 'Estimate PSF' to compute these values from microscope objective characteristics."
+					+"ï¿½ Point spread function (PSF): set standard deviation in pixels of the gaussian distribution (in x/y and in z) used to approximate microscope's PSF. Use 'Estimate PSF' to compute these values from microscope objective characteristics."
 					+"<br>"
-					+"¥ Regularization: penalty weight on object lengths. Low values enable to separate and find smaller objects, higher values prevents over fitting and remove small objects (which can be only noise) whose intensity do not differ enough from the background."
+					+"ï¿½ Regularization: penalty weight on object lengths. Low values enable to separate and find smaller objects, higher values prevents over fitting and remove small objects (which can be only noise) whose intensity do not differ enough from the background."
 					+"<br>"
-					+"¥ Minimum object intensity: minimum intensity of objects looked for. Intensities values are normalized between 0 (minimum pixel intensity in the image) and 1 (maximum intensity)."
+					+"ï¿½ Minimum object intensity: minimum intensity of objects looked for. Intensities values are normalized between 0 (minimum pixel intensity in the image) and 1 (maximum intensity)."
 					+"<br>"
-					+"¥ Subpixel segmentation: performs segmentation in subpixel resolution. (resolution x8 in 2D images, resolution x4 in Z-stacks images)."
+					+"ï¿½ Subpixel segmentation: performs segmentation in subpixel resolution. (resolution x8 in 2D images, resolution x4 in Z-stacks images)."
 					+"<br>"
 					+"<br>"
 					+"<h4>**Colocalization**</h4>"
-					+"¥ Cell mask: computes a mask of positive cells in a channel. Mask is obtained by thresholding original image with given intensity value and holes filling. Useful to perform colocalization analysis only in cells positive for both channels."
+					+"ï¿½ Cell mask: computes a mask of positive cells in a channel. Mask is obtained by thresholding original image with given intensity value and holes filling. Useful to perform colocalization analysis only in cells positive for both channels."
 					+"<br>"
-					+"¥ Threshold values for channel 1 and 2 used to compute cell masks. Use 'Preview Cell Masks' to find appropriate value."
+					+"ï¿½ Threshold values for channel 1 and 2 used to compute cell masks. Use 'Preview Cell Masks' to find appropriate value."
 					+"<br>"
 					+"<br>"
 					+ "<h4>**Visualisation and output**</h4>"
-					+"¥ 'Intermediate steps' display intermediate segmentation steps as well as segmentation energies in the log window. Colorized objects, intensities, labels and outlines respectively display segmented objects with random colors, objects intensities (black green for low intensity to bright green for high intensity ), objects integer labels, and outlines of objects overlaid with initial image."
+					+"ï¿½ 'Intermediate steps' display intermediate segmentation steps as well as segmentation energies in the log window. Colorized objects, intensities, labels and outlines respectively display segmented objects with random colors, objects intensities (black green for low intensity to bright green for high intensity ), objects integer labels, and outlines of objects overlaid with initial image."
 					+"<br>"
-					+"¥ Save option saves output images as zipped tiff files (openable in imageJ) and segmented objects data in one .csv file for each channel in folder containing processed image file."
+					+"ï¿½ Save option saves output images as zipped tiff files (openable in imageJ) and segmented objects data in one .csv file for each channel in folder containing processed image file."
 					//+"First data column is the image number the object belongs to. Columns 2 to 6 are object label size, surface, length and intensity. Coord X, Y and Z are the coordinates of the center of mass of the object. For two channels images overlap gives the fraction of the object overlapping with objects in the other channel while Mcoloc size and Mcoloc Intensity give the mean size and intensity of the overlapping objects in the other channel. 'single coloc' is true if the object is overlapping with a single object."
 					+"When processing a folder a third .csv file is written with one line per image processed indicating image name, image number, mean number of objects, mean object size and overlap."
 					//+"</p>"
 					+"<br>"
 					+"<br>"
 					+ "<h4>**Advanced options**</h4>"
-					+"¥ Intensity estimation modes : useful when objects are made of several intensity layers. High layer mode only segments highest intensity portions of an object and thus also increases object separation."
+					+"ï¿½ Intensity estimation modes : useful when objects are made of several intensity layers. High layer mode only segments highest intensity portions of an object and thus also increases object separation."
 					+"</div>"
 					+ "</html>");
 
@@ -954,268 +810,7 @@ public class GenericGUI {
 	}
 
 
-	public class PSFWindow implements ActionListener,PropertyChangeListener
-	{
 
-		private GridBagLayout grid;
-		private GridBagConstraints c;
-		private int y;
-		public double lem, lex, NA, n, pinhole, pix_xy, pix_z;
-		public JFrame frame;
-		//Initialize Buttons
-		private JPanel panel;
-		private JButton Close;
-		private Font header = new Font(null, Font.BOLD,14);
-		private boolean confocal = true;
-
-		private String [] items={"Confocal Microscope", "Wide Field Fluorescence Microscope"};
-
-		//jcb.setModel(new DefaultComboBoxModel(potentialOptions));
-
-		NumberFormat nf = NumberFormat.getInstance(Locale.US);
-
-		private JFormattedTextField Vlem= new JFormattedTextField(nf);
-		private JFormattedTextField Vlex= new JFormattedTextField(nf);
-		private JFormattedTextField VNA= new JFormattedTextField(nf);
-		private JFormattedTextField Vn= new JFormattedTextField(nf);
-		private JFormattedTextField Vpinhole= new JFormattedTextField(nf);
-		private JFormattedTextField Vpix_xy= new JFormattedTextField(nf);
-		private JFormattedTextField Vpix_z= new JFormattedTextField(nf);
-
-		private  JComboBox micr = new JComboBox(items);
-		private JButton estimate = new JButton("Compute PSF");
-
-		private JLabel ref= new JLabel(
-				"<html>"
-						+"<div align=\"justify\">"
-						+ "Gaussian PSF approximation."
-						+"<br>"
-						+"<br>"
-						+"Model from: Gaussian approximations of fluorescence microscope point-spread function models. "
-						+"B Zhang, J Zerubia, J C Olivo-Marin. Appl. Optics (46) 1819-29, 2007."
-						+"</div>"
-						+ "</html>");
-
-
-
-		//	"Gaussian PSF model from : 'Gaussian approximations of fluorescence microscope point-spread function models. B Zhang, J Zerubia, J C Olivo-Marin. Appl. Optics (46) 1819-29, 2007.''");
-		private JLabel tlem= new JLabel("Emission wavelength (nm)");
-		private JLabel tlex= new JLabel("Excitation wavelength (nm)");
-		private JLabel tNA = new JLabel("Numerical aperture");
-		private JLabel tn = new JLabel("Refraction index");
-		private JLabel tpinhole = new JLabel("Pinhole size (Airy units)");
-		private JLabel tpix_xy = new JLabel("Lateral pixel size (nm)");
-		private JLabel tpix_z = new JLabel("Axial pixel size (nm)");
-
-		private JLabel result = new JLabel("");
-		private GenericDialogCustom gd;
-
-		public PSFWindow(int x, int y, GenericDialogCustom gd){
-			y=0;
-			this.gd=gd;
-
-			lem=520;lex=488;NA=1.3;n=1.46;pinhole=1;
-			pix_xy=100;pix_z=400;
-
-			Vlem.setValue(lem);Vlex.setValue(lex);
-			VNA.setValue(NA);Vn.setValue(n);
-			Vpinhole.setValue(pinhole);
-			Vpix_xy.setValue(pix_xy);Vpix_z.setValue(pix_z);
-
-			frame = new JFrame();
-			frame.setSize(300, 500);
-			frame.setLocation(x+450, y+150);
-			//frame.toFront();
-			//frame.setResizable(false);
-			//frame.setAlwaysOnTop(true);
-			grid = new GridBagLayout();
-			c = new GridBagConstraints();
-
-			panel= new JPanel();
-			panel.setPreferredSize(new Dimension(300, 500));
-			panel.setSize(panel.getPreferredSize());
-			panel.setLayout(null);
-
-			JPanel pref= new JPanel(new BorderLayout());
-			pref.setPreferredSize(new Dimension(280, 120));
-			pref.setSize(pref.getPreferredSize());
-			pref.add(ref);
-
-			JPanel pres= new JPanel(new BorderLayout());
-			pres.setPreferredSize(new Dimension(280, 80));
-			pres.setSize(pres.getPreferredSize());
-			pres.add(result);
-
-
-			//JLabel label = new JLabel();
-			//panel.add(label, BorderLayout.NORTH);				
-			Vlem.setColumns(4);Vlex.setColumns(4);
-			VNA.setColumns(4);Vn.setColumns(4);
-			Vpinhole.setColumns(4);Vpix_xy.setColumns(4);
-			Vpix_z.setColumns(4);
-
-			Vlem.setHorizontalAlignment(SwingConstants.CENTER);Vlex.setHorizontalAlignment(SwingConstants.CENTER);
-			VNA.setHorizontalAlignment(SwingConstants.CENTER);Vn.setHorizontalAlignment(SwingConstants.CENTER);
-			Vpinhole.setHorizontalAlignment(SwingConstants.CENTER);Vpix_xy.setHorizontalAlignment(SwingConstants.CENTER);
-			Vpix_z.setHorizontalAlignment(SwingConstants.CENTER);
-
-			Vlem.setLocale(Locale.US);Vlex.setLocale(Locale.US);
-			VNA.setLocale(Locale.US);Vn.setLocale(Locale.US);
-			Vpinhole.setLocale(Locale.US);Vpix_xy.setLocale(Locale.US);
-			Vpix_z.setLocale(Locale.US);
-
-			//ref.setSize(ref.getPreferredSize());
-			micr.setSize(micr.getPreferredSize());
-			tlem.setSize(tlem.getPreferredSize());Vlem.setSize(Vlem.getPreferredSize());
-			tlex.setSize(tlex.getPreferredSize());Vlex.setSize(Vlex.getPreferredSize());
-			tNA.setSize(tNA.getPreferredSize());VNA.setSize(VNA.getPreferredSize());
-			tn.setSize(tn.getPreferredSize());Vn.setSize(Vn.getPreferredSize());
-			tpinhole.setSize(tpinhole.getPreferredSize());Vpinhole.setSize(Vpinhole.getPreferredSize());
-			tpix_xy.setSize(tpix_xy.getPreferredSize());Vpix_xy.setSize(Vpix_xy.getPreferredSize());
-			tpix_z.setSize(tpix_z.getPreferredSize());Vpix_z.setSize(Vpix_z.getPreferredSize());
-			estimate.setSize(estimate.getPreferredSize());
-
-
-			//			
-			//			
-			//			micr.setLocation(145,120);
-
-			//rlevel.setLocation(145,120);
-			//rlevell.setLocation(20,125);
-			pref.setLocation(10,0);
-			panel.add(pref);
-
-			micr.setLocation(10,125);			
-			tlem.setLocation(20,165);Vlem.setLocation(200,160);
-			tlex.setLocation(20,195);Vlex.setLocation(200,190);
-			tNA.setLocation(20,225);VNA.setLocation(200,220);
-			tn.setLocation(20,255);Vn.setLocation(200,250);
-			tpinhole.setLocation(20,285);Vpinhole.setLocation(200,280);
-			tpix_xy.setLocation(20,315);Vpix_xy.setLocation(200,310);
-			tpix_z.setLocation(20,345);Vpix_z.setLocation(200,340);
-			estimate.setLocation(80,375);
-			result.setLocation(10,405);
-
-			panel.add(micr);
-			panel.add(tlem);panel.add(Vlem);
-			panel.add(tlex);panel.add(Vlex);
-			panel.add(tNA);panel.add(VNA);
-			panel.add(tn);panel.add(Vn);
-			panel.add(tpinhole);panel.add(Vpinhole);
-
-			panel.add(tpix_xy);panel.add(Vpix_xy);
-			panel.add(tpix_z);panel.add(Vpix_z);
-
-			panel.add(estimate);
-			pres.setLocation(10,400);
-			panel.add(pres);
-
-
-			frame.add(panel);
-
-
-
-			estimate.addActionListener(this);
-
-
-			Vlem.addPropertyChangeListener(this);
-			Vlex.addPropertyChangeListener(this);
-			VNA.addPropertyChangeListener(this);
-			Vn.addPropertyChangeListener(this);
-			Vpinhole.addPropertyChangeListener(this);
-			Vpix_xy.addPropertyChangeListener(this);
-			Vpix_z.addPropertyChangeListener(this);
-
-			micr.addActionListener(this);
-			//
-
-			frame.setVisible(true);
-			//frame.requestFocus();
-			//frame.setAlwaysOnTop(true);
-
-			//			JOptionPane.showMessageDialog(frame,
-			//				    "Eggs are not supposed to be green.\n dsfdsfsd",
-			//				    "A plain message",
-			//				    JOptionPane.PLAIN_MESSAGE);
-
-
-		}
-
-		public void propertyChange(PropertyChangeEvent e) {
-			Object source = e.getSource();
-			if (source == Vlem) {
-				lem=(int) ((Number)Vlem.getValue()).doubleValue();
-			} else if (source == Vlex) {
-				lex=((Number)Vlex.getValue()).doubleValue();
-			} else if (source == VNA) {
-				NA=((Number)VNA.getValue()).doubleValue();
-			} else if (source == Vn) {
-				n=((Number)Vn.getValue()).doubleValue();
-			} else if (source == Vpinhole) {
-				pinhole=((Number)Vpinhole.getValue()).doubleValue();
-			}else if (source == Vpix_xy) {
-				pix_xy=((Number)Vpix_xy.getValue()).doubleValue();
-			}else if (source == Vpix_z) {
-				pix_z=((Number)Vpix_z.getValue()).doubleValue();
-			}
-		}
-
-		public void actionPerformed(ActionEvent ae) {
-			Object source = ae.getSource();	// Identify Button that was clicked
-
-			if(source == estimate)
-			{
-
-				GaussianPSFModel psf= new GaussianPSFModel(lem,lex,NA,pinhole,n);
-
-				double sz,sx;
-				if(confocal){
-					sz=1000*psf.axial_LSCM();
-					sx=1000*psf.lateral_LSCM();
-				}
-				else{
-					sz=1000*psf.axial_WFFM();
-					sx=1000*psf.lateral_WFFM();
-				}
-
-				TextField tx =gd.getField(1);//field x
-				TextField tz =gd.getField(2);//filed z
-
-				tx.setText(String.format(Locale.US,"%.3f", sx/pix_xy));
-				tz.setText(String.format(Locale.US,"%.3f", sz/pix_z));
-
-				result.setText
-				(	"<html>"
-						+"<div align=\"justify\">"
-						+ "Gaussian PSF stddev:"
-						+"<br>"
-						+"Lateral : "+String.format(Locale.US,"%.2f", sx) +" nm "
-						+"Axial : "+String.format(Locale.US,"%.2f", sz) +" nm"
-						+"<br>"
-						+"("+String.format(Locale.US,"%.3f", sx/pix_xy)+", "+ String.format(Locale.US,"%.3f", sz/pix_z)+" in pixels)"
-						+"</div>"
-						+ "</html>");
-
-
-			}
-
-			if(source==micr)
-			{
-				JComboBox cb = (JComboBox)source;
-				String selected = (String)cb.getSelectedItem();
-				//System.out.println("Selected: "+selected);
-				if(selected==items[1]){
-					//widefield
-					confocal=false;
-
-				}
-				if(selected==items[0]){
-					//confocal
-					confocal=true;
-				}
-			}	
-		}
-	}
 
 
 
@@ -1227,7 +822,7 @@ public class GenericGUI {
 		private int y;
 		//private int ni,nj,nz;
 		public double thr1, thr2;
-		public JFrame frame;
+		public JDialog frame;
 		//Initialize Buttons
 		private JPanel panel;
 		private JButton Close;
@@ -1237,8 +832,8 @@ public class GenericGUI {
 		double min=Double.POSITIVE_INFINITY;
 		double max2=0;
 		double min2=Double.POSITIVE_INFINITY;
-		TextField tx;
-		TextField tz;
+//		TextField tx;
+//		TextField tz;
 		int calls=0;
 		double val1,val2;
 
@@ -1246,7 +841,7 @@ public class GenericGUI {
 		boolean sliderval = false;
 		boolean boxval= false;
 
-		Checkbox b1,b2;
+//		Checkbox b1,b2;
 		double minrange=0.001;
 		double maxrange=1;
 		double logmin =  Math.log10(minrange);
@@ -1296,13 +891,14 @@ public class GenericGUI {
 			this.gd=gd;
 
 
-			tx =gd.getField(6);//field x
-			tz =gd.getField(7);//filed z
-			b1=gd.getBox(2);
-			b2=gd.getBox(3);
+//			tx =gd.getField(6);//field x
+//			tz =gd.getField(7);//filed z
+//			b1=gd.getBox(2);
+//			b2=gd.getBox(3);
 
 
-			frame = new JFrame();
+			frame = new JDialog();
+			frame.setModal(true);
 			frame.setSize(300, 250);
 			frame.setLocation(x+450, y+240);
 			//frame.toFront();
@@ -1397,7 +993,7 @@ public class GenericGUI {
 			if(source == m1)
 			{
 				boolean b=m1.isSelected();
-				b1.setState(b);
+//				b1.setState(b);
 				if(b){
 					if(imgch1!=null){
 						if(maska_im1==null)
@@ -1422,7 +1018,7 @@ public class GenericGUI {
 			if(source==m2)
 			{
 				boolean b=m2.isSelected();
-				b2.setState(b);
+//				b2.setState(b);
 				if(b){
 					if(imgch2!=null){
 						if(maska_im2==null)
@@ -1464,7 +1060,7 @@ public class GenericGUI {
 						previewBinaryCellMask(v,imgch1,maska_im1,1);
 						int vv= (int) (logvalue(v));
 						t1.setValue(vv);
-						tx.setText(String.format(Locale.US,"%.4f", v));
+//						tx.setText(String.format(Locale.US,"%.4f", v));
 					}
 					//IJ.log("v1 init: do" + boxval +" " + sliderval);
 
@@ -1475,7 +1071,7 @@ public class GenericGUI {
 						previewBinaryCellMask(v,imgch2,maska_im2,2);
 						int vv= (int) (logvalue(v));
 						t2.setValue(vv);
-						tz.setText(String.format(Locale.US,"%.4f", v));
+//						tz.setText(String.format(Locale.US,"%.4f", v));
 					}
 				} else if (source == v1 && !init1) {
 					double v =(double) ((Number)v1.getValue()).doubleValue();
@@ -1483,7 +1079,7 @@ public class GenericGUI {
 						//val1=v;
 						int vv= (int) (logvalue(v));
 						t1.setValue(vv);
-						tx.setText(String.format(Locale.US,"%.4f", v));
+//						tx.setText(String.format(Locale.US,"%.4f", v));
 					}
 					//IJ.log("v1 not init");
 				} else if (source == v2 && !init2) {
@@ -1492,7 +1088,7 @@ public class GenericGUI {
 						//val2=v;
 						int vv= (int) (logvalue(v));
 						t2.setValue(vv);
-						tz.setText(String.format(Locale.US,"%.4f", v));
+//						tz.setText(String.format(Locale.US,"%.4f", v));
 					}
 				} 
 
@@ -1513,7 +1109,7 @@ public class GenericGUI {
 						v1.setValue(vv);
 						val1=vv;
 						previewBinaryCellMask(vv,imgch1,maska_im1,1);}
-					tx.setText(String.format(Locale.US,"%.4f", vv));
+//					tx.setText(String.format(Locale.US,"%.4f", vv));
 					//IJ.log("t1 : do" + fieldval);
 
 				}
@@ -1522,7 +1118,7 @@ public class GenericGUI {
 					double value=t1.getValue();
 					double vv= expvalue(value);
 					if(!fieldval) {v1.setValue(vv);
-					tx.setText(String.format(Locale.US,"%.4f", vv));
+//					tx.setText(String.format(Locale.US,"%.4f", vv));
 					//val1=vv;
 					}
 					//IJ.log("t1 ch");
@@ -1532,7 +1128,7 @@ public class GenericGUI {
 					double value=t1.getValue();
 					double vv= expvalue(value);
 					if(!fieldval) {v1.setValue(vv);
-					tx.setText(String.format(Locale.US,"%.4f", vv));
+//					tx.setText(String.format(Locale.US,"%.4f", vv));
 					//val1=vv;
 					}
 					//IJ.log("t1 not init");	
@@ -1542,7 +1138,7 @@ public class GenericGUI {
 					double value=t2.getValue();
 					double vv= expvalue(value);
 					if(!fieldval) {v2.setValue(vv);
-					tz.setText(String.format(Locale.US,"%.4f", vv));
+//					tz.setText(String.format(Locale.US,"%.4f", vv));
 					//val2=vv;
 					}
 				}
@@ -1554,14 +1150,14 @@ public class GenericGUI {
 					if(!fieldval && val2!=vv) {v2.setValue(vv);
 					previewBinaryCellMask(vv,imgch2,maska_im2,2);
 					val2=vv;}
-					tz.setText(String.format(Locale.US,"%.4f", vv));
+//					tz.setText(String.format(Locale.US,"%.4f", vv));
 				}
 
 				if (origin==t2 && init2 && t2.getValueIsAdjusting()){
 					double value=t2.getValue();
 					double vv= expvalue(value);
 					if(!fieldval) {v2.setValue(vv);
-					tx.setText(String.format(Locale.US,"%.4f", vv));
+//					tx.setText(String.format(Locale.US,"%.4f", vv));
 					//val2=vv;
 					}
 				}
