@@ -264,14 +264,16 @@ public class FindConnectedRegions  {
 		ImageCalculator iCalc = new ImageCalculator();
 
 		//ImagePlus imagePlus = IJ.getImage();
-		if (imagePlus == null) {
+		if (imagePlus == null) 
+		{
 			IJ.error("No image to operate on.");
 			return;
 		}
 
 		int type = imagePlus.getType();
 
-		if (!(ImagePlus.GRAY8 == type || ImagePlus.COLOR_256 == type || ImagePlus.GRAY32 == type)) {
+		if (!(ImagePlus.GRAY8 == type || ImagePlus.COLOR_256 == type || ImagePlus.GRAY32 == type)) 
+		{
 			IJ.error("The image must be either 8 bit or 32 bit for this plugin.");
 			return;
 		}
@@ -292,7 +294,8 @@ public class FindConnectedRegions  {
 		int point_roi_y = -1;
 		int point_roi_z = -1;
 
-		if( startFromPointROI ) {
+		if( startFromPointROI ) 
+		{
 
 			Roi roi = imagePlus.getRoi();
 			if (roi == null) {
@@ -323,7 +326,8 @@ public class FindConnectedRegions  {
 		if (maxvesiclesize <0) maxvesiclesize=  width*height*depth;
 
 
-		if (width * height * depth > Integer.MAX_VALUE) {
+		if (width * height * depth > Integer.MAX_VALUE) 
+		{
 			IJ.error("This stack is too large for this plugin (must have less than " + Integer.MAX_VALUE + " points.");
 			return;
 		}
@@ -343,15 +347,20 @@ public class FindConnectedRegions  {
 		byte[][] sliceDataBytes = null;
 		float[][] sliceDataFloats = null;
 
-		if (byteImage) {
+		if (byteImage) 
+		{
 			sliceDataBytes = new byte[depth][];
-			for (int z = 0; z < depth; ++z) {
+			for (int z = 0; z < depth; ++z) 
+			{
 				ByteProcessor bp = (ByteProcessor) stack.getProcessor(z+1);
 				sliceDataBytes[z] = (byte[]) bp.getPixelsCopy();
 			}
-		} else {
+		}
+		else
+		{
 			sliceDataFloats = new float[depth][];
-			for (int z = 0; z < depth; ++z) {
+			for (int z = 0; z < depth; ++z) 
+			{
 				FloatProcessor bp = (FloatProcessor) stack.getProcessor(z+1);
 				sliceDataFloats[z] = (float[]) bp.getPixelsCopy();
 			}
@@ -363,7 +372,8 @@ public class FindConnectedRegions  {
 		Calibration calibration = imagePlus.getCalibration();
 
 		ColorModel cm = null;
-		if (ImagePlus.COLOR_256 == type) {
+		if (ImagePlus.COLOR_256 == type) 
+		{
 			cm = stack.getColorModel();
 		}
 
@@ -375,7 +385,8 @@ public class FindConnectedRegions  {
 
 		boolean firstTime = true;
 		int tk=0;
-		while (true) {
+		while (true) 
+		{
 			tk++;
 
 			if( pleaseStop )
@@ -396,7 +407,8 @@ public class FindConnectedRegions  {
 			int maxValueInt = -1;
 			float maxValueFloat = Float.MIN_VALUE;
 
-			if (firstTime && startFromPointROI ) {
+			if (firstTime && startFromPointROI ) 
+			{
 
 				initial_x = point_roi_x;
 				initial_y = point_roi_y;
@@ -407,7 +419,9 @@ public class FindConnectedRegions  {
 				else
 					foundValueFloat = sliceDataFloats[initial_z][initial_y * width + initial_x];
 
-			} else if (byteImage && startAtMaxValue) {
+			} 
+			else if (byteImage && startAtMaxValue) 
+			{
 				//IJ.log("");
 				for (int z = 0; z < depth; ++z) {
 					for (int y = 0; y < height; ++y) {
@@ -434,7 +448,9 @@ public class FindConnectedRegions  {
 					break;
 				}
 
-			} else if (byteImage && !startAtMaxValue) {
+			}
+			else if (byteImage && !startAtMaxValue) 
+			{
 				IJ.log("thres2" );
 				// Just finding some point in the a region...
 				for (int z = 0; z < depth && foundValueInt == -1; ++z) {
@@ -457,7 +473,9 @@ public class FindConnectedRegions  {
 					break;
 				}
 
-			} else {
+			}
+			else 
+			{
 				IJ.log("thres3" );
 				// This must be a 32 bit image and we're starting at the maximum
 				assert (!byteImage && startAtMaxValue);
@@ -512,8 +530,8 @@ public class FindConnectedRegions  {
 
 			//IJ.log("vint :" + vint + "seuil " + ((int) (0.1*vint)));
 
-			while (pointsInQueue > 0) {
-
+			while (pointsInQueue > 0) 
+			{
 				if(pleaseStop)
 					break;
 
@@ -552,9 +570,12 @@ public class FindConnectedRegions  {
 
 
 
-				for (int z = z_min; z <= z_max; ++z) {
-					for (int y = y_min; y <= y_max; ++y) {
-						for (int x = x_min; x <= x_max; ++x) {
+				for (int z = z_min; z <= z_max; ++z) 
+				{
+					for (int y = y_min; y <= y_max; ++y) 
+					{
+						for (int x = x_min; x <= x_max; ++x) 
+						{
 
 							// If we're not including diagonals,
 							// skip those points.
@@ -634,22 +655,26 @@ public class FindConnectedRegions  {
 			//IJ.log("region tag " + tag);
 
 
-			if (display || autoSubtract || true) {
-
+			if (display || autoSubtract || true) 
+			{
 				//ImageStack newStack = new ImageStack(width, height);
-				for (int z = 0; z < depth; ++z) {
+				for (int z = 0; z < depth; ++z) 
+				{
 					//byte[] sliceBytes = new byte[width * height];
-					for (int y = 0; y < height; ++y) {
-						for (int x = 0; x < width; ++x) {
-
+					for (int y = 0; y < height; ++y) 
+					{
+						for (int x = 0; x < width; ++x) 
+						{
 							byte status = pointState[width * (z * height + y) + x];
 
 							if (status == IN_QUEUE) {
 								IJ.log("BUG: point " + x + "," + y + "," + z + " is still marked as IN_QUEUE");
 							}
 
-							if (status == ADDED) {
-								if(region.points<= maxvesiclesize){
+							if (status == ADDED) 
+							{
+								if(region.points<= maxvesiclesize)
+								{
 									tempres[z][x][y]= (short) tag;//tag;
 									region.pixels.add(new Pix(z,x,y));
 									region.value=tag;
@@ -671,7 +696,8 @@ public class FindConnectedRegions  {
 
 			}
 
-			if ((stopAfterNumberOfRegions > 0) && (results.size() >= stopAfterNumberOfRegions)) {
+			if ((stopAfterNumberOfRegions > 0) && (results.size() >= stopAfterNumberOfRegions)) 
+			{
 				break;
 			}
 		}

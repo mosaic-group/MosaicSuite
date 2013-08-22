@@ -740,7 +740,10 @@ public class FeaturePointDetector {
 	 * and generates the <code>mask</code> according to these params
 	 * @see #generateMasks(int)
 	 */
-	public void setUserDefinedParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute){//, float sigma_factor) {
+	public void setUserDefinedParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute)
+	{
+		//, float sigma_factor) {
+		
 		this.cutoff = cutoff;
 		this.percentile = percentile;
 		this.absIntensityThreshold = Threshold;

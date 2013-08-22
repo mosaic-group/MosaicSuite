@@ -8,8 +8,8 @@ import ij.process.ImageProcessor;
 import ij.process.FloatProcessor;
 
 
-public class Tools {
-
+public class Tools 
+{
 	static ImagePlus imgd=new ImagePlus();
 	static boolean disp=true;
 	public  int ni,nj,nz,nlevels;
@@ -954,16 +954,19 @@ public class Tools {
 	}
 
 
-	public  void createmask(double [] [] [] [] res, double [] [] [] image, double [] cl){
+	public  void createmask(double [] [] [] [] res, double [] [] [] image, double [] cl)
+	{
 		//add 0 and 1 at extremities
 		double [] cltemp = new double [nlevels+2];
 		cltemp[0]=0;cltemp[nlevels+1]=1;
-		for (int l=1; l<nlevels+1; l++){
+		for (int l=1; l<nlevels+1; l++)
+		{
 			cltemp[l]=cl[l-1];
 		}
 		double thr;
 
-		for (int l=0; l<nlevels; l++){
+		for (int l=0; l<nlevels; l++)
+		{
 			if(nlevels>2)thr=cl[l]; else thr=cl[1];//if only two regions only first mask is used
 			if(thr==1) thr=0.5;// should not have threhold to 1: creates empty mask and wrong behavior in dct3D  computation
 			for (int z=0; z<nz; z++){

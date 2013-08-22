@@ -74,6 +74,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import mosaic.core.GUI.ParticleTrackerHelp;
 import mosaic.core.detection.FeaturePointDetector;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
@@ -425,6 +426,29 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		GenericDialog text_mode_gd;
 		one_file_multiple_frame = false;
 		boolean convert = false;
+		
+		// Add help panel
+
+		Panel p = new Panel();
+		Button help_b = new Button("help");
+		p.add(help_b);
+		
+		gd.addPanel(p);
+		
+		help_b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				
+				Point p =gd.getLocationOnScreen();
+				
+				ParticleTrackerHelp pth = new ParticleTrackerHelp(p.x,p.y);
+				
+			}});
+		
+		//
+		
 		if (text_files_mode) {
 			
 			text_mode_gd = new GenericDialog("input files info", IJ.getInstance());
@@ -485,7 +509,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			gd.addNumericField("Link Range", 2, 0);
 			gd.addNumericField("Displacement", 10.0, 2); 
 		}
-
+		
+		//
+		
 		gd.showDialog();
 
 		// retrieve params from user

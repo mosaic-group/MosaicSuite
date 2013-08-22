@@ -117,12 +117,14 @@ public class NRegions implements Runnable{
 		max=0;
 		min=Double.POSITIVE_INFINITY;
 
-		for (int z=0; z<nz; z++){
+		for (int z=0; z<nz; z++)
+		{
 			img.setSlice(z/osz+1);
 			imp=img.getProcessor();
 			//remove background
 			//rollingball version
-			if(p.removebackground){
+			if(p.removebackground)
+			{
 				bs.rollingBallBackground(imp, p.size_rollingball, false, false, false, true, true);
 			}
 
@@ -131,8 +133,10 @@ public class NRegions implements Runnable{
 			//bs.rollingBallBackground(imp, 0.2, false, false, true, false, true);
 			
 			
-			for (int i=0; i<ni; i++){  
-				for (int j=0;j< nj; j++){  
+			for (int i=0; i<ni; i++)
+			{
+				for (int j=0;j< nj; j++)
+				{  
 					image[z][i][j]=imp.getPixel(i/os,j/os);		
 					if(image[z][i][j]>max)max=image[z][i][j];
 					if(image[z][i][j]<min)min=image[z][i][j];
@@ -142,7 +146,8 @@ public class NRegions implements Runnable{
 		}
 		
 		//IJ.log("after, max : " + max + " min : " + min);
-		if(p.livedisplay){
+		if(p.livedisplay)
+		{
 			ImagePlus back=img.duplicate();
 			back.setTitle("Background reduction channel " + (channel+1));
 			back.changes=false;
@@ -153,19 +158,24 @@ public class NRegions implements Runnable{
 
 		//IJ.log("max"+max+"min"+min);
 		//rescale between 0 and 1
-		for (int z=0; z<nz; z++){
-			for (int i=0; i<ni; i++){  
-				for (int j=0;j<nj; j++){  
+		for (int z=0; z<nz; z++)
+		{
+			for (int i=0; i<ni; i++)
+			{
+				for (int j=0;j<nj; j++)
+				{
 					image[z][i][j]= (image[z][i][j] -min)/(max-min);		
 				}	
 			}
 		}
 
-		if(p.nlevels>2){
+		if(p.nlevels>2)
+		{
 			p.cl=cluster();
 		}
 
-		if(p.nlevels==2 || p.nlevels==1){
+		if(p.nlevels==2 || p.nlevels==1)
+		{
 
 			p.cl[0]=p.betaMLEoutdefault;//0.0027356;
 			//p.cl[1]=0.2340026;
@@ -173,7 +183,8 @@ public class NRegions implements Runnable{
 			//p.cl[1]=0.2;
 		}
 
-		if(Analysis.p.automatic_int){
+		if(Analysis.p.automatic_int)
+		{
 			double [] levs=cluster_int(5);
 			p.cl[0]=levs[0];//0.0027356;
 			p.betaMLEoutdefault=levs[0];
@@ -199,7 +210,8 @@ public class NRegions implements Runnable{
 		//			}
 		//		}
 
-		if(p.JunitTest){
+		if(p.JunitTest)
+		{
 			p.cl[0]=0.00227;
 			p.cl[1]=0.0504;
 			p.cl[2]=0.165;
@@ -210,8 +222,10 @@ public class NRegions implements Runnable{
 		//md= new MasksDisplay(ni,nj,nz,nl,p.cl,p);
 		Tools.createmask(mask, image,p.cl);	
 		//md.display2regionsnewd(mask[0][0], "mask init", 0);
-		if(p.nlevels >1  || !p.usePSF){
-			for(int i =0; i< nl;i++){
+		if(p.nlevels >1  || !p.usePSF)
+		{
+			for(int i =0; i< nl;i++)
+			{
 				//Tools.nllMeanPoisson(Ei[i], image, p.cl[i], 1, p.ldata );
 				Tools.nllMean1(Ei[i], image, p.cl[i], 1, p.ldata );
 			}
@@ -226,16 +240,19 @@ public class NRegions implements Runnable{
 	//	}
 
 
-	public void  run(){
-
+	public void  run()
+	{
 		md= new MasksDisplay(ni,nj,nz,nl,p.cl,p);
 		md.firstdisp=p.livedisplay;
 		ASplitBregmanSolver A_solver= new ASplitBregmanSolver(p,image,Ei, mask,md, channel);
 
 		//first run
-		try {
+		try 
+		{
 			A_solver.first_run();
-		}catch (InterruptedException ex) {}
+		}
+		catch (InterruptedException ex) 
+		{}
 
 		double minInt=Analysis.p.min_intensity;
 		Analysis.p.min_intensity=0;
@@ -272,8 +289,8 @@ public class NRegions implements Runnable{
 
 	}
 
-	private double [] cluster(){
-
+	private double [] cluster()
+	{
 		Dataset data = new DefaultDataset();
 		double [] pixel = new double[1];
 		int max = Math.max(2, nl);
@@ -281,9 +298,12 @@ public class NRegions implements Runnable{
 		double [] levels2= new double[5];
 
 		//get imagedata
-		for (int z=0; z<nz; z++){
-			for (int i=0; i<ni; i++) {  
-				for (int j=0;j<nj; j++) {  
+		for (int z=0; z<nz; z++)
+		{
+			for (int i=0; i<ni; i++) 
+			{
+				for (int j=0;j<nj; j++) 
+				{
 					pixel[0]=image[z][i][j];
 					Instance instance = new DenseInstance(pixel);
 					data.add(instance);
@@ -296,7 +316,8 @@ public class NRegions implements Runnable{
 		/* Cluster the data, it will be returned as an array of data sets, with
 		 * each dataset representing a cluster. */
 		Dataset[] data2 = km.cluster(data);
-		for (int i=0; i<nl; i++) {  
+		for (int i=0; i<nl; i++) 
+		{  
 			Instance inst =DatasetTools.average(data2[i]);
 			//IJ.log("instance i" + i + "is " + inst.value(0));
 			levels[i]=inst.value(0);

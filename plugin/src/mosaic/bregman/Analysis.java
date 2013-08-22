@@ -244,15 +244,21 @@ public class Analysis {
 
 	}
 
-	public static void compute_connected_regions_a(double d, float [][][] RiN){
+	/*  */
+	
+	public static void compute_connected_regions_a(double d, float [][][] RiN)
+	{
 		//IJ.log("connected ana"+d);
 		ImagePlus maska_im= new ImagePlus();
 		ImageStack maska_ims= new ImageStack(p.ni,p.nj);
 
-		for (int z=0; z<p.nz; z++){  
+		for (int z=0; z<p.nz; z++)
+		{  
 			byte[] maska_bytes = new byte[p.ni*p.nj];
-			for (int i=0; i<p.ni; i++){  
-				for (int j=0;j< p.nj; j++){  
+			for (int i=0; i<p.ni; i++)
+			{  
+				for (int j=0;j< p.nj; j++)
+				{  
 					maska_bytes[j * p.ni + i] =  maskA[z][i][j] ;//(byte) ( (int)(255*maska[z][i][j]));	
 					//IJ.log("byte" + (maska[0][i][j]));
 					//if(i==277 && j==202 && z==7){IJ.log("test value :" +(maskA[z][i][j] & 0xFF));}
@@ -286,22 +292,31 @@ public class Analysis {
 
 		FindConnectedRegions fcr= new FindConnectedRegions(maska_im, maskA);//maska_im only
 		float [][][] Ri ;
-		if(p.mode_voronoi2){
+		if(p.mode_voronoi2)
+		{
 			Ri = new float [p.nz][p.ni][p.nj];
-			for(int z=0; z<p.nz; z++){
-				for (int i=0; i<p.ni; i++) {  
-					for (int j=0; j<p.nj; j++) {  
+			for(int z=0; z<p.nz; z++)
+			{
+				for (int i=0; i<p.ni; i++)
+				{  
+					for (int j=0; j<p.nj; j++) 
+					{
 						Ri[z][i][j]=(float) p.min_intensity;
 					}
 				}
 			}
 		}
-		else{
-			if(RiN==null){//==true   for testing with minimum intensity 
+		else
+		{
+			if(RiN==null)
+			{
 				Ri = new float [p.nz][p.ni][p.nj];
-				for(int z=0; z<p.nz; z++){
-					for (int i=0; i<p.ni; i++) {  
-						for (int j=0; j<p.nj; j++) {  
+				for(int z=0; z<p.nz; z++)
+				{
+					for (int i=0; i<p.ni; i++) 
+					{
+						for (int j=0; j<p.nj; j++) 
+						{
 							Ri[z][i][j]=(float) d;
 						}
 					}
@@ -321,7 +336,8 @@ public class Analysis {
 		regionsA=fcr.tempres;
 		regionslistA=fcr.results;
 		na=regionslistA.size();
-		if(!p.mode_voronoi2){
+		if(!p.mode_voronoi2)
+		{
 			meana=meansize(regionslistA);
 			if(p.nz>1)
 				IJ.log(na + " objects found in X, mean volume : " + Tools.round(meana,2)+ " pixels.");
@@ -332,7 +348,8 @@ public class Analysis {
 
 
 
-	public static void compute_connected_regions_b(double d, float [][][] RiN){
+	public static void compute_connected_regions_b(double d, float [][][] RiN)
+	{
 		ImagePlus maskb_im= new ImagePlus();
 		ImageStack maskb_ims= new ImageStack(p.ni,p.nj);
 
