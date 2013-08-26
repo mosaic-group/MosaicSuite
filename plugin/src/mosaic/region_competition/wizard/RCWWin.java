@@ -473,7 +473,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	{
 		// Start a progress window
 		
-		RCProgressWin RCp = new RCProgressWin(9,1);
+		RCProgressWin RCp = new RCProgressWin(9,img.length);
 		RCp.SetProgress(0);
 		RCp.show();
 		
@@ -661,12 +661,15 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			for (int i = 0 ; i < img.length ; i++)
 			{
 				in[i] = new IntensityImage(img[i]);
-				fi = new ScoreFunctionInit(in,lb,r_t,rad);
 				lb[i] = new LabelImage(in[i].getDimensions());
 				in[i].imageIP.show();
-				fi.setObject(i,(int)Ask("Question", "How many object do you see ?"));
 			}
 			
+			fi = new ScoreFunctionInit(in,lb,r_t,rad);
+			for (int i = 0 ; i < img.length ; i++)
+			{
+				fi.setObject(i,(int)Ask("Question", "How many object do you see ?"));
+			}
 		}
 		else 
 		{fi = new ScoreFunctionInit(in,lb,r_t,rad);}

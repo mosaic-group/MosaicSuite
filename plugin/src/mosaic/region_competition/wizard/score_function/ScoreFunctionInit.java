@@ -40,7 +40,11 @@ public class ScoreFunctionInit implements ScoreFunction
 			off[j] += inc_step[j];
 		}
 	}
-		
+	
+	/*
+	 * Set the number of objects
+	 */
+	
 	public void setObject(int i, int off_)
 	{
 		off[i] = off_;

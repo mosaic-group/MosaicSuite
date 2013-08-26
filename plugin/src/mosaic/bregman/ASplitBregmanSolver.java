@@ -169,13 +169,16 @@ public class ASplitBregmanSolver {
 		this.RSS= new RegionStatisticsSolver(temp1[0],temp2[0], temp3[0],image,10,p);
 
 		//precompute eigenlaplacian
-		for (int i=0; i<ni; i++){  
-			for (int j=0;j< nj; j++){  
-				this.eigenLaplacian[i][j]=2+(2-2*Math.cos((j)*Math.PI/(nj))+ (2-2*Math.cos((i)*Math.PI/(ni))));			
+		for (int i=0; i<ni; i++)
+		{  
+			for (int j=0;j< nj; j++)
+			{
+				this.eigenLaplacian[i][j]=2+(2-2*Math.cos((j)*Math.PI/(nj))+ (2-2*Math.cos((i)*Math.PI/(ni))));
 			}	
 		}
 
-		for(int i =0; i< nl;i++){
+		for(int i =0; i< nl;i++)
+		{
 			//temp1=w2xk temp2=w2yk
 			Tools.fgradx2D(temp1[i], mask[i]);
 			Tools.fgrady2D(temp2[i], mask[i]);
@@ -184,7 +187,8 @@ public class ASplitBregmanSolver {
 			Tools.copytab(w3k[i], mask[i]);
 		}
 
-		if(p.RSSinit){
+		if(p.RSSinit)
+		{
 			RSS.eval(w3k[0]);
 			//Analysis.p.cl[0]=RSS.betaMLEout;
 			//Analysis.p.cl[1]=RSS.betaMLEin;
@@ -227,10 +231,14 @@ public class ASplitBregmanSolver {
 
 
 		//initialize variables
-		for(int l =0; l< nl;l++){
-			for (int z=0; z<nz; z++){
-				for (int i=0; i<ni; i++) {  
-					for (int j=0; j<nj; j++) {  
+		for(int l =0; l< nl;l++)
+		{
+			for (int z=0; z<nz; z++)
+			{
+				for (int i=0; i<ni; i++) 
+				{  
+					for (int j=0; j<nj; j++) 
+					{
 						b2xk[l][z][i][j]=0;b2yk[l][z][i][j]=0;
 						b1k[l][z][i][j]=0;b3k[l][z][i][j]=0;
 					}	
@@ -269,12 +277,14 @@ public class ASplitBregmanSolver {
 			////				}
 			//			}
 
-			//IJ.log("Energy at step " + stepk + " : " + energy);
-			if(energy < bestNrj) {
+			if(energy < bestNrj) 
+			{
 				Tools.copytab(w3kbest[0], w3k[0]);
 				iw3kbest=stepk;
-				bestNrj=energy;}
-			if(stepk % p.energyEvaluationModulo ==0 || stepk==p.max_nsb -1){	
+				bestNrj=energy;
+			}
+			if(stepk % p.energyEvaluationModulo ==0 || stepk==p.max_nsb -1)
+			{	
 				//IJ.log(String.format("Ediff %d : %7.6e", stepk, Math.abs((energy-lastenergy)/lastenergy)));	
 				if(Math.abs((energy-lastenergy)/lastenergy) < p.tol){
 					StopFlag=true;if(p.livedisplay && p.firstphase){IJ.log("energy stop");}}
@@ -290,7 +300,8 @@ public class ASplitBregmanSolver {
 
 			//IJ.log("Best energy step: " + stepk + " : " + Tools.round(bestNrj , 3));+ " norm between masks " + Tools.round(norm, 2));
 			//}
-			if((stepk+1) % p.RSSmodulo ==0 && stepk!=0){
+			if((stepk+1) % p.RSSmodulo ==0 && stepk!=0)
+			{
 				RSS.eval(w3k[0]);
 				//Analysis.p.cl[0]=RSS.betaMLEout;
 				//Analysis.p.cl[1]=RSS.betaMLEin;
