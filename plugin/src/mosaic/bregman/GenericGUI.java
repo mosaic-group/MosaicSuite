@@ -3,6 +3,7 @@ package mosaic.bregman;
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Checkbox;
+import java.awt.Choice;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -83,6 +84,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.Macro;
+import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 //import ij.gui.NonBlockingGenericDialog;
@@ -176,7 +178,7 @@ public class GenericGUI {
 	//	}
 
 
-	public void run(String arg) 
+	public void run(String arg, ImagePlus aImp)
 	{
 		Font bf = new Font(null, Font.BOLD,12);
 		String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
@@ -212,9 +214,9 @@ public class GenericGUI {
 			b.addActionListener(new FileOpenerActionListener(p,gd, gd.getTextArea1()));
 			p.add(b);
 
-			Button bp3 = new Button("Preview Cell Masks");
+/*			Button bp3 = new Button("Preview Cell Masks");
 			bp3.addActionListener(new MaskOpenerActionListener(p,gd));
-			p.add(bp3);
+			p.add(bp3);*/
 
 			Button bh = new Button("Help");
 			bh.addActionListener(new HelpOpenerActionListener(p,gd));
@@ -223,6 +225,35 @@ public class GenericGUI {
 			gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
 		}
 
+		// Image chooser
+		
+		int nOpenedImages = 0;
+		int[] ids = WindowManager.getIDList();
+		
+		if(ids!=null){
+			nOpenedImages = ids.length;
+		}
+		
+		
+		String[] names = new String[nOpenedImages+1];
+		names[0]="";
+		for(int i = 0; i<nOpenedImages; i++)
+		{
+			ImagePlus ip = WindowManager.getImage(ids[i]);
+			names[i+1] = ip.getTitle();
+		}
+		
+//		if(nOpenedImages>0)
+
+			// Input Image
+		gd.addChoice("InputImage", names, names[0]);
+		Choice choiceInputImage = (Choice)gd.getChoices().lastElement();
+		if(aImp !=null)
+		{
+				String title = aImp.getTitle();
+				choiceInputImage.select(title);
+		}
+		
 		// Background Options
 		
 		Button backOption = new Button("Options");
@@ -360,10 +391,10 @@ public class GenericGUI {
 		}
 
 		//Analysis.p.regionSegmentLevel= (int) gd.getNextNumber();
-		Analysis.p.mode_intensity=gd.getNextChoiceIndex();
+//		Analysis.p.mode_intensity=gd.getNextChoiceIndex();
 
 
-		Analysis.p.noise_model=gd.getNextChoiceIndex();
+//		Analysis.p.noise_model=gd.getNextChoiceIndex();
 		//IJ.log("noise model" + Analysis.p.noise_model);
 
 		//		Analysis.p.betaMLEoutdefault=gd.getNextNumber();
@@ -450,8 +481,12 @@ public class GenericGUI {
 		//
 		//		IJ.log("stdx" +Analysis.p.sigma_gaussian+ "stdy" + Analysis.p.sigma_gaussian/Analysis.p.zcorrec);
 
-
-		BLauncher hd= new BLauncher(wpath);	
+		BLauncher hd = null;
+		
+		if (wpath.startsWith("Input Image:"))
+			hd= new BLauncher(aImp);
+		else
+			hd= new BLauncher(wpath);	
 		//		    hd.bcolocheadless(imagePlus);
 
 		//Analysis.load2channels(imagePlus);

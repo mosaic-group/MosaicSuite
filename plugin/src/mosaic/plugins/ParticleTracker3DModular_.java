@@ -189,23 +189,28 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 * @return a flag word that represents the filters capabilities according to arg String argument
 	 * @see ij.plugin.filter.PlugInFilter#setup(java.lang.String, ij.ImagePlus)
 	 */
-	public int setup(String arg, ImagePlus imp) {		
+	public int setup(String arg, ImagePlus imp) 
+	{		
 		
-		if(IJ.versionLessThan("1.38u")){
+		if(IJ.versionLessThan("1.38u"))
+		{
 			return DONE;
 		}
-		if (arg.equals("about")) {
+		if (arg.equals("about")) 
+		{
 			showAbout(); 
 			return DONE;		
 		}
 
-		if (arg.equals("only_detect")) {
+		if (arg.equals("only_detect")) 
+		{
 			only_detect = true;
 		}
 		
 		this.original_imp = imp;	
 		
-		if (imp==null && !only_detect) {
+		if (imp==null && !only_detect) 
+		{
 			if (IJ.showMessageWithCancel("Text Files Mode", "Do you want to load particles positions from text files?")) {				
 				text_files_mode = true;
 				return NO_IMAGE_REQUIRED;
@@ -213,8 +218,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			IJ.error("You must load an Image Sequence or Movie first");            
 			return DONE;
 		}
-		if (imp==null) {
-			IJ.error("You must load an Image Sequence or Movie first");            
+		if (imp==null)
+		{
+			IJ.error("You must load an Image Sequence or Movie first");
 			return DONE;
 		}
 		
@@ -236,7 +242,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			}
 		}
 		
-		if (only_detect && this.original_imp.getStackSize() == 1) {
+		if (only_detect && this.original_imp.getStackSize() == 1) 
+		{
 			return DOES_ALL+NO_CHANGES+SUPPORTS_MASKING;
 		}
 		return DOES_ALL+NO_CHANGES+SUPPORTS_MASKING+PARALLELIZE_STACKS;
@@ -250,11 +257,12 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 * <br>This method is called by ImageJ after <code>setup(String arg, ImagePlus imp)</code> returns  
 	 * @see ij.plugin.filter.PlugInFilter#run(ij.process.ImageProcessor)
 	 */
-	public void run(ImageProcessor ip) {
-
+	public void run(ImageProcessor ip) 
+	{
 		initializeMembers();
 		 System.out.println("IJ macro is running: " + IJ.isMacro());
-		if(!text_files_mode && !IJ.isMacro()) {
+		if(!text_files_mode && !IJ.isMacro()) 
+		{
 			preview_canvas = detector.generatePreviewCanvas(original_imp);	
 		} 
 
@@ -263,8 +271,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
  
 		if (!processFrames()) return; 		
 
-		if (text_files_mode) {
-
+		if (text_files_mode) 
+		{
 			/* create an ImagePlus object to hold the particle information from the text files*/
 			original_imp = new ImagePlus("From text files", createStackFromTextFiles());
 		}
@@ -278,10 +286,13 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		IJ.showStatus("Generating Trajectories");
 		generateTrajectories();
 		IJ.freeMemory();
-		if(IJ.isMacro()) {
+		if(IJ.isMacro()) 
+		{
 			/* Write data to disk */
 			writeDataToDisk();
-		} else {
+		} 
+		else 
+		{
 			/* Display results window */
 			this.trajectory_tail = this.frames_number;
 			results_window = new ResultsWindow("Results");
@@ -298,9 +309,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	/**
 	 * Initializes some members needed before going to previews on the user param dialog.
 	 */
-	private void initializeMembers(){	
-		
-		if (!text_files_mode){
+	private void initializeMembers()
+	{
+		if (!text_files_mode)
+		{
 			// initialize ImageStack stack
 
 			stack = original_imp.getStack();
@@ -315,7 +327,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			
 			detector = new FeaturePointDetector(global_max, global_min);
 			
-		}else {
+		}
+		else 
+		{
 			slices_number = 1;
 		}
 		

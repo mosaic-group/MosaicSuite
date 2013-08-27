@@ -65,7 +65,7 @@ public class BregmanGLM_Batch implements PlugInFilter {
 		try 
 		{
 			GenericGUI window = new GenericGUI(batch);
-			window.run("");
+			window.run("",active_img);
 			
 			SaveConfig(Analysis.p);
 			

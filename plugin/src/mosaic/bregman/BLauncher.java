@@ -26,10 +26,12 @@ public class BLauncher {
 	PrintWriter out2;
 	PrintWriter out3;
 	String wpath;
+	ImagePlus aImp;
 	Tools Tools;
 
 
-	public BLauncher(String path){
+	public BLauncher(String path)
+	{
 		wpath=path;
 
 		boolean processdirectory =(new File(wpath)).isDirectory();
@@ -45,12 +47,27 @@ public class BLauncher {
 
 	}
 
-	public void Headless_file(){
-
-
+	public BLauncher(ImagePlus aImp_)
+	{
+		wpath = null;
+		aImp = aImp_;
+		Headless_file();
+	}
+	
+	public void Headless_file()
+	{
 		try{
-			Analysis.p.wd= (new File(wpath)).getParent() +File.separator;
-			ImagePlus img=IJ.openImage(wpath);
+			ImagePlus img = null;
+			if (wpath != null)
+			{
+				Analysis.p.wd= (new File(wpath)).getParent() +File.separator;
+				img=IJ.openImage(wpath);
+			}
+			else
+			{
+				img = aImp;
+			}
+			
 			Analysis.p.nchannels=img.getNChannels();
 			Analysis.p.dispwindows=true;
 
@@ -78,7 +95,7 @@ public class BLauncher {
 					//							"lambda prior" + Analysis.p.lreg  +
 					//							"Min intensity " + Analysis.p.min_intensity +"," +
 					//							"subpixel" + Analysis.p.subpixel +
-					//							"Intensity estimùation" + choice1[Analysis.p.mode_intensity] +
+					//							"Intensity estimÔøΩation" + choice1[Analysis.p.mode_intensity] +
 					//							"Noise model" + choice1[Analysis.p.noise_model]
 					//							);
 
