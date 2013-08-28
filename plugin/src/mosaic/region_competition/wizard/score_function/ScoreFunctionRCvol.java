@@ -105,12 +105,12 @@ public class ScoreFunctionRCvol implements ScoreFunction
 			
 		for (int im = 0 ; im < i.length ; im++)
 		{
-			IJ.run(i[im].imageIP,"Region Competition","config="+IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1] + "  " + "output=" +IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+".tif");
+			IJ.run(i[im].imageIP,"Region Competition","config="+IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1] + "  " + "output=" +IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_" + im + "_" +".tif"  + " normalize=false");
 			
 			// Read Label Image
 			
 			Opener o = new Opener();
-			file[im] = new String(IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+".tif");
+			file[im] = new String(IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_" + im + "_" +".tif");
 			ImagePlus ip = o.openImage(file[im]);
 			
 			l[im].initWithIP(ip);

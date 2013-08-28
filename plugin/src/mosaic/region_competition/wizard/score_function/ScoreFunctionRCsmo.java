@@ -260,7 +260,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 			
 			for (int im = 0 ; im < i.length ; im++)
 			{
-				IJ.run(i[im].imageIP,"Region Competition","config="+IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1] + "  " + "output=" +IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1]+".tif");
+				IJ.run(i[im].imageIP,"Region Competition","config="+IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1] + "  " + "output=" +IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1]+".tif" + " normalize=false");
 				
 				// Read Label Image
 				

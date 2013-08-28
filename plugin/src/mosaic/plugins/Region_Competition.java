@@ -81,6 +81,7 @@ public class Region_Competition implements PlugInFilter
 	ImageStack stack;			// stack saving the segmentation progress images
 	ImagePlus stackImPlus;		// IP showing the stack
 	boolean stackKeepFrames = false;
+	boolean normalize_ip = false;
 	
 	ImageStack initialStack; // copy of the initial guess (without contour/boundary)
 	
@@ -130,6 +131,7 @@ public class Region_Competition implements PlugInFilter
 		
         String options = Macro.getOptions();
 		
+		normalize_ip = true;
 		if (options != null)
 		{
 			// Command line interface search for config file
@@ -138,13 +140,15 @@ public class Region_Competition implements PlugInFilter
 			Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
 			Pattern config = Pattern.compile("config");
 			Pattern output = Pattern.compile("output");
-			Pattern par[] = new Pattern[6];
+			Pattern normalize = Pattern.compile("normalize");
+			Pattern par[] = new Pattern[7];
 			par[0] = Pattern.compile("method");
 			par[1] = Pattern.compile("init");
 			par[2] = Pattern.compile("ps_radius");
 			par[3] = Pattern.compile("b_force");
 			par[4] = Pattern.compile("c_flow_coeff");
 			par[5] = Pattern.compile("c_flow_radius");
+			par[6] = Pattern.compile("normalize");
 			Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
 			
 			// output
@@ -161,6 +165,29 @@ public class Region_Competition implements PlugInFilter
 					if (matcher.find())
 					{
 						output_label = matcher.group(0);
+					}
+				}
+			}
+			
+			// normalize 
+			
+			matcher = normalize.matcher(options);
+			if (matcher.find())
+			{
+				String sub = options.substring(matcher.end());
+				matcher = spaces.matcher(sub);
+				if (matcher.find())
+				{
+					sub = sub.substring(matcher.end());
+					matcher = pathp.matcher(sub);
+					if (matcher.find())
+					{
+						if (matcher.group(0).equals("false"))
+						{
+							// 
+							
+							normalize_ip = false;
+						}
 					}
 				}
 			}
@@ -406,7 +433,10 @@ public class Region_Competition implements PlugInFilter
 		{
 			originalIP = ip;
 			
-			intensityImage = new IntensityImage(originalIP);
+			if (normalize_ip)
+				intensityImage = new IntensityImage(originalIP);
+			else
+				intensityImage = new IntensityImage(originalIP,false);
 //			dataNormalizedIP = new ImagePlus("Normalized Input Image", stack);
 			
 			// image loaded

@@ -249,7 +249,10 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	        Roi roi = table.get(label);
 	        
 	        Rectangle b = roi.getBounds();
-	        img[i] = new ImagePlus(roi.getName(),ij.WindowManager.getImage(roi.getImageID()).getProcessor());
+	        
+	        // Convert the whole image to float and normalize
+	        
+	        img[i] = new ImagePlus(roi.getName(),IntensityImage.normalize(ij.WindowManager.getImage(roi.getImageID())).getProcessor());
 	        ImageProcessor ip = img[i].getProcessor();
 	        ip.setRoi(b.x,b.y,b.width,b.height);
 	        img[i].setProcessor(null,ip.crop());
@@ -648,7 +651,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		
 		for (int i = 0 ; i < img.length ; i++)
 		{
-			in[i] = new IntensityImage(img[i]);
+			in[i] = new IntensityImage(img[i],false);
 			lb[i] = new LabelImage(in[i].getDimensions());
 		}
 		
@@ -660,7 +663,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		{
 			for (int i = 0 ; i < img.length ; i++)
 			{
-				in[i] = new IntensityImage(img[i]);
+				in[i] = new IntensityImage(img[i],false);
 				lb[i] = new LabelImage(in[i].getDimensions());
 				in[i].imageIP.show();
 			}
@@ -698,11 +701,11 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		ImagePlus lb_m = lb[0].createMeanImage();
 		lb_m.show();*/
 		
-		int sizeA[] = new int [1];
-		double sizeS[] = new double [1];
-		int sizeT[] = new int [1];
-		int stop[] = new int [1];
-		double stopd[] = new double [1];
+		int sizeA[] = new int [in.length];
+		double sizeS[] = new double [in.length];
+		int sizeT[] = new int [in.length];
+		int stop[] = new int [in.length];
+		double stopd[] = new double [in.length];
 		
 		{
 			ScoreFunctionRCvol tmpA = new ScoreFunctionRCvol(in,lb,s);
@@ -733,10 +736,14 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				
 				ScoreFunctionRCvol fiRC = new ScoreFunctionRCvol(in,lb,s);
 			
-				double factor = Ask("Area fix","Increase the region by a factor");
-
-				stop[0] = (int) (Math.abs(((factor * sizeA[0]) - sizeA[0]))/100.0*50.0);
-				sizeA[0] = (int) (factor * sizeA[0]);
+				double factor[] = new double[in.length];
+				
+				for (int i = 0 ; i < in.length ; i++)
+				{
+					factor[i] = Ask("Area fix","Increase the region by a factor");
+					stop[i] = (int) (Math.abs(((factor[i] * sizeA[i]) - sizeA[i]))/100.0*50.0);
+					sizeA[i] = (int) (factor[i] * sizeA[i]);
+				}
 				fiRC.setArea(sizeA);
 			
 				

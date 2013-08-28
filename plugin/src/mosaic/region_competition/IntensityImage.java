@@ -153,13 +153,19 @@ public class IntensityImage
 	
 	public IntensityImage(ImagePlus ip)
 	{
+		this(ip, true);
+	}
+	
+	public IntensityImage(ImagePlus ip, boolean nrm)
+	{
 		this.imageIP = ip;
 		
 		int[] dims = dimensionsFromIP(ip);
 		initDimensions(dims);
 		iterator = new IndexIterator(dims);
 		
-		this.imageIP = normalize(ip);
+		if (nrm == true)
+			this.imageIP = normalize(ip);
 		initIntensityData(imageIP);
 	}
 	

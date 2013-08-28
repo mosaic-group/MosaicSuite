@@ -192,6 +192,17 @@ public class GenericDialogGUI implements InputReadable
 		});
 		p.add(b);
 		
+		b = new Button("Reset");
+		b.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				settings = new Settings();
+			}
+		});
+		p.add(b);
+		
 		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
 		
 		addWheelListeners();
