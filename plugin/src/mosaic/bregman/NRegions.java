@@ -48,7 +48,8 @@ public class NRegions implements Runnable{
 	CountDownLatch DoneSignal;
 
 
-	public NRegions(ImagePlus img, Parameters params, CountDownLatch DoneSignal, int channel){
+	public NRegions(ImagePlus img, Parameters params, CountDownLatch DoneSignal, int channel)
+	{
 		//IJ.log("Computing segmentation ..");
 		BackgroundSubtracter bs = new BackgroundSubtracter();
 		//Parameters params = new Parameters();
@@ -94,11 +95,16 @@ public class NRegions implements Runnable{
 		double min=Double.POSITIVE_INFINITY;
 		//change : use max value instead of 65536
 
-		for (int z=0; z<nz/osz; z++){
+		/* Search for maximum and minimum value */
+		
+		for (int z=0; z<nz/osz; z++)
+		{
 			img.setSlice(z+1);
 				imp=img.getProcessor();
-			for (int i=0; i<ni/os; i++){  
-				for (int j=0;j< nj/os; j++){  
+			for (int i=0; i<ni/os; i++)
+			{
+				for (int j=0;j< nj/os; j++)
+				{
 					if(imp.getPixel(i,j)>max)max=imp.getPixel(i,j);
 					if(imp.getPixel(i,j)<min)min=imp.getPixel(i,j);
 				}	
@@ -156,7 +162,6 @@ public class NRegions implements Runnable{
 		}
 		
 
-		//IJ.log("max"+max+"min"+min);
 		//rescale between 0 and 1
 		for (int z=0; z<nz; z++)
 		{

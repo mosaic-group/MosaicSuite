@@ -9,13 +9,17 @@ import java.util.concurrent.CountDownLatch;
 
 import mosaic.bregman.FindConnectedRegions.Region;
 
-public class TwoRegions extends NRegions {
+public class TwoRegions extends NRegions 
+{
 	double [] [] [] [] SpeedData;
-	public TwoRegions(ImagePlus img,Parameters params, CountDownLatch DoneSignal, int channel){
+	public TwoRegions(ImagePlus img,Parameters params, CountDownLatch DoneSignal, int channel)
+	{
 		super( img, params,  DoneSignal,channel);	
 
 
-		if(p.nlevels >1  || !p.usePSF){ //save memory when Ei not needed
+		if(p.nlevels >1  || !p.usePSF)
+		{ 
+			//save memory when Ei not needed
 			SpeedData = new double [1] [nz] [ni] [nj];//only one level used 
 
 			for (int z=0; z<nz; z++){
@@ -34,11 +38,8 @@ public class TwoRegions extends NRegions {
 	}
 
 	@Override
-	public void  run(){
-	
-
-
-		
+	public void  run()
+	{
 		//p.nlevels=1;//create only one region not 2 : nz-1
 
 		md= new MasksDisplay(ni,nj,nz,nl,p.cl,p);
@@ -55,8 +56,8 @@ public class TwoRegions extends NRegions {
 
 		//IJ.log(String.format("Photometry default:%n backgroung %7.2e %n foreground %7.2e", p.cl[0],p.cl[1]));
 		//Tools.showmem();
-		if (p.usePSF && p.nz>1){
-
+		if (p.usePSF && p.nz>1)
+		{
 			Tools.gaussian3Dbis(p.PSF, p.kernelx, p.kernely, p.kernelz, 7, p.sigma_gaussian*p.model_oversampling, p.zcorrec);
 
 			A_solver= new ASplitBregmanSolverTwoRegions3DPSF(p,image,SpeedData,mask,md,channel,null);
@@ -79,11 +80,13 @@ public class TwoRegions extends NRegions {
 			A_solver= new ASplitBregmanSolverTwoRegions(p,image,SpeedData,mask,md,channel,null);
 
 		//first run
-		try {
+		try 
+		{
 			//Tools.showmem();
 			A_solver.first_run();
 			//Tools.showmem();
-		}catch (InterruptedException ex) {}
+		}
+		catch (InterruptedException ex) {}
 		if(channel==0){	
 
 			//Analysis.maska=A_solver.w3kbest[0];//

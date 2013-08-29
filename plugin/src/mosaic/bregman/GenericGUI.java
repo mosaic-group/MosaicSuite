@@ -185,7 +185,7 @@ public class GenericGUI {
 		boolean bgroup1[] = {false, false};
 
 		GenericDialogCustom  gd = new GenericDialogCustom("Bregman Segmentation");
-
+		
 		gd.setInsets(-10,0,3);
 		if(!clustermode)
 		{
@@ -205,7 +205,7 @@ public class GenericGUI {
 			//FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
 			FlowLayout fl = new FlowLayout(FlowLayout.LEFT,75,3);
 			Panel p = new Panel(fl);
-			p.setPreferredSize(new Dimension(865, 30));
+//			p.setPreferredSize(new Dimension(565, 30));
 			//p.setLayout(null);
 			//p.setBackground(Color.black);
 
@@ -213,10 +213,6 @@ public class GenericGUI {
 			Button b = new Button("Select File/Folder");
 			b.addActionListener(new FileOpenerActionListener(p,gd, gd.getTextArea1()));
 			p.add(b);
-
-/*			Button bp3 = new Button("Preview Cell Masks");
-			bp3.addActionListener(new MaskOpenerActionListener(p,gd));
-			p.add(bp3);*/
 
 			Button bh = new Button("Help");
 			bh.addActionListener(new HelpOpenerActionListener(p,gd));
@@ -275,7 +271,7 @@ public class GenericGUI {
 			}
 		});
 		gd.addPanel(p);
-
+		
 		// seg Option button
 		
 		Button segOption = new Button("Options");
@@ -346,7 +342,7 @@ public class GenericGUI {
 		{
 			gd.addNumericField("number of threads", 4, 0);
 		}
-
+		
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
 
@@ -361,11 +357,13 @@ public class GenericGUI {
 
 
 		String wpath;
-		if(clustermode){
+		if(clustermode)
+		{
 			//IJ.log("cluster: " );
 			wpath=  gd.getNextString();
 		}
-		else{
+		else
+		{
 			//IJ.log("no cluster");
 			wpath=  gd.getNextText();
 			//wpath=  gd.getTextArea1().getText();
@@ -380,10 +378,12 @@ public class GenericGUI {
 
 		//Expert options
 
-		if(clustermode){
+		if(clustermode)
+		{
 			Analysis.p.nthreads= (int) gd.getNextNumber();
 		}
-		else{
+		else
+		{
 			Runtime runtime = Runtime.getRuntime();
 			int nrOfProcessors = runtime.availableProcessors();
 			//IJ.log("Number of processors available to the Java Virtual Machine: " + nrOfProcessors);		

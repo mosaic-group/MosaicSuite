@@ -30,7 +30,7 @@ public class BackgroundSubGUI
 		
 		gd.addCheckbox("Remove background", true);
 		
-		gd.addNumericField("rolling ball window size (in pixels)", 10,0);
+		gd.addNumericField("rolling ball window size (in pixels)", Analysis.p.size_rollingball,0);
 		
 		gd.showDialog();
 		if (gd.wasCanceled()) return;

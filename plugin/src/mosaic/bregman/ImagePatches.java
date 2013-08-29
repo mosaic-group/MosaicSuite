@@ -48,7 +48,8 @@ public class ImagePatches {
 
 
 
-	public ImagePatches(Parameters pa,ArrayList<Region> regionslist, double [][][] imagei, int channeli, double [][][] w3k){
+	public ImagePatches(Parameters pa,ArrayList<Region> regionslist, double [][][] imagei, int channeli, double [][][] w3k)
+	{
 		if (!pa.subpixel){pa.oversampling2ndstep=1; pa.interpolation=1;}
 		else{pa.oversampling2ndstep=2;}
 		this.regsresulty=new ImagePlus();
@@ -70,12 +71,14 @@ public class ImagePatches {
 		this.sy=p.nj*pa.oversampling2ndstep*pa.interpolation;
 		this.jobs_done=0;
 		//IJ.log("sx " + sx);
-		if(p.nz==1){
+		if(p.nz==1)
+		{
 			this.sz=1;
 			this.osz=1;
 			this.interpz=1;
 		}
-		else{
+		else
+		{
 			this.sz=p.nz*p.oversampling2ndstep*pa.interpolation;
 			this.osz=p.oversampling2ndstep*pa.interpolation;
 		}
@@ -87,7 +90,8 @@ public class ImagePatches {
 		regions_refined= new short[sz][sx][sy];
 		//Tools.showmem();
 
-		if(p.dispint){
+		if(p.dispint)
+		{
 			//IJ.log("disp int");
 			//Tools.showmem();
 			//Runtime.getRuntime().gc();
@@ -101,10 +105,13 @@ public class ImagePatches {
 
 
 			//set all to background
-			for (int z=0; z<sz; z++) {  
-				for (int i=0;i<sx;i++) { 
+			for (int z=0; z<sz; z++) 
+			{
+				for (int i=0;i<sx;i++) 
+				{
 					int t=z*sx*sy*3+i*sy*3;
-					for (int j=0;j< sy;j++){  
+					for (int j=0;j< sy;j++)
+					{
 						imagecolor_c1[t+j*3+0]= (byte) b0 ; //Red
 						imagecolor_c1[t+j*3+1]= (byte) b1 ; //Green
 						imagecolor_c1[t+j*3+2]= (byte) b2 ; //Blue
@@ -130,7 +137,8 @@ public class ImagePatches {
 		//IJ.log("Mean size of refined regions : " + Analysis.meansize_refined);
 	}
 
-	public void distribute_regions(){
+	public void distribute_regions()
+	{
 		//assuming rvoronoi and regionslists (objects)  in same order (and same length)
 
 		final LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
@@ -144,13 +152,15 @@ public class ImagePatches {
 
 		nb_jobs=regionslist_refined.size();
 		AnalysePatch ap;
-		for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
+		for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) 
+		{
 			Region r = it.next();
 			//if(r.value==5){
 			//IJ.log("call os " + p.oversampling2ndstep);
 			//IJ.log("interp " + p.interpolation);
 			if(p.interpolation>1)p.subpixel=true;
-			if(p.subpixel)p.oversampling2ndstep=2; else p.oversampling2ndstep=1;
+			if(p.subpixel)p.oversampling2ndstep=2;
+			else p.oversampling2ndstep=1;
 			ap=new AnalysePatch(image, r, p, p.oversampling2ndstep, channel,regions_refined,this);
 
 			if(p.mode_voronoi2){
@@ -179,10 +189,12 @@ public class ImagePatches {
 		//IJ.log("loop done");
 
 		threadPool.shutdown();
-		try{
+		try
+		{
 			//IJ.log("await termination");
 			threadPool.awaitTermination(1, TimeUnit.DAYS);
-		}catch (InterruptedException ex) {}
+		}
+		catch (InterruptedException ex) {}
 		long lStartTime = new Date().getTime(); //start time
 		if(p.mode_voronoi2)
 		{
@@ -214,13 +226,10 @@ public class ImagePatches {
 
 		//Tools.showmem();
 		int no=regionslist_refined.size();
-		if(channel==0){
-			IJ.log(no + " objects found in X.");
-		}
+		if(channel==0)
+		{IJ.log(no + " objects found in X.");}
 		else
-		{
-			IJ.log(no + " objects found in Y.");			
-		}
+		{IJ.log(no + " objects found in Y.");}
 
 		//IJ.log("Objects found 2nd pass:" + regionslist_refined.size());
 		//else{

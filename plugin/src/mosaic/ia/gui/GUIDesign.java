@@ -79,6 +79,7 @@ public class GUIDesign implements ActionListener  {
 private double qkernelWeight=.001;
 private double pkernelWeight=1;
 
+		private JButton help;
 		private double alpha=.05;
 		private JDialog dialog;
 		private JFormattedTextField mCRuns, numSupport,smoothnessNP,gridSizeInp,reRuns,kernelWeightq, kernelWeightp;
@@ -135,7 +136,10 @@ private double pkernelWeight=1;
 		blackBorder=BorderFactory.createLineBorder(Color.black);
 	    browseX = new JButton("Open");	
 		browseY = new JButton("Open");
+		help = new JButton("help");
+		help.addActionListener(this);
 		
+		JPanel panel_help = new JPanel();
 		JPanel panel_5 = new JPanel();
 		panel_5.setBorder(blackBorder);
 		JPanel panel_7 = new JPanel();
@@ -148,6 +152,25 @@ private double pkernelWeight=1;
 		        				 "Freely downloadable from: http://www.biomedcentral.com/1471-2105/11/372"); 
 		
 		textArea.setBackground(UIManager.getColor("Button.background"));
+		
+		GroupLayout gl_panel_help = new GroupLayout(panel_help);
+		gl_panel_help.setHorizontalGroup(
+			gl_panel_help.createParallelGroup(Alignment.LEADING)
+			.addGroup(gl_panel_help.createSequentialGroup()
+			.addGap(198)
+			.addComponent(help, GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
+			.addGap(198))
+		);
+		
+		gl_panel_help.setVerticalGroup(
+				gl_panel_help.createParallelGroup(Alignment.LEADING)
+					.addGroup(gl_panel_help.createSequentialGroup()
+						.addComponent(help, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addContainerGap(9, Short.MAX_VALUE))
+			);
+		panel_help.setLayout(gl_panel_help);
+		
+		
 		
 		GroupLayout gl_panel_6 = new GroupLayout(panel_6);
 		gl_panel_6.setHorizontalGroup(
@@ -205,7 +228,7 @@ private double pkernelWeight=1;
 					.addGap(233))
 		);
 		gl_panel_7.setVerticalGroup(
-			gl_panel_7.createParallelGroup(Alignment.LEADING)
+				gl_panel_7.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panel_7.createSequentialGroup()
 					.addContainerGap()
 					.addComponent(lblHypothesisTesting)
@@ -573,6 +596,7 @@ private double pkernelWeight=1;
 						.addGroup(groupLayout.createSequentialGroup()
 							.addGap(17)
 							.addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
+								.addComponent(panel_help, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
 								.addComponent(panel_6, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
 								.addComponent(panel_7, Alignment.LEADING, 0, 0, Short.MAX_VALUE)
 								.addComponent(panel_5, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
@@ -584,6 +608,8 @@ private double pkernelWeight=1;
 		groupLayout.setVerticalGroup(
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addGroup(groupLayout.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(panel_help, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addContainerGap()
 					.addComponent(tabbedPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(ComponentPlacement.RELATED)
@@ -606,10 +632,14 @@ private double pkernelWeight=1;
 		
 	}
 	
-	public void actionPerformed(ActionEvent e) {
-		
-		// TODO Auto-generated method stub
-		if(e.getSource()==browseX)
+	public void actionPerformed(ActionEvent e) 
+	{
+	
+		if(e.getSource()==help)
+		{
+			HelpInteractionAnalysis  iaH = new HelpInteractionAnalysis(0,0);
+		}
+		else if(e.getSource()==browseX)
 		{
 		//	 imgx=new ImagePlus();
 			//a=null; garbage collection OK?
@@ -638,7 +668,7 @@ private double pkernelWeight=1;
 			 }
 			 return;
 		}
-		if(e.getSource()==browseY)
+		else if(e.getSource()==browseY)
 		{
 		//	a=null;
 		//	imgy=new ImagePlus();
@@ -668,8 +698,7 @@ private double pkernelWeight=1;
 			 }
 			 return;
 		}
-		
-		if(e.getSource()==btnLoadCsvFileX)
+		else if(e.getSource()==btnLoadCsvFileX)
 		{
 			
 		//	IJ.showMessage("TestX");
@@ -691,8 +720,7 @@ private double pkernelWeight=1;
 			}
 			return;
 		}
-		
-		if(e.getSource()==btnLoadCsvFileY)
+		else if(e.getSource()==btnLoadCsvFileY)
 		{
 			
 		//	MyFrame myframe=new MyFrame();
@@ -716,13 +744,7 @@ private double pkernelWeight=1;
 			}
 			return;
 		}
-		
-		if(a==null)
-		{
-			IJ.showMessage("Load images/coordinates first");
-			return;
-		}
-		if(e.getSource()==jcb)
+		else if(e.getSource()==jcb)
 		{
 			
 			JComboBox cb = (JComboBox)e.getSource();
@@ -782,7 +804,7 @@ private double pkernelWeight=1;
 			a.setPotentialType(potentialType);
 	      return;
 		}
-		if(e.getSource()==btnCalculateDistances)
+		else if(e.getSource()==btnCalculateDistances)
 		{			
 			gridSize=Double.parseDouble(gridSizeInp.getText());
 			a.setKernelWeightq(Double.parseDouble(kernelWeightq.getText()));
@@ -820,8 +842,7 @@ private double pkernelWeight=1;
 			
 			return;
 		}
-		
-		if(e.getSource()==estimate)
+		else if(e.getSource()==estimate)
 		{
 			numReRuns= Integer.parseInt(reRuns.getText());
 			a.setCmaReRunTimes(numReRuns);
@@ -835,8 +856,7 @@ private double pkernelWeight=1;
 				IJ.showMessage("Error: Calculate distances first!");
 			return;
 		}
-		
-		if(e.getSource()==test)
+		else if(e.getSource()==test)
 		{
 			monteCarloRunsForTest = Integer.parseInt(mCRuns.getText());
 			alpha = Double.parseDouble(alphaField.getText());
@@ -845,8 +865,7 @@ private double pkernelWeight=1;
 				IJ.showMessage("Error: Run estimation first");
 			return;
 		}
-		
-		if(e.getSource()==numSupport)
+		else if(e.getSource()==numSupport)
 		{
 			PotentialFunctions.NONPARAM_WEIGHT_SIZE=Integer.parseInt(e.getActionCommand());
 			
@@ -855,13 +874,13 @@ private double pkernelWeight=1;
 			
 			return;
 		}
-		if(e.getSource()==smoothnessNP)
+		else if(e.getSource()==smoothnessNP)
 		{
 			PotentialFunctions.NONPARAM_SMOOTHNESS=Double.parseDouble(e.getActionCommand());
 			System.out.println("Smoothness:"+PotentialFunctions.NONPARAM_SMOOTHNESS);
 			return;
 		}
-		if(e.getSource()==genMask)
+		else if(e.getSource()==genMask)
 		{
 			if(!a.getIsImage())
 			{
@@ -880,7 +899,7 @@ private double pkernelWeight=1;
 			}
 			return;
 		}
-		if(e.getSource()==loadMask)
+		else if(e.getSource()==loadMask)
 		{
 			
 			a.loadMask();
@@ -891,12 +910,16 @@ private double pkernelWeight=1;
 				IJ.showMessage("No mask to apply! Load/Generate a mask.");
 			return;
 		}
-		
-		if(e.getSource()==resetMask)
+		else if(e.getSource()==resetMask)
 		{
 			
 			a.resetMask();
 			IJ.showMessage("Mask reset to Null");
+			return;
+		}
+		else if(a==null)
+		{
+			IJ.showMessage("Load images/coordinates first");
 			return;
 		}
 	}

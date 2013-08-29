@@ -156,7 +156,8 @@ public class Analysis {
 	}
 
 
-	public static void loadA(){
+	public static void loadA()
+	{
 
 		imgA=openImage("","");
 		imgA.show("Image");
@@ -168,7 +169,8 @@ public class Analysis {
 		//IJ.log("nz " + p.nz + "ni " + p.ni+ "nj " + p.nj);
 	}
 
-	public static void loadB(){
+	public static void loadB()
+	{
 		//todo check same dimensions than imga
 		imgB=openImage("","");
 		imgB.show("Image");	
@@ -186,8 +188,10 @@ public class Analysis {
 		
 	}
 	
+	/* Segment channel1 */
 	
-	public static void segmentA(){
+	public static void segmentA()
+	{
 
 		//NRxegions nreg= new NRegions(img, p);
 		//nreginos

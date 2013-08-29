@@ -1,5 +1,9 @@
 package mosaic.bregman;
 
+/*
+ * Colocalization analysis class
+ */
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -72,13 +76,15 @@ public class BLauncher {
 			Analysis.p.dispwindows=true;
 
 
-			if(Analysis.p.save_images){
+			if(Analysis.p.save_images)
+			{
 				//IJ.log(wpath);
 				String savepath =  wpath.substring(0,wpath.length()-4);
 				//IJ.log(savepath);
 
 
-				if(Analysis.p.nchannels==2){
+				if(Analysis.p.nchannels==2)
+				{
 					//IJ.log("looking for files at " + wpath);
 					out  = new PrintWriter(savepath+"_ImagesData"+ ".csv");
 					//out2 = new PrintWriter(savepath+"_Xdata"+ ".csv");
@@ -116,7 +122,8 @@ public class BLauncher {
 
 
 
-					if(Analysis.p.nz>1){
+					if(Analysis.p.nz>1)
+					{
 						out2.print("Image ID" + ";" + "Object ID"+ ";" 
 								+ "Size" + ";" + "Surface"  + ";" + "Length" + ";" +"Intensity" + ";" 
 								+ "Overlap with ch2" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity" + ";" + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
@@ -126,7 +133,8 @@ public class BLauncher {
 								+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 						out3.println();
 					}
-					else{
+					else
+					{
 						out2.print("Image ID" + ";" + "Object ID"+ ";" 
 								+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";" 
 								+ "Overlap with ch2" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
@@ -136,13 +144,8 @@ public class BLauncher {
 								+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 						out3.println();		
 					}
-
-
-
 					out.flush();
-
 				}
-
 				else
 				{
 
@@ -502,7 +505,16 @@ public class BLauncher {
 	}
 
 
-	public void bcolocheadless(ImagePlus img2){
+	/* 
+	 *  It segment the image and give co-localization analysis result
+	 *  for a 2 channel image
+	 *  
+	 *  @param img2 Image to segment and analyse
+	 * 
+	 */
+	
+	public void bcolocheadless(ImagePlus img2)
+	{
 		double Ttime=0;
 		long lStartTime = new Date().getTime(); //start time
 
@@ -514,18 +526,22 @@ public class BLauncher {
 
 		//IJ.log("dialog j" + ij.Prefs.useJFileChooser);
 
-		if(Analysis.p.nchannels==2){
+		if(Analysis.p.nchannels==2)
+		{
 			Analysis.load2channels(img2);
 		}
 
-		if(Analysis.p.nchannels==1){
+		if(Analysis.p.nchannels==1)
+		{
 			Analysis.load1channel(img2);
 		}
 
 		//Analysis.p.dispvoronoi=true;
 		//Analysis.p.livedisplay=true;
-		if(Analysis.p.mode_voronoi2){
-			if(Analysis.p.nz>1){
+		if(Analysis.p.mode_voronoi2)
+		{
+			if(Analysis.p.nz>1)
+			{
 				Analysis.p.max_nsb=151;
 				Analysis.p.interpolation=2;
 			}else
@@ -603,7 +619,8 @@ public class BLauncher {
 			md.displaycoloc(Analysis.regionslistA,Analysis.regionslistB);
 
 
-			if(Analysis.p.dispoutline){
+			if(Analysis.p.dispoutline)
+			{
 				//IJ.log("disp outline");
 				int factor =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 				int fz;
@@ -611,7 +628,8 @@ public class BLauncher {
 				displayoutline(Analysis.regionsA, Analysis.imagea,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1);
 				displayoutline(Analysis.regionsB, Analysis.imageb,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2);
 			}
-			if(Analysis.p.dispint){
+			if(Analysis.p.dispint)
+			{
 				int factor =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 				//IJ.log("factor" + factor);
 				int fz;
