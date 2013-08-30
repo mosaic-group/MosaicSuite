@@ -33,13 +33,8 @@ public class BregmanGLM_Batch implements PlugInFilter {
 		
 		try 
 		{
-			LoadConfig(Analysis.p);
-		} 
-		catch (IOException e1) 
-		{
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} 
+			LoadConfig();
+		}
 		catch (ClassNotFoundException e) 
 		{
 			// TODO Auto-generated catch block
@@ -87,12 +82,19 @@ public class BregmanGLM_Batch implements PlugInFilter {
 
 	}
 
-	void LoadConfig(Parameters p) throws IOException, ClassNotFoundException
+	void LoadConfig() throws ClassNotFoundException
 	{
-		FileInputStream fin = new FileInputStream(savedSettings);
-		ObjectInputStream ois = new ObjectInputStream(fin);
-		p = (Parameters)ois.readObject();
-		ois.close();
+		try
+		{
+			FileInputStream fin = new FileInputStream(savedSettings);
+			ObjectInputStream ois = new ObjectInputStream(fin);
+			Analysis.p = new Parameters((Parameters)ois.readObject());
+			ois.close();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	void SaveConfig(Parameters p) throws IOException

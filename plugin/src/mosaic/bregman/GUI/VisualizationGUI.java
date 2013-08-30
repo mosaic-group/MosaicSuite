@@ -32,8 +32,6 @@ public class VisualizationGUI
 		
 		gd.setInsets(-10,0,3);
 		gd.addMessage("Visualization and output",bf);
-		
-		Analysis.p.save_images= true;
 
 		String sgroup2[] = 
 		{
@@ -43,7 +41,7 @@ public class VisualizationGUI
 		boolean bgroup2[] =
 		{
 				false, false,false,
-				false,true,false
+				false,false,false
 		};
 		
 		bgroup2[0] = Analysis.p.livedisplay;

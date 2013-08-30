@@ -86,7 +86,7 @@ public class Parameters  implements Serializable
 	public boolean dispint= false;
 	public boolean displabels= false;
 	public boolean dispcolors= false;
-	public boolean dispoutline= false;
+	public boolean dispoutline= true;
 	public boolean dispcoloc= false;
 	
 	// public double [] [] [] PSF=

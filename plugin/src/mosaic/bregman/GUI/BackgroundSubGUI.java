@@ -28,7 +28,7 @@ public class BackgroundSubGUI
 		gd.setInsets(-10,0,3);
 		gd.addMessage("Background subtractor",bf);
 		
-		gd.addCheckbox("Remove background", true);
+		gd.addCheckbox("Remove background", Analysis.p.removebackground);
 		
 		gd.addNumericField("rolling ball window size (in pixels)", Analysis.p.size_rollingball,0);
 		
