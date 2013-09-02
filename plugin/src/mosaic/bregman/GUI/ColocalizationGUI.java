@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericDialogCustom;
 import ij.ImagePlus;
+import ij.gui.GenericDialog;
 
 
 public class ColocalizationGUI 
@@ -28,7 +29,7 @@ public class ColocalizationGUI
 	{
 		Font bf = new Font(null, Font.BOLD,12);
 		
-		GenericDialogCustom  gd = new GenericDialogCustom("Colocalization options");
+		GenericDialog  gd = new GenericDialog("Colocalization options");
 		
 		gd.setInsets(-10,0,3);
 		gd.addMessage("Colocalization (two channels images)",bf);

@@ -1,19 +1,130 @@
 package mosaic.bregman.GUI;
 
 import java.awt.Button;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridBagLayout;
 import java.awt.Panel;
 import java.awt.Point;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericDialogCustom;
+import mosaic.bregman.GUI.BackgroundSubGUI.BackgroundSubHelp;
+import mosaic.core.GUI.HelpGUI;
 import ij.ImagePlus;
+import ij.gui.GenericDialog;
 
 
 public class SegmentationGUI 
 {
+	class SegmentationGUIHelp extends HelpGUI implements ActionListener
+	{
+		public JDialog frame;
+		//Initialize Buttons
+		private JPanel panel;
+		private JButton Close;
+		private Font header = new Font(null, Font.BOLD,14);
+
+
+		public SegmentationGUIHelp(int x, int y )
+		{		
+			frame = new JDialog();
+			frame.setTitle("Segmentation Help");
+			frame.setSize(500, 620);
+			frame.setLocation(x+500, y-50);
+			frame.setModal(true);
+			//frame.toFront();
+			//frame.setResizable(false);
+			//frame.setAlwaysOnTop(true);
+
+			panel= new JPanel(new FlowLayout(FlowLayout.LEFT,10,5));
+			panel.setPreferredSize(new Dimension(500,620));
+
+			JPanel pref= new JPanel(new GridBagLayout());
+//			pref.setPreferredSize(new Dimension(555, 550));
+//			pref.setSize(pref.getPreferredSize());
+			
+			setPanel(pref);
+			setHelpTitle("Segmentation");
+			
+			String desc = new String("Set a regularization parameter for the segmentation. Use higher values<br>" +
+									 "to avoid segmenting noise- induced small intensity peaks values are<br> between 0.05 and 0.25.");
+
+			createField("Regularization parameter",desc,null);
+
+			desc = new String("Set the threshold for the minimum object intensity to be considered.<br> Intensity values are normalized" +
+			 "between 0 for the smallest value occurring<br> in the image and 1 for the largest value");
+
+			createField("Cell mask thresholding",desc,null);
+			
+			
+			desc = new String("compute segmentations with sub-pixel resolution.<br>" +
+						 "The resolution of the segmentation is increased <br>" +
+						 "by an over-sampling factor of 8 for 2D images and <br>" +
+						 "4 for 3D images.");			
+
+			createField("Sub-pixel segmentation",desc,null);
+
+			desc = new String("Noise and intensity models");
+
+			createField("Noise model",desc,null);
+			
+			desc = new String("Set the microscope PSF. In order to correct for diffraction blur," +
+					"the software<br> needs information about the PSF of the microscope." +
+					"This can<br> be done in either of the following two ways:<br>" +
+					"a)  Use a theoretical PSF model. Use Estimate PSF<br>" +
+					"b)  Use  Measure the microscope PSF from images of " +
+					"fluorescent sub-diffraction beads. <br>" +
+					"Use the menu item Plugins → Mosaic → PSF Tool to measure<br>" +
+					"these parameters from images of beads.");
+
+			createField("PSF",desc,null);
+			
+			//JPanel panel = new JPanel(new BorderLayout());
+
+			panel.add(pref);
+			//panel.add(label, BorderLayout.NORTH);
+
+
+			frame.add(panel);
+
+			//frame.repaint();
+
+			frame.setVisible(true);
+			//frame.requestFocus();
+			//frame.setAlwaysOnTop(true);
+
+			//			JOptionPane.showMessageDialog(frame,
+			//				    "Eggs are not supposed to be green.\n dsfdsfsd",
+			//				    "A plain message",
+			//				    JOptionPane.PLAIN_MESSAGE);
+
+		}
+		
+		public void actionPerformed(ActionEvent ae) 
+		{
+			Object source = ae.getSource();	// Identify Button that was clicked
+
+
+			if(source == Close)
+			{
+				//IJ.log("close called");
+				frame.dispose();				
+			}
+
+
+		}
+		
+	}
+	
 	ImagePlus imgch1;
 	ImagePlus imgch2;
 	int ni,nj,nz,nc;
@@ -27,13 +138,32 @@ public class SegmentationGUI
 	{
 		Font bf = new Font(null, Font.BOLD,12);
 
-		GenericDialogCustom  gd = new GenericDialogCustom("Segmentation options");
+		final GenericDialogCustom  gd = new GenericDialogCustom("Segmentation options");
 
 		gd.setInsets(-10,0,3);
 
 
 		gd.addMessage("Segmentation parameters ",bf);
 
+		Panel pp = new Panel();
+		Button help_b = new Button("help");
+		
+		pp.add(help_b);
+		
+		help_b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				
+				Point p =gd.getLocationOnScreen();
+				
+				SegmentationGUIHelp pth = new SegmentationGUIHelp(p.x,p.y);
+				
+			}});
+		
+		gd.addPanel(pp);
+		
 		gd.addNumericField("Regularization (>0)", Analysis.p.lreg, 3);
 
 		gd.addNumericField("Minimum_object_intensity,_channel_1 (0 to 1)", Analysis.p.min_intensity, 3);
@@ -134,7 +264,6 @@ public class SegmentationGUI
 		@Override
 		public void actionPerformed(ActionEvent e)
 		{
-
 			Point p =gd.getLocationOnScreen();
 			//IJ.log("plugin location :" + p.toString());
 			PSFWindow hw = new PSFWindow(p.x, p.y, gd);

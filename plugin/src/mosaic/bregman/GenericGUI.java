@@ -61,6 +61,7 @@ import mosaic.bregman.GUI.ColocalizationGUI;
 import mosaic.bregman.GUI.PSFWindow;
 import mosaic.bregman.GUI.SegmentationGUI;
 import mosaic.bregman.GUI.VisualizationGUI;
+import mosaic.core.GUI.HelpGUI;
 
 
 //import java.awt.event.FocusEvent;
@@ -184,7 +185,7 @@ public class GenericGUI {
 		String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
 		boolean bgroup1[] = {false, false};
 
-		GenericDialogCustom  gd = new GenericDialogCustom("Bregman Segmentation");
+		NonBlockingGenericDialog  gd = new NonBlockingGenericDialog("Squaash");
 		
 		gd.setInsets(-10,0,3);
 		if(!clustermode)
@@ -718,27 +719,60 @@ public class GenericGUI {
 		}
 	}
 
-	public class Helpwindow implements ActionListener
+	public class Helpwindow extends HelpGUI
 	{
-		public JFrame frame;
-		//Initialize Buttons
-		private JPanel panel;
-		private JButton Close;
-		private Font header = new Font(null, Font.BOLD,14);
-
-
-		public Helpwindow(int x, int y ){
+		JFrame frame;
+		JPanel panel;
+		
+		public Helpwindow(int x, int y )
+		{
 			frame = new JFrame();
-			frame.setSize(575, 890);
+			frame.setSize(555, 480);
 			frame.setLocation(x+500, y-50);
 			//frame.toFront();
 			//frame.setResizable(false);
 			//frame.setAlwaysOnTop(true);
 
-
-
-
 			panel= new JPanel(new FlowLayout(FlowLayout.LEFT,10,5));
+			panel.setPreferredSize(new Dimension(575, 720));
+
+			JPanel pref= new JPanel(new GridBagLayout());
+//			pref.setPreferredSize(new Dimension(555, 550));
+//			pref.setSize(pref.getPreferredSize());
+			
+			setPanel(pref);
+			setHelpTitle("Squassh");
+			createTutorial(null);
+			createArticle("http://mosaic.mpi-cbg.de/docs/Paul2013a.pdf");
+			String desc = new String("Background subtraction is performed first, as the segmentation model assumes locally<br>" +
+                                    "homogeneous intensities. Background variations are non-specific signals that are not accounted for by<br>" +
+									"this model. We subtract the image background using the rolling-ball algorithm");
+			createField("Background subtraction",desc,null);
+			desc = new String("Model-based segmentation aim at finding the segmentation that best explains the image. In other words,<br>" +
+									"they compute the segmentation that has the highest probability of resulting in the actually observed<br>" +
+									"image when imaged with the specific microscope used. We choose this framework because it is generic to");
+			createField("Segmentation",desc,null);
+			desc = new String("Object-based colocalization is computed after segmenting the objects using information about the shapes<br>" +
+								"and intensities of all objects in both channels. This allows straightforward calculation of the degree of<br>" +
+								"overlap between objects from the different channels. We consider three different colocalization measures");
+			createField("Colocalization",desc,null);
+			desc = new String("Select one or several of the output visualization options");
+			createField("Visualization and output",desc,null);
+			
+			//JPanel panel = new JPanel(new BorderLayout());
+
+			panel.add(pref);
+			//panel.add(label, BorderLayout.NORTH);
+
+
+			frame.add(panel);
+
+			frame.setVisible(true);
+
+
+
+
+/*			panel= new JPanel(new FlowLayout(FlowLayout.LEFT,10,5));
 			panel.setPreferredSize(new Dimension(575, 890));
 
 			JLabel label = new JLabel();
@@ -794,7 +828,7 @@ public class GenericGUI {
 			pref.add(label);
 
 
-			panel.add(pref);
+			panel.add(pref);*/
 			//panel.add(label, BorderLayout.NORTH);
 
 
@@ -812,12 +846,12 @@ public class GenericGUI {
 			//			Close.addActionListener(this);
 
 
-			frame.add(panel);
+/*			frame.add(panel);
 
 
 			//frame.repaint();
 
-			frame.setVisible(true);
+			frame.setVisible(true);*/
 			//frame.requestFocus();
 			//frame.setAlwaysOnTop(true);
 
@@ -825,19 +859,6 @@ public class GenericGUI {
 			//				    "Eggs are not supposed to be green.\n dsfdsfsd",
 			//				    "A plain message",
 			//				    JOptionPane.PLAIN_MESSAGE);
-
-
-		}
-
-		public void actionPerformed(ActionEvent ae) {
-			Object source = ae.getSource();	// Identify Button that was clicked
-
-
-			if(source == Close)
-			{
-				//IJ.log("close called");
-				frame.dispose();				
-			}
 
 
 		}

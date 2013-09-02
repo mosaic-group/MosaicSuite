@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericDialogCustom;
 import ij.ImagePlus;
+import ij.gui.GenericDialog;
 
 
 public class VisualizationGUI 
@@ -28,7 +29,7 @@ public class VisualizationGUI
 	{
 		Font bf = new Font(null, Font.BOLD,12);
 		
-		GenericDialogCustom  gd = new GenericDialogCustom("Visualization and output options");
+		GenericDialog  gd = new GenericDialog("Visualization and output options");
 		
 		gd.setInsets(-10,0,3);
 		gd.addMessage("Visualization and output",bf);
