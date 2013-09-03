@@ -64,6 +64,7 @@ public class ParticleTrackerHelp extends HelpGUI implements ActionListener
 		desc = new String("The maximum number of pixels a particle is allowed to move between two <br>"
 				+ "succeeding frames");
 		createField("Displacement (L)",desc,"http://mosaic.mpi-cbg.de/docs/Sbalzarini2005a.pdf#page=4&zoom=150,0,-350");
+		desc = new String("How many future frame are considered for the linking stage");
 		createField("Link Range (R)",desc,"http://mosaic.mpi-cbg.de/docs/Sbalzarini2005a.pdf#page=4&zoom=150,0,-350");
 
 		//JPanel panel = new JPanel(new BorderLayout());

@@ -59,7 +59,7 @@ public class BregmanGLM_Batch implements PlugInFilter {
 		//IJ.log("batchmode" + batch);
 		try 
 		{
-			GenericGUI window = new GenericGUI(batch);
+			GenericGUI window = new GenericGUI(batch,active_img);
 			window.run("",active_img);
 			
 			SaveConfig(Analysis.p);

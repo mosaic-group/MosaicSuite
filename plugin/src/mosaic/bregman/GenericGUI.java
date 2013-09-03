@@ -99,6 +99,12 @@ public class GenericGUI {
 	ImagePlus imgch2;
 	int ni,nj,nz,nc;
 
+	public GenericGUI(boolean mode, ImagePlus img_p)
+	{
+		imgch1 = img_p;
+		clustermode = mode;
+	}
+	
 	public GenericGUI(boolean  	mode){
 		clustermode=mode;
 		//clustermode=true;
@@ -185,7 +191,7 @@ public class GenericGUI {
 		String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
 		boolean bgroup1[] = {false, false};
 
-		NonBlockingGenericDialog  gd = new NonBlockingGenericDialog("Squaash");
+		NonBlockingGenericDialog  gd = new NonBlockingGenericDialog("Squassh");
 		
 		gd.setInsets(-10,0,3);
 		if(!clustermode)
@@ -210,8 +216,11 @@ public class GenericGUI {
 			//p.setLayout(null);
 			//p.setBackground(Color.black);
 
+			Button b = new Button("Preview cell mask");
+			b.addActionListener(new MaskOpenerActionListener(null,null));
+			p.add(b);
 
-			Button b = new Button("Select File/Folder");
+			b = new Button("Select File/Folder");
 			b.addActionListener(new FileOpenerActionListener(p,gd, gd.getTextArea1()));
 			p.add(b);
 
@@ -536,7 +545,8 @@ public class GenericGUI {
 
 
 			boolean processdirectory =(new File(path)).isDirectory();
-			if(!processdirectory){
+			if(!processdirectory)
+			{
 
 				ImagePlus img2=IJ.openImage(path);
 
@@ -675,10 +685,8 @@ public class GenericGUI {
 		@Override
 		public void actionPerformed(ActionEvent e)
 		{
-
-			Point p =gd.getLocationOnScreen();
 			//IJ.log("plugin location :" + p.toString());
-			MaskWindow hw = new MaskWindow(p.x, p.y, gd);
+			MaskWindow hw = new MaskWindow(0, 0, gd);
 
 		}
 	}
@@ -1259,10 +1267,10 @@ public class GenericGUI {
 			}
 		}
 
-		public void previewBinaryCellMask(double threshold_i, ImagePlus img, ImagePlus maska_im, int channel){
+		public void previewBinaryCellMask(double threshold_i, ImagePlus img, ImagePlus maska_im, int channel)
+		{
 			//IJ.log("cellmask" + calls);
 			calls++;
-			int ni,nz,nj;
 			ni=img.getWidth();
 			nj=img.getHeight();
 			nz=img.getNSlices();

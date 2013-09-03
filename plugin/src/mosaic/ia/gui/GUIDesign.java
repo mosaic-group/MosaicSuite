@@ -393,7 +393,7 @@ private double pkernelWeight=1;
 		 
 		 kernelWeightp= new JFormattedTextField();
 		 kernelWeightp.setHorizontalAlignment(SwingConstants.CENTER);
-		 kernelWeightp.setText("0.1");
+		 kernelWeightp.setText("35.9");
 		 kernelWeightp.setColumns(6);
 		 GroupLayout gl_panel_4 = new GroupLayout(panel_4);
 		 gl_panel_4.setHorizontalGroup(
