@@ -199,6 +199,12 @@ public class GenericDialogGUI implements InputReadable
 			public void actionPerformed(ActionEvent e)
 			{
 				settings = new Settings();
+				try {
+					Region_Competition.SaveConfigFile("/tmp/rc_settings.dat",settings);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		});
 		p.add(b);

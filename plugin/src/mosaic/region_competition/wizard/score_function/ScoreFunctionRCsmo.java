@@ -260,12 +260,12 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 			
 			for (int im = 0 ; im < i.length ; im++)
 			{
-				IJ.run(i[im].imageIP,"Region Competition","config="+IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1] + "  " + "output=" +IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1]+".tif" + " normalize=false");
+				IJ.run(i[im].imageIP,"Region Competition","config="+IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1] + "  " + "output=" +IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1]+"_" + im + "_" + ".tif" + " normalize=false");
 				
 				// Read Label Image
 				
 				Opener o = new Opener();
-				file[im] = new String(IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1]+".tif");
+				file[im] = new String(IJ.getDirectory("temp")+"RC_smo"+x[0]+"_"+x[1]+"_" + im + "_"+".tif");
 				ImagePlus ip = o.openImage(file[im]);
 
 				l[im].initWithIP(ip);
@@ -293,9 +293,9 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 				l[im].initContour();
 				
 				if (Area != null)
-					result = (Smooth(l[im]) - smooth[im])*(Smooth(l[im]) - smooth[im]) + 0.2 * (count - Area[im]) * (count - Area[im]);
+					result += (Smooth(l[im]) - smooth[im])*(Smooth(l[im]) - smooth[im]) + 0.2 * (count - Area[im]) * (count - Area[im]);
 				else
-					result = (Smooth(l[im]) - smooth[im])*(Smooth(l[im]) - smooth[im]);
+					result += (Smooth(l[im]) - smooth[im])*(Smooth(l[im]) - smooth[im]);
 				
 //				result += 10.0/Math.abs(a1 - a2);
 			}

@@ -177,6 +177,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		JLabel lblNewLabel = new JLabel("What you are segmenting: ");
 		contentPane.add(lblNewLabel);
 		
+		sT = segType.Tissue;
 		JComboBox comboBox = new JComboBox(segType.values());
 		contentPane.add(comboBox);
 		comboBox.addActionListener(new ActionListener() 
@@ -488,6 +489,8 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		while (restart == true && restart_it < 5)
 		{
 			solver = new CMAEvolutionStrategy();
+			solver.parameters.setPopulationSize(6);
+			solver.parameters.setMu(4);
 			solver.readProperties();
 			solver.setDimension(aMean.length);
 			solver.setInitialX(aMean);
@@ -631,20 +634,10 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		int r_t = 8;
 		int rad = 8;
 		
-		if (sT == segType.Tissue)
-		{
-			sigma = 2;
-			tol = 0.005;
-			r_t = 8;
-			rad = 8;
-		}
-		else if (sT == segType.Cell)
-		{
-			sigma = 4;
-			tol = 0.01;
-			r_t = 0;
-			rad = 0;
-		}
+		sigma = 4;
+		tol = 0.01;
+		r_t = 0;
+		rad = 0;
 		
 		IntensityImage in[] = new IntensityImage[img.length];
 		LabelImage lb[] = new LabelImage[img.length];
@@ -659,7 +652,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		
 		ScoreFunctionInit fi = null;
 		
-		if (sT == segType.Cell || sT == segType.Other)
+		if (sT == segType.Cell || sT == segType.Tissue)
 		{
 			for (int i = 0 ; i < img.length ; i++)
 			{
@@ -671,7 +664,10 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			fi = new ScoreFunctionInit(in,lb,r_t,rad);
 			for (int i = 0 ; i < img.length ; i++)
 			{
-				fi.setObject(i,(int)Ask("Question", "How many object do you see ?"));
+				if (sT == segType.Tissue)
+					fi.setObject(i,(int)(1.5*Ask("Question", "How many edge do you see on " + in[i].imageIP.getShortTitle() + "?")));
+				else
+					fi.setObject(i,(int)Ask("Question", "How many object do you see on " + in[i].imageIP.getShortTitle() + "?"));
 			}
 		}
 		else 
@@ -691,6 +687,8 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		s.labelImageInitType = InitializationType.LocalMax;
 		s.m_EnergyFunctional = EnergyFunctionalType.e_PC;
 		s.m_CurvatureMaskRadius = 4;
+		if (sT == segType.Tissue)
+			s.m_RegionMergingThreshold = 2.0f;
 //		s.m_BalloonForceCoeff = 0.03f;
 //		s.m_GaussPSEnergyRadius = 22;
 //		s.m_ConstantOutwardFlow = (float) 0.04;
@@ -707,14 +705,15 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		int stop[] = new int [in.length];
 		double stopd[] = new double [in.length];
 		
+		for (int i = 0 ; i < lb.length ; i++)
 		{
 			ScoreFunctionRCvol tmpA = new ScoreFunctionRCvol(in,lb,s);
-			sizeA[0] = tmpA.Area(lb[0]);
-			LabelImage lbtmp = new LabelImage(lb[0]);
+			sizeA[i] = tmpA.Area(lb[i]);
+			LabelImage lbtmp = new LabelImage(lb[i]);
 			ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in,lb,s);
 			lbtmp.initBoundary();
 			lbtmp.initContour();
-			sizeS[0] = tmpS.Smooth(lbtmp);
+			sizeS[i] = tmpS.Smooth(lbtmp);
 		}
 		
 		int fun = 0;
@@ -740,7 +739,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				
 				for (int i = 0 ; i < in.length ; i++)
 				{
-					factor[i] = Ask("Area fix","Increase the region by a factor");
+					factor[i] = Ask("Area fix","Increase the region by a factor of " + in[i].imageIP.getShortTitle());
 					stop[i] = (int) (Math.abs(((factor[i] * sizeA[i]) - sizeA[i]))/100.0*50.0);
 					sizeA[i] = (int) (factor[i] * sizeA[i]);
 				}
@@ -754,13 +753,19 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				
 				// Recalculate Area and smooth
 				
-				sizeA[0] = fiRC.Area(fiRC.getLabel(0));
-				ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in,lb,s);
-				LabelImage lbtmp = fiRC.getLabel(0);
-				lbtmp.initBoundary();
-				lbtmp.initContour();
-				sizeS[0] = tmpS.Smooth(lbtmp);
 				
+				for (int i = 0 ; i < in.length ; i++)
+				{
+					System.out.println("Area target: " + sizeA[i]);
+					sizeA[i] = fiRC.Area(fiRC.getLabel(i));
+					System.out.println("Area: " + sizeA[i]);
+					ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in,lb,s);
+					LabelImage lbtmp = fiRC.getLabel(i);
+					lbtmp.initBoundary();
+					lbtmp.initContour();
+					sizeS[i] = tmpS.Smooth(lbtmp);
+				}
+					
 				// Set
 				
 				AreaSet = true;
