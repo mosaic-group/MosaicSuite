@@ -1151,6 +1151,28 @@ public class Analysis {
 		return (colocsignal/totalsignal);
 	}
 	
+	
+	public static double colocsegABsize(PrintWriter out, int imgnumber){
+
+		double totalsize=0;
+		double colocsize=0;
+		
+		
+		int objectscoloc=0;
+		int objects=0;
+		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) {
+			Region r = it.next();
+			objects++;
+			if (regioncoloc(r,regionslistB, regionsB,maskA,out, imgnumber))objectscoloc++;
+		totalsize+=r.rsize;
+		colocsize+=r.rsize*r.overlap;
+		}
+
+		
+		positiveA=objectscoloc;
+		return (colocsize/totalsize);
+	}
+	
 	public static double colocsegABnumber(){
 
 			
@@ -1210,6 +1232,25 @@ public class Analysis {
 
 	}
 
+	
+	public static double colocsegBAsize(PrintWriter out, int imgnumber){
+
+		double totalsize=0;
+		double colocsize=0;
+		
+		int objectscoloc=0;
+		int objects=0;
+		for (Iterator<Region> it = regionslistB.iterator(); it.hasNext();) {
+			Region r = it.next();
+			objects++;
+			if (regioncoloc(r,regionslistA, regionsA,maskB,out, imgnumber))objectscoloc++;
+			totalsize+=r.rsize;
+			colocsize+=r.rsize*r.overlap;
+		}
+		positiveB=objectscoloc;
+		return (colocsize/totalsize);
+
+	}
 
 
 

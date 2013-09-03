@@ -1301,12 +1301,12 @@ public class GenericGUI {
 				}
 				ByteProcessor bp = new ByteProcessor(ni, nj);
 				bp.setPixels(maska_bytes);
-				maska_ims.addSlice("", bp);
+				maska_ims.addSlice("", bp); 
 			}
 
 
 
-			maska_im.setStack("Cell mask channel " + (channel),maska_ims);
+			maska_im.setStack("Cell mask channel " + (channel+1),maska_ims);
 			//maska_im.duplicate().show();
 			IJ.run(maska_im, "Invert", "stack");
 

@@ -51,7 +51,7 @@ public class ImagePatches {
 	public ImagePatches(Parameters pa,ArrayList<Region> regionslist, double [][][] imagei, int channeli, double [][][] w3k)
 	{
 		if (!pa.subpixel){pa.oversampling2ndstep=1; pa.interpolation=1;}
-		else{pa.oversampling2ndstep=2;}
+		else{pa.oversampling2ndstep=pa.overs;}
 		this.regsresulty=new ImagePlus();
 		this.regsresultx=new ImagePlus();
 		this.w3kbest=w3k;
@@ -159,7 +159,7 @@ public class ImagePatches {
 			//IJ.log("call os " + p.oversampling2ndstep);
 			//IJ.log("interp " + p.interpolation);
 			if(p.interpolation>1)p.subpixel=true;
-			if(p.subpixel)p.oversampling2ndstep=2;
+			if(p.subpixel)p.oversampling2ndstep=p.overs;
 			else p.oversampling2ndstep=1;
 			ap=new AnalysePatch(image, r, p, p.oversampling2ndstep, channel,regions_refined,this);
 

@@ -109,6 +109,8 @@ public class BLauncher {
 					out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch1"  +";" + "Mean surface in ch1"  +";"+ "Mean length in ch1"  +";"  
 							+ "Objects ch2"+";" + "Mean size in ch2" +";" + "Mean surface in ch2"  +";"+ "Mean length in ch2"  +";"+ "Colocalization ch1 in ch2 (signal based)"
 							+";" + "Colocalization ch2 in ch1 (signal based)"
+							+";" + "Colocalization ch1 in ch2 (size based)"
+							+";" + "Colocalization ch2 in ch1 (size based)"
 							+";" + "Colocalization ch1 in ch2 (objects numbers)"
 							+";" + "Colocalization ch2 in ch1 (objects numbers)"
 							+";" + "Mean ch2 intensity of ch1 objects"
@@ -208,6 +210,7 @@ public class BLauncher {
 									"Intensity estimation " + choice1[Analysis.p.mode_intensity] + " " +
 									"Noise model " + choice2[Analysis.p.noise_model]+ ";"
 							);
+					out.println();
 					out.flush();
 				}
 				finish();
@@ -304,6 +307,8 @@ public class BLauncher {
 				out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch1"  +";" + "Mean surface in ch1"  +";"+ "Mean length in ch1"  +";"
 						+ "Objects ch2"+";" + "Mean size in ch2" +";" + "Mean surface in ch2"  +";"+ "Mean length in ch2"  +";"+ "Colocalization ch1 in ch2 (signal based)"
 						+";" + "Colocalization ch2 in ch1 (signal based)"
+						+";" + "Colocalization ch1 in ch2 (size based)"
+						+";" + "Colocalization ch2 in ch1 (size based)"
 						+";" + "Colocalization ch1 in ch2 (objects numbers)"
 						+";" + "Colocalization ch2 in ch1 (objects numbers)"
 						+";" + "Mean ch2 intensity of ch1 objects"
@@ -436,8 +441,8 @@ public class BLauncher {
 								"mask threshold ch2 " + Analysis.p.thresholdcellmasky + " " +									
 								"Intensity estimation " + choice1[Analysis.p.mode_intensity] + " " +
 								"Noise model " + choice2[Analysis.p.noise_model ] + ";"
-
 						);
+				out.println();
 			}
 
 			finish();
@@ -663,11 +668,14 @@ public class BLauncher {
 			double colocAB=Tools.round(Analysis.colocsegAB(out2, hcount),4);
 
 			double colocABnumber = Tools.round(Analysis.colocsegABnumber(),4);
+			
+			double colocABsize = Tools.round(Analysis.colocsegABsize(out2, hcount),4);
 
 			double colocBA=Tools.round(Analysis.colocsegBA(out3, hcount),4);
 
 			double colocBAnumber = Tools.round(Analysis.colocsegBAnumber(),4);
 
+			double colocBAsize=Tools.round(Analysis.colocsegBAsize(out3, hcount),4);
 
 			//double colocA=0;
 			//double colocB=0;
@@ -714,6 +722,8 @@ public class BLauncher {
 						Tools.round(meanLB , 4)  +";" +
 						colocAB +";" + 
 						colocBA + ";"+
+						colocABsize +";" + 
+						colocBAsize + ";"+
 						colocABnumber +";" + 
 						colocBAnumber + ";"+
 						colocA+ ";"+
