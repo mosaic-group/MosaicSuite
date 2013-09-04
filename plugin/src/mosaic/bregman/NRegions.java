@@ -152,7 +152,7 @@ public class NRegions implements Runnable{
 		}
 		
 		//IJ.log("after, max : " + max + " min : " + min);
-		if(p.livedisplay)
+		if(p.livedisplay && p.removebackground)
 		{
 			ImagePlus back=img.duplicate();
 			back.setTitle("Background reduction channel " + (channel+1));
@@ -450,7 +450,7 @@ public class NRegions implements Runnable{
 		}
 
 
-		maska_im.setStack("Cell mask channel " + (channel),maska_ims);
+		maska_im.setStack("Cell mask channel " + (channel+1),maska_ims);
 
 		IJ.run(maska_im, "Invert", "stack");
 		//		

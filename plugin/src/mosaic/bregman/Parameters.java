@@ -15,6 +15,7 @@ public class Parameters  implements Serializable
 	public boolean save_images=false;
 	public String wd=null;
 
+	public int overs=2;
 	public boolean pearson = false;
 	public boolean debug=false;
 	public boolean blackbackground;
@@ -219,6 +220,7 @@ public class Parameters  implements Serializable
 		this.betaMLEoutdefault = p.betaMLEoutdefault;// 0.003 // 0.0027356;
 		this.betaMLEindefault = p.betaMLEindefault;// 0.25;//25;//1340026;//0..//0.45 for//0.3
 
+		this.overs=p.overs;
 		this.dispint= p.dispint;
 		this.displabels= p.displabels;
 		this.dispcolors= p.dispcolors;
