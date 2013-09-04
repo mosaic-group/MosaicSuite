@@ -88,7 +88,7 @@ public class BregmanGLM_Batch implements PlugInFilter {
 		{
 			FileInputStream fin = new FileInputStream(savedSettings);
 			ObjectInputStream ois = new ObjectInputStream(fin);
-			Analysis.p = new Parameters((Parameters)ois.readObject());
+			Analysis.p = (Parameters)ois.readObject();
 			ois.close();
 		}
 		catch (Exception e)

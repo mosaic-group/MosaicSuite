@@ -195,7 +195,7 @@ public class HelpGUI
 		JLabel label = new JLabel();
 		label.setText("<html>"
 				+ "<h2> <font color=\"red\"> " + fld + " </font></h2>"
-				+ desc);
+				+ "<div style=\"width:400px\">" + desc + "</div>");
 		pref.add(label,c);
 		
 		gridy++;

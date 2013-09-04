@@ -752,19 +752,19 @@ public class GenericGUI {
 			setHelpTitle("Squassh");
 			createTutorial(null);
 			createArticle("http://mosaic.mpi-cbg.de/docs/Paul2013a.pdf");
-			String desc = new String("Background subtraction is performed first, as the segmentation model assumes locally<br>" +
-                                    "homogeneous intensities. Background variations are non-specific signals that are not accounted for by<br>" +
+			String desc = new String("Background subtraction is performed first, as the segmentation model assumes locally " +
+                                    "homogeneous intensities. Background variations are non-specific signals that are not accounted for by " +
 									"this model. We subtract the image background using the rolling-ball algorithm");
 			createField("Background subtraction",desc,null);
-			desc = new String("Model-based segmentation aim at finding the segmentation that best explains the image. In other words,<br>" +
-									"they compute the segmentation that has the highest probability of resulting in the actually observed<br>" +
-									"image when imaged with the specific microscope used. We choose this framework because it is generic to");
+			desc = new String("Model-based segmentation aim at finding the segmentation that best explains the image. In other words, " +
+									"they compute the segmentation that has the highest probability of resulting in the actually observed " +
+									"image when imaged with the specific microscope used.");
 			createField("Segmentation",desc,null);
-			desc = new String("Object-based colocalization is computed after segmenting the objects using information about the shapes<br>" +
-								"and intensities of all objects in both channels. This allows straightforward calculation of the degree of<br>" +
-								"overlap between objects from the different channels. We consider three different colocalization measures");
+			desc = new String("Object-based colocalization is computed after segmenting the objects using information about the shapes " +
+								"and intensities of all objects in both channels. This allows straightforward calculation of the degree of " +
+								"overlap between objects from the different channels.");
 			createField("Colocalization",desc,null);
-			desc = new String("Select one or several of the output visualization options");
+			desc = new String("Select one or more output and visualization options");
 			createField("Visualization and output",desc,null);
 			
 			//JPanel panel = new JPanel(new BorderLayout());

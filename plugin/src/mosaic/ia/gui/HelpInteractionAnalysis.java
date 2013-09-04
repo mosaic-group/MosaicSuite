@@ -52,13 +52,13 @@ public class HelpInteractionAnalysis extends HelpGUI implements ActionListener
 		createTutorial("http://mosaic.mpi-cbg.de/Downloads/IAPManual.pdf");
 		createArticle("http://www.biomedcentral.com/content/pdf/1471-2105-11-372.pdf#page=1&zoom=100");
 		createSection("Images",null);
-		String desc = new String("The images can be selected by clicking on<br>" +
-								"Open X and Open Y. Keep in mind that Y should be the reference set of points.");
+		String desc = new String("The images can be selected by clicking on " +
+								"Open X and Open Y. Keep in mind that Y should be the reference set of points. ");
 		createField("OpenX/Y ",desc,"http://mosaic.mpi-cbg.de/Downloads/IAPManual.pdf#page=4&zoom=150,0,-370");
-		desc = new String("A region mask can be created to limit the analysis to a specific region<br>" +
-				"regions with pixel intensity > 0 will be the analyzed");
+		desc = new String("A region mask can be created to limit the analysis to a specific region. " +
+				"Regions with pixel intensity > 0 will be the analyzed");
 		createField("Mask Apply/Generate/Load",desc,"http://mosaic.mpi-cbg.de/Downloads/IAPManual.pdf#page=4&zoom=150,0,-470");
-		desc = new String("Kernel wt(q) and Kernel wt(p) are weights for the kernel density estimator, for q(d) and p(d)<br>" +
+		desc = new String("Kernel wt(q) and Kernel wt(p) are weights for the kernel density estimator, for q(d) and p(d) " +
 							"respectively . It is inversely related to the smoothness of the function");
 		createField("Distance distribution",desc,"http://mosaic.mpi-cbg.de/Downloads/IAPManual.pdf#page=7&zoom=150,0,-230");
 		createSection("Parameter estimation","http://mosaic.mpi-cbg.de/Downloads/IAPManual.pdf#page=7&zoom=150,0,-710");

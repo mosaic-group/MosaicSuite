@@ -55,20 +55,20 @@ public class SegmentationGUI
 			setPanel(pref);
 			setHelpTitle("Segmentation");
 			
-			String desc = new String("Set a regularization parameter for the segmentation. Use higher values<br>" +
-									 "to avoid segmenting noise- induced small intensity peaks values are<br> between 0.05 and 0.25.");
+			String desc = new String("Set a regularization parameter for the segmentation. Use higher values" +
+									 "to avoid segmenting noise- induced small intensity peaks values are between 0.05 and 0.25.");
 
 			createField("Regularization parameter",desc,null);
 
-			desc = new String("Set the threshold for the minimum object intensity to be considered.<br> Intensity values are normalized" +
-			 "between 0 for the smallest value occurring<br> in the image and 1 for the largest value");
+			desc = new String("Set the threshold for the minimum object intensity to be considered. Intensity values are normalized" +
+			 "between 0 for the smallest value occurring in the image and 1 for the largest value");
 
 			createField("Cell mask thresholding",desc,null);
 			
 			
-			desc = new String("compute segmentations with sub-pixel resolution.<br>" +
-						 "The resolution of the segmentation is increased <br>" +
-						 "by an over-sampling factor of 8 for 2D images and <br>" +
+			desc = new String("compute segmentations with sub-pixel resolution." +
+						 "The resolution of the segmentation is increased " +
+						 "by an over-sampling factor of 8 for 2D images and " +
 						 "4 for 3D images.");			
 
 			createField("Sub-pixel segmentation",desc,null);
@@ -77,13 +77,13 @@ public class SegmentationGUI
 
 			createField("Noise model",desc,null);
 			
-			desc = new String("Set the microscope PSF. In order to correct for diffraction blur," +
-					"the software<br> needs information about the PSF of the microscope." +
-					"This can<br> be done in either of the following two ways:<br>" +
-					"a)  Use a theoretical PSF model. Use Estimate PSF<br>" +
+			desc = new String("Set the microscope PSF. In order to correct for diffraction blur, " +
+					"the software needs information about the PSF of the microscope. " +
+					"This can be done in either of the following two ways: " +
+					"a)  Use a theoretical PSF model. Use Estimate PSF " +
 					"b)  Use  Measure the microscope PSF from images of " +
-					"fluorescent sub-diffraction beads. <br>" +
-					"Use the menu item Plugins → Mosaic → PSF Tool to measure<br>" +
+					"fluorescent sub-diffraction beads. " +
+					"Use the menu item Plugins → Mosaic → PSF Tool to measure " +
 					"these parameters from images of beads.");
 
 			createField("PSF",desc,null);

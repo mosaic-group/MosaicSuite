@@ -56,10 +56,10 @@ public class BackgroundSubGUI
 			
 			setPanel(pref);
 			setHelpTitle("Background Subtraction");
-			String desc = new String("Reduce background fluorescence using the rolling ball algorithm<br>" +
-									"by selecting “Remove Background“ and entering the window edge-length<br>" +
-									"in units of pixels. This length should be large enough so that<br>" + 
-									"a square with that edge length cannot fit inside the objects to be detected<br>," +
+			String desc = new String("Reduce background fluorescence using the rolling ball algorithm " +
+									"by selecting “Remove Background“ and entering the window edge-length " +
+									"in units of pixels. This length should be large enough so that" + 
+									"a square with that edge length cannot fit inside the objects to be detected," +
 									" but is smaller than the length scale of background variations");
 			createField("Background subtraction window size",desc,null);
 
