@@ -844,7 +844,8 @@ private double pkernelWeight=1;
 		}
 		else if(e.getSource()==estimate)
 		{
-			PotentialFunctions.NONPARAM_SMOOTHNESS=Double.parseDouble(e.getActionCommand());
+			PotentialFunctions.NONPARAM_WEIGHT_SIZE=Integer.parseInt(numSupport.getText());
+			PotentialFunctions.NONPARAM_SMOOTHNESS=Double.parseDouble(smoothnessNP.getText());
 			numReRuns= Integer.parseInt(reRuns.getText());
 			a.setCmaReRunTimes(numReRuns);
 			
