@@ -135,7 +135,7 @@ public class ScoreFunctionRCvol implements ScoreFunction
 			}
 //			a2 /= count;
 	
-			result = (count - Area[im])*(count - Area[im]);
+			result += (count - Area[im])*(count - Area[im]);
 				
 //			result += 10.0/Math.abs(a1 - a2);
 		}
@@ -158,7 +158,7 @@ public class ScoreFunctionRCvol implements ScoreFunction
 			}
 		}
 			
-		if (x[0] <= 0.0 || x[1] <= 0.0 || x[0] > minSz/8 || x[1] > 1.0)
+		if (x[0] <= 0.0 || x[1] <= 0.0 || x[0] > minSz/4 || x[1] > 1.0)
 			return false;
 			
 		// TODO Auto-generated method stub

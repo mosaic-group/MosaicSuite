@@ -15,6 +15,7 @@ import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +24,8 @@ import java.util.Iterator;
 
 import mosaic.bregman.FindConnectedRegions.Region;
 
-public class BLauncher {
+public class BLauncher 
+{
 	public  int hcount=0;
 	public  String headlesscurrent;
 	PrintWriter out;
@@ -60,7 +62,8 @@ public class BLauncher {
 	
 	public void Headless_file()
 	{
-		try{
+		try
+		{
 			ImagePlus img = null;
 			if (wpath != null)
 			{
@@ -69,6 +72,19 @@ public class BLauncher {
 			}
 			else
 			{
+				
+				if (aImp.getFileInfo().directory == "")
+				{
+					if (aImp.getOriginalFileInfo().directory == "")
+					{throw new IOException("No directory infos connected to the image");}
+					else {Analysis.p.wd = aImp.getOriginalFileInfo().directory;}
+				}
+				else
+				{
+					Analysis.p.wd = aImp.getFileInfo().directory;
+				}
+				
+				
 				img = aImp;
 			}
 			
@@ -78,8 +94,14 @@ public class BLauncher {
 
 			if(Analysis.p.save_images)
 			{
+				String savepath = null;
 				//IJ.log(wpath);
-				String savepath =  wpath.substring(0,wpath.length()-4);
+				if (wpath != null)
+					savepath =  wpath.substring(0,wpath.length()-4);
+				else
+				{
+					savepath = Analysis.p.wd;
+				}
 				//IJ.log(savepath);
 
 
@@ -213,7 +235,9 @@ public class BLauncher {
 				finish();
 			}
 
-		}catch (Exception e){//Catch exception if any
+		}
+		catch (Exception e)
+		{//Catch exception if any
 			System.err.println("Error launcher file processing: " + e.getMessage());
 		}
 

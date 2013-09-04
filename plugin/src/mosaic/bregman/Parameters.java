@@ -13,7 +13,7 @@ public class Parameters  implements Serializable
 	public  boolean mode_voronoi2=true;
 	
 	public boolean save_images=false;
-	public String wd="/Users/arizk/Documents/work/workspace_eclipse/BregmanGLM/TestImages/";
+	public String wd=null;
 
 	public boolean pearson = false;
 	public boolean debug=false;

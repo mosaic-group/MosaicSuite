@@ -33,7 +33,8 @@ import mosaic.ia.utils.ImageProcessUtils;
 import mosaic.ia.utils.PlotUtils;
 import mosaic.paramopt.cma.CMAEvolutionStrategy;
 
-public class Analysis {
+public class Analysis 
+{
 	private ImagePlus[] impList;
 	private ImagePlus X, Y;
 	private ImagePlus mask, genMask, loadedMask;

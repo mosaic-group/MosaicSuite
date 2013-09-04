@@ -828,9 +828,19 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				
 				s.copy(OptimizeWithCMA(fiRC,s,aDev,"Check whenever the segmentation is reasonable",stopd[0],false));
 		
-				// Recalculate Area
+				// Recalculate Area and smooth
 				
-
+				for (int i = 0 ; i < in.length ; i++)
+				{
+					ScoreFunctionRCvol tmpS = new ScoreFunctionRCvol(in,lb,s);
+					System.out.println("Area target: " + sizeA[i]);
+					sizeA[i] = tmpS.Area(fiRC.getLabel(i));
+					System.out.println("Area: " + sizeA[i]);
+					LabelImage lbtmp = fiRC.getLabel(i);
+					lbtmp.initBoundary();
+					lbtmp.initContour();
+					sizeS[i] = fiRC.Smooth(lbtmp);
+				}
 				
 				// Set
 				

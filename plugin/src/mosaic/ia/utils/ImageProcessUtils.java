@@ -46,7 +46,6 @@ public class ImageProcessUtils {
 
 		GenericDialog gd = new GenericDialog("Particle Detection...",IJ.getInstance());
 	
-		gd.addMessage("Particle Detection:");
 		System.out.println("No of N slices: "+imp.getNSlices());
 
 		
