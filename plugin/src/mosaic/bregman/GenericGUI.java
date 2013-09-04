@@ -1232,15 +1232,22 @@ public class GenericGUI {
 		}
 
 
-		public void initpreviewch1(ImagePlus img){
+		public void initpreviewch1(ImagePlus img)
+		{
 
+			ni=img.getWidth();
+			nj=img.getHeight();
+			nz=img.getNSlices();
 
 			ImageProcessor imp;
-			for (int z=0; z<nz; z++){
+			for (int z=0; z<nz; z++)
+			{
 				img.setSlice(z+1);
 				imp=img.getProcessor();
-				for (int i=0; i<ni; i++){  
-					for (int j=0;j< nj; j++){  
+				for (int i=0; i<ni; i++)
+				{  
+					for (int j=0;j< nj; j++)
+					{
 						if(imp.getPixel(i,j)>max)max=imp.getPixel(i,j);
 						if(imp.getPixel(i,j)<min)min=imp.getPixel(i,j);
 					}	
@@ -1251,9 +1258,14 @@ public class GenericGUI {
 
 		}
 
-		public void initpreviewch2(ImagePlus img){
+		public void initpreviewch2(ImagePlus img)
+		{
 			//img.duplicate().show();
 
+			ni=img.getWidth();
+			nj=img.getHeight();
+			nz=img.getNSlices();
+			
 			ImageProcessor imp;
 			for (int z=0; z<nz; z++){
 				img.setSlice(z+1);
@@ -1271,9 +1283,6 @@ public class GenericGUI {
 		{
 			//IJ.log("cellmask" + calls);
 			calls++;
-			ni=img.getWidth();
-			nj=img.getHeight();
-			nz=img.getNSlices();
 
 			int ns =img.getSlice();
 			double threshold;
