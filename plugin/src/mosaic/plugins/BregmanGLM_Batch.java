@@ -78,8 +78,6 @@ public class BregmanGLM_Batch implements PlugInFilter {
 
 	public void run(ImageProcessor imp) 
 	{
-
-
 	}
 
 	void LoadConfig() throws ClassNotFoundException

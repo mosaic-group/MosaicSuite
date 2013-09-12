@@ -1,6 +1,7 @@
 package mosaic.region_competition;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +23,7 @@ import net.imglib2.io.ImgIOException;
 import net.imglib2.io.ImgOpener;
 import net.imglib2.type.numeric.real.FloatType;
 
+import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.Generate_PSF;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.LabelDispenser.LabelDispenserInc;
@@ -314,6 +316,29 @@ public class Algorithm
 	
 	public void showStatistics()
 	{
+		ResultsTable rts = createStatistics();
+
+		rts.show("statistics");
+	}
+	
+	public void saveStatistics()
+	{
+		ResultsTable rts = createStatistics();
+		String fold = MosaicUtils.ValidFolderFromImage(intensityImage.imageIP);
+		
+		try 
+		{
+			rts.saveAs(fold+intensityImage.imageIP.getTitle());
+		} 
+		catch (IOException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public ResultsTable createStatistics()
+	{
 		ResultsTable rt = new ResultsTable();
 		
 		// over all labels
@@ -327,7 +352,8 @@ public class Algorithm
 			rt.addValue("mean", info.mean);
 			rt.addValue("variance", info.var);
 		}
-		rt.show("statistics");
+		
+		return rt;
 	}
 	
 	private Vector<RCMean> RC_op;

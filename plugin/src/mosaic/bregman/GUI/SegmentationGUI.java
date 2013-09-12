@@ -190,26 +190,18 @@ public class SegmentationGUI
 		Panel p = new Panel();
 		p.add(bp);
 		gd.addPanel(p);
-		
+
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
-
-
-
 
 		Analysis.p.lreg= gd.getNextNumber();
 		Analysis.p.min_intensity=gd.getNextNumber();
 		Analysis.p.min_intensityY=gd.getNextNumber();
 		Analysis.p.subpixel= gd.getNextBoolean();
-
-
 		Analysis.p.sigma_gaussian=gd.getNextNumber();
 		Analysis.p.zcorrec=Analysis.p.sigma_gaussian/gd.getNextNumber();
-
-
 		Analysis.p.mode_intensity=gd.getNextChoiceIndex();
 		Analysis.p.noise_model=gd.getNextChoiceIndex();
-
 
 		if(Analysis.p.mode_voronoi2)
 		{
@@ -267,7 +259,6 @@ public class SegmentationGUI
 			Point p =gd.getLocationOnScreen();
 			//IJ.log("plugin location :" + p.toString());
 			PSFWindow hw = new PSFWindow(p.x, p.y, gd);
-
 		}
 	}
 

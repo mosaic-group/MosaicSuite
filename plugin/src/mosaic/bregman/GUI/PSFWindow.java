@@ -252,8 +252,8 @@ public class PSFWindow implements ActionListener,PropertyChangeListener
 				sx=1000*psf.lateral_WFFM();
 			}
 
-			TextField tx =gd.getField(1);//field x
-			TextField tz =gd.getField(2);//filed z
+			TextField tx =gd.getField(3);//field x
+			TextField tz =gd.getField(4);//filed z
 
 			tx.setText(String.format(Locale.US,"%.3f", sx/pix_xy));
 			tz.setText(String.format(Locale.US,"%.3f", sz/pix_z));

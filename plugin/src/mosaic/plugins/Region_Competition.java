@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mosaic.bregman.Analysis;
 import mosaic.region_competition.wizard.*;
 
 import javax.swing.JFrame;
@@ -262,6 +264,12 @@ public class Region_Competition implements PlugInFilter
 		
 		////////////////////
 		
+		// if is 3D save the originalIP
+		
+		if (aImp.getNSlices() != 1)
+			originalIP = aImp;
+		else
+			originalIP = null;
 		
 		return DOES_ALL+NO_CHANGES;
 	}
@@ -394,7 +402,10 @@ public class Region_Competition implements PlugInFilter
 		}
 		else
 		{
-			ip = new ImagePlus("test",aImageProcessor);
+			if (originalIP != null)
+				ip = originalIP;
+			else
+				ip = new ImagePlus("test",aImageProcessor);
 		}
 		
 		// next try: opened image
@@ -786,7 +797,6 @@ public class Region_Competition implements PlugInFilter
 		
 	}
 	
-
 	void showFinalResult(LabelImage li)
 	{
 		showFinalResult(li,"");

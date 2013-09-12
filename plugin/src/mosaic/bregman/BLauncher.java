@@ -75,8 +75,8 @@ public class BLauncher
 				
 				if (aImp.getFileInfo().directory == "")
 				{
-					if (aImp.getOriginalFileInfo().directory == "")
-					{throw new IOException("No directory infos connected to the image");}
+					if (aImp.getOriginalFileInfo() == null || aImp.getOriginalFileInfo().directory == "")
+					{Analysis.p.wd = null;}
 					else {Analysis.p.wd = aImp.getOriginalFileInfo().directory;}
 				}
 				else
@@ -100,6 +100,8 @@ public class BLauncher
 					savepath =  wpath.substring(0,wpath.length()-4);
 				else
 				{
+					if (savepath == null)
+						IJ.error("Error cannot track the image directory");
 					savepath = Analysis.p.wd;
 				}
 				//IJ.log(savepath);

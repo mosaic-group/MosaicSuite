@@ -7,12 +7,36 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import mosaic.bregman.Analysis;
+
 import ij.IJ;
+import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
 public class MosaicUtils {
+	
+	/**
+	 * 
+	 * Return the folder where the image is stored, if it is not saved it return the
+	 * folder of the original image 
+	 * @param img
+	 * @return folder of the image
+	 */
+	public static String ValidFolderFromImage(ImagePlus img)
+	{
+		if (img.getFileInfo().directory == "")
+		{
+			if (img.getOriginalFileInfo() == null || img.getOriginalFileInfo().directory == "")
+			{return null;}
+			else {return img.getOriginalFileInfo().directory;}
+		}
+		else
+		{
+			return img.getFileInfo().directory;
+		}
+	}
 	
 	public static ImageProcessor cropImageStack2D(ImageProcessor ip, int cropsize) 
 	{
