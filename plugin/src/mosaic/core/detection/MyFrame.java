@@ -61,7 +61,7 @@ import java.util.Vector;
 		 */
 		public MyFrame (BufferedReader r,String path, int frame_num, int aLinkrange) {
 			try {
-				loadParticlesFromFile(r,path);
+				loadParticlesFromFileMultipleFrame(r,path,frame_num);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -107,6 +107,103 @@ import java.util.Vector;
             return ret;
 		}
 		
+		private boolean loadParticlesFromFileMultipleFrame(BufferedReader r, String path, int nf) throws IOException 
+		{
+			Vector<String[]> particles_info = new Vector<String[]>(); 	// a vector to hold all particles info as String[]
+			String[] particle_info; 				// will hold all the info for one particle (splitted)
+			String[] frame_number_info;				// will fold the frame info line (splitted)
+			String line;
+	            
+	        /* set this frame number from the first line*/
+			r.mark(1024);
+	        line = r.readLine();
+
+	        if (line == null)	return false;
+	        
+	        line = line.trim();
+	        frame_number_info = line.split(",");
+	        if (frame_number_info.length < 2) 
+	        {
+	            IJ.error("Malformed line, expacting \"frame x\", founded " + line);
+	            return false;
+	        }
+	        if (frame_number_info[0] != null) {
+	            this.frame_number = Integer.parseInt(frame_number_info[0]);
+	        }
+	        
+	        r.reset();
+		    /* go over all lines, count number of particles and save the information as String */
+	        while (true) 
+	        {
+	        	r.mark(1024);
+		        line = r.readLine();
+		        if (line == null) break;
+		        
+		        line = line.trim();
+				if (line.startsWith("%"))	line = line.substring(1);
+				line = line.trim();
+				particles_info.addElement(line.split(","));
+				if (frame_number != Integer.parseInt(particles_info.lastElement()[0]))
+				{particles_info.remove(particles_info.size()-1);r.reset();break;}
+				
+				this.particles_number++;
+		    }
+	        
+	        /* initialise the particles array */
+	        this.particles = new Vector<Particle>();
+	        
+	        Iterator<String[]> iter = particles_info.iterator();
+	        int counter = 0;
+	        
+	        /* go over all particles String info and construct Particles Ojectes from it*/
+	        while (iter.hasNext())
+	        {
+	        	particle_info = iter.next();
+	        	
+	        	if (particle_info.length < 2)
+	        	{
+		            IJ.error("Malformed line, expacting 2 float, feeding: " + Integer.toString(particle_info.length) );
+		            return false;
+	        	}
+	        	
+	        	if (particle_info.length <= 3)
+	        	{
+	        		this.particles.addElement(new Particle(
+	        				Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), 0.0f, 
+	        				this.frame_number, particle_info, linkrange));
+	        	}
+	        	else
+	        	{
+	        		this.particles.addElement(new Particle(
+	        				Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), Float.parseFloat(particle_info[3]), 
+	        				this.frame_number, particle_info, linkrange));
+	        	}
+	        		
+	        	//max_coord = Math.max((int)Math.max(this.particles.elementAt(counter).x, this.particles.elementAt(counter).y), max_coord);
+	        	//if (momentum_from_text) {
+	        	if (particle_info.length < 8 || particle_info[3] == null || particle_info[4] == null || particle_info[5] == null || particle_info[6] == null || particle_info[7] == null ||particle_info[8] == null) {
+//	        		IJ.error("File: " + path + "\ndoes not have momentum values at positions 4 to 8 for all particles");
+//	        		this.particles = null;
+//	        		return false;
+	        		this.particles.elementAt(counter).m0 = 0;
+	        		this.particles.elementAt(counter).m1 = 0;
+	        		this.particles.elementAt(counter).m2 = 0;
+	        		this.particles.elementAt(counter).m3 = 0;
+	        		this.particles.elementAt(counter).m4 = 0;
+	        	} else {
+	        		this.particles.elementAt(counter).m0 = Float.parseFloat(particle_info[3]);
+	        		this.particles.elementAt(counter).m1 = Float.parseFloat(particle_info[4]);
+	        		this.particles.elementAt(counter).m2 = Float.parseFloat(particle_info[5]);
+	        		this.particles.elementAt(counter).m3 = Float.parseFloat(particle_info[6]);
+	        		this.particles.elementAt(counter).m4 = Float.parseFloat(particle_info[7]);
+	        	}
+	        	//}
+	        	counter++;
+	        }
+	        if (particles_info != null) particles_info.removeAllElements();
+	        return true;
+		}
+		
 		private boolean loadParticlesFromFile(BufferedReader r,String path) throws IOException {
 	        
 			Vector<String[]> particles_info = new Vector<String[]>(); 	// a vector to hold all particles info as String[]
@@ -132,7 +229,7 @@ import java.util.Vector;
 	            
 		    /* go over all lines, count number of particles and save the information as String */
 	        while (true) {
-		        line = r.readLine();		            
+		        line = r.readLine();
 		        if (line == null) break;
 		        line = line.trim();
 				if (line.startsWith("%"))	line = line.substring(1);

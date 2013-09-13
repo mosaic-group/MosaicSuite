@@ -321,14 +321,13 @@ public class Algorithm
 		rts.show("statistics");
 	}
 	
-	public void saveStatistics()
+	public void saveStatistics(String fold)
 	{
 		ResultsTable rts = createStatistics();
-		String fold = MosaicUtils.ValidFolderFromImage(intensityImage.imageIP);
 		
 		try 
 		{
-			rts.saveAs(fold+intensityImage.imageIP.getTitle());
+			rts.saveAs(fold);
 		} 
 		catch (IOException e) 
 		{
@@ -1202,7 +1201,8 @@ public class Algorithm
 				// Check if it is a mother: only mothers can be seed points
 				// of topological networks. Daughters are always part of a
 				// topo network of a mother.
-				if(!p.isMother) {
+				if(!p.isMother) 
+				{
 					continue;
 				}
 

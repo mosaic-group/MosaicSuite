@@ -267,7 +267,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		} 
 
 		/* get user defined params and set more initial params accordingly 	*/	
-		if (!getUserDefinedParams()) return;				
+		if (!getUserDefinedParams()) return;
  
 		if (!processFrames()) return; 		
 
@@ -347,17 +347,18 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 * @see MyFrame
 	 * @see MyFrame#featurePointDetection()
 	 */
-	public boolean processFrames() {
-
+	public boolean processFrames() 
+	{
+		
 		if (frames_processed) return true;
 
 		/* Initialise frames array */
 		
-		frames = new MyFrame[frames_number];
 		MyFrame current_frame = null;
 
 		if (one_file_multiple_frame == false)
 		{
+			frames = new MyFrame[frames_number];
 			for (int frame_i = 0, file_index = 0; frame_i < frames_number; frame_i++, file_index++) {			
 
 				if (text_files_mode) {
@@ -389,26 +390,43 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		}
 		else
 		{
+			Vector<MyFrame> tmf = new Vector<MyFrame>();
 			int frame_i = 0;
 			BufferedReader r;
-			try {
-				r = new BufferedReader(new FileReader(files_list[0]));
+			try 
+			{
+				r = new BufferedReader(new FileReader(this.files_dir + files_list[0]));
 			}
-			catch (Exception e) {
+			catch (Exception e) 
+			{
 				IJ.error(e.getMessage());
 				return false;
 			}
 			
-			current_frame = new MyFrame(r,files_list[0],0, linkrange);
+			tmf.add(new MyFrame(r,files_list[0],frame_i, linkrange));
 			frame_i++;
 			
-			while (current_frame.getParticles() != null)
+			while (tmf.lastElement().getParticles() != null)
 			{
-				current_frame = new MyFrame(r,files_list[0],frame_i, linkrange);
+				tmf.add(new MyFrame(r,files_list[0],frame_i, linkrange));
+				frame_i++;
 
-				frames[current_frame.frame_number] = current_frame;
 				IJ.freeMemory();
-			} // for
+			}
+			
+			// remove any null object
+			
+			tmf.remove(tmf.size()-1);
+			
+			// copy the frames and discharge the vector
+			
+			frames = new MyFrame[tmf.size()];
+			
+			for (int i = 0 ;  i < tmf.size() ; i++)
+			{
+				frames[i] = tmf.get(i);
+			}
+			frames_number = frames.length;
 		}
 		frames_processed = true;
 		return true;
@@ -434,8 +452,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 * @see #makeKernel(int)
 	 * @see #generateBinaryMask(int)	 
 	 */
-	boolean getUserDefinedParams() {
-
+	boolean getUserDefinedParams() 
+	{
 		gd = new NonBlockingGenericDialog("Particle Tracker...");
 		GenericDialog text_mode_gd;
 		one_file_multiple_frame = false;
@@ -449,22 +467,24 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		
 		gd.addPanel(p);
 		
-		help_b.addActionListener(new ActionListener() {
-
+		help_b.addActionListener(new ActionListener() 
+		{
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
+			public void actionPerformed(ActionEvent arg0) 
+			{
 				// TODO Auto-generated method stub
 				
 				Point p =gd.getLocationOnScreen();
 				
 				ParticleTrackerHelp pth = new ParticleTrackerHelp(p.x,p.y);
 				
-			}});
+			}
+		});
 		
 		//
 		
-		if (text_files_mode) {
-			
+		if (text_files_mode) 
+		{
 			text_mode_gd = new GenericDialog("input files info", IJ.getInstance());
 			text_mode_gd.addMessage("Please specify the info provided for the Particles...");
 			text_mode_gd.addCheckbox("one file multiple frame", false);
@@ -479,7 +499,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				int[] ids = WindowManager.getIDList();
 				
 				ImagePlus ip;
-				if(ids.length != 0)
+				if(ids != null && ids.length != 0)
 				{
 					ip = WindowManager.getImage(ids[0]);
 					FileInfo fi = ip.getFileInfo();
@@ -488,6 +508,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				else
 				{
 					// Open a dialog
+					
+					
 				}
 			}
 			
@@ -553,7 +575,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		if (gd.wasCanceled()) return false;
 
 		// if user choose to convert reset stack, title, frames number and global min, max
-		if (convert) {
+		if (convert) 
+		{
 			sc = new StackConverter(original_imp);
 			sc.convertToGray8();
 			stack = original_imp.getStack();
@@ -2379,8 +2402,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	public ImageStack createStackFromTextFiles() {
 		int[] vMax = {0,0,0};	
 		/* find the max coordinates for each coordinate */
-		for (int i = 0; i < frames.length; i++) {
-			for (int p = 0; p < frames[i].getParticles().size(); p++) {
+		for (int i = 0; i < frames.length; i++) 
+		{
+			for (int p = 0; p < frames[i].getParticles().size(); p++) 
+			{
 				Particle vParticle = frames[i].getParticles().elementAt(p);
 				if(vParticle.x > vMax[0]) {
 					vMax[0] = (int) Math.ceil(vParticle.x);

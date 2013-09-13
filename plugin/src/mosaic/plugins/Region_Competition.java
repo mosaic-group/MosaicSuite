@@ -20,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import mosaic.bregman.Analysis;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.wizard.*;
 
 import javax.swing.JFrame;
@@ -71,6 +72,8 @@ public class Region_Competition implements PlugInFilter
 {
 	private String output_label;
 	private String config;
+	private String oip_location;
+	private String oip_title;
 	Region_Competition MVC;		// interface to image application (imageJ)
 	public Settings settings;
 	
@@ -270,6 +273,11 @@ public class Region_Competition implements PlugInFilter
 			originalIP = aImp;
 		else
 			originalIP = null;
+		
+		// Save the location of the original IP
+		
+		oip_location = MosaicUtils.ValidFolderFromImage(aImp);
+		oip_title = aImp.getTitle();
 		
 		return DOES_ALL+NO_CHANGES;
 	}
@@ -791,6 +799,14 @@ public class Region_Competition implements PlugInFilter
 		if(userDialog != null && userDialog.showStatistics())
 		{
 			algorithm.showStatistics();
+		}
+		
+		algorithm.saveStatistics(oip_location+oip_title+".csv");
+		try {SaveConfigFile(oip_location+oip_title+".dat",settings);}
+		catch (IOException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		controllerFrame.dispose();
