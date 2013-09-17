@@ -62,6 +62,8 @@ import mosaic.bregman.GUI.PSFWindow;
 import mosaic.bregman.GUI.SegmentationGUI;
 import mosaic.bregman.GUI.VisualizationGUI;
 import mosaic.core.GUI.HelpGUI;
+import mosaic.core.cluster.ClusterGUI;
+import mosaic.core.cluster.ClusterSession;
 
 
 //import java.awt.event.FocusEvent;
@@ -353,6 +355,11 @@ public class GenericGUI {
 			gd.addNumericField("number of threads", 4, 0);
 		}
 		
+		if (!clustermode)
+		{
+			gd.addCheckbox("Use cluster", false);
+		}
+		
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
 
@@ -491,14 +498,25 @@ public class GenericGUI {
 		//
 		//		IJ.log("stdx" +Analysis.p.sigma_gaussian+ "stdy" + Analysis.p.sigma_gaussian/Analysis.p.zcorrec);
 
-		BLauncher hd = null;
+		if (gd.getNextBoolean() == false)
+		{
 		
-		if (wpath.startsWith("Input Image:"))
-			hd= new BLauncher(aImp);
-		else
-			hd= new BLauncher(wpath);	
+			BLauncher hd = null;
+		
+			if (wpath.startsWith("Input Image:"))
+				hd= new BLauncher(aImp);
+			else
+				hd= new BLauncher(wpath);	
 		//		    hd.bcolocheadless(imagePlus);
-
+		
+		}
+		else
+		{
+			ClusterGUI cg = new ClusterGUI();
+			ClusterSession ss = cg.getClusterSession();
+			ss.runPluginsOnFrames(aImp, "", 60.0);
+		}
+		
 		//Analysis.load2channels(imagePlus);
 	}
 
