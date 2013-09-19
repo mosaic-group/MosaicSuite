@@ -28,8 +28,11 @@ public class ClusterGUI  extends JDialog
 	private ClusterProfile cp_sel;
 	private ClusterSession cl;
 	
+	private JTextField tx_u;
+	private JPasswordField tx_p;
+	
 	public ClusterGUI()
-	{	
+	{
 //			setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 350, 150);
 		contentPane = new JPanel();
@@ -63,13 +66,13 @@ public class ClusterGUI  extends JDialog
 		JLabel lblNewLabel_2 = new JLabel("Username");
 		contentPane.add(lblNewLabel_2);
 		
-		JTextField tx_u = new JTextField();
+		tx_u = new JTextField();
 		contentPane.add(tx_u);
 		
 		lblNewLabel_2 = new JLabel("Password");
 		contentPane.add(lblNewLabel_2);
 		
-		JPasswordField tx_p = new JPasswordField();
+		tx_p = new JPasswordField();
 		contentPane.add(tx_p);
 		
 			
@@ -82,7 +85,10 @@ public class ClusterGUI  extends JDialog
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
+				cp_sel.setPassword(new String(tx_p.getPassword()));
+				cp_sel.setUsername(new String(tx_u.getText()));
 				cl = new ClusterSession(cp_sel);
+				dispose();
 			}
 		});
 

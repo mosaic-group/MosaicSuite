@@ -10,6 +10,7 @@ public class GeneralProfile implements ClusterProfile
 	String ImageJCommand;
 	String UserName;
 	String AccessAddress;
+	String pwd;
 	hw acc;
 	
 	class Tqueue
@@ -31,14 +32,24 @@ public class GeneralProfile implements ClusterProfile
 		cq = new Vector<Vector<Tqueue>>();
 	}
 	
-	public void setUserName(String UserName_)
+	public void setUsername(String UserName_)
 	{
 		UserName = UserName_;
 	}
 	
-	public String getUserName()
+	public String getUsername()
 	{
 		return UserName;
+	}
+	
+	public void setPassword(String pwd_)
+	{
+		pwd = pwd_;
+	}
+	
+	public String getPassword()
+	{
+		return pwd;
 	}
 	
 	@Override

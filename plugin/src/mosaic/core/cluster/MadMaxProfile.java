@@ -11,7 +11,6 @@ public class MadMaxProfile extends GeneralProfile
 		
 		setAcc(hw.GPU);
 		setQueue(720,"gpu");
-		
 	}
 	
 	@Override
