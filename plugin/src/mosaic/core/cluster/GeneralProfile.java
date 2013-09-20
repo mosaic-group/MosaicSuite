@@ -5,6 +5,7 @@ import java.util.Vector;
 
 public class GeneralProfile implements ClusterProfile
 {
+	BatchInterface bc;
 	String ProfileName;
 	String RunningDir;
 	String ImageJCommand;
@@ -134,5 +135,16 @@ public class GeneralProfile implements ClusterProfile
 	public void setAccessAddress(String AccessAddress_) 
 	{
 		AccessAddress = AccessAddress_;
+	}
+
+	public void setBatchSystem(BatchInterface bc_)
+	{
+		bc = bc_;
+	}
+	
+	@Override
+	public BatchInterface getBatchSystem() 
+	{
+		return bc;
 	}
 }

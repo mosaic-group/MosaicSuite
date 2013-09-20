@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GUIold;
@@ -85,6 +87,21 @@ public class BregmanGLM_Batch implements PlugInFilter {
 		try
 		{
 			FileInputStream fin = new FileInputStream(savedSettings);
+			ObjectInputStream ois = new ObjectInputStream(fin);
+			Analysis.p = (Parameters)ois.readObject();
+			ois.close();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	public static void LoadConfig(String ss) throws ClassNotFoundException
+	{
+		try
+		{
+			FileInputStream fin = new FileInputStream(ss);
 			ObjectInputStream ois = new ObjectInputStream(fin);
 			Analysis.p = (Parameters)ois.readObject();
 			ois.close();

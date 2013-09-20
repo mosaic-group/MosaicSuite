@@ -9,6 +9,8 @@ import java.util.Vector;
 
 import javax.swing.JOptionPane;
 
+import mosaic.core.GUI.ProgressBarWin;
+
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ConfigRepository;
@@ -177,7 +179,7 @@ public class SecureShellSession
 	 * @param pwd password to access the sftp session
 	 * @param files to transfert
 	 */
-	public boolean transfert(String pwd, File files[])	
+	public boolean transfert(String pwd, File files[], ProgressBarWin wp)	
 	{
 		Random grn = new Random();
 		
@@ -203,6 +205,9 @@ public class SecureShellSession
 		    
 		    for (int i = 0 ; i < files.length ; i++)
 		    {
+		    	if(wp != null)
+		    		wp.SetProgress(100*i/files.length);
+		    	
 		    	cSFTP.put(files[i].getAbsolutePath(), files[i].getName());
 		    }
 		}

@@ -26,4 +26,5 @@ interface ClusterProfile
 	public String getQueue(double minutes);
 	public void setQueue(double minutes, String name);
 	public BatchInterface getBatchSystem();
+	public void setBatchSystem(BatchInterface bc_);
 }

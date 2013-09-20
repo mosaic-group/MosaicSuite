@@ -64,6 +64,7 @@ import mosaic.bregman.GUI.VisualizationGUI;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterSession;
+import mosaic.plugins.BregmanGLM_Batch;
 
 
 //import java.awt.event.FocusEvent;
@@ -206,6 +207,7 @@ public class GenericGUI {
 		if(clustermode)
 		{
 			gd.addStringField("Filepath","path",10);
+			gd.addStringField("config","path",10);
 		}
 
 		//panel with button
@@ -254,101 +256,108 @@ public class GenericGUI {
 //		if(nOpenedImages>0)
 
 			// Input Image
-		gd.addChoice("InputImage", names, names[0]);
-		Choice choiceInputImage = (Choice)gd.getChoices().lastElement();
-		if(aImp !=null)
+		if(!clustermode)
 		{
+			gd.addChoice("InputImage", names, names[0]);
+			Choice choiceInputImage = (Choice)gd.getChoices().lastElement();
+			if(aImp !=null)
+			{
 				String title = aImp.getTitle();
 				choiceInputImage.select(title);
+			}
 		}
 		
-		// Background Options
 		
-		Button backOption = new Button("Options");
-		Label label = new Label("Background subtraction");
-		label.setFont(bf);
-		Panel p = new Panel();
-		p.add(label);
-		p.add(backOption);
-		backOption.addActionListener(new ActionListener() 
+		if(!clustermode)
 		{
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) 
+			// Background Options
+		
+			Button backOption = new Button("Options");
+			Label label = new Label("Background subtraction");
+			label.setFont(bf);
+			Panel p = new Panel();
+			p.add(label);
+			p.add(backOption);
+			backOption.addActionListener(new ActionListener() 
 			{
+
+				@Override
+				public void actionPerformed(ActionEvent arg0) 
+				{
 				// TODO Auto-generated method stub
 				
-				BackgroundSubGUI gds = new BackgroundSubGUI();
-				gds.run("");
-			}
-		});
-		gd.addPanel(p);
+					BackgroundSubGUI gds = new BackgroundSubGUI();
+					gds.run("");
+				}
+			});
+			gd.addPanel(p);
 		
-		// seg Option button
+			// seg Option button
 		
-		Button segOption = new Button("Options");
-		label = new Label("Segmentation parameters");
-		label.setFont(bf);
-		p = new Panel();
-		p.add(label);
-		p.add(segOption);
-		segOption.addActionListener(new ActionListener() 
-		{
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) 
+			Button segOption = new Button("Options");
+			label = new Label("Segmentation parameters");
+			label.setFont(bf);
+			p = new Panel();
+			p.add(label);
+			p.add(segOption);
+			segOption.addActionListener(new ActionListener() 
 			{
-				// TODO Auto-generated method stub
-				
-				SegmentationGUI gds = new SegmentationGUI();
-				gds.run("");
-			}
-		});
-		gd.addPanel(p);
+
+				@Override
+				public void actionPerformed(ActionEvent arg0) 
+				{
+					// TODO Auto-generated method stub
+
+					SegmentationGUI gds = new SegmentationGUI();
+					gds.run("");
+				}
+			});
+			gd.addPanel(p);
 
 		
-		Button colOption = new Button("Options");
-		label = new Label("Colocalization (two channels images)");
-		label.setFont(bf);
-		p = new Panel();
-		p.add(label);
-		p.add(colOption);
-		colOption.addActionListener(new ActionListener() 
-		{
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) 
+			Button colOption = new Button("Options");
+			label = new Label("Colocalization (two channels images)");
+			label.setFont(bf);
+			p = new Panel();
+			p.add(label);
+			p.add(colOption);
+			colOption.addActionListener(new ActionListener() 
 			{
-				// TODO Auto-generated method stub
+
+				@Override
+				public void actionPerformed(ActionEvent arg0) 
+				{
+					// TODO Auto-generated method stub
 				
-				ColocalizationGUI gds = new ColocalizationGUI();
-				gds.run("");
-			}
-		});
-		gd.addPanel(p);
+					ColocalizationGUI gds = new ColocalizationGUI();
+					gds.run("");
+				}
+			});
+			gd.addPanel(p);
 		
-		//gd.addMessage("");
+			//gd.addMessage("");
 
-		Button visOption = new Button("Options");
-		label = new Label("Vizualization and output");
-		label.setFont(bf);
-		p = new Panel();
-		p.add(label);
-		p.add(visOption);
-		visOption.addActionListener(new ActionListener() 
-		{
-
-			@Override
-			public void actionPerformed(ActionEvent arg0) 
+			Button visOption = new Button("Options");
+			label = new Label("Vizualization and output");
+			label.setFont(bf);
+			p = new Panel();
+			p.add(label);
+			p.add(visOption);
+			visOption.addActionListener(new ActionListener() 
 			{
-				// TODO Auto-generated method stub
-				
-				VisualizationGUI gds = new VisualizationGUI();
-				gds.run("");
-			}
-		});
-		gd.addPanel(p);
 
+				@Override
+				public void actionPerformed(ActionEvent arg0) 
+				{
+					// TODO Auto-generated method stub
+				
+					VisualizationGUI gds = new VisualizationGUI();
+					gds.run("");
+				}
+			});
+			gd.addPanel(p);
+		}
+			
 //		if(!clustermode)gd.addMessage("Advanced options ",bf);
 		if(clustermode)
 		{
@@ -398,6 +407,15 @@ public class GenericGUI {
 		if(clustermode)
 		{
 			Analysis.p.nthreads= (int) gd.getNextNumber();
+			try 
+			{
+				BregmanGLM_Batch.LoadConfig(gd.getNextString());
+			} 
+			catch (ClassNotFoundException e) 
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		else
 		{
@@ -498,7 +516,7 @@ public class GenericGUI {
 		//
 		//		IJ.log("stdx" +Analysis.p.sigma_gaussian+ "stdy" + Analysis.p.sigma_gaussian/Analysis.p.zcorrec);
 
-		if (gd.getNextBoolean() == false)
+		if (clustermode || gd.getNextBoolean() == false)
 		{
 		
 			BLauncher hd = null;

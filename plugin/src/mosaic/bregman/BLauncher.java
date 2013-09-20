@@ -65,9 +65,13 @@ public class BLauncher
 		try
 		{
 			ImagePlus img = null;
+			
+			System.out.println("The path is: " + wpath);
+			
 			if (wpath != null)
 			{
 				Analysis.p.wd= (new File(wpath)).getParent() +File.separator;
+				System.out.println("opening: " + wpath);
 				img=IJ.openImage(wpath);
 			}
 			else
