@@ -34,6 +34,7 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -532,6 +533,15 @@ public class GenericGUI {
 		{
 			ClusterGUI cg = new ClusterGUI();
 			ClusterSession ss = cg.getClusterSession();
+			try 
+			{
+				BregmanGLM_Batch.SaveConfig(Analysis.p,"/tmp/spb_settings.dat");
+			} 
+			catch (IOException e) 
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			ss.runPluginsOnFrames(aImp, "", 60.0);
 		}
 		

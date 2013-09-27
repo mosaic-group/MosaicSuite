@@ -1,8 +1,11 @@
 package mosaic.core.cluster;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.Flushable;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.Random;
 import java.util.Vector;
@@ -20,6 +23,16 @@ import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 import java.io.File;
 
+/**
+ * 
+ * This class is able to create SSH and SFTP Sessions for remote
+ * access to HPC system or other services. Accept a profile that
+ * specify the property of the cluster and use it to perform operation
+ * on it like run remote command or transfert data
+ * 
+ * @author Pietro Incardona
+ *
+ */
 
 public class SecureShellSession
 {
@@ -68,37 +81,52 @@ public class SecureShellSession
 	 * @param pwd password to access the ssh session
 	 * @param commands string to execute
 	 */
-	public boolean runCommands(String pwd, String [] commands)
-	{		
+	public String runCommands(String pwd, String [] commands)
+	{
+		OutputStream os = null;
+		
+	    String cmd_list = new String();
+	    for (int i = 0 ; i < commands.length ; i++)
+	    {
+	    	cmd_list += commands[i] + "\n";
+	    }
 		try 
 		{
+			InputStream pin = new ByteArrayInputStream(cmd_list.getBytes("UTF-8"));
+			os = new ByteArrayOutputStream();
 			createSSHChannel();
 		    
-		    String cmd_list = new String();
-		    for (int i = 0 ; i < commands.length ; i++)
+		    cSSH.setInputStream(pin);
+		    cSSH.setOutputStream(os);
+		    
+		    cSSH.connect();
+		    
+		    try 
 		    {
-		    	cmd_list += commands[i] + "\n";
-		    }
-		    
-		    cSSH.setInputStream(new ByteArrayInputStream(cmd_list.getBytes("UTF-8")));
-		    cSSH.setOutputStream(System.out);
-		    
-		    cSSH.connect(3*1000);
+				Thread.sleep(3000);
+			} 
+		    catch (InterruptedException e) 
+		    {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} 
 		catch (JSchException e) 
 		{
 			// TODO Auto-generated catch block
+			System.out.println(os.toString());
 			e.printStackTrace();
-			return false;
+			return null;
 		}
 		catch (IOException e) 
 		{
 			// TODO Auto-generated catch block
+			System.out.println(os.toString());
 			e.printStackTrace();
-			return false;
+			return null;
 		}
 		
-		return true;
+		return os.toString();
 	};
 	
 	

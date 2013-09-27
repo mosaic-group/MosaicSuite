@@ -112,6 +112,14 @@ public class BregmanGLM_Batch implements PlugInFilter {
 		}
 	}
 	
+	public static void SaveConfig(Parameters p, String savePath) throws IOException
+	{
+		FileOutputStream fout = new FileOutputStream(savePath);
+		ObjectOutputStream oos = new ObjectOutputStream(fout);
+		oos.writeObject(p);
+		oos.close();
+	}
+	
 	void SaveConfig(Parameters p) throws IOException
 	{
 		FileOutputStream fout = new FileOutputStream(savedSettings);
