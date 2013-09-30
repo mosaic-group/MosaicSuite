@@ -187,8 +187,7 @@ public class ClusterSession
 		commands[1] = bc.runCommand(ss.getTransfertDir());
 		
 		String out;
-		out = ss.runCommands(cp.getPassword(), commands);
-		System.out.println(out);
+		ss.runCommands(cp.getPassword(), commands);
 		int JobID = bc.getJobID(out);
 		
 		// get the status wait completition;
@@ -198,38 +197,13 @@ public class ClusterSession
 		ImageStack st = css.CreateStack(jb);
 		ImagePlus ip = new ImagePlus("Cluster status",st);
 		ip.show();
+		bc.setJobStatus(jb);
 		
 		while (true)
 		{
 			commands = new String[1];
 			commands[0] = bc.statusJobCommand(JobID);
-			out = ss.runCommands(cp.getPassword(), commands);
-
-/*			PrintWriter pout;
-			try 
-			{
-				pout = new PrintWriter("/tmp/out_tt.txt");
-				pout.println(out);
-				pout.close();
-			} 
-			catch (FileNotFoundException e) 
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}*/
-			
-/*			String rdf = null;
-			try 
-			{
-				rdf = readFileAsString("/tmp/out_tt.txt");
-			} 
-			catch (IOException e) 
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}*/
-			
-			bc.parseStatus(out, jb);
+			ss.runCommands(cp.getPassword(), commands);
 			
 			if (JobStatus.allComplete(jb) == true)
 				break;

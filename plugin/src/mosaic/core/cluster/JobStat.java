@@ -22,7 +22,7 @@ abstract class JobStatus
 	{
 		for (int i = 0 ; i < jb.length ; i++)
 		{
-			if (jb[i] != null && jb[i].getStatus() != jobS.COMPLETE)
+			if (jb[i] == null || jb[i].getStatus() != jobS.COMPLETE)
 			{
 				return false;
 			}

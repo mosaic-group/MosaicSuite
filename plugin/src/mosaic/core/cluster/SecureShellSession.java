@@ -6,6 +6,8 @@ import java.io.Flushable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.Date;
 import java.util.Random;
 import java.util.Vector;
@@ -34,8 +36,13 @@ import java.io.File;
  *
  */
 
-public class SecureShellSession
+public class SecureShellSession implements Runnable
 {
+	ShellProcessOutput shp;
+	PipedInputStream pinput_in;
+	PipedOutputStream pinput_out;
+	PipedInputStream poutput_in;
+	PipedOutputStream poutput_out;
 	String tdir = null;
 	ClusterProfile cprof;
 	JSch jsch;
@@ -47,7 +54,33 @@ public class SecureShellSession
 	
 	SecureShellSession(ClusterProfile cprof_)
 	{
+		pinput_in = new PipedInputStream();
+		pinput_out = new PipedOutputStream();
+		poutput_in = new PipedInputStream();
+		poutput_out = new PipedOutputStream();
+		try 
+		{
+			poutput_out.connect(poutput_in);
+			pinput_in.connect(pinput_out);
+		}
+		catch (IOException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		cprof = cprof_;
+	}
+	
+	/**
+	 * Set the batch interface. Required in order to parse 
+	 * the command output
+	 * 
+	 */
+	
+	public void setShellProcessOutput(ShellProcessOutput prc_)
+	{
+		shp = prc_;
 	}
 	
 	public boolean checkDirectory(String Directory)
@@ -81,7 +114,7 @@ public class SecureShellSession
 	 * @param pwd password to access the ssh session
 	 * @param commands string to execute
 	 */
-	public String runCommands(String pwd, String [] commands)
+	public void runCommands(String pwd, String [] commands)
 	{
 		OutputStream os = null;
 		
@@ -92,41 +125,20 @@ public class SecureShellSession
 	    }
 		try 
 		{
-			InputStream pin = new ByteArrayInputStream(cmd_list.getBytes("UTF-8"));
-			os = new ByteArrayOutputStream();
 			createSSHChannel();
 		    
-		    cSSH.setInputStream(pin);
-		    cSSH.setOutputStream(os);
-		    
-		    cSSH.connect();
-		    
-		    try 
-		    {
-				Thread.sleep(3000);
-			} 
-		    catch (InterruptedException e) 
-		    {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			pinput_out.write(cmd_list.getBytes());
 		} 
 		catch (JSchException e) 
 		{
 			// TODO Auto-generated catch block
-			System.out.println(os.toString());
 			e.printStackTrace();
-			return null;
 		}
 		catch (IOException e) 
 		{
 			// TODO Auto-generated catch block
-			System.out.println(os.toString());
 			e.printStackTrace();
-			return null;
 		}
-		
-		return os.toString();
 	};
 	
 	
@@ -182,6 +194,13 @@ public class SecureShellSession
 		
 		cSSH = (Channel) session.openChannel("shell");
 		
+	    cSSH.setInputStream(pinput_in);
+	    cSSH.setOutputStream(poutput_out);
+	    
+	    new Thread(this).start();
+	    
+	    cSSH.connect();
+	    
 		return true;
 	}
 	
@@ -285,5 +304,32 @@ public class SecureShellSession
 	public String getTransfertDir()
 	{
 		return tdir;
+	}
+
+	@Override
+	public void run() 
+	{
+		byte out[] = null;
+		
+		try {out = new byte[poutput_in.available()];} 
+		catch (IOException e1) {e1.printStackTrace();}
+		String sout = new String();
+		
+		while (true)
+		{			
+			try 
+			{
+				poutput_in.read(out);
+			}
+			catch (IOException e) 
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return;
+			}
+			sout += new String(out);
+			if (shp != null)
+				sout = shp.Process(sout);
+		}
 	}
 }

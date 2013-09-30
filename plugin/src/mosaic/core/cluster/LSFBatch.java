@@ -7,12 +7,13 @@ import java.util.regex.Pattern;
 import mosaic.core.cluster.JobStatus.jobS;
 
 
-class LSFBatch implements BatchInterface
+class LSFBatch implements BatchInterface, ShellProcessOutput
 {
+	LSFJob [] jb;
 	String script;
 	ClusterProfile cp;
 	
-	class job_sts extends JobStatus
+	class LSFJob extends JobStatus
 	{
 		public String job_id;
 		public String user;
@@ -22,7 +23,7 @@ class LSFBatch implements BatchInterface
 		public String job_name ;
 		public String Sub_time;
 		
-		boolean allComplete(job_sts jb[], int jobsID)
+		boolean allComplete(LSFJob jb[], int jobsID)
 		{
 			for (int i = 0 ; i < jb.length ; i++)
 			{
@@ -37,6 +38,7 @@ class LSFBatch implements BatchInterface
 			return true;
 		}
 	};
+	
 	
 	public LSFBatch(ClusterProfile cp_)
 	{
@@ -72,7 +74,7 @@ class LSFBatch implements BatchInterface
 	
 	public JobStatus [] createJobStatus(int n)
 	{
-		return new job_sts[n];
+		return new LSFJob[n];
 	}
 	
 	public int jobArrayID(String aID)
@@ -107,10 +109,22 @@ class LSFBatch implements BatchInterface
 		return jobS.UNKNOWN;
 	}
 	
-	public void parseStatus(String prs, JobStatus jobs_[])
+	/**
+	 * 
+	 *	Parse the LSF status bjobs JOBID command
+	 *
+	 * @param prs String to parse
+	 * @param jobs array with the updated status of the jobs
+	 * @return String the string with the unparsed part
+	 */
+	
+	public String parseStatus(String prs, JobStatus jobs_[])
 	{
+		boolean unparse_last = true;
+		LSFJob[] jobs = (LSFJob [])jobs_;
 		
-		job_sts[] jobs = (job_sts [])jobs_;
+		if (prs.endsWith("\n"))
+			unparse_last = false;
 		
 		String[] elements = prs.split("\n");
 		Vector<Vector<String>> Clm_flt = new Vector<Vector<String>>();
@@ -134,13 +148,13 @@ class LSFBatch implements BatchInterface
 			}
 			
 			int ja_id = 0;
-			if (vt.size() > 6)
+			if (vt.size() > 7)
 				ja_id = jobArrayID(vt.get(6));
 			
 			if (ja_id != 0)
 			{
 				ja_id = ja_id -1;
-				jobs[ja_id] = new job_sts();
+				jobs[ja_id] = new LSFJob();
 				jobs[ja_id].job_id = new String(vt.get(0));
 				jobs[ja_id].stat = new String(vt.get(2));
 				jobs[ja_id].setStatus(jobArrayStatus(vt.get(2)));
@@ -151,6 +165,11 @@ class LSFBatch implements BatchInterface
 				jobs[ja_id].Sub_time = new String(vt.get(7));
 			}
 		}
+		
+		if (unparse_last == true)
+			return elements[elements.length-1];
+		else
+			return new String("");
 	}
 
 	@Override
@@ -169,8 +188,25 @@ class LSFBatch implements BatchInterface
 		return 0;
 	}
 
-	job_sts createJob()
+	LSFJob createJob()
 	{
-		return new job_sts();
+		return new LSFJob();
+	}
+
+	public void setJobStatus(JobStatus [] jb_)
+	{
+		jb = (LSFJob[]) jb_;
+	}
+	
+	public JobStatus[] getJobStatus()
+	{
+		return jb;
+	}
+	
+	@Override
+	public String Process(String str) 
+	{
+		System.out.println(str);
+		return parseStatus(str,jb);
 	}
 }
