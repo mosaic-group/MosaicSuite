@@ -15,6 +15,7 @@ import ij.io.Opener;
 import ij.plugin.ZProjector;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
+import mosaic.core.ipc.*;
 
 public class Analysis {
 
@@ -738,7 +739,7 @@ public class Analysis {
 						if(i==0){out2.print("Image number" + ";" + "Region in X"+ ";" + "Overlap with Y" + ";" + "Size" + ";" +
 								"Intensity" + ";" + "MColoc size" + ";"+ "MColoc Intensity" + ";" + "Single Coloc" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 						out2.println();}
-						double colocAB=Tools.round(colocsegAB(out2, i/2),4);
+						double colocAB=Tools.round(colocsegAB( i/2),4);
 
 						//out3.print("Cell"+ list[i]);
 						//out3.println();
@@ -952,7 +953,7 @@ public class Analysis {
 
 		if (Analysis.p.cAB){
 			//IJ.log("coloc AB");
-			IJ.log("Colocating  objects in X  : " + Tools.round(colocsegAB(null,0),3) 
+			IJ.log("Colocating  objects in X  : " + Tools.round(colocsegAB(0),3) 
 					+ " (" + positiveA + " vesicles over " + na + " )" );}
 		if (Analysis.p.cBA){
 			IJ.log("Colocating  objects in Y  : " + Tools.round(colocsegBA(null,0),3) 
@@ -1128,7 +1129,7 @@ public class Analysis {
 
 	}
 
-	public static double colocsegAB(PrintWriter out, int imgnumber){
+	public static double colocsegAB(int imgnumber){
 
 		double totalsignal=0;
 		double colocsignal=0;
@@ -1139,7 +1140,7 @@ public class Analysis {
 		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) {
 			Region r = it.next();
 			objects++;
-			if (regioncoloc(r,regionslistB, regionsB,maskA,out, imgnumber))objectscoloc++;
+			if (regioncoloc(r,regionslistB, regionsB,maskA, imgnumber))objectscoloc++;
 			//IJ.log(r.toString() + "ncoloc"+ objectscoloc);
 		totalsignal+=r.rsize*r.intensity;
 		colocsignal+=r.rsize*r.intensity*r.overlap;
@@ -1152,7 +1153,7 @@ public class Analysis {
 	}
 	
 	
-	public static double colocsegABsize(PrintWriter out, int imgnumber){
+	public static double colocsegABsize(int imgnumber){
 
 		double totalsize=0;
 		double colocsize=0;
@@ -1163,7 +1164,7 @@ public class Analysis {
 		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) {
 			Region r = it.next();
 			objects++;
-			if (regioncoloc(r,regionslistB, regionsB,maskA,out, imgnumber))objectscoloc++;
+			if (regioncoloc(r,regionslistB, regionsB,maskA, imgnumber))objectscoloc++;
 		totalsize+=r.rsize;
 		colocsize+=r.rsize*r.overlap;
 		}
@@ -1221,7 +1222,7 @@ public class Analysis {
 			Region r = it.next();
 			//IJ.log("obj" + r.value);
 			objects++;
-			if (regioncoloc(r,regionslistA, regionsA,maskB,out, imgnumber))objectscoloc++;
+			if (regioncoloc(r,regionslistA, regionsA,maskB, imgnumber))objectscoloc++;
 			//if(p.livedisplay)IJ.log(r.toString() + "ncoloc"+ objectscoloc);
 			totalsignal+=r.rsize*r.intensity;
 			colocsignal+=r.rsize*r.intensity*r.overlap;
@@ -1243,7 +1244,7 @@ public class Analysis {
 		for (Iterator<Region> it = regionslistB.iterator(); it.hasNext();) {
 			Region r = it.next();
 			objects++;
-			if (regioncoloc(r,regionslistA, regionsA,maskB,out, imgnumber))objectscoloc++;
+			if (regioncoloc(r,regionslistA, regionsA,maskB, imgnumber))objectscoloc++;
 			totalsize+=r.rsize;
 			colocsize+=r.rsize*r.overlap;
 		}
@@ -1254,7 +1255,7 @@ public class Analysis {
 
 
 
-	public static boolean regioncoloc(Region r,ArrayList<Region> regionlist, short [] [] [] regions,byte [][][] mask, PrintWriter out, int imgnumber){
+	public static boolean regioncoloc(Region r,ArrayList<Region> regionlist, short [] [] [] regions,byte [][][] mask, int imgnumber){
 		boolean positive=false;
 		int count=0;
 		int countcoloc=0;
@@ -1313,6 +1314,8 @@ public class Analysis {
 
 	public static void printobjectsA(PrintWriter out, int imgnumber){
 
+		InterPluginCSV<RT3DRegion> IpCSV = new InterPluginCSV<RT3DRegion>();
+		
 		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) {
 			Region r = it.next();
 			printobject(r,out, imgnumber);
@@ -2000,7 +2003,7 @@ public class Analysis {
 		//		out2.println();
 		//		out2.print("Region in X"+ ";" + "Overlap with Y" + ";" + "Size");
 		//		out2.println();
-		double colocAB=Tools.round(colocsegAB(null,0),4);
+		double colocAB=Tools.round(colocsegAB(0),4);
 		//		out2.print("Region in Y"+ ";" + "Overlap with X" + ";" + "Size");
 		//		out2.println();
 

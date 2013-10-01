@@ -23,11 +23,11 @@ import ij.ImagePlus;
 import ij.io.Opener;
 
 
-public class BregmanGLM_Batch implements PlugInFilter {
-
+public class BregmanGLM_Batch implements PlugInFilter 
+{
 	private ImagePlus OriginalImagePlus = null;
 	private String savedSettings;
-
+	
 	public int setup(String arg0, ImagePlus active_img) 
 	{
 		String dir = IJ.getDirectory("temp");
