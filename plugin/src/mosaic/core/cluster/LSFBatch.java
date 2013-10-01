@@ -9,6 +9,8 @@ import mosaic.core.cluster.JobStatus.jobS;
 
 class LSFBatch implements BatchInterface, ShellProcessOutput
 {
+	int AJobID = 0;
+	OutputType tp;
 	LSFJob [] jb;
 	String script;
 	ClusterProfile cp;
@@ -64,12 +66,14 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 	@Override
 	public String runCommand(String tdir)
 	{
+		tp = OutputType.LAUNCH;
 		return new String("bsub < " + script);
 	}
 	
-	public String statusJobCommand(int ID)
+	public String statusJobCommand()
 	{
-		return new String("bjobs " + ID);
+		tp = OutputType.STATUS;
+		return new String("bjobs " + AJobID);
 	}
 	
 	public JobStatus [] createJobStatus(int n)
@@ -120,6 +124,7 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 	
 	public String parseStatus(String prs, JobStatus jobs_[])
 	{
+		int nele = 0;
 		boolean unparse_last = true;
 		LSFJob[] jobs = (LSFJob [])jobs_;
 		
@@ -128,8 +133,12 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 		
 		String[] elements = prs.split("\n");
 		Vector<Vector<String>> Clm_flt = new Vector<Vector<String>>();
+		nele = elements.length-1;
 		
-		for (int i = 0 ; i < elements.length ; i++)
+		if (unparse_last == false)
+			nele = elements.length;
+		
+		for (int i = 0 ; i < nele ; i++)
 		{
 			Vector<String> vt = new Vector<String>();
 			String [] sub_elements = elements[i].split(" ");
@@ -148,21 +157,42 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 			}
 			
 			int ja_id = 0;
-			if (vt.size() > 7)
-				ja_id = jobArrayID(vt.get(6));
-			
-			if (ja_id != 0)
+
+			if (vt.size() > 2)
 			{
-				ja_id = ja_id -1;
-				jobs[ja_id] = new LSFJob();
-				jobs[ja_id].job_id = new String(vt.get(0));
-				jobs[ja_id].stat = new String(vt.get(2));
-				jobs[ja_id].setStatus(jobArrayStatus(vt.get(2)));
-				jobs[ja_id].user = new String(vt.get(1));
-				jobs[ja_id].queue = new String (vt.get(3));
-				jobs[ja_id].exe_host = new String(vt.get(5));
-				jobs[ja_id].job_name = new String(vt.get(6));
-				jobs[ja_id].Sub_time = new String(vt.get(7));
+				if (vt.size() > 7)
+				{
+					ja_id = jobArrayID(vt.get(6));
+					ja_id = ja_id -1;
+					if (ja_id >= 0)
+					{
+						jobs[ja_id] = new LSFJob();
+						jobs[ja_id].job_id = new String(vt.get(0));
+						jobs[ja_id].stat = new String(vt.get(2));
+						jobs[ja_id].setStatus(jobArrayStatus(vt.get(2)));
+						jobs[ja_id].user = new String(vt.get(1));
+						jobs[ja_id].queue = new String (vt.get(3));
+						jobs[ja_id].exe_host = new String(vt.get(5));
+						jobs[ja_id].job_name = new String(vt.get(6));
+						jobs[ja_id].Sub_time = new String(vt.get(7));
+					}
+				}
+				else if (jobArrayStatus(vt.get(2)) == jobS.PENDING && vt.size() > 6)
+				{
+					ja_id = jobArrayID(vt.get(5));
+					ja_id = ja_id -1;
+					if (ja_id >= 0)
+					{
+						jobs[ja_id] = new LSFJob();
+						jobs[ja_id].job_id = new String(vt.get(0));
+						jobs[ja_id].stat = new String(vt.get(2));
+						jobs[ja_id].setStatus(jobArrayStatus(vt.get(2)));
+						jobs[ja_id].user = new String(vt.get(1));
+						jobs[ja_id].queue = new String (vt.get(3));
+						jobs[ja_id].job_name = new String(vt.get(5));
+						jobs[ja_id].Sub_time = new String(vt.get(6));
+					}
+				}
 			}
 		}
 		
@@ -172,8 +202,7 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 			return new String("");
 	}
 
-	@Override
-	public int getJobID(String id) 
+	public int parseJobID(String id) 
 	{
 		Pattern jobID = Pattern.compile("<[0-9]+>");
 		
@@ -203,10 +232,40 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 		return jb;
 	}
 	
+	/**
+	 * 
+	 * Return the jobID of the launched process
+	 * 
+	 * @return Integer identifying the job
+	 * 
+	 */
 	@Override
-	public String Process(String str) 
+	public int getJobID()
 	{
-		System.out.println(str);
-		return parseStatus(str,jb);
+		return AJobID;
+	}
+	
+	@Override
+	public String Process(String str)
+	{
+		if (tp == OutputType.STATUS)
+		{
+			return parseStatus(str,jb);
+		}
+		else if (tp == OutputType.LAUNCH)
+		{
+			AJobID = parseJobID(str);
+			if (AJobID == 0)
+				return str;
+			else
+				return "";
+		}
+		return "";
+	}
+
+	@Override
+	public void setOutputType(OutputType tp_) 
+	{
+		tp = tp_;
 	}
 }

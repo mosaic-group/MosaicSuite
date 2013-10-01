@@ -26,7 +26,7 @@ class ClusterStatusStack
 			if (js.getNotifiedStatus() != jobS.PENDING)
 			{
 				ip = new ColorProcessor(200,50);
-				ip.setColor(new Color(255,0,0));
+				ip.setColor(new Color(255,164,0));
 				ip.fill();
 				ip.setColor(new Color(0,0,0));
 				ip.drawString(js.getStatus().toString(),10, 25);
@@ -58,7 +58,21 @@ class ClusterStatusStack
 				js.setNotifiedStatus(jobS.COMPLETE);
 			}
 		}
+		else if (js.getStatus() == jobS.UNKNOWN)
+		{
+			if (js.getNotifiedStatus() != jobS.UNKNOWN)
+			{
+				ip = new ColorProcessor(200,50);
+				ip.setColor(new Color(0,0,255));
+				ip.fill();
+				ip.setColor(new Color(0,0,0));
+				ip.drawString(js.getStatus().toString(),10, 25);
+				js.setNotifiedStatus(jobS.UNKNOWN);
+			}
+		}
 		
+		if (ip == null)
+			return null;
 		
 		return ip;
 	}

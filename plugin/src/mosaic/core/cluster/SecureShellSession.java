@@ -311,15 +311,24 @@ public class SecureShellSession implements Runnable
 	{
 		byte out[] = null;
 		
-		try {out = new byte[poutput_in.available()];} 
-		catch (IOException e1) {e1.printStackTrace();}
+		out = new byte[1024];
 		String sout = new String();
 		
 		while (true)
 		{			
 			try 
 			{
-				poutput_in.read(out);
+				int len = poutput_in.available();
+				if (len == 0)
+				{
+					poutput_in.read(out,0,1);
+					sout += Character.toString((char)out[0]);
+				}
+				else
+				{
+					poutput_in.read(out,0,len);
+					sout += new String(out);
+				}
 			}
 			catch (IOException e) 
 			{
@@ -327,7 +336,6 @@ public class SecureShellSession implements Runnable
 				e.printStackTrace();
 				return;
 			}
-			sout += new String(out);
 			if (shp != null)
 				sout = shp.Process(sout);
 		}

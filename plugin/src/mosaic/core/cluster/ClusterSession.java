@@ -10,7 +10,7 @@ import java.util.Random;
 
 import mosaic.core.cluster.LSFBatch;
 import mosaic.core.cluster.JobStatus.jobS;
-import mosaic.core.cluster.LSFBatch.job_sts;
+import mosaic.core.cluster.LSFBatch.LSFJob;
 
 import mosaic.core.GUI.ProgressBarWin;
 
@@ -91,9 +91,17 @@ public class ClusterSession
 			wp.SetProgress(100*i/nImages);
 		}
 		
-		// transfert the images
+		// Create an SSH connection with the cluster
+		// Get the batch system of the cluster and set the class
+		//  to process the batch system output
 		
 		SecureShellSession ss = new SecureShellSession(cp);
+		BatchInterface bc = cp.getBatchSystem();
+		
+		ss.setShellProcessOutput(bc);
+
+		// transfert the images
+
 		File [] fl = new File[nImages];
 		
 		for (int i = 0 ; i < nImages ; i++)
@@ -126,10 +134,7 @@ public class ClusterSession
 					"wget mosaic.mpi-cbg.de/Downloads/Mosaic_ToolSuite.jar"};
 		
 		
-			if (ss.runCommands(cp.getPassword(), CommandL) == null)
-			{
-				CleanUp();
-			}
+			ss.runCommands(cp.getPassword(), CommandL);
 		}
 		
 		wp.SetStatusMessage("Interfacing with batch system...");
@@ -143,8 +148,6 @@ public class ClusterSession
 				   + "run(\"Squassh\",\"config=" + ss.getTransfertDir() + "spb_settings.dat" + " output=" + ss.getTransfertDir() + "tmp_" + "\"" + " + job_id + " + "\"_seg.tif" + " filepath=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif\" );\n");
 				   
 		// Create the batch script if required and upload it
-		
-		BatchInterface bc = cp.getBatchSystem();
 		
 		String run_s = cp.getRunningDir() + ss.getSession_id() + "/" + ss.getSession_id() + ".ijm";
 		String scr = bc.getScript(run_s,cp.getRunningDir() + ss.getSession_id() + "/" + ss.getSession_id(),ss.getSession_id(),nImages);
@@ -188,7 +191,21 @@ public class ClusterSession
 		
 		String out;
 		ss.runCommands(cp.getPassword(), commands);
-		int JobID = bc.getJobID(out);
+		
+		// Wait that the command get processed
+		// Yes of course horrible but it work
+		
+		int n_attempt = 0;
+		while (bc.getJobID() == 0 && n_attempt < 100000000) 
+		{try {Thread.sleep(100);}
+		 catch (InterruptedException e) 
+		 {e.printStackTrace();} 
+		n_attempt++;}
+		
+		// Check if we failed to launch the job
+		
+		if (bc.getJobID() == 0)
+		{IJ.error("Failed to run the Job on the cluster");CleanUp();return;}
 		
 		// get the status wait completition;
 		
@@ -202,8 +219,17 @@ public class ClusterSession
 		while (true)
 		{
 			commands = new String[1];
-			commands[0] = bc.statusJobCommand(JobID);
+			commands[0] = bc.statusJobCommand();
 			ss.runCommands(cp.getPassword(), commands);
+			
+			// Wait the command get Processed
+			
+			try {Thread.sleep(3000);}
+			catch (InterruptedException e) 
+			{e.printStackTrace();}
+			
+			// Sleep 3000 avoid the accumulation of commands
+			// Process the competition
 			
 			if (JobStatus.allComplete(jb) == true)
 				break;
