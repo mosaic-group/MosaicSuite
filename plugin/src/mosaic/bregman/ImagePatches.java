@@ -171,7 +171,17 @@ public class ImagePatches {
 				//	ap.run();//execute
 			}
 
-
+			// Debug
+			
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			/////////////////7
+			
 			//add refined result into regions refined :
 			if(!p.mode_voronoi2){
 

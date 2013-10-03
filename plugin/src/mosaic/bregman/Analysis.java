@@ -6,8 +6,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
+
 import mosaic.bregman.FindConnectedRegions.Region;
+import mosaic.bregman.output.CSVOutput;
+import mosaic.bregman.output.CSVOutput.RT3DRegion;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -122,7 +126,30 @@ public class Analysis {
 
 	}
 
-
+	public static Vector<RT3DRegion> getObjectsList()
+	{
+		Vector<RT3DRegion> rg = new Vector<RT3DRegion>();
+		CSVOutput csv = new CSVOutput();
+		
+		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) 
+		{	
+			RT3DRegion pt_p = csv.new RT3DRegion();
+			Region r = it.next(); 
+			
+			pt_p.setx(r.cx);
+			pt_p.sety(r.cy);
+			pt_p.setz(r.cz);
+			pt_p.setIntensity(r.intensity);
+			pt_p.setSize(r.rsize);
+			pt_p.setSurface(Tools.round(r.perimeter,3));
+			pt_p.setLenght(r.length);
+			
+			rg.add(pt_p);
+		}
+		
+		return rg;
+	}
+	
 	public static void load1channel(ImagePlus img2){
 
 		p.ni=img2.getWidth();
@@ -1313,8 +1340,6 @@ public class Analysis {
 
 
 	public static void printobjectsA(PrintWriter out, int imgnumber){
-
-		InterPluginCSV<RT3DRegion> IpCSV = new InterPluginCSV<RT3DRegion>();
 		
 		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) {
 			Region r = it.next();
@@ -1353,7 +1378,7 @@ public class Analysis {
 			regionCenter(r);
 
 			if(p.nz>1){
-				out.print(imgnumber 
+/*				out.print(imgnumber 
 						+";" + r.value  
 						+";"+ r.rsize //size
 						+";"+ Tools.round(r.perimeter,3) //perimeter
@@ -1363,7 +1388,22 @@ public class Analysis {
 						+";"+ Tools.round(r.cy,2)
 						+";"+ Tools.round(r.cz,2)
 						);
-				out.println();			
+				out.println();			*/
+				
+				out.print(imgnumber 
+						+"," + Tools.round(r.cx,2)  
+						+","+ Tools.round(r.cy,2)
+						+","+ Tools.round(r.cz,2)
+						+","+ Tools.round(r.rsize,3) //perimeter
+						+","+ Tools.round(r.intensity,3)
+						+","+ r.length // no length in 3D 					
+						+","+ Tools.round(0.0,2)
+						+","+ Tools.round(0.0,2)
+						+","+ Tools.round(0.0,2)
+						);
+				out.println();
+				
+				
 			}
 			else
 			{

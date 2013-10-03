@@ -21,134 +21,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Vector;
 
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
 import mosaic.bregman.FindConnectedRegions.Region;
+import mosaic.bregman.output.CSVOutput;
+import mosaic.bregman.output.CSVOutput.RT3DRegion;
+import mosaic.core.ipc.InterPluginCSV;
 
 public class BLauncher 
 {
-	// POJO Class for several format
-	
-	// 3D Object segmentation CSV
-	
-	class S3DRegion_coloc
-	{
-		int Image_ID;
-		int Object_ID;
-		double Size;
-		double Surface;
-		double Length;
-		double Intensity;
-		double Overlap_with_ch2;
-		double Coloc_object_size;
-		double Coloc_object_intensity;
-		double Single_Coloc;
-		double Coloc_image_intensity;
-		double Coord_X;
-		double Coord_Y;
-		double Coord_Z;
-	}
-	
-	final String[] Field_Mapping_3D_seg= {"Image_ID",
-										  "Object_ID",
-										  "Size",
-										  "Lenght",
-										  "Intensity",
-										  "Overlap_with_ch2",
-										  "Coloc_object_size",
-										  "Coloc_object_intensity",
-										  "Single_Coloc",
-										  "Coloc_image_intensity",
-										  "Coord_X",
-										  "Coord_Y",
-										  "Coord_Z"};
-	
-    CellProcessor[] processors_3D_seg;
-	
-	// 2D Object segmentation CSV
-	
-	class S2DRegion_coloc
-	{
-		int Image_ID;
-		int Object_ID;
-		int Perimeter;
-		int Length;
-		double Intensity;
-		double Overlap_with_ch2;
-		double Coloc_object_size;
-		double Coloc_object_intensity;
-		double Single_Coloc;
-		double Coloc_image_intensity;
-		double Coord_X;
-		double Coord_Y;
-		double Coord_Z;
-	}
-	
-	final String[] Field_Mapping_2D_seg= {"Image_ID",
-			  "Object_ID",
-			  "Size",
-			  "Perimeter",
-			  "Intensity",
-			  "Overlap_with_ch2",
-			  "Coloc_object_size",
-			  "Coloc_object_intensity",
-			  "Single_Coloc",
-			  "Coloc_image_intensity",
-			  "Coord_X",
-			  "Coord_Y",
-			  "Coord_Z"};
-	
-	CellProcessor[] processors_2D_seg;
-	
-	// 3D Region segmentation CSV
-	
-	class RT3DRegion
-	{
-		double x;
-		double y;
-		double z;
-		double Size;
-		double Surface;
-		double Length;
-		double Intensity;
-	}
-	
-	final String[] Field_Mapping_3D_regT= {"Image_ID",
-			  "x",
-			  "y",
-			  "z",
-			  "Size",
-			  "Surface",
-			  "Lenght",
-			  "Intensity"};
-	
-	CellProcessor[] processors_3D_regT;
-	
-	// 2D Region segmentation CSV
-	
-	class RT2DRegion
-	{
-		double x;
-		double y;
-		double Perimiter;
-		double Intensity;
-	}
-	
-	final String[] Field_Mapping_2D_regT= {"Image_ID",
-			  "x",
-			  "y",
-			  "Perimeter",
-			  "Intensity"};
-	
-	CellProcessor[] processors_2D_regT;
-	
-	/////////////////////////////////
 	
 	public  int hcount=0;
 	public  String headlesscurrent;
 	PrintWriter out;
-//	PrintWriter out2;
+	PrintWriter out2;
 	PrintWriter out3;
 	String wpath;
 	ImagePlus aImp;
@@ -223,8 +111,6 @@ public class BLauncher
 					savepath =  wpath.substring(0,wpath.length()-4);
 				else
 				{
-					if (savepath == null)
-						IJ.error("Error cannot track the image directory");
 					savepath = Analysis.p.wd;
 				}
 				//IJ.log(savepath);
@@ -235,8 +121,8 @@ public class BLauncher
 					//IJ.log("looking for files at " + wpath);
 					out  = new PrintWriter(savepath+"_ImagesData"+ ".csv");
 					//out2 = new PrintWriter(savepath+"_Xdata"+ ".csv");
-//					out2 = new PrintWriter(savepath+"_ObjectsData_c1"+ ".csv");
-//					out3 = new PrintWriter(savepath+"_ObjectsData_c2"+ ".csv");
+					out2 = new PrintWriter(savepath+"_ObjectsData_c1"+ ".csv");
+					out3 = new PrintWriter(savepath+"_ObjectsData_c2"+ ".csv");
 					//out3 = new PrintWriter(savepath+"_Ydata"+ ".csv");
 					//PrintWriter out = new PrintWriter(dir1.replaceAll("/", "_") + ".csv");
 					//IJ.log("files open");
@@ -291,6 +177,24 @@ public class BLauncher
 					out.println();
 					out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch1"  +";" + "Mean surface in ch1"  +";"+ "Mean length in ch1");
 					out.println();
+					
+					out2 = new PrintWriter(savepath+"_ObjectsData"+ ".csv");
+
+
+					if(Analysis.p.nz>1){
+						out2.print("Image ID" + ";" + "Object ID"+ ";" + "Size" + ";" + "Surface" + ";" + "Length" + ";" +  
+								"Intensity" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
+						out2.println();
+						out2.flush();
+					}
+					else{
+						out2.print("Image ID" + ";" + "Object ID"+ ";" + "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +
+								"Intensity" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
+						out2.println();
+						out2.flush();					
+					}
+
+					out2.flush();
 				}
 			}
 			//IJ.log("single file start headless");
@@ -403,6 +307,7 @@ public class BLauncher
 				//IJ.log(savepath);
 				//				IJ.log("1");
 				out  = new PrintWriter(wpath+savepath+"_ImageData"+ ".csv");
+				out2 = new PrintWriter(wpath+savepath+"_ObjectsData_c1"+ ".csv");
 				out3 = new PrintWriter(wpath+savepath+"_ObjectsData_c2"+ ".csv");
 
 
@@ -823,7 +728,7 @@ public class BLauncher
 				out.println();
 				out.flush();
 				
-//				Analysis.printobjectsA(out2, hcount);
+				Analysis.printobjectsA(out2, hcount);
 				Analysis.printobjectsB(out3, hcount);
 				out3.flush();
 			}
@@ -907,8 +812,17 @@ public class BLauncher
 
 
 			//IJ.log("save");
-			if(Analysis.p.save_images){
-
+			if(Analysis.p.save_images)
+			{
+				String savepath = null;
+				//IJ.log(wpath);
+				if (wpath != null)
+					savepath =  wpath.substring(0,wpath.length()-4);
+				else
+				{
+					savepath = Analysis.p.wd;
+				}
+				
 				if(out!=null){
 					out.print(img2.getTitle() + ";" + hcount +";"+ Analysis.na + ";" +
 							Tools.round(Analysis.meana , 4)+";"+
@@ -921,6 +835,13 @@ public class BLauncher
 
 				//IJ.log("print objects");
 				Analysis.printobjects(out2, hcount);
+				
+//				Vector<RT3DRegion> obl = Analysis.getObjectsList();
+				
+//				InterPluginCSV<RT3DRegion> IpCSV = new InterPluginCSV<RT3DRegion>();
+				
+//				IpCSV.Write(savepath+"_ObjectsData_c1"+ ".csv", obl, CSVOutput.processors_3D_regT, CSVOutput.Field_Mapping_3D_regT);
+				
 				//IJ.log("print objects done");
 				out2.flush();
 			}
