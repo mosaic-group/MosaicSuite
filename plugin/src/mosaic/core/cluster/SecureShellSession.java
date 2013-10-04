@@ -326,6 +326,8 @@ public class SecureShellSession implements Runnable
 				}
 				else
 				{
+					for (int i = 0 ; i < 1024 ; i++)
+					{out[i] = 0;}
 					poutput_in.read(out,0,len);
 					sout += new String(out);
 				}

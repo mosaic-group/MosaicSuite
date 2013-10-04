@@ -17,5 +17,7 @@ interface BatchInterface extends ShellProcessOutput
 	public String statusJobCommand();
 	void setJobStatus(JobStatus [] jb_);
 	void setOutputType(OutputType tp);
+	public void waitParsing(int np);
+	public void reset();
 	JobStatus[] getJobStatus();
 }

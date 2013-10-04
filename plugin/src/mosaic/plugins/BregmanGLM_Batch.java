@@ -36,6 +36,45 @@ public class BregmanGLM_Batch implements PlugInFilter {
 		try 
 		{
 			LoadConfig();
+			
+			// Command line interface search for config file
+			
+			String path;
+			Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+			Pattern config = Pattern.compile("config");
+			Pattern output = Pattern.compile("output");
+			Pattern normalize = Pattern.compile("normalize");
+			Pattern par[] = new Pattern[7];
+			par[0] = Pattern.compile("method");
+			par[1] = Pattern.compile("init");
+			par[2] = Pattern.compile("ps_radius");
+			par[3] = Pattern.compile("b_force");
+			par[4] = Pattern.compile("c_flow_coeff");
+			par[5] = Pattern.compile("c_flow_radius");
+			par[6] = Pattern.compile("normalize");
+			Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+			
+			// config
+			
+			Matcher matcher = config.matcher(arg0);
+			if (matcher.find())
+			{
+				String sub = arg0.substring(matcher.end());
+				matcher = spaces.matcher(sub);
+				if (matcher.find())
+				{
+					sub = sub.substring(matcher.end());
+					matcher = pathp.matcher(sub);
+					if (matcher.find())
+					{
+						path = matcher.group(0);
+						
+						LoadConfig(path);
+						System.out.println("Loaded batch config");
+					}
+				}
+			}
+
 		}
 		catch (ClassNotFoundException e) 
 		{

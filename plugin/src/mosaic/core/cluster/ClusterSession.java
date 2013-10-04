@@ -220,13 +220,12 @@ public class ClusterSession
 		{
 			commands = new String[1];
 			commands[0] = bc.statusJobCommand();
+			bc.reset();
 			ss.runCommands(cp.getPassword(), commands);
 			
 			// Wait the command get Processed
-			
-			try {Thread.sleep(3000);}
-			catch (InterruptedException e) 
-			{e.printStackTrace();}
+
+			bc.waitParsing(nImages);
 			
 			// Sleep 3000 avoid the accumulation of commands
 			// Process the competition

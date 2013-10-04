@@ -4,6 +4,8 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.sun.corba.se.impl.orbutil.concurrent.Mutex;
+
 import mosaic.core.cluster.JobStatus.jobS;
 
 
@@ -147,20 +149,12 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 				if (sub_elements[j].length() != 0)
 					vt.add(sub_elements[j]);
 			}
-			if (vt.size() == 10)
-			{
-				String str = new String(vt.get(vt.size()-3) + " "+ vt.get(vt.size()-2) + " " + vt.get(vt.size()-1));
-				vt.remove(vt.size()-1);
-				vt.remove(vt.size()-1);
-				vt.remove(vt.size()-1);
-				vt.add(str);
-			}
 			
 			int ja_id = 0;
 
 			if (vt.size() > 2)
 			{
-				if (vt.size() > 7)
+				if (jobArrayStatus(vt.get(2)) == jobS.RUNNING || jobArrayStatus(vt.get(2)) == jobS.COMPLETE )
 				{
 					ja_id = jobArrayID(vt.get(6));
 					ja_id = ja_id -1;
@@ -175,9 +169,10 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 						jobs[ja_id].exe_host = new String(vt.get(5));
 						jobs[ja_id].job_name = new String(vt.get(6));
 						jobs[ja_id].Sub_time = new String(vt.get(7));
+						nele_parsed++;
 					}
 				}
-				else if (jobArrayStatus(vt.get(2)) == jobS.PENDING && vt.size() > 6)
+				else if (jobArrayStatus(vt.get(2)) == jobS.PENDING)
 				{
 					ja_id = jobArrayID(vt.get(5));
 					ja_id = ja_id -1;
@@ -191,6 +186,7 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 						jobs[ja_id].queue = new String (vt.get(3));
 						jobs[ja_id].job_name = new String(vt.get(5));
 						jobs[ja_id].Sub_time = new String(vt.get(6));
+						nele_parsed++;
 					}
 				}
 			}
@@ -267,5 +263,27 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 	public void setOutputType(OutputType tp_) 
 	{
 		tp = tp_;
+	}
+	
+	public void reset()
+	{
+		nele_parsed = 0;
+	}
+	
+	int nele_parsed = 0;
+	
+	public void waitParsing(int np)
+	{
+		// Ugly but work
+		
+		while (nele_parsed < np)
+		{
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 }
