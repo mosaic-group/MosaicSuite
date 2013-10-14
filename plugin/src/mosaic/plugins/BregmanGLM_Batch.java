@@ -1,5 +1,6 @@
 package mosaic.plugins;
 
+import java.beans.PropertyDescriptor;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -9,10 +10,13 @@ import java.io.ObjectOutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.beanutils.PropertyUtils;
+
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GUIold;
 import mosaic.bregman.GenericGUI;
 import mosaic.bregman.Parameters;
+import mosaic.bregman.testclass;
 import mosaic.region_competition.Settings;
 import ij.plugin.PlugIn;
 import ij.plugin.filter.PlugInFilter;
@@ -29,7 +33,7 @@ public class BregmanGLM_Batch implements PlugInFilter
 	private String savedSettings;
 	
 	public int setup(String arg0, ImagePlus active_img) 
-	{
+	{	
 		String dir = IJ.getDirectory("temp");
 		savedSettings = dir+"spb_settings.dat";
 		

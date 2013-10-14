@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
 
 import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.bregman.output.CSVOutput;
-import mosaic.bregman.output.CSVOutput.RT3DRegion;
+import mosaic.bregman.output.CSVOutput.Region3DTrack;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -76,6 +76,8 @@ public class Analysis {
 		p.ni=img2.getWidth();
 		p.nj=img2.getHeight();
 		p.nz=img2.getNSlices();
+		
+		int f = img2.getFrame();
 
 		//		IJ.log("creating a");
 		imgA=new ImagePlus();
@@ -85,7 +87,7 @@ public class Analysis {
 
 		//channel 1
 		for (int z=0; z<p.nz; z++){  
-			img2.setPosition(1,z+1,1);
+			img2.setPosition(1,z+1,f);
 			ImageProcessor impt;
 			if(bits==32)
 				impt=img2.getProcessor().convertToShort(false);
@@ -103,7 +105,7 @@ public class Analysis {
 
 		//channel 2
 		for (int z=0; z<p.nz; z++){  
-			img2.setPosition(2,z+1,1);	
+			img2.setPosition(2,z+1,f);	
 			ImageProcessor impt;
 			if(bits==32)
 				impt=img2.getProcessor().convertToShort(false);
@@ -113,7 +115,6 @@ public class Analysis {
 		}
 
 		imgB.setStack(img2.getTitle(),imgb_s);
-
 		setimageb();
 		//imgB.setTitle("B2");
 //		if(p.dispwindows){
@@ -126,23 +127,26 @@ public class Analysis {
 
 	}
 
-	public static Vector<RT3DRegion> getObjectsList()
+	public static Vector<Region3DTrack> getObjectsList(int f)
 	{
-		Vector<RT3DRegion> rg = new Vector<RT3DRegion>();
+		Vector<Region3DTrack> rg = new Vector<Region3DTrack>();
 		CSVOutput csv = new CSVOutput();
+		
+		if (regionslistA == null)
+			return new Vector<Region3DTrack>();
 		
 		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) 
 		{	
-			RT3DRegion pt_p = csv.new RT3DRegion();
+			Region3DTrack pt_p = csv.new Region3DTrack();
 			Region r = it.next(); 
 			
+			pt_p.setFrame(f);
 			pt_p.setx(r.cx);
 			pt_p.sety(r.cy);
 			pt_p.setz(r.cz);
 			pt_p.setIntensity(r.intensity);
 			pt_p.setSize(r.rsize);
 			pt_p.setSurface(Tools.round(r.perimeter,3));
-			pt_p.setLenght(r.length);
 			
 			rg.add(pt_p);
 		}
@@ -156,13 +160,15 @@ public class Analysis {
 		p.nj=img2.getHeight();
 		p.nz=img2.getNSlices();
 
+		int f = img2.getFrame();
+		
 		imgA=new ImagePlus();
 
 		ImageStack imga_s= new ImageStack(p.ni,p.nj);
 		int bits = img2.getBitDepth();
 		//channel 1
 		for (int z=0; z<p.nz; z++){  
-			img2.setPosition(1,z+1,1);	
+			img2.setPosition(1,z+1,f);	
 			ImageProcessor impt;
 			if(bits==32)
 				impt=img2.getProcessor().convertToShort(false);

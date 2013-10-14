@@ -27,7 +27,7 @@ import org.supercsv.cellprocessor.ift.CellProcessor;
 
 import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.bregman.output.CSVOutput;
-import mosaic.bregman.output.CSVOutput.RT3DRegion;
+import mosaic.bregman.output.CSVOutput.Region3DTrack;
 import mosaic.core.ipc.InterPluginCSV;
 
 public class BLauncher 
@@ -36,7 +36,7 @@ public class BLauncher
 	public  int hcount=0;
 	public  String headlesscurrent;
 	PrintWriter out;
-	PrintWriter out2;
+//	PrintWriter out2;
 	PrintWriter out3;
 	String wpath;
 	ImagePlus aImp;
@@ -61,10 +61,17 @@ public class BLauncher
 	}
 
 	public BLauncher(ImagePlus aImp_)
-	{
+	{		
 		wpath = null;
 		aImp = aImp_;
-		Headless_file();
+		
+		// Check if we have more than one frame
+		
+		for (int f = 1 ; f <= aImp.getNFrames(); f++)
+		{
+			aImp.setPosition(aImp.getChannel(),aImp.getSlice(),f);
+			Headless_file();
+		}
 	}
 	
 	public void Headless_file()
@@ -121,7 +128,7 @@ public class BLauncher
 					//IJ.log("looking for files at " + wpath);
 					out  = new PrintWriter(savepath+"_ImagesData"+ ".csv");
 					//out2 = new PrintWriter(savepath+"_Xdata"+ ".csv");
-					out2 = new PrintWriter(savepath+"_ObjectsData_c1"+ ".csv");
+//					out2 = new PrintWriter(savepath+"_ObjectsData_c1"+ ".csv");
 					out3 = new PrintWriter(savepath+"_ObjectsData_c2"+ ".csv");
 					//out3 = new PrintWriter(savepath+"_Ydata"+ ".csv");
 					//PrintWriter out = new PrintWriter(dir1.replaceAll("/", "_") + ".csv");
@@ -178,7 +185,7 @@ public class BLauncher
 					out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch1"  +";" + "Mean surface in ch1"  +";"+ "Mean length in ch1");
 					out.println();
 					
-					out2 = new PrintWriter(savepath+"_ObjectsData"+ ".csv");
+/*					out2 = new PrintWriter(savepath+"_ObjectsData"+ ".csv");
 
 
 					if(Analysis.p.nz>1){
@@ -194,7 +201,7 @@ public class BLauncher
 						out2.flush();					
 					}
 
-					out2.flush();
+					out2.flush();*/
 				}
 			}
 			//IJ.log("single file start headless");
@@ -307,7 +314,7 @@ public class BLauncher
 				//IJ.log(savepath);
 				//				IJ.log("1");
 				out  = new PrintWriter(wpath+savepath+"_ImageData"+ ".csv");
-				out2 = new PrintWriter(wpath+savepath+"_ObjectsData_c1"+ ".csv");
+//				out2 = new PrintWriter(wpath+savepath+"_ObjectsData_c1"+ ".csv");
 				out3 = new PrintWriter(wpath+savepath+"_ObjectsData_c2"+ ".csv");
 
 
@@ -728,7 +735,7 @@ public class BLauncher
 				out.println();
 				out.flush();
 				
-				Analysis.printobjectsA(out2, hcount);
+//				Analysis.printobjectsA(out2, hcount);
 				Analysis.printobjectsB(out3, hcount);
 				out3.flush();
 			}
@@ -834,16 +841,23 @@ public class BLauncher
 				}
 
 				//IJ.log("print objects");
-				Analysis.printobjects(out2, hcount);
+//				Analysis.printobjects(out2, hcount);
 				
-//				Vector<RT3DRegion> obl = Analysis.getObjectsList();
+				CSVOutput.initCSV();
 				
-//				InterPluginCSV<RT3DRegion> IpCSV = new InterPluginCSV<RT3DRegion>();
+				boolean append = false;
 				
-//				IpCSV.Write(savepath+"_ObjectsData_c1"+ ".csv", obl, CSVOutput.processors_3D_regT, CSVOutput.Field_Mapping_3D_regT);
+				if (hcount != 0)
+					append = true;
+					
+				Vector<CSVOutput.Region3DTrack> obl = Analysis.getObjectsList(hcount);
+				
+				InterPluginCSV<CSVOutput.Region3DTrack> IpCSV = new InterPluginCSV<CSVOutput.Region3DTrack>();
+				
+				IpCSV.Write(savepath+"_ObjectsData_c1"+ ".csv", obl, CSVOutput.Region3DCellProcessor, CSVOutput.Region3DTrack_map,append);
 				
 				//IJ.log("print objects done");
-				out2.flush();
+//				out2.flush();
 			}
 
 
@@ -1094,13 +1108,13 @@ public class BLauncher
 		if(Analysis.p.save_images){
 			if(Analysis.p.nchannels==2){
 				out.close();
-				out2.close();
+//				out2.close();
 				out3.close();
 			}
 			else
 			{
 				if(out!=null) out.close();
-				out2.close();
+//				out2.close();
 			}
 		}
 	}
