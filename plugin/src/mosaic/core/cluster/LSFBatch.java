@@ -4,7 +4,6 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.sun.corba.se.impl.orbutil.concurrent.Mutex;
 
 import mosaic.core.cluster.JobStatus.jobS;
 
@@ -190,6 +189,7 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 					}
 				}
 			}
+			System.out.println("Parsing: " + elements[i] + "  nele_parsed: " + nele_parsed);
 		}
 		
 		if (unparse_last == true)
@@ -285,5 +285,12 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 				e.printStackTrace();
 			}
 		}
+		try {
+		Thread.sleep(100);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("Send Command");
 	}
 }
