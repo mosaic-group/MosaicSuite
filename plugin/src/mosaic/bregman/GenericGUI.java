@@ -542,7 +542,10 @@ public class GenericGUI {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			ss.runPluginsOnFrames(aImp, "", 60.0);
+			
+			String out[] = {"*_ObjectsData.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.tif","*.tif"};
+			
+			ss.runPluginsOnFrames(aImp, "", out, 180.0);
 		}
 		
 		//Analysis.load2channels(imagePlus);

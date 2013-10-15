@@ -1,11 +1,18 @@
 package mosaic.core.cluster;
 
+import ij.IJ;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Scanner;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 import mosaic.core.cluster.JobStatus.jobS;
+import mosaic.core.utils.ShellCommand;
 
 
 class LSFBatch implements BatchInterface, ShellProcessOutput
@@ -15,6 +22,8 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 	LSFJob [] jb;
 	String script;
 	ClusterProfile cp;
+	int nJobs = 0;
+	String lDir;
 	
 	class LSFJob extends JobStatus
 	{
@@ -56,6 +65,7 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 		"#BSUB -q short \n" +
 		"#BSUB -n 4 \n" +
 		"#BSUB -J \"" + session_id + "[1-" + njob  + "]\" \n" +
+		"#BSUB -R span[hosts=1]" +
 		"#BSUB -o " + session_id + ".out.%J \n" +
 		"\n" +
 		"echo \"running " + script + " on index $LSB_JOBINDEX\" \n" +
@@ -77,9 +87,15 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 		return new String("bjobs " + AJobID);
 	}
 	
-	public JobStatus [] createJobStatus(int n)
+	/**
+	 * 
+	 * Create an array of jobs
+	 * 
+	 */
+	
+	public void createJobStatus()
 	{
-		return new LSFJob[n];
+		jb = new LSFJob[nJobs];
 	}
 	
 	public int jobArrayID(String aID)
@@ -141,6 +157,25 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 		
 		for (int i = 0 ; i < nele ; i++)
 		{
+			if (elements[i].equals("Job <" + AJobID + "> is not found\r"))
+			{
+				nele_parsed = nJobs;
+				
+				for (int j = 0 ; j < jobs.length ; j++)
+				{
+					jobs[j] = new LSFJob();
+					jobs[j].job_id = ((Integer)AJobID).toString();
+					jobs[j].stat = null;
+					jobs[j].setStatus(jobS.UNKNOWN);
+					jobs[j].user = null;
+					jobs[j].queue = null;
+					jobs[j].job_name = null;
+					jobs[j].Sub_time = null;
+				}
+				
+				return "";
+			}
+			
 			Vector<String> vt = new Vector<String>();
 			String [] sub_elements = elements[i].split(" ");
 			for (int j = 0 ; j < sub_elements.length ; j++)
@@ -188,8 +223,30 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 						nele_parsed++;
 					}
 				}
+				else if (jobArrayStatus(vt.get(2)) == jobS.UNKNOWN)
+				{
+					if (vt.size() < 6)
+						continue;
+					
+					ja_id = jobArrayID(vt.get(5));
+					ja_id = ja_id -1;
+					if (ja_id >= 0)
+					{
+						jobs[ja_id] = new LSFJob();
+						jobs[ja_id].job_id = new String(vt.get(0));
+						jobs[ja_id].stat = new String(vt.get(2));
+						jobs[ja_id].setStatus(jobArrayStatus(vt.get(2)));
+						jobs[ja_id].user = new String(vt.get(1));
+						jobs[ja_id].queue = new String (vt.get(3));
+						jobs[ja_id].job_name = new String(vt.get(5));
+						jobs[ja_id].Sub_time = new String(vt.get(6));
+						nele_parsed++;
+					}
+				}
 			}
-			System.out.println("Parsing: " + elements[i] + "  nele_parsed: " + nele_parsed);
+			
+			System.out.println("Parsing: " + elements[i]);
+			System.out.println(" nele_parsed: " + nele_parsed);
 		}
 		
 		if (unparse_last == true)
@@ -250,11 +307,17 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 		}
 		else if (tp == OutputType.LAUNCH)
 		{
-			AJobID = parseJobID(str);
-			if (AJobID == 0)
+			System.out.println(str);
+			int tmp = parseJobID(str);
+			if (tmp == 0)
 				return str;
 			else
+			{
+				if (AJobID == 0)
+					AJobID = tmp;
+				System.out.println("get Job ID  " + AJobID);
 				return "";
+			}
 		}
 		return "";
 	}
@@ -272,11 +335,11 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 	
 	int nele_parsed = 0;
 	
-	public void waitParsing(int np)
+	public void waitParsing()
 	{
 		// Ugly but work
 		
-		while (nele_parsed < np)
+		while (nele_parsed < nJobs)
 		{
 			try {
 				Thread.sleep(100);
@@ -292,5 +355,146 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 			e.printStackTrace();
 		}
 		System.out.println("Send Command");
+	}
+
+	private boolean loadDir(String dir,SecureShellSession ss, ClusterProfile cp_)
+	{
+		String tmp_dir = IJ.getDirectory("temp");
+		File [] fl = new File[1];
+		
+		fl[0] = new File(dir + "/JobID");
+		
+		Process tProcess;
+		try 
+		{	
+			ShellCommand.exeCmdNoPrint("mkdir " + tmp_dir);	
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if (ss.download(cp.getPassword(), fl, new File(tmp_dir), null) == false)
+		{
+			return false;
+		}
+		
+	     //Z means: "The end of the input but for the final terminator, if any"
+        String output = null;
+		try 
+		{
+			output = new Scanner(new File(tmp_dir + File.separator + "JobID")).useDelimiter("\\Z").next();
+		} 
+		catch (FileNotFoundException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		
+		String s[] = output.split(" ");
+		
+		AJobID = Integer.parseInt(s[0]);
+		nJobs = Integer.parseInt(s[1]);
+		tp = OutputType.STATUS;
+		cp = cp_;
+		lDir = dir;
+		
+		return true;
+	}
+	
+	/**
+	 * 
+	 * Get all jobs running on the cluster
+	 * 
+	 * @param ss Shell channel
+	 * 
+	 * @return List of Batch Interfaces
+	 * 
+	 */
+	
+	@Override
+	public BatchInterface[] getAllJobs(SecureShellSession ss) 
+	{
+		int n_b = 0;
+		String[] dirs = ss.getDirs(cp.getRunningDir());
+		
+		Vector<LSFBatch> bc_v = new Vector<LSFBatch>();
+		
+		for (int i = 0 ; i < dirs.length ; i++)
+		{
+			LSFBatch tmp = new LSFBatch(cp);
+			
+			if (tmp.loadDir(cp.getRunningDir() + dirs[i],ss,cp) == false)
+			{
+				continue;
+			}
+			n_b++;
+			bc_v.add(tmp);
+		}
+		
+		LSFBatch[] bc_a = new LSFBatch[bc_v.size()];
+		bc_v.toArray(bc_a);
+		
+		return bc_a;
+	}
+
+	/**
+	 * 
+	 * Return the JobStatus for the associated Jobs array
+	 * 
+	 */
+	
+	@Override
+	public JobStatus[] getJobsStatus() 
+	{
+		// TODO Auto-generated method stub
+		return jb;
+	}
+
+	/**
+	 * 
+	 * Get number of jobs of the associated job array
+	 * 
+	 */
+	
+	@Override
+	public int getNJobs() 
+	{
+		// TODO Auto-generated method stub
+		return nJobs;
+	}
+
+	/**
+	 * 
+	 * Clean the Job array directory
+	 * 
+	 */
+	
+	@Override
+	public void clean(SecureShellSession ss)
+	{
+		// TODO Auto-generated method stub
+		
+		
+		String [] commands = new String[1];
+		commands[0] = new String("rm -rf " + lDir);
+	
+		ss.runCommands(cp.getPassword(), commands);
+	}
+
+	/**
+	 * 
+	 * Get the working directory for this job array
+	 * 
+	 */
+	
+	@Override
+	public String getDir() 
+	{
+		// TODO Auto-generated method stub
+		return lDir;
 	}
 }

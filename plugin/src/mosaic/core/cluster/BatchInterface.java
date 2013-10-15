@@ -13,11 +13,16 @@ interface BatchInterface extends ShellProcessOutput
 	public String runCommand(String tdir);
 	public String getScript(String img_script_, String batch_script , String session_id, int njob);
 	public int getJobID();
-	public JobStatus [] createJobStatus(int n);
+	public void createJobStatus();
 	public String statusJobCommand();
 	void setJobStatus(JobStatus [] jb_);
 	void setOutputType(OutputType tp);
-	public void waitParsing(int np);
+	public void waitParsing();
 	public void reset();
 	JobStatus[] getJobStatus();
+	public BatchInterface[] getAllJobs(SecureShellSession ss);
+	public int getNJobs();
+	public JobStatus[] getJobsStatus();
+	public void clean(SecureShellSession ss);
+	public String getDir();
 }

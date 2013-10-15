@@ -83,6 +83,57 @@ public class SecureShellSession implements Runnable
 		shp = prc_;
 	}
 	
+	/**
+	 * 
+	 * Get all the directory inside Directory
+	 * 
+	 * @param Directory 
+	 * 
+	 * @return All directories 
+	 */
+	
+	public String[] getDirs(String Directory)
+	{
+		Vector<String> vs = new Vector<String>();
+		try 
+		{
+			createSftpChannel();
+			
+			Vector<ChannelSftp.LsEntry> list = cSFTP.ls(Directory);
+			
+			for(ChannelSftp.LsEntry entry : list) 
+			{
+			    if (entry.getAttrs().isDir() == true)
+			    {
+			    	vs.add(entry.getFilename());
+			    }
+			}
+		} 
+		catch (SftpException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSchException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		String out[] = new String[vs.size()];
+		vs.toArray(out);
+		return out;
+	}
+	
+	/**
+	 * 
+	 * Check if exist a directory
+	 * 
+	 * @param Directory
+	 * @return
+	 */
+	
 	public boolean checkDirectory(String Directory)
 	{
 		try 
@@ -222,11 +273,68 @@ public class SecureShellSession implements Runnable
 	
 	/**
 	 * 
-	 * run a sequence of SSH commands
+	 * run a sequence of SFTP commands to downloads files
+	 * @param pwd password to access the sftp session
+	 * @param files to transfert locally (Absolute path)
+	 * @param dir Directory where to download
+	 * @param wp (Optional) Progress bar window
+	 * 
+	 */
+	public boolean download(String pwd, File files[], File dir,ProgressBarWin wp)	
+	{
+		boolean ret = true;
+		
+		try
+		{
+			createSftpChannel();
+		
+		    for (int i = 0 ; i < files.length ; i++)
+		    {
+		    	try
+		    	{		    	
+		    		String absolutePath = files[i].getPath();
+		    		String filePath = absolutePath.
+		    			substring(0,absolutePath.lastIndexOf(File.separator));
+		    	
+		    		tdir = filePath + File.separator;
+		    		cSFTP.cd(tdir);
+		    
+		    		if(wp != null)
+		    			wp.SetProgress(100*i/files.length);
+		    	
+		    		cSFTP.get(files[i].getName(),dir.getAbsolutePath() + File.separator + files[i].getName());
+		    	}
+				catch (SftpException e) 
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					ret = false;
+				}
+		    }
+		}
+		catch (JSchException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			ret = false;
+		}  
+		catch (IOException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			ret = false;
+		}
+
+		return ret;
+	};
+	
+	/**
+	 * 
+	 * run a sequence of SFTP commands to upload files
 	 * @param pwd password to access the sftp session
 	 * @param files to transfert
 	 */
-	public boolean transfert(String pwd, File files[], ProgressBarWin wp)	
+	public boolean upload(String pwd, File files[], ProgressBarWin wp)	
 	{
 		Random grn = new Random();
 		
@@ -311,7 +419,7 @@ public class SecureShellSession implements Runnable
 	{
 		byte out[] = null;
 		
-		out = new byte[1024];
+		out = new byte[1025];
 		String sout = new String();
 		
 		while (true)
@@ -322,14 +430,18 @@ public class SecureShellSession implements Runnable
 				if (len == 0)
 				{
 					poutput_in.read(out,0,1);
-					sout += Character.toString((char)out[0]);
+					if (out[0] != 0)
+						sout += new String(out,0,1,"UTF-8");
 				}
 				else
 				{
-					for (int i = 0 ; i < 1024 ; i++)
+					for (int i = 0 ; i < out.length ; i++)
 					{out[i] = 0;}
+					if (len >= out.length-1)
+						len = out.length-1;
 					poutput_in.read(out,0,len);
-					sout += new String(out);
+					String tmp = new String(out,0,len,"UTF-8");
+					sout += tmp;
 				}
 			}
 			catch (IOException e) 
