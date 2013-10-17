@@ -543,8 +543,7 @@ public class GenericGUI {
 				e.printStackTrace();
 			}
 			
-			String out[] = {"*_ObjectsData.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.tif","*.tif"};
-			
+			String out[] = {"*_ObjectsData.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip","*.tif"};
 			ss.runPluginsOnFrames(aImp, "", out, 180.0);
 		}
 		

@@ -15,6 +15,7 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 
 import mosaic.core.GUI.ProgressBarWin;
+import mosaic.core.utils.Compressor;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
@@ -36,7 +37,7 @@ import java.io.File;
  *
  */
 
-public class SecureShellSession implements Runnable
+public class SecureShellSession implements Runnable, ShellProcessOutput
 {
 	ShellProcessOutput shp;
 	PipedInputStream pinput_in;
@@ -330,11 +331,65 @@ public class SecureShellSession implements Runnable
 	
 	/**
 	 * 
+	 * Find the common prefix in the array and delete it from File array
+	 * 
+	 * @param f Set of file
+	 * @return the common prefix
+	 */
+	
+	File findCommonPathAndDelete(File f[])
+	{		
+		File common = findCommonPath(f);
+		
+		int l = common.getAbsolutePath().length() + 1;
+		
+		for (int i = 0 ; i < f.length ; i++)
+		{
+			f[i] = new File(f[i].getAbsolutePath().substring(l, f[i].getAbsolutePath().length()));
+		}
+		
+		return common;
+	}
+	
+	/**
+	 * 
+	 * Find the common prefix in the array
+	 * 
+	 * @param f Set of file
+	 * @return the common prefix
+	 */
+	
+	File findCommonPath(File f[])
+	{
+		String common = f[0].getAbsolutePath();
+		for (int i = 1 ; i < f.length ; i++)
+		{
+			int j;
+			int minLength = Math.min(common.length(), f[i].getAbsolutePath().length());
+			for (j = 0; j < minLength; j++) 
+			{
+				if (common.charAt(j) != f[i].getAbsolutePath().charAt(j)) 
+				{
+					break;
+			    }
+			}
+			common = common.substring(0, j);
+		}
+		
+		common = common.substring(0, common.lastIndexOf("/")+1);
+		
+		return new File(common);
+	}
+	
+	/**
+	 * 
 	 * run a sequence of SFTP commands to upload files
 	 * @param pwd password to access the sftp session
-	 * @param files to transfert
+	 * @param files to transfer
+	 * @param wp Progress window bar can be null
+	 * @param cp Cluster profile (Optional) can be null
 	 */
-	public boolean upload(String pwd, File files[], ProgressBarWin wp)	
+	public boolean upload(String pwd, File files[], ProgressBarWin wp, ClusterProfile cp)	
 	{
 		Random grn = new Random();
 		
@@ -342,6 +397,19 @@ public class SecureShellSession implements Runnable
 		{
 			createSftpChannel();
 		
+			// Create a Compressor
+			
+/*			Compressor cmp = new Compressor();
+			if (cp != null)
+			{
+				
+				cmp.selectCompressor();
+				while (cp.hasCompressor(cmp.getCompressor()) == false)
+				{
+					cmp.nextCompressor();
+				}
+			}*/
+			
 		    if (tdir == null)
 		    {
 		    	tdir = new String(cprof.getRunningDir()+"/");
@@ -358,13 +426,50 @@ public class SecureShellSession implements Runnable
 		    	cSFTP.cd(tdir);
 		    }
 		    
-		    for (int i = 0 ; i < files.length ; i++)
-		    {
-		    	if(wp != null)
-		    		wp.SetProgress(100*i/files.length);
+		    
+/*		    if (cmp.getCompressor() == null)
+		    {*/
+		    	for (int i = 0 ; i < files.length ; i++)
+		    	{
+		    		if(wp != null)
+		    			wp.SetProgress(100*i/files.length);
 		    	
-		    	cSFTP.put(files[i].getAbsolutePath(), files[i].getName());
-		    }
+		    		cSFTP.put(files[i].getAbsolutePath(), files[i].getName());
+		    	}
+/*		    }
+		    else
+		    {
+		    	wp.SetStatusMessage("Compressing data");
+		    	File start_dir = findCommonPathAndDelete(files);
+		    	cmp.Compress(start_dir,files, new File(start_dir + File.separator + files[0].getPath() + "_compressed"));
+		    	
+		    	wp.SetProgress(33);
+		    	wp.SetStatusMessage("Uploading");
+		    	cSFTP.put(start_dir + File.separator + files[0].getPath() + "_compressed", files[0].getName() + "_compressed");
+		    	
+		    	wp.SetProgress(66);
+		    	wp.SetStatusMessage("Decompressing Data");
+		    	
+		    	createSSHChannel();
+
+		    	String s = cmp.unCompressCommand(new File(tdir + files[0].getName() + "_compressed"));
+		    	s += " | echo \"JSCH REMOTE COMMAND\"; echo \"COMPRESSION END\"";
+				waitString = new String("JSCH REMOTE COMMAND\nCOMPRESSION END");
+				ShellProcessOutput stmp = shp;
+				setShellProcessOutput(this);
+				
+				pinput_out.write(s.getBytes());
+				
+				// Ugly but work;
+				
+				computed = false;
+				while (computed == false) 
+				{try {Thread.sleep(100);}
+				catch (InterruptedException e) 
+				{e.printStackTrace();}}
+				
+				setShellProcessOutput(stmp);
+		    }*/
 		}
 		catch (JSchException e) 
 		{
@@ -383,9 +488,6 @@ public class SecureShellSession implements Runnable
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-	    java.io.InputStream in=System.in;
-	    java.io.PrintStream out=System.out;
 		
 		return true;
 	};
@@ -453,5 +555,20 @@ public class SecureShellSession implements Runnable
 			if (shp != null)
 				sout = shp.Process(sout);
 		}
+	}
+
+	boolean computed = false;
+	String waitString;
+	
+	@Override
+	public String Process(String str) 
+	{
+		
+		if (str.contains(waitString))
+		{
+			computed = true;
+			return "";
+		}
+		return str;
 	}
 }

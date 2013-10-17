@@ -2,6 +2,8 @@ package mosaic.core.cluster;
 
 import java.util.Vector;
 
+import mosaic.core.utils.Compressor.Algorithm;
+
 
 public class GeneralProfile implements ClusterProfile
 {
@@ -146,5 +148,25 @@ public class GeneralProfile implements ClusterProfile
 	public BatchInterface getBatchSystem() 
 	{
 		return bc;
+	}
+
+	Vector<Algorithm> alc;
+	
+	@Override
+	public void setCompressor(Algorithm a) 
+	{
+		alc.add(a);
+	}
+	
+	@Override
+	public boolean hasCompressor(Algorithm a) 
+	{
+		for (int i = 0 ; i < alc.size() ; i++)
+		{
+			if (alc.get(i) == a)
+				return true;
+		}
+		
+		return true;
 	}
 }

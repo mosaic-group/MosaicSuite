@@ -16,10 +16,10 @@ class ClusterStatusStack
 		if (js == null)
 		{
 			ip = new ColorProcessor(200,50);
-			ip.setColor(new Color(255,255,255));
+			ip.setColor(new Color(0,0,255));
 			ip.fill();
 			ip.setColor(new Color(0,0,0));
-			ip.drawString("SUBMITTING",10, 25);
+			ip.drawString("UNKNOWN",10, 25);
 		}
 		else if (js.getStatus() == jobS.PENDING)
 		{

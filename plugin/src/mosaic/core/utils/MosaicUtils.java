@@ -3,9 +3,11 @@ package mosaic.core.utils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Scanner;
 
 import mosaic.bregman.Analysis;
 
@@ -16,6 +18,32 @@ import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
 public class MosaicUtils {
+	
+	/**
+	 * 
+	 * Read the a CSV file and split
+	 * 
+	 * @param file
+	 * @return parameters as String
+	 */
+	
+	public static String[] readAndSplit(String file)
+	{
+	     //Z means: "The end of the input but for the final terminator, if any"
+        String output = null;
+		try 
+		{
+			output = new Scanner(new File(file)).useDelimiter("\\Z").next();
+		} 
+		catch (FileNotFoundException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+		
+		return output.split(" ");
+	}
 	
 	/**
 	 * 

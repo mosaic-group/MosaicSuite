@@ -36,6 +36,34 @@ public class ShellCommand
 	
 	/**
 	 * 
+	 * Execute a command and get output as String
+	 * 
+	 * @param cmd
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	
+	public static String exeCmdString(String cmd) throws IOException, InterruptedException
+	{
+		int lp = 0;
+		Process tProcess = Runtime.getRuntime().exec(cmd);
+
+		BufferedReader stdInput = new BufferedReader (new InputStreamReader(tProcess.getInputStream()));
+		
+		String out = new String();
+		String s = null;
+		while ((s = stdInput.readLine()) != null)
+		{
+			System.out.println(s);
+			out += s;
+		}
+		
+		tProcess.waitFor();
+		return out;
+	}
+	
+	/**
+	 * 
 	 * Execute a command and print
 	 * 
 	 * @param cmd
@@ -75,6 +103,8 @@ public class ShellCommand
 	{
 		int lp = 0;
 		Map<String,String> envi = System.getenv();
+		if (env == null)
+			env = new String[0];
 		String[] envi_p_env = new String[envi.size()+env.length];
 		
 		int i = 0;

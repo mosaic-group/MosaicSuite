@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 
 import mosaic.core.cluster.JobStatus.jobS;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 
 
@@ -58,11 +59,11 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 	}
 	
 	@Override
-	public String getScript(String img_script_, String batch_script , String session_id, int njob) 
+	public String getScript(String img_script_, String batch_script , String session_id, double ext, int njob) 
 	{
 		script = session_id;
 		return new String("#!/bin/bash \n" +
-		"#BSUB -q short \n" +
+		"#BSUB -q " + cp.getQueue(ext) + "\n" +
 		"#BSUB -n 4 \n" +
 		"#BSUB -J \"" + session_id + "[1-" + njob  + "]\" \n" +
 		"#BSUB -R span[hosts=1]" +
@@ -337,9 +338,11 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 	
 	public void waitParsing()
 	{
+		int ntime = 0;
+		
 		// Ugly but work
 		
-		while (nele_parsed < nJobs)
+		while (nele_parsed < nJobs && ntime < 100)
 		{
 			try {
 				Thread.sleep(100);
@@ -347,6 +350,7 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			ntime++;
 		}
 		try {
 		Thread.sleep(100);
@@ -356,7 +360,7 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 		}
 		System.out.println("Send Command");
 	}
-
+	
 	private boolean loadDir(String dir,SecureShellSession ss, ClusterProfile cp_)
 	{
 		String tmp_dir = IJ.getDirectory("temp");
@@ -381,20 +385,7 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 			return false;
 		}
 		
-	     //Z means: "The end of the input but for the final terminator, if any"
-        String output = null;
-		try 
-		{
-			output = new Scanner(new File(tmp_dir + File.separator + "JobID")).useDelimiter("\\Z").next();
-		} 
-		catch (FileNotFoundException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
-		
-		String s[] = output.split(" ");
+		String s[] = MosaicUtils.readAndSplit(tmp_dir + File.separator + "JobID");
 		
 		AJobID = Integer.parseInt(s[0]);
 		nJobs = Integer.parseInt(s[1]);

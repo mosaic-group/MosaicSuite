@@ -18,11 +18,24 @@ abstract class JobStatus
 	private jobS js;
 	private jobS js_N;
 	
+	static int countComplete(JobStatus jb[])
+	{
+		int ncc = 0;
+		
+		for (int i = 0 ; i < jb.length ; i++)
+		{
+			if (jb[i] == null || jb[i].getStatus() == jobS.COMPLETE || jb[i].getStatus() == jobS.UNKNOWN  || jb[i].getStatus() == jobS.FAILED )
+				ncc++;
+		}
+		
+		return ncc;
+	}
+	
 	static boolean allComplete(JobStatus jb[])
 	{
 		for (int i = 0 ; i < jb.length ; i++)
 		{
-			if (jb[i] == null || (jb[i].getStatus() != jobS.COMPLETE && jb[i].getStatus() != jobS.UNKNOWN  && jb[i].getStatus() != jobS.FAILED))
+			if (jb[i] != null && (jb[i].getStatus() != jobS.COMPLETE && jb[i].getStatus() != jobS.UNKNOWN  && jb[i].getStatus() != jobS.FAILED))
 			{
 				return false;
 			}

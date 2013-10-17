@@ -11,7 +11,7 @@ enum OutputType
 interface BatchInterface extends ShellProcessOutput
 {
 	public String runCommand(String tdir);
-	public String getScript(String img_script_, String batch_script , String session_id, int njob);
+	public String getScript(String img_script_, String batch_script , String session_id, double Ext, int njob);
 	public int getJobID();
 	public void createJobStatus();
 	public String statusJobCommand();

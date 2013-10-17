@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import mosaic.core.cluster.LSFBatch;
 import mosaic.core.cluster.JobStatus.jobS;
 import mosaic.core.cluster.LSFBatch.LSFJob;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 
 import mosaic.core.GUI.ProgressBarWin;
@@ -68,7 +69,7 @@ public class ClusterSession
 	 * 
 	 */
 	
-	private void createJobArrayFromImage(ImagePlus img, SecureShellSession ss, ProgressBarWin wp)
+	private void createJobArrayFromImage(ImagePlus img, SecureShellSession ss, double Ext, ProgressBarWin wp)
 	{
 		if (img == null)
 		{nImages = 0; return;}
@@ -116,7 +117,7 @@ public class ClusterSession
 		wp.SetProgress(0);
 		wp.SetStatusMessage("Uploading...");
 	
-		if (ss.upload(cp.getPassword(),fl,wp) == false)
+		if (ss.upload(cp.getPassword(),fl,wp,cp) == false)
 		{
 			CleanUp();
 		}
@@ -135,7 +136,7 @@ public class ClusterSession
 				"cd plugins",
 				"mkdir Mosaic_ToolSuite",
 				"cd Mosaic_ToolSuite",
-				"wget mosaic.mpi-cbg.de/Downloads/Mosaic_ToolSuite.jar"};
+				"wget mosaic.mpi-cbg.de/Downloads/Mosaic_ToolSuite_for_cluster.jar"};
 	
 	
 			ss.runCommands(cp.getPassword(), CommandL);
@@ -154,7 +155,7 @@ public class ClusterSession
 		// Create the batch script if required and upload it
 	
 		String run_s = cp.getRunningDir() + ss.getSession_id() + "/" + ss.getSession_id() + ".ijm";
-		String scr = bc.getScript(run_s,cp.getRunningDir() + ss.getSession_id() + "/" + ss.getSession_id(),ss.getSession_id(),nImages);
+		String scr = bc.getScript(run_s,cp.getRunningDir() + ss.getSession_id() + "/" + ss.getSession_id(),ss.getSession_id(),Ext,nImages);
 		if (scr != null)
 		{
 			PrintWriter out;
@@ -176,7 +177,7 @@ public class ClusterSession
 				fll[0] = new File(tmp_dir + ss.getSession_id());
 				fll[1] = new File(tmp_dir + "spb_settings.dat");
 				fll[2] = new File(tmp_dir + ss.getSession_id() + ".ijm");
-				ss.upload(cp.getPassword(),fll,null);
+				ss.upload(cp.getPassword(),fll,null,null);
 			} 
 			catch (FileNotFoundException e) 
 			{
@@ -187,8 +188,9 @@ public class ClusterSession
 	
 		// run the command
 	
+		wp.SetProgress(0);
 		wp.SetStatusMessage("Running...");
-	
+
 		String [] commands = new String[2];
 		commands[0] = new String("cd " + ss.getTransfertDir());
 		commands[1] = bc.runCommand(ss.getTransfertDir());
@@ -225,7 +227,7 @@ public class ClusterSession
 			File fll[] = new File[1];
 			fll[0] = new File(tmp_dir + "JobID");
 			
-			ss.upload(cp.getPassword(),fll,null);
+			ss.upload(cp.getPassword(),fll,null,null);
 		} 
 		catch (FileNotFoundException e) 
 		{
@@ -242,7 +244,7 @@ public class ClusterSession
 	 * 
 	 */
 	
-	String[] getJobDirectories()
+	String[] getJobDirectories(final int JobID)
 	{
 		final String tmp_dir = IJ.getDirectory("temp");
 		
@@ -261,7 +263,17 @@ public class ClusterSession
 				File f = new File(dir, name);
 				if (f.isDirectory() == true && matcher.find())
 				{
-					return true;
+					if (JobID != 0)
+					{
+						if (f.getAbsolutePath().equals(tmp_dir + "Job" + JobID) == true )
+						{
+							return true;
+						}
+						else
+							return false;
+					}
+					else
+						return true;
 				}
 				return false;
 		  }
@@ -282,24 +294,40 @@ public class ClusterSession
 	 * @param output List of output patterns
 	 */
 	
-	void stackVisualize(String output[])
+	void stackVisualize(String output[], int JobID, ProgressBarWin wp)
 	{
-		String directories[] = getJobDirectories();
+		String directories[] = getJobDirectories(JobID);
 		
 		// Visualize all job directory
 		
 		for (int j = 0 ; j < directories.length ; j++)
 		{
-			if (directories[j].endsWith(".tiff") || directories[j].endsWith(".tif") )
+			for (int i = 0; i < output.length ; i++)
 			{
-				File [] fl = new File(directories[j]).listFiles();
-				int nf = fl.length;
-				Opener op = new Opener();
+				if (output[i].endsWith(".tiff") || output[i].endsWith(".tif") || output[i].endsWith(".zip"))
+				{
+					wp.SetStatusMessage("Visualizing " + output[i]);
+					
+					File [] fl = new File(directories[j] + File.separator + output[i].replace("*", "_")).listFiles();
+					int nf = fl.length;
+					Opener op = new Opener();
 				
-				ImagePlus ip = op.openImage(fl[0].getAbsolutePath());
+					if (fl.length != 0)
+					{
+						ImagePlus ip = op.openImage(fl[0].getAbsolutePath());
 				
-				IJ.run("Image Sequence...", "open=" + directories[j] + " starting=1 increment=1 scale=100 file=[] or=[] sort");
-				IJ.run("Stack to Hyperstack...", "order=xyczt(default) channels=" + ip.getNChannels() + " slices=" + ip.getNSlices() + " frames=" + nf + " display=Composite");
+						if (ip == null)
+							continue;
+						
+						int nc = ip.getNChannels();
+						int ns = ip.getNSlices();
+						
+						ip.close();
+						
+						IJ.run("Image Sequence...", "open=" + directories[j] + File.separator + output[i].replace("*","_") + " starting=1 increment=1 scale=100 file=[] or=[] sort");
+						IJ.run("Stack to Hyperstack...", "order=xyczt(default) channels=" + nc + " slices=" + ns + " frames=" + nf + " display=Composite");
+					}
+				}
 			}
 		}
 	}
@@ -311,9 +339,9 @@ public class ClusterSession
 	 * @param output List of output patterns
 	 */
 	
-	void reorganize(String output[])
+	void reorganize(String output[], int JobID ,ProgressBarWin wp)
 	{		
-		String directories[] = getJobDirectories();
+		String directories[] = getJobDirectories(JobID);
 		
 		// reorganize
 		
@@ -329,18 +357,22 @@ public class ClusterSession
 					tProcess = Runtime.getRuntime().exec("mkdir " + directories[i] + "/" + tmp.replace("*","_"));
 					tProcess.waitFor();
 				}
-
+				
 				for (int j = 0 ; j < output.length ; j++)
 				{
 					String tmp = new String(output[j]);
 		
-					int nf = new File(directories[i]).listFiles().length/output.length;
+					wp.SetStatusMessage("organizing " + output[j]);
+					
+					String s[] = MosaicUtils.readAndSplit(directories[i] + File.separator + "JobID");
+					int nf = Integer.parseInt(s[1]);
 					
 					Process tProcess;
 					for (int k = 0 ; k < nf ; k++)
 					{
-						tProcess = Runtime.getRuntime().exec("mv " + directories[i] + "/" + tmp.replace("*","tmp_" + (k+1)) + "   " + directories[i] + "/" + tmp);
+						tProcess = Runtime.getRuntime().exec("mv " + directories[i] + "/" + tmp.replace("*","tmp_" + (k+1)) + "   " + directories[i] + "/" + tmp.replace("*", "_"));
 						tProcess.waitFor();
+						wp.SetProgress(k*100/nf);
 					}
 				}
 			}
@@ -369,14 +401,15 @@ public class ClusterSession
 	void getData(String output[], SecureShellSession ss, ProgressBarWin wp, BatchInterface bc)
 	{
 		String tmp_dir = IJ.getDirectory("temp");
-		File [] fldw = new File[bc.getNJobs() * output.length];
+		File [] fldw = new File[bc.getNJobs() * output.length + 1];
 	
+		fldw[0] = new File(bc.getDir() + File.separator + "JobID");
 		for (int i = 0 ; i < bc.getNJobs() ; i++)
 		{
 			for (int j = 0 ; j < output.length ; j++)
 			{
 				String tmp = new String(output[j]);
-				fldw[i*output.length + j] = new File(bc.getDir() + File.separator + tmp.replace("*","tmp_" + (i+1)) );
+				fldw[i*output.length + j + 1] = new File(bc.getDir() + File.separator + tmp.replace("*","tmp_" + (i+1)) );
 			}
 		}
 	
@@ -415,10 +448,13 @@ public class ClusterSession
 		
 		// Create job array
 		
-		createJobArrayFromImage(img,ss,wp);
+		createJobArrayFromImage(img,ss,ExtTime,wp);
 		BatchInterface bc = cp.getBatchSystem();
 		
 		//
+		
+		wp.SetProgress(0);
+		wp.SetStatusMessage("Getting all jobs ...");
 		
 		BatchInterface bcl[] = bc.getAllJobs(ss);
 		ClusterStatusStack css[] = new ClusterStatusStack[bcl.length];
@@ -437,12 +473,18 @@ public class ClusterSession
 			bcl[j].setJobStatus(bcl[j].getJobStatus());
 		}
 		
+		wp.SetProgress(0);
+		
 		int n_bc = 0;
 		while (n_bc < bcl.length)
 		{
+			double progress = 0.0;
+			double total = 0.0;
 			n_bc = 0;
 			for (int j = 0 ; j < bcl.length ; j++)
 			{
+				if (bcl[j] == null)
+				{n_bc++; continue;}
 				String commands[] = new String[1];
 				commands[0] = bcl[j].statusJobCommand();
 				bcl[j].reset();
@@ -458,28 +500,55 @@ public class ClusterSession
 					css[j].UpdateStack(st[j], bcl[j].getJobStatus());
 					getData(output,ss,wp,bcl[j]);
 					bcl[j].clean(ss);
+					
+					wp.SetProgress(0);
+					wp.SetStatusMessage("Reorganize...");
+					reorganize(output,bcl[j].getJobID(),wp);
+					
+					wp.SetProgress(0);
+					wp.SetStatusMessage("Stack visualize...");
+					stackVisualize(output,bcl[j].getJobID(),wp);
+					
 					bcl[j] = null;
 					break;
 				}
 				css[j].UpdateStack(st[j], bcl[j].getJobStatus());
+				
+				progress += JobStatus.countComplete(bcl[j].getJobsStatus());
+				total += bcl[j].getJobStatus().length;
+			}
 			
+			wp.SetStatusMessage("Computing ...");
+			int p = (int)(progress * 100.0 / total);
+			wp.SetProgress(p);
 			
-				// wait 10 second to send get again the status
+			// wait 10 second to send get again the status
 			
-				try 
-				{
-					Thread.sleep(10000);
-				} 
-				catch (InterruptedException e) 
-				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			try 
+			{
+				Thread.sleep(10000);
+			} 
+			catch (InterruptedException e) 
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		
-		reorganize(output);
-		stackVisualize(output);
+		// It never went online
+		
+		if (bcl.length == 0)
+		{
+			wp.SetProgress(0);
+			wp.SetStatusMessage("Reorganize...");
+			reorganize(output,0,wp);
+		
+			wp.SetProgress(0);
+			wp.SetStatusMessage("Stack visualize...");
+			stackVisualize(output,0,wp);
+		}
+		
+		wp.SetStatusMessage("End");
 	}
 	
 	public void runPluginsOnImages(ImagePlus img[], String options, double ExtTime)

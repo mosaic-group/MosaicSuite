@@ -1,5 +1,8 @@
 package mosaic.core.cluster;
 
+import mosaic.core.utils.Compressor;
+import mosaic.core.utils.Compressor.Algorithm;
+
 enum hw
 {
 	CPU,
@@ -27,4 +30,6 @@ interface ClusterProfile
 	public void setQueue(double minutes, String name);
 	public BatchInterface getBatchSystem();
 	public void setBatchSystem(BatchInterface bc_);
+	void setCompressor(Algorithm a);
+	boolean hasCompressor(Algorithm a);
 }
