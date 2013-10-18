@@ -68,16 +68,9 @@ public class VisualizationGUI
 		//		gd.addCheckbox("Save object data in .csv file and save images", false);
 		
 		//IJ.log(" la" + Analysis.p.nbconditions);
-		gd.addNumericField("Number of conditions", Analysis.p.nbconditions, 0);
-		
-//		Button bp = new Button("Set names and number of images per condition");
-//		Panel p = new Panel();
-//		p.add(bp);
-//		bp.addActionListener(new PSFOpenerActionListener(gd));
-//		
-//		gd.addPanel(p);
-
 		gd.addMessage("    R script data analysis settings",bf);
+		
+		gd.addNumericField("Number of conditions", Analysis.p.nbconditions, 0);
 		
 		Button rscript = new Button("Set condition names and number of images per condition");
 		Panel p = new Panel();
@@ -113,7 +106,7 @@ public class VisualizationGUI
 		//IJ.log(Analysis.p.wd);
 		//Analysis.p.dispvesicles = false;
 		
-		//Analysis.p.nbgroups=(int) gd.getNextNumber();
+		Analysis.p.nbconditions=(int) gd.getNextNumber();
 	}
 
 

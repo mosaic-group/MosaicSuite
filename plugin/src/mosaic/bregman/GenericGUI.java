@@ -182,7 +182,6 @@ public class GenericGUI {
 		
 		//for rscript generation
 		Analysis.p.initrsettings=true;
-		Analysis.p.nbconditions=1;
 		
 		
 		gd.setInsets(-10,0,3);

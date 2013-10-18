@@ -25,7 +25,7 @@ public class RScriptListener implements ActionListener {
 		nbgroups=new Integer(((TextField) gd.getNumericFields().elementAt(0)).getText());
 		
 		
-		if((nbgroups != Analysis.p.nbconditions) || Analysis.p.initrsettings==true)
+		if( nbgroups > 5 )
 		{
 			
 			Analysis.p.nbimages= new int[nbgroups];

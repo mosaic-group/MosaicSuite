@@ -97,13 +97,13 @@ public class Parameters  implements Serializable
 	public String file1;
 	public String file2;
 	public String file3;
-	public int [] nbimages ={1} ;
-	public String [] groupnames={"Condition " + 1 + " name"};
+	public int [] nbimages ={1,1,1,1,1};//init with size 5, extended if needed in Rscriptlistener
+	public String [] groupnames={"Condition " + 1 + " name","Condition " + 2 + " name",
+			"Condition " + 3 + " name","Condition " + 4 + " name","Condition " + 5 + " name"};
 	public String ch1="channel 1 name";
 	public String ch2="channel 2 name";
 	
-	
-	
+
 	// public double [] [] [] PSF=
 	// {
 	// {
