@@ -366,7 +366,7 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 		String tmp_dir = IJ.getDirectory("temp");
 		File [] fl = new File[1];
 		
-		fl[0] = new File(dir + "/JobID");
+		fl[0] = new File(dir + File.separator + "JobID");
 		
 		Process tProcess;
 		try 
@@ -380,7 +380,10 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 			e.printStackTrace();
 		}
 		
-		if (ss.download(cp.getPassword(), fl, new File(tmp_dir), null) == false)
+		File jid = new File(tmp_dir + "JobID");
+		jid.delete();
+		ss.download(cp.getPassword(), fl, new File(tmp_dir), null,cp);
+		if (jid.exists() == false)
 		{
 			return false;
 		}

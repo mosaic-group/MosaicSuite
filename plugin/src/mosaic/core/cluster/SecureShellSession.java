@@ -24,6 +24,8 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
+import com.jcraft.jsch.SftpProgressMonitor;
+
 import java.io.File;
 
 /**
@@ -37,7 +39,7 @@ import java.io.File;
  *
  */
 
-public class SecureShellSession implements Runnable, ShellProcessOutput
+public class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMonitor
 {
 	ShellProcessOutput shp;
 	PipedInputStream pinput_in;
@@ -276,12 +278,14 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 	 * 
 	 * run a sequence of SFTP commands to downloads files
 	 * @param pwd password to access the sftp session
-	 * @param files to transfert locally (Absolute path)
+	 * @param files to transfer locally (Absolute path)
 	 * @param dir Directory where to download
 	 * @param wp (Optional) Progress bar window
+	 * @return return true if the download complete successfully, NOTE: Do not use to check the existence of the files
+	 *         true does not warrant that all files has been successfully downloaded, if does not exist remotely
 	 * 
 	 */
-	public boolean download(String pwd, File files[], File dir,ProgressBarWin wp)	
+	public boolean download(String pwd, File files[], File dir,ProgressBarWin wp, ClusterProfile cp)	
 	{
 		boolean ret = true;
 		
@@ -289,6 +293,19 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 		{
 			createSftpChannel();
 		
+			// Create a Compressor
+			
+			Compressor cmp = new Compressor();
+			if (cp != null)
+			{
+				
+				cmp.selectCompressor();
+				while (cp.hasCompressor(cmp.getCompressor()) == false)
+				{
+					cmp.nextCompressor();
+				}
+			}
+			
 		    for (int i = 0 ; i < files.length ; i++)
 		    {
 		    	try
@@ -300,10 +317,60 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 		    		tdir = filePath + File.separator;
 		    		cSFTP.cd(tdir);
 		    
-		    		if(wp != null)
-		    			wp.SetProgress(100*i/files.length);
+				    if (cmp.getCompressor() == null)
+				    {
+				    	if(wp != null)
+				    		wp.SetProgress(100*i/files.length);
 		    	
-		    		cSFTP.get(files[i].getName(),dir.getAbsolutePath() + File.separator + files[i].getName());
+				    	cSFTP.get(files[i].getName(),dir.getAbsolutePath() + File.separator + files[i].getName());
+				    }
+				    else
+				    {
+				    	// Compress data on cluster
+				    	
+				    	if (wp != null)
+				    		wp.SetStatusMessage("Compressing data on cluster");
+				    	createSSHChannel();
+
+				    	String s = new String("cd " + tdir + " ; ");
+				    	File start_dir = findCommonPathAndDelete(files);
+				    	s += cmp.compressCommand(start_dir, files, new File(start_dir + File.separator + files[0].getName() + "_compressed"));
+				    	s += " ; echo \"JSCH REMOTE COMMAND\"; echo \"COMPRESSION END\"; \n";
+						waitString = new String("JSCH REMOTE COMMAND\r\nCOMPRESSION END");
+						wp_p = wp;
+						ShellProcessOutput stmp = shp;
+						setShellProcessOutput(this);
+						
+						computed = false;
+						pinput_out.write(s.getBytes());
+						
+						// Ugly but work;
+						
+						while (computed == false) 
+						{try {Thread.sleep(100);}
+						catch (InterruptedException e) 
+						{e.printStackTrace(); ret = false;}}
+						
+						setShellProcessOutput(stmp);
+				    	
+						////////////////////////////
+				    	
+						if (wp != null)
+						{
+							wp.SetProgress(33);
+				    		wp.SetStatusMessage("Downloading");
+						}
+						
+				    	cSFTP.get(files[0].getName() + "_compressed",dir.getAbsolutePath() + File.separator + files[0].getName() + "_compressed",this);
+						cSFTP.rm(files[0].getName() + "_compressed");
+						
+				    	if (wp != null)
+				    	{
+				    		wp.SetProgress(66);
+				    		wp.SetStatusMessage("Decompressing Data");
+				    	}
+				    	cmp.unCompress(new File(dir.getAbsolutePath() + File.separator + files[0].getName() + "_compressed"),new File(dir.getAbsolutePath()));
+				    }
 		    	}
 				catch (SftpException e) 
 				{
@@ -399,7 +466,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 		
 			// Create a Compressor
 			
-/*			Compressor cmp = new Compressor();
+			Compressor cmp = new Compressor();
 			if (cp != null)
 			{
 				
@@ -408,7 +475,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 				{
 					cmp.nextCompressor();
 				}
-			}*/
+			}
 			
 		    if (tdir == null)
 		    {
@@ -427,8 +494,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 		    }
 		    
 		    
-/*		    if (cmp.getCompressor() == null)
-		    {*/
+		    if (cmp.getCompressor() == null)
+		    {
 		    	for (int i = 0 ; i < files.length ; i++)
 		    	{
 		    		if(wp != null)
@@ -436,7 +503,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 		    	
 		    		cSFTP.put(files[i].getAbsolutePath(), files[i].getName());
 		    	}
-/*		    }
+		    }
 		    else
 		    {
 		    	wp.SetStatusMessage("Compressing data");
@@ -448,13 +515,15 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 		    	cSFTP.put(start_dir + File.separator + files[0].getPath() + "_compressed", files[0].getName() + "_compressed");
 		    	
 		    	wp.SetProgress(66);
-		    	wp.SetStatusMessage("Decompressing Data");
+		    	wp.SetStatusMessage("Decompressing Data on cluster");
 		    	
 		    	createSSHChannel();
 
-		    	String s = cmp.unCompressCommand(new File(tdir + files[0].getName() + "_compressed"));
-		    	s += " | echo \"JSCH REMOTE COMMAND\"; echo \"COMPRESSION END\"";
-				waitString = new String("JSCH REMOTE COMMAND\nCOMPRESSION END");
+		    	String s = new String("cd " + tdir + " ; ");
+		    	s += cmp.unCompressCommand(new File(tdir + files[0].getName() + "_compressed"));
+		    	s += " ; echo \"JSCH REMOTE COMMAND\"; echo \"COMPRESSION END\"; \n";
+				waitString = new String("JSCH REMOTE COMMAND\r\nCOMPRESSION END");
+				wp_p = wp;
 				ShellProcessOutput stmp = shp;
 				setShellProcessOutput(this);
 				
@@ -468,8 +537,10 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 				catch (InterruptedException e) 
 				{e.printStackTrace();}}
 				
+				cSFTP.rm(files[0].getName() + "_compressed");
+				
 				setShellProcessOutput(stmp);
-		    }*/
+		    }
 		}
 		catch (JSchException e) 
 		{
@@ -534,6 +605,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 					poutput_in.read(out,0,1);
 					if (out[0] != 0)
 						sout += new String(out,0,1,"UTF-8");
+					System.out.print(new String(out,0,1,"UTF-8"));
 				}
 				else
 				{
@@ -543,6 +615,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 						len = out.length-1;
 					poutput_in.read(out,0,len);
 					String tmp = new String(out,0,len,"UTF-8");
+					System.out.print(tmp);
 					sout += tmp;
 				}
 			}
@@ -559,10 +632,27 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 
 	boolean computed = false;
 	String waitString;
+	ProgressBarWin wp_p;
 	
 	@Override
 	public String Process(String str) 
 	{
+		int lidx = str.lastIndexOf("\n")-1;
+		int lidx2 = lidx;
+		String print_out = new String();
+		
+		while (lidx >= 0)
+		{
+			if (str.charAt(lidx) == '\n')
+				break;
+			lidx--;
+		}
+		
+		if (lidx >= 0 && lidx2 >= 0)
+		print_out = str.substring(lidx, lidx2);
+		
+		if (wp_p != null)
+			wp_p.SetStatusMessage("Processing " + print_out);
 		
 		if (str.contains(waitString))
 		{
@@ -570,5 +660,27 @@ public class SecureShellSession implements Runnable, ShellProcessOutput
 			return "";
 		}
 		return str;
+	}
+
+	@Override
+	public boolean count(long arg0) 
+	{
+		if (wp_p != null)
+			wp_p.SetStatusMessage("Transfert... " + arg0);	
+		
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void end() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void init(int arg0, String arg1, String arg2, long arg3) {
+		// TODO Auto-generated method stub
+		
 	}
 }

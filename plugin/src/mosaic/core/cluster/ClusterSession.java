@@ -22,6 +22,7 @@ import mosaic.core.GUI.ProgressBarWin;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.gui.GenericDialog;
 import ij.gui.ProgressBar;
 import ij.io.Opener;
 
@@ -289,22 +290,64 @@ public class ClusterSession
 	
 	/**
 	 * 
-	 * Process the stack
+	 * Load and visualize the stack
 	 * 
 	 * @param output List of output patterns
+	 * @param JobID job to visualize (0 for all)
+	 * @param wp Progress bar window
+	 * 
 	 */
 	
 	void stackVisualize(String output[], int JobID, ProgressBarWin wp)
 	{
 		String directories[] = getJobDirectories(JobID);
 		
-		// Visualize all job directory
+		if (JobID == 0)
+		{
+			GenericDialog gd = new GenericDialog("Job selector:");
+			
+			String ad[] = new String[directories.length];
+			for (int i = 0 ; i < directories.length ; i++)
+			{
+				ad[i] = directories[i];
+			}
+			gd.addChoice("Select a Job to visualize",ad,"None");
+			gd.showDialog();
+			
+			if(!gd.wasCanceled())
+			{
+				String c = gd.getNextChoice();
+				JobID = Integer.parseInt(c.substring(5, c.length()));
+			}
+			else
+			{return ;}
+		}
+		
+		GenericDialog gd = new GenericDialog("Job output selector:");
+		
+		for (int i = 0 ; i  < output.length ; i++)
+		{
+			gd.addCheckbox(output[i], false);
+		}
+		gd.showDialog();
+		
+		if(gd.wasCanceled())
+			return;
+		
+		boolean cs[] = new boolean[output.length];
+		
+		for (int i = 0 ; i  < output.length ; i++)
+		{
+			cs[i] = gd.getNextBoolean();
+		}
+		
+		// Visualize all jobs directory
 		
 		for (int j = 0 ; j < directories.length ; j++)
 		{
 			for (int i = 0; i < output.length ; i++)
 			{
-				if (output[i].endsWith(".tiff") || output[i].endsWith(".tif") || output[i].endsWith(".zip"))
+				if (cs[i] == true && (output[i].endsWith(".tiff") || output[i].endsWith(".tif") || output[i].endsWith(".zip")))
 				{
 					wp.SetStatusMessage("Visualizing " + output[i]);
 					
@@ -424,7 +467,7 @@ public class ClusterSession
 		}
 		
 		wp.SetStatusMessage("Downloading...");
-		ss.download(cp.getPassword(), fldw, new File(tmp_dir + File.separator + "Job" + bc.getJobID()) , wp);
+		ss.download(cp.getPassword(), fldw, new File(tmp_dir + File.separator + "Job" + bc.getJobID()) , wp, cp);
 	}
 	
 	/**
