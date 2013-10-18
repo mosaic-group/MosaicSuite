@@ -1,8 +1,6 @@
 package mosaic.bregman;
 
 
-import ij.IJ;
-
 import java.util.Date;
 
 
@@ -24,12 +22,12 @@ public class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 		long lStartTime = new Date().getTime(); //start time
 		//energy=0;
 
-		Tools.subtab(temp1[l], temp1[l], b2xk[l]);  
-		Tools.subtab(temp2[l], temp2[l], b2yk[l]);
+		LocalTools.subtab(temp1[l], temp1[l], b2xk[l]);  
+		LocalTools.subtab(temp2[l], temp2[l], b2yk[l]);
 
 
 		//temp3=divwb
-		Tools.mydivergence(temp3[l], temp1[l], temp2[l]);//, temp3[l]);
+		LocalTools.mydivergence(temp3[l], temp1[l], temp2[l]);//, temp3[l]);
 
 
 		//RHS = -divwb+w2k-b2k+w3k-b3k;
@@ -85,13 +83,13 @@ public class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 		}
 
 		//%-- w2k sub-problem
-		Tools.fgradx2D(temp3[l], temp1[l]);
-		Tools.fgrady2D(temp4[l], temp1[l]);
+		LocalTools.fgradx2D(temp3[l], temp1[l]);
+		LocalTools.fgrady2D(temp4[l], temp1[l]);
 		
-		Tools.addtab(temp1[l], temp3[l], b2xk[l]);
-		Tools.addtab(temp2[l], temp4[l], b2yk[l]);
+		LocalTools.addtab(temp1[l], temp3[l], b2xk[l]);
+		LocalTools.addtab(temp2[l], temp4[l], b2yk[l]);
 		//temp1=w2xk temp2=w2yk
-		Tools.shrink2D(temp1[l], temp2[l], temp1[l], temp2[l], p.gamma);
+		LocalTools.shrink2D(temp1[l], temp2[l], temp1[l], temp2[l], p.gamma);
 		//do shrink3D
 		
 		
@@ -118,7 +116,7 @@ public class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 
 		//Tools.copytab(w3kp[l], w3k[l]);
 
-		energytab[l]=Tools.computeEnergy(speedData[l], w3k[l], temp3[l], temp4[l], p.ldata, p.lreg);
+		energytab[l]=LocalTools.computeEnergy(speedData[l], w3k[l], temp3[l], temp4[l], p.ldata, p.lreg);
 
 
 		//doneSignal2.await();

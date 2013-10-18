@@ -1,6 +1,5 @@
 package mosaic.bregman;
 
-import ij.IJ;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
@@ -57,8 +56,8 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 
 		for(int i =0; i< nl;i++){
 			//temp1=w2xk temp2=w2yk
-			Tools.fgradx2D(temp1[i], mask[i]);
-			Tools.fgrady2D(temp2[i], mask[i]);			
+			LocalTools.fgradx2D(temp1[i], mask[i]);
+			LocalTools.fgrady2D(temp2[i], mask[i]);			
 		}
 
 
@@ -83,8 +82,8 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 
 		for(int i =0; i< nl;i++){
 			//temp1=w2xk temp2=w2yk
-			Tools.fgradx2D(temp1[i], w3k[i]);
-			Tools.fgrady2D(temp2[i], w3k[i]);			
+			LocalTools.fgradx2D(temp1[i], w3k[i]);
+			LocalTools.fgrady2D(temp2[i], w3k[i]);			
 		}
 
 	}
@@ -125,7 +124,7 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 			//					iStart +" " + (iStart+ichunk)+" " + jStart+" " + (jStart+jchunk));
 			new Thread(new ZoneTask3D(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Sync5,
 					Sync6,Sync7,Sync8,Sync9,Sync10,Dct,
-					iStart, iStart+ichunk, jStart, jStart+jchunk,nt,this,Tools)).start();
+					iStart, iStart+ichunk, jStart, jStart+jchunk,nt,this,LocalTools)).start();
 			iStart+=ichunk;
 			jStart+=jchunk;
 		}
@@ -133,7 +132,7 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		//				iStart +" " + (iStart+ilastchunk)+" " + jStart+" " + (jStart+jlastchunk));
 		new Thread(new ZoneTask3D(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Sync5,
 				Sync6,Sync7,Sync8,Sync9,Sync10,Dct,
-				iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,Tools)).start();
+				iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,LocalTools)).start();
 		//		IJ.log("");
 
 
@@ -429,7 +428,7 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		temp1[l][0][0][0]=1;
 
 
-		Tools.dctshift3D(temp3[l], temp2[l], cr,cc, cs);
+		LocalTools.dctshift3D(temp3[l], temp2[l], cr,cc, cs);
 
 		//Tools.disp_vals(temp3[l][2], "shifted");
 

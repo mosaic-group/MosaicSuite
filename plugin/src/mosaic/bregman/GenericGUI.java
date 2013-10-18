@@ -1,26 +1,18 @@
 package mosaic.bregman;
 
-import java.awt.BorderLayout;
+
 import java.awt.Button;
-import java.awt.Checkbox;
 import java.awt.Choice;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FileDialog;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Frame;
-import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Label;
 import java.awt.Panel;
 import java.awt.Point;
 import java.awt.TextArea;
-import java.awt.TextField;
 //import java.awt.datatransfer.DataFlavor;
 //import java.awt.datatransfer.Transferable;
 //import java.awt.dnd.DnDConstants;
@@ -38,12 +30,9 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.Locale;
-import java.util.Vector;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
@@ -52,7 +41,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
-import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -84,7 +72,6 @@ import mosaic.core.GUI.HelpGUI;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.Macro;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
@@ -188,10 +175,15 @@ public class GenericGUI {
 	public void run(String arg, ImagePlus aImp)
 	{
 		Font bf = new Font(null, Font.BOLD,12);
-		String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
-		boolean bgroup1[] = {false, false};
+		//String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
+		//boolean bgroup1[] = {false, false};
 
 		NonBlockingGenericDialog  gd = new NonBlockingGenericDialog("Squassh");
+		
+		//for rscript generation
+		Analysis.p.initrsettings=true;
+		Analysis.p.nbconditions=1;
+		
 		
 		gd.setInsets(-10,0,3);
 		if(!clustermode)
@@ -306,7 +298,7 @@ public class GenericGUI {
 
 		
 		Button colOption = new Button("Options");
-		label = new Label("Colocalization (two channels images)");
+		label = new Label("Cell masks (for colocalization in dual channel images)");
 		label.setFont(bf);
 		p = new Panel();
 		p.add(label);
@@ -359,9 +351,9 @@ public class GenericGUI {
 		//int mode= gd.getNextChoiceIndex();
 		//IJ.log("mode + mode");
 
-		GraphicsEnvironment ge = 
-				GraphicsEnvironment.getLocalGraphicsEnvironment(); 
-		boolean headless_check = ge.isHeadless();
+//		GraphicsEnvironment ge = 
+//				GraphicsEnvironment.getLocalGraphicsEnvironment(); 
+		//boolean headless_check = ge.isHeadless();
 		//IJ.log("headless check: " + headless_check);
 
 
@@ -491,7 +483,7 @@ public class GenericGUI {
 		//
 		//		IJ.log("stdx" +Analysis.p.sigma_gaussian+ "stdy" + Analysis.p.sigma_gaussian/Analysis.p.zcorrec);
 
-		BLauncher hd = null;
+		BLauncher hd ;//= null;
 		
 		if (wpath.startsWith("Input Image:"))
 			hd= new BLauncher(aImp);
@@ -593,7 +585,7 @@ public class GenericGUI {
 				//imgA.setTitle("A2");
 				imgch1.setTitle(imgch1.getShortTitle() + " ch1");
 
-				ImageStatistics st1=imgch1.getStatistics();
+//				ImageStatistics st1=imgch1.getStatistics();
 				//IJ.log("min " + Amin + "max " +Amax);
 
 				imgch1.setDisplayRange(Amin,Amax);
@@ -641,6 +633,7 @@ public class GenericGUI {
 		}
 	}
 
+	
 
 	class PSFOpenerActionListener implements ActionListener
 	{
@@ -686,7 +679,7 @@ public class GenericGUI {
 		public void actionPerformed(ActionEvent e)
 		{
 			//IJ.log("plugin location :" + p.toString());
-			MaskWindow hw = new MaskWindow(0, 0, gd);
+//			MaskWindow hw = new MaskWindow(0, 0, gd);
 
 		}
 	}

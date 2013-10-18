@@ -1,6 +1,5 @@
 package mosaic.bregman;
 
-import ij.IJ;
 import java.util.Date;
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
 
@@ -23,7 +22,7 @@ public class ASplitBregmanSolverTwoRegions3D  extends ASplitBregmanSolverTwoRegi
 		dct3d= new DoubleDCT_3D(nz,ni,nj);
 		
 		for(int i =0; i< nl;i++){
-			Tools.fgradz2D(w2zk[i], mask[i]);
+			LocalTools.fgradz2D(w2zk[i], mask[i]);
 		}
 		
 		for(int l =0; l< nl;l++){
@@ -63,12 +62,12 @@ public class ASplitBregmanSolverTwoRegions3D  extends ASplitBregmanSolverTwoRegi
 
 		
 		// IJ.log("thread : " +l +"starting work");
-		Tools.subtab(temp1[l], temp1[l], b2xk[l]);  
-		Tools.subtab(temp2[l], temp2[l], b2yk[l]);
-		Tools.subtab(temp4[l], w2zk[l], b2zk[l]);
+		LocalTools.subtab(temp1[l], temp1[l], b2xk[l]);  
+		LocalTools.subtab(temp2[l], temp2[l], b2yk[l]);
+		LocalTools.subtab(temp4[l], w2zk[l], b2zk[l]);
 
 		//temp3=divwb
-		Tools.mydivergence3D(temp3[l], temp1[l], temp2[l], temp4[l]);//, temp3[l]);
+		LocalTools.mydivergence3D(temp3[l], temp1[l], temp2[l], temp4[l]);//, temp3[l]);
 
 		//Tools.disp_vals(temp3[l][5], "divergence");
 		
@@ -136,15 +135,15 @@ public class ASplitBregmanSolverTwoRegions3D  extends ASplitBregmanSolverTwoRegi
 		
 		//%-- w2k sub-problem
 		//temp4=ukx, temp3=uky
-		Tools.fgradx2D(temp3[l], temp1[l]);
-		Tools.fgrady2D(temp4[l], temp1[l]);
-		Tools.fgradz2D(ukz[l], temp1[l]);
+		LocalTools.fgradx2D(temp3[l], temp1[l]);
+		LocalTools.fgrady2D(temp4[l], temp1[l]);
+		LocalTools.fgradz2D(ukz[l], temp1[l]);
 
-		Tools.addtab(temp1[l], temp3[l], b2xk[l]);
-		Tools.addtab(temp2[l], temp4[l], b2yk[l]);
-		Tools.addtab(w2zk[l], ukz[l], b2zk[l]);
+		LocalTools.addtab(temp1[l], temp3[l], b2xk[l]);
+		LocalTools.addtab(temp2[l], temp4[l], b2yk[l]);
+		LocalTools.addtab(w2zk[l], ukz[l], b2zk[l]);
 		//temp1=w2xk temp2=w2yk
-		Tools.shrink3D(temp1[l], temp2[l], w2zk[l], temp1[l], temp2[l], w2zk[l], p.gamma);
+		LocalTools.shrink3D(temp1[l], temp2[l], w2zk[l], temp1[l], temp2[l], w2zk[l], p.gamma);
 		//do shrink3D
 
 		
@@ -173,7 +172,7 @@ public class ASplitBregmanSolverTwoRegions3D  extends ASplitBregmanSolverTwoRegi
 
 //		Tools.copytab(w3kp[l], w3k[l]);
 
-		energytab[l]=Tools.computeEnergy3D(speedData[l], w3k[l], temp3[l], temp4[l], ukz[l], p.ldata, p.lreg);
+		energytab[l]=LocalTools.computeEnergy3D(speedData[l], w3k[l], temp3[l], temp4[l], ukz[l], p.ldata, p.lreg);
 
 
 		//doneSignal2.await();

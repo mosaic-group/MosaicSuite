@@ -3,6 +3,7 @@ package mosaic.bregman.GUI;
 
 import java.awt.Button;
 import java.awt.Font;
+import java.awt.Label;
 import java.awt.Panel;
 import java.awt.Point;
 import java.awt.TextArea;
@@ -10,12 +11,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericDialogCustom;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 
 
+
+
 public class VisualizationGUI 
 {
+	
 	ImagePlus imgch1;
 	ImagePlus imgch2;
 	int ni,nj,nz,nc;
@@ -62,6 +67,29 @@ public class VisualizationGUI
 		//		
 		//		gd.addCheckbox("Save object data in .csv file and save images", false);
 		
+		//IJ.log(" la" + Analysis.p.nbconditions);
+		gd.addNumericField("Number of conditions", Analysis.p.nbconditions, 0);
+		
+//		Button bp = new Button("Set names and number of images per condition");
+//		Panel p = new Panel();
+//		p.add(bp);
+//		bp.addActionListener(new PSFOpenerActionListener(gd));
+//		
+//		gd.addPanel(p);
+
+		gd.addMessage("    R script data analysis settings",bf);
+		
+		Button rscript = new Button("Set condition names and number of images per condition");
+		Panel p = new Panel();
+		p.add(rscript);
+		rscript.addActionListener(new RScriptListener(gd)); 
+
+		
+		gd.addPanel(p);
+		
+		
+		
+		
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
 
@@ -84,30 +112,9 @@ public class VisualizationGUI
 		//IJ.log("save images:" +  Analysis.p.save_images);
 		//IJ.log(Analysis.p.wd);
 		//Analysis.p.dispvesicles = false;
+		
+		//Analysis.p.nbgroups=(int) gd.getNextNumber();
 	}
 
-
-	class PSFOpenerActionListener implements ActionListener
-	{
-		GenericDialogCustom gd;
-		TextArea taxy;
-		TextArea taz;
-
-		public PSFOpenerActionListener(GenericDialogCustom gd)
-		{
-			this.gd=gd;
-			//this.ta=ta;
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-
-			Point p =gd.getLocationOnScreen();
-			//IJ.log("plugin location :" + p.toString());
-			PSFWindow hw = new PSFWindow(p.x, p.y, gd);
-
-		}
-	}
 
 }

@@ -4,7 +4,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ByteProcessor;
 
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.Iterator;
 
 import mosaic.bregman.FindConnectedRegions.Region;
@@ -286,7 +286,7 @@ public class ObjectProperties implements Runnable {
 	public  void regionPerimeter(Region r, short [] [] [] regionsA){
 		//2 Dimensions only
 		double pr=0;
-		int rvalue= r.value;
+		//int rvalue= r.value;
 
 		//IJ.log("region: " + r.value);
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
@@ -322,7 +322,7 @@ public class ObjectProperties implements Runnable {
 	public  void regionPerimeter3D(Region r, short [] [] [] regionsA){
 		//2 Dimensions only
 		double pr=0;
-		int rvalue= r.value;
+		//int rvalue= r.value;
 
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 			int edges=0;

@@ -3,17 +3,17 @@ package mosaic.bregman;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.gui.ImageWindow;
-import ij.process.ByteProcessor;
-import ij.process.ColorProcessor;
+//import ij.gui.ImageWindow;
+//import ij.process.ByteProcessor;
+//import ij.process.ColorProcessor;
 import ij.process.ShortProcessor;
 
 import java.awt.Color;
 import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
-import java.util.Date;
+//import java.util.Date;
 import java.util.Iterator;
-import java.util.concurrent.ArrayBlockingQueue;
+//import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -195,14 +195,14 @@ public class ImagePatches {
 			threadPool.awaitTermination(1, TimeUnit.DAYS);
 		}
 		catch (InterruptedException ex) {}
-		long lStartTime = new Date().getTime(); //start time
+		//long lStartTime = new Date().getTime(); //start time
 		if(p.mode_voronoi2)
 		{
 			//find_regions();
 			regionslist_refined=globalList;
 
 
-			final LinkedBlockingQueue<Runnable> queue2 = new LinkedBlockingQueue<Runnable>();
+//			final LinkedBlockingQueue<Runnable> queue2 = new LinkedBlockingQueue<Runnable>();
 			ThreadPoolExecutor threadPool2=new ThreadPoolExecutor(1, 1,
 					1, TimeUnit.DAYS, queue);
 
@@ -235,52 +235,52 @@ public class ImagePatches {
 		//else{
 		if(p.dispcolors || p.displabels)displayRegions(regions_refined, sx, sy, sz, channel, true, p.save_images, true);
 		//}
-		long lEndTime = new Date().getTime(); //start time
-		long difference = lEndTime - lStartTime; //check different
+		//long lEndTime = new Date().getTime(); //start time
+		//long difference = lEndTime - lStartTime; //check different
 		//IJ.log("Elapsed milliseconds object properties: " + difference);
 
 
 	}
 
-	private void assemble_result_voronoi2(AnalysePatch ap){
-
-		//IJ.log("assemble vo2");
-		//build regions refined (for interpolated regions)
-		if(interp==1){
-			//IJ.log("no interpolation");
-			for (int z=0; z<ap.sz; z++){
-				for (int i=0;i<ap.sx; i++){  
-					for (int j=0;j< ap.sy; j++){  
-						if (ap.object[z][i][j]==1){
-							regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy] = (short) ap.r.value;
-							//if(ap.r.value ==3){IJ.log("z" + z +" i" +i+" j" +j);
-							//IJ.log("offsetz x  y " + ap.offsetz +" " + ap.offsetx +" " + ap.offsety+ "osz xy " + osz +" " + osxy);}
-						}
-					}
-				}
-			}
-		}
-		else{
-			for (int z=0; z<ap.isz; z++){
-				for (int i=0;i<ap.isx; i++){  
-					for (int j=0;j< ap.isy; j++){  
-						if (ap.interpolated_object[z][i][j]==1){
-							regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy]= (short) ap.r.value;
-
-						}
-					}
-
-					//					else
-					//						regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy] =0;
-				}
-			}
-		}
-
-		//IJ.log("assemble done");
-	}
+//	private void assemble_result_voronoi2(AnalysePatch ap){
+//
+//		//IJ.log("assemble vo2");
+//		//build regions refined (for interpolated regions)
+//		if(interp==1){
+//			//IJ.log("no interpolation");
+//			for (int z=0; z<ap.sz; z++){
+//				for (int i=0;i<ap.sx; i++){  
+//					for (int j=0;j< ap.sy; j++){  
+//						if (ap.object[z][i][j]==1){
+//							regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy] = (short) ap.r.value;
+//							//if(ap.r.value ==3){IJ.log("z" + z +" i" +i+" j" +j);
+//							//IJ.log("offsetz x  y " + ap.offsetz +" " + ap.offsetx +" " + ap.offsety+ "osz xy " + osz +" " + osxy);}
+//						}
+//					}
+//				}
+//			}
+//		}
+//		else{
+//			for (int z=0; z<ap.isz; z++){
+//				for (int i=0;i<ap.isx; i++){  
+//					for (int j=0;j< ap.isy; j++){  
+//						if (ap.interpolated_object[z][i][j]==1){
+//							regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy]= (short) ap.r.value;
+//
+//						}
+//					}
+//
+//					//					else
+//					//						regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy] =0;
+//				}
+//			}
+//		}
+//
+//		//IJ.log("assemble done");
+//	}
 
 	public synchronized void addRegionstoList(ArrayList<Region> localList){
-		boolean disp=false;
+		//boolean disp=false;
 		//		if(localList.size()>1)
 		//			disp=true;
 		int index;//build index of region (will be r.value)

@@ -56,6 +56,7 @@
       <fileset dir="." includes="plugins.config" />
       <fileset dir="${build}" includes="**/*.*" />
       <fileset dir="." includes="macros/*.ijm" />
+      <fileset dir="." includes="Rscript.r" />
       
       <!-- Add needed libs directly to the IJ eclipse project and not into this ant target "compress", for faster debugging 
 	   Add the libs to the target "compressLibs", to get a working plugin for other ImageJ instances outside of eclipse -->

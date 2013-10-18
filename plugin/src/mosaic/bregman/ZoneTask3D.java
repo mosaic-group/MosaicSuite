@@ -21,7 +21,7 @@ public class ZoneTask3D implements Runnable {
 	private final CountDownLatch Sync10;
 	private final CountDownLatch Dct;
 	private int iStart, iEnd, jStart, jEnd, nt;
-	public Tools Tools;
+	public Tools LocalTools;
 
 
 	private ASplitBregmanSolverTwoRegions3DPSF AS;
@@ -34,7 +34,7 @@ public class ZoneTask3D implements Runnable {
 			CountDownLatch Sync9,CountDownLatch Sync10,CountDownLatch Dct,
 			int iStart, int iEnd, int jStart, int jEnd, int nt,
 			ASplitBregmanSolverTwoRegions3DPSF AS, Tools tTools) {
-		this.Tools=tTools;
+		this.LocalTools=tTools;
 		this.ZoneDoneSignal = ZoneDoneSignal;
 		this.Sync1 = Sync1;this.Sync2 = Sync2;this.Sync3 = Sync3;
 		this.Sync4 = Sync4;this.Sync5 = Sync5;this.Sync6 = Sync6;
@@ -60,15 +60,15 @@ public class ZoneTask3D implements Runnable {
 	void doWork() throws InterruptedException{
 
 
-		Tools.subtab(AS.temp1[AS.l], AS.temp1[AS.l], AS.b2xk[AS.l], iStart,iEnd);  
-		Tools.subtab(AS.temp2[AS.l], AS.temp2[AS.l], AS.b2yk[AS.l], iStart,iEnd);
-		Tools.subtab(AS.temp4[AS.l], AS.w2zk[AS.l], AS.b2zk[AS.l], iStart,iEnd);
+		LocalTools.subtab(AS.temp1[AS.l], AS.temp1[AS.l], AS.b2xk[AS.l], iStart,iEnd);  
+		LocalTools.subtab(AS.temp2[AS.l], AS.temp2[AS.l], AS.b2yk[AS.l], iStart,iEnd);
+		LocalTools.subtab(AS.temp4[AS.l], AS.w2zk[AS.l], AS.b2zk[AS.l], iStart,iEnd);
 
 		Sync1.countDown();
 		Sync1.await();
 
 		//use w2zk as temp
-		Tools.mydivergence3D(AS.temp3[AS.l], AS.temp1[AS.l], AS.temp2[AS.l], AS.temp4[AS.l], 
+		LocalTools.mydivergence3D(AS.temp3[AS.l], AS.temp1[AS.l], AS.temp2[AS.l], AS.temp4[AS.l], 
 				AS.w2zk[AS.l],Sync2,
 				iStart, iEnd, jStart, jEnd);//, temp3[l]);
 
@@ -172,17 +172,17 @@ public class ZoneTask3D implements Runnable {
 
 		Sync5.countDown();
 		Sync5.await();
-		Tools.fgradx2D(AS.temp3[AS.l], AS.temp1[AS.l], jStart,jEnd);
-		Tools.fgrady2D(AS.temp4[AS.l], AS.temp1[AS.l], iStart, iEnd);
-		Tools.fgradz2D(AS.ukz[AS.l], AS.temp1[AS.l], iStart, iEnd);
+		LocalTools.fgradx2D(AS.temp3[AS.l], AS.temp1[AS.l], jStart,jEnd);
+		LocalTools.fgrady2D(AS.temp4[AS.l], AS.temp1[AS.l], iStart, iEnd);
+		LocalTools.fgradz2D(AS.ukz[AS.l], AS.temp1[AS.l], iStart, iEnd);
 
 		Sync6.countDown();
 		Sync6.await();
-		Tools.addtab(AS.temp1[AS.l], AS.temp3[AS.l], AS.b2xk[AS.l], iStart, iEnd);
-		Tools.addtab(AS.temp2[AS.l], AS.temp4[AS.l], AS.b2yk[AS.l],iStart, iEnd);
-		Tools.addtab(AS.w2zk[AS.l], AS.ukz[AS.l], AS.b2zk[AS.l],iStart, iEnd);
+		LocalTools.addtab(AS.temp1[AS.l], AS.temp3[AS.l], AS.b2xk[AS.l], iStart, iEnd);
+		LocalTools.addtab(AS.temp2[AS.l], AS.temp4[AS.l], AS.b2yk[AS.l],iStart, iEnd);
+		LocalTools.addtab(AS.w2zk[AS.l], AS.ukz[AS.l], AS.b2zk[AS.l],iStart, iEnd);
 
-		Tools.shrink3D(AS.temp1[AS.l], AS.temp2[AS.l],AS. w2zk[AS.l],
+		LocalTools.shrink3D(AS.temp1[AS.l], AS.temp2[AS.l],AS. w2zk[AS.l],
 				AS.temp1[AS.l], AS.temp2[AS.l],AS.w2zk[AS.l], AS.p.gamma,
 				iStart, iEnd);
 
@@ -202,7 +202,7 @@ public class ZoneTask3D implements Runnable {
 		// faire le menage dans les tableaux ici w2xk utilise comme temp
 		if(AS.stepk % AS.p.energyEvaluationModulo ==0  || AS.stepk==AS.p.max_nsb -1){	
 			AS.energytab2[nt]=
-					Tools.computeEnergyPSF3D(AS.w2xk[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l],
+					LocalTools.computeEnergyPSF3D(AS.w2xk[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l],
 							AS.p.ldata, AS.p.lreg,AS.p,AS.c0,AS.c1,AS.image,
 							iStart, iEnd, jStart, jEnd, Sync8,  Sync9, Sync10);
 		}

@@ -12,7 +12,6 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.io.Opener;
-import ij.plugin.ZProjector;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 
@@ -1135,10 +1134,10 @@ public class Analysis {
 		
 		
 		int objectscoloc=0;
-		int objects=0;
+		//int objects=0;
 		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) {
 			Region r = it.next();
-			objects++;
+			//objects++;
 			if (regioncoloc(r,regionslistB, regionsB,maskA,out, imgnumber))objectscoloc++;
 			//IJ.log(r.toString() + "ncoloc"+ objectscoloc);
 		totalsignal+=r.rsize*r.intensity;
@@ -1159,10 +1158,10 @@ public class Analysis {
 		
 		
 		int objectscoloc=0;
-		int objects=0;
+		//int objects=0;
 		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) {
 			Region r = it.next();
-			objects++;
+			//objects++;
 			if (regioncoloc(r,regionslistB, regionsB,maskA,out, imgnumber))objectscoloc++;
 		totalsize+=r.rsize;
 		colocsize+=r.rsize*r.overlap;
@@ -1216,11 +1215,11 @@ public class Analysis {
 		double colocsignal=0;
 		
 		int objectscoloc=0;
-		int objects=0;
+		//int objects=0;
 		for (Iterator<Region> it = regionslistB.iterator(); it.hasNext();) {
 			Region r = it.next();
 			//IJ.log("obj" + r.value);
-			objects++;
+			//objects++;
 			if (regioncoloc(r,regionslistA, regionsA,maskB,out, imgnumber))objectscoloc++;
 			//if(p.livedisplay)IJ.log(r.toString() + "ncoloc"+ objectscoloc);
 			totalsignal+=r.rsize*r.intensity;
@@ -1239,10 +1238,10 @@ public class Analysis {
 		double colocsize=0;
 		
 		int objectscoloc=0;
-		int objects=0;
+		//int objects=0;
 		for (Iterator<Region> it = regionslistB.iterator(); it.hasNext();) {
 			Region r = it.next();
-			objects++;
+			//objects++;
 			if (regioncoloc(r,regionslistA, regionsA,maskB,out, imgnumber))objectscoloc++;
 			totalsize+=r.rsize;
 			colocsize+=r.rsize*r.overlap;
@@ -1432,7 +1431,7 @@ public class Analysis {
 	public static void regionPerimeter(Region r, int [] [] [] regionsA){
 		//2 Dimensions only
 		double pr=0;
-		int rvalue= r.value;
+		//int rvalue= r.value;
 
 		//IJ.log("region: " + r.value);
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
@@ -1463,7 +1462,7 @@ public class Analysis {
 	public static void regionPerimeter3D(Region r, int [] [] [] regionsA){
 		//2 Dimensions only
 		double pr=0;
-		int rvalue= r.value;
+		//int rvalue= r.value;
 
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 			int edges=0;
@@ -1501,12 +1500,12 @@ public class Analysis {
 		ImagePlus skeleton= new ImagePlus();
 		//compute skeletonization
 		int osxy=1;
-		int osz=1;
+		//int osz=1;
 		if(p.subpixel && p.refinement){
 			osxy=p.oversampling2ndstep*p.interpolation;
-			if(p.nz>1){
-				osz=p.oversampling2ndstep*p.interpolation;
-			}
+//			if(p.nz>1){
+//				osz=p.oversampling2ndstep*p.interpolation;
+//			}
 		}
 		int di,dj;
 		di=p.ni *osxy;

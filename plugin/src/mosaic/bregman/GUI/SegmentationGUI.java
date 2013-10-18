@@ -143,7 +143,7 @@ public class SegmentationGUI
 		gd.setInsets(-10,0,3);
 
 
-		gd.addMessage("Segmentation parameters ",bf);
+		gd.addMessage("    Segmentation parameters ",bf);
 
 		Panel pp = new Panel();
 		Button help_b = new Button("help");
@@ -179,12 +179,12 @@ public class SegmentationGUI
 				"Poisson", "Gauss"};
 		gd.addChoice("Noise Model ", choice2, choice2[Analysis.p.noise_model]);
 		
-		gd.addMessage("PSF ",bf);
+		gd.addMessage("PSF model (Gaussian approximation)",bf);
 		
-		gd.addNumericField("Gaussian , standard deviation xy (in pixels)", Analysis.p.sigma_gaussian, 2);
-		gd.addNumericField("           standard deviation z  (in pixels)", Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 2);
+		gd.addNumericField("standard deviation xy (in pixels)", Analysis.p.sigma_gaussian, 2);
+		gd.addNumericField("standard deviation z  (in pixels)", Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 2);
 		
-		Button bp = new Button("Estimate PSF");
+		Button bp = new Button("Estimate PSF from objective properties");
 		bp.addActionListener(new PSFOpenerActionListener(gd));
 		
 		Panel p = new Panel();

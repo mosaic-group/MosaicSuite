@@ -3,9 +3,9 @@ package mosaic.bregman;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-import weka.clusterers.Cobweb;
-import weka.clusterers.SimpleKMeans;
-import weka.clusterers.XMeans;
+//import weka.clusterers.Cobweb;
+//import weka.clusterers.SimpleKMeans;
+//import weka.clusterers.XMeans;
 
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
@@ -14,8 +14,8 @@ import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.DenseInstance;
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.DatasetTools;
-import net.sf.javaml.tools.weka.WekaClusterer;
-import ij.io.FileSaver;
+//import net.sf.javaml.tools.weka.WekaClusterer;
+//import ij.io.FileSaver;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import ij.IJ;
@@ -25,7 +25,7 @@ import ij.plugin.filter.BackgroundSubtracter;
 
 public class NRegions implements Runnable{
 
-	Tools Tools;
+	Tools LocalTools;
 	//image and mask data
 	public double [] [] [] image;// 3D image
 	public double [] [] [] [] mask;//nregions nslices ni nj
@@ -55,7 +55,7 @@ public class NRegions implements Runnable{
 		//Parameters params = new Parameters();
 		this.p = params;
 
-		this.Tools=new Tools(p.ni,p.nj,p.nz);
+		this.LocalTools=new Tools(p.ni,p.nj,p.nz);
 		this.DoneSignal=DoneSignal;
 		this.nl=p.nlevels;
 		ImageProcessor imp;
@@ -81,7 +81,7 @@ public class NRegions implements Runnable{
 		this.channel=channel;
 
 
-		Tools.setDims(ni, nj, nz, nl);
+		LocalTools.setDims(ni, nj, nz, nl);
 
 		//allocate
 		image = new double [nz] [ni] [nj];
@@ -195,8 +195,8 @@ public class NRegions implements Runnable{
 			p.betaMLEoutdefault=levs[0];
 			p.cl[1]=levs[3];
 			p.betaMLEindefault=levs[3];
-			IJ.log("automatic background:" + Tools.round(p.cl[0],3));
-			IJ.log("automatic foreground:" + Tools.round(p.cl[1],3));
+			IJ.log("automatic background:" + LocalTools.round(p.cl[0],3));
+			IJ.log("automatic foreground:" + LocalTools.round(p.cl[1],3));
 		}
 
 
@@ -225,14 +225,14 @@ public class NRegions implements Runnable{
 		}
 
 		//md= new MasksDisplay(ni,nj,nz,nl,p.cl,p);
-		Tools.createmask(mask, image,p.cl);	
+		LocalTools.createmask(mask, image,p.cl);	
 		//md.display2regionsnewd(mask[0][0], "mask init", 0);
 		if(p.nlevels >1  || !p.usePSF)
 		{
 			for(int i =0; i< nl;i++)
 			{
 				//Tools.nllMeanPoisson(Ei[i], image, p.cl[i], 1, p.ldata );
-				Tools.nllMean1(Ei[i], image, p.cl[i], 1, p.ldata );
+				LocalTools.nllMean1(Ei[i], image, p.cl[i], 1, p.ldata );
 			}
 		}
 	}
@@ -300,7 +300,7 @@ public class NRegions implements Runnable{
 		double [] pixel = new double[1];
 		int max = Math.max(2, nl);
 		double [] levels= new double[max];
-		double [] levels2= new double[5];
+		//double [] levels2= new double[5];
 
 		//get imagedata
 		for (int z=0; z<nz; z++)

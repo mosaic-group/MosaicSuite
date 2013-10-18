@@ -69,6 +69,7 @@ public class Parameters  implements Serializable
 	public double thresholdcellmasky = 0.035;//(RAB channel)
 	public int energyEvaluationModulo = 5;
 	public int dispEmodulo = 10;
+	public int nbconditions = 1;
 	public int regionSegmentLevel = 2;
 	public boolean remask=false;
 
@@ -89,6 +90,19 @@ public class Parameters  implements Serializable
 	public boolean dispcolors= false;
 	public boolean dispoutline= true;
 	public boolean dispcoloc= false;
+	
+	
+	//Rscript parameters
+	public boolean initrsettings= true;
+	public String file1;
+	public String file2;
+	public String file3;
+	public int [] nbimages ={1} ;
+	public String [] groupnames={"Condition " + 1 + " name"};
+	public String ch1="channel 1 name";
+	public String ch2="channel 2 name";
+	
+	
 	
 	// public double [] [] [] PSF=
 	// {
