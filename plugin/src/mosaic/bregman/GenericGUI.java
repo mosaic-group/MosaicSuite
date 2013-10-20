@@ -190,7 +190,7 @@ public class GenericGUI {
 			gd.addTextAreas("Input Image: \n" +
 					"insert Path to file or folder, " +
 					"or press Button below.", 
-					null, 2, 40);
+					null, 2, 50);
 		}
 		if(clustermode)
 		{
@@ -207,11 +207,11 @@ public class GenericGUI {
 			//p.setLayout(null);
 			//p.setBackground(Color.black);
 
-			Button b = new Button("Preview cell mask");
-			b.addActionListener(new MaskOpenerActionListener(null,null));
-			p.add(b);
+//			Button b = new Button("Preview cell mask");
+//			b.addActionListener(new HelpOpenerActionListener(p,gd));
+//			p.add(b);
 
-			b = new Button("Select File/Folder");
+			Button b = new Button("Select File/Folder");
 			b.addActionListener(new FileOpenerActionListener(p,gd, gd.getTextArea1()));
 			p.add(b);
 
@@ -310,7 +310,7 @@ public class GenericGUI {
 			{
 				// TODO Auto-generated method stub
 				
-				ColocalizationGUI gds = new ColocalizationGUI();
+				ColocalizationGUI gds = new ColocalizationGUI(imgch1,imgch2);
 				gds.run("");
 			}
 		});
@@ -344,17 +344,10 @@ public class GenericGUI {
 			gd.addNumericField("number of threads", 4, 0);
 		}
 		
+		gd.centerDialog(false);
+		gd.setLocation(120, 120);
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
-
-		//int mode= gd.getNextChoiceIndex();
-		//IJ.log("mode + mode");
-
-//		GraphicsEnvironment ge = 
-//				GraphicsEnvironment.getLocalGraphicsEnvironment(); 
-		//boolean headless_check = ge.isHeadless();
-		//IJ.log("headless check: " + headless_check);
-
 
 
 		String wpath;
@@ -432,6 +425,7 @@ public class GenericGUI {
 
 		if(clustermode)
 		{
+			IJ.log("clustermode");
 			Analysis.p.removebackground=true;
 			//Analysis.p.automatic_int=false;
 			if(Analysis.p.thresholdcellmask >0)
@@ -660,28 +654,28 @@ public class GenericGUI {
 	}
 
 
-	class MaskOpenerActionListener implements ActionListener
-	{
-		GenericDialogCustom gd;
-		TextArea taxy;
-		TextArea taz;
-		Panel pp;
-
-		public MaskOpenerActionListener(Panel p, GenericDialogCustom gd)
-		{
-			this.gd=gd;
-			//this.ta=ta;
-			this.pp=p;
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			//IJ.log("plugin location :" + p.toString());
-//			MaskWindow hw = new MaskWindow(0, 0, gd);
-
-		}
-	}
+//	class MaskOpenerActionListener implements ActionListener
+//	{
+//		GenericDialogCustom gd;
+//		TextArea taxy;
+//		TextArea taz;
+//		Panel pp;
+//
+//		public MaskOpenerActionListener(Panel p, GenericDialogCustom gd)
+//		{
+//			this.gd=gd;
+//			//this.ta=ta;
+//			this.pp=p;
+//		}
+//
+//		@Override
+//		public void actionPerformed(ActionEvent e)
+//		{
+//			//IJ.log("plugin location :" + p.toString());
+//			MaskWindow hw = new MaskWindow(0, 0);
+//
+//		}
+//	}
 
 
 	class HelpOpenerActionListener implements ActionListener
@@ -870,474 +864,7 @@ public class GenericGUI {
 
 
 
-	public class MaskWindow implements ActionListener,ChangeListener, PropertyChangeListener
-	{
-		boolean init1=false;
-		boolean init2=false;
-		ImagePlus maska_im1,maska_im2;
-		private int y;
-		//private int ni,nj,nz;
-		public double thr1, thr2;
-		public JDialog frame;
-		//Initialize Buttons
-		private JPanel panel;
-		private JButton Close;
-		private Font header = new Font(null, Font.BOLD,14);
-		private boolean confocal = true;
-		double max=0;
-		double min=Double.POSITIVE_INFINITY;
-		double max2=0;
-		double min2=Double.POSITIVE_INFINITY;
-//		TextField tx;
-//		TextField tz;
-		int calls=0;
-		double val1,val2;
-
-		boolean fieldval = false;
-		boolean sliderval = false;
-		boolean boxval= false;
-
-//		Checkbox b1,b2;
-		double minrange=0.001;
-		double maxrange=1;
-		double logmin =  Math.log10(minrange);
-		double logspan= Math.log10(maxrange) - Math.log10(minrange);
-		int maxslider=1000;
-
-		DecimalFormat df = new DecimalFormat("0.0000", new DecimalFormatSymbols(Locale.US));
-
-		double initt1=0.0015;
-		double initt2=0.0350;
-		private String [] items={"Confocal Microscope", "Wide Field Fluorescence Microscope"};
-
-		//jcb.setModel(new DefaultComboBoxModel(potentialOptions));
-
-		NumberFormat nf = NumberFormat.getInstance(Locale.US);
-
-		private JCheckBox m1= new JCheckBox("", false);
-		private JCheckBox m2= new JCheckBox("", false);
-
-		private JButton estimate = new JButton("Compute PSF");
-
-		private JLabel ref= new JLabel(
-				"<html>"
-						+"<div align=\"justify\">"
-						+ "Set thresholds and preview cell masks."
-						+"</div>"
-						+ "</html>");
-
-
-
-		//	"Gaussian PSF model from : 'Gaussian approximations of fluorescence microscope point-spread function models. B Zhang, J Zerubia, J C Olivo-Marin. Appl. Optics (46) 1819-29, 2007.''");
-		private JSlider t1= new JSlider();
-		private JSlider t2= new JSlider();
-
-		private JLabel l1 = new JLabel("Channel 1 cell mask");
-		private JLabel l2 = new JLabel("Channel 2 cell mask");
-
-		private JFormattedTextField v1 = new JFormattedTextField(df);
-		private JFormattedTextField v2 = new JFormattedTextField(df);
-
-		private JLabel warning = new JLabel("");
-
-		private GenericDialogCustom gd;
-
-		public MaskWindow(int x, int y, GenericDialogCustom gd){
-			y=0;
-			this.gd=gd;
-
-
-//			tx =gd.getField(6);//field x
-//			tz =gd.getField(7);//filed z
-//			b1=gd.getBox(2);
-//			b2=gd.getBox(3);
-
-
-			frame = new JDialog();
-			frame.setModal(true);
-			frame.setSize(300, 250);
-			frame.setLocation(x+450, y+240);
-			//frame.toFront();
-
-
-
-			panel= new JPanel();
-			panel.setPreferredSize(new Dimension(300, 500));
-			panel.setSize(panel.getPreferredSize());
-			//panel.setLayout(null);
-
-
-			v1.setColumns(5);
-			v2.setColumns(5);
-			v1.setHorizontalAlignment(SwingConstants.CENTER);
-			v2.setHorizontalAlignment(SwingConstants.CENTER);
-
-
-			panel.add(ref);
-			panel.add(l1);
-			panel.add(m1);
-			panel.add(t1);
-			panel.add(v1);
-
-			panel.add(l2);
-			panel.add(m2);
-			panel.add(t2);
-			panel.add(v2);
-
-			panel.add(warning);
-
-
-			frame.add(panel);
-
-			
-			t1.addChangeListener(this);
-			t2.addChangeListener(this);
-
-			v1.addPropertyChangeListener(this);
-			v2.addPropertyChangeListener(this);
-			
-			m1.addActionListener(this);
-			m2.addActionListener(this);
-
-			
-			t1.setMinimum(0);
-			t1.setMaximum(maxslider);
-			//t1.setValue((int) (logvalue(initt1)));			
-
-			t2.setMinimum(0);
-			t2.setMaximum(maxslider);
-			//t2.setValue((int) (logvalue(initt2)));
-			
-			
-			v1.setValue(initt1);			
-			v2.setValue(initt2);
-			
-			val1 =(double) ((Number)v1.getValue()).doubleValue();
-			val2 =(double) ((Number)v2.getValue()).doubleValue();
-			
-			//IJ.log("val2 " + val2 + "initt2 " + initt2);			
-			//IJ.log("val1 " + val1 + "initt1 " + initt1);
-
-			frame.setVisible(true);
-			//frame.requestFocus();
-			//frame.setAlwaysOnTop(true);
-
-			//			JOptionPane.showMessageDialog(frame,
-			//				    "Eggs are not supposed to be green.\n dsfdsfsd",
-			//				    "A plain message",
-			//				    JOptionPane.PLAIN_MESSAGE);
-
-
-		}
-
-		public double expvalue(double slidervalue){
-
-			return(Math.pow(10,(slidervalue/maxslider)*logspan + logmin));
-
-		}
-
-		public double logvalue(double tvalue){
-
-			return(maxslider*(Math.log10(tvalue) - logmin)/logspan);
-
-		}
-
-		public void actionPerformed(ActionEvent ae) {
-			Object source = ae.getSource();	// Identify Button that was clicked
-
-			boxval=true;
-			if(source == m1)
-			{
-				boolean b=m1.isSelected();
-//				b1.setState(b);
-				if(b){
-					if(imgch1!=null){
-						if(maska_im1==null)
-							maska_im1= new ImagePlus();
-						initpreviewch1(imgch1);
-						previewBinaryCellMask(initt1,imgch1,maska_im1,1);						
-						maska_im1.show();						
-						init1=true;
-					}
-					else
-						warning.setText("Please open an image first.");
-				}
-				else{
-					//hide and clean
-					if(maska_im1!=null)
-					maska_im1.hide();
-					//maska_im1=null;
-					init1=false;
-				}
-			}
-
-			if(source==m2)
-			{
-				boolean b=m2.isSelected();
-//				b2.setState(b);
-				if(b){
-					if(imgch2!=null){
-						if(maska_im2==null)
-							maska_im2= new ImagePlus();
-						initpreviewch2(imgch2);
-						previewBinaryCellMask(initt2,imgch2,maska_im2,2);
-						maska_im2.show();
-						init2=true;
-					}
-					else{
-						warning.setText("Please open an image with two channels first.");
-					}
-				}
-				else{
-					//close and clean
-					if(maska_im2!=null)
-						maska_im2.hide();
-//					maska_im2.close();
-//					maska_im2=null;
-					init2=false;
-				}
-
-			}
-			//IJ.log("boxval to false");
-			boxval=false;
-		}
-
-		public void propertyChange(PropertyChangeEvent e) {
-			Object source = e.getSource();
-
-			if(!boxval && !sliderval){
-				fieldval=true;
-				if (source == v1 && init1) {
-					double v =(double) ((Number)v1.getValue()).doubleValue();
-					//v=expvalue(v);
-					//IJ.log("val1" + val1 + "v" + v);
-					if(!sliderval && val1!=v){
-						val1=v;
-						previewBinaryCellMask(v,imgch1,maska_im1,1);
-						int vv= (int) (logvalue(v));
-						t1.setValue(vv);
-//						tx.setText(String.format(Locale.US,"%.4f", v));
-					}
-					//IJ.log("v1 init: do" + boxval +" " + sliderval);
-
-				} else if (source == v2 && init2) {
-					double v =(double) ((Number)v2.getValue()).doubleValue();
-					if(!sliderval && val2!=v){
-						val2=v;
-						previewBinaryCellMask(v,imgch2,maska_im2,2);
-						int vv= (int) (logvalue(v));
-						t2.setValue(vv);
-//						tz.setText(String.format(Locale.US,"%.4f", v));
-					}
-				} else if (source == v1 && !init1) {
-					double v =(double) ((Number)v1.getValue()).doubleValue();
-					if(!sliderval){
-						//val1=v;
-						int vv= (int) (logvalue(v));
-						t1.setValue(vv);
-//						tx.setText(String.format(Locale.US,"%.4f", v));
-					}
-					//IJ.log("v1 not init");
-				} else if (source == v2 && !init2) {
-					double v =(double) ((Number)v2.getValue()).doubleValue();
-					if(!sliderval){
-						//val2=v;
-						int vv= (int) (logvalue(v));
-						t2.setValue(vv);
-//						tz.setText(String.format(Locale.US,"%.4f", v));
-					}
-				} 
-
-				fieldval=false;}
-		}
-
-
-		public void stateChanged(ChangeEvent e) {
-			Object origin=e.getSource();
-
-			if(!boxval && !fieldval){
-				sliderval=true;
-				if (origin==t1 && init1 && !t1.getValueIsAdjusting() ){
-					double value=t1.getValue();
-					double vv= expvalue(value);
-					//IJ.log("val1" + val1 + "vv" + vv);
-					if(!fieldval && val1!=vv) {
-						v1.setValue(vv);
-						val1=vv;
-						previewBinaryCellMask(vv,imgch1,maska_im1,1);}
-//					tx.setText(String.format(Locale.US,"%.4f", vv));
-					//IJ.log("t1 : do" + fieldval);
-
-				}
-
-				if (origin==t1 && init1 && t1.getValueIsAdjusting()){
-					double value=t1.getValue();
-					double vv= expvalue(value);
-					if(!fieldval) {v1.setValue(vv);
-//					tx.setText(String.format(Locale.US,"%.4f", vv));
-					//val1=vv;
-					}
-					//IJ.log("t1 ch");
-				}
-
-				if (origin==t1 && !init1){
-					double value=t1.getValue();
-					double vv= expvalue(value);
-					if(!fieldval) {v1.setValue(vv);
-//					tx.setText(String.format(Locale.US,"%.4f", vv));
-					//val1=vv;
-					}
-					//IJ.log("t1 not init");	
-				}
-
-				if (origin==t2 && !init2){
-					double value=t2.getValue();
-					double vv= expvalue(value);
-					if(!fieldval) {v2.setValue(vv);
-//					tz.setText(String.format(Locale.US,"%.4f", vv));
-					//val2=vv;
-					}
-				}
-
-
-				if (origin==t2 && init2 && !t2.getValueIsAdjusting()){
-					double value=t2.getValue();
-					double vv= expvalue(value);
-					if(!fieldval && val2!=vv) {v2.setValue(vv);
-					previewBinaryCellMask(vv,imgch2,maska_im2,2);
-					val2=vv;}
-//					tz.setText(String.format(Locale.US,"%.4f", vv));
-				}
-
-				if (origin==t2 && init2 && t2.getValueIsAdjusting()){
-					double value=t2.getValue();
-					double vv= expvalue(value);
-					if(!fieldval) {v2.setValue(vv);
-//					tx.setText(String.format(Locale.US,"%.4f", vv));
-					//val2=vv;
-					}
-				}
-
-				sliderval = false;
-			}
-
-		}
-
-
-		public void initpreviewch1(ImagePlus img)
-		{
-
-			ni=img.getWidth();
-			nj=img.getHeight();
-			nz=img.getNSlices();
-
-			ImageProcessor imp;
-			for (int z=0; z<nz; z++)
-			{
-				img.setSlice(z+1);
-				imp=img.getProcessor();
-				for (int i=0; i<ni; i++)
-				{  
-					for (int j=0;j< nj; j++)
-					{
-						if(imp.getPixel(i,j)>max)max=imp.getPixel(i,j);
-						if(imp.getPixel(i,j)<min)min=imp.getPixel(i,j);
-					}	
-				}
-			}
-
-
-
-		}
-
-		public void initpreviewch2(ImagePlus img)
-		{
-			//img.duplicate().show();
-
-			ni=img.getWidth();
-			nj=img.getHeight();
-			nz=img.getNSlices();
-			
-			ImageProcessor imp;
-			for (int z=0; z<nz; z++){
-				img.setSlice(z+1);
-				imp=img.getProcessor();
-				for (int i=0; i<ni; i++){  
-					for (int j=0;j< nj; j++){  
-						if(imp.getPixel(i,j)>max2)max2=imp.getPixel(i,j);
-						if(imp.getPixel(i,j)<min2)min2=imp.getPixel(i,j);
-					}	
-				}
-			}
-		}
-
-		public void previewBinaryCellMask(double threshold_i, ImagePlus img, ImagePlus maska_im, int channel)
-		{
-			//IJ.log("cellmask" + calls);
-			calls++;
-
-			int ns =img.getSlice();
-			double threshold;
-
-
-			//change : use max value instead of 65536
-			ImageProcessor imp;
-
-
-			if(channel==1)
-				threshold= threshold_i*(max-min)+min;
-			else
-				threshold= threshold_i*(max2-min2)+min2;
-
-
-			//IJ.log("max " + max + " min " + min + "threshold " + threshold);
-
-			//ImagePlus maska_im= new ImagePlus();
-			ImageStack maska_ims= new ImageStack(ni,nj);
-
-			for (int z=0; z<nz; z++){
-				img.setSlice(z+1);
-				imp=img.getProcessor();
-				byte[] maska_bytes = new byte[ni*nj];
-				for (int i=0; i<ni; i++){  
-					for (int j=0;j< nj; j++){  
-						if(imp.getPixel(i,j)>threshold)
-							maska_bytes[j * ni + i]=(byte) 255;
-						else 
-							maska_bytes[j * ni + i]=0;
-
-					}	
-				}
-				ByteProcessor bp = new ByteProcessor(ni, nj);
-				bp.setPixels(maska_bytes);
-				maska_ims.addSlice("", bp); 
-			}
-
-
-
-			maska_im.setStack("Cell mask channel " + (channel+1),maska_ims);
-			//maska_im.duplicate().show();
-			IJ.run(maska_im, "Invert", "stack");
-
-
-			//		
-			//		//IJ.run(maska_im, "Erode", "");
-			IJ.run(maska_im, "Fill Holes", "stack");
-
-
-			IJ.run(maska_im, "Open", "stack");
-
-
-			IJ.run(maska_im, "Invert", "stack");
-
-			maska_im.updateAndDraw();
-			//maska_im.show("mask");
-			maska_im.changes= false;
-
-			img.setSlice(ns);
-		}
-
-	}
+	
 
 
 

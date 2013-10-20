@@ -17,7 +17,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
@@ -28,9 +27,9 @@ import mosaic.bregman.GenericDialogCustom;
 
 public class PSFWindow implements ActionListener,PropertyChangeListener
 {
-	private GridBagLayout grid;
-	private GridBagConstraints c;
-	private int y;
+	
+	
+
 	public double lem, lex, NA, n, pinhole, pix_xy, pix_z;
 	public JDialog frame;
 	//Initialize Buttons
@@ -98,11 +97,7 @@ public class PSFWindow implements ActionListener,PropertyChangeListener
 		frame.setModal(true);
 		frame.setSize(300, 500);
 		frame.setLocation(x+450, y+150);
-		//frame.toFront();
-		//frame.setResizable(false);
-		//frame.setAlwaysOnTop(true);
-		grid = new GridBagLayout();
-		c = new GridBagConstraints();
+
 		
 		panel= new JPanel();
 		panel.setPreferredSize(new Dimension(300, 500));
@@ -255,8 +250,8 @@ public class PSFWindow implements ActionListener,PropertyChangeListener
 			TextField tx =gd.getField(3);//field x
 			TextField tz =gd.getField(4);//filed z
 
-			tx.setText(String.format(Locale.US,"%.3f", sx/pix_xy));
-			tz.setText(String.format(Locale.US,"%.3f", sz/pix_z));
+			tx.setText(String.format(Locale.US,"%.2f", sx/pix_xy));
+			tz.setText(String.format(Locale.US,"%.2f", sz/pix_z));
 
 			result.setText
 			(	"<html>"
