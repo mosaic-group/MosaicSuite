@@ -103,9 +103,12 @@ public class BackgroundSubGUI
 	ImagePlus imgch1;
 	ImagePlus imgch2;
 	int ni,nj,nz,nc;
+	int posx, posy;
 
-	public BackgroundSubGUI()
+	public BackgroundSubGUI(int ParentPosx, int ParentPosy)
 	{
+		posx= ParentPosx+20;
+		posy= ParentPosy+20;
 	}
 
 
@@ -141,6 +144,8 @@ public class BackgroundSubGUI
 		
 		gd.addNumericField("rolling ball window size (in pixels)", Analysis.p.size_rollingball,0);
 		
+		gd.centerDialog(false);
+		gd.setLocation(posx, posy);
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
 

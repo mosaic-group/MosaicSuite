@@ -24,9 +24,13 @@ public class VisualizationGUI
 	ImagePlus imgch1;
 	ImagePlus imgch2;
 	int ni,nj,nz,nc;
+	
+	int posx,posy;
 
-	public VisualizationGUI()
+	public VisualizationGUI(int ParentPosx, int ParentPosy)
 	{
+		posx= ParentPosx+20;
+		posy= ParentPosy+20;
 	}
 
 
@@ -75,14 +79,15 @@ public class VisualizationGUI
 		Button rscript = new Button("Set condition names and number of images per condition");
 		Panel p = new Panel();
 		p.add(rscript);
-		rscript.addActionListener(new RScriptListener(gd)); 
+		rscript.addActionListener(new RScriptListener(gd, posx, posy)); 
 
 		
 		gd.addPanel(p);
 		
 		
 		
-		
+		gd.centerDialog(false);
+		gd.setLocation(posx, posy);
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
 
@@ -90,21 +95,13 @@ public class VisualizationGUI
 
 		//Vizualization
 		Analysis.p.livedisplay= gd.getNextBoolean();
-		//IJ.log("live:" +  Analysis.p.livedisplay);
 		Analysis.p.dispcolors= gd.getNextBoolean();
-		//IJ.log("colors:" +  Analysis.p.dispcolors);
 		Analysis.p.dispint= gd.getNextBoolean();
-		//IJ.log("dispint:" +  Analysis.p.dispint);
 		Analysis.p.displabels= gd.getNextBoolean();
-		//IJ.log("displabels:" +  Analysis.p.displabels);
 		Analysis.p.dispoutline= gd.getNextBoolean();
-		//IJ.log("dispoutline:" +  Analysis.p.dispoutline);
-		//Analysis.p.dispcoloc= gd.getNextBoolean();
-
 		Analysis.p.save_images= gd.getNextBoolean();
-		//IJ.log("save images:" +  Analysis.p.save_images);
 		//IJ.log(Analysis.p.wd);
-		//Analysis.p.dispvesicles = false;
+		
 		
 		Analysis.p.nbconditions=(int) gd.getNextNumber();
 	}

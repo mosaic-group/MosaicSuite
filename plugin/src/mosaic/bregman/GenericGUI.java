@@ -13,14 +13,8 @@ import java.awt.Label;
 import java.awt.Panel;
 import java.awt.Point;
 import java.awt.TextArea;
-//import java.awt.datatransfer.DataFlavor;
-//import java.awt.datatransfer.Transferable;
-//import java.awt.dnd.DnDConstants;
-//import java.awt.dnd.DropTarget;
-//import java.awt.dnd.DropTargetDragEvent;
-//import java.awt.dnd.DropTargetDropEvent;
-//import java.awt.dnd.DropTargetEvent;
-//import java.awt.dnd.DropTargetListener;
+import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -85,7 +79,9 @@ public class GenericGUI {
 	ImagePlus imgch1;
 	ImagePlus imgch2;
 	int ni,nj,nz,nc;
-
+	int posx, posy;
+	static int screensizex, screensizey;
+	
 	public GenericGUI(boolean mode, ImagePlus img_p)
 	{
 		imgch1 = img_p;
@@ -95,6 +91,30 @@ public class GenericGUI {
 	public GenericGUI(boolean  	mode){
 		clustermode=mode;
 		//clustermode=true;
+	}
+	
+	public static void setimagelocation(int x, int y, ImagePlus imp)
+	{
+		int wx, wy;
+
+		Window w = imp.getWindow();
+		wx= w.getWidth();
+		wy= w.getHeight();
+
+		w.setSize(Math.min(522, wx), Math.min(574, wy));// set all images to max 512x512 preview (window 522*574)
+		w.setLocation(Math.min(x,screensizex-wx),Math.min(y,screensizey-wy));
+		
+		imp.getCanvas().fitToWindow();
+		
+	}
+	
+	public static void setwindowlocation(int x, int y, Window w)
+	{
+		int wx, wy;
+		wx= w.getWidth();
+		wy= w.getHeight();
+		w.setLocation(Math.min(x,screensizex-wx),Math.min(y,screensizey-wy));
+		
 	}
 
 	/* !!! 2 BUGS concerning checkboxes in generic dialog when run in headless mode on a cluster :
@@ -183,6 +203,10 @@ public class GenericGUI {
 		//for rscript generation
 		Analysis.p.initrsettings=true;
 		
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		screensizex= (int) screenSize.getWidth();
+		screensizey = (int) screenSize.getHeight();
+		
 		
 		gd.setInsets(-10,0,3);
 		if(!clustermode)
@@ -267,7 +291,7 @@ public class GenericGUI {
 			{
 				// TODO Auto-generated method stub
 				
-				BackgroundSubGUI gds = new BackgroundSubGUI();
+				BackgroundSubGUI gds = new BackgroundSubGUI(posx, posy);
 				gds.run("");
 			}
 		});
@@ -289,7 +313,7 @@ public class GenericGUI {
 			{
 				// TODO Auto-generated method stub
 				
-				SegmentationGUI gds = new SegmentationGUI();
+				SegmentationGUI gds = new SegmentationGUI(posx, posy);
 				gds.run("");
 			}
 		});
@@ -310,7 +334,7 @@ public class GenericGUI {
 			{
 				// TODO Auto-generated method stub
 				
-				ColocalizationGUI gds = new ColocalizationGUI(imgch1,imgch2);
+				ColocalizationGUI gds = new ColocalizationGUI(imgch1,imgch2,posx, posy);
 				gds.run("");
 			}
 		});
@@ -332,7 +356,7 @@ public class GenericGUI {
 			{
 				// TODO Auto-generated method stub
 				
-				VisualizationGUI gds = new VisualizationGUI();
+				VisualizationGUI gds = new VisualizationGUI(posx, posy);
 				gds.run("");
 			}
 		});
@@ -345,7 +369,9 @@ public class GenericGUI {
 		}
 		
 		gd.centerDialog(false);
-		gd.setLocation(120, 120);
+		posx=100;
+		posy=120;
+		gd.setLocation(posx, posy);
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
 
@@ -518,7 +544,9 @@ public class GenericGUI {
 			//			frame.setAlwaysOnTop( true );
 			//			IJ.log("frame location :" + frame.getLocationOnScreen().toString() + "focusable " + frame.isFocusableWindow());
 
-
+			if(imgch1!=null)imgch1.close();
+			if(imgch2!=null)imgch2.close();// close previosuly opened images 
+			
 			String path;
 			//with JFileChooser
 			JFileChooser fc = new JFileChooser();
@@ -584,6 +612,8 @@ public class GenericGUI {
 				imgch1.setDisplayRange(Amin,Amax);
 
 				imgch1.show("");
+				GenericGUI.setimagelocation(650,30,imgch1);
+
 
 				if(nc>1){
 					imgch2=new ImagePlus();
@@ -612,9 +642,11 @@ public class GenericGUI {
 					imgch2.setDisplayRange(Bmin,Bmax);
 
 					imgch2.show("");
+					GenericGUI.setimagelocation(650,610,imgch2);
 				}
 
 
+				
 			}
 
 

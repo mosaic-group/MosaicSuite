@@ -3,12 +3,14 @@ package mosaic.bregman;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.WindowManager;
 //import ij.gui.ImageWindow;
 //import ij.process.ByteProcessor;
 //import ij.process.ColorProcessor;
 import ij.process.ShortProcessor;
 
 import java.awt.Color;
+import java.awt.Frame;
 import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
 //import java.util.Date;
@@ -227,7 +229,13 @@ public class ImagePatches {
 		//Tools.showmem();
 		int no=regionslist_refined.size();
 		if(channel==0)
-		{IJ.log(no + " objects found in X.");}
+		{
+			IJ.log(no + " objects found in X.");
+			Frame frame = WindowManager.getFrame("Log"); 
+			if (frame != null) { 
+				GenericGUI.setwindowlocation(100, 680, frame);
+			} 
+		}
 		else
 		{IJ.log(no + " objects found in Y.");}
 
@@ -473,6 +481,7 @@ public class ImagePatches {
 			if(displ && p.dispcolors && p.dispwindows){// && !Analysis.p.save_images
 				regsresultx.setTitle("Colorized objects, channel 1");
 				regsresultx.show();
+				GenericGUI.setimagelocation(1200,50,regsresultx);
 			}
 
 			if(displ && p.displabels  && p.dispwindows){// && !Analysis.p.save_images
@@ -480,6 +489,7 @@ public class ImagePatches {
 				dupx.setTitle("Labelized objects, channel 1");
 				IJ.run(dupx, "Grays", "");
 				dupx.show();
+				GenericGUI.setimagelocation(1210,60,dupx);
 			}
 
 
@@ -543,6 +553,7 @@ public class ImagePatches {
 			if(displ && p.dispcolors && p.dispwindows){// && !Analysis.p.save_images
 				regsresulty.setTitle("Colorized objects, channel 2");
 				regsresulty.show();
+				GenericGUI.setimagelocation(1200,630,regsresulty);
 			}
 
 			if(displ && p.displabels  && p.dispwindows){// && !Analysis.p.save_images
@@ -550,6 +561,7 @@ public class ImagePatches {
 				dupy.setTitle("Labelized objects, channel 2");
 				IJ.run(dupy, "Grays", "");
 				dupy.show();
+				GenericGUI.setimagelocation(1210,640,dupy);
 			}
 
 

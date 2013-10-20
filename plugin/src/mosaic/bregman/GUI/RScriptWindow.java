@@ -13,9 +13,12 @@ import mosaic.bregman.Analysis;
 public class RScriptWindow {
 
 	int nbgroups;
-	public RScriptWindow(int nbgroups)
+	int posx, posy;
+	public RScriptWindow(int nbgroups, int ParentPosx, int ParentPosy)
 	{
 		this.nbgroups=nbgroups;
+		posx= ParentPosx+20;
+		posy= ParentPosy+20;
 	}
 
 	public void run(String arg) 
@@ -44,6 +47,8 @@ public class RScriptWindow {
 			gd.addStringField("Conditon " + (i+1), Analysis.p.groupnames[i], 20);
 		}
 		
+		gd.centerDialog(false);
+		gd.setLocation(posx, posy);
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
 

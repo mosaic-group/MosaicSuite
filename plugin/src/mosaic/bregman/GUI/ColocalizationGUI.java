@@ -17,6 +17,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import mosaic.bregman.Analysis;
+import mosaic.bregman.GenericGUI;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -62,13 +63,16 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	int maxslider=1000;
 
 	JLabel warning;
+	int ns1, ns2; //slices position of imgaes whenlaunched
+	int posx, posy;
 
-
-	public ColocalizationGUI(ImagePlus ch1, ImagePlus ch2)
+	public ColocalizationGUI(ImagePlus ch1, ImagePlus ch2, int ParentPosx, int ParentPosy)
 	{
 		imgch1=ch1;
 		imgch2=ch2;
 		
+		posx= ParentPosx+20;
+		posy= ParentPosy+20;
 			
 	}
 
@@ -76,6 +80,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	public void run(String arg) 
 	{
 		Font bf = new Font(null, Font.BOLD,12);
+		
 		
 		GenericDialog  gd = new GenericDialog("Cell masks");
 		
@@ -163,6 +168,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		if(imgch1!=null){
 			int nslices= imgch1.getNSlices();
 			if(nslices>1){
+				ns1 =imgch1.getSlice();
 				tz1.setMinimum(1);
 				tz1.setMaximum(nslices);
 				tz1.setValue(1);
@@ -176,6 +182,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		if(imgch2!=null){
 			int nslices= imgch2.getNSlices();
 			if(nslices>1){
+				ns2 =imgch2.getSlice();
 				tz2.setMinimum(1);
 				tz2.setMaximum(nslices);
 				tz2.setValue(1);
@@ -186,13 +193,12 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		else tz2.setEnabled(false);
 
 
-
 		if(Analysis.p.usecellmaskX && imgch1!=null)
 		{
 			maska_im1= new ImagePlus();
 			initpreviewch1(imgch1);
 			previewBinaryCellMask(new Double((v1.getText())),imgch1,maska_im1,1);
-			//maska_im1.getWindow().toFront(); // not needed
+			GenericGUI.setimagelocation(1180,30,maska_im1);
 			init1=true;
 				
 		}
@@ -202,16 +208,19 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 			maska_im2= new ImagePlus();
 			initpreviewch2(imgch2);
 			previewBinaryCellMask(new Double((v2.getText())),imgch2,maska_im2,2);
-			//maska_im2.getWindow().toFront();
+			GenericGUI.setimagelocation(1180,610,maska_im2);
 			init2=true;
 		}
 		
-
-		
+		gd.centerDialog(false);
+		gd.setLocation(posx, posy);
 		gd.showDialog();
 
 		if(maska_im1!=null)maska_im1.close();
 		if(maska_im2!=null)maska_im2.close();
+		
+		imgch1.setSlice(ns1);
+		imgch2.setSlice(ns2);
 		
 		if (gd.wasCanceled()) return;
 		
@@ -251,7 +260,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 						maska_im1= new ImagePlus();
 					initpreviewch1(imgch1);
 					previewBinaryCellMask(new Double((v1.getText())),imgch1,maska_im1,1);
-					//maska_im1.getWindow().toFront(); //not needed
+					GenericGUI.setimagelocation(1180,30,maska_im1);
 					init1=true;
 				}
 				else
@@ -275,7 +284,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 						maska_im2= new ImagePlus();
 					initpreviewch2(imgch2);
 					previewBinaryCellMask(new Double((v2.getText())),imgch2,maska_im2,2);
-					//maska_im2.getWindow().toFront();
+					GenericGUI.setimagelocation(1180,610,maska_im2);
 					init2=true;
 				}
 				else{
@@ -350,13 +359,14 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		Object origin=e.getSource();
 
 		if(origin == tz1 && maska_im1!=null){
-			IJ.log("tz1" + tz1.getValue());
 			maska_im1.setZ(tz1.getValue());
+			imgch1.setZ(tz1.getValue());
 			return;
 		}
 
 		if(origin == tz2 && maska_im2!=null){
 			maska_im2.setZ(tz2.getValue());
+			imgch2.setZ(tz2.getValue());
 			return;
 		}
 		
@@ -460,7 +470,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	public void previewBinaryCellMask(double threshold_i, ImagePlus img, ImagePlus maska_im, int channel)
 	{
 		
-		int ns =img.getSlice();
+		int ns = img.getSlice();
 		double threshold;
 
 		ImageProcessor imp;

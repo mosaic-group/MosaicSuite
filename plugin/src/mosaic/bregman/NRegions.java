@@ -462,18 +462,14 @@ public class NRegions implements Runnable{
 		IJ.run(maska_im, "Invert", "stack");
 		//maska_im.show("mask");
 
-//		if(Analysis.p.dispwindows){
-//			maska_im.show("Cell mask channel" + channel);
-//		}
+		if(Analysis.p.dispwindows && Analysis.p.livedisplay){
+		maska_im.show();
+	}
+		
 
 
 		if (Analysis.p.save_images){
-
-
-
-
-
-			//			
+			
 			//			FileSaver fs= new FileSaver(maska_im);
 			//			//IJ.log(img.getTitle());
 			String savepath;

@@ -128,9 +128,12 @@ public class SegmentationGUI
 	ImagePlus imgch1;
 	ImagePlus imgch2;
 	int ni,nj,nz,nc;
+	int posx, posy;
 
-	public SegmentationGUI()
+	public SegmentationGUI(int ParentPosx, int ParentPosy)
 	{
+		posx= ParentPosx+20;
+		posy= ParentPosy+20;
 	}
 
 
@@ -191,6 +194,8 @@ public class SegmentationGUI
 		p.add(bp);
 		gd.addPanel(p);
 
+		gd.centerDialog(false);
+		gd.setLocation(posx, posy);
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
 

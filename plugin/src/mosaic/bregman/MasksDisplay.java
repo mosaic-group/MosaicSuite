@@ -553,6 +553,7 @@ public class MasksDisplay {
 
 		if(Analysis.p.dispwindows){
 			this.imgcoloc.show();
+			this.imgcoloc.getWindow().setLocation(100, 120);
 		}
 
 		if (Analysis.p.save_images){

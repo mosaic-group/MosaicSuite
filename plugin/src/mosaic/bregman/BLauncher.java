@@ -1055,6 +1055,10 @@ public class BLauncher
 		if(Analysis.p.dispwindows){
 			over.setTitle("Objects outlines, channel " + channel);
 			over.show();
+			if(channel==1)
+				GenericGUI.setimagelocation(1180,30,over);
+			if(channel==2)
+				GenericGUI.setimagelocation(1180,610,over);
 		}
 
 
@@ -1142,6 +1146,11 @@ public class BLauncher
 		intensities.setStack("Intensities reconstruction, channel " +channel, intS);
 		if(Analysis.p.dispwindows){
 			intensities.show();
+			if(channel==1)
+				GenericGUI.setimagelocation(1190,40,intensities);
+			if(channel==2)
+				GenericGUI.setimagelocation(1190,620,intensities);
+			
 		}
 
 		if (Analysis.p.save_images){

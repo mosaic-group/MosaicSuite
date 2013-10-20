@@ -12,11 +12,14 @@ public class RScriptListener implements ActionListener {
 
 	GenericDialog gd;
 	int nbgroups;
+	int posx;
+	int posy;
 	
-	public RScriptListener(GenericDialog gd)
+	public RScriptListener(GenericDialog gd, int ParentPosx, int ParentPosy)
 	{
 		this.gd=gd;
-		
+		posx= ParentPosx;
+		posy= ParentPosy;
 	}
 	
 	@Override
@@ -45,7 +48,7 @@ public class RScriptListener implements ActionListener {
 			//Analysis.p.ch2="channel 2 name";
 		}
 
-		RScriptWindow rw = new RScriptWindow(nbgroups);
+		RScriptWindow rw = new RScriptWindow(nbgroups, posx, posy);
 		rw.run("");
 	}
 
