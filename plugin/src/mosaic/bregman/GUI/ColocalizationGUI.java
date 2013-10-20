@@ -32,6 +32,9 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	int ni,nj,nz,nc;
 
 	JSlider t1,t2;
+	JSlider tz1,tz2;//slider for z stack preview
+	
+	JLabel l1, lz1,l2, lz2;
 	TextField v1, v2;
 	Checkbox m1,m2;
 
@@ -58,13 +61,15 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	double logspan= Math.log10(maxrange) - Math.log10(minrange);
 	int maxslider=1000;
 
-	private JLabel warning = new JLabel("");
+	JLabel warning;
 
 
 	public ColocalizationGUI(ImagePlus ch1, ImagePlus ch2)
 	{
 		imgch1=ch1;
 		imgch2=ch2;
+		
+			
 	}
 
 
@@ -72,12 +77,12 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	{
 		Font bf = new Font(null, Font.BOLD,12);
 		
-		GenericDialog  gd = new GenericDialog("Colocalization options");
+		GenericDialog  gd = new GenericDialog("Cell masks");
 		
 		gd.setInsets(-10,0,3);
 		gd.addMessage("Cell masks (two channels images)",bf);
 		
-		gd.setModal(false);
+		
 		String sgroup3[] = {"Cell_mask_channel_1", "Cell_mask_channel_2"};
 		boolean bgroup3[] = {false, false};
 
@@ -86,19 +91,40 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		
 		t1= new JSlider();
 		t2= new JSlider();
-
+		
+		tz1 = new JSlider();
+		tz2 = new JSlider();
+		
+		l1= new JLabel("threshold value   ");
+		l2= new JLabel("threshold value   ");
+		
+		lz1= new JLabel("z position preview");
+		lz2= new JLabel("z position preview");
+		
 		gd.addCheckboxGroup(1, 2, sgroup3, bgroup3);
 		
-		gd.addNumericField("threshold_channel_1 (0 to 1)", Analysis.p.thresholdcellmask, 4);
+		gd.addNumericField("Threshold_channel_1 (0 to 1)", Analysis.p.thresholdcellmask, 4);
 		Panel p1 = new Panel();
+		p1.add(l1);
 		p1.add(t1);
 		gd.addPanel(p1);
 		
-		gd.addNumericField("threshold_channel_2 (0 to 1)", Analysis.p.thresholdcellmasky, 4);
+		Panel pz1 = new Panel();
+		pz1.add(lz1);
+		pz1.add(tz1);
+		gd.addPanel(pz1);
+		
+		gd.addNumericField("Threshold_channel_2 (0 to 1)", Analysis.p.thresholdcellmasky, 4);
 		
 		Panel p2 = new Panel();
+		p2.add(l2);
 		p2.add(t2);
 		gd.addPanel(p2);
+		
+		Panel pz2 = new Panel();
+		pz2.add(lz2);
+		pz2.add(tz2);
+		gd.addPanel(pz2);
 		
 		
 		v1= (TextField) gd.getNumericFields().elementAt(0);
@@ -110,6 +136,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		
 		t1.addChangeListener(this);
 		t2.addChangeListener(this);
+		
 
 		v1.addTextListener(this);
 		v2.addTextListener(this);
@@ -133,14 +160,39 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		val2 = new Double((v2.getText()));
 		
 		
-		gd.showDialog();
+		if(imgch1!=null){
+			int nslices= imgch1.getNSlices();
+			if(nslices>1){
+				tz1.setMinimum(1);
+				tz1.setMaximum(nslices);
+				tz1.setValue(1);
+				tz1.addChangeListener(this);
+			}
+			else tz1.setEnabled(false);
+		}
+		else tz1.setEnabled(false);
+
+
+		if(imgch2!=null){
+			int nslices= imgch2.getNSlices();
+			if(nslices>1){
+				tz2.setMinimum(1);
+				tz2.setMaximum(nslices);
+				tz2.setValue(1);
+				tz2.addChangeListener(this);
+			}
+			else tz2.setEnabled(false);
+		}
+		else tz2.setEnabled(false);
+
+
 
 		if(Analysis.p.usecellmaskX && imgch1!=null)
 		{
 			maska_im1= new ImagePlus();
 			initpreviewch1(imgch1);
 			previewBinaryCellMask(new Double((v1.getText())),imgch1,maska_im1,1);
-			maska_im1.show();						
+			//maska_im1.getWindow().toFront(); // not needed
 			init1=true;
 				
 		}
@@ -150,12 +202,20 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 			maska_im2= new ImagePlus();
 			initpreviewch2(imgch2);
 			previewBinaryCellMask(new Double((v2.getText())),imgch2,maska_im2,2);
-			maska_im2.show();						
+			//maska_im2.getWindow().toFront();
 			init2=true;
 		}
+		
 
+		
+		gd.showDialog();
+
+		if(maska_im1!=null)maska_im1.close();
+		if(maska_im2!=null)maska_im2.close();
+		
 		if (gd.wasCanceled()) return;
-
+		
+		
 		
 		Analysis.p.usecellmaskX= gd.getNextBoolean();
 		Analysis.p.usecellmaskY= gd.getNextBoolean();
@@ -190,12 +250,12 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 					if(maska_im1==null)
 						maska_im1= new ImagePlus();
 					initpreviewch1(imgch1);
-					previewBinaryCellMask(new Double((v1.getText())),imgch1,maska_im1,1);						
-					maska_im1.show();						
+					previewBinaryCellMask(new Double((v1.getText())),imgch1,maska_im1,1);
+					//maska_im1.getWindow().toFront(); //not needed
 					init1=true;
 				}
 				else
-					warning.setText("Please open an image first.");
+					{warning.setText("Please open an image first.");}//not used anymore, needed ?
 			}
 			else{
 				//hide and clean
@@ -215,11 +275,11 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 						maska_im2= new ImagePlus();
 					initpreviewch2(imgch2);
 					previewBinaryCellMask(new Double((v2.getText())),imgch2,maska_im2,2);
-					maska_im2.show();
+					//maska_im2.getWindow().toFront();
 					init2=true;
 				}
 				else{
-					warning.setText("Please open an image with two channels first.");
+					warning.setText("Please open an image with two channels first.");//not used anymore
 				}
 			}
 			else{
@@ -289,7 +349,17 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	public void stateChanged(ChangeEvent e) {
 		Object origin=e.getSource();
 
+		if(origin == tz1 && maska_im1!=null){
+			IJ.log("tz1" + tz1.getValue());
+			maska_im1.setZ(tz1.getValue());
+			return;
+		}
 
+		if(origin == tz2 && maska_im2!=null){
+			maska_im2.setZ(tz2.getValue());
+			return;
+		}
+		
 		if(!boxval && !fieldval){//prevents looped calls
 			sliderval=true;
 			if (origin==t1 && init1 && !t1.getValueIsAdjusting()){
@@ -430,7 +500,8 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
 		maska_im.updateAndDraw();
 		maska_im.changes= false;
-
+		
+		maska_im.show();		
 		img.setSlice(ns);
 	}
 }

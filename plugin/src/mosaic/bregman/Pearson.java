@@ -252,7 +252,7 @@ public class Pearson {
 		}
 
 
-		maska_im.setStack("Cell mask channel " + (channel),maska_ims);
+		maska_im.setStack("Cell mask channel " + (channel+1),maska_ims);
 
 		IJ.run(maska_im, "Invert", "stack");
 		//		
@@ -264,30 +264,7 @@ public class Pearson {
 		IJ.run(maska_im, "Invert", "stack");
 		//maska_im.show("mask");
 
-		if(Analysis.p.dispwindows){
-			maska_im.show("Cell mask channel" + channel);
-		}
 
-
-//		if (Analysis.p.save_images){
-//
-//			//			
-//			//			FileSaver fs= new FileSaver(maska_im);
-//			//			//IJ.log(img.getTitle());
-//			String savepath;
-//			if (channel==0){
-//				savepath = Analysis.p.wd + img.getTitle().substring(0,img.getTitle().length()-4) + "_mask_c1" +".zip";
-//			}
-//			else{
-//				savepath = Analysis.p.wd + img.getTitle().substring(0,img.getTitle().length()-4) + "_mask_c2" +".zip";
-//			}
-//			//			if (Analysis.p.nz >1) fs.saveAsTiffStack(savepath);
-//			//			else fs.saveAsTiff(savepath);	
-//
-//			//IJ.log("save path cell mask: " + savepath);
-//			IJ.saveAs(maska_im, "ZIP", savepath);
-//
-//		}
 
 
 

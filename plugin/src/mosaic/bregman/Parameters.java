@@ -66,7 +66,7 @@ public class Parameters  implements Serializable
 	public boolean usecellmaskY = false;
 	public boolean dispvesicles = true;
 	public double thresholdcellmask = 0.0015;
-	public double thresholdcellmasky = 0.035;//(RAB channel)
+	public double thresholdcellmasky = 0.0015;//(RAB channel)
 	public int energyEvaluationModulo = 5;
 	public int dispEmodulo = 10;
 	public int nbconditions = 1;

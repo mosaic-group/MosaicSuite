@@ -6,6 +6,7 @@ import ij.IJ;
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.Scanner;
 
 
@@ -35,7 +36,7 @@ public class RScript {
 		}
 		catch (Exception e)
 		{//Catch exception if any
-			System.err.println("Error creating R Script " + e.getMessage());
+			System.err.println("Error creating R Script file " + e.getMessage());
 		}
 		
 		ObjectsC1DataFile=file1;
@@ -152,16 +153,17 @@ public class RScript {
 		
 		
 		try{
+			//works when plugin running from .jar plugin file
 			InputStream in = this.getClass().getResourceAsStream("/Rscript.r");
 			String content = new Scanner(in).useDelimiter("\\Z").next();
-			//IJ.log(content);
+			
 			Script.print(content);
 			Script.flush();
 			Script.close();
 		}
 		catch (Exception e)
 		{
-			System.err.println("Error creating R Script " + e.getMessage());
+			System.err.println("Error generating R Script " + e.getMessage());
 		}
 
 		
