@@ -69,7 +69,8 @@
       <zipgroupfileset dir="lib" includes="edu_mines_jtk.jar" excludes="*.config"/>
       <zipgroupfileset dir="lib" includes="weka-3-7-5-monolithic.jar" excludes="*.config"/>
       <zipgroupfileset dir="lib" includes="jsch-0.1.50.jar" excludes="*.config"/>    
- 
+      <zipgroupfileset dir="lib" includes="commons-io-2.4.jar" excludes="*.config" />
+      
       <manifest>
 	<attribute name="Built-By" value="${user.name}"/>
       </manifest>

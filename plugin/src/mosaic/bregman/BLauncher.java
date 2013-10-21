@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.Iterator;
 
 import mosaic.bregman.FindConnectedRegions.Region;
+import mosaic.core.utils.MosaicUtils;
 
 public class BLauncher 
 {
@@ -76,18 +77,9 @@ public class BLauncher
 			}
 			else
 			{
+				/* Get Image directory */
 				
-				if (aImp.getFileInfo().directory == "")
-				{
-					if (aImp.getOriginalFileInfo() == null || aImp.getOriginalFileInfo().directory == "")
-					{Analysis.p.wd = null;}
-					else {Analysis.p.wd = aImp.getOriginalFileInfo().directory;}
-				}
-				else
-				{
-					Analysis.p.wd = aImp.getFileInfo().directory;
-				}
-				
+				Analysis.p.wd = MosaicUtils.ValidFolderFromImage(aImp);
 				
 				img = aImp;
 			}

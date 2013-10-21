@@ -340,6 +340,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 						wp_p = wp;
 						ShellProcessOutput stmp = shp;
 						setShellProcessOutput(this);
+						doing = new String("Compressing on cluster");
 						
 						computed = false;
 						pinput_out.write(s.getBytes());
@@ -361,6 +362,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 				    		wp.SetStatusMessage("Downloading");
 						}
 						
+						cSFTP.ls(tdir);
+						total = 0;
 				    	cSFTP.get(files[0].getName() + "_compressed",dir.getAbsolutePath() + File.separator + files[0].getName() + "_compressed",this);
 						cSFTP.rm(files[0].getName() + "_compressed");
 						
@@ -370,6 +373,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 				    		wp.SetStatusMessage("Decompressing Data");
 				    	}
 				    	cmp.unCompress(new File(dir.getAbsolutePath() + File.separator + files[0].getName() + "_compressed"),new File(dir.getAbsolutePath()));
+				    	break;
 				    }
 		    	}
 				catch (SftpException e) 
@@ -526,6 +530,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 				wp_p = wp;
 				ShellProcessOutput stmp = shp;
 				setShellProcessOutput(this);
+				doing = new String("Decompressing on cluster");
 				
 				pinput_out.write(s.getBytes());
 				
@@ -632,6 +637,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 
 	boolean computed = false;
 	String waitString;
+	String doing;
 	ProgressBarWin wp_p;
 	
 	@Override
@@ -652,7 +658,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		print_out = str.substring(lidx, lidx2);
 		
 		if (wp_p != null)
-			wp_p.SetStatusMessage("Processing " + print_out);
+			wp_p.SetStatusMessage(doing + " " + print_out);
 		
 		if (str.contains(waitString))
 		{
@@ -662,14 +668,22 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		return str;
 	}
 
+	long size_total = 0;
+	long total = 0;
+	
 	@Override
 	public boolean count(long arg0) 
 	{
+		total += arg0;
+		
 		if (wp_p != null)
-			wp_p.SetStatusMessage("Transfert... " + arg0);	
+		{
+			wp_p.SetStatusMessage("Transfert... " + total);	
+			wp_p.SetProgress((int)(total * 100 / size_total) );
+		}
 		
 		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override
@@ -679,7 +693,9 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 	}
 
 	@Override
-	public void init(int arg0, String arg1, String arg2, long arg3) {
+	public void init(int arg0, String arg1, String arg2, long max) 
+	{
+		size_total = max;
 		// TODO Auto-generated method stub
 		
 	}

@@ -57,6 +57,8 @@ import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.apache.commons.io.FileUtils;
+
 import mosaic.bregman.GUI.BackgroundSubGUI;
 import mosaic.bregman.GUI.ColocalizationGUI;
 import mosaic.bregman.GUI.PSFWindow;
@@ -65,6 +67,7 @@ import mosaic.bregman.GUI.VisualizationGUI;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterSession;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BregmanGLM_Batch;
 
 
@@ -92,6 +95,7 @@ import ij.Macro;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
+import ij.io.DirectoryChooser;
 //import ij.gui.NonBlockingGenericDialog;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
@@ -315,7 +319,7 @@ public class GenericGUI {
 			});
 			gd.addPanel(p);
 
-		
+
 			Button colOption = new Button("Options");
 			label = new Label("Colocalization (two channels images)");
 			label.setFont(bf);
@@ -545,6 +549,42 @@ public class GenericGUI {
 			
 			String out[] = {"*_ObjectsData.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip","*.tif"};
 			ss.runPluginsOnFrames(aImp, "", out, 180.0);
+			
+			// Save all JobID to the image folder
+			// or ask for a directory
+			
+			String dir[] = ss.getJobDirectories(0);
+			
+			if (dir.length > 0)
+			{
+				String dirS;
+				
+				if (aImp != null)
+				{
+					dirS = MosaicUtils.ValidFolderFromImage(aImp);
+				}
+				else
+				{
+					DirectoryChooser dc = new DirectoryChooser("Choose directory where to save result");
+					dirS = dc.getDirectory();
+				}
+				
+				for (int i = 0 ; i < dir.length ; i++)
+				{
+					try 
+					{
+						String[] tmp = dir[i].split(File.separator);
+						
+						File t = new File(dirS + File.separator + tmp[tmp.length-1]);
+						FileUtils.copyDirectory(new File(dir[i]), t);
+					}
+					catch (IOException e) 
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 		
 		//Analysis.load2channels(imagePlus);

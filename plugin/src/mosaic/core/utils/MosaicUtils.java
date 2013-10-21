@@ -21,10 +21,10 @@ public class MosaicUtils {
 	
 	/**
 	 * 
-	 * Read the a CSV file and split
+	 * Read a file and split the String by space
 	 * 
 	 * @param file
-	 * @return parameters as String
+	 * @return values array of String
 	 */
 	
 	public static String[] readAndSplit(String file)
@@ -49,7 +49,7 @@ public class MosaicUtils {
 	 * 
 	 * Return the folder where the image is stored, if it is not saved it return the
 	 * folder of the original image 
-	 * @param img
+	 * @param img Image
 	 * @return folder of the image
 	 */
 	public static String ValidFolderFromImage(ImagePlus img)

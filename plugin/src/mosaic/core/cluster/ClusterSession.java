@@ -245,7 +245,7 @@ public class ClusterSession
 	 * 
 	 */
 	
-	String[] getJobDirectories(final int JobID)
+	public String[] getJobDirectories(final int JobID)
 	{
 		final String tmp_dir = IJ.getDirectory("temp");
 		
@@ -317,7 +317,15 @@ public class ClusterSession
 			if(!gd.wasCanceled())
 			{
 				String c = gd.getNextChoice();
-				JobID = Integer.parseInt(c.substring(5, c.length()));
+				int l = c.length() -1;
+				
+				while ( Character.isDigit(c.charAt(l)) && l >= 0)
+				{
+					l--;
+				}
+				l++;
+				
+				JobID = Integer.parseInt(c.substring(l, c.length()));
 			}
 			else
 			{return ;}
