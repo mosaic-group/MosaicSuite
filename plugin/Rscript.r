@@ -1104,9 +1104,13 @@ par(mfrow=c(4,2), mar= c(4, 4, 1, 1) + 0.1, oma =c(4,0,1.5,0.2) )
 resn=mean_ves_number(dtl, MaxSize, MinSize,NR)
 resn2=mean_ves_number(dtlr, MaxSize, MinSize,NR)
 
+
+
 #pdf(paste0(dir2,ChannelNameA,"Object_Numbers",".pdf"))
-plotresnumbers(resn[swap,],paste0(objA ," Object Number"), "Object #", max(resn[1]+resn[2], resn2[1]+resn2[2]) )
-plotresnumbers(resn2[swap,],paste0(objB ," Object Number"), "Object #", max(resn[1]+resn[2], resn2[1]+resn2[2]))
+maxdisp = max(resn[1]+resn[2], resn2[1]+resn2[2])
+if(is.na(maxdisp)) maxdisp=1.1*max(resn[1], resn2[1])
+plotresnumbers(resn[swap,],paste0(objA ," Object Number"), "Object #", maxdisp)
+plotresnumbers(resn2[swap,],paste0(objB ," Object Number"), "Object #", maxdisp)
 #dev.off()
 
 print('...done')
@@ -1122,9 +1126,10 @@ resv2=mean_ves_size(dtlr, MaxSize, MinSize,NR)
 
 
 if (test3D){lbl="Volume [pixels^3]"}else{lbl="Area [pixels^2]"}
-
-plotresnumbers(resv[swap,],paste0(objA ," Size"), lbl, max(resv[1]+resv[2], resv2[1]+resv2[2]))
-plotresnumbers(resv2[swap,],paste0(objB ," Size"), lbl, max(resv[1]+resv[2], resv2[1]+resv2[2] ))
+maxdisp = max(resv[1]+resv[2], resv2[1]+resv2[2])
+if(is.na(maxdisp)) maxdisp=1.1*max(resv[1], resv2[1])
+plotresnumbers(resv[swap,],paste0(objA ," Size"), lbl, maxdisp)
+plotresnumbers(resv2[swap,],paste0(objB ," Size"), lbl, maxdisp)
 #dev.off()
 
 print('...done')
@@ -1140,9 +1145,10 @@ resv1=mean_total_size(dtl, MaxSize, MinSize,NR)
 resv2=mean_total_size(dtlr, MaxSize, MinSize,NR)
 
 if (test3D){lbl="Total volume [pixels^3]"}else{lbl="Total area [pixels^2]"}
-
-plotresnumbers(resv1[swap,],paste0(objA ," Total size"), lbl, max(resv1[1]+resv1[2], resv2[1]+resv2[2]))
-plotresnumbers(resv2[swap,],paste0(objB ," Total size"), lbl, max(resv1[1]+resv1[2], resv2[1]+resv2[2]))
+maxdisp = max(resv1[1]+resv1[2], resv2[1]+resv2[2])
+if(is.na(maxdisp)) maxdisp=1.1*max(resv1[1], resv2[1])
+plotresnumbers(resv1[swap,],paste0(objA ," Total size"), lbl, maxdisp)
+plotresnumbers(resv2[swap,],paste0(objB ," Total size"), lbl, maxdisp)
 #dev.off()
 
 
@@ -1177,8 +1183,10 @@ par(mfrow=c(4,2), mar= c(4, 4, 1, 1) + 0.1, oma =c(4,0,1.5,0.2) )
 resv1=mean_ves_length(dtl, MaxSize, MinSize,NR)
 resv2=mean_ves_length(dtlr, MaxSize, MinSize,NR)
 
-plotresnumbers(resv1[swap,],paste0(objA ," Length"), "Length [pixels]", max(resv1[1]+resv1[2], resv2[1]+resv2[2]))
-plotresnumbers(resv2[swap,],paste0(objB ," Length"), "Length [pixels]", max(resv1[1]+resv1[2], resv2[1]+resv2[2]))
+maxdisp = max(resv1[1]+resv1[2], resv2[1]+resv2[2])
+if(is.na(maxdisp)) maxdisp=1.1*max(resv1[1], resv2[1])
+plotresnumbers(resv1[swap,],paste0(objA ," Length"), "Length [pixels]", maxdisp)
+plotresnumbers(resv2[swap,],paste0(objB ," Length"), "Length [pixels]", maxdisp)
 
 
 
@@ -1197,8 +1205,10 @@ print('Mean object intensities...')
 resi1=mean_ves_int(dtl, MaxSize, MinSize,NR)
 resi2=mean_ves_int(dtlr, MaxSize, MinSize,NR)
 
-plotresnumbers(resi1[swap,],paste0(objA ," Intensity"), "Intensity",max(resi1[1]+resi1[2], resi2[1]+resi2[2]))
-plotresnumbers(resi2[swap,],paste0(objB ," Intensity"), "Intensity",max(resi1[1]+resi1[2], resi2[1]+resi2[2]))
+maxdisp = max(resi1[1]+resi1[2], resi2[1]+resi2[2])
+if(is.na(maxdisp)) maxdisp=1.1*max(resi1[1], resi2[1])
+plotresnumbers(resi1[swap,],paste0(objA ," Intensity"), "Intensity",maxdisp)
+plotresnumbers(resi2[swap,],paste0(objB ," Intensity"), "Intensity",maxdisp)
 #dev.off()
 
 print('...done')
@@ -1311,7 +1321,9 @@ par(mfrow=c(2,2), mar= c(4, 4, 1, 1) + 0.1, oma =c(4,0,1.5,0.2) )
 #channelA
 #compute ves numbers
 resn=mean_ves_number(dtl, MaxSize, MinSize,NR)
-plotresnumbers(resn[swap,],paste0(objA ," Object Number"), "Object #", 1.25*max(resn[1]+resn[2]) )
+maxdisp = max(resn[1]+resn[2])
+if(is.na(maxdisp)) maxdisp=1.1*resn[1]
+plotresnumbers(resn[swap,],paste0(objA ," Object Number"), "Object #", maxdisp )
 
 #dev.off()
 
@@ -1327,7 +1339,9 @@ resv=mean_ves_size(dtl, MaxSize, MinSize,NR)
 
 if (test3D){lbl="Volume [pixels^3]"}else{lbl="Area [pixels^2]"}
 
-plotresnumbers(resv[swap,],paste0(objA ," Size"), lbl, 1.25*max(resv[1]))
+maxdisp = max(resv[1]+resv[2])
+if(is.na(maxdisp)) maxdisp=1.1*resv[1]
+plotresnumbers(resv[swap,],paste0(objA ," Size"), lbl, maxdisp)
 
 
 print('...done')
@@ -1342,7 +1356,9 @@ print('Mean object lengths...')
 
 #compute ves lengths A and B
 resv1=mean_ves_length(dtl, MaxSize, MinSize,NR)
-plotresnumbers(resv1[swap,],paste0(objA ," Length"), "Length [pixels]",1.25*max(resv1[1]+resv[2]))
+maxdisp = max(resv1[1]+resv1[2])
+if(is.na(maxdisp)) maxdisp=1.1*resv1[1]
+plotresnumbers(resv1[swap,],paste0(objA ," Length"), "Length [pixels]",maxdisp)
 
 
 print('...done')
@@ -1354,7 +1370,10 @@ print('Mean object intensities...')
 
 #compute ves intensities A and B
 resi1=mean_ves_int(dtl, MaxSize, MinSize,NR)
-plotresnumbers(resi1[swap,],paste0(objA ," Intensity"), "Intensity",1.25*max(resi1[1] +resi1[2]))
+
+maxdisp = max(resi1[1]+resi1[2])
+if(is.na(maxdisp)) maxdisp=1.1*resi1[1]
+plotresnumbers(resi1[swap,],paste0(objA ," Intensity"), "Intensity",maxdisp)
 
 
 print('...done')
