@@ -62,7 +62,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	double logspan= Math.log10(maxrange) - Math.log10(minrange);
 	int maxslider=1000;
 
-	JLabel warning;
+	JLabel warning = new JLabel("");
 	int ns1, ns2; //slices position of imgaes whenlaunched
 	int posx, posy;
 
@@ -219,8 +219,15 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		if(maska_im1!=null)maska_im1.close();
 		if(maska_im2!=null)maska_im2.close();
 		
-		imgch1.setSlice(ns1);
-		imgch2.setSlice(ns2);
+		if(imgch1!=null){
+			imgch1.setSlice(ns1);
+			imgch1=null;		
+		}
+
+		if(imgch2!=null){
+			imgch2.setSlice(ns2);
+			imgch2=null;
+		}
 		
 		if (gd.wasCanceled()) return;
 		

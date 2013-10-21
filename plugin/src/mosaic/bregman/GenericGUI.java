@@ -544,8 +544,8 @@ public class GenericGUI {
 			//			frame.setAlwaysOnTop( true );
 			//			IJ.log("frame location :" + frame.getLocationOnScreen().toString() + "focusable " + frame.isFocusableWindow());
 
-			if(imgch1!=null)imgch1.close();
-			if(imgch2!=null)imgch2.close();// close previosuly opened images 
+			if(imgch1!=null){imgch1.close();imgch1=null;}
+			if(imgch2!=null){imgch2.close();imgch2=null;}// close previosuly opened images 
 			
 			String path;
 			//with JFileChooser
