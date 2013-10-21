@@ -2,7 +2,7 @@ package mosaic.core.cluster;
 
 import java.util.Vector;
 
-import mosaic.core.utils.Compressor.Algorithm;
+import mosaic.core.utils.DataCompression.Algorithm;
 
 
 public class GeneralProfile implements ClusterProfile

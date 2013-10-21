@@ -15,7 +15,7 @@ import java.util.Vector;
 import javax.swing.JOptionPane;
 
 import mosaic.core.GUI.ProgressBarWin;
-import mosaic.core.utils.Compressor;
+import mosaic.core.utils.DataCompression;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
@@ -295,7 +295,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		
 			// Create a Compressor
 			
-			Compressor cmp = new Compressor();
+			DataCompression cmp = new DataCompression();
 			if (cp != null)
 			{
 				
@@ -470,7 +470,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		
 			// Create a Compressor
 			
-			Compressor cmp = new Compressor();
+			DataCompression cmp = new DataCompression();
 			if (cp != null)
 			{
 				

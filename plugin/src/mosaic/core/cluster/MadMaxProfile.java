@@ -1,7 +1,7 @@
 package mosaic.core.cluster;
 
-import mosaic.core.utils.Compressor;
-import mosaic.core.utils.Compressor.Algorithm;
+import mosaic.core.utils.DataCompression;
+import mosaic.core.utils.DataCompression.Algorithm;
 
 public class MadMaxProfile extends GeneralProfile
 {
@@ -63,7 +63,7 @@ public class MadMaxProfile extends GeneralProfile
 	}
 	
 	@Override
-	public boolean hasCompressor(Compressor.Algorithm a)
+	public boolean hasCompressor(DataCompression.Algorithm a)
 	{
 		if (a == null)	return true;
 		

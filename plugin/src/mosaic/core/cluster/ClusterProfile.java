@@ -1,7 +1,6 @@
 package mosaic.core.cluster;
 
-import mosaic.core.utils.Compressor;
-import mosaic.core.utils.Compressor.Algorithm;
+import mosaic.core.utils.DataCompression.Algorithm;
 
 enum hw
 {
