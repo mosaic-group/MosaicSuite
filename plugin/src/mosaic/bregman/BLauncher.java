@@ -26,13 +26,10 @@ import java.util.Vector;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
 import mosaic.bregman.FindConnectedRegions.Region;
-<<<<<<< HEAD
 import mosaic.core.utils.MosaicUtils;
-=======
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.CSVOutput.Region3DTrack;
 import mosaic.core.ipc.InterPluginCSV;
->>>>>>> IPC_format
 
 public class BLauncher 
 {
