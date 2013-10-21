@@ -271,12 +271,11 @@ public class GenericGUI {
 				choiceInputImage.select(title);
 			}
 		}
-		
-		
+
 		if(!clustermode)
 		{
 			// Background Options
-		
+
 			Button backOption = new Button("Options");
 			Label label = new Label("Background subtraction");
 			label.setFont(bf);
@@ -296,9 +295,9 @@ public class GenericGUI {
 				}
 			});
 			gd.addPanel(p);
-		
+
 			// seg Option button
-		
+
 			Button segOption = new Button("Options");
 			label = new Label("Segmentation parameters");
 			label.setFont(bf);

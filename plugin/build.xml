@@ -65,11 +65,20 @@
       <zipgroupfileset dir="lib" includes="javaml-0.1.7.jar" excludes="*.config"/>
       <zipgroupfileset dir="lib" includes="mines-jtk-20100113.jar" excludes="*.config"/>
       <zipgroupfileset dir="lib" includes="loci_tools.jar" excludes="*.config"/>
-      <zipgroupfileset dir="lib" includes="ij-1.47c.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="ij147v.jar" excludes="*.config"/>
       <zipgroupfileset dir="lib" includes="edu_mines_jtk.jar" excludes="*.config"/>
-      <zipgroupfileset dir="lib" includes="weka-3-7-5-monolithic.jar" excludes="*.config"/>
-      <zipgroupfileset dir="lib" includes="jsch-0.1.50.jar" excludes="*.config"/>    
+      <zipgroupfileset dir="lib" includes="weka-3-7-5-monolithic.jar" excludes="*.config"/> 
       <zipgroupfileset dir="lib" includes="commons-io-2.4.jar" excludes="*.config" />
+      <zipgroupfileset dir="lib" includes="jsch-0.1.50.jar" excludes="*.config"/> 
+      <zipgroupfileset dir="lib" includes="dozer.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="commons-beanutils-1.8.3.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="commons-lang3-3.1.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="commons-logging-1.1.3.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="jcl-over-slf4-1.6.6.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="slf4j-api-1.7.5.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="slf4j-log4j12-1.7.5.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="super-csv-2.1.0.jar" excludes="*.config"/>
+      <zipgroupfileset dir="lib" includes="super-csv-dozer-2.1.0.jar" excludes="*.config"/>
       
       <manifest>
 	<attribute name="Built-By" value="${user.name}"/>

@@ -21,16 +21,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Vector;
+
+import org.supercsv.cellprocessor.ift.CellProcessor;
 
 import mosaic.bregman.FindConnectedRegions.Region;
+<<<<<<< HEAD
 import mosaic.core.utils.MosaicUtils;
+=======
+import mosaic.bregman.output.CSVOutput;
+import mosaic.bregman.output.CSVOutput.Region3DTrack;
+import mosaic.core.ipc.InterPluginCSV;
+>>>>>>> IPC_format
 
 public class BLauncher 
 {
+	
 	public  int hcount=0;
 	public  String headlesscurrent;
 	PrintWriter out;
-	PrintWriter out2;
+//	PrintWriter out2;
 	PrintWriter out3;
 	String wpath;
 	ImagePlus aImp;
@@ -55,10 +65,17 @@ public class BLauncher
 	}
 
 	public BLauncher(ImagePlus aImp_)
-	{
+	{		
 		wpath = null;
 		aImp = aImp_;
-		Headless_file();
+		
+		// Check if we have more than one frame
+		
+		for (int f = 1 ; f <= aImp.getNFrames(); f++)
+		{
+			aImp.setPosition(aImp.getChannel(),aImp.getSlice(),f);
+			Headless_file();
+		}
 	}
 	
 	public void Headless_file()
@@ -96,8 +113,6 @@ public class BLauncher
 					savepath =  wpath.substring(0,wpath.length()-4);
 				else
 				{
-					if (savepath == null)
-						IJ.error("Error cannot track the image directory");
 					savepath = Analysis.p.wd;
 				}
 				//IJ.log(savepath);
@@ -108,7 +123,7 @@ public class BLauncher
 					//IJ.log("looking for files at " + wpath);
 					out  = new PrintWriter(savepath+"_ImagesData"+ ".csv");
 					//out2 = new PrintWriter(savepath+"_Xdata"+ ".csv");
-					out2 = new PrintWriter(savepath+"_ObjectsData_c1"+ ".csv");
+//					out2 = new PrintWriter(savepath+"_ObjectsData_c1"+ ".csv");
 					out3 = new PrintWriter(savepath+"_ObjectsData_c2"+ ".csv");
 					//out3 = new PrintWriter(savepath+"_Ydata"+ ".csv");
 					//PrintWriter out = new PrintWriter(dir1.replaceAll("/", "_") + ".csv");
@@ -140,16 +155,8 @@ public class BLauncher
 							);
 					out.println();
 
-
-
-
-
 					if(Analysis.p.nz>1)
 					{
-						out2.print("Image ID" + ";" + "Object ID"+ ";" 
-								+ "Size" + ";" + "Surface"  + ";" + "Length" + ";" +"Intensity" + ";" 
-								+ "Overlap with ch2" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity" + ";" + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-						out2.println();
 						out3.print("Image ID" + ";" + "Object ID" +";"
 								+ "Size" + ";" + "Surface" + ";" + "Length" + ";" +"Intensity" + ";"
 								+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
@@ -157,10 +164,6 @@ public class BLauncher
 					}
 					else
 					{
-						out2.print("Image ID" + ";" + "Object ID"+ ";" 
-								+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";" 
-								+ "Overlap with ch2" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-						out2.println();
 						out3.print("Image ID" + ";" + "Object ID" +";"
 								+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";"
 								+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
@@ -176,9 +179,8 @@ public class BLauncher
 					out.println();
 					out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch1"  +";" + "Mean surface in ch1"  +";"+ "Mean length in ch1");
 					out.println();
-
-
-					out2 = new PrintWriter(savepath+"_ObjectsData"+ ".csv");
+					
+/*					out2 = new PrintWriter(savepath+"_ObjectsData"+ ".csv");
 
 
 					if(Analysis.p.nz>1){
@@ -194,9 +196,7 @@ public class BLauncher
 						out2.flush();					
 					}
 
-					out2.flush();
-
-
+					out2.flush();*/
 				}
 			}
 			//IJ.log("single file start headless");
@@ -294,7 +294,8 @@ public class BLauncher
 
 			//IJ.log("nchannels" + Analysis.p.nchannels);
 
-			if(Analysis.p.nchannels==2){
+			if(Analysis.p.nchannels==2)
+			{
 				IJ.log("looking for files at " + wpath);
 				//IJ.log("0");
 				//IJ.log("sep " + File.separator);
@@ -308,7 +309,7 @@ public class BLauncher
 				//IJ.log(savepath);
 				//				IJ.log("1");
 				out  = new PrintWriter(wpath+savepath+"_ImageData"+ ".csv");
-				out2 = new PrintWriter(wpath+savepath+"_ObjectsData_c1"+ ".csv");
+//				out2 = new PrintWriter(wpath+savepath+"_ObjectsData_c1"+ ".csv");
 				out3 = new PrintWriter(wpath+savepath+"_ObjectsData_c2"+ ".csv");
 
 
@@ -344,21 +345,15 @@ public class BLauncher
 				
 				
 				
-				if(Analysis.p.nz>1){
-					out2.print("Image ID" + ";" + "Object ID"+ ";" 
-							+ "Size" + ";" + "Surface"  + ";" + "Length" + ";" +"Intensity" + ";" 
-							+ "Overlap with ch2" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-					out2.println();
+				if(Analysis.p.nz>1)
+				{
 					out3.print("Image ID" + ";" + "Object ID" +";"
 							+ "Size" + ";" + "Surface" + ";" + "Length" + ";" +"Intensity" + ";"
 							+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 					out3.println();
 				}
-				else{
-					out2.print("Image ID" + ";" + "Object ID"+ ";" 
-							+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";" 
-							+ "Overlap with ch2" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-					out2.println();
+				else
+				{
 					out3.print("Image ID" + ";" + "Object ID" +";"
 							+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";"
 							+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
@@ -379,33 +374,12 @@ public class BLauncher
 				int nl = directrories.length;
 				String savepath=(directrories[nl-1]).replaceAll("\\"+File.separator, ""); 
 				out  = new PrintWriter(wpath+savepath+"_Images_data"+ ".csv");
-				out2 = new PrintWriter(wpath +savepath+"_Objects_data" + ".csv");
 
 
 
 				out.println();
 				out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch 1" + ";" + "Mean surface in ch1"  +";"+ "Mean length in ch1"  );
 				out.println();
-
-
-
-
-
-
-				if(Analysis.p.nz>1){
-					out2.print("Image ID" + ";" + "Object in ch1"+ ";" + "Size" + ";" + "Surface" + ";" + "Length" + ";" +
-							"Intensity" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-					out2.println();
-					out2.flush();
-				}
-				else{
-					out2.print("Image ID" + ";" + "Object in ch1"+ ";" + "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +
-							"Intensity" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-					out2.println();
-					out2.flush();					
-				}
-
-
 			}
 
 			for (int i=0; i<list.length; i++) {
@@ -687,11 +661,11 @@ public class BLauncher
 			//}
 
 
-			double colocAB=Tools.round(Analysis.colocsegAB(out2, hcount),4);
+			double colocAB=Tools.round(Analysis.colocsegAB(hcount),4);
 
 			double colocABnumber = Tools.round(Analysis.colocsegABnumber(),4);
 			
-			double colocABsize = Tools.round(Analysis.colocsegABsize(out2, hcount),4);
+			double colocABsize = Tools.round(Analysis.colocsegABsize(hcount),4);
 
 			double colocBA=Tools.round(Analysis.colocsegBA(out3, hcount),4);
 
@@ -755,10 +729,9 @@ public class BLauncher
 						);
 				out.println();
 				out.flush();
-
-				Analysis.printobjectsA(out2, hcount);
+				
+//				Analysis.printobjectsA(out2, hcount);
 				Analysis.printobjectsB(out3, hcount);
-				out2.flush();
 				out3.flush();
 			}
 
@@ -841,8 +814,17 @@ public class BLauncher
 
 
 			//IJ.log("save");
-			if(Analysis.p.save_images){
-
+			if(Analysis.p.save_images)
+			{
+				String savepath = null;
+				//IJ.log(wpath);
+				if (wpath != null)
+					savepath =  wpath.substring(0,wpath.length()-4);
+				else
+				{
+					savepath = Analysis.p.wd;
+				}
+				
 				if(out!=null){
 					out.print(img2.getTitle() + ";" + hcount +";"+ Analysis.na + ";" +
 							Tools.round(Analysis.meana , 4)+";"+
@@ -854,9 +836,23 @@ public class BLauncher
 				}
 
 				//IJ.log("print objects");
-				Analysis.printobjects(out2, hcount);
+//				Analysis.printobjects(out2, hcount);
+				
+				CSVOutput.initCSV();
+				
+				boolean append = false;
+				
+				if (hcount != 0)
+					append = true;
+					
+				Vector<CSVOutput.Region3DTrack> obl = Analysis.getObjectsList(hcount);
+				
+				InterPluginCSV<CSVOutput.Region3DTrack> IpCSV = new InterPluginCSV<CSVOutput.Region3DTrack>();
+				
+				IpCSV.Write(savepath+"_ObjectsData_c1"+ ".csv", obl, CSVOutput.Region3DCellProcessor, CSVOutput.Region3DTrack_map,append);
+				
 				//IJ.log("print objects done");
-				out2.flush();
+//				out2.flush();
 			}
 
 
@@ -1107,13 +1103,13 @@ public class BLauncher
 		if(Analysis.p.save_images){
 			if(Analysis.p.nchannels==2){
 				out.close();
-				out2.close();
+//				out2.close();
 				out3.close();
 			}
 			else
 			{
 				if(out!=null) out.close();
-				out2.close();
+//				out2.close();
 			}
 		}
 	}
