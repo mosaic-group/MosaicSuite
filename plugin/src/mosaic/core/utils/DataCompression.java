@@ -63,6 +63,7 @@ public class DataCompression
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				out = new String();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
