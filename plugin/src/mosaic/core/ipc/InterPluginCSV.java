@@ -6,9 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Vector;
 
-
-import mosaic.bregman.testclass;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.dozer.CsvDozerBeanReader;

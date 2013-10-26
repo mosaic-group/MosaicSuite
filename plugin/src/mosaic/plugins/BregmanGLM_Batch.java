@@ -16,7 +16,6 @@ import mosaic.bregman.Analysis;
 import mosaic.bregman.GUIold;
 import mosaic.bregman.GenericGUI;
 import mosaic.bregman.Parameters;
-import mosaic.bregman.testclass;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.region_competition.Settings;
 import ij.plugin.PlugIn;
