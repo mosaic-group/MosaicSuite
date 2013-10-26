@@ -66,7 +66,7 @@ public class DataCompression
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				return;
+				out = new String();
 			}
 			
 			if (out.contains(al.get(i).finger_print))
