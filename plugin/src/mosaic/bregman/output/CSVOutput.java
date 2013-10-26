@@ -117,7 +117,7 @@ public class CSVOutput
     
     public static InterPluginCSV<?> getInterPluginCSV()
     {
-    	return new InterPluginCSV<CSVOutput.Region3DTrack>();
+    	return new InterPluginCSV<CSVOutput.Region3DTrack>(CSVOutput.Region3DTrack.class);
     }
     
     /**

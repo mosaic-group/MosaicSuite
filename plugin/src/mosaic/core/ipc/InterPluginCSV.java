@@ -61,7 +61,7 @@ public class InterPluginCSV<E>
 {
 	private Class<E> p;
 	
-	InterPluginCSV(Class<E> p_)
+	public InterPluginCSV(Class<E> p_)
 	{
 		p = p_;
 	}
