@@ -4,8 +4,11 @@ import java.io.Serializable;
 
 public class Parameters  implements Serializable
 {
-	
 	private static final long serialVersionUID = 1894956510127964860L;
+
+	//
+	
+	public int output_format = -1;
 	
 	// method parameters
 	public  boolean mode_classic=false;

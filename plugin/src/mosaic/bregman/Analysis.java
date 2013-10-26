@@ -127,31 +127,20 @@ public class Analysis {
 
 	}
 
-	public static Vector<Region3DTrack> getObjectsList(int f)
-	{
-		Vector<Region3DTrack> rg = new Vector<Region3DTrack>();
-		CSVOutput csv = new CSVOutput();
-		
+	/**
+	 * 
+	 * Get the objects list and set the frame
+	 * 
+	 * @param f Frame
+	 * @return Vector with objects
+	 */
+	
+	public static Vector<?> getObjectsList(int f)
+	{		
 		if (regionslistA == null)
-			return new Vector<Region3DTrack>();
+			return CSVOutput.getVector();
 		
-		for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) 
-		{	
-			Region3DTrack pt_p = csv.new Region3DTrack();
-			Region r = it.next(); 
-			
-			pt_p.setFrame(f);
-			pt_p.setx(r.cx);
-			pt_p.sety(r.cy);
-			pt_p.setz(r.cz);
-			pt_p.setIntensity(r.intensity);
-			pt_p.setSize(r.rsize);
-			pt_p.setSurface(Tools.round(r.perimeter,3));
-			
-			rg.add(pt_p);
-		}
-		
-		return rg;
+		return CSVOutput.convertRegionToCSVArrayOutput(Analysis.regionslistA,f);
 	}
 	
 	public static void load1channel(ImagePlus img2){

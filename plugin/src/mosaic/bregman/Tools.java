@@ -1932,7 +1932,7 @@ public class Tools
 	}
 
 
-	public  double round(double y, int z){
+	public static  double round(double y, int z){
 		//Special tip to round numbers to 10^-2
 		y*=Math.pow(10,z);
 		y=(int) y;

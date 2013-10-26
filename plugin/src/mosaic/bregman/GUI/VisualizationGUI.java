@@ -10,11 +10,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericDialogCustom;
+import mosaic.bregman.output.CSVOutput;
+import mosaic.core.GUI.OutputGUI;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 
 
-public class VisualizationGUI 
+public class VisualizationGUI
 {
 	ImagePlus imgch1;
 	ImagePlus imgch2;
@@ -61,6 +63,22 @@ public class VisualizationGUI
 		//		gd.addCheckbox("Display colocalization",false);
 		//		
 		//		gd.addCheckbox("Save object data in .csv file and save images", false);
+		
+		Button b = new Button("Output options");
+		b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+			
+				OutputGUI og = new OutputGUI();
+				
+				CSVOutput.occ = og.visualizeOutput(CSVOutput.oc);
+			}
+			
+		});
+		
+		gd.add(b);
 		
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
@@ -109,5 +127,6 @@ public class VisualizationGUI
 
 		}
 	}
+
 
 }

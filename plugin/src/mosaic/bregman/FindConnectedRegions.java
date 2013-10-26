@@ -209,7 +209,36 @@ public class FindConnectedRegions  {
 		//				rt.addValue("Points in Region",points);
 		//			}
 		//		}
+		
+		public double getcx()
+		{
+			return cx;
+		}
 
+		public double getcy()
+		{
+			return cy;
+		}
+		
+		public double getcz()
+		{
+			return cz;
+		}
+		
+		public double getintensity()
+		{
+			return intensity;
+		}
+		
+		public double getrsize()
+		{
+			return rsize;
+		}
+		
+		public double getperimeter()
+		{
+			return perimeter;
+		}
 	}
 
 

@@ -17,6 +17,7 @@ import mosaic.bregman.GUIold;
 import mosaic.bregman.GenericGUI;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.testclass;
+import mosaic.bregman.output.CSVOutput;
 import mosaic.region_competition.Settings;
 import ij.plugin.PlugIn;
 import ij.plugin.filter.PlugInFilter;
@@ -33,7 +34,13 @@ public class BregmanGLM_Batch implements PlugInFilter
 	private String savedSettings;
 	
 	public int setup(String arg0, ImagePlus active_img) 
-	{	
+	{
+		// Initialize CSV format
+		
+		CSVOutput.initCSV();
+		
+		//
+		
 		String dir = IJ.getDirectory("temp");
 		savedSettings = dir+"spb_settings.dat";
 		

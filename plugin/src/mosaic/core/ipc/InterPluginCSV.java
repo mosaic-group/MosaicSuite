@@ -25,8 +25,6 @@ import org.supercsv.prefs.CsvPreference;
 * This class is able to read and generate CSV file
 * It use SuperCSV to parse it
 *
-* Metadata information can be stored, these kind of data are
-* stored separately
 *
 * What you need is a Valid POJO JavaBeans class
 * and a FIELD_MAPPING that map column class field
@@ -64,6 +62,13 @@ import org.supercsv.prefs.CsvPreference;
 
 public class InterPluginCSV<E>
 {
+	private Class<E> p;
+	
+	InterPluginCSV(Class<E> p_)
+	{
+		p = p_;
+	}
+	
 	/**
 	 * 
 	 * Read a CSV file result is stored in out
@@ -72,20 +77,24 @@ public class InterPluginCSV<E>
 	 * @param out output vector
 	 * @param processors Columns processor
 	 * @param FIELD_MAPPING Field mapping
+	 * @param append true if you want append the data
 	 */
 	
-	public void Read(String CsvFilename, Vector<E> out, CellProcessor[] processors, String[] FIELD_MAPPING)
-	{        
+	public void Read(String CsvFilename, Vector<E> out, CellProcessor[] processors, String[] FIELD_MAPPING, boolean append)
+	{
+		if (append == false)
+			out.clear();
+		
         ICsvDozerBeanReader beanReader = null;
         try 
         {
         	beanReader = new CsvDozerBeanReader(new FileReader(CsvFilename), CsvPreference.STANDARD_PREFERENCE);
                 
-            E element = null;
+            E element = p.newInstance();
                 
             beanReader.getHeader(true); // ignore the header
             beanReader.configureBeanMapping(element.getClass(), FIELD_MAPPING);
-                
+            
             while( (element = (E)beanReader.read(element.getClass(), processors)) != null ) 
             {
             	out.add(element);
@@ -93,6 +102,14 @@ public class InterPluginCSV<E>
                 
         } catch (IOException e) 
         {e.printStackTrace();}
+        catch (InstantiationException e) 
+        {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         finally 
         {
                 if( beanReader != null ) 

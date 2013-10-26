@@ -64,6 +64,7 @@ import mosaic.bregman.GUI.ColocalizationGUI;
 import mosaic.bregman.GUI.PSFWindow;
 import mosaic.bregman.GUI.SegmentationGUI;
 import mosaic.bregman.GUI.VisualizationGUI;
+import mosaic.bregman.output.CSVOutput;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterSession;
@@ -572,6 +573,13 @@ public class GenericGUI {
 				{
 					try 
 					{
+						// Stitch Object.csv
+						
+						String outcsv[] = {"*_ObjectsData.csv"};
+						CSVOutput.Stitch(outcsv,new File(dir[i]));
+						
+						///////
+						
 						String[] tmp = dir[i].split(File.separator);
 						
 						File t = new File(dirS + File.separator + tmp[tmp.length-1]);
@@ -584,6 +592,12 @@ public class GenericGUI {
 					}
 				}
 			}
+			
+			// Get output format and Stitch the output in the output selected
+			
+			
+			
+			////////////////
 		}
 		
 		//Analysis.load2channels(imagePlus);

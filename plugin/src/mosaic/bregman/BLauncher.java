@@ -835,18 +835,16 @@ public class BLauncher
 				//IJ.log("print objects");
 //				Analysis.printobjects(out2, hcount);
 				
-				CSVOutput.initCSV();
-				
 				boolean append = false;
 				
 				if (hcount != 0)
 					append = true;
-					
-				Vector<CSVOutput.Region3DTrack> obl = Analysis.getObjectsList(hcount);
 				
-				InterPluginCSV<CSVOutput.Region3DTrack> IpCSV = new InterPluginCSV<CSVOutput.Region3DTrack>();
+				Vector<?> obl = Analysis.getObjectsList(hcount);
 				
-				IpCSV.Write(savepath+"_ObjectsData_c1"+ ".csv", obl, CSVOutput.Region3DCellProcessor, CSVOutput.Region3DTrack_map,append);
+				InterPluginCSV<?> IpCSV = CSVOutput.getInterPluginCSV();
+				
+				CSVOutput.Write(savepath+"_ObjectsData_c1"+ ".csv",obl,IpCSV, append);
 				
 				//IJ.log("print objects done");
 //				out2.flush();
