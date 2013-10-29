@@ -240,7 +240,6 @@ public class SegmentationGUI
 			Analysis.p.interpolation=1;
 		}
 
-		//		    hd.bcolocheadless(imagePlus);
 
 		//Analysis.load2channels(imagePlus);
 	}

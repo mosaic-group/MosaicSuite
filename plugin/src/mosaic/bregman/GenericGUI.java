@@ -508,7 +508,6 @@ public class GenericGUI {
 			hd= new BLauncher(aImp);
 		else
 			hd= new BLauncher(wpath);	
-		//		    hd.bcolocheadless(imagePlus);
 
 		//Analysis.load2channels(imagePlus);
 	}
