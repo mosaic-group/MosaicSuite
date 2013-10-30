@@ -14,6 +14,7 @@ import mosaic.bregman.output.CSVOutput;
 import mosaic.core.GUI.OutputGUI;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
+import mosaic.bregman.output.SquasshOutputChoose;
 
 
 public class VisualizationGUI
@@ -73,7 +74,7 @@ public class VisualizationGUI
 			
 				OutputGUI og = new OutputGUI();
 				
-				CSVOutput.occ = og.visualizeOutput(CSVOutput.oc);
+				CSVOutput.occ = (SquasshOutputChoose) og.visualizeOutput(CSVOutput.oc);
 			}
 			
 		});

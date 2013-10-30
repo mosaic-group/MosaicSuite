@@ -10,8 +10,9 @@ import java.util.Vector;
 import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.bregman.Tools;
 import mosaic.core.GUI.OutputGUI;
-import mosaic.core.GUI.OutputGUI.OutputChoose;
+import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.ipc.Outdata;
 
 import org.supercsv.cellprocessor.Optional;
 import org.supercsv.cellprocessor.ParseBool;
@@ -20,45 +21,7 @@ import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
 public class CSVOutput
-{
-	public interface Outdata
-	{
-		void setRegion(Region r);
-	}
-	
-	public class Region3DTrack implements Outdata
-	{
-		int Frame;
-		double x;
-		double y;
-		double z;
-		double Size;
-		double Intensity;
-		double Surface;
-		
-		public void setFrame(int fr) {Frame = fr;}
-		public void setx(double x_)	{x = x_;}
-		public void sety(double y_)	{y = y_;}
-		public void setz(double z_)	{z = z_;}
-		public void setIntensity(double Intensity_)	{Intensity = Intensity_;}
-		public void setSize(double Size_)				{Size = Size_;}
-		public void setSurface(double Surface_)		{Surface = Surface_;}
-		
-		public int getFrame()	{return Frame;}
-		public double getx()	{return x;}
-		public double gety()	{return y;}
-		public double getz()	{return z;}
-		public double getIntensity()	{return Intensity;}
-		public double getSize()				{return Size;}
-		public double getSurface()		{return Surface;}
-		@Override
-		public void setRegion(Region r) 
-		{
-			// TODO Auto-generated method stub
-			
-		}
-	}
-	
+{	
 	public static final String[] Region3DTrack_map = new String[] 
 	{ 
 		"Frame",
@@ -86,15 +49,15 @@ public class CSVOutput
              new ParseDouble(),
     	 };
     	
-    	oc = new OutputChoose[1];
+    	oc = new SquasshOutputChoose[1];
     	
-    	OutputGUI g = new OutputGUI();
-    	CSVOutput outt = new CSVOutput();
-    	oc[0] = g.new OutputChoose();
+    	oc[0] = new SquasshOutputChoose();
     	oc[0].name = new String("x,y,z,Size,Intensity (For region tracking)");
     	oc[0].cel = Region3DCellProcessor;
     	oc[0].map = Region3DTrack_map;
-    	oc[0].pojoC = outt.new Region3DTrack();
+    	oc[0].classFactory = Region3DTrack.class;
+    	oc[0].vectorFactory = (Class<Vector<? extends Outdata<?>>>) new Vector<Region3DTrack>().getClass();
+    	oc[0].InterPluginCSVFactory = (Class<InterPluginCSV<? extends Outdata<?>>>) new InterPluginCSV<Region3DTrack>(Region3DTrack.class).getClass();
     	occ = oc[0];
     }
     
@@ -103,113 +66,80 @@ public class CSVOutput
      * Get a vector of object with the selected format
      */
     
-    public static Vector<?> getVector()
+    public static Vector<? extends Outdata<?>> getVector()
     {
-    	return new Vector<CSVOutput.Region3DTrack>();
+    	
+    	try {
+			return occ.vectorFactory.newInstance();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return null;
     }
     
     /**
      * 
-     * Get an InterPluginCSV object with the selected object format
+     * Get a vector of objects with the selected format
+     * 
+     * @param v ArrayList of Region objects
+     * @return Vector of object of the selected format
+     */
+    
+    @SuppressWarnings("unchecked")
+	public static Vector<? extends Outdata<Region>> getVector(ArrayList<Region> v)
+    {
+		InterPluginCSV<? extends Outdata<Region>> csv = (InterPluginCSV<? extends Outdata<Region>>) getInterPluginCSV();
+    	
+    	return (Vector<? extends Outdata<Region>> ) csv.getVector(v);
+    }
+    
+    /**
+     * 
+     * Get an InterPluginCSV object with the selected format
      * 
      * @return InterPluginCSV
      */
     
-    public static InterPluginCSV<?> getInterPluginCSV()
+    public static InterPluginCSV<? extends Outdata<?>> getInterPluginCSV()
     {
-    	return new InterPluginCSV<CSVOutput.Region3DTrack>(CSVOutput.Region3DTrack.class);
+    	try {
+			return occ.InterPluginCSVFactory.newInstance();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return null;
     }
     
-    /**
-     * 
-     * Write CSV file
-     * 
-     * @param path path of the file
-     * @param obl_ vector of data
-     * @param csv_ CSV writer
-     * @param append true to append the data
-     */
-    
-    public static void Write(String path, Vector<?> obl_, InterPluginCSV<?> csv_ , boolean append)
-    {
-    	@SuppressWarnings("unchecked")
-		Vector<Region3DTrack> obl = (Vector<Region3DTrack>) obl_;
-    	@SuppressWarnings("unchecked")
-		InterPluginCSV<Region3DTrack> csv = (InterPluginCSV<Region3DTrack>) csv_;
-    	
-		csv.Write(path, obl, CSVOutput.occ.cel, CSVOutput.occ.map ,append);
-    }
-    
-    /**
-     * 
-     * Read a CSV file
-     * 
-     * @param path path of the file to read
-     * @param obl_ output vector
-     * @param csv_ csv reader
-     * @param append true if you want append the data
-     */
-    
-    public static void Read(String path, Vector<?> obl_, InterPluginCSV<?> csv_ , boolean append)
-    {
-    	@SuppressWarnings("unchecked")
-		Vector<Region3DTrack> obl = (Vector<Region3DTrack>) obl_;
-    	@SuppressWarnings("unchecked")
-		InterPluginCSV<Region3DTrack> csv = (InterPluginCSV<Region3DTrack>) csv_;
-    	
-		csv.Read(path, obl, CSVOutput.occ.cel, CSVOutput.occ.map ,append);
-    }
-    
-    public static OutputChoose occ;
-    public static OutputChoose oc[];
+    public static SquasshOutputChoose occ;
+    public static SquasshOutputChoose oc[];
     
     public static boolean Stitch(String output[], File dir)
-    {    	
-		Vector<?> v = getVector();
-		InterPluginCSV<?> csv = getInterPluginCSV();
+    {
+		InterPluginCSV<? extends Outdata<?>> csv = getInterPluginCSV();
     	
 		for (int j = 0 ; j < output.length ; j++)
 		{
 			File [] fl = new File(dir + File.separator + output[j].replace("*", "_")).listFiles();
 			int nf = fl.length;
 			
+			String str[] = new String[nf];
+			
 			for (int i = 1 ; i <= nf ; i++)
 			{
-				String fll = dir + File.separator + output[j].replace("*", "_") + File.separator + output[j].replace("*", "tmp_" + i);
-    		
-				Read(fll,v,csv,true);
+				str[i-1] = dir + File.separator + output[j].replace("*", "_") + File.separator + output[j].replace("*", "tmp_" + i);
 			}
 			
-			Write(output[j].replace("*", "global"),v,csv, false);
+			csv.Stitch(str, output[j].replace("*", "stitch"), occ);
 		}
     	
     	return true;
-    }
-    
-    
-    static public Vector<?> convertRegionToCSVArrayOutput(ArrayList<Region> regionslistA, int f)
-    {
-    	CSVOutput csv = new CSVOutput();
-    	
-    	@SuppressWarnings("unchecked")
-		Vector<Outdata> v = (Vector<Outdata>)getVector();
-    	
-    	for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) 
-    	{
-    		Region3DTrack pt_p = csv.new Region3DTrack();
-    		Region r = it.next();
-		
-    		pt_p.setFrame(f);
-    		pt_p.setx(r.getcx());
-    		pt_p.sety(r.getcy());
-    		pt_p.setz(r.getcz());
-    		pt_p.setIntensity(r.getintensity());
-    		pt_p.setSize(r.getrsize());
-    		pt_p.setSurface(Tools.round(r.getperimeter(),3));
-		
-    		v.add(pt_p);
-    	}
-    	
-    	return v;
     }
 }

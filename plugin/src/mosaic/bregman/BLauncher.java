@@ -28,7 +28,6 @@ import org.supercsv.cellprocessor.ift.CellProcessor;
 import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.bregman.output.CSVOutput;
-import mosaic.bregman.output.CSVOutput.Region3DTrack;
 import mosaic.core.ipc.InterPluginCSV;
 
 public class BLauncher 
@@ -844,16 +843,11 @@ public class BLauncher
 				
 				InterPluginCSV<?> IpCSV = CSVOutput.getInterPluginCSV();
 				
-				CSVOutput.Write(savepath+"_ObjectsData_c1"+ ".csv",obl,IpCSV, append);
+				IpCSV.Write(savepath+"_ObjectsData_c1"+ ".csv",obl,CSVOutput.occ, append);
 				
 				//IJ.log("print objects done");
 //				out2.flush();
 			}
-
-
-
-
-
 
 			hcount++;
 

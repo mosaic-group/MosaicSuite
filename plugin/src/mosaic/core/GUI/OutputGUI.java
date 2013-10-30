@@ -7,6 +7,7 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -17,6 +18,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
+
+import mosaic.bregman.output.Region3DTrack;
+import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.ipc.Outdata;
+import mosaic.core.ipc.OutputChoose;
 
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
@@ -79,7 +85,7 @@ public class OutputGUI extends JDialog
 	    }
 	    
 	    
-	    void setOutput(OutputChoose out)
+	    void setOutput(GUIOutputChoose out)
 	    {
 			data = new Object[out.map.length][3];
 			
@@ -100,18 +106,9 @@ public class OutputGUI extends JDialog
 	
 	JPanel contentPane;
 	JTable table;
-	OutputChoose oc;
-	OutputChoose out[];
+	GUIOutputChoose oc;
+	GUIOutputChoose out[];
 	OutputTable outTM;
-	
-	public class OutputChoose
-	{
-		public String name;
-		public Object pojoC;
-		public String[] map;
-		public CellProcessor cel[];
-		public double factor[];
-	};
 	
 	public OutputGUI()
 	{
@@ -126,7 +123,7 @@ public class OutputGUI extends JDialog
 	 * @return Choose output + information on the option choose
 	 */
 	
-	public OutputChoose visualizeOutput(OutputChoose out_[])
+	public GUIOutputChoose visualizeOutput(GUIOutputChoose out_[])
 	{
 		if (out_ == null)
 			return null;

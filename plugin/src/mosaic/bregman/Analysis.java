@@ -11,7 +11,6 @@ import java.util.concurrent.CountDownLatch;
 
 import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.bregman.output.CSVOutput;
-import mosaic.bregman.output.CSVOutput.Region3DTrack;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -136,11 +135,18 @@ public class Analysis {
 	 */
 	
 	public static Vector<?> getObjectsList(int f)
-	{		
-		if (regionslistA == null)
-			return CSVOutput.getVector();
+	{
+		@SuppressWarnings("unchecked")
+		Vector<? extends ICSVGeneral > v = (Vector<? extends ICSVGeneral>) CSVOutput.getVector(regionslistA);
 		
-		return CSVOutput.convertRegionToCSVArrayOutput(Analysis.regionslistA,f);
+		// Set frame
+		
+		for (int i = 0 ; i < v.size() ; i++)
+		{
+			v.get(i).setFrame(f);
+		}
+		
+		return v;
 	}
 	
 	public static void load1channel(ImagePlus img2){
