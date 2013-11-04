@@ -43,8 +43,8 @@ public class DataCompression
 		al = new Vector<Algorithm>();
 		
 		al.add(new Algorithm("SZIP","7za --help","7-Zip","7za a -t7z # *","yes | 7za e *"));
-		al.add(new Algorithm("TAR","tar --version","tar (GNU tar)","tar -j -cvf # * ","tar -xvf * "));
-		al.add(new Algorithm("ZIP","zip --version","This is Zip","zip # *","zip *"));
+//		al.add(new Algorithm("TAR","tar --version","tar (GNU tar)","tar -j -cvf # * ","tar -xvf * "));
+		al.add(new Algorithm("ZIP","zip --version","This is Zip","zip # * ; mv #.zip #","unzip  *"));
 	}
 	
 	/**
@@ -70,7 +70,7 @@ public class DataCompression
 				out = new String();
 			}
 			
-			if (out.contains(al.get(i).finger_print))
+			if (out != null && out.contains(al.get(i).finger_print))
 			{
 				selC = i;
 				return;
