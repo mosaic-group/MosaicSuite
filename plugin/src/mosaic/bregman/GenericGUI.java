@@ -575,8 +575,8 @@ public class GenericGUI {
 					{
 						// Stitch Object.csv
 						
-						String outcsv[] = {"*_ObjectsData.csv"};
-						CSVOutput.Stitch(outcsv,new File(dir[i]));
+//						String outcsv[] = {"*_ObjectsData.csv"};
+//						CSVOutput.Stitch(outcsv,new File(dir[i]));
 						
 						///////
 						

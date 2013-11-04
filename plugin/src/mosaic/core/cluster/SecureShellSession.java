@@ -81,37 +81,40 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		// This class require Jsch 1.50 but Fiji use Jsch 1.49
 		// if we found Jsch 1.49 we inform the user to update that component
 		
-		for (File f : new File(IJ.getDirectory("imagej") + File.separator + "jars" + File.separator).listFiles())
+		File[] fl = new File(IJ.getDirectory("imagej") + File.separator + "jars" + File.separator).listFiles();
+		if (fl != null)
 		{
-			if (f.getName().startsWith("jsch-") && f.getName().endsWith(".jar"))
+			for (File f : fl)
 			{
-				String psplit[] = f.getName().substring(5, f.getName().length() - 4).split("\\.");
+				if (f.getName().startsWith("jsch-") && f.getName().endsWith(".jar"))
+				{
+					String psplit[] = f.getName().substring(5, f.getName().length() - 4).split("\\.");
 				
-				if (psplit.length >= 1 && Integer.parseInt(psplit[0]) > 0)
-				{
-					//  Newer
-				}
-				else if (psplit.length >= 2 && Integer.parseInt(psplit[1]) > 1)
-				{
-					// Newer
-				}
-				else if (psplit.length >= 3 && Integer.parseInt(psplit[2]) > 49)
-				{
-					// Newer
-				}
-				else
-				{
-					GenericDialog gd = new GenericDialog("JSCH component conflict");
-					
-					String ad[] = {"No","Yes"};
-					gd.addChoice("JSCH component conflict found, update to 0.1.50 ? ",ad,"Yes");
-					gd.addMessage("If you press yes we will replace jars/" + f.getName() + " with a newer version");
-					gd.addMessage("If something goes wrong a backup version can be founded at mosaic.mpi-cbg.de/Downloads/dep/jsch-0.1.49.jar");
-					gd.addMessage("fiji/ImageJ will close after update");
-					gd.showDialog();
-					
-					if(!gd.wasCanceled() && gd.getNextChoice().equals("Yes"))
+					if (psplit.length >= 1 && Integer.parseInt(psplit[0]) > 0)
 					{
+						//  Newer
+					}
+					else if (psplit.length >= 2 && Integer.parseInt(psplit[1]) > 1)
+					{
+						// Newer
+					}
+					else if (psplit.length >= 3 && Integer.parseInt(psplit[2]) > 49)
+					{
+						// Newer
+					}
+					else
+					{
+						GenericDialog gd = new GenericDialog("JSCH component conflict");
+					
+						String ad[] = {"No","Yes"};
+						gd.addChoice("JSCH component conflict found, update to 0.1.50 ? ",ad,"Yes");
+						gd.addMessage("If you press yes we will replace jars/" + f.getName() + " with a newer version");
+						gd.addMessage("If something goes wrong a backup version can be founded at mosaic.mpi-cbg.de/Downloads/dep/jsch-0.1.49.jar");
+						gd.addMessage("fiji/ImageJ will close after update");
+						gd.showDialog();
+					
+						if(!gd.wasCanceled() && gd.getNextChoice().equals("Yes"))
+						{
 
 							try 
 							{
@@ -123,6 +126,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 							catch (InterruptedException e) 
 							{e.printStackTrace();}
 							System.exit(1);
+						}
 					}
 					
 					
