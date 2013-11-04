@@ -19,13 +19,16 @@ public class Particle {
 	public float original_y, original_z;
 	private int frame; 						// the number of the frame this particle belonges to (can be 0)
 	public boolean special; 				// a flag that is used while detecting and linking particles
-	public int[] next; 						// array that holds in position i the particle number in frame i
+	public int[] next; 						// array that holds in position i the next particle number in frame i
+	public int[] prev; 						// array that holds in position i the previous particle number in frame -i
 											// that this particle is linked to  
 	public int nbIterations = 0; //debug
 	/* only relevant to particles detected in images */
 	public float m0;						// intensity moment
 	public float m1, m2, m3, m4;
 	public float score; 					// non-particle discrimination score
+	public float distance;
+	public float lx,ly,lz;                  // previous Linking x,y,z
 	private double scaling[];
 
 	/* only relevant to particles given as input */
@@ -54,6 +57,7 @@ public class Particle {
 		scaling[0] = 1.0;
 		scaling[1] = 1.0;
 		scaling[2] = 1.0;
+		distance = -1.0f;
 	}
 
 	/**

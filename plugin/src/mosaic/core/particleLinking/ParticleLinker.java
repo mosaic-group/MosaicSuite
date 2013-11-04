@@ -89,12 +89,30 @@ public class ParticleLinker {
 				/* Fill in the costs */
 				for(i = 0; i < nop; i++) {
 					for(j = 0; j < nop_next; j++) {
-						cost[i][j] = 
-							(p1.elementAt(i).x - p2.elementAt(j).x)*(p1.elementAt(i).x - p2.elementAt(j).x) + 
-							(p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) + 
-							(p1.elementAt(i).z - p2.elementAt(j).z)*(p1.elementAt(i).z - p2.elementAt(j).z) + 
+						
+						float distance_sq = (p1.elementAt(i).x - p2.elementAt(j).x)*(p1.elementAt(i).x - p2.elementAt(j).x) + 
+								(p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) + 
+								(p1.elementAt(i).z - p2.elementAt(j).z)*(p1.elementAt(i).z - p2.elementAt(j).z);
+						
+						cost[i][j] = distance_sq +
 							(p1.elementAt(i).m0 - p2.elementAt(j).m0)*(p1.elementAt(i).m0 - p2.elementAt(j).m0) + 
 							(p1.elementAt(i).m2 - p2.elementAt(j).m2)*(p1.elementAt(i).m2 - p2.elementAt(j).m2);
+						
+						if (true && p1.elementAt(i).distance >= 0.0)
+						{
+							cost[i][j] += (p1.elementAt(i).distance - distance_sq / (n+1)*(n+1))*(p1.elementAt(i).distance - distance_sq / (n+1)*(n+1));
+							
+							if (distance_sq != 0)
+							{
+								float lx = (p2.elementAt(j).x - p1.elementAt(i).x)/distance_sq;
+								float ly = (p2.elementAt(j).y - p1.elementAt(i).y)/distance_sq;
+								float lz = (p2.elementAt(j).z - p1.elementAt(i).z)/distance_sq;
+							
+								float cos_phi = lx * p1.elementAt(i).x + ly*p1.elementAt(i).y + lz*p1.elementAt(i).z;
+							
+								cost[i][j] += (cos_phi - 1)*displacement;
+							}
+						}
 					}
 				}
 
@@ -235,6 +253,19 @@ public class ParticleLinker {
 					for(j = 0; j < nop_next; j++) {
 						if(g[i][j] == true)
 							p1.elementAt(i).next[n] = j;
+						
+							// Calculate the square distance and store the normalized linking vector
+						
+							if (true)
+							{
+								float distance_sq = (float) Math.sqrt((p1.elementAt(i).x - p2.elementAt(j).x)*(p1.elementAt(i).x - p2.elementAt(j).x) + 
+										(p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) + 
+										(p1.elementAt(i).z - p2.elementAt(j).z)*(p1.elementAt(i).z - p2.elementAt(j).z));
+						
+								p2.elementAt(j).lx = (p2.elementAt(j).x - p1.elementAt(i).x)/distance_sq;
+								p2.elementAt(j).ly = (p2.elementAt(j).y - p1.elementAt(i).y)/distance_sq;
+								p2.elementAt(j).lz = (p2.elementAt(j).z - p1.elementAt(i).z)/distance_sq;
+							}
 					}
 				}
 			}
