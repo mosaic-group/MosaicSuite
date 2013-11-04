@@ -110,7 +110,7 @@ public class ParticleLinker {
 							
 								float cos_phi = lx * p1.elementAt(i).x + ly*p1.elementAt(i).y + lz*p1.elementAt(i).z;
 							
-								cost[i][j] += (cos_phi - 1)*displacement;
+								cost[i][j] += (cos_phi - 1)*Math.;
 							}
 						}
 					}
