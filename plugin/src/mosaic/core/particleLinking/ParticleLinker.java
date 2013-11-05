@@ -18,8 +18,8 @@ public class ParticleLinker {
 	 * <br>Adapted from Ingo Oppermann implementation
 	 * <br> Refactored by Janick Cardinale, ETHZ, 1.6.2012
 	 * <br> Optimized with ideas from Mark Kittisopikul, UT Southwestern
-	 */
-	public void linkParticles(MyFrame[] frames, int frames_number, int linkrange, float displacement) {
+	 */	
+	public void linkParticles(MyFrame[] frames, int frames_number, int linkrange, float displacement, boolean straight_line, boolean force) {
 
 		int m, i, j, k, nop, nop_next, n;
 		int ok, prev, prev_s, x = 0, y = 0, curr_linkrange;
@@ -98,20 +98,27 @@ public class ParticleLinker {
 							(p1.elementAt(i).m0 - p2.elementAt(j).m0)*(p1.elementAt(i).m0 - p2.elementAt(j).m0) + 
 							(p1.elementAt(i).m2 - p2.elementAt(j).m2)*(p1.elementAt(i).m2 - p2.elementAt(j).m2);
 						
-						if (true && p1.elementAt(i).distance >= 0.0)
+						if (force == true)
 						{
-							cost[i][j] += (p1.elementAt(i).distance - distance_sq / (n+1)*(n+1))*(p1.elementAt(i).distance - distance_sq / (n+1)*(n+1));
-							
-							if (distance_sq != 0)
+							if (p1.elementAt(i).distance >= 0.0)
 							{
-								float lx = (p2.elementAt(j).x - p1.elementAt(i).x)/distance_sq;
-								float ly = (p2.elementAt(j).y - p1.elementAt(i).y)/distance_sq;
-								float lz = (p2.elementAt(j).z - p1.elementAt(i).z)/distance_sq;
-							
-								float cos_phi = lx * p1.elementAt(i).x + ly*p1.elementAt(i).y + lz*p1.elementAt(i).z;
-							
-								cost[i][j] += (cos_phi - 1)*Math.;
+								float lx = (p2.elementAt(j).x - p1.elementAt(i).x) - p1.elementAt(i).lx;
+								float ly = (p2.elementAt(j).y - p1.elementAt(i).y) - p1.elementAt(i).ly;
+								float lz = (p2.elementAt(j).z - p1.elementAt(i).z) - p1.elementAt(i).lz;
+								
+								float f_magn = lx * lx + ly * ly + lz * lz;
+								cost[i][j] += f_magn;
 							}
+						}
+						else if (straight_line == true  && p1.elementAt(i).distance >= 0.0 && distance_sq >= 0)
+						{							
+							float lx = (p2.elementAt(j).x - p1.elementAt(i).x)/distance_sq;
+							float ly = (p2.elementAt(j).y - p1.elementAt(i).y)/distance_sq;
+							float lz = (p2.elementAt(j).z - p1.elementAt(i).z)/distance_sq;
+							
+							float cos_phi = lx * p1.elementAt(i).x + ly*p1.elementAt(i).y + lz*p1.elementAt(i).z;
+							
+							cost[i][j] += (cos_phi - 1)*displacement;
 						}
 					}
 				}
@@ -252,11 +259,22 @@ public class ParticleLinker {
 				for(i = 0; i < nop; i++) {
 					for(j = 0; j < nop_next; j++) {
 						if(g[i][j] == true)
+						{
 							p1.elementAt(i).next[n] = j;
 						
 							// Calculate the square distance and store the normalized linking vector
 						
-							if (true)
+							if (force == true)
+							{						
+								p2.elementAt(j).lx = (p2.elementAt(j).x - p1.elementAt(i).x);
+								p2.elementAt(j).ly = (p2.elementAt(j).y - p1.elementAt(i).y);
+								p2.elementAt(j).lz = (p2.elementAt(j).z - p1.elementAt(i).z);
+								
+								// We do not use distance is just to indicate that the particle has a link vector
+								
+								p2.elementAt(j).distance = 1.0f;
+							}
+							else if (straight_line == true)
 							{
 								float distance_sq = (float) Math.sqrt((p1.elementAt(i).x - p2.elementAt(j).x)*(p1.elementAt(i).x - p2.elementAt(j).x) + 
 										(p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) + 
@@ -266,6 +284,7 @@ public class ParticleLinker {
 								p2.elementAt(j).ly = (p2.elementAt(j).y - p1.elementAt(i).y)/distance_sq;
 								p2.elementAt(j).lz = (p2.elementAt(j).z - p1.elementAt(i).z)/distance_sq;
 							}
+						}
 					}
 				}
 			}

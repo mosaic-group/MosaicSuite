@@ -42,7 +42,7 @@ public class Calibration_ implements PlugIn, PreviewInterface {
 		allocateTwoImages();
 		detect();
 		// changed by arun to affect janick's refactoring
-		new ParticleLinker().linkParticles(frames, frames_number, linkrange, (float)displacement);
+		new ParticleLinker().linkParticles(frames, frames_number, linkrange, (float)displacement,false,false);
 		//
 		calculateShifts();
 		regression();

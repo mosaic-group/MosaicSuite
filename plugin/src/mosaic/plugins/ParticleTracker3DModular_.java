@@ -279,7 +279,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 		/* link the particles found */
 		IJ.showStatus("Linking Particles");		 
-		linker.linkParticles(frames, frames_number, linkrange, (float)displacement);
+		linker.linkParticles(frames, frames_number, linkrange, (float)displacement, false, false);
 		IJ.freeMemory();
 
 		/* generate trajectories */		 
@@ -1702,7 +1702,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 				/* link the particles found */
 				IJ.showStatus("Linking Particles");		
-				linker.linkParticles(frames, frames_number, linkrange, (float)displacement);
+				linker.linkParticles(frames, frames_number, linkrange, (float)displacement, false, false);
 				IJ.freeMemory();
 
 				/* generate trajectories */		 
