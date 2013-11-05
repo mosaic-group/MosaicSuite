@@ -16,6 +16,9 @@ class ProcessorGeneral
 	public CellProcessor getProcessorx()		{return new ParseDouble();}
 	public CellProcessor getProcessory()		{return new ParseDouble();}
 	public CellProcessor getProcessorz()		{return new ParseDouble();}
+	public CellProcessor getProcessorCoord_X()		{return new ParseDouble();}
+	public CellProcessor getProcessorCoord_Y()		{return new ParseDouble();}
+	public CellProcessor getProcessorCoord_Z()		{return new ParseDouble();}
 	public CellProcessor getProcessorFrame() {return new ParseInt();}
 	public CellProcessor getProcessorSurface()		{return new ParseDouble();}
 }

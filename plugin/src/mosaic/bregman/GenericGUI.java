@@ -69,6 +69,7 @@ import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.ShellCommand;
 import mosaic.plugins.BregmanGLM_Batch;
 
 
@@ -575,18 +576,22 @@ public class GenericGUI {
 					{
 						// Stitch Object.csv
 						
-//						String outcsv[] = {"*_ObjectsData.csv"};
-//						CSVOutput.Stitch(outcsv,new File(dir[i]));
+						String outcsv[] = {"*_ObjectsData.csv"};
+						CSVOutput.Stitch(outcsv,new File(dir[i]));
 						
 						///////
 						
 						String[] tmp = dir[i].split(File.separator);
 						
 						File t = new File(dirS + File.separator + tmp[tmp.length-1]);
-						FileUtils.copyDirectory(new File(dir[i]), t);
+						
+						ShellCommand.exeCmdNoPrint("cp -r " + dir[i] + " " + t);
 					}
 					catch (IOException e) 
 					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}

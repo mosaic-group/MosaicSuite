@@ -1,8 +1,8 @@
 package mosaic.bregman.output;
 
-
-
 import java.io.File;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
@@ -21,24 +21,42 @@ import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
 public class CSVOutput
-{	
+{
+	// Region3DTrack
+	
 	public static final String[] Region3DTrack_map = new String[] 
 	{ 
 		"Frame",
-        "x",                   // simple field mapping (like CsvBeanReader)
-        "y",          // as above
-        "z", // indexed (first element) + deep mapping
+        "x",
+        "y",
+        "z",
         "Size", 
-        "Intensity", // indexed (second element) + deep mapping
+        "Intensity",
         "Surface"
     };
-
-    public static CellProcessor[] Region3DCellProcessor;
-       
-       
+	
+    public static CellProcessor[] Region3DTrackCellProcessor;
+      
+    // Region3DRscript
+    
+	public static final String[] Region3DRScript_map = new String[] 
+	{ 
+		"Image_ID",
+        "Object_ID",
+        "Size",
+        "Perimeter",
+        "Length", 
+        "Intensity",
+        "Coord_X",
+        "Coord_Y",
+        "Coord_Z",
+    };
+    
+    public static CellProcessor[] Region3DRScriptCellProcessor;
+	
     public static void initCSV()
     {
-    	Region3DCellProcessor = new CellProcessor[] 
+    	Region3DTrackCellProcessor = new CellProcessor[] 
     	{ 
     		 new ParseInt(),
     		 new ParseDouble(),
@@ -49,16 +67,38 @@ public class CSVOutput
              new ParseDouble(),
     	 };
     	
-    	oc = new SquasshOutputChoose[1];
+    	Region3DRScriptCellProcessor = new CellProcessor[] 
+    	{
+    		 new ParseInt(),
+    		 new ParseInt(),
+    	     new ParseDouble(),
+             new ParseDouble(),
+             new ParseDouble(),
+             new ParseDouble(),
+             new ParseDouble(),
+             new ParseDouble(),
+             new ParseDouble(),
+    	 };
+    	
+    	oc = new SquasshOutputChoose[2];
     	
     	oc[0] = new SquasshOutputChoose();
-    	oc[0].name = new String("x,y,z,Size,Intensity (For region tracking)");
-    	oc[0].cel = Region3DCellProcessor;
+    	oc[0].name = new String("Format for region tracking)");
+    	oc[0].cel = Region3DTrackCellProcessor;
     	oc[0].map = Region3DTrack_map;
     	oc[0].classFactory = Region3DTrack.class;
-    	oc[0].vectorFactory = (Class<Vector<? extends Outdata<?>>>) new Vector<Region3DTrack>().getClass();
-    	oc[0].InterPluginCSVFactory = (Class<InterPluginCSV<? extends Outdata<?>>>) new InterPluginCSV<Region3DTrack>(Region3DTrack.class).getClass();
-    	occ = oc[0];
+    	oc[0].vectorFactory = (Class<Vector<?>>) new Vector<Region3DTrack>().getClass();
+    	oc[0].InterPluginCSVFactory = (Class<InterPluginCSV<?>>) new InterPluginCSV<Region3DTrack>(Region3DTrack.class).getClass();
+    	oc[0].delimiter = ',';
+    	oc[1] = new SquasshOutputChoose();
+    	oc[1].name = new String("Format for R script");
+    	oc[1].cel = Region3DRScriptCellProcessor;
+    	oc[1].map = Region3DRScript_map;
+    	oc[1].classFactory = Region3DRScript.class;
+    	oc[1].vectorFactory = (Class<Vector<?>>) new Vector<Region3DRScript>().getClass();
+    	oc[1].InterPluginCSVFactory = (Class<InterPluginCSV<?>>) new InterPluginCSV<Region3DRScript>(Region3DRScript.class).getClass();
+    	oc[1].delimiter = ';';
+    	occ = oc[1];
     }
     
     /**
@@ -66,7 +106,7 @@ public class CSVOutput
      * Get a vector of object with the selected format
      */
     
-    public static Vector<? extends Outdata<?>> getVector()
+    public static Vector<?> getVector()
     {
     	
     	try {
@@ -104,14 +144,29 @@ public class CSVOutput
      * @return InterPluginCSV
      */
     
-    public static InterPluginCSV<? extends Outdata<?>> getInterPluginCSV()
+    public static InterPluginCSV<?> getInterPluginCSV()
     {
     	try {
-			return occ.InterPluginCSVFactory.newInstance();
+			Constructor<?> c = occ.InterPluginCSVFactory.getDeclaredConstructor(occ.classFactory.getClass());
+			InterPluginCSV<?> csv = (InterPluginCSV<?>)c.newInstance(occ.classFactory.newInstance().getClass());
+			csv.setDelimiter(occ.delimiter);
+			return csv;
 		} catch (InstantiationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -123,7 +178,7 @@ public class CSVOutput
     
     public static boolean Stitch(String output[], File dir)
     {
-		InterPluginCSV<? extends Outdata<?>> csv = getInterPluginCSV();
+		InterPluginCSV<?> csv = getInterPluginCSV();
     	
 		for (int j = 0 ; j < output.length ; j++)
 		{
@@ -137,7 +192,7 @@ public class CSVOutput
 				str[i-1] = dir + File.separator + output[j].replace("*", "_") + File.separator + output[j].replace("*", "tmp_" + i);
 			}
 			
-			csv.Stitch(str, output[j].replace("*", "stitch"), occ);
+			csv.StitchConvert(str, dir + File.separator + output[j].replace("*", "stitch"), occ,"Frame",0);
 		}
     	
     	return true;

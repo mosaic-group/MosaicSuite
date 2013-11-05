@@ -9,7 +9,8 @@ import mosaic.core.ipc.Outdata;
 
 public class SquasshOutputChoose extends GUIOutputChoose
 {
-	public Class<InterPluginCSV<? extends Outdata<?>>> InterPluginCSVFactory;
-	public Class<Vector<? extends Outdata<?>>> vectorFactory;
-	public Class<? extends Outdata<?>> classFactory;
+	public Class<InterPluginCSV<?>> InterPluginCSVFactory;
+	public Class<Vector<?>> vectorFactory;
+	public Class<?> classFactory;
+	char delimiter;
 }
