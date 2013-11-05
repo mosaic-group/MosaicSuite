@@ -110,7 +110,7 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		CountDownLatch Sync9= new CountDownLatch(p.nthreads);
 		CountDownLatch Sync10= new CountDownLatch(p.nthreads);
 		CountDownLatch Dct= new CountDownLatch(1);
-
+		CountDownLatch SyncFgradx= new CountDownLatch(1);
 
 
 		int ichunk= p.ni/p.nthreads;
@@ -122,16 +122,16 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		for(int nt=0; nt< p.nthreads-1;nt++){
 			//			IJ.log("thread + istart iend jstart jend"+
 			//					iStart +" " + (iStart+ichunk)+" " + jStart+" " + (jStart+jchunk));
-			new Thread(new ZoneTask3D(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Sync5,
-					Sync6,Sync7,Sync8,Sync9,Sync10,Dct,
+			new Thread(new ZoneTask3D(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,
+					Sync7,Sync8,Sync9,Sync10,Dct,SyncFgradx,
 					iStart, iStart+ichunk, jStart, jStart+jchunk,nt,this,LocalTools)).start();
 			iStart+=ichunk;
 			jStart+=jchunk;
 		}
 		//		IJ.log("last thread + istart iend jstart jend"+
 		//				iStart +" " + (iStart+ilastchunk)+" " + jStart+" " + (jStart+jlastchunk));
-		new Thread(new ZoneTask3D(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Sync5,
-				Sync6,Sync7,Sync8,Sync9,Sync10,Dct,
+		new Thread(new ZoneTask3D(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,
+				Sync7,Sync8,Sync9,Sync10,Dct,SyncFgradx,
 				iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,LocalTools)).start();
 		//		IJ.log("");
 
@@ -215,6 +215,9 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 
 		Dct.countDown();
 
+		//do fgradx without parallelization
+		LocalTools.fgradx2D(temp4[l], temp1[l]);
+		SyncFgradx.countDown();
 
 		//Tools.disp_vals(temp1[l][2], "uk");
 

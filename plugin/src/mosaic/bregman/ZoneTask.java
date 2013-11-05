@@ -62,6 +62,24 @@ public class ZoneTask implements Runnable {
 		// IJ.log("thread : " +l +"starting work");
 		//		double c0, c1;
 		//IJ.log("istart " + iStart +"iend" + iEnd);
+		
+		
+		double c0t=AS.c0;
+		double iDiff=AS.c1-AS.c0;
+		double [][] tmp1t;
+		double [][] tmp2t;
+		double [][] tmp3t;
+		double [][] tmp4t;
+		double [][] b1kt;
+		double [][] b3kt;
+		double [][] w1kt;
+		double [][] w3kt;
+		double [][] imgt;
+		double [][] b2xkt;
+		double [][] b2ykt;
+		double [][] w2xkt;
+		double [][] w2ykt;
+		
 		LocalTools.subtab(AS.temp1[AS.l], AS.w2xk[AS.l], AS.b2xk[AS.l], iStart, iEnd);
 		LocalTools.subtab(AS.temp2[AS.l], AS.w2yk[AS.l], AS.b2yk[AS.l], iStart, iEnd);
 
@@ -75,9 +93,12 @@ public class ZoneTask implements Runnable {
 		LocalTools.mydivergence(AS.temp3[AS.l], AS.temp1[AS.l], AS.temp2[AS.l],AS.temp4[AS.l],Sync2, iStart, iEnd, jStart, jEnd);//, temp3[l]);
 
 		for (int z=0; z<AS.nz; z++){
+			b1kt=AS.b1k[AS.l][z];
+			tmp2t=AS.temp2[AS.l][z];
+			w1kt=AS.w1k[AS.l][z];
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0; j<AS.nj; j++){ 
-					AS.temp2[AS.l][z][i][j]=AS.w1k[AS.l][z][i][j]-AS.b1k[AS.l][z][i][j] -AS.c0;
+					tmp2t[i][j]=w1kt[i][j]-b1kt[i][j] -c0t;
 					//AS.temp2[AS.l][z][i][j]=AS.w1k[AS.l][z][i][j]-AS.b1k[AS.l][z][i][j] -AS.c0;
 				}	
 			}
@@ -95,9 +116,14 @@ public class ZoneTask implements Runnable {
 				);
 
 		for (int z=0; z<AS.nz; z++){
+			tmp1t=AS.temp1[AS.l][z];
+			tmp3t=AS.temp3[AS.l][z];
+			tmp4t=AS.temp4[AS.l][z];
+			w3kt=AS.w3k[AS.l][z];
+			b3kt=AS.b3k[AS.l][z];
 			for (int i=iStart; i<iEnd; i++) {  
-				for (int j=0; j<AS.nj; j++) {  
-					AS.temp1[AS.l][z][i][j]=-AS.temp3[AS.l][z][i][j]+AS.w3k[AS.l][z][i][j]-AS.b3k[AS.l][z][i][j] + (AS.c1-AS.c0)*AS.temp4[AS.l][z][i][j];
+				for (int j=0; j<AS.nj; j++) {
+					tmp1t[i][j]=-tmp3t[i][j]+w3kt[i][j]-b3kt[i][j] + iDiff*tmp4t[i][j];
 				}	
 			}
 		}
@@ -110,9 +136,10 @@ public class ZoneTask implements Runnable {
 		//temp2=muk
 
 		Tools.convolve2Dseparable(AS.temp2[AS.l][0], AS.temp1[AS.l][0], AS.ni, AS.nj, AS.p.kernelx, AS.p.kernely, AS.p.px, AS.p.py, AS.temp3[AS.l][0], iStart, iEnd);
+		tmp2t=AS.temp2[AS.l][0];
 		for (int i=iStart; i<iEnd; i++) {  
-			for (int j=0; j<AS.nj; j++) { 
-				AS.temp2[AS.l][0][i][j]=(AS.c1-AS.c0)*AS.temp2[AS.l][0][i][j] + AS.c0;
+			for (int j=0; j<AS.nj; j++) {
+				tmp2t[i][j]=iDiff*tmp2t[i][j] + c0t;
 			}	
 		}
 
@@ -124,23 +151,36 @@ public class ZoneTask implements Runnable {
 			//temp3=detw2
 			//  detw2 = (lambda*gamma.*weightData-b2k-muk).^2+4*lambda*gamma*weightData.*image;
 
-
+			double ratioPrior=(AS.p.ldata/AS.p.lreg)*AS.p.gamma;
+			double ratioPrior4=4*(AS.p.ldata/AS.p.lreg)*AS.p.gamma;
+			double temp;
 			for (int z=0; z<AS.nz; z++){
+				b1kt=AS.b1k[AS.l][z];
+				tmp2t=AS.temp2[AS.l][z];
+				tmp3t=AS.temp3[AS.l][z];
+				imgt=AS.image[z];
 				for (int i=iStart; i<iEnd; i++) {  
-					for (int j=0; j<AS.nj; j++) {  
-						AS.temp3[AS.l][0][i][j]=
-								Math.pow(((AS.p.ldata/AS.p.lreg)*AS.p.gamma -AS.b1k[AS.l][0][i][j] - AS.temp2[AS.l][0][i][j]),2)
-								+4*(AS.p.ldata/AS.p.lreg)*AS.p.gamma*AS.image[0][i][j];
+					for (int j=0; j<AS.nj; j++) {
+						temp=ratioPrior -b1kt[i][j] - tmp2t[i][j];
+						tmp3t[i][j]=
+								temp*temp
+								+ratioPrior4*imgt[i][j];
 					}	
 				}
 			}
 
 			//w2k = 0.5*(b2k+muk-lambda*gamma.*weightData+sqrt(detw2));
-
+			double ratioPriorGamma=(AS.p.ldata/AS.p.lreg)*AS.p.gamma;
+			
 			for (int z=0; z<AS.nz; z++){
+				b1kt=AS.b1k[AS.l][z];
+				tmp2t=AS.temp2[AS.l][z];
+				tmp3t=AS.temp3[AS.l][z];
+				w1kt=AS.w1k[AS.l][z];
 				for (int i=iStart; i<iEnd; i++) {  
-					for (int j=0; j<AS.nj; j++){  
-						AS.w1k[AS.l][0][i][j]=0.5*(AS.b1k[AS.l][z][i][j] + AS.temp2[AS.l][z][i][j]- (AS.p.ldata/AS.p.lreg)*AS.p.gamma + Math.sqrt(AS.temp3[AS.l][z][i][j]));
+					for (int j=0; j<AS.nj; j++){ 
+						w1kt[i][j]=0.5*(b1kt[i][j] + tmp2t[i][j]- ratioPriorGamma
+								+ Math.sqrt(tmp3t[i][j]));
 					}	
 				}
 			}
@@ -162,18 +202,27 @@ public class ZoneTask implements Runnable {
 
 		//%-- w3k subproblem		
 		for (int z=0; z<AS.nz; z++){
+			tmp1t=AS.temp1[AS.l][z];
+			w3kt=AS.w3k[AS.l][z];
+			b3kt=AS.b3k[AS.l][z];
 			for (int i=iStart; i<iEnd; i++) {  
-				for (int j=0; j<AS.nj; j++) {  
-					AS.w3k[AS.l][z][i][j]=Math.max(Math.min(AS.temp1[AS.l][z][i][j]+ AS.b3k[AS.l][z][i][j],1),0);
+				for (int j=0; j<AS.nj; j++) {
+					w3kt[i][j]=Math.max(Math.min(tmp1t[i][j]+ b3kt[i][j],1),0);
 				}	
 			}
 		}
 
 		for (int z=0; z<AS.nz; z++){
+			w3kt=AS.w3k[AS.l][z];
+			b3kt=AS.b3k[AS.l][z];
+			w1kt=AS.w1k[AS.l][z];
+			b1kt=AS.b1k[AS.l][z];
+			tmp1t=AS.temp1[AS.l][z];
+			tmp2t=AS.temp2[AS.l][z];
 			for (int i=iStart; i<iEnd; i++) {  
-				for (int j=0; j<AS.nj; j++) {  
-					AS.b1k[AS.l][z][i][j]=AS.b1k[AS.l][z][i][j] +AS.temp2[AS.l][z][i][j]-AS.w1k[AS.l][z][i][j];
-					AS.b3k[AS.l][z][i][j]=AS.b3k[AS.l][z][i][j] +AS.temp1[AS.l][z][i][j]-AS.w3k[AS.l][z][i][j];
+				for (int j=0; j<AS.nj; j++) {
+					b1kt[i][j]=b1kt[i][j] +tmp2t[i][j]-w1kt[i][j];
+					b3kt[i][j]=b3kt[i][j] +tmp1t[i][j]-w3kt[i][j];	
 				}	
 			}
 		}
@@ -193,10 +242,21 @@ public class ZoneTask implements Runnable {
 		LocalTools.shrink2D(AS.w2xk[AS.l], AS.w2yk[AS.l], AS.w2xk[AS.l], AS.w2yk[AS.l], AS.p.gamma, iStart, iEnd);
 		//
 		for (int z=0; z<AS.nz; z++){
+			b2xkt=AS.b2xk[AS.l][z];
+			b2ykt=AS.b2yk[AS.l][z];
+			w2xkt=AS.w2xk[AS.l][z];
+			w2ykt=AS.w2yk[AS.l][z];
+
+			
+			tmp1t=AS.temp1[AS.l][z];
+			tmp2t=AS.temp2[AS.l][z];
+			tmp3t=AS.temp3[AS.l][z];
+			tmp4t=AS.temp4[AS.l][z];
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0; j<AS.nj; j++) {  
-					AS.b2xk[AS.l][z][i][j]=AS.b2xk[AS.l][z][i][j] +AS.temp3[AS.l][z][i][j]-AS.w2xk[AS.l][z][i][j];
-					AS.b2yk[AS.l][z][i][j]=AS.b2yk[AS.l][z][i][j] +AS.temp4[AS.l][z][i][j]-AS.w2yk[AS.l][z][i][j];
+					b2xkt[i][j]=b2xkt[i][j] + tmp3t[i][j]-w2xkt[i][j];
+					b2ykt[i][j]=b2ykt[i][j] + tmp4t[i][j]-w2ykt[i][j];
+					
 					//mask[l][z][i][j]=w3k[l][z][i][j];
 				}
 			}

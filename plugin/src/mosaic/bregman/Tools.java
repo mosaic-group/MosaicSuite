@@ -1,5 +1,6 @@
 package mosaic.bregman;
 
+import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
 import ij.IJ;
@@ -914,7 +915,7 @@ public class Tools
 		}
 		else//gauss
 		{
-			res =Math.pow(im-mu,2);
+			res = (im-mu)*(im-mu);
 		}
 
 		return res;
@@ -1053,8 +1054,8 @@ public class Tools
 	public  void fgrady2D(double [] [] [] res, double [] [] [] im,int tStart, int tEnd){
 
 		for (int z=0; z<nz; z++){
-			for (int j=0;j< nj-1; j++) {  
-				for (int i=tStart; i<tEnd; i++) {  
+			for (int i=tStart; i<tEnd; i++) {  
+				for (int j=0;j< nj-1; j++) {  
 					res[z][i][j]= im[z][i][j+1]-im[z][i][j];			
 				}	
 			}
@@ -1130,8 +1131,8 @@ public class Tools
 	public  void bgradydbc2D(double [] [] [] res, double [] [] [] im, int tStart, int tEnd){
 
 		for (int z=0; z<nz; z++){
-			for (int j=1;j< nj-1; j++) {  
-				for (int i=tStart; i<tEnd; i++) {  
+			for (int i=tStart; i<tEnd; i++) {  
+				for (int j=1;j< nj-1; j++) {  
 					res[z][i][j]= -im[z][i][j-1]+im[z][i][j];			
 				}	
 			}
@@ -1156,11 +1157,13 @@ public class Tools
 	public  void shrink2D(double [] [] [] res1,double [] [] [] res2, double [] [] [] u1,double [] [] [] u2, double  t,
 			int iStart, int iEnd){
 		double norm=0;
-
+		double u1tmp, u2tmp;
+		
 		for (int z=0; z<nz; z++){//todo : shrink3D
 			for (int i=iStart; i<iEnd; i++) {  
-				for (int j=0; j<nj; j++) {  
-					norm= Math.sqrt(Math.pow(u1[z][i][j],2) + Math.pow(u2[z][i][j], 2));
+				for (int j=0; j<nj; j++) {
+					u1tmp=u1[z][i][j];u2tmp=u2[z][i][j];
+					norm= Math.sqrt(u1tmp*u1tmp + u2tmp*u2tmp);
 					if(norm>=t)
 					{
 						res1[z][i][j]=u1[z][i][j] - t*u1[z][i][j]/norm;
@@ -1191,16 +1194,20 @@ public class Tools
 			double [] [] [] u1,double [] [] [] u2,double [] [] [] u3, double  t,
 			int iStart, int iEnd){
 		double norm=0;
-
+		double u1tmp, u2tmp, u3tmp;
+		
 		for (int z=0; z<nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0; j<nj; j++) {  
-					norm= Math.sqrt(Math.pow(u1[z][i][j],2) + Math.pow(u2[z][i][j], 2)+ Math.pow(u3[z][i][j], 2));
+					u1tmp=u1[z][i][j];
+					u2tmp=u2[z][i][j];
+					u3tmp=u3[z][i][j];
+					norm= Math.sqrt(u1tmp*u1tmp + u2tmp*u2tmp+ u3tmp*u3tmp);
 					if(norm>=t)
 					{
-						res1[z][i][j]=u1[z][i][j] - t*u1[z][i][j]/norm;
-						res2[z][i][j]=u2[z][i][j] - t*u2[z][i][j]/norm;
-						res3[z][i][j]=u3[z][i][j] - t*u3[z][i][j]/norm;
+						res1[z][i][j]=u1tmp - t*u1tmp/norm;
+						res2[z][i][j]=u2tmp - t*u2tmp/norm;
+						res3[z][i][j]=u3tmp - t*u3tmp/norm;
 					}
 					else
 					{
@@ -1336,10 +1343,13 @@ public class Tools
 
 
 		double energyPrior=0;
+		double mkx, mky;
 		for (int z=0; z<nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
-				for (int j=0;j< nj; j++) {  	
-					energyPrior+= Math.sqrt(Math.pow(maskx[z][i][j], 2)+Math.pow(masky[z][i][j], 2) );
+				for (int j=0;j< nj; j++) {  
+					mkx=maskx[z][i][j];
+					mky=masky[z][i][j];
+					energyPrior+= Math.sqrt(mkx*mkx+mky*mky);
 				}	
 			}
 		}
@@ -1395,13 +1405,18 @@ public class Tools
 
 
 		double energyPrior=0;
+		double mkx, mky;
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
-				for (int j=0;j< nj; j++) {  	
-					energyPrior+= Math.sqrt(Math.pow(maskx[z][i][j], 2)+Math.pow(masky[z][i][j], 2) );
+				for (int j=0;j< nj; j++) { 
+					mkx=maskx[z][i][j];
+					mky=masky[z][i][j];
+					energyPrior+= Math.sqrt(mkx*mkx+mky*mky);
 				}	
 			}
 		}
+		
+
 
 
 		double energy= ldata *energyData +lreg *energyPrior;
@@ -1455,14 +1470,19 @@ public class Tools
 
 		Sync9.countDown();
 		Sync9.await();
+		
 		double energyPrior=0;
+		double mkx, mky;
 		for (int z=0; z<nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
-				for (int j=0;j< nj; j++) {  	
-					energyPrior+= Math.sqrt(Math.pow(maskx[z][i][j], 2)+Math.pow(masky[z][i][j], 2) );
+				for (int j=0;j< nj; j++) { 
+					mkx=maskx[z][i][j];
+					mky=masky[z][i][j];
+					energyPrior+= Math.sqrt(mkx*mkx+mky*mky);
 				}	
 			}
 		}
+		
 
 
 		double energy= ldata *energyData +lreg *energyPrior;
@@ -1518,10 +1538,12 @@ public class Tools
 		Sync8.await();
 
 		fgradx2D(temp, mask, jStart, jEnd);
+		double tmp;
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=jStart;j< jEnd; j++) {  	
-					temp2[z][i][j]= Math.pow(temp[z][i][j], 2);
+					tmp=temp[z][i][j];
+					temp2[z][i][j]= tmp*tmp;
 				}	
 			}
 		}
@@ -1531,8 +1553,9 @@ public class Tools
 		fgrady2D(temp, mask, iStart, iEnd);
 		for (int z=0; z<nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
-				for (int j=0;j< nj; j++) {  	
-					temp2[z][i][j]+= Math.pow(temp[z][i][j], 2);
+				for (int j=0;j< nj; j++) {  
+					tmp=temp[z][i][j];
+					temp2[z][i][j]+= tmp*tmp;
 				}	
 			}
 		}
@@ -1540,7 +1563,8 @@ public class Tools
 		for (int z=0; z<nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0;j< nj; j++) {  	
-					temp2[z][i][j]+= Math.pow(temp[z][i][j], 2);
+					tmp=temp[z][i][j];
+					temp2[z][i][j]+= tmp*tmp;
 				}	
 			}
 		}
@@ -1612,10 +1636,12 @@ public class Tools
 
 
 		fgradx2D(temp, mask);
+		double tmp;
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0;j< nj; j++) {  	
-					temp2[z][i][j]= Math.pow(temp[z][i][j], 2);
+					tmp=temp[z][i][j];
+					temp2[z][i][j]= tmp*tmp;
 				}	
 			}
 		}
@@ -1625,7 +1651,8 @@ public class Tools
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0;j< nj; j++) {  	
-					temp2[z][i][j]+= Math.pow(temp[z][i][j], 2);
+					tmp=temp[z][i][j];
+					temp2[z][i][j] += tmp*tmp;
 				}	
 			}
 		}
@@ -1633,7 +1660,8 @@ public class Tools
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0;j< nj; j++) {  	
-					temp2[z][i][j]+= Math.pow(temp[z][i][j], 2);
+					tmp=temp[z][i][j];
+					temp2[z][i][j] += tmp*tmp;
 				}	
 			}
 		}
@@ -1704,10 +1732,12 @@ public class Tools
 
 
 		fgradx2D(temp, mask);
+		double tmp;
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
-				for (int j=0;j< nj; j++) {  	
-					temp2[z][i][j]= Math.pow(temp[z][i][j], 2);
+				for (int j=0;j< nj; j++) {
+					tmp=temp[z][i][j];
+					temp2[z][i][j] = tmp*tmp;
 				}	
 			}
 		}
@@ -1717,7 +1747,8 @@ public class Tools
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0;j< nj; j++) {  	
-					temp2[z][i][j]+= Math.pow(temp[z][i][j], 2);
+					tmp=temp[z][i][j];
+					temp2[z][i][j] += tmp*tmp;
 				}	
 			}
 		}
@@ -1725,7 +1756,8 @@ public class Tools
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0;j< nj; j++) {  	
-					temp2[z][i][j]+= Math.pow(temp[z][i][j], 2);
+					tmp=temp[z][i][j];
+					temp2[z][i][j] += tmp*tmp;
 				}	
 			}
 		}
@@ -1931,6 +1963,36 @@ public class Tools
 
 	}
 
+	public  double bencht(){
+		double temp=0;
+		double Ttime=0;
+
+
+		long lStartTime = new Date().getTime(); //start time
+		for(int l=0; l< 10000000;l++){
+			temp=Math.pow(((double)l+0.1), 2);
+		}
+		long lEndTime = new Date().getTime(); //start time
+		long difference = lEndTime - lStartTime; //check different
+		Ttime +=difference;
+		IJ.log("Total Time pow: " + Ttime/1000 + "s");
+
+		double temp2=0;
+		Ttime=0;
+		lStartTime = new Date().getTime(); //start time
+		for(int l=0; l< 10000000;l++){
+			temp2=((double)l+0.1)*((double)l+0.1);
+		}
+		lEndTime = new Date().getTime(); //start time
+		difference = lEndTime - lStartTime; //check different
+		Ttime +=difference;
+		IJ.log("Total Time mult: " + Ttime/1000 + "s");
+
+
+		if(temp!=temp2)IJ.log("diff "+"t"+ temp +" t2" + temp2);
+		
+		return temp;
+	}
 
 	public  double round(double y, int z){
 		//Special tip to round numbers to 10^-2

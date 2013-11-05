@@ -12,14 +12,13 @@ public class ZoneTask3D implements Runnable {
 	private final CountDownLatch Sync1 ;
 	private final CountDownLatch Sync2 ;
 	private final CountDownLatch Sync3 ;
-	private final CountDownLatch Sync4;
-	private final CountDownLatch Sync5 ;
-	private final CountDownLatch Sync6 ;
+	private final CountDownLatch Sync4;//5 and 6 removed, not needed anymore
 	private final CountDownLatch Sync7;
 	private final CountDownLatch Sync8 ;
 	private final CountDownLatch Sync9;
 	private final CountDownLatch Sync10;
 	private final CountDownLatch Dct;
+	private final CountDownLatch SyncFgradx;
 	private int iStart, iEnd, jStart, jEnd, nt;
 	public Tools LocalTools;
 
@@ -29,18 +28,19 @@ public class ZoneTask3D implements Runnable {
 
 
 	ZoneTask3D(CountDownLatch ZoneDoneSignal,CountDownLatch Sync1,CountDownLatch Sync2, 
-			CountDownLatch Sync3,CountDownLatch Sync4,CountDownLatch Sync5,
-			CountDownLatch Sync6,CountDownLatch Sync7,CountDownLatch Sync8,
-			CountDownLatch Sync9,CountDownLatch Sync10,CountDownLatch Dct,
+			CountDownLatch Sync3,CountDownLatch Sync4,
+			CountDownLatch Sync7,CountDownLatch Sync8,
+			CountDownLatch Sync9,CountDownLatch Sync10,CountDownLatch Dct,CountDownLatch SyncFgradx,
 			int iStart, int iEnd, int jStart, int jEnd, int nt,
 			ASplitBregmanSolverTwoRegions3DPSF AS, Tools tTools) {
 		this.LocalTools=tTools;
 		this.ZoneDoneSignal = ZoneDoneSignal;
 		this.Sync1 = Sync1;this.Sync2 = Sync2;this.Sync3 = Sync3;
-		this.Sync4 = Sync4;this.Sync5 = Sync5;this.Sync6 = Sync6;
+		this.Sync4 = Sync4;
 		this.Sync7 = Sync7;this.Sync8 = Sync8;this.Sync9 = Sync9;
 		this.Sync10 = Sync10;
 		this.Dct = Dct;
+		this.SyncFgradx = SyncFgradx;
 		this.AS=AS;
 		this.nt = nt;
 		this.iStart = iStart;this.jStart = jStart;
@@ -57,8 +57,27 @@ public class ZoneTask3D implements Runnable {
 		ZoneDoneSignal.countDown();
 	}
 
+	
+	
 	void doWork() throws InterruptedException{
 
+		double c0t=AS.c0;
+		double iDiff=AS.c1-AS.c0;
+		double [][] tmp1t;
+		double [][] tmp2t;
+		double [][] tmp3t;
+		double [][] tmp4t;
+		double [][] b1kt;
+		double [][] b3kt;
+		double [][] w1kt;
+		double [][] w3kt;
+		double [][] imgt;
+		double [][] b2xkt;
+		double [][] b2ykt;
+		double [][] b2zkt;
+		double [][] ukzt;
+		double [][] w2zkt;
+		
 
 		LocalTools.subtab(AS.temp1[AS.l], AS.temp1[AS.l], AS.b2xk[AS.l], iStart,iEnd);  
 		LocalTools.subtab(AS.temp2[AS.l], AS.temp2[AS.l], AS.b2yk[AS.l], iStart,iEnd);
@@ -74,12 +93,16 @@ public class ZoneTask3D implements Runnable {
 
 
 		for (int z=0; z<AS.nz; z++){
+			b1kt=AS.b1k[AS.l][z];
+			tmp2t=AS.temp2[AS.l][z];
+			w1kt=AS.w1k[AS.l][z];
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0; j<AS.nj; j++){  
-					AS.temp2[AS.l][z][i][j]=AS.w1k[AS.l][z][i][j]-AS.b1k[AS.l][z][i][j] -AS.c0;
+					tmp2t[i][j]=w1kt[i][j]-b1kt[i][j] -c0t;
 				}	
 			}
 		} 
+		
 
 		Sync3.countDown();
 		Sync3.await();
@@ -89,9 +112,14 @@ public class ZoneTask3D implements Runnable {
 				AS.p.px, AS.p.py, AS.p.pz, AS.temp1[AS.l], iStart, iEnd);
 
 		for (int z=0; z<AS.nz; z++){
+			tmp1t=AS.temp1[AS.l][z];
+			tmp3t=AS.temp3[AS.l][z];
+			tmp4t=AS.temp4[AS.l][z];
+			w3kt=AS.w3k[AS.l][z];
+			b3kt=AS.b3k[AS.l][z];
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0; j<AS.nj; j++) {  
-					AS.temp1[AS.l][z][i][j]=-AS.temp3[AS.l][z][i][j]+AS.w3k[AS.l][z][i][j]-AS.b3k[AS.l][z][i][j] + (AS.c1-AS.c0)*AS.temp4[AS.l][z][i][j];
+					tmp1t[i][j]=-tmp3t[i][j]+w3kt[i][j]-b3kt[i][j] + iDiff*tmp4t[i][j];
 				}	
 			}
 		}
@@ -109,32 +137,51 @@ public class ZoneTask3D implements Runnable {
 				AS.p.kernelx,AS.p.kernely, AS.p.kernelz,
 				AS.p.px, AS.p.py, AS.p.pz, AS.temp3[AS.l], iStart, iEnd);
 
+		
 		for (int z=0; z<AS.nz; z++){
+			tmp2t=AS.temp2[AS.l][z];
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0; j<AS.nj; j++) {  
-					AS.temp2[AS.l][z][i][j]=(AS.c1-AS.c0)*AS.temp2[AS.l][z][i][j] + AS.c0;
+					tmp2t[i][j]=iDiff*tmp2t[i][j] + c0t;
 				}	
 			}
 		}
 
 
+
 		//%-- w1k subproblem
 		if(AS.p.noise_model==0){
 			//poisson
+		
+			
+			double ratioPrior=(AS.p.ldata/AS.p.lreg)*AS.p.gamma;
+			double ratioPrior4=4*(AS.p.ldata/AS.p.lreg)*AS.p.gamma;
+			double temp;
+
 			for (int z=0; z<AS.nz; z++){
+				b1kt=AS.b1k[AS.l][z];
+				tmp2t=AS.temp2[AS.l][z];
+				tmp3t=AS.temp3[AS.l][z];
+				imgt=AS.image[z];
 				for (int i=iStart; i<iEnd; i++) {  
 					for (int j=0; j<AS.nj; j++) {  
-						AS.temp3[AS.l][z][i][j]=
-								Math.pow(((AS.p.ldata/AS.p.lreg)*AS.p.gamma -AS.b1k[AS.l][z][i][j] - AS.temp2[AS.l][z][i][j]),2)
-								+4*(AS.p.ldata/AS.p.lreg)*AS.p.gamma*AS.image[z][i][j];
+						temp=ratioPrior -b1kt[i][j] - tmp2t[i][j];
+						tmp3t[i][j]=
+								temp*temp
+								+ratioPrior4*imgt[i][j];
 					}	
 				}
 			}
+			double ratioPriorGamma=(AS.p.ldata/AS.p.lreg)*AS.p.gamma;
 			for (int z=0; z<AS.nz; z++){
+				b1kt=AS.b1k[AS.l][z];
+				tmp2t=AS.temp2[AS.l][z];
+				tmp3t=AS.temp3[AS.l][z];
+				w1kt=AS.w1k[AS.l][z];
 				for (int i=iStart; i<iEnd; i++) {  
 					for (int j=0; j<AS.nj; j++) {  
-						AS.w1k[AS.l][z][i][j]=0.5*(AS.b1k[AS.l][z][i][j] + AS.temp2[AS.l][z][i][j]- (AS.p.ldata/AS.p.lreg)*AS.p.gamma
-								+ Math.sqrt(AS.temp3[AS.l][z][i][j]));
+						w1kt[i][j]=0.5*(b1kt[i][j] + tmp2t[i][j]- ratioPriorGamma
+								+ Math.sqrt(tmp3t[i][j]));
 					}	
 				}
 			}
@@ -151,47 +198,71 @@ public class ZoneTask3D implements Runnable {
 				}
 			}
 		}
-		//%-- w3k subproblem	
+		//%-- w3k subproblem
+
 		for (int z=0; z<AS.nz; z++){
+			tmp1t=AS.temp1[AS.l][z];
+			w3kt=AS.w3k[AS.l][z];
+			b3kt=AS.b3k[AS.l][z];
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0; j<AS.nj; j++) {  
-					AS.w3k[AS.l][z][i][j]=Math.max(Math.min(AS.temp1[AS.l][z][i][j]+ AS.b3k[AS.l][z][i][j],1),0);
+					w3kt[i][j]=Math.max(Math.min(tmp1t[i][j]+ b3kt[i][j],1),0);
 				}	
 			}
 		}
 
+
 		for (int z=0; z<AS.nz; z++){
+			w3kt=AS.w3k[AS.l][z];
+			b3kt=AS.b3k[AS.l][z];
+			w1kt=AS.w1k[AS.l][z];
+			b1kt=AS.b1k[AS.l][z];
+			tmp1t=AS.temp1[AS.l][z];
+			tmp2t=AS.temp2[AS.l][z];
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0; j<AS.nj; j++) {  
-					AS.b1k[AS.l][z][i][j]=AS.b1k[AS.l][z][i][j] +AS.temp2[AS.l][z][i][j]-AS.w1k[AS.l][z][i][j];
-					AS.b3k[AS.l][z][i][j]=AS.b3k[AS.l][z][i][j] +AS.temp1[AS.l][z][i][j]-AS.w3k[AS.l][z][i][j];	
+					b1kt[i][j]=b1kt[i][j] +tmp2t[i][j]-w1kt[i][j];
+					b3kt[i][j]=b3kt[i][j] +tmp1t[i][j]-w3kt[i][j];	
 					//mask[l][z][i][j]=w3k[l][z][i][j];
 				}	
 			}
 		}
 
-		Sync5.countDown();
-		Sync5.await();
-		LocalTools.fgradx2D(AS.temp3[AS.l], AS.temp1[AS.l], jStart,jEnd);
-		LocalTools.fgrady2D(AS.temp4[AS.l], AS.temp1[AS.l], iStart, iEnd);
+		//Sync5.countDown();
+		//Sync5.await();
+		//LocalTools.fgradx2D(AS.temp4[AS.l], AS.temp1[AS.l], jStart,jEnd); //done in main thread
+		LocalTools.fgrady2D(AS.temp3[AS.l], AS.temp1[AS.l], iStart, iEnd);
 		LocalTools.fgradz2D(AS.ukz[AS.l], AS.temp1[AS.l], iStart, iEnd);
 
-		Sync6.countDown();
-		Sync6.await();
-		LocalTools.addtab(AS.temp1[AS.l], AS.temp3[AS.l], AS.b2xk[AS.l], iStart, iEnd);
-		LocalTools.addtab(AS.temp2[AS.l], AS.temp4[AS.l], AS.b2yk[AS.l],iStart, iEnd);
+		SyncFgradx.await();
+		//Sync6.countDown();
+		//Sync6.await();
+		LocalTools.addtab(AS.temp1[AS.l], AS.temp4[AS.l], AS.b2xk[AS.l], iStart, iEnd);
+		LocalTools.addtab(AS.temp2[AS.l], AS.temp3[AS.l], AS.b2yk[AS.l],iStart, iEnd);
 		LocalTools.addtab(AS.w2zk[AS.l], AS.ukz[AS.l], AS.b2zk[AS.l],iStart, iEnd);
 
 		LocalTools.shrink3D(AS.temp1[AS.l], AS.temp2[AS.l],AS. w2zk[AS.l],
 				AS.temp1[AS.l], AS.temp2[AS.l],AS.w2zk[AS.l], AS.p.gamma,
 				iStart, iEnd);
+		
 
+		
 		for (int z=0; z<AS.nz; z++){
+
+			b2xkt=AS.b2xk[AS.l][z];
+			b2ykt=AS.b2yk[AS.l][z];
+			b2zkt=AS.b2zk[AS.l][z];
+			w2zkt=AS.w2zk[AS.l][z];
+			ukzt=AS.ukz[AS.l][z];
+			tmp1t=AS.temp1[AS.l][z];
+			tmp2t=AS.temp2[AS.l][z];
+			tmp3t=AS.temp3[AS.l][z];
+			tmp4t=AS.temp4[AS.l][z];
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0; j<AS.nj; j++){
-					AS.b2xk[AS.l][z][i][j]=AS.b2xk[AS.l][z][i][j] + AS.temp3[AS.l][z][i][j]-AS.temp1[AS.l][z][i][j];
-					AS.b2yk[AS.l][z][i][j]=AS.b2yk[AS.l][z][i][j] + AS.temp4[AS.l][z][i][j]-AS.temp2[AS.l][z][i][j];
-					AS.b2zk[AS.l][z][i][j]=AS.b2zk[AS.l][z][i][j] + AS.ukz[AS.l][z][i][j]-AS.w2zk[AS.l][z][i][j];
+					b2xkt[i][j]=b2xkt[i][j] + tmp4t[i][j]-tmp1t[i][j];
+					b2ykt[i][j]=b2ykt[i][j] + tmp3t[i][j]-tmp2t[i][j];
+					b2zkt[i][j]=b2zkt[i][j] + ukzt[i][j]-w2zkt[i][j];
 					//mask[l][z][i][j]=w3k[l][z][i][j];
 				}	
 			}
@@ -202,7 +273,7 @@ public class ZoneTask3D implements Runnable {
 		// faire le menage dans les tableaux ici w2xk utilise comme temp
 		if(AS.stepk % AS.p.energyEvaluationModulo ==0  || AS.stepk==AS.p.max_nsb -1){	
 			AS.energytab2[nt]=
-					LocalTools.computeEnergyPSF3D(AS.w2xk[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l],
+					LocalTools.computeEnergyPSF3D(AS.w2xk[AS.l], AS.w3k[AS.l], AS.temp4[AS.l], AS.temp3[AS.l],
 							AS.p.ldata, AS.p.lreg,AS.p,AS.c0,AS.c1,AS.image,
 							iStart, iEnd, jStart, jEnd, Sync8,  Sync9, Sync10);
 		}
