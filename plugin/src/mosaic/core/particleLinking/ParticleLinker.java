@@ -8,8 +8,10 @@ import java.util.Vector;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.particleLinking.linkerOptions;
 
 public class ParticleLinker {
+		
 	/**
 	 * Second phase of the algorithm - 
 	 * <br>Identifies points corresponding to the 
@@ -19,8 +21,8 @@ public class ParticleLinker {
 	 * <br> Refactored by Janick Cardinale, ETHZ, 1.6.2012
 	 * <br> Optimized with ideas from Mark Kittisopikul, UT Southwestern
 	 */	
-	public void linkParticles(MyFrame[] frames, int frames_number, int linkrange, float displacement, boolean straight_line, boolean force) {
-
+	public void linkParticles(MyFrame[] frames, int frames_number, linkerOptions l) 
+	{
 		int m, i, j, k, nop, nop_next, n;
 		int ok, prev, prev_s, x = 0, y = 0, curr_linkrange;
 		/** The association matirx g */
@@ -41,10 +43,10 @@ public class ParticleLinker {
 		// it is done now since link range can be modified after first run
 		for (int fr = 0; fr<frames.length; fr++) {
 			for (int pr = 0; pr<frames[fr].getParticles().size(); pr++) {
-				frames[fr].getParticles().elementAt(pr).next = new int[linkrange];
+				frames[fr].getParticles().elementAt(pr).next = new int[l.linkrange];
 			}
 		}
-		curr_linkrange = linkrange;
+		curr_linkrange = l.linkrange;
 
 		/* If the linkrange is too big, set it the right value */
 		if(frames_number < (curr_linkrange + 1))
@@ -52,31 +54,34 @@ public class ParticleLinker {
 
 //		max_cost = displacement * displacement;
 
-		for(m = 0; m < frames_number - curr_linkrange; m++) {
+		for(m = 0; m < frames_number - curr_linkrange; m++) 
+		{
 			IJ.showStatus("Linking Frame " + (m+1));
 			nop = frames[m].getParticles().size();
-			for(i = 0; i < nop; i++) {
+			for(i = 0; i < nop; i++) 
+			{
 				frames[m].getParticles().elementAt(i).special = false;
-				for(n = 0; n < linkrange; n++)
+				for(n = 0; n < l.linkrange; n++)
 					frames[m].getParticles().elementAt(i).next[n] = -1;
 			}
 
-			for(n = 0; n < curr_linkrange; n++) {
-				max_cost = (float)(n + 1) * displacement * (float)(n + 1) * displacement;
+			for(n = 0; n < curr_linkrange; n++) 
+			{
+				max_cost = (float)(n + 1) * l.displacement * (float)(n + 1) * l.displacement;
 
 				nop_next = frames[m + (n + 1)].getParticles().size();
 
 				/* Set up the cost matrix */
 				cost = new float[nop+1][nop_next+1];
-				
+
 				/* Set up the relation matrix */
 				g = new boolean[nop+1][nop_next+1];
 				g_x = new int[nop_next+1];
 				g_y = new int[nop+1];
-				
+
 				okv = new boolean[nop_next+1];
 				for (i = 0; i< okv.length; i++) okv[i] = true;
-				
+
 				/* Set g to zero - not necessary */
 				//for (i = 0; i< g.length; i++) g[i] = false;
 
@@ -87,18 +92,19 @@ public class ParticleLinker {
 
 
 				/* Fill in the costs */
-				for(i = 0; i < nop; i++) {
-					for(j = 0; j < nop_next; j++) {
-						
+				for(i = 0; i < nop; i++) 
+				{
+					for(j = 0; j < nop_next; j++) 
+					{
 						float distance_sq = (p1.elementAt(i).x - p2.elementAt(j).x)*(p1.elementAt(i).x - p2.elementAt(j).x) + 
 								(p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) + 
 								(p1.elementAt(i).z - p2.elementAt(j).z)*(p1.elementAt(i).z - p2.elementAt(j).z);
 						
-						cost[i][j] = distance_sq +
-							(p1.elementAt(i).m0 - p2.elementAt(j).m0)*(p1.elementAt(i).m0 - p2.elementAt(j).m0) + 
-							(p1.elementAt(i).m2 - p2.elementAt(j).m2)*(p1.elementAt(i).m2 - p2.elementAt(j).m2);
+						cost[i][j] = distance_sq*l.l_s +
+							l.l_f*((p1.elementAt(i).m0 - p2.elementAt(j).m0)*(p1.elementAt(i).m0 - p2.elementAt(j).m0) + 
+							(p1.elementAt(i).m2 - p2.elementAt(j).m2)*(p1.elementAt(i).m2 - p2.elementAt(j).m2));
 						
-						if (force == true)
+						if (l.force == true)
 						{
 							if (p1.elementAt(i).distance >= 0.0)
 							{
@@ -106,19 +112,36 @@ public class ParticleLinker {
 								float ly = (p2.elementAt(j).y - p1.elementAt(i).y) - p1.elementAt(i).ly;
 								float lz = (p2.elementAt(j).z - p1.elementAt(i).z) - p1.elementAt(i).lz;
 								
-								float f_magn = lx * lx + ly * ly + lz * lz;
-								cost[i][j] += f_magn;
+								float f_magn_sq = lx * lx + ly * ly + lz * lz;
+								cost[i][j] += l.l_d * f_magn_sq;
 							}
 						}
-						else if (straight_line == true  && p1.elementAt(i).distance >= 0.0 && distance_sq >= 0)
-						{							
-							float lx = (p2.elementAt(j).x - p1.elementAt(i).x)/distance_sq;
-							float ly = (p2.elementAt(j).y - p1.elementAt(i).y)/distance_sq;
-							float lz = (p2.elementAt(j).z - p1.elementAt(i).z)/distance_sq;
+						else if (l.straight_line == true  && p1.elementAt(i).distance >= 0.0)
+						{
+							// Calculate the module
 							
-							float cos_phi = lx * p1.elementAt(i).x + ly*p1.elementAt(i).y + lz*p1.elementAt(i).z;
+							float l1_m = p1.elementAt(i).linkModule();
+								
+							float lx1 = p1.elementAt(i).lx/l1_m;
+							float ly1 = p1.elementAt(i).ly/l1_m;
+							float lz1 = p1.elementAt(i).lz/l1_m;
 							
-							cost[i][j] += (cos_phi - 1)*displacement;
+							float lx2 = (p2.elementAt(j).x - p1.elementAt(i).x + p1.elementAt(i).lxa);
+							float ly2 = (p2.elementAt(j).y - p1.elementAt(i).y + p1.elementAt(i).lya);
+							float lz2 = (p2.elementAt(j).z - p1.elementAt(i).z + p1.elementAt(i).lza);
+							
+							float l2_m = (float) Math.sqrt(lx2 * lx2 + ly2 * ly2 + lz2 * lz2);
+							
+							if (l2_m >= l.r_sq)
+							{
+								lx2 /= l2_m;
+								ly2 /= l2_m;
+								lz2 /= l2_m;
+								
+								float cos_phi = lx1 * lx2 + ly1 * ly2 + lz1 * lz2;
+							
+								cost[i][j] += (cos_phi - 1)*(cos_phi - 1)*l.displacement*l.displacement;
+							}
 						}
 					}
 				}
@@ -131,17 +154,21 @@ public class ParticleLinker {
 
 				/* Initialize the relation matrix */
 				/* Initialize the relation matrix */
-				for(i = 0; i < nop; i++) { // Loop over the x-axis
+				for(i = 0; i < nop; i++) 
+				{ // Loop over the x-axis
 					IJ.showStatus("Linking Frame " + (m+1) + ": Initializing Relation matrix");
 					IJ.showProgress(i,nop);
 					min = max_cost;
 					prev = -1;
-					for(j = 0; j < nop_next; j++) { // Loop over the y-axis without the dummy
+					for(j = 0; j < nop_next; j++) 
+					{ // Loop over the y-axis without the dummy
 
 						/* Let's see if we can use this coordinate */						
-						if(okv[j] && min > cost[i][j]) {
+						if(okv[j] && min > cost[i][j]) 
+						{
 							min = cost[i][j];
-							if(prev >= 0) {
+							if(prev >= 0) 
+							{
 								okv[prev] = true;
 								g[i][prev] = false;
 							}
@@ -154,8 +181,10 @@ public class ParticleLinker {
 					}
 
 					/* Check if we have a dummy particle */
-					if(min == max_cost) {
-						if(prev >= 0) {
+					if(min == max_cost) 
+					{
+						if(prev >= 0) 
+						{
 							okv[prev] = true;
 							g[i][prev] = false;
 						}
@@ -165,9 +194,11 @@ public class ParticleLinker {
 				}
 				
 				/* Look for columns that are zero */
-				for(j = 0; j < nop_next; j++) {
+				for(j = 0; j < nop_next; j++) 
+				{
 					ok = 1;
-					for(i = 0; i < nop + 1; i++) {
+					for(i = 0; i < nop + 1; i++) 
+					{
 						if(g[i][j])
 							ok = 0;
 					}
@@ -176,10 +207,13 @@ public class ParticleLinker {
 				}
 
 				/* Build xv and yv, a speedup for g */
-				for(i = 0; i < nop + 1; i++) {
+				for(i = 0; i < nop + 1; i++) 
+				{
 				//	for(j = 0; j < nop_next+1; j++) {
-					for(j = 0; j < nop_next + 1; j++) {
-						if(g[i][j]) {
+					for(j = 0; j < nop_next + 1; j++) 
+					{
+						if(g[i][j]) 
+						{
 							g_x[j] = i;
 							g_y[i] = j;
 						}
@@ -198,16 +232,20 @@ public class ParticleLinker {
 				/* Now the relation matrix needs to be optimized */
 				IJ.showStatus("Linking Frame " + (m+1) + ": Optimizing Relation matrix");
 				min = -1.0;
-				while(min < 0.0) {
+				while(min < 0.0) 
+				{
 					min = 0.0;
 					int prev_i = 0, prev_j = 0, prev_x = 0, prev_y = 0;
-					for(i = 0; i < nop + 1; i++) {
-						for(j = 0; j < nop_next + 1; j++) {
+					for(i = 0; i < nop + 1; i++) 
+					{
+						for(j = 0; j < nop_next + 1; j++) 
+						{
 							if(i == nop && j == nop_next)
 								continue;
 
 							if(g[i][j] == false && 
-									cost[i][j] <= max_cost) {
+									cost[i][j] <= max_cost) 
+							{
 								/* Calculate the reduced cost */
 
 								// Look along the x-axis, including
@@ -239,7 +277,8 @@ public class ParticleLinker {
 						}
 					}
 
-					if(min < 0.0) {
+					if(min < 0.0) 
+					{
 						g[prev_i][prev_j] = true;
 						g_x[prev_j] = prev_i;
 						g_y[prev_i] = prev_j;
@@ -256,15 +295,17 @@ public class ParticleLinker {
 				}
 
 				/* After optimization, the particles needs to be linked */
-				for(i = 0; i < nop; i++) {
-					for(j = 0; j < nop_next; j++) {
+				for(i = 0; i < nop; i++) 
+				{
+					for(j = 0; j < nop_next; j++) 
+					{
 						if(g[i][j] == true)
 						{
 							p1.elementAt(i).next[n] = j;
 						
 							// Calculate the square distance and store the normalized linking vector
 						
-							if (force == true)
+							if (l.force == true)
 							{						
 								p2.elementAt(j).lx = (p2.elementAt(j).x - p1.elementAt(i).x);
 								p2.elementAt(j).ly = (p2.elementAt(j).y - p1.elementAt(i).y);
@@ -274,15 +315,43 @@ public class ParticleLinker {
 								
 								p2.elementAt(j).distance = 1.0f;
 							}
-							else if (straight_line == true)
+							else if (l.straight_line == true)
 							{
 								float distance_sq = (float) Math.sqrt((p1.elementAt(i).x - p2.elementAt(j).x)*(p1.elementAt(i).x - p2.elementAt(j).x) + 
 										(p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) + 
 										(p1.elementAt(i).z - p2.elementAt(j).z)*(p1.elementAt(i).z - p2.elementAt(j).z));
+								
+								if (distance_sq >= l.r_sq)
+								{	
+									p2.elementAt(j).lx = (p2.elementAt(j).x - p1.elementAt(i).x) + p1.elementAt(i).lxa;
+									p2.elementAt(j).ly = (p2.elementAt(j).y - p1.elementAt(i).y) + p1.elementAt(i).lya;
+									p2.elementAt(j).lz = (p2.elementAt(j).z - p1.elementAt(i).z) + p1.elementAt(i).lza;
+								}
+								else
+								{
+									// Propagate the previous link vector
+									
+									p2.elementAt(j).lx = p1.elementAt(i).lx;
+									p2.elementAt(j).ly = p1.elementAt(i).ly;
+									p2.elementAt(j).lz = p1.elementAt(i).lz;
+									
+									p2.elementAt(j).lxa += (p2.elementAt(j).x - p1.elementAt(i).x) + p1.elementAt(i).lxa;
+									p2.elementAt(j).lya += (p2.elementAt(j).y - p1.elementAt(i).y) + p1.elementAt(i).lya;
+									p2.elementAt(j).lza += (p2.elementAt(j).z - p1.elementAt(i).z) + p1.elementAt(i).lza;
+									
+									if (p2.elementAt(j).linkModuleASq() >= l.r_sq)
+									{
+										p2.elementAt(j).lx = p2.elementAt(i).lxa;
+										p2.elementAt(j).ly = p2.elementAt(i).lya;
+										p2.elementAt(j).lz = p2.elementAt(i).lza;
+										
+										p2.elementAt(j).lxa = 0;
+										p2.elementAt(j).lya = 0;
+										p2.elementAt(j).lza = 0;
+									}
+								}
 						
-								p2.elementAt(j).lx = (p2.elementAt(j).x - p1.elementAt(i).x)/distance_sq;
-								p2.elementAt(j).ly = (p2.elementAt(j).y - p1.elementAt(i).y)/distance_sq;
-								p2.elementAt(j).lz = (p2.elementAt(j).z - p1.elementAt(i).z)/distance_sq;
+								p2.elementAt(j).distance = (float) Math.sqrt(distance_sq);
 							}
 						}
 					}
@@ -294,9 +363,10 @@ public class ParticleLinker {
 		}
 
 		/* At the last frame all trajectories end */
-		for(i = 0; i < frames[frames_number - 1].getParticles().size(); i++) {
+		for(i = 0; i < frames[frames_number - 1].getParticles().size(); i++) 
+		{
 			frames[frames_number - 1].getParticles().elementAt(i).special = false;
-			for(n = 0; n < linkrange; n++)
+			for(n = 0; n < l.linkrange; n++)
 				frames[frames_number - 1].getParticles().elementAt(i).next[n] = -1;
 		}
 	}	

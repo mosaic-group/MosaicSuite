@@ -19,6 +19,7 @@ import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
 import mosaic.core.particleLinking.ParticleLinker;
+import mosaic.core.particleLinking.linkerOptions;
 
 
 public class Calibration_ implements PlugIn, PreviewInterface {
@@ -42,7 +43,14 @@ public class Calibration_ implements PlugIn, PreviewInterface {
 		allocateTwoImages();
 		detect();
 		// changed by arun to affect janick's refactoring
-		new ParticleLinker().linkParticles(frames, frames_number, linkrange, (float)displacement,false,false);
+		
+		linkerOptions op = new linkerOptions();
+		op.linkrange = linkrange;
+		op.displacement = (float) displacement;
+		op.force = false;
+		op.straight_line = false;
+		
+		new ParticleLinker().linkParticles(frames, frames_number, op);
 		//
 		calculateShifts();
 		regression();

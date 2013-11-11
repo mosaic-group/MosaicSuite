@@ -29,12 +29,49 @@ public class Particle {
 	public float score; 					// non-particle discrimination score
 	public float distance;
 	public float lx,ly,lz;                  // previous Linking x,y,z
+	public float lxa,lya,lza;               // accumulation link
 	private double scaling[];
 
 	/* only relevant to particles given as input */
 	public String[] all_params; 			// all params that relate to this particle,
 											// 1st 2 should be x and y respectfully
 	int linkrange;	
+	
+	/**
+	 * 
+	 * Get the module of the linking vector
+	 * 
+	 * @return the module of the linking vector
+	 */
+	
+	public float linkModule()
+	{
+		return (float) Math.sqrt(lx*lx + ly*ly + lz*lz);
+	}
+	
+	/**
+	 * 
+	 * Get the square of the linking vector
+	 * 
+	 * @return the square of the linking vector
+	 */
+	
+	public float linkModuleSq()
+	{
+		return lx*lx + ly*ly + lz*lz;
+	}
+	
+	/**
+	 * 
+	 * Get the square of the accumulated linking vector
+	 * 
+	 * @return the square of the accumulated linking vector
+	 */
+	
+	public float linkModuleASq()
+	{
+		return lxa*lxa + lya*lya + lza*lza;
+	}
 	
 	/**
 	 * constructor. 
