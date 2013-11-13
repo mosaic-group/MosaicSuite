@@ -128,9 +128,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 {
 	private boolean force;
 	private boolean straight_line;
-	private float l_s;
-	private float l_f;
-	private float l_d;
+	private float l_s = 1.0f;
+	private float l_f = 1.0f;
+	private float l_d = 1.0f;
 	private final static int SYSTEM = 0;
 	private final static int IJ_RESULTS_WINDOW = 1;
 	public ImageStack stack ,traj_stack;	
@@ -572,9 +572,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				
 				GenericDialog gd = new GenericDialog("Link factor");
 				
-				gd.addNumericField("Spatial", 1.0, 3);
-				gd.addNumericField("Feature", 1.0, 3);
-				gd.addNumericField("Dynamic", 1.0, 3);
+				gd.addNumericField("Spatial", l_s, 3);
+				gd.addNumericField("Feature", l_f, 3);
+				gd.addNumericField("Dynamic", l_d, 3);
 				
 				gd.showDialog();
 				

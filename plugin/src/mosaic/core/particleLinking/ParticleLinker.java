@@ -108,9 +108,9 @@ public class ParticleLinker {
 						{
 							if (p1.elementAt(i).distance >= 0.0)
 							{
-								float lx = (p2.elementAt(j).x - p1.elementAt(i).x) - p1.elementAt(i).lx;
-								float ly = (p2.elementAt(j).y - p1.elementAt(i).y) - p1.elementAt(i).ly;
-								float lz = (p2.elementAt(j).z - p1.elementAt(i).z) - p1.elementAt(i).lz;
+								float lx = (p2.elementAt(j).x - p1.elementAt(i).x) / (n+1) - p1.elementAt(i).lx;
+								float ly = (p2.elementAt(j).y - p1.elementAt(i).y) / (n+1) - p1.elementAt(i).ly;
+								float lz = (p2.elementAt(j).z - p1.elementAt(i).z) / (n+1)- p1.elementAt(i).lz;
 								
 								float f_magn_sq = lx * lx + ly * ly + lz * lz;
 								cost[i][j] += l.l_d * f_magn_sq;
@@ -121,7 +121,7 @@ public class ParticleLinker {
 							// Calculate the module
 							
 							float l1_m = p1.elementAt(i).linkModule();
-								
+							
 							float lx1 = p1.elementAt(i).lx/l1_m;
 							float ly1 = p1.elementAt(i).ly/l1_m;
 							float lz1 = p1.elementAt(i).lz/l1_m;
@@ -307,9 +307,9 @@ public class ParticleLinker {
 						
 							if (l.force == true)
 							{						
-								p2.elementAt(j).lx = (p2.elementAt(j).x - p1.elementAt(i).x);
-								p2.elementAt(j).ly = (p2.elementAt(j).y - p1.elementAt(i).y);
-								p2.elementAt(j).lz = (p2.elementAt(j).z - p1.elementAt(i).z);
+								p2.elementAt(j).lx = (p2.elementAt(j).x - p1.elementAt(i).x) / (n+1);
+								p2.elementAt(j).ly = (p2.elementAt(j).y - p1.elementAt(i).y) / (n+1);
+								p2.elementAt(j).lz = (p2.elementAt(j).z - p1.elementAt(i).z) / (n+1);
 								
 								// We do not use distance is just to indicate that the particle has a link vector
 								
@@ -341,9 +341,9 @@ public class ParticleLinker {
 									
 									if (p2.elementAt(j).linkModuleASq() >= l.r_sq)
 									{
-										p2.elementAt(j).lx = p2.elementAt(i).lxa;
-										p2.elementAt(j).ly = p2.elementAt(i).lya;
-										p2.elementAt(j).lz = p2.elementAt(i).lza;
+										p2.elementAt(j).lx = p2.elementAt(j).lxa;
+										p2.elementAt(j).ly = p2.elementAt(j).lya;
+										p2.elementAt(j).lz = p2.elementAt(j).lza;
 										
 										p2.elementAt(j).lxa = 0;
 										p2.elementAt(j).lya = 0;
