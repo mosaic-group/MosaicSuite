@@ -4,6 +4,7 @@ import java.util.concurrent.CountDownLatch;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.process.ImageProcessor;
 import ij.process.FloatProcessor;
 
@@ -1514,8 +1515,11 @@ public class Tools
 			}
 		}
 
-		Sync8.countDown();
-		Sync8.await();
+		if (Sync8 != null)
+		{
+			Sync8.countDown();
+			Sync8.await();
+		}
 
 		fgradx2D(temp, mask, jStart, jEnd);
 		for (int z=0; z<nz; z++){
@@ -1526,8 +1530,11 @@ public class Tools
 			}
 		}
 
-		Sync10.countDown();
-		Sync10.await();
+		if (Sync10 != null)
+		{
+			Sync10.countDown();
+			Sync10.await();
+		}
 		fgrady2D(temp, mask, iStart, iEnd);
 		for (int z=0; z<nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
@@ -1545,8 +1552,11 @@ public class Tools
 			}
 		}
 
-		Sync9.countDown();
-		Sync9.await();
+		if (Sync9 != null)
+		{
+			Sync9.countDown();
+			Sync9.await();
+		}
 		double energyPrior=0;
 		for (int z=0; z<nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
@@ -1785,8 +1795,11 @@ public class Tools
 			int iStart, int iEnd, int jStart, int jEnd) throws InterruptedException {
 		bgradxdbc2D(res, m1, jStart, jEnd);
 		bgradydbc2D(temp, m2, iStart, iEnd);
-		Sync2.countDown();
-		Sync2.await();
+		if (Sync2 != null)
+		{
+			Sync2.countDown();
+			Sync2.await();
+		}
 		addtab(res, res, temp, iStart, iEnd);
 		bgradzdbc2D(m1, m3, iStart, iEnd);
 		addtab(res, res, m1, iStart, iEnd);
@@ -1824,6 +1837,29 @@ public class Tools
 		ImagePlus img=new ImagePlus();
 		ImageProcessor imp= new FloatProcessor(temp);
 		img.setProcessor(s,imp);
+		img.show();
+
+	}
+	
+	public  void disp_array3D_new(float [] [] [] array, String s){
+		int ni= array[0].length;
+		int nj= array[0][0].length;
+		float [] [] temp= new float [ni][nj];
+
+		ImageStack ss = new ImageStack(ni,nj);
+		
+		for (int k = 0 ; k < array.length ; k++)
+		{
+			for (int i=0; i<ni; i++) {  
+				for (int j=0;j< nj; j++) {  	
+					temp[i][j]= (float) array[k][i][j];
+				}
+			}
+			ImageProcessor imp= new FloatProcessor(temp);
+			ss.addSlice("slice " + k, imp);
+		}
+		
+		ImagePlus img=new ImagePlus("temp",ss);
 		img.show();
 
 	}

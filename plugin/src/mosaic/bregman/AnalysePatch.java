@@ -24,10 +24,7 @@ import net.sf.javaml.core.DenseInstance;
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.DatasetTools;
 import net.sf.javaml.tools.weka.WekaClusterer;
-import weka.clusterers.ClusterEvaluation;
-import weka.clusterers.Cobweb;
-import weka.clusterers.SimpleKMeans;
-import weka.clusterers.XMeans;
+
 
 import mosaic.bregman.FindConnectedRegions.Region;
 
@@ -220,7 +217,14 @@ public class AnalysePatch implements Runnable{
 
 
 
-
+	/**
+	 * 
+	 * Analyse one Patch
+	 * 
+	 * Or run SplitBregman segmentation solver on it
+	 * 
+	 */
+	
 	public void run(){
 		//IJ.log("");
 		//IJ.log("region " + r.value);

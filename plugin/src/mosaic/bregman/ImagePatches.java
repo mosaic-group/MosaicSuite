@@ -162,7 +162,7 @@ public class ImagePatches {
 			if(p.subpixel)p.oversampling2ndstep=p.overs;
 			else p.oversampling2ndstep=1;
 			ap=new AnalysePatch(image, r, p, p.oversampling2ndstep, channel,regions_refined,this);
-
+			
 			if(p.mode_voronoi2){
 				threadPool.execute(ap);
 				//IJ.log("size q:"+ queue.size());

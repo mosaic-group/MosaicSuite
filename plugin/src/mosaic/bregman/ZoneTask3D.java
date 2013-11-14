@@ -4,6 +4,8 @@ package mosaic.bregman;
 
 import java.util.concurrent.CountDownLatch;
 
+import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
+
 
 
 public class ZoneTask3D implements Runnable {
@@ -54,7 +56,10 @@ public class ZoneTask3D implements Runnable {
 			doWork();
 		}catch (InterruptedException ex) {}
 
-		ZoneDoneSignal.countDown();
+		if (ZoneDoneSignal != null)
+		{
+			ZoneDoneSignal.countDown();
+		}
 	}
 
 	void doWork() throws InterruptedException{
@@ -64,8 +69,11 @@ public class ZoneTask3D implements Runnable {
 		Tools.subtab(AS.temp2[AS.l], AS.temp2[AS.l], AS.b2yk[AS.l], iStart,iEnd);
 		Tools.subtab(AS.temp4[AS.l], AS.w2zk[AS.l], AS.b2zk[AS.l], iStart,iEnd);
 
-		Sync1.countDown();
-		Sync1.await();
+		if (Sync1 != null)
+		{
+			Sync1.countDown();
+			Sync1.await();
+		}
 
 		//use w2zk as temp
 		Tools.mydivergence3D(AS.temp3[AS.l], AS.temp1[AS.l], AS.temp2[AS.l], AS.temp4[AS.l], 
@@ -81,8 +89,12 @@ public class ZoneTask3D implements Runnable {
 			}
 		} 
 
-		Sync3.countDown();
-		Sync3.await();
+		if (Sync1 != null)
+		{
+			Sync3.countDown();
+			Sync3.await();
+		}
+		
 		Tools.convolve3Dseparable(AS.temp4[AS.l], AS.temp2[AS.l], 
 				AS.ni, AS.nj, AS.nz, 
 				AS.p.kernelx,AS.p.kernely, AS.p.kernelz,
@@ -96,13 +108,29 @@ public class ZoneTask3D implements Runnable {
 			}
 		}
 
-
-		Sync4.countDown();
-
+		if (Sync4 != null)
+		{
+			Sync4.countDown();
+		}
+			
 		//		IJ.log("thread + istart iend jstart jend"+
 		//		iStart +" " + iEnd+" " + jStart+" " + jEnd);
 
-		Dct.await();
+		if (Dct != null)
+			Dct.await();
+		else
+		{
+			AS.dct3d.forward(AS.temp1[AS.l], true);
+			for (int z=0; z<AS.nz; z++){
+				for (int i=0; i<AS.ni; i++) {  
+					for (int j=0; j<AS.nj; j++) {  
+						if((1+ AS.eigenLaplacian[i][j] + AS.eigenPSF[0][i][j]) !=0) 
+							AS.temp1[AS.l][z][i][j]=AS.temp1[AS.l][z][i][j]/(1+ AS.eigenLaplacian3D[z][i][j] + AS.eigenPSF[z][i][j]);
+					}	
+				}
+			}
+			AS.dct3d.inverse(AS.temp1[AS.l], true);
+		}
 
 		Tools.convolve3Dseparable(AS.temp2[AS.l], AS.temp1[AS.l], 
 				AS.ni, AS.nj, AS.nz, 
@@ -170,14 +198,21 @@ public class ZoneTask3D implements Runnable {
 			}
 		}
 
-		Sync5.countDown();
-		Sync5.await();
+		if (Sync5 != null)
+		{
+			Sync5.countDown();
+			Sync5.await();
+		}
+		
 		Tools.fgradx2D(AS.temp3[AS.l], AS.temp1[AS.l], jStart,jEnd);
 		Tools.fgrady2D(AS.temp4[AS.l], AS.temp1[AS.l], iStart, iEnd);
 		Tools.fgradz2D(AS.ukz[AS.l], AS.temp1[AS.l], iStart, iEnd);
 
-		Sync6.countDown();
-		Sync6.await();
+		if (Sync6 != null)
+		{
+			Sync6.countDown();
+			Sync6.await();
+		}
 		Tools.addtab(AS.temp1[AS.l], AS.temp3[AS.l], AS.b2xk[AS.l], iStart, iEnd);
 		Tools.addtab(AS.temp2[AS.l], AS.temp4[AS.l], AS.b2yk[AS.l],iStart, iEnd);
 		Tools.addtab(AS.w2zk[AS.l], AS.ukz[AS.l], AS.b2zk[AS.l],iStart, iEnd);
@@ -196,9 +231,13 @@ public class ZoneTask3D implements Runnable {
 				}	
 			}
 		}
-		Sync7.countDown();
-		Sync7.await();
-
+		
+		if (Sync7 != null)
+		{
+			Sync7.countDown();
+			Sync7.await();
+		}
+		
 		// faire le menage dans les tableaux ici w2xk utilise comme temp
 		if(AS.stepk % AS.p.energyEvaluationModulo ==0  || AS.stepk==AS.p.max_nsb -1){	
 			AS.energytab2[nt]=

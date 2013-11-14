@@ -89,15 +89,17 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 
 	}
 	
+	/**
+	 * 
+	 * Multithread split bregman
+	 * 
+	 * @throws InterruptedException
+	 */
 	
-	@Override
-	protected void step() throws InterruptedException {
+	protected void step_multit() throws InterruptedException
+	{
 		long lStartTime = new Date().getTime(); //start time
 		//energy=0;
-
-
-
-
 
 		CountDownLatch ZoneDoneSignal = new CountDownLatch(p.nthreads);//subprob 1 and 3
 		CountDownLatch Sync1 = new CountDownLatch(p.nthreads);
@@ -120,85 +122,34 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		int jlastchunk= p.nj - (p.nj/(p.nthreads))*(p.nthreads -1);
 		int iStart=0; 
 		int jStart=0;
+		Thread t[] = new Thread[p.nthreads];
 		for(int nt=0; nt< p.nthreads-1;nt++){
 			//			IJ.log("thread + istart iend jstart jend"+
 			//					iStart +" " + (iStart+ichunk)+" " + jStart+" " + (jStart+jchunk));
-			new Thread(new ZoneTask3D(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Sync5,
+			
+			
+			// Check if we can create threads
+			
+			t[nt] = new Thread(new ZoneTask3D(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Sync5,
 					Sync6,Sync7,Sync8,Sync9,Sync10,Dct,
-					iStart, iStart+ichunk, jStart, jStart+jchunk,nt,this,Tools)).start();
+					iStart, iStart+ichunk, jStart, jStart+jchunk,nt,this,Tools));
+			t[nt].start();
 			iStart+=ichunk;
 			jStart+=jchunk;
 		}
+		
 		//		IJ.log("last thread + istart iend jstart jend"+
 		//				iStart +" " + (iStart+ilastchunk)+" " + jStart+" " + (jStart+jlastchunk));
-		new Thread(new ZoneTask3D(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Sync5,
-				Sync6,Sync7,Sync8,Sync9,Sync10,Dct,
-				iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,Tools)).start();
-		//		IJ.log("");
+		
+		// At least on linux you can go out of memory for threads
+		
+		
+		Thread T_ext = new Thread(new ZoneTask3D(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Sync5,
+					Sync6,Sync7,Sync8,Sync9,Sync10,Dct,
+					iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,Tools));
+		
 
-
-
-
-
-		//Tools.disp_vals(temp1[l][2], "w2xk debut");
-		//Tools.disp_vals(temp2[l][2], "w2yk debut");
-
-		// IJ.log("thread : " +l +"starting work");
-
-		//Tools.subtab(temp1[l], temp1[l], b2xk[l]);  
-		//Tools.subtab(temp2[l], temp2[l], b2yk[l]);
-		//Tools.subtab(temp4[l], w2zk[l], b2zk[l]);
-
-		//temp3=divwb
-		//Tools.mydivergence3D(temp3[l], temp1[l], temp2[l], temp4[l]);//, temp3[l]);
-
-		//		Tools.bgradxdbc2D(temp3[l], temp1[l]);
-		//		Tools.bgradydbc2D(temp1[l], temp2[l]);
-		//		Tools.addtab(temp3[l], temp3[l], temp1[l]);
-		//		Tools.bgradzdbc2D(temp1[l], temp3[l]);
-		//		Tools.addtab(temp3[l], temp3[l], temp1[l]);
-		//		
-
-		//Tools.disp_vals(temp3[l][2], "divergence");
-
-		//		for (int z=0; z<nz; z++){
-		//			for (int i=0; i<ni; i++) {  
-		//				for (int j=0; j<nj; j++){  
-		//					temp2[l][z][i][j]=w1k[l][z][i][j]-b1k[l][z][i][j] -c0;
-		//				}	
-		//			}
-		//		} 
-
-		//Tools.disp_vals(temp2[l][2], "temp2 sub");
-		//Tools.disp_vals(temp2[l][0], "t2");
-		//		Tools.convolve3Dseparable(temp4[l], temp2[l], 
-		//				ni, nj, nz, 
-		//				p.kernelx,p.kernely, p.kernelz,
-		//				p.px, p.py, p.pz, temp1[l]);//which temp ?
-
-		//Tools.disp_vals(temp4[l][0], "t4");
-		//Tools.disp_vals(temp4[l][2], "filtered sub");
-		//Tools.disp_vals(b3k[l][2], "b3k");
-		//Tools.disp_vals(w3k[l][2], "w3k");
-		//Tools.disp_vals(temp3[l][2], "verif div");
-
-		//temp1=RHS
-		//Tools.disp_vals(temp3[l][5], "divergence");
-		//		for (int z=0; z<nz; z++){
-		//			for (int i=0; i<ni; i++) {  
-		//				for (int j=0; j<nj; j++) {  
-		//					temp1[l][z][i][j]=-temp3[l][z][i][j]+w3k[l][z][i][j]-b3k[l][z][i][j] + (c1-c0)*temp4[l][z][i][j];
-		//				}	
-		//			}
-		//		}
-
-		//
-		//Tools.disp_vals(temp1[l][2], "RHS");
-
-		//Tools.disp_vals(temp1[l][5], "RHS");
-
-		//temp1=uk
-
+		T_ext.start();
 
 
 		Sync4.await();
@@ -217,129 +168,58 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		Dct.countDown();
 
 
-		//Tools.disp_vals(temp1[l][2], "uk");
-
-		//temp2=muk
-		//		Tools.convolve3Dseparable(temp2[l], temp1[l], 
-		//				ni, nj, nz, 
-		//				p.kernelx,p.kernely, p.kernelz,
-		//				p.px, p.py, p.pz, temp3[l]);
-		//		for (int z=0; z<nz; z++){
-		//			for (int i=0; i<ni; i++) {  
-		//				for (int j=0; j<nj; j++) {  
-		//					temp2[l][z][i][j]=(c1-c0)*temp2[l][z][i][j] + c0;
-		//				}	
-		//			}
-		//		}
-		//Tools.disp_vals(temp2[l][2], "muk");
-
-
-
-		//detw2 = (lambda*gamma.*weightData-b2k-muk).^2+4*lambda*gamma*weightData.*image;
-		//w2k = 0.5*(b2k+muk-lambda*gamma.*weightData+sqrt(detw2));
-
-		//%-- w1k subproblem
-		//temp3=detw2
-		//		for (int z=0; z<nz; z++){
-		//			for (int i=0; i<ni; i++) {  
-		//				for (int j=0; j<nj; j++) {  
-		//					temp3[l][z][i][j]=
-		//							Math.pow(((p.ldata/p.lreg)*p.gamma -b1k[l][z][i][j] - temp2[l][z][i][j]),2)
-		//							+4*(p.ldata/p.lreg)*p.gamma*image[z][i][j];
-		//				}	
-		//			}
-		//		}
-		//		for (int z=0; z<nz; z++){
-		//			for (int i=0; i<ni; i++) {  
-		//				for (int j=0; j<nj; j++) {  
-		//					w1k[l][z][i][j]=0.5*(b1k[l][z][i][j] + temp2[l][z][i][j]- (p.ldata/p.lreg)*p.gamma
-		//							+ Math.sqrt(temp3[l][z][i][j]));
-		//				}	
-		//			}
-		//		}
-		//Tools.disp_vals(w1k[l][2], "w1k");
-
-		//Tools.addtab(temp4[l], b3k[l], temp1[l]);
-
-
-
-		//Tools.disp_vals(w1k[l][5], "w1k");
-
-		//Tools.disp_vals(b3k[l][2], " verif b3k");
-		//Tools.disp_vals(temp1[l][2], " verif uk");
-
-		//%-- w3k subproblem		
-		//		for (int z=0; z<nz; z++){
-		//			for (int i=0; i<ni; i++) {  
-		//				for (int j=0; j<nj; j++) {  
-		//					w3k[l][z][i][j]=Math.max(Math.min(temp1[l][z][i][j]+ b3k[l][z][i][j],1),0);
-		//				}	
-		//			}
-		//		}
-		//		//Tools.disp_vals(w3k[l][2], "w3k l2");
-		//
-		//		//Tools.disp_vals(w3k[l][5], "w3k l5");
-		//		for (int z=0; z<nz; z++){
-		//			for (int i=0; i<ni; i++) {  
-		//				for (int j=0; j<nj; j++) {  
-		//					b1k[l][z][i][j]=b1k[l][z][i][j] +temp2[l][z][i][j]-w1k[l][z][i][j];
-		//					b3k[l][z][i][j]=b3k[l][z][i][j] +temp1[l][z][i][j]-w3k[l][z][i][j];	
-		//					//mask[l][z][i][j]=w3k[l][z][i][j];
-		//				}	
-		//			}
-		//		}
-		//Tools.disp_vals(b1k[l][2], "b1k");
-		//Tools.disp_vals(b3k[l][2], "b3k");
-
-		//%-- w2k sub-problem
-		//temp4=ukx, temp3=uky
-
-
 		ZoneDoneSignal.await(); 
 
 
+		if(stepk % p.energyEvaluationModulo ==0){	
+			energy=0;
+			for(int nt=0; nt< p.nthreads;nt++){
+				energy+=energytab2[nt];
+			}
+		}
 
-		//		Tools.fgradx2D(temp3[l], temp1[l]);
-		//		Tools.fgrady2D(temp4[l], temp1[l]);
-		//		Tools.fgradz2D(ukz[l], temp1[l]);
+		//int centerim=p.nz/2;
+		if(p.livedisplay && p.firstphase) md.display2regions3D(w3k[l], "Mask", channel);
 
-		//		Tools.addtab(temp1[l], temp3[l], b2xk[l]);
-		//		Tools.addtab(temp2[l], temp4[l], b2yk[l]);
-		//		Tools.addtab(w2zk[l], ukz[l], b2zk[l]);
-		//temp1=w2xk temp2=w2yk
-		//		Tools.shrink3D(temp1[l], temp2[l], w2zk[l], temp1[l], temp2[l], w2zk[l], p.gamma);
-		//do shrink3D
-		//Tools.disp_vals(w2zk[l][2], "w2zk");
-		//Tools.disp_vals(temp1[l][2], "w2xk");
-		//		for (int z=0; z<nz; z++){
-		//			for (int i=0; i<ni; i++) {  
-		//				for (int j=0; j<nj; j++){
-		//					b2xk[l][z][i][j]=b2xk[l][z][i][j] + temp3[l][z][i][j]-temp1[l][z][i][j];
-		//					b2yk[l][z][i][j]=b2yk[l][z][i][j] + temp4[l][z][i][j]-temp2[l][z][i][j];
-		//					b2zk[l][z][i][j]=b2zk[l][z][i][j] + ukz[l][z][i][j]-w2zk[l][z][i][j];
-		//					//mask[l][z][i][j]=w3k[l][z][i][j];
-		//				}	
-		//			}
-		//		}
-		//Tools.disp_vals(b2xk[l][2], "b2xk");
-		//Tools.disp_vals(b2yk[l][2], "b2yk");
-		//Tools.disp_vals(b2zk[l][2], "b2zk");
-		//Tools.disp_vals(temp1[l][2], "w2xk");
-		//Tools.disp_vals(temp2[l][2], "w2yk");
-		//Tools.disp_vals(w2zk[l][2], "w2zk");
 
-		////		normtab[l]=0;
-		////		for (int z=0; z<nz; z++){
-		////			for (int i=0; i<ni; i++) {  
-		////				for (int j=0; j<nj; j++) {  
-		////					//					l2normtab[l]+=Math.sqrt(Math.pow(w3k[l][z][i][j]-w3kp[l][z][i][j],2));
-		////					normtab[l]+=Math.abs(w3k[l][z][i][j]-w3kp[l][z][i][j]);
-		////				}	
-		////			}
-		////		}
-		//
-		//		Tools.copytab(w3kp[l], w3k[l]);
+		long lEndTime = new Date().getTime(); //end time
 
+		long difference = lEndTime - lStartTime; //check different
+		totaltime +=difference;
+		//IJ.log("Elapsed milliseconds: " + difference);		
+	}
+	
+	/**
+	 * 
+	 * Single thread split Bregman
+	 * 
+	 */
+	
+	protected void step_single()
+	{
+		long lStartTime = new Date().getTime(); //start time
+		//energy=0;
+
+		int ichunk= p.ni;
+		int ilastchunk= p.ni; 
+		int jchunk= p.nj;
+		int jlastchunk= p.nj;
+		int iStart=0; 
+		int jStart=0;
+
+		
+		//		IJ.log("last thread + istart iend jstart jend"+
+		//				iStart +" " + (iStart+ilastchunk)+" " + jStart+" " + (jStart+jlastchunk));
+		
+		// At least on linux you can go out of memory for threads
+		
+		
+		ZoneTask3D zt = new ZoneTask3D(null,null,null,null,null,null,
+					null,null,null,null,null,null,
+					iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,Tools);
+
+		zt.run();
+		
 		//energytab[l]=Tools.computeEnergyPSF3D(speedData[l], w3k[l], temp3[l], temp4[l], p.ldata, p.lreg,p,c0,c1,image);
 		//energy+=energytab[l];
 
@@ -359,6 +239,15 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		long difference = lEndTime - lStartTime; //check different
 		totaltime +=difference;
 		//IJ.log("Elapsed milliseconds: " + difference);
+	}
+	
+	@Override
+	protected void step() throws InterruptedException 
+	{
+		if (p.nthreads == 1)
+			step_single();
+		else
+			step_multit();
 
 	}
 

@@ -56,5 +56,20 @@ public class Region3DTrack implements ICSVGeneral
 	public void Coord_X(double Coord_X_) {x = Coord_X_;}
 	public void Coord_Y(double Coord_Y_) {y = Coord_Y_;}
 	public void Coord_Z(double Coord_Z_) {z = Coord_Z_;}
+	@Override
+	public void setCoord_X(double Coord_X_) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void setCoord_Y(double Coord_Y_) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void setCoord_Z(double Coord_Z_) {
+		// TODO Auto-generated method stub
+		
+	}
 }
 	

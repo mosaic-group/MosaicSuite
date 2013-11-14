@@ -102,7 +102,7 @@ public class TwoRegions extends NRegions
 			float [][][] RoN ;
 			RoN = new float [p.nz][p.ni][p.nj];
 			Tools.copytab(RoN, A_solver.Ro[0]);
-
+			
 			ArrayList<Region> regions=A_solver.regionsvoronoi;
 
 			//A_solver=null; //for testing
@@ -159,7 +159,7 @@ public class TwoRegions extends NRegions
 			float [][][] RoN ;
 			RoN = new float [p.nz][p.ni][p.nj];
 			Tools.copytab(RoN, A_solver.Ro[0]);
-
+			
 					ArrayList<Region> regions=A_solver.regionsvoronoi;
 
 			//A_solver=null;
