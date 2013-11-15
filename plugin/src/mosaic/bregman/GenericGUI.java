@@ -343,7 +343,7 @@ public class GenericGUI {
 		//gd.addMessage("");
 
 		Button visOption = new Button("Options");
-		label = new Label("Vizualization and output");
+		label = new Label("Visualization and output");
 		label.setFont(bf);
 		p = new Panel();
 		p.add(label);

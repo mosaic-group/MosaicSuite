@@ -175,7 +175,7 @@ public class SegmentationGUI
 		gd.addCheckbox("Subpixel segmentation", Analysis.p.subpixel);
 		
 		String choice1[] = {
-				"Automatic (best energy)", "Low layer", "Medium layer (clustering)","High layer (clustering)"};
+				"Automatic", "Low", "Medium","High"};
 		gd.addChoice("Local intensity_estimation ", choice1, choice1[Analysis.p.mode_intensity]);
 
 		String choice2[] = {
