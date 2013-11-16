@@ -46,7 +46,7 @@ public class VisualizationGUI
 		String sgroup2[] = 
 		{
 				"Intermediate steps", "Colored objects","Object intensities",
-				"Object labeling","Object outlines","Save results"
+				"Labeled objects","Object outlines","Save object and image characteristics"
 		};
 		boolean bgroup2[] =
 		{
@@ -76,7 +76,7 @@ public class VisualizationGUI
 		
 		gd.addNumericField("Number of conditions", Analysis.p.nbconditions, 0);
 		
-		Button rscript = new Button("R scripts settings");
+		Button rscript = new Button("Set condition names and number of images per condition");
 		Panel p = new Panel();
 		p.add(rscript);
 		rscript.addActionListener(new RScriptListener(gd, posx, posy)); 
