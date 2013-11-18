@@ -1,22 +1,22 @@
 package mosaic.region_competition.initializers;
 
-import mosaic.region_competition.LabelImage;
+import mosaic.region_competition.LabelImageRC;
 
 /**
  * Abstract Initializer class that do not depend on input image
  */
 public abstract class Initializer
 {
-	LabelImage labelImage;
+	LabelImageRC labelImage;
 	int dim;
 	int[] dimensions;
 	
-	public Initializer(LabelImage labelImage)
+	public Initializer(LabelImageRC labelImage)
 	{
 		setLabelImage(labelImage);
 	}
 	
-	public void setLabelImage(LabelImage labelImage)
+	public void setLabelImage(LabelImageRC labelImage)
 	{
 		this.labelImage = labelImage;
 		this.dim = labelImage.getDim();

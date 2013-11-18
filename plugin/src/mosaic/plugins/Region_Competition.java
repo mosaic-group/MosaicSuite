@@ -19,6 +19,7 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.wizard.*;
 import mosaic.core.utils.Point;
@@ -40,7 +41,7 @@ import mosaic.region_competition.deprecated.E_PS_sphis;
 import mosaic.region_competition.energies.*;
 import mosaic.region_competition.initializers.*;
 import mosaic.region_competition.netbeansGUI.UserDialog;
-import mosaic.region_competition.topology.Connectivity;
+import mosaic.core.utils.Connectivity;
 import mosaic.region_competition.utils.IntConverter;
 import mosaic.region_competition.utils.Timer;
 import ij.IJ;
@@ -78,7 +79,7 @@ public class Region_Competition implements PlugInFilter
 	public Settings settings;
 	
 	Algorithm algorithm;
-	LabelImage labelImage;		// data structure mapping pixels to labels
+	LabelImageRC labelImage;		// data structure mapping pixels to labels
 	IntensityImage intensityImage; 
 	ImageModel imageModel;
 	private ImagePlus originalIP;		// IP of the input image
@@ -486,7 +487,7 @@ public class Region_Competition implements PlugInFilter
 	
 	void initLabelImage()
 	{
-		labelImage = new LabelImage(intensityImage.getDimensions());
+		labelImage = new LabelImageRC(intensityImage.getDimensions());
 		InitializationType input;
 		
 		if (userDialog != null)
@@ -813,13 +814,13 @@ public class Region_Competition implements PlugInFilter
 		
 	}
 	
-	void showFinalResult(LabelImage li)
+	void showFinalResult(LabelImageRC li)
 	{
 		showFinalResult(li,"");
 	}
 	
 	
-	ImagePlus showFinalResult(LabelImage li, Object title)
+	ImagePlus showFinalResult(LabelImageRC li, Object title)
 	{
 		if(li.getDim()==3)
 		{
@@ -889,7 +890,7 @@ public class Region_Competition implements PlugInFilter
 //		tl.play();
 	}
 	
-	public ImagePlus showFinalResult3D(LabelImage li, Object title)
+	public ImagePlus showFinalResult3D(LabelImageRC li, Object title)
 	{
 		
 		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.get3DShortStack(true));
@@ -927,7 +928,7 @@ public class Region_Competition implements PlugInFilter
 	 * Initializes labelImage with ROI <br>
 	 * If there was no ROI in input image, asks user to draw a roi. 
 	 */
-	void manualSelect(final LabelImage labelImg)
+	void manualSelect(final LabelImageRC labelImg)
 	{
 		Roi roi=null;
 		roi = originalIP.getRoi();
@@ -1014,7 +1015,7 @@ public class Region_Competition implements PlugInFilter
 //		IJ.getInstance().addKeyListener(keyListener);
 }
 	
-	public void addSlice(LabelImage labelImage, String title)
+	public void addSlice(LabelImageRC labelImage, String title)
 	{
 		int dim = labelImage.getDim();
 		if(dim==2)
@@ -1172,7 +1173,7 @@ public class Region_Competition implements PlugInFilter
 		IJ.run(stackImPlus, "3-3-2 RGB", null);
 	}
 	
-	public LabelImage getLabelImage()
+	public LabelImageRC getLabelImage()
 	{
 		return this.labelImage;
 	}

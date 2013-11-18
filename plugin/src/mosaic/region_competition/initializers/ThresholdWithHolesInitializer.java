@@ -6,13 +6,13 @@ import ij.ImageStack;
 import ij.plugin.Duplicator;
 import ij.plugin.filter.MaximumFinder;
 import ij.process.ImageProcessor;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 
 public class ThresholdWithHolesInitializer extends DataDrivenInitializer
 {
 
-	public ThresholdWithHolesInitializer(IntensityImage intensityImage, LabelImage labelImage)
+	public ThresholdWithHolesInitializer(IntensityImage intensityImage, LabelImageRC labelImage)
 	{
 		super(intensityImage, labelImage);
 	}

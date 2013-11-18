@@ -291,8 +291,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 		original_imp.show();
 		
-		if(false)
-		{
 		/* link the particles found */
 		IJ.showStatus("Linking Particles");
 		
@@ -323,7 +321,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			results_window.text_panel.appendLine("Particle Tracker DONE!");
 			results_window.text_panel.appendLine("Found " + this.number_of_trajectories + " Trajectories");
 			results_window.setVisible(true);
-		}
 		}
 		
 		IJ.freeMemory();

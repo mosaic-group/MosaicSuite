@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
@@ -26,7 +26,7 @@ public class E_PS extends ExternalEnergy
 	RegionIteratorMask sphereIt;
 	
 	public E_PS(
-			LabelImage labelImage, 
+			LabelImageRC labelImage, 
 			IntensityImage intensityImage, 
 			HashMap<Integer, LabelInformation> labelMap, 
 			int PSenergyRadius, 

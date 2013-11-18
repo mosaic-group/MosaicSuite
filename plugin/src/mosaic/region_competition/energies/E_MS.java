@@ -3,15 +3,15 @@ package mosaic.region_competition.energies;
 import java.util.HashMap;
 
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
 public class E_MS extends ExternalEnergy
 {
-	public E_MS(LabelImage labelImage, IntensityImage intensityImage, HashMap<Integer, LabelInformation> labelMap)
+	public E_MS(LabelImageRC labelImage, IntensityImage intensityImage, HashMap<Integer, LabelInformation> labelMap)
 	{
 		super(labelImage, intensityImage);
 		this.labelMap = labelMap;

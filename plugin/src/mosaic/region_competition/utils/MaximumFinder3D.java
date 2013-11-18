@@ -15,7 +15,7 @@ import net.imglib2.type.numeric.real.FloatType;
 
 import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.Point;
-import mosaic.region_competition.topology.Connectivity;
+import mosaic.core.utils.Connectivity;
 
 /** 
  * Edit of {@link MaximumFinder} of ImageJ 1.4x, to work with 3D images (stacks)

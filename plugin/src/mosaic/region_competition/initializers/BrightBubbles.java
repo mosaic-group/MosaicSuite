@@ -6,14 +6,14 @@ import ij.ImageStack;
 import ij.plugin.Duplicator;
 import ij.plugin.filter.MaximumFinder;
 import ij.process.ImageProcessor;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 
 @Deprecated
 public class BrightBubbles extends DataDrivenInitializer
 {
 
-	public BrightBubbles(IntensityImage intensityImage, LabelImage labelImage)
+	public BrightBubbles(IntensityImage intensityImage, LabelImageRC labelImage)
 	{
 		super(intensityImage, labelImage);
 	}

@@ -5,18 +5,21 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import mosaic.core.utils.FloodFill;
+import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.MultipleThresholdImageFunction;
 import mosaic.core.utils.Point;
 
 public class ForestFire
 {
 	
 	Algorithm algorithm;
-	LabelImage labelImage;
+	LabelImageRC labelImage;
 	IntensityImage intensityImage;
 	
 	HashMap<Point, ContourParticle> m_InnerContourContainer;
 	
-	public ForestFire(Algorithm algorithm, LabelImage labelImage, IntensityImage intensityImage)
+	public ForestFire(Algorithm algorithm, LabelImageRC labelImage, IntensityImage intensityImage)
 	{
 		this.algorithm = algorithm;
 		this.labelImage = labelImage;

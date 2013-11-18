@@ -10,8 +10,8 @@ import java.util.Collection;
 
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.Algorithm;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
@@ -27,7 +27,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 	private int Area[];	
 	
 	IntensityImage i[];
-	LabelImage l[];
+	LabelImageRC l[];
 	Algorithm al;
 	Settings s;
 		
@@ -41,7 +41,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 			return st;
 		}
 		
-		public ScoreFunctionRCsmo(IntensityImage i_[], LabelImage l_[], Settings s_)
+		public ScoreFunctionRCsmo(IntensityImage i_[], LabelImageRC l_[], Settings s_)
 		{
 			i = i_;
 			l = l_;
@@ -50,7 +50,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 			file = new String[l.length];
 		}
 
-		public LabelImage getLabel(int im)
+		public LabelImageRC getLabel(int im)
 		{
 			return l[im];
 		}
@@ -70,7 +70,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 			return 1.0/(1.0 + Math.exp(-t));
 		}
 		
-		public static double SmoothNorm(LabelImage l)
+		public static double SmoothNorm(LabelImageRC l)
 		{
 			// Scan for particles
 			
@@ -155,7 +155,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 			return (eCurv_tot_p - eCurv_tot_n)/np/8.0;
 		}
 		
-		public double Smooth(LabelImage l)
+		public double Smooth(LabelImageRC l)
 		{
 			// Scan for particles
 			
@@ -307,7 +307,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 		public boolean isFeasible(double[] x) 
 		{
 			int minSz = Integer.MAX_VALUE;
-			for (LabelImage lbt : l)
+			for (LabelImageRC lbt : l)
 			{
 				for (int d : lbt.getDimensions())
 				{

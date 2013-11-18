@@ -1,6 +1,7 @@
 package mosaic.region_competition.deprecated;
 
-import mosaic.region_competition.LabelImage;
+import mosaic.region_competition.LabelImageRC;
+import mosaic.core.utils.MaskIterator;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.core.utils.RegionIteratorMask;
@@ -9,7 +10,7 @@ import mosaic.core.utils.RegionIteratorMask;
 public class BubbleDrawer_sphis extends SphereBitmapImageSource_sphis
 {
 //TODO make nicer class hierarchy
-	public BubbleDrawer_sphis(LabelImage labelImage, int radius, int size)
+	public BubbleDrawer_sphis(LabelImageRC labelImage, int radius, int size)
 	{
 		super(labelImage, radius, size);
 	}
@@ -23,7 +24,7 @@ public class BubbleDrawer_sphis extends SphereBitmapImageSource_sphis
 		
 		//TODO change region iterator so one can reuse the iterator and just set the new ofs
 		RegionIterator it = new RegionIterator(labelImage.getDimensions(), this.m_Size, start.x);
-		RegionIteratorMask maskIt = new RegionIteratorMask(labelImage.getDimensions(), this.m_Size, start.x);
+		MaskIterator maskIt = new MaskIterator(labelImage.getDimensions(), this.m_Size, start.x);
 		
 		while(it.hasNext())	// iterate over sphere region
 		{

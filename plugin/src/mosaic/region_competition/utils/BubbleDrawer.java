@@ -1,8 +1,8 @@
 package mosaic.region_competition.utils;
 
-import mosaic.region_competition.LabelImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.core.utils.Point;
-import mosaic.core.utils.RegionIteratorSphere;
+import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
 
 /**
@@ -10,18 +10,18 @@ import mosaic.core.utils.SphereMask;
  */
 public class BubbleDrawer
 {
-	LabelImage labelImage;
-	RegionIteratorSphere sphereIt;
+	LabelImageRC labelImage;
+	RegionIteratorMask sphereIt;
 	SphereMask sphere;
 	
-	public BubbleDrawer(LabelImage labelImage, int radius, int size)
+	public BubbleDrawer(LabelImageRC labelImage, int radius, int size)
 	{
 		this.labelImage = labelImage;
 		
 		int dim = labelImage.getDim();
 		int[] input = labelImage.getDimensions();
 		sphere = new SphereMask(radius, size, dim);
-		sphereIt = new RegionIteratorSphere(sphere, input);
+		sphereIt = new RegionIteratorMask(sphere, input);
 	}
 	
 	/**

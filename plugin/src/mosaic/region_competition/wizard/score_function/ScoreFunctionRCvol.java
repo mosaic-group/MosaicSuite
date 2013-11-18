@@ -10,8 +10,8 @@ import java.util.Collection;
 
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.Algorithm;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.EnergyFunctionalType;
@@ -26,11 +26,11 @@ public class ScoreFunctionRCvol implements ScoreFunction
 	private String[] file;
 	
 	IntensityImage i[];
-	LabelImage l[];
+	LabelImageRC l[];
 	Algorithm al;
 	Settings s;
 
-	public ScoreFunctionRCvol(IntensityImage i_[], LabelImage l_[], Settings s_)
+	public ScoreFunctionRCvol(IntensityImage i_[], LabelImageRC l_[], Settings s_)
 	{
 		i = i_;
 		l = l_;
@@ -39,7 +39,7 @@ public class ScoreFunctionRCvol implements ScoreFunction
 		file = new String[l.length];
 	}
 
-	public LabelImage getLabel(int im)
+	public LabelImageRC getLabel(int im)
 	{
 		return l[im];
 	}
@@ -49,7 +49,7 @@ public class ScoreFunctionRCvol implements ScoreFunction
 		Area = a;
 	}
 		
-	public int Area(LabelImage l)
+	public int Area(LabelImageRC l)
 	{	
 		int count = 0;
 		double a1 = 0.0;
@@ -147,7 +147,7 @@ public class ScoreFunctionRCvol implements ScoreFunction
 	public boolean isFeasible(double[] x) 
 	{
 		int minSz = Integer.MAX_VALUE;
-		for (LabelImage lbt : l)
+		for (LabelImageRC lbt : l)
 		{
 			for (int d : lbt.getDimensions())
 			{

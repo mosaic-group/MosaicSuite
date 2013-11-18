@@ -2,8 +2,8 @@ package mosaic.region_competition.energies;
 
 import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 
 
 public abstract class Energy
@@ -33,8 +33,8 @@ public abstract class Energy
 	 */
 	public static abstract class InternalEnergy extends Energy
 	{
-		protected LabelImage labelImage;
-		public InternalEnergy(LabelImage labelImage)
+		protected LabelImageRC labelImage;
+		public InternalEnergy(LabelImageRC labelImage)
 		{
 			this.labelImage = labelImage;
 		}
@@ -46,8 +46,8 @@ public abstract class Energy
 	public static abstract class ExternalEnergy extends Energy
 	{
 		protected IntensityImage intensityImage;
-		protected LabelImage labelImage;
-		public ExternalEnergy(LabelImage labelImage, IntensityImage intensityImage)
+		protected LabelImageRC labelImage;
+		public ExternalEnergy(LabelImageRC labelImage, IntensityImage intensityImage)
 		{
 			this.labelImage = labelImage;
 			this.intensityImage = intensityImage;

@@ -1,7 +1,9 @@
 package mosaic.core.detection;
 
 import ij.IJ;
+import ij.ImagePlus;
 import ij.ImageStack;
+import ij.measure.Calibration;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 
@@ -10,21 +12,29 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import net.imglib2.RandomAccess;
 import java.util.Vector;
 
-import net.imglib2.Point;
+import mosaic.core.utils.CircleMask;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIteratorMask;
+import net.imglib2.AbstractEuclideanSpace;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.algorithm.region.hypersphere.HyperSphere;
 import net.imglib2.algorithm.region.hypersphere.HyperSphereCursor;
+import net.imglib2.img.Img;
 import net.imglib2.img.imageplus.ImagePlusImg;
 import net.imglib2.type.numeric.RealType;
 
 
 	/**
 	 * Defines a MyFrame that is based upon an ImageProcessor or information from a text file.
+	 * @param <RandomsAccessible>
 	 */
-	public class MyFrame {
+	public class MyFrame<RandomsAccessible> {
 
 		//		Particle[] particles;		// an array Particle, holds all the particles detected in this frame
 		//									// after particle discrimination holds only the "real" particles
@@ -724,38 +734,84 @@ import net.imglib2.type.numeric.RealType;
 			return this.original_ips;
 		}
 		
-		public <T extends RealType< T >> void createImage(final RandomAccessibleInterval< T > randomAccessible, int frame)
+		public <T extends RealType< T >> Img<T> createImage(Img<T> background, Calibration cal, int frame)
 		{
 	        // the number of dimensions
-	        int numDimensions = randomAccessible.numDimensions();
+	        int numDimensions = background.numDimensions();
+	        int sz[] = new int [numDimensions];
 	 
-	        // define the center and radius
-	        Point center = new Point( randomAccessible.numDimensions() );
-	        long minSize = randomAccessible.dimension( 0 );
-	        
 	        for ( int d = 0; d < numDimensions; ++d )
 	        {
-	            long size = randomAccessible.dimension( d );
-	 
-	            center.setPosition( size / 2 , d );
-	            minSize = Math.min( minSize, size );
+	            sz[d] = (int) background.dimension( d );
 	        }
+	        
+	        long dims[];
+	        background.dimensions(dims);
+	        
+	        // Add 1 more dimensions and copy dimensions
+	        
+	        long dims_c[] = new long[dims.length + 1];
+	        
+	        for (int i = 0 ; i < dims.length ; i++)
+	        {
+	        	dims_c[i] = dims[i];
+	        }
+	        dims_c[dims.length] = 3;
+	        
+	        // Create image
+	        
+	        Img<T> out = background.factory().create(dims_c, background.firstElement());
+	        RandomAccess<T> out_a = out.randomAccess();
+	        
+	        // define the center and radius
+	        Point center = new Point( background.numDimensions() );
+
 	 
-	        // 
+	        // Create a list of particles
+	        
+	        List<Particle> pt = new ArrayList<Particle>();
 	 
 	        for (int i = 0 ; i < particles.size() ; i++)
 	        {
-	        	// define a hypersphere (n-dimensional sphere)
-	        	HyperSphere< T > hyperSphere =
-	        			new HyperSphere<T>( randomAccessible, center, (long) Math.cbrt(particles.get(i).m0) );
-	 
-	        	// create a cursor on the hypersphere
-	        	HyperSphereCursor< T > cursor = hyperSphere.cursor();
-	 
-	        	while ( cursor.hasNext() )
+	        	pt.add(particles.get(i));
+	        }
+	        
+	        // Iterate on all particles
+	        
+	        while (pt.size() != 0)
+	        {
+	        	int radius = (int) Math.cbrt(pt.get(0).m0*4.0/3.0/Math.PI);
+	        	float sp[] = new float[numDimensions];
+	        	
+	    		float scaling[] = new float[3];
+
+	    		scaling[0] = (float) (1.0f/cal.pixelWidth);
+	    		scaling[1] = (float) (1.0f/cal.pixelHeight);
+	    		scaling[2] = (float) (1.0f/cal.pixelDepth);
+	    		
+	    		// Create a circle Mask and an iterator
+	    		
+	        	CircleMask cm = new CircleMask(radius, 2*radius + 1, numDimensions, scaling);
+	        	RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
+	        	
+	        	for (Particle ptt : pt)
 	        	{
-	        		cursor.fwd();
-	        		cursor.get().setReal(particles.get(i).m2);
+	        		int radius_r = (int) Math.cbrt(ptt.m0*4.0/3.0/Math.PI);
+	        		
+	        		// if particle has the same radius
+	        	
+	        		if (radius_r == radius)
+	        		{
+	        			// Draw the Circle
+	        			
+		        		while ( rg_m.hasNext() )
+		        		{
+		        			Point p = rg_m.nextP();
+		        			out_a.setPosition(p.x);
+		        			out_a.get().set(arg0);
+		        		}	
+	        			
+	        		}
 	        	}
 	        }
 		}

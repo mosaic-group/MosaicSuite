@@ -24,7 +24,10 @@ import net.imglib2.io.ImgOpener;
 import net.imglib2.type.numeric.real.FloatType;
 
 import mosaic.core.utils.IndexIterator;
+import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.MultipleThresholdImageFunction;
+import mosaic.core.utils.MultipleThresholdLabelImageFunction;
 import mosaic.core.utils.Point;
 import mosaic.plugins.Generate_PSF;
 import mosaic.plugins.Region_Competition;
@@ -34,7 +37,7 @@ import mosaic.region_competition.energies.Energy.EnergyResult;
 import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.energies.OscillationDetection;
 import mosaic.region_competition.energies.OscillationDetection2;
-import mosaic.region_competition.topology.Connectivity;
+import mosaic.core.utils.Connectivity;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction.TopologicalNumberResult;
 import mosaic.region_competition.utils.Pair;
@@ -52,7 +55,7 @@ public class Algorithm
 	
 	
 	private Region_Competition MVC; 	/** interface to image program */
-	private LabelImage labelImage;
+	private LabelImageRC labelImage;
 	private IntensityImage intensityImage;
 	private ImageModel imageModel;
 	
@@ -97,7 +100,7 @@ public class Algorithm
 	 * creates a new LabelImage with size of ip
 	 * @param proc is saved as originalIP
 	 */
-	public Algorithm(IntensityImage intensityImage, LabelImage labelImage, ImageModel model, Settings settings, Region_Competition mvc) 
+	public Algorithm(IntensityImage intensityImage, LabelImageRC labelImage, ImageModel model, Settings settings, Region_Competition mvc) 
 	{
 		
 		if(shrinkFirst)
@@ -1610,7 +1613,7 @@ public class Algorithm
 	 * This method assumes the label image to be updated. It is used to relabel
 	 * a region that was split by another region (maybe BG region).
 	 */
-	void RelabelRegionsAfterSplit(LabelImage aLabelImage, Point aIndex, int aLabel)
+	void RelabelRegionsAfterSplit(LabelImageRC aLabelImage, Point aIndex, int aLabel)
 	{
 //		debug("Split at " + aIndex.toString() + " of label " + aLabel);
 //		MVC.selectPoint(aIndex);
@@ -1636,7 +1639,7 @@ public class Algorithm
 	/// be updated already: both methods are connected via the seedpoint. This
 	/// method may be used to fuse 2 regions in the region competition mode.
 	
-	void RelabelRegionsAfterFusion(LabelImage aLabelImage, Point aIndex, int aL1, Set<Integer> aCheckedLabels) 
+	void RelabelRegionsAfterFusion(LabelImageRC aLabelImage, Point aIndex, int aL1, Set<Integer> aCheckedLabels) 
 	{
 //		debug("Relabel after fusion at " + aIndex.toString() + " of label " + aL1);
 //		if(m_iteration_counter==6)

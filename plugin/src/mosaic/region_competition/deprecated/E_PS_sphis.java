@@ -3,9 +3,10 @@ package mosaic.region_competition.deprecated;
 import java.util.HashMap;
 
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
+import mosaic.core.utils.MaskIterator;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.core.utils.RegionIteratorMask;
@@ -24,7 +25,7 @@ public class E_PS_sphis extends ExternalEnergy
 	
 	
 	public E_PS_sphis(
-			LabelImage labelImage, 
+			LabelImageRC labelImage, 
 			IntensityImage intensityImage, 
 			HashMap<Integer, LabelInformation> labelMap, 
 			int PSenergyRadius, 
@@ -74,7 +75,7 @@ public class E_PS_sphis extends ExternalEnergy
 		
 		RegionIterator vLabelIt = new RegionIterator(dimensions, vRegion, start.x);
 		RegionIterator vDataIt = new RegionIterator(dimensions, vRegion, start.x);
-		RegionIteratorMask vMaskIt = new RegionIteratorMask(dimensions, vRegion, start.x);
+		MaskIterator vMaskIt = new MaskIterator(dimensions, vRegion, start.x);
 
 		double vSumFrom = -value; // we ignore the value of the center point
 		double vSumTo = 0;

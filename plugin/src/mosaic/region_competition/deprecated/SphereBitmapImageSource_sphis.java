@@ -1,7 +1,8 @@
 package mosaic.region_competition.deprecated;
 
 import mosaic.core.utils.IndexIterator;
-import mosaic.region_competition.LabelImage;
+import mosaic.region_competition.LabelImageRC;
+import mosaic.core.utils.MaskIterator;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.core.utils.RegionIteratorMask;
@@ -17,7 +18,7 @@ public class SphereBitmapImageSource_sphis
 	
 	int dim;
 	
-	protected LabelImage labelImage;
+	protected LabelImageRC labelImage;
 	IndexIterator iterator;
 	
 	protected int mask[]=null;
@@ -28,7 +29,7 @@ public class SphereBitmapImageSource_sphis
 	 * @param radius		radius of sphere
 	 * @param size			size of the region
 	 */
-	public SphereBitmapImageSource_sphis(LabelImage labelImage, int radius, int size)
+	public SphereBitmapImageSource_sphis(LabelImageRC labelImage, int radius, int size)
 	{
 		this.labelImage=labelImage;
 		this.dim = labelImage.getDim();
@@ -118,7 +119,7 @@ public class SphereBitmapImageSource_sphis
 		
 		//TODO change region iterator so one can reuse the iterator and just set the new ofs
 		RegionIterator it = new RegionIterator(labelImage.getDimensions(), this.m_Size, start.x);
-		RegionIteratorMask maskIt = new RegionIteratorMask(labelImage.getDimensions(), this.m_Size, start.x);
+		MaskIterator maskIt = new MaskIterator(labelImage.getDimensions(), this.m_Size, start.x);
 		
 		while(it.hasNext())	// iterate over sphere region
 		{

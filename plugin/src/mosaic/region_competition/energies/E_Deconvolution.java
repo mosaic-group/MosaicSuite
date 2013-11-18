@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Iterator;
 
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
@@ -76,7 +76,7 @@ public class E_Deconvolution extends ExternalEnergy
 	}
 	
 	public void GenerateModelImage(Img< FloatType > aPointerToResultImage,
-			LabelImage aLabelImage,
+			LabelImageRC aLabelImage,
 		    HashMap<Integer, LabelInformation> labelMap)
 	{ 
 		Cursor< FloatType > cVModelImage = DevImage.cursor();
@@ -100,7 +100,7 @@ public class E_Deconvolution extends ExternalEnergy
 		
 	}
 	
-	public void RenewDeconvolution(LabelImage aInitImage)
+	public void RenewDeconvolution(LabelImageRC aInitImage)
 	{
         /**
          * Generate a model image using rough estimates of the intensities. Here,
@@ -302,7 +302,7 @@ public class E_Deconvolution extends ExternalEnergy
 
 
     public void UpdateConvolvedImage(Point aIndex,
-    		LabelImage aLabelImage,
+    		LabelImageRC aLabelImage,
     		int aFromLabel,
     		int aToLabel) 
     {
