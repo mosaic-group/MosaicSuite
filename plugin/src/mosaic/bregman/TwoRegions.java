@@ -4,7 +4,6 @@ import ij.IJ;
 import ij.ImagePlus;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
 import mosaic.bregman.FindConnectedRegions.Region;
@@ -98,11 +97,12 @@ public class TwoRegions extends NRegions
 			//A_solver A
 			float [][][] RiN ;
 			RiN = new float [p.nz][p.ni][p.nj];
-			Tools.copytab(RiN, A_solver.Ri[0]);
+			LocalTools.copytab(RiN, A_solver.Ri[0]);
 			float [][][] RoN ;
 			RoN = new float [p.nz][p.ni][p.nj];
-			Tools.copytab(RoN, A_solver.Ro[0]);
-			
+
+			LocalTools.copytab(RoN, A_solver.Ro[0]);
+
 			ArrayList<Region> regions=A_solver.regionsvoronoi;
 
 			//A_solver=null; //for testing
@@ -155,12 +155,13 @@ public class TwoRegions extends NRegions
 			//A_solver A
 			float [][][] RiN ;
 			RiN = new float [p.nz][p.ni][p.nj];
-			Tools.copytab(RiN, A_solver.Ri[0]);
+			LocalTools.copytab(RiN, A_solver.Ri[0]);
 			float [][][] RoN ;
 			RoN = new float [p.nz][p.ni][p.nj];
-			Tools.copytab(RoN, A_solver.Ro[0]);
-			
-					ArrayList<Region> regions=A_solver.regionsvoronoi;
+
+			LocalTools.copytab(RoN, A_solver.Ro[0]);
+
+			ArrayList<Region> regions=A_solver.regionsvoronoi;
 
 			//A_solver=null;
 			

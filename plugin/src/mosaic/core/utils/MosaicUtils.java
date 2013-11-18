@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
+import net.imglib2.RandomAccess;
+import net.imglib2.img.Img;
+
 import mosaic.bregman.Analysis;
 
 import ij.IJ;
@@ -321,5 +324,29 @@ public class MosaicUtils {
 	}
 	
 
+	/**
+	 * 
+	 * It draw an Hyper Circle
+	 * 
+	 * @param Image
+	 * @param dimension Dimension of the hyper-circle
+	 * @param position
+	 * @param radius
+	 */
+	
+	public static <T> void drawAHyperCircle(Img<T> Image, int dimension , int position [], int radius)
+	{
+/*		int cnt[] = new int [dimension];
+		int boxSize = 2*radius+1;
+		
+		int position = 
+		
+		RandomAccess<T> rnd = Image.randomAccess();
+		
+		while (cnt)
+		{
+			
+		}*/
+	}
 	
 }

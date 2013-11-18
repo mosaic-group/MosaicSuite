@@ -2,7 +2,7 @@ package mosaic.region_competition.topology;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import mosaic.region_competition.Point;
+import mosaic.core.utils.Point;
 
 public class Connectivity implements Iterable<Point>
 {

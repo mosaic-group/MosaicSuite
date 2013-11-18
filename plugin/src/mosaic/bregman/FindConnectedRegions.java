@@ -32,44 +32,43 @@ package mosaic.bregman;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.gui.GenericDialog;
 import ij.gui.Roi;
-import ij.gui.PointRoi;
-import ij.io.FileSaver;
-import ij.plugin.PlugIn;
+//import ij.gui.PointRoi;
+//import ij.io.FileSaver;
+//import ij.plugin.PlugIn;
 import ij.process.ByteProcessor;
-import ij.process.ImageConverter;
-import ij.process.ImageProcessor;
+//import ij.process.ImageConverter;
+//import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
-import java.util.Arrays;
+//import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
+//import java.util.Iterator;
 import java.util.ArrayList;
 //import amira.AmiraParameters;
-import ij.measure.Calibration;
+//import ij.measure.Calibration;
 import ij.process.FloatProcessor;
-import ij.plugin.ImageCalculator;
-import java.awt.image.ColorModel;
+//import ij.plugin.ImageCalculator;
+//import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
 
 import ij.measure.ResultsTable;
 
 import java.awt.Color;
-import java.awt.Dialog;
-import java.awt.Button;
+//import java.awt.Dialog;
+//import java.awt.Button;
 import java.awt.Polygon;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+//import java.awt.event.ActionEvent;
+//import java.awt.event.ActionListener;
 
-import net.sf.javaml.clustering.Clusterer;
-import net.sf.javaml.core.Dataset;
-import net.sf.javaml.core.DefaultDataset;
-import net.sf.javaml.core.DenseInstance;
-import net.sf.javaml.core.Instance;
-import net.sf.javaml.tools.DatasetTools;
-import net.sf.javaml.tools.weka.WekaClusterer;
-import weka.clusterers.SimpleKMeans;
+//import net.sf.javaml.clustering.Clusterer;
+//import net.sf.javaml.core.Dataset;
+//import net.sf.javaml.core.DefaultDataset;
+//import net.sf.javaml.core.DenseInstance;
+//import net.sf.javaml.core.Instance;
+//import net.sf.javaml.tools.DatasetTools;
+//import net.sf.javaml.tools.weka.WekaClusterer;
+//import weka.clusterers.SimpleKMeans;
 
 //pourquoi utile ? :
 //import net.sf.javaml.core.Dataset;
@@ -290,7 +289,7 @@ public class FindConnectedRegions  {
 		int stopAfterNumberOfRegions = -1;
 
 		//IJ.log("thres" + valuesOverDouble);
-		ImageCalculator iCalc = new ImageCalculator();
+//		ImageCalculator iCalc = new ImageCalculator();
 
 		//ImagePlus imagePlus = IJ.getImage();
 		if (imagePlus == null) 
@@ -398,13 +397,13 @@ public class FindConnectedRegions  {
 		// Preserve the calibration and colour lookup tables
 		// for generating new images of each individual
 		// region.
-		Calibration calibration = imagePlus.getCalibration();
+//		Calibration calibration = imagePlus.getCalibration();
 
-		ColorModel cm = null;
-		if (ImagePlus.COLOR_256 == type) 
-		{
-			cm = stack.getColorModel();
-		}
+//		ColorModel cm = null;
+//		if (ImagePlus.COLOR_256 == type) 
+//		{
+//			cm = stack.getColorModel();
+//		}
 
 		ResultsTable rt=ResultsTable.getResultsTable();
 		rt.reset();
@@ -413,10 +412,10 @@ public class FindConnectedRegions  {
 		//	cancelDialog.show();
 
 		boolean firstTime = true;
-		int tk=0;
+//		int tk=0;
 		while (true) 
 		{
-			tk++;
+//			tk++;
 
 			if( pleaseStop )
 				break;
@@ -540,7 +539,7 @@ public class FindConnectedRegions  {
 			firstTime = false;
 
 			int vint = foundValueInt;
-			float vfloat = foundValueFloat;
+//			float vfloat = foundValueFloat;
 
 			String materialName = null;
 			if (materialList != null) {
@@ -989,153 +988,153 @@ public class FindConnectedRegions  {
 	}
 
 
-	private void test_clustering(Region r){
-		int nk=5;//3
-		double [] pixel = new double[1];
-		double [] levels= new double[nk];
-
-		Dataset data = new DefaultDataset();
-		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-			Pix p = it.next();
-			int i=p.px;
-			int j=p.py;
-			int z=p.pz;
-
-			//IJ.log("i j z " +i +" " +j+ " "+ z +"val" +  (softmask[z][i][j]& 0xFF) );
-			pixel[0]=softmask[z][i][j] & 0xFF;
-			Instance instance = new DenseInstance(pixel);
-			data.add(instance);
-		}
-		/* Create Weka classifier */
-		SimpleKMeans xm = new SimpleKMeans();
-		try{
-			xm.setNumClusters(2);//3
-			xm.setMaxIterations(100);
-		}catch (Exception ex) {}
-
-		/* Wrap Weka clusterer in bridge */
-		Clusterer jmlxm = new WekaClusterer(xm);
-		/* Perform clustering */
-		Dataset[] data2 = jmlxm.cluster(data);
-		/* Output results */
-		//System.out.println(clusters.length);
-
-
-		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
-		for (int i=0; i<nk; i++) {  
-			//Instance inst =DatasetTools.minAttributes(data2[i]);
-			Instance inst =DatasetTools.average(data2[i]);
-			levels[i]=((float)inst.value(0)) / 255;
-		}
-
-
-		Arrays.sort(levels);
-		IJ.log("");
-		IJ.log("levels :");
-		IJ.log("level 1 : " + levels[0]);
-		IJ.log("level 2 : " + levels[1]);
-
-
-
-		////////3
-		/* Create Weka classifier */
-		xm = new SimpleKMeans();
-		try{
-			xm.setNumClusters(3);//3
-			xm.setMaxIterations(100);
-		}catch (Exception ex) {}
-
-		/* Wrap Weka clusterer in bridge */
-		jmlxm = new WekaClusterer(xm);
-		/* Perform clustering */
-		data2 = jmlxm.cluster(data);
-		/* Output results */
-		//System.out.println(clusters.length);
-
-
-		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
-		for (int i=0; i<nk; i++) {  
-			//Instance inst =DatasetTools.minAttributes(data2[i]);
-			Instance inst =DatasetTools.average(data2[i]);
-			levels[i]=inst.value(0)  / 255;
-		}
-
-
-		Arrays.sort(levels);
-		IJ.log("");
-		IJ.log("levels :");
-		IJ.log("level 1 : " + levels[0]);
-		IJ.log("level 2 : " + levels[1]);
-		IJ.log("level 3 : " + levels[2]);
-
-
-
-		////////4
-		/* Create Weka classifier */
-		xm = new SimpleKMeans();
-		try{
-			xm.setNumClusters(4);//3
-			xm.setMaxIterations(100);
-		}catch (Exception ex) {}
-
-		/* Wrap Weka clusterer in bridge */
-		jmlxm = new WekaClusterer(xm);
-		/* Perform clustering */
-		data2 = jmlxm.cluster(data);
-		/* Output results */
-		//System.out.println(clusters.length);
-
-
-		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
-		for (int i=0; i<nk; i++) {  
-			//Instance inst =DatasetTools.minAttributes(data2[i]);
-			Instance inst =DatasetTools.average(data2[i]);
-			levels[i]=inst.value(0)  / 255;
-		}
-
-
-		Arrays.sort(levels);
-		IJ.log("");
-		IJ.log("levels :");
-		IJ.log("level 1 : " + levels[0]);
-		IJ.log("level 2 : " + levels[1]);
-		IJ.log("level 3 : " + levels[2]);
-		IJ.log("level 4 : " + levels[3]);
-
-
-		////////5
-		/* Create Weka classifier */
-		xm = new SimpleKMeans();
-		try{
-			xm.setNumClusters(5);//3
-			xm.setMaxIterations(100);
-		}catch (Exception ex) {}
-
-		/* Wrap Weka clusterer in bridge */
-		jmlxm = new WekaClusterer(xm);
-		/* Perform clustering */
-		data2 = jmlxm.cluster(data);
-		/* Output results */
-		//System.out.println(clusters.length);
-
-
-		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
-		for (int i=0; i<nk; i++) {  
-			//Instance inst =DatasetTools.minAttributes(data2[i]);
-			Instance inst =DatasetTools.average(data2[i]);
-			levels[i]=inst.value(0)  / 255;
-		}
-
-
-		Arrays.sort(levels);
-		IJ.log("");
-		IJ.log("levels :");
-		IJ.log("level 1 : " + levels[0]);
-		IJ.log("level 2 : " + levels[1]);
-		IJ.log("level 3 : " + levels[2]);
-		IJ.log("level 4 : " + levels[3]);
-		IJ.log("level 5 : " + levels[4]);
-	}
+//	private void test_clustering(Region r){
+//		int nk=5;//3
+//		double [] pixel = new double[1];
+//		double [] levels= new double[nk];
+//
+//		Dataset data = new DefaultDataset();
+//		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+//			Pix p = it.next();
+//			int i=p.px;
+//			int j=p.py;
+//			int z=p.pz;
+//
+//			//IJ.log("i j z " +i +" " +j+ " "+ z +"val" +  (softmask[z][i][j]& 0xFF) );
+//			pixel[0]=softmask[z][i][j] & 0xFF;
+//			Instance instance = new DenseInstance(pixel);
+//			data.add(instance);
+//		}
+//		/* Create Weka classifier */
+//		SimpleKMeans xm = new SimpleKMeans();
+//		try{
+//			xm.setNumClusters(2);//3
+//			xm.setMaxIterations(100);
+//		}catch (Exception ex) {}
+//
+//		/* Wrap Weka clusterer in bridge */
+//		Clusterer jmlxm = new WekaClusterer(xm);
+//		/* Perform clustering */
+//		Dataset[] data2 = jmlxm.cluster(data);
+//		/* Output results */
+//		//System.out.println(clusters.length);
+//
+//
+//		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
+//		for (int i=0; i<nk; i++) {  
+//			//Instance inst =DatasetTools.minAttributes(data2[i]);
+//			Instance inst =DatasetTools.average(data2[i]);
+//			levels[i]=((float)inst.value(0)) / 255;
+//		}
+//
+//
+//		Arrays.sort(levels);
+//		IJ.log("");
+//		IJ.log("levels :");
+//		IJ.log("level 1 : " + levels[0]);
+//		IJ.log("level 2 : " + levels[1]);
+//
+//
+//
+//		////////3
+//		/* Create Weka classifier */
+//		xm = new SimpleKMeans();
+//		try{
+//			xm.setNumClusters(3);//3
+//			xm.setMaxIterations(100);
+//		}catch (Exception ex) {}
+//
+//		/* Wrap Weka clusterer in bridge */
+//		jmlxm = new WekaClusterer(xm);
+//		/* Perform clustering */
+//		data2 = jmlxm.cluster(data);
+//		/* Output results */
+//		//System.out.println(clusters.length);
+//
+//
+//		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
+//		for (int i=0; i<nk; i++) {  
+//			//Instance inst =DatasetTools.minAttributes(data2[i]);
+//			Instance inst =DatasetTools.average(data2[i]);
+//			levels[i]=inst.value(0)  / 255;
+//		}
+//
+//
+//		Arrays.sort(levels);
+//		IJ.log("");
+//		IJ.log("levels :");
+//		IJ.log("level 1 : " + levels[0]);
+//		IJ.log("level 2 : " + levels[1]);
+//		IJ.log("level 3 : " + levels[2]);
+//
+//
+//
+//		////////4
+//		/* Create Weka classifier */
+//		xm = new SimpleKMeans();
+//		try{
+//			xm.setNumClusters(4);//3
+//			xm.setMaxIterations(100);
+//		}catch (Exception ex) {}
+//
+//		/* Wrap Weka clusterer in bridge */
+//		jmlxm = new WekaClusterer(xm);
+//		/* Perform clustering */
+//		data2 = jmlxm.cluster(data);
+//		/* Output results */
+//		//System.out.println(clusters.length);
+//
+//
+//		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
+//		for (int i=0; i<nk; i++) {  
+//			//Instance inst =DatasetTools.minAttributes(data2[i]);
+//			Instance inst =DatasetTools.average(data2[i]);
+//			levels[i]=inst.value(0)  / 255;
+//		}
+//
+//
+//		Arrays.sort(levels);
+//		IJ.log("");
+//		IJ.log("levels :");
+//		IJ.log("level 1 : " + levels[0]);
+//		IJ.log("level 2 : " + levels[1]);
+//		IJ.log("level 3 : " + levels[2]);
+//		IJ.log("level 4 : " + levels[3]);
+//
+//
+//		////////5
+//		/* Create Weka classifier */
+//		xm = new SimpleKMeans();
+//		try{
+//			xm.setNumClusters(5);//3
+//			xm.setMaxIterations(100);
+//		}catch (Exception ex) {}
+//
+//		/* Wrap Weka clusterer in bridge */
+//		jmlxm = new WekaClusterer(xm);
+//		/* Perform clustering */
+//		data2 = jmlxm.cluster(data);
+//		/* Output results */
+//		//System.out.println(clusters.length);
+//
+//
+//		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
+//		for (int i=0; i<nk; i++) {  
+//			//Instance inst =DatasetTools.minAttributes(data2[i]);
+//			Instance inst =DatasetTools.average(data2[i]);
+//			levels[i]=inst.value(0)  / 255;
+//		}
+//
+//
+//		Arrays.sort(levels);
+//		IJ.log("");
+//		IJ.log("levels :");
+//		IJ.log("level 1 : " + levels[0]);
+//		IJ.log("level 2 : " + levels[1]);
+//		IJ.log("level 3 : " + levels[2]);
+//		IJ.log("level 4 : " + levels[3]);
+//		IJ.log("level 5 : " + levels[4]);
+//	}
 
 
 

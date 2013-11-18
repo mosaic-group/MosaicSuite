@@ -6,7 +6,7 @@ import java.util.List;
 
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.Point;
+import mosaic.core.utils.Point;
 import mosaic.region_competition.Settings;
 
 public class OscillationDetection2 extends OscillationDetection

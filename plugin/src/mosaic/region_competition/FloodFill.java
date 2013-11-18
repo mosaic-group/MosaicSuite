@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Stack;
 
+import mosaic.core.utils.Point;
 import mosaic.region_competition.topology.Connectivity;
 
 

@@ -7,7 +7,6 @@ import ij.plugin.Resizer;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,16 +14,11 @@ import java.util.Iterator;
 
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
-import net.sf.javaml.clustering.evaluation.AICScore;
-import net.sf.javaml.clustering.evaluation.BICScore;
-import net.sf.javaml.clustering.evaluation.SumOfSquaredErrors;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.DenseInstance;
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.DatasetTools;
-import net.sf.javaml.tools.weka.WekaClusterer;
-
 
 import mosaic.bregman.FindConnectedRegions.Region;
 
@@ -536,25 +530,25 @@ public class AnalysePatch implements Runnable{
 
 	}
 
-	private void estimate_int(double [][][] mask){
-		RegionStatisticsSolver RSS;
-
-
-		RSS= new RegionStatisticsSolver(temp1[0],temp2[0], temp3[0], patch, 10,p);
-		RSS.eval(mask);
-		//Analysis.p.cl[0]=RSS.betaMLEout;
-		//Analysis.p.cl[1]=RSS.betaMLEin;
-
-
-		cout=RSS.betaMLEout;
-		cout_front=cout;
-		cin=Math.min(1, RSS.betaMLEin);
-		mint=Math.min(0.25, (rescaled_min_int-cout)/(cin-cout)-0.05);
-
-		//IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e", RSS.betaMLEout,RSS.betaMLEin));	
-
-
-	}
+//	private void estimate_int(double [][][] mask){
+//		RegionStatisticsSolver RSS;
+//
+//
+//		RSS= new RegionStatisticsSolver(temp1[0],temp2[0], temp3[0], patch, 10,p);
+//		RSS.eval(mask);
+//		//Analysis.p.cl[0]=RSS.betaMLEout;
+//		//Analysis.p.cl[1]=RSS.betaMLEin;
+//
+//
+//		cout=RSS.betaMLEout;
+//		cout_front=cout;
+//		cin=Math.min(1, RSS.betaMLEin);
+//		mint=Math.min(0.25, (rescaled_min_int-cout)/(cin-cout)-0.05);
+//
+//		//IJ.log(String.format("Photometry patch:%n background %7.2e %n foreground %7.2e", RSS.betaMLEout,RSS.betaMLEin));	
+//
+//
+//	}
 
 
 	private void estimate_int_weighted(double [][][] mask){
@@ -607,7 +601,7 @@ public class AnalysePatch implements Runnable{
 		//int nk=4;//3
 		double [] pixel = new double[1];
 		double [] levels= new double[nk];
-		double [] levels2= new double[4];
+		//double [] levels2= new double[4];
 
 
 		int cpt_vals=0;
@@ -755,84 +749,84 @@ public class AnalysePatch implements Runnable{
 	}
 
 
-	private double mask_clustering(double [][][] w3kbest, int level){
-
-		int nk;
-		//if(level==1) 
-		nk=4;
-		//else
-		//	nk=3;
-
-
-
-		//nk=5;
-		int nkr;
-
-
-
-		double [] pixel = new double[1];
-		double [] levels= new double[nk];
-		double [] levels2= new double[nk];
-
-		Dataset data = new DefaultDataset();
-		for (int z=0; z<sz; z++){
-			for (int i=0; i<sx; i++){  
-				for (int j=0;j<sy; j++){  
-					pixel[0]=w3kbest[z][i][j];
-					Instance instance = new DenseInstance(pixel);
-					if(p.mode_voronoi2){
-						if(weights[z][i][j]==1)data.add(instance);
-					}
-					else
-						data.add(instance);
-				}	
-			}
-		}
-
-
-		Clusterer km = new KMeans(nk,100);
-		Dataset[] data2 = km.cluster(data);
-
-
-
-
-		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
-		for (int i=0; i<nk; i++) {  
-
-			Instance inst =DatasetTools.average(data2[i]);
-			Instance inst2 =DatasetTools.maxAttributes(data2[i]);
-			levels[i]=inst.value(0);
-			levels2[i]=inst2.value(0);
-		}
-
-		Arrays.sort(levels);
-		Arrays.sort(levels2);
-		nkr=2;
-		if(level==1)
-			nkr=Math.min(2,nk);
-		else if (level==3)
-			nkr=Math.min(3,nk);
-		else if (level == 2)
-			nkr=Math.min(2,nk);
-
-		if(p.debug){
-			IJ.log("levels :");
-			for (int i=0; i<nk; i++) {  
-				IJ.log("level "+(i+1) + " : " + levels[i]);
-			}
-			Instance inst2 =DatasetTools.maxAttributes(data2[2]);
-			IJ.log("sep" + inst2.value(0));
-		}
-
-
-		double res;
-		if(level==1 || level==3) res=levels[nkr];
-		else{ 
-			res=levels2[nkr];
-		}
-		return (res);
-
-	}
+//	private double mask_clustering(double [][][] w3kbest, int level){
+//
+//		int nk;
+//		//if(level==1) 
+//		nk=4;
+//		//else
+//		//	nk=3;
+//
+//
+//
+//		//nk=5;
+//		int nkr;
+//
+//
+//
+//		double [] pixel = new double[1];
+//		double [] levels= new double[nk];
+//		double [] levels2= new double[nk];
+//
+//		Dataset data = new DefaultDataset();
+//		for (int z=0; z<sz; z++){
+//			for (int i=0; i<sx; i++){  
+//				for (int j=0;j<sy; j++){  
+//					pixel[0]=w3kbest[z][i][j];
+//					Instance instance = new DenseInstance(pixel);
+//					if(p.mode_voronoi2){
+//						if(weights[z][i][j]==1)data.add(instance);
+//					}
+//					else
+//						data.add(instance);
+//				}	
+//			}
+//		}
+//
+//
+//		Clusterer km = new KMeans(nk,100);
+//		Dataset[] data2 = km.cluster(data);
+//
+//
+//
+//
+//		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
+//		for (int i=0; i<nk; i++) {  
+//
+//			Instance inst =DatasetTools.average(data2[i]);
+//			Instance inst2 =DatasetTools.maxAttributes(data2[i]);
+//			levels[i]=inst.value(0);
+//			levels2[i]=inst2.value(0);
+//		}
+//
+//		Arrays.sort(levels);
+//		Arrays.sort(levels2);
+//		nkr=2;
+//		if(level==1)
+//			nkr=Math.min(2,nk);
+//		else if (level==3)
+//			nkr=Math.min(3,nk);
+//		else if (level == 2)
+//			nkr=Math.min(2,nk);
+//
+//		if(p.debug){
+//			IJ.log("levels :");
+//			for (int i=0; i<nk; i++) {  
+//				IJ.log("level "+(i+1) + " : " + levels[i]);
+//			}
+//			Instance inst2 =DatasetTools.maxAttributes(data2[2]);
+//			IJ.log("sep" + inst2.value(0));
+//		}
+//
+//
+//		double res;
+//		if(level==1 || level==3) res=levels[nkr];
+//		else{ 
+//			res=levels2[nkr];
+//		}
+//		return (res);
+//
+//	}
 
 
 	//	Arrays.sort(levels);

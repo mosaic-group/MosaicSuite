@@ -1,0 +1,23 @@
+ls()
+q
+11
+q()
+source('R_analysis_single_channel.R')
+file_2="null"  #(objB channel)
+datar=read.csv(file_2, sep = ";")
+file_2
+file_2=="dsfdsf"
+file_2=="null"
+file_2!="null"
+source('R_analysis.R')
+source('R_analysis.R')
+source('R_analysis.R')
+file_2
+source('R_analysis.R')
+source('R_analysis.R')
+source('R_analysis.R')
+source('R_analysis.R')
+source('R_analysis.R')
+source('R_analysis.R')
+source('R_analysis.R')
+source('R_analysis.R')

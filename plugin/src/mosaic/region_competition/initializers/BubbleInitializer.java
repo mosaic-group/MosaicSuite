@@ -1,9 +1,9 @@
 package mosaic.region_competition.initializers;
 
 import ij.IJ;
-import mosaic.region_competition.IndexIterator;
+import mosaic.core.utils.IndexIterator;
 import mosaic.region_competition.LabelImage;
-import mosaic.region_competition.Point;
+import mosaic.core.utils.Point;
 import mosaic.region_competition.utils.BubbleDrawer;
 
 public class BubbleInitializer extends Initializer

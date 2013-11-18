@@ -23,7 +23,9 @@ import net.imglib2.io.ImgIOException;
 import net.imglib2.io.ImgOpener;
 import net.imglib2.type.numeric.real.FloatType;
 
+import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.Point;
 import mosaic.plugins.Generate_PSF;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.LabelDispenser.LabelDispenserInc;
@@ -38,6 +40,7 @@ import mosaic.region_competition.topology.TopologicalNumberImageFunction.Topolog
 import mosaic.region_competition.utils.Pair;
 import mosaic.region_competition.utils.Timer;
 import mosaic.region_competition.energies.*;
+import mosaic.core.utils.Point;
 
 import ij.IJ;
 import ij.ImageStack;

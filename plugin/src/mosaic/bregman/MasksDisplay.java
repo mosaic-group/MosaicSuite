@@ -8,7 +8,7 @@ import mosaic.bregman.FindConnectedRegions.Region;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.io.FileSaver;
+//import ij.io.FileSaver;
 import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
@@ -553,6 +553,7 @@ public class MasksDisplay {
 
 		if(Analysis.p.dispwindows){
 			this.imgcoloc.show();
+			this.imgcoloc.getWindow().setLocation(100, 120);
 		}
 
 		if (Analysis.p.save_images){

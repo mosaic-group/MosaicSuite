@@ -83,14 +83,71 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	
 	/**
 	 * 
-	 * Read more CSV files result is stored in out
+	 * Trying to figure out the best setting to read the CSV file
+	 * 
+	 * @param CsvFilename
+	 */
+	
+	public void setCSVPreferenceFromFile(String CsvFilename)
+	{
+        ICsvDozerBeanReader beanReader = null;
+        try
+        {
+        	beanReader = new CsvDozerBeanReader(new FileReader(CsvFilename), c);
+        	
+            E element = p.newInstance();
+            
+            String[] map = beanReader.getHeader(true); // ignore the header
+            
+            if (map.length == 1)
+            {
+            	// Try to split with point comma
+            	
+            	if (map[0].split(";").length > 1)
+            	{
+            		setDelimiter(';');
+            		return;
+            	}
+            	
+            	if (map[0].split(" ").length > 1)
+            	{
+            		setDelimiter(' ');
+            		return;
+            	}
+            }
+        }
+        catch (IOException e) 
+        {e.printStackTrace();}
+        catch (InstantiationException e) 
+        {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        finally 
+        {
+                if( beanReader != null ) 
+                {
+                        try 
+                        {beanReader.close();}
+                        catch (IOException e) 
+                        {e.printStackTrace();}
+                }
+        }
+	}
+	
+	/**
+	 * 
+	 * Read more CSV files result returned as a vector of Generics
 	 * 
 	 * @param CsvFilename Name of the filename to open
 	 * @param OutputChoose output choose
 	 * @return out output vector
 	 */
 	
-	public Vector<?> Read(String CsvFilename[], OutputChoose occ)
+	public Vector<E> Read(String CsvFilename[], OutputChoose occ)
 	{
 		Vector<E> out = new Vector<E>();
 		
@@ -109,10 +166,13 @@ public class InterPluginCSV<E extends ICSVGeneral>
         try 
         {
         	beanReader = new CsvDozerBeanReader(new FileReader(CsvFilename), c);
-                
+        	
             E element = p.newInstance();
             
             String[] map = beanReader.getHeader(true); // ignore the header
+            
+            if (map == null) // we cannot get the header
+            	return null;
             
             CellProcessor c[] = new CellProcessor[map.length];
             ProcessorGeneral pc = new ProcessorGeneral();
@@ -127,6 +187,9 @@ public class InterPluginCSV<E extends ICSVGeneral>
 				} catch (NoSuchMethodException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+					c[i] = null;
+					map[i] = null;
+					continue;
 				}
             	map[i] = map[i].replace(" ", "_");
             }
@@ -206,13 +269,13 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	
 	/**
 	 * 
-	 * Read a General CSV file result is stored in out
+	 * Read a General CSV file result is returned as a vector of Generics
 	 * 
 	 * @param CsvFilename Name of the filename to open
 	 * @return out output vector
 	 */
 	
-	public Vector<? extends ICSVGeneral> Read(String CsvFilename)
+	public Vector<E> Read(String CsvFilename)
 	{
 		Vector<E> out = new Vector<E>();
 		
@@ -223,14 +286,14 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	
 	/**
 	 * 
-	 * Read a CSV file result is stored in out
+	 * Read a CSV file result is returned as a vector of Generics
 	 * 
 	 * @param CsvFilename Name of the filename to open
 	 * @param OutputChoose Output choose
 	 * @return out output vector
 	 */
 	
-	public Vector<?> Read(String CsvFilename, OutputChoose occ)
+	public Vector<E> Read(String CsvFilename, OutputChoose occ)
 	{
 		Vector<E> out = new Vector<E>();
 		
@@ -402,7 +465,12 @@ public class InterPluginCSV<E extends ICSVGeneral>
     	int prev_id = 0;
 		Vector<E> out = new Vector<E>();
 		
+		if (output.length == 0)
+			return false;
+		
 		OutputChoose occr = ReadGeneral(output[0],out);
+		if (occr == null)
+			return false;
 		
 		setProperty(property,out,base,prev_id,out.size()-1);
 		
@@ -433,6 +501,8 @@ public class InterPluginCSV<E extends ICSVGeneral>
 		Vector<E> out = new Vector<E>();
 		
 		OutputChoose occr = ReadGeneral(output[0],out);
+		if (occr == null)
+			return false;
 		
 		for (int i = 1 ; i < output.length ; i++)
 		{
@@ -480,6 +550,8 @@ public class InterPluginCSV<E extends ICSVGeneral>
 		Vector<E> out = new Vector<E>();
 		
 		OutputChoose occ = ReadGeneral(output[0],out);
+		if (occ == null)
+			return false;
 		
 		for (int i = 1 ; i < output.length ; i++)
 		{

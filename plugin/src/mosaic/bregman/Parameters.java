@@ -69,9 +69,10 @@ public class Parameters  implements Serializable
 	public boolean usecellmaskY = false;
 	public boolean dispvesicles = true;
 	public double thresholdcellmask = 0.0015;
-	public double thresholdcellmasky = 0.035;//(RAB channel)
+	public double thresholdcellmasky = 0.0015;//(RAB channel)
 	public int energyEvaluationModulo = 5;
 	public int dispEmodulo = 10;
+	public int nbconditions = 1;
 	public int regionSegmentLevel = 2;
 	public boolean remask=false;
 
@@ -93,6 +94,19 @@ public class Parameters  implements Serializable
 	public boolean dispoutline= true;
 	public boolean dispcoloc= false;
 	
+	
+	//Rscript parameters
+	public boolean initrsettings= true;
+	public String file1;
+	public String file2;
+	public String file3;
+	public int [] nbimages ={1,1,1,1,1};//init with size 5, extended if needed in Rscriptlistener
+	public String [] groupnames={"Condition " + 1 + " name","Condition " + 2 + " name",
+			"Condition " + 3 + " name","Condition " + 4 + " name","Condition " + 5 + " name"};
+	public String ch1="channel 1 name";
+	public String ch2="channel 2 name";
+	
+
 	// public double [] [] [] PSF=
 	// {
 	// {

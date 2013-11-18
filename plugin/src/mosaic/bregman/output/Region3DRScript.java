@@ -62,11 +62,8 @@ public class Region3DRScript implements ICSVGeneral
 	
 	public void setFrame(int fr) {Image_ID = fr;}
 	public void setSurface(double Surface_) {Perimeter = Surface_;}
-	public void Coord_X(double Coord_X_) {x = Coord_X_;}
-	public void Coord_Y(double Coord_Y_) {y = Coord_Y_;}
-	public void Coord_Z(double Coord_Z_) {z = Coord_Z_;}
 	public void setCoord_X(double Coord_X_) {x = Coord_X_;}
-	public void setCoord_Y(double Coord_Y_) {x = Coord_Y_;}
+	public void setCoord_Y(double Coord_Y_) {y = Coord_Y_;}
 	public void setCoord_Z(double Coord_Z_) {z = Coord_Z_;}
 	
 	public int getImage_ID()	{return Image_ID;}

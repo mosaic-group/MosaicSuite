@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelInformation;
-import mosaic.region_competition.Point;
+import mosaic.core.utils.Point;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
 public class E_KLMergingCriterion extends ExternalEnergy

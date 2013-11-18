@@ -1,5 +1,7 @@
 package mosaic.region_competition;
 
+import mosaic.core.utils.Point;
+
 public class MultipleThresholdIntenityImageFunction extends MultipleThresholdImageFunction
 {
 	

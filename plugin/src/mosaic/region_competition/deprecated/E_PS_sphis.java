@@ -6,9 +6,9 @@ import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.IntensityImage;
 import mosaic.region_competition.LabelImage;
 import mosaic.region_competition.LabelInformation;
-import mosaic.region_competition.Point;
-import mosaic.region_competition.RegionIterator;
-import mosaic.region_competition.RegionIteratorMask;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIterator;
+import mosaic.core.utils.RegionIteratorMask;
 import mosaic.region_competition.energies.E_KLMergingCriterion;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 

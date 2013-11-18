@@ -45,8 +45,8 @@ public class GaussianPSFModel {
 		
 		public double lateral_LSCM(){
 			double res;
-			double j0=PsfBessel.j0(c2);
-			double j1=PsfBessel.j1(c2);
+//			double j0=PsfBessel.j0(c2);
+//			double j1=PsfBessel.j1(c2);
 			double num=4*c2*PsfBessel.j0(c2)*PsfBessel.j1(c2) - 8*Math.pow(PsfBessel.j1(c2),2);
 			double den=Math.pow(r,2)*(Math.pow(PsfBessel.j0(c2),2)+ Math.pow(PsfBessel.j1(c2),2) -1);
 			

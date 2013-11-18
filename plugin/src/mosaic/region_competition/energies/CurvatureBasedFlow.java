@@ -1,15 +1,14 @@
 package mosaic.region_competition.energies;
 
 import mosaic.region_competition.LabelImage;
-import mosaic.region_competition.Point;
-import mosaic.region_competition.RegionIterator;
-import mosaic.region_competition.RegionIteratorMask;
-import mosaic.region_competition.RegionIteratorSphere;
-import mosaic.region_competition.SphereMask;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIterator;
+import mosaic.core.utils.RegionIteratorMask;
+import mosaic.core.utils.SphereMask;
 
 public class CurvatureBasedFlow
 {
-	RegionIteratorSphere sphereIt;
+	RegionIteratorMask sphereIt;
 	LabelImage labelImage;
 	
 	int dim;
@@ -29,7 +28,7 @@ public class CurvatureBasedFlow
 		this.labelImage = labelImage;
 		
 		sphere = new SphereMask(rad, 2*rad+1, dim);
-		sphereIt = new RegionIteratorSphere(sphere, inputDims);
+		sphereIt = new RegionIteratorMask(sphere, inputDims);
 		
 		m_Size = sphere.getDimensions();
 		mask = sphere.mask;

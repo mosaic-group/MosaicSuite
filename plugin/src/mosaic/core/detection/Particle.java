@@ -2,6 +2,8 @@ package mosaic.core.detection;
 
 import java.text.DecimalFormat;
 
+import mosaic.core.ipc.ICSVGeneral;
+
 
 
 /**
@@ -12,20 +14,25 @@ import java.text.DecimalFormat;
  *  	x is vertical top to bottom
  *  	y is horizontal left to right
  */
-public class Particle {
+public class Particle  implements ICSVGeneral
+{
 
 	public float x, y, z; 					// the originally given coordinates - to be refined 
 	public float original_x; 				// the originally given coordinates - not to be changed 		
 	public float original_y, original_z;
 	private int frame; 						// the number of the frame this particle belonges to (can be 0)
 	public boolean special; 				// a flag that is used while detecting and linking particles
-	public int[] next; 						// array that holds in position i the particle number in frame i
+	public int[] next; 						// array that holds in position i the next particle number in frame i
+	public int[] prev; 						// array that holds in position i the previous particle number in frame -i
 											// that this particle is linked to  
 	public int nbIterations = 0; //debug
 	/* only relevant to particles detected in images */
 	public float m0;						// intensity moment
 	public float m1, m2, m3, m4;
 	public float score; 					// non-particle discrimination score
+	public float distance;
+	public float lx,ly,lz;                  // previous Linking x,y,z
+	public float lxa,lya,lza;               // accumulation link
 	private double scaling[];
 
 	/* only relevant to particles given as input */
@@ -34,10 +41,65 @@ public class Particle {
 	int linkrange;	
 	
 	/**
+	 * 
+	 * Get the module of the linking vector
+	 * 
+	 * @return the module of the linking vector
+	 */
+	
+	public float linkModule()
+	{
+		return (float) Math.sqrt(lx*lx + ly*ly + lz*lz);
+	}
+	
+	/**
+	 * 
+	 * Get the square of the linking vector
+	 * 
+	 * @return the square of the linking vector
+	 */
+	
+	public float linkModuleSq()
+	{
+		return lx*lx + ly*ly + lz*lz;
+	}
+	
+	/**
+	 * 
+	 * Get the square of the accumulated linking vector
+	 * 
+	 * @return the square of the accumulated linking vector
+	 */
+	
+	public float linkModuleASq()
+	{
+		return lxa*lxa + lya*lya + lza*lza;
+	}
+	
+	/**
+	 * 
+	 * Create a particle
+	 * 
+	 */
+	
+	public Particle()
+	{
+		this.special = true;
+		
+		scaling = new double[3];
+		scaling[0] = 1.0;
+		scaling[1] = 1.0;
+		scaling[2] = 1.0;
+		distance = -1.0f;
+	}
+	
+	/**
 	 * constructor. 
 	 * @param x - original x coordinates
 	 * @param y - original y coordinates
 	 * @param frame_num - the number of the frame this particle belonges to
+	 * @param aLinkRange linking range
+	 * 
 	 */
 	public Particle (float x, float y, float z, int frame_num, int linkrange) {
 		this.x = x;
@@ -54,8 +116,22 @@ public class Particle {
 		scaling[0] = 1.0;
 		scaling[1] = 1.0;
 		scaling[2] = 1.0;
+		distance = -1.0f;
 	}
 
+	/**
+	 * 
+	 * Set particle link range
+	 * 
+	 * @param aLinkRange
+	 */
+	
+	void setLinkRange(int linkrange)
+	{
+		this.linkrange = linkrange;
+		this.next = new int[linkrange];
+	}
+	
 	/**
 	 * Set scaling factor for x,y,z position, affect only the toStringBuffer function
 	 * @param scaling_
@@ -167,6 +243,80 @@ public class Particle {
 	public double[] getPosition() {
 		double[] result =  {(double) x,(double) y,(double) z};
 		return result;
+	}
+
+	@Override
+	public void setImage_ID(int Image_ID_) 
+	{
+		frame = Image_ID_;
+	}
+
+	@Override
+	public void setObject_ID(int Object_ID_) 
+	{
+	}
+
+	@Override
+	public void setSize(double Size_) 
+	{
+		m0 = (float) Size_;
+	}
+
+	@Override
+	public void setPerimeter(double Perimeter_) 
+	{
+	}
+
+	@Override
+	public void setLength(double Length_) 
+	{
+	}
+
+	@Override
+	public void setIntensity(double Intensity_) 
+	{
+		m2 = (float) Intensity_;
+	}
+
+	@Override
+	public void setx(double Coord_X_) 
+	{
+		x = (float) Coord_X_;
+	}
+
+	@Override
+	public void sety(double Coord_Y_) 
+	{
+		y = (float) Coord_Y_;
+	}
+
+	@Override
+	public void setz(double Coord_Z_) 
+	{
+		z = (float) Coord_Z_;
+	}
+
+	@Override
+	public void setSurface(double Surface_) 
+	{
+	}
+
+	@Override
+	public void setCoord_X(double Coord_X_) 
+	{
+		x = (float) Coord_X_;
+	}
+
+	@Override
+	public void setCoord_Y(double Coord_Y_) 
+	{
+		y = (float) Coord_Y_;
+	}
+
+	@Override
+	public void setCoord_Z(double Coord_Z_) 
+	{
+		z = (float) Coord_Z_;
 	}
 }
 

@@ -5,7 +5,7 @@ import java.util.List;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.real.FloatType;
 
-import mosaic.region_competition.Point;
+import mosaic.core.utils.Point;
 
 public interface MaximumFinderInterface
 {

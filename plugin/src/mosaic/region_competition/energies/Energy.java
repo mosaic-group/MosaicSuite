@@ -1,9 +1,9 @@
 package mosaic.region_competition.energies;
 
+import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.IntensityImage;
 import mosaic.region_competition.LabelImage;
-import mosaic.region_competition.Point;
 
 
 public abstract class Energy

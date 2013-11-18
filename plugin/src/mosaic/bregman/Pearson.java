@@ -1,13 +1,13 @@
 package mosaic.bregman;
 
-import java.util.Arrays;
+//import java.util.Arrays;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
-import ij.process.ImageStatistics;
+//import ij.process.ImageStatistics;
 
 
 
@@ -101,42 +101,42 @@ public class Pearson {
 		return res;
 	}
 
-	private void buildArray(ImagePlus imgA, ImagePlus imgB){
-		int index=0;
-		this.Amin=(int) Math.pow(2, this.depth);
-		this.Amax=0;
-		this.Amean=0;
-		this.Bmin=this.Amin;
-		this.Bmax=0;
-		this.Bmean=0;
-
-		for (int z=1; z<=this.nbSlices; z++){
-			imgA.setSlice(z);
-			imgB.setSlice(z);
-
-			ImageStatistics stA=imgA.getStatistics();
-			ImageStatistics stB=imgB.getStatistics();
-
-			this.Amin=Math.min(this.Amin, (int) stA.min);
-			this.Bmin=Math.min(this.Bmin, (int) stB.min);
-			this.Amax=Math.max(this.Amax, (int) stA.max);
-			this.Bmax=Math.max(this.Bmax, (int) stB.max);
-
-			this.Amean+=stA.pixelCount*stA.mean;
-			this.Bmean+=stB.pixelCount*stB.mean;
-
-			for (int y=0; y<this.height; y++){
-				for (int x=0; x<this.width; x++){
-					this.A[index]=imgA.getProcessor().getPixel(x,y);
-					this.B[index]=imgB.getProcessor().getPixel(x,y);
-					index++;
-				}
-			}
-
-			this.Amean/=this.length;
-			this.Bmean/=this.length;
-		}
-	}
+//	private void buildArray(ImagePlus imgA, ImagePlus imgB){
+//		int index=0;
+//		this.Amin=(int) Math.pow(2, this.depth);
+//		this.Amax=0;
+//		this.Amean=0;
+//		this.Bmin=this.Amin;
+//		this.Bmax=0;
+//		this.Bmean=0;
+//
+//		for (int z=1; z<=this.nbSlices; z++){
+//			imgA.setSlice(z);
+//			imgB.setSlice(z);
+//
+//			ImageStatistics stA=imgA.getStatistics();
+//			ImageStatistics stB=imgB.getStatistics();
+//
+//			this.Amin=Math.min(this.Amin, (int) stA.min);
+//			this.Bmin=Math.min(this.Bmin, (int) stB.min);
+//			this.Amax=Math.max(this.Amax, (int) stA.max);
+//			this.Bmax=Math.max(this.Bmax, (int) stB.max);
+//
+//			this.Amean+=stA.pixelCount*stA.mean;
+//			this.Bmean+=stB.pixelCount*stB.mean;
+//
+//			for (int y=0; y<this.height; y++){
+//				for (int x=0; x<this.width; x++){
+//					this.A[index]=imgA.getProcessor().getPixel(x,y);
+//					this.B[index]=imgB.getProcessor().getPixel(x,y);
+//					index++;
+//				}
+//			}
+//
+//			this.Amean/=this.length;
+//			this.Bmean/=this.length;
+//		}
+//	}
 
 
 	public double[] linreg(double [][][] Aarray, double [][][] Barray, int TA, int TB, int mask){//mask == 0 no mask, 1 : mask,  2 : outside zet to zero only
@@ -252,7 +252,7 @@ public class Pearson {
 		}
 
 
-		maska_im.setStack("Cell mask channel " + (channel),maska_ims);
+		maska_im.setStack("Cell mask channel " + (channel+1),maska_ims);
 
 		IJ.run(maska_im, "Invert", "stack");
 		//		
@@ -264,30 +264,7 @@ public class Pearson {
 		IJ.run(maska_im, "Invert", "stack");
 		//maska_im.show("mask");
 
-		if(Analysis.p.dispwindows){
-			maska_im.show("Cell mask channel" + channel);
-		}
 
-
-//		if (Analysis.p.save_images){
-//
-//			//			
-//			//			FileSaver fs= new FileSaver(maska_im);
-//			//			//IJ.log(img.getTitle());
-//			String savepath;
-//			if (channel==0){
-//				savepath = Analysis.p.wd + img.getTitle().substring(0,img.getTitle().length()-4) + "_mask_c1" +".zip";
-//			}
-//			else{
-//				savepath = Analysis.p.wd + img.getTitle().substring(0,img.getTitle().length()-4) + "_mask_c2" +".zip";
-//			}
-//			//			if (Analysis.p.nz >1) fs.saveAsTiffStack(savepath);
-//			//			else fs.saveAsTiff(savepath);	
-//
-//			//IJ.log("save path cell mask: " + savepath);
-//			IJ.saveAs(maska_im, "ZIP", savepath);
-//
-//		}
 
 
 

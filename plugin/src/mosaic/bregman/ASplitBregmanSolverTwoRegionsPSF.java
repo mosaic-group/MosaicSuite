@@ -1,6 +1,5 @@
 package mosaic.bregman;
 
-import ij.IJ;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
@@ -43,8 +42,8 @@ ASplitBregmanSolverTwoRegions {
 
 
 		for(int i =0; i< nl;i++){
-			Tools.fgradx2D(w2xk[i], mask[i]);
-			Tools.fgrady2D(w2yk[i], mask[i]);			
+			LocalTools.fgradx2D(w2xk[i], mask[i]);
+			LocalTools.fgrady2D(w2yk[i], mask[i]);			
 		}
 
 	}
@@ -70,8 +69,8 @@ ASplitBregmanSolverTwoRegions {
 
 
 		for(int i =0; i< nl;i++){
-			Tools.fgradx2D(w2xk[i], w3k[i]);
-			Tools.fgrady2D(w2yk[i], w3k[i]);			
+			LocalTools.fgradx2D(w2xk[i], w3k[i]);
+			LocalTools.fgrady2D(w2yk[i], w3k[i]);			
 		}
 
 	}
@@ -115,7 +114,7 @@ ASplitBregmanSolverTwoRegions {
 //								iStart +" " + (iStart+ichunk)+" " + jStart+" " + (jStart+jchunk));
 			new Thread(new ZoneTask(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Dct,Sync5,
 					Sync6,Sync7,Sync8,Sync9,
-					iStart, iStart+ichunk, jStart, jStart+jchunk,nt,this,Tools)).start();
+					iStart, iStart+ichunk, jStart, jStart+jchunk,nt,this,LocalTools)).start();
 			iStart+=ichunk;
 			jStart+=jchunk;
 		}
@@ -123,7 +122,7 @@ ASplitBregmanSolverTwoRegions {
 //						iStart +" " + (iStart+ilastchunk)+" " + jStart+" " + (jStart+jlastchunk));
 		new Thread(new ZoneTask(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Dct,Sync5,
 				Sync6,Sync7,Sync8,Sync9,
-				iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,Tools)).start();
+				iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,LocalTools)).start();
 
 
 
@@ -359,7 +358,7 @@ ASplitBregmanSolverTwoRegions {
 		//IJ.log("cr " + cr  + "cc " + cc  );
 		temp2[l][0][0][0]=1;
 
-		Tools.dctshift(temp3[l], temp1[l], cc,cr);
+		LocalTools.dctshift(temp3[l], temp1[l], cc,cr);
 
 
 

@@ -13,8 +13,8 @@ import net.imglib2.Cursor;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.real.FloatType;
 
-import mosaic.region_competition.IndexIterator;
-import mosaic.region_competition.Point;
+import mosaic.core.utils.IndexIterator;
+import mosaic.core.utils.Point;
 import mosaic.region_competition.topology.Connectivity;
 
 /** 

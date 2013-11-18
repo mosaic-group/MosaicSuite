@@ -9,7 +9,7 @@ import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelImage;
 import mosaic.region_competition.LabelInformation;
-import mosaic.region_competition.Point;
+import mosaic.core.utils.Point;
 
 /**
  * TODO VERY OLD

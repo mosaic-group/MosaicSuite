@@ -12,7 +12,7 @@ public class DistanceAnalysis {
 
 
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {	
-			Pix px = it.next();
+			//Pix px = it.next();
 
 		}
 	}

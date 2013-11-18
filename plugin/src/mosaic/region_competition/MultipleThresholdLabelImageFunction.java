@@ -1,5 +1,7 @@
 package mosaic.region_competition;
 
+import mosaic.core.utils.Point;
+
 /**
  * A {@link MultipleThresholdImageFunction} convenience class to access a {@link LabelImage} 
  */

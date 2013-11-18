@@ -3,9 +3,6 @@
 package mosaic.bregman;
 
 
-
-import ij.IJ;
-
 import java.util.concurrent.CountDownLatch;
 
 
@@ -25,13 +22,13 @@ public class ZoneTask implements Runnable {
 	private ASplitBregmanSolverTwoRegionsPSF AS;
 	private int iStart, iEnd, jStart, jEnd ;
 	private int num;	
-	public Tools Tools;
+	public Tools LocalTools;
 
 	ZoneTask(CountDownLatch ZoneDoneSignal,CountDownLatch Sync1,CountDownLatch Sync2,
 			CountDownLatch Sync3,CountDownLatch Sync4,CountDownLatch Dct,CountDownLatch Sync5,CountDownLatch Sync6,
 			CountDownLatch Sync7,CountDownLatch Sync8,CountDownLatch Sync9,
 			int iStart, int iEnd, int jStart, int jEnd,int num, ASplitBregmanSolverTwoRegionsPSF AS, Tools tTools) {
-		this.Tools=tTools;
+		this.LocalTools=tTools;
 		this.ZoneDoneSignal = ZoneDoneSignal;
 		this.Sync1 = Sync1;
 		this.Sync2 = Sync2;
@@ -65,8 +62,8 @@ public class ZoneTask implements Runnable {
 		// IJ.log("thread : " +l +"starting work");
 		//		double c0, c1;
 		//IJ.log("istart " + iStart +"iend" + iEnd);
-		Tools.subtab(AS.temp1[AS.l], AS.w2xk[AS.l], AS.b2xk[AS.l], iStart, iEnd);
-		Tools.subtab(AS.temp2[AS.l], AS.w2yk[AS.l], AS.b2yk[AS.l], iStart, iEnd);
+		LocalTools.subtab(AS.temp1[AS.l], AS.w2xk[AS.l], AS.b2xk[AS.l], iStart, iEnd);
+		LocalTools.subtab(AS.temp2[AS.l], AS.w2yk[AS.l], AS.b2yk[AS.l], iStart, iEnd);
 
 		//synchro
 		Sync1.countDown();
@@ -75,7 +72,7 @@ public class ZoneTask implements Runnable {
 
 		//	IJ.log("thread + istart iend jstart jend"+
 		//	iStart +" " + iEnd+" " + jStart+" " + jEnd);
-		Tools.mydivergence(AS.temp3[AS.l], AS.temp1[AS.l], AS.temp2[AS.l],AS.temp4[AS.l],Sync2, iStart, iEnd, jStart, jEnd);//, temp3[l]);
+		LocalTools.mydivergence(AS.temp3[AS.l], AS.temp1[AS.l], AS.temp2[AS.l],AS.temp4[AS.l],Sync2, iStart, iEnd, jStart, jEnd);//, temp3[l]);
 
 		for (int z=0; z<AS.nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
@@ -184,16 +181,16 @@ public class ZoneTask implements Runnable {
 		Sync5.countDown();
 		Sync5.await();
 		//		
-		Tools.fgradx2D(AS.temp3[AS.l], AS.temp1[AS.l], jStart, jEnd);
-		Tools.fgrady2D(AS.temp4[AS.l], AS.temp1[AS.l], iStart,iEnd);
+		LocalTools.fgradx2D(AS.temp3[AS.l], AS.temp1[AS.l], jStart, jEnd);
+		LocalTools.fgrady2D(AS.temp4[AS.l], AS.temp1[AS.l], iStart,iEnd);
 		//
 		Sync6.countDown();
 		Sync6.await();
 		//		
-		Tools.addtab(AS.w2xk[AS.l], AS.temp3[AS.l], AS.b2xk[AS.l],iStart, iEnd);
-		Tools.addtab(AS.w2yk[AS.l], AS.temp4[AS.l], AS.b2yk[AS.l],iStart, iEnd);
+		LocalTools.addtab(AS.w2xk[AS.l], AS.temp3[AS.l], AS.b2xk[AS.l],iStart, iEnd);
+		LocalTools.addtab(AS.w2yk[AS.l], AS.temp4[AS.l], AS.b2yk[AS.l],iStart, iEnd);
 		//		//temp1 = w1xk temp2 = w2yk
-		Tools.shrink2D(AS.w2xk[AS.l], AS.w2yk[AS.l], AS.w2xk[AS.l], AS.w2yk[AS.l], AS.p.gamma, iStart, iEnd);
+		LocalTools.shrink2D(AS.w2xk[AS.l], AS.w2yk[AS.l], AS.w2xk[AS.l], AS.w2yk[AS.l], AS.p.gamma, iStart, iEnd);
 		//
 		for (int z=0; z<AS.nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
@@ -209,7 +206,7 @@ public class ZoneTask implements Runnable {
 		Sync7.await();
 
 		if(AS.stepk % AS.p.energyEvaluationModulo ==0  || AS.stepk==AS.p.max_nsb -1){
-			AS.energytab2[num]=Tools.computeEnergyPSF(AS.temp1[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l],
+			AS.energytab2[num]=LocalTools.computeEnergyPSF(AS.temp1[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l],
 					AS.p.ldata, AS.p.lreg,AS.p,AS.c0,AS.c1,AS.image,
 					iStart, iEnd, jStart, jEnd, Sync8,Sync9);
 		}

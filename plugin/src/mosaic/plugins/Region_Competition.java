@@ -19,9 +19,9 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import mosaic.bregman.Analysis;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.wizard.*;
+import mosaic.core.utils.Point;
 
 import javax.swing.JFrame;
 

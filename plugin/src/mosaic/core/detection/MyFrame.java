@@ -13,6 +13,13 @@ import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.Vector;
 
+import net.imglib2.Point;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.algorithm.region.hypersphere.HyperSphere;
+import net.imglib2.algorithm.region.hypersphere.HyperSphereCursor;
+import net.imglib2.img.imageplus.ImagePlusImg;
+import net.imglib2.type.numeric.RealType;
+
 
 	/**
 	 * Defines a MyFrame that is based upon an ImageProcessor or information from a text file.
@@ -51,6 +58,9 @@ import java.util.Vector;
 		
 		/**
 		 * Constructor for text mode
+		 * 
+		 * @deprecated
+		 * 
 		 */
 		public MyFrame (String path, int frame_num, int aLinkrange) {
 			loadParticlesFromFile(path);
@@ -58,6 +68,9 @@ import java.util.Vector;
 		
 		/**
 		 * Constructor for text mode
+		 * 
+		 * @deprecated
+		 * 
 		 */
 		public MyFrame (BufferedReader r,String path, int frame_num, int aLinkrange) {
 			try {
@@ -68,6 +81,29 @@ import java.util.Vector;
 			}
 		}
 		
+		/**
+		 * 
+		 * Constructor for text mode from a vector of particles
+		 * 
+		 * @param Vector of particles in the frames
+		 * @param frame frame number
+		 * @param aLinkRange linking range
+		 * 
+		 */
+		
+		public MyFrame(Vector<Particle> p, int frame, int aLinkrange)
+		{
+	        this.frame_number = frame;
+			this.particles_number = p.size();
+	        
+	        /* initialise the particles array */
+	        this.particles = p;
+	        
+	        for (int i = 0 ; i < this.particles.size() ; i++)
+	        {
+	        	this.particles.get(i).setLinkRange(aLinkrange);
+	        }
+		}
 		/**
 		 * ONLY FOR text_files_mode.
 		 * <br>Loads particles information for all frames from the file located 
@@ -82,6 +118,9 @@ import java.util.Vector;
 		 * <br>The next numbers represent other information of value about the particle
 		 * (this information can be plotted later along a trajectory).
 		 * <br>The number of parameters must be equal for all particles.  
+		 * 
+		 * @deprecated
+		 * 
 		 * @param path full path to the file (including full file name) e.g c:\ImageJ\frame0.txt
 		 * @return false if there was any problem
 		 * @see Particle   
@@ -625,18 +664,23 @@ import java.util.Vector;
 		 * @param height defines the height of the created <code>ByteProcessor</code>
 		 * @return the created processor
 		 * @see ImageProcessor#drawDot(int, int)
+		 * 
+		 * @deprecated
 		 */
 		@SuppressWarnings("unused")
-		private ImageStack createImage(int width, int height, int depth) {
+		private ImageStack createImage(int width, int height, int depth) 
+		{
 			ImageStack is = new ImageStack(width, height);
-			for(int d = 0; d < depth; d++) {
+			for(int d = 0; d < depth; d++) 
+			{
 				ImageProcessor ip = new ByteProcessor(width, height);
 				ip.setColor(Color.black);
 				ip.fill();
 				is.addSlice(null, ip);
 				ip.setColor(Color.white);
 			}
-			for (int i = 0; i<this.particles.size(); i++) {
+			for (int i = 0; i<this.particles.size(); i++) 
+			{
 				is.getProcessor(Math.round(this.particles.elementAt(i).z) + 1).drawDot(
 						Math.round(this.particles.elementAt(i).y), 
 						Math.round(this.particles.elementAt(i).x));
@@ -644,6 +688,8 @@ import java.util.Vector;
 			return is;		
 		}
 
+		
+		
 
 		/**
 		 * Creates a <code>ByteProcessor</code> and draws on it the particles defined in this MyFrame 
@@ -655,6 +701,8 @@ import java.util.Vector;
 		 * @param height defines the height of the created <code>ByteProcessor</code>
 		 * @return the created processor
 		 * @see ImageProcessor#drawDot(int, int)
+		 * 
+		 * @deprecated
 		 */
 		public ImageProcessor createImage(int width, int height) {
 			ImageProcessor ip = new ByteProcessor(width, height);
@@ -674,6 +722,42 @@ import java.util.Vector;
 		
 		public ImageStack getOriginalImageStack(){
 			return this.original_ips;
+		}
+		
+		public <T extends RealType< T >> void createImage(final RandomAccessibleInterval< T > randomAccessible, int frame)
+		{
+	        // the number of dimensions
+	        int numDimensions = randomAccessible.numDimensions();
+	 
+	        // define the center and radius
+	        Point center = new Point( randomAccessible.numDimensions() );
+	        long minSize = randomAccessible.dimension( 0 );
+	        
+	        for ( int d = 0; d < numDimensions; ++d )
+	        {
+	            long size = randomAccessible.dimension( d );
+	 
+	            center.setPosition( size / 2 , d );
+	            minSize = Math.min( minSize, size );
+	        }
+	 
+	        // 
+	 
+	        for (int i = 0 ; i < particles.size() ; i++)
+	        {
+	        	// define a hypersphere (n-dimensional sphere)
+	        	HyperSphere< T > hyperSphere =
+	        			new HyperSphere<T>( randomAccessible, center, (long) Math.cbrt(particles.get(i).m0) );
+	 
+	        	// create a cursor on the hypersphere
+	        	HyperSphereCursor< T > cursor = hyperSphere.cursor();
+	 
+	        	while ( cursor.hasNext() )
+	        	{
+	        		cursor.fwd();
+	        		cursor.get().setReal(particles.get(i).m2);
+	        	}
+	        }
 		}
 		
 	}

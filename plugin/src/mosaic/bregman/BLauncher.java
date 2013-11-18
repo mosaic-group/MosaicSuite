@@ -15,7 +15,6 @@ import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +31,6 @@ import mosaic.core.ipc.InterPluginCSV;
 
 public class BLauncher 
 {
-	
 	public  int hcount=0;
 	public  String headlesscurrent;
 	PrintWriter out;
@@ -41,12 +39,14 @@ public class BLauncher
 	String wpath;
 	ImagePlus aImp;
 	Tools Tools;
+	RScript script;
 
 
 	public BLauncher(String path)
 	{
 		wpath=path;
 
+				
 		boolean processdirectory =(new File(wpath)).isDirectory();
 		if(processdirectory){
 			//IJ.log("Processing directory");
@@ -57,7 +57,6 @@ public class BLauncher
 			Headless_file();
 
 		}
-
 	}
 
 	public BLauncher(ImagePlus aImp_)
@@ -121,6 +120,19 @@ public class BLauncher
 					//out2 = new PrintWriter(savepath+"_Xdata"+ ".csv");
 //					out2 = new PrintWriter(savepath+"_ObjectsData_c1"+ ".csv");
 					out3 = new PrintWriter(savepath+"_ObjectsData_c2"+ ".csv");
+					
+					Analysis.p.file1=savepath+"_ObjectsData_c1"+ ".csv";
+					Analysis.p.file2=savepath+"_ObjectsData_c2"+ ".csv";
+					Analysis.p.file3=savepath+"_ImagesData"+ ".csv";
+					if(Analysis.p.save_images)
+					{
+						script = new RScript(
+								Analysis.p.wd, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3,
+								Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames,
+								Analysis.p.ch1,Analysis.p.ch2
+								);
+						script.writeScript();
+					}
 					//out3 = new PrintWriter(savepath+"_Ydata"+ ".csv");
 					//PrintWriter out = new PrintWriter(dir1.replaceAll("/", "_") + ".csv");
 					//IJ.log("files open");
@@ -178,7 +190,19 @@ public class BLauncher
 					
 /*					out2 = new PrintWriter(savepath+"_ObjectsData"+ ".csv");
 
-
+					Analysis.p.file1=savepath+"_ObjectsData"+ ".csv";
+					Analysis.p.file2=null;
+					Analysis.p.file3=savepath+"_ImagesData"+ ".csv";
+					if(Analysis.p.save_images)
+					{
+						script = new RScript(
+								Analysis.p.wd, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3,
+								Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames,
+								Analysis.p.ch1,Analysis.p.ch2
+								);
+						script.writeScript();
+					}
+					
 					if(Analysis.p.nz>1){
 						out2.print("Image ID" + ";" + "Object ID"+ ";" + "Size" + ";" + "Surface" + ";" + "Length" + ";" +  
 								"Intensity" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
@@ -253,7 +277,7 @@ public class BLauncher
 			Analysis.p.save_images=true;
 
 			IJ.log(Analysis.p.wd);
-			long Time = new Date().getTime(); //start time
+			//long Time = new Date().getTime(); //start time
 
 			String [] list = new File(wpath).list();
 			if (list==null) {IJ.log("No files in folder"); return;}
@@ -308,6 +332,15 @@ public class BLauncher
 //				out2 = new PrintWriter(wpath+savepath+"_ObjectsData_c1"+ ".csv");
 				out3 = new PrintWriter(wpath+savepath+"_ObjectsData_c2"+ ".csv");
 
+				Analysis.p.file1=wpath+savepath+"_ObjectsData_c1"+ ".csv";
+				Analysis.p.file2=wpath+savepath+"_ObjectsData_c2"+ ".csv";
+				Analysis.p.file3=wpath+savepath+"_ImagesData"+ ".csv";
+				script = new RScript(
+						Analysis.p.wd, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3,
+						Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames,
+						Analysis.p.ch1,Analysis.p.ch2
+						);
+				script.writeScript();
 
 				//				out  = new PrintWriter(wpath +"Colocalization"+ Time   + ".csv");
 				//				out2 = new PrintWriter(wpath +"X_Vesicles_data"+ Time + ".csv");
@@ -370,8 +403,6 @@ public class BLauncher
 				int nl = directrories.length;
 				String savepath=(directrories[nl-1]).replaceAll("\\"+File.separator, ""); 
 				out  = new PrintWriter(wpath+savepath+"_Images_data"+ ".csv");
-
-
 
 				out.println();
 				out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch 1" + ";" + "Mean surface in ch1"  +";"+ "Mean length in ch1"  );
@@ -991,6 +1022,10 @@ public class BLauncher
 		if(Analysis.p.dispwindows){
 			over.setTitle("Objects outlines, channel " + channel);
 			over.show();
+			if(channel==1)
+				GenericGUI.setimagelocation(1180,30,over);
+			if(channel==2)
+				GenericGUI.setimagelocation(1180,610,over);
 		}
 
 
@@ -1078,6 +1113,11 @@ public class BLauncher
 		intensities.setStack("Intensities reconstruction, channel " +channel, intS);
 		if(Analysis.p.dispwindows){
 			intensities.show();
+			if(channel==1)
+				GenericGUI.setimagelocation(1190,40,intensities);
+			if(channel==2)
+				GenericGUI.setimagelocation(1190,620,intensities);
+			
 		}
 
 		if (Analysis.p.save_images){

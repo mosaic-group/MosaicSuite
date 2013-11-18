@@ -1,5 +1,7 @@
 package mosaic.region_competition;
 
+import mosaic.core.utils.IndexIterator;
+import mosaic.core.utils.Point;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;

@@ -3,6 +3,7 @@ package mosaic.bregman.GUI;
 
 import java.awt.Button;
 import java.awt.Font;
+import java.awt.Label;
 import java.awt.Panel;
 import java.awt.Point;
 import java.awt.TextArea;
@@ -12,19 +13,25 @@ import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericDialogCustom;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.GUI.OutputGUI;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import mosaic.bregman.output.SquasshOutputChoose;
 
 
-public class VisualizationGUI
+public class VisualizationGUI 
 {
+	
 	ImagePlus imgch1;
 	ImagePlus imgch2;
 	int ni,nj,nz,nc;
+	
+	int posx,posy;
 
-	public VisualizationGUI()
+	public VisualizationGUI(int ParentPosx, int ParentPosy)
 	{
+		posx= ParentPosx+20;
+		posy= ParentPosy+20;
 	}
 
 
@@ -81,6 +88,23 @@ public class VisualizationGUI
 		
 		gd.add(b);
 		
+		//IJ.log(" la" + Analysis.p.nbconditions);
+		gd.addMessage("    R script data analysis settings",bf);
+		
+		gd.addNumericField("Number of conditions", Analysis.p.nbconditions, 0);
+		
+		Button rscript = new Button("Set condition names and number of images per condition");
+		Panel p = new Panel();
+		p.add(rscript);
+		rscript.addActionListener(new RScriptListener(gd, posx, posy)); 
+
+		
+		gd.addPanel(p);
+		
+		
+		
+		gd.centerDialog(false);
+		gd.setLocation(posx, posy);
 		gd.showDialog();
 		if (gd.wasCanceled()) return;
 
@@ -88,21 +112,15 @@ public class VisualizationGUI
 
 		//Vizualization
 		Analysis.p.livedisplay= gd.getNextBoolean();
-		//IJ.log("live:" +  Analysis.p.livedisplay);
 		Analysis.p.dispcolors= gd.getNextBoolean();
-		//IJ.log("colors:" +  Analysis.p.dispcolors);
 		Analysis.p.dispint= gd.getNextBoolean();
-		//IJ.log("dispint:" +  Analysis.p.dispint);
 		Analysis.p.displabels= gd.getNextBoolean();
-		//IJ.log("displabels:" +  Analysis.p.displabels);
 		Analysis.p.dispoutline= gd.getNextBoolean();
-		//IJ.log("dispoutline:" +  Analysis.p.dispoutline);
-		//Analysis.p.dispcoloc= gd.getNextBoolean();
-
 		Analysis.p.save_images= gd.getNextBoolean();
-		//IJ.log("save images:" +  Analysis.p.save_images);
 		//IJ.log(Analysis.p.wd);
-		//Analysis.p.dispvesicles = false;
+		
+		
+		Analysis.p.nbconditions=(int) gd.getNextNumber();
 	}
 
 
@@ -128,6 +146,4 @@ public class VisualizationGUI
 
 		}
 	}
-
-
 }

@@ -1,17 +1,13 @@
 package mosaic.bregman;
 
-import ij.IJ;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
 import weka.clusterers.SimpleKMeans;
-import weka.clusterers.XMeans;
 
 import net.sf.javaml.clustering.Clusterer;
-import net.sf.javaml.clustering.KMeans;
-//import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.DenseInstance;
@@ -467,9 +463,9 @@ public class RegionStatisticsSolver {
 
 
 	public void cluster_region_voronoi2(float [][][] Ri,float [][][] Ro, ArrayList<Region> regionslist){
-		int nk=3;//3
+		//int nk=3;//3
 
-		double [] levels= new double[nk];
+		//double [] levels= new double[nk];
 
 		for (Iterator<Region> itr = regionslist.iterator(); itr.hasNext();) {
 			Region r = itr.next();

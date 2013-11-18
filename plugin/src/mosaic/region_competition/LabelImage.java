@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
 
+import mosaic.core.utils.IndexIterator;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIterator;
 import mosaic.region_competition.topology.Connectivity;
 import mosaic.region_competition.utils.IntConverter;
 

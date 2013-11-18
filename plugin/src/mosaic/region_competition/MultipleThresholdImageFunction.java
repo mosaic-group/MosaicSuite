@@ -1,5 +1,7 @@
 package mosaic.region_competition;
 
+import mosaic.core.utils.Point;
+
 
 /**
  *	Interface for a {@link MultipleThresholdFunction} to hold its own Image

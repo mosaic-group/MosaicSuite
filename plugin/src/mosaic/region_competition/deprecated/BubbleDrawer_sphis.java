@@ -1,9 +1,9 @@
 package mosaic.region_competition.deprecated;
 
 import mosaic.region_competition.LabelImage;
-import mosaic.region_competition.Point;
-import mosaic.region_competition.RegionIterator;
-import mosaic.region_competition.RegionIteratorMask;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIterator;
+import mosaic.core.utils.RegionIteratorMask;
 
 
 public class BubbleDrawer_sphis extends SphereBitmapImageSource_sphis

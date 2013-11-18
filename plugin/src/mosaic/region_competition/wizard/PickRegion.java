@@ -8,7 +8,7 @@ import java.awt.event.MouseListener;
 import java.util.Vector;
 
 import mosaic.region_competition.LabelImage;
-import mosaic.region_competition.Point;
+import mosaic.core.utils.Point;
 
 public class PickRegion implements MouseListener
 {
