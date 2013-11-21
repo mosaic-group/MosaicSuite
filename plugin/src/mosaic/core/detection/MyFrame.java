@@ -3,38 +3,43 @@ package mosaic.core.detection;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.io.Opener;
 import ij.measure.Calibration;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 
 import java.awt.Color;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import net.imglib2.RandomAccess;
-import java.util.Vector;
 
 import mosaic.core.utils.CircleMask;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIteratorMask;
-import net.imglib2.AbstractEuclideanSpace;
-import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.algorithm.region.hypersphere.HyperSphere;
-import net.imglib2.algorithm.region.hypersphere.HyperSphereCursor;
+import net.imglib2.RandomAccess;
+import java.util.Vector;
+
+import net.imglib2.Cursor;
+import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
-import net.imglib2.img.imageplus.ImagePlusImg;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
 
 
 	/**
 	 * Defines a MyFrame that is based upon an ImageProcessor or information from a text file.
 	 * @param <RandomsAccessible>
 	 */
-	public class MyFrame<RandomsAccessible> {
+	public class MyFrame {
 
 		//		Particle[] particles;		// an array Particle, holds all the particles detected in this frame
 		//									// after particle discrimination holds only the "real" particles
@@ -622,6 +627,13 @@ import net.imglib2.type.numeric.RealType;
 			return sb;
 		}
 
+		/**
+		 * 
+		 * Return particles vector
+		 * 
+		 * @return a vector of particle
+		 */
+		
 		public Vector<Particle> getParticles(){
 			return this.particles;
 		}
@@ -734,39 +746,35 @@ import net.imglib2.type.numeric.RealType;
 			return this.original_ips;
 		}
 		
-		public <T extends RealType< T >> Img<T> createImage(Img<T> background, Calibration cal, int frame)
+		public <T extends RealType<T>> ARGBType convertoARGBTypeNorm(T data)
 		{
-	        // the number of dimensions
-	        int numDimensions = background.numDimensions();
-	        int sz[] = new int [numDimensions];
-	 
-	        for ( int d = 0; d < numDimensions; ++d )
+			ARGBType t = new ARGBType();
+			float td = data.getRealFloat()*255;
+			
+			ARGBType.rgba(td, td, td, 255.0f);
+			return t;
+		}
+		
+		public <T extends RealType<T>> ARGBType convertoARGBType(T data)
+		{
+			ARGBType t = new ARGBType();
+			float td = data.getRealFloat();
+			
+			t.set(ARGBType.rgba(td, td, td, 255.0f));
+			return t;
+		}
+	
+		private void drawParticles(Img<ARGBType> out, Calibration cal)
+		{
+	        RandomAccess<ARGBType> out_a = out.randomAccess();
+			
+	        int sz[] = new int [out_a.numDimensions()];
+	   	 
+	        for ( int d = 0; d < out_a.numDimensions(); ++d )
 	        {
-	            sz[d] = (int) background.dimension( d );
+	            sz[d] = (int) out.dimension( d );
 	        }
-	        
-	        long dims[];
-	        background.dimensions(dims);
-	        
-	        // Add 1 more dimensions and copy dimensions
-	        
-	        long dims_c[] = new long[dims.length + 1];
-	        
-	        for (int i = 0 ; i < dims.length ; i++)
-	        {
-	        	dims_c[i] = dims[i];
-	        }
-	        dims_c[dims.length] = 3;
-	        
-	        // Create image
-	        
-	        Img<T> out = background.factory().create(dims_c, background.firstElement());
-	        RandomAccess<T> out_a = out.randomAccess();
-	        
-	        // define the center and radius
-	        Point center = new Point( background.numDimensions() );
 
-	 
 	        // Create a list of particles
 	        
 	        List<Particle> pt = new ArrayList<Particle>();
@@ -780,23 +788,37 @@ import net.imglib2.type.numeric.RealType;
 	        
 	        while (pt.size() != 0)
 	        {
-	        	int radius = (int) Math.cbrt(pt.get(0).m0*4.0/3.0/Math.PI);
-	        	float sp[] = new float[numDimensions];
+	        	int radius = (int) Math.cbrt(pt.get(0).m0*3.0/4.0/Math.PI);
+	        	if (radius == 0) radius = 1;
+	        	float sp[] = new float[out_a.numDimensions()];
 	        	
 	    		float scaling[] = new float[3];
 
-	    		scaling[0] = (float) (1.0f/cal.pixelWidth);
-	    		scaling[1] = (float) (1.0f/cal.pixelHeight);
-	    		scaling[2] = (float) (1.0f/cal.pixelDepth);
+	    		if (cal != null)
+	    		{
+	    			scaling[0] = (float) (1.0f/cal.pixelWidth);
+	    			scaling[1] = (float) (1.0f/cal.pixelHeight);
+	    			scaling[2] = (float) (5.0f/cal.pixelDepth);
+	    		}
+	    		else
+	    		{
+	    			scaling[0] = 1.0f;
+	    			scaling[1] = 1.0f;
+	    			scaling[2] = 1.0f;
+	    		}
 	    		
 	    		// Create a circle Mask and an iterator
 	    		
-	        	CircleMask cm = new CircleMask(radius, 2*radius + 1, numDimensions, scaling);
+	        	CircleMask cm = new CircleMask(radius, 2*radius + 1, out_a.numDimensions(), scaling);
 	        	RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
 	        	
-	        	for (Particle ptt : pt)
+	        	Iterator<Particle> pt_it = pt.iterator();
+	        	
+	        	while (pt_it.hasNext())
 	        	{
-	        		int radius_r = (int) Math.cbrt(ptt.m0*4.0/3.0/Math.PI);
+	        		Particle ptt = pt_it.next();
+	        		int radius_r = (int) Math.cbrt(ptt.m0*3.0/4.0/Math.PI);
+	        		if (radius_r == 0) radius_r = 1;
 	        		
 	        		// if particle has the same radius
 	        	
@@ -804,16 +826,83 @@ import net.imglib2.type.numeric.RealType;
 	        		{
 	        			// Draw the Circle
 	        			
+	        			Point p_c = new Point((int)ptt.x,(int)ptt.y,(int)ptt.z);
+	        			
+	        			rg_m.setMidPoint(p_c);
+	        			
 		        		while ( rg_m.hasNext() )
 		        		{
 		        			Point p = rg_m.nextP();
-		        			out_a.setPosition(p.x);
-		        			out_a.get().set(arg0);
+		        			
+		        			if (p.x[0] < sz[0] && p.x[1] < sz[1] && p.x[2] < sz[2])
+		        			{
+		        				out_a.setPosition(p.x);
+		        				out_a.get().set(ARGBType.rgba(255,0,0,255));
+		        			}
 		        		}	
-	        			
+		        		pt_it.remove();
 	        		}
 	        	}
 	        }
+		}
+		
+		/**
+		 * 
+		 * Create an image for the particle information
+		 * 
+		 * @param vMax size of the image
+		 * @param frame number
+		 * @return the image
+		 */
+		
+		public  Img<ARGBType> createImage( int [] vMax, int frame)
+		{	        
+	        // Create image
+	        
+	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
+	        Img<ARGBType> out = imgFactory.create(vMax, new ARGBType());
+	        
+	        drawParticles(out,null);
+	        
+	        return out;
+		}
+		
+		
+		public  <T extends RealType< T >> Img<ARGBType> createImage(Img<T> background, Calibration cal, int frame)
+		{
+	        // the number of dimensions
+	        int numDimensions = background.numDimensions();
+	        int sz[] = new int [numDimensions];
+	 
+	        for ( int d = 0; d < numDimensions; ++d )
+	        {
+	            sz[d] = (int) background.dimension( d );
+	        }
+	        
+	        long dims[] = new long[numDimensions];
+	        background.dimensions(dims);
+	        
+	        // Create image
+	        
+	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
+	        Img<ARGBType> out = imgFactory.create(dims, new ARGBType());
+	        
+	        Cursor<ARGBType> curOut = out.cursor();
+	        Cursor<T> curBack = background.cursor();
+	        
+	        // Copy the background
+	        
+	        while (curBack.hasNext())
+	        {
+	        	curOut.fwd();
+	        	curBack.fwd();
+	        		        	
+	        	curOut.get().set(convertoARGBType(curBack.get()));
+	        }
+	        
+	        drawParticles(out,cal);
+	        
+	        return out;
 		}
 		
 	}

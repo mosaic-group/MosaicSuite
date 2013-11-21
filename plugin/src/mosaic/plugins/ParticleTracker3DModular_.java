@@ -13,6 +13,7 @@ import ij.gui.Roi;
 import ij.gui.StackWindow;
 import ij.io.FileInfo;
 import ij.io.OpenDialog;
+import ij.io.Opener;
 import ij.io.SaveDialog;
 import ij.measure.Calibration;
 import ij.measure.Measurements;
@@ -71,8 +72,14 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import net.imglib2.exception.ImgLibException;
+import net.imglib2.img.ImagePlusAdapter;
+import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.img.imageplus.ImagePlusImg;
 import net.imglib2.img.imageplus.ImagePlusImgFactory;
+import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 
@@ -134,6 +141,8 @@ import mosaic.core.utils.MosaicUtils;
 
 public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, PreviewInterface  
 {
+	private String background;
+	private String segmented;
 	private boolean force;
 	private boolean straight_line;
 	private float l_s = 1.0f;
@@ -213,7 +222,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			showAbout(); 
 			return DONE;		
 		}
-
+		
 		if (arg.equals("only_detect")) 
 		{
 			only_detect = true;
@@ -282,11 +291,37 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		if (!getUserDefinedParams()) return;
  
 		if (!processFrames()) return;
-
+		
+		///////// Debug //////////////
+		
+/*        File file = new File( "/home/i-bird/Desktop/Link_seg/Job554051/_.tif/tmp_139.tif" );
+        
+        // open a file with ImageJ
+        final ImagePlus imp = new Opener().openImage( file.getAbsolutePath() );
+ 
+        Calibration cal = imp.getCalibration();
+        
+        // display it via ImageJ
+        imp.show();
+ 
+        
+        // wrap it into an ImgLib image (no copying)
+        final Img< UnsignedByteType > image = ImagePlusAdapter.wrap( imp );
+ 
+        // display it via ImgLib using ImageJ
+        ImageJFunctions.show( image );
+		
+		Img<ARGBType> out = this.frames[139].createImage(image, cal, 0);
+		
+    	ImageJFunctions.show( out );*/
+		
+		//////////////////////////////
+		
 		if (text_files_mode) 
 		{
 			/* create an ImagePlus object to hold the particle information from the text files*/
-			original_imp = new ImagePlus("From text files", createStackFromTextFiles());
+			
+			original_imp =  ImageJFunctions.wrap( createHyperStackFromFrames(background), "Video");
 		}
 
 		original_imp.show();
@@ -333,12 +368,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		int n_frames = p.get(p.size()-1).getFrame()+1;
 		MyFrame [] f = new MyFrame[n_frames];
 		
-		Vector<Particle> part_frame = new Vector<Particle>();
-		
 		int j = 0;
 		int i = 0;
 		while (i < p.size()-1)
 		{
+			Vector<Particle> part_frame = new Vector<Particle>();
 			while (i < p.size()-1 && p.get(i).getFrame() == p.get(i+1).getFrame())
 			{
 				part_frame.add(p.get(i));
@@ -411,6 +445,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			
 			P_csv.setCSVPreferenceFromFile(files_dir + files_list[0]);
 			Vector<Particle> p =  P_csv.Read(files_dir + files_list[0]);
+			
+			background = P_csv.getMetaInformation("background");
+			segmented = P_csv.getMetaInformation("segmented");
 			
 			frames = convertIntoFrames(p);
 		}
@@ -555,37 +592,42 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			one_file_multiple_frame = text_mode_gd.getNextBoolean();
 			csv_format = text_mode_gd.getNextBoolean();
 			
-			if (one_file_multiple_frame == true)
-			{
-				int[] ids = WindowManager.getIDList();
-				
-				ImagePlus ip;
-				if(ids != null && ids.length != 0)
-				{
-					ip = WindowManager.getImage(ids[0]);
-					FileInfo fi = ip.getFileInfo();
-					files_list[0] = new String(fi.directory + fi.fileName);
-				}
-				else
-				{
-					// Open a dialog
-					
-					
-				}
-			}
-			
-			// gets the input files directory form user
+			// gets the input files directory form
 			files_list  = getFilesList();
 			if (files_list == null) return false;
 
+			// if is csv filter_out
+			
+			if (csv_format == true)
+			{
+				int nf = 0;
+				
+				Vector<String> v = new Vector<String>();
+				
+				for (int i = 0 ; i < files_list.length ; i++)
+				{
+					File f = new File(files_dir + File.separator + files_list[i]);
+					if (files_list[i].endsWith("csv") == true && f.exists() &&  f.isDirectory() == false)
+					{
+						v.add(files_list[i]);
+						nf++;
+					}
+				}
+				
+				files_list = new String[nf];
+				v.toArray(files_list);
+			}
+			
 			this.title = "text_files";
 			frames_number = 0;
 			// EACH!! file in the given directory is considered as a frame
-			for (int i = 0; i<files_list.length; i++) {
-				if (!files_list[i].startsWith(".") && !files_list[i].endsWith("~")) {
+			for (int i = 0; i<files_list.length; i++) 
+			{
+				if (!files_list[i].startsWith(".") && !files_list[i].endsWith("~")) 
+				{
 					frames_number++;
 				}
-			}		
+			}
 		} else {
 			detector.addUserDefinedParametersDialog(gd);
 			
@@ -1863,7 +1905,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		// initialize trajectories vector
 		all_traj = new Vector<Trajectory>();
 		this.number_of_trajectories = 0;		
-
+		
 		for(i = 0; i < frames_number; i++) {
 			for(j = 0; j < this.frames[i].getParticles().size(); j++) {
 				if(!this.frames[i].getParticles().elementAt(j).special) {
@@ -2495,18 +2537,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	//    		kernel[i] *= scale;
 	//    	}
 	//    }
-
-
-	/**
-	 * 
-	 * 
-	 * 
-	 * @param frames
-	 * @return
-	 */
-
-     public ImagePlus createImageFromParticles(MyFrame frames[],boolean size, boolean intensity)
-     {
+	
+	public int [] getParticlesRange()
+	{
  		int[] vMax = {0,0,0};	
  		/* find the max coordinates for each coordinate */
  		for (int i = 0; i < frames.length; i++) 
@@ -2525,26 +2558,94 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
  				}
  			}
  		}
+ 		
+ 		return vMax;
+	}
+	
+     /**
+      * 
+      * Create an image stack or hyperstack from frames
+      * 
+      * @return
+      */
+     
+	public Img<ARGBType> createHyperStackFromFrames(String background)
+	{
+		int [] vMax = null;
+    	Img<ARGBType> out_f = null;
+    	Img<ARGBType> out_fs = null;
     	 
-//        ImagePlusImg< UnsignedByteType, ?> img = new ImagePlusImgFactory< FloatType >().create(new long[] { vMax[0], vMax[1], vMax[2],3, frames.length }, new UnsignedByteType() );
-
-         // draw a small sphere for every pixel of a larger sphere
-//         drawSpheres( img, 0, 255 );
-
-         // display output and input
-/*         try
-         {
-        	 return img.getImagePlus();
-         }
-         catch ( ImgLibException e )
-         {
-        	 e.printStackTrace();
-         }*/
-         
-         return null;
+    	if (this.frames.length == 0)
+    		return null;
+    	
+    	// Create time Image
+    	
+    	if (text_files_mode == true && background == null)
+    	{
+    		vMax = getParticlesRange();
+    		long vMaxp1[] = new long [vMax.length + 1];
+    		
+    		for (int i = 0 ; i < vMax.length ; i++)
+    		{
+    			vMaxp1[i] = vMax[i];
+    		}
+    		vMaxp1[vMax.length] = this.frames.length;
+    		
+	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
+	        out_fs = imgFactory.create(vMaxp1, new ARGBType());
+ 		}
+    	else
+    	{
+    		// Open first background to get the size
+    		
+    		File file = new File( background.replace("*", Integer.toString(1)));
+	 	        
+	    		// open a file with ImageJ
+	    	final ImagePlus imp = new Opener().openImage( file.getAbsolutePath() );
+	        final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( imp );
+	    	
+	        long vMaxp1[] = new long [backgroundImg.numDimensions() + 1];
+	        
+    		for (int i = 0 ; i < backgroundImg.numDimensions() ; i++)
+    		{
+    			vMaxp1[i] = backgroundImg.dimension(i);
+    		}
+    		vMaxp1[backgroundImg.numDimensions()] = this.frames.length;
+    		
+	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
+	        out_fs = imgFactory.create(vMaxp1, new ARGBType());
+    	}
+    	
+ 		/* for each frame we have add a stack to the image */
+ 		for (int i = 0; i<frames.length; i++)
+ 		{
+ 	    	// Create frame image
+ 	    	
+ 	    	if (background != null)
+ 	    	{
+ 	    		File file = new File( background.replace("*", Integer.toString(i+1)));
+ 	        
+ 	    		// open a file with ImageJ
+ 	    		final ImagePlus imp = new Opener().openImage( file.getAbsolutePath() );
+ 	 
+ 	    		Calibration cal = imp.getCalibration();
+ 	    	
+ 	            // wrap it into an ImgLib image (no copying)
+ 	            final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( imp );
+ 	    		
+ 	    		out_f = frames[i].createImage(backgroundImg, cal,0);
+ 	    		
+ 	    	}
+ 	    	else
+ 	    	{
+ 	    		out_f = frames[i].createImage(vMax,0);
+ 	    	}
+ 			
+ 			MosaicUtils.copyEmbedded(out_fs, out_f, i);
+ 		}
+ 		return out_fs;
      }
-
-
+     
 
 	/**
 	 * Creates a new <code>ImageStack</code> and draws particles on it according to

@@ -9,8 +9,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
+import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.view.Views;
 
 import mosaic.bregman.Analysis;
 
@@ -323,30 +328,34 @@ public class MosaicUtils {
 		return (sliceIndex-1) / nb_slices + 1;
 	}
 	
-
 	/**
 	 * 
-	 * It draw an Hyper Circle
+	 * Copy an image B as a subspace into an image A
 	 * 
-	 * @param Image
-	 * @param dimension Dimension of the hyper-circle
-	 * @param position
-	 * @param radius
+	 * @param A Image A
+	 * @param B Image B
+	 * @param fix subspace on A, dim(A) - dim(B) == 1
+	 * @return 
 	 */
-	
-	public static <T> void drawAHyperCircle(Img<T> Image, int dimension , int position [], int radius)
+
+	static public <T extends NativeType<T>> boolean copyEmbedded(Img<T> A, Img<T> B, int fix)
 	{
-/*		int cnt[] = new int [dimension];
-		int boxSize = 2*radius+1;
+		if (A.numDimensions() - B.numDimensions() != 1)
+			return false;
 		
-		int position = 
-		
-		RandomAccess<T> rnd = Image.randomAccess();
-		
-		while (cnt)
+		Cursor<T> img_c = B.cursor();
+        RandomAccessibleInterval< T > view = Views.hyperSlice( A, B.numDimensions(), fix );
+		Cursor<T> img_v = Views.iterable(view).cursor();
+        
+		while (img_c.hasNext())
 		{
+			img_c.fwd();
+			img_v.fwd();
 			
-		}*/
+			img_v.get().set(img_c.get());
+		}
+		
+		return true;
 	}
 	
 }

@@ -12,6 +12,8 @@ import java.util.Vector;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.supercsv.cellprocessor.ift.CellProcessor;
+import org.supercsv.comment.CommentMatcher;
+import org.supercsv.comment.CommentStartsWith;
 import org.supercsv.io.dozer.CsvDozerBeanReader;
 import org.supercsv.io.dozer.CsvDozerBeanWriter;
 import org.supercsv.io.dozer.ICsvDozerBeanReader;
@@ -21,17 +23,17 @@ import org.supercsv.prefs.CsvPreference;
 
 /**
 *
-* IPC this is an extended CSV (Comma separated value format)
+* <h2>Inter Plugins CSV</h2>
 *
 * This class is able to read, generate and convert CSV file
 * It use SuperCSV
 *
-* The class is InterPluginCSV<E extends ICSVGeneral & Outdata<S>, S>
+* The main class is InterPluginCSV<E extends ICSVGeneral & Outdata<S>, S>,
+* where E is a User choosen POJO JavaBeans class that extends ICSVGeneral
+* aka (Internal type), used for sematical conversion from column to class
+* attribute/member
 * 
-* Where E is a User choosen POJO JavaBeans class that extends ICSVGeneral
-* aka (Internal type)
-* 
-* Note The CSV format is not related to the POJO Class but to OutputChoose
+* <strong>Note</strong>: The CSV format is not related to the POJO Class but to OutputChoose
 * passed to the function. You can have one POJO and different format
 * 
 * Each function can require OutputChoose, only map and cel of this class 
@@ -72,13 +74,121 @@ import org.supercsv.prefs.CsvPreference;
 
 public class InterPluginCSV<E extends ICSVGeneral>
 {
+	class ExtParam
+	{
+		ExtParam(String p1, String p2)
+		{
+			this.p1 = p1;
+			this.p2 = p2;
+		}
+		
+		String p1;
+		String p2;
+	}
+	
+	class CommentExtendedCSV implements CommentMatcher
+	{
+
+		@Override
+		public boolean isComment(String s) 
+		{
+			if (s.startsWith("%"))
+			{
+				String[] pr = s.split(":");
+				
+				if (pr.length == 2)
+				{
+					fld.add(new ExtParam(pr[0].substring(1),pr[1].trim()));
+				}
+				
+				return true;
+			}
+			return false;
+		}
+		
+	}
+	
 	private Class<E> p;
 	CsvPreference c;
+	Vector<ExtParam> fld;
 	
 	public InterPluginCSV(Class<E> p_)
 	{
 		p = p_;
-		c = CsvPreference.STANDARD_PREFERENCE;
+    	CsvPreference.Builder bld = new CsvPreference.Builder('"', ',', "\n");
+    	bld.skipComments(new CommentExtendedCSV());
+    	c = bld.build();
+    	fld = new Vector<ExtParam>();
+	}
+	
+	/**
+	 * 
+	 * Get Meta information
+	 * 
+	 * @param String meta information
+	 * @return Value of the meta information
+	 */
+	
+	public String getMetaInformation(String parameter)
+	{
+		for (int i = 0 ;i < fld.size() ; i++)
+		{
+			if (fld.get(i).p1.equals(parameter) )
+			{
+				return fld.get(i).p2;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * 
+	 * Check if exist the column
+	 * 
+	 * @param CsvFilename
+	 */
+	
+	public boolean existColum(String columnString, String CsvFilename)
+	{
+        ICsvDozerBeanReader beanReader = null;
+        try
+        {
+        	beanReader = new CsvDozerBeanReader(new FileReader(CsvFilename), c);
+        	
+            E element = p.newInstance();
+            
+            String[] map = beanReader.getHeader(true); // ignore the header
+            
+            for (String col : map)
+            {
+            	if (col.equals(columnString))
+            	{
+            		return true;
+            	}
+            }
+        }
+        catch (IOException e) 
+        {e.printStackTrace();}
+        catch (InstantiationException e) 
+        {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        finally 
+        {
+                if( beanReader != null ) 
+                {
+                        try 
+                        {beanReader.close();}
+                        catch (IOException e) 
+                        {e.printStackTrace();}
+                }
+        }
+        return false;
 	}
 	
 	/**
@@ -573,7 +683,9 @@ public class InterPluginCSV<E extends ICSVGeneral>
     
     public void setDelimiter(char d)
     {
-    	c = new CsvPreference.Builder('"', d, "\n").build();
+    	CsvPreference.Builder bld = new CsvPreference.Builder('"', d, "\n");
+    	bld.skipComments(new CommentExtendedCSV());
+    	c = bld.build();
     }
     
     /**
