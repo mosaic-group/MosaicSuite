@@ -91,6 +91,32 @@ public class ParticleLinker {
 				//    			p2 = frames[m + (n + 1)].particles;
 
 
+				//////////////// Debug
+				
+				
+				if (m == 88)
+				{
+					for (int v = 0; v < p1.size() ; v++)
+					{
+						if (Math.sqrt((p1.get(v).x - 85)*(p1.get(v).x - 85) + (p1.get(v).y - 28)*(p1.get(v).y - 28) + (p1.get(v).z - 11)*(p1.get(v).z - 11)) < 10.0)
+						{
+							int debug = 0;
+							debug++;
+						}
+					}
+					
+					for (int v = 0; v < p2.size() ; v++)
+					{
+						if (Math.sqrt((p2.get(v).x - 85)*(p2.get(v).x - 85) + (p2.get(v).y - 28)*(p2.get(v).y - 28) + (p2.get(v).z - 11)*(p2.get(v).z - 11)) < 10.0)
+						{
+							int debug = 0;
+							debug++;
+						}
+					}
+				}
+					
+				//////////////
+					
 				/* Fill in the costs */
 				for(i = 0; i < nop; i++) 
 				{
@@ -100,9 +126,9 @@ public class ParticleLinker {
 								(p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) + 
 								(p1.elementAt(i).z - p2.elementAt(j).z)*(p1.elementAt(i).z - p2.elementAt(j).z);
 						
-						cost[i][j] = distance_sq*l.l_s +
-							l.l_f*((p1.elementAt(i).m0 - p2.elementAt(j).m0)*(p1.elementAt(i).m0 - p2.elementAt(j).m0) + 
-							(p1.elementAt(i).m2 - p2.elementAt(j).m2)*(p1.elementAt(i).m2 - p2.elementAt(j).m2));
+						cost[i][j] = (float) (distance_sq*l.l_s +
+							l.l_f*Math.cbrt(((p1.elementAt(i).m0 - p2.elementAt(j).m0)*(p1.elementAt(i).m0 - p2.elementAt(j).m0)) + 
+							(p1.elementAt(i).m2 - p2.elementAt(j).m2)*(p1.elementAt(i).m2 - p2.elementAt(j).m2)));
 						
 						if (l.force == true)
 						{
@@ -226,7 +252,7 @@ public class ParticleLinker {
 				g_x[nop_next] = nop;
 				g_y[nop] = nop_next;
 				
-			/* The relation matrix is initilized */
+				/* The relation matrix is initilized */
 			
 				
 				/* Now the relation matrix needs to be optimized */
@@ -266,6 +292,12 @@ public class ParticleLinker {
 								if(z > -1.0e-10)
 									z = 0.0;
 								if(z < min) {
+									
+									if ((i == 11  || x == 11) && m == 88)
+									{
+										int debug = 0;
+										debug++;
+									}
 									min = z;
 
 									prev_i = i;

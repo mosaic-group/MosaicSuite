@@ -42,6 +42,26 @@ public class Particle  implements ICSVGeneral
 	
 	/**
 	 * 
+	 * Create a particle from another particle
+	 * 
+	 * @param p
+	 */
+	
+	public Particle(Particle p)
+	{
+		this.x = p.x;
+		this.y = p.y;
+		this.z = p.z;
+		this.m0 = p.m0;
+		this.m1 = p.m1;
+		this.m2 = p.m2;
+		this.m3 = p.m3;
+		this.m4 = p.m4;
+	}
+	
+	
+	/**
+	 * 
 	 * Get the module of the linking vector
 	 * 
 	 * @return the module of the linking vector
@@ -232,6 +252,15 @@ public class Particle  implements ICSVGeneral
 		return sb;
 	}
 
+	public boolean match(Particle p)
+	{
+		if (this.x == p.x && this.y == p.y && this.z == p.z && this.m0 == p.m0 &&
+			this.m1 == p.m1 && this.m2 == p.m2 && this.m3 == p.m3 && this.m4 == p.m4)
+			return true;
+		
+		return false;
+	}
+	
 	public void setFrame(int frame) {
 		this.frame = frame;
 	}
@@ -317,6 +346,89 @@ public class Particle  implements ICSVGeneral
 	public void setCoord_Z(double Coord_Z_) 
 	{
 		z = (float) Coord_Z_;
+	}
+	
+	@Override
+	public double getCoord_X() 
+	{
+		return x;
+	}
+
+	@Override
+	public double getCoord_Y() 
+	{
+		return y;
+	}
+
+	@Override
+	public double getCoord_Z() 
+	{
+		return z;
+	}
+
+	public int getImage_ID() {return 0;}
+
+
+	@Override
+	public int getObject_ID() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+	@Override
+	public double getSize() {
+		// TODO Auto-generated method stub
+		return m0;
+	}
+
+
+	@Override
+	public double getPerimeter() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+	@Override
+	public double getLength() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+	@Override
+	public double getIntensity() {
+		// TODO Auto-generated method stub
+		return m2;
+	}
+
+
+	@Override
+	public double getx() {
+		// TODO Auto-generated method stub
+		return x;
+	}
+
+
+	@Override
+	public double gety() {
+		// TODO Auto-generated method stub
+		return y;
+	}
+
+
+	@Override
+	public double getz() {
+		// TODO Auto-generated method stub
+		return z;
+	}
+
+
+	@Override
+	public double getSurface() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }
 

@@ -60,6 +60,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 import java.util.Vector;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -79,6 +81,7 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.img.imageplus.ImagePlusImg;
 import net.imglib2.img.imageplus.ImagePlusImgFactory;
+import net.imglib2.io.ImgSaver;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -90,6 +93,7 @@ import org.w3c.dom.Element;
 import mosaic.core.GUI.ParticleTrackerHelp;
 import mosaic.core.detection.FeaturePointDetector;
 import mosaic.core.detection.MyFrame;
+import mosaic.core.detection.MyFrame.DrawType;
 import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
@@ -137,6 +141,12 @@ import mosaic.core.utils.MosaicUtils;
  * @version 1.6 November 2010 (requires: ImageJ 1.44 or higher)
  * @author Kota Miura - CMCI, EMBL Heidelberg  (http://cmci.embl.de)
  * add functionality to automatically transfer resulting data to result table in ImageJ, 
+ * 
+ * @version 1.7 (require: ImgLib2)
+ * @author Pietro Incardona
+ * add Dynamic model in the linker, new 3D/2D visualization system, CSV reading format,
+ * for Region based tracking
+ * 
  */
 
 public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, PreviewInterface  
@@ -292,31 +302,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
  
 		if (!processFrames()) return;
 		
-		///////// Debug //////////////
-		
-/*        File file = new File( "/home/i-bird/Desktop/Link_seg/Job554051/_.tif/tmp_139.tif" );
-        
-        // open a file with ImageJ
-        final ImagePlus imp = new Opener().openImage( file.getAbsolutePath() );
- 
-        Calibration cal = imp.getCalibration();
-        
-        // display it via ImageJ
-        imp.show();
- 
-        
-        // wrap it into an ImgLib image (no copying)
-        final Img< UnsignedByteType > image = ImagePlusAdapter.wrap( imp );
- 
-        // display it via ImgLib using ImageJ
-        ImageJFunctions.show( image );
-		
-		Img<ARGBType> out = this.frames[139].createImage(image, cal, 0);
-		
-    	ImageJFunctions.show( out );*/
-		
-		//////////////////////////////
-		
 		if (text_files_mode) 
 		{
 			/* create an ImagePlus object to hold the particle information from the text files*/
@@ -334,6 +319,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		lo.displacement = (float) displacement;
 		lo.force = force;
 		lo.straight_line = straight_line;
+		lo.l_s = l_s;
+		lo.l_f = l_f;
+		lo.l_d = l_d;
 		linker.linkParticles(frames, frames_number, lo);
 		IJ.freeMemory();
 
@@ -359,10 +347,26 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		}
 		
 		IJ.freeMemory();
+		
+		// Output image with trajectory
+		
+		Img<ARGBType> out = createHyperStackFromFrames(background);
+		ImageJFunctions.show(out);
 	}
 
 	private MyFrame [] convertIntoFrames(Vector<Particle> p)
-	{
+	{	
+		
+		// Read the first background
+		
+ 		final ImagePlus imp = new Opener().openImage( new File(background.replace("*", "1")).getAbsolutePath() );
+
+ 		Calibration cal = imp.getCalibration();
+		
+ 		rescaleWith(cal, p);
+ 		
+		// Create the frames array
+		
 		if (p.size() == 0)	return new MyFrame[0];
 		
 		int n_frames = p.get(p.size()-1).getFrame()+1;
@@ -385,7 +389,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			i++;
 			j++;
 		}
-		
+ 		
+ 		// 
+ 		
 		return f;
 	}
 	
@@ -419,6 +425,84 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		linker = new ParticleLinker();
 	}
 
+	int f_size = 0;
+	double f_intensity = 0.0;
+	
+	private void featureFilteringStage()
+	{
+		GenericDialog gd = new GenericDialog("Filter");
+		
+		gd.addMessage("Filter particle");
+		
+		gd.addNumericField("Size bigger (m0)", 0.0, 1 );
+		gd.addNumericField("Intensity bigger (m2)", 0.0, 3);
+		
+		gd.showDialog();
+		
+		if (gd.wasCanceled() == false)
+		{
+			f_size = (int) gd.getNextNumber();
+			f_intensity = gd.getNextNumber();
+		}
+	}
+	
+	/**
+	 * 
+	 * Rescale the particle according to the spacing and filter it by
+	 * size and intensity
+	 * 
+	 * @param cal spacing
+	 * @param p Particle vector
+	 */
+	
+	public void rescaleWith(Calibration cal, Vector<Particle> vp)
+	{
+		// ask for feature filtering stage
+		
+		featureFilteringStage();
+		
+		// Convert to a List
+		
+		List<Particle> pl = new ArrayList<Particle>();
+		for (int i = 0 ; i < vp.size() ; i++)
+		{
+			pl.add(vp.get(i));
+		}
+		
+		// Get iterator
+
+		Iterator<Particle> i = pl.iterator();
+		
+		
+		// rescale and filter
+		
+		while (i.hasNext())
+		{
+			Particle p = i.next();
+			
+			if (p.m0 >= f_size && p.m2 > f_intensity)
+			{
+				p.x *= cal.pixelWidth;
+				p.y *= cal.pixelHeight;
+				p.z *= cal.pixelDepth;
+			}
+			else
+			{
+				i.remove();
+			}
+		}
+		
+		// clear the vector and recreate it
+		
+		vp.clear();
+		i = pl.iterator();
+		
+		while (i.hasNext())
+		{
+			vp.add(i.next());
+		}
+	}
+	
 	/** 
 	 * Iterates through all frames(ImageProcessors or text files). 
 	 * <br>Creates a <code>MyFrame</code> object for each frame according to the input.
@@ -450,6 +534,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			segmented = P_csv.getMetaInformation("segmented");
 			
 			frames = convertIntoFrames(p);
+			
+			// It can happen that the segmentation algorithm produce
+			// double output on the CSV
+			
+			for (int i = 0 ; i < frames.length ; i++)
+				frames[i].removeDoubleParticles();
+			
+			frames_number = frames.length;
 		}
 		else if (one_file_multiple_frame == false)
 		{
@@ -525,6 +617,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		}
 
 		frames_processed = true;
+		
 		return true;
 	}
 
@@ -774,9 +867,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 * <br>Trajectory class has methods to display and anllyse this trajectory
 	 * @see Particle 
 	 */
-	public class Trajectory {
-
-		Particle[] existing_particles;		// holds all particles of this trajetory in order
+	public class Trajectory 
+	{
+		public int stop_frame;
+		public int start_frame;
+		public Particle[] existing_particles;		// holds all particles of this trajetory in order
 		int length; 						// number of frames this trajectory spans on
 
 		ArrayList<int[]> gaps = new ArrayList<int[]>(); 	// holds arrays (int[]) of size 2 that holds  
@@ -787,7 +882,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 		int serial_number;					// serial number of this trajectory (for report and display)
 		boolean to_display = true;			// flag for display filter
-		Color color;						// the display color of this Trajectory
+		public Color color;						// the display color of this Trajectory
 		Roi mouse_selection_area;			// The Roi area where a mouse click will select this trajectory
 		Roi focus_area;						// The Roi for focus display of this trajectory
 
@@ -1897,24 +1992,39 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		int i, j, k;
 		int found, n, m;
 		// Bank of colors from which the trjectories color will be selected
-		Color[] col={Color.blue,Color.green,Color.orange,Color.cyan,Color.magenta,Color.yellow,Color.white,Color.gray,Color.pink};
-
+		
+		Random rnd = new Random();
+		rnd.setSeed(5);
+		
+		Color[] col = new Color[256];
+		
+		for (i = 0; i < col.length ; i++)
+		{
+			col[i] = new Color(rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+		}
+		
 		Trajectory curr_traj;
 		// temporary vector to hold particles for current trajctory
 		Vector<Particle> curr_traj_particles = new Vector<Particle>(frames_number);		
 		// initialize trajectories vector
 		all_traj = new Vector<Trajectory>();
-		this.number_of_trajectories = 0;		
+		this.number_of_trajectories = 0;
+		int cur_traj_start = 0;
 		
-		for(i = 0; i < frames_number; i++) {
-			for(j = 0; j < this.frames[i].getParticles().size(); j++) {
-				if(!this.frames[i].getParticles().elementAt(j).special) {
+		for(i = 0; i < frames_number; i++) 
+		{
+			for(j = 0; j < this.frames[i].getParticles().size(); j++) 
+			{	
+				if(!this.frames[i].getParticles().elementAt(j).special) 
+				{
 					this.frames[i].getParticles().elementAt(j).special = true;
 					found = -1;
 					// go over all particles that this particle (particles[j]) is linked to
-					for(n = 0; n < this.linkrange; n++) {
+					for(n = 0; n < this.linkrange; n++) 
+					{
 						// if it is NOT a dummy particle - stop looking
-						if(this.frames[i].getParticles().elementAt(j).next[n] != -1) {
+						if(this.frames[i].getParticles().elementAt(j).next[n] != -1) 
+						{
 							found = n;
 							break;
 						}
@@ -1932,7 +2042,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 					// this particle is linked to another "real" particle that is not already linked
 					// so we have a trajectory
-					this.number_of_trajectories++;					
+					this.number_of_trajectories++;
+					
+					if (curr_traj_particles.size() == 0)
+						cur_traj_start = i;
+					
 					curr_traj_particles.add(this.frames[i].getParticles().elementAt(j));
 					k = i;
 					m = j;
@@ -1958,6 +2072,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 						m = this.frames[k].getParticles().elementAt(m).next[found];
 						k += (found + 1);
 						curr_traj_particles.add(this.frames[k].getParticles().elementAt(m));
+						if (k == 90 && m == 6)
+						{
+							int debug = 0;
+							debug++;
+						}
 						this.frames[k].getParticles().elementAt(m).special = true;
 					} while(m != -1);					
 
@@ -1971,6 +2090,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 					curr_traj.setFocusArea();
 					curr_traj.setMouseSelectionArea();
 					curr_traj.populateGaps();
+					curr_traj.start_frame = cur_traj_start;
+					curr_traj.stop_frame = curr_traj.existing_particles[curr_traj.existing_particles.length-1].getFrame();
 					// add current trajectory to all_traj vactor
 					all_traj.add(curr_traj);
 					// clear temporary vector
@@ -2633,7 +2754,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
  	            // wrap it into an ImgLib image (no copying)
  	            final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( imp );
  	    		
- 	    		out_f = frames[i].createImage(backgroundImg, cal,0);
+ 	    		out_f = frames[i].createImage(backgroundImg, all_traj, cal, i, DrawType.NEXT);
  	    		
  	    	}
  	    	else

@@ -56,20 +56,15 @@ public class Region3DTrack implements ICSVGeneral
 	public void Coord_X(double Coord_X_) {x = Coord_X_;}
 	public void Coord_Y(double Coord_Y_) {y = Coord_Y_;}
 	public void Coord_Z(double Coord_Z_) {z = Coord_Z_;}
-	@Override
-	public void setCoord_X(double Coord_X_) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void setCoord_Y(double Coord_Y_) {
-		// TODO Auto-generated method stub
-		
-	}
-	@Override
-	public void setCoord_Z(double Coord_Z_) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void setCoord_X(double Coord_X_) {x = Coord_X_;}
+	public void setCoord_Y(double Coord_Y_) {y = Coord_Y_;}
+	public void setCoord_Z(double Coord_Z_) {z = Coord_Z_;}
+	public int getImage_ID() {return Frame;}
+	public int getObject_ID() {return 0;}
+	public double getPerimeter() {return 0;}
+	public double getLength() {return 0;}
+	public double getCoord_X() {return x;}
+	public double getCoord_Y() {return y;}
+	public double getCoord_Z() {return z;}
 }
 	

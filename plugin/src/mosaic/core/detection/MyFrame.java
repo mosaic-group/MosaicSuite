@@ -19,8 +19,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import mosaic.core.utils.CircleMask;
+import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIteratorMask;
+import mosaic.plugins.ParticleTracker3DModular_.Trajectory;
 import net.imglib2.RandomAccess;
 import java.util.Vector;
 
@@ -746,6 +748,9 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 			return this.original_ips;
 		}
 		
+		//////////////////////////////////// Procedures for draw //////////////////
+		
+		
 		public <T extends RealType<T>> ARGBType convertoARGBTypeNorm(T data)
 		{
 			ARGBType t = new ARGBType();
@@ -763,27 +768,18 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 			t.set(ARGBType.rgba(td, td, td, 255.0f));
 			return t;
 		}
-	
-		private void drawParticles(Img<ARGBType> out, Calibration cal)
+
+		private void drawParticles(Img<ARGBType> out, List<Particle> pt , Calibration cal, int col)
 		{
-	        RandomAccess<ARGBType> out_a = out.randomAccess();
+			RandomAccess<ARGBType> out_a = out.randomAccess();
 			
 	        int sz[] = new int [out_a.numDimensions()];
-	   	 
+		   	 
 	        for ( int d = 0; d < out_a.numDimensions(); ++d )
 	        {
 	            sz[d] = (int) out.dimension( d );
 	        }
-
-	        // Create a list of particles
-	        
-	        List<Particle> pt = new ArrayList<Particle>();
-	 
-	        for (int i = 0 ; i < particles.size() ; i++)
-	        {
-	        	pt.add(particles.get(i));
-	        }
-	        
+			
 	        // Iterate on all particles
 	        
 	        while (pt.size() != 0)
@@ -793,12 +789,12 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        	float sp[] = new float[out_a.numDimensions()];
 	        	
 	    		float scaling[] = new float[3];
-
+	    		
 	    		if (cal != null)
 	    		{
-	    			scaling[0] = (float) (1.0f/cal.pixelWidth);
-	    			scaling[1] = (float) (1.0f/cal.pixelHeight);
-	    			scaling[2] = (float) (5.0f/cal.pixelDepth);
+	    			scaling[0] = (float) (cal.pixelWidth);
+	    			scaling[1] = (float) (cal.pixelHeight);
+	    			scaling[2] = (float) (cal.pixelDepth);
 	    		}
 	    		else
 	    		{
@@ -826,7 +822,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        		{
 	        			// Draw the Circle
 	        			
-	        			Point p_c = new Point((int)ptt.x,(int)ptt.y,(int)ptt.z);
+	        			Point p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]),(int)(ptt.z/scaling[2]));
 	        			
 	        			rg_m.setMidPoint(p_c);
 	        			
@@ -837,7 +833,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 		        			if (p.x[0] < sz[0] && p.x[1] < sz[1] && p.x[2] < sz[2])
 		        			{
 		        				out_a.setPosition(p.x);
-		        				out_a.get().set(ARGBType.rgba(255,0,0,255));
+		        				out_a.get().set(col);
 		        			}
 		        		}	
 		        		pt_it.remove();
@@ -846,29 +842,127 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        }
 		}
 		
+		private void drawLine(Img<ARGBType> out, Particle p1, Particle p2, int col)
+		{
+			RandomAccess<ARGBType> out_a = out.randomAccess();
+			
+	        Connectivity c = new Connectivity(3,1);
+	        
+	        Point pp1 = new Point((int)p1.x,(int)p1.y,(int)p1.z);
+	        Point pp2 = new Point((int)p2.x,(int)p2.y,(int)p2.z);
+	        
+	        out_a.setPosition(pp1.x);
+	        out_a.get().set(col);
+	        
+	        float distance_min = Float.MAX_VALUE;
+	        float distance = 0.0f;
+	        Point p_min = null;
+	        
+	        do
+	        {
+	        	for (Point p_c : c)
+	        	{
+	        		p_c = p_c.add(pp1);
+	        		distance = (float) p_c.distance(pp2);
+	        	
+	        		if (distance < distance_min)
+	        		{
+	        			distance_min = distance;
+	        			p_min = p_c;
+	        		}	        		
+	        	}
+	        	
+        		pp1 = p_min;
+        		pp1.positive();
+        		
+        		distance_min = (float) pp1.distance(pp2);
+        		
+    	        out_a.setPosition(pp1.x);
+    	        out_a.get().set(col);
+	        	
+	        } while (distance_min >= 1.0);
+		}
+		
+		private void drawLines(Img<ARGBType> out, List<pParticle> lines , int col)
+		{
+			RandomAccess<ARGBType> out_a = out.randomAccess();
+			
+	        int sz[] = new int [out_a.numDimensions()];
+		   	 
+	        for ( int d = 0; d < out_a.numDimensions(); ++d )
+	        {
+	            sz[d] = (int) out.dimension( d );
+	        }
+			
+	        // Iterate on all lines
+	        
+	        for (pParticle ptt : lines )
+	        {
+	        	Particle p_end = new Particle(ptt.p2);
+	        	p_end.z = ptt.p1.z;
+	        	drawLine(out,ptt.p1,p_end, col);
+	        }
+		}
+		
+		private void drawParticles(Img<ARGBType> out, Vector<Particle> particles, Calibration cal, int col)
+		{
+	        // Create a list of particles
+	        
+	        List<Particle> pt = new ArrayList<Particle>();
+	 
+	        for (int i = 0 ; i < particles.size() ; i++)
+	        {
+	        	pt.add(particles.get(i));
+	        }
+	        
+	        drawParticles(out,pt,cal,col);
+		}
+		
+		private void drawParticles(Img<ARGBType> out, Calibration cal, int col)
+		{
+	        // Create a list of particles
+	        
+	        List<Particle> pt = new ArrayList<Particle>();
+	 
+	        for (int i = 0 ; i < particles.size() ; i++)
+	        {
+	        	pt.add(particles.get(i));
+	        }
+	        
+	        drawParticles(out,pt,cal,col);
+		}
+		
 		/**
 		 * 
-		 * Create an image for the particle information
+		 * Create an image from the particle information
 		 * 
 		 * @param vMax size of the image
 		 * @param frame number
 		 * @return the image
 		 */
 		
-		public  Img<ARGBType> createImage( int [] vMax, int frame)
+		public  Img<ARGBType> createImage( int [] vMax ,int frame)
 		{	        
 	        // Create image
 	        
 	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
 	        Img<ARGBType> out = imgFactory.create(vMax, new ARGBType());
 	        
-	        drawParticles(out,null);
+	        drawParticles(out,null,ARGBType.rgba(255, 0, 0, 255));
 	        
 	        return out;
 		}
 		
+		/**
+		 * 
+		 * Create an image from particle information with background
+		 * 
+		 * @param background background image
+		 * @param cal calibration
+		 * @return image video
+		 */
 		
-		public  <T extends RealType< T >> Img<ARGBType> createImage(Img<T> background, Calibration cal, int frame)
+		public  <T extends RealType< T >> Img<ARGBType> createImage(Img<T> background, Calibration cal)
 		{
 	        // the number of dimensions
 	        int numDimensions = background.numDimensions();
@@ -900,9 +994,147 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        	curOut.get().set(convertoARGBType(curBack.get()));
 	        }
 	        
-	        drawParticles(out,cal);
+	        drawParticles(out,cal, ARGBType.rgba(255, 0, 0, 255));
 	        
 	        return out;
+		}
+		
+		public enum DrawType
+		{
+			TRAJECTORY_HISTORY,
+			PREV,
+			NEXT,
+			PREV_NEXT,
+			TRAJECTORY_HISTORY_WITH_NEXT
+		}
+		
+		class pParticle
+		{
+			Particle p1;
+			Particle p2;
+			
+			pParticle(Particle p1, Particle p2)
+			{
+				this.p1 = p1;
+				this.p2 = p2;
+			}
+		}
+		
+		/**
+		 * 
+		 * Create an image from particle information with background and trajectory information
+		 * 
+		 * @param background background image
+		 * @param cal calibration
+		 * @return image video
+		 */
+		
+		public  <T extends RealType< T >> Img<ARGBType> createImage(Img<T> background, Vector<Trajectory> tr ,Calibration cal, int frame, DrawType typ)
+		{
+			// if you have no trajectory draw use the other function
+			
+			if (tr == null)
+			{return createImage(background,cal);}
+			
+	        // the number of dimensions
+	        int numDimensions = background.numDimensions();
+	        int sz[] = new int [numDimensions];
+	 
+	        for ( int d = 0; d < numDimensions; ++d )
+	        {
+	            sz[d] = (int) background.dimension( d );
+	        }
+	        
+	        long dims[] = new long[numDimensions];
+	        background.dimensions(dims);
+	        
+	        // Create image
+	        
+	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
+	        Img<ARGBType> out = imgFactory.create(dims, new ARGBType());
+	        
+	        Cursor<ARGBType> curOut = out.cursor();
+	        Cursor<T> curBack = background.cursor();
+	        
+	        // Copy the background
+	        
+	        while (curBack.hasNext())
+	        {
+	        	curOut.fwd();
+	        	curBack.fwd();
+	        		        	
+	        	curOut.get().set(convertoARGBType(curBack.get()));
+	        }
+	        
+	        //
+	        
+	        Vector<Particle> vp = new Vector<Particle>();
+	        Vector<pParticle> lines = new Vector<pParticle>();
+	        
+	        // Collect particles to draw and spline to draw
+	        
+	        for (int t = 0 ; t < tr.size() ; t++)
+	        {
+	        	vp.clear();
+	        	lines.clear();
+	        	
+	        	if ( frame >= tr.get(t).start_frame && frame <= tr.get(t).stop_frame )
+	        	{
+	        		// Check all particles frames, if particle is in frame add it
+	        		
+	        		for (int j = 0 ; j < tr.get(t).existing_particles.length ; j++)
+	        		{
+	        			if (tr.get(t).existing_particles[j].getFrame() == frame)
+	        			{
+	        				// Particle to draw
+	        				
+	        				vp.add(tr.get(t).existing_particles[j]);
+	        				
+	        				// Collect spline
+	        				
+/*	        				if (typ == DrawType.NEXT)
+	        				{
+	        					if (j+1 < tr.get(t).existing_particles.length)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
+	        					}
+	        				}*/
+	        			}
+	        		}
+	        	}
+		        drawParticles(out,vp,cal, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+//		        drawLines(out,lines, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+	        }
+	        
+	        return out;
+		}
+		
+		/**
+		 * 
+		 * Remove double particles in the frame
+		 * 
+		 */
+		
+		public void removeDoubleParticles()
+		{
+			boolean f = false;
+			Vector<Particle> p = new Vector<Particle>();
+			
+	        for (int i = 0 ; i < particles.size() ; i++)
+	        {
+	        	f = false;
+	        	
+	        	for (int j = i + 1 ; j < particles.size() ; j++)
+	        	{
+	        		if (particles.get(i).match(particles.get(j)))
+	        			f = true;
+	        	}
+	        	
+	        	if (f == false)
+	        		p.add(particles.get(i));
+	        }
+	        
+	        particles = p;
 		}
 		
 	}

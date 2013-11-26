@@ -75,4 +75,9 @@ public class Region3DRScript implements ICSVGeneral
 	public double getSize()				{return Size;}
 	public double getPerimeter()		{return Perimeter;}
 	public double getLength()		{return Length;}
+	public double getx() {return x;}
+	public double gety() {return y;}
+	public double getz() {return z;}
+	public int getFrame() {return Image_ID;}
+	public double getSurface() {return 0;}
 }
