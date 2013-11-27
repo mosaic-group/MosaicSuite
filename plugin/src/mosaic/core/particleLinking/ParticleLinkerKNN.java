@@ -31,6 +31,7 @@ public class ParticleLinkerKNN {
 	{
 		int cursor = 0;
 		int col;
+		int row;
 		
 		boolean g[];
 
@@ -38,8 +39,19 @@ public class ParticleLinkerKNN {
 		{
 			g = new boolean[i * j];
 			col = j;
+			row = i;
 		}
 
+		int getRow()
+		{
+			return row;
+		}
+		
+		int getCol()
+		{
+			return col;
+		}
+		
 		boolean hasNext()
 		{
 			if (cursor < g.length)
@@ -58,6 +70,104 @@ public class ParticleLinkerKNN {
 			return g[i*col + j];
 		}
 	}
+	
+	class CostMatrix
+	{
+		int cursor = 0;
+		int col;
+		int row;
+		
+		float c[];
+
+		CostMatrix(int i, int j)
+		{
+			c = new float[i * j];
+			row = i;
+			col = j;
+		}
+
+		int getRow()
+		{
+			return row;
+		}
+		
+		int getCol()
+		{
+			return col;
+		}
+		
+		boolean hasNext()
+		{
+			if (cursor < c.length)
+				return true;
+			else
+				return false;
+		}
+		
+		float next()
+		{
+			return c[cursor];
+		}
+		
+		float get(int i, int j)
+		{
+			return c[i*col + j];
+		}
+	}
+	
+
+	public class JohnsonTrotter 
+	{
+		int[] p;
+		int[] pi;
+		int[] dir;
+		
+		public void permInit(int N)
+		{
+			p   = new int[N];     // permutation
+			pi  = new int[N];     // inverse permutation
+			dir = new int[N];     // direction = +1 or -1
+			for (int i = 0; i < N; i++) 
+			{
+				dir[i] = -1;
+				p[i]  = i;
+				pi[i] = i;
+			}
+		}
+
+		public void perm(int n)
+		{ 
+			// base case - print out permutation
+			if (n >= p.length) 
+			{
+				for (int i = 0; i < p.length; i++)
+					System.out.print(p[i]);
+				return;
+			}
+
+			perm(n+1);
+			for (int i = 0; i <= n-1; i++) 
+			{
+				// swap 
+				System.out.printf("   (%d %d)\n", pi[n], pi[n] + dir[n]);
+				int z = p[pi[n] + dir[n]];
+				p[pi[n]] = z;
+				p[pi[n] + dir[n]] = n;
+				pi[z] = pi[n];
+				pi[n] = pi[n] + dir[n];  
+
+				perm(n+1); 
+			}
+			dir[n] = -dir[n];
+		}
+		
+		
+		int [] getP()
+		{
+			return p;
+		}
+	}
+
 	
 	public void linkParticles(MyFrame[] frames, int frames_number, linkerOptions l) 
 	{
@@ -455,7 +565,7 @@ public class ParticleLinkerKNN {
 		int j;
 	}
 	
-/*	private double calculateCost(link l[], CostMatrix costSub)
+	private double calculateCost(link l[], CostMatrix costSub)
 	{
 		double cost = 0.0;
 		
@@ -470,9 +580,9 @@ public class ParticleLinkerKNN {
 	private link[] createLink(RelationMatrix subR)
 	{
 		link [] l = new link[subR.getRow()];
-		for (int i = 0 ; subR.getRow() ; i++)
+		for (int i = 0 ; i < subR.getRow() ; i++)
 		{
-			for (int j = 0 ; j < subR.getCol ; j++)
+			for (int j = 0 ; j < subR.getCol() ; j++)
 			{
 				if (subR.get(i, j) == true)
 				{
@@ -485,21 +595,124 @@ public class ParticleLinkerKNN {
 		return l;
 	}
 	
+	private int[] createComb(RelationMatrix subR)
+	{
+		int i = 0;
+		int j = 0;
+		
+		int [] comb = new int [subR.getRow()];
+		
+		for (i = 0 ; i < subR.getRow()  ; i++)
+		{
+			for (j = 0 ; j < subR.getCol() ; j++)
+			{
+				if (subR.get(i, j) == true)
+				{
+					break;
+				}
+			}
+			
+			comb[i] = j;
+		}
+		
+		return comb;
+	}
+	
+	/**
+	 * 
+	 * It find all the permutation
+	 * 
+	 * @param comb
+	 * @param end
+	 * @return
+	 */
+	
+	private boolean Increment(int [] comb, int [] end)
+	{
+		comb[0]++;
+		
+		for (int i = 0 ; i < comb.length ; i++)
+		{
+			if (comb[i] >= comb.length)
+			{
+				comb[i] = 0;
+				
+				if (i + 1 < comb.length)
+					comb[i]++;
+				else
+				{
+					for (int j = 0 ; j < comb.length ; j++)
+						comb[j] = 0;
+				}
+			}
+		}
+			
+		return false;
+	}
+	
+	/**
+	 * 
+	 * Calculate the cost of the permutation p
+	 * 
+	 * @param p
+	 * @param cSub
+	 * @return
+	 */
+	
+	private float calculateCost(int p[], CostMatrix cSub)
+	{
+		float cost = 0.0;
+		
+		for (int i = 0 ; i < p.length ; i++)
+		{
+			cost += cSub.get(i, p[i]);
+		}
+		
+		return cost;
+	}
+	
+	class BestPerm extends JohnsonTrotter
+	{
+		double best_min;
+		int best_p[];
+		
+		void Permutation()
+		{
+			double cost = calculateCost(p);
+			
+			if (cost < best_min)
+			{
+				best_min = cost;
+				best_p = p.clone();
+			}
+		}
+	}
+	
 	private boolean optimizeSublist(Particle p1_sub[], Particle p2_sub[], RelationMatrix subR, CostMatrix costSub)
 	{
 		int comb[] = createComb(subR);
+		int[] end = comb.clone();
 		
 		link l[] = createLink(subR);
 		double cost_prev = calculateCost(l,costSub);
 		
+		
+		
+		JhonsonTrotter js = new JhonsonTrotter() {
+			void Permutation()
+			{
+				cost = calculateCost(p);
+			}
+		}
+		
 		do
 		{
 			
-			float cost_post = calculateNewCost();*/
+			float cost_post = calculateNewCost();
 			
 			/* Better situation */
 			
-/*			if (calculate_post < calculate_prev)
+			if (calculate_post < calculate_prev)
 			{
 				updateRelation();
 			}
@@ -507,5 +720,5 @@ public class ParticleLinkerKNN {
 		} while (Increment(comb,end));
 		
 		return true;
-	}*/
+	}
 }
