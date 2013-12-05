@@ -76,8 +76,8 @@ import java.awt.Polygon;
 
 
 
-public class FindConnectedRegions  {
-
+public class FindConnectedRegions  
+{
 	public static final String PLUGIN_VERSION = "1.2";
 	public byte  [] [] [] softmask;
 	public static ImageStack regstackx;

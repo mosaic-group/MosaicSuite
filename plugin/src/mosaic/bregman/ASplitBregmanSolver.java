@@ -638,6 +638,9 @@ public class ASplitBregmanSolver {
 		//		}
 
 		//perform voronoi
+		
+		/* Here we compute the Voronoi segmentation starting from the threshold mask */
+		
 		EDM filtEDM = new EDM(); 
 		filtEDM.setup("voronoi", mask_im); 
 		filtEDM.run(mask_im.getProcessor()); 
@@ -668,13 +671,18 @@ public class ASplitBregmanSolver {
 		}
 		mask_im.setStack("Voronoi",mask_ims3);
 
+		// Here we are elaborating the Voronoi mask to get a nice subdivision
+		
 		//mask_im.duplicate().show();
 		double thr=254;
 		FindConnectedRegions fcr= new FindConnectedRegions(mask_im);
 
-		for (int z=0; z<nz; z++){
-			for (int i=0; i<ni; i++) {  
-				for (int j=0; j<nj; j++) {  
+		for (int z=0; z<nz; z++)
+		{
+			for (int i=0; i<ni; i++) 
+			{
+				for (int j=0; j<nj; j++) 
+				{
 					Ri[0][z][i][j]= (float)thr;
 				}
 			}

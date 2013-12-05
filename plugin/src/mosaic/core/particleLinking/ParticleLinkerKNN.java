@@ -659,7 +659,7 @@ public class ParticleLinkerKNN {
 	 * @return
 	 */
 	
-	private float calculateCost(int p[], CostMatrix cSub)
+/*	private float calculateCost(int p[], CostMatrix cSub)
 	{
 		float cost = 0.0;
 		
@@ -708,11 +708,11 @@ public class ParticleLinkerKNN {
 		do
 		{
 			
-			float cost_post = calculateNewCost();
+			float cost_post = calculateNewCost();*/
 			
 			/* Better situation */
 			
-			if (calculate_post < calculate_prev)
+/*			if (calculate_post < calculate_prev)
 			{
 				updateRelation();
 			}
@@ -720,5 +720,5 @@ public class ParticleLinkerKNN {
 		} while (Increment(comb,end));
 		
 		return true;
-	}
+	}*/
 }

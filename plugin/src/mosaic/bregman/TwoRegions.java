@@ -79,15 +79,25 @@ public class TwoRegions extends NRegions
 			A_solver= new ASplitBregmanSolverTwoRegions(p,image,SpeedData,mask,md,channel,null);
 
 		//first run
-		try 
+//		if (Analysis.p.patches_from_file == false)
+//		{
+			try 
+			{
+				//Tools.showmem();
+				A_solver.first_run();
+				//Tools.showmem();
+			}
+			catch (InterruptedException ex) {}
+//		}
+//		else
+//		{
+			// fill RiN
+			
+			
+//		}
+		
+		if(channel==0)
 		{
-			//Tools.showmem();
-			A_solver.first_run();
-			//Tools.showmem();
-		}
-		catch (InterruptedException ex) {}
-		if(channel==0){	
-
 			//Analysis.maska=A_solver.w3kbest[0];//
 
 			Analysis.setMaskaTworegions(A_solver.w3kbest[0]);
@@ -102,12 +112,13 @@ public class TwoRegions extends NRegions
 			RoN = new float [p.nz][p.ni][p.nj];
 
 			LocalTools.copytab(RoN, A_solver.Ro[0]);
-
+			
 			ArrayList<Region> regions=A_solver.regionsvoronoi;
-
+			
 			//A_solver=null; //for testing
 
-			if(!Analysis.p.looptest){
+			if(!Analysis.p.looptest)
+			{
 				if(p.findregionthresh)Analysis.compute_connected_regions_a((int) 255*p.thresh,RiN);
 				else Analysis.compute_connected_regions_a((int) 255*p.thresh,null);
 				//A_solver=null; // for testing
@@ -144,10 +155,8 @@ public class TwoRegions extends NRegions
 			//			else
 			//				Analysis.A_solverX=A_solver; // add for loop settings
 		}
-		else{
-			//Analysis.maskb=A_solver.w3kbest[0];	
-
-			
+		else
+		{
 			Analysis.setMaskbTworegions(A_solver.w3kbest[0]);
 			//Analysis.setMaskaTworegions(A_solver.w3kbest[0],A_solver.bp_watermask);
 			Analysis.bestEnergyY=A_solver.bestNrj;

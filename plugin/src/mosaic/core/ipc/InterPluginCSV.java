@@ -416,7 +416,8 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	/**
 	 * 
 	 * Write a CSV file, perform an automatical conversion from the element inside vector
-	 * and the internal type 
+	 * and the internal type, setData(T) where T is the type of the sigle element in the
+	 * out vector has to be implemented in the POJO Class (aka internal type)
 	 * 
 	 * @param CsvFilename Filename
 	 * @param out Input file of object

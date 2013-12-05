@@ -172,6 +172,19 @@ public class SegmentationGUI
 		gd.addNumericField("Minimum_object_intensity,_channel_1 (0 to 1)", Analysis.p.min_intensity, 3);
 		gd.addNumericField("                         _channel_2 (0 to 1)", Analysis.p.min_intensityY, 3);
 		
+		/////////////// Patches positioning
+		
+		//FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
+//		p.setPreferredSize(new Dimension(565, 30));
+		//p.setLayout(null);
+		//p.setBackground(Color.black);
+
+//		Button b = new Button("Preview cell mask");
+//		b.addActionListener(new HelpOpenerActionListener(p,gd));
+//		p.add(b);
+		
+		///////////////
+		
 		gd.addCheckbox("Subpixel segmentation", Analysis.p.subpixel);
 		
 		String choice1[] = {
@@ -187,10 +200,14 @@ public class SegmentationGUI
 		gd.addNumericField("standard deviation xy (in pixels)", Analysis.p.sigma_gaussian, 2);
 		gd.addNumericField("standard deviation z  (in pixels)", Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 2);
 		
+		Panel p = new Panel();
+		Button b = new Button("Patch position");
+		p.add(b);
+		gd.addPanel(p);
+		
 		Button bp = new Button("Estimate PSF from objective properties");
 		bp.addActionListener(new PSFOpenerActionListener(gd));
-		
-		Panel p = new Panel();
+		p = new Panel();
 		p.add(bp);
 		gd.addPanel(p);
 

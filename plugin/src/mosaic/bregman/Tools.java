@@ -1841,7 +1841,7 @@ public class Tools
 
 	}
 	
-	public  void disp_array3D_new(float [] [] [] array, String s){
+	static public  void disp_array3D_new(float [] [] [] array, String s){
 		int ni= array[0].length;
 		int nj= array[0][0].length;
 		float [] [] temp= new float [ni][nj];
