@@ -252,6 +252,18 @@ public class Particle  implements ICSVGeneral
 		return sb;
 	}
 
+	
+	
+	public float distanceSq(Particle p)
+	{
+		return (x-p.x)*(x-p.x) + (y-p.y)*(y-p.y) + (z-p.z)*(z-p.z);
+	}
+	
+	public float distance(Particle p)
+	{
+		return (float) Math.sqrt((x-p.x)*(x-p.x) + (y-p.y)*(y-p.y) + (z-p.z)*(z-p.z));
+	}
+	
 	public boolean match(Particle p)
 	{
 		if (this.x == p.x && this.y == p.y && this.z == p.z && this.m0 == p.m0 &&

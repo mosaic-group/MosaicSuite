@@ -2701,37 +2701,56 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
     	
     	// Create time Image
     	
-    	if (text_files_mode == true && background == null)
+    	if (text_files_mode == true)
     	{
-    		vMax = getParticlesRange();
-    		long vMaxp1[] = new long [vMax.length + 1];
-    		
-    		for (int i = 0 ; i < vMax.length ; i++)
+    		if (background == null)
     		{
-    			vMaxp1[i] = vMax[i];
-    		}
-    		vMaxp1[vMax.length] = this.frames.length;
+    			vMax = getParticlesRange();
+    			long vMaxp1[] = new long [vMax.length + 1];
     		
-	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
-	        out_fs = imgFactory.create(vMaxp1, new ARGBType());
+    			for (int i = 0 ; i < vMax.length ; i++)
+    			{
+    				vMaxp1[i] = vMax[i];
+    			}
+    			vMaxp1[vMax.length] = this.frames.length;
+    		
+    			final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
+    			out_fs = imgFactory.create(vMaxp1, new ARGBType());
+    		}
+    		else
+    		{
+    	   		// Open first background to get the size
+        		
+        		File file = new File( background.replace("*", Integer.toString(1)));
+    	 	        
+    	    		// open a file with ImageJ
+    	    	final ImagePlus imp = new Opener().openImage( file.getAbsolutePath() );
+    	        final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( imp );
+    	    	
+    	        long vMaxp1[] = new long [backgroundImg.numDimensions() + 1];
+    	        
+        		for (int i = 0 ; i < backgroundImg.numDimensions() ; i++)
+        		{
+        			vMaxp1[i] = backgroundImg.dimension(i);
+        		}
+        		vMaxp1[backgroundImg.numDimensions()] = this.frames.length;
+        		
+    	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
+    	        out_fs = imgFactory.create(vMaxp1, new ARGBType());
+    		}
  		}
     	else
     	{
-    		// Open first background to get the size
+	   		// Open original image
     		
-    		File file = new File( background.replace("*", Integer.toString(1)));
-	 	        
-	    		// open a file with ImageJ
-	    	final ImagePlus imp = new Opener().openImage( file.getAbsolutePath() );
-	        final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( imp );
+	        final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( original_imp );
 	    	
-	        long vMaxp1[] = new long [backgroundImg.numDimensions() + 1];
+	        long vMaxp1[] = new long [backgroundImg.numDimensions()];
 	        
     		for (int i = 0 ; i < backgroundImg.numDimensions() ; i++)
     		{
     			vMaxp1[i] = backgroundImg.dimension(i);
     		}
-    		vMaxp1[backgroundImg.numDimensions()] = this.frames.length;
     		
 	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
 	        out_fs = imgFactory.create(vMaxp1, new ARGBType());
@@ -2740,26 +2759,41 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
  		/* for each frame we have add a stack to the image */
  		for (int i = 0; i<frames.length; i++)
  		{
- 	    	// Create frame image
- 	    	
- 	    	if (background != null)
+ 			
+ 	    	if (text_files_mode == true)
  	    	{
- 	    		File file = new File( background.replace("*", Integer.toString(i+1)));
- 	        
- 	    		// open a file with ImageJ
- 	    		final ImagePlus imp = new Opener().openImage( file.getAbsolutePath() );
- 	 
- 	    		Calibration cal = imp.getCalibration();
+ 	    		// Create frame image
  	    	
- 	            // wrap it into an ImgLib image (no copying)
- 	            final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( imp );
+ 	    		if (background != null)
+ 	    		{
+ 	    			File file = new File( background.replace("*", Integer.toString(i+1)));
+ 	        
+ 	    			// open a file with ImageJ
+ 	    			final ImagePlus imp = new Opener().openImage( file.getAbsolutePath() );
+ 	 
+ 	    			Calibration cal = imp.getCalibration();
+ 	    	
+ 	    			// wrap it into an ImgLib image (no copying)
+ 	    			final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( imp );
  	    		
- 	    		out_f = frames[i].createImage(backgroundImg, all_traj, cal, i, DrawType.NEXT);
+ 	    			out_f = frames[i].createImage(backgroundImg, all_traj, cal, i, DrawType.TRAJECTORY_HISTORY);
  	    		
+ 	    		}
+ 	 	    	else
+ 	 	    	{
+ 	 	    		out_f = frames[i].createImage(vMax,0);
+ 	 	    	}
  	    	}
  	    	else
- 	    	{
- 	    		out_f = frames[i].createImage(vMax,0);
+ 	    	{	 
+ 	    		Calibration cal = original_imp.getCalibration();
+	    	
+	    		// wrap it into an ImgLib image (no copying)
+ 	    		
+ 	    		ImagePlus timp = MosaicUtils.getImageFrame(original_imp,i);
+	    		final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( timp );
+	    		
+	    		out_f = frames[i].createImage(backgroundImg, all_traj, cal, i, DrawType.TRAJECTORY_HISTORY);
  	    	}
  			
  			MosaicUtils.copyEmbedded(out_fs, out_f, i);

@@ -41,7 +41,8 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	 * Defines a MyFrame that is based upon an ImageProcessor or information from a text file.
 	 * @param <RandomsAccessible>
 	 */
-	public class MyFrame {
+	public class MyFrame 
+	{
 
 		//		Particle[] particles;		// an array Particle, holds all the particles detected in this frame
 		//									// after particle discrimination holds only the "real" particles
@@ -842,11 +843,21 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        }
 		}
 		
+
+		/**
+		 * 
+		 * Bresenham line 3D algorithm
+		 * 
+		 * @param out Image where to draw
+		 * @param p1 start point
+		 * @param p2 end line
+		 * @param col Color of the line
+		 */
 		private void drawLine(Img<ARGBType> out, Particle p1, Particle p2, int col)
 		{
 			RandomAccess<ARGBType> out_a = out.randomAccess();
 			
-	        Connectivity c = new Connectivity(3,1);
+/*	        Connectivity c = new Connectivity(3,1);
 	        
 	        Point pp1 = new Point((int)p1.x,(int)p1.y,(int)p1.z);
 	        Point pp2 = new Point((int)p2.x,(int)p2.y,(int)p2.z);
@@ -880,10 +891,112 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
     	        out_a.setPosition(pp1.x);
     	        out_a.get().set(col);
 	        	
-	        } while (distance_min >= 1.0);
+	        } while (distance_min >= 1.0);*/
+	        
+
+			    int i, dx, dy, dz, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
+			    int pixel[] = new int[3];
+			    
+			    pixel[0] = (int) p1.x;
+			    pixel[1] = (int) p1.y;
+			    pixel[2] = (int) p1.z;
+			    dx = (int) (p2.x - p1.x);
+			    dy = (int) (p2.y - p1.y);
+			    dz = (int) (p2.z - p1.z);
+			    x_inc = (dx < 0) ? -1 : 1;
+			    l = Math.abs(dx);
+			    y_inc = (dy < 0) ? -1 : 1;
+			    m = Math.abs(dy);
+			    z_inc = (dz < 0) ? -1 : 1;
+			    n = Math.abs(dz);
+			    dx2 = l << 1;
+			    dy2 = m << 1;
+			    dz2 = n << 1;
+
+			    if ((l >= m) && (l >= n)) 
+			    {
+			        err_1 = dy2 - l;
+			        err_2 = dz2 - l;
+			        for (i = 0; i < l; i++) 
+			        {
+		    	        out_a.setPosition(pixel);
+		    	        out_a.get().set(col);
+			            if (err_1 > 0) 
+			            {
+			                pixel[1] += y_inc;
+			                err_1 -= dx2;
+			            }
+			            if (err_2 > 0) 
+			            {
+			                pixel[2] += z_inc;
+			                err_2 -= dx2;
+			            }
+			            err_1 += dy2;
+			            err_2 += dz2;
+			            pixel[0] += x_inc;
+			        }
+			    } 
+			    else if ((m >= l) && (m >= n)) 
+			    {
+			        err_1 = dx2 - m;
+			        err_2 = dz2 - m;
+			        for (i = 0; i < m; i++) 
+			        {
+			        	if (pixel[0] >= out.dimension(0) ||  pixel[1] >= out.dimension(1) || pixel[2] >= out.dimension(2))
+			        	{
+			        		int debug = 0;
+			        		debug++;
+			        	}
+			        		
+		    	        out_a.setPosition(pixel);
+		    	        out_a.get().set(col);
+			            if (err_1 > 0) 
+			            {
+			                pixel[0] += x_inc;
+			                err_1 -= dy2;
+			            }
+			            if (err_2 > 0) 
+			            {
+			                pixel[2] += z_inc;
+			                err_2 -= dy2;
+			            }
+			            err_1 += dx2;
+			            err_2 += dz2;
+			            pixel[1] += y_inc;
+			        }
+			    } 
+			    else 
+			    {
+			        err_1 = dy2 - n;
+			        err_2 = dx2 - n;
+			        for (i = 0; i < n; i++) 
+			        {
+			        	if (pixel[0] >= out.dimension(0) ||  pixel[1] >= out.dimension(1) || pixel[2] >= out.dimension(2))
+			        	{
+			        		int debug = 0;
+			        		debug++;
+			        	}
+			        	
+		    	        out_a.setPosition(pixel);
+		    	        out_a.get().set(col);
+			            if (err_1 > 0) {
+			                pixel[1] += y_inc;
+			                err_1 -= dz2;
+			            }
+			            if (err_2 > 0) {
+			                pixel[0] += x_inc;
+			                err_2 -= dz2;
+			            }
+			            err_1 += dy2;
+			            err_2 += dx2;
+			            pixel[2] += z_inc;
+			        }
+			    }
+    	        out_a.setPosition(pixel);
+    	        out_a.get().set(col);
 		}
 		
-		private void drawLines(Img<ARGBType> out, List<pParticle> lines , int col)
+		private void drawLines(Img<ARGBType> out, List<pParticle> lines , Calibration cal, int col)
 		{
 			RandomAccess<ARGBType> out_a = out.randomAccess();
 			
@@ -898,9 +1011,50 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        
 	        for (pParticle ptt : lines )
 	        {
-	        	Particle p_end = new Particle(ptt.p2);
+	        	Particle p_end = new Particle(ptt.p1);
+	        	Particle p_ini = new Particle(ptt.p2);
 	        	p_end.z = ptt.p1.z;
-	        	drawLine(out,ptt.p1,p_end, col);
+	        	
+    			p_ini.x /= (float)cal.pixelWidth;
+    			p_ini.y /= (float)cal.pixelHeight;
+    			p_ini.z /= (float)cal.pixelDepth;
+    	
+    			p_end.x /= (float)cal.pixelWidth;
+    			p_end.y /= (float)cal.pixelHeight;
+    			p_end.z /= (float)cal.pixelDepth;
+	        	
+	        	drawLine(out,p_ini,p_end, col);
+	        	
+	        	int radius;
+	        	
+	        	radius = (int) ((int) Math.cbrt(ptt.p1.m0 / 3.0f * 4.0f) / cal.pixelDepth);
+	        	
+	        	for (int i = 1 ; i <= radius ; i++)
+	        	{
+	        		if (ptt.p1.z / (float)cal.pixelDepth - i >= 0 && ptt.p2.z / (float)cal.pixelDepth - i >= 0)
+	        		{
+	    	        	p_end = new Particle(ptt.p1);
+	    	        	p_ini = new Particle(ptt.p2);
+	    	        	p_end.z = ptt.p1.z;
+	        			
+	        			p_ini.z = p_ini.z / (float)cal.pixelDepth - i;
+	        			p_end.z = p_end.z / (float)cal.pixelDepth - i;
+	        	
+	        			drawLine(out,p_ini,p_end, col);
+	        		}
+	        		
+	        		if (ptt.p2.x / (float)cal.pixelDepth + i < out.dimension(2) && ptt.p1.z / (float)cal.pixelDepth + i < out.dimension(2))
+	        		{
+	    	        	p_end = new Particle(ptt.p1);
+	    	        	p_ini = new Particle(ptt.p2);
+	    	        	p_end.z = ptt.p1.z;
+	        			
+	        			p_ini.z = p_ini.z / (float)cal.pixelDepth + i;
+	        			p_end.z = p_end.z /(float)cal.pixelDepth + i;
+	        	
+	        			drawLine(out,p_ini,p_end, col);
+	        		}
+	        	}
 	        }
 		}
 		
@@ -1092,18 +1246,54 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        				
 	        				// Collect spline
 	        				
-/*	        				if (typ == DrawType.NEXT)
+	        				if (typ == DrawType.NEXT)
 	        				{
 	        					if (j+1 < tr.get(t).existing_particles.length)
 	        					{
 	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
 	        					}
-	        				}*/
+	        				}
+	        				else if (typ == DrawType.PREV)
+	        				{
+	        					if (j-1 >= 0)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j-1]));
+	        					}	
+	        				}
+	        				else if (typ == DrawType.PREV_NEXT)
+	        				{
+	        					if (j+1 < tr.get(t).existing_particles.length)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
+	        					}
+	        					if (j-1 >= 0)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j-1]));
+	        					}
+	        				}
+	        				else if (typ == DrawType.TRAJECTORY_HISTORY)
+	        				{
+	        					for (int i = j ; i >= 1  ; i--)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[i],tr.get(t).existing_particles[i-1]));
+	        					}
+	        				}
+	        				else if (typ == DrawType.TRAJECTORY_HISTORY_WITH_NEXT)
+	        				{
+	        					for (int i = j ; i >= 1  ; i--)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[i],tr.get(t).existing_particles[i-1]));
+	        					}
+	        					if (j+1 < tr.get(t).existing_particles.length)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
+	        					}
+	        				}
 	        			}
 	        		}
 	        	}
 		        drawParticles(out,vp,cal, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
-//		        drawLines(out,lines, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+		        drawLines(out,lines,cal, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
 	        }
 	        
 	        return out;

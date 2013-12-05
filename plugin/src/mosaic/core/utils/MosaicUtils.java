@@ -358,4 +358,22 @@ public class MosaicUtils {
 		return true;
 	}
 	
+	public static ImagePlus getImageFrame(ImagePlus img, int frame)
+	{
+		int nImages = img.getNFrames();
+	
+		ImageStack stk = img.getStack();
+	
+		int stack_size = stk.getSize() / nImages;
+
+		ImageStack tmp_stk = new ImageStack(img.getWidth(),img.getHeight());
+		for (int j = 0 ; j < stack_size ; j++)
+		{
+			tmp_stk.addSlice("st"+j,stk.getProcessor(frame*stack_size+j+1));
+		}
+		
+		ImagePlus ip = new ImagePlus("tmp",tmp_stk);
+		return ip;
+	}
+	
 }

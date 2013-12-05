@@ -23,7 +23,7 @@ public class ParticleLinkerKNN {
 	
 	class VerletList
 	{
-		Particle p[];
+		Vector<Integer> p;
 	}
 	
 	
@@ -168,6 +168,11 @@ public class ParticleLinkerKNN {
 		}
 	}
 
+	private float cost(Particle p1, Particle p2)
+	{
+		return 0;
+		
+	}
 	
 	public void linkParticles(MyFrame[] frames, int frames_number, linkerOptions l) 
 	{
@@ -406,28 +411,90 @@ public class ParticleLinkerKNN {
 				/* Now the relation matrix needs to be optimized */
 				IJ.showStatus("Linking Frame " + (m+1) + ": Optimizing Relation matrix");
 				
+				// Create verlet list from t to t + 1
 				
-				boolean move = false;
-/*				while(min < 0.0) 
-				{*/
-/*					for (i = 0 ; i < nop ; i++)
+				VerletList vl_t_tp[] = new VerletList[nop];
+				
+				for(int s1 = 0; i < nop; i++) 
+				{
+					for (int s2 = 0 ; j < nop_next ; j++)
 					{
-//						list = createSubList();
-//						move |= optimizeSublist();
-					}*/
-					
-/*					min = 0.0;
-					int prev_i = 0, prev_j = 0, prev_x = 0, prev_y = 0;
-					for(i = 0; i < nop + 1; i++) 
+						float distance = p2.elementAt(s2).distance(p1.elementAt(s1));
+						
+						if (distance < l.displacement)
+						{
+							vl_t_tp[s1].p.add(s2);
+						}
+					}
+				}
+				
+				// Create verlet list from t+1 to t
+				
+				VerletList vl_tp_t[] = new VerletList[nop_next];
+				
+				for(int s1 = 0; i < nop_next; i++) 
+				{
+					for (int s2 = 0 ; j < nop ; j++)
 					{
-						for(j = 0; j < nop_next + 1; j++) 
+						float distance = p1.elementAt(s2).distance(p2.elementAt(s1));
+						
+						if (distance < l.displacement)
+						{
+							vl_tp_t[s1].p.add(s2);
+						}
+					}
+				}
+				
+				boolean move = true;
+				while(move == true) 
+				{
+					for(int s1 = 0; s1 < nop ; s1++) 
+					{
+						BipartiteMatcher bpm = new BipartiteMatcher(vl_t_tp[s1].p.size() + 1);
+						
+						// Get the verlet list of i
+						
+						
+						// For each particle in the verlet i get the particle
+						
+						for (int s2 = 0 ; s2 < vl_t_tp[s1].p.size() ; s2++)
+						{
+							int p = vl_t_tp[s1].p.get(s2);
+							
+							// search on which particle is attached g[i][j]
+							
+							Particle p_s = null;
+							
+							// For each particle in the verlet
+							
+							for (int s3 = 0 ; s3 < vl_t_tp[s1].p.size() ; s3++)
+							{
+								bpm.setWeight(s3, s2, cost(p_s,p2.elementAt(vl_t_tp[s1].p.get(s3))) );
+							}
+						}
+						
+						for (int s2 = 0 ; s2 < vl_t_tp[s1].p.size() ; s2++)
+						{
+							bpm.setWeight(0, s2, cost[i][vl_t_tp[s1].p.get(s2)]);
+						}
+						
+						// Get the verlet list of j
+						
+						// Create Bipartite graph
+						
+						// Get maximum weight perfect matching
+						
+						// if the new configuration is better
+						
+					}
+/*						for(j = 0; j < nop_next + 1; j++) 
 						{
 							if(i == nop && j == nop_next)
 								continue;
 
 							if(g[i][j] == false && 
 									cost[i][j] <= max_cost) 
-							{*/
+							{
 								/* Calculate the reduced cost */
 
 								// Look along the x-axis, including
@@ -480,8 +547,8 @@ public class ParticleLinkerKNN {
 						g_x[nop_next] = nop;
 						g_y[nop] = nop_next;
 					}*/
-				/*}*/
-
+				}
+				
 				/* After optimization, the particles needs to be linked */
 				for(i = 0; i < nop; i++) 
 				{
@@ -661,7 +728,7 @@ public class ParticleLinkerKNN {
 	
 	private float calculateCost(int p[], CostMatrix cSub)
 	{
-		float cost = 0.0;
+		float cost = 0.0f;
 		
 		for (int i = 0 ; i < p.length ; i++)
 		{
@@ -678,7 +745,7 @@ public class ParticleLinkerKNN {
 		
 		void Permutation()
 		{
-			double cost = calculateCost(p);
+			double cost = 0.0/*calculateCost(p)*/;
 			
 			if (cost < best_min)
 			{
@@ -698,26 +765,7 @@ public class ParticleLinkerKNN {
 		
 		
 		
-		JhonsonTrotter js = new JhonsonTrotter() {
-			void Permutation()
-			{
-				cost = calculateCost(p);
-			}
-		}
-		
-		do
-		{
-			
-			float cost_post = calculateNewCost();
-			
-			/* Better situation */
-			
-			if (calculate_post < calculate_prev)
-			{
-				updateRelation();
-			}
-			
-		} while (Increment(comb,end));
+		BestPerm js = new BestPerm();
 		
 		return true;
 	}
