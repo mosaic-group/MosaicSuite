@@ -1,0 +1,51 @@
+Apache Ant(TM) version 1.8.3 compiled on February 29 2012
+Buildfile: /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic/build.xml
+Adding reference: ant.PropertyHelper
+Detected Java version: 1.6 in: /home/i-bird/Desktop/MOSAIC/imageJ/Fiji_dev/fiji/java/linux-amd64/jdk1.6.0_24/jre
+Detected OS: Linux
+Adding reference: ant.ComponentHelper
+Setting ro project property: ant.file -> /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic/build.xml
+Setting ro project property: ant.file.type -> file
+Adding reference: ant.projectHelper
+Adding reference: ant.parsing.context
+Adding reference: ant.targets
+parsing buildfile /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic/build.xml with URI = file:/home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic/build.xml
+Setting ro project property: ant.project.name -> MosaicImageJPlugins
+Adding reference: MosaicImageJPlugins
+Setting ro project property: ant.file.MosaicImageJPlugins -> /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic/build.xml
+Setting ro project property: ant.file.type.MosaicImageJPlugins -> file
+Project base dir set to: /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic
+ +Target: 
+ +Target: main
+ +Target: release
+ +Target: all_mosaic_plugins
+Adding reference: ant.LocalProperties
+parsing buildfile jar:file:/usr/share/java/ant.jar!/org/apache/tools/ant/antlib.xml with URI = jar:file:/usr/share/java/ant.jar!/org/apache/tools/ant/antlib.xml from a zip file
+Setting project property: src -> /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic/src
+Setting project property: build -> /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic/bin
+Setting project property: dist -> /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic/dist
+Setting project property: pluginsDir -> /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/ImageJ/plugins
+Override ignored for property "user.name"
+Setting ro project property: ant.project.invoked-targets -> main
+Attempting to create object of type org.apache.tools.ant.helper.DefaultExecutor
+Adding reference: ant.executor
+Build sequence for target(s) `main' is [all_mosaic_plugins, main]
+Complete build sequence is [all_mosaic_plugins, main, release, ]
+
+all_mosaic_plugins:
+fileset: Setup scanner in dir /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic with patternSet{ includes: [plugins.config] excludes: [] }
+fileset: Setup scanner in dir /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic with patternSet{ includes: [Jama/*.*] excludes: [] }
+fileset: Setup scanner in dir /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic/bin with patternSet{ includes: [**/*.*] excludes: [] }
+      [jar] plugins.config omitted as /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic/mosaic_plugins.jar:plugins.config is up to date.
+      [jar] No sources found.
+      [jar] No Implementation-Title set.No Implementation-Version set.No Implementation-Vendor set.
+      [jar] Location: /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic/build.xml:26: 
+     [copy] /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/mosaic/mosaic_plugins.jar omitted as /home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/src/ImageJ/plugins/mosaic_plugins.jar is up to date.
+
+main:
+     [echo] 
+     [echo] 		Building the .jar files.
+     [echo] 	
+
+BUILD SUCCESSFUL
+Total time: 0 seconds
