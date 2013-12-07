@@ -10,15 +10,18 @@ import java.awt.Point;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericDialogCustom;
 import mosaic.bregman.GUI.BackgroundSubGUI.BackgroundSubHelp;
 import mosaic.core.GUI.HelpGUI;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 
@@ -202,6 +205,22 @@ public class SegmentationGUI
 		
 		Panel p = new Panel();
 		Button b = new Button("Patch position");
+		b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				// TODO Auto-generated method stub
+				
+				JFileChooser fc = new JFileChooser();
+				fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+				fc.showOpenDialog(null);
+				File selFile = fc.getSelectedFile();
+				
+				Analysis.p.patches_from_file = selFile.getAbsolutePath();
+			}
+			
+		});
 		p.add(b);
 		gd.addPanel(p);
 		

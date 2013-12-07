@@ -8,6 +8,7 @@ public class Parameters  implements Serializable
 
 	//
 	
+	public String patches_from_file;
 	public int output_format = -1;
 	
 	// method parameters

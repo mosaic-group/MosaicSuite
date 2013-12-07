@@ -84,7 +84,8 @@ import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 
-public class GenericGUI {
+public class GenericGUI 
+{
 	boolean clustermode;
 	ImagePlus imgch1;
 	ImagePlus imgch2;

@@ -360,9 +360,8 @@ public class ASplitBregmanSolver {
 			if(p.livedisplay && p.firstphase) IJ.log("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + iw3kbestold);
 		}
 
-
-
-		if (p.findregionthresh ){//&& p.nz==1){
+		if (p.findregionthresh )
+		{
 			this.regions_intensity_findthresh(w3kbest[0]);
 		}
 
@@ -575,10 +574,13 @@ public class ASplitBregmanSolver {
 
 
 		//construct mask as an imageplus
-		for (int z=0; z<nz; z++){
+		for (int z=0; z<nz; z++)
+		{
 			float[] mask_float = new float[p.ni*p.nj];
-			for (int i=0; i<ni; i++) {  
-				for (int j=0; j<nj; j++) {  
+			for (int i=0; i<ni; i++) 
+			{
+				for (int j=0; j<nj; j++) 
+				{
 					mask_float[j * p.ni + i]= (float) mask[z][i][j];
 				}
 			}
