@@ -139,6 +139,12 @@ public class ImagePatches {
 		//IJ.log("Mean size of refined regions : " + Analysis.meansize_refined);
 	}
 
+	/**
+	 * 
+	 * Patch creation, distribution and assembly
+	 * 
+	 */
+	
 	public void distribute_regions()
 	{
 		//assuming rvoronoi and regionslists (objects)  in same order (and same length)
@@ -172,15 +178,6 @@ public class ImagePatches {
 			else{
 				//	ap.run();//execute
 			}
-
-			// Debug
-			
-/*			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}*/
 			
 			/////////////////7
 			

@@ -10,15 +10,18 @@ import java.awt.Point;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericDialogCustom;
 import mosaic.bregman.GUI.BackgroundSubGUI.BackgroundSubHelp;
 import mosaic.core.GUI.HelpGUI;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 
@@ -172,6 +175,19 @@ public class SegmentationGUI
 		gd.addNumericField("Minimum_object_intensity,_channel_1 (0 to 1)", Analysis.p.min_intensity, 3);
 		gd.addNumericField("                         _channel_2 (0 to 1)", Analysis.p.min_intensityY, 3);
 		
+		/////////////// Patches positioning
+		
+		//FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
+//		p.setPreferredSize(new Dimension(565, 30));
+		//p.setLayout(null);
+		//p.setBackground(Color.black);
+
+//		Button b = new Button("Preview cell mask");
+//		b.addActionListener(new HelpOpenerActionListener(p,gd));
+//		p.add(b);
+		
+		///////////////
+		
 		gd.addCheckbox("Subpixel segmentation", Analysis.p.subpixel);
 		
 		String choice1[] = {
@@ -187,10 +203,30 @@ public class SegmentationGUI
 		gd.addNumericField("standard deviation xy (in pixels)", Analysis.p.sigma_gaussian, 2);
 		gd.addNumericField("standard deviation z  (in pixels)", Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 2);
 		
+		Panel p = new Panel();
+		Button b = new Button("Patch position");
+		b.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				// TODO Auto-generated method stub
+				
+				JFileChooser fc = new JFileChooser();
+				fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+				fc.showOpenDialog(null);
+				File selFile = fc.getSelectedFile();
+				
+				Analysis.p.patches_from_file = selFile.getAbsolutePath();
+			}
+			
+		});
+		p.add(b);
+		gd.addPanel(p);
+		
 		Button bp = new Button("Estimate PSF from objective properties");
 		bp.addActionListener(new PSFOpenerActionListener(gd));
-		
-		Panel p = new Panel();
+		p = new Panel();
 		p.add(bp);
 		gd.addPanel(p);
 

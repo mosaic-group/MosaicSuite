@@ -2,11 +2,26 @@ package mosaic.bregman;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.measure.Calibration;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
+import net.imglib2.RandomAccess;
+import net.imglib2.img.Img;
+import net.imglib2.type.numeric.ARGBType;
+
 import mosaic.bregman.FindConnectedRegions.Region;
+import mosaic.core.detection.MyFrame;
+import mosaic.core.detection.Particle;
+import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.utils.CircleMask;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIteratorMask;
+import mosaic.core.utils.SphereMask;
 
 public class TwoRegions extends NRegions 
 {
@@ -35,7 +50,47 @@ public class TwoRegions extends NRegions
 		//Tools.disp_vals(mask[1][0], "mask");
 
 	}
-
+	
+	
+	
+	private void drawParticles(double [][][] out, Vector<Particle> pt, int radius)
+	{
+        // Iterate on all particles
+        
+		int sz[] = new int[3];
+		
+        while (pt.size() != 0)
+        {    		    		
+    		// Create a circle Mask and an iterator
+    		
+        	SphereMask cm = new SphereMask(radius, 2*radius + 1, 3);
+        	RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
+        	
+        	Iterator<Particle> pt_it = pt.iterator();
+        	
+        	while (pt_it.hasNext())
+        	{
+        		Particle ptt = pt_it.next();
+        	
+        		// Draw the sphere
+        			
+        		Point p_c = new Point((int)(ptt.x),(int)(ptt.y),(int)(ptt.z));
+        			
+        		rg_m.setMidPoint(p_c);
+        			
+	        	while ( rg_m.hasNext() )
+	        	{
+	        		Point p = rg_m.nextP();
+	        			
+	        		if (p.x[0] < sz[0] && p.x[1] < sz[1] && p.x[2] < sz[2])
+	        		{
+	        			out[p.x[0]][p.x[1]][p.x[2]] = 1.0;
+	        		}
+	        	}	
+        	}
+        }
+	}
+	
 	@Override
 	public void  run()
 	{
@@ -79,15 +134,36 @@ public class TwoRegions extends NRegions
 			A_solver= new ASplitBregmanSolverTwoRegions(p,image,SpeedData,mask,md,channel,null);
 
 		//first run
-		try 
+		if (Analysis.p.patches_from_file == null)
 		{
-			//Tools.showmem();
-			A_solver.first_run();
-			//Tools.showmem();
+			try 
+			{
+				//Tools.showmem();
+				A_solver.first_run();
+				//Tools.showmem();
+			}
+			catch (InterruptedException ex) {}
 		}
-		catch (InterruptedException ex) {}
-		if(channel==0){	
-
+		else
+		{	
+			// Load particles
+			
+			Vector<Particle> pt = new Vector<Particle>();
+			
+			InterPluginCSV<Particle> csv = new InterPluginCSV<Particle>(Particle.class);
+			
+			// create a mask Image
+		
+			double img[][][] = new double[p.nz][p.ni][p.nj];
+			
+			drawParticles(img,pt,5);
+			
+			A_solver.regions_intensity_findthresh(img);
+			
+		}
+		
+		if(channel==0)
+		{
 			//Analysis.maska=A_solver.w3kbest[0];//
 
 			Analysis.setMaskaTworegions(A_solver.w3kbest[0]);
@@ -102,12 +178,13 @@ public class TwoRegions extends NRegions
 			RoN = new float [p.nz][p.ni][p.nj];
 
 			LocalTools.copytab(RoN, A_solver.Ro[0]);
-
+			
 			ArrayList<Region> regions=A_solver.regionsvoronoi;
-
+			
 			//A_solver=null; //for testing
 
-			if(!Analysis.p.looptest){
+			if(!Analysis.p.looptest)
+			{
 				if(p.findregionthresh)Analysis.compute_connected_regions_a((int) 255*p.thresh,RiN);
 				else Analysis.compute_connected_regions_a((int) 255*p.thresh,null);
 				//A_solver=null; // for testing
@@ -144,10 +221,8 @@ public class TwoRegions extends NRegions
 			//			else
 			//				Analysis.A_solverX=A_solver; // add for loop settings
 		}
-		else{
-			//Analysis.maskb=A_solver.w3kbest[0];	
-
-			
+		else
+		{
 			Analysis.setMaskbTworegions(A_solver.w3kbest[0]);
 			//Analysis.setMaskaTworegions(A_solver.w3kbest[0],A_solver.bp_watermask);
 			Analysis.bestEnergyY=A_solver.bestNrj;

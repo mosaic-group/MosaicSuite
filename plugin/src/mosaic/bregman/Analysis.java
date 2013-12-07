@@ -356,13 +356,14 @@ public class Analysis {
 			}
 			else {Ri=RiN;}
 		}
-
+		
+		/* */
 		
 		//fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,false,true);
 		if(p.debug)
 			fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,true,p.save_images);//&&(!p.refinement)
 		else
-			fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,p.dispcolors&&(!p.refinement),p.save_images&&(!p.refinement));
+			fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,p.dispcolors&&(!p.refinement) ,p.save_images&&(!p.refinement));
 
 
 		regionsA=fcr.tempres;
@@ -1737,8 +1738,14 @@ public class Analysis {
 
 	}
 
-	public static void setMaskaTworegions( double [] [] [] mask){
-
+	/**
+	 * 
+	 *  Allocate a byte maskA based on the double mask
+	 *  
+	 */
+	
+	public static void setMaskaTworegions( double [] [] [] mask)
+	{
 		maskA=new byte [p.nz][p.ni][p.nj];
 		for (int z=0; z<p.nz; z++){
 			for (int i=0; i<p.ni; i++){  
@@ -1747,8 +1754,6 @@ public class Analysis {
 				}
 			}
 		}
-
-
 	}
 
 	public static void setMaskaTworegions( double [] [] [] mask, ByteProcessor bp){

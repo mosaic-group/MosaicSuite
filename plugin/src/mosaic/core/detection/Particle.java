@@ -2,8 +2,12 @@ package mosaic.core.detection;
 
 import java.text.DecimalFormat;
 
-import mosaic.core.ipc.ICSVGeneral;
+import org.supercsv.cellprocessor.ift.CellProcessor;
 
+
+import mosaic.core.ipc.ICSVGeneral;
+import org.supercsv.cellprocessor.ParseDouble;
+import org.supercsv.cellprocessor.ParseInt;
 
 
 /**
@@ -17,6 +21,17 @@ import mosaic.core.ipc.ICSVGeneral;
 public class Particle  implements ICSVGeneral
 {
 
+	public static final String[] ParticleDetection_map = new String[] 
+	{ 
+		"Frame",
+        "x",
+        "y",
+        "z",
+        "Size"
+    };
+	
+	public static CellProcessor[] ParticleDetectionCellProcessor;
+	
 	public float x, y, z; 					// the originally given coordinates - to be refined 
 	public float original_x; 				// the originally given coordinates - not to be changed 		
 	public float original_y, original_z;
@@ -42,6 +57,24 @@ public class Particle  implements ICSVGeneral
 	
 	/**
 	 * 
+	 * Init CSV structure
+	 * 
+	 */
+	
+	static public void initCSV()
+	{
+		ParticleDetectionCellProcessor = new CellProcessor[] 
+		{
+				new ParseInt(),
+				new ParseDouble(),
+				new ParseDouble(),
+	            new ParseDouble(),
+	            new ParseDouble(),
+		};
+	}
+	
+	/**
+	 * 
 	 * Create a particle from another particle
 	 * 
 	 * @param p
@@ -59,6 +92,25 @@ public class Particle  implements ICSVGeneral
 		this.m4 = p.m4;
 	}
 	
+	
+	/**
+	 * 
+	 * Set the particle data
+	 * 
+	 * @param p
+	 */
+	
+	public void setData(Particle p)
+	{
+		this.x = p.x;
+		this.y = p.y;
+		this.z = p.z;
+		this.m0 = p.m0;
+		this.m1 = p.m1;
+		this.m2 = p.m2;
+		this.m3 = p.m3;
+		this.m4 = p.m4;
+	}
 	
 	/**
 	 * 

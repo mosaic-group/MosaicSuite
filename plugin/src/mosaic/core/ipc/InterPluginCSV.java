@@ -112,6 +112,14 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	CsvPreference c;
 	Vector<ExtParam> fld;
 	
+	/**
+	 * 
+	 * Constructor, require the class type of the Generic parameter,
+	 * example for InterPluginCSV<T> you have to pass T.class 
+	 * 
+	 * @param p_ T.class
+	 */
+	
 	public InterPluginCSV(Class<E> p_)
 	{
 		p = p_;
@@ -125,7 +133,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	 * 
 	 * Get Meta information
 	 * 
-	 * @param String meta information
+	 * @param String meta information 
 	 * @return Value of the meta information
 	 */
 	
@@ -416,7 +424,8 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	/**
 	 * 
 	 * Write a CSV file, perform an automatical conversion from the element inside vector
-	 * and the internal type 
+	 * and the internal type, setData(T) where T is the type of the sigle element in the
+	 * out vector has to be implemented in the POJO Class (aka internal type)
 	 * 
 	 * @param CsvFilename Filename
 	 * @param out Input file of object

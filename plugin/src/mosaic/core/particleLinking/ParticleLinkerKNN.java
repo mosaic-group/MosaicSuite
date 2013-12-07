@@ -726,7 +726,7 @@ public class ParticleLinkerKNN {
 	 * @return
 	 */
 	
-	private float calculateCost(int p[], CostMatrix cSub)
+/*	private float calculateCost(int p[], CostMatrix cSub)
 	{
 		float cost = 0.0f;
 		
@@ -745,7 +745,7 @@ public class ParticleLinkerKNN {
 		
 		void Permutation()
 		{
-			double cost = 0.0/*calculateCost(p)*/;
+			double cost = 0.0/*calculateCost(p);
 			
 			if (cost < best_min)
 			{
@@ -753,7 +753,7 @@ public class ParticleLinkerKNN {
 				best_p = p.clone();
 			}
 		}
-	}
+	}*/
 	
 	private boolean optimizeSublist(Particle p1_sub[], Particle p2_sub[], RelationMatrix subR, CostMatrix costSub)
 	{
@@ -765,7 +765,30 @@ public class ParticleLinkerKNN {
 		
 		
 		
+/*<<<<<<< HEAD
 		BestPerm js = new BestPerm();
+=======
+		JhonsonTrotter js = new JhonsonTrotter() {
+			void Permutation()
+			{
+				cost = calculateCost(p);
+			}
+		}
+		
+		do
+		{
+			
+			float cost_post = calculateNewCost();*/
+			
+			/* Better situation */
+			
+/*			if (calculate_post < calculate_prev)
+			{
+				updateRelation();
+			}
+			
+		} while (Increment(comb,end));
+>>>>>>> Oxidation_analysis*/
 		
 		return true;
 	}

@@ -77,6 +77,18 @@ public class AnalysePatch implements Runnable{
 	ASplitBregmanSolver A_solver;
 
 
+	/**
+	 * 
+	 * Create patches
+	 * 
+	 * @param image Image
+	 * @param r Region
+	 * @param pa Paramenters for split Bregman
+	 * @param oversampling level of overlampling
+	 * @param channel ?
+	 * @param regionsf ?
+	 * @param impa ?
+	 */
 
 	public AnalysePatch(double [][][] image, Region r, Parameters pa, int oversampling, int channel, short [][][] regionsf, ImagePatches impa){
 		//IJ.log("creating patch :"+ r.value);
@@ -361,8 +373,16 @@ public class AnalysePatch implements Runnable{
 
 	}
 
+	/**
+	 * 
+	 * Compute the geometry of the patch
+	 * 
+	 * @param r Region
+	 * @param oversampling level of oversampling
+	 */
 
-	private  void set_patch_geom(Region r, int oversampling){
+	private  void set_patch_geom(Region r, int oversampling)
+	{
 		int xmin, ymin , zmin, xmax, ymax, zmax; 
 		xmin=ox;ymin=oy;zmin=oz;
 		xmax=0;ymax=0;zmax=0;
