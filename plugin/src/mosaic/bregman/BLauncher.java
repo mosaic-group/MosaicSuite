@@ -181,8 +181,6 @@ public class BLauncher
 				}
 				else
 				{
-
-
 					out  = new PrintWriter(savepath+"_ImagesData"+ ".csv");
 					out.println();
 					out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch1"  +";" + "Mean surface in ch1"  +";"+ "Mean length in ch1");
@@ -482,10 +480,6 @@ public class BLauncher
 
 		//Analysis.p.livedisplay=false;
 
-
-
-
-
 		Analysis.p.blackbackground=ij.Prefs.blackBackground;
 		ij.Prefs.blackBackground=false;
 		Analysis.p.nchannels=img2.getNChannels();
@@ -609,6 +603,13 @@ public class BLauncher
 		}catch (InterruptedException ex) {}
 
 
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		//IJ.log("imgb :" +list[i+1]);
 
 		if(Analysis.p.nchannels==2){
@@ -867,14 +868,11 @@ public class BLauncher
 				
 				boolean append = false;
 				
-				if (hcount != 0)
-					append = true;
-				
 				Vector<?> obl = Analysis.getObjectsList(hcount);
 				
 				InterPluginCSV<?> IpCSV = CSVOutput.getInterPluginCSV();
 				
-				IpCSV.Write(savepath+"_ObjectsData_c1"+ ".csv",obl,CSVOutput.occ, append);
+				IpCSV.Write(savepath + (hcount+1) + "_ObjectsData_c1" + ".csv",obl,CSVOutput.occ, append);
 				
 				//IJ.log("print objects done");
 //				out2.flush();

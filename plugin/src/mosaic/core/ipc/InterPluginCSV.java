@@ -131,6 +131,20 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	
 	/**
 	 * 
+	 * Set Meta information
+	 * 
+	 * @param String meta information 
+	 * @param Value of the meta information
+	 */
+	
+	public void setMetaInformation(String parameter, String Value)
+	{
+		ExtParam prm = new ExtParam(parameter, Value);
+		fld.add(prm);
+	}
+	
+	/**
+	 * 
 	 * Get Meta information
 	 * 
 	 * @param String meta information 
@@ -466,6 +480,17 @@ public class InterPluginCSV<E extends ICSVGeneral>
                 if (append == false)
                 	beanWriter.writeHeader(occ.map);
                 
+                // Write meta information
+                
+                for (int i = 0 ; i < fld.size() ;i++)
+                {
+                	beanWriter.writeComment("%" + fld.get(i).p1 + ":" + fld.get(i).p2);
+                }
+                	
+                //
+                
+                if (fld.size() == 0)
+                	beanWriter.writeComment("");
                 // write the beans
                 
                 Method m = null;
@@ -644,9 +669,9 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	 */
 	
     public boolean Stitch(String output[], String Sttch , OutputChoose occ)
-    {			
+    {
 		Vector<?> v = Read(output, occ);
-			
+		
 		Write(Sttch, v, occ, false);
     	
     	return true;
@@ -753,6 +778,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			v.add(element);
 		}
 			
     	return v;

@@ -24,6 +24,8 @@ import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.plugins.ParticleTracker3DModular_.Trajectory;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
+
 import java.util.Vector;
 
 import net.imglib2.Cursor;
@@ -35,6 +37,7 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.view.Views;
 
 
 	/**
@@ -60,6 +63,16 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 		float threshold;					// threshold for particle detection 
 		boolean normalized = false;
 		int linkrange;
+		
+		
+		/**
+		 * Default constructor 
+		 * 
+		 */
+		public MyFrame () 
+		{
+		}
+		
 		/**
 		 * Constructor for ImageProcessor based MyFrame.
 		 * <br>All particles and other information will be derived from the given <code>ImageProcessor</code>
@@ -770,7 +783,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 			return t;
 		}
 
-		private void drawParticles(Img<ARGBType> out, List<Particle> pt , Calibration cal, int col)
+		static private void drawParticles(RandomAccessibleInterval<ARGBType> out, List<Particle> pt , Calibration cal, int col)
 		{
 			RandomAccess<ARGBType> out_a = out.randomAccess();
 			
@@ -785,7 +798,12 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        
 	        while (pt.size() != 0)
 	        {
-	        	int radius = (int) Math.cbrt(pt.get(0).m0*3.0/4.0/Math.PI);
+	        	int radius;
+	        	if (out_a.numDimensions() == 2)
+	        		radius = (int)Math.sqrt(pt.get(0).m0/Math.PI);
+	        	else
+	        		radius = (int) Math.cbrt(pt.get(0).m0*3.0/4.0/Math.PI);
+	        	
 	        	if (radius == 0) radius = 1;
 	        	float sp[] = new float[out_a.numDimensions()];
 	        	
@@ -814,7 +832,13 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        	while (pt_it.hasNext())
 	        	{
 	        		Particle ptt = pt_it.next();
-	        		int radius_r = (int) Math.cbrt(ptt.m0*3.0/4.0/Math.PI);
+	        		
+		        	int radius_r;
+		        	if (out_a.numDimensions() == 2)
+		        		radius_r = (int)Math.sqrt(pt.get(0).m0/Math.PI);
+		        	else
+		        		radius_r = (int) Math.cbrt(pt.get(0).m0*3.0/4.0/Math.PI);
+	        		
 	        		if (radius_r == 0) radius_r = 1;
 	        		
 	        		// if particle has the same radius
@@ -823,7 +847,12 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        		{
 	        			// Draw the Circle
 	        			
-	        			Point p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]),(int)(ptt.z/scaling[2]));
+	        			Point p_c = null;
+	        			if (out_a.numDimensions() == 2)
+	        				p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]));
+	        			else
+	        				p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]),(int)(ptt.z/scaling[2]));
+	        			
 	        			
 	        			rg_m.setMidPoint(p_c);
 	        			
@@ -831,7 +860,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 		        		{
 		        			Point p = rg_m.nextP();
 		        			
-		        			if (p.x[0] < sz[0] && p.x[1] < sz[1] && p.x[2] < sz[2])
+		        			if (p.isInside(sz))
 		        			{
 		        				out_a.setPosition(p.x);
 		        				out_a.get().set(col);
@@ -853,49 +882,18 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 		 * @param p2 end line
 		 * @param col Color of the line
 		 */
-		private void drawLine(Img<ARGBType> out, Particle p1, Particle p2, int col)
+		static private void drawLine(RandomAccessibleInterval<ARGBType> out, Particle p1, Particle p2, int col)
 		{
-			RandomAccess<ARGBType> out_a = out.randomAccess();
+	        // the number of dimensions
+	        int numDimensions = out.numDimensions();
+	        
+	        long dims[] = new long[numDimensions];
+	        out.dimensions(dims);
 			
-/*	        Connectivity c = new Connectivity(3,1);
-	        
-	        Point pp1 = new Point((int)p1.x,(int)p1.y,(int)p1.z);
-	        Point pp2 = new Point((int)p2.x,(int)p2.y,(int)p2.z);
-	        
-	        out_a.setPosition(pp1.x);
-	        out_a.get().set(col);
-	        
-	        float distance_min = Float.MAX_VALUE;
-	        float distance = 0.0f;
-	        Point p_min = null;
-	        
-	        do
-	        {
-	        	for (Point p_c : c)
-	        	{
-	        		p_c = p_c.add(pp1);
-	        		distance = (float) p_c.distance(pp2);
-	        	
-	        		if (distance < distance_min)
-	        		{
-	        			distance_min = distance;
-	        			p_min = p_c;
-	        		}	        		
-	        	}
-	        	
-        		pp1 = p_min;
-        		pp1.positive();
-        		
-        		distance_min = (float) pp1.distance(pp2);
-        		
-    	        out_a.setPosition(pp1.x);
-    	        out_a.get().set(col);
-	        	
-	        } while (distance_min >= 1.0);*/
-	        
+			RandomAccess<ARGBType> out_a = out.randomAccess();
 
 			    int i, dx, dy, dz, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
-			    int pixel[] = new int[3];
+			    long pixel[] = new long[3];
 			    
 			    pixel[0] = (int) p1.x;
 			    pixel[1] = (int) p1.y;
@@ -919,7 +917,21 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 			        err_2 = dz2 - l;
 			        for (i = 0; i < l; i++) 
 			        {
+			        	boolean out_pix = false;
+			        	for (int k = 0 ; k < out_a.numDimensions(); k++)
+			        	{
+			        		if (pixel[k] >= dims[k])
+			        		{
+			        			out_pix = true;
+			        			break;
+			        		}
+			        	}
+			        	
+			        	if (out_pix == true)
+			        		continue;
+			        	
 		    	        out_a.setPosition(pixel);
+		    	        	
 		    	        out_a.get().set(col);
 			            if (err_1 > 0) 
 			            {
@@ -942,11 +954,18 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 			        err_2 = dz2 - m;
 			        for (i = 0; i < m; i++) 
 			        {
-			        	if (pixel[0] >= out.dimension(0) ||  pixel[1] >= out.dimension(1) || pixel[2] >= out.dimension(2))
+			        	boolean out_pix = false;
+			        	for (int k = 0 ; k < out_a.numDimensions(); k++)
 			        	{
-			        		int debug = 0;
-			        		debug++;
+			        		if (pixel[k] >= dims[k])
+			        		{
+			        			out_pix = true;
+			        			break;
+			        		}
 			        	}
+			        	
+			        	if (out_pix == true)
+			        		continue;
 			        		
 		    	        out_a.setPosition(pixel);
 		    	        out_a.get().set(col);
@@ -971,11 +990,18 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 			        err_2 = dx2 - n;
 			        for (i = 0; i < n; i++) 
 			        {
-			        	if (pixel[0] >= out.dimension(0) ||  pixel[1] >= out.dimension(1) || pixel[2] >= out.dimension(2))
+			        	boolean out_pix = false;
+			        	for (int k = 0 ; k < out_a.numDimensions(); k++)
 			        	{
-			        		int debug = 0;
-			        		debug++;
+			        		if (pixel[k] >= dims[k])
+			        		{
+			        			out_pix = true;
+			        			break;
+			        		}
 			        	}
+			        	
+			        	if (out_pix == true)
+			        		continue;
 			        	
 		    	        out_a.setPosition(pixel);
 		    	        out_a.get().set(col);
@@ -992,12 +1018,34 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 			            pixel[2] += z_inc;
 			        }
 			    }
-    	        out_a.setPosition(pixel);
-    	        out_a.get().set(col);
+			    
+	        	boolean out_pix = false;
+	        	for (int k = 0 ; k < out_a.numDimensions(); k++)
+	        	{
+	        		if (pixel[k] >= dims[k])
+	        		{
+	        			out_pix = true;
+	        			break;
+	        		}
+	        	}
+	        	
+	        	if (out_pix == false)
+	        	{
+	        		out_a.setPosition(pixel);
+	        		out_a.get().set(col);
+	        	}
 		}
 		
-		private void drawLines(Img<ARGBType> out, List<pParticle> lines , Calibration cal, int col)
+		static private void drawLines(RandomAccessibleInterval<ARGBType> out, List<pParticle> lines , Calibration cal, int col)
 		{
+			if (cal == null)
+			{
+				cal = new Calibration();
+				cal.pixelDepth = 1.0;
+				cal.pixelHeight = 1.0;
+				cal.pixelWidth = 1.0;
+			}
+						
 			RandomAccess<ARGBType> out_a = out.randomAccess();
 			
 	        int sz[] = new int [out_a.numDimensions()];
@@ -1015,13 +1063,16 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        	Particle p_ini = new Particle(ptt.p2);
 	        	p_end.z = ptt.p1.z;
 	        	
-    			p_ini.x /= (float)cal.pixelWidth;
-    			p_ini.y /= (float)cal.pixelHeight;
-    			p_ini.z /= (float)cal.pixelDepth;
+	        	if (cal != null)
+	        	{
+	        		p_ini.x /= (float)cal.pixelWidth;
+	        		p_ini.y /= (float)cal.pixelHeight;
+	        		p_ini.z /= (float)cal.pixelDepth;
     	
-    			p_end.x /= (float)cal.pixelWidth;
-    			p_end.y /= (float)cal.pixelHeight;
-    			p_end.z /= (float)cal.pixelDepth;
+	        		p_end.x /= (float)cal.pixelWidth;
+	        		p_end.y /= (float)cal.pixelHeight;
+	        		p_end.z /= (float)cal.pixelDepth;
+	        	}
 	        	
 	        	drawLine(out,p_ini,p_end, col);
 	        	
@@ -1043,7 +1094,9 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        			drawLine(out,p_ini,p_end, col);
 	        		}
 	        		
-	        		if (ptt.p2.x / (float)cal.pixelDepth + i < out.dimension(2) && ptt.p1.z / (float)cal.pixelDepth + i < out.dimension(2))
+	        		
+	        		
+	        		if (ptt.p2.x / (float)cal.pixelDepth + i < out.dimension(out.numDimensions()-1) && ptt.p1.z / (float)cal.pixelDepth + i < out.dimension(out.numDimensions()-1))
 	        		{
 	    	        	p_end = new Particle(ptt.p1);
 	    	        	p_ini = new Particle(ptt.p2);
@@ -1058,7 +1111,7 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        }
 		}
 		
-		private void drawParticles(Img<ARGBType> out, Vector<Particle> particles, Calibration cal, int col)
+		static private void drawParticles(Img<ARGBType> out, Vector<Particle> particles, Calibration cal, int col)
 		{
 	        // Create a list of particles
 	        
@@ -1120,12 +1173,6 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 		{
 	        // the number of dimensions
 	        int numDimensions = background.numDimensions();
-	        int sz[] = new int [numDimensions];
-	 
-	        for ( int d = 0; d < numDimensions; ++d )
-	        {
-	            sz[d] = (int) background.dimension( d );
-	        }
 	        
 	        long dims[] = new long[numDimensions];
 	        background.dimensions(dims);
@@ -1176,6 +1223,129 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 		
 		/**
 		 * 
+		 * Update the image
+		 * 
+		 * @param An array of frames
+		 * @param A vector of Trajectory
+		 * @param Color to use for draw
+		 * @param Type of draw
+		 *
+		 */
+		
+		static public  void updateImage(Img<ARGBType> out , Vector<Trajectory> tr , DrawType typ)
+		{
+			for (int i = 0 ; i < tr.size() ; i++)
+				updateImage(out,tr,new Color(tr.get(i).color.getRed(), tr.get(i).color.getGreen(), tr.get(i).color.getBlue(), tr.get(i).color.getTransparency()),typ);
+		}
+		
+		/**
+		 * 
+		 * Update the image
+		 * 
+		 * @param An array of frames
+		 * @param A vector of Trajectory
+		 * @param Color to use for draw
+		 * @param Type of draw
+		 *
+		 */
+		
+		static public  void updateImage(Img<ARGBType> out , Vector<Trajectory> tr , Color cl , DrawType typ)
+		{
+			// Get image
+	        
+			MyFrame f = new MyFrame();
+	        Cursor<ARGBType> curOut = out.cursor();
+	        
+	        //
+	        
+	        int nframe = (int) out.dimension(out.numDimensions()-1);
+	        
+	        Vector<Particle> vp = new Vector<Particle>();
+	        Vector<pParticle> lines = new Vector<pParticle>();
+	        
+	        // Collect particles to draw and spline to draw
+	        
+	        for (int frame = 0 ; frame < nframe ; frame++)
+	        {
+	        	for (int t = 0 ; t < tr.size() ; t++)
+	        	{
+	        		if (tr.get(t).toDisplay() == false)
+	        			continue;
+	        		
+	        		vp.clear();
+	        		lines.clear();
+	        	
+	        		if ( frame >= tr.get(t).start_frame && frame <= tr.get(t).stop_frame )
+	        		{
+	        			// Check all particles frames, if particle is in frame add it
+	        		
+	        			for (int j = 0 ; j < tr.get(t).existing_particles.length ; j++)
+	        			{
+	        				if (tr.get(t).existing_particles[j].getFrame() == frame)
+	        				{
+	        					// Particle to draw
+	        				
+	        					vp.add(tr.get(t).existing_particles[j]);
+	        				
+	        					// Collect spline
+	        				
+	        					if (typ == DrawType.NEXT)
+	        					{
+	        						if (j+1 < tr.get(t).existing_particles.length)
+	        						{
+	        							lines.add(f.new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
+	        						}
+	        					}
+	        					else if (typ == DrawType.PREV)
+	        					{
+	        						if (j-1 >= 0)
+	        						{
+	        							lines.add(f.new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j-1]));
+	        						}	
+	        					}
+	        					else if (typ == DrawType.PREV_NEXT)
+	        					{
+	        						if (j+1 < tr.get(t).existing_particles.length)
+	        						{
+	        							lines.add(f.new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
+	        						}
+	        						if (j-1 >= 0)
+	        						{
+	        							lines.add(f.new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j-1]));
+	        						}
+	        					}
+	        					else if (typ == DrawType.TRAJECTORY_HISTORY)
+	        					{
+	        						for (int i = j ; i >= 1  ; i--)
+	        						{
+	        							lines.add(f.new pParticle(tr.get(t).existing_particles[i],tr.get(t).existing_particles[i-1]));
+	        						}
+	        					}
+	        					else if (typ == DrawType.TRAJECTORY_HISTORY_WITH_NEXT)
+	        					{
+	        						for (int i = j ; i >= 1  ; i--)
+	        						{
+	        							lines.add(f.new pParticle(tr.get(t).existing_particles[i],tr.get(t).existing_particles[i-1]));
+	        						}
+	        						if (j+1 < tr.get(t).existing_particles.length)
+	        						{
+	        							lines.add(f.new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
+	        						}
+	        					}
+	        				}
+	        			}
+	        		}
+	        		
+                    RandomAccessibleInterval< ARGBType > view = Views.hyperSlice( out, out.numDimensions()-1, frame );
+	        		
+			        drawParticles(view,vp,null, ARGBType.rgba(cl.getRed(), cl.getGreen(), cl.getBlue(), cl.getTransparency()));
+			        drawLines(view,lines,null, ARGBType.rgba(cl.getRed(), cl.getGreen(), cl.getBlue(), cl.getTransparency()));
+	        	}
+	        }
+		}
+		
+		/**
+		 * 
 		 * Create an image from particle information with background and trajectory information
 		 * 
 		 * @param background background image
@@ -1192,12 +1362,6 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 			
 	        // the number of dimensions
 	        int numDimensions = background.numDimensions();
-	        int sz[] = new int [numDimensions];
-	 
-	        for ( int d = 0; d < numDimensions; ++d )
-	        {
-	            sz[d] = (int) background.dimension( d );
-	        }
 	        
 	        long dims[] = new long[numDimensions];
 	        background.dimensions(dims);
@@ -1229,6 +1393,9 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        
 	        for (int t = 0 ; t < tr.size() ; t++)
 	        {
+        		if (tr.get(t).toDisplay() == false)
+        			continue;
+	        	
 	        	vp.clear();
 	        	lines.clear();
 	        	
@@ -1294,6 +1461,113 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 	        	}
 		        drawParticles(out,vp,cal, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
 		        drawLines(out,lines,cal, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+	        }
+	        
+	        return out;
+		}
+		
+		/**
+		 * 
+		 * Create an image from particle information and trajectory information
+		 * 
+		 * @param background background image
+		 * @param cal calibration
+		 * @return image video
+		 */
+		
+		public  Img<ARGBType> createImage(int vMax[],  Vector<Trajectory> tr , int frame, DrawType typ)
+		{
+			// if you have no trajectory draw use the other function
+			
+			if (tr == null)
+			{return createImage(vMax,frame);}
+			
+	        // the number of dimensions
+	        
+	        // Create image
+	        
+	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
+	        Img<ARGBType> out = imgFactory.create(vMax, new ARGBType());
+	        
+	        Cursor<ARGBType> curOut = out.cursor();
+	        
+	        //
+	        
+	        Vector<Particle> vp = new Vector<Particle>();
+	        Vector<pParticle> lines = new Vector<pParticle>();
+	        
+	        // Collect particles to draw and spline to draw
+	        
+	        for (int t = 0 ; t < tr.size() ; t++)
+	        {
+        		if (tr.get(t).toDisplay() == false)
+        			continue;
+        		
+	        	vp.clear();
+	        	lines.clear();
+	        	
+	        	if ( frame >= tr.get(t).start_frame && frame <= tr.get(t).stop_frame )
+	        	{
+	        		// Check all particles frames, if particle is in frame add it
+	        		
+	        		for (int j = 0 ; j < tr.get(t).existing_particles.length ; j++)
+	        		{
+	        			if (tr.get(t).existing_particles[j].getFrame() == frame)
+	        			{
+	        				// Particle to draw
+	        				
+	        				vp.add(tr.get(t).existing_particles[j]);
+	        				
+	        				// Collect spline
+	        				
+	        				if (typ == DrawType.NEXT)
+	        				{
+	        					if (j+1 < tr.get(t).existing_particles.length)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
+	        					}
+	        				}
+	        				else if (typ == DrawType.PREV)
+	        				{
+	        					if (j-1 >= 0)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j-1]));
+	        					}	
+	        				}
+	        				else if (typ == DrawType.PREV_NEXT)
+	        				{
+	        					if (j+1 < tr.get(t).existing_particles.length)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
+	        					}
+	        					if (j-1 >= 0)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j-1]));
+	        					}
+	        				}
+	        				else if (typ == DrawType.TRAJECTORY_HISTORY)
+	        				{
+	        					for (int i = j ; i >= 1  ; i--)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[i],tr.get(t).existing_particles[i-1]));
+	        					}
+	        				}
+	        				else if (typ == DrawType.TRAJECTORY_HISTORY_WITH_NEXT)
+	        				{
+	        					for (int i = j ; i >= 1  ; i--)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[i],tr.get(t).existing_particles[i-1]));
+	        					}
+	        					if (j+1 < tr.get(t).existing_particles.length)
+	        					{
+	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
+	        					}
+	        				}
+	        			}
+	        		}
+	        	}
+		        drawParticles(out,vp,null, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+		        drawLines(out,lines,null, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
 	        }
 	        
 	        return out;

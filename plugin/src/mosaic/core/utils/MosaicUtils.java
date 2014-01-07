@@ -18,6 +18,7 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
 import mosaic.bregman.Analysis;
+import mosaic.core.GUI.ProgressBarWin;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -358,6 +359,15 @@ public class MosaicUtils {
 		return true;
 	}
 	
+	/**
+	 * 
+	 * Get the frame ImagePlus from an ImagePlus
+	 * 
+	 * @param img Image
+	 * @param frame frame
+	 * @return An ImagePlus of the frame
+	 */
+	
 	public static ImagePlus getImageFrame(ImagePlus img, int frame)
 	{
 		int nImages = img.getNFrames();
@@ -376,4 +386,58 @@ public class MosaicUtils {
 		return ip;
 	}
 	
+	
+	/**
+	 * 
+	 * Reorganize the data in the directories inside sv, following the file patterns
+	 * specified
+	 * 
+	 * Give output[] = {data*file1, data*file2}
+	 * and base = "_tmp_"
+	 * 
+	 * it create two folder data_file1 and data_file2 and inside put all the file
+	 * with pattern data_tmp_1file1 ..... data_tmp_Nfile1 in the first and data_tmp_1file2 ..... data_tmp_Nfile2
+	 * in the second
+	 * 
+	 * @param output List of output patterns
+	 * @param base String of the image/data to substitute
+	 * @param sv Save path
+	 */
+	
+	public static void reorganize(String output[], String base, String sv , int nf)
+	{
+		// reorganize
+		
+		try 
+		{
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+		
+				Process tProcess;
+				tProcess = Runtime.getRuntime().exec("mkdir " + sv + "/" + tmp.replace("*","_"));
+				tProcess.waitFor();
+			}
+				
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+					
+				Process tProcess;
+				for (int k = 0 ; k < nf ; k++)
+				{
+					tProcess = Runtime.getRuntime().exec("mv " + sv + "/" + tmp.replace("*",base + (k+1)) + "   " + sv + "/" + tmp.replace("*", "_"));
+					tProcess.waitFor();
+				}
+			}
+		} 
+		catch (IOException e) 
+		{
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
 }

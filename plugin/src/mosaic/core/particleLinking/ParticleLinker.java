@@ -89,33 +89,6 @@ public class ParticleLinker {
 				p2 = frames[m + (n + 1)].getParticles();
 				//    			p1 = frames[m].particles;
 				//    			p2 = frames[m + (n + 1)].particles;
-
-
-				//////////////// Debug
-				
-				
-				if (m == 88)
-				{
-					for (int v = 0; v < p1.size() ; v++)
-					{
-						if (Math.sqrt((p1.get(v).x - 85)*(p1.get(v).x - 85) + (p1.get(v).y - 28)*(p1.get(v).y - 28) + (p1.get(v).z - 11)*(p1.get(v).z - 11)) < 10.0)
-						{
-							int debug = 0;
-							debug++;
-						}
-					}
-					
-					for (int v = 0; v < p2.size() ; v++)
-					{
-						if (Math.sqrt((p2.get(v).x - 85)*(p2.get(v).x - 85) + (p2.get(v).y - 28)*(p2.get(v).y - 28) + (p2.get(v).z - 11)*(p2.get(v).z - 11)) < 10.0)
-						{
-							int debug = 0;
-							debug++;
-						}
-					}
-				}
-					
-				//////////////
 					
 				/* Fill in the costs */
 				for(i = 0; i < nop; i++) 

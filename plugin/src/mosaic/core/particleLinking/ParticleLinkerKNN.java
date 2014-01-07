@@ -21,7 +21,7 @@ public class ParticleLinkerKNN {
 	 * <br>Algorithm and implementation from Pietro Incardona
 	 */	
 	
-	class VerletList
+/*	class VerletList
 	{
 		Vector<Integer> p;
 	}
@@ -69,9 +69,9 @@ public class ParticleLinkerKNN {
 		{
 			return g[i*col + j];
 		}
-	}
+	}*/
 	
-	class CostMatrix
+/*	class CostMatrix
 	{
 		int cursor = 0;
 		int col;
@@ -113,10 +113,10 @@ public class ParticleLinkerKNN {
 		{
 			return c[i*col + j];
 		}
-	}
+	}*/
 	
 
-	public class JohnsonTrotter 
+/*	public class JohnsonTrotter 
 	{
 		int[] p;
 		int[] pi;
@@ -166,30 +166,76 @@ public class ParticleLinkerKNN {
 		{
 			return p;
 		}
-	}
+	}*/
 
-	private float cost(Particle p1, Particle p2)
+	private float cost_link(Particle p1, Particle p2, linkerOptions l, int n, double max_cost)
 	{
-		return 0;
+		double cost = 0.0;
+		float distance_sq = (p1.x - p2.x)*(p1.x - p2.x) + 
+			(p1.y - p2.y)*(p1.y - p2.y) + 
+			(p1.z - p2.z)*(p1.z - p2.z);
+	
+		cost = (float) (distance_sq*l.l_s +
+				l.l_f*Math.cbrt(((p1.m0 - p2.m0)*(p1.m0 - p2.m0)) + 
+				(p1.m2 - p2.m2)*(p1.m2 - p2.m2)));
+	
+		if (l.force == true)
+		{
+			if (p1.distance >= 0.0)
+			{
+				float lx = (p2.x - p1.x) / (n+1) - p1.lx;
+				float ly = (p2.y - p1.y) / (n+1) - p1.ly;
+				float lz = (p2.z - p1.z) / (n+1)- p1.lz;
+			
+				float f_magn_sq = lx * lx + ly * ly + lz * lz;
+				cost += l.l_d * f_magn_sq;
+			}
+			else
+			{
+				// This is a fresh particle we have no idea where is going
+				
+				cost += max_cost / 3.0;
+			}
+		}
+		else if (l.straight_line == true  && p1.distance >= 0.0)
+		{
+			// Calculate the module
 		
+			float l1_m = p1.linkModule();
+		
+			float lx1 = p1.lx/l1_m;
+			float ly1 = p1.ly/l1_m;
+			float lz1 = p1.lz/l1_m;
+		
+			float lx2 = (p2.x - p1.x + p1.lxa);
+			float ly2 = (p2.y - p1.y + p1.lya);
+			float lz2 = (p2.z - p1.z + p1.lza);
+		
+			float l2_m = (float) Math.sqrt(lx2 * lx2 + ly2 * ly2 + lz2 * lz2);
+		
+			if (l2_m >= l.r_sq)
+			{
+				lx2 /= l2_m;
+				ly2 /= l2_m;
+				lz2 /= l2_m;
+			
+				float cos_phi = lx1 * lx2 + ly1 * ly2 + lz1 * lz2;
+		
+				cost += (cos_phi - 1)*(cos_phi - 1)*l.displacement*l.displacement;
+			}
+		}
+		return (float) cost;
 	}
 	
 	public void linkParticles(MyFrame[] frames, int frames_number, linkerOptions l) 
 	{
-		int m, i, j, k, nop, nop_next, n;
-		int ok, prev, prev_s, x = 0, y = 0, curr_linkrange;
-		/** The association matirx g */
-		boolean[][] g;
-		/** g_x stores the index of the currently associated particle, and vice versa.
-		 * It is another representation for the association matrix g. */
-		int[] g_x,g_y; 
+		int m, i, j, nop, nop_next, n;
+		int curr_linkrange;
 		/** okv is a helper vector in the initialization phase. It keeps track of the empty columns
 		 * in g. */
 		boolean[] okv;
-		double min, z;
 		float max_cost;
 		/** The cost matrix - TODO: it is quite sparse and one should take advantage of that. */
-		float[][] cost;
 		Vector<Particle> p1, p2;
 
 		// set the length of the particles next array according to the linkrange
@@ -224,14 +270,6 @@ public class ParticleLinkerKNN {
 
 				nop_next = frames[m + (n + 1)].getParticles().size();
 
-				/* Set up the cost matrix */
-				cost = new float[nop+1][nop_next+1];
-
-				/* Set up the relation matrix */
-				g = new boolean[nop+1][nop_next+1];
-				g_x = new int[nop_next+1];
-				g_y = new int[nop+1];
-
 				okv = new boolean[nop_next+1];
 				for (i = 0; i< okv.length; i++) okv[i] = true;
 
@@ -241,373 +279,109 @@ public class ParticleLinkerKNN {
 				p1 = frames[m].getParticles();
 				p2 = frames[m + (n + 1)].getParticles();
 				//    			p1 = frames[m].particles;
-				//    			p2 = frames[m + (n + 1)].particles;
-
-
-				//////////////// Debug
+				//    			p2 = frames[m + (n + 1)].particles
 				
 				
-				if (m == 88)
-				{
-					for (int v = 0; v < p1.size() ; v++)
-					{
-						if (Math.sqrt((p1.get(v).x - 85)*(p1.get(v).x - 85) + (p1.get(v).y - 28)*(p1.get(v).y - 28) + (p1.get(v).z - 11)*(p1.get(v).z - 11)) < 10.0)
-						{
-							int debug = 0;
-							debug++;
-						}
-					}
+				// Create a bipartite graph
 					
-					for (int v = 0; v < p2.size() ; v++)
-					{
-						if (Math.sqrt((p2.get(v).x - 85)*(p2.get(v).x - 85) + (p2.get(v).y - 28)*(p2.get(v).y - 28) + (p2.get(v).z - 11)*(p2.get(v).z - 11)) < 10.0)
-						{
-							int debug = 0;
-							debug++;
-						}
-					}
-				}
-					
-				//////////////
-					
+				BipartiteMatcher bpm = new BipartiteMatcher(nop + nop_next);
+				
+				//
+				
 				/* Fill in the costs */
-				for(i = 0; i < nop; i++) 
+				for(i = 0; i < nop + nop_next; i++) 
 				{
-					for(j = 0; j < nop_next; j++) 
+					for(j = 0; j < nop + nop_next; j++) 
 					{
-						float distance_sq = (p1.elementAt(i).x - p2.elementAt(j).x)*(p1.elementAt(i).x - p2.elementAt(j).x) + 
-								(p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) + 
-								(p1.elementAt(i).z - p2.elementAt(j).z)*(p1.elementAt(i).z - p2.elementAt(j).z);
-						
-						cost[i][j] = (float) (distance_sq*l.l_s +
-							l.l_f*Math.cbrt(((p1.elementAt(i).m0 - p2.elementAt(j).m0)*(p1.elementAt(i).m0 - p2.elementAt(j).m0)) + 
-							(p1.elementAt(i).m2 - p2.elementAt(j).m2)*(p1.elementAt(i).m2 - p2.elementAt(j).m2)));
-						
-						if (l.force == true)
+						if (i < nop && j < nop_next)
 						{
-							if (p1.elementAt(i).distance >= 0.0)
-							{
-								float lx = (p2.elementAt(j).x - p1.elementAt(i).x) / (n+1) - p1.elementAt(i).lx;
-								float ly = (p2.elementAt(j).y - p1.elementAt(i).y) / (n+1) - p1.elementAt(i).ly;
-								float lz = (p2.elementAt(j).z - p1.elementAt(i).z) / (n+1)- p1.elementAt(i).lz;
-								
-								float f_magn_sq = lx * lx + ly * ly + lz * lz;
-								cost[i][j] += l.l_d * f_magn_sq;
-							}
+							double cost = cost_link(p1.elementAt(i),p2.elementAt(j),l,n,max_cost);
+							bpm.setWeight(i, j, max_cost-cost);
 						}
-						else if (l.straight_line == true  && p1.elementAt(i).distance >= 0.0)
+						else
 						{
-							// Calculate the module
-							
-							float l1_m = p1.elementAt(i).linkModule();
-							
-							float lx1 = p1.elementAt(i).lx/l1_m;
-							float ly1 = p1.elementAt(i).ly/l1_m;
-							float lz1 = p1.elementAt(i).lz/l1_m;
-							
-							float lx2 = (p2.elementAt(j).x - p1.elementAt(i).x + p1.elementAt(i).lxa);
-							float ly2 = (p2.elementAt(j).y - p1.elementAt(i).y + p1.elementAt(i).lya);
-							float lz2 = (p2.elementAt(j).z - p1.elementAt(i).z + p1.elementAt(i).lza);
-							
-							float l2_m = (float) Math.sqrt(lx2 * lx2 + ly2 * ly2 + lz2 * lz2);
-							
-							if (l2_m >= l.r_sq)
-							{
-								lx2 /= l2_m;
-								ly2 /= l2_m;
-								lz2 /= l2_m;
-								
-								float cos_phi = lx1 * lx2 + ly1 * ly2 + lz1 * lz2;
-							
-								cost[i][j] += (cos_phi - 1)*(cos_phi - 1)*l.displacement*l.displacement;
-							}
-						}
-					}
-				}
-
-				for(i = 0; i < nop + 1; i++)
-					cost[i][nop_next] = max_cost;
-				for(j = 0; j < nop_next + 1; j++)
-					cost[nop][j] = max_cost;
-				cost[nop][nop_next] = 0.0f;
-
-				/* Initialize the relation matrix */
-				/* Initialize the relation matrix */
-				for(i = 0; i < nop; i++) 
-				{ // Loop over the x-axis
-					IJ.showStatus("Linking Frame " + (m+1) + ": Initializing Relation matrix");
-					IJ.showProgress(i,nop);
-					min = max_cost;
-					prev = -1;
-					for(j = 0; j < nop_next; j++) 
-					{ // Loop over the y-axis without the dummy
-
-						/* Let's see if we can use this coordinate */						
-						if(okv[j] && min > cost[i][j]) 
-						{
-							min = cost[i][j];
-							if(prev >= 0) 
-							{
-								okv[prev] = true;
-								g[i][prev] = false;
-							}
-
-							okv[j] = false;
-							g[i][j] = true;
-							
-							prev = j;
-						}
-					}
-
-					/* Check if we have a dummy particle */
-					if(min == max_cost) 
-					{
-						if(prev >= 0) 
-						{
-							okv[prev] = true;
-							g[i][prev] = false;
-						}
-						g[i][nop_next] = true;
-						okv[nop_next] = false;
-					}
-				}
-				
-				/* Look for columns that are zero */
-				for(j = 0; j < nop_next; j++) 
-				{
-					ok = 1;
-					for(i = 0; i < nop + 1; i++) 
-					{
-						if(g[i][j])
-							ok = 0;
-					}
-					if(ok == 1)
-						g[nop][j] = true;
-				}
-
-				/* Build xv and yv, a speedup for g */
-				for(i = 0; i < nop + 1; i++) 
-				{
-				//	for(j = 0; j < nop_next+1; j++) {
-					for(j = 0; j < nop_next + 1; j++) 
-					{
-						if(g[i][j]) 
-						{
-							g_x[j] = i;
-							g_y[i] = j;
-						}
-					}
-					/*if(g[i][nop_next]) {
-						xv[nop_next] = i;
-						yv[i] = nop_next;
-					}*/
-				}
-				g_x[nop_next] = nop;
-				g_y[nop] = nop_next;
-				
-				/* The relation matrix is initilized */
-			
-				
-				/* Now the relation matrix needs to be optimized */
-				IJ.showStatus("Linking Frame " + (m+1) + ": Optimizing Relation matrix");
-				
-				// Create verlet list from t to t + 1
-				
-				VerletList vl_t_tp[] = new VerletList[nop];
-				
-				for(int s1 = 0; i < nop; i++) 
-				{
-					for (int s2 = 0 ; j < nop_next ; j++)
-					{
-						float distance = p2.elementAt(s2).distance(p1.elementAt(s1));
-						
-						if (distance < l.displacement)
-						{
-							vl_t_tp[s1].p.add(s2);
+							bpm.setWeight(i, j, 0.0);
 						}
 					}
 				}
 				
-				// Create verlet list from t+1 to t
-				
-				VerletList vl_tp_t[] = new VerletList[nop_next];
-				
-				for(int s1 = 0; i < nop_next; i++) 
-				{
-					for (int s2 = 0 ; j < nop ; j++)
-					{
-						float distance = p1.elementAt(s2).distance(p2.elementAt(s1));
-						
-						if (distance < l.displacement)
-						{
-							vl_tp_t[s1].p.add(s2);
-						}
-					}
-				}
-				
-				boolean move = true;
-				while(move == true) 
-				{
-					for(int s1 = 0; s1 < nop ; s1++) 
-					{
-						BipartiteMatcher bpm = new BipartiteMatcher(vl_t_tp[s1].p.size() + 1);
-						
-						// Get the verlet list of i
-						
-						
-						// For each particle in the verlet i get the particle
-						
-						for (int s2 = 0 ; s2 < vl_t_tp[s1].p.size() ; s2++)
-						{
-							int p = vl_t_tp[s1].p.get(s2);
-							
-							// search on which particle is attached g[i][j]
-							
-							Particle p_s = null;
-							
-							// For each particle in the verlet
-							
-							for (int s3 = 0 ; s3 < vl_t_tp[s1].p.size() ; s3++)
-							{
-								bpm.setWeight(s3, s2, cost(p_s,p2.elementAt(vl_t_tp[s1].p.get(s3))) );
-							}
-						}
-						
-						for (int s2 = 0 ; s2 < vl_t_tp[s1].p.size() ; s2++)
-						{
-							bpm.setWeight(0, s2, cost[i][vl_t_tp[s1].p.get(s2)]);
-						}
-						
-						// Get the verlet list of j
-						
-						// Create Bipartite graph
-						
-						// Get maximum weight perfect matching
-						
-						// if the new configuration is better
-						
-					}
-/*						for(j = 0; j < nop_next + 1; j++) 
-						{
-							if(i == nop && j == nop_next)
-								continue;
-
-							if(g[i][j] == false && 
-									cost[i][j] <= max_cost) 
-							{
-								/* Calculate the reduced cost */
-
-								// Look along the x-axis, including
-								// the dummy particles
-/*								x = g_x[j];
-
-								// Look along the y-axis, including
-								// the dummy particles
-								y = g_y[i];*/
-								
-								
-								/* z is the reduced cost */
-/*								z = cost[i][j] + 
-								cost[x][y] - 
-								cost[i][y] - 
-								cost[x][j];
-								
-								if(z > -1.0e-10)
-									z = 0.0;
-								if(z < min) {
-									
-									if ((i == 11  || x == 11) && m == 88)
-									{
-										int debug = 0;
-										debug++;
-									}
-									min = z;
-
-									prev_i = i;
-									prev_j = j;
-									prev_x = x;
-									prev_y = y;
-								}
-							}
-						}
-					}
-
-					if(min < 0.0) 
-					{
-						g[prev_i][prev_j] = true;
-						g_x[prev_j] = prev_i;
-						g_y[prev_i] = prev_j;
-						g[prev_x][prev_y] = true;
-						g_x[prev_y] = prev_x;
-						g_y[prev_x] = prev_y;
-						g[prev_i][prev_y] = false;
-						g[prev_x][prev_j] = false;
-						
-						// ensure the dummies still map to each other
-						g_x[nop_next] = nop;
-						g_y[nop] = nop_next;
-					}*/
-				}
+				int[] mac = bpm.getMatching();
 				
 				/* After optimization, the particles needs to be linked */
-				for(i = 0; i < nop; i++) 
+				for(i = 0; i < nop + nop_next; i++) 
 				{
-					for(j = 0; j < nop_next; j++) 
+					// Adjust mac[i]
+					
+					if (i >= nop || mac[i] >= nop_next)
 					{
-						if(g[i][j] == true)
+						continue;
+					}
+					
+					p1 = frames[m].getParticles();
+					p2 = frames[m + 1].getParticles();
+					
+					if (cost_link(p1.elementAt(i),p2.elementAt(mac[i]),l,0,max_cost) >= max_cost)
+					{
+						continue;
+					}
+					
+					// link particle
+					
+					p1.elementAt(i).next[n] = mac[i];
+
+					// if linked to a dummy particle does not calculate
+					
+					if (mac[i] >= nop_next)
+						continue;
+					
+					// Calculate the square distance and store the normalized linking vector
+						
+					if (l.force == true)
+					{						
+						p2.elementAt(mac[i]).lx = (p2.elementAt(mac[i]).x - p1.elementAt(i).x) / (n+1);
+						p2.elementAt(mac[i]).ly = (p2.elementAt(mac[i]).y - p1.elementAt(i).y) / (n+1);
+						p2.elementAt(mac[i]).lz = (p2.elementAt(mac[i]).z - p1.elementAt(i).z) / (n+1);
+								
+						// We do not use distance is just to indicate that the particle has a link vector
+								
+						p2.elementAt(mac[i]).distance = 1.0f;
+					}
+					else if (l.straight_line == true)
+					{
+						float distance_sq = (float) Math.sqrt((p1.elementAt(i).x - p2.elementAt(mac[i]).x)*(p1.elementAt(i).x - p2.elementAt(mac[i]).x) + 
+									(p1.elementAt(i).y - p2.elementAt(mac[i]).y)*(p1.elementAt(i).y - p2.elementAt(mac[i]).y) + 
+									(p1.elementAt(i).z - p2.elementAt(mac[i]).z)*(p1.elementAt(i).z - p2.elementAt(mac[i]).z));
+								
+						if (distance_sq >= l.r_sq)
+						{	
+							p2.elementAt(mac[i]).lx = (p2.elementAt(mac[i]).x - p1.elementAt(i).x) + p1.elementAt(i).lxa;
+							p2.elementAt(mac[i]).ly = (p2.elementAt(mac[i]).y - p1.elementAt(i).y) + p1.elementAt(i).lya;
+							p2.elementAt(mac[i]).lz = (p2.elementAt(mac[i]).z - p1.elementAt(i).z) + p1.elementAt(i).lza;
+						}
+						else
 						{
-							p1.elementAt(i).next[n] = j;
-						
-							// Calculate the square distance and store the normalized linking vector
-						
-							if (l.force == true)
-							{						
-								p2.elementAt(j).lx = (p2.elementAt(j).x - p1.elementAt(i).x) / (n+1);
-								p2.elementAt(j).ly = (p2.elementAt(j).y - p1.elementAt(i).y) / (n+1);
-								p2.elementAt(j).lz = (p2.elementAt(j).z - p1.elementAt(i).z) / (n+1);
+							// Propagate the previous link vector
 								
-								// We do not use distance is just to indicate that the particle has a link vector
+							p2.elementAt(mac[i]).lx = p1.elementAt(i).lx;
+							p2.elementAt(mac[i]).ly = p1.elementAt(i).ly;
+							p2.elementAt(mac[i]).lz = p1.elementAt(i).lz;
+									
+							p2.elementAt(mac[i]).lxa += (p2.elementAt(mac[i]).x - p1.elementAt(i).x) + p1.elementAt(i).lxa;
+							p2.elementAt(mac[i]).lya += (p2.elementAt(mac[i]).y - p1.elementAt(i).y) + p1.elementAt(i).lya;
+							p2.elementAt(mac[i]).lza += (p2.elementAt(mac[i]).z - p1.elementAt(i).z) + p1.elementAt(i).lza;
 								
-								p2.elementAt(j).distance = 1.0f;
-							}
-							else if (l.straight_line == true)
+							if (p2.elementAt(mac[i]).linkModuleASq() >= l.r_sq)
 							{
-								float distance_sq = (float) Math.sqrt((p1.elementAt(i).x - p2.elementAt(j).x)*(p1.elementAt(i).x - p2.elementAt(j).x) + 
-										(p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) + 
-										(p1.elementAt(i).z - p2.elementAt(j).z)*(p1.elementAt(i).z - p2.elementAt(j).z));
-								
-								if (distance_sq >= l.r_sq)
-								{	
-									p2.elementAt(j).lx = (p2.elementAt(j).x - p1.elementAt(i).x) + p1.elementAt(i).lxa;
-									p2.elementAt(j).ly = (p2.elementAt(j).y - p1.elementAt(i).y) + p1.elementAt(i).lya;
-									p2.elementAt(j).lz = (p2.elementAt(j).z - p1.elementAt(i).z) + p1.elementAt(i).lza;
-								}
-								else
-								{
-									// Propagate the previous link vector
-									
-									p2.elementAt(j).lx = p1.elementAt(i).lx;
-									p2.elementAt(j).ly = p1.elementAt(i).ly;
-									p2.elementAt(j).lz = p1.elementAt(i).lz;
-									
-									p2.elementAt(j).lxa += (p2.elementAt(j).x - p1.elementAt(i).x) + p1.elementAt(i).lxa;
-									p2.elementAt(j).lya += (p2.elementAt(j).y - p1.elementAt(i).y) + p1.elementAt(i).lya;
-									p2.elementAt(j).lza += (p2.elementAt(j).z - p1.elementAt(i).z) + p1.elementAt(i).lza;
-									
-									if (p2.elementAt(j).linkModuleASq() >= l.r_sq)
-									{
-										p2.elementAt(j).lx = p2.elementAt(j).lxa;
-										p2.elementAt(j).ly = p2.elementAt(j).lya;
-										p2.elementAt(j).lz = p2.elementAt(j).lza;
+								p2.elementAt(mac[i]).lx = p2.elementAt(mac[i]).lxa;
+								p2.elementAt(mac[i]).ly = p2.elementAt(mac[i]).lya;
+								p2.elementAt(mac[i]).lz = p2.elementAt(mac[i]).lza;
 										
-										p2.elementAt(j).lxa = 0;
-										p2.elementAt(j).lya = 0;
-										p2.elementAt(j).lza = 0;
-									}
-								}
-						
-								p2.elementAt(j).distance = (float) Math.sqrt(distance_sq);
+								p2.elementAt(mac[i]).lxa = 0;
+								p2.elementAt(mac[i]).lya = 0;
+								p2.elementAt(mac[i]).lza = 0;
 							}
+						
+							p2.elementAt(mac[i]).distance = (float) Math.sqrt(distance_sq);
 						}
 					}
 				}
@@ -626,11 +400,11 @@ public class ParticleLinkerKNN {
 		}
 	}
 	
-	class link
+/*	class link
 	{
 		int i;
 		int j;
-	}
+	};
 	
 	private double calculateCost(link l[], CostMatrix costSub)
 	{
@@ -683,7 +457,7 @@ public class ParticleLinkerKNN {
 		}
 		
 		return comb;
-	}
+	}*/
 	
 	/**
 	 * 
@@ -694,7 +468,7 @@ public class ParticleLinkerKNN {
 	 * @return
 	 */
 	
-	private boolean Increment(int [] comb, int [] end)
+/*	private boolean Increment(int [] comb, int [] end)
 	{
 		comb[0]++;
 		
@@ -715,7 +489,7 @@ public class ParticleLinkerKNN {
 		}
 			
 		return false;
-	}
+	}*/
 	
 	/**
 	 * 
@@ -755,13 +529,13 @@ public class ParticleLinkerKNN {
 		}
 	}*/
 	
-	private boolean optimizeSublist(Particle p1_sub[], Particle p2_sub[], RelationMatrix subR, CostMatrix costSub)
+/*	private boolean optimizeSublist(Particle p1_sub[], Particle p2_sub[], RelationMatrix subR, CostMatrix costSub)
 	{
 		int comb[] = createComb(subR);
 		int[] end = comb.clone();
 		
 		link l[] = createLink(subR);
-		double cost_prev = calculateCost(l,costSub);
+		double cost_prev = calculateCost(l,costSub);*/
 		
 		
 		
@@ -790,6 +564,6 @@ public class ParticleLinkerKNN {
 		} while (Increment(comb,end));
 >>>>>>> Oxidation_analysis*/
 		
-		return true;
-	}
+/*		return true;
+	}*/
 }

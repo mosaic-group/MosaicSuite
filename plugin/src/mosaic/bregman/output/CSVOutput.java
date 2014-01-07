@@ -176,7 +176,20 @@ public class CSVOutput
     public static SquasshOutputChoose occ;
     public static SquasshOutputChoose oc[];
     
-    public static boolean Stitch(String output[], File dir)
+    /**
+     * 
+     * Stitch the CSV files all together in the directory dir + output[]
+     * with pattern base + 1....N + output[]
+     * save the result in the Directory dir. "*" are substituted by "_"
+     * 
+     * @param output list of 
+     * @param base Base filename
+     * @param dir Base dir
+     * @param ExtParam array of metadata
+     * @return true if success, false otherwise
+     */
+    
+    public static boolean Stitch(String output[], String base, File dir, String background)
     {
 		InterPluginCSV<?> csv = getInterPluginCSV();
     	
@@ -189,8 +202,11 @@ public class CSVOutput
 			
 			for (int i = 1 ; i <= nf ; i++)
 			{
-				str[i-1] = dir + File.separator + output[j].replace("*", "_") + File.separator + output[j].replace("*", "tmp_" + i);
+				str[i-1] = dir + File.separator + output[j].replace("*", "_") + File.separator + output[j].replace("*", base + i);
 			}
+			
+			if (background != null)
+				csv.setMetaInformation("background", background);
 			
 			csv.StitchConvert(str, dir + File.separator + output[j].replace("*", "stitch"), occ,"Frame",0);
 		}

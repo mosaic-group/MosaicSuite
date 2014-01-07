@@ -161,7 +161,7 @@ public class ImagePatches {
 		nb_jobs=regionslist_refined.size();
 		AnalysePatch ap;
 		for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) 
-		{
+		{			
 			Region r = it.next();
 			//if(r.value==5){
 			//IJ.log("call os " + p.oversampling2ndstep);

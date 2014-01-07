@@ -541,9 +541,23 @@ public class GenericGUI
 			if (wpath.startsWith("Input Image:"))
 				hd= new BLauncher(aImp);
 			else
-				hd= new BLauncher(wpath);	
-		//		    hd.bcolocheadless(imagePlus);
-		
+				hd= new BLauncher(wpath);
+		//		    hd.bcolocheadless(imagePlus);*/
+			
+			String outcsv[] = {"*_ObjectsData_c1.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip","*.tif"};
+			
+			String savepath;
+			Analysis.p.wd = MosaicUtils.ValidFolderFromImage(aImp);
+			if (wpath.startsWith("Input Image") == false)
+				savepath =  wpath.substring(0,wpath.length()-4);
+			else
+			{
+				savepath = Analysis.p.wd;
+			}	
+			
+			MosaicUtils.reorganize(outcsv,"",savepath,aImp.getNFrames());
+			
+			CSVOutput.Stitch(outcsv,"",new File(savepath),MosaicUtils.ValidFolderFromImage(aImp) + aImp.getTitle());
 		}
 		else
 		{
@@ -559,7 +573,7 @@ public class GenericGUI
 				e.printStackTrace();
 			}
 			
-			String out[] = {"*_ObjectsData.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip","*.tif"};
+			String out[] = {"*_ObjectsData_c1.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip","*.tif"};
 			ss.runPluginsOnFrames(aImp, "", out, 180.0);
 			
 			// Save all JobID to the image folder
@@ -587,8 +601,8 @@ public class GenericGUI
 					{
 						// Stitch Object.csv
 						
-						String outcsv[] = {"*_ObjectsData.csv"};
-						CSVOutput.Stitch(outcsv,new File(dir[i]));
+						String outcsv[] = {"*_ObjectsData_c1.csv"};
+						CSVOutput.Stitch(outcsv,"tmp_",new File(dir[i]), MosaicUtils.ValidFolderFromImage(aImp));
 						
 						///////
 						
@@ -837,7 +851,7 @@ public class GenericGUI
 			Helpwindow hw = new Helpwindow(p.x, p.y);
 
 			//			JFrame frame;
-			//			frame = new JFrame();
+			//			frame = negit rm deletew JFrame();
 			//			frame.setSize(300, 700);
 			//			frame.setLocation(p.x+900, p.y);
 			//			frame.toFront();

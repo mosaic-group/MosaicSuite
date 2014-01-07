@@ -109,6 +109,22 @@ public class Point
 		p.x=array;
 		return p;
 	}
+
+	
+	/**
+	 * Is the point inside
+	 * 
+	 */
+	public boolean isInside(int sz[])
+	{
+		for (int i = 0 ; i < sz.length ; i++)
+		{
+			if (x[i] >= sz[i])
+				return false;
+		}
+		
+		return true;
+	}
 	
 //	public static Point PointWithDim(int dimension)
 //	{

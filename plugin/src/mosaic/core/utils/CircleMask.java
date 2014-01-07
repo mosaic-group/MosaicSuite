@@ -103,7 +103,7 @@ public class CircleMask  extends Mask
 	
 	private void fillMask()
 	{
-		Connectivity c = new Connectivity(3,2);
+		Connectivity c = new Connectivity(this.dim,this.dim-1);
 		fgPoints = 0;
 		int size = iterator.getSize();
 		for(int i=0; i<size; i++)	// over region
