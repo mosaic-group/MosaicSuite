@@ -2670,7 +2670,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			// if the view is generated on an already existing image, 
 			// set the updated view scale (magnification) to be the same as in the existing image
 //			magnification = duplicated_imp.getWindow().getCanvas().getMagnification();
-			duplicate_imp.
+			
+			duplicated_imp.setImage(ImageJFunctions.wrap(out, new_title));
 		}
 
 		// Create a new window to hold the image and canvas
