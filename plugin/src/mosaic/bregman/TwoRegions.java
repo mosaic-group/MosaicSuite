@@ -58,36 +58,36 @@ public class TwoRegions extends NRegions
         // Iterate on all particles
         
 		int sz[] = new int[3];
+		sz[0] = out[0][0].length;
+		sz[1] = out[0].length;
+		sz[2] = out.length;
 		
-        while (pt.size() != 0)
-        {    		    		
-    		// Create a circle Mask and an iterator
+    	// Create a circle Mask and an iterator
     		
-        	SphereMask cm = new SphereMask(radius, 2*radius + 1, 3);
-        	RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
+        SphereMask cm = new SphereMask(radius, 2*radius + 1, 3);
+        RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
         	
-        	Iterator<Particle> pt_it = pt.iterator();
+        Iterator<Particle> pt_it = pt.iterator();
         	
-        	while (pt_it.hasNext())
-        	{
-        		Particle ptt = pt_it.next();
+        while (pt_it.hasNext())
+        {
+        	Particle ptt = pt_it.next();
         	
-        		// Draw the sphere
+        	// Draw the sphere
         			
-        		Point p_c = new Point((int)(ptt.x),(int)(ptt.y),(int)(ptt.z));
+        	Point p_c = new Point((int)(ptt.x),(int)(ptt.y),(int)(ptt.z));
         			
-        		rg_m.setMidPoint(p_c);
+        	rg_m.setMidPoint(p_c);
         			
-	        	while ( rg_m.hasNext() )
+	        while ( rg_m.hasNext() )
+	        {
+	        	Point p = rg_m.nextP();
+	        		
+	        	if (p.x[0] < sz[0] && p.x[1] < sz[1] && p.x[2] < sz[2])
 	        	{
-	        		Point p = rg_m.nextP();
-	        			
-	        		if (p.x[0] < sz[0] && p.x[1] < sz[1] && p.x[2] < sz[2])
-	        		{
-	        			out[p.x[0]][p.x[1]][p.x[2]] = 1.0;
-	        		}
-	        	}	
-        	}
+	        		out[p.x[2]][p.x[1]][p.x[0]] = 255.0f;
+	        	}
+	        }	
         }
 	}
 	
@@ -148,18 +148,23 @@ public class TwoRegions extends NRegions
 		{	
 			// Load particles
 			
-			Vector<Particle> pt = new Vector<Particle>();
+			Vector<Particle> pt;
 			
 			InterPluginCSV<Particle> csv = new InterPluginCSV<Particle>(Particle.class);
+			
+			pt = csv.Read(Analysis.p.patches_from_file);
 			
 			// create a mask Image
 		
 			double img[][][] = new double[p.nz][p.ni][p.nj];
 			
-			drawParticles(img,pt,5);
+			drawParticles(img,pt,(int)pt.get(0).m0);
+			
+			Tools.disp_array3D_new(img, "particles");
 			
 			A_solver.regions_intensity_findthresh(img);
 			
+			A_solver.w3kbest[0] = img;
 		}
 		
 		if(channel==0)

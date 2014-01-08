@@ -60,7 +60,7 @@ public class BLauncher
 	}
 
 	public BLauncher(ImagePlus aImp_)
-	{		
+	{
 		wpath = null;
 		aImp = aImp_;
 		
@@ -226,7 +226,8 @@ public class BLauncher
 			IJ.log("Done");
 
 
-			if(Analysis.p.save_images){
+			if(Analysis.p.save_images)
+			{
 				String choice1[] = {
 						"Automatic", "Low layer", "Medium layer","High layer"};
 				String choice2[] = {

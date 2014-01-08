@@ -1820,6 +1820,15 @@ public class Tools
 	}
 	 */
 
+	/**
+	 * 
+	 * Display a double array on  a window
+	 * 
+	 * @param float array
+	 * @param Window title
+	 * 
+	 * */
+	
 	public  void disp_array_new(double [] [] array, String s){
 		int ni= array.length;
 		int nj= array[1].length;
@@ -1840,6 +1849,15 @@ public class Tools
 		img.show();
 
 	}
+	
+	/**
+	 * 
+	 * Display a 3D float array on  a window
+	 * 
+	 * @param float array
+	 * @param Window title
+	 * 
+	 * */
 	
 	static public  void disp_array3D_new(float [] [] [] array, String s){
 		int ni= array[0].length;
@@ -1864,6 +1882,47 @@ public class Tools
 
 	}
 
+	/**
+	 * 
+	 * Display a 3D double array on  a window
+	 * 
+	 * @param float array
+	 * @param Window title
+	 * 
+	 * */
+	
+	static public  void disp_array3D_new(double [] [] [] array, String s){
+		int ni= array[0].length;
+		int nj= array[0][0].length;
+		float [] [] temp= new float [ni][nj];
+
+		ImageStack ss = new ImageStack(ni,nj);
+		
+		for (int k = 0 ; k < array.length ; k++)
+		{
+			for (int i=0; i<ni; i++) {  
+				for (int j=0;j< nj; j++) {  	
+					temp[i][j]= (float) array[k][i][j];
+				}
+			}
+			ImageProcessor imp= new FloatProcessor(temp);
+			ss.addSlice("slice " + k, imp);
+		}
+		
+		ImagePlus img=new ImagePlus("temp",ss);
+		img.show();
+
+	}
+	
+	/**
+	 * 
+	 * Display a double array on  a window
+	 * 
+	 * @param float array
+	 * @param Window title
+	 * 
+	 * */
+	
 	public  void disp_array(double [] [] array, String s){
 		int ni= array.length;
 		int nj= array[1].length;
@@ -1883,7 +1942,14 @@ public class Tools
 
 	}
 
-
+	/**
+	 * 
+	 * Print out double array value
+	 * 
+	 * @param array to print
+	 * @param s name
+	 * 
+	 */
 
 	public  void disp_vals(double [] [] array, String s){
 
