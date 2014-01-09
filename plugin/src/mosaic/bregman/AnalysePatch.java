@@ -106,7 +106,7 @@ public class AnalysePatch implements Runnable{
 		oy=pa.nj;
 		oz=pa.nz;
 		margin=4;// add margin to size of object to create patch
-		if(pa.mode_voronoi2)margin=4;
+		if(pa.mode_voronoi2)margin=6;
 		zmargin=1;// was 2
 		this.regions_refined=regionsf;
 
@@ -131,6 +131,7 @@ public class AnalysePatch implements Runnable{
 		//create patch image with oversampling
 		this.patch = new double [sz][sx][sy];
 		fill_patch(image);
+		
 		//for testing
 		this.w3kpatch = new double [1] [sz][sx][sy];
 		fill_w3kpatch(impa.w3kbest);

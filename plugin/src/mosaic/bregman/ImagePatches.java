@@ -154,7 +154,7 @@ public class ImagePatches {
 		if(p.debug){threadPool=new ThreadPoolExecutor(1, 1,
 				1, TimeUnit.DAYS, queue);}
 		else{
-		threadPool=new ThreadPoolExecutor(p.nthreads, p.nthreads,
+		threadPool=new ThreadPoolExecutor(/*p.nthreads*/1, /*p.nthreads*/1,
 				1, TimeUnit.DAYS, queue);}
 
 
