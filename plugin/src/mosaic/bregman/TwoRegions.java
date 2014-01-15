@@ -83,7 +83,7 @@ public class TwoRegions extends NRegions
 	        {
 	        	Point p = rg_m.nextP();
 	        		
-	        	if (p.x[0] < sz[0] && p.x[1] < sz[1] && p.x[2] < sz[2])
+	        	if (p.x[0] < sz[0] && p.x[0]>= 0 && p.x[1] < sz[1] && p.x[1] >= 0 && p.x[2] < sz[2] && p.x[2] >= 0)
 	        	{
 	        		out[p.x[2]][p.x[1]][p.x[0]] = 255.0f;
 	        		mask[p.x[2]][p.x[1]][p.x[0]] = 1.0f;
@@ -159,7 +159,7 @@ public class TwoRegions extends NRegions
 		
 			double img[][][] = new double[p.nz][p.ni][p.nj];
 			
-			drawParticles(img,A_solver.w3kbest[0],pt,(int)(pt.get(0).m0/4.0));
+			drawParticles(img,A_solver.w3kbest[0],pt,(int)(pt.get(0).m0/1.0));
 			
 			Tools.disp_array3D_new(img, "particles");
 			
