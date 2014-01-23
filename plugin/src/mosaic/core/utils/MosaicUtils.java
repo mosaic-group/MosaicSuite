@@ -23,10 +23,36 @@ import mosaic.core.GUI.ProgressBarWin;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.plugin.RGBStackMerge;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
-public class MosaicUtils {
+public class MosaicUtils 
+{
+	
+
+	/**
+	 * 
+	 * This function merge the frames of the image a2 into a1
+	 * 
+	 * @param a1 Image a1
+	 * @param a2 Image a2
+	 * 
+	 */
+	
+	static public void MergeFrames(ImagePlus a1, ImagePlus a2)
+	{
+		int hcount = a2.getNFrames() + a1.getNFrames();
+		for (int i = 1 ; i <= a2.getNChannels() ; i++)
+		{
+			for (int j = 1 ; j <= a2.getNSlices() ; j++)
+			{
+				a2.setPosition(i, j, 1);
+				a1.getImageStack().addSlice("", a2.getProcessor().getPixels());
+			}
+		}
+		a1.setDimensions(a2.getNChannels(), a2.getNSlices(), hcount);
+	}
 	
 	/**
 	 * 
@@ -63,6 +89,9 @@ public class MosaicUtils {
 	 */
 	public static String ValidFolderFromImage(ImagePlus img)
 	{
+		if (img == null)
+			return null;
+			
 		if (img.getFileInfo().directory == "")
 		{
 			if (img.getOriginalFileInfo() == null || img.getOriginalFileInfo().directory == "")

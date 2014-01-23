@@ -476,21 +476,19 @@ public class InterPluginCSV<E extends ICSVGeneral>
                 // configure the mapping from the fields to the CSV columns
                 beanWriter.configureBeanMapping(element.getClass(), occ.map);
                 
-                // write the header
+                // write the header and metainformation
                 if (append == false)
+                {
                 	beanWriter.writeHeader(occ.map);
                 
-                // Write meta information
+                	// Write meta information
                 
-                for (int i = 0 ; i < fld.size() ;i++)
-                {
-                	beanWriter.writeComment("%" + fld.get(i).p1 + ":" + fld.get(i).p2);
+                	for (int i = 0 ; i < fld.size() ;i++)
+                	{
+                		beanWriter.writeComment("%" + fld.get(i).p1 + ":" + fld.get(i).p2);
+                	}
                 }
-                	
-                //
-                
-                if (fld.size() == 0)
-                	beanWriter.writeComment("");
+      
                 // write the beans
                 
                 Method m = null;

@@ -31,6 +31,7 @@ import com.jcraft.jsch.SftpException;
 import com.jcraft.jsch.SftpProgressMonitor;
 
 import java.io.File;
+import java.net.UnknownHostException;
 
 /**
  * 
@@ -153,7 +154,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 	 * 
 	 * @param Directory 
 	 * 
-	 * @return All directories 
+	 * @return All directories, return null if there are problems to connect
 	 */
 	
 	public String[] getDirs(String Directory)
@@ -161,7 +162,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		Vector<String> vs = new Vector<String>();
 		try 
 		{
-			createSftpChannel();
+			if (createSftpChannel() == false)
+				return null;
 			
 			Vector<ChannelSftp.LsEntry> list = cSFTP.ls(Directory);
 			
@@ -202,7 +204,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 	{
 		try 
 		{	
-			createSftpChannel();
+			if (createSftpChannel() == false)
+				return false;
 			
 			cSFTP.cd(Directory);
 			
@@ -228,8 +231,10 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 	 * run a sequence of SSH commands
 	 * @param pwd password to access the ssh session
 	 * @param commands string to execute
+	 * @return false, if where is a problem with the connection
+	 *         true, does not mean that the command succeffuly run
 	 */
-	public void runCommands(String pwd, String [] commands)
+	public boolean runCommands(String pwd, String [] commands)
 	{
 		OutputStream os = null;
 		
@@ -240,7 +245,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 	    }
 		try 
 		{
-			createSSHChannel();
+			if (createSSHChannel() == false)
+				return false;
 		    
 			pinput_out.write(cmd_list.getBytes());
 		} 
@@ -254,6 +260,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		return true;
 	};
 	
 	
@@ -292,7 +300,16 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		java.util.Properties config_ = new java.util.Properties(); 
 		config_.put("StrictHostKeyChecking", "no");
 		session.setConfig(config_);
-		session.connect();
+		
+		try
+		{
+			session.connect();
+		}
+		catch (JSchException e)
+		{
+			IJ.error("Connection failed", e.getMessage());
+			return false;
+		}
 		
 		return true;
 	}
@@ -305,7 +322,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		if (cSSH != null && cSSH.isConnected() == true)
 			return true;
 		
-		createSession();
+		if (createSession() == false)
+			return false;
 		
 		cSSH = (Channel) session.openChannel("shell");
 		
@@ -327,7 +345,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		if (cSFTP != null && cSFTP.isConnected() == true)
 			return true;
 		
-		createSession();
+		if (createSession() == false)
+			return false;
 		
 		cSFTP = (ChannelSftp) session.openChannel("sftp");
 		cSFTP.connect();
@@ -344,6 +363,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 	 * @param wp (Optional) Progress bar window
 	 * @return return true if the download complete successfully, NOTE: Do not use to check the existence of the files
 	 *         true does not warrant that all files has been successfully downloaded, if does not exist remotely
+	 *         you can receive a true
 	 * 
 	 */
 	public boolean download(String pwd, File files[], File dir,ProgressBarWin wp, ClusterProfile cp)	
@@ -352,7 +372,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		
 		try
 		{
-			createSftpChannel();
+			if (createSftpChannel() == false)
+				return false;
 		
 			// Create a Compressor
 			
@@ -391,7 +412,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 				    	
 				    	if (wp != null)
 				    		wp.SetStatusMessage("Compressing data on cluster");
-				    	createSSHChannel();
+				    	if (createSSHChannel() == false)
+				    		return false;
 
 				    	String s = new String("cd " + tdir + " ; ");
 				    	File start_dir = findCommonPathAndDelete(files);
@@ -520,6 +542,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 	 * @param files to transfer
 	 * @param wp Progress window bar can be null
 	 * @param cp Cluster profile (Optional) can be null
+	 * @return true if all file are uploaded, false trasnfert fail
+	 * 
 	 */
 	public boolean upload(String pwd, File files[], ProgressBarWin wp, ClusterProfile cp)	
 	{
@@ -527,7 +551,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		
 		try
 		{
-			createSftpChannel();
+			if (createSftpChannel() == false)
+				return false;
 		
 			// Create a Compressor
 			
@@ -561,6 +586,8 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		    
 		    if (cmp.getCompressor() == null)
 		    {
+		    	/* No compression */
+		    	
 		    	for (int i = 0 ; i < files.length ; i++)
 		    	{
 		    		if(wp != null)
@@ -571,18 +598,24 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		    }
 		    else
 		    {
+		    	/* Compression */
+		    	
 		    	wp.SetStatusMessage("Compressing data");
 		    	File start_dir = findCommonPathAndDelete(files);
-		    	cmp.Compress(start_dir,files, new File(start_dir + File.separator + files[0].getPath() + "_compressed"));
+		    	wp_p = wp;
+		    	waitString = new String("COMPRESSION END");
+		    	doing = new String("Compressing ");
+		    	cmp.Compress(start_dir,files, new File(start_dir + File.separator + files[0].getPath() + "_compressed"),this);
 		    	
 		    	wp.SetProgress(33);
 		    	wp.SetStatusMessage("Uploading");
-		    	cSFTP.put(start_dir + File.separator + files[0].getPath() + "_compressed", files[0].getName() + "_compressed");
+		    	cSFTP.put(start_dir + File.separator + files[0].getPath() + "_compressed", files[0].getName() + "_compressed",this);
 		    	
 		    	wp.SetProgress(66);
 		    	wp.SetStatusMessage("Decompressing Data on cluster");
 		    	
-		    	createSSHChannel();
+		    	if (createSSHChannel() == false)
+		    		return false;
 
 		    	String s = new String("cd " + tdir + " ; ");
 		    	s += cmp.unCompressCommand(new File(tdir + files[0].getName() + "_compressed"));
@@ -701,12 +734,16 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 	String doing;
 	ProgressBarWin wp_p;
 	
+	/* Parse the compression stage output */
+	
 	@Override
 	public String Process(String str) 
 	{
 		int lidx = str.lastIndexOf("\n")-1;
 		int lidx2 = lidx;
 		String print_out = new String();
+		
+		/* search for a complete last line */
 		
 		while (lidx >= 0)
 		{
@@ -715,11 +752,17 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 			lidx--;
 		}
 		
+		/* get the line */
+		
 		if (lidx >= 0 && lidx2 >= 0)
-		print_out = str.substring(lidx, lidx2);
+		print_out = str.substring(lidx+1, lidx2);
+		
+		/* print the line */
 		
 		if (wp_p != null)
 			wp_p.SetStatusMessage(doing + " " + print_out);
+		
+		/* End line mark the end of computation */
 		
 		if (str.contains(waitString))
 		{

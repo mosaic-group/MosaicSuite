@@ -3000,7 +3000,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         		
         		File file = new File( background.replace("*", Integer.toString(1)));
     	 	        
-    	    		// open a file with ImageJ
+    	    	// open a file with ImageJ
     	    	ImagePlus imp = new Opener().openImage( file.getAbsolutePath() );
     	    	
     	    	long vMaxp1[] = null;

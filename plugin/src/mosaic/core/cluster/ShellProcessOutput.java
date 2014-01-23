@@ -1,7 +1,7 @@
 package mosaic.core.cluster;
 
 
-interface ShellProcessOutput
+public interface ShellProcessOutput
 {
 	String Process(String str);
 }

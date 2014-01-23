@@ -71,6 +71,17 @@ public class BLauncher
 			aImp.setPosition(aImp.getChannel(),aImp.getSlice(),f);
 			Headless_file();
 		}
+		
+		if (Analysis.p.save_images)
+		{
+			//IJ.run(over,"RGB Color", "");
+			for (int i = 0 ; i < out_over.length ; i++)
+			{
+				String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_outline_overlay_c" + (i+1) + ".zip";
+				if (out_over != null)
+					IJ.saveAs(out_over[i], "ZIP", savepath);
+			}
+		}
 	}
 	
 	public void Headless_file()
@@ -839,8 +850,6 @@ public class BLauncher
 			double meanSA= Analysis.meansurface(Analysis.regionslistA);			
 			double meanLA= Analysis.meanlength(Analysis.regionslistA);
 
-
-
 			//IJ.log("save");
 			if(Analysis.p.save_images)
 			{
@@ -868,11 +877,17 @@ public class BLauncher
 				
 				boolean append = false;
 				
+				if (hcount == 0)
+					append = false;
+				else
+					append = true;
+				
 				Vector<?> obl = Analysis.getObjectsList(hcount);
 				
 				InterPluginCSV<?> IpCSV = CSVOutput.getInterPluginCSV();
+				IpCSV.setMetaInformation("background", savepath + img2.getTitle());
 				
-				IpCSV.Write(savepath + (hcount+1) + "_ObjectsData_c1" + ".csv",obl,CSVOutput.occ, append);
+				IpCSV.Write(savepath + img2.getTitle() + "_ObjectsData_c1" + ".csv",obl,CSVOutput.occ, append);
 				
 				//IJ.log("print objects done");
 //				out2.flush();
@@ -892,6 +907,8 @@ public class BLauncher
 
 	}
 
+	ImagePlus out_over[] = new ImagePlus[2];
+	
 	public void displayoutline(short [][][] regions, double [][][] image, int dz, int di, int dj, int channel){
 		ImageStack objS;
 		ImagePlus objcts= new ImagePlus();
@@ -985,10 +1002,20 @@ public class BLauncher
 		//		
 
 		//IJ.run(objcts, "Invert", "");
-		//	RGBStackMerge merger= new RGBStackMerge();	
-		ImagePlus tab []= new ImagePlus [2];
-		tab[0]=objcts;tab[1]=img;
-		ImagePlus over =RGBStackMerge.mergeChannels(tab, false);
+		//	RGBStackMerge merger= new RGBStackMerge();
+		if (out_over[channel-1] != null)
+		{
+			ImagePlus tab []= new ImagePlus [2];
+			tab[0]=objcts;tab[1]=img;
+			ImagePlus over = RGBStackMerge.mergeChannels(tab, false);
+			MosaicUtils.MergeFrames(out_over[channel-1],over);
+		}
+		else
+		{
+			ImagePlus tab []= new ImagePlus [2];
+			tab[0]=objcts;tab[1]=img;
+			out_over[channel-1] =RGBStackMerge.mergeChannels(tab, false);
+		}
 		//		IJ.run(objcts, "Merge Channels...",
 		//				"red=*None* green="+
 		//						objcts.getTitle()+
@@ -1017,23 +1044,15 @@ public class BLauncher
 		//		}
 		//		over.setStack("Outlines overlay c" +channel, overS);
 
-		if(Analysis.p.dispwindows){
-			over.setTitle("Objects outlines, channel " + channel);
-			over.show();
+		if(Analysis.p.dispwindows)
+		{
+			out_over[channel-1].setTitle("Objects outlines, channel " + channel);
+			out_over[channel-1].show();
 			if(channel==1)
-				GenericGUI.setimagelocation(1180,30,over);
+				GenericGUI.setimagelocation(1180,30,out_over[channel-1]);
 			if(channel==2)
-				GenericGUI.setimagelocation(1180,610,over);
+				GenericGUI.setimagelocation(1180,610,out_over[channel-1]);
 		}
-
-
-
-		if (Analysis.p.save_images){
-			//IJ.run(over,"RGB Color", "");
-			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_outline_overlay" + "_c"+channel+".zip";
-			IJ.saveAs(over, "ZIP", savepath);	
-		}
-
 	}
 
 

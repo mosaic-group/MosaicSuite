@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
 
+import mosaic.core.cluster.ShellProcessOutput;
+
 /**
  * 
  * Utility class to run shell command
@@ -87,6 +89,7 @@ public class ShellCommand
 		tProcess.waitFor();
 	}
 	
+	
 	/**
 	 * 
 	 * Execute a command, with a defined working dir and defined environment variables
@@ -128,6 +131,58 @@ public class ShellCommand
 		String s = null;
 		while ((s = stdInput.readLine()) != null)
 		{
+			System.out.println(s);
+		}
+		
+		tProcess.waitFor();
+	}
+	
+	/**
+	 * 
+	 * Execute a command, with a defined working dir and defined environment variables
+	 * (System environment variables are appended)
+	 * 
+	 * @param cmd
+	 * @param wdir
+	 * @param env
+	 * @param out
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
+	
+	public static void exeCmd(String cmd, File wdir, String env[], ShellProcessOutput out) throws IOException, InterruptedException
+	{
+		int lp = 0;
+		Map<String,String> envi = System.getenv();
+		if (env == null)
+			env = new String[0];
+		String[] envi_p_env = new String[envi.size()+env.length];
+		
+		int i = 0;
+        for (String envName : envi.keySet()) 
+        {
+            envi_p_env[i] = new String(envName + "=" + envi.get(envName));
+            i++;
+        }
+        
+        for (String envName : env) 
+        {
+            envi_p_env[i] = new String(envName);
+            i++;
+        }
+        
+		
+		Process tProcess = Runtime.getRuntime().exec(cmd,envi_p_env,wdir);
+
+		BufferedReader stdInput = new BufferedReader (new InputStreamReader(tProcess.getInputStream()));
+		
+		String s_full = new String();
+		String s;
+		while ((s = stdInput.readLine()) != null)
+		{
+			s_full += s + "\n";
+			if (out != null)
+				s_full = out.Process(s_full);
 			System.out.println(s);
 		}
 		

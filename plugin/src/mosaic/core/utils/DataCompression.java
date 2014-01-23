@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
 
+import mosaic.core.cluster.ShellProcessOutput;
+
 
 /**
  * 
@@ -202,6 +204,44 @@ public class DataCompression
 		
 		try {
 			ShellCommand.exeCmd(al.get(selC).compress_command.replace("#", file_a.getAbsolutePath()).replace("*", o),start_dir,null);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 
+	 * It compress a set of files and directory
+	 * 
+	 * @param start_dir starting dir
+	 * @param fs Array of files,relative from starting dir
+	 * @param file_a Archive
+	 * @param ShellProcessOutput interface to process the output
+	 * @return true if archive is created
+	 */
+	
+	public boolean Compress(File start_dir, File [] fs, File file_a, ShellProcessOutput out)
+	{
+		if (selC == -1)
+			return false;
+		
+		String o = new String();
+		
+		for (int i = 0; i < fs.length ; i++)
+		{
+			o += fs[i].getPath() + " ";
+		}
+		
+		try {
+			ShellCommand.exeCmd(al.get(selC).compress_command.replace("#", file_a.getAbsolutePath()).replace("*", o) + " ; echo \"COMPRESSION END\"; \n",start_dir,null,out);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

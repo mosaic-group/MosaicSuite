@@ -214,10 +214,12 @@ public class GenericGUI
 		//for rscript generation
 		Analysis.p.initrsettings=true;
 		
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		screensizex= (int) screenSize.getWidth();
-		screensizey = (int) screenSize.getHeight();
-		
+		if (!clustermode)
+		{
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			screensizex= (int) screenSize.getWidth();
+			screensizey = (int) screenSize.getHeight();
+		}
 		
 		gd.setInsets(-10,0,3);
 		if(!clustermode)
@@ -480,30 +482,6 @@ public class GenericGUI
 			//par RSS ou par clustering ?
 		}
 
-		if(clustermode)
-		{
-			IJ.log("clustermode");
-			Analysis.p.removebackground=true;
-			//Analysis.p.automatic_int=false;
-			if(Analysis.p.thresholdcellmask >0)
-				Analysis.p.usecellmaskX=true;
-			else
-				Analysis.p.usecellmaskX=false;
-			if(Analysis.p.thresholdcellmasky >0)
-				Analysis.p.usecellmaskY=true;
-			else
-				Analysis.p.usecellmaskY=false;
-			Analysis.p.livedisplay=false;
-			Analysis.p.dispcolors=true;
-			//Analysis.p.dispint=true;
-			//Analysis.p.displabels=true;
-			//Analysis.p.dispoutline=true;
-			Analysis.p.save_images=true;
-
-			//Analysis.p.nthreads=4;
-		}
-
-
 
 		if(!Analysis.p.subpixel){Analysis.p.oversampling2ndstep=1;
 		Analysis.p.interpolation=1;
@@ -534,30 +512,34 @@ public class GenericGUI
 		//		IJ.log("stdx" +Analysis.p.sigma_gaussian+ "stdy" + Analysis.p.sigma_gaussian/Analysis.p.zcorrec);
 
 		if (clustermode || gd.getNextBoolean() == false)
-		{
-		
+		{			
 			BLauncher hd = null;
 		
 			if (wpath.startsWith("Input Image:"))
+			{
 				hd= new BLauncher(aImp);
+				
+				String outcsv[] = {"*_ObjectsData_c1.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip","*.tif"};
+				
+				String savepath;
+				Analysis.p.wd = MosaicUtils.ValidFolderFromImage(aImp);
+				if (wpath.startsWith("Input Image") == false)
+					savepath =  wpath.substring(0,wpath.length()-4);
+				else
+				{
+					savepath = Analysis.p.wd;
+				}
+				
+				MosaicUtils.reorganize(outcsv,"",savepath,aImp.getNFrames());
+				
+				CSVOutput.Stitch(outcsv,"",new File(savepath),MosaicUtils.ValidFolderFromImage(aImp) + aImp.getTitle());
+			}
 			else
 				hd= new BLauncher(wpath);
+
 		//		    hd.bcolocheadless(imagePlus);*/
 			
-			String outcsv[] = {"*_ObjectsData_c1.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip","*.tif"};
-			
-			String savepath;
-			Analysis.p.wd = MosaicUtils.ValidFolderFromImage(aImp);
-			if (wpath.startsWith("Input Image") == false)
-				savepath =  wpath.substring(0,wpath.length()-4);
-			else
-			{
-				savepath = Analysis.p.wd;
-			}	
-			
-			MosaicUtils.reorganize(outcsv,"",savepath,aImp.getNFrames());
-			
-			CSVOutput.Stitch(outcsv,"",new File(savepath),MosaicUtils.ValidFolderFromImage(aImp) + aImp.getTitle());
+
 		}
 		else
 		{
@@ -565,7 +547,13 @@ public class GenericGUI
 			ClusterSession ss = cg.getClusterSession();
 			try 
 			{
-				BregmanGLM_Batch.SaveConfig(Analysis.p,"/tmp/spb_settings.dat");
+				// Copying parameters
+				
+				Parameters p = new Parameters(Analysis.p);
+				
+				// disabling display options
+				
+				BregmanGLM_Batch.SaveConfig(p,"/tmp/spb_settings.dat");
 			} 
 			catch (IOException e) 
 			{
@@ -574,7 +562,8 @@ public class GenericGUI
 			}
 			
 			String out[] = {"*_ObjectsData_c1.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip","*.tif"};
-			ss.runPluginsOnFrames(aImp, "", out, 180.0);
+			if (ss.runPluginsOnFrames(aImp, "", out, 180.0) == false)
+				return;
 			
 			// Save all JobID to the image folder
 			// or ask for a directory

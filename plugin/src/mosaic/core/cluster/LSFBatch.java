@@ -405,7 +405,7 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 	 * 
 	 * @param ss Shell channel
 	 * 
-	 * @return List of Batch Interfaces
+	 * @return List of Batch Interfaces, null if fail
 	 * 
 	 */
 	
@@ -414,6 +414,8 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 	{
 		int n_b = 0;
 		String[] dirs = ss.getDirs(cp.getRunningDir());
+		if (dirs == null)
+			return null;
 		
 		Vector<LSFBatch> bc_v = new Vector<LSFBatch>();
 		

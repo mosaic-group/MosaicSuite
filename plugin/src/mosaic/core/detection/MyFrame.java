@@ -35,6 +35,7 @@ import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.view.Views;
@@ -764,25 +765,94 @@ import net.imglib2.view.Views;
 		
 		//////////////////////////////////// Procedures for draw //////////////////
 		
+		/////// Conversion to ARGB from different Type ////////////////////////////
 		
-		public <T extends RealType<T>> ARGBType convertoARGBTypeNorm(T data)
+		interface ToARGB
 		{
-			ARGBType t = new ARGBType();
-			float td = data.getRealFloat()*255;
-			
-			ARGBType.rgba(td, td, td, 255.0f);
-			return t;
+			ARGBType toARGB(Object data);
 		}
 		
-		public <T extends RealType<T>> ARGBType convertoARGBType(T data)
+		class FloatToARGB implements ToARGB
+		{
+			@Override
+			public ARGBType toARGB(Object data)
+			{
+				ARGBType t = new ARGBType();
+				
+				float td = 0.0f;
+				td = ((RealType<?>)data).getRealFloat();
+				t.set(ARGBType.rgba(td, td, td, 255.0f));
+				
+				return t;
+			}
+		}
+		
+		class FloatToARGBNorm implements ToARGB
+		{
+			@Override
+			public ARGBType toARGB(Object data)
+			{
+				ARGBType t = new ARGBType();
+				
+				float td = 0.0f;
+				td = ((RealType<?>)data).getRealFloat()*255;
+				t.set(ARGBType.rgba(td, td, td, 255.0f));
+				
+				return t;
+			}
+		}
+		
+		class IntToARGB implements ToARGB
+		{
+			@Override
+			public ARGBType toARGB(Object data)
+			{
+				ARGBType t = new ARGBType();
+				
+				int td = 0;
+				td = ((IntegerType<?>)data).getInteger();
+				t.set(ARGBType.rgba(td, td, td, 255));
+				
+				return t;
+			}
+		}
+		
+		class ARGBToARGB implements ToARGB
+		{
+			@Override
+			public ARGBType toARGB(Object data)
+			{				
+				return (ARGBType) data;
+			}
+		}
+		
+		private ToARGB getConversion(Object data)
+		{
+			if (data instanceof RealType)
+			{
+				return new FloatToARGB();
+			}
+			else if (data instanceof IntegerType)
+			{
+				return new IntToARGB();
+			}
+			else if (data instanceof ARGBType)
+			{
+				return new ARGBToARGB();
+			}
+			return null;
+		}
+		
+
+		public <T extends IntegerType<T>> ARGBType convertoARGBType(T data)
 		{
 			ARGBType t = new ARGBType();
-			float td = data.getRealFloat();
+			int td = data.getInteger();
 			
 			t.set(ARGBType.rgba(td, td, td, 255.0f));
 			return t;
 		}
-
+		
 		static private void drawParticles(RandomAccessibleInterval<ARGBType> out, List<Particle> pt , Calibration cal, int col)
 		{
 			RandomAccess<ARGBType> out_a = out.randomAccess();
@@ -1169,7 +1239,7 @@ import net.imglib2.view.Views;
 		 * @return image video
 		 */
 		
-		public  <T extends RealType< T >> Img<ARGBType> createImage(Img<T> background, Calibration cal)
+		public  <T> Img<ARGBType> createImage(Img<T> background, Calibration cal)
 		{
 	        // the number of dimensions
 	        int numDimensions = background.numDimensions();
@@ -1185,14 +1255,24 @@ import net.imglib2.view.Views;
 	        Cursor<ARGBType> curOut = out.cursor();
 	        Cursor<T> curBack = background.cursor();
 	        
+	        if (curBack.hasNext())
+	        {
+	        	curOut.fwd();
+	        	curBack.fwd();
+	        }
+        	
+	        // get conversion;
+	        
+	        ToARGB conv = getConversion(curBack.get());
+	        
 	        // Copy the background
 	        
 	        while (curBack.hasNext())
 	        {
 	        	curOut.fwd();
 	        	curBack.fwd();
-	        		        	
-	        	curOut.get().set(convertoARGBType(curBack.get()));
+	        	
+	        	curOut.get().set(conv.toARGB(curBack.get()));
 	        }
 	        
 	        drawParticles(out,cal, ARGBType.rgba(255, 0, 0, 255));
@@ -1353,7 +1433,7 @@ import net.imglib2.view.Views;
 		 * @return image video
 		 */
 		
-		public  <T extends RealType< T >> Img<ARGBType> createImage(Img<T> background, Vector<Trajectory> tr ,Calibration cal, int frame, DrawType typ)
+		public  <T> Img<ARGBType> createImage(Img<T> background, Vector<Trajectory> tr ,Calibration cal, int frame, DrawType typ)
 		{
 			// if you have no trajectory draw use the other function
 			
@@ -1374,17 +1454,26 @@ import net.imglib2.view.Views;
 	        Cursor<ARGBType> curOut = out.cursor();
 	        Cursor<T> curBack = background.cursor();
 	        
+	        if (curBack.hasNext())
+	        {
+	        	curOut.fwd();
+	        	curBack.fwd();
+	        }
+	        
+	        // get the conversion
+	        
+	        ToARGB conv = getConversion(curBack.get());
+	        
 	        // Copy the background
 	        
 	        while (curBack.hasNext())
 	        {
 	        	curOut.fwd();
 	        	curBack.fwd();
-	        		        	
-	        	curOut.get().set(convertoARGBType(curBack.get()));
-	        }
 	        
-	        //
+	        	
+	        	curOut.get().set(conv.toARGB(curBack.get()));
+	        }
 	        
 	        Vector<Particle> vp = new Vector<Particle>();
 	        Vector<pParticle> lines = new Vector<pParticle>();

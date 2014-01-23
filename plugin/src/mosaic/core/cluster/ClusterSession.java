@@ -67,13 +67,14 @@ public class ClusterSession
 	 * 
 	 * @param img Image to process
 	 * @param ss Secure Shell session
+	 * @return false if fail, true if successfully
 	 * 
 	 */
 	
-	private void createJobArrayFromImage(ImagePlus img, SecureShellSession ss, double Ext, ProgressBarWin wp)
+	private boolean createJobArrayFromImage(ImagePlus img, SecureShellSession ss, double Ext, ProgressBarWin wp)
 	{
 		if (img == null)
-		{nImages = 0; return;}
+		{nImages = 0; return true;}
 		
 		int nImages = img.getNFrames();
 		String tmp_dir = IJ.getDirectory("temp");
@@ -121,6 +122,7 @@ public class ClusterSession
 		if (ss.upload(cp.getPassword(),fl,wp,cp) == false)
 		{
 			CleanUp();
+			return false;
 		}
 	
 		// Download a working version of Fiji
@@ -211,7 +213,7 @@ public class ClusterSession
 		// Check if we failed to launch the job
 	
 		if (bc.getJobID() == 0)
-		{IJ.error("Failed to run the Job on the cluster");CleanUp();return;}
+		{IJ.error("Failed to run the Job on the cluster");CleanUp();return false;}
 		
 		// create JobID file
 		
@@ -235,6 +237,8 @@ public class ClusterSession
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		return true;
 	}
 	
 	/**
@@ -488,9 +492,11 @@ public class ClusterSession
 	 * @param output output that the plugins generate with "*" as wild card example: "dir1/dir*_out/*.tif"
 	 *        on a file "tmp_1" will be expanded in "dir1/dirtmp1_1_out/tmp_1.tif"
 	 * @param ExtTime extimated running time (to select the queue on the cluster)
+	 * @return true if done, false if fail (or nothing to do)
+	 * 
 	 */
 	
-	public void runPluginsOnFrames(ImagePlus img, String options, String output[], double ExtTime)
+	public boolean runPluginsOnFrames(ImagePlus img, String options, String output[], double ExtTime)
 	{
 		String tmp_dir = IJ.getDirectory("temp");
 		SecureShellSession ss = new SecureShellSession(cp);
@@ -499,7 +505,11 @@ public class ClusterSession
 		
 		// Create job array
 		
-		createJobArrayFromImage(img,ss,ExtTime,wp);
+		if (createJobArrayFromImage(img,ss,ExtTime,wp) == false)
+		{
+			wp.SetStatusMessage("Failed to create job array");
+			return false;
+		}
 		BatchInterface bc = cp.getBatchSystem();
 		
 		//
@@ -508,6 +518,11 @@ public class ClusterSession
 		wp.SetStatusMessage("Getting all jobs ...");
 		
 		BatchInterface bcl[] = bc.getAllJobs(ss);
+		if (bcl == null)
+		{
+			wp.SetStatusMessage("End");
+			return false;
+		}
 		ClusterStatusStack css[] = new ClusterStatusStack[bcl.length];
 		ImageStack st[] = new ImageStack[bcl.length];
 		ImagePlus ip[] = new ImagePlus[bcl.length];
@@ -519,7 +534,7 @@ public class ClusterSession
 			bcl[j].createJobStatus();
 			css[j] = new ClusterStatusStack();
 			st[j] = css[j].CreateStack(bcl[j].getJobStatus());
-			ip[j] = new ImagePlus("Cluster status",st[j]);
+			ip[j] = new ImagePlus("Cluster status " + bcl[j].getJobID(),st[j]);
 			ip[j].show();
 			bcl[j].setJobStatus(bcl[j].getJobStatus());
 		}
@@ -600,6 +615,7 @@ public class ClusterSession
 		}
 		
 		wp.SetStatusMessage("End");
+		return true;
 	}
 	
 	public void runPluginsOnImages(ImagePlus img[], String options, double ExtTime)
