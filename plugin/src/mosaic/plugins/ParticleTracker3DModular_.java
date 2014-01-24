@@ -3,6 +3,7 @@ package mosaic.plugins;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.Macro;
 import ij.WindowManager; 
 import ij.gui.GUI;
 import ij.gui.GenericDialog;
@@ -236,9 +237,20 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			gd.addChoice("Are these 3D data ?",ad,"No");
 			gd.showDialog();
 			
+			String saved_options = null;
+			if (IJ.isMacro() && Macro.getOptions() != null && !Macro.getOptions().trim().isEmpty()) 
+			{
+	            saved_options = Macro.getOptions();
+			} 
+			
 			if(!gd.wasCanceled() && gd.getNextChoice().equals("No"))
 			{
 				IJ.run(imp, "Stack to Hyperstack...", "order=xyczt(default) channels=1 slices=1 frames=" + imp.getNSlices() + " display=Composite");
+			}
+			
+			if (saved_options != null)
+			{
+				Macro.setOptions(saved_options);
 			}
 		}
 		
