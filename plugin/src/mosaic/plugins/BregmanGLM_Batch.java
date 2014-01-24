@@ -17,6 +17,7 @@ import mosaic.bregman.GUIold;
 import mosaic.bregman.GenericGUI;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.output.CSVOutput;
+import mosaic.core.utils.Segmentation;
 import mosaic.region_competition.Settings;
 import ij.plugin.PlugIn;
 import ij.plugin.filter.PlugInFilter;
@@ -27,7 +28,7 @@ import ij.ImagePlus;
 import ij.io.Opener;
 
 
-public class BregmanGLM_Batch implements PlugInFilter 
+public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 {
 	private ImagePlus OriginalImagePlus = null;
 	private String savedSettings;
@@ -175,5 +176,44 @@ public class BregmanGLM_Batch implements PlugInFilter
 		ObjectOutputStream oos = new ObjectOutputStream(fout);
 		oos.writeObject(p);
 		oos.close();
+	}
+
+	/**
+	 * 
+	 * Get Mask images
+	 * @return set of possible output
+	 * 
+	 */
+	public String[] getMask(ImagePlus aImp) 
+	{
+		String[] gM = new String[2];
+		gM[0] = new String(aImp.getTitle() + "_ObjectsData_c1.csv");
+		gM[1] = new String(aImp.getTitle() + "_ObjectsData_c2.csv");
+		return gM;
+	}
+	
+	/**
+	 * 
+	 * Get regions list
+	 * 
+	 * @param aImp
+	 * @return set of possible ouput
+	 */
+	
+	public String[] getRegions(ImagePlus aImp)
+	{
+		String[] gM = new String[2];
+		gM[0] = new String(aImp.getTitle() + "_Seg_c1_RGB.tif");
+		gM[1] = new String(aImp.getTitle() + "_Seg_c2_RGB.tif");
+		return gM;
+	}
+
+	@Override
+	public String[] getRegionList(ImagePlus aImp) 
+	{
+		String[] gM = new String[2];
+		gM[0] = new String(aImp.getTitle() + "_ObjectsData_c1.csv");
+		gM[1] = new String(aImp.getTitle() + "_ObjectsData_c2.csv");
+		return gM;
 	}
 }

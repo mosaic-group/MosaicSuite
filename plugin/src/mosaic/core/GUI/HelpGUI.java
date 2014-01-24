@@ -15,6 +15,13 @@ import javax.swing.JPanel;
 
 import ij.gui.GenericDialog;
 
+/**
+ * 
+ * Class to create help windows + link to respective documentation
+ * 
+ * @author Pietro Incardona
+ *
+ */
 
 public class HelpGUI
 {

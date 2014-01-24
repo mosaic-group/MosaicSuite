@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Scanner;
+import java.util.Vector;
 
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
@@ -18,7 +19,10 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
 import mosaic.bregman.Analysis;
+import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
+import mosaic.core.cluster.ClusterSession;
+import mosaic.plugins.BregmanGLM_Batch;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -29,8 +33,121 @@ import ij.process.ImageProcessor;
 
 public class MosaicUtils 
 {
+	public class SegmentationInfo
+	{
+		public File RegionList;
+		public File RegionMask;
+	}
 	
+	static private File filter_possible(Vector<File> PossibleFile)
+	{
+		if (PossibleFile.size() > 1)
+		{
+			// Ask user to choose
+			
+			ChooseGUI cg = new ChooseGUI();
+			
+			return cg.choose("Choose segmentation","Found multiple segmentations", PossibleFile);
+		}
+		else
+		{
+			if (PossibleFile.size() == 1)
+				return PossibleFile.get(0);
+			else
+				return null;
+		}
+	}
+	
+	/**
+	 * 
+	 * Get if there are segmentation information for the image
+	 * 
+	 * @param Image
+	 * 
+	 */
 
+	static public SegmentationInfo getSegmentationInfo(ImagePlus aImp)
+	{
+		String Folder = MosaicUtils.ValidFolderFromImage(aImp);
+		Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
+		
+		Vector<File> PossibleFile = new Vector();
+		
+		MosaicUtils MS = new MosaicUtils();
+		SegmentationInfo sI = MS.new SegmentationInfo();
+		
+		// Get infos from possible segmentation
+		
+		for (int i = 0 ; i < sg.length ; i++)
+		{
+			String sR[] = sg[i].getRegionList(aImp);
+			for (int j = 0 ; j < sR.length ; j++)
+			{
+				File fR = new File(Folder + sR[j]);
+				
+				if (fR.exists())
+				{
+					PossibleFile.add(fR);
+				}
+			}			
+			
+			// Check if there are Jobs directory
+			// if there are open a job selector
+			// and search inside the selected directory
+			//
+			
+			String [] jb = ClusterSession.getJobDirectories(0, Folder);
+			
+			for (int k = 0 ; k < jb.length ; k++)
+			{
+				for (int j = 0 ; j < sR.length ; j++)
+				{
+					File fM = new File(jb[k] + sR[j]);
+				
+					if (fM.exists())
+					{
+						PossibleFile.add(fM);
+					}
+				}
+			}
+			
+			sI.RegionList = filter_possible(PossibleFile);
+			
+			String dir = sI.RegionList.getParent();
+			
+			String sM[] = sg[i].getMask(aImp);
+			for (int j = 0 ; j < sM.length ; j++)
+			{
+				File fM = new File(sM[j]);
+			
+				if (fM.exists())
+				{
+					PossibleFile.add(fM);
+				}
+			}
+
+			sI.RegionMask = filter_possible(PossibleFile);
+		}
+
+		return sI;
+	} 
+	
+	/**
+	 * 
+	 * Get segmentation classes
+	 * 
+	 * @return an array of the classes
+	 */
+	
+	static public Segmentation[] getSegmentationPluginsClasses()
+	{
+		Segmentation[] sg = new Segmentation[1];
+		
+		sg[0] = new BregmanGLM_Batch();
+		
+		return sg;
+	}
+	
 	/**
 	 * 
 	 * This function merge the frames of the image a2 into a1

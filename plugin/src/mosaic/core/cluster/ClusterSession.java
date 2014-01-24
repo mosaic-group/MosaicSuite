@@ -17,6 +17,7 @@ import mosaic.core.cluster.LSFBatch.LSFJob;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 
+import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
 
 import ij.IJ;
@@ -245,17 +246,26 @@ public class ClusterSession
 	 * 
 	 * Get the Jobs directory in the temporal folder
 	 * 
+	 * @param JobID if 0 return all directory otherwise return the directory associated to the
+	 *        specified jobID
+	 * @param directory where to search for Job directory
 	 * @return Get all the directory string
 	 * 
 	 */
 	
-	public String[] getJobDirectories(final int JobID)
+	static public String[] getJobDirectories(final int JobID, final String directory)
 	{
 		final String tmp_dir = IJ.getDirectory("temp");
 		
 		// List all job directory
 		
-		File file = new File(tmp_dir);
+		File file = null;
+		
+		if (directory != null)
+			file = new File(directory);
+		else
+			file = new File(tmp_dir);
+		
 		String[] directories = file.list(new FilenameFilter() 
 		{
 		  @Override
@@ -294,6 +304,28 @@ public class ClusterSession
 	
 	/**
 	 * 
+	 * Create a JobSelector Window
+	 * 
+	 * @param all the directory job
+	 */
+	
+	public int CreateJobSelector(String directories[])
+	{
+		ChooseGUI cg = new ChooseGUI();
+		String c = cg.choose("Job Selector", "Select a Job to visualize", directories);
+		int l = c.length() -1;
+		
+		while ( Character.isDigit(c.charAt(l)) && l >= 0)
+		{
+			l--;
+		}
+		l++;
+		
+		return Integer.parseInt(c.substring(l, c.length()));
+	}
+	
+	/**
+	 * 
 	 * Load and visualize the stack
 	 * 
 	 * @param output List of output patterns
@@ -304,35 +336,12 @@ public class ClusterSession
 	
 	void stackVisualize(String output[], int JobID, ProgressBarWin wp)
 	{
-		String directories[] = getJobDirectories(JobID);
+		String directories[] = getJobDirectories(JobID,null);
 		
 		if (JobID == 0)
 		{
-			GenericDialog gd = new GenericDialog("Job selector:");
-			
-			String ad[] = new String[directories.length];
-			for (int i = 0 ; i < directories.length ; i++)
-			{
-				ad[i] = directories[i];
-			}
-			gd.addChoice("Select a Job to visualize",ad,"None");
-			gd.showDialog();
-			
-			if(!gd.wasCanceled())
-			{
-				String c = gd.getNextChoice();
-				int l = c.length() -1;
-				
-				while ( Character.isDigit(c.charAt(l)) && l >= 0)
-				{
-					l--;
-				}
-				l++;
-				
-				JobID = Integer.parseInt(c.substring(l, c.length()));
-			}
-			else
-			{return ;}
+			if ((JobID = CreateJobSelector(directories)) == 0)
+				return;
 		}
 		
 		GenericDialog gd = new GenericDialog("Job output selector:");
@@ -396,7 +405,7 @@ public class ClusterSession
 	
 	void reorganize(String output[], int JobID ,ProgressBarWin wp)
 	{		
-		String directories[] = getJobDirectories(JobID);
+		String directories[] = getJobDirectories(JobID,null);
 		
 		// reorganize
 		

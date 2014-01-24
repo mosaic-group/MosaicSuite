@@ -105,6 +105,7 @@ import mosaic.core.particleLinking.ParticleLinkerKNN;
 import mosaic.core.particleLinking.ParticleLinker_old;
 import mosaic.core.particleLinking.linkerOptions;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.MosaicUtils.SegmentationInfo;
 
 /**
  * <h2>ParticleTracker</h2>
@@ -203,6 +204,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	String[] files_list;
 	boolean one_file_multiple_frame;	
 	boolean csv_format;
+	File Csv_region_list;
 
 	/** 
 	 * This method sets up the plugin filter for use.
@@ -257,6 +259,18 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			IJ.error("You must load an Image Sequence or Movie first");
 			return DONE;
 		}
+		
+		// Check if there are segmentation information
+		
+		SegmentationInfo info;
+		
+		if ((info = MosaicUtils.getSegmentationInfo(imp)) != null)
+		{
+			text_files_mode = true;
+			Csv_region_list = info.RegionList;
+			return NO_IMAGE_REQUIRED;
+		}
+		
 		
 		// If you have an image with n slice and one frame is quite suspicious
 		// that the time information is stored in the slice data, prompt if the data
@@ -689,41 +703,49 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		
 		if (text_files_mode) 
 		{
-			text_mode_gd = new GenericDialog("input files info", IJ.getInstance());
-			text_mode_gd.addMessage("Please specify the info provided for the Particles...");
-			text_mode_gd.addCheckbox("one file multiple frame (deprecated)", false);
-			text_mode_gd.addCheckbox("CSV File", true);
-			//			text_mode_gd.addCheckbox("3rd or 5th position and on- all other data", true);
-			text_mode_gd.showDialog();
-			if (text_mode_gd.wasCanceled()) return false;
-
-			one_file_multiple_frame = text_mode_gd.getNextBoolean();
-			csv_format = text_mode_gd.getNextBoolean();
-			
-			// gets the input files directory form
-			files_list  = getFilesList();
-			if (files_list == null) return false;
-
-			// if is csv filter_out
-			
-			if (csv_format == true)
+			if (Csv_region_list == null)
 			{
-				int nf = 0;
+				text_mode_gd = new GenericDialog("input files info", IJ.getInstance());
+				text_mode_gd.addMessage("Please specify the info provided for the Particles...");
+				text_mode_gd.addCheckbox("one file multiple frame (deprecated)", false);
+				text_mode_gd.addCheckbox("CSV File", true);
+				//			text_mode_gd.addCheckbox("3rd or 5th position and on- all other data", true);
+				text_mode_gd.showDialog();
+				if (text_mode_gd.wasCanceled()) return false;
+
+				one_file_multiple_frame = text_mode_gd.getNextBoolean();
+				csv_format = text_mode_gd.getNextBoolean();
 				
-				Vector<String> v = new Vector<String>();
-				
-				for (int i = 0 ; i < files_list.length ; i++)
+				// gets the input files directory form
+				files_list  = getFilesList();
+				if (files_list == null) return false;
+
+				if (csv_format == true)
 				{
-					File f = new File(files_dir + File.separator + files_list[i]);
-					if (files_list[i].endsWith("csv") == true && f.exists() &&  f.isDirectory() == false)
+					int nf = 0;
+					
+					Vector<String> v = new Vector<String>();
+					
+					for (int i = 0 ; i < files_list.length ; i++)
 					{
-						v.add(files_list[i]);
-						nf++;
+						File f = new File(files_dir + File.separator + files_list[i]);
+						if (files_list[i].endsWith("csv") == true && f.exists() &&  f.isDirectory() == false)
+						{
+							v.add(files_list[i]);
+							nf++;
+						}
 					}
+					
+					files_list = new String[nf];
+					v.toArray(files_list);
 				}
 				
-				files_list = new String[nf];
-				v.toArray(files_list);
+				
+			}
+			else
+			{
+				files_list = new String[1];
+				files_list[0] = Csv_region_list.getAbsolutePath();
 			}
 			
 			this.title = "text_files";
