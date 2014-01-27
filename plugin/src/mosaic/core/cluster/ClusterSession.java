@@ -27,6 +27,14 @@ import ij.gui.GenericDialog;
 import ij.gui.ProgressBar;
 import ij.io.Opener;
 
+/**
+ * 
+ * Main class to handle a Session to an HPC cluster
+ * 
+ * @author Pietro Incardona
+ * 
+ */
+
 
 public class ClusterSession
 {
@@ -129,7 +137,7 @@ public class ClusterSession
 		// Download a working version of Fiji
 		// and copy the plugins
 	
-		if (ss.checkDirectory(cp.getRunningDir()+"Fiji.app") == false)
+		if (ss.checkDirectory(cp.getRunningDir()+"Fiji.app") == false && ss.checkFile(cp.getRunningDir()+"Fiji.app","ImageJ-linux64"))
 		{
 			wp.SetStatusMessage("Installing Fiji on cluster... ");
 		
@@ -313,6 +321,8 @@ public class ClusterSession
 	{
 		ChooseGUI cg = new ChooseGUI();
 		String c = cg.choose("Job Selector", "Select a Job to visualize", directories);
+		if(c== null)
+			return 0;
 		int l = c.length() -1;
 		
 		while ( Character.isDigit(c.charAt(l)) && l >= 0)

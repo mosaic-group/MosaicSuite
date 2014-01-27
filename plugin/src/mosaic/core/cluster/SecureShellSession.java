@@ -228,6 +228,47 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 	
 	/**
 	 * 
+	 * Check if exist a file
+	 * 
+	 * @param Directory
+	 * @param file_name to check
+	 * @return
+	 */
+	
+	public boolean checkFile(String Directory,String file_name)
+	{
+		try 
+		{	
+			if (createSftpChannel() == false)
+				return false;
+			
+			Vector<String> fl = cSFTP.ls(Directory);
+			
+			for (String f : fl)
+			{
+				if (f.contains(file_name))
+				{
+					return true;
+				}
+			}
+			return false;
+		} 
+		catch (JSchException e) 
+		{
+			return false;
+		}
+		catch (IOException e) 
+		{
+			return false;
+		} 
+		catch (SftpException e) 
+		{
+			return false;
+		}
+	}
+	
+	/**
+	 * 
 	 * run a sequence of SSH commands
 	 * @param pwd password to access the ssh session
 	 * @param commands string to execute

@@ -11,6 +11,7 @@ import ij.gui.NonBlockingGenericDialog;
 import ij.gui.PlotWindow;
 import ij.gui.Roi;
 import ij.gui.StackWindow;
+import ij.gui.YesNoCancelDialog;
 import ij.io.FileInfo;
 import ij.io.OpenDialog;
 import ij.io.Opener;
@@ -101,7 +102,8 @@ import mosaic.core.detection.PreviewInterface;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.particleLinking.ParticleLinker;
-import mosaic.core.particleLinking.ParticleLinkerKNN;
+import mosaic.core.particleLinking.ParticleLinkerBestOnePerm;
+import mosaic.core.particleLinking.ParticleLinkerHun;
 import mosaic.core.particleLinking.ParticleLinker_old;
 import mosaic.core.particleLinking.linkerOptions;
 import mosaic.core.utils.MosaicUtils;
@@ -171,7 +173,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	public Vector<Trajectory> all_traj;// = new Vector();
 	public int number_of_trajectories, frames_number, slices_number;
 	private FeaturePointDetector detector;
-	private ParticleLinkerKNN linker;
+	private ParticleLinker linker;
 	public String title;
 	
 	/* user defined parameters for linking*/
@@ -205,6 +207,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	boolean one_file_multiple_frame;	
 	boolean csv_format;
 	File Csv_region_list;
+	boolean create_bck_image = true;
+	boolean creating_traj_image = false;
 
 	/** 
 	 * This method sets up the plugin filter for use.
@@ -260,15 +264,28 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			return DONE;
 		}
 		
+		// Initialite the linker
+		
+		linker = new ParticleLinkerBestOnePerm();
+		
 		// Check if there are segmentation information
 		
-		SegmentationInfo info;
-		
-		if ((info = MosaicUtils.getSegmentationInfo(imp)) != null)
+		if (MosaicUtils.checkSegmentationInfo(imp))
 		{
-			text_files_mode = true;
-			Csv_region_list = info.RegionList;
-			return NO_IMAGE_REQUIRED;
+			YesNoCancelDialog YN_dialog = new YesNoCancelDialog(null,"Segmentation","A segmentation has been founded for this image, do you want to track the regions");
+
+			if (YN_dialog.yesPressed() == true)
+			{
+				SegmentationInfo info;			
+				info = MosaicUtils.getSegmentationInfo(imp);
+
+				text_files_mode = true;
+				csv_format = true;
+				Csv_region_list = info.RegionList;
+				create_bck_image = false;
+				
+				return NO_IMAGE_REQUIRED;
+			}
 		}
 		
 		
@@ -318,17 +335,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		if (!getUserDefinedParams()) return;
  
 		if (!processFrames()) return;
-		
-		if (text_files_mode) 
-		{
-			/* create an ImagePlus object to hold the particle information from the text files*/
-			
-			Img<ARGBType> iw = createHyperStackFromFrames(background);
-			if (iw == null)
-				return;
-			
-			original_imp =  ImageJFunctions.wrap( iw, "Video");
-		}
 
 		original_imp.show();
 		
@@ -343,7 +349,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		lo.l_s = l_s;
 		lo.l_f = l_f;
 		lo.l_d = l_d;
-		linker.linkParticles(frames, frames_number, lo);
+		if (linker.linkParticles(frames, frames_number, lo) == false)
+			return;
+		
 		IJ.freeMemory();
 
 		/* generate trajectories */		 
@@ -365,15 +373,16 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			results_window.text_panel.appendLine("Particle Tracker DONE!");
 			results_window.text_panel.appendLine("Found " + this.number_of_trajectories + " Trajectories");
 			results_window.setVisible(true);
+			
+			IJ.showStatus("Creating trajectory image ...");
+			creating_traj_image = true;
+			
+			out = createHyperStackFromFrames(background);
 		}
 		
 		IJ.freeMemory();
 		
 		// Output image with trajectory
-		
-		out = createHyperStackFromFrames(background);
-		if (out == null)
-			return;
 	}
 
 	private MyFrame [] convertIntoFrames(Vector<Particle> p)
@@ -391,6 +400,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				Calibration cal = imp.getCalibration();
 				rescaleWith(cal, p);
 			}
+		}
+		else
+		{
+			Calibration cal =new Calibration();
+			cal.pixelDepth =1.0f;
+			cal.pixelHeight=1.0f;
+			cal.pixelWidth =1.0f;
+			rescaleWith(cal,p);
 		}
  		
 		// Create the frames array
@@ -449,8 +466,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		{
 			slices_number = 1;
 		}
-		
-		linker = new ParticleLinkerKNN();
 	}
 
 	int f_size = 0;
@@ -545,7 +560,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 */
 	public boolean processFrames() 
 	{
-		
 		if (frames_processed) return true;
 
 		/* Initialise frames array */
@@ -554,13 +568,22 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 		if (csv_format == true)
 		{
+			IJ.showStatus("Reading CSV Regions data ...");
 			InterPluginCSV<Particle> P_csv = new InterPluginCSV<Particle>(Particle.class);
 			
-			P_csv.setCSVPreferenceFromFile(files_dir + file_sel);
-			Vector<Particle> p =  P_csv.Read(files_dir + file_sel);
+			P_csv.setCSVPreferenceFromFile(files_dir + File.separator + file_sel);
+			Vector<Particle> p =  P_csv.Read(files_dir + File.separator + file_sel);
+			
+			if(p.size() == 0)
+			{
+				IJ.error("No regions defined for this image,nothing to do");
+				return false;
+			}
 			
 			background = P_csv.getMetaInformation("background");
 			segmented = P_csv.getMetaInformation("segmented");
+			
+			IJ.showStatus("Creating frames with particles ...");
 			
 			frames = convertIntoFrames(p);
 			
@@ -571,6 +594,21 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				frames[i].removeDoubleParticles();
 			
 			frames_number = frames.length;
+			
+			// Create image if needed
+			
+			/* create an ImagePlus object to hold the particle information from the text files*/
+			
+			if (create_bck_image == true)
+			{
+				IJ.showStatus("Creating background image ...");
+				
+				Img<ARGBType> iw = createHyperStackFromFrames(background);
+				if (iw != null)
+				{
+					original_imp =  ImageJFunctions.wrap( iw, "Video");
+				}
+			}
 		}
 		else if (one_file_multiple_frame == false)
 		{
@@ -740,23 +778,21 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 					v.toArray(files_list);
 				}
 				
-				
+				this.title = "text_files";
+				frames_number = 0;
+				// EACH!! file in the given directory is considered as a frame
+				for (int i = 0; i<files_list.length; i++) 
+				{
+					if (!files_list[i].startsWith(".") && !files_list[i].endsWith("~")) 
+					{
+						frames_number++;
+					}
+				}
 			}
 			else
 			{
-				files_list = new String[1];
-				files_list[0] = Csv_region_list.getAbsolutePath();
-			}
-			
-			this.title = "text_files";
-			frames_number = 0;
-			// EACH!! file in the given directory is considered as a frame
-			for (int i = 0; i<files_list.length; i++) 
-			{
-				if (!files_list[i].startsWith(".") && !files_list[i].endsWith("~")) 
-				{
-					frames_number++;
-				}
+				files_dir = Csv_region_list.getParent();
+				file_sel = Csv_region_list.getName();
 			}
 		} else {
 			detector.addUserDefinedParametersDialog(gd);
@@ -798,6 +834,13 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				gd.addNumericField("Feature", l_f, 3);
 				gd.addNumericField("Dynamic", l_d, 3);
 				
+				String sc[] = new String[2];
+				
+				sc[0] = new String("Best one permutation");
+				sc[1] = new String("Hungarian");
+				
+				gd.addChoice("Optimizer", sc, sc[0]);
+				
 				gd.showDialog();
 				
 				if (gd.wasCanceled() == true)
@@ -806,6 +849,13 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				l_s = (float) gd.getNextNumber();
 				l_f = (float) gd.getNextNumber();
 				l_d = (float) gd.getNextNumber();
+				
+				String dm = gd.getNextChoice();
+				
+				if (dm.equals("Best one permutation"))
+				{linker = new ParticleLinkerBestOnePerm();}
+				else
+				{linker = new ParticleLinkerHun();}
 			}
 		}
 		);
@@ -1436,7 +1486,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 		private void changeParticleNumberLabel() 
 		{
-			int currentframe = (this.getImagePlus().getCurrentSlice() - 1) / slices_number;
+			int currentframe = this.getImagePlus().getSlice()-1;
 			numberOfParticlesLabel.setText("Frame " + (currentframe+1) + ": " + frames[currentframe].real_particles_number + " particles");
 		}
 
@@ -2221,7 +2271,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				lo.displacement = (float) displacement;
 				lo.force = force;
 				lo.straight_line = straight_line;
-				linker.linkParticles(frames, frames_number, lo);
+				if (linker.linkParticles(frames, frames_number, lo) == false)
+					return;
 				IJ.freeMemory();
 
 				/* generate trajectories */		 
@@ -2675,6 +2726,21 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
 		if (duplicated_imp == null)
 		{
+			if (out == null)
+			{
+				if (creating_traj_image == true)
+				{
+					IJ.error("One moment please ..., we are computing the image");
+					return;
+				}
+				else
+				{
+					IJ.error("An internal error has occurred we are not able to compute the result image");
+					return;
+				}
+			}
+			
+			
 			// if there is no image to generate the view on:
 			// generate a new image by duplicating the original image
 			duplicated_imp= ImageJFunctions.wrap(out, new_title);

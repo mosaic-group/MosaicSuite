@@ -39,8 +39,20 @@ public class MosaicUtils
 		public File RegionMask;
 	}
 	
+	/**
+	 * 
+	 * Filter out from Possible candidate file the one chosen by the user
+	 * If only one file present nothing appear
+	 * 
+	 * @param PossibleFile Vector of possible File
+	 * @return Chosen file
+	 */
+	
 	static private File filter_possible(Vector<File> PossibleFile)
 	{
+		if (PossibleFile == null)
+			return null;
+		
 		if (PossibleFile.size() > 1)
 		{
 			// Ask user to choose
@@ -57,6 +69,61 @@ public class MosaicUtils
 				return null;
 		}
 	}
+	
+	/**
+	 * 
+	 * Check if there are segmentation information for the image
+	 * 
+	 * @param Image
+	 * 
+	 */
+
+	static public boolean checkSegmentationInfo(ImagePlus aImp)
+	{
+		String Folder = MosaicUtils.ValidFolderFromImage(aImp);
+		Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
+		
+		MosaicUtils MS = new MosaicUtils();
+		SegmentationInfo sI = MS.new SegmentationInfo();
+		
+		// Get infos from possible segmentation
+		
+		for (int i = 0 ; i < sg.length ; i++)
+		{
+			String sR[] = sg[i].getRegionList(aImp);
+			for (int j = 0 ; j < sR.length ; j++)
+			{
+				File fR = new File(Folder + sR[j]);
+				
+				if (fR.exists())
+				{
+					return true;
+				}
+			}			
+			
+			// Check if there are Jobs directory
+			// if there are open a job selector
+			// and search inside the selected directory
+			//
+			
+			String [] jb = ClusterSession.getJobDirectories(0, Folder);
+			
+			for (int k = 0 ; k < jb.length ; k++)
+			{
+				for (int j = 0 ; j < sR.length ; j++)
+				{
+					File fM = new File(jb[k] + sR[j]);
+				
+					if (fM.exists())
+					{
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	} 
 	
 	/**
 	 * 
@@ -113,12 +180,14 @@ public class MosaicUtils
 			
 			sI.RegionList = filter_possible(PossibleFile);
 			
+			PossibleFile.clear();
+			
 			String dir = sI.RegionList.getParent();
 			
 			String sM[] = sg[i].getMask(aImp);
 			for (int j = 0 ; j < sM.length ; j++)
 			{
-				File fM = new File(sM[j]);
+				File fM = new File(dir + File.separator + sM[j]);
 			
 				if (fM.exists())
 				{

@@ -568,7 +568,7 @@ public class GenericGUI
 			// Save all JobID to the image folder
 			// or ask for a directory
 			
-			String dir[] = ss.getJobDirectories(0);
+			String dir[] = ss.getJobDirectories(0,null);
 			
 			if (dir.length > 0)
 			{

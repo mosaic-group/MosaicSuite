@@ -187,8 +187,8 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 	public String[] getMask(ImagePlus aImp) 
 	{
 		String[] gM = new String[2];
-		gM[0] = new String(aImp.getTitle() + "_ObjectsData_c1.csv");
-		gM[1] = new String(aImp.getTitle() + "_ObjectsData_c2.csv");
+		gM[0] = new String(aImp.getTitle() + "_seg_c1_RGB.tif");
+		gM[1] = new String(aImp.getTitle() + "_seg_c2_RGB.tif");
 		return gM;
 	}
 	

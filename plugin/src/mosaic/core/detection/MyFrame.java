@@ -127,7 +127,8 @@ import net.imglib2.view.Views;
 		{
 	        this.frame_number = frame;
 			this.particles_number = p.size();
-	        
+	        this.real_particles_number = p.size();
+			
 	        /* initialise the particles array */
 	        this.particles = p;
 	        

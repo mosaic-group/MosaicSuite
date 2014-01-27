@@ -16,7 +16,7 @@ public class Parameters  implements Serializable
 	public  boolean mode_watershed=false;
 	public  boolean mode_voronoi2=true;
 	
-	public boolean save_images=false;
+	public boolean save_images=true;
 	public String wd=null;
 
 	public int overs=2;
