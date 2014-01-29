@@ -85,6 +85,7 @@ import net.imglib2.img.imageplus.ImagePlusImg;
 import net.imglib2.img.imageplus.ImagePlusImgFactory;
 import net.imglib2.io.ImgSaver;
 import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 
@@ -2557,31 +2558,41 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 * @see MyFrame#featurePointDetection()
 	 * @see PreviewCanvas
 	 */
-	public synchronized void preview() {		
-
+	public synchronized void preview() 
+	{
 		if (original_imp == null) return;
 
 		// the stack of the original loaded image (it can be 1 frame)
-		stack = original_imp.getStack();
+/*		stack = original_imp.getStack();
 
 		// get the frame number
-		this.preview_slice_calculated = original_imp.getCurrentSlice();
+		this.preview_slice_calculated = original_imp.getCurrentSlice();*/
 
 		detector.getUserDefinedPreviewParams(gd);		
 
-		int first_slice = (MosaicUtils.getFrameNumberFromSlice(this.preview_slice_calculated, slices_number)-1) * slices_number + 1;
+/*		int first_slice = (MosaicUtils.getFrameNumberFromSlice(this.preview_slice_calculated, slices_number)-1) * slices_number + 1;*/
 		// create a new MyFrame from the current_slice in the stack
-		MyFrame preview_frame = new MyFrame(MosaicUtils.GetSubStackCopyInFloat(stack, first_slice, first_slice  + slices_number - 1), 
-				MosaicUtils.getFrameNumberFromSlice(this.preview_slice_calculated, slices_number)-1, linkrange);
+/*		MyFrame preview_frame = new MyFrame(MosaicUtils.GetSubStackCopyInFloat(stack, first_slice, first_slice  + slices_number - 1), 
+				MosaicUtils.getFrameNumberFromSlice(this.preview_slice_calculated, slices_number)-1, linkrange);*/
 		
-
-		// detect particles in this frame
+		ImagePlus frame = MosaicUtils.getImageFrame(original_imp, original_imp.getFrame());
+		
+		MyFrame preview_frame = new MyFrame(frame.getStack(),original_imp.getFrame(),linkrange);
+		
 		detector.featurePointDetection(preview_frame);
+		final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap(frame);
+		preview_frame.setParticleRadius(detector.radius);
+		Img<ARGBType> img_frame = preview_frame.createImage(backgroundImg, frame.getCalibration());
+
+		ImageJFunctions.wrap(img_frame, "Preview detection").show();
+		
+		// detect particles in this frame
+/*		detector.featurePointDetection(preview_frame);
 		detector.setPreviewLabel("#Particles: " + preview_frame.getParticles().size());		
 
 		preview_canvas.setPreviewFrame(preview_frame);
 		preview_canvas.setPreviewParticleRadius(detector.getRadius());
-		preview_canvas.setPreviewSliceCalculated(preview_slice_calculated);
+		preview_canvas.setPreviewSliceCalculated(preview_slice_calculated);*/
 	}
 
 	/**

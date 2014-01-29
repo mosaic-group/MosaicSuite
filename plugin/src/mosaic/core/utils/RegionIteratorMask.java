@@ -63,6 +63,7 @@ public class RegionIteratorMask
 		
 		while(regionIt.hasNext())
 		{
+			Point pt = regionIt.getPoint();
 			int idx = regionIt.nextRmask();
 			int reset = regionIt.getRMask();
 			int itMask = maskIt.next();
@@ -90,7 +91,7 @@ public class RegionIteratorMask
 				maskAdjTable[itMask] = jidx;
 				
 				jumpTable[jidx] = idx;
-				jumpTableGeo[jidx] = regionIt.getPoint();
+				jumpTableGeo[jidx] = pt;
 				jidx += 1;
 			}
 			else

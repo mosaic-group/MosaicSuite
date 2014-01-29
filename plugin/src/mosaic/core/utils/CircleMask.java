@@ -79,8 +79,8 @@ public class CircleMask  extends Mask
 		for(int vD = 0; vD < dim; vD++)
 		{
 			vHypEllipse += 
-				(vIndex[vD] - (m_Size[vD]-1) / 2.0)
-				*(vIndex[vD] - (m_Size[vD]-1) / 2.0)*spacing[vD]
+				(vIndex[vD] + 0.5 - (m_Size[vD]) / 2.0)
+				*(vIndex[vD] + 0.5 - (m_Size[vD]) / 2.0)*spacing[vD]
 				/(m_Radius[vD] * m_Radius[vD]);
 		}
 		
@@ -112,7 +112,7 @@ public class CircleMask  extends Mask
 			
 			float vHypEllipse = rHypEllipse(ofs.x);
 			
-			if(vHypEllipse <= 1.0f)
+			if(vHypEllipse < 1.0f)
 			{
 				// Check the neighboorhood
 				
