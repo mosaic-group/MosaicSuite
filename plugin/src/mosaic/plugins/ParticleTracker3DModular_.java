@@ -390,20 +390,22 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		
 		// Read the first background
 		
-		ImagePlus imp = null;
+		Calibration cal = null;
 		if (background != null)
 		{
-			imp = new Opener().openImage( new File(background.replace("*", "1")).getAbsolutePath() );
+			if (original_imp == null)
+				original_imp = new Opener().openImage( new File(background.replace("*", "1")).getAbsolutePath() );
 
-			if (imp != null)
+			if (original_imp != null)
 			{
-				Calibration cal = imp.getCalibration();
+				cal = original_imp.getCalibration();
 				rescaleWith(cal, p);
 			}
 		}
-		else
+
+		if (cal == null)
 		{
-			Calibration cal =new Calibration();
+			cal =new Calibration();
 			cal.pixelDepth =1.0f;
 			cal.pixelHeight=1.0f;
 			cal.pixelWidth =1.0f;
@@ -3086,18 +3088,22 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
     		{
     	   		// Open first background to get the size
         		
-        		File file = new File( background.replace("*", Integer.toString(1)));
+    			if (original_imp == null)
+    			{
+    				File file = new File( background.replace("*", Integer.toString(1)));
     	 	        
-    	    	// open a file with ImageJ
-    	    	ImagePlus imp = new Opener().openImage( file.getAbsolutePath() );
-    	    	
+    				// open a file with ImageJ
+    				original_imp = new Opener().openImage( file.getAbsolutePath() );
+    			}
+    			
     	    	long vMaxp1[] = null;
     	    	    	
-    	    	if (imp != null)
+    	    	if (original_imp != null)
     	    	{
- 	    			if (imp.getNFrames() > 1)
+    	    		ImagePlus imp = null;
+ 	    			if (original_imp.getNFrames() > 1)
  	    			{
- 	    				imp = MosaicUtils.getImageFrame(imp, 1);
+ 	    				imp = MosaicUtils.getImageFrame(original_imp, 1);
  	    			}
     	    		
     	    		final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( imp );
@@ -3115,6 +3121,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
     	    		// Cannot open the background
     	    		
     	    		IJ.error("Cannot open the background " + background);
+    	    		creating_traj_image = false;
     	    		return null;
     	    	}
         		
@@ -3142,20 +3149,17 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
  		/* for each frame we have add a stack to the image */
  		for (int i = 0; i<frames.length; i++)
  		{
- 			
+ 			IJ.showStatus("Creating frame " + i+1);
  	    	if (text_files_mode == true)
  	    	{
  	    		// Create frame image
  	    	
  	    		if (background != null)
  	    		{
- 	    			File file = new File( background.replace("*", Integer.toString(i+1)));
- 	        
- 	    			// open a file with ImageJ
- 	    			ImagePlus imp = new Opener().openImage( file.getAbsolutePath() );
- 	    			if (imp.getNFrames() > 1 && i < imp.getNFrames())
+ 	    			ImagePlus imp = null;
+ 	    			if (original_imp.getNFrames() > 1 && i < original_imp.getNFrames())
  	    			{
- 	    				imp = MosaicUtils.getImageFrame(imp, i);
+ 	    				imp = MosaicUtils.getImageFrame(original_imp, i);
  	    			}
  	 
  	    			Calibration cal = imp.getCalibration();

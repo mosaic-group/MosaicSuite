@@ -1132,7 +1132,6 @@ import net.imglib2.view.Views;
 	        {
 	        	Particle p_end = new Particle(ptt.p1);
 	        	Particle p_ini = new Particle(ptt.p2);
-	        	p_end.z = ptt.p1.z;
 	        	
 	        	if (cal != null)
 	        	{
@@ -1151,13 +1150,14 @@ import net.imglib2.view.Views;
 	        	
 	        	radius = (int) ((int) Math.cbrt(ptt.p1.m0 / 3.0f * 4.0f) / cal.pixelDepth);
 	        	
+	        	// draw several lines on z
+	        	
 	        	for (int i = 1 ; i <= radius ; i++)
 	        	{
 	        		if (ptt.p1.z / (float)cal.pixelDepth - i >= 0 && ptt.p2.z / (float)cal.pixelDepth - i >= 0)
 	        		{
 	    	        	p_end = new Particle(ptt.p1);
 	    	        	p_ini = new Particle(ptt.p2);
-	    	        	p_end.z = ptt.p1.z;
 	        			
 	        			p_ini.z = p_ini.z / (float)cal.pixelDepth - i;
 	        			p_end.z = p_end.z / (float)cal.pixelDepth - i;
@@ -1171,7 +1171,6 @@ import net.imglib2.view.Views;
 	        		{
 	    	        	p_end = new Particle(ptt.p1);
 	    	        	p_ini = new Particle(ptt.p2);
-	    	        	p_end.z = ptt.p1.z;
 	        			
 	        			p_ini.z = p_ini.z / (float)cal.pixelDepth + i;
 	        			p_end.z = p_end.z /(float)cal.pixelDepth + i;
