@@ -64,7 +64,7 @@ import net.imglib2.view.Views;
 		float threshold;					// threshold for particle detection 
 		boolean normalized = false;
 		int linkrange;
-		
+		int p_radius = -1;
 		
 		/**
 		 * Default constructor 
@@ -80,6 +80,7 @@ import net.imglib2.view.Views;
 		 * by applying Detector methods  
 		 * @param ip the original ImageProcessor upon this MyFrame is based, will remain unchanged!
 		 * @param frame_num the serial number of this frame in the movie
+		 * @param aLinkrange link range
 		 */
 		public MyFrame (ImageStack ips, int frame_num, int aLinkrange) {
 			this.original_ips = ips;
@@ -177,6 +178,11 @@ import net.imglib2.view.Views;
 			}
             
             return ret;
+		}
+		
+		public void setParticleRadius(int pt_radius)
+		{
+			p_radius = pt_radius;
 		}
 		
 		private boolean loadParticlesFromFileMultipleFrame(BufferedReader r, String path, int nf) throws IOException 
@@ -854,6 +860,73 @@ import net.imglib2.view.Views;
 			return t;
 		}
 		
+		static private void drawParticlesWithRadius(RandomAccessibleInterval<ARGBType> out, List<Particle> pt , Calibration cal, int col, int p_radius)
+		{
+			RandomAccess<ARGBType> out_a = out.randomAccess();
+			
+	        int sz[] = new int [out_a.numDimensions()];
+		   	 
+	        for ( int d = 0; d < out_a.numDimensions(); ++d )
+	        {
+	            sz[d] = (int) out.dimension( d );
+	        }
+			
+	        // Iterate on all particles
+	        
+	        int radius = p_radius;
+
+	        float sp[] = new float[out_a.numDimensions()];
+	        	
+	    	float scaling[] = new float[3];
+	    		
+	    	if (cal != null)
+	    	{
+	    		scaling[0] = (float) (cal.pixelWidth);
+	    		scaling[1] = (float) (cal.pixelHeight);
+	    		scaling[2] = (float) (cal.pixelDepth);
+	    	}
+	    	else
+	    	{
+	    		scaling[0] = 1.0f;
+	    		scaling[1] = 1.0f;
+	    		scaling[2] = 1.0f;
+	    	}
+	    		
+	    	// Create a circle Mask and an iterator
+	    		
+	        CircleMask cm = new CircleMask(radius, 2*radius + 1, out_a.numDimensions(), scaling);
+	        RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
+	        	
+	        Iterator<Particle> pt_it = pt.iterator();
+	        
+	        while (pt_it.hasNext())
+	        {
+	        	Particle ptt = pt_it.next();
+	        	
+	        	// Draw the Circle
+	        			
+	        	Point p_c = null;
+	        	if (out_a.numDimensions() == 2)
+	        		p_c = new Point((int)(ptt.y/scaling[1]),(int)(ptt.x/scaling[0]));
+	        	else
+	        		p_c = new Point((int)(ptt.y/scaling[1]),(int)(ptt.x/scaling[0]),(int)(ptt.z/scaling[2]));
+	        			
+	        			
+	        	rg_m.setMidPoint(p_c);
+	        			
+		        while ( rg_m.hasNext() )
+		        {
+		        	Point p = rg_m.nextP();
+		        			
+		        	if (p.isInside(sz))
+		        	{
+		        		out_a.setPosition(p.x);
+		        		out_a.get().set(col);
+		        	}
+		        }
+	        }
+		}
+		
 		static private void drawParticles(RandomAccessibleInterval<ARGBType> out, List<Particle> pt , Calibration cal, int col)
 		{
 			RandomAccess<ARGBType> out_a = out.randomAccess();
@@ -920,9 +993,9 @@ import net.imglib2.view.Views;
 	        			
 	        			Point p_c = null;
 	        			if (out_a.numDimensions() == 2)
-	        				p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]));
+	        				p_c = new Point((int)(ptt.y/scaling[1]),(int)(ptt.x/scaling[0]));
 	        			else
-	        				p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]),(int)(ptt.z/scaling[2]));
+	        				p_c = new Point((int)(ptt.y/scaling[1]),(int)(ptt.x/scaling[0]),(int)(ptt.z/scaling[2]));
 	        			
 	        			
 	        			rg_m.setMidPoint(p_c);
@@ -966,11 +1039,11 @@ import net.imglib2.view.Views;
 			    int i, dx, dy, dz, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
 			    long pixel[] = new long[3];
 			    
-			    pixel[0] = (int) p1.x;
-			    pixel[1] = (int) p1.y;
+			    pixel[0] = (int) p1.y;
+			    pixel[1] = (int) p1.x;
 			    pixel[2] = (int) p1.z;
-			    dx = (int) (p2.x - p1.x);
-			    dy = (int) (p2.y - p1.y);
+			    dx = (int) (p2.y - p1.y);
+			    dy = (int) (p2.x - p1.x);
 			    dz = (int) (p2.z - p1.z);
 			    x_inc = (dx < 0) ? -1 : 1;
 			    l = Math.abs(dx);
@@ -1181,6 +1254,16 @@ import net.imglib2.view.Views;
 	        }
 		}
 		
+		/**
+		 * 
+		 * Draw particles on out image
+		 * 
+		 * @param out Out image
+		 * @param particles particles vector
+		 * @param cal Calibration (scaling factor between particle position and the image pixel)
+		 * @param col Color
+		 */
+		
 		static private void drawParticles(Img<ARGBType> out, Vector<Particle> particles, Calibration cal, int col)
 		{
 	        // Create a list of particles
@@ -1195,6 +1278,15 @@ import net.imglib2.view.Views;
 	        drawParticles(out,pt,cal,col);
 		}
 		
+		/**
+		 * 
+		 * Draw particles on out image
+		 * 
+		 * @param out Out image
+		 * @param cal Calibration (scaling factor between particle position and the image pixel)
+		 * @param col Color
+		 */
+		
 		private void drawParticles(Img<ARGBType> out, Calibration cal, int col)
 		{
 	        // Create a list of particles
@@ -1206,7 +1298,10 @@ import net.imglib2.view.Views;
 	        	pt.add(particles.get(i));
 	        }
 	        
-	        drawParticles(out,pt,cal,col);
+	        if (p_radius == -1)
+	        	drawParticles(out,pt,cal,col);
+	        else
+	        	drawParticlesWithRadius(out,pt,cal,col,p_radius);
 		}
 		
 		/**

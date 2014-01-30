@@ -63,8 +63,8 @@ public class SphereMask extends Mask
 			for(int vD = 0; vD < dim; vD++)
 			{
 				vHypEllipse += 
-					(vIndex[vD] - (m_Size[vD]-1) / 2.0)
-					*(vIndex[vD] - (m_Size[vD]-1) / 2.0)
+					(vIndex[vD] - (m_Size[vD]) / 2.0)
+					*(vIndex[vD] - (m_Size[vD]) / 2.0)
 					/(m_Radius[vD] * m_Radius[vD]);
 			}
 			
