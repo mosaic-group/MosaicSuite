@@ -79,7 +79,7 @@ public class CircleMask  extends Mask
 		for(int vD = 0; vD < dim; vD++)
 		{
 			vHypEllipse += 
-				(vIndex[vD] + 0.5 - (m_Size[vD]) / 2.0)
+				(vIndex[vD] + 0.5 - (m_Size[vD]) / 2.0)*spacing[vD]
 				*(vIndex[vD] + 0.5 - (m_Size[vD]) / 2.0)*spacing[vD]
 				/(m_Radius[vD] * m_Radius[vD]);
 		}

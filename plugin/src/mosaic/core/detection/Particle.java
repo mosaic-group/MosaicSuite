@@ -1,11 +1,16 @@
 package mosaic.core.detection;
 
+import ij.gui.Roi;
+
+import java.awt.Rectangle;
 import java.text.DecimalFormat;
+
+import net.imglib2.Interval;
 
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
-
 import mosaic.core.ipc.ICSVGeneral;
+
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
 
@@ -110,6 +115,21 @@ public class Particle  implements ICSVGeneral
 		this.m2 = p.m2;
 		this.m3 = p.m3;
 		this.m4 = p.m4;
+	}
+	
+	/**
+	 * 
+	 * translate coordinate according to a focus area
+	 * 
+	 * @param rectangle of the focus area
+	 * 
+	 * 
+	 * 
+	 */
+	void translate(Rectangle focus)
+	{
+		x = x - focus.x;
+		y = y - focus.y;
 	}
 	
 	/**

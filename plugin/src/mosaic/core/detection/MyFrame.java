@@ -3,26 +3,35 @@ package mosaic.core.detection;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.gui.Roi;
 import ij.io.Opener;
 import ij.measure.Calibration;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import mosaic.core.utils.CircleMask;
 import mosaic.core.utils.Connectivity;
+import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.plugins.ParticleTracker3DModular_.Trajectory;
+import net.imglib2.Interval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 
@@ -38,6 +47,7 @@ import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 
@@ -48,6 +58,8 @@ import net.imglib2.view.Views;
 	public class MyFrame 
 	{
 
+		static Map<Integer,RegionIteratorMask> CircleCache;
+		
 		//		Particle[] particles;		// an array Particle, holds all the particles detected in this frame
 		//									// after particle discrimination holds only the "real" particles
 		Vector<Particle> particles;
@@ -65,6 +77,28 @@ import net.imglib2.view.Views;
 		boolean normalized = false;
 		int linkrange;
 		int p_radius = -1;
+		
+		/**
+		 * 
+		 * Cleanup circle cache
+		 * 
+		 */
+		
+		static public void cleanCache()
+		{
+			CircleCache.clear();
+		}
+		
+		/**
+		 * 
+		 * Init the Cache circle
+		 * 
+		 */
+		
+		static public void initCircleCache()
+		{
+			CircleCache = new HashMap<Integer,RegionIteratorMask>();
+		}
 		
 		/**
 		 * Default constructor 
@@ -770,86 +804,6 @@ import net.imglib2.view.Views;
 			return this.original_ips;
 		}
 		
-		//////////////////////////////////// Procedures for draw //////////////////
-		
-		/////// Conversion to ARGB from different Type ////////////////////////////
-		
-		interface ToARGB
-		{
-			ARGBType toARGB(Object data);
-		}
-		
-		class FloatToARGB implements ToARGB
-		{
-			@Override
-			public ARGBType toARGB(Object data)
-			{
-				ARGBType t = new ARGBType();
-				
-				float td = 0.0f;
-				td = ((RealType<?>)data).getRealFloat();
-				t.set(ARGBType.rgba(td, td, td, 255.0f));
-				
-				return t;
-			}
-		}
-		
-		class FloatToARGBNorm implements ToARGB
-		{
-			@Override
-			public ARGBType toARGB(Object data)
-			{
-				ARGBType t = new ARGBType();
-				
-				float td = 0.0f;
-				td = ((RealType<?>)data).getRealFloat()*255;
-				t.set(ARGBType.rgba(td, td, td, 255.0f));
-				
-				return t;
-			}
-		}
-		
-		class IntToARGB implements ToARGB
-		{
-			@Override
-			public ARGBType toARGB(Object data)
-			{
-				ARGBType t = new ARGBType();
-				
-				int td = 0;
-				td = ((IntegerType<?>)data).getInteger();
-				t.set(ARGBType.rgba(td, td, td, 255));
-				
-				return t;
-			}
-		}
-		
-		class ARGBToARGB implements ToARGB
-		{
-			@Override
-			public ARGBType toARGB(Object data)
-			{				
-				return (ARGBType) data;
-			}
-		}
-		
-		private ToARGB getConversion(Object data)
-		{
-			if (data instanceof RealType)
-			{
-				return new FloatToARGB();
-			}
-			else if (data instanceof IntegerType)
-			{
-				return new IntToARGB();
-			}
-			else if (data instanceof ARGBType)
-			{
-				return new ARGBToARGB();
-			}
-			return null;
-		}
-		
 
 		public <T extends IntegerType<T>> ARGBType convertoARGBType(T data)
 		{
@@ -873,7 +827,7 @@ import net.imglib2.view.Views;
 			
 	        // Iterate on all particles
 	        
-	        int radius = p_radius;
+	        double radius = p_radius;
 
 	        float sp[] = new float[out_a.numDimensions()];
 	        	
@@ -893,10 +847,22 @@ import net.imglib2.view.Views;
 	    	}
 	    		
 	    	// Create a circle Mask and an iterator
-	    		
-	        CircleMask cm = new CircleMask(radius, 2*radius + 1, out_a.numDimensions(), scaling);
-	        RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
-	        	
+	    	
+	    	RegionIteratorMask rg_m = null;
+	    	
+	    	float min_s = minScaling(scaling);
+	    	int rc = (int) (radius / min_s);
+	    	scaling[0] /= min_s;
+	    	scaling[1] /= min_s;
+	    	scaling[2] /= min_s;
+		    if ((rg_m = CircleCache.get(rc)) == null)
+		    {
+		    	if (rc < 1) rc = 1;
+	        	CircleMask cm = new CircleMask(rc, 2*rc + 1, out_a.numDimensions(), scaling);
+	        	rg_m = new RegionIteratorMask(cm, sz);
+	    		CircleCache.put(rc, rg_m);
+	    	}
+	    	
 	        Iterator<Particle> pt_it = pt.iterator();
 	        
 	        while (pt_it.hasNext())
@@ -907,9 +873,9 @@ import net.imglib2.view.Views;
 	        			
 	        	Point p_c = null;
 	        	if (out_a.numDimensions() == 2)
-	        		p_c = new Point((int)(ptt.y/scaling[1]),(int)(ptt.x/scaling[0]));
+	        		p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]));
 	        	else
-	        		p_c = new Point((int)(ptt.y/scaling[1]),(int)(ptt.x/scaling[0]),(int)(ptt.z/scaling[2]));
+	        		p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]),(int)(ptt.z/scaling[2]));
 	        			
 	        			
 	        	rg_m.setMidPoint(p_c);
@@ -927,6 +893,18 @@ import net.imglib2.view.Views;
 	        }
 		}
 		
+		static private float minScaling(float s[])
+		{
+			float min = Float.MAX_VALUE;
+			for (int i = 0 ; i < s.length ; i++)
+			{
+				if (s[i] < min)
+					min = s[i];
+			}
+			
+			return min;
+		}
+		
 		static private void drawParticles(RandomAccessibleInterval<ARGBType> out, List<Particle> pt , Calibration cal, int col)
 		{
 			RandomAccess<ARGBType> out_a = out.randomAccess();
@@ -942,16 +920,16 @@ import net.imglib2.view.Views;
 	        
 	        while (pt.size() != 0)
 	        {
-	        	int radius;
+	        	double radius;
 	        	if (out_a.numDimensions() == 2)
-	        		radius = (int)Math.sqrt(pt.get(0).m0/Math.PI);
+	        		radius = Math.sqrt(pt.get(0).m0/Math.PI);
 	        	else
-	        		radius = (int) Math.cbrt(pt.get(0).m0*3.0/4.0/Math.PI);
+	        		radius = Math.cbrt(pt.get(0).m0*3.0/4.0/Math.PI);
 	        	
-	        	if (radius == 0) radius = 1;
 	        	float sp[] = new float[out_a.numDimensions()];
 	        	
 	    		float scaling[] = new float[3];
+	    		float scaling_[] = new float[3];
 	    		
 	    		if (cal != null)
 	    		{
@@ -968,8 +946,20 @@ import net.imglib2.view.Views;
 	    		
 	    		// Create a circle Mask and an iterator
 	    		
-	        	CircleMask cm = new CircleMask(radius, 2*radius + 1, out_a.numDimensions(), scaling);
-	        	RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
+		    	RegionIteratorMask rg_m = null;
+		    	
+		    	float min_s = minScaling(scaling);
+		    	int rc = (int) (radius / min_s);
+		    	scaling_[0] = scaling[0] / min_s;
+		    	scaling_[1] = scaling[1] / min_s;
+		    	scaling_[2] = scaling[2] / min_s;
+			    if ((rg_m = CircleCache.get(rc)) == null)
+			    {
+			    	if (rc < 1) rc = 1;
+		        	CircleMask cm = new CircleMask(rc, 2*rc + 1, out_a.numDimensions(), scaling_);
+		        	rg_m = new RegionIteratorMask(cm, sz);
+		    		CircleCache.put(rc, rg_m);
+		    	}
 	        	
 	        	Iterator<Particle> pt_it = pt.iterator();
 	        	
@@ -977,11 +967,11 @@ import net.imglib2.view.Views;
 	        	{
 	        		Particle ptt = pt_it.next();
 	        		
-		        	int radius_r;
+		        	double radius_r;
 		        	if (out_a.numDimensions() == 2)
-		        		radius_r = (int)Math.sqrt(pt.get(0).m0/Math.PI);
+		        		radius_r = Math.sqrt(pt.get(0).m0/Math.PI);
 		        	else
-		        		radius_r = (int) Math.cbrt(pt.get(0).m0*3.0/4.0/Math.PI);
+		        		radius_r = Math.cbrt(pt.get(0).m0*3.0/4.0/Math.PI);
 	        		
 	        		if (radius_r == 0) radius_r = 1;
 	        		
@@ -993,9 +983,9 @@ import net.imglib2.view.Views;
 	        			
 	        			Point p_c = null;
 	        			if (out_a.numDimensions() == 2)
-	        				p_c = new Point((int)(ptt.y/scaling[1]),(int)(ptt.x/scaling[0]));
+	        				p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]));
 	        			else
-	        				p_c = new Point((int)(ptt.y/scaling[1]),(int)(ptt.x/scaling[0]),(int)(ptt.z/scaling[2]));
+	        				p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]),(int)(ptt.z/scaling[2]));
 	        			
 	        			
 	        			rg_m.setMidPoint(p_c);
@@ -1039,11 +1029,11 @@ import net.imglib2.view.Views;
 			    int i, dx, dy, dz, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
 			    long pixel[] = new long[3];
 			    
-			    pixel[0] = (int) p1.y;
-			    pixel[1] = (int) p1.x;
+			    pixel[0] = (int) p1.x;
+			    pixel[1] = (int) p1.y;
 			    pixel[2] = (int) p1.z;
-			    dx = (int) (p2.y - p1.y);
-			    dy = (int) (p2.x - p1.x);
+			    dx = (int) (p2.x - p1.x);
+			    dy = (int) (p2.y - p1.y);
 			    dz = (int) (p2.z - p1.z);
 			    x_inc = (dx < 0) ? -1 : 1;
 			    l = Math.abs(dx);
@@ -1189,11 +1179,11 @@ import net.imglib2.view.Views;
 				cal.pixelHeight = 1.0;
 				cal.pixelWidth = 1.0;
 			}
-						
+			
 			RandomAccess<ARGBType> out_a = out.randomAccess();
 			
 	        int sz[] = new int [out_a.numDimensions()];
-		   	 
+		   	
 	        for ( int d = 0; d < out_a.numDimensions(); ++d )
 	        {
 	            sz[d] = (int) out.dimension( d );
@@ -1219,22 +1209,40 @@ import net.imglib2.view.Views;
 	        	
 	        	drawLine(out,p_ini,p_end, col);
 	        	
-	        	int radius;
+	        	double radius = Math.cbrt(ptt.p1.m0 / 3.0f * 4.0f);
 	        	
-	        	radius = (int) ((int) Math.cbrt(ptt.p1.m0 / 3.0f * 4.0f) / cal.pixelDepth);
+	        	float scaling[] = new float[3];
+	        	scaling[0] = (float) cal.pixelWidth;
+	        	scaling[1] = (float) cal.pixelHeight;
+	        	scaling[2] = (float) cal.pixelDepth;
+		    	float min_s = minScaling(scaling);
+		    	int rc = (int) (radius / min_s);
+		    	scaling[0] /= min_s;
+		    	scaling[1] /= min_s;
+		    	scaling[2] /= min_s;
+		    	rc /= scaling[2];
+
 	        	
 	        	// draw several lines on z
 	        	
-	        	for (int i = 1 ; i <= radius ; i++)
+	        	for (int i = 1 ; i <= rc ; i++)
 	        	{
 	        		if (ptt.p1.z / (float)cal.pixelDepth - i >= 0 && ptt.p2.z / (float)cal.pixelDepth - i >= 0)
 	        		{
 	    	        	p_end = new Particle(ptt.p1);
 	    	        	p_ini = new Particle(ptt.p2);
-	        			
-	        			p_ini.z = p_ini.z / (float)cal.pixelDepth - i;
-	        			p_end.z = p_end.z / (float)cal.pixelDepth - i;
 	        	
+	    	        	if (cal != null)
+	    	        	{
+	    	        		p_ini.x /= (float)cal.pixelWidth;
+	    	        		p_ini.y /= (float)cal.pixelHeight;
+		        			p_ini.z = p_ini.z / (float)cal.pixelDepth - i;
+	        	
+	    	        		p_end.x /= (float)cal.pixelWidth;
+	    	        		p_end.y /= (float)cal.pixelHeight;
+		        			p_end.z = p_end.z / (float)cal.pixelDepth - i;
+	    	        	}
+	        			
 	        			drawLine(out,p_ini,p_end, col);
 	        		}
 	        		
@@ -1244,10 +1252,18 @@ import net.imglib2.view.Views;
 	        		{
 	    	        	p_end = new Particle(ptt.p1);
 	    	        	p_ini = new Particle(ptt.p2);
-	        			
-	        			p_ini.z = p_ini.z / (float)cal.pixelDepth + i;
-	        			p_end.z = p_end.z /(float)cal.pixelDepth + i;
 	        	
+	    	        	if (cal != null)
+	    	        	{
+	    	        		p_ini.x /= (float)cal.pixelWidth;
+	    	        		p_ini.y /= (float)cal.pixelHeight;
+		        			p_ini.z = p_ini.z / (float)cal.pixelDepth + i;
+	        	
+	    	        		p_end.x /= (float)cal.pixelWidth;
+	    	        		p_end.y /= (float)cal.pixelHeight;
+		        			p_end.z = p_end.z /(float)cal.pixelDepth + i;
+	    	        	}
+	        			
 	        			drawLine(out,p_ini,p_end, col);
 	        		}
 	        	}
@@ -1358,7 +1374,7 @@ import net.imglib2.view.Views;
         	
 	        // get conversion;
 	        
-	        ToARGB conv = getConversion(curBack.get());
+	        ToARGB conv = MosaicUtils.getConversion(curBack.get());
 	        
 	        // Copy the background
 	        
@@ -1394,23 +1410,162 @@ import net.imglib2.view.Views;
 				this.p1 = p1;
 				this.p2 = p2;
 			}
+			
+			void translate(Rectangle focus)
+			{
+				p1.translate(focus);
+				p2.translate(focus);
+			}
 		}
 		
 		/**
 		 * 
 		 * Update the image
 		 * 
-		 * @param An array of frames
-		 * @param A vector of Trajectory
-		 * @param Color to use for draw
+		 * @param out An array of frames
+		 * @param A focus area
+		 * @param a Vector of trajectories
+		 * @param start_frame of the focus view
 		 * @param Type of draw
 		 *
 		 */
 		
-		static public  void updateImage(Img<ARGBType> out , Vector<Trajectory> tr , DrawType typ)
+		static public void updateImage(RandomAccessibleInterval<ARGBType> out , Rectangle focus, int start_frame, Vector<Trajectory> tr, Calibration cal , DrawType typ)
+		{
+			// Adjust calibration according to magnification
+			
+			int scale_x = (int) (out.dimension(0) / focus.width);
+			int scale_y = (int) (out.dimension(1) / focus.height);
+			
+			Calibration cal_ = new Calibration();
+			cal_.pixelWidth = cal.pixelWidth / scale_x;
+			cal_.pixelHeight = cal.pixelHeight / scale_y;
+			cal_.pixelDepth = cal.pixelDepth;
+			
+			// Get image
+	        
+			MyFrame f = new MyFrame();
+	        Cursor<ARGBType> curOut = Views.iterable(out).cursor();
+	        
+	        //
+	        
+	        int nframe = (int) out.dimension(out.numDimensions()-1);
+	        
+	        Vector<Particle> vp = new Vector<Particle>();
+	        Vector<pParticle> lines = new Vector<pParticle>();
+	        
+	        // Collect particles to draw and spline to draw
+	        
+	        for (int frame = 0 ; frame < nframe ; frame++)
+	        {
+	        	for (int t = 0 ; t < tr.size() ; t++)
+	        	{
+	        		if (tr.get(t).toDisplay() == false)
+	        			continue;
+	        		
+	        		vp.clear();
+	        		lines.clear();
+	        	
+	        		if ( frame + start_frame >= tr.get(t).start_frame && frame+start_frame <= tr.get(t).stop_frame )
+	        		{
+	        			// Check all particles frames, if particle is in frame add it
+	        		
+	        			for (int j = 0 ; j < tr.get(t).existing_particles.length ; j++)
+	        			{
+	        				if (tr.get(t).existing_particles[j].getFrame() == frame+start_frame)
+	        				{
+	        					// Particle to draw
+	        				
+	        					Particle p = new Particle(tr.get(t).existing_particles[j]);
+	        					p.translate(focus);
+	        					vp.add(p);
+	        				
+	        					// Collect spline
+	        				
+	        					if (typ == DrawType.NEXT)
+	        					{
+	        						if (j+1 < tr.get(t).existing_particles.length)
+	        						{
+	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
+	        							l1.translate(focus);
+	        							lines.add(l1);
+	        						}
+	        					}
+	        					else if (typ == DrawType.PREV)
+	        					{
+	        						if (j-1 >= 0)
+	        						{
+	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
+	        							l1.translate(focus);
+	        							lines.add(l1);
+	        						}	
+	        					}
+	        					else if (typ == DrawType.PREV_NEXT)
+	        					{
+	        						if (j+1 < tr.get(t).existing_particles.length)
+	        						{
+	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
+	        							l1.translate(focus);
+	        							lines.add(l1);
+	        						}
+	        						if (j-1 >= 0)
+	        						{
+	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
+	        							l1.translate(focus);
+	        							lines.add(l1);
+	        						}
+	        					}
+	        					else if (typ == DrawType.TRAJECTORY_HISTORY)
+	        					{
+	        						for (int i = j ; i >= 1  ; i--)
+	        						{
+	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]),new Particle(tr.get(t).existing_particles[i-1]));
+	        							l1.translate(focus);
+	        							lines.add(l1);
+	        						}
+	        					}
+	        					else if (typ == DrawType.TRAJECTORY_HISTORY_WITH_NEXT)
+	        					{
+	        						for (int i = j ; i >= 1  ; i--)
+	        						{
+	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]),new Particle(tr.get(t).existing_particles[i-1]));
+	        							l1.translate(focus);
+	        							lines.add(l1);
+	        						}
+	        						if (j+1 < tr.get(t).existing_particles.length)
+	        						{
+	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
+	        							l1.translate(focus);
+	        							lines.add(l1);
+	        						}
+	        					}
+	        				}
+	        			}
+	        		}
+	        		
+                    RandomAccessibleInterval< ARGBType > view = Views.hyperSlice( out, out.numDimensions()-1, frame );
+	        		
+			        drawParticles(view,vp,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+			        drawLines(view,lines,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+	        	}
+	        } 
+		}
+		
+		/**
+		 * 
+		 * Update the image
+		 * 
+		 * @param out An array of frames
+		 * @param A vector of Trajectory
+		 * @param cal Calibration
+		 * @param Type of draw
+		 *
+		 */
+		
+		static public  void updateImage(Img<ARGBType> out , Vector<Trajectory> tr , Calibration cal, DrawType typ)
 		{
 			for (int i = 0 ; i < tr.size() ; i++)
-				updateImage(out,tr,new Color(tr.get(i).color.getRed(), tr.get(i).color.getGreen(), tr.get(i).color.getBlue(), tr.get(i).color.getTransparency()),typ);
+				updateImage(out,tr,cal,new Color(tr.get(i).color.getRed(), tr.get(i).color.getGreen(), tr.get(i).color.getBlue(), tr.get(i).color.getTransparency()),typ);
 		}
 		
 		/**
@@ -1424,7 +1579,7 @@ import net.imglib2.view.Views;
 		 *
 		 */
 		
-		static public  void updateImage(Img<ARGBType> out , Vector<Trajectory> tr , Color cl , DrawType typ)
+		static public  void updateImage(Img<ARGBType> out , Vector<Trajectory> tr , Calibration cal , Color cl , DrawType typ)
 		{
 			// Get image
 	        
@@ -1513,8 +1668,8 @@ import net.imglib2.view.Views;
 	        		
                     RandomAccessibleInterval< ARGBType > view = Views.hyperSlice( out, out.numDimensions()-1, frame );
 	        		
-			        drawParticles(view,vp,null, ARGBType.rgba(cl.getRed(), cl.getGreen(), cl.getBlue(), cl.getTransparency()));
-			        drawLines(view,lines,null, ARGBType.rgba(cl.getRed(), cl.getGreen(), cl.getBlue(), cl.getTransparency()));
+			        drawParticles(view,vp,cal, ARGBType.rgba(cl.getRed(), cl.getGreen(), cl.getBlue(), cl.getTransparency()));
+			        drawLines(view,lines,cal, ARGBType.rgba(cl.getRed(), cl.getGreen(), cl.getBlue(), cl.getTransparency()));
 	        	}
 	        }
 		}
@@ -1557,7 +1712,7 @@ import net.imglib2.view.Views;
 	        
 	        // get the conversion
 	        
-	        ToARGB conv = getConversion(curBack.get());
+	        ToARGB conv = MosaicUtils.getConversion(curBack.get());
 	        
 	        // Copy the background
 	        

@@ -15,15 +15,16 @@ import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
-
 import mosaic.bregman.Analysis;
 import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ClusterSession;
+import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -31,12 +32,108 @@ import ij.plugin.RGBStackMerge;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
+class FloatToARGB implements ToARGB
+{
+	@Override
+	public ARGBType toARGB(Object data)
+	{
+		ARGBType t = new ARGBType();
+		
+		float td = 0.0f;
+		td = ((RealType<?>)data).getRealFloat();
+		t.set(ARGBType.rgba(td, td, td, 255.0f));
+		
+		return t;
+	}
+}
+
+class FloatToARGBNorm implements ToARGB
+{
+	@Override
+	public ARGBType toARGB(Object data)
+	{
+		ARGBType t = new ARGBType();
+		
+		float td = 0.0f;
+		td = ((RealType<?>)data).getRealFloat()*255;
+		t.set(ARGBType.rgba(td, td, td, 255.0f));
+		
+		return t;
+	}
+}
+
+class IntToARGB implements ToARGB
+{
+	@Override
+	public ARGBType toARGB(Object data)
+	{
+		ARGBType t = new ARGBType();
+		
+		int td = 0;
+		td = ((IntegerType<?>)data).getInteger();
+		t.set(ARGBType.rgba(td, td, td, 255));
+		
+		return t;
+	}
+}
+
+class ARGBToARGB implements ToARGB
+{
+	@Override
+	public ARGBType toARGB(Object data)
+	{				
+		return (ARGBType) data;
+	}
+}
+
 public class MosaicUtils 
 {
 	public class SegmentationInfo
 	{
 		public File RegionList;
 		public File RegionMask;
+	}
+	
+	//////////////////////////////////// Procedures for draw //////////////////
+	
+	/////// Conversion to ARGB from different Type ////////////////////////////
+	
+	public interface ToARGB
+	{
+		ARGBType toARGB(Object data);
+	}
+	
+	/**
+	 * 
+	 * From an Object return a generic converter to ARGB type
+	 * Useful when you have a Generic T, you can use in the following
+	 * 
+	 * 
+	 * T data;
+	 * ToARGB conv = getConvertion(data)
+	 * 
+	 * 
+	 * conv.toARGB(data);
+	 * 
+	 * @param data
+	 * @return
+	 */
+	
+	static public ToARGB getConversion(Object data)
+	{
+		if (data instanceof RealType)
+		{
+			return new FloatToARGB();
+		}
+		else if (data instanceof IntegerType)
+		{
+			return new IntToARGB();
+		}
+		else if (data instanceof ARGBType)
+		{
+			return new ARGBToARGB();
+		}
+		return null;
 	}
 	
 	/**
