@@ -23,6 +23,7 @@ import mosaic.core.utils.ShellCommand;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.ConfigRepository;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -242,11 +243,11 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 			if (createSftpChannel() == false)
 				return false;
 			
-			Vector<String> fl = cSFTP.ls(Directory);
+			Vector<LsEntry> fl = cSFTP.ls(Directory);
 			
-			for (String f : fl)
+			for (LsEntry f : fl)
 			{
-				if (f.contains(file_name))
+				if (f.getFilename().contains(file_name))
 				{
 					return true;
 				}

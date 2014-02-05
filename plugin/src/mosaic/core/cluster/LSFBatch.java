@@ -128,6 +128,10 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 		{
 			return jobS.COMPLETE;
 		}
+		else if (aID.equals("EXIT"))
+		{
+			return jobS.FAILED;
+		}
 		return jobS.UNKNOWN;
 	}
 	
@@ -189,7 +193,7 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 
 			if (vt.size() > 2)
 			{
-				if (jobArrayStatus(vt.get(2)) == jobS.RUNNING || jobArrayStatus(vt.get(2)) == jobS.COMPLETE )
+				if (jobArrayStatus(vt.get(2)) == jobS.RUNNING || jobArrayStatus(vt.get(2)) == jobS.COMPLETE || jobArrayStatus(vt.get(2)) == jobS.FAILED)
 				{
 					ja_id = jobArrayID(vt.get(6));
 					ja_id = ja_id -1;
@@ -472,9 +476,6 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 	@Override
 	public void clean(SecureShellSession ss)
 	{
-		// TODO Auto-generated method stub
-		
-		
 		String [] commands = new String[1];
 		commands[0] = new String("rm -rf " + lDir);
 	

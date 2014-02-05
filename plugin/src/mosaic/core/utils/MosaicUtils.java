@@ -106,7 +106,7 @@ public class MosaicUtils
 	/**
 	 * 
 	 * From an Object return a generic converter to ARGB type
-	 * Useful when you have a Generic T, you can use in the following
+	 * Useful when you have a Generic T, you can use in the following way
 	 * 
 	 * 
 	 * T data;

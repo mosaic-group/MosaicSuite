@@ -16,15 +16,14 @@ import mosaic.core.cluster.JobStatus.jobS;
 import mosaic.core.cluster.LSFBatch.LSFJob;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
-
 import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.GenericDialog;
 import ij.gui.ProgressBar;
+import ij.gui.StackWindow;
 import ij.io.Opener;
 
 /**
@@ -119,7 +118,6 @@ public class ClusterSession
 		// transfert the images
 
 		File [] fl = new File[nImages];
-	
 		for (int i = 0 ; i < nImages ; i++)
 		{
 			fl[i] = new File(tmp_dir + "tmp_" + (i+1) + ".tif");
@@ -137,10 +135,19 @@ public class ClusterSession
 		// Download a working version of Fiji
 		// and copy the plugins
 	
-		if (ss.checkDirectory(cp.getRunningDir()+"Fiji.app") == false && ss.checkFile(cp.getRunningDir()+"Fiji.app","ImageJ-linux64"))
+		if (ss.checkDirectory(cp.getRunningDir()+"Fiji.app") == false 
+			|| ss.checkFile(cp.getRunningDir()+"Fiji.app","ImageJ-linux64") == false
+			|| ss.checkFile(cp.getRunningDir()+"Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar") == false)
 		{
 			wp.SetStatusMessage("Installing Fiji on cluster... ");
 		
+			// Remove previously Fiji
+			
+			String [] commands = new String[1];
+			commands[0] = new String("rm -rf Fiji.app");
+		
+			ss.runCommands(cp.getPassword(), commands);
+			
 			String CommandL[] = {"cd " + cp.getRunningDir(),
 				"wget mosaic.mpi-cbg.de/Downloads/fiji-linux64.tar.gz",
 				"tar -xf fiji-linux64.tar.gz",
@@ -150,8 +157,14 @@ public class ClusterSession
 				"cd Mosaic_ToolSuite",
 				"wget mosaic.mpi-cbg.de/Downloads/Mosaic_ToolSuite_for_cluster.jar"};
 	
-	
 			ss.runCommands(cp.getPassword(), CommandL);
+			
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	
 		wp.SetStatusMessage("Interfacing with batch system...");
@@ -210,10 +223,10 @@ public class ClusterSession
 		ss.runCommands(cp.getPassword(), commands);
 	
 		// Wait that the command get processed
-		// Yes of course horrible but it work
+		// Yes of course, horrible but it work
 	
 		int n_attempt = 0;
-		while (bc.getJobID() == 0 && n_attempt < 100000000) 
+		while (bc.getJobID() == 0 && n_attempt < 300) 
 		{try {Thread.sleep(100);}
 		catch (InterruptedException e) 
 		{e.printStackTrace();} 
@@ -560,6 +573,8 @@ public class ClusterSession
 		
 		wp.SetProgress(0);
 		
+		/* Wait the various jobs complete */
+		
 		int n_bc = 0;
 		while (n_bc < bcl.length)
 		{
@@ -583,8 +598,10 @@ public class ClusterSession
 				if (JobStatus.allComplete(bcl[j].getJobsStatus()) == true)
 				{
 					css[j].UpdateStack(st[j], bcl[j].getJobStatus());
+					ip[j].updateAndDraw();
+					
 					getData(output,ss,wp,bcl[j]);
-					bcl[j].clean(ss);
+//					bcl[j].clean(ss);
 					
 					wp.SetProgress(0);
 					wp.SetStatusMessage("Reorganize...");
@@ -598,6 +615,7 @@ public class ClusterSession
 					break;
 				}
 				css[j].UpdateStack(st[j], bcl[j].getJobStatus());
+				ip[j].updateAndDraw();
 				
 				progress += JobStatus.countComplete(bcl[j].getJobsStatus());
 				total += bcl[j].getJobStatus().length;
@@ -607,7 +625,7 @@ public class ClusterSession
 			int p = (int)(progress * 100.0 / total);
 			wp.SetProgress(p);
 			
-			// wait 10 second to send get again the status
+			// wait 10 second to send and get again the status
 			
 			try 
 			{

@@ -268,6 +268,7 @@ public class BLauncher
 		}
 		catch (Exception e)
 		{//Catch exception if any
+			e.printStackTrace();
 			System.err.println("Error launcher file processing: " + e.getMessage());
 		}
 

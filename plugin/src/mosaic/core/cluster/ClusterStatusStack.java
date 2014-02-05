@@ -58,6 +58,18 @@ class ClusterStatusStack
 				js.setNotifiedStatus(jobS.COMPLETE);
 			}
 		}
+		else if (js.getStatus() == jobS.FAILED)
+		{
+			if (js.getNotifiedStatus() != jobS.FAILED)
+			{
+				ip = new ColorProcessor(200,50);
+				ip.setColor(new Color(255,0,0));
+				ip.fill();
+				ip.setColor(new Color(0,0,0));
+				ip.drawString(js.getStatus().toString(),10, 25);
+				js.setNotifiedStatus(jobS.FAILED);
+			}
+		}
 		else if (js.getStatus() == jobS.UNKNOWN)
 		{
 			if (js.getNotifiedStatus() != jobS.UNKNOWN)
@@ -101,6 +113,6 @@ class ClusterStatusStack
 					ip.addSlice("Staus job: " + i+1, createResult(jb[i]), i);
 				}
 			}
-		}
+		}		
 	}
 }

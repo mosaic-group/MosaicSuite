@@ -43,11 +43,27 @@ abstract class JobStatus
 		
 		return true;
 	}
+
+	/**
+	 * 
+	 * Get the status of the job
+	 * 
+	 * @return jobS enum
+	 */
 	
 	jobS getStatus()
 	{
 		return js;
 	}
+	
+	/**
+	 * 
+	 * Get the notified status of the job (used by Cluster status stack
+	 * to understand if it has to change the status of the job from
+	 * the previous time )
+	 * 
+	 * @return
+	 */
 	
 	jobS getNotifiedStatus()
 	{
