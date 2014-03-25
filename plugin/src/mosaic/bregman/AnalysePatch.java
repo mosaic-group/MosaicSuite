@@ -90,7 +90,8 @@ public class AnalysePatch implements Runnable{
 	 * @param impa ?
 	 */
 
-	public AnalysePatch(double [][][] image, Region r, Parameters pa, int oversampling, int channel, short [][][] regionsf, ImagePatches impa){
+	public AnalysePatch(double [][][] image, Region r, Parameters pa, int oversampling, int channel, short [][][] regionsf, ImagePatches impa)
+	{
 		//IJ.log("creating patch :"+ r.value);
 		//	this.w3kbest=w3k;
 		cout=0;
@@ -161,9 +162,12 @@ public class AnalysePatch implements Runnable{
 		normalize();
 
 		//double firstminval;
-		if(channel==0){
-			firstminval=p.min_intensity ;}
-		else{
+		if(channel==0)
+		{
+			firstminval=p.min_intensity ;
+		}
+		else
+		{
 			firstminval=p.min_intensityY ;
 		}
 

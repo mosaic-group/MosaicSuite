@@ -95,20 +95,28 @@ public class NRegions implements Runnable{
 		double min=Double.POSITIVE_INFINITY;
 		//change : use max value instead of 65536
 
-		/* Search for maximum and minimum value */
+		/* Search for maximum and minimum value, normalization */
 		
-		for (int z=0; z<nz/osz; z++)
+		if (Analysis.norm_max == 0)
 		{
-			img.setSlice(z+1);
-				imp=img.getProcessor();
-			for (int i=0; i<ni/os; i++)
+			for (int z=0; z<nz/osz; z++)
 			{
-				for (int j=0;j< nj/os; j++)
+				img.setSlice(z+1);
+				imp=img.getProcessor();
+				for (int i=0; i<ni/os; i++)
 				{
-					if(imp.getPixel(i,j)>max)max=imp.getPixel(i,j);
-					if(imp.getPixel(i,j)<min)min=imp.getPixel(i,j);
-				}	
+					for (int j=0;j< nj/os; j++)
+					{
+						if(imp.getPixel(i,j)>max)max=imp.getPixel(i,j);
+						if(imp.getPixel(i,j)<min)min=imp.getPixel(i,j);
+					}	
+				}
 			}
+		}
+		else
+		{
+			max = Analysis.norm_max;
+			min = Analysis.norm_min;
 		}
 		
 		//IJ.log("before, max : " + max + " min : " + min);
@@ -143,12 +151,31 @@ public class NRegions implements Runnable{
 			{
 				for (int j=0;j< nj; j++)
 				{  
-					image[z][i][j]=imp.getPixel(i/os,j/os);		
+					image[z][i][j]=imp.getPixel(i/os,j/os);					
 					if(image[z][i][j]>max)max=image[z][i][j];
 					if(image[z][i][j]<min)min=image[z][i][j];
 				}	
 			}
 			
+		}
+		
+		/* Again overload the parameter  */
+		
+		if (Analysis.norm_max != 0)
+		{
+			max = Analysis.norm_max;
+			if(p.removebackground)
+			{
+				// if we are removing the background we have no idea which
+				// is the minumum across all the movie so let be conservative and put
+				// min = 0.0 for sure cannot be < 0
+				
+				min = 0.0;
+			}
+			else
+			{
+				min = Analysis.norm_min;
+			}
 		}
 		
 		//IJ.log("after, max : " + max + " min : " + min);
@@ -169,7 +196,9 @@ public class NRegions implements Runnable{
 			{
 				for (int j=0;j<nj; j++)
 				{
-					image[z][i][j]= (image[z][i][j] -min)/(max-min);		
+					image[z][i][j]= (image[z][i][j] -min)/(max-min);
+					if (image[z][i][j] < 0.0) image[z][i][j] = 0.0;
+					else if (image[z][i][j] > 1.0) image[z][i][j] = 1.0;
 				}	
 			}
 		}

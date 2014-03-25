@@ -189,6 +189,7 @@ public class SegmentationGUI
 		///////////////
 		
 		gd.addCheckbox("Subpixel segmentation", Analysis.p.subpixel);
+		gd.addCheckbox("Exclude Z edge", Analysis.p.exclude_z_edges);
 		
 		String choice1[] = {
 				"Automatic (best energy)", "Low layer", "Medium layer (clustering)","High layer (clustering)"};

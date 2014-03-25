@@ -150,7 +150,7 @@ public class ObjectProperties implements Runnable {
 		RegionStatisticsSolver RSS;
 
 
-		RSS= new RegionStatisticsSolver(temp1[0],temp2[0], temp3[0], patch, 10,p);
+		RSS= new RegionStatisticsSolver(temp1[0],temp2[0], temp3[0], patch, 1000,p);
 		RSS.eval(mask);
 		//Analysis.p.cl[0]=RSS.betaMLEout;
 		//Analysis.p.cl[1]=RSS.betaMLEin;

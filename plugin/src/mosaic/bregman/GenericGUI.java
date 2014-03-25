@@ -83,6 +83,7 @@ import ij.io.DirectoryChooser;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
+import ij.process.StackStatistics;
 
 public class GenericGUI 
 {
@@ -115,8 +116,7 @@ public class GenericGUI
 		w.setSize(Math.min(522, wx), Math.min(574, wy));// set all images to max 512x512 preview (window 522*574)
 		w.setLocation(Math.min(x,screensizex-wx),Math.min(y,screensizey-wy));
 		
-		imp.getCanvas().fitToWindow();
-		
+		imp.getCanvas().fitToWindow();		
 	}
 	
 	public static void setwindowlocation(int x, int y, Window w)
@@ -205,6 +205,8 @@ public class GenericGUI
 
 	public void run(String arg, ImagePlus aImp)
 	{
+		boolean use_cluster = false;
+		String wpath = null;
 		Font bf = new Font(null, Font.BOLD,12);
 		//String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
 		//boolean bgroup1[] = {false, false};
@@ -219,35 +221,17 @@ public class GenericGUI
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 			screensizex= (int) screenSize.getWidth();
 			screensizey = (int) screenSize.getHeight();
-		}
-		
-		gd.setInsets(-10,0,3);
-		if(!clustermode)
-		{
+			
+			gd.setInsets(-10,0,3);
+			
 			gd.addTextAreas("Input Image: \n" +
 					"insert Path to file or folder, " +
 					"or press Button below.", 
 					null, 2, 50);
-		}
-		if(clustermode)
-		{
-			gd.addStringField("Filepath","path",10);
-			gd.addStringField("config","path",10);
-		}
-
-		//panel with button
-		if(!clustermode)
-		{
+			
 			//FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
 			FlowLayout fl = new FlowLayout(FlowLayout.LEFT,75,3);
 			Panel p = new Panel(fl);
-//			p.setPreferredSize(new Dimension(565, 30));
-			//p.setLayout(null);
-			//p.setBackground(Color.black);
-
-//			Button b = new Button("Preview cell mask");
-//			b.addActionListener(new HelpOpenerActionListener(p,gd));
-//			p.add(b);
 
 			Button b = new Button("Select File/Folder");
 			b.addActionListener(new FileOpenerActionListener(p,gd, gd.getTextArea1()));
@@ -258,31 +242,25 @@ public class GenericGUI
 			p.add(bh);
 
 			gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
-		}
-
-		// Image chooser
-		
-		int nOpenedImages = 0;
-		int[] ids = WindowManager.getIDList();
-		
-		if(ids!=null){
-			nOpenedImages = ids.length;
-		}
-		
-		
-		String[] names = new String[nOpenedImages+1];
-		names[0]="";
-		for(int i = 0; i<nOpenedImages; i++)
-		{
-			ImagePlus ip = WindowManager.getImage(ids[i]);
-			names[i+1] = ip.getTitle();
-		}
-		
-//		if(nOpenedImages>0)
-
-			// Input Image
-		if(!clustermode)
-		{
+			
+			
+			// Image chooser
+			
+			int nOpenedImages = 0;
+			int[] ids = WindowManager.getIDList();
+			
+			if(ids!=null){
+				nOpenedImages = ids.length;
+			}
+			
+			String[] names = new String[nOpenedImages+1];
+			names[0]="";
+			for(int i = 0; i<nOpenedImages; i++)
+			{
+				ImagePlus ip = WindowManager.getImage(ids[i]);
+				names[i+1] = ip.getTitle();
+			}
+			
 			gd.addChoice("InputImage", names, names[0]);
 			Choice choiceInputImage = (Choice)gd.getChoices().lastElement();
 			if(aImp !=null)
@@ -290,16 +268,13 @@ public class GenericGUI
 				String title = aImp.getTitle();
 				choiceInputImage.select(title);
 			}
-		}
-
-		if(!clustermode)
-		{
+			
 			// Background Options
 
 			Button backOption = new Button("Options");
 			Label label = new Label("Background subtraction");
 			label.setFont(bf);
-			Panel p = new Panel();
+			p = new Panel();
 			p.add(label);
 			p.add(backOption);
 			backOption.addActionListener(new ActionListener() 
@@ -379,51 +354,37 @@ public class GenericGUI
 				}
 			});
 			gd.addPanel(p);
-		}
 			
-//		if(!clustermode)gd.addMessage("Advanced options ",bf);
-		if(clustermode)
-		{
-			gd.addNumericField("number of threads", 4, 0);
-		}
-		
-		if (!clustermode)
-		{
 			gd.addCheckbox("Use cluster", false);
-		}
-		
-		gd.centerDialog(false);
-		posx=100;
-		posy=120;
-		gd.setLocation(posx, posy);
-		gd.showDialog();
-		if (gd.wasCanceled()) return;
-
-
-		String wpath;
-		if(clustermode)
-		{
-			//IJ.log("cluster: " );
-			wpath=  gd.getNextString();
+			
+			gd.centerDialog(false);
+			posx=100;
+			posy=120;
+			gd.setLocation(posx, posy);
+			gd.showDialog();
+			if (gd.wasCanceled()) return;
+			
+			wpath=  gd.getNextText();
+			
+			Runtime runtime = Runtime.getRuntime();
+			int nrOfProcessors = runtime.availableProcessors();
+			//IJ.log("Number of processors available to the Java Virtual Machine: " + nrOfProcessors);		
+			Analysis.p.nthreads=nrOfProcessors;
+			
+			use_cluster = gd.getNextBoolean();
 		}
 		else
 		{
-			//IJ.log("no cluster");
-			wpath=  gd.getNextText();
-			//wpath=  gd.getTextArea1().getText();
-		}
-		//IJ.log("path: " + wpath);
-
-/*		//general options	
-		Analysis.p.removebackground=gd.getNextBoolean();
-		//IJ.log("rem back:" +  Analysis.p.removebackground);
-		Analysis.p.size_rollingball=(int) gd.getNextNumber();
-		//Analysis.p.usePSF=gd.getNextBoolean();*/
-
-		//Expert options
-
-		if(clustermode)
-		{
+			gd.addStringField("Filepath","path",10);
+			gd.addStringField("config","path",10);
+			
+			gd.addNumericField("number of threads", 4, 0);
+			
+			gd.showDialog();
+			if (gd.wasCanceled()) return;
+			
+			wpath=  gd.getNextString();
+			
 			Analysis.p.nthreads= (int) gd.getNextNumber();
 			try 
 			{
@@ -435,27 +396,6 @@ public class GenericGUI
 				e.printStackTrace();
 			}
 		}
-		else
-		{
-			Runtime runtime = Runtime.getRuntime();
-			int nrOfProcessors = runtime.availableProcessors();
-			//IJ.log("Number of processors available to the Java Virtual Machine: " + nrOfProcessors);		
-			Analysis.p.nthreads=nrOfProcessors;
-		}
-
-		//Analysis.p.regionSegmentLevel= (int) gd.getNextNumber();
-//		Analysis.p.mode_intensity=gd.getNextChoiceIndex();
-
-
-//		Analysis.p.noise_model=gd.getNextChoiceIndex();
-		//IJ.log("noise model" + Analysis.p.noise_model);
-
-		//		Analysis.p.betaMLEoutdefault=gd.getNextNumber();
-		//		Analysis.p.betaMLEindefault=gd.getNextNumber();
-		//		Analysis.p.automatic_int= gd.getNextBoolean();
-
-
-		//parameters for cluster(chekboxes not working)
 
 		if(Analysis.p.mode_voronoi2)
 		{
@@ -470,56 +410,36 @@ public class GenericGUI
 			Analysis.p.regionSegmentLevel=1;//not used
 			Analysis.p.dispvoronoi=Analysis.p.debug;
 			Analysis.p.minves_size=2;
-
-
-			//Analysis.p.mode_intensity=2;
-
-			//Analysis.p.subpixel=false;
-
-			//estimation des intensit�s des zones ?
-			//dans ce mode il ne faut pas thresholder le masque pour avoir les objets (car il est calcul� avec int=1)
-			// -> calculer les objets en faisant tourner l'algo dans la zone voronoi
-			//par RSS ou par clustering ?
 		}
 
 
-		if(!Analysis.p.subpixel){Analysis.p.oversampling2ndstep=1;
-		Analysis.p.interpolation=1;
+		if(!Analysis.p.subpixel)
+		{
+			Analysis.p.oversampling2ndstep=1;
+			Analysis.p.interpolation=1;
 		}
-
-		//IJ.log("subpixel" + Analysis.p.subpixel);
-
-
-		//test Gaussian PSF 
-		//		double r=235;
-		//		GaussianPSFModel psf= new GaussianPSFModel(500,1.4,r,1.3);
-		//		IJ.log("235");
-		//		IJ.log("Lateral WFFM :" + psf.lateral_WFFM());
-		//		IJ.log("Axial WFFM :" + psf.axial_WFFM());
-		//		IJ.log("Lateral LSCM :" + psf.lateral_LSCM());
-		//		IJ.log("Axial LSCM :" + psf.axial_LSCM());
-		//		
-
-
-		//		double r=0.5;
-		//		GaussianPSFModel psf= new GaussianPSFModel(500,500,1.3,r,1.46);
-		//		IJ.log("0.5");
-		//		IJ.log("Lateral WFFM :" + psf.lateral_WFFM());
-		//		IJ.log("Axial WFFM :" + psf.axial_WFFM());
-		//		IJ.log("Lateral LSCM :" + psf.lateral_LSCM());
-		//		IJ.log("Axial LSCM :" + psf.axial_LSCM());
-		//
-		//		IJ.log("stdx" +Analysis.p.sigma_gaussian+ "stdy" + Analysis.p.sigma_gaussian/Analysis.p.zcorrec);
-
-		if (clustermode || gd.getNextBoolean() == false)
-		{			
+		
+		if (use_cluster == false && clustermode == false)
+			Analysis.p.dispwindows = true;
+		
+		// Two different way to run the Task
+		
+		if (clustermode || use_cluster == false)
+		{
+			// We run locally
+			
 			BLauncher hd = null;
 		
 			if (wpath.startsWith("Input Image:"))
 			{
+				if (aImp == null)
+				{
+					IJ.error("No image to process");
+					return;
+				}
 				hd= new BLauncher(aImp);
 				
-				String outcsv[] = {"*_ObjectsData_c1.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip","*.tif"};
+				String outcsv[] = {"*_ObjectsData_c1.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip"};
 				
 				String savepath;
 				Analysis.p.wd = MosaicUtils.ValidFolderFromImage(aImp);
@@ -530,7 +450,7 @@ public class GenericGUI
 					savepath = Analysis.p.wd;
 				}
 				
-				MosaicUtils.reorganize(outcsv,"",savepath,aImp.getNFrames());
+				MosaicUtils.reorganize(outcsv,aImp.getShortTitle(),savepath,aImp.getNFrames());
 				
 				CSVOutput.Stitch(outcsv,"",new File(savepath),MosaicUtils.ValidFolderFromImage(aImp) + aImp.getTitle());
 			}
@@ -543,6 +463,8 @@ public class GenericGUI
 		}
 		else
 		{
+			// We run on cluster
+			
 			ClusterGUI cg = new ClusterGUI();
 			ClusterSession ss = cg.getClusterSession();
 			try 
@@ -553,8 +475,9 @@ public class GenericGUI
 				
 				// disabling display options
 				
+				p.dispwindows = false;
 				BregmanGLM_Batch.SaveConfig(p,"/tmp/spb_settings.dat");
-			} 
+			}
 			catch (IOException e) 
 			{
 				// TODO Auto-generated catch block
@@ -562,7 +485,22 @@ public class GenericGUI
 			}
 			
 			String out[] = {"*_ObjectsData_c1.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip","*.tif"};
-			if (ss.runPluginsOnFrames(aImp, "", out, 180.0) == false)
+			
+			// Get all image processor statistics and calculate the maximum
+			
+			float global_max = 0.0f;
+			float global_min = 0.0f;
+			
+			if (aImp != null)
+			{
+				StackStatistics stack_stats = new StackStatistics(aImp);
+				global_max = (float)stack_stats.max;
+				global_min = (float)stack_stats.min;
+			
+				// get the min and the max
+			}
+			
+			if (ss.runPluginsOnFrames(aImp, "min="+ global_min + " max="+global_max, out, 180.0) == false)
 				return;
 			
 			// Save all JobID to the image folder

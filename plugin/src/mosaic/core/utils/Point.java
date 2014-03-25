@@ -236,6 +236,36 @@ public class Point
 	
 	/**
 	 * 
+	 * Divide a Point  by a scaling factor
+	 * 
+	 * @param f factor division
+	 * @return
+	 */
+	public Point div(float scaling[])
+	{
+		Point result = new Point(dim);
+		for(int i=0; i<dim; i++)
+		{
+			result.x[i]= (int) (x[i]/scaling[i]);
+		}
+		return result;
+	}
+	
+	/**
+	 * 
+	 * Set coordinate to zero
+	 * 
+	 */
+	public void fill(int f)
+	{
+		for(int i=0; i<dim; i++)
+		{
+			x[i]= f;
+		}
+	}
+	
+	/**
+	 * 
 	 * Set coordinate to zero
 	 * 
 	 */

@@ -74,12 +74,13 @@ public class ClusterSession
 	 * Create a JobArray on Cluster
 	 * 
 	 * @param img Image to process
+	 * @param options Plugins options
 	 * @param ss Secure Shell session
 	 * @return false if fail, true if successfully
 	 * 
 	 */
 	
-	private boolean createJobArrayFromImage(ImagePlus img, SecureShellSession ss, double Ext, ProgressBarWin wp)
+	private boolean createJobArrayFromImage(ImagePlus img, String options, SecureShellSession ss, double Ext, ProgressBarWin wp)
 	{
 		if (img == null)
 		{nImages = 0; return true;}
@@ -175,7 +176,7 @@ public class ClusterSession
 			   + "if(job_id == \"\" )\n"
 			   + "   exit(\"No job id\");\n"
 			   + "\n"
-			   + "run(\"Squassh\",\"config=" + ss.getTransfertDir() + "spb_settings.dat" + " output=" + ss.getTransfertDir() + "tmp_" + "\"" + " + job_id + " + "\"_seg.tif" + " filepath=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif\" );\n");
+			   + "run(\"Squassh\",\"config=" + ss.getTransfertDir() + "spb_settings.dat" + " output=" + ss.getTransfertDir() + "tmp_" + "\"" + " + job_id + " + "\"_seg.tif" + " filepath=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
 			   
 		// Create the batch script if required and upload it
 	
@@ -537,7 +538,7 @@ public class ClusterSession
 		
 		// Create job array
 		
-		if (createJobArrayFromImage(img,ss,ExtTime,wp) == false)
+		if (createJobArrayFromImage(img,options,ss,ExtTime,wp) == false)
 		{
 			wp.SetStatusMessage("Failed to create job array");
 			return false;
@@ -601,7 +602,7 @@ public class ClusterSession
 					ip[j].updateAndDraw();
 					
 					getData(output,ss,wp,bcl[j]);
-//					bcl[j].clean(ss);
+					bcl[j].clean(ss);
 					
 					wp.SetProgress(0);
 					wp.SetStatusMessage("Reorganize...");

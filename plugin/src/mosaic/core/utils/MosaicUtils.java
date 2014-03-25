@@ -14,21 +14,41 @@ import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.ops.img.BinaryOperationAssignment;
+import net.imglib2.ops.operation.BinaryOperation;
+import net.imglib2.ops.operation.UnaryOperation;
+import net.imglib2.ops.operation.bool.binary.BinaryXor;
+import net.imglib2.ops.operation.randomaccessibleinterval.unary.morph.Erode;
+import net.imglib2.ops.operation.*;
+import net.imglib2.ops.types.ConnectedType;
+import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
 import net.imglib2.type.NativeType;
+import net.imglib2.type.Type;
+import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.view.IntervalView;
+import net.imglib2.view.IterableRandomAccessibleInterval;
 import net.imglib2.view.Views;
 import mosaic.bregman.Analysis;
 import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ClusterSession;
+import mosaic.core.detection.MyFrame.DrawType;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
+import mosaic.plugins.ParticleTracker3DModular_.Trajectory;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.measure.Calibration;
 import ij.plugin.RGBStackMerge;
+import ij.plugin.Resizer;
+import ij.process.BinaryProcessor;
+import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
@@ -92,6 +112,12 @@ public class MosaicUtils
 	{
 		public File RegionList;
 		public File RegionMask;
+	}
+	
+	public class ImageStat
+	{
+		public double Min;
+		public double Max;
 	}
 	
 	//////////////////////////////////// Procedures for draw //////////////////
@@ -166,6 +192,7 @@ public class MosaicUtils
 				return null;
 		}
 	}
+	
 	
 	/**
 	 * 
@@ -314,6 +341,7 @@ public class MosaicUtils
 		return sg;
 	}
 	
+	
 	/**
 	 * 
 	 * This function merge the frames of the image a2 into a1
@@ -326,12 +354,15 @@ public class MosaicUtils
 	static public void MergeFrames(ImagePlus a1, ImagePlus a2)
 	{
 		int hcount = a2.getNFrames() + a1.getNFrames();
-		for (int i = 1 ; i <= a2.getNChannels() ; i++)
+		for (int k = 1 ; k <= a2.getNFrames() ; k++)
 		{
 			for (int j = 1 ; j <= a2.getNSlices() ; j++)
 			{
-				a2.setPosition(i, j, 1);
-				a1.getImageStack().addSlice("", a2.getProcessor().getPixels());
+				for (int i = 1 ; i <= a2.getNChannels() ; i++)
+				{
+					a2.setPosition(i, j, k);
+					a1.getImageStack().addSlice("", a2.getChannelProcessor().getPixels());
+				}
 			}
 		}
 		a1.setDimensions(a2.getNChannels(), a2.getNSlices(), hcount);
@@ -738,7 +769,7 @@ public class MosaicUtils
 				Process tProcess;
 				for (int k = 0 ; k < nf ; k++)
 				{
-					tProcess = Runtime.getRuntime().exec("mv " + sv + "/" + tmp.replace("*",base + (k+1)) + "   " + sv + "/" + tmp.replace("*", "_"));
+					tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",base) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base + tmp.replace("*", ""));
 					tProcess.waitFor();
 				}
 			}
@@ -751,5 +782,62 @@ public class MosaicUtils
 		// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
+	}
+	
+	/**
+	 * 
+	 * Display outline overlay
+	 * 
+	 * @param label image
+	 * @param data image
+	 * @return the outline overlay image
+	 * 
+	 */
+	
+	public  <T extends RealType<T>> Img<BitType> displayoutline(Img<BitType> labelImage, Img<T> image)
+	{
+		/* Create the output image */
+		
+		int dim = labelImage.numDimensions();
+		
+		long [] sz = new long[dim+1];
+		
+		sz[0] = labelImage.dimension(0);
+		sz[1] = labelImage.dimension(1);
+		sz[2] = 2;
+		if (dim >= 3)
+		{
+			sz[3] = labelImage.dimension(2);
+		}
+		final ImgFactory< BitType > imgFactory = new ArrayImgFactory< BitType >();
+		
+		// labelImage.firstElement() should ensure that the output is the same as labelImage
+		
+		Img<BitType> out = imgFactory.create( sz, labelImage.firstElement() );
+		
+		/* Convert Label Image into region contour image */
+		
+		BinaryOperationAssignment<BitType,BitType,BitType> m_imgManWith = new BinaryOperationAssignment<BitType,BitType,BitType>(new BinaryXor());
+		UnaryOperation<RandomAccessibleInterval<BitType>, RandomAccessibleInterval<BitType>> m_op = new Erode(ConnectedType.EIGHT_CONNECTED, 1);
+		
+		m_op.compute(labelImage, out);
+		m_imgManWith.compute(labelImage, out, out);
+		
+		/* Create the visualization */
+		
+		Cursor<T> cur = image.cursor();
+		IntervalView<BitType> iv = Views.hyperSlice(out, 2, 1);
+		IterableRandomAccessibleInterval<BitType> iout = IterableRandomAccessibleInterval.create(iv);
+		Cursor<BitType> curL = iout.cursor();
+		
+		while (curL.hasNext())
+		{
+			cur.next();
+			curL.next();
+			
+			curL.get().setReal(cur.get().getRealDouble());	
+		}
+		
+		return out;
 	}
 }

@@ -891,7 +891,7 @@ import net.imglib2.view.Views;
 	        }
 		}
 		
-		static private float minScaling(float s[])
+		public static float minScaling(float s[])
 		{
 			float min = Float.MAX_VALUE;
 			for (int i = 0 ; i < s.length ; i++)

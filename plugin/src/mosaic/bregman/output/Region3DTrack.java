@@ -3,6 +3,7 @@ package mosaic.bregman.output;
 import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.Outdata;
+import mosaic.core.utils.Point;
 
 public class Region3DTrack implements ICSVGeneral
 {
@@ -66,5 +67,19 @@ public class Region3DTrack implements ICSVGeneral
 	public double getCoord_X() {return x;}
 	public double getCoord_Y() {return y;}
 	public double getCoord_Z() {return z;}
+	public void setData(Point point) 
+	{
+		if (point.x.length >= 3)
+		{
+			x = point.x[0];
+			y = point.x[1];
+			z = point.x[2];
+		}
+		else
+		{
+			x = point.x[0];
+			y = point.x[1];
+		}
+	}
 }
 	

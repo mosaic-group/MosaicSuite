@@ -10,6 +10,7 @@ public class SphereMask extends Mask
 	
 	int m_Size[];
 	int m_Radius[];
+	float spacing[];
 	
 	IndexIterator iterator;
 	int fgPoints = 0;
@@ -44,9 +45,47 @@ public class SphereMask extends Mask
 		
 		iterator = new IndexIterator(m_Size);
 		
+		spacing = new float[dim];
+		for (int i = 0 ; i < dim ; i++)
+		{
+			spacing[i] = 1.0f;
+		}
+		
+		
 		mask = new byte[iterator.getSize()];
 		fillMask();			
     }
+	
+	/**
+	 * 
+	 * Create a Sphere mask with radius and spacing
+	 * 
+	 * @param radius Radius of the circle
+	 * @param size Size of the region containing the circle
+	 * @param dim dimensionality
+	 * @param spacing Coordinate spacing
+	 * 
+	 */
+	public SphereMask(int radius, int size, int dim, float [] spacing) 
+	{
+		this.dim = dim;
+		rad = radius;
+		
+		m_Size = new int[dim];
+		m_Radius = new int[dim];
+		
+		for (int i = 0; i < dim; i++) 
+		{
+			m_Radius[i] = radius;
+			m_Size[i] = size;
+		}
+		
+		iterator = new IndexIterator(m_Size);
+		
+		this.spacing = spacing;
+		mask = new byte[iterator.getSize()];
+		fillMask();		
+	}
 	
 	
 	private void fillMask()
@@ -63,8 +102,8 @@ public class SphereMask extends Mask
 			for(int vD = 0; vD < dim; vD++)
 			{
 				vHypEllipse += 
-					(vIndex[vD] - (m_Size[vD]) / 2.0)
-					*(vIndex[vD] - (m_Size[vD]) / 2.0)
+					(vIndex[vD] - (m_Size[vD]) / 2.0)*spacing[vD]
+					*(vIndex[vD] - (m_Size[vD]) / 2.0)*spacing[vD]
 					/(m_Radius[vD] * m_Radius[vD]);
 			}
 			

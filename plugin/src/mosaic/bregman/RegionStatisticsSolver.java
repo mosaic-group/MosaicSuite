@@ -189,7 +189,11 @@ public class RegionStatisticsSolver {
 		}
 
 
-
+		if (betaMLEin >= 1.0)
+		{
+			int debug = 0;
+			debug++;
+		}
 
 
 	}

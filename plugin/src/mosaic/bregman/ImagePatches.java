@@ -397,6 +397,11 @@ public class ImagePatches {
 		//assign new pixel list to region and refined size
 		r.pixels=rpixels;
 		r.rsize=pixcount;
+		if (ap.cin*(ap.intmax-ap.intmin) +ap.intmin >= 1.0)
+		{
+			int debug = 0;
+			debug++;
+		}
 		r.intensity=ap.cin*(ap.intmax-ap.intmin) +ap.intmin;
 		//		r.cx=r.cx*osxy;
 		//		r.cy=r.cy*osxy;

@@ -43,7 +43,15 @@ public class Analysis {
 	public static boolean doingbatch=false;
 	public static boolean firstbcoloc=true;
 	public static String dir;
+	
+	// Maximum norm, it fix the range of the normalization, useful for video
+	// normalization has to be done on all frame video, filled when the plugins
+	// is called with the options min=... max=...
+	public static double norm_max = 0.0;
+	// Minimum norm
+	public static double norm_min = 0.0;
 
+	public static boolean exclude_z_edges;
 	public static int positiveA, positiveB;
 	public static short [] [] [] regionsA;
 	public static short [] [] [] regionsB;
@@ -2001,15 +2009,19 @@ public class Analysis {
 
 
 
-	public static void setRegionsLabels( ArrayList<Region> regionslist, short [] [] [] regions){
+	public static void setRegionsLabels( ArrayList<Region> regionslist, short [] [] [] regions)
+	{
 		int factor2 =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 		int fz2;
 		if(Analysis.p.nz>1)fz2=factor2; else fz2=1;
 		int index=1;
 
-		for (int z=0; z<p.nz*fz2; z++){
-			for (int i=0; i<p.ni*factor2; i++){  
-				for (int j=0;j< p.nj*factor2; j++){  
+		for (int z=0; z<p.nz*fz2; z++)
+		{
+			for (int i=0; i<p.ni*factor2; i++)
+			{  
+				for (int j=0;j< p.nj*factor2; j++)
+				{  
 					regions[z][i][j]=0;
 				}
 			}

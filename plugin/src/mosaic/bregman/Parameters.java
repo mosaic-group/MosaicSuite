@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class Parameters  implements Serializable
 {
-	private static final long serialVersionUID = 1894956510127964860L;
+	private static final long serialVersionUID = 1894956520127964860L;
 
 	//
 	
@@ -76,7 +76,8 @@ public class Parameters  implements Serializable
 	public int nbconditions = 1;
 	public int regionSegmentLevel = 2;
 	public boolean remask=false;
-
+	public boolean exclude_z_edges=true;
+	
 	public int nchannels=2;
 	public int mode_intensity=0;//0 automatic, 1 low int, 2 high int (by clustering)
 

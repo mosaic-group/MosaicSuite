@@ -41,13 +41,17 @@ import ij.process.ByteProcessor;
 //import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
+
 //import java.util.Arrays;
 import java.util.Collections;
 //import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Vector;
+
 //import amira.AmiraParameters;
 //import ij.measure.Calibration;
 import ij.process.FloatProcessor;
+
 //import ij.plugin.ImageCalculator;
 //import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
@@ -60,6 +64,8 @@ import java.awt.Color;
 import java.awt.Polygon;
 //import java.awt.event.ActionEvent;
 //import java.awt.event.ActionListener;
+
+import mosaic.core.detection.Particle;
 
 //import net.sf.javaml.clustering.Clusterer;
 //import net.sf.javaml.core.Dataset;
@@ -208,6 +214,7 @@ public class FindConnectedRegions
 		//				rt.addValue("Points in Region",points);
 		//			}
 		//		}
+		
 		
 		public double getcx()
 		{
@@ -718,7 +725,26 @@ public class FindConnectedRegions
 					//newStack.addSlice("", bp);
 				}
 
-				if(region.points<= maxvesiclesize)results.add(region);
+				// Check for z Edge and maxvesiclesize
+				
+				if (region.points<= maxvesiclesize)
+				{
+					// check for z processing
+					
+					if (Analysis.p.exclude_z_edges == true && tr.length != 1)
+					{
+						Analysis.regionCenter(region);
+						if (region.getcz() >= 1.0 && region.getcz() <= tr.length-2)
+						{
+							results.add(region);
+						}
+					}
+					else
+					{
+						results.add(region);
+					}
+						
+				}
 
 				//if(region.value==43 || region.value==2000)test_clustering(region);
 
@@ -729,8 +755,11 @@ public class FindConnectedRegions
 				break;
 			}
 		}
-
+		
 		Collections.sort(results, Collections.reverseOrder());
+		
+		
+		
 		//Collections.sort(results);
 
 		//cancelDialog.dispose();

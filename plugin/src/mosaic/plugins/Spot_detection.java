@@ -24,7 +24,13 @@ import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import ij.process.StackStatistics;
 
-
+/**
+ * 
+ * Plugin to detect spot
+ * 
+ * @author Pietro Incardona
+ *
+ */
 
 
 public class Spot_detection implements PlugInFilter

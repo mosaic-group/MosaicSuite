@@ -54,18 +54,35 @@ public class CSVOutput
     
     public static CellProcessor[] Region3DRScriptCellProcessor;
 	
+    /**
+     * 
+     * Get CellProcessor for Region3DTrack objects
+     * 
+     */
+    
+    public static CellProcessor[] getRegion3DTrackCellProcessor()
+    {
+    	return new CellProcessor[] 
+    	    	{ 
+       		 new ParseInt(),
+       		 new ParseDouble(),
+       	     new ParseDouble(),
+                new ParseDouble(),
+                new ParseDouble(),
+                new ParseDouble(),
+                new ParseDouble(),
+       	 };
+    }
+    
+    /**
+     * 
+     * Init CSV structure
+     * 
+     */
+    
     public static void initCSV()
     {
-    	Region3DTrackCellProcessor = new CellProcessor[] 
-    	{ 
-    		 new ParseInt(),
-    		 new ParseDouble(),
-    	     new ParseDouble(),
-             new ParseDouble(),
-             new ParseDouble(),
-             new ParseDouble(),
-             new ParseDouble(),
-    	 };
+    	Region3DTrackCellProcessor = getRegion3DTrackCellProcessor();
     	
     	Region3DRScriptCellProcessor = new CellProcessor[] 
     	{

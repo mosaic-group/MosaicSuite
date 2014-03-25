@@ -25,6 +25,7 @@ import ij.process.ImageProcessor;
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
+import ij.Macro;
 import ij.io.Opener;
 
 
@@ -35,6 +36,11 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 	
 	public int setup(String arg0, ImagePlus active_img) 
 	{
+		// if is a macro get the arguments from macro arguments
+		
+		if (IJ.isMacro())
+			arg0 = Macro.getOptions();
+		
 		// Initialize CSV format
 		
 		CSVOutput.initCSV();
@@ -54,15 +60,8 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 			Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
 			Pattern config = Pattern.compile("config");
 			Pattern output = Pattern.compile("output");
-			Pattern normalize = Pattern.compile("normalize");
-			Pattern par[] = new Pattern[7];
-			par[0] = Pattern.compile("method");
-			par[1] = Pattern.compile("init");
-			par[2] = Pattern.compile("ps_radius");
-			par[3] = Pattern.compile("b_force");
-			par[4] = Pattern.compile("c_flow_coeff");
-			par[5] = Pattern.compile("c_flow_radius");
-			par[6] = Pattern.compile("normalize");
+			Pattern min = Pattern.compile("min");
+			Pattern max = Pattern.compile("max");
 			Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
 			
 			// config
@@ -85,7 +84,49 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 					}
 				}
 			}
+			
+			// min
 
+			matcher = min.matcher(arg0);
+			if (matcher.find())
+			{
+				String sub = arg0.substring(matcher.end());
+				matcher = spaces.matcher(sub);
+				if (matcher.find())
+				{
+					sub = sub.substring(matcher.end());
+					matcher = pathp.matcher(sub);
+					if (matcher.find())
+					{
+						String norm = matcher.group(0);
+						
+						Analysis.norm_min = Double.parseDouble(norm);
+						System.out.println("min norm " + Analysis.norm_min);
+					}
+				}
+			}
+			
+			// max
+			
+			matcher = max.matcher(arg0);
+			if (matcher.find())
+			{
+				String sub = arg0.substring(matcher.end());
+				matcher = spaces.matcher(sub);
+				if (matcher.find())
+				{
+					sub = sub.substring(matcher.end());
+					matcher = pathp.matcher(sub);
+					if (matcher.find())
+					{
+						String norm = matcher.group(0);
+						
+						Analysis.norm_max = Double.parseDouble(norm);
+						System.out.println("max norm " + Analysis.norm_max);
+					}
+				}
+			}
+			
 		}
 		catch (ClassNotFoundException e) 
 		{
@@ -109,8 +150,12 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 		}
 		
 		//IJ.log("batchmode" + batch);
-		try 
+		try
 		{
+			// 
+			if (batch == true)
+				Analysis.p.dispwindows = false;
+			
 			GenericGUI window = new GenericGUI(batch,active_img);
 			window.run("",active_img);
 			
