@@ -740,7 +740,7 @@ public class MosaicUtils
 	 * 
 	 * it create two folder data_file1 and data_file2 and inside put all the file
 	 * with pattern data_tmp_1file1 ..... data_tmp_Nfile1 in the first and data_tmp_1file2 ..... data_tmp_Nfile2
-	 * in the second
+	 * in the second. If the folder is empty the folder is deleted
 	 * 
 	 * @param output List of output patterns
 	 * @param base String of the image/data to substitute
@@ -771,6 +771,19 @@ public class MosaicUtils
 				{
 					tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",base) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base + tmp.replace("*", ""));
 					tProcess.waitFor();
+				}
+			}
+			
+			// check for all the folder created if empty delete it
+			
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+				
+				File dir = new File(sv + "/" + tmp.replace("*","_"));
+				if (dir.listFiles().length == 0)
+				{
+					dir.delete();
 				}
 			}
 		} 

@@ -21,6 +21,32 @@ import mosaic.core.ipc.*;
 
 public class Analysis {
 
+	public static String out[] = {"*_ObjectsData_c1.csv",
+	        "*_ObjectsData_c2.csv",
+	        "*_mask_c1.zip",
+	        "*_mask_c2.zip",
+	        "*_ImagesData.csv",
+	        "*_outline_overlay_c1.zip",
+	        "*_outline_overlay_c2.zip",
+	        "*_intensities_c1.zip",
+	        "*_intensities_c2.zip",
+	        "*_seg_c1_RGB.zip",
+	        "*_seg_c2_RGB.zip",
+	        "*.tif"};
+	
+	public static String out_w[] = {"*_ObjectsData_c1.csv",
+        "*_ObjectsData_c2.csv",
+        "*_mask_c1.zip",
+        "*_mask_c2.zip",
+        "*_ImagesData.csv",
+        "*_outline_overlay_c1.zip",
+        "*_outline_overlay_c2.zip",
+        "*_intensities_c1.zip",
+        "*_intensities_c2.zip",
+        "*_seg_c1_RGB.zip",
+        "*_seg_c2_RGB.zip"};
+
+	
 	public static double meansize_refined;
 	public static String currentImage="currentImage";
 	public static double bestEnergyX;

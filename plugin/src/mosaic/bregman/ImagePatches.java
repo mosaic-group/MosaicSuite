@@ -245,16 +245,6 @@ public class ImagePatches {
 		}
 		else
 		{IJ.log(no + " objects found in Y.");}
-
-		//IJ.log("Objects found 2nd pass:" + regionslist_refined.size());
-		//else{
-		if(p.dispcolors || p.displabels)displayRegions(regions_refined, sx, sy, sz, channel, true, p.save_images, true);
-		//}
-		//long lEndTime = new Date().getTime(); //start time
-		//long difference = lEndTime - lStartTime; //check different
-		//IJ.log("Elapsed milliseconds object properties: " + difference);
-
-
 	}
 
 //	private void assemble_result_voronoi2(AnalysePatch ap){
@@ -456,7 +446,7 @@ public class ImagePatches {
 
 	}
 	//display function
-	public void displayRegions(short [][][] regions, int width,int height,int depth, int channel, boolean displ, boolean save, boolean invert){
+/*	public void displayRegions(short [][][] regions, int width,int height,int depth, int channel, boolean displ, boolean save, boolean invert){
 		ImageStack regstackx;
 		ImageStack regstacky;
 
@@ -592,9 +582,9 @@ public class ImagePatches {
 
 		}
 
-	}
+	}*/
 
-	private IndexColorModel backgroundAndSpectrum(int maximum, boolean invert) {
+/*	private IndexColorModel backgroundAndSpectrum(int maximum, boolean invert) {
 		//IJ.log("make color model");
 		if( maximum > 255 )
 			maximum = 255;
@@ -627,7 +617,7 @@ public class ImagePatches {
 			//if(i==10){IJ.log("red" + reds[i]+"green"+greens[i]+"blue"+blues[i]);}
 		}
 		return new IndexColorModel( 8, 256, reds, greens, blues );
-	}
+	}*/
 
 	public static double computeMeanRegionSize(ArrayList<Region> regionlist){
 		double total =0;

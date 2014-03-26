@@ -13,7 +13,10 @@ import ij.process.BinaryProcessor;
 import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 
+import java.awt.Color;
+import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -65,18 +68,17 @@ public class BLauncher
 		{
 			Headless_file();
 			
+			// Display results
+			
+			displayResult();
+			
 			if (Analysis.p.save_images)
 			{
-				//IJ.run(over,"RGB Color", "");
+				// Save images
 				
-				for (int i = 0 ; i < out_over.length ; i++)
-				{
-					String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_outline_overlay_c" + (i+1) + ".zip";
-					if (out_over != null)
-						IJ.saveAs(out_over[i], "ZIP", savepath);
-				}
+				saveAllImages();
 				
-				// Write a file info output
+				// Write a file with output infos
 				
 				PrintWriter out = null;
 				File fl = new File(path);
@@ -103,10 +105,16 @@ public class BLauncher
 			aImp.setPosition(aImp.getChannel(),aImp.getSlice(),f);
 			Headless_file();
 			
+			// Display results
+			
+			displayResult();
+			
 			// Write a file info output
 			
 			if (Analysis.p.save_images)
 			{
+				saveAllImages();
+				
 				try
 				{out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), f-1);} 
 				catch (FileNotFoundException e) 
@@ -115,27 +123,83 @@ public class BLauncher
 		}
 		
 		out.close();
+	}
+	
+
+	/**
+	 * 
+	 * Display results
+	 * 
+	 */
+	
+	void displayResult()
+	{
+		int factor =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
+		int fz;
+		if(Analysis.p.nz>1)fz=factor; else fz=1;
 		
-		// Save images
-		
-		if (Analysis.p.save_images)
+		if(Analysis.p.dispoutline)
 		{
-			//IJ.run(over,"RGB Color", "");
+			displayoutline(Analysis.regionsA, Analysis.imagea,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1);
+			if (Analysis.p.nchannels == 2) {displayoutline(Analysis.regionsB, Analysis.imageb,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2);}
+		}
+		if(Analysis.p.dispint)
+		{
+			displayintensities(Analysis.regionslistA, Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1, Analysis.imagecolor_c1);
+			if (Analysis.p.nchannels == 2) {displayintensities(Analysis.regionslistB, Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2, Analysis.imagecolor_c2);}
+		}
+		if (Analysis.p.displabels)
+		{
+			displayRegionsCol(Analysis.regionsA, 1, Analysis.regionslistA.size());
+			if (Analysis.p.nchannels == 2) {displayRegionsCol(Analysis.regionsA, 2, Analysis.regionslistA.size());};
+		}
+		if (Analysis.p.dispcolors)
+		{
+			displayRegionsLab(1);
+			if (Analysis.p.nchannels == 2) {displayRegionsLab(2);}
+		}
+
+	}
+	
+	/**
+	 * 
+	 * Save all images
+	 * 
+	 */
+	
+	private void saveAllImages()
+	{
+		// Save images
 			
-			for (int i = 0 ; i < out_over.length ; i++)
-			{
-				String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_outline_overlay_c" + (i+1) + ".zip";
-				if (out_over != null)
-					IJ.saveAs(out_over[i], "ZIP", savepath);
-			}
+		for (int i = 0 ; i < out_over.length ; i++)
+		{
+			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_outline_overlay_c" + (i+1) + ".zip";
+			if (out_over[i] != null)
+				IJ.saveAs(out_over[i], "ZIP", savepath);
+		}
 			
-			for (int i = 0 ; i < out_disp.length ; i++)
-			{
-				String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_intensities" + "_c"+(i+1)+".zip";
+		for (int i = 0 ; i < out_disp.length ; i++)
+		{
+			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_intensities" + "_c"+(i+1)+".zip";
+			if (out_disp[i] != null)
 				IJ.saveAs(out_disp[i], "ZIP", savepath);
-			}
+		}
+		
+		for (int i = 0 ; i < out_label.length ; i++)
+		{
+			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
+			if (out_label[i] != null)
+				IJ.saveAs(out_label[i], "ZIP", savepath);
+		}
+		
+		for (int i = 0 ; i < out_label_gray.length ; i++)
+		{
+			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
+			if (out_label_gray[i] != null)
+				IJ.saveAs(out_label_gray[i], "ZIP", savepath);
 		}
 	}
+	
 	
 	/**
 	 * 
@@ -146,13 +210,13 @@ public class BLauncher
 	 * @throws FileNotFoundException 
 	 */
 	
-	public PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, int hcount) throws FileNotFoundException
+	private PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, int hcount) throws FileNotFoundException
 	{
 		if (out == null)
 		{
 			// Remove extension from filename
 			
-			String[] fl = filename.split(".");
+			String[] fl = filename.split("\\.");
 			
 			out  = new PrintWriter(path + File.separator + fl[0] + "_ImagesData"+ ".csv");
 		}
@@ -355,8 +419,6 @@ public class BLauncher
 
 			if(Analysis.p.save_images)
 			{
-				String choice1[] = {"Automatic", "Low layer", "Medium layer","High layer"};
-				String choice2[] = {"Poisson", "Gauss"};
 				finish();
 			}
 
@@ -660,39 +722,6 @@ public class BLauncher
 			MasksDisplay md= new MasksDisplay(Analysis.p.ni*factor2,Analysis.p.nj*factor2,Analysis.p.nz*fz2,Analysis.p.nlevels,Analysis.p.cl,Analysis.p);
 			md.displaycoloc(Analysis.regionslistA,Analysis.regionslistB);
 
-
-			if(Analysis.p.dispoutline)
-			{
-				//IJ.log("disp outline");
-				int factor =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
-				int fz;
-				if(Analysis.p.nz>1)fz=factor; else fz=1;
-				displayoutline(Analysis.regionsA, Analysis.imagea,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1);
-				displayoutline(Analysis.regionsB, Analysis.imageb,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2);
-			}
-			if(Analysis.p.dispint)
-			{
-				int factor =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
-				//IJ.log("factor" + factor);
-				int fz;
-				if(Analysis.p.nz>1)fz=factor; else fz=1;
-				displayintensities(Analysis.regionslistA, Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1, Analysis.imagecolor_c1);
-				displayintensities(Analysis.regionslistB, Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2, Analysis.imagecolor_c2);
-			}
-
-			//			if(Analysis.p.save_images){
-			//				Analysis.setIntensitiesandCenters(Analysis.regionslistA, Analysis.imagea);
-			//				Analysis.setIntensitiesandCenters(Analysis.regionslistB, Analysis.imageb);
-			//
-			//				Analysis.setPerimeter(Analysis.regionslistA,Analysis.regionsA);	
-			//				Analysis.setPerimeter(Analysis.regionslistB,Analysis.regionsB);	
-			//
-			//				if(Analysis.p.nz==1){
-			//					Analysis.setlength(Analysis.regionslistA,Analysis.regionsA);
-			//					Analysis.setlength(Analysis.regionslistB,Analysis.regionsB);
-			//				}
-			//			}
-			//IJ.log("na");
 			Analysis.na=Analysis.regionslistA.size();
 			Analysis.nb=Analysis.regionslistB.size();
 
@@ -719,35 +748,6 @@ public class BLauncher
 
 		if(Analysis.p.nchannels==1)
 		{
-			if(Analysis.p.dispoutline)
-			{
-				//IJ.log("disp outline");
-				int factor =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
-				int fz;
-				if(Analysis.p.nz>1)fz=factor; else fz=1;
-				//				long lStartTime = new Date().getTime(); //start time
-				displayoutline(Analysis.regionsA, Analysis.imagea,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1);
-				//				long lEndTime = new Date().getTime(); //start time
-				//				long difference = lEndTime - lStartTime; //check different
-				//				IJ.log("Elapsed milliseconds dispoutl: " + difference);
-			}
-
-			if(Analysis.p.dispint)
-			{
-				//	IJ.log("disp int");
-				int factor =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
-				int fz;
-				//	IJ.log("factor" + factor);
-				if(Analysis.p.nz>1)fz=factor; else fz=1;
-				//				long lStartTime = new Date().getTime(); //start time
-				displayintensities(Analysis.regionslistA, Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1, Analysis.imagecolor_c1);
-				//				long lEndTime = new Date().getTime(); //start time
-				//				long difference = lEndTime - lStartTime; //check different
-				//				IJ.log("Elapsed milliseconds dispintsts: " + difference);
-			}
-			//	Analysis.setRegionsLabels(Analysis.regionslistA, Analysis.regionsA);
-			//			long lStartTime = new Date().getTime(); //start time
-			//IJ.log("analysis");
 			Analysis.na=Analysis.regionslistA.size();
 			//IJ.log("intensities");
 
@@ -804,7 +804,7 @@ public class BLauncher
 
 	}
 
-	ImagePlus out_over[] = new ImagePlus[2];
+	private ImagePlus out_over[] = new ImagePlus[2];
 	
 	/**
 	 * 
@@ -896,30 +896,16 @@ public class BLauncher
 			bip.invert();
 		}
 		
+		ImagePlus tab []= new ImagePlus [2];
+		tab[0]=objcts;tab[1]=img;
+		ImagePlus over = RGBStackMerge.mergeChannels(tab, false);
+		
 		// if we have already an outline overlay image merge the frame
 		
-		if (out_over[channel-1] != null)
-		{
-			ImagePlus tab []= new ImagePlus [2];
-			tab[0]=objcts;tab[1]=img;
-			ImagePlus over = RGBStackMerge.mergeChannels(tab, false);
-			MosaicUtils.MergeFrames(out_over[channel-1],over);
-		}
-		else
-		{
-			ImagePlus tab []= new ImagePlus [2];
-			tab[0]=objcts;tab[1]=img;
-			out_over[channel-1] =RGBStackMerge.mergeChannels(tab, false);
-		}
-
-		if(Analysis.p.dispwindows)
-		{
-			out_over[channel-1].setTitle("Objects outlines, channel " + channel);
-			out_over[channel-1].show();
-		}
+		updateImages(out_over,over,"Objects outlines, channel " + channel,Analysis.p.dispoutline,channel);
 	}
 
-	ImagePlus out_disp[] = new ImagePlus[2];
+	private ImagePlus out_disp[] = new ImagePlus[2];
 
 	/**
 	 * 
@@ -958,24 +944,137 @@ public class BLauncher
 		}
 		intensities.setStack("Intensities reconstruction, channel " +channel, intS);
 		
-		
-		if (out_disp[channel-1] != null)
+		updateImages(out_disp,intensities,"Intensities reconstruction, channel " +channel,Analysis.p.dispint,channel);
+	}
+
+	private ImagePlus out_label[]=new ImagePlus[2];
+	private ImagePlus label = null;
+	
+	public static IndexColorModel backgroundAndSpectrum(int maximum) 
+	{
+		if( maximum > 255 )
+			maximum = 255;
+		byte [] reds = new byte[256];
+		byte [] greens = new byte[256];
+		byte [] blues = new byte[256];
+		// Set all to white:
+		for( int i = 0; i < 256; ++i ) 
 		{
-			MosaicUtils.MergeFrames(out_disp[channel-1],intensities);
+			reds[i] = greens[i] = blues[i] = (byte)255;
+		}
+		// Set 0 to black:
+		reds[0] = greens[0] = blues[0] = 0;
+		float divisions = maximum;
+		Color c;
+		for( int i = 1; i <= maximum; ++i ) 
+		{
+			float h = (i - 1) / divisions;
+			c = Color.getHSBColor(h,1f,1f);
+			reds[i] = (byte)c.getRed();
+			greens[i] = (byte)c.getGreen();
+			blues[i] = (byte)c.getBlue();
+		}
+		return new IndexColorModel( 8, 256, reds, greens, blues );
+	}
+	
+	String chan_s[] = {"X", "Y"};
+	
+	/**
+	 * 
+	 * Display regions colors
+	 * 
+	 * @param regions label image
+	 * @param channel number of the channel
+	 * @param max_r max number of region
+	 */
+	
+	public void displayRegionsCol(short [][][] regions, int channel, int max_r)
+	{
+		int width = regions[0].length;
+		int height = regions[0][0].length;
+		int depth = regions.length;
+		
+//		ImageStack out_label_stack = out_label[channel].getStack();
+	
+		ImageStack labS;
+		label = new ImagePlus();
+
+		//build stack and imageplus
+		labS=new ImageStack(width,height);
+		
+		int min = 0;
+		int max = Math.max(max_r, 255 );
+		for (int z=0; z<depth; z++)
+		{
+			short[] mask_short = new short[width*height];
+			for (int i=0; i<width; i++) 
+			{
+				for (int j=0; j<height; j++) 
+				{
+					mask_short[j * width + i]= (short) regions[z][i][j];
+				}
+			}
+			ShortProcessor sp = new ShortProcessor(width, height);
+			sp.setPixels(mask_short);
+			sp.setMinAndMax( min, max );
+			labS.addSlice("", sp);
+		}
+
+		labS.setColorModel(backgroundAndSpectrum(Math.min(max_r,255)));				
+		label.setStack("Regions " + chan_s[channel-1],labS);
+
+		updateImages(out_label,label,"Colorized objects, channel " + channel,Analysis.p.dispcolors,channel);
+	}
+	
+	private ImagePlus out_label_gray[]=new ImagePlus[2];
+	
+	/**
+	 * 
+	 * Display regions labels
+	 * 
+	 * @param channel
+	 */
+	
+	public void displayRegionsLab(int channel)
+	{		
+		ImagePlus label_ = label.duplicate();
+		
+		IJ.run(label_, "Grays", "");
+		
+		updateImages(out_label_gray,label_,"Labelized objects, channel " + channel,Analysis.p.displabels,channel);
+	}
+	
+	/**
+	 * 
+	 * Update the images array, merging frames and display it
+	 * 
+	 * @param ipd array of images
+	 * @param ips image
+	 * @param title of the image
+	 * @param channel Channel id array (id-1)
+	 */
+	
+	private void updateImages(ImagePlus ipd[], ImagePlus ips, String title, boolean disp, int channel)
+	{
+		if (ipd[channel-1] != null)
+		{
+			MosaicUtils.MergeFrames(ipd[channel-1],ips);
 		}
 		else
 		{
-			out_disp[channel-1] = intensities;
+			ipd[channel-1] = ips;
+			ipd[channel-1].setTitle("Labelized objects, channel " + channel);
 		}
 		
-		if(Analysis.p.dispwindows)
+		if(disp)
 		{
-			out_disp[channel-1].show();
-			out_disp[channel-1].setStack(out_disp[channel-1].getStack());
+			ipd[channel-1].setStack(ipd[channel-1].getStack());
+			ipd[channel-1].show();
 		}
 	}
-
-	public  void finish(){
+	
+	public  void finish()
+	{
 		if(Analysis.p.save_images)
 		{
 			if(Analysis.p.nchannels==2)

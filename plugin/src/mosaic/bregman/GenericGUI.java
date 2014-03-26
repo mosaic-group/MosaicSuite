@@ -439,8 +439,6 @@ public class GenericGUI
 				}
 				hd= new BLauncher(aImp);
 				
-				String outcsv[] = {"*_ObjectsData_c1.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip"};
-				
 				String savepath;
 				Analysis.p.wd = MosaicUtils.ValidFolderFromImage(aImp);
 				if (wpath.startsWith("Input Image") == false)
@@ -450,9 +448,9 @@ public class GenericGUI
 					savepath = Analysis.p.wd;
 				}
 				
-				MosaicUtils.reorganize(outcsv,aImp.getShortTitle(),savepath,aImp.getNFrames());
+				MosaicUtils.reorganize(Analysis.out_w,aImp.getShortTitle(),savepath,aImp.getNFrames());
 				
-				CSVOutput.Stitch(outcsv,"",new File(savepath),MosaicUtils.ValidFolderFromImage(aImp) + aImp.getTitle());
+				CSVOutput.Stitch(Analysis.out_w,"",new File(savepath),MosaicUtils.ValidFolderFromImage(aImp) + aImp.getTitle());
 			}
 			else
 				hd= new BLauncher(wpath);
@@ -484,8 +482,6 @@ public class GenericGUI
 				e.printStackTrace();
 			}
 			
-			String out[] = {"*_ObjectsData_c1.csv","*_mask_c1.zip","*_ImagesData.csv","*_outline_overlay_c1.zip","*_seg_c1_RGB.zip","*.tif"};
-			
 			// Get all image processor statistics and calculate the maximum
 			
 			float global_max = 0.0f;
@@ -500,7 +496,7 @@ public class GenericGUI
 				// get the min and the max
 			}
 			
-			if (ss.runPluginsOnFrames(aImp, "min="+ global_min + " max="+global_max, out, 180.0) == false)
+			if (ss.runPluginsOnFrames(aImp, "min="+ global_min + " max="+global_max, Analysis.out, 180.0) == false)
 				return;
 			
 			// Save all JobID to the image folder
@@ -576,21 +572,6 @@ public class GenericGUI
 		@Override
 		public void actionPerformed(ActionEvent e)
 		{
-
-			//			Point p =gd.getLocationOnScreen();
-			//			IJ.log("plugin location :" + p.toString());
-			//			JFrame frame;
-			//			frame = new JFrame();
-			//			frame.setSize(300, 700);
-			//			frame.setLocation(p.x+900, p.y);
-			//			frame.toFront();
-			//			frame.requestFocus();
-			//			frame.setResizable(false);
-			//			frame.setVisible(true);
-			//			frame.repaint();
-			//			frame.setAlwaysOnTop( true );
-			//			IJ.log("frame location :" + frame.getLocationOnScreen().toString() + "focusable " + frame.isFocusableWindow());
-
 			if(imgch1!=null){imgch1.close();imgch1=null;}
 			if(imgch2!=null){imgch2.close();imgch2=null;}// close previosuly opened images 
 			
@@ -733,30 +714,6 @@ public class GenericGUI
 	}
 
 
-//	class MaskOpenerActionListener implements ActionListener
-//	{
-//		GenericDialogCustom gd;
-//		TextArea taxy;
-//		TextArea taz;
-//		Panel pp;
-//
-//		public MaskOpenerActionListener(Panel p, GenericDialogCustom gd)
-//		{
-//			this.gd=gd;
-//			//this.ta=ta;
-//			this.pp=p;
-//		}
-//
-//		@Override
-//		public void actionPerformed(ActionEvent e)
-//		{
-//			//IJ.log("plugin location :" + p.toString());
-//			MaskWindow hw = new MaskWindow(0, 0);
-//
-//		}
-//	}
-
-
 	class HelpOpenerActionListener implements ActionListener
 	{
 		GenericDialog gd;
@@ -776,19 +733,6 @@ public class GenericGUI
 			Point p =gd.getLocationOnScreen();
 			//IJ.log("plugin location :" + p.toString());
 			Helpwindow hw = new Helpwindow(p.x, p.y);
-
-			//			JFrame frame;
-			//			frame = negit rm deletew JFrame();
-			//			frame.setSize(300, 700);
-			//			frame.setLocation(p.x+900, p.y);
-			//			frame.toFront();
-			//			frame.requestFocus();
-			//			frame.setResizable(false);
-			//			frame.setVisible(true);
-			//			frame.repaint();
-			//			frame.setAlwaysOnTop(true);
-			//IJ.log("frame location :" + frame.getLocationOnScreen().toString() + "focusable " + frame.isFocusableWindow());
-
 		}
 	}
 
@@ -841,99 +785,6 @@ public class GenericGUI
 			frame.add(panel);
 
 			frame.setVisible(true);
-
-
-
-
-/*			panel= new JPanel(new FlowLayout(FlowLayout.LEFT,10,5));
-			panel.setPreferredSize(new Dimension(575, 890));
-
-			JLabel label = new JLabel();
-			label.setText("<html>"
-					//+ "<h3>**File selection**</h3>"
-					+"<div align=\"center\">"
-					+"<h4> Subcellular object segmentation and features extraction plugin : volume, surface, length, intensity and overlap with other channel. </h4>"
-					+"</div>"
-					+"<br>"
-					+"<div align=\"justify\">"
-					+ "<h4>**File selection**</h4>"
-					+ "� Select file (processes one or two channels, 2D or Z-stacks image file), select folder (processes all image files contained) or paste path to file/folder."
-					+"<br>"
-					+"<br>"
-					+"<h4>**Segmentation**</h4>"
-					+"� Remove background: performs background removal through rolling ball method."
-					+" If activated set size of rolling ball window in pixels. Should be larger than searched objects diameter."
-					+"<br>"
-					+"� Point spread function (PSF): set standard deviation in pixels of the gaussian distribution (in x/y and in z) used to approximate microscope's PSF. Use 'Estimate PSF' to compute these values from microscope objective characteristics."
-					+"<br>"
-					+"� Regularization: penalty weight on object lengths. Low values enable to separate and find smaller objects, higher values prevents over fitting and remove small objects (which can be only noise) whose intensity do not differ enough from the background."
-					+"<br>"
-					+"� Minimum object intensity: minimum intensity of objects looked for. Intensities values are normalized between 0 (minimum pixel intensity in the image) and 1 (maximum intensity)."
-					+"<br>"
-					+"� Subpixel segmentation: performs segmentation in subpixel resolution. (resolution x8 in 2D images, resolution x4 in Z-stacks images)."
-					+"<br>"
-					+"<br>"
-					+"<h4>**Colocalization**</h4>"
-					+"� Cell mask: computes a mask of positive cells in a channel. Mask is obtained by thresholding original image with given intensity value and holes filling. Useful to perform colocalization analysis only in cells positive for both channels."
-					+"<br>"
-					+"� Threshold values for channel 1 and 2 used to compute cell masks. Use 'Preview Cell Masks' to find appropriate value."
-					+"<br>"
-					+"<br>"
-					+ "<h4>**Visualisation and output**</h4>"
-					+"� 'Intermediate steps' display intermediate segmentation steps as well as segmentation energies in the log window. Colorized objects, intensities, labels and outlines respectively display segmented objects with random colors, objects intensities (black green for low intensity to bright green for high intensity ), objects integer labels, and outlines of objects overlaid with initial image."
-					+"<br>"
-					+"� Save option saves output images as zipped tiff files (openable in imageJ) and segmented objects data in one .csv file for each channel in folder containing processed image file."
-					//+"First data column is the image number the object belongs to. Columns 2 to 6 are object label size, surface, length and intensity. Coord X, Y and Z are the coordinates of the center of mass of the object. For two channels images overlap gives the fraction of the object overlapping with objects in the other channel while Mcoloc size and Mcoloc Intensity give the mean size and intensity of the overlapping objects in the other channel. 'single coloc' is true if the object is overlapping with a single object."
-					+"When processing a folder a third .csv file is written with one line per image processed indicating image name, image number, mean number of objects, mean object size and overlap."
-					//+"</p>"
-					+"<br>"
-					+"<br>"
-					+ "<h4>**Advanced options**</h4>"
-					+"� Intensity estimation modes : useful when objects are made of several intensity layers. High layer mode only segments highest intensity portions of an object and thus also increases object separation."
-					+"</div>"
-					+ "</html>");
-
-			//JPanel panel = new JPanel(new BorderLayout());
-
-			JPanel pref= new JPanel(new BorderLayout());
-			pref.setPreferredSize(new Dimension(555, 850));
-			pref.setSize(pref.getPreferredSize());
-			pref.add(label);
-
-
-			panel.add(pref);*/
-			//panel.add(label, BorderLayout.NORTH);
-
-
-
-			//			panel.add(h1);
-			//			panel.add(h2);
-			//			panel.add(h3);
-			//			panel.add(h4);
-			//			panel.add(h5);
-			//close
-			//			Close = new JButton("Close");
-			//			Close.setSize(Close.getPreferredSize());
-			//
-			//			panel.add(Close);
-			//			Close.addActionListener(this);
-
-
-/*			frame.add(panel);
-
-
-			//frame.repaint();
-
-			frame.setVisible(true);*/
-			//frame.requestFocus();
-			//frame.setAlwaysOnTop(true);
-
-			//			JOptionPane.showMessageDialog(frame,
-			//				    "Eggs are not supposed to be green.\n dsfdsfsd",
-			//				    "A plain message",
-			//				    JOptionPane.PLAIN_MESSAGE);
-
-
 		}
 
 	}

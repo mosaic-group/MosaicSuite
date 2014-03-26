@@ -16,7 +16,7 @@ import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 
 
-class LSFBatch implements BatchInterface, ShellProcessOutput
+class LSFBatch implements BatchInterface
 {
 	int AJobID = 0;
 	OutputType tp;
@@ -59,7 +59,7 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 	}
 	
 	@Override
-	public String getScript(String img_script_, String batch_script , String session_id, double ext, int njob) 
+	public String getScript(String img_script_ , String session_id, double ext, int njob) 
 	{
 		script = session_id;
 		return new String("#!/bin/bash \n" +
@@ -290,13 +290,6 @@ class LSFBatch implements BatchInterface, ShellProcessOutput
 		return jb;
 	}
 	
-	/**
-	 * 
-	 * Return the jobID of the launched process
-	 * 
-	 * @return Integer identifying the job
-	 * 
-	 */
 	@Override
 	public int getJobID()
 	{

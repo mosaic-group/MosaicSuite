@@ -181,7 +181,7 @@ public class ClusterSession
 		// Create the batch script if required and upload it
 	
 		String run_s = cp.getRunningDir() + ss.getSession_id() + "/" + ss.getSession_id() + ".ijm";
-		String scr = bc.getScript(run_s,cp.getRunningDir() + ss.getSession_id() + "/" + ss.getSession_id(),ss.getSession_id(),Ext,nImages);
+		String scr = bc.getScript(run_s,ss.getSession_id(),Ext,nImages);
 		if (scr != null)
 		{
 			PrintWriter out;
