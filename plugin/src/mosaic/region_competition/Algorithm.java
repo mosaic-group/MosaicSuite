@@ -466,6 +466,9 @@ public class Algorithm
 			vConvergence = DoOneIteration();
 			debug("time: "+timer.toc());
 			
+			System.out.println("Maximal graph: " + max_graph);
+			max_graph = 0;
+			
 /*			boolean first = true;
 			double FG = 0.20;
 			
@@ -1168,6 +1171,8 @@ public class Algorithm
 	}
 
 
+	int max_graph = 0;
+	
 	/**
 	 * Filters topological incompatible candidates (topological dependencies) 
 	 * and non-improving energies. 
@@ -1267,12 +1272,16 @@ public class Algorithm
 						}
                     }
                 }
-
+				
 				/**
 				 * sort the network
 				 */
 				Collections.sort(vSortedNetworkMembers);
 
+				if (vSortedNetworkMembers.size() >= max_graph)
+					max_graph = vSortedNetworkMembers.size();
+				
+				
 				/**
 				 * Filtering: Accept all members in ascending order that are
 				 * compatible with the already selected members in the network.
