@@ -1256,9 +1256,9 @@ public class AnalysePatch implements Runnable{
 		}
 		//	}
 
-		if(p.livedisplay){
+/*		if(p.livedisplay){
 			impa.displayRegions(impa.regions_refined, impa.sx, impa.sy, impa.sz, impa.channel, true, false, true);
-		}
+		}*/
 		//IJ.log("assemble done");
 	}
 
