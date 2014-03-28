@@ -1334,7 +1334,8 @@ public class AnalysePatch implements Runnable{
 
 
 	//interpolation
-	private void build_interpolated_object(double [][][] cmask, double t){
+	private void build_interpolated_object(double [][][] cmask, double t)
+	{
 		ImagePlus iobject= new ImagePlus();
 		ImageStack iobjectS;
 		interpolated_object = new double [isz][isx][isy];
