@@ -15,5 +15,5 @@ public interface psf<T> extends RandomAccess<T>, PSFGui
 	 * @return the convolved image
 	 */
 	
-	public <S extends NumericType<S>> void convolve(RandomAccessibleInterval<S> img);
+	public <S extends NumericType<S>> void convolve(RandomAccessibleInterval<S> img, S bound);
 };

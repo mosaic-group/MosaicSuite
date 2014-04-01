@@ -259,7 +259,9 @@ public class RegionCreator implements PlugInFilter
         // for each frame
         
         for (int i = 0 ; i < Image_sz[Image_sz.length-1]; i++)
-        {	
+        {
+        	IJ.log("Creating frame: " + i);
+        	
         	// set intensity
         	
         	int radius = 10;
@@ -304,7 +306,9 @@ public class RegionCreator implements PlugInFilter
         	
             // Convolve the pictures
             
-    		cPSF.convolve(vti);
+        	UnsignedByteType bt = new UnsignedByteType();
+        	bt.set(10);
+    		cPSF.convolve(vti, bt);
         	
     		for (int s = 0 ; s < pt.size() ; s++)
     		{
@@ -394,7 +398,7 @@ public class RegionCreator implements PlugInFilter
 			public void actionPerformed(ActionEvent e)
 			{
 				conv = cConv.getSelectedItem();
-	    		psf<FloatType> cPSF = psfList.factory(conv,3,FloatType.class);
+	    		cPSF = psfList.factory(conv,3,FloatType.class);
 	    		if (cPSF == null)
 	    		{
 	    			IJ.error("Cannot create " + conv + ", convolution PSF");
@@ -462,8 +466,16 @@ public class RegionCreator implements PlugInFilter
 		
 		// Get convolution
 		
-		conv = gd.getNextChoice();
-		
+		if (cPSF == null)
+		{
+			conv = gd.getNextChoice();
+			cPSF = psfList.factory(conv,Image_sz.length-1,FloatType.class);
+			if (cPSF == null)
+			{
+				IJ.error("Cannot create " + conv + ", convolution PSF");
+				return DONE;
+			}
+		}
 		run(null);
 		return DONE;
 	}

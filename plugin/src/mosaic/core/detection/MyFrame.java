@@ -198,11 +198,13 @@ import net.imglib2.view.Views;
 		 * @see Particle   
 		 */
 		
-		private boolean loadParticlesFromFile (String path) {
+		private boolean loadParticlesFromFile (String path) 
+		{
 			boolean ret;
 			BufferedReader r;
 			
-			try {
+			try 
+			{
 				r = new BufferedReader(new FileReader(path));
 			
 				ret = loadParticlesFromFile(r,path);
@@ -210,7 +212,8 @@ import net.imglib2.view.Views;
 				/* close file */
 				r.close();
 			}
-			catch (Exception e) {
+			catch (Exception e) 
+			{
 				IJ.error(e.getMessage());
 				return false;
 			}
@@ -320,8 +323,8 @@ import net.imglib2.view.Views;
 	        return true;
 		}
 		
-		private boolean loadParticlesFromFile(BufferedReader r,String path) throws IOException {
-	        
+		private boolean loadParticlesFromFile(BufferedReader r,String path) throws IOException 
+		{    
 			Vector<String[]> particles_info = new Vector<String[]>(); 	// a vector to hold all particles info as String[]
 			String[] particle_info; 				// will hold all the info for one particle (splitted)
 			String[] frame_number_info;				// will fold the frame info line (splitted)

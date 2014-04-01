@@ -5,6 +5,7 @@ import java.lang.reflect.Array;
 import ij.gui.GenericDialog;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.Sampler;
 import net.imglib2.algorithm.gauss3.Gauss3;
@@ -12,6 +13,8 @@ import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.real.FloatType;
+import net.imglib2.view.Views;
 
 class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 {
@@ -277,7 +280,7 @@ class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 	}
 
 	@Override
-	public <S extends NumericType<S>> void convolve(RandomAccessibleInterval<S> img) 
+	public <S extends NumericType<S>> void convolve(RandomAccessibleInterval<S> img, S bound) 
 	{
 		final double[] sigma = new double[ img.numDimensions() ];
 		
@@ -291,11 +294,13 @@ class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 			for ( int d = 0; d < sigma.length; ++d )
 			{sigma[ d ] = var[d].getRealDouble();}
 		}
-			
+		
+		RandomAccessible< S > infiniteImg = Views.extendValue( img, bound);
+		
 		// Convolve with gaussian;
 		
 		try
-		{Gauss3.gauss(sigma, img, img);}
+		{Gauss3.gauss(sigma, infiniteImg, img);}
 		catch (IncompatibleTypeException e) {e.printStackTrace();}
 	}
 	
