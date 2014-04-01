@@ -466,8 +466,8 @@ public class Algorithm
 			vConvergence = DoOneIteration();
 			debug("time: "+timer.toc());
 			
-			System.out.println("Maximal graph: " + max_graph);
-			max_graph = 0;
+/*			System.out.println("Maximal graph: " + max_graph);
+			max_graph = 0;*/
 			
 /*			boolean first = true;
 			double FG = 0.20;
@@ -1171,7 +1171,7 @@ public class Algorithm
 	}
 
 
-	int max_graph = 0;
+/*	int max_graph = 0;*/
 	
 	/**
 	 * Filters topological incompatible candidates (topological dependencies) 
@@ -1278,8 +1278,8 @@ public class Algorithm
 				 */
 				Collections.sort(vSortedNetworkMembers);
 
-				if (vSortedNetworkMembers.size() >= max_graph)
-					max_graph = vSortedNetworkMembers.size();
+/*				if (vSortedNetworkMembers.size() >= max_graph)
+					max_graph = vSortedNetworkMembers.size();*/
 				
 				
 				/**
