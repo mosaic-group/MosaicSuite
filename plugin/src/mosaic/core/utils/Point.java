@@ -1,6 +1,7 @@
 package mosaic.core.utils;
 
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  * 
@@ -347,7 +348,7 @@ public class Point
 		}
 		return sum;
 	}
-
+	
 	/**
 	 * 
 	 * Get the dimension of the point

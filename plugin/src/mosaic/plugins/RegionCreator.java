@@ -5,10 +5,13 @@ import java.awt.Choice;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Vector;
 
 import net.imglib2.Cursor;
@@ -18,7 +21,12 @@ import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.ops.operation.iterable.unary.Fill;
+import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.ShortType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.IntervalView;
@@ -64,11 +72,92 @@ public class RegionCreator implements PlugInFilter
 	long Image_sz[];
 	float Spacing[];
 	psf<FloatType> cPSF;
+	double Background;
 	
 	String conv;
 	Choice cConv;
 	String nModel;
 	Choice cNoise;
+	String imageT;
+	String[] ImageType = {"8-bit","16-bit","float"};
+
+	HashMap<Integer,SphereMask> map;
+	
+	/**
+	 * 
+	 * Draw a Sphere with radius on out
+	 * 
+	 * @param out Image
+	 * @param pt point
+	 * @param cal spacing
+	 * @param intensity of your region
+	 * @param p_radius radius of your region
+	 */
+	
+	<S extends NumericType<S>> void drawSphereWithRadius(RandomAccessibleInterval<S> out, Point pt , float[] cal, S intensity, int p_radius)
+	{
+		if (cal == null)
+		{
+			cal = new float[out.numDimensions()];
+			for (int i = 0 ; i < out.numDimensions() ; i++)
+			{
+				cal[i] = 1;
+			}
+		}
+		
+		RandomAccess<S> out_a = out.randomAccess();
+		
+        int sz[] = new int [out_a.numDimensions()];
+	   	 
+        for ( int d = 0; d < out_a.numDimensions(); ++d )
+        {
+            sz[d] = (int) out.dimension( d );
+        }
+		
+        // Iterate on all particles
+        
+        double radius = p_radius;
+    	
+    	// Create a circle Mask and an iterator
+    	
+    	RegionIteratorMask rg_m = null;
+    	
+    	float min_s = MyFrame.minScaling(cal);
+    	Integer rc = (int) (radius / min_s);
+		for (int i = 0 ; i < out.numDimensions() ; i++)
+		{
+			cal[i] /= min_s;
+		}
+
+	    if (rc < 1) rc = 1;
+	    SphereMask cm = null;
+	    if ((cm = map.get(rc)) == null)
+	    {
+	    	cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal);
+	    	rg_m = new RegionIteratorMask(cm, sz);
+	    }
+        
+	    
+        Point ptt = pt;
+        	
+        // Draw the Sphere
+       	
+        Point p_c = new Point(ptt);
+        p_c.div(cal);
+        			
+        rg_m.setMidPoint(p_c);
+        			
+	    while ( rg_m.hasNext() )
+	    {
+	        Point p = rg_m.nextP();
+	        			
+	        if (p.isInside(sz))
+	        {
+	        	out_a.setPosition(p.x);
+	        	out_a.get().set(intensity);
+	        }
+	    }
+	}
 	
 	/**
 	 * 
@@ -81,7 +170,7 @@ public class RegionCreator implements PlugInFilter
 	 * @param p_radius radius of your region
 	 */
 	
-	void drawSphereWithRadius(RandomAccessibleInterval<UnsignedByteType> out, List<Point> pt , float[] cal, UnsignedByteType intensity, int p_radius)
+	<S extends NumericType<S>> void drawSphereWithRadius(RandomAccessibleInterval<S> out, List<Point> pt , float[] cal, S intensity, int p_radius)
 	{
 		if (cal == null)
 		{
@@ -92,7 +181,7 @@ public class RegionCreator implements PlugInFilter
 			}
 		}
 		
-		RandomAccess<UnsignedByteType> out_a = out.randomAccess();
+		RandomAccess<S> out_a = out.randomAccess();
 		
         int sz[] = new int [out_a.numDimensions()];
 	   	 
@@ -117,9 +206,13 @@ public class RegionCreator implements PlugInFilter
 		}
 
 	    if (rc < 1) rc = 1;
-        SphereMask cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal);
-        rg_m = new RegionIteratorMask(cm, sz);
-    	
+	    SphereMask cm = null;
+	    if ((cm = map.get(rc)) == null)
+	    {
+	    	cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal);
+	    	rg_m = new RegionIteratorMask(cm, sz);
+	    }
+        
         Iterator<Point> pt_it = pt.iterator();
         
         while (pt_it.hasNext())
@@ -144,6 +237,117 @@ public class RegionCreator implements PlugInFilter
 	        	}
 	        }
         }
+	}
+	
+	/**
+	 * 
+	 * Draw a Sphere list with radius on out
+	 * 
+	 * @param out Image
+	 * @param pt list of point
+	 * @param cal spacing
+	 * @param intensity of your regions
+	 * @param p_radius radius of your region
+	 */
+	
+	<S extends NumericType<S>> void drawSphereWithRadius(RandomAccessibleInterval<S> out, List<Point> pt , float[] cal, List<S> intensity, int p_radius)
+	{
+		if (cal == null)
+		{
+			cal = new float[out.numDimensions()];
+			for (int i = 0 ; i < out.numDimensions() ; i++)
+			{
+				cal[i] = 1;
+			}
+		}
+		
+		RandomAccess<S> out_a = out.randomAccess();
+		
+        int sz[] = new int [out_a.numDimensions()];
+	   	 
+        for ( int d = 0; d < out_a.numDimensions(); ++d )
+        {
+            sz[d] = (int) out.dimension( d );
+        }
+		
+        // Iterate on all particles
+        
+        double radius = p_radius;
+    	
+    	// Create a circle Mask and an iterator
+    	
+    	RegionIteratorMask rg_m = null;
+    	
+    	float min_s = MyFrame.minScaling(cal);
+    	int rc = (int) (radius / min_s);
+		for (int i = 0 ; i < out.numDimensions() ; i++)
+		{
+			cal[i] /= min_s;
+		}
+
+	    if (rc < 1) rc = 1;
+	    SphereMask cm = null;
+	    if ((cm = map.get(rc)) == null)
+	    {
+	    	cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal);
+        	rg_m = new RegionIteratorMask(cm, sz);
+	    }
+        
+        Iterator<Point> pt_it = pt.iterator();
+        Iterator<S> int_it = intensity.iterator();
+        
+        while (pt_it.hasNext())
+        {
+        	Point ptt = pt_it.next();
+        	S inte = int_it.next();
+        	
+        	// Draw the Sphere
+       	
+        	Point p_c = new Point(ptt);
+        	p_c.div(cal);
+        			
+        	rg_m.setMidPoint(p_c);
+        			
+	        while ( rg_m.hasNext() )
+	        {
+	        	Point p = rg_m.nextP();
+	        			
+	        	if (p.isInside(sz))
+	        	{
+	        		out_a.setPosition(p.x);
+	        		out_a.get().set(inte);
+	        	}
+	        }
+        }
+	}
+	
+	/**
+	 * 
+	 * Create an image of type specified in the string
+	 * 
+	 * @param size of the image
+	 * @param s type of image "8-bit" "16-bit" "float"
+	 * @return An Img<? extends NumericType<?>>
+	 * 
+	 */
+	
+	@SuppressWarnings("unchecked")
+	<T extends RealType<T> & NativeType<T>> Img<T> createImage(long[] size, Class<T> cls)
+	{
+		Img<T> out = null;
+
+		final ImgFactory< T > imgFactory = new ArrayImgFactory< T >();
+		try {
+			out = (Img<T>) imgFactory.create(Image_sz, cls.newInstance());
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return out;
 	}
 	
 	/**
@@ -236,40 +440,44 @@ public class RegionCreator implements PlugInFilter
 		return Math.PI * radius * radius;
 	}
 	
-	@Override
-	public void run(ImageProcessor arg0) 
+	/**
+	 * 
+	 * Process the frames
+	 * 
+	 * @param Background intensities
+	 * @param intensity of the region
+	 *
+	 */
+	
+	<T extends RealType<T> & NativeType<T>> void Process(T Background, T max_int, T min_int, int max_radius, int min_radius, Class<T> cls)
 	{
-    	
+		map = new HashMap<Integer,SphereMask>();
+		
 		// Vector if output region
 		
 		Vector<Region3DTrack> pt_r = new Vector<Region3DTrack>();
 		
-		// Grid of possible 
+		// Grid of possible region
 		
-        final ImgFactory< UnsignedByteType > imgFactory = new ArrayImgFactory< UnsignedByteType >();
-        Img<UnsignedByteType> out = imgFactory.create(Image_sz, new UnsignedByteType());
-		
-        Cursor<UnsignedByteType> c = out.cursor();
+        Img<T> out = createImage(Image_sz,cls);
+        
+        Cursor<T> c = out.cursor();
         while(c.hasNext())
         {
-        	UnsignedByteType bt = c.next();
-        	bt.set(10);
+        	c.next();
+        	c.get().set(Background);
         }
         
         // for each frame
         
         for (int i = 0 ; i < Image_sz[Image_sz.length-1]; i++)
         {
-        	IJ.log("Creating frame: " + i);
+        	IJ.showStatus("Creating frame: " + i);
         	
         	// set intensity
         	
-        	int radius = 10;
-        	UnsignedByteType ri = new UnsignedByteType();
-        	ri.set(150);
-        	
         	int gs[] = null;
-        	gs = calculateGridPoint(2*radius + 1);
+        	gs = calculateGridPoint(2*max_radius + 1);
         	long np = totalGridPoint(gs);
         	if (np == 0)
         	{
@@ -284,48 +492,78 @@ public class RegionCreator implements PlugInFilter
         	}
         		
         	Point p[] = new Point[(int)np];
-        	FillGridPoint(p,gs,2*radius+1);
+        	FillGridPoint(p,gs,2*max_radius+1);
         	
         	// shuffle
         	
         	Collections.shuffle(Arrays.asList(p));
-        	Vector<Point> pt = new Vector<Point>();
-        	
-        	for (int k = 0 ; k < N_region ; k++)
-        	{
-        		pt.add(p[k]);
-        	}
         	
         	// Create a view of out fixing frame
         	
-        	IntervalView<UnsignedByteType> vti = Views.hyperSlice(out, Image_sz.length-1, i);
+        	IntervalView<T> vti = Views.hyperSlice(out, Image_sz.length-1, i);
         	
-        	// Draw sphere
+        	// Draw spheres with radius and intensities
         	
-        	drawSphereWithRadius(vti,pt,Spacing,ri,radius);
-        	
-            // Convolve the pictures
-            
-        	UnsignedByteType bt = new UnsignedByteType();
-        	bt.set(10);
-    		cPSF.convolve(vti, bt);
-        	
-    		for (int s = 0 ; s < pt.size() ; s++)
-    		{
+        	for (int k = 0 ; k < N_region ; k++)
+        	{
+        		double max_it = max_int.getRealDouble();
+        		double min_it = min_int.getRealDouble();
+        		double max_r = max_radius;
+        		double min_r = min_radius;
+        		Random r = new Random();
+        		T inte_a = null;
+				try {
+					inte_a = cls.newInstance();
+				} catch (InstantiationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        		inte_a.setReal(min_it + (max_it - min_it) * r.nextDouble());
+        		int radius = (int) (min_r + (max_r - min_r) * r.nextDouble());
+        		
     			Region3DTrack tmp = new Region3DTrack();
     			
-    			tmp.setData(pt.get(s));
+    			tmp.setData(p[k]);
     			tmp.setSize(VolRadius(radius));
-    			tmp.setIntensity((double)ri.get());
+    			tmp.setIntensity(inte_a.getRealDouble());
     			tmp.setFrame(i);
     			
     			pt_r.add(tmp);
-    		}
+        		
+    			// Add a Noise to the position (ensuring that region does not touch)
+    			
+    			double dif = (int) (max_r - radius);
+
+    			double tot = 0;
+    			float x[] = new float [Image_sz.length-1];
+    			for (int s = 0 ; s < Image_sz.length - 1 ; s++)
+    			{
+    				x[s] = r.nextFloat();
+    				tot += x[s] * x[s];
+    			}
+    			tot = Math.sqrt(tot);
+    			
+    			for (int s = 0 ; s < Image_sz.length - 1 ; s++)
+    			{
+    				x[s] /= tot;
+    				x[s] *= dif;
+    				p[k].x[s] += x[s];
+    			}
+    			
+        		drawSphereWithRadius(vti,p[k],Spacing,inte_a,radius);
+        	}
+        		
+            // Convolve the pictures
+            
+    		cPSF.convolve(vti, Background);
         }
         
         //
         
-        ImageJFunctions.show(out);
+        ImageJFunctions.show(out,"Regions");
         
 		// Output ground thruth
 		
@@ -343,6 +581,44 @@ public class RegionCreator implements PlugInFilter
 		
 		P_csv.Write(output, pt_r, oc, false);
 	}
+	
+	@Override
+	public void run(ImageProcessor arg0) 
+	{
+		if (imageT.equals("8-bit"))
+		{
+			UnsignedByteType bck = new UnsignedByteType();
+			UnsignedByteType max_int = new UnsignedByteType();
+			UnsignedByteType min_int = new UnsignedByteType();
+			bck.setReal(Background);
+			max_int.setReal(Max_intensity);
+			min_int.setReal(Min_intensity);
+			this.<UnsignedByteType>Process(bck,max_int,min_int,Max_radius,Min_radius,UnsignedByteType.class);
+		}
+		else if (imageT.equals("16-bit"))
+		{
+			ShortType bck = new ShortType();
+			ShortType max_int = new ShortType();
+			ShortType min_int = new ShortType();
+			bck.setReal(Background);
+			max_int.setReal(Max_intensity);
+			min_int.setReal(Min_intensity);
+			this.<ShortType>Process(bck,max_int,min_int,Max_radius,Min_radius,ShortType.class);
+		}
+		else if (imageT.equals("float"))
+		{
+			FloatType bck = new FloatType();
+			FloatType max_int = new FloatType();
+			FloatType min_int = new FloatType();
+			bck.setReal(Background);
+			max_int.setReal(Max_intensity);
+			min_int.setReal(Min_intensity);
+			this.<FloatType>Process(bck,max_int,min_int,Max_radius,Min_radius,FloatType.class);
+		}
+		
+		// produce the Ground truth
+		
+	}
 
 	@Override
 	public int setup(String arg0, ImagePlus original_imp) 
@@ -353,6 +629,7 @@ public class RegionCreator implements PlugInFilter
 		
 		String nsn[] = {"Poisson"};
 		
+		gd.addNumericField("Background: ", 10, 3);
 		gd.addNumericField("Max radius", 10.0, 0);
 		gd.addNumericField("Min radius", 10.0, 0);
 		gd.addNumericField("Max intensity", 1.0, 3);
@@ -371,7 +648,7 @@ public class RegionCreator implements PlugInFilter
 		
 		Button optionButton = new Button("Options");
 		GridBagConstraints c = new GridBagConstraints();
-		c.gridx=2; c.gridy=12; c.anchor = GridBagConstraints.EAST;
+		c.gridx=2; c.gridy=13; c.anchor = GridBagConstraints.EAST;
 		gd.add(optionButton,c);
 		
 		optionButton.addActionListener(new ActionListener() 
@@ -389,7 +666,7 @@ public class RegionCreator implements PlugInFilter
 		
 		optionButton = new Button("Options");
 		c = new GridBagConstraints();
-		c.gridx=2; c.gridy=13; c.anchor = GridBagConstraints.EAST;
+		c.gridx=2; c.gridy=14; c.anchor = GridBagConstraints.EAST;
 		gd.add(optionButton,c);
 		
 		optionButton.addActionListener(new ActionListener() 
@@ -407,14 +684,16 @@ public class RegionCreator implements PlugInFilter
 	    		cPSF.getParamenters();
 			}
 		});
-		
+
+		gd.addChoice("Image type: ", ImageType, ImageType[0]);
 		gd.showDialog();
-		
+
 		if (gd.wasCanceled())
 		{
 			return DONE;
 		}
-		
+
+		Background = gd.getNextNumber();
 		Max_radius = (int) gd.getNextNumber();
 		Min_radius = (int) gd.getNextNumber();
 		Max_intensity = (int) gd.getNextNumber();
@@ -476,6 +755,15 @@ public class RegionCreator implements PlugInFilter
 				return DONE;
 			}
 		}
+		else
+		{
+			gd.getNextChoice();
+		}
+		
+		// Get Image type
+		
+		imageT = gd.getNextChoice();
+		
 		run(null);
 		return DONE;
 	}
