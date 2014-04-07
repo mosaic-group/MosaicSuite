@@ -3,6 +3,8 @@ package mosaic.plugins;
 
 import java.awt.Choice;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
 import java.util.Vector;
 
@@ -19,7 +21,10 @@ import net.imglib2.type.numeric.integer.ShortType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import mosaic.core.utils.Connectivity;
+import mosaic.core.utils.FloodFill;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.MultipleThresholdImageFunction;
+import mosaic.core.utils.MultipleThresholdLabelImageFunction;
 import mosaic.core.utils.MosaicUtils.SegmentationInfo;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.Point.PointFactory;
@@ -145,7 +150,61 @@ public class Poisson_Noise implements PlugInFilter{
 			erode(seg,cnv,s);
 		}
 		
+		// Find connected regions
 		
+		//TODO ! test this
+		
+		HashSet<Integer> oldLabels = new HashSet<Integer>();		// set of the old labels
+		ArrayList<Integer> newLabels = new ArrayList<Integer>();	// set of new labels
+		
+		int newLabel=1;
+		
+		int size=iterator.getSize();
+		
+		// what are the old labels?
+		for(int i=0; i<size; i++)
+		{
+			int l=getLabel(i);
+			if(l==forbiddenLabel || l==bgLabel)
+			{
+				continue;
+			}
+			oldLabels.add(l);
+		}
+		
+		for(int i=0; i<size; i++)
+		{
+			int l=getLabel(i);
+			if(l==forbiddenLabel || l==bgLabel)
+			{
+				continue;
+			}
+			if(oldLabels.contains(l))
+			{
+				// l is an old label
+				MultipleThresholdImageFunction aMultiThsFunctionPtr = new MultipleThresholdLabelImageFunction(this);
+				aMultiThsFunctionPtr.AddThresholdBetween(l, l);
+				FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iterator.indexToPoint(i));
+				
+				//find a new label
+				while(oldLabels.contains(newLabel)){
+					newLabel++;
+				}
+				
+				// newLabel is now an unused label
+				newLabels.add(newLabel);
+				
+				// set region to new label
+				for(Point p:ff)
+				{
+					setLabel(p, newLabel);
+				}
+				// next new label
+				newLabel++;
+			}
+		}
+		
+		// 
 	}
 	
 	private <T> void setupGenericNoise(Class<T> cls)
