@@ -11,7 +11,9 @@ import java.util.Vector;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.algorithm.stats.Histogram;
+import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.img.Img;
+import net.imglib2.io.ImgIOException;
 import net.imglib2.io.ImgOpener;
 import net.imglib2.ops.operation.randomaccessibleinterval.unary.morph.Erode;
 import net.imglib2.type.numeric.IntegerType;
@@ -154,7 +156,7 @@ public class Poisson_Noise implements PlugInFilter{
 		
 		//TODO ! test this
 		
-		HashSet<Integer> oldLabels = new HashSet<Integer>();		// set of the old labels
+/*		HashSet<Integer> oldLabels = new HashSet<Integer>();		// set of the old labels
 		ArrayList<Integer> newLabels = new ArrayList<Integer>();	// set of new labels
 		
 		int newLabel=1;
@@ -202,7 +204,7 @@ public class Poisson_Noise implements PlugInFilter{
 				// next new label
 				newLabel++;
 			}
-		}
+		}*/
 		
 		// 
 	}
@@ -217,7 +219,15 @@ public class Poisson_Noise implements PlugInFilter{
 		
 		if (seg != null)
 		{
-			int nbin = getNBins(cls.newInstance());
+			try {
+				int nbin = getNBins(cls.newInstance());
+			} catch (InstantiationException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IllegalAccessException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			
 			// check the type of the segmentation image
 			
@@ -236,34 +246,37 @@ public class Poisson_Noise implements PlugInFilter{
 				Img< UnsignedByteType > imageSeg = imgOpener.openImg( rgm.getAbsolutePath() );
 				convertedUb = true;
 			}
-			catch(ClassCastException e)
-			{}
+			catch (IncompatibleTypeException e) {}
+			catch(ClassCastException e) {}
+			catch(ImgIOException e) {}
 			
 			try
 			{
 				Img< ShortType > imageSeg = imgOpener.openImg( rgm.getAbsolutePath() );
 				convertedS = true;
 			}
-			catch(ClassCastException e)
-			{}
+			catch (IncompatibleTypeException e) {}
+			catch(ClassCastException e) {}
+			catch(ImgIOException e) {}
 			
 			try
 			{
 				Img< IntType > imageSeg = imgOpener.openImg( rgm.getAbsolutePath() );
 				convertedI = true;
 			}
-			catch(ClassCastException e)
-			{}
+			catch (IncompatibleTypeException e) {}
+			catch(ClassCastException e) {}
+			catch(ImgIOException e) {}
 			
 			// Open the segmentation image, erode filter small region,
 			// and create histograms
 	        
 			
 			
-			Histogram<T> hist = new Histogram<T>();
+//			Histogram<T> hist = new Histogram<T>();
 		}
 		
-		gns.setHistogram(intensity, hist);
+//		gns.setHistogram(intensity, hist);
 	}
 	
 	
@@ -330,18 +343,18 @@ public class Poisson_Noise implements PlugInFilter{
 				}
 			}
 			
-	        if (aImageProcessor instanceof ByteProcessor)
+/*	        if (aImp.getProcessor() instanceof ByteProcessor)
 	        {<UnsignedByteType>setupGenericNoise();}
-	        else if (aImageProcessor instanceof ShortProcessor)
+	        else if (aImp.getProcessor() instanceof ShortProcessor)
 	        {vType = SHORT;}
-	        else if (aImageProcessor instanceof FloatProcessor)
+	        else if (aImp.getProcessor() instanceof FloatProcessor)
 	        {vType = FLOAT;}
 	        else {
 	        	IJ.showMessage("Wrong image type");
 	        	return;
 	        }
 			
-			setupGenericNoiseSample();
+			setupGenericNoiseSample();*/
 		}
 		else
 		{
