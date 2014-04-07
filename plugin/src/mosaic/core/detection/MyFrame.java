@@ -198,12 +198,12 @@ import net.imglib2.view.Views;
 		 * @see Particle   
 		 */
 		
-		private boolean loadParticlesFromFile (String path) 
+		private boolean loadParticlesFromFile(String path) 
 		{
 			boolean ret;
 			BufferedReader r;
 			
-			try 
+			try
 			{
 				r = new BufferedReader(new FileReader(path));
 			
@@ -214,7 +214,7 @@ import net.imglib2.view.Views;
 			}
 			catch (Exception e) 
 			{
-				IJ.error(e.getMessage());
+				e.printStackTrace();
 				return false;
 			}
             
@@ -363,7 +363,7 @@ import net.imglib2.view.Views;
 	        Iterator<String[]> iter = particles_info.iterator();
 	        int counter = 0;
 	        
-	        /* go over all particles String info and construct Particles Ojectes from it*/
+	        /* go over all particles String info and construct Particles Objects from it*/
 	        while (iter.hasNext()) {
 	        	particle_info = iter.next();
 	        	
@@ -373,7 +373,7 @@ import net.imglib2.view.Views;
 		            return false;
 	        	}
 	        	
-	        	if (particle_info[2] == null)
+	        	if (particle_info.length == 2)
 	        	{
 	        		this.particles.addElement(new Particle(
 	        				Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), 0.0f, 
@@ -926,6 +926,9 @@ import net.imglib2.view.Views;
 	        		radius = Math.sqrt(pt.get(0).m0/Math.PI);
 	        	else
 	        		radius = Math.cbrt(pt.get(0).m0*3.0/4.0/Math.PI);
+	        	
+	        	if (radius < 1.0)
+	        		radius = 1.0;
 	        	
 	        	float sp[] = new float[out_a.numDimensions()];
 	        	

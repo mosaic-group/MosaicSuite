@@ -274,6 +274,10 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		MyFrame.initCache();
 		this.original_imp = imp;	
 		
+		// Initialite the linker
+		
+		linker = new ParticleLinkerBestOnePerm();
+		
 		if (imp==null && !only_detect) 
 		{
 			if (IJ.showMessageWithCancel("Text Files Mode", "Do you want to load particles positions from text files?")) {				
@@ -288,10 +292,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			IJ.error("You must load an Image Sequence or Movie first");
 			return DONE;
 		}
-		
-		// Initialite the linker
-		
-		linker = new ParticleLinkerBestOnePerm();
 		
 		// Check if there are segmentation information
 		
@@ -361,7 +361,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
  
 		if (!processFrames()) return;
 
-		original_imp.show();
+		if (original_imp != null)
+			original_imp.show();
 		
 		/* link the particles found */
 		IJ.showStatus("Linking Particles");
@@ -665,9 +666,36 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 					IJ.showStatus("Detecting Particles in Frame " + (frame_i+1) + "/" + frames_number);				
 					detector.featurePointDetection(current_frame);
 				}
+				if (current_frame.frame_number >= frames.length)
+				{
+					IJ.showMessage("Error, frame " + current_frame.frame_number + "  is out of range, enumeration must not have hole, and must start from 0");
+					return false;
+				}
 				frames[current_frame.frame_number] = current_frame;
 				IJ.freeMemory();
 			} // for
+			
+			// Here check that all frames are created
+			
+			for (int i = 0 ; i < frames.length ; i++)
+			{
+				if (frames[i] == null)
+				{
+					IJ.showMessage("Error, frame: " + i + " does not exist");
+					return false;
+				}
+			}
+			
+			if (create_bck_image == true)
+			{
+				IJ.showStatus("Creating background image ...");
+				
+				Img<ARGBType> iw = createHyperStackFromFrames(background);
+				if (iw != null)
+				{
+					original_imp =  ImageJFunctions.wrap( iw, "Video");
+				}
+			}
 		}
 		else
 		{

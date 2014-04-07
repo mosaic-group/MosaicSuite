@@ -9,6 +9,15 @@ import mosaic.core.utils.Point;
 import mosaic.core.utils.Connectivity;
 
 
+/**
+ * 
+ * This class provide a Flood fill algorithm
+ * 
+ * @author Stephan Semmler
+ *
+ */
+
+
 public class FloodFill implements Iterable<Point>
 {
 	Connectivity conn;
@@ -16,7 +25,16 @@ public class FloodFill implements Iterable<Point>
 	Stack<Point> stack;
 	Set<Point> checkedSet;
 	
-	public FloodFill(Connectivity conn, MultipleThresholdImageFunction foo, Point seed) 
+	/**
+	 * 
+	 * Perform a Flood fill starting from a seed point
+	 * 
+	 * @param conn Connectivity
+	 * @param foo Image
+	 * @param seed point
+	 */
+	
+	public FloodFill(Connectivity conn, MultipleThresholdImageFunction foo, Point seed)
 	{
 		this.conn = conn;
 		

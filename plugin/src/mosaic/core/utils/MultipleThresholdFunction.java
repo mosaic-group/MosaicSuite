@@ -3,6 +3,16 @@ package mosaic.core.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 
+ * This class just store intervals and evaluate if a value is in one
+ * of this intervals
+ * 
+ * @author Stephan Semmler
+ *
+ */
+
+
 class MultipleThresholdFunction
 {
     protected List<ThresholdInterval> m_Thresholds;

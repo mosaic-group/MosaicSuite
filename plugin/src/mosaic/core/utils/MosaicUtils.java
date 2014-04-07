@@ -1,6 +1,9 @@
 package mosaic.core.utils;
 
 
+import java.awt.Choice;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,6 +47,8 @@ import mosaic.plugins.ParticleTracker3DModular_.Trajectory;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
 import ij.measure.Calibration;
 import ij.plugin.RGBStackMerge;
 import ij.plugin.Resizer;
@@ -853,4 +858,60 @@ public class MosaicUtils
 		
 		return out;
 	}
+	
+	/**
+	 * 
+	 * Given an index return the set of Coordinate
+	 * (Stride ordering)
+	 * 
+	 * @param index is the idex
+	 * @param img is the image
+	 * 
+	 */
+
+	public static int [] getCoord(long index, Img<?> img)
+	{
+		long tot = 1;
+		int crd[] = new int[img.numDimensions()];
+		
+		for (int i = 0 ; i < crd.length ; i++)
+		{
+			crd[i] = (int) (index % img.dimension(i));
+			index /= img.dimension(i);
+		}
+		
+		return crd;
+	}
+	
+	
+	public static Choice chooseImage(GenericDialog gd, ImagePlus imp)
+	{		
+		int nOpenedImages = 0;
+		int[] ids = WindowManager.getIDList();
+			
+		if(ids!=null)
+		{
+			nOpenedImages = ids.length;
+		}
+		
+		
+		String[] names = new String[nOpenedImages+1];
+		names[0]="";
+		for(int i = 0; i<nOpenedImages; i++)
+		{
+			ImagePlus ip = WindowManager.getImage(ids[i]);
+			names[i+1] = ip.getTitle();
+		}
+		
+		Choice choiceInputImage = (Choice)gd.getChoices().lastElement();
+		
+		if(imp !=null)
+		{
+			String title = imp.getTitle();
+			choiceInputImage.select(title);
+		}
+		
+		return choiceInputImage;
+	}
 }
+

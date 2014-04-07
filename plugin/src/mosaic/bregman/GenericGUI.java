@@ -246,28 +246,7 @@ public class GenericGUI
 			
 			// Image chooser
 			
-			int nOpenedImages = 0;
-			int[] ids = WindowManager.getIDList();
-			
-			if(ids!=null){
-				nOpenedImages = ids.length;
-			}
-			
-			String[] names = new String[nOpenedImages+1];
-			names[0]="";
-			for(int i = 0; i<nOpenedImages; i++)
-			{
-				ImagePlus ip = WindowManager.getImage(ids[i]);
-				names[i+1] = ip.getTitle();
-			}
-			
-			gd.addChoice("InputImage", names, names[0]);
-			Choice choiceInputImage = (Choice)gd.getChoices().lastElement();
-			if(aImp !=null)
-			{
-				String title = aImp.getTitle();
-				choiceInputImage.select(title);
-			}
+			MosaicUtils.chooseImage(gd,aImp);
 			
 			// Background Options
 
