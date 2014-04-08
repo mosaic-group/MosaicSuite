@@ -5,6 +5,7 @@ import java.util.Random;
 import java.util.Vector;
 
 import net.imglib2.algorithm.stats.Histogram;
+import net.imglib2.histogram.Histogram1d;
 import net.imglib2.type.numeric.RealType;
 
 /**
@@ -28,6 +29,7 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 	
 	Random rnd;
 	Class<T> cls = null;
+	T center;
 	
 	class InterpolateHistogram
 	{
@@ -81,8 +83,8 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 			double r1dist = h1dist / h2h1dist;
 			double r2dist = h2dist/ h2h1dist;
 			
-			int och1 = 0;
-			int och2 = 0;
+			long och1 = 0;
+			long och2 = 0;
 			
 			// calculate shift
 			
@@ -93,8 +95,8 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 				T binsh2 = cls.newInstance();
 				binsh2.setReal(h2.intensity.getRealDouble() + h2dist);
 
-				och1 = h1.hist.getBin(binsh1);
-				och2 = h2.hist.getBin(binsh2);
+				och1 = h1.hist.frequency(binsh1);
+				och2 = h2.hist.frequency(binsh2);
 			}
 			catch (InstantiationException e) 
 			{
@@ -137,7 +139,7 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 	class Ihist
 	{
 		T intensity;
-		Histogram<T> hist;
+		Histogram1d<T> hist;
 		long integral;
 	};
 	
@@ -148,6 +150,16 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 		inteHist = new Vector<Ihist>();
 		cls = cls_;
 		rnd = new Random();
+		
+		try {
+			center = cls.newInstance();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -158,7 +170,7 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 	 * @param hist Histogram
 	 */
 	
-	public void setHistogram(T intensity, Histogram<T> hist)
+	public void setHistogram(T intensity, Histogram1d<T> hist)
 	{
 		Ihist tmp = new Ihist();
 		tmp.intensity = intensity;
@@ -185,7 +197,7 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 	 */
 	
 	@Override
-	public T sample(T x)
+	public void sample(T x, T out)
 	{
 		int i = 0;
 		double s = x.getRealDouble();
@@ -217,9 +229,10 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 		
 		long tot = 0;
 		
-		for (i = 0 ; i < inteHist.get(0).hist.getNumBins() ; i++)
+		for (i = 0 ; i < inteHist.get(0).hist.getBinCount() ; i++)
 		{
-			tot += Ih.get(x, inteHist.get(0).hist.getBinCenter(i), cls);
+			inteHist.get(0).hist.getCenterValue(i,center);
+			tot += Ih.get(x,center, cls);
 			
 			if (tot >= gen)
 			{
@@ -229,9 +242,7 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 		
 		// return associated T of the sampled bin
 		
-		return inteHist.get(0).hist.getBinCenter(i);
-		
-		
+		inteHist.get(0).hist.getCenterValue(i,out);		
 	}
 	
 }

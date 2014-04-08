@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Stack;
 
+import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.Connectivity;
 
@@ -34,7 +35,7 @@ public class FloodFill implements Iterable<Point>
 	 * @param seed point
 	 */
 	
-	public FloodFill(Connectivity conn, MultipleThresholdImageFunction foo, Point seed)
+	public FloodFill(Connectivity conn, BinarizedImage foo, Point seed)
 	{
 		this.conn = conn;
 		
@@ -67,6 +68,10 @@ public class FloodFill implements Iterable<Point>
 		return checkedSet.contains(p);
 	}
 
+	public Set<Point> getPoints()
+	{
+		return checkedSet;
+	}
 	
 	//Iterable
 	@Override
