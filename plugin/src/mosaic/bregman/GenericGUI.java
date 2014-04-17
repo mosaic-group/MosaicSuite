@@ -246,7 +246,7 @@ public class GenericGUI
 			
 			// Image chooser
 			
-			MosaicUtils.chooseImage(gd,aImp);
+			MosaicUtils.chooseImage(gd,"Image",aImp);
 			
 			// Background Options
 

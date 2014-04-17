@@ -883,8 +883,17 @@ public class MosaicUtils
 		return crd;
 	}
 	
+	/**
+	 * 
+	 * Create a choose image selector
+	 * 
+	 * @param gd Generic Dialog
+	 * @param cs string for the choice caption
+	 * @param imp ImagePlus to start with
+	 * @return awt Choice control
+	 */
 	
-	public static Choice chooseImage(GenericDialog gd, ImagePlus imp)
+	public static Choice chooseImage(GenericDialog gd, String cs, ImagePlus imp)
 	{		
 		int nOpenedImages = 0;
 		int[] ids = WindowManager.getIDList();
@@ -902,6 +911,9 @@ public class MosaicUtils
 			ImagePlus ip = WindowManager.getImage(ids[i]);
 			names[i+1] = ip.getTitle();
 		}
+		
+		if (gd.getChoices() == null)
+			return null;
 		
 		Choice choiceInputImage = (Choice)gd.getChoices().lastElement();
 		

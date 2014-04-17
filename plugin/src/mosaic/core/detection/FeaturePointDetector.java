@@ -307,7 +307,8 @@ public class FeaturePointDetector {
 			this.particles.elementAt(m).score = 0.0F;
 			epsx = epsy = epsz = 1.0F;
 
-			while (epsx > 0.5 || epsx < -0.5 || epsy > 0.5 || epsy < -0.5 || epsz < 0.5 || epsz > 0.5) {
+			while (epsx > 0.5 || epsx < -0.5 || epsy > 0.5 || epsy < -0.5 || epsz > 0.5 || epsz < -0.5) 
+			{
 				this.particles.elementAt(m).nbIterations++;
 				this.particles.elementAt(m).m0 = 0.0F;
 				this.particles.elementAt(m).m1 = 0.0F;
@@ -317,7 +318,8 @@ public class FeaturePointDetector {
 				epsx = 0.0F;
 				epsy = 0.0F;
 				epsz = 0.0F;
-				for(int s = -radius; s <= radius; s++) {
+				for(int s = -radius; s <= radius; s++) 
+				{
 					if(((int)this.particles.elementAt(m).z + s) < 0 || ((int)this.particles.elementAt(m).z + s) >= ips.getSize())
 						continue;
 					z = (int)this.particles.elementAt(m).z + s;

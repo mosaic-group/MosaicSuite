@@ -36,10 +36,26 @@ public class Region3DTrack implements ICSVGeneral
 
 	public void setData(Region r) 
 	{
-		// TODO Auto-generated method stub
-		
+		Frame = 0;
+		x = r.getcx();
+		y = r.getcy();
+		z = r.getcz();
+		Size = r.getrsize();
+		Intensity = r.getintensity();
+		Surface = r.getperimeter();
 	}
 
+	public void setData(Region3DTrack r) 
+	{
+		Frame = r.Frame;
+		x = r.x;
+		y = r.y;
+		z = r.z;
+		Size = r.Size;
+		Intensity = r.Intensity;
+		Surface = r.Surface;
+	}
+	
 	@Override
 	public void setObject_ID(int Object_ID_) {
 		// TODO Auto-generated method stub

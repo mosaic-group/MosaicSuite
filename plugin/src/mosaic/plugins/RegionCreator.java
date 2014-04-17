@@ -94,7 +94,7 @@ public class RegionCreator implements PlugInFilter
 	 * @param p_radius radius of your region
 	 */
 	
-	<S extends NumericType<S>> void drawSphereWithRadius(RandomAccessibleInterval<S> out, Point pt , float[] cal, S intensity, int p_radius)
+	<S extends NumericType<S>> int drawSphereWithRadius(RandomAccessibleInterval<S> out, Point pt , float[] cal, S intensity, int p_radius)
 	{
 		if (cal == null)
 		{
@@ -132,8 +132,8 @@ public class RegionCreator implements PlugInFilter
 	    if (rc < 1) rc = 1;
 	    SphereMask cm = null;
 	    if ((cm = map.get(rc)) == null)
-	    {
-	    	cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal);
+	    {	    	
+	    	cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal,true);
 	    	rg_m = new RegionIteratorMask(cm, sz);
 	    }
         
@@ -146,7 +146,9 @@ public class RegionCreator implements PlugInFilter
         p_c.div(cal);
         			
         rg_m.setMidPoint(p_c);
-        			
+        
+        int sp = 0;
+        
 	    while ( rg_m.hasNext() )
 	    {
 	        Point p = rg_m.nextP();
@@ -155,8 +157,11 @@ public class RegionCreator implements PlugInFilter
 	        {
 	        	out_a.setPosition(p.x);
 	        	out_a.get().set(intensity);
+	        	sp++;
 	        }
 	    }
+	    
+	    return sp;
 	}
 	
 	/**
@@ -209,7 +214,7 @@ public class RegionCreator implements PlugInFilter
 	    SphereMask cm = null;
 	    if ((cm = map.get(rc)) == null)
 	    {
-	    	cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal);
+	    	cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal,true);
 	    	rg_m = new RegionIteratorMask(cm, sz);
 	    }
         
@@ -289,7 +294,7 @@ public class RegionCreator implements PlugInFilter
 	    SphereMask cm = null;
 	    if ((cm = map.get(rc)) == null)
 	    {
-	    	cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal);
+	    	cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal,true);
         	rg_m = new RegionIteratorMask(cm, sz);
 	    }
         
@@ -525,13 +530,6 @@ public class RegionCreator implements PlugInFilter
         		int radius = (int) (min_r + (max_r - min_r) * r.nextDouble());
         		
     			Region3DTrack tmp = new Region3DTrack();
-    			
-    			tmp.setData(p[k]);
-    			tmp.setSize(VolRadius(radius));
-    			tmp.setIntensity(inte_a.getRealDouble());
-    			tmp.setFrame(i);
-    			
-    			pt_r.add(tmp);
         		
     			// Add a Noise to the position (ensuring that region does not touch)
     			
@@ -553,17 +551,27 @@ public class RegionCreator implements PlugInFilter
     				p[k].x[s] += x[s];
     			}
     			
-        		drawSphereWithRadius(vti,p[k],Spacing,inte_a,radius);
+        		int nsp = drawSphereWithRadius(vti,p[k],Spacing,inte_a,radius);
+        		
+    			tmp.setData(p[k]);
+    			tmp.setSize(nsp);
+    			tmp.setIntensity(inte_a.getRealDouble());
+    			tmp.setFrame(i);
+    			
+    			pt_r.add(tmp);
         	}
         		
             // Convolve the pictures
             
-    		cPSF.convolve(vti, Background);
+        	cPSF.convolve(vti, Background);
         }
         
-        //
+        // Image title
         
-        ImageJFunctions.show(out,"Regions");
+        String ImgTitle = new String();
+        ImgTitle += "Regions_size_" + max_radius + "_" + min_radius + "_" + max_int + "_" + min_int;
+        
+        ImageJFunctions.show(out,ImgTitle);
         
 		// Output ground thruth
 		
@@ -572,6 +580,7 @@ public class RegionCreator implements PlugInFilter
 		// get output folder
 		
 		String output = IJ.getDirectory("Choose output directory");;
+		output += ImgTitle + ".csv";
 		
 		//
 		
@@ -629,19 +638,19 @@ public class RegionCreator implements PlugInFilter
 		
 		String nsn[] = {"Poisson"};
 		
-		gd.addNumericField("Background: ", 10, 3);
-		gd.addNumericField("Max radius", 10.0, 0);
-		gd.addNumericField("Min radius", 10.0, 0);
-		gd.addNumericField("Max intensity", 1.0, 3);
-		gd.addNumericField("Min intensity", 0.1, 3);
-		gd.addNumericField("N frame", 10.0, 0);
-		gd.addNumericField("Image X", 512.0, 0);
-		gd.addNumericField("Image Y", 512.0, 0);
-		gd.addNumericField("Image Z", 1.0, 0);
-		gd.addNumericField("Spacing X", 1.0, 1);
-		gd.addNumericField("Spacing Y", 1.0, 1);
-		gd.addNumericField("Spacing Z", 1.0, 1);
-		gd.addNumericField("N regions", 20, 0);
+		gd.addNumericField("Background: ", 7, 3);
+		gd.addNumericField("Max_radius", 10.0, 0);
+		gd.addNumericField("Min_radius", 10.0, 0);
+		gd.addNumericField("Max_intensity", 45, 3);
+		gd.addNumericField("Min_intensity", 10, 3);
+		gd.addNumericField("N_frame", 100.0, 0);
+		gd.addNumericField("Image_X", 512.0, 0);
+		gd.addNumericField("Image_Y", 512.0, 0);
+		gd.addNumericField("Image_Z", 50.0, 0);
+		gd.addNumericField("Spacing_X", 1.0, 1);
+		gd.addNumericField("Spacing_Y", 1.0, 1);
+		gd.addNumericField("Spacing_Z", 3.0, 1);
+		gd.addNumericField("N_regions", 20, 0);
 		
 		gd.addChoice("Noise", nsn, nsn[0]);
 		cNoise = (Choice)gd.getChoices().lastElement();
@@ -685,14 +694,14 @@ public class RegionCreator implements PlugInFilter
 			}
 		});
 
-		gd.addChoice("Image type: ", ImageType, ImageType[0]);
+		gd.addChoice("Image_type: ", ImageType, ImageType[0]);
 		gd.showDialog();
 
 		if (gd.wasCanceled())
 		{
 			return DONE;
 		}
-
+		
 		Background = gd.getNextNumber();
 		Max_radius = (int) gd.getNextNumber();
 		Min_radius = (int) gd.getNextNumber();
@@ -763,6 +772,15 @@ public class RegionCreator implements PlugInFilter
 		// Get Image type
 		
 		imageT = gd.getNextChoice();
+		
+		// if it is a batch system
+		
+		if (IJ.isMacro())
+		{
+			// PSF get the parameters
+			
+			cPSF.getParamenters();
+		}
 		
 		run(null);
 		return DONE;

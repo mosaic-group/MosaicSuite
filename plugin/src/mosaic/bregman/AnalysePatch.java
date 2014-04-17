@@ -106,14 +106,32 @@ public class AnalysePatch implements Runnable{
 		ox=pa.ni;
 		oy=pa.nj;
 		oz=pa.nz;
+		
 		margin=4;// add margin to size of object to create patch
 		if(pa.mode_voronoi2)margin=4;
 		zmargin=1;// was 2
 		this.regions_refined=regionsf;
-
+		
 		//create local parameters
 		this.p=new Parameters(pa);
 
+		// check that the margin is at least 8 time bigger than the PSF
+		
+		if (p.sigma_gaussian * 8.0 > margin)
+		{
+			margin = (int) (p.px * 8.0);
+		}
+		if (p.sigma_gaussian * 8.0 > margin)
+		{
+			margin = (int) (p.py * 8.0);
+		}
+		if ((p.sigma_gaussian / p.zcorrec) * 8.0 > margin)
+		{
+			zmargin = (int) (p.pz * 8.0);
+		}
+		
+		////////////////////////////////////////////////////
+		
 		this.interpolation= pa.interpolation;
 
 		//compute patch geometry :

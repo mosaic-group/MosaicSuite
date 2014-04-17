@@ -5,9 +5,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.utils.FloodFill;
 import mosaic.core.utils.IntensityImage;
-import mosaic.core.utils.MultipleThresholdImageFunction;
 import mosaic.core.utils.Point;
 
 public class ForestFire
@@ -30,7 +30,7 @@ public class ForestFire
 	/**
 	 * m_InnerContourContainer.remove(vCurrentCIndex);
 	 */
-	public void fire(Point aIndex, int aNewLabel, MultipleThresholdImageFunction aMultiThsFunctionPtr)
+	public void fire(Point aIndex, int aNewLabel, BinarizedImage aMultiThsFunctionPtr)
 	{
 		
 //		displaySlice("pre forest fire");

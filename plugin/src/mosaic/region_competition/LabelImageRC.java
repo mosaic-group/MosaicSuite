@@ -14,13 +14,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
 
+import mosaic.core.binarize.BinarizedImage;
+import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.FloodFill;
 import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.LabelImage;
-import mosaic.core.utils.MultipleThresholdImageFunction;
-import mosaic.core.utils.MultipleThresholdLabelImageFunction;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.region_competition.LabelInformation;
@@ -163,7 +163,7 @@ public class LabelImageRC extends LabelImage
 			if(oldLabels.contains(l))
 			{
 				// l is an old label
-				MultipleThresholdImageFunction aMultiThsFunctionPtr = new MultipleThresholdLabelImageFunction(this);
+				BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
 				aMultiThsFunctionPtr.AddThresholdBetween(l, l);
 				FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iterator.indexToPoint(i));
 				

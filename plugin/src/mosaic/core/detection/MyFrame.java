@@ -815,6 +815,47 @@ import net.imglib2.view.Views;
 			return t;
 		}
 		
+		/**
+		 * 
+		 * Create a set of frames from a vector of particles
+		 * 
+		 * @param p Vector of particles
+		 * @param linkrange for linking
+		 * 
+		 */
+		
+		public static MyFrame[] createFrames(Vector<Particle> p, int linkrange)
+		{
+			// Create the frames array
+			
+			if (p.size() == 0)	return new MyFrame[0];
+			
+			int n_frames = p.get(p.size()-1).getFrame()+1;
+			MyFrame [] f = new MyFrame[n_frames];
+			
+			int j = 0;
+			int i = 0;
+			while (i < p.size()-1)
+			{
+				Vector<Particle> part_frame = new Vector<Particle>();
+				while (i < p.size()-1 && p.get(i).getFrame() == p.get(i+1).getFrame())
+				{
+					part_frame.add(p.get(i));
+					i++;
+				}
+				part_frame.add(p.get(i));
+				
+				f[j] = new MyFrame(part_frame,j,linkrange);
+				
+				i++;
+				j++;
+			}
+	 		
+	 		// 
+	 		
+			return f;
+		}
+		
 		static private void drawParticlesWithRadius(RandomAccessibleInterval<ARGBType> out, List<Particle> pt , Calibration cal, int col, int p_radius)
 		{
 			RandomAccess<ARGBType> out_a = out.randomAccess();

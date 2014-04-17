@@ -252,11 +252,11 @@ class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		// sigma
 		
 		if (pos.length >= 1)
-			gd.addNumericField("sigma X ", 1.0, 3);
+			gd.addNumericField("sigma_X ", 1.0, 3);
 		if (pos.length >= 2)
-			gd.addNumericField("sigma Y", 1.0, 3);
+			gd.addNumericField("sigma_Y", 1.0, 3);
 		if (pos.length >= 3)
-		gd.addNumericField("sigma Z", 1.0, 3);
+			gd.addNumericField("sigma_Z", 1.0, 3);
 		
 		for (int i = 0 ; i < pos.length-3 ; i++)
 		{

@@ -185,6 +185,16 @@ public class RegionIteratorMask
 		if (simple == false)
 		{
 			MovePoint tmpM = new MovePoint();
+			
+			// Bug
+			
+			if (jumpTableGeo.length == 0)
+			{
+				int debug = 0;
+				debug++;
+			}
+				
+			///////
 			tmpM.p = new Point (jumpTableGeo[idx_j]);
 		
 			do

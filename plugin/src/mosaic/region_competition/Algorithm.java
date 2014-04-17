@@ -22,12 +22,11 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.io.ImgIOException;
 import net.imglib2.io.ImgOpener;
 import net.imglib2.type.numeric.real.FloatType;
-
+import mosaic.core.binarize.BinarizedImage;
+import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.core.utils.MultipleThresholdImageFunction;
-import mosaic.core.utils.MultipleThresholdLabelImageFunction;
 import mosaic.core.utils.Point;
 import mosaic.plugins.Generate_PSF;
 import mosaic.plugins.Region_Competition;
@@ -44,7 +43,6 @@ import mosaic.region_competition.utils.Pair;
 import mosaic.region_competition.utils.Timer;
 import mosaic.region_competition.energies.*;
 import mosaic.core.utils.Point;
-
 import ij.IJ;
 import ij.ImageStack;
 import ij.measure.ResultsTable;
@@ -1629,7 +1627,7 @@ public class Algorithm
 		// template <class TInputImage, class TInitImage, class TOutputImage >
 		if(aLabelImage.getLabelAbs(aIndex)==aLabel) 
 		{
-			MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdLabelImageFunction(aLabelImage);
+			BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
 			vMultiThsFunction.AddThresholdBetween(aLabel, aLabel);
 			int negLabel = aLabelImage.labelToNeg(aLabel);
 			vMultiThsFunction.AddThresholdBetween(negLabel, negLabel);
@@ -1657,7 +1655,7 @@ public class Algorithm
 //		}
 //		MVC.selectPoint(aIndex);
 		
-		MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdLabelImageFunction(aLabelImage);
+		BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
 		
 //		LinkedList<Integer> vLabelsToCheck = new LinkedList<Integer>();
 		Stack<Integer> vLabelsToCheck = new Stack<Integer>();

@@ -6,11 +6,10 @@ import ij.plugin.Duplicator;
 
 import java.util.List;
 
+import mosaic.core.binarize.BinarizedIntervalIntesityImage;
 import mosaic.core.utils.FloodFill;
 import mosaic.core.utils.IntensityImage;
 import mosaic.region_competition.LabelImageRC;
-import mosaic.core.utils.MultipleThresholdImageFunction;
-import mosaic.core.utils.MultipleThresholdIntenityImageFunction;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.utils.BubbleDrawer;
 import mosaic.region_competition.utils.MaximumFinder2D;
@@ -70,8 +69,7 @@ public class MaximaBubbles extends DataDrivenInitializer
 		List<Point> list;
 		list = maximumFinder.getMaximaPointList(intensityImage.dataIntensity, tolerance, excludeOnEdges);
 		
-		
-		MultipleThresholdImageFunction foo = new MultipleThresholdIntenityImageFunction(intensityImage);
+		BinarizedIntervalIntesityImage foo = new BinarizedIntervalIntesityImage(intensityImage);
 		int color = 1;
 		for(Point p : list)
 		{

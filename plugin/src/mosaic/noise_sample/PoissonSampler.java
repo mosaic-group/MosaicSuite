@@ -17,19 +17,23 @@ import net.imglib2.type.numeric.RealType;
 class PoissonSampler<T extends RealType<T>> implements NoiseSample<T>
 {
 	Random mRandomGenerator;
+	double offset = 0.0;
 	
-	PoissonSampler()
+	PoissonSampler(double offset_)
 	{
 		mRandomGenerator = new Random(8888);
+		offset = offset_;
 	}
 
 	@Override
 	public void sample(T x, T out) 
 	{
-		int aLambda = (int) x.getRealDouble();
+		int aLambda = (int) (x.getRealDouble());
+		aLambda -= offset;
 		if(aLambda >= 30) 
 		{
-			out.setReal((mRandomGenerator.nextGaussian() * Math.sqrt(aLambda) + aLambda + 0.5));
+			out.setReal((mRandomGenerator.nextGaussian() * Math.sqrt(aLambda) + aLambda + 0.5) + offset);
+			return;
 		}
 		double p = 1;
 		int k = 0;
@@ -38,6 +42,6 @@ class PoissonSampler<T extends RealType<T>> implements NoiseSample<T>
 			k++;
 			p *= mRandomGenerator.nextDouble();
 		} while(p >= vL);
-		out.setReal(k - 1);
+		out.setReal((k - 1) + offset);
 	}
 }

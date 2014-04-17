@@ -2,14 +2,13 @@ package mosaic.plugins;
 
 
 import java.awt.Choice;
+import java.awt.Rectangle;
 import java.io.File;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -17,18 +16,17 @@ import java.util.Vector;
 
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
-import net.imglib2.algorithm.stats.ComputeMinMax;
 import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.histogram.BinMapper1d;
 import net.imglib2.histogram.Histogram1d;
 import net.imglib2.histogram.Integer1dBinMapper;
 import net.imglib2.histogram.Real1dBinMapper;
+import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 import net.imglib2.io.ImgIOException;
 import net.imglib2.io.ImgOpener;
-import net.imglib2.ops.operation.randomaccessibleinterval.unary.morph.Erode;
+import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.IntegerType;
-import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.integer.ShortType;
@@ -40,8 +38,6 @@ import mosaic.core.utils.FloodFill;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.SegmentationInfo;
 import mosaic.core.utils.Point;
-import mosaic.core.utils.Point.PointFactory;
-import mosaic.core.utils.Point.PointFactoryInterface;
 import mosaic.noise_sample.GenericNoiseSampler;
 import mosaic.noise_sample.NoiseSample;
 import mosaic.noise_sample.noiseList;
@@ -49,8 +45,10 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
+import ij.gui.Roi;
 import ij.gui.YesNoCancelDialog;
 import ij.plugin.filter.PlugInFilter;
+import ij.plugin.frame.RoiManager;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
@@ -72,13 +70,17 @@ import ij.process.ShortProcessor;
  * OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.<p>
  *
  */
-public class Poisson_Noise implements PlugInFilter{
+public class Poisson_Noise implements PlugInFilter
+{
+	ImagePlus imp;
 	int erodePixel;
 	public int mSeed = 8888;
 	private Random mRandomGenerator;
 	private static final int BYTE=0, SHORT=1, FLOAT=2;
 	NoiseSample<?> ns;
 	SegmentationInfo seg;
+	String NoiseModel;
+	double dilatation = 1.0;
 	
 	<T>int getNBins(T t)
 	{
@@ -191,6 +193,54 @@ public class Poisson_Noise implements PlugInFilter{
 		}
 	}
 	
+	/**
+	 * 
+	 * Create an integer bin mapper
+	 * 
+	 * @param nbin number of bins
+	 * @return the integer bin mapper
+	 */
+	
+	private <S extends IntegerType<S>> BinMapper1d<S> createIntegerMapper(int nbin)
+	{
+		return new Integer1dBinMapper<S>(0,nbin,true);
+	}
+	
+	/**
+	 * 
+	 * Create a bin mapper
+	 * 
+	 * @param cls class
+	 * @param min value
+	 * @param max value
+	 * @return The bin mapper
+	 */
+	
+	@SuppressWarnings("unchecked")
+	private <T extends RealType<T>> BinMapper1d<T> createMapper(Class<T> cls,double min,double max)
+	{
+		T test = null;
+		try {
+			test = cls.newInstance();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		Object test_o = test;
+		
+		if (test_o instanceof UnsignedByteType)
+			return (BinMapper1d<T>)(BinMapper1d<?>) this.<UnsignedByteType>createIntegerMapper(256);
+		else if (test_o instanceof ShortType)
+			return (BinMapper1d<T>)(BinMapper1d<?>) this.<ShortType>createIntegerMapper(65536);
+		else if (test_o instanceof FloatType)
+			return new Real1dBinMapper<T>(min,max,65536,true);
+		return null;
+	}
+	
 	class processCCRegion<T extends RealType<T>> implements ConnectedRegionsCB
 	{
 		Img<T> img;
@@ -224,51 +274,6 @@ public class Poisson_Noise implements PlugInFilter{
 		HashMap<T,Histogram1d<T>> getHist()
 		{
 			return hset;
-		}
-		
-		/**
-		 * 
-		 * Create an integer bin mapper
-		 * 
-		 * @param nbin number of bins
-		 * @return the integer bin mapper
-		 */
-		
-		private <S extends IntegerType<S>> BinMapper1d<S> createIntegerMapper(int nbin)
-		{
-			return new Integer1dBinMapper<S>(0,nbin,true);
-		}
-		
-		/**
-		 * 
-		 * Create a bin mapper
-		 * 
-		 * @param cls class
-		 * @param min value
-		 * @param max value
-		 * @return The bin mapper
-		 */
-		
-		@SuppressWarnings("unchecked")
-		private BinMapper1d<T> createMapper(Class<T> cls,double min,double max)
-		{
-			T test = null;
-			try {
-				test = cls.newInstance();
-			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			if (test instanceof UnsignedByteType)
-				return (BinMapper1d<T>) this.<UnsignedByteType>createIntegerMapper(256);
-			else if (test instanceof ShortType)
-				return (BinMapper1d<T>) this.<ShortType>createIntegerMapper(65536);
-			else if (test instanceof FloatType)
-				return new Real1dBinMapper<T>(min,max,65536,true);
-			return null;
 		}
 		
 		@Override
@@ -310,12 +315,21 @@ public class Poisson_Noise implements PlugInFilter{
 			{
 				// Create mapper
 				
-				BinMapper1d<T> b1d = createMapper(cls);
+				BinMapper1d<T> b1d = createMapper(cls,max,min);
 				
 				// Create histogram
 				
 				Histogram1d<T> hist = new Histogram1d<T>(b1d);
-				T meanT = cls.newInstance();
+				T meanT = null;
+				try {
+					meanT = cls.newInstance();
+				} catch (InstantiationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				meanT.setReal(mean);
 				hset.put(meanT, hist);
 				hs = hist;
@@ -333,7 +347,7 @@ public class Poisson_Noise implements PlugInFilter{
 				mean += ra.get().getRealDouble();
 			}
 			
-			hs.addData(Arrays.asList(ipnt));;
+			hs.addData(Arrays.asList(ipnt));
 		}
 		
 	}
@@ -401,7 +415,7 @@ public class Poisson_Noise implements PlugInFilter{
 	 * @param cls Class<T>
 	 */
 	
-	private <T extends RealType<T>> void setupGenericNoise(Class<T> cls)
+	private <T extends RealType<T>  & NativeType< T > > void setupGenericNoise(Class<T> cls)
 	{
 		// Create a generic noise
 		
@@ -472,27 +486,87 @@ public class Poisson_Noise implements PlugInFilter{
 		
 		// Create histograms by ROI
 		
-		
+		RoiManager manager = RoiManager.getInstance();
+		if (manager == null)
+		    manager = new RoiManager();
+	    Hashtable<String, Roi> table = (Hashtable<String, Roi>)manager.getROIs();
+	    for (String label : table.keySet())
+	    {
+	    	int slice = manager.getSliceNumber(label);
+	        Roi roi = table.get(label);
+	        ImagePlus tmp = new ImagePlus(roi.getName(),ij.WindowManager.getImage(roi.getImageID()).getProcessor());
+	        
+	        Rectangle b = roi.getBounds();
+	        
+	        ImageProcessor ip = tmp.getProcessor();
+	        ip.setRoi(b.x,b.y,b.width,b.height);
+	        tmp.setProcessor(null,ip.crop());
+	        
+	        // iterate trought all the image and create the histogram
+	        
+	        double histMin = tmp.getStatistics().histMin;
+	        double histMax = tmp.getStatistics().histMax;
+	        
+	        BinMapper1d bM = createMapper(cls,histMin,histMax);
+	        
+	        Histogram1d<T> hist = new Histogram1d<T>(bM);
+	        
+			// Convert an imagePlus into ImgLib2
+			
+			final Img< T > image = ImagePlusAdapter.wrap( tmp );
+			Cursor<T> cur = image.cursor();
+			
+			// Add data
+			
+			int cnt = 0;
+			T mean_t = null;
+			try {
+				mean_t = cls.newInstance();
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			@SuppressWarnings("unchecked")
+			T [] ipnt = (T[]) Array.newInstance(cls, (int)image.size());
+			double mean = 0.0;
+			
+			while (cur.hasNext())
+			{
+				ipnt[cnt] = cur.next();
+				mean += ipnt[cnt].getRealDouble();
+				cnt++;
+			}
+			
+			mean /= cnt;
+			mean_t.setReal(mean);
+			
+			hist.addData(Arrays.asList(ipnt));
+			gns.setHistogram(mean_t, hist);
+	    }
+
+	    
+	    
 	}
 	
 	
 	public int setup(String aArgs, ImagePlus aImp) 
 	{
+		imp = aImp;
 		mRandomGenerator = new Random(mSeed);
 		//run(new FloatProcessor(1,1));		
 		//return DONE;
 		
 		// Ask if you have an image or you know the noise type
 		
-		YesNoCancelDialog YNd = new YesNoCancelDialog(null, "Noise type","Do you know the noise or you do not have an image that replicate the noise ? \n"
-				                                                         + " 1) You do not have an image of the noise you are tring to simulate. Press (Yes) \n"															 + " 2) You have an image of the noise you are tring to simulate. Press (No) \n"
-				                                                         + " 3) You have an image of the noise, but you are EXACTLY sure that the noise is Poisson or Gaussian ..., Press (No)");
-		YNd.show(true);
+		YesNoCancelDialog YNd = new YesNoCancelDialog(null, "Noise type",  " 1) You know EXACTLY if the noise model is Poisson or Gaussian ..., Press (No)\n"                                                                + " 2) The noise distribution is unknown, but you have an image. Press (Yes) \n");
 		
 		if (YNd.yesPressed())
 		{
 			GenericDialog gd = new GenericDialog("Select the source image");
-			Choice cc = MosaicUtils.chooseImage(gd,aImp);
+			Choice cc = MosaicUtils.chooseImage(gd,"Image select",aImp);
 			
 			gd.showDialog();
 			
@@ -557,19 +631,52 @@ public class Poisson_Noise implements PlugInFilter{
 			
 			gd.addChoice("Choose noise model", noiseList.noiseList, noiseList.noiseList[0]);
 			
+			gd.addNumericField("Offset", 0.0, 3);
 			gd.showDialog();
 			
 			if (gd.wasCanceled())
 				return DONE;
 			
-			ns = noiseList.factory(gd.getNextChoice());
+			dilatation = gd.getNextNumber();
+			NoiseModel = gd.getNextChoice();
 		}
 		
 //		YesNoCancelDialog YNd = new YesNoCancelDialog("Do you know the noise ?","Bhoo","Bhoo");
 		
 		// Ask to select some ROI
 		
-		return DOES_ALL - DOES_RGB + DOES_STACKS;
+		return DOES_ALL - DOES_RGB;
+	}
+	
+	private <T extends RealType< T > & NativeType< T > > void sample(ImagePlus imp, Class<T> cls)
+	{
+		T smp = null;
+		@SuppressWarnings("unchecked")
+		NoiseSample<T> nsT = (NoiseSample<T>) ns;
+		
+		try {
+			smp = cls.newInstance();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Convert an imagePlus into ImgLib2
+		
+		final Img< T > image = ImagePlusAdapter.wrap( imp );
+		
+		Cursor<T> cur = image.cursor();
+		
+		while (cur.hasNext())
+		{
+			cur.next();
+			
+			nsT.sample(cur.get(), smp);
+			cur.get().set(smp);
+		}
 	}
 	
 	public void run(ImageProcessor aImageProcessor) 
@@ -578,11 +685,11 @@ public class Poisson_Noise implements PlugInFilter{
 		
 		int vType;
         if (aImageProcessor instanceof ByteProcessor)
-        	vType = BYTE;
+        {vType = BYTE; ns = noiseList.<UnsignedByteType>factory(NoiseModel,dilatation);}
         else if (aImageProcessor instanceof ShortProcessor)
-        	vType = SHORT;
+        {vType = SHORT; ns = noiseList.<ShortType>factory(NoiseModel,dilatation);}
         else if (aImageProcessor instanceof FloatProcessor)
-        	vType = FLOAT;
+        {vType = FLOAT; ns = noiseList.<FloatType>factory(NoiseModel,dilatation);}
         else {
         	IJ.showMessage("Wrong image type");
         	return;
@@ -602,39 +709,12 @@ public class Poisson_Noise implements PlugInFilter{
 		
 		// Sample from it
         
-        
-       /* switch (vType) {
-        case BYTE:
-        {
-        	byte[] vPixels = (byte[])aImageProcessor.getPixels();
-        	for(int vI = 0; vI < vPixels.length; vI++) 
-        	{
-        		vPixels[vI] = (byte)ns.sample(x, out);((int)(vPixels[vI]+.5f));
-        	}
-        	break;
-        }
-        case SHORT:
-        {
-        	@SuppressWarnings("unchecked")
-			NoiseSample<UnsignedByteType> ns_ = (NoiseSample<UnsignedByteType>) ns;
-        	short[] vPixels = (short[])aImageProcessor.getPixels();
-        	for(int vI = 0; vI < vPixels.length; vI++) 
-        	{
-        		vPixels[vI] = (short)ns_.sample(x, out);((int)(vPixels[vI]+.5f));
-        	}
-        	break;
-        }
-        case FLOAT:
-        {
-        	float[] vPixels = (float[])aImageProcessor.getPixels();
-        	for(int vI = 0; vI < vPixels.length; vI++) 
-        	{
-        		vPixels[vI] = (float)generatePoissonRV((int)(vPixels[vI]+.5f));
-        	}
-        	break;
-        }
-        }*/
-
+		if (vType == BYTE)
+			this.<UnsignedByteType>sample(imp,UnsignedByteType.class);
+		else if (vType == SHORT)
+			this.<ShortType>sample(imp,ShortType.class);
+		else if (vType == FLOAT)
+			this.<FloatType>sample(imp,FloatType.class);
 	}
 
 }

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
 
+import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
@@ -332,7 +333,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 			if(oldLabels.contains(l))
 			{
 				// l is an old label
-				MultipleThresholdImageFunction aMultiThsFunctionPtr = new MultipleThresholdLabelImageFunction(this);
+				BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
 				aMultiThsFunctionPtr.AddThresholdBetween(l, l);
 				FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iterator.indexToPoint(i));
 				
