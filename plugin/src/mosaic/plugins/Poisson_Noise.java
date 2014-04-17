@@ -561,8 +561,9 @@ public class Poisson_Noise implements PlugInFilter
 		
 		// Ask if you have an image or you know the noise type
 		
-		YesNoCancelDialog YNd = new YesNoCancelDialog(null, "Noise type",  " 1) You know EXACTLY if the noise model is Poisson or Gaussian ..., Press (No)\n"                                                                + " 2) The noise distribution is unknown, but you have an image. Press (Yes) \n");
-		
+/*		YesNoCancelDialog YNd = new YesNoCancelDialog(null, "Noise type",  " 1) You know EXACTLY if the noise model is Poisson or Gaussian ..., Press (No)\n"                                                                + " 2) The noise distribution is unknown, but you have an image. Press (Yes) \n");
+ 
+ 
 		if (YNd.yesPressed())
 		{
 			GenericDialog gd = new GenericDialog("Select the source image");
@@ -610,7 +611,7 @@ public class Poisson_Noise implements PlugInFilter
 						}
 					}
 				}
-			}
+			}*/
 			
 /*	        if (aImp.getProcessor() instanceof ByteProcessor)
 	        {<UnsignedByteType>setupGenericNoise();}
@@ -624,9 +625,9 @@ public class Poisson_Noise implements PlugInFilter
 	        }
 			
 			setupGenericNoiseSample();*/
-		}
+/*		}
 		else
-		{
+		{*/
 			GenericDialog gd = new GenericDialog("Choose type of noise");
 			
 			gd.addChoice("Choose noise model", noiseList.noiseList, noiseList.noiseList[0]);
@@ -639,7 +640,7 @@ public class Poisson_Noise implements PlugInFilter
 			
 			dilatation = gd.getNextNumber();
 			NoiseModel = gd.getNextChoice();
-		}
+/*		}*/
 		
 //		YesNoCancelDialog YNd = new YesNoCancelDialog("Do you know the noise ?","Bhoo","Bhoo");
 		
