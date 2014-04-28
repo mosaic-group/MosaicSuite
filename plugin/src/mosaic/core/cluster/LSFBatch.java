@@ -487,4 +487,10 @@ class LSFBatch implements BatchInterface
 		// TODO Auto-generated method stub
 		return lDir;
 	}
+
+	@Override
+	public void setJobID(int id) 
+	{
+		AJobID = id;
+	}
 }

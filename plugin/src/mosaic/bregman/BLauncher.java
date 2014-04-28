@@ -92,7 +92,7 @@ public class BLauncher
 	}
 
 	public BLauncher(ImagePlus aImp_)
-	{		
+	{
 		wpath = null;
 		aImp = aImp_;
 		
@@ -140,18 +140,18 @@ public class BLauncher
 		
 		if(Analysis.p.dispoutline)
 		{
-			displayoutline(Analysis.regionsA, Analysis.imagea,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1);
-			if (Analysis.p.nchannels == 2) {displayoutline(Analysis.regionsB, Analysis.imageb,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2);}
+			displayoutline(Analysis.regions[0], Analysis.imagea,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1);
+			if (Analysis.p.nchannels == 2) {displayoutline(Analysis.regions[1], Analysis.imageb,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2);}
 		}
 		if(Analysis.p.dispint)
 		{
-			displayintensities(Analysis.regionslistA, Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1, Analysis.imagecolor_c1);
-			if (Analysis.p.nchannels == 2) {displayintensities(Analysis.regionslistB, Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2, Analysis.imagecolor_c2);}
+			displayintensities(Analysis.regionslist[0], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1, Analysis.imagecolor_c1);
+			if (Analysis.p.nchannels == 2) {displayintensities(Analysis.regionslist[1], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2, Analysis.imagecolor_c2);}
 		}
 		if (Analysis.p.displabels)
 		{
-			displayRegionsCol(Analysis.regionsA, 1, Analysis.regionslistA.size());
-			if (Analysis.p.nchannels == 2) {displayRegionsCol(Analysis.regionsA, 2, Analysis.regionslistA.size());};
+			displayRegionsCol(Analysis.regions[0], 1, Analysis.regionslist[0].size());
+			if (Analysis.p.nchannels == 2) {displayRegionsCol(Analysis.regions[0], 2, Analysis.regionslist[0].size());};
 		}
 		if (Analysis.p.dispcolors)
 		{
@@ -218,9 +218,13 @@ public class BLauncher
 			
 			String[] fl = filename.split("\\.");
 			
-			out  = new PrintWriter(path + File.separator + fl[0] + "_ImagesData"+ ".csv");
-		}
+			// Remove filename
 			
+			File flp = new File(path);
+			
+			out  = new PrintWriter(flp.getParent() + File.separator + fl[0] + "_ImagesData"+ ".csv");
+		}
+		
 		// if two channel
 		
 		if (hcount == 0)
@@ -295,11 +299,11 @@ public class BLauncher
 			double colocA=mosaic.bregman.Tools.round(Analysis.colocsegA(null),4);
 			double colocB=mosaic.bregman.Tools.round(Analysis.colocsegB(null),4);
 			
-			double meanSA= Analysis.meansurface(Analysis.regionslistA);
-			double meanSB= Analysis.meansurface(Analysis.regionslistB);
+			double meanSA= Analysis.meansurface(Analysis.regionslist[0]);
+			double meanSB= Analysis.meansurface(Analysis.regionslist[1]);
 
-			double meanLA= Analysis.meanlength(Analysis.regionslistA);
-			double meanLB= Analysis.meanlength(Analysis.regionslistB);
+			double meanLA= Analysis.meanlength(Analysis.regionslist[0]);
+			double meanLB= Analysis.meanlength(Analysis.regionslist[1]);
 			
 			out.print(filename + ";" + hcount +";"+ Analysis.na + ";" +
 				mosaic.bregman.Tools.round(Analysis.meana , 4)  +";" + 
@@ -325,8 +329,8 @@ public class BLauncher
 		}
 		else
 		{
-			double meanSA= Analysis.meansurface(Analysis.regionslistA);
-			double meanLA= Analysis.meanlength(Analysis.regionslistA);
+			double meanSA= Analysis.meansurface(Analysis.regionslist[0]);
+			double meanLA= Analysis.meanlength(Analysis.regionslist[0]);
 			
 			out.print(filename + ";" + hcount +";"+ Analysis.na + ";" +
 					mosaic.bregman.Tools.round(Analysis.meana , 4)+";"+
@@ -708,25 +712,25 @@ public class BLauncher
 			//IJ.log("computemask");
 			Analysis.computeOverallMask();
 			//IJ.log("1");
-			Analysis.regionslistA=Analysis.removeExternalObjects(Analysis.regionslistA);
+			Analysis.regionslist[0]=Analysis.removeExternalObjects(Analysis.regionslist[0]);
 			//IJ.log("2");
-			Analysis.regionslistB=Analysis.removeExternalObjects(Analysis.regionslistB);
+			Analysis.regionslist[1]=Analysis.removeExternalObjects(Analysis.regionslist[1]);
 
 			//IJ.log("setriongslabels");
-			Analysis.setRegionsLabels(Analysis.regionslistA, Analysis.regionsA);
-			Analysis.setRegionsLabels(Analysis.regionslistB, Analysis.regionsB);
+			Analysis.setRegionsLabels(Analysis.regionslist[0], Analysis.regions[0]);
+			Analysis.setRegionsLabels(Analysis.regionslist[1], Analysis.regions[1]);
 			int factor2 =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 			int fz2;
 			if(Analysis.p.nz>1)fz2=factor2; else fz2=1;
 
 			MasksDisplay md= new MasksDisplay(Analysis.p.ni*factor2,Analysis.p.nj*factor2,Analysis.p.nz*fz2,Analysis.p.nlevels,Analysis.p.cl,Analysis.p);
-			md.displaycoloc(Analysis.regionslistA,Analysis.regionslistB);
+			md.displaycoloc(Analysis.regionslist[0],Analysis.regionslist[1]);
 
-			Analysis.na=Analysis.regionslistA.size();
-			Analysis.nb=Analysis.regionslistB.size();
+			Analysis.na=Analysis.regionslist[0].size();
+			Analysis.nb=Analysis.regionslist[1].size();
 
-			Analysis.meana=Analysis.meansize(Analysis.regionslistA);
-			Analysis.meanb=Analysis.meansize(Analysis.regionslistB);
+			Analysis.meana=Analysis.meansize(Analysis.regionslist[0]);
+			Analysis.meanb=Analysis.meansize(Analysis.regionslist[1]);
 
 			//IJ.log("f");
 
@@ -748,14 +752,14 @@ public class BLauncher
 
 		if(Analysis.p.nchannels==1)
 		{
-			Analysis.na=Analysis.regionslistA.size();
+			Analysis.na=Analysis.regionslist[0].size();
 			//IJ.log("intensities");
 
 			//IJ.log("mean size");
-			Analysis.meana=Analysis.meansize(Analysis.regionslistA);
+			Analysis.meana=Analysis.meansize(Analysis.regionslist[0]);
 
-			double meanSA= Analysis.meansurface(Analysis.regionslistA);			
-			double meanLA= Analysis.meanlength(Analysis.regionslistA);
+			double meanSA= Analysis.meansurface(Analysis.regionslist[0]);			
+			double meanLA= Analysis.meanlength(Analysis.regionslist[0]);
 
 			//IJ.log("save");
 			if(Analysis.p.save_images)

@@ -732,6 +732,9 @@ public class InterPluginCSV<E extends ICSVGeneral>
     {
     	Vector<E> v = new Vector<E>();
     	
+    	if (ar.size() == 0)
+    		return v;
+    	
     	Class<?> car = ar.get(0).getClass();
     	E element = null;    	
 		Method m = null;

@@ -36,6 +36,10 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 	
 	public int setup(String arg0, ImagePlus active_img) 
 	{
+		// init basic structure
+		
+		Analysis.init();
+		
 		// if is a macro get the arguments from macro arguments
 		
 		if (IJ.isMacro())

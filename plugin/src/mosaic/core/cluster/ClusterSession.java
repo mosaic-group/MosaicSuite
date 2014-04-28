@@ -160,12 +160,23 @@ public class ClusterSession
 	
 			ss.runCommands(cp.getPassword(), CommandL);
 			
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
+			// Wait to install Fiji
+			
+
+			do
+			{
+				try {
+					Thread.sleep(30000);
+				} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+					e.printStackTrace();
+				}
+				
+				System.out.println("Checking Fiji installation");
 			}
+			while (ss.checkDirectory(cp.getRunningDir()+"Fiji.app") == false 
+			|| ss.checkFile(cp.getRunningDir()+"Fiji.app","ImageJ-linux64") == false
+			|| ss.checkFile(cp.getRunningDir()+"Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar") == false);
 		}
 	
 		wp.SetStatusMessage("Interfacing with batch system...");
@@ -221,10 +232,11 @@ public class ClusterSession
 		commands[0] = new String("cd " + ss.getTransfertDir());
 		commands[1] = bc.runCommand(ss.getTransfertDir());
 	
+		bc.setJobID(0);
 		ss.runCommands(cp.getPassword(), commands);
 	
 		// Wait that the command get processed
-		// Yes of course, horrible but it work
+		// horrible but it work
 	
 		int n_attempt = 0;
 		while (bc.getJobID() == 0 && n_attempt < 300) 
@@ -247,7 +259,7 @@ public class ClusterSession
 			// Create jobID file
 		
 			out = new PrintWriter(tmp_dir + "JobID");
-			out.println(new String(bc.getJobID() + " " + nImages));
+			out.println(new String(bc.getJobID() + " " + nImages + " " + img.getTitle()));
 			out.close();
 		
 			File fll[] = new File[1];
@@ -518,18 +530,38 @@ public class ClusterSession
 	/**
 	 * 
 	 * Run a selected command on the cluster, ensure that the cluster has a Fiji installed if not
+	 * it provide an automate installation, it wait the jobs to complete
+	 * 
+	 * @param img Image the frames are parallelized
+	 * @param options options String to pass to the plugins
+	 * @param output output that the plugins generate with "*" as wild card example: "dir1/dir*_out/*.tif"
+	 *        on a file "tmp_1" will be expanded in "dir1/dirtmp1_1_out/tmp_1.tif"
+	 * @param ExtTime estimated running time (to select the queue on the cluster)
+	 * @return true if done, false if fail (or nothing to do)
+	 * 
+	 */
+	
+	public boolean runPluginsOnFrames(ImagePlus img, String options, String output[], double ExtTime)
+	{
+		return runPluginsOnFrames(img,options,output,ExtTime,true);
+	}
+	
+	/**
+	 * 
+	 * Run a selected command on the cluster, ensure that the cluster has a Fiji installed if not
 	 * it provide an automate installation
 	 * 
 	 * @param img Image the frames are parallelized
 	 * @param options options String to pass to the plugins
 	 * @param output output that the plugins generate with "*" as wild card example: "dir1/dir*_out/*.tif"
 	 *        on a file "tmp_1" will be expanded in "dir1/dirtmp1_1_out/tmp_1.tif"
-	 * @param ExtTime extimated running time (to select the queue on the cluster)
+	 * @param ExtTime exstimated running time (to select the queue on the cluster)
+	 * @param sync wait or not job to complete
 	 * @return true if done, false if fail (or nothing to do)
 	 * 
 	 */
 	
-	public boolean runPluginsOnFrames(ImagePlus img, String options, String output[], double ExtTime)
+	public boolean runPluginsOnFrames(ImagePlus img, String options, String output[], double ExtTime, boolean sync)
 	{
 		String tmp_dir = IJ.getDirectory("temp");
 		SecureShellSession ss = new SecureShellSession(cp);
@@ -543,6 +575,18 @@ public class ClusterSession
 			wp.SetStatusMessage("Failed to create job array");
 			return false;
 		}
+		
+		// if sync == true we do not wait return
+		
+		if (sync == false)
+		{
+			// Close the progress bar
+			
+			wp.dispose();
+			
+			return true;
+		}
+		
 		BatchInterface bc = cp.getBatchSystem();
 		
 		//
@@ -608,9 +652,9 @@ public class ClusterSession
 					wp.SetStatusMessage("Reorganize...");
 					reorganize(output,bcl[j].getJobID(),wp);
 					
-					wp.SetProgress(0);
-					wp.SetStatusMessage("Stack visualize...");
-					stackVisualize(output,bcl[j].getJobID(),wp);
+//					wp.SetProgress(0);
+//					wp.SetStatusMessage("Stack visualize...");
+//					stackVisualize(output,bcl[j].getJobID(),wp);
 					
 					bcl[j] = null;
 					break;
@@ -656,8 +700,8 @@ public class ClusterSession
 		return true;
 	}
 	
-	public void runPluginsOnImages(ImagePlus img[], String options, double ExtTime)
-	{
+/*	public void runPluginsOnImages(ImagePlus img[], String options, double ExtTime)
+	{*/
 		// Save the image
 		
 		// transfert the images
@@ -672,5 +716,5 @@ public class ClusterSession
 		// get the data
 		
 		// show the data
-	}
+/*	}*/
 }

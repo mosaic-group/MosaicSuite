@@ -34,6 +34,15 @@ interface BatchInterface extends ShellProcessOutput
 	
 	/**
 	 * 
+	 * Set job ID
+	 * 
+	 * @param id integer id
+	 */
+	
+	public void setJobID(int id);
+	
+	/**
+	 * 
 	 * Return the jobID of the launched jobArray
 	 * 
 	 * @return Integer identifying the job

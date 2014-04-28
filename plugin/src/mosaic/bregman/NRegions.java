@@ -23,6 +23,17 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.filter.BackgroundSubtracter; 
 
+/**
+ * 
+ * Class to solve the N regions problems, two regions inherit from this
+ * 
+ * It remove the background, normalize the image, it run split bregman
+ * and it can clusters the image based on intensities levels
+ * 
+ * @author Aurelien Ritz
+ *
+ */
+
 public class NRegions implements Runnable{
 
 	Tools LocalTools;
@@ -46,7 +57,9 @@ public class NRegions implements Runnable{
 	int nl;
 	int channel;
 	CountDownLatch DoneSignal;
-
+	double min;
+	double max;
+	
 
 	public NRegions(ImagePlus img, Parameters params, CountDownLatch DoneSignal, int channel)
 	{
@@ -91,8 +104,8 @@ public class NRegions implements Runnable{
 		else
 			Ei=null;
 
-		double max=0;
-		double min=Double.POSITIVE_INFINITY;
+		max=0;
+		min=Double.POSITIVE_INFINITY;
 		//change : use max value instead of 65536
 
 		/* Search for maximum and minimum value, normalization */
@@ -159,7 +172,7 @@ public class NRegions implements Runnable{
 			
 		}
 		
-		/* Again overload the parameter  */
+		/* Again overload the parameter after background subtraction */
 		
 		if (Analysis.norm_max != 0)
 		{
@@ -189,7 +202,7 @@ public class NRegions implements Runnable{
 		}
 		
 
-		//rescale between 0 and 1
+		// normalize the image
 		for (int z=0; z<nz; z++)
 		{
 			for (int i=0; i<ni; i++)

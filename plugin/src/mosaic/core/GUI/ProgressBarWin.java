@@ -1,15 +1,27 @@
 package mosaic.core.GUI;
 
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
 
+/**
+ * 
+ * It is a Dialog with a progress bar
+ * 
+ * 
+ * 
+ * @author Pietro Incardona
+ *
+ */
 
 public class ProgressBarWin extends JDialog
 {
@@ -22,6 +34,26 @@ public class ProgressBarWin extends JDialog
 	public void SetStatusMessage(String Message)
 	{
 		Status.setText(Message);
+		
+		
+		// Measure the text
+		
+		Font font = Status.getFont();
+		
+		// get metrics from the graphics
+		FontMetrics metrics = contentPane.getGraphics().getFontMetrics(font);
+		// get the height of a line of text in this
+		// font and render context
+		int hgt = metrics.getHeight();
+		// get the advance of my text in this font
+		// and render context
+		int adv = metrics.stringWidth(Message);
+		// calculate the size of a box to hold the
+		// text with some padding.
+		Dimension size = new Dimension(adv+2, hgt+2);
+		
+		Dimension dim = Status.getSize();
+		setSize(2*size.width + 50,getSize().height);
 	}
 	
 	public void SetProgress(int p)

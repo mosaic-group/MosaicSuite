@@ -23,6 +23,15 @@ import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
 
+
+/**
+ * 
+ * Class that process the first Split bregman segmentation and refine with patches
+ * 
+ * @author Aurelien Ritz
+ *
+ */
+
 public class TwoRegions extends NRegions 
 {
 	double [] [] [] [] SpeedData;
@@ -51,7 +60,15 @@ public class TwoRegions extends NRegions
 
 	}
 	
-	
+	/**
+	 * 
+	 * Create a sphere of radius r, used to force patches around the spheres that you draw
+	 * 
+	 * @param out image
+	 * @param pt vector of particles
+	 * @param radius of the sphere
+	 * 
+	 */
 	
 	private void drawParticles(double [][][] out, Vector<Particle> pt, int radius)
 	{
@@ -62,10 +79,10 @@ public class TwoRegions extends NRegions
         while (pt.size() != 0)
         {    		    		
     		// Create a circle Mask and an iterator
-    		
+    	
         	SphereMask cm = new SphereMask(radius, 2*radius + 1, 3);
         	RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
-        	
+        
         	Iterator<Particle> pt_it = pt.iterator();
         	
         	while (pt_it.hasNext())
@@ -90,6 +107,12 @@ public class TwoRegions extends NRegions
         	}
         }
 	}
+	
+	/**
+	 * 
+	 * Run the split Bregman + patch refinement
+	 * 
+	 */
 	
 	@Override
 	public void  run()
@@ -184,25 +207,25 @@ public class TwoRegions extends NRegions
 			//A_solver=null; //for testing
 
 			if(!Analysis.p.looptest)
-			{
+			{	
 				if(p.findregionthresh)Analysis.compute_connected_regions_a((int) 255*p.thresh,RiN);
 				else Analysis.compute_connected_regions_a((int) 255*p.thresh,null);
 				//A_solver=null; // for testing
 				//test
 				//IJ.log("start test" + "nlevels " +p.nlevels);
 				if(Analysis.p.refinement&& Analysis.p.mode_voronoi2){
-					Analysis.setregionsThresholds(Analysis.regionslistA, RiN, RoN);
-					Analysis.SetRegionsObjsVoronoi(Analysis.regionslistA, regions, RiN);
+					Analysis.setregionsThresholds(Analysis.regionslist[0], RiN, RoN);
+					Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[0], regions, RiN);
 					IJ.showStatus("Computing segmentation  " + 55 + "%");
 					IJ.showProgress(0.55);
 					
 					//Tools.showmem();
 					
-					ImagePatches ipatches= new ImagePatches(p,Analysis.regionslistA,image,channel, A_solver.w3kbest[0]);
+					ImagePatches ipatches= new ImagePatches(p,Analysis.regionslist[0],image,channel, A_solver.w3kbest[0]);
 					A_solver=null;
 					ipatches.run();
-					Analysis.regionslistA=ipatches.regionslist_refined;
-					Analysis.regionsA=ipatches.regions_refined;
+					Analysis.regionslist[0]=ipatches.regionslist_refined;
+					Analysis.regions[0]=ipatches.regions_refined;
 					Analysis.imagecolor_c1=ipatches.imagecolor_c1;
 					//Tools.showmem();
 				}
@@ -210,12 +233,21 @@ public class TwoRegions extends NRegions
 
 
 				if(Analysis.p.refinement && Analysis.p.mode_classic){
-					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslistA,image,channel, A_solver.w3kbest[0]);
+					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslist[0],image,channel, A_solver.w3kbest[0]);
 					A_solver=null;
 					ipatches.run();
-					Analysis.regionslistA=ipatches.regionslist_refined;
-					Analysis.regionsA=ipatches.regions_refined;
+					Analysis.regionslist[0]=ipatches.regionslist_refined;
+					Analysis.regions[0]=ipatches.regions_refined;
 				}
+				
+				// Here we solved the patches and the regions that come from the patches
+				// we rescale the intensity to the original one
+				
+				for (Region r : Analysis.regionslist[0])
+				{
+					r.intensity = r.intensity * (max-min) + min;
+				}
+				
 				//Analysis.testpatch(Analysis.regionslistA, image);
 			}
 			//			else
@@ -241,35 +273,47 @@ public class TwoRegions extends NRegions
 			//A_solver=null;
 			
 			
-			if(!Analysis.p.looptest){
+			if(!Analysis.p.looptest)
+			{
 				if(p.findregionthresh)Analysis.compute_connected_regions_b((int) 255*p.thresh,RiN);
 				else Analysis.compute_connected_regions_b((int) 255*p.thresh,null);
 				//A_solver=null;
 
 
-				if(Analysis.p.refinement&& Analysis.p.mode_voronoi2){
-					Analysis.setregionsThresholds(Analysis.regionslistB, RiN, RoN);
-					Analysis.SetRegionsObjsVoronoi(Analysis.regionslistB, regions, RiN);
+				if(Analysis.p.refinement&& Analysis.p.mode_voronoi2)
+				{
+					Analysis.setregionsThresholds(Analysis.regionslist[1], RiN, RoN);
+					Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[1], regions, RiN);
 					IJ.showStatus("Computing segmentation  " + 55 + "%");
 					IJ.showProgress(0.55);
 					
-					ImagePatches ipatches= new ImagePatches(p,Analysis.regionslistB,image,channel, A_solver.w3kbest[0]);
+					ImagePatches ipatches= new ImagePatches(p,Analysis.regionslist[1],image,channel, A_solver.w3kbest[0]);
 					A_solver=null;
 					ipatches.run();
-					Analysis.regionslistB=ipatches.regionslist_refined;
-					Analysis.regionsB=ipatches.regions_refined;
+					Analysis.regionslist[1]=ipatches.regionslist_refined;
+					Analysis.regions[1]=ipatches.regions_refined;
 					Analysis.imagecolor_c2=ipatches.imagecolor_c1;
 				}
 
 
 
-				if(Analysis.p.refinement && Analysis.p.mode_classic){
-					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslistB,image,channel, A_solver.w3kbest[0]);
+				if(Analysis.p.refinement && Analysis.p.mode_classic)
+				{
+					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslist[1],image,channel, A_solver.w3kbest[0]);
 					A_solver=null;
 					ipatches.run();
-					Analysis.regionslistB=ipatches.regionslist_refined;
-					Analysis.regionsB=ipatches.regions_refined;
+					Analysis.regionslist[1]=ipatches.regionslist_refined;
+					Analysis.regions[1]=ipatches.regions_refined;
 				}
+				
+				// Here we solved the patches and the regions that come from the patches
+				// we rescale the intensity to the original one
+				
+				for (Region r : Analysis.regionslist[1])
+				{
+					r.intensity = r.intensity * (max-min) + min;
+				}
+				
 
 			}
 			//			else
