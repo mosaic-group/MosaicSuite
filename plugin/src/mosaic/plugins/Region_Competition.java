@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -19,6 +20,7 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.wizard.*;
@@ -27,7 +29,10 @@ import mosaic.core.utils.Point;
 import javax.swing.JFrame;
 
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
+import net.imglib2.io.ImgOpener;
 import net.imglib2.type.numeric.real.FloatType;
 
 //import view4d.Timeline;
@@ -77,7 +82,8 @@ public class Region_Competition implements PlugInFilter
 	private String oip_title;
 	Region_Competition MVC;		// interface to image application (imageJ)
 	public Settings settings;
-	
+
+	public Img<FloatType> image_psf = null;
 	Algorithm algorithm;
 	LabelImageRC labelImage;		// data structure mapping pixels to labels
 	IntensityImage intensityImage; 
@@ -266,21 +272,89 @@ public class Region_Competition implements PlugInFilter
 //		RegionIterator.tester();
 //		IJ.showMessage("version 1");
 		
-		////////////////////
+		// init the input image we need to open it before run
+		
+		initInputImage(aImp.getProcessor());
+		
+		// Set deconvolution
+		
+        if (settings.m_GeneratePSF)
+        {
+            // Here, no PSF has been set by the user. Hence, Generate it
+        	
+        	GeneratePSF gPsf = new GeneratePSF();
+        	
+        	if (intensityImage.getDim() == 2)
+        		image_psf = gPsf.generate(2);
+        	else
+        		image_psf = gPsf.generate(3);
+        	
+        	// if not PSF has been generated stop
+        	
+        	if (image_psf == null)
+        	{
+        		IJ.error("Error no PSF generated");
+        		return DONE;
+        	}
+        		
+			float Vol = IntensityImage.volume_image(image_psf);
+			IntensityImage.rescale_image(image_psf,1.0f/Vol);
+        	
+			// Show PSF Image
+			
+			ImageJFunctions.show(image_psf);
+			
+
+        }
+        else
+        {
+            File file = new File( settings.m_PSFImg );
+            
+            // open with ImgOpener using an ArrayImgFactory, here the return type will be
+            // defined by the opener
+            // the opener will ignore the Type of the ArrayImgFactory
+            
+            ImgFactory< FloatType > imgFactory = new ArrayImgFactory< FloatType >();
+            Img<FloatType> tmp = null;
+			try 
+			{
+				tmp = new ImgOpener().openImg( file.getAbsolutePath(), imgFactory , new FloatType() );
+				float Vol = IntensityImage.volume_image(tmp);
+				IntensityImage.rescale_image(tmp,1.0f/Vol);
+				Vol = IntensityImage.volume_image(tmp);
+			}
+			catch (Exception e)
+			{
+				
+			}
+			
+			///////////////////////////////////
+			
+			ImageJFunctions.show(tmp);
+
+        }
 		
 		// if is 3D save the originalIP
 		
-		if (aImp.getNSlices() != 1)
+		if (aImp != null &&  aImp.getNSlices() != 1)
+		{
 			originalIP = aImp;
+			
+			// Save the location of the original IP
+			
+			oip_location = MosaicUtils.ValidFolderFromImage(aImp);
+			oip_title = aImp.getTitle();
+			
+			return DOES_ALL+NO_CHANGES;
+		}
 		else
+		{
 			originalIP = null;
+			return NO_IMAGE_REQUIRED;
+		}
 		
-		// Save the location of the original IP
+
 		
-		oip_location = MosaicUtils.ValidFolderFromImage(aImp);
-		oip_title = aImp.getTitle();
-		
-		return DOES_ALL+NO_CHANGES;
 	}
 	
 	
@@ -703,7 +777,6 @@ public class Region_Competition implements PlugInFilter
 	
 	void frontsCompetitionImageFilter(ImageProcessor aImageProcessor)
 	{
-		initInputImage(aImageProcessor);
 		initLabelImage();
 //		labelImage.initZero();
 //		labelImage.initBrightBubbles(intensityImage);
@@ -754,7 +827,8 @@ public class Region_Competition implements PlugInFilter
 				initEnergies();
 				
 				initAlgorithm();
-				algorithm.GenerateData();
+				if (algorithm.GenerateData() == false)
+					return;
 				t.toc();
 				
 				updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);

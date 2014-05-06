@@ -147,7 +147,7 @@ public class GenericDialogGUI implements InputReadable
 				"Show_Progress",
 				"Keep_Frames",  
 				"Show_Normalized", 
-				"Show_Statistics", 
+				"Show_and_save_Statistics", 
 				};
 		
 		boolean[] bools = new boolean[]{

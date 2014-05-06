@@ -925,5 +925,32 @@ public class MosaicUtils
 		
 		return choiceInputImage;
 	}
+	
+	/**
+	 * 
+	 * Get the CSV Region filename 
+	 * 
+	 * @param filename of the image
+	 * @param channel
+	 * @return the CSV region filename
+	 */
+	
+	public static String getRegionCSVName(String filename, int channel)
+	{
+		return filename + "_ObjectsData_c"+channel+".csv";
+	}
+	
+	/**
+	 * 
+	 * Get the CSV Region filename 
+	 * 
+	 * @param filename of the image
+	 * @return the CSV region filename
+	 */
+	
+	public static String getRegionCSVName(String filename)
+	{
+		return filename + "_ObjectsData_c1.csv";
+	}
 }
 

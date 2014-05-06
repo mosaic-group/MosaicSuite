@@ -2,6 +2,8 @@ package mosaic.core.psf;
 
 import java.lang.reflect.Array;
 
+import ij.IJ;
+import ij.Macro;
 import ij.gui.GenericDialog;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
@@ -16,19 +18,47 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
-class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
+/**
+ * 
+ * Class that produce Gaussian images
+ * 
+ * @author Pietro Incardona
+ *
+ * @param <T> Type of image to produce FloatType, Short .......
+ */
+
+public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 {
 	RealType<T> pos[];
 	RealType<T> var[];
+	RealType<T> offset[];
 	Class<T> clCreator;
 	
+	/**
+	 * 
+	 * Create a Gaussian object
+	 * 
+	 * getParameters() create a GUI to get the required parameters
+	 * convolve() convolve the image with the PSF
+	 * GaussPSF implements also RandomAccess to get the PSF value on one
+	 * point.
+	 * 
+	 * PS if you want to generate a PSF image use GeneratePSF
+	 * 
+	 * @see psf<T>
+	 * @see PSFGui
+	 * 
+	 * @param dim dimension
+	 * @param cl give the class of the parameter T
+	 */
+	
 	@SuppressWarnings("unchecked")
-	GaussPSF(int dim , Class<T> cl)
+	public GaussPSF(int dim , Class<T> cl)
 	{
 		clCreator = cl;
 		pos = (RealType<T>[]) Array.newInstance(cl,dim);
 		var = (RealType<T>[]) Array.newInstance(cl,dim);
-		
+		offset = (RealType<T>[]) Array.newInstance(cl,dim);
 		
 		try {
 		
@@ -36,6 +66,7 @@ class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		{
 				pos[i] = cl.newInstance();
 				var[i] = cl.newInstance();
+				offset[i] = cl.newInstance();
 		}
 		} catch (InstantiationException e) {
 			// TODO Auto-generated catch block
@@ -220,7 +251,7 @@ class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		
 		for (int i = 0 ; i < pos.length ; i++)
 		{
-			res *= 1.0 / Math.sqrt(2.0 * Math.PI * var[i].getRealDouble()) * Math.exp(-(pos[i].getRealDouble())*(pos[i].getRealDouble())/ (2.0 * var[i].getRealDouble() * var[i].getRealDouble()));
+			res *= 1.0 / Math.sqrt(2.0 * Math.PI * var[i].getRealDouble()) * Math.exp(-(pos[i].getRealDouble() - offset[i].getRealDouble())*(pos[i].getRealDouble() - offset[i].getRealDouble())/ (2.0 * var[i].getRealDouble() * var[i].getRealDouble()));
 		}
 		RealType<T> rc = pos[0].createVariable();
 		rc.setReal(res);
@@ -251,6 +282,8 @@ class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		
 		// sigma
 		
+		String test = Macro.getOptions();
+		
 		if (pos.length >= 1)
 			gd.addNumericField("sigma_X ", 1.0, 3);
 		if (pos.length >= 2)
@@ -260,12 +293,12 @@ class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		
 		for (int i = 0 ; i < pos.length-3 ; i++)
 		{
-			gd.addNumericField("sigma " + i, 1.0, 3);
+			gd.addNumericField("sigma_" + i, 1.0, 3);
 		}
 		
 		for (int i = 0 ; i < pos.length-3 ; i++)
 		{
-			gd.addNumericField("mean " + i, 1.0, 3);
+			gd.addNumericField("mean_" + i, 1.0, 3);
 		}
 		
 		gd.showDialog();
@@ -303,5 +336,33 @@ class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		{Gauss3.gauss(sigma, infiniteImg, img);}
 		catch (IncompatibleTypeException e) {e.printStackTrace();}
 	}
-	
+
+	@Override
+	public int[] getSuggestedSize() 
+	{
+		int sz[] = new int [pos.length];
+		
+		for (int i = 0 ; i < pos.length ; i++)
+		{
+			sz[i] = (int)(var[i].getRealDouble() * 8.0) + 1;
+		}
+		
+		return sz;
+	}
+
+	@Override
+	public void setSuggestedSize(int[] sz) 
+	{
+		// not used
+		
+	}
+
+	@Override
+	public void setCenter(int[] pos) 
+	{
+		for (int i = 0 ; i < pos.length ; i++)
+		{
+			this.offset[i].setReal(pos[i]);
+		}
+	}
 };

@@ -26,6 +26,7 @@ import net.imglib2.type.numeric.real.FloatType;
 import mosaic.core.utils.RegionIterator;
 import mosaic.plugins.Generate_PSF.Point3D;
 import mosaic.region_competition.GUI.EnergyGUI;
+import mosaic.region_competition.GUI.RegularizationGUI;
 
 /**
  * 
@@ -49,6 +50,18 @@ public class GeneratePSF
 	psf<FloatType> psfc;
 	TextField dimF;
 	
+	private void selectPSF(int dim)
+	{
+		String psf = PSFc.getSelectedItem();
+		
+		if (dim == 0)
+		{
+			IJ.error("Dimension must be a valid integer != 0");
+		}
+		psfc = psfList.factory(psf,dim,FloatType.class);
+		psfc.getParamenters();
+	}
+	
 	/**
 	 * 
 	 * Return a generated PSF image. A GUI is shown ti give the user
@@ -57,11 +70,11 @@ public class GeneratePSF
 	 * @return An image representing the PSF
 	 */
 	
-	public Img< FloatType > generate()
+	public Img< FloatType > generate(int dim)
 	{
 		GenericDialog gd = new GenericDialog("PSF Generator");
 		
-		gd.addNumericField("Dimensions ", 2, 0);
+		gd.addNumericField("Dimensions ", dim, 0);
 		dimF = (TextField) gd.getNumericFields().lastElement();
 		
 		gd.addChoice("PSF: ", psfList.psfList, psfList.psfList[0]);
@@ -69,7 +82,7 @@ public class GeneratePSF
 		{
 			Button optionButton = new Button("Options");
 			GridBagConstraints c = new GridBagConstraints();
-			int gridx = 0;
+			int gridx = 2;
 			int gridy = 1;
 			c.gridx=gridx;
 			c.gridy=gridy++; c.anchor = GridBagConstraints.EAST;
@@ -80,20 +93,41 @@ public class GeneratePSF
 				@Override
 				public void actionPerformed(ActionEvent e)
 				{
-					String psf = PSFc.getSelectedItem();
-					
 					int dim = Integer.parseInt(dimF.getText());
-					if (dim == 0)
-					{
-						IJ.error("Dimension must be a valid integer != 0");
-					}
-					psfc = psfList.factory(psf,dim,FloatType.class);
-					psfc.getParamenters();
+					selectPSF(dim);
 				}
 			});
 		}
 		
 		gd.showDialog();
+		
+		// if Batch system
+		
+		if (IJ.isMacro() == true)
+		{
+			dim = (int) gd.getNextNumber();
+			selectPSF(dim);
+		}
+		
+		// psf not selected
+		
+		if (psfc == null)
+			return null;
+		
+		// get the dimension
+		
+		sz = psfc.getSuggestedSize();
+		
+		// center on the middle of the image
+		
+		int [] mid = new int[sz.length];
+		
+		for (int i = 0 ; i < mid.length ; i++)
+		{
+			mid[i] = sz[i]/2;
+		}
+		
+		psfc.setCenter(mid);
 		
 		int loc[] = new int[sz.length]; 
 		
@@ -111,8 +145,6 @@ public class GeneratePSF
 			psfc.setPosition(loc);
 			cft.get().set(psfc.get().getRealFloat());
 		}
-		
-		ImageJFunctions.show(PSFimg);
 		
 		return PSFimg;
 	}

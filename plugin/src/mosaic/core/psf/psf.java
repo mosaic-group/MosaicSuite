@@ -16,4 +16,31 @@ public interface psf<T> extends RandomAccess<T>, PSFGui
 	 */
 	
 	public <S extends NumericType<S>> void convolve(RandomAccessibleInterval<S> img, S bound);
+	
+	/**
+	 * 
+	 * Get the suggested size of the image to reppresent the PSF
+	 * 
+	 * @return suggested size
+	 */
+	
+	public int[] getSuggestedSize();
+	
+	/**
+	 * 
+	 * Set the suggested size to reppresent the PSF, can be used to internally create lookup table
+	 * and speedup the process
+	 * 
+	 */
+	
+	public void setSuggestedSize(int [] sz);
+	
+	/**
+	 * 
+	 * Center the position of the PSF
+	 * 
+	 * @param pos position
+	 */
+	
+	public void setCenter(int[] pos);
 };

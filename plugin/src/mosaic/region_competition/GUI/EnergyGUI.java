@@ -89,7 +89,7 @@ class Deconvolution_GUI extends EnergyGUI
 		Button b = new Button("Open PSF Image");
 		b.addActionListener(new FileOpenerActionListener(gd, gd.getTextArea1()));
 		gd.add(b);
-		gd.addCheckbox("Generate", settings.m_UseGaussianPSF);
+		gd.addCheckbox("Generate", settings.m_GeneratePSF);
 	}
 
 	@Override
@@ -101,11 +101,11 @@ class Deconvolution_GUI extends EnergyGUI
 			//TODO 
 			// set text to [] due to a bug in GenericDialog
 			// if bug gets fixed, this will cause problems!
-			settings.m_UseGaussianPSF = true;
+			settings.m_GeneratePSF = true;
 		}
 		else
 		{
-			settings.m_UseGaussianPSF = gd.getNextBoolean();
+			settings.m_GeneratePSF = gd.getNextBoolean();
 			settings.m_PSFImg = filenameInput.replace('\\', '/');
 		}
 	}

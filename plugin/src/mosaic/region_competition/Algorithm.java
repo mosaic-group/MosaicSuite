@@ -24,6 +24,8 @@ import net.imglib2.io.ImgOpener;
 import net.imglib2.type.numeric.real.FloatType;
 import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
+import mosaic.core.psf.GaussPSF;
+import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
@@ -317,11 +319,20 @@ public class Algorithm
         labelDispenser.setLabelsInUse(usedLabels);
 	}
 	
+	/**
+	 * 
+	 * Show and save statistics
+	 * 
+	 */
 	
 	public void showStatistics()
 	{
 		ResultsTable rts = createStatistics();
 
+		String folder = MosaicUtils.ValidFolderFromImage(intensityImage.imageIP);
+		
+		saveStatistics(folder + File.pathSeparator + MosaicUtils.getRegionCSVName(intensityImage.imageIP.getTitle()));
+		
 		rts.show("statistics");
 	}
 	
@@ -389,7 +400,7 @@ public class Algorithm
 			RC_op.add(r);
 	}
 	
-	public void GenerateData()
+	public boolean GenerateData()
 	{
 		/**
 		 * Set up the regions and allocate the output-image
@@ -419,7 +430,8 @@ public class Algorithm
 		/**
 		 * Depending on the functional to use, prepare stuff for faster computation.
 		 */
-		 PrepareEnergyCaluclation();
+		 if (PrepareEnergyCaluclation() == false)
+			 return false;
 
 		/**
 		 * Start time measurement
@@ -523,10 +535,11 @@ public class Algorithm
 			debug("no convergence !");
 		}
 
+		return true;
 	}
 
 
-	private void PrepareEnergyCaluclation()
+	private boolean PrepareEnergyCaluclation()
 	{
         /**
          * Deconvolution:
@@ -535,75 +548,13 @@ public class Algorithm
          */
         if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) 
         {
-
-        	ImageStack gPsfIS = new ImageStack();
-            if (settings.m_UseGaussianPSF)
-            {
-                // Here, no PSF has been set by the user. Hence, a Gaussian
-                // approximation is used.
-
-            	Generate_PSF gPsf = new Generate_PSF();
-            	gPsf.setParametersGUI();
-            	gPsf.hideResult(true);
-            	gPsf.setup(null, null);
-            	if (intensityImage.getDim() == 2)
-            		gPsfIS = gPsf.getGauss2DPsf();
-            	else
-            		gPsfIS = gPsf.getGauss3DPsf();
-            	
-            	Img<FloatType> tmp = IntensityImage.convertToImg(gPsfIS);
-				float Vol = IntensityImage.volume_image(tmp);
-				IntensityImage.rescale_image(tmp,1.0f/Vol);
-            	
-				// Show PSF Image
-				
-				ImageJFunctions.show(tmp);
-				
-            	((E_Deconvolution)imageModel.getEdata()).setPSF(tmp);
-            	((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
-            }
-            else
-            {
-                File file = new File( settings.m_PSFImg );
-                
-                // open with ImgOpener using an ArrayImgFactory, here the return type will be
-                // defined by the opener
-                // the opener will ignore the Type of the ArrayImgFactory
-                
-                ImgFactory< FloatType > imgFactory = new ArrayImgFactory< FloatType >();
-                Img<FloatType> tmp = null;
-				try 
-				{
-					tmp = new ImgOpener().openImg( file.getAbsolutePath(), imgFactory , new FloatType() );
-					float Vol = IntensityImage.volume_image(tmp);
-					IntensityImage.rescale_image(tmp,1.0f/Vol);
-					Vol = IntensityImage.volume_image(tmp);
-				}
-				catch (Exception e)
-				{
-					
-				}
-				
-				///////////////////////////////////
-				
-				ImageJFunctions.show(tmp);
-                ((E_Deconvolution)imageModel.getEdata()).setPSF(tmp);
-                ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
-            }
-
-            //            InternalImageType::Pointer vIdealImage = InternalImageType::New();
-            //            vIdealImage->SetRequestedRegion(m_LabelImage->GetRequestedRegion());
-            //            vIdealImage->SetLargestPossibleRegion(m_LabelImage->GetLargestPossibleRegion());
-            //            vIdealImage->SetBufferedRegion(m_LabelImage->GetBufferedRegion());
-            //            vIdealImage->Allocate();
-
-            /// First, generate a rough estimate of the model image using the means
-            /// as an intensity estimate. In a second step refine the estimates
-            /// in RenewDeconvolutionStatistics().
-
+            ((E_Deconvolution)imageModel.getEdata()).setPSF(MVC.image_psf);
+            ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
             
             ((E_Deconvolution)imageModel.getEdata()).RenewDeconvolution(labelImage);
         }
+        
+        return true;
 	}
 
 

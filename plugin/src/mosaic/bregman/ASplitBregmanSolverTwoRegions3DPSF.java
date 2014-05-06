@@ -17,8 +17,12 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 			double [] [] [] image, double [] [] [] [] speedData, double [] [] [] [] mask,
 			MasksDisplay md, int channel, AnalysePatch ap){
 		super(params,image,speedData,mask,md, channel , ap);
+		
+		// Beta MLE in and out
+		
 		this.c0=params.cl[0];
 		this.c1=params.cl[1];
+		
 		this.energytab2 = new double [p.nthreads];
 		//c0=p.betaMLEoutdefault;//0.0027356;
 		//c1=p.betaMLEindefault;//0.2340026;//sometimes not here ???

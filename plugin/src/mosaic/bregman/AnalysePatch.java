@@ -173,7 +173,7 @@ public class AnalysePatch implements Runnable{
 			Tools.gaussian3Dbis(p.PSF, p.kernelx, p.kernely, p.kernelz, 7, p.sigma_gaussian*oversampling, p.zcorrec*oversampling);//todo verif zcorrec
 		}
 		else
-		{
+		{			
 			Tools.gaussian2D(p.PSF[0], p.kernelx, p.kernely, 7, p.sigma_gaussian*oversampling);
 		}
 		//normalize
@@ -295,6 +295,7 @@ public class AnalysePatch implements Runnable{
 		//		estimate_int_clustering(2);// (-1 to correct for old numbering)
 
 		if (p.nz>1){
+			
 			A_solver= new ASplitBregmanSolverTwoRegions3DPSF(p,patch,speedData,w3kpatch,md,channel, this);//mask instead of w3kpatch
 		}
 		else
