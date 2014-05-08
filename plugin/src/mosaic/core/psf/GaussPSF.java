@@ -285,7 +285,7 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		String test = Macro.getOptions();
 		
 		if (pos.length >= 1)
-			gd.addNumericField("sigma_X ", 1.0, 3);
+			gd.addNumericField("sigma_X", 1.0, 3);
 		if (pos.length >= 2)
 			gd.addNumericField("sigma_Y", 1.0, 3);
 		if (pos.length >= 3)

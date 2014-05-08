@@ -58,6 +58,8 @@ public interface InputReadable
 	
 	public boolean useOldRegionIterator();
 	public int getKBest();
+
+	public boolean useCluster();
 	
 }
 

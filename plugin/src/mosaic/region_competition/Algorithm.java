@@ -362,7 +362,7 @@ public class Algorithm
 			
 			rt.incrementCounter();
 			rt.addValue("label", info.label);
-			rt.addValue("n", info.count);
+			rt.addValue("size", info.count);
 			rt.addValue("mean", info.mean);
 			rt.addValue("variance", info.var);
 		}
@@ -548,7 +548,68 @@ public class Algorithm
          */
         if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) 
         {
-            ((E_Deconvolution)imageModel.getEdata()).setPSF(MVC.image_psf);
+    		// Set deconvolution
+    		
+        	Img<FloatType> image_psf = null;
+        	
+			if (settings.m_GeneratePSF)
+            {
+                // Here, no PSF has been set by the user. Hence, Generate it
+            	
+            	GeneratePSF gPsf = new GeneratePSF();
+            	
+            	
+            	if (intensityImage.getDim() == 2)
+            		image_psf = gPsf.generate(2);
+            	else
+            		image_psf = gPsf.generate(3);
+            	
+            	// if not PSF has been generated stop
+            	
+            	if (image_psf == null)
+            	{
+            		IJ.error("Error no PSF generated");
+            		return false;
+            	}
+            		
+    			float Vol = IntensityImage.volume_image(image_psf);
+    			IntensityImage.rescale_image(image_psf,1.0f/Vol);
+            	
+    			// Show PSF Image
+    			
+    			ImageJFunctions.show(image_psf);
+    			
+
+            }
+            else
+            {
+                File file = new File( settings.m_PSFImg );
+                
+                // open with ImgOpener using an ArrayImgFactory, here the return type will be
+                // defined by the opener
+                // the opener will ignore the Type of the ArrayImgFactory
+                
+                ImgFactory< FloatType > imgFactory = new ArrayImgFactory< FloatType >();
+                Img<FloatType> tmp = null;
+    			try 
+    			{
+    				tmp = new ImgOpener().openImg( file.getAbsolutePath(), imgFactory , new FloatType() );
+    				float Vol = IntensityImage.volume_image(tmp);
+    				IntensityImage.rescale_image(tmp,1.0f/Vol);
+    				Vol = IntensityImage.volume_image(tmp);
+    			}
+    			catch (Exception e)
+    			{
+    				
+    			}
+    			
+    			///////////////////////////////////
+    			
+    			ImageJFunctions.show(tmp);
+
+            }
+        	
+            ((E_Deconvolution)imageModel.getEdata()).setPSF(image_psf);
             ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
             
             ((E_Deconvolution)imageModel.getEdata()).RenewDeconvolution(labelImage);

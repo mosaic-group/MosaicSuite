@@ -118,10 +118,11 @@ interface BatchInterface extends ShellProcessOutput
 	 * of them. Return null if the feature is not supported
 	 * 
 	 * @param ss shell session
+	 * @param command (get all jobs related to this command)
 	 * @return an array of all jobs array
 	 */
 	
-	public BatchInterface[] getAllJobs(SecureShellSession ss);
+	public BatchInterface[] getAllJobs(SecureShellSession ss, String command);
 	
 	/**
 	 * 

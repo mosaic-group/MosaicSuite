@@ -11,9 +11,12 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mosaic.bregman.Analysis;
+import mosaic.bregman.output.CSVOutput;
 import mosaic.core.cluster.LSFBatch;
 import mosaic.core.cluster.JobStatus.jobS;
 import mosaic.core.cluster.LSFBatch.LSFJob;
+import mosaic.core.utils.MM;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 import mosaic.core.GUI.ChooseGUI;
@@ -24,7 +27,9 @@ import ij.ImageStack;
 import ij.gui.GenericDialog;
 import ij.gui.ProgressBar;
 import ij.gui.StackWindow;
+import ij.io.DirectoryChooser;
 import ij.io.Opener;
+import ij.process.StackStatistics;
 
 /**
  * 
@@ -39,6 +44,8 @@ public class ClusterSession
 {
 	int nImages;
 	ClusterProfile cp;
+	SecureShellSession ss;
+	int nslot_per_process = 1;
 	
 	ClusterSession(ClusterProfile cp_)
 	{
@@ -67,25 +74,24 @@ public class ClusterSession
 	{
 		
 	}
-
 	
 	/**
 	 * 
-	 * Create a JobArray on Cluster
+	 * Split the images into frames and upload them
 	 * 
-	 * @param img Image to process
-	 * @param options Plugins options
-	 * @param ss Secure Shell session
-	 * @return false if fail, true if successfully
-	 * 
+	 * @param img Image
+	 * @param post_fix="example" on the cluster you have a file
+	 *        xxxxxx_example.tif (added to avoid crashes)
+	 * @param wp optionally a progess bar
+	 * @return true if upload false otherwise
 	 */
 	
-	private boolean createJobArrayFromImage(ImagePlus img, String options, SecureShellSession ss, double Ext, ProgressBarWin wp)
+	public boolean splitAndUpload(ImagePlus img, String post_fix , ProgressBarWin wp)
 	{
 		if (img == null)
 		{nImages = 0; return true;}
 		
-		int nImages = img.getNFrames();
+		nImages = img.getNFrames();
 		String tmp_dir = IJ.getDirectory("temp");
 	
 		wp.SetStatusMessage("Preparing data...");
@@ -103,7 +109,7 @@ public class ClusterSession
 			}
 		
 			ImagePlus ip = new ImagePlus("tmp",tmp_stk);
-			IJ.saveAs(ip,"Tiff", tmp_dir + "tmp_" + (i+1));
+			IJ.saveAs(ip,"Tiff", tmp_dir + "tmp_" + (i+1) + post_fix);
 		
 			wp.SetProgress(100*i/nImages);
 		}
@@ -132,7 +138,31 @@ public class ClusterSession
 			CleanUp();
 			return false;
 		}
+		
+		return true;
+	}
 	
+	/**
+	 * 
+	 * Create a JobArray on Cluster
+	 * 
+	 * @param img Image to process
+	 * @param options Plugins options
+	 * @param ss Secure Shell session
+	 * @return false if fail, true if successfully
+	 * 
+	 */
+	
+	private boolean createJobArrayFromImage(ImagePlus img,String command, String options, SecureShellSession ss, double Ext, ProgressBarWin wp)
+	{
+		if (img == null)
+		{nImages = 0; return true;}
+		
+		splitAndUpload(img,"",wp);
+	
+		BatchInterface bc = cp.getBatchSystem();
+		String tmp_dir = IJ.getDirectory("temp");
+		
 		// Download a working version of Fiji
 		// and copy the plugins
 	
@@ -187,7 +217,7 @@ public class ClusterSession
 			   + "if(job_id == \"\" )\n"
 			   + "   exit(\"No job id\");\n"
 			   + "\n"
-			   + "run(\"Squassh\",\"config=" + ss.getTransfertDir() + "spb_settings.dat" + " output=" + ss.getTransfertDir() + "tmp_" + "\"" + " + job_id + " + "\"_seg.tif" + " filepath=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
+			   + "run(\""+command+"\",\"config=" + ss.getTransfertDir() + "settings.dat" + " output=" + ss.getTransfertDir() + "tmp_" + "\"" + " + job_id + " + "\"_seg.tif" + " filepath=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
 			   
 		// Create the batch script if required and upload it
 	
@@ -212,7 +242,7 @@ public class ClusterSession
 				
 				File fll[] = new File[3];
 				fll[0] = new File(tmp_dir + ss.getSession_id());
-				fll[1] = new File(tmp_dir + "spb_settings.dat");
+				fll[1] = new File(tmp_dir + "settings.dat");
 				fll[2] = new File(tmp_dir + ss.getSession_id() + ".ijm");
 				ss.upload(cp.getPassword(),fll,null,null);
 			} 
@@ -259,7 +289,7 @@ public class ClusterSession
 			// Create jobID file
 		
 			out = new PrintWriter(tmp_dir + "JobID");
-			out.println(new String(bc.getJobID() + " " + nImages + " " + img.getTitle()));
+			out.println(new String(bc.getJobID() + " " + nImages + " " + img.getTitle() + " " + command));
 			out.close();
 		
 			File fll[] = new File[1];
@@ -533,6 +563,7 @@ public class ClusterSession
 	 * it provide an automate installation, it wait the jobs to complete
 	 * 
 	 * @param img Image the frames are parallelized
+	 * @param command to run the plugin
 	 * @param options options String to pass to the plugins
 	 * @param output output that the plugins generate with "*" as wild card example: "dir1/dir*_out/*.tif"
 	 *        on a file "tmp_1" will be expanded in "dir1/dirtmp1_1_out/tmp_1.tif"
@@ -541,9 +572,25 @@ public class ClusterSession
 	 * 
 	 */
 	
-	public boolean runPluginsOnFrames(ImagePlus img, String options, String output[], double ExtTime)
+	public boolean runPluginsOnFrames(ImagePlus img, String command, String options, String output[], double ExtTime)
 	{
-		return runPluginsOnFrames(img,options,output,ExtTime,true);
+		return runPluginsOnFrames(img,command,options,output,ExtTime,true);
+	}
+	
+	/**
+	 * 
+	 * Upload a list of files
+	 * 
+	 * @param fl Files to upload
+	 * @param show progress bar
+	 */
+	
+	public void upload(File[] fl)
+	{
+		ss = new SecureShellSession(cp);
+		
+		ProgressBarWin wp = new ProgressBarWin();
+		ss.upload(cp.getPassword(), fl, wp, null);
 	}
 	
 	/**
@@ -552,6 +599,7 @@ public class ClusterSession
 	 * it provide an automate installation
 	 * 
 	 * @param img Image the frames are parallelized
+	 * @param command to run the plugin
 	 * @param options options String to pass to the plugins
 	 * @param output output that the plugins generate with "*" as wild card example: "dir1/dir*_out/*.tif"
 	 *        on a file "tmp_1" will be expanded in "dir1/dirtmp1_1_out/tmp_1.tif"
@@ -561,16 +609,17 @@ public class ClusterSession
 	 * 
 	 */
 	
-	public boolean runPluginsOnFrames(ImagePlus img, String options, String output[], double ExtTime, boolean sync)
+	public boolean runPluginsOnFrames(ImagePlus img,String command, String options, String output[], double ExtTime, boolean sync)
 	{
 		String tmp_dir = IJ.getDirectory("temp");
-		SecureShellSession ss = new SecureShellSession(cp);
+		if (ss == null)
+			ss = new SecureShellSession(cp);
 		ProgressBarWin wp = new ProgressBarWin();
 		wp.setVisible(true);
 		
 		// Create job array
 		
-		if (createJobArrayFromImage(img,options,ss,ExtTime,wp) == false)
+		if (createJobArrayFromImage(img,command,options,ss,ExtTime,wp) == false)
 		{
 			wp.SetStatusMessage("Failed to create job array");
 			return false;
@@ -594,7 +643,7 @@ public class ClusterSession
 		wp.SetProgress(0);
 		wp.SetStatusMessage("Getting all jobs ...");
 		
-		BatchInterface bcl[] = bc.getAllJobs(ss);
+		BatchInterface bcl[] = bc.getAllJobs(ss,command);
 		if (bcl == null)
 		{
 			wp.SetStatusMessage("End");
@@ -698,6 +747,303 @@ public class ClusterSession
 		
 		wp.SetStatusMessage("End");
 		return true;
+	}
+	
+	/**
+	 * 
+	 * Get the Finished jobs
+	 * 
+	 * @param out output produced by the plugin
+	 * @param command to run the plugin
+	 * @param optionally ClusterGUI
+	 * @return
+	 */
+	
+	static public ClusterSession getFinishedJob(String[] out, String command, ClusterGUI cg)
+	{
+		return processImage(null,command,out,cg,new Float(0.0),new Float(0.0),true);
+	}
+	
+	/**
+	 * 
+	 * Get the Finished jobs
+	 * 
+	 * @param out output produced by the plugin
+	 * @param command to run the plugin
+	 * @return
+	 */
+	
+	static public ClusterSession getFinishedJob(String[] out, String command)
+	{
+		return processImage(null,command,out,null,new Float(0.0),new Float(0.0),true);
+	}
+	
+	
+	/**
+	 * 
+	 * Process the image
+	 * 
+	 * @param aImp the image to process
+	 * @param command to run the plugin
+	 * @param output produced by the plugin
+	 * @param cg ClusterGUI
+	 * @return the session cluster
+	 */
+	
+	static public ClusterSession processImage(ImagePlus aImp,String command, String[] out, ClusterGUI cg)
+	{
+		return processImage(aImp,command,out,cg,new Float(0.0),new Float(0.0),true);
+	}	
+	
+	
+	/**
+	 * 
+	 * Process the image
+	 * 
+	 * @param aImp the image to process
+	 * @param command to run the plugin
+	 * @param output produced by the plugin
+	 * @return the session cluster
+	 */
+	
+	static public ClusterSession processImage(ImagePlus aImp,String command, String[] out)
+	{
+		return processImage(aImp,command,out,null,new Float(0.0),new Float(0.0),true);
+	}
+	
+	/**
+	 * 
+	 * Process the image, min and max value are used for re-normalization if
+	 * max = 0.0 the max value and min value of the image are used
+	 * 
+	 * @param aImp the image to process
+	 * @param command to run the plugin
+	 * @param output produced by the plugin
+	 * @param cg ClusterGUI
+	 * @param min minimum value
+	 * @param max maximum value
+	 * @return the session cluster
+	 */
+	
+	static public ClusterSession processImage(ImagePlus aImp, String command, String[] out, ClusterGUI cg, Float max, Float min, boolean sync)
+	{
+		if (cg == null)
+		{
+			cg = new ClusterGUI();
+		}
+	
+		ClusterSession ss = cg.getClusterSession();
+		
+		// Get all image processor statistics and calculate the maximum
+		
+		if (max == 0.0)
+		{		
+			if (aImp != null)
+			{
+				StackStatistics stack_stats = new StackStatistics(aImp);
+				max = (float)stack_stats.max;
+				min = (float)stack_stats.min;
+		
+				// get the min and the max
+			}
+		}
+		
+		// Run plugin on frames
+		
+		if (ss.runPluginsOnFrames(aImp, command, "min="+ min + " max="+max, out, 180.0, sync) == false)
+			return null;
+		
+		return ss;
+	}
+	
+	/**
+	 * 
+	 * Process a list of files
+	 * 
+	 * @param list of files to process
+	 * @param command to run the plugin
+	 * @param out output produced by the plugin *_xxxxxx.tif or *_xxxxxx.csv where * is subsituted
+	 *        with the image name
+	 * @return the cluster session
+	 * 
+	 */
+	
+	static public ClusterSession processFiles(File list[], String command, String[] out)
+	{
+		return processFiles(list,command,out,null);
+	}
+	
+	/**
+	 * 
+	 * Process a list of files
+	 * 
+	 * @param list of files to process
+	 * @param command to run the plugin
+	 * @param out output produced by the plugin *_xxxxxx.tif or *_xxxxxx.csv where * is subsituted
+	 *        with the image name
+	 * @param ClusterGUI optionally a ClusterGUI
+	 * @return the cluster session
+	 * 
+	 */
+	
+	static public ClusterSession processFiles(File list[],String command, String[] out, ClusterGUI cg)
+	{
+		if (cg == null)
+			cg = new ClusterGUI();
+		ClusterSession ss = cg.getClusterSession();
+		
+		MM mm = new MM();
+		
+		mm.min = new Float(Float.MAX_VALUE);
+		mm.max = new Float(0.0);
+		
+		MosaicUtils.getFilesMaxMin(list,mm);
+		
+		for (File fl : list)
+		{
+			// File
+			
+			processFile(fl,command,out,cg,mm.max,mm.min);
+		}
+		
+		ss.runPluginsOnFrames(null,command,null, Analysis.out, 180.0);
+		return ss;
+	}
+	
+	/**
+	 * 
+	 * Process a file
+	 * 
+	 * @param fl File to process
+	 * @param command to run the plugin
+	 * @param out output produced by the plugin *_xxxxxx.tif or *_xxxxxx.csv where * is subsituted
+	 *        with the image name
+	 * @return the cluster session
+	 * 
+	 */
+	static public ClusterSession processFile(File fl, String [] out, String command)
+	{
+		return processFile(fl,command,out,null);
+	}
+	
+	/**
+	 * 
+	 * Process a file
+	 * 
+	 * @param fl File to process
+	 * @param command to run the plugin
+	 * @param out output produced by the plugin *_xxxxxx.tif or *_xxxxxx.csv where * is subsituted
+	 *        with the image name
+	 * @param ClusterGUI optionally a ClusterGUI
+	 * @return the cluster session
+	 * 
+	 */
+	static public ClusterSession processFile(File fl, String command,String [] out, ClusterGUI cg)
+	{
+		if (cg == null)
+			cg = new ClusterGUI();
+		boolean sync = false;
+		
+		// open the image and process image
+		
+		Opener opener = new Opener();  
+		ImagePlus imp = opener.openImage(fl.getAbsolutePath());
+		ClusterSession ss = processImage(imp,command,out,cg,new Float(0.0),new Float(0.0),true);
+		
+		
+//		ClusterSession ss = cg.getClusterSession();
+		
+//		ss.runPluginsOnFrames(null,null, Analysis.out, 180.0, sync);
+		return ss;
+	}
+	
+	/**
+	 * 
+	 * Process a file
+	 * 
+	 * @param fl File to process
+	 * @param command to run the plugin
+	 * @param min external minimum intensity (used for re-normalization across images)
+	 * @param max external maximum intensity (used for re-normalization across images)
+	 * @param ClusterGUI optionally a cluster GUI
+	 * 
+	 */
+	static private ClusterSession processFile(File fl,String command, String [] out, ClusterGUI cg, Float max, Float min)
+	{		
+		// open the image and process image
+		
+		Opener opener = new Opener();  
+		ImagePlus imp = opener.openImage(fl.getAbsolutePath());
+		ClusterSession ss = processImage(imp,command,out,cg,max,min,false);
+		
+		return ss;
+	}
+	
+	/**
+	 * 
+	 * It post-process the jobs data performing the following operation:
+	 * 
+	 * It create a JobXXXX directory where XXXXX is the JobID for each 
+	 * Jobs directory copy all output file there for all csv filename
+	 * supplied in outcsv perform a stitch operation (it try to stitch
+	 *  all the CSV in one)
+	 * 
+	 * @param ss
+	 * @param outcsv
+	 * @param aImp
+	 */
+	
+	public static void processJobsData(ClusterSession ss, String[] outcsv , ImagePlus aImp)
+	{
+		// Save all JobID to the image folder
+		// or ask for a directory
+		
+		String dir[] = ss.getJobDirectories(0,null);
+		
+		if (dir.length > 0)
+		{
+			String dirS;
+			
+			if (aImp != null)
+			{
+				dirS = MosaicUtils.ValidFolderFromImage(aImp);
+			}
+			else
+			{
+				DirectoryChooser dc = new DirectoryChooser("Choose directory where to save result");
+				dirS = dc.getDirectory();
+			}
+			
+			for (int i = 0 ; i < dir.length ; i++)
+			{
+				try 
+				{
+					// Stitch Object.csv
+					
+					CSVOutput.Stitch(outcsv,"tmp_",new File(dir[i]), dirS);
+					
+					///////
+					
+					String[] tmp = dir[i].split(File.separator);
+					
+					File t = new File(dirS + File.separator + tmp[tmp.length-1]);
+					
+					ShellCommand.exeCmdNoPrint("cp -r " + dir[i] + " " + t);
+					
+					// after copy remove the directory
+					
+					ShellCommand.exeCmdNoPrint("rm -rf " + dir[i]);
+				}
+				catch (IOException e) 
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 	
 /*	public void runPluginsOnImages(ImagePlus img[], String options, double ExtTime)

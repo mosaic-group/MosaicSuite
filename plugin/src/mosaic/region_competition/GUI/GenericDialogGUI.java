@@ -14,7 +14,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.*;
 import java.awt.event.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,7 +44,7 @@ public class GenericDialogGUI implements InputReadable
 	private Region_Competition MVC;
 	
 	private Settings settings;
-	private NonBlockingGenericDialog gd;
+	private GenericDialog gd;
 	private GenericDialog gd_p;
 	private ImagePlus aImp; // active ImagePlus (argument of Plugin)
 	
@@ -63,6 +62,7 @@ public class GenericDialogGUI implements InputReadable
 	private boolean show3DResult = false;
 //	private boolean useRegularization;
 	private boolean useOldRegionIterator=false;
+	private boolean useCluster=false;
 	
 	static final String EnergyFunctional = "E_data";
 	EnergyGUI energyGUI;
@@ -84,18 +84,25 @@ public class GenericDialogGUI implements InputReadable
 	*/
 	
 	public GenericDialogGUI(final Region_Competition region_Competition)
-	{
-		
-//		EmptyGenericDialog gde = new EmptyGenericDialog("Region Competition");
-//		if(gde!= null)
-//		{
-//			gde.showDialog();
-//			gde.recordValues();
-//			return;
-//		}
+	{		
 		this.MVC = region_Competition;
 		this.settings=region_Competition.settings;
 		aImp = region_Competition.getOriginalImPlus();
+		
+		if (IJ.isMacro() == true)
+		{
+			// Create a window with text1 and text2
+			
+			gd = new GenericDialog("Region Competition");
+			
+			// in case of script just add two argument for parsing them
+			
+			gd.addStringField("text1", "");
+			gd.addStringField("text2", "");
+			
+			return;
+		}
+		
 		gd = new NonBlockingGenericDialog("Region Competition");
 		
 		
@@ -103,6 +110,7 @@ public class GenericDialogGUI implements InputReadable
 		
 		gd.addTextAreas(TextDefaultInputImage, 
 						TextDefaultLabelImage, 5, 30);
+		
 		new TextAreaListener(this, gd.getTextArea1(), TextDefaultInputImage);
 		new TextAreaListener(this, gd.getTextArea2(), TextDefaultLabelImage);
 		
@@ -110,19 +118,23 @@ public class GenericDialogGUI implements InputReadable
 		// File opener Buttons
 		
 		Panel p = new Panel();
-			Button b = new Button("Open Input Image");
-			b.addActionListener(new FileOpenerActionListener(gd, gd.getTextArea1()));
-			p.add(b);
+		
+		// if script button are pointless
+		
+		Button b = new Button("Open Input Image");
+		b.addActionListener(new FileOpenerActionListener(gd, gd.getTextArea1()));
+		p.add(b);
 			
-			b = new Button("Open Label Image");
-			b.addActionListener(new FileOpenerActionListener(gd, gd.getTextArea2()));
-			p.add(b);
+		b = new Button("Open Label Image");
+		b.addActionListener(new FileOpenerActionListener(gd, gd.getTextArea2()));
+		p.add(b);
 			
 		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
 		
 		// Parameter opener Buttons
 		
 		p = new Panel();
+		
 		b = new Button("Parameters");
 		b.addActionListener(new ActionListener() {
 			
@@ -133,6 +145,7 @@ public class GenericDialogGUI implements InputReadable
 			}
 		});
 		p.add(b);
+
 		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
 		
 //		gd.addPanel(p);
@@ -160,7 +173,6 @@ public class GenericDialogGUI implements InputReadable
 		gd.addCheckboxGroup(2, strings.length, 
 				strings, bools);
 		
-		
 		 
 //		{
 //			b = new Button("delete saved");
@@ -180,6 +192,7 @@ public class GenericDialogGUI implements InputReadable
 		// Parameter opener Buttons
 		
 		p = new Panel();
+		
 		b = new Button("Wizard");
 		b.addActionListener(new ActionListener() {
 			
@@ -202,14 +215,16 @@ public class GenericDialogGUI implements InputReadable
 				try {
 					Region_Competition.SaveConfigFile("/tmp/rc_settings.dat",settings);
 				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 				}
 			}
 		});
 		p.add(b);
 		
 		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
+		
+		gd.addCheckbox("Use cluster", false);
 		
 		addWheelListeners();
 	}
@@ -542,11 +557,20 @@ public class GenericDialogGUI implements InputReadable
 			return false;
 		
 		boolean success = true;
-				
+		
+		if (IJ.isMacro() == true)
+		{
+			filenameInput=gd.getNextString();
+			filenameLabelImage=gd.getNextString();
+			
+			return true;
+		}
+		
 		// Input Files
 		
 		//only record valid inputs
-		filenameInput=gd.getTextArea1().getText();
+		
+		filenameInput=gd.getTextArea1().getText();	
 		if(filenameInput==null || filenameInput.isEmpty() || filenameInput.equals(TextDefaultInputImage))
 		{
 			//TODO 
@@ -557,10 +581,10 @@ public class GenericDialogGUI implements InputReadable
 		else
 		{
 			String s = filenameInput.replace('\\', '/');
-			gd.getTextArea1().setText(s);
+			filenameInput = s;
 		}
-		filenameInput=gd.getNextText();
 
+		// IJ Macro
 		
 		filenameLabelImage=gd.getTextArea2().getText();
 		if(filenameLabelImage==null || filenameLabelImage.isEmpty() || filenameLabelImage.equals(TextDefaultLabelImage))
@@ -569,14 +593,14 @@ public class GenericDialogGUI implements InputReadable
 			// set text to [] due to a bug in GenericDialog
 			// (cannot macro read boolean after empty text field)
 			// if bug gets fixed, this will cause problems!
-			gd.getTextArea2().setText("[]");
+			if (IJ.isMacro() == false)
+				gd.getTextArea2().setText("[]");
 		}
 		else
 		{
 			String s = filenameLabelImage.replace('\\', '/');
-			gd.getTextArea2().setText(s);
+			filenameLabelImage = s;
 		}
-		filenameLabelImage=gd.getNextText();
 		
 		// TODO IJ BUG
 		if(filenameLabelImage.equals("[]")){
@@ -591,6 +615,7 @@ public class GenericDialogGUI implements InputReadable
 		showNormalized = gd.getNextBoolean();
 		showStatistics = gd.getNextBoolean();
 		
+		useCluster = gd.getNextBoolean();
 		
 		return success;
 	}
@@ -620,6 +645,11 @@ public class GenericDialogGUI implements InputReadable
 	public boolean showNormalized()
 	{
 		return showNormalized;
+	}
+	
+	public boolean useCluster()
+	{
+		return useCluster;
 	}
 	
 	@Override

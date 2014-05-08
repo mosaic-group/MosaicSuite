@@ -50,6 +50,31 @@ public class GeneratePSF
 	psf<FloatType> psfc;
 	TextField dimF;
 	
+	/**
+	 * 
+	 * Get the parameters for the Psf
+	 * 
+	 * @param dim Dimension of the PSF
+	 * @param psf String that identify the PSF like "Gauss ... "
+	 */
+	
+	private void selectPSF(int dim,String psf)
+	{	
+		if (dim == 0)
+		{
+			IJ.error("Dimension must be a valid integer != 0");
+		}
+		psfc = psfList.factory(psf,dim,FloatType.class);
+		psfc.getParamenters();
+	}
+	
+	/**
+	 * 
+	 * Get the parameters for the PSF
+	 * 
+	 * @param dim dimension of the psf
+	 */
+	
 	private void selectPSF(int dim)
 	{
 		String psf = PSFc.getSelectedItem();
@@ -75,28 +100,36 @@ public class GeneratePSF
 		GenericDialog gd = new GenericDialog("PSF Generator");
 		
 		gd.addNumericField("Dimensions ", dim, 0);
-		dimF = (TextField) gd.getNumericFields().lastElement();
 		
-		gd.addChoice("PSF: ", psfList.psfList, psfList.psfList[0]);
-		PSFc = (Choice)gd.getChoices().lastElement();
+		if (IJ.isMacro() == false)
 		{
-			Button optionButton = new Button("Options");
-			GridBagConstraints c = new GridBagConstraints();
-			int gridx = 2;
-			int gridy = 1;
-			c.gridx=gridx;
-			c.gridy=gridy++; c.anchor = GridBagConstraints.EAST;
-			gd.add(optionButton,c);
-			
-			optionButton.addActionListener(new ActionListener()
+			dimF = (TextField) gd.getNumericFields().lastElement();
+		
+			gd.addChoice("PSF: ", psfList.psfList, psfList.psfList[0]);
+			PSFc = (Choice)gd.getChoices().lastElement();
 			{
-				@Override
-				public void actionPerformed(ActionEvent e)
+				Button optionButton = new Button("Options");
+				GridBagConstraints c = new GridBagConstraints();
+				int gridx = 2;
+				int gridy = 1;
+				c.gridx=gridx;
+				c.gridy=gridy++; c.anchor = GridBagConstraints.EAST;
+				gd.add(optionButton,c);
+			
+				optionButton.addActionListener(new ActionListener()
 				{
-					int dim = Integer.parseInt(dimF.getText());
-					selectPSF(dim);
-				}
-			});
+					@Override
+					public void actionPerformed(ActionEvent e)
+					{
+						int dim = Integer.parseInt(dimF.getText());
+						selectPSF(dim);
+					}
+				});
+			}
+		}
+		else
+		{
+			gd.addChoice("PSF: ", psfList.psfList, psfList.psfList[0]);
 		}
 		
 		gd.showDialog();
@@ -106,7 +139,7 @@ public class GeneratePSF
 		if (IJ.isMacro() == true)
 		{
 			dim = (int) gd.getNextNumber();
-			selectPSF(dim);
+			selectPSF(dim,gd.getNextChoice());
 		}
 		
 		// psf not selected

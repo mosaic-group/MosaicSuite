@@ -66,7 +66,7 @@ class LSFBatch implements BatchInterface
 		"#BSUB -q " + cp.getQueue(ext) + "\n" +
 		"#BSUB -n 4 \n" +
 		"#BSUB -J \"" + session_id + "[1-" + njob  + "]\" \n" +
-		"#BSUB -R span[hosts=1]" +
+		"#BSUB -R span[hosts=1]\n" +
 		"#BSUB -o " + session_id + ".out.%J \n" +
 		"\n" +
 		"echo \"running " + script + " on index $LSB_JOBINDEX\" \n" +
@@ -358,7 +358,18 @@ class LSFBatch implements BatchInterface
 		System.out.println("Send Command");
 	}
 	
-	private boolean loadDir(String dir,SecureShellSession ss, ClusterProfile cp_)
+	/**
+	 * 
+	 * Try to load the dir
+	 * 
+	 * @param dir Directory to load
+	 * @param ss SecureShellSession
+	 * @param cp_ cluster profile
+	 * @param command related 
+	 * @return true if the folder contain data
+	 */
+	
+	private boolean loadDir(String dir,SecureShellSession ss, ClusterProfile cp_, String command)
 	{
 		String tmp_dir = IJ.getDirectory("temp");
 		File [] fl = new File[1];
@@ -377,6 +388,8 @@ class LSFBatch implements BatchInterface
 			e.printStackTrace();
 		}
 		
+		// Get the Job ID
+		
 		File jid = new File(tmp_dir + "JobID");
 		jid.delete();
 		ss.download(cp.getPassword(), fl, new File(tmp_dir), null,cp);
@@ -386,9 +399,13 @@ class LSFBatch implements BatchInterface
 		}
 		
 		String s[] = MosaicUtils.readAndSplit(tmp_dir + File.separator + "JobID");
+
+		if (s.length < 3 && !s[2].equals(command))
+			return false;
 		
 		AJobID = Integer.parseInt(s[0]);
 		nJobs = Integer.parseInt(s[1]);
+
 		tp = OutputType.STATUS;
 		cp = cp_;
 		lDir = dir;
@@ -407,7 +424,7 @@ class LSFBatch implements BatchInterface
 	 */
 	
 	@Override
-	public BatchInterface[] getAllJobs(SecureShellSession ss) 
+	public BatchInterface[] getAllJobs(SecureShellSession ss, String command) 
 	{
 		int n_b = 0;
 		String[] dirs = ss.getDirs(cp.getRunningDir());
@@ -420,7 +437,7 @@ class LSFBatch implements BatchInterface
 		{
 			LSFBatch tmp = new LSFBatch(cp);
 			
-			if (tmp.loadDir(cp.getRunningDir() + dirs[i],ss,cp) == false)
+			if (tmp.loadDir(cp.getRunningDir() + dirs[i],ss,cp,command) == false)
 			{
 				continue;
 			}

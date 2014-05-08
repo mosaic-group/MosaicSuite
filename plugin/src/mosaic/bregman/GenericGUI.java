@@ -204,220 +204,7 @@ public class GenericGUI
 	//	}
 
 
-	private void processJobsData(ClusterSession ss, ImagePlus aImp)
-	{
-		// Save all JobID to the image folder
-		// or ask for a directory
-		
-		String dir[] = ss.getJobDirectories(0,null);
-		
-		if (dir.length > 0)
-		{
-			String dirS;
-			
-			if (aImp != null)
-			{
-				dirS = MosaicUtils.ValidFolderFromImage(aImp);
-			}
-			else
-			{
-				DirectoryChooser dc = new DirectoryChooser("Choose directory where to save result");
-				dirS = dc.getDirectory();
-			}
-			
-			for (int i = 0 ; i < dir.length ; i++)
-			{
-				try 
-				{
-					// Stitch Object.csv
-					
-					String outcsv[] = {"*_ObjectsData_c1.csv"};
-					CSVOutput.Stitch(outcsv,"tmp_",new File(dir[i]), dirS);
-					
-					///////
-					
-					String[] tmp = dir[i].split(File.separator);
-					
-					File t = new File(dirS + File.separator + tmp[tmp.length-1]);
-					
-					ShellCommand.exeCmdNoPrint("cp -r " + dir[i] + " " + t);
-					
-					// after copy remove the directory
-					
-					ShellCommand.exeCmdNoPrint("rm -rf " + dir[i]);
-				}
-				catch (IOException e) 
-				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-	
-	class MM
-	{
-		float min;
-		float max;
-	}
-	
-	/**
-	 * 
-	 * Get the maximum and the minimum of a video
-	 * 
-	 * @param mm output min and max
-	 */
-	
-	private void getMaxMin(File fl, MM mm)
-	{
-		Opener opener = new Opener();  
-		ImagePlus imp = opener.openImage(fl.getAbsolutePath());
-		
-		float global_max = 0.0f;
-		float global_min = 0.0f;
-		
-		if (imp != null)
-		{
-			StackStatistics stack_stats = new StackStatistics(imp);
-			global_max = (float)stack_stats.max;
-			global_min = (float)stack_stats.min;
 
-			// get the min and the max
-		}
-		
-		if (global_max > mm.max)
-			mm.max = global_max;
-		
-		if (global_min < mm.min)
-			mm.min = global_min;
-	}
-	
-	/**
-	 * 
-	 * Get the maximum and the minimum of a video
-	 * 
-	 * @param mm output min and max
-	 * 
-	 */
-	
-	private void getFilesMaxMin(File fls[], MM mm)
-	{	
-		for (File fl : fls)
-		{
-			getMaxMin(fl,mm);
-		}
-	}
-	
-	/**
-	 * 
-	 * Process the image, min and max value are used for renormalization if
-	 * max = 0.0 the max mavlue and min value of the image are used
-	 * 
-	 * @param aImp the image to process
-	 * @param cg ClusterGUI
-	 * @param min minimum value
-	 * @param max maximum value
-	 * @return the session cluster
-	 */
-	
-	private ClusterSession processImage(ImagePlus aImp, ClusterGUI cg, Float max, Float min)
-	{
-		boolean sync = false;
-		if (cg == null)
-		{
-			sync = true;
-			cg = new ClusterGUI();
-		}
-	
-		ClusterSession ss = cg.getClusterSession();
-		
-		// Get all image processor statistics and calculate the maximum
-		
-		if (max == 0.0)
-		{		
-			if (aImp != null)
-			{
-				StackStatistics stack_stats = new StackStatistics(aImp);
-				max = (float)stack_stats.max;
-				min = (float)stack_stats.min;
-		
-				// get the min and the max
-			}
-		}
-		
-		// Run plugin on frames
-		
-		if (ss.runPluginsOnFrames(aImp, "min="+ min + " max="+max, Analysis.out, 180.0, sync) == false)
-			return null;
-		
-		return ss;
-	}
-	
-	/**
-	 * 
-	 * Process a list of files
-	 * 
-	 * @param list of files to process
-	 * @return the cluster session
-	 */
-	
-	private ClusterSession processFiles(File list[])
-	{
-		ClusterGUI cg = new ClusterGUI();
-		ClusterSession ss = cg.getClusterSession();
-		
-		MM mm = new MM();
-		
-		mm.min = new Float(Float.MAX_VALUE);
-		mm.max = new Float(0.0);
-		
-		getFilesMaxMin(list,mm);
-		
-		for (File fl : list)
-		{
-			// File
-			
-			processFile(fl,cg,mm.max,mm.min);
-		}
-		
-		ss.runPluginsOnFrames(null,null, Analysis.out, 180.0);
-		return ss;
-	}
-	
-	/**
-	 * 
-	 * Process a file
-	 * 
-	 * @param fl File to process
-	 * @param min 
-	 * @param max 
-	 * @param ClusterGUI
-	 * 
-	 */
-	private ClusterSession processFile(File fl, ClusterGUI cg, Float max, Float min)
-	{
-		boolean sync = false;
-		
-		// open the image and process image
-		
-		Opener opener = new Opener();  
-		ImagePlus imp = opener.openImage(fl.getAbsolutePath());
-		ClusterSession ss = processImage(imp,cg,max,min);
-		
-		if (cg == null)
-		{
-			sync = true;
-			cg = new ClusterGUI();
-		}
-		
-//		ClusterSession ss = cg.getClusterSession();
-		
-//		ss.runPluginsOnFrames(null,null, Analysis.out, 180.0, sync);
-		return ss;
-	}
 	
 	public void run(String arg, ImagePlus aImp)
 	{
@@ -694,27 +481,32 @@ public class GenericGUI
 					
 					fileslist = fl.listFiles();
 					
-					ss = processFiles(fileslist);
+					ss = ClusterSession.processFiles(fileslist,Analysis.out);
 				}
 				else if (fl.isFile())
 				{
-					ss = processFile(fl,null,new Float(0.0),new Float(0.0));
+					// we process an image
+					
+					ss = ClusterSession.processFile(fl,Analysis.out);
 				}
 				else
 				{
-					ss = processImage(null,null,new Float(0.0),new Float(0.0));
+					// Dothing to do just get the result
+					
+					ss = ClusterSession.getFinishedJob(Analysis.out);
 				}
 			}
 			else
 			{
 				// It is a file
 				
-				ss = processImage(aImp,null,new Float(0.0),new Float(0.0));
+				ss = ClusterSession.processImage(aImp,Analysis.out);
 			}
 			
 			// Get output format and Stitch the output in the output selected
 			
-			processJobsData(ss,aImp);
+			String outcsv[] = {"*_ObjectsData_c1.csv"};
+			ClusterSession.processJobsData(ss,outcsv,aImp);
 			
 			////////////////
 		}

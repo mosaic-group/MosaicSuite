@@ -20,9 +20,13 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mosaic.bregman.output.CSVOutput;
+import mosaic.core.cluster.ClusterGUI;
+import mosaic.core.cluster.ClusterSession;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.ShellCommand;
 import mosaic.region_competition.wizard.*;
 import mosaic.core.utils.Point;
 
@@ -58,6 +62,7 @@ import ij.gui.GenericDialog;
 import ij.gui.ImageCanvas;
 import ij.gui.Roi;
 import ij.gui.StackWindow;
+import ij.io.DirectoryChooser;
 import ij.io.FileInfo;
 import ij.io.FileSaver;
 import ij.io.Opener;
@@ -76,6 +81,7 @@ import ij3d.Image3DUniverse;
 
 public class Region_Competition implements PlugInFilter
 {
+	private String[] out = {"*_ObjectsData_c1.csv"};
 	private String output_label;
 	private String config;
 	private String oip_location;
@@ -83,7 +89,6 @@ public class Region_Competition implements PlugInFilter
 	Region_Competition MVC;		// interface to image application (imageJ)
 	public Settings settings;
 
-	public Img<FloatType> image_psf = null;
 	Algorithm algorithm;
 	LabelImageRC labelImage;		// data structure mapping pixels to labels
 	IntensityImage intensityImage; 
@@ -145,91 +150,39 @@ public class Region_Competition implements PlugInFilter
 		
 		normalize_ip = true;
 		if (options != null)
-		{
+		{		
 			// Command line interface search for config file
 			
 			String path;
-			Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
-			Pattern config = Pattern.compile("config");
-			Pattern output = Pattern.compile("output");
-			Pattern normalize = Pattern.compile("normalize");
-			Pattern par[] = new Pattern[7];
-			par[0] = Pattern.compile("method");
-			par[1] = Pattern.compile("init");
-			par[2] = Pattern.compile("ps_radius");
-			par[3] = Pattern.compile("b_force");
-			par[4] = Pattern.compile("c_flow_coeff");
-			par[5] = Pattern.compile("c_flow_radius");
-			par[6] = Pattern.compile("normalize");
-			Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+			
+			String tmp = null;
+			Boolean tmp_b = null;
 			
 			// output
 			
-			Matcher matcher = output.matcher(options);
-			if (matcher.find())
+			if ((tmp = MosaicUtils.parseOutput(options)) != null)
 			{
-				String sub = options.substring(matcher.end());
-				matcher = spaces.matcher(sub);
-				if (matcher.find())
-				{
-					sub = sub.substring(matcher.end());
-					matcher = pathp.matcher(sub);
-					if (matcher.find())
-					{
-						output_label = matcher.group(0);
-					}
-				}
+				output_label = tmp;
 			}
 			
 			// normalize 
 			
-			matcher = normalize.matcher(options);
-			if (matcher.find())
+			if ((tmp_b = MosaicUtils.parseNormalize(options)) != null)
 			{
-				String sub = options.substring(matcher.end());
-				matcher = spaces.matcher(sub);
-				if (matcher.find())
-				{
-					sub = sub.substring(matcher.end());
-					matcher = pathp.matcher(sub);
-					if (matcher.find())
-					{
-						if (matcher.group(0).equals("false"))
-						{
-							// 
-							
-							normalize_ip = false;
-						}
-					}
-				}
+				normalize_ip = tmp_b;
 			}
-			
+				
 			// config
 			
-			matcher = config.matcher(options);
-			if (matcher.find())
+			if ((tmp = MosaicUtils.parseConfig(options)) != null)
 			{
-				String sub = options.substring(matcher.end());
-				matcher = spaces.matcher(sub);
-				if (matcher.find())
-				{
-					sub = sub.substring(matcher.end());
-					matcher = pathp.matcher(sub);
-					if (matcher.find())
-					{
-						path = matcher.group(0);
+				path = tmp;
 						
-						if (LoadConfigFile(path))
-						{							
-							return DOES_ALL+NO_CHANGES;
-						}
-					}
+				if (LoadConfigFile(path))
+				{							
+					return DOES_ALL+NO_CHANGES;
 				}
 			}
-			
-			// Match setting
-			
-			
 			
 			// no config file open the GUI
 		}
@@ -240,7 +193,8 @@ public class Region_Competition implements PlugInFilter
 		String sv = dir+"rc_settings.dat";
 		LoadConfigFile(sv);
 		
-		if(settings == null){
+		if(settings == null)
+		{
 			settings = new Settings();
 		}
 		
@@ -251,110 +205,138 @@ public class Region_Competition implements PlugInFilter
 		
 		//TODO ugly
 		((GenericDialogGUI)userDialog).showDialog();
+		
 		boolean success=userDialog.processInput();
 		if(!success)
 		{
 			return DONE;
 		}
 		
-
-		// save
-		try
+		if (userDialog.useCluster() == true)
 		{
-			SaveConfigFile(sv,settings);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		
-		
-//		RegionIterator.tester();
-//		IJ.showMessage("version 1");
-		
-		// init the input image we need to open it before run
-		
-		initInputImage(aImp.getProcessor());
-		
-		// Set deconvolution
-		
-        if (settings.m_GeneratePSF)
-        {
-            // Here, no PSF has been set by the user. Hence, Generate it
-        	
-        	GeneratePSF gPsf = new GeneratePSF();
-        	
-        	if (intensityImage.getDim() == 2)
-        		image_psf = gPsf.generate(2);
-        	else
-        		image_psf = gPsf.generate(3);
-        	
-        	// if not PSF has been generated stop
-        	
-        	if (image_psf == null)
-        	{
-        		IJ.error("Error no PSF generated");
-        		return DONE;
-        	}
-        		
-			float Vol = IntensityImage.volume_image(image_psf);
-			IntensityImage.rescale_image(image_psf,1.0f/Vol);
-        	
-			// Show PSF Image
+			// We run on cluster
 			
-			ImageJFunctions.show(image_psf);
-			
-
-        }
-        else
-        {
-            File file = new File( settings.m_PSFImg );
-            
-            // open with ImgOpener using an ArrayImgFactory, here the return type will be
-            // defined by the opener
-            // the opener will ignore the Type of the ArrayImgFactory
-            
-            ImgFactory< FloatType > imgFactory = new ArrayImgFactory< FloatType >();
-            Img<FloatType> tmp = null;
 			try 
 			{
-				tmp = new ImgOpener().openImg( file.getAbsolutePath(), imgFactory , new FloatType() );
-				float Vol = IntensityImage.volume_image(tmp);
-				IntensityImage.rescale_image(tmp,1.0f/Vol);
-				Vol = IntensityImage.volume_image(tmp);
-			}
-			catch (Exception e)
-			{
+				// Copying parameters
 				
+				Settings p = new Settings(settings);
+				
+				// saving config file
+				
+				SaveConfigFile("/tmp/settings.dat",p);
+			}
+			catch (IOException e) 
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			
-			///////////////////////////////////
+			ClusterGUI cg = new ClusterGUI();
+			ClusterSession ss;
+			File[] fileslist = null;
 			
-			ImageJFunctions.show(tmp);
-
-        }
-		
-		// if is 3D save the originalIP
-		
-		if (aImp != null &&  aImp.getNSlices() != 1)
-		{
-			originalIP = aImp;
+			// Check if we selected a directory
 			
-			// Save the location of the original IP
+			if (aImp == null)
+			{
+				File fl = new File(userDialog.getInputImageFilename());
+				File fl_l = new File(userDialog.getLabelImageFilename());
+				if (fl.isDirectory() == true)
+				{
+					// we have a directory
+					
+					if (settings.labelImageInitType == InitializationType.File)
+					{
+						// upload label images
+						
+						ss = cg.getClusterSession();
+						fileslist = fl_l.listFiles();
+						ss.upload(fileslist);
+					}
+					
+					fileslist = fl.listFiles();
+					
+					ss = ClusterSession.processFiles(fileslist,"Region Competition",out,cg);
+				}
+				else if (fl.isFile())
+				{
+					if (settings.labelImageInitType == InitializationType.File)
+					{
+						// upload label images
+						
+						ss = cg.getClusterSession();
+						fileslist = new File[1];
+						fileslist[0] = fl_l;
+						ss.upload(fileslist);
+					}
+					
+					ss = ClusterSession.processFile(fl,"Region Competition",out,cg);
+				}
+				else
+				{
+					ss = ClusterSession.getFinishedJob(out,"Region Competition",cg);
+				}
+			}
+			else
+			{
+				// It is an image
+				
+				if (settings.labelImageInitType == InitializationType.File)
+				{
+					// upload label images
+					
+					ss = cg.getClusterSession();
+					ss.splitAndUpload((ImagePlus)userDialog.getLabelImage(),"label",null);
+				}
+				
+				ss = ClusterSession.processImage(aImp,"Region Competition",out,cg);
+			}
 			
-			oip_location = MosaicUtils.ValidFolderFromImage(aImp);
-			oip_title = aImp.getTitle();
+			// Get output format and Stitch the output in the output selected
 			
-			return DOES_ALL+NO_CHANGES;
+			String outcsv[] = {"*_ObjectsData_c1.csv"};
+			ClusterSession.processJobsData(ss,outcsv,aImp);
+			
+			////////////////
 		}
 		else
 		{
-			originalIP = null;
-			return NO_IMAGE_REQUIRED;
+			// save
+			try
+			{
+				SaveConfigFile(sv,settings);
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+		
+			// init the input image we need to open it before run
+		
+			// if is 3D save the originalIP
+		
+			if (aImp != null)
+			{
+				if (aImp.getNSlices() != 1)
+				{
+					originalIP = aImp;
+			
+					// Save the location of the original IP
+			
+					oip_location = MosaicUtils.ValidFolderFromImage(aImp);
+					oip_title = aImp.getTitle();
+			
+					return DOES_ALL+NO_CHANGES;
+				}
+			}
+			else
+			{
+				originalIP = null;
+				return NO_IMAGE_REQUIRED;
+			}
 		}
-		
-
-		
+		return DOES_ALL+NO_CHANGES;
 	}
 	
 	
@@ -692,7 +674,7 @@ public class Region_Competition implements PlugInFilter
 	
 	void initStack()
 	{
-		if((userDialog != null && userDialog.useStack()) || settings.RC_free == true)
+		if(((userDialog != null && userDialog.useStack()) || settings.RC_free == true) && IJ.isMacro() == false)
 		{
 			if (userDialog != null)
 				stackKeepFrames = userDialog.showAllFrames();
@@ -714,7 +696,9 @@ public class Region_Competition implements PlugInFilter
 			stackImPlus.show();
 			
 			// add a windowlistener to 
-			stackImPlus.getWindow().addWindowListener(new StackWindowListener());
+			
+			if (IJ.isMacro() == false)
+				stackImPlus.getWindow().addWindowListener(new StackWindowListener());
 			
 			// first stack image without boundary&contours
 			for(int i=1; i<=initialStack.getSize(); i++)
@@ -737,6 +721,11 @@ public class Region_Competition implements PlugInFilter
 	
 	void initControls()
 	{
+		// no control when is a script
+		
+		if (IJ.isMacro() == true)
+			return;
+		
 		controllerFrame = new ControllerFrame(this);
 		controllerFrame.setVisible(true);
 		
@@ -777,6 +766,7 @@ public class Region_Competition implements PlugInFilter
 	
 	void frontsCompetitionImageFilter(ImageProcessor aImageProcessor)
 	{
+		initInputImage(aImageProcessor);
 		initLabelImage();
 //		labelImage.initZero();
 //		labelImage.initBrightBubbles(intensityImage);
@@ -884,7 +874,8 @@ public class Region_Competition implements PlugInFilter
 			e.printStackTrace();
 		}
 		
-		controllerFrame.dispose();
+		if (IJ.isMacro() == false)
+			controllerFrame.dispose();
 		
 	}
 	

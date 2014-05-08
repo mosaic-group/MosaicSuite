@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
@@ -49,6 +51,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
+import ij.io.Opener;
 import ij.measure.Calibration;
 import ij.plugin.RGBStackMerge;
 import ij.plugin.Resizer;
@@ -56,6 +59,7 @@ import ij.process.BinaryProcessor;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
+import ij.process.StackStatistics;
 
 class FloatToARGB implements ToARGB
 {
@@ -951,6 +955,228 @@ public class MosaicUtils
 	public static String getRegionCSVName(String filename)
 	{
 		return filename + "_ObjectsData_c1.csv";
+	}
+	
+	/**
+	 * 
+	 * Get the maximum and the minimum of a video
+	 * 
+	 * @param mm output min and max
+	 */
+	
+	public static void getMaxMin(File fl, MM mm)
+	{
+		Opener opener = new Opener();  
+		ImagePlus imp = opener.openImage(fl.getAbsolutePath());
+		
+		float global_max = 0.0f;
+		float global_min = 0.0f;
+		
+		if (imp != null)
+		{
+			StackStatistics stack_stats = new StackStatistics(imp);
+			global_max = (float)stack_stats.max;
+			global_min = (float)stack_stats.min;
+
+			// get the min and the max
+		}
+		
+		if (global_max > mm.max)
+			mm.max = global_max;
+		
+		if (global_min < mm.min)
+			mm.min = global_min;
+	}
+	
+	/**
+	 * 
+	 * Get the maximum and the minimum of a video
+	 * 
+	 * @param mm output min and max
+	 * 
+	 */
+	
+	public static void getFilesMaxMin(File fls[], MM mm)
+	{	
+		for (File fl : fls)
+		{
+			getMaxMin(fl,mm);
+		}
+	}
+	
+	/**
+	 * 
+	 * Parse normalize
+	 * 
+	 * @param options string of options " ..... normalize = true ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static Boolean parseNormalize(String options)
+	{
+		return parseBoolean("normalize",options);
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get the argument max
+	 * 
+	 * @param options string of options " ..... max = 1.0 ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static Double parseMax(String options)
+	{
+		return parseDouble("max",options);
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get the argument min
+	 * 
+	 * @param options string of options " ..... min = 1.0 ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static Double parseMin(String options)
+	{
+		return parseDouble("min",options);
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get the argument config
+	 * 
+	 * @param options string of options " ..... config = xxxxx ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static String parseConfig(String options)
+	{
+		return parseString("config",options);
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get the argument output
+	 * 
+	 * @param options string of options " ..... config = xxxxx ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static String parseOutput(String options)
+	{
+		return parseString("output",options);
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get an argument
+	 * 
+	 * @param name the string identify the argument
+	 * @param options string of options " ..... config = xxxxx ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static Double parseDouble(String name, String options)
+	{
+		Pattern min = Pattern.compile("min");
+		Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+		Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+		
+		// min
+
+		Matcher matcher = min.matcher(options);
+		if (matcher.find())
+		{
+			String sub = options.substring(matcher.end());
+			matcher = spaces.matcher(sub);
+			if (matcher.find())
+			{
+				sub = sub.substring(matcher.end());
+				matcher = pathp.matcher(sub);
+				if (matcher.find())
+				{
+					String norm = matcher.group(0);
+					
+					return Double.parseDouble(norm);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get an argument
+	 * 
+	 * @param name the string identify the argument
+	 * @param options string of options " ..... config = xxxxx ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static String parseString(String name, String options)
+	{
+		Pattern config = Pattern.compile(name);
+		Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+		Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+		
+		// config
+		
+		Matcher matcher = config.matcher(options);
+		if (matcher.find())
+		{
+			String sub = options.substring(matcher.end());
+			matcher = spaces.matcher(sub);
+			if (matcher.find())
+			{
+				sub = sub.substring(matcher.end());
+				matcher = pathp.matcher(sub);
+				if (matcher.find())
+				{
+					return matcher.group(0);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get an argument
+	 * 
+	 * @param name the string identify the argument
+	 * @param options string of options " ..... config = xxxxx ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static Boolean parseBoolean(String name, String options)
+	{
+		Pattern config = Pattern.compile(name);
+		Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+		Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+		
+		// config
+		
+		Matcher matcher = config.matcher(options);
+		if (matcher.find())
+		{
+			String sub = options.substring(matcher.end());
+			matcher = spaces.matcher(sub);
+			if (matcher.find())
+			{
+				sub = sub.substring(matcher.end());
+				matcher = pathp.matcher(sub);
+				if (matcher.find())
+				{
+					return Boolean.parseBoolean(matcher.group(0));
+				}
+			}
+		}
+		
+		return null;
 	}
 }
 

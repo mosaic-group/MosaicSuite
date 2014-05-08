@@ -1,5 +1,7 @@
 package mosaic.region_competition.GUI;
 
+import ij.IJ;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -9,6 +11,14 @@ import javax.swing.JPanel;
 
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.Algorithm;
+
+/**
+ * 
+ * Class that control the algorithm, you can stop or put on pause the algorithm
+ * 
+ * @author Stephan Seemler
+ *
+ */
 
 public class ControllerFrame extends JFrame
 {
@@ -26,7 +36,7 @@ public class ControllerFrame extends JFrame
 	
 	
 	public ControllerFrame(Region_Competition mvc)
-	{
+	{		
 		this.MVC = mvc;
 		
 		controllerFrame=this;
