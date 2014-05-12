@@ -181,4 +181,9 @@ public class GeneratePSF
 		
 		return PSFimg;
 	}
+	
+	public String getParameters()
+	{
+		return psfc.getStringParameters();
+	}
 }

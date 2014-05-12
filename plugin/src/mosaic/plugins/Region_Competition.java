@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,6 +67,7 @@ import ij.io.DirectoryChooser;
 import ij.io.FileInfo;
 import ij.io.FileSaver;
 import ij.io.Opener;
+import ij.measure.ResultsTable;
 import ij.plugin.Duplicator;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.FloatProcessor;
@@ -93,7 +95,7 @@ public class Region_Competition implements PlugInFilter
 	LabelImageRC labelImage;		// data structure mapping pixels to labels
 	IntensityImage intensityImage; 
 	ImageModel imageModel;
-	private ImagePlus originalIP;		// IP of the input image
+	ImagePlus originalIP;		// IP of the input image
 	
 	ImageStack stack;			// stack saving the segmentation progress images
 	ImagePlus stackImPlus;		// IP showing the stack
@@ -138,6 +140,74 @@ public class Region_Competition implements PlugInFilter
 		return true;
 	}
 	
+	/**
+	 * 
+	 * Return the dimension of a file
+	 * 
+	 * @param f file
+	 * @return
+	 */
+	
+	int getDimension(File f)
+	{
+		Opener o = new Opener();
+		ImagePlus ip = o.openImage(f.getAbsolutePath());
+		
+		return getDimension(ip);
+	}
+	
+	/**
+	 * 
+	 * Return the dimension of an image
+	 * 
+	 * @param aImp image
+	 * @return
+	 */
+	
+	private int getDimension(ImagePlus aImp)
+	{
+		if (aImp.getNSlices() == 1)
+			return 2;
+		else
+			return 3;
+	}
+	
+	private String getOptions(File f)
+	{
+		String par = new String();
+		
+		// get file dimension
+
+		int d = getDimension(f);
+		par += "Dimensions=" + d + " ";
+		
+		// if deconvolving create a PSF generator window
+		
+		GeneratePSF psf = new GeneratePSF();
+		psf.generate(d);
+		par += psf.getParameters();
+		
+		return par;
+	}
+	
+	private String getOptions(ImagePlus aImp)
+	{
+		String par = new String();
+		
+		// get file dimension
+
+		int d = getDimension(aImp);
+		par += "Dimensions=" + d + " ";
+		
+		// if deconvolving create a PSF generator window
+		
+		GeneratePSF psf = new GeneratePSF();
+		psf.generate(d);
+		par += psf.getParameters();
+		
+		return par;
+	}
+	
 	public int setup(String aArgs, ImagePlus aImp)
 	{
 //		if(testMacroBug())
@@ -148,6 +218,7 @@ public class Region_Competition implements PlugInFilter
 		
         String options = Macro.getOptions();
 		
+        String sv = null;
 		normalize_ip = true;
 		if (options != null)
 		{		
@@ -178,20 +249,27 @@ public class Region_Competition implements PlugInFilter
 			{
 				path = tmp;
 						
-				if (LoadConfigFile(path))
-				{							
-					return DOES_ALL+NO_CHANGES;
-				}
+				LoadConfigFile(path);
+			}
+			else
+			{
+				// load config file
+				
+				String dir = IJ.getDirectory("temp");
+				sv = dir+"rc_settings.dat";
+				LoadConfigFile(sv);
 			}
 			
 			// no config file open the GUI
 		}
-		
-		// load config file
-		
-		String dir = IJ.getDirectory("temp");
-		String sv = dir+"rc_settings.dat";
-		LoadConfigFile(sv);
+		else
+		{
+			// load config file
+			
+			String dir = IJ.getDirectory("temp");
+			sv = dir+"rc_settings.dat";
+			LoadConfigFile(sv);
+		}
 		
 		if(settings == null)
 		{
@@ -233,7 +311,9 @@ public class Region_Competition implements PlugInFilter
 			}
 			
 			ClusterGUI cg = new ClusterGUI();
-			ClusterSession ss;
+			ClusterSession ss = cg.getClusterSession();
+			ss.setInputArgument("text1");
+			ss.setSlotPerProcess(1);
 			File[] fileslist = null;
 			
 			// Check if we selected a directory
@@ -257,7 +337,8 @@ public class Region_Competition implements PlugInFilter
 					
 					fileslist = fl.listFiles();
 					
-					ss = ClusterSession.processFiles(fileslist,"Region Competition",out,cg);
+					String opt = getOptions(fl);
+					ss = ClusterSession.processFiles(fileslist,"Region Competition",opt+" show_and_save_statistics",out,cg);
 				}
 				else if (fl.isFile())
 				{
@@ -271,7 +352,8 @@ public class Region_Competition implements PlugInFilter
 						ss.upload(fileslist);
 					}
 					
-					ss = ClusterSession.processFile(fl,"Region Competition",out,cg);
+					String opt = getOptions(fl);
+					ss = ClusterSession.processFile(fl,"Region Competition",opt+" show_and_save_statistics",out,cg);
 				}
 				else
 				{
@@ -290,7 +372,8 @@ public class Region_Competition implements PlugInFilter
 					ss.splitAndUpload((ImagePlus)userDialog.getLabelImage(),"label",null);
 				}
 				
-				ss = ClusterSession.processImage(aImp,"Region Competition",out,cg);
+				String opt = getOptions(aImp);
+				ss = ClusterSession.processImage(aImp,"Region Competition",opt+" show_and_save_statistics",out,cg);
 			}
 			
 			// Get output format and Stitch the output in the output selected
@@ -349,6 +432,11 @@ public class Region_Competition implements PlugInFilter
 			if (output_label != null)
 			{
 				labelImage.save(output_label);
+			}
+			
+			if(userDialog.showAndSaveStatistics())
+			{
+				showAndSaveStatistics(algorithm.getLabelMap());
 			}
 		}
 		catch (Exception e)
@@ -446,7 +534,6 @@ public class Region_Competition implements PlugInFilter
 	
 	void initInputImage(ImageProcessor aImageProcessor)
 	{
-		
 		ImagePlus ip = null;
 		
 		if (aImageProcessor == null)
@@ -459,6 +546,9 @@ public class Region_Competition implements PlugInFilter
 			{
 				Opener o = new Opener();
 				ip = o.openImage(file);
+				FileInfo fi = ip.getFileInfo();
+				fi.directory = file.substring(0,file.lastIndexOf(File.separator));
+				ip.setFileInfo(fi);
 			}
 			else // selected opened file
 			{
@@ -860,20 +950,6 @@ public class Region_Competition implements PlugInFilter
 				showFinalResult(labelImage);
 		}
 		
-
-		if(userDialog != null && userDialog.showStatistics())
-		{
-			algorithm.showStatistics();
-		}
-		
-		algorithm.saveStatistics(oip_location+oip_title+".csv");
-		try {SaveConfigFile(oip_location+oip_title+".dat",settings);}
-		catch (IOException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
 		if (IJ.isMacro() == false)
 			controllerFrame.dispose();
 		
@@ -1253,6 +1329,13 @@ public class Region_Competition implements PlugInFilter
 		return this.stackImPlus;
 	}
 	
+	/**
+	 * 
+	 * Get the original imagePlus
+	 * 
+	 * @return
+	 */
+	
 	public ImagePlus getOriginalImPlus()
 	{
 		return this.originalIP;
@@ -1441,6 +1524,78 @@ public class Region_Competition implements PlugInFilter
 		// TODO Auto-generated method stub
 		
 		settings = set;
+	}
+	
+	/**
+	 * 
+	 * Show and save statistics
+	 * 
+	 * @param labelMap HashMap that contain the labels information
+	 * 
+	 */
+	
+	public void showAndSaveStatistics(HashMap<Integer, LabelInformation> labelMap)
+	{
+		ResultsTable rts = createStatistics(labelMap);
+
+		String folder = MosaicUtils.ValidFolderFromImage(MVC.getOriginalImPlus());
+		
+		saveStatistics(folder + File.separator + MosaicUtils.getRegionCSVName(MVC.getOriginalImPlus().getTitle()), labelMap);
+		
+		rts.show("statistics");
+	}
+	
+	/**
+	 * 
+	 * Save the csv region statistics
+	 * 
+	 * @param fold where to save
+	 * @param labelMap HashMap that save the label information
+	 */
+	
+	public void saveStatistics(String fold,HashMap<Integer, LabelInformation> labelMap)
+	{
+		// Remove the string file:
+		
+		if (fold.indexOf("file:") >= 0)
+			fold = fold.substring(fold.indexOf("file:")+5);
+		
+		ResultsTable rts = createStatistics(labelMap);
+		
+		try 
+		{
+			rts.saveAs(fold);
+		} 
+		catch (IOException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public ResultsTable createStatistics(HashMap<Integer, LabelInformation> labelMap)
+	{
+		ResultsTable rt = new ResultsTable();
+		
+		// over all labels
+		for(Entry<Integer, LabelInformation> entry: labelMap.entrySet())
+		{
+			LabelInformation info = entry.getValue();
+			
+			rt.incrementCounter();
+			rt.addValue("label", info.label);
+			rt.addValue("size", info.count);
+			rt.addValue("mean", info.mean);
+			rt.addValue("variance", info.var);
+			rt.addValue("Coord_X", info.mean_pos[0]);
+			rt.addValue("Coord_Y", info.mean_pos[1]);
+			if (info.mean_pos.length >= 2)
+				rt.addValue("Coord_Z", info.mean_pos[2]);
+			else
+				rt.addValue("Coord_Z", 0.0);
+		}
+		
+		return rt;
 	}
 }
 	

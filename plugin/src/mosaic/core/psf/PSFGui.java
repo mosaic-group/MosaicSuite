@@ -10,4 +10,15 @@ interface PSFGui
 	 */
 	
 	void getParamenters();
+	
+	
+	/**
+	 * 
+	 * After get Parameters you get a String of the parameters set by 
+	 * the user
+	 * 
+	 * @return String of the parameters
+	 */
+	
+	String getStringParameters();
 }

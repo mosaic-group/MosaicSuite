@@ -59,12 +59,12 @@ class LSFBatch implements BatchInterface
 	}
 	
 	@Override
-	public String getScript(String img_script_ , String session_id, double ext, int njob) 
+	public String getScript(String img_script_ , String session_id, double ext, int njob, int ns) 
 	{
 		script = session_id;
 		return new String("#!/bin/bash \n" +
 		"#BSUB -q " + cp.getQueue(ext) + "\n" +
-		"#BSUB -n 4 \n" +
+		"#BSUB -n "+ ns +" \n" +
 		"#BSUB -J \"" + session_id + "[1-" + njob  + "]\" \n" +
 		"#BSUB -R span[hosts=1]\n" +
 		"#BSUB -o " + session_id + ".out.%J \n" +
@@ -400,7 +400,8 @@ class LSFBatch implements BatchInterface
 		
 		String s[] = MosaicUtils.readAndSplit(tmp_dir + File.separator + "JobID");
 
-		if (s.length < 3 && !s[2].equals(command))
+		String tmp = new String(command);
+		if (s.length < 3 && !s[2].equals(tmp.replace(" ","_")))
 			return false;
 		
 		AJobID = Integer.parseInt(s[0]);

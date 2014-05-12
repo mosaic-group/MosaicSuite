@@ -319,56 +319,7 @@ public class Algorithm
         labelDispenser.setLabelsInUse(usedLabels);
 	}
 	
-	/**
-	 * 
-	 * Show and save statistics
-	 * 
-	 */
-	
-	public void showStatistics()
-	{
-		ResultsTable rts = createStatistics();
 
-		String folder = MosaicUtils.ValidFolderFromImage(intensityImage.imageIP);
-		
-		saveStatistics(folder + File.pathSeparator + MosaicUtils.getRegionCSVName(intensityImage.imageIP.getTitle()));
-		
-		rts.show("statistics");
-	}
-	
-	public void saveStatistics(String fold)
-	{
-		ResultsTable rts = createStatistics();
-		
-		try 
-		{
-			rts.saveAs(fold);
-		} 
-		catch (IOException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	public ResultsTable createStatistics()
-	{
-		ResultsTable rt = new ResultsTable();
-		
-		// over all labels
-		for(Entry<Integer, LabelInformation> entry: labelMap.entrySet())
-		{
-			LabelInformation info = entry.getValue();
-			
-			rt.incrementCounter();
-			rt.addValue("label", info.label);
-			rt.addValue("size", info.count);
-			rt.addValue("mean", info.mean);
-			rt.addValue("variance", info.var);
-		}
-		
-		return rt;
-	}
 	
 	private Vector<RCMean> RC_op;
 	

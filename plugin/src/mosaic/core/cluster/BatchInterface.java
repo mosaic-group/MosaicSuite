@@ -27,10 +27,11 @@ interface BatchInterface extends ShellProcessOutput
 	 * @param session_id String that identify the session
 	 * @param Ext estimated execution time
 	 * @param njob number of jobs
+	 * @param ns number of slot to allocate per process
 	 * @return
 	 */
 	
-	public String getScript(String img_script_ , String session_id, double Ext, int njob);
+	public String getScript(String img_script_ , String session_id, double Ext, int njob, int ns);
 	
 	/**
 	 * 

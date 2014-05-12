@@ -1120,7 +1120,7 @@ public class MosaicUtils
 	{
 		Pattern config = Pattern.compile(name);
 		Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
-		Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+		Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-:-]+");
 		
 		// config
 		

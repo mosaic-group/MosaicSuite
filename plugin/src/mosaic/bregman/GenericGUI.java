@@ -481,26 +481,26 @@ public class GenericGUI
 					
 					fileslist = fl.listFiles();
 					
-					ss = ClusterSession.processFiles(fileslist,Analysis.out);
+					ss = ClusterSession.processFiles(fileslist,"Squassh",Analysis.out);
 				}
 				else if (fl.isFile())
 				{
 					// we process an image
 					
-					ss = ClusterSession.processFile(fl,Analysis.out);
+					ss = ClusterSession.processFile(fl,"Squassh",Analysis.out);
 				}
 				else
 				{
-					// Dothing to do just get the result
+					// Nothing to do just get the result
 					
-					ss = ClusterSession.getFinishedJob(Analysis.out);
+					ss = ClusterSession.getFinishedJob(Analysis.out,"Squassh");
 				}
 			}
 			else
 			{
 				// It is a file
 				
-				ss = ClusterSession.processImage(aImp,Analysis.out);
+				ss = ClusterSession.processImage(aImp,"Squassh",Analysis.out);
 			}
 			
 			// Get output format and Stitch the output in the output selected

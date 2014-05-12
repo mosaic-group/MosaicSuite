@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
+import java.util.Map.Entry;
 
 import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
@@ -187,6 +188,45 @@ public class LabelImageRC extends LabelImage
 	}
 	
 	/**
+	 * 
+	 * Calculate the center of Mass of the regions
+	 * 
+	 */
+	
+	void calculateRegionsCenterOfMass()
+	{
+		// Iterate through all the region
+		
+		RegionIterator rc = new RegionIterator(getDimensions());
+		while (rc.hasNext())
+		{
+			rc.next();
+			Point p = rc.getPoint();
+			int lbl = getLabel(p);
+			
+			LabelInformation lbi = labelMap.get(lbl);
+			
+			// Label information
+			
+			if (lbi != null)
+			{
+				for (int i = 0 ; i < p.x.length; i++)
+					lbi.mean_pos[i] += p.x[i];
+			}
+		}
+		
+		// Iterate through all the regions
+		
+		for(Entry<Integer, LabelInformation> entry: labelMap.entrySet())
+		{
+			for (int i = 0 ; i < entry.getValue().mean_pos.length ; i++)
+			{
+				entry.getValue().mean_pos[i] /= entry.getValue().count;
+			}
+		}
+	}
+	
+	/**
 	 * Gets a copy of the labelImage as a short array.
 	 * @return short[] representation of the labelImage
 	 */
@@ -320,7 +360,7 @@ public class LabelImageRC extends LabelImage
 				LabelInformation stats = labelMap.get(absLabel);
 				if(stats==null)
 				{
-					stats = new LabelInformation(absLabel);
+					stats = new LabelInformation(absLabel,dim);
 					labelMap.put(absLabel, stats);
 				}
 				double val = intensityImage.get(i);
@@ -336,7 +376,7 @@ public class LabelImageRC extends LabelImage
 		LabelInformation stats = labelMap.get(0);
 		if(stats==null)
 		{
-			stats = new LabelInformation(0);
+			stats = new LabelInformation(0,dim);
 			labelMap.put(0, stats);
 		}
 		

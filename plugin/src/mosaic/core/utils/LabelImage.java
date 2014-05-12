@@ -1,4 +1,5 @@
 package mosaic.core.utils;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -217,8 +218,20 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		this.dataLabel = IntConverter.intStackToArray(stack);
 	}
 	
+	/**
+	 * 
+	 * Save the label image as tiff
+	 * 
+	 * @param file where to save (full or relative path)
+	 */
+	
 	public void save(String file)
 	{
+		// Remove eventually the "file:" string
+		
+		if (file.indexOf("file:") >= 0)
+			file = file.substring(file.indexOf("file:")+5);
+		
 		FileSaver fs = new FileSaver(convert("save",256));
 		
 		fs.saveAsTiff(file);
@@ -389,6 +402,14 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		}
 	}	
 	
+	/**
+	 * 
+	 * Is the point at the boundary
+	 * 
+	 * @param aIndex Point
+	 * @return true if is at the boundary false otherwise
+	 */
+	
 	public boolean isBoundaryPoint(Point aIndex)
 	{
 		int vLabelAbs = getLabelAbs(aIndex);
@@ -420,7 +441,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		}
 		return true;
 	}	
-
+	
 	protected boolean isInnerLabel(int label)
 	{
 		if(label == bgLabel || isContourLabel(label)) {
@@ -448,6 +469,13 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 //		}
 	}
 	
+	/**
+	 * 
+	 * return the label at the position index (linearized)
+	 * 
+	 * @param index position
+	 * @return the label value
+	 */
 	
 	public int getLabel(int index)
 	{

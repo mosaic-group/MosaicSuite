@@ -365,4 +365,23 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 			this.offset[i].setReal(pos[i]);
 		}
 	}
+
+	@Override
+	public String getStringParameters() 
+	{
+		String opt = new String();
+		
+		if (var.length == 2)
+			opt += "sigma_x="+var[0]+" sigma_y"+var[1]+" Dimensions="+var.length;
+		else
+			opt += "sigma_x="+var[0]+" sigma_y"+var[1]+" sigma_z"+var[2] + " Dimensions="+var.length;
+		
+		
+		for (int i = 0 ; i < var.length-3 ; i++)
+		{
+			opt += "sigma_" + i;
+		}
+		
+		return opt;
+	}
 };

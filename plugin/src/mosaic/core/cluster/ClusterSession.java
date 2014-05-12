@@ -45,11 +45,36 @@ public class ClusterSession
 	int nImages;
 	ClusterProfile cp;
 	SecureShellSession ss;
-	int nslot_per_process = 1;
+	int ns_pp = 1;
+	String ia_s="filepath";
 	
 	ClusterSession(ClusterProfile cp_)
 	{
 		cp = cp_;
+	}
+	
+	/**
+	 * 
+	 * Set slots to allocate per process
+	 * 
+	 * @param ns_pp
+	 */
+	
+	public void setSlotPerProcess(int ns_pp)
+	{
+		this.ns_pp = ns_pp;
+	}
+	
+	/**
+	 * 
+	 * Set input argument
+	 * 
+	 * @param ia_s string for the input argument
+	 */
+	
+	public void setInputArgument(String ia_s)
+	{
+		this.ia_s = ia_s;
 	}
 	
 	private String readFileAsString(String filePath) throws IOException {
@@ -217,12 +242,12 @@ public class ClusterSession
 			   + "if(job_id == \"\" )\n"
 			   + "   exit(\"No job id\");\n"
 			   + "\n"
-			   + "run(\""+command+"\",\"config=" + ss.getTransfertDir() + "settings.dat" + " output=" + ss.getTransfertDir() + "tmp_" + "\"" + " + job_id + " + "\"_seg.tif" + " filepath=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
+			   + "run(\""+command+"\",\"config=" + ss.getTransfertDir() + "settings.dat" + " output=" + ss.getTransfertDir() + "tmp_" + "\"" + " + job_id + " + "\"_seg.tif" + " "+ia_s+"=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
 			   
 		// Create the batch script if required and upload it
 	
 		String run_s = cp.getRunningDir() + ss.getSession_id() + "/" + ss.getSession_id() + ".ijm";
-		String scr = bc.getScript(run_s,ss.getSession_id(),Ext,nImages);
+		String scr = bc.getScript(run_s,ss.getSession_id(),Ext,nImages, ns_pp);
 		if (scr != null)
 		{
 			PrintWriter out;
@@ -289,6 +314,8 @@ public class ClusterSession
 			// Create jobID file
 		
 			out = new PrintWriter(tmp_dir + "JobID");
+			String tmp = new String(command);
+			tmp.replace(" ", "_");
 			out.println(new String(bc.getJobID() + " " + nImages + " " + img.getTitle() + " " + command));
 			out.close();
 		
@@ -755,13 +782,14 @@ public class ClusterSession
 	 * 
 	 * @param out output produced by the plugin
 	 * @param command to run the plugin
+	 * @param options to run the plugin
 	 * @param optionally ClusterGUI
 	 * @return
 	 */
 	
 	static public ClusterSession getFinishedJob(String[] out, String command, ClusterGUI cg)
 	{
-		return processImage(null,command,out,cg,new Float(0.0),new Float(0.0),true);
+		return processImage(null,command,null,out,cg,new Float(0.0),new Float(0.0),true);
 	}
 	
 	/**
@@ -775,7 +803,7 @@ public class ClusterSession
 	
 	static public ClusterSession getFinishedJob(String[] out, String command)
 	{
-		return processImage(null,command,out,null,new Float(0.0),new Float(0.0),true);
+		return processImage(null,command,null,out,null,new Float(0.0),new Float(0.0),true);
 	}
 	
 	
@@ -785,14 +813,15 @@ public class ClusterSession
 	 * 
 	 * @param aImp the image to process
 	 * @param command to run the plugin
+	 * @param options to run the plugins
 	 * @param output produced by the plugin
 	 * @param cg ClusterGUI
 	 * @return the session cluster
 	 */
 	
-	static public ClusterSession processImage(ImagePlus aImp,String command, String[] out, ClusterGUI cg)
+	static public ClusterSession processImage(ImagePlus aImp,String command, String options, String[] out, ClusterGUI cg)
 	{
-		return processImage(aImp,command,out,cg,new Float(0.0),new Float(0.0),true);
+		return processImage(aImp,command,options,out,cg,new Float(0.0),new Float(0.0),true);
 	}	
 	
 	
@@ -802,13 +831,14 @@ public class ClusterSession
 	 * 
 	 * @param aImp the image to process
 	 * @param command to run the plugin
+	 * @param options to run the plugin
 	 * @param output produced by the plugin
 	 * @return the session cluster
 	 */
 	
-	static public ClusterSession processImage(ImagePlus aImp,String command, String[] out)
+	static public ClusterSession processImage(ImagePlus aImp,String command, String options, String[] out)
 	{
-		return processImage(aImp,command,out,null,new Float(0.0),new Float(0.0),true);
+		return processImage(aImp,command,options,out,null,new Float(0.0),new Float(0.0),true);
 	}
 	
 	/**
@@ -825,7 +855,7 @@ public class ClusterSession
 	 * @return the session cluster
 	 */
 	
-	static public ClusterSession processImage(ImagePlus aImp, String command, String[] out, ClusterGUI cg, Float max, Float min, boolean sync)
+	static public ClusterSession processImage(ImagePlus aImp, String command, String options, String[] out, ClusterGUI cg, Float max, Float min, boolean sync)
 	{
 		if (cg == null)
 		{
@@ -850,7 +880,7 @@ public class ClusterSession
 		
 		// Run plugin on frames
 		
-		if (ss.runPluginsOnFrames(aImp, command, "min="+ min + " max="+max, out, 180.0, sync) == false)
+		if (ss.runPluginsOnFrames(aImp, command, "min="+ min + " max="+max + " " + options, out, 180.0, sync) == false)
 			return null;
 		
 		return ss;
@@ -864,13 +894,14 @@ public class ClusterSession
 	 * @param command to run the plugin
 	 * @param out output produced by the plugin *_xxxxxx.tif or *_xxxxxx.csv where * is subsituted
 	 *        with the image name
+	 * @param options to run the plugins
 	 * @return the cluster session
 	 * 
 	 */
 	
-	static public ClusterSession processFiles(File list[], String command, String[] out)
+	static public ClusterSession processFiles(File list[], String command, String options, String[] out)
 	{
-		return processFiles(list,command,out,null);
+		return processFiles(list,command,options,out,null);
 	}
 	
 	/**
@@ -881,12 +912,13 @@ public class ClusterSession
 	 * @param command to run the plugin
 	 * @param out output produced by the plugin *_xxxxxx.tif or *_xxxxxx.csv where * is subsituted
 	 *        with the image name
+	 * @param options 
 	 * @param ClusterGUI optionally a ClusterGUI
 	 * @return the cluster session
 	 * 
 	 */
 	
-	static public ClusterSession processFiles(File list[],String command, String[] out, ClusterGUI cg)
+	static public ClusterSession processFiles(File list[],String command, String options, String[] out, ClusterGUI cg)
 	{
 		if (cg == null)
 			cg = new ClusterGUI();
@@ -903,10 +935,10 @@ public class ClusterSession
 		{
 			// File
 			
-			processFile(fl,command,out,cg,mm.max,mm.min);
+			processFile(fl,command,options,out,cg,mm.max,mm.min);
 		}
 		
-		ss.runPluginsOnFrames(null,command,null, Analysis.out, 180.0);
+		ss.runPluginsOnFrames(null,command,options, Analysis.out, 180.0);
 		return ss;
 	}
 	
@@ -918,12 +950,30 @@ public class ClusterSession
 	 * @param command to run the plugin
 	 * @param out output produced by the plugin *_xxxxxx.tif or *_xxxxxx.csv where * is subsituted
 	 *        with the image name
+	 * @param options to run the plugin
 	 * @return the cluster session
 	 * 
 	 */
-	static public ClusterSession processFile(File fl, String [] out, String command)
+	static public ClusterSession processFile(File fl, String [] out, String command, String options)
 	{
-		return processFile(fl,command,out,null);
+		return processFile(fl,command,options,out,null);
+	}
+	
+	/**
+	 * 
+	 * Process a file
+	 * 
+	 * @param fl File to process
+	 * @param command to run the plugin
+	 * @param out output produced by the plugin *_xxxxxx.tif or *_xxxxxx.csv where * is subsituted
+	 *        with the image name
+	 * @param options to run the plugins
+	 * @return the cluster session
+	 * 
+	 */
+	static public ClusterSession processFile(File fl, String command, String options,String [] out)
+	{
+		return processFile(fl,command,options,out,null);
 	}
 	
 	/**
@@ -935,10 +985,11 @@ public class ClusterSession
 	 * @param out output produced by the plugin *_xxxxxx.tif or *_xxxxxx.csv where * is subsituted
 	 *        with the image name
 	 * @param ClusterGUI optionally a ClusterGUI
+	 * @param options to run the plugin
 	 * @return the cluster session
 	 * 
 	 */
-	static public ClusterSession processFile(File fl, String command,String [] out, ClusterGUI cg)
+	static public ClusterSession processFile(File fl, String command, String options,String [] out, ClusterGUI cg)
 	{
 		if (cg == null)
 			cg = new ClusterGUI();
@@ -948,7 +999,7 @@ public class ClusterSession
 		
 		Opener opener = new Opener();  
 		ImagePlus imp = opener.openImage(fl.getAbsolutePath());
-		ClusterSession ss = processImage(imp,command,out,cg,new Float(0.0),new Float(0.0),true);
+		ClusterSession ss = processImage(imp,command,options,out,cg,new Float(0.0),new Float(0.0),true);
 		
 		
 //		ClusterSession ss = cg.getClusterSession();
@@ -963,18 +1014,19 @@ public class ClusterSession
 	 * 
 	 * @param fl File to process
 	 * @param command to run the plugin
+	 * @param options to run the plugin
 	 * @param min external minimum intensity (used for re-normalization across images)
 	 * @param max external maximum intensity (used for re-normalization across images)
 	 * @param ClusterGUI optionally a cluster GUI
 	 * 
 	 */
-	static private ClusterSession processFile(File fl,String command, String [] out, ClusterGUI cg, Float max, Float min)
+	static private ClusterSession processFile(File fl,String command, String options, String [] out, ClusterGUI cg, Float max, Float min)
 	{		
 		// open the image and process image
 		
 		Opener opener = new Opener();  
 		ImagePlus imp = opener.openImage(fl.getAbsolutePath());
-		ClusterSession ss = processImage(imp,command,out,cg,max,min,false);
+		ClusterSession ss = processImage(imp,command,options,out,cg,max,min,false);
 		
 		return ss;
 	}

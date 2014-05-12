@@ -55,7 +55,7 @@ public class GenericDialogGUI implements InputReadable
 	private String labelImageTitle;
 	
 	private int kbest = 1;
-	private boolean showStatistics = false;
+	private boolean showAndSaveStatistics = false;
 	private boolean showNormalized = false;
 	private boolean useStack = true;
 	public boolean keepAllFrames = true;	// keep result of last segmentation iteratior?
@@ -99,6 +99,8 @@ public class GenericDialogGUI implements InputReadable
 			
 			gd.addStringField("text1", "");
 			gd.addStringField("text2", "");
+			
+			gd.addCheckbox("Show_and_save_Statistics", true);
 			
 			return;
 		}
@@ -167,7 +169,7 @@ public class GenericDialogGUI implements InputReadable
 				useStack, 
 				keepAllFrames,  
 				showNormalized, 
-				showStatistics, 
+				showAndSaveStatistics, 
 				};
 		
 		gd.addCheckboxGroup(2, strings.length, 
@@ -563,6 +565,8 @@ public class GenericDialogGUI implements InputReadable
 			filenameInput=gd.getNextString();
 			filenameLabelImage=gd.getNextString();
 			
+			showAndSaveStatistics = gd.getNextBoolean();
+			
 			return true;
 		}
 		
@@ -613,7 +617,7 @@ public class GenericDialogGUI implements InputReadable
 		useStack=gd.getNextBoolean();
 		keepAllFrames = gd.getNextBoolean();
 		showNormalized = gd.getNextBoolean();
-		showStatistics = gd.getNextBoolean();
+		showAndSaveStatistics = gd.getNextBoolean();
 		
 		useCluster = gd.getNextBoolean();
 		
@@ -671,9 +675,9 @@ public class GenericDialogGUI implements InputReadable
 	}
 
 	@Override
-	public boolean showStatistics()
+	public boolean showAndSaveStatistics()
 	{
-		return showStatistics;
+		return showAndSaveStatistics;
 	}
 
 
