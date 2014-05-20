@@ -111,7 +111,11 @@ public class RegionIteratorMask
 	
 	
 	/**
+	 * Create a Region iterator Mask
+	 * 
 	 * @param inputSize	size of the input (width/height/...)
+	 * @param 
+	 * 
 	 */
 	public RegionIteratorMask(Mask mask, int[] inputSize)
 	{

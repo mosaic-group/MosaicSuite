@@ -10,6 +10,7 @@ import net.imglib2.Interval;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
 import mosaic.core.ipc.ICSVGeneral;
+import mosaic.core.ipc.StubProp;
 
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
@@ -23,7 +24,8 @@ import org.supercsv.cellprocessor.ParseInt;
  *  	x is vertical top to bottom
  *  	y is horizontal left to right
  */
-public class Particle  implements ICSVGeneral
+
+public class Particle extends StubProp implements ICSVGeneral
 {
 
 	public static final String[] ParticleDetection_map = new String[] 
@@ -365,25 +367,11 @@ public class Particle  implements ICSVGeneral
 	}
 
 	@Override
-	public void setObject_ID(int Object_ID_) 
-	{
-	}
-
-	@Override
 	public void setSize(double Size_) 
 	{
 		m0 = (float) Size_;
 	}
 
-	@Override
-	public void setPerimeter(double Perimeter_) 
-	{
-	}
-
-	@Override
-	public void setLength(double Length_) 
-	{
-	}
 
 	@Override
 	public void setIntensity(double Intensity_) 
@@ -407,11 +395,6 @@ public class Particle  implements ICSVGeneral
 	public void setz(double Coord_Z_) 
 	{
 		z = (float) Coord_Z_;
-	}
-
-	@Override
-	public void setSurface(double Surface_) 
-	{
 	}
 
 	@Override
@@ -450,34 +433,11 @@ public class Particle  implements ICSVGeneral
 		return z;
 	}
 
-	public int getImage_ID() {return 0;}
-
-
-	@Override
-	public int getObject_ID() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 
 	@Override
 	public double getSize() {
 		// TODO Auto-generated method stub
 		return m0;
-	}
-
-
-	@Override
-	public double getPerimeter() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-
-	@Override
-	public double getLength() {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 
 
@@ -506,13 +466,6 @@ public class Particle  implements ICSVGeneral
 	public double getz() {
 		// TODO Auto-generated method stub
 		return z;
-	}
-
-
-	@Override
-	public double getSurface() {
-		// TODO Auto-generated method stub
-		return 0;
 	}
 }
 

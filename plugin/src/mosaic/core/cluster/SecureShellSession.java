@@ -587,7 +587,23 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 	 * @return true if all file are uploaded, false trasnfert fail
 	 * 
 	 */
-	public boolean upload(String pwd, File files[], ProgressBarWin wp, ClusterProfile cp)	
+	public boolean upload(String pwd, File files[] , ProgressBarWin wp, ClusterProfile cp)	
+	{
+		return upload(pwd,files,null,wp,cp);
+	}
+	
+	/**
+	 * 
+	 * run a sequence of SFTP commands to upload files
+	 * @param pwd password to access the sftp session
+	 * @param files to transfer
+	 * @param dir create the relative dir where to store the files
+	 * @param wp Progress window bar can be null
+	 * @param cp Cluster profile (Optional) can be null
+	 * @return true if all file are uploaded, false trasnfert fail
+	 * 
+	 */
+	public boolean upload(String pwd, File files[], File dir , ProgressBarWin wp, ClusterProfile cp)	
 	{
 		Random grn = new Random();
 		
@@ -625,6 +641,13 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		    	cSFTP.cd(tdir);
 		    }
 		    
+		    // we have a dir
+		    
+		    if (dir != null)
+		    {
+		    	cSFTP.mkdir(dir.getPath());
+		    	cSFTP.cd(dir.getPath());
+		    }
 		    
 		    if (cmp.getCompressor() == null)
 		    {
@@ -659,8 +682,20 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		    	if (createSSHChannel() == false)
 		    		return false;
 
-		    	String s = new String("cd " + tdir + " ; ");
-		    	s += cmp.unCompressCommand(new File(tdir + files[0].getName() + "_compressed"));
+		    	// Getting the string to uncompress + appending the string
+		    	// to print out when the task has been accomplished
+		    	
+		    	String s = new String();
+		    	if (dir == null)
+		    	{
+		    		s += "cd " + tdir + " ; ";
+		    		s += cmp.unCompressCommand(new File(tdir + files[0].getName() + "_compressed"));
+		    	}
+		    	else
+		    	{
+		    		s += "cd " + tdir + File.separator + dir.getPath() + File.separator + " ; ";
+		    		s += cmp.unCompressCommand(new File(tdir + File.separator + dir.getName() + File.separator + files[0].getName() + "_compressed"));
+		    	}
 		    	s += " ; echo \"JSCH REMOTE COMMAND\"; echo \"COMPRESSION END\"; \n";
 				waitString = new String("JSCH REMOTE COMMAND\r\nCOMPRESSION END");
 				wp_p = wp;
@@ -668,11 +703,11 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 				setShellProcessOutput(this);
 				doing = new String("Decompressing on cluster");
 				
+				computed = false;
 				pinput_out.write(s.getBytes());
 				
 				// Ugly but work;
 				
-				computed = false;
 				while (computed == false) 
 				{try {Thread.sleep(100);}
 				catch (InterruptedException e) 

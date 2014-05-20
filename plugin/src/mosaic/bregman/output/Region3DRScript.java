@@ -3,10 +3,11 @@ package mosaic.bregman.output;
 import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.Outdata;
+import mosaic.core.ipc.StubProp;
 
 
 
-public class Region3DRScript implements ICSVGeneral
+public class Region3DRScript extends StubProp implements ICSVGeneral
 {
 	int Image_ID;
 	int Object_ID;

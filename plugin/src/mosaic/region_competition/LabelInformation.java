@@ -23,6 +23,7 @@ public class LabelInformation
 	{
 		this.label=label;
 		this.dim = dim;
+		mean_pos=new double[dim];
 	}
 	
 	/**

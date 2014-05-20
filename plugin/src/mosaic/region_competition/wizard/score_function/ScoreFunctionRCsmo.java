@@ -104,10 +104,10 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 					np++;
 					int id = Math.abs(l.dataLabel[i]);
 					
-					CurvatureBasedFlow f2 = new CurvatureBasedFlow(2,l);
-					CurvatureBasedFlow f4 = new CurvatureBasedFlow(4,l);
-					CurvatureBasedFlow f8 = new CurvatureBasedFlow(8,l);
-					CurvatureBasedFlow f16 = new CurvatureBasedFlow(16,l);
+					CurvatureBasedFlow f2 = new CurvatureBasedFlow(2,l,null);
+					CurvatureBasedFlow f4 = new CurvatureBasedFlow(4,l,null);
+					CurvatureBasedFlow f8 = new CurvatureBasedFlow(8,l,null);
+					CurvatureBasedFlow f16 = new CurvatureBasedFlow(16,l,null);
 
 					double eCurv2 = f2.generateData(p,0,id);
 					double eCurv4 = f4.generateData(p,0,id);
@@ -187,10 +187,10 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 				{
 					int id = Math.abs(l.dataLabel[i]);
 					
-					CurvatureBasedFlow f2 = new CurvatureBasedFlow(2,l);
-					CurvatureBasedFlow f4 = new CurvatureBasedFlow(4,l);
-					CurvatureBasedFlow f8 = new CurvatureBasedFlow(8,l);
-					CurvatureBasedFlow f16 = new CurvatureBasedFlow(16,l);
+					CurvatureBasedFlow f2 = new CurvatureBasedFlow(2,l,null);
+					CurvatureBasedFlow f4 = new CurvatureBasedFlow(4,l,null);
+					CurvatureBasedFlow f8 = new CurvatureBasedFlow(8,l,null);
+					CurvatureBasedFlow f16 = new CurvatureBasedFlow(16,l,null);
 
 					double eCurv2 = f2.generateData(p,0,id);
 					double eCurv4 = f4.generateData(p,0,id);

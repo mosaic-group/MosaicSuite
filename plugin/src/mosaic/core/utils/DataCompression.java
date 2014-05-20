@@ -82,7 +82,9 @@ public class DataCompression
 	
 	/**
 	 * 
-	 * Select internaly the best compressor
+	 * Select internaly the best compressor starting from the j compressor
+	 * 
+	 * @param j
 	 * 
 	 */
 	

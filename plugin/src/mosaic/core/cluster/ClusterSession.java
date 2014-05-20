@@ -16,6 +16,9 @@ import mosaic.bregman.output.CSVOutput;
 import mosaic.core.cluster.LSFBatch;
 import mosaic.core.cluster.JobStatus.jobS;
 import mosaic.core.cluster.LSFBatch.LSFJob;
+import mosaic.core.ipc.ICSVGeneral;
+import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.ipc.MetaInfo;
 import mosaic.core.utils.MM;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
@@ -105,16 +108,27 @@ public class ClusterSession
 	 * Split the images into frames and upload them
 	 * 
 	 * @param img Image
-	 * @param post_fix="example" on the cluster you have a file
-	 *        xxxxxx_example.tif (added to avoid crashes)
+	 * @param dir where to save (relative path)
 	 * @param wp optionally a progess bar
 	 * @return true if upload false otherwise
 	 */
 	
-	public boolean splitAndUpload(ImagePlus img, String post_fix , ProgressBarWin wp)
+	public boolean splitAndUpload(ImagePlus img, File dir , ProgressBarWin wp)
 	{
+		if (ss == null)
+			ss = new SecureShellSession(cp);
+		
 		if (img == null)
 		{nImages = 0; return true;}
+		
+		boolean dispose = false;
+		if (wp == null)
+		{
+			wp = new ProgressBarWin();
+			dispose = true;
+		}
+		
+		wp.setVisible(true);
 		
 		nImages = img.getNFrames();
 		String tmp_dir = IJ.getDirectory("temp");
@@ -134,7 +148,7 @@ public class ClusterSession
 			}
 		
 			ImagePlus ip = new ImagePlus("tmp",tmp_stk);
-			IJ.saveAs(ip,"Tiff", tmp_dir + "tmp_" + (i+1) + post_fix);
+			IJ.saveAs(ip,"Tiff", tmp_dir + "tmp_" + (i+1));
 		
 			wp.SetProgress(100*i/nImages);
 		}
@@ -158,12 +172,13 @@ public class ClusterSession
 		wp.SetProgress(0);
 		wp.SetStatusMessage("Uploading...");
 	
-		if (ss.upload(cp.getPassword(),fl,wp,cp) == false)
+		if (ss.upload(cp.getPassword(),fl,dir,wp,cp) == false)
 		{
 			CleanUp();
 			return false;
 		}
-		
+		if (dispose == true)
+			wp.dispose();
 		return true;
 	}
 	
@@ -183,7 +198,7 @@ public class ClusterSession
 		if (img == null)
 		{nImages = 0; return true;}
 		
-		splitAndUpload(img,"",wp);
+		splitAndUpload(img,null,wp);
 	
 		BatchInterface bc = cp.getBatchSystem();
 		String tmp_dir = IJ.getDirectory("temp");
@@ -242,7 +257,7 @@ public class ClusterSession
 			   + "if(job_id == \"\" )\n"
 			   + "   exit(\"No job id\");\n"
 			   + "\n"
-			   + "run(\""+command+"\",\"config=" + ss.getTransfertDir() + "settings.dat" + " output=" + ss.getTransfertDir() + "tmp_" + "\"" + " + job_id + " + "\"_seg.tif" + " "+ia_s+"=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
+			   + "run(\""+command+"\",\"config=" + ss.getTransfertDir() + "settings.dat" + " "+ia_s+"=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
 			   
 		// Create the batch script if required and upload it
 	
@@ -606,6 +621,38 @@ public class ClusterSession
 	
 	/**
 	 * 
+	 * Get the base directory where files are transfer
+	 * 
+	 * @return base directory as String
+	 */
+	
+	public String getClusterDirectory()
+	{
+		if (ss == null)
+			return null;
+		
+		return ss.getTransfertDir();
+	}
+	
+	/**
+	 * 
+	 * Upload a list of files creating a relative directory
+	 * 
+	 * @param dir directory
+	 * @param fl Files to upload
+	 */
+	
+	public void upload(File dir, File[] fl)
+	{
+		if (ss == null)
+			ss = new SecureShellSession(cp);
+		
+		ProgressBarWin wp = new ProgressBarWin();
+		ss.upload(cp.getPassword(), fl, dir, wp, null);
+	}
+	
+	/**
+	 * 
 	 * Upload a list of files
 	 * 
 	 * @param fl Files to upload
@@ -614,7 +661,8 @@ public class ClusterSession
 	
 	public void upload(File[] fl)
 	{
-		ss = new SecureShellSession(cp);
+		if (ss == null)
+			ss = new SecureShellSession(cp);
 		
 		ProgressBarWin wp = new ProgressBarWin();
 		ss.upload(cp.getPassword(), fl, wp, null);
@@ -649,6 +697,7 @@ public class ClusterSession
 		if (createJobArrayFromImage(img,command,options,ss,ExtTime,wp) == false)
 		{
 			wp.SetStatusMessage("Failed to create job array");
+			ss = null;
 			return false;
 		}
 		
@@ -659,7 +708,7 @@ public class ClusterSession
 			// Close the progress bar
 			
 			wp.dispose();
-			
+			ss = null;
 			return true;
 		}
 		
@@ -1010,6 +1059,19 @@ public class ClusterSession
 	
 	/**
 	 * 
+	 * Return the filename produced by the split and upload
+	 * 
+	 * @param num number
+	 * @return the filename
+	 */
+	
+	public String getSplitAndUploadFilename(int num)
+	{
+		return "tmp_" + (num+1) + ".tif";
+	}
+	
+	/**
+	 * 
 	 * Process a file
 	 * 
 	 * @param fl File to process
@@ -1040,12 +1102,13 @@ public class ClusterSession
 	 * supplied in outcsv perform a stitch operation (it try to stitch
 	 *  all the CSV in one)
 	 * 
-	 * @param ss
-	 * @param outcsv
+	 * @param ss Cluster session
+	 * @param outcsv set of csv output data
+	 * @param cls base class for internal conversion
 	 * @param aImp
 	 */
 	
-	public static void processJobsData(ClusterSession ss, String[] outcsv , ImagePlus aImp)
+	public static <T extends ICSVGeneral> void processJobsData(ClusterSession ss, String[] outcsv , ImagePlus aImp, Class<T> cls)
 	{
 		// Save all JobID to the image folder
 		// or ask for a directory
@@ -1072,7 +1135,7 @@ public class ClusterSession
 				{
 					// Stitch Object.csv
 					
-					CSVOutput.Stitch(outcsv,"tmp_",new File(dir[i]), dirS);
+					InterPluginCSV.Stitch(outcsv,"tmp_",new File(dir[i]),null,cls);
 					
 					///////
 					

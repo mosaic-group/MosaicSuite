@@ -50,6 +50,9 @@ import mosaic.bregman.output.CSVOutput;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterSession;
+import mosaic.core.ipc.ICSVGeneral;
+import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.ipc.MetaInfo;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 import mosaic.plugins.BregmanGLM_Batch;
@@ -437,7 +440,11 @@ public class GenericGUI
 				
 				MosaicUtils.reorganize(Analysis.out_w,aImp.getShortTitle(),savepath,aImp.getNFrames());
 				
-				CSVOutput.Stitch(Analysis.out_w,"",new File(savepath),MosaicUtils.ValidFolderFromImage(aImp) + aImp.getTitle());
+				MetaInfo mt[] = new MetaInfo[1];
+				mt[0].par = new String("background");
+				mt[0].value = new String(MosaicUtils.ValidFolderFromImage(aImp) + aImp.getTitle());
+				
+				InterPluginCSV.StitchConvert(Analysis.out_w,"",new File(savepath),mt,CSVOutput.occ,CSVOutput.occ.classFactory);
 			}
 			else
 				hd= new BLauncher(wpath);
@@ -459,7 +466,7 @@ public class GenericGUI
 				// disabling display options
 				
 				p.dispwindows = false;
-				BregmanGLM_Batch.SaveConfig(p,"/tmp/spb_settings.dat");
+				BregmanGLM_Batch.SaveConfig(p,"/tmp/settings.dat");
 			}
 			catch (IOException e) 
 			{
@@ -481,13 +488,13 @@ public class GenericGUI
 					
 					fileslist = fl.listFiles();
 					
-					ss = ClusterSession.processFiles(fileslist,"Squassh",Analysis.out);
+					ss = ClusterSession.processFiles(fileslist,"Squassh","",Analysis.out);
 				}
 				else if (fl.isFile())
 				{
 					// we process an image
 					
-					ss = ClusterSession.processFile(fl,"Squassh",Analysis.out);
+					ss = ClusterSession.processFile(fl,"Squassh","",Analysis.out);
 				}
 				else
 				{
@@ -500,13 +507,13 @@ public class GenericGUI
 			{
 				// It is a file
 				
-				ss = ClusterSession.processImage(aImp,"Squassh",Analysis.out);
+				ss = ClusterSession.processImage(aImp,"Squassh","",Analysis.out);
 			}
 			
 			// Get output format and Stitch the output in the output selected
 			
 			String outcsv[] = {"*_ObjectsData_c1.csv"};
-			ClusterSession.processJobsData(ss,outcsv,aImp);
+			ClusterSession.processJobsData(ss,outcsv,aImp,CSVOutput.occ.classFactory);
 			
 			////////////////
 		}

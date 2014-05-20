@@ -7,6 +7,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
 
+import net.imglib2.RandomAccess;
+import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.RealType;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.Point;
@@ -65,6 +72,27 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	protected Connectivity connFG;
 	protected Connectivity connBG;
 
+	/**
+	 * 
+	 * Create a label image from an ImgLib2 image
+	 * use always native type for computation are
+	 * much faster than imgLib2
+	 * 
+	 */
+	
+	public <T extends IntegerType<T>>LabelImage(Img<T> lbl)
+	{
+		// Get the image dimensions
+		
+		int dimensions[] = MosaicUtils.getImageIntDimensions(lbl);
+		
+		// get int dimension
+		
+		init(dimensions);
+		initImgLib2(lbl);
+		iterator = new IndexIterator(dimensions);
+	}
+	
 	/**
 	 * 
 	 * Create a labelImage from another label Image
@@ -191,6 +219,32 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	}
 	
 	/**
+	 * LabelImage loaded from an imgLib2 image
+	 * 
+	 * @param imgLib2
+	 * 
+	 */
+	private <T extends IntegerType<T>>void initImgLib2(Img<T> img)
+	{
+		RandomAccess<T> ra = img.randomAccess();
+		
+		// Create a region iterator
+		
+		RegionIterator rg = new RegionIterator(MosaicUtils.getImageIntDimensions(img));
+		
+		// load the image
+		
+		while (rg.hasNext())
+		{
+			Point p = rg.getPoint();
+			int id = rg.next();
+			
+			ra.setPosition(p.x);
+			dataLabel[id] = ra.get().getInteger();
+		}
+	}
+	
+	/**
 	 * LabelImage loaded from file
 	 */
 	public void initWithIP(ImagePlus imagePlus)
@@ -304,6 +358,57 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		{
 			setLabel(i,getLabelAbs(i));
 		}
+	}
+	
+	/**
+	 * 
+	 * Get an ImgLib2 from a intensity image
+	 * 
+	 * @return an ImgLib2 image
+	 * 
+	 */
+	
+	public <T extends NativeType<T> & IntegerType<T> > Img<T> getImgLib2(Class<T> cls)
+	{
+		long lg[] = new long[getDim()];
+		
+		// Take the size
+		
+		ImgFactory< T > imgFactory = new ArrayImgFactory< T >( );
+		
+		for (int i = 0 ; i < getDim() ; i++)
+		{
+			lg[i] = getDimensions()[i];
+		}
+		
+        // create an Img of the same type of T and size of the imageLabel
+        
+        Img<T> it = null;
+		try {
+			it = imgFactory.create(lg , cls.newInstance() );
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		RandomAccess<T> randomAccess_it = it.randomAccess();
+		
+		// Region iterator
+		
+		RegionIterator ri = new RegionIterator(getDimensions());
+		
+		while (ri.hasNext())
+		{
+			Point p = ri.getPoint();
+			int id = ri.next();
+			
+			randomAccess_it.setPosition(p.x);
+			randomAccess_it.get().setInteger(dataLabel[id]);
+		}
+		
+		return it;
 	}
 	
 	/**

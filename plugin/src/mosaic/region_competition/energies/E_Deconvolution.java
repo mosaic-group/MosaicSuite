@@ -39,7 +39,7 @@ public class E_Deconvolution extends ExternalEnergy
 		
 		/* Create boundary strategy 0.0 outside the image */
 		
-        infDevAccess = Views.extendValue( DevImage, new FloatType( 0 ) );
+        infDevAccess = Views.extendPeriodic( DevImage);
         infDevAccessIt = infDevAccess.randomAccess();
 		
 		m_PSF = null;

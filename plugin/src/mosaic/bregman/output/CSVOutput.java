@@ -104,16 +104,16 @@ public class CSVOutput
     	oc[0].cel = Region3DTrackCellProcessor;
     	oc[0].map = Region3DTrack_map;
     	oc[0].classFactory = Region3DTrack.class;
-    	oc[0].vectorFactory = (Class<Vector<?>>) new Vector<Region3DTrack>().getClass();
-    	oc[0].InterPluginCSVFactory = (Class<InterPluginCSV<?>>) new InterPluginCSV<Region3DTrack>(Region3DTrack.class).getClass();
+    	oc[0].vectorFactory = (Class<Vector<? extends ICSVGeneral>>) new Vector<Region3DTrack>().getClass();
+    	oc[0].InterPluginCSVFactory = (Class<InterPluginCSV<? extends ICSVGeneral>>) new InterPluginCSV<Region3DTrack>(Region3DTrack.class).getClass();
     	oc[0].delimiter = ',';
     	oc[1] = new SquasshOutputChoose();
     	oc[1].name = new String("Format for R script");
     	oc[1].cel = Region3DRScriptCellProcessor;
     	oc[1].map = Region3DRScript_map;
     	oc[1].classFactory = Region3DRScript.class;
-    	oc[1].vectorFactory = (Class<Vector<?>>) new Vector<Region3DRScript>().getClass();
-    	oc[1].InterPluginCSVFactory = (Class<InterPluginCSV<?>>) new InterPluginCSV<Region3DRScript>(Region3DRScript.class).getClass();
+    	oc[1].vectorFactory = (Class<Vector<? extends ICSVGeneral>>) new Vector<Region3DRScript>().getClass();
+    	oc[1].InterPluginCSVFactory = (Class<InterPluginCSV<? extends ICSVGeneral>>) new InterPluginCSV<Region3DRScript>(Region3DRScript.class).getClass();
     	oc[1].delimiter = ';';
     	occ = oc[1];
     }
@@ -193,41 +193,4 @@ public class CSVOutput
     public static SquasshOutputChoose occ;
     public static SquasshOutputChoose oc[];
     
-    /**
-     * 
-     * Stitch the CSV files all together in the directory dir + output[]
-     * with pattern base + 1....N + output[]
-     * save the result in the Directory dir. "*" are substituted by "_"
-     * 
-     * @param output list of 
-     * @param base Base filename
-     * @param dir Base dir
-     * @param ExtParam array of metadata
-     * @return true if success, false otherwise
-     */
-    
-    public static boolean Stitch(String output[], String base, File dir, String background)
-    {
-		InterPluginCSV<?> csv = getInterPluginCSV();
-    	
-		for (int j = 0 ; j < output.length ; j++)
-		{
-			File [] fl = new File(dir + File.separator + output[j].replace("*", "_")).listFiles();
-			int nf = fl.length;
-			
-			String str[] = new String[nf];
-			
-			for (int i = 1 ; i <= nf ; i++)
-			{
-				str[i-1] = dir + File.separator + output[j].replace("*", "_") + File.separator + output[j].replace("*", base + i);
-			}
-			
-			if (background != null)
-				csv.setMetaInformation("background", background);
-			
-			csv.StitchConvert(str, dir + File.separator + output[j].replace("*", "stitch"), occ,"Frame",0);
-		}
-    	
-    	return true;
-    }
 }

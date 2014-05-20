@@ -268,7 +268,7 @@ public class Algorithm
 				LabelInformation stats = labelMap.get(absLabel);
 				if(stats==null)
 				{
-					stats = new LabelInformation(absLabel);
+					stats = new LabelInformation(absLabel,labelImage.getDim());
 					labelMap.put(absLabel, stats);
 				}
 				double val = intensityImage.get(i);
@@ -284,7 +284,7 @@ public class Algorithm
 		LabelInformation stats = labelMap.get(0);
 		if(stats==null)
 		{
-			stats = new LabelInformation(0);
+			stats = new LabelInformation(0,labelImage.getDim());
 			labelMap.put(0, stats);
 		}
 		
@@ -488,8 +488,7 @@ public class Algorithm
 
 		return true;
 	}
-
-
+	
 	private boolean PrepareEnergyCaluclation()
 	{
         /**

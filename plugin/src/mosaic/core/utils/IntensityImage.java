@@ -7,6 +7,8 @@ import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -317,6 +319,57 @@ public class IntensityImage
 		return this.dimensions;
 	}
 
+	/**
+	 * 
+	 * Get an ImgLib2 from a intensity image
+	 * 
+	 * @return an ImgLib2 image
+	 * 
+	 */
+	
+	public <T extends NativeType<T> & RealType<T> > Img<T> getImgLib2(Class<T> cls)
+	{
+		long lg[] = new long[getDim()];
+		
+		// Take the size
+		
+		ImgFactory< T > imgFactory = new ArrayImgFactory< T >( );
+		
+		for (int i = 0 ; i < getDim() ; i++)
+		{
+			lg[i] = getDimensions()[i];
+		}
+		
+        // create an Img of the same type of T and size of the imageLabel
+        
+        Img<T> it = null;
+		try {
+			it = imgFactory.create(lg , cls.newInstance() );
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		RandomAccess<T> randomAccess_it = it.randomAccess();
+		
+		// Region iterator
+		
+		RegionIterator ri = new RegionIterator(getDimensions());
+		
+		while (ri.hasNext())
+		{
+			Point p = ri.getPoint();
+			int id = ri.next();
+			
+			randomAccess_it.setPosition(p.x);
+			randomAccess_it.get().setReal(dataIntensity[id]);
+		}
+		
+		return it;
+	}
+	
 	public static int[] dimensionsFromIP(ImagePlus ip)
 	{
 		// IJ 1.46r bug, force to update internal dim 

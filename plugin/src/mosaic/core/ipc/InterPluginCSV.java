@@ -303,6 +303,10 @@ public class InterPluginCSV<E extends ICSVGeneral>
             
             String[] map = beanReader.getHeader(true); // ignore the header
             
+            // number of column
+            
+            int nc = map.length;
+            
             if (map == null) // we cannot get the header
             	return null;
             
@@ -312,6 +316,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
             for (int i = 0 ; i < c.length ; i++)
             {
             	try {
+            		map[i] = pc.getMap(map[i].replace(" ", "_"));
 					c[i] = (CellProcessor) pc.getClass().getMethod("getProcessor" + map[i].replace(" ", "_")).invoke(pc);
 				} catch (InvocationTargetException e) {
 					// TODO Auto-generated catch block
@@ -320,7 +325,8 @@ public class InterPluginCSV<E extends ICSVGeneral>
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 					c[i] = null;
-					map[i] = null;
+					map[i] = "Nothing";
+					nc--;
 					continue;
 				}
             	map[i] = map[i].replace(" ", "_");
@@ -592,8 +598,9 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	
 	/**
 	 * 
-	 * Stitch CSV files with unknown format in one converting to a choose format
-	 * set the property specified to enumerate the file from base + base + n
+	 * Stitch CSV files with unknown format in one, converting to a choosen format
+	 * set the property specified to base + n where n run across the files
+	 * (Example usefull to enumerate frames if each file is a frame)
 	 * 
 	 * @param output files to read
 	 * @param Sttch output file name
@@ -630,7 +637,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	
 	/**
 	 * 
-	 * Stitch CSV files with unknown format in one converting to a choose format
+	 * Stitch CSV files with unknown format in one, converting to a choosen format
 	 * 
 	 * @param output files to read
 	 * @param Sttch output file name
@@ -655,25 +662,15 @@ public class InterPluginCSV<E extends ICSVGeneral>
     	
     	return true;
     }
-	
-	/**
-	 * 
-	 * Stitch CSV files in one with a choose format
-	 * 
-	 * @param output files to read
-	 * @param Sttch output file name
-	 * @param occ format choose
-	 * @return true if success 
-	 */
-	
-    public boolean Stitch(String output[], String Sttch , OutputChoose occ)
+		
+/*    public boolean Stitch(String output[], String Sttch , OutputChoose occ)
     {
 		Vector<?> v = Read(output, occ);
 		
 		Write(Sttch, v, occ, false);
     	
     	return true;
-    }
+    }*/
     
     /**
      * 
@@ -689,6 +686,8 @@ public class InterPluginCSV<E extends ICSVGeneral>
     
     public boolean Stitch(String output[], String Sttch , File dir)
     {
+    	if (output.length == 0)
+    		return false;
 		Vector<E> out = new Vector<E>();
 		
 		OutputChoose occ = ReadGeneral(output[0],out);
@@ -783,5 +782,91 @@ public class InterPluginCSV<E extends ICSVGeneral>
 		}
 			
     	return v;
+    }
+    
+    
+    /**
+     * 
+     * Stitch the CSV files all together in the directory dir + output[]
+     * with pattern "base + 1....N + output[]"
+     * save the result in the Directory dir. "*" are substituted by "_"
+     * 
+     * @param output list of 
+     * @param base Base filename
+     * @param dir Base dir (or where the files are located)
+     * @param Class<T> internal data for conversion
+     * @return true if success, false otherwise
+     */
+    
+    public static <T extends ICSVGeneral>boolean Stitch(String output[], String base, File dir, MetaInfo ext[], Class<T> cls)
+    {
+		InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
+    	
+		for (int j = 0 ; j < output.length ; j++)
+		{
+			File [] fl = new File(dir + File.separator + output[j].replace("*", "_")).listFiles();
+			if (fl == null)
+				continue;
+			int nf = fl.length;
+			
+			String str[] = new String[nf];
+			
+			for (int i = 1 ; i <= nf ; i++)
+			{
+				str[i-1] = dir + File.separator + output[j].replace("*", "_") + File.separator + output[j].replace("*", base + i);
+			}
+			
+			if (ext != null)
+			{
+				for (int i = 0 ; i < ext.length ; i++)
+				csv.setMetaInformation(ext[i].par, ext[i].value);
+			}
+			
+			csv.Stitch(str, dir + File.separator + output[j].replace("*", "stitch"), dir);
+		}
+    	
+    	return true;
+    }
+    
+    /**
+     * 
+     * Stitch the CSV files all together in the directory dir + output[]
+     * with pattern base + 1....N + output[]
+     * save the result in the Directory dir. "*" are substituted by "_"
+     * 
+     * @param output list of 
+     * @param base Base filename
+     * @param dir Base dir (or where the file are located)
+     * @param ExtParam optionally an array of metadata information
+     * @param OutputChoose occ Format of the output
+     * @param Class<T> Internal data for conversion
+     * @return true if success, false otherwise
+     */
+    
+    public static <T extends ICSVGeneral>boolean StitchConvert(String output[], String base, File dir, MetaInfo ext[], OutputChoose occ, Class<T> cls)
+    {
+		InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
+    	
+		for (int j = 0 ; j < output.length ; j++)
+		{
+			File [] fl = new File(dir + File.separator + output[j].replace("*", "_")).listFiles();
+			int nf = fl.length;
+			
+			String str[] = new String[nf];
+			
+			for (int i = 1 ; i <= nf ; i++)
+			{
+				str[i-1] = dir + File.separator + output[j].replace("*", "_") + File.separator + output[j].replace("*", base + i);
+			}
+			
+			if (ext != null)
+			{
+				for (int i = 0 ; i < ext.length ; i++)
+				csv.setMetaInformation(ext[i].par, ext[i].value);
+			}
+			csv.StitchConvert(str, dir + File.separator + output[j].replace("*", "stitch"), occ,"Frame",0);
+		}
+    	
+    	return true;
     }
 }

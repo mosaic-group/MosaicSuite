@@ -193,7 +193,7 @@ public class LabelImageRC extends LabelImage
 	 * 
 	 */
 	
-	void calculateRegionsCenterOfMass()
+	public void calculateRegionsCenterOfMass()
 	{
 		// Iterate through all the region
 		

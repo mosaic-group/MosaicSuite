@@ -930,6 +930,15 @@ public class MosaicUtils
 		return choiceInputImage;
 	}
 	
+	public static String getRegionMaskName(String filename)
+	{
+		// remove the extension
+		
+		String s = filename.substring(0,filename.lastIndexOf("."));
+		
+		return s + "_seg_c1.tif";
+	}
+	
 	/**
 	 * 
 	 * Get the CSV Region filename 
@@ -941,7 +950,11 @@ public class MosaicUtils
 	
 	public static String getRegionCSVName(String filename, int channel)
 	{
-		return filename + "_ObjectsData_c"+channel+".csv";
+		// remove the extension
+		
+		String s = filename.substring(0,filename.lastIndexOf("."));
+		
+		return s + "_ObjectsData_c"+channel+".csv";
 	}
 	
 	/**
@@ -954,7 +967,11 @@ public class MosaicUtils
 	
 	public static String getRegionCSVName(String filename)
 	{
-		return filename + "_ObjectsData_c1.csv";
+		// remove the extension
+		
+		String s = filename.substring(0,filename.lastIndexOf("."));
+		
+		return s + "_ObjectsData_c1.csv";
 	}
 	
 	/**
@@ -1177,6 +1194,44 @@ public class MosaicUtils
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * 
+	 * Given an imglib2 image return the dimensions as an array of integer
+	 * 
+	 * @param img Image
+	 * @return array with the image dimensions
+	 */
+	
+	public static <T> int [] getImageIntDimensions(Img<T> img)
+	{
+		int dimensions[] = new int[img.numDimensions()];
+		for (int i = 0 ; i < img.numDimensions() ; i++)
+		{
+			dimensions[i] = (int) img.dimension(i);
+		}
+		
+		return dimensions;
+	}
+	
+	/**
+	 * 
+	 * Given an imglib2 image return the dimensions as an array of long
+	 * 
+	 * @param img Image
+	 * @return array with the image dimensions
+	 */
+	
+	public static <T> long [] getImageLongDimensions(Img<T> img)
+	{
+		long dimensions_l[] = new long[img.numDimensions()];
+		for (int i = 0 ; i < img.numDimensions() ; i++)
+		{
+			dimensions_l[i] = img.dimension(i);
+		}
+		
+		return dimensions_l;
 	}
 }
 

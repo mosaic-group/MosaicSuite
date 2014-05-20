@@ -31,4 +31,6 @@ public interface ICSVGeneral
 	public double getCoord_X();
 	public double getCoord_Y();
 	public double getCoord_Z();
+	public String getNothing();
+	public void setNothing(String st);
 }

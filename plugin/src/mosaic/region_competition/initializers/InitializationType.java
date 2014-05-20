@@ -9,5 +9,6 @@ public enum InitializationType
 	Bubbles, 
 	LocalMax, 
 	ROI_2D, 
-	File
+	File,
+	File_Patcher
 }

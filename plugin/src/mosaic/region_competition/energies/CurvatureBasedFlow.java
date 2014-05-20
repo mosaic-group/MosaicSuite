@@ -1,5 +1,6 @@
 package mosaic.region_competition.energies;
 
+import ij.measure.Calibration;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
@@ -20,14 +21,37 @@ public class CurvatureBasedFlow
 	byte[] mask;
 	
 
-	public CurvatureBasedFlow(int rad, LabelImageRC labelImage)
+	public CurvatureBasedFlow(int rad, LabelImageRC labelImage, Calibration cal)
 	{
 		this.rad = rad;
 		this.dim = labelImage.getDim();
 		this.inputDims = labelImage.getDimensions();
 		this.labelImage = labelImage;
 		
-		sphere = new SphereMask(rad, 2*rad+1, dim);
+		float spacing[] = null;
+		if (cal != null)
+		{
+			if (labelImage.getDim() == 2 && cal != null)
+			{
+				spacing = new float[2];
+				spacing[0] = (float) cal.pixelWidth;
+				spacing[1] = (float) cal.pixelHeight;
+				sphere = new SphereMask(rad, 2*rad+1, dim, spacing, false);
+			}
+			else
+			{
+				spacing = new float[3];
+				spacing[0] = (float) cal.pixelWidth;
+				spacing[1] = (float) cal.pixelHeight;
+				spacing[2] = (float) cal.pixelDepth;
+				sphere = new SphereMask(rad, 2*rad+1, dim, spacing, false);
+			}
+		}
+		else
+		{
+			sphere = new SphereMask(rad, 2*rad+1, dim);
+		}
+		
 		sphereIt = new RegionIteratorMask(sphere, inputDims);
 		
 		m_Size = sphere.getDimensions();
@@ -172,9 +196,9 @@ public class CurvatureBasedFlow
 	class CurvatureBasedFlowNice extends CurvatureBasedFlow
 	{
 
-		public CurvatureBasedFlowNice(int rad, LabelImageRC labelImage)
+		public CurvatureBasedFlowNice(int rad, LabelImageRC labelImage, Calibration cal)
 		{
-			super(rad, labelImage);
+			super(rad, labelImage, cal);
 		}
 
 		

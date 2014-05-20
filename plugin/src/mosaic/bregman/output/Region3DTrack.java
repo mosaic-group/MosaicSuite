@@ -3,9 +3,10 @@ package mosaic.bregman.output;
 import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.Outdata;
+import mosaic.core.ipc.StubProp;
 import mosaic.core.utils.Point;
 
-public class Region3DTrack implements ICSVGeneral
+public class Region3DTrack extends StubProp implements ICSVGeneral
 {
 	int Frame;
 	double x;

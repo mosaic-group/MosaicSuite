@@ -98,7 +98,7 @@ public class ForestFire
 		double vN_ = vN;
 
 		// create a labelInformation for the new label, add to container
-		LabelInformation newLabelInformation = new LabelInformation(aNewLabel);
+		LabelInformation newLabelInformation = new LabelInformation(aNewLabel,labelImage.getDim());
 		algorithm.labelMap.put(aNewLabel, newLabelInformation);
 
 		newLabelInformation.mean = vSum / vN_;

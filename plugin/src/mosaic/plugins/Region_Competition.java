@@ -21,7 +21,10 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mosaic.bregman.ImagePatches;
 import mosaic.bregman.output.CSVOutput;
+import mosaic.core.ImagePatcher.ImagePatch;
+import mosaic.core.ImagePatcher.ImagePatcher;
 import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.psf.GeneratePSF;
@@ -38,6 +41,8 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.io.ImgOpener;
+import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
 
 //import view4d.Timeline;
@@ -51,6 +56,7 @@ import mosaic.region_competition.deprecated.E_PS_sphis;
 import mosaic.region_competition.energies.*;
 import mosaic.region_competition.initializers.*;
 import mosaic.region_competition.netbeansGUI.UserDialog;
+import mosaic.region_competition.output.RCOutput;
 import mosaic.core.utils.Connectivity;
 import mosaic.region_competition.utils.IntConverter;
 import mosaic.region_competition.utils.Timer;
@@ -83,7 +89,7 @@ import ij3d.Image3DUniverse;
 
 public class Region_Competition implements PlugInFilter
 {
-	private String[] out = {"*_ObjectsData_c1.csv"};
+	private String[] out = {"*_ObjectsData_c1.csv","*_seg_c1.tif"};
 	private String output_label;
 	private String config;
 	private String oip_location;
@@ -290,6 +296,11 @@ public class Region_Competition implements PlugInFilter
 			return DONE;
 		}
 		
+		if (userDialog.getInputImage() != null)
+		{
+			originalIP = (ImagePlus) userDialog.getInputImage();
+		}
+		
 		if (userDialog.useCluster() == true)
 		{
 			// We run on cluster
@@ -326,22 +337,25 @@ public class Region_Competition implements PlugInFilter
 				{
 					// we have a directory
 					
+					String opt = getOptions(fl);
 					if (settings.labelImageInitType == InitializationType.File)
 					{
 						// upload label images
 						
 						ss = cg.getClusterSession();
 						fileslist = fl_l.listFiles();
-						ss.upload(fileslist);
+						File dir = new File("label");
+						ss.upload(dir,fileslist);
+						opt += " text2=" + ss.getClusterDirectory() + File.separator + dir.getPath();
 					}
 					
 					fileslist = fl.listFiles();
 					
-					String opt = getOptions(fl);
 					ss = ClusterSession.processFiles(fileslist,"Region Competition",opt+" show_and_save_statistics",out,cg);
 				}
 				else if (fl.isFile())
 				{
+					String opt = getOptions(fl);
 					if (settings.labelImageInitType == InitializationType.File)
 					{
 						// upload label images
@@ -350,9 +364,9 @@ public class Region_Competition implements PlugInFilter
 						fileslist = new File[1];
 						fileslist[0] = fl_l;
 						ss.upload(fileslist);
+						opt += " text2=" + ss.getClusterDirectory() + File.separator + fl_l.getName();
 					}
 					
-					String opt = getOptions(fl);
 					ss = ClusterSession.processFile(fl,"Region Competition",opt+" show_and_save_statistics",out,cg);
 				}
 				else
@@ -364,24 +378,28 @@ public class Region_Competition implements PlugInFilter
 			{
 				// It is an image
 				
+				String opt = getOptions(aImp);
+				
 				if (settings.labelImageInitType == InitializationType.File)
 				{
 					// upload label images
 					
 					ss = cg.getClusterSession();
-					ss.splitAndUpload((ImagePlus)userDialog.getLabelImage(),"label",null);
+					ss.splitAndUpload((ImagePlus)userDialog.getLabelImage(),new File("label"),null);
+					opt += " text2=" + ss.getClusterDirectory() + File.separator + "label" + File.separator + ss.getSplitAndUploadFilename(0);
 				}
 				
-				String opt = getOptions(aImp);
 				ss = ClusterSession.processImage(aImp,"Region Competition",opt+" show_and_save_statistics",out,cg);
 			}
 			
 			// Get output format and Stitch the output in the output selected
 			
 			String outcsv[] = {"*_ObjectsData_c1.csv"};
-			ClusterSession.processJobsData(ss,outcsv,aImp);
+			ClusterSession.processJobsData(ss,outcsv,aImp,RCOutput.class);
 			
 			////////////////
+			
+			return NO_IMAGE_REQUIRED;
 		}
 		else
 		{
@@ -422,28 +440,91 @@ public class Region_Competition implements PlugInFilter
 		return DOES_ALL+NO_CHANGES;
 	}
 	
+	/**
+	 * 
+	 * Run region competition plugins
+	 * 
+	 */
 	
 	public void run(ImageProcessor aImageProcessor) 
 	{
-		try
+		if (settings.labelImageInitType == InitializationType.File_Patcher)
 		{
-			frontsCompetitionImageFilter(aImageProcessor);
+			// Run Region Competition on each patch
 			
-			if (output_label != null)
+			// Open the label and intensity image with imgLib2
+			
+			initInputImage(aImageProcessor);
+			initLabelImage();
+			 
+			// Patches the image
+			
+			int margins[] = new int [intensityImage.getDim()];
+			
+			for (int i = 0 ; i < margins.length ; i++)
 			{
-				labelImage.save(output_label);
+				margins[i] = 32;
 			}
 			
-			if(userDialog.showAndSaveStatistics())
+			ImagePatcher ip = new ImagePatcher(intensityImage.getImgLib2(FloatType.class),labelImage.getImgLib2(IntType.class),margins);
+			
+			// for each patch run region competition
+			
+			ImagePatch[] ips = ip.getPathes();
+			
+			for (ImagePatch it : ips)
 			{
-				showAndSaveStatistics(algorithm.getLabelMap());
+				it.show();
+			}
+			
+/*			for (ImagePatch it : ips)
+			{
+				// Run region competition on the patch image
+				
+				Region_Competition RC = new Region_Competition();
+				RC.setSettings(null);
+//				RC.setup(null, it.getImage());
+				RC.run(null);
+				
+				it.setResult(RC.labelImage.getImgLib2(IntType.class));
+			}*/
+			
+			// Assemble result
+			
+//			ip.assemble(ips);
+			
+			// save result
+			
+//			labelImage = new labelImage(ip.getAssembles());
+			labelImage.connectedComponents();
+		}
+		else
+		{
+			// Run Region Competition as usual
+			
+			try
+			{
+				frontsCompetitionImageFilter(aImageProcessor);
+			}
+			catch (Exception e)
+			{
+				if(controllerFrame!=null)
+					controllerFrame.dispose();
+				e.printStackTrace();
 			}
 		}
-		catch (Exception e)
+		
+		String folder = MosaicUtils.ValidFolderFromImage(MVC.getOriginalImPlus());
+		
+		// Remove eventually extension
+		
+		labelImage.save(folder + File.separator + MosaicUtils.getRegionMaskName(MVC.getOriginalImPlus().getTitle()));
+		
+		labelImage.calculateRegionsCenterOfMass();
+		
+		if(userDialog.showAndSaveStatistics())
 		{
-			if(controllerFrame!=null)
-				controllerFrame.dispose();
-			e.printStackTrace();
+			showAndSaveStatistics(algorithm.getLabelMap());
 		}
 	}
 	
@@ -501,7 +582,7 @@ public class Region_Competition implements PlugInFilter
 			case Sphere_Regularization:
 			{
 				int rad = (int)settings.m_CurvatureMaskRadius;
-				e_length = new E_CurvatureFlow(labelImage, rad);
+				e_length = new E_CurvatureFlow(labelImage, rad, originalIP.getCalibration());
 				break;
 			}
 			case Approximative:
@@ -678,6 +759,7 @@ public class Region_Competition implements PlugInFilter
 				mb.initFloodFilled();
 				break;
 			}
+			case File_Patcher:
 			case File:
 			{
 				ImagePlus ip=null;
@@ -691,6 +773,8 @@ public class Region_Competition implements PlugInFilter
 				{
 					Opener o = new Opener();
 					ip = o.openImage(fileName);
+					if (ip == null)
+						ip = choiceIP;
 				}
 				else // no filename. fileName == null || fileName()
 				{
@@ -1497,19 +1581,29 @@ public class Region_Competition implements PlugInFilter
 		return algorithm;
 	}
 	
+	
+	/**
+	 * 
+	 * Initialize region competition to run on an image given some settings
+	 * 
+	 * @param img Image 2D
+	 * @param s Setting
+	 */
+	
 	public Region_Competition(ImageProcessor img, Settings s)
 	{
-		RC_free_image = img;
+		RC_image = img;
 		settings = s;
 	}
 
-	ImageProcessor RC_free_image;
+	ImageProcessor RC_image;
+	ImagePlus RC_ImgPlus;
 	
 	public void runP()
 	{
 		try
 		{
-			frontsCompetitionImageFilter(RC_free_image);
+			frontsCompetitionImageFilter(RC_image);
 		}
 		catch (Exception e)
 		{
@@ -1520,9 +1614,15 @@ public class Region_Competition implements PlugInFilter
 	}
 
 
-	public void setSettings(Settings set) {
-		// TODO Auto-generated method stub
-		
+	/**
+	 * 
+	 * Set the parameters for Region Competition
+	 * 
+	 * @param set set of parameters
+	 */
+	
+	public void setSettings(Settings set) 
+	{
 		settings = set;
 	}
 	
@@ -1589,7 +1689,7 @@ public class Region_Competition implements PlugInFilter
 			rt.addValue("variance", info.var);
 			rt.addValue("Coord_X", info.mean_pos[0]);
 			rt.addValue("Coord_Y", info.mean_pos[1]);
-			if (info.mean_pos.length >= 2)
+			if (info.mean_pos.length > 2)
 				rt.addValue("Coord_Z", info.mean_pos[2]);
 			else
 				rt.addValue("Coord_Z", 0.0);

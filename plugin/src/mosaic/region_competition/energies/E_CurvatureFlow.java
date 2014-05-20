@@ -1,5 +1,6 @@
 package mosaic.region_competition.energies;
 
+import ij.measure.Calibration;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.core.utils.Point;
@@ -11,10 +12,10 @@ public class E_CurvatureFlow extends InternalEnergy// implements SettingsListene
 	CurvatureBasedFlow curv;
 	
 	
-	public E_CurvatureFlow(LabelImageRC labelImage, int rad)
+	public E_CurvatureFlow(LabelImageRC labelImage, int rad, Calibration cal)
 	{
 		super(labelImage);
-		curv = new CurvatureBasedFlow(rad, labelImage);
+		curv = new CurvatureBasedFlow(rad, labelImage,cal);
 	}
 	
 	@Override

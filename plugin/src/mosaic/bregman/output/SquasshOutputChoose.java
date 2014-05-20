@@ -3,14 +3,22 @@ package mosaic.bregman.output;
 import java.util.Vector;
 
 import mosaic.core.GUI.GUIOutputChoose;
+import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.ipc.Outdata;
 
 
 public class SquasshOutputChoose extends GUIOutputChoose
 {
-	public Class<InterPluginCSV<?>> InterPluginCSVFactory;
-	public Class<Vector<?>> vectorFactory;
-	public Class<?> classFactory;
+	/* Class to produce InterPluginsCSV of internal type */
+	
+	public Class<InterPluginCSV<? extends ICSVGeneral>> InterPluginCSVFactory;
+	
+	/* Class to produce vactor of internal type */
+	
+	public Class<Vector<? extends ICSVGeneral>> vectorFactory;
+	
+	/* Internal type class factory */
+	public Class<? extends ICSVGeneral> classFactory;
 	char delimiter;
 }
