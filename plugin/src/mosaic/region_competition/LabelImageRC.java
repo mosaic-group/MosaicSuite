@@ -15,6 +15,8 @@ import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.Map.Entry;
 
+import net.imglib2.img.Img;
+import net.imglib2.type.numeric.IntegerType;
 import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.utils.Connectivity;
@@ -32,6 +34,17 @@ public class LabelImageRC extends LabelImage
 	/** Maps the label(-number) to the information of a label */
 	public final int forbiddenLabel=Integer.MAX_VALUE; //short
 	private HashMap<Integer, LabelInformation> labelMap;
+	
+	/**
+	 * 
+	 * Create a labelImageRC from an imgLib2
+	 * 
+	 */
+	
+	public <T extends IntegerType<T>> LabelImageRC(Img<T> img)
+	{
+		super(img);
+	}
 	
 	/**
 	 * 
@@ -107,6 +120,24 @@ public class LabelImageRC extends LabelImage
 				}
 				
 			} // if region pixel
+		}
+	}
+	
+	/**
+	 * 
+	 * Eliminate forbidden region and particles
+	 * 
+	 */
+	
+	public void eliminateForbidden()
+	{
+		for (int i = 0 ; i < getSize() ; i++)
+		{
+			if (dataLabel[i] == forbiddenLabel)
+				dataLabel[i] = 0;
+			
+			if (dataLabel[i] < 0)
+				dataLabel[i] = Math.abs(dataLabel[i]);
 		}
 	}
 	
@@ -729,6 +760,8 @@ class StackProjector extends GroupedZProjector
 		
 		return imp2;
 	}
+	
+
 }
 
 

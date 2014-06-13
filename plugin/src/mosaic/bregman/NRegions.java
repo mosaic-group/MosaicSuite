@@ -510,8 +510,8 @@ public class NRegions implements Runnable{
 		
 
 
-		if (Analysis.p.save_images){
-			
+		if (Analysis.p.save_images)
+		{	
 			//			FileSaver fs= new FileSaver(maska_im);
 			//			//IJ.log(img.getTitle());
 			String savepath;

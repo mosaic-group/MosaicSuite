@@ -73,7 +73,8 @@ public class FeaturePointDetector {
 
 
 
-	public FeaturePointDetector(float global_max, float global_min) {
+	public FeaturePointDetector(float global_max, float global_min) 
+	{
 		this.global_max = global_max;
 		this.global_min = global_min;
 		// create Mask for Dilation
@@ -88,8 +89,9 @@ public class FeaturePointDetector {
 	 * finds the particles, refine their position and filters out non particles
 	 * @see ImageProcessor#convertToFloat()
 	 */
-	public void featurePointDetection (MyFrame frame) {		
-
+	
+	public void featurePointDetection (MyFrame frame) 
+	{
 		/* Converting the original imageProcessor to float 
 		 * This is a constraint caused by the lack of floating point precision of pixels 
 		 * value in 16bit and 8bit image processors in ImageJ therefore, if the image is not
@@ -99,7 +101,8 @@ public class FeaturePointDetector {
 		ImageStack restored_fps = new ImageStack(original_ips.getWidth(),original_ips.getHeight());
 
 
-		for(int i = 1; i <= original_ips.getSize(); i++) {
+		for(int i = 1; i <= original_ips.getSize(); i++) 
+		{
 			//if it is already a float, ImageJ does not create a duplicate
 			restored_fps.addSlice(null, original_ips.getProcessor(i).convertToFloat().duplicate());
 		}
@@ -258,7 +261,7 @@ public class FeaturePointDetector {
 
 						/* and add each particle that meets the criteria to the particles array */
 						//(the starting point is the middle of the pixel and exactly on a focal plane:)
-						particles.add(new Particle(i+.5f, j+.5f, s, frame_number, linkrange));
+						particles.add(new Particle(j+.5f, i+.5f, s, frame_number, linkrange));
 						
 						/* 
 						 * now we found a local maximum, we have to prevent that all connected pixel do
@@ -324,14 +327,14 @@ public class FeaturePointDetector {
 						continue;
 					z = (int)this.particles.elementAt(m).z + s;
 					for(k = -radius; k <= radius; k++) {
-						if(((int)this.particles.elementAt(m).x + k) < 0 || ((int)this.particles.elementAt(m).x + k) >= ips.getHeight())
+						if(((int)this.particles.elementAt(m).y + k) < 0 || ((int)this.particles.elementAt(m).y + k) >= ips.getHeight())
 							continue;
-						x = (int)this.particles.elementAt(m).x + k;
+						x = (int)this.particles.elementAt(m).y + k;
 
 						for(l = -radius; l <= radius; l++) {
-							if(((int)this.particles.elementAt(m).y + l) < 0 || ((int)this.particles.elementAt(m).y + l) >= ips.getWidth())
+							if(((int)this.particles.elementAt(m).x + l) < 0 || ((int)this.particles.elementAt(m).x + l) >= ips.getWidth())
 								continue;
-							y = (int)this.particles.elementAt(m).y + l;
+							y = (int)this.particles.elementAt(m).x + l;
 							//
 							//								c = ips.getProcessor(z + 1).getPixelValue(y, x) * (float)mask[s + radius][(k + radius)*mask_width + (l + radius)];
 							c = ((float[])(ips.getPixels(z + 1)))[x*image_width+y] * (float)mask[s + radius][(k + radius)*mask_width + (l + radius)];
@@ -362,20 +365,20 @@ public class FeaturePointDetector {
 				tz = (int)(10.0 * epsz);
 
 				if((float)(tx)/10.0 > 0.5) {
-					if((int)this.particles.elementAt(m).x + 1 < ips.getHeight())
-						this.particles.elementAt(m).x++;
-				}
-				else if((float)(tx)/10.0 < -0.5) {
-					if((int)this.particles.elementAt(m).x - 1 >= 0)
-						this.particles.elementAt(m).x--;						
-				}
-				if((float)(ty)/10.0 > 0.5) {
-					if((int)this.particles.elementAt(m).y + 1 < ips.getWidth())
+					if((int)this.particles.elementAt(m).y + 1 < ips.getHeight())
 						this.particles.elementAt(m).y++;
 				}
-				else if((float)(ty)/10.0 < -0.5) {
+				else if((float)(tx)/10.0 < -0.5) {
 					if((int)this.particles.elementAt(m).y - 1 >= 0)
-						this.particles.elementAt(m).y--;
+						this.particles.elementAt(m).y--;						
+				}
+				if((float)(ty)/10.0 > 0.5) {
+					if((int)this.particles.elementAt(m).x + 1 < ips.getWidth())
+						this.particles.elementAt(m).x++;
+				}
+				else if((float)(ty)/10.0 < -0.5) {
+					if((int)this.particles.elementAt(m).x - 1 >= 0)
+						this.particles.elementAt(m).x--;
 				}
 				if((float)(tz)/10.0 > 0.5) {
 					if((int)this.particles.elementAt(m).z + 1 < ips.getSize())
@@ -392,8 +395,8 @@ public class FeaturePointDetector {
 					break;
 			}
 			//				System.out.println("iterations for particle " + m + ": " + this.particles.elementAt(m).nbIterations);
-			this.particles.elementAt(m).x += epsx;
-			this.particles.elementAt(m).y += epsy;
+			this.particles.elementAt(m).y += epsx;
+			this.particles.elementAt(m).x += epsy;
 			this.particles.elementAt(m).z += epsz;
 		}					
 	}

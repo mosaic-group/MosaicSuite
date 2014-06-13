@@ -63,55 +63,95 @@ import ij.process.StackStatistics;
 
 class FloatToARGB implements ToARGB
 {
+	double min = 0.0;
+	double max = 255;
+	
 	@Override
 	public ARGBType toARGB(Object data)
 	{
 		ARGBType t = new ARGBType();
 		
 		float td = 0.0f;
-		td = ((RealType<?>)data).getRealFloat();
+		td = (float) (255*(((RealType<?>)data).getRealFloat()-min)/max);
 		t.set(ARGBType.rgba(td, td, td, 255.0f));
 		
 		return t;
+	}
+
+	@Override
+	public void setMinMax(double min, double max) 
+	{
+		this.min = min;
+		this.max = max;
 	}
 }
 
 class FloatToARGBNorm implements ToARGB
 {
+	double min = 0.0;
+	double max = 255;
+	
 	@Override
 	public ARGBType toARGB(Object data)
 	{
 		ARGBType t = new ARGBType();
 		
 		float td = 0.0f;
-		td = ((RealType<?>)data).getRealFloat()*255;
+		td = (float) (255*(((RealType<?>)data).getRealFloat()-min)/max);
 		t.set(ARGBType.rgba(td, td, td, 255.0f));
 		
 		return t;
+	}
+	
+	@Override
+	public void setMinMax(double min, double max) 
+	{
+		this.min = min;
+		this.max = max;
 	}
 }
 
 class IntToARGB implements ToARGB
 {
+	double min = 0.0;
+	double max = 255;
+	
 	@Override
 	public ARGBType toARGB(Object data)
 	{
 		ARGBType t = new ARGBType();
 		
 		int td = 0;
-		td = ((IntegerType<?>)data).getInteger();
+		td = (int) (255*(((IntegerType<?>)data).getInteger()-min)/max);
 		t.set(ARGBType.rgba(td, td, td, 255));
 		
 		return t;
+	}
+	
+	@Override
+	public void setMinMax(double min, double max) 
+	{
+		this.min = min;
+		this.max = max;
 	}
 }
 
 class ARGBToARGB implements ToARGB
 {
+	double min = 0.0;
+	double max = 255;
+	
 	@Override
 	public ARGBType toARGB(Object data)
 	{				
 		return (ARGBType) data;
+	}
+	
+	@Override
+	public void setMinMax(double min, double max) 
+	{
+		this.min = min;
+		this.max = max;
 	}
 }
 
@@ -135,6 +175,7 @@ public class MosaicUtils
 	
 	public interface ToARGB
 	{
+		void setMinMax(double min, double max);
 		ARGBType toARGB(Object data);
 	}
 	
@@ -731,7 +772,7 @@ public class MosaicUtils
 		ImageStack tmp_stk = new ImageStack(img.getWidth(),img.getHeight());
 		for (int j = 0 ; j < stack_size ; j++)
 		{
-			tmp_stk.addSlice("st"+j,stk.getProcessor(frame*stack_size+j+1));
+			tmp_stk.addSlice("st"+j,stk.getProcessor((frame-1)*stack_size+j+1));
 		}
 		
 		ImagePlus ip = new ImagePlus("tmp",tmp_stk);
@@ -1233,5 +1274,35 @@ public class MosaicUtils
 		
 		return dimensions_l;
 	}
-}
+	
+	/**
+	 * 
+	 * Get the minimal value and maximal value of an image
+	 * 
+	 * @param img Image
+	 * @param min minimum value
+	 * @param max maximum value
+	 */
+	
+	public static <T extends RealType<T>> void getMinMax(Img<T> img, T min, T max)
+	{
+		// Set min and max
+		
+		min.setReal(Double.MAX_VALUE);
+		max.setReal(Double.MIN_VALUE);
+		
+        Cursor<T> cur = img.cursor();
+        
+        // Get the min and max
+        
+        while (cur.hasNext())
+        {
+        	cur.fwd();
+        	if (cur.get().getRealDouble() < min.getRealDouble())
+        		min.setReal(cur.get().getRealDouble());
+        	if (cur.get().getRealDouble() > max.getRealDouble())
+        		max.setReal(cur.get().getRealDouble());
+        }
+	}
 
+}

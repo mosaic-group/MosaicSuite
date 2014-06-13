@@ -185,7 +185,7 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 
 	/**
 	 * 
-	 * Set the image result for the patche
+	 * Set the image result for the patch
 	 * 
 	 * @param img
 	 */
@@ -204,5 +204,75 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 	public void show()
 	{
 		ImageJFunctions.show( it );
+	}
+	
+	/**
+	 * 
+	 * Show the label image patch
+	 * 
+	 */
+	
+	public void showLabel()
+	{
+		ImageJFunctions.show(lb);
+	}
+	
+	/**
+	 * 
+	 * Get the result image
+	 * 
+	 * @return the result image
+	 */
+	
+	public Img<E> getResult()
+	{
+		return rs;
+	}
+	
+	/**
+	 * 
+	 * Get the patch image
+	 * 
+	 * @return the patch image
+	 */
+	
+	public Img<T> getImage()
+	{
+		return it;
+	}
+	
+	/**
+	 * 
+	 * Get the label image
+	 * 
+	 * @return the label image patch
+	 */
+	
+	public Img<E> getLabelImage()
+	{
+		return lb;
+	}
+	
+	/**
+	 * 
+	 * Show the label image result
+	 * 
+	 */
+	
+	public void showResult()
+	{
+		ImageJFunctions.show(rs);
+	}
+	
+	/**
+	 * 
+	 * Return P1
+	 * 
+	 * @return the point p1
+	 */
+	
+	public Point getP1()
+	{
+		return p1;
 	}
 };

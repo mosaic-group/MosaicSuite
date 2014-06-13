@@ -251,7 +251,7 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		
 		for (int i = 0 ; i < pos.length ; i++)
 		{
-			res *= 1.0 / Math.sqrt(2.0 * Math.PI * var[i].getRealDouble()) * Math.exp(-(pos[i].getRealDouble() - offset[i].getRealDouble())*(pos[i].getRealDouble() - offset[i].getRealDouble())/ (2.0 * var[i].getRealDouble() * var[i].getRealDouble()));
+			res *= 1.0 / Math.sqrt(2.0 * Math.PI) / var[i].getRealDouble() * Math.exp(-(pos[i].getRealDouble() - offset[i].getRealDouble())*(pos[i].getRealDouble() - offset[i].getRealDouble())/ (2.0 * var[i].getRealDouble() * var[i].getRealDouble()));
 		}
 		RealType<T> rc = pos[0].createVariable();
 		rc.setReal(res);

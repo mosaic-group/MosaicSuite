@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 import weka.clusterers.SimpleKMeans;
-
+import net.imglib2.img.Img;
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
@@ -15,9 +15,18 @@ import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.DatasetTools;
 import net.sf.javaml.tools.weka.WekaClusterer;
 import mosaic.bregman.FindConnectedRegions.Region;
+import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.MosaicUtils;
 
+/**
+ * 
+ * Regions statistics solver
+ * 
+ * @author i-bird
+ *
+ */
 
-public class RegionStatisticsSolver {
+public class RegionStatisticsSolver<T> {
 	private double [] [] [] Z;
 	private double [] [] [] W;
 	private double [] [] [] mu;
@@ -30,6 +39,19 @@ public class RegionStatisticsSolver {
 
 	public double betaMLEin, betaMLEout;
 
+	/**
+	 * 
+	 * Create a region statistic solver
+	 * 
+	 * @param temp1 buffer of the same size of image for internal calculation
+	 * @param temp2 buffer of the same size of image for internal calculation
+	 * @param temp3 buffer of the same size of image for internal calculation
+	 * @param image The image pixel array
+	 * @param weights
+	 * @param max_iter Maximum number of iteration for the Fisher scoring
+	 * @param p
+	 */
+	
 	public RegionStatisticsSolver(double [] [] []  temp1, double [] [] [] temp2, double [][][] temp3,
 			double [] [] [] image, double [][][] weights, int max_iter, Parameters p
 			){
@@ -44,6 +66,23 @@ public class RegionStatisticsSolver {
 
 	}
 
+	Class<T> cls;
+	Img<T> image2;
+	
+	public RegionStatisticsSolver(Img<T> img,int max_iter, Class<T> cls)
+	{
+		this.image2 = img;
+		this.cls = cls;
+		
+		// Create native arrays for fast computation
+		
+//		IntensityImage mimg = new IntensityImage(MosaicUtils.getImageIntDimensions(img));
+//		IntensityImage W = new IntensityImage(MosaicUtils.getImageIntDimensions(img));
+//		IntensityImage z = new IntensityImage(MosaicUtils.getImageIntDimensions(img));
+//		IntensityImage mu = new IntensityImage(MosaicUtils.getImageIntDimensions(img));
+		
+		fill_weights();
+	}
 
 	public RegionStatisticsSolver(double [] [] []  temp1, double [] [] [] temp2, double [][][] temp3,
 			double [] [] [] image, int max_iter, Parameters p
@@ -72,18 +111,26 @@ public class RegionStatisticsSolver {
 		}
 	}
 
-	public  void eval(double [][][] Mask){
-
-		int ni=p.ni;
-		int nj=p.nj;
-		int nz=p.nz;
-
+	/**
+	 * 
+	 * Evaluate the region intensity
+	 * 
+	 * @param Mask
+	 */
+	
+/*	public  void eval(Img<T> Mask)
+	{		
 		//do 3D version
 		//use mu as temp tab
 		//Tools.disp_vals(Mask[0],"Mask0");
 		//IJ.log("ni " + ni + "nj" + nj);
+		
+		// normalize Mask
+		
 		this.scale_mask(W,Mask);
-		//3D ????
+		
+		// Convolve the mask
+		
 		if(nz==1)
 			Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.p.kernelx, Analysis.p.kernely, Analysis.p.px, Analysis.p.py, mu[0]);
 		else
@@ -92,6 +139,7 @@ public class RegionStatisticsSolver {
 					Analysis.p.kernelx, Analysis.p.kernely, Analysis.p.kernelz,
 					Analysis.p.px, Analysis.p.py,Analysis.p.pz,
 					mu);
+		
 		//Tools.disp_vals(KMask[0],"Kmask");
 		//		
 		//IJ.log("KMask done");
@@ -108,9 +156,12 @@ public class RegionStatisticsSolver {
 		//Tools.copytab(Z, image);
 
 
-		for (int z=0; z<nz; z++) {  
-			for (int i=0; i<ni; i++) {  
-				for (int j=0;j< nj; j++) {  
+		for (int z=0; z<nz; z++) 
+		{
+			for (int i=0; i<ni; i++) 
+			{
+				for (int j=0;j< nj; j++) 
+				{
 					if(Z[z][i][j] != 0)
 						W[z][i][j]=weights[z][i][j]/Z[z][i][j];
 					else 
@@ -123,9 +174,140 @@ public class RegionStatisticsSolver {
 		//Tools.disp_vals(W[0],"W");
 
 		int iter=0;
-		while(iter < max_iter){
+		while(iter < max_iter)
+		{
+			K11=0;K12=0;K22=0;
+			U1=0;U2=0;
+			for (int z=0; z<nz; z++) {  
+				for (int i=0; i<ni; i++) {  
+					for (int j=0;j< nj; j++) {  
+						K11+=W[z][i][j]*Math.pow(1-KMask[z][i][j],2);
+						K12+=W[z][i][j]*(1-KMask[z][i][j])*KMask[z][i][j];
+						K22+=W[z][i][j]*(KMask[z][i][j])*KMask[z][i][j];
+						U1+=W[z][i][j]*(1-KMask[z][i][j])*Z[z][i][j];
+						U2+=W[z][i][j]*(KMask[z][i][j])*Z[z][i][j];
+					}
+				}
+			}
 
 
+			//   detK = K11*K22-K12^2;
+			// betaMLE_out = ( K22*U1-K12*U2)/detK;
+			// betaMLE_in  = (-K12*U1+K11*U2)/detK;
+			detK = K11*K22-Math.pow(K12,2);	
+			if(detK!=0){
+			betaMLEout = ( K22*U1-K12*U2)/detK;	
+			betaMLEin  = (-K12*U1+K11*U2)/detK;
+			}
+			else{
+				betaMLEout=p.betaMLEoutdefault;	
+				betaMLEin=p.betaMLEindefault;
+			}
+
+			//IJ.log(String.format("K11 %7.2e K22 %7.2e K12 %7.2e U1 %7.2e U2 %7.2e detK %7.2e %n", K11,K22,K12,U1,U2, detK));
+
+			//mu update
+			for (int z=0; z<nz; z++) {  
+				for (int i=0; i<ni; i++) {  
+					for (int j=0;j< nj; j++) {  
+						mu[z][i][j]=(betaMLEin-betaMLEout)*KMask[z][i][j]+betaMLEout;
+					}	
+				}
+			}
+
+			//Tools.disp_vals(mu[0],"m	u");
+
+
+			//Z= image
+			//W update
+			for (int z=0; z<nz; z++) {
+				for (int i=0; i<ni; i++) {  
+					for (int j=0;j< nj; j++) {  
+						if(mu[z][i][j] != 0)
+							W[z][i][j]=weights[z][i][j]/mu[z][i][j];
+						else 
+							W[z][i][j]=4.50359962737e+15;//10000;//Double.MAX_VALUE;
+					}	
+				}
+			}
+
+			//Tools.disp_vals(W[0],"W");
+
+			//IJ.log(String.format("Photometry %d:%n backgroung %7.2e %n foreground %7.2e", iter,betaMLEout,betaMLEin));
+			//	
+			iter++;
+		}
+	}*/
+	
+	/**
+	 * 
+	 * Evaluate the region intensity
+	 * 
+	 * @param Mask
+	 */
+	
+	public  void eval(double [][][] Mask){
+
+		int ni=p.ni;
+		int nj=p.nj;
+		int nz=p.nz;
+
+		//do 3D version
+		//use mu as temp tab
+		//Tools.disp_vals(Mask[0],"Mask0");
+		//IJ.log("ni " + ni + "nj" + nj);
+		
+		// normalize Mask
+		
+		this.scale_mask(W,Mask);
+		
+		// Convolve the mask
+		
+		if(nz==1)
+			Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.p.kernelx, Analysis.p.kernely, Analysis.p.px, Analysis.p.py, mu[0]);
+		else
+			Tools.convolve3Dseparable(KMask, W,
+					ni,nj,nz,
+					Analysis.p.kernelx, Analysis.p.kernely, Analysis.p.kernelz,
+					Analysis.p.px, Analysis.p.py,Analysis.p.pz,
+					mu);
+		
+		//Tools.disp_vals(KMask[0],"Kmask");
+		//		
+		//IJ.log("KMask done");
+
+		//mu  = muInit;K11 //=Ih
+		//Z   = link(mu)+(I_h-mu).*linkDerivative(mu);// = Ih
+		//W   = priorWeights./(varFunction(mu).*linkDerivative(mu).^2+eps);
+
+		double K11=0, K12=0, K22=0, U1=0, U2=0;
+		double detK = 0;
+		betaMLEout = 0; betaMLEin = 0;
+
+		//		Tools.copytab(mu, image);
+		//Tools.copytab(Z, image);
+
+
+		for (int z=0; z<nz; z++) 
+		{
+			for (int i=0; i<ni; i++) 
+			{
+				for (int j=0;j< nj; j++) 
+				{
+					if(Z[z][i][j] != 0)
+						W[z][i][j]=weights[z][i][j]/Z[z][i][j];
+					else 
+						W[z][i][j]=4.50359962737e+15;//1e4;
+					//W[z][i][j]=10000;
+				}	
+			}
+		}
+
+		//Tools.disp_vals(W[0],"W");
+
+		int iter=0;
+		while(iter < max_iter)
+		{
 			K11=0;K12=0;K22=0;
 			U1=0;U2=0;
 			for (int z=0; z<nz; z++) {  

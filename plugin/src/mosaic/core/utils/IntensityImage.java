@@ -4,6 +4,7 @@ import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.Point;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
+import net.imglib2.algorithm.stats.ComputeMinMax;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
@@ -126,39 +127,101 @@ public class IntensityImage
 		return dataIntensity;
 	}
 	
-	public static float volume_image(Img <FloatType> img)
+	/**
+	 * 
+	 * Calculate the sum of all pixels
+	 * 
+	 * @param ip
+	 * @return
+	 */
+	
+	public static <T extends RealType<T>> double volume_image(Img<T> ip)
 	{
-		float Vol = 0.0f;
-		Cursor<FloatType> cur = img.cursor();
+		double Vol = 0.0f;
+		Cursor<T> cur = ip.cursor();
 		
 		while( cur.hasNext() )
 		{
 			cur.fwd();
 			
-			Vol += cur.get().get();
+			Vol += cur.get().getRealDouble();
 			
 		}
 		
 		return Vol;
 	}
 	
-	public static void rescale_image(Img <FloatType> img,float r)
+	/**
+	 * 
+	 * It rescale all the pixels of a factor r
+	 * 
+	 * @param image_psf Image
+	 * @param r factor to rescale
+	 */
+	
+	public static <T extends RealType<T>> void rescale_image(Img<T> image_psf,float r)
 	{		
-		Cursor<FloatType> cur = img.cursor();
+		Cursor<T> cur = image_psf.cursor();
 		
 		while( cur.hasNext() )
 		{
 			cur.fwd();
 			
-			cur.get().set((float)cur.get().get()*r);
+			cur.get().setReal((float)cur.get().getRealFloat()*r);
 			
 		}			
 	}
+	
+	/**
+	 * 
+	 * Initialize an intensity image from an ImgLib2
+	 * 
+	 * @param ip
+	 */
+	
+	public <T extends RealType<T>> IntensityImage(Img<T> ip, Class<T> cls)
+	{
+		this(ip,cls,true);
+	}
+	
+	/**
+	 * 
+	 * Initialize an intensity image from an ImgLib2
+	 * 
+	 * @param ip
+	 */
+	
+	public <T extends RealType<T>> IntensityImage(Img<T> ip, Class<T> cls, boolean nrm)
+	{
+		this.imageIP = null;
+		
+		int[] dims = MosaicUtils.getImageIntDimensions(ip);
+		initDimensions(dims);
+		iterator = new IndexIterator(dims);
+		
+		initIntensityData(ip, cls, nrm);
+	}
+	
+	/**
+	 * 
+	 * Initialize an intensity image from an Image Plus
+	 * 
+	 * @param ip
+	 */
 	
 	public IntensityImage(ImagePlus ip)
 	{
 		this(ip, true);
 	}
+	
+	/**
+	 * 
+	 * Initialize an intensity image from an Image Plus
+	 * choosing is normalizing or not
+	 * 
+	 * @param ip ImagePlus
+	 * @param nrm true normalize false don' t
+	 */
 	
 	public IntensityImage(ImagePlus ip, boolean nrm)
 	{
@@ -193,6 +256,56 @@ public class IntensityImage
 		}
 	}
 	
+	/**
+	 * 
+	 * Initialize intensity data
+	 * 
+	 * @param ip Image
+	 */
+	
+	private <T extends RealType<T>> void initIntensityData(Img<T> ip, Class<T> cls, boolean nrm)
+	{
+		RandomAccess<T> ra = ip.randomAccess();
+		
+		// Allocate data intensity
+		
+		dataIntensity = new float[size];
+		
+		// Calculate min/max
+		
+		double max = Double.MIN_VALUE;
+		double min = Double.MAX_VALUE;
+		Cursor<T> cur = ip.cursor();
+
+		while (cur.hasNext())
+		{
+			cur.next();
+			if ( cur.get().getRealDouble() > max)
+			{
+				max = cur.get().getRealDouble();
+			}
+			else if (cur.get().getRealDouble() < min)
+			{
+				min = cur.get().getRealDouble();
+			}
+		}
+		
+		
+		// Create a region iterator
+		
+		RegionIterator rg = new RegionIterator(MosaicUtils.getImageIntDimensions(ip));
+		
+		// load the image
+		
+		while (rg.hasNext())
+		{
+			Point p = rg.getPoint();
+			int id = rg.next();
+			
+			ra.setPosition(p.x);
+			dataIntensity[id] = (float) ((ra.get().getRealFloat() - min)/max);
+		}
+	}
 	
 	private void initIntensityData(ImagePlus ip)
 	{
@@ -223,7 +336,6 @@ public class IntensityImage
 			}
 		}
 	}
-	
 	
 	public static ImagePlus normalize(ImagePlus ip)
 	{

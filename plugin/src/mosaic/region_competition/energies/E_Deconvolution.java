@@ -65,14 +65,42 @@ public class E_Deconvolution extends ExternalEnergy
 	    Collections.sort(values);
 	 
 	    if (values.size() % 2 == 1)
+	    {
+	    	int mid = (values.size()+1)/2-1;
+	    	
+	    	if (Float.isInfinite(values.get(mid)))
+	    	{
+	    		int i = mid;
+	    		for ( ; i >= 0 ; i--)
+	    		{
+	    			if (Float.isInfinite(values.get(i)) == false)
+	    				break;
+	    		}
+	    		return values.get(i);
+	    	}
+	    	
 	    	return values.get((values.size()+1)/2-1);
+	    }
 	    else
 	    {
 	    	float lower = values.get(values.size()/2-1);
 	    	float upper = values.get(values.size()/2);
 	 
-	    	return (lower + upper) / 2.0f;
-	    }	
+	    	if (Float.isInfinite(lower) || Float.isInfinite(upper))
+	    	{
+	    		int i = values.size()/2;
+	    		for ( ; i >= 0 ; i--)
+	    		{
+	    			if (Float.isInfinite(values.get(i)) == false)
+	    				break;
+	    		}
+	    		return values.get(i);
+	    	}
+	    	else
+	    	{
+	    		return (lower + upper) / 2.0f;
+	    	}
+	    }
 	}
 	
 	public void GenerateModelImage(Img< FloatType > aPointerToResultImage,
@@ -89,7 +117,13 @@ public class E_Deconvolution extends ExternalEnergy
             {
                 vLabel = 0; // Set Background value ??
             }
-
+            
+            if (Float.isInfinite((float)labelMap.get(vLabel).median))
+            {
+            	int debug = 0;
+            	debug++;
+            }
+            	
 			cVModelImage.get().set((float)labelMap.get(vLabel).median);
 
 		}
@@ -162,6 +196,7 @@ public class E_Deconvolution extends ExternalEnergy
             else 
             {
             	float vScale = (aDataImage.get(i) - (float)vOldBG)/(cVDevImage.get().get() - (float)vOldBG);
+            	
                 ArrayList<Float> arr = vScalings3.get(vLabelAbs);
                 arr.add(vScale);
             }
@@ -183,11 +218,10 @@ public class E_Deconvolution extends ExternalEnergy
             {
                 vMedian = Median(vScalings3.get(vLabel.getKey()));
             }
-            else 
+            else
             {
                 vMedian = (float)aInitImage.getLabelMap().get(vLabel.getKey()).mean;
             }
-
 
             /// TESTING: REMOVE THE NEXT LINE
             //            vMedian = vIntensitySum[vLabelAbs] / vLabelCounter[vLabelAbs];
@@ -203,6 +237,17 @@ public class E_Deconvolution extends ExternalEnergy
             }
             else
             {
+            	// Avoid Nan
+            	
+                if (Double.isInfinite(vMedian))
+                {
+                	// Search for the first non infinite value
+                	
+                	int debug = 0;
+                	debug++;
+                	vMedian = Median(vScalings3.get(vLabel.getKey()));
+                }
+                
             	aInitImage.getLabelMap().get(vLabel.getKey()).median =
                         (aInitImage.getLabelMap().get(vLabel.getKey()).median - vOldBG) * vMedian + aInitImage.getLabelMap().get(0).median;
             }
@@ -267,7 +312,7 @@ public class E_Deconvolution extends ExternalEnergy
     			//            vEOld = fabs(vEOld);
     			float vENew = (infDevAccessIt.get().get() - aDataImage.getSafe(pos) + ((float)vIntensity_ToLabel - (float)vIntensity_FromLabel)*vPSF.get().get());
     			vENew = vENew * vENew;
-
+    			
     			vEnergyDiff.energyDifference += vENew - vEOld;
 		
     		}
@@ -296,7 +341,7 @@ public class E_Deconvolution extends ExternalEnergy
 		
     		}
     	}*/
-    	
+    		
 		return vEnergyDiff;
     }
 

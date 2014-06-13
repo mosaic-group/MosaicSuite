@@ -29,6 +29,7 @@ import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 import mosaic.region_competition.wizard.*;
@@ -36,12 +37,18 @@ import mosaic.core.utils.Point;
 
 import javax.swing.JFrame;
 
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.basictypeaccess.array.ArrayDataAccess;
 import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.img.imageplus.ImagePlusImg;
+import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.io.ImgOpener;
 import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
 
@@ -73,6 +80,7 @@ import ij.io.DirectoryChooser;
 import ij.io.FileInfo;
 import ij.io.FileSaver;
 import ij.io.Opener;
+import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import ij.plugin.Duplicator;
 import ij.plugin.filter.PlugInFilter;
@@ -101,6 +109,7 @@ public class Region_Competition implements PlugInFilter
 	LabelImageRC labelImage;		// data structure mapping pixels to labels
 	IntensityImage intensityImage; 
 	ImageModel imageModel;
+	Calibration cal;
 	ImagePlus originalIP;		// IP of the input image
 	
 	ImageStack stack;			// stack saving the segmentation progress images
@@ -214,17 +223,37 @@ public class Region_Competition implements PlugInFilter
 		return par;
 	}
 	
-	public int setup(String aArgs, ImagePlus aImp)
+	/**
+	 * 
+	 * Run the segmentation on ImgLib2
+	 * 
+	 * @param aArgs arguments
+	 * @param img Image
+	 * @param lbl Label image
+	 * @return
+	 */
+	
+	public<T extends RealType<T>,E extends IntegerType<E>> void runOnImgLib2(String aArgs, Img<T> img, Img<E> lbl, Class<T> cls)
 	{
-//		if(testMacroBug())
-//			return DONE;
+		initAndParse();
 		
-//		Connectivity.test();
-//		UnitCubeCCCounter.test();
+		// Run Region Competition as usual
 		
+		RCImageFilter(img,lbl,cls);
+	}
+	
+	/**
+	 * 
+	 * Init Region Competition and parse command
+	 * 
+	 */
+	
+	String sv = null;
+	
+	private void initAndParse()
+	{
         String options = Macro.getOptions();
 		
-        String sv = null;
 		normalize_ip = true;
 		if (options != null)
 		{		
@@ -283,6 +312,15 @@ public class Region_Competition implements PlugInFilter
 		}
 		
 		MVC = this;
+	}
+	
+	Img<FloatType> image_psf;
+	
+	public int setup(String aArgs, ImagePlus aImp)
+	{		
+
+		initAndParse();
+		
 		originalIP = aImp;
 		userDialog = new GenericDialogGUI(this);
 		
@@ -299,6 +337,13 @@ public class Region_Competition implements PlugInFilter
 		if (userDialog.getInputImage() != null)
 		{
 			originalIP = (ImagePlus) userDialog.getInputImage();
+			if (originalIP != null)
+				cal = originalIP.getCalibration();
+		}
+		
+		if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC)
+		{
+			
 		}
 		
 		if (userDialog.useCluster() == true)
@@ -427,8 +472,6 @@ public class Region_Competition implements PlugInFilter
 			
 					oip_location = MosaicUtils.ValidFolderFromImage(aImp);
 					oip_title = aImp.getTitle();
-			
-					return DOES_ALL+NO_CHANGES;
 				}
 			}
 			else
@@ -436,8 +479,56 @@ public class Region_Competition implements PlugInFilter
 				originalIP = null;
 				return NO_IMAGE_REQUIRED;
 			}
+			
+			if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC)
+			{
+		        // Here, no PSF has been set by the user. Hence, Generate it
+		    	
+		    	GeneratePSF gPsf = new GeneratePSF();
+		    	
+				if (aImp.getNSlices() == 1)
+		    		image_psf = gPsf.generate(2);
+		    	else
+		    		image_psf = gPsf.generate(3);
+			}
 		}
 		return DOES_ALL+NO_CHANGES;
+	}
+	
+	/**
+	 * 
+	 * Eliminate Forbidden region
+	 * 
+	 * @param ip
+	 */
+	
+	private <T extends IntegerType<T>>void EliminateForbidden(ImagePatch ip)
+	{
+		Img<T> lbg = ip.getResult();
+		
+		Cursor<T> cur = lbg.cursor();
+		
+		while (cur.hasNext())
+		{
+			cur.next();
+			
+			if (cur.get().getInteger() == labelImage.forbiddenLabel)
+			{
+				cur.get().setInteger(0);
+			}
+		}
+	}
+	
+	/**
+	 * 
+	 * Set the spacing of the Image
+	 * 
+	 * @param cal Calibration
+	 */
+	
+	void setCalibration(Calibration cal)
+	{
+		this.cal = cal;
 	}
 	
 	/**
@@ -450,8 +541,6 @@ public class Region_Competition implements PlugInFilter
 	{
 		if (settings.labelImageInitType == InitializationType.File_Patcher)
 		{
-			// Run Region Competition on each patch
-			
 			// Open the label and intensity image with imgLib2
 			
 			initInputImage(aImageProcessor);
@@ -463,40 +552,47 @@ public class Region_Competition implements PlugInFilter
 			
 			for (int i = 0 ; i < margins.length ; i++)
 			{
-				margins[i] = 32;
+				margins[i] = (int) (image_psf.dimension(i));
+				if (margins[i] < 50)
+					margins[i] = 50;
 			}
 			
-			ImagePatcher ip = new ImagePatcher(intensityImage.getImgLib2(FloatType.class),labelImage.getImgLib2(IntType.class),margins);
+			ImagePatcher<FloatType,IntType> ip = new ImagePatcher<FloatType,IntType>(intensityImage.getImgLib2(FloatType.class),labelImage.getImgLib2(IntType.class),margins);
 			
 			// for each patch run region competition
 			
-			ImagePatch[] ips = ip.getPathes();
+			ImagePatch<FloatType,IntType>[] ips = ip.getPathes();
 			
-			for (ImagePatch it : ips)
-			{
-				it.show();
-			}
 			
-/*			for (ImagePatch it : ips)
+			for (int i = 1 ; i < ips.length ; i++)
 			{
+				settings.labelImageInitType = InitializationType.File;
+				
 				// Run region competition on the patch image
 				
+				ips[i].show();
 				Region_Competition RC = new Region_Competition();
-				RC.setSettings(null);
-//				RC.setup(null, it.getImage());
-				RC.run(null);
-				
-				it.setResult(RC.labelImage.getImgLib2(IntType.class));
-			}*/
+				RC.setSettings(settings);
+				RC.setPSF(image_psf);
+				RC.setCalibration(cal);
+//				RC.HideProcess();
+				RC.runOnImgLib2(null,ips[i].getImage(),ips[i].getLabelImage(),FloatType.class);
+				RC.labelImage.eliminateForbidden();
+				ips[i].setResult(RC.labelImage.getImgLib2(IntType.class));
+				ips[i].showResult();
+			}
 			
 			// Assemble result
 			
-//			ip.assemble(ips);
+			ImageJFunctions.show(ip.assemble(IntType.class,1));
+			
+//			labelImage = new LabelImageRC(ip.assemble(IntType.class));
 			
 			// save result
 			
 //			labelImage = new labelImage(ip.getAssembles());
-			labelImage.connectedComponents();
+//			labelImage.connectedComponents();
+//			labelImage.show("Segmented", 255);
 		}
 		else
 		{
@@ -504,7 +600,7 @@ public class Region_Competition implements PlugInFilter
 			
 			try
 			{
-				frontsCompetitionImageFilter(aImageProcessor);
+				RCImageFilter(aImageProcessor);
 			}
 			catch (Exception e)
 			{
@@ -528,6 +624,48 @@ public class Region_Competition implements PlugInFilter
 		}
 	}
 	
+	boolean hide_p = false;
+	
+	/**
+	 * 
+	 * Hide all processing
+	 * 
+	 */
+	
+	private void HideProcess() 
+	{
+		hide_p = true;
+	}
+
+	/**
+	 * 
+	 * Hide get hide processing status
+	 * 
+	 */
+	
+	public boolean getHideProcess() 
+	{
+		return hide_p;
+	}
+
+	/**
+	 * 
+	 * Set the PSF of this Region competition istancee
+	 * 
+	 * @param Image reppresenting the PSF
+	 * 
+	 */
+	
+	private void setPSF(Img<FloatType> img)
+	{
+		image_psf = img;
+	}
+	
+	/**
+	 * 
+	 * Initialize the energy function
+	 * 
+	 */
 	
 	void initEnergies()
 	{
@@ -582,7 +720,7 @@ public class Region_Competition implements PlugInFilter
 			case Sphere_Regularization:
 			{
 				int rad = (int)settings.m_CurvatureMaskRadius;
-				e_length = new E_CurvatureFlow(labelImage, rad, originalIP.getCalibration());
+				e_length = new E_CurvatureFlow(labelImage, rad, cal);
 				break;
 			}
 			case Approximative:
@@ -848,48 +986,48 @@ public class Region_Competition implements PlugInFilter
 	
 	void initStack()
 	{
-		if(((userDialog != null && userDialog.useStack()) || settings.RC_free == true) && IJ.isMacro() == false)
+		if (IJ.isMacro() == true || hide_p == true)
+			return;
+		
+		if (userDialog != null)
+			stackKeepFrames = userDialog.showAllFrames();
+		else
+			stackKeepFrames = false;
+			
+		ImageProcessor labelImageProc; // = labelImage.getLabelImageProcessor().convertToShort(false);
+		
+		int[] dims = labelImage.getDimensions();
+		int width = dims[0];
+		int height = dims[1];
+			
+		labelImageProc = new ShortProcessor(width, height);
+		ImagePlus labelImPlus = new ImagePlus("dummy", labelImageProc);
+		stack = labelImPlus.createEmptyStack();
+
+		stackImPlus = new ImagePlus(null, labelImageProc);
+//		stackImPlus = new ImagePlus("Stack of "+originalIP.getTitle(), stack); 
+		stackImPlus.show();
+			
+		// add a windowlistener to 
+			
+		if (IJ.isMacro() == false)
+			stackImPlus.getWindow().addWindowListener(new StackWindowListener());
+			
+		// first stack image without boundary&contours
+		for(int i=1; i<=initialStack.getSize(); i++)
 		{
-			if (userDialog != null)
-				stackKeepFrames = userDialog.showAllFrames();
-			else
-				stackKeepFrames = false;
-			
-			ImageProcessor labelImageProc; // = labelImage.getLabelImageProcessor().convertToShort(false);
-			
-			int[] dims = labelImage.getDimensions();
-			int width = dims[0];
-			int height = dims[1];
-			
-			labelImageProc = new ShortProcessor(width, height);
-			ImagePlus labelImPlus = new ImagePlus("dummy", labelImageProc);
-			stack = labelImPlus.createEmptyStack();
-			
-			stackImPlus = new ImagePlus(null, labelImageProc);
-//			stackImPlus = new ImagePlus("Stack of "+originalIP.getTitle(), stack); 
-			stackImPlus.show();
-			
-			// add a windowlistener to 
-			
-			if (IJ.isMacro() == false)
-				stackImPlus.getWindow().addWindowListener(new StackWindowListener());
-			
-			// first stack image without boundary&contours
-			for(int i=1; i<=initialStack.getSize(); i++)
-			{
-				Object pixels = initialStack.getPixels(i);
-				short[] shortData = IntConverter.intToShort((int[])pixels);
-				addSliceToStackAndShow("init", shortData);
-			}
-//			addSliceToStackAndShow("init", initialLabelImageProcessor.convertToShort(false).getPixelsCopy());
-			
-			// next stack image is start of algo
-//			addSliceToStackAndShow("init", labelImage.getLabelImageProcessor().getPixelsCopy());
-			addSlice(labelImage, "init");
-			
-			IJ.setMinAndMax(stackImPlus, 0, maxLabel);
-			IJ.run(stackImPlus, "3-3-2 RGB", null); // stack has to contain at least 2 slices so this LUT applies to all future slices.
+			Object pixels = initialStack.getPixels(i);
+			short[] shortData = IntConverter.intToShort((int[])pixels);
+			addSliceToStackAndShow("init", shortData);
 		}
+//		addSliceToStackAndShow("init", initialLabelImageProcessor.convertToShort(false).getPixelsCopy());
+			
+		// next stack image is start of algo
+//		addSliceToStackAndShow("init", labelImage.getLabelImageProcessor().getPixelsCopy());
+		addSlice(labelImage, "init");
+		
+		IJ.setMinAndMax(stackImPlus, 0, maxLabel);
+		IJ.run(stackImPlus, "3-3-2 RGB", null); // stack has to contain at least 2 slices so this LUT applies to all future slices.
 	}
 	
 	
@@ -938,15 +1076,8 @@ public class Region_Competition implements PlugInFilter
 		});
 	}
 	
-	void frontsCompetitionImageFilter(ImageProcessor aImageProcessor)
+	private void doRC()
 	{
-		initInputImage(aImageProcessor);
-		initLabelImage();
-//		labelImage.initZero();
-//		labelImage.initBrightBubbles(intensityImage);
-//		labelImage.initSwissCheese(intensityImage);
-//		labelImage.initBoundary();
-		
 		initEnergies();
 		initAlgorithm();
 		
@@ -991,7 +1122,7 @@ public class Region_Competition implements PlugInFilter
 				initEnergies();
 				
 				initAlgorithm();
-				if (algorithm.GenerateData() == false)
+				if (algorithm.GenerateData(image_psf) == false)
 					return;
 				t.toc();
 				
@@ -1022,7 +1153,7 @@ public class Region_Competition implements PlugInFilter
 		}
 		else // no kbest
 		{
-			algorithm.GenerateData();
+			algorithm.GenerateData(image_psf);
 			
 			updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
 			
@@ -1036,7 +1167,27 @@ public class Region_Competition implements PlugInFilter
 		
 		if (IJ.isMacro() == false)
 			controllerFrame.dispose();
+	}
+	
+	<T extends RealType<T>,E extends IntegerType<E>> void RCImageFilter(Img<T> img, Img<E> lbl,Class<T> cls)
+	{
+		labelImage = new LabelImageRC(lbl);
+		intensityImage = new IntensityImage(img,cls);
 		
+		initialStack = IntConverter.intArrayToStack(labelImage.dataLabel, labelImage.getDimensions());
+//		initialLabelImageProcessor = labelImage.getLabelImageProcessor().duplicate();
+	
+		labelImage.initBoundary();
+		
+		doRC();
+	}
+	
+	void RCImageFilter(ImageProcessor aImageProcessor)
+	{
+		initInputImage(aImageProcessor);
+		initLabelImage();
+		
+		doRC();
 	}
 	
 	void showFinalResult(LabelImageRC li)
@@ -1603,7 +1754,7 @@ public class Region_Competition implements PlugInFilter
 	{
 		try
 		{
-			frontsCompetitionImageFilter(RC_image);
+			RCImageFilter(RC_image);
 		}
 		catch (Exception e)
 		{

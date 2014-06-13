@@ -47,6 +47,7 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.ShortType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
@@ -805,15 +806,6 @@ import net.imglib2.view.Views;
 			return this.original_ips;
 		}
 		
-
-		public <T extends IntegerType<T>> ARGBType convertoARGBType(T data)
-		{
-			ARGBType t = new ARGBType();
-			int td = data.getInteger();
-			
-			t.set(ARGBType.rgba(td, td, td, 255.0f));
-			return t;
-		}
 		
 		/**
 		 * 
@@ -1584,7 +1576,7 @@ import net.imglib2.view.Views;
 		 * @return image video
 		 */
 		
-		public  <T> Img<ARGBType> createImage(Img<T> background, Calibration cal)
+		public  <T extends RealType<T>> Img<ARGBType> createImage(Img<T> background, Calibration cal)
 		{
 	        // the number of dimensions
 	        int numDimensions = background.numDimensions();
@@ -1600,15 +1592,26 @@ import net.imglib2.view.Views;
 	        Cursor<ARGBType> curOut = out.cursor();
 	        Cursor<T> curBack = background.cursor();
 	        
-	        if (curBack.hasNext())
-	        {
-	        	curOut.fwd();
-	        	curBack.fwd();
-	        }
+	        // Get the min and max
+	        
+	        T min = null;
+	        T max = null;
+			try {
+				min = (T) background.firstElement().getClass().newInstance();
+		        max = (T) background.firstElement().getClass().newInstance();
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	        MosaicUtils.getMinMax(background, min,max);
         	
 	        // get conversion;
 	        
 	        ToARGB conv = MosaicUtils.getConversion(curBack.get());
+	        conv.setMinMax(min.getRealDouble(), max.getRealDouble());
 	        
 	        // Copy the background
 	        
@@ -1657,9 +1660,9 @@ import net.imglib2.view.Views;
 		 * Update the image
 		 * 
 		 * @param out An array of frames
-		 * @param A focus area
-		 * @param a Vector of trajectories
+		 * @param focus A focus area
 		 * @param start_frame of the focus view
+		 * @param a Vector of trajectories
 		 * @param Type of draw
 		 *
 		 */
@@ -1789,7 +1792,7 @@ import net.imglib2.view.Views;
 		 * 
 		 * Update the image
 		 * 
-		 * @param out An array of frames
+		 * @param out An array of frames in ImgLib2 format (last dimension is frame)
 		 * @param A vector of Trajectory
 		 * @param cal Calibration
 		 * @param Type of draw
@@ -1806,8 +1809,9 @@ import net.imglib2.view.Views;
 		 * 
 		 * Update the image
 		 * 
-		 * @param An array of frames
+		 * @param An array of frames in ImgLib2 format (last dimendion is frame)
 		 * @param A vector of Trajectory
+		 * @param cal Calibration
 		 * @param Color to use for draw
 		 * @param Type of draw
 		 *
@@ -1913,11 +1917,14 @@ import net.imglib2.view.Views;
 		 * Create an image from particle information with background and trajectory information
 		 * 
 		 * @param background background image
+		 * @param tr Trajectory information
 		 * @param cal calibration
+		 * @param frame number
+		 * @param Type of draw
 		 * @return image video
 		 */
 		
-		public  <T> Img<ARGBType> createImage(Img<T> background, Vector<Trajectory> tr ,Calibration cal, int frame, DrawType typ)
+		public  <T extends RealType<T>> Img<ARGBType> createImage(Img<T> background, Vector<Trajectory> tr ,Calibration cal, int frame, DrawType typ)
 		{
 			// if you have no trajectory draw use the other function
 			
@@ -2043,8 +2050,10 @@ import net.imglib2.view.Views;
 		 * 
 		 * Create an image from particle information and trajectory information
 		 * 
-		 * @param background background image
-		 * @param cal calibration
+		 * @param vMax sixe of the image
+		 * @param tr Trajectory information
+		 * @param frame Frame number
+		 * @param Type of draw
 		 * @return image video
 		 */
 		

@@ -21,6 +21,7 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.io.ImgIOException;
 import net.imglib2.io.ImgOpener;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
@@ -351,7 +352,7 @@ public class Algorithm
 			RC_op.add(r);
 	}
 	
-	public boolean GenerateData()
+	public boolean GenerateData(Img<FloatType> image_psf)
 	{
 		/**
 		 * Set up the regions and allocate the output-image
@@ -381,7 +382,7 @@ public class Algorithm
 		/**
 		 * Depending on the functional to use, prepare stuff for faster computation.
 		 */
-		 if (PrepareEnergyCaluclation() == false)
+		 if (PrepareEnergyCaluclation(image_psf) == false)
 			 return false;
 
 		/**
@@ -488,8 +489,18 @@ public class Algorithm
 
 		return true;
 	}
+
 	
-	private boolean PrepareEnergyCaluclation()
+	/**
+	 * 
+	 * Initialize the energy function
+	 * 
+	 * @param img The PSF image optionally is de-convolving segmentation is selected
+	 * 
+	 * @return
+	 */
+	
+	private boolean PrepareEnergyCaluclation(Img<FloatType> image_psf)
 	{
         /**
          * Deconvolution:
@@ -499,21 +510,9 @@ public class Algorithm
         if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) 
         {
     		// Set deconvolution
-    		
-        	Img<FloatType> image_psf = null;
         	
 			if (settings.m_GeneratePSF)
-            {
-                // Here, no PSF has been set by the user. Hence, Generate it
-            	
-            	GeneratePSF gPsf = new GeneratePSF();
-            	
-            	
-            	if (intensityImage.getDim() == 2)
-            		image_psf = gPsf.generate(2);
-            	else
-            		image_psf = gPsf.generate(3);
-            	
+            {            	
             	// if not PSF has been generated stop
             	
             	if (image_psf == null)
@@ -522,12 +521,13 @@ public class Algorithm
             		return false;
             	}
             		
-    			float Vol = IntensityImage.volume_image(image_psf);
-    			IntensityImage.rescale_image(image_psf,1.0f/Vol);
+    			double Vol = IntensityImage.volume_image(image_psf);
+    			IntensityImage.rescale_image(image_psf,(float)(1.0f/Vol));
             	
     			// Show PSF Image
     			
-    			ImageJFunctions.show(image_psf);
+    			if (MVC.getHideProcess() == false)
+    				ImageJFunctions.show(image_psf);
     			
 
             }
@@ -544,8 +544,8 @@ public class Algorithm
     			try 
     			{
     				tmp = new ImgOpener().openImg( file.getAbsolutePath(), imgFactory , new FloatType() );
-    				float Vol = IntensityImage.volume_image(tmp);
-    				IntensityImage.rescale_image(tmp,1.0f/Vol);
+    				double Vol = IntensityImage.volume_image(tmp);
+    				IntensityImage.rescale_image(tmp,(float)(1.0f/Vol));
     				Vol = IntensityImage.volume_image(tmp);
     			}
     			catch (Exception e)
@@ -559,6 +559,8 @@ public class Algorithm
 
             }
         	
+			// Ugly forced to be float
+			
             ((E_Deconvolution)imageModel.getEdata()).setPSF(image_psf);
             ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
             
