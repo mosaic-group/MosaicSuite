@@ -19,10 +19,7 @@ import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.io.ImgIOException;
-import net.imglib2.io.ImgOpener;
 import net.imglib2.type.numeric.real.FloatType;
-
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.Generate_PSF;
 import mosaic.plugins.Region_Competition;
@@ -38,10 +35,10 @@ import mosaic.region_competition.topology.TopologicalNumberImageFunction.Topolog
 import mosaic.region_competition.utils.Pair;
 import mosaic.region_competition.utils.Timer;
 import mosaic.region_competition.energies.*;
-
 import ij.IJ;
 import ij.ImageStack;
 import ij.measure.ResultsTable;
+import io.scif.img.ImgOpener;
 
 public class Algorithm
 {
