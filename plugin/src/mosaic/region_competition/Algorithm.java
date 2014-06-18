@@ -19,8 +19,6 @@ import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.io.ImgIOException;
-import net.imglib2.io.ImgOpener;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
 import mosaic.core.binarize.BinarizedImage;
@@ -49,6 +47,7 @@ import mosaic.core.utils.Point;
 import ij.IJ;
 import ij.ImageStack;
 import ij.measure.ResultsTable;
+import io.scif.img.ImgOpener;
 
 public class Algorithm
 {
@@ -543,7 +542,7 @@ public class Algorithm
                 Img<FloatType> tmp = null;
     			try 
     			{
-    				tmp = new ImgOpener().openImg( file.getAbsolutePath(), imgFactory , new FloatType() );
+    				tmp = new ImgOpener().openImgs( file.getAbsolutePath(), imgFactory , new FloatType() ).get(0).getImg();
     				double Vol = IntensityImage.volume_image(tmp);
     				IntensityImage.rescale_image(tmp,(float)(1.0f/Vol));
     				Vol = IntensityImage.volume_image(tmp);

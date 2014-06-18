@@ -43,7 +43,7 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 		zscale=calibration.pixelDepth;
 		xscale=calibration.pixelHeight;
 		yscale=calibration.pixelWidth;
-			
+		
 		Vector<Particle> particle =new Vector<Particle>();
 		
 	try{

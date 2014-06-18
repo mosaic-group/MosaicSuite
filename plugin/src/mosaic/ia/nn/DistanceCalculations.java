@@ -141,10 +141,6 @@ public abstract class DistanceCalculations {
 		double precision = 100d;
 		KernelEstimator ker = new KernelEstimator(1 / precision);
 		
-		
-			
-	
-		
 		int x_size=(int)Math.floor((Math.abs(x1-x2)+1)*xscale/gridSize);  //x1=0,x2=0=> x_size=1. 
 		int y_size=(int)Math.floor((Math.abs(y1-y2)+1)*yscale/gridSize);
 		int z_size=(int)Math.floor((Math.abs(z1-z2)+1)*zscale/gridSize);

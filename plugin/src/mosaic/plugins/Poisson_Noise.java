@@ -23,8 +23,6 @@ import net.imglib2.histogram.Integer1dBinMapper;
 import net.imglib2.histogram.Real1dBinMapper;
 import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
-import net.imglib2.io.ImgIOException;
-import net.imglib2.io.ImgOpener;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
@@ -53,6 +51,8 @@ import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
+import io.scif.img.ImgIOException;
+import io.scif.img.ImgOpener;
 
 
 /**
@@ -445,33 +445,31 @@ public class Poisson_Noise implements PlugInFilter
 
 			try
 			{
-				Img< UnsignedByteType > imageSeg = imgOpener.openImg( rgm.getAbsolutePath() );
+				Img< UnsignedByteType > imageSeg = (Img<UnsignedByteType>) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0).getImg();
 
 				// Open the segmentation image, erode filter small region,
 				// and create histograms
 		        
 				createHistogramsFromSegImage(imageSeg,gns,UnsignedByteType.class,cls);
 			}
-			catch (IncompatibleTypeException e) {}
 			catch(ClassCastException e) {}
 			catch(ImgIOException e) {}
 			
 			try
 			{
-				Img< ShortType > imageSeg = imgOpener.openImg( rgm.getAbsolutePath() );
+				Img< ShortType > imageSeg = (Img<ShortType>) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0).getImg();
 				
 				// Open the segmentation image, erode filter small region,
 				// and create histograms
 		        
 				createHistogramsFromSegImage(imageSeg,gns,ShortType.class,cls);
 			}
-			catch (IncompatibleTypeException e) {}
 			catch(ClassCastException e) {}
 			catch(ImgIOException e) {}
 			
 			try
 			{
-				Img< IntType > imageSeg = imgOpener.openImg( rgm.getAbsolutePath() );
+				Img< IntType > imageSeg = (Img<IntType>) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0).getImg();
 				
 				// Open the segmentation image, erode filter small region,
 				// and create histograms
@@ -479,7 +477,6 @@ public class Poisson_Noise implements PlugInFilter
 				createHistogramsFromSegImage(imageSeg,gns,IntType.class,cls);
 				
 			}
-			catch (IncompatibleTypeException e) {}
 			catch(ClassCastException e) {}
 			catch(ImgIOException e) {}
 		}

@@ -141,7 +141,9 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 		this.OriginalImagePlus = active_img;
 		//IJ.log("arg0 " + arg0);
 		String[] args =ImageJ.getArgs();
-		int l=args.length;
+		int l=0;
+		if (args != null)
+			l = args.length;
 		//IJ.log("args" + l);
 		boolean batch=false;
 		for(int i=0; i<l; i++)
