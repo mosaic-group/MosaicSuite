@@ -1591,6 +1591,21 @@ public class Tools
 	}
 
 
+	public double reduce(double obj[][][])
+	{
+		double tot = 0.0;
+		
+		//for (int z=0; z<nz; z++){
+		for (int z=0; z<nz; z++){
+			for (int i=0; i<ni	; i++) {  
+				for (int j=0;j< nj; j++) {  	
+					tot += obj[z][i][j];
+				}	
+			}
+		}
+		
+		return tot;
+	}
 
 	public  double computeEnergyPSF3D(
 			double [] [] [] speedData, double [] [] [] mask, 

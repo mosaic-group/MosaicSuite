@@ -1085,6 +1085,14 @@ public class AnalysePatch implements Runnable{
 	//	}
 
 
+	/**
+	 * 
+	 * Here is calculated the best threshold for the patches
+	 * 
+	 * @param w3kbest the mask
+	 * @return the best threshold based on energy calculation
+	 */
+	
 	private double find_best_thresh(double [][][] w3kbest){
 		double t;
 		double energy=Double.MAX_VALUE;
@@ -1093,7 +1101,7 @@ public class AnalysePatch implements Runnable{
 		//	IJ.log("lreg ap " + p.lreg);
 
 		//IJ.log("find bess thresh"  +r.value +"cin " + cin + " coutfront " + cout_front);
-		for (t=1;t> min_thresh; t-=0.02){  //mint //rescaled_min_int_all*0.85 0.5*cout
+		for (t=1;t> min_thresh; t-=0.002){  //mint //rescaled_min_int_all*0.85 0.5*cout
 			set_object(w3kbest, t);
 
 			if(obj && !border_attained){
@@ -1108,7 +1116,7 @@ public class AnalysePatch implements Runnable{
 
 				if(p.debug)	
 					IJ.log("energy " + temp + " t " + t + "region"+ r.value);
-				if (temp<energy) {energy=temp;threshold=t; }
+				if (temp<energy) {energy=temp;threshold=t; }				
 			}
 
 

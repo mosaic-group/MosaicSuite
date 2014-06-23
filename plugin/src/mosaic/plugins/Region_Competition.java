@@ -269,17 +269,21 @@ public class Region_Competition implements PlugInFilter
 		
 		// if is 3D save the originalIP
 		
-		if (aImp.getNSlices() != 1)
+		if (aImp != null && aImp.getNSlices() != 1)
+		{
 			originalIP = aImp;
+		
+			// Save the location of the original IP
+		
+			oip_location = MosaicUtils.ValidFolderFromImage(aImp);
+			oip_title = aImp.getTitle();
+		}
 		else
 			originalIP = null;
 		
-		// Save the location of the original IP
+
 		
-		oip_location = MosaicUtils.ValidFolderFromImage(aImp);
-		oip_title = aImp.getTitle();
-		
-		return DOES_ALL+NO_CHANGES;
+		return NO_CHANGES+NO_IMAGE_REQUIRED ;
 	}
 	
 	

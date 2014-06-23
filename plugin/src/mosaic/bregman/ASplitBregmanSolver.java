@@ -561,7 +561,8 @@ public class ASplitBregmanSolver {
 				md.display2regionsnew(Ro[0][0], "Ro cluster", 1);	
 	}	
 
-	public void regions_intensity_findthresh(double [][][] mask){
+	public void regions_intensity_findthresh(double [][][] mask)
+	{
 		//short [] [] [] regions;
 		ArrayList<Region> regionslist;
 		double thresh;

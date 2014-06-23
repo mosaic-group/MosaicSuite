@@ -96,8 +96,6 @@ public class BLauncher
 				if (wpath != null)
 					savepath =  wpath.substring(0,wpath.length()-4);
 				else{
-					if (savepath == null)
-						IJ.error("Error cannot track the image directory");
 					savepath = Analysis.p.wd;
 				}
 
