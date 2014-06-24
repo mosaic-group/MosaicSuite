@@ -269,7 +269,7 @@ public class Region_Competition implements PlugInFilter
 		
 		// if is 3D save the originalIP
 		
-		if (aImp != null && aImp.getNSlices() != 1)
+		if (aImp != null)
 		{
 			originalIP = aImp;
 		
