@@ -407,6 +407,7 @@ public class Analysis
 									// CMAEvolutionStrategy.properties
 			cma.options.stopFitness = 1e-12; // optional setting
 			cma.options.stopTolFun = 1e-15;
+			cma.options.writeDisplayToFile = 0;
 			Random rn = new Random(System.nanoTime());
 			if (potentialType == PotentialFunctions.NONPARAM) {
 				cma.setDimension(PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1);
