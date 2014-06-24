@@ -403,11 +403,11 @@ public class Analysis
 		// cma.options.stopTolUpXFactor=10000;
 		for (int k = 0; k < cmaReRunTimes; k++) {
 			CMAEvolutionStrategy cma = new CMAEvolutionStrategy();
+			cma.options.writeDisplayToFile = 0;
 			cma.readProperties(); // read options, see file
 									// CMAEvolutionStrategy.properties
 			cma.options.stopFitness = 1e-12; // optional setting
 			cma.options.stopTolFun = 1e-15;
-			cma.options.writeDisplayToFile = 0;
 			Random rn = new Random(System.nanoTime());
 			if (potentialType == PotentialFunctions.NONPARAM) {
 				cma.setDimension(PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1);
