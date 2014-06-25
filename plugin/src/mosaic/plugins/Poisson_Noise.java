@@ -1,6 +1,5 @@
 package mosaic.plugins;
 
-
 import java.awt.Choice;
 import java.awt.Rectangle;
 import java.io.File;
@@ -445,7 +444,7 @@ public class Poisson_Noise implements PlugInFilter
 
 			try
 			{
-				Img< UnsignedByteType > imageSeg = (Img<UnsignedByteType>) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0).getImg();
+				Img< UnsignedByteType > imageSeg = (Img< UnsignedByteType >) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0);
 
 				// Open the segmentation image, erode filter small region,
 				// and create histograms

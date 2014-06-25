@@ -197,10 +197,13 @@ public class Region_Competition implements PlugInFilter
 		
 		// if deconvolving create a PSF generator window
 		
-		GeneratePSF psf = new GeneratePSF();
-		psf.generate(d);
-		par += psf.getParameters();
-		
+		if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC)
+		{
+			GeneratePSF psf = new GeneratePSF();
+			psf.generate(d);
+			par += psf.getParameters();
+		}
+			
 		return par;
 	}
 	
@@ -483,12 +486,12 @@ public class Region_Competition implements PlugInFilter
 			{
 		        // Here, no PSF has been set by the user. Hence, Generate it
 		    	
-		    	GeneratePSF gPsf = new GeneratePSF();
+				GeneratePSF gPsf = new GeneratePSF();
 		    	
 				if (aImp.getNSlices() == 1)
-		    		image_psf = gPsf.generate(2);
-		    	else
-		    		image_psf = gPsf.generate(3);
+					image_psf = gPsf.generate(2);
+				else
+					image_psf = gPsf.generate(3);
 			}
 		}
 		return DOES_ALL+NO_CHANGES;

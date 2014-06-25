@@ -509,27 +509,25 @@ public class Algorithm
         if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) 
         {
     		// Set deconvolution
-        	
-			if (settings.m_GeneratePSF)
-            {            	
-            	// if not PSF has been generated stop
+        	          	
+            // if not PSF has been generated stop
             	
-            	if (image_psf == null)
-            	{
-            		IJ.error("Error no PSF generated");
-            		return false;
-            	}
+            if (image_psf == null)
+            {
+            	IJ.error("Error no PSF generated");
+            	return false;
+            }
             		
-    			double Vol = IntensityImage.volume_image(image_psf);
-    			IntensityImage.rescale_image(image_psf,(float)(1.0f/Vol));
+    		double Vol = IntensityImage.volume_image(image_psf);
+    		IntensityImage.rescale_image(image_psf,(float)(1.0f/Vol));
             	
-    			// Show PSF Image
+    		// Show PSF Image
     			
-    			if (MVC.getHideProcess() == false)
-    				ImageJFunctions.show(image_psf);
+    		if (MVC.getHideProcess() == false)
+    			ImageJFunctions.show(image_psf);
     			
 
-            }
+ /*           }
             else
             {
                 File file = new File( settings.m_PSFImg );
@@ -556,7 +554,7 @@ public class Algorithm
     			
     			ImageJFunctions.show(tmp);
 
-            }
+            }*/
         	
 			// Ugly forced to be float
 			

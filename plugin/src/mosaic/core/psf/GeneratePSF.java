@@ -31,7 +31,7 @@ import mosaic.region_competition.GUI.RegularizationGUI;
 /**
  * 
  * This class generate PSF images from the list of all implemented
- * PSF.
+ * PSF. or from a File
  * 
  * @see psfList.java
  * 

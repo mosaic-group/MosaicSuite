@@ -5,11 +5,14 @@ import java.awt.Choice;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -881,7 +884,7 @@ public class MosaicUtils
 		/* Convert Label Image into region contour image */
 		
 		BinaryOperationAssignment<BitType,BitType,BitType> m_imgManWith = new BinaryOperationAssignment<BitType,BitType,BitType>(new BinaryXor());
-		UnaryOperation<RandomAccessibleInterval<BitType>, RandomAccessibleInterval<BitType>> m_op = new Erode(ConnectedType.EIGHT_CONNECTED, 1);
+		UnaryOperation<RandomAccessibleInterval<BitType>, RandomAccessibleInterval<BitType>> m_op = new Erode(ConnectedType.EIGHT_CONNECTED, null, 1);
 		
 		m_op.compute(labelImage, out);
 		m_imgManWith.compute(labelImage, out, out);
@@ -1303,6 +1306,142 @@ public class MosaicUtils
         	if (cur.get().getRealDouble() > max.getRealDouble())
         		max.setReal(cur.get().getRealDouble());
         }
+	}
+	
+	/**
+	 * 
+	 * Open an image
+	 * 
+	 * @param fl Filename
+	 * @return An image
+	 * 
+	 */
+	
+	static public ImagePlus openImg(String fl)
+	{
+		return new Opener().openImage( fl );
+	}
+	
+	/**
+	 * 
+	 * It return the set of test images for a certain plugin
+	 * 
+	 * @param name of the plugin
+	 * @return an array of test images
+	 */
+	
+	static public ImgTest[] getTestImages(String plugin)
+	{
+		// Search for test images
+		
+		Vector<ImgTest> it = new Vector<ImgTest>();
+		
+		String TestFolder = new String();
+		
+		TestFolder += File.separator + plugin + File.separator;
+		
+		ImgTest imgT = null;
+		
+		// List all directories
+		
+		File fl = new File(TestFolder);
+		File dirs[] = fl.listFiles();
+		
+		if (dirs == null)
+			return null;
+		
+		for (File dir : dirs)
+		{		
+			if (dir.isDirectory() == false)
+				continue;
+			
+			// open config
+		
+			String cfg = TestFolder + "config.cfg";
+		
+			// Format
+			//
+			// Image
+			// options
+			// setup file
+			// Expected setup return
+			// number of images results
+			// ..... List of images result
+			// number of csv results
+			// ..... List of csv result
+		
+			try
+			{
+				BufferedReader br = new BufferedReader(new FileReader(cfg));
+ 
+				String sCurrentLine;
+ 
+				imgT = new ImgTest();
+			
+				imgT.img = openImg(br.readLine());
+				imgT.options = br.readLine();
+				imgT.setup_return = Integer.parseInt(br.readLine());
+				imgT.setup_file = br.readLine();
+				int n_images = Integer.parseInt(br.readLine());
+				imgT.result_imgs = new String[n_images];
+			
+				int n_csv_res = Integer.parseInt(TestFolder + br.readLine());
+			
+				imgT.csv_results = new String[n_images];
+				for (int i = 0 ; i < imgT.csv_results.length ; i++)
+				{
+					imgT.csv_results[i] = TestFolder + File.pathSeparator + br.readLine();
+				}
+			} 
+			catch (IOException e) 
+			{
+				e.printStackTrace();
+				return null;
+			}
+			
+			it.add(imgT);
+		}
+		
+		// Convert Vector to array
+		
+		ImgTest [] its = new ImgTest[it.size()];
+		
+		for (int i = 0 ; i < its.length ; i++)
+		{
+			its[i] = it.get(i);
+		}
+		
+		return its;
+	}
+	
+	/**
+	 * 
+	 * Compare two images
+	 * 
+	 * 
+	 * @param img1 Image1
+	 * @param img2 Image2
+	 * @return true if they match, false otherwise
+	 */
+	
+	public static boolean compare(Img<?> img1, Img<?> img2)
+	{
+
+		Cursor<?> ci1 = img1.cursor();
+		Cursor<?> ci2 = img2.cursor();
+		
+		while (ci1.hasNext())
+		{
+			Object t1 = ci1.get();
+			Object t2 = ci2.get();
+			
+			if (!t1.equals(t2))
+			{
+				return false;
+			}
+		}
+		
+		return true;
 	}
 
 }
