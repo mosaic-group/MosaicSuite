@@ -539,13 +539,13 @@ public class Region_Competition implements PlugInFilter
 	 * 
 	 */
 	
-	public void run(ImageProcessor aImageProcessor) 
+	public void run(ImageProcessor aImageP) 
 	{
 		if (settings.labelImageInitType == InitializationType.File_Patcher)
 		{
 			// Open the label and intensity image with imgLib2
 			
-			initInputImage(aImageProcessor);
+			initInputImage();
 			initLabelImage();
 			 
 			// Patches the image
@@ -602,7 +602,7 @@ public class Region_Competition implements PlugInFilter
 			
 			try
 			{
-				RCImageFilter(aImageProcessor);
+				RCImageFilter();
 			}
 			catch (Exception e)
 			{
@@ -615,6 +615,9 @@ public class Region_Competition implements PlugInFilter
 		String folder = MosaicUtils.ValidFolderFromImage(MVC.getOriginalImPlus());
 		
 		// Remove eventually extension
+		
+		if (labelImage == null)
+			return;
 		
 		labelImage.save(folder + File.separator + MosaicUtils.getRegionMaskName(MVC.getOriginalImPlus().getTitle()));
 		
@@ -753,35 +756,29 @@ public class Region_Competition implements PlugInFilter
 	}
 	
 	
-	void initInputImage(ImageProcessor aImageProcessor)
+	void initInputImage()
 	{
 		ImagePlus ip = null;
 		
-		if (aImageProcessor == null)
-		{
-			String file = userDialog.getInputImageFilename();
-			ImagePlus choiceIP = (ImagePlus)userDialog.getInputImage();
+
+		String file = userDialog.getInputImageFilename();
+		ImagePlus choiceIP = (ImagePlus)userDialog.getInputImage();
 		
-			// first try: filepath of inputReader
-			if(file!=null && !file.isEmpty())
+		// first try: filepath of inputReader
+		if(file!=null && !file.isEmpty())
+		{
+			Opener o = new Opener();
+			ip = o.openImage(file);
+			if (ip != null)
 			{
-				Opener o = new Opener();
-				ip = o.openImage(file);
 				FileInfo fi = ip.getFileInfo();
 				fi.directory = file.substring(0,file.lastIndexOf(File.separator));
 				ip.setFileInfo(fi);
 			}
-			else // selected opened file
-			{
-				ip = choiceIP;
-			}
 		}
-		else
+		else // selected opened file
 		{
-			if (originalIP != null)
-				ip = originalIP;
-			else
-				ip = new ImagePlus("test",aImageProcessor);
+			ip = choiceIP;
 		}
 		
 		// next try: opened image
@@ -1184,9 +1181,9 @@ public class Region_Competition implements PlugInFilter
 		doRC();
 	}
 	
-	void RCImageFilter(ImageProcessor aImageProcessor)
+	void RCImageFilter()
 	{
-		initInputImage(aImageProcessor);
+		initInputImage();
 		initLabelImage();
 		
 		doRC();
@@ -1743,20 +1740,19 @@ public class Region_Competition implements PlugInFilter
 	 * @param s Setting
 	 */
 	
-	public Region_Competition(ImageProcessor img, Settings s)
+	public Region_Competition(ImagePlus img, Settings s)
 	{
-		RC_image = img;
+		RC_ImgPlus = img;
 		settings = s;
 	}
 
-	ImageProcessor RC_image;
 	ImagePlus RC_ImgPlus;
 	
 	public void runP()
 	{
 		try
 		{
-			RCImageFilter(RC_image);
+			RCImageFilter();
 		}
 		catch (Exception e)
 		{

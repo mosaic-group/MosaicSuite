@@ -3,9 +3,10 @@ import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.RealType;
 
 
-public interface psf<T> extends RandomAccess<T>, PSFGui
+public interface psf<T extends RealType<T>> extends RandomAccess<T>, PSFGui
 {
 	/**
 	 * 
@@ -15,7 +16,7 @@ public interface psf<T> extends RandomAccess<T>, PSFGui
 	 * @return the convolved image
 	 */
 	
-	public <S extends NumericType<S>> void convolve(RandomAccessibleInterval<S> img, S bound);
+	public <S extends RealType<S>> void convolve(RandomAccessibleInterval<S> img, S bound);
 	
 	/**
 	 * 
@@ -43,4 +44,13 @@ public interface psf<T> extends RandomAccess<T>, PSFGui
 	 */
 	
 	public void setCenter(int[] pos);
+	
+	/**
+	 * 
+	 * Is this psf comming from a file
+	 * 
+	 * @return true if come from a file false otherwise
+	 */
+	
+	public boolean isFile();
 };

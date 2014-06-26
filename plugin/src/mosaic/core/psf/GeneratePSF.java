@@ -15,6 +15,13 @@ import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import net.imglib2.Cursor;
 import net.imglib2.img.Img;
@@ -41,8 +48,18 @@ import mosaic.region_competition.GUI.RegularizationGUI;
  *
  */
 
-public class GeneratePSF
+class PSFSettings implements Serializable
 {
+	private static final long serialVersionUID = 3757876543608904166L;
+	
+	int dim;
+	String clist;
+}
+
+public class GeneratePSF
+{	
+	PSFSettings settings = new PSFSettings();
+	
 	int sz[];
 	
 	Choice PSFc;
@@ -97,6 +114,9 @@ public class GeneratePSF
 	
 	public Img< FloatType > generate(int dim)
 	{
+		settings.clist = psfList.psfList[0];
+		LoadConfigFile(IJ.getDirectory("temp")+ File.separator + "psf_settings.dat");
+		
 		GenericDialog gd = new GenericDialog("PSF Generator");
 		
 		gd.addNumericField("Dimensions ", dim, 0);
@@ -105,7 +125,7 @@ public class GeneratePSF
 		{
 			dimF = (TextField) gd.getNumericFields().lastElement();
 		
-			gd.addChoice("PSF: ", psfList.psfList, psfList.psfList[0]);
+			gd.addChoice("PSF: ", psfList.psfList, settings.clist);
 			PSFc = (Choice)gd.getChoices().lastElement();
 			{
 				Button optionButton = new Button("Options");
@@ -129,27 +149,33 @@ public class GeneratePSF
 		}
 		else
 		{
-			gd.addChoice("PSF: ", psfList.psfList, psfList.psfList[0]);
+			gd.addChoice("PSF: ", psfList.psfList, settings.clist);
 		}
 		
 		gd.showDialog();
 		
 		// if Batch system
 		
+		String choice = gd.getNextChoice();
 		if (IJ.isMacro() == true)
 		{
 			dim = (int) gd.getNextNumber();
-			selectPSF(dim,gd.getNextChoice());
+			selectPSF(dim,choice);
 		}
 		
 		// psf not selected
 		
 		if (psfc == null)
-			return null;
+		{
+			dim = (int) gd.getNextNumber();
+			selectPSF(dim,choice);
+		}
 		
 		// get the dimension
 		
 		sz = psfc.getSuggestedSize();
+		if (sz == null)
+			return null;
 		
 		// center on the middle of the image
 		
@@ -160,7 +186,12 @@ public class GeneratePSF
 			mid[i] = sz[i]/2;
 		}
 		
-		psfc.setCenter(mid);
+		// If is file psf
+		
+		if (psfc.isFile() == false)
+			psfc.setCenter(mid);
+		
+		// 
 		
 		int loc[] = new int[sz.length]; 
 		
@@ -176,7 +207,20 @@ public class GeneratePSF
 			cft.next();
 			cft.localize(loc);
 			psfc.setPosition(loc);
-			cft.get().set(psfc.get().getRealFloat());
+			float f = psfc.get().getRealFloat();
+			cft.get().set(f);
+		}
+		
+		// Save on settings
+		
+		settings.dim = dim;
+		settings.clist = choice;
+		
+		try {
+			SaveConfigFile(IJ.getDirectory("temp")+ File.separator + "psf_settings.dat",settings);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		return PSFimg;
@@ -185,5 +229,38 @@ public class GeneratePSF
 	public String getParameters()
 	{
 		return psfc.getStringParameters();
+	}
+	
+	static public void SaveConfigFile(String sv, PSFSettings settings) throws IOException
+	{
+		FileOutputStream fout = new FileOutputStream(sv);
+		ObjectOutputStream oos = new ObjectOutputStream(fout);
+		oos.writeObject(settings);
+		oos.close();
+	}
+
+	
+	private boolean LoadConfigFile(String savedSettings)
+	{
+		System.out.println(savedSettings);
+		
+		try
+		{
+			FileInputStream fin = new FileInputStream(savedSettings);
+			ObjectInputStream ois = new ObjectInputStream(fin);
+			settings = (PSFSettings)ois.readObject();
+			ois.close();
+		}
+		catch (FileNotFoundException e)
+		{
+			System.err.println("Settings File not found "+savedSettings);
+			return false;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return true;
 	}
 }

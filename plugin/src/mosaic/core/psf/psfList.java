@@ -12,7 +12,7 @@ import net.imglib2.type.numeric.RealType;
 
 public class psfList
 {
-	static public String psfList[] = {"Gauss"};
+	static public String psfList[] = {"Gauss","File"};
 	
 	/**
 	 * 
@@ -29,6 +29,10 @@ public class psfList
 			if (f.equals("Gauss"))
 			{
 				return new GaussPSF<T>(dim,cl);
+			}
+			if (f.equals("File"))
+			{
+				return new FilePSF<T>(cl);
 			}
 		}
 		return null;

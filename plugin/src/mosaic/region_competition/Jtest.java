@@ -38,16 +38,22 @@ public class Jtest
 		{
 			// Save on tmp and reopen
 			
-			String tmp_dir = IJ.getDirectory("tmp");
-			String file = tmp_dir + File.separator + tmp.img.getTitle();
+			String tmp_dir = IJ.getDirectory("temp");
+			String temp_img = tmp_dir + tmp.img.substring(tmp.img.lastIndexOf(File.separator)+1);
 			
-			FileSaver fs = new FileSaver(tmp.img);
-			fs.saveAsTiff(tmp_dir);
+			FileSaver fs = new FileSaver(MosaicUtils.openImg(tmp.img));
+			fs.saveAsTiff(temp_img);
 			
 			// copy the config file
 			
 			try {
-				ShellCommand.exeCmdNoPrint("cp -r " + tmp.setup_file + " " + IJ.getDirectory("tmp") + File.separator + tmp.setup_file);
+				
+				for (int i = 0 ; i < tmp.setup_files.length ; i++)
+				{
+					String str = new String();
+					str = IJ.getDirectory("temp") +  File.separator + tmp.setup_files[i].substring(tmp.setup_files[i].lastIndexOf(File.separator)+1);
+					ShellCommand.exeCmdNoPrint("cp -r " + tmp.setup_files[i] + " " + str);
+				}
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -59,8 +65,12 @@ public class Jtest
 			// Create a Region Competition filter
 			
 			Region_Competition RC = new Region_Competition();
-			int rt = RC.setup(tmp.options, tmp.img);
-			if (rt != tmp.setup_return);
+			
+			ImagePlus img = MosaicUtils.openImg(temp_img);
+			img.show();
+			
+			int rt = RC.setup(tmp.options, img);
+			if (rt != tmp.setup_return)
 			{
 				fail("Setup error expecting: " + tmp.setup_return + " getting: " + rt);
 			}
@@ -88,7 +98,7 @@ public class Jtest
 		        
 					// open the result image
 				
-		        	image_rs = (Img<?>) imgOpener.openImgs(IJ.getDirectory("tmp") + File.separator + filename);
+		        	image_rs = (Img<?>) imgOpener.openImgs(IJ.getDirectory("temp") + File.separator + filename).get(0);
 				} catch (ImgIOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -102,7 +112,5 @@ public class Jtest
 				}
 			}
 		}
-		
-		fail("Not yet implemented");
 	}
 }

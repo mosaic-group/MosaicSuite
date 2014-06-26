@@ -1319,8 +1319,10 @@ public class MosaicUtils
 	
 	static public ImagePlus openImg(String fl)
 	{
-		return new Opener().openImage( fl );
+		return IJ.openImage(fl);
 	}
+	
+	static String TestBaseDirectory = "/home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/Jtest_data";
 	
 	/**
 	 * 
@@ -1338,7 +1340,7 @@ public class MosaicUtils
 		
 		String TestFolder = new String();
 		
-		TestFolder += File.separator + plugin + File.separator;
+		TestFolder +=  TestBaseDirectory + File.separator + plugin + File.separator;
 		
 		ImgTest imgT = null;
 		
@@ -1357,7 +1359,7 @@ public class MosaicUtils
 			
 			// open config
 		
-			String cfg = TestFolder + "config.cfg";
+			String cfg = dir.getAbsolutePath() + File.separator + "config.cfg";
 		
 			// Format
 			//
@@ -1378,19 +1380,32 @@ public class MosaicUtils
  
 				imgT = new ImgTest();
 			
-				imgT.img = openImg(br.readLine());
+				imgT.img = dir.getAbsolutePath() + File.separator + br.readLine();
 				imgT.options = br.readLine();
+				
+				int nsetup_file = Integer.parseInt(br.readLine());
+				imgT.setup_files = new String[nsetup_file];
+				
+				for (int i = 0 ; i < imgT.setup_files.length ; i++)
+				{
+					imgT.setup_files[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+				}
+				
 				imgT.setup_return = Integer.parseInt(br.readLine());
-				imgT.setup_file = br.readLine();
 				int n_images = Integer.parseInt(br.readLine());
 				imgT.result_imgs = new String[n_images];
+				
+				for (int i = 0 ; i < imgT.result_imgs.length ; i++)
+				{
+					imgT.result_imgs[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+				}
+				
+				int n_csv_res = Integer.parseInt(br.readLine());
 			
-				int n_csv_res = Integer.parseInt(TestFolder + br.readLine());
-			
-				imgT.csv_results = new String[n_images];
+				imgT.csv_results = new String[n_csv_res];
 				for (int i = 0 ; i < imgT.csv_results.length ; i++)
 				{
-					imgT.csv_results[i] = TestFolder + File.pathSeparator + br.readLine();
+					imgT.csv_results[i] = dir.getAbsolutePath() + File.separator + br.readLine();
 				}
 			} 
 			catch (IOException e) 
@@ -1432,6 +1447,9 @@ public class MosaicUtils
 		
 		while (ci1.hasNext())
 		{
+			ci1.fwd();
+			ci2.fwd();
+			
 			Object t1 = ci1.get();
 			Object t2 = ci2.get();
 			

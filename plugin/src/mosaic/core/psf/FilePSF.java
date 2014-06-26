@@ -1,12 +1,28 @@
 package mosaic.core.psf;
 
+import java.awt.Button;
+import java.awt.Choice;
+import java.awt.GridBagConstraints;
+import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.Array;
 
 import ij.IJ;
 import ij.Macro;
 import ij.gui.GenericDialog;
+import ij.io.OpenDialog;
+import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
+import mosaic.region_competition.Settings;
 import net.imglib2.Cursor;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
@@ -17,11 +33,22 @@ import net.imglib2.algorithm.fft2.FFTConvolution;
 import net.imglib2.algorithm.gauss3.Gauss3;
 import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.complex.ComplexFloatType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
+
+class FilePSFSettings implements Serializable
+{
+	private static final long serialVersionUID = 1777976543628904166L;
+	
+	String filePSF;
+}
 
 /**
  * 
@@ -32,10 +59,13 @@ import net.imglib2.view.Views;
  * @param <T> Type of image to produce FloatType, Short .......
  */
 
-public class FilePSF<T extends RealType<T>> implements psf<T> , PSFGui
-{
+public class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , PSFGui
+{	
+	FilePSFSettings settings = new FilePSFSettings();
 	Img<T> image;
+	RandomAccess<T> rd;
 	Class<T> clCreator;
+	String filename;
 	
 	/**
 	 * 
@@ -66,155 +96,180 @@ public class FilePSF<T extends RealType<T>> implements psf<T> , PSFGui
 	@Override
 	public RandomAccess<T> copyRandomAccess()
 	{
-		return image.randomAccess();
+		return rd;
 	}
 
 	@Override
 	public int getIntPosition(int i) 
 	{
-		return image.randomAccess().getIntPosition(i);
+		return rd.getIntPosition(i);
 	}
 
 	@Override
 	public long getLongPosition(int i) 
 	{
-		return image.randomAccess().getLongPosition(i);
+		return rd.getLongPosition(i);
 	}
 
 	@Override
 	public void localize(int[] loc) 
 	{
-		image.randomAccess().localize(loc);
+		rd.localize(loc);
 	}
 
 	@Override
 	public void localize(long[] loc) 
 	{
-		image.randomAccess().localize(loc);
+		rd.localize(loc);
 	}
 
 	@Override
 	public double getDoublePosition(int i) 
 	{
-		return image.randomAccess().getDoublePosition(i);
+		return rd.getDoublePosition(i);
 	}
 
 	@Override
 	public float getFloatPosition(int i) 
 	{
-		return image.randomAccess().getFloatPosition(i);
+		return rd.getFloatPosition(i);
 	}
 
 	@Override
 	public void localize(float[] loc) 
 	{
-		image.randomAccess().localize(loc);
+		rd.localize(loc);
 	}
 
 	@Override
 	public void localize(double[] loc) 
 	{
-		image.randomAccess().localize(loc);
+		rd.localize(loc);
 	}
 
 	@Override
 	public int numDimensions() 
 	{
-		return image.numDimensions();
+		return rd.numDimensions();
 	}
 
 	@Override
 	public void bck(int i) 
 	{
-		image.randomAccess().bck(i);
+		rd.bck(i);
 	}
 
 	@Override
 	public void fwd(int i) 
 	{
-		image.randomAccess().fwd(i);
+		rd.fwd(i);
 	}
 
 	@Override
 	public void move(Localizable arg) 
 	{
-		image.randomAccess().move(arg);
+		rd.move(arg);
 	}
 
 	@Override
 	public void move(int[] mv)
 	{
-		image.randomAccess().move(mv);
+		rd.move(mv);
 	}
 
 	@Override
 	public void move(long[] mv)
 	{
-		image.randomAccess().move(mv);
+		rd.move(mv);
 	}
 
 	@Override
 	public void move(int i, int j) 
 	{
-		image.randomAccess().move(i,j);
+		rd.move(i,j);
 	}
 
 	@Override
 	public void setPosition(Localizable arg) 
 	{
-		image.randomAccess().setPosition(arg);
+		rd.setPosition(arg);
 	}
 
 	@Override
 	public void setPosition(int[] pos_) 
 	{
-		image.randomAccess().setPosition(pos_);
+		rd.setPosition(pos_);
 	}
 
 	@Override
 	public void setPosition(long[] pos_) 
 	{
-		image.randomAccess().setPosition(pos_);
+		rd.setPosition(pos_);
 	}
 
 	@Override
 	public void setPosition(int i, int j)
 	{
-		image.randomAccess().setPosition(i,j);
+		rd.setPosition(i,j);
 	}
 
 	@Override
 	public void setPosition(long i, int j) 
 	{
-		image.randomAccess().setPosition(i,j);
+		rd.setPosition(i,j);
 	}
 
 	@Override
 	public Sampler<T> copy() 
 	{
-		return image.randomAccess().copy();
+		return rd.copy();
 	}
 
 	@Override
 	public T get() 
 	{
-		return image.randomAccess().get();
+		return rd.get();
 	}
 
 	@Override
 	public void move(long i, int j) 
 	{
-		image.randomAccess().move(i,j);
+		rd.move(i,j);
 	}
-
+	
 	@Override
 	public void getParamenters() 
 	{
+		settings.filePSF = new String();
+		LoadConfigFile(IJ.getDirectory("temp")+ File.separator + "psf_file_settings.dat");
+		
 		GenericDialog gd = new GenericDialog("File PSF");
 		
 		// File to open
 		
-		gd.addStringField("File","");
+		gd.addStringField("File",settings.filePSF);
+		final TextField PSFc = (TextField)gd.getStringFields().lastElement();
+		{
+			Button optionButton = new Button("Choose");
+			GridBagConstraints c = new GridBagConstraints();
+			int gridx = 2;
+			int gridy = 0;
+			c.gridx=gridx;
+			c.gridy=gridy++; c.anchor = GridBagConstraints.EAST;
+			gd.add(optionButton,c);
+		
+			optionButton.addActionListener(new ActionListener()
+			{
+				@Override
+				public void actionPerformed(ActionEvent e)
+				{
+					OpenDialog op = new OpenDialog("Choose PSF file",null);
+					
+					filename = op.getDirectory() + File.separator + op.getFileName();
+					PSFc.setText(filename);
+				}
+			});
+		}
 		
 		gd.showDialog();
 		
@@ -225,48 +280,59 @@ public class FilePSF<T extends RealType<T>> implements psf<T> , PSFGui
 		
 		// open the image
 		
+		final ImgFactory<T> factory = new ArrayImgFactory<T>();
 		ImgOpener imgOpener = new ImgOpener();
-		image = (Img< T >) imgOpener.openImgs( filename ).get(0);
+		try {
+			try {
+				image = (Img< T >) imgOpener.openImgs( filename, factory, clCreator.newInstance()).get(0);
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (ImgIOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if (image == null)
+			return;
+		
+		rd = image.randomAccess();
+		
+		// save the parameters
+		
+		settings.filePSF = filename;
+		try {
+			SaveConfigFile(IJ.getDirectory("temp")+ File.separator + "psf_file_settings.dat",settings);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 
 	@Override
-	public <S extends NumericType<S>> void convolve(RandomAccessibleInterval<S> img, S bound) 
-	{
-		Cursor< FloatType > cVModelImage = DevImage.cursor();
-        int size = aLabelImage.getSize();
-		for(int i=0; i < size && cVModelImage.hasNext() ; i++)
-		{
-			cVModelImage.fwd();
-			int vLabel = aLabelImage.getLabelAbs(i);
-            if (vLabel == aLabelImage.forbiddenLabel)
-            {
-                vLabel = 0; // Set Background value ??
-            }
-            
-            if (Float.isInfinite((float)labelMap.get(vLabel).median))
-            {
-            	int debug = 0;
-            	debug++;
-            }
-            	
-			cVModelImage.get().set((float)labelMap.get(vLabel).median);
-
-		}
-		
+	public <S extends RealType<S>> void convolve(RandomAccessibleInterval<S> img, S bound) 
+	{		
 		// Convolve
 		
-		new FFTConvolution< FloatType > (DevImage,m_PSF).run();
+		new FFTConvolution< S > (img,(RandomAccessibleInterval<S>) image, new ArrayImgFactory<ComplexFloatType>()).run();
 	}
 
 	@Override
 	public int[] getSuggestedSize() 
 	{
-		int sz[] = new int [pos.length];
+		if (image == null)
+			return null;
+			
+		int sz[] = new int [image.numDimensions()];
 		
-		for (int i = 0 ; i < pos.length ; i++)
+		for (int i = 0 ; i < image.numDimensions() ; i++)
 		{
-			sz[i] = (int)(var[i].getRealDouble() * 8.0) + 1;
+			sz[i] = (int)image.dimension(i);
 		}
 		
 		return sz;
@@ -282,27 +348,59 @@ public class FilePSF<T extends RealType<T>> implements psf<T> , PSFGui
 	@Override
 	public void setCenter(int[] pos) 
 	{
+		
+		long pos_[] = new long[pos.length];
+		
 		for (int i = 0 ; i < pos.length ; i++)
-		{
-			this.offset[i].setReal(pos[i]);
-		}
+			pos_[i] = pos[i];
+			
+		rd = Views.offset(image, pos_).randomAccess();
 	}
 
 	@Override
 	public String getStringParameters() 
 	{
 		String opt = new String();
+				
+		return "file="+filename;
+	}
+	
+	@Override
+	public boolean isFile() {
+		// TODO Auto-generated method stub
+		return true;
+	}
+	
+	static public void SaveConfigFile(String sv, FilePSFSettings settings) throws IOException
+	{
+		FileOutputStream fout = new FileOutputStream(sv);
+		ObjectOutputStream oos = new ObjectOutputStream(fout);
+		oos.writeObject(settings);
+		oos.close();
+	}
+
+	
+	private boolean LoadConfigFile(String savedSettings)
+	{
+		System.out.println(savedSettings);
 		
-		if (var.length == 2)
-			opt += "sigma_x="+var[0]+" sigma_y="+var[1]+" Dimensions="+var.length;
-		else
-			opt += "sigma_x="+var[0]+" sigma_y="+var[1]+" sigma_z="+var[2] + " Dimensions="+var.length;
-		
-		
-		for (int i = 0 ; i < var.length-3 ; i++)
+		try
 		{
-			opt += "sigma_" + i + "=" + var[i+3];
+			FileInputStream fin = new FileInputStream(savedSettings);
+			ObjectInputStream ois = new ObjectInputStream(fin);
+			settings = (FilePSFSettings)ois.readObject();
+			ois.close();
+		}
+		catch (FileNotFoundException e)
+		{
+			System.err.println("Settings File not found "+savedSettings);
+			return false;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
 		}
 		
-		return opt;
+		return true;
 	}
+}

@@ -1,5 +1,13 @@
 package mosaic.core.psf;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.Array;
 
 import ij.IJ;
@@ -27,8 +35,17 @@ import net.imglib2.view.Views;
  * @param <T> Type of image to produce FloatType, Short .......
  */
 
+class GaussPSFSettings implements Serializable
+{
+	private static final long serialVersionUID = 1777976543628904166L;
+	
+	float var[] = new float[16];
+}
+
 public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 {
+	GaussPSFSettings settings = new GaussPSFSettings();
+	
 	RealType<T> pos[];
 	RealType<T> var[];
 	RealType<T> offset[];
@@ -278,6 +295,8 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 	@Override
 	public void getParamenters() 
 	{
+		LoadConfigFile(IJ.getDirectory("temp")+ File.separator + "psf_gauss_settings.dat");
+		
 		GenericDialog gd = new GenericDialog("Gauss PSF");
 		
 		// sigma
@@ -310,10 +329,17 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		{
 			var[i].setReal(gd.getNextNumber());
 		}
+		
+		try {
+			SaveConfigFile(IJ.getDirectory("temp")+ File.separator + "psf_gauss_settings.dat",settings);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
-	public <S extends NumericType<S>> void convolve(RandomAccessibleInterval<S> img, S bound) 
+	public <S extends RealType<S>> void convolve(RandomAccessibleInterval<S> img, S bound) 
 	{
 		final double[] sigma = new double[ img.numDimensions() ];
 		
@@ -383,5 +409,45 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		}
 		
 		return opt;
+	}
+
+	@Override
+	public boolean isFile() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	
+	static public void SaveConfigFile(String sv, GaussPSFSettings settings) throws IOException
+	{
+		FileOutputStream fout = new FileOutputStream(sv);
+		ObjectOutputStream oos = new ObjectOutputStream(fout);
+		oos.writeObject(settings);
+		oos.close();
+	}
+
+	
+	private boolean LoadConfigFile(String savedSettings)
+	{
+		System.out.println(savedSettings);
+		
+		try
+		{
+			FileInputStream fin = new FileInputStream(savedSettings);
+			ObjectInputStream ois = new ObjectInputStream(fin);
+			settings = (GaussPSFSettings)ois.readObject();
+			ois.close();
+		}
+		catch (FileNotFoundException e)
+		{
+			System.err.println("Settings File not found "+savedSettings);
+			return false;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return true;
 	}
 };
