@@ -1,6 +1,8 @@
 package mosaic.core.utils;
 
 
+import static org.junit.Assert.fail;
+
 import java.awt.Choice;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -46,9 +48,12 @@ import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.detection.MyFrame.DrawType;
+import mosaic.core.ipc.ICSVGeneral;
+import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
 import mosaic.plugins.ParticleTracker3DModular_.Trajectory;
+import mosaic.region_competition.output.RCOutput;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -63,6 +68,8 @@ import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.StackStatistics;
+import io.scif.img.ImgIOException;
+import io.scif.img.ImgOpener;
 
 class FloatToARGB implements ToARGB
 {
@@ -789,15 +796,85 @@ public class MosaicUtils
 	 * specified
 	 * 
 	 * Give output[] = {data*file1, data*file2}
+	 * and bases = {"A","B","C" ..... , "Z"}
+	 * 
+	 * it create two folder data_file1 and data_file2 (* is replaced with _) and inside put all the file
+	 * with pattern dataAfile1 ..... dataZfile1 in the first and dataAfile2 ..... dataZfile2
+	 * in the second. If the folder is empty the folder is deleted
+	 * 
+	 * @param output List of output patterns
+	 * @param bases String of the image/data to substitute
+	 * @param sv base dir where the data are located
+	 */
+	
+	public static void reorganize(String output[], Vector<String> bases, String sv )
+	{
+		// reorganize
+		
+		try 
+		{
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+		
+				Process tProcess;
+				tProcess = Runtime.getRuntime().exec("mkdir " + sv + "/" + tmp.replace("*","_"));
+				tProcess.waitFor();
+			}
+				
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+					
+				Process tProcess;
+				for (int k = 0 ; k < bases.size() ; k++)
+				{
+					tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",bases.get(k)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", ""));
+						
+					tProcess.waitFor();
+				}
+			}
+			
+			// check all the folder created if empty delete it
+			
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+				
+				File dir = new File(sv + "/" + tmp.replace("*","_"));
+				if (dir.listFiles().length == 0)
+				{
+					dir.delete();
+				}
+			}
+		} 
+		catch (IOException e) 
+		{
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
+	
+	
+	/**
+	 * 
+	 * Reorganize the data in the directories inside sv, following the file patterns
+	 * specified
+	 * 
+	 * Give output[] = {data*file1, data*file2}
 	 * and base = "_tmp_"
 	 * 
-	 * it create two folder data_file1 and data_file2 and inside put all the file
+	 * it create two folder data_file1 and data_file2 (* is replaced with _) and inside put all the file
 	 * with pattern data_tmp_1file1 ..... data_tmp_Nfile1 in the first and data_tmp_1file2 ..... data_tmp_Nfile2
 	 * in the second. If the folder is empty the folder is deleted
 	 * 
 	 * @param output List of output patterns
 	 * @param base String of the image/data to substitute
-	 * @param sv Save path
+	 * @param sv base dir where the data are located
+	 * @param nf is N, the number of file, if nf == 0 the file pattern is data_tmp_file without number
 	 */
 	
 	public static void reorganize(String output[], String base, String sv , int nf)
@@ -822,8 +899,90 @@ public class MosaicUtils
 				Process tProcess;
 				for (int k = 0 ; k < nf ; k++)
 				{
-					tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",base) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base + tmp.replace("*", ""));
+					if (nf == 1)
+						tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",base) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base + tmp.replace("*", ""));
+					else
+						tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",base + (k+1)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base + (k+1) + tmp.replace("*", ""));
+						
 					tProcess.waitFor();
+				}
+			}
+			
+			// check for all the folder created if empty delete it
+			
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+				
+				File dir = new File(sv + "/" + tmp.replace("*","_"));
+				if (dir.listFiles().length == 0)
+				{
+					dir.delete();
+				}
+			}
+		} 
+		catch (IOException e) 
+		{
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
+	
+	/**
+	 * 
+	 * Reorganize the data in the directories inside sv, following the file patterns
+	 * specified
+	 * 
+	 * Give output[] = {data*file1, data*file2}
+	 * and base_src = "_src_"
+	 * and base_dst = "_dst_"
+	 * 
+	 * it create two folder data_file1 and data_file2 (* is replaced with _) and inside put all the file
+	 * with pattern data_src_1file1 ..... data_src_Nfile1 in the first renaming to data_dst_1file1 ..... data_dst_Nfile1
+	 * and data_src_1file2 ..... data_src_Nfile2 in the second renaming to data_dst_1file2 ..... data_dst_Nfile2
+	 * If the folder is empty the folder is deleted
+	 * 
+	 * @param output List of output patterns
+	 * @param base String of the image/data to substitute
+	 * @param sv base dir where the data are located
+	 * @param nf is N, the number of file, if nf == 0 the file pattern is data_tmp_file without number
+	 */
+	
+	public static void reorganize(String output[], String base_src, String base_dst, String sv , int nf)
+	{
+		// reorganize
+		
+		try 
+		{
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+		
+				Process tProcess;
+				tProcess = Runtime.getRuntime().exec("mkdir " + sv + "/" + tmp.replace("*","_"));
+				tProcess.waitFor();
+			}
+				
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+				for (int k = 0 ; k < nf ; k++)
+				{
+					if (nf == 1)
+					{
+						ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*",base_src) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", ""));
+						// old layer
+						ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_src + tmp.replace("*", "") + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", ""));
+					}
+					else
+					{
+						ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*",base_src + (k+1)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + (k+1) + tmp.replace("*", ""));
+						// old layer
+						ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_src + tmp.replace("*", "") + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", ""));
+					}
 				}
 			}
 			
@@ -967,8 +1126,15 @@ public class MosaicUtils
 		
 		if(imp !=null)
 		{
+			for (int i = 0 ; i < names.length ; i++)
+				choiceInputImage.addItem(names[i]);
+			
 			String title = imp.getTitle();
 			choiceInputImage.select(title);
+		}
+		else
+		{
+			choiceInputImage.select(0);
 		}
 		
 		return choiceInputImage;
@@ -1322,6 +1488,19 @@ public class MosaicUtils
 		return IJ.openImage(fl);
 	}
 	
+	/**
+	 * 
+	 * Test data directory
+	 * 
+	 * @return Test data directory
+	 * 
+	 */
+	
+	static public String getTestDir()
+	{
+		return TestBaseDirectory;
+	}
+	
 	static String TestBaseDirectory = "/home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/Jtest_data";
 	
 	/**
@@ -1380,7 +1559,13 @@ public class MosaicUtils
  
 				imgT = new ImgTest();
 			
-				imgT.img = dir.getAbsolutePath() + File.separator + br.readLine();
+				int nimage_file = Integer.parseInt(br.readLine());
+				imgT.img = new String[nimage_file];
+				for (int i = 0 ; i < imgT.img.length ; i++)
+				{
+					imgT.img[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+				}
+				
 				imgT.options = br.readLine();
 				
 				int nsetup_file = Integer.parseInt(br.readLine());
@@ -1394,18 +1579,23 @@ public class MosaicUtils
 				imgT.setup_return = Integer.parseInt(br.readLine());
 				int n_images = Integer.parseInt(br.readLine());
 				imgT.result_imgs = new String[n_images];
+				imgT.result_imgs_rel = new String[n_images];
+				imgT.csv_results_rel = new String[n_images];
 				
 				for (int i = 0 ; i < imgT.result_imgs.length ; i++)
 				{
-					imgT.result_imgs[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+					imgT.result_imgs_rel[i] = br.readLine();
+					imgT.result_imgs[i] = dir.getAbsolutePath() + File.separator + imgT.result_imgs_rel[i];
 				}
 				
 				int n_csv_res = Integer.parseInt(br.readLine());
-			
+
 				imgT.csv_results = new String[n_csv_res];
+				imgT.csv_results_rel = new String[n_csv_res];
 				for (int i = 0 ; i < imgT.csv_results.length ; i++)
 				{
-					imgT.csv_results[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+					imgT.csv_results_rel[i] = br.readLine();
+					imgT.csv_results[i] = dir.getAbsolutePath() + File.separator + imgT.csv_results_rel[i];
 				}
 			} 
 			catch (IOException e) 
@@ -1443,12 +1633,15 @@ public class MosaicUtils
 	{
 
 		Cursor<?> ci1 = img1.cursor();
-		Cursor<?> ci2 = img2.cursor();
+		RandomAccess<?> ci2 = img2.randomAccess();
+		
+		int loc[] = new int[img1.numDimensions()];
 		
 		while (ci1.hasNext())
 		{
 			ci1.fwd();
-			ci2.fwd();
+			ci1.localize(loc);
+			ci2.setPosition(loc);
 			
 			Object t1 = ci1.get();
 			Object t2 = ci2.get();
@@ -1460,6 +1653,188 @@ public class MosaicUtils
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * 
+	 * Test the segmentation
+	 * 
+	 * @param BG Segmentation filter
+	 * @param testset Test set
+	 * @param Class<T>
+	 */
+	
+	public static <T extends ICSVGeneral> void testSegmentation(Segmentation BG, String testset,Class<T> cls)
+	{
+		// Create a Region Competition filter
+		
+		ImgTest imgT[] = MosaicUtils.getTestImages(testset);
+		
+		if (imgT == null)
+		{
+			fail("No Images to test");
+			return;
+		}
+		
+		for (ImgTest tmp : imgT)
+		{
+			// Save on tmp and reopen
+			
+			String tmp_dir = IJ.getDirectory("temp") + File.separator + "test" + File.separator;
+			
+			// Remove everything there
+			
+			try {
+				ShellCommand.exeCmdNoPrint("rm -rf " + tmp_dir);
+			} catch (IOException e3) {
+				// TODO Auto-generated catch block
+				e3.printStackTrace();
+			} catch (InterruptedException e3) {
+				// TODO Auto-generated catch block
+				e3.printStackTrace();
+			}
+			
+			// make the test dir
+			
+			try {
+				ShellCommand.exeCmd("mkdir " + tmp_dir);
+			} catch (IOException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			} catch (InterruptedException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
+			
+			for (int i = 0 ; i < tmp.img.length ; i++)
+			{
+				String temp_img = tmp_dir + tmp.img[i].substring(tmp.img[i].lastIndexOf(File.separator)+1);
+				IJ.save(MosaicUtils.openImg(tmp.img[i]), temp_img);
+			}
+				
+//			FileSaver fs = new FileSaver(MosaicUtils.openImg(tmp.img));
+//			fs.saveAsTiff(temp_img);
+			
+			// copy the config file
+			
+			try {
+				
+				for (int i = 0 ; i < tmp.setup_files.length ; i++)
+				{
+					String str = new String();
+					str = IJ.getDirectory("temp") +  File.separator + tmp.setup_files[i].substring(tmp.setup_files[i].lastIndexOf(File.separator)+1);
+					ShellCommand.exeCmdNoPrint("cp -r " + tmp.setup_files[i] + " " + str);
+				}
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			// Create a segmentation filter
+			
+			int rt = 0;
+			if (tmp.img.length == 1)
+			{
+				String temp_img = tmp_dir + tmp.img[0].substring(tmp.img[0].lastIndexOf(File.separator)+1);
+				ImagePlus img = MosaicUtils.openImg(temp_img);
+				img.show();
+			
+				rt = BG.setup(tmp.options, img);
+			}
+			else
+			{
+				rt = BG.setup(tmp.options,null);
+			}
+			
+			if (rt != tmp.setup_return)
+			{
+				fail("Setup error expecting: " + tmp.setup_return + " getting: " + rt);
+			}
+			
+			// run the filter
+			
+			BG.run(null);
+			
+			// Check the results
+			
+			int cnt = 0;
+			
+			for (String rs : tmp.result_imgs)
+			{
+				
+		        // create the ImgOpener
+		        ImgOpener imgOpener = new ImgOpener();
+		 
+		        // open with ImgOpener. The type (e.g. ArrayImg, PlanarImg, CellImg) is
+		        // automatically determined. For a small image that fits in memory, this
+		        // should open as an ArrayImg.
+		        Img<?> image = null;
+		        Img< ? > image_rs = null;
+				try {
+					image = imgOpener.openImgs(rs).get(0);
+				
+					String filename = rs.substring(rs.lastIndexOf(File.separator)+1);
+		        
+					// open the result image
+				
+		        	image_rs = (Img<?>) imgOpener.openImgs(tmp_dir + File.separator + tmp.result_imgs_rel[cnt]).get(0);
+				} catch (ImgIOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				catch (java.lang.UnsupportedOperationException e)	{
+					e.printStackTrace();
+					fail("Error: Image " + rs + " does not match the result");
+				}
+		        
+				// compare
+				
+				if (MosaicUtils.compare(image, image_rs) == false)
+				{
+					fail("Error: Image " + rs + " does not match the result");
+				}
+				
+				cnt++;
+			}
+			
+			// Close all images
+			
+			BG.closeAll();
+			
+			// Open csv
+			
+			cnt = 0;
+			
+			for (String rs : tmp.csv_results)
+			{
+				InterPluginCSV<T> iCSVsrc = new InterPluginCSV<T>(cls);
+			
+				String filename = rs.substring(rs.lastIndexOf(File.separator)+1);
+				iCSVsrc.setCSVPreferenceFromFile(tmp_dir + File.separator + tmp.csv_results_rel[cnt]);
+				Vector<T> outsrc = iCSVsrc.Read(tmp_dir + File.separator + tmp.csv_results_rel[cnt]);
+				
+				InterPluginCSV<T> iCSVdst = new InterPluginCSV<T>(cls);
+				iCSVdst.setCSVPreferenceFromFile(rs);
+				Vector<T> outdst = iCSVdst.Read(rs);
+				
+				if (outsrc.size() != outdst.size() || outsrc.size() == 0)
+					fail("Error: CSV outout does not match");
+				
+				for (int i = 0 ; i < outsrc.size() ; i++)
+				{
+					if (outsrc.get(i).equals(outdst.get(i)))
+					{
+						fail("Error: CSV output does not match");
+					}
+				}
+				
+				cnt++;
+			}
+		}
 	}
 
 }

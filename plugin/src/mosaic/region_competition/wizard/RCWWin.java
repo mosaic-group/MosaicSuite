@@ -314,7 +314,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		{
 			// TODO Auto-generated method stub
 		
-			rg = new Region_Competition(img,s);
+//			rg = new Region_Competition(img,s);
 			rg.runP();
 		}
 		

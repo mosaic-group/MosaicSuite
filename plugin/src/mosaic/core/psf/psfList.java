@@ -1,5 +1,6 @@
 package mosaic.core.psf;
 
+import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 /**
@@ -22,7 +23,7 @@ public class psfList
 	 * @return psf
 	 */
 	
-	static public <T extends RealType<T>> psf<T> factory(String f,int dim, Class<T> cl)
+	static public <T extends RealType<T> & NativeType<T>> psf<T> factory(String f,int dim, Class<T> cl)
 	{
 		for (int i = 0 ; i <  psfList.length ; i++)
 		{

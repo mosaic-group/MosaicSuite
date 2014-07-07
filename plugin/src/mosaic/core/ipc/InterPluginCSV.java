@@ -573,6 +573,9 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	{
 		Method m;
 		try {
+			if (r1 >= v.size())
+				return;
+				
 			m = v.get(r1).getClass().getMethod("set" + property,int.class);
 			for (int i = r1 ; i <= r2 ; i++)
 			{
@@ -617,6 +620,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 		if (output.length == 0)
 			return false;
 		
+		setCSVPreferenceFromFile(output[0]);
 		OutputChoose occr = ReadGeneral(output[0],out);
 		if (occr == null)
 			return false;
@@ -649,6 +653,10 @@ public class InterPluginCSV<E extends ICSVGeneral>
     {			
 		Vector<E> out = new Vector<E>();
 		
+		if (output.length == 0)
+			return false;
+		
+		setCSVPreferenceFromFile(output[0]);
 		OutputChoose occr = ReadGeneral(output[0],out);
 		if (occr == null)
 			return false;
@@ -678,25 +686,24 @@ public class InterPluginCSV<E extends ICSVGeneral>
      * format (the first CSV format file drive the output
      * conversion)
      * 
-     * @param output files to stitch
+     * @param csvs files to stitch
      * @param Sttch output stitched file
-     * @param dir
      * @return
      */
     
-    public boolean Stitch(String output[], String Sttch , File dir)
+    public boolean Stitch(String csvs[], String Sttch)
     {
-    	if (output.length == 0)
+    	if (csvs.length == 0)
     		return false;
 		Vector<E> out = new Vector<E>();
 		
-		OutputChoose occ = ReadGeneral(output[0],out);
+		OutputChoose occ = ReadGeneral(csvs[0],out);
 		if (occ == null)
 			return false;
 		
-		for (int i = 1 ; i < output.length ; i++)
+		for (int i = 1 ; i < csvs.length ; i++)
 		{
-			Readv(output[i],out,occ);
+			Readv(csvs[i],out,occ);
 		}
 		
 		Write(Sttch, out, occ, false);
@@ -787,24 +794,24 @@ public class InterPluginCSV<E extends ICSVGeneral>
     
     /**
      * 
-     * Stitch the CSV files all together in the directory dir + output[]
-     * with pattern "base + 1....N + output[]"
-     * save the result in the Directory dir. "*" are substituted by "_"
+     * Stitch the CSV files all together in the directory dir/dir_p[]
+     * save the result in output_file + dir_p[]
+     * "*" are substituted by "_"
      * 
-     * @param output list of 
-     * @param base Base filename
-     * @param dir Base dir (or where the files are located)
+     * @param dir_p list of directories
+     * @param dir Base
+     * @param output_file stitched file
      * @param Class<T> internal data for conversion
      * @return true if success, false otherwise
      */
     
-    public static <T extends ICSVGeneral>boolean Stitch(String output[], String base, File dir, MetaInfo ext[], Class<T> cls)
+    public static <T extends ICSVGeneral>boolean Stitch(String dir_p[], File dir, File output_file, MetaInfo ext[], Class<T> cls)
     {
 		InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
     	
-		for (int j = 0 ; j < output.length ; j++)
+		for (int j = 0 ; j < dir_p.length ; j++)
 		{
-			File [] fl = new File(dir + File.separator + output[j].replace("*", "_")).listFiles();
+			File [] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
 			if (fl == null)
 				continue;
 			int nf = fl.length;
@@ -813,7 +820,8 @@ public class InterPluginCSV<E extends ICSVGeneral>
 			
 			for (int i = 1 ; i <= nf ; i++)
 			{
-				str[i-1] = dir + File.separator + output[j].replace("*", "_") + File.separator + output[j].replace("*", base + i);
+				if(fl[i-1].getName().endsWith(".csv"))
+					str[i-1] = fl[i-1].getAbsolutePath();
 			}
 			
 			if (ext != null)
@@ -822,7 +830,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 				csv.setMetaInformation(ext[i].par, ext[i].value);
 			}
 			
-			csv.Stitch(str, dir + File.separator + output[j].replace("*", "stitch"), dir);
+			csv.Stitch(str, output_file + dir_p[j]);
 		}
     	
     	return true;
@@ -830,33 +838,39 @@ public class InterPluginCSV<E extends ICSVGeneral>
     
     /**
      * 
-     * Stitch the CSV files all together in the directory dir + output[]
-     * with pattern base + 1....N + output[]
-     * save the result in the Directory dir. "*" are substituted by "_"
+     * Stitch the CSV files all together in the directory dir/output[]
+     * save the result in output_file + dir_p[]. 
+     * "*" are substituted by "_"
      * 
-     * @param output list of 
-     * @param base Base filename
-     * @param dir Base dir (or where the file are located)
+     * @param dir_p list of directories
+     * @param dir Base
+     * @param output_file stitched file (without .csv)
      * @param ExtParam optionally an array of metadata information
      * @param OutputChoose occ Format of the output
      * @param Class<T> Internal data for conversion
      * @return true if success, false otherwise
+     * 
+     * 
      */
     
-    public static <T extends ICSVGeneral>boolean StitchConvert(String output[], String base, File dir, MetaInfo ext[], OutputChoose occ, Class<T> cls)
+    public static <T extends ICSVGeneral>boolean StitchConvert(String dir_p[], File dir, File output_file , MetaInfo ext[], OutputChoose occ, Class<T> cls)
     {
 		InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
     	
-		for (int j = 0 ; j < output.length ; j++)
+		for (int j = 0 ; j < dir_p.length ; j++)
 		{
-			File [] fl = new File(dir + File.separator + output[j].replace("*", "_")).listFiles();
+			File [] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
+			if (fl == null)
+				return false;
+			
 			int nf = fl.length;
 			
 			String str[] = new String[nf];
 			
 			for (int i = 1 ; i <= nf ; i++)
 			{
-				str[i-1] = dir + File.separator + output[j].replace("*", "_") + File.separator + output[j].replace("*", base + i);
+				if(fl[i-1].getName().endsWith(".csv"))
+					str[i-1] = fl[i-1].getAbsolutePath();
 			}
 			
 			if (ext != null)
@@ -864,7 +878,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 				for (int i = 0 ; i < ext.length ; i++)
 				csv.setMetaInformation(ext[i].par, ext[i].value);
 			}
-			csv.StitchConvert(str, dir + File.separator + output[j].replace("*", "stitch"), occ,"Frame",0);
+			csv.StitchConvert(str, output_file + dir_p[j].replace("*", "_"), occ,"Frame",0);
 		}
     	
     	return true;

@@ -65,6 +65,18 @@ public class IntensityImage
 		return dims;
 	}
 	
+	/**
+	 * 
+	 * Close the image
+	 * 
+	 */
+	
+	public void close()
+	{
+		if (imageIP != null)
+			imageIP.close();
+	}
+	
 	public static Img <FloatType> convertToImg(ImageStack stack)
 	{	
 		ImageProcessor proc = stack.getProcessor(1);

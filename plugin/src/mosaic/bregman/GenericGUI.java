@@ -25,6 +25,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -38,8 +39,6 @@ import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import org.apache.commons.io.FileUtils;
 
 import mosaic.bregman.GUI.BackgroundSubGUI;
 import mosaic.bregman.GUI.ColocalizationGUI;
@@ -97,6 +96,7 @@ public class GenericGUI
 	int ni,nj,nz,nc;
 	int posx, posy;
 	static int screensizex, screensizey;
+	BLauncher hd;
 	
 	public GenericGUI(boolean mode, ImagePlus img_p)
 	{
@@ -107,6 +107,16 @@ public class GenericGUI
 	public GenericGUI(boolean  	mode){
 		clustermode=mode;
 		//clustermode=true;
+	}
+	
+	/**
+	 * 
+	 * Close all opened image
+	 * 
+	 * */
+	public void closeAll()
+	{
+		hd.closeAll();
 	}
 	
 	public static void setimagelocation(int x, int y, ImagePlus imp)
@@ -132,87 +142,10 @@ public class GenericGUI
 		
 	}
 
-	/* !!! 2 BUGS concerning checkboxes in generic dialog when run in headless mode on a cluster :
-		1 : all checkbox default value should be set to false (because headless mode uses:  (boolean value found in macro || default value) )
-		2 : macro should be edited by appending a '=' after checkbox labels that are active ('subpixel' -> 'subpixel=')
-	   !!!
-	 */
-
-
-
-	//    public static String getValue(String options, String key, String defaultValue) {
-	//        key = Macro.trimKey(key);
-	//        key += '=';
-	//        int index=-1;
-	//        do { // Require that key not be preceded by a letter
-	//            index = options.indexOf(key, ++index);
-	//            if (index<0) return defaultValue;
-	//        } while (index!=0&&Character.isLetter(options.charAt(index-1)));
-	//        options = options.substring(index+key.length(), options.length());
-	//        if (options.charAt(0)=='\'') {
-	//            index = options.indexOf("'",1);
-	//            if (index<0)
-	//                return defaultValue;
-	//            else
-	//                return options.substring(1, index);
-	//        } else if (options.charAt(0)=='[') {
-	//            index = options.indexOf("]",1);
-	//            if (index<=1)
-	//                return defaultValue;
-	//            else
-	//                return options.substring(1, index);
-	//        } else {
-	//            //if (options.indexOf('=')==-1) {
-	//            //  options = options.trim();
-	//            //  IJ.log("getValue: "+key+"  |"+options+"|");
-	//            //  if (options.length()>0)
-	//            //      return options;
-	//            //  else
-	//            //      return defaultValue;
-	//            //}
-	//            index = options.indexOf(" ");
-	//            if (index<0)
-	//                return defaultValue;
-	//            else
-	//                return options.substring(0, index);
-	//        }
-	//    }
-
-	//	protected static boolean getMacroParameter(String label, boolean defaultValue) {
-	//		boolean temp = getMacroParameter(label) != null ;
-	//		boolean res = temp || defaultValue; 
-	//		return res;
-	//		//return getMacroParameter(label) != null || defaultValue;
-	//	}
-	//
-	//	protected static double getMacroParameter(String label, double defaultValue) {
-	//		String value = Macro.getValue(Macro.getOptions(), label, null);
-	//		return value != null ? Double.parseDouble(value) : defaultValue;
-	//	}
-	//
-	//	protected static String getMacroParameter(String label, String defaultValue) {
-	//		return Macro.getValue(Macro.getOptions(), label, defaultValue);
-	//	}
-	//
-	//	protected static String getMacroParameter(String label) {
-	//		return Macro.getValue("filepath=/gpfs/home/rizk_a/Serotonin/180minsub/ rolling=10 gaussian_psf_" +
-	//	"approximation,_stddev_xy=0.90 gaussian_psf_approximation,_stddev_z=0.80 lambda=0.10 minimum_object_intensity=0.11" +
-	//	" subpixel= cell_mask_channel_1 cell_mask_channel_2 threshold_1=0.0015 threshold_2=0.0350 colorized objects outline save" +
-	//	" number=4 intensity_estimation=[Automatic (Fisher scoring MLE)] noise=Poisson", label, null);
-	//	}
-	
-
-	//	protected static String getMacroParameter(String label) {
-	//		return Macro.getValue(Macro.getOptions(), label, null);
-	//	}
-
-
-
 	
 	public void run(String arg, ImagePlus aImp)
 	{
 		boolean use_cluster = false;
-		String wpath = null;
 		Font bf = new Font(null, Font.BOLD,12);
 		//String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
 		//boolean bgroup1[] = {false, false};
@@ -235,10 +168,13 @@ public class GenericGUI
 			
 			gd.setInsets(-10,0,3);
 			
-			gd.addTextAreas("Input Image: \n" +
+			if (Analysis.p.wd == null)
+				gd.addTextAreas("Input Image: \n" +
 					"insert Path to file or folder, " +
 					"or press Button below.", 
 					null, 2, 50);
+			else
+				gd.addTextAreas(Analysis.p.wd,null, 2, 50);
 			
 			//FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
 			FlowLayout fl = new FlowLayout(FlowLayout.LEFT,75,3);
@@ -257,6 +193,7 @@ public class GenericGUI
 			
 			// Image chooser
 			
+			gd.addChoice("Input image", new String[]{""}, "");
 			MosaicUtils.chooseImage(gd,"Image",aImp);
 			
 			// Background Options
@@ -354,7 +291,7 @@ public class GenericGUI
 			gd.showDialog();
 			if (gd.wasCanceled()) return;
 			
-			wpath=  gd.getNextText();
+			Analysis.p.wd=  gd.getNextText();
 			
 			Runtime runtime = Runtime.getRuntime();
 			int nrOfProcessors = runtime.availableProcessors();
@@ -373,7 +310,7 @@ public class GenericGUI
 			gd.showDialog();
 			if (gd.wasCanceled()) return;
 			
-			wpath=  gd.getNextString();
+			Analysis.p.wd=  gd.getNextString();
 			
 			Analysis.p.nthreads= (int) gd.getNextNumber();
 			try 
@@ -418,9 +355,9 @@ public class GenericGUI
 		{
 			// We run locally
 			
-			BLauncher hd = null;
+			hd = null;
 		
-			if (wpath.startsWith("Input Image:"))
+			if (Analysis.p.wd.startsWith("Input Image:") || Analysis.p.wd.isEmpty())
 			{
 				if (aImp == null)
 				{
@@ -430,24 +367,23 @@ public class GenericGUI
 				hd= new BLauncher(aImp);
 				
 				String savepath;
-				Analysis.p.wd = MosaicUtils.ValidFolderFromImage(aImp);
-				if (wpath.startsWith("Input Image") == false)
-					savepath =  wpath.substring(0,wpath.length()-4);
-				else
-				{
-					savepath = Analysis.p.wd;
-				}
+				savepath = MosaicUtils.ValidFolderFromImage(aImp);
 				
 				MosaicUtils.reorganize(Analysis.out_w,aImp.getShortTitle(),savepath,aImp.getNFrames());
 				
 				MetaInfo mt[] = new MetaInfo[1];
+				mt[0] = new MetaInfo();
 				mt[0].par = new String("background");
 				mt[0].value = new String(MosaicUtils.ValidFolderFromImage(aImp) + aImp.getTitle());
 				
-				InterPluginCSV.StitchConvert(Analysis.out_w,"",new File(savepath),mt,CSVOutput.occ,CSVOutput.occ.classFactory);
+				InterPluginCSV.StitchConvert(Analysis.out_w,new File(savepath),new File(savepath + File.separator + aImp.getTitle().substring(0, aImp.getTitle().lastIndexOf("."))),mt,CSVOutput.occ,CSVOutput.occ.classFactory);
 			}
 			else
-				hd= new BLauncher(wpath);
+			{
+				hd= new BLauncher(Analysis.p.wd);
+				Vector<String> pf = hd.getProcessedFiles();
+				MosaicUtils.reorganize(Analysis.out_w,pf,Analysis.p.wd);
+			}
 
 		//		    hd.bcolocheadless(imagePlus);*/
 			
@@ -476,12 +412,14 @@ public class GenericGUI
 			
 			// Check if we selected a directory
 			
+			boolean was_directory = false;
 			ClusterSession ss = null;
 			File[] fileslist = null;
+			File fl = null;
 			
 			if (aImp == null)
 			{
-				File fl = new File(wpath);
+				fl = new File(Analysis.p.wd);
 				if (fl.isDirectory() == true)
 				{
 					// we have a directory
@@ -489,6 +427,8 @@ public class GenericGUI
 					fileslist = fl.listFiles();
 					
 					ss = ClusterSession.processFiles(fileslist,"Squassh","",Analysis.out);
+					
+					was_directory = true;
 				}
 				else if (fl.isFile())
 				{
@@ -515,6 +455,19 @@ public class GenericGUI
 			String outcsv[] = {"*_ObjectsData_c1.csv"};
 			ClusterSession.processJobsData(ss,outcsv,aImp,CSVOutput.occ.classFactory);
 			
+			// if it was a directory
+			
+			if (was_directory == true)
+			{
+				// Here we merge all the jobs
+				
+				String [] jbs = ClusterSession.getJobDirectories(0, fl.getAbsolutePath());
+				for (int i = 1 ; i < jbs.length ; i++)
+				{
+					ClusterSession.mergeJobs(new File(jbs[0]),new File(jbs[i]));
+				}
+			}
+				
 			////////////////
 		}
 		

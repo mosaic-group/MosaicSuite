@@ -49,7 +49,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 //	private final float imageMax; 	// maximal intensity of input image
 	
 	protected ImageProcessor labelIP;				// map positions -> labels
-	protected ImagePlus labelPlus;				
+	protected ImagePlus labelPlus;
 //	public float[] dataIntensity;
 	public int[] dataLabel;
 //	public short[] dataLabelShort;
@@ -264,6 +264,19 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		}
 	}
 	
+	
+	/**
+	 * 
+	 * Close all the images
+	 * 
+	 */
+	
+	public void close()
+	{
+		if (labelPlus != null)
+			labelPlus.close();
+	}
+	
 	/**
 	 * @param stack Stack of Int processors
 	 */
@@ -286,9 +299,9 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		if (file.indexOf("file:") >= 0)
 			file = file.substring(file.indexOf("file:")+5);
 		
-		FileSaver fs = new FileSaver(convert("save",256));
-		
-		fs.saveAsTiff(file);
+		ImagePlus ip = convert("save",256);
+		IJ.save(ip,file);
+		ip.close();
 	}
 	
 	public ImageProcessor getLabelImageProcessor()
@@ -316,8 +329,13 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	{
 		if(getDim()==3)
 		{
-			System.out.println("Unsupported for now");
-			return null;
+			ImagePlus imp = new ImagePlus("ResultWindow "+title, this.get3DShortStack(true));
+			
+//			IJ.setMinAndMax(imp, 0, maxl);
+//			IJ.run(imp, "3-3-2 RGB", null);
+			
+//			imp.show();
+			return imp;
 		}
 		
 		// Colorprocessor doesn't support abs() (does nothing). 

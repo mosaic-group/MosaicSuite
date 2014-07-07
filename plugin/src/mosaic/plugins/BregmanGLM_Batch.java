@@ -10,7 +10,6 @@ import java.io.ObjectOutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.beanutils.PropertyUtils;
 
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GUIold;
@@ -29,10 +28,11 @@ import ij.Macro;
 import ij.io.Opener;
 
 
-public class BregmanGLM_Batch implements PlugInFilter, Segmentation
+public class BregmanGLM_Batch implements Segmentation
 {
 	private ImagePlus OriginalImagePlus = null;
 	private String savedSettings;
+	GenericGUI window;
 	
 	public int setup(String arg0, ImagePlus active_img) 
 	{
@@ -162,7 +162,7 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 			if (batch == true)
 				Analysis.p.dispwindows = false;
 			
-			GenericGUI window = new GenericGUI(batch,active_img);
+			window = new GenericGUI(batch,active_img);
 			window.run("",active_img);
 			
 			SaveConfig(Analysis.p);
@@ -213,6 +213,22 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 		}
 	}
 	
+	/**
+	 * 
+	 * Close all the file
+	 * 
+	 */
+	
+	public void closeAll()
+	{
+		if (OriginalImagePlus != null)
+		{
+			OriginalImagePlus.close();
+		}
+		
+		window.closeAll();
+	}
+	
 	public static void SaveConfig(Parameters p, String savePath) throws IOException
 	{
 		FileOutputStream fout = new FileOutputStream(savePath);
@@ -220,6 +236,14 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 		oos.writeObject(p);
 		oos.close();
 	}
+	
+	/**
+	 * 
+	 * Save the Config file
+	 * 
+	 * @param p Setting file
+	 * @throws IOException
+	 */
 	
 	void SaveConfig(Parameters p) throws IOException
 	{
@@ -231,7 +255,8 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 
 	/**
 	 * 
-	 * Get Mask images
+	 * Get Mask images name output
+	 * @param aImp image
 	 * @return set of possible output
 	 * 
 	 */
@@ -245,10 +270,10 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 	
 	/**
 	 * 
-	 * Get regions list
+	 * Get Mask images name output
 	 * 
-	 * @param aImp
-	 * @return set of possible ouput
+	 * @param aImp image
+	 * @return set of possible output
 	 */
 	
 	public String[] getRegions(ImagePlus aImp)
@@ -259,6 +284,14 @@ public class BregmanGLM_Batch implements PlugInFilter, Segmentation
 		return gM;
 	}
 
+	/**
+	 * 
+	 * Get CSV regions list name output
+	 * 
+	 * @param aImp image
+	 * @return set of possible output
+	 */
+	
 	@Override
 	public String[] getRegionList(ImagePlus aImp) 
 	{

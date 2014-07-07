@@ -55,7 +55,7 @@ public class GenericDialogGUI implements InputReadable
 	private String labelImageTitle;
 	
 	private int kbest = 1;
-	private boolean showAndSaveStatistics = false;
+	private boolean showAndSaveStatistics = true;
 	private boolean showNormalized = false;
 	private boolean useStack = true;
 	public boolean keepAllFrames = true;	// keep result of last segmentation iteratior?

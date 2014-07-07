@@ -350,27 +350,37 @@ public class ClusterSession
 	
 	/**
 	 * 
-	 * Get the Jobs directory in the temporal folder
+	 * Get the Jobs directory in the temporal or other folder
 	 * 
 	 * @param JobID if 0 return all directory otherwise return the directory associated to the
 	 *        specified jobID
-	 * @param directory where to search for Job directory
+	 * @param directory where to search for Job directory (if null the temp directory is choosen)
 	 * @return Get all the directory string
 	 * 
 	 */
 	
 	static public String[] getJobDirectories(final int JobID, final String directory)
-	{
-		final String tmp_dir = IJ.getDirectory("temp");
-		
+	{	
 		// List all job directory
 		
 		File file = null;
+		String tmp_dir_ = null;
 		
 		if (directory != null)
+		{
+			if (directory.endsWith(File.separator))
+				tmp_dir_ = directory;
+			else
+				tmp_dir_ = directory + File.separator;
 			file = new File(directory);
+		}
 		else
-			file = new File(tmp_dir);
+		{
+			tmp_dir_ = IJ.getDirectory("temp");
+			file = new File(tmp_dir_);
+		}
+			
+		final String tmp_dir = tmp_dir_;
 		
 		String[] directories = file.list(new FilenameFilter() 
 		{
@@ -402,7 +412,7 @@ public class ClusterSession
 		
 		for (int i = 0 ; i < directories.length ; i++)
 		{
-			directories[i] = tmp_dir + directories[i];
+			directories[i] = tmp_dir + File.separator + directories[i];
 		}
 			
 		return directories;
@@ -506,22 +516,32 @@ public class ClusterSession
 
 	/**
 	 * 
-	 * Reorganize the downloaded data
+	 * Reorganize the download data
 	 * 
 	 * @param output List of output patterns
+	 * @param JobID ID of the job to reorganize
+	 * @param wp eventually a progress bar window
+	 * 
 	 */
 	
 	void reorganize(String output[], int JobID ,ProgressBarWin wp)
-	{		
+	{
 		String directories[] = getJobDirectories(JobID,null);
 		
 		// reorganize
 		
-		try 
-		{
+/*		try 
+		{*/
 			for (int i = 0 ; i < directories.length ; i++)
 			{
-				for (int j = 0 ; j < output.length ; j++)
+				String s[] = MosaicUtils.readAndSplit(directories[i] + File.separator + "JobID");
+				int nf = Integer.parseInt(s[1]);
+				String filename = s[2];
+				
+				MosaicUtils.reorganize(output, "tmp_", filename, directories[i], nf);
+				
+				
+/*				for (int j = 0 ; j < output.length ; j++)
 				{
 					String tmp = new String(output[j]);
 		
@@ -538,18 +558,19 @@ public class ClusterSession
 					
 					String s[] = MosaicUtils.readAndSplit(directories[i] + File.separator + "JobID");
 					int nf = Integer.parseInt(s[1]);
+					String filename = s[2];
 					
 					Process tProcess;
 					for (int k = 0 ; k < nf ; k++)
 					{
-						tProcess = Runtime.getRuntime().exec("mv " + directories[i] + "/" + tmp.replace("*","tmp_" + (k+1)) + "   " + directories[i] + "/" + tmp.replace("*", "_"));
+						tProcess = Runtime.getRuntime().exec("mv " + directories[i] + "/" + tmp.replace("*",filename + (k+1)) + "   " + directories[i] + "/" + tmp.replace("*", "_"));
 						tProcess.waitFor();
 						wp.SetProgress(k*100/nf);
 					}
-				}
+				}*/
 			}
 		
-		} 
+/*		} 
 		catch (IOException e) 
 		{
 		// TODO Auto-generated catch block
@@ -557,7 +578,7 @@ public class ClusterSession
 		} catch (InterruptedException e) {
 		// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
+		}	*/	
 	}
 	
 	/**
@@ -720,7 +741,8 @@ public class ClusterSession
 		wp.SetStatusMessage("Getting all jobs ...");
 		
 		BatchInterface bcl[] = bc.getAllJobs(ss,command);
-		if (bcl == null)
+		bcl = new BatchInterface[1];
+/*		if (bcl == null)
 		{
 			wp.SetStatusMessage("End");
 			return false;
@@ -741,11 +763,11 @@ public class ClusterSession
 			bcl[j].setJobStatus(bcl[j].getJobStatus());
 		}
 		
-		wp.SetProgress(0);
+		wp.SetProgress(0);*/
 		
 		/* Wait the various jobs complete */
 		
-		int n_bc = 0;
+/*		int n_bc = 0;
 		while (n_bc < bcl.length)
 		{
 			double progress = 0.0;
@@ -806,7 +828,7 @@ public class ClusterSession
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
+		}*/
 		
 		// It never went online
 		
@@ -1050,7 +1072,6 @@ public class ClusterSession
 		ImagePlus imp = opener.openImage(fl.getAbsolutePath());
 		ClusterSession ss = processImage(imp,command,options,out,cg,new Float(0.0),new Float(0.0),true);
 		
-		
 //		ClusterSession ss = cg.getClusterSession();
 		
 //		ss.runPluginsOnFrames(null,null, Analysis.out, 180.0, sync);
@@ -1132,13 +1153,7 @@ public class ClusterSession
 			for (int i = 0 ; i < dir.length ; i++)
 			{
 				try 
-				{
-					// Stitch Object.csv
-					
-					InterPluginCSV.Stitch(outcsv,"tmp_",new File(dir[i]),null,cls);
-					
-					///////
-					
+				{					
 					String[] tmp = dir[i].split(File.separator);
 					
 					File t = new File(dirS + File.separator + tmp[tmp.length-1]);
@@ -1148,6 +1163,12 @@ public class ClusterSession
 					// after copy remove the directory
 					
 					ShellCommand.exeCmdNoPrint("rm -rf " + dir[i]);
+					
+					// Stitch Object.csv
+					
+					InterPluginCSV.Stitch(outcsv,new File(dir[i]),new File(dir[i] + File.separator + "tmp"),null,cls);
+					
+					///////
 				}
 				catch (IOException e) 
 				{
@@ -1159,6 +1180,73 @@ public class ClusterSession
 				}
 			}
 		}
+	}
+	
+	/**
+	 * 
+	 * Merge two jobs together
+	 * 
+	 * @param jobsrc source job
+	 * @param jobdst destination job
+	 * 
+	 */
+	
+	public static void mergeJobs(File jobsrc, File jobdst)
+	{
+		// Get a temporary directory create a dir
+		
+		String tmp = IJ.getDirectory("temp") + File.separator + "temp_merge" + File.separator;
+		try {
+			ShellCommand.exeCmdNoPrint("mkdir " + tmp + "; cp -R " + jobsrc.getAbsolutePath() + File.separator + "*" + " " + tmp);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// For each directory in job2 check if exist a directory in job1
+		
+		File fl[] = jobdst.listFiles();
+		
+		for (File t : fl)
+		{
+			// dir
+			
+			File dir = new File(tmp + File.separator + t.getName());
+			
+			if (dir.exists() == true)
+			{
+				// exist the directory in job1
+				
+				try {
+					ShellCommand.exeCmdNoPrint("cp -R " + t.getAbsolutePath() + " " + dir.getAbsolutePath());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			else
+			{
+				// Create a directory and copy
+				
+				try {
+					ShellCommand.exeCmdNoPrint("mkdir " + dir.getAbsolutePath() + " ; cp -R " + t.getAbsolutePath() + " " + dir.getAbsolutePath());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		// remove the temporary directory
 	}
 	
 /*	public void runPluginsOnImages(ImagePlus img[], String options, double ExtTime)

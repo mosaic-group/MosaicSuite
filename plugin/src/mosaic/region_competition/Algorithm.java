@@ -45,6 +45,7 @@ import mosaic.region_competition.utils.Timer;
 import mosaic.region_competition.energies.*;
 import mosaic.core.utils.Point;
 import ij.IJ;
+import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.ResultsTable;
 import io.scif.img.ImgOpener;
@@ -489,6 +490,7 @@ public class Algorithm
 		return true;
 	}
 
+	Vector<ImagePlus> OpenedImages = new Vector();
 	
 	/**
 	 * 
@@ -524,37 +526,9 @@ public class Algorithm
     		// Show PSF Image
     			
     		if (MVC.getHideProcess() == false)
-    			ImageJFunctions.show(image_psf);
-    			
-
- /*           }
-            else
-            {
-                File file = new File( settings.m_PSFImg );
-                
-                // open with ImgOpener using an ArrayImgFactory, here the return type will be
-                // defined by the opener
-                // the opener will ignore the Type of the ArrayImgFactory
-                
-                ImgFactory< FloatType > imgFactory = new ArrayImgFactory< FloatType >();
-                Img<FloatType> tmp = null;
-    			try 
-    			{
-    				tmp = new ImgOpener().openImgs( file.getAbsolutePath(), imgFactory , new FloatType() ).get(0).getImg();
-    				double Vol = IntensityImage.volume_image(tmp);
-    				IntensityImage.rescale_image(tmp,(float)(1.0f/Vol));
-    				Vol = IntensityImage.volume_image(tmp);
-    			}
-    			catch (Exception e)
-    			{
-    				
-    			}
-    			
-    			///////////////////////////////////
-    			
-    			ImageJFunctions.show(tmp);
-
-            }*/
+    		{
+    			OpenedImages.add(ImageJFunctions.show(image_psf));
+    		}
         	
 			// Ugly forced to be float
 			
@@ -2012,6 +1986,20 @@ public class Algorithm
 	Object pauseMonitor = new Object();
 	boolean pause = false;
 	boolean abort = false;
+	
+	/**
+	 * 
+	 * Close all created images
+	 * 
+	 */
+	
+	public void close()
+	{
+		for (int i = 0 ; i < OpenedImages.size() ; i++)
+		{
+			OpenedImages.get(i).close();
+		}
+	}
 	
 	/**
 	 * Stops the algorithm after actual iteration

@@ -23,6 +23,12 @@
       <fileset dir="lib">
         <include name="*.jar"/>
       </fileset>
+      <fileset dir="${pluginsDir}/../../jars">
+        <include name="*.jar"/>
+      </fileset>
+      <fileset dir="${pluginsDir}/..">
+        <include name="*.jar"/>
+      </fileset>
     </classpath>
     <formatter type="plain" usefile="false" />
     <test name="mosaic.region_competition.Jtest"

@@ -19,14 +19,13 @@ import java.awt.Color;
 import java.awt.image.IndexColorModel;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
-
-import org.supercsv.cellprocessor.ift.CellProcessor;
 
 import mosaic.bregman.Tools;
 import mosaic.bregman.FindConnectedRegions.Region;
@@ -39,11 +38,12 @@ public class BLauncher
 	public  int hcount=0;
 	public  String headlesscurrent;
 	PrintWriter out3;
-	String wpath;
 	ImagePlus aImp;
 	Tools Tools;
 	RScript script;
 
+	Vector<ImagePlus> ip = new Vector<ImagePlus>();
+	
 	String choice1[] = {
 			"Automatic", "Low layer", "Medium layer", "High layer"};
 	String choice2[] = {
@@ -52,31 +52,92 @@ public class BLauncher
 	double colocsegAB = 0;
 	double colocsegBA = 0;
 	
-	public BLauncher(String path)
+	Vector<String> pf = new Vector<String>();
+	
+	public Vector<String> getProcessedFiles()
 	{
-		
-		wpath=path;
-
-				
-		boolean processdirectory =(new File(wpath)).isDirectory();
+		return pf;
+	}
+	
+	/**
+	 * 
+	 * Launch the Segmentation + Analysis from path
+	 * 
+	 * @param path
+	 */
+	
+	public BLauncher(String path)
+	{				
+		boolean processdirectory =(new File(path)).isDirectory();
 		if(processdirectory)
 		{
 			//IJ.log("Processing directory");
-			Headless_directory();
+//			Headless_directory();
+			
+			PrintWriter out = null;
+			
+			// Get all files
+			
+			File dir = new File(path);
+			File fl[] = dir.listFiles();
+			
+			// Check if we have more than one frame
+			
+			int cnt = 1;
+			
+			for (File f : fl)
+			{
+				// Attempt to open a file
+				
+				try
+				{
+					aImp = MosaicUtils.openImg(f.getAbsolutePath());
+					pf.add(f.getName().substring(0,f.getName().lastIndexOf(".")));
+				}
+				catch (java.lang.UnsupportedOperationException e)
+				{
+					continue;
+				}
+				Headless_file();
+				
+				// Display results
+				
+				displayResult(true);
+				
+				// Write a file info output
+				
+				if (Analysis.p.save_images)
+				{
+					saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
+					
+					try
+					{out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), cnt);} 
+					catch (FileNotFoundException e) 
+					{e.printStackTrace();}
+				}
+				cnt++;
+			}
+			
+			if (out != null)
+				out.close();
 		}
 		else
 		{
+			// Open the image
+			
+			aImp = MosaicUtils.openImg(path);
+			
 			Headless_file();
 			
 			// Display results
 			
-			displayResult();
+			displayResult(false);
 			
 			if (Analysis.p.save_images)
 			{
 				// Save images
 				
-				saveAllImages();
+				saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
 				
 				// Write a file with output infos
 				
@@ -93,7 +154,6 @@ public class BLauncher
 
 	public BLauncher(ImagePlus aImp_)
 	{
-		wpath = null;
 		aImp = aImp_;
 		
 		PrintWriter out = null;
@@ -107,22 +167,24 @@ public class BLauncher
 			
 			// Display results
 			
-			displayResult();
+			displayResult(false);
 			
 			// Write a file info output
 			
 			if (Analysis.p.save_images)
 			{
-				saveAllImages();
+				saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
 				
 				try
-				{out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), f-1);} 
+				{
+					out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), f-1);} 
 				catch (FileNotFoundException e) 
 				{e.printStackTrace();}
 			}
 		}
 		
-		out.close();
+		if (out != null)
+			out.close();
 	}
 	
 
@@ -130,9 +192,11 @@ public class BLauncher
 	 * 
 	 * Display results
 	 * 
+	 * @param separate
+	 * 
 	 */
 	
-	void displayResult()
+	void displayResult(boolean sep)
 	{
 		int factor =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 		int fz;
@@ -140,23 +204,23 @@ public class BLauncher
 		
 		if(Analysis.p.dispoutline)
 		{
-			displayoutline(Analysis.regions[0], Analysis.imagea,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1);
-			if (Analysis.p.nchannels == 2) {displayoutline(Analysis.regions[1], Analysis.imageb,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2);}
+			displayoutline(Analysis.regions[0], Analysis.imagea,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1,sep);
+			if (Analysis.p.nchannels == 2) {displayoutline(Analysis.regions[1], Analysis.imageb,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2,sep);}
 		}
 		if(Analysis.p.dispint)
 		{
-			displayintensities(Analysis.regionslist[0], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1, Analysis.imagecolor_c1);
-			if (Analysis.p.nchannels == 2) {displayintensities(Analysis.regionslist[1], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2, Analysis.imagecolor_c2);}
+			displayintensities(Analysis.regionslist[0], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1, Analysis.imagecolor_c1,sep);
+			if (Analysis.p.nchannels == 2) {displayintensities(Analysis.regionslist[1], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2, Analysis.imagecolor_c2, sep);}
 		}
 		if (Analysis.p.displabels)
 		{
-			displayRegionsCol(Analysis.regions[0], 1, Analysis.regionslist[0].size());
-			if (Analysis.p.nchannels == 2) {displayRegionsCol(Analysis.regions[0], 2, Analysis.regionslist[0].size());};
+			displayRegionsCol(Analysis.regions[0], 1, Analysis.regionslist[0].size(),sep);
+			if (Analysis.p.nchannels == 2) {displayRegionsCol(Analysis.regions[0], 2, Analysis.regionslist[0].size(),sep);};
 		}
 		if (Analysis.p.dispcolors)
 		{
-			displayRegionsLab(1);
-			if (Analysis.p.nchannels == 2) {displayRegionsLab(2);}
+			displayRegionsLab(1,sep);
+			if (Analysis.p.nchannels == 2) {displayRegionsLab(2,sep);}
 		}
 
 	}
@@ -167,34 +231,34 @@ public class BLauncher
 	 * 
 	 */
 	
-	private void saveAllImages()
-	{
+	private void saveAllImages(String path)
+	{	
 		// Save images
 			
 		for (int i = 0 ; i < out_over.length ; i++)
 		{
-			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_outline_overlay_c" + (i+1) + ".zip";
+			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_outline_overlay_c" + (i+1) + ".zip";
 			if (out_over[i] != null)
 				IJ.saveAs(out_over[i], "ZIP", savepath);
 		}
 			
 		for (int i = 0 ; i < out_disp.length ; i++)
 		{
-			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_intensities" + "_c"+(i+1)+".zip";
+			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_intensities" + "_c"+(i+1)+".zip";
 			if (out_disp[i] != null)
 				IJ.saveAs(out_disp[i], "ZIP", savepath);
 		}
 		
 		for (int i = 0 ; i < out_label.length ; i++)
 		{
-			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
+			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
 			if (out_label[i] != null)
 				IJ.saveAs(out_label[i], "ZIP", savepath);
 		}
 		
 		for (int i = 0 ; i < out_label_gray.length ; i++)
 		{
-			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
+			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
 			if (out_label_gray[i] != null)
 				IJ.saveAs(out_label_gray[i], "ZIP", savepath);
 		}
@@ -347,24 +411,11 @@ public class BLauncher
 	{
 		try
 		{
-			ImagePlus img = null;
-			
-			System.out.println("The path is: " + wpath);
-			
-			if (wpath != null)
-			{
-				Analysis.p.wd= (new File(wpath)).getParent() +File.separator;
-				System.out.println("opening: " + wpath);
-				img=IJ.openImage(wpath);
-			}
-			else
-			{
-				/* Get Image directory */
+			ImagePlus img = null;			
+
+			/* Get Image directory */
 				
-				Analysis.p.wd = MosaicUtils.ValidFolderFromImage(aImp);
-				
-				img = aImp;
-			}
+			img = aImp;
 			
 			Analysis.p.nchannels=img.getNChannels();
 
@@ -372,12 +423,7 @@ public class BLauncher
 			{
 				String savepath = null;
 				//IJ.log(wpath);
-				if (wpath != null)
-					savepath =  wpath.substring(0,wpath.length()-4);
-				else
-				{
-					savepath = Analysis.p.wd;
-				}
+				savepath = MosaicUtils.ValidFolderFromImage(aImp);
 				//IJ.log(savepath);
 
 
@@ -435,7 +481,7 @@ public class BLauncher
 
 	}
 
-	public void Headless_directory(){
+/*	public void Headless_directory(){
 		//IJ.log("starting dir");
 		try
 		{
@@ -529,13 +575,13 @@ public class BLauncher
 
 				String [] directrories=  wpath.split("\\"+File.separator);
 				int nl = directrories.length;
-				String savepath=(directrories[nl-1]).replaceAll("\\"+File.separator, ""); 
+				String savepath=(directrories[nl-1]).replaceAll("\\"+File.separator, ""); */
 /*				out  = new PrintWriter(wpath+savepath+"_Images_data"+ ".csv");
 
 				out.println();
 				out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch 1" + ";" + "Mean surface in ch1"  +";"+ "Mean length in ch1"  );
 				out.println();*/
-			}
+/*			}
 
 			for (int i=0; i<list.length; i++) {
 				if(Analysis.p.debug){IJ.log("read"+list[i]);}
@@ -575,7 +621,7 @@ public class BLauncher
 			System.err.println("Error headless: " + e.getMessage());
 		}
 		Analysis.doingbatch=false;
-	}
+	}*/
 
 
 	public void bcolocheadless_pearson(ImagePlus img2){
@@ -765,13 +811,7 @@ public class BLauncher
 			if(Analysis.p.save_images)
 			{
 				String savepath = null;
-				//IJ.log(wpath);
-				if (wpath != null)
-					savepath =  wpath.substring(0,wpath.lastIndexOf(File.separator)+1);
-				else
-				{
-					savepath = Analysis.p.wd;
-				}
+				savepath = MosaicUtils.ValidFolderFromImage(aImp);
 
 				//IJ.log("print objects");
 //				Analysis.printobjects(out2, hcount);
@@ -819,10 +859,11 @@ public class BLauncher
 	 * @param dz z size
 	 * @param di x size
 	 * @param dj y size
-	 * @param channel (?)
+	 * @param channel
+	 * @param sep true = doea not fuse with the separate outline
 	 */
 	
-	public void displayoutline(short [][][] regions, double [][][] image, int dz, int di, int dj, int channel)
+	public void displayoutline(short [][][] regions, double [][][] image, int dz, int di, int dj, int channel, boolean sep)
 	{
 		ImageStack objS;
 		ImagePlus objcts= new ImagePlus();
@@ -906,7 +947,14 @@ public class BLauncher
 		
 		// if we have already an outline overlay image merge the frame
 		
-		updateImages(out_over,over,"Objects outlines, channel " + channel,Analysis.p.dispoutline,channel);
+		if (sep == false)
+			updateImages(out_over,over,"Objects outlines, channel " + channel,Analysis.p.dispoutline,channel);
+		else
+		{
+			ip.add(over);
+			out_over[channel-1] = over;
+			over.show();
+		}
 	}
 
 	private ImagePlus out_disp[] = new ImagePlus[2];
@@ -921,9 +969,11 @@ public class BLauncher
 	 * @param dj image size y
 	 * @param channel
 	 * @param imagecolor
+	 * @param sep = true if you want to separate
+	 * 
 	 */
 	
-	public void displayintensities(ArrayList<Region> regionslist,int dz, int di, int dj, int channel, byte [] imagecolor)
+	public void displayintensities(ArrayList<Region> regionslist,int dz, int di, int dj, int channel, byte [] imagecolor, boolean sep)
 	{
 		ImageStack intS;
 		ImagePlus intensities= new ImagePlus();
@@ -948,7 +998,14 @@ public class BLauncher
 		}
 		intensities.setStack("Intensities reconstruction, channel " +channel, intS);
 		
-		updateImages(out_disp,intensities,"Intensities reconstruction, channel " +channel,Analysis.p.dispint,channel);
+		if (sep == false)
+			updateImages(out_disp,intensities,"Intensities reconstruction, channel " +channel,Analysis.p.dispint,channel);
+		else
+		{
+			ip.add(intensities);
+			out_disp[channel-1] = intensities;
+			intensities.show();
+		}
 	}
 
 	private ImagePlus out_label[]=new ImagePlus[2];
@@ -990,9 +1047,10 @@ public class BLauncher
 	 * @param regions label image
 	 * @param channel number of the channel
 	 * @param max_r max number of region
+	 * @param sep = true to separate 
 	 */
 	
-	public void displayRegionsCol(short [][][] regions, int channel, int max_r)
+	public void displayRegionsCol(short [][][] regions, int channel, int max_r, boolean sep)
 	{
 		int width = regions[0].length;
 		int height = regions[0][0].length;
@@ -1027,7 +1085,14 @@ public class BLauncher
 		labS.setColorModel(backgroundAndSpectrum(Math.min(max_r,255)));				
 		label.setStack("Regions " + chan_s[channel-1],labS);
 
-		updateImages(out_label,label,"Colorized objects, channel " + channel,Analysis.p.dispcolors,channel);
+		if (sep == false)
+			updateImages(out_label,label,"Colorized objects, channel " + channel,Analysis.p.dispcolors,channel);
+		else
+		{
+			out_label[channel-1] = label;
+			ip.add(label);
+			label.show();
+		}
 	}
 	
 	private ImagePlus out_label_gray[]=new ImagePlus[2];
@@ -1037,15 +1102,24 @@ public class BLauncher
 	 * Display regions labels
 	 * 
 	 * @param channel
+	 * @param sep = true if you want to separate
+	 * 
 	 */
 	
-	public void displayRegionsLab(int channel)
+	public void displayRegionsLab(int channel, boolean sep)
 	{		
 		ImagePlus label_ = label.duplicate();
 		
 		IJ.run(label_, "Grays", "");
 		
-		updateImages(out_label_gray,label_,"Labelized objects, channel " + channel,Analysis.p.displabels,channel);
+		if (sep == true)
+			updateImages(out_label_gray,label_,"Labelized objects, channel " + channel,Analysis.p.displabels,channel);
+		else
+		{
+			out_label_gray[channel-1] = label_;
+			ip.add(label_);
+			label_.show();
+		}
 	}
 	
 	/**
@@ -1067,6 +1141,7 @@ public class BLauncher
 		else
 		{
 			ipd[channel-1] = ips;
+			ip.add(ips);
 			ipd[channel-1].setTitle("Labelized objects, channel " + channel);
 		}
 		
@@ -1088,6 +1163,18 @@ public class BLauncher
 		}
 	}
 
-
+	/**
+	 * 
+	 * Close all images
+	 * 
+	 */
+	
+	public void closeAll()
+	{
+		for (int i = 0; i < ip.size() ; i++)
+		{
+			ip.get(i).close();
+		}
+	}
 
 }

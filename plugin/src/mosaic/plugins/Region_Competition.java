@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Map.Entry;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,6 +32,7 @@ import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.Segmentation;
 import mosaic.core.utils.ShellCommand;
 import mosaic.region_competition.wizard.*;
 import mosaic.core.utils.Point;
@@ -94,7 +96,7 @@ import ij3d.Image3DUniverse;
  * @version 2012.06.11
  */
 
-public class Region_Competition implements PlugInFilter
+public class Region_Competition implements Segmentation
 {
 	private String[] out = {"*_ObjectsData_c1.csv","*_seg_c1.tif"};
 	private String output_label;
@@ -110,6 +112,7 @@ public class Region_Competition implements PlugInFilter
 	ImageModel imageModel;
 	Calibration cal;
 	ImagePlus originalIP;		// IP of the input image
+	Vector<ImagePlus> OpenedImages;
 	
 	ImageStack stack;			// stack saving the segmentation progress images
 	ImagePlus stackImPlus;		// IP showing the stack
@@ -341,11 +344,6 @@ public class Region_Competition implements PlugInFilter
 			originalIP = (ImagePlus) userDialog.getInputImage();
 			if (originalIP != null)
 				cal = originalIP.getCalibration();
-		}
-		
-		if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC)
-		{
-			
 		}
 		
 		if (userDialog.useCluster() == true)
@@ -1134,7 +1132,7 @@ public class Region_Competition implements PlugInFilter
 				}
 //				stackImPlus.updateAndDraw();
 				if (userDialog != null)
-					showFinalResult(labelImage, i);
+					OpenedImages.add(labelImage.show("", algorithm.getBiggestLabel()));
 			}
 			
 			System.out.println("--- kbest: (set in GenericDialogGui.kbest) ---");
@@ -1191,39 +1189,7 @@ public class Region_Competition implements PlugInFilter
 	
 	void showFinalResult(LabelImageRC li)
 	{
-		showFinalResult(li,"");
-	}
-	
-	
-	ImagePlus showFinalResult(LabelImageRC li, Object title)
-	{
-		if(li.getDim()==3)
-		{
-			return showFinalResult3D(li, title);
-		}
-		
-		// Colorprocessor doesn't support abs() (does nothing). 
-//		li.absAll();
-		ImageProcessor imProc = li.getLabelImageProcessor();
-//		System.out.println(Arrays.toString((int[])(imProc.getPixels())));
-		
-		// convert it to short
-		short[] shorts = li.getShortCopy();
-		for(int i=0; i<shorts.length; i++){
-			shorts[i] = (short)Math.abs(shorts[i]);
-		}
-		ShortProcessor shortProc = new ShortProcessor(imProc.getWidth(), imProc.getHeight());
-		shortProc.setPixels(shorts);
-		
-//		TODO !!!! imProc.convertToShort() does not work, first converts to byte, then to short...
-		String s = "ResultWindow "+title;
-		String titleUnique = WindowManager.getUniqueName(s);
-		
-		ImagePlus imp = new ImagePlus(titleUnique, shortProc);
-		IJ.setMinAndMax(imp, 0, algorithm.getBiggestLabel());
-		IJ.run(imp, "3-3-2 RGB", null);
-		imp.show();
-		return imp;
+		OpenedImages.add(li.show("", algorithm.getBiggestLabel()));
 	}
 	
 	public void show3DViewer()
@@ -1265,25 +1231,6 @@ public class Region_Competition implements PlugInFilter
 //		tl.play();
 	}
 	
-	public ImagePlus showFinalResult3D(LabelImageRC li, Object title)
-	{
-		
-		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.get3DShortStack(true));
-		
-		IJ.setMinAndMax(imp, 0, algorithm.getBiggestLabel());
-		IJ.run(imp, "3-3-2 RGB", null);
-		
-		imp.show();
-		show3DViewer();
-		
-//		IJ.run(imp, "Z Project...", "start=1 stop="+z+" projection=[Average Intensity]");
-
-//		HyperStackConverter hs = new HyperStackConverter();
-		
-//		imp.show();
-		
-		return imp;
-	}
 	
 	public void showStatus(String s)
 	{
@@ -1403,6 +1350,22 @@ public class Region_Competition implements PlugInFilter
 		}
 	}
 
+	public void closeAll()
+	{
+		labelImage.close();
+		intensityImage.close();
+		stackImPlus.close();
+		if (originalIP != null)
+			originalIP.close();
+		
+		for (int i = 0 ; i < OpenedImages.size() ; i++)
+		{
+			OpenedImages.get(i).close();
+		}
+		algorithm.close();
+	}
+	
+	
 /**
  * Adds a new slice pixels to the end of the stack, 
  * and sets the new stack position to this slice
@@ -1723,7 +1686,7 @@ public class Region_Competition implements PlugInFilter
 
 	public Region_Competition()
 	{
-		
+		OpenedImages = new Vector<ImagePlus>();
 	}
 	
 	public Algorithm getAlghorithm()
@@ -1820,6 +1783,9 @@ public class Region_Competition implements PlugInFilter
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		String oip = originalIP.getTitle().substring(0, originalIP.getTitle().lastIndexOf("."));
+		MosaicUtils.reorganize(out,oip, fold.substring(0,fold.lastIndexOf(File.separator)), 1);
 	}
 	
 	public ResultsTable createStatistics(HashMap<Integer, LabelInformation> labelMap)
@@ -1845,6 +1811,30 @@ public class Region_Competition implements PlugInFilter
 		}
 		
 		return rt;
+	}
+
+	/**
+	 * 
+	 * Get CSV regions list name output
+	 * 
+	 * @param aImp image
+	 * @return set of possible output
+	 */
+	
+	@Override
+	public String[] getRegionList(ImagePlus aImp) 
+	{
+		String[] gM = new String[1];
+		gM[0] = new String(aImp.getTitle() + "_ObjectsData_c1.csv");
+		return gM;
+	}
+
+
+	public String[] getMask(ImagePlus aImp) 
+	{
+		String[] gM = new String[1];
+		gM[0] = new String(aImp.getTitle() + "_seg_c1.tif");
+		return gM;
 	}
 }
 	
