@@ -899,7 +899,7 @@ public class MosaicUtils
 				Process tProcess;
 				for (int k = 0 ; k < nf ; k++)
 				{
-					if (nf == 1)
+					if (new File(sv + File.separator + tmp.replace("*",base)).exists())
 						tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",base) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base + tmp.replace("*", ""));
 					else
 						tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",base + (k+1)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base + (k+1) + tmp.replace("*", ""));
@@ -971,17 +971,16 @@ public class MosaicUtils
 				String tmp = new String(output[j]);
 				for (int k = 0 ; k < nf ; k++)
 				{
-					if (nf == 1)
+					if (new File(sv + File.separator + tmp.replace("*",base_src)).exists())
 					{
 						ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*",base_src) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", ""));
-						// old layer
-						ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_src + tmp.replace("*", "") + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", ""));
 					}
 					else
 					{
-						ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*",base_src + (k+1)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + (k+1) + tmp.replace("*", ""));
-						// old layer
-						ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_src + tmp.replace("*", "") + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", ""));
+						if (nf ==1)
+							ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*",base_src + "_" + (k+1)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", ""));
+						else
+							ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*",base_src + "_" + (k+1)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + "_" + (k+1) + tmp.replace("*", ""));
 					}
 				}
 			}

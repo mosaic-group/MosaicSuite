@@ -410,6 +410,9 @@ public class ClusterSession
 		  }
 		});
 		
+		if (directories == null)
+			return new String[0];
+		
 		for (int i = 0 ; i < directories.length ; i++)
 		{
 			directories[i] = tmp_dir + File.separator + directories[i];
@@ -530,55 +533,15 @@ public class ClusterSession
 		
 		// reorganize
 		
-/*		try 
-		{*/
-			for (int i = 0 ; i < directories.length ; i++)
-			{
-				String s[] = MosaicUtils.readAndSplit(directories[i] + File.separator + "JobID");
-				int nf = Integer.parseInt(s[1]);
-				String filename = s[2];
-				
-				MosaicUtils.reorganize(output, "tmp_", filename, directories[i], nf);
-				
-				
-/*				for (int j = 0 ; j < output.length ; j++)
-				{
-					String tmp = new String(output[j]);
-		
-					Process tProcess;
-					tProcess = Runtime.getRuntime().exec("mkdir " + directories[i] + "/" + tmp.replace("*","_"));
-					tProcess.waitFor();
-				}
-				
-				for (int j = 0 ; j < output.length ; j++)
-				{
-					String tmp = new String(output[j]);
-		
-					wp.SetStatusMessage("organizing " + output[j]);
-					
-					String s[] = MosaicUtils.readAndSplit(directories[i] + File.separator + "JobID");
-					int nf = Integer.parseInt(s[1]);
-					String filename = s[2];
-					
-					Process tProcess;
-					for (int k = 0 ; k < nf ; k++)
-					{
-						tProcess = Runtime.getRuntime().exec("mv " + directories[i] + "/" + tmp.replace("*",filename + (k+1)) + "   " + directories[i] + "/" + tmp.replace("*", "_"));
-						tProcess.waitFor();
-						wp.SetProgress(k*100/nf);
-					}
-				}*/
-			}
-		
-/*		} 
-		catch (IOException e) 
+		for (int i = 0 ; i < directories.length ; i++)
 		{
-		// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-		// TODO Auto-generated catch block
-			e.printStackTrace();
-		}	*/	
+			String s[] = MosaicUtils.readAndSplit(directories[i] + File.separator + "JobID");
+			int nf = Integer.parseInt(s[1]);
+			String filename = s[2];
+				
+			MosaicUtils.reorganize(output, "tmp", filename.substring(0, filename.lastIndexOf(".")), directories[i], nf);
+				
+		}
 	}
 	
 	/**
@@ -741,8 +704,7 @@ public class ClusterSession
 		wp.SetStatusMessage("Getting all jobs ...");
 		
 		BatchInterface bcl[] = bc.getAllJobs(ss,command);
-		bcl = new BatchInterface[1];
-/*		if (bcl == null)
+		if (bcl == null)
 		{
 			wp.SetStatusMessage("End");
 			return false;
@@ -751,7 +713,7 @@ public class ClusterSession
 		ImageStack st[] = new ImageStack[bcl.length];
 		ImagePlus ip[] = new ImagePlus[bcl.length];
 		
-		// get the status wait completition;
+		// get the status wait competition;
 
 		for (int j = 0 ; j < bcl.length ; j++)
 		{
@@ -763,11 +725,11 @@ public class ClusterSession
 			bcl[j].setJobStatus(bcl[j].getJobStatus());
 		}
 		
-		wp.SetProgress(0);*/
+		wp.SetProgress(0);
 		
 		/* Wait the various jobs complete */
 		
-/*		int n_bc = 0;
+		int n_bc = 0;
 		while (n_bc < bcl.length)
 		{
 			double progress = 0.0;
@@ -828,12 +790,12 @@ public class ClusterSession
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}*/
+		}
 		
 		// It never went online
 		
-		if (bcl.length == 0)
-		{
+//		if (bcl.length == 0)
+//		{
 			wp.SetProgress(0);
 			wp.SetStatusMessage("Reorganize...");
 			reorganize(output,0,wp);
@@ -841,7 +803,7 @@ public class ClusterSession
 			wp.SetProgress(0);
 			wp.SetStatusMessage("Stack visualize...");
 			stackVisualize(output,0,wp);
-		}
+//		}
 		
 		wp.SetStatusMessage("End");
 		return true;
@@ -1125,11 +1087,12 @@ public class ClusterSession
 	 * 
 	 * @param ss Cluster session
 	 * @param outcsv set of csv output data
+	 * @param path where to save
 	 * @param cls base class for internal conversion
 	 * @param aImp
 	 */
 	
-	public static <T extends ICSVGeneral> void processJobsData(ClusterSession ss, String[] outcsv , ImagePlus aImp, Class<T> cls)
+	public static <T extends ICSVGeneral> void processJobsData(ClusterSession ss, String[] outcsv , String path, Class<T> cls)
 	{
 		// Save all JobID to the image folder
 		// or ask for a directory
@@ -1140,9 +1103,9 @@ public class ClusterSession
 		{
 			String dirS;
 			
-			if (aImp != null)
+			if (path != null)
 			{
-				dirS = MosaicUtils.ValidFolderFromImage(aImp);
+				dirS = path;
 			}
 			else
 			{
@@ -1184,6 +1147,158 @@ public class ClusterSession
 	
 	/**
 	 * 
+	 * Merge more jobs into one
+	 * 
+	 * @param jobsrc source job
+	 * @param jobdst[] destination jobs
+	 * 
+	 */
+	
+	public static void mergeJobs(File jobsrc, File jobdst[])
+	{
+		if (jobdst.length == 0)
+			return;
+		
+		// Get a temporary directory create a dir
+		
+		String tmp = IJ.getDirectory("temp") + File.separator + "temp_merge" + File.separator;
+		try {
+			ShellCommand.exeCmd("mkdir " + tmp);
+			ShellCommand.copy( jobsrc, new File(tmp));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String[] sp_src = MosaicUtils.readAndSplit(jobsrc.getAbsolutePath() + File.separator + "JobID");
+		String sp[] = new String[sp_src.length];
+		for (int i = 0 ; i < sp_src.length ; i++)
+		{
+			sp[i] = sp_src[i];
+		}
+		
+		// For each directory in job2 check if exist a directory in job1
+		
+		for (int i = 0 ; i < jobdst.length ; i++)
+		{
+			File fl[] = jobdst[i].listFiles();
+		
+			for (File t : fl)
+			{
+				if (t.isDirectory() == false)
+					continue;
+			
+				// dir
+			
+				File dir = new File(tmp + File.separator + t.getName());
+			
+				if (dir.exists() == true)
+				{
+					// exist the directory in job1
+				
+					ShellCommand.copy(t,dir);
+				}
+				else
+				{
+					// Create a directory and copy
+				
+					try {
+						ShellCommand.exeCmd("mkdir " + dir.getAbsolutePath());
+						ShellCommand.copy(t, dir);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+
+			// create a new JobID
+			
+			String[] sp_dst = MosaicUtils.readAndSplit(jobdst[i].getAbsolutePath() + File.separator + "JobID");
+			
+			sp[0] = sp[0] + "#" + sp_dst[0];
+			sp[1] = Integer.toString(Integer.parseInt(sp[1]) + Integer.parseInt(sp_dst[1]));
+			sp[2] = sp[2] + "#" + sp_dst[2];
+			if (!sp_src[3].equals(sp_dst[3]))
+			{
+				IJ.showMessage("Error : You cannot merge Jobs of two different plugins");
+				return;
+			}
+			
+		}
+		
+		
+		PrintWriter out;
+		
+		// Create jobID file
+	
+		try {
+			out = new PrintWriter(tmp + File.separator + "JobID");
+			out.print(sp[0]);
+			for (String s : sp)
+				out.print(" " + s);
+			out.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// remove the content from jobsrc
+		
+		try {
+			File[] fl_ = jobsrc.listFiles();
+			for (File f : fl_)
+			{
+				ShellCommand.exeCmd("rm -rf " + f.getAbsolutePath());
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Copy the content
+		
+		ShellCommand.copy(new File(tmp),jobsrc);
+		
+		// remove the temporary directory
+		
+		try {
+			ShellCommand.exeCmd("rm -rf " + new File(tmp).getAbsolutePath());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		// Remove other jobs
+		
+		for (int i = 0 ; i < jobdst.length ; i++)
+		{
+			try {
+				ShellCommand.exeCmd("rm -rf " + jobdst[i].getAbsolutePath());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	/**
+	 * 
 	 * Merge two jobs together
 	 * 
 	 * @param jobsrc source job
@@ -1193,60 +1308,8 @@ public class ClusterSession
 	
 	public static void mergeJobs(File jobsrc, File jobdst)
 	{
-		// Get a temporary directory create a dir
-		
-		String tmp = IJ.getDirectory("temp") + File.separator + "temp_merge" + File.separator;
-		try {
-			ShellCommand.exeCmdNoPrint("mkdir " + tmp + "; cp -R " + jobsrc.getAbsolutePath() + File.separator + "*" + " " + tmp);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		// For each directory in job2 check if exist a directory in job1
-		
-		File fl[] = jobdst.listFiles();
-		
-		for (File t : fl)
-		{
-			// dir
-			
-			File dir = new File(tmp + File.separator + t.getName());
-			
-			if (dir.exists() == true)
-			{
-				// exist the directory in job1
-				
-				try {
-					ShellCommand.exeCmdNoPrint("cp -R " + t.getAbsolutePath() + " " + dir.getAbsolutePath());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			else
-			{
-				// Create a directory and copy
-				
-				try {
-					ShellCommand.exeCmdNoPrint("mkdir " + dir.getAbsolutePath() + " ; cp -R " + t.getAbsolutePath() + " " + dir.getAbsolutePath());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-		
-		// remove the temporary directory
+		File[] fl = new File[1];
+		mergeJobs(jobsrc,fl);
 	}
 	
 /*	public void runPluginsOnImages(ImagePlus img[], String options, double ExtTime)

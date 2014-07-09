@@ -33,6 +33,18 @@ public class BregmanGLM_Batch implements Segmentation
 	private ImagePlus OriginalImagePlus = null;
 	private String savedSettings;
 	GenericGUI window;
+	boolean gui_use_cluster = false;
+	
+	/**
+	 * 
+	 * set to use the cluster
+	 * 
+	 */
+	
+	public void setUseCluster(boolean bl)
+	{
+		gui_use_cluster = bl;
+	}
 	
 	public int setup(String arg0, ImagePlus active_img) 
 	{
@@ -44,10 +56,6 @@ public class BregmanGLM_Batch implements Segmentation
 		
 		if (IJ.isMacro())
 			arg0 = Macro.getOptions();
-		
-		// Initialize CSV format
-		
-		CSVOutput.initCSV();
 		
 		//
 		
@@ -138,6 +146,10 @@ public class BregmanGLM_Batch implements Segmentation
 			e.printStackTrace();
 		}
 		
+		// Initialize CSV format
+		
+		CSVOutput.initCSV(Analysis.p.oc_s);
+		
 		this.OriginalImagePlus = active_img;
 		//IJ.log("arg0 " + arg0);
 		String[] args =ImageJ.getArgs();
@@ -163,6 +175,7 @@ public class BregmanGLM_Batch implements Segmentation
 				Analysis.p.dispwindows = false;
 			
 			window = new GenericGUI(batch,active_img);
+			window.setUseCluster(true);
 			window.run("",active_img);
 			
 			SaveConfig(Analysis.p);

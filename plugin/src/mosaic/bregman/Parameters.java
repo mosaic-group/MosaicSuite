@@ -4,10 +4,11 @@ import java.io.Serializable;
 
 public class Parameters  implements Serializable
 {
-	private static final long serialVersionUID = 1894956520127964860L;
+	private static final long serialVersionUID = 1894956420127964860L;
 
 	//
-	
+
+	public int oc_s = 1;
 	public String patches_from_file;
 	public int output_format = -1;
 	

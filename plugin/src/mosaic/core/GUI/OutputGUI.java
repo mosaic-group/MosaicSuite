@@ -120,10 +120,11 @@ public class OutputGUI extends JDialog
 	 *  Visualize a window to select all the possible output format and related option
 	 * 
 	 * @param out_ all Output format
+	 * @param selected oc_s
 	 * @return Choose output + information on the option choose
 	 */
 	
-	public GUIOutputChoose visualizeOutput(GUIOutputChoose out_[])
+	public GUIOutputChoose visualizeOutput(GUIOutputChoose out_[], int oc_s)
 	{
 		if (out_ == null)
 			return null;
@@ -162,6 +163,7 @@ public class OutputGUI extends JDialog
 		c.gridx = 1;
 		c.gridy = 1;
 		JComboBox comboBox = new JComboBox(pn);
+		comboBox.setSelectedIndex(oc_s);
 		contentPane.add(comboBox,c);
 		comboBox.addActionListener(new ActionListener() 
 		{

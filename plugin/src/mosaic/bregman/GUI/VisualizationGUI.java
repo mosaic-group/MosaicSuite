@@ -81,7 +81,7 @@ public class VisualizationGUI
 			
 				OutputGUI og = new OutputGUI();
 				
-				CSVOutput.occ = (SquasshOutputChoose) og.visualizeOutput(CSVOutput.oc);
+				CSVOutput.occ = (SquasshOutputChoose) og.visualizeOutput(CSVOutput.oc,Analysis.p.oc_s);
 			}
 			
 		});

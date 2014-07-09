@@ -80,6 +80,7 @@ import ij.ImageStack;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
+import ij.gui.YesNoCancelDialog;
 import ij.io.DirectoryChooser;
 import ij.io.Opener;
 //import ij.gui.NonBlockingGenericDialog;
@@ -97,6 +98,7 @@ public class GenericGUI
 	int posx, posy;
 	static int screensizex, screensizey;
 	BLauncher hd;
+	boolean gui_use_cluster = false;
 	
 	public GenericGUI(boolean mode, ImagePlus img_p)
 	{
@@ -107,6 +109,17 @@ public class GenericGUI
 	public GenericGUI(boolean  	mode){
 		clustermode=mode;
 		//clustermode=true;
+	}
+	
+	/**
+	 * 
+	 * Use the cluster
+	 * 
+	 */
+	
+	public void setUseCluster(boolean bl)
+	{
+		gui_use_cluster = bl;
 	}
 	
 	/**
@@ -282,7 +295,7 @@ public class GenericGUI
 			});
 			gd.addPanel(p);
 			
-			gd.addCheckbox("Use cluster", false);
+			gd.addCheckbox("Use cluster", gui_use_cluster);
 			
 			gd.centerDialog(false);
 			posx=100;
@@ -427,8 +440,6 @@ public class GenericGUI
 					fileslist = fl.listFiles();
 					
 					ss = ClusterSession.processFiles(fileslist,"Squassh","",Analysis.out);
-					
-					was_directory = true;
 				}
 				else if (fl.isFile())
 				{
@@ -441,6 +452,10 @@ public class GenericGUI
 					// Nothing to do just get the result
 					
 					ss = ClusterSession.getFinishedJob(Analysis.out,"Squassh");
+					
+					// Ask for a directory
+					
+					fl = new File(IJ.getDirectory("Select output directory"));
 				}
 			}
 			else
@@ -453,21 +468,8 @@ public class GenericGUI
 			// Get output format and Stitch the output in the output selected
 			
 			String outcsv[] = {"*_ObjectsData_c1.csv"};
-			ClusterSession.processJobsData(ss,outcsv,aImp,CSVOutput.occ.classFactory);
+			ClusterSession.processJobsData(ss,outcsv,MosaicUtils.ValidFolderFromImage(aImp),CSVOutput.occ.classFactory);
 			
-			// if it was a directory
-			
-			if (was_directory == true)
-			{
-				// Here we merge all the jobs
-				
-				String [] jbs = ClusterSession.getJobDirectories(0, fl.getAbsolutePath());
-				for (int i = 1 ; i < jbs.length ; i++)
-				{
-					ClusterSession.mergeJobs(new File(jbs[0]),new File(jbs[i]));
-				}
-			}
-				
 			////////////////
 		}
 		

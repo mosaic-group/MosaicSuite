@@ -4,7 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashSet;
 import java.util.Map;
+
+import org.scijava.util.FileUtils;
 
 import mosaic.core.cluster.ShellProcessOutput;
 
@@ -213,5 +216,79 @@ public class ShellCommand
 		}
 		
 		tProcess.waitFor();
+	}
+	
+	/**
+	 * 
+	 * Copy one directory/file recursively
+	 * 
+	 * @param from dir source
+	 * @param to dir destination
+	 */
+	
+	public static void copy(File from, File to)
+	{
+		File[] f = from.listFiles();
+		
+		for (File t : f)
+		{
+			try {
+				exeCmd("cp -R " + t.getAbsoluteFile() + " " + to.getAbsolutePath());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * Recursively take all the tree structure of a directory
+	 * 
+	 * @param set
+	 * @param dir
+	 */
+	
+	private static void populate(HashSet<File> set, File dir)
+	{
+		set.add(dir);
+		
+		if (dir.isDirectory())
+		{
+			for ( File t : dir.listFiles())
+			{
+				populate(set,t);
+			}
+		}
+	}
+	
+	
+	/**
+	 * 
+	 * Compare if two directories are the same as dir and file structure
+	 * 
+	 * @param a1 dir1
+	 * @param a2 dir3
+	 * @return true if they match, false otherwise
+	 * 
+	 */
+	
+	public static boolean compare(File a1, File a2) 
+	{
+		// 
+		HashSet<File> seta1 = new HashSet<File>();
+		
+		populate(seta1, a1);
+		
+		HashSet<File> seta2 = new HashSet<File>();
+		
+		populate(seta2,a2);
+		
+		// Check if the two HashSet match
+		
+		return seta1.containsAll(seta2);
 	}
 }

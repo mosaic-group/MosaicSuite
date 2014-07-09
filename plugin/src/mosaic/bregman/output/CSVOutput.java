@@ -80,7 +80,7 @@ public class CSVOutput
      * 
      */
     
-    public static void initCSV()
+    public static void initCSV(int oc_s)
     {
     	Region3DTrackCellProcessor = getRegion3DTrackCellProcessor();
     	
@@ -115,7 +115,11 @@ public class CSVOutput
     	oc[1].vectorFactory = (Class<Vector<? extends ICSVGeneral>>) new Vector<Region3DRScript>().getClass();
     	oc[1].InterPluginCSVFactory = (Class<InterPluginCSV<? extends ICSVGeneral>>) new InterPluginCSV<Region3DRScript>(Region3DRScript.class).getClass();
     	oc[1].delimiter = ';';
-    	occ = oc[1];
+    	
+    	if (oc_s == -1)
+    		occ = oc[0];
+    	else
+    		occ = oc[oc_s];
     }
     
     /**
