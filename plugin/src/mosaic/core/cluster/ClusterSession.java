@@ -48,13 +48,27 @@ public class ClusterSession
 	int nImages;
 	ClusterProfile cp;
 	SecureShellSession ss;
-	int ns_pp = 1;
+	int ns_pp = ns_pp_preferred;
+	static int ns_pp_preferred = 1;
 	String ia_s="filepath";
 	
 	ClusterSession(ClusterProfile cp_)
 	{
 		cp = cp_;
 	}
+	
+	/**
+	 * 
+	 * Set preferred number of slots to allocate per process
+	 * 
+	 * @param ns_pp
+	 */
+	
+	static public void setPreferredSlotPerProcess(int ns_pp)
+	{
+		ns_pp_preferred = ns_pp;
+	}
+	
 	
 	/**
 	 * 
@@ -128,7 +142,9 @@ public class ClusterSession
 			dispose = true;
 		}
 		
+		wp.setFocusableWindowState(false);
 		wp.setVisible(true);
+		wp.setFocusableWindowState(false);
 		
 		nImages = img.getNFrames();
 		String tmp_dir = IJ.getDirectory("temp");
@@ -346,6 +362,19 @@ public class ClusterSession
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * 
+	 * Get the job number from the directory
+	 * 
+	 * @param jb Job dir
+	 * @return the string job number
+	 */
+	
+	public static String getJobNumber(String jb)
+	{
+		return jb.substring(2,jb.indexOf(File.separator));
 	}
 	
 	/**
@@ -674,7 +703,9 @@ public class ClusterSession
 		if (ss == null)
 			ss = new SecureShellSession(cp);
 		ProgressBarWin wp = new ProgressBarWin();
+		wp.setFocusableWindowState(false);
 		wp.setVisible(true);
+		wp.setFocusableWindowState(true);
 		
 		// Create job array
 		

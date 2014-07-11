@@ -1654,6 +1654,28 @@ public class MosaicUtils
 		return true;
 	}
 	
+	static private String filterJob(String dir,int n)
+	{
+		if (dir.startsWith("Job"))
+		{
+			// It is a job
+			
+			String[] fl = ClusterSession.getJobDirectories(0, dir);
+			
+			// search if exist
+			
+			for (int i = 0 ; i < fl.length ; i++)
+			{
+				
+				if (new File(dir.replace("*", ClusterSession.getJobNumber(fl[i]))).exists())
+				{
+					return dir.replace("*", ClusterSession.getJobNumber(fl[i]));
+				}
+			}
+		}
+		return dir;
+	}
+	
 	/**
 	 * 
 	 * Test the segmentation

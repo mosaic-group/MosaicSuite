@@ -430,6 +430,8 @@ public class GenericGUI
 			File[] fileslist = null;
 			File fl = null;
 			
+			ClusterSession.setPreferredSlotPerProcess(4);
+			
 			if (aImp == null)
 			{
 				fl = new File(Analysis.p.wd);
@@ -438,7 +440,6 @@ public class GenericGUI
 					// we have a directory
 					
 					fileslist = fl.listFiles();
-					
 					ss = ClusterSession.processFiles(fileslist,"Squassh","",Analysis.out);
 				}
 				else if (fl.isFile())
