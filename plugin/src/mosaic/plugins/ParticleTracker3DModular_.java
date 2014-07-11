@@ -83,6 +83,7 @@ import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
 import mosaic.core.particleLinking.ParticleLinker;
 import mosaic.core.particleLinking.ParticleLinker_old;
+import mosaic.core.particleLinking.linkerOptions;
 import mosaic.core.utils.MosaicUtils;
 
 /**
@@ -124,8 +125,13 @@ import mosaic.core.utils.MosaicUtils;
  * add functionality to automatically transfer resulting data to result table in ImageJ, 
  */
 
-public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, PreviewInterface  {	
-
+public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, PreviewInterface  
+{
+	private boolean force;
+	private boolean straight_line;
+	private float l_s = 1.0f;
+	private float l_f = 1.0f;
+	private float l_d = 1.0f;
 	private final static int SYSTEM = 0;
 	private final static int IJ_RESULTS_WINDOW = 1;
 	public ImageStack stack ,traj_stack;	
@@ -191,8 +197,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 * @see ij.plugin.filter.PlugInFilter#setup(java.lang.String, ij.ImagePlus)
 	 */
 	public int setup(String arg, ImagePlus imp) 
-	{		
-		
+	{
 		if(IJ.versionLessThan("1.38u"))
 		{
 			return DONE;
@@ -290,8 +295,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		}
 
 		/* link the particles found */
-		IJ.showStatus("Linking Particles");		 
-		linker.linkParticles(frames, frames_number, linkrange, (float)displacement);
+		IJ.showStatus("Linking Particles");
+		
+		linkerOptions lo =  new linkerOptions();
+		lo.linkrange = linkrange;
+		lo.displacement = (float) displacement;
+		lo.force = force;
+		lo.straight_line = straight_line;
+		linker.linkParticles(frames, frames_number, lo);
 		IJ.freeMemory();
 
 		/* generate trajectories */		 
@@ -551,12 +562,48 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			}  
 		}
 
-		if (!only_detect) { 
+		if (!only_detect) 
+		{ 
 			gd.addMessage("Particle Linking:\n");
 			// These 2 params are relevant for both working modes
 			gd.addNumericField("Link Range", 2, 0);
 			gd.addNumericField("Displacement", 10.0, 2); 
 		}
+		
+		String d_pos[] = {"none","lines","forces"};
+		gd.addChoice("Dynamic: ", d_pos, d_pos[0]);
+		
+		// Create advanced option panel
+		
+		Button a_opt = new Button("Advanced options");
+		a_opt.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+				
+				GenericDialog gd = new GenericDialog("Link factor");
+				
+				gd.addNumericField("Spatial", l_s, 3);
+				gd.addNumericField("Feature", l_f, 3);
+				gd.addNumericField("Dynamic", l_d, 3);
+				
+				gd.showDialog();
+				
+				if (gd.wasCanceled() == true)
+					return;
+				
+				l_s = (float) gd.getNextNumber();
+				l_f = (float) gd.getNextNumber();
+				l_d = (float) gd.getNextNumber();
+			}
+		}
+		);
+		
+		Panel preview_panel = new Panel();
+		
+		preview_panel.add(a_opt);
+		gd.addPanel(preview_panel);
 		
 		//
 		
@@ -586,6 +633,15 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		// if Cancel button was clicked
 		if (gd.wasCanceled()) return false;
 
+		String dm = gd.getNextChoice();
+		
+		if (dm.equals("none"))
+		{this.force = false; this.straight_line = false;}
+		else if (dm.equals("lines"))
+		{this.force = false; this.straight_line = true;}
+		else if (dm.equals("forces"))
+		{this.force = true; this.straight_line = true;}
+		
 		// if user choose to convert reset stack, title, frames number and global min, max
 		if (convert) 
 		{
@@ -1713,8 +1769,13 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				all_traj = null;
 
 				/* link the particles found */
-				IJ.showStatus("Linking Particles");		
-				linker.linkParticles(frames, frames_number, linkrange, (float)displacement);
+				IJ.showStatus("Linking Particles");	
+				linkerOptions lo =  new linkerOptions();
+				lo.linkrange = linkrange;
+				lo.displacement = (float) displacement;
+				lo.force = force;
+				lo.straight_line = straight_line;
+				linker.linkParticles(frames, frames_number, lo);
 				IJ.freeMemory();
 
 				/* generate trajectories */		 
