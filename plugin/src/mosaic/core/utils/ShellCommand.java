@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.scijava.util.FileUtils;
 
+import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ShellProcessOutput;
 
 /**
@@ -224,14 +225,28 @@ public class ShellCommand
 	 * 
 	 * @param from dir source
 	 * @param to dir destination
+	 * @param Optionally a progress bar window
+	 * 
 	 */
 	
-	public static void copy(File from, File to)
+	public static void copy(File from, File to, ProgressBarWin wn)
 	{
 		File[] f = from.listFiles();
 		
+		if (f == null)
+			return;
+		
+		int cnt = 0;
+		
 		for (File t : f)
 		{
+			if (wn != null)
+			{
+				if (t != null)
+					wn.SetStatusMessage("Copy: " + t.getName());
+				wn.SetProgress(cnt/f.length);
+			}
+			
 			try {
 				exeCmd("cp -R " + t.getAbsoluteFile() + " " + to.getAbsolutePath());
 			} catch (IOException e) {
@@ -241,6 +256,7 @@ public class ShellCommand
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			cnt++;
 		}
 	}
 
@@ -252,7 +268,7 @@ public class ShellCommand
 	 * @param dir
 	 */
 	
-	private static void populate(HashSet<File> set, File dir)
+	public static void populate(HashSet<File> set, File dir)
 	{
 		set.add(dir);
 		

@@ -129,7 +129,8 @@ public class GenericGUI
 	 * */
 	public void closeAll()
 	{
-		hd.closeAll();
+		if (hd != null)
+			hd.closeAll();
 	}
 	
 	public static void setimagelocation(int x, int y, ImagePlus imp)
@@ -315,16 +316,14 @@ public class GenericGUI
 		}
 		else
 		{
-			gd.addStringField("Filepath","path",10);
 			gd.addStringField("config","path",10);
+			gd.addStringField("filepath","path",10);
 			
 			gd.addNumericField("number of threads", 4, 0);
 			
 			gd.showDialog();
 			if (gd.wasCanceled()) return;
-			
-			Analysis.p.wd=  gd.getNextString();
-			
+						
 			Analysis.p.nthreads= (int) gd.getNextNumber();
 			try 
 			{
@@ -335,6 +334,7 @@ public class GenericGUI
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			Analysis.p.wd=  gd.getNextString();
 		}
 
 		if(Analysis.p.mode_voronoi2)
@@ -370,7 +370,7 @@ public class GenericGUI
 			
 			hd = null;
 		
-			if (Analysis.p.wd.startsWith("Input Image:") || Analysis.p.wd.isEmpty())
+			if (Analysis.p.wd == null || Analysis.p.wd.startsWith("Input Image:") || Analysis.p.wd.isEmpty())
 			{
 				if (aImp == null)
 				{
@@ -415,7 +415,17 @@ public class GenericGUI
 				// disabling display options
 				
 				p.dispwindows = false;
+				
+				// save for the cluster
+				
+				// For the cluster we have to nullify the directory option
+				
+				p.wd = null;
 				BregmanGLM_Batch.SaveConfig(p,"/tmp/settings.dat");
+				
+				// save locally
+				
+				BregmanGLM_Batch.SaveConfig(p,"/tmp/spb_settings.dat");
 			}
 			catch (IOException e) 
 			{

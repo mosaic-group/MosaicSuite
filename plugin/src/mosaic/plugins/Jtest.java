@@ -33,6 +33,10 @@ public class Jtest implements PlugInFilter
 	@Override
 	public int setup(String arg0, ImagePlus arg1) 
 	{
+		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
+		
+		jtestTS.testtestsegmentation();
+		
 		mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
 		
 		jtestMj.mergetest();

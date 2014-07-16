@@ -13,6 +13,7 @@ import ij.ImagePlus;
 
 public class ImgTest
 {
+	public String base;
 	public String img[];
 	public String options;
 	public int setup_return;

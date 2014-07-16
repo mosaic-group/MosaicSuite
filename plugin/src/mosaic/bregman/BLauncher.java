@@ -126,6 +126,11 @@ public class BLauncher
 			// Open the image
 			
 			aImp = MosaicUtils.openImg(path);
+			if (aImp == null)
+			{
+				System.out.println("No image to process " + path);
+				return;
+			}
 			
 			Headless_file();
 			
@@ -414,7 +419,8 @@ public class BLauncher
 			ImagePlus img = null;			
 
 			/* Get Image directory */
-				
+			
+			System.out.println(Thread.currentThread().getStackTrace().toString());
 			img = aImp;
 			
 			Analysis.p.nchannels=img.getNChannels();

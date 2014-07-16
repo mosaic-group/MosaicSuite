@@ -440,7 +440,7 @@ public class Region_Competition implements Segmentation
 			// Get output format and Stitch the output in the output selected
 			
 			String outcsv[] = {"*_ObjectsData_c1.csv"};
-			ClusterSession.processJobsData(ss,outcsv,aImp,RCOutput.class);
+			ClusterSession.processJobsData(ss,outcsv,MosaicUtils.ValidFolderFromImage(aImp),RCOutput.class);
 			
 			////////////////
 			

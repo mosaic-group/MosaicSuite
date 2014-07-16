@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Vector;
@@ -1558,6 +1559,7 @@ public class MosaicUtils
  
 				imgT = new ImgTest();
 			
+				imgT.base = dir.getAbsolutePath();
 				int nimage_file = Integer.parseInt(br.readLine());
 				imgT.img = new String[nimage_file];
 				for (int i = 0 ; i < imgT.img.length ; i++)
@@ -1782,27 +1784,73 @@ public class MosaicUtils
 			
 			// Check the results
 			
+			// Check if there are job directories
+			
+			String[] cs = ClusterSession.getJobDirectories(0, tmp_dir);
+			if (cs != null && cs.length != 0)
+			{
+				// Sort into ascending order
+				
+				Arrays.sort(cs);
+				
+				// Check if result_imgs has the same number
+				
+/*				if (tmp.result_imgs.length % cs.length != 0)
+				{
+					fail("Error: Image result does not match the result");
+				}
+				
+				// replace the result dir with the job id
+				
+				for (int i = 0 ; i < tmp.result_imgs.length ; i++)
+				{
+					String repl = cs[i%cs.length].substring(cs[i%cs.length].lastIndexOf(File.separator)).substring(4);
+					tmp.result_imgs[i] = tmp.result_imgs[i].replace("*", repl);
+					tmp.result_imgs_rel[i] = tmp.result_imgs_rel[i].replace("*", repl);
+				}
+				
+				for (int i = 0 ; i < tmp.csv_results.length ; i++)
+				{
+					String repl = cs[i%cs.length].substring(cs[i%cs.length].lastIndexOf(File.separator)).substring(4);
+					tmp.csv_results[i] = tmp.csv_results[i].replace("*", repl);
+					tmp.csv_results_rel[i] = tmp.csv_results_rel[i].replace("*", repl);
+				}*/
+			}
+			
 			int cnt = 0;
+			
+			Arrays.sort(tmp.result_imgs);
+			Arrays.sort(tmp.result_imgs_rel);
+			
+	        // create the ImgOpener
+	        ImgOpener imgOpener = new ImgOpener();
 			
 			for (String rs : tmp.result_imgs)
 			{
-				
-		        // create the ImgOpener
-		        ImgOpener imgOpener = new ImgOpener();
-		 
 		        // open with ImgOpener. The type (e.g. ArrayImg, PlanarImg, CellImg) is
 		        // automatically determined. For a small image that fits in memory, this
 		        // should open as an ArrayImg.
 		        Img<?> image = null;
 		        Img< ? > image_rs = null;
 				try {
+					// 
+					
 					image = imgOpener.openImgs(rs).get(0);
 				
-					String filename = rs.substring(rs.lastIndexOf(File.separator)+1);
-		        
+					String filename = null;
+					if (cs != null && cs.length != 0)
+					{
+						filename = cs[cnt] + File.separator + tmp.result_imgs_rel[cnt].substring(tmp.result_imgs_rel[cnt].indexOf(File.separator)+1);
+					}
+					else
+					{
+						filename = tmp_dir + File.separator + tmp.result_imgs_rel[cnt];
+					}
+
+						
 					// open the result image
 				
-		        	image_rs = (Img<?>) imgOpener.openImgs(tmp_dir + File.separator + tmp.result_imgs_rel[cnt]).get(0);
+		        	image_rs = (Img<?>) imgOpener.openImgs(filename).get(0);
 				} catch (ImgIOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -1830,13 +1878,25 @@ public class MosaicUtils
 			
 			cnt = 0;
 			
+			Arrays.sort(tmp.csv_results);
+			Arrays.sort(tmp.csv_results_rel);
+			
 			for (String rs : tmp.csv_results)
 			{
 				InterPluginCSV<T> iCSVsrc = new InterPluginCSV<T>(cls);
 			
-				String filename = rs.substring(rs.lastIndexOf(File.separator)+1);
-				iCSVsrc.setCSVPreferenceFromFile(tmp_dir + File.separator + tmp.csv_results_rel[cnt]);
-				Vector<T> outsrc = iCSVsrc.Read(tmp_dir + File.separator + tmp.csv_results_rel[cnt]);
+				String filename = null;
+				if (cs != null && cs.length != 0)
+				{
+					filename = cs[cnt] + File.separator + tmp.csv_results_rel[cnt].substring(tmp.result_imgs_rel[cnt].indexOf(File.separator)+1);
+				}
+				else
+				{
+					filename = tmp_dir + File.separator + tmp.csv_results_rel[cnt];
+				}				
+				
+				iCSVsrc.setCSVPreferenceFromFile(filename);
+				Vector<T> outsrc = iCSVsrc.Read(filename);
 				
 				InterPluginCSV<T> iCSVdst = new InterPluginCSV<T>(cls);
 				iCSVdst.setCSVPreferenceFromFile(rs);

@@ -409,16 +409,18 @@ public class ClusterSession
 			file = new File(tmp_dir_);
 		}
 			
-		final String tmp_dir = tmp_dir_;
+		final String tmp_dir = new File(tmp_dir_).getAbsolutePath();
 		
 		String[] directories = file.list(new FilenameFilter() 
 		{
 		  @Override
 		  public boolean accept(File dir, String name) 
 		  {
-				Pattern jobID = Pattern.compile(tmp_dir + "Job[0-9]+");
+			  	File fp = new File(tmp_dir + File.separator + "Job[0-9]+");
+				Pattern jobID = Pattern.compile(fp.getAbsolutePath());
 				
-				Matcher matcher = jobID.matcher(dir + File.separator + name);
+				File fpm = new File(dir + File.separator + name);
+				Matcher matcher = jobID.matcher(fpm.getAbsolutePath());
 			  
 				File f = new File(dir, name);
 				if (f.isDirectory() == true && matcher.find())
@@ -814,7 +816,7 @@ public class ClusterSession
 			
 			try 
 			{
-				Thread.sleep(10000);
+				Thread.sleep(3000);
 			} 
 			catch (InterruptedException e) 
 			{
@@ -1195,7 +1197,9 @@ public class ClusterSession
 		String tmp = IJ.getDirectory("temp") + File.separator + "temp_merge" + File.separator;
 		try {
 			ShellCommand.exeCmd("mkdir " + tmp);
-			ShellCommand.copy( jobsrc, new File(tmp));
+			ProgressBarWin pbw = new ProgressBarWin();
+			ShellCommand.copy( jobsrc, new File(tmp), pbw);
+			pbw.dispose();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1230,7 +1234,9 @@ public class ClusterSession
 				{
 					// exist the directory in job1
 				
-					ShellCommand.copy(t,dir);
+					ProgressBarWin pbw = new ProgressBarWin();
+					ShellCommand.copy(t,dir,pbw);
+					pbw.dispose();
 				}
 				else
 				{
@@ -1238,7 +1244,9 @@ public class ClusterSession
 				
 					try {
 						ShellCommand.exeCmd("mkdir " + dir.getAbsolutePath());
-						ShellCommand.copy(t, dir);
+						ProgressBarWin pbw = new ProgressBarWin();
+						ShellCommand.copy(t, dir,pbw);
+						pbw.dispose();
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -1298,7 +1306,9 @@ public class ClusterSession
 		
 		// Copy the content
 		
-		ShellCommand.copy(new File(tmp),jobsrc);
+		ProgressBarWin pbw = new ProgressBarWin();
+		ShellCommand.copy(new File(tmp),jobsrc,pbw);
+		pbw.dispose();
 		
 		// remove the temporary directory
 		

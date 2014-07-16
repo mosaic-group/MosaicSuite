@@ -41,6 +41,10 @@ public class ProgressBarWin extends JDialog
 		Font font = Status.getFont();
 		
 		// get metrics from the graphics
+		
+		if (contentPane.getGraphics() == null)
+			setVisible(true);
+		
 		FontMetrics metrics = contentPane.getGraphics().getFontMetrics(font);
 		// get the height of a line of text in this
 		// font and render context
