@@ -255,6 +255,8 @@ public class ASplitBregmanSolver {
 		}
 		//IJ.log("max steps" + p.max_nsb);
 
+		double lastenergy_mod = Double.MAX_VALUE;
+		
 		while(stepk<p.max_nsb  && !StopFlag){
 			//Bregman step
 			step();
@@ -281,11 +283,25 @@ public class ASplitBregmanSolver {
 				iw3kbest=stepk;
 				bestNrj=energy;
 			}
-			if(stepk % p.energyEvaluationModulo ==0 || stepk==p.max_nsb -1)
+			if(stepk % modulo ==0 || stepk==p.max_nsb -1)
 			{	
 				//IJ.log(String.format("Ediff %d : %7.6e", stepk, Math.abs((energy-lastenergy)/lastenergy)));	
 				if(Math.abs((energy-lastenergy)/lastenergy) < p.tol){
 					StopFlag=true;if(p.livedisplay && p.firstphase){IJ.log("energy stop");}}
+				
+				// experiment to speedup we stop if the energy increase after evaluation modulo step
+				
+				if (p.firstphase == true)
+				{
+					if (stepk % modulo == 0 && p.fastsquassh == true)
+					{
+						if ((energy - lastenergy_mod) > 0)
+							StopFlag = true;
+						else
+							lastenergy_mod = energy;
+					}
+				}
+					
 			}
 			lastenergy=energy;
 			//energy output
@@ -433,7 +449,7 @@ public class ASplitBregmanSolver {
 		CountDownLatch W3kDoneSignal = new CountDownLatch(1);
 
 		for(int l=0; l< nl;l++){
-			new Thread(new SingleRegionTask(RegionsTasksDoneSignal,UkDoneSignal,W3kDoneSignal, l,this, LocalTools)).start();
+			new Thread(new SingleRegionTask(RegionsTasksDoneSignal,UkDoneSignal,W3kDoneSignal, l, channel,this, LocalTools)).start();
 		}
 
 

@@ -667,9 +667,18 @@ public class Poisson_Noise implements PlugInFilter
 		
 		Cursor<T> cur = image.cursor();
 		
+		int loc[] = new int[2];
+		
 		while (cur.hasNext())
 		{
 			cur.next();
+			
+			cur.localize(loc);
+			if (loc[0] == 35 && loc[1] == 29)
+			{
+				int debug = 0;
+				debug++;
+			}
 			
 			nsT.sample(cur.get(), smp);
 			cur.get().set(smp);

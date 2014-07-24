@@ -10,12 +10,13 @@ import java.io.ObjectOutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
+import net.imglib2.type.numeric.real.DoubleType;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GUIold;
 import mosaic.bregman.GenericGUI;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.output.CSVOutput;
+import mosaic.core.psf.psf;
 import mosaic.core.utils.Segmentation;
 import mosaic.region_competition.Settings;
 import ij.plugin.PlugIn;
@@ -175,7 +176,7 @@ public class BregmanGLM_Batch implements Segmentation
 				Analysis.p.dispwindows = false;
 			
 			window = new GenericGUI(batch,active_img);
-			window.setUseCluster(true);
+			window.setUseCluster(gui_use_cluster);
 			window.run("",active_img);
 			
 			SaveConfig(Analysis.p);
@@ -246,8 +247,15 @@ public class BregmanGLM_Batch implements Segmentation
 	{
 		FileOutputStream fout = new FileOutputStream(savePath);
 		ObjectOutputStream oos = new ObjectOutputStream(fout);
+		
+		// Nullify PSF is not Serializable
+		
+		psf<DoubleType> psf_old = p.PSF;
+		p.PSF = null;
 		oos.writeObject(p);
 		oos.close();
+		p.PSF = psf_old;
+		
 	}
 	
 	/**
@@ -262,8 +270,14 @@ public class BregmanGLM_Batch implements Segmentation
 	{
 		FileOutputStream fout = new FileOutputStream(savedSettings);
 		ObjectOutputStream oos = new ObjectOutputStream(fout);
+		
+		// Nullify PSF is not Serializable
+		
+		psf<DoubleType> psf_old = p.PSF;
+		p.PSF = null;
 		oos.writeObject(p);
 		oos.close();
+		p.PSF = psf_old;
 	}
 
 	/**

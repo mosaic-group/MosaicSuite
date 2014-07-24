@@ -15,6 +15,7 @@ import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
 //import java.util.Date;
 import java.util.Iterator;
+import java.util.Vector;
 //import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -151,12 +152,11 @@ public class ImagePatches {
 
 		final LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
 		ThreadPoolExecutor threadPool;
-		if(p.debug){threadPool=new ThreadPoolExecutor(1, 1,
+		if(p.debug == true){threadPool=new ThreadPoolExecutor(1, 1,
 				1, TimeUnit.DAYS, queue);}
 		else{
 		threadPool=new ThreadPoolExecutor(p.nthreads, p.nthreads,
 				1, TimeUnit.DAYS, queue);}
-
 
 		nb_jobs=regionslist_refined.size();
 		AnalysePatch ap;
@@ -170,16 +170,17 @@ public class ImagePatches {
 			if(p.subpixel)p.oversampling2ndstep=p.overs;
 			else p.oversampling2ndstep=1;
 			ap=new AnalysePatch(image, r, p, p.oversampling2ndstep, channel,regions_refined,this);
-			
-			if(p.mode_voronoi2){
+			if(p.mode_voronoi2)
+			{
 				threadPool.execute(ap);
 				//IJ.log("size q:"+ queue.size());
 			}
-			else{
+			else
+			{
 				//	ap.run();//execute
 			}
 			
-			/////////////////7
+			/////////////////
 			
 			//add refined result into regions refined :
 			if(!p.mode_voronoi2){
@@ -190,20 +191,25 @@ public class ImagePatches {
 				else
 					assemble_result_interpolated(ap,r);
 			}
+			
 			//			else{
 			//				assemble_result_voronoi2(ap);				
 			//			}
 			//}
 		}
 		//IJ.log("loop done");
-
+		
+		//
+		
 		threadPool.shutdown();
+		
 		try
 		{
 			//IJ.log("await termination");
 			threadPool.awaitTermination(1, TimeUnit.DAYS);
 		}
 		catch (InterruptedException ex) {}
+		
 		//long lStartTime = new Date().getTime(); //start time
 		if(p.mode_voronoi2)
 		{
@@ -231,8 +237,52 @@ public class ImagePatches {
 				//Tools.showmem();
 				threadPool2.awaitTermination(1, TimeUnit.DAYS);
 			}catch (InterruptedException ex) {}
+			
+			// here we analyse the patch
+			// if we have a big region with intensity near the background
+			// kill that region
+			
+			boolean changed = false;
+			
+			ArrayList<Region> regionslist_refined_filter = new ArrayList<Region>();
+			regions_refined= new short[sz][sx][sy];
+			
+			for (Region r : regionslist_refined_filter)
+			{
+				if (r.intensity > p.min_region_filter_intensities)
+				{
+					regionslist_refined_filter.add(r);
+				}
+				else
+				{
+					changed= true;
+				}
+			}
+			
+			regionslist_refined = regionslist_refined_filter;
+			
+			// if changed, reassemble
+			
+			if (changed == true)
+			{
+				for (int i = 0; i < regions_refined.length  ; i++)
+				{
+					for (int j = 0; j < regions_refined[i].length  ; j++)
+					{
+						for (int k = 0; k < regions_refined[i][j].length  ; k++)
+						{
+							regions_refined[i][j][k] = 0;
+						}	
+					}
+				}
+				assemble(regionslist_refined);
+			}
+			
+			//
+			
+			regionslist_refined = regionslist_refined_filter;
 		}
-
+		
 		//Tools.showmem();
 		int no=regionslist_refined.size();
 		if(channel==0)
@@ -247,6 +297,22 @@ public class ImagePatches {
 		{IJ.log(no + " objects found in Y.");}
 	}
 
+	void assemble(ArrayList<Region> regionslist_refined)
+	{
+		for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
+			ArrayList<Pix> npixels = new ArrayList<Pix>();
+			Region r = it.next();
+
+			for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
+				Pix v = it2.next();
+				//count number of free edges
+				regions_refined[v.pz][v.px][v.px]= (short) r.value;
+
+			}				
+			r.pixels=npixels;
+		}
+	}
+	
 //	private void assemble_result_voronoi2(AnalysePatch ap){
 //
 //		//IJ.log("assemble vo2");
@@ -365,14 +431,18 @@ public class ImagePatches {
 //	}
 
 
-	private void assemble_result(AnalysePatch ap, Region r){
-
+	private void assemble_result(AnalysePatch ap, Region r)
+	{		
 		ArrayList<Pix> rpixels = new ArrayList<Pix>();
 		int pixcount=0;
-		for (int z=0; z<ap.sz; z++){
-			for (int i=0;i<ap.sx; i++){  
-				for (int j=0;j< ap.sy; j++){  
-					if (ap.object[z][i][j]==1){
+		for (int z=0; z<ap.sz; z++)
+		{
+			for (int i=0;i<ap.sx; i++)
+			{
+				for (int j=0;j< ap.sy; j++)
+				{
+					if (ap.object[z][i][j]==1)
+					{
 						regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy] =(short) r.value;
 						rpixels.add(new Pix(z+ap.offsetz*osz,i+ap.offsetx*osxy,j+ap.offsety*osxy));
 						//rpixels.add(new Pix(z,i,j));
@@ -387,11 +457,6 @@ public class ImagePatches {
 		//assign new pixel list to region and refined size
 		r.pixels=rpixels;
 		r.rsize=pixcount;
-		if (ap.cin*(ap.intmax-ap.intmin) +ap.intmin >= 1.0)
-		{
-			int debug = 0;
-			debug++;
-		}
 		r.intensity=ap.cin*(ap.intmax-ap.intmin) +ap.intmin;
 		//		r.cx=r.cx*osxy;
 		//		r.cy=r.cy*osxy;

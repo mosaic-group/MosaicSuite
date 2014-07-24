@@ -4,21 +4,25 @@ import java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
 
 
-public class SingleRegionTask implements Runnable {
+public class SingleRegionTask implements Runnable 
+{
 	private final CountDownLatch RegionsTasksDoneSignal;
 	private final CountDownLatch UkDoneSignal;
 	private final CountDownLatch W3kDoneSignal;
 	private ASplitBregmanSolver AS;
 	private int l ;
+	private int channel;
 	public DoubleDCT_2D dct2d;
 	public Tools Tools;
 
-	SingleRegionTask(CountDownLatch RegionsTasksDoneSignal,CountDownLatch UkDoneSignal,CountDownLatch W3kDoneSignal, int level, ASplitBregmanSolver AS, Tools tTools) {
+	SingleRegionTask(CountDownLatch RegionsTasksDoneSignal,CountDownLatch UkDoneSignal,CountDownLatch W3kDoneSignal, int level, int channel, ASplitBregmanSolver AS, Tools tTools) 
+	{
 		this.Tools=tTools;
 		this.RegionsTasksDoneSignal = RegionsTasksDoneSignal;
 		this.UkDoneSignal = UkDoneSignal;
 		this.W3kDoneSignal = W3kDoneSignal;
 		this.AS=AS;
+		this.channel = channel;
 		this.l = level;
 		dct2d= new DoubleDCT_2D(AS.ni,AS.nj);
 
@@ -94,7 +98,7 @@ public class SingleRegionTask implements Runnable {
 		Tools.addtab(AS.temp1[l], AS.temp3[l], AS.b2xk[l]);
 		Tools.addtab(AS.temp2[l], AS.temp4[l], AS.b2yk[l]);
 		//temp1=w2xk temp2=w2yk
-		Tools.shrink2D(AS.temp1[l], AS.temp2[l], AS.temp1[l], AS.temp2[l], AS.p.gamma*AS.p.lreg);
+		Tools.shrink2D(AS.temp1[l], AS.temp2[l], AS.temp1[l], AS.temp2[l], AS.p.gamma*AS.p.lreg_[channel]);
 		//do shrink3D
 
 
@@ -123,7 +127,7 @@ public class SingleRegionTask implements Runnable {
 
 		//Tools.copytab(AS.w3kp[l], AS.w3k[l]);
 
-		AS.energytab[l]=Tools.computeEnergy(AS.speedData[l], AS.w3k[l], AS.temp3[l], AS.temp4[l], AS.p.ldata, AS.p.lreg);
+		AS.energytab[l]=Tools.computeEnergy(AS.speedData[l], AS.w3k[l], AS.temp3[l], AS.temp4[l], AS.p.ldata, AS.p.lreg_[channel]);
 
 	}
 }

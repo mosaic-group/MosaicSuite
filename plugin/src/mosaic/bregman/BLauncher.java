@@ -67,7 +67,7 @@ public class BLauncher
 	 */
 	
 	public BLauncher(String path)
-	{				
+	{
 		boolean processdirectory =(new File(path)).isDirectory();
 		if(processdirectory)
 		{
@@ -87,6 +87,9 @@ public class BLauncher
 			
 			for (File f : fl)
 			{
+				if (f.isDirectory() == true)
+					continue;
+				
 				// Attempt to open a file
 				
 				try
@@ -111,15 +114,17 @@ public class BLauncher
 					saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
 					
 					try
-					{out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), cnt);} 
+					{out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), 0);} 
 					catch (FileNotFoundException e) 
 					{e.printStackTrace();}
 				}
+				if (out != null)
+				{
+					out.close();
+					out =null;
+				}
 				cnt++;
 			}
-			
-			if (out != null)
-				out.close();
 		}
 		else
 		{
@@ -217,7 +222,7 @@ public class BLauncher
 			displayintensities(Analysis.regionslist[0], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1, Analysis.imagecolor_c1,sep);
 			if (Analysis.p.nchannels == 2) {displayintensities(Analysis.regionslist[1], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2, Analysis.imagecolor_c2, sep);}
 		}
-		if (Analysis.p.displabels)
+		if (Analysis.p.displabels || Analysis.p.dispcolors)
 		{
 			displayRegionsCol(Analysis.regions[0], 1, Analysis.regionslist[0].size(),sep);
 			if (Analysis.p.nchannels == 2) {displayRegionsCol(Analysis.regions[0], 2, Analysis.regionslist[0].size(),sep);};
@@ -256,14 +261,14 @@ public class BLauncher
 		
 		for (int i = 0 ; i < out_label.length ; i++)
 		{
-			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
+			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c" + (i+1) +".zip";
 			if (out_label[i] != null)
 				IJ.saveAs(out_label[i], "ZIP", savepath);
 		}
 		
 		for (int i = 0 ; i < out_label_gray.length ; i++)
 		{
-			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
+			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_mask_c" + (i+1) +".zip";
 			if (out_label_gray[i] != null)
 				IJ.saveAs(out_label_gray[i], "ZIP", savepath);
 		}
@@ -291,7 +296,7 @@ public class BLauncher
 			
 			File flp = new File(path);
 			
-			out  = new PrintWriter(flp.getParent() + File.separator + fl[0] + "_ImagesData"+ ".csv");
+			out  = new PrintWriter(flp.getAbsolutePath() + File.separator + fl[0] + "_ImagesData"+ ".csv");
 		}
 		
 		// if two channel
@@ -331,7 +336,7 @@ public class BLauncher
 							"window size " + Analysis.p.size_rollingball + " " +
 							"stddev PSF xy " + " "+ mosaic.bregman.Tools.round(Analysis.p.sigma_gaussian, 5) + " " +
 							"stddev PSF z " + " "+ mosaic.bregman.Tools.round(Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 5)+ " " +
-							"Regularization " + Analysis.p.lreg  + " " +
+							"Regularization " + Analysis.p.lreg_[0]  + " " + Analysis.p.lreg_[1] + " " +
 							"Min intensity ch1 " + Analysis.p.min_intensity +" " +
 							"Min intensity ch2 " + Analysis.p.min_intensityY +" " +
 							"subpixel " + Analysis.p.subpixel + " " +
@@ -486,149 +491,6 @@ public class BLauncher
 		}
 
 	}
-
-/*	public void Headless_directory(){
-		//IJ.log("starting dir");
-		try
-		{
-			wpath=wpath + File.separator;
-			Analysis.p.wd= wpath;
-			Analysis.doingbatch=true;
-
-			Analysis.p.livedisplay=false;
-
-			Analysis.p.dispwindows=false;
-			Analysis.p.save_images=true;
-
-			IJ.log(Analysis.p.wd);
-			//long Time = new Date().getTime(); //start time
-
-			String [] list = new File(wpath).list();
-			if (list==null) {IJ.log("No files in folder"); return;}
-			Arrays.sort(list);
-
-			//IJ.log("la");
-			int ii=0;
-			boolean imgfound=false;
-			while (ii<list.length && !imgfound) 
-			{
-				if(Analysis.p.debug){IJ.log("read"+list[ii]);}
-				boolean isDir = (new File(wpath+list[ii])).isDirectory();
-				if (	!isDir &&
-						!list[ii].startsWith(".")&&
-						!list[ii].startsWith("Coloc") &&
-						!list[ii].startsWith("X_Vesicles")&&
-						!list[ii].startsWith("Y_Vesicles")&&
-						!list[ii].endsWith("_seg_c1.tif")&&
-						!list[ii].endsWith("_seg_c2.tif")&&
-						!list[ii].endsWith("_mask_c1.tif")&&
-						!list[ii].endsWith("_mask_c2.tif")&&
-						!list[ii].endsWith("_ImageData.tif")&&
-						!list[ii].endsWith(".zip")&&
-						(list[ii].endsWith(".tif") || list[ii].endsWith(".tiff") ) 
-						){
-
-					ImagePlus img=IJ.openImage(wpath+list[ii]);
-					Analysis.p.nchannels=img.getNChannels();
-					imgfound=true;
-
-				}
-				ii++;
-			}
-
-
-			//IJ.log("nchannels" + Analysis.p.nchannels);
-
-			if(Analysis.p.nchannels==2)
-			{
-				IJ.log("looking for files at " + wpath);
-				String [] directrories=  wpath.split("\\"+File.separator);
-				int nl = directrories.length;
-				String savepath=(directrories[nl-1]).replaceAll("\\"+File.separator, ""); 
-
-//				out  = new PrintWriter(wpath+savepath+"_ImageData"+ ".csv");
-				out3 = new PrintWriter(wpath+savepath+"_ObjectsData_c2"+ ".csv");
-
-				Analysis.p.file1=wpath+savepath+"_ObjectsData_c1"+ ".csv";
-				Analysis.p.file2=wpath+savepath+"_ObjectsData_c2"+ ".csv";
-				Analysis.p.file3=wpath+savepath+"_ImagesData"+ ".csv";
-				script = new RScript(
-						Analysis.p.wd, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3,
-						Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames,
-						Analysis.p.ch1,Analysis.p.ch2
-						);
-				script.writeScript();
-				
-				
-				if(Analysis.p.nz>1)
-				{
-					out3.print("Image ID" + ";" + "Object ID" +";"
-							+ "Size" + ";" + "Surface" + ";" + "Length" + ";" +"Intensity" + ";"
-							+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-					out3.println();
-				}
-				else
-				{
-					out3.print("Image ID" + ";" + "Object ID" +";"
-							+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";"
-							+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-					out3.println();		
-				}
-			}
-
-			else
-			{
-
-				String [] directrories=  wpath.split("\\"+File.separator);
-				int nl = directrories.length;
-				String savepath=(directrories[nl-1]).replaceAll("\\"+File.separator, ""); */
-/*				out  = new PrintWriter(wpath+savepath+"_Images_data"+ ".csv");
-
-				out.println();
-				out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch 1" + ";" + "Mean surface in ch1"  +";"+ "Mean length in ch1"  );
-				out.println();*/
-/*			}
-
-			for (int i=0; i<list.length; i++) {
-				if(Analysis.p.debug){IJ.log("read"+list[i]);}
-				boolean isDir = (new File(wpath+list[i])).isDirectory();
-				if (	!isDir &&
-						!list[i].startsWith(".") &&
-						!list[i].startsWith("Coloc") &&
-						!list[i].startsWith("X_Vesicles")&&
-						!list[i].startsWith("Objects_data")&&
-						!list[i].startsWith("Y_Vesicles")&&
-						!list[i].endsWith("_seg_c1.tif")&&
-						!list[i].endsWith("_seg_c2.tif")&&
-						!list[i].endsWith("_mask_c1.tif")&&
-						!list[i].endsWith("_mask_c2.tif")&&
-						!list[i].endsWith("_ImageData.tif")&&
-						list[i].endsWith(".tif")&&
-						!list[i].endsWith(".zip")
-						){
-					IJ.log("Analyzing " + list[i]+ "... ");
-					ImagePlus img=IJ.openImage(wpath+list[i]);
-					//IJ.log("opened");
-
-					if(Analysis.p.pearson)
-						bcolocheadless_pearson(img);
-					else
-						bcolocheadless(img);
-					//IJ.log("done");
-
-					Runtime.getRuntime().gc();
-				}
-			}
-			IJ.log("");
-			IJ.log("Done");
-
-			finish();
-		}catch (Exception e){//Catch exception if any
-			System.err.println("Error headless: " + e.getMessage());
-		}
-		Analysis.doingbatch=false;
-	}*/
-
 
 	public void bcolocheadless_pearson(ImagePlus img2){
 		double Ttime=0;

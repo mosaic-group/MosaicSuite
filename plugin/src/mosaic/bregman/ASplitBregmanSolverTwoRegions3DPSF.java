@@ -27,8 +27,8 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		//c0=p.betaMLEoutdefault;//0.0027356;
 		//c1=p.betaMLEindefault;//0.2340026;//sometimes not here ???
 		
-		
-		eigenPSF = new double [Math.max(7,nz)][Math.max(7,ni)][Math.max(7,nj)];
+		int[] sz = p.PSF.getSuggestedImageSize();
+		eigenPSF = new double [Math.max(sz[2],nz)][Math.max(sz[0],ni)][Math.max(sz[1],nj)];
 		//IJ.log("nl " + nl);
 
 		this.compute_eigenPSF3D();	
@@ -47,7 +47,7 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		}
 		//Tools.disp_vals(eigenLaplacian3D[2], "eigenlaplacian");
 
-		Tools.convolve3Dseparable(temp3[l], mask[l],  ni, nj, nz, p.kernelx,p.kernely, p.kernelz, p.px, p.py, p.pz, temp4[l]);
+		Tools.convolve3Dseparable(temp3[l], mask[l],  ni, nj, nz, p.PSF, temp4[l]);
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0; j<nj; j++) {  
@@ -63,8 +63,6 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 			LocalTools.fgradx2D(temp1[i], mask[i]);
 			LocalTools.fgrady2D(temp2[i], mask[i]);			
 		}
-
-
 	}
 
 	@Override
@@ -74,7 +72,7 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		
 		//IJ.log("init");
 		//IJ.log("init c0 " + c0 + "c1 " + c1);
-		Tools.convolve3Dseparable(temp3[l], w3k[l],  ni, nj, nz, p.kernelx,p.kernely, p.kernelz, p.px, p.py, p.pz, temp4[l]);
+		Tools.convolve3Dseparable(temp3[l], w3k[l],  ni, nj, nz, p.PSF, temp4[l]);
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0; j<nj; j++) {  
@@ -260,24 +258,13 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		this.c1=p.cl[1];
 		
 		//  PSF2   = imfilter(PSF,PSF,'symmetric');		
-
-//		for (int i=0;i< 7; i++){  
-//			IJ.log("psfx" + p.kernelx[i]);			
-//		}
-//	for (int i=0;i< 7; i++){  
-//		IJ.log("psfy" + p.kernely[i]);			
-//	}
-//	for (int i=0;i< 7; i++){  
-//		IJ.log("psfz" + p.kernelz[i]);			
-//	}
 		
-		
+		int[] sz = p.PSF.getSuggestedImageSize();
 		
 		Tools.convolve3Dseparable(
-				eigenPSF, p.PSF,
-				p.px, p.py, p.pz, 
-				p.kernelx, p.kernely, p.kernelz,
-				p.px, p.py, p.pz, temp4[l]);
+				eigenPSF,p.PSF.getImage3DAsDoubleArray(),
+				sz[0], sz[1], sz[2],
+				p.PSF, temp4[l]);
 
 
 
@@ -292,10 +279,10 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 			}
 		}
 
-
-		for (int z=0; z<p.pz; z++){
-			for (int i=0; i<p.px; i++) {  
-				for (int j=0; j<p.py; j++) {  
+		sz = p.PSF.getSuggestedImageSize();
+		for (int z=0; z<sz[2]; z++){
+			for (int i=0; i<sz[0]; i++) {  
+				for (int j=0; j<sz[1]; j++) {  
 					temp2[l][z][i][j]=eigenPSF[z][i][j];
 				}	
 			}
@@ -303,9 +290,9 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 
 		//Tools.disp_vals(temp2[l][2], "padded");
 
-		int cr = (p.px/2) +1;
-		int cc = (p.py/2) +1;
-		int cs = (p.pz/2) +1;
+		int cr = (sz[0]/2) +1;
+		int cc = (sz[1]/2) +1;
+		int cs = (sz[2]/2) +1;
 
 		//temp1 = e1
 		for (int z=0; z<nz; z++){

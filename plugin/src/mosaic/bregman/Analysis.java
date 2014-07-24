@@ -33,7 +33,7 @@ public class Analysis {
 	        "*_seg_c1.zip",
 	        "*_seg_c2.zip",
 	        "*.tif"};
-	
+
 	public static String out_w[] = {"*_ObjectsData_c1.csv",
         "*_ObjectsData_c2.csv",
         "*_mask_c1.zip",
@@ -43,9 +43,8 @@ public class Analysis {
         "*_outline_overlay_c2.zip",
         "*_intensities_c1.zip",
         "*_intensities_c2.zip",
-        "*_seg_c1_RGB.zip",
-        "*_seg_c2_RGB.zip"};
-
+        "*_seg_c1.zip",
+        "*_seg_c2.zip"};
 	
 	public static double meansize_refined;
 	public static String currentImage="currentImage";

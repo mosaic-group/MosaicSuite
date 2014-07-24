@@ -33,6 +33,10 @@ public class Jtest implements PlugInFilter
 	@Override
 	public int setup(String arg0, ImagePlus arg1) 
 	{
+		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
+		
+		jtestBR.segmentation();
+		
 		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
 		
 		jtestTS.testtestsegmentation();
@@ -48,10 +52,6 @@ public class Jtest implements PlugInFilter
 		mosaic.region_competition.Jtest jtestRC = new mosaic.region_competition.Jtest();
 		
 		jtestRC.segmentation();
-		
-		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
-		
-		jtestBR.segmentation();
 		
 		IJ.showMessage("All test SUCCEFULLY completed");
 		

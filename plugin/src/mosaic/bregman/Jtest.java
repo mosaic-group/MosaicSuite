@@ -32,9 +32,13 @@ public class Jtest
 		
 		// test the cluster
 		
+		BG.setUseCluster(false);
+		MosaicUtils.<Region3DRScript>testSegmentation(BG,"Squassh_testa",Region3DRScript.class);
+		
+		BG.setUseCluster(false);
+		MosaicUtils.<Region3DRScript>testSegmentation(BG,"Squassh",Region3DRScript.class);
+		
 		BG.setUseCluster(true);
 		MosaicUtils.<Region3DRScript>testSegmentation(BG,"Squassh_cluster",Region3DRScript.class);
-		
-		MosaicUtils.<Region3DRScript>testSegmentation(BG,"Squassh",Region3DRScript.class);
 	}
 }

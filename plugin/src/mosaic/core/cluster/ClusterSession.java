@@ -738,8 +738,9 @@ public class ClusterSession
 		
 		BatchInterface bcl[] = bc.getAllJobs(ss,command);
 		if (bcl == null)
-		{
+		{			
 			wp.SetStatusMessage("End");
+			// Close cluster status stack
 			return false;
 		}
 		ClusterStatusStack css[] = new ClusterStatusStack[bcl.length];
@@ -799,7 +800,12 @@ public class ClusterSession
 //					stackVisualize(output,bcl[j].getJobID(),wp);
 					
 					bcl[j] = null;
-					break;
+					
+					wp.SetStatusMessage("Computing ...");
+					int p = (int)(progress * 100.0 / total);
+					wp.SetProgress(p);
+					
+					continue;
 				}
 				css[j].UpdateStack(st[j], bcl[j].getJobStatus());
 				ip[j].updateAndDraw();
@@ -838,6 +844,11 @@ public class ClusterSession
 			stackVisualize(output,0,wp);
 //		}
 		
+		// Close cluster status stack
+		
+		for (int i = 0 ; i < ip.length ; i++)
+			ip[i].close();
+			
 		wp.SetStatusMessage("End");
 		return true;
 	}

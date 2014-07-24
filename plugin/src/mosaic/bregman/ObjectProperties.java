@@ -4,10 +4,13 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ByteProcessor;
 
+
 //import java.util.ArrayList;
 import java.util.Iterator;
 
+import net.imglib2.type.numeric.real.DoubleType;
 import mosaic.bregman.FindConnectedRegions.Region;
+import mosaic.core.psf.GaussPSF;
 
 public class ObjectProperties implements Runnable {
 	double intmin, intmax;
@@ -63,12 +66,26 @@ public class ObjectProperties implements Runnable {
 		//set size
 		p.ni=sx;p.nj=sy;p.nz=sz;
 		//set psf
-		if ( p.nz>1){
-			Tools.gaussian3Dbis(p.PSF, p.kernelx, p.kernely, p.kernelz, 7, p.sigma_gaussian*osxy, p.zcorrec*osz);//todo verif zcorrec
+		if ( p.nz>1)
+		{
+			GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3,DoubleType.class);
+			DoubleType[] var = new DoubleType[3];
+			var[0] = new DoubleType(p.sigma_gaussian);
+			var[1] = new DoubleType(p.sigma_gaussian);
+			var[2] = new DoubleType(p.sigma_gaussian/p.zcorrec);
+			psf.setVar(var);
+//			Tools.gaussian3Dbis(p.PSF, p.kernelx, p.kernely, p.kernelz, 7, p.sigma_gaussian*osxy, p.zcorrec*osz);//todo verif zcorrec
+			p.PSF = psf;
 		}
 		else
 		{
-			Tools.gaussian2D(p.PSF[0], p.kernelx, p.kernely, 7, p.sigma_gaussian*osxy);
+			GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2,DoubleType.class);
+			DoubleType[] var = new DoubleType[2];
+			var[0] = new DoubleType(p.sigma_gaussian);
+			var[1] = new DoubleType(p.sigma_gaussian);
+			psf.setVar(var);
+//			Tools.gaussian2D(p.PSF[0], p.kernelx, p.kernely, 7, p.sigma_gaussian*osxy);
+			p.PSF = psf;
 		}
 		// do PSF
 

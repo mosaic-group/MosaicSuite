@@ -32,7 +32,10 @@ class PoissonSampler<T extends RealType<T>> implements NoiseSample<T>
 		aLambda -= offset;
 		if(aLambda >= 30) 
 		{
-			out.setReal((mRandomGenerator.nextGaussian() * Math.sqrt(aLambda) + aLambda + 0.5) + offset);
+			double rnd = (mRandomGenerator.nextGaussian() * Math.sqrt(aLambda) + aLambda + 0.5) + offset;
+			if (rnd >= out.getMaxValue())
+				rnd = out.getMaxValue();
+			out.setReal(rnd);
 			return;
 		}
 		double p = 1;
@@ -42,6 +45,11 @@ class PoissonSampler<T extends RealType<T>> implements NoiseSample<T>
 			k++;
 			p *= mRandomGenerator.nextDouble();
 		} while(p >= vL);
-		out.setReal((k - 1) + offset);
+		if ((k - 1) + offset > x.getMaxValue())
+			out.setReal(x.getMaxValue());
+		else
+		{	
+			out.setReal((k - 1) + offset);
+		}
 	}
 }

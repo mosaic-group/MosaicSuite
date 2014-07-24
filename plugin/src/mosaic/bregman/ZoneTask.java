@@ -88,8 +88,7 @@ public class ZoneTask implements Runnable {
 		Tools.convolve2Dseparable(
 				AS.temp4[AS.l][0], AS.temp2[AS.l][0],
 				AS.ni, AS.nj,
-				AS.p.kernelx, AS.p.kernely,
-				AS.p.px, AS.p.py,
+				AS.p.PSF,
 				AS.temp1[AS.l][0],
 				iStart, iEnd
 				);
@@ -109,7 +108,7 @@ public class ZoneTask implements Runnable {
 
 		//temp2=muk
 
-		Tools.convolve2Dseparable(AS.temp2[AS.l][0], AS.temp1[AS.l][0], AS.ni, AS.nj, AS.p.kernelx, AS.p.kernely, AS.p.px, AS.p.py, AS.temp3[AS.l][0], iStart, iEnd);
+		Tools.convolve2Dseparable(AS.temp2[AS.l][0], AS.temp1[AS.l][0], AS.ni, AS.nj, AS.p.PSF, AS.temp3[AS.l][0], iStart, iEnd);
 		for (int i=iStart; i<iEnd; i++) {  
 			for (int j=0; j<AS.nj; j++) { 
 				AS.temp2[AS.l][0][i][j]=(AS.c1-AS.c0)*AS.temp2[AS.l][0][i][j] + AS.c0;
@@ -129,8 +128,8 @@ public class ZoneTask implements Runnable {
 				for (int i=iStart; i<iEnd; i++) {  
 					for (int j=0; j<AS.nj; j++) {  
 						AS.temp3[AS.l][0][i][j]=
-								Math.pow(((AS.p.ldata/AS.p.lreg)*AS.p.gamma -AS.b1k[AS.l][0][i][j] - AS.temp2[AS.l][0][i][j]),2)
-								+4*(AS.p.ldata/AS.p.lreg)*AS.p.gamma*AS.image[0][i][j];
+								Math.pow(((AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma -AS.b1k[AS.l][0][i][j] - AS.temp2[AS.l][0][i][j]),2)
+								+4*(AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma*AS.image[0][i][j];
 					}	
 				}
 			}
@@ -140,7 +139,7 @@ public class ZoneTask implements Runnable {
 			for (int z=0; z<AS.nz; z++){
 				for (int i=iStart; i<iEnd; i++) {  
 					for (int j=0; j<AS.nj; j++){  
-						AS.w1k[AS.l][0][i][j]=0.5*(AS.b1k[AS.l][z][i][j] + AS.temp2[AS.l][z][i][j]- (AS.p.ldata/AS.p.lreg)*AS.p.gamma + Math.sqrt(AS.temp3[AS.l][z][i][j]));
+						AS.w1k[AS.l][0][i][j]=0.5*(AS.b1k[AS.l][z][i][j] + AS.temp2[AS.l][z][i][j]- (AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma + Math.sqrt(AS.temp3[AS.l][z][i][j]));
 					}	
 				}
 			}
@@ -152,8 +151,8 @@ public class ZoneTask implements Runnable {
 				for (int i=iStart; i<iEnd; i++) {  
 					for (int j=0; j<AS.nj; j++){  
 						AS.w1k[AS.l][0][i][j]=
-								(AS.b1k[AS.l][z][i][j] + AS.temp2[AS.l][z][i][j]+2*(AS.p.ldata/AS.p.lreg)*AS.p.gamma*AS.image[0][i][j])
-								/(1+2*(AS.p.ldata/AS.p.lreg)*AS.p.gamma);
+								(AS.b1k[AS.l][z][i][j] + AS.temp2[AS.l][z][i][j]+2*(AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma*AS.image[0][i][j])
+								/(1+2*(AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma);
 					}	
 				}
 			}
@@ -207,7 +206,7 @@ public class ZoneTask implements Runnable {
 
 		if(AS.stepk % AS.p.energyEvaluationModulo ==0  || AS.stepk==AS.p.max_nsb -1){
 			AS.energytab2[num]=LocalTools.computeEnergyPSF(AS.temp1[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l],
-					AS.p.ldata, AS.p.lreg,AS.p,AS.c0,AS.c1,AS.image,
+					AS.p.ldata, AS.p.lreg_[AS.channel],AS.p,AS.c0,AS.c1,AS.image,
 					iStart, iEnd, jStart, jEnd, Sync8,Sync9);
 		}
 

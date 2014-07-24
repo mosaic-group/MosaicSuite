@@ -13,6 +13,7 @@ import java.lang.reflect.Array;
 import ij.IJ;
 import ij.Macro;
 import ij.gui.GenericDialog;
+import net.imglib2.Cursor;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
@@ -21,6 +22,8 @@ import net.imglib2.Sampler;
 import net.imglib2.algorithm.gauss3.Gauss3;
 import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -50,6 +53,12 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 	RealType<T> var[];
 	RealType<T> offset[];
 	Class<T> clCreator;
+	double [][] sepDimD;
+	float [][] sepDimF;
+	double [][] Image2DD;
+	double [][][] Image3DD;
+	float [][] Image2DF;
+	float [][][] Image3DF;
 	
 	/**
 	 * 
@@ -76,6 +85,8 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		pos = (RealType<T>[]) Array.newInstance(cl,dim);
 		var = (RealType<T>[]) Array.newInstance(cl,dim);
 		offset = (RealType<T>[]) Array.newInstance(cl,dim);
+		sepDimD = new double[dim][];
+		sepDimF = new float[dim][];
 		
 		try {
 		
@@ -94,7 +105,14 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		}
 	}
 	
-	void setVar(RealType<T> var_[])
+	/**
+	 * 
+	 * Set variance of the Gaussian
+	 * 
+	 * @param var_
+	 */
+	
+	public void setVar(RealType<T> var_[])
 	{
 		var = var_;
 	}
@@ -364,26 +382,6 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 	}
 
 	@Override
-	public int[] getSuggestedSize() 
-	{
-		int sz[] = new int [pos.length];
-		
-		for (int i = 0 ; i < pos.length ; i++)
-		{
-			sz[i] = (int)(var[i].getRealDouble() * 8.0) + 1;
-		}
-		
-		return sz;
-	}
-
-	@Override
-	public void setSuggestedSize(int[] sz) 
-	{
-		// not used
-		
-	}
-
-	@Override
 	public void setCenter(int[] pos) 
 	{
 		for (int i = 0 ; i < pos.length ; i++)
@@ -412,8 +410,8 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 	}
 
 	@Override
-	public boolean isFile() {
-		// TODO Auto-generated method stub
+	public boolean isFile() 
+	{
 		return false;
 	}
 	
@@ -449,5 +447,137 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		}
 		
 		return true;
+	}
+
+	@Override
+	public int[] getSuggestedImageSize()
+	{
+		int sz[] = new int [pos.length];
+		
+		for (int i = 0 ; i < pos.length ; i++)
+		{
+			int szo = (int)(var[i].getRealDouble() * 8.0) + 1;
+			if (szo % 2 == 0)
+				sz[i] = szo + 1;
+			else
+				sz[i] = szo;
+		}
+		
+		return sz;
+	}
+
+	@Override
+	public void setSuggestedImageSize(int[] sz) 
+	{
+		// not used
+	}
+
+	@Override
+	public boolean isSeparable() 
+	{
+		return true;
+	}
+
+	@Override
+	public double[] getSeparableImageAsDoubleArray(int dim) 
+	{
+		if (sepDimD[dim] == null)
+		{
+			int sz[] = getSuggestedImageSize();
+			int mid[] = new int[sz.length];
+			int[] old_mid = new int[sz.length];
+			
+			for (int i = 0 ; i < sz.length ; i++)
+			{
+				mid[i] = sz[i] / 2;
+			}
+			old_mid = getCenter();
+			setCenter(mid);
+			
+			sepDimD[dim] = new double [sz[dim]];
+			
+			for (int i = 0 ; i < sepDimD[dim].length ; i++)
+			{
+				double res = 1.0 / Math.sqrt(2.0 * Math.PI) / var[dim].getRealDouble() * Math.exp(-(i - offset[dim].getRealDouble())*(i - offset[dim].getRealDouble())/ (2.0 * var[dim].getRealDouble() * var[dim].getRealDouble()));
+				
+				sepDimD[dim][i] = res;
+			}
+			
+			setCenter(old_mid);
+		}
+		return sepDimD[dim];
+	}
+
+	@Override
+	public float[] getSeparableImageAsFloatArray(int dim) 
+	{
+		if (sepDimF[dim] == null)
+		{
+			int sz[] = getSuggestedImageSize();
+			int mid[] = new int[sz.length];
+			int[] old_mid = new int[sz.length];
+			
+			for (int i = 0 ; i < sz.length ; i++)
+			{
+				mid[i] = sz[i] / 2;
+			}
+			setCenter(mid);
+			
+			sepDimF[dim] = new float [sz[dim]];
+			
+			for (int i = 0 ; i < sepDimF[dim].length ; i++)
+			{
+				float res = (float)(1.0 / Math.sqrt(2.0 * Math.PI) / var[dim].getRealDouble() * Math.exp(-(i - offset[dim].getRealDouble())*(i - offset[dim].getRealDouble())/ (2.0 * var[dim].getRealDouble() * var[dim].getRealDouble())));
+				
+				sepDimF[dim][i] = res;
+			}
+			
+			setCenter(old_mid);
+		}
+		return sepDimF[dim];
+	}
+
+	@Override
+	public float[][][] getImage3DAsFloatArray() 
+	{
+		if (Image3DF == null)
+			Image3DF = GeneratePSF.generateImage3DAsFloatArray(this);
+		return Image3DF;
+	}
+
+	@Override
+	public double[][][] getImage3DAsDoubleArray() 
+	{
+		if (Image3DD == null)
+			Image3DD = GeneratePSF.generateImage3DAsDoubleArray(this);
+		return Image3DD;
+	}
+
+	@Override
+	public double[][] getImage2DAsDoubleArray()
+	{
+		if (Image2DD == null)
+			Image2DD = GeneratePSF.generateImage2DAsDoubleArray(this);
+		return Image2DD;
+	}
+
+	@Override
+	public float[][] getImage2DAsFloatArray() 
+	{
+		 Image2DF = GeneratePSF.generateImage2DAsFloatArray(this);
+		 return Image2DF;
+	}
+
+	@Override
+	public int[] getCenter() 
+	{
+		int ofs[] = new int[pos.length];
+		
+		for (int i = 0 ; i < ofs.length; i++)
+		{
+			ofs[i] = (int)offset[i].getRealDouble();
+		}
+			
+		return ofs;
 	}
 };

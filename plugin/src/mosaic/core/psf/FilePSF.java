@@ -66,6 +66,11 @@ public class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , 
 	RandomAccess<T> rd;
 	Class<T> clCreator;
 	String filename;
+	int offset[];
+	double [][] Image2DD;
+	double [][][] Image3DD;
+	float [][] Image2DF;
+	float [][][] Image3DF;
 	
 	/**
 	 * 
@@ -323,7 +328,7 @@ public class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , 
 	}
 
 	@Override
-	public int[] getSuggestedSize() 
+	public int[] getSuggestedImageSize() 
 	{
 		if (image == null)
 			return null;
@@ -339,7 +344,7 @@ public class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , 
 	}
 
 	@Override
-	public void setSuggestedSize(int[] sz) 
+	public void setSuggestedImageSize(int[] sz) 
 	{
 		// not used
 		
@@ -352,7 +357,10 @@ public class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , 
 		long pos_[] = new long[pos.length];
 		
 		for (int i = 0 ; i < pos.length ; i++)
+		{
 			pos_[i] = pos[i];
+			offset[i] = pos[i];
+		}
 			
 		rd = Views.offset(image, pos_).randomAccess();
 	}
@@ -402,5 +410,65 @@ public class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , 
 		}
 		
 		return true;
+	}
+
+
+	@Override
+	public int[] getCenter() 
+	{
+		return offset;
+	}
+
+
+	@Override
+	public boolean isSeparable() 
+	{
+		return false;
+	}
+
+
+	@Override
+	public double[] getSeparableImageAsDoubleArray(int dim) 
+	{
+		return null;
+	}
+
+
+	@Override
+	public float[] getSeparableImageAsFloatArray(int dim) 
+	{
+		return null;
+	}
+
+
+	@Override
+	public float[][][] getImage3DAsFloatArray() 
+	{
+		if (Image3DF == null)
+			Image3DF = GeneratePSF.generateImage3DAsFloatArray(this);
+		return Image3DF;
+	}
+
+	@Override
+	public double[][][] getImage3DAsDoubleArray() 
+	{
+		if (Image3DD == null)
+			Image3DD = GeneratePSF.generateImage3DAsDoubleArray(this);
+		return Image3DD;
+	}
+
+	@Override
+	public double[][] getImage2DAsDoubleArray()
+	{
+		if (Image2DD == null)
+			Image2DD = GeneratePSF.generateImage2DAsDoubleArray(this);
+		return Image2DD;
+	}
+
+	@Override
+	public float[][] getImage2DAsFloatArray() 
+	{
+		 Image2DF = GeneratePSF.generateImage2DAsFloatArray(this);
+		 return Image2DF;
 	}
 }

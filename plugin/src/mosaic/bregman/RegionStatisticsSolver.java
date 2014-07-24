@@ -84,6 +84,19 @@ public class RegionStatisticsSolver<T> {
 		fill_weights();
 	}
 
+	/**
+	 * 
+	 * Create a region statistic solver
+	 * 
+	 * @param temp1 buffer of the same size of image for internal calculation
+	 * @param temp2 buffer of the same size of image for internal calculation
+	 * @param temp3 buffer of the same size of image for internal calculation
+	 * @param image The image pixel array
+	 * @param weights
+	 * @param max_iter Maximum number of iteration for the Fisher scoring
+	 * @param p
+	 */
+	
 	public RegionStatisticsSolver(double [] [] []  temp1, double [] [] [] temp2, double [][][] temp3,
 			double [] [] [] image, int max_iter, Parameters p
 			){
@@ -264,12 +277,11 @@ public class RegionStatisticsSolver<T> {
 		// Convolve the mask
 		
 		if(nz==1)
-			Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.p.kernelx, Analysis.p.kernely, Analysis.p.px, Analysis.p.py, mu[0]);
+			Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.p.PSF, mu[0]);
 		else
 			Tools.convolve3Dseparable(KMask, W,
 					ni,nj,nz,
-					Analysis.p.kernelx, Analysis.p.kernely, Analysis.p.kernelz,
-					Analysis.p.px, Analysis.p.py,Analysis.p.pz,
+					Analysis.p.PSF,
 					mu);
 		
 		//Tools.disp_vals(KMask[0],"Kmask");
@@ -420,7 +432,7 @@ public class RegionStatisticsSolver<T> {
 		//Tools.disp_vals(Mask[0],"Mask0");
 
 		this.scale_mask(W,Mask);
-		Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.p.kernelx, Analysis.p.kernely, Analysis.p.px, Analysis.p.py, mu[0]);
+		Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.p.PSF, mu[0]);
 		//Tools.disp_vals(KMask[0],"Kmask");
 		//		
 		//IJ.log("KMask done");

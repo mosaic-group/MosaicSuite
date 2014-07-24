@@ -1795,7 +1795,7 @@ public class MosaicUtils
 				
 				// Check if result_imgs has the same number
 				
-/*				if (tmp.result_imgs.length % cs.length != 0)
+				if (tmp.result_imgs.length % cs.length != 0)
 				{
 					fail("Error: Image result does not match the result");
 				}
@@ -1814,7 +1814,7 @@ public class MosaicUtils
 					String repl = cs[i%cs.length].substring(cs[i%cs.length].lastIndexOf(File.separator)).substring(4);
 					tmp.csv_results[i] = tmp.csv_results[i].replace("*", repl);
 					tmp.csv_results_rel[i] = tmp.csv_results_rel[i].replace("*", repl);
-				}*/
+				}
 			}
 			
 			int cnt = 0;

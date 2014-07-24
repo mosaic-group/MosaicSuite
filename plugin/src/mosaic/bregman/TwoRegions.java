@@ -13,11 +13,12 @@ import java.util.concurrent.CountDownLatch;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.ARGBType;
-
+import net.imglib2.type.numeric.real.DoubleType;
 import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.psf.GaussPSF;
 import mosaic.core.utils.CircleMask;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIteratorMask;
@@ -135,17 +136,32 @@ public class TwoRegions extends NRegions
 		//Tools.showmem();
 		if (p.usePSF && p.nz>1)
 		{
-			Tools.gaussian3Dbis(p.PSF, p.kernelx, p.kernely, p.kernelz, 7, p.sigma_gaussian*p.model_oversampling, p.zcorrec);
+//			Tools.gaussian3Dbis(p.PSF, p.kernelx, p.kernely, p.kernelz,(int)(p.sigma_gaussian*8.0), p.sigma_gaussian*p.model_oversampling, p.zcorrec);
 
+			GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3,DoubleType.class);
+			DoubleType[] var = new DoubleType[3];
+			var[0] = new DoubleType(p.sigma_gaussian);
+			var[1] = new DoubleType(p.sigma_gaussian);
+			var[2] = new DoubleType(p.sigma_gaussian/p.zcorrec);
+			psf.setVar(var);
+			p.PSF = psf;
+			
 			A_solver= new ASplitBregmanSolverTwoRegions3DPSF(p,image,SpeedData,mask,md,channel,null);
 		}
 		else if (p.usePSF && p.nz==1)
 		{
 
 			//Tools.gaussian2D(p.PSF[0], p.kernelx, p.kernely, 7, 0.8);
-			Tools.gaussian2D(p.PSF[0], p.kernelx, p.kernely, 7, p.sigma_gaussian*p.model_oversampling);
+//			Tools.gaussian2D(p.PSF[0], p.kernelx, p.kernely, (int)(p.sigma_gaussian*8.0), p.sigma_gaussian*p.model_oversampling);
 			//Tools.disp_valsc(p.PSF[1], "PSF computed 1");
 
+			GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2,DoubleType.class);
+			DoubleType[] var = new DoubleType[2];
+			var[0] = new DoubleType(p.sigma_gaussian);
+			var[1] = new DoubleType(p.sigma_gaussian);
+			psf.setVar(var);
+			p.PSF = psf;
+			
 			A_solver= new ASplitBregmanSolverTwoRegionsPSF(p,image,SpeedData,mask,md,channel,null);
 
 		}

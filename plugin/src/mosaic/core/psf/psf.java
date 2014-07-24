@@ -25,7 +25,7 @@ public interface psf<T extends RealType<T>> extends RandomAccess<T>, PSFGui
 	 * @return suggested size
 	 */
 	
-	public int[] getSuggestedSize();
+	public int[] getSuggestedImageSize();
 	
 	/**
 	 * 
@@ -34,7 +34,16 @@ public interface psf<T extends RealType<T>> extends RandomAccess<T>, PSFGui
 	 * 
 	 */
 	
-	public void setSuggestedSize(int [] sz);
+	public void setSuggestedImageSize(int [] sz);
+	
+	/**
+	 * 
+	 * Get the center the position of the PSF
+	 * 
+	 * @return center position
+	 */
+	
+	public int[] getCenter();
 	
 	/**
 	 * 
@@ -53,4 +62,85 @@ public interface psf<T extends RealType<T>> extends RandomAccess<T>, PSFGui
 	 */
 	
 	public boolean isFile();
+	
+	/**
+	 * 
+	 * Is this PSF separable
+	 * 
+	 * @return true if is separable
+	 */
+	
+	public boolean isSeparable();
+	
+	/**
+	 * 
+	 * Get the image for the kernel on one direction. Useful if the kernel is separable.
+	 * The origin is always in the center of the image
+	 * 
+	 * @param dim direction of the image
+	 * 
+	 * @return the 1D image of the kernel
+	 */
+	
+	public double[] getSeparableImageAsDoubleArray(int dim);
+	
+	/**
+	 * 
+	 * Get the image for the kernel on one direction. Useful if the kernel is separable.
+	 * The origin is always in the center of the image
+	 * 
+	 * @param dim direction of the image
+	 * 
+	 * @return the 1D image of the kernel
+	 */
+	
+	public float[] getSeparableImageAsFloatArray(int dim);
+	
+	/**
+	 * 
+	 * Get the image for the kernel as 3D array.
+	 * The origin is always in the center of the image
+	 * 
+	 * @deprecated
+	 * 
+	 * @return 3D Array of the PSF image
+	 */
+	
+	public float[][][] getImage3DAsFloatArray();
+	
+	/**
+	 * 
+	 * Get the image for the kernel as 3D array.
+	 * The origin is always in the center of the image
+	 * 
+	 * @deprecated
+	 * 
+	 * @return 3D array of the PSF image
+	 */
+	
+	public double[][][] getImage3DAsDoubleArray();
+	
+	/**
+	 * 
+	 * Get the image for the kernel as 2D array.
+	 * The origin is always in the center of the image
+	 * 
+	 * @deprecated
+	 * 
+	 * @return 2D array of the PSF image
+	 */
+	
+	public double[][] getImage2DAsDoubleArray();
+	
+	/**
+	 * 
+	 * Get the image for the kernel as 2D array.
+	 * The origin is always in the center of the image
+	 * 
+	 * @deprecated 
+	 * 
+	 * @return 2D array of the PSF image
+	 */
+	
+	public float[][] getImage2DAsFloatArray();
 };

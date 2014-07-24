@@ -106,6 +106,230 @@ public class GeneratePSF
 	
 	/**
 	 * 
+	 * Generate a 2D array image from the PSF
+	 * 
+	 * @param psf
+	 * @return 2D array image
+	 */
+	
+	public static <T extends RealType<T>> double[][] generateImage2DAsDoubleArray(psf<T> psf) 
+	{
+		if (psf.getSuggestedImageSize().length != 2)
+			return null;
+		
+		int sz[] = psf.getSuggestedImageSize();
+		
+		double [][] img = new double[sz[0]][sz[1]];
+		
+		int [] mid = new int[sz.length];
+		
+		for (int i = 0 ; i < mid.length ; i++)
+		{
+			mid[i] = sz[i]/2;
+		}
+		
+		// If is file psf
+		
+		int old_mid[] = null;
+		if (psf.isFile() == false)
+		{
+			old_mid = psf.getCenter();
+			psf.setCenter(mid);
+		}
+		
+		// 
+		
+		int loc[] = new int[sz.length]; 
+		
+		// Create an img
+		
+		for (int i = 0 ; i < sz[0]; i++)
+		{
+			for (int j = 0 ; j < sz[1] ; j++)
+			{
+				loc[0] = i;
+				loc[1] = j;
+				psf.setPosition(loc);
+				double f = psf.get().getRealFloat();
+				img[i][j] = f;
+			}
+		}
+		
+		// Reset the center to previous one
+		
+		psf.setCenter(old_mid);
+		
+		return img;
+	}
+
+	public static <T extends RealType<T>> float[][] generateImage2DAsFloatArray(psf<T> psf) 
+	{
+		if (psf.getSuggestedImageSize().length != 2)
+			return null;
+		
+		int sz[] = psf.getSuggestedImageSize();
+		
+		float [][] img = new float[sz[0]][sz[1]];
+		
+		int [] mid = new int[sz.length];
+		
+		for (int i = 0 ; i < mid.length ; i++)
+		{
+			mid[i] = sz[i]/2;
+		}
+		
+		// If is file psf
+		
+		int old_mid[] = null;
+		if (psf.isFile() == false)
+		{
+			old_mid = psf.getCenter();
+			psf.setCenter(mid);
+		}
+		
+		// 
+		
+		int loc[] = new int[sz.length]; 
+		
+		// Create an imglib2
+		
+		for (int i = 0 ; i < sz[0]; i++)
+		{
+			for (int j = 0 ; j < sz[1] ; j++)
+			{
+				loc[0] = i;
+				loc[1] = j;
+				psf.setPosition(loc);
+				float f = psf.get().getRealFloat();
+				img[i][j] = f;
+			}
+		}
+		
+		// Reset the center to previous one
+		
+		psf.setCenter(old_mid);
+		
+		return img;
+	}
+	
+	/**
+	 * 
+	 * Generate a 3D array image from the PSF
+	 * 
+	 * @param psf
+	 * @return 3D array image
+	 */
+	
+	public static <T extends RealType<T>> double[][][] generateImage3DAsDoubleArray(psf<T> psf) 
+	{
+		if (psf.getSuggestedImageSize().length != 3)
+			return null;
+		
+		int sz[] = psf.getSuggestedImageSize();
+		
+		double [][][] img = new double[sz[2]][sz[1]][sz[0]];
+		
+		int [] mid = new int[sz.length];
+		
+		for (int i = 0 ; i < mid.length ; i++)
+		{
+			mid[i] = sz[i]/2;
+		}
+		
+		// If is file psf
+		
+		int old_mid[] = null;
+		if (psf.isFile() == false)
+		{
+			old_mid = psf.getCenter();
+			psf.setCenter(mid);
+		}
+		
+		// 
+		
+		int loc[] = new int[sz.length]; 
+		
+		// Create an imglib2
+		
+		for (int i = 0 ; i < sz[0]; i++)
+		{
+			for (int j = 0 ; j < sz[1] ; j++)
+			{
+				for (int k = 0 ; k < sz[2] ; k++)
+				{
+					loc[0] = i;
+					loc[1] = j;
+					loc[2] = k;
+					psf.setPosition(loc);
+					float f = psf.get().getRealFloat();
+					img[k][j][i] = f;
+				}
+			}
+		}
+		
+		// Reset the center to previous one
+		
+		psf.setCenter(old_mid);
+		
+		return img;
+	}
+
+	public static <T extends RealType<T>> float[][][] generateImage3DAsFloatArray(psf<T> psf) 
+	{
+		if (psf.getSuggestedImageSize().length != 3)
+			return null;
+		
+		int sz[] = psf.getSuggestedImageSize();
+		
+		float [][][] img = new float[sz[0]][sz[1]][sz[2]];
+		
+		int [] mid = new int[sz.length];
+		
+		for (int i = 0 ; i < mid.length ; i++)
+		{
+			mid[i] = sz[i]/2;
+		}
+		
+		// If is file psf
+		
+		int old_mid[] = null;
+		if (psf.isFile() == false)
+		{
+			old_mid = psf.getCenter();
+			psf.setCenter(mid);
+		}
+		
+		// 
+		
+		int loc[] = new int[sz.length]; 
+		
+		// Create an imglib2
+		
+		for (int i = 0 ; i < sz[2]; i++)
+		{
+			for (int j = 0 ; j < sz[1] ; j++)
+			{
+				for (int k = 0 ; k < sz[0] ; k++)
+				{
+					loc[0] = i;
+					loc[1] = j;
+					loc[2] = k;
+					psf.setPosition(loc);
+					float f = psf.get().getRealFloat();
+					img[k][j][i] = f;
+				}
+			}
+		}
+		
+		// Reset the center to previous one
+		
+		psf.setCenter(old_mid);
+		
+		return img;
+	}
+	
+	/**
+	 * 
 	 * Return a generated PSF image. A GUI is shown ti give the user
 	 * the possibility to choose size of the image PSF function parameters
 	 * 
@@ -173,7 +397,7 @@ public class GeneratePSF
 		
 		// get the dimension
 		
-		sz = psfc.getSuggestedSize();
+		sz = psfc.getSuggestedImageSize();
 		if (sz == null)
 			return null;
 		

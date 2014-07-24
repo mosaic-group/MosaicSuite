@@ -1,6 +1,8 @@
 package mosaic.bregman;
 
 
+import ij.IJ;
+
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
@@ -30,7 +32,7 @@ ASplitBregmanSolverTwoRegions {
 
 
 
-		Tools.convolve2D(temp3[l][0], mask[l][0],  ni, nj, p.PSF[0], p.px, p.py);
+		Tools.convolve2D(temp3[l][0], mask[l][0],  ni, nj, p.PSF);
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++){  
 				for (int j=0; j<nj; j++){  
@@ -57,7 +59,7 @@ ASplitBregmanSolverTwoRegions {
 		
 		//IJ.log("init");
 		//IJ.log("init c0 " + c0 + "c1 " + c1);
-		Tools.convolve2D(temp3[l][0], w3k[l][0],  ni, nj, p.PSF[0], p.px, p.py);
+		Tools.convolve2D(temp3[l][0], w3k[l][0],  ni, nj, p.PSF);
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++){  
 				for (int j=0; j<nj; j++){  
@@ -171,6 +173,7 @@ ASplitBregmanSolverTwoRegions {
 
 		dct2d.forward(temp1[l][0], true);
 
+		// inversion int DCT space
 
 		for (int i=0; i<ni; i++){  
 			for (int j=0; j<nj; j++){  
@@ -305,7 +308,7 @@ ASplitBregmanSolverTwoRegions {
 
 		long difference = lEndTime - lStartTime; //check different
 		totaltime +=difference;
-		//IJ.log("Elapsed milliseconds: " + difference);
+//		IJ.log("Elapsed milliseconds: " + difference);
 
 	}
 
@@ -314,12 +317,13 @@ ASplitBregmanSolverTwoRegions {
 		this.c0=p.cl[0];
 		this.c1=p.cl[1];
 
-		int xmin=Math.min(p.px, eigenPSF[0].length);
-		int ymin=Math.min(p.py, eigenPSF[0][0].length);
+		int[] sz = p.PSF.getSuggestedImageSize();
+		int xmin=Math.min(sz[0], eigenPSF[0].length);
+		int ymin=Math.min(sz[1], eigenPSF[0][0].length);
 		
 		//  PSF2   = imfilter(PSF,PSF,'symmetric');		
 		//IJ.log("avant xmin "+ xmin + "ymin" + ymin);
-		Tools.convolve2D(eigenPSF[0], p.PSF[0], xmin, ymin, p.PSF[0], p.px, p.py);
+		Tools.convolve2D(eigenPSF[0], p.PSF.getImage2DAsDoubleArray(), xmin, ymin, p.PSF);
 
 
 
@@ -343,8 +347,8 @@ ASplitBregmanSolverTwoRegions {
 
 
 
-		int cc = (p.px/2) +1;
-		int cr = (p.py/2) +1;
+		int cc = (sz[0]/2) +1;
+		int cr = (sz[1]/2) +1;
 
 		//temp1 = e1
 		for (int z=0; z<nz; z++){
