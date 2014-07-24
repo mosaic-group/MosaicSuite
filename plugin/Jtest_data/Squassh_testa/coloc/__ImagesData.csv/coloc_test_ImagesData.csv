@@ -1,0 +1,5 @@
+File;Image ID;Objects ch1;Mean size in ch1;Mean surface in ch1;Mean length in ch1;Objects ch2;Mean size in ch2;Mean surface in ch2;Mean length in ch2;Colocalization ch1 in ch2 (signal based);Colocalization ch2 in ch1 (signal based);Colocalization ch1 in ch2 (size based);Colocalization ch2 in ch1 (size based);Colocalization ch1 in ch2 (objects numbers);Colocalization ch2 in ch1 (objects numbers);Mean ch2 intensity of ch1 objects;Mean ch1 intensity of ch2 objects;Pearson correlation;Pearson correlation inside cell masks
+
+Parameters: background removal  false window size 40 stddev PSF xy  0.63 stddev PSF z  1.0 Regularization [D@5679f207 Min intensity ch1 0.03 Min intensity ch2 0.015 subpixel true Cell mask ch1 false mask threshold ch1 0.0015 Cell mask ch2 false mask threshold ch2 0.0015 Intensity estimation Medium layer Noise model Poisson;
+coloc_test.tif;0.497;0.497;0.497
+coloc_test.tif;0;26;31.8233;25.0961;7.3269;79;5.0083;9.3544;3.1091;0.0754;0.3197;0.0827;0.1732;0.0384;0.0632;0.056;0.0547;0.497;0.497
