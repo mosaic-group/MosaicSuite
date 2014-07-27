@@ -44,6 +44,8 @@ public class ImagePatches {
 	double [][][] w3kbest;
 	byte [] imagecolor_c1;//for display ints = new int [dz][di][dj][3];
 
+	double max;
+	double min;
 	public ArrayList<Region> regionslist_refined;
 	private ArrayList<Region> globalList;
 	int channel;
@@ -51,7 +53,7 @@ public class ImagePatches {
 
 
 
-	public ImagePatches(Parameters pa,ArrayList<Region> regionslist, double [][][] imagei, int channeli, double [][][] w3k)
+	public ImagePatches(Parameters pa,ArrayList<Region> regionslist, double [][][] imagei, int channeli, double [][][] w3k, double min , double max)
 	{
 		if (!pa.subpixel){pa.oversampling2ndstep=1; pa.interpolation=1;}
 		else{pa.oversampling2ndstep=pa.overs;}
@@ -73,6 +75,8 @@ public class ImagePatches {
 		this.sx=p.ni*pa.oversampling2ndstep*pa.interpolation;
 		this.sy=p.nj*pa.oversampling2ndstep*pa.interpolation;
 		this.jobs_done=0;
+		this.max = max;
+		this.min = min;
 		//IJ.log("sx " + sx);
 		if(p.nz==1)
 		{
@@ -245,11 +249,10 @@ public class ImagePatches {
 			boolean changed = false;
 			
 			ArrayList<Region> regionslist_refined_filter = new ArrayList<Region>();
-			regions_refined= new short[sz][sx][sy];
 			
-			for (Region r : regionslist_refined_filter)
+			for (Region r : regionslist_refined)
 			{
-				if (r.intensity > p.min_region_filter_intensities)
+				if (r.intensity * (max-min) + min > p.min_region_filter_intensities)
 				{
 					regionslist_refined_filter.add(r);
 				}
@@ -299,17 +302,16 @@ public class ImagePatches {
 
 	void assemble(ArrayList<Region> regionslist_refined)
 	{
-		for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
-			ArrayList<Pix> npixels = new ArrayList<Pix>();
+		for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) 
+		{
 			Region r = it.next();
 
 			for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
 				Pix v = it2.next();
 				//count number of free edges
-				regions_refined[v.pz][v.px][v.px]= (short) r.value;
+				regions_refined[v.pz][v.px][v.py]= (short) r.value;
 
-			}				
-			r.pixels=npixels;
+			}
 		}
 	}
 	

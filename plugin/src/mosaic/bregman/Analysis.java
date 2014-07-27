@@ -167,13 +167,14 @@ public class Analysis {
 	 * Get the objects list and set the frame
 	 * 
 	 * @param f Frame
+	 * @param channel
 	 * @return Vector with objects
 	 */
 	
-	public static Vector<?> getObjectsList(int f)
+	public static Vector<?> getObjectsList(int f, int channel)
 	{
 		@SuppressWarnings("unchecked")
-		Vector<? extends ICSVGeneral > v = (Vector<? extends ICSVGeneral>) CSVOutput.getVector(regionslist[0]);
+		Vector<? extends ICSVGeneral > v = (Vector<? extends ICSVGeneral>) CSVOutput.getVector(regionslist[channel]);
 		
 		// Set frame
 		
@@ -811,7 +812,7 @@ public class Analysis {
 						if(i==0){out3.print("Image number" + ";" + "Region in Y"+ ";" + "Overlap with X" + ";" + "Size" + ";" +
 								"Intensity" + ";" + "MColoc size" + ";"+ "MColoc Intensity" + ";" + "Single Coloc" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 						out3.println();}
-						double colocBA=Tools.round(colocsegBA(out3, i/2),4);
+						double colocBA=Tools.round(colocsegBA(i/2),4);
 						double colocA=Tools.round(colocsegA(null),4);
 						double colocB=Tools.round(colocsegB(null),4);
 						out.print(list[i] + ";" + na + ";" +
@@ -1021,7 +1022,7 @@ public class Analysis {
 			IJ.log("Colocating  objects in X  : " + Tools.round(colocsegAB(0),3) 
 					+ " (" + positiveA + " vesicles over " + na + " )" );}
 		if (Analysis.p.cBA){
-			IJ.log("Colocating  objects in Y  : " + Tools.round(colocsegBA(null,0),3) 
+			IJ.log("Colocating  objects in Y  : " + Tools.round(colocsegBA(0),3) 
 					+ " (" + positiveB + " vesicles over " + nb + " )" );	
 		}
 
@@ -1278,7 +1279,7 @@ public class Analysis {
 	}
 
 
-	public static double colocsegBA(PrintWriter out, int imgnumber){
+	public static double colocsegBA(int imgnumber){
 
 		double totalsignal=0;
 		double colocsignal=0;
@@ -1302,7 +1303,7 @@ public class Analysis {
 	}
 
 	
-	public static double colocsegBAsize(PrintWriter out, int imgnumber){
+	public static double colocsegBAsize(int imgnumber){
 
 		double totalsize=0;
 		double colocsize=0;
@@ -2097,7 +2098,7 @@ public class Analysis {
 		//		out2.print("Region in Y"+ ";" + "Overlap with X" + ";" + "Size");
 		//		out2.println();
 
-		double colocBA=Tools.round(colocsegBA(null,0),4);
+		double colocBA=Tools.round(colocsegBA(0),4);
 		double colocA=Tools.round(colocsegA(null),4);
 		double colocB=Tools.round(colocsegB(null),4);
 		out.print(

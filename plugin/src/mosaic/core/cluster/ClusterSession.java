@@ -550,7 +550,7 @@ public class ClusterSession
 
 	/**
 	 * 
-	 * Reorganize the download data
+	 * Reorganize the download cluster Jobs data directories
 	 * 
 	 * @param output List of output patterns
 	 * @param JobID ID of the job to reorganize
@@ -569,7 +569,8 @@ public class ClusterSession
 			String s[] = MosaicUtils.readAndSplit(directories[i] + File.separator + "JobID");
 			int nf = Integer.parseInt(s[1]);
 			String filename = s[2];
-				
+			
+			
 			MosaicUtils.reorganize(output, "tmp", filename.substring(0, filename.lastIndexOf(".")), directories[i], nf);
 				
 		}

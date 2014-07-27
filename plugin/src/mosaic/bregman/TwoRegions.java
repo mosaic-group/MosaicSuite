@@ -40,7 +40,6 @@ public class TwoRegions extends NRegions
 	{
 		super( img, params,  DoneSignal,channel);	
 
-
 		if(p.nlevels >1  || !p.usePSF)
 		{ 
 			//save memory when Ei not needed
@@ -237,7 +236,7 @@ public class TwoRegions extends NRegions
 					
 					//Tools.showmem();
 					
-					ImagePatches ipatches= new ImagePatches(p,Analysis.regionslist[0],image,channel, A_solver.w3kbest[0]);
+					ImagePatches ipatches= new ImagePatches(p,Analysis.regionslist[0],image,channel, A_solver.w3kbest[0],min,max);
 					A_solver=null;
 					ipatches.run();
 					Analysis.regionslist[0]=ipatches.regionslist_refined;
@@ -249,7 +248,7 @@ public class TwoRegions extends NRegions
 
 
 				if(Analysis.p.refinement && Analysis.p.mode_classic){
-					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslist[0],image,channel, A_solver.w3kbest[0]);
+					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslist[0],image,channel, A_solver.w3kbest[0],min,max);
 					A_solver=null;
 					ipatches.run();
 					Analysis.regionslist[0]=ipatches.regionslist_refined;
@@ -283,7 +282,7 @@ public class TwoRegions extends NRegions
 			RoN = new float [p.nz][p.ni][p.nj];
 
 			LocalTools.copytab(RoN, A_solver.Ro[0]);
-
+			
 			ArrayList<Region> regions=A_solver.regionsvoronoi;
 
 			//A_solver=null;
@@ -303,7 +302,7 @@ public class TwoRegions extends NRegions
 					IJ.showStatus("Computing segmentation  " + 55 + "%");
 					IJ.showProgress(0.55);
 					
-					ImagePatches ipatches= new ImagePatches(p,Analysis.regionslist[1],image,channel, A_solver.w3kbest[0]);
+					ImagePatches ipatches= new ImagePatches(p,Analysis.regionslist[1],image,channel, A_solver.w3kbest[0],min,max);
 					A_solver=null;
 					ipatches.run();
 					Analysis.regionslist[1]=ipatches.regionslist_refined;
@@ -315,7 +314,7 @@ public class TwoRegions extends NRegions
 
 				if(Analysis.p.refinement && Analysis.p.mode_classic)
 				{
-					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslist[1],image,channel, A_solver.w3kbest[0]);
+					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslist[1],image,channel, A_solver.w3kbest[0], min, max);
 					A_solver=null;
 					ipatches.run();
 					Analysis.regionslist[1]=ipatches.regionslist_refined;

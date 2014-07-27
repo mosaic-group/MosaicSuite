@@ -101,6 +101,8 @@ ASplitBregmanSolverTwoRegions {
 		CountDownLatch Sync7= new CountDownLatch(p.nthreads);
 		CountDownLatch Sync8 = new CountDownLatch(p.nthreads);
 		CountDownLatch Sync9= new CountDownLatch(p.nthreads);
+		CountDownLatch Sync10= new CountDownLatch(p.nthreads);
+		CountDownLatch Sync11= new CountDownLatch(p.nthreads);
 		CountDownLatch Dct= new CountDownLatch(1);
 
 
@@ -115,7 +117,7 @@ ASplitBregmanSolverTwoRegions {
 //						IJ.log("thread + istart iend jstart jend"+
 //								iStart +" " + (iStart+ichunk)+" " + jStart+" " + (jStart+jchunk));
 			new Thread(new ZoneTask(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Dct,Sync5,
-					Sync6,Sync7,Sync8,Sync9,
+					Sync6,Sync7,Sync8,Sync9,Sync10,Sync11,
 					iStart, iStart+ichunk, jStart, jStart+jchunk,nt,this,LocalTools)).start();
 			iStart+=ichunk;
 			jStart+=jchunk;
@@ -123,7 +125,7 @@ ASplitBregmanSolverTwoRegions {
 //				IJ.log("last thread + istart iend jstart jend"+
 //						iStart +" " + (iStart+ilastchunk)+" " + jStart+" " + (jStart+jlastchunk));
 		new Thread(new ZoneTask(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Dct,Sync5,
-				Sync6,Sync7,Sync8,Sync9,
+				Sync6,Sync7,Sync8,Sync9,Sync10,Sync11,
 				iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,LocalTools)).start();
 
 
@@ -168,9 +170,28 @@ ASplitBregmanSolverTwoRegions {
 
 		//temp1=uk
 
-
 		Sync4.await();
 
+		/////////// Check the result ////////////
+		
+		double total = 0;
+		
+		for (int z=0; z<nz; z++){
+			for (int i=0; i<ni; i++) {  
+				for (int j=0; j<nj; j++) {  
+					total += temp1[l][z][i][j];
+				}	
+			}
+		}
+		
+		/////////////////////////////////////////////////
+		
+		System.out.println("Output 1: " + total);
+		
+		/////////////////////////////////////////////////
+		
+		// Check match here
+		
 		dct2d.forward(temp1[l][0], true);
 
 		// inversion int DCT space
@@ -184,6 +205,24 @@ ASplitBregmanSolverTwoRegions {
 
 		dct2d.inverse(temp1[l][0], true);
 
+		
+		/////////// Check the result ////////////
+		
+		total = 0;
+		
+		for (int z=0; z<nz; z++){
+			for (int i=0; i<ni; i++) {  
+				for (int j=0; j<nj; j++) {  
+					total += temp1[l][z][i][j];
+				}	
+			}
+		}
+		
+		/////////////////////////////////////////////////
+		
+		System.out.println("Output 2: " + total);
+		
+		/////////////////////////////////////////////////
 
 		Dct.countDown();
 
@@ -292,11 +331,14 @@ ASplitBregmanSolverTwoRegions {
 				energy+=energytab2[nt];
 			}
 		}
+		
+		System.out.println("Output 4: " + energy);
+		
 		//Tools.max_mask(maxmask, w3k);
 
 
 		//doneSignal2.await();
-
+		
 		//energy=energytab[l];
 		//norm=Math.max(norm, normtab[l]);
 		//Tools.max_mask(maxmask, w3k);

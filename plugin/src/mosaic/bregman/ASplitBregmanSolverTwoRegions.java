@@ -16,7 +16,6 @@ public class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 
 	}
 
-
 	@Override
 	protected void step() throws InterruptedException {
 		long lStartTime = new Date().getTime(); //start time

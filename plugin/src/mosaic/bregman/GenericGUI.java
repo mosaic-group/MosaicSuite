@@ -384,12 +384,7 @@ public class GenericGUI
 				
 				MosaicUtils.reorganize(Analysis.out_w,aImp.getShortTitle(),savepath,aImp.getNFrames());
 				
-				MetaInfo mt[] = new MetaInfo[1];
-				mt[0] = new MetaInfo();
-				mt[0].par = new String("background");
-				mt[0].value = new String(MosaicUtils.ValidFolderFromImage(aImp) + aImp.getTitle());
-				
-				InterPluginCSV.StitchConvert(Analysis.out_w,new File(savepath),new File(savepath + File.separator + aImp.getTitle().substring(0, aImp.getTitle().lastIndexOf("."))),mt,CSVOutput.occ,CSVOutput.occ.classFactory);
+				InterPluginCSV.StitchConvert(Analysis.out_w,new File(savepath),new File(savepath + File.separator + aImp.getTitle().substring(0, aImp.getTitle().lastIndexOf("."))),null,CSVOutput.occ,CSVOutput.occ.classFactory);
 			}
 			else
 			{

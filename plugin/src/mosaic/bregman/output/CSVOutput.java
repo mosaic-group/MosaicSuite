@@ -124,7 +124,7 @@ public class CSVOutput
     
     /**
      * 
-     * Get a vector of object with the selected format
+     * Get an empty vector of object of the selected format
      */
     
     public static Vector<?> getVector()
@@ -144,7 +144,10 @@ public class CSVOutput
     
     /**
      * 
-     * Get a vector of objects with the selected format
+     * Get a vector of objects with the selected format, 
+     * in particular convert the Region arraylist into 
+     * objects vector implementing Outdata and a particular output format.
+     * The array created can be given to InterPluginCSV to write a CSV file
      * 
      * @param v ArrayList of Region objects
      * @return Vector of object of the selected format

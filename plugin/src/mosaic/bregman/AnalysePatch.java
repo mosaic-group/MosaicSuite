@@ -348,7 +348,7 @@ public class AnalysePatch implements Runnable
 		try {
 			A_solver.first_run();
 			//md.display2regions(A_solver.w3kbest[0][0], "Mask patch" + r.value, channel);
-			if(p.debug && (r.value==98 || r.value==32))
+			if(p.debug == true && (r.value==19))
 				//{md.display2regionsnew(A_solver.w3kbest[0][0], "Mask Patch "+r.value, channel);}
 			{md.display2regions3Dnew(A_solver.w3kbest[0], "Mask Patch "+r.value, channel);}
 			cout=p.cl[0];

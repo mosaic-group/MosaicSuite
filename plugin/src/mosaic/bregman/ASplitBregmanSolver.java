@@ -367,7 +367,7 @@ public class ASplitBregmanSolver {
 			if(p.firstphase)
 				IJ.showProgress(0.5*((double) stepk)/(p.max_nsb-1));
 		}
-
+		
 		if(iw3kbest<50) { // use what iteration threshold  ?
 			int iw3kbestold=iw3kbest;
 			LocalTools.copytab(w3kbest[0], w3k[0]);
@@ -476,7 +476,7 @@ public class ASplitBregmanSolver {
 			energy+=energytab[l];
 			norm=Math.max(norm, normtab[l]);
 		}
-
+		
 		if(p.livedisplay) md.display(maxmask, "Masks");
 
 		//if(p.livedisplay) md.display2regions(w3k[1][0], "Mask lev 1",0);

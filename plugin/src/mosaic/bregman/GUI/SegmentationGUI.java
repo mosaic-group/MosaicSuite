@@ -207,7 +207,7 @@ public class SegmentationGUI
 		gd.addNumericField("standard deviation z  (in pixels)", Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 2);
 		
 		gd.addMessage("Region filter",bf);
-		gd.addNumericField("Remove region with intensities < ", 0, 0);
+		gd.addNumericField("Remove region with intensities < ", Analysis.p.min_region_filter_intensities,0);
 		
 		Panel p = new Panel();
 		Button b = new Button("Patch position");
@@ -250,6 +250,7 @@ public class SegmentationGUI
 		Analysis.p.fastsquassh = gd.getNextBoolean();
 		Analysis.p.sigma_gaussian=gd.getNextNumber();
 		Analysis.p.zcorrec=Analysis.p.sigma_gaussian/gd.getNextNumber();
+		Analysis.p.min_region_filter_intensities = gd.getNextNumber();
 		Analysis.p.mode_intensity=gd.getNextChoiceIndex();
 		Analysis.p.noise_model=gd.getNextChoiceIndex();
 

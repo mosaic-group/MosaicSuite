@@ -768,12 +768,15 @@ public class MosaicUtils
 	 * Get the frame ImagePlus from an ImagePlus
 	 * 
 	 * @param img Image
-	 * @param frame frame
+	 * @param frame frame (frame start from 1)
 	 * @return An ImagePlus of the frame
 	 */
 	
 	public static ImagePlus getImageFrame(ImagePlus img, int frame)
 	{
+		if (frame == 0)
+			return null;
+		
 		int nImages = img.getNFrames();
 	
 		ImageStack stk = img.getStack();

@@ -37,7 +37,7 @@ public class BLauncher
 {
 	public  int hcount=0;
 	public  String headlesscurrent;
-	PrintWriter out3;
+//	PrintWriter out3;
 	ImagePlus aImp;
 	Tools Tools;
 	RScript script;
@@ -367,9 +367,9 @@ public class BLauncher
 			double colocAB=mosaic.bregman.Tools.round(Analysis.colocsegAB(hcount),4);
 			double colocABnumber = mosaic.bregman.Tools.round(Analysis.colocsegABnumber(),4);
 			double colocABsize = mosaic.bregman.Tools.round(Analysis.colocsegABsize(hcount),4);
-			double colocBA=mosaic.bregman.Tools.round(Analysis.colocsegBA(out3, hcount),4);
+			double colocBA=mosaic.bregman.Tools.round(Analysis.colocsegBA(hcount),4);
 			double colocBAnumber = mosaic.bregman.Tools.round(Analysis.colocsegBAnumber(),4);
-			double colocBAsize=mosaic.bregman.Tools.round(Analysis.colocsegBAsize(out3, hcount),4);
+			double colocBAsize=mosaic.bregman.Tools.round(Analysis.colocsegBAsize(hcount),4);
 			double colocA=mosaic.bregman.Tools.round(Analysis.colocsegA(null),4);
 			double colocB=mosaic.bregman.Tools.round(Analysis.colocsegB(null),4);
 			
@@ -440,8 +440,6 @@ public class BLauncher
 
 				if(Analysis.p.nchannels==2)
 				{
-					out3 = new PrintWriter(savepath+"_ObjectsData_c2"+ ".csv");
-					
 					Analysis.p.file1=savepath+"_ObjectsData_c1"+ ".csv";
 					Analysis.p.file2=savepath+"_ObjectsData_c2"+ ".csv";
 					Analysis.p.file3=savepath+"_ImagesData"+ ".csv";
@@ -455,7 +453,7 @@ public class BLauncher
 						script.writeScript();
 					}
 
-					if(Analysis.p.nz>1)
+/*					if(Analysis.p.nz>1)
 					{
 						out3.print("Image ID" + ";" + "Object ID" +";"
 								+ "Size" + ";" + "Surface" + ";" + "Length" + ";" +"Intensity" + ";"
@@ -468,7 +466,7 @@ public class BLauncher
 								+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";"
 								+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 						out3.println();		
-					}
+					}*/
 				}
 			}
 			//IJ.log("single file start headless");
@@ -476,13 +474,6 @@ public class BLauncher
 			bcolocheadless(img);
 			IJ.log("");
 			IJ.log("Done");
-
-
-			if(Analysis.p.save_images)
-			{
-				finish();
-			}
-
 		}
 		catch (Exception e)
 		{//Catch exception if any
@@ -654,8 +645,42 @@ public class BLauncher
 			//}
 			if(Analysis.p.save_images)
 			{
-				Analysis.printobjectsB(out3, hcount);
-				out3.flush();
+				// Write object 2 list
+				
+				String savepath = null;
+				savepath = MosaicUtils.ValidFolderFromImage(aImp);
+
+				//IJ.log("print objects");
+//				Analysis.printobjects(out2, hcount);
+				
+				boolean append = false;
+				
+				if (hcount == 0)
+					append = false;
+				else
+					append = true;
+				
+				// Write channel 2
+				
+				Vector<?> obl = Analysis.getObjectsList(hcount,1);
+				
+				String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
+				
+				InterPluginCSV<?> IpCSV = CSVOutput.getInterPluginCSV();
+				IpCSV.clearMetaInformation();
+				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
+				
+				System.out.println(savepath + File.separator +  filename_without_ext + "_ObjectsData_c2" + ".csv");
+				IpCSV.Write(savepath + File.separator +  filename_without_ext + "_ObjectsData_c2" + ".csv",obl,CSVOutput.occ, append);
+				
+				// Write channel 1
+				
+				obl = Analysis.getObjectsList(hcount,0);
+				IpCSV.clearMetaInformation();
+				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
+				
+				System.out.println(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv");
+				IpCSV.Write(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv",obl,CSVOutput.occ, append);
 			}
 
 			Analysis.doingbatch=false;
@@ -691,7 +716,7 @@ public class BLauncher
 				else
 					append = true;
 				
-				Vector<?> obl = Analysis.getObjectsList(hcount);
+				Vector<?> obl = Analysis.getObjectsList(hcount,0);
 				
 				String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
 				
@@ -1017,17 +1042,6 @@ public class BLauncher
 		{
 			ipd[channel-1].setStack(ipd[channel-1].getStack());
 			ipd[channel-1].show();
-		}
-	}
-	
-	public  void finish()
-	{
-		if(Analysis.p.save_images)
-		{
-			if(Analysis.p.nchannels==2)
-			{
-				out3.close();
-			}
 		}
 	}
 

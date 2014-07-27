@@ -31,6 +31,14 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		eigenPSF = new double [Math.max(sz[2],nz)][Math.max(sz[0],ni)][Math.max(sz[1],nj)];
 		//IJ.log("nl " + nl);
 
+		// Reallocate temps
+		// Unfortunatelly is allocated in ASplitBregmanSolver
+		
+		this.temp4= new double [nl] [Math.max(sz[2],nz)] [Math.max(sz[0],ni)] [Math.max(sz[1],nj)];
+		this.temp3= new double [nl] [Math.max(sz[2],nz)] [Math.max(sz[0],ni)] [Math.max(sz[1],nj)];
+		this.temp2= new double [nl] [Math.max(sz[2],nz)] [Math.max(sz[0],ni)] [Math.max(sz[1],nj)];
+		this.temp1= new double [nl] [Math.max(sz[2],nz)] [Math.max(sz[0],ni)] [Math.max(sz[1],nj)];
+		
 		this.compute_eigenPSF3D();	
 
 

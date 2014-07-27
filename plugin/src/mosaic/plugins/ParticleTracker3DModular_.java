@@ -227,7 +227,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	public String files_dir;
 	String[] files_list;
 	boolean one_file_multiple_frame;	
-	boolean csv_format;
+	boolean csv_format = false;
 	File Csv_region_list;
 	boolean create_bck_image = true;
 	boolean creating_traj_image = false;
@@ -289,6 +289,12 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		{
 			IJ.error("You must load an Image Sequence or Movie first");
 			return DONE;
+		}
+		else
+		{
+			// we have an image, we do not need to create an image
+			
+			create_bck_image = false;
 		}
 		
 		// Check if there are segmentation information
@@ -3467,7 +3473,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	    	
 	    		// wrap it into an ImgLib image (no copying)
  	    		
- 	    		ImagePlus timp = MosaicUtils.getImageFrame(original_imp,i);
+ 	    		ImagePlus timp = MosaicUtils.getImageFrame(original_imp,i+1);
 	    		final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( timp );
 	    		
 	    		out_f = frames[i].createImage(backgroundImg, all_traj, cal, i, DrawType.TRAJECTORY_HISTORY);

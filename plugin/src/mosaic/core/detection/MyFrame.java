@@ -1010,7 +1010,7 @@ import net.imglib2.view.Views;
 		        	else
 		        		radius_r = Math.cbrt(pt.get(0).m0*3.0/4.0/Math.PI);
 	        		
-	        		if (radius_r == 0) radius_r = 1;
+	        		if (radius_r <= 1.0) radius_r = 1;
 	        		
 	        		// if particle has the same radius
 	        	

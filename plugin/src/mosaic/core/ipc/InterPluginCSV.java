@@ -145,6 +145,17 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	
 	/**
 	 * 
+	 * Delete all previously setted meta information
+	 * 
+	 */
+	
+	public void clearMetaInformation()
+	{
+		fld.clear();
+	}
+	
+	/**
+	 * 
 	 * Get Meta information
 	 * 
 	 * @param String meta information 
@@ -838,7 +849,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
     
     /**
      * 
-     * Stitch the CSV files all together in the directory dir/output[]
+     * Stitch the CSV files all together in the directory dir/dir_p[]
      * save the result in output_file + dir_p[]. 
      * "*" are substituted by "_"
      * 
@@ -850,7 +861,6 @@ public class InterPluginCSV<E extends ICSVGeneral>
      * @param Class<T> Internal data for conversion
      * @return true if success, false otherwise
      * 
-     * 
      */
     
     public static <T extends ICSVGeneral>boolean StitchConvert(String dir_p[], File dir, File output_file , MetaInfo ext[], OutputChoose occ, Class<T> cls)
@@ -859,6 +869,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
     	
 		for (int j = 0 ; j < dir_p.length ; j++)
 		{
+			csv.clearMetaInformation();
 			File [] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
 			if (fl == null)
 				return false;
