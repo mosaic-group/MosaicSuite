@@ -1854,6 +1854,15 @@ public class Tools
 	}
 	 */
 
+	/**
+	 * 
+	 * Display a double array on  a window
+	 * 
+	 * @param float array
+	 * @param Window title
+	 * 
+	 * */
+	
 	public  void disp_array_new(double [] [] array, String s){
 		int ni= array.length;
 		int nj= array[1].length;
@@ -1874,6 +1883,15 @@ public class Tools
 		img.show();
 
 	}
+	
+	/**
+	 * 
+	 * Display a 3D float array on  a window
+	 * 
+	 * @param float array
+	 * @param Window title
+	 * 
+	 * */
 	
 	static public  void disp_array3D_new(float [] [] [] array, String s){
 		int ni= array[0].length;
@@ -1898,6 +1916,16 @@ public class Tools
 
 	}
 
+
+	/**
+	 * 
+	 * Display a 3D double array on  a window
+	 * 
+	 * @param float array
+	 * @param Window title
+	 * 
+	 * */
+	
 	static public  void disp_array3D_new(double [] [] [] array, String s){
 		int ni= array[0].length;
 		int nj= array[0][0].length;
@@ -1921,7 +1949,16 @@ public class Tools
 
 	}
 	
-	static public  void disp_array(double [] [] array, String s){
+	/**
+	 * 
+	 * Display a double array on  a window
+	 * 
+	 * @param float array
+	 * @param Window title
+	 * 
+	 * */
+	
+	public  void disp_array(double [] [] array, String s){
 		int ni= array.length;
 		int nj= array[1].length;
 		float [] [] temp= new float [ni][nj];
@@ -1940,7 +1977,14 @@ public class Tools
 
 	}
 
-
+	/**
+	 * 
+	 * Print out double array value
+	 * 
+	 * @param array to print
+	 * @param s name
+	 * 
+	 */
 
 	public  void disp_vals(double [] [] array, String s){
 

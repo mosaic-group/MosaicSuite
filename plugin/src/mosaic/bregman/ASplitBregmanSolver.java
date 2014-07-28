@@ -691,7 +691,7 @@ public class ASplitBregmanSolver {
 
 		// Here we are elaborating the Voronoi mask to get a nice subdivision
 		
-		//mask_im.duplicate().show();
+		mask_im.duplicate().show();
 		double thr=254;
 		FindConnectedRegions fcr= new FindConnectedRegions(mask_im);
 

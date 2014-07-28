@@ -344,8 +344,6 @@ public class Analysis {
 		maska_im.setStack("test Ma",maska_ims);
 		//IJ.log("float threshold :" + p.min_intensity +" byte threshold :" + (255*p.min_intensity));
 
-		//maska_im.duplicate().show();
-
 		//		if(p.mode_voronoi2 && false){
 		//			//project mask on single slice (maximum values)
 		//			ZProjector proj = new ZProjector(maska_im);

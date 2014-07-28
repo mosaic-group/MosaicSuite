@@ -70,41 +70,42 @@ public class TwoRegions extends NRegions
 	 * 
 	 */
 	
-	private void drawParticles(double [][][] out, Vector<Particle> pt, int radius)
+	private void drawParticles(double [][][] out, double [][][] mask, Vector<Particle> pt, int radius)
 	{
         // Iterate on all particles
         
 		int sz[] = new int[3];
-		
-        while (pt.size() != 0)
-        {    		    		
-    		// Create a circle Mask and an iterator
+		sz[0] = out[0][0].length;
+		sz[1] = out[0].length;
+		sz[2] = out.length;
+		   		    		
+    	// Create a circle Mask and an iterator
     	
-        	SphereMask cm = new SphereMask(radius, 2*radius + 1, 3);
-        	RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
+        SphereMask cm = new SphereMask(radius, 2*radius + 1, 3);
+        RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
         
-        	Iterator<Particle> pt_it = pt.iterator();
+        Iterator<Particle> pt_it = pt.iterator();
         	
-        	while (pt_it.hasNext())
+        while (pt_it.hasNext())
+        {
+        	Particle ptt = pt_it.next();
+        	
+        	// Draw the sphere
+        			
+        	Point p_c = new Point((int)(ptt.x),(int)(ptt.y),(int)(ptt.z));
+        			
+        	rg_m.setMidPoint(p_c);
+        			
+        	while ( rg_m.hasNext() )
         	{
-        		Particle ptt = pt_it.next();
-        	
-        		// Draw the sphere
-        			
-        		Point p_c = new Point((int)(ptt.x),(int)(ptt.y),(int)(ptt.z));
-        			
-        		rg_m.setMidPoint(p_c);
-        			
-	        	while ( rg_m.hasNext() )
-	        	{
-	        		Point p = rg_m.nextP();
-	        			
-	        		if (p.x[0] < sz[0] && p.x[1] < sz[1] && p.x[2] < sz[2])
-	        		{
-	        			out[p.x[0]][p.x[1]][p.x[2]] = 1.0;
-	        		}
-	        	}	
-        	}
+        		Point p = rg_m.nextP();
+	        		
+        		if (p.x[0] < sz[0] && p.x[0]>= 0 && p.x[1] < sz[1] && p.x[1] >= 0 && p.x[2] < sz[2] && p.x[2] >= 0)
+        		{
+        			out[p.x[2]][p.x[0]][p.x[1]] = 255.0f;
+        			mask[p.x[2]][p.x[0]][p.x[1]] = 1.0f;
+        		}
+        	}	
         }
 	}
 	
@@ -186,18 +187,22 @@ public class TwoRegions extends NRegions
 		{	
 			// Load particles
 			
-			Vector<Particle> pt = new Vector<Particle>();
+			Vector<Particle> pt;
 			
 			InterPluginCSV<Particle> csv = new InterPluginCSV<Particle>(Particle.class);
+			
+			csv.setCSVPreferenceFromFile(Analysis.p.patches_from_file);
+			pt = csv.Read(Analysis.p.patches_from_file);
 			
 			// create a mask Image
 		
 			double img[][][] = new double[p.nz][p.ni][p.nj];
 			
-			drawParticles(img,pt,5);
+			drawParticles(img,A_solver.w3kbest[0],pt,(int)1.0);
+			
+			Tools.disp_array3D_new(img, "particles");
 			
 			A_solver.regions_intensity_findthresh(img);
-			
 		}
 		
 		if(channel==0)

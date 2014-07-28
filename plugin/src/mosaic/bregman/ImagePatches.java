@@ -159,7 +159,7 @@ public class ImagePatches {
 		if(p.debug == true){threadPool=new ThreadPoolExecutor(1, 1,
 				1, TimeUnit.DAYS, queue);}
 		else{
-		threadPool=new ThreadPoolExecutor(p.nthreads, p.nthreads,
+		threadPool=new ThreadPoolExecutor(/*p.nthreads*/1, /*p.nthreads*/1,
 				1, TimeUnit.DAYS, queue);}
 
 		nb_jobs=regionslist_refined.size();
