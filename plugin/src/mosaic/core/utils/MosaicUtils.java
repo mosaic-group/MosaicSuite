@@ -60,6 +60,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
+import ij.gui.ProgressBar;
 import ij.io.Opener;
 import ij.measure.Calibration;
 import ij.plugin.RGBStackMerge;
@@ -1683,6 +1684,31 @@ public class MosaicUtils
 	
 	/**
 	 * 
+	 * Remove the file extension
+	 * 
+	 * @param str String from where to remove the extension
+	 * @return the String
+	 */
+	
+	public static String removeExtension(String str)
+	{
+		File f = new File(str);
+		String path = f.getParent();
+		
+		String filename = f.getName();
+		int idp = filename.lastIndexOf(".");
+		if (idp < 0)
+		{
+			return f.getAbsolutePath();
+		}
+		else
+		{
+			return path + File.separator + filename.substring(0, idp);
+		}
+	}
+	
+	/**
+	 * 
 	 * Test the segmentation
 	 * 
 	 * @param BG Segmentation filter
@@ -1692,6 +1718,8 @@ public class MosaicUtils
 	
 	public static <T extends ICSVGeneral> void testSegmentation(Segmentation BG, String testset,Class<T> cls)
 	{
+		ProgressBarWin wp = new ProgressBarWin();
+		
 		// Create a Region Competition filter
 		
 		ImgTest imgT[] = MosaicUtils.getTestImages(testset);
@@ -1704,6 +1732,8 @@ public class MosaicUtils
 		
 		for (ImgTest tmp : imgT)
 		{
+			wp.SetStatusMessage("Testing... " + new File(tmp.base).getName());
+			
 			// Save on tmp and reopen
 			
 			String tmp_dir = IJ.getDirectory("temp") + File.separator + "test" + File.separator;
@@ -1838,6 +1868,8 @@ public class MosaicUtils
 				try {
 					// 
 					
+					wp.SetStatusMessage("Checking... " + new File(rs).getName());
+					
 					image = imgOpener.openImgs(rs).get(0);
 				
 					String filename = null;
@@ -1886,6 +1918,8 @@ public class MosaicUtils
 			
 			for (String rs : tmp.csv_results)
 			{
+				wp.SetStatusMessage("Checking... " + new File(rs).getName());
+				
 				InterPluginCSV<T> iCSVsrc = new InterPluginCSV<T>(cls);
 			
 				String filename = null;
@@ -1919,6 +1953,8 @@ public class MosaicUtils
 				cnt++;
 			}
 		}
+		
+		wp.dispose();
 	}
 
 }

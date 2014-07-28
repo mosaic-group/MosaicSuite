@@ -21,6 +21,7 @@ public class ZoneTask3D implements Runnable {
 	private final CountDownLatch Sync8 ;
 	private final CountDownLatch Sync9;
 	private final CountDownLatch Sync10;
+	private final CountDownLatch Sync11;
 	private final CountDownLatch Dct;
 	private int iStart, iEnd, jStart, jEnd, nt;
 	public Tools LocalTools;
@@ -33,7 +34,7 @@ public class ZoneTask3D implements Runnable {
 	ZoneTask3D(CountDownLatch ZoneDoneSignal,CountDownLatch Sync1,CountDownLatch Sync2, 
 			CountDownLatch Sync3,CountDownLatch Sync4,CountDownLatch Sync5,
 			CountDownLatch Sync6,CountDownLatch Sync7,CountDownLatch Sync8,
-			CountDownLatch Sync9,CountDownLatch Sync10,CountDownLatch Dct,
+			CountDownLatch Sync9,CountDownLatch Sync10,CountDownLatch Sync11, CountDownLatch Dct,
 			int iStart, int iEnd, int jStart, int jEnd, int nt,
 			ASplitBregmanSolverTwoRegions3DPSF AS, Tools tTools) {
 		this.LocalTools=tTools;
@@ -42,6 +43,7 @@ public class ZoneTask3D implements Runnable {
 		this.Sync4 = Sync4;this.Sync5 = Sync5;this.Sync6 = Sync6;
 		this.Sync7 = Sync7;this.Sync8 = Sync8;this.Sync9 = Sync9;
 		this.Sync10 = Sync10;
+		this.Sync11 = Sync11;
 		this.Dct = Dct;
 		this.AS=AS;
 		this.nt = nt;
@@ -89,7 +91,7 @@ public class ZoneTask3D implements Runnable {
 			}
 		} 
 
-		if (Sync1 != null)
+		if (Sync3 != null)
 		{
 			Sync3.countDown();
 			Sync3.await();
@@ -99,6 +101,12 @@ public class ZoneTask3D implements Runnable {
 				AS.ni, AS.nj, AS.nz, 
 				AS.p.PSF, AS.temp1[AS.l], iStart, iEnd);
 
+		if (Sync11 != null)
+		{
+			Sync11.countDown();
+			Sync11.await();
+		}
+			
 		for (int z=0; z<AS.nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0; j<AS.nj; j++) {  
@@ -135,6 +143,14 @@ public class ZoneTask3D implements Runnable {
 				AS.ni, AS.nj, AS.nz, 
 				AS.p.PSF, AS.temp3[AS.l], iStart, iEnd);
 
+		//synchro
+
+		if (Sync10 != null)
+		{
+			Sync10.countDown();
+			Sync10.await();
+		}
+			
 		for (int z=0; z<AS.nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0; j<AS.nj; j++) {  

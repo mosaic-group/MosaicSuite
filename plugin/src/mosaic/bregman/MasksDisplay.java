@@ -1,10 +1,12 @@
 package mosaic.bregman;
 
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import mosaic.bregman.FindConnectedRegions.Region;
+import mosaic.core.utils.MosaicUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -481,8 +483,17 @@ public class MasksDisplay {
 
 	}
 
+	/**
+	 * 
+	 * Display the colocalization image
+	 * 
+	 * @param savepath path + filename "_coloc.zip" is appended to the name, extension is removed
+	 * @param regionslistA Regions list A
+	 * @param regionslistB Regions list B
+	 * 
+	 */
 
-	public void displaycoloc(ArrayList<Region> regionslistA,ArrayList<Region> regionslistB){
+	public void displaycoloc(String savepath, ArrayList<Region> regionslistA,ArrayList<Region> regionslistB){
 
 		
 		
@@ -558,8 +569,10 @@ public class MasksDisplay {
 
 		if (Analysis.p.save_images){
 			IJ.run(this.imgcoloc,"RGB Color", "");
-			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_coloc" +".zip";
-			IJ.saveAs(this.imgcoloc, "ZIP", savepath);		
+			
+			savepath = MosaicUtils.removeExtension(savepath);
+			savepath = savepath + "_coloc" +".zip";
+			IJ.saveAs(this.imgcoloc, "ZIP", savepath);
 
 			//			FileSaver fs= new FileSaver(this.imgcoloc);
 			//			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_coloc" +".tif";
@@ -730,6 +743,12 @@ public class MasksDisplay {
 
 	}
 
+	void closeAll()
+	{
+		if (imgcoloc != null)
+			imgcoloc.close();
+	}
+	
 	//	public void displaycolocpositiveBold(ArrayList<Region> regionslistA){
 	//
 	//

@@ -162,7 +162,7 @@ interface ClusterProfile
 	
 	/**
 	 * 
-	 * Set the BatchSystem
+	 * Set the a compressor algorithm for the cluster
 	 * 
 	 * @param a Batch system
 	 */

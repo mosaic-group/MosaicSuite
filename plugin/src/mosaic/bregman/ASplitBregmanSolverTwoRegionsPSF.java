@@ -171,24 +171,6 @@ ASplitBregmanSolverTwoRegions {
 		//temp1=uk
 
 		Sync4.await();
-
-		/////////// Check the result ////////////
-		
-		double total = 0;
-		
-		for (int z=0; z<nz; z++){
-			for (int i=0; i<ni; i++) {  
-				for (int j=0; j<nj; j++) {  
-					total += temp1[l][z][i][j];
-				}	
-			}
-		}
-		
-		/////////////////////////////////////////////////
-		
-		System.out.println("Output 1: " + total);
-		
-		/////////////////////////////////////////////////
 		
 		// Check match here
 		
@@ -204,25 +186,6 @@ ASplitBregmanSolverTwoRegions {
 
 
 		dct2d.inverse(temp1[l][0], true);
-
-		
-		/////////// Check the result ////////////
-		
-		total = 0;
-		
-		for (int z=0; z<nz; z++){
-			for (int i=0; i<ni; i++) {  
-				for (int j=0; j<nj; j++) {  
-					total += temp1[l][z][i][j];
-				}	
-			}
-		}
-		
-		/////////////////////////////////////////////////
-		
-		System.out.println("Output 2: " + total);
-		
-		/////////////////////////////////////////////////
 
 		Dct.countDown();
 
@@ -331,8 +294,6 @@ ASplitBregmanSolverTwoRegions {
 				energy+=energytab2[nt];
 			}
 		}
-		
-		System.out.println("Output 4: " + energy);
 		
 		//Tools.max_mask(maxmask, w3k);
 

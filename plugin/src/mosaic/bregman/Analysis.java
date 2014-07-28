@@ -18,6 +18,7 @@ import ij.io.Opener;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import mosaic.core.ipc.*;
+import mosaic.core.utils.MosaicUtils;
 
 public class Analysis {
 
@@ -1000,7 +1001,7 @@ public class Analysis {
 	}
 
 
-	public static void coloc(){
+	public static void coloc(ImagePlus aImp){
 
 		//display colocalization result image
 		computeOverallMask();
@@ -1038,7 +1039,7 @@ public class Analysis {
 
 		//if (Analysis.p.ccorr){}
 		//add cellmasks
-		md.displaycoloc(regionslist[0],regionslist[1]);
+		md.displaycoloc(MosaicUtils.ValidFolderFromImage(aImp),regionslist[0],regionslist[1]);
 		md.displaycolocpositiveA(regionslist[0]);
 		md.displaycolocpositiveB(regionslist[1]);
 

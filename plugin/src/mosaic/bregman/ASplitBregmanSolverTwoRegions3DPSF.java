@@ -121,6 +121,7 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		CountDownLatch Sync8 = new CountDownLatch(p.nthreads);
 		CountDownLatch Sync9= new CountDownLatch(p.nthreads);
 		CountDownLatch Sync10= new CountDownLatch(p.nthreads);
+		CountDownLatch Sync11= new CountDownLatch(p.nthreads);
 		CountDownLatch Dct= new CountDownLatch(1);
 
 
@@ -140,7 +141,7 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 			// Check if we can create threads
 			
 			t[nt] = new Thread(new ZoneTask3D(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Sync5,
-					Sync6,Sync7,Sync8,Sync9,Sync10,Dct,
+					Sync6,Sync7,Sync8,Sync9,Sync10,Sync11,Dct,
 					iStart, iStart+ichunk, jStart, jStart+jchunk,nt,this,LocalTools));
 			t[nt].start();
 			iStart+=ichunk;
@@ -154,7 +155,7 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		
 		
 		Thread T_ext = new Thread(new ZoneTask3D(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Sync5,
-					Sync6,Sync7,Sync8,Sync9,Sync10,Dct,
+					Sync6,Sync7,Sync8,Sync9,Sync10,Sync11,Dct,
 					iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,LocalTools));
 
 		T_ext.start();
@@ -223,7 +224,7 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		
 		
 		ZoneTask3D zt = new ZoneTask3D(null,null,null,null,null,null,
-					null,null,null,null,null,null,
+					null,null,null,null,null,null,null,
 					iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,LocalTools);
 
 		zt.run();

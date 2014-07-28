@@ -486,7 +486,7 @@ public class GUIold implements ActionListener,PropertyChangeListener
 
 		if(source == coloc)
 		{
-			Analysis.coloc();
+//			Analysis.coloc();
 		}
 
 		if(source == SelectFolder)

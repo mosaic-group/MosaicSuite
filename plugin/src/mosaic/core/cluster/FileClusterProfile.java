@@ -1,0 +1,157 @@
+package mosaic.core.cluster;
+
+import ij.IJ;
+
+import java.io.File;
+import java.util.Vector;
+
+import org.supercsv.cellprocessor.ParseDouble;
+import org.supercsv.cellprocessor.ift.CellProcessor;
+
+import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.ipc.OutputChoose;
+import mosaic.core.ipc.StubProp;
+import mosaic.core.utils.DataCompression;
+import mosaic.core.utils.DataCompression.Algorithm;
+import mosaic.core.ipc.ICSVGeneral;;
+
+class clusterProfile extends StubProp implements ICSVGeneral
+{
+	String queue;
+	String hardware;
+	double limit;
+	
+	void setqueue(String queue)
+	{
+		this.queue = queue;
+	}
+	
+	void sethardware(String hardware)
+	{
+		this.hardware = hardware;
+	}
+	
+	void setlimit(double limit)
+	{
+		this.limit = limit;
+	}
+	
+	String getqueue()
+	{
+		return queue;
+	}
+	
+	String gethardware()
+	{
+		return hardware;
+	}
+	
+	double getlimit()
+	{
+		return limit;
+	}
+};
+
+
+
+public class FileClusterProfile extends GeneralProfile
+{
+	InterPluginCSV<clusterProfile> csv;
+	
+	FileClusterProfile(File filename)
+	{		
+		csv = new InterPluginCSV<clusterProfile>(clusterProfile.class);
+		OutputChoose occ = new OutputChoose();
+		occ.map = new String[]{"queue,hardware,limit"};
+		occ.cel = new CellProcessor[]{null,null,new ParseDouble()};
+		Vector<clusterProfile> cp = csv.Read(filename.getAbsolutePath(), occ);
+		
+		for (int i = 0 ; i < cp.size() ; i++)
+		{
+			if (cp.get(i).hardware.equals("CPU"))
+			{
+				setAcc(hw.CPU);
+			}
+			else if (cp.get(i).hardware.equals("GPU"))
+			{
+				setAcc(hw.GPU);
+			}
+			setQueue(cp.get(i).limit,cp.get(i).queue);
+		}
+		
+		String batch = csv.getMetaInformation("batch");
+		
+		if (batch.equals("LSF"))
+		{
+			setBatchSystem(new LSFBatch(this));
+		}
+		else
+		{
+			IJ.error("Error", batch + " batch system is not supported");
+		}
+		
+		setAcc(hw.CPU);
+	}
+	
+	@Override
+	public String getProfileName() 
+	{
+		return csv.getMetaInformation("profile");
+	}
+
+	@Override
+	public void setProfileName(String ProfileName_) 
+	{
+		csv.setMetaInformation("profile",ProfileName_);
+	}
+
+	public String getAccessAddress()
+	{
+		return csv.getMetaInformation("address");
+	}
+	
+	@Override
+	public String getRunningDir() 
+	{
+		return csv.getMetaInformation("run_dir");
+	}
+
+	@Override
+	public void setRunningDir(String RunningDir_) 
+	{
+		csv.setMetaInformation("run_dir",RunningDir_);
+	}
+
+	@Override
+	public String getImageJCommand() 
+	{
+		return "fiji";
+	}
+
+	@Override
+	public void setImageJCommand(String ImageJCommand_)
+	{
+	}
+	
+	@Override
+	public void setCompressor(Algorithm a)
+	{
+	}
+	
+	@Override
+	public boolean hasCompressor(DataCompression.Algorithm a)
+	{
+		if (a == null)	return true;
+		
+		String cp_name = a.name;
+		String has_cp = csv.getMetaInformation(cp_name);
+		
+		if (has_cp == null)
+			return false;
+		
+		if (has_cp.equals("true"))
+			return true;
+		else
+			return false;
+	}
+}

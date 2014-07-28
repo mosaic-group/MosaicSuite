@@ -72,27 +72,6 @@ public class ZoneTask implements Runnable {
 		//synchro
 		Sync1.countDown();
 		Sync1.await();
-
-		/////////// Check the result ////////////
-		
-		if (num == 0)
-		{
-			double total = 0;
-		
-			for (int z=0; z<AS.nz; z++){
-				for (int i=0; i<AS.ni; i++) {  
-					for (int j=0; j<AS.nj; j++) {  
-						total += AS.temp1[AS.l][z][i][j];
-						total += AS.temp2[AS.l][z][i][j];
-					}	
-				}
-			}
-		
-		/////////////////////////////////////////////////
-		
-			System.out.println("Output A: " + total);
-		}
-		/////////////////////////////////////////////////
 		
 
 		//	IJ.log("thread + istart iend jstart jend"+
@@ -109,27 +88,6 @@ public class ZoneTask implements Runnable {
 		} 
 		Sync3.countDown();
 		Sync3.await();
-		
-		
-		/////////// Check the result ////////////
-		
-		if (num == 0)
-		{
-			double total = 0;
-		
-			for (int z=0; z<AS.nz; z++){
-				for (int i=0; i<AS.ni; i++) {  
-					for (int j=0; j<AS.nj; j++) {  
-						total += AS.temp2[AS.l][z][i][j];
-					}	
-				}
-			}
-		
-		/////////////////////////////////////////////////
-		
-			System.out.println("Output B: " + total);
-		}
-		/////////////////////////////////////////////////
 		
 		//IJ.log("ASni " + AS.ni + " ASnj " + AS.nj);
 		Tools.convolve2Dseparable(
@@ -233,28 +191,6 @@ public class ZoneTask implements Runnable {
 
 		Sync5.countDown();
 		Sync5.await();
-		
-		
-		/////////// Check the result ////////////
-		
-		if (num == 0)
-		{
-			double total = 0;
-		
-			for (int z=0; z<AS.nz; z++){
-				for (int i=0; i<AS.ni; i++) {  
-					for (int j=0; j<AS.nj; j++) {  
-						total += AS.b1k[AS.l][z][i][j];
-						total += AS.b3k[AS.l][z][i][j];
-					}	
-				}
-			}
-		
-		/////////////////////////////////////////////////
-		
-			System.out.println("Output 3: " + total);
-		}
-		/////////////////////////////////////////////////
 		
 		//		
 		LocalTools.fgradx2D(AS.temp3[AS.l], AS.temp1[AS.l], jStart, jEnd);
