@@ -1,9 +1,12 @@
 package mosaic.core.cluster;
 
+import ij.IJ;
+
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -43,11 +46,24 @@ public class ClusterGUI  extends JDialog
 		JLabel lblNewLabel = new JLabel("Cluster profile: ");
 		contentPane.add(lblNewLabel);
 		
+		// Check for file profile
+		
+		String dir = IJ.getDirectory("home");
+		dir += File.separator + ".MosaicToolsuite" + File.separator + "clusterProfile";
+		File cpf[] = new File(dir).listFiles();
+		ClusterProfile[] cp = new ClusterProfile[cpf.length + 1];
+		
+		int cnt = 0;
+		for (File tcpf : cpf)
+		{
+			cp[cnt] = new FileClusterProfile(tcpf);
+			cnt++;
+		}
+		
 		// Set coded profile
 		
-		ClusterProfile[] cp = new ClusterProfile[1];
-		cp[0] = new MadMaxProfile();
-		cp_sel = cp[0];
+		cp[cp.length-1] = new MadMaxProfile();
+		cp_sel = cp[cp.length-1];
 		
 		//
 		
