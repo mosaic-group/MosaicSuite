@@ -515,6 +515,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 				} catch (NoSuchMethodException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
+					System.err.println("Error in order to Write on CSV the base class has to implement Outdata<>");
 					return;
 				} catch (SecurityException e1) {
 					// TODO Auto-generated catch block

@@ -3,6 +3,7 @@ package mosaic.core.cluster;
 import ij.IJ;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Vector;
 
 import org.supercsv.cellprocessor.ParseDouble;
@@ -13,83 +14,59 @@ import mosaic.core.ipc.OutputChoose;
 import mosaic.core.ipc.StubProp;
 import mosaic.core.utils.DataCompression;
 import mosaic.core.utils.DataCompression.Algorithm;
+import mosaic.core.utils.ShellCommand;
 import mosaic.core.ipc.ICSVGeneral;;
 
-class clusterProfile extends StubProp implements ICSVGeneral
-{
-	String queue;
-	String hardware;
-	double limit;
-	
-	void setqueue(String queue)
-	{
-		this.queue = queue;
-	}
-	
-	void sethardware(String hardware)
-	{
-		this.hardware = hardware;
-	}
-	
-	void setlimit(double limit)
-	{
-		this.limit = limit;
-	}
-	
-	String getqueue()
-	{
-		return queue;
-	}
-	
-	String gethardware()
-	{
-		return hardware;
-	}
-	
-	double getlimit()
-	{
-		return limit;
-	}
-};
 
-
+/**
+ * 
+ * Read a file and convert into a Cluster Profile, can be directly used with
+ * ClusterSession
+ * 
+ * @author Pietro Incardona
+ *
+ */
 
 public class FileClusterProfile extends GeneralProfile
 {
-	InterPluginCSV<clusterProfile> csv;
+	InterPluginCSV<QueueProfile> csv;
+	OutputChoose occ;
 	
-	FileClusterProfile(File filename)
-	{		
-		csv = new InterPluginCSV<clusterProfile>(clusterProfile.class);
-		OutputChoose occ = new OutputChoose();
-		occ.map = new String[]{"queue,hardware,limit"};
+	public FileClusterProfile(File filename)
+	{
+		csv = new InterPluginCSV<QueueProfile>(QueueProfile.class);
+		occ = new OutputChoose();
+		occ.map = new String[]{"queue","hardware","limit"};
 		occ.cel = new CellProcessor[]{null,null,new ParseDouble()};
-		Vector<clusterProfile> cp = csv.Read(filename.getAbsolutePath(), occ);
 		
-		for (int i = 0 ; i < cp.size() ; i++)
+		if (filename != null)
 		{
-			if (cp.get(i).hardware.equals("CPU"))
+			Vector<QueueProfile> cp = csv.Read(filename.getAbsolutePath(), occ);
+		
+			for (int i = 0 ; i < cp.size() ; i++)
 			{
-				setAcc(hw.CPU);
+				if (cp.get(i).hardware.equals("CPU"))
+				{
+					setAcc(hw.CPU);
+				}
+				else if (cp.get(i).hardware.equals("GPU"))
+				{
+					setAcc(hw.GPU);
+				}
+				setQueue(cp.get(i).limit,cp.get(i).queue);
 			}
-			else if (cp.get(i).hardware.equals("GPU"))
+		
+			String batch = csv.getMetaInformation("batch");
+		
+			if (batch != null && batch.equals("LSF"))
 			{
-				setAcc(hw.GPU);
+				setBatchSystem(new LSFBatch(this));
 			}
-			setQueue(cp.get(i).limit,cp.get(i).queue);
+			else
+			{
+				IJ.error("Error", batch + " batch system is not supported");
+			}
 		}
-		
-		String batch = csv.getMetaInformation("batch");
-		
-		if (batch.equals("LSF"))
-		{
-			setBatchSystem(new LSFBatch(this));
-		}
-		else
-		{
-			IJ.error("Error", batch + " batch system is not supported");
-		}
-		
 		setAcc(hw.CPU);
 	}
 	
@@ -136,6 +113,7 @@ public class FileClusterProfile extends GeneralProfile
 	@Override
 	public void setCompressor(Algorithm a)
 	{
+		csv.setMetaInformation(a.name, "true");
 	}
 	
 	@Override
@@ -153,5 +131,41 @@ public class FileClusterProfile extends GeneralProfile
 			return true;
 		else
 			return false;
+	}
+	
+	/**
+	 * 
+	 * Write the configuration file
+	 * 
+	 * @param Config filename
+	 * 
+	 */
+	
+	public void writeConfigFile(File CsvFilename)
+	{
+		Vector<QueueProfile> vq = new Vector<QueueProfile>();
+		for (hw Acc : hw.values())
+		{
+			QueueProfile[] q = getQueues(Acc);
+			for (int i = 0 ; i < q.length ; i++)
+			{
+				vq.add(q[i]);
+			}
+		}
+		csv.Write(CsvFilename.getAbsolutePath(), vq, occ, false);
+	}
+	
+	/**
+	 * 
+	 * Set the batch system by string
+	 * (used to write csv config file)
+	 * 
+	 * @param Batch system string
+	 * 
+	 */
+	
+	public void setBatchSystemString(String bc)
+	{
+		csv.setMetaInformation("batch", bc);
 	}
 }

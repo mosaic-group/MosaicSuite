@@ -279,7 +279,9 @@ public class BLauncher
 	 * 
 	 * Write the CSV ImageData file information
 	 * 
-	 * @param path Path of the file path
+	 * @param path directory where to save
+	 * @param filename output file (extension is removed)
+	 * @param hcount frame output
 	 * @return true if success, false otherwise
 	 * @throws FileNotFoundException 
 	 */
@@ -290,13 +292,9 @@ public class BLauncher
 		{
 			// Remove extension from filename
 			
-			String[] fl = filename.split("\\.");
+			String ff = MosaicUtils.removeExtension(filename);
 			
-			// Remove filename
-			
-			File flp = new File(path);
-			
-			out  = new PrintWriter(flp.getAbsolutePath() + File.separator + fl[0] + "_ImagesData"+ ".csv");
+			out  = new PrintWriter(path + File.separator + ff + "_ImagesData"+ ".csv");
 		}
 		
 		// if two channel

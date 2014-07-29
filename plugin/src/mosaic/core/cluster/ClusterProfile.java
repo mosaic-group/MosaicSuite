@@ -2,15 +2,7 @@ package mosaic.core.cluster;
 
 import mosaic.core.utils.DataCompression.Algorithm;
 
-enum hw
-{
-	CPU,
-	GPU,
-	MIKE,
-	OTHER
-}
-
-interface ClusterProfile
+public interface ClusterProfile
 {
 	/**
 	 * 
@@ -178,4 +170,13 @@ interface ClusterProfile
 	 */
 	
 	boolean hasCompressor(Algorithm a);
+
+	/**
+	 * 
+	 * Return all the queues in this cluster
+	 * 
+	 * @return
+	 */
+	
+	QueueProfile[] getQueues(hw Acc_);
 }

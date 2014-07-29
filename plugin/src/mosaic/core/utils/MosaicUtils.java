@@ -847,7 +847,11 @@ public class MosaicUtils
 				String tmp = new String(output[j]);
 				
 				File dir = new File(sv + "/" + tmp.replace("*","_"));
-				if (dir.listFiles().length == 0)
+				if (dir.listFiles() == null)
+				{
+					System.out.println("Critical error " + dir.getAbsolutePath() + "does not exist");
+				}
+				if (dir.listFiles() != null && dir.listFiles().length == 0)
 				{
 					dir.delete();
 				}

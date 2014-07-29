@@ -38,6 +38,19 @@ import ij.process.StackStatistics;
  * 
  * Main class to handle a Session to an HPC cluster
  * 
+ * usage
+ * 
+ *	ss = ClusterSession.processFiles(....);
+ * 
+ * @see processXXXXXX
+ * 
+ * or
+ * 
+ * ClusterSession ss = new ClusterSession()
+ * ss.runPluginsOnFrames(.....)
+ * 
+ * @see runPluginsOnFrames
+ * 
  * @author Pietro Incardona
  * 
  */

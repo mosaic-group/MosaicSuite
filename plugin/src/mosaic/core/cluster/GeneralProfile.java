@@ -169,4 +169,23 @@ public class GeneralProfile implements ClusterProfile
 		
 		return true;
 	}
+
+	@Override
+	public QueueProfile[] getQueues(hw Acc_) 
+	{
+		if (Acc_.ordinal() >= cq.size())
+			return new QueueProfile[0];
+			
+		QueueProfile[] cpt = new QueueProfile[cq.get(Acc_.ordinal()).size()];
+		
+		for (int i = 0 ; i < cq.get(Acc_.ordinal()).size() ; i++)
+		{
+			cpt[i] = new QueueProfile();
+			cpt[i].queue = cq.get(Acc_.ordinal()).get(i).name;
+			cpt[i].hardware = Acc_.toString();
+			cpt[i].limit = cq.get(Acc_.ordinal()).get(i).minutes;
+		}
+		
+		return cpt;
+	}
 }

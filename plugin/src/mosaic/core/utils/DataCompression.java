@@ -363,4 +363,17 @@ public class DataCompression
 	{
 		return "cd " + work_dir.getAbsolutePath() + " ; " + al.get(selC).uncompress_command.replace("*", file_a.getAbsolutePath());
 	}
+	
+	/**
+	 * 
+	 * Get a list of all compressor algorithm
+	 * 
+	 * @return A list of all compression algorithms
+	 * 
+	 */
+	
+	Vector<Algorithm> getCompressorList()
+	{
+		return al;
+	}
 }
