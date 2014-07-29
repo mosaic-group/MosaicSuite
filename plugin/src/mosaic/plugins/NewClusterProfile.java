@@ -14,6 +14,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Vector;
 
+import mosaic.core.cluster.BatchList;
 import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterProfile;
 import mosaic.core.cluster.ClusterSession;
@@ -60,6 +61,7 @@ public class NewClusterProfile implements PlugInFilter
 		{
 			gd.addStringField("profile", cp.getProfileName());
 			gd.addStringField("address", cp.getAccessAddress());
+			gd.addChoice("Batch", BatchList.getList(), BatchList.getList()[0]);
 			gd.addStringField("run_dir", cp.getRunningDir());
 			
 			int totalq = 0;
@@ -88,6 +90,7 @@ public class NewClusterProfile implements PlugInFilter
 		{
 			gd.addStringField("profile", "");
 			gd.addStringField("address", "");
+			gd.addChoice("Batch", BatchList.getList(), BatchList.getList()[0]);
 			gd.addStringField("run_dir", "");
 			gd.addChoice("queues", new String[]{""}, new String(""));
 			gd.addChoice("compressor", new String[]{""}, new String(""));

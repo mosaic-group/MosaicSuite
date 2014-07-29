@@ -1,6 +1,6 @@
 package mosaic.core.cluster;
 
-class BatchList
+public class BatchList
 {
 	/**
 	 * 
@@ -18,5 +18,17 @@ class BatchList
 			return new LSFBatch(cp);
 		}
 		return null;
+	}
+	
+	/**
+	 * 
+	 * Return a list of all implemented batch system
+	 * 
+	 * @return A list of all implemented batch systems
+	 */
+	
+	public static String [] getList()
+	{
+		return new String[]{"LSF"};
 	}
 }
