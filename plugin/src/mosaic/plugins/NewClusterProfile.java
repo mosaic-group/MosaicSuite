@@ -54,6 +54,8 @@ public class NewClusterProfile implements PlugInFilter
 		final Vector<QueueProfile> cq = new Vector<QueueProfile>();
 		final Vector<Choice> cc;
 		
+		fcp = new FileClusterProfile(null);
+		
 		GenericDialog gd = new GenericDialog("New cluster profile");
 		
 		gd.setTitle("New cluster profile");
@@ -99,7 +101,7 @@ public class NewClusterProfile implements PlugInFilter
 		
 		Button optionButton = new Button("Add");
 		GridBagConstraints c = new GridBagConstraints();
-		c.gridx=2; c.gridy=3; c.anchor = GridBagConstraints.EAST;
+		c.gridx=2; c.gridy=4; c.anchor = GridBagConstraints.EAST;
 		gd.add(optionButton,c);
 		
 		optionButton.addActionListener(new ActionListener() 
@@ -123,18 +125,18 @@ public class NewClusterProfile implements PlugInFilter
 					
 					cq.add(q);
 					
-					cc.get(0).removeAll();
+					cc.get(1).removeAll();
 					
 					for (int i = 0 ; i < cq.size() ; i++)
-						cc.get(0).add(cq.get(i).getqueue());
-					cc.get(0).select(0);
+						cc.get(1).add(cq.get(i).getqueue() + " " + cq.get(i).gethardware() + " " + cq.get(i).getlimit());
+					cc.get(1).select(0);
 				}
 			}
 		});
 		
 		optionButton = new Button("Add");
 		c = new GridBagConstraints();
-		c.gridx=2; c.gridy=4; c.anchor = GridBagConstraints.EAST;
+		c.gridx=2; c.gridy=5; c.anchor = GridBagConstraints.EAST;
 		gd.add(optionButton,c);
 		
 		optionButton.addActionListener(new ActionListener() 
@@ -142,6 +144,28 @@ public class NewClusterProfile implements PlugInFilter
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
+				GenericDialog gd = new GenericDialog("Set queue");
+				DataCompression dc = new DataCompression();
+				Vector<Algorithm> cl = dc.getCompressorList();
+				
+				// create compressor list
+				
+				String [] compressors = new String[cl.size()];
+				for (int i = 0 ; i < cl.size() ; i++)
+				{
+					compressors[i] = cl.get(i).name;
+				}
+				
+				gd.addChoice("Compression",compressors, compressors[0]);
+				
+				gd.showDialog();
+				
+				if (gd.wasOKed())
+				{
+					String cmp = gd.getNextChoice();
+					
+					fcp.setCompressorString(cmp);
+				}
 			}
 		});
 		
@@ -152,13 +176,11 @@ public class NewClusterProfile implements PlugInFilter
 		{
 			// Create an interplugins CSV
 			
-			fcp = new FileClusterProfile(null);
-			
 			fcp.setProfileName(gd.getNextString());
 			fcp.setAccessAddress(gd.getNextString());
 			fcp.setRunningDir(gd.getNextString());
 			
-			fcp.setBatchSystemString(gd.getNextString());
+			fcp.setBatchSystemString(gd.getNextChoice());
 			
 			for (int i = 0 ; i < cq.size() ; i++)
 			{
@@ -169,6 +191,16 @@ public class NewClusterProfile implements PlugInFilter
 			ClusterGUI.createClusterProfileDir();
 			String dir = ClusterGUI.getClusterProfileDir() + File.separator + fcp.getProfileName() + ".csv";
 			fcp.writeConfigFile(new File(dir));
+		}
+		
+		// Reload cluster profiles
+		
+		ClusterProfile[] cpA = ClusterGUI.getClusterProfiles();
+		
+		cpa.removeAll();
+		for (int i = 0 ; i < cpA.length ; i++)
+		{
+			cpa.add( cpA[i].getProfileName());
 		}
 	}
 	
@@ -188,7 +220,9 @@ public class NewClusterProfile implements PlugInFilter
 			gd.addChoice("Cluster profiles", cp_names, cp_names[0]);
 		else
 			gd.addChoice("Cluster profiles", new String[]{""}, "");
-			
+		
+		cpa = (Choice) gd.getChoices().get(0);
+		
 		Button optionButton = new Button("New");
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx=2; c.gridy=0; c.anchor = GridBagConstraints.EAST;

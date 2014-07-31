@@ -87,6 +87,11 @@ public class FileClusterProfile extends GeneralProfile
 		return csv.getMetaInformation("address");
 	}
 	
+	public void setAccessAddress(String addr)
+	{
+		csv.setMetaInformation("address", addr);
+	}
+	
 	@Override
 	public String getRunningDir() 
 	{
@@ -167,5 +172,18 @@ public class FileClusterProfile extends GeneralProfile
 	public void setBatchSystemString(String bc)
 	{
 		csv.setMetaInformation("batch", bc);
+	}
+	
+	/**
+	 * 
+	 * Set one compressor by string
+	 * 
+	 * @param compressor string string
+	 * 
+	 */
+	
+	public void setCompressorString(String bc)
+	{
+		csv.setMetaInformation(bc, "true");
 	}
 }

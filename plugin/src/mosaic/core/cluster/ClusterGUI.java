@@ -46,6 +46,7 @@ public class ClusterGUI  extends JDialog
 	
 	private JTextField tx_u;
 	private JPasswordField tx_p;
+	private ClusterProfile[] cp = null;
 	
 	public ClusterGUI()
 	{
@@ -62,9 +63,8 @@ public class ClusterGUI  extends JDialog
 		// Check for file profile
 		
 		String dir = IJ.getDirectory("home");
-		dir += File.separator + ".MosaicToolsuite" + File.separator + "clusterProfile";
+		dir += File.separator + ".MosaicToolSuite" + File.separator + "clusterProfile";
 		File cpf[] = new File(dir).listFiles();
-		ClusterProfile[] cp = null;
 		if (cpf != null)
 		{
 			cp = new ClusterProfile[cpf.length + 1];
@@ -84,15 +84,25 @@ public class ClusterGUI  extends JDialog
 		cp[cp.length-1] = new MadMaxProfile();
 		cp_sel = cp[cp.length-1];
 		
+		// Create a set of strings
+		
+		String CBcp[] = new String[cp.length];
+		for (int i = 0 ; i < cp.length ; i++)
+		{
+			CBcp[i] = new String(cp[i].getProfileName());
+		}
+				
 		//
 		
-		JComboBox comboBox_1 = new JComboBox(cp);
+		JComboBox comboBox_1 = new JComboBox(CBcp);
+		comboBox_1.setSelectedIndex(cp.length - 1);
 		comboBox_1.addActionListener(new ActionListener() 
 		{
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				cp_sel = (ClusterProfile)((JComboBox)arg0.getSource()).getSelectedItem();
+				
+				cp_sel = cp[((JComboBox)arg0.getSource()).getSelectedIndex()];
 			}
 		});
 		
@@ -128,6 +138,16 @@ public class ClusterGUI  extends JDialog
 		});
 
 		JButton btnCancelButton = new JButton("Cancel");
+		btnCancelButton.addActionListener(new ActionListener() 
+		{
+			@Override
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				cl = null;
+				dispose();
+			}
+		});
+		
 		contentPane.add(btnCancelButton);
 		
 		setModal(true);

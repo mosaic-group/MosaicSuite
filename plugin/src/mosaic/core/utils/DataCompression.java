@@ -372,7 +372,7 @@ public class DataCompression
 	 * 
 	 */
 	
-	Vector<Algorithm> getCompressorList()
+	public Vector<Algorithm> getCompressorList()
 	{
 		return al;
 	}
