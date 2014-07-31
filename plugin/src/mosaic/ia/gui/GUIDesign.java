@@ -28,10 +28,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import org.eclipse.wb.swing.FocusTraversalOnArray;
-
-import sun.security.provider.SystemSigner;
-
 import java.awt.Component;
 import javax.swing.JInternalFrame;
 import java.awt.ComponentOrientation;

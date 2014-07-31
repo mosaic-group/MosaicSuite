@@ -307,14 +307,14 @@ public class HypothesisTesting {
 		if(i>(int)((1-alpha)*K))
 		{
 			System.out.println("Null hypothesis rejected, rank: "+i+" out of "+K);
-			IJ.showMessage("Null hypothesis: No interaction - Rejected, rank: "+i+" out of "+K+"MC runs with alpha= "+alpha);
+			IJ.showMessage("Null hypothesis: No interaction - Rejected, rank: "+i+" out of "+K+"MC runs with alpha= "+alpha+ " p-value: " + (K-i)/K);
 			//displayResult();
 			return true;
 		}	
 		else
 		{
 			IJ.showMessage("Null hypothesis accepted, rank: "+i+" out of "+K+" MC runs with alpha= "+alpha);
-			System.out.println("Null hypothesis: No interaction - Accepted, rank: "+i+" out of "+K+" MC runs with alpha= "+alpha);
+			System.out.println("Null hypothesis: No interaction - Accepted, rank: "+i+" out of "+K+" MC runs with alpha= "+alpha+ " p-value: " + (K-i)/K);
 		//	displayResult();
 			return false;
 		}
