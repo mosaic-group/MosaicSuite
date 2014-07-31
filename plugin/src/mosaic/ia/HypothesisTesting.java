@@ -306,15 +306,23 @@ public class HypothesisTesting {
 		System.out.println("T obs: "+Tob+" found at rank: "+i);
 		if(i>(int)((1-alpha)*K))
 		{
-			System.out.println("Null hypothesis rejected, rank: "+i+" out of "+K);
-			IJ.showMessage("Null hypothesis: No interaction - Rejected, rank: "+i+" out of "+K+"MC runs with alpha= "+alpha+ " p-value: " + (K-i)/K);
+			if ((K-i) == 0)
+			{
+				System.out.println("Null hypothesis rejected, rank: "+i+" out of "+K+ " p-value: " + 1.0/K);
+				IJ.showMessage("Null hypothesis: No interaction - Rejected, rank: "+i+" out of "+K+"MC runs with alpha= "+alpha+ " p-value < " + 1.0/K);
+			}
+			else
+			{
+				System.out.println("Null hypothesis rejected, rank: "+i+" out of "+K+ " p-value: " + ((double)K-i)/K);
+				IJ.showMessage("Null hypothesis: No interaction - Rejected, rank: "+i+" out of "+K+"MC runs with alpha= "+alpha+ " p-value: " + ((double)K-i)/K);
+			}
 			//displayResult();
 			return true;
 		}	
 		else
 		{
-			IJ.showMessage("Null hypothesis accepted, rank: "+i+" out of "+K+" MC runs with alpha= "+alpha);
-			System.out.println("Null hypothesis: No interaction - Accepted, rank: "+i+" out of "+K+" MC runs with alpha= "+alpha+ " p-value: " + (K-i)/K);
+			IJ.showMessage("Null hypothesis accepted, rank: "+i+" out of "+K+" MC runs with alpha= "+alpha+ " p-value: " + ((double)K-i)/K);
+			System.out.println("Null hypothesis: No interaction - Accepted, rank: "+i+" out of "+K+" MC runs with alpha= "+alpha+ " p-value: " + ((double)K-i)/K);
 		//	displayResult();
 			return false;
 		}
