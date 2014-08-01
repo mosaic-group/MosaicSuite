@@ -1707,7 +1707,10 @@ public class MosaicUtils
 		}
 		else
 		{
-			return path + File.separator + filename.substring(0, idp);
+			if (path != null)
+				return path + File.separator + filename.substring(0, idp);
+			else
+				return filename.substring(0,idp);
 		}
 	}
 	

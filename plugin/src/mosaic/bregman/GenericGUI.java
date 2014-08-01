@@ -390,7 +390,8 @@ public class GenericGUI
 			{
 				hd= new BLauncher(Analysis.p.wd);
 				Vector<String> pf = hd.getProcessedFiles();
-				MosaicUtils.reorganize(Analysis.out_w,pf,Analysis.p.wd);
+				if (IJ.isMacro() == false)
+					MosaicUtils.reorganize(Analysis.out_w,pf,new File(Analysis.p.wd).getParent());
 			}
 
 		//		    hd.bcolocheadless(imagePlus);*/

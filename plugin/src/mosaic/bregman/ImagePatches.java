@@ -215,6 +215,7 @@ public class ImagePatches {
 		catch (InterruptedException ex) {}
 		
 		//long lStartTime = new Date().getTime(); //start time
+		
 		if(p.mode_voronoi2)
 		{
 			//find_regions();

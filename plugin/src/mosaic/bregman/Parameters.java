@@ -188,7 +188,8 @@ public class Parameters  implements Serializable
 		this.thresh = p.thresh;
 		this.betaMLEoutdefault = p.betaMLEoutdefault;// 0.003 // 0.0027356;
 		this.betaMLEindefault = p.betaMLEindefault;// 0.25;//25;//1340026;//0..//0.45 for//0.3
-
+		this.min_region_filter_intensities = p.min_region_filter_intensities;
+		
 		this.fastsquassh = p.fastsquassh;
 		this.overs=p.overs;
 		this.dispint= p.dispint;

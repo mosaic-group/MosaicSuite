@@ -95,7 +95,7 @@ public class BLauncher
 				try
 				{
 					aImp = MosaicUtils.openImg(f.getAbsolutePath());
-					pf.add(f.getName().substring(0,f.getName().lastIndexOf(".")));
+					pf.add(MosaicUtils.removeExtension(f.getName()));
 				}
 				catch (java.lang.UnsupportedOperationException e)
 				{
@@ -136,7 +136,7 @@ public class BLauncher
 				System.out.println("No image to process " + path);
 				return;
 			}
-			
+			pf.add(MosaicUtils.removeExtension(aImp.getTitle()));
 			Headless_file();
 			
 			// Display results
@@ -154,7 +154,7 @@ public class BLauncher
 				PrintWriter out = null;
 				File fl = new File(path);
 				try
-				{out = writeImageDataCsv(out, fl.getAbsolutePath(), fl.getName(), 0);
+				{out = writeImageDataCsv(out, fl.getParent(), fl.getName(), 0);
 				out.close();} 
 				catch (FileNotFoundException e) 
 				{e.printStackTrace();}
