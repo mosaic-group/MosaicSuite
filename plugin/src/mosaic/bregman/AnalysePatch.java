@@ -21,7 +21,6 @@ import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.DenseInstance;
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.DatasetTools;
-import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.core.psf.GaussPSF;
 
 public class AnalysePatch implements Runnable

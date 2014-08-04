@@ -5,6 +5,7 @@ import ij.ImagePlus;
 import ij.measure.Calibration;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -14,13 +15,14 @@ import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.real.DoubleType;
-import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.psf.GaussPSF;
 import mosaic.core.utils.CircleMask;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIterator;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
 
@@ -207,8 +209,8 @@ public class TwoRegions extends NRegions
 		
 		if(channel==0)
 		{
-			//Analysis.maska=A_solver.w3kbest[0];//
-
+			// Take the soft membership mask
+			
 			Analysis.setMaskaTworegions(A_solver.w3kbest[0]);
 			//Analysis.setMaskaTworegions(A_solver.w3kbest[0],A_solver.bp_watermask);
 			Analysis.bestEnergyX=A_solver.bestNrj;
@@ -268,7 +270,101 @@ public class TwoRegions extends NRegions
 					r.intensity = r.intensity * (max-min) + min;
 				}
 				
-				//Analysis.testpatch(Analysis.regionslistA, image);
+				// Well we did not finished yet at this stage you can have several artifact produced by the patches
+				// for example one region can be segmented partially by two patches, this mean that at least in theory
+				// you should repatch (this produce a finer decomposition) again and rerun the second stage until each
+				// patches has one and only one region.
+				// The method eventually converge because it always produce finer decomposition, in the opposite case you stop
+				// The actual patching algorithm use
+				// A first phase Split-Bregman segmentation + Threasholding + Voronoi (unfortunately only 2D, for 3D a 2D
+				// Maximum projection is computed)
+				// The 2D Maximal projection unfortunately complicate
+				// even more the things, and produce even more artefatcs in particular for big PSF with big margins
+				// patch.
+				//
+				// IMPROVEMENT:
+				//
+				// 1) 3D Voronoi (ImageLib2 Voronoi like segmentation)
+				// 2) Good result has been achieved using Particle tracker for Patch positioning.
+				// 3) Smart patches given the first phase we cut the soft membership each cut produce a segmentation
+				//    that include the previous one, going to zero this produce a tree graph. the patches are positioned
+				//    on the leaf ( other algorithms can be implemented to analyze this graph ... )
+				//
+				// Save the old intensity label image as an hashmap (to save memory)
+				// run find connected region to recompute the regions again
+				// recompute the statistics using the old intensity label image
+
+				HashMap<Integer,Float> lblInt = new HashMap<Integer,Float>();
+				
+				for (Region r : Analysis.regionslist[0])
+				{
+					for (Pix p : r.pixels)
+					{
+						Integer id = p.px + p.py*ni + p.pz*ni*nj;
+						lblInt.put(id, Float.valueOf((float)r.intensity));
+					}
+				}
+				
+				// we run find connected regions
+
+				LabelImage img = new LabelImage(Analysis.regions[0]);
+				img.connectedComponents();
+				
+				HashMap<Integer,Region> r_list = new HashMap<Integer,Region>();
+				
+				// Run on all pixels of the label to add pixels to the regions
+				
+				RegionIterator rit = new RegionIterator(img.getDimensions());
+				while (rit.hasNext())
+				{
+					rit.next();
+					Point p = rit.getPoint();
+					int lbl = img.getLabel(p);
+					if (lbl != 0)
+					{
+						// foreground
+
+						Region r = r_list.get(lbl);
+						if (r == null)
+						{
+							r = new Region(lbl, false);
+							r.pixels.add(new Pix(p.x[2],p.x[0],p.x[1]));
+							r_list.put(lbl, r);
+						}
+						else
+						{
+							r.pixels.add(new Pix(p.x[2],p.x[0],p.x[1]));
+						}
+					}
+				}
+				
+				// Now we run Object properties on this regions list
+				
+				int osxy=p.oversampling2ndstep*p.interpolation;
+				int sx=p.ni*p.oversampling2ndstep*p.interpolation;
+				int sy=p.nj*p.oversampling2ndstep*p.interpolation;
+				int sz = 1;
+				int osz = 1;
+				//IJ.log("sx " + sx);
+				if(p.nz==1)
+				{
+					sz=1;
+					osz=1;
+				}
+				else
+				{
+					sz=p.nz*p.oversampling2ndstep*p.interpolation;
+					osz=p.oversampling2ndstep*p.interpolation;
+				}
+				
+				ImagePatches.assemble(r_list.values(), Analysis.regions[0]);
+				
+				for (Region r : r_list.values())
+				{
+					ObjectProperties obj = new ObjectProperties(image,r,sx,sy,sz,p,osxy,osz,null,Analysis.regions[0]);
+					obj.run();
+				}
+				
 			}
 			//			else
 			//				Analysis.A_solverX=A_solver; // add for loop settings

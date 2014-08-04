@@ -28,7 +28,6 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import mosaic.bregman.Tools;
-import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.ipc.InterPluginCSV;
@@ -450,21 +449,6 @@ public class BLauncher
 								);
 						script.writeScript();
 					}
-
-/*					if(Analysis.p.nz>1)
-					{
-						out3.print("Image ID" + ";" + "Object ID" +";"
-								+ "Size" + ";" + "Surface" + ";" + "Length" + ";" +"Intensity" + ";"
-								+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-						out3.println();
-					}
-					else
-					{
-						out3.print("Image ID" + ";" + "Object ID" +";"
-								+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";"
-								+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-						out3.println();		
-					}*/
 				}
 			}
 			//IJ.log("single file start headless");
@@ -593,7 +577,6 @@ public class BLauncher
 				Analysis.DoneSignalb.await();
 			}catch (InterruptedException ex) {}
 		}
-
 
 		//TODO : why is it needed to reassign p.ni ...??
 		Analysis.p.ni=Analysis.imgA.getWidth();

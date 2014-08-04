@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
-import mosaic.bregman.FindConnectedRegions.Region;
+import mosaic.bregman.Region;
 import mosaic.bregman.Tools;
 import mosaic.core.GUI.OutputGUI;
 import mosaic.core.ipc.ICSVGeneral;

@@ -108,6 +108,25 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	
 	/**
 	 * 
+	 * Create a labelImage from a short 3D array
+	 * 
+	 * @deprecated
+	 * 
+	 * @param img short array
+	 */
+	public LabelImage(short[][][] img)
+	{
+		int dims[] = new int[3];
+		dims[2] = img.length;
+		dims[1] = img[0].length;
+		dims[0] = img[0][0].length;
+		init(dims);
+		initWith3DArray(img);
+		iterator = new IndexIterator(dims);
+	}
+	
+	/**
+	 * 
 	 * Create an empty label image of a given dimension
 	 * 
 	 * @param dims dimensions of the LabelImage
@@ -264,6 +283,22 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		}
 	}
 	
+	/**
+	 * LabelImage loaded from 3D array
+	 */
+	public void initWith3DArray(short[][][] ar)
+	{
+		for (int i = 0 ; i < ar.length ; i++)
+		{
+			for (int j = 0 ; j < ar[0].length ; j++)
+			{
+				for (int k = 0 ; k < ar[0][0].length ; k++)
+				{
+					dataLabel[k+j*dimensions[0]+i*dimensions[1]*dimensions[0]] = ar[i][j][k];
+				}
+			}
+		}
+	}
 	
 	/**
 	 * 
@@ -431,9 +466,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	
 	/**
 	 * Gives disconnected components in a labelImage distinct labels
-	 * bg and forbidden label stay the same
-	 * contour labels are treated as normal labels, 
-	 * so use this function only for BEFORE contour particles are added to the labelImage
+	 * 
 	 * (eg. to process user input for region guesses)
 	 * @param li LabelImage
 	 */

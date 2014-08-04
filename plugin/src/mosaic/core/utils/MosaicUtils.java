@@ -226,6 +226,64 @@ public class MosaicUtils
 	
 	/**
 	 * 
+	 * From an Object return a generic converter to ARGB type
+	 * and at the same time set a re-normalization
+	 * Useful when you have a Generic T, you can use in the following way
+	 * 
+	 * 
+	 * T data;
+	 * ToARGB conv = getConvertion(data,cursor<T>)
+	 * 
+	 * 
+	 * conv.toARGB(data);
+	 * 
+	 * @param data
+	 * @return
+	 */
+	
+	static public <T extends RealType<T>> ToARGB getConversion(Object data, Cursor<T> crs)
+	{
+		ToARGB conv = null;
+		if (data instanceof RealType)
+		{
+			conv = new FloatToARGB();
+		}
+		else if (data instanceof IntegerType)
+		{
+			conv = new IntToARGB();
+		}
+		else if (data instanceof ARGBType)
+		{
+			conv = new ARGBToARGB();
+		}
+		
+        // Get the min and max
+        
+        T min = null;
+        T max = null;
+        crs.next();
+		try {
+			min = (T) crs.get().getClass().newInstance();
+	        max = (T) crs.get().getClass().newInstance();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        MosaicUtils.getMinMax(crs, min,max);
+    	
+        // get conversion;
+        
+        conv.setMinMax(min.getRealDouble(), max.getRealDouble());
+		
+		return conv;
+	}
+	
+	
+	/**
+	 * 
 	 * Filter out from Possible candidate file the one chosen by the user
 	 * If only one file present nothing appear
 	 * 
@@ -794,6 +852,36 @@ public class MosaicUtils
 		return ip;
 	}
 	
+	
+	/**
+	 * 
+	 * Get the ImagePlus slice from an ImagePlus
+	 * 
+	 * @param img Image
+	 * @param channel (channel start from 1)
+	 * @return An ImagePlus of the channel
+	 */
+	
+	public static ImagePlus getImageSlice(ImagePlus img, int slice)
+	{
+		if (slice == 0)
+			return null;
+		
+		int nImages = img.getNSlices();
+	
+		ImageStack stk = img.getStack();
+	
+		int stack_size = stk.getSize() / nImages;
+
+		ImageStack tmp_stk = new ImageStack(img.getWidth(),img.getHeight());
+		for (int j = 0 ; j < stack_size ; j++)
+		{
+			tmp_stk.addSlice("st"+j,stk.getProcessor((slice-1)*stack_size+j+1));
+		}
+		
+		ImagePlus ip = new ImagePlus("tmp",tmp_stk);
+		return ip;
+	}
 	
 	/**
 	 * 
@@ -1484,6 +1572,34 @@ public class MosaicUtils
 	
 	/**
 	 * 
+	 * Get the minimal value and maximal value of an image
+	 * 
+	 * @param img Image
+	 * @param min minimum value
+	 * @param max maximum value
+	 */
+	
+	public static <T extends RealType<T>> void getMinMax(Cursor<T> cur, T min, T max)
+	{
+		// Set min and max
+		
+		min.setReal(Double.MAX_VALUE);
+		max.setReal(Double.MIN_VALUE);
+        
+        // Get the min and max
+        
+        while (cur.hasNext())
+        {
+        	cur.fwd();
+        	if (cur.get().getRealDouble() < min.getRealDouble())
+        		min.setReal(cur.get().getRealDouble());
+        	if (cur.get().getRealDouble() > max.getRealDouble())
+        		max.setReal(cur.get().getRealDouble());
+        }
+	}
+	
+	/**
+	 * 
 	 * Open an image
 	 * 
 	 * @param fl Filename
@@ -1712,6 +1828,24 @@ public class MosaicUtils
 			else
 				return filename.substring(0,idp);
 		}
+	}
+	
+	/**
+	 * 
+	 * Shift the dimensions on the right. Example suppose to have an image
+	 * with Channels=20 Z=30 T=1, it reslice the stack to
+	 * Channels = 1 Z=20 T=30
+	 * If i reapply I get
+	 * Channels=20 Z=1 T=20
+	 * 
+	 * @param ip
+	 */
+	
+	public static void shiftDimensionsR(ImagePlus ip)
+	{
+		Calibration cal = ip.getCalibration();
+		
+		IJ.run(ip,"Properties...","channels=" + ip.getNFrames() + " slices=" + ip.getNChannels() + " frames=" + ip.getNSlices() + " unit=" + cal.getUnit() + " pixel_width=" + cal.pixelWidth + " pixel_height=" + cal.pixelHeight + " voxel_depth=" + cal.pixelDepth);
 	}
 	
 	/**

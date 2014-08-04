@@ -13,6 +13,7 @@ import java.awt.Color;
 import java.awt.Frame;
 import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
+import java.util.Collection;
 //import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
@@ -21,7 +22,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import mosaic.bregman.FindConnectedRegions.Region;
 
 public class ImagePatches {
 	ImagePlus regsresultx;
@@ -302,6 +302,29 @@ public class ImagePatches {
 	}
 
 	void assemble(ArrayList<Region> regionslist_refined)
+	{
+		for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) 
+		{
+			Region r = it.next();
+
+			for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
+				Pix v = it2.next();
+				//count number of free edges
+				regions_refined[v.pz][v.px][v.py]= (short) r.value;
+
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * Assemble the result
+	 * 
+	 * @param regionslist_refined List of regions to assemble
+	 * @param regions_refined regions refined
+	 */
+	
+	static public void assemble(Collection<Region> regionslist_refined, short[][][] regions_refined)
 	{
 		for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) 
 		{

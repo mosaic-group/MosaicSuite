@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
-import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.bregman.output.CSVOutput;
 import ij.IJ;
 import ij.ImagePlus;

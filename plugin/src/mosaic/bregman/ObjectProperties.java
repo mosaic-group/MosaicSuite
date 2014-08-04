@@ -9,7 +9,6 @@ import ij.process.ByteProcessor;
 import java.util.Iterator;
 
 import net.imglib2.type.numeric.real.DoubleType;
-import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.core.psf.GaussPSF;
 
 public class ObjectProperties implements Runnable {
@@ -133,6 +132,8 @@ public class ObjectProperties implements Runnable {
 
 
 	private void fill_ints(){
+		if (imagecolor_c1 ==null)
+			return;
 		int c1= (int) Math.min(255, 255*Math.sqrt(region.intensity)) ; //Green
 		int c0= (int) Math.min(255, 255*region.intensity) ; //Red
 		int c2= (int) Math.min(255, 255*Math.pow(region.intensity,2)) ; //Blue

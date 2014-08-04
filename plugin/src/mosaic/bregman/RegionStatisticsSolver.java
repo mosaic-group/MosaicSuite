@@ -14,7 +14,6 @@ import net.sf.javaml.core.DenseInstance;
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.DatasetTools;
 import net.sf.javaml.tools.weka.WekaClusterer;
-import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
 

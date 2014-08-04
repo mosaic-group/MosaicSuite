@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
-import mosaic.bregman.FindConnectedRegions.Region;
 
 public class ASplitBregmanSolver {
 	Tools LocalTools;

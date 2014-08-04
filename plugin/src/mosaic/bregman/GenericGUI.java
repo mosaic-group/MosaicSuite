@@ -383,8 +383,6 @@ public class GenericGUI
 				savepath = MosaicUtils.ValidFolderFromImage(aImp);
 				
 				MosaicUtils.reorganize(Analysis.out_w,aImp.getShortTitle(),savepath,aImp.getNFrames());
-				
-				InterPluginCSV.StitchConvert(Analysis.out_w,new File(savepath),new File(savepath + File.separator + aImp.getTitle().substring(0, aImp.getTitle().lastIndexOf("."))),null,CSVOutput.occ,CSVOutput.occ.classFactory);
 			}
 			else
 			{

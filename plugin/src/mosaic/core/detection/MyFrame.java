@@ -1592,26 +1592,7 @@ import net.imglib2.view.Views;
 	        Cursor<ARGBType> curOut = out.cursor();
 	        Cursor<T> curBack = background.cursor();
 	        
-	        // Get the min and max
-	        
-	        T min = null;
-	        T max = null;
-			try {
-				min = (T) background.firstElement().getClass().newInstance();
-		        max = (T) background.firstElement().getClass().newInstance();
-			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	        MosaicUtils.getMinMax(background, min,max);
-        	
-	        // get conversion;
-	        
-	        ToARGB conv = MosaicUtils.getConversion(curBack.get());
-	        conv.setMinMax(min.getRealDouble(), max.getRealDouble());
+	        ToARGB conv = MosaicUtils.getConversion(curBack.get(),background.cursor());
 	        
 	        // Copy the background
 	        
@@ -1945,15 +1926,7 @@ import net.imglib2.view.Views;
 	        Cursor<ARGBType> curOut = out.cursor();
 	        Cursor<T> curBack = background.cursor();
 	        
-	        if (curBack.hasNext())
-	        {
-	        	curOut.fwd();
-	        	curBack.fwd();
-	        }
-	        
-	        // get the conversion
-	        
-	        ToARGB conv = MosaicUtils.getConversion(curBack.get());
+	        ToARGB conv = MosaicUtils.getConversion(curBack.get(),background.cursor());
 	        
 	        // Copy the background
 	        
@@ -1962,7 +1935,6 @@ import net.imglib2.view.Views;
 	        	curOut.fwd();
 	        	curBack.fwd();
 	        
-	        	
 	        	curOut.get().set(conv.toARGB(curBack.get()));
 	        }
 	        

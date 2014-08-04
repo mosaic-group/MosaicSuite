@@ -103,6 +103,7 @@ import net.imglib2.interpolation.randomaccess.NearestNeighborInterpolatorFactory
 import net.imglib2.type.Type;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.util.Util;
@@ -611,8 +612,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				Img<ARGBType> iw = createHyperStackFromFrames(background);
 				if (iw != null)
 				{
-					original_imp =  ImageJFunctions.wrap( iw, "Video");
+					ImageJFunctions.wrap( iw, "Video").show();
+					// reslice
 				}
+				else
+					return false;
 			}
 		}
 		else if (one_file_multiple_frame == false)
@@ -670,7 +674,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				Img<ARGBType> iw = createHyperStackFromFrames(background);
 				if (iw != null)
 				{
-					original_imp =  ImageJFunctions.wrap( iw, "Video");
+					ImageJFunctions.wrap( iw, "Video").show();
 				}
 			}
 		}
@@ -2576,7 +2580,11 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		Vector<Color> vI = new Vector<Color>();
 		
 		int base = 0; // Color = Alpha = 1.0
-		int step = 255*255*255/all_traj.size();
+		int step = 0;
+		if (all_traj.size() >= 1)
+			step = 255*255*255/all_traj.size();
+		else
+			step = 255*255*255/1;
 		
 		// Well we cannot create unique trajectory color, recover as we can
 		
@@ -3019,7 +3027,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	 * 
 	 */
 	
-	<T> Img<ARGBType> copyScaleConvertToRGB(RandomAccessibleInterval<T> img, FinalInterval r , int magnification)
+	<T extends RealType<T>> Img<ARGBType> copyScaleConvertToRGB(RandomAccessibleInterval<T> img, FinalInterval r , int magnification)
 	{
 		// Create output image
 		
@@ -3042,7 +3050,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 		Cursor<T> cur = fvi.cursor();
 		RandomAccess<ARGBType> rc_o = output.randomAccess();
 		
-		ToARGB pixel_converter = MosaicUtils.getConversion(cur.get());
+		ToARGB pixel_converter = MosaicUtils.getConversion(cur.get(),fvi.cursor());
 		
 		int start_frame = (int) r.min(rc_o.numDimensions()-1);
 		int start_x = (int) r.min(0);
@@ -3394,9 +3402,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
  	    				imp = MosaicUtils.getImageFrame(original_imp, 1);
  	    			}
  	    			else
- 	    			{
  	    				imp = original_imp;
- 	    			}
     	    		
     	    		final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( imp );
     	    	
@@ -3438,7 +3444,7 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 	        out_fs = imgFactory.create(vMaxp1, new ARGBType());
     	}
     	
- 		/* for each frame we have add a stack to the image */
+ 		/* for each frame we have to add a stack to the image */
  		for (int i = 0; i<frames.length; i++)
  		{
  			IJ.showStatus("Creating frame " + (i+1));
@@ -3449,13 +3455,28 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
  	    		if (background != null)
  	    		{
  	    			ImagePlus imp = null;
+ 	    			
  	    			if (original_imp.getNFrames() > 1 && i < original_imp.getNFrames())
  	    			{
- 	    				imp = MosaicUtils.getImageFrame(original_imp, i);
+ 	    				imp = MosaicUtils.getImageFrame(original_imp, i+1);
+ 	    			}
+ 	    			else
+ 	    			{
+ 	    				if (original_imp.getNChannels() >= 1 && i < original_imp.getNChannels())
+ 	    				{
+ 	    					imp = MosaicUtils.getImageSlice(original_imp, i+1);
+ 	    				}
  	    			}
  	 
  	    			Calibration cal = original_imp.getCalibration();
  	    	
+ 	    			if (imp == null)
+ 	    			{
+ 	    				IJ.error("Cannot find the background image or wrong format");
+ 	    				creating_traj_image = false;
+ 	    				return null;
+ 	    			}
+ 	    			
  	    			// wrap it into an ImgLib image (no copying)
  	    			final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( imp );
  	    		

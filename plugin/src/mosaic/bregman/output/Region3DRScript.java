@@ -1,6 +1,6 @@
 package mosaic.bregman.output;
 
-import mosaic.bregman.FindConnectedRegions.Region;
+import mosaic.bregman.Region;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.Outdata;
 import mosaic.core.ipc.StubProp;

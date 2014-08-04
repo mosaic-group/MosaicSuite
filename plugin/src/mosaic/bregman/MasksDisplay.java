@@ -5,7 +5,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import mosaic.bregman.FindConnectedRegions.Region;
 import mosaic.core.utils.MosaicUtils;
 import ij.IJ;
 import ij.ImagePlus;
