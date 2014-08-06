@@ -226,7 +226,7 @@ public class GenericDialogGUI implements InputReadable
 		
 		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
 		
-		gd.addCheckbox("Use cluster", false);
+		gd.addCheckbox("Process on computer cluster", false);
 		
 		addWheelListeners();
 	}

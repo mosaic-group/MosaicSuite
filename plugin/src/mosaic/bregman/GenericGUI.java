@@ -296,7 +296,7 @@ public class GenericGUI
 			});
 			gd.addPanel(p);
 			
-			gd.addCheckbox("Use cluster", gui_use_cluster);
+			gd.addCheckbox("Process on computer cluster", gui_use_cluster);
 			
 			gd.centerDialog(false);
 			posx=100;
@@ -389,7 +389,13 @@ public class GenericGUI
 				hd= new BLauncher(Analysis.p.wd);
 				Vector<String> pf = hd.getProcessedFiles();
 				if (IJ.isMacro() == false)
-					MosaicUtils.reorganize(Analysis.out_w,pf,new File(Analysis.p.wd).getParent());
+				{
+					File fl = new File(Analysis.p.wd);
+					if (fl.isDirectory() == true)
+						MosaicUtils.reorganize(Analysis.out_w,pf,Analysis.p.wd);
+					else
+						MosaicUtils.reorganize(Analysis.out_w,pf,new File(Analysis.p.wd).getParent());
+				}
 			}
 
 		//		    hd.bcolocheadless(imagePlus);*/

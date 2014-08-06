@@ -852,8 +852,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 			gd.addNumericField("Displacement", 10.0, 2); 
 		}
 		
-		String d_pos[] = {"none","lines","forces"};
-		gd.addChoice("Dynamic: ", d_pos, d_pos[0]);
+		String d_pos[] = {"Brownian","straight","constant velocity"};
+		gd.addChoice("Dynamics: ", d_pos, d_pos[0]);
 		
 		// Create advanced option panel
 		
@@ -866,13 +866,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 				
 				GenericDialog gd = new GenericDialog("Link factor");
 				
-				gd.addNumericField("Spatial", l_s, 3);
-				gd.addNumericField("Feature", l_f, 3);
-				gd.addNumericField("Dynamic", l_d, 3);
+				gd.addMessage("weight of different contribution for linking relative to the distance normalized to one");
+				
+				gd.addNumericField("Object feature", l_f, 3);
+				gd.addNumericField("Dynamics", l_d, 3);
 				
 				String sc[] = new String[2];
 				
-				sc[0] = new String("Best one permutation");
+				sc[0] = new String("Greedy");
 				sc[1] = new String("Hungarian");
 				
 				gd.addChoice("Optimizer", sc, sc[0]);

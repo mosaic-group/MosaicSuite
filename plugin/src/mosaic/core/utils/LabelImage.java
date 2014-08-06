@@ -118,8 +118,8 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	{
 		int dims[] = new int[3];
 		dims[2] = img.length;
-		dims[1] = img[0].length;
-		dims[0] = img[0][0].length;
+		dims[0] = img[0].length;
+		dims[1] = img[0][0].length;
 		init(dims);
 		initWith3DArray(img);
 		iterator = new IndexIterator(dims);
@@ -294,7 +294,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 			{
 				for (int k = 0 ; k < ar[0][0].length ; k++)
 				{
-					dataLabel[k+j*dimensions[0]+i*dimensions[1]*dimensions[0]] = ar[i][j][k];
+					dataLabel[j+k*dimensions[0]+i*dimensions[1]*dimensions[0]] = ar[i][j][k];
 				}
 			}
 		}
