@@ -1000,7 +1000,7 @@ public class Analysis {
 	}
 
 
-	public static void coloc(ImagePlus aImp){
+	public static void coloc(ImagePlus aImp, Vector<ImagePlus> ip){
 
 		//display colocalization result image
 		computeOverallMask();
@@ -1038,9 +1038,9 @@ public class Analysis {
 
 		//if (Analysis.p.ccorr){}
 		//add cellmasks
-		md.displaycoloc(MosaicUtils.ValidFolderFromImage(aImp),regionslist[0],regionslist[1]);
-		md.displaycolocpositiveA(regionslist[0]);
-		md.displaycolocpositiveB(regionslist[1]);
+		md.displaycoloc(MosaicUtils.ValidFolderFromImage(aImp),regionslist[0],regionslist[1],ip);
+		md.displaycolocpositiveA(regionslist[0],ip);
+		md.displaycolocpositiveB(regionslist[1],ip);
 
 		//		if(p.usecellmaskX){cellmask=cellMaskABinary[z][i][j]>254;} 
 		//		if(p.usecellmaskY){cellmask=cellMaskBBinary[z][i][j]>254;}

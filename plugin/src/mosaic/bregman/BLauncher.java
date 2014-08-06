@@ -602,7 +602,7 @@ public class BLauncher
 			if(Analysis.p.nz>1)fz2=factor2; else fz2=1;
 
 			MasksDisplay md= new MasksDisplay(Analysis.p.ni*factor2,Analysis.p.nj*factor2,Analysis.p.nz*fz2,Analysis.p.nlevels,Analysis.p.cl,Analysis.p);
-			md.displaycoloc(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle(),Analysis.regionslist[0],Analysis.regionslist[1]);
+			md.displaycoloc(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle(),Analysis.regionslist[0],Analysis.regionslist[1],ip);
 
 			Analysis.na=Analysis.regionslist[0].size();
 			Analysis.nb=Analysis.regionslist[1].size();

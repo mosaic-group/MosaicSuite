@@ -4,6 +4,7 @@ package mosaic.bregman;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Vector;
 
 import mosaic.core.utils.MosaicUtils;
 import ij.IJ;
@@ -427,9 +428,8 @@ public class MasksDisplay {
 
 
 
-	public void displaycolocold(ArrayList<Region> regionslistA, ArrayList<Region> regionslistB){
-
-
+	public void displaycolocold(ArrayList<Region> regionslistA, ArrayList<Region> regionslistB, Vector<ImagePlus> ip)
+	{
 		this.imgcolocstack=new ImageStack(ni,nj);
 		for (int z=0; z<nz; z++) {  
 
@@ -479,7 +479,7 @@ public class MasksDisplay {
 		this.imgcoloc=new ImagePlus("Colocalization", imgcolocstack);
 		imgcoloc.show();
 
-
+		ip.add(imgcoloc);
 	}
 
 	/**
@@ -492,7 +492,7 @@ public class MasksDisplay {
 	 * 
 	 */
 
-	public void displaycoloc(String savepath, ArrayList<Region> regionslistA,ArrayList<Region> regionslistB){
+	public void displaycoloc(String savepath, ArrayList<Region> regionslistA,ArrayList<Region> regionslistB, Vector<ImagePlus> ip){
 
 		
 		
@@ -561,6 +561,8 @@ public class MasksDisplay {
 		this.imgcoloc.setStack("Colocalization", imgcolocastack);
 		//this.imgcoloca=new ImagePlus("Colocalization", imgcolocastack);
 
+		ip.add(this.imgcoloc);
+		
 		if(Analysis.p.dispwindows){
 			this.imgcoloc.show();
 			this.imgcoloc.getWindow().setLocation(100, 120);
@@ -582,7 +584,7 @@ public class MasksDisplay {
 
 	
 
-	public void displaycolocpositiveA(ArrayList<Region> regionslistA){
+	public void displaycolocpositiveA(ArrayList<Region> regionslistA, Vector<ImagePlus> ip){
 
 		int [][][][] imagecolor = new int [nz][ni][nj][3];
 
@@ -638,13 +640,12 @@ public class MasksDisplay {
 		this.imgcoloca.setStack("Positive X vesicles", imgcolocastack);
 		//this.imgcoloca=new ImagePlus("Positive X vesicles", imgcolocastack);
 		imgcoloca.show();
-
-
+		ip.add(imgcoloca);
 	}
 
 
 
-	public void displaycolocpositiveB(ArrayList<Region> regionslistA){
+	public void displaycolocpositiveB(ArrayList<Region> regionslistA, Vector<ImagePlus> ip){
 
 		int [][][][] imagecolor = new int [nz][ni][nj][3];
 
@@ -697,7 +698,7 @@ public class MasksDisplay {
 		this.imgcolocb.setStack("Positive Y vesicles", imgcolocastack);
 		//this.imgcoloca=new ImagePlus("Positive Y vesicles", imgcolocastack);
 		imgcolocb.show();
-
+		ip.add(imgcolocb);
 
 	}
 

@@ -30,6 +30,8 @@ public class Debug implements PlugInFilter
 	@Override
 	public int setup(String arg0, ImagePlus arg1)
 	{
+		IJ.showMessage(IJ.getDirectory("temp"));
+		
 		mosaic.core.utils.Jtest ms = new mosaic.core.utils.Jtest();
 		
 		ms.coreUtilGeneral();

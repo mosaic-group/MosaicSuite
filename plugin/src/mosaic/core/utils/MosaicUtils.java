@@ -1625,7 +1625,7 @@ public class MosaicUtils
 		return TestBaseDirectory;
 	}
 	
-	static String TestBaseDirectory = "/home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/Jtest_data";
+	static String TestBaseDirectory = "/Users/incardon/Desktop/MOSAIC/imageJ/ImageJ/plugin/Jtest_data";
 	
 	/**
 	 * 
