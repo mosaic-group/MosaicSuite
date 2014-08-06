@@ -134,6 +134,16 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		int iStart=0; 
 		int jStart=0;
 		Thread t[] = new Thread[p.nthreads];
+		
+		// Force the allocation of the buffers internally
+		// if you do not do you can have race conditions in the
+		// multi thread part
+		// DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
+		
+		double kernelx[] = p.PSF.getSeparableImageAsDoubleArray(0);
+		double kernely[] = p.PSF.getSeparableImageAsDoubleArray(1);
+		double kernelz[] = p.PSF.getSeparableImageAsDoubleArray(2);
+		
 		for(int nt=0; nt< p.nthreads-1;nt++){
 			//			IJ.log("thread + istart iend jstart jend"+
 			//					iStart +" " + (iStart+ichunk)+" " + jStart+" " + (jStart+jchunk));

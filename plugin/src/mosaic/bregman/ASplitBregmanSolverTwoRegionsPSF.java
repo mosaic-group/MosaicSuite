@@ -114,9 +114,19 @@ ASplitBregmanSolverTwoRegions {
 		int jlastchunk= p.nj - (p.nj/(p.nthreads))*(p.nthreads -1);
 		int iStart=0; 
 		int jStart=0;
+		
+		// Force the allocation of the buffers internally
+		// if you do not do you can have race conditions in the
+		// multi thread part
+		// DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
+		
+		double kernelx[] = p.PSF.getSeparableImageAsDoubleArray(0);
+		double kernely[] = p.PSF.getSeparableImageAsDoubleArray(1);
+		
 		for(int nt=0; nt< p.nthreads-1;nt++){
 //						IJ.log("thread + istart iend jstart jend"+
 //								iStart +" " + (iStart+ichunk)+" " + jStart+" " + (jStart+jchunk));
+			
 			new Thread(new ZoneTask(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Dct,Sync5,
 					Sync6,Sync7,Sync8,Sync9,Sync10,Sync11,Sync12,
 					iStart, iStart+ichunk, jStart, jStart+jchunk,nt,this,LocalTools)).start();
