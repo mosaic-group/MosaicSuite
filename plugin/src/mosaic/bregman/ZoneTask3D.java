@@ -22,6 +22,7 @@ public class ZoneTask3D implements Runnable {
 	private final CountDownLatch Sync9;
 	private final CountDownLatch Sync10;
 	private final CountDownLatch Sync11;
+	private final CountDownLatch Sync12;
 	private final CountDownLatch Dct;
 	private int iStart, iEnd, jStart, jEnd, nt;
 	public Tools LocalTools;
@@ -34,7 +35,7 @@ public class ZoneTask3D implements Runnable {
 	ZoneTask3D(CountDownLatch ZoneDoneSignal,CountDownLatch Sync1,CountDownLatch Sync2, 
 			CountDownLatch Sync3,CountDownLatch Sync4,CountDownLatch Sync5,
 			CountDownLatch Sync6,CountDownLatch Sync7,CountDownLatch Sync8,
-			CountDownLatch Sync9,CountDownLatch Sync10,CountDownLatch Sync11, CountDownLatch Dct,
+			CountDownLatch Sync9,CountDownLatch Sync10,CountDownLatch Sync11, CountDownLatch Sync12, CountDownLatch Dct,
 			int iStart, int iEnd, int jStart, int jEnd, int nt,
 			ASplitBregmanSolverTwoRegions3DPSF AS, Tools tTools) {
 		this.LocalTools=tTools;
@@ -44,6 +45,7 @@ public class ZoneTask3D implements Runnable {
 		this.Sync7 = Sync7;this.Sync8 = Sync8;this.Sync9 = Sync9;
 		this.Sync10 = Sync10;
 		this.Sync11 = Sync11;
+		this.Sync12 = Sync12;
 		this.Dct = Dct;
 		this.AS=AS;
 		this.nt = nt;
@@ -82,6 +84,11 @@ public class ZoneTask3D implements Runnable {
 				AS.w2zk[AS.l],Sync2,
 				iStart, iEnd, jStart, jEnd);//, temp3[l]);
 
+		if (Sync12 != null)
+		{
+			Sync12.countDown();
+			Sync12.await();
+		}
 
 		for (int z=0; z<AS.nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  

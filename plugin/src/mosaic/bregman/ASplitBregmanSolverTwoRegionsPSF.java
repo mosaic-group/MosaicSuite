@@ -103,6 +103,7 @@ ASplitBregmanSolverTwoRegions {
 		CountDownLatch Sync9= new CountDownLatch(p.nthreads);
 		CountDownLatch Sync10= new CountDownLatch(p.nthreads);
 		CountDownLatch Sync11= new CountDownLatch(p.nthreads);
+		CountDownLatch Sync12= new CountDownLatch(p.nthreads);
 		CountDownLatch Dct= new CountDownLatch(1);
 
 
@@ -117,7 +118,7 @@ ASplitBregmanSolverTwoRegions {
 //						IJ.log("thread + istart iend jstart jend"+
 //								iStart +" " + (iStart+ichunk)+" " + jStart+" " + (jStart+jchunk));
 			new Thread(new ZoneTask(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Dct,Sync5,
-					Sync6,Sync7,Sync8,Sync9,Sync10,Sync11,
+					Sync6,Sync7,Sync8,Sync9,Sync10,Sync11,Sync12,
 					iStart, iStart+ichunk, jStart, jStart+jchunk,nt,this,LocalTools)).start();
 			iStart+=ichunk;
 			jStart+=jchunk;
@@ -125,7 +126,7 @@ ASplitBregmanSolverTwoRegions {
 //				IJ.log("last thread + istart iend jstart jend"+
 //						iStart +" " + (iStart+ilastchunk)+" " + jStart+" " + (jStart+jlastchunk));
 		new Thread(new ZoneTask(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Dct,Sync5,
-				Sync6,Sync7,Sync8,Sync9,Sync10,Sync11,
+				Sync6,Sync7,Sync8,Sync9,Sync10,Sync11,Sync12,
 				iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,LocalTools)).start();
 
 

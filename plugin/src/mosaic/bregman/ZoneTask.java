@@ -20,6 +20,7 @@ public class ZoneTask implements Runnable {
 	private final CountDownLatch Sync9;
 	private final CountDownLatch Sync10;
 	private final CountDownLatch Sync11;
+	private final CountDownLatch Sync12;
 	private final CountDownLatch Dct;
 	private ASplitBregmanSolverTwoRegionsPSF AS;
 	private int iStart, iEnd, jStart, jEnd ;
@@ -28,7 +29,7 @@ public class ZoneTask implements Runnable {
 
 	ZoneTask(CountDownLatch ZoneDoneSignal,CountDownLatch Sync1,CountDownLatch Sync2,
 			CountDownLatch Sync3,CountDownLatch Sync4,CountDownLatch Dct,CountDownLatch Sync5,CountDownLatch Sync6,
-			CountDownLatch Sync7,CountDownLatch Sync8,CountDownLatch Sync9,CountDownLatch Sync10,CountDownLatch Sync11,
+			CountDownLatch Sync7,CountDownLatch Sync8,CountDownLatch Sync9,CountDownLatch Sync10,CountDownLatch Sync11,CountDownLatch Sync12,
 			int iStart, int iEnd, int jStart, int jEnd,int num, ASplitBregmanSolverTwoRegionsPSF AS, Tools tTools) {
 		this.LocalTools=tTools;
 		this.ZoneDoneSignal = ZoneDoneSignal;
@@ -43,6 +44,7 @@ public class ZoneTask implements Runnable {
 		this.Sync9 = Sync9;
 		this.Sync10 = Sync10;
 		this.Sync11 = Sync11;
+		this.Sync12 = Sync12;
 		this.num=num;
 		this.Dct = Dct;
 		this.AS=AS;
@@ -73,10 +75,29 @@ public class ZoneTask implements Runnable {
 		Sync1.countDown();
 		Sync1.await();
 		
+/*		if (num == 0)
+		{
+			double tot = 0;
+			for (int i = 0 ; i < AS.temp1[AS.l].length ; i++)
+			{
+				for (int j = 0 ; j < AS.temp1[AS.l][i].length ; j++)
+				{
+					for (int k = 0 ; k < AS.temp1[AS.l][i][j].length ; k++)
+					{
+						tot += AS.temp1[AS.l][i][j][k];
+					}
+				}
+			}
+			
+			System.out.println("update 1: " + tot);
+		}*/
 
 		//	IJ.log("thread + istart iend jstart jend"+
 		//	iStart +" " + iEnd+" " + jStart+" " + jEnd);
 		LocalTools.mydivergence(AS.temp3[AS.l], AS.temp1[AS.l], AS.temp2[AS.l],AS.temp4[AS.l],Sync2, iStart, iEnd, jStart, jEnd);//, temp3[l]);
+		
+		Sync12.countDown();
+		Sync12.await();
 		
 		for (int z=0; z<AS.nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
