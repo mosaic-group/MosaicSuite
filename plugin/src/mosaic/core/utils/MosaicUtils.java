@@ -2087,7 +2087,18 @@ public class MosaicUtils
 				{
 					if (outsrc.get(i).equals(outdst.get(i)))
 					{
-						fail("Error: CSV output does not match");
+						// Maybe the order is changed
+						int j = 0;
+						for (j = 0 ; j < outdst.size() ; j++)
+						{
+							if (outsrc.get(i).equals(outdst.get(i)))
+							{
+								break;
+							}
+						}
+						
+						if (j == outdst.size())
+							fail("Error: CSV output does not match");
 					}
 				}
 				
