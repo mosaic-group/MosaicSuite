@@ -1,0 +1,3 @@
+Image_ID;Object_ID;Size;Perimeter;Length;Intensity;Coord_X;Coord_Y;Coord_Z
+%background:/tmp//test//test2d.tif
+0;0;292.0;76.0;0.0;265.9393426069829;31.98972511291504;30.03082275390625;0.0
