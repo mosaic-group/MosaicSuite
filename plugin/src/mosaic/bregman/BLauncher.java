@@ -425,6 +425,9 @@ public class BLauncher
 			System.out.println(Thread.currentThread().getStackTrace().toString());
 			img = aImp;
 			
+			if (img == null)
+			{IJ.error("No image to process");}
+			
 			Analysis.p.nchannels=img.getNChannels();
 
 			if(Analysis.p.save_images)

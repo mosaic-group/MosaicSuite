@@ -367,8 +367,6 @@ public class ASplitBregmanSolver {
 				IJ.showProgress(0.5*((double) stepk)/(p.max_nsb-1));
 		}
 		
-		System.out.println("--------------------------------");
-		
 		if(iw3kbest<50) { // use what iteration threshold  ?
 			int iw3kbestold=iw3kbest;
 			LocalTools.copytab(w3kbest[0], w3k[0]);
