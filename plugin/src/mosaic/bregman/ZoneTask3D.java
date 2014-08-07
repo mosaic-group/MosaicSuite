@@ -23,6 +23,7 @@ public class ZoneTask3D implements Runnable {
 	private final CountDownLatch Sync10;
 	private final CountDownLatch Sync11;
 	private final CountDownLatch Sync12;
+	private final CountDownLatch Sync13;
 	private final CountDownLatch Dct;
 	private int iStart, iEnd, jStart, jEnd, nt;
 	public Tools LocalTools;
@@ -35,7 +36,7 @@ public class ZoneTask3D implements Runnable {
 	ZoneTask3D(CountDownLatch ZoneDoneSignal,CountDownLatch Sync1,CountDownLatch Sync2, 
 			CountDownLatch Sync3,CountDownLatch Sync4,CountDownLatch Sync5,
 			CountDownLatch Sync6,CountDownLatch Sync7,CountDownLatch Sync8,
-			CountDownLatch Sync9,CountDownLatch Sync10,CountDownLatch Sync11, CountDownLatch Sync12, CountDownLatch Dct,
+			CountDownLatch Sync9,CountDownLatch Sync10,CountDownLatch Sync11, CountDownLatch Sync12, CountDownLatch Sync13, CountDownLatch Dct,
 			int iStart, int iEnd, int jStart, int jEnd, int nt,
 			ASplitBregmanSolverTwoRegions3DPSF AS, Tools tTools) {
 		this.LocalTools=tTools;
@@ -46,6 +47,7 @@ public class ZoneTask3D implements Runnable {
 		this.Sync10 = Sync10;
 		this.Sync11 = Sync11;
 		this.Sync12 = Sync12;
+		this.Sync13 = Sync13;
 		this.Dct = Dct;
 		this.AS=AS;
 		this.nt = nt;
@@ -104,6 +106,23 @@ public class ZoneTask3D implements Runnable {
 			Sync3.await();
 		}
 		
+/*		if (nt == 0)
+		{
+			double tot = 0;
+			for (int i = 0 ; i < AS.temp2[AS.l].length ; i++)
+			{
+				for (int j = 0 ; j < AS.temp2[AS.l][i].length ; j++)
+				{
+					for (int k = 0 ; k < AS.temp2[AS.l][i][j].length ; k++)
+					{
+						tot += AS.temp2[AS.l][i][j][k];
+					}
+				}
+			}
+			
+			System.out.println("update 1: " + tot);
+		}*/
+		
 		Tools.convolve3Dseparable(AS.temp4[AS.l], AS.temp2[AS.l], 
 				AS.ni, AS.nj, AS.nz, 
 				AS.p.PSF, AS.temp1[AS.l], iStart, iEnd);
@@ -113,7 +132,7 @@ public class ZoneTask3D implements Runnable {
 			Sync11.countDown();
 			Sync11.await();
 		}
-			
+		
 		for (int z=0; z<AS.nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0; j<AS.nj; j++) {  
@@ -146,6 +165,23 @@ public class ZoneTask3D implements Runnable {
 			AS.dct3d.inverse(AS.temp1[AS.l], true);
 		}
 
+		if (nt == 0)
+		{
+			double tot = 0;
+			for (int i = 0 ; i < AS.temp1[AS.l].length ; i++)
+			{
+				for (int j = 0 ; j < AS.temp1[AS.l][i].length ; j++)
+				{
+					for (int k = 0 ; k < AS.temp1[AS.l][i][j].length ; k++)
+					{
+						tot += AS.temp1[AS.l][i][j][k];
+					}
+				}
+			}
+			
+			System.out.println("update 3: " + tot);
+		}
+		
 		Tools.convolve3Dseparable(AS.temp2[AS.l], AS.temp1[AS.l], 
 				AS.ni, AS.nj, AS.nz, 
 				AS.p.PSF, AS.temp3[AS.l], iStart, iEnd);
@@ -264,7 +300,7 @@ public class ZoneTask3D implements Runnable {
 			AS.energytab2[nt]=
 					LocalTools.computeEnergyPSF3D(AS.w2xk[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l],
 							AS.p.ldata, AS.p.lreg_[AS.channel],AS.p,AS.c0,AS.c1,AS.image,
-							iStart, iEnd, jStart, jEnd, Sync8,  Sync9, Sync10);
+							iStart, iEnd, jStart, jEnd, Sync8,  Sync9, Sync13);
 		}
 	}
 }

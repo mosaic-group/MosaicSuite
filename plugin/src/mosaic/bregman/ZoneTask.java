@@ -75,7 +75,7 @@ public class ZoneTask implements Runnable {
 		Sync1.countDown();
 		Sync1.await();
 		
-		if (num == 0)
+/*		if (num == 0)
 		{
 			double tot = 0;
 			for (int i = 0 ; i < AS.temp1[AS.l].length ; i++)
@@ -90,7 +90,7 @@ public class ZoneTask implements Runnable {
 			}
 			
 			System.out.println("update 1: " + tot);
-		}
+		}*/
 
 		//	IJ.log("thread + istart iend jstart jend"+
 		//	iStart +" " + iEnd+" " + jStart+" " + jEnd);
@@ -98,23 +98,6 @@ public class ZoneTask implements Runnable {
 		
 		Sync12.countDown();
 		Sync12.await();
-		
-		if (num == 0)
-		{
-			double tot = 0;
-			for (int i = 0 ; i < AS.temp3[AS.l].length ; i++)
-			{
-				for (int j = 0 ; j < AS.temp3[AS.l][i].length ; j++)
-				{
-					for (int k = 0 ; k < AS.temp3[AS.l][i][j].length ; k++)
-					{
-						tot += AS.temp3[AS.l][i][j][k];
-					}
-				}
-			}
-			
-			System.out.println("update 2: " + tot);
-		}
 		
 		for (int z=0; z<AS.nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
@@ -127,23 +110,6 @@ public class ZoneTask implements Runnable {
 		Sync3.countDown();
 		Sync3.await();
 		
-		if (num == 0)
-		{
-			double tot = 0;
-			for (int i = 0 ; i < AS.temp2[AS.l].length ; i++)
-			{
-				for (int j = 0 ; j < AS.temp2[AS.l][i].length ; j++)
-				{
-					for (int k = 0 ; k < AS.temp2[AS.l][i][j].length ; k++)
-					{
-						tot += AS.temp2[AS.l][i][j][k];
-					}
-				}
-			}
-			
-			System.out.println("update 3: " + tot);
-		}
-		
 		//IJ.log("ASni " + AS.ni + " ASnj " + AS.nj);
 		Tools.convolve2Dseparable(
 				AS.temp4[AS.l][0], AS.temp2[AS.l][0],
@@ -155,23 +121,6 @@ public class ZoneTask implements Runnable {
 		
 		Sync11.countDown();
 		Sync11.await();
-		
-		if (num == 0)
-		{
-			double tot = 0;
-			for (int i = 0 ; i < AS.temp4[AS.l].length ; i++)
-			{
-				for (int j = 0 ; j < AS.temp4[AS.l][i].length ; j++)
-				{
-					for (int k = 0 ; k < AS.temp4[AS.l][i][j].length ; k++)
-					{
-						tot += AS.temp4[AS.l][i][j][k];
-					}
-				}
-			}
-			
-			System.out.println("update 4: " + tot);
-		}
 		
 		for (int z=0; z<AS.nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
