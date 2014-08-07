@@ -2,7 +2,6 @@ package mosaic.core.cluster;
 
 import ij.IJ;
 import ij.gui.GenericDialog;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Flushable;
@@ -24,7 +23,6 @@ import mosaic.core.utils.ShellCommand;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.ConfigRepository;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -83,7 +81,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		// This class require Jsch 1.50 but Fiji use Jsch 1.49
 		// if we found Jsch 1.49 we inform the user to update that component
 		
-		File[] fl = new File(IJ.getDirectory("imagej") + File.separator + "jars" + File.separator).listFiles();
+/*		File[] fl = new File(IJ.getDirectory("imagej") + File.separator + "jars" + File.separator).listFiles();
 		if (fl != null)
 		{
 			for (File f : fl)
@@ -134,7 +132,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 					
 				}
 			}
-		}
+		}*/
 		
 	}
 	
@@ -315,12 +313,12 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		if (session != null && session.isConnected() == true)
 			return true;
 		
-	    ConfigRepository configRepository;
+//	    ConfigRepository configRepository;
 
 		String host = cprof.getAccessAddress();
 	    String user=cprof.getUsername();
 	    
-	    String config =
+/*	    String config =
     	        "Port 22\n"+
     	        "\n"+
     	        "Host Automated_cluster_command\n"+
@@ -335,8 +333,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
     	        "  #UserKnownHostsFile ~/.ssh/known_hosts";
 	    
 		configRepository = com.jcraft.jsch.OpenSSHConfig.parse(config);
-    	jsch.setConfigRepository(configRepository);
-		
+    	jsch.setConfigRepository(configRepository);*/
 		session = jsch.getSession(user, host, 22);
 		session.setPassword(cprof.getPassword());
 		java.util.Properties config_ = new java.util.Properties(); 

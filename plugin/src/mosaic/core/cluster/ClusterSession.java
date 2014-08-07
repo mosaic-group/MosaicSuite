@@ -583,8 +583,11 @@ public class ClusterSession
 			int nf = Integer.parseInt(s[1]);
 			String filename = s[2];
 			
+			int idp = filename.lastIndexOf(".");
+			if (idp >= 0)
+				filename.substring(0, idp);
 			
-			MosaicUtils.reorganize(output, "tmp", filename.substring(0, filename.lastIndexOf(".")), directories[i], nf);
+			MosaicUtils.reorganize(output, "tmp", filename, directories[i], nf);
 				
 		}
 	}
