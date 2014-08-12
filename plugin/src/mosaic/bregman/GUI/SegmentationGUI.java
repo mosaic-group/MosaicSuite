@@ -191,7 +191,6 @@ public class SegmentationGUI
 		
 		gd.addCheckbox("Subpixel segmentation", Analysis.p.subpixel);
 		gd.addCheckbox("Exclude Z edge", Analysis.p.exclude_z_edges);
-		gd.addCheckbox("Fast squassh", Analysis.p.fastsquassh);
 		
 		String choice1[] = {
 				"Automatic (best energy)", "Low layer", "Medium layer (clustering)","High layer (clustering)"};
@@ -247,7 +246,6 @@ public class SegmentationGUI
 		Analysis.p.min_intensityY=gd.getNextNumber();
 		Analysis.p.subpixel= gd.getNextBoolean();
 		Analysis.p.exclude_z_edges = gd.getNextBoolean();
-		Analysis.p.fastsquassh = gd.getNextBoolean();
 		Analysis.p.sigma_gaussian=gd.getNextNumber();
 		Analysis.p.zcorrec=Analysis.p.sigma_gaussian/gd.getNextNumber();
 		Analysis.p.min_region_filter_intensities = gd.getNextNumber();

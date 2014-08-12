@@ -197,7 +197,6 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 			for(int nt=0; nt< p.nthreads;nt++){
 				energy+=energytab2[nt];
 			}
-			System.out.println("Energy : " + energy);
 		}
 
 		//int centerim=p.nz/2;

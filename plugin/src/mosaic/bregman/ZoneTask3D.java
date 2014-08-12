@@ -164,23 +164,6 @@ public class ZoneTask3D implements Runnable {
 			}
 			AS.dct3d.inverse(AS.temp1[AS.l], true);
 		}
-
-		if (nt == 0)
-		{
-			double tot = 0;
-			for (int i = 0 ; i < AS.temp1[AS.l].length ; i++)
-			{
-				for (int j = 0 ; j < AS.temp1[AS.l][i].length ; j++)
-				{
-					for (int k = 0 ; k < AS.temp1[AS.l][i][j].length ; k++)
-					{
-						tot += AS.temp1[AS.l][i][j][k];
-					}
-				}
-			}
-			
-			System.out.println("update 3: " + tot);
-		}
 		
 		Tools.convolve3Dseparable(AS.temp2[AS.l], AS.temp1[AS.l], 
 				AS.ni, AS.nj, AS.nz, 
