@@ -1,3 +1,5 @@
+package mosaic.plugins;
+
 import ij.ImagePlus;
 import ij.measure.Measurements;
 import ij.plugin.filter.PlugInFilter;
