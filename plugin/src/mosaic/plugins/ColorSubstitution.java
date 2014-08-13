@@ -21,9 +21,8 @@ import mosaic.plugins.Generate_PSF.Point3D;
 
 
 
-public class ColorSubstitution implements  PlugInFilter{
-	
-
+public class ColorSubstitution implements  PlugInFilter
+{
 	<T extends RealType<T> & NativeType<T> > void substitute(ImagePlus imp, double col_from, double col_to)
 	{
 		// Color substitution

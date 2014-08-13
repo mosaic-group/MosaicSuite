@@ -227,7 +227,8 @@ public class ClusterSession
 		if (img == null)
 		{nImages = 0; return true;}
 		
-		splitAndUpload(img,null,wp);
+		if (splitAndUpload(img,null,wp) == false)
+			return false;
 	
 		BatchInterface bc = cp.getBatchSystem();
 		String tmp_dir = IJ.getDirectory("temp");
@@ -728,126 +729,130 @@ public class ClusterSession
 		
 		// Create job array
 		
-		if (createJobArrayFromImage(img,command,options,ss,ExtTime,wp) == false)
-		{
-			wp.SetStatusMessage("Failed to create job array");
-			ss = null;
-			return false;
-		}
+			if (createJobArrayFromImage(img,command,options,ss,ExtTime,wp) == false)
+			{
+				wp.SetStatusMessage("Failed to create job array");
+				ss = null;
+				wp.dispose();
+				return false;
+			}
 		
-		// if sync == true we do not wait return
+			// if sync == true we do not wait return
 		
-		if (sync == false)
-		{
-			// Close the progress bar
+			if (sync == false)
+			{
+				// Close the progress bar
 			
-			wp.dispose();
-			ss = null;
-			return true;
-		}
+				wp.dispose();
+				ss = null;
+				return true;
+			}
 		
-		BatchInterface bc = cp.getBatchSystem();
+			BatchInterface bc = cp.getBatchSystem();
 		
-		//
+			//
 		
-		wp.SetProgress(0);
-		wp.SetStatusMessage("Getting all jobs ...");
+			wp.SetProgress(0);
+			wp.SetStatusMessage("Getting all jobs ...");
 		
-		BatchInterface bcl[] = bc.getAllJobs(ss,command);
-		if (bcl == null)
-		{			
-			wp.SetStatusMessage("End");
-			// Close cluster status stack
-			return false;
-		}
-		ClusterStatusStack css[] = new ClusterStatusStack[bcl.length];
-		ImageStack st[] = new ImageStack[bcl.length];
-		ImagePlus ip[] = new ImagePlus[bcl.length];
+			BatchInterface bcl[] = bc.getAllJobs(ss,command);
+			if (bcl == null)
+			{			
+				bcl = new BatchInterface[0];
+			}
+			ClusterStatusStack css[] = new ClusterStatusStack[bcl.length];
+			ImageStack st[] = new ImageStack[bcl.length];
+			ImagePlus ip[] = new ImagePlus[bcl.length];
 		
-		// get the status wait competition;
+			// get the status wait competition;
 
-		for (int j = 0 ; j < bcl.length ; j++)
-		{
-			bcl[j].createJobStatus();
-			css[j] = new ClusterStatusStack();
-			st[j] = css[j].CreateStack(bcl[j].getJobStatus());
-			ip[j] = new ImagePlus("Cluster status " + bcl[j].getJobID(),st[j]);
-			ip[j].show();
-			bcl[j].setJobStatus(bcl[j].getJobStatus());
-		}
-		
-		wp.SetProgress(0);
-		
-		/* Wait the various jobs complete */
-		
-		int n_bc = 0;
-		while (n_bc < bcl.length)
-		{
-			double progress = 0.0;
-			double total = 0.0;
-			n_bc = 0;
 			for (int j = 0 ; j < bcl.length ; j++)
 			{
-				if (bcl[j] == null)
-				{n_bc++; continue;}
-				String commands[] = new String[1];
-				commands[0] = bcl[j].statusJobCommand();
-				bcl[j].reset();
-				ss.setShellProcessOutput(bcl[j]);
-				ss.runCommands(cp.getPassword(), commands);
+				bcl[j].createJobStatus();
+				css[j] = new ClusterStatusStack();
+				st[j] = css[j].CreateStack(bcl[j].getJobStatus());
+				ip[j] = new ImagePlus("Cluster status " + bcl[j].getJobID(),st[j]);
+				ip[j].show();
+				bcl[j].setJobStatus(bcl[j].getJobStatus());
+			}
+		
+			wp.SetProgress(0);
+		
+			/* Wait the various jobs complete */
 			
-				// Wait the command get Processed
-
-				bcl[j].waitParsing();
-			
-				if (JobStatus.allComplete(bcl[j].getJobsStatus()) == true)
+			int n_bc = 0;
+			while (n_bc < bcl.length)
+			{
+				double progress = 0.0;
+				double total = 0.0;
+				n_bc = 0;
+				for (int j = 0 ; j < bcl.length ; j++)
 				{
+					if (bcl[j] == null)
+					{n_bc++; continue;}
+					String commands[] = new String[1];
+					commands[0] = bcl[j].statusJobCommand();
+					bcl[j].reset();
+					ss.setShellProcessOutput(bcl[j]);
+					ss.runCommands(cp.getPassword(), commands);
+			
+					// Wait the command get Processed
+
+					bcl[j].waitParsing();
+			
+					if (JobStatus.allComplete(bcl[j].getJobsStatus()) == true)
+					{
+						css[j].UpdateStack(st[j], bcl[j].getJobStatus());
+						ip[j].updateAndDraw();
+					
+						getData(output,ss,wp,bcl[j]);
+						bcl[j].clean(ss);
+					
+						wp.SetProgress(0);
+						wp.SetStatusMessage("Reorganize...");
+						reorganize(output,bcl[j].getJobID(),wp);
+					
+//						wp.SetProgress(0);
+//						wp.SetStatusMessage("Stack visualize...");
+//						stackVisualize(output,bcl[j].getJobID(),wp);
+					
+						bcl[j] = null;
+					
+						wp.SetStatusMessage("Computing ...");
+						int p = (int)(progress * 100.0 / total);
+						wp.SetProgress(p);
+					
+						continue;
+					}
 					css[j].UpdateStack(st[j], bcl[j].getJobStatus());
 					ip[j].updateAndDraw();
-					
-					getData(output,ss,wp,bcl[j]);
-					bcl[j].clean(ss);
-					
-					wp.SetProgress(0);
-					wp.SetStatusMessage("Reorganize...");
-					reorganize(output,bcl[j].getJobID(),wp);
-					
-//					wp.SetProgress(0);
-//					wp.SetStatusMessage("Stack visualize...");
-//					stackVisualize(output,bcl[j].getJobID(),wp);
-					
-					bcl[j] = null;
-					
-					wp.SetStatusMessage("Computing ...");
-					int p = (int)(progress * 100.0 / total);
-					wp.SetProgress(p);
-					
-					continue;
-				}
-				css[j].UpdateStack(st[j], bcl[j].getJobStatus());
-				ip[j].updateAndDraw();
 				
-				progress += JobStatus.countComplete(bcl[j].getJobsStatus());
-				total += bcl[j].getJobStatus().length;
+					progress += JobStatus.countComplete(bcl[j].getJobsStatus());
+					total += bcl[j].getJobStatus().length;
+				}
+			
+				wp.SetStatusMessage("Computing ...");
+				int p = (int)(progress * 100.0 / total);
+				wp.SetProgress(p);
+			
+				// wait 10 second to send and get again the status
+			
+				try 
+				{
+					Thread.sleep(3000);
+				}
+				catch (InterruptedException e) 
+				{
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			
-			wp.SetStatusMessage("Computing ...");
-			int p = (int)(progress * 100.0 / total);
-			wp.SetProgress(p);
+			// Close cluster status stack
 			
-			// wait 10 second to send and get again the status
+			for (int i = 0 ; i < ip.length ; i++)
+				ip[i].close();
 			
-			try 
-			{
-				Thread.sleep(3000);
-			} 
-			catch (InterruptedException e) 
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
 		// It never went online
 		
 //		if (bcl.length == 0)
@@ -860,11 +865,6 @@ public class ClusterSession
 			wp.SetStatusMessage("Stack visualize...");
 			stackVisualize(output,0,wp);
 //		}
-		
-		// Close cluster status stack
-		
-		for (int i = 0 ; i < ip.length ; i++)
-			ip[i].close();
 			
 		wp.SetStatusMessage("End");
 		return true;

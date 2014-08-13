@@ -446,7 +446,7 @@ public class BLauncher
 					if(Analysis.p.save_images)
 					{
 						script = new RScript(
-								Analysis.p.wd, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3,
+								savepath, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3,
 								Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames,
 								Analysis.p.ch1,Analysis.p.ch2
 								);
