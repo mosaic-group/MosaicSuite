@@ -5,9 +5,6 @@ import ij.process.ImageProcessor;
 import mosaic.core.detection.PreviewInterface;
 import mosaic.core.psf.GeneratePSF;
 
-
-
-
 class PSFGenerator implements PlugInFilter
 {
 
