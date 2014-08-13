@@ -27,6 +27,12 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
+import net.imglib2.RandomAccess;
+import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.type.numeric.integer.ShortType;
 import mosaic.bregman.Tools;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.bregman.output.CSVOutput;
@@ -218,8 +224,8 @@ public class BLauncher
 		}
 		if(Analysis.p.dispint)
 		{
-			displayintensities(Analysis.regionslist[0], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1, Analysis.imagecolor_c1,sep);
-			if (Analysis.p.nchannels == 2) {displayintensities(Analysis.regionslist[1], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2, Analysis.imagecolor_c2, sep);}
+			displayintensities(Analysis.regionslist[0], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1,sep);
+			if (Analysis.p.nchannels == 2) {displayintensities(Analysis.regionslist[1], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2, sep);}
 		}
 		if (Analysis.p.displabels || Analysis.p.dispcolors)
 		{
@@ -842,30 +848,33 @@ public class BLauncher
 	 * 
 	 */
 	
-	public void displayintensities(ArrayList<Region> regionslist,int dz, int di, int dj, int channel, byte [] imagecolor, boolean sep)
+	public void displayintensities(ArrayList<Region> regionslist,int dz, int di, int dj, int channel, boolean sep)
 	{
-		ImageStack intS;
-		ImagePlus intensities= new ImagePlus();
-
 		//build stack and imageplus
-		intS=new ImageStack(di,dj);
-		for (int z=0; z<dz; z++) {  
-			int [] tabt= new int [3];
+		
+		final ImgFactory< ShortType > imgFactory = new ArrayImgFactory< ShortType >( );
+		 
+	    // create an 3d-Img
+	    final Img< ShortType > imgInt = imgFactory.create( new long[]{ di, dj, dz }, new ShortType() );
+		RandomAccess< ShortType > ra = imgInt.randomAccess();
 
-			ColorProcessor cpcoloc= new ColorProcessor(di,dj);
-			for (int i=0;i<di;i++) {
-				int t=z*di*dj*3+i*dj*3;
-				for (int j=0;j< dj;j++){
-					tabt[0]=imagecolor[t+j*3+0] & 0xFF;
-					tabt[1]=imagecolor[t+j*3+1] & 0xFF;
-					tabt[2]=imagecolor[t+j*3+2] & 0xFF;
-					cpcoloc.putPixel(i, j, tabt);
-				}
-			}
-			intS.addSlice("Intensities reconstruction, channel " + channel, cpcoloc);
-
-		}
-		intensities.setStack("Intensities reconstruction, channel " +channel, intS);
+		int pos[] = new int[3];
+		
+	    // for each region draw the region with specified intensity
+	    for (Region r : regionslist)
+	    {
+	    	// for each pixel in the region
+	    	for (Pix p : r.pixels)
+	    	{
+	    		pos[0] = p.px;
+	    		pos[1] = p.py;
+	    		pos[2] = p.pz;
+	    		ra.setPosition(pos);
+	    		ra.get().set((short)r.intensity);
+	    	}
+	    }
+	    
+		ImagePlus intensities = ImageJFunctions.wrap(imgInt,"Intensities");
 		
 		if (sep == false)
 			updateImages(out_disp,intensities,"Intensities reconstruction, channel " +channel,Analysis.p.dispint,channel);
