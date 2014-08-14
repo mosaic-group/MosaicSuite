@@ -1,6 +1,5 @@
 package mosaic.core.utils;
 
-
 import static org.junit.Assert.fail;
 
 import java.awt.Choice;
@@ -1625,7 +1624,7 @@ public class MosaicUtils
 		return TestBaseDirectory;
 	}
 	
-	static String TestBaseDirectory = "/Users/incardon/Desktop/MOSAIC/imageJ/ImageJ/plugin/Jtest_data";
+	static String TestBaseDirectory = "/home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/Jtest_data";
 	
 	/**
 	 * 
@@ -1848,6 +1847,7 @@ public class MosaicUtils
 		IJ.run(ip,"Properties...","channels=" + ip.getNFrames() + " slices=" + ip.getNChannels() + " frames=" + ip.getNSlices() + " unit=" + cal.getUnit() + " pixel_width=" + cal.pixelWidth + " pixel_height=" + cal.pixelHeight + " voxel_depth=" + cal.pixelDepth);
 	}
 	
+	
 	/**
 	 * 
 	 * Test the segmentation
@@ -1961,40 +1961,72 @@ public class MosaicUtils
 			// Check if there are job directories
 			
 			String[] cs = ClusterSession.getJobDirectories(0, tmp_dir);
+			String[] csr = ClusterSession.getJobDirectories(0, tmp.base);
 			if (cs != null && cs.length != 0)
 			{
 				// Sort into ascending order
 				
-				Arrays.sort(cs);
+//				Arrays.sort(cs);
 				
 				// Check if result_imgs has the same number
 				
-				if (tmp.result_imgs.length % cs.length != 0)
+				if (csr.length % cs.length != 0)
 				{
 					fail("Error: Image result does not match the result");
 				}
 				
 				// replace the result dir with the job id
 				
-				for (int i = 0 ; i < tmp.result_imgs.length ; i++)
+				for (int i = 0 ; i < cs.length ; i++)
 				{
-					String repl = cs[i%cs.length].substring(cs[i%cs.length].lastIndexOf(File.separator)).substring(4);
-					tmp.result_imgs[i] = tmp.result_imgs[i].replace("*", repl);
-					tmp.result_imgs_rel[i] = tmp.result_imgs_rel[i].replace("*", repl);
+					String fr[] = MosaicUtils.readAndSplit(cs[i] + File.separator + "JobID");
+					String fname = MosaicUtils.removeExtension(fr[2]);
+					String JobID = fr[0];
+					
+					int id = ShellCommand.getIDfromFileList(tmp.result_imgs_rel, fname);
+					
+					tmp.result_imgs_rel[id] = tmp.result_imgs_rel[id].replace("*", JobID);
+					
+					
 				}
 				
-				for (int i = 0 ; i < tmp.csv_results.length ; i++)
+				for (int i = 0 ; i < csr.length ; i++)
 				{
-					String repl = cs[i%cs.length].substring(cs[i%cs.length].lastIndexOf(File.separator)).substring(4);
-					tmp.csv_results[i] = tmp.csv_results[i].replace("*", repl);
-					tmp.csv_results_rel[i] = tmp.csv_results_rel[i].replace("*", repl);
+					String fr[] = MosaicUtils.readAndSplit(csr[i] + File.separator + "JobID");
+					String fname = MosaicUtils.removeExtension(fr[2]);
+					String JobID = fr[0];
+					
+					int id = ShellCommand.getIDfromFileList(tmp.result_imgs, fname);
+					
+					tmp.result_imgs[id] = tmp.result_imgs[id].replace("*", JobID);		
+				}
+				
+				// same things for csv
+				
+				for (int i = 0 ; i < cs.length ; i++)
+				{
+					String fr[] = MosaicUtils.readAndSplit(cs[i] + File.separator + "JobID");
+					String fname = MosaicUtils.removeExtension(fr[2]);
+					String JobID = fr[0];
+					
+					int id = ShellCommand.getIDfromFileList(tmp.csv_results, fname);
+					
+					tmp.csv_results[id] = tmp.csv_results[id].replace("*", JobID);
+				}
+				
+				for (int i = 0 ; i < csr.length ; i++)
+				{
+					String fr[] = MosaicUtils.readAndSplit(csr[i] + File.separator + "JobID");
+					String fname = MosaicUtils.removeExtension(fr[2]);
+					String JobID = fr[0];
+
+					int id = ShellCommand.getIDfromFileList(tmp.csv_results_rel, fname);
+					
+					tmp.csv_results_rel[id] = tmp.csv_results_rel[id].replace("*", JobID);
 				}
 			}
 			
 			int cnt = 0;
-			
-			Arrays.sort(tmp.result_imgs);
-			Arrays.sort(tmp.result_imgs_rel);
 			
 	        // create the ImgOpener
 	        ImgOpener imgOpener = new ImgOpener();
@@ -2014,14 +2046,8 @@ public class MosaicUtils
 					image = imgOpener.openImgs(rs).get(0);
 				
 					String filename = null;
-					if (cs != null && cs.length != 0)
-					{
-						filename = cs[cnt] + File.separator + tmp.result_imgs_rel[cnt].substring(tmp.result_imgs_rel[cnt].indexOf(File.separator)+1);
-					}
-					else
-					{
-						filename = tmp_dir + File.separator + tmp.result_imgs_rel[cnt];
-					}
+
+					filename = tmp_dir + File.separator + tmp.result_imgs_rel[cnt];
 
 						
 					// open the result image
@@ -2064,14 +2090,7 @@ public class MosaicUtils
 				InterPluginCSV<T> iCSVsrc = new InterPluginCSV<T>(cls);
 			
 				String filename = null;
-				if (cs != null && cs.length != 0)
-				{
-					filename = cs[cnt] + File.separator + tmp.csv_results_rel[cnt].substring(tmp.result_imgs_rel[cnt].indexOf(File.separator)+1);
-				}
-				else
-				{
-					filename = tmp_dir + File.separator + tmp.csv_results_rel[cnt];
-				}				
+				filename = tmp_dir + File.separator + tmp.csv_results_rel[cnt];
 				
 				iCSVsrc.setCSVPreferenceFromFile(filename);
 				Vector<T> outsrc = iCSVsrc.Read(filename);

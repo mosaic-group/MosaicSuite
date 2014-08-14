@@ -4,6 +4,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
+import io.scif.img.ImgOpener;
 
 import java.io.File;
 
@@ -30,6 +31,8 @@ public class Debug implements PlugInFilter
 	@Override
 	public int setup(String arg0, ImagePlus arg1)
 	{
+		ImgOpener io = new ImgOpener();
+		
 		IJ.showMessage(IJ.getDirectory("temp"));
 		
 		mosaic.core.utils.Jtest ms = new mosaic.core.utils.Jtest();

@@ -307,4 +307,37 @@ public class ShellCommand
 		
 		return seta1.containsAll(seta2);
 	}
+	
+	/**
+	 * 
+	 * Get a the path that contain the file
+	 * 
+	 * example:
+	 * 
+	 * cs = /some_path/image_A
+	 *      /some_path/image_B
+	 *      /some_other_path/image_C
+	 * 
+	 * img = image_C
+	 * 
+	 * the function return 2
+	 * 
+	 * @param cs List of paths
+	 * @param fl name of the file
+	 * 
+	 * @return String of the JobID
+	 */
+	
+	public static int getIDfromFileList(String path[], String fl)
+	{
+		for (int k = 0 ; k < path.length ; k++)
+		{
+			if (new File(path[k]).getName().contains(fl))
+			{
+				return k;
+			}
+		}
+		
+		return -1;
+	}
 }
