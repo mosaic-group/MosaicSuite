@@ -5,7 +5,7 @@
   
   <!-- Adapt paths to your environment -->
 <!--  <property name="pluginsDir"  location="/home/i-bird/Desktop/MOSAIC/imageJ/ImageJ_1.45/ImageJ/plugins/Mosaic_ToolSuite" /> -->
-  <property name="pluginsDir"  location="/Users/incardon/Desktop/Fiji.app/plugins/Mosaic_ToolSuite" />
+  <property name="pluginsDir"  location="/home/i-bird/Desktop/MOSAIC/imageJ/Fiji.app_new/plugins/Mosaic_ToolSuite" />
   <!-- Shouldn't be necessary to change something below here, except you know what you are doing. -->
 
   <property name="src" location="src" />
