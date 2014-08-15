@@ -586,7 +586,7 @@ public class ClusterSession
 			
 			int idp = filename.lastIndexOf(".");
 			if (idp >= 0)
-				filename.substring(0, idp);
+				filename = filename.substring(0, idp);
 			
 			MosaicUtils.reorganize(output, "tmp", filename, directories[i], nf);
 				
