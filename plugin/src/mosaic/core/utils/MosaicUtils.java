@@ -2009,9 +2009,9 @@ public class MosaicUtils
 					String fname = MosaicUtils.removeExtension(fr[2]);
 					String JobID = fr[0];
 					
-					int id = ShellCommand.getIDfromFileList(tmp.csv_results, fname);
+					int id = ShellCommand.getIDfromFileList(tmp.csv_results_rel, fname);
 					
-					tmp.csv_results[id] = tmp.csv_results[id].replace("*", JobID);
+					tmp.csv_results_rel[id] = tmp.csv_results_rel[id].replace("*", JobID);
 				}
 				
 				for (int i = 0 ; i < csr.length ; i++)
@@ -2020,9 +2020,9 @@ public class MosaicUtils
 					String fname = MosaicUtils.removeExtension(fr[2]);
 					String JobID = fr[0];
 
-					int id = ShellCommand.getIDfromFileList(tmp.csv_results_rel, fname);
+					int id = ShellCommand.getIDfromFileList(tmp.csv_results, fname);
 					
-					tmp.csv_results_rel[id] = tmp.csv_results_rel[id].replace("*", JobID);
+					tmp.csv_results[id] = tmp.csv_results[id].replace("*", JobID);
 				}
 			}
 			
