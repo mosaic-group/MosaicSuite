@@ -78,4 +78,30 @@ public class Region implements Comparable
 	{
 		return perimeter;
 	}
+	
+	public double getoverlap_with_ch()
+	{
+		return overlap;
+	}
+	
+	public double getcoloc_object_size()
+	{
+		return over_size;
+	}
+	
+	public double getcoloc_object_intensity()
+	{
+		return over_int;
+	}
+	
+	public boolean getsingle_coloc()
+	{
+		return singlec;
+	}
+	
+	public double getcoloc_image_intensity()
+	{
+		return coloc_o_int;
+	}
+	
 }

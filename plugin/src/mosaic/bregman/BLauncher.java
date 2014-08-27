@@ -35,11 +35,22 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.integer.ShortType;
 import mosaic.bregman.Tools;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.ShellCommand;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.ipc.OutputChoose;
 
 public class BLauncher 
 {
+	double colocAB;
+	double colocABnumber;
+	double colocABsize;
+	double colocBA;
+	double colocBAnumber;
+	double colocBAsize;
+	double colocA;
+	double colocB;
+	
 	public  int hcount=0;
 	public  String headlesscurrent;
 //	PrintWriter out3;
@@ -95,6 +106,20 @@ public class BLauncher
 				if (f.isDirectory() == true)
 					continue;
 				
+				// If it is the Rscript continue
+				
+				if (f.getName().equals("R_analysis.R"))
+					continue;
+				
+				// It is an hidden file
+				if (f.getName().startsWith(".") == true)
+					continue;
+					
+				// It is a csv file
+				if (f.getName().endsWith(".csv") == true)
+					continue;
+					
+				
 				// Attempt to open a file
 				
 				try
@@ -119,16 +144,33 @@ public class BLauncher
 					saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
 					
 					try
-					{out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), 0);} 
+					{
+						if (fl.length != 1)
+							out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp),aImp.getTitle(),"stitch", hcount-1);
+						else
+							out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp),aImp.getTitle(),aImp.getTitle(), 0);
+					} 
 					catch (FileNotFoundException e) 
 					{e.printStackTrace();}
 				}
-				if (out != null)
-				{
-					out.close();
-					out =null;
-				}
 				cnt++;
+			}
+			if (out != null)
+			{
+				out.close();
+				out =null;
+			}
+			
+			// Try to run the R script
+			
+			try {
+				ShellCommand.exeCmdNoPrint("Rscript " + dir.getAbsolutePath() + File.separator + "R_analysis.R");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		else
@@ -159,7 +201,7 @@ public class BLauncher
 				PrintWriter out = null;
 				File fl = new File(path);
 				try
-				{out = writeImageDataCsv(out, fl.getParent(), fl.getName(), 0);
+				{out = writeImageDataCsv(out, fl.getParent(), fl.getName(), fl.getName(), 0);
 				out.close();} 
 				catch (FileNotFoundException e) 
 				{e.printStackTrace();}
@@ -192,7 +234,7 @@ public class BLauncher
 				
 				try
 				{
-					out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), f-1);} 
+					out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), aImp.getTitle(),  f-1);} 
 				catch (FileNotFoundException e) 
 				{e.printStackTrace();}
 			}
@@ -247,7 +289,7 @@ public class BLauncher
 	 */
 	
 	private void saveAllImages(String path)
-	{	
+	{		
 		// Save images
 			
 		for (int i = 0 ; i < out_over.length ; i++)
@@ -285,27 +327,25 @@ public class BLauncher
 	 * Write the CSV ImageData file information
 	 * 
 	 * @param path directory where to save
-	 * @param filename output file (extension is removed)
+	 * @param filename name of the file processed
+	 * @param outfilename output file (extension is removed)
 	 * @param hcount frame output
 	 * @return true if success, false otherwise
 	 * @throws FileNotFoundException 
 	 */
 	
-	private PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, int hcount) throws FileNotFoundException
+	private PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, String outfilename, int hcount) throws FileNotFoundException
 	{
 		if (out == null)
 		{
 			// Remove extension from filename
 			
 			String ff = MosaicUtils.removeExtension(filename);
+			String ffo = MosaicUtils.removeExtension(outfilename);
 			
-			out  = new PrintWriter(path + File.separator + ff + "_ImagesData"+ ".csv");
-		}
-		
-		// if two channel
-		
-		if (hcount == 0)
-		{
+			out  = new PrintWriter(path + File.separator + ffo + "_ImagesData"+ ".csv");
+			
+			
 			// write the header
 			
 			if (Analysis.p.nchannels == 2)
@@ -331,10 +371,8 @@ public class BLauncher
 				out.println();
 				out.flush();
 			}
-
-			out.println();
 			out.print(
-					"Parameters:" + " " + 
+					"%Parameters:" + " " + 
 							"background removal " + " "+ Analysis.p.removebackground  + " " +
 							"window size " + Analysis.p.size_rollingball + " " +
 							"stddev PSF xy " + " "+ mosaic.bregman.Tools.round(Analysis.p.sigma_gaussian, 5) + " " +
@@ -362,19 +400,6 @@ public class BLauncher
 			corr=temp[0];
 			corr_mask=temp[1];
 			corr_zero=temp[2];
-			
-			out.print(filename + ";" + mosaic.bregman.Tools.round(corr,3) + ";" + mosaic.bregman.Tools.round(corr_mask,3)+ ";" + mosaic.bregman.Tools.round(corr_zero,3));
-			out.println();
-			out.flush();
-			
-			double colocAB=mosaic.bregman.Tools.round(Analysis.colocsegAB(hcount),4);
-			double colocABnumber = mosaic.bregman.Tools.round(Analysis.colocsegABnumber(),4);
-			double colocABsize = mosaic.bregman.Tools.round(Analysis.colocsegABsize(hcount),4);
-			double colocBA=mosaic.bregman.Tools.round(Analysis.colocsegBA(hcount),4);
-			double colocBAnumber = mosaic.bregman.Tools.round(Analysis.colocsegBAnumber(),4);
-			double colocBAsize=mosaic.bregman.Tools.round(Analysis.colocsegBAsize(hcount),4);
-			double colocA=mosaic.bregman.Tools.round(Analysis.colocsegA(null),4);
-			double colocB=mosaic.bregman.Tools.round(Analysis.colocsegB(null),4);
 			
 			double meanSA= Analysis.meansurface(Analysis.regionslist[0]);
 			double meanSB= Analysis.meansurface(Analysis.regionslist[1]);
@@ -446,9 +471,9 @@ public class BLauncher
 
 				if(Analysis.p.nchannels==2)
 				{
-					Analysis.p.file1=savepath+"_ObjectsData_c1"+ ".csv";
-					Analysis.p.file2=savepath+"_ObjectsData_c2"+ ".csv";
-					Analysis.p.file3=savepath+"_ImagesData"+ ".csv";
+					Analysis.p.file1=savepath+File.separator+"stitch_ObjectsData_c1"+ ".csv";
+					Analysis.p.file2=savepath+File.separator+"stitch_ObjectsData_c2"+ ".csv";
+					Analysis.p.file3=savepath+File.separator+"stitch_ImagesData"+ ".csv";
 					if(Analysis.p.save_images)
 					{
 						script = new RScript(
@@ -622,8 +647,9 @@ public class BLauncher
 			//IJ.log("f");
 
 			//if(Analysis.p.dispwindows){
-			IJ.log("Colocalization ch1 in ch2: " +mosaic.bregman.Tools.round(colocsegAB,4));
-			IJ.log("Colocalization ch2 in ch1: " +mosaic.bregman.Tools.round(colocsegBA,4));
+			
+//			IJ.log("Colocalization ch1 in ch2: " +mosaic.bregman.Tools.round(colocsegAB,4));
+//			IJ.log("Colocalization ch2 in ch1: " +mosaic.bregman.Tools.round(colocsegBA,4));
 			//}
 			if(Analysis.p.save_images)
 			{
@@ -634,16 +660,24 @@ public class BLauncher
 
 				//IJ.log("print objects");
 //				Analysis.printobjects(out2, hcount);
+
+				// Calculate colocalization quantities
+				
+				colocAB=mosaic.bregman.Tools.round(Analysis.colocsegAB(hcount),4);
+				colocBA=mosaic.bregman.Tools.round(Analysis.colocsegBA(hcount),4);
+				colocABnumber = mosaic.bregman.Tools.round(Analysis.colocsegABnumber(),4);
+				colocABsize = mosaic.bregman.Tools.round(Analysis.colocsegABsize(hcount),4);
+				colocBAnumber = mosaic.bregman.Tools.round(Analysis.colocsegBAnumber(),4);
+				colocBAsize=mosaic.bregman.Tools.round(Analysis.colocsegBAsize(hcount),4);
+				colocA=mosaic.bregman.Tools.round(Analysis.colocsegA(null),4);
+				colocB=mosaic.bregman.Tools.round(Analysis.colocsegB(null),4);
 				
 				boolean append = false;
 				
-				if (hcount == 0)
-					append = false;
-				else
-					append = true;
-				
 				// Write channel 2
 				
+				// Choose the Rscript coloc format
+				CSVOutput.occ = CSVOutput.oc[2];
 				Vector<?> obl = Analysis.getObjectsList(hcount,1);
 				
 				String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
@@ -653,6 +687,7 @@ public class BLauncher
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
 				
 				System.out.println(savepath + File.separator +  filename_without_ext + "_ObjectsData_c2" + ".csv");
+				
 				IpCSV.Write(savepath + File.separator +  filename_without_ext + "_ObjectsData_c2" + ".csv",obl,CSVOutput.occ, append);
 				
 				// Write channel 1

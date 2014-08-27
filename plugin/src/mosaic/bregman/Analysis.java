@@ -21,6 +21,8 @@ import mosaic.core.utils.MosaicUtils;
 
 public class Analysis {
 
+	// This is the output for cluster
+	
 	public static String out[] = {"*_ObjectsData_c1.csv",
 	        "*_ObjectsData_c2.csv",
 	        "*_mask_c1.zip",
@@ -32,8 +34,11 @@ public class Analysis {
 	        "*_intensities_c2.zip",
 	        "*_seg_c1.zip",
 	        "*_seg_c2.zip",
+	        "*_coloc.zip",
 	        "*.tif"};
 
+	// This is the output local
+	
 	public static String out_w[] = {"*_ObjectsData_c1.csv",
         "*_ObjectsData_c2.csv",
         "*_mask_c1.zip",
@@ -44,7 +49,8 @@ public class Analysis {
         "*_intensities_c1.zip",
         "*_intensities_c2.zip",
         "*_seg_c1.zip",
-        "*_seg_c2.zip"};
+        "*_seg_c2.zip",
+        "*_coloc.zip"};
 	
 	public static double meansize_refined;
 	public static String currentImage="currentImage";

@@ -2,6 +2,7 @@ package mosaic.core.ipc;
 
 import java.util.Vector;
 
+import org.supercsv.cellprocessor.ParseBool;
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -23,6 +24,11 @@ class ProcessorGeneral
 	public CellProcessor getProcessorCoord_Z()		{return new ParseDouble();}
 	public CellProcessor getProcessorFrame() {return new ParseInt();}
 	public CellProcessor getProcessorSurface()		{return new ParseDouble();}
+	public CellProcessor getProcessorOverlap_with_ch()		{return new ParseDouble();}
+	public CellProcessor getProcessorColoc_object_size()		{return new ParseDouble();}
+	public CellProcessor getProcessorColoc_object_intensity()	{return new ParseDouble();}
+	public CellProcessor getProcessorSingle_Coloc()				{return new ParseBool();}
+	public CellProcessor getProcessorColoc_image_intensity()		{return new ParseDouble();}
 	
 	class Map
 	{

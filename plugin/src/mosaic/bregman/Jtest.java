@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
 
+import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.bregman.output.Region3DRScript;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.utils.ImgTest;
@@ -33,7 +34,7 @@ public class Jtest
 		// test the cluster
 		
 		BG.setUseCluster(false);
-		MosaicUtils.<Region3DRScript>testSegmentation(BG,"Squassh_testa",Region3DRScript.class);
+		MosaicUtils.<Region3DColocRScript>testSegmentation(BG,"Squassh_testa",Region3DColocRScript.class);
 		
 		BG.setUseCluster(false);
 		MosaicUtils.<Region3DRScript>testSegmentation(BG,"Squassh",Region3DRScript.class);

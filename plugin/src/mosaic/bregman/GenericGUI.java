@@ -21,9 +21,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Vector;
 
@@ -40,12 +42,15 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import net.sf.javaml.utils.ArrayUtils;
 import mosaic.bregman.GUI.BackgroundSubGUI;
 import mosaic.bregman.GUI.ColocalizationGUI;
 import mosaic.bregman.GUI.PSFWindow;
 import mosaic.bregman.GUI.SegmentationGUI;
 import mosaic.bregman.GUI.VisualizationGUI;
 import mosaic.bregman.output.CSVOutput;
+import mosaic.bregman.output.Region3DColocRScript;
+import mosaic.bregman.output.Region3DRScript;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterSession;
@@ -392,7 +397,46 @@ public class GenericGUI
 				{
 					File fl = new File(Analysis.p.wd);
 					if (fl.isDirectory() == true)
+					{
 						MosaicUtils.reorganize(Analysis.out_w,pf,Analysis.p.wd);
+						
+						// Stitch the result
+						
+						InterPluginCSV<Region3DColocRScript> csv = new InterPluginCSV<Region3DColocRScript>(Region3DColocRScript.class);
+						
+						// for each output
+						
+						for (String out : Analysis.out_w)
+						{
+							if (out.endsWith(".csv") == false)
+								continue;
+							
+							// Does not follow the csv format
+							if (out.equals("*_ImagesData.csv"))
+								continue;
+							
+							// get the list of the files to stitch
+						
+							File flt[] = new File(fl.getAbsolutePath() + File.separator + out.replace("*","_")).listFiles();
+						
+							String csvs[] = new String[flt.length];
+						
+							for (int i = 0 ; i < flt.length ; i++)
+							{
+								csvs[i] = flt[i].getAbsolutePath();
+							}
+						
+							// sort
+						
+							Arrays.sort(csvs);
+						
+							// Stitch the files together
+						
+							csv.clearMetaInformation();
+							csv.setCSVPreferenceFromFile(csvs[0]);							
+							csv.Stitch(csvs, fl.getAbsolutePath() + File.separator + out.replace("*","stitch"));
+						}
+					}
 					else
 						MosaicUtils.reorganize(Analysis.out_w,pf,new File(Analysis.p.wd).getParent());
 				}

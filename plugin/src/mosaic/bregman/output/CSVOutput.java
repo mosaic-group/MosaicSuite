@@ -20,6 +20,14 @@ import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
+/**
+ * 
+ * Here we define all the possible csv output format for Squassh
+ * 
+ * @author Pietro Incardona
+ *
+ */
+
 public class CSVOutput
 {
 	// Region3DTrack
@@ -34,8 +42,6 @@ public class CSVOutput
         "Intensity",
         "Surface"
     };
-	
-    public static CellProcessor[] Region3DTrackCellProcessor;
       
     // Region3DRscript
     
@@ -52,8 +58,41 @@ public class CSVOutput
         "Coord_Z",
     };
     
+    // Region3DColocRscript
+    
+	public static final String[] Region3DColocRScript_map = new String[] 
+	{ 
+		"Image_ID",
+        "Object_ID",
+        "Size",
+        "Perimeter",
+        "Length", 
+        "Intensity",
+        "Overlap_with_ch",
+        "Coloc_object_size",
+        "Coloc_object_intensity",
+        "Single_Coloc",
+        "Coloc_image_intensity",
+        "Coord_X",
+        "Coord_Y",
+        "Coord_Z",
+    };
+    
+    public static CellProcessor[] Region3DTrackCellProcessor;
     public static CellProcessor[] Region3DRScriptCellProcessor;
-	
+    public static CellProcessor[] Region3DColocRScriptCellProcessor;
+    
+    /**
+     * 
+     * Get CellProcessor for Region3DColocRscript objects
+     * 
+     */
+    
+    public static CellProcessor[] getRegion3DColocRScriptCellProcessor()
+    {
+    	return Region3DColocRScriptCellProcessor;
+    }
+    
     /**
      * 
      * Get CellProcessor for Region3DTrack objects
@@ -97,7 +136,25 @@ public class CSVOutput
              new ParseDouble(),
     	 };
     	
-    	oc = new SquasshOutputChoose[2];
+    	Region3DColocRScriptCellProcessor = new CellProcessor[] 
+    	{
+    		 new ParseInt(),
+    		 new ParseInt(),
+    	     new ParseDouble(),
+             new ParseDouble(),
+             new ParseDouble(),
+             new ParseDouble(),
+    	     new ParseDouble(),
+             new ParseDouble(),
+             new ParseDouble(),
+             new ParseBool(),
+             new ParseDouble(),
+             new ParseDouble(),
+             new ParseDouble(),
+             new ParseDouble(),
+    	 };
+    	
+    	oc = new SquasshOutputChoose[3];
     	
     	oc[0] = new SquasshOutputChoose();
     	oc[0].name = new String("Format for region tracking)");
@@ -115,6 +172,14 @@ public class CSVOutput
     	oc[1].vectorFactory = (Class<Vector<? extends ICSVGeneral>>) new Vector<Region3DRScript>().getClass();
     	oc[1].InterPluginCSVFactory = (Class<InterPluginCSV<? extends ICSVGeneral>>) new InterPluginCSV<Region3DRScript>(Region3DRScript.class).getClass();
     	oc[1].delimiter = ';';
+    	oc[2] = new SquasshOutputChoose();
+    	oc[2].name = new String("Format for R coloc script");
+    	oc[2].cel = Region3DColocRScriptCellProcessor;
+    	oc[2].map = Region3DColocRScript_map;
+    	oc[2].classFactory = Region3DColocRScript.class;
+    	oc[2].vectorFactory = (Class<Vector<? extends ICSVGeneral>>) new Vector<Region3DColocRScript>().getClass();
+    	oc[2].InterPluginCSVFactory = (Class<InterPluginCSV<? extends ICSVGeneral>>) new InterPluginCSV<Region3DColocRScript>(Region3DColocRScript.class).getClass();
+    	oc[2].delimiter = ';';
     	
     	if (oc_s == -1)
     		occ = oc[0];
@@ -195,6 +260,20 @@ public class CSVOutput
 			e.printStackTrace();
 		}
     	return null;
+    }
+    
+    /**
+     * 
+     * Get an InterPluginCSV object with the selected format
+     * 
+     * @return InterPluginCSV
+     */
+    
+    public static InterPluginCSV<?> getInterPluginColocCSV()
+    {
+		InterPluginCSV<Region3DColocRScript> csv = new InterPluginCSV<Region3DColocRScript>(Region3DColocRScript.class);
+		csv.setDelimiter(occ.delimiter);
+		return csv;
     }
     
     public static SquasshOutputChoose occ;

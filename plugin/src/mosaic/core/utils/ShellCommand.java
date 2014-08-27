@@ -1,5 +1,7 @@
 package mosaic.core.utils;
 
+import ij.IJ;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +28,28 @@ public class ShellCommand
 {
 	/**
 	 * 
+	 * Produce a shell command from cmd
+	 * 
+	 * @param cmd command
+	 * @return
+	 */
+	
+	private static String[] produceShell(String cmd)
+	{
+		if (IJ.isLinux() == true || IJ.isMacOSX() == true)
+		{
+			// we can use bash
+			
+			return new String[]{"bash","-c",cmd};
+		}
+		else
+		{
+			return new String[]{"cmd",cmd};
+		}
+	}
+	
+	/**
+	 * 
 	 * Execute a command without printout
 	 * 
 	 * @param cmd Command
@@ -35,7 +59,8 @@ public class ShellCommand
 	
 	public static void exeCmdNoPrint(String cmd) throws IOException, InterruptedException
 	{
-		Process tProcess = Runtime.getRuntime().exec(cmd);
+		String cmd_[] = produceShell(cmd);
+		Process tProcess = Runtime.getRuntime().exec(cmd_);
 		
 		tProcess.waitFor();
 	}
@@ -52,7 +77,8 @@ public class ShellCommand
 	public static String exeCmdString(String cmd) throws IOException, InterruptedException
 	{
 		int lp = 0;
-		Process tProcess = Runtime.getRuntime().exec(cmd);
+		String cmd_[] = produceShell(cmd);
+		Process tProcess = Runtime.getRuntime().exec(cmd_);
 
 		BufferedReader stdInput = new BufferedReader (new InputStreamReader(tProcess.getInputStream()));
 		
@@ -80,7 +106,8 @@ public class ShellCommand
 	public static void exeCmd(String cmd) throws IOException, InterruptedException
 	{
 		int lp = 0;
-		Process tProcess = Runtime.getRuntime().exec(cmd);
+		String cmd_[] = produceShell(cmd);
+		Process tProcess = Runtime.getRuntime().exec(cmd_);
 
 		BufferedReader stdInput = new BufferedReader (new InputStreamReader(tProcess.getInputStream()));
 		
@@ -127,8 +154,8 @@ public class ShellCommand
             i++;
         }
         
-		
-		Process tProcess = Runtime.getRuntime().exec(cmd,envi_p_env,wdir);
+		String cmd_[] = produceShell(cmd);
+		Process tProcess = Runtime.getRuntime().exec(cmd_,envi_p_env,wdir);
 
 		BufferedReader stdInput = new BufferedReader (new InputStreamReader(tProcess.getInputStream()));
 		
@@ -175,8 +202,8 @@ public class ShellCommand
             i++;
         }
         
-		
-		Process tProcess = Runtime.getRuntime().exec(cmd,envi_p_env,wdir);
+		String cmd_[] = produceShell(cmd);
+		Process tProcess = Runtime.getRuntime().exec(cmd_,envi_p_env,wdir);
 
 		BufferedReader stdInput = new BufferedReader (new InputStreamReader(tProcess.getInputStream()));
 		
@@ -206,7 +233,8 @@ public class ShellCommand
 	public static void exeCmd(String cmd, File env) throws IOException, InterruptedException
 	{
 		int lp = 0;
-		Process tProcess = Runtime.getRuntime().exec(cmd,null,env);
+		String cmd_[] = produceShell(cmd);
+		Process tProcess = Runtime.getRuntime().exec(cmd_,null,env);
 
 		BufferedReader stdInput = new BufferedReader (new InputStreamReader(tProcess.getInputStream()));
 		

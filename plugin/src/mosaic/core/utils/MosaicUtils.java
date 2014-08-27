@@ -897,6 +897,7 @@ public class MosaicUtils
 	 * @param output List of output patterns
 	 * @param bases String of the image/data to substitute
 	 * @param sv base dir where the data are located
+	 * 
 	 */
 	
 	public static void reorganize(String output[], Vector<String> bases, String sv )
@@ -909,9 +910,7 @@ public class MosaicUtils
 			{
 				String tmp = new String(output[j]);
 		
-				Process tProcess;
-				tProcess = Runtime.getRuntime().exec("mkdir " + sv + "/" + tmp.replace("*","_"));
-				tProcess.waitFor();
+				ShellCommand.exeCmdNoPrint("mkdir " + sv + "/" + tmp.replace("*","_"));
 			}
 				
 			for (int j = 0 ; j < output.length ; j++)
@@ -921,9 +920,7 @@ public class MosaicUtils
 				Process tProcess;
 				for (int k = 0 ; k < bases.size() ; k++)
 				{
-					tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",bases.get(k)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", ""));
-						
-					tProcess.waitFor();
+					ShellCommand.exeCmdNoPrint("mv " + "'" + sv + File.separator + tmp.replace("*",bases.get(k)) + "'" + "   " + "'" + sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", "") + "'");
 				}
 			}
 			
@@ -943,6 +940,8 @@ public class MosaicUtils
 					dir.delete();
 				}
 			}
+			
+			
 		} 
 		catch (IOException e) 
 		{
@@ -1811,21 +1810,14 @@ public class MosaicUtils
 	
 	public static String removeExtension(String str)
 	{
-		File f = new File(str);
-		String path = f.getParent();
-		
-		String filename = f.getName();
-		int idp = filename.lastIndexOf(".");
+		int idp = str.lastIndexOf(".");
 		if (idp < 0)
 		{
-			return f.getAbsolutePath();
+			return str;
 		}
 		else
 		{
-			if (path != null)
-				return path + File.separator + filename.substring(0, idp);
-			else
-				return filename.substring(0,idp);
+			return str.substring(0,idp);
 		}
 	}
 	

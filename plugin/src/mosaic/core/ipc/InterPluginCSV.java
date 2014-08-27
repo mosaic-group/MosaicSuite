@@ -722,6 +722,42 @@ public class InterPluginCSV<E extends ICSVGeneral>
     	
     	return true;
     }
+   
+    /**
+     * 
+     * Stitch CSV files in one with an unknown (but equal between files)
+     * format (the first CSV format file drive the output
+     * conversion). Set the property specified to base + n where n run 
+     * across the files (Example usefull to enumerate frames if each 
+     * file is a frame)
+	 * 
+     * @param csvs files to stitch
+     * @param Sttch output stitched file
+     * @return
+     */
+    
+    public boolean Stitch(String csvs[], String Sttch, String property, int base)
+    {
+    	int prev_id = 0;
+    	if (csvs.length == 0)
+    		return false;
+		Vector<E> out = new Vector<E>();
+		
+		OutputChoose occ = ReadGeneral(csvs[0],out);
+		if (occ == null)
+			return false;
+		
+		for (int i = 1 ; i < csvs.length ; i++)
+		{
+			prev_id = out.size();
+			Readv(csvs[i],out,occ);
+			setProperty(property,out,base+i,prev_id,out.size()-1);
+		}
+		
+		Write(Sttch, out, occ, false);
+    	
+    	return true;
+    }
     
     /**
      * 
