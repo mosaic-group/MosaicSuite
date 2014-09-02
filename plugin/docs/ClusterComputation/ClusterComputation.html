@@ -1,0 +1,215 @@
+<html>
+  <head>
+    <title>Region Competition</title>
+    <meta content="">
+    <style></style>
+  </head>
+  <body>
+<h2>Process on cluster</h2>
+
+Some plugins give the possibility to compute on cluster, activating the option "Process on cluster"<br>
+
+<img src="images/activate.jpg" style="margin: 5px">
+<br>
+
+This feature provide to automatically upload the data on the cluster run the plugin with the specified parameters
+and download the results from cluster to your local machine to visualize them. Give a plugins that has this option
+if you activate it, after you press OK the following window will show up
+<br>
+<br>
+<img src="images/cluster_up.jpg">
+<br>
+<br>
+
+<table>
+	<tr>
+		<td>
+			<strong>Profile</strong>
+		</td>
+		<td>
+			The cluster that you are going to use
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<strong>Username</strong>
+		</td>
+		<td>
+			Username to use to access the cluster via SSH
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<strong>Password</strong>
+		</td>
+		<td>
+			Password to use to access the cluster
+		</td>
+	</tr>
+</table>
+<br>
+After you press ok the system will try to
+<ul>
+<li>connect to the cluster</li>
+<li>compress your data</li>
+<li>upload the data</li>
+<li>Install Fiji (if not already installed)</li>
+<li>run the plugins on your data</li>
+<li>show the progress status</li>
+</ul>
+<table>
+	<tr>
+		<td><img src="images/progress_cr.jpg"></td>
+		<td><img src="images/computing_bar.jpg"></td>
+	</tr>
+</table>
+
+More than one data-set can be sent on the cluster for computation, the system provide a completition progress bar for all
+ the jobs launched for that particular plugins. At this particular stage you can also decide to close fiji, you can easily
+ resume the status reopening fiji selecting the plugins, activating the option process on cluster without any image, the
+ system will resume the previous status. While the jobs terminate the system will progressively download the data locally(1)
+ after that all the jobs are completed the system will ask here to (move all the downloaded data)<br>
+ <br>
+<font size="1">(1) The data are stored on a temporal directory "/tmp/JobXXXXX" for Linux and MacOSX</font>
+
+<h2>Cluster profile</h2>
+
+In order to use the cluster feature you need to create a configuration file for the cluster, this operation can be
+ done going to <strong>Plugins > Mosaic > Utility > Cluster > New/Edit Cluster  </strong>. The following window will
+ open<br>
+<br>
+<img src="images/new_edit_cluster.jpg">
+<br>
+
+Here you have a list of all the cluster profiles, you can either add or edit one. In both cases you press edit or new
+you will get this window.<br>
+<br>
+<img src="images/New_cls_profile.jpg">
+<br>
+From here you can Edit or create a new profile for one cluster. Following will be an explanation of the different field
+if you do not know you can ask to the system admin of the cluster<br>
+<br>
+<table>
+	<tr>
+		<td>
+			<strong>Profile</strong>
+		</td>
+		<td>
+			Is the name that identify this profile
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<strong>Address</strong>
+		</td>
+		<td>
+			Address to access the cluster via SSH
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<strong>Batch</strong>
+		</td>
+		<td>
+			Batch system used by the cluster. Actually only LSF is implemented
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<strong>run_dir</strong>
+		</td>
+		<td>
+			It is where the plugins is suppose to run and produce IO (where the file will be written). 
+			The (*) is a wild card for your username
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<strong>queues</strong>
+		</td>
+		<td>
+			List of all the queues present on the cluster and open for the computation
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<strong>compression</strong>
+		</td>
+		<td>
+			List of all the compression algorithm present on the cluster
+		</td>
+	</tr>
+</table>
+<br>
+<br>
+
+<h3>Queues</h3>
+
+Queues are the main system to control the execution of jobs on the cluster, the cluster profile require at
+least one queues to run job on the cluster. Queues always depend on the configuration of your cluster refere
+to the system admin to get such information. To add a queues just press add and you will get the following window
+<br>
+<br>
+<img src="images/set_queue.jpg">
+<br>
+<br>
+
+<table>
+	<tr>
+		<td>
+			<strong>name</strong>
+		</td>
+		<td>
+			name of the queue
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<strong>limit</strong>
+		</td>
+		<td>
+			maximum time you can run on a job on that queue
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<strong>Batch</strong>
+		</td>
+		<td>
+			Batch system used by the cluster. Actually only LSF is implemented
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<strong>hardware</strong>
+		</td>
+		<td>
+			which kind of hardware is using that queue
+		</td>
+	</tr>
+</table>
+
+<h3> Compression</h3>
+
+Compression algorithms are important to reduce the size of the data before moving from the local machine to the cluster and
+from the cluster to the local machine. Here you specify which algorithm (or command line) you are allowed to use for 
+compressing your data. To add a new algorithm press add
+<br>
+<br>
+<img src="images/compression.jpg">
+<br>
+<br>
+
+<table>
+	<tr>
+		<td>
+			<strong>Compression</strong>
+		</td>
+		<td>
+			choose from the list the compression algorithm (command-line) press add to add it to the list
+		</td>
+	</tr>
+</table>
+
+  </body>
+</html>

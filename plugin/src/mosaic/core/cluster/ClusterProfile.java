@@ -90,11 +90,8 @@ public interface ClusterProfile
 	
 	/**
 	 * 
-	 * Set the directory specified by the admin to run jobs. 
-	 * For now this directory is assumed user based so
-	 * the username is automatically appended.
-	 * 
-	 * @TODO expand the interface also to an Project based
+	 * Get the directory to run jobs. the (*) are replaced with
+	 * the username
 	 * 
 	 * @return
 	 */
@@ -104,8 +101,7 @@ public interface ClusterProfile
 	/**
 	 * 
 	 * Set the Running dir.
-	 * For now this directory is assumed user based so
-	 * the username is automatically appended.
+	 * (*) are replaced with the username
 	 * 
 	 * @param RunningDir_
 	 */

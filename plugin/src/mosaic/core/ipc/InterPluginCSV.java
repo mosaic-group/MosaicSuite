@@ -145,6 +145,29 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	
 	/**
 	 * 
+	 * Remove Meta information
+	 * 
+	 * @param String meta information 
+	 * @param Value of the meta information
+	 */
+	
+	public void removeMetaInformation(String parameter)
+	{
+		// search for the Meta information and remove it
+		
+		for (int i = 0 ; i < fld.size() ; i++)
+		{
+			if (fld.get(i).p1.equals(parameter))
+			{
+				fld.remove(i);
+				break;
+			}
+			
+		}
+	}
+	
+	/**
+	 * 
 	 * Delete all previously setted meta information
 	 * 
 	 */
@@ -377,6 +400,15 @@ public class InterPluginCSV<E extends ICSVGeneral>
         return occ;
 	}
 	
+	/**
+	 * 
+	 * Read a Csv file given a format occ (combination of map and Cell processor)
+	 * 
+	 * @param CsvFilename csv filename
+	 * @param out output vector
+	 * @param occ format choosen
+	 */
+	
 	private void Readv(String CsvFilename, Vector<E> out, OutputChoose occ)
 	{
         ICsvDozerBeanReader beanReader = null;
@@ -388,6 +420,8 @@ public class InterPluginCSV<E extends ICSVGeneral>
                 
             beanReader.getHeader(true); // ignore the header
             beanReader.configureBeanMapping(element.getClass(), occ.map);
+            
+            // read the file
             
             while( (element = (E)beanReader.read(element.getClass(), occ.cel)) != null ) 
             {

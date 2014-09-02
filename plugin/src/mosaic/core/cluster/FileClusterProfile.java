@@ -92,10 +92,32 @@ public class FileClusterProfile extends GeneralProfile
 		csv.setMetaInformation("address", addr);
 	}
 	
+	/**
+	 * 
+	 * Return the running dir without any replacement
+	 * 
+	 * @return the raw string
+	 * 
+	 */
+	
+	public String getRunningDirRaw()
+	{
+		return csv.getMetaInformation("run_dir");
+	}
+	
 	@Override
 	public String getRunningDir() 
 	{
-		return csv.getMetaInformation("run_dir");
+		String meta = csv.getMetaInformation("run_dir");
+		if (meta.replace("*",getUsername()) == null)
+		{
+			return csv.getMetaInformation("run_dir");
+		}
+		else
+		{
+			return meta.replace("*", getUsername());
+		}
+		
 	}
 
 	@Override
@@ -185,5 +207,37 @@ public class FileClusterProfile extends GeneralProfile
 	public void setCompressorString(String bc)
 	{
 		csv.setMetaInformation(bc, "true");
+	}
+	
+	/**
+	 * 
+	 * Remove a compressor from the list of compression algorithm by String
+	 * 
+	 * @param cp
+	 */
+	public void removeCompressorString(String cp)
+	{
+		csv.removeMetaInformation(cp);
+	}
+	
+	/**
+	 * 
+	 *  Check if a compressor algorithm is active
+	 * 
+	 * @param cp Compressor to check
+	 * @return return true if active 
+	 * 
+	 */
+	public boolean isActiveCompressorString(String cp)
+	{
+		String s = csv.getMetaInformation(cp);
+		
+		if (s == null)
+			return false;
+		
+		if (s.equals("true"))
+			return true;
+		
+		return false;
 	}
 }

@@ -47,6 +47,8 @@ public class NewClusterProfile implements PlugInFilter
 	 * 
 	 * Popup a window to create a new/edit cluster profile configuration file
 	 * 
+	 * @param cp Cluster profile
+	 * 
 	 */
 	
 	void popupClusterProfile(ClusterProfile cp)
@@ -64,12 +66,18 @@ public class NewClusterProfile implements PlugInFilter
 			gd.addStringField("profile", cp.getProfileName());
 			gd.addStringField("address", cp.getAccessAddress());
 			gd.addChoice("Batch", BatchList.getList(), BatchList.getList()[0]);
-			gd.addStringField("run_dir", cp.getRunningDir());
+			gd.addStringField("run_dir", ((FileClusterProfile)cp).getRunningDirRaw());
 			
 			int totalq = 0;
 			for (hw hd : hw.values())
 			{
 				QueueProfile[] qp = cp.getQueues(hd);
+				
+				// Populate cq
+				
+				for (int i = 0 ; i < qp.length ; i++)
+					cq.add(qp[i]);
+				
 				totalq += qp.length;
 			}
 			
@@ -86,7 +94,7 @@ public class NewClusterProfile implements PlugInFilter
 				}
 			}
 			gd.addChoice("Queues", qs,qs[0]);
-			gd.addChoice("compressor", new String[]{""}, new String(""));
+			gd.addChoice("compression", new String[]{""}, new String(""));
 		}
 		else
 		{
@@ -95,7 +103,7 @@ public class NewClusterProfile implements PlugInFilter
 			gd.addChoice("Batch", BatchList.getList(), BatchList.getList()[0]);
 			gd.addStringField("run_dir", "");
 			gd.addChoice("queues", new String[]{""}, new String(""));
-			gd.addChoice("compressor", new String[]{""}, new String(""));
+			gd.addChoice("compression", new String[]{""}, new String(""));
 		}
 		cc = gd.getChoices();
 		
@@ -104,11 +112,15 @@ public class NewClusterProfile implements PlugInFilter
 		c.gridx=2; c.gridy=4; c.anchor = GridBagConstraints.EAST;
 		gd.add(optionButton,c);
 		
+		// Action listener for add queue button
+		
 		optionButton.addActionListener(new ActionListener() 
 		{
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
+				// Show the set queue window
+				
 				GenericDialog gd = new GenericDialog("Set queue");
 				gd.addStringField("name", "");
 				gd.addNumericField("limit", 0.0,2);
@@ -118,12 +130,17 @@ public class NewClusterProfile implements PlugInFilter
 				
 				if (gd.wasOKed())
 				{
+					// Store the queue profile
+					
 					QueueProfile q = new QueueProfile();
 					q.setqueue(gd.getNextString());
 					q.setlimit(gd.getNextNumber());
 					q.sethardware(gd.getNextString());
 					
 					cq.add(q);
+					
+					// Add the entry to the combo box list, removing all the components and recreating the 
+					// list.
 					
 					cc.get(1).removeAll();
 					
@@ -134,9 +151,11 @@ public class NewClusterProfile implements PlugInFilter
 			}
 		});
 		
-		optionButton = new Button("Add");
+		// Action listener for edit queue button
+		
+		optionButton = new Button("Edit");
 		c = new GridBagConstraints();
-		c.gridx=2; c.gridy=5; c.anchor = GridBagConstraints.EAST;
+		c.gridx=3; c.gridy=4; c.anchor = GridBagConstraints.EAST;
 		gd.add(optionButton,c);
 		
 		optionButton.addActionListener(new ActionListener() 
@@ -144,7 +163,84 @@ public class NewClusterProfile implements PlugInFilter
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
+				// get the selected queue
+				
+				int id = cc.get(1).getSelectedIndex();
+				QueueProfile q = cq.get(id);
+				
+				// popup the window
+				
 				GenericDialog gd = new GenericDialog("Set queue");
+				gd.addStringField("name", q.getqueue());
+				gd.addNumericField("limit", q.getlimit(),2);
+				gd.addStringField("hardware",q.gethardware());
+				
+				gd.showDialog();
+				
+				if (gd.wasOKed())
+				{
+					q.setqueue(gd.getNextString());
+					q.setlimit(gd.getNextNumber());
+					q.sethardware(gd.getNextString());
+					
+					// store the modified queue
+					
+					cq.set(id, q);
+					
+					// refresh the list in the combo box
+					
+					cc.get(1).removeAll();
+					
+					for (int i = 0 ; i < cq.size() ; i++)
+						cc.get(1).add(cq.get(i).getqueue() + " " + cq.get(i).gethardware() + " " + cq.get(i).getlimit());
+					cc.get(1).select(0);
+				}
+			}
+		});
+		
+		// Action listener for delete queue button
+		
+		optionButton = new Button("Delete");
+		c = new GridBagConstraints();
+		c.gridx=4; c.gridy=4; c.anchor = GridBagConstraints.EAST;
+		gd.add(optionButton,c);
+		
+		optionButton.addActionListener(new ActionListener() 
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				// get the selected queue
+				
+				int id = cc.get(1).getSelectedIndex();
+				
+				cq.remove(id);
+					
+				// refresh the list
+				
+				cc.get(1).removeAll();
+					
+				// refresh the list in the combo box
+				
+				for (int i = 0 ; i < cq.size() ; i++)
+					cc.get(1).add(cq.get(i).getqueue() + " " + cq.get(i).gethardware() + " " + cq.get(i).getlimit());
+				cc.get(1).select(0);
+			}
+		});
+		
+		optionButton = new Button("Add");
+		c = new GridBagConstraints();
+		c.gridx=2; c.gridy=5; c.anchor = GridBagConstraints.EAST;
+		gd.add(optionButton,c);
+		
+		// Action listener for add compression algorithm button
+		
+		optionButton.addActionListener(new ActionListener() 
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				GenericDialog gd = new GenericDialog("Compression");
 				DataCompression dc = new DataCompression();
 				Vector<Algorithm> cl = dc.getCompressorList();
 				
@@ -165,6 +261,59 @@ public class NewClusterProfile implements PlugInFilter
 					String cmp = gd.getNextChoice();
 					
 					fcp.setCompressorString(cmp);
+					
+					// refresh the list
+					
+					cc.get(2).removeAll();
+						
+					// refresh the list in the combo box, Iterate through all possible algorithm
+					// and check if they are active in the meta-data
+					
+					for (int i = 0 ; i < cl.size() ; i++)
+					{
+						if (fcp.isActiveCompressorString(cl.get(i).name) == true)
+						{
+							cc.get(2).add(cl.get(i).name);
+						}
+					}
+				}
+			}
+		});
+		
+		optionButton = new Button("Delete");
+		c = new GridBagConstraints();
+		c.gridx=3; c.gridy=5; c.anchor = GridBagConstraints.EAST;
+		gd.add(optionButton,c);
+		
+		// Action listener for delete compression algorithm button
+		
+		optionButton.addActionListener(new ActionListener() 
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				DataCompression dc = new DataCompression();
+				Vector<Algorithm> cl = dc.getCompressorList();
+				
+				// Selected index
+				
+				int id = cc.get(2).getSelectedIndex();
+				
+				fcp.removeCompressorString(cc.get(2).getSelectedItem());
+				
+				// refresh the list
+				
+				cc.get(2).removeAll();
+					
+				// refresh the list in the combo box, Iterate through all possible algorithm
+				// and check if they are active in the meta-data
+				
+				for (int i = 0 ; i < cl.size() ; i++)
+				{
+					if (fcp.isActiveCompressorString(cl.get(i).name) == true)
+					{
+						cc.get(2).add(cl.get(i).name);
+					}
 				}
 			}
 		});
