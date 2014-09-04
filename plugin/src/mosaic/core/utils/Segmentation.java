@@ -1,11 +1,19 @@
 package mosaic.core.utils;
 
+import mosaic.plugins.PlugInFilterExt;
 import ij.ImagePlus;
-import ij.plugin.filter.PlugInFilter;
+
+/**
+ * 
+ * This interface define the function that a segmentation algorithm should
+ * expose
+ * 
+ * @author Pietro Incardona
+ *
+ */
 
 
-
-public interface Segmentation extends PlugInFilter
+public interface Segmentation extends PlugInFilterExt
 {
 	/**
 	 * 

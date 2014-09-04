@@ -29,6 +29,6 @@ public class Jtest
 	public void segmentation() 
 	{
 		Segmentation BG = new Region_Competition();
-		MosaicUtils.<RCOutput>testSegmentation(BG,"Region_Competition",RCOutput.class);
+		MosaicUtils.<RCOutput>testPlugin(BG,"Region_Competition",RCOutput.class);
 	}
 }

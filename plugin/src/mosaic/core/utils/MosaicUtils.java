@@ -53,6 +53,7 @@ import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
 import mosaic.plugins.ParticleTracker3DModular_.Trajectory;
+import mosaic.plugins.PlugInFilterExt;
 import mosaic.region_competition.output.RCOutput;
 import ij.IJ;
 import ij.ImagePlus;
@@ -64,6 +65,7 @@ import ij.io.Opener;
 import ij.measure.Calibration;
 import ij.plugin.RGBStackMerge;
 import ij.plugin.Resizer;
+import ij.plugin.filter.PlugInFilter;
 import ij.process.BinaryProcessor;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
@@ -97,10 +99,28 @@ class FloatToARGB implements ToARGB
 	}
 }
 
+/**
+ * 
+ * Class to convert a float into an ARGB type
+ * 
+ * Red Green Blue Channels are set to f/(max - min)*255
+ * 
+ * @author Pietro Incardona
+ *
+ */
+
 class FloatToARGBNorm implements ToARGB
 {
 	double min = 0.0;
 	double max = 255;
+	
+	/**
+	 * 
+	 * From data convert into ARGBType
+	 * 
+	 * @param Object pixel value (suppose to be an imgLib2 class extending RealType )
+	 * 
+	 */
 	
 	@Override
 	public ARGBType toARGB(Object data)
@@ -113,6 +133,15 @@ class FloatToARGBNorm implements ToARGB
 		
 		return t;
 	}
+	
+	/**
+	 * 
+	 * Set the minimum and the maximum, used for renormalization
+	 * 
+	 * @param min
+	 * @param max
+	 * 
+	 */
 	
 	@Override
 	public void setMinMax(double min, double max) 
@@ -1842,14 +1871,14 @@ public class MosaicUtils
 	
 	/**
 	 * 
-	 * Test the segmentation
+	 * Test the plugins filter
 	 * 
-	 * @param BG Segmentation filter
-	 * @param testset Test set
-	 * @param Class<T>
+	 * @param BG plugins filter filter
+	 * @param testset String that indicate the test to use (all the test are in Jtest_data folder)
+	 * @param Class<T> Class for reading csv files used for InterPlugInCSV class
 	 */
 	
-	public static <T extends ICSVGeneral> void testSegmentation(Segmentation BG, String testset,Class<T> cls)
+	public static <T extends ICSVGeneral> void testPlugin(PlugInFilterExt BG, String testset,Class<T> cls)
 	{
 		ProgressBarWin wp = new ProgressBarWin();
 		

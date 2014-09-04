@@ -1638,6 +1638,203 @@ import net.imglib2.view.Views;
 		
 		/**
 		 * 
+		 * Draw the trajectories
+		 * 
+		 * @param out Where to draw (It is suppose to be a video, the last dimension is considered the time flow)
+		 * @param nframe Number of frames
+		 * @param tr Vector that store all trajectories
+		 * @param start_frame when focus area is active it specify from where the focus video start
+		 * @param focus boundary of the focus area (can be null);
+		 * @param cal_ Calibration basically the image spacing
+		 * @param typ type of draw
+		 */
+		
+		private static void TrajectoriesDraw(RandomAccessibleInterval<ARGBType> out, int nframe, Vector<Trajectory> tr, int start_frame, Rectangle focus, Calibration cal_ ,  DrawType typ)
+		{
+			MyFrame f = new MyFrame();
+			
+	        // Particles
+	        Vector<Particle> vp = new Vector<Particle>();
+	        // Lines that indicate the trajectory
+	        Vector<pParticle> lines = new Vector<pParticle>();
+	        // Lines that indicate trajectory jumps
+	        Vector<pParticle> lines_jmp = new Vector<pParticle>();
+			
+	        for (int frame = 0 ; frame < nframe ; frame++)
+	        {
+	        	// For all the trajectory
+	        	
+	        	for (int t = 0 ; t < tr.size() ; t++)
+	        	{
+	        		// If we have to display the trajectory
+	        		
+	        		if (tr.get(t).toDisplay() == false)
+	        			continue;
+	        		
+	        		vp.clear();
+	        		lines.clear();
+	        		lines_jmp.clear();
+	        		
+	        		if ( frame + start_frame >= tr.get(t).start_frame && frame+start_frame <= tr.get(t).stop_frame )
+	        		{
+	        			// select the nearest particle to the frame
+	        			int j = 0;
+	        			
+	        			for (j = 0 ; j < tr.get(t).existing_particles.length ; j++)
+	        			{
+	        				if (tr.get(t).existing_particles[j].getFrame() <= frame+start_frame && (j+1 >= tr.get(t).existing_particles.length || tr.get(t).existing_particles[j+1].getFrame() > frame+start_frame))
+	        					break;
+	        			}
+	        			
+	        			// Particle to draw
+		        				
+	        			Particle p = new Particle(tr.get(t).existing_particles[j]);
+	        			if (focus != null)
+	        				p.translate(focus);
+	        			vp.add(p);
+
+	        			// Collect spline to draw (Carefully only TRAJECTORY_HISTORY is tested)
+	        				
+	        			if (typ == DrawType.NEXT)
+	        			{
+	        				if (j+1 < tr.get(t).existing_particles.length)
+	        				{
+	        					pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
+	        					if (focus != null)
+	        						l1.translate(focus);
+	        						
+	        					// Check if it is a jump
+	        						
+	        					boolean jump = (tr.get(t).existing_particles[j+1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
+	        						
+	        					if (jump == false)
+	        						lines.add(l1);
+	        					else
+	        						lines_jmp.add(l1);
+	        				}
+	        			}
+	        			else if (typ == DrawType.PREV)
+	        			{
+	        				if (j-1 >= 0)
+	        				{
+	        					pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
+	        					if (focus != null)
+	        						l1.translate(focus);
+	        							
+		        				// Check if it is a jump
+		        						
+		        				boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j-1].getFrame() != 1);
+	        							
+	        					if (jump == false)
+	        						lines.add(l1);
+	        					else
+	        						lines_jmp.add(l1);
+	        				}	
+	        			}
+	        			else if (typ == DrawType.PREV_NEXT)
+	        			{
+	        				if (j+1 < tr.get(t).existing_particles.length)
+	        				{
+	        					pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
+	        					if (focus != null)
+	        						l1.translate(focus);
+	        							
+		        				// Check if it is a jump
+		        						
+		        				boolean jump = (tr.get(t).existing_particles[j+1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
+	        							
+	        					if (jump == false)
+	        						lines.add(l1);
+	        					else
+	        						lines_jmp.add(l1);
+	        				}
+	        				if (j-1 >= 0)
+	        				{
+	        					pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
+	        					if (focus != null)
+	        						l1.translate(focus);
+	        							
+		        				// Check if it is a jump
+		        						
+		        				boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j-1].getFrame() != 1);
+	        							
+	        					if (jump == false)
+	        						lines.add(l1);
+	        					else
+	        						lines_jmp.add(l1);
+	        				}
+	        			}
+	        			else if (typ == DrawType.TRAJECTORY_HISTORY)
+	        			{
+	        				// draw the full trajectory history, collect all the lines from j to the start of the trajectory 
+	        						
+	        				for (int i = j ; i >= 1  ; i--)
+	        				{
+	        					pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]),new Particle(tr.get(t).existing_particles[i-1]));
+	        					if (focus != null)
+	        						l1.translate(focus);
+	        							
+		        				// Check if it is a jump
+		        						
+		        				boolean jump = (tr.get(t).existing_particles[i].getFrame() - tr.get(t).existing_particles[i-1].getFrame() != 1);
+	        							
+	        					if (jump == false)
+	        						lines.add(l1);
+	        					else
+	        						lines_jmp.add(l1);
+	        				}
+	        			}
+	        			else if (typ == DrawType.TRAJECTORY_HISTORY_WITH_NEXT)
+	        			{
+	        				for (int i = j+1 ; i >= 1  ; i--)
+	        				{
+	        					pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]),new Particle(tr.get(t).existing_particles[i-1]));
+	        					if (focus != null)
+	        						l1.translate(focus);
+
+		        				// Check if it is a jump
+		        						
+		        				boolean jump = (tr.get(t).existing_particles[i].getFrame() - tr.get(t).existing_particles[i-1].getFrame() != 1);
+	        							
+	        					if (jump == false)
+	        						lines.add(l1);
+	        					else
+	        						lines_jmp.add(l1);
+	        				}
+	        				if (j+1 < tr.get(t).existing_particles.length)
+	        				{
+	        					pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
+	        					if (focus != null)
+	        						l1.translate(focus);
+
+	        					// Check if it is a jump
+		        						
+		        				boolean jump = (tr.get(t).existing_particles[j+1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
+	        							
+	        					if (jump == false)
+	        						lines.add(l1);
+	        					else
+	        						lines_jmp.add(l1);
+	        				}
+	        			}
+	        		}
+	        		
+	        		RandomAccessibleInterval< ARGBType > view = null;
+	        		
+	        		if (nframe != 1)
+	        			view = Views.hyperSlice( out, out.numDimensions()-1, frame );
+	        		else
+	        			view = out;
+	        			
+			        drawParticles(view,vp,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+			        drawLines(view,lines,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+			        drawLines(view,lines_jmp,cal_, ARGBType.rgba(255,0.0,0.0,0.0));
+	        	}
+	        } 
+		}
+		
+		/**
+		 * 
 		 * Update the image
 		 * 
 		 * @param out An array of frames
@@ -1662,111 +1859,19 @@ import net.imglib2.view.Views;
 			
 			// Get image
 	        
-			MyFrame f = new MyFrame();
 	        Cursor<ARGBType> curOut = Views.iterable(out).cursor();
 	        
 	        //
 	        
 	        int nframe = (int) out.dimension(out.numDimensions()-1);
 	        
-	        Vector<Particle> vp = new Vector<Particle>();
-	        Vector<pParticle> lines = new Vector<pParticle>();
+
 	        
-	        // Collect particles to draw and spline to draw
+	        // Draw trajectories
 	        
-	        for (int frame = 0 ; frame < nframe ; frame++)
-	        {
-	        	for (int t = 0 ; t < tr.size() ; t++)
-	        	{
-	        		if (tr.get(t).toDisplay() == false)
-	        			continue;
-	        		
-	        		vp.clear();
-	        		lines.clear();
-	        	
-	        		if ( frame + start_frame >= tr.get(t).start_frame && frame+start_frame <= tr.get(t).stop_frame )
-	        		{
-	        			// Check all particles frames, if particle is in frame add it
-	        		
-	        			for (int j = 0 ; j < tr.get(t).existing_particles.length ; j++)
-	        			{
-	        				if (tr.get(t).existing_particles[j].getFrame() == frame+start_frame)
-	        				{
-	        					// Particle to draw
-	        				
-	        					Particle p = new Particle(tr.get(t).existing_particles[j]);
-	        					p.translate(focus);
-	        					vp.add(p);
-	        				
-	        					// Collect spline
-	        				
-	        					if (typ == DrawType.NEXT)
-	        					{
-	        						if (j+1 < tr.get(t).existing_particles.length)
-	        						{
-	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
-	        							l1.translate(focus);
-	        							lines.add(l1);
-	        						}
-	        					}
-	        					else if (typ == DrawType.PREV)
-	        					{
-	        						if (j-1 >= 0)
-	        						{
-	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
-	        							l1.translate(focus);
-	        							lines.add(l1);
-	        						}	
-	        					}
-	        					else if (typ == DrawType.PREV_NEXT)
-	        					{
-	        						if (j+1 < tr.get(t).existing_particles.length)
-	        						{
-	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
-	        							l1.translate(focus);
-	        							lines.add(l1);
-	        						}
-	        						if (j-1 >= 0)
-	        						{
-	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
-	        							l1.translate(focus);
-	        							lines.add(l1);
-	        						}
-	        					}
-	        					else if (typ == DrawType.TRAJECTORY_HISTORY)
-	        					{
-	        						for (int i = j ; i >= 1  ; i--)
-	        						{
-	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]),new Particle(tr.get(t).existing_particles[i-1]));
-	        							l1.translate(focus);
-	        							lines.add(l1);
-	        						}
-	        					}
-	        					else if (typ == DrawType.TRAJECTORY_HISTORY_WITH_NEXT)
-	        					{
-	        						for (int i = j ; i >= 1  ; i--)
-	        						{
-	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]),new Particle(tr.get(t).existing_particles[i-1]));
-	        							l1.translate(focus);
-	        							lines.add(l1);
-	        						}
-	        						if (j+1 < tr.get(t).existing_particles.length)
-	        						{
-	        							pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]),new Particle(tr.get(t).existing_particles[j+1]));
-	        							l1.translate(focus);
-	        							lines.add(l1);
-	        						}
-	        					}
-	        				}
-	        			}
-	        		}
-	        		
-                    RandomAccessibleInterval< ARGBType > view = Views.hyperSlice( out, out.numDimensions()-1, frame );
-	        		
-			        drawParticles(view,vp,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
-			        drawLines(view,lines,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
-	        	}
-	        } 
+	        TrajectoriesDraw(out,nframe, tr, start_frame, focus, cal_ , typ);
+	        
+
 		}
 		
 		/**
@@ -1790,7 +1895,7 @@ import net.imglib2.view.Views;
 		 * 
 		 * Update the image
 		 * 
-		 * @param An array of frames in ImgLib2 format (last dimendion is frame)
+		 * @param An array of frames in ImgLib2 format (last dimension is frame)
 		 * @param A vector of Trajectory
 		 * @param cal Calibration
 		 * @param Color to use for draw
@@ -1814,85 +1919,9 @@ import net.imglib2.view.Views;
 	        
 	        // Collect particles to draw and spline to draw
 	        
-	        for (int frame = 0 ; frame < nframe ; frame++)
-	        {
-	        	for (int t = 0 ; t < tr.size() ; t++)
-	        	{
-	        		if (tr.get(t).toDisplay() == false)
-	        			continue;
-	        		
-	        		vp.clear();
-	        		lines.clear();
-	        	
-	        		if ( frame >= tr.get(t).start_frame && frame <= tr.get(t).stop_frame )
-	        		{
-	        			// Check all particles frames, if particle is in frame add it
-	        		
-	        			for (int j = 0 ; j < tr.get(t).existing_particles.length ; j++)
-	        			{
-	        				if (tr.get(t).existing_particles[j].getFrame() == frame)
-	        				{
-	        					// Particle to draw
-	        				
-	        					vp.add(tr.get(t).existing_particles[j]);
-	        				
-	        					// Collect spline
-	        				
-	        					if (typ == DrawType.NEXT)
-	        					{
-	        						if (j+1 < tr.get(t).existing_particles.length)
-	        						{
-	        							lines.add(f.new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
-	        						}
-	        					}
-	        					else if (typ == DrawType.PREV)
-	        					{
-	        						if (j-1 >= 0)
-	        						{
-	        							lines.add(f.new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j-1]));
-	        						}	
-	        					}
-	        					else if (typ == DrawType.PREV_NEXT)
-	        					{
-	        						if (j+1 < tr.get(t).existing_particles.length)
-	        						{
-	        							lines.add(f.new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
-	        						}
-	        						if (j-1 >= 0)
-	        						{
-	        							lines.add(f.new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j-1]));
-	        						}
-	        					}
-	        					else if (typ == DrawType.TRAJECTORY_HISTORY)
-	        					{
-	        						for (int i = j ; i >= 1  ; i--)
-	        						{
-	        							lines.add(f.new pParticle(tr.get(t).existing_particles[i],tr.get(t).existing_particles[i-1]));
-	        						}
-	        					}
-	        					else if (typ == DrawType.TRAJECTORY_HISTORY_WITH_NEXT)
-	        					{
-	        						for (int i = j ; i >= 1  ; i--)
-	        						{
-	        							lines.add(f.new pParticle(tr.get(t).existing_particles[i],tr.get(t).existing_particles[i-1]));
-	        						}
-	        						if (j+1 < tr.get(t).existing_particles.length)
-	        						{
-	        							lines.add(f.new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
-	        						}
-	        					}
-	        				}
-	        			}
-	        		}
-	        		
-                    RandomAccessibleInterval< ARGBType > view = Views.hyperSlice( out, out.numDimensions()-1, frame );
-	        		
-			        drawParticles(view,vp,cal, ARGBType.rgba(cl.getRed(), cl.getGreen(), cl.getBlue(), cl.getTransparency()));
-			        drawLines(view,lines,cal, ARGBType.rgba(cl.getRed(), cl.getGreen(), cl.getBlue(), cl.getTransparency()));
-	        	}
-	        }
+	        TrajectoriesDraw(out,nframe, tr, 0, null, cal, typ);
 		}
-		
+
 		/**
 		 * 
 		 * Create an image from particle information with background and trajectory information
@@ -1943,77 +1972,7 @@ import net.imglib2.view.Views;
 	        
 	        // Collect particles to draw and spline to draw
 	        
-	        for (int t = 0 ; t < tr.size() ; t++)
-	        {
-        		if (tr.get(t).toDisplay() == false)
-        			continue;
-	        	
-	        	vp.clear();
-	        	lines.clear();
-	        	
-	        	if ( frame >= tr.get(t).start_frame && frame <= tr.get(t).stop_frame )
-	        	{
-	        		// Check all particles frames, if particle is in frame add it
-	        		
-	        		for (int j = 0 ; j < tr.get(t).existing_particles.length ; j++)
-	        		{
-	        			if (tr.get(t).existing_particles[j].getFrame() == frame)
-	        			{
-	        				// Particle to draw
-	        				
-	        				vp.add(tr.get(t).existing_particles[j]);
-	        				
-	        				// Collect spline
-	        				
-	        				if (typ == DrawType.NEXT)
-	        				{
-	        					if (j+1 < tr.get(t).existing_particles.length)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
-	        					}
-	        				}
-	        				else if (typ == DrawType.PREV)
-	        				{
-	        					if (j-1 >= 0)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j-1]));
-	        					}	
-	        				}
-	        				else if (typ == DrawType.PREV_NEXT)
-	        				{
-	        					if (j+1 < tr.get(t).existing_particles.length)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
-	        					}
-	        					if (j-1 >= 0)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j-1]));
-	        					}
-	        				}
-	        				else if (typ == DrawType.TRAJECTORY_HISTORY)
-	        				{
-	        					for (int i = j ; i >= 1  ; i--)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[i],tr.get(t).existing_particles[i-1]));
-	        					}
-	        				}
-	        				else if (typ == DrawType.TRAJECTORY_HISTORY_WITH_NEXT)
-	        				{
-	        					for (int i = j ; i >= 1  ; i--)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[i],tr.get(t).existing_particles[i-1]));
-	        					}
-	        					if (j+1 < tr.get(t).existing_particles.length)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
-	        					}
-	        				}
-	        			}
-	        		}
-	        	}
-		        drawParticles(out,vp,cal, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
-		        drawLines(out,lines,cal, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
-	        }
+	        TrajectoriesDraw(out, 1, tr, frame, null, cal, typ);
 	        
 	        return out;
 		}
@@ -2047,82 +2006,7 @@ import net.imglib2.view.Views;
 	        
 	        //
 	        
-	        Vector<Particle> vp = new Vector<Particle>();
-	        Vector<pParticle> lines = new Vector<pParticle>();
-	        
-	        // Collect particles to draw and spline to draw
-	        
-	        for (int t = 0 ; t < tr.size() ; t++)
-	        {
-        		if (tr.get(t).toDisplay() == false)
-        			continue;
-        		
-	        	vp.clear();
-	        	lines.clear();
-	        	
-	        	if ( frame >= tr.get(t).start_frame && frame <= tr.get(t).stop_frame )
-	        	{
-	        		// Check all particles frames, if particle is in frame add it
-	        		
-	        		for (int j = 0 ; j < tr.get(t).existing_particles.length ; j++)
-	        		{
-	        			if (tr.get(t).existing_particles[j].getFrame() == frame)
-	        			{
-	        				// Particle to draw
-	        				
-	        				vp.add(tr.get(t).existing_particles[j]);
-	        				
-	        				// Collect spline
-	        				
-	        				if (typ == DrawType.NEXT)
-	        				{
-	        					if (j+1 < tr.get(t).existing_particles.length)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
-	        					}
-	        				}
-	        				else if (typ == DrawType.PREV)
-	        				{
-	        					if (j-1 >= 0)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j-1]));
-	        					}	
-	        				}
-	        				else if (typ == DrawType.PREV_NEXT)
-	        				{
-	        					if (j+1 < tr.get(t).existing_particles.length)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
-	        					}
-	        					if (j-1 >= 0)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j-1]));
-	        					}
-	        				}
-	        				else if (typ == DrawType.TRAJECTORY_HISTORY)
-	        				{
-	        					for (int i = j ; i >= 1  ; i--)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[i],tr.get(t).existing_particles[i-1]));
-	        					}
-	        				}
-	        				else if (typ == DrawType.TRAJECTORY_HISTORY_WITH_NEXT)
-	        				{
-	        					for (int i = j ; i >= 1  ; i--)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[i],tr.get(t).existing_particles[i-1]));
-	        					}
-	        					if (j+1 < tr.get(t).existing_particles.length)
-	        					{
-	        						lines.add(new pParticle(tr.get(t).existing_particles[j],tr.get(t).existing_particles[j+1]));
-	        					}
-	        				}
-	        			}
-	        		}
-	        	}
-		        drawParticles(out,vp,null, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
-		        drawLines(out,lines,null, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
-	        }
+	        TrajectoriesDraw(out, 1, tr, frame, null, null, typ);
 	        
 	        return out;
 		}

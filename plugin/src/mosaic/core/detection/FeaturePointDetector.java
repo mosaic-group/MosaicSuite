@@ -144,6 +144,10 @@ public class FeaturePointDetector {
 		/* remove all the "false" particles from particles array */
 		removeNonParticle();
 		frame.setParticles(particles, real_particles_number); 
+		
+		/* Set the real_particle_number */
+		
+		frame.real_particles_number = real_particles_number;
 	}	
 
 

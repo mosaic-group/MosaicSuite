@@ -32,7 +32,9 @@ public class Jtest implements PlugInFilter
 	
 	@Override
 	public int setup(String arg0, ImagePlus arg1) 
-	{		
+	{
+		// Test particle tracker
+		
 		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
 		
 		jtestTS.testtestsegmentation();
