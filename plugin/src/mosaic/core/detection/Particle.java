@@ -84,11 +84,12 @@ public class Particle extends StubProp implements ICSVGeneral
 	 * 
 	 * Create a particle from another particle
 	 * 
-	 * @param p
+	 * @param p Particle
 	 */
 	
 	public Particle(Particle p)
 	{
+		this.frame = p.frame;
 		this.x = p.x;
 		this.y = p.y;
 		this.z = p.z;
@@ -104,11 +105,12 @@ public class Particle extends StubProp implements ICSVGeneral
 	 * 
 	 * Set the particle data
 	 * 
-	 * @param p
+	 * @param p Particle
 	 */
 	
 	public void setData(Particle p)
 	{
+		this.frame = p.frame;
 		this.x = p.x;
 		this.y = p.y;
 		this.z = p.z;

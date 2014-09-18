@@ -52,12 +52,22 @@ public class Spot_detection implements PlugInFilter
 		}
 	}
 	
+	/**
+	 * 
+	 * Run the plugin
+	 * 
+	 * @param Image where to run the spot detection
+	 * 
+	 */
+	
 	@Override
 	public void run(ImageProcessor arg0) 
 	{
 		// TODO Auto-generated method stub
 		
 		frames = new MyFrame[frames_number];
+		
+		// process all frames
 		for (int frame_i = 0, file_index = 0; frame_i < frames_number; frame_i++, file_index++) 
 		{
 			// sequence of images mode:
@@ -79,7 +89,18 @@ public class Spot_detection implements PlugInFilter
 		
 		for (int i = 0 ; i < frames.length ; i++)
 		{
+			int old_i = pt.size();
+			
 			pt.addAll(frames[i].getParticles());
+			
+			int new_i = pt.size();
+			
+			// Set the frame number for the particles
+			
+			for (int j = old_i ; j < new_i ; j++)
+			{
+				pt.get(j).setFrame(i);
+			}
 		}
 		
 		fillSize(pt,detector.getRadius());
