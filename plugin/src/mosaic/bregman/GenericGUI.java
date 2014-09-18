@@ -118,7 +118,49 @@ public class GenericGUI
 	
 	/**
 	 * 
+	 * Stitch the CSV
+	 * 
+	 * @param fl directory where to stitch the csv
+	 * @param background Set the backgrond param string
+	 * @return true if it stitch all the file success
+	 */
+	
+	private boolean StitchCSV(String fl, String bck)
+	{
+		MetaInfo mt[] = null;
+		if (bck != null)
+		{
+			mt = new MetaInfo[1];
+			mt[0] = new MetaInfo();
+			mt[0].par = new String("background");
+			mt[0].value = new String(bck);
+		}
+		else
+		{
+			mt = new MetaInfo[0];
+		}
+		
+		// get the job directories
+		
+		String[] JobDir = ClusterSession.getJobDirectories(0, fl);
+		
+		// for all job dir stitch
+		
+		for (int i = 0 ; i < JobDir.length ; i++)
+		{
+			String[] jbid = MosaicUtils.readAndSplit(JobDir[i] + File.separator + "JobID");
+			String[] outcsv = MosaicUtils.getCSV(Analysis.out);
+			InterPluginCSV.Stitch(outcsv, new File(JobDir[i]), new File(JobDir[i] + File.separator + MosaicUtils.removeExtension(jbid[2])) , mt, "Image_ID", Region3DColocRScript.class);
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * 
 	 * Use the cluster
+	 * 
+	 * @param bl true to use the cluster option
 	 * 
 	 */
 	
@@ -367,7 +409,7 @@ public class GenericGUI
 		if (use_cluster == false && clustermode == false)
 			Analysis.p.dispwindows = true;
 		
-		// Two different way to run the Task
+		// Two different way to run the Segmentation and colocalization
 		
 		if (clustermode || use_cluster == false)
 		{
@@ -388,6 +430,11 @@ public class GenericGUI
 				savepath = MosaicUtils.ValidFolderFromImage(aImp);
 				
 				MosaicUtils.reorganize(Analysis.out_w,aImp.getShortTitle(),savepath,aImp.getNFrames());
+				
+				// if it is a video Stitch all the csv
+				
+				if (aImp.getNFrames() > 1)
+					StitchCSV(savepath,savepath + File.separator + aImp.getTitle());
 			}
 			else
 			{
@@ -400,42 +447,7 @@ public class GenericGUI
 					{
 						MosaicUtils.reorganize(Analysis.out_w,pf,Analysis.p.wd);
 						
-						// Stitch the result
-						
-						InterPluginCSV<Region3DColocRScript> csv = new InterPluginCSV<Region3DColocRScript>(Region3DColocRScript.class);
-						
-						// for each output
-						
-						for (String out : Analysis.out_w)
-						{
-							if (out.endsWith(".csv") == false)
-								continue;
-							
-							// Does not follow the csv format
-							if (out.equals("*_ImagesData.csv"))
-								continue;
-							
-							// get the list of the files to stitch
-						
-							File flt[] = new File(fl.getAbsolutePath() + File.separator + out.replace("*","_")).listFiles();
-						
-							String csvs[] = new String[flt.length];
-						
-							for (int i = 0 ; i < flt.length ; i++)
-							{
-								csvs[i] = flt[i].getAbsolutePath();
-							}
-						
-							// sort
-						
-							Arrays.sort(csvs);
-						
-							// Stitch the files together
-						
-							csv.clearMetaInformation();
-							csv.setCSVPreferenceFromFile(csvs[0]);							
-							csv.Stitch(csvs, fl.getAbsolutePath() + File.separator + out.replace("*","stitch"));
-						}
+						StitchCSV(fl.getAbsolutePath(),null);
 					}
 					else
 						MosaicUtils.reorganize(Analysis.out_w,pf,new File(Analysis.p.wd).getParent());
@@ -485,6 +497,7 @@ public class GenericGUI
 			File fl = null;
 			
 			ClusterSession.setPreferredSlotPerProcess(4);
+			String Background = null;
 			
 			if (aImp == null)
 			{
@@ -501,6 +514,7 @@ public class GenericGUI
 					// we process an image
 					
 					ss = ClusterSession.processFile(fl,"Squassh","",Analysis.out);
+					Background = fl.getAbsolutePath();
 				}
 				else
 				{
@@ -518,12 +532,19 @@ public class GenericGUI
 				// It is a file
 				
 				ss = ClusterSession.processImage(aImp,"Squassh","",Analysis.out);
+				Background = MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle();
 			}
 			
 			// Get output format and Stitch the output in the output selected
 			
 			String outcsv[] = {"*_ObjectsData_c1.csv"};
-			ClusterSession.processJobsData(ss,outcsv,MosaicUtils.ValidFolderFromImage(aImp),CSVOutput.occ.classFactory);
+			File dir = ClusterSession.processJobsData(outcsv,MosaicUtils.ValidFolderFromImage(aImp),CSVOutput.occ.classFactory);
+			
+			// if background is != null it mean that is a video or is an image so try to stitch
+			if (Background != null)
+				StitchCSV(dir.getAbsolutePath(),Background);
+			else
+				StitchCSV(dir.getAbsolutePath(),null);
 			
 			////////////////
 		}

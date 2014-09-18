@@ -1141,28 +1141,32 @@ public class ClusterSession
 	 * 
 	 * It post-process the jobs data performing the following operation:
 	 * 
-	 * It create a JobXXXX directory where XXXXX is the JobID for each 
+	 * It search on the temporal directory for Job directory and for each founded
+	 * job directory create a JobXXXX directory where XXXXX is the JobID for each 
 	 * Jobs directory copy all output file there for all csv filename
 	 * supplied in outcsv perform a stitch operation (it try to stitch
 	 *  all the CSV in one)
 	 * 
-	 * @param ss Cluster session
 	 * @param outcsv set of csv output data
 	 * @param path where to save
+	 * @param property if not null the stitch operation try to enumerate the file and set the property
+	 *        in the stitched file according to this enumeration
 	 * @param cls base class for internal conversion
-	 * @param aImp
+	 * 
 	 */
 	
-	public static <T extends ICSVGeneral> void processJobsData(ClusterSession ss, String[] outcsv , String path, Class<T> cls)
+	public static <T extends ICSVGeneral> File processJobsData(String[] outcsv , String path, Class<T> cls)
 	{
+		String dirS = null;
+		
 		// Save all JobID to the image folder
 		// or ask for a directory
 		
-		String dir[] = ss.getJobDirectories(0,null);
+		String dir[] = ClusterSession.getJobDirectories(0,null);
 		
 		if (dir.length > 0)
 		{
-			String dirS;
+
 			
 			if (path != null)
 			{
@@ -1188,10 +1192,6 @@ public class ClusterSession
 					
 					ShellCommand.exeCmdNoPrint("rm -rf " + dir[i]);
 					
-					// Stitch Object.csv
-					
-					InterPluginCSV.Stitch(outcsv,new File(dir[i]),new File(dir[i] + File.separator + "tmp"),null,cls);
-					
 					///////
 				}
 				catch (IOException e) 
@@ -1204,6 +1204,8 @@ public class ClusterSession
 				}
 			}
 		}
+		
+		return new File(dirS);
 	}
 	
 	/**

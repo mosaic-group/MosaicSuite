@@ -300,7 +300,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		
 		// Check if there are segmentation information
 		
-		if (MosaicUtils.checkSegmentationInfo(imp))
+		if (MosaicUtils.checkSegmentationInfo(imp,null))
 		{
 			YesNoCancelDialog YN_dialog = new YesNoCancelDialog(null,"Segmentation","A segmentation has been founded for this image, do you want to track the regions");
 
@@ -883,13 +883,13 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				if (gd.wasCanceled() == true)
 					return;
 				
-				l_s = (float) gd.getNextNumber();
+				l_s = (float) 1.0;
 				l_f = (float) gd.getNextNumber();
 				l_d = (float) gd.getNextNumber();
 				
 				String dm = gd.getNextChoice();
 				
-				if (dm.equals("Best one permutation"))
+				if (dm.equals("Greedy"))
 				{linker = new ParticleLinkerBestOnePerm();}
 				else
 				{linker = new ParticleLinkerHun();}
@@ -932,11 +932,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
 		String dm = gd.getNextChoice();
 		
-		if (dm.equals("none"))
+		if (dm.equals("Brownian"))
 		{this.force = false; this.straight_line = false;}
-		else if (dm.equals("lines"))
+		else if (dm.equals("straight lines"))
 		{this.force = false; this.straight_line = true;}
-		else if (dm.equals("forces"))
+		else if (dm.equals("constant velocity"))
 		{this.force = true; this.straight_line = true;}
 		
 		// if user choose to convert reset stack, title, frames number and global min, max
@@ -1145,35 +1145,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			}
 		}
 
-		private void animate(int magnification) {
-			animate(magnification, 0);
-		}
-
-		private void animate(int magnification, int removed_frames) {							
-
-			int current_frame;
-			int previous_frame = existing_particles[0].getFrame()-removed_frames;
-			for (int i = 0; i<existing_particles.length; i++){
-				current_frame = existing_particles[i].getFrame()+1-removed_frames;
-				while (current_frame - previous_frame > 1) {
-					previous_frame++;
-					ImageStack previousFrameStack = MosaicUtils.GetSubStack(traj_stack, (previous_frame-1)*slices_number+1, 
-							previous_frame*slices_number);
-					draw4Dynamic(previousFrameStack, i, magnification);
-					drawGaps4Dynamic(previousFrameStack, i, magnification);
-				}
-				// if some frames were removed from traj_stack then the frame number 
-				// of a particle will not correspond with frame number in the stack.
-				// by subtracting the number of removed frames from the particle frame number,
-				// we will get the right frame in traj_stack.
-				ImageStack currentFrameStack = MosaicUtils.GetSubStack(traj_stack, (current_frame-1)*slices_number+1, 
-						current_frame*slices_number);
-				draw4Dynamic(currentFrameStack, i, magnification);
-				drawGaps4Dynamic(currentFrameStack, i, magnification);
-				previous_frame = current_frame;
-			}
-		}
-
 		private void drawStatic(Graphics g, ImageCanvas ic) {
 			int i;
 			g.setColor(this.color);
@@ -1192,65 +1163,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			if((this.existing_particles[this.existing_particles.length-1].getFrame()) < frames_number - 1){
 				g.fillOval(ic.screenXD(this.existing_particles[this.existing_particles.length-1].y), 
 						ic.screenYD(this.existing_particles[this.existing_particles.length-1].x), 5, 5);
-			}
-		}
-
-		/**
-		 * 
-		 * @param ip: a frame
-		 * @param last_frame
-		 * @param magnification
-		 */
-		private void draw4Dynamic(ImageStack is, int last_frame, int magnification)
-		{
-			boolean draw_line = false;
-			
-			for(int s = 1; s <= is.getSize(); s++) 
-			{
-				ImageProcessor ip = is.getProcessor(s);
-				ip.setColor(this.color);
-				if (last_frame >= existing_particles.length) 
-				{
-					//					TODO error	
-				}
-				if (existing_particles.length < 2) 
-				{
-					//					TODO error
-				}
-				ip.setLineWidth(1);
-				int i = Math.max(0, last_frame-trajectory_tail);
-				
-				int radius = 2;
-				
-				int c_slice = s % (original_imp.getNSlices()+1);
-				if (c_slice - 1 < this.existing_particles[last_frame].z+1 && c_slice + 1 > this.existing_particles[last_frame].z+1)
-				{
-						ip.drawOval(getXDisplayPosition(existing_particles[last_frame].y,magnification), 
-								getYDisplayPosition(existing_particles[last_frame].x,magnification), 
-								0, 0);
-						// circle the  the detected particle position according to the set radius
-						ip.drawOval(getXDisplayPosition(existing_particles[last_frame].y-radius/1.0f,magnification), 
-								getYDisplayPosition(existing_particles[last_frame].x-radius/1.0f,magnification), 
-								2*radius*magnification-1, 2*radius*magnification-1);
-						
-						draw_line = true;
-				}
-
-				if (draw_line == true && last_frame > 0)
-				{
-					ip.drawLine(getXDisplayPosition(this.existing_particles[last_frame-1].y, magnification),
-							getYDisplayPosition(this.existing_particles[last_frame-1].x, magnification), 
-							getXDisplayPosition(this.existing_particles[last_frame].y, magnification),
-							getYDisplayPosition(this.existing_particles[last_frame].x, magnification));
-				}
-				
-				for (i = 1 ; i< last_frame; i++ ) 
-				{
-					ip.drawLine(getXDisplayPosition(this.existing_particles[i-1].y, magnification),
-							getYDisplayPosition(this.existing_particles[i-1].x, magnification), 
-							getXDisplayPosition(this.existing_particles[i].y, magnification),
-							getYDisplayPosition(this.existing_particles[i].x, magnification));
-				}
 			}
 		}
 
@@ -1295,48 +1207,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			particle_position = (particle_position-roi_y)*magnification + (float)(magnification/2.0) - (float)0.5;
 			return Math.round(particle_position);
 		}
-
-		/**
-		 * Draws a red line for all <code>gaps</code> in this <code>trajectory</code> in the range 
-		 * of <code>trajectory_tail</code> from the <code>Particle</code> in the given location
-		 * (particles[particle_index])
-		 * <br>Draws directly (modifys) on the given <code>ip</code> (ImageProcessor)
-		 * <br>This method is for generating a <b>progressive</b> trajectory view
-		 * @param is Frame to draw the gap on
-		 * @param particle_index index of the last particle until which gaps will be drawn 
-		 * @param magnification the magnification factor of the image to draw on
-		 * @see #getXDisplayPosition(float, int)
-		 * @see #getYDisplayPosition(float, int)
-		 */
-		private void drawGaps4Dynamic(ImageStack is, int particle_index, int magnification) {
-			for(int s = 1; s < is.getSize(); s++){
-				ImageProcessor ip = is.getProcessor(s);
-				if (gaps == null) return;
-				/* set ip color to gaps color (RED) */
-				ip.setColor(Color.red);
-				Object[] gaps_tmp = gaps.toArray();
-
-				/* go over all gaps in this trajectory*/
-				for (int i = 0; i<num_of_gaps; i++) {
-
-					// gaps_tmp is now an array of int[] (of size 2)  
-					// each int[] holds 2 indexs of particles in the existing_particles.
-					int start_particle_index = ((int[])gaps_tmp[i])[0];
-					int end_particle_index = ((int[])gaps_tmp[i])[1];
-
-					// only if this gap is in the range of the (particle at the given index - trajectory_tail)
-					if (start_particle_index < particle_index && start_particle_index > particle_index - trajectory_tail) {
-						ip.drawLine(getXDisplayPosition((this.existing_particles[start_particle_index]).y, magnification),
-								getYDisplayPosition((this.existing_particles[start_particle_index]).x, magnification),
-								getXDisplayPosition((this.existing_particles[end_particle_index]).y, magnification),
-								getYDisplayPosition((this.existing_particles[end_particle_index]).x, magnification));
-					}
-				}
-				/* set ip color back to this trajectory color */
-				ip.setColor(this.color);
-			}
-		}
-
+		
 		/**
 		 * Debug method - prints all the gaps in this trajectory (coordinates that defines a gap)
 		 */
@@ -1635,6 +1506,14 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			
 			/* Get pixel color */
 			
+			if (this.imp == null)
+			{
+				// there is not image this listener is dead remove it
+				
+				removeMouseListener(this);
+				return;
+			}
+			
 			int cl[] = this.imp.getPixel(offscreenX,offscreenY);
 			
 			/* find the best Trajectory to match the mouse click*/			
@@ -1847,217 +1726,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			
 		}
 	} // FocusStackWindow inner class
-	
-	/**
-	 * Defines a window to display trajectories according to their <code>to_display</code> status.
-	 * The trajectories displayed on this window are drawn an given Canvas
-	 * <br>In the window the user can select a specific Trajectory, a region of interest (ROI)
-	 * and filter trajectories by length.
-	 * <br>User requests regarding filtering will be listened to and engaged from the <code>actionPerformed</code>
-	 * method implemented here. 
-	 * <br>User selections of trajectories with the mouse will be listened to and engaged from the
-	 * <code>mousePressed</code> method implemented here
-	 * <br>All other ImageJ window options (e.g. ROI selection, focus, animation) are inherited 
-	 * from the stackWindow Class
-	 */
-	private class TrajectoryStackWindow extends StackWindow implements ActionListener, MouseListener
-	{
 
-		private static final long serialVersionUID = 1L;
-		private Button filter_length;
-		private Label numberOfParticlesLabel;
-
-		/**
-		 * Constructor.
-		 * <br>Creates an instance of TrajectoryStackWindow from a given <code>ImagePlus</code>
-		 * and <code>ImageCanvas</code> and a creates GUI panel.
-		 * <br>Adds this class as a <code>MouseListener</code> to the given <code>ImageCanvas</code>
-		 * @param aimp
-		 * @param icanvas
-		 */
-		private TrajectoryStackWindow(ImagePlus aimp, ImageCanvas icanvas) {
-			super(aimp, icanvas);
-			numberOfParticlesLabel = new Label("");
-			icanvas.addMouseListener(this);
-			addPanel();
-			changeParticleNumberLabel();
-
-
-			//            this.sliceSelector.addAdjustmentListener(new AdjustmentListener(){
-			//				public void adjustmentValueChanged(AdjustmentEvent aE) {
-			//					changeParticleNumberLabel();
-			//				}
-			//            });
-
-		}
-
-		private void changeParticleNumberLabel() 
-		{
-			int currentframe = (this.getImagePlus().getCurrentSlice() - 1) / slices_number;
-			
-			// understand the dimansionality
-			
-			int nslices = this.getImagePlus().getNSlices();
-			int nframes = this.getImagePlus().getNFrames();
-			int nchannels = this.getImagePlus().getNChannels();
-	
-			// check the dimensionality
-			
-			if (nslices == 1)
-			{
-				// 2D
-				
-				currentframe = this.getImagePlus().getChannel();
-			}
-			else if (nframes == 1)
-			{
-				// 3D
-				
-				currentframe = this.getImagePlus().getSlice();
-			}
-			
-			numberOfParticlesLabel.setText("Frame " + (currentframe+1) + ": " + frames[currentframe].real_particles_number + " particles");
-		}
-
-		@Override
-		public String createSubtitle() {
-			//overrided to get the right moment to update the label.
-			changeParticleNumberLabel();
-			return super.createSubtitle();
-		}
-
-		/**
-		 * Adds a Panel with filter options button and number of particles in it to this window 
-		 */
-		private void addPanel() {
-			Panel panel = new Panel(new GridLayout(2,1));
-			filter_length = new Button(" Filter Options ");
-			filter_length.addActionListener(this);
-			panel.add(filter_length);
-			panel.add(numberOfParticlesLabel);
-			//pack();            
-			add(panel);
-			pack();
-			Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-			Point loc = getLocation();
-			Dimension size = getSize();
-			if (loc.y+size.height>screen.height)
-				getCanvas().zoomOut(0, 0);
-		}
-
-		/** 
-		 * Defines the action taken upon an <code>ActionEvent</code> triggered from buttons
-		 * that have class <code>TrajectoryStackWindow</code> as their action listener:
-		 * <br><code>Button filter_length</code>
-		 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-		 */
-		public synchronized void actionPerformed(ActionEvent e) {
-			Object b = e.getSource();
-			if (b==filter_length) { 
-				// if user cancelled the filter dialog - do nothing
-				if (!filterTrajectories()) return;           	
-			}
-			// generate an updated view with the ImagePlus in this window according to the new filter
-			generateView(this.imp,null);
-		}
-
-		/** 
-		 * Defines the action taken upon an <code>MouseEvent</code> triggered by left-clicking 
-		 * the mouse anywhere in this <code>TrajectoryStackWindow</code>
-		 * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
-		 */
-		public synchronized void mousePressed(MouseEvent e) {
-
-			/* get the coordinates of mouse while it was clicked*/
-			int x = e.getX();
-			int y = e.getY();
-			/* covert them to offScreen coordinates using the ImageCanvas of this window*/
-			int offscreenX = this.ic.offScreenX(x);
-			int offscreenY = this.ic.offScreenY(y);
-
-			boolean trajectory_clicked = false;
-			int min_dis = Integer.MAX_VALUE;
-			Iterator<Trajectory> iter = all_traj.iterator();
-			/* find the best Trajectory to match the mouse click*/
-			while (iter.hasNext()) {
-				Trajectory curr_traj = iter.next();				
-				// only trajectories that the mouse click is within their mouse_selection_area
-				// and that are not filtered (to_display == true) are considered as a candidate
-				if (curr_traj.mouse_selection_area.contains(offscreenX, offscreenY) && curr_traj.to_display){					
-					// we have a least 1 candidate => a trajectory will be set
-					trajectory_clicked = true;
-					// for each particle in a candidate trajectory, check the distance 
-					// from it to the mouse click point
-					for (int i = 0; i<curr_traj.existing_particles.length; i++) {
-						int dis = ((int)curr_traj.existing_particles[i].x - offscreenY)*
-						((int)curr_traj.existing_particles[i].x - offscreenY) +
-						((int)curr_traj.existing_particles[i].y - offscreenX)*
-						((int)curr_traj.existing_particles[i].y - offscreenX);
-						// if the distance for this particle  is lower than the min distance found
-						// for all trajectories until now - save this trajectory for now
-						if (dis < min_dis) {
-							min_dis = dis;
-							chosen_traj = curr_traj.serial_number;							
-						}
-					}//for
-				} //if
-			} //while			
-
-			if (trajectory_clicked) {
-				/* focus or mark the selected Trajectory according the the type of mouse click*/
-				this.imp.killRoi();
-				this.imp.updateImage();
-				// show the number of the selected Trajectory on the per trajectory 
-				// panel in the results window
-				results_window.per_traj_label.setText("Trajectory " + chosen_traj);				
-				if (e.getClickCount() == 2) {
-					// "double-click" 
-					// Set the ROI to the trajectory focus_area
-					IJ.getImage().setRoi((all_traj.elementAt(chosen_traj-1)).focus_area);
-					// focus on Trajectory (ROI)
-					generateTrajFocusView(chosen_traj-1, magnification_factor);
-				} else {
-					// single-click - mark the selected trajectory by setting the ROI to the 
-					// trajectory mouse_selection_area
-					this.imp.setRoi((all_traj.elementAt(chosen_traj-1)).mouse_selection_area);
-				}
-			} else {
-				chosen_traj = -1;
-				results_window.per_traj_label.setText("Trajectory (select from view)");
-			}			
-
-		}
-
-
-		/* (non-Javadoc)
-		 * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
-		 */
-		public void mouseClicked(MouseEvent e) {
-			// Auto-generated method stub
-		}
-
-		/* (non-Javadoc)
-		 * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
-		 */
-		public void mouseEntered(MouseEvent arg0) {
-			// Auto-generated method stub			
-		}
-
-		/* (non-Javadoc)
-		 * @see java.awt.event.MouseListener#mouseExited(java.awt.event.MouseEvent)
-		 */
-		public void mouseExited(MouseEvent arg0) {
-			// Auto-generated method stub			
-		}
-
-		/* (non-Javadoc)
-		 * @see java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
-		 */
-		public void mouseReleased(MouseEvent arg0) {
-			// Auto-generated method stub			
-		}
-
-	} // CustomStackWindow inner class
 
 	/**
 	 * Defines a window to be the main user interface for result display and analysis
@@ -2315,8 +1984,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		 * <br><code>MenuItem relink_particles</code>
 		 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 		 */
-		public synchronized void actionPerformed(ActionEvent ae) {
-
+		public synchronized void actionPerformed(ActionEvent ae) 
+		{
 			Object source = ae.getSource();						
 			Roi user_roi = null;
 
@@ -2622,16 +2291,16 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			}
 		}
 		
-		/* Assign random unique color to trajectory */
+		/* Assign random unique color to trajectory (KNOWN BUG YOU SHOULD AVOID GREY) */
 		
 		Vector<Color> vI = new Vector<Color>();
 		
-		int base = 0; // Color = Alpha = 1.0
+		int base = 257; // R = 0 G = 1 B = 1
 		int step = 0;
 		if (all_traj.size() >= 1)
-			step = 255*255*255/all_traj.size();
+			step = (255*255*255-base)/all_traj.size();
 		else
-			step = 255*255*255/1;
+			step = (255*255*255-base)/1;
 		
 		// Well we cannot create unique trajectory color, recover as we can
 		
@@ -2918,6 +2587,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		return info;
 	}
 
+	TrajectoryStackWin tsw;
+	
 	/**
 	 * Creates a new view of the trajectories as an overlay on the given <code>ImagePlus</code>.
 	 * <br> The new view is an instance of <code>TrajectoryStackWin</code>
@@ -2970,9 +2641,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			
 			duplicated_imp.setImage(ImageJFunctions.wrap(out, new_title));
 		}
-
+		
 		// Create a new window to hold the image and canvas
-		TrajectoryStackWin tsw = new TrajectoryStackWin(duplicated_imp,duplicated_imp.getWindow().getCanvas(), out);
+		tsw = new TrajectoryStackWin(duplicated_imp,duplicated_imp.getWindow().getCanvas(), out);
 
 		// zoom the window until its magnification will reach the set magnification magnification
 /*		while (tsw.getCanvas().getMagnification() < magnification) {
@@ -3238,7 +2909,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		IJ.selectWindow(roi_image_id);
 
 		// Iterate over all trajectories
-		Iterator<Trajectory> iter = all_traj.iterator();
+/*		Iterator<Trajectory> iter = all_traj.iterator();
 		while (iter.hasNext()) {
 			Trajectory traj = iter.next();
 			// Iterate over all particles in the current trajectory
@@ -3252,7 +2923,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				}
 			}
 		}
-		// set the new window to be the active one
+		// set the new window to be the active one*/
 		IJ.selectWindow(duplicated_imp.getID());
 
 	}
@@ -3512,11 +3183,18 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
  	    			final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( imp );
  	    		
  	    			out_f = frames[i].createImage(backgroundImg, all_traj, cal, i, DrawType.TRAJECTORY_HISTORY);
- 	    		
+ 	    			
+ 	    			// It failed end
+ 	    			if (out_f == null)
+ 	    				break;
  	    		}
  	 	    	else
  	 	    	{
  	 	    		out_f = frames[i].createImage(vMax,all_traj, i, DrawType.TRAJECTORY_HISTORY);
+ 	 	    		
+ 	    			// It failed end
+ 	    			if (out_f == null)
+ 	    				break;
  	 	    	}
  	    	}
  	    	else
@@ -3530,7 +3208,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	    		
 	    		out_f = frames[i].createImage(backgroundImg, all_traj, cal, i, DrawType.TRAJECTORY_HISTORY);
  	    	}
- 			
+ 	    	
  			MosaicUtils.copyEmbedded(out_fs, out_f, i);
  		}
  		

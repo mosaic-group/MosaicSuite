@@ -8,7 +8,7 @@ import mosaic.core.psf.psf;
 
 public class Parameters  implements Serializable
 {
-	private static final long serialVersionUID = 2894956420127964864L;
+	private static final long serialVersionUID = 2894976420127964864L;
 
 	//
 
@@ -77,7 +77,8 @@ public class Parameters  implements Serializable
 	public double thresholdcellmask = 0.0015;
 	public double thresholdcellmasky = 0.0015;//(RAB channel)
 	public int energyEvaluationModulo = 5;
-	public int dispEmodulo = 10;
+	public int dispEmodulo=10;
+	public boolean dispSoftMask = false;
 	public int nbconditions = 1;
 	public int regionSegmentLevel = 2;
 	public boolean remask=false;

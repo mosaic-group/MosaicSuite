@@ -1,6 +1,7 @@
 package mosaic.plugins;
 
 import java.beans.PropertyDescriptor;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -12,11 +13,13 @@ import java.util.regex.Pattern;
 
 import net.imglib2.type.numeric.real.DoubleType;
 import mosaic.bregman.Analysis;
+import mosaic.bregman.Analysis.outputF;
 import mosaic.bregman.GUIold;
 import mosaic.bregman.GenericGUI;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.psf.psf;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Segmentation;
 import mosaic.region_competition.Settings;
 import ij.plugin.PlugIn;
@@ -279,7 +282,7 @@ public class BregmanGLM_Batch implements Segmentation
 		oos.close();
 		p.PSF = psf_old;
 	}
-
+	
 	/**
 	 * 
 	 * Get Mask images name output
@@ -290,8 +293,8 @@ public class BregmanGLM_Batch implements Segmentation
 	public String[] getMask(ImagePlus aImp) 
 	{
 		String[] gM = new String[2];
-		gM[0] = new String(aImp.getTitle() + "_seg_c1_RGB.tif");
-		gM[1] = new String(aImp.getTitle() + "_seg_c2_RGB.tif");
+		gM[0] = new String(Analysis.out[outputF.MASK.getNumVal()].replace("*", "_") + File.separator + Analysis.out[outputF.MASK.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())) );
+		gM[1] = new String(Analysis.out[outputF.MASK.getNumVal()+1].replace("*", "_") + File.separator + Analysis.out[outputF.MASK.getNumVal()+1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())) );
 		return gM;
 	}
 	
@@ -306,8 +309,8 @@ public class BregmanGLM_Batch implements Segmentation
 	public String[] getRegions(ImagePlus aImp)
 	{
 		String[] gM = new String[2];
-		gM[0] = new String(aImp.getTitle() + "_Seg_c1_RGB.tif");
-		gM[1] = new String(aImp.getTitle() + "_Seg_c2_RGB.tif");
+		gM[0] = new String(Analysis.out[outputF.MASK.getNumVal()].replace("*", "_") + File.separator + Analysis.out[outputF.MASK.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())) );
+		gM[1] = new String(Analysis.out[outputF.MASK.getNumVal()+1].replace("*", "_") + File.separator + Analysis.out[outputF.MASK.getNumVal()+1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())) );
 		return gM;
 	}
 
@@ -322,9 +325,26 @@ public class BregmanGLM_Batch implements Segmentation
 	@Override
 	public String[] getRegionList(ImagePlus aImp) 
 	{
-		String[] gM = new String[2];
-		gM[0] = new String(aImp.getTitle() + "_ObjectsData_c1.csv");
-		gM[1] = new String(aImp.getTitle() + "_ObjectsData_c2.csv");
+		String[] gM = new String[4];
+		gM[0] = new String(Analysis.out[outputF.OBJECT.getNumVal()].replace("*", "_") + File.separator + Analysis.out[outputF.OBJECT.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())) );
+		gM[1] = new String(Analysis.out[outputF.OBJECT.getNumVal()+1].replace("*", "_") + File.separator + Analysis.out[outputF.OBJECT.getNumVal()+1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())) );
+		
+		// This is produced if there is a stitch operation
+		
+		gM[2] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + Analysis.out[outputF.OBJECT.getNumVal()].replace("*", "_") );
+		gM[3] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + Analysis.out[outputF.OBJECT.getNumVal()+1].replace("*", "_") );
+		
 		return gM;
+	}
+	
+	/**
+	 * 
+	 * Get name of the plugins
+	 * 
+	 */
+	
+	public String getName()
+	{
+		return "Squassh";
 	}
 }

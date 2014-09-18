@@ -350,7 +350,7 @@ public class MosaicUtils
 	 * 
 	 */
 
-	static public boolean checkSegmentationInfo(ImagePlus aImp)
+	static public boolean checkSegmentationInfo(ImagePlus aImp, String plugin)
 	{
 		String Folder = MosaicUtils.ValidFolderFromImage(aImp);
 		Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
@@ -380,15 +380,27 @@ public class MosaicUtils
 			
 			String [] jb = ClusterSession.getJobDirectories(0, Folder);
 			
+			// check if the jobID and filename match
+			
 			for (int k = 0 ; k < jb.length ; k++)
 			{
-				for (int j = 0 ; j < sR.length ; j++)
-				{
-					File fM = new File(jb[k] + sR[j]);
+				// Filename
 				
-					if (fM.exists())
+				String[] fl = MosaicUtils.readAndSplit(jb[k] + File.separator + "JobID");
+				
+				
+				if (fl[2].contains(aImp.getTitle()) && sg[i].getName().equals(fl[3]))
+				{
+					if (plugin == null)
 					{
 						return true;
+					}
+					else
+					{
+						if (sg[i].getName().equals(plugin))
+						{
+							return true;
+						}
 					}
 				}
 			}
@@ -439,18 +451,31 @@ public class MosaicUtils
 			
 			for (int k = 0 ; k < jb.length ; k++)
 			{
-				for (int j = 0 ; j < sR.length ; j++)
+				// check if the jobID and filename match
+					
+				String[] fl = MosaicUtils.readAndSplit(jb[k] + File.separator + "JobID");
+					
+					
+				if (fl[2].contains(aImp.getTitle()) && sg[i].getName().equals(fl[3]))
 				{
-					File fM = new File(jb[k] + sR[j]);
-				
-					if (fM.exists())
+					// Get the region list
+						
+					sR = sg[i].getRegionList(aImp);
+					for (int j = 0 ; j < sR.length ; j++)
 					{
-						PossibleFile.add(fM);
+						File fR = new File(jb[k] + File.separator + sR[j]);
+						if (fR.exists() == true)
+							PossibleFile.add(fR);
 					}
 				}
 			}
 			
 			sI.RegionList = filter_possible(PossibleFile);
+			
+			// if not segmentation choosen
+			
+			if (sI.RegionList == null)
+				return null;
 			
 			PossibleFile.clear();
 			
@@ -501,6 +526,16 @@ public class MosaicUtils
 	
 	static public void MergeFrames(ImagePlus a1, ImagePlus a2)
 	{
+		// If a1 does not have an imageStack set it to a2 and return
+		if (a1.getImageStack().getSize() == 0)
+		{
+			a1.setStack("Merge frames", a2.getImageStack().duplicate());
+			a1.setDimensions(a2.getNChannels(), a2.getNSlices(), a2.getNFrames());
+			return;
+		}
+		
+		// merge slices channels frames
+		
 		int hcount = a2.getNFrames() + a1.getNFrames();
 		for (int k = 1 ; k <= a2.getNFrames() ; k++)
 		{
@@ -832,6 +867,12 @@ public class MosaicUtils
 
 	static public <T extends NativeType<T>> boolean copyEmbedded(Img<T> A, Img<T> B, int fix)
 	{
+		// Check that the image are != null and the images has a difference
+		// in dimensionality of one
+		
+		if (A == null || B == null)
+			return false;
+		
 		if (A.numDimensions() - B.numDimensions() != 1)
 			return false;
 		
@@ -1868,6 +1909,35 @@ public class MosaicUtils
 		IJ.run(ip,"Properties...","channels=" + ip.getNFrames() + " slices=" + ip.getNChannels() + " frames=" + ip.getNSlices() + " unit=" + cal.getUnit() + " pixel_width=" + cal.pixelWidth + " pixel_height=" + cal.pixelHeight + " voxel_depth=" + cal.pixelDepth);
 	}
 	
+	/**
+	 * 
+	 * Filter out the csv output dir
+	 * 
+	 * @param dir Array of directories
+	 * @return CSV output dir
+	 */
+	
+	public static String[] getCSV(String[] dir)
+	{
+		Vector<String> outcsv = new Vector<String>();
+		
+		for (int i = 0 ; i < dir.length ; i++)
+		{
+			if (dir[i].endsWith(".csv"))
+			{
+				outcsv.add(dir[i].replace("*", "_"));
+			}
+		}
+		
+		String [] outS = new String[outcsv.size()];
+		
+		for (int i = 0 ; i < outcsv.size() ; i++)
+		{
+			outS[i] = outcsv.get(i);
+		}
+		
+		return outS;
+	}
 	
 	/**
 	 * 

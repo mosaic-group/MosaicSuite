@@ -55,6 +55,11 @@ public class Jtest
 			// TODO Auto-generated method stub
 			
 		}
+
+		@Override
+		public String getName() {
+			return new String("Jtest");
+		}
 		
 	}
 	

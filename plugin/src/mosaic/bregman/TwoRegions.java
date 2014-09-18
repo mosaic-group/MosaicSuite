@@ -2,6 +2,7 @@ package mosaic.bregman;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.measure.Calibration;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.psf.GaussPSF;
 import mosaic.core.utils.CircleMask;
 import mosaic.core.utils.LabelImage;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.core.utils.RegionIteratorMask;
@@ -111,6 +113,8 @@ public class TwoRegions extends NRegions
         }
 	}
 	
+	public ImagePlus out_soft_mask[] = new ImagePlus[2];
+	
 	/**
 	 * 
 	 * Run the split Bregman + patch refinement
@@ -122,8 +126,11 @@ public class TwoRegions extends NRegions
 	{
 		//p.nlevels=1;//create only one region not 2 : nz-1
 
+		
+		// This store the output mask
 		md= new MasksDisplay(ni,nj,nz,nl,p.cl,p);
-		ASplitBregmanSolver A_solver;
+		
+		ASplitBregmanSolver A_solver = null;
 		//TODO save test
 		p.cl[0]=p.betaMLEoutdefault;
 		//p.cl[1]=0.2340026;
@@ -207,6 +214,8 @@ public class TwoRegions extends NRegions
 			A_solver.regions_intensity_findthresh(img);
 		}
 		
+		mergeSoftMask(A_solver);
+		
 		if(channel==0)
 		{
 			// Take the soft membership mask
@@ -235,7 +244,8 @@ public class TwoRegions extends NRegions
 				//A_solver=null; // for testing
 				//test
 				//IJ.log("start test" + "nlevels " +p.nlevels);
-				if(Analysis.p.refinement&& Analysis.p.mode_voronoi2){
+				if(Analysis.p.refinement&& Analysis.p.mode_voronoi2)
+				{
 					Analysis.setregionsThresholds(Analysis.regionslist[0], RiN, RoN);
 					Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[0], regions, RiN);
 					IJ.showStatus("Computing segmentation  " + 55 + "%");
@@ -254,7 +264,8 @@ public class TwoRegions extends NRegions
 
 
 
-				if(Analysis.p.refinement && Analysis.p.mode_classic){
+				if(Analysis.p.refinement && Analysis.p.mode_classic)
+				{
 					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslist[0],image,channel, A_solver.w3kbest[0],min,max);
 					A_solver=null;
 					ipatches.run();
@@ -432,14 +443,31 @@ public class TwoRegions extends NRegions
 				
 
 			}
-			//			else
-			//				Analysis.A_solverY=A_solver;
 		}
-
-
+		
 		//correct the level number
 		p.nlevels=2;
 		DoneSignal.countDown();
 
 	}
+	
+	/**
+	 * 
+	 * Merge the soft mask
+	 * 
+	 * @param A_solver the solver used to produce the soft mask
+	 */
+	
+	void mergeSoftMask(ASplitBregmanSolver A_solver)
+	{
+		if (p.dispSoftMask) 
+		{
+			ImagePlus soft_mask = null;
+			if (p.nz > 1)
+				out_soft_mask[channel] = md.display2regions3Dnew(A_solver.w3k[channel], "Mask", channel,false);
+			else
+				out_soft_mask[channel] = md.display2regionsnew(A_solver.w3k[channel][0], "Mask", channel,false);
+		}
+	}
+	
 }

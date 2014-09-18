@@ -35,21 +35,21 @@ public class Jtest implements PlugInFilter
 	{
 		// Test particle tracker
 		
+		mosaic.core.ipc.Jtest jtestIPC = new mosaic.core.ipc.Jtest();
+		
+		jtestIPC.csvtest();
+		
 		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
 		
 		jtestTS.testtestsegmentation();
 	
-		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
-		
-		jtestBR.segmentation();
-		
 		mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
 		
 		jtestMj.mergetest();
 		
-		mosaic.core.ipc.Jtest jtestIPC = new mosaic.core.ipc.Jtest();
+		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
 		
-		jtestIPC.csvtest();
+		jtestBR.segmentation();
 		
 		mosaic.region_competition.Jtest jtestRC = new mosaic.region_competition.Jtest();
 		

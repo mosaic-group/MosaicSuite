@@ -200,8 +200,8 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		}
 
 		//int centerim=p.nz/2;
-		if(p.livedisplay && p.firstphase) md.display2regions3D(w3k[l], "Mask", channel);
-
+		if(p.livedisplay && p.firstphase)
+			md.display2regions3D(w3k[l], "Mask", channel);
 
 		long lEndTime = new Date().getTime(); //end time
 

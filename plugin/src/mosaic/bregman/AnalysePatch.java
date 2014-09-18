@@ -276,43 +276,11 @@ public class AnalysePatch implements Runnable
 	public void run(){
 		//IJ.log("");
 		//IJ.log("region " + r.value);
-		MasksDisplay md= new MasksDisplay(sx,sy,sz,2,p.cl,p);
-
-		if(p.debug && (r.value==98 || r.value==32))
-			//{md.display2regionsnew(patch[0], "Patch "+r.value, channel);}
-		{md.display2regions3Dnew(patch, "Patch "+r.value, channel);}
-		//md.display2regionsnewd(mask[0][0],"mask binaire" +r.value, channel);
-		//md.display2regionsnew(patch[0], "Mask" +r.value, channel);
-		//md.display2regionsnewd(weights[0],"weights" +r.value, channel);
-		//md.display2regionsnewd(refined_mask[0],"rmask" +r.value, channel);
-		
-		
-		//ASplitBregmanSolver A_solver;
-
-		//IJ.log("pni " + p.ni + "pnj" + p.nj+ "pnz" + p.nz +"nlevels" +p.nlevels);
-		//Tools.setDims(sx, sy, sz, p.nlevels);
-
-		//		double [] cl = new double [2];
-		//		cl[0]=0;
-		//		cl[1]=0;
+		MasksDisplay md= new MasksDisplay(sx,sy,sz,2,p.cl,p);		
 
 		p.nthreads=1;
 		p.firstphase=false;
 		//IJ.log("noise "+p.noise_model);
-
-
-		//p.cl[0]=0.1;
-		//p.cl[1]=p.betaMLEindefault;
-
-		if(p.debug && (r.value==98 || r.value==32))
-			//{md.display2regionsnew(A_solver.w3kbest[0][0], "Mask Patch "+r.value, channel);}
-		{md.display2regions3Dnew(w3kpatch[0], "Mask Patch Init"+r.value, channel);}
-
-		//		IJ.log("levels init region" + r.value);
-		//		mask_clustering(w3kpatch[0],1);
-		//		
-		//		IJ.log("levels init image" + r.value + "");
-		//		estimate_int_clustering(2);// (-1 to correct for old numbering)
 
 		if (p.nz>1){
 			
@@ -347,10 +315,7 @@ public class AnalysePatch implements Runnable
 
 		try {
 			A_solver.first_run();
-			//md.display2regions(A_solver.w3kbest[0][0], "Mask patch" + r.value, channel);
-			if(p.debug == true && (r.value==19))
-				//{md.display2regionsnew(A_solver.w3kbest[0][0], "Mask Patch "+r.value, channel);}
-			{md.display2regions3Dnew(A_solver.w3kbest[0], "Mask Patch "+r.value, channel);}
+
 			cout=p.cl[0];
 			cin=p.cl[1];
 			

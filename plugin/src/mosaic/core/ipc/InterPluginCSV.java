@@ -8,7 +8,10 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -20,6 +23,41 @@ import org.supercsv.io.dozer.ICsvDozerBeanReader;
 import org.supercsv.io.dozer.ICsvDozerBeanWriter;
 import org.supercsv.prefs.CsvPreference;
 
+class StringInt implements Comparable<StringInt>
+{
+	String v;
+	int number;
+	
+	/**
+	 * 
+	 * Strint int constructor
+	 * 
+	 * @param v file string
+	 * @param number 
+	 * 
+	 */
+	
+	StringInt(String v, int number)
+	{
+		this.v = v;
+		this.number = number;
+	}
+
+	@Override
+	public int compareTo(StringInt a) 
+	{
+		if (a.number > number)
+		{
+			return -1;
+		}
+		else if (a.number < number)
+		{
+			return 1;
+		}
+		
+		return 0;
+	}
+};
 
 /**
 *
@@ -98,7 +136,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 				
 				if (pr.length == 2)
 				{
-					fld.add(new ExtParam(pr[0].substring(1),pr[1].trim()));
+					fld_r.add(new ExtParam(pr[0].substring(1),pr[1].trim()));
 				}
 				
 				return true;
@@ -111,6 +149,32 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	private Class<E> p;
 	CsvPreference c;
 	Vector<ExtParam> fld;
+	Vector<ExtParam> fld_r;
+	
+	// Specify if the meta-information must be appended
+	boolean NoMetaA = false;
+	
+	/**
+	 * 
+	 * When called the meta-information are not stitched when a stitch operation is performed
+	 * 
+	 */
+	
+	void noMetaStitch()
+	{
+		NoMetaA = true;
+	}
+	
+	/**
+	 * 
+	 * When called the meta-information are stitched when a stitch operation is performed
+	 * 
+	 */
+	
+	void MetaStitch()
+	{
+		NoMetaA = true;
+	}
 	
 	/**
 	 * 
@@ -127,6 +191,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
     	bld.skipComments(new CommentExtendedCSV());
     	c = bld.build();
     	fld = new Vector<ExtParam>();
+    	fld_r = new Vector<ExtParam>();
 	}
 	
 	/**
@@ -164,11 +229,23 @@ public class InterPluginCSV<E extends ICSVGeneral>
 			}
 			
 		}
+		
+		// search for the read meta-information and remove it
+		
+		for (int i = 0 ; i < fld_r.size() ; i++)
+		{
+			if (fld_r.get(i).p1.equals(parameter))
+			{
+				fld_r.remove(i);
+				break;
+			}
+			
+		}
 	}
 	
 	/**
 	 * 
-	 * Delete all previously setted meta information
+	 * Delete all previously set meta information
 	 * 
 	 */
 	
@@ -192,6 +269,14 @@ public class InterPluginCSV<E extends ICSVGeneral>
 			if (fld.get(i).p1.equals(parameter) )
 			{
 				return fld.get(i).p2;
+			}
+		}
+		
+		for (int i = 0 ;i < fld_r.size() ; i++)
+		{
+			if (fld_r.get(i).p1.equals(parameter) )
+			{
+				return fld_r.get(i).p2;
 			}
 		}
 		
@@ -538,6 +623,16 @@ public class InterPluginCSV<E extends ICSVGeneral>
                 	{
                 		beanWriter.writeComment("%" + fld.get(i).p1 + ":" + fld.get(i).p2);
                 	}
+                	
+                	// write read meta information if specified
+                	
+                	if (NoMetaA == false)
+                	{
+                    	for (int i = 0 ; i < fld_r.size() ;i++)
+                    	{
+                    		beanWriter.writeComment("%" + fld_r.get(i).p1 + ":" + fld_r.get(i).p2);
+                    	}
+                	}
                 }
       
                 // write the beans
@@ -767,7 +862,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	 * 
      * @param csvs files to stitch
      * @param Sttch output stitched file
-     * @return
+     * @return true if success
      */
     
     public boolean Stitch(String csvs[], String Sttch, String property, int base)
@@ -889,8 +984,9 @@ public class InterPluginCSV<E extends ICSVGeneral>
     
     public static <T extends ICSVGeneral>boolean Stitch(String dir_p[], File dir, File output_file, MetaInfo ext[], Class<T> cls)
     {
+    	boolean first = true;
 		InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
-    	
+		
 		for (int j = 0 ; j < dir_p.length ; j++)
 		{
 			File [] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
@@ -912,7 +1008,118 @@ public class InterPluginCSV<E extends ICSVGeneral>
 				csv.setMetaInformation(ext[i].par, ext[i].value);
 			}
 			
+			if (first == true)
+			{
+				// if it is the first time set the file preference from the first file
+				
+				first = false;
+				
+				csv.setCSVPreferenceFromFile(str[0]);
+			}
+			
 			csv.Stitch(str, output_file + dir_p[j]);
+		}
+    	
+    	return true;
+    }
+    
+    /**
+     * 
+     * Convert a File name to number
+     * 
+     * @param f file
+     * @return the number of the file
+     * 
+     */
+    
+    private static int FileToNumber(File f)
+    {
+    	Pattern p = Pattern.compile("[0-9]+");
+    	Matcher m = p.matcher(f.getName());
+    	if(m.find()) 
+    	{
+    	    String result = m.group();
+    	    return Integer.parseInt(result);
+    	}
+    	
+    	return 0;
+    }
+    
+    /**
+     * 
+     * Stitch the CSV files all together in the directory dir/dir_p[]
+     * save the result in dir/output_file + dir_p[]
+     * "*" are substituted by "_", it set the property selected to the
+     * number of the file
+     * 
+     * @param dir_p list of directories
+     * @param dir Base
+     * @param output_file stitched file
+     * @param property property to set
+     * @param ext Meta information to supply (if null the meta information are stitched too, if provided only the provided meta-information are inserted into the stitched file)
+     * @param Class<T> internal data for conversion
+     * @return true if success, false otherwise
+     */
+    
+    public static <T extends ICSVGeneral>boolean Stitch(String dir_p[], File dir, File output_file, MetaInfo ext[], String property , Class<T> cls)
+    {
+    	boolean first = true;
+		InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
+		
+		if (ext == null)
+			csv.MetaStitch();
+		else
+		{
+			csv.noMetaStitch();
+			for (int i = 0 ; i < ext.length ; i++)
+			csv.setMetaInformation(ext[i].par, ext[i].value);
+		}
+		
+		for (int j = 0 ; j < dir_p.length ; j++)
+		{
+			File [] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
+			if (fl == null)
+				continue;
+			int nf = fl.length;
+			
+			
+			Vector<StringInt> si = new Vector<StringInt>();
+			
+			// Check all csv file
+			
+			for (int i = 1 ; i <= nf ; i++)
+			{
+				if(fl[i-1].getName().endsWith(".csv"))
+				{
+					si.add(new StringInt(fl[i-1].getAbsolutePath(),FileToNumber(fl[i-1])));
+				}
+			}
+			
+			// reorder these files by number
+			
+			Collections.sort(si);
+			
+			// Construct the sorted file list
+			
+			String str[] = new String[si.size()];
+			
+			for (int i = 0 ; i < si.size() ; i++)
+			{
+				str[i] = si.get(i).v;
+			}
+			
+			// sorted
+			
+			if (first == true)
+			{
+				// if it is the first time set the file preference from the first file
+				
+				first = false;
+				
+				csv.setCSVPreferenceFromFile(str[0]);
+			}
+			
+			csv.Stitch(str, output_file + dir_p[j],property,0);
 		}
     	
     	return true;

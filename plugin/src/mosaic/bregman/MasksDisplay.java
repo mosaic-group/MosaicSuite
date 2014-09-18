@@ -77,7 +77,6 @@ public class MasksDisplay {
 
 	}
 
-
 	public void display(int [] [] [] maxmask, String s){
 
 		for (int i=0; i<ni; i++) {  
@@ -112,6 +111,14 @@ public class MasksDisplay {
 
 	}
 
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 2D array of double
+	 * @param s String of the image
+	 * @param channel channel
+	 */
 
 	public void display2regions(double [] [] array, String s, int channel){
 
@@ -137,7 +144,20 @@ public class MasksDisplay {
 		}
 	}
 
-	public  ImagePlus display2regionsnew(float [] [] array, String s, int channel){
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 2D array of float
+	 * @param s String of the image
+	 * @param channel channel
+	 * @param vs visualize or not
+	 * 
+	 * @return ImagePlus image
+	 * 
+	 */
+	
+	public  ImagePlus display2regionsnew(float [] [] array, String s, int channel, boolean vs){
 
 		float [] [] temp= new float [ni][nj];
 		ImagePlus imgtemp=new ImagePlus();
@@ -154,10 +174,23 @@ public class MasksDisplay {
 			imgtemp.setProcessor(s + "X",imp);
 		else
 			imgtemp.setProcessor(s + "Y",imp);
-		imgtemp.show(); 
+		if (vs == true)
+			imgtemp.show(); 
 		return imgtemp;
 	}
 
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 2D array of double
+	 * @param s String of the image
+	 * @param channel channel
+	 * 
+	 * @return the imagePlus
+	 * 
+	 */
+	
 	public  ImagePlus display2regionsnewd(double [] [] array, String s, int channel){
 
 		float [] [] temp= new float [ni][nj];
@@ -203,8 +236,20 @@ public class MasksDisplay {
 		return imgtemp;
 	}
 
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 3D array of double
+	 * @param s String of the image
+	 * @param channel channel
+	 * @param vs visualize or not the image
+	 * 
+	 * @return the imagePlus
+	 * 
+	 */
 
-	public  ImagePlus display2regionsnew(double [] [] array, String s, int channel){
+	public  ImagePlus display2regionsnew(double [] [] array, String s, int channel, boolean vs){
 
 		float [] [] temp= new float [ni][nj];
 		ImagePlus imgtemp=new ImagePlus();
@@ -221,12 +266,27 @@ public class MasksDisplay {
 			imgtemp.setProcessor(s + "X",imp);
 		else
 			imgtemp.setProcessor(s + "Y",imp);
-		imgtemp.show(); 
+		
+		if (vs == true)
+			imgtemp.show(); 
 		imgtemp.changes=false;
 		return imgtemp;
 	}
 
-	public  ImagePlus display2regions3Dnew(double [] [] [] array, String s, int channel){
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 3D array of double
+	 * @param s String of the image
+	 * @param channel channel
+	 * @param vs Visualize or not the soft mask
+	 * 
+	 * @return the imagePlus
+	 * 
+	 */
+	
+	public  ImagePlus display2regions3Dnew(double [] [] [] array, String s, int channel, boolean vs){
 		ImageStack img3temp=new ImageStack(ni,nj);
 
 		ImagePlus imgtemp=new ImagePlus();
@@ -249,12 +309,40 @@ public class MasksDisplay {
 		else
 			imgtemp.setStack(s + "Y",img3temp);
 		
-		imgtemp.show(); 
+		if (vs == true)
+			imgtemp.show(); 
 		imgtemp.changes=false;
 		return imgtemp;
 	}
 
-
+	/**
+	 * 
+	 * Get the soft membership
+	 * 
+	 * @param channel the channel to get
+	 * 
+	 * @return the soft membership mask
+	 */
+	
+	public ImagePlus getSoftMask(int channel)
+	{
+		if(channel==0)
+		{return imgda;}
+		else
+		{return imgdb;}
+	}
+	
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 3D array of double
+	 * @param s String of the image
+	 * @param channel channel
+	 * 
+	 * 
+	 */
+	
 	public void display2regions3D(double [] [] [] array, String s, int channel){
 
 		this.ims3d=new ImageStack(ni,nj);
@@ -289,7 +377,17 @@ public class MasksDisplay {
 
 	}
 
-
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 3D array of byte
+	 * @param s String of the image
+	 * @param channel channel
+	 * 
+	 * @return the imagePlus
+	 * 
+	 */
 
 	public ImagePlus display2regions3Dnew(byte [] [] [] array, String s, int channel){
 
@@ -324,7 +422,17 @@ public class MasksDisplay {
 		return imgd;	
 	}
 
-
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 3D array of float
+	 * @param s String of the image
+	 * @param channel channel
+	 * 
+	 * @return the imagePlus
+	 * 
+	 */
 
 	public ImagePlus display2regions3Dnew(float [] [] [] array, String s, int channel){
 

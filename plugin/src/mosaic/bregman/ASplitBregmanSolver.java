@@ -324,23 +324,7 @@ public class ASplitBregmanSolver {
 				IJ.log(String.format("Photometry :%n backgroung %10.8e %n foreground %10.8e", RSS.betaMLEout,RSS.betaMLEin));	
 			}
 
-			if(!p.firstphase  && p.mode_intensity==0 && (stepk==40 || stepk==70) ){ // && new mode automatic intensity && p.mode_intensity==0 // do it all the time
-				//Analysepat
-				//Analysis.p.cl[0]=RSS.betaMLEout;
-				//Analysis.p.cl[1]=RSS.betaMLEin;
-				
-				
-				if(p.debug && stepk==40 && (Ap.r.value==91 || Ap.r.value==102)){
-				MasksDisplay md= new MasksDisplay(Ap.sx,Ap.sy,Ap.sz,2,p.cl,p);
-				md.display2regions3Dnew(w3k[0], "Mask Patch 40 "+Ap.r.value, channel);
-				}
-				
-				if(p.debug && stepk==70 && (Ap.r.value==91 || Ap.r.value==102)){
-					MasksDisplay md= new MasksDisplay(Ap.sx,Ap.sy,Ap.sz,2,p.cl,p);
-					md.display2regions3Dnew(w3k[0], "Mask Patch 70 "+Ap.r.value, channel);
-					}
-				
-				
+			if(!p.firstphase  && p.mode_intensity==0 && (stepk==40 || stepk==70) ){ // && new mode automatic intensity && p.mode_intensity==0 // do it all the time				
 				
 				Ap.find_best_thresh_and_int(w3k[0]);
 				p.cl[0]=Math.max(0, Ap.cout);
@@ -568,11 +552,7 @@ public class ASplitBregmanSolver {
 		//	ImagePlus img=md.display2regionsnew(Ri[0][0], "Ri", 1);
 		//	ImagePlus img2=md.display2regionsnew(Ro[0][0], "Ro", 1);
 
-		RSS.cluster_region(Ri[0], Ro[0], regionslistr);
-//		ImagePlus img3=
-				md.display2regionsnew(Ri[0][0], "Ri cluster", 1);
-//		ImagePlus img4=
-				md.display2regionsnew(Ro[0][0], "Ro cluster", 1);	
+		RSS.cluster_region(Ri[0], Ro[0], regionslistr);	
 	}	
 
 	public void regions_intensity_findthresh(double [][][] mask){
@@ -808,7 +788,7 @@ public class ASplitBregmanSolver {
 		//IJ.log("Elapsed milliseconds RSS2: " + difference);
 		if(p.dispvoronoi){
 			if(p.nz==1)
-			{md.display2regionsnew(Ri[0][0], "Regions thresholds", channel);}
+			{md.display2regionsnew(Ri[0][0], "Regions thresholds", channel,true);}
 			else
 			{md.display2regions3Dnew(Ri[0], "Regions thresholds", channel);}	}
 		//ImagePlus img4=md.display2regionsnew(Ro[0][0], "Ro cluster", 1);	

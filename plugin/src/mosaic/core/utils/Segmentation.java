@@ -42,4 +42,14 @@ public interface Segmentation extends PlugInFilterExt
 	 */
 	
 	void closeAll();
+	
+	/**
+	 * 
+	 * Get the name of the segmentation plugin
+	 * 
+	 * @return the name of the segmentation plugin
+	 * 
+	 */
+	
+	String getName();
 };

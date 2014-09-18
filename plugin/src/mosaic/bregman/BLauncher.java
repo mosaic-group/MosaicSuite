@@ -279,12 +279,19 @@ public class BLauncher
 			displayRegionsLab(1,sep);
 			if (Analysis.p.nchannels == 2) {displayRegionsLab(2,sep);}
 		}
+		if (Analysis.p.dispSoftMask)
+		{			
+			Analysis.out_soft_mask[0].show();
+			if (Analysis.p.nchannels == 2) {Analysis.out_soft_mask[1].show();}
+		}
 
 	}
 	
 	/**
 	 * 
 	 * Save all images
+	 * 
+	 * @param path where to save
 	 * 
 	 */
 	
@@ -318,6 +325,12 @@ public class BLauncher
 			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_mask_c" + (i+1) +".zip";
 			if (out_label_gray[i] != null)
 				IJ.saveAs(out_label_gray[i], "ZIP", savepath);
+		}
+		for (int i = 0 ; i < Analysis.out_soft_mask.length ; i++)
+		{
+			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_soft_mask_c" + (i+1) +".tiff";
+			if (Analysis.out_soft_mask[i] != null)
+				IJ.saveAsTiff(Analysis.out_soft_mask[i], savepath);
 		}
 	}
 	
@@ -459,6 +472,9 @@ public class BLauncher
 			if (img == null)
 			{IJ.error("No image to process");}
 			
+			if (img.getType() == ImagePlus.COLOR_RGB)
+			{IJ.error("This is a color image and is not supported, convert into 8-bit , 16-bit or float"); return;}
+			
 			Analysis.p.nchannels=img.getNChannels();
 
 			if(Analysis.p.save_images)
@@ -597,19 +613,11 @@ public class BLauncher
 
 		//IJ.log("dispcolors" + Analysis.p.dispcolors);
 		Analysis.segmentA();			 
-
-		try{
-			Analysis.DoneSignala.await();
-		}catch (InterruptedException ex) {}
 		
 		//IJ.log("imgb :" +list[i+1]);
 
 		if(Analysis.p.nchannels==2){
-			Analysis.segmentb();			 
-
-			try {
-				Analysis.DoneSignalb.await();
-			}catch (InterruptedException ex) {}
+			Analysis.segmentb();
 		}
 
 		//TODO : why is it needed to reassign p.ni ...??
@@ -1060,6 +1068,7 @@ public class BLauncher
 		
 		if(disp)
 		{
+			// this force the update of the image
 			ipd[channel-1].setStack(ipd[channel-1].getStack());
 			ipd[channel-1].show();
 		}

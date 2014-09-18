@@ -440,7 +440,7 @@ public class Region_Competition implements Segmentation
 			// Get output format and Stitch the output in the output selected
 			
 			String outcsv[] = {"*_ObjectsData_c1.csv"};
-			ClusterSession.processJobsData(ss,outcsv,MosaicUtils.ValidFolderFromImage(aImp),RCOutput.class);
+			ClusterSession.processJobsData(outcsv,MosaicUtils.ValidFolderFromImage(aImp),RCOutput.class);
 			
 			////////////////
 			
@@ -1835,6 +1835,13 @@ public class Region_Competition implements Segmentation
 		String[] gM = new String[1];
 		gM[0] = new String(aImp.getTitle() + "_seg_c1.tif");
 		return gM;
+	}
+
+
+	@Override
+	public String getName() 
+	{
+		return new String("Region_Competition");
 	}
 }
 	

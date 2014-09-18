@@ -1578,6 +1578,19 @@ import net.imglib2.view.Views;
 		
 		public  <T extends RealType<T>> Img<ARGBType> createImage(Img<T> background, Calibration cal)
 		{
+			// Check that the image is really RealType
+			
+			// Check that the image is really RealType
+			try
+			{
+				background.firstElement();
+			}
+			catch (ClassCastException e)
+			{
+				IJ.error("Error unsupported format, please convert your image into 8-bit, 16-bit or float");
+				return null;
+			}
+			
 	        // the number of dimensions
 	        int numDimensions = background.numDimensions();
 	        
@@ -1592,7 +1605,16 @@ import net.imglib2.view.Views;
 	        Cursor<ARGBType> curOut = out.cursor();
 	        Cursor<T> curBack = background.cursor();
 	        
-	        ToARGB conv = MosaicUtils.getConversion(curBack.get(),background.cursor());
+	        ToARGB conv = null;
+	        try
+	        {
+	        	conv = MosaicUtils.getConversion(curBack.get(),background.cursor());
+			}
+			catch (ClassCastException e)
+			{
+				IJ.error("Error unsupported format, please convert your image into 8-bit, 16-bit or float");
+				return null;
+			}
 	        
 	        // Copy the background
 	        
@@ -1935,7 +1957,7 @@ import net.imglib2.view.Views;
 		 */
 		
 		public  <T extends RealType<T>> Img<ARGBType> createImage(Img<T> background, Vector<Trajectory> tr ,Calibration cal, int frame, DrawType typ)
-		{
+		{			
 			// if you have no trajectory draw use the other function
 			
 			if (tr == null)
@@ -1955,7 +1977,16 @@ import net.imglib2.view.Views;
 	        Cursor<ARGBType> curOut = out.cursor();
 	        Cursor<T> curBack = background.cursor();
 	        
-	        ToARGB conv = MosaicUtils.getConversion(curBack.get(),background.cursor());
+	        ToARGB conv = null;
+			try
+			{
+				conv = MosaicUtils.getConversion(curBack.get(),background.cursor());
+			}
+			catch (ClassCastException e)
+			{
+				IJ.error("Error unsupported format, please convert your image into 8-bit, 16-bit or float");
+				return null;
+			}
 	        
 	        // Copy the background
 	        

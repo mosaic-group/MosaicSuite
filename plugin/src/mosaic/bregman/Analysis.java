@@ -21,6 +21,21 @@ import mosaic.core.utils.MosaicUtils;
 
 public class Analysis {
 
+	public enum outputF
+	{
+		MASK(2),
+		SEG(9),
+		INT(7),
+		OBJECT(0);
+		
+		private int numVal;
+		
+		outputF(int numVal) 
+		{this.numVal = numVal;}
+
+		public int getNumVal() {return numVal;}
+	};
+	
 	// This is the output for cluster
 	
 	public static String out[] = {"*_ObjectsData_c1.csv",
@@ -35,6 +50,8 @@ public class Analysis {
 	        "*_seg_c1.zip",
 	        "*_seg_c2.zip",
 	        "*_coloc.zip",
+	        "*_soft_mask_c1.tiff",
+	        "*_soft_mask_c2.tiff",
 	        "*.tif"};
 
 	// This is the output local
@@ -50,6 +67,8 @@ public class Analysis {
         "*_intensities_c2.zip",
         "*_seg_c1.zip",
         "*_seg_c2.zip",
+        "*_soft_mask_c1.tiff",
+        "*_soft_mask_c2.tiff",
         "*_coloc.zip"};
 	
 	public static double meansize_refined;
@@ -260,6 +279,10 @@ public class Analysis {
 		
 	}
 	
+	// 
+	
+	static ImagePlus out_soft_mask[] = new ImagePlus[2];
+	
 	/* Segment channel1 */
 	
 	public static void segmentA()
@@ -273,24 +296,28 @@ public class Analysis {
 		currentImage=imgA.getTitle();
 
 		DoneSignala = new CountDownLatch(1);
-		if (p.usePSF==true || p.nz>1 ||p.nlevels==1 ) new Thread(new TwoRegions(imgA,p,DoneSignala,0)).start();
+		
+		// for this plugin AFAIK is always TwoRegion
+		
+		TwoRegions rg = null;
+		
+		if (p.usePSF==true || p.nz>1 ||p.nlevels==1 ) new Thread(rg = new TwoRegions(imgA,p,DoneSignala,0)).start();
 		else new Thread(new NRegions(imgA,p,DoneSignala, 0)).start();
-
-
-		//		if(doingbatch){
-		//			try {
-		//				DoneSignala.await();
-		//			}catch (InterruptedException ex) {}
-		//			
-		//			if(p.usePSF==true || p.nz>1 ||p.nlevels==1 ){
-		//				if(p.findregionthresh)compute_connected_regions_a((int) 255*p.thresh,A_solverX);
-		//				else compute_connected_regions_a((int) 255*p.thresh,null);
-		//			}
-		//			else{
-		//				if(p.nlevels==2)compute_connected_regions_a(0.5,null);
-		//				else compute_connected_regions_a(1.5,null);
-		//			}
-		//		}
+		
+		try{
+			Analysis.DoneSignala.await();
+		}catch (InterruptedException ex) {}
+		
+		// Merge frames
+		
+		if (p.dispSoftMask)
+		{
+			if (out_soft_mask[0] == null)
+				out_soft_mask[0] = new ImagePlus();
+		
+			MosaicUtils.MergeFrames(out_soft_mask[0], rg.out_soft_mask[0]);
+			out_soft_mask[0].setStack(out_soft_mask[0].getStack());
+		}
 	}
 
 	public static void segmentb(){
@@ -298,26 +325,28 @@ public class Analysis {
 
 		currentImage=imgB.getTitle();
 		DoneSignalb = new CountDownLatch(1);
-		if (p.usePSF==true || p.nz>1 || p.nlevels==1) new Thread(new TwoRegions(imgB,p,DoneSignalb,1)).start();
+		
+		// for this plugin AFAIK is always TwoRegion
+		
+		TwoRegions rg = null;
+		
+		if (p.usePSF==true || p.nz>1 || p.nlevels==1) new Thread(rg = new TwoRegions(imgB,p,DoneSignalb,1)).start();
 		else new Thread(new NRegions(imgB,p,DoneSignalb,1)).start();
-
-
-
-		//		if(doingbatch){
-		//		try {
-		//			DoneSignalb.await();
-		//		}catch (InterruptedException ex) {}
-		//			if(p.usePSF==true || p.nz>1 ||p.nlevels==1 ){
-		//				if(p.findregionthresh)compute_connected_regions_b((int) 255*p.thresh,A_solverY);
-		//				else compute_connected_regions_b((int) 255*p.thresh,null);
-		//			}
-		//			else{
-		//				if(p.nlevels==2)compute_connected_regions_b(0.5,null);
-		//				else compute_connected_regions_b(1.5,null);
-		//			}
-		//		}
-
-
+		
+		try {
+			Analysis.DoneSignalb.await();
+		}catch (InterruptedException ex) {}
+		
+		// Merge software
+		
+		if (p.dispSoftMask)
+		{
+			if (out_soft_mask[1] == null)
+				out_soft_mask[1] = new ImagePlus();
+		
+			MosaicUtils.MergeFrames(out_soft_mask[1], rg.out_soft_mask[1]);
+			out_soft_mask[1].setStack(out_soft_mask[1].getStack());
+		}
 	}
 
 	/*  */
