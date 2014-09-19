@@ -93,6 +93,7 @@ public class Analysis {
 	public static boolean doingbatch=false;
 	public static boolean firstbcoloc=true;
 	public static String dir;
+	public static int frame;
 	
 	// Maximum norm, it fix the range of the normalization, useful for video
 	// normalization has to be done on all frame video, filled when the plugins

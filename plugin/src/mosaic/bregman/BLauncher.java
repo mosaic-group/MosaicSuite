@@ -219,6 +219,7 @@ public class BLauncher
 		
 		for (int f = 1 ; f <= aImp.getNFrames(); f++)
 		{
+			Analysis.frame = f;
 			aImp.setPosition(aImp.getChannel(),aImp.getSlice(),f);
 			Headless_file();
 			
@@ -249,7 +250,7 @@ public class BLauncher
 	 * 
 	 * Display results
 	 * 
-	 * @param separate
+	 * @param separate true if you do not want separate the images
 	 * 
 	 */
 	
@@ -258,6 +259,8 @@ public class BLauncher
 		int factor =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 		int fz;
 		if(Analysis.p.nz>1)fz=factor; else fz=1;
+		
+		System.out.println("Separate: " + sep);
 		
 		if(Analysis.p.dispoutline)
 		{
@@ -681,6 +684,11 @@ public class BLauncher
 				colocB=mosaic.bregman.Tools.round(Analysis.colocsegB(null),4);
 				
 				boolean append = false;
+				
+				if (hcount == 0)
+					append = false;
+				else
+					append = true;
 				
 				// Write channel 2
 				

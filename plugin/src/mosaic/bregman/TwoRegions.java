@@ -117,6 +117,33 @@ public class TwoRegions extends NRegions
 	
 	/**
 	 * 
+	 * Get the particles related to one frame
+	 * 
+	 * @param part particle vector
+	 * @param frame frame number
+	 * @return a vector with particles related to one frame
+	 * 
+	 */
+	
+	private Vector<Particle> getPart(Vector<Particle> part, int frame)
+	{
+		Vector<Particle> pp = new Vector<Particle>();
+		
+		// get the particle related to one frame
+		
+		for (int i = 0 ; i < part.size() ; i++)
+		{
+			if (part.get(i).getFrame() == frame)
+			{
+				pp.add(part.get(i));
+			}
+		}
+		
+		return pp;
+	}
+	
+	/**
+	 * 
 	 * Run the split Bregman + patch refinement
 	 * 
 	 */
@@ -182,7 +209,14 @@ public class TwoRegions extends NRegions
 			A_solver= new ASplitBregmanSolverTwoRegions(p,image,SpeedData,mask,md,channel,null);
 
 		//first run
-		if (Analysis.p.patches_from_file == null)
+		
+		// Harcoded for Murrey
+		//
+		// Load the patches only for channel 2
+		//
+		//
+		
+		if (Analysis.p.patches_from_file == null || channel==0)
 		{
 			try 
 			{
@@ -193,7 +227,8 @@ public class TwoRegions extends NRegions
 			catch (InterruptedException ex) {}
 		}
 		else
-		{	
+		{
+			// Here we have patches 
 			// Load particles
 			
 			Vector<Particle> pt;
@@ -203,13 +238,17 @@ public class TwoRegions extends NRegions
 			csv.setCSVPreferenceFromFile(Analysis.p.patches_from_file);
 			pt = csv.Read(Analysis.p.patches_from_file);
 			
+			// Get the particle related inly to one frames
+			
+			Vector<Particle> pt_f = getPart(pt,Analysis.frame-1);
+			
 			// create a mask Image
 		
 			double img[][][] = new double[p.nz][p.ni][p.nj];
 			
-			drawParticles(img,A_solver.w3kbest[0],pt,(int)1.0);
+			drawParticles(img,A_solver.w3kbest[0],pt_f,(int)1.0);
 			
-			Tools.disp_array3D_new(img, "particles");
+//			Tools.disp_array3D_new(img, "particles");
 			
 			A_solver.regions_intensity_findthresh(img);
 		}
@@ -301,6 +340,7 @@ public class TwoRegions extends NRegions
 				//    that include the previous one, going to zero this produce a tree graph. the patches are positioned
 				//    on the leaf ( other algorithms can be implemented to analyze this graph ... )
 				//
+				// (Temporarily we fix in this way)
 				// Save the old intensity label image as an hashmap (to save memory)
 				// run find connected region to recompute the regions again
 				// recompute the statistics using the old intensity label image
