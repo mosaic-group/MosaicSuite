@@ -5,6 +5,14 @@ import java.util.Vector;
 import mosaic.core.utils.DataCompression.Algorithm;
 
 
+/**
+ * 
+ * It implement the interface Cluster Profile and it store all the information of a cluster
+ * 
+ * @author Pietro Incardona
+ *
+ */
+
 public class GeneralProfile implements ClusterProfile
 {
 	BatchInterface bc;

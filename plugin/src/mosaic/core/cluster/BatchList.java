@@ -1,5 +1,13 @@
 package mosaic.core.cluster;
 
+/**
+ * 
+ * A list of all the batch system classes implemented
+ * 
+ * @author Pietro Incardona
+ *
+ */
+
 public class BatchList
 {
 	/**

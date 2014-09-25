@@ -13,8 +13,8 @@ import mosaic.core.detection.MyFrame;
  * Defines an overlay Canvas for a given <code>ImagePlus</code> on which the detected particles from 
  * a <code>MyFrame</code> are displayed for preview
  */
-public class PreviewCanvas extends ImageCanvas {
-
+public class PreviewCanvas extends ImageCanvas 
+{
 	private static final long serialVersionUID = 1L;
 	private MyFrame preview_frame;
 	int magnification = 1;
@@ -33,7 +33,8 @@ public class PreviewCanvas extends ImageCanvas {
 	 * @param preview_f - the <code>MyFrame</code> with the detected particles to display
 	 * @param mag - the magnification factor of the <code>ImagePlus</code> relative to the initial
 	 */
-	public PreviewCanvas(ImagePlus aimp, double mag) {
+	public PreviewCanvas(ImagePlus aimp, double mag) 
+	{
 		super(aimp);
 		this.preview_frame = null;
 		this.magnification = (int)mag;
@@ -49,26 +50,31 @@ public class PreviewCanvas extends ImageCanvas {
 	 * @param preview_f
 	 */
 	@SuppressWarnings("unused")
-	private PreviewCanvas(ImagePlus aimp) {
+	private PreviewCanvas(ImagePlus aimp) 
+	{
 		this(aimp, 1);
 	}
 
-	public void setPreviewFrame(MyFrame aPreviewFrame) {
+	public void setPreviewFrame(MyFrame aPreviewFrame) 
+	{
 		this.preview_frame = aPreviewFrame;
 	}
 	
-	public void setPreviewParticleRadius(int radius) {
+	public void setPreviewParticleRadius(int radius) 
+	{
 		this.radius = radius;
 	}
 	
-	public void setPreviewSliceCalculated(int slice_calculated) {
+	public void setPreviewSliceCalculated(int slice_calculated) 
+	{
 		this.preview_slice_calculated = slice_calculated;
 	}
 	
 	/* (non-Javadoc)
 	 * @see java.awt.Component#paint(java.awt.Graphics)
 	 */
-	public void paint(Graphics g) {            
+	public void paint(Graphics g) 
+	{
 		super.paint(g);
 		int frameToDisplay = getFrameNumberFromSlice(this.imp.getCurrentSlice());
 		Vector<Particle> particlesToDisplay = null;
@@ -99,7 +105,8 @@ public class PreviewCanvas extends ImageCanvas {
 	 * <br> draws a dot and circles the detected particle directly of the given <code>Graphics</code>
 	 * @param g
 	 */
-	private void circleParticles(Graphics g, Vector<Particle> particlesToDisplay) {
+	private void circleParticles(Graphics g, Vector<Particle> particlesToDisplay) 
+	{
 		if (particlesToDisplay == null || g == null) return;
 
 		// get the slice number
@@ -131,7 +138,8 @@ public class PreviewCanvas extends ImageCanvas {
 	 * @param sliceIndex: 1..#slices
 	 * @return a frame index: 1..#frames
 	 */
-	private int getFrameNumberFromSlice(int sliceIndex) {
+	private int getFrameNumberFromSlice(int sliceIndex) 
+	{
 		return (sliceIndex-1) / imp.getNSlices() + 1;
 	}
 	
@@ -141,7 +149,8 @@ public class PreviewCanvas extends ImageCanvas {
 	 * <br> draws an arrow from detected particle directly of the given <code>Graphics</code>
 	 * @param g
 	 */
-	private void paintShiftArrows(Graphics g, Vector<double[]> shifts, Vector<double[]> shiftPositions ) {
+	private void paintShiftArrows(Graphics g, Vector<double[]> shifts, Vector<double[]> shiftPositions ) 
+	{
 		if (shifts == null || g == null) return;
 		//System.out.println("Shifts " +shifts.size());
 		this.magnification = (int)Math.round(imp.getWindow().getCanvas().getMagnification());
@@ -155,5 +164,4 @@ public class PreviewCanvas extends ImageCanvas {
 			g.drawLine(this.screenXD(shiftPositions.get(i)[1]),this.screenYD(shiftPositions.get(i)[0]),this.screenXD(shiftPositions.get(i)[1]+shifts.get(i)[1]*20),this.screenYD(shiftPositions.get(i)[0]));
 		}
 	}
-
 }

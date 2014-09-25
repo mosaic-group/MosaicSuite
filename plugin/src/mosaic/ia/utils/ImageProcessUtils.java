@@ -26,10 +26,17 @@ import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
+import net.imglib2.img.ImagePlusAdapter;
+import net.imglib2.img.Img;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.UnsignedByteType;
+import net.imglib2.type.numeric.integer.UnsignedShortType;
+import net.imglib2.type.numeric.real.FloatType;
 import mosaic.ia.nn.KDTreeNearestNeighbor;
-
 import weka.core.neighboursearch.KDTree;
-
 import mosaic.core.detection.FeaturePointDetector;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
@@ -39,7 +46,54 @@ import mosaic.ia.MaskedImage;
 public class ImageProcessUtils {
 	
 	
-	public static Vector<Particle> detectParticlesinStack(ImagePlus imp) {
+	/**
+	 * 
+	 * Detect the particle in a stack from an image using particle tracker
+	 * 
+	 * @param imp Image
+	 * @return Vector of particle detected
+	 * 
+	 */
+	
+	public static Vector<Particle> detectParticlesinStack(ImagePlus imp)
+	{
+		switch (imp.getType())
+		{
+			case ImagePlus.GRAY8:
+			{
+				return ImageProcessUtils.<UnsignedByteType>detectParticlesinStackType(imp);
+			}
+			case ImagePlus.GRAY16:
+			{
+				return ImageProcessUtils.<UnsignedShortType>detectParticlesinStackType(imp);
+			}
+			case ImagePlus.GRAY32:
+			{
+				return ImageProcessUtils.<FloatType>detectParticlesinStackType(imp);
+			}
+			default:
+			{
+				IJ.error("Incompatible image type convert to 8-bit 16-bit or Float type");
+				return null;
+			}
+		}
+		
+	}
+	
+	/**
+	 * 
+	 * Detect the particle in a stack from an image using particle tracker
+	 * The generic parameter is the type of the image
+	 * 
+	 * @param imp Image
+	 * @return Vector of particle detected
+	 * 
+	 */
+	
+	private static <T extends RealType<T> & NativeType<T>> Vector<Particle> detectParticlesinStackType(ImagePlus imp) 
+	{
+		// init the circle cache
+		MyFrame.initCache();
 		ImageStatistics imageStat = imp.getStatistics();
 		FeaturePointDetector featurePointDetector = new FeaturePointDetector(
 				(float) imageStat.max, (float) imageStat.min);
@@ -47,24 +101,39 @@ public class ImageProcessUtils {
 		GenericDialog gd = new GenericDialog("Particle Detection...",IJ.getInstance());
 	
 		System.out.println("No of N slices: "+imp.getNSlices());
-
 		
 		featurePointDetector.addUserDefinedParametersDialog(gd);
 		
 		// gd.addPanel(detector.makePreviewPanel(this, impA),
 		// GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));
 
-		PreviewCanvas previewCanvas = featurePointDetector
-				.generatePreviewCanvas(imp);
+		// show the image
+		
+		imp.show();
+		
+//		featurePointDetector.generatePreviewCanvas(imp);
 		gd.showDialog();
 		featurePointDetector.getUserDefinedParameters(gd);
-		featurePointDetector.preview(imp, previewCanvas, gd);
+		Img<T> background = ImagePlusAdapter.wrap( imp );
+		featurePointDetector.preview(imp, gd);
 		MyFrame myFrame = featurePointDetector.getPreviewFrame();
 	
-		previewCanvas.repaint();
+		myFrame.setParticleRadius(featurePointDetector.radius);
+		Img<ARGBType> detected = myFrame.createImage(background, imp.getCalibration());
+		ImageJFunctions.show(detected);
+		
+/*		previewCanvas.repaint();*/
 		return myFrame.getParticles();
 	}
 	
+	/**
+	 * 
+	 * Get the coordinate of the Particles
+	 * 
+	 * @param particles
+	 * @return
+	 * 
+	 */
 	
 	public static Point3d[] getCoordinates(Vector<Particle> particles)
 	{

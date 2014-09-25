@@ -2,6 +2,15 @@ package mosaic.core.cluster;
 
 import mosaic.core.utils.DataCompression.Algorithm;
 
+/**
+ * 
+ * This interface define an interface to get information of a cluster
+ * any class that store information of a cluster must implement this interface
+ * 
+ * @author i-bird
+ *
+ */
+
 public interface ClusterProfile
 {
 	/**

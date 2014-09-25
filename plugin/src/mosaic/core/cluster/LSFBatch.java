@@ -15,6 +15,15 @@ import mosaic.core.cluster.JobStatus.jobS;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 
+/**
+ * 
+ * This class implement the Platform LSF batch system, in particular implement the interface BatchInterface
+ * to is able to return LSF specific commands based on what we want to do, and is able to parse LSF specific
+ * output to get the job information
+ * 
+ * @author Pietro Incardona
+ *
+ */
 
 class LSFBatch implements BatchInterface
 {

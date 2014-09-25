@@ -46,18 +46,9 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 		
 		Vector<Particle> particle =new Vector<Particle>();
 		
-	try{
-	 particle = ImageProcessUtils.detectParticlesinStack(image);
-	
-	}
-	catch(NullPointerException npe)
-	{
-		System.out.println("NPE caught");
-	
-	}
-	
-	
-	return applyMaskandgetCoordinates(ImageProcessUtils.getCoordinates(particle));
+		particle = ImageProcessUtils.detectParticlesinStack(image);
+		
+		return applyMaskandgetCoordinates(ImageProcessUtils.getCoordinates(particle));
 	}
 
 	

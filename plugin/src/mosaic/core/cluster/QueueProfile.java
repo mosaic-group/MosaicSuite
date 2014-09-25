@@ -4,6 +4,17 @@ import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.Outdata;
 import mosaic.core.ipc.StubProp;
 
+/**
+ * 
+ * A cluster in general has a batch system, all (most) of them has a queue system to manage
+ * the jobs. Queue profile store the information of a queue
+ * 
+ * Implement ICSVGeneral because is an object that can be create from a CSV file
+ * 
+ * @author Pietro Incardona
+ *
+ */
+
 public class QueueProfile extends StubProp implements ICSVGeneral, Outdata<QueueProfile>
 {
 	String queue;

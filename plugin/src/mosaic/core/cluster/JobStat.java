@@ -2,6 +2,13 @@ package mosaic.core.cluster;
 
 import mosaic.core.cluster.JobStatus.jobS;
 
+/**
+ * 
+ * Structure that store and retain information about the status of a job
+ * 
+ * @author Pietro Incardona
+ *
+ */
 
 abstract class JobStatus
 {
@@ -14,9 +21,18 @@ abstract class JobStatus
 		UNKNOWN
 	};
 	
+	// job id
 	public int job_id;
 	private jobS js;
 	private jobS js_N;
+	
+	/**
+	 * 
+	 * Count the number of complete jobs
+	 * 
+	 * @param jb List of jobs
+	 * @return the number of completed jobs
+	 */
 	
 	static int countComplete(JobStatus jb[])
 	{
@@ -30,6 +46,15 @@ abstract class JobStatus
 		
 		return ncc;
 	}
+	
+	/**
+	 * 
+	 * Check if all the jobs are completed
+	 * 
+	 * @param jb list of jobs
+	 * @return true if all jobs are completed
+	 * 
+	 */
 	
 	static boolean allComplete(JobStatus jb[])
 	{
@@ -49,6 +74,7 @@ abstract class JobStatus
 	 * Get the status of the job
 	 * 
 	 * @return jobS enum
+	 * 
 	 */
 	
 	jobS getStatus()
@@ -70,20 +96,50 @@ abstract class JobStatus
 		return js_N;
 	}
 	
+	/**
+	 * 
+	 * Set the notified status of the job
+	 * 
+	 * @see getNotifiedStatus()
+	 * 
+	 * @param js_
+	 */
+	
 	void setNotifiedStatus(jobS js_)
 	{
 		js_N = js_;
 	}
+	
+	/**
+	 * 
+	 * Set the status of the job
+	 * 
+	 * @param js_ job status
+	 */
 	
 	void setStatus(jobS js_)
 	{
 		js = js_;
 	}
 	
+	/**
+	 * 
+	 * Set the id of the job
+	 * 
+	 * @param id of the job
+	 */
+	
 	void setID(int id)
 	{
 		job_id = id;
 	}
+	
+	/**
+	 * 
+	 * Get the id of the
+	 * 
+	 * @return the id of the job
+	 */
 	
 	int getID()
 	{

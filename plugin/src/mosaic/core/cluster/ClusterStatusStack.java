@@ -8,8 +8,25 @@ import ij.ImageStack;
 import ij.process.ColorProcessor;
 
 
+/**
+ * 
+ * It store the sequence of images (PENDING RUNNING COMPLETE) that show
+ *  the status of the cluster
+ * 
+ * @author Pietro Incardona
+ *
+ */
+
 class ClusterStatusStack
 {
+	/**
+	 * 
+	 * Construct the stack from a status jobs
+	 * 
+	 * @param js status job
+	 * @return ColorProcessor is the image
+	 */
+	
 	ColorProcessor createResult(JobStatus js)
 	{
 		ColorProcessor ip = null;
@@ -89,6 +106,14 @@ class ClusterStatusStack
 		return ip;
 	}
 	
+	/**
+	 * 
+	 * Create an image stack from a list of job status
+	 * 
+	 * @param jb list of job status
+	 * @return the stack of images
+	 */
+	
 	ImageStack CreateStack(JobStatus jb[])
 	{
 		ImageStack is = new ImageStack(200,50);
@@ -100,6 +125,16 @@ class ClusterStatusStack
 		
 		return is;
 	}
+	
+	/**
+	 * 
+	 * Update the stack from a list of JobStatus
+	 * (If the status of a job is changed )
+	 * 
+	 * @param ip stack to update
+	 * @param jb list of status jobs
+	 * 
+	 */
 	
 	void UpdateStack(ImageStack ip, JobStatus jb[])
 	{		

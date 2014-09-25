@@ -3,6 +3,15 @@ package mosaic.core.cluster;
 import mosaic.core.utils.DataCompression;
 import mosaic.core.utils.DataCompression.Algorithm;
 
+
+/**
+ * 
+ * Hard coded implementation of the Mad Max profile
+ * 
+ * @author Pietro Incardona
+ *
+ */
+
 public class MadMaxProfile extends GeneralProfile
 {
 	MadMaxProfile()

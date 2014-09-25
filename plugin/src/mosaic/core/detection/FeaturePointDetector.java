@@ -936,9 +936,31 @@ public class FeaturePointDetector {
 	 * Draws dots on the positions of the detected partciles on the frame and circles them
 	 * @see #getUserDefinedPreviewParams()
 	 * @see MyFrame#featurePointDetection()
+	 */
+	public synchronized void preview(ImagePlus imp, GenericDialog gd) {
+
+		// the stack of the original loaded image (it can be 1 frame)
+		ImageStack stack = imp.getStack();
+
+		getUserDefinedPreviewParams(gd);
+
+		int first_slice = imp.getCurrentSlice(); //TODO check what should be here, figure out how slices and frames numbers work(getFrameNumberFromSlice(impA.getCurrentSlice())-1) * impA.getNSlices() + 1; 
+		// create a new MyFrame from the current_slice in the stack, linkrange should not matter for a previewframe
+		preview_frame = new MyFrame(MosaicUtils.GetSubStackCopyInFloat(stack, first_slice, first_slice  + imp.getNSlices() - 1), getFrameNumberFromSlice(imp.getCurrentSlice(), imp.getNSlices())-1, 1);
+		
+		// detect particles in this frame
+		featurePointDetection(preview_frame);
+		setPreviewLabel("#Particles: " + preview_frame.getParticles().size());		
+	}
+	
+	/**
+	 * Detects particles in the current displayed frame according to the parameters currently set 
+	 * Draws dots on the positions of the detected partciles on the frame and circles them
+	 * @see #getUserDefinedPreviewParams()
+	 * @see MyFrame#featurePointDetection()
 	 * @see PreviewCanvas q
 	 */
-	public synchronized void preview(ImagePlus imp, PreviewCanvas preview, GenericDialog gd) {		
+	public synchronized void preview(ImagePlus imp, PreviewCanvas preview, GenericDialog gd) {
 
 		// the stack of the original loaded image (it can be 1 frame)
 		ImageStack stack = imp.getStack();

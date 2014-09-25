@@ -934,9 +934,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		
 		if (dm.equals("Brownian"))
 		{this.force = false; this.straight_line = false;}
-		else if (dm.equals("straight lines"))
+		else if (dm.equals("Straight lines"))
 		{this.force = false; this.straight_line = true;}
-		else if (dm.equals("constant velocity"))
+		else if (dm.equals("Constant velocity"))
 		{this.force = true; this.straight_line = true;}
 		
 		// if user choose to convert reset stack, title, frames number and global min, max

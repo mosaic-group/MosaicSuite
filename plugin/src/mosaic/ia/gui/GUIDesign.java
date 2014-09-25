@@ -45,9 +45,6 @@ import javax.swing.border.Border;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.util.Vector;
-
-import mosaic.core.detection.MyFrame;
-import mosaic.core.detection.Particle;
 import mosaic.ia.Analysis;
 import mosaic.ia.PotentialFunctions;
 import mosaic.ia.utils.IAPUtils;

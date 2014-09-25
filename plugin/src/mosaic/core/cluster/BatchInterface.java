@@ -8,6 +8,15 @@ enum OutputType
 	STATUS
 }
 
+/**
+ * 
+ * Define an interface to control a batch system
+ * any batch system class must implement this interface
+ * 
+ * @author Pietro Incardona
+ *
+ */
+
 interface BatchInterface extends ShellProcessOutput
 {
 	/**
