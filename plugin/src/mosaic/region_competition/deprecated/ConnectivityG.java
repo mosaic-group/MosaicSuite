@@ -3,8 +3,8 @@ package mosaic.region_competition.deprecated;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import mosaic.region_competition.Point;
-import mosaic.region_competition.Point.PointFactoryInterface;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.Point.PointFactoryInterface;
 
 public class ConnectivityG<T extends Point> implements Iterable<T>
 {

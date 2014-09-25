@@ -31,12 +31,12 @@ import javax.swing.border.EmptyBorder;
 
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.Algorithm;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
-import mosaic.region_competition.Point;
+import mosaic.core.utils.Point;
 import mosaic.region_competition.PointCM;
-import mosaic.region_competition.RegionIterator;
+import mosaic.core.utils.RegionIterator;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.CurvatureBasedFlow;
 import mosaic.region_competition.energies.EnergyFunctionalType;
@@ -49,7 +49,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	private int Area[];
 	
 	IntensityImage i[];
-	LabelImage l[];
+	LabelImageRC l[];
 	Algorithm al;
 	Settings s;
 	
@@ -65,7 +65,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		return st;
 	}
 		
-	public ScoreFunctionRCtop(IntensityImage i_[], LabelImage l_[], Settings s_)
+	public ScoreFunctionRCtop(IntensityImage i_[], LabelImageRC l_[], Settings s_)
 	{
 		i = i_;
 		l = l_;
@@ -75,7 +75,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		pntMod = new PointCM[l.length][];
 	}
 
-	public LabelImage getLabel(int im)
+	public LabelImageRC getLabel(int im)
 	{
 		return l[im];
 	}
@@ -96,7 +96,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	}
 	
 	
-	public double Topo(LabelImage l, PointCM pntMod[], double pop[])
+	public double Topo(LabelImageRC l, PointCM pntMod[], double pop[])
 	{
 		int off[] = l.getDimensions().clone();
 		Arrays.fill(off, 0);
@@ -210,7 +210,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	public boolean isFeasible(double[] x) 
 	{
 		int minSz = Integer.MAX_VALUE;
-		for (LabelImage lbt : l)
+		for (LabelImageRC lbt : l)
 		{
 			for (int d : lbt.getDimensions())
 			{
@@ -285,10 +285,10 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	class DivideBtn implements ActionListener
 	{
 
-		LabelImage ip[];
+		LabelImageRC ip[];
 		ImagePlus ipp[];
 		
-		DivideBtn(LabelImage ip_[])
+		DivideBtn(LabelImageRC ip_[])
 		{
 			ip = ip_;
 			ipp = new ImagePlus[ip.length];
@@ -299,7 +299,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 			}
 		}
 		
-		DivideBtn(LabelImage ip_[], ImagePlus ipp_[])
+		DivideBtn(LabelImageRC ip_[], ImagePlus ipp_[])
 		{
 			ip = ip_;
 			ipp = ipp_;
@@ -380,11 +380,11 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	
 	class MergeBtn implements ActionListener
 	{
-		LabelImage ip[];
+		LabelImageRC ip[];
 		ImagePlus ipp[];
 		PickRegion pr[];
 		
-		MergeBtn(LabelImage ip_[])
+		MergeBtn(LabelImageRC ip_[])
 		{
 			ip = ip_;
 			pr = new PickRegion[ip_.length];
@@ -442,7 +442,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	
 	JDialog frm;
 	
-	public void MergeAndDivideWin(LabelImage ip[])
+	public void MergeAndDivideWin(LabelImageRC ip[])
 	{
 		lock = new Object();
 		frm = new JDialog();

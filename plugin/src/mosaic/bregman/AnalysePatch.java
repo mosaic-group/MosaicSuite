@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.real.DoubleType;
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
@@ -19,15 +21,10 @@ import net.sf.javaml.core.DefaultDataset;
 import net.sf.javaml.core.DenseInstance;
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.DatasetTools;
-//import net.sf.javaml.tools.weka.WekaClusterer;
-//import weka.clusterers.ClusterEvaluation;
-//import weka.clusterers.Cobweb;
-//import weka.clusterers.SimpleKMeans;
-//import weka.clusterers.XMeans;
+import mosaic.core.psf.GaussPSF;
 
-import mosaic.bregman.FindConnectedRegions.Region;
-
-public class AnalysePatch implements Runnable{
+public class AnalysePatch implements Runnable
+{
 	//add oversampling here
 	Tools ATools;
 	ImagePatches impa;
@@ -82,8 +79,21 @@ public class AnalysePatch implements Runnable{
 	ASplitBregmanSolver A_solver;
 
 
+	/**
+	 * 
+	 * Create patches
+	 * 
+	 * @param image Image
+	 * @param r Region
+	 * @param pa Paramenters for split Bregman
+	 * @param oversampling level of overlampling
+	 * @param channel ?
+	 * @param regionsf ?
+	 * @param impa ?
+	 */
 
-	public AnalysePatch(double [][][] image, Region r, Parameters pa, int oversampling, int channel, short [][][] regionsf, ImagePatches impa){
+	public AnalysePatch(double [][][] image, Region r, Parameters pa, int oversampling, int channel, short [][][] regionsf, ImagePatches impa)
+	{
 		//IJ.log("creating patch :"+ r.value);
 		//	this.w3kbest=w3k;
 		cout=0;
@@ -98,14 +108,33 @@ public class AnalysePatch implements Runnable{
 		ox=pa.ni;
 		oy=pa.nj;
 		oz=pa.nz;
+		
 		margin=4;// add margin to size of object to create patch
-		if(pa.mode_voronoi2)margin=4;
+		if(pa.mode_voronoi2)margin=6;
 		zmargin=1;// was 2
 		this.regions_refined=regionsf;
-
+		
 		//create local parameters
 		this.p=new Parameters(pa);
 
+		// check that the margin is at least 8 time bigger than the PSF
+		
+		int[] sz_psf = p.PSF.getSuggestedImageSize();
+		if (sz_psf[0] > margin)
+		{
+			margin = sz_psf[0];
+		}
+		if (sz_psf[1] > margin)
+		{
+			margin = sz_psf[1];
+		}
+		if (sz_psf.length > 2 && sz_psf[2] > margin)
+		{
+			zmargin = sz_psf[2];
+		}
+		
+		////////////////////////////////////////////////////
+		
 		this.interpolation= pa.interpolation;
 
 		//compute patch geometry :
@@ -124,6 +153,7 @@ public class AnalysePatch implements Runnable{
 		//create patch image with oversampling
 		this.patch = new double [sz][sx][sy];
 		fill_patch(image);
+		
 		//for testing
 		this.w3kpatch = new double [1] [sz][sx][sy];
 		fill_w3kpatch(impa.w3kbest);
@@ -144,19 +174,35 @@ public class AnalysePatch implements Runnable{
 		this.ATools= new Tools(p.ni,p.nj,p.nz);
 		//set psf
 		if ( p.nz>1){
-			Tools.gaussian3Dbis(p.PSF, p.kernelx, p.kernely, p.kernelz, 7, p.sigma_gaussian*oversampling, p.zcorrec*oversampling);//todo verif zcorrec
+			GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3,DoubleType.class);
+			DoubleType[] var = new DoubleType[3];
+			var[0] = new DoubleType(p.sigma_gaussian);
+			var[1] = new DoubleType(p.sigma_gaussian);
+			var[2] = new DoubleType(p.sigma_gaussian/p.zcorrec);
+			psf.setVar(var);
+			p.PSF = psf;
+//			Tools.gaussian3Dbis(p.PSF, p.kernelx, p.kernely, p.kernelz, (int)(p.sigma_gaussian * 8.0), p.sigma_gaussian*oversampling, p.zcorrec*oversampling);//todo verif zcorrec
 		}
 		else
 		{
-			Tools.gaussian2D(p.PSF[0], p.kernelx, p.kernely, 7, p.sigma_gaussian*oversampling);
+			GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2,DoubleType.class);
+			DoubleType[] var = new DoubleType[2];
+			var[0] = new DoubleType(p.sigma_gaussian);
+			var[1] = new DoubleType(p.sigma_gaussian);
+			psf.setVar(var);
+			p.PSF = psf;
+//			Tools.gaussian2D(p.PSF[0], p.kernelx, p.kernely, (int)(p.sigma_gaussian * 8.0), p.sigma_gaussian*oversampling);
 		}
 		//normalize
 		normalize();
 
 		//double firstminval;
-		if(channel==0){
-			firstminval=p.min_intensity ;}
-		else{
+		if(channel==0)
+		{
+			firstminval=p.min_intensity ;
+		}
+		else
+		{
 			firstminval=p.min_intensityY ;
 		}
 
@@ -208,7 +254,10 @@ public class AnalysePatch implements Runnable{
 
 		p.thresh=0.75;
 		p.remask=false;
-		p.lreg=p.lreg*oversampling;// *(intmax-intmin);
+		for (int i = 0 ; i < p.lreg_.length ; i++)
+		{
+			p.lreg_[i]=p.lreg_[i]*oversampling;// *(intmax-intmin);
+		}
 		//IJ.log("lreg region" + r.value +" : " + p.lreg + "ratio :" + (intmax-intmin));
 		//IJ.log("patch :"+ r.value + "created");
 	}
@@ -216,64 +265,60 @@ public class AnalysePatch implements Runnable{
 
 
 
-
+	/**
+	 * 
+	 * Analyse one Patch
+	 * 
+	 * Or run SplitBregman segmentation solver on it
+	 * 
+	 */
+	
 	public void run(){
 		//IJ.log("");
 		//IJ.log("region " + r.value);
-		MasksDisplay md= new MasksDisplay(sx,sy,sz,2,p.cl,p);
-
-		if(p.debug && (r.value==98 || r.value==32))
-			//{md.display2regionsnew(patch[0], "Patch "+r.value, channel);}
-		{md.display2regions3Dnew(patch, "Patch "+r.value, channel);}
-		//md.display2regionsnewd(mask[0][0],"mask binaire" +r.value, channel);
-		//md.display2regionsnew(patch[0], "Mask" +r.value, channel);
-		//md.display2regionsnewd(weights[0],"weights" +r.value, channel);
-		//md.display2regionsnewd(refined_mask[0],"rmask" +r.value, channel);
-		
-		
-		//ASplitBregmanSolver A_solver;
-
-		//IJ.log("pni " + p.ni + "pnj" + p.nj+ "pnz" + p.nz +"nlevels" +p.nlevels);
-		//Tools.setDims(sx, sy, sz, p.nlevels);
-
-		//		double [] cl = new double [2];
-		//		cl[0]=0;
-		//		cl[1]=0;
+		MasksDisplay md= new MasksDisplay(sx,sy,sz,2,p.cl,p);		
 
 		p.nthreads=1;
 		p.firstphase=false;
 		//IJ.log("noise "+p.noise_model);
 
-
-		//p.cl[0]=0.1;
-		//p.cl[1]=p.betaMLEindefault;
-
-		if(p.debug && (r.value==98 || r.value==32))
-			//{md.display2regionsnew(A_solver.w3kbest[0][0], "Mask Patch "+r.value, channel);}
-		{md.display2regions3Dnew(w3kpatch[0], "Mask Patch Init"+r.value, channel);}
-
-		//		IJ.log("levels init region" + r.value);
-		//		mask_clustering(w3kpatch[0],1);
-		//		
-		//		IJ.log("levels init image" + r.value + "");
-		//		estimate_int_clustering(2);// (-1 to correct for old numbering)
-
 		if (p.nz>1){
+			
+			// Check the delta beta, if it is bigger than two ignore it, because
+			// I cannot warrant stability
+			
+			if (Math.abs(p.cl[0] - p.cl[1]) > 2.0)
+			{
+				// reset
+				
+				p.cl[0] = p.betaMLEoutdefault;
+				p.cl[1] = p.betaMLEindefault;
+			}
+			
 			A_solver= new ASplitBregmanSolverTwoRegions3DPSF(p,patch,speedData,w3kpatch,md,channel, this);//mask instead of w3kpatch
 		}
 		else
 		{
+			// Check the delta beta, if it is bigger than two ignore it, because
+			// I cannot warrant stability
+			
+			if (Math.abs(p.cl[0] - p.cl[1]) > 2.0)
+			{
+				// reset
+				
+				p.cl[0] = p.betaMLEoutdefault;
+				p.cl[1] = p.betaMLEindefault;
+			}
+			
 			A_solver= new ASplitBregmanSolverTwoRegionsPSF(p,patch,speedData,w3kpatch,md,channel, this);//mask instead of w3kpatch
 		}
 
 		try {
 			A_solver.first_run();
-			//md.display2regions(A_solver.w3kbest[0][0], "Mask patch" + r.value, channel);
-			if(p.debug && (r.value==98 || r.value==32))
-				//{md.display2regionsnew(A_solver.w3kbest[0][0], "Mask Patch "+r.value, channel);}
-			{md.display2regions3Dnew(A_solver.w3kbest[0], "Mask Patch "+r.value, channel);}
+
 			cout=p.cl[0];
 			cin=p.cl[1];
+			
 			//IJ.log("cout " + cout + "cin" + cin);
 
 			int ll =p.mode_intensity;
@@ -359,8 +404,16 @@ public class AnalysePatch implements Runnable{
 
 	}
 
+	/**
+	 * 
+	 * Compute the geometry of the patch
+	 * 
+	 * @param r Region
+	 * @param oversampling level of oversampling
+	 */
 
-	private  void set_patch_geom(Region r, int oversampling){
+	private  void set_patch_geom(Region r, int oversampling)
+	{
 		int xmin, ymin , zmin, xmax, ymax, zmax; 
 		xmin=ox;ymin=oy;zmin=oz;
 		xmax=0;ymax=0;zmax=0;
@@ -562,7 +615,7 @@ public class AnalysePatch implements Runnable{
 		cout=RSS.betaMLEout;
 		cout_front=cout;
 		if(p.debug){IJ.log("r"+ r.value+ "RSS" + RSS.betaMLEin);}
-		cin=Math.min(1, RSS.betaMLEin);
+		cin=/*Math.min(1,*/ RSS.betaMLEin/*)*/;
 		mint=0.25;
 		//mint=Math.min(0.25, (rescaled_min_int-cout)/(cin-cout)-0.05);
 
@@ -1107,11 +1160,11 @@ public class AnalysePatch implements Runnable{
 			if(obj && !border_attained){
 				if(p.nz==1){
 					temp=ATools.computeEnergyPSF_weighted(temp1[0], object, temp2[0], temp3[0],weights,
-							p.ldata, p.lreg,p,cout_front,cin,patch);
+							p.ldata, p.lreg_[channel],p,cout_front,cin,patch);
 				}
 				else{
 					temp=ATools.computeEnergyPSF3D_weighted(temp1[0], object, temp2[0], temp3[0],weights,
-							p.ldata, p.lreg,p,cout_front,cin,patch);	
+							p.ldata, p.lreg_[channel],p,cout_front,cin,patch);	
 				}
 
 				if(p.debug)	
@@ -1127,14 +1180,19 @@ public class AnalysePatch implements Runnable{
 	}
 
 
-
-	public double find_best_thresh_and_int(double [][][] w3kbest){
+	static int pnum = 0;
+	public double patch_quality = 0.0;
+	
+	public double find_best_thresh_and_int(double [][][] w3kbest)
+	{
 		double t;
 		double energy=Double.MAX_VALUE;
 		double threshold=0.75;
 		double temp;
 		double tbest=0.95;
 		double cinbest, coutbest, cin_previous, cout_previous;
+		double min_energy = 0;
+		double max_energy = 0;
 		cin_previous=cin;cout_previous=cout;
 		//	IJ.log("lreg ap " + p.lreg);
 
@@ -1146,7 +1204,8 @@ public class AnalysePatch implements Runnable{
 		//		}
 		cinbest=1;
 		coutbest=0.0001;
-		for (t=0.95;t> rescaled_min_int_all*0.96; t-=0.02){  //minval
+		for (t=0.95;t> rescaled_min_int_all*0.96; t-=0.02)
+		{
 			set_object(w3kbest, t);
 
 			//test
@@ -1159,32 +1218,38 @@ public class AnalysePatch implements Runnable{
 			//			md.display2regionsnew(w3kbest[0], "w3kbest "+r.value, channel);
 			//			md.display2regionsnew(object[0], "object "+r.value, channel);
 			//			md.display2regionsnew(patch[0], "patch "+r.value, channel);
-			if(obj && !border_attained){
+			if(obj && !border_attained)
+			{
 				estimate_int_weighted(object);
-
+					
+				////////////////
 				if(p.nz==1){
 					temp=ATools.computeEnergyPSF_weighted(temp1[0], object, temp2[0], temp3[0],weights,
-							p.ldata, p.lreg,p,cout_front,cin,patch);
+							p.ldata, p.lreg_[channel],p,cout_front,cin,patch);
 				}
 				else{
 					temp=ATools.computeEnergyPSF3D_weighted(temp1[0], object, temp2[0], temp3[0],weights,
-							p.ldata, p.lreg,p,cout_front,cin,patch);	
+							p.ldata, p.lreg_[channel],p,cout_front,cin,patch);	
 				}
 
-				if(p.debug)	
+				if(p.debug == true)	
 					IJ.log("energy and int " + temp + " t " + t + "region"+ r.value +" cin " + cin + " cout " + cout +" obj " +obj);
+				if (temp < min_energy)	min_energy = temp;
+				if (temp > max_energy)	max_energy = temp;
 				if (temp<energy) {energy=temp;threshold=t;cinbest=cin; coutbest=cout; tbest=t; }
 			}
 			else
 			{
 				cin=1;cout_front=0;
 			}
-
-
-			
-
 		}
-
+		
+		// quality Patch
+		
+		patch_quality = 1/(max_energy - min_energy);
+		
+		// Debug
+		
 		cin=cinbest;
 		cout=coutbest;
 		cout_front=cout;
@@ -1238,9 +1303,9 @@ public class AnalysePatch implements Runnable{
 		}
 		//	}
 
-		if(p.livedisplay){
+/*		if(p.livedisplay){
 			impa.displayRegions(impa.regions_refined, impa.sx, impa.sy, impa.sz, impa.channel, true, false, true);
-		}
+		}*/
 		//IJ.log("assemble done");
 	}
 
@@ -1316,7 +1381,8 @@ public class AnalysePatch implements Runnable{
 
 
 	//interpolation
-	private void build_interpolated_object(double [][][] cmask, double t){
+	private void build_interpolated_object(double [][][] cmask, double t)
+	{
 		ImagePlus iobject= new ImagePlus();
 		ImageStack iobjectS;
 		interpolated_object = new double [isz][isx][isy];
@@ -1372,9 +1438,12 @@ public class AnalysePatch implements Runnable{
 		//iobject.show();
 
 		//threshold 
-		for (int z=0; z<isz; z++){
-			for (int i=0;i<isx; i++){  
-				for (int j=0;j< isy; j++){  
+		for (int z=0; z<isz; z++)
+		{
+			for (int i=0;i<isx; i++)
+			{
+				for (int j=0;j< isy; j++)
+				{
 					if(interpolated_object[z][i][j]>t && weights[z/interpolationz][i/interpolation][j/interpolation]==1)
 						this.interpolated_object[z][i][j] = 1;
 					else
@@ -1385,8 +1454,11 @@ public class AnalysePatch implements Runnable{
 		//this.object=interpolated_object;
 		//MasksDisplay md= new MasksDisplay(isx,isy,isz,2,p.cl,p);
 		//md.display2regionsnew(interpolated_object[0],"iobject ici" +r.value, channel);
-
-
+	}
+	
+	void show()
+	{
+		Tools.disp_array3D_new(w3kpatch[0], "Patch");
 	}
 
 }

@@ -73,7 +73,8 @@ public class FeaturePointDetector {
 
 
 
-	public FeaturePointDetector(float global_max, float global_min) {
+	public FeaturePointDetector(float global_max, float global_min) 
+	{
 		this.global_max = global_max;
 		this.global_min = global_min;
 		// create Mask for Dilation
@@ -88,8 +89,9 @@ public class FeaturePointDetector {
 	 * finds the particles, refine their position and filters out non particles
 	 * @see ImageProcessor#convertToFloat()
 	 */
-	public void featurePointDetection (MyFrame frame) {		
-
+	
+	public void featurePointDetection (MyFrame frame) 
+	{
 		/* Converting the original imageProcessor to float 
 		 * This is a constraint caused by the lack of floating point precision of pixels 
 		 * value in 16bit and 8bit image processors in ImageJ therefore, if the image is not
@@ -99,7 +101,8 @@ public class FeaturePointDetector {
 		ImageStack restored_fps = new ImageStack(original_ips.getWidth(),original_ips.getHeight());
 
 
-		for(int i = 1; i <= original_ips.getSize(); i++) {
+		for(int i = 1; i <= original_ips.getSize(); i++) 
+		{
 			//if it is already a float, ImageJ does not create a duplicate
 			restored_fps.addSlice(null, original_ips.getProcessor(i).convertToFloat().duplicate());
 		}
@@ -141,6 +144,10 @@ public class FeaturePointDetector {
 		/* remove all the "false" particles from particles array */
 		removeNonParticle();
 		frame.setParticles(particles, real_particles_number); 
+		
+		/* Set the real_particle_number */
+		
+		frame.real_particles_number = real_particles_number;
 	}	
 
 
@@ -258,7 +265,7 @@ public class FeaturePointDetector {
 
 						/* and add each particle that meets the criteria to the particles array */
 						//(the starting point is the middle of the pixel and exactly on a focal plane:)
-						particles.add(new Particle(i+.5f, j+.5f, s, frame_number, linkrange));
+						particles.add(new Particle(j+.5f, i+.5f, s, frame_number, linkrange));
 						
 						/* 
 						 * now we found a local maximum, we have to prevent that all connected pixel do
@@ -307,7 +314,8 @@ public class FeaturePointDetector {
 			this.particles.elementAt(m).score = 0.0F;
 			epsx = epsy = epsz = 1.0F;
 
-			while (epsx > 0.5 || epsx < -0.5 || epsy > 0.5 || epsy < -0.5 || epsz < 0.5 || epsz > 0.5) {
+			while (epsx > 0.5 || epsx < -0.5 || epsy > 0.5 || epsy < -0.5 || epsz > 0.5 || epsz < -0.5) 
+			{
 				this.particles.elementAt(m).nbIterations++;
 				this.particles.elementAt(m).m0 = 0.0F;
 				this.particles.elementAt(m).m1 = 0.0F;
@@ -317,19 +325,20 @@ public class FeaturePointDetector {
 				epsx = 0.0F;
 				epsy = 0.0F;
 				epsz = 0.0F;
-				for(int s = -radius; s <= radius; s++) {
+				for(int s = -radius; s <= radius; s++) 
+				{
 					if(((int)this.particles.elementAt(m).z + s) < 0 || ((int)this.particles.elementAt(m).z + s) >= ips.getSize())
 						continue;
 					z = (int)this.particles.elementAt(m).z + s;
 					for(k = -radius; k <= radius; k++) {
-						if(((int)this.particles.elementAt(m).x + k) < 0 || ((int)this.particles.elementAt(m).x + k) >= ips.getHeight())
+						if(((int)this.particles.elementAt(m).y + k) < 0 || ((int)this.particles.elementAt(m).y + k) >= ips.getHeight())
 							continue;
-						x = (int)this.particles.elementAt(m).x + k;
+						x = (int)this.particles.elementAt(m).y + k;
 
 						for(l = -radius; l <= radius; l++) {
-							if(((int)this.particles.elementAt(m).y + l) < 0 || ((int)this.particles.elementAt(m).y + l) >= ips.getWidth())
+							if(((int)this.particles.elementAt(m).x + l) < 0 || ((int)this.particles.elementAt(m).x + l) >= ips.getWidth())
 								continue;
-							y = (int)this.particles.elementAt(m).y + l;
+							y = (int)this.particles.elementAt(m).x + l;
 							//
 							//								c = ips.getProcessor(z + 1).getPixelValue(y, x) * (float)mask[s + radius][(k + radius)*mask_width + (l + radius)];
 							c = ((float[])(ips.getPixels(z + 1)))[x*image_width+y] * (float)mask[s + radius][(k + radius)*mask_width + (l + radius)];
@@ -360,20 +369,20 @@ public class FeaturePointDetector {
 				tz = (int)(10.0 * epsz);
 
 				if((float)(tx)/10.0 > 0.5) {
-					if((int)this.particles.elementAt(m).x + 1 < ips.getHeight())
-						this.particles.elementAt(m).x++;
-				}
-				else if((float)(tx)/10.0 < -0.5) {
-					if((int)this.particles.elementAt(m).x - 1 >= 0)
-						this.particles.elementAt(m).x--;						
-				}
-				if((float)(ty)/10.0 > 0.5) {
-					if((int)this.particles.elementAt(m).y + 1 < ips.getWidth())
+					if((int)this.particles.elementAt(m).y + 1 < ips.getHeight())
 						this.particles.elementAt(m).y++;
 				}
-				else if((float)(ty)/10.0 < -0.5) {
+				else if((float)(tx)/10.0 < -0.5) {
 					if((int)this.particles.elementAt(m).y - 1 >= 0)
-						this.particles.elementAt(m).y--;
+						this.particles.elementAt(m).y--;						
+				}
+				if((float)(ty)/10.0 > 0.5) {
+					if((int)this.particles.elementAt(m).x + 1 < ips.getWidth())
+						this.particles.elementAt(m).x++;
+				}
+				else if((float)(ty)/10.0 < -0.5) {
+					if((int)this.particles.elementAt(m).x - 1 >= 0)
+						this.particles.elementAt(m).x--;
 				}
 				if((float)(tz)/10.0 > 0.5) {
 					if((int)this.particles.elementAt(m).z + 1 < ips.getSize())
@@ -390,8 +399,8 @@ public class FeaturePointDetector {
 					break;
 			}
 			//				System.out.println("iterations for particle " + m + ": " + this.particles.elementAt(m).nbIterations);
-			this.particles.elementAt(m).x += epsx;
-			this.particles.elementAt(m).y += epsy;
+			this.particles.elementAt(m).y += epsx;
+			this.particles.elementAt(m).x += epsy;
 			this.particles.elementAt(m).z += epsz;
 		}					
 	}
@@ -927,9 +936,31 @@ public class FeaturePointDetector {
 	 * Draws dots on the positions of the detected partciles on the frame and circles them
 	 * @see #getUserDefinedPreviewParams()
 	 * @see MyFrame#featurePointDetection()
+	 */
+	public synchronized void preview(ImagePlus imp, GenericDialog gd) {
+
+		// the stack of the original loaded image (it can be 1 frame)
+		ImageStack stack = imp.getStack();
+
+		getUserDefinedPreviewParams(gd);
+
+		int first_slice = imp.getCurrentSlice(); //TODO check what should be here, figure out how slices and frames numbers work(getFrameNumberFromSlice(impA.getCurrentSlice())-1) * impA.getNSlices() + 1; 
+		// create a new MyFrame from the current_slice in the stack, linkrange should not matter for a previewframe
+		preview_frame = new MyFrame(MosaicUtils.GetSubStackCopyInFloat(stack, first_slice, first_slice  + imp.getNSlices() - 1), getFrameNumberFromSlice(imp.getCurrentSlice(), imp.getNSlices())-1, 1);
+		
+		// detect particles in this frame
+		featurePointDetection(preview_frame);
+		setPreviewLabel("#Particles: " + preview_frame.getParticles().size());		
+	}
+	
+	/**
+	 * Detects particles in the current displayed frame according to the parameters currently set 
+	 * Draws dots on the positions of the detected partciles on the frame and circles them
+	 * @see #getUserDefinedPreviewParams()
+	 * @see MyFrame#featurePointDetection()
 	 * @see PreviewCanvas q
 	 */
-	public synchronized void preview(ImagePlus imp, PreviewCanvas preview, GenericDialog gd) {		
+	public synchronized void preview(ImagePlus imp, PreviewCanvas preview, GenericDialog gd) {
 
 		// the stack of the original loaded image (it can be 1 frame)
 		ImageStack stack = imp.getStack();

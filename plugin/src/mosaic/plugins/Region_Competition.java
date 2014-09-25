@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -16,17 +17,40 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.Map.Entry;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import mosaic.bregman.Analysis;
+import mosaic.bregman.ImagePatches;
+import mosaic.bregman.output.CSVOutput;
+import mosaic.core.ImagePatcher.ImagePatch;
+import mosaic.core.ImagePatcher.ImagePatcher;
+import mosaic.core.cluster.ClusterGUI;
+import mosaic.core.cluster.ClusterSession;
+import mosaic.core.psf.GeneratePSF;
+import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.Segmentation;
+import mosaic.core.utils.ShellCommand;
 import mosaic.region_competition.wizard.*;
+import mosaic.core.utils.Point;
 
 import javax.swing.JFrame;
 
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.basictypeaccess.array.ArrayDataAccess;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.img.imageplus.ImagePlusImg;
+import net.imglib2.img.ImagePlusAdapter;
+import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
+import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
 
 //import view4d.Timeline;
@@ -40,7 +64,8 @@ import mosaic.region_competition.deprecated.E_PS_sphis;
 import mosaic.region_competition.energies.*;
 import mosaic.region_competition.initializers.*;
 import mosaic.region_competition.netbeansGUI.UserDialog;
-import mosaic.region_competition.topology.Connectivity;
+import mosaic.region_competition.output.RCOutput;
+import mosaic.core.utils.Connectivity;
 import mosaic.region_competition.utils.IntConverter;
 import mosaic.region_competition.utils.Timer;
 import ij.IJ;
@@ -52,9 +77,12 @@ import ij.gui.GenericDialog;
 import ij.gui.ImageCanvas;
 import ij.gui.Roi;
 import ij.gui.StackWindow;
+import ij.io.DirectoryChooser;
 import ij.io.FileInfo;
 import ij.io.FileSaver;
 import ij.io.Opener;
+import ij.measure.Calibration;
+import ij.measure.ResultsTable;
 import ij.plugin.Duplicator;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.FloatProcessor;
@@ -68,20 +96,23 @@ import ij3d.Image3DUniverse;
  * @version 2012.06.11
  */
 
-public class Region_Competition implements PlugInFilter
+public class Region_Competition implements Segmentation
 {
+	private String[] out = {"*_ObjectsData_c1.csv","*_seg_c1.tif"};
 	private String output_label;
 	private String config;
 	private String oip_location;
 	private String oip_title;
 	Region_Competition MVC;		// interface to image application (imageJ)
 	public Settings settings;
-	
+
 	Algorithm algorithm;
-	LabelImage labelImage;		// data structure mapping pixels to labels
+	LabelImageRC labelImage;		// data structure mapping pixels to labels
 	IntensityImage intensityImage; 
 	ImageModel imageModel;
-	private ImagePlus originalIP;		// IP of the input image
+	Calibration cal;
+	ImagePlus originalIP;		// IP of the input image
+	Vector<ImagePlus> OpenedImages;
 	
 	ImageStack stack;			// stack saving the segmentation progress images
 	ImagePlus stackImPlus;		// IP showing the stack
@@ -126,186 +157,517 @@ public class Region_Competition implements PlugInFilter
 		return true;
 	}
 	
-	public int setup(String aArgs, ImagePlus aImp)
+	/**
+	 * 
+	 * Return the dimension of a file
+	 * 
+	 * @param f file
+	 * @return
+	 */
+	
+	int getDimension(File f)
 	{
-//		if(testMacroBug())
-//			return DONE;
+		Opener o = new Opener();
+		ImagePlus ip = o.openImage(f.getAbsolutePath());
 		
-//		Connectivity.test();
-//		UnitCubeCCCounter.test();
+		return getDimension(ip);
+	}
+	
+	/**
+	 * 
+	 * Return the dimension of an image
+	 * 
+	 * @param aImp image
+	 * @return
+	 */
+	
+	private int getDimension(ImagePlus aImp)
+	{
+		if (aImp.getNSlices() == 1)
+			return 2;
+		else
+			return 3;
+	}
+	
+	private String getOptions(File f)
+	{
+		String par = new String();
 		
+		// get file dimension
+
+		int d = getDimension(f);
+		par += "Dimensions=" + d + " ";
+		
+		// if deconvolving create a PSF generator window
+		
+		if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC)
+		{
+			GeneratePSF psf = new GeneratePSF();
+			psf.generate(d);
+			par += psf.getParameters();
+		}
+			
+		return par;
+	}
+	
+	private String getOptions(ImagePlus aImp)
+	{
+		String par = new String();
+		
+		// get file dimension
+
+		int d = getDimension(aImp);
+		par += "Dimensions=" + d + " ";
+		
+		// if deconvolving create a PSF generator window
+		
+		GeneratePSF psf = new GeneratePSF();
+		psf.generate(d);
+		par += psf.getParameters();
+		
+		return par;
+	}
+	
+	/**
+	 * 
+	 * Run the segmentation on ImgLib2
+	 * 
+	 * @param aArgs arguments
+	 * @param img Image
+	 * @param lbl Label image
+	 * @return
+	 */
+	
+	public<T extends RealType<T>,E extends IntegerType<E>> void runOnImgLib2(String aArgs, Img<T> img, Img<E> lbl, Class<T> cls)
+	{
+		initAndParse();
+		
+		// Run Region Competition as usual
+		
+		RCImageFilter(img,lbl,cls);
+	}
+	
+	/**
+	 * 
+	 * Init Region Competition and parse command
+	 * 
+	 */
+	
+	String sv = null;
+	
+	private void initAndParse()
+	{
         String options = Macro.getOptions();
 		
 		normalize_ip = true;
 		if (options != null)
-		{
+		{		
 			// Command line interface search for config file
 			
 			String path;
-			Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
-			Pattern config = Pattern.compile("config");
-			Pattern output = Pattern.compile("output");
-			Pattern normalize = Pattern.compile("normalize");
-			Pattern par[] = new Pattern[7];
-			par[0] = Pattern.compile("method");
-			par[1] = Pattern.compile("init");
-			par[2] = Pattern.compile("ps_radius");
-			par[3] = Pattern.compile("b_force");
-			par[4] = Pattern.compile("c_flow_coeff");
-			par[5] = Pattern.compile("c_flow_radius");
-			par[6] = Pattern.compile("normalize");
-			Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+			
+			String tmp = null;
+			Boolean tmp_b = null;
 			
 			// output
 			
-			Matcher matcher = output.matcher(options);
-			if (matcher.find())
+			if ((tmp = MosaicUtils.parseOutput(options)) != null)
 			{
-				String sub = options.substring(matcher.end());
-				matcher = spaces.matcher(sub);
-				if (matcher.find())
-				{
-					sub = sub.substring(matcher.end());
-					matcher = pathp.matcher(sub);
-					if (matcher.find())
-					{
-						output_label = matcher.group(0);
-					}
-				}
+				output_label = tmp;
 			}
 			
 			// normalize 
 			
-			matcher = normalize.matcher(options);
-			if (matcher.find())
+			if ((tmp_b = MosaicUtils.parseNormalize(options)) != null)
 			{
-				String sub = options.substring(matcher.end());
-				matcher = spaces.matcher(sub);
-				if (matcher.find())
-				{
-					sub = sub.substring(matcher.end());
-					matcher = pathp.matcher(sub);
-					if (matcher.find())
-					{
-						if (matcher.group(0).equals("false"))
-						{
-							// 
-							
-							normalize_ip = false;
-						}
-					}
-				}
+				normalize_ip = tmp_b;
 			}
-			
+				
 			// config
 			
-			matcher = config.matcher(options);
-			if (matcher.find())
+			if ((tmp = MosaicUtils.parseConfig(options)) != null)
 			{
-				String sub = options.substring(matcher.end());
-				matcher = spaces.matcher(sub);
-				if (matcher.find())
-				{
-					sub = sub.substring(matcher.end());
-					matcher = pathp.matcher(sub);
-					if (matcher.find())
-					{
-						path = matcher.group(0);
+				path = tmp;
 						
-						if (LoadConfigFile(path))
-						{							
-							return DOES_ALL+NO_CHANGES;
-						}
-					}
-				}
+				LoadConfigFile(path);
 			}
-			
-			// Match setting
-			
-			
+			else
+			{
+				// load config file
+				
+				String dir = IJ.getDirectory("temp");
+				sv = dir+"rc_settings.dat";
+				LoadConfigFile(sv);
+			}
 			
 			// no config file open the GUI
 		}
+		else
+		{
+			// load config file
+			
+			String dir = IJ.getDirectory("temp");
+			sv = dir+"rc_settings.dat";
+			LoadConfigFile(sv);
+		}
 		
-		// load config file
-		
-		String dir = IJ.getDirectory("temp");
-		String sv = dir+"rc_settings.dat";
-		LoadConfigFile(sv);
-		
-		if(settings == null){
+		if(settings == null)
+		{
 			settings = new Settings();
 		}
 		
 		MVC = this;
+	}
+	
+	Img<FloatType> image_psf;
+	
+	public int setup(String aArgs, ImagePlus aImp)
+	{		
+
+		initAndParse();
+		
 		originalIP = aImp;
 		userDialog = new GenericDialogGUI(this);
 		
 		
 		//TODO ugly
 		((GenericDialogGUI)userDialog).showDialog();
+		
 		boolean success=userDialog.processInput();
 		if(!success)
 		{
 			return DONE;
 		}
 		
-
-		// save
-		try
+		if (userDialog.getInputImage() != null)
 		{
-			SaveConfigFile(sv,settings);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
+			originalIP = (ImagePlus) userDialog.getInputImage();
+			if (originalIP != null)
+				cal = originalIP.getCalibration();
 		}
 		
-		
-//		RegionIterator.tester();
-//		IJ.showMessage("version 1");
-		
-		////////////////////
-		
-		// if is 3D save the originalIP
-		
-		if (aImp != null)
+		if (userDialog.useCluster() == true)
 		{
-			originalIP = aImp;
-		
-			// Save the location of the original IP
-		
-			oip_location = MosaicUtils.ValidFolderFromImage(aImp);
-			oip_title = aImp.getTitle();
+			// We run on cluster
+			
+			try 
+			{
+				// Copying parameters
+				
+				Settings p = new Settings(settings);
+				
+				// saving config file
+				
+				SaveConfigFile("/tmp/settings.dat",p);
+			}
+			catch (IOException e) 
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			ClusterGUI cg = new ClusterGUI();
+			ClusterSession ss = cg.getClusterSession();
+			ss.setInputArgument("text1");
+			ss.setSlotPerProcess(1);
+			File[] fileslist = null;
+			
+			// Check if we selected a directory
+			
+			if (aImp == null)
+			{
+				File fl = new File(userDialog.getInputImageFilename());
+				File fl_l = new File(userDialog.getLabelImageFilename());
+				if (fl.isDirectory() == true)
+				{
+					// we have a directory
+					
+					String opt = getOptions(fl);
+					if (settings.labelImageInitType == InitializationType.File)
+					{
+						// upload label images
+						
+						ss = cg.getClusterSession();
+						fileslist = fl_l.listFiles();
+						File dir = new File("label");
+						ss.upload(dir,fileslist);
+						opt += " text2=" + ss.getClusterDirectory() + File.separator + dir.getPath();
+					}
+					
+					fileslist = fl.listFiles();
+					
+					ss = ClusterSession.processFiles(fileslist,"Region Competition",opt+" show_and_save_statistics",out,cg);
+				}
+				else if (fl.isFile())
+				{
+					String opt = getOptions(fl);
+					if (settings.labelImageInitType == InitializationType.File)
+					{
+						// upload label images
+						
+						ss = cg.getClusterSession();
+						fileslist = new File[1];
+						fileslist[0] = fl_l;
+						ss.upload(fileslist);
+						opt += " text2=" + ss.getClusterDirectory() + File.separator + fl_l.getName();
+					}
+					
+					ss = ClusterSession.processFile(fl,"Region Competition",opt+" show_and_save_statistics",out,cg);
+				}
+				else
+				{
+					ss = ClusterSession.getFinishedJob(out,"Region Competition",cg);
+				}
+			}
+			else
+			{
+				// It is an image
+				
+				String opt = getOptions(aImp);
+				
+				if (settings.labelImageInitType == InitializationType.File)
+				{
+					// upload label images
+					
+					ss = cg.getClusterSession();
+					ss.splitAndUpload((ImagePlus)userDialog.getLabelImage(),new File("label"),null);
+					opt += " text2=" + ss.getClusterDirectory() + File.separator + "label" + File.separator + ss.getSplitAndUploadFilename(0);
+				}
+				
+				ss = ClusterSession.processImage(aImp,"Region Competition",opt+" show_and_save_statistics",out,cg);
+			}
+			
+			// Get output format and Stitch the output in the output selected
+			
+			String outcsv[] = {"*_ObjectsData_c1.csv"};
+			ClusterSession.processJobsData(outcsv,MosaicUtils.ValidFolderFromImage(aImp),RCOutput.class);
+			
+			////////////////
+			
+			return NO_IMAGE_REQUIRED;
 		}
 		else
-			originalIP = null;
-		
-
-		
-		return NO_CHANGES+NO_IMAGE_REQUIRED ;
-	}
-	
-	
-	public void run(ImageProcessor aImageProcessor) 
-	{
-		try
 		{
-			frontsCompetitionImageFilter(aImageProcessor);
-			
-			if (output_label != null)
+			// save
+			try
 			{
-				labelImage.save(output_label);
+				SaveConfigFile(sv,settings);
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+			// init the input image we need to open it before run
+		
+			// if is 3D save the originalIP
+		
+			if (aImp != null)
+			{
+				if (aImp.getNSlices() != 1)
+				{
+					originalIP = aImp;
+			
+					// Save the location of the original IP
+			
+					oip_location = MosaicUtils.ValidFolderFromImage(aImp);
+					oip_title = aImp.getTitle();
+				}
+			}
+			else
+			{
+				originalIP = null;
+				return NO_IMAGE_REQUIRED;
+			}
+			
+			if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC)
+			{
+		        // Here, no PSF has been set by the user. Hence, Generate it
+		    	
+				GeneratePSF gPsf = new GeneratePSF();
+		    	
+				if (aImp.getNSlices() == 1)
+					image_psf = gPsf.generate(2);
+				else
+					image_psf = gPsf.generate(3);
 			}
 		}
-		catch (Exception e)
+		return DOES_ALL+NO_CHANGES;
+	}
+	
+	/**
+	 * 
+	 * Eliminate Forbidden region
+	 * 
+	 * @param ip
+	 */
+	
+	private <T extends IntegerType<T>>void EliminateForbidden(ImagePatch ip)
+	{
+		Img<T> lbg = ip.getResult();
+		
+		Cursor<T> cur = lbg.cursor();
+		
+		while (cur.hasNext())
 		{
-			if(controllerFrame!=null)
-				controllerFrame.dispose();
-			e.printStackTrace();
+			cur.next();
+			
+			if (cur.get().getInteger() == labelImage.forbiddenLabel)
+			{
+				cur.get().setInteger(0);
+			}
 		}
 	}
 	
+	/**
+	 * 
+	 * Set the spacing of the Image
+	 * 
+	 * @param cal Calibration
+	 */
+	
+	void setCalibration(Calibration cal)
+	{
+		this.cal = cal;
+	}
+	
+	/**
+	 * 
+	 * Run region competition plugins
+	 * 
+	 */
+	
+	public void run(ImageProcessor aImageP) 
+	{
+		if (settings.labelImageInitType == InitializationType.File_Patcher)
+		{
+			// Open the label and intensity image with imgLib2
+			
+			initInputImage();
+			initLabelImage();
+			 
+			// Patches the image
+			
+			int margins[] = new int [intensityImage.getDim()];
+			
+			for (int i = 0 ; i < margins.length ; i++)
+			{
+				margins[i] = (int) (image_psf.dimension(i));
+				if (margins[i] < 50)
+					margins[i] = 50;
+			}
+			
+			ImagePatcher<FloatType,IntType> ip = new ImagePatcher<FloatType,IntType>(intensityImage.getImgLib2(FloatType.class),labelImage.getImgLib2(IntType.class),margins);
+			
+			// for each patch run region competition
+			
+			ImagePatch<FloatType,IntType>[] ips = ip.getPathes();
+			
+			
+			for (int i = 1 ; i < ips.length ; i++)
+			{
+				settings.labelImageInitType = InitializationType.File;
+				
+				// Run region competition on the patch image
+				
+				ips[i].show();
+				Region_Competition RC = new Region_Competition();
+				RC.setSettings(settings);
+				RC.setPSF(image_psf);
+				RC.setCalibration(cal);
+//				RC.HideProcess();
+				RC.runOnImgLib2(null,ips[i].getImage(),ips[i].getLabelImage(),FloatType.class);
+				RC.labelImage.eliminateForbidden();
+				ips[i].setResult(RC.labelImage.getImgLib2(IntType.class));
+				ips[i].showResult();
+			}
+			
+			// Assemble result
+			
+			ImageJFunctions.show(ip.assemble(IntType.class,1));
+			
+//			labelImage = new LabelImageRC(ip.assemble(IntType.class));
+			
+			// save result
+			
+//			labelImage = new labelImage(ip.getAssembles());
+//			labelImage.connectedComponents();
+//			labelImage.show("Segmented", 255);
+		}
+		else
+		{
+			// Run Region Competition as usual
+			
+			try
+			{
+				RCImageFilter();
+			}
+			catch (Exception e)
+			{
+				if(controllerFrame!=null)
+					controllerFrame.dispose();
+				e.printStackTrace();
+			}
+		}
+		
+		String folder = MosaicUtils.ValidFolderFromImage(MVC.getOriginalImPlus());
+		
+		// Remove eventually extension
+		
+		if (labelImage == null)
+			return;
+		
+		labelImage.save(folder + File.separator + MosaicUtils.getRegionMaskName(MVC.getOriginalImPlus().getTitle()));
+		
+		labelImage.calculateRegionsCenterOfMass();
+		
+		if(userDialog.showAndSaveStatistics())
+		{
+			showAndSaveStatistics(algorithm.getLabelMap());
+		}
+	}
+	
+	boolean hide_p = false;
+	
+	/**
+	 * 
+	 * Hide all processing
+	 * 
+	 */
+	
+	private void HideProcess() 
+	{
+		hide_p = true;
+	}
+
+	/**
+	 * 
+	 * Hide get hide processing status
+	 * 
+	 */
+	
+	public boolean getHideProcess() 
+	{
+		return hide_p;
+	}
+
+	/**
+	 * 
+	 * Set the PSF of this Region competition istancee
+	 * 
+	 * @param Image reppresenting the PSF
+	 * 
+	 */
+	
+	private void setPSF(Img<FloatType> img)
+	{
+		image_psf = img;
+	}
+	
+	/**
+	 * 
+	 * Initialize the energy function
+	 * 
+	 */
 	
 	void initEnergies()
 	{
@@ -360,7 +722,7 @@ public class Region_Competition implements PlugInFilter
 			case Sphere_Regularization:
 			{
 				int rad = (int)settings.m_CurvatureMaskRadius;
-				e_length = new E_CurvatureFlow(labelImage, rad);
+				e_length = new E_CurvatureFlow(labelImage, rad, cal);
 				break;
 			}
 			case Approximative:
@@ -391,33 +753,29 @@ public class Region_Competition implements PlugInFilter
 	}
 	
 	
-	void initInputImage(ImageProcessor aImageProcessor)
+	void initInputImage()
 	{
-		
 		ImagePlus ip = null;
 		
-		if (aImageProcessor == null)
-		{
-			String file = userDialog.getInputImageFilename();
-			ImagePlus choiceIP = (ImagePlus)userDialog.getInputImage();
+
+		String file = userDialog.getInputImageFilename();
+		ImagePlus choiceIP = (ImagePlus)userDialog.getInputImage();
 		
-			// first try: filepath of inputReader
-			if(file!=null && !file.isEmpty())
+		// first try: filepath of inputReader
+		if(file!=null && !file.isEmpty())
+		{
+			Opener o = new Opener();
+			ip = o.openImage(file);
+			if (ip != null)
 			{
-				Opener o = new Opener();
-				ip = o.openImage(file);
-			}
-			else // selected opened file
-			{
-				ip = choiceIP;
+				FileInfo fi = ip.getFileInfo();
+				fi.directory = file.substring(0,file.lastIndexOf(File.separator));
+				ip.setFileInfo(fi);
 			}
 		}
-		else
+		else // selected opened file
 		{
-			if (originalIP != null)
-				ip = originalIP;
-			else
-				ip = new ImagePlus("test",aImageProcessor);
+			ip = choiceIP;
 		}
 		
 		// next try: opened image
@@ -490,7 +848,7 @@ public class Region_Competition implements PlugInFilter
 	
 	void initLabelImage()
 	{
-		labelImage = new LabelImage(intensityImage.getDimensions());
+		labelImage = new LabelImageRC(intensityImage.getDimensions());
 		InitializationType input;
 		
 		if (userDialog != null)
@@ -535,6 +893,7 @@ public class Region_Competition implements PlugInFilter
 				mb.initFloodFilled();
 				break;
 			}
+			case File_Patcher:
 			case File:
 			{
 				ImagePlus ip=null;
@@ -548,6 +907,8 @@ public class Region_Competition implements PlugInFilter
 				{
 					Opener o = new Opener();
 					ip = o.openImage(fileName);
+					if (ip == null)
+						ip = choiceIP;
 				}
 				else // no filename. fileName == null || fileName()
 				{
@@ -621,51 +982,58 @@ public class Region_Competition implements PlugInFilter
 	
 	void initStack()
 	{
-		if((userDialog != null && userDialog.useStack()) || settings.RC_free == true)
-		{
-			if (userDialog != null)
-				stackKeepFrames = userDialog.showAllFrames();
-			else
-				stackKeepFrames = false;
+		if (IJ.isMacro() == true || hide_p == true)
+			return;
+		
+		if (userDialog != null)
+			stackKeepFrames = userDialog.showAllFrames();
+		else
+			stackKeepFrames = false;
 			
-			ImageProcessor labelImageProc; // = labelImage.getLabelImageProcessor().convertToShort(false);
+		ImageProcessor labelImageProc; // = labelImage.getLabelImageProcessor().convertToShort(false);
+		
+		int[] dims = labelImage.getDimensions();
+		int width = dims[0];
+		int height = dims[1];
 			
-			int[] dims = labelImage.getDimensions();
-			int width = dims[0];
-			int height = dims[1];
+		labelImageProc = new ShortProcessor(width, height);
+		ImagePlus labelImPlus = new ImagePlus("dummy", labelImageProc);
+		stack = labelImPlus.createEmptyStack();
+
+		stackImPlus = new ImagePlus(null, labelImageProc);
+//		stackImPlus = new ImagePlus("Stack of "+originalIP.getTitle(), stack); 
+		stackImPlus.show();
 			
-			labelImageProc = new ShortProcessor(width, height);
-			ImagePlus labelImPlus = new ImagePlus("dummy", labelImageProc);
-			stack = labelImPlus.createEmptyStack();
+		// add a windowlistener to 
 			
-			stackImPlus = new ImagePlus(null, labelImageProc);
-//			stackImPlus = new ImagePlus("Stack of "+originalIP.getTitle(), stack); 
-			stackImPlus.show();
-			
-			// add a windowlistener to 
+		if (IJ.isMacro() == false)
 			stackImPlus.getWindow().addWindowListener(new StackWindowListener());
 			
-			// first stack image without boundary&contours
-			for(int i=1; i<=initialStack.getSize(); i++)
-			{
-				Object pixels = initialStack.getPixels(i);
-				short[] shortData = IntConverter.intToShort((int[])pixels);
-				addSliceToStackAndShow("init", shortData);
-			}
-//			addSliceToStackAndShow("init", initialLabelImageProcessor.convertToShort(false).getPixelsCopy());
-			
-			// next stack image is start of algo
-//			addSliceToStackAndShow("init", labelImage.getLabelImageProcessor().getPixelsCopy());
-			addSlice(labelImage, "init");
-			
-			IJ.setMinAndMax(stackImPlus, 0, maxLabel);
-			IJ.run(stackImPlus, "3-3-2 RGB", null); // stack has to contain at least 2 slices so this LUT applies to all future slices.
+		// first stack image without boundary&contours
+		for(int i=1; i<=initialStack.getSize(); i++)
+		{
+			Object pixels = initialStack.getPixels(i);
+			short[] shortData = IntConverter.intToShort((int[])pixels);
+			addSliceToStackAndShow("init", shortData);
 		}
+//		addSliceToStackAndShow("init", initialLabelImageProcessor.convertToShort(false).getPixelsCopy());
+			
+		// next stack image is start of algo
+//		addSliceToStackAndShow("init", labelImage.getLabelImageProcessor().getPixelsCopy());
+		addSlice(labelImage, "init");
+		
+		IJ.setMinAndMax(stackImPlus, 0, maxLabel);
+		IJ.run(stackImPlus, "3-3-2 RGB", null); // stack has to contain at least 2 slices so this LUT applies to all future slices.
 	}
 	
 	
 	void initControls()
 	{
+		// no control when is a script
+		
+		if (IJ.isMacro() == true)
+			return;
+		
 		controllerFrame = new ControllerFrame(this);
 		controllerFrame.setVisible(true);
 		
@@ -704,15 +1072,8 @@ public class Region_Competition implements PlugInFilter
 		});
 	}
 	
-	void frontsCompetitionImageFilter(ImageProcessor aImageProcessor)
+	private void doRC()
 	{
-		initInputImage(aImageProcessor);
-		initLabelImage();
-//		labelImage.initZero();
-//		labelImage.initBrightBubbles(intensityImage);
-//		labelImage.initSwissCheese(intensityImage);
-//		labelImage.initBoundary();
-		
 		initEnergies();
 		initAlgorithm();
 		
@@ -757,7 +1118,8 @@ public class Region_Competition implements PlugInFilter
 				initEnergies();
 				
 				initAlgorithm();
-				algorithm.GenerateData();
+				if (algorithm.GenerateData(image_psf) == false)
+					return;
 				t.toc();
 				
 				updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
@@ -769,7 +1131,7 @@ public class Region_Competition implements PlugInFilter
 				}
 //				stackImPlus.updateAndDraw();
 				if (userDialog != null)
-					showFinalResult(labelImage, i);
+					OpenedImages.add(labelImage.show("", algorithm.getBiggestLabel()));
 			}
 			
 			System.out.println("--- kbest: (set in GenericDialogGui.kbest) ---");
@@ -787,7 +1149,7 @@ public class Region_Competition implements PlugInFilter
 		}
 		else // no kbest
 		{
-			algorithm.GenerateData();
+			algorithm.GenerateData(image_psf);
 			
 			updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
 			
@@ -799,59 +1161,34 @@ public class Region_Competition implements PlugInFilter
 				showFinalResult(labelImage);
 		}
 		
-
-		if(userDialog != null && userDialog.showStatistics())
-		{
-			algorithm.showStatistics();
-		}
-		
-		algorithm.saveStatistics(oip_location+oip_title+".csv");
-		try {SaveConfigFile(oip_location+oip_title+".dat",settings);}
-		catch (IOException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		controllerFrame.dispose();
-		
+		if (IJ.isMacro() == false)
+			controllerFrame.dispose();
 	}
 	
-	void showFinalResult(LabelImage li)
+	<T extends RealType<T>,E extends IntegerType<E>> void RCImageFilter(Img<T> img, Img<E> lbl,Class<T> cls)
 	{
-		showFinalResult(li,"");
+		labelImage = new LabelImageRC(lbl);
+		intensityImage = new IntensityImage(img,cls);
+		
+		initialStack = IntConverter.intArrayToStack(labelImage.dataLabel, labelImage.getDimensions());
+//		initialLabelImageProcessor = labelImage.getLabelImageProcessor().duplicate();
+	
+		labelImage.initBoundary();
+		
+		doRC();
 	}
 	
-	
-	ImagePlus showFinalResult(LabelImage li, Object title)
+	void RCImageFilter()
 	{
-		if(li.getDim()==3)
-		{
-			return showFinalResult3D(li, title);
-		}
+		initInputImage();
+		initLabelImage();
 		
-		// Colorprocessor doesn't support abs() (does nothing). 
-//		li.absAll();
-		ImageProcessor imProc = li.getLabelImageProcessor();
-//		System.out.println(Arrays.toString((int[])(imProc.getPixels())));
-		
-		// convert it to short
-		short[] shorts = li.getShortCopy();
-		for(int i=0; i<shorts.length; i++){
-			shorts[i] = (short)Math.abs(shorts[i]);
-		}
-		ShortProcessor shortProc = new ShortProcessor(imProc.getWidth(), imProc.getHeight());
-		shortProc.setPixels(shorts);
-		
-//		TODO !!!! imProc.convertToShort() does not work, first converts to byte, then to short...
-		String s = "ResultWindow "+title;
-		String titleUnique = WindowManager.getUniqueName(s);
-		
-		ImagePlus imp = new ImagePlus(titleUnique, shortProc);
-		IJ.setMinAndMax(imp, 0, algorithm.getBiggestLabel());
-		IJ.run(imp, "3-3-2 RGB", null);
-		imp.show();
-		return imp;
+		doRC();
+	}
+	
+	void showFinalResult(LabelImageRC li)
+	{
+		OpenedImages.add(li.show("", algorithm.getBiggestLabel()));
 	}
 	
 	public void show3DViewer()
@@ -893,25 +1230,6 @@ public class Region_Competition implements PlugInFilter
 //		tl.play();
 	}
 	
-	public ImagePlus showFinalResult3D(LabelImage li, Object title)
-	{
-		
-		ImagePlus imp = new ImagePlus("ResultWindow "+title, li.get3DShortStack(true));
-		
-		IJ.setMinAndMax(imp, 0, algorithm.getBiggestLabel());
-		IJ.run(imp, "3-3-2 RGB", null);
-		
-		imp.show();
-		show3DViewer();
-		
-//		IJ.run(imp, "Z Project...", "start=1 stop="+z+" projection=[Average Intensity]");
-
-//		HyperStackConverter hs = new HyperStackConverter();
-		
-//		imp.show();
-		
-		return imp;
-	}
 	
 	public void showStatus(String s)
 	{
@@ -931,7 +1249,7 @@ public class Region_Competition implements PlugInFilter
 	 * Initializes labelImage with ROI <br>
 	 * If there was no ROI in input image, asks user to draw a roi. 
 	 */
-	void manualSelect(final LabelImage labelImg)
+	void manualSelect(final LabelImageRC labelImg)
 	{
 		Roi roi=null;
 		roi = originalIP.getRoi();
@@ -1018,7 +1336,7 @@ public class Region_Competition implements PlugInFilter
 //		IJ.getInstance().addKeyListener(keyListener);
 }
 	
-	public void addSlice(LabelImage labelImage, String title)
+	public void addSlice(LabelImageRC labelImage, String title)
 	{
 		int dim = labelImage.getDim();
 		if(dim==2)
@@ -1031,6 +1349,22 @@ public class Region_Competition implements PlugInFilter
 		}
 	}
 
+	public void closeAll()
+	{
+		labelImage.close();
+		intensityImage.close();
+		stackImPlus.close();
+		if (originalIP != null)
+			originalIP.close();
+		
+		for (int i = 0 ; i < OpenedImages.size() ; i++)
+		{
+			OpenedImages.get(i).close();
+		}
+		algorithm.close();
+	}
+	
+	
 /**
  * Adds a new slice pixels to the end of the stack, 
  * and sets the new stack position to this slice
@@ -1176,7 +1510,7 @@ public class Region_Competition implements PlugInFilter
 		IJ.run(stackImPlus, "3-3-2 RGB", null);
 	}
 	
-	public LabelImage getLabelImage()
+	public LabelImageRC getLabelImage()
 	{
 		return this.labelImage;
 	}
@@ -1190,6 +1524,13 @@ public class Region_Competition implements PlugInFilter
 	{
 		return this.stackImPlus;
 	}
+	
+	/**
+	 * 
+	 * Get the original imagePlus
+	 * 
+	 * @return
+	 */
 	
 	public ImagePlus getOriginalImPlus()
 	{
@@ -1344,7 +1685,7 @@ public class Region_Competition implements PlugInFilter
 
 	public Region_Competition()
 	{
-		
+		OpenedImages = new Vector<ImagePlus>();
 	}
 	
 	public Algorithm getAlghorithm()
@@ -1352,19 +1693,28 @@ public class Region_Competition implements PlugInFilter
 		return algorithm;
 	}
 	
-	public Region_Competition(ImageProcessor img, Settings s)
+	
+	/**
+	 * 
+	 * Initialize region competition to run on an image given some settings
+	 * 
+	 * @param img Image 2D
+	 * @param s Setting
+	 */
+	
+	public Region_Competition(ImagePlus img, Settings s)
 	{
-		RC_free_image = img;
+		RC_ImgPlus = img;
 		settings = s;
 	}
 
-	ImageProcessor RC_free_image;
+	ImagePlus RC_ImgPlus;
 	
 	public void runP()
 	{
 		try
 		{
-			frontsCompetitionImageFilter(RC_free_image);
+			RCImageFilter();
 		}
 		catch (Exception e)
 		{
@@ -1375,10 +1725,122 @@ public class Region_Competition implements PlugInFilter
 	}
 
 
-	public void setSettings(Settings set) {
-		// TODO Auto-generated method stub
-		
+	/**
+	 * 
+	 * Set the parameters for Region Competition
+	 * 
+	 * @param set set of parameters
+	 */
+	
+	public void setSettings(Settings set) 
+	{
 		settings = set;
+	}
+	
+	/**
+	 * 
+	 * Show and save statistics
+	 * 
+	 * @param labelMap HashMap that contain the labels information
+	 * 
+	 */
+	
+	public void showAndSaveStatistics(HashMap<Integer, LabelInformation> labelMap)
+	{
+		ResultsTable rts = createStatistics(labelMap);
+
+		String folder = MosaicUtils.ValidFolderFromImage(MVC.getOriginalImPlus());
+		
+		saveStatistics(folder + File.separator + MosaicUtils.getRegionCSVName(MVC.getOriginalImPlus().getTitle()), labelMap);
+		
+		rts.show("statistics");
+	}
+	
+	/**
+	 * 
+	 * Save the csv region statistics
+	 * 
+	 * @param fold where to save
+	 * @param labelMap HashMap that save the label information
+	 */
+	
+	public void saveStatistics(String fold,HashMap<Integer, LabelInformation> labelMap)
+	{
+		// Remove the string file:
+		
+		if (fold.indexOf("file:") >= 0)
+			fold = fold.substring(fold.indexOf("file:")+5);
+		
+		ResultsTable rts = createStatistics(labelMap);
+		
+		try 
+		{
+			rts.saveAs(fold);
+		} 
+		catch (IOException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		String oip = originalIP.getTitle().substring(0, originalIP.getTitle().lastIndexOf("."));
+		MosaicUtils.reorganize(out,oip, fold.substring(0,fold.lastIndexOf(File.separator)), 1);
+	}
+	
+	public ResultsTable createStatistics(HashMap<Integer, LabelInformation> labelMap)
+	{
+		ResultsTable rt = new ResultsTable();
+		
+		// over all labels
+		for(Entry<Integer, LabelInformation> entry: labelMap.entrySet())
+		{
+			LabelInformation info = entry.getValue();
+			
+			rt.incrementCounter();
+			rt.addValue("label", info.label);
+			rt.addValue("size", info.count);
+			rt.addValue("mean", info.mean);
+			rt.addValue("variance", info.var);
+			rt.addValue("Coord_X", info.mean_pos[0]);
+			rt.addValue("Coord_Y", info.mean_pos[1]);
+			if (info.mean_pos.length > 2)
+				rt.addValue("Coord_Z", info.mean_pos[2]);
+			else
+				rt.addValue("Coord_Z", 0.0);
+		}
+		
+		return rt;
+	}
+
+	/**
+	 * 
+	 * Get CSV regions list name output
+	 * 
+	 * @param aImp image
+	 * @return set of possible output
+	 */
+	
+	@Override
+	public String[] getRegionList(ImagePlus aImp) 
+	{
+		String[] gM = new String[1];
+		gM[0] = new String(aImp.getTitle() + "_ObjectsData_c1.csv");
+		return gM;
+	}
+
+
+	public String[] getMask(ImagePlus aImp) 
+	{
+		String[] gM = new String[1];
+		gM[0] = new String(aImp.getTitle() + "_seg_c1.tif");
+		return gM;
+	}
+
+
+	@Override
+	public String getName() 
+	{
+		return new String("Region_Competition");
 	}
 }
 	

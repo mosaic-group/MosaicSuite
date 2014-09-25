@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
-import mosaic.bregman.FindConnectedRegions.Region;
 
 public class ASplitBregmanSolver {
 	Tools LocalTools;
@@ -255,6 +254,8 @@ public class ASplitBregmanSolver {
 		}
 		//IJ.log("max steps" + p.max_nsb);
 
+		double lastenergy_mod = Double.MAX_VALUE;
+		
 		while(stepk<p.max_nsb  && !StopFlag){
 			//Bregman step
 			step();
@@ -281,11 +282,25 @@ public class ASplitBregmanSolver {
 				iw3kbest=stepk;
 				bestNrj=energy;
 			}
-			if(stepk % p.energyEvaluationModulo ==0 || stepk==p.max_nsb -1)
+			if(stepk % modulo ==0 || stepk==p.max_nsb -1)
 			{	
 				//IJ.log(String.format("Ediff %d : %7.6e", stepk, Math.abs((energy-lastenergy)/lastenergy)));	
 				if(Math.abs((energy-lastenergy)/lastenergy) < p.tol){
 					StopFlag=true;if(p.livedisplay && p.firstphase){IJ.log("energy stop");}}
+				
+				// experiment to speedup we stop if the energy increase after evaluation modulo step
+				
+				if (p.firstphase == true)
+				{
+					if (stepk % modulo == 0 && p.fastsquassh == true)
+					{
+						if ((energy - lastenergy_mod) > 0)
+							StopFlag = true;
+						else
+							lastenergy_mod = energy;
+					}
+				}
+					
 			}
 			lastenergy=energy;
 			//energy output
@@ -309,23 +324,7 @@ public class ASplitBregmanSolver {
 				IJ.log(String.format("Photometry :%n backgroung %10.8e %n foreground %10.8e", RSS.betaMLEout,RSS.betaMLEin));	
 			}
 
-			if(!p.firstphase  && p.mode_intensity==0 && (stepk==40 || stepk==70) ){ // && new mode automatic intensity && p.mode_intensity==0 // do it all the time
-				//Analysepat
-				//Analysis.p.cl[0]=RSS.betaMLEout;
-				//Analysis.p.cl[1]=RSS.betaMLEin;
-				
-				
-				if(p.debug && stepk==40 && (Ap.r.value==91 || Ap.r.value==102)){
-				MasksDisplay md= new MasksDisplay(Ap.sx,Ap.sy,Ap.sz,2,p.cl,p);
-				md.display2regions3Dnew(w3k[0], "Mask Patch 40 "+Ap.r.value, channel);
-				}
-				
-				if(p.debug && stepk==70 && (Ap.r.value==91 || Ap.r.value==102)){
-					MasksDisplay md= new MasksDisplay(Ap.sx,Ap.sy,Ap.sz,2,p.cl,p);
-					md.display2regions3Dnew(w3k[0], "Mask Patch 70 "+Ap.r.value, channel);
-					}
-				
-				
+			if(!p.firstphase  && p.mode_intensity==0 && (stepk==40 || stepk==70) ){ // && new mode automatic intensity && p.mode_intensity==0 // do it all the time				
 				
 				Ap.find_best_thresh_and_int(w3k[0]);
 				p.cl[0]=Math.max(0, Ap.cout);
@@ -351,7 +350,7 @@ public class ASplitBregmanSolver {
 			if(p.firstphase)
 				IJ.showProgress(0.5*((double) stepk)/(p.max_nsb-1));
 		}
-
+		
 		if(iw3kbest<50) { // use what iteration threshold  ?
 			int iw3kbestold=iw3kbest;
 			LocalTools.copytab(w3kbest[0], w3k[0]);
@@ -360,9 +359,8 @@ public class ASplitBregmanSolver {
 			if(p.livedisplay && p.firstphase) IJ.log("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + iw3kbestold);
 		}
 
-
-
-		if (p.findregionthresh ){//&& p.nz==1){
+		if (p.findregionthresh )
+		{
 			this.regions_intensity_findthresh(w3kbest[0]);
 		}
 
@@ -434,7 +432,7 @@ public class ASplitBregmanSolver {
 		CountDownLatch W3kDoneSignal = new CountDownLatch(1);
 
 		for(int l=0; l< nl;l++){
-			new Thread(new SingleRegionTask(RegionsTasksDoneSignal,UkDoneSignal,W3kDoneSignal, l,this, LocalTools)).start();
+			new Thread(new SingleRegionTask(RegionsTasksDoneSignal,UkDoneSignal,W3kDoneSignal, l, channel,this, LocalTools)).start();
 		}
 
 
@@ -461,7 +459,7 @@ public class ASplitBregmanSolver {
 			energy+=energytab[l];
 			norm=Math.max(norm, normtab[l]);
 		}
-
+		
 		if(p.livedisplay) md.display(maxmask, "Masks");
 
 		//if(p.livedisplay) md.display2regions(w3k[1][0], "Mask lev 1",0);
@@ -554,11 +552,7 @@ public class ASplitBregmanSolver {
 		//	ImagePlus img=md.display2regionsnew(Ri[0][0], "Ri", 1);
 		//	ImagePlus img2=md.display2regionsnew(Ro[0][0], "Ro", 1);
 
-		RSS.cluster_region(Ri[0], Ro[0], regionslistr);
-//		ImagePlus img3=
-				md.display2regionsnew(Ri[0][0], "Ri cluster", 1);
-//		ImagePlus img4=
-				md.display2regionsnew(Ro[0][0], "Ro cluster", 1);	
+		RSS.cluster_region(Ri[0], Ro[0], regionslistr);	
 	}	
 
 	public void regions_intensity_findthresh(double [][][] mask)
@@ -576,10 +570,13 @@ public class ASplitBregmanSolver {
 
 
 		//construct mask as an imageplus
-		for (int z=0; z<nz; z++){
+		for (int z=0; z<nz; z++)
+		{
 			float[] mask_float = new float[p.ni*p.nj];
-			for (int i=0; i<ni; i++) {  
-				for (int j=0; j<nj; j++) {  
+			for (int i=0; i<ni; i++) 
+			{
+				for (int j=0; j<nj; j++) 
+				{
 					mask_float[j * p.ni + i]= (float) mask[z][i][j];
 				}
 			}
@@ -639,6 +636,9 @@ public class ASplitBregmanSolver {
 		//		}
 
 		//perform voronoi
+		
+		/* Here we compute the Voronoi segmentation starting from the threshold mask */
+		
 		EDM filtEDM = new EDM(); 
 		filtEDM.setup("voronoi", mask_im); 
 		filtEDM.run(mask_im.getProcessor()); 
@@ -669,13 +669,18 @@ public class ASplitBregmanSolver {
 		}
 		mask_im.setStack("Voronoi",mask_ims3);
 
-		//mask_im.duplicate().show();
+		// Here we are elaborating the Voronoi mask to get a nice subdivision
+		
+//		mask_im.duplicate().show();
 		double thr=254;
 		FindConnectedRegions fcr= new FindConnectedRegions(mask_im);
 
-		for (int z=0; z<nz; z++){
-			for (int i=0; i<ni; i++) {  
-				for (int j=0; j<nj; j++) {  
+		for (int z=0; z<nz; z++)
+		{
+			for (int i=0; i<ni; i++) 
+			{
+				for (int j=0; j<nj; j++) 
+				{
 					Ri[0][z][i][j]= (float)thr;
 				}
 			}
@@ -784,7 +789,7 @@ public class ASplitBregmanSolver {
 		//IJ.log("Elapsed milliseconds RSS2: " + difference);
 		if(p.dispvoronoi){
 			if(p.nz==1)
-			{md.display2regionsnew(Ri[0][0], "Regions thresholds", channel);}
+			{md.display2regionsnew(Ri[0][0], "Regions thresholds", channel,true);}
 			else
 			{md.display2regions3Dnew(Ri[0], "Regions thresholds", channel);}	}
 		//ImagePlus img4=md.display2regionsnew(Ro[0][0], "Ro cluster", 1);	

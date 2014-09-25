@@ -49,12 +49,12 @@ import mosaic.paramopt.cma.CMAEvolutionStrategy;
 import mosaic.paramopt.cma.fitness.IObjectiveFunction;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.Algorithm;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
-import mosaic.region_competition.Point;
+import mosaic.core.utils.Point;
 import mosaic.region_competition.PointCM;
-import mosaic.region_competition.RegionIterator;
+import mosaic.core.utils.RegionIterator;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.CurvatureBasedFlow;
 import mosaic.region_competition.energies.E_CurvatureFlow;
@@ -314,7 +314,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		{
 			// TODO Auto-generated method stub
 		
-			rg = new Region_Competition(img,s);
+//			rg = new Region_Competition(img,s);
 			rg.runP();
 		}
 		
@@ -369,7 +369,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			
 			ImagePlus img = t.getRC().getStackImPlus();
 			
-			LabelImage lb = t.getRC().getLabelImage();
+			LabelImageRC lb = t.getRC().getLabelImage();
 			int size[] = lb.getDimensions();
 			
 			id = lb.getLabel(offscreenX+offscreenY*size[0]);
@@ -392,7 +392,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			
 			if (id != -1)
 			{
-				LabelImage lb = t.getRC().getLabelImage();
+				LabelImageRC lb = t.getRC().getLabelImage();
 				double bg = lb.getLabelMap().get(0).mean;
 				
 				if (bg < slid.getValue()/1000.0 || id == 0)
@@ -408,7 +408,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	
 	JDialog g;
 	
-	LabelImage RCPainter(ImagePlus aImg, Settings s)
+	LabelImageRC RCPainter(ImagePlus aImg, Settings s)
 	{
 		double result = 0.0;
 		
@@ -640,12 +640,12 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		rad = 0;
 		
 		IntensityImage in[] = new IntensityImage[img.length];
-		LabelImage lb[] = new LabelImage[img.length];
+		LabelImageRC lb[] = new LabelImageRC[img.length];
 		
 		for (int i = 0 ; i < img.length ; i++)
 		{
 			in[i] = new IntensityImage(img[i],false);
-			lb[i] = new LabelImage(in[i].getDimensions());
+			lb[i] = new LabelImageRC(in[i].getDimensions());
 		}
 		
 		// Set initialization local minima
@@ -657,7 +657,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			for (int i = 0 ; i < img.length ; i++)
 			{
 				in[i] = new IntensityImage(img[i],false);
-				lb[i] = new LabelImage(in[i].getDimensions());
+				lb[i] = new LabelImageRC(in[i].getDimensions());
 				in[i].imageIP.show();
 			}
 			
@@ -709,7 +709,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		{
 			ScoreFunctionRCvol tmpA = new ScoreFunctionRCvol(in,lb,s);
 			sizeA[i] = tmpA.Area(lb[i]);
-			LabelImage lbtmp = new LabelImage(lb[i]);
+			LabelImageRC lbtmp = new LabelImageRC(lb[i]);
 			ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in,lb,s);
 			lbtmp.initBoundary();
 			lbtmp.initContour();
@@ -760,7 +760,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 					sizeA[i] = fiRC.Area(fiRC.getLabel(i));
 					System.out.println("Area: " + sizeA[i]);
 					ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in,lb,s);
-					LabelImage lbtmp = fiRC.getLabel(i);
+					LabelImageRC lbtmp = fiRC.getLabel(i);
 					lbtmp.initBoundary();
 					lbtmp.initContour();
 					sizeS[i] = tmpS.Smooth(lbtmp);
@@ -836,7 +836,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 					System.out.println("Area target: " + sizeA[i]);
 					sizeA[i] = tmpS.Area(fiRC.getLabel(i));
 					System.out.println("Area: " + sizeA[i]);
-					LabelImage lbtmp = fiRC.getLabel(i);
+					LabelImageRC lbtmp = fiRC.getLabel(i);
 					lbtmp.initBoundary();
 					lbtmp.initContour();
 					sizeS[i] = fiRC.Smooth(lbtmp);

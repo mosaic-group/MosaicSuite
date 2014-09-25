@@ -41,13 +41,17 @@ import ij.process.ByteProcessor;
 //import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
+
 //import java.util.Arrays;
 import java.util.Collections;
 //import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Vector;
+
 //import amira.AmiraParameters;
 //import ij.measure.Calibration;
 import ij.process.FloatProcessor;
+
 //import ij.plugin.ImageCalculator;
 //import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
@@ -60,6 +64,8 @@ import java.awt.Color;
 import java.awt.Polygon;
 //import java.awt.event.ActionEvent;
 //import java.awt.event.ActionListener;
+
+import mosaic.core.detection.Particle;
 
 //import net.sf.javaml.clustering.Clusterer;
 //import net.sf.javaml.core.Dataset;
@@ -76,15 +82,11 @@ import java.awt.Polygon;
 
 
 
-public class FindConnectedRegions  {
-
+public class FindConnectedRegions  
+{
 	public static final String PLUGIN_VERSION = "1.2";
 	public byte  [] [] [] softmask;
-	public static ImageStack regstackx;
-	public static ImageStack regstacky;
 
-	public static ImagePlus regsresultx=new ImagePlus();
-	public static ImagePlus regsresulty=new ImagePlus();
 	public ImagePlus imagePlus;
 	short [] [] [] tempres;
 	public ArrayList<Region> results = new ArrayList<Region>();
@@ -112,104 +114,6 @@ public class FindConnectedRegions  {
 		this.tempres=new short [Analysis.p.nz][Analysis.p.ni][Analysis.p.nj];
 	}
 
-
-	public static IndexColorModel backgroundAndSpectrum(int maximum) {
-		if( maximum > 255 )
-			maximum = 255;
-		byte [] reds = new byte[256];
-		byte [] greens = new byte[256];
-		byte [] blues = new byte[256];
-		// Set all to white:
-		for( int i = 0; i < 256; ++i ) {
-			reds[i] = greens[i] = blues[i] = (byte)255;
-		}
-		// Set 0 to black:
-		reds[0] = greens[0] = blues[0] = 0;
-		float divisions = maximum;
-		Color c;
-		for( int i = 1; i <= maximum; ++i ) {
-			float h = (i - 1) / divisions;
-			c = Color.getHSBColor(h,1f,1f);
-			reds[i] = (byte)c.getRed();
-			greens[i] = (byte)c.getGreen();
-			blues[i] = (byte)c.getBlue();
-		}
-		return new IndexColorModel( 8, 256, reds, greens, blues );
-	}
-
-
-
-	/* An inner class to make the results list sortable. */
-	public class Region implements Comparable {
-
-
-		boolean colocpositive=false;
-
-		Region(int value, String materialName, int points, boolean sameValue) {
-			//	byteImage = true;
-			this.value = value;
-			//this.materialName = materialName;
-			this.points = points;
-			//	this.sameValue = sameValue;
-		}
-
-		Region(int points, boolean sameValue) {
-			//	byteImage = false;
-			this.points = points;
-			//	this.sameValue = sameValue;
-		}
-
-		ArrayList<Pix> pixels = new ArrayList<Pix>();
-		//boolean byteImage;
-		public int points;
-		float rsize;
-		//String materialName;
-		int value;
-		double perimeter;
-		double length;
-		Region rvoronoi;
-		//boolean sameValue;
-		double intensity;
-		float cx,cy,cz;
-		float overlap;
-		float over_int;
-		float over_size;
-		float beta_in;
-		float beta_out;
-		boolean singlec;
-		double coloc_o_int;
-		public int compareTo(Object otherRegion) {
-			Region o = (Region) otherRegion;
-			return (value < o.value) ? 1 : ((value  > o.value) ? -1 : 0);
-		}
-
-		//		@Override
-		//		public String toString() {
-		//			if (byteImage) {
-		//				String materialBit = "";
-		//				if (materialName != null) {
-		//					materialBit = " (" + materialName + ")";
-		//				}
-		//				return "Region of value " + value + materialBit + " containing " + points + " points";
-		//			} else {
-		//				return "Region containing " + points + " points";
-		//			}
-		//		}
-
-		//		public void addRow( ResultsTable rt ) {
-		//			rt.incrementCounter();
-		//			if(byteImage) {
-		//				if(sameValue)
-		//					rt.addValue("Value in Region",value);
-		//				rt.addValue("Points In Region",points);
-		//				if(materialName!=null)
-		//					rt.addLabel("Material Name",materialName);
-		//			} else {
-		//				rt.addValue("Points in Region",points);
-		//			}
-		//		}
-
-	}
 
 
 
@@ -689,7 +593,26 @@ public class FindConnectedRegions  {
 					//newStack.addSlice("", bp);
 				}
 
-				if(region.points<= maxvesiclesize)results.add(region);
+				// Check for z Edge and maxvesiclesize
+				
+				if (region.points<= maxvesiclesize)
+				{
+					// check for z processing
+					
+					if (Analysis.p.exclude_z_edges == true && tr.length != 1)
+					{
+						Analysis.regionCenter(region);
+						if (region.getcz() >= 1.0 && region.getcz() <= tr.length-2)
+						{
+							results.add(region);
+						}
+					}
+					else
+					{
+						results.add(region);
+					}
+						
+				}
 
 				//if(region.value==43 || region.value==2000)test_clustering(region);
 
@@ -700,416 +623,12 @@ public class FindConnectedRegions  {
 				break;
 			}
 		}
-
+		
 		Collections.sort(results, Collections.reverseOrder());
-		//Collections.sort(results);
-
-		//cancelDialog.dispose();
-
-		//		int index =1;
-		//		for (Iterator<Region> it = results.iterator(); it.hasNext();) {
-		//			Region r = it.next();
-		//			r.value=index;
-		//			index ++;
-		//			//System.out.println(r.toString());		       			
-		////			if( showResults ) {
-		////				r.addRow(rt);
-		////			}		
-		//		}
 
 		if( showResults )
 			rt.show("Results");
-
-		if(displ|| save){
-			displayRegions(tempres, width, height, depth, channel, displ, save);
-		}
-
-		//{
-		//			if(channel==0){
-		//				regstackx=new ImageStack(width,height);
-		//
-		//				int min = 0;
-		//				int max = Math.max(results.size(), 255 );
-		//				for (int z=0; z<depth; z++){
-		//					short[] mask_short = new short[width*height];
-		//					for (int i=0; i<width; i++) {
-		//						for (int j=0; j<height; j++) {  
-		//							mask_short[j * width + i]= (short) tempres[z][i][j];
-		//						}
-		//					}
-		//					ShortProcessor sp = new ShortProcessor(width, height);
-		//					sp.setPixels(mask_short);
-		//					sp.setMinAndMax( min, max );
-		//					regstackx.addSlice("", sp);
-		//				}
-		//			
-		//				
-		//				//IJ.log("size colormodel"+results.size());
-		//				regstackx.setColorModel(backgroundAndSpectrum(Math.min(results.size(),255)));				
-		//				regsresultx.setStack("Regions X",regstackx);
-		//				//regsresultx.setColorModel(backgroundAndSpectrum(Math.min(results.size(),255)));
-		//				//regsresultx.setDisplayRange(0,results.size()+1);
-		//				//IJ.run(regsresultx,"3-3-2 RGB", "");
-		//				regsresultx.show(); 
-		//				regsresultx.setActivated();
-		//
-		//			}
-		//			else
-		//			{
-		//
-		//				regstacky=new ImageStack(width,height);
-		//
-		//				int min = 0;
-		//				int max = Math.max(results.size(), 255 );
-		//				for (int z=0; z<depth; z++){
-		//					short[] mask_short = new short[width*height];
-		//					for (int i=0; i<width; i++) {
-		//						for (int j=0; j<height; j++) {  
-		//							mask_short[j * width + i]= (short) tempres[z][i][j];
-		//						}
-		//					}
-		//					ShortProcessor sp = new ShortProcessor(width, height);
-		//					sp.setPixels(mask_short);
-		//					sp.setMinAndMax( min, max );
-		//					regstacky.addSlice("", sp);
-		//				}
-		//			
-		//				
-		//				//IJ.log("size colormodel"+results.size());
-		//				regstacky.setColorModel(backgroundAndSpectrum(Math.min(results.size(),255)));				
-		//				regsresulty.setStack("Regions Y",regstacky);
-		//				//regsresultx.setColorModel(backgroundAndSpectrum(Math.min(results.size(),255)));
-		//				//regsresultx.setDisplayRange(0,results.size()+1);
-		//				//IJ.run(regsresultx,"3-3-2 RGB", "");
-		//				regsresulty.show(); 
-		//				regsresulty.setActivated();
-		//
-		//
-		//			}
-		//		}
 	}
-
-
-
-	public void displayRegions(short [][][] regions, int width,int height,int depth, int channel, boolean displ, boolean save){
-		if(channel==0){
-			regstackx=new ImageStack(width,height);
-
-			int min = 0;
-			int max = Math.max(results.size(), 255 );
-			for (int z=0; z<depth; z++){
-				short[] mask_short = new short[width*height];
-				for (int i=0; i<width; i++) {
-					for (int j=0; j<height; j++) {  
-						mask_short[j * width + i]= (short) regions[z][i][j];
-					}
-				}
-				ShortProcessor sp = new ShortProcessor(width, height);
-				sp.setPixels(mask_short);
-				sp.setMinAndMax( min, max );
-				regstackx.addSlice("", sp);
-			}
-
-
-			//IJ.log("size colormodel"+results.size());
-			regstackx.setColorModel(backgroundAndSpectrum(Math.min(results.size(),255)));				
-			regsresultx.setStack("Regions X",regstackx);
-			//regsresultx.setColorModel(backgroundAndSpectrum(Math.min(results.size(),255)));
-			//regsresultx.setDisplayRange(0,results.size()+1);
-			//IJ.run(regsresultx,"3-3-2 RGB", "");
-
-
-			//			if(displ && !save){
-			//				//IJ.log("displaying");
-			//				
-			//			regsresultx.show(); 
-			//			regsresultx.setActivated();
-			//			}
-
-			//IJ.log("in fcr dispcolors" + Analysis.p.dispcolors);
-			if(displ && Analysis.p.dispcolors && Analysis.p.dispwindows){// && !Analysis.p.save_images
-				regsresultx.setTitle("Colorized objectsfirst, channel 1");
-				regsresultx.show();
-			}
-
-			if(displ && Analysis.p.displabels  && Analysis.p.dispwindows){// && !Analysis.p.save_images
-				ImagePlus dupx= regsresultx.duplicate();
-				dupx.setTitle("Labelized objects, channel 1");
-				IJ.run(dupx, "Grays", "");
-				dupx.show();
-			}
-
-
-
-			String savepath;
-			if(save && Analysis.p.save_images && Analysis.p.displabels){
-				savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
-				IJ.saveAs(regsresultx, "ZIP", savepath);
-			}
-
-			if(save && Analysis.p.save_images && Analysis.p.dispcolors){
-				IJ.run(regsresultx,"RGB Color", "");
-				savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1_RGBfirst" +".zip";
-				IJ.saveAs(regsresultx, "ZIP", savepath);
-			}
-
-			//			if (save){
-			//				savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
-			//				IJ.saveAs(regsresultx, "ZIP", savepath);
-			//				
-			//				
-			//				IJ.run(regsresultx,"RGB Color", "");
-			//				savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1_RGB" +".zip";
-			//				IJ.saveAs(regsresultx, "ZIP", savepath);
-			////				ImagePlus imx=regsresultx.duplicate();
-			////				ImageConverter imc = new ImageConverter(imx);
-			////				imc.convertToRGB();
-			////				FileSaver fs= new FileSaver(regsresultx);
-			////				String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".tif";
-			////				if (Analysis.p.nz >1) fs.saveAsTiffStack(savepath);
-			////				else fs.saveAsTiff(savepath);	
-			//			}
-
-		}
-		else
-		{
-
-			regstacky=new ImageStack(width,height);
-
-			int min = 0;
-			int max = Math.max(results.size(), 255 );
-			for (int z=0; z<depth; z++){
-				short[] mask_short = new short[width*height];
-				for (int i=0; i<width; i++) {
-					for (int j=0; j<height; j++) {  
-						mask_short[j * width + i]= (short) regions[z][i][j];
-					}
-				}
-				ShortProcessor sp = new ShortProcessor(width, height);
-				sp.setPixels(mask_short);
-				sp.setMinAndMax( min, max );
-				regstacky.addSlice("", sp);
-			}
-
-
-			//IJ.log("size colormodel"+results.size());
-			regstacky.setColorModel(backgroundAndSpectrum(Math.min(results.size(),255)));				
-			regsresulty.setStack("Regions Y",regstacky);
-			//regsresultx.setColorModel(backgroundAndSpectrum(Math.min(results.size(),255)));
-			//regsresultx.setDisplayRange(0,results.size()+1);
-			//IJ.run(regsresultx,"3-3-2 RGB", "");
-
-
-			if(displ && Analysis.p.dispcolors  && Analysis.p.dispwindows){// && !Analysis.p.save_images
-				regsresulty.setTitle("Colorized objects, channel 2");
-				regsresulty.show();
-			}
-
-			if(displ && Analysis.p.displabels  && Analysis.p.dispwindows){// && !Analysis.p.save_images
-				ImagePlus dupy= regsresulty.duplicate();
-				dupy.setTitle("Labelized objects, channel 2");
-				IJ.run(dupy, "Grays", "");
-				dupy.show();
-			}
-
-
-
-			String savepath;
-			if(save && Analysis.p.save_images && Analysis.p.displabels){
-				savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c2" +".zip";
-				IJ.saveAs(regsresulty, "ZIP", savepath);
-			}
-
-			if(save && Analysis.p.save_images && Analysis.p.dispcolors){
-				IJ.run(regsresulty,"RGB Color", "");
-				savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c2_RGB" +".zip";
-				IJ.saveAs(regsresulty, "ZIP", savepath);
-			}
-
-
-
-
-			//			if(displ && !save){
-			//			regsresulty.show(); 
-			//			regsresulty.setActivated();
-			//			}
-			//			
-			//			if (save){
-			//				String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
-			//				IJ.saveAs(regsresulty, "ZIP", savepath);
-			//				
-			//				
-			//				IJ.run(regsresulty,"RGB Color", "");
-			//				savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1_RGB" +".zip";
-			//				IJ.saveAs(regsresulty, "ZIP", savepath);
-			//				
-			//				
-			//				
-			////				ImagePlus imy=regsresulty.duplicate();
-			////				ImageConverter imc = new ImageConverter(imy);
-			////				imc.convertToRGB();
-			////				FileSaver fs= new FileSaver(imy);
-			////				String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".tif";
-			////				if (Analysis.p.nz >1) fs.saveAsTiffStack(savepath);
-			////				else fs.saveAsTiff(savepath);	
-			//			}
-
-		}
-
-	}
-
-
-//	private void test_clustering(Region r){
-//		int nk=5;//3
-//		double [] pixel = new double[1];
-//		double [] levels= new double[nk];
-//
-//		Dataset data = new DefaultDataset();
-//		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-//			Pix p = it.next();
-//			int i=p.px;
-//			int j=p.py;
-//			int z=p.pz;
-//
-//			//IJ.log("i j z " +i +" " +j+ " "+ z +"val" +  (softmask[z][i][j]& 0xFF) );
-//			pixel[0]=softmask[z][i][j] & 0xFF;
-//			Instance instance = new DenseInstance(pixel);
-//			data.add(instance);
-//		}
-//		/* Create Weka classifier */
-//		SimpleKMeans xm = new SimpleKMeans();
-//		try{
-//			xm.setNumClusters(2);//3
-//			xm.setMaxIterations(100);
-//		}catch (Exception ex) {}
-//
-//		/* Wrap Weka clusterer in bridge */
-//		Clusterer jmlxm = new WekaClusterer(xm);
-//		/* Perform clustering */
-//		Dataset[] data2 = jmlxm.cluster(data);
-//		/* Output results */
-//		//System.out.println(clusters.length);
-//
-//
-//		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
-//		for (int i=0; i<nk; i++) {  
-//			//Instance inst =DatasetTools.minAttributes(data2[i]);
-//			Instance inst =DatasetTools.average(data2[i]);
-//			levels[i]=((float)inst.value(0)) / 255;
-//		}
-//
-//
-//		Arrays.sort(levels);
-//		IJ.log("");
-//		IJ.log("levels :");
-//		IJ.log("level 1 : " + levels[0]);
-//		IJ.log("level 2 : " + levels[1]);
-//
-//
-//
-//		////////3
-//		/* Create Weka classifier */
-//		xm = new SimpleKMeans();
-//		try{
-//			xm.setNumClusters(3);//3
-//			xm.setMaxIterations(100);
-//		}catch (Exception ex) {}
-//
-//		/* Wrap Weka clusterer in bridge */
-//		jmlxm = new WekaClusterer(xm);
-//		/* Perform clustering */
-//		data2 = jmlxm.cluster(data);
-//		/* Output results */
-//		//System.out.println(clusters.length);
-//
-//
-//		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
-//		for (int i=0; i<nk; i++) {  
-//			//Instance inst =DatasetTools.minAttributes(data2[i]);
-//			Instance inst =DatasetTools.average(data2[i]);
-//			levels[i]=inst.value(0)  / 255;
-//		}
-//
-//
-//		Arrays.sort(levels);
-//		IJ.log("");
-//		IJ.log("levels :");
-//		IJ.log("level 1 : " + levels[0]);
-//		IJ.log("level 2 : " + levels[1]);
-//		IJ.log("level 3 : " + levels[2]);
-//
-//
-//
-//		////////4
-//		/* Create Weka classifier */
-//		xm = new SimpleKMeans();
-//		try{
-//			xm.setNumClusters(4);//3
-//			xm.setMaxIterations(100);
-//		}catch (Exception ex) {}
-//
-//		/* Wrap Weka clusterer in bridge */
-//		jmlxm = new WekaClusterer(xm);
-//		/* Perform clustering */
-//		data2 = jmlxm.cluster(data);
-//		/* Output results */
-//		//System.out.println(clusters.length);
-//
-//
-//		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
-//		for (int i=0; i<nk; i++) {  
-//			//Instance inst =DatasetTools.minAttributes(data2[i]);
-//			Instance inst =DatasetTools.average(data2[i]);
-//			levels[i]=inst.value(0)  / 255;
-//		}
-//
-//
-//		Arrays.sort(levels);
-//		IJ.log("");
-//		IJ.log("levels :");
-//		IJ.log("level 1 : " + levels[0]);
-//		IJ.log("level 2 : " + levels[1]);
-//		IJ.log("level 3 : " + levels[2]);
-//		IJ.log("level 4 : " + levels[3]);
-//
-//
-//		////////5
-//		/* Create Weka classifier */
-//		xm = new SimpleKMeans();
-//		try{
-//			xm.setNumClusters(5);//3
-//			xm.setMaxIterations(100);
-//		}catch (Exception ex) {}
-//
-//		/* Wrap Weka clusterer in bridge */
-//		jmlxm = new WekaClusterer(xm);
-//		/* Perform clustering */
-//		data2 = jmlxm.cluster(data);
-//		/* Output results */
-//		//System.out.println(clusters.length);
-//
-//
-//		nk=data2.length;//get number of clusters  really found (usually = 3 = setNumClusters but not always)
-//		for (int i=0; i<nk; i++) {  
-//			//Instance inst =DatasetTools.minAttributes(data2[i]);
-//			Instance inst =DatasetTools.average(data2[i]);
-//			levels[i]=inst.value(0)  / 255;
-//		}
-//
-//
-//		Arrays.sort(levels);
-//		IJ.log("");
-//		IJ.log("levels :");
-//		IJ.log("level 1 : " + levels[0]);
-//		IJ.log("level 2 : " + levels[1]);
-//		IJ.log("level 3 : " + levels[2]);
-//		IJ.log("level 4 : " + levels[3]);
-//		IJ.log("level 5 : " + levels[4]);
-//	}
-
-
-
-
 }
 
 

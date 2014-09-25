@@ -19,8 +19,16 @@ import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
+import mosaic.core.binarize.BinarizedImage;
+import mosaic.core.binarize.BinarizedIntervalLabelImage;
+import mosaic.core.psf.GaussPSF;
+import mosaic.core.psf.GeneratePSF;
+import mosaic.core.utils.IndexIterator;
+import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.Point;
 import mosaic.plugins.Generate_PSF;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.LabelDispenser.LabelDispenserInc;
@@ -29,13 +37,15 @@ import mosaic.region_competition.energies.Energy.EnergyResult;
 import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.energies.OscillationDetection;
 import mosaic.region_competition.energies.OscillationDetection2;
-import mosaic.region_competition.topology.Connectivity;
+import mosaic.core.utils.Connectivity;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction.TopologicalNumberResult;
 import mosaic.region_competition.utils.Pair;
 import mosaic.region_competition.utils.Timer;
 import mosaic.region_competition.energies.*;
+import mosaic.core.utils.Point;
 import ij.IJ;
+import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.ResultsTable;
 import io.scif.img.ImgOpener;
@@ -46,7 +56,7 @@ public class Algorithm
 	
 	
 	private Region_Competition MVC; 	/** interface to image program */
-	private LabelImage labelImage;
+	private LabelImageRC labelImage;
 	private IntensityImage intensityImage;
 	private ImageModel imageModel;
 	
@@ -91,7 +101,7 @@ public class Algorithm
 	 * creates a new LabelImage with size of ip
 	 * @param proc is saved as originalIP
 	 */
-	public Algorithm(IntensityImage intensityImage, LabelImage labelImage, ImageModel model, Settings settings, Region_Competition mvc) 
+	public Algorithm(IntensityImage intensityImage, LabelImageRC labelImage, ImageModel model, Settings settings, Region_Competition mvc) 
 	{
 		
 		if(shrinkFirst)
@@ -259,7 +269,7 @@ public class Algorithm
 				LabelInformation stats = labelMap.get(absLabel);
 				if(stats==null)
 				{
-					stats = new LabelInformation(absLabel);
+					stats = new LabelInformation(absLabel,labelImage.getDim());
 					labelMap.put(absLabel, stats);
 				}
 				double val = intensityImage.get(i);
@@ -275,7 +285,7 @@ public class Algorithm
 		LabelInformation stats = labelMap.get(0);
 		if(stats==null)
 		{
-			stats = new LabelInformation(0);
+			stats = new LabelInformation(0,labelImage.getDim());
 			labelMap.put(0, stats);
 		}
 		
@@ -310,47 +320,7 @@ public class Algorithm
         labelDispenser.setLabelsInUse(usedLabels);
 	}
 	
-	
-	public void showStatistics()
-	{
-		ResultsTable rts = createStatistics();
 
-		rts.show("statistics");
-	}
-	
-	public void saveStatistics(String fold)
-	{
-		ResultsTable rts = createStatistics();
-		
-		try 
-		{
-			rts.saveAs(fold);
-		} 
-		catch (IOException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	public ResultsTable createStatistics()
-	{
-		ResultsTable rt = new ResultsTable();
-		
-		// over all labels
-		for(Entry<Integer, LabelInformation> entry: labelMap.entrySet())
-		{
-			LabelInformation info = entry.getValue();
-			
-			rt.incrementCounter();
-			rt.addValue("label", info.label);
-			rt.addValue("n", info.count);
-			rt.addValue("mean", info.mean);
-			rt.addValue("variance", info.var);
-		}
-		
-		return rt;
-	}
 	
 	private Vector<RCMean> RC_op;
 	
@@ -382,7 +352,7 @@ public class Algorithm
 			RC_op.add(r);
 	}
 	
-	public void GenerateData()
+	public boolean GenerateData(Img<FloatType> image_psf)
 	{
 		/**
 		 * Set up the regions and allocate the output-image
@@ -412,7 +382,8 @@ public class Algorithm
 		/**
 		 * Depending on the functional to use, prepare stuff for faster computation.
 		 */
-		 PrepareEnergyCaluclation();
+		 if (PrepareEnergyCaluclation(image_psf) == false)
+			 return false;
 
 		/**
 		 * Start time measurement
@@ -456,6 +427,9 @@ public class Algorithm
 			
 			vConvergence = DoOneIteration();
 			debug("time: "+timer.toc());
+			
+/*			System.out.println("Maximal graph: " + max_graph);
+			max_graph = 0;*/
 			
 /*			boolean first = true;
 			double FG = 0.20;
@@ -513,10 +487,21 @@ public class Algorithm
 			debug("no convergence !");
 		}
 
+		return true;
 	}
 
-
-	private void PrepareEnergyCaluclation()
+	Vector<ImagePlus> OpenedImages = new Vector();
+	
+	/**
+	 * 
+	 * Initialize the energy function
+	 * 
+	 * @param img The PSF image optionally is de-convolving segmentation is selected
+	 * 
+	 * @return
+	 */
+	
+	private boolean PrepareEnergyCaluclation(Img<FloatType> image_psf)
 	{
         /**
          * Deconvolution:
@@ -525,75 +510,35 @@ public class Algorithm
          */
         if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) 
         {
-
-        	ImageStack gPsfIS = new ImageStack();
-            if (settings.m_UseGaussianPSF)
-            {
-                // Here, no PSF has been set by the user. Hence, a Gaussian
-                // approximation is used.
-
-            	Generate_PSF gPsf = new Generate_PSF();
-            	gPsf.setParametersGUI();
-            	gPsf.hideResult(true);
-            	gPsf.setup(null, null);
-            	if (intensityImage.getDim() == 2)
-            		gPsfIS = gPsf.getGauss2DPsf();
-            	else
-            		gPsfIS = gPsf.getGauss3DPsf();
+    		// Set deconvolution
+        	          	
+            // if not PSF has been generated stop
             	
-            	Img<FloatType> tmp = IntensityImage.convertToImg(gPsfIS);
-				float Vol = IntensityImage.volume_image(tmp);
-				IntensityImage.rescale_image(tmp,1.0f/Vol);
-            	
-				// Show PSF Image
-				
-				ImageJFunctions.show(tmp);
-				
-            	((E_Deconvolution)imageModel.getEdata()).setPSF(tmp);
-            	((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
-            }
-            else
+            if (image_psf == null)
             {
-                File file = new File( settings.m_PSFImg );
-                
-                // open with ImgOpener using an ArrayImgFactory, here the return type will be
-                // defined by the opener
-                // the opener will ignore the Type of the ArrayImgFactory
-                
-                ImgFactory< FloatType > imgFactory = new ArrayImgFactory< FloatType >();
-                Img<FloatType> tmp = null;
-				try 
-				{
-					tmp = new ImgOpener().openImg( file.getAbsolutePath(), imgFactory , new FloatType() );
-					float Vol = IntensityImage.volume_image(tmp);
-					IntensityImage.rescale_image(tmp,1.0f/Vol);
-					Vol = IntensityImage.volume_image(tmp);
-				}
-				catch (Exception e)
-				{
-					
-				}
-				
-				///////////////////////////////////
-				
-				ImageJFunctions.show(tmp);
-                ((E_Deconvolution)imageModel.getEdata()).setPSF(tmp);
-                ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
+            	IJ.error("Error no PSF generated");
+            	return false;
             }
-
-            //            InternalImageType::Pointer vIdealImage = InternalImageType::New();
-            //            vIdealImage->SetRequestedRegion(m_LabelImage->GetRequestedRegion());
-            //            vIdealImage->SetLargestPossibleRegion(m_LabelImage->GetLargestPossibleRegion());
-            //            vIdealImage->SetBufferedRegion(m_LabelImage->GetBufferedRegion());
-            //            vIdealImage->Allocate();
-
-            /// First, generate a rough estimate of the model image using the means
-            /// as an intensity estimate. In a second step refine the estimates
-            /// in RenewDeconvolutionStatistics().
-
+            		
+    		double Vol = IntensityImage.volume_image(image_psf);
+    		IntensityImage.rescale_image(image_psf,(float)(1.0f/Vol));
+            	
+    		// Show PSF Image
+    			
+    		if (MVC.getHideProcess() == false)
+    		{
+    			OpenedImages.add(ImageJFunctions.show(image_psf));
+    		}
+        	
+			// Ugly forced to be float
+			
+            ((E_Deconvolution)imageModel.getEdata()).setPSF(image_psf);
+            ((E_Deconvolution)imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
             
             ((E_Deconvolution)imageModel.getEdata()).RenewDeconvolution(labelImage);
         }
+        
+        return true;
 	}
 
 
@@ -1159,6 +1104,8 @@ public class Algorithm
 	}
 
 
+/*	int max_graph = 0;*/
+	
 	/**
 	 * Filters topological incompatible candidates (topological dependencies) 
 	 * and non-improving energies. 
@@ -1258,12 +1205,16 @@ public class Algorithm
 						}
                     }
                 }
-
+				
 				/**
 				 * sort the network
 				 */
 				Collections.sort(vSortedNetworkMembers);
 
+/*				if (vSortedNetworkMembers.size() >= max_graph)
+					max_graph = vSortedNetworkMembers.size();*/
+				
+				
 				/**
 				 * Filtering: Accept all members in ascending order that are
 				 * compatible with the already selected members in the network.
@@ -1604,14 +1555,14 @@ public class Algorithm
 	 * This method assumes the label image to be updated. It is used to relabel
 	 * a region that was split by another region (maybe BG region).
 	 */
-	void RelabelRegionsAfterSplit(LabelImage aLabelImage, Point aIndex, int aLabel)
+	void RelabelRegionsAfterSplit(LabelImageRC aLabelImage, Point aIndex, int aLabel)
 	{
 //		debug("Split at " + aIndex.toString() + " of label " + aLabel);
 //		MVC.selectPoint(aIndex);
 		// template <class TInputImage, class TInitImage, class TOutputImage >
 		if(aLabelImage.getLabelAbs(aIndex)==aLabel) 
 		{
-			MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdLabelImageFunction(aLabelImage);
+			BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
 			vMultiThsFunction.AddThresholdBetween(aLabel, aLabel);
 			int negLabel = aLabelImage.labelToNeg(aLabel);
 			vMultiThsFunction.AddThresholdBetween(negLabel, negLabel);
@@ -1630,7 +1581,7 @@ public class Algorithm
 	/// be updated already: both methods are connected via the seedpoint. This
 	/// method may be used to fuse 2 regions in the region competition mode.
 	
-	void RelabelRegionsAfterFusion(LabelImage aLabelImage, Point aIndex, int aL1, Set<Integer> aCheckedLabels) 
+	void RelabelRegionsAfterFusion(LabelImageRC aLabelImage, Point aIndex, int aL1, Set<Integer> aCheckedLabels) 
 	{
 //		debug("Relabel after fusion at " + aIndex.toString() + " of label " + aL1);
 //		if(m_iteration_counter==6)
@@ -1639,7 +1590,7 @@ public class Algorithm
 //		}
 //		MVC.selectPoint(aIndex);
 		
-		MultipleThresholdImageFunction vMultiThsFunction = new MultipleThresholdLabelImageFunction(aLabelImage);
+		BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
 		
 //		LinkedList<Integer> vLabelsToCheck = new LinkedList<Integer>();
 		Stack<Integer> vLabelsToCheck = new Stack<Integer>();
@@ -2035,6 +1986,20 @@ public class Algorithm
 	Object pauseMonitor = new Object();
 	boolean pause = false;
 	boolean abort = false;
+	
+	/**
+	 * 
+	 * Close all created images
+	 * 
+	 */
+	
+	public void close()
+	{
+		for (int i = 0 ; i < OpenedImages.size() ; i++)
+		{
+			OpenedImages.get(i).close();
+		}
+	}
 	
 	/**
 	 * Stops the algorithm after actual iteration

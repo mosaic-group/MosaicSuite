@@ -27,7 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
 
-import mosaic.region_competition.LabelImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.wizard.RCWWin.segType;
 
@@ -227,7 +227,7 @@ class RCProgressWin extends JFrame implements MouseListener
 	{
 		Opener o = new Opener();
 		ImagePlus img_p[] = new ImagePlus[nImg];
-		LabelImage img_l[] = new LabelImage[nImg];
+		LabelImageRC img_l[] = new LabelImageRC[nImg];
 		for (int j = 0 ; j < FileName.length ; j++)
 		{
 			int l[];
@@ -245,7 +245,7 @@ class RCProgressWin extends JFrame implements MouseListener
 				l[0] = img_p[j].getDimensions()[0];
 				l[1] = img_p[j].getDimensions()[1];
 			}
-			img_l[j] = new LabelImage(l);
+			img_l[j] = new LabelImageRC(l);
 			img_l[j].initWithIP(img_p[j]);
 			img_p[j] = img_l[j].convert("image", 255);
 		}

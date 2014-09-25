@@ -63,7 +63,7 @@ public class GUIold implements ActionListener,PropertyChangeListener
 	//for panel 4
 	private JCheckBox livedisplay= new JCheckBox("Live display", Analysis.p.livedisplay);
 	private JFormattedTextField ldata= new JFormattedTextField(Analysis.p.minves_size);
-	private JFormattedTextField lreg= new JFormattedTextField(Analysis.p.lreg);
+	private JFormattedTextField lreg= new JFormattedTextField(Analysis.p.lreg_);
 	private JFormattedTextField max= new JFormattedTextField(Analysis.p.nthreads);
 	private JFormattedTextField maxsize= new JFormattedTextField(Analysis.p.maxves_size);
 	private JFormattedTextField minInt= new JFormattedTextField(Analysis.p.min_intensity);
@@ -429,7 +429,7 @@ public class GUIold implements ActionListener,PropertyChangeListener
 		if (source == ldata) {
 			Analysis.p.minves_size=(int) ((Number)ldata.getValue()).doubleValue();
 		} else if (source == lreg) {
-			Analysis.p.lreg=((Number)lreg.getValue()).doubleValue();
+//			Analysis.p.lreg=((Number)lreg.getValue()).doubleValue();
 		} else if (source == rlevel) {
 			Analysis.p.regionSegmentLevel=(int) ((Number)rlevel.getValue()).doubleValue();
 		} else if (source == cellmaskt) {
@@ -486,7 +486,7 @@ public class GUIold implements ActionListener,PropertyChangeListener
 
 		if(source == coloc)
 		{
-			Analysis.coloc();
+//			Analysis.coloc();
 		}
 
 		if(source == SelectFolder)

@@ -67,17 +67,17 @@ Coloc2name=paste0(" ( ", objA," + ", objB," ) ", " / ", objB)
 
 ##########
 ##load first channel data
-data=read.csv(file_1, sep = ";")
+data=read.csv(file_1, sep = ";", comment.char="%")
 
 dtl=NULL
 #Split data
 #first set of data
-    dtl=c(dtl,list(data[data$Image.ID<NCR[1],]))
+    dtl=c(dtl,list(data[data$Image_ID<NCR[1],]))
 sum=NCR[1]
 #other sets
 if(NR>1){
     for( i in 2:NR ){
-    dtl=c(dtl,list(data[data$Image.ID>(sum-1) & data$Image.ID<(sum+NCR[i]) ,]))
+    dtl=c(dtl,list(data[data$Image_ID>(sum-1) & data$Image_ID<(sum+NCR[i]) ,]))
     sum=sum+NCR[i]
     }
     }
@@ -87,16 +87,16 @@ if(NR>1){
 ##load rab data
 if(file_2 != "null")
 {
-	datar=read.csv(file_2, sep = ";")
+	datar=read.csv(file_2, sep = ";", comment.char="%")
 	dtlr=NULL
 	#Split data
 	#first set of data
-	    dtlr=c(dtlr,list(datar[datar$Image.ID<NCR[1],]))
+	    dtlr=c(dtlr,list(datar[datar$Image_ID<NCR[1],]))
 	sum=NCR[1]
 	#other sets
 	if(NR>1){
 	    for( i in 2:NR ){
-	    dtlr=c(dtlr,list(datar[datar$Image.ID>(sum-1) & datar$Image.ID<(sum+NCR[i]) ,]))
+	    dtlr=c(dtlr,list(datar[datar$Image_ID>(sum-1) & datar$Image_ID<(sum+NCR[i]) ,]))
 	    sum=sum+NCR[i]
 	    }
 	    }
@@ -105,7 +105,7 @@ if(file_2 != "null")
 
 ##########
 ##load image average data
-data_all=read.csv(file_3, sep = ";")
+data_all=read.csv(file_3, sep = ";", comment.char="%")
 nr_all=nrow(data_all)
 param_line=as.character(data_all[nr_all,1])
 param_line=sub("Min intensity ch1", "\nMin intensity ch1", param_line)
@@ -113,16 +113,16 @@ param_line=sub("Cell mask ch2", "\nCell mask ch2", param_line)
 param_line=sub("Parameters", "Plugin parameters", param_line)
 
 script_param=sprintf("R script analysis parameters: MinIntCh1 %.3f MinIntCh2 %.3f MaxSize %d MinSize %d MinObjects %d", MinIntCh1,MinIntCh2,MaxSize,MinSize,MinObjects)
-data_all=data_all[seq(1,nr_all-1,1),]
+data_all=data_all[seq(1,nr_all,1),]
 
 
-if(sum(NCR) > (nr_all-1)){ 
+if(sum(NCR) > (nr_all)){ 
 	stop(paste0("Not enough images in the data, correct NCR line 13" ), call.= FALSE)
 	 }	 
 	 
 ##test 3D or 2D data :	 
 test3D = FALSE	 
-if(mean(dtl[[1]]$Coord.Z != 0)){
+if(mean(dtl[[1]]$Coord_Z != 0)){
 	test3D = TRUE
 }
 
@@ -144,10 +144,7 @@ o_channel_number=0
 		 	 o_channel_number=2
 				}
 
-OverlapName=paste0("Overlap.with.ch",as.character(o_channel_number))
-OverlapNamefor1=paste0("Overlap.with.ch",2)
-OverlapNamefor2=paste0("Overlap.with.ch",1)
-
+OverlapName=paste0("Overlap_with_ch")
 
 ##########list[x,y] construct
 list <- structure(NA,class="result")
@@ -174,9 +171,9 @@ coloc = function(d1, d2, Int, Overlap, ColocInt, MaxSize, MinSize, NR, OverlapNa
       for(rab in 1:NR){
       rd=matrix(nrow=NC2[rab],ncol=1) #or NCR[rab] to use all
           for( i in 1:NC2[rab] ){
-    	   n1=nrow(d1[[rab]][d1[[rab]]$Image.ID==(sum+(i-1)) & d1[[rab]]$Intensity>Int & d1[[rab]]$Size>MinSize & d1[[rab]]$Size<MaxSize,])
-    	   n2=nrow(d2[[rab]][d2[[rab]]$Image.ID==(sum+(i-1)) & d2[[rab]]$Intensity>ColocInt & d2[[rab]]$Size>MinSize & d2[[rab]]$Size<MaxSize,])
-    	   c1=nrow(d1[[rab]][d1[[rab]]$Image.ID==(sum+(i-1)) & d1[[rab]]$Intensity>Int & d1[[rab]]$Size>MinSize & d1[[rab]]$Size<MaxSize & d1[[rab]][,OverlapName]>Overlap & d1[[rab]]$Coloc.object.intensity>ColocInt & d1[[rab]]$Coloc.object.size<MaxSize & d1[[rab]]$Coloc.object.size>MinSize,])
+    	   n1=nrow(d1[[rab]][d1[[rab]]$Image_ID==(sum+(i-1)) & d1[[rab]]$Intensity>Int & d1[[rab]]$Size>MinSize & d1[[rab]]$Size<MaxSize,])
+    	   n2=nrow(d2[[rab]][d2[[rab]]$Image_ID==(sum+(i-1)) & d2[[rab]]$Intensity>ColocInt & d2[[rab]]$Size>MinSize & d2[[rab]]$Size<MaxSize,])
+    	   c1=nrow(d1[[rab]][d1[[rab]]$Image_ID==(sum+(i-1)) & d1[[rab]]$Intensity>Int & d1[[rab]]$Size>MinSize & d1[[rab]]$Size<MaxSize & d1[[rab]][,OverlapName]>Overlap & d1[[rab]]$Coloc_object_intensity>ColocInt & d1[[rab]]$Coloc_object_size<MaxSize & d1[[rab]]$Coloc_object_size>MinSize,])
 	   if (n1<MinV || n2<MinV) {
 		        rd[i,1] = NA
 		  	}	 
@@ -211,8 +208,8 @@ colocN = function(dtl,Int, Overlap, ColocInt, MaxSize, MinSize, NR, NCA, Overlap
       for(rab in 1:NR){
       rd=matrix(nrow=NCA,ncol=1)
           for( i in 1:NCA ){
-    	   n1=nrow(dtl[[rab]][dtl[[rab]]$Image.ID==(sum+(i-1)) & dtl[[rab]]$Intensity>Int & dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize,])
-    	   c1=nrow(dtl[[rab]][dtl[[rab]]$Image.ID==(sum+(i-1)) & dtl[[rab]]$Intensity>Int & dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize & dtl[[rab]][,OverlapName]>Overlap & dtl[[rab]]$Coloc.object.intensity>ColocInt & dtl[[rab]]$Coloc.object.size<MaxSize,])
+    	   n1=nrow(dtl[[rab]][dtl[[rab]]$Image_ID==(sum+(i-1)) & dtl[[rab]]$Intensity>Int & dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize,])
+    	   c1=nrow(dtl[[rab]][dtl[[rab]]$Image_ID==(sum+(i-1)) & dtl[[rab]]$Intensity>Int & dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize & dtl[[rab]][,OverlapName]>Overlap & dtl[[rab]]$Coloc_object_intensity>ColocInt & dtl[[rab]]$Coloc_object_size<MaxSize,])
 	   if (n1==0) {
 		        rd[i,1]=0
 		  	}	 
@@ -248,9 +245,9 @@ colocib = function(d1, d2, MaxSize, MinSize, NR, wr,OverlapName, order ){
       rd=matrix(nrow=NC2[rab],ncol=1)
 	j=1
           for( i in 1:NC2[rab] ){
-		dtemp=d1[[rab]][d1[[rab]]$Image.ID==(sum+(i-1)) & d1[[rab]]$Size>MinSize & d1[[rab]]$Size<MaxSize,] 
+		dtemp=d1[[rab]][d1[[rab]]$Image_ID==(sum+(i-1)) & d1[[rab]]$Size>MinSize & d1[[rab]]$Size<MaxSize,] 
     	   	n1=nrow(dtemp)
-    	   	nr=nrow(d2[[rab]][d2[[rab]]$Image.ID==(sum+(i-1)) & d2[[rab]]$Size>MinSize & d2[[rab]]$Size<MaxSize,]) 
+    	   	nr=nrow(d2[[rab]][d2[[rab]]$Image_ID==(sum+(i-1)) & d2[[rab]]$Size>MinSize & d2[[rab]]$Size<MaxSize,]) 
 		
 	coInt=0
 	tInt=0
@@ -301,16 +298,16 @@ colocib_effect = function(d1, d2,  MaxSize, MinSize, NR,OverlapName, order, MinI
       rd=matrix(nrow=NC2[rab],ncol=1)
 	j=1
           for( i in 1:NC2[rab] ){
-		dtemp=d1[[rab]][d1[[rab]]$Image.ID==(sum+(i-1)) & d1[[rab]]$Size>MinSize & d1[[rab]]$Size<MaxSize & d1[[rab]]$Intensity>MinInt,] 
+		dtemp=d1[[rab]][d1[[rab]]$Image_ID==(sum+(i-1)) & d1[[rab]]$Size>MinSize & d1[[rab]]$Size<MaxSize & d1[[rab]]$Intensity>MinInt,] 
     	   	n1=nrow(dtemp)
-    	   	nr=nrow(d2[[rab]][d2[[rab]]$Image.ID==(sum+(i-1)) & d2[[rab]]$Size>MinSize & d2[[rab]]$Size<MaxSize & d2[[rab]]$Intensity > MinColocInt,]) 
+    	   	nr=nrow(d2[[rab]][d2[[rab]]$Image_ID==(sum+(i-1)) & d2[[rab]]$Size>MinSize & d2[[rab]]$Size<MaxSize & d2[[rab]]$Intensity > MinColocInt,]) 
 		
 	coInt=0
 	tInt=0
 	if(n1!=0){
 		ov=0
 		for(ves in 1:n1){
-			if(dtemp[ves,'Coloc.object.size'] > MaxSize || dtemp[ves,'Coloc.object.size'] < MinSize || dtemp[ves,'Coloc.object.intensity'] < MinColocInt ){
+			if(dtemp[ves,'Coloc_object_size'] > MaxSize || dtemp[ves,'Coloc_object_size'] < MinSize || dtemp[ves,'Coloc_object_intensity'] < MinColocInt ){
 				ov=0
 				}else{ ov = dtemp[ves,OverlapName]} 
 				
@@ -355,16 +352,16 @@ colocib_size_only = function(d1, d2,  MaxSize, MinSize, NR,OverlapName, order, M
       rd=matrix(nrow=NC2[rab],ncol=1)
 	j=1
           for( i in 1:NC2[rab] ){
-		dtemp=d1[[rab]][d1[[rab]]$Image.ID==(sum+(i-1)) & d1[[rab]]$Size>MinSize & d1[[rab]]$Size<MaxSize & d1[[rab]]$Intensity>MinInt,] 
+		dtemp=d1[[rab]][d1[[rab]]$Image_ID==(sum+(i-1)) & d1[[rab]]$Size>MinSize & d1[[rab]]$Size<MaxSize & d1[[rab]]$Intensity>MinInt,] 
     	   	n1=nrow(dtemp)
-    	   	nr=nrow(d2[[rab]][d2[[rab]]$Image.ID==(sum+(i-1)) & d2[[rab]]$Size>MinSize & d2[[rab]]$Size<MaxSize & d2[[rab]]$Intensity > MinColocInt,]) 
+    	   	nr=nrow(d2[[rab]][d2[[rab]]$Image_ID==(sum+(i-1)) & d2[[rab]]$Size>MinSize & d2[[rab]]$Size<MaxSize & d2[[rab]]$Intensity > MinColocInt,]) 
 		
 	coInt=0
 	tInt=0
 	if(n1!=0){
 		ov=0
 		for(ves in 1:n1){
-				if(dtemp[ves,'Coloc.object.size'] > MaxSize || dtemp[ves,'Coloc.object.size'] < MinSize || dtemp[ves,'Coloc.object.intensity'] < MinColocInt ){
+				if(dtemp[ves,'Coloc_object_size'] > MaxSize || dtemp[ves,'Coloc_object_size'] < MinSize || dtemp[ves,'Coloc_object_intensity'] < MinColocInt ){
 				ov=0
 				}else{ ov = dtemp[ves,OverlapName]} #objects colocalizing with non valid objects are considered non colocalizing
 			
@@ -410,7 +407,7 @@ colocibN = function(dtl, MaxSize, MinSize, NR, NCA, OverlapName){
       for(rab in 1:NR){
       rd=matrix(nrow=NCA,ncol=1)
           for( i in 1:NCA ){
-		dtemp=dtl[[rab]][dtl[[rab]]$Image.ID==(sum+(i-1)) & dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize,] 
+		dtemp=dtl[[rab]][dtl[[rab]]$Image_ID==(sum+(i-1)) & dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize,] 
     	   	n1=nrow(dtemp)
 	coInt=0
 	tInt=0
@@ -515,7 +512,7 @@ mean_ves_number = function(dtl, MaxSize, MinSize, NR){
       for(rab in 1:NR){
       rd=matrix(nrow=NC2[rab],ncol=1)
           for( i in 1:NC2[rab] ){
-    	   n=nrow(dtl[[rab]][dtl[[rab]]$Image.ID==(sum+(i-1))  & dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
+    	   n=nrow(dtl[[rab]][dtl[[rab]]$Image_ID==(sum+(i-1))  & dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
     	
 		 	 rd[i,1]=n
 	
@@ -545,12 +542,12 @@ mean_ves_size = function(dtl, MaxSize, MinSize, NR){
       for(rab in 1:NR){
       rd=matrix(nrow=NC2[rab],ncol=1)
           for( i in 1:NC2[rab] ){
-    	  colves=(dtl[[rab]][dtl[[rab]]$Image.ID==(sum+(i-1))& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
+    	  colves=(dtl[[rab]][dtl[[rab]]$Image_ID==(sum+(i-1))& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
     	
 		 	 rd[i,1]=mean(colves$Size,na.rm =TRUE)
 	
    			   }
-   			   #colves=(dtl[[rab]][dtl[[rab]]$Image.ID>(sum-1) &dtl[[rab]]$Image.ID<sum+NCR[rab]& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
+   			   #colves=(dtl[[rab]][dtl[[rab]]$Image_ID>(sum-1) &dtl[[rab]]$Image_ID<sum+NCR[rab]& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
 
    			   
 			    sum=sum+NCR[rab]
@@ -583,7 +580,7 @@ mean_ves_length = function(dtl, MaxSize, MinSize, NR){
       for(rab in 1:NR){
       rd=matrix(nrow=NC2[rab],ncol=1)
           for( i in 1:NC2[rab] ){
-    	   colves=(dtl[[rab]][dtl[[rab]]$Image.ID==(sum+(i-1))& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
+    	   colves=(dtl[[rab]][dtl[[rab]]$Image_ID==(sum+(i-1))& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
     	
 		 	 rd[i,1]=mean(colves$Length,na.rm =TRUE)
 	
@@ -615,13 +612,13 @@ mean_total_size = function(dtl, MaxSize, MinSize, NR){
       for(rab in 1:NR){
       rd=matrix(nrow=NC2[rab],ncol=1)
           for( i in 1:NC2[rab] ){
-    	   colves=(dtl[[rab]][dtl[[rab]]$Image.ID==(sum+(i-1))& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
+    	   colves=(dtl[[rab]][dtl[[rab]]$Image_ID==(sum+(i-1))& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
     	
 		 	 rd[i,1]=sum(colves$Size)
 	
    			   }
-   			   #colves=(dtl[[rab]][dtl[[rab]]$Image.ID>(sum-1) &dtl[[rab]]$Image.ID<sum+NCR[rab]& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
-				#n= nrow((dtl[[rab]][dtl[[rab]]$Image.ID>(sum-1) &dtl[[rab]]$Image.ID<sum+NCR[rab]& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,]))
+   			   #colves=(dtl[[rab]][dtl[[rab]]$Image_ID>(sum-1) &dtl[[rab]]$Image_ID<sum+NCR[rab]& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
+				#n= nrow((dtl[[rab]][dtl[[rab]]$Image_ID>(sum-1) &dtl[[rab]]$Image_ID<sum+NCR[rab]& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,]))
 			    sum=sum+NCR[rab]
 			    m[rab]=mean(rd[,1],na.rm =TRUE)
 			    s[rab]=sd(rd[,1],na.rm =TRUE)/(sqrt(length(rd[,1])))
@@ -648,8 +645,8 @@ mean_total_size_ratio = function(dtl,dtl2, MaxSize, MinSize, NR){
       for(rab in 1:NR){
       rd=matrix(nrow=NC2[rab],ncol=1)
           for( i in 1:NC2[rab] ){
-    	   colves=(dtl[[rab]][dtl[[rab]]$Image.ID==(sum+(i-1))& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
-		 	 colves2=(dtl2[[rab]][dtl2[[rab]]$Image.ID==(sum+(i-1))& dtl2[[rab]]$Size>MinSize & dtl2[[rab]]$Size<MaxSize ,])
+    	   colves=(dtl[[rab]][dtl[[rab]]$Image_ID==(sum+(i-1))& dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize ,])
+		 	 colves2=(dtl2[[rab]][dtl2[[rab]]$Image_ID==(sum+(i-1))& dtl2[[rab]]$Size>MinSize & dtl2[[rab]]$Size<MaxSize ,])
 		 	 rd[i,1]=sum(colves$Size) / sum(colves2$Size)	
    			   }
 			    sum=sum+NCR[rab]
@@ -678,7 +675,7 @@ mean_ves_sphericity = function(dtl, NR){
       for(rab in 1:NR){
       rd=matrix(nrow=NC2[rab],ncol=1)
           for( i in 1:NC2[rab] ){
-    	   colves=(dtl[[rab]][dtl[[rab]]$Image.ID==(sum+(i-1)),])
+    	   colves=(dtl[[rab]][dtl[[rab]]$Image_ID==(sum+(i-1)),])
     	
     	#remove zeros in Perimeter column (due to probleme in code, corrected now)
     	k=0
@@ -721,7 +718,7 @@ mean_ves_int = function(dtl, MaxSize, MinSize, NR){
       for(rab in 1:NR){
       rd=matrix(nrow=NC2[rab],ncol=1)
           for( i in 1:NC2[rab] ){
-    	   colves=(dtl[[rab]][dtl[[rab]]$Image.ID==(sum+(i-1))  & dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize,])
+    	   colves=(dtl[[rab]][dtl[[rab]]$Image_ID==(sum+(i-1))  & dtl[[rab]]$Size>MinSize & dtl[[rab]]$Size<MaxSize,])
     	
 		 	 rd[i,1]=mean(colves$Intensity,na.rm =TRUE)
 
@@ -794,7 +791,8 @@ barx <- barplot(100*means, beside=TRUE, ylim=c(0,ymax), names.arg=namesRAB[swap]
 ##################     Statistical analysis       ##################################
 pvstr = function(pval){
 	
-	if(pval < 0.0001){pstring=sprintf("< 1e-4, ****" )}
+	if(is.nan(pval)) {pstring=sprintf("Nan")}
+	else if(pval < 0.0001){pstring=sprintf("< 1e-4, ****" )}
 	else if(pval < 0.001){pstring=sprintf("%.2e, ***",pval )}
 	else if(pval < 0.01){pstring=sprintf("%.2e, **",pval )}
 	else if(pval < 0.05){pstring=sprintf("%.2e, *",pval )}
@@ -904,7 +902,7 @@ par(mfrow=c(4,2), mar= c(4, 4, 1, 1) + 0.1, oma =c(5,0,2.5,0.2) )
 #channel A
 #compute coloc and plot coloc
 order= paste0("_",objA,"_in_", objB)
-list[resc,res_imgs]=coloc(dtl, dtlr,MinIntCh1,Overlap,MinIntCh2,MaxSize, MinSize,NR,OverlapNamefor1)
+list[resc,res_imgs]=coloc(dtl, dtlr,MinIntCh1,Overlap,MinIntCh2,MaxSize, MinSize,NR,OverlapName)
 
 write.table(resc,file=paste0(dircsv,"Colocalization_number",order, ".csv"), quote= FALSE, row.names=namesRAB,col.names=c(",mean", "sem"), sep=",")
 write.table(res_imgs,file=paste0(dircsv,"Colocalization_images_data_number",order,".csv"), quote= FALSE, row.names=TRUE,col.names=namesRABc, sep=",")
@@ -923,7 +921,7 @@ plotres(resc[swap,],paste0("Object number colocalization",", P value ", ps), Max
 #channel B
 #compute coloc and plot coloc
 order= paste0("_",objB,"_in_", objA)
-list[resc,res_imgs]=coloc(dtlr, dtl,MinIntCh2,Overlap,MinIntCh1,MaxSize, MinSize,NR, OverlapNamefor2)
+list[resc,res_imgs]=coloc(dtlr, dtl,MinIntCh2,Overlap,MinIntCh1,MaxSize, MinSize,NR, OverlapName)
 
 write.table(resc,file=paste0(dircsv,"Colocalization_number",order, ".csv"), quote= FALSE, row.names=namesRAB,col.names=c(",mean", "sem"), sep=",")
 write.table(res_imgs,file=paste0(dircsv,"Colocalization_images_data_number",order,".csv"), quote= FALSE, row.names=TRUE,col.names=namesRABc, sep=",")
@@ -942,7 +940,7 @@ plotres(resc[swap,],paste0("Object number colocalization",", P value ", ps), Max
 ####################################################################################
 ####################################################################################
 order= paste0("_",objA,"_in_", objB)
-list[resc,res_imgs]=colocib_size_only(dtl, dtlr, MaxSize, MinSize,NR, OverlapNamefor1, order,MinIntCh1,MinIntCh2)
+list[resc,res_imgs]=colocib_size_only(dtl, dtlr, MaxSize, MinSize,NR, OverlapName, order,MinIntCh1,MinIntCh2)
 
 write.table(resc,file=paste0(dircsv,"Colocalization_size",order, ".csv"), quote= FALSE, row.names=namesRAB,col.names=c(",mean", "sem"), sep=",")
 write.table(res_imgs,file=paste0(dircsv,"Colocalization_images_data_size",order,".csv"), quote= FALSE, row.names=TRUE,col.names=namesRABc, sep=",")
@@ -958,7 +956,7 @@ plotres(resc[swap,],paste0("Size colocalization",", P value ", ps), MaxColocDisp
 #channel B
 #compute coloc and plot coloc
 order= paste0("_",objB,"_in_", objA)
-list[resc,res_imgs]=colocib_size_only(dtlr,dtl, MaxSize, MinSize,NR, OverlapNamefor2, order,MinIntCh2,MinIntCh1)
+list[resc,res_imgs]=colocib_size_only(dtlr,dtl, MaxSize, MinSize,NR, OverlapName, order,MinIntCh2,MinIntCh1)
 
 write.table(resc,file=paste0(dircsv,"Colocalization_size",order, ".csv"), quote= FALSE, row.names=namesRAB,col.names=c(",mean", "sem"), sep=",")
 write.table(res_imgs,file=paste0(dircsv,"Colocalization_images_data_size",order,".csv"), quote= FALSE, row.names=TRUE,col.names=namesRABc, sep=",")
@@ -981,7 +979,7 @@ plotres(resc[swap,],paste0("Size colocalization",", P value ", ps), MaxColocDisp
 #channel A
 #compute coloc and plot coloc
 order= paste0("_",objA,"_in_", objB)
-list[resc,res_imgs]=colocib_effect(dtl, dtlr, MaxSize, MinSize,NR, OverlapNamefor1, order,MinIntCh1,MinIntCh2)
+list[resc,res_imgs]=colocib_effect(dtl, dtlr, MaxSize, MinSize,NR, OverlapName, order,MinIntCh1,MinIntCh2)
 
 write.table(resc,file=paste0(dircsv,"Colocalization_signal",order, ".csv"), quote= FALSE, row.names=namesRAB,col.names=c(",mean", "sem"), sep=",")
 write.table(res_imgs,file=paste0(dircsv,"Colocalization_images_data_signal",order,".csv"), quote= FALSE, row.names=TRUE,col.names=namesRABc, sep=",")
@@ -998,7 +996,7 @@ plotres(resc[swap,],paste0("Signal colocalization (size and intensity)",", P val
 #channel B
 #compute coloc and plot coloc
 order= paste0("_",objB,"_in_", objA)
-list[resc,res_imgs]=colocib_effect(dtlr,dtl, MaxSize, MinSize,NR, OverlapNamefor2, order,MinIntCh2,MinIntCh1)
+list[resc,res_imgs]=colocib_effect(dtlr,dtl, MaxSize, MinSize,NR, OverlapName, order,MinIntCh2,MinIntCh1)
 
 write.table(resc,file=paste0(dircsv,"Colocalization_signal",order, ".csv"), quote= FALSE, row.names=namesRAB,col.names=c(",mean", "sem"), sep=",")
 write.table(res_imgs,file=paste0(dircsv,"Colocalization_images_data_signal",order,".csv"), quote= FALSE, row.names=TRUE,col.names=namesRABc, sep=",")
@@ -1226,7 +1224,7 @@ order= paste0("_",objA,"_in_", objB)
 resmeans=NULL
 ressems=NULL
   for(tMinSize in minrange){
-  	    list[restemp,]=colocib_effect(dtl, dtlr, MaxSize, tMinSize,NR, OverlapNamefor1, order, MinIntCh1, MinIntCh2)
+  	    list[restemp,]=colocib_effect(dtl, dtlr, MaxSize, tMinSize,NR, OverlapName, order, MinIntCh1, MinIntCh2)
 	resmeans=c(resmeans,restemp$mean)
 	ressems=c(ressems,restemp$sem)
    			   }
@@ -1245,7 +1243,7 @@ order= paste0("_",objB,"_in_", objA)
 resmeans=NULL
 ressems=NULL
   for(tMinSize in minrange){
-  	    list[restemp,]=colocib_effect(dtlr, dtl, MaxSize, tMinSize,NR, OverlapNamefor2, order, MinIntCh1, MinIntCh2)
+  	    list[restemp,]=colocib_effect(dtlr, dtl, MaxSize, tMinSize,NR, OverlapName, order, MinIntCh1, MinIntCh2)
 	resmeans=c(resmeans,restemp$mean)
 	ressems=c(ressems,restemp$sem)
    			   }
@@ -1266,7 +1264,7 @@ order= paste0("_",objA,"_in_", objB)
 resmeans=NULL
 ressems=NULL
   for(MinInt in minintrange){
-  	    list[restemp,]=colocib_effect(dtl, dtlr, MaxSize, MinSize, NR, OverlapNamefor1, order, MinInt, MinIntCh2)
+  	    list[restemp,]=colocib_effect(dtl, dtlr, MaxSize, MinSize, NR, OverlapName, order, MinInt, MinIntCh2)
 	resmeans=c(resmeans,restemp$mean)
 	ressems=c(ressems,restemp$sem)
    			   }
@@ -1282,7 +1280,7 @@ plotresf(means[,swap],sems[,swap],paste0("Min Intensity :",paste(minintrange, co
 resmeans=NULL
 ressems=NULL
   for(MinInt in minintrange){
-  	    list[restemp,]=colocib_effect(dtlr, dtl,  MaxSize, MinSize, NR, OverlapNamefor2, order, MinInt, MinIntCh1)
+  	    list[restemp,]=colocib_effect(dtlr, dtl,  MaxSize, MinSize, NR, OverlapName, order, MinInt, MinIntCh1)
 	resmeans=c(resmeans,restemp$mean)
 	ressems=c(ressems,restemp$sem)
    			   }
@@ -1509,7 +1507,7 @@ dev.off()
 #resmeans=NULL
 #ressems=NULL
 #  for(tMaxSize in maxrange){
-#  	    restemp=colocib(dtl, tMaxSize, MinSize,NR,0, OverlapNamefor1, order)
+#  	    restemp=colocib(dtl, tMaxSize, MinSize,NR,0, OverlapName, order)
 #	resmeans=c(resmeans,restemp$mean)
 #	ressems=c(ressems,restemp$sem)
 #   			   }
@@ -1530,7 +1528,7 @@ dev.off()
 #resmeans=NULL
 #ressems=NULL
 #  for(tMaxSize in maxrange){
-#  	    restemp=colocib(dtlr, tMaxSize, MinSize,NR,0, OverlapNamefor2, order)
+#  	    restemp=colocib(dtlr, tMaxSize, MinSize,NR,0, OverlapName, order)
 #	resmeans=c(resmeans,restemp$mean)
 #	ressems=c(ressems,restemp$sem)
 #   			   }

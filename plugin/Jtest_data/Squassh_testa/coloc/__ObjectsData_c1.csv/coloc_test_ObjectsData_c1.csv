@@ -1,0 +1,3 @@
+Image_ID;Object_ID;Size;Perimeter;Length;Intensity;Overlap_with_ch;Coloc_object_size;Coloc_object_intensity;Single_Coloc;Coloc_image_intensity;Coord_X;Coord_Y;Coord_Z
+%background:/tmp//test//coloc_test.tif
+0;0;2474.514892578125;924.0;0.0;2669.4014105080773;0.0;92.4010009765625;716.0330200195312;false;0.08938680816767097;77.02518463134766;71.66075134277344;0.0

@@ -1,13 +1,13 @@
 package mosaic.region_competition.initializers;
 
-import mosaic.region_competition.LabelImage;
+import mosaic.region_competition.LabelImageRC;
 
 public class ZeroInitializer extends Initializer
 {
 	
 	int value = 0;
 
-	public ZeroInitializer(LabelImage labelImage)
+	public ZeroInitializer(LabelImageRC labelImage)
 	{
 		super(labelImage);
 	}

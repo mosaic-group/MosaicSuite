@@ -1,31 +1,594 @@
 package mosaic.core.utils;
 
+import static org.junit.Assert.fail;
 
+import java.awt.Choice;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
+import net.imglib2.RandomAccessibleInterval;
+import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.ops.img.BinaryOperationAssignment;
+import net.imglib2.ops.operation.BinaryOperation;
+import net.imglib2.ops.operation.UnaryOperation;
+import net.imglib2.ops.operation.bool.binary.BinaryXor;
+import net.imglib2.ops.operation.randomaccessibleinterval.unary.morph.Erode;
+import net.imglib2.ops.operation.*;
+import net.imglib2.ops.types.ConnectedType;
+import net.imglib2.outofbounds.OutOfBoundsConstantValueFactory;
+import net.imglib2.type.NativeType;
+import net.imglib2.type.Type;
+import net.imglib2.type.logic.BitType;
+import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.RealType;
+import net.imglib2.view.IntervalView;
+import net.imglib2.view.IterableRandomAccessibleInterval;
+import net.imglib2.view.Views;
 import mosaic.bregman.Analysis;
-
+import mosaic.core.GUI.ChooseGUI;
+import mosaic.core.GUI.ProgressBarWin;
+import mosaic.core.cluster.ClusterSession;
+import mosaic.core.detection.MyFrame.DrawType;
+import mosaic.core.ipc.ICSVGeneral;
+import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.utils.MosaicUtils.ToARGB;
+import mosaic.plugins.BregmanGLM_Batch;
+import mosaic.plugins.ParticleTracker3DModular_.Trajectory;
+import mosaic.plugins.PlugInFilterExt;
+import mosaic.region_competition.output.RCOutput;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.ProgressBar;
+import ij.io.Opener;
+import ij.measure.Calibration;
+import ij.plugin.RGBStackMerge;
+import ij.plugin.Resizer;
+import ij.plugin.filter.PlugInFilter;
+import ij.process.BinaryProcessor;
+import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
+import ij.process.StackStatistics;
+import io.scif.img.ImgIOException;
+import io.scif.img.ImgOpener;
 
-public class MosaicUtils {
+class FloatToARGB implements ToARGB
+{
+	double min = 0.0;
+	double max = 255;
+	
+	@Override
+	public ARGBType toARGB(Object data)
+	{
+		ARGBType t = new ARGBType();
+		
+		float td = 0.0f;
+		td = (float) (255*(((RealType<?>)data).getRealFloat()-min)/max);
+		t.set(ARGBType.rgba(td, td, td, 255.0f));
+		
+		return t;
+	}
+
+	@Override
+	public void setMinMax(double min, double max) 
+	{
+		this.min = min;
+		this.max = max;
+	}
+}
+
+/**
+ * 
+ * Class to convert a float into an ARGB type
+ * 
+ * Red Green Blue Channels are set to f/(max - min)*255
+ * 
+ * @author Pietro Incardona
+ *
+ */
+
+class FloatToARGBNorm implements ToARGB
+{
+	double min = 0.0;
+	double max = 255;
+	
+	/**
+	 * 
+	 * From data convert into ARGBType
+	 * 
+	 * @param Object pixel value (suppose to be an imgLib2 class extending RealType )
+	 * 
+	 */
+	
+	@Override
+	public ARGBType toARGB(Object data)
+	{
+		ARGBType t = new ARGBType();
+		
+		float td = 0.0f;
+		td = (float) (255*(((RealType<?>)data).getRealFloat()-min)/max);
+		t.set(ARGBType.rgba(td, td, td, 255.0f));
+		
+		return t;
+	}
+	
+	/**
+	 * 
+	 * Set the minimum and the maximum, used for renormalization
+	 * 
+	 * @param min
+	 * @param max
+	 * 
+	 */
+	
+	@Override
+	public void setMinMax(double min, double max) 
+	{
+		this.min = min;
+		this.max = max;
+	}
+}
+
+class IntToARGB implements ToARGB
+{
+	double min = 0.0;
+	double max = 255;
+	
+	@Override
+	public ARGBType toARGB(Object data)
+	{
+		ARGBType t = new ARGBType();
+		
+		int td = 0;
+		td = (int) (255*(((IntegerType<?>)data).getInteger()-min)/max);
+		t.set(ARGBType.rgba(td, td, td, 255));
+		
+		return t;
+	}
+	
+	@Override
+	public void setMinMax(double min, double max) 
+	{
+		this.min = min;
+		this.max = max;
+	}
+}
+
+class ARGBToARGB implements ToARGB
+{
+	double min = 0.0;
+	double max = 255;
+	
+	@Override
+	public ARGBType toARGB(Object data)
+	{				
+		return (ARGBType) data;
+	}
+	
+	@Override
+	public void setMinMax(double min, double max) 
+	{
+		this.min = min;
+		this.max = max;
+	}
+}
+
+public class MosaicUtils 
+{
+	public class SegmentationInfo
+	{
+		public File RegionList;
+		public File RegionMask;
+	}
+	
+	public class ImageStat
+	{
+		public double Min;
+		public double Max;
+	}
+	
+	//////////////////////////////////// Procedures for draw //////////////////
+	
+	/////// Conversion to ARGB from different Type ////////////////////////////
+	
+	public interface ToARGB
+	{
+		void setMinMax(double min, double max);
+		ARGBType toARGB(Object data);
+	}
+	
+	/**
+	 * 
+	 * From an Object return a generic converter to ARGB type
+	 * Useful when you have a Generic T, you can use in the following way
+	 * 
+	 * 
+	 * T data;
+	 * ToARGB conv = getConvertion(data)
+	 * 
+	 * 
+	 * conv.toARGB(data);
+	 * 
+	 * @param data
+	 * @return
+	 */
+	
+	static public ToARGB getConversion(Object data)
+	{
+		if (data instanceof RealType)
+		{
+			return new FloatToARGB();
+		}
+		else if (data instanceof IntegerType)
+		{
+			return new IntToARGB();
+		}
+		else if (data instanceof ARGBType)
+		{
+			return new ARGBToARGB();
+		}
+		return null;
+	}
+	
+	/**
+	 * 
+	 * From an Object return a generic converter to ARGB type
+	 * and at the same time set a re-normalization
+	 * Useful when you have a Generic T, you can use in the following way
+	 * 
+	 * 
+	 * T data;
+	 * ToARGB conv = getConvertion(data,cursor<T>)
+	 * 
+	 * 
+	 * conv.toARGB(data);
+	 * 
+	 * @param data
+	 * @return
+	 */
+	
+	static public <T extends RealType<T>> ToARGB getConversion(Object data, Cursor<T> crs)
+	{
+		ToARGB conv = null;
+		if (data instanceof RealType)
+		{
+			conv = new FloatToARGB();
+		}
+		else if (data instanceof IntegerType)
+		{
+			conv = new IntToARGB();
+		}
+		else if (data instanceof ARGBType)
+		{
+			conv = new ARGBToARGB();
+		}
+		
+        // Get the min and max
+        
+        T min = null;
+        T max = null;
+        crs.next();
+		try {
+			min = (T) crs.get().getClass().newInstance();
+	        max = (T) crs.get().getClass().newInstance();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        MosaicUtils.getMinMax(crs, min,max);
+    	
+        // get conversion;
+        
+        conv.setMinMax(min.getRealDouble(), max.getRealDouble());
+		
+		return conv;
+	}
+	
+	
+	/**
+	 * 
+	 * Filter out from Possible candidate file the one chosen by the user
+	 * If only one file present nothing appear
+	 * 
+	 * @param PossibleFile Vector of possible File
+	 * @return Chosen file
+	 */
+	
+	static private File filter_possible(Vector<File> PossibleFile)
+	{
+		if (PossibleFile == null)
+			return null;
+		
+		if (PossibleFile.size() > 1)
+		{
+			// Ask user to choose
+			
+			ChooseGUI cg = new ChooseGUI();
+			
+			return cg.choose("Choose segmentation","Found multiple segmentations", PossibleFile);
+		}
+		else
+		{
+			if (PossibleFile.size() == 1)
+				return PossibleFile.get(0);
+			else
+				return null;
+		}
+	}
+	
+	
+	/**
+	 * 
+	 * Check if there are segmentation information for the image
+	 * 
+	 * @param Image
+	 * 
+	 */
+
+	static public boolean checkSegmentationInfo(ImagePlus aImp, String plugin)
+	{
+		String Folder = MosaicUtils.ValidFolderFromImage(aImp);
+		Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
+		
+		MosaicUtils MS = new MosaicUtils();
+		SegmentationInfo sI = MS.new SegmentationInfo();
+		
+		// Get infos from possible segmentation
+		
+		for (int i = 0 ; i < sg.length ; i++)
+		{
+			String sR[] = sg[i].getRegionList(aImp);
+			for (int j = 0 ; j < sR.length ; j++)
+			{
+				File fR = new File(Folder + sR[j]);
+				
+				if (fR.exists())
+				{
+					return true;
+				}
+			}			
+			
+			// Check if there are Jobs directory
+			// if there are open a job selector
+			// and search inside the selected directory
+			//
+			
+			String [] jb = ClusterSession.getJobDirectories(0, Folder);
+			
+			// check if the jobID and filename match
+			
+			for (int k = 0 ; k < jb.length ; k++)
+			{
+				// Filename
+				
+				String[] fl = MosaicUtils.readAndSplit(jb[k] + File.separator + "JobID");
+				
+				
+				if (fl[2].contains(aImp.getTitle()) && sg[i].getName().equals(fl[3]))
+				{
+					if (plugin == null)
+					{
+						return true;
+					}
+					else
+					{
+						if (sg[i].getName().equals(plugin))
+						{
+							return true;
+						}
+					}
+				}
+			}
+		}
+
+		return false;
+	} 
+	
+	/**
+	 * 
+	 * Get if there are segmentation information for the image
+	 * 
+	 * @param Image
+	 * 
+	 */
+
+	static public SegmentationInfo getSegmentationInfo(ImagePlus aImp)
+	{
+		String Folder = MosaicUtils.ValidFolderFromImage(aImp);
+		Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
+		
+		Vector<File> PossibleFile = new Vector();
+		
+		MosaicUtils MS = new MosaicUtils();
+		SegmentationInfo sI = MS.new SegmentationInfo();
+		
+		// Get infos from possible segmentation
+		
+		for (int i = 0 ; i < sg.length ; i++)
+		{
+			String sR[] = sg[i].getRegionList(aImp);
+			for (int j = 0 ; j < sR.length ; j++)
+			{
+				File fR = new File(Folder + sR[j]);
+				
+				if (fR.exists())
+				{
+					PossibleFile.add(fR);
+				}
+			}			
+			
+			// Check if there are Jobs directory
+			// if there are open a job selector
+			// and search inside the selected directory
+			//
+			
+			String [] jb = ClusterSession.getJobDirectories(0, Folder);
+			
+			for (int k = 0 ; k < jb.length ; k++)
+			{
+				// check if the jobID and filename match
+					
+				String[] fl = MosaicUtils.readAndSplit(jb[k] + File.separator + "JobID");
+					
+					
+				if (fl[2].contains(aImp.getTitle()) && sg[i].getName().equals(fl[3]))
+				{
+					// Get the region list
+						
+					sR = sg[i].getRegionList(aImp);
+					for (int j = 0 ; j < sR.length ; j++)
+					{
+						File fR = new File(jb[k] + File.separator + sR[j]);
+						if (fR.exists() == true)
+							PossibleFile.add(fR);
+					}
+				}
+			}
+			
+			sI.RegionList = filter_possible(PossibleFile);
+			
+			// if not segmentation choosen
+			
+			if (sI.RegionList == null)
+				return null;
+			
+			PossibleFile.clear();
+			
+			String dir = sI.RegionList.getParent();
+			
+			String sM[] = sg[i].getMask(aImp);
+			for (int j = 0 ; j < sM.length ; j++)
+			{
+				File fM = new File(dir + File.separator + sM[j]);
+			
+				if (fM.exists())
+				{
+					PossibleFile.add(fM);
+				}
+			}
+
+			sI.RegionMask = filter_possible(PossibleFile);
+		}
+
+		return sI;
+	} 
+	
+	/**
+	 * 
+	 * Get segmentation classes
+	 * 
+	 * @return an array of the classes
+	 */
+	
+	static public Segmentation[] getSegmentationPluginsClasses()
+	{
+		Segmentation[] sg = new Segmentation[1];
+		
+		sg[0] = new BregmanGLM_Batch();
+		
+		return sg;
+	}
+	
+	
+	/**
+	 * 
+	 * This function merge the frames of the image a2 into a1
+	 * 
+	 * @param a1 Image a1
+	 * @param a2 Image a2
+	 * 
+	 */
+	
+	static public void MergeFrames(ImagePlus a1, ImagePlus a2)
+	{
+		// If a1 does not have an imageStack set it to a2 and return
+		if (a1.getImageStack().getSize() == 0)
+		{
+			a1.setStack("Merge frames", a2.getImageStack().duplicate());
+			a1.setDimensions(a2.getNChannels(), a2.getNSlices(), a2.getNFrames());
+			return;
+		}
+		
+		// merge slices channels frames
+		
+		int hcount = a2.getNFrames() + a1.getNFrames();
+		for (int k = 1 ; k <= a2.getNFrames() ; k++)
+		{
+			for (int j = 1 ; j <= a2.getNSlices() ; j++)
+			{
+				for (int i = 1 ; i <= a2.getNChannels() ; i++)
+				{
+					a2.setPosition(i, j, k);
+					a1.getImageStack().addSlice("", a2.getChannelProcessor().getPixels());
+				}
+			}
+		}
+		a1.setDimensions(a2.getNChannels(), a2.getNSlices(), hcount);
+	}
+	
+	/**
+	 * 
+	 * Read a file and split the String by space
+	 * 
+	 * @param file
+	 * @return values array of String
+	 */
+	
+	public static String[] readAndSplit(String file)
+	{
+	     //Z means: "The end of the input but for the final terminator, if any"
+        String output = null;
+		try 
+		{
+			output = new Scanner(new File(file)).useDelimiter("\\Z").next();
+		} 
+		catch (FileNotFoundException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+		
+		return output.split(" ");
+	}
 	
 	/**
 	 * 
 	 * Return the folder where the image is stored, if it is not saved it return the
 	 * folder of the original image 
-	 * @param img
+	 * @param img Image
 	 * @return folder of the image
 	 */
 	public static String ValidFolderFromImage(ImagePlus img)
 	{
+		if (img == null)
+			return null;
+			
 		if (img.getFileInfo().directory == "")
 		{
 			if (img.getOriginalFileInfo() == null || img.getOriginalFileInfo().directory == "")
@@ -292,6 +855,1368 @@ public class MosaicUtils {
 		return (sliceIndex-1) / nb_slices + 1;
 	}
 	
+	/**
+	 * 
+	 * Copy an image B as a subspace into an image A
+	 * 
+	 * @param A Image A
+	 * @param B Image B
+	 * @param fix subspace on A, dim(A) - dim(B) == 1
+	 * @return 
+	 */
 
+	static public <T extends NativeType<T>> boolean copyEmbedded(Img<T> A, Img<T> B, int fix)
+	{
+		// Check that the image are != null and the images has a difference
+		// in dimensionality of one
+		
+		if (A == null || B == null)
+			return false;
+		
+		if (A.numDimensions() - B.numDimensions() != 1)
+			return false;
+		
+		Cursor<T> img_c = B.cursor();
+        RandomAccessibleInterval< T > view = Views.hyperSlice( A, B.numDimensions(), fix );
+		Cursor<T> img_v = Views.iterable(view).cursor();
+        
+		while (img_c.hasNext())
+		{
+			img_c.fwd();
+			img_v.fwd();
+			
+			img_v.get().set(img_c.get());
+		}
+		
+		return true;
+	}
 	
+	/**
+	 * 
+	 * Get the frame ImagePlus from an ImagePlus
+	 * 
+	 * @param img Image
+	 * @param frame frame (frame start from 1)
+	 * @return An ImagePlus of the frame
+	 */
+	
+	public static ImagePlus getImageFrame(ImagePlus img, int frame)
+	{
+		if (frame == 0)
+			return null;
+		
+		int nImages = img.getNFrames();
+	
+		ImageStack stk = img.getStack();
+	
+		int stack_size = stk.getSize() / nImages;
+
+		ImageStack tmp_stk = new ImageStack(img.getWidth(),img.getHeight());
+		for (int j = 0 ; j < stack_size ; j++)
+		{
+			tmp_stk.addSlice("st"+j,stk.getProcessor((frame-1)*stack_size+j+1));
+		}
+		
+		ImagePlus ip = new ImagePlus("tmp",tmp_stk);
+		return ip;
+	}
+	
+	
+	/**
+	 * 
+	 * Get the ImagePlus slice from an ImagePlus
+	 * 
+	 * @param img Image
+	 * @param channel (channel start from 1)
+	 * @return An ImagePlus of the channel
+	 */
+	
+	public static ImagePlus getImageSlice(ImagePlus img, int slice)
+	{
+		if (slice == 0)
+			return null;
+		
+		int nImages = img.getNSlices();
+	
+		ImageStack stk = img.getStack();
+	
+		int stack_size = stk.getSize() / nImages;
+
+		ImageStack tmp_stk = new ImageStack(img.getWidth(),img.getHeight());
+		for (int j = 0 ; j < stack_size ; j++)
+		{
+			tmp_stk.addSlice("st"+j,stk.getProcessor((slice-1)*stack_size+j+1));
+		}
+		
+		ImagePlus ip = new ImagePlus("tmp",tmp_stk);
+		return ip;
+	}
+	
+	/**
+	 * 
+	 * Reorganize the data in the directories inside sv, following the file patterns
+	 * specified
+	 * 
+	 * Give output[] = {data*file1, data*file2}
+	 * and bases = {"A","B","C" ..... , "Z"}
+	 * 
+	 * it create two folder data_file1 and data_file2 (* is replaced with _) and inside put all the file
+	 * with pattern dataAfile1 ..... dataZfile1 in the first and dataAfile2 ..... dataZfile2
+	 * in the second. If the folder is empty the folder is deleted
+	 * 
+	 * @param output List of output patterns
+	 * @param bases String of the image/data to substitute
+	 * @param sv base dir where the data are located
+	 * 
+	 */
+	
+	public static void reorganize(String output[], Vector<String> bases, String sv )
+	{
+		// reorganize
+		
+		try 
+		{
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+		
+				ShellCommand.exeCmdNoPrint("mkdir " + sv + "/" + tmp.replace("*","_"));
+			}
+				
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+					
+				Process tProcess;
+				for (int k = 0 ; k < bases.size() ; k++)
+				{
+					ShellCommand.exeCmdNoPrint("mv " + "'" + sv + File.separator + tmp.replace("*",bases.get(k)) + "'" + "   " + "'" + sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", "") + "'");
+				}
+			}
+			
+			// check all the folder created if empty delete it
+			
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+				
+				File dir = new File(sv + "/" + tmp.replace("*","_"));
+				if (dir.listFiles() == null)
+				{
+					System.out.println("Critical error " + dir.getAbsolutePath() + "does not exist");
+				}
+				if (dir.listFiles() != null && dir.listFiles().length == 0)
+				{
+					dir.delete();
+				}
+			}
+			
+			
+		} 
+		catch (IOException e) 
+		{
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
+	
+	
+	/**
+	 * 
+	 * Reorganize the data in the directories inside sv, following the file patterns
+	 * specified
+	 * 
+	 * Give output[] = {data*file1, data*file2}
+	 * and base = "_tmp_"
+	 * 
+	 * it create two folder data_file1 and data_file2 (* is replaced with _) and inside put all the file
+	 * with pattern data_tmp_1file1 ..... data_tmp_Nfile1 in the first and data_tmp_1file2 ..... data_tmp_Nfile2
+	 * in the second. If the folder is empty the folder is deleted
+	 * 
+	 * @param output List of output patterns
+	 * @param base String of the image/data to substitute
+	 * @param sv base dir where the data are located
+	 * @param nf is N, the number of file, if nf == 0 the file pattern is data_tmp_file without number
+	 */
+	
+	public static void reorganize(String output[], String base, String sv , int nf)
+	{
+		// reorganize
+		
+		try 
+		{
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+		
+				Process tProcess;
+				tProcess = Runtime.getRuntime().exec("mkdir " + sv + "/" + tmp.replace("*","_"));
+				tProcess.waitFor();
+			}
+				
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+					
+				Process tProcess;
+				for (int k = 0 ; k < nf ; k++)
+				{
+					if (new File(sv + File.separator + tmp.replace("*",base)).exists())
+						tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",base) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base + tmp.replace("*", ""));
+					else
+						tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",base + (k+1)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base + (k+1) + tmp.replace("*", ""));
+						
+					tProcess.waitFor();
+				}
+			}
+			
+			// check for all the folder created if empty delete it
+			
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+				
+				File dir = new File(sv + "/" + tmp.replace("*","_"));
+				if (dir.listFiles().length == 0)
+				{
+					dir.delete();
+				}
+			}
+		} 
+		catch (IOException e) 
+		{
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
+	
+	/**
+	 * 
+	 * Reorganize the data in the directories inside sv, following the file patterns
+	 * specified
+	 * 
+	 * Give output[] = {data*file1, data*file2}
+	 * and base_src = "_src_"
+	 * and base_dst = "_dst_"
+	 * 
+	 * it create two folder data_file1 and data_file2 (* is replaced with _) and inside put all the file
+	 * with pattern data_src_1file1 ..... data_src_Nfile1 in the first renaming to data_dst_1file1 ..... data_dst_Nfile1
+	 * and data_src_1file2 ..... data_src_Nfile2 in the second renaming to data_dst_1file2 ..... data_dst_Nfile2
+	 * If the folder is empty the folder is deleted
+	 * 
+	 * @param output List of output patterns
+	 * @param base String of the image/data to substitute
+	 * @param sv base dir where the data are located
+	 * @param nf is N, the number of file, if nf == 0 the file pattern is data_tmp_file without number
+	 */
+	
+	public static void reorganize(String output[], String base_src, String base_dst, String sv , int nf)
+	{
+		// reorganize
+		
+		try 
+		{
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+		
+				Process tProcess;
+				tProcess = Runtime.getRuntime().exec("mkdir " + sv + "/" + tmp.replace("*","_"));
+				tProcess.waitFor();
+			}
+				
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+				for (int k = 0 ; k < nf ; k++)
+				{
+					if (new File(sv + File.separator + tmp.replace("*",base_src)).exists())
+					{
+						ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*",base_src) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", ""));
+					}
+					else
+					{
+						if (nf ==1)
+							ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*",base_src + "_" + (k+1)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", ""));
+						else
+							ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*",base_src + "_" + (k+1)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + "_" + (k+1) + tmp.replace("*", ""));
+					}
+				}
+			}
+			
+			// check for all the folder created if empty delete it
+			
+			for (int j = 0 ; j < output.length ; j++)
+			{
+				String tmp = new String(output[j]);
+				
+				File dir = new File(sv + "/" + tmp.replace("*","_"));
+				if (dir.listFiles().length == 0)
+				{
+					dir.delete();
+				}
+			}
+		} 
+		catch (IOException e) 
+		{
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+	}
+	
+	/**
+	 * 
+	 * Display outline overlay
+	 * 
+	 * @param label image
+	 * @param data image
+	 * @return the outline overlay image
+	 * 
+	 */
+	
+	public  <T extends RealType<T>> Img<BitType> displayoutline(Img<BitType> labelImage, Img<T> image)
+	{
+		/* Create the output image */
+		
+		int dim = labelImage.numDimensions();
+		
+		long [] sz = new long[dim+1];
+		
+		sz[0] = labelImage.dimension(0);
+		sz[1] = labelImage.dimension(1);
+		sz[2] = 2;
+		if (dim >= 3)
+		{
+			sz[3] = labelImage.dimension(2);
+		}
+		final ImgFactory< BitType > imgFactory = new ArrayImgFactory< BitType >();
+		
+		// labelImage.firstElement() should ensure that the output is the same as labelImage
+		
+		Img<BitType> out = imgFactory.create( sz, labelImage.firstElement() );
+		
+		/* Convert Label Image into region contour image */
+		
+		BinaryOperationAssignment<BitType,BitType,BitType> m_imgManWith = new BinaryOperationAssignment<BitType,BitType,BitType>(new BinaryXor());
+		UnaryOperation<RandomAccessibleInterval<BitType>, RandomAccessibleInterval<BitType>> m_op = new Erode(ConnectedType.EIGHT_CONNECTED, null, 1);
+		
+		m_op.compute(labelImage, out);
+		m_imgManWith.compute(labelImage, out, out);
+		
+		/* Create the visualization */
+		
+		Cursor<T> cur = image.cursor();
+		IntervalView<BitType> iv = Views.hyperSlice(out, 2, 1);
+		IterableRandomAccessibleInterval<BitType> iout = IterableRandomAccessibleInterval.create(iv);
+		Cursor<BitType> curL = iout.cursor();
+		
+		while (curL.hasNext())
+		{
+			cur.next();
+			curL.next();
+			
+			curL.get().setReal(cur.get().getRealDouble());	
+		}
+		
+		return out;
+	}
+	
+	/**
+	 * 
+	 * Given an index return the set of Coordinate
+	 * (Stride ordering)
+	 * 
+	 * @param index is the idex
+	 * @param img is the image
+	 * 
+	 */
+
+	public static int [] getCoord(long index, Img<?> img)
+	{
+		long tot = 1;
+		int crd[] = new int[img.numDimensions()];
+		
+		for (int i = 0 ; i < crd.length ; i++)
+		{
+			crd[i] = (int) (index % img.dimension(i));
+			index /= img.dimension(i);
+		}
+		
+		return crd;
+	}
+	
+	/**
+	 * 
+	 * Create a choose image selector
+	 * 
+	 * @param gd Generic Dialog
+	 * @param cs string for the choice caption
+	 * @param imp ImagePlus to start with
+	 * @return awt Choice control
+	 */
+	
+	public static Choice chooseImage(GenericDialog gd, String cs, ImagePlus imp)
+	{		
+		int nOpenedImages = 0;
+		int[] ids = WindowManager.getIDList();
+			
+		if(ids!=null)
+		{
+			nOpenedImages = ids.length;
+		}
+		
+		
+		String[] names = new String[nOpenedImages+1];
+		names[0]="";
+		for(int i = 0; i<nOpenedImages; i++)
+		{
+			ImagePlus ip = WindowManager.getImage(ids[i]);
+			names[i+1] = ip.getTitle();
+		}
+		
+		if (gd.getChoices() == null)
+			return null;
+		
+		Choice choiceInputImage = (Choice)gd.getChoices().lastElement();
+		
+		if(imp !=null)
+		{
+			for (int i = 0 ; i < names.length ; i++)
+				choiceInputImage.addItem(names[i]);
+			
+			String title = imp.getTitle();
+			choiceInputImage.select(title);
+		}
+		else
+		{
+			choiceInputImage.select(0);
+		}
+		
+		return choiceInputImage;
+	}
+	
+	public static String getRegionMaskName(String filename)
+	{
+		// remove the extension
+		
+		String s = filename.substring(0,filename.lastIndexOf("."));
+		
+		return s + "_seg_c1.tif";
+	}
+	
+	/**
+	 * 
+	 * Get the CSV Region filename 
+	 * 
+	 * @param filename of the image
+	 * @param channel
+	 * @return the CSV region filename
+	 */
+	
+	public static String getRegionCSVName(String filename, int channel)
+	{
+		// remove the extension
+		
+		String s = filename.substring(0,filename.lastIndexOf("."));
+		
+		return s + "_ObjectsData_c"+channel+".csv";
+	}
+	
+	/**
+	 * 
+	 * Get the CSV Region filename 
+	 * 
+	 * @param filename of the image
+	 * @return the CSV region filename
+	 */
+	
+	public static String getRegionCSVName(String filename)
+	{
+		// remove the extension
+		
+		String s = filename.substring(0,filename.lastIndexOf("."));
+		
+		return s + "_ObjectsData_c1.csv";
+	}
+	
+	/**
+	 * 
+	 * Get the maximum and the minimum of a video
+	 * 
+	 * @param mm output min and max
+	 */
+	
+	public static void getMaxMin(File fl, MM mm)
+	{
+		Opener opener = new Opener();  
+		ImagePlus imp = opener.openImage(fl.getAbsolutePath());
+		
+		float global_max = 0.0f;
+		float global_min = 0.0f;
+		
+		if (imp != null)
+		{
+			StackStatistics stack_stats = new StackStatistics(imp);
+			global_max = (float)stack_stats.max;
+			global_min = (float)stack_stats.min;
+
+			// get the min and the max
+		}
+		
+		if (global_max > mm.max)
+			mm.max = global_max;
+		
+		if (global_min < mm.min)
+			mm.min = global_min;
+	}
+	
+	/**
+	 * 
+	 * Get the maximum and the minimum of a video
+	 * 
+	 * @param mm output min and max
+	 * 
+	 */
+	
+	public static void getFilesMaxMin(File fls[], MM mm)
+	{	
+		for (File fl : fls)
+		{
+			getMaxMin(fl,mm);
+		}
+	}
+	
+	/**
+	 * 
+	 * Parse normalize
+	 * 
+	 * @param options string of options " ..... normalize = true ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static Boolean parseNormalize(String options)
+	{
+		return parseBoolean("normalize",options);
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get the argument max
+	 * 
+	 * @param options string of options " ..... max = 1.0 ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static Double parseMax(String options)
+	{
+		return parseDouble("max",options);
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get the argument min
+	 * 
+	 * @param options string of options " ..... min = 1.0 ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static Double parseMin(String options)
+	{
+		return parseDouble("min",options);
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get the argument config
+	 * 
+	 * @param options string of options " ..... config = xxxxx ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static String parseConfig(String options)
+	{
+		return parseString("config",options);
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get the argument output
+	 * 
+	 * @param options string of options " ..... config = xxxxx ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static String parseOutput(String options)
+	{
+		return parseString("output",options);
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get an argument
+	 * 
+	 * @param name the string identify the argument
+	 * @param options string of options " ..... config = xxxxx ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static Double parseDouble(String name, String options)
+	{
+		Pattern min = Pattern.compile("min");
+		Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+		Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+		
+		// min
+
+		Matcher matcher = min.matcher(options);
+		if (matcher.find())
+		{
+			String sub = options.substring(matcher.end());
+			matcher = spaces.matcher(sub);
+			if (matcher.find())
+			{
+				sub = sub.substring(matcher.end());
+				matcher = pathp.matcher(sub);
+				if (matcher.find())
+				{
+					String norm = matcher.group(0);
+					
+					return Double.parseDouble(norm);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get an argument
+	 * 
+	 * @param name the string identify the argument
+	 * @param options string of options " ..... config = xxxxx ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static String parseString(String name, String options)
+	{
+		Pattern config = Pattern.compile(name);
+		Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+		Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-:-]+");
+		
+		// config
+		
+		Matcher matcher = config.matcher(options);
+		if (matcher.find())
+		{
+			String sub = options.substring(matcher.end());
+			matcher = spaces.matcher(sub);
+			if (matcher.find())
+			{
+				sub = sub.substring(matcher.end());
+				matcher = pathp.matcher(sub);
+				if (matcher.find())
+				{
+					return matcher.group(0);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * 
+	 * Parse the options string to get an argument
+	 * 
+	 * @param name the string identify the argument
+	 * @param options string of options " ..... config = xxxxx ...... "
+	 * @return the value of the argument, null if the argument does not exist
+	 */
+	
+	public static Boolean parseBoolean(String name, String options)
+	{
+		Pattern config = Pattern.compile(name);
+		Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+		Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+		
+		// config
+		
+		Matcher matcher = config.matcher(options);
+		if (matcher.find())
+		{
+			String sub = options.substring(matcher.end());
+			matcher = spaces.matcher(sub);
+			if (matcher.find())
+			{
+				sub = sub.substring(matcher.end());
+				matcher = pathp.matcher(sub);
+				if (matcher.find())
+				{
+					return Boolean.parseBoolean(matcher.group(0));
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * 
+	 * Given an imglib2 image return the dimensions as an array of integer
+	 * 
+	 * @param img Image
+	 * @return array with the image dimensions
+	 */
+	
+	public static <T> int [] getImageIntDimensions(Img<T> img)
+	{
+		int dimensions[] = new int[img.numDimensions()];
+		for (int i = 0 ; i < img.numDimensions() ; i++)
+		{
+			dimensions[i] = (int) img.dimension(i);
+		}
+		
+		return dimensions;
+	}
+	
+	/**
+	 * 
+	 * Given an imglib2 image return the dimensions as an array of long
+	 * 
+	 * @param img Image
+	 * @return array with the image dimensions
+	 */
+	
+	public static <T> long [] getImageLongDimensions(Img<T> img)
+	{
+		long dimensions_l[] = new long[img.numDimensions()];
+		for (int i = 0 ; i < img.numDimensions() ; i++)
+		{
+			dimensions_l[i] = img.dimension(i);
+		}
+		
+		return dimensions_l;
+	}
+	
+	/**
+	 * 
+	 * Get the minimal value and maximal value of an image
+	 * 
+	 * @param img Image
+	 * @param min minimum value
+	 * @param max maximum value
+	 */
+	
+	public static <T extends RealType<T>> void getMinMax(Img<T> img, T min, T max)
+	{
+		// Set min and max
+		
+		min.setReal(Double.MAX_VALUE);
+		max.setReal(Double.MIN_VALUE);
+		
+        Cursor<T> cur = img.cursor();
+        
+        // Get the min and max
+        
+        while (cur.hasNext())
+        {
+        	cur.fwd();
+        	if (cur.get().getRealDouble() < min.getRealDouble())
+        		min.setReal(cur.get().getRealDouble());
+        	if (cur.get().getRealDouble() > max.getRealDouble())
+        		max.setReal(cur.get().getRealDouble());
+        }
+	}
+	
+	/**
+	 * 
+	 * Get the minimal value and maximal value of an image
+	 * 
+	 * @param img Image
+	 * @param min minimum value
+	 * @param max maximum value
+	 */
+	
+	public static <T extends RealType<T>> void getMinMax(Cursor<T> cur, T min, T max)
+	{
+		// Set min and max
+		
+		min.setReal(Double.MAX_VALUE);
+		max.setReal(Double.MIN_VALUE);
+        
+        // Get the min and max
+        
+        while (cur.hasNext())
+        {
+        	cur.fwd();
+        	if (cur.get().getRealDouble() < min.getRealDouble())
+        		min.setReal(cur.get().getRealDouble());
+        	if (cur.get().getRealDouble() > max.getRealDouble())
+        		max.setReal(cur.get().getRealDouble());
+        }
+	}
+	
+	/**
+	 * 
+	 * Open an image
+	 * 
+	 * @param fl Filename
+	 * @return An image
+	 * 
+	 */
+	
+	static public ImagePlus openImg(String fl)
+	{
+		return IJ.openImage(fl);
+	}
+	
+	/**
+	 * 
+	 * Test data directory
+	 * 
+	 * @return Test data directory
+	 * 
+	 */
+	
+	static public String getTestDir()
+	{
+		return TestBaseDirectory;
+	}
+	
+	static String TestBaseDirectory = "/home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/Jtest_data";
+	
+	/**
+	 * 
+	 * It return the set of test images for a certain plugin
+	 * 
+	 * @param name of the plugin
+	 * @return an array of test images
+	 */
+	
+	static public ImgTest[] getTestImages(String plugin)
+	{
+		// Search for test images
+		
+		Vector<ImgTest> it = new Vector<ImgTest>();
+		
+		String TestFolder = new String();
+		
+		TestFolder +=  TestBaseDirectory + File.separator + plugin + File.separator;
+		
+		ImgTest imgT = null;
+		
+		// List all directories
+		
+		File fl = new File(TestFolder);
+		File dirs[] = fl.listFiles();
+		
+		if (dirs == null)
+			return null;
+		
+		for (File dir : dirs)
+		{		
+			if (dir.isDirectory() == false)
+				continue;
+			
+			// open config
+		
+			String cfg = dir.getAbsolutePath() + File.separator + "config.cfg";
+		
+			// Format
+			//
+			// Image
+			// options
+			// setup file
+			// Expected setup return
+			// number of images results
+			// ..... List of images result
+			// number of csv results
+			// ..... List of csv result
+		
+			try
+			{
+				BufferedReader br = new BufferedReader(new FileReader(cfg));
+ 
+				String sCurrentLine;
+ 
+				imgT = new ImgTest();
+			
+				imgT.base = dir.getAbsolutePath();
+				int nimage_file = Integer.parseInt(br.readLine());
+				imgT.img = new String[nimage_file];
+				for (int i = 0 ; i < imgT.img.length ; i++)
+				{
+					imgT.img[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+				}
+				
+				imgT.options = br.readLine();
+				
+				int nsetup_file = Integer.parseInt(br.readLine());
+				imgT.setup_files = new String[nsetup_file];
+				
+				for (int i = 0 ; i < imgT.setup_files.length ; i++)
+				{
+					imgT.setup_files[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+				}
+				
+				imgT.setup_return = Integer.parseInt(br.readLine());
+				int n_images = Integer.parseInt(br.readLine());
+				imgT.result_imgs = new String[n_images];
+				imgT.result_imgs_rel = new String[n_images];
+				imgT.csv_results_rel = new String[n_images];
+				
+				for (int i = 0 ; i < imgT.result_imgs.length ; i++)
+				{
+					imgT.result_imgs_rel[i] = br.readLine();
+					imgT.result_imgs[i] = dir.getAbsolutePath() + File.separator + imgT.result_imgs_rel[i];
+				}
+				
+				int n_csv_res = Integer.parseInt(br.readLine());
+
+				imgT.csv_results = new String[n_csv_res];
+				imgT.csv_results_rel = new String[n_csv_res];
+				for (int i = 0 ; i < imgT.csv_results.length ; i++)
+				{
+					imgT.csv_results_rel[i] = br.readLine();
+					imgT.csv_results[i] = dir.getAbsolutePath() + File.separator + imgT.csv_results_rel[i];
+				}
+			} 
+			catch (IOException e) 
+			{
+				e.printStackTrace();
+				return null;
+			}
+			
+			it.add(imgT);
+		}
+		
+		// Convert Vector to array
+		
+		ImgTest [] its = new ImgTest[it.size()];
+		
+		for (int i = 0 ; i < its.length ; i++)
+		{
+			its[i] = it.get(i);
+		}
+		
+		return its;
+	}
+	
+	/**
+	 * 
+	 * Compare two images
+	 * 
+	 * 
+	 * @param img1 Image1
+	 * @param img2 Image2
+	 * @return true if they match, false otherwise
+	 */
+	
+	public static boolean compare(Img<?> img1, Img<?> img2)
+	{
+
+		Cursor<?> ci1 = img1.cursor();
+		RandomAccess<?> ci2 = img2.randomAccess();
+		
+		int loc[] = new int[img1.numDimensions()];
+		
+		while (ci1.hasNext())
+		{
+			ci1.fwd();
+			ci1.localize(loc);
+			ci2.setPosition(loc);
+			
+			Object t1 = ci1.get();
+			Object t2 = ci2.get();
+			
+			if (!t1.equals(t2))
+			{
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	static private String filterJob(String dir,int n)
+	{
+		if (dir.startsWith("Job"))
+		{
+			// It is a job
+			
+			String[] fl = ClusterSession.getJobDirectories(0, dir);
+			
+			// search if exist
+			
+			for (int i = 0 ; i < fl.length ; i++)
+			{
+				
+				if (new File(dir.replace("*", ClusterSession.getJobNumber(fl[i]))).exists())
+				{
+					return dir.replace("*", ClusterSession.getJobNumber(fl[i]));
+				}
+			}
+		}
+		return dir;
+	}
+	
+	/**
+	 * 
+	 * Remove the file extension
+	 * 
+	 * @param str String from where to remove the extension
+	 * @return the String
+	 */
+	
+	public static String removeExtension(String str)
+	{
+		int idp = str.lastIndexOf(".");
+		if (idp < 0)
+		{
+			return str;
+		}
+		else
+		{
+			return str.substring(0,idp);
+		}
+	}
+	
+	/**
+	 * 
+	 * Shift the dimensions on the right. Example suppose to have an image
+	 * with Channels=20 Z=30 T=1, it reslice the stack to
+	 * Channels = 1 Z=20 T=30
+	 * If i reapply I get
+	 * Channels=20 Z=1 T=20
+	 * 
+	 * @param ip
+	 */
+	
+	public static void shiftDimensionsR(ImagePlus ip)
+	{
+		Calibration cal = ip.getCalibration();
+		
+		IJ.run(ip,"Properties...","channels=" + ip.getNFrames() + " slices=" + ip.getNChannels() + " frames=" + ip.getNSlices() + " unit=" + cal.getUnit() + " pixel_width=" + cal.pixelWidth + " pixel_height=" + cal.pixelHeight + " voxel_depth=" + cal.pixelDepth);
+	}
+	
+	/**
+	 * 
+	 * Filter out the csv output dir
+	 * 
+	 * @param dir Array of directories
+	 * @return CSV output dir
+	 */
+	
+	public static String[] getCSV(String[] dir)
+	{
+		Vector<String> outcsv = new Vector<String>();
+		
+		for (int i = 0 ; i < dir.length ; i++)
+		{
+			if (dir[i].endsWith(".csv"))
+			{
+				outcsv.add(dir[i].replace("*", "_"));
+			}
+		}
+		
+		String [] outS = new String[outcsv.size()];
+		
+		for (int i = 0 ; i < outcsv.size() ; i++)
+		{
+			outS[i] = outcsv.get(i);
+		}
+		
+		return outS;
+	}
+	
+	/**
+	 * 
+	 * Test the plugins filter
+	 * 
+	 * @param BG plugins filter filter
+	 * @param testset String that indicate the test to use (all the test are in Jtest_data folder)
+	 * @param Class<T> Class for reading csv files used for InterPlugInCSV class
+	 */
+	
+	public static <T extends ICSVGeneral> void testPlugin(PlugInFilterExt BG, String testset,Class<T> cls)
+	{
+		ProgressBarWin wp = new ProgressBarWin();
+		
+		// Create a Region Competition filter
+		
+		ImgTest imgT[] = MosaicUtils.getTestImages(testset);
+		
+		if (imgT == null)
+		{
+			fail("No Images to test");
+			return;
+		}
+		
+		for (ImgTest tmp : imgT)
+		{
+			wp.SetStatusMessage("Testing... " + new File(tmp.base).getName());
+			
+			// Save on tmp and reopen
+			
+			String tmp_dir = IJ.getDirectory("temp") + File.separator + "test" + File.separator;
+			
+			// Remove everything there
+			
+			try {
+				ShellCommand.exeCmdNoPrint("rm -rf " + tmp_dir);
+			} catch (IOException e3) {
+				// TODO Auto-generated catch block
+				e3.printStackTrace();
+			} catch (InterruptedException e3) {
+				// TODO Auto-generated catch block
+				e3.printStackTrace();
+			}
+			
+			// make the test dir
+			
+			try {
+				ShellCommand.exeCmd("mkdir " + tmp_dir);
+			} catch (IOException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			} catch (InterruptedException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+			
+			
+			for (int i = 0 ; i < tmp.img.length ; i++)
+			{
+				String temp_img = tmp_dir + tmp.img[i].substring(tmp.img[i].lastIndexOf(File.separator)+1);
+				IJ.save(MosaicUtils.openImg(tmp.img[i]), temp_img);
+			}
+				
+//			FileSaver fs = new FileSaver(MosaicUtils.openImg(tmp.img));
+//			fs.saveAsTiff(temp_img);
+			
+			// copy the config file
+			
+			try {
+				
+				for (int i = 0 ; i < tmp.setup_files.length ; i++)
+				{
+					String str = new String();
+					str = IJ.getDirectory("temp") +  File.separator + tmp.setup_files[i].substring(tmp.setup_files[i].lastIndexOf(File.separator)+1);
+					ShellCommand.exeCmdNoPrint("cp -r " + tmp.setup_files[i] + " " + str);
+				}
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
+			// Create a segmentation filter
+			
+			int rt = 0;
+			if (tmp.img.length == 1)
+			{
+				String temp_img = tmp_dir + tmp.img[0].substring(tmp.img[0].lastIndexOf(File.separator)+1);
+				ImagePlus img = MosaicUtils.openImg(temp_img);
+				img.show();
+			
+				rt = BG.setup(tmp.options, img);
+			}
+			else
+			{
+				rt = BG.setup(tmp.options,null);
+			}
+			
+			if (rt != tmp.setup_return)
+			{
+				fail("Setup error expecting: " + tmp.setup_return + " getting: " + rt);
+			}
+			
+			// run the filter
+			
+			BG.run(null);
+			
+			// Check the results
+			
+			// Check if there are job directories
+			
+			String[] cs = ClusterSession.getJobDirectories(0, tmp_dir);
+			String[] csr = ClusterSession.getJobDirectories(0, tmp.base);
+			if (cs != null && cs.length != 0)
+			{
+				// Sort into ascending order
+				
+//				Arrays.sort(cs);
+				
+				// Check if result_imgs has the same number
+				
+				if (csr.length % cs.length != 0)
+				{
+					fail("Error: Image result does not match the result");
+				}
+				
+				// replace the result dir with the job id
+				
+				for (int i = 0 ; i < cs.length ; i++)
+				{
+					String fr[] = MosaicUtils.readAndSplit(cs[i] + File.separator + "JobID");
+					String fname = MosaicUtils.removeExtension(fr[2]);
+					String JobID = fr[0];
+					
+					int id = ShellCommand.getIDfromFileList(tmp.result_imgs_rel, fname);
+					
+					tmp.result_imgs_rel[id] = tmp.result_imgs_rel[id].replace("*", JobID);
+					
+					
+				}
+				
+				for (int i = 0 ; i < csr.length ; i++)
+				{
+					String fr[] = MosaicUtils.readAndSplit(csr[i] + File.separator + "JobID");
+					String fname = MosaicUtils.removeExtension(fr[2]);
+					String JobID = fr[0];
+					
+					int id = ShellCommand.getIDfromFileList(tmp.result_imgs, fname);
+					
+					tmp.result_imgs[id] = tmp.result_imgs[id].replace("*", JobID);		
+				}
+				
+				// same things for csv
+				
+				for (int i = 0 ; i < cs.length ; i++)
+				{
+					String fr[] = MosaicUtils.readAndSplit(cs[i] + File.separator + "JobID");
+					String fname = MosaicUtils.removeExtension(fr[2]);
+					String JobID = fr[0];
+					
+					int id = ShellCommand.getIDfromFileList(tmp.csv_results_rel, fname);
+					
+					tmp.csv_results_rel[id] = tmp.csv_results_rel[id].replace("*", JobID);
+				}
+				
+				for (int i = 0 ; i < csr.length ; i++)
+				{
+					String fr[] = MosaicUtils.readAndSplit(csr[i] + File.separator + "JobID");
+					String fname = MosaicUtils.removeExtension(fr[2]);
+					String JobID = fr[0];
+
+					int id = ShellCommand.getIDfromFileList(tmp.csv_results, fname);
+					
+					tmp.csv_results[id] = tmp.csv_results[id].replace("*", JobID);
+				}
+			}
+			
+			int cnt = 0;
+			
+	        // create the ImgOpener
+	        ImgOpener imgOpener = new ImgOpener();
+			
+			for (String rs : tmp.result_imgs)
+			{
+		        // open with ImgOpener. The type (e.g. ArrayImg, PlanarImg, CellImg) is
+		        // automatically determined. For a small image that fits in memory, this
+		        // should open as an ArrayImg.
+		        Img<?> image = null;
+		        Img< ? > image_rs = null;
+				try {
+					// 
+					
+					wp.SetStatusMessage("Checking... " + new File(rs).getName());
+					
+					image = imgOpener.openImgs(rs).get(0);
+				
+					String filename = null;
+
+					filename = tmp_dir + File.separator + tmp.result_imgs_rel[cnt];
+
+						
+					// open the result image
+				
+		        	image_rs = (Img<?>) imgOpener.openImgs(filename).get(0);
+				} catch (ImgIOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				catch (java.lang.UnsupportedOperationException e)	{
+					e.printStackTrace();
+					fail("Error: Image " + rs + " does not match the result");
+				}
+		        
+				// compare
+				
+				if (MosaicUtils.compare(image, image_rs) == false)
+				{
+					fail("Error: Image " + rs + " does not match the result");
+				}
+				
+				cnt++;
+			}
+			
+			// Close all images
+			
+			BG.closeAll();
+			
+			// Open csv
+			
+			cnt = 0;
+			
+			Arrays.sort(tmp.csv_results);
+			Arrays.sort(tmp.csv_results_rel);
+			
+			for (String rs : tmp.csv_results)
+			{
+				wp.SetStatusMessage("Checking... " + new File(rs).getName());
+				
+				InterPluginCSV<T> iCSVsrc = new InterPluginCSV<T>(cls);
+			
+				String filename = null;
+				filename = tmp_dir + File.separator + tmp.csv_results_rel[cnt];
+				
+				iCSVsrc.setCSVPreferenceFromFile(filename);
+				Vector<T> outsrc = iCSVsrc.Read(filename);
+				
+				InterPluginCSV<T> iCSVdst = new InterPluginCSV<T>(cls);
+				iCSVdst.setCSVPreferenceFromFile(rs);
+				Vector<T> outdst = iCSVdst.Read(rs);
+				
+				if (outsrc.size() != outdst.size() || outsrc.size() == 0)
+					fail("Error: CSV outout does not match");
+				
+				for (int i = 0 ; i < outsrc.size() ; i++)
+				{
+					if (outsrc.get(i).equals(outdst.get(i)))
+					{
+						// Maybe the order is changed
+						int j = 0;
+						for (j = 0 ; j < outdst.size() ; j++)
+						{
+							if (outsrc.get(i).equals(outdst.get(i)))
+							{
+								break;
+							}
+						}
+						
+						if (j == outdst.size())
+							fail("Error: CSV output does not match");
+					}
+				}
+				
+				cnt++;
+			}
+		}
+		
+		wp.dispose();
+	}
+
 }

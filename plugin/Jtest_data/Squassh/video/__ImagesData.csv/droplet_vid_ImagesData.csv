@@ -1,0 +1,13 @@
+File;Image ID;Objects ch1;Mean size in ch1;Mean surface in ch1;Mean length in ch1
+
+Parameters: background removal  true window size 50 stddev PSF xy  1.5 stddev PSF z  3.44 Regularization 0.1 0.1 Min intensity ch1 0.05 Min intensity ch2 0.05 subpixel false Cell mask ch1 false mask threshold ch1 0.0015 Cell mask ch2 false mask threshold ch2 0.0015 Intensity estimation Automatic Noise model Poisson;
+droplet_vid.tif;0;3;119.6666;153.6666;2.6666
+droplet_vid.tif;1;5;62.2;91.0;2.8
+droplet_vid.tif;2;4;72.5;102.5;2.25
+droplet_vid.tif;3;5;59.4;86.8;2.6
+droplet_vid.tif;4;4;66.25;95.5;1.75
+droplet_vid.tif;5;4;76.0;105.75;2.5
+droplet_vid.tif;6;5;60.4;88.2;2.8
+droplet_vid.tif;7;4;84.0;117.5;3.0
+droplet_vid.tif;8;3;105.6666;143.3333;2.0
+droplet_vid.tif;9;4;60.5;90.0;2.25

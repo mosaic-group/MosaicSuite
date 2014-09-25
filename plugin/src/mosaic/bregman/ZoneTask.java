@@ -18,6 +18,9 @@ public class ZoneTask implements Runnable {
 	private final CountDownLatch Sync7;
 	private final CountDownLatch Sync8;
 	private final CountDownLatch Sync9;
+	private final CountDownLatch Sync10;
+	private final CountDownLatch Sync11;
+	private final CountDownLatch Sync12;
 	private final CountDownLatch Dct;
 	private ASplitBregmanSolverTwoRegionsPSF AS;
 	private int iStart, iEnd, jStart, jEnd ;
@@ -26,7 +29,7 @@ public class ZoneTask implements Runnable {
 
 	ZoneTask(CountDownLatch ZoneDoneSignal,CountDownLatch Sync1,CountDownLatch Sync2,
 			CountDownLatch Sync3,CountDownLatch Sync4,CountDownLatch Dct,CountDownLatch Sync5,CountDownLatch Sync6,
-			CountDownLatch Sync7,CountDownLatch Sync8,CountDownLatch Sync9,
+			CountDownLatch Sync7,CountDownLatch Sync8,CountDownLatch Sync9,CountDownLatch Sync10,CountDownLatch Sync11,CountDownLatch Sync12,
 			int iStart, int iEnd, int jStart, int jEnd,int num, ASplitBregmanSolverTwoRegionsPSF AS, Tools tTools) {
 		this.LocalTools=tTools;
 		this.ZoneDoneSignal = ZoneDoneSignal;
@@ -39,6 +42,9 @@ public class ZoneTask implements Runnable {
 		this.Sync7 = Sync7;
 		this.Sync8 = Sync8;
 		this.Sync9 = Sync9;
+		this.Sync10 = Sync10;
+		this.Sync11 = Sync11;
+		this.Sync12 = Sync12;
 		this.num=num;
 		this.Dct = Dct;
 		this.AS=AS;
@@ -86,12 +92,31 @@ public class ZoneTask implements Runnable {
 		//synchro
 		Sync1.countDown();
 		Sync1.await();
-
+		
+/*		if (num == 0)
+		{
+			double tot = 0;
+			for (int i = 0 ; i < AS.temp1[AS.l].length ; i++)
+			{
+				for (int j = 0 ; j < AS.temp1[AS.l][i].length ; j++)
+				{
+					for (int k = 0 ; k < AS.temp1[AS.l][i][j].length ; k++)
+					{
+						tot += AS.temp1[AS.l][i][j][k];
+					}
+				}
+			}
+			
+			System.out.println("update 1: " + tot);
+		}*/
 
 		//	IJ.log("thread + istart iend jstart jend"+
 		//	iStart +" " + iEnd+" " + jStart+" " + jEnd);
 		LocalTools.mydivergence(AS.temp3[AS.l], AS.temp1[AS.l], AS.temp2[AS.l],AS.temp4[AS.l],Sync2, iStart, iEnd, jStart, jEnd);//, temp3[l]);
-
+		
+		Sync12.countDown();
+		Sync12.await();
+		
 		for (int z=0; z<AS.nz; z++){
 			b1kt=AS.b1k[AS.l][z];
 			tmp2t=AS.temp2[AS.l][z];
@@ -105,16 +130,19 @@ public class ZoneTask implements Runnable {
 		} 
 		Sync3.countDown();
 		Sync3.await();
+		
 		//IJ.log("ASni " + AS.ni + " ASnj " + AS.nj);
 		Tools.convolve2Dseparable(
 				AS.temp4[AS.l][0], AS.temp2[AS.l][0],
 				AS.ni, AS.nj,
-				AS.p.kernelx, AS.p.kernely,
-				AS.p.px, AS.p.py,
+				AS.p.PSF,
 				AS.temp1[AS.l][0],
 				iStart, iEnd
 				);
-
+		
+		Sync11.countDown();
+		Sync11.await();
+		
 		for (int z=0; z<AS.nz; z++){
 			tmp1t=AS.temp1[AS.l][z];
 			tmp3t=AS.temp3[AS.l][z];
@@ -131,12 +159,15 @@ public class ZoneTask implements Runnable {
 		Sync4.countDown();
 		Dct.await();
 
-
-
 		//temp2=muk
 
-		Tools.convolve2Dseparable(AS.temp2[AS.l][0], AS.temp1[AS.l][0], AS.ni, AS.nj, AS.p.kernelx, AS.p.kernely, AS.p.px, AS.p.py, AS.temp3[AS.l][0], iStart, iEnd);
-		tmp2t=AS.temp2[AS.l][0];
+		Tools.convolve2Dseparable(AS.temp2[AS.l][0], AS.temp1[AS.l][0], AS.ni, AS.nj, AS.p.PSF, AS.temp3[AS.l][0], iStart, iEnd);
+		
+		//synchro
+
+		Sync10.countDown();
+		Sync10.await();
+		
 		for (int i=iStart; i<iEnd; i++) {  
 			for (int j=0; j<AS.nj; j++) {
 				tmp2t[i][j]=iDiff*tmp2t[i][j] + c0t;
@@ -178,6 +209,7 @@ public class ZoneTask implements Runnable {
 				tmp3t=AS.temp3[AS.l][z];
 				w1kt=AS.w1k[AS.l][z];
 				for (int i=iStart; i<iEnd; i++) {  
+
 					for (int j=0; j<AS.nj; j++){ 
 						w1kt[i][j]=0.5*(b1kt[i][j] + tmp2t[i][j]- ratioPriorGamma
 								+ Math.sqrt(tmp3t[i][j]));
@@ -192,8 +224,8 @@ public class ZoneTask implements Runnable {
 				for (int i=iStart; i<iEnd; i++) {  
 					for (int j=0; j<AS.nj; j++){  
 						AS.w1k[AS.l][0][i][j]=
-								(AS.b1k[AS.l][z][i][j] + AS.temp2[AS.l][z][i][j]+2*(AS.p.ldata/AS.p.lreg)*AS.p.gamma*AS.image[0][i][j])
-								/(1+2*(AS.p.ldata/AS.p.lreg)*AS.p.gamma);
+								(AS.b1k[AS.l][z][i][j] + AS.temp2[AS.l][z][i][j]+2*(AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma*AS.image[0][i][j])
+								/(1+2*(AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma);
 					}	
 				}
 			}
@@ -229,6 +261,7 @@ public class ZoneTask implements Runnable {
 
 		Sync5.countDown();
 		Sync5.await();
+		
 		//		
 		LocalTools.fgradx2D(AS.temp3[AS.l], AS.temp1[AS.l], jStart, jEnd);
 		LocalTools.fgrady2D(AS.temp4[AS.l], AS.temp1[AS.l], iStart,iEnd);
@@ -267,7 +300,7 @@ public class ZoneTask implements Runnable {
 
 		if(AS.stepk % AS.p.energyEvaluationModulo ==0  || AS.stepk==AS.p.max_nsb -1){
 			AS.energytab2[num]=LocalTools.computeEnergyPSF(AS.temp1[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l],
-					AS.p.ldata, AS.p.lreg,AS.p,AS.c0,AS.c1,AS.image,
+					AS.p.ldata, AS.p.lreg_[AS.channel],AS.p,AS.c0,AS.c1,AS.image,
 					iStart, iEnd, jStart, jEnd, Sync8,Sync9);
 		}
 

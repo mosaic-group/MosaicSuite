@@ -9,7 +9,7 @@ import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.real.FloatType;
 
-import mosaic.region_competition.Point;
+import mosaic.core.utils.Point;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 

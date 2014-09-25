@@ -45,19 +45,15 @@ import javax.swing.border.Border;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.util.Vector;
-
-import mosaic.core.detection.MyFrame;
-import mosaic.core.detection.Particle;
 import mosaic.ia.Analysis;
 import mosaic.ia.PotentialFunctions;
 import mosaic.ia.utils.IAPUtils;
 import mosaic.ia.utils.ImageProcessUtils;
-import net.miginfocom.swing.MigLayout;
 import javax.swing.SpringLayout;
 import javax.vecmath.Point3d;
 
-public class GUIDesign implements ActionListener  {
-
+public class GUIDesign implements ActionListener  
+{
 	public JFrame frmInteractionAnalysis;
 	private String [] items={"Hernquist","Step","Linear type 1","Linear type 2","Plummer","Non-parametric"};
 	//private JTextField textField;
@@ -72,8 +68,8 @@ public class GUIDesign implements ActionListener  {
 	 private Analysis a;
 	 private int monteCarloRunsForTest=1000;
 	 private int numReRuns=10;
-private double qkernelWeight=.001;
-private double pkernelWeight=1;
+	 private double qkernelWeight=.001;
+	 private double pkernelWeight=1;
 
 		private JButton help;
 		private double alpha=.05;

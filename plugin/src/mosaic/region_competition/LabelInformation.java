@@ -8,12 +8,29 @@ public class LabelInformation
 	public double M2=0;
 	public double var=0;	// variance of intensity
 	public double median=0;
+	public double mean_pos[];
+	public int dim;
 	
-	public LabelInformation(int label) 
+	/**
+	 * 
+	 * Create a label that store information
+	 * 
+	 * @param label id of the label
+	 * @param dim dimensions of the problem
+	 */
+	
+	public LabelInformation(int label,int dim) 
 	{
 		this.label=label;
+		this.dim = dim;
+		mean_pos=new double[dim];
 	}
 	
+	/**
+	 * 
+	 * Reset all the values of the label
+	 * 
+	 */
 	
 	public void reset()
 	{
@@ -22,6 +39,7 @@ public class LabelInformation
 		mean=0;
 		M2=0;
 		var=0;
+		mean_pos=new double[dim];
 	}
 	
 // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#On-line_algorithm

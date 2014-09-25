@@ -2,8 +2,6 @@ package mosaic.bregman;
 
 import java.util.Iterator;
 
-import mosaic.bregman.FindConnectedRegions.Region;
-
 public class DistanceAnalysis {
 
 

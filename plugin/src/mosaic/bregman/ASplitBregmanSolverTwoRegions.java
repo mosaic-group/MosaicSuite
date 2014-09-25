@@ -16,7 +16,6 @@ public class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 
 	}
 
-
 	@Override
 	protected void step() throws InterruptedException {
 		long lStartTime = new Date().getTime(); //start time
@@ -55,7 +54,7 @@ public class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0; j<nj; j++) {  
-					w1k[l][z][i][j]=-(p.ldata/p.lreg)*p.gamma*speedData[l][z][i][j] +b1k[l][z][i][j] + temp1[l][z][i][j];
+					w1k[l][z][i][j]=-(p.ldata/p.lreg_[channel])*p.gamma*speedData[l][z][i][j] +b1k[l][z][i][j] + temp1[l][z][i][j];
 				}
 			}
 		}
@@ -116,7 +115,7 @@ public class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 
 		//Tools.copytab(w3kp[l], w3k[l]);
 
-		energytab[l]=LocalTools.computeEnergy(speedData[l], w3k[l], temp3[l], temp4[l], p.ldata, p.lreg);
+		energytab[l]=LocalTools.computeEnergy(speedData[l], w3k[l], temp3[l], temp4[l], p.ldata, p.lreg_[channel]);
 
 
 		//doneSignal2.await();

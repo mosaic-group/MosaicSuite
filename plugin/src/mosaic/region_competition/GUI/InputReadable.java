@@ -51,13 +51,15 @@ public interface InputReadable
 	public boolean useStack();
 	public boolean showAllFrames();
 	public boolean showNormalized();
-	public boolean showStatistics();
+	public boolean showAndSaveStatistics();
 	public boolean show3DResult();
 	
 	// Debugging
 	
 	public boolean useOldRegionIterator();
 	public int getKBest();
+
+	public boolean useCluster();
 	
 }
 

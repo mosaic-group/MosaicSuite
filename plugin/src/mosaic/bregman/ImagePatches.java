@@ -13,14 +13,15 @@ import java.awt.Color;
 import java.awt.Frame;
 import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
+import java.util.Collection;
 //import java.util.Date;
 import java.util.Iterator;
+import java.util.Vector;
 //import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import mosaic.bregman.FindConnectedRegions.Region;
 
 public class ImagePatches {
 	ImagePlus regsresultx;
@@ -43,6 +44,8 @@ public class ImagePatches {
 	double [][][] w3kbest;
 	byte [] imagecolor_c1;//for display ints = new int [dz][di][dj][3];
 
+	double max;
+	double min;
 	public ArrayList<Region> regionslist_refined;
 	private ArrayList<Region> globalList;
 	int channel;
@@ -50,7 +53,7 @@ public class ImagePatches {
 
 
 
-	public ImagePatches(Parameters pa,ArrayList<Region> regionslist, double [][][] imagei, int channeli, double [][][] w3k)
+	public ImagePatches(Parameters pa,ArrayList<Region> regionslist, double [][][] imagei, int channeli, double [][][] w3k, double min , double max)
 	{
 		if (!pa.subpixel){pa.oversampling2ndstep=1; pa.interpolation=1;}
 		else{pa.oversampling2ndstep=pa.overs;}
@@ -72,6 +75,8 @@ public class ImagePatches {
 		this.sx=p.ni*pa.oversampling2ndstep*pa.interpolation;
 		this.sy=p.nj*pa.oversampling2ndstep*pa.interpolation;
 		this.jobs_done=0;
+		this.max = max;
+		this.min = min;
 		//IJ.log("sx " + sx);
 		if(p.nz==1)
 		{
@@ -139,23 +144,28 @@ public class ImagePatches {
 		//IJ.log("Mean size of refined regions : " + Analysis.meansize_refined);
 	}
 
+	/**
+	 * 
+	 * Patch creation, distribution and assembly
+	 * 
+	 */
+	
 	public void distribute_regions()
 	{
 		//assuming rvoronoi and regionslists (objects)  in same order (and same length)
 
 		final LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
 		ThreadPoolExecutor threadPool;
-		if(p.debug){threadPool=new ThreadPoolExecutor(1, 1,
+		if(p.debug == true){threadPool=new ThreadPoolExecutor(1, 1,
 				1, TimeUnit.DAYS, queue);}
 		else{
-		threadPool=new ThreadPoolExecutor(p.nthreads, p.nthreads,
+		threadPool=new ThreadPoolExecutor(/*p.nthreads*/1, /*p.nthreads*/1,
 				1, TimeUnit.DAYS, queue);}
-
 
 		nb_jobs=regionslist_refined.size();
 		AnalysePatch ap;
 		for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) 
-		{
+		{			
 			Region r = it.next();
 			//if(r.value==5){
 			//IJ.log("call os " + p.oversampling2ndstep);
@@ -164,16 +174,18 @@ public class ImagePatches {
 			if(p.subpixel)p.oversampling2ndstep=p.overs;
 			else p.oversampling2ndstep=1;
 			ap=new AnalysePatch(image, r, p, p.oversampling2ndstep, channel,regions_refined,this);
-
-			if(p.mode_voronoi2){
+			if(p.mode_voronoi2)
+			{
 				threadPool.execute(ap);
 				//IJ.log("size q:"+ queue.size());
 			}
-			else{
+			else
+			{
 				//	ap.run();//execute
 			}
-
-
+			
+			/////////////////
+			
 			//add refined result into regions refined :
 			if(!p.mode_voronoi2){
 
@@ -183,21 +195,27 @@ public class ImagePatches {
 				else
 					assemble_result_interpolated(ap,r);
 			}
+			
 			//			else{
 			//				assemble_result_voronoi2(ap);				
 			//			}
 			//}
 		}
 		//IJ.log("loop done");
-
+		
+		//
+		
 		threadPool.shutdown();
+		
 		try
 		{
 			//IJ.log("await termination");
 			threadPool.awaitTermination(1, TimeUnit.DAYS);
 		}
 		catch (InterruptedException ex) {}
+		
 		//long lStartTime = new Date().getTime(); //start time
+		
 		if(p.mode_voronoi2)
 		{
 			//find_regions();
@@ -224,8 +242,51 @@ public class ImagePatches {
 				//Tools.showmem();
 				threadPool2.awaitTermination(1, TimeUnit.DAYS);
 			}catch (InterruptedException ex) {}
+			
+			// here we analyse the patch
+			// if we have a big region with intensity near the background
+			// kill that region
+			
+			boolean changed = false;
+			
+			ArrayList<Region> regionslist_refined_filter = new ArrayList<Region>();
+			
+			for (Region r : regionslist_refined)
+			{
+				if (r.intensity * (max-min) + min > p.min_region_filter_intensities)
+				{
+					regionslist_refined_filter.add(r);
+				}
+				else
+				{
+					changed= true;
+				}
+			}
+			
+			regionslist_refined = regionslist_refined_filter;
+			
+			// if changed, reassemble
+			
+			if (changed == true)
+			{
+				for (int i = 0; i < regions_refined.length  ; i++)
+				{
+					for (int j = 0; j < regions_refined[i].length  ; j++)
+					{
+						for (int k = 0; k < regions_refined[i][j].length  ; k++)
+						{
+							regions_refined[i][j][k] = 0;
+						}	
+					}
+				}
+				assemble(regionslist_refined);
+			}
+			
+			//
+			
+			regionslist_refined = regionslist_refined_filter;
 		}
-
+		
 		//Tools.showmem();
 		int no=regionslist_refined.size();
 		if(channel==0)
@@ -238,18 +299,52 @@ public class ImagePatches {
 		}
 		else
 		{IJ.log(no + " objects found in Y.");}
-
-		//IJ.log("Objects found 2nd pass:" + regionslist_refined.size());
-		//else{
-		if(p.dispcolors || p.displabels)displayRegions(regions_refined, sx, sy, sz, channel, true, p.save_images, true);
-		//}
-		//long lEndTime = new Date().getTime(); //start time
-		//long difference = lEndTime - lStartTime; //check different
-		//IJ.log("Elapsed milliseconds object properties: " + difference);
-
-
 	}
 
+	void assemble(ArrayList<Region> regionslist_refined)
+	{
+		for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) 
+		{
+			Region r = it.next();
+
+			for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
+				Pix v = it2.next();
+				//count number of free edges
+				regions_refined[v.pz][v.px][v.py]= (short) r.value;
+
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * Assemble the result
+	 * 
+	 * @param regionslist_refined List of regions to assemble
+	 * @param regions_refined regions refined
+	 */
+	
+	static public void assemble(Collection<Region> regionslist_refined, short[][][] regions_refined)
+	{
+		for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) 
+		{
+			Region r = it.next();
+
+			for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
+				Pix v = it2.next();
+				//count number of free edges
+				if (v.pz >= regions_refined.length || v.px >= regions_refined[0].length || v.py >= regions_refined[0][0].length)
+				{
+					int debug = 0;
+					debug++;
+				}
+				
+				regions_refined[v.pz][v.px][v.py]= (short) r.value;
+
+			}
+		}
+	}
+	
 //	private void assemble_result_voronoi2(AnalysePatch ap){
 //
 //		//IJ.log("assemble vo2");
@@ -368,14 +463,18 @@ public class ImagePatches {
 //	}
 
 
-	private void assemble_result(AnalysePatch ap, Region r){
-
+	private void assemble_result(AnalysePatch ap, Region r)
+	{		
 		ArrayList<Pix> rpixels = new ArrayList<Pix>();
 		int pixcount=0;
-		for (int z=0; z<ap.sz; z++){
-			for (int i=0;i<ap.sx; i++){  
-				for (int j=0;j< ap.sy; j++){  
-					if (ap.object[z][i][j]==1){
+		for (int z=0; z<ap.sz; z++)
+		{
+			for (int i=0;i<ap.sx; i++)
+			{
+				for (int j=0;j< ap.sy; j++)
+				{
+					if (ap.object[z][i][j]==1)
+					{
 						regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy] =(short) r.value;
 						rpixels.add(new Pix(z+ap.offsetz*osz,i+ap.offsetx*osxy,j+ap.offsety*osxy));
 						//rpixels.add(new Pix(z,i,j));
@@ -444,7 +543,7 @@ public class ImagePatches {
 
 	}
 	//display function
-	public void displayRegions(short [][][] regions, int width,int height,int depth, int channel, boolean displ, boolean save, boolean invert){
+/*	public void displayRegions(short [][][] regions, int width,int height,int depth, int channel, boolean displ, boolean save, boolean invert){
 		ImageStack regstackx;
 		ImageStack regstacky;
 
@@ -580,9 +679,9 @@ public class ImagePatches {
 
 		}
 
-	}
+	}*/
 
-	private IndexColorModel backgroundAndSpectrum(int maximum, boolean invert) {
+/*	private IndexColorModel backgroundAndSpectrum(int maximum, boolean invert) {
 		//IJ.log("make color model");
 		if( maximum > 255 )
 			maximum = 255;
@@ -615,7 +714,7 @@ public class ImagePatches {
 			//if(i==10){IJ.log("red" + reds[i]+"green"+greens[i]+"blue"+blues[i]);}
 		}
 		return new IndexColorModel( 8, 256, reds, greens, blues );
-	}
+	}*/
 
 	public static double computeMeanRegionSize(ArrayList<Region> regionlist){
 		double total =0;

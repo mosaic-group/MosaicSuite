@@ -1,7 +1,19 @@
 package mosaic.core.detection;
 
+import ij.gui.Roi;
+
+import java.awt.Rectangle;
 import java.text.DecimalFormat;
 
+import net.imglib2.Interval;
+
+import org.supercsv.cellprocessor.ift.CellProcessor;
+
+import mosaic.core.ipc.ICSVGeneral;
+import mosaic.core.ipc.StubProp;
+
+import org.supercsv.cellprocessor.ParseDouble;
+import org.supercsv.cellprocessor.ParseInt;
 
 
 /**
@@ -12,8 +24,21 @@ import java.text.DecimalFormat;
  *  	x is vertical top to bottom
  *  	y is horizontal left to right
  */
-public class Particle {
 
+public class Particle extends StubProp implements ICSVGeneral
+{
+
+	public static final String[] ParticleDetection_map = new String[] 
+	{ 
+		"Frame",
+        "x",
+        "y",
+        "z",
+        "Size"
+    };
+	
+	public static CellProcessor[] ParticleDetectionCellProcessor;
+	
 	public float x, y, z; 					// the originally given coordinates - to be refined 
 	public float original_x; 				// the originally given coordinates - not to be changed 		
 	public float original_y, original_z;
@@ -36,6 +61,80 @@ public class Particle {
 	public String[] all_params; 			// all params that relate to this particle,
 											// 1st 2 should be x and y respectfully
 	int linkrange;	
+	
+	/**
+	 * 
+	 * Init CSV structure
+	 * 
+	 */
+	
+	static public void initCSV()
+	{
+		ParticleDetectionCellProcessor = new CellProcessor[] 
+		{
+				new ParseInt(),
+				new ParseDouble(),
+				new ParseDouble(),
+	            new ParseDouble(),
+	            new ParseDouble(),
+		};
+	}
+	
+	/**
+	 * 
+	 * Create a particle from another particle
+	 * 
+	 * @param p Particle
+	 */
+	
+	public Particle(Particle p)
+	{
+		this.frame = p.frame;
+		this.x = p.x;
+		this.y = p.y;
+		this.z = p.z;
+		this.m0 = p.m0;
+		this.m1 = p.m1;
+		this.m2 = p.m2;
+		this.m3 = p.m3;
+		this.m4 = p.m4;
+	}
+	
+	
+	/**
+	 * 
+	 * Set the particle data
+	 * 
+	 * @param p Particle
+	 */
+	
+	public void setData(Particle p)
+	{
+		this.frame = p.frame;
+		this.x = p.x;
+		this.y = p.y;
+		this.z = p.z;
+		this.m0 = p.m0;
+		this.m1 = p.m1;
+		this.m2 = p.m2;
+		this.m3 = p.m3;
+		this.m4 = p.m4;
+	}
+	
+	/**
+	 * 
+	 * translate coordinate according to a focus area
+	 * 
+	 * @param rectangle of the focus area
+	 * 
+	 * 
+	 * 
+	 */
+	void translate(Rectangle focus)
+	{
+		x = x - focus.x;
+		y = y - focus.y;
+	}
 	
 	/**
 	 * 
@@ -74,10 +173,29 @@ public class Particle {
 	}
 	
 	/**
+	 * 
+	 * Create a particle
+	 * 
+	 */
+	
+	public Particle()
+	{
+		this.special = true;
+		
+		scaling = new double[3];
+		scaling[0] = 1.0;
+		scaling[1] = 1.0;
+		scaling[2] = 1.0;
+		distance = -1.0f;
+	}
+	
+	/**
 	 * constructor. 
 	 * @param x - original x coordinates
 	 * @param y - original y coordinates
 	 * @param frame_num - the number of the frame this particle belonges to
+	 * @param aLinkRange linking range
+	 * 
 	 */
 	public Particle (float x, float y, float z, int frame_num, int linkrange) {
 		this.x = x;
@@ -97,6 +215,19 @@ public class Particle {
 		distance = -1.0f;
 	}
 
+	/**
+	 * 
+	 * Set particle link range
+	 * 
+	 * @param aLinkRange
+	 */
+	
+	void setLinkRange(int linkrange)
+	{
+		this.linkrange = linkrange;
+		this.next = new int[linkrange];
+	}
+	
 	/**
 	 * Set scaling factor for x,y,z position, affect only the toStringBuffer function
 	 * @param scaling_
@@ -197,6 +328,27 @@ public class Particle {
 		return sb;
 	}
 
+	
+	
+	public float distanceSq(Particle p)
+	{
+		return (x-p.x)*(x-p.x) + (y-p.y)*(y-p.y) + (z-p.z)*(z-p.z);
+	}
+	
+	public float distance(Particle p)
+	{
+		return (float) Math.sqrt((x-p.x)*(x-p.x) + (y-p.y)*(y-p.y) + (z-p.z)*(z-p.z));
+	}
+	
+	public boolean match(Particle p)
+	{
+		if (this.x == p.x && this.y == p.y && this.z == p.z && this.m0 == p.m0 &&
+			this.m1 == p.m1 && this.m2 == p.m2 && this.m3 == p.m3 && this.m4 == p.m4)
+			return true;
+		
+		return false;
+	}
+	
 	public void setFrame(int frame) {
 		this.frame = frame;
 	}
@@ -208,6 +360,114 @@ public class Particle {
 	public double[] getPosition() {
 		double[] result =  {(double) x,(double) y,(double) z};
 		return result;
+	}
+
+	@Override
+	public void setImage_ID(int Image_ID_) 
+	{
+		frame = Image_ID_;
+	}
+
+	@Override
+	public void setSize(double Size_) 
+	{
+		m0 = (float) Size_;
+	}
+
+
+	@Override
+	public void setIntensity(double Intensity_) 
+	{
+		m2 = (float) Intensity_;
+	}
+
+	@Override
+	public void setx(double Coord_X_) 
+	{
+		x = (float) Coord_X_;
+	}
+
+	@Override
+	public void sety(double Coord_Y_) 
+	{
+		y = (float) Coord_Y_;
+	}
+
+	@Override
+	public void setz(double Coord_Z_) 
+	{
+		z = (float) Coord_Z_;
+	}
+
+	@Override
+	public void setCoord_X(double Coord_X_) 
+	{
+		x = (float) Coord_X_;
+	}
+
+	@Override
+	public void setCoord_Y(double Coord_Y_) 
+	{
+		y = (float) Coord_Y_;
+	}
+
+	@Override
+	public void setCoord_Z(double Coord_Z_) 
+	{
+		z = (float) Coord_Z_;
+	}
+	
+	@Override
+	public double getCoord_X() 
+	{
+		return x;
+	}
+
+	@Override
+	public double getCoord_Y() 
+	{
+		return y;
+	}
+
+	@Override
+	public double getCoord_Z() 
+	{
+		return z;
+	}
+
+
+	@Override
+	public double getSize() {
+		// TODO Auto-generated method stub
+		return m0;
+	}
+
+
+	@Override
+	public double getIntensity() {
+		// TODO Auto-generated method stub
+		return m2;
+	}
+
+
+	@Override
+	public double getx() {
+		// TODO Auto-generated method stub
+		return x;
+	}
+
+
+	@Override
+	public double gety() {
+		// TODO Auto-generated method stub
+		return y;
+	}
+
+
+	@Override
+	public double getz() {
+		// TODO Auto-generated method stub
+		return z;
 	}
 }
 

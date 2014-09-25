@@ -3,6 +3,8 @@ package mosaic.region_competition;
 import java.util.LinkedList;
 import java.util.List;
 
+import mosaic.core.utils.Point;
+
 
 public class ContourParticle 
 {

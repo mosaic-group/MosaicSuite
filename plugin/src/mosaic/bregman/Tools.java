@@ -3,8 +3,11 @@ package mosaic.bregman;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
+import net.imglib2.type.numeric.real.DoubleType;
+import mosaic.core.psf.psf;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.process.ImageProcessor;
 import ij.process.FloatProcessor;
 
@@ -62,7 +65,7 @@ public class Tools
 
 	//convolution with symmetric boundaries extension
 	public static void convolve2D(double [] [] out,double[] [] in, int icols, int irows, 
-			double [] [] kernel, int kx, int ky)
+			psf<DoubleType> psf)
 	{
 		int i, j, m, n, mm, nn;
 		int kCenterX, kCenterY;                         // center index of kernel
@@ -75,21 +78,24 @@ public class Tools
 		///if(ix <= 0 || kx <= 0) return ;
 
 		// find center position of kernel (half of kernel size)
-		kCenterX = kx / 2;
-		kCenterY = ky / 2;
+		
+		int sz[] = psf.getSuggestedImageSize();
+		kCenterX = sz[0] / 2;
+		kCenterY = sz[1] / 2;
+		double kernel[][] = psf.getImage2DAsDoubleArray();
 
 		for(i=0; i < icols; ++i)                // columns
 		{
 			for(j=0; j < irows; ++j)            // rows
 			{
 				sum = 0;                            // init to 0 before sum
-				for(m=0; m < kx; ++m)      // kernel cols
+				for(m=0; m < sz[0]; ++m)      // kernel cols
 				{
-					mm = kx - 1 - m;       // col index of flipped kernel
+					mm = sz[0] - 1 - m;       // col index of flipped kernel
 
-					for(n=0; n < ky; ++n)  // kernel rows
+					for(n=0; n < sz[1]; ++n)  // kernel rows
 					{
-						nn = ky - 1 - n;   // row index of flipped kernel
+						nn = sz[1] - 1 - n;   // row index of flipped kernel
 
 
 						// index of input signal, used for checking boundary
@@ -119,22 +125,26 @@ public class Tools
 
 
 	public static void convolve2Dseparable(double [] [] out,double[] [] in, int icols, int irows, 
-			double [] kernelx, double kernely [], int kx, int ky, double temp [][]){
+			psf<DoubleType> psf, double temp [][]){
 		convolve2Dseparable( out, in,  icols,  irows, 
-				kernelx,  kernely ,  kx,  ky,  temp,  0,  icols);
+				psf,  temp,  0,  icols);
 	}
 
 
 	public static void convolve2Dseparable(double [] [] out,double[] [] in, int icols, int irows, 
-			double [] kernelx, double [] kernely, int kx, int ky, double [] [] temp, int iStart, int iEnd)
+			psf<DoubleType> psf, double [] [] temp, int iStart, int iEnd)
 	{
 		int i, j, m, n, mm, nn;
 		int kCenterX, kCenterY;                         // center index of kernel
 		double sum;                                      // temp accumulation buffer
 		int rowIndex, colIndex;
 
-		kCenterX = kx / 2;
-		kCenterY = ky / 2;
+		int[] sz = psf.getSuggestedImageSize();
+		double kernelx[] = psf.getSeparableImageAsDoubleArray(0);
+		double kernely[] = psf.getSeparableImageAsDoubleArray(1);
+		
+		kCenterX = sz[0] / 2;
+		kCenterY = sz[1] / 2;
 		//IJ.log("convolve" + "irows" + irows+ "icols" + icols + "istart" + iStart + "iend" + iEnd);
 		//convolve in x (i coordinate), horizontal
 		for(i=iStart; i < iEnd; ++i)                // columns
@@ -142,9 +152,9 @@ public class Tools
 			for(j=0; j < irows; ++j)            // rows
 			{
 				sum = 0;                            // init to 0 before sum
-				for(m=0; m < kx; ++m)      // kernel cols
+				for(m=0; m < sz[0]; ++m)      // kernel cols
 				{
-					mm = kx - 1 - m;       // col index of flipped kernel
+					mm = sz[0] - 1 - m;       // col index of flipped kernel
 
 					// index of input signal, used for checking boundary
 					colIndex = i + m - kCenterX;
@@ -173,9 +183,9 @@ public class Tools
 			for(j=0; j < irows; ++j)            // rows
 			{
 				sum = 0;                            // init to 0 before sum
-				for(n=0; n < ky; ++n)  // kernel rows
+				for(n=0; n < sz[1]; ++n)  // kernel rows
 				{
-					nn = ky - 1 - n;   // row index of flipped kernel
+					nn = sz[1] - 1 - n;   // row index of flipped kernel
 
 					// index of input signal, used for checking boundary
 					colIndex = i ;
@@ -201,24 +211,28 @@ public class Tools
 
 
 	public static void convolve3Dseparable(double [] [] [] out,double [] [] [] in, int icols, int irows,int islices, 
-			double [] kernelx, double kernely [],double kernelz [], int kx, int ky, int kz, double temp [][][])
+			psf<DoubleType> psf, double temp [][][])
 	{
 		//IJ.log("irows icols islices kx ky kz" +irows  +" "+ icols  +" "+ islices +" "+ kx +" "+ky +" " +kz);
 		convolve3Dseparable(out,in, icols, irows,islices, 
-				kernelx, kernely ,kernelz ,kx, ky,kz, temp ,0, icols);
+				psf, temp ,0, icols);
 
 	}
 
 
 	public static void convolve3Dseparable(double [] [] [] out,double [] [] [] in, int icols, int irows, int islices, 
-			double [] kernelx, double kernely [],double kernelz [], int kx, int ky, int kz, double temp [][][], int iStart, int iEnd)
+			psf<DoubleType> psf, double temp [][][], int iStart, int iEnd)
 	{
 		int i, j, k, m, n, l, mm, nn, ll;
 		int kCenterX, kCenterY, kCenterZ;                         // center index of kernel
 		double sum;                                      // temp accumulation buffer
 		int rowIndex, colIndex, sliceIndex;
 
-
+		int[] sz = psf.getSuggestedImageSize();
+		double kernelx[] = psf.getSeparableImageAsDoubleArray(0);
+		double kernely[] = psf.getSeparableImageAsDoubleArray(1);
+		double kernelz[] = psf.getSeparableImageAsDoubleArray(2);
+		
 		// check validity of params
 		//if(!in || !out || !kernel) return ;
 		///if(ix <= 0 || kx <= 0) return ;
@@ -229,9 +243,9 @@ public class Tools
 
 		//double [] [] temp= new double [icols][irows];
 
-		kCenterX = kx / 2;
-		kCenterY = ky / 2;
-		kCenterZ = kz / 2;
+		kCenterX = sz[0] / 2;
+		kCenterY = sz[1] / 2;
+		kCenterZ = sz[2] / 2;
 
 		//convolve in x (i coordinate), horizontal
 		for(k=0; k < islices; ++k)                // columns
@@ -241,9 +255,9 @@ public class Tools
 				for(j=0; j < irows; ++j)            // rows
 				{
 					sum = 0;                            // init to 0 before sum
-					for(m=0; m < kx; ++m)      // kernel cols
+					for(m=0; m < sz[0]; ++m)      // kernel cols
 					{
-						mm = kx - 1 - m;       // col index of flipped kernel
+						mm = sz[0] - 1 - m;       // col index of flipped kernel
 
 						// index of input signal, used for checking boundary
 						colIndex = i + m - kCenterX;
@@ -276,9 +290,9 @@ public class Tools
 				for(j=0; j < irows; ++j)            // rows
 				{
 					sum = 0;                            // init to 0 before sum
-					for(n=0; n < ky; ++n)  // kernel rows
+					for(n=0; n < sz[1]; ++n)  // kernel rows
 					{
-						nn = ky - 1 - n;   // row index of flipped kernel
+						nn = sz[1] - 1 - n;   // row index of flipped kernel
 
 						// index of input signal, used for checking boundary
 						colIndex = i ;
@@ -295,6 +309,19 @@ public class Tools
 
 
 					}
+					
+					if (k >= temp.length)
+					{
+						if (i >= temp[k].length)
+						{
+							if (j >= temp[k][i].length)
+							{
+								int debug = 0;
+								debug++;
+							}
+						}
+					}
+					
 					temp[k][i][j] = sum;
 				}
 			}
@@ -311,9 +338,9 @@ public class Tools
 				for(j=0; j < irows; ++j)            // rows
 				{
 					sum = 0;                            // init to 0 before sum
-					for(l=0; l < kz; ++l)  // kernel slices
+					for(l=0; l < sz[2]; ++l)  // kernel slices
 					{
-						ll = kz - 1 - l;   // row index of flipped kernel
+						ll = sz[2] - 1 - l;   // row index of flipped kernel
 
 						// index of input signal, used for checking boundary
 						colIndex = i ;
@@ -348,6 +375,10 @@ public class Tools
 		int center = size/2;
 		double sum=0;
 
+		resx = new double[size];
+		resy = new double[size];
+		res = new double[size][size];
+		
 		for (int i=0; i<size; i++) {  
 			for (int j=0; j<size; j++) {  
 				res[i][j]=Math.exp(-(Math.pow(i-center, 2) + Math.pow(j-center, 2))/(2*Math.pow(sigma, 2)));
@@ -1315,7 +1346,7 @@ public class Tools
 		//		IJ.log("ni nj px py" + ni +" " + nj +" "+p.px +" "+p.py );
 
 		//Tools.convolve2D(speedData[0], mask[0], ni, nj, p.PSF[0], p.px, p.py);
-		Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, p.kernelx, p.kernely, p.px, p.py, maskx[0], iStart, iEnd);
+		Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, p.PSF, maskx[0], iStart, iEnd);
 
 
 		//for (int z=0; z<nz; z++){
@@ -1377,8 +1408,14 @@ public class Tools
 		//		IJ.log("ni nj px py" + ni +" " + nj +" "+p.px +" "+p.py );
 
 		//Tools.convolve2D(speedData[0], mask[0], ni, nj, p.PSF[0], p.px, p.py);
-		Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, p.kernelx, p.kernely, p.px, p.py, maskx[0], 0, ni);
-
+		if (p.PSF.isSeparable() == true)
+			Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, p.PSF, maskx[0], 0, ni);
+		else
+		{
+			IJ.error("Error: non-separable PSF calculation are not implemented");
+			return 0.0;
+		}
+		
 
 		//for (int z=0; z<nz; z++){
 		for (int i=0; i<ni	; i++) {  
@@ -1390,6 +1427,7 @@ public class Tools
 		//}
 		//nllMeanPoisson2(speedData, image, speedData, 1, ldata, iStart, iEnd);
 		nllMean(speedData, image, speedData, 1, ldata, 0, ni);
+		
 		double energyData=0;
 		//for (int z=0; z<nz; z++){
 		for (int i=0; i<ni; i++) {  
@@ -1441,7 +1479,7 @@ public class Tools
 		//		IJ.log("ni nj px py" + ni +" " + nj +" "+p.px +" "+p.py );
 
 		//Tools.convolve2D(speedData[0], mask[0], ni, nj, p.PSF[0], p.px, p.py);
-		Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, p.kernelx, p.kernely, p.px, p.py, maskx[0], iStart, iEnd);
+		Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, p.PSF, maskx[0], iStart, iEnd);
 
 
 		//for (int z=0; z<nz; z++){
@@ -1507,8 +1545,7 @@ public class Tools
 
 		Tools.convolve3Dseparable(speedData, mask, 
 				ni, nj, nz, 
-				p.kernelx,p.kernely, p.kernelz,
-				p.px, p.py, p.pz, temp, iStart, iEnd);
+				p.PSF, temp, iStart, iEnd);
 
 
 
@@ -1534,8 +1571,11 @@ public class Tools
 			}
 		}
 
-		Sync8.countDown();
-		Sync8.await();
+		if (Sync8 != null)
+		{
+			Sync8.countDown();
+			Sync8.await();
+		}
 
 		fgradx2D(temp, mask, jStart, jEnd);
 		double tmp;
@@ -1548,8 +1588,11 @@ public class Tools
 			}
 		}
 
-		Sync10.countDown();
-		Sync10.await();
+		if (Sync10 != null)
+		{
+			Sync10.countDown();
+			Sync10.await();
+		}
 		fgrady2D(temp, mask, iStart, iEnd);
 		for (int z=0; z<nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
@@ -1569,8 +1612,11 @@ public class Tools
 			}
 		}
 
-		Sync9.countDown();
-		Sync9.await();
+		if (Sync9 != null)
+		{
+			Sync9.countDown();
+			Sync9.await();
+		}
 		double energyPrior=0;
 		for (int z=0; z<nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
@@ -1622,8 +1668,7 @@ public class Tools
 
 		Tools.convolve3Dseparable(speedData, mask, 
 				ni, nj, nz, 
-				p.kernelx,p.kernely, p.kernelz,
-				p.px, p.py, p.pz, temp);
+				p.PSF, temp);
 
 
 
@@ -1718,8 +1763,7 @@ public class Tools
 
 		Tools.convolve3Dseparable(speedData, mask, 
 				ni, nj, nz, 
-				p.kernelx,p.kernely, p.kernelz,
-				p.px, p.py, p.pz, temp);
+				p.PSF, temp);
 
 
 
@@ -1832,8 +1876,11 @@ public class Tools
 			int iStart, int iEnd, int jStart, int jEnd) throws InterruptedException {
 		bgradxdbc2D(res, m1, jStart, jEnd);
 		bgradydbc2D(temp, m2, iStart, iEnd);
-		Sync2.countDown();
-		Sync2.await();
+		if (Sync2 != null)
+		{
+			Sync2.countDown();
+			Sync2.await();
+		}
 		addtab(res, res, temp, iStart, iEnd);
 		bgradzdbc2D(m1, m3, iStart, iEnd);
 		addtab(res, res, m1, iStart, iEnd);
@@ -1854,6 +1901,15 @@ public class Tools
 	}
 	 */
 
+	/**
+	 * 
+	 * Display a double array on  a window
+	 * 
+	 * @param float array
+	 * @param Window title
+	 * 
+	 * */
+	
 	public  void disp_array_new(double [] [] array, String s){
 		int ni= array.length;
 		int nj= array[1].length;
@@ -1874,7 +1930,81 @@ public class Tools
 		img.show();
 
 	}
+	
+	/**
+	 * 
+	 * Display a 3D float array on  a window
+	 * 
+	 * @param float array
+	 * @param Window title
+	 * 
+	 * */
+	
+	static public  void disp_array3D_new(float [] [] [] array, String s){
+		int ni= array[0].length;
+		int nj= array[0][0].length;
+		float [] [] temp= new float [ni][nj];
 
+		ImageStack ss = new ImageStack(ni,nj);
+		
+		for (int k = 0 ; k < array.length ; k++)
+		{
+			for (int i=0; i<ni; i++) {  
+				for (int j=0;j< nj; j++) {  	
+					temp[i][j]= (float) array[k][i][j];
+				}
+			}
+			ImageProcessor imp= new FloatProcessor(temp);
+			ss.addSlice("slice " + k, imp);
+		}
+		
+		ImagePlus img=new ImagePlus("temp",ss);
+		img.show();
+
+	}
+
+
+	/**
+	 * 
+	 * Display a 3D double array on  a window
+	 * 
+	 * @param float array
+	 * @param Window title
+	 * 
+	 * */
+	
+	static public  void disp_array3D_new(double [] [] [] array, String s){
+		int ni= array[0].length;
+		int nj= array[0][0].length;
+		float [] [] temp= new float [ni][nj];
+
+		ImageStack ss = new ImageStack(ni,nj);
+		
+		for (int k = 0 ; k < array.length ; k++)
+		{
+			for (int i=0; i<ni; i++) {  
+				for (int j=0;j< nj; j++) {  	
+					temp[i][j]= (float) array[k][i][j];
+				}
+			}
+			ImageProcessor imp= new FloatProcessor(temp);
+			ss.addSlice("slice " + k, imp);
+		}
+		
+		ImagePlus img=new ImagePlus("temp",ss);
+		img.show();
+
+	}
+	
+	/**
+	 * 
+	 * Display a double array on  a window
+	 * 
+	 * @param float array
+	 * @param Window title
+	 * 
+	 * */
+	
 	public  void disp_array(double [] [] array, String s){
 		int ni= array.length;
 		int nj= array[1].length;
@@ -1894,7 +2024,14 @@ public class Tools
 
 	}
 
-
+	/**
+	 * 
+	 * Print out double array value
+	 * 
+	 * @param array to print
+	 * @param s name
+	 * 
+	 */
 
 	public  void disp_vals(double [] [] array, String s){
 
@@ -2009,7 +2146,7 @@ public class Tools
 		return temp;
 	}
 
-	public  double round(double y, int z){
+	public static  double round(double y, int z){
 		//Special tip to round numbers to 10^-2
 		y*=Math.pow(10,z);
 		y=(int) y;

@@ -1,10 +1,12 @@
 package mosaic.bregman;
 
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Vector;
 
-import mosaic.bregman.FindConnectedRegions.Region;
+import mosaic.core.utils.MosaicUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -75,7 +77,6 @@ public class MasksDisplay {
 
 	}
 
-
 	public void display(int [] [] [] maxmask, String s){
 
 		for (int i=0; i<ni; i++) {  
@@ -110,6 +111,14 @@ public class MasksDisplay {
 
 	}
 
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 2D array of double
+	 * @param s String of the image
+	 * @param channel channel
+	 */
 
 	public void display2regions(double [] [] array, String s, int channel){
 
@@ -135,7 +144,20 @@ public class MasksDisplay {
 		}
 	}
 
-	public  ImagePlus display2regionsnew(float [] [] array, String s, int channel){
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 2D array of float
+	 * @param s String of the image
+	 * @param channel channel
+	 * @param vs visualize or not
+	 * 
+	 * @return ImagePlus image
+	 * 
+	 */
+	
+	public  ImagePlus display2regionsnew(float [] [] array, String s, int channel, boolean vs){
 
 		float [] [] temp= new float [ni][nj];
 		ImagePlus imgtemp=new ImagePlus();
@@ -152,10 +174,23 @@ public class MasksDisplay {
 			imgtemp.setProcessor(s + "X",imp);
 		else
 			imgtemp.setProcessor(s + "Y",imp);
-		imgtemp.show(); 
+		if (vs == true)
+			imgtemp.show(); 
 		return imgtemp;
 	}
 
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 2D array of double
+	 * @param s String of the image
+	 * @param channel channel
+	 * 
+	 * @return the imagePlus
+	 * 
+	 */
+	
 	public  ImagePlus display2regionsnewd(double [] [] array, String s, int channel){
 
 		float [] [] temp= new float [ni][nj];
@@ -201,8 +236,20 @@ public class MasksDisplay {
 		return imgtemp;
 	}
 
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 3D array of double
+	 * @param s String of the image
+	 * @param channel channel
+	 * @param vs visualize or not the image
+	 * 
+	 * @return the imagePlus
+	 * 
+	 */
 
-	public  ImagePlus display2regionsnew(double [] [] array, String s, int channel){
+	public  ImagePlus display2regionsnew(double [] [] array, String s, int channel, boolean vs){
 
 		float [] [] temp= new float [ni][nj];
 		ImagePlus imgtemp=new ImagePlus();
@@ -219,12 +266,27 @@ public class MasksDisplay {
 			imgtemp.setProcessor(s + "X",imp);
 		else
 			imgtemp.setProcessor(s + "Y",imp);
-		imgtemp.show(); 
+		
+		if (vs == true)
+			imgtemp.show(); 
 		imgtemp.changes=false;
 		return imgtemp;
 	}
 
-	public  ImagePlus display2regions3Dnew(double [] [] [] array, String s, int channel){
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 3D array of double
+	 * @param s String of the image
+	 * @param channel channel
+	 * @param vs Visualize or not the soft mask
+	 * 
+	 * @return the imagePlus
+	 * 
+	 */
+	
+	public  ImagePlus display2regions3Dnew(double [] [] [] array, String s, int channel, boolean vs){
 		ImageStack img3temp=new ImageStack(ni,nj);
 
 		ImagePlus imgtemp=new ImagePlus();
@@ -247,12 +309,40 @@ public class MasksDisplay {
 		else
 			imgtemp.setStack(s + "Y",img3temp);
 		
-		imgtemp.show(); 
+		if (vs == true)
+			imgtemp.show(); 
 		imgtemp.changes=false;
 		return imgtemp;
 	}
 
-
+	/**
+	 * 
+	 * Get the soft membership
+	 * 
+	 * @param channel the channel to get
+	 * 
+	 * @return the soft membership mask
+	 */
+	
+	public ImagePlus getSoftMask(int channel)
+	{
+		if(channel==0)
+		{return imgda;}
+		else
+		{return imgdb;}
+	}
+	
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 3D array of double
+	 * @param s String of the image
+	 * @param channel channel
+	 * 
+	 * 
+	 */
+	
 	public void display2regions3D(double [] [] [] array, String s, int channel){
 
 		this.ims3d=new ImageStack(ni,nj);
@@ -287,7 +377,17 @@ public class MasksDisplay {
 
 	}
 
-
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 3D array of byte
+	 * @param s String of the image
+	 * @param channel channel
+	 * 
+	 * @return the imagePlus
+	 * 
+	 */
 
 	public ImagePlus display2regions3Dnew(byte [] [] [] array, String s, int channel){
 
@@ -322,7 +422,17 @@ public class MasksDisplay {
 		return imgd;	
 	}
 
-
+	/**
+	 * 
+	 * Display the soft membership
+	 * 
+	 * @param array 3D array of float
+	 * @param s String of the image
+	 * @param channel channel
+	 * 
+	 * @return the imagePlus
+	 * 
+	 */
 
 	public ImagePlus display2regions3Dnew(float [] [] [] array, String s, int channel){
 
@@ -426,9 +536,8 @@ public class MasksDisplay {
 
 
 
-	public void displaycolocold(ArrayList<Region> regionslistA, ArrayList<Region> regionslistB){
-
-
+	public void displaycolocold(ArrayList<Region> regionslistA, ArrayList<Region> regionslistB, Vector<ImagePlus> ip)
+	{
 		this.imgcolocstack=new ImageStack(ni,nj);
 		for (int z=0; z<nz; z++) {  
 
@@ -478,11 +587,20 @@ public class MasksDisplay {
 		this.imgcoloc=new ImagePlus("Colocalization", imgcolocstack);
 		imgcoloc.show();
 
-
+		ip.add(imgcoloc);
 	}
 
+	/**
+	 * 
+	 * Display the colocalization image
+	 * 
+	 * @param savepath path + filename "_coloc.zip" is appended to the name, extension is removed
+	 * @param regionslistA Regions list A
+	 * @param regionslistB Regions list B
+	 * 
+	 */
 
-	public void displaycoloc(ArrayList<Region> regionslistA,ArrayList<Region> regionslistB){
+	public void displaycoloc(String savepath, ArrayList<Region> regionslistA,ArrayList<Region> regionslistB, Vector<ImagePlus> ip){
 
 		
 		
@@ -551,6 +669,8 @@ public class MasksDisplay {
 		this.imgcoloc.setStack("Colocalization", imgcolocastack);
 		//this.imgcoloca=new ImagePlus("Colocalization", imgcolocastack);
 
+		ip.add(this.imgcoloc);
+		
 		if(Analysis.p.dispwindows){
 			this.imgcoloc.show();
 			this.imgcoloc.getWindow().setLocation(100, 120);
@@ -558,8 +678,10 @@ public class MasksDisplay {
 
 		if (Analysis.p.save_images){
 			IJ.run(this.imgcoloc,"RGB Color", "");
-			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_coloc" +".zip";
-			IJ.saveAs(this.imgcoloc, "ZIP", savepath);		
+			
+			savepath = MosaicUtils.removeExtension(savepath);
+			savepath = savepath + "_coloc" +".zip";
+			IJ.saveAs(this.imgcoloc, "ZIP", savepath);
 
 			//			FileSaver fs= new FileSaver(this.imgcoloc);
 			//			String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_coloc" +".tif";
@@ -570,7 +692,7 @@ public class MasksDisplay {
 
 	
 
-	public void displaycolocpositiveA(ArrayList<Region> regionslistA){
+	public void displaycolocpositiveA(ArrayList<Region> regionslistA, Vector<ImagePlus> ip){
 
 		int [][][][] imagecolor = new int [nz][ni][nj][3];
 
@@ -626,13 +748,12 @@ public class MasksDisplay {
 		this.imgcoloca.setStack("Positive X vesicles", imgcolocastack);
 		//this.imgcoloca=new ImagePlus("Positive X vesicles", imgcolocastack);
 		imgcoloca.show();
-
-
+		ip.add(imgcoloca);
 	}
 
 
 
-	public void displaycolocpositiveB(ArrayList<Region> regionslistA){
+	public void displaycolocpositiveB(ArrayList<Region> regionslistA, Vector<ImagePlus> ip){
 
 		int [][][][] imagecolor = new int [nz][ni][nj][3];
 
@@ -685,7 +806,7 @@ public class MasksDisplay {
 		this.imgcolocb.setStack("Positive Y vesicles", imgcolocastack);
 		//this.imgcoloca=new ImagePlus("Positive Y vesicles", imgcolocastack);
 		imgcolocb.show();
-
+		ip.add(imgcolocb);
 
 	}
 
@@ -730,6 +851,12 @@ public class MasksDisplay {
 
 	}
 
+	void closeAll()
+	{
+		if (imgcoloc != null)
+			imgcoloc.close();
+	}
+	
 	//	public void displaycolocpositiveBold(ArrayList<Region> regionslistA){
 	//
 	//

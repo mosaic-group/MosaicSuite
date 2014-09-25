@@ -19,6 +19,7 @@ import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
 import mosaic.core.particleLinking.ParticleLinker;
+import mosaic.core.particleLinking.ParticleLinkerBestOnePerm;
 import mosaic.core.particleLinking.linkerOptions;
 
 
@@ -50,7 +51,7 @@ public class Calibration_ implements PlugIn, PreviewInterface {
 		op.force = false;
 		op.straight_line = false;
 		
-		new ParticleLinker().linkParticles(frames, frames_number, op);
+		new ParticleLinkerBestOnePerm().linkParticles(frames, frames_number, op);
 		//
 		calculateShifts();
 		regression();

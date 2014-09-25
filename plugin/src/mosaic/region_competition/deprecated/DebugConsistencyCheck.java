@@ -7,9 +7,9 @@ import java.util.Map.Entry;
 
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
-import mosaic.region_competition.Point;
+import mosaic.core.utils.Point;
 
 /**
  * TODO VERY OLD
@@ -25,7 +25,7 @@ import mosaic.region_competition.Point;
 public class DebugConsistencyCheck
 {
 	
-	LabelImage labelImage;
+	LabelImageRC labelImage;
 	ImageProcessor data;
 	int liSize;
 	
@@ -34,7 +34,7 @@ public class DebugConsistencyCheck
 	HashMap<Integer, LabelInformation> labelMap;
 	HashMap<Point, ContourParticle> contourContainer;
 
-	public DebugConsistencyCheck(LabelImage labelImage, Algorithm algo) 
+	public DebugConsistencyCheck(LabelImageRC labelImage, Algorithm algo) 
 	{
 		this.labelImage=labelImage;
 		this.contourContainer = algo.m_InnerContourContainer;

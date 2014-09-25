@@ -4,8 +4,8 @@ import ij.ImagePlus;
 
 import java.util.HashMap;
 
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.initializers.MaximaBubbles;
@@ -21,9 +21,9 @@ public class ScoreFunctionInit implements ScoreFunction
 	int rad = 8;
 		
 	IntensityImage i[];
-	LabelImage l[];
+	LabelImageRC l[];
 	
-	public ScoreFunctionInit(IntensityImage i_[], LabelImage l_[],int r_t_,int rad_)
+	public ScoreFunctionInit(IntensityImage i_[], LabelImageRC l_[],int r_t_,int rad_)
 	{
 		i = i_;
 		l = l_;

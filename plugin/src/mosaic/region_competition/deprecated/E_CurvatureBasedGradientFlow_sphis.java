@@ -1,8 +1,8 @@
 package mosaic.region_competition.deprecated;
 
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelImage;
-import mosaic.region_competition.Point;
+import mosaic.region_competition.LabelImageRC;
+import mosaic.core.utils.Point;
 import mosaic.region_competition.energies.Energy.InternalEnergy;
 
 public class E_CurvatureBasedGradientFlow_sphis extends InternalEnergy// implements SettingsListener
@@ -10,7 +10,7 @@ public class E_CurvatureBasedGradientFlow_sphis extends InternalEnergy// impleme
 	
 	SphereBitmapImageSource_sphis sphereMaskIterator;
 	
-	public E_CurvatureBasedGradientFlow_sphis(LabelImage labelImage, int rad)
+	public E_CurvatureBasedGradientFlow_sphis(LabelImageRC labelImage, int rad)
 	{
 		super(labelImage);
 		initSphere(rad); 
@@ -29,7 +29,7 @@ public class E_CurvatureBasedGradientFlow_sphis extends InternalEnergy// impleme
 		return new EnergyResult(flow, null);
 	}
 
-	double CalculateCurvatureBasedGradientFlow(LabelImage aLabelImage, 
+	double CalculateCurvatureBasedGradientFlow(LabelImageRC aLabelImage, 
 			Point aIndex, int aFrom, int aTo) 
 	{
 		double result = sphereMaskIterator.GenerateData(aIndex, aFrom, aTo);

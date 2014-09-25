@@ -1,7 +1,7 @@
 package mosaic.region_competition.initializers;
 
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 
 /*
  * Abstract initializer class for initializers that depend on the input image
@@ -9,7 +9,7 @@ import mosaic.region_competition.LabelImage;
 public abstract class DataDrivenInitializer extends Initializer
 {
 	IntensityImage intensityImage;
-	public DataDrivenInitializer(IntensityImage intensityImage, LabelImage labelImage)
+	public DataDrivenInitializer(IntensityImage intensityImage, LabelImageRC labelImage)
 	{
 		super(labelImage);
 		this.intensityImage = intensityImage;

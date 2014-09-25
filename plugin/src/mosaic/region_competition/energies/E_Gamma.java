@@ -1,14 +1,14 @@
 package mosaic.region_competition.energies;
 
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelImage;
-import mosaic.region_competition.Point;
+import mosaic.region_competition.LabelImageRC;
+import mosaic.core.utils.Point;
 import mosaic.region_competition.energies.Energy.InternalEnergy;
-import mosaic.region_competition.topology.Connectivity;
+import mosaic.core.utils.Connectivity;
 
 public class E_Gamma extends InternalEnergy
 {
-	public E_Gamma(LabelImage labelImage)
+	public E_Gamma(LabelImageRC labelImage)
 	{
 		super(labelImage);
 	}

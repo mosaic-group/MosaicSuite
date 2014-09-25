@@ -5,14 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
-import mosaic.region_competition.Point;
-import mosaic.region_competition.RegionIterator;
-import mosaic.region_competition.RegionIteratorMask;
-import mosaic.region_competition.RegionIteratorSphere;
-import mosaic.region_competition.SphereMask;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIterator;
+import mosaic.core.utils.RegionIteratorMask;
+import mosaic.core.utils.SphereMask;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
 public class E_PS extends ExternalEnergy
@@ -24,10 +23,10 @@ public class E_PS extends ExternalEnergy
 	private float regionMergingThreshold;
 	private HashMap<Integer, LabelInformation> labelMap;
 	SphereMask sphere;
-	RegionIteratorSphere sphereIt;
+	RegionIteratorMask sphereIt;
 	
 	public E_PS(
-			LabelImage labelImage, 
+			LabelImageRC labelImage, 
 			IntensityImage intensityImage, 
 			HashMap<Integer, LabelInformation> labelMap, 
 			int PSenergyRadius, 
@@ -45,7 +44,7 @@ public class E_PS extends ExternalEnergy
 		
 		// sphereIt is slower than separate version
 		
-		sphereIt = new RegionIteratorSphere(sphere, dimensions);
+		sphereIt = new RegionIteratorMask(sphere, dimensions);
 	}
 
 	

@@ -14,7 +14,8 @@ import java.util.Random;
  * @author Janigo
  *
  */
-public class RandomWalkDataGenerator3D_ implements PlugInFilter {
+public class RandomWalkDataGenerator3D_ implements PlugInFilter
+{
 	int mSeed = 1;
 	int mNPoints = 1;
 	int mNFrames = 200;
@@ -37,11 +38,12 @@ public class RandomWalkDataGenerator3D_ implements PlugInFilter {
 	boolean mLinearMovement = true;
 	ImagePlus mPSF;
 	
-    public void run(ImageProcessor ip) {
-    			
+    public void run(ImageProcessor ip) 
+    {			
 	}
 
-	public int setup(String arg, ImagePlus aIMP) {
+	public int setup(String arg, ImagePlus aIMP) 
+	{
 		if(!getUserDefinedParams())
     		return DONE;
     	
@@ -102,7 +104,8 @@ public class RandomWalkDataGenerator3D_ implements PlugInFilter {
 //        PrintOutPositions();
 //    }
 
-    private void GenerateTheStack() {
+    private void GenerateTheStack() 
+    {
     	//DecimalFormat vDF = new DecimalFormat("#.00");
     	for(int vFrame = 0; vFrame < mNFrames; vFrame++) {
     		IJ.showProgress(vFrame, mNFrames);
@@ -125,7 +128,8 @@ public class RandomWalkDataGenerator3D_ implements PlugInFilter {
     	}
     }
     
-    private void amplifyWithGain(float[][] aPixelArray) {
+    private void amplifyWithGain(float[][] aPixelArray) 
+    {
     	float vFac = mGain*mENF;
     	for(int vY = 0; vY < aPixelArray.length; vY++) {
     		for(int vX = 0; vX < aPixelArray[0].length; vX++) {
@@ -138,9 +142,8 @@ public class RandomWalkDataGenerator3D_ implements PlugInFilter {
     	}
     }
 
-    private void AddNoise(float[][] aPixelArray){
-    	
-    	
+    private void AddNoise(float[][] aPixelArray)
+    {
     }
     
     /**

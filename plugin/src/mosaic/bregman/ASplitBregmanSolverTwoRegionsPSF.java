@@ -1,6 +1,8 @@
 package mosaic.bregman;
 
 
+import ij.IJ;
+
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
@@ -30,7 +32,7 @@ ASplitBregmanSolverTwoRegions {
 
 
 
-		Tools.convolve2D(temp3[l][0], mask[l][0],  ni, nj, p.PSF[0], p.px, p.py);
+		Tools.convolve2D(temp3[l][0], mask[l][0],  ni, nj, p.PSF);
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++){  
 				for (int j=0; j<nj; j++){  
@@ -57,7 +59,7 @@ ASplitBregmanSolverTwoRegions {
 		
 		//IJ.log("init");
 		//IJ.log("init c0 " + c0 + "c1 " + c1);
-		Tools.convolve2D(temp3[l][0], w3k[l][0],  ni, nj, p.PSF[0], p.px, p.py);
+		Tools.convolve2D(temp3[l][0], w3k[l][0],  ni, nj, p.PSF);
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++){  
 				for (int j=0; j<nj; j++){  
@@ -99,6 +101,9 @@ ASplitBregmanSolverTwoRegions {
 		CountDownLatch Sync7= new CountDownLatch(p.nthreads);
 		CountDownLatch Sync8 = new CountDownLatch(p.nthreads);
 		CountDownLatch Sync9= new CountDownLatch(p.nthreads);
+		CountDownLatch Sync10= new CountDownLatch(p.nthreads);
+		CountDownLatch Sync11= new CountDownLatch(p.nthreads);
+		CountDownLatch Sync12= new CountDownLatch(p.nthreads);
 		CountDownLatch Dct= new CountDownLatch(1);
 
 
@@ -109,11 +114,21 @@ ASplitBregmanSolverTwoRegions {
 		int jlastchunk= p.nj - (p.nj/(p.nthreads))*(p.nthreads -1);
 		int iStart=0; 
 		int jStart=0;
+		
+		// Force the allocation of the buffers internally
+		// if you do not do you can have race conditions in the
+		// multi thread part
+		// DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
+		
+		double kernelx[] = p.PSF.getSeparableImageAsDoubleArray(0);
+		double kernely[] = p.PSF.getSeparableImageAsDoubleArray(1);
+		
 		for(int nt=0; nt< p.nthreads-1;nt++){
 //						IJ.log("thread + istart iend jstart jend"+
 //								iStart +" " + (iStart+ichunk)+" " + jStart+" " + (jStart+jchunk));
+			
 			new Thread(new ZoneTask(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Dct,Sync5,
-					Sync6,Sync7,Sync8,Sync9,
+					Sync6,Sync7,Sync8,Sync9,Sync10,Sync11,Sync12,
 					iStart, iStart+ichunk, jStart, jStart+jchunk,nt,this,LocalTools)).start();
 			iStart+=ichunk;
 			jStart+=jchunk;
@@ -121,7 +136,7 @@ ASplitBregmanSolverTwoRegions {
 //				IJ.log("last thread + istart iend jstart jend"+
 //						iStart +" " + (iStart+ilastchunk)+" " + jStart+" " + (jStart+jlastchunk));
 		new Thread(new ZoneTask(ZoneDoneSignal,Sync1,Sync2,Sync3,Sync4,Dct,Sync5,
-				Sync6,Sync7,Sync8,Sync9,
+				Sync6,Sync7,Sync8,Sync9,Sync10,Sync11,Sync12,
 				iStart, iStart+ilastchunk, jStart, jStart+jlastchunk,p.nthreads-1,this,LocalTools)).start();
 
 
@@ -166,11 +181,13 @@ ASplitBregmanSolverTwoRegions {
 
 		//temp1=uk
 
-
 		Sync4.await();
-
+		
+		// Check match here
+		
 		dct2d.forward(temp1[l][0], true);
 
+		// inversion int DCT space
 
 		for (int i=0; i<ni; i++){  
 			for (int j=0; j<nj; j++){  
@@ -180,7 +197,6 @@ ASplitBregmanSolverTwoRegions {
 
 
 		dct2d.inverse(temp1[l][0], true);
-
 
 		Dct.countDown();
 
@@ -289,11 +305,12 @@ ASplitBregmanSolverTwoRegions {
 				energy+=energytab2[nt];
 			}
 		}
+		
 		//Tools.max_mask(maxmask, w3k);
 
 
 		//doneSignal2.await();
-
+		
 		//energy=energytab[l];
 		//norm=Math.max(norm, normtab[l]);
 		//Tools.max_mask(maxmask, w3k);
@@ -305,7 +322,7 @@ ASplitBregmanSolverTwoRegions {
 
 		long difference = lEndTime - lStartTime; //check different
 		totaltime +=difference;
-		//IJ.log("Elapsed milliseconds: " + difference);
+//		IJ.log("Elapsed milliseconds: " + difference);
 
 	}
 
@@ -314,12 +331,13 @@ ASplitBregmanSolverTwoRegions {
 		this.c0=p.cl[0];
 		this.c1=p.cl[1];
 
-		int xmin=Math.min(p.px, eigenPSF[0].length);
-		int ymin=Math.min(p.py, eigenPSF[0][0].length);
+		int[] sz = p.PSF.getSuggestedImageSize();
+		int xmin=Math.min(sz[0], eigenPSF[0].length);
+		int ymin=Math.min(sz[1], eigenPSF[0][0].length);
 		
 		//  PSF2   = imfilter(PSF,PSF,'symmetric');		
 		//IJ.log("avant xmin "+ xmin + "ymin" + ymin);
-		Tools.convolve2D(eigenPSF[0], p.PSF[0], xmin, ymin, p.PSF[0], p.px, p.py);
+		Tools.convolve2D(eigenPSF[0], p.PSF.getImage2DAsDoubleArray(), xmin, ymin, p.PSF);
 
 
 
@@ -343,8 +361,8 @@ ASplitBregmanSolverTwoRegions {
 
 
 
-		int cc = (p.px/2) +1;
-		int cr = (p.py/2) +1;
+		int cc = (sz[0]/2) +1;
+		int cr = (sz[1]/2) +1;
 
 		//temp1 = e1
 		for (int z=0; z<nz; z++){

@@ -3,7 +3,8 @@ package mosaic.region_competition.topology;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import mosaic.region_competition.Point;
+import mosaic.core.utils.Connectivity;
+import mosaic.core.utils.Point;
 
 public class UnitCubeCCCounter
 {

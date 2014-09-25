@@ -285,6 +285,18 @@ public class IntConverter
 		
 	}
 	
+	/**
+	 * 
+	 * Int array to short image conversion
+	 * 
+	 * @param intData
+	 * @param dims
+	 * @param abs
+	 * @param borderRemove
+	 * @param clamp
+	 * @return
+	 */
+	
 	public static ImageStack intArrayToShortStack(int[] intData, int[] dims, 
 			boolean abs, boolean borderRemove, boolean clamp)
 	{

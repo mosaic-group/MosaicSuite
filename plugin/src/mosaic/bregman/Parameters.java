@@ -2,17 +2,26 @@ package mosaic.bregman;
 
 import java.io.Serializable;
 
+import net.imglib2.type.numeric.real.DoubleType;
+import net.imglib2.type.numeric.real.FloatType;
+import mosaic.core.psf.psf;
+
 public class Parameters  implements Serializable
 {
-	
-	private static final long serialVersionUID = 1894956510127964860L;
+	private static final long serialVersionUID = 2894976420127964864L;
+
+	//
+
+	public int oc_s = 1;
+	public String patches_from_file;
+	public int output_format = -1;
 	
 	// method parameters
 	public  boolean mode_classic=false;
 	public  boolean mode_watershed=false;
 	public  boolean mode_voronoi2=true;
 	
-	public boolean save_images=false;
+	public boolean save_images=true;
 	public String wd=null;
 
 	public int overs=2;
@@ -30,7 +39,7 @@ public class Parameters  implements Serializable
 	public int interpolation=2;//4
 	public boolean JunitTest = false;
 	public double ldata = 1;
-	public double lreg = 0.05;// 0.075;//0.06//0.01 fro PSF test //0.05 for one
+	public double lreg_[] = {0.05,0.05};
 	// region non psf test
 	public double gamma = 1;// was 10 : use 1 for two region PSF version
 	public int size_rollingball = 10;
@@ -68,11 +77,13 @@ public class Parameters  implements Serializable
 	public double thresholdcellmask = 0.0015;
 	public double thresholdcellmasky = 0.0015;//(RAB channel)
 	public int energyEvaluationModulo = 5;
-	public int dispEmodulo = 10;
+	public int dispEmodulo=10;
+	public boolean dispSoftMask = false;
 	public int nbconditions = 1;
 	public int regionSegmentLevel = 2;
 	public boolean remask=false;
-
+	public boolean exclude_z_edges=true;
+	
 	public int nchannels=2;
 	public int mode_intensity=0;//0 automatic, 1 low int, 2 high int (by clustering)
 
@@ -82,15 +93,14 @@ public class Parameters  implements Serializable
 	public double betaMLEindefault = 0.3;//0.082;//0.3;// 0.25;//25;//1340026;//0..//0.45 for//0.3
 	// mito segmentation 0.4 (in latest, was 0.45..)
 
-	public double[][][] PSF;
-
 	
+	public boolean fastsquassh = false;
 	public boolean dispint= false;
 	public boolean displabels= false;
 	public boolean dispcolors= false;
 	public boolean dispoutline= true;
 	public boolean dispcoloc= false;
-	
+	public double min_region_filter_intensities = 0.0;
 	
 	//Rscript parameters
 	public boolean initrsettings= true;
@@ -104,68 +114,10 @@ public class Parameters  implements Serializable
 	public String ch2="channel 2 name";
 	
 
-	// public double [] [] [] PSF=
-	// {
-	// {
-	// {1.96519161240319e-05, 0.000239409349497270, 0.00107295826497866,
-	// 0.00176900911404382, 0.00107295826497866, 0.000239409349497270,
-	// 1.96519161240319e-05},
-	// {0.000239409349497270, 0.00291660295438644, 0.0130713075831894,
-	// 0.0215509428482683, 0.0130713075831894, 0.00291660295438644,
-	// 0.000239409349497270},
-	// {0.00107295826497866, 0.0130713075831894, 0.0585815363306070,
-	// 0.0965846250185641, 0.0585815363306070, 0.0130713075831894,
-	// 0.00107295826497866},
-	// {0.00176900911404382, 0.0215509428482683, 0.0965846250185641,
-	// 0.159241125690702, 0.0965846250185641, 0.0215509428482683,
-	// 0.00176900911404382},
-	// {0.00107295826497866, 0.0130713075831894, 0.0585815363306070,
-	// 0.0965846250185641, 0.0585815363306070, 0.0130713075831894,
-	// 0.00107295826497866},
-	// {0.000239409349497270, 0.00291660295438644, 0.0130713075831894,
-	// 0.0215509428482683, 0.0130713075831894, 0.00291660295438644,
-	// 0.000239409349497270},
-	// {1.96519161240319e-05, 0.000239409349497270, 0.00107295826497866,
-	// 0.00176900911404382, 0.00107295826497866, 0.000239409349497270,
-	// 1.96519161240319e-05}
-	// }
-	// };
+	public psf<DoubleType> PSF;
 
-	// separable into
-	// x axis
-	// 0.00176900911404382, 0.0215509428482683, 0.0965846250185641,
-	// 0.159241125690702, 0.0965846250185641, 0.0215509428482683,
-	// 0.00176900911404382
-	// y axis
-	// 0.011108996538242 0.135335283236613 0.606530659712635 1.000000000000000
-	// 0.606530659712635 0.135335283236613 0.011108996538242
-	public double[] kernelx = { 0.00176900911404382, 0.0215509428482683,
-			0.0965846250185641, 0.159241125690702, 0.0965846250185641,
-			0.0215509428482683, 0.00176900911404382 };
-	public double[] kernely = { 0.011108996538242, 0.135335283236613,
-			0.606530659712635, 1.000000000000000, 0.606530659712635,
-			0.135335283236613, 0.011108996538242 };
-	// todo kernelz
-	public double[] kernelz = { 0.011108996538242, 0.135335283236613,
-			0.606530659712635, 1.000000000000000, 0.606530659712635,
-			0.135335283236613, 0.011108996538242 };
-
-	// public double [] [] [] PSF=
-	// {
-	// {
-	// {0, 0, 0, 0, 0},
-	// {0, 1.38877368450783e-11, 3.72659762092428e-06, 1.38877368450783e-11, 0},
-	// {0, 3.72659762092428e-06, 0.999985093553965, 3.72659762092428e-06, 0},
-	// {0, 1.38877368450783e-11, 3.72659762092428e-06, 1.38877368450783e-11, 0},
-	// {0, 0, 0, 0, 0}
-	// }
-	// };
-	//
 
 	public int ni, nj, nz;
-	int px = 7;
-	int py = 7;
-	int pz = 7;
 
 	public double[] cl;
 
@@ -174,9 +126,10 @@ public class Parameters  implements Serializable
 	public Parameters() 
 	{
 		int max = Math.max(2, nlevels);
-		cl = new double[max]; // can also be created and allocated in NRegions
-		this.PSF = new double[7][7][7];
-		// Tools.gaussian3Dbis(this.PSF, kernelx, kernely, kernelz, 7, 1);
+		cl = new double[max];
+		lreg_ = new double[2];
+		lreg_[0] = 0.05;
+		lreg_[1] = 0.05;
 	}
 
 	//copy constructor
@@ -190,7 +143,10 @@ public class Parameters  implements Serializable
 		this.interpolation=p.interpolation;
 		this.JunitTest = p.JunitTest;
 		this.ldata = p.ldata;
-		this.lreg = p.lreg;
+		for (int i = 0 ; i < this.lreg_.length ; i++)
+		{
+			this.lreg_[i] = p.lreg_[i];
+		}
 		// region non psf test
 		this.gamma = p.gamma;// was 10 : use 1 for two region PSF version
 		this.size_rollingball = p.size_rollingball;
@@ -233,24 +189,20 @@ public class Parameters  implements Serializable
 		this.thresh = p.thresh;
 		this.betaMLEoutdefault = p.betaMLEoutdefault;// 0.003 // 0.0027356;
 		this.betaMLEindefault = p.betaMLEindefault;// 0.25;//25;//1340026;//0..//0.45 for//0.3
-
+		this.min_region_filter_intensities = p.min_region_filter_intensities;
+		
+		this.fastsquassh = p.fastsquassh;
 		this.overs=p.overs;
 		this.dispint= p.dispint;
 		this.displabels= p.displabels;
 		this.dispcolors= p.dispcolors;
 		this.dispoutline= p.dispoutline;
 		this.dispcoloc= p.dispcoloc;
-		this.PSF= new double [7][7][7];
+		this.PSF= p.PSF;
 		this.mode_intensity=p.mode_intensity;
 		this.noise_model=p.noise_model;
 
 		this.ni=p.ni; this.nj=p.nj; this.nz=p.nz;
-		this.px = 7;
-		this.py = 7;
-		this.pz = 7;
-		this.kernelx= new double[7];
-		this.kernely= new double[7];
-		this.kernelz= new double[7];
 		this.blackbackground=p.blackbackground;
 		
 		int max = Math.max(2, this.nlevels);

@@ -6,12 +6,11 @@ import ij.plugin.Duplicator;
 
 import java.util.List;
 
-import mosaic.region_competition.FloodFill;
-import mosaic.region_competition.IntensityImage;
-import mosaic.region_competition.LabelImage;
-import mosaic.region_competition.MultipleThresholdImageFunction;
-import mosaic.region_competition.MultipleThresholdIntenityImageFunction;
-import mosaic.region_competition.Point;
+import mosaic.core.binarize.BinarizedIntervalIntesityImage;
+import mosaic.core.utils.FloodFill;
+import mosaic.core.utils.IntensityImage;
+import mosaic.region_competition.LabelImageRC;
+import mosaic.core.utils.Point;
 import mosaic.region_competition.utils.BubbleDrawer;
 import mosaic.region_competition.utils.MaximumFinder2D;
 import mosaic.region_competition.utils.MaximumFinder3D;
@@ -27,7 +26,7 @@ public class MaximaBubbles extends DataDrivenInitializer
 	
 	int regionThreshold = 4; // regions smaller than this values will be bubbled
 	
-	public MaximaBubbles(IntensityImage intensityImage, LabelImage labelImage, int rad_t, double sigma_t, double tol_t, int r_t)
+	public MaximaBubbles(IntensityImage intensityImage, LabelImageRC labelImage, int rad_t, double sigma_t, double tol_t, int r_t)
 	{
 		super(intensityImage, labelImage);
 		int dim = labelImage.getDim();
@@ -70,8 +69,7 @@ public class MaximaBubbles extends DataDrivenInitializer
 		List<Point> list;
 		list = maximumFinder.getMaximaPointList(intensityImage.dataIntensity, tolerance, excludeOnEdges);
 		
-		
-		MultipleThresholdImageFunction foo = new MultipleThresholdIntenityImageFunction(intensityImage);
+		BinarizedIntervalIntesityImage foo = new BinarizedIntervalIntesityImage(intensityImage);
 		int color = 1;
 		for(Point p : list)
 		{

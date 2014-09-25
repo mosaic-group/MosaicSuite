@@ -28,7 +28,7 @@ public abstract class EnergyGUI extends GUImeMore
 			}
 			case e_DeconvolutionPC:
 			{
-				result = new Deconvolution_GUI(settings);
+				result = new DefaultEnergyGUI();
 				break;
 			}
 			default:
@@ -45,8 +45,6 @@ public abstract class EnergyGUI extends GUImeMore
 		EnergyFunctionalType type = EnergyFunctionalType.valueOf(energy);
 		return factory(settings, type);
 	}
-	
-
 }
 	
 	
@@ -70,44 +68,6 @@ class PS_GUI extends EnergyGUI
 	{	
 		settings.m_GaussPSEnergyRadius = (int)gd.getNextNumber();
 		settings.m_BalloonForceCoeff = (float)gd.getNextNumber();
-	}
-}
-
-class Deconvolution_GUI extends EnergyGUI
-{
-	public Deconvolution_GUI(Settings settings)
-	{
-		super(settings);
-	}
-
-	@Override
-	public void createDialog()
-	{	
-		gd.setTitle("Deconvolution Options");
-		
-		gd.addTextAreas(settings.m_PSFImg, null, 1, 20);
-		Button b = new Button("Open PSF Image");
-		b.addActionListener(new FileOpenerActionListener(gd, gd.getTextArea1()));
-		gd.add(b);
-		gd.addCheckbox("Generate", settings.m_UseGaussianPSF);
-	}
-
-	@Override
-	public void process()
-	{
-		String filenameInput=gd.getTextArea1().getText();
-		if(filenameInput==null || filenameInput.isEmpty())
-		{
-			//TODO 
-			// set text to [] due to a bug in GenericDialog
-			// if bug gets fixed, this will cause problems!
-			settings.m_UseGaussianPSF = true;
-		}
-		else
-		{
-			settings.m_UseGaussianPSF = gd.getNextBoolean();
-			settings.m_PSFImg = filenameInput.replace('\\', '/');
-		}
 	}
 }
 

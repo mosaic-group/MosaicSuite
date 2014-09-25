@@ -1,27 +1,27 @@
 package mosaic.region_competition.utils;
 
-import mosaic.region_competition.LabelImage;
-import mosaic.region_competition.Point;
-import mosaic.region_competition.RegionIteratorSphere;
-import mosaic.region_competition.SphereMask;
+import mosaic.region_competition.LabelImageRC;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIteratorMask;
+import mosaic.core.utils.SphereMask;
 
 /**
  * This shall be the nice version with new Sphere Iterator
  */
 public class BubbleDrawer
 {
-	LabelImage labelImage;
-	RegionIteratorSphere sphereIt;
+	LabelImageRC labelImage;
+	RegionIteratorMask sphereIt;
 	SphereMask sphere;
 	
-	public BubbleDrawer(LabelImage labelImage, int radius, int size)
+	public BubbleDrawer(LabelImageRC labelImage, int radius, int size)
 	{
 		this.labelImage = labelImage;
 		
 		int dim = labelImage.getDim();
 		int[] input = labelImage.getDimensions();
 		sphere = new SphereMask(radius, size, dim);
-		sphereIt = new RegionIteratorSphere(sphere, input);
+		sphereIt = new RegionIteratorMask(sphere, input);
 	}
 	
 	/**
