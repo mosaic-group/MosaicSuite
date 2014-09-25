@@ -61,6 +61,32 @@ public class Region3DRScript extends StubProp implements ICSVGeneral
 		z = r.z;
 	}
 	
+	public boolean equals(Region3DRScript r)
+	{		
+		if (Size != r.Size)
+			return true;
+		
+		if (Perimeter != r.Perimeter)
+			return true;
+			
+		if (Length != r.Length)
+			return true;
+		
+		if (Intensity != r.Intensity)
+			return true;
+		
+		if (x != r.x)
+			return true;
+		
+		if (y != r.y)
+			return true;
+		
+		if (z != r.z)
+			return true;
+		
+		return false;
+	}
+	
 	public void setFrame(int fr) {Image_ID = fr;}
 	public void setSurface(double Surface_) {Perimeter = Surface_;}
 	public void setCoord_X(double Coord_X_) {x = Coord_X_;}
