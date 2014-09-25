@@ -27,16 +27,33 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
+import net.imglib2.RandomAccess;
+import net.imglib2.img.Img;
+import net.imglib2.img.ImgFactory;
+import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.type.numeric.integer.ShortType;
 import mosaic.bregman.Tools;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.ShellCommand;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.ipc.OutputChoose;
 
 public class BLauncher 
 {
+	double colocAB;
+	double colocABnumber;
+	double colocABsize;
+	double colocBA;
+	double colocBAnumber;
+	double colocBAsize;
+	double colocA;
+	double colocB;
+	
 	public  int hcount=0;
 	public  String headlesscurrent;
-	PrintWriter out3;
+//	PrintWriter out3;
 	ImagePlus aImp;
 	Tools Tools;
 	RScript script;
@@ -66,7 +83,7 @@ public class BLauncher
 	 */
 	
 	public BLauncher(String path)
-	{				
+	{
 		boolean processdirectory =(new File(path)).isDirectory();
 		if(processdirectory)
 		{
@@ -86,12 +103,29 @@ public class BLauncher
 			
 			for (File f : fl)
 			{
+				if (f.isDirectory() == true)
+					continue;
+				
+				// If it is the Rscript continue
+				
+				if (f.getName().equals("R_analysis.R"))
+					continue;
+				
+				// It is an hidden file
+				if (f.getName().startsWith(".") == true)
+					continue;
+					
+				// It is a csv file
+				if (f.getName().endsWith(".csv") == true)
+					continue;
+					
+				
 				// Attempt to open a file
 				
 				try
 				{
 					aImp = MosaicUtils.openImg(f.getAbsolutePath());
-					pf.add(f.getName().substring(0,f.getName().lastIndexOf(".")));
+					pf.add(MosaicUtils.removeExtension(f.getName()));
 				}
 				catch (java.lang.UnsupportedOperationException e)
 				{
@@ -110,15 +144,34 @@ public class BLauncher
 					saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
 					
 					try
-					{out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), cnt);} 
+					{
+						if (fl.length != 1)
+							out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp),aImp.getTitle(),"stitch", hcount-1);
+						else
+							out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp),aImp.getTitle(),aImp.getTitle(), 0);
+					} 
 					catch (FileNotFoundException e) 
 					{e.printStackTrace();}
 				}
 				cnt++;
 			}
-			
 			if (out != null)
+			{
 				out.close();
+				out =null;
+			}
+			
+			// Try to run the R script
+			
+			try {
+				ShellCommand.exeCmdNoPrint("Rscript " + dir.getAbsolutePath() + File.separator + "R_analysis.R");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		else
 		{
@@ -130,7 +183,7 @@ public class BLauncher
 				System.out.println("No image to process " + path);
 				return;
 			}
-			
+			pf.add(MosaicUtils.removeExtension(aImp.getTitle()));
 			Headless_file();
 			
 			// Display results
@@ -148,7 +201,7 @@ public class BLauncher
 				PrintWriter out = null;
 				File fl = new File(path);
 				try
-				{out = writeImageDataCsv(out, fl.getAbsolutePath(), fl.getName(), 0);
+				{out = writeImageDataCsv(out, fl.getParent(), fl.getName(), fl.getName(), 0);
 				out.close();} 
 				catch (FileNotFoundException e) 
 				{e.printStackTrace();}
@@ -166,6 +219,7 @@ public class BLauncher
 		
 		for (int f = 1 ; f <= aImp.getNFrames(); f++)
 		{
+			Analysis.frame = f;
 			aImp.setPosition(aImp.getChannel(),aImp.getSlice(),f);
 			Headless_file();
 			
@@ -181,7 +235,7 @@ public class BLauncher
 				
 				try
 				{
-					out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), f-1);} 
+					out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), aImp.getTitle(),  f-1);} 
 				catch (FileNotFoundException e) 
 				{e.printStackTrace();}
 			}
@@ -196,7 +250,7 @@ public class BLauncher
 	 * 
 	 * Display results
 	 * 
-	 * @param separate
+	 * @param separate true if you do not want separate the images
 	 * 
 	 */
 	
@@ -206,6 +260,8 @@ public class BLauncher
 		int fz;
 		if(Analysis.p.nz>1)fz=factor; else fz=1;
 		
+		System.out.println("Separate: " + sep);
+		
 		if(Analysis.p.dispoutline)
 		{
 			displayoutline(Analysis.regions[0], Analysis.imagea,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1,sep);
@@ -213,10 +269,10 @@ public class BLauncher
 		}
 		if(Analysis.p.dispint)
 		{
-			displayintensities(Analysis.regionslist[0], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1, Analysis.imagecolor_c1,sep);
-			if (Analysis.p.nchannels == 2) {displayintensities(Analysis.regionslist[1], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2, Analysis.imagecolor_c2, sep);}
+			displayintensities(Analysis.regionslist[0], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1,sep);
+			if (Analysis.p.nchannels == 2) {displayintensities(Analysis.regionslist[1], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2, sep);}
 		}
-		if (Analysis.p.displabels)
+		if (Analysis.p.displabels || Analysis.p.dispcolors)
 		{
 			displayRegionsCol(Analysis.regions[0], 1, Analysis.regionslist[0].size(),sep);
 			if (Analysis.p.nchannels == 2) {displayRegionsCol(Analysis.regions[0], 2, Analysis.regionslist[0].size(),sep);};
@@ -226,6 +282,11 @@ public class BLauncher
 			displayRegionsLab(1,sep);
 			if (Analysis.p.nchannels == 2) {displayRegionsLab(2,sep);}
 		}
+		if (Analysis.p.dispSoftMask)
+		{			
+			Analysis.out_soft_mask[0].show();
+			if (Analysis.p.nchannels == 2) {Analysis.out_soft_mask[1].show();}
+		}
 
 	}
 	
@@ -233,10 +294,12 @@ public class BLauncher
 	 * 
 	 * Save all images
 	 * 
+	 * @param path where to save
+	 * 
 	 */
 	
 	private void saveAllImages(String path)
-	{	
+	{		
 		// Save images
 			
 		for (int i = 0 ; i < out_over.length ; i++)
@@ -255,16 +318,22 @@ public class BLauncher
 		
 		for (int i = 0 ; i < out_label.length ; i++)
 		{
-			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
+			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c" + (i+1) +".zip";
 			if (out_label[i] != null)
 				IJ.saveAs(out_label[i], "ZIP", savepath);
 		}
 		
 		for (int i = 0 ; i < out_label_gray.length ; i++)
 		{
-			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c1" +".zip";
+			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_mask_c" + (i+1) +".zip";
 			if (out_label_gray[i] != null)
 				IJ.saveAs(out_label_gray[i], "ZIP", savepath);
+		}
+		for (int i = 0 ; i < Analysis.out_soft_mask.length ; i++)
+		{
+			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_soft_mask_c" + (i+1) +".tiff";
+			if (Analysis.out_soft_mask[i] != null)
+				IJ.saveAsTiff(Analysis.out_soft_mask[i], savepath);
 		}
 	}
 	
@@ -273,30 +342,26 @@ public class BLauncher
 	 * 
 	 * Write the CSV ImageData file information
 	 * 
-	 * @param path Path of the file path
+	 * @param path directory where to save
+	 * @param filename name of the file processed
+	 * @param outfilename output file (extension is removed)
+	 * @param hcount frame output
 	 * @return true if success, false otherwise
 	 * @throws FileNotFoundException 
 	 */
 	
-	private PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, int hcount) throws FileNotFoundException
+	private PrintWriter writeImageDataCsv(PrintWriter out, String path, String filename, String outfilename, int hcount) throws FileNotFoundException
 	{
 		if (out == null)
 		{
 			// Remove extension from filename
 			
-			String[] fl = filename.split("\\.");
+			String ff = MosaicUtils.removeExtension(filename);
+			String ffo = MosaicUtils.removeExtension(outfilename);
 			
-			// Remove filename
+			out  = new PrintWriter(path + File.separator + ffo + "_ImagesData"+ ".csv");
 			
-			File flp = new File(path);
 			
-			out  = new PrintWriter(flp.getParent() + File.separator + fl[0] + "_ImagesData"+ ".csv");
-		}
-		
-		// if two channel
-		
-		if (hcount == 0)
-		{
 			// write the header
 			
 			if (Analysis.p.nchannels == 2)
@@ -322,15 +387,13 @@ public class BLauncher
 				out.println();
 				out.flush();
 			}
-
-			out.println();
 			out.print(
-					"Parameters:" + " " + 
+					"%Parameters:" + " " + 
 							"background removal " + " "+ Analysis.p.removebackground  + " " +
 							"window size " + Analysis.p.size_rollingball + " " +
 							"stddev PSF xy " + " "+ mosaic.bregman.Tools.round(Analysis.p.sigma_gaussian, 5) + " " +
 							"stddev PSF z " + " "+ mosaic.bregman.Tools.round(Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 5)+ " " +
-							"Regularization " + Analysis.p.lreg  + " " +
+							"Regularization " + Analysis.p.lreg_[0]  + " " + Analysis.p.lreg_[1] + " " +
 							"Min intensity ch1 " + Analysis.p.min_intensity +" " +
 							"Min intensity ch2 " + Analysis.p.min_intensityY +" " +
 							"subpixel " + Analysis.p.subpixel + " " +
@@ -353,19 +416,6 @@ public class BLauncher
 			corr=temp[0];
 			corr_mask=temp[1];
 			corr_zero=temp[2];
-			
-			out.print(filename + ";" + mosaic.bregman.Tools.round(corr,3) + ";" + mosaic.bregman.Tools.round(corr_mask,3)+ ";" + mosaic.bregman.Tools.round(corr_zero,3));
-			out.println();
-			out.flush();
-			
-			double colocAB=mosaic.bregman.Tools.round(Analysis.colocsegAB(hcount),4);
-			double colocABnumber = mosaic.bregman.Tools.round(Analysis.colocsegABnumber(),4);
-			double colocABsize = mosaic.bregman.Tools.round(Analysis.colocsegABsize(hcount),4);
-			double colocBA=mosaic.bregman.Tools.round(Analysis.colocsegBA(out3, hcount),4);
-			double colocBAnumber = mosaic.bregman.Tools.round(Analysis.colocsegBAnumber(),4);
-			double colocBAsize=mosaic.bregman.Tools.round(Analysis.colocsegBAsize(out3, hcount),4);
-			double colocA=mosaic.bregman.Tools.round(Analysis.colocsegA(null),4);
-			double colocB=mosaic.bregman.Tools.round(Analysis.colocsegB(null),4);
 			
 			double meanSA= Analysis.meansurface(Analysis.regionslist[0]);
 			double meanSB= Analysis.meansurface(Analysis.regionslist[1]);
@@ -422,6 +472,12 @@ public class BLauncher
 			System.out.println(Thread.currentThread().getStackTrace().toString());
 			img = aImp;
 			
+			if (img == null)
+			{IJ.error("No image to process");}
+			
+			if (img.getType() == ImagePlus.COLOR_RGB)
+			{IJ.error("This is a color image and is not supported, convert into 8-bit , 16-bit or float"); return;}
+			
 			Analysis.p.nchannels=img.getNChannels();
 
 			if(Analysis.p.save_images)
@@ -434,34 +490,17 @@ public class BLauncher
 
 				if(Analysis.p.nchannels==2)
 				{
-					out3 = new PrintWriter(savepath+"_ObjectsData_c2"+ ".csv");
-					
-					Analysis.p.file1=savepath+"_ObjectsData_c1"+ ".csv";
-					Analysis.p.file2=savepath+"_ObjectsData_c2"+ ".csv";
-					Analysis.p.file3=savepath+"_ImagesData"+ ".csv";
+					Analysis.p.file1=savepath+File.separator+"stitch_ObjectsData_c1"+ ".csv";
+					Analysis.p.file2=savepath+File.separator+"stitch_ObjectsData_c2"+ ".csv";
+					Analysis.p.file3=savepath+File.separator+"stitch_ImagesData"+ ".csv";
 					if(Analysis.p.save_images)
 					{
 						script = new RScript(
-								Analysis.p.wd, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3,
+								savepath, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3,
 								Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames,
 								Analysis.p.ch1,Analysis.p.ch2
 								);
 						script.writeScript();
-					}
-
-					if(Analysis.p.nz>1)
-					{
-						out3.print("Image ID" + ";" + "Object ID" +";"
-								+ "Size" + ";" + "Surface" + ";" + "Length" + ";" +"Intensity" + ";"
-								+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-						out3.println();
-					}
-					else
-					{
-						out3.print("Image ID" + ";" + "Object ID" +";"
-								+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";"
-								+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-						out3.println();		
 					}
 				}
 			}
@@ -470,13 +509,6 @@ public class BLauncher
 			bcolocheadless(img);
 			IJ.log("");
 			IJ.log("Done");
-
-
-			if(Analysis.p.save_images)
-			{
-				finish();
-			}
-
 		}
 		catch (Exception e)
 		{//Catch exception if any
@@ -485,149 +517,6 @@ public class BLauncher
 		}
 
 	}
-
-/*	public void Headless_directory(){
-		//IJ.log("starting dir");
-		try
-		{
-			wpath=wpath + File.separator;
-			Analysis.p.wd= wpath;
-			Analysis.doingbatch=true;
-
-			Analysis.p.livedisplay=false;
-
-			Analysis.p.dispwindows=false;
-			Analysis.p.save_images=true;
-
-			IJ.log(Analysis.p.wd);
-			//long Time = new Date().getTime(); //start time
-
-			String [] list = new File(wpath).list();
-			if (list==null) {IJ.log("No files in folder"); return;}
-			Arrays.sort(list);
-
-			//IJ.log("la");
-			int ii=0;
-			boolean imgfound=false;
-			while (ii<list.length && !imgfound) 
-			{
-				if(Analysis.p.debug){IJ.log("read"+list[ii]);}
-				boolean isDir = (new File(wpath+list[ii])).isDirectory();
-				if (	!isDir &&
-						!list[ii].startsWith(".")&&
-						!list[ii].startsWith("Coloc") &&
-						!list[ii].startsWith("X_Vesicles")&&
-						!list[ii].startsWith("Y_Vesicles")&&
-						!list[ii].endsWith("_seg_c1.tif")&&
-						!list[ii].endsWith("_seg_c2.tif")&&
-						!list[ii].endsWith("_mask_c1.tif")&&
-						!list[ii].endsWith("_mask_c2.tif")&&
-						!list[ii].endsWith("_ImageData.tif")&&
-						!list[ii].endsWith(".zip")&&
-						(list[ii].endsWith(".tif") || list[ii].endsWith(".tiff") ) 
-						){
-
-					ImagePlus img=IJ.openImage(wpath+list[ii]);
-					Analysis.p.nchannels=img.getNChannels();
-					imgfound=true;
-
-				}
-				ii++;
-			}
-
-
-			//IJ.log("nchannels" + Analysis.p.nchannels);
-
-			if(Analysis.p.nchannels==2)
-			{
-				IJ.log("looking for files at " + wpath);
-				String [] directrories=  wpath.split("\\"+File.separator);
-				int nl = directrories.length;
-				String savepath=(directrories[nl-1]).replaceAll("\\"+File.separator, ""); 
-
-//				out  = new PrintWriter(wpath+savepath+"_ImageData"+ ".csv");
-				out3 = new PrintWriter(wpath+savepath+"_ObjectsData_c2"+ ".csv");
-
-				Analysis.p.file1=wpath+savepath+"_ObjectsData_c1"+ ".csv";
-				Analysis.p.file2=wpath+savepath+"_ObjectsData_c2"+ ".csv";
-				Analysis.p.file3=wpath+savepath+"_ImagesData"+ ".csv";
-				script = new RScript(
-						Analysis.p.wd, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3,
-						Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames,
-						Analysis.p.ch1,Analysis.p.ch2
-						);
-				script.writeScript();
-				
-				
-				if(Analysis.p.nz>1)
-				{
-					out3.print("Image ID" + ";" + "Object ID" +";"
-							+ "Size" + ";" + "Surface" + ";" + "Length" + ";" +"Intensity" + ";"
-							+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-					out3.println();
-				}
-				else
-				{
-					out3.print("Image ID" + ";" + "Object ID" +";"
-							+ "Size" + ";" + "Perimeter" + ";" + "Length" + ";" +"Intensity" + ";"
-							+ "Overlap with ch1" +";"+ "Coloc object size" + ";"+ "Coloc object intensity" + ";" + "Single Coloc" + ";" + "Coloc image intensity"+ ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
-					out3.println();		
-				}
-			}
-
-			else
-			{
-
-				String [] directrories=  wpath.split("\\"+File.separator);
-				int nl = directrories.length;
-				String savepath=(directrories[nl-1]).replaceAll("\\"+File.separator, ""); */
-/*				out  = new PrintWriter(wpath+savepath+"_Images_data"+ ".csv");
-
-				out.println();
-				out.print("File"+ ";" +"Image ID" + ";"+ "Objects ch1" + ";" + "Mean size in ch 1" + ";" + "Mean surface in ch1"  +";"+ "Mean length in ch1"  );
-				out.println();*/
-/*			}
-
-			for (int i=0; i<list.length; i++) {
-				if(Analysis.p.debug){IJ.log("read"+list[i]);}
-				boolean isDir = (new File(wpath+list[i])).isDirectory();
-				if (	!isDir &&
-						!list[i].startsWith(".") &&
-						!list[i].startsWith("Coloc") &&
-						!list[i].startsWith("X_Vesicles")&&
-						!list[i].startsWith("Objects_data")&&
-						!list[i].startsWith("Y_Vesicles")&&
-						!list[i].endsWith("_seg_c1.tif")&&
-						!list[i].endsWith("_seg_c2.tif")&&
-						!list[i].endsWith("_mask_c1.tif")&&
-						!list[i].endsWith("_mask_c2.tif")&&
-						!list[i].endsWith("_ImageData.tif")&&
-						list[i].endsWith(".tif")&&
-						!list[i].endsWith(".zip")
-						){
-					IJ.log("Analyzing " + list[i]+ "... ");
-					ImagePlus img=IJ.openImage(wpath+list[i]);
-					//IJ.log("opened");
-
-					if(Analysis.p.pearson)
-						bcolocheadless_pearson(img);
-					else
-						bcolocheadless(img);
-					//IJ.log("done");
-
-					Runtime.getRuntime().gc();
-				}
-			}
-			IJ.log("");
-			IJ.log("Done");
-
-			finish();
-		}catch (Exception e){//Catch exception if any
-			System.err.println("Error headless: " + e.getMessage());
-		}
-		Analysis.doingbatch=false;
-	}*/
-
 
 	public void bcolocheadless_pearson(ImagePlus img2){
 		double Ttime=0;
@@ -727,29 +616,12 @@ public class BLauncher
 
 		//IJ.log("dispcolors" + Analysis.p.dispcolors);
 		Analysis.segmentA();			 
-
-		try{
-			Analysis.DoneSignala.await();
-		}catch (InterruptedException ex) {}
-
-
-		try {
-			Thread.sleep(10000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
 		//IJ.log("imgb :" +list[i+1]);
 
 		if(Analysis.p.nchannels==2){
-			Analysis.segmentb();			 
-
-			try {
-				Analysis.DoneSignalb.await();
-			}catch (InterruptedException ex) {}
+			Analysis.segmentb();
 		}
-
 
 		//TODO : why is it needed to reassign p.ni ...??
 		Analysis.p.ni=Analysis.imgA.getWidth();
@@ -775,7 +647,7 @@ public class BLauncher
 			if(Analysis.p.nz>1)fz2=factor2; else fz2=1;
 
 			MasksDisplay md= new MasksDisplay(Analysis.p.ni*factor2,Analysis.p.nj*factor2,Analysis.p.nz*fz2,Analysis.p.nlevels,Analysis.p.cl,Analysis.p);
-			md.displaycoloc(Analysis.regionslist[0],Analysis.regionslist[1]);
+			md.displaycoloc(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle(),Analysis.regionslist[0],Analysis.regionslist[1],ip);
 
 			Analysis.na=Analysis.regionslist[0].size();
 			Analysis.nb=Analysis.regionslist[1].size();
@@ -786,13 +658,62 @@ public class BLauncher
 			//IJ.log("f");
 
 			//if(Analysis.p.dispwindows){
-			IJ.log("Colocalization ch1 in ch2: " +mosaic.bregman.Tools.round(colocsegAB,4));
-			IJ.log("Colocalization ch2 in ch1: " +mosaic.bregman.Tools.round(colocsegBA,4));
+			
+//			IJ.log("Colocalization ch1 in ch2: " +mosaic.bregman.Tools.round(colocsegAB,4));
+//			IJ.log("Colocalization ch2 in ch1: " +mosaic.bregman.Tools.round(colocsegBA,4));
 			//}
 			if(Analysis.p.save_images)
 			{
-				Analysis.printobjectsB(out3, hcount);
-				out3.flush();
+				// Write object 2 list
+				
+				String savepath = null;
+				savepath = MosaicUtils.ValidFolderFromImage(aImp);
+
+				//IJ.log("print objects");
+//				Analysis.printobjects(out2, hcount);
+
+				// Calculate colocalization quantities
+				
+				colocAB=mosaic.bregman.Tools.round(Analysis.colocsegAB(hcount),4);
+				colocBA=mosaic.bregman.Tools.round(Analysis.colocsegBA(hcount),4);
+				colocABnumber = mosaic.bregman.Tools.round(Analysis.colocsegABnumber(),4);
+				colocABsize = mosaic.bregman.Tools.round(Analysis.colocsegABsize(hcount),4);
+				colocBAnumber = mosaic.bregman.Tools.round(Analysis.colocsegBAnumber(),4);
+				colocBAsize=mosaic.bregman.Tools.round(Analysis.colocsegBAsize(hcount),4);
+				colocA=mosaic.bregman.Tools.round(Analysis.colocsegA(null),4);
+				colocB=mosaic.bregman.Tools.round(Analysis.colocsegB(null),4);
+				
+				boolean append = false;
+				
+				if (hcount == 0)
+					append = false;
+				else
+					append = true;
+				
+				// Write channel 2
+				
+				// Choose the Rscript coloc format
+				CSVOutput.occ = CSVOutput.oc[2];
+				Vector<?> obl = Analysis.getObjectsList(hcount,1);
+				
+				String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
+				
+				InterPluginCSV<?> IpCSV = CSVOutput.getInterPluginCSV();
+				IpCSV.clearMetaInformation();
+				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
+				
+				System.out.println(savepath + File.separator +  filename_without_ext + "_ObjectsData_c2" + ".csv");
+				
+				IpCSV.Write(savepath + File.separator +  filename_without_ext + "_ObjectsData_c2" + ".csv",obl,CSVOutput.occ, append);
+				
+				// Write channel 1
+				
+				obl = Analysis.getObjectsList(hcount,0);
+				IpCSV.clearMetaInformation();
+				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
+				
+				System.out.println(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv");
+				IpCSV.Write(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv",obl,CSVOutput.occ, append);
 			}
 
 			Analysis.doingbatch=false;
@@ -828,7 +749,7 @@ public class BLauncher
 				else
 					append = true;
 				
-				Vector<?> obl = Analysis.getObjectsList(hcount);
+				Vector<?> obl = Analysis.getObjectsList(hcount,0);
 				
 				String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
 				
@@ -978,30 +899,33 @@ public class BLauncher
 	 * 
 	 */
 	
-	public void displayintensities(ArrayList<Region> regionslist,int dz, int di, int dj, int channel, byte [] imagecolor, boolean sep)
+	public void displayintensities(ArrayList<Region> regionslist,int dz, int di, int dj, int channel, boolean sep)
 	{
-		ImageStack intS;
-		ImagePlus intensities= new ImagePlus();
-
 		//build stack and imageplus
-		intS=new ImageStack(di,dj);
-		for (int z=0; z<dz; z++) {  
-			int [] tabt= new int [3];
+		
+		final ImgFactory< ShortType > imgFactory = new ArrayImgFactory< ShortType >( );
+		 
+	    // create an 3d-Img
+	    final Img< ShortType > imgInt = imgFactory.create( new long[]{ di, dj, dz }, new ShortType() );
+		RandomAccess< ShortType > ra = imgInt.randomAccess();
 
-			ColorProcessor cpcoloc= new ColorProcessor(di,dj);
-			for (int i=0;i<di;i++) {
-				int t=z*di*dj*3+i*dj*3;
-				for (int j=0;j< dj;j++){
-					tabt[0]=imagecolor[t+j*3+0] & 0xFF;
-					tabt[1]=imagecolor[t+j*3+1] & 0xFF;
-					tabt[2]=imagecolor[t+j*3+2] & 0xFF;
-					cpcoloc.putPixel(i, j, tabt);
-				}
-			}
-			intS.addSlice("Intensities reconstruction, channel " + channel, cpcoloc);
-
-		}
-		intensities.setStack("Intensities reconstruction, channel " +channel, intS);
+		int pos[] = new int[3];
+		
+	    // for each region draw the region with specified intensity
+	    for (Region r : regionslist)
+	    {
+	    	// for each pixel in the region
+	    	for (Pix p : r.pixels)
+	    	{
+	    		pos[0] = p.px;
+	    		pos[1] = p.py;
+	    		pos[2] = p.pz;
+	    		ra.setPosition(pos);
+	    		ra.get().set((short)r.intensity);
+	    	}
+	    }
+	    
+		ImagePlus intensities = ImageJFunctions.wrap(imgInt,"Intensities");
 		
 		if (sep == false)
 			updateImages(out_disp,intensities,"Intensities reconstruction, channel " +channel,Analysis.p.dispint,channel);
@@ -1152,19 +1076,9 @@ public class BLauncher
 		
 		if(disp)
 		{
+			// this force the update of the image
 			ipd[channel-1].setStack(ipd[channel-1].getStack());
 			ipd[channel-1].show();
-		}
-	}
-	
-	public  void finish()
-	{
-		if(Analysis.p.save_images)
-		{
-			if(Analysis.p.nchannels==2)
-			{
-				out3.close();
-			}
 		}
 	}
 

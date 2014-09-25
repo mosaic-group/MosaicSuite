@@ -168,7 +168,9 @@ public class ZoneTask implements Runnable {
 		Sync10.countDown();
 		Sync10.await();
 		
-		for (int i=iStart; i<iEnd; i++) {  
+		for (int i=iStart; i<iEnd; i++) 
+		{
+			tmp2t=AS.temp2[AS.l][0];
 			for (int j=0; j<AS.nj; j++) {
 				tmp2t[i][j]=iDiff*tmp2t[i][j] + c0t;
 			}	
@@ -182,8 +184,8 @@ public class ZoneTask implements Runnable {
 			//temp3=detw2
 			//  detw2 = (lambda*gamma.*weightData-b2k-muk).^2+4*lambda*gamma*weightData.*image;
 
-			double ratioPrior=(AS.p.ldata/AS.p.lreg)*AS.p.gamma;
-			double ratioPrior4=4*(AS.p.ldata/AS.p.lreg)*AS.p.gamma;
+			double ratioPrior=(AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma;
+			double ratioPrior4=4*(AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma;
 			double temp;
 			for (int z=0; z<AS.nz; z++){
 				b1kt=AS.b1k[AS.l][z];
@@ -201,7 +203,7 @@ public class ZoneTask implements Runnable {
 			}
 
 			//w2k = 0.5*(b2k+muk-lambda*gamma.*weightData+sqrt(detw2));
-			double ratioPriorGamma=(AS.p.ldata/AS.p.lreg)*AS.p.gamma;
+			double ratioPriorGamma=(AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma;
 			
 			for (int z=0; z<AS.nz; z++){
 				b1kt=AS.b1k[AS.l][z];

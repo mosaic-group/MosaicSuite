@@ -223,8 +223,8 @@ public class ZoneTask3D implements Runnable {
 			//poisson
 		
 			
-			double ratioPrior=(AS.p.ldata/AS.p.lreg)*AS.p.gamma;
-			double ratioPrior4=4*(AS.p.ldata/AS.p.lreg)*AS.p.gamma;
+			double ratioPrior=(AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma;
+			double ratioPrior4=4*(AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma;
 			double temp;
 
 			for (int z=0; z<AS.nz; z++){
@@ -241,7 +241,7 @@ public class ZoneTask3D implements Runnable {
 					}	
 				}
 			}
-			double ratioPriorGamma=(AS.p.ldata/AS.p.lreg)*AS.p.gamma;
+			double ratioPriorGamma=(AS.p.ldata/AS.p.lreg_[AS.channel])*AS.p.gamma;
 			for (int z=0; z<AS.nz; z++){
 				b1kt=AS.b1k[AS.l][z];
 				tmp2t=AS.temp2[AS.l][z];
