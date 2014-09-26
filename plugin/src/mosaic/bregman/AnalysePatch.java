@@ -1154,7 +1154,7 @@ public class AnalysePatch implements Runnable
 		//	IJ.log("lreg ap " + p.lreg);
 
 		//IJ.log("find bess thresh"  +r.value +"cin " + cin + " coutfront " + cout_front);
-		for (t=1;t> min_thresh; t-=0.002){  //mint //rescaled_min_int_all*0.85 0.5*cout
+		for (t=1;t> min_thresh; t-=0.02){  //mint //rescaled_min_int_all*0.85 0.5*cout
 			set_object(w3kbest, t);
 
 			if(obj && !border_attained){
