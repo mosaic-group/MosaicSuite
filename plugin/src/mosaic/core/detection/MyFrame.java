@@ -965,20 +965,23 @@ import net.imglib2.view.Views;
 	        	
 	        	float sp[] = new float[out_a.numDimensions()];
 	        	
-	    		float scaling[] = new float[3];
+	        	float scaling[] = new float[out_a.numDimensions()];
+	        		
 	    		float scaling_[] = new float[3];
 	    		
 	    		if (cal != null)
 	    		{
 	    			scaling[0] = (float) (cal.pixelWidth);
 	    			scaling[1] = (float) (cal.pixelHeight);
-	    			scaling[2] = (float) (cal.pixelDepth);
+	    			if (scaling.length >= 3)
+	    				scaling[2] = (float) (cal.pixelDepth);
 	    		}
 	    		else
 	    		{
 	    			scaling[0] = 1.0f;
 	    			scaling[1] = 1.0f;
-	    			scaling[2] = 1.0f;
+	    			if (scaling.length >= 3)
+	    				scaling[2] = 1.0f;
 	    		}
 	    		
 	    		// Create a circle Mask and an iterator
@@ -989,7 +992,8 @@ import net.imglib2.view.Views;
 		    	int rc = (int) (radius / min_s);
 		    	scaling_[0] = scaling[0] / min_s;
 		    	scaling_[1] = scaling[1] / min_s;
-		    	scaling_[2] = scaling[2] / min_s;
+		    	if (scaling.length >= 3)
+		    		scaling_[2] = scaling[2] / min_s;
 			    if ((rg_m = CircleCache.get(rc)) == null)
 			    {
 			    	if (rc < 1) rc = 1;
@@ -1437,17 +1441,32 @@ import net.imglib2.view.Views;
 	        	
 	        	double radius = Math.cbrt(ptt.p1.m0 / 3.0f * 4.0f);
 	        	
-	        	float scaling[] = new float[3];
-	        	scaling[0] = (float) cal.pixelWidth;
-	        	scaling[1] = (float) cal.pixelHeight;
-	        	scaling[2] = (float) cal.pixelDepth;
+	        	float scaling[] = new float[out_a.numDimensions()];
+	        	
+	    		if (cal != null)
+	    		{
+	    			scaling[0] = (float) (cal.pixelWidth);
+	    			scaling[1] = (float) (cal.pixelHeight);
+	    			if (scaling.length >= 3)
+	    				scaling[2] = (float) (cal.pixelDepth);
+	    		}
+	    		else
+	    		{
+	    			scaling[0] = 1.0f;
+	    			scaling[1] = 1.0f;
+	    			if (scaling.length >= 3)
+	    				scaling[2] = 1.0f;
+	    		}
+	        	
 		    	float min_s = minScaling(scaling);
 		    	int rc = (int) (radius / min_s);
 		    	scaling[0] /= min_s;
 		    	scaling[1] /= min_s;
-		    	scaling[2] /= min_s;
-		    	rc /= scaling[2];
-
+		    	if (scaling.length >= 3)
+		    	{
+		    		scaling[2] /= min_s;
+		    		rc /= scaling[2];
+		    	}
 	        	
 	        	// draw several lines on z
 	        	

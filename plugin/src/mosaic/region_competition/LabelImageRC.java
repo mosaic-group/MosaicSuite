@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Map.Entry;
 
@@ -226,6 +227,14 @@ public class LabelImageRC extends LabelImage
 	
 	public void calculateRegionsCenterOfMass()
 	{
+		// iterate through all the regions and reset mean_pos
+		
+		for (Integer lbl: labelMap.keySet())
+		{
+			for (int i = 0 ; i < labelMap.get(lbl).mean_pos.length; i++)
+				labelMap.get(lbl).mean_pos[i] = 0.0;
+		}
+		
 		// Iterate through all the region
 		
 		RegionIterator rc = new RegionIterator(getDimensions());
@@ -233,7 +242,7 @@ public class LabelImageRC extends LabelImage
 		{
 			rc.next();
 			Point p = rc.getPoint();
-			int lbl = getLabel(p);
+			int lbl = getLabelAbs(p);
 			
 			LabelInformation lbi = labelMap.get(lbl);
 			

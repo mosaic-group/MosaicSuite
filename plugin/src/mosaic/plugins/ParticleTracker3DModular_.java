@@ -478,7 +478,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			slices_number = original_imp.getNSlices();
 			
 			detector = new FeaturePointDetector(global_max, global_min);
-			
 		}
 		else 
 		{
@@ -1070,6 +1069,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		 */
 		private void setFocusArea() {
 
+			// there is no image so set focus does not make sense
+			
+			if (original_imp == null)
+				return;
+			
 			/* find the min and max values of the x and y positions */
 			float min_x = this.existing_particles[0].x;
 			float min_y = this.existing_particles[0].y; 

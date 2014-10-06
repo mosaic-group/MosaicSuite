@@ -116,45 +116,7 @@ public class GenericGUI
 		//clustermode=true;
 	}
 	
-	/**
-	 * 
-	 * Stitch the CSV
-	 * 
-	 * @param fl directory where to stitch the csv
-	 * @param background Set the backgrond param string
-	 * @return true if it stitch all the file success
-	 */
-	
-	private boolean StitchCSV(String fl, String bck)
-	{
-		MetaInfo mt[] = null;
-		if (bck != null)
-		{
-			mt = new MetaInfo[1];
-			mt[0] = new MetaInfo();
-			mt[0].par = new String("background");
-			mt[0].value = new String(bck);
-		}
-		else
-		{
-			mt = new MetaInfo[0];
-		}
-		
-		// get the job directories
-		
-		String[] JobDir = ClusterSession.getJobDirectories(0, fl);
-		
-		// for all job dir stitch
-		
-		for (int i = 0 ; i < JobDir.length ; i++)
-		{
-			String[] jbid = MosaicUtils.readAndSplit(JobDir[i] + File.separator + "JobID");
-			String[] outcsv = MosaicUtils.getCSV(Analysis.out);
-			InterPluginCSV.Stitch(outcsv, new File(JobDir[i]), new File(JobDir[i] + File.separator + MosaicUtils.removeExtension(jbid[2])) , mt, "Image_ID", Region3DColocRScript.class);
-		}
-		
-		return true;
-	}
+
 	
 	/**
 	 * 
@@ -433,7 +395,7 @@ public class GenericGUI
 				// if it is a video Stitch all the csv
 				
 				if (aImp.getNFrames() > 1)
-					StitchCSV(savepath,savepath + File.separator + aImp.getTitle());
+					MosaicUtils.StitchCSV(savepath,Analysis.out,savepath + File.separator + aImp.getTitle());
 			}
 			else
 			{
@@ -446,7 +408,7 @@ public class GenericGUI
 					{
 						MosaicUtils.reorganize(Analysis.out_w,pf,Analysis.p.wd);
 						
-						StitchCSV(fl.getAbsolutePath(),null);
+						MosaicUtils.StitchCSV(fl.getAbsolutePath(),Analysis.out,null);
 					}
 					else
 						MosaicUtils.reorganize(Analysis.out_w,pf,new File(Analysis.p.wd).getParent());
@@ -541,9 +503,9 @@ public class GenericGUI
 			
 			// if background is != null it mean that is a video or is an image so try to stitch
 			if (Background != null)
-				StitchCSV(dir.getAbsolutePath(),Background);
+				MosaicUtils.StitchCSV(dir.getAbsolutePath(),Analysis.out,Background);
 			else
-				StitchCSV(dir.getAbsolutePath(),null);
+				MosaicUtils.StitchCSV(dir.getAbsolutePath(),Analysis.out,null);
 			
 			////////////////
 		}

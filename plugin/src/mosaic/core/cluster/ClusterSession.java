@@ -431,7 +431,7 @@ public class ClusterSession
 		  public boolean accept(File dir, String name) 
 		  {
 			  	File fp = new File(tmp_dir + File.separator + "Job[0-9]+");
-				Pattern jobID = Pattern.compile(fp.getAbsolutePath());
+				Pattern jobID = Pattern.compile(fp.getAbsolutePath().replace("\\", "\\\\"));
 				
 				File fpm = new File(dir + File.separator + name);
 				Matcher matcher = jobID.matcher(fpm.getAbsolutePath());
@@ -1152,6 +1152,7 @@ public class ClusterSession
 	 * @param property if not null the stitch operation try to enumerate the file and set the property
 	 *        in the stitched file according to this enumeration
 	 * @param cls base class for internal conversion
+	 * @return File where the data are saved
 	 * 
 	 */
 	

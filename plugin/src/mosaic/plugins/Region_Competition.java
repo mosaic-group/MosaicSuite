@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -22,6 +23,7 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mosaic.bregman.Analysis;
 import mosaic.bregman.ImagePatches;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.ImagePatcher.ImagePatch;
@@ -440,7 +442,13 @@ public class Region_Competition implements Segmentation
 			// Get output format and Stitch the output in the output selected
 			
 			String outcsv[] = {"*_ObjectsData_c1.csv"};
-			ClusterSession.processJobsData(outcsv,MosaicUtils.ValidFolderFromImage(aImp),RCOutput.class);
+			File f = ClusterSession.processJobsData(outcsv,MosaicUtils.ValidFolderFromImage(aImp),RCOutput.class);
+			
+			if (aImp != null)
+				MosaicUtils.StitchCSV(MosaicUtils.ValidFolderFromImage(aImp),out,MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle());
+			else
+				MosaicUtils.StitchCSV(f.getParent(),out,null);
+				
 			
 			////////////////
 			
@@ -616,6 +624,7 @@ public class Region_Competition implements Segmentation
 		if (labelImage == null)
 			return;
 		
+		System.out.println("Saving labelImage: " + folder + File.separator + MosaicUtils.getRegionMaskName(MVC.getOriginalImPlus().getTitle()));
 		labelImage.save(folder + File.separator + MosaicUtils.getRegionMaskName(MVC.getOriginalImPlus().getTitle()));
 		
 		labelImage.calculateRegionsCenterOfMass();
@@ -1753,7 +1762,13 @@ public class Region_Competition implements Segmentation
 		
 		saveStatistics(folder + File.separator + MosaicUtils.getRegionCSVName(MVC.getOriginalImPlus().getTitle()), labelMap);
 		
-		rts.show("statistics");
+		// if is headless do not show
+		
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment(); 
+		boolean headless_check = ge.isHeadless();
+		
+		if (headless_check == false)
+			rts.show("statistics");
 	}
 	
 	/**
@@ -1773,10 +1788,10 @@ public class Region_Competition implements Segmentation
 		
 		ResultsTable rts = createStatistics(labelMap);
 		
-		try 
+		try
 		{
 			rts.saveAs(fold);
-		} 
+		}
 		catch (IOException e) 
 		{
 			// TODO Auto-generated catch block
@@ -1784,7 +1799,12 @@ public class Region_Competition implements Segmentation
 		}
 		
 		String oip = originalIP.getTitle().substring(0, originalIP.getTitle().lastIndexOf("."));
-		MosaicUtils.reorganize(out,oip, fold.substring(0,fold.lastIndexOf(File.separator)), 1);
+		
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment(); 
+		boolean headless_check = ge.isHeadless();
+		
+		if (headless_check == false)
+			MosaicUtils.reorganize(out,oip, fold.substring(0,fold.lastIndexOf(File.separator)), 1);
 	}
 	
 	public ResultsTable createStatistics(HashMap<Integer, LabelInformation> labelMap)
@@ -1797,6 +1817,7 @@ public class Region_Competition implements Segmentation
 			LabelInformation info = entry.getValue();
 			
 			rt.incrementCounter();
+			rt.addValue("Image_ID", 0);
 			rt.addValue("label", info.label);
 			rt.addValue("size", info.count);
 			rt.addValue("mean", info.mean);

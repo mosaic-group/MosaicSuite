@@ -23,28 +23,29 @@ import org.supercsv.io.dozer.ICsvDozerBeanReader;
 import org.supercsv.io.dozer.ICsvDozerBeanWriter;
 import org.supercsv.prefs.CsvPreference;
 
-class StringInt implements Comparable<StringInt>
+
+class StringLong implements Comparable<StringLong>
 {
 	String v;
-	int number;
+	long number;
 	
 	/**
 	 * 
 	 * Strint int constructor
 	 * 
 	 * @param v file string
-	 * @param number 
+	 * @param l 
 	 * 
 	 */
 	
-	StringInt(String v, int number)
+	StringLong(String v, long l)
 	{
 		this.v = v;
-		this.number = number;
+		this.number = l;
 	}
 
 	@Override
-	public int compareTo(StringInt a) 
+	public int compareTo(StringLong a) 
 	{
 		if (a.number > number)
 		{
@@ -1023,6 +1024,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
     	return true;
     }
     
+    
     /**
      * 
      * Convert a File name to number
@@ -1032,17 +1034,20 @@ public class InterPluginCSV<E extends ICSVGeneral>
      * 
      */
     
-    private static int FileToNumber(File f)
+    private static long FileToNumber(File f)
     {
+    	long id = 1;
+    	long stride = 1;
     	Pattern p = Pattern.compile("[0-9]+");
-    	Matcher m = p.matcher(f.getName());
-    	if(m.find()) 
+    	Matcher m = p.matcher(new StringBuilder(f.getName()).reverse());
+    	while(m.find()) 
     	{
     	    String result = m.group();
-    	    return Integer.parseInt(result);
+    	    id += Integer.parseInt((new StringBuilder(result).reverse()).toString())*stride;
+    	    stride *= 65536;
     	}
     	
-    	return 0;
+    	return id;
     }
     
     /**
@@ -1083,7 +1088,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 			int nf = fl.length;
 			
 			
-			Vector<StringInt> si = new Vector<StringInt>();
+			Vector<StringLong> si = new Vector<StringLong>();
 			
 			// Check all csv file
 			
@@ -1091,7 +1096,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 			{
 				if(fl[i-1].getName().endsWith(".csv"))
 				{
-					si.add(new StringInt(fl[i-1].getAbsolutePath(),FileToNumber(fl[i-1])));
+					si.add(new StringLong(fl[i-1].getAbsolutePath(),FileToNumber(fl[i-1])));
 				}
 			}
 			

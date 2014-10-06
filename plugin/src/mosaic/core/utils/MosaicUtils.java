@@ -44,12 +44,14 @@ import net.imglib2.view.IntervalView;
 import net.imglib2.view.IterableRandomAccessibleInterval;
 import net.imglib2.view.Views;
 import mosaic.bregman.Analysis;
+import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.detection.MyFrame.DrawType;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.ipc.MetaInfo;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
 import mosaic.plugins.ParticleTracker3DModular_.Trajectory;
@@ -1080,7 +1082,7 @@ public class MosaicUtils
 				String tmp = new String(output[j]);
 				
 				File dir = new File(sv + "/" + tmp.replace("*","_"));
-				if (dir.listFiles().length == 0)
+				if (dir.listFiles() != null && dir.listFiles().length == 0)
 				{
 					dir.delete();
 				}
@@ -2217,6 +2219,47 @@ public class MosaicUtils
 		}
 		
 		wp.dispose();
+	}
+	
+	/**
+	 * 
+	 * Stitch the CSV
+	 * 
+	 * @param fl directory where to stitch the csv
+	 * @param output string array that list all the outputs produced by the plugin
+	 * @param background Set the backgrond param string
+	 * @return true if it stitch all the file success
+	 */
+	
+	static public boolean StitchCSV(String fl, String[] output, String bck)
+	{
+		MetaInfo mt[] = null;
+		if (bck != null)
+		{
+			mt = new MetaInfo[1];
+			mt[0] = new MetaInfo();
+			mt[0].par = new String("background");
+			mt[0].value = new String(bck);
+		}
+		else
+		{
+			mt = new MetaInfo[0];
+		}
+		
+		// get the job directories
+		
+		String[] JobDir = ClusterSession.getJobDirectories(0, fl);
+		
+		// for all job dir stitch
+		
+		for (int i = 0 ; i < JobDir.length ; i++)
+		{
+			String[] jbid = MosaicUtils.readAndSplit(JobDir[i] + File.separator + "JobID");
+			String[] outcsv = MosaicUtils.getCSV(output);
+			InterPluginCSV.Stitch(outcsv, new File(JobDir[i]), new File(JobDir[i] + File.separator + MosaicUtils.removeExtension(jbid[2])) , mt, "Image_ID", Region3DColocRScript.class);
+		}
+		
+		return true;
 	}
 
 }

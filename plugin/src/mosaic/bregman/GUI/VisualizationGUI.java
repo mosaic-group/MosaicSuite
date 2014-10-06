@@ -46,8 +46,8 @@ public class VisualizationGUI
 
 		String sgroup2[] = 
 		{
-				"Intermediate steps", "Colorized objects","Objects intensities",
-				"Labelized objects","Outlines overlay","Soft Mask","Save objects characteristics",
+				"Intermediate steps", "Colored objects","Objects intensities",
+				"Labeled objects","Outlines overlay","Soft Mask","Save objects characteristics",
 		};
 		boolean bgroup2[] =
 		{
@@ -111,7 +111,7 @@ public class VisualizationGUI
 
 		Analysis.p.save_images= true;
 
-		//Vizualization
+		//Visualization
 		Analysis.p.livedisplay= gd.getNextBoolean();
 		Analysis.p.dispcolors= gd.getNextBoolean();
 		Analysis.p.dispint= gd.getNextBoolean();
