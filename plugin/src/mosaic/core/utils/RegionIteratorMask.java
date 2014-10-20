@@ -113,8 +113,8 @@ public class RegionIteratorMask
 	/**
 	 * Create a Region iterator Mask
 	 * 
-	 * @param inputSize	size of the input (width/height/...)
-	 * @param 
+	 * @param mask Is the mask
+	 * @param inputSize	size of the original image where is going to run the iterator (width/height/...)
 	 * 
 	 */
 	public RegionIteratorMask(Mask mask, int[] inputSize)

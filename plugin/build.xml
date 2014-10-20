@@ -91,6 +91,10 @@
       <!-- Add needed libs directly to the IJ eclipse project and not into this ant target "compress", for faster debugging 
 	   Add the libs to the target "compressLibs", to get a working plugin for other ImageJ instances outside of eclipse -->
 
+      <!-- Include for imageJ 1.44 -->
+
+      <!-- <zipgroupfileset dir="lib" includes="*.jar" excludes="*.config"/> -->
+
       <zipgroupfileset dir="lib" includes="jtransforms-2.4.jar" excludes="*.config"/>
       <zipgroupfileset dir="lib" includes="javaml-0.1.7.jar" excludes="*.config"/>
       <zipgroupfileset dir="lib" includes="mines-jtk-20100113.jar" excludes="*.config"/>
