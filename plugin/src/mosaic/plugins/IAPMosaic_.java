@@ -1,8 +1,7 @@
 package mosaic.plugins;
 
+import mosaic.core.utils.MosaicUtils;
 import mosaic.ia.gui.GUIDesign;
-
-
 import ij.plugin.PlugIn;
 
 
@@ -28,6 +27,9 @@ public class IAPMosaic_ implements PlugIn {
 	@Override
 	public void run(String arg0) {
 	
+		if (MosaicUtils.checkRequirement() == false)
+			return;
+		
 		try {
 			GUIDesign window = new GUIDesign();
 			window.frmInteractionAnalysis.setVisible(true);

@@ -2270,7 +2270,7 @@ public class MosaicUtils
 	 * 
 	 */
 	
-	boolean checkRequirement()
+	static public boolean checkRequirement()
 	{
 		if(IJ.versionLessThan("1.44u"))
 		{

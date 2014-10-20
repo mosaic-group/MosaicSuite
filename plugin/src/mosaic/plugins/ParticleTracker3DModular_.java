@@ -256,7 +256,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	 */
 	public int setup(String arg, ImagePlus imp) 
 	{
-		MosaicUtils.checkRequirement();
+		if (MosaicUtils.checkRequirement() == false)
+			return DONE;
+			
 		if (arg.equals("about")) 
 		{
 			showAbout(); 

@@ -40,6 +40,7 @@ import mosaic.core.ipc.OutputChoose;
 import mosaic.core.psf.psf;
 import mosaic.core.psf.psfList;
 import mosaic.core.utils.CircleMask;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.core.utils.RegionIteratorMask;
@@ -632,6 +633,9 @@ public class RegionCreator implements PlugInFilter
 	@Override
 	public int setup(String arg0, ImagePlus original_imp) 
 	{
+		if (MosaicUtils.checkRequirement() == false)
+			return DONE;
+		
 		/* get user defined params and set more initial params accordingly 	*/	
 
 		GenericDialog gd = new GenericDialog("Region creator");

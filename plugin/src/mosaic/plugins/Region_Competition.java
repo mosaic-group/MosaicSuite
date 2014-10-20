@@ -100,6 +100,7 @@ import ij3d.Image3DUniverse;
 
 public class Region_Competition implements Segmentation
 {
+	
 	private String[] out = {"*_ObjectsData_c1.csv","*_seg_c1.tif"};
 	private String output_label;
 	private String config;
@@ -325,7 +326,9 @@ public class Region_Competition implements Segmentation
 	
 	public int setup(String aArgs, ImagePlus aImp)
 	{		
-
+		if (MosaicUtils.checkRequirement() == false)
+			return DONE;
+		
 		initAndParse();
 		
 		originalIP = aImp;

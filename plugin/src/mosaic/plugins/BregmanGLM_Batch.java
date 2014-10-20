@@ -33,7 +33,7 @@ import ij.io.Opener;
 
 
 public class BregmanGLM_Batch implements Segmentation
-{
+{	
 	private ImagePlus OriginalImagePlus = null;
 	private String savedSettings;
 	GenericGUI window;
@@ -52,6 +52,9 @@ public class BregmanGLM_Batch implements Segmentation
 	
 	public int setup(String arg0, ImagePlus active_img) 
 	{
+		if (MosaicUtils.checkRequirement() == false)
+			return DONE;
+		
 		// init basic structure
 		
 		Analysis.init();
