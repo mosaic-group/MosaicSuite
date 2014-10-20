@@ -2262,4 +2262,21 @@ public class MosaicUtils
 		return true;
 	}
 
+	/**
+	 * 
+	 * This function check if the Fiji respect all the requirement to run the MosaicToolSuite
+	 * 
+	 * @return true if respect the requirement
+	 * 
+	 */
+	
+	boolean checkRequirement()
+	{
+		if(IJ.versionLessThan("1.44u"))
+		{
+			IJ.error("Your Fiji or ImageJ version is too old to run the MosaicToolSuite please update it");
+			return false;
+		}
+		return false;
+	}
 }
