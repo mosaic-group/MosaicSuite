@@ -73,6 +73,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
+import javax.swing.JLabel;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -912,10 +913,20 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		preview_panel.add(a_opt);
 		gd.addPanel(preview_panel);
 		
-		//
+		// Introduce a label with reference
 		
-		gd.showDialog();
-
+		JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br>"+
+		"I. F. Sbalzarini and P. Koumoutsakos.<br> Feature Point " + 
+		"Tracking and<br> Trajectory Analysis for<br>Video Imaging in Cell Biology,<br>" +
+		"Journal of Structural Biology<br> 151(2):182-195, 2005.<br>" +
+        "</html>");
+		
+		p = new Panel();
+		p.add(labelJ);
+		gd.addPanel(p);
+		
+        gd.showDialog();
+        
 		// retrieve params from user
 		if (!text_files_mode) {
 			Boolean changed = detector.getUserDefinedParameters(gd);
@@ -1503,7 +1514,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			
 				Calibration cal = original_imp.getCalibration();
 				
-				MyFrame.updateImage(out,v,cal,DrawType.TRAJECTORY_HISTORY);
+				MyFrame.updateImage(out,v,cal,DrawType.TRAJECTORY_HISTORY,getRadius());
 			
 				chosen_traj = -1;
 			}
@@ -1547,7 +1558,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 					
 					Calibration cal = original_imp.getCalibration();
 					
-					MyFrame.updateImage(out,v,cal,new Color(255,0,0),DrawType.TRAJECTORY_HISTORY);
+					MyFrame.updateImage(out,v,cal,new Color(255,0,0),DrawType.TRAJECTORY_HISTORY,getRadius());
 					
 					trajectory_clicked = true;
 					chosen_traj = ct;
@@ -2426,12 +2437,28 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		//		write2File(newDir.getAbsolutePath(), vFI.fileName + "PT3D.txt", getFullReport().toString());
 		MosaicUtils.write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
 		writeXMLFormatReport(new File(vFI.directory, title +
-				"_r_"+ detector.radius +
+				"_r_"+ getRadius() +
 				"_c_"+ detector.cutoff +
 				"_perc_"+ detector.percentile + 
 				"_PT3Dresults.xml").getAbsolutePath());
 	}
 
+	/**
+	 * 
+	 * Get the radius of the particles
+	 * 
+	 * @return the radius of the particles, return -1 if this parameter is not set (like segmented data)
+	 */
+	
+	private int getRadius()
+	{
+		int radius = -1;
+		if (detector != null)
+			radius = detector.radius;
+		
+		return radius;
+	}
+	
 	/**
 	 * debug helper method
 	 * @param s
@@ -2468,7 +2495,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		
 		detector.featurePointDetection(preview_frame);
 		final Img< FloatType > backgroundImg = ImagePlusAdapter.convertFloat(frame);
-		preview_frame.setParticleRadius(detector.radius);
+		
+		preview_frame.setParticleRadius(getRadius());
 		Img<ARGBType> img_frame = preview_frame.createImage(backgroundImg, frame.getCalibration());
 
 		ImageJFunctions.wrap(img_frame, "Preview detection").show();
@@ -2542,7 +2570,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		StringBuffer configuration = new StringBuffer("% Configuration:\n");
 		if (!this.text_files_mode){
 			configuration.append("% \tKernel radius: ");
-			configuration.append(detector.radius);
+			configuration.append(getRadius());
 			configuration.append("\n");		
 			configuration.append("% \tCutoff radius: ");
 			configuration.append(detector.cutoff);
@@ -2872,7 +2900,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		Vector<Trajectory> vt = new Vector<Trajectory>();
 		vt.add(traj);
 		Calibration cal = original_imp.getCalibration();
-		MyFrame.updateImage(focus_view,traj.focus_area.getBounds(), traj.start_frame, vt,cal, DrawType.TRAJECTORY_HISTORY);
+		MyFrame.updateImage(focus_view,traj.focus_area.getBounds(), traj.start_frame, vt,cal, DrawType.TRAJECTORY_HISTORY,getRadius());
 		
 		ImagePlus imp = ImageJFunctions.show(focus_view);
 		imp.setTitle(new_title);
@@ -3221,6 +3249,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
  	    		ImagePlus timp = MosaicUtils.getImageFrame(original_imp,i+1);
 	    		final Img< UnsignedByteType > backgroundImg = ImagePlusAdapter.wrap( timp );
 	    		
+	    		frames[i].setParticleRadius(getRadius());
 	    		out_f = frames[i].createImage(backgroundImg, all_traj, cal, i, DrawType.TRAJECTORY_HISTORY);
  	    	}
  	    	

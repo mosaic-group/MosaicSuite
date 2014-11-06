@@ -2277,6 +2277,6 @@ public class MosaicUtils
 			IJ.error("Your Fiji or ImageJ version is too old to run the MosaicToolSuite please update it");
 			return false;
 		}
-		return false;
+		return true;
 	}
 }

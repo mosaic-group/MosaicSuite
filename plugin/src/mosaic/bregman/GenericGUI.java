@@ -169,7 +169,7 @@ public class GenericGUI
 	public void run(String arg, ImagePlus aImp)
 	{
 		boolean use_cluster = false;
-		Font bf = new Font(null, Font.BOLD,12);
+		Font bf = new Font(null, Font.BOLD ,12);
 		//String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
 		//boolean bgroup1[] = {false, false};
 
@@ -310,6 +310,25 @@ public class GenericGUI
 			posx=100;
 			posy=120;
 			gd.setLocation(posx, posy);
+			
+			// Introduce a label with reference
+			
+			JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br> G. Paul, J. Cardinale, and I. F. Sbalzarini.<br>"
+			                           + "Coupling image restoration and segmentation:<br>"
+					                   + "A generalized linear model/Bregman<br>"
+					                   + "perspective. Int. J. Comput. Vis., 104(1):69–93, 2013.<br>"
+			                           + "<br>"
+                                       + "A. Rizk, G. Paul, P. Incardona, M. Bugarski, M. Mansouri,<br>"
+			                           + "A. Niemann, U. Ziegler, P. Berger, and I. F. Sbalzarini.<br>"
+                                       + "Segmentation and quantification of subcellular structures<br>"
+                                       + "in fluorescence microscopy images using Squassh.<br>"
+                                       + "Nature Protocols, 9(3):586–596, 2014. </html>");
+			p = new Panel();
+			p.add(labelJ);
+			gd.addPanel(p);
+			
+			//////////////////////////////////
+			
 			gd.showDialog();
 			if (gd.wasCanceled()) return;
 			

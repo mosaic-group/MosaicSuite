@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
 import mosaic.plugins.Region_Competition;
@@ -227,6 +228,17 @@ public class GenericDialogGUI implements InputReadable
 		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
 		
 		gd.addCheckbox("Process on computer cluster", false);
+		
+		// Introduce a label with reference
+		
+		JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br>"+
+		"J. Cardinale, G. Paul, and I. F. Sbalzarini. Discrete region competition<br>" + 
+	    " for unknown numbers of connected regions. IEEE Trans.<br>" +
+		" Image Process., 21(8):3531–3545, 2012. " +
+        "</html>");
+		p = new Panel();
+		p.add(labelJ);
+		gd.addPanel(p);
 		
 		addWheelListeners();
 	}
