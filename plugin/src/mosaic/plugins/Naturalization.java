@@ -2,16 +2,23 @@ package mosaic.plugins;
 
 import java.util.Vector;
 
+import net.imglib2.img.ImagePlusAdapter;
+import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.IntegerType;
+import net.imglib2.type.numeric.NumericType;
+import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
+import io.scif.img.ImgOpener;
 
 class Naturalization implements PlugInFilter
 {
+	Vector<Float> Theta;
 	int N_Lap = 2041;
 	int Lap_Offset = 1020;
 
@@ -24,16 +31,14 @@ class Naturalization implements PlugInFilter
 	
 	float T2_pr[] = {0.2421f ,0.2550f,0.2474f};
 	
-	<T> void Naturalization(ImagePlus img)
+	<T extends NumericType<T> & NativeType<T>> void Naturalization(ImagePlus img)
 	{
 		final ImgFactory< FloatType > imgFactoryF = new ArrayImgFactory< FloatType >( );
-		final ImgFactory< IntegerType > imgFactoryI = new ArrayImgFactory< IntegerType >( );
+		final ImgFactory<IntType> imgFactoryI = new ArrayImgFactory< IntType >( );
 		
 		// Image Opener
 		
-		ImageOpener img = new ImageOpener();
-		
-		Vector<Float> Theta = new Vector<Float>();
+		Theta = new Vector<Float>();
 		Theta.add(0.0f);
 		Theta.add(0.5f);
 		Theta.add(1.0f);
@@ -49,52 +54,62 @@ class Naturalization implements PlugInFilter
 		Img<T> field_G = ImagePlusAdapter.wrap( img );
 		Img<T> field_B = ImagePlusAdapter.wrap( img );
 		
-		Img<IntegerType> LapCDF = 3,N_Lap,CV_Type;
-		Img<IntegerType> GradCDF = 6,N_Grad,CV_Type;		
+		long dims[] = {3,N_Lap};
+		
+		Img<IntType> LapCDF = imgFactoryI.create(dims, new IntType());
+		
+		dims[0] = 6;
+		dims[1] = N_Grad;
+		Img<IntType> GradCDF = imgFactoryI.create(dims,new IntType());		
 	}
 	
 	@Override
 	public int setup(String arg, ImagePlus imp) 
 	{
 		//constant
-/*		#define PI 3.1415926
-		#define EPS 0.0001
-		#define T1_pr 0.3754*/
-		//static const DataType T2_pr[] = {0.1446, 0.1446, 0.1446};
 
-		    //get the mean
-		    Scalar mean_orig = mean(image_orig);
-		    //save the result
-		    vector<Mat> image_result(Theta.size());
-		    for (int i = 0; i < Theta.size(); ++i)
-		    {
-		        image_result[i] = Mat::zeros(image_orig.rows,image_orig.cols,CV_8UC3);
-		    }
-
-		    copyMakeBorder(image_orig, image, Pad_SizeR, Pad_SizeR, Pad_SizeC, Pad_SizeC, BORDER_REPLICATE);
-
-		    //for reconstruction from Laplace field
-		    Mat field_R = Mat::zeros(image.rows,image.cols,CV_Type);
-		    Mat field_G = Mat::zeros(image.rows,image.cols,CV_Type);
-		    Mat field_B = Mat::zeros(image.rows,image.cols,CV_Type);
-
-		    Mat Fields[3]={field_B,field_G,field_R};
-
-
-		    vector<Mat> channels(3);
-		    split(image, channels);
-
-		    Mat LapCDF = Mat::zeros(3,N_Lap,CV_Type);
-		    Mat GradCDF = Mat::zeros(6,N_Grad,CV_Type);
-
-		     //PDF
-		     for(int i=0;i<3;i++)
-		     {
-		            div(channels[i],Fields[i],i,GradCDF,LapCDF);
-		     }
+		//get the mean
+		double mean_orig = mean(image_orig);
+		//save the result
+		Vector<Img<IntType>> image_result;
 		    
-		     float T1[] = new float[3];
-		     float T2[] = new float[3];
+		// Add images
+		    
+		for (int i = 0 ; i < Theta.size() ; i++)	{image_result.add(new Img<IntType>());}
+		    
+		// Zero the images
+		    
+		for (int i = 0; i < Theta.size(); ++i)
+		{
+			image_result.get(i) = Mat::zeros(image_orig.rows,image_orig.cols,CV_8UC3);
+		}
+
+		copyMakeBorder(image_orig, image, Pad_SizeR, Pad_SizeR, Pad_SizeC, Pad_SizeC, BORDER_REPLICATE);
+
+		//for reconstruction from Laplace field
+		Img<IntType>_R = imgFactoryI.create(image.rows,image.cols,new IntType());
+		Img<IntType>_G = imgFactoryI.create(image.rows,image.cols,new IntType());
+		Img<IntType>_B = imgFactoryI.create(image.rows,image.cols,new IntType());
+
+		Img<IntType> Fields[]={field_B,field_G,field_R};
+
+
+		Vector<Img<IntType>> channels;
+		channels.add(e);
+		    
+		split(image, channels);
+
+		Mat LapCDF = Mat::zeros(3,N_Lap,CV_Type);
+		Mat GradCDF = Mat::zeros(6,N_Grad,CV_Type);
+
+		//PDF
+		for(int i=0;i<3;i++)
+		{
+			div(channels[i],Fields[i],i,GradCDF,LapCDF);
+		}
+		    
+		float T1[] = new float[3];
+		float T2[] = new float[3];
 		     float T_tmp;
 		     for (int i = 0; i < 3; ++i)
 		     {
@@ -123,10 +138,6 @@ class Naturalization implements PlugInFilter
 		    //Poisson
 		     Tstart = clock();
 		    Poisson(Fields, Nf, mean_orig, onechannel, image_result);
-		    Tend = clock() - Tstart;
-		    cout<<"Time(solver): "<<DataType(Tend)/CLOCKS_PER_SEC<<endl;
-		    
-		    cout<<"Speed(solver): "<<CLOCKS_PER_SEC/DataType(Tend*1000000.0)*Theta.size()*image_orig.rows * image_orig.cols<<" MPixel/Sec"<<endl;
 
 		    namedWindow( "Original", 1 );
 		    imshow( "Original", image_orig);
@@ -135,8 +146,8 @@ class Naturalization implements PlugInFilter
 		    int Half_w = image_orig.cols/2;
 		    int Mid    = Theta.size()/2;
 
-		    Vec3b* p_image;
-		    Vec3b* p_result;
+		    Vec3b p_image[];
+		    Vec3b p_result[];
 		    for (int i = 0; i < image_orig.rows; ++i)
 		    {
 		        p_image = image_orig.ptr<Vec3b>(i);
