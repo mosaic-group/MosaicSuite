@@ -16,18 +16,73 @@ import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import io.scif.img.ImgOpener;
 
+/**
+ * 
+ * The Code is for RGB but it has to run on each
+ * channel independently averaging all the channels
+ * of T2_pr
+ *
+ */
+
 class Naturalization implements PlugInFilter
 {
+	// Parameters balance between first order and second order
+	// 
+	// Parameter of the algorithm
+	//
+    // (if you give more than one it perform the algorithm with all
+	// the specified parameters )
+	//
+	// is an ADVANCED parameter
+	//
 	Vector<Float> Theta;
-	int N_Lap = 2041;
-	int Lap_Offset = 1020;
+	
+	
+	// Precision in finding your best T 
+	final float EPS = 0.0001f;
+	
+	//
+	// Prior parameter for first oder
+	//
+	// In this case is for all channels
+	//
+	// Fixed parameter
+	//
+	
+	final float T1_pr = 0.3754f;
+	
+	// Number of bins for the Laplacian Histogram
+	//
+	// In general is 4 * N_Grad
+	//
+	// max of laplacian value is 4 * 255
+	//
+	final int N_Lap = 2041;
+	
+	// Offset shift in the histogram bins
+	// Has to be N_Lap / 2;
+	final int Lap_Offset = 1020;
 
+	// Number of bins for the Gradient
+	final int N_Grad = 512;
+	// Offset for the gradient histogram shift
+	final int Grad_Offset = 256;
 
-	int N_Grad = 512;
-	int Grad_Offset = 256;
-
-	int Pad_SizeR = 3;
-	int Pad_SizeC = 3;
+	// Create a margin ( increase the size ) around the image of 3 (in this case)
+	// pixel to handle boundary conditions
+	// R = Row
+	// C = Column
+	final int Pad_SizeR = 3;
+	final int Pad_SizeC = 3;
+	
+	// Prior parameter for second order
+	//
+	// (Paramenters learned from trained dataset)
+	// 
+	// For different color R G B
+	//
+	// For one channel image use an average of them
+	//
 	
 	float T2_pr[] = {0.2421f ,0.2550f,0.2474f};
 	
@@ -39,16 +94,18 @@ class Naturalization implements PlugInFilter
 		// Image Opener
 		
 		Theta = new Vector<Float>();
-		Theta.add(0.0f);
 		Theta.add(0.5f);
-		Theta.add(1.0f);
 		
-		// Image
-		
+		// Original image
+		//
+		// Check that the image dataset is 8 bit
+		// Otherwise return an error or hint to scale down
+		//
 		Img<T> image_orig = ImagePlusAdapter.wrap( img );
 		
-		// Calculate mean intensity
+		// Calculate mean intensity of the original image
 		double mean_orig = mean();
+		
 		
 		Img<T> field_R = ImagePlusAdapter.wrap( img );
 		Img<T> field_G = ImagePlusAdapter.wrap( img );
@@ -77,53 +134,101 @@ class Naturalization implements PlugInFilter
 		    
 		for (int i = 0 ; i < Theta.size() ; i++)	{image_result.add(new Img<IntType>());}
 		    
-		// Zero the images
+		// Initialize the images to zero for each Theta
 		    
 		for (int i = 0; i < Theta.size(); ++i)
 		{
 			image_result.get(i) = Mat::zeros(image_orig.rows,image_orig.cols,CV_8UC3);
 		}
 
+		// Pad your image and fill the border with boundary condition
+		// BORDER_REPLICATE
+		//
+		// OpenCV function see reference
+		//
 		copyMakeBorder(image_orig, image, Pad_SizeR, Pad_SizeR, Pad_SizeC, Pad_SizeC, BORDER_REPLICATE);
 
-		//for reconstruction from Laplace field
+		// for reconstruction from Laplace field
+		//
+		// For each channel 
+		//
 		Img<IntType>_R = imgFactoryI.create(image.rows,image.cols,new IntType());
 		Img<IntType>_G = imgFactoryI.create(image.rows,image.cols,new IntType());
 		Img<IntType>_B = imgFactoryI.create(image.rows,image.cols,new IntType());
 
+		// Collect RGB Laplace Field
 		Img<IntType> Fields[]={field_B,field_G,field_R};
 
-
+		// You split th RGB channel of the original image
+		// Channels you have 3 images R,G,B
 		Vector<Img<IntType>> channels;
 		channels.add(e);
 		    
 		split(image, channels);
 
+		// Laplacian Histogran for the three channels
 		Mat LapCDF = Mat::zeros(3,N_Lap,CV_Type);
+		// Gradient histogram 3 X, 3 Y
+		//
+		// R X
+		// G X
+		// B X
+		// R Y
+		// G Y
+		// B Y
+		//
 		Mat GradCDF = Mat::zeros(6,N_Grad,CV_Type);
 
 		//PDF
+		
+		// for each channel
 		for(int i=0;i<3;i++)
 		{
+			// It calculate the Laplacian field = Field[], 
+			// GradientCDF = Integral of the histogram of the
+			//               of the Gradient field
+			// LaplacianCDF = Integral of the Histogram of the 
+			//                Laplacian field
+			// 
+			// i = channel
+			
 			div(channels[i],Fields[i],i,GradCDF,LapCDF);
 		}
-		    
+		
+		// Find the best T for each channel
 		float T1[] = new float[3];
 		float T2[] = new float[3];
+		
 		     float T_tmp;
 		     for (int i = 0; i < 3; ++i)
 		     {
+		    	 // For each channel find the best T
+		    	 // 
+		    	 // EPS=precision
+		    	 //
+		    	 // for X component
+		    	 //
 		         T_tmp = FindT(GradCDF.ptr<DataType>(i), N_Grad, Grad_Offset, EPS);
+		         //
+		         // for Y component
+		         //
 		         T_tmp += FindT(GradCDF.ptr<DataType>(i+3), N_Grad, Grad_Offset, EPS);
+		         
+		         // Average them and divide by the prior parameter
 		         T1[i] = T_tmp/(2*T1_pr);
 		     }
 
 		     for (int i = 0; i < 3; ++i)
 		     {
+		    	 // Find the best parameter and divide by the T2 prior
 		         T2[i] = FindT(LapCDF.ptr<DataType>(i), N_Lap, Lap_Offset, EPS)/T2_pr[i];
 		     }
 
-		     //change Theta to Nf
+		     //
+		     // Compute the naturalization factor for each Theta and each channel
+		     //
+		     // Nf = naturalization factor
+		     //
 		     Mat Nf(Theta.size(),3,CV_Type);
 		     for (unsigned int i = 0; i < Theta.size(); ++i)
 		     {
@@ -133,52 +238,36 @@ class Naturalization implements PlugInFilter
 		        }
 		     }
 
-		     //one channle with original size
+		     // Create one channel image of the same size of the original image
 		     Mat onechannel(image_orig.rows,image_orig.cols,CV_8UC1);
 		    //Poisson
 		     Tstart = clock();
-		    Poisson(Fields, Nf, mean_orig, onechannel, image_result);
+		     
+		     // Solve poisson equation
+//		    Poisson(Fields, Nf, mean_orig, onechannel, image_result);
 
-		    namedWindow( "Original", 1 );
-		    imshow( "Original", image_orig);
-
-		    int Half_h = image_orig.rows/2;
-		    int Half_w = image_orig.cols/2;
-		    int Mid    = Theta.size()/2;
-
-		    Vec3b p_image[];
-		    Vec3b p_result[];
-		    for (int i = 0; i < image_orig.rows; ++i)
-		    {
-		        p_image = image_orig.ptr<Vec3b>(i);
-		        p_result = image_result[Mid].ptr<Vec3b>(i);
-		        for (int j = 0; j < image_orig.cols; ++j)
-		        {
-		            if ( j >  Half_h - i + Half_w)
-		            {
-		                if (j <= Half_h - i + Half_w + 3)
-		                {
-		                    p_image[j].val[0] = 0;
-		                    p_image[j].val[1] = 0;
-		                    p_image[j].val[2] = 0;
-		                }else p_image[j] = p_result[j];
-		            }
-		        }
-		    }
-
-		    namedWindow( "Original/Naturalized(Theta=0.5)", 1 );
-		    imshow( "Original/Naturalized(Theta=0.5)", image_orig);
-
-		    namedWindow( "Naturalized", 1 );
-		    imshow( "Naturalized", image_result[Mid]);
-
-		    //imwrite(save_name,image_result[0]);
+		     for (int i = 0 ; i < 3 ; i++)
+		     {
+		    	 // For each channel remove the mean 
+		    	 channel(i) = (channel(i) - mean(channel(i)))*Nf(i) +  mean(channel(i));
+		     }
+		     
+		     // Visualize channel (i)
 
 		    return 0;
 	}
 
+	
+	    // 
+	    // Original data
+	    // N = nuber of bins
+	    // offset of the histogram
+	    // T current
+	    //
 		double FindT_Evalue(float[] data, int N, int offset, DataType T)
 		{
+			// L2 norm of data - atan(T * i)
+			
 		    double error = 0;
 
 		    double tmp;
@@ -192,15 +281,25 @@ class Naturalization implements PlugInFilter
 		    return error;
 		}
 
+		// Find the T
+		//
+		// CDF Histogram
+		// N number of bins
+		// Offset of the histogram
+		// eps precision
+		//
 		double FindT(float[] data, int N, int OffSet, float eps)
 		{
 		    //find the best parameter between data and model atan(Tx)/pi+0.5
-		    float left; 
-		    float right;
+			
+			// Search between 0 and 1.0
+		    float left = 0;
+		    float right = 1.0f;
 
 		    float m1;
 		    float m2;
 
+		    // Crate p_t to save computation (shift and rescale the original CDF)
 		    float tmpData[] = new float[N];
 		    float p_t[] = tmpData;
 		    float p_d[] = data;
@@ -208,15 +307,22 @@ class Naturalization implements PlugInFilter
 		    {
 		        (p_t[i]) = (p_d[i] - 0.5)*Math.PI;
 		    }
+		    
+		    // While the precision is bigger than eps
 		    while(right-left>=eps)
 		    {
+		    	// move left and right of 1/3 (m1 and m2)
 		        m1=left+(right-left)/3;
 		        m2=right-(right-left)/3;
+		        
+		        // Evaluate on m1 and m2, ane move the extreme point
 		        if(FindT_Evalue(tmpData, N, OffSet, m1) <=FindT_Evalue(tmpData, N, OffSet, m2))
 		            right=m2;
 		        else
 		            left=m1;
 		    }
+		    
+		    // return the average
 		    return (m1+m2)/2;
 		}
 
