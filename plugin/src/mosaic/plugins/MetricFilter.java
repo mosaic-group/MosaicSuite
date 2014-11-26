@@ -29,7 +29,7 @@ class MetricFilter implements PlugInFilter
 		IntensityImage ImgI = new IntensityImage(img,cls);
 		
 		// Out image
-		IntensityImage ImgO = new IntensityImage(ImgI.getDimensions());
+//		IntensityImage ImgO = new IntensityImage(ImgI.getDimensions());
 		
 		// Iterate through all the points
 		
