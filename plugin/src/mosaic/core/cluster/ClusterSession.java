@@ -1179,8 +1179,12 @@ public class ClusterSession
 				dirS = dc.getDirectory();
 			}
 			
+			ProgressBarWin wp = new ProgressBarWin();
+			
 			for (int i = 0 ; i < dir.length ; i++)
 			{
+				wp.SetStatusMessage("Moving " + dir[i]);
+				
 				try 
 				{					
 					String[] tmp = dir[i].split(File.separator);
@@ -1188,10 +1192,12 @@ public class ClusterSession
 					File t = new File(dirS + File.separator + tmp[tmp.length-1]);
 					
 					ShellCommand.exeCmdNoPrint("cp -r " + dir[i] + " " + t);
+					System.out.println("cp -r " + dir[i] + " " + t);
 					
 					// after copy remove the directory
 					
 					ShellCommand.exeCmdNoPrint("rm -rf " + dir[i]);
+					System.out.println("rm -rf " + dir[i]);
 					
 					///////
 				}
@@ -1204,6 +1210,8 @@ public class ClusterSession
 					e.printStackTrace();
 				}
 			}
+			
+			wp.dispose();
 		}
 		
 		return new File(dirS);
