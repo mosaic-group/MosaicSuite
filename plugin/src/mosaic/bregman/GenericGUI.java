@@ -200,9 +200,11 @@ public class GenericGUI
 	 * @param Active imagePlus
 	 * @param It output if we have to use the cluster
 	 * 
+	 * @return true if you have to use the cluster
+	 * 
 	 */
 	
-	void drawStandardWindow(GenericDialog gd, ImagePlus aImp, Boolean use_cluster)
+	boolean drawStandardWindow(GenericDialog gd, ImagePlus aImp)
 	{
 		// font for reference
 		Font bf = new Font(null, Font.BOLD ,12);
@@ -352,7 +354,7 @@ public class GenericGUI
 		//////////////////////////////////
 	
 		gd.showDialog();
-		if (gd.wasCanceled()) return;
+		if (gd.wasCanceled()) return false;
 	
 		Analysis.p.wd=  gd.getNextText();
 	
@@ -361,7 +363,7 @@ public class GenericGUI
 		//IJ.log("Number of processors available to the Java Virtual Machine: " + nrOfProcessors);		
 		Analysis.p.nthreads=nrOfProcessors;
 	
-		use_cluster = gd.getNextBoolean();
+		return gd.getNextBoolean();
 	}
 	
 	public void run(String arg, ImagePlus aImp)
@@ -392,7 +394,7 @@ public class GenericGUI
 			{
 				// Draw a standard window
 				
-				drawStandardWindow(gd,aImp,use_cluster);
+				use_cluster = drawStandardWindow(gd,aImp);
 			}
 		}
 		else

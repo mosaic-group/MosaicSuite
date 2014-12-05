@@ -191,6 +191,7 @@ public class Parameters  implements Serializable
 		this.betaMLEindefault = p.betaMLEindefault;// 0.25;//25;//1340026;//0..//0.45 for//0.3
 		this.min_region_filter_intensities = p.min_region_filter_intensities;
 		
+		this.dispSoftMask = p.dispSoftMask;
 		this.fastsquassh = p.fastsquassh;
 		this.overs=p.overs;
 		this.dispint= p.dispint;

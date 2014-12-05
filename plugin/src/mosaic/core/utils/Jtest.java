@@ -75,7 +75,7 @@ public class Jtest
 		
 		testImg = MosaicUtils.getTestImages("job_compare_test");
 		to = IJ.getDirectory("temp") + File.separator + "test";
-		MosaicUtils.<Region3DRScript>testPlugin(BG,"job_compare_test",Region3DRScript.class);
+		MosaicTest.<Region3DRScript>testPlugin(BG,"job_compare_test",Region3DRScript.class);
 	}
 	
 	@Test

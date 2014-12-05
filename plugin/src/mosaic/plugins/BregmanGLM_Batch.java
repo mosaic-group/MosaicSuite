@@ -1,5 +1,6 @@
 package mosaic.plugins;
 
+import java.awt.GraphicsEnvironment;
 import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.FileInputStream;
@@ -163,11 +164,14 @@ public class BregmanGLM_Batch implements Segmentation
 		
 		// Check the argument
 		
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment(); 
+		boolean batch = ge.isHeadless();
+		
 		int l = 0;
 		if (args != null)
 			l=args.length;
 		//IJ.log("args" + l);
-		boolean batch=false;
+/*		 batch=false;
 		for(int i=0; i<l; i++)
 		{
 			//IJ.log("arg" + i+ args[i]);
@@ -175,7 +179,7 @@ public class BregmanGLM_Batch implements Segmentation
 			{
 				if (args[i].endsWith("batch")) batch=true;
 			}
-		}
+		}*/
 		
 		//IJ.log("batchmode" + batch);
 		try

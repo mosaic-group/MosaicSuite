@@ -13,6 +13,7 @@ import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.utils.ImgTest;
+import mosaic.core.utils.MosaicTest;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Segmentation;
 import mosaic.core.utils.ShellCommand;
@@ -29,6 +30,6 @@ public class Jtest
 	public void segmentation() 
 	{
 		Segmentation BG = new Region_Competition();
-		MosaicUtils.<RCOutput>testPlugin(BG,"Region_Competition",RCOutput.class);
+		MosaicTest.<RCOutput>testPlugin(BG,"Region_Competition",RCOutput.class);
 	}
 }
