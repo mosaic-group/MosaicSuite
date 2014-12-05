@@ -85,6 +85,7 @@ public class Naturalization implements PlugInFilter
 	ImgFactory< FloatType > imgFactoryF;
 	final ImgFactory<IntType> imgFactoryI = new ArrayImgFactory< IntType >( );
 	final ImgFactory<UnsignedByteType> imgFactoryUS = new ArrayImgFactory< UnsignedByteType >( );
+	final ImgFactory<ARGBType> imgFactoryARGB = new ArrayImgFactory< ARGBType >( );
 	
 	// Prior parameter for second order
 	//
@@ -177,8 +178,8 @@ public class Naturalization implements PlugInFilter
 		Img<FloatType> LapCDF = imgFactoryF.create(dims, new FloatType());
 		
 		dims = new long[2];
-		dims[0] = 2;
-		dims[1] = N_Grad;
+		dims[0] = N_Grad;
+		dims[1] = 2;
 		Img<FloatType> GradCDF = imgFactoryF.create(dims,new FloatType());
 		
 		// Get the dimensions of the result image
@@ -202,14 +203,14 @@ public class Naturalization implements PlugInFilter
 		// Extended the original image
 		// The borders are extended and the pixel at the borders are repeated
 		
-		ExtendedRandomAccessibleInterval<T, Img<T>> image = Views.extendBorder(image_orig);
+		ExtendedRandomAccessibleInterval<T, Img<T>> image = Views.extendZero(image_orig);
 		
 		// Create Laplace field
 		
 		for (int i = 0 ; i < image_orig.numDimensions() ; i++)
 		{dims[i] = image_orig.dimension(i);}
 		
-		Img<IntType> Field = imgFactoryI.create(dims,new IntType());
+		Img<FloatType> Field = imgFactoryF.create(dims,new FloatType());
 		
 
 		// It calculate the Laplacian field = Field[], 
@@ -244,12 +245,14 @@ public class Naturalization implements PlugInFilter
         
         // Average T2_pr
         
-        float T2_pr_a = (float) ((T2_pr[0] + T2_pr[1] + T2_pr[2])/3.0);
+        float T2_pr_a = (float) ((T2_pr[channel_prior]));
         
    	 	// Find the best parameter and divide by the T2 prior
         T2 = (float)FindT(LapCDF, N_Lap, Lap_Offset, EPS)/T2_pr_a;
         
-        float Nf = (float) ((1.0-Theta.getRealDouble())*T1 + Theta.getRealDouble()*T2_pr_a);
+        float Nf = (float) ((1.0-Theta.getRealDouble())*T1 + Theta.getRealDouble()*T2);
+        
+        IJ.error("Naturalization factor: " + Nf);
         
         // for each pixel naturalize
         
@@ -261,6 +264,7 @@ public class Naturalization implements PlugInFilter
         	// Next pixel
         	
         	cur_orig.next();
+        	cur_ir.next();
         	
         	// Naturalize
         	
@@ -321,7 +325,7 @@ public class Naturalization implements PlugInFilter
 			
 			FloatType Theta = new FloatType(0.5f);
 			try {
-				Naturalization(R_Channel,Theta,2,UnsignedByteType.class, FloatType.class);
+				R_Channel = Naturalization(R_Channel,Theta,2,UnsignedByteType.class, FloatType.class);
 			} catch (InstantiationException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -330,7 +334,88 @@ public class Naturalization implements PlugInFilter
 				e.printStackTrace();
 			}
 			
-			ImageJFunctions.show(R_Channel);
+			// Copy gren channel and naturalize
+			
+			Img<UnsignedByteType> G_Channel = imgFactoryUS.create(dims, new UnsignedByteType());
+			
+			// Copy green channel
+			
+			aCur = image_orig.cursor();
+			Cursor<UnsignedByteType> g = G_Channel.cursor();
+			
+			// Copy
+			
+			while (g.hasNext())
+			{
+				g.next();
+				aCur.next();
+				
+				g.get().set(ARGBType.green(aCur.get().get()));
+			}
+			
+			Theta = new FloatType(0.5f);
+			try {
+				G_Channel = Naturalization(G_Channel,Theta,1,UnsignedByteType.class, FloatType.class);
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			// Copy blue channel
+			
+			Img<UnsignedByteType> B_Channel = imgFactoryUS.create(dims, new UnsignedByteType());
+			
+			aCur = image_orig.cursor();
+			Cursor<UnsignedByteType> b = B_Channel.cursor();
+			
+			// Copy
+			
+			while (b.hasNext())
+			{
+				b.next();
+				aCur.next();
+				
+				b.get().set(ARGBType.blue(aCur.get().get()));
+			}
+			
+			Theta = new FloatType(0.5f);
+			try {
+				B_Channel = Naturalization(B_Channel,Theta,1,UnsignedByteType.class, FloatType.class);
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			/////////////////////////////////
+			
+			// Merge the Naturalized channel into an RGB image
+			
+			Img<ARGBType> img_result = imgFactoryARGB.create(dims, new ARGBType());
+			
+			Cursor<ARGBType> img_result_cur = img_result.cursor();
+			Cursor<UnsignedByteType> rc = R_Channel.cursor();
+			Cursor<UnsignedByteType> gc = G_Channel.cursor();
+			Cursor<UnsignedByteType> bc = B_Channel.cursor();
+			
+			while (img_result_cur.hasNext())
+			{
+				img_result_cur.next();
+				rc.next();
+				gc.next();
+				bc.next();
+				
+				img_result_cur.get().set(ARGBType.rgba(rc.get().getRealFloat(), gc.get().getRealFloat(), bc.get().getRealFloat(), 255.0f));
+			}
+			
+			/////////////////////////////////
+			
+			ImageJFunctions.show(img_result);
 		}
 		
 		
@@ -395,6 +480,7 @@ public class Naturalization implements PlugInFilter
 		Cursor<FloatType> cur_data = data.cursor();
 		for (int i = 0; i < N; ++i)
 		{
+			cur_data.next();
 			p_t[i] = (float) ((cur_data.get().getRealFloat() - 0.5)*Math.PI);
 		}
 		    
@@ -417,7 +503,7 @@ public class Naturalization implements PlugInFilter
 	}
 
 	//process signal channel uint8 image
-	<T extends RealType<T>> void div(ExtendedRandomAccessibleInterval<T, Img<T>> image, Img<IntType> field, Img<FloatType> GradCDF, Img<FloatType> LapCDF)
+	<T extends RealType<T>> void div(ExtendedRandomAccessibleInterval<T, Img<T>> image, Img<FloatType> field, Img<FloatType> GradCDF, Img<FloatType> LapCDF)
 	{
 		// It work only in 2D
 		
@@ -452,7 +538,7 @@ public class Naturalization implements PlugInFilter
 
 		// Inside the image for Y
 		    
-		Cursor<IntType> cur = field.cursor();
+		Cursor<FloatType> cur = field.cursor();
 		    
 		// Cursor localization
 		    
@@ -460,7 +546,7 @@ public class Naturalization implements PlugInFilter
 		int[] indexD = new int[2];
 		int[] loc_p = new int[field.numDimensions()];
 		RandomAccess<T> img_cur = image.randomAccess();
-		RandomAccess<IntType> Lap_f = field.randomAccess();
+		RandomAccess<FloatType> Lap_f = field.randomAccess();
 		RandomAccess<FloatType> Lap_hist = LapCDF.randomAccess();
 		RandomAccess<FloatType> Grad_dist = GradD.randomAccess();
 		
@@ -477,7 +563,8 @@ public class Naturalization implements PlugInFilter
 		    // get the stencil value;
 		    	
 		    img_cur.setPosition(loc_p);
-		    float L = -two_num_dim*img_cur.get().getRealFloat();
+		    
+		    float L = -4*img_cur.get().getRealFloat();
 		    	
 		    // Laplacian
 		    	
@@ -486,10 +573,15 @@ public class Naturalization implements PlugInFilter
 		    	img_cur.move(1, i);
 		    	float G_p = img_cur.get().getRealFloat();
 		    		
-		    	img_cur.move(-2, i);
+		    	img_cur.move(-1,i);
 		    	float G_m = img_cur.get().getRealFloat();
 		    	
-		    	L += G_p + G_m;
+		    	img_cur.move(-1, i);
+		    	float L_m = img_cur.get().getRealFloat();
+		    
+		    	img_cur.setPosition(loc_p);
+		    	
+		    	L += G_p + L_m;
 		    		
 		        // Calculate the gradient + convert into bin
 		        indexD[i] = (int) (Grad_Offset + G_p - G_m);
@@ -515,6 +607,9 @@ public class Naturalization implements PlugInFilter
 		
 		//convert Grad2D into CDF
 		Grad_dist = GradD.randomAccess();
+		
+		ImageJFunctions.show(GradD,"2D Gradient distribution");
+		
 		// for each row
 		for (int j = 0; j < GradD.dimension(1) ; j++)
 		{
@@ -598,7 +693,7 @@ public class Naturalization implements PlugInFilter
 	        	Grad_dist.setPosition(loc);
 	        	
 	            Grady_r.get().set(Grady_r.get().getRealFloat() + Grad_dist.get().getRealFloat());
-	        	Grady_r.fwd(1);
+	        	Grady_r.move(1,0);
 	        }
 	    }
 	    
@@ -606,7 +701,7 @@ public class Naturalization implements PlugInFilter
 		for (int i = 0; i < N_Grad; ++i)
 		{
 			Gradx_r.setPosition(i,0);
-			Grady_r.setPosition(i,1);
+			Grady_r.setPosition(i,0);
 			Gradx_r.get().set((float) (Gradx_r.get().getRealFloat() / 255.0));
 			Grady_r.get().set((float) (Grady_r.get().getRealFloat() / 255.0));
 		}
@@ -617,6 +712,8 @@ public class Naturalization implements PlugInFilter
 			Lap_hist.setPosition(i-1,0);
 			
 			float prec = Lap_hist.get().getRealFloat();
+			
+			Lap_hist.move(1,0);
 			
 			Lap_hist.get().set(Lap_hist.get().getRealFloat() + prec);
 		}
