@@ -198,7 +198,6 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 			maska_im1= new ImagePlus();
 			initpreviewch1(imgch1);
 			previewBinaryCellMask(new Double((v1.getText())),imgch1,maska_im1,1);
-			GenericGUI.setimagelocation(1180,30,maska_im1);
 			init1=true;
 				
 		}
@@ -208,7 +207,6 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 			maska_im2= new ImagePlus();
 			initpreviewch2(imgch2);
 			previewBinaryCellMask(new Double((v2.getText())),imgch2,maska_im2,2);
-			GenericGUI.setimagelocation(1180,610,maska_im2);
 			init2=true;
 		}
 		
@@ -267,7 +265,6 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 						maska_im1= new ImagePlus();
 					initpreviewch1(imgch1);
 					previewBinaryCellMask(new Double((v1.getText())),imgch1,maska_im1,1);
-					GenericGUI.setimagelocation(1180,30,maska_im1);
 					init1=true;
 				}
 				else
@@ -291,7 +288,6 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 						maska_im2= new ImagePlus();
 					initpreviewch2(imgch2);
 					previewBinaryCellMask(new Double((v2.getText())),imgch2,maska_im2,2);
-					GenericGUI.setimagelocation(1180,610,maska_im2);
 					init2=true;
 				}
 				else{

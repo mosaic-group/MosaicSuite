@@ -138,10 +138,12 @@ public class GUIDesign implements ActionListener
 		panel_7.setBorder(blackBorder);
 		JPanel panel_6 = new JPanel();
 		panel_6.setBorder(blackBorder);
-		textArea = new JTextArea("Please refer to and cite: Jo A. Helmuth, Gregory Paul and Ivo F. Sbalzarini,\n"+
-								 "Beyond co-localization:  inferring spatial interactions between sub-\n"+
-								 "cellular structures from microscopy images. BMC Bioinformatics, 11:372, 2010\n " +
-		        				 "Freely downloadable from: http://www.biomedcentral.com/1471-2105/11/372"); 
+		textArea = new JTextArea("Please refer to and cite: J. A. Helmuth, G. Paul, and I. F. Sbalzarini.\n"
+				+ "Beyond co-localization: inferring spatial interactions between sub-cellular \n"
+				+ "structures from microscopy images. BMC Bioinformatics, 11:372, 2010.\n\n" +
+                "A. Shivanandan, A. Radenovic, and I. F. Sbalzarini. MosaicIA: an ImageJ/Fiji\n" +
+				"plugin for spatial pattern and interaction analysis. BMC Bioinformatics, \n" +
+                "14:349, 2013. "); 
 		
 		textArea.setBackground(UIManager.getColor("Button.background"));
 		

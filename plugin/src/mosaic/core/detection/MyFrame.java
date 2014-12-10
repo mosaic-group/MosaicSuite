@@ -848,6 +848,35 @@ import net.imglib2.view.Views;
 			return f;
 		}
 		
+		static private float[] getScaling(int dim, Calibration cal)
+		{
+	    	float scaling[] = new float[dim];
+    		float scaling_[] = new float[3];
+	    		
+	    	if (cal != null)
+	    	{
+	    		scaling[0] = (float) (cal.pixelWidth);
+	    		scaling[1] = (float) (cal.pixelHeight);
+	    		if (scaling.length >= 3)
+	    			scaling[2] = (float) (cal.pixelDepth);
+	    	}
+	    	else
+	    	{
+	    		scaling[0] = 1.0f;
+	    		scaling[1] = 1.0f;
+	    		if (scaling.length >= 3)
+	    			scaling[2] = 1.0f;
+	    	}			
+	    	
+	    	float min_s = minScaling(scaling);
+	    	scaling_[0] = scaling[0] / min_s;
+	    	scaling_[1] = scaling[1] / min_s;
+	    	if (scaling.length >= 3)
+	    		scaling_[2] = scaling[2] / min_s;
+	    	
+	    	return scaling_;
+		}
+		
 		static private void drawParticlesWithRadius(RandomAccessibleInterval<ARGBType> out, List<Particle> pt , Calibration cal, int col, int p_radius)
 		{
 			RandomAccess<ARGBType> out_a = out.randomAccess();
@@ -865,34 +894,17 @@ import net.imglib2.view.Views;
 
 	        float sp[] = new float[out_a.numDimensions()];
 	        	
-	    	float scaling[] = new float[3];
-	    		
-	    	if (cal != null)
-	    	{
-	    		scaling[0] = (float) (cal.pixelWidth);
-	    		scaling[1] = (float) (cal.pixelHeight);
-	    		scaling[2] = (float) (cal.pixelDepth);
-	    	}
-	    	else
-	    	{
-	    		scaling[0] = 1.0f;
-	    		scaling[1] = 1.0f;
-	    		scaling[2] = 1.0f;
-	    	}
-	    		
+	        float scaling_[] = getScaling(out_a.numDimensions(), cal);
+	    	int rc = (int) radius;	
+	        
 	    	// Create a circle Mask and an iterator
 	    	
 	    	RegionIteratorMask rg_m = null;
 	    	
-	    	float min_s = minScaling(scaling);
-	    	int rc = (int) (radius / min_s);
-	    	scaling[0] /= min_s;
-	    	scaling[1] /= min_s;
-	    	scaling[2] /= min_s;
 		    if ((rg_m = CircleCache.get(rc)) == null)
 		    {
 		    	if (rc < 1) rc = 1;
-	        	CircleMask cm = new CircleMask(rc, 2*rc + 1, out_a.numDimensions(), scaling);
+	        	CircleMask cm = new CircleMask(rc, 2*rc + 1, out_a.numDimensions(), scaling_);
 	        	rg_m = new RegionIteratorMask(cm, sz);
 	    		CircleCache.put(rc, rg_m);
 	    	}
@@ -907,9 +919,9 @@ import net.imglib2.view.Views;
 	        			
 	        	Point p_c = null;
 	        	if (out_a.numDimensions() == 2)
-	        		p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]));
+	        		p_c = new Point((int)(ptt.x/scaling_[0]),(int)(ptt.y/scaling_[1]));
 	        	else
-	        		p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]),(int)(ptt.z/scaling[2]));
+	        		p_c = new Point((int)(ptt.x/scaling_[0]),(int)(ptt.y/scaling_[1]),(int)(ptt.z/scaling_[2]));
 	        			
 	        			
 	        	rg_m.setMidPoint(p_c);
@@ -965,35 +977,13 @@ import net.imglib2.view.Views;
 	        	
 	        	float sp[] = new float[out_a.numDimensions()];
 	        	
-	        	float scaling[] = new float[out_a.numDimensions()];
-	        		
-	    		float scaling_[] = new float[3];
-	    		
-	    		if (cal != null)
-	    		{
-	    			scaling[0] = (float) (cal.pixelWidth);
-	    			scaling[1] = (float) (cal.pixelHeight);
-	    			if (scaling.length >= 3)
-	    				scaling[2] = (float) (cal.pixelDepth);
-	    		}
-	    		else
-	    		{
-	    			scaling[0] = 1.0f;
-	    			scaling[1] = 1.0f;
-	    			if (scaling.length >= 3)
-	    				scaling[2] = 1.0f;
-	    		}
+	    		float scaling_[] = getScaling(out_a.numDimensions(), cal);
 	    		
 	    		// Create a circle Mask and an iterator
 	    		
 		    	RegionIteratorMask rg_m = null;
 		    	
-		    	float min_s = minScaling(scaling);
-		    	int rc = (int) (radius / min_s);
-		    	scaling_[0] = scaling[0] / min_s;
-		    	scaling_[1] = scaling[1] / min_s;
-		    	if (scaling.length >= 3)
-		    		scaling_[2] = scaling[2] / min_s;
+		    	int rc = (int)radius;
 			    if ((rg_m = CircleCache.get(rc)) == null)
 			    {
 			    	if (rc < 1) rc = 1;
@@ -1024,9 +1014,9 @@ import net.imglib2.view.Views;
 	        			
 	        			Point p_c = null;
 	        			if (out_a.numDimensions() == 2)
-	        				p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]));
+	        				p_c = new Point((int)(ptt.x/scaling_[0]),(int)(ptt.y/scaling_[1]));
 	        			else
-	        				p_c = new Point((int)(ptt.x/scaling[0]),(int)(ptt.y/scaling[1]),(int)(ptt.z/scaling[2]));
+	        				p_c = new Point((int)(ptt.x/scaling_[0]),(int)(ptt.y/scaling_[1]),(int)(ptt.z/scaling_[2]));
 	        			
 	        			
 	        			rg_m.setMidPoint(p_c);
@@ -1399,7 +1389,15 @@ import net.imglib2.view.Views;
 	        	}
 			}
 		}
-		
+		/**
+		 * 
+		 * Draw Lines on a  Image
+		 * 
+		 * @param out Image where to draw
+		 * @param lines List of lines
+		 * @param cal calibration
+		 * @param col Color of the line
+		 */
 		static private void drawLines(RandomAccessibleInterval<ARGBType> out, List<pParticle> lines , Calibration cal, int col)
 		{
 			if (cal == null)
@@ -1426,47 +1424,25 @@ import net.imglib2.view.Views;
 	        	Particle p_end = new Particle(ptt.p1);
 	        	Particle p_ini = new Particle(ptt.p2);
 	        	
+	        	float scaling[] = new float[out_a.numDimensions()];
+	    		float scaling_[] = getScaling(out_a.numDimensions(),cal);
+	        	
 	        	if (cal != null)
 	        	{
-	        		p_ini.x /= (float)cal.pixelWidth;
-	        		p_ini.y /= (float)cal.pixelHeight;
-	        		p_ini.z /= (float)cal.pixelDepth;
+	        		p_ini.x /= (float)scaling_[0];
+	        		p_ini.y /= (float)scaling_[1];
+	        		p_ini.z /= (float)scaling_[2];
     	
-	        		p_end.x /= (float)cal.pixelWidth;
-	        		p_end.y /= (float)cal.pixelHeight;
-	        		p_end.z /= (float)cal.pixelDepth;
+	        		p_end.x /= (float)scaling_[0];
+	        		p_end.y /= (float)scaling_[1];
+	        		p_end.z /= (float)scaling_[2];
 	        	}
 	        	
 	        	drawLine(out,p_ini,p_end, col);
 	        	
 	        	double radius = Math.cbrt(ptt.p1.m0 / 3.0f * 4.0f);
 	        	
-	        	float scaling[] = new float[out_a.numDimensions()];
-	        	
-	    		if (cal != null)
-	    		{
-	    			scaling[0] = (float) (cal.pixelWidth);
-	    			scaling[1] = (float) (cal.pixelHeight);
-	    			if (scaling.length >= 3)
-	    				scaling[2] = (float) (cal.pixelDepth);
-	    		}
-	    		else
-	    		{
-	    			scaling[0] = 1.0f;
-	    			scaling[1] = 1.0f;
-	    			if (scaling.length >= 3)
-	    				scaling[2] = 1.0f;
-	    		}
-	        	
-		    	float min_s = minScaling(scaling);
-		    	int rc = (int) (radius / min_s);
-		    	scaling[0] /= min_s;
-		    	scaling[1] /= min_s;
-		    	if (scaling.length >= 3)
-		    	{
-		    		scaling[2] /= min_s;
-		    		rc /= scaling[2];
-		    	}
+		    	int rc = (int) radius;
 	        	
 	        	// draw several lines on z
 	        	
@@ -1479,13 +1455,13 @@ import net.imglib2.view.Views;
 	        	
 	    	        	if (cal != null)
 	    	        	{
-	    	        		p_ini.x /= (float)cal.pixelWidth;
-	    	        		p_ini.y /= (float)cal.pixelHeight;
-		        			p_ini.z = p_ini.z / (float)cal.pixelDepth - i;
+	    	        		p_ini.x /= (float)scaling_[0];
+	    	        		p_ini.y /= (float)scaling_[1];
+		        			p_ini.z = p_ini.z / (float)scaling[2] - i;
 	        	
-	    	        		p_end.x /= (float)cal.pixelWidth;
-	    	        		p_end.y /= (float)cal.pixelHeight;
-		        			p_end.z = p_end.z / (float)cal.pixelDepth - i;
+	    	        		p_end.x /= (float)scaling_[0];
+	    	        		p_end.y /= (float)scaling_[1];
+		        			p_end.z = p_end.z / (float)scaling_[2] - i;
 	    	        	}
 	        			
 	        			drawLine(out,p_ini,p_end, col);
@@ -1500,13 +1476,13 @@ import net.imglib2.view.Views;
 	        	
 	    	        	if (cal != null)
 	    	        	{
-	    	        		p_ini.x /= (float)cal.pixelWidth;
-	    	        		p_ini.y /= (float)cal.pixelHeight;
-		        			p_ini.z = p_ini.z / (float)cal.pixelDepth + i;
+	    	        		p_ini.x /= (float)scaling_[0];
+	    	        		p_ini.y /= (float)scaling_[1];
+		        			p_ini.z = p_ini.z / (float)scaling_[2] + i;
 	        	
-	    	        		p_end.x /= (float)cal.pixelWidth;
-	    	        		p_end.y /= (float)cal.pixelHeight;
-		        			p_end.z = p_end.z /(float)cal.pixelDepth + i;
+	    	        		p_end.x /= (float)scaling_[0];
+	    	        		p_end.y /= (float)scaling_[1];
+		        			p_end.z = p_end.z /(float)scaling_[2] + i;
 	    	        	}
 	        			
 	        			drawLine(out,p_ini,p_end, col);
@@ -1687,10 +1663,11 @@ import net.imglib2.view.Views;
 		 * @param start_frame when focus area is active it specify from where the focus video start
 		 * @param focus boundary of the focus area (can be null);
 		 * @param cal_ Calibration basically the image spacing
+		 * @param p_radius when != -1 the redius of the particles is fixed
 		 * @param typ type of draw
 		 */
 		
-		private static void TrajectoriesDraw(RandomAccessibleInterval<ARGBType> out, int nframe, Vector<Trajectory> tr, int start_frame, Rectangle focus, Calibration cal_ ,  DrawType typ)
+		private static void TrajectoriesDraw(RandomAccessibleInterval<ARGBType> out, int nframe, Vector<Trajectory> tr, int start_frame, Rectangle focus, Calibration cal_ ,  DrawType typ, int p_radius)
 		{
 			MyFrame f = new MyFrame();
 			
@@ -1866,9 +1843,16 @@ import net.imglib2.view.Views;
 	        			view = Views.hyperSlice( out, out.numDimensions()-1, frame );
 	        		else
 	        			view = out;
-	        			
-			        drawParticles(view,vp,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+	        		
+	        		if (p_radius == -1)
+	        			drawParticles(view,vp,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+	        		else
+	        			drawParticlesWithRadius(view,vp,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()),p_radius);
+	        		
+	        		// Real link
 			        drawLines(view,lines,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+			        
+			        // Jump link
 			        drawLines(view,lines_jmp,cal_, ARGBType.rgba(255,0.0,0.0,0.0));
 	        	}
 	        } 
@@ -1886,7 +1870,7 @@ import net.imglib2.view.Views;
 		 *
 		 */
 		
-		static public void updateImage(RandomAccessibleInterval<ARGBType> out , Rectangle focus, int start_frame, Vector<Trajectory> tr, Calibration cal , DrawType typ)
+		static public void updateImage(RandomAccessibleInterval<ARGBType> out , Rectangle focus, int start_frame, Vector<Trajectory> tr, Calibration cal , DrawType typ, int p_radius)
 		{
 			// Adjust calibration according to magnification
 			
@@ -1910,9 +1894,7 @@ import net.imglib2.view.Views;
 	        
 	        // Draw trajectories
 	        
-	        TrajectoriesDraw(out,nframe, tr, start_frame, focus, cal_ , typ);
-	        
-
+	        TrajectoriesDraw(out,nframe, tr, start_frame, focus, cal_ , typ, p_radius);
 		}
 		
 		/**
@@ -1923,13 +1905,14 @@ import net.imglib2.view.Views;
 		 * @param A vector of Trajectory
 		 * @param cal Calibration
 		 * @param Type of draw
+		 * @param when p_radius != -1 the radius of the particles is fixed
 		 *
 		 */
 		
-		static public  void updateImage(Img<ARGBType> out , Vector<Trajectory> tr , Calibration cal, DrawType typ)
+		static public  void updateImage(Img<ARGBType> out , Vector<Trajectory> tr , Calibration cal, DrawType typ, int p_radius)
 		{
 			for (int i = 0 ; i < tr.size() ; i++)
-				updateImage(out,tr,cal,new Color(tr.get(i).color.getRed(), tr.get(i).color.getGreen(), tr.get(i).color.getBlue(), tr.get(i).color.getTransparency()),typ);
+				updateImage(out,tr,cal,new Color(tr.get(i).color.getRed(), tr.get(i).color.getGreen(), tr.get(i).color.getBlue(), tr.get(i).color.getTransparency()),typ, p_radius);
 		}
 		
 		/**
@@ -1944,7 +1927,7 @@ import net.imglib2.view.Views;
 		 *
 		 */
 		
-		static public  void updateImage(Img<ARGBType> out , Vector<Trajectory> tr , Calibration cal , Color cl , DrawType typ)
+		static public  void updateImage(Img<ARGBType> out , Vector<Trajectory> tr , Calibration cal , Color cl , DrawType typ, int p_radius)
 		{
 			// Get image
 	        
@@ -1960,7 +1943,7 @@ import net.imglib2.view.Views;
 	        
 	        // Collect particles to draw and spline to draw
 	        
-	        TrajectoriesDraw(out,nframe, tr, 0, null, cal, typ);
+	        TrajectoriesDraw(out,nframe, tr, 0, null, cal, typ, p_radius);
 		}
 
 		/**
@@ -2022,7 +2005,7 @@ import net.imglib2.view.Views;
 	        
 	        // Collect particles to draw and spline to draw
 	        
-	        TrajectoriesDraw(out, 1, tr, frame, null, cal, typ);
+	        TrajectoriesDraw(out, 1, tr, frame, null, cal, typ, p_radius);
 	        
 	        return out;
 		}
@@ -2056,7 +2039,7 @@ import net.imglib2.view.Views;
 	        
 	        //
 	        
-	        TrajectoriesDraw(out, 1, tr, frame, null, null, typ);
+	        TrajectoriesDraw(out, 1, tr, frame, null, null, typ, p_radius);
 	        
 	        return out;
 		}

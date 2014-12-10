@@ -58,7 +58,6 @@ import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.ipc.MetaInfo;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.core.utils.ShellCommand;
 import mosaic.plugins.BregmanGLM_Batch;
 
 
@@ -142,20 +141,6 @@ public class GenericGUI
 			hd.closeAll();
 	}
 	
-	public static void setimagelocation(int x, int y, ImagePlus imp)
-	{
-		int wx, wy;
-
-		Window w = imp.getWindow();
-		wx= w.getWidth();
-		wy= w.getHeight();
-
-		w.setSize(Math.min(522, wx), Math.min(574, wy));// set all images to max 512x512 preview (window 522*574)
-		w.setLocation(Math.min(x,screensizex-wx),Math.min(y,screensizey-wy));
-		
-		imp.getCanvas().fitToWindow();		
-	}
-	
 	public static void setwindowlocation(int x, int y, Window w)
 	{
 		int wx, wy;
@@ -165,11 +150,225 @@ public class GenericGUI
 		
 	}
 
+	/**
+	 * 
+	 * Draw a window if we are running as a macro, basically does not draw
+	 * any window, but just get the parameters from the command line
+	 * 
+	 * @param gd Generic dialog where to draw
+	 * 
+	 */
+	
+	public void drawBatchWindow(GenericDialog gd)
+	{
+		// Add Regularization Channel 1
+		gd.addNumericField("Reg_ch1",0.05,3);
+		
+		// Add Regularization Channel 2
+		gd.addNumericField("Reg_ch2",0.05,3);
+		
+		// Add Min int Channel 1
+		gd.addNumericField("Min_int_ch1",0.15,3);
+		
+		// Add Min int Channel 2
+		gd.addNumericField("Min_int_ch2",0.15,3);
+		
+		// PSF xy
+		gd.addNumericField("PSF_xy", 1.0, 3);
+		
+		// PSF z
+		gd.addNumericField("PSF_z", 1.0, 3);
+		
+		gd.showDialog();
+		if (gd.wasCanceled()) return;
+		
+		// Get the parameters
+		
+		Analysis.p.lreg_[0] = gd.getNextNumber();
+		Analysis.p.lreg_[1] = gd.getNextNumber();
+		Analysis.p.min_intensity = gd.getNextNumber();
+		Analysis.p.min_intensityY = gd.getNextNumber();
+		Analysis.p.sigma_gaussian = gd.getNextNumber();
+		Analysis.p.zcorrec=Analysis.p.sigma_gaussian/gd.getNextNumber();
+	}
+	
+	/**
+	 * 
+	 * Draw the standard squassh main window
+	 * 
+	 * @param gd Generic dialog where to draw
+	 * @param Active imagePlus
+	 * @param It output if we have to use the cluster
+	 * 
+	 * @return true if you have to use the cluster
+	 * 
+	 */
+	
+	boolean drawStandardWindow(GenericDialog gd, ImagePlus aImp)
+	{
+		// font for reference
+		Font bf = new Font(null, Font.BOLD ,12);
+		
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		screensizex= (int) screenSize.getWidth();
+		screensizey = (int) screenSize.getHeight();
+	
+		gd.setInsets(-10,0,3);
+	
+		if (Analysis.p.wd == null)
+			gd.addTextAreas("Input Image: \n" +
+			"insert Path to file or folder, " +
+			"or press Button below.", 
+			null, 2, 50);
+		else
+			gd.addTextAreas(Analysis.p.wd,null, 2, 50);
+	
+		//FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
+		FlowLayout fl = new FlowLayout(FlowLayout.LEFT,75,3);
+		Panel p = new Panel(fl);
+
+		Button b = new Button("Select File/Folder");
+		b.addActionListener(new FileOpenerActionListener(p,gd, gd.getTextArea1()));
+		p.add(b);
+
+		Button bh = new Button("Help");
+		bh.addActionListener(new HelpOpenerActionListener(p,gd));
+		p.add(bh);
+
+		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
+	
+	
+		// Image chooser
+	
+		gd.addChoice("Input image", new String[]{""}, "");
+		MosaicUtils.chooseImage(gd,"Image",aImp);
+	
+		// Background Options
+
+		Button backOption = new Button("Options");
+		Label label = new Label("Background subtraction");
+		label.setFont(bf);
+		p = new Panel();
+		p.add(label);
+		p.add(backOption);
+		backOption.addActionListener(new ActionListener() 
+		{
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				// TODO Auto-generated method stub
+		
+				BackgroundSubGUI gds = new BackgroundSubGUI(posx, posy);
+				gds.run("");
+			}
+		});
+		gd.addPanel(p);
+
+		// seg Option button
+
+		Button segOption = new Button("Options");
+		label = new Label("Segmentation parameters");
+		label.setFont(bf);
+		p = new Panel();
+		p.add(label);
+		p.add(segOption);
+		segOption.addActionListener(new ActionListener() 
+		{
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				// TODO Auto-generated method stub
+
+				SegmentationGUI gds = new SegmentationGUI(posx, posy);
+				gds.run("");
+			}
+		});
+		gd.addPanel(p);
+
+		Button colOption = new Button("Options");
+		label = new Label("Colocalization (two channels images)");
+		label.setFont(bf);
+		p = new Panel();
+		p.add(label);
+		p.add(colOption);
+		colOption.addActionListener(new ActionListener() 
+		{
+			@Override
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				// TODO Auto-generated method stub
+		
+				ColocalizationGUI gds = new ColocalizationGUI(imgch1,imgch2,posx, posy);
+				gds.run("");
+			}
+		});
+		gd.addPanel(p);
+
+		//gd.addMessage("");
+
+		Button visOption = new Button("Options");
+		label = new Label("Vizualization and output");
+		label.setFont(bf);
+		p = new Panel();
+		p.add(label);
+		p.add(visOption);
+		visOption.addActionListener(new ActionListener() 
+		{
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				// TODO Auto-generated method stub
+
+				VisualizationGUI gds = new VisualizationGUI(posx, posy);
+				gds.run("");
+			}
+		});
+		gd.addPanel(p);
+	
+		gd.addCheckbox("Process on computer cluster", gui_use_cluster);
+	
+		gd.centerDialog(false);
+		posx=100;
+		posy=120;
+		gd.setLocation(posx, posy);
+	
+		// Introduce a label with reference
+	
+		JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br> G. Paul, J. Cardinale, and I. F. Sbalzarini.<br>"
+	                           + "Coupling image restoration and segmentation:<br>"
+			                   + "A generalized linear model/Bregman<br>"
+			                   + "perspective. Int. J. Comput. Vis., 104(1):69–93, 2013.<br>"
+	                           + "<br>"
+                               + "A. Rizk, G. Paul, P. Incardona, M. Bugarski, M. Mansouri,<br>"
+	                           + "A. Niemann, U. Ziegler, P. Berger, and I. F. Sbalzarini.<br>"
+                               + "Segmentation and quantification of subcellular structures<br>"
+                               + "in fluorescence microscopy images using Squassh.<br>"
+                               + "Nature Protocols, 9(3):586–596, 2014. </html>");
+		p = new Panel();
+		p.add(labelJ);
+		gd.addPanel(p);
+	
+		//////////////////////////////////
+	
+		gd.showDialog();
+		if (gd.wasCanceled()) return false;
+	
+		Analysis.p.wd=  gd.getNextText();
+	
+		Runtime runtime = Runtime.getRuntime();
+		int nrOfProcessors = runtime.availableProcessors();
+		//IJ.log("Number of processors available to the Java Virtual Machine: " + nrOfProcessors);		
+		Analysis.p.nthreads=nrOfProcessors;
+	
+		return gd.getNextBoolean();
+	}
 	
 	public void run(String arg, ImagePlus aImp)
 	{
-		boolean use_cluster = false;
-		Font bf = new Font(null, Font.BOLD,12);
+		Boolean use_cluster = false;
 		//String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
 		//boolean bgroup1[] = {false, false};
 
@@ -185,142 +384,18 @@ public class GenericGUI
 		
 		if (!clustermode)
 		{
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			screensizex= (int) screenSize.getWidth();
-			screensizey = (int) screenSize.getHeight();
-			
-			gd.setInsets(-10,0,3);
-			
-			if (Analysis.p.wd == null)
-				gd.addTextAreas("Input Image: \n" +
-					"insert Path to file or folder, " +
-					"or press Button below.", 
-					null, 2, 50);
+			if (IJ.isMacro() == true)
+			{
+				// Draw a batch system window
+				
+				drawBatchWindow(gd);
+			}
 			else
-				gd.addTextAreas(Analysis.p.wd,null, 2, 50);
-			
-			//FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
-			FlowLayout fl = new FlowLayout(FlowLayout.LEFT,75,3);
-			Panel p = new Panel(fl);
-
-			Button b = new Button("Select File/Folder");
-			b.addActionListener(new FileOpenerActionListener(p,gd, gd.getTextArea1()));
-			p.add(b);
-
-			Button bh = new Button("Help");
-			bh.addActionListener(new HelpOpenerActionListener(p,gd));
-			p.add(bh);
-
-			gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
-			
-			
-			// Image chooser
-			
-			gd.addChoice("Input image", new String[]{""}, "");
-			MosaicUtils.chooseImage(gd,"Image",aImp);
-			
-			// Background Options
-
-			Button backOption = new Button("Options");
-			Label label = new Label("Background subtraction");
-			label.setFont(bf);
-			p = new Panel();
-			p.add(label);
-			p.add(backOption);
-			backOption.addActionListener(new ActionListener() 
 			{
-
-				@Override
-				public void actionPerformed(ActionEvent arg0) 
-				{
-				// TODO Auto-generated method stub
+				// Draw a standard window
 				
-					BackgroundSubGUI gds = new BackgroundSubGUI(posx, posy);
-					gds.run("");
-				}
-			});
-			gd.addPanel(p);
-
-			// seg Option button
-
-			Button segOption = new Button("Options");
-			label = new Label("Segmentation parameters");
-			label.setFont(bf);
-			p = new Panel();
-			p.add(label);
-			p.add(segOption);
-			segOption.addActionListener(new ActionListener() 
-			{
-
-				@Override
-				public void actionPerformed(ActionEvent arg0) 
-				{
-					// TODO Auto-generated method stub
-
-					SegmentationGUI gds = new SegmentationGUI(posx, posy);
-					gds.run("");
-				}
-			});
-			gd.addPanel(p);
-
-			Button colOption = new Button("Options");
-			label = new Label("Colocalization (two channels images)");
-			label.setFont(bf);
-			p = new Panel();
-			p.add(label);
-			p.add(colOption);
-			colOption.addActionListener(new ActionListener() 
-			{
-				@Override
-				public void actionPerformed(ActionEvent arg0) 
-				{
-					// TODO Auto-generated method stub
-				
-					ColocalizationGUI gds = new ColocalizationGUI(imgch1,imgch2,posx, posy);
-					gds.run("");
-				}
-			});
-			gd.addPanel(p);
-		
-			//gd.addMessage("");
-
-			Button visOption = new Button("Options");
-			label = new Label("Vizualization and output");
-			label.setFont(bf);
-			p = new Panel();
-			p.add(label);
-			p.add(visOption);
-			visOption.addActionListener(new ActionListener() 
-			{
-
-				@Override
-				public void actionPerformed(ActionEvent arg0) 
-				{
-					// TODO Auto-generated method stub
-				
-					VisualizationGUI gds = new VisualizationGUI(posx, posy);
-					gds.run("");
-				}
-			});
-			gd.addPanel(p);
-			
-			gd.addCheckbox("Process on computer cluster", gui_use_cluster);
-			
-			gd.centerDialog(false);
-			posx=100;
-			posy=120;
-			gd.setLocation(posx, posy);
-			gd.showDialog();
-			if (gd.wasCanceled()) return;
-			
-			Analysis.p.wd=  gd.getNextText();
-			
-			Runtime runtime = Runtime.getRuntime();
-			int nrOfProcessors = runtime.availableProcessors();
-			//IJ.log("Number of processors available to the Java Virtual Machine: " + nrOfProcessors);		
-			Analysis.p.nthreads=nrOfProcessors;
-			
-			use_cluster = gd.getNextBoolean();
+				use_cluster = drawStandardWindow(gd,aImp);
+			}
 		}
 		else
 		{
@@ -597,8 +672,6 @@ public class GenericGUI
 				imgch1.setDisplayRange(Amin,Amax);
 
 				imgch1.show("");
-				GenericGUI.setimagelocation(650,30,imgch1);
-
 
 				if(nc>1){
 					imgch2=new ImagePlus();
@@ -627,7 +700,6 @@ public class GenericGUI
 					imgch2.setDisplayRange(Bmin,Bmax);
 
 					imgch2.show("");
-					GenericGUI.setimagelocation(650,610,imgch2);
 				}
 
 

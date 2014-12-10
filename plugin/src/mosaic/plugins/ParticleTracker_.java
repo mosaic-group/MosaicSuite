@@ -6,7 +6,6 @@ import ij.plugin.filter.PlugInFilter;
 import ij.plugin.filter.Convolver;
 import ij.plugin.filter.Duplicater;
 import ij.process.*;
-
 import ij.text.*;
 import ij.measure.*;
 import ij.gui.*;
@@ -20,6 +19,8 @@ import java.io.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
+
+import javax.swing.JLabel;
 
 
 /**
@@ -329,6 +330,17 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 	        gd.addNumericField("Displacement", 10.0, 2); 
 		}
 
+		// Introduce a label with reference
+		
+		JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br>"+
+		"I. F. Sbalzarini and P. Koumoutsakos. Feature Point <br>" + 
+		"Tracking and Trajectory Analysis for Video Imaging in Cell Biology,<br>" +
+		"Journal of Structural Biology 151(2):182-195, 2005.<br>" +
+        "</html>");
+		Panel p = new Panel();
+		p.add(labelJ);
+		gd.addPanel(p);
+		
         gd.showDialog();
         
         // retrieve params from user
