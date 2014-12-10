@@ -123,7 +123,7 @@ public class Naturalization implements PlugInFilter
 		// Otherwise return an error or hint to scale down
 		//
 		
-		// Class to create to calculate the Mean
+		// Class to calculate the Mean
 		Mean<T,S> m = new Mean<T,S>();
 		
 		// Check if the image is 8-bit
