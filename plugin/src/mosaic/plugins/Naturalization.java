@@ -1,10 +1,12 @@
 package mosaic.plugins;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Vector;
 
+import mosaic.core.utils.MosaicUtils;
 import net.imglib2.Cursor;
 import net.imglib2.ExtendedRandomAccessibleInterval;
 import net.imglib2.IterableInterval;
@@ -46,6 +48,9 @@ import io.scif.img.ImgSaver;
 
 public class Naturalization implements PlugInFilterExt
 {
+	ImagePlus source;
+	ImagePlus nat;
+	
 	// Parameters balance between first order and second order
 	// 
 	// Parameter of the algorithm
@@ -281,6 +286,8 @@ public class Naturalization implements PlugInFilterExt
 		if (imp == null)
 		{IJ.error("The plugin require an 8-bit image");return DONE;}
 		
+		source = imp;
+		
 		// Analyse the image
 		
 		if (imp.getType() == ImagePlus.COLOR_RGB)
@@ -404,18 +411,10 @@ public class Naturalization implements PlugInFilterExt
 			
 			/////////////////////////////////
 			
-			ImageJFunctions.show(img_result);
+			nat = ImageJFunctions.wrap(img_result,imp.getTitle() + "_naturalized");
+			nat.show();
 			
-			ImgSaver sv = new ImgSaver();
-			try {
-				sv.saveImg(imp.getTitle(), img_result);
-			} catch (ImgIOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IncompatibleTypeException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
 			
 			IJ.showMessage("Naturalization factor R: " + Nf_s[2] + "   G: " + Nf_s[1] + "   B: " + Nf_s[0]);
 		}
@@ -461,18 +460,12 @@ public class Naturalization implements PlugInFilterExt
 			
 			/////////////////////////////////
 			
-			ImageJFunctions.show(Channel);
+			nat = ImageJFunctions.wrap(Channel, imp.getTitle() + "_naturalized");
+			nat.show();
 			
-			ImgSaver sv = new ImgSaver();
-			try {
-				sv.saveImg(imp.getTitle(), Channel);
-			} catch (ImgIOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IncompatibleTypeException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
+			
+			IJ.showMessage("Naturalization factor " + Nf_s[0]);
 		}
 		else
 		{
@@ -561,8 +554,6 @@ public class Naturalization implements PlugInFilterExt
 		// return the average
 		return (m1+m2)/2;
 	}
-
-	int diocane = 0;
 	
 	//process signal channel uint8 image
 	<T extends RealType<T>> void div(Img<T> image, Img<FloatType> field, Img<FloatType> GradCDF, Img<FloatType> LapCDF)
@@ -613,19 +604,6 @@ public class Naturalization implements PlugInFilterExt
 		RandomAccess<FloatType> Lap_f = field.randomAccess();
 		RandomAccess<FloatType> Lap_hist = LapCDF.randomAccess();
 		RandomAccess<FloatType> Grad_dist = GradD.randomAccess();
-		
-		/////////////// WRITER //////////////
-		
-		PrintWriter writer = null;
-		try {
-			writer = new PrintWriter("/home/i-bird/Desktop/MOSAIC/Naturalization/C++/java_out_pixel" + diocane + ".txt", "UTF-8");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
 		// For each point of the Laplacian field
 		
@@ -787,14 +765,6 @@ public class Naturalization implements PlugInFilterExt
 	        	Grady_r.move(1,0);
 	        }
 	    }
-
-    	Grady_r.setPosition(0,0);
-    	
-        for (int j = 0; j < N_Grad; ++j)
-        {
-        	writer.println(Grady_r.get().getRealFloat());
-        	Grady_r.move(1,0);
-        }
 	    
 		//scale, divide the number of integrated bins
 		for (int i = 0; i < N_Grad; ++i)
@@ -816,10 +786,6 @@ public class Naturalization implements PlugInFilterExt
 			
 			Lap_hist.get().set(Lap_hist.get().getRealFloat() + prec);
 		}
-		
-		
-		diocane++;
-		writer.close();
 	}
 	
 	
@@ -833,8 +799,14 @@ public class Naturalization implements PlugInFilterExt
 	}
 
 	@Override
-	public void closeAll() {
-		// TODO Auto-generated method stub
+	public void closeAll() 
+	{
+		// Close source
+		if (source != null)
+			source.close();
 		
+		// Close naturalization
+		if (nat != null)
+			nat.close();
 	}
 }

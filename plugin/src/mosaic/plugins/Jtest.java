@@ -33,6 +33,11 @@ public class Jtest implements PlugInFilter
 	@Override
 	public int setup(String arg0, ImagePlus arg1) 
 	{
+		// Test Naturalization
+		
+		mosaic.plugins.test.Jtest JtestPlug = new mosaic.plugins.test.Jtest();
+		JtestPlug.naturalization();
+		
 		// Test CSV system
 		
 		mosaic.core.ipc.Jtest jtestIPC = new mosaic.core.ipc.Jtest();
