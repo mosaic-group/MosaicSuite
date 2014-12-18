@@ -93,7 +93,7 @@
 
       <!-- Include for imageJ 1.44 -->
 
-      <!-- <zipgroupfileset dir="lib" includes="*.jar" excludes="*.config"/> -->
+      <!--<zipgroupfileset dir="lib" includes="*.jar" excludes="*.config"/>-->
 
       <zipgroupfileset dir="lib" includes="jtransforms-2.4.jar" excludes="*.config"/>
       <zipgroupfileset dir="lib" includes="javaml-0.1.7.jar" excludes="*.config"/>
