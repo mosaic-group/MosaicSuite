@@ -416,7 +416,7 @@ public class Naturalization implements PlugInFilterExt
 			
 			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
 			
-			IJ.showMessage("Naturalization factor R: " + Nf_s[2] + "   G: " + Nf_s[1] + "   B: " + Nf_s[0]);
+			IJ.showMessage("Naturalness factor R: " + Nf_s[2] + "   G: " + Nf_s[1] + "   B: " + Nf_s[0]);
 		}
 		else if (imp.getType() == ImagePlus.GRAY8)
 		{
