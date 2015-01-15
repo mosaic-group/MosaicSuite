@@ -1992,7 +1992,7 @@ public class MosaicUtils
 	
 	static public boolean checkRequirement()
 	{
-		if(IJ.versionLessThan("1.44u"))
+		if(IJ.versionLessThan("1.48"))
 		{
 			IJ.error("Your Fiji or ImageJ version is too old to run the MosaicToolSuite please update it");
 			return false;
