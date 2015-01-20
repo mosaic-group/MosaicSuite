@@ -1,10 +1,20 @@
 package mosaic.plugins;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Vector;
+
+import javax.swing.BorderFactory;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.WindowConstants;
+import javax.swing.border.Border;
 
 import mosaic.core.utils.MosaicUtils;
 import net.imglib2.Cursor;
@@ -50,6 +60,52 @@ public class Naturalization implements PlugInFilterExt
 {
 	ImagePlus source;
 	ImagePlus nat;
+	
+	/**
+	 * 
+	 * Show a message
+	 * 
+	 * @param 
+	 * 
+	 */
+
+	private void showMessage(String message)
+	{
+		// Window
+		JDialog win = new JDialog((JDialog)null,"Naturalization",true);
+		
+		// Label containing the message
+		JPanel msg = new JPanel();
+		JLabel lbl = new JLabel(message);
+		msg.add(lbl);
+		win.getContentPane().add(msg);
+		
+		Border main_border = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+		msg.setBorder(main_border);
+		win.add(msg);
+		
+		// create a line border with the specified color and width
+		Border border = BorderFactory.createLineBorder(Color.BLACK, 2);
+		
+		// Label 1
+		
+		JPanel mP1 = new JPanel();
+		JLabel lbl_pap1 = new JLabel("<html>Y. Gong and I. F. Sbalzarini. Image enhancement by gradient distribution specification. In Proc. ACCV, <br>"
+				+ "12th Asian Conference on Computer Vision, Workshop on Emerging Topics in Image Enhancement and Restoration,<br>"
+				+ "pages w7–p3, Singapore, November 2014.<br><br>"
+				+ "Y. Gong and I. F. Sbalzarini, Gradient Distributions Priors for Biomedical Image Processing, 2014 <a href=\"http://arxiv.org/abs/1408.3300\">http://arxiv.org/abs/1408.3300</a></html>");
+		lbl_pap1.setBorder(border);
+		mP1.add(lbl_pap1);
+		win.getContentPane().add(mP1, BorderLayout.SOUTH);
+		
+		// pack
+		win.pack();
+		
+		win.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		
+		// show
+		win.setVisible(true);
+	}
 	
 	// Parameters balance between first order and second order
 	// 
@@ -416,7 +472,9 @@ public class Naturalization implements PlugInFilterExt
 			
 			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
 			
-			IJ.showMessage("Naturalness factor R: " + Nf_s[2] + "   G: " + Nf_s[1] + "   B: " + Nf_s[0]);
+			//
+			
+			showMessage("Naturalness factor R: " + Nf_s[2] + "   G: " + Nf_s[1] + "   B: " + Nf_s[0]);
 		}
 		else if (imp.getType() == ImagePlus.GRAY8)
 		{
@@ -465,7 +523,7 @@ public class Naturalization implements PlugInFilterExt
 			
 			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
 			
-			IJ.showMessage("Naturalization factor " + Nf_s[0]);
+			showMessage("Naturalization factor " + Nf_s[0]);
 		}
 		else
 		{

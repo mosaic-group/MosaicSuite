@@ -1872,6 +1872,7 @@ public class MosaicUtils
 		return dir;
 	}
 	
+	
 	/**
 	 * 
 	 * Remove the file extension

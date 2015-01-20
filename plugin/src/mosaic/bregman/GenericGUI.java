@@ -451,6 +451,9 @@ public class GenericGUI
 		{
 			// We run locally
 			
+			String savepath;
+			savepath = MosaicUtils.ValidFolderFromImage(aImp);
+			
 			hd = null;
 		
 			if (Analysis.p.wd == null || Analysis.p.wd.startsWith("Input Image:") || Analysis.p.wd.isEmpty())
@@ -462,15 +465,24 @@ public class GenericGUI
 				}
 				hd= new BLauncher(aImp);
 				
-				String savepath;
-				savepath = MosaicUtils.ValidFolderFromImage(aImp);
-				
 				MosaicUtils.reorganize(Analysis.out_w,aImp.getShortTitle(),savepath,aImp.getNFrames());
 				
 				// if it is a video Stitch all the csv
 				
 				if (aImp.getNFrames() > 1)
+				{
 					MosaicUtils.StitchCSV(savepath,Analysis.out,savepath + File.separator + aImp.getTitle());
+					
+					Analysis.p.file1=savepath+File.separator+"stitch_ObjectsData_c1"+ ".csv";
+					Analysis.p.file2=savepath+File.separator+"stitch_ObjectsData_c2"+ ".csv";
+					Analysis.p.file3=savepath+File.separator+"stitch_ImagesData"+ ".csv";
+				}
+				else
+				{
+					Analysis.p.file1=savepath+File.separator+Analysis.out_w[0].replace("*", "_")+File.separator+MosaicUtils.removeExtension(aImp.getTitle())+"_ObjectsData_c1"+ ".csv";
+					Analysis.p.file2=savepath+File.separator+Analysis.out_w[1].replace("*", "_")+File.separator+MosaicUtils.removeExtension(aImp.getTitle())+"_ObjectsData_c2"+ ".csv";
+					Analysis.p.file3=savepath+File.separator+Analysis.out_w[4].replace("*", "_")+File.separator+MosaicUtils.removeExtension(aImp.getTitle())+"_ImagesData"+ ".csv";
+				}
 			}
 			else
 			{
@@ -484,15 +496,36 @@ public class GenericGUI
 						MosaicUtils.reorganize(Analysis.out_w,pf,Analysis.p.wd);
 						
 						MosaicUtils.StitchCSV(fl.getAbsolutePath(),Analysis.out,null);
+						
+						Analysis.p.file1=savepath+File.separator+"stitch_ObjectsData_c1"+ ".csv";
+						Analysis.p.file2=savepath+File.separator+"stitch_ObjectsData_c2"+ ".csv";
+						Analysis.p.file3=savepath+File.separator+"stitch_ImagesData"+ ".csv";
 					}
 					else
+					{
+						Analysis.p.file1=savepath+File.separator+Analysis.out_w[0].replace("*", "_")+File.separator+MosaicUtils.removeExtension(aImp.getTitle())+"_ObjectsData_c1"+ ".csv";
+						Analysis.p.file2=savepath+File.separator+Analysis.out_w[1].replace("*", "_")+File.separator+MosaicUtils.removeExtension(aImp.getTitle())+"_ObjectsData_c2"+ ".csv";
+						Analysis.p.file3=savepath+File.separator+Analysis.out_w[4].replace("*", "_")+File.separator+MosaicUtils.removeExtension(aImp.getTitle())+"_ImagesData"+ ".csv";
+						
 						MosaicUtils.reorganize(Analysis.out_w,pf,new File(Analysis.p.wd).getParent());
+					}
 				}
 			}
 
 		//		    hd.bcolocheadless(imagePlus);*/
 			
-
+			if(Analysis.p.nchannels==2)
+			{
+				if(Analysis.p.save_images)
+				{
+					RScript script = new RScript(
+							savepath, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3,
+							Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames,
+							Analysis.p.ch1,Analysis.p.ch2
+							);
+					script.writeScript();
+				}
+			}
 		}
 		else
 		{

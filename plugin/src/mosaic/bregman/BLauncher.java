@@ -486,23 +486,6 @@ public class BLauncher
 				//IJ.log(wpath);
 				savepath = MosaicUtils.ValidFolderFromImage(aImp);
 				//IJ.log(savepath);
-
-
-				if(Analysis.p.nchannels==2)
-				{
-					Analysis.p.file1=savepath+File.separator+"stitch_ObjectsData_c1"+ ".csv";
-					Analysis.p.file2=savepath+File.separator+"stitch_ObjectsData_c2"+ ".csv";
-					Analysis.p.file3=savepath+File.separator+"stitch_ImagesData"+ ".csv";
-					if(Analysis.p.save_images)
-					{
-						script = new RScript(
-								savepath, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3,
-								Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames,
-								Analysis.p.ch1,Analysis.p.ch2
-								);
-						script.writeScript();
-					}
-				}
 			}
 			//IJ.log("single file start headless");
 			//IJ.log("start headless file");
