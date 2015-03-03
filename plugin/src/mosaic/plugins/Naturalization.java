@@ -42,6 +42,8 @@ import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
+import ij.measure.ResultsTable;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import io.scif.img.ImgIOException;
@@ -336,6 +338,34 @@ public class Naturalization implements PlugInFilterExt
         return image_result;
 	}
 	
+	/**
+	 * 
+	 * Calculate the peak SNR from the Naturalization factor
+	 * 
+	 * @param Nf naturalization factor
+	 * @return the PSNR
+	 */
+	
+	String calculate_PSNR(double x)
+	{
+		if (x >=  0 && x <= 0.934)
+		{
+			return Double.toString(24.21 * Math.exp(0.519 * x) - 18.11 * Math.exp(-6.433 * x));
+		}
+		else if (x > 0.934 && x < 1.07)
+		{
+			return new String("> 40");
+		}
+		else if (x >= 1.07 && x < 1.9)
+		{
+			return Double.toString(-11.566 * x + 52.776);
+		}
+		else
+		{
+			return Double.toString(13.06*x*x*x*x - 121.4 * x*x*x + 408.5 * x*x -595.5*x + 349);
+		}
+	}
+	
 	@Override
 	public int setup(String arg, ImagePlus imp)
 	{
@@ -348,187 +378,245 @@ public class Naturalization implements PlugInFilterExt
 		
 		if (imp.getType() == ImagePlus.COLOR_RGB)
 		{
+			ResultsTable rs = new ResultsTable();
+			
 			// It work only on 2D images
 			
 			long dims[] = new long[2];
 			dims[0] = imp.getWidth();
 			dims[1] = imp.getHeight();
 			
+			ImageStack is = imp.getStack();
+			
+			long rdims[] = new long[3];
+			rdims[0] = imp.getWidth();
+			rdims[1] = imp.getHeight();
+			rdims[2] = is.getSize();
+			
+			Img<ARGBType> img_result = imgFactoryARGB.create(rdims, new ARGBType());
+			
 			// Copy the R Channel and Naturalize
 			
 			Img<UnsignedByteType> R_Channel = imgFactoryUS.create(dims, new UnsignedByteType());
 			
-			// Copy read channel
-			
-			Img<ARGBType> image_orig = ImagePlusAdapter.wrap( imp );
-			
-			Cursor<ARGBType> aCur = image_orig.cursor();
-			Cursor<UnsignedByteType> r = R_Channel.cursor();
-			
-			// Copy
-			
-			while (r.hasNext())
+			for (int i = 0 ; i < is.getSize() ; i++)
 			{
-				r.next();
-				aCur.next();
+				// Copy read channel
+			
+				ImagePlus RGBb = new ImagePlus("RGB_tmp", is.getProcessor(i+1));
+				Img<ARGBType> image_orig = ImagePlusAdapter.wrap( RGBb );
+			
+				Cursor<ARGBType> aCur = image_orig.cursor();
+				Cursor<UnsignedByteType> r = R_Channel.cursor();
+			
+				// Copy
+			
+				while (r.hasNext())
+				{
+					r.next();
+					aCur.next();
 				
-				r.get().set(ARGBType.red(aCur.get().get()));
-			}
-			
-			FloatType Theta = new FloatType(0.5f);
-			try {
-				R_Channel = Naturalization(R_Channel,Theta,2,UnsignedByteType.class, FloatType.class);
-			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			// Copy gren channel and naturalize
-			
-			Img<UnsignedByteType> G_Channel = imgFactoryUS.create(dims, new UnsignedByteType());
-			
-			// Copy green channel
-			
-			aCur = image_orig.cursor();
-			Cursor<UnsignedByteType> g = G_Channel.cursor();
-			
-			// Copy
-			
-			while (g.hasNext())
-			{
-				g.next();
-				aCur.next();
+					r.get().set(ARGBType.red(aCur.get().get()));
+				}
 				
-				g.get().set(ARGBType.green(aCur.get().get()));
-			}
-			
-			Theta = new FloatType(0.5f);
-			try {
-				G_Channel = Naturalization(G_Channel,Theta,1,UnsignedByteType.class, FloatType.class);
-			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-			// Copy blue channel
-			
-			Img<UnsignedByteType> B_Channel = imgFactoryUS.create(dims, new UnsignedByteType());
-			
-			aCur = image_orig.cursor();
-			Cursor<UnsignedByteType> b = B_Channel.cursor();
-			
-			// Copy
-			
-			while (b.hasNext())
-			{
-				b.next();
-				aCur.next();
+				FloatType Theta = new FloatType(0.5f);
+				try {
+					R_Channel = Naturalization(R_Channel,Theta,2,UnsignedByteType.class, FloatType.class);
+				} catch (InstantiationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				
-				b.get().set(ARGBType.blue(aCur.get().get()));
-			}
+				// Copy green channel and naturalize
 			
-			Theta = new FloatType(0.5f);
-			try {
-				B_Channel = Naturalization(B_Channel,Theta,0,UnsignedByteType.class, FloatType.class);
-			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				Img<UnsignedByteType> G_Channel = imgFactoryUS.create(dims, new UnsignedByteType());
 			
-			/////////////////////////////////
-			
-			// Merge the Naturalized channel into an RGB image
-			
-			Img<ARGBType> img_result = imgFactoryARGB.create(dims, new ARGBType());
-			
-			Cursor<ARGBType> img_result_cur = img_result.cursor();
-			Cursor<UnsignedByteType> rc = R_Channel.cursor();
-			Cursor<UnsignedByteType> gc = G_Channel.cursor();
-			Cursor<UnsignedByteType> bc = B_Channel.cursor();
-			
-			while (img_result_cur.hasNext())
-			{
-				img_result_cur.next();
-				rc.next();
-				gc.next();
-				bc.next();
+				// Copy green channel
 				
-				img_result_cur.get().set(ARGBType.rgba(rc.get().getRealFloat(), gc.get().getRealFloat(), bc.get().getRealFloat(), 255.0f));
+				aCur = image_orig.cursor();
+				Cursor<UnsignedByteType> g = G_Channel.cursor();
+			
+				// Copy
+			
+				while (g.hasNext())
+				{
+					g.next();
+					aCur.next();
+				
+					g.get().set(ARGBType.green(aCur.get().get()));
+				}
+			
+				Theta = new FloatType(0.5f);
+				try {
+					G_Channel = Naturalization(G_Channel,Theta,1,UnsignedByteType.class, FloatType.class);
+				} catch (InstantiationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				}
+			
+				// Copy blue channel
+			
+				Img<UnsignedByteType> B_Channel = imgFactoryUS.create(dims, new UnsignedByteType());
+			
+				aCur = image_orig.cursor();
+				Cursor<UnsignedByteType> b = B_Channel.cursor();
+			
+				// Copy
+			
+				while (b.hasNext())
+				{
+					b.next();
+					aCur.next();
+				
+					b.get().set(ARGBType.blue(aCur.get().get()));
+				}
+			
+				Theta = new FloatType(0.5f);
+				try {
+					B_Channel = Naturalization(B_Channel,Theta,0,UnsignedByteType.class, FloatType.class);
+				} catch (InstantiationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			
+				/////////////////////////////////
+			
+				// Merge the Naturalized channel into an RGB image
+				
+				IntervalView<ARGBType> view = Views.hyperSlice(img_result, 2, i);
+				RandomAccess<ARGBType> result_ra = view.randomAccess();
+			
+				int loc[] = new int[2];
+				
+				Cursor<UnsignedByteType> rc = R_Channel.cursor();
+				Cursor<UnsignedByteType> gc = G_Channel.cursor();
+				Cursor<UnsignedByteType> bc = B_Channel.cursor();
+			
+				while (rc.hasNext())
+				{
+					rc.next();
+					gc.next();
+					bc.next();
+				
+					rc.localize(loc);
+					result_ra.setPosition(loc);
+					result_ra.get().set(ARGBType.rgba(rc.get().getRealFloat(), gc.get().getRealFloat(), bc.get().getRealFloat(), 255.0f));
+				}
+				
+				rs.incrementCounter();
+				rs.addValue("Naturalization R", Nf_s[2]);
+				rs.addValue("Estimated R PSNR", calculate_PSNR(Nf_s[2]));
+				rs.addValue("Naturalization G", Nf_s[1]);
+				rs.addValue("Estimated G PSNR", calculate_PSNR(Nf_s[1]));
+				rs.addValue("Naturalization B", Nf_s[0]);
+				rs.addValue("Estimated B PSNR", calculate_PSNR(Nf_s[0]));
+				
+				IJ.showStatus("Processing image " + (i+1));
+				IJ.showProgress((((double)i+1)/is.getSize()));
 			}
 			
 			/////////////////////////////////
 			
 			nat = ImageJFunctions.wrap(img_result,imp.getTitle() + "_naturalized");
 			nat.show();
+			rs.show("Natural factor and PSNR");
 			
-			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
+//			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
 			
 			//
-			
-			showMessage("Naturalness factor R: " + Nf_s[2] + "   G: " + Nf_s[1] + "   B: " + Nf_s[0]);
 		}
 		else if (imp.getType() == ImagePlus.GRAY8)
 		{
+			ResultsTable rs = new ResultsTable();
+			
 			// It work only on 2D images
 			
 			long dims[] = new long[2];
 			dims[0] = imp.getWidth();
 			dims[1] = imp.getHeight();
 			
-			// Copy the R Channel and Naturalize
+			ImageStack is = imp.getStack();
 			
-			Img<UnsignedByteType> Channel = imgFactoryUS.create(dims, new UnsignedByteType());
+			long rdims[] = new long[3];
+			rdims[0] = imp.getWidth();
+			rdims[1] = imp.getHeight();
+			rdims[2] = is.getSize();
 			
-			// Copy the channel
+			// Copy the Channel and Naturalize
 			
-			Img<UnsignedByteType> image_orig = ImagePlusAdapter.wrap( imp );
+			Img<UnsignedByteType> Channel = imgFactoryUS.create(rdims, new UnsignedByteType());
 			
-			Cursor<UnsignedByteType> aCur = image_orig.cursor();
-			Cursor<UnsignedByteType> r = Channel.cursor();
+			ImagePlus Cb = new ImagePlus("Channel_tmp");
 			
-			// Copy
-			
-			while (r.hasNext())
+			for (int i = 0 ; i < is.getSize() ; i++)
 			{
-				r.next();
-				aCur.next();
+				// Copy channel
+				Cb.setProcessor(is.getProcessor(i+1));
 				
-				r.get().set(aCur.get().get());
-			}
+				Img<UnsignedByteType> TChannel = ImagePlusAdapter.wrap( Cb );
+				
+				FloatType Theta = new FloatType(0.5f);
+				
+				try {
+					TChannel = Naturalization(TChannel,Theta,3,UnsignedByteType.class, FloatType.class);
+				} catch (InstantiationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				// Merge the result
+				
+				IntervalView<UnsignedByteType> view = Views.hyperSlice(Channel, 2, i);
+				RandomAccess<UnsignedByteType> result_ra = view.randomAccess();
 			
-			FloatType Theta = new FloatType(0.5f);
-			try {
-				Channel = Naturalization(Channel,Theta,3,UnsignedByteType.class, FloatType.class);
-			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				int loc[] = new int[2];
+				
+				Cursor<UnsignedByteType> rc = TChannel.cursor();
 			
+				while (rc.hasNext())
+				{
+					rc.next();
+
+					rc.localize(loc);
+					result_ra.setPosition(loc);
+					result_ra.get().set(rc.get());
+				}
+				
+				rs.incrementCounter();
+				rs.addValue("Naturalization ", Nf_s[0]);
+				rs.addValue("Estimated PSNR", calculate_PSNR(Nf_s[0]));
+				
+				IJ.showStatus("Processing image " + (i+1));
+				IJ.showProgress((((double)i+1)/is.getSize()));
+			}
 			/////////////////////////////////
 			
 			nat = ImageJFunctions.wrap(Channel, imp.getTitle() + "_naturalized");
 			nat.show();
+			rs.show("Naturalization and PSNR");
 			
-			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
+//			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
 			
-			showMessage("Naturalization factor " + Nf_s[0]);
+//			showMessage("Naturalization factor " + Nf_s[0] + " PSNR " + calculate_PSNR(Nf_s[0]));
 		}
 		else
 		{
 			IJ.error("Naturalization require 8-bit images or RGB");
 		}
+		
+		showMessage("");
 		
 /*		try {
 			FloatType Theta = new FloatType(0.5f);
@@ -650,7 +738,7 @@ public class Naturalization implements PlugInFilterExt
 		// Inside the image for Y
 		    
 		Cursor<FloatType> cur = field.cursor();
-		  
+		
 		int counter = 0;
 		
 		// Cursor localization
@@ -693,7 +781,7 @@ public class Naturalization implements PlugInFilterExt
 		    img_cur.setPosition(loc_p);
 		    
 		    float L = -4*img_cur.get().getRealFloat();
-		    	
+		    
 		    // Laplacian
 		    	
 		    for (int i = 0 ; i < 2 ; i++)

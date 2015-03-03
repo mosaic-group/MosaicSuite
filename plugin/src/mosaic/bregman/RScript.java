@@ -32,7 +32,7 @@ public class RScript {
 			int [] nbimages, String [] groupnames, String ch1, String ch2)
 	{
 		try{
-			Script  = new PrintWriter(path + "R_analysis.R");
+			Script  = new PrintWriter(path + File.separator + "R_analysis.R");
 		}
 		catch (Exception e)
 		{//Catch exception if any

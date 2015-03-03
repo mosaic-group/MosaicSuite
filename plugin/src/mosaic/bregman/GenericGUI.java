@@ -49,8 +49,6 @@ import mosaic.bregman.GUI.PSFWindow;
 import mosaic.bregman.GUI.SegmentationGUI;
 import mosaic.bregman.GUI.VisualizationGUI;
 import mosaic.bregman.output.CSVOutput;
-import mosaic.bregman.output.Region3DColocRScript;
-import mosaic.bregman.output.Region3DRScript;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterSession;
@@ -451,13 +449,13 @@ public class GenericGUI
 		{
 			// We run locally
 			
-			String savepath;
-			savepath = MosaicUtils.ValidFolderFromImage(aImp);
+			String savepath = null;
 			
 			hd = null;
 		
 			if (Analysis.p.wd == null || Analysis.p.wd.startsWith("Input Image:") || Analysis.p.wd.isEmpty())
 			{
+				savepath = MosaicUtils.ValidFolderFromImage(aImp);
 				if (aImp == null)
 				{
 					IJ.error("No image to process");
@@ -485,27 +483,33 @@ public class GenericGUI
 				}
 			}
 			else
-			{
+			{				
 				hd= new BLauncher(Analysis.p.wd);
+				
 				Vector<String> pf = hd.getProcessedFiles();
+				File fl = new File(Analysis.p.wd);
+				if (fl.isDirectory() == true)
+					savepath = Analysis.p.wd;
+				else
+					savepath = fl.getParent();
+				
 				if (IJ.isMacro() == false)
 				{
-					File fl = new File(Analysis.p.wd);
 					if (fl.isDirectory() == true)
 					{
 						MosaicUtils.reorganize(Analysis.out_w,pf,Analysis.p.wd);
 						
 						MosaicUtils.StitchCSV(fl.getAbsolutePath(),Analysis.out,null);
 						
-						Analysis.p.file1=savepath+File.separator+"stitch_ObjectsData_c1"+ ".csv";
-						Analysis.p.file2=savepath+File.separator+"stitch_ObjectsData_c2"+ ".csv";
-						Analysis.p.file3=savepath+File.separator+"stitch_ImagesData"+ ".csv";
+						Analysis.p.file1=Analysis.p.wd+File.separator+"stitch__ObjectsData_c1"+ ".csv";
+						Analysis.p.file2=Analysis.p.wd+File.separator+"stitch__ObjectsData_c2"+ ".csv";
+						Analysis.p.file3=Analysis.p.wd+File.separator+"stitch_ImagesData"+ ".csv";
 					}
 					else
-					{
-						Analysis.p.file1=savepath+File.separator+Analysis.out_w[0].replace("*", "_")+File.separator+MosaicUtils.removeExtension(aImp.getTitle())+"_ObjectsData_c1"+ ".csv";
-						Analysis.p.file2=savepath+File.separator+Analysis.out_w[1].replace("*", "_")+File.separator+MosaicUtils.removeExtension(aImp.getTitle())+"_ObjectsData_c2"+ ".csv";
-						Analysis.p.file3=savepath+File.separator+Analysis.out_w[4].replace("*", "_")+File.separator+MosaicUtils.removeExtension(aImp.getTitle())+"_ImagesData"+ ".csv";
+					{						
+						Analysis.p.file1=fl.getParent()+File.separator+Analysis.out_w[0].replace("*", "_")+File.separator+MosaicUtils.removeExtension(fl.getName())+"_ObjectsData_c1"+ ".csv";
+						Analysis.p.file2=fl.getParent()+File.separator+Analysis.out_w[1].replace("*", "_")+File.separator+MosaicUtils.removeExtension(fl.getName())+"_ObjectsData_c2"+ ".csv";
+						Analysis.p.file3=fl.getParent()+File.separator+Analysis.out_w[4].replace("*", "_")+File.separator+MosaicUtils.removeExtension(fl.getName())+"_ImagesData"+ ".csv";
 						
 						MosaicUtils.reorganize(Analysis.out_w,pf,new File(Analysis.p.wd).getParent());
 					}
@@ -611,9 +615,9 @@ public class GenericGUI
 			
 			// if background is != null it mean that is a video or is an image so try to stitch
 			if (Background != null)
-				MosaicUtils.StitchCSV(dir.getAbsolutePath(),Analysis.out,Background);
+				MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(),Analysis.out,Background);
 			else
-				MosaicUtils.StitchCSV(dir.getAbsolutePath(),Analysis.out,null);
+				MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(),Analysis.out,null);
 			
 			////////////////
 		}

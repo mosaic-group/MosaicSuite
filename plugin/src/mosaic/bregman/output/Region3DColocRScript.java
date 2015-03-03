@@ -71,6 +71,7 @@ public class Region3DColocRScript extends StubProp implements ICSVGeneral
 		Perimeter = r.Perimeter;
 		Length = r.Length;
 		Intensity = r.Intensity;
+		Overlap_with_ch = r.Overlap_with_ch;
 		Coloc_object_size = r.Coloc_object_size;
 		Coloc_object_intensity = r.Coloc_object_intensity;
 		Single_Coloc = r.Single_Coloc;

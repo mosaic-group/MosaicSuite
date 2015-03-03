@@ -1944,11 +1944,11 @@ public class MosaicUtils
 	
 	/**
 	 * 
-	 * Stitch the CSV
+	 * Stitch the CSV in the directory
 	 * 
-	 * @param fl directory where to stitch the csv
+	 * @param fl directory where search for files to stitch directory to stitch
 	 * @param output string array that list all the outputs produced by the plugin
-	 * @param background Set the backgrond param string
+	 * @param background Set the background param string
 	 * @return true if it stitch all the file success
 	 */
 	
@@ -1967,6 +1967,25 @@ public class MosaicUtils
 			mt = new MetaInfo[0];
 		}
 		
+
+		String[] outcsv = MosaicUtils.getCSV(output);
+		InterPluginCSV.Stitch(outcsv, new File(fl), new File(fl + File.separator + "stitch"), mt, Region3DColocRScript.class);
+		
+		return true;
+	}
+	
+	/**
+	 * 
+	 * Stitch the CSV in the Jobs directory
+	 * 
+	 * @param fl directory where search for JobsXXX directory to stitch the csv
+	 * @param output string array that list all the outputs produced by the plugin
+	 * @param background Set the backgrond param string
+	 * @return true if it stitch all the file success
+	 */
+	
+	static public boolean StitchJobsCSV(String fl, String[] output, String bck)
+	{		
 		// get the job directories
 		
 		String[] JobDir = ClusterSession.getJobDirectories(0, fl);
@@ -1975,9 +1994,7 @@ public class MosaicUtils
 		
 		for (int i = 0 ; i < JobDir.length ; i++)
 		{
-			String[] jbid = MosaicUtils.readAndSplit(JobDir[i] + File.separator + "JobID");
-			String[] outcsv = MosaicUtils.getCSV(output);
-			InterPluginCSV.Stitch(outcsv, new File(JobDir[i]), new File(JobDir[i] + File.separator + MosaicUtils.removeExtension(jbid[2])) , mt, "Image_ID", Region3DColocRScript.class);
+			StitchCSV(JobDir[i],output,bck);
 		}
 		
 		return true;

@@ -541,7 +541,7 @@ public class BLauncher
 
 	/* 
 	 *  It segment the image and give co-localization analysis result
-	 *  for a 2 channel image
+	 *  for a 2 channels image
 	 *  
 	 *  @param img2 Image to segment and analyse
 	 * 
@@ -666,12 +666,16 @@ public class BLauncher
 				colocA=mosaic.bregman.Tools.round(Analysis.colocsegA(null),4);
 				colocB=mosaic.bregman.Tools.round(Analysis.colocsegB(null),4);
 				
+				String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
+				String output1 = new String(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv");
+				String output2 = new String(savepath + File.separator +  filename_without_ext + "_ObjectsData_c2" + ".csv");
+				
 				boolean append = false;
 				
-				if (hcount == 0)
-					append = false;
-				else
+				if (new File(output1).exists())
 					append = true;
+				else
+					append = false;
 				
 				// Write channel 2
 				
@@ -679,15 +683,12 @@ public class BLauncher
 				CSVOutput.occ = CSVOutput.oc[2];
 				Vector<?> obl = Analysis.getObjectsList(hcount,1);
 				
-				String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
-				
 				InterPluginCSV<?> IpCSV = CSVOutput.getInterPluginCSV();
 				IpCSV.clearMetaInformation();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
 				
-				System.out.println(savepath + File.separator +  filename_without_ext + "_ObjectsData_c2" + ".csv");
-				
-				IpCSV.Write(savepath + File.separator +  filename_without_ext + "_ObjectsData_c2" + ".csv",obl,CSVOutput.occ, append);
+				System.out.println(output2);
+				IpCSV.Write(output2,obl,CSVOutput.occ, append);
 				
 				// Write channel 1
 				
@@ -695,8 +696,8 @@ public class BLauncher
 				IpCSV.clearMetaInformation();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
 				
-				System.out.println(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv");
-				IpCSV.Write(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv",obl,CSVOutput.occ, append);
+				System.out.println(output1);
+				IpCSV.Write(output1,obl,CSVOutput.occ, append);
 			}
 
 			Analysis.doingbatch=false;

@@ -64,6 +64,7 @@ import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -2441,6 +2442,13 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				"_c_"+ detector.cutoff +
 				"_perc_"+ detector.percentile + 
 				"_PT3Dresults.xml").getAbsolutePath());
+		ResultsTable rt = transferTrajectoriesToResultTable();
+		try {
+			rt.saveAs(vFI.directory + "Traj_" + title + ".csv");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -3487,7 +3495,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	 * @author Kota Miura <a href="http://cmci.embl.de">cmci.embl.de</a>
 	 * @see ResultsWindow
 	 */	
-	public void transferTrajectoriesToResultTable(){
+	public ResultsTable transferTrajectoriesToResultTable(){
 		ResultsTable rt = null; 
 		try {
 			rt = ResultsTable.getResultsTable();//static, the one in Analyze
@@ -3496,7 +3504,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			if (IJ.showMessageWithCancel("Results Table", "Reset Results Table?")){
 				rt.reset();
 			} else
-				return;
+				return null;
 		}
 		Iterator<Trajectory> iter = all_traj.iterator();
 		int rownum = 0;
@@ -3519,7 +3527,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				rt.setValue("NPscore", rownum, p.score);
 			}
 		}
-		rt.show("Results");
+		if (IJ.isMacro() == false)
+			rt.show("Results");
+		
+		return rt;
 	}
 
 	/**
