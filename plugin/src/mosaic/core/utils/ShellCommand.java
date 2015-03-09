@@ -9,8 +9,6 @@ import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Map;
 
-import org.scijava.util.FileUtils;
-
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ShellProcessOutput;
 

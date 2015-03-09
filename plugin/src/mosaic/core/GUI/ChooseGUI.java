@@ -1,9 +1,9 @@
 package mosaic.core.GUI;
 
+import ij.gui.GenericDialog;
+
 import java.io.File;
 import java.util.Vector;
-
-import ij.gui.GenericDialog;
 
 
 

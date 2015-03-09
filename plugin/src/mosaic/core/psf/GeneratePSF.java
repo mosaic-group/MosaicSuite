@@ -1,12 +1,7 @@
 package mosaic.core.psf;
 
 import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
 import ij.gui.GenericDialog;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
 
 import java.awt.Button;
 import java.awt.Choice;
@@ -27,13 +22,8 @@ import net.imglib2.Cursor;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.real.FloatType;
-import mosaic.core.utils.RegionIterator;
-import mosaic.plugins.Generate_PSF.Point3D;
-import mosaic.region_competition.GUI.EnergyGUI;
-import mosaic.region_competition.GUI.RegularizationGUI;
 
 /**
  * 

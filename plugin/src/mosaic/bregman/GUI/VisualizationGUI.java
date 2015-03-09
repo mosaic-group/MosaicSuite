@@ -1,22 +1,22 @@
 package mosaic.bregman.GUI;
 
 
+import ij.ImagePlus;
+import ij.gui.GenericDialog;
+
 import java.awt.Button;
 import java.awt.Font;
-import java.awt.Label;
 import java.awt.Panel;
 import java.awt.Point;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericDialogCustom;
 import mosaic.bregman.output.CSVOutput;
-import mosaic.core.GUI.OutputGUI;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.gui.GenericDialog;
 import mosaic.bregman.output.SquasshOutputChoose;
+import mosaic.core.GUI.OutputGUI;
 
 
 public class VisualizationGUI 

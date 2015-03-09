@@ -1,14 +1,19 @@
 package mosaic.plugins;
  
 
-import ij.*; 
-import ij.gui.GenericDialog; 
-import ij.process.*;
-import ij.plugin.filter.*; 
-import ij.plugin.*;
-import java.lang.*; 
-import java.awt.*; 
-import java.awt.event.*; 
+import ij.CompositeImage;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.plugin.PlugIn;
+import ij.plugin.RGBStackMerge;
+import ij.plugin.filter.RGBStackSplitter;
+import ij.process.ByteProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 
 
 /** This plugin performs a z-projection of the input stack. Type of

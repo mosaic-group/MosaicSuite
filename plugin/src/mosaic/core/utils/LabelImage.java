@@ -1,38 +1,23 @@
 package mosaic.core.utils;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.TreeSet;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.WindowManager;
+import ij.process.ColorProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
+import mosaic.core.binarize.BinarizedIntervalLabelImage;
+import mosaic.region_competition.utils.IntConverter;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.IntegerType;
-import net.imglib2.type.numeric.RealType;
-import mosaic.core.binarize.BinarizedIntervalLabelImage;
-import mosaic.core.utils.IndexIterator;
-import mosaic.core.utils.Point;
-import mosaic.core.utils.RegionIterator;
-import mosaic.core.utils.Connectivity;
-import mosaic.region_competition.utils.IntConverter;
-
-
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.WindowManager;
-import ij.io.FileSaver;
-import ij.plugin.GroupedZProjector;
-import ij.plugin.ZProjector;
-import ij.process.ColorProcessor;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
 
 
 /*

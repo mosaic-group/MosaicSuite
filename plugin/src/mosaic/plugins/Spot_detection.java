@@ -1,10 +1,13 @@
 package mosaic.plugins;
 
-import java.awt.Button;
-import java.awt.Panel;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.GenericDialog;
+import ij.plugin.filter.PlugInFilter;
+import ij.process.ImageProcessor;
+import ij.process.StackStatistics;
+
 import java.util.Vector;
 
 import mosaic.core.detection.FeaturePointDetector;
@@ -13,16 +16,6 @@ import mosaic.core.detection.Particle;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.ipc.OutputChoose;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.core.GUI.ParticleTrackerHelp;
-import net.imglib2.img.display.imagej.ImageJFunctions;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.gui.GenericDialog;
-import ij.gui.NonBlockingGenericDialog;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.ImageProcessor;
-import ij.process.StackStatistics;
 
 /**
  * 

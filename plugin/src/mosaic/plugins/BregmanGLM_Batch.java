@@ -1,10 +1,14 @@
 package mosaic.plugins;
 
+import ij.IJ;
+import ij.ImageJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.process.ImageProcessor;
+
 import java.awt.GraphicsEnvironment;
-import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -12,25 +16,15 @@ import java.io.ObjectOutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.imglib2.type.numeric.real.DoubleType;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.Analysis.outputF;
-import mosaic.bregman.GUIold;
 import mosaic.bregman.GenericGUI;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.psf.psf;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Segmentation;
-import mosaic.region_competition.Settings;
-import ij.plugin.PlugIn;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.ImageProcessor;
-import ij.IJ;
-import ij.ImageJ;
-import ij.ImagePlus;
-import ij.Macro;
-import ij.io.Opener;
+import net.imglib2.type.numeric.real.DoubleType;
 
 
 public class BregmanGLM_Batch implements Segmentation

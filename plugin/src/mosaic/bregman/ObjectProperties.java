@@ -4,12 +4,11 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ByteProcessor;
 
-
 //import java.util.ArrayList;
 import java.util.Iterator;
 
-import net.imglib2.type.numeric.real.DoubleType;
 import mosaic.core.psf.GaussPSF;
+import net.imglib2.type.numeric.real.DoubleType;
 
 public class ObjectProperties implements Runnable {
 	double intmin, intmax;

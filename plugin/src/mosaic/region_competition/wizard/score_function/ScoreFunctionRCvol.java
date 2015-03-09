@@ -8,9 +8,9 @@ import ij.io.Opener;
 import java.io.IOException;
 import java.util.Collection;
 
+import mosaic.core.utils.IntensityImage;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.Algorithm;
-import mosaic.core.utils.IntensityImage;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;

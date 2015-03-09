@@ -1,10 +1,8 @@
 package mosaic.plugins.test;
 
-import static org.junit.Assert.*;
 import mosaic.core.detection.Particle;
 import mosaic.core.ipc.NoCSV;
 import mosaic.core.utils.MosaicTest;
-import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.Naturalization;
 import mosaic.plugins.ParticleTracker3DModular_;
 

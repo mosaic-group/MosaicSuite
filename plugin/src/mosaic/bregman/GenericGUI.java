@@ -1,8 +1,11 @@
 package mosaic.bregman;
 
 
+import ij.ImagePlus;
+import ij.gui.GenericDialog;
+import ij.gui.NonBlockingGenericDialog;
+
 import java.awt.Button;
-import java.awt.Choice;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -17,32 +20,15 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
-import java.util.Arrays;
-import java.util.Locale;
 import java.util.Vector;
 
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSlider;
-import javax.swing.SwingConstants;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
-import net.sf.javaml.utils.ArrayUtils;
 import mosaic.bregman.GUI.BackgroundSubGUI;
 import mosaic.bregman.GUI.ColocalizationGUI;
 import mosaic.bregman.GUI.PSFWindow;
@@ -50,15 +36,9 @@ import mosaic.bregman.GUI.SegmentationGUI;
 import mosaic.bregman.GUI.VisualizationGUI;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.GUI.HelpGUI;
-import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterSession;
-import mosaic.core.ipc.ICSVGeneral;
-import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.MetaInfo;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BregmanGLM_Batch;
-
-
 //import java.awt.event.FocusEvent;
 //import java.awt.event.FocusListener;
 //import java.awt.event.TextEvent;
@@ -68,28 +48,17 @@ import mosaic.plugins.BregmanGLM_Batch;
 //import java.io.InputStreamReader;
 //import java.util.List;
 //import java.util.StringTokenizer;
-
 //import javax.swing.JTextArea;
 //
 //
 //
 //import ij.IJ;
 //import ij.ImagePlus;
-
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.WindowManager;
-import ij.gui.GenericDialog;
-import ij.gui.NonBlockingGenericDialog;
-import ij.gui.YesNoCancelDialog;
-import ij.io.DirectoryChooser;
-import ij.io.Opener;
-//import ij.gui.NonBlockingGenericDialog;
-import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
-import ij.process.StackStatistics;
+import ij.IJ;
+import ij.ImageStack;
+//import ij.gui.NonBlockingGenericDialog;
 
 public class GenericGUI 
 {

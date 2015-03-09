@@ -3,11 +3,7 @@ package mosaic.ia;
 
 // 5 is nonparam etc; make a parameter for this so that the numbers can be uniform and global
 
-import java.util.Arrays;
-
 import mosaic.ia.utils.IAPUtils;
-
-
 import mosaic.paramopt.cma.fitness.AbstractObjectiveFunction;
 
 public class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {

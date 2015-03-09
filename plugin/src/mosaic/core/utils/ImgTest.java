@@ -1,6 +1,5 @@
 package mosaic.core.utils;
 
-import ij.ImagePlus;
 
 /**
  * 

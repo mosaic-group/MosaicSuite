@@ -5,11 +5,11 @@ import ij.process.ImageProcessor;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import mosaic.core.utils.Point;
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
-import mosaic.core.utils.Point;
 
 /**
  * TODO VERY OLD

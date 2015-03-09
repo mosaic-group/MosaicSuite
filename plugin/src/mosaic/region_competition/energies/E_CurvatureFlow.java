@@ -1,9 +1,9 @@
 package mosaic.region_competition.energies;
 
 import ij.measure.Calibration;
+import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelImageRC;
-import mosaic.core.utils.Point;
 import mosaic.region_competition.energies.Energy.InternalEnergy;
 
 public class E_CurvatureFlow extends InternalEnergy// implements SettingsListener

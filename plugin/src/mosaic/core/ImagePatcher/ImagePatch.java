@@ -1,20 +1,16 @@
 package mosaic.core.ImagePatcher;
 
+import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIterator;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.NativeType;
-import net.imglib2.type.Type;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.NumericType;
-import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.IntType;
-import net.imglib2.type.numeric.real.FloatType;
-import mosaic.core.utils.MosaicUtils;
-import mosaic.core.utils.Point;
-import mosaic.core.utils.RegionIterator;
 
 
 /**

@@ -1,16 +1,14 @@
 package mosaic.plugins;
 
+import ij.ImagePlus;
+import ij.plugin.filter.PlugInFilter;
+import ij.process.ImageProcessor;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.RegionIterator;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
-import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.RealType;
-import ij.ImagePlus;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.ImageProcessor;
-import io.scif.img.ImgOpener;
 
 class MetricFilter implements PlugInFilter
 {

@@ -1,13 +1,12 @@
 package mosaic.core.binarize;
 
-import net.imglib2.RandomAccess;
-import net.imglib2.img.Img;
-import net.imglib2.type.numeric.IntegerType;
-import net.imglib2.type.numeric.RealType;
 import mosaic.core.utils.IntervalsListDouble;
-import mosaic.core.utils.IntervalsListInteger;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
+import net.imglib2.RandomAccess;
+import net.imglib2.img.Img;
+import net.imglib2.type.numeric.RealType;
 
 /**
  * 

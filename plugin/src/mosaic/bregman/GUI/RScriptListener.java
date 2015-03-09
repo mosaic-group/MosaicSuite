@@ -6,6 +6,7 @@ import ij.gui.GenericDialog;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
 import mosaic.bregman.Analysis;
 
 public class RScriptListener implements ActionListener {

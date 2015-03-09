@@ -2,31 +2,22 @@ package mosaic.bregman;
 
 import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
-import ij.measure.Calibration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
-import net.imglib2.RandomAccess;
-import net.imglib2.img.Img;
-import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.real.DoubleType;
-import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.psf.GaussPSF;
-import mosaic.core.utils.CircleMask;
 import mosaic.core.utils.LabelImage;
-import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
+import net.imglib2.type.numeric.real.DoubleType;
 
 
 /**

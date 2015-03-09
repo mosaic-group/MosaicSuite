@@ -1,8 +1,6 @@
 package mosaic.bregman;
 
 
-import ij.IJ;
-
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 

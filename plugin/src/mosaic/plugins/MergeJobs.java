@@ -8,7 +8,6 @@ import ij.process.ImageProcessor;
 import java.io.File;
 
 import mosaic.core.cluster.ClusterSession;
-import mosaic.core.utils.Segmentation;
 
 
 /**

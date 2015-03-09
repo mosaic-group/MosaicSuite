@@ -12,22 +12,19 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.TreeSet;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
+import java.util.TreeSet;
 
-import net.imglib2.img.Img;
-import net.imglib2.type.numeric.IntegerType;
-import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.FloodFill;
-import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
-import mosaic.region_competition.LabelInformation;
+import net.imglib2.img.Img;
+import net.imglib2.type.numeric.IntegerType;
 
 
 public class LabelImageRC extends LabelImage

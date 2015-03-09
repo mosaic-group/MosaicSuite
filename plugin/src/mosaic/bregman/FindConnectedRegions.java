@@ -33,39 +33,28 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.Roi;
+import ij.measure.ResultsTable;
 //import ij.gui.PointRoi;
 //import ij.io.FileSaver;
 //import ij.plugin.PlugIn;
 import ij.process.ByteProcessor;
-//import ij.process.ImageConverter;
-//import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
-
-
-//import java.util.Arrays;
-import java.util.Collections;
-//import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.Vector;
-
 //import amira.AmiraParameters;
 //import ij.measure.Calibration;
 import ij.process.FloatProcessor;
 
-//import ij.plugin.ImageCalculator;
-//import java.awt.image.ColorModel;
-import java.awt.image.IndexColorModel;
-
-import ij.measure.ResultsTable;
-
-import java.awt.Color;
 //import java.awt.Dialog;
 //import java.awt.Button;
 import java.awt.Polygon;
 //import java.awt.event.ActionEvent;
 //import java.awt.event.ActionListener;
-
-import mosaic.core.detection.Particle;
+//import java.util.Iterator;
+import java.util.ArrayList;
+//import java.util.Arrays;
+import java.util.Collections;
+//import ij.process.ImageConverter;
+//import ij.process.ImageProcessor;
+//import ij.plugin.ImageCalculator;
+//import java.awt.image.ColorModel;
 
 //import net.sf.javaml.clustering.Clusterer;
 //import net.sf.javaml.core.Dataset;

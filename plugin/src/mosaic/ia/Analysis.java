@@ -2,36 +2,25 @@ package mosaic.ia;
 
 import ij.IJ;
 import ij.ImagePlus;
-import ij.WindowManager;
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
 import ij.measure.ResultsTable;
-import ij.plugin.ImageCalculator;
-import ij.plugin.Macro_Runner;
-import ij.plugin.filter.Analyzer;
-import ij.process.ImageProcessor;
 
 import java.awt.Color;
-import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Random;
-import java.util.Vector;
 
 import javax.vecmath.Point3d;
-
 
 import mosaic.ia.nn.DistanceCalculations;
 import mosaic.ia.nn.DistanceCalculationsCoords;
 import mosaic.ia.nn.DistanceCalculationsImage;
-
-import weka.estimators.KernelEstimator;
-
-import mosaic.core.detection.Particle;
 import mosaic.ia.utils.IAPUtils;
 import mosaic.ia.utils.ImageProcessUtils;
 import mosaic.ia.utils.PlotUtils;
 import mosaic.paramopt.cma.CMAEvolutionStrategy;
+import weka.estimators.KernelEstimator;
 
 public class Analysis 
 {

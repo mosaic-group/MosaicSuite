@@ -13,8 +13,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import ij.gui.GenericDialog;
-
 /**
  * 
  * Class to create help windows + link to respective documentation

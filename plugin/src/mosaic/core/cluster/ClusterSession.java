@@ -1,5 +1,13 @@
 package mosaic.core.cluster;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.GenericDialog;
+import ij.io.DirectoryChooser;
+import ij.io.Opener;
+import ij.process.StackStatistics;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -7,32 +15,16 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import mosaic.bregman.Analysis;
-import mosaic.bregman.output.CSVOutput;
-import mosaic.core.cluster.LSFBatch;
-import mosaic.core.cluster.JobStatus.jobS;
-import mosaic.core.cluster.LSFBatch.LSFJob;
+import mosaic.core.GUI.ChooseGUI;
+import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.ipc.ICSVGeneral;
-import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.MetaInfo;
 import mosaic.core.utils.MM;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
-import mosaic.core.GUI.ChooseGUI;
-import mosaic.core.GUI.ProgressBarWin;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.gui.GenericDialog;
-import ij.gui.ProgressBar;
-import ij.gui.StackWindow;
-import ij.io.DirectoryChooser;
-import ij.io.Opener;
-import ij.process.StackStatistics;
 
 /**
  * 

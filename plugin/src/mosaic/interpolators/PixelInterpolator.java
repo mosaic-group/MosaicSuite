@@ -10,9 +10,9 @@
  */
 
 package mosaic.interpolators;
-import java.awt.geom.Point2D;
-
 import ij.process.ImageProcessor;
+
+import java.awt.geom.Point2D;
 
 
 public abstract class PixelInterpolator {

@@ -1,6 +1,13 @@
 package mosaic.bregman.GUI;
 
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.GenericDialog;
+import ij.process.ByteProcessor;
+import ij.process.ImageProcessor;
+
 import java.awt.Checkbox;
 import java.awt.Font;
 import java.awt.Panel;
@@ -17,13 +24,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import mosaic.bregman.Analysis;
-import mosaic.bregman.GenericGUI;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.gui.GenericDialog;
-import ij.process.ByteProcessor;
-import ij.process.ImageProcessor;
 
 
 public class ColocalizationGUI implements ItemListener, ChangeListener, TextListener

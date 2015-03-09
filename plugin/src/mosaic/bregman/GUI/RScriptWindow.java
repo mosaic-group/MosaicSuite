@@ -1,12 +1,8 @@
 package mosaic.bregman.GUI;
 
-import ij.IJ;
-import ij.ImagePlus;
 import ij.gui.GenericDialog;
 
-
 import java.awt.Font;
-
 
 import mosaic.bregman.Analysis;
 

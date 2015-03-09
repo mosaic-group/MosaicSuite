@@ -5,41 +5,32 @@ import ij.ImagePlus;
 import ij.gui.Line;
 import ij.gui.Roi;
 import ij.io.Opener;
-import ij.process.ImageProcessor;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
 
+import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIterator;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.Algorithm;
-import mosaic.core.utils.IntensityImage;
 import mosaic.region_competition.LabelImageRC;
-import mosaic.region_competition.LabelInformation;
-import mosaic.core.utils.Point;
 import mosaic.region_competition.PointCM;
-import mosaic.core.utils.RegionIterator;
 import mosaic.region_competition.Settings;
-import mosaic.region_competition.energies.CurvatureBasedFlow;
-import mosaic.region_competition.energies.EnergyFunctionalType;
 import mosaic.region_competition.wizard.PickRegion;
 	
 public class ScoreFunctionRCtop implements ScoreFunction

@@ -1,10 +1,8 @@
 package mosaic.plugins;
 
 import ij.ImagePlus;
-import ij.measure.Measurements;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
-import mosaic.core.detection.PreviewInterface;
 import mosaic.core.psf.GeneratePSF;
 
 class PSFGenerator implements PlugInFilter

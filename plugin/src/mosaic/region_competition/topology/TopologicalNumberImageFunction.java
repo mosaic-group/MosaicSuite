@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-import mosaic.region_competition.LabelImageRC;
 import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.Point;
+import mosaic.region_competition.LabelImageRC;
 
 public class TopologicalNumberImageFunction
 {

@@ -1,27 +1,28 @@
 package mosaic.bregman;
 
-import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
-
-//import weka.clusterers.Cobweb;
-//import weka.clusterers.SimpleKMeans;
-//import weka.clusterers.XMeans;
-
-import net.sf.javaml.clustering.Clusterer;
-import net.sf.javaml.clustering.KMeans;
-import net.sf.javaml.core.Dataset;
-import net.sf.javaml.core.DefaultDataset;
-import net.sf.javaml.core.DenseInstance;
-import net.sf.javaml.core.Instance;
-import net.sf.javaml.tools.DatasetTools;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.plugin.filter.BackgroundSubtracter;
 //import net.sf.javaml.tools.weka.WekaClusterer;
 //import ij.io.FileSaver;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.plugin.filter.BackgroundSubtracter; 
+
+import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
+
+import net.sf.javaml.core.Dataset;
+import net.sf.javaml.core.DefaultDataset;
+import net.sf.javaml.core.DenseInstance;
+import net.sf.javaml.core.Instance;
+//import weka.clusterers.Cobweb;
+//import weka.clusterers.SimpleKMeans;
+//import weka.clusterers.XMeans;
+import net.sf.javaml.clustering.Clusterer;
+import net.sf.javaml.clustering.KMeans;
+
+import net.sf.javaml.tools.DatasetTools;
 
 /**
  * 

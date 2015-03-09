@@ -1,7 +1,8 @@
 package mosaic.region_competition;
 
-import java.io.File;
-import java.io.IOException;
+import ij.IJ;
+import ij.ImagePlus;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,42 +14,26 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
-import net.imglib2.Cursor;
-import net.imglib2.exception.IncompatibleTypeException;
-import net.imglib2.img.Img;
-import net.imglib2.img.ImgFactory;
-import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.real.FloatType;
-import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
-import mosaic.core.psf.GaussPSF;
-import mosaic.core.psf.GeneratePSF;
+import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.IntensityImage;
-import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
-import mosaic.plugins.Generate_PSF;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.LabelDispenser.LabelDispenserInc;
-import mosaic.region_competition.energies.EnergyFunctionalType;
+import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.Energy.EnergyResult;
+import mosaic.region_competition.energies.EnergyFunctionalType;
 import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.energies.OscillationDetection;
 import mosaic.region_competition.energies.OscillationDetection2;
-import mosaic.core.utils.Connectivity;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction.TopologicalNumberResult;
 import mosaic.region_competition.utils.Pair;
 import mosaic.region_competition.utils.Timer;
-import mosaic.region_competition.energies.*;
-import mosaic.core.utils.Point;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.measure.ResultsTable;
-import io.scif.img.ImgOpener;
+import net.imglib2.img.Img;
+import net.imglib2.img.display.imagej.ImageJFunctions;
+import net.imglib2.type.numeric.real.FloatType;
 
 public class Algorithm
 {

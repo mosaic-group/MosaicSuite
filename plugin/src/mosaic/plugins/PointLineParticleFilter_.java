@@ -5,21 +5,19 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
 import ij.gui.ImageWindow;
 import ij.gui.StackWindow;
 import ij.gui.Toolbar;
+import ij.io.FileInfo;
+//import ij.plugin.ZProjector;
 import ij.measure.Measurements;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.text.TextWindow;
-import ij.gui.ImageCanvas;
-import ij.io.FileInfo;
-//import ij.plugin.ZProjector;
 
-import java.util.Vector;
-import java.util.Random;
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -28,21 +26,22 @@ import java.awt.GridLayout;
 import java.awt.Panel;
 import java.awt.Point;
 import java.awt.Toolkit;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.geom.*;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
-
+import java.util.Random;
+import java.util.Vector;
 import java.util.regex.Pattern;
 
 /**

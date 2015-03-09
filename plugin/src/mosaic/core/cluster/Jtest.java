@@ -1,14 +1,10 @@
 package mosaic.core.cluster;
 
-import static org.junit.Assert.*;
-import ij.IJ;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Vector;
 
-import mosaic.bregman.Analysis;
-import mosaic.bregman.output.Region3DRScript;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 import mosaic.plugins.MergeJobs;

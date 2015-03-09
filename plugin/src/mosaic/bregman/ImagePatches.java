@@ -2,25 +2,20 @@ package mosaic.bregman;
 
 import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
 import ij.WindowManager;
-//import ij.gui.ImageWindow;
-//import ij.process.ByteProcessor;
-//import ij.process.ColorProcessor;
-import ij.process.ShortProcessor;
 
-import java.awt.Color;
 import java.awt.Frame;
-import java.awt.image.IndexColorModel;
 import java.util.ArrayList;
 import java.util.Collection;
 //import java.util.Date;
 import java.util.Iterator;
-import java.util.Vector;
 //import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+//import ij.gui.ImageWindow;
+//import ij.process.ByteProcessor;
+//import ij.process.ColorProcessor;
 
 
 public class ImagePatches {

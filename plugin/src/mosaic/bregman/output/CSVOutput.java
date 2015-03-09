@@ -1,20 +1,15 @@
 package mosaic.bregman.output;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Vector;
 
 import mosaic.bregman.Region;
-import mosaic.bregman.Tools;
-import mosaic.core.GUI.OutputGUI;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.ipc.Outdata;
 
-import org.supercsv.cellprocessor.Optional;
 import org.supercsv.cellprocessor.ParseBool;
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;

@@ -9,7 +9,6 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Vector;
 
 /**
  * This is a derived class of the Particle Filter Tracking base class (PFTracking3D). It implements 

@@ -1,14 +1,12 @@
 package mosaic.ia.nn;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
 import weka.core.Attribute;
 import weka.core.DenseInstance;
-import weka.core.DistanceFunction;
 import weka.core.EuclideanDistance;
 import weka.core.Instance;
 import weka.core.Instances;

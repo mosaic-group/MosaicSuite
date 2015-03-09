@@ -1,12 +1,12 @@
 package mosaic.core.utils;
 
-import java.util.Vector;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import ij.IJ;
 import ij.ImageStack;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
+
+import java.util.Vector;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MosaicImageProcessingTools {
 	

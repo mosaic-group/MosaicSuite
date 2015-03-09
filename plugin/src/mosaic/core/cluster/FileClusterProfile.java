@@ -3,19 +3,15 @@ package mosaic.core.cluster;
 import ij.IJ;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Vector;
-
-import org.supercsv.cellprocessor.ParseDouble;
-import org.supercsv.cellprocessor.ift.CellProcessor;
 
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.ipc.OutputChoose;
-import mosaic.core.ipc.StubProp;
 import mosaic.core.utils.DataCompression;
 import mosaic.core.utils.DataCompression.Algorithm;
-import mosaic.core.utils.ShellCommand;
-import mosaic.core.ipc.ICSVGeneral;;
+
+import org.supercsv.cellprocessor.ParseDouble;
+import org.supercsv.cellprocessor.ift.CellProcessor;
 
 
 /**

@@ -1,6 +1,7 @@
 package mosaic.bregman;
 
 import java.util.concurrent.CountDownLatch;
+
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
 
 

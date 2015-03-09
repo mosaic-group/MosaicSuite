@@ -1,6 +1,11 @@
 package mosaic.paramopt.cma;
 
-import java.util.*; // Properties, Arrays.sort, Formatter not needed anymore
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.Random; // Properties, Arrays.sort, Formatter not needed anymore
 
 /* 
     Copyright 1996, 2003, 2005, 2007 Nikolaus Hansen 

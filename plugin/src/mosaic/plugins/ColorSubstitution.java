@@ -1,23 +1,15 @@
 package mosaic.plugins;
 
-import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
 import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
-import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import net.imglib2.img.ImagePlusAdapter;
-
-import java.io.File;
-
 import net.imglib2.Cursor;
+import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
-import mosaic.plugins.Generate_PSF.Point3D;
 
 
 

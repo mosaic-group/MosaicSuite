@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import weka.clusterers.SimpleKMeans;
 import net.imglib2.img.Img;
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.core.Dataset;
@@ -14,8 +13,7 @@ import net.sf.javaml.core.DenseInstance;
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.DatasetTools;
 import net.sf.javaml.tools.weka.WekaClusterer;
-import mosaic.core.utils.IntensityImage;
-import mosaic.core.utils.MosaicUtils;
+import weka.clusterers.SimpleKMeans;
 
 /**
  * 

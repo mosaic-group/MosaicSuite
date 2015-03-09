@@ -1,15 +1,13 @@
 package mosaic.ia.utils;
 
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.process.ImageProcessor;
+
 import java.util.Arrays;
 
 import javax.vecmath.Point3d;
 
-import Jama.Matrix;
-import Jama.SingularValueDecomposition;
-
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.process.ImageProcessor;
 import weka.estimators.KernelEstimator;
 
 public class IAPUtils {

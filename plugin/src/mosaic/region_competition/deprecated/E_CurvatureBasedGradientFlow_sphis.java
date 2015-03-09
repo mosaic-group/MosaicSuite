@@ -1,8 +1,8 @@
 package mosaic.region_competition.deprecated;
 
+import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelImageRC;
-import mosaic.core.utils.Point;
 import mosaic.region_competition.energies.Energy.InternalEnergy;
 
 public class E_CurvatureBasedGradientFlow_sphis extends InternalEnergy// implements SettingsListener

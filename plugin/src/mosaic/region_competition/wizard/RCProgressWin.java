@@ -2,9 +2,7 @@ package mosaic.region_competition.wizard;
 
 import ij.ImagePlus;
 import ij.gui.ImageCanvas;
-import ij.gui.ImageWindow;
 import ij.io.Opener;
-import ij.process.ImageProcessor;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -18,9 +16,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.text.DecimalFormat;
 
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -29,7 +25,6 @@ import javax.swing.border.EmptyBorder;
 
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.Settings;
-import mosaic.region_competition.wizard.RCWWin.segType;
 
 
 class RCProgressWin extends JFrame implements MouseListener

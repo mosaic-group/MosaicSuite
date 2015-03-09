@@ -1,6 +1,5 @@
 package mosaic.core.binarize;
 
-import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.utils.IntervalsListInteger;
 import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;

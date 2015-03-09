@@ -1,6 +1,7 @@
 package mosaic.bregman;
 
 import java.util.Date;
+
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
 
 public class ASplitBregmanSolverTwoRegions3D  extends ASplitBregmanSolverTwoRegions {

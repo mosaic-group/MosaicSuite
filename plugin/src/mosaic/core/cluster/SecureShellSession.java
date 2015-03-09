@@ -1,12 +1,9 @@
 package mosaic.core.cluster;
 
 import ij.IJ;
-import ij.gui.GenericDialog;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Flushable;
+
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -14,11 +11,8 @@ import java.util.Date;
 import java.util.Random;
 import java.util.Vector;
 
-import javax.swing.JOptionPane;
-
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.utils.DataCompression;
-import mosaic.core.utils.ShellCommand;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;
@@ -28,9 +22,6 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 import com.jcraft.jsch.SftpProgressMonitor;
-
-import java.io.File;
-import java.net.UnknownHostException;
 
 /**
  * 

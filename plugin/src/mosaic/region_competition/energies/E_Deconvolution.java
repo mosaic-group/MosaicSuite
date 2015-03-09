@@ -1,26 +1,25 @@
 package mosaic.region_competition.energies;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Collections;
-import java.util.Map;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
-import mosaic.region_competition.ContourParticle;
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.Point;
+import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
-import mosaic.core.utils.Point;
-import mosaic.core.utils.RegionIterator;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
+import net.imglib2.algorithm.fft2.FFTConvolution;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
-import net.imglib2.algorithm.fft2.*;
 
 public class E_Deconvolution extends ExternalEnergy
 {

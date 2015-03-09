@@ -1,8 +1,11 @@
 package mosaic.plugins;
 
 
-import ij.*;
-import ij.gui.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.GenericDialog;
+import ij.gui.StackWindow;
 import ij.plugin.PlugIn;
 import ij.text.TextWindow;
 

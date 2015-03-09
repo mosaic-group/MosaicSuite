@@ -3,13 +3,10 @@ package mosaic.core.cluster;
 import ij.IJ;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Scanner;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 import mosaic.core.cluster.JobStatus.jobS;
 import mosaic.core.utils.MosaicUtils;

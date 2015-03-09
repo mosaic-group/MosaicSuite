@@ -7,17 +7,8 @@ import java.awt.Color;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.math.array.LinearAlgebra;
-import org.math.array.StatisticSample;
-
-import Jama.Matrix;
-
-
-
-import weka.estimators.KernelEstimator;
-
 import mosaic.ia.utils.IAPUtils;
-import mosaic.ia.utils.PlotUtils;
+import weka.estimators.KernelEstimator;
 
 public class HypothesisTesting {
 	private double [] CDFGrid;

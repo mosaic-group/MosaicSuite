@@ -2,8 +2,6 @@ package mosaic.core.utils;
 
 import java.util.Random;
 
-import mosaic.core.utils.Mask;
-
 
 public class SphereMask extends Mask
 {

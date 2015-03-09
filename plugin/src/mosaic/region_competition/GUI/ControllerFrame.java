@@ -1,7 +1,5 @@
 package mosaic.region_competition.GUI;
 
-import ij.IJ;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 

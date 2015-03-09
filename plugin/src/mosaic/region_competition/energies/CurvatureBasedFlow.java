@@ -1,11 +1,10 @@
 package mosaic.region_competition.energies;
 
 import ij.measure.Calibration;
-import mosaic.region_competition.LabelImageRC;
 import mosaic.core.utils.Point;
-import mosaic.core.utils.RegionIterator;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
+import mosaic.region_competition.LabelImageRC;
 
 public class CurvatureBasedFlow
 {

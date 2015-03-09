@@ -10,7 +10,6 @@ import ij.process.StackStatistics;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
-import java.lang.reflect.Array;
 import java.util.Vector;
 
 import mosaic.core.detection.FeaturePointDetector;
@@ -18,7 +17,6 @@ import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
-import mosaic.core.particleLinking.ParticleLinker;
 import mosaic.core.particleLinking.ParticleLinkerBestOnePerm;
 import mosaic.core.particleLinking.linkerOptions;
 

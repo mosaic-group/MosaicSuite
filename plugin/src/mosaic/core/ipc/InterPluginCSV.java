@@ -1,6 +1,5 @@
 package mosaic.core.ipc;
 
-import java.beans.PropertyDescriptor;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -13,10 +12,8 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.beanutils.PropertyUtils;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.comment.CommentMatcher;
-import org.supercsv.comment.CommentStartsWith;
 import org.supercsv.io.dozer.CsvDozerBeanReader;
 import org.supercsv.io.dozer.CsvDozerBeanWriter;
 import org.supercsv.io.dozer.ICsvDozerBeanReader;

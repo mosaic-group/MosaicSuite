@@ -1,15 +1,10 @@
 package mosaic.plugins;
 
 
-import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Vector;
 
-
-import Jama.EigenvalueDecomposition;
 import Jama.Matrix;
-
-import ij.plugin.filter.PlugInFilter;
 
 public class Metaphase_Detector2 /*extends ParticleTracker3D_ implements PlugInFilter*/{
 	

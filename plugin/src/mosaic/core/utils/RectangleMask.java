@@ -1,7 +1,4 @@
 package mosaic.core.utils;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
 
 public class RectangleMask  extends Mask
 {

@@ -7,11 +7,9 @@ import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
-import weka.estimators.KernelEstimator;
-
 import mosaic.ia.utils.IAPUtils;
 import mosaic.ia.utils.ImageProcessUtils;
-import mosaic.ia.utils.PlotUtils;
+import weka.estimators.KernelEstimator;
 
 
 

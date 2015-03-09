@@ -1,17 +1,11 @@
 package mosaic.ia.nn;
 
-import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
 import ij.measure.Calibration;
-import ij.process.ImageProcessor;
 
-import java.io.File;
-import java.util.Iterator;
 import java.util.Vector;
 
 import javax.vecmath.Point3d;
-
 
 import mosaic.core.detection.Particle;
 import mosaic.ia.utils.ImageProcessUtils;

@@ -1,6 +1,18 @@
 package mosaic.plugins;
 
-import java.awt.Choice;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.gui.GenericDialog;
+import ij.gui.Roi;
+import ij.plugin.filter.PlugInFilter;
+import ij.plugin.frame.RoiManager;
+import ij.process.ByteProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
+import io.scif.img.ImgIOException;
+import io.scif.img.ImgOpener;
+
 import java.awt.Rectangle;
 import java.io.File;
 import java.lang.reflect.Array;
@@ -13,9 +25,16 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 
+import mosaic.core.binarize.BinarizedIntervalImgLib2Int;
+import mosaic.core.utils.Connectivity;
+import mosaic.core.utils.FloodFill;
+import mosaic.core.utils.MosaicUtils.SegmentationInfo;
+import mosaic.core.utils.Point;
+import mosaic.noise_sample.GenericNoiseSampler;
+import mosaic.noise_sample.NoiseSample;
+import mosaic.noise_sample.noiseList;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
-import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.histogram.BinMapper1d;
 import net.imglib2.histogram.Histogram1d;
 import net.imglib2.histogram.Integer1dBinMapper;
@@ -29,29 +48,6 @@ import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.integer.ShortType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
-import mosaic.core.binarize.BinarizedIntervalImgLib2Int;
-import mosaic.core.utils.Connectivity;
-import mosaic.core.utils.FloodFill;
-import mosaic.core.utils.MosaicUtils;
-import mosaic.core.utils.MosaicUtils.SegmentationInfo;
-import mosaic.core.utils.Point;
-import mosaic.noise_sample.GenericNoiseSampler;
-import mosaic.noise_sample.NoiseSample;
-import mosaic.noise_sample.noiseList;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.WindowManager;
-import ij.gui.GenericDialog;
-import ij.gui.Roi;
-import ij.gui.YesNoCancelDialog;
-import ij.plugin.filter.PlugInFilter;
-import ij.plugin.frame.RoiManager;
-import ij.process.ByteProcessor;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
-import io.scif.img.ImgIOException;
-import io.scif.img.ImgOpener;
 
 
 /**

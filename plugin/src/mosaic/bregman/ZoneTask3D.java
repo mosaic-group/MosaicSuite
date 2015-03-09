@@ -4,8 +4,6 @@ package mosaic.bregman;
 
 import java.util.concurrent.CountDownLatch;
 
-import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
-
 
 
 public class ZoneTask3D implements Runnable {

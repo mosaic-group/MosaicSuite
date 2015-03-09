@@ -10,12 +10,11 @@ import ij.gui.Toolbar;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
-import java.util.Vector;
-
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
-import java.awt.geom.*;
+import java.awt.geom.Point2D;
+import java.util.Vector;
 
 /**
  * @author Janick Cardinale, 2007, ETHZ

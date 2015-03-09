@@ -3,54 +3,33 @@ package mosaic.ia.gui;
 
 import ij.IJ;
 import ij.ImagePlus;
-import ij.gui.GenericDialog;
 import ij.measure.Calibration;
 
-import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JButton;
-import java.awt.BorderLayout;
-import java.awt.event.ActionListener;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
-import java.awt.FlowLayout;
-import javax.swing.SwingConstants;
-
-import javax.swing.JLabel;
-import javax.swing.JComboBox;
-import java.awt.GridLayout;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
-import javax.swing.JDialog;
-import javax.swing.JFormattedTextField;
-import javax.swing.JTextField;
-import javax.swing.JTabbedPane;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-
-import java.awt.Component;
-import javax.swing.JInternalFrame;
-import java.awt.ComponentOrientation;
-import java.awt.GridBagLayout;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import java.awt.Dimension;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
-import java.awt.SystemColor;
-import java.awt.Color;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.border.Border;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import java.util.Vector;
+import javax.vecmath.Point3d;
+
 import mosaic.ia.Analysis;
 import mosaic.ia.PotentialFunctions;
-import mosaic.ia.utils.IAPUtils;
 import mosaic.ia.utils.ImageProcessUtils;
-import javax.swing.SpringLayout;
-import javax.vecmath.Point3d;
 
 public class GUIDesign implements ActionListener  
 {

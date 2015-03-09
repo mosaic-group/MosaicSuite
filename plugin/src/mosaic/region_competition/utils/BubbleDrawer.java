@@ -1,9 +1,9 @@
 package mosaic.region_competition.utils;
 
-import mosaic.region_competition.LabelImageRC;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
+import mosaic.region_competition.LabelImageRC;
 
 /**
  * This shall be the nice version with new Sphere Iterator

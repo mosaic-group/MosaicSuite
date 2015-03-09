@@ -10,7 +10,6 @@ import ij.io.Opener;
 import ij.io.SaveDialog;
 import ij.plugin.Duplicator;
 import ij.plugin.Macro_Runner;
-import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 
@@ -26,6 +25,11 @@ import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
+import mosaic.core.detection.FeaturePointDetector;
+import mosaic.core.detection.MyFrame;
+import mosaic.core.detection.Particle;
+import mosaic.ia.MaskedImage;
+import mosaic.ia.nn.KDTreeNearestNeighbor;
 import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
@@ -35,13 +39,6 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.integer.UnsignedShortType;
 import net.imglib2.type.numeric.real.FloatType;
-import mosaic.ia.nn.KDTreeNearestNeighbor;
-import weka.core.neighboursearch.KDTree;
-import mosaic.core.detection.FeaturePointDetector;
-import mosaic.core.detection.MyFrame;
-import mosaic.core.detection.Particle;
-import mosaic.core.detection.PreviewCanvas;
-import mosaic.ia.MaskedImage;
 
 public class ImageProcessUtils {
 	

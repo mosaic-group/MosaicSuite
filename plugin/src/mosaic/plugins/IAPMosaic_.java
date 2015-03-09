@@ -1,8 +1,8 @@
 package mosaic.plugins;
 
+import ij.plugin.PlugIn;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.ia.gui.GUIDesign;
-import ij.plugin.PlugIn;
 
 
 /**

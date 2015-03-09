@@ -1,8 +1,8 @@
 package mosaic.region_competition.energies;
 
+import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
-import mosaic.core.utils.IntensityImage;
 import mosaic.region_competition.LabelImageRC;
 
 

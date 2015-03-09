@@ -1,14 +1,13 @@
 package mosaic.core.utils;
 
-import static org.junit.Assert.*;
-
-import java.io.File;
-
+import static org.junit.Assert.fail;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ImageProcessor;
+
+import java.io.File;
+
 import mosaic.bregman.output.Region3DRScript;
-import mosaic.plugins.BregmanGLM_Batch;
 
 import org.junit.Test;
 

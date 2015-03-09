@@ -2,13 +2,10 @@ package mosaic.core.pipeline;
 
 
 
-import ij.IJ;
 import ij.ImagePlus;
-import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
-import ij.process.StackStatistics;
 
 /**
  * It try to figure out the type of the image looking at the histogram.

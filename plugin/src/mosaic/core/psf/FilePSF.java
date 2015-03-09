@@ -1,7 +1,12 @@
 package mosaic.core.psf;
 
+import ij.IJ;
+import ij.gui.GenericDialog;
+import ij.io.OpenDialog;
+import io.scif.img.ImgIOException;
+import io.scif.img.ImgOpener;
+
 import java.awt.Button;
-import java.awt.Choice;
 import java.awt.GridBagConstraints;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
@@ -14,33 +19,18 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.lang.reflect.Array;
 
-import ij.IJ;
-import ij.Macro;
-import ij.gui.GenericDialog;
-import ij.io.OpenDialog;
-import io.scif.img.ImgIOException;
-import io.scif.img.ImgOpener;
-import mosaic.region_competition.Settings;
-import net.imglib2.Cursor;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.Sampler;
 import net.imglib2.algorithm.fft2.FFTConvolution;
-import net.imglib2.algorithm.gauss3.Gauss3;
-import net.imglib2.exception.IncompatibleTypeException;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.complex.ComplexFloatType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.Views;
 
 class FilePSFSettings implements Serializable

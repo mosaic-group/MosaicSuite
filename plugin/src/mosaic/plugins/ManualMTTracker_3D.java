@@ -1,6 +1,17 @@
 package mosaic.plugins;
 
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.ImageCanvas;
+import ij.gui.StackWindow;
+import ij.gui.Toolbar;
+import ij.io.FileInfo;
+import ij.plugin.filter.PlugInFilter;
+import ij.process.ImageProcessor;
+import ij.text.TextWindow;
+
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -23,17 +34,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Vector;
 import java.util.regex.Pattern;
-
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.gui.ImageCanvas;
-import ij.gui.StackWindow;
-import ij.gui.Toolbar;
-import ij.io.FileInfo;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.ImageProcessor;
-import ij.text.TextWindow;
 
 public class ManualMTTracker_3D implements  PlugInFilter{
 	protected static enum STATE {WAITING, READY_FOR_POINT_1, READY_FOR_POINT_2, READY_FOR_POINT_3};

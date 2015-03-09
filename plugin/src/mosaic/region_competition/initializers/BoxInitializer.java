@@ -1,7 +1,7 @@
 package mosaic.region_competition.initializers;
 
-import mosaic.region_competition.LabelImageRC;
 import mosaic.core.utils.RegionIterator;
+import mosaic.region_competition.LabelImageRC;
 
 public class BoxInitializer extends Initializer
 {

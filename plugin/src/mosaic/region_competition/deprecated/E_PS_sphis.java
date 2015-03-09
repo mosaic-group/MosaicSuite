@@ -2,14 +2,13 @@ package mosaic.region_competition.deprecated;
 
 import java.util.HashMap;
 
-import mosaic.region_competition.ContourParticle;
 import mosaic.core.utils.IntensityImage;
-import mosaic.region_competition.LabelImageRC;
-import mosaic.region_competition.LabelInformation;
 import mosaic.core.utils.MaskIterator;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
-import mosaic.core.utils.RegionIteratorMask;
+import mosaic.region_competition.ContourParticle;
+import mosaic.region_competition.LabelImageRC;
+import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.energies.E_KLMergingCriterion;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 

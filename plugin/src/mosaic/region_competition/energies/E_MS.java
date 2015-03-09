@@ -2,11 +2,11 @@ package mosaic.region_competition.energies;
 
 import java.util.HashMap;
 
-import mosaic.region_competition.ContourParticle;
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.Point;
+import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
-import mosaic.core.utils.Point;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
 public class E_MS extends ExternalEnergy

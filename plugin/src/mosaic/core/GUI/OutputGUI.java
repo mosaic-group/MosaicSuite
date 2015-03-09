@@ -3,11 +3,9 @@ package mosaic.core.GUI;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -18,15 +16,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
-
-import mosaic.bregman.output.Region3DTrack;
-import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.Outdata;
-import mosaic.core.ipc.OutputChoose;
-
-import org.supercsv.cellprocessor.ift.CellProcessor;
-
-import ij.gui.GenericDialog;
 
 public class OutputGUI extends JDialog
 {

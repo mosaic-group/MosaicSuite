@@ -1,14 +1,14 @@
 package mosaic.plugins;
 
 
-import java.io.File;
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
+
+import java.io.File;
 
 public class Patching_  implements PlugInFilter{
 

@@ -1,5 +1,4 @@
 package mosaic.paramopt.cma;
-import mosaic.paramopt.cma.ISolutionPoint;
 
 /** solution point in search space. Rather plain implementation of the interface ISolutionPoint. 
  * 

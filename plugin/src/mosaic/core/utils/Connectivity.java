@@ -2,7 +2,6 @@ package mosaic.core.utils;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import mosaic.core.utils.Point;
 
 /**
  * 

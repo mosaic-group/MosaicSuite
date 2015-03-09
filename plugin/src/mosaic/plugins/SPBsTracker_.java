@@ -7,7 +7,6 @@ import ij.gui.GenericDialog;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.util.Vector;
 /**
  * This is a derived class of the Particle Filter Tracking base class (PFTracking3D). It implements 
  * a feature point tracker for 2 points, e.g. two spindle poles, without any further dynamic model (random walk).  

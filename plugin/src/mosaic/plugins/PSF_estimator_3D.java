@@ -1,14 +1,5 @@
 package mosaic.plugins;
 
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.Vector;
-
-import mosaic.interpolators.*;
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -22,6 +13,15 @@ import ij.process.Blitter;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.StackStatistics;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.Vector;
+
+import mosaic.interpolators.BilinearInterpolator;
 
 //TODO: GUI, 
 //TODO: print number of points considered.

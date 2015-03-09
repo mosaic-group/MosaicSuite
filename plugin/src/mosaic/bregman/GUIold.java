@@ -5,28 +5,23 @@ package mosaic.bregman;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-
-
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+//import javax.swing.JFrame;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
-import javax.swing.JFrame;
-
-import javax.swing.JPanel;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
-
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.border.Border;
-
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
-//import javax.swing.JFrame;
 
 
 public class GUIold implements ActionListener,PropertyChangeListener

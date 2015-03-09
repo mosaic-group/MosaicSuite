@@ -1,15 +1,16 @@
 package mosaic.bregman;
 
-import java.util.Date;
-import java.util.concurrent.CountDownLatch;
-
-import net.imglib2.type.numeric.real.DoubleType;
-import mosaic.core.psf.psf;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.process.ImageProcessor;
 import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+
+import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+
+import mosaic.core.psf.psf;
+import net.imglib2.type.numeric.real.DoubleType;
 
 
 public class Tools 

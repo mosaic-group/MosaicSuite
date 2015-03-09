@@ -1,15 +1,14 @@
 package mosaic.plugins;
 
-import java.io.File;
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.GenericDialog;
-import ij.io.FileInfo;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
+
+import java.io.File;
 
 public class Generate_PSF implements  PlugInFilter{
 	

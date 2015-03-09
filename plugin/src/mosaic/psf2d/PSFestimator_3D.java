@@ -1,13 +1,13 @@
 package mosaic.psf2d;
 
 
-import Jama.Matrix;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import ij.process.StackConverter;
 import ij.process.StackStatistics;
+import Jama.Matrix;
 
 public class PSFestimator_3D  implements  PlugInFilter{
 	StackStatistics stackStatistics;

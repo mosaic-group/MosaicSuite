@@ -1,5 +1,7 @@
 package mosaic.bregman.GUI;
 
+import ij.ImagePlus;
+
 import java.awt.Button;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -19,11 +21,7 @@ import javax.swing.JPanel;
 
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericDialogCustom;
-import mosaic.bregman.GUI.BackgroundSubGUI.BackgroundSubHelp;
 import mosaic.core.GUI.HelpGUI;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.gui.GenericDialog;
 
 
 public class SegmentationGUI 

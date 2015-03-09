@@ -7,11 +7,12 @@ import ij.plugin.ZProjector;
 import ij.plugin.filter.EDM;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
-import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
+
+import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
 
 
 public class ASplitBregmanSolver {

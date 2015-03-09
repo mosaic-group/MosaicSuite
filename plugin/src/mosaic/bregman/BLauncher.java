@@ -11,7 +11,6 @@ import ij.plugin.RGBStackMerge;
 import ij.plugin.Resizer;
 import ij.process.BinaryProcessor;
 import ij.process.ByteProcessor;
-import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 
@@ -22,23 +21,19 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Vector;
 
+import mosaic.bregman.output.CSVOutput;
+import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.ShellCommand;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.integer.ShortType;
-import mosaic.bregman.Tools;
-import mosaic.core.utils.MosaicUtils;
-import mosaic.core.utils.ShellCommand;
-import mosaic.bregman.output.CSVOutput;
-import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.OutputChoose;
 
 public class BLauncher 
 {
@@ -99,8 +94,6 @@ public class BLauncher
 			
 			// Check if we have more than one frame
 			
-			int cnt = 1;
-			
 			for (File f : fl)
 			{
 				if (f.isDirectory() == true)
@@ -153,7 +146,6 @@ public class BLauncher
 					catch (FileNotFoundException e) 
 					{e.printStackTrace();}
 				}
-				cnt++;
 			}
 			if (out != null)
 			{

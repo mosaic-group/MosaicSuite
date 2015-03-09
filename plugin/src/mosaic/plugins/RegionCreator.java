@@ -1,11 +1,16 @@
 package mosaic.plugins;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.gui.GenericDialog;
+import ij.plugin.filter.PlugInFilter;
+import ij.process.ImageProcessor;
+
 import java.awt.Button;
 import java.awt.Choice;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,6 +19,18 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
+import mosaic.bregman.output.CSVOutput;
+import mosaic.bregman.output.Region3DTrack;
+import mosaic.core.detection.MyFrame;
+import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.ipc.OutputChoose;
+import mosaic.core.psf.psf;
+import mosaic.core.psf.psfList;
+import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIterator;
+import mosaic.core.utils.RegionIteratorMask;
+import mosaic.core.utils.SphereMask;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -21,9 +38,7 @@ import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.ops.operation.iterable.unary.Fill;
 import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.ShortType;
@@ -31,27 +46,6 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-import mosaic.bregman.output.CSVOutput;
-import mosaic.bregman.output.Region3DTrack;
-import mosaic.core.detection.MyFrame;
-import mosaic.core.detection.Particle;
-import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.OutputChoose;
-import mosaic.core.psf.psf;
-import mosaic.core.psf.psfList;
-import mosaic.core.utils.CircleMask;
-import mosaic.core.utils.MosaicUtils;
-import mosaic.core.utils.Point;
-import mosaic.core.utils.RegionIterator;
-import mosaic.core.utils.RegionIteratorMask;
-import mosaic.core.utils.SphereMask;
-import mosaic.region_competition.GUI.EnergyGUI;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.gui.GenericDialog;
-import ij.measure.Calibration;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.ImageProcessor;
 
 /**
  * 

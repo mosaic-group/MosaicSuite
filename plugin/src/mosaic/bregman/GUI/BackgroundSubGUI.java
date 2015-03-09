@@ -1,6 +1,9 @@
 package mosaic.bregman.GUI;
 
 
+import ij.ImagePlus;
+import ij.gui.GenericDialog;
+
 import java.awt.Button;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -13,15 +16,10 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import mosaic.bregman.Analysis;
-import mosaic.bregman.GenericDialogCustom;
 import mosaic.core.GUI.HelpGUI;
-import mosaic.core.GUI.ParticleTrackerHelp;
-import ij.ImagePlus;
-import ij.gui.GenericDialog;
 
 
 public class BackgroundSubGUI 

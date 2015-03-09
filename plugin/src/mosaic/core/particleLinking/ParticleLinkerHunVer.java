@@ -2,14 +2,10 @@ package mosaic.core.particleLinking;
 
 import ij.IJ;
 
-import java.io.IOException;
-import java.util.Iterator;
 import java.util.Vector;
 
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
-import mosaic.core.utils.MosaicUtils;
-import mosaic.core.particleLinking.linkerOptions;
 
 public class ParticleLinkerHunVer {
 		

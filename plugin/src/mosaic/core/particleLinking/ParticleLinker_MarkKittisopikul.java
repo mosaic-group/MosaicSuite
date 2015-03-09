@@ -3,14 +3,9 @@ package mosaic.core.particleLinking;
 import ij.IJ;
 
 import java.util.Vector;
-import java.util.List;
-import java.util.ArrayList;
-import java.io.IOException;
-import java.lang.Math;
 
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
-import mosaic.core.utils.MosaicUtils;
 
 public class ParticleLinker_MarkKittisopikul{
 	/**

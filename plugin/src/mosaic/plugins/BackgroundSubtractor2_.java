@@ -1,25 +1,25 @@
 package mosaic.plugins;
 
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.GenericDialog;
+import ij.gui.StackWindow;
+import ij.measure.Measurements;
+import ij.plugin.filter.PlugInFilter;
+import ij.process.ByteProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
+import ij.process.ShortProcessor;
+
 import java.awt.Button;
 import java.awt.GridBagLayout;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
-
-import ij.measure.Measurements;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.ByteProcessor;
-import ij.process.ImageProcessor;
-import ij.process.FloatProcessor;
-import ij.process.ImageStatistics;
-import ij.process.ShortProcessor;
-import ij.gui.GenericDialog;
-import ij.gui.StackWindow;
-import ij.IJ;
-import ij.ImageStack;
-import ij.ImagePlus;
 
 
 /**

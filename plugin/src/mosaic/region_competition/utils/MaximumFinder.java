@@ -1,11 +1,32 @@
 package mosaic.region_competition.utils;
-import ij.plugin.filter.*;
-import ij.*;
-import ij.gui.*;
-import ij.measure.*;
-import ij.process.*;
-import java.awt.*;
-import java.util.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Prefs;
+import ij.WindowManager;
+import ij.gui.DialogListener;
+import ij.gui.GenericDialog;
+import ij.gui.PointRoi;
+import ij.gui.PolygonRoi;
+import ij.gui.Roi;
+import ij.gui.Wand;
+import ij.measure.Calibration;
+import ij.measure.Measurements;
+import ij.measure.ResultsTable;
+import ij.plugin.filter.Analyzer;
+import ij.plugin.filter.ExtendedPlugInFilter;
+import ij.plugin.filter.PlugInFilterRunner;
+import ij.process.ByteProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+
+import java.awt.AWTEvent;
+import java.awt.Checkbox;
+import java.awt.Label;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.util.Arrays;
+import java.util.Vector;
 
 /** This ImageJ plug-in filter finds the maxima (or minima) of an image.
  * It can create a mask where the local maxima of the current image are

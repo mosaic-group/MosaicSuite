@@ -2,9 +2,8 @@ package mosaic.bregman;
 
 import java.io.Serializable;
 
-import net.imglib2.type.numeric.real.DoubleType;
-import net.imglib2.type.numeric.real.FloatType;
 import mosaic.core.psf.psf;
+import net.imglib2.type.numeric.real.DoubleType;
 
 public class Parameters  implements Serializable
 {

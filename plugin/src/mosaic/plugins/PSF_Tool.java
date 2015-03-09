@@ -1,24 +1,44 @@
 package mosaic.plugins;
 
-import ij.*;
-import ij.gui.*;
+import ij.IJ;
+import ij.ImagePlus;
+import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.ImageWindow;
+import ij.gui.Plot;
+import ij.gui.PlotWindow;
 import ij.io.SaveDialog;
-import ij.plugin.filter.*;
-import ij.process.*;
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
+import ij.plugin.filter.PlugInFilter;
+import ij.process.ColorProcessor;
+import ij.process.ImageProcessor;
 
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Vector;
+
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import mosaic.psf2d.PsfBessel;
 import mosaic.psf2d.PsfPointSpreadFunction;
 import mosaic.psf2d.PsfRefinement;
 import mosaic.psf2d.PsfSourcePosition;
-
-
-
-import java.util.*;
 
 /**
  * <h2>PSF_Tool</h2>

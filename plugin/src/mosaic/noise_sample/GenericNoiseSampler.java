@@ -1,10 +1,8 @@
 package mosaic.noise_sample;
 
-import java.util.HashMap;
 import java.util.Random;
 import java.util.Vector;
 
-import net.imglib2.algorithm.stats.Histogram;
 import net.imglib2.histogram.Histogram1d;
 import net.imglib2.type.numeric.RealType;
 

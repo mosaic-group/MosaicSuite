@@ -7,8 +7,6 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Vector;
 
-import mosaic.core.detection.MyFrame;
-
 /**
  * Defines an overlay Canvas for a given <code>ImagePlus</code> on which the detected particles from 
  * a <code>MyFrame</code> are displayed for preview

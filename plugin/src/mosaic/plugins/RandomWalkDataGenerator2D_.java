@@ -1,12 +1,11 @@
 package mosaic.plugins;
 
 
-import java.awt.*;
-import java.awt.image.DataBuffer;
-import ij.*;
-import ij.gui.*;
-import ij.process.*;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.gui.StackWindow;
 import ij.plugin.PlugIn;
+
 import java.util.Random;
 
 

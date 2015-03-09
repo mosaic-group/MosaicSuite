@@ -1,5 +1,12 @@
 package mosaic.bregman;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.io.Opener;
+import ij.process.ByteProcessor;
+import ij.process.ImageProcessor;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -10,13 +17,7 @@ import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
 import mosaic.bregman.output.CSVOutput;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.io.Opener;
-import ij.process.ByteProcessor;
-import ij.process.ImageProcessor;
-import mosaic.core.ipc.*;
+import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.utils.MosaicUtils;
 
 public class Analysis {

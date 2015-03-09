@@ -1,17 +1,16 @@
 package mosaic.region_competition.utils;
 
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+
 import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.List;
 
+import mosaic.core.utils.Point;
 import net.imglib2.Cursor;
-import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.real.FloatType;
-
-import mosaic.core.utils.Point;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
 
 
 

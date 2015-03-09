@@ -1,19 +1,14 @@
 package mosaic.core.detection;
 
-import ij.gui.Roi;
-
 import java.awt.Rectangle;
 import java.text.DecimalFormat;
-
-import net.imglib2.Interval;
-
-import org.supercsv.cellprocessor.ift.CellProcessor;
 
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.StubProp;
 
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
+import org.supercsv.cellprocessor.ift.CellProcessor;
 
 
 /**

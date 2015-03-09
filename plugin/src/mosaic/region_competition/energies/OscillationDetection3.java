@@ -2,9 +2,10 @@ package mosaic.region_competition.energies;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import mosaic.core.utils.Point;
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.ContourParticle;
-import mosaic.core.utils.Point;
 import mosaic.region_competition.Settings;
 
 /**

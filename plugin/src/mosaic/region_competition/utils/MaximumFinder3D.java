@@ -1,21 +1,23 @@
 package mosaic.region_competition.utils;
 
-import ij.plugin.filter.*;
-import ij.*;
-import ij.gui.*;
-import ij.measure.*;
-import ij.process.*;
+import ij.IJ;
+import ij.gui.Roi;
+import ij.measure.ResultsTable;
+import ij.plugin.filter.Analyzer;
+import ij.process.ImageProcessor;
 
 import java.awt.Label;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Vector;
 
+import mosaic.core.utils.Connectivity;
+import mosaic.core.utils.IndexIterator;
+import mosaic.core.utils.Point;
 import net.imglib2.Cursor;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.real.FloatType;
-
-import mosaic.core.utils.IndexIterator;
-import mosaic.core.utils.Point;
-import mosaic.core.utils.Connectivity;
 
 /** 
  * Edit of {@link MaximumFinder} of ImageJ 1.4x, to work with 3D images (stacks)

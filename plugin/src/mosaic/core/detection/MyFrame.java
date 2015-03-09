@@ -1,10 +1,7 @@
 package mosaic.core.detection;
 
 import ij.IJ;
-import ij.ImagePlus;
 import ij.ImageStack;
-import ij.gui.Roi;
-import ij.io.Opener;
 import ij.measure.Calibration;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
@@ -12,44 +9,31 @@ import ij.process.ImageProcessor;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import mosaic.core.utils.CircleMask;
-import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RectangleMask;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.plugins.ParticleTracker3DModular_.Trajectory;
-import net.imglib2.Interval;
+import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
-
-import java.util.Vector;
-
-import net.imglib2.Cursor;
-import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.ShortType;
-import net.imglib2.type.numeric.integer.UnsignedByteType;
-import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
 

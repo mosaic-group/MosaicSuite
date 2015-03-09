@@ -2,10 +2,11 @@ package mosaic.psf2d;
 
 
 
+import ij.process.ImageProcessor;
+
 import java.awt.geom.Point2D;
 
-import ij.process.ImageProcessor;
-import mosaic.interpolators.*;
+import mosaic.interpolators.BicubicInterpolator;
 
 /**
  * Represents a Point Spread Function.

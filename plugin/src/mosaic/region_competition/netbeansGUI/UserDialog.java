@@ -1,6 +1,7 @@
 package mosaic.region_competition.netbeansGUI;
 
 import ij.gui.GenericDialog;
+
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;

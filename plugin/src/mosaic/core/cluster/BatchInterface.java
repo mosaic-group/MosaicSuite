@@ -1,6 +1,5 @@
 package mosaic.core.cluster;
 
-import mosaic.core.cluster.LSFBatch.LSFJob;
 
 enum OutputType
 {

@@ -1,6 +1,5 @@
 package mosaic.plugins;
 
-import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
@@ -17,13 +16,11 @@ import java.util.Vector;
 import mosaic.core.cluster.BatchList;
 import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterProfile;
-import mosaic.core.cluster.ClusterSession;
 import mosaic.core.cluster.FileClusterProfile;
+import mosaic.core.cluster.QueueProfile;
 import mosaic.core.cluster.hw;
 import mosaic.core.utils.DataCompression;
-import mosaic.core.utils.Segmentation;
 import mosaic.core.utils.DataCompression.Algorithm;
-import mosaic.core.cluster.QueueProfile;
 
 
 /**

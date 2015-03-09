@@ -1,11 +1,11 @@
 package mosaic.core.cluster;
 
+import ij.ImageStack;
+import ij.process.ColorProcessor;
+
 import java.awt.Color;
 
 import mosaic.core.cluster.JobStatus.jobS;
-
-import ij.ImageStack;
-import ij.process.ColorProcessor;
 
 
 /**

@@ -11,10 +11,8 @@ import mosaic.bregman.Analysis;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.bregman.output.Region3DRScript;
-import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
-import mosaic.region_competition.output.RCOutput;
 
 import org.junit.Test;
 

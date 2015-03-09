@@ -6,61 +6,42 @@ import ij.gui.GenericDialog;
 import ij.gui.ImageCanvas;
 import ij.gui.ImageWindow;
 import ij.gui.Roi;
-import ij.io.Opener;
 import ij.plugin.frame.RoiManager;
 import ij.process.ImageProcessor;
 
-import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.GridLayout;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.Hashtable;
 
-import javax.swing.JFrame;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import java.awt.GridLayout;
-import java.awt.GridBagLayout;
-import javax.swing.JButton;
-import java.awt.GridBagConstraints;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
-import javax.swing.JDialog;
-import javax.swing.JSlider;
-import javax.swing.JTextArea;
-import javax.swing.SpringLayout;
-import javax.swing.JComboBox;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JTabbedPane;
-import javax.swing.JInternalFrame;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-
-import mosaic.paramopt.cma.CMAEvolutionStrategy;
-import mosaic.paramopt.cma.fitness.IObjectiveFunction;
-import mosaic.plugins.Region_Competition;
-import mosaic.region_competition.Algorithm;
 import mosaic.core.utils.IntensityImage;
+import mosaic.paramopt.cma.CMAEvolutionStrategy;
+import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.LabelImageRC;
-import mosaic.region_competition.LabelInformation;
-import mosaic.core.utils.Point;
 import mosaic.region_competition.PointCM;
-import mosaic.core.utils.RegionIterator;
+import mosaic.region_competition.RCMean;
 import mosaic.region_competition.Settings;
-import mosaic.region_competition.energies.CurvatureBasedFlow;
-import mosaic.region_competition.energies.E_CurvatureFlow;
 import mosaic.region_competition.energies.EnergyFunctionalType;
 import mosaic.region_competition.initializers.InitializationType;
-import mosaic.region_competition.initializers.MaximaBubbles;
 import mosaic.region_competition.wizard.RCProgressWin.StatusSel;
 import mosaic.region_competition.wizard.score_function.ScoreFunction;
 import mosaic.region_competition.wizard.score_function.ScoreFunctionInit;
@@ -68,16 +49,6 @@ import mosaic.region_competition.wizard.score_function.ScoreFunctionRCsmo;
 import mosaic.region_competition.wizard.score_function.ScoreFunctionRCtop;
 import mosaic.region_competition.wizard.score_function.ScoreFunctionRCvol;
 import mosaic.region_competition.wizard.score_function.TypeImage;
-import mosaic.region_competition.Settings;
-import mosaic.region_competition.RCMean;
-
-import java.awt.Color;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.regex.Matcher;
 
 public class RCWWin extends JDialog implements MouseListener, Runnable
 {

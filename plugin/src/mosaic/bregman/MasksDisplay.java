@@ -1,12 +1,6 @@
 package mosaic.bregman;
 
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Vector;
-
-import mosaic.core.utils.MosaicUtils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -16,6 +10,12 @@ import ij.process.ColorProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Vector;
+
+import mosaic.core.utils.MosaicUtils;
 
 
 //TODO : display for 3D
