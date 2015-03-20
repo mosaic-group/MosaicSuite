@@ -50,7 +50,6 @@ public class Particle extends StubProp implements ICSVGeneral
 	public float distance;
 	public float lx,ly,lz;                  // previous Linking x,y,z
 	public float lxa,lya,lza;               // accumulation link
-	private double scaling[];
 
 	/* only relevant to particles given as input */
 	public String[] all_params; 			// all params that relate to this particle,
@@ -177,10 +176,6 @@ public class Particle extends StubProp implements ICSVGeneral
 	{
 		this.special = true;
 		
-		scaling = new double[3];
-		scaling[0] = 1.0;
-		scaling[1] = 1.0;
-		scaling[2] = 1.0;
 		distance = -1.0f;
 	}
 	
@@ -203,10 +198,6 @@ public class Particle extends StubProp implements ICSVGeneral
 		this.setFrame(frame_num);
 		this.linkrange = linkrange;
 		this.next = new int[linkrange];
-		scaling = new double[3];
-		scaling[0] = 1.0;
-		scaling[1] = 1.0;
-		scaling[2] = 1.0;
 		distance = -1.0f;
 	}
 
@@ -222,15 +213,7 @@ public class Particle extends StubProp implements ICSVGeneral
 		this.linkrange = linkrange;
 		this.next = new int[linkrange];
 	}
-	
-	/**
-	 * Set scaling factor for x,y,z position, affect only the toStringBuffer function
-	 * @param scaling_
-	 */
-	public void setScaling(double scaling_[])
-	{
-		scaling = scaling_;
-	}
+
 	
 	/**
 	 * constructor for particles created from text files.  
@@ -257,10 +240,6 @@ public class Particle extends StubProp implements ICSVGeneral
 		this.m2 = 0.0F;
 		this.m3 = 0.0F;
 		this.m4 = 0.0F;
-		scaling = new double[3];
-		scaling[0] = 1.0;
-		scaling[1] = 1.0;
-		scaling[2] = 1.0;
 	}
 
 	/* (non-Javadoc)
@@ -301,11 +280,11 @@ public class Particle extends StubProp implements ICSVGeneral
 		sb.append(this.getFrame());
 		
 		sb.append(sp);
-		sb.append(nf.format(this.x*scaling[0]));
+		sb.append(nf.format(this.x));
 		sb.append(sp);
-		sb.append(nf.format(this.y*scaling[1]));
+		sb.append(nf.format(this.y));
 		sb.append(sp);
-		sb.append(nf.format(this.z*scaling[2]));
+		sb.append(nf.format(this.z));
 		sb.append(sp);
 		sb.append(nf.format(this.m0));
 		sb.append(sp);
@@ -433,35 +412,30 @@ public class Particle extends StubProp implements ICSVGeneral
 
 	@Override
 	public double getSize() {
-		// TODO Auto-generated method stub
 		return m0;
 	}
 
 
 	@Override
 	public double getIntensity() {
-		// TODO Auto-generated method stub
 		return m2;
 	}
 
 
 	@Override
 	public double getx() {
-		// TODO Auto-generated method stub
 		return x;
 	}
 
 
 	@Override
 	public double gety() {
-		// TODO Auto-generated method stub
 		return y;
 	}
 
 
 	@Override
 	public double getz() {
-		// TODO Auto-generated method stub
 		return z;
 	}
 }

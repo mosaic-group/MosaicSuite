@@ -9,8 +9,6 @@ import ij.gui.GUI;
 import ij.gui.GenericDialog;
 import ij.gui.ImageCanvas;
 import ij.gui.NonBlockingGenericDialog;
-import ij.gui.Plot;
-import ij.gui.PlotWindow;
 import ij.gui.Roi;
 import ij.gui.StackWindow;
 import ij.gui.YesNoCancelDialog;
@@ -90,6 +88,10 @@ import mosaic.core.particleLinking.linkerOptions;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.SegmentationInfo;
 import mosaic.core.utils.MosaicUtils.ToARGB;
+import mosaic.particleTracker.TrajectoriesReportXML;
+import mosaic.particleTracker.Trajectory;
+import mosaic.particleTracker.TrajectoryAnalysis;
+import mosaic.particleTracker.TrajectoryAnalysisPlot;
 import net.imglib2.Cursor;
 import net.imglib2.FinalInterval;
 import net.imglib2.IterableInterval;
@@ -167,8 +169,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	private float l_s = 1.0f;
 	private float l_f = 1.0f;
 	private float l_d = 1.0f;
-	private final static int SYSTEM = 0;
-	private final static int IJ_RESULTS_WINDOW = 1;
 	public ImageStack stack ,traj_stack;	
 	public StackConverter sc;
 	public ImagePlus original_imp;
@@ -378,25 +378,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		IJ.showStatus("Generating Trajectories");
 		generateTrajectories();
 		IJ.freeMemory();
-        //TODO: remove
-        Trajectory t = all_traj.elementAt(0);
-        String traj = "";
-        String delt = "";
-        Particle[] p = t.existing_particles;
-        for (Particle i : p) {
-            traj += i.x + ", " + i.y + ", " + i.z + "; ";
-            delt += i.getFrame() + ",";
-        }
-        IJ.log("traj=[" + traj + "]");
-        IJ.log("delt=[" + delt + "]");
-        
+
 		if (IJ.isMacro()) 
 		{ 
 			/* Write data to disk */
 			writeDataToDisk();
-			
-			
-
 		} 
 		else 
 		{
@@ -766,10 +752,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				// TODO Auto-generated method stub
-				
 				Point p =gd.getLocationOnScreen();
-				
 				new ParticleTrackerHelp(p.x,p.y);
 				
 			}
@@ -864,8 +847,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
-				
 				GenericDialog gd = new GenericDialog("Link factor");
 				
 				gd.addMessage("weight of different contributions for linking\n relative to the distance normalized to one");
@@ -996,325 +977,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				"Requires: ImageJ 1.38u or higher and Java 5\n" +
 				"For more information go to http://weeman.inf.ethz.ch/particletracker/"            
 		);
-	}
-
-	/**
-	 * Defines a Trajectory that is basically an array of sequential <code>Particle</code>s.
-	 * <br>Trajectory class has methods to display and anllyse this trajectory
-	 * @see Particle 
-	 */
-	public class Trajectory 
-	{
-		public int stop_frame;
-		public int start_frame;
-		public Particle[] existing_particles;		// holds all particles of this trajetory in order
-		int length; 						// number of frames this trajectory spans on
-
-		ArrayList<int[]> gaps = new ArrayList<int[]>(); 	// holds arrays (int[]) of size 2 that holds  
-		// 2 indexs of particles in the existing_particles.
-		// These particles are the start and end points of a gap 
-		// in this trajectory
-		int num_of_gaps = 0;
-
-		int serial_number;					// serial number of this trajectory (for report and display)
-		boolean to_display = true;			// flag for display filter
-		public Color color;						// the display color of this Trajectory
-		Roi mouse_selection_area;			// The Roi area where a mouse click will select this trajectory
-		Roi focus_area;						// The Roi for focus display of this trajectory
-
-		
-		double scaling[];
-
-		/**
-		 * Constructor.
-		 * <br>Constructs a Trajectory from the given <code>Particle</code> array.
-		 * <br>Sets its length according to information of the first and last particles
-		 * <br>Sets its <code>Color</code> to default (red) 
-		 * @param particles the array containing all the particles defining this Trajectory
-		 */
-		public Trajectory(Particle[] particles) {
-
-			this.existing_particles = particles;
-			// the length is the last trajectory frame - the first frame (first frame can be 0) 
-			this.length = this.existing_particles[this.existing_particles.length-1].getFrame() - 
-			this.existing_particles[0].getFrame();
-			color = Color.red; //default
-		}
-
-		/**
-		 * 
-		 * Is the trajectory to show
-		 * 
-		 * @return true if is to display
-		 */
-		
-		public boolean toDisplay()
-		{
-			return to_display; 
-		}
-		
-		/**
-		 * Set the <code>scaling</code> for this trajectory
-		 */
-		public void setScaling(double scaling_[])
-		{
-			scaling = scaling_;
-		}
-		
-		/**
-		 * Set the <code>focus_area</code> for this trajectory - it defines the area (ROI) focused
-		 * on when the user selects this trajectory to focus on
-		 * <br>The <code>focus_area</code> is an rectangular ROI that engulfs this trajectory
-		 * with 8 pixels margin from each edge
-		 * @see TrajectoryStackWindow#mousePressed(MouseEvent)
-		 */
-		private void setFocusArea() {
-
-			// there is no image so set focus does not make sense
-			
-			if (original_imp == null)
-				return;
-			
-			/* find the min and max values of the x and y positions */
-			float min_x = this.existing_particles[0].x;
-			float min_y = this.existing_particles[0].y; 
-			float max_x = this.existing_particles[0].x;
-			float max_y = this.existing_particles[0].y;	
-			for (int i = 0; i<this.existing_particles.length; i++){
-				min_x = Math.min(this.existing_particles[i].x, min_x);
-				min_y = Math.min(this.existing_particles[i].y, min_y);
-				max_x = Math.max(this.existing_particles[i].x, max_x);
-				max_y = Math.max(this.existing_particles[i].y, max_y);
-			}
-
-			/* set the focus area x, y , height, width to give focus area bigger by 8 pixels 
-			 * then minimal rectangle surroundings this trajectory */ 
-
-			// X and Y coordinates are not in the usual graph coordinates sense but in the image sense;
-			// (0,0) is the upper left corner; x is vertical top to bottom, y is horizontal left to right			
-			int focus_x = Math.max((int)min_x - 8, 0);
-			int focus_y = Math.max((int)min_y - 8, 0);
-			int focus_height = (int)max_y - focus_y + 8;
-			int focus_width = (int)max_x - focus_x + 8;			
-			// make sure that the -8 or +8 did not create an ROI with bounds outside of the window
-			if (focus_x + focus_width > original_imp.getWidth()) {
-				focus_width = original_imp.getWidth() - focus_x;
-			}
-			if (focus_y + focus_height > original_imp.getHeight()) {
-				focus_height = original_imp.getHeight() - focus_y;
-			}
-			this.focus_area = new Roi(focus_x, focus_y, focus_width, focus_height);
-		}
-
-		/**
-		 * Set the <code>mouse_selection_area</code> for this trajectory - it defines the area (ROI)
-		 * on which a mouse click will add this trajectory as a candidate for selection
-		 * <br>When this trajectory is selected with a mouse click this ROI is highlighted for the user
-		 * to see his selection.
-		 * <br>The <code>mouse_selection_area</code> is an rectangular ROI that engulfs this trajectory
-		 * with 1 pixel margin from each edge
-		 * @see TrajectoryStackWindow#mousePressed(MouseEvent)
-		 */
-		private void setMouseSelectionArea () 
-		{
-			/* find the min and max values of the x and y positions */
-			float min_x = this.existing_particles[0].x;
-			float min_y = this.existing_particles[0].y; 
-			float max_x = this.existing_particles[0].x;
-			float max_y = this.existing_particles[0].y;
-			for (int i = 0; i<this.existing_particles.length; i++)
-			{
-				min_x = Math.min(this.existing_particles[i].x, min_x);
-				min_y = Math.min(this.existing_particles[i].y, min_y);
-				max_x = Math.max(this.existing_particles[i].x, max_x);
-				max_y = Math.max(this.existing_particles[i].y, max_y);
-			}
-
-			/* set the focus area x, y , height, width to give focus area bigger by 1 pixel 
-			 * then minimal rectangle surroundings this trajectory */ 
-
-			// X and Y coordinates are not in the usual graph coordinates sense but in the image sense;
-			// (0,0) is the upper left corner; x is vertical top to bottom, y is horizontal left to right
-			int focus_x = (int)min_x - 1;
-			int focus_y = (int)min_y - 1;
-			int focus_height = (int)max_x - focus_x + 1;
-			int focus_width = (int)max_y - focus_y + 1;
-			this.mouse_selection_area = new Roi(focus_x, focus_y, focus_height, focus_width);	
-
-		}
-
-		/**
-		 * Populates the <code>gaps</code> Vector with int arrays of size 2. 
-		 * <br>Each array represents a gap, while the values in the array are the <b>indexs</b>
-		 * of the particles that have a gap between them. 
-		 * <br>The index is of the particles in the <code>existing_particles</code> array - 
-		 * two sequential particles that are more then 1 frame apart give a GAP
-		 */
-		private void populateGaps() {
-
-			for (int i = 0; i<existing_particles.length-1; i++){
-				// if two sequential particles are more then 1 frame apart - GAP 
-				if (existing_particles[i+1].getFrame() - existing_particles[i].getFrame() > 1) {
-					int[] gap = {i, i+1};
-					gaps.add(gap);
-					num_of_gaps++;
-				}
-			}
-		}
-
-//		private void drawStatic(Graphics g, ImageCanvas ic) {
-//			int i;
-//			g.setColor(this.color);
-//			for (i = 0; i<this.existing_particles.length-1; i++) {
-//				if (this.existing_particles[i+1].getFrame() - this.existing_particles[i].getFrame() > 1) {	    			   
-//					g.setColor(Color.red); //gap
-//				}
-//				g.drawLine(ic.screenXD(this.existing_particles[i].y), 
-//						ic.screenYD(this.existing_particles[i].x), 
-//						ic.screenXD(this.existing_particles[i+1].y), 
-//						ic.screenYD(this.existing_particles[i+1].x));
-//
-//				g.setColor(this.color);							
-//			}
-//			//mark death of particle
-//			if((this.existing_particles[this.existing_particles.length-1].getFrame()) < frames_number - 1){
-//				g.fillOval(ic.screenXD(this.existing_particles[this.existing_particles.length-1].y), 
-//						ic.screenYD(this.existing_particles[this.existing_particles.length-1].x), 5, 5);
-//			}
-//		}
-
-		/**
-		 * Converts a floating-point offscreen x-coordinate (particle position) to a <code>traj_stack</code>
-		 * actual screen x-coordinate as accurate as possible according to the magnification of the 
-		 * display while taking into account that the <code>traj_stack</code> display can be only a part
-		 * of the original image 
-		 * <br> since ImageJ doesn't work with floating point precision - rounding is also applied 
-		 * @param particle_position floating-point offscreen x-coordinate (particle position <b>Y</b>)
-		 * @param magnification the magnification factor for the <code>traj_stack</code>
-		 * @return the converted coordinate
-		 */
-//		private int getXDisplayPosition(float particle_position, int magnification) {
-//
-//			int roi_x = 0;
-//			if (traj_stack.getHeight() != original_imp.getStack().getHeight() || 
-//					traj_stack.getWidth() != original_imp.getStack().getWidth()) {
-//				roi_x = IJ.getImage().getRoi().getBounds().x;
-//			}			
-//			particle_position = (particle_position-roi_x)*magnification + (float)(magnification/2.0) - (float)0.5;
-//			return Math.round(particle_position);
-//		}
-
-		/**
-		 * Converts a floating-point offscreen y-coordinate (particle position) to a <code>traj_stack</code>
-		 * actual screen y-coordinate as accurate as possible according to the magnification of the 
-		 * display while taking into account that the <code>traj_stack</code> display can be only a part
-		 * of the original image 
-		 * <br> since ImageJ doesn't work with floating point precision - rounding is also applied 
-		 * @param particle_position floating-point offscreen y-coordinate (particle position <b>X</b>)
-		 * @param magnification the magnification factor for the <code>traj_stack</code>
-		 * @return the converted coordinate
-		 */
-//		private int getYDisplayPosition(float particle_position, int magnification) {
-//
-//			int roi_y = 0;
-//			if (traj_stack.getHeight() != original_imp.getStack().getHeight() || 
-//					traj_stack.getWidth() != original_imp.getStack().getWidth()) {
-//				roi_y = IJ.getImage().getRoi().getBounds().y;
-//			}	
-//			particle_position = (particle_position-roi_y)*magnification + (float)(magnification/2.0) - (float)0.5;
-//			return Math.round(particle_position);
-//		}
-		
-		/**
-		 * Debug method - prints all the gaps in this trajectory (coordinates that defines a gap)
-		 */
-		void printGaps() {
-			if (gaps == null) return;			
-			Object[] gaps_tmp = gaps.toArray();
-			for (int i = 0; i<num_of_gaps; i++) {				
-				write(new StringBuffer(Math.round((this.existing_particles[((int[])gaps_tmp[i])[0]]).y)));
-				write(new StringBuffer(","));
-				write(new StringBuffer(Math.round((this.existing_particles[((int[])gaps_tmp[i])[0]]).x)));
-				write(new StringBuffer(","));
-				write(new StringBuffer(Math.round((this.existing_particles[((int[])gaps_tmp[i])[1]]).y)));
-				write(new StringBuffer(","));
-				write(new StringBuffer(Math.round((this.existing_particles[((int[])gaps_tmp[i])[1]]).x))); 
-			}
-		}
-
-		/**
-		 * Creates and show a dialog for the user the select the parameter of the particles to plot 
-		 * @return the <b>position</b> of the parameter the user selected in the <code>Particle.all_params</code>
-		 * array. -1 if the user cancelled the dialo
-		 */
-		public int getUserParamForPlotting() {
-
-			GenericDialog plot_dialog = new GenericDialog("Choose particle param to plot");			
-
-			String[] param_list = new String [this.existing_particles[0].all_params.length];		
-			for (int i = 0; i<param_list.length; i++) {
-				param_list[i] = "" + (i+1);
-			}
-			plot_dialog.addChoice("Select Particle info", param_list, "1");
-			plot_dialog.showDialog();
-			if (plot_dialog.wasCanceled()) return -1;
-			int param_choice = plot_dialog.getNextChoiceIndex();
-			return param_choice;
-		}
-
-		/**
-		 * creates a <code>PlotWindow</code> and plots the given param position in the 
-		 * <code>Particle.all_params</code> array of the particles along this trajectory
-		 * The X values are the frame number of the particle
-		 * The Y values are the <code>Particle.all_params[param_choice]</code>
-		 * @param param_choice the <b>position</b> of the parameter to plot in the Particle.all_params array 
-		 */
-		public void plotParticleAlongTrajectory(int param_choice) {
-
-			if (param_choice >= this.existing_particles[0].all_params.length || param_choice < 0) {
-				IJ.error("plotParticleAlongTrajectory\n" +
-						"The given parameter choice (" + (param_choice + 1) + ") does not exits");
-				return;
-			}
-			double[] x_values = new double[this.existing_particles.length];
-			for (int i = 0; i<this.existing_particles.length; i++) {
-				x_values[i] = this.existing_particles[i].getFrame();
-			}
-			double[] y_values = new double[this.existing_particles.length];
-			for (int i = 0; i<this.existing_particles.length; i++) {
-				y_values[i] = Double.parseDouble(this.existing_particles[i].all_params[param_choice]);
-			}			
-			Plot pw = new Plot("Particle Data along trajectory " + this.serial_number, 
-					"frame number", "param number " + (param_choice+1) + " value", x_values, y_values);		
-			pw.draw();
-		}
-
-		/** 
-		 * Generates a "ready to print" string with the particles defined 
-		 * in this trajectory in the right order. 
-		 * @return a String with the info
-		 */
-		public String toString() {
-			return toStringBuffer().toString();
-		}
-
-		/**
-		 * The method <code>toString()</code> calls this method
-		 * <br>Generates a "ready to print" StringBuffer with the particles defined 
-		 * in this trajectory in the right order 
-		 * @return a <code>StringBuffer</code> with the info
-		 * @see Particle#toStringBuffer()
-		 */		
-		public StringBuffer toStringBuffer() {
-			StringBuffer s = new StringBuffer();
-			for (int i = 0; i< existing_particles.length; i++) {
-				s.append(existing_particles[i].toStringBuffer());
-				//				s.append(evaluateMomentaAfterDeath(existing_particles[i]));
-			}
-			s.append("\n");
-			return s;
-		}
-
 	}
 
 	/**
@@ -1713,8 +1375,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		@Override
 		public void itemStateChanged(ItemEvent arg0) 
 		{
-			// TODO Auto-generated method stub
-			
 			if (Auto_Z.getState() == true)
 			{
 				int frame = 0;
@@ -1738,7 +1398,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	} // FocusStackWindow inner class
 
 
-	/**
+    /**
 	 * Defines a window to be the main user interface for result display and analysis
 	 * upon completion of the algorithm.
 	 * <br>All user requests will be listened to and engaged from the <code>actionPerformed</code>
@@ -1753,7 +1413,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
 		private Button transfer_particles, transfer_trajs; //in panel left
 		private Button mssButton, transfer_traj; //in panel center
-
+		private Button mssAllResultsButton;
+		private Button mssTrajectoryResultButton;
+		
 		private Label per_traj_label, area_label, all_label;
 		private MenuItem tail, mag_factor, relink_particles;
 
@@ -1820,7 +1482,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			transfer_particles.addActionListener(this);	 
 			transfer_trajs = new Button(" All Trajectories to Table");	
 			transfer_trajs.addActionListener(this);	
-
+			mssAllResultsButton = new Button(" All MSS/MSD to Table ");
+			mssAllResultsButton.addActionListener(this);
+			
 			/* Add the Label and 3 buttons to the all_options Panel */
 			gridbag.setConstraints(all_label, c);
 			all_options.add(all_label);
@@ -1834,7 +1498,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	        all_options.add(transfer_particles);
 	        gridbag.setConstraints(transfer_trajs, c);
 	        all_options.add(transfer_trajs);
-
+            gridbag.setConstraints(mssAllResultsButton, c);
+            all_options.add(mssAllResultsButton);
+            
 			/*--------------------------------------------------*/
 
 
@@ -1855,11 +1521,13 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			trajectory_info.addActionListener(this);
 			plot_particle = new Button(" Plot ");
 			plot_particle.addActionListener(this);
-        	mssButton = new Button(" MSS ");
+        	mssButton = new Button(" MSS/MSD plots ");
         	mssButton.addActionListener(this);
         	transfer_traj = new Button("Selected Trajectory to Table");
         	transfer_traj.addActionListener(this);
-
+        	mssTrajectoryResultButton = new Button(" MSS/MSD to Table");
+        	mssTrajectoryResultButton.addActionListener(this);
+        	
 			/* Add the Label and 3 buttons to the per_traj_options Panel */
 			gridbag.setConstraints(per_traj_label, c);
 			per_traj_options.add(per_traj_label);
@@ -1869,12 +1537,14 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			per_traj_options.add(trajectory_info);
 			gridbag.setConstraints(plot_particle, c);
 			per_traj_options.add(plot_particle);
-        	gridbag.setConstraints(mssButton, c);
-        	per_traj_options.add(mssButton);
         	gridbag.setConstraints(transfer_traj, c);
         	per_traj_options.add(transfer_traj);
-
-        	// the plot_particle option is only avalible for text_files_mode
+        	gridbag.setConstraints(mssButton, c);
+        	per_traj_options.add(mssButton);
+            gridbag.setConstraints(mssTrajectoryResultButton, c);
+            per_traj_options.add(mssTrajectoryResultButton);
+            
+        	// the plot_particle option is only available for text_files_mode
 			if (!text_files_mode) plot_particle.setEnabled(false);
 			/*--------------------------------------------------*/
 
@@ -1968,29 +1638,17 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			WindowManager.setWindow(this);
 		}
 
+
+		// =====================================================================================
+		
+		
 		/* (non-Javadoc)
 		 * @see java.awt.event.FocusListener#focusLost(java.awt.event.FocusEvent)
 		 */
 		public void focusLost(FocusEvent e) {}
 
 		/** 
-		 * Defines the action taken upon an <code>ActionEvent</code> triggered from buttons
-		 * that have class <code>ResultsWindow</code> as their action listener:
-		 * <br><code>Button view_static</code>
-		 * <br><code>Button save_report</code>
-		 * <br><code>Button display_report</code>
-		 * <br><code>Button transfer_particles</code>
-    	 * <br><code>Button transfer_trajs</code>
-    	 * <br><code>Button transfer_traj</code>
-		 * <br><code>Button plot_particle</code>
-		 * <br><code>Button trajectory_focus</code>
-		 * <br><code>Button trajectory_info</code>
-		 * <br><code>Button traj_in_area_info</code>
-		 * <br><code>Button area_focus</code>
-		 * <br><code>MenuItem tail</code>
-		 * <br><code>MenuItem mag_factor</code>
-		 * <br><code>MenuItem relink_particles</code>
-		 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+		 * Takes care about user actions.
 		 */
 		public synchronized void actionPerformed(ActionEvent ae) 
 		{
@@ -2077,10 +1735,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				} // while 
 				return;
 			}
-			/* check vadilty of state for Trajectory seletion */
-			if (source == trajectory_focus || source == trajectory_info || source == transfer_traj) {
+			/* check validity of state for Trajectory selection */
+			if (source == trajectory_focus || source == trajectory_info || source == transfer_traj || source == mssButton || source == mssTrajectoryResultButton) {
 				// These options can only be requested after selecting a trajectory from the view 
-				// varify it here
+				// verify it here
 				if (chosen_traj == -1) {
 					IJ.error("Please select a trajectory first\n" +
 					"Click with the mouse on a trajectory in 'All trajectories' display");										
@@ -2110,22 +1768,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			
 			if (source == transfer_traj) {
 				Trajectory traj = all_traj.elementAt(chosen_traj);
-		        //TODO: remove
-		        Trajectory t = traj;
-		        String trajstr = "";
-		        String delt = "";
-		        Particle[] p = t.existing_particles;
-		        for (Particle i : p) {
-		            trajstr += i.x + ", " + i.y + ", " + i.z + "; ";
-		            delt += i.getFrame() + ",";
-		        }
-		        IJ.log("traj=[" + trajstr + "]");
-		        IJ.log("delt=[" + delt + "]");
-				
-				transferSelectedTrajectoriesToResultTable(traj);
+		        transferSelectedTrajectoriesToResultTable(traj);
+		        return;
 			}
 			
-			/* define the trajectory displyed tail*/
+			/* define the trajectory displayed tail*/
 			if (source == tail) {
 				int ch_num = Math.max(frames_number/50+2,2);
 				if (frames_number%50 == 0) ch_num = frames_number/50+1;
@@ -2188,10 +1835,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				results_window.text_panel.clearSelection();
 				results_window.text_panel.appendLine("Relinking DONE!");
 				results_window.text_panel.appendLine("Found " + number_of_trajectories + " Trajectories");
+				return;
 			}
 			/* transfer segmented particle coordinates to ImageJ results window*/
 			if (source == transfer_particles) {
-				transferParticlesToResultsTable(); // ver 1.4 20101115
+				transferParticlesToResultsTable(); // version 1.4 20101115
 				return;
 			}
 
@@ -2200,50 +1848,40 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				transferTrajectoriesToResultTable();
 				return;
 			}
+			if (source == mssTrajectoryResultButton) {
+			    Trajectory trajectory = all_traj.elementAt(chosen_traj);
+	             mssTrajectoryResultsToTable(trajectory);
+	             return;
+			}
+			
+			if (source == mssAllResultsButton) {
+			    mssAllResultsToTable();
+			    return;
+			}
 			
             if (source == mssButton) {
-                float[] x = {0.1f, 0.25f, 0.35f, 0.5f, 0.61f,0.7f,0.85f,0.89f,0.95f}; // x-coordinates
-                float[] y = {2f,5.6f,7.4f,9f,9.4f,8.7f,6.3f,4.5f,1f}; // x-coordinates
-                float[] e = {.8f,.6f,.5f,.4f,.3f,.5f,.6f,.7f,.8f}; // error bars
-
-                PlotWindow.noGridLines = false; // draw grid lines
-                Plot plot = new Plot("Example Plot","X Axis","Y Axis",x,y);
-                plot.setLimits(0, 1, 0, 10);
-                plot.setLineWidth(2);
-                plot.addErrorBars(e);
-
-                // add a second curve
-                float x2[] = {.4f,.5f,.6f,.7f,.8f};
-                float y2[] = {4,3,3,4,5};
-                plot.setColor(Color.red);
-                plot.addPoints(x2,y2,PlotWindow.X);
-                plot.addPoints(x2,y2,PlotWindow.LINE);
-
-                // add label
-                plot.setColor(Color.black);
-                //plot.changeFont(new Font("Helvetica", Font.PLAIN, 24));
-                plot.addLabel(0.15, 0.95, "This is a label");
-
-                //plot.changeFont(new Font("Helvetica", Font.PLAIN, 16));
-                plot.setColor(Color.blue);
-                plot.show();                
+                Trajectory trajectory = all_traj.elementAt(chosen_traj);
+                new TrajectoryAnalysisPlot(trajectory);
+                return;
             }
+            
+            IJ.error("Unhandled event: [" + ae.getActionCommand() + "]");
 		}		
 	}
-
+	
 	/**
-	 * Generates <code>Trajectory</code> objects according to the infoamtion 
-	 * avalible in each MyFrame and Particle. 
+	 * Generates <code>Trajectory</code> objects according to the information 
+	 * available in each MyFrame and Particle. 
 	 * <br>Populates the <code>all_traj</code> Vector.
 	 */
 	private void generateTrajectories() {
 
 		int i, j, k;
 		int found, n, m;
-		// Bank of colors from which the trjectories color will be selected
+		// Bank of colors from which the trajectories color will be selected
 		
 		Trajectory curr_traj;
-		// temporary vector to hold particles for current trajctory
+		// temporary vector to hold particles for current trajectory
 		Vector<Particle> curr_traj_particles = new Vector<Particle>(frames_number);		
 		// initialize trajectories vector
 		all_traj = new Vector<Trajectory>();
@@ -2316,7 +1954,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
 					// Create the current trajectory
 					Particle[] curr_traj_particles_array = new Particle[curr_traj_particles.size()];
-					curr_traj = new Trajectory((Particle[])curr_traj_particles.toArray(curr_traj_particles_array));
+					curr_traj = new Trajectory((Particle[])curr_traj_particles.toArray(curr_traj_particles_array), original_imp);
 					
 					// set current trajectory parameters
 					curr_traj.serial_number = this.number_of_trajectories;
@@ -2428,6 +2066,16 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		{
 			Trajectory curr_traj = iter.next();
 			traj_info.append("%% Trajectory " + curr_traj.serial_number +"\n");
+			
+			TrajectoryAnalysis ta = new TrajectoryAnalysis(curr_traj);
+			if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
+			    traj_info.append("%% MSS(slope): " + String.format("%4.3f", ta.getMSSlinear()) + 
+			                       " MSD(slope): " + String.format("%4.3f", ta.getGammasLogarithmic()[1]) + "\n");
+			}
+			else {
+			    traj_info.append("%% Calculating MSS/MSD not possible for this trajectory.\n");
+			}
+			
 			traj_info.append(trajectoryHeader());
 			curr_traj.setScaling(getScaling());
 			traj_info.append(curr_traj.toStringBuffer());
@@ -2439,10 +2087,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	private void writeDataToDisk() {
 		// get original file location 
 		FileInfo vFI = this.original_imp.getOriginalFileInfo();
-		if(vFI == null) {
+		if (vFI == null) {
 			IJ.error("You're running a macro. Data are written to disk at the directory where your image is stored. Please store youre image first.");
 			return;
 		}
+		
 		// create new directory
 		//		File newDir = new File(vFI.directory,"ParticleTracker3DResults");
 		//		if(!newDir.mkdir() && !newDir.exists()) {
@@ -2457,11 +2106,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				"_c_"+ detector.cutoff +
 				"_perc_"+ detector.percentile + 
 				"_PT3Dresults.xml").getAbsolutePath());
+		new TrajectoriesReportXML(new File(vFI.directory, "report.xml").getAbsolutePath(), this);
 		ResultsTable rt = transferTrajectoriesToResultTable();
 		try {
-			rt.saveAs(vFI.directory + "Traj_" + title + ".csv");
+			rt.saveAs(new File(vFI.directory, "Traj_" + title + ".csv").getAbsolutePath());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -2473,7 +2122,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	 * @return the radius of the particles, return -1 if this parameter is not set (like segmented data)
 	 */
 	
-	private int getRadius()
+	public int getRadius()
 	{
 		int radius = -1;
 		if (detector != null)
@@ -2482,23 +2131,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		return radius;
 	}
 	
-	/**
-	 * debug helper method
-	 * @param s
-	 */ 
-	private void write(StringBuffer s) {
-
-		int output = IJ_RESULTS_WINDOW;	
-		switch (output) {
-		case SYSTEM: 
-			System.out.println(s);
-			break;
-		case IJ_RESULTS_WINDOW:
-			IJ.log(s.toString());
-			break;
-		}		
-	}	
-
 	/**
 	 * Detects particles in the current displayed frame according to the parameters currently set 
 	 * Draws dots on the positions of the detected partciles on the frame and circles them
@@ -2603,7 +2235,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				configuration.append((detector.percentile*100));
 				configuration.append("\n");
 			}
-			if(detector.threshold_mode == FeaturePointDetector.ABS_THRESHOLD_MODE) {
+			else if(detector.threshold_mode == FeaturePointDetector.ABS_THRESHOLD_MODE) {
 				configuration.append("% \tAbsolute threshold: ");
 				configuration.append((detector.absIntensityThreshold));
 				configuration.append("\n");
@@ -3017,8 +2649,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		this.files_dir = od.getDirectory();
 		this.file_sel = od.getFileName();
 		if (files_dir == null) return null;
-		//		 TODO 	create a file filter so only the roght files will be taken
-		//				and the folder could contain other files
 		String[] list = new File(od.getDirectory()).list();
 		return list;		
 	}
@@ -3406,7 +3036,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 						
 			// for each trajectory, generate a (ISBI-)particle element:
 			Iterator<Trajectory> iter = all_traj.iterator();
-			while (iter.hasNext()) {
+			boolean isFirst = true;
+			while (iter.hasNext() && isFirst) {
+			    isFirst = false;
 				Element particleElement = doc.createElement("particle");
 				Trajectory curr_traj = iter.next();
 				
@@ -3438,7 +3070,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			tfe.printStackTrace();
 		  }
 	}
-
+	   
 	@Override
 	public void preview(ActionEvent e) {
 		// set the original_imp window position next to the dialog window
@@ -3469,36 +3101,29 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	 */
 	
 	public void transferParticlesToResultsTable(){
-		ResultsTable rt = null; 
-		try {
-			rt = ResultsTable.getResultsTable();//static, the one in Analyze
-		} catch (Exception e) {}
-		if ((rt.getCounter() != 0) || (rt.getLastColumn() != -1)) {
-			if (IJ.showMessageWithCancel("Results Table", "Reset Results Table?")){
-				rt.reset();
-			} else
-				return;
-		}
-	
-		int rownum = 0;
-		for (int i = 0; i < frames.length; i++) {
-			Vector<Particle> particles = this.frames[i].getParticles();
-			for (Particle p : particles) {
-				rt.incrementCounter();
-				rownum = rt.getCounter()-1;
-				rt.setValue("frame", rownum, p.getFrame());
-				rt.setValue("x", rownum, p.x);
-				rt.setValue("y", rownum, p.y);
-				rt.setValue("z", rownum, p.z);
-				rt.setValue("m0", rownum, p.m0);
-				rt.setValue("m1", rownum, p.m1);
-				rt.setValue("m2", rownum, p.m2);
-				rt.setValue("m3", rownum, p.m3);
-				rt.setValue("m4", rownum, p.m4);
-				rt.setValue("NPscore", rownum, p.score);
-			}
-		}			
-		rt.show("Results");
+        ResultsTable rt = getResultsTable();
+
+        if (rt != null) {
+            int rownum = 0;
+            for (int i = 0; i < frames.length; i++) {
+                Vector<Particle> particles = this.frames[i].getParticles();
+                for (Particle p : particles) {
+                    rt.incrementCounter();
+                    rownum = rt.getCounter() - 1;
+                    rt.setValue("frame", rownum, p.getFrame());
+                    rt.setValue("x", rownum, p.x);
+                    rt.setValue("y", rownum, p.y);
+                    rt.setValue("z", rownum, p.z);
+                    rt.setValue("m0", rownum, p.m0);
+                    rt.setValue("m1", rownum, p.m1);
+                    rt.setValue("m2", rownum, p.m2);
+                    rt.setValue("m3", rownum, p.m3);
+                    rt.setValue("m4", rownum, p.m4);
+                    rt.setValue("NPscore", rownum, p.score);
+                }
+            }
+            rt.show("Results");
+        }
 	}
 
 	/** Extracts tracking results <br>and show in in ImageJ static Results Table
@@ -3507,40 +3132,34 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	 * @see ResultsWindow
 	 */	
 	public ResultsTable transferTrajectoriesToResultTable(){
-		ResultsTable rt = null; 
-		try {
-			rt = ResultsTable.getResultsTable();//static, the one in Analyze
-		} catch (Exception e) {}
-		if ((rt.getCounter() != 0) || (rt.getLastColumn() != -1)) {
-			if (IJ.showMessageWithCancel("Results Table", "Reset Results Table?")){
-				rt.reset();
-			} else
-				return null;
-		}
-		Iterator<Trajectory> iter = all_traj.iterator();
-		int rownum = 0;
-		while (iter.hasNext()) {
-			Trajectory curr_traj = iter.next();
-			Particle[] pts = curr_traj.existing_particles; 
-			for (Particle p : pts){	
-				rt.incrementCounter();
-				rownum = rt.getCounter()-1;
-				rt.setValue("Trajectory", rownum, curr_traj.serial_number); 
-				rt.setValue("Frame", rownum, p.getFrame());
-				rt.setValue("x", rownum, p.x);
-				rt.setValue("y", rownum, p.y);
-				rt.setValue("z", rownum, p.z);
-				rt.setValue("m0", rownum, p.m0);
-				rt.setValue("m1", rownum, p.m1);
-				rt.setValue("m2", rownum, p.m2);
-				rt.setValue("m3", rownum, p.m3);
-				rt.setValue("m4", rownum, p.m4);
-				rt.setValue("NPscore", rownum, p.score);
-			}
-		}
-		if (IJ.isMacro() == false)
-			rt.show("Results");
-		
+        ResultsTable rt = getResultsTable();
+
+        if (rt != null) {
+            Iterator<Trajectory> iter = all_traj.iterator();
+            int rownum = 0;
+            while (iter.hasNext()) {
+                Trajectory curr_traj = iter.next();
+                Particle[] pts = curr_traj.existing_particles;
+                for (Particle p : pts) {
+                    rt.incrementCounter();
+                    rownum = rt.getCounter() - 1;
+                    rt.setValue("Trajectory", rownum, curr_traj.serial_number);
+                    rt.setValue("Frame", rownum, p.getFrame());
+                    rt.setValue("x", rownum, p.x);
+                    rt.setValue("y", rownum, p.y);
+                    rt.setValue("z", rownum, p.z);
+                    rt.setValue("m0", rownum, p.m0);
+                    rt.setValue("m1", rownum, p.m1);
+                    rt.setValue("m2", rownum, p.m2);
+                    rt.setValue("m3", rownum, p.m3);
+                    rt.setValue("m4", rownum, p.m4);
+                    rt.setValue("NPscore", rownum, p.score);
+                }
+
+                if (IJ.isMacro() == false)
+                    rt.show("Results");
+            }
+        }
 		return rt;
 	}
 
@@ -3551,48 +3170,154 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	 * @param traj
 	 */
 	public void transferSelectedTrajectoriesToResultTable(Trajectory traj){
-		ResultsTable rt = null; 
-		try {
-			rt = ResultsTable.getResultsTable();//static, the one in Analyze
-		} catch (Exception e) {}
-		if ((rt.getCounter() != 0) || (rt.getLastColumn() != -1)) {
-			if (IJ.showMessageWithCancel("Results Table", "Reset Results Table?")){
-				rt.reset();
-			} else
-				return;
-		}
-		Trajectory curr_traj = traj;
-		int rownum = 0;
-		Particle[] pts = curr_traj.existing_particles; 
+        ResultsTable rt = getResultsTable();
 
-		for (Particle p : pts){	
-			rt.incrementCounter();
-			rownum = rt.getCounter()-1;
-			rt.setValue("Trajectory", rownum, curr_traj.serial_number);
-			rt.setValue("Frame", rownum, p.getFrame());
-			rt.setValue("x", rownum, p.x);
-			rt.setValue("y", rownum, p.y);
-			rt.setValue("z", rownum, p.z);
-			rt.setValue("m0", rownum, p.m0);
-			rt.setValue("m1", rownum, p.m1);
-			rt.setValue("m2", rownum, p.m2);
-			rt.setValue("m3", rownum, p.m3);
-			rt.setValue("m4", rownum, p.m4);
-			rt.setValue("NPscore", rownum, p.score);
-		}
-		rt.show("Results");
+        if (rt != null) {
+            Trajectory curr_traj = traj;
+            int rownum = 0;
+            Particle[] pts = curr_traj.existing_particles;
+
+            for (Particle p : pts) {
+                rt.incrementCounter();
+                rownum = rt.getCounter() - 1;
+                rt.setValue("Trajectory", rownum, curr_traj.serial_number);
+                rt.setValue("Frame", rownum, p.getFrame());
+                rt.setValue("x", rownum, p.x);
+                rt.setValue("y", rownum, p.y);
+                rt.setValue("z", rownum, p.z);
+                rt.setValue("m0", rownum, p.m0);
+                rt.setValue("m1", rownum, p.m1);
+                rt.setValue("m2", rownum, p.m2);
+                rt.setValue("m3", rownum, p.m3);
+                rt.setValue("m4", rownum, p.m4);
+                rt.setValue("NPscore", rownum, p.score);
+            }
+            rt.show("Results");
+        }
 	}
-	
+
+    private ResultsTable getResultsTable() {
+        ResultsTable rt = ResultsTable.getResultsTable();
+
+        if ((rt.getCounter() != 0) || (rt.getLastColumn() != -1)) {
+            if (IJ.showMessageWithCancel("Results Table", "Reset Results Table?")) {
+                rt.reset();
+            } else {
+                return null;
+            }
+        }
+
+        return rt;
+    }
+	   
+    private void computeMssForOneTrajectory(ResultsTable rt, Trajectory currentTrajectory) {
+        TrajectoryAnalysis ta = new TrajectoryAnalysis(currentTrajectory);
+        if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
+            rt.incrementCounter();
+            int rownum = rt.getCounter() - 1;
+            rt.setValue("Trajectory", rownum, currentTrajectory.serial_number);
+            rt.setValue("Trajectory length", rownum, currentTrajectory.length);
+            rt.setValue("MSS: slope", rownum, ta.getMSSlinear());
+            rt.setValue("MSS: y-axis intercept", rownum, ta.getMSSlinearY0());
+            // second element in 'gammas' array is an order=2 (MSD)
+            rt.setValue("MSD: slope", rownum, ta.getGammasLogarithmic()[1]);
+            rt.setValue("MSD: y-axis intercept", rownum, ta.getGammasLogarithmicY0()[1]);
+        }
+    }
+
+    public ResultsTable mssTrajectoryResultsToTable(Trajectory aTrajectory) {
+        ResultsTable rt = getResultsTable();
+
+        if (rt != null) {
+            computeMssForOneTrajectory(rt, aTrajectory);
+
+            if (IJ.isMacro() == false) {
+                rt.show("Results");
+            }
+        }
+        
+        return rt;
+    }
+
+	   
+    public ResultsTable mssAllResultsToTable() {
+        ResultsTable rt = getResultsTable();
+        
+        if (rt != null) {
+           Iterator<Trajectory> iter = all_traj.iterator();           
+            while (iter.hasNext()) {
+                Trajectory currentTrajectory = iter.next();
+                computeMssForOneTrajectory(rt, currentTrajectory);
+            }
+            
+            if (IJ.isMacro() == false) {
+                rt.show("Results");
+            }
+        }
+        
+        return rt;
+    }
+    
 	public int getLinkRange() {
 		return linkrange;
 	}
 
+	public double getCutoffRadius() {
+	    return detector.cutoff;
+	}
+	
+    public String getThresholdMode() {
+        if (detector.threshold_mode == FeaturePointDetector.PERCENTILE_MODE) {
+            return "percentile";
+        } 
+        else if (detector.threshold_mode == FeaturePointDetector.ABS_THRESHOLD_MODE) {
+            return "Absolute";
+        }
+        else {
+            return "Unknown";
+        }
+    }
+
+    public String getThresholdValue() {
+        if (detector.threshold_mode == FeaturePointDetector.PERCENTILE_MODE) {
+            return "" + (detector.percentile * 100);
+        } 
+        else if (detector.threshold_mode == FeaturePointDetector.ABS_THRESHOLD_MODE) {
+            return "" + detector.absIntensityThreshold;
+        } 
+        else {
+            return "0";
+        }
+    }
+    
+    public int getWidth() {
+        return stack.getWidth();
+    }
+    
+    public int getHeight() {
+        return stack.getHeight();
+    }
+    
+    public int getNumberOfSlices() {
+        return slices_number;
+    }
+    
+    public float getGlobalMinimum() {
+        return detector.global_min;
+    }
+    
+    public float getGlobalMaximum() {
+        return detector.global_max;
+    }
+    
+    public int getNumberOfFrames() {
+        return frames_number;
+    }
+    
 	@Override
 	public void closeAll() 
 	{
 		// Close all the images
-		
 		original_imp.close();
 	}
 }
-

@@ -25,7 +25,7 @@ import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RectangleMask;
 import mosaic.core.utils.RegionIteratorMask;
-import mosaic.plugins.ParticleTracker3DModular_.Trajectory;
+import mosaic.particleTracker.Trajectory;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
