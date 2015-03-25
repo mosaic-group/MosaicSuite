@@ -3,70 +3,47 @@ package mosaic.core.utils;
 import static org.junit.Assert.fail;
 import ij.IJ;
 import ij.ImagePlus;
-import io.scif.img.ImgIOException;
-import io.scif.img.ImgOpener;
+import ij.WindowManager;
+import ij.io.Opener;
+import ij.macro.Interpreter;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
-import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.plugins.PlugInFilterExt;
+import mosaic.test.framework.SystemOperations;
+import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+
 /**
- * 
  * This class expose static member to test every plugins in our Mosaic Toolsuite
- * 
- * 
  * 
  * @author Pietro Incardona
  *
  */
-
 public class MosaicTest
-{
-	private static String getTestEnvironment()
+{	
+    private static final Logger logger = LoggerFactory.getLogger(MosaicTest.class);
+    //protected static final Logger logger = Logger.getLogger(MosaicTest.class);
+    
+	private static void prepareTestEnvironment(ImgTest tmp)
 	{
-		return IJ.getDirectory("temp") + File.separator + "test" + File.separator;
-	}
-	
-	private static void prepareTestEnvironment(ProgressBarWin wp, ImgTest tmp)
-	{
-		wp.SetStatusMessage("Testing... " + new File(tmp.base).getName());
-		
-		// Save on tmp and reopen
-		
-		String tmp_dir = getTestEnvironment();
-		
-		// Remove everything there
-		
-		try {
-			ShellCommand.exeCmdNoPrint("rm -rf " + tmp_dir);
-		} catch (IOException e3) {
-			// TODO Auto-generated catch block
-			e3.printStackTrace();
-		} catch (InterruptedException e3) {
-			// TODO Auto-generated catch block
-			e3.printStackTrace();
-		}
-		
-		// make the test dir
-		
-		try {
-			ShellCommand.exeCmd("mkdir " + tmp_dir);
-		} catch (IOException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		} catch (InterruptedException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
-		
+		logger.info("Testing... " + new File(tmp.base).getName());
+		String tmp_dir = SystemOperations.getCleanTestTmpPath();
 		
 		for (int i = 0 ; i < tmp.img.length ; i++)
 		{
@@ -74,38 +51,28 @@ public class MosaicTest
 			IJ.save(MosaicUtils.openImg(tmp.img[i]), temp_img);
 		}
 			
-//		FileSaver fs = new FileSaver(MosaicUtils.openImg(tmp.img));
-//		fs.saveAsTiff(temp_img);
-		
-		// copy the config file
-		
+		// copy the config file		
 		try {
 			
 			for (int i = 0 ; i < tmp.setup_files.length ; i++)
 			{
 				String str = new String();
 				str = IJ.getDirectory("temp") +  File.separator + tmp.setup_files[i].substring(tmp.setup_files[i].lastIndexOf(File.separator)+1);
+				logger.info("Setup file: ["  + str + "]");
 				ShellCommand.exeCmdNoPrint("cp -r " + tmp.setup_files[i] + " " + str);
 			}
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
 	
-	private static <T extends ICSVGeneral> void processResult(PlugInFilterExt BG, ImgTest tmp, ProgressBarWin wp,Class<T> cls)
+	private static <T extends ICSVGeneral> void processResult(PlugInFilterExt BG, ImgTest tmp, Class<T> cls)
 	{
-		// Check the results
-		
-		// Save on tmp and reopen
-		
-		String tmp_dir = getTestEnvironment();
+		String tmp_dir = SystemOperations.getTestTmpPath();
 		
 		// Check if there are job directories
-		
 		String[] cs = ClusterSession.getJobDirectories(0, tmp_dir);
 		String[] csr = ClusterSession.getJobDirectories(0, tmp.base);
 		if (cs != null && cs.length != 0)
@@ -173,45 +140,28 @@ public class MosaicTest
 		}
 		
 		int cnt = 0;
-		
-        // create the ImgOpener
-        ImgOpener imgOpener = new ImgOpener();
-		
-		for (String rs : tmp.result_imgs)
-		{
-	        // open with ImgOpener. The type (e.g. ArrayImg, PlanarImg, CellImg) is
-	        // automatically determined. For a small image that fits in memory, this
-	        // should open as an ArrayImg.
+	
+		for (String rs : tmp.result_imgs) {
 	        Img<?> image = null;
-	        Img< ? > image_rs = null;
+	        Img<?> image_rs = null;
+	        
 			try {
-				// 
+				logger.info("Checking... " + new File(rs).getName());
 				
-				wp.SetStatusMessage("Checking... " + new File(rs).getName());
+				String filename = tmp_dir + File.separator + tmp.result_imgs_rel[cnt];
 				
-				image = imgOpener.openImgs(rs).get(0);
-			
-				String filename = null;
-
-				filename = tmp_dir + File.separator + tmp.result_imgs_rel[cnt];
-
-					
-				// open the result image
-			
-	        	image_rs = (Img<?>) imgOpener.openImgs(filename).get(0);
-			} catch (ImgIOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.info("Original img: " + rs);
+				logger.info("Result img: " + filename);
+				
+				image = ImagePlusAdapter.wrap(new Opener().openImage(rs));
+                image_rs = ImagePlusAdapter.wrap(new Opener().openImage(filename));
 			}
 			catch (java.lang.UnsupportedOperationException e)	{
 				e.printStackTrace();
 				fail("Error: Image " + rs + " does not match the result");
 			}
-	        
-			// compare
-			
-			if (MosaicUtils.compare(image, image_rs) == false)
-			{
+
+			if (MosaicUtils.compare(image, image_rs) == false) {
 				fail("Error: Image " + rs + " does not match the result");
 			}
 			
@@ -219,12 +169,11 @@ public class MosaicTest
 		}
 		
 		// Close all images
-		
-		if (BG != null)
+		if (BG != null) {
 			BG.closeAll();
+		}
 		
 		// Open csv
-		
 		cnt = 0;
 		
 		Arrays.sort(tmp.csv_results);
@@ -232,7 +181,7 @@ public class MosaicTest
 		
 		for (String rs : tmp.csv_results)
 		{
-			wp.SetStatusMessage("Checking... " + new File(rs).getName());
+			logger.info("Checking... " + new File(rs).getName());
 			
 			InterPluginCSV<T> iCSVsrc = new InterPluginCSV<T>(cls);
 		
@@ -246,9 +195,10 @@ public class MosaicTest
 			iCSVdst.setCSVPreferenceFromFile(rs);
 			Vector<T> outdst = iCSVdst.Read(rs);
 			
-			if (outsrc.size() != outdst.size() || outsrc.size() == 0)
-				fail("Error: CSV outout does not match");
-			
+			if (outsrc.size() != outdst.size() || outsrc.size() == 0) {
+			    logger.error("Error: CSV output does not match: " + filename + " vs. " + rs);
+				fail("Error: CSV output does not match: " + filename + " vs. " + rs);
+			}
 			for (int i = 0 ; i < outsrc.size() ; i++)
 			{
 				if (outsrc.get(i).equals(outdst.get(i)))
@@ -273,109 +223,196 @@ public class MosaicTest
 	}
 	
 	/**
-	 * 
 	 * Test the plugin filter
 	 * 
 	 * @param BG plugins filter filter
 	 * @param testset String that indicate the test to use (all the test are in Jtest_data folder)
 	 * @param Class<T> Class for reading csv files used for InterPlugInCSV class
 	 */
-	
 	public static <T extends ICSVGeneral> void testPlugin(PlugInFilterExt BG, String testset,Class<T> cls)
 	{
-		// Save on tmp and reopen
-		
-		String tmp_dir = getTestEnvironment();
-		
-		// 
-		
-		ProgressBarWin wp = new ProgressBarWin();
+		String tmp_dir = SystemOperations.getTestTmpPath();
 		
 		// Get all test images
+		List<ImgTest> imgT = getTestData(testset);
 		
-		ImgTest imgT[] = MosaicUtils.getTestImages(testset);
-		
-		if (imgT == null)
-		{
+		if (imgT == null || imgT.size() == 0) {
+		    logger.error("No test images found for testcase [" + testset + "])");
 			fail("No Images to test");
 			return;
 		}
 		
-		// for each image
-		
 		for (ImgTest tmp : imgT)
 		{
-			prepareTestEnvironment(wp,tmp);
+			prepareTestEnvironment(tmp);
 			
 			// Create a plugin filter
-			
 			int rt = 0;
-			if (tmp.img.length == 1)
-			{
+			if (tmp.img.length == 1) {
 				String temp_img = tmp_dir + tmp.img[0].substring(tmp.img[0].lastIndexOf(File.separator)+1);
 				ImagePlus img = MosaicUtils.openImg(temp_img);
-				img.show();
-			
+
+				// TODO: to be decided what method (whether both?) should be used
+				Interpreter.batchMode = true;
+				tmp.options += "TEST";
+				
 				rt = BG.setup(tmp.options, img);
+				
+				logger.debug("windowcount: " + WindowManager.getWindowCount());
+				logger.debug("Interpreter: " + Interpreter.getBatchModeImageCount());
+//              
+				int [] ids = WindowManager.getIDList();
+				if (ids != null)
+                for (int id : ids) {
+                    logger.info("Filename: id=[" + id + "] name=[" + WindowManager.getImage(id).getTitle() + "]");
+                    
+                }
 			}
-			else
-			{
+			else {
 				rt = BG.setup(tmp.options,null);
 			}
 			
-			if (rt != tmp.setup_return)
-			{
+			if (rt != tmp.setup_return) {
 				fail("Setup error expecting: " + tmp.setup_return + " getting: " + rt);
 			}
 			
 			// run the filter
-			
 			BG.run(null);
 			
-			processResult(BG,tmp,wp,cls);
+			processResult(BG,tmp,cls);
 		}
 		
-		wp.dispose();
 	}
 	
 	/**
-	 * 
 	 * Test the plugin filter
 	 * 
 	 * @param plugin command to test
 	 * @param testset String that indicate the test to use (all the test are in Jtest_data folder)
 	 * @param Class<T> Class for reading csv files used for InterPlugInCSV class
 	 */
-	
 	public static <T extends ICSVGeneral> void testPlugin(String plugin_command,String options, String testset,Class<T> cls)
 	{
-		ProgressBarWin wp = new ProgressBarWin();
-		
 		// Get all test images
+		List<ImgTest> imgT = getTestData(testset);
 		
-		ImgTest imgT[] = MosaicUtils.getTestImages(testset);
-		
-		if (imgT == null)
-		{
+		if (imgT == null || imgT.size() == 0) {
 			fail("No Images to test");
 			return;
 		}
 		
-		// for each image
-		
-		for (ImgTest tmp : imgT)
-		{
-			prepareTestEnvironment(wp,tmp);
+		for (ImgTest tmp : imgT) {
+			prepareTestEnvironment(tmp);
 			
-			// run the command
-			
+			// run the command	
 			IJ.run(plugin_command,options);
 			
 			// Check the results
-			
-			processResult(null,tmp,wp,cls);
+			processResult(null,tmp,cls);
 		}
-		
-		wp.dispose();
 	}
+	
+	/**
+     * It return the test data for a given plugin name
+     * 
+     * @param aPluginName name of the plugin
+     * @return an container with test data
+     */
+    static public List<ImgTest> getTestData(String aPluginName)
+    { 
+        List<ImgTest> it = new ArrayList<ImgTest>();
+        
+        String testFolder = SystemOperations.getTestDataPath() + File.separator + aPluginName + File.separator;
+
+        // List all directories
+        File dirs[] = new File(testFolder).listFiles();
+        logger.info("Getting images from: ["  + testFolder + "]");
+        if (dirs == null) {
+            // Wrong path. Break execution intentionally. 
+            throw new RuntimeException("Listing of [" + testFolder + "] directory failed.");
+            //return null;
+        }
+        
+        for (File dir : dirs)
+        {       
+            if (dir.isDirectory() == false) {
+                // test data should be placed in directories. 
+                // If regular file is found - ignore.
+                continue;
+            }
+            
+            ImgTest imgT;
+        
+            try
+            {
+                // Format of configuration file:
+                //-----------------------
+                // Image
+                // options
+                // setup file
+                // Expected setup return
+                // number of images results
+                // ..... List of images result
+                // number of csv results
+                // ..... List of csv result
+
+                // open configuration file
+                String cfg = dir.getAbsolutePath() + File.separator + "config.cfg";
+                BufferedReader br = new BufferedReader(new FileReader(cfg));
+ 
+                imgT = new ImgTest();
+            
+                imgT.base = dir.getAbsolutePath();
+                int nimage_file = Integer.parseInt(br.readLine());
+
+                imgT.img = new String[nimage_file];
+                for (int i = 0 ; i < imgT.img.length ; i++)
+                {
+                    imgT.img[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+                }
+                
+                imgT.options = br.readLine();
+                int nsetup_file = Integer.parseInt(br.readLine());
+                imgT.setup_files = new String[nsetup_file];
+                
+                for (int i = 0 ; i < imgT.setup_files.length ; i++)
+                {
+                    imgT.setup_files[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+                }
+                
+                imgT.setup_return = Integer.parseInt(br.readLine());
+                
+                int n_images = Integer.parseInt(br.readLine());
+                imgT.result_imgs = new String[n_images];
+                imgT.result_imgs_rel = new String[n_images];
+                imgT.csv_results_rel = new String[n_images];
+                
+                for (int i = 0 ; i < imgT.result_imgs.length ; i++)
+                {
+                    imgT.result_imgs_rel[i] = br.readLine();
+                    imgT.result_imgs[i] = dir.getAbsolutePath() + File.separator + imgT.result_imgs_rel[i];
+                } 
+                
+                int n_csv_res = Integer.parseInt(br.readLine());
+                imgT.csv_results = new String[n_csv_res];
+                imgT.csv_results_rel = new String[n_csv_res];
+                for (int i = 0 ; i < imgT.csv_results.length ; i++)
+                {
+                    imgT.csv_results_rel[i] = br.readLine();
+                    imgT.csv_results[i] = dir.getAbsolutePath() + File.separator + imgT.csv_results_rel[i];
+                }
+                
+                br.close();
+            } 
+            catch (IOException e) 
+            {
+                e.printStackTrace();
+                return null;
+            }
+            
+            it.add(imgT);
+        }
+        
+        return it;
+    }
 }

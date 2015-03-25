@@ -3,11 +3,14 @@ package mosaic.plugins;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.Macro;
+import ij.macro.Interpreter;
 import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.io.File;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -17,6 +20,7 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
+import mosaic.core.utils.MosaicUtils;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
@@ -48,6 +52,7 @@ public class Naturalization implements PlugInFilterExt
 {
 	ImagePlus source;
 	ImagePlus nat;
+	boolean isGuiModeEnabled = true;
 	
 	/**
 	 * 
@@ -355,9 +360,13 @@ public class Naturalization implements PlugInFilterExt
 	@Override
 	public int setup(String arg, ImagePlus imp)
 	{
+	    isGuiModeEnabled = !(IJ.isMacro() || Interpreter.isBatchMode() || arg.contains("TEST"));
 		if (imp == null)
 		{IJ.error("The plugin require an 8-bit image");return DONE;}
-		
+		System.out.println("MACRO: " + IJ.isMacro());
+		System.out.println("MACOP: [" + Macro.getOptions() + "]");
+		System.out.println("XXXXX: " + Interpreter.isBatchMode());
+		System.out.println("GUI  : " + isGuiModeEnabled);
 		source = imp;
 		
 		// Analyse the image
@@ -514,9 +523,9 @@ public class Naturalization implements PlugInFilterExt
 			
 			nat = ImageJFunctions.wrap(img_result,imp.getTitle() + "_naturalized");
 			nat.show();
-			rs.show("Natural factor and PSNR");
-			
-//			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
+			if (isGuiModeEnabled) rs.show("Natural factor and PSNR");
+			System.out.println("Naturalization: " + MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
+			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
 			
 			//
 		}
@@ -602,7 +611,7 @@ public class Naturalization implements PlugInFilterExt
 			IJ.error("Naturalization require 8-bit images or RGB");
 		}
 		
-		showMessage("");
+		if (isGuiModeEnabled) showMessage("");
 		
 /*		try {
 			FloatType Theta = new FloatType(0.5f);

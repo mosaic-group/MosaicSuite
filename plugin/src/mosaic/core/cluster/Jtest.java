@@ -5,9 +5,9 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 
-import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 import mosaic.plugins.MergeJobs;
+import mosaic.test.framework.SystemOperations;
 
 import org.junit.Test;
 
@@ -26,7 +26,7 @@ public class Jtest
 	{
 		MergeJobs mj = new MergeJobs();
 		
-		String dir = MosaicUtils.getTestDir();
+		String dir = SystemOperations.getTestDataPath();
 		String dir_test = dir + File.separator + "merge_jobs" + File.separator + "Test";
 		String dir_sample = dir + File.separator + "merge_jobs" + File.separator + "Sample";
 		

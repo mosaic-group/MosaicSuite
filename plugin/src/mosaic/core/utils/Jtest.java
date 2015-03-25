@@ -6,8 +6,10 @@ import ij.ImagePlus;
 import ij.process.ImageProcessor;
 
 import java.io.File;
+import java.util.List;
 
 import mosaic.bregman.output.Region3DRScript;
+import mosaic.test.framework.SystemOperations;
 
 import org.junit.Test;
 
@@ -26,7 +28,7 @@ public class Jtest
 		@Override
 		public void run(ImageProcessor arg0) 
 		{
-			String Basefile = testImg[cnt].img[0].substring(0,testImg[cnt].img[0].lastIndexOf(File.separator)) + File.separator + "test";
+			String Basefile = testImg.get(cnt).img[0].substring(0,testImg.get(cnt).img[0].lastIndexOf(File.separator)) + File.separator + "test";
 			ShellCommand.copy(new File(Basefile), new File(to), null);
 			cnt++;
 		}
@@ -62,7 +64,7 @@ public class Jtest
 		
 	}
 	
-	ImgTest[] testImg;
+	List<ImgTest> testImg;
 	String to;
 	
 	@Test
@@ -72,8 +74,8 @@ public class Jtest
 		
 		// test the cluster
 		
-		testImg = MosaicUtils.getTestImages("job_compare_test");
-		to = IJ.getDirectory("temp") + File.separator + "test";
+		testImg = MosaicTest.getTestData("job_compare_test");
+		to = SystemOperations.getTestTmpPath();
 		MosaicTest.<Region3DRScript>testPlugin(BG,"job_compare_test",Region3DRScript.class);
 	}
 	
