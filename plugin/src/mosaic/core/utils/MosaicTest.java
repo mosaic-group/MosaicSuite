@@ -6,6 +6,8 @@ import ij.ImagePlus;
 import ij.WindowManager;
 import ij.io.Opener;
 import ij.macro.Interpreter;
+import io.scif.img.ImgIOException;
+import io.scif.img.ImgOpener;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -40,7 +42,7 @@ public class MosaicTest
     private static final Logger logger = LoggerFactory.getLogger(MosaicTest.class);
     //protected static final Logger logger = Logger.getLogger(MosaicTest.class);
     
-	private static void prepareTestEnvironment(ImgTest tmp)
+	public static void prepareTestEnvironment(ImgTest tmp)
 	{
 		logger.info("Testing... " + new File(tmp.base).getName());
 		String tmp_dir = SystemOperations.getCleanTestTmpPath();
@@ -139,6 +141,7 @@ public class MosaicTest
 			}
 		}
 		
+		
 		int cnt = 0;
 	
 		for (String rs : tmp.result_imgs) {
@@ -152,14 +155,17 @@ public class MosaicTest
 				
 				logger.info("Original img: " + rs);
 				logger.info("Result img: " + filename);
-				
-				image = ImagePlusAdapter.wrap(new Opener().openImage(rs));
-                image_rs = ImagePlusAdapter.wrap(new Opener().openImage(filename));
+				ImgOpener imgOpener = new ImgOpener();
+				image = (Img<?>) imgOpener.openImgs(rs).get(0); // ImagePlusAdapter.wrap(new Opener().openImage(rs));
+                image_rs = (Img<?>) imgOpener.openImgs(filename).get(0); //ImagePlusAdapter.wrap(new Opener().openImage(filename));
 			}
 			catch (java.lang.UnsupportedOperationException e)	{
 				e.printStackTrace();
 				fail("Error: Image " + rs + " does not match the result");
-			}
+			} catch (ImgIOException e) {
+                e.printStackTrace();
+                fail("Failed to open image.";)
+            }
 
 			if (MosaicUtils.compare(image, image_rs) == false) {
 				fail("Error: Image " + rs + " does not match the result");

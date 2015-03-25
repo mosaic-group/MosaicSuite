@@ -21,7 +21,7 @@ public class Jtest
 	 * 
 	 */
 	
-	@Test
+	//@Test
 	public void mergetest() 
 	{
 		MergeJobs mj = new MergeJobs();

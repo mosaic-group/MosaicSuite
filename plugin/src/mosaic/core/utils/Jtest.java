@@ -67,7 +67,7 @@ public class Jtest
 	List<ImgTest> testImg;
 	String to;
 	
-	@Test
+	//@Test
 	public void testtestsegmentation() 
 	{
 		segStub BG = new segStub();
@@ -79,7 +79,7 @@ public class Jtest
 		MosaicTest.<Region3DRScript>testPlugin(BG,"job_compare_test",Region3DRScript.class);
 	}
 	
-	@Test
+	//@Test
 	public void coreUtilGeneral()
 	{
 		String test = MosaicUtils.removeExtension("tmp_1.tif");

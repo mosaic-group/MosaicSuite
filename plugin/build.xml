@@ -22,10 +22,12 @@
          except you know what you are doing. -->
     <!-- ****************************************************************** -->
     <property name="src" location="src" />
+    <property name="test" location="test" />
     <property name="build" location="bin" />
     <property name="dist" location="dist" />
     <property name="name" value="Mosaic" />
     <property name="jarfilename" value="Mosaic_ToolSuite" />
+    <property name="scijava.context.strict" value="false" />
 
     <target name="test">
         <junit printsummary="yes" haltonfailure="yes">
@@ -48,6 +50,26 @@
             </test>
         </junit>
     </target>
+
+    <target name="jtest" depends="build">
+        <junit printsummary="yes" haltonfailure="no">
+            <classpath>
+                <pathelement location="bin" />    
+                <fileset dir="lib">
+                    <include name="*.jar" />
+                </fileset>
+                <fileset dir="lib/bio-formats">
+                    <include name="*.jar" />
+                </fileset>
+            </classpath>    
+            <batchtest>
+                <fileset dir="${test}">
+                    <include name="**/*Test*" />
+                </fileset>
+            </batchtest>
+            <formatter type="brief" usefile="false"/>
+        </junit>
+    </target>   
 
     <target name="main" depends="clean,build,compress" description="Main target">
         <echo>

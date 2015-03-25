@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class Jtest 
 {	
-	@Test
+//	@Test
 	public void segmentation() 
 	{
 		Segmentation BG = new Region_Competition();
