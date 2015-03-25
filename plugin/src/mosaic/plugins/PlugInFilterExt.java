@@ -22,4 +22,22 @@ public interface PlugInFilterExt extends PlugInFilter
 	 */
 	
 	void closeAll();
+	
+	/**
+	 * 
+	 * Set if that the plugin is on test
+	 * 
+	 * @param test test mode
+	 * 
+	 */
+	
+	void setIsOnTest(boolean test);
+	
+	/**
+	 * 
+	 * Check if the plugin is running under Junit
+	 * 
+	 */
+	
+	boolean isOnTest();
 }

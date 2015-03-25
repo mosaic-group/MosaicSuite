@@ -1861,6 +1861,21 @@ public class Region_Competition implements Segmentation
 	{
 		return new String("Region_Competition");
 	}
+
+
+	boolean test_mode;
+	
+	@Override
+	public void setIsOnTest(boolean test) 
+	{
+		test_mode = test;
+	}
+
+	@Override
+	public boolean isOnTest() 
+	{
+		return test_mode;
+	}
 }
 	
 	

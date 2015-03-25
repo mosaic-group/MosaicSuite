@@ -33,6 +33,12 @@ public class Jtest implements PlugInFilter
 	@Override
 	public int setup(String arg0, ImagePlus arg1) 
 	{
+		// Test Squassh segmentation
+		
+		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
+		
+		jtestBR.segmentation();
+		
 		// Test Naturalization
 		
 		mosaic.plugins.test.Jtest JtestPlug = new mosaic.plugins.test.Jtest();
@@ -55,12 +61,6 @@ public class Jtest implements PlugInFilter
 		mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
 		
 		jtestMj.mergetest();
-		
-		// Test Squassh segmentation
-		
-		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
-		
-		jtestBR.segmentation();
 		
 		// Test Region competition segmentation
 		

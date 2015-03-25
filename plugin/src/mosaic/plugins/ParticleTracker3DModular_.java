@@ -3320,4 +3320,18 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		// Close all the images
 		original_imp.close();
 	}
+
+	boolean test_mode;
+	
+	@Override
+	public void setIsOnTest(boolean test) {
+		test_mode = test;
+		
+	}
+
+	@Override
+	public boolean isOnTest() {
+		// TODO Auto-generated method stub
+		return test_mode;
+	}
 }
