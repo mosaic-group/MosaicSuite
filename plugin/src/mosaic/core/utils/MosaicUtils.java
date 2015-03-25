@@ -1660,9 +1660,8 @@ public class MosaicUtils
 		RandomAccess<?> ci2 = img2.randomAccess();
 		
 		int loc[] = new int[img1.numDimensions()];
-		int faults = 0;
-		while (ci1.hasNext())
-		{
+		
+		while (ci1.hasNext()) {
 			ci1.fwd();
 			ci1.localize(loc);
 			ci2.setPosition(loc);
@@ -1670,13 +1669,10 @@ public class MosaicUtils
 			Object t1 = ci1.get();
 			Object t2 = ci2.get();
 			
-			// TODO: must be corrected, current implementation fails
-			//if (!t1.equals(t2))
-			if (!ci1.get().toString().equals(ci2.get().toString()))
-			{   System.out.println("" + t1 +" [" + t2 + "]");
-			    System.out.println("ppp: " + img1.numDimensions() + " " + loc[0] + " " + loc[1]);
-				
-			    if (faults++ > 20) return false;
+			if (!t1.equals(t2))
+			{   
+			    System.out.println("Pixels are different: [" + t1 +"] vs. [" + t2 + "]");
+			    return false;
 			}
 		}
 		

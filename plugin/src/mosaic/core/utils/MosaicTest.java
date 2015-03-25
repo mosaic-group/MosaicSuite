@@ -4,8 +4,8 @@ import static org.junit.Assert.fail;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
-import ij.io.Opener;
 import ij.macro.Interpreter;
+import io.scif.SCIFIOService;
 import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
 
@@ -18,17 +18,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+import org.scijava.Context;
+import org.scijava.app.AppService;
+import org.scijava.app.StatusService;
+
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.plugins.PlugInFilterExt;
 import mosaic.test.framework.SystemOperations;
-import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 
 /**
@@ -39,12 +39,12 @@ import org.slf4j.LoggerFactory;
  */
 public class MosaicTest
 {	
-    private static final Logger logger = LoggerFactory.getLogger(MosaicTest.class);
-    //protected static final Logger logger = Logger.getLogger(MosaicTest.class);
-    
+    //private static final Logger logger = LoggerFactory.getLogger(MosaicTest.class);
+    protected static final Logger logger = Logger.getLogger(MosaicTest.class);
+    //private static final Logger logger = logger.getLogger( MosaicTest.class.getName() );
 	public static void prepareTestEnvironment(ImgTest tmp)
 	{
-		logger.info("Testing... " + new File(tmp.base).getName());
+//		logger.info("Testing... " + new File(tmp.base).getName());
 		String tmp_dir = SystemOperations.getCleanTestTmpPath();
 		
 		for (int i = 0 ; i < tmp.img.length ; i++)
@@ -155,7 +155,12 @@ public class MosaicTest
 				
 				logger.info("Original img: " + rs);
 				logger.info("Result img: " + filename);
-				ImgOpener imgOpener = new ImgOpener();
+				
+				// Create ImgOpener with some default context, without it, it search for already existing one
+				ImgOpener imgOpener = new ImgOpener(new Context(SCIFIOService.class, AppService.class, StatusService.class ));
+				// By default ImgOpener produces a lot of logs, this is one of the ways to switch it off. 
+				imgOpener.log().setLevel(0);
+				
 				image = (Img<?>) imgOpener.openImgs(rs).get(0); // ImagePlusAdapter.wrap(new Opener().openImage(rs));
                 image_rs = (Img<?>) imgOpener.openImgs(filename).get(0); //ImagePlusAdapter.wrap(new Opener().openImage(filename));
 			}
@@ -164,7 +169,7 @@ public class MosaicTest
 				fail("Error: Image " + rs + " does not match the result");
 			} catch (ImgIOException e) {
                 e.printStackTrace();
-                fail("Failed to open image.";)
+                fail("Failed to open image.");
             }
 
 			if (MosaicUtils.compare(image, image_rs) == false) {
@@ -264,8 +269,8 @@ public class MosaicTest
 				
 				rt = BG.setup(tmp.options, img);
 				
-				logger.debug("windowcount: " + WindowManager.getWindowCount());
-				logger.debug("Interpreter: " + Interpreter.getBatchModeImageCount());
+				logger.info("windowcount: " + WindowManager.getWindowCount());
+				logger.info("Interpreter: " + Interpreter.getBatchModeImageCount());
 //              
 				int [] ids = WindowManager.getIDList();
 				if (ids != null)

@@ -360,13 +360,9 @@ public class Naturalization implements PlugInFilterExt
 	@Override
 	public int setup(String arg, ImagePlus imp)
 	{
-	    isGuiModeEnabled = !(IJ.isMacro() || Interpreter.isBatchMode() || arg.contains("TEST"));
+	    isGuiModeEnabled = !(Interpreter.isBatchMode());
 		if (imp == null)
 		{IJ.error("The plugin require an 8-bit image");return DONE;}
-		System.out.println("MACRO: " + IJ.isMacro());
-		System.out.println("MACOP: [" + Macro.getOptions() + "]");
-		System.out.println("XXXXX: " + Interpreter.isBatchMode());
-		System.out.println("GUI  : " + isGuiModeEnabled);
 		source = imp;
 		
 		// Analyse the image
@@ -525,7 +521,7 @@ public class Naturalization implements PlugInFilterExt
 			nat.show();
 			if (isGuiModeEnabled) rs.show("Natural factor and PSNR");
 			System.out.println("Naturalization: " + MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
-			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
+			//IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
 			
 			//
 		}

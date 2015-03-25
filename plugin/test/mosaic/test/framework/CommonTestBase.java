@@ -1,9 +1,13 @@
 package mosaic.test.framework;
 
 import static org.junit.Assert.fail;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.WindowManager;
 import ij.macro.Interpreter;
+import io.scif.SCIFIOService;
+import io.scif.img.ImgIOException;
+import io.scif.img.ImgOpener;
 
 import java.io.File;
 import java.util.List;
@@ -13,9 +17,15 @@ import mosaic.core.utils.ImgTest;
 import mosaic.core.utils.MosaicTest;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.PlugInFilterExt;
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
+import net.imglib2.img.ImagePlusAdapter;
+import net.imglib2.img.Img;
 
 import org.junit.Ignore;
-
+import org.scijava.Context;
+import org.scijava.app.AppService;
+import org.scijava.app.StatusService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +33,7 @@ import org.slf4j.LoggerFactory;
 public class CommonTestBase {
 
     private static final Logger logger = LoggerFactory.getLogger(CommonTestBase.class);
-    
+    private static ImgOpener iImgOpener = null;
     /**
      * Test the plugin filter
      * 
@@ -54,9 +64,8 @@ public class CommonTestBase {
                 String temp_img = tmp_dir + tmp.img[0].substring(tmp.img[0].lastIndexOf(File.separator)+1);
                 ImagePlus img = MosaicUtils.openImg(temp_img);
 
-                // TODO: to be decided what method (whether both?) should be used
+                // Make it running in batch mode.
                 Interpreter.batchMode = true;
-                tmp.options += "TEST";
                 
                 rt = BG.setup(tmp.options, img);
                 
@@ -82,6 +91,45 @@ public class CommonTestBase {
             BG.run(null);
 
         }
+    }
+    
+    protected ImagePlus getImageByName(String aName) {
+        int[] ids = WindowManager.getIDList();
+        if (ids != null) {
+            for (int id : ids) {
+                ImagePlus img = WindowManager.getImage(id);
+                if (img.getTitle().equals(aName)) {
+                    return img;
+                }
+            }
+        }
         
+        return null;
+    }
+    
+    protected Img<?> loadImageByName(String aImageName) {
+        String outputFileName = SystemOperations.getTestTmpPath() + aImageName + ".tif";
+        IJ.saveAsTiff(getImageByName(aImageName), outputFileName);
+        Img<?> img = loadImage(outputFileName);
+        return img;
+    }
+    
+    protected Img<?> loadImage(String aFileName) {
+        if (iImgOpener == null) {
+            // Create ImgOpener with some default context, without it, it search for already existing one
+            iImgOpener = new ImgOpener(new Context(SCIFIOService.class, AppService.class, StatusService.class ));
+            // By default ImgOpener produces a lot of logs, this is one of the ways to switch it off. 
+            iImgOpener.log().setLevel(0);
+        }
+
+        try {
+            Img<?> img = (Img<?>) iImgOpener.openImgs(aFileName).get(0);
+            return img;
+        } catch (ImgIOException e) {
+            e.printStackTrace();
+            fail("Failed to load: [" + aFileName + "]");
+        }
+        
+        return null;
     }
 }
