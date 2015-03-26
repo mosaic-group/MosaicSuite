@@ -54,7 +54,7 @@ public class Trajectory
         this.existing_particles = particles;
         // the length is the last trajectory frame - the first frame (first frame can be 0) 
         this.length = this.existing_particles[this.existing_particles.length-1].getFrame() - 
-        this.existing_particles[0].getFrame();
+        this.existing_particles[0].getFrame() + 1;
         color = Color.red; //default
     }
 

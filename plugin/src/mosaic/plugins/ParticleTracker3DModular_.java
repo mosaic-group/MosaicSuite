@@ -1227,7 +1227,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				this.imp.updateImage();
 				// show the number of the selected Trajectory on the per trajectory 
 				// panel in the results window
-				results_window.per_traj_label.setText("Trajectory " + chosen_traj);				
+				results_window.per_traj_label.setText("Trajectory " + (chosen_traj + 1));
 				if (e.getClickCount() == 2) {
 					// "double-click" 
 					// Set the ROI to the trajectory focus_area
