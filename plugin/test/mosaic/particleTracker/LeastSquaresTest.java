@@ -1,39 +1,94 @@
 package mosaic.particleTracker;
 
-import static org.junit.Assert.assertTrue;
-import io.scif.img.ImgOpener;
+import static org.junit.Assert.assertEquals;
 import mosaic.test.framework.CommonTestBase;
 
+import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
+import org.junit.runners.MethodSorters;
 
+
+/** 
+ * This class is responsible for testing {@link LeastSquares} class. 
+ */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LeastSquaresTest extends CommonTestBase {
-    //protected static final Logger log = LoggerFactory.getLogger(LeastSquaresTest.class.getSimpleName());
-    
-    @Test
-    public void test1() { 
-//        System.out.println("FIRST LINE OF TEST " + new Object(){}.getClass().getEnclosingMethod().getName());
-//        log.error("Test started");
-//        assertTrue("Whole test suit for LEastSquares is to be implemented", true);
-//        System.out.println(this.getClass().getName() + " " + this.getClass().getSimpleName());
-//        
-//        System.out.println("LAST LINE OF TEST " + new Object(){}.getClass().getEnclosingMethod().getName());
-        assertTrue("Whole test suit for LEastSquares is to be implemented", true);
+    private LeastSquares iLeastSquares;
+   
+    @Before
+    public void setUp() {
+        iLeastSquares = new LeastSquares();
     }
-
+    
+    /** 
+     * Tests situation when it is not possible to find line ideally going through
+     * given points
+     */
     @Test
-    public void test2() { 
-        //new ImageJ();
-//        final Context context = (Context)
-//                IJ.runPlugIn(Context.class.getName(), ""); 
-//        ImgOpener io = new ImgOpener(context);
-        final ImgOpener io = new ImgOpener();
-        System.out.println("FIRST LINE OF TEST " + new Object(){}.getClass().getEnclosingMethod().getName());
+    public void testNotPerfectMatch() { 
+        final double slope = 0.0;
+        final double y0 = 1.5;
+        double[] xValues = {-2.0, -1.0, 1.0, 2.0};
+        double[] yValues = {2.0, 1.0, 1.0, 2.0};
         
-        assertTrue("Whole test suit for LEastSquares is to be implemented", true);
-        System.out.println(this.getClass().getName() + " " + this.getClass().getSimpleName());
+        iLeastSquares.calculate(xValues, yValues);
         
-        System.out.println("LAST LINE OF TEST " + new Object(){}.getClass().getEnclosingMethod().getName());
+        testExpectations(iLeastSquares, slope, y0);
+    }
+    
+    /** 
+     * Tests situation when it is possible to find line ideally going through
+     * given points
+     */
+    @Test
+    public void testPerfectMatch10Points() { 
+        // y = 2.5*x - 3.2
+        final double slope = 2.5;
+        final double y0 = -3.2;
+        final int noOfPoints = 10;
+        
+        double[] xValues = new double[noOfPoints];
+        double[] yValues = new double[noOfPoints];
+        
+        for (int i = 0; i < noOfPoints; ++i) {
+            double x = 1.0 * i;
+            xValues[i] = x;
+            yValues[i] = slope * x + y0;
+        }
+        
+        iLeastSquares.calculate(xValues, yValues);
+        
+        testExpectations(iLeastSquares, slope, y0);
+    }
+    
+    /** 
+     * Tests situation when it is possible to find line ideally going through
+     * given points
+     */
+    @Test
+    public void testPerfectMatch2Points() { 
+        // y = 2*x + 1
+        final double slope = 2.0;
+        final double y0 = 1.0;
+        final double[] xValues = {1.0, 2.0};
+        final double[] yValues = {3.0, 5.0};
+        
+        iLeastSquares.calculate(xValues, yValues);
+        
+        testExpectations(iLeastSquares, slope, y0);
+    }
+    
+    /**
+     * Helper method for checking calculated slopes and y-axis intercept 
+     * @param aLS linear squares object containing result
+     * @param aSlope expected slope
+     * @param aYaxisIntercept expected y-axis intercept
+     */
+    private void testExpectations(LeastSquares aLS, double aSlope, double aYaxisIntercept) {
+        // Set some tolerance on double numbers comparisons
+        double epsilon = 0.000001;
+        assertEquals("Slope should be equal", aSlope, aLS.getBeta(), epsilon);
+        assertEquals("y-axis intercept should be equal", aYaxisIntercept, aLS.getAlpha(), epsilon);
     }
 }
