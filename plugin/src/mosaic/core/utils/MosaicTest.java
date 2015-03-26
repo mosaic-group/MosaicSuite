@@ -16,7 +16,10 @@ import mosaic.core.cluster.ClusterSession;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.plugins.PlugInFilterExt;
+import net.imglib2.Cursor;
 import net.imglib2.img.Img;
+import net.imglib2.type.numeric.ARGBType;
+import net.imglib2.type.numeric.integer.UnsignedIntType;
 
 /**
  * 
@@ -283,6 +286,9 @@ public class MosaicTest
 	
 	public static <T extends ICSVGeneral> void testPlugin(PlugInFilterExt BG, String testset,Class<T> cls)
 	{
+		// Set the plugin in test mode
+		BG.setIsOnTest(true);
+		
 		// Save on tmp and reopen
 		
 		String tmp_dir = getTestEnvironment();

@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Vector;
 
@@ -91,6 +92,10 @@ public class BLauncher
 			
 			File dir = new File(path);
 			File fl[] = dir.listFiles();
+			
+			// Order the file by name
+			
+			Arrays.sort(fl);
 			
 			// Check if we have more than one frame
 			

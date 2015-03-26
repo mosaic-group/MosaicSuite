@@ -8,6 +8,7 @@ import ij.process.ImageProcessor;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.io.File;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -17,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
+import mosaic.core.utils.MosaicUtils;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
@@ -516,7 +518,8 @@ public class Naturalization implements PlugInFilterExt
 			nat.show();
 			rs.show("Natural factor and PSNR");
 			
-//			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
+			if (isOnTest())
+				IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
 			
 			//
 		}
@@ -592,8 +595,9 @@ public class Naturalization implements PlugInFilterExt
 			nat = ImageJFunctions.wrap(Channel, imp.getTitle() + "_naturalized");
 			nat.show();
 			rs.show("Naturalization and PSNR");
-			
-//			IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
+
+			if (isOnTest())
+				IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
 			
 //			showMessage("Naturalization factor " + Nf_s[0] + " PSNR " + calculate_PSNR(Nf_s[0]));
 		}
@@ -602,7 +606,8 @@ public class Naturalization implements PlugInFilterExt
 			IJ.error("Naturalization require 8-bit images or RGB");
 		}
 		
-		showMessage("");
+		if (!isOnTest() && !IJ.isMacro())
+			showMessage("");
 		
 /*		try {
 			FloatType Theta = new FloatType(0.5f);
@@ -941,4 +946,20 @@ public class Naturalization implements PlugInFilterExt
 		if (nat != null)
 			nat.close();
 	}
+
+	boolean test_mode;
+	
+	@Override
+	public boolean isOnTest() 
+	{
+		return test_mode;
+	}
+
+	@Override
+	public void setIsOnTest(boolean test)
+	{
+		test_mode = test;
+	}
+	
+
 }
