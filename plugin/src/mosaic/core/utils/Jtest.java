@@ -61,6 +61,20 @@ public class Jtest
 		public String getName() {
 			return new String("Jtest");
 		}
+
+		boolean test_mode;
+		
+		@Override
+		public void setIsOnTest(boolean test) 
+		{
+			test_mode = test;
+		}
+
+		@Override
+		public boolean isOnTest() 
+		{
+			return test_mode;
+		}
 		
 	}
 	

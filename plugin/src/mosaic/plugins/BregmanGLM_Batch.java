@@ -351,4 +351,18 @@ public class BregmanGLM_Batch implements Segmentation
 	{
 		return "Squassh";
 	}
+
+	boolean test_mode;
+	
+	@Override
+	public void setIsOnTest(boolean test) 
+	{
+		test_mode = test;
+	}
+
+	@Override
+	public boolean isOnTest() 
+	{
+		return test_mode;
+	}
 }

@@ -91,9 +91,9 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
      * @param aYlabel
      * @param aWindowLabel title of window
      */
-    private void updatePlot(double[] aX, double[] aY, double aSlope, double aY0,
+    private void updatePlot(double[] aX, double[] aY, double aSlope, double aY0, Double aDiffusionCoefficient,
                     String aXlabel, String aYlabel, String aWindowLabel) {
-       
+     
         // Generate data for slop line
         double[] slopeLine = new double[aX.length];
         for (int i = 0; i < aX.length; ++i) slopeLine[i] = aSlope * aX[i] + aY0;
@@ -123,7 +123,10 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
         plot.changeFont(new Font("Helvetica", Font.BOLD, 14));
         plot.addLabel(0.05, 0.10, String.format("slope = %4.3f", aSlope));
         plot.addLabel(0.05, 0.15, String.format("y0 intercept = %5.3f", aY0));
-
+        if (aDiffusionCoefficient != null) {
+            plot.addLabel(0.05, 0.20, String.format("diffusion coefficient D2 = %5.3f", aDiffusionCoefficient));
+        }
+        
         // color for slope line
         plot.setColor(Color.blue);
         setImage(plot.getImagePlus());
@@ -138,6 +141,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
                        iTrajectoryAnalysis.toLogScale(iTrajectoryAnalysis.getGammasLogarithmic()), 
                        iTrajectoryAnalysis.getMSSlogarithmic(), 
                        iTrajectoryAnalysis.getMSSlogarithmicY0(),
+                       null,
                        "log(moment order \uD835\uDF08)", "log(scaling coefficient \u213D)", "MSS (log)");                    
         }
         else {
@@ -145,6 +149,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
                        iTrajectoryAnalysis.getGammasLogarithmic(), 
                        iTrajectoryAnalysis.getMSSlinear(), 
                        iTrajectoryAnalysis.getMSSlinearY0(),
+                       null,
                        "moment order \uD835\uDF08", "scaling coefficient \u213D", "MSS");
             
         }
@@ -161,6 +166,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
                        iTrajectoryAnalysis.toLogScale(iTrajectoryAnalysis.getMSDforMomentIdx(order)), 
                        iTrajectoryAnalysis.getGammasLogarithmic()[order], 
                        iTrajectoryAnalysis.getGammasLogarithmicY0()[order],
+                       iTrajectoryAnalysis.getDiffusionCoefficients()[order],
                        "log(\u03B4t)", "log(\u03BC(\u03B4t))", "MSD (log)");
         }
         else {
@@ -168,6 +174,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
                        iTrajectoryAnalysis.getMSDforMomentIdx(order), 
                        iTrajectoryAnalysis.getGammasLinear()[order], 
                        iTrajectoryAnalysis.getGammasLinearY0()[order],
+                       null,
                        "\u03B4t", "\u03BC(\u03B4t)", "MSD");
             
         }

@@ -18,17 +18,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
-import org.scijava.Context;
-import org.scijava.app.AppService;
-import org.scijava.app.StatusService;
-
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.plugins.PlugInFilterExt;
 import mosaic.test.framework.SystemOperations;
 import net.imglib2.img.Img;
+
+import org.apache.log4j.Logger;
+import org.scijava.Context;
+import org.scijava.app.AppService;
+import org.scijava.app.StatusService;
 
 
 /**
@@ -242,6 +242,11 @@ public class MosaicTest
 	 */
 	public static <T extends ICSVGeneral> void testPlugin(PlugInFilterExt BG, String testset,Class<T> cls)
 	{
+
+		// Set the plugin in test mode
+		BG.setIsOnTest(true);
+		
+		// Save on tmp and reopen
 		String tmp_dir = SystemOperations.getTestTmpPath();
 		
 		// Get all test images
@@ -263,15 +268,15 @@ public class MosaicTest
 				String temp_img = tmp_dir + tmp.img[0].substring(tmp.img[0].lastIndexOf(File.separator)+1);
 				ImagePlus img = MosaicUtils.openImg(temp_img);
 
-				// TODO: to be decided what method (whether both?) should be used
+				// Force batch mode to avoid showing pictures
 				Interpreter.batchMode = true;
-				tmp.options += "TEST";
+
 				
 				rt = BG.setup(tmp.options, img);
 				
 				logger.info("windowcount: " + WindowManager.getWindowCount());
 				logger.info("Interpreter: " + Interpreter.getBatchModeImageCount());
-//              
+              
 				int [] ids = WindowManager.getIDList();
 				if (ids != null)
                 for (int id : ids) {
