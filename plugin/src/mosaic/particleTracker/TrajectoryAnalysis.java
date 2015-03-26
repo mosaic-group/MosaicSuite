@@ -10,7 +10,7 @@ import mosaic.core.detection.Particle;
  */
 public class TrajectoryAnalysis {
 
-    Trajectory iTrajectory;          // given Trajectory
+    Particle[] iParticles;           // given trajectory's particles
     int[] iMomentOrders;             // requested moment orders to be calculated
     int[] iFrameShifts;              // requested frame shift (deltas)
     double[][] iMSDs;                // moments of displacement for every moment order
@@ -23,6 +23,8 @@ public class TrajectoryAnalysis {
     double iMSSlinearY0;             // y-axis intercept of MSS for linear plot
     double iMSSlogarithmic;          // slope of moments scaling spectrum for logarithmic plot
     double iMSSlogarithmicY0;        // y-axis intercept of MSS for logarithmic plot
+    double iDX;                      // physical length of a pixel
+    double iDT;                      // physical time interval between frames
     
     public static final boolean SUCCESS = true;
     public static final boolean FAILURE = false;
@@ -30,12 +32,25 @@ public class TrajectoryAnalysis {
     /**
      * @param aTrajectory Trajectory to be analyzed
      */
-    public TrajectoryAnalysis(Trajectory aTrajectory) {
-        iTrajectory = aTrajectory;
-        
+    public TrajectoryAnalysis(final Trajectory aTrajectory) {
+        this(aTrajectory != null ? aTrajectory.existing_particles : null);
+    }
+    
+    /**
+     * @param aParticles Particles to be analyzed
+     */
+    public TrajectoryAnalysis(final Particle[] aParticles) {
+        iParticles = aParticles;
+
         // set some default data for calculations, it can be overwritten by user
-        setFrameShifts(1, iTrajectory.length/3);
+        if (iParticles != null && iParticles.length > 0) {
+            setFrameShifts(1, (iParticles[iParticles.length - 1].getFrame() - iParticles[0].getFrame() + 1)/3);
+        }
+        
         setMomentOrders(1, 10);
+        
+        iDX = 1.0;
+        iDT = 1.0;
     }
     
     /**
@@ -95,8 +110,12 @@ public class TrajectoryAnalysis {
      * @return This method returns {@link #SUCCESS} or {@link #FAILURE}
      */
     public boolean calculateAll() {
+        // It is impossible to calcualte MSS/MSD with less then 6 points 
+        //(delta is between 1 and numberOfPoints/3)
+        // Also frame shifts and moment of orders must be provided.
         if (iFrameShifts != null && iFrameShifts.length >= 1 && 
-            iMomentOrders != null && iMomentOrders.length >= 1) {
+            iMomentOrders != null && iMomentOrders.length >= 1 &&
+            iParticles != null && iParticles.length >= 6) {
 
             return calculateMSDs() && 
             calculateGammasAndDiffusionCoefficients() &&
@@ -177,13 +196,75 @@ public class TrajectoryAnalysis {
         return iMSSlogarithmicY0;
     }
 
+    /**
+     * Sets a physical length of a pixel in meters. (default 1.0)
+     * @param aLength Length of pixel in meters.
+     */
+    public void setLengthOfAPixel(final double aLength) {
+        iDX = aLength;
+    }
+    
+    /**
+     * Sets a physical time interval between frames (default 1.0)
+     * @param aInterval Time interval in seconds
+     */
+    public void setTimeInterval(final double aInterval) {
+        iDT = aInterval;
+    }
+    
+    /**
+     * Converts array of double[] to log scale double[] 
+     * (value of each element is logged and put into output array)
+     * @param aVector input array
+     * @return Converted array
+     */
+    public double[] toLogScale(double[] aVector) {
+        double[] result = new double[aVector.length];
+        for (int i = 0; i < aVector.length; ++i) {
+            result[i] = Math.log(aVector[i]);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Converts array of int[] to log scale double[]
+     * (value of each element is logged and put into output array)
+     * @param aVector input array
+     * @return Converted array
+     */
+    public double[] toLogScale(final int[] aVector) {
+        double[] result = new double[aVector.length];
+        for (int i = 0; i < aVector.length; ++i) {
+            result[i] = Math.log(aVector[i]);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Converts array of int[] to double[]
+     * @param aValues input array
+     * @return Converted array
+     */
+    public double[] toDouble(final int[] aValues) {
+        double[] result = new double[aValues.length];
+        for (int i = 0; i < aValues.length; ++i) {
+            result[i] = (double)aValues[i];
+        }
+        
+        return result;
+    }
+    
     @Override
     public String toString() {
-        String str = "";
+        String str = String.format("Physical length unit(per pixel): %15.4f\n", iDX);
+        str += String.format("Physical time unit(time between frames): %15.4f\n\n", iDT);
+        
         
         str += "MSDs:\n";
         str += "-----------------------------------\n";
-        
+
         for (double[] m : iMSDs) {
             String line = "";
             for (double d : m) {
@@ -198,6 +279,14 @@ public class TrajectoryAnalysis {
         for (double g : iGammasLogarithmic) {
             line += String.format("%15.4f ", g);
         }
+        str += line + "\n";        
+        
+        str += "\nDiffusion Coefficientss:\n";
+        str += "-----------------------------------\n";
+        line = "";
+        for (double g : iDiffusionCoefficients) {
+            line += String.format("%15.4f ", g);
+        }
         str += line + "\n";
         
         str += "\nMSS:\n";
@@ -207,49 +296,22 @@ public class TrajectoryAnalysis {
         return str; 
     }
     
-    public double[] toLogScale(double[] aVector) {
-        double[] result = new double[aVector.length];
-        for (int i = 0; i < aVector.length; ++i) {
-            result[i] = Math.log(aVector[i]);
-        }
-        
-        return result;
-    }
-    
-    public double[] toLogScale(int[] aVector) {
-        double[] result = new double[aVector.length];
-        for (int i = 0; i < aVector.length; ++i) {
-            result[i] = Math.log(aVector[i]);
-        }
-        
-        return result;
-    }
-    
-    public double[] toDouble(int[] aValues) {
-        double[] result = new double[aValues.length];
-        for (int i = 0; i < aValues.length; ++i) {
-            result[i] = (double)aValues[i];
-        }
-        
-        return result;
-    }
+    // **************************************************************************
     
     /**
      * Calculates mean displacement of order 'aOrder' for a specific frame shift 'aDelta' for 
      * a given trajectory 'aTrajectory'
      * 
-     * @param aTrajectory trajectory to be processed
-     * @param aDelta frame shift (shoult be >= 1)
+     * @param aDelta frame shift (should be >= 1)
      * @param aOrder order of mean moment. When aOrder=2 then this special case is called
-     *               'mean suare displacement'
+     *               'mean square displacement'
      * @return
      */
-    private double meanDisplacement(Trajectory aTrajectory, int aDelta, int aOrder) {
-        Particle[] particles = aTrajectory.existing_particles;
-        final int noOfParticles = particles.length; 
+    private double meanDisplacement(int aDelta, int aOrder) {
+        final int noOfParticles = iParticles.length; 
 
         if (noOfParticles < 2 || aDelta <= 0) {
-            // In case when it is impossible to calculete mean moment of order 'aOrder' just 
+            // In case when it is impossible to calculate mean moment of order 'aOrder' just 
             // return 0
             
             return 0;
@@ -260,20 +322,21 @@ public class TrajectoryAnalysis {
         int noOfElements = 0;       
         
         for (int i = 0; i < noOfParticles; ++i) {
-            Particle pi = particles[i];
+            Particle pi = iParticles[i];
             
             // It may happen that particle has not been discovered in each frame. Try to  
-            // find a particle in aDelta distance. For futher information about this behaviour
-            // please refere to 'Link Range' parameter.
+            // find a particle in aDelta distance. For further information about this behavior
+            // please refer to 'Link Range' parameter.
             for (int j = i + 1; j < noOfParticles; ++j) {
-                Particle pj = particles[j];
+                Particle pj = iParticles[j];
                 if (pj.getFrame() == pi.getFrame() + aDelta) {
                     double dx = (pj.x - pi.x);
                     double dy = (pj.y - pi.y);
                     
-                    // Calculate Euclidean norm to get distance between particles and 
-                    // power it to aOrder
-                    sum += Math.pow((dx*dx + dy*dy), aOrder/2.0d);
+                    // Calculate Euclidean norm to get distance between particles 
+                    // (also convert distance from pixel based to physical units)
+                    // and power it to aOrder
+                    sum += Math.pow((dx*dx + dy*dy)*iDX*iDX, aOrder/2.0d);
                     ++noOfElements;
                                   
                     // No need to look further
@@ -296,7 +359,7 @@ public class TrajectoryAnalysis {
         for (int order : iMomentOrders) {
             int deltaIdx = 0;
             for (int delta : iFrameShifts) {
-                double displacement = meanDisplacement(iTrajectory, delta, order);
+                double displacement = meanDisplacement(delta, order);
                 iMSDs[orderIdx][deltaIdx] = displacement;
                 deltaIdx++;
             }
@@ -337,7 +400,8 @@ public class TrajectoryAnalysis {
             double[] tmpDeltas  = new double[count];
             for (int i = 0; i < count; ++i) {
                 tmpMoments[i] = moments[i];
-                tmpDeltas[i] = deltas[i];
+                // Convert it to physical time units
+                tmpDeltas[i] = deltas[i] * iDT;
             }
             
             

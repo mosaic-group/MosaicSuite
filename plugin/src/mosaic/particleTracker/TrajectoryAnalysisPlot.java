@@ -16,6 +16,7 @@ import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import mosaic.core.detection.Particle;
 import net.sf.javaml.utils.ArrayUtils;
 
 
@@ -31,18 +32,23 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
     private Button iMsdButton;
     private Checkbox iLogScale;
     
-    private Trajectory iTrajectory;
     private TrajectoryAnalysis iTrajectoryAnalysis;
     
     // Dimensions of plot
     private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
     
-    
     /**
      * @param aTrajectory Trajectory to be analyzed and plotted.
      */
     public TrajectoryAnalysisPlot(Trajectory aTrajectory) {
+        this(aTrajectory.existing_particles);
+    }
+    
+    /**
+     * @param aParticles Particles to be analyzed and plotted.
+     */
+    public TrajectoryAnalysisPlot(Particle[] aParticles) {
         // A little bit nasty but working method of setting window size (and further plot size).
         // Other methods like setSize(...) do not work even if applied to both - ImageWindow and Plot
         super(new ImagePlus("Trajectory Analysis", new ByteProcessor(WIDTH,HEIGHT, new byte[WIDTH*HEIGHT], null)));
@@ -64,10 +70,9 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
         
         
         // Do all needed calculations
-        iTrajectory = aTrajectory;
 
         // Calculate MSD / MSS
-        iTrajectoryAnalysis = new TrajectoryAnalysis(iTrajectory);
+        iTrajectoryAnalysis = new TrajectoryAnalysis(aParticles);
         if (iTrajectoryAnalysis.calculateAll() != TrajectoryAnalysis.SUCCESS) {
             this.close();
             IJ.error("It is impossible to calculate MSS/MSD for this trajectory!");                                      
