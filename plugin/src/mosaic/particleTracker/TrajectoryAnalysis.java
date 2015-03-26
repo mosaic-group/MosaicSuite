@@ -10,18 +10,19 @@ import mosaic.core.detection.Particle;
  */
 public class TrajectoryAnalysis {
 
-    Trajectory iTrajectory;        // given Trajectory
-    int[] iMomentOrders;           // requested moment orders to be calculated
-    int[] iFrameShifts;            // requested frame shift (deltas)
-    double[][] iMSDs;              // moments of displacement for every moment order
-    double[] iGammasLogarithmic;   // vector of scaling coefficients (slopes) from logarithmic plot
-    double[] iGammasLogarithmicY0; // vector of y-axis intercept for scaling coefficients
-    double[] iGammasLinear;        // vector of scaling coefficients (slopes) from linear plot
-    double[] iGammasLinearY0;      // vector of y-axis intercept for scaling coefficients
-    double iMSSlinear;             // slope of moments scaling spectrum for linear plot
-    double iMSSlinearY0;           // y-axis intercept of MSS for linear plot
-    double iMSSlogarithmic;        // slope of moments scaling spectrum for logarithmic plot
-    double iMSSlogarithmicY0;      // y-axis intercept of MSS for logarithmic plot
+    Trajectory iTrajectory;          // given Trajectory
+    int[] iMomentOrders;             // requested moment orders to be calculated
+    int[] iFrameShifts;              // requested frame shift (deltas)
+    double[][] iMSDs;                // moments of displacement for every moment order
+    double[] iGammasLogarithmic;     // vector of scaling coefficients (slopes) from logarithmic plot
+    double[] iGammasLogarithmicY0;   // vector of y-axis intercept for scaling coefficients
+    double[] iGammasLinear;          // vector of scaling coefficients (slopes) from linear plot
+    double[] iGammasLinearY0;        // vector of y-axis intercept for scaling coefficients
+    double[] iDiffusionCoefficients; // vector of diffusion coefficients
+    double iMSSlinear;               // slope of moments scaling spectrum for linear plot
+    double iMSSlinearY0;             // y-axis intercept of MSS for linear plot
+    double iMSSlogarithmic;          // slope of moments scaling spectrum for logarithmic plot
+    double iMSSlogarithmicY0;        // y-axis intercept of MSS for logarithmic plot
     
     public static final boolean SUCCESS = true;
     public static final boolean FAILURE = false;
@@ -98,7 +99,7 @@ public class TrajectoryAnalysis {
             iMomentOrders != null && iMomentOrders.length >= 1) {
 
             return calculateMSDs() && 
-            calculateGammas() &&
+            calculateGammasAndDiffusionCoefficients() &&
             calculateMSS();
             
         }
@@ -138,6 +139,14 @@ public class TrajectoryAnalysis {
      */
     public double[] getGammasLinearY0() {
         return iGammasLinearY0;
+    }
+    
+    /**
+     * @return Diffusion coefficients of all orders.
+     *         D2 - corresponds to the regular diffusion constant (order=2 -> array index = 1)
+     */
+    public double[] getDiffusionCoefficients() {
+        return iDiffusionCoefficients;
     }
     
     /**
@@ -297,12 +306,16 @@ public class TrajectoryAnalysis {
         return SUCCESS;
     }
 
-    private boolean calculateGammas() {
+    private boolean calculateGammasAndDiffusionCoefficients() {
         LeastSquares ls = new LeastSquares();
-        iGammasLogarithmic = new double[iMomentOrders.length];
-        iGammasLinear = new double[iMomentOrders.length];
-        iGammasLogarithmicY0 = new double[iMomentOrders.length];
-        iGammasLinearY0 = new double[iMomentOrders.length];
+        
+        final int noOfMoments = iMomentOrders.length;
+        iGammasLogarithmic = new double[noOfMoments];
+        iGammasLinear = new double[noOfMoments];
+        iGammasLogarithmicY0 = new double[noOfMoments];
+        iGammasLinearY0 = new double[noOfMoments];
+        iDiffusionCoefficients = new double[noOfMoments];
+        
         int gammaIdx = 0;
         for (double[] m : iMSDs) {
             // Get rid of MSDs equal to 0 (could happen when trajectory has not enough points).
@@ -338,6 +351,7 @@ public class TrajectoryAnalysis {
             }
             iGammasLogarithmic[gammaIdx] = ls.getBeta();
             iGammasLogarithmicY0[gammaIdx] = ls.getAlpha();
+            iDiffusionCoefficients[gammaIdx] = 0.25 * Math.exp(ls.getAlpha());
             ls.calculate(tmpDeltas, tmpMoments);
             iGammasLinear[gammaIdx] = ls.getBeta();
             iGammasLinearY0[gammaIdx] = ls.getAlpha();
