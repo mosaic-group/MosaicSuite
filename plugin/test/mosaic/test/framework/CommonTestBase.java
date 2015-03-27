@@ -10,6 +10,7 @@ import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import mosaic.core.ipc.ICSVGeneral;
@@ -26,14 +27,15 @@ import org.junit.Ignore;
 import org.scijava.Context;
 import org.scijava.app.AppService;
 import org.scijava.app.StatusService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.*;
+
+
 
 @Ignore
 public class CommonTestBase {
 
-    private static final Logger logger = LoggerFactory.getLogger(CommonTestBase.class);
-    private static ImgOpener iImgOpener = null;
+    protected static final Logger logger = Logger.getLogger(CommonTestBase.class);
+  private static ImgOpener iImgOpener = null;
     /**
      * Test the plugin filter
      * 
@@ -91,6 +93,22 @@ public class CommonTestBase {
             BG.run(null);
 
         }
+    }
+    
+    /**
+     * @return List of all images opened in ImageJ (not necessarily visible)
+     */
+    protected List<String> getAllImagesByName() {
+        List<String> result = new ArrayList<String>();
+        int[] ids = WindowManager.getIDList();
+        if (ids != null) {
+            for (int id : ids) {
+                ImagePlus img = WindowManager.getImage(id);
+                result.add(img.getTitle());
+            }
+        }
+        
+        return result;
     }
     
     protected ImagePlus getImageByName(String aName) {

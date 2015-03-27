@@ -27,6 +27,8 @@
     <property name="dist" location="dist" />
     <property name="name" value="Mosaic" />
     <property name="jarfilename" value="Mosaic_ToolSuite" />
+    <property name="org.slf4j.simpleLogger.defaultLogLevel" value="ERROR" />
+
     <target name="test">
         <junit printsummary="yes" haltonfailure="yes">
             <classpath>

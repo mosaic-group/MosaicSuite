@@ -25,7 +25,10 @@ import mosaic.plugins.PlugInFilterExt;
 import mosaic.test.framework.SystemOperations;
 import net.imglib2.img.Img;
 
-import org.apache.log4j.Logger;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
+import org.apache.log4j.*;
+
 import org.scijava.Context;
 import org.scijava.app.AppService;
 import org.scijava.app.StatusService;

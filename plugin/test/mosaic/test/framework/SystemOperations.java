@@ -1,6 +1,7 @@
 package mosaic.test.framework;
 
 import ij.IJ;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,6 +55,21 @@ public class SystemOperations {
     }
     
     /**
+     * Copies file to directory
+     * @param aSrcFile
+     * @param aDestDir
+     */
+    public static void copyFileToDirectory(File aSrcFile, File aDestDir) {
+        try {
+            FileUtils.copyFileToDirectory(aSrcFile, aDestDir);
+        } catch (IOException e) {
+            e.printStackTrace();
+            // intentionally break execution
+            throw new RuntimeException("Cannot copy file [" + aSrcFile + "] to dir [" + aDestDir + "]");
+        }
+    }
+    
+    /**
      * Removes test temporary directory. If any problem arise it
      * will throw and break an execution of test.
      */
@@ -88,4 +104,5 @@ public class SystemOperations {
     private static String getTmpPath() {
         return IJ.getDirectory("temp");
     }
+    
 }

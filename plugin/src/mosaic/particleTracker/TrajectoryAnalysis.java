@@ -58,7 +58,7 @@ public class TrajectoryAnalysis {
      * @param aMin start index (included)
      * @param aMax stop index (included)
      */
-    public void setMomentOrders(int aMin, int aMax) {
+    public void setMomentOrders(final int aMin, final int aMax) {
         if (aMax >= aMin) {
             iMomentOrders = generateArrayRange(aMin, aMax);
         }
@@ -68,7 +68,7 @@ public class TrajectoryAnalysis {
      * Sets user defined orders used to calculate mean displacements.
      * @param aOrders (values should be >= 1)
      */
-    public void setMomentOrders(int[] aOrders) {
+    public void setMomentOrders(final int[] aOrders) {
         iMomentOrders = aOrders;
     }
     
@@ -84,7 +84,7 @@ public class TrajectoryAnalysis {
      * @param aMin start index (included)
      * @param aMax stop index (included)
      */
-    public void setFrameShifts(int aMin, int aMax) {
+    public void setFrameShifts(final int aMin, final int aMax) {
         if (aMax >= aMin) {
             iFrameShifts = generateArrayRange(aMin, aMax);
         }
@@ -94,7 +94,7 @@ public class TrajectoryAnalysis {
      * Sets user defined frame shifts (deltas).
      * @param aFrameShifts (delta values should be >= 1)
      */
-    public void setFrameShifts(int[] aFrameShifts) {
+    public void setFrameShifts(final int[] aFrameShifts) {
         iFrameShifts = aFrameShifts;
     }
     
@@ -128,7 +128,7 @@ public class TrajectoryAnalysis {
     /**
      * @return mean displacement for given index (according to given moment orders)
      */
-    public double[] getMSDforMomentIdx(int aMomentIdx) {
+    public double[] getMSDforMomentIdx(final int aMomentIdx) {
         return iMSDs[aMomentIdx];
     }
     
@@ -218,7 +218,7 @@ public class TrajectoryAnalysis {
      * @param aVector input array
      * @return Converted array
      */
-    public double[] toLogScale(double[] aVector) {
+    public double[] toLogScale(final double[] aVector) {
         double[] result = new double[aVector.length];
         for (int i = 0; i < aVector.length; ++i) {
             result[i] = Math.log(aVector[i]);

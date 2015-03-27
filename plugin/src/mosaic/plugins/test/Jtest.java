@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class Jtest 
 {
-	//@Test
+	@Test
 	public void segmentation() 
 	{
 		ParticleTracker3DModular_ pt = new ParticleTracker3DModular_();
@@ -20,7 +20,7 @@ public class Jtest
 		MosaicTest.<Particle>testPlugin(pt,"Particle Tracker",Particle.class);
 	}
 	
-	//@Test
+	@Test
 	public void naturalization()
 	{
 		Naturalization nt = new Naturalization();

@@ -12,19 +12,32 @@ import mosaic.core.utils.ImgTest;
 import mosaic.core.utils.MosaicTest;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.test.framework.CommonTestBase;
+import mosaic.test.framework.SystemOperations;
 import net.imglib2.img.Img;
 
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 public class NaturalizationTest extends CommonTestBase {
-    private static final Logger logger = LoggerFactory.getLogger(NaturalizationTest.class);
+    //private static final Logger logger = LoggerFactory.getLogger(NaturalizationTest.class);
   
     @Test
     public void test() {
+        // Define test data
+        String tcDir = "Naturalization/flower";
+        String testDir = SystemOperations.getTestDataPath();
+        String[] inputFiles = {"x.png"};
+        String[] referenceFiles = {"x_nat.tif"};
+        String[] expectedFiles = {"x.png_naturalized"};
+        
+        // Prepare test data
+        
+        
+        
+        // Create plugin
         Naturalization nt = new Naturalization();
-        String[] inputFiles = {"asf", "fffff"};
+        
+        
         CommonTestBase.<NoCSV>testPlugin(nt,"Naturalization",NoCSV.class);
         
         List<ImgTest> it = MosaicTest.getTestData("Naturalization");
@@ -50,5 +63,4 @@ public class NaturalizationTest extends CommonTestBase {
         }
         
     }
-
 }
