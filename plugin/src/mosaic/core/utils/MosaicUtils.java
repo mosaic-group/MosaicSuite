@@ -13,9 +13,11 @@ import ij.process.StackStatistics;
 
 import java.awt.Choice;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Scanner;
@@ -30,6 +32,7 @@ import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.ipc.MetaInfo;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
+import mosaic.test.framework.SystemOperations;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -245,8 +248,7 @@ public class MosaicUtils
 	 * @return
 	 */
 	
-	@SuppressWarnings("unchecked")
-    static public <T extends RealType<T>> ToARGB getConversion(Object data, Cursor<T> crs)
+	static public <T extends RealType<T>> ToARGB getConversion(Object data, Cursor<T> crs)
 	{
 		ToARGB conv = null;
 		if (data instanceof RealType)
@@ -271,8 +273,10 @@ public class MosaicUtils
 			min = (T) crs.get().getClass().newInstance();
 	        max = (T) crs.get().getClass().newInstance();
 		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         MosaicUtils.getMinMax(crs, min,max);
@@ -329,6 +333,9 @@ public class MosaicUtils
 	{
 		String Folder = MosaicUtils.ValidFolderFromImage(aImp);
 		Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
+		
+		MosaicUtils MS = new MosaicUtils();
+		SegmentationInfo sI = MS.new SegmentationInfo();
 		
 		// Get infos from possible segmentation
 		
@@ -394,7 +401,7 @@ public class MosaicUtils
 		String Folder = MosaicUtils.ValidFolderFromImage(aImp);
 		Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
 		
-		Vector<File> PossibleFile = new Vector<File>();
+		Vector<File> PossibleFile = new Vector();
 		
 		MosaicUtils MS = new MosaicUtils();
 		SegmentationInfo sI = MS.new SegmentationInfo();
@@ -541,6 +548,7 @@ public class MosaicUtils
 		} 
 		catch (FileNotFoundException e) 
 		{
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
@@ -958,6 +966,7 @@ public class MosaicUtils
 			{
 				String tmp = new String(output[j]);
 					
+				Process tProcess;
 				for (int k = 0 ; k < bases.size() ; k++)
 				{
 					ShellCommand.exeCmdNoPrint("mv " + "'" + sv + File.separator + tmp.replace("*",bases.get(k)) + "'" + "   " + "'" + sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", "") + "'");
@@ -985,8 +994,10 @@ public class MosaicUtils
 		} 
 		catch (IOException e) 
 		{
+		// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
 	}
@@ -1056,8 +1067,10 @@ public class MosaicUtils
 		} 
 		catch (IOException e) 
 		{
+		// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
 	}
@@ -1131,8 +1144,10 @@ public class MosaicUtils
 		} 
 		catch (IOException e) 
 		{
+		// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InterruptedException e) {
+		// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
 	}
@@ -1206,6 +1221,7 @@ public class MosaicUtils
 
 	public static int [] getCoord(long index, Img<?> img)
 	{
+		long tot = 1;
 		int crd[] = new int[img.numDimensions()];
 		
 		for (int i = 0 ; i < crd.length ; i++)
@@ -1645,6 +1661,138 @@ public class MosaicUtils
 	
 	/**
 	 * 
+	 * Test data directory
+	 * 
+	 * @return Test data directory
+	 * 
+	 */
+	
+	static public String getTestDir()
+	{
+		return SystemOperations.getTestDataPath();
+	}
+	
+	static String TestBaseDirectory = "/home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/Jtest_data";
+	
+	/**
+	 * 
+	 * It return the set of test images for a certain plugin
+	 * 
+	 * @param name of the plugin
+	 * @return an array of test images
+	 */
+	
+	static public ImgTest[] getTestImages(String plugin)
+	{
+		// Search for test images
+		
+		Vector<ImgTest> it = new Vector<ImgTest>();
+		
+		String TestFolder = new String();
+		
+		TestFolder +=  getTestDir() + File.separator + plugin + File.separator;
+		IJ.log(TestFolder);
+		ImgTest imgT = null;
+		
+		// List all directories
+		
+		File fl = new File(TestFolder);
+		File dirs[] = fl.listFiles();
+		
+		if (dirs == null)
+			return null;
+		
+		for (File dir : dirs)
+		{		
+			if (dir.isDirectory() == false)
+				continue;
+			
+			// open config
+		
+			String cfg = dir.getAbsolutePath() + File.separator + "config.cfg";
+		
+			// Format
+			//
+			// Image
+			// options
+			// setup file
+			// Expected setup return
+			// number of images results
+			// ..... List of images result
+			// number of csv results
+			// ..... List of csv result
+		
+			try
+			{
+				BufferedReader br = new BufferedReader(new FileReader(cfg));
+ 
+				String sCurrentLine;
+ 
+				imgT = new ImgTest();
+			
+				imgT.base = dir.getAbsolutePath();
+				int nimage_file = Integer.parseInt(br.readLine());
+				imgT.img = new String[nimage_file];
+				for (int i = 0 ; i < imgT.img.length ; i++)
+				{
+					imgT.img[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+				}
+				
+				imgT.options = br.readLine();
+				
+				int nsetup_file = Integer.parseInt(br.readLine());
+				imgT.setup_files = new String[nsetup_file];
+				
+				for (int i = 0 ; i < imgT.setup_files.length ; i++)
+				{
+					imgT.setup_files[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+				}
+				
+				imgT.setup_return = Integer.parseInt(br.readLine());
+				int n_images = Integer.parseInt(br.readLine());
+				imgT.result_imgs = new String[n_images];
+				imgT.result_imgs_rel = new String[n_images];
+				imgT.csv_results_rel = new String[n_images];
+				
+				for (int i = 0 ; i < imgT.result_imgs.length ; i++)
+				{
+					imgT.result_imgs_rel[i] = br.readLine();
+					imgT.result_imgs[i] = dir.getAbsolutePath() + File.separator + imgT.result_imgs_rel[i];
+				}
+				
+				int n_csv_res = Integer.parseInt(br.readLine());
+
+				imgT.csv_results = new String[n_csv_res];
+				imgT.csv_results_rel = new String[n_csv_res];
+				for (int i = 0 ; i < imgT.csv_results.length ; i++)
+				{
+					imgT.csv_results_rel[i] = br.readLine();
+					imgT.csv_results[i] = dir.getAbsolutePath() + File.separator + imgT.csv_results_rel[i];
+				}
+			} 
+			catch (IOException e) 
+			{
+				e.printStackTrace();
+				return null;
+			}
+			
+			it.add(imgT);
+		}
+		
+		// Convert Vector to array
+		
+		ImgTest [] its = new ImgTest[it.size()];
+		
+		for (int i = 0 ; i < its.length ; i++)
+		{
+			its[i] = it.get(i);
+		}
+		
+		return its;
+	}
+	
+	/**
+	 * 
 	 * Compare two images
 	 * 
 	 * 
@@ -1661,7 +1809,8 @@ public class MosaicUtils
 		
 		int loc[] = new int[img1.numDimensions()];
 		
-		while (ci1.hasNext()) {
+		while (ci1.hasNext())
+		{
 			ci1.fwd();
 			ci1.localize(loc);
 			ci2.setPosition(loc);
@@ -1670,36 +1819,35 @@ public class MosaicUtils
 			Object t2 = ci2.get();
 			
 			if (!t1.equals(t2))
-			{   
-			    System.out.println("Pixels are different: [" + t1 +"] vs. [" + t2 + "]");
-			    return false;
+			{
+				return false;
 			}
 		}
 		
 		return true;
 	}
 	
-//	static private String filterJob(String dir,int n)
-//	{
-//		if (dir.startsWith("Job"))
-//		{
-//			// It is a job
-//			
-//			String[] fl = ClusterSession.getJobDirectories(0, dir);
-//			
-//			// search if exist
-//			
-//			for (int i = 0 ; i < fl.length ; i++)
-//			{
-//				
-//				if (new File(dir.replace("*", ClusterSession.getJobNumber(fl[i]))).exists())
-//				{
-//					return dir.replace("*", ClusterSession.getJobNumber(fl[i]));
-//				}
-//			}
-//		}
-//		return dir;
-//	}
+	static private String filterJob(String dir,int n)
+	{
+		if (dir.startsWith("Job"))
+		{
+			// It is a job
+			
+			String[] fl = ClusterSession.getJobDirectories(0, dir);
+			
+			// search if exist
+			
+			for (int i = 0 ; i < fl.length ; i++)
+			{
+				
+				if (new File(dir.replace("*", ClusterSession.getJobNumber(fl[i]))).exists())
+				{
+					return dir.replace("*", ClusterSession.getJobNumber(fl[i]));
+				}
+			}
+		}
+		return dir;
+	}
 	
 	
 	/**

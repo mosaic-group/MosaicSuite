@@ -6,10 +6,8 @@ import ij.ImagePlus;
 import ij.process.ImageProcessor;
 
 import java.io.File;
-import java.util.List;
 
 import mosaic.bregman.output.Region3DRScript;
-import mosaic.test.framework.SystemOperations;
 
 import org.junit.Test;
 
@@ -28,7 +26,7 @@ public class Jtest
 		@Override
 		public void run(ImageProcessor arg0) 
 		{
-			String Basefile = testImg.get(cnt).img[0].substring(0,testImg.get(cnt).img[0].lastIndexOf(File.separator)) + File.separator + "test";
+			String Basefile = testImg[cnt].img[0].substring(0,testImg[cnt].img[0].lastIndexOf(File.separator)) + File.separator + "test";
 			ShellCommand.copy(new File(Basefile), new File(to), null);
 			cnt++;
 		}
@@ -78,22 +76,22 @@ public class Jtest
 		
 	}
 	
-	List<ImgTest> testImg;
+	ImgTest[] testImg;
 	String to;
 	
-	//@Test
+	@Test
 	public void testtestsegmentation() 
 	{
 		segStub BG = new segStub();
 		
 		// test the cluster
 		
-		testImg = MosaicTest.getTestData("job_compare_test");
-		to = SystemOperations.getTestTmpPath();
+		testImg = MosaicUtils.getTestImages("job_compare_test");
+		to = IJ.getDirectory("temp") + File.separator + "test";
 		MosaicTest.<Region3DRScript>testPlugin(BG,"job_compare_test",Region3DRScript.class);
 	}
 	
-	//@Test
+	@Test
 	public void coreUtilGeneral()
 	{
 		String test = MosaicUtils.removeExtension("tmp_1.tif");

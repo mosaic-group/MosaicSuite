@@ -11,6 +11,7 @@ import io.scif.img.ImgOpener;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import mosaic.core.ipc.ICSVGeneral;
@@ -18,24 +19,23 @@ import mosaic.core.utils.ImgTest;
 import mosaic.core.utils.MosaicTest;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.PlugInFilterExt;
-import net.imglib2.Cursor;
-import net.imglib2.RandomAccess;
-import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 
+
+//import org.apache.log4j.Logger;
 import org.junit.Ignore;
 import org.scijava.Context;
 import org.scijava.app.AppService;
 import org.scijava.app.StatusService;
-import org.apache.log4j.*;
 
 
 
 @Ignore
-public class CommonTestBase {
+public class CommonBase {
 
-    protected static final Logger logger = Logger.getLogger(CommonTestBase.class);
-  private static ImgOpener iImgOpener = null;
+    //protected static final Logger logger = Logger.getLogger(CommonBase.class);
+    private static ImgOpener iImgOpener = null;
+    
     /**
      * Test the plugin filter
      * 
@@ -48,17 +48,18 @@ public class CommonTestBase {
         String tmp_dir = SystemOperations.getTestTmpPath();
         
         // Get all test images
-        List<ImgTest> imgT = MosaicTest.getTestData(testset);
+        List<ImgTest> imgT =  new ArrayList<ImgTest>();
+        imgT.addAll(Arrays.asList(MosaicUtils.getTestImages(testset)));
         
         if (imgT == null || imgT.size() == 0) {
-            logger.error("No test images found for testcase [" + testset + "])");
+//            logger.error("No test images found for testcase [" + testset + "])");
             fail("No Images to test");
             return;
         }
         
         for (ImgTest tmp : imgT)
         {
-            MosaicTest.prepareTestEnvironment(tmp);
+            //MosaicTest.prepareTestEnvironment(tmp);
             
             // Create a plugin filter
             int rt = 0;
@@ -71,13 +72,13 @@ public class CommonTestBase {
                 
                 rt = BG.setup(tmp.options, img);
                 
-                logger.debug("windowcount: " + WindowManager.getWindowCount());
-                logger.debug("Interpreter: " + Interpreter.getBatchModeImageCount());
+//                logger.debug("windowcount: " + WindowManager.getWindowCount());
+//                logger.debug("Interpreter: " + Interpreter.getBatchModeImageCount());
 //              
                 int [] ids = WindowManager.getIDList();
                 if (ids != null)
                 for (int id : ids) {
-                    logger.info("Filename: id=[" + id + "] name=[" + WindowManager.getImage(id).getTitle() + "]");
+//                    logger.info("Filename: id=[" + id + "] name=[" + WindowManager.getImage(id).getTitle() + "]");
                     
                 }
             }

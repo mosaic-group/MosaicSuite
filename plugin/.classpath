@@ -1,9 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="ij/plugin/PSF_estimator_3D.java" kind="src" path="src"/>
+	<classpathentry excluding="ij/plugin/PSF_estimator_3D.java|log4j.properties|logback.xml|logging.properties" kind="src" path="src"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/jtransforms-2.4.jar"/>
+	<classpathentry kind="lib" path="lib/hamcrest-core-1.3.jar"/>
+	<classpathentry kind="lib" path="lib/commons-beanutils-1.8.3.jar"/>
+	<classpathentry kind="lib" path="lib/commons-io-2.4.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang3-3.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging-1.1.3.jar"/>
+	<classpathentry kind="lib" path="lib/dozer.jar"/>
+	<classpathentry kind="lib" path="lib/eventbus-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/ij-1.49p.jar"/>
+	<classpathentry kind="lib" path="lib/ImageJ_3D_Viewer.jar"/>
+	<classpathentry kind="lib" path="lib/imagej-common-0.12.2.jar"/>
+	<classpathentry kind="lib" path="lib/imagej-ops-0.10.0.jar"/>
+	<classpathentry kind="lib" path="lib/imglib2-2.2.1.jar"/>
+	<classpathentry kind="lib" path="lib/imglib2-algorithm-0.2.1.jar"/>
+	<classpathentry kind="lib" path="lib/imglib2-ij-2.0.0-beta-30.jar"/>
+	<classpathentry kind="lib" path="lib/jama-1.0.3.jar"/>
+	<classpathentry kind="lib" path="lib/javaml-0.1.7.jar"/>
+	<classpathentry kind="lib" path="lib/jsch-0.1.49.jar"/>
+	<classpathentry kind="lib" path="lib/kryo-2.21-shaded.jar"/>
+	<classpathentry kind="lib" path="lib/logback-classic-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/logback-core-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/mapdb-1.0.3.jar"/>
+	<classpathentry kind="lib" path="lib/mines-jtk-20100113.jar"/>
+	<classpathentry kind="lib" path="lib/native-lib-loader-2.0.2.jar"/>
+	<classpathentry kind="lib" path="lib/scifio-0.21.1.jar"/>
+	<classpathentry kind="lib" path="lib/scifio-bf-compat-1.11.0.jar"/>
+	<classpathentry kind="lib" path="lib/scifio-cli-0.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/scifio-hdf5-0.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/scifio-jai-imageio-1.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/scifio-lifesci-0.7.0.jar"/>
+	<classpathentry kind="lib" path="lib/scifio-ome-xml-0.12.0.jar"/>
+	<classpathentry kind="lib" path="lib/scifio-tools-0.14.0.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-1.7.6.jar"/>
+	<classpathentry kind="lib" path="lib/super-csv-2.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/super-csv-dozer-2.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/weka-dev-3.7.11.jar"/>
 	<classpathentry kind="lib" path="lib/bio-formats/formats-api-5.0.7.jar"/>
 	<classpathentry kind="lib" path="lib/bio-formats/formats-bsd-5.0.7.jar"/>
 	<classpathentry kind="lib" path="lib/bio-formats/formats-common-5.0.7.jar"/>
@@ -15,39 +51,7 @@
 	<classpathentry kind="lib" path="lib/bio-formats/ome-xml-5.0.7.jar"/>
 	<classpathentry kind="lib" path="lib/bio-formats/specification-5.0.7.jar"/>
 	<classpathentry kind="lib" path="lib/bio-formats/turbojpeg-5.0.7.jar"/>
-	<classpathentry kind="lib" path="lib/ij-1.49p.jar"/>
-	<classpathentry kind="lib" path="lib/imglib2-2.2.1.jar"/>
-	<classpathentry kind="lib" path="lib/jsch-0.1.49.jar"/>
-	<classpathentry kind="lib" path="lib/super-csv-dozer-2.1.0.jar"/>
-	<classpathentry kind="lib" path="lib/super-csv-2.1.0.jar"/>
-	<classpathentry kind="lib" path="lib/jama-1.0.3.jar"/>
-	<classpathentry kind="lib" path="lib/mines-jtk-20100113.jar"/>
-	<classpathentry kind="lib" path="lib/jtransforms-2.4.jar"/>
-	<classpathentry kind="lib" path="lib/scifio-0.21.1.jar"/>
-	<classpathentry kind="lib" path="lib/imglib2-ij-2.0.0-beta-30.jar"/>
-	<classpathentry kind="lib" path="lib/scijava-common-2.39.0.jar"/>
-	<classpathentry kind="lib" path="lib/imagej-common-0.12.2.jar"/>
-	<classpathentry kind="lib" path="lib/weka-dev-3.7.11.jar"/>
-	<classpathentry kind="lib" path="lib/imglib2-algorithm-0.2.1.jar"/>
-	<classpathentry kind="lib" path="lib/imagej-ops-0.10.0.jar"/>
-	<classpathentry kind="lib" path="lib/javaml-0.1.7.jar"/>
-	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
-	<classpathentry kind="lib" path="lib/commons-io-2.4.jar"/>
-	<classpathentry kind="lib" path="lib/ImageJ_3D_Viewer.jar"/>
 	<classpathentry kind="lib" path="lib/junit-4.12.jar"/>
-	<classpathentry kind="lib" path="lib/logback-classic-1.1.1.jar"/>
-	<classpathentry kind="lib" path="lib/logback-core-1.1.1.jar"/>
-	<classpathentry kind="lib" path="lib/eventbus-1.4.jar"/>
-	<classpathentry kind="lib" path="lib/mapdb-1.0.3.jar"/>
-	<classpathentry kind="lib" path="lib/scifio-bf-compat-1.11.0.jar"/>
-	<classpathentry kind="lib" path="lib/scifio-cli-0.3.1.jar"/>
-	<classpathentry kind="lib" path="lib/scifio-hdf5-0.1.0.jar"/>
-	<classpathentry kind="lib" path="lib/scifio-jai-imageio-1.1.0.jar"/>
-	<classpathentry kind="lib" path="lib/scifio-lifesci-0.7.0.jar"/>
-	<classpathentry kind="lib" path="lib/scifio-ome-xml-0.12.0.jar"/>
-	<classpathentry kind="lib" path="lib/scifio-tools-0.14.0.jar"/>
-	<classpathentry kind="lib" path="lib/kryo-2.21-shaded.jar"/>
-	<classpathentry kind="lib" path="lib/native-lib-loader-2.0.2.jar"/>
-	<classpathentry kind="lib" path="lib/slf4j-api-1.7.6.jar"/>
+	<classpathentry kind="lib" path="lib/scijava-common-2.39.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

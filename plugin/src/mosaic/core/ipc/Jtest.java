@@ -13,13 +13,12 @@ import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.bregman.output.Region3DRScript;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
-import mosaic.test.framework.SystemOperations;
 
 import org.junit.Test;
 
 public class Jtest 
 {
-	//@Test
+	@Test
 	public void csvtest() 
 	{
 		CSVOutput.initCSV(-1);
@@ -27,7 +26,7 @@ public class Jtest
 		// Stitch files all together
 		
 		String out[] = {"*stitchA","*stitchB"};
-		String TestDir = SystemOperations.getTestDataPath() + File.separator + "csv";
+		String TestDir = MosaicUtils.getTestDir() + File.separator + "csv";
 		
 		// Remove previous test files
 		
@@ -93,10 +92,10 @@ public class Jtest
 		 * 
 		 */
 		
-		String dir = SystemOperations.getTestDataPath();
+		String dir = MosaicUtils.getTestDir();
 		String dir_test = dir + File.separator + "csv_stitch_enumerating" + File.separator + "Test";
 		String dir_sample = dir + File.separator + "csv_stitch_enumerating" + File.separator + "Sample";
-
+		String tmp = IJ.getDirectory("temp");
 			
 		// put all the jobs dir into tmp
 
@@ -149,10 +148,10 @@ public class Jtest
 		
 		// test Stitch with enumerating2
 		
-		dir = SystemOperations.getTestDataPath();
+		dir = MosaicUtils.getTestDir();
 		dir_test = dir + File.separator + "csv_stitch_enumerating2" + File.separator + "Test";
 		dir_sample = dir + File.separator + "csv_stitch_enumerating2" + File.separator + "Sample";
-
+		tmp = IJ.getDirectory("temp");
 			
 		// put all the jobs dir into tmp
 

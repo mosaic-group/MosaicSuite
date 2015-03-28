@@ -1,7 +1,7 @@
 package mosaic.particleTracker;
 
 import static org.junit.Assert.assertEquals;
-import mosaic.test.framework.CommonTestBase;
+import mosaic.test.framework.CommonBase;
 
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -13,7 +13,7 @@ import org.junit.runners.MethodSorters;
  * This class is responsible for testing {@link LeastSquares} class. 
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class LeastSquaresTest extends CommonTestBase {
+public class LeastSquaresTest extends CommonBase {
     private LeastSquares iLeastSquares;
    
     @Before

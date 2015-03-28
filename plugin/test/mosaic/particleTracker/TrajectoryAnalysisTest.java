@@ -2,7 +2,7 @@ package mosaic.particleTracker;
 
 import static org.junit.Assert.*;
 import mosaic.core.detection.Particle;
-import mosaic.test.framework.CommonTestBase;
+import mosaic.test.framework.CommonBase;
 
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -13,7 +13,7 @@ import org.junit.runners.MethodSorters;
  * This class is responsible for testing {@link TrajectoryAnalysis} class. 
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TrajectoryAnalysisTest extends CommonTestBase {
+public class TrajectoryAnalysisTest extends CommonBase {
     
     /** 
      * Tests simple trajectory with particles moving in equal length intervals

@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class Jtest 
 {
-	//@Test
+	@Test
 	public void segmentation() 
 	{
 		BregmanGLM_Batch BG = new BregmanGLM_Batch();

@@ -8,10 +8,10 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 
-public class CustomTestRunner extends BlockJUnit4ClassRunner {
-    protected static CustomTestRunListener testListener;
+public class CustomRunner extends BlockJUnit4ClassRunner {
+    protected static CustomRunListener testListener;
 
-    public CustomTestRunner(Class<?> aClass) throws InitializationError {
+    public CustomRunner(Class<?> aClass) throws InitializationError {
         super(aClass);
     }
 
@@ -19,7 +19,7 @@ public class CustomTestRunner extends BlockJUnit4ClassRunner {
     public void run(final RunNotifier aNotifier) {
         // Add mosaic test run listener
         if (testListener == null) {
-            testListener = new CustomTestRunListener();
+            testListener = new CustomRunListener();
             aNotifier.addListener(testListener);
         }
 
