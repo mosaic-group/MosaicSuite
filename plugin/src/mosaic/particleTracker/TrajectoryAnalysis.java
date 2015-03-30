@@ -6,7 +6,9 @@ import mosaic.core.detection.Particle;
 /**
  *  This class is responsible for processing trajectories basing on methods presented in:
  *  I. F. Sbalzarini. Moments of displacement and their spectrum. 
- *  ICoS technical report, Institute of Computational Science (ICoS), ETH Zürich, 2005. 
+ *  ICoS technical report, Institute of Computational Science (ICoS), ETH Zürich, 2005.
+ *  
+ *   @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class TrajectoryAnalysis {
 

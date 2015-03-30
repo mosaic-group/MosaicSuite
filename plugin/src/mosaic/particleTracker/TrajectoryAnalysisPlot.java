@@ -22,6 +22,7 @@ import net.sf.javaml.utils.ArrayUtils;
 
 /**
  *  This class is responsible for displaying MSS/MSD plots. 
+ *  @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
 

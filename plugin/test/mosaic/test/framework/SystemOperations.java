@@ -10,6 +10,7 @@ import mosaic.core.utils.ShellCommand;
 
 /**
  * This class contains util's methods to operate on file system.
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class SystemOperations {
     static final String SEPARATOR = File.separator;
@@ -30,7 +31,7 @@ public class SystemOperations {
             throw new RuntimeException("Environment variable MOSAIC_PLUGIN_TEST_DATA_PATH is not defined! It should point to Jtest_data in plugin source.");
         }
 
-        return path;
+        return path + SEPARATOR;
     }
     
     /**
@@ -70,18 +71,29 @@ public class SystemOperations {
     }
     
     /**
+     * Copies file to new file
+     * @param aSrcFile
+     * @param aDestFile
+     */
+    public static void copyFile(File aSrcFile, File aDestFile) {
+        try {
+            FileUtils.copyFile(aSrcFile, aDestFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            // intentionally break execution
+            throw new RuntimeException("Cannot copy file [" + aSrcFile + "] to [" + aDestFile + "]");
+        }
+    }
+    /**
      * Removes test temporary directory. If any problem arise it
      * will throw and break an execution of test.
      */
-    private static void removeTestTmpDir() {
+    public static void removeTestTmpDir() {
         try {
-            ShellCommand.exeCmdNoPrint("rm -rf " + getTestTmpPath());
+            FileUtils.deleteDirectory(new File(getTestTmpPath()));
         } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("Command: [rm -rf " + getTestTmpPath() + "] failed!");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Command: [rm -rf " + getTestTmpPath() + "] failed!");
+            throw new RuntimeException("Deleting directory: [" + getTestTmpPath() + "] failed!");
         }
     }
     
@@ -91,14 +103,12 @@ public class SystemOperations {
      */
     private static void createTestTmpDir() {
         try {
-            ShellCommand.exeCmd("mkdir " + getTestTmpPath());
+            FileUtils.forceMkdir(new File(getTestTmpPath()));
         } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("Command: [mkdir " + getTestTmpPath() + "] failed!");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Command: [mkdir " + getTestTmpPath() + "] failed!");
+            throw new RuntimeException("Creating directory: [" + getTestTmpPath() + "] failed!");
         }
+
     }
 
     private static String getTmpPath() {

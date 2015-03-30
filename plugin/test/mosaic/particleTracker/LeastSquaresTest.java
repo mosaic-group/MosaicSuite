@@ -11,6 +11,7 @@ import org.junit.runners.MethodSorters;
 
 /** 
  * This class is responsible for testing {@link LeastSquares} class. 
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LeastSquaresTest extends CommonBase {

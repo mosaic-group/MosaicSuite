@@ -52,7 +52,6 @@ public class Naturalization implements PlugInFilterExt
 {
 	ImagePlus source;
 	ImagePlus nat;
-	boolean isGuiModeEnabled = true;
 	
 	/**
 	 * 
@@ -360,7 +359,6 @@ public class Naturalization implements PlugInFilterExt
 	@Override
 	public int setup(String arg, ImagePlus imp)
 	{
-	    isGuiModeEnabled = !(Interpreter.isBatchMode());
 		if (imp == null)
 		{IJ.error("The plugin require an 8-bit image");return DONE;}
 		source = imp;
@@ -524,7 +522,7 @@ public class Naturalization implements PlugInFilterExt
 				IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
 			}
 			else {
-			    rs.show("Natural factor and PSNR");
+			    if (!Interpreter.isBatchMode()) rs.show("Natural factor and PSNR");
 			}
 			
 			//
@@ -550,7 +548,7 @@ public class Naturalization implements PlugInFilterExt
 			
 			Img<UnsignedByteType> Channel = imgFactoryUS.create(rdims, new UnsignedByteType());
 			
-			ImagePlus Cb = new ImagePlus("Channel_tmp");
+			ImagePlus Cb = new ImagePlus();
 			
 			for (int i = 0 ; i < is.getSize() ; i++)
 			{
@@ -600,7 +598,7 @@ public class Naturalization implements PlugInFilterExt
 			
 			nat = ImageJFunctions.wrap(Channel, imp.getTitle() + "_naturalized");
 			nat.show();
-			rs.show("Naturalization and PSNR");
+			if (!Interpreter.isBatchMode()) rs.show("Naturalization and PSNR");
 
 			if (isOnTest())
 				IJ.saveAsTiff(nat, MosaicUtils.ValidFolderFromImage(imp)+ File.separator + MosaicUtils.removeExtension(imp.getTitle()) + "_nat.tif");
@@ -612,7 +610,7 @@ public class Naturalization implements PlugInFilterExt
 			IJ.error("Naturalization require 8-bit images or RGB");
 		}
 		
-		if (!isOnTest() && !IJ.isMacro())
+		if (!isOnTest() && !IJ.isMacro() && !Interpreter.isBatchMode())
 			showMessage("");
 
 		
