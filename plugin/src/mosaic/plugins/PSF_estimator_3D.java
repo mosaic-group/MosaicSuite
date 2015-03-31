@@ -437,28 +437,28 @@ public class PSF_estimator_3D implements  PlugInFilter{
 	 * @param aIS The imageStack where the intensities are read out.
 	 * @return the expected z position of a Gaussian in [1; <code>aIS.getSize</code>]
 	 */
-	private float calculateExpectedZPositionAt(int aX, int aY, ImageStack aIS) 
-	{
-		float vMaxInt = 0;
-		int vMaxSlice = 0;
-		for(int vZ = 0; vZ < mNSlices; vZ++) {
-			float vThisInt;
-			if((vThisInt = aIS.getProcessor(vZ+1).getf(aX, aY)) > vMaxInt) {
-				vMaxInt =  vThisInt;
-				vMaxSlice = vZ;
-			}
-			
-		}
-		float vSumOfIntensities = 0f;
-		float vRes = 0f;
-		int vStartSlice = Math.max(1, vMaxSlice-2);
-		int vStopSlice = Math.min(mNSlices, vMaxSlice+2);
-		for(int vZ = vStartSlice; vZ <= vStopSlice; vZ++) {
-			vSumOfIntensities += aIS.getProcessor(vZ).getf(aX, aY);
-			vRes += (vZ + 1) * aIS.getProcessor(vZ).getf(aX, aY);
-		}
-		return vRes / vSumOfIntensities;
-	}
+//	private float calculateExpectedZPositionAt(int aX, int aY, ImageStack aIS) 
+//	{
+//		float vMaxInt = 0;
+//		int vMaxSlice = 0;
+//		for(int vZ = 0; vZ < mNSlices; vZ++) {
+//			float vThisInt;
+//			if((vThisInt = aIS.getProcessor(vZ+1).getf(aX, aY)) > vMaxInt) {
+//				vMaxInt =  vThisInt;
+//				vMaxSlice = vZ;
+//			}
+//			
+//		}
+//		float vSumOfIntensities = 0f;
+//		float vRes = 0f;
+//		int vStartSlice = Math.max(1, vMaxSlice-2);
+//		int vStopSlice = Math.min(mNSlices, vMaxSlice+2);
+//		for(int vZ = vStartSlice; vZ <= vStopSlice; vZ++) {
+//			vSumOfIntensities += aIS.getProcessor(vZ).getf(aX, aY);
+//			vRes += (vZ + 1) * aIS.getProcessor(vZ).getf(aX, aY);
+//		}
+//		return vRes / vSumOfIntensities;
+//	}
 	
 	public int getBrightestSliceIndexAt(int aX, int aY, ImageStack aIS) {
 		float vMaxInt = 0;

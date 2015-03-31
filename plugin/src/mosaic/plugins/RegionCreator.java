@@ -331,7 +331,6 @@ public class RegionCreator implements PlugInFilter
 	 * 
 	 */
 	
-	@SuppressWarnings("unchecked")
 	<T extends RealType<T> & NativeType<T>> Img<T> createImage(long[] size, Class<T> cls)
 	{
 		Img<T> out = null;

@@ -229,11 +229,11 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 			CalculateLikelihoodMonitorProcessor(mZProjectedImagePlus.getStack().getProcessor(17).convertToFloat());
 			return;
 		}
-		if(false) {
-			float[][] vF = generateIdealImage(60, 60, new float[]{19.91f, 30.7f, 8.8f, 0.46f, 9.25f, -0.8f, 65, 65}, 10);
-			new ImagePlus("Ideal image", new FloatProcessor(vF)).show();
-			return;
-		}
+//		if(false) {
+//			float[][] vF = generateIdealImage(60, 60, new float[]{19.91f, 30.7f, 8.8f, 0.46f, 9.25f, -0.8f, 65, 65}, 10);
+//			new ImagePlus("Ideal image", new FloatProcessor(vF)).show();
+//			return;
+//		}
 		
 //		if (mOriginalImagePlus.getNFrames() == 1)
 //		if(!IJ.showMessageWithCancel("MT Track", "Your current image only contains one frame. " +
@@ -590,22 +590,22 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 		float[] vInterpolatedData = interpolateRay(mOriginalImagePlus.getStack(), aX, aY, aFrameIndex);
 		float vMaxSliceInd = getMaxIndex(vInterpolatedData);
 		float[] vIdealImage = generateIdealImage1D(mNSlices, vMaxSliceInd + mZResolution, aIntensity, mBackground);
-		float vLeftLogLik = calculateZCoordLogLikelihood(vInterpolatedData, 
-				vIdealImage, 
-				aFrameIndex);
+//		float vLeftLogLik = calculateZCoordLogLikelihood(vInterpolatedData, 
+//				vIdealImage, 
+//				aFrameIndex);
 		vIdealImage = generateIdealImage1D(mNSlices, vMaxSliceInd - mZResolution, aIntensity, mBackground);
-		float vRightLogLik = calculateZCoordLogLikelihood(vInterpolatedData, 
-				vIdealImage, 
-				aFrameIndex);
+//		float vRightLogLik = calculateZCoordLogLikelihood(vInterpolatedData, 
+//				vIdealImage, 
+//				aFrameIndex);
 		vIdealImage = generateIdealImage1D(mNSlices, vMaxSliceInd, aIntensity, mBackground);
-		float vOldLogLik = calculateZCoordLogLikelihood(vInterpolatedData, 
-				vIdealImage, 
-				aFrameIndex);
+//		float vOldLogLik = calculateZCoordLogLikelihood(vInterpolatedData, 
+//				vIdealImage, 
+//				aFrameIndex);
 
-		float vCoeff = vLeftLogLik > vRightLogLik ? 1f : -1f;
-		float vNewLogLik;
-
-		float vOldPos = vMaxSliceInd;
+//		float vCoeff = vLeftLogLik > vRightLogLik ? 1f : -1f;
+//		float vNewLogLik;
+//
+//		float vOldPos = vMaxSliceInd;
 		/*
 		 * Z Coordinate likelihood plots
 		 */
@@ -615,7 +615,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 		int vCounter = 0;
 		float vMaxPos = 1;
 		float vMaxLogLik = Float.NEGATIVE_INFINITY;
-		long vtime1 = System.currentTimeMillis();
+//		long vtime1 = System.currentTimeMillis();
 		for(float vStep = 1; vStep <= mNSlices; vStep += mZResolution) {
 			vIdealImage = generateIdealImage1D(mNSlices, vStep, aIntensity, mBackground);
 			float vloglik = calculateZCoordLogLikelihood(
@@ -1071,7 +1071,6 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 	}
 
 	private void CreateParticles(Vector<float[]> aStateVectors, Vector<Vector<float[]>> aParticles){
-		int vStateCounter = 0;
 		aParticles.clear();
 		if(aStateVectors.isEmpty()) {				
 			IJ.error("Not nice argument in method CreateParticles in ParticleFilter_");
@@ -1092,8 +1091,6 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 				vParticleVector.add(vProposal);					
 			}
 			aParticles.add(vParticleVector);
-
-			vStateCounter++;
 		}		
 	}
 
@@ -1312,7 +1309,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 		try{
 			BufferedWriter vBW = new BufferedWriter(new FileWriter("c:\\likelihoodsWrong.txt"));
 			vPW = new PrintWriter(vBW);
-			
+			vBW.close();
 		}catch (IOException aIOE){
 			IJ.error("unable to write to file");
 		}
@@ -1326,8 +1323,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 
 //			float[] vPixels = (float[])mLikelihoodMonitorProcessor.getPixels();
 			String vS = "";
-			int vXCounter = 0; 
-			int vYCounter = 0;
+
 //			float[][] vLogLikelihoods = new float[200][200];
 			/**
 			 * movie 884, frame 17: values 19.91	30.7	8.8	0.46	9.25	-0.8 63 63
@@ -1355,11 +1351,8 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 					vS += "\n";
 					vPW.write(vS);
 //					vLogLikelihoods[vYCounter][vXCounter] = calculateLogLikelihood(aObservationImage,vIdealImage,vBitmap);
-					vXCounter++;
 				}
 			}
-			vYCounter++;
-			vXCounter = 0;
 
 //			int vXMaxIndex = 0;
 //			int vYMaxIndex = 0;
@@ -1688,7 +1681,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 		DrawCanvas vDrawCanvas = new DrawCanvas(mZProjectedImagePlus);
 		
 		// display the image and canvas in a stackWindow  
-		TrajectoryStackWindow vZWin = new TrajectoryStackWindow(mZProjectedImagePlus, vDrawCanvas);
+		new TrajectoryStackWindow(mZProjectedImagePlus, vDrawCanvas);
 //		vDrawCanvas.zoomIn(mWidth/2, mHeight/2);
 //		vZWin.repaint();
 		

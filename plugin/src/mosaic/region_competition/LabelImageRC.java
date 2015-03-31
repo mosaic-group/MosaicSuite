@@ -314,9 +314,8 @@ public class LabelImageRC extends LabelImage
 	public ImagePlus createMeanImage()
 	{
 		int nSlices = labelPlus.getNSlices();
-		int area = width*height;
-		
-		for(int i=1; i<=nSlices; i++)
+
+		for(int i=1; i<=nSlices;)
 		{
 			ImageProcessor ipr = new FloatProcessor(labelIP.getWidth(),labelIP.getHeight());
 			float [] pixels = (float[])ipr.getPixels();
@@ -337,14 +336,14 @@ public class LabelImageRC extends LabelImage
 		return null;
 	}
 	
-	private void clearStats()
-	{
-		//clear stats
-		for(LabelInformation stat: labelMap.values())
-		{
-			stat.reset();
-		}
-	}
+//	private void clearStats()
+//	{
+//		//clear stats
+//		for(LabelInformation stat: labelMap.values())
+//		{
+//			stat.reset();
+//		}
+//	}
 	
 	/**
 	 * sets the outermost pixels of the labelimage to the forbidden label

@@ -1,12 +1,11 @@
 package mosaic.test.framework;
 
 import ij.IJ;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 
-import mosaic.core.utils.ShellCommand;
+import org.apache.commons.io.FileUtils;
 
 /**
  * This class contains util's methods to operate on file system.

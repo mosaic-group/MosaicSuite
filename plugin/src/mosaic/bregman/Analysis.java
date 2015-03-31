@@ -122,7 +122,7 @@ public class Analysis {
 
 	public static double a3b3, a3b2, a2b2, a2b3;
 
-	public static Tools Tools;
+	public static Tools iTools;
 
 	public static void init()
 	{
@@ -548,7 +548,10 @@ public class Analysis {
 			//out.write("Hello");
 
 			String[] list = new File(dir1).list();
-			if (list==null) return;
+			if (list==null) {
+			    out.close();
+			    return;
+			}
 			IJ.log("length" + list.length);
 			for (int i=0; i<list.length; i++) {
 				IJ.log("list i " + list[i]);
@@ -601,7 +604,7 @@ public class Analysis {
 			}
 
 			out.flush();
-			//out.close();
+			out.close();
 		}catch (Exception e){//Catch exception if any
 			System.err.println("Error: " + e.getMessage());
 		}

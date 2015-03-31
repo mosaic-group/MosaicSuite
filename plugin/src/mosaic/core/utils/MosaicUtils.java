@@ -1726,8 +1726,6 @@ public class MosaicUtils
 			{
 				BufferedReader br = new BufferedReader(new FileReader(cfg));
  
-				String sCurrentLine;
- 
 				imgT = new ImgTest();
 			
 				imgT.base = dir.getAbsolutePath();
@@ -1769,6 +1767,7 @@ public class MosaicUtils
 					imgT.csv_results_rel[i] = br.readLine();
 					imgT.csv_results[i] = dir.getAbsolutePath() + File.separator + imgT.csv_results_rel[i];
 				}
+				br.close();
 			} 
 			catch (IOException e) 
 			{

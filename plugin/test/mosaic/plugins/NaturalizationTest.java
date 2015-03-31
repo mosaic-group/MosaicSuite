@@ -3,7 +3,6 @@ package mosaic.plugins;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import ij.plugin.filter.PlugInFilter;
-import mosaic.particleTracker.TrajectoryAnalysis;
 import mosaic.test.framework.CommonBase;
 
 import org.apache.log4j.Logger;
@@ -15,7 +14,7 @@ import org.junit.Test;
  */
 public class NaturalizationTest extends CommonBase {
     private static final Logger logger = Logger.getLogger(NaturalizationTest.class);
-  
+
     @Test
     public void testColorRgb() {
         // Define test data
@@ -60,6 +59,7 @@ public class NaturalizationTest extends CommonBase {
         Naturalization nt = new Naturalization();
         
         // Check values
+        logger.debug("Testting PSNR for different ranges of input values");
         assertTrue("x >=  0 && x <= 0.934", nt.calculate_PSNR(0).startsWith("6.100"));
         assertTrue("x >=  0 && x <= 0.934", nt.calculate_PSNR(0.9).startsWith("38.568"));
         
@@ -71,6 +71,5 @@ public class NaturalizationTest extends CommonBase {
         assertTrue("x >= 1.9", nt.calculate_PSNR(1.95).startsWith("29.765"));
         assertTrue("x >= 1.9", nt.calculate_PSNR(10.0).startsWith("44444."));
     }
-    
     
 }

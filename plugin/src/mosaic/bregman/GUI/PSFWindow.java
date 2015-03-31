@@ -50,7 +50,7 @@ public class PSFWindow implements ActionListener,PropertyChangeListener
 	private JFormattedTextField Vpix_xy= new JFormattedTextField(nf);
 	private JFormattedTextField Vpix_z= new JFormattedTextField(nf);
 
-	private  JComboBox micr = new JComboBox(items);
+	private  JComboBox<String> micr = new JComboBox<String>(items);
 	private JButton estimate = new JButton("Compute PSF");
 
 	private JLabel ref= new JLabel(

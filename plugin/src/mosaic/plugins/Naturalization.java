@@ -3,7 +3,6 @@ package mosaic.plugins;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.Macro;
 import ij.macro.Interpreter;
 import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
@@ -172,7 +171,7 @@ public class Naturalization implements PlugInFilterExt
 	 * 
 	 */
 	
-	<T extends NumericType<T> & NativeType<T> & RealType<T>, S extends RealType<S>> Img<T> Naturalization(Img<T> image_orig, S Theta, int channel_prior, Class<T> cls_t, Class<S> cls_s) throws InstantiationException, IllegalAccessException
+	<T extends NumericType<T> & NativeType<T> & RealType<T>, S extends RealType<S>> Img<T> doNaturalization(Img<T> image_orig, S Theta, int channel_prior, Class<T> cls_t, Class<S> cls_s) throws InstantiationException, IllegalAccessException
 	{
 		if (image_orig == null)
 		{IJ.error("Naturalization plugin require an 8-bit image");return null;}
@@ -214,9 +213,6 @@ public class Naturalization implements PlugInFilterExt
 		
 		// Calculate mean intensity of the original image
 		m.compute(image_orig.cursor(), mean_original);
-		
-		// We have only one channel
-		Img<T> field_R = image_orig;
 		
 		long dims[] = {N_Lap};
 		
@@ -410,7 +406,7 @@ public class Naturalization implements PlugInFilterExt
 				
 				FloatType Theta = new FloatType(0.5f);
 				try {
-					R_Channel = Naturalization(R_Channel,Theta,2,UnsignedByteType.class, FloatType.class);
+					R_Channel = doNaturalization(R_Channel,Theta,2,UnsignedByteType.class, FloatType.class);
 				} catch (InstantiationException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -440,7 +436,7 @@ public class Naturalization implements PlugInFilterExt
 			
 				Theta = new FloatType(0.5f);
 				try {
-					G_Channel = Naturalization(G_Channel,Theta,1,UnsignedByteType.class, FloatType.class);
+					G_Channel = doNaturalization(G_Channel,Theta,1,UnsignedByteType.class, FloatType.class);
 				} catch (InstantiationException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -468,7 +464,7 @@ public class Naturalization implements PlugInFilterExt
 			
 				Theta = new FloatType(0.5f);
 				try {
-					B_Channel = Naturalization(B_Channel,Theta,0,UnsignedByteType.class, FloatType.class);
+					B_Channel = doNaturalization(B_Channel,Theta,0,UnsignedByteType.class, FloatType.class);
 				} catch (InstantiationException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -560,7 +556,7 @@ public class Naturalization implements PlugInFilterExt
 				FloatType Theta = new FloatType(0.5f);
 				
 				try {
-					TChannel = Naturalization(TChannel,Theta,3,UnsignedByteType.class, FloatType.class);
+					TChannel = doNaturalization(TChannel,Theta,3,UnsignedByteType.class, FloatType.class);
 				} catch (InstantiationException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -719,9 +715,6 @@ public class Naturalization implements PlugInFilterExt
 		dims[1] = N_Grad;
 		
 		Img<FloatType> GradD = imgFactoryF.create(dims, new FloatType());
-		    
-		// Laplacian pointer
-		Img<FloatType> Lap = LapCDF;
 
 		// Normalization 1/(Number of pixel of the original image)
 		long n_pixel = 1;
@@ -735,11 +728,8 @@ public class Naturalization implements PlugInFilterExt
 		    
 		Cursor<FloatType> cur = field.cursor();
 		
-		int counter = 0;
-		
 		// Cursor localization
-		    
-		int two_num_dim = 2 * 2;
+
 		int[] indexD = new int[2];
 		int[] loc_p = new int[field.numDimensions()];
 		RandomAccess<T> img_cur = image.randomAccess();

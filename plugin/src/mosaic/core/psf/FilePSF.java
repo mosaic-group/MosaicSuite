@@ -80,7 +80,6 @@ public class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , 
 	 * @param cl give the class of the parameter T
 	 */
 	
-	@SuppressWarnings("unchecked")
 	public FilePSF(Class<T> cl)
 	{
 		clCreator = cl;

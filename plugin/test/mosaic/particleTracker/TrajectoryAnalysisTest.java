@@ -1,10 +1,9 @@
 package mosaic.particleTracker;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import mosaic.core.detection.Particle;
 import mosaic.test.framework.CommonBase;
 
-import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;

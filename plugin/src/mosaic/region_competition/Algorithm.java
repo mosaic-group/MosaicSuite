@@ -475,7 +475,7 @@ public class Algorithm
 		return true;
 	}
 
-	Vector<ImagePlus> OpenedImages = new Vector();
+	Vector<ImagePlus> OpenedImages = new Vector<ImagePlus>();
 	
 	/**
 	 * 
@@ -1705,12 +1705,12 @@ public class Algorithm
 			if(!(vNbElements >= 1)) break;
 
 			vNbElements--;
-			Point vCandCIndex = vSortedListIterator.pIndex;
+//			Point vCandCIndex = vSortedListIterator.pIndex;
 			Iterator<Entry<Point, ContourParticle>> vAcceptedCandIterator = aContainer.entrySet().iterator();
 			boolean vValid = true;
 			while(vAcceptedCandIterator.hasNext())
 			{
-				Point vCIndex = vAcceptedCandIterator.next().getKey();
+//				Point vCIndex = vAcceptedCandIterator.next().getKey();
 
 				// TODO nothing happens in here. itk::2074
 				// itk commented

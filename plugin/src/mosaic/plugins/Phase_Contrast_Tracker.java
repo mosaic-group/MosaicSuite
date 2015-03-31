@@ -1053,6 +1053,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 				line = r.readLine();
 				if (line == null || !line.startsWith("frame")) {
 					IJ.error("File: " + path + "\ndoesnt have the string 'frame' in the begining if the first line");
+					r.close();
 					return false;
 				}
 				line = line.trim();
@@ -1948,15 +1949,14 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 
 					float x_tilde = this.particles.elementAt(m).x;
 					float y_tilde = this.particles.elementAt(m).y;
-					float z_tilde = this.particles.elementAt(m).z;
+
 
 					float x_hat = (float) (Math.floor(x_tilde)) + .5f;
 					float y_hat = (float) (Math.floor(y_tilde)) + .5f;
-					float z_hat = (float) (Math.floor(z_tilde)) + .5f;
+
 
 					float x_diff = x_hat - x_tilde;
 					float y_diff = y_hat - y_tilde;
-					float z_diff = z_hat - z_tilde;
 
 					if(ips.getSize() == 1){
 						//						generateWeightedMask_2D(radius, xDiff, yDiff, zDiff);

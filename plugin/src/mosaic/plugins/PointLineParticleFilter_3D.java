@@ -536,25 +536,25 @@ public class PointLineParticleFilter_3D extends PFTracking3D{
 		}
 	}
 	
-	private void addFeaturePointToBitmap(boolean[][][] aBitmap, Point3D aPoint, float aMaxDistancexyInPx, float aMaxDistancezInPx, int aW, int aH, int aS, float aPxWidthInNm, float aPxDepthInNm)
-	{
-		int vXStart, vXEnd, vYStart, vYEnd, vZStart, vZEnd;//defines a bounding box around the tip
-		if(aPoint.mX / aPxWidthInNm + .5f - (aMaxDistancexyInPx + .5f) < 0) vXStart = 0; else vXStart = (int)(aPoint.mX / aPxWidthInNm+ .5f) - (int)(aMaxDistancexyInPx + .5f);
-		if(aPoint.mY / aPxWidthInNm + .5f - (aMaxDistancexyInPx + .5f) < 0) vYStart = 0; else vYStart = (int)(aPoint.mY / aPxWidthInNm+ .5f) - (int)(aMaxDistancexyInPx + .5f);
-		if(aPoint.mZ / aPxDepthInNm + .5f - (aMaxDistancezInPx + .5f)  < 0) vZStart = 0; else vZStart = (int)(aPoint.mZ / aPxDepthInNm + .5f) - (int)(aMaxDistancezInPx + .5f);
-		if(aPoint.mX / aPxWidthInNm + .5f + (aMaxDistancexyInPx + .5f) >= aW) vXEnd = aW - 1; else vXEnd = (int)(aPoint.mX / aPxWidthInNm+ .5f) + (int)(aMaxDistancexyInPx + .5f);
-		if(aPoint.mY / aPxWidthInNm + .5f + (aMaxDistancexyInPx + .5f) >= aH) vYEnd = aH - 1; else vYEnd = (int)(aPoint.mY / aPxWidthInNm+ .5f) + (int)(aMaxDistancexyInPx + .5f);
-		if(aPoint.mZ / aPxDepthInNm + .5f + (aMaxDistancezInPx + .5f)  >= aS) vZEnd = aS - 1; else vZEnd = (int)(aPoint.mZ / aPxDepthInNm + .5f) + (int)(aMaxDistancezInPx + .5f);
-
-		for(int vZ = vZStart; vZ <= vZEnd; vZ++) {
-			for(int vY = vYStart; vY <= vYEnd; vY++){
-				for(int vX = vXStart; vX <= vXEnd; vX++){
-					mIntensityBitmap[vZ][vY][vX] = true;
-				}
-			}		
-
-		}
-	}
+//	private void addFeaturePointToBitmap(boolean[][][] aBitmap, Point3D aPoint, float aMaxDistancexyInPx, float aMaxDistancezInPx, int aW, int aH, int aS, float aPxWidthInNm, float aPxDepthInNm)
+//	{
+//		int vXStart, vXEnd, vYStart, vYEnd, vZStart, vZEnd;//defines a bounding box around the tip
+//		if(aPoint.mX / aPxWidthInNm + .5f - (aMaxDistancexyInPx + .5f) < 0) vXStart = 0; else vXStart = (int)(aPoint.mX / aPxWidthInNm+ .5f) - (int)(aMaxDistancexyInPx + .5f);
+//		if(aPoint.mY / aPxWidthInNm + .5f - (aMaxDistancexyInPx + .5f) < 0) vYStart = 0; else vYStart = (int)(aPoint.mY / aPxWidthInNm+ .5f) - (int)(aMaxDistancexyInPx + .5f);
+//		if(aPoint.mZ / aPxDepthInNm + .5f - (aMaxDistancezInPx + .5f)  < 0) vZStart = 0; else vZStart = (int)(aPoint.mZ / aPxDepthInNm + .5f) - (int)(aMaxDistancezInPx + .5f);
+//		if(aPoint.mX / aPxWidthInNm + .5f + (aMaxDistancexyInPx + .5f) >= aW) vXEnd = aW - 1; else vXEnd = (int)(aPoint.mX / aPxWidthInNm+ .5f) + (int)(aMaxDistancexyInPx + .5f);
+//		if(aPoint.mY / aPxWidthInNm + .5f + (aMaxDistancexyInPx + .5f) >= aH) vYEnd = aH - 1; else vYEnd = (int)(aPoint.mY / aPxWidthInNm+ .5f) + (int)(aMaxDistancexyInPx + .5f);
+//		if(aPoint.mZ / aPxDepthInNm + .5f + (aMaxDistancezInPx + .5f)  >= aS) vZEnd = aS - 1; else vZEnd = (int)(aPoint.mZ / aPxDepthInNm + .5f) + (int)(aMaxDistancezInPx + .5f);
+//
+//		for(int vZ = vZStart; vZ <= vZEnd; vZ++) {
+//			for(int vY = vYStart; vY <= vYEnd; vY++){
+//				for(int vX = vXStart; vX <= vXEnd; vX++){
+//					mIntensityBitmap[vZ][vY][vX] = true;
+//				}
+//			}		
+//
+//		}
+//	}
 	/**
 	 * 
 	 * @param aState

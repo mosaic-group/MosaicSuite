@@ -1460,7 +1460,7 @@ public class Region_Competition implements Segmentation
 //			new HyperStackConverter().run("stacktohs");
 			ImagePlus imp2 = stackImPlus;
 			imp2.setOpenAsHyperStack(true);
-			StackWindow win = new StackWindow(imp2);
+			new StackWindow(imp2);
 		}
 		
 		int lastSlice = stackImPlus.getSlice();
