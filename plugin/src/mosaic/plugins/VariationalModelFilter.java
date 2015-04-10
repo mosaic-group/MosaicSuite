@@ -85,7 +85,7 @@ public class VariationalModelFilter implements PlugInFilter {
         splitImage(img, WC, WT, BC, BT);
         
         final int noOfIterations = 10;
-        runFilterGc(WC, WT, BC, BT, noOfIterations);
+        runFilter(WC, WT, BC, BT, noOfIterations, new FilterMC());
         
         mergeImage(aInputIp, WC, WT, BC, BT, maxValueOfPixel);
     }
@@ -192,10 +192,11 @@ public class VariationalModelFilter implements PlugInFilter {
      * @param WT             2D array containing part of image
      * @param BC             2D array containing part of image
      * @param BT             2D array containing part of image
-     * @param noOfIterations Number of iteration to run filter
+     * @param aNoOfIterations Number of iteration to run filter
+     * @param aFilter        Filter object
      */
-    private void runFilterGc(float[][] WC, float[][] WT, float[][] BC, float[][] BT, final int noOfIterations) {
-        for (int i = 0; i < noOfIterations; ++i) {
+    private void runFilter(float[][] WC, float[][] WT, float[][] BC, float[][] BT, final int aNoOfIterations, Filter aFilter) {
+        for (int i = 0; i < aNoOfIterations; ++i) {
             
             /*          0         1         2    .
              *      -----------------------------.
@@ -208,196 +209,190 @@ public class VariationalModelFilter implements PlugInFilter {
              *      
              * aMiddle aSides aDown aDownCorners aUp aUpCorners aShifted
              */
-            
-//            for (int y = 1; y < halfHeight - 1; ++y) {
-//                runGcFilterOnSplittedPart(BT[y], WT[y], WC[y], BC[y], WC[y-1], BC[y-1], false);
-//            }
-//            for (int y = 1; y < halfHeight - 1; ++y) {
-//                runGcFilterOnSplittedPart(WC[y], BC[y], BT[y+1], WT[y+1], BT[y], WT[y], false);
-//            }
-//            for (int y = 1; y < halfHeight - 1; ++y) {
-//                runGcFilterOnSplittedPart(WT[y], BT[y], BC[y], WC[y], BC[y-1], WC[y-1], true);
-//            }
-//            for (int y = 1; y < halfHeight - 1; ++y) {
-//                runGcFilterOnSplittedPart(BC[y], WC[y], WT[y+1], BT[y+1], WT[y], BT[y], true);
-//            }
-            
-            
-            
-      for (int y = 1; y < halfHeight - 1; ++y) {
-          runMcFilterOnSplittedPart(BT[y], WT[y], WC[y], BC[y], WC[y-1], BC[y-1], false);
-      }
-      for (int y = 1; y < halfHeight - 1; ++y) {
-          runMcFilterOnSplittedPart(WC[y], BC[y], BT[y+1], WT[y+1], BT[y], WT[y], false);
-      }
-      for (int y = 1; y < halfHeight - 1; ++y) {
-          runMcFilterOnSplittedPart(WT[y], BT[y], BC[y], WC[y], BC[y-1], WC[y-1], true);
-      }
-      for (int y = 1; y < halfHeight - 1; ++y) {
-          runMcFilterOnSplittedPart(BC[y], WC[y], WT[y+1], BT[y+1], WT[y], BT[y], true);
-      }
-            
-            
-        }
-    }
-
-    /**
-     * Runs filter on extracted part of original image (after splitting). 
-     * All parameters are given as a lines of original BT/WC/WT/BC parts.
-     *           
-     * aShifted == false
-     * ------------------------------------
-     *     n-1      |         n
-     * ------------------------------------
-     * aUpCorners   | aUp     aUpCorners
-     * aSides       | aMiddle aSides
-     * aDownCorners | aDown   aDownCorners
-     * 
-     * aShifted == true
-     * ------------------------------------
-     *         n            |    n+1
-     * ------------------------------------
-     * aUpCorners   aUp     | aUpCorners
-     * aSides       aMiddle | aSides
-     * aDownCorners aDown   | aDownCorners
-     * 
-     * @param aMiddle 
-     * @param aSides
-     * @param aDown
-     * @param aDownCorners
-     * @param aUp
-     * @param aUpCorners
-     * @param aShifted
-     */
-    private void runGcFilterOnSplittedPart(float[] aMiddle, float[] aSides, float[] aDown, float[] aDownCorners, float[] aUp, float[] aUpCorners, boolean aShifted) {
-        final int startIdx = 2 + (aShifted ? 1 : 0); 
-        
-        int rightIdx = (startIdx + 1) / 2;
-        int leftIdx = rightIdx - 1;
-        int middleIdx = startIdx / 2;
-        
-        for (int j = 1; j < halfWidth - 1; ++j) {
-            /*
-             * Naming:
-             * 
-             *       lu | u | ru
-             *       ---+---+---
-             *       l  | m |  r
-             *       ---+---+---
-             *       ld | d | rd
-             */
-            final float m2 = 2 * aMiddle[middleIdx];
-            final float m3 = 3 * aMiddle[middleIdx];
-            final float u = aUp[middleIdx];
-            final float d = aDown[middleIdx];
-            final float l = aSides[leftIdx];
-            final float r = aSides[rightIdx];
-            final float ld = aDownCorners[leftIdx];
-            final float rd = aDownCorners[rightIdx];
-            final float lu = aUpCorners[leftIdx];
-            final float ru = aUpCorners[rightIdx];
-            
-            // Calculate d0..d7
-            float d0 = (u+d)-m2;
-            float d1 = (l+r)-m2;
-            float d2 = (lu+rd)-m2;
-            float d3 = (ru+ld)-m2;
-       
-            float d4 = (lu+u+l)-m3;
-            float d5 = (ru+u+r)-m3;
-            float d6 = (l+ld+d)-m3;
-            float d7 = (r+d+rd)-m3;
-
-            // And find minimum (absolute) change
-            float da; 
-        
-            float d0a = Math.abs(d0);
-            da = Math.abs(d1);
-            if (da < d0a) {d0 = d1; d0a = da;}
-            da = Math.abs(d2);
-            if (da < d0a) {d0 = d2; d0a = da;}
-            da = Math.abs(d3);
-            if (da < d0a) {d0 = d3;}
            
-            float d4a = Math.abs(d4);
-            da = Math.abs(d5);
-            if (da < d4a) {d4 = d5; d4a = da;}
-            da = Math.abs(d6);
-            if (da < d4a) {d4 = d6; d4a = da;}
-            da = Math.abs(d7);
-            if (da < d4a) {d4 = d7;}
-           
-            d0 /= 2;
-            d4 /= 3;
-           
-            if (Math.abs(d4) < Math.abs(d0)) d0 = d4;
-   
-            // Finally update middle pixel with minimum change
-            aMiddle[middleIdx] += d0;
-            
-            // Go to next pixel
-            ++rightIdx;
-            ++leftIdx;
-            ++middleIdx;
+            for (int y = 1; y < halfHeight - 1; ++y) {
+                aFilter.runFilterOnSplittedPart(BT[y], WT[y], WC[y], BC[y], WC[y-1], BC[y-1], false);
+            }
+            for (int y = 1; y < halfHeight - 1; ++y) {
+                aFilter.runFilterOnSplittedPart(WC[y], BC[y], BT[y+1], WT[y+1], BT[y], WT[y], false);
+            }
+            for (int y = 1; y < halfHeight - 1; ++y) {
+                aFilter.runFilterOnSplittedPart(WT[y], BT[y], BC[y], WC[y], BC[y-1], WC[y-1], true);
+            }
+            for (int y = 1; y < halfHeight - 1; ++y) {
+                aFilter.runFilterOnSplittedPart(BC[y], WC[y], WT[y+1], BT[y+1], WT[y], BT[y], true);
+            }
         }
     }
     
-    private void runMcFilterOnSplittedPart(float[] aMiddle, float[] aSides, float[] aDown, float[] aDownCorners, float[] aUp, float[] aUpCorners, boolean aShifted) {
-        final int startIdx = 2 + (aShifted ? 1 : 0); 
-        
-        int rightIdx = (startIdx + 1) / 2;
-        int leftIdx = rightIdx - 1;
-        int middleIdx = startIdx / 2;
-        
-        for (int j = 1; j < halfWidth - 1; ++j) {
-            /*
-             * Naming:
-             * 
-             *       lu | u | ru
-             *       ---+---+---
-             *       l  | m |  r
-             *       ---+---+---
-             *       ld | d | rd
-             */
-            final float m8 = aMiddle[middleIdx] * 8;
-            final float u = aUp[middleIdx];
-            final float d = aDown[middleIdx];
-            final float l = aSides[leftIdx];
-            final float r = aSides[rightIdx];
-            final float ld = aDownCorners[leftIdx];
-            final float rd = aDownCorners[rightIdx];
-            final float lu = aUpCorners[leftIdx];
-            final float ru = aUpCorners[rightIdx];
-            
-            // Calculate d0..d3
-
-            float common1 = (u+d) * 2.5f - m8;
-            float d0 = common1 + r * 5.0f - ru - rd;
-            float d1 = common1 + l * 5.0f - lu - ld;
-            
-            float common2 = (l+r) * 2.5f - m8;
-            float d2 = common2 + u * 5.0f - lu - ru;
-            float d3 = common2 + d * 5.0f - ld - rd;
-       
-            // And find minimal (absolute) change
-            float d0a = Math.abs(d0);
-            float da = Math.abs(d1);
-            if (da < d0a) {d0 = d1; d0a = da;}
-            da = Math.abs(d2);
-            if (da < d0a) {d0 = d2; d0a = da;}
-            da = Math.abs(d3);
-            if (da < d0a) {d0 = d3;}
-            
-            d0 /= 8.0f;
-            
-            // Finally update middle pixel with minimum change
-            aMiddle[middleIdx] += d0;
-            
-            // Go to next pixel
-            ++rightIdx;
-            ++leftIdx;
-            ++middleIdx;
-        }
+    public interface Filter {
+        /**
+         * Runs filter on extracted part of original image (after splitting). 
+         * All parameters are given as a lines of original BT/WC/WT/BC parts.
+         *           
+         * aShifted == false
+         * ------------------------------------
+         *     n-1      |         n
+         * ------------------------------------
+         * aUpCorners   | aUp     aUpCorners
+         * aSides       | aMiddle aSides
+         * aDownCorners | aDown   aDownCorners
+         * 
+         * aShifted == true
+         * ------------------------------------
+         *         n            |    n+1
+         * ------------------------------------
+         * aUpCorners   aUp     | aUpCorners
+         * aSides       aMiddle | aSides
+         * aDownCorners aDown   | aDownCorners
+         * 
+         * @param aMiddle 
+         * @param aSides
+         * @param aDown
+         * @param aDownCorners
+         * @param aUp
+         * @param aUpCorners
+         * @param aShifted
+         */
+        void runFilterOnSplittedPart(float[] aMiddle, float[] aSides, float[] aDown, float[] aDownCorners, float[] aUp, float[] aUpCorners, boolean aShifted);
     }
     
+    public class FilterGC implements Filter {
+
+        @Override
+        public void runFilterOnSplittedPart(float[] aMiddle, float[] aSides, float[] aDown, float[] aDownCorners, float[] aUp, float[] aUpCorners, boolean aShifted) {
+            final int startIdx = 2 + (aShifted ? 1 : 0); 
+            
+            int rightIdx = (startIdx + 1) / 2;
+            int leftIdx = rightIdx - 1;
+            int middleIdx = startIdx / 2;
+            
+            for (int j = 1; j < halfWidth - 1; ++j) {
+                /*
+                 * Naming:
+                 * 
+                 *       lu | u | ru
+                 *       ---+---+---
+                 *       l  | m |  r
+                 *       ---+---+---
+                 *       ld | d | rd
+                 */
+                final float m2 = 2 * aMiddle[middleIdx];
+                final float m3 = 3 * aMiddle[middleIdx];
+                final float u = aUp[middleIdx];
+                final float d = aDown[middleIdx];
+                final float l = aSides[leftIdx];
+                final float r = aSides[rightIdx];
+                final float ld = aDownCorners[leftIdx];
+                final float rd = aDownCorners[rightIdx];
+                final float lu = aUpCorners[leftIdx];
+                final float ru = aUpCorners[rightIdx];
+                
+                // Calculate distances d0..d7
+                float d0 = (u+d)-m2;
+                float d1 = (l+r)-m2;
+                float d2 = (lu+rd)-m2;
+                float d3 = (ru+ld)-m2;
+           
+                float d4 = (lu+u+l)-m3;
+                float d5 = (ru+u+r)-m3;
+                float d6 = (l+ld+d)-m3;
+                float d7 = (r+d+rd)-m3;
+
+                // And find minimum (absolute) change
+                float da; 
+            
+                float d0a = Math.abs(d0);
+                da = Math.abs(d1);
+                if (da < d0a) {d0 = d1; d0a = da;}
+                da = Math.abs(d2);
+                if (da < d0a) {d0 = d2; d0a = da;}
+                da = Math.abs(d3);
+                if (da < d0a) {d0 = d3;}
+               
+                float d4a = Math.abs(d4);
+                da = Math.abs(d5);
+                if (da < d4a) {d4 = d5; d4a = da;}
+                da = Math.abs(d6);
+                if (da < d4a) {d4 = d6; d4a = da;}
+                da = Math.abs(d7);
+                if (da < d4a) {d4 = d7;}
+               
+                d0 /= 2;
+                d4 /= 3;
+               
+                if (Math.abs(d4) < Math.abs(d0)) d0 = d4;
+       
+                // Finally update middle pixel with minimum change
+                aMiddle[middleIdx] += d0;
+                
+                // Go to next pixel
+                ++rightIdx;
+                ++leftIdx;
+                ++middleIdx;
+            }
+        }
+        
+    }
+    
+    public class FilterMC implements Filter {
+
+        @Override
+        public void runFilterOnSplittedPart(float[] aMiddle, float[] aSides, float[] aDown, float[] aDownCorners, float[] aUp, float[] aUpCorners, boolean aShifted) {
+            final int startIdx = 2 + (aShifted ? 1 : 0); 
+            
+            int rightIdx = (startIdx + 1) / 2;
+            int leftIdx = rightIdx - 1;
+            int middleIdx = startIdx / 2;
+            
+            for (int j = 1; j < halfWidth - 1; ++j) {
+                /*
+                 * Naming:
+                 * 
+                 *       lu | u | ru
+                 *       ---+---+---
+                 *       l  | m |  r
+                 *       ---+---+---
+                 *       ld | d | rd
+                 */
+                final float m8 = aMiddle[middleIdx] * 8;
+                final float u = aUp[middleIdx];
+                final float d = aDown[middleIdx];
+                final float l = aSides[leftIdx];
+                final float r = aSides[rightIdx];
+                final float ld = aDownCorners[leftIdx];
+                final float rd = aDownCorners[rightIdx];
+                final float lu = aUpCorners[leftIdx];
+                final float ru = aUpCorners[rightIdx];
+                
+                // Calculate distances d0..d3
+                float common1 = (u+d) * 2.5f - m8;
+                float d0 = common1 + r * 5.0f - ru - rd;
+                float d1 = common1 + l * 5.0f - lu - ld;
+                
+                float common2 = (l+r) * 2.5f - m8;
+                float d2 = common2 + u * 5.0f - lu - ru;
+                float d3 = common2 + d * 5.0f - ld - rd;
+           
+                // And find minimal (absolute) change
+                float d0a = Math.abs(d0);
+                float da = Math.abs(d1);
+                if (da < d0a) {d0 = d1; d0a = da;}
+                da = Math.abs(d2);
+                if (da < d0a) {d0 = d2; d0a = da;}
+                da = Math.abs(d3);
+                if (da < d0a) {d0 = d3;}
+                
+                d0 /= 8.0f;
+                
+                // Finally update middle pixel with minimum change
+                aMiddle[middleIdx] += d0;
+                
+                // Go to next pixel
+                ++rightIdx;
+                ++leftIdx;
+                ++middleIdx;
+            }
+        }
+    }
 }
