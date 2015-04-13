@@ -10,7 +10,7 @@ import ij.process.ImageProcessor;
 
 public class VariationalModelFilter implements PlugInFilter {
     private ImagePlus iInputImagePlus;
-    private final int iFlags = DOES_ALL | DOES_STACKS | CONVERT_TO_FLOAT | FINAL_PROCESSING | PARALLELIZE_STACKS;
+    private final int iFlags = DOES_ALL | DOES_STACKS | CONVERT_TO_FLOAT | FINAL_PROCESSING;// | PARALLELIZE_STACKS;
     private final String FILE_PREFIX = "Filtered_";
     
     int originalWidth;
@@ -72,22 +72,36 @@ public class VariationalModelFilter implements PlugInFilter {
        
         calculateDimensionsOfProcessedImage(aInputIp);
 
-        // Prepare all arrays to store images 
+        // Prepare normalized and (if needed) extended image
+        final float maxValueOfPixel = (float) aInputIp.getMax();
         float[][] img = new float[roundedHeight][roundedWidth]; 
+        convertImageToDivisibleBy2AndNormalize(aInputIp, img, maxValueOfPixel);
+
+//        OnePassGCFilter(img, 10);
+        
+        // Filter image
         float[][] WC = new float[halfHeight][halfWidth];
         float[][] WT = new float[halfHeight][halfWidth];
         float[][] BC = new float[halfHeight][halfWidth];
         float[][] BT = new float[halfHeight][halfWidth];
-        
-        final float maxValueOfPixel = (float) aInputIp.getMax();
-        convertImageToDivisibleBy2AndNormalize(aInputIp, img, maxValueOfPixel);
-
         splitImage(img, WC, WT, BC, BT);
         
         final int noOfIterations = 10;
-        runFilter(WC, WT, BC, BT, noOfIterations, new FilterMC());
+        runFilter(WC, WT, BC, BT, noOfIterations, new FilterGC());
         
-        mergeImage(aInputIp, WC, WT, BC, BT, maxValueOfPixel);
+        mergeImage(img, WC, WT, BC, BT, maxValueOfPixel);
+       
+        updateOriginal(aInputIp, img, maxValueOfPixel);
+    }
+
+    private void updateOriginal(ImageProcessor aIp, float[][] aImg, float aMaxPixelValue) {
+        float[] pixels = (float[])aIp.getPixels();
+        
+        for (int x = 0; x < originalWidth; ++x) {
+            for (int y = 0; y < originalHeight; ++y) {
+                     pixels[x + y * originalWidth] = aImg[y][x] * aMaxPixelValue;
+            }
+        }
     }
 
     /**
@@ -161,15 +175,13 @@ public class VariationalModelFilter implements PlugInFilter {
      * @param BT
      * @param aMaxPixelValue
      */
-    private void mergeImage(ImageProcessor aIp, float[][] WC, float[][] WT, float[][] BC, float[][] BT, float aMaxPixelValue) {
-        float[] pixels = (float[])aIp.getPixels();
-        
-        for (int x = 0; x < originalWidth; ++x) {
-            for (int y = 0; y < originalHeight; ++y) {
-                     if (x % 2 == 0 && y % 2 == 0) pixels[x + y * originalWidth] = BT[y/2][x/2] * aMaxPixelValue;
-                else if (x % 2 == 1 && y % 2 == 0) pixels[x + y * originalWidth] = WT[y/2][x/2] * aMaxPixelValue;
-                else if (x % 2 == 0 && y % 2 == 1) pixels[x + y * originalWidth] = WC[y/2][x/2] * aMaxPixelValue;
-                else if (x % 2 == 1 && y % 2 == 1) pixels[x + y * originalWidth] = BC[y/2][x/2] * aMaxPixelValue;
+    private void mergeImage(float[][] aOutputImg, float[][] WC, float[][] WT, float[][] BC, float[][] BT, float aMaxPixelValue) {
+        for (int x = 0; x < roundedWidth; ++x) {
+            for (int y = 0; y < roundedWidth; ++y) {
+                     if (x % 2 == 0 && y % 2 == 0) aOutputImg[y][x] = BT[y/2][x/2];
+                else if (x % 2 == 1 && y % 2 == 0) aOutputImg[y][x] = WT[y/2][x/2];
+                else if (x % 2 == 0 && y % 2 == 1) aOutputImg[y][x] = WC[y/2][x/2];
+                else if (x % 2 == 1 && y % 2 == 1) aOutputImg[y][x] = BC[y/2][x/2];
             }
         }
     }
@@ -188,15 +200,15 @@ public class VariationalModelFilter implements PlugInFilter {
      *  5    | WC   BC | WC   BC | WC   BC .
      *       ...............................      
      * 
-     * @param WC             2D array containing part of image
-     * @param WT             2D array containing part of image
-     * @param BC             2D array containing part of image
-     * @param BT             2D array containing part of image
-     * @param aNoOfIterations Number of iteration to run filter
-     * @param aFilter        Filter object
+     * @param WC               2D array containing part of image
+     * @param WT               2D array containing part of image
+     * @param BC               2D array containing part of image
+     * @param BT               2D array containing part of image
+     * @param aNumOfIterations Number of iteration to run filter
+     * @param aFilter          Filter object
      */
-    private void runFilter(float[][] WC, float[][] WT, float[][] BC, float[][] BT, final int aNoOfIterations, Filter aFilter) {
-        for (int i = 0; i < aNoOfIterations; ++i) {
+    private void runFilter(float[][] WC, float[][] WT, float[][] BC, float[][] BT, final int aNumOfIterations, Filter aFilter) {
+        for (int i = 0; i < aNumOfIterations; ++i) {
             
             /*          0         1         2    .
              *      -----------------------------.
@@ -395,4 +407,143 @@ public class VariationalModelFilter implements PlugInFilter {
             }
         }
     }
+    
+     void newLocalGc(int aPos,float[] aCurrentRow,float[] aPreviousRow, float[] aNextRow)
+    {
+         /*
+          * Naming:
+          * 
+          *       lu | u | ru
+          *       ---+---+---
+          *       l  | m |  r
+          *       ---+---+---
+          *       ld | d | rd
+          */
+         final float m2 = 2 * aCurrentRow[aPos];
+         final float m3 = 3 * aCurrentRow[aPos];
+         final float u = aPreviousRow[aPos];
+         final float d = aNextRow[aPos];
+         final float l = aCurrentRow[aPos - 1];
+         final float r = aCurrentRow[aPos + 1];
+         final float ld = aNextRow[aPos - 1];
+         final float rd = aNextRow[aPos + 1];
+         final float lu = aPreviousRow[aPos - 1];
+         final float ru = aPreviousRow[aPos + 1];
+         
+         // Calculate distances d0..d7
+         float d0 = (u+d)-m2;
+         float d1 = (l+r)-m2;
+         float d2 = (lu+rd)-m2;
+         float d3 = (ru+ld)-m2;
+    
+         float d4 = (lu+u+l)-m3;
+         float d5 = (ru+u+r)-m3;
+         float d6 = (l+ld+d)-m3;
+         float d7 = (r+d+rd)-m3;
+
+         // And find minimum (absolute) change of d0..d7
+         float da; 
+     
+         float d0a = Math.abs(d0);
+         da = Math.abs(d1);
+         if (da < d0a) {d0 = d1; d0a = da;}
+         da = Math.abs(d2);
+         if (da < d0a) {d0 = d2; d0a = da;}
+         da = Math.abs(d3);
+         if (da < d0a) {d0 = d3;}
+        
+         float d4a = Math.abs(d4);
+         da = Math.abs(d5);
+         if (da < d4a) {d4 = d5; d4a = da;}
+         da = Math.abs(d6);
+         if (da < d4a) {d4 = d6; d4a = da;}
+         da = Math.abs(d7);
+         if (da < d4a) {d4 = d7;}
+        
+         d0 /= 2;
+         d4 /= 3;
+        
+         if (Math.abs(d4) < Math.abs(d0)) d0 = d4;
+
+         // Finally update middle pixel with found minimum change
+         aCurrentRow[aPos] += d0;
+    }
+     
+     void newLocalMc(int aPos,float[] aCurrentRow,float[] aPreviousRow, float[] aNextRow)
+    {
+         /*
+          * Naming:
+          * 
+          *       lu | u | ru
+          *       ---+---+---
+          *       l  | m |  r
+          *       ---+---+---
+          *       ld | d | rd
+          */
+         final float m8 = 8 * aCurrentRow[aPos];
+         final float u = aPreviousRow[aPos];
+         final float d = aNextRow[aPos];
+         final float l = aCurrentRow[aPos - 1];
+         final float r = aCurrentRow[aPos + 1];
+         final float ld = aNextRow[aPos - 1];
+         final float rd = aNextRow[aPos + 1];
+         final float lu = aPreviousRow[aPos - 1];
+         final float ru = aPreviousRow[aPos + 1];
+         
+         
+         // Calculate distances d0..d3
+         float common1 = (u+d) * 2.5f - m8;
+         float d0 = common1 + r * 5.0f - ru - rd;
+         float d1 = common1 + l * 5.0f - lu - ld;
+         
+         float common2 = (l+r) * 2.5f - m8;
+         float d2 = common2 + u * 5.0f - lu - ru;
+         float d3 = common2 + d * 5.0f - ld - rd;
+         
+
+         // And find minimal (absolute) change
+         float d0a = Math.abs(d0);
+         float da = Math.abs(d1);
+         if (da < d0a) {d0 = d1; d0a = da;}
+         da = Math.abs(d2);
+         if (da < d0a) {d0 = d2; d0a = da;}
+         da = Math.abs(d3);
+         if (da < d0a) {d0 = d3;}
+         
+         d0 /= 8.0f;
+
+         // Finally update middle pixel with found minimum change
+         aCurrentRow[aPos] += d0;
+    }
+
+    void OnePassGCFilter(float[][] aImg, int aNumOfIterations) {
+        int M = aImg.length - 1;
+        int N = aImg[0].length - 1;
+        float[] pCurrentRow, pNextRow, pPreviousRow;
+
+        for (int it = 0; it < aNumOfIterations; ++it) {
+            for (int sq = 3; sq >= 0; --sq) {
+                // Sequence:
+                // col row set
+                // --------------
+                // 2   2   BT
+                // 2   1   WC
+                // 1   2   WT
+                // 1   1   BC
+                int col = sq / 2 + 1;
+                int row = sq % 2 + 1;
+
+                for (int i = row; i < M; i += 2) {
+                    pPreviousRow = aImg[i - 1];
+                    pCurrentRow = aImg[i];
+                    pNextRow = aImg[i + 1];
+
+                    for (int j = col; j < N; j += 2) {
+                        newLocalGc(j, pCurrentRow, pPreviousRow, pNextRow);
+                    }
+                }
+
+            }
+         }
+     }
 }
