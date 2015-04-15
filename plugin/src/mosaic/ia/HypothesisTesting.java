@@ -386,28 +386,28 @@ public class HypothesisTesting {
         
 	}
 	
-	private double [][] calculateTd()
-	{
-		double [][] tempTd=new double[K][Tl.length];
-		for(int k=0;k<K;k++)
-		{
-			//generate d
-			generateRandomD();
-			for(int i=0;i<DRand.length;i++)
-			{
-				{
-				for(int j=0;j<Tl.length-1;j++){
-					if(DRand[i]>= Tl[j] && DRand[i]< Tl[j+1]){
-						tempTd[k][j]++;
-						break;
-						
-						}
-					}
-				}
-			}
-		}
-		return tempTd;
-	}
+//	private double [][] calculateTd()
+//	{
+//		double [][] tempTd=new double[K][Tl.length];
+//		for(int k=0;k<K;k++)
+//		{
+//			//generate d
+//			generateRandomD();
+//			for(int i=0;i<DRand.length;i++)
+//			{
+//				{
+//				for(int j=0;j<Tl.length-1;j++){
+//					if(DRand[i]>= Tl[j] && DRand[i]< Tl[j+1]){
+//						tempTd[k][j]++;
+//						break;
+//						
+//						}
+//					}
+//				}
+//			}
+//		}
+//		return tempTd;
+//	}
 	
 	
 	private double calculateTk()

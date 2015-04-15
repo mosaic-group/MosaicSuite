@@ -422,10 +422,9 @@ public class InterPluginCSV<E extends ICSVGeneral>
             
             // number of column
             
-            int nc = map.length;
-            
             if (map == null) // we cannot get the header
-            	return null;
+                return null;
+
             
             CellProcessor c[] = new CellProcessor[map.length];
             ProcessorGeneral pc = new ProcessorGeneral();
@@ -443,7 +442,6 @@ public class InterPluginCSV<E extends ICSVGeneral>
 					e.printStackTrace();
 					c[i] = null;
 					map[i] = "Nothing";
-					nc--;
 					continue;
 				}
             	map[i] = map[i].replace(" ", "_");
@@ -580,7 +578,6 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	 * @param occ Output choose
 	 */
 	
-	@SuppressWarnings("unchecked")
 	public void Write(String CsvFilename, Vector<?> out, OutputChoose occ, boolean append)
 	{   
 		if (out.size() == 0)

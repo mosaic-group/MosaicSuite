@@ -61,7 +61,7 @@ public class ParameterSelectionUI extends JFrame implements
 	private JButton startButton = null;
 	private JScrollPane advancedScrollPane = null;
 	private JTable parameterTable = null;
-	private JComboBox strategyComboBox = null;
+	private JComboBox<String> strategyComboBox = null;
 	private JPanel advancedPanel = null;
 	private JLabel strategyLabel = null;
 	private JCheckBox historyCheckBox = null;
@@ -460,9 +460,9 @@ public class ParameterSelectionUI extends JFrame implements
 	 * 	
 	 * @return javax.swing.JComboBox	
 	 */
-	private JComboBox getStrategyComboBox() {
+	private JComboBox<String> getStrategyComboBox() {
 		if (strategyComboBox == null) {
-			strategyComboBox = new JComboBox();
+			strategyComboBox = new JComboBox<String>();
 			strategyComboBox.setEnabled(false);
 			strategyComboBox.setPreferredSize(new Dimension(190,20));
 			strategyComboBox.addItem("Select a strategy");

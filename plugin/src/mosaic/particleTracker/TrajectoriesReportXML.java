@@ -55,10 +55,11 @@ public class TrajectoriesReportXML {
         
         Element rootElement = iReport.createElement("ParticleTracker");
         iReport.appendChild(rootElement);
-
+        
+        // NOTE: -------------------------------------------------------------------------
         // To add css support just uncomment following lines. Of course first css must be 
         // created to nicely present xml content.
-        // 
+        // -------------------------------------------------------------------------------
         // Node css = iReport.createProcessingInstruction
         //         ("xml-stylesheet", "type=\"text/css\" href=\"report.css\"");
         // iReport.insertBefore(css, rootElement);
@@ -133,10 +134,12 @@ public class TrajectoriesReportXML {
         if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
             addElementWithAttr(trajAnalysis, "MSS", "slope", "" + ta.getMSSlinear(), "yAxisIntercept", "" + ta.getMSSlinearY0());
             addElementWithAttr(trajAnalysis, "MSD", "slope", "" + ta.getGammasLogarithmic()[1], "yAxisIntercept", "" + ta.getGammasLogarithmicY0()[1]);
-            
+            addElementWithAttr(trajAnalysis, "DiffusionCoefficient", "D2", "" + ta.getDiffusionCoefficients()[1]);
         }
         else {
             addElementWithAttr(trajAnalysis, "MSS", "slope", "", "yAxisIntercept", "");
+            addElementWithAttr(trajAnalysis, "MSD", "slope", "", "yAxisIntercept", "");
+            addElementWithAttr(trajAnalysis, "DiffusionCoefficient", "D2", "");
         }
     }
     

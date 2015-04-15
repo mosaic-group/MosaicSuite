@@ -3,6 +3,7 @@ package mosaic.particleTracker;
 
 /**
  * Calculates linear least squares for given pairs (x, y)
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class LeastSquares {
     private double iBeta;  // slope of line
@@ -15,7 +16,7 @@ public class LeastSquares {
      * @param aX
      * @param aY
      */
-    public LeastSquares calculate(double[] aX, double[] aY) {
+    public LeastSquares calculate(final double[] aX, final double[] aY) {
         if (aX.length != aY.length) {
             throw new IllegalArgumentException("Both arrays should have same number of elements [" + aX.length + " vs. " + aY.length + "]");
         }

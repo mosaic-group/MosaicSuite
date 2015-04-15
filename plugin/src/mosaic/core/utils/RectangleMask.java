@@ -20,9 +20,7 @@ public class RectangleMask  extends Mask
 	 * @param dim		dimensionality
 	 */
 	public RectangleMask(int l[]) 
-	{
-		this.dim = dim;
-		
+	{	
 		m_Size = new int[dim];
 		
 		for (int i = 0; i < dim; i++) 

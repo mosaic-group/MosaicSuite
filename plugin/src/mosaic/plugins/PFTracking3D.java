@@ -504,35 +504,35 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		//
 //		//DEBUG: write particles
 //		//
-		if(false)
-		try {
-			int vObjectC = 0;
-			for(FeatureObject vFO : mFeatureObjects){
-				vObjectC++;
-				
-				for(int vF = 2; vF < 3; vF++){
-					int vRSC = 0;
-					for(float[][] vRepStepPs : vFO.mParticleHistory[vF]) {
-						vRSC++;
-						BufferedWriter vBW = new BufferedWriter(new FileWriter(getTextFile("_O" + vObjectC+"_F" + vF + "_MCMCs" + vRSC + ".txt")));
-						if(vRepStepPs == null) {
-							continue;
-						}
-						for(float[] vP : vRepStepPs) {
-							String vLine = "";
-							for(float vV : vP) {
-								vLine += vV + "\t";
-							}
-							vLine += "\n";
-							vBW.write(vLine);
-						}
-						vBW.close();
-					}
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+//		if(false)
+//		try {
+//			int vObjectC = 0;
+//			for(FeatureObject vFO : mFeatureObjects){
+//				vObjectC++;
+//				
+//				for(int vF = 2; vF < 3; vF++){
+//					int vRSC = 0;
+//					for(float[][] vRepStepPs : vFO.mParticleHistory[vF]) {
+//						vRSC++;
+//						BufferedWriter vBW = new BufferedWriter(new FileWriter(getTextFile("_O" + vObjectC+"_F" + vF + "_MCMCs" + vRSC + ".txt")));
+//						if(vRepStepPs == null) {
+//							continue;
+//						}
+//						for(float[] vP : vRepStepPs) {
+//							String vLine = "";
+//							for(float vV : vP) {
+//								vLine += vV + "\t";
+//							}
+//							vLine += "\n";
+//							vBW.write(vLine);
+//						}
+//						vBW.close();
+//					}
+//				}
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 		System.out.println("end of run method");
 	}
 	
@@ -1170,7 +1170,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	 */
 	private void performMCMCMovesWithResampling(ImageStack aFrameIS, FeatureObject aFO, int aFrameIndex, float[][] aReferenceParticleSet) {
 		int vDimOfState = aFO.getDimension();
-		int vNbNotAccepted = 0;
+//		int vNbNotAccepted = 0;
 		int vNbAccepted = 0;
 		
 		//

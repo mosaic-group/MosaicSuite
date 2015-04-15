@@ -940,6 +940,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 	            line = r.readLine();
 	            if (line == null || !line.startsWith("frame")) {
 	            	IJ.error("File: " + path + "\ndosent have the string 'frame' in the begining if the first line");
+	            	r.close();
 	            	return false;
 	            }
 	            line = line.trim();
@@ -1176,7 +1177,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 			float[] vKernel_1D = new float[]{-1, 2, -1};
 			ImageStack vConvolvedStack = new ImageStack(aIS.getWidth(), aIS.getHeight());
 			int vKernelWidth = vKernel_1D.length;
-			int vKernelRadius = vKernel_1D.length / 2;
+//			int vKernelRadius = vKernel_1D.length / 2;
 			
 			//in x dimension
 			for(int vI = 1; vI <= aIS.getSize(); vI++){
@@ -1194,36 +1195,36 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 				vConvolver.convolve(vConvolvedSlice, vKernel_1D, 1 , vKernelWidth);  
 				vConvolvedStack.getProcessor(vI).copyBits(vConvolvedSlice, 0, 0, Blitter.ADD);
 			}
-			if(true) return vConvolvedStack; //TODO: abort here?
+//			if(true) return vConvolvedStack; //TODO: abort here?
 			
-			//first get all the processors of the frame in an array since the getProcessor method is expensive
-			ImageProcessor[] vExtStack = new ImageProcessor[aIS.getSize() + 2];
-			vExtStack[0] = aIS.getProcessor(1).duplicate();//TODO:duplicate or not?
-			for(int vS = 1; vS <= aIS.getSize(); vS++) {
-				vExtStack[vS] = aIS.getProcessor(vS);			
-			}
-			vExtStack[1 + aIS.getSize()] = aIS.getProcessor(aIS.getSize()).duplicate();//TODO:duplicate or not
-			
-			ImageProcessor[] vConvolvedProcs = new ImageProcessor[vConvolvedStack.getSize()];
-			for(int vS = 1; vS <= vConvolvedStack.getSize(); vS++) {
-				vConvolvedProcs[vS-1] = vConvolvedStack.getProcessor(vS);			
-			}
-			
-			//begin convolution with 1D gaussian in 3rd dimension:
-			for(int vY = 0; vY < aIS.getHeight(); vY++){
-	        	for(int vX = 0; vX < aIS.getWidth(); vX++){
-	        		for(int vS = vKernelRadius; vS <= aIS.getSize(); vS++) {
-	        			float vSum = 0;
-	        			for(int vI = -vKernelRadius; vI <= vKernelRadius; vI++) {
-	        				vSum += vKernel_1D[vI + vKernelRadius] * vExtStack[vS + vI].getf(vX, vY);
-	        			}
-	        			vConvolvedProcs[vS-1].putPixelValue(vX, vY, vSum + vConvolvedProcs[vS-1].getf(vX, vY));
-	        		}
-	        	}
-	        }
-			
-			new StackWindow(new ImagePlus("after laplace copy",GetSubStackCopyInFloat(vConvolvedStack, 1, vConvolvedStack.getSize())));
-			
+//			//first get all the processors of the frame in an array since the getProcessor method is expensive
+//			ImageProcessor[] vExtStack = new ImageProcessor[aIS.getSize() + 2];
+//			vExtStack[0] = aIS.getProcessor(1).duplicate();//TODO:duplicate or not?
+//			for(int vS = 1; vS <= aIS.getSize(); vS++) {
+//				vExtStack[vS] = aIS.getProcessor(vS);			
+//			}
+//			vExtStack[1 + aIS.getSize()] = aIS.getProcessor(aIS.getSize()).duplicate();//TODO:duplicate or not
+//			
+//			ImageProcessor[] vConvolvedProcs = new ImageProcessor[vConvolvedStack.getSize()];
+//			for(int vS = 1; vS <= vConvolvedStack.getSize(); vS++) {
+//				vConvolvedProcs[vS-1] = vConvolvedStack.getProcessor(vS);			
+//			}
+//			
+//			//begin convolution with 1D gaussian in 3rd dimension:
+//			for(int vY = 0; vY < aIS.getHeight(); vY++){
+//	        	for(int vX = 0; vX < aIS.getWidth(); vX++){
+//	        		for(int vS = vKernelRadius; vS <= aIS.getSize(); vS++) {
+//	        			float vSum = 0;
+//	        			for(int vI = -vKernelRadius; vI <= vKernelRadius; vI++) {
+//	        				vSum += vKernel_1D[vI + vKernelRadius] * vExtStack[vS + vI].getf(vX, vY);
+//	        			}
+//	        			vConvolvedProcs[vS-1].putPixelValue(vX, vY, vSum + vConvolvedProcs[vS-1].getf(vX, vY));
+//	        		}
+//	        	}
+//	        }
+//			
+//			new StackWindow(new ImagePlus("after laplace copy",GetSubStackCopyInFloat(vConvolvedStack, 1, vConvolvedStack.getSize())));
+//			
 	        return vConvolvedStack;	        
 	    }
 		
@@ -3495,14 +3496,14 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 	 * @param lambda
 	 * @return the calculated B parameter
 	 */
-	private double calculateB(int kernel_radius, float lambda){
-		double b = 0.0;
-		for (int i=-(kernel_radius); i<=kernel_radius; i++) {
-			b = b + Math.exp(-((i * i)/(4.0 * (lambda * lambda))));
-		}
-		b = b * b;
-		return b;
-	}
+//	private double calculateB(int kernel_radius, float lambda){
+//		double b = 0.0;
+//		for (int i=-(kernel_radius); i<=kernel_radius; i++) {
+//			b = b + Math.exp(-((i * i)/(4.0 * (lambda * lambda))));
+//		}
+//		b = b * b;
+//		return b;
+//	}
 	
 	/**
 	 * Auxiliary function for the kernel generation
@@ -3511,15 +3512,15 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 	 * @param lambda
 	 * @return the calculated normalization constant
 	 */
-	private double calculateNormalizationConstant(double b, int kernel_radius, float lambda){
-		double constant = 0.0;
-		int kernel_width = (kernel_radius * 2) + 1;
-		for (int i=-(kernel_radius); i<=kernel_radius; i++) {
-			constant = constant + Math.exp(-((double)(i * i)/(2.0*(lambda * lambda)))); 
-		}		
-		constant = ((constant * constant) / b) - (b/(double)(kernel_width * kernel_width));		
-		return constant;
-	}
+//	private double calculateNormalizationConstant(double b, int kernel_radius, float lambda){
+//		double constant = 0.0;
+//		int kernel_width = (kernel_radius * 2) + 1;
+//		for (int i=-(kernel_radius); i<=kernel_radius; i++) {
+//			constant = constant + Math.exp(-((double)(i * i)/(2.0*(lambda * lambda)))); 
+//		}		
+//		constant = ((constant * constant) / b) - (b/(double)(kernel_width * kernel_width));		
+//		return constant;
+//	}
 
 	private static ImageStack GetSubStackInFloat(ImageStack is, int startPos, int endPos){
 		ImageStack res = new ImageStack(is.getWidth(), is.getHeight());

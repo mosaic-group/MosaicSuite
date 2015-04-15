@@ -3,6 +3,7 @@ package mosaic.core.utils;
 import static org.junit.Assert.fail;
 import ij.IJ;
 import ij.ImagePlus;
+import io.scif.SCIFIOService;
 import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
 
@@ -16,10 +17,11 @@ import mosaic.core.cluster.ClusterSession;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.plugins.PlugInFilterExt;
-import net.imglib2.Cursor;
 import net.imglib2.img.Img;
-import net.imglib2.type.numeric.ARGBType;
-import net.imglib2.type.numeric.integer.UnsignedIntType;
+
+import org.scijava.Context;
+import org.scijava.app.AppService;
+import org.scijava.app.StatusService;
 
 /**
  * 
@@ -178,7 +180,9 @@ public class MosaicTest
 		int cnt = 0;
 		
         // create the ImgOpener
-        ImgOpener imgOpener = new ImgOpener();
+        ImgOpener imgOpener = new ImgOpener(new Context(SCIFIOService.class, AppService.class, StatusService.class ));
+        // By default ImgOpener produces a lot of logs, this is one of the ways to switch it off. 
+        imgOpener.log().setLevel(0);
 		
 		for (String rs : tmp.result_imgs)
 		{

@@ -533,7 +533,6 @@ public class GenericGUI
 			
 			// Check if we selected a directory
 			
-			boolean was_directory = false;
 			ClusterSession ss = null;
 			File[] fileslist = null;
 			File fl = null;

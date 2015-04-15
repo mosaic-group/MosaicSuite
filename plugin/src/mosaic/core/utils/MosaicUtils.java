@@ -32,6 +32,7 @@ import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.ipc.MetaInfo;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
+import mosaic.test.framework.SystemOperations;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -1668,7 +1669,7 @@ public class MosaicUtils
 	
 	static public String getTestDir()
 	{
-		return TestBaseDirectory;
+		return SystemOperations.getTestDataPath();
 	}
 	
 	static String TestBaseDirectory = "/home/i-bird/Desktop/MOSAIC/image_test_2/ImageJ/plugin/Jtest_data";
@@ -1689,8 +1690,8 @@ public class MosaicUtils
 		
 		String TestFolder = new String();
 		
-		TestFolder +=  TestBaseDirectory + File.separator + plugin + File.separator;
-		
+		TestFolder +=  getTestDir() + File.separator + plugin + File.separator;
+		IJ.log(TestFolder);
 		ImgTest imgT = null;
 		
 		// List all directories
@@ -1724,8 +1725,6 @@ public class MosaicUtils
 			try
 			{
 				BufferedReader br = new BufferedReader(new FileReader(cfg));
- 
-				String sCurrentLine;
  
 				imgT = new ImgTest();
 			
@@ -1768,6 +1767,7 @@ public class MosaicUtils
 					imgT.csv_results_rel[i] = br.readLine();
 					imgT.csv_results[i] = dir.getAbsolutePath() + File.separator + imgT.csv_results_rel[i];
 				}
+				br.close();
 			} 
 			catch (IOException e) 
 			{

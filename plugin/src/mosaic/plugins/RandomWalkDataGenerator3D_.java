@@ -152,9 +152,9 @@ public class RandomWalkDataGenerator3D_ implements PlugInFilter
     /**
      * set the intensity member for poisson distributed noise.
      */
-    private void calculateIntensity() {
-    	mIntensity = (float)Math.pow((-mSNR - Math.sqrt(mSNR * mSNR + 4*mBackground))/2, 2);
-    }
+//    private void calculateIntensity() {
+//    	mIntensity = (float)Math.pow((-mSNR - Math.sqrt(mSNR * mSNR + 4*mBackground))/2, 2);
+//    }
     
     /**
      * set the intensity member variable for EMCCD cams (poisson with excess noise factor)
@@ -163,17 +163,17 @@ public class RandomWalkDataGenerator3D_ implements PlugInFilter
     	mIntensity = (float) (2f*mSNR*mSNR*mENF*mENF+2f*mSNR*mENF*Math.sqrt(mSNR*mSNR*mENF*mENF+4*mBackground)+4*mBackground)/4f;
     }
 
-    private void addGaussBlob(float[][] aPixelArray, float aX, float aY, float aZ){    	
-    	for(int vZ = 0; vZ < mNSlices; vZ++){    		
-    		for(int vY = 0; vY < mHeight; vY++){
-    			for(int vX = 0; vX < mWidth; vX++){
-    				aPixelArray[vZ][mWidth*vY+vX] += (float) ((mIntensity-mBackground) * Math.exp( 
-							-(Math.pow(vX - aX, 2) + Math.pow(vY - aY, 2)) / (2 * mSigmaPSF * mSigmaPSF))
-							* Math.exp( -Math.pow(vZ - aZ, 2) / (2 * mSigmaPSFz * mSigmaPSFz)));
-    			}
-    		}
-    	}
-    }
+//    private void addGaussBlob(float[][] aPixelArray, float aX, float aY, float aZ){    	
+//    	for(int vZ = 0; vZ < mNSlices; vZ++){    		
+//    		for(int vY = 0; vY < mHeight; vY++){
+//    			for(int vX = 0; vX < mWidth; vX++){
+//    				aPixelArray[vZ][mWidth*vY+vX] += (float) ((mIntensity-mBackground) * Math.exp( 
+//							-(Math.pow(vX - aX, 2) + Math.pow(vY - aY, 2)) / (2 * mSigmaPSF * mSigmaPSF))
+//							* Math.exp( -Math.pow(vZ - aZ, 2) / (2 * mSigmaPSFz * mSigmaPSFz)));
+//    			}
+//    		}
+//    	}
+//    }
     
     private void addPSF(float[][] aPixelArray, float aX, float aY, float aZ) {
     	//the origin in the PSF map is at (offset, 0)

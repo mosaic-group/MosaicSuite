@@ -347,14 +347,14 @@ public class BipartiteMatcher {
 		}
 	}
 
-	private void printWeights() {
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				System.out.print(weights[i][j] + " ");
-			}
-			System.out.println("");
-		}
-	}
+//	private void printWeights() {
+//		for (int i = 0; i < n; i++) {
+//			for (int j = 0; j < n; j++) {
+//				System.out.print(weights[i][j] + " ");
+//			}
+//			System.out.println("");
+//		}
+//	}
 
 	/**
 	 * Tolerance for comparisons to zero, to account for floating-point
@@ -385,8 +385,8 @@ public class BipartiteMatcher {
 
 	double[] pi;
 
-	List eligibleS = new ArrayList();
-	List eligibleT = new ArrayList();
+	List<Integer> eligibleS = new ArrayList<Integer>();
+	List<Integer> eligibleT = new ArrayList<Integer>();
 
 	public static void main(String[] args) {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));

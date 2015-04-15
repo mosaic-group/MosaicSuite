@@ -1922,9 +1922,6 @@ import net.imglib2.view.Views;
 	        
 	        int nframe = (int) out.dimension(out.numDimensions()-1);
 	        
-	        Vector<Particle> vp = new Vector<Particle>();
-	        Vector<pParticle> lines = new Vector<pParticle>();
-	        
 	        // Collect particles to draw and spline to draw
 	        
 	        TrajectoriesDraw(out,nframe, tr, 0, null, cal, typ, p_radius);
@@ -1983,9 +1980,6 @@ import net.imglib2.view.Views;
 	        
 	        	curOut.get().set(conv.toARGB(curBack.get()));
 	        }
-	        
-	        Vector<Particle> vp = new Vector<Particle>();
-	        Vector<pParticle> lines = new Vector<pParticle>();
 	        
 	        // Collect particles to draw and spline to draw
 	        

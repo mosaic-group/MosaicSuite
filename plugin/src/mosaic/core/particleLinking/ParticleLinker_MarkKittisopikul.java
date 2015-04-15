@@ -21,12 +21,11 @@ public class ParticleLinker_MarkKittisopikul{
 		int m, i, j, k, l, nop, nop_next, n;
 		int ok, prev, x = 0, y = 0, curr_linkrange;
 		int prev_i, prev_j, prev_x, prev_y;
-		int[] xv,yv,ylv;
-		int yl;
+		int[] xv,yv;
 		boolean[][] g;
 		boolean[][] inrange;
 		boolean[] okv;
-		double min, z, max_cost;
+		double min, max_cost;
 		double[][] cost;
 		int[][] jm;
 		Vector<Particle> p1, p2;
@@ -76,8 +75,7 @@ public class ParticleLinker_MarkKittisopikul{
 				okv = new boolean[nop_next+1];
 				xv = new int[nop_next+1];
 				yv = new int[nop+1];
-				ylv = new int[nop+1];
-
+			
 				/* Set g to zero */
 				// don't need to do this according to language spec
 				//for (i = 0; i< g.length; i++) for (j = 0; j < g[i].length; j++) g[i][j] = false;
@@ -204,7 +202,6 @@ public class ParticleLinker_MarkKittisopikul{
 								System.out.println("Out of range xy init" + i + "," + j);
 							xv[j] = i;
 							yv[i] = j;
-			//				ylv[i] = l;
 						}
 					}
 					/*if(g[i][nop_next]) {
@@ -214,8 +211,7 @@ public class ParticleLinker_MarkKittisopikul{
 				}
 				xv[nop_next] = nop;
 				yv[nop] = nop_next;
-			//	ylv[nop] = l;
-
+			
 				/* Build the matrix t (similar to in_range) */
 				// the following loop consumes more memory but saves processor later
 				int[][] t= new int[nop+1][nop_next+1];

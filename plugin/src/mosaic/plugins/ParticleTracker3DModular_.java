@@ -1227,7 +1227,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				this.imp.updateImage();
 				// show the number of the selected Trajectory on the per trajectory 
 				// panel in the results window
-				results_window.per_traj_label.setText("Trajectory " + chosen_traj);				
+				results_window.per_traj_label.setText("Trajectory " + (chosen_traj + 1));
 				if (e.getClickCount() == 2) {
 					// "double-click" 
 					// Set the ROI to the trajectory focus_area
@@ -3220,8 +3220,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             rt.setValue("MSS: slope", rownum, ta.getMSSlinear());
             rt.setValue("MSS: y-axis intercept", rownum, ta.getMSSlinearY0());
             // second element in 'gammas' array is an order=2 (MSD)
-            rt.setValue("MSD: slope", rownum, ta.getGammasLogarithmic()[1]);
-            rt.setValue("MSD: y-axis intercept", rownum, ta.getGammasLogarithmicY0()[1]);
+            final int secondOrder = 1;
+            rt.setValue("MSD: slope", rownum, ta.getGammasLogarithmic()[secondOrder]);
+            rt.setValue("MSD: y-axis intercept", rownum, ta.getGammasLogarithmicY0()[secondOrder]);
+            rt.setValue("Diffusion Coefficient D2", rownum, ta.getDiffusionCoefficients()[secondOrder]);
         }
     }
 

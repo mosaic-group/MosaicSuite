@@ -952,6 +952,7 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 	            line = r.readLine();
 	            if (line == null || !line.startsWith("frame")) {
 	            	IJ.error("File: " + path + "\ndosent have the string 'frame' in the begining if the first line");
+	            	r.close();
 	            	return false;
 	            }
 	            line = line.trim();

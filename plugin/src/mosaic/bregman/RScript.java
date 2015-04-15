@@ -152,11 +152,13 @@ public class RScript {
 		try{
 			//works when plugin running from .jar plugin file
 			InputStream in = this.getClass().getResourceAsStream("/Rscript.r");
-			String content = new Scanner(in).useDelimiter("\\Z").next();
+			Scanner scanner = new Scanner(in);
+			String content = scanner.useDelimiter("\\Z").next();
 			
 			Script.print(content);
 			Script.flush();
 			Script.close();
+			scanner.close();
 		}
 		catch (Exception e)
 		{

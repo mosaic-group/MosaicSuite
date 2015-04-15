@@ -345,7 +345,7 @@ public class ASplitBregmanSolver {
 			}
 
 			stepk++;
-			if(stepk % modulo ==0 &&p.firstphase)IJ.showStatus("Computing segmentation  " + LocalTools.round((((double) 50* stepk)/(p.max_nsb-1)),2) + "%");
+			if(stepk % modulo ==0 &&p.firstphase)IJ.showStatus("Computing segmentation  " + Tools.round((((double) 50* stepk)/(p.max_nsb-1)),2) + "%");
 
 
 			if(p.firstphase)
@@ -377,7 +377,7 @@ public class ASplitBregmanSolver {
 		//if(p.nz>1) md.display2regions3Dscaledcolor(w3k[0], "Mask scaled");
 		if(p.livedisplay){if(p.nlevels>2)md.display(maxmask, "Masks");}
 		if(p.livedisplay && p.firstphase){
-			IJ.log("Best energy : " + LocalTools.round(bestNrj , 3)+ ", found at step " + iw3kbest);
+			IJ.log("Best energy : " + Tools.round(bestNrj , 3)+ ", found at step " + iw3kbest);
 			IJ.log("Total phase one time: " + totaltime/1000 + "s");}
 	}
 
@@ -547,7 +547,7 @@ public class ASplitBregmanSolver {
 		int na=regionslistr.size();
 
 		double total=Analysis.totalsize(regionslistr);
-		IJ.log(na + " Voronoi1 cells found, total area : " + LocalTools.round(total,2)+ " pixels.");
+		IJ.log(na + " Voronoi1 cells found, total area : " + Tools.round(total,2)+ " pixels.");
 
 		////////corect  Ri and Ro not double	RSS.eval(w3k[0], Ri[0], Ro[0], regionslistr);
 		//	ImagePlus img=md.display2regionsnew(Ri[0][0], "Ri", 1);
@@ -750,7 +750,7 @@ public class ASplitBregmanSolver {
 		int na=regionslist.size();
 
 		double total=Analysis.totalsize(regionslist);
-		if(p.dispvoronoi)IJ.log(na + " Voronoi cells found, total area : " + LocalTools.round(total,2)+ " pixels.");
+		if(p.dispvoronoi)IJ.log(na + " Voronoi cells found, total area : " + Tools.round(total,2)+ " pixels.");
 
 		//use Ri to store voronoi regions indices
 

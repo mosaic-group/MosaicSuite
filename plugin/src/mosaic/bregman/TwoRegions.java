@@ -493,7 +493,6 @@ public class TwoRegions extends NRegions
 	{
 		if (p.dispSoftMask) 
 		{
-			ImagePlus soft_mask = null;
 			if (p.nz > 1)
 				out_soft_mask[channel] = md.display2regions3Dnew(A_solver.w3k[channel], "Mask", channel,false);
 			else

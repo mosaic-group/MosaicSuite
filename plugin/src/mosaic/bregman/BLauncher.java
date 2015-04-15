@@ -525,7 +525,7 @@ public class BLauncher
 		Analysis.p.nz=nnz;
 
 		Tools= new Tools(nni, nnj, nnz);
-		Analysis.Tools=Tools;
+		Analysis.iTools=Tools;
 
 		long lEndTime = new Date().getTime(); //start time
 
@@ -592,7 +592,7 @@ public class BLauncher
 		Analysis.p.nz=nnz;
 
 		Tools= new Tools(nni, nnj, nnz);
-		Analysis.Tools=Tools;
+		Analysis.iTools=Tools;
 
 		//IJ.log("dispcolors" + Analysis.p.dispcolors);
 		Analysis.segmentA();			 

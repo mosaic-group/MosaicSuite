@@ -238,8 +238,8 @@ public class NRegions implements Runnable{
 			p.betaMLEoutdefault=levs[0];
 			p.cl[1]=levs[3];
 			p.betaMLEindefault=levs[3];
-			IJ.log("automatic background:" + LocalTools.round(p.cl[0],3));
-			IJ.log("automatic foreground:" + LocalTools.round(p.cl[1],3));
+			IJ.log("automatic background:" + Tools.round(p.cl[0],3));
+			IJ.log("automatic foreground:" + Tools.round(p.cl[1],3));
 		}
 
 

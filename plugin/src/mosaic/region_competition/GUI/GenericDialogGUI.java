@@ -497,17 +497,9 @@ public class GenericDialogGUI implements InputReadable
 	
 	private void readOpenedImageChooser()
 	{
-//		if(nOpenedImages>0)
-		if(true)
-		{
-			inputImageTitle = gd.getNextChoice();
-			labelImageTitle = gd.getNextChoice();
-		}
-		else
-		{
-			inputImageTitle = null;
-			labelImageTitle = null;
-		}
+        // if(nOpenedImages>0)
+        inputImageTitle = gd.getNextChoice();
+        labelImageTitle = gd.getNextChoice();
 	}
 	
 	/**
