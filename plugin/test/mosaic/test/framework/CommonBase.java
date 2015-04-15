@@ -5,9 +5,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.WindowManager;
 import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
 import io.scif.SCIFIOService;
 import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
@@ -124,6 +127,65 @@ public class CommonBase extends Info {
         }
     }
     
+    /**
+     * Tests plugin (one image input, one image output)
+     * TODO: this method should be refactored to handle many-to-many cases
+     *       (for example 1 img input -> 3 img output or opposite)
+     * @param aTestedPlugin Tested plugin
+     * @param aTcDirName Directory name with input files
+     * @param aInputFiles Input files used to test plugin
+     * @param aExpectedFiles Expected output files (WindowManager)
+     * @param aReferenceFiles Reference files used to compare values
+     * @param aSetupString Setup string passed to plugin
+     * @param aExpectedSetupRetValue Expected setup(..) method output from plugin
+     */
+    protected void testPlugin2(PlugInFilter aTestedPlugin, 
+                              final String aTcDirName,
+                              final String[] aInputFiles,
+                              final String[] aExpectedFiles,
+                              final String[] aReferenceFiles,
+                              final String aSetupString,
+                              final int aExpectedSetupRetValue) {
+        // TODO: extend test base functionality
+        if (aInputFiles.length != 1 || aExpectedFiles.length != 1 || aReferenceFiles.length != 1) {
+            logger.error("Wrong lenght of input file's array");
+            fail("Wrong test data");
+        }
+        
+        // Prepare needed paths
+        final String tmpPath = SystemOperations.getCleanTestTmpPath();
+        final String tcPath = SystemOperations.getTestDataPath() + aTcDirName;
+        
+        logger.debug("Preparing test directory");
+        prepareTestDirectory(aInputFiles, tcPath, tmpPath);
+        
+        // Make it running in batch mode (no GUI)
+        Interpreter.batchMode = true;
+        
+        // Test plugin
+        for (String file : aInputFiles) {
+            logger.debug("Loading image for testing: [" + tmpPath + file + "]");
+            ImagePlus ip = loadImagePlus(tmpPath + file);
+            logger.debug("Testing plugin");
+            assertEquals("Setup result.", aExpectedSetupRetValue, aTestedPlugin.setup(aSetupString, ip));
+            
+            FloatProcessor fp = new FloatProcessor(ip.getWidth(),ip.getHeight());
+            ImageProcessor iproc = ip.getProcessor();
+            fp = iproc.toFloat(0, fp);
+            aTestedPlugin.run(fp);
+            iproc.setPixels(0, fp);
+            assertEquals("Final setup result.", aExpectedSetupRetValue, aTestedPlugin.setup("final", ip));
+            
+            // compare output from plugin with reference images
+            logger.debug("Comparing output of two images:");
+            logger.debug("    ref: [" + tcPath + aReferenceFiles[0] + "]");
+            logger.debug("    test:[" + aExpectedFiles[0] +"]");
+            Img<?> referenceImg = loadImage(tcPath + aReferenceFiles[0]);
+            Img<?> processedImg = loadImageByName(aExpectedFiles[0]);
+            
+            assertTrue("Reference vs. processed file.", compare(referenceImg, processedImg));
+        }
+    }
     /**
      * Copies aInputFiles from test case data directory to temporary path
      * @param aInputFiles array of input files
