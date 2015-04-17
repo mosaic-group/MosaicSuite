@@ -336,7 +336,7 @@ public class Naturalization implements PlugInFilterExt
 	{
 		if (x >=  0 && x <= 0.934)
 		{
-			return Double.toString(24.21 * Math.exp(0.519 * x) - 18.11 * Math.exp(-6.433 * x));
+			return Double.toString(23.65 * Math.exp(0.6 * x) - 20.0 * Math.exp(-7.508 * x));
 		}
 		else if (x > 0.934 && x < 1.07)
 		{
