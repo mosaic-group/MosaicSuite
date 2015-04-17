@@ -1,10 +1,10 @@
 package mosaic.variationalCurvatureFilters;
 
 
-public class NoSplitFilterKernelMc implements NoSplitFilterKernel {
+public class FilterKernelMc implements FilterKernel {
 
     @Override
-    public void filterKernel(int aPos, float[] aCurrentRow, float[] aPreviousRow, float[] aNextRow) {
+    public float filterKernel(float lu, float u, float ru, float l, float m, float r, float ld, float d, float rd) {
         /*
          * Naming:
          * 
@@ -14,17 +14,9 @@ public class NoSplitFilterKernelMc implements NoSplitFilterKernel {
          *       ---+---+---
          *       ld | d | rd
          */
-        final float m8 = 8 * aCurrentRow[aPos];
-        final float u = aPreviousRow[aPos];
-        final float d = aNextRow[aPos];
-        final float l = aCurrentRow[aPos - 1];
-        final float r = aCurrentRow[aPos + 1];
-        final float ld = aNextRow[aPos - 1];
-        final float rd = aNextRow[aPos + 1];
-        final float lu = aPreviousRow[aPos - 1];
-        final float ru = aPreviousRow[aPos + 1];
-        
-        
+
+        final float m8 = 8 * m;
+            
         // Calculate distances d0..d3
         float common1 = (u+d) * 2.5f - m8;
         float d0 = common1 + r * 5.0f - ru - rd;
@@ -33,8 +25,7 @@ public class NoSplitFilterKernelMc implements NoSplitFilterKernel {
         float common2 = (l+r) * 2.5f - m8;
         float d2 = common2 + u * 5.0f - lu - ru;
         float d3 = common2 + d * 5.0f - ld - rd;
-        
-
+   
         // And find minimal (absolute) change
         float d0a = Math.abs(d0);
         float da = Math.abs(d1);
@@ -45,8 +36,9 @@ public class NoSplitFilterKernelMc implements NoSplitFilterKernel {
         if (da < d0a) {d0 = d3;}
         
         d0 /= 8.0f;
-
-        // Finally update middle pixel with found minimum change
-        aCurrentRow[aPos] += d0;
+        
+        // Finally return minimum change
+        return d0;
     }
+ 
 }

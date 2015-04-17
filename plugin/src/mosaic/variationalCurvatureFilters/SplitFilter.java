@@ -1,6 +1,11 @@
 package mosaic.variationalCurvatureFilters;
 
-
+/**
+ * This class implements filter running in "split" mode. 
+ * Image is divided into 4 subsets called WC, WT, BC, BT
+ * It requires proper split filter kernel (GC, MC, TV...)
+ * @author Krzysztof Gonciarz
+ */
 public class SplitFilter implements CurvatureFilter {
     int originalWidth;
     int originalHeight;
@@ -9,9 +14,10 @@ public class SplitFilter implements CurvatureFilter {
     int halfWidth; 
     int halfHeight;
     
-    SplitFilterKernel iSk;
+    // Keeps provided split filter kernel
+    FilterKernel iSk;
     
-    public SplitFilter(SplitFilterKernel aSk) {
+    public SplitFilter(FilterKernel aSk) {
         iSk = aSk;
     }
     
@@ -107,31 +113,103 @@ public class SplitFilter implements CurvatureFilter {
     private void runFilter(float[][] WC, float[][] WT, float[][] BC, float[][] BT, final int aNumOfIterations) {
         for (int i = 0; i < aNumOfIterations; ++i) {
             
-            /*          0         1         2    .
-             *      -----------------------------.
-             *  0  | BT   WT | BT   WT | BT   WT .
-             *     | WC   BC | WC   BC | WC   BC .
-             *     |---------+---------+-------- .
-             *     ...............................
-             * Shifted:              ^- true
-             *                 ^------- false      
-             *      
+            /* 
              * aMiddle aSides aDown aDownCorners aUp aUpCorners aShifted
+             * 
+             * 
+             * For BC and WC index range is always 0..n-1 (n - length in Y dim)
+             * For WT and BT index range is 1..n-1 if original img is divisible by 2
+             * and 1..n-2 if original image is not divisible by 2. 
              */
-           
-            for (int y = 1; y < halfHeight - 1; ++y) {
-                iSk.filterKernel(BT[y], WT[y], WC[y], BC[y], WC[y-1], BC[y-1], false);
+            for (int y = 0; y < halfHeight - 1; ++y) {
+                oneLine(BC[y], WC[y], WT[y+1], BT[y+1], WT[y], BT[y], true);
             }
-            for (int y = 1; y < halfHeight - 1; ++y) {
-                iSk.filterKernel(WC[y], BC[y], BT[y+1], WT[y+1], BT[y], WT[y], false);
+            for (int y = 1; y < originalHeight/2; ++y) {
+                oneLine(WT[y], BT[y], BC[y], WC[y], BC[y-1], WC[y-1], true);
             }
-            for (int y = 1; y < halfHeight - 1; ++y) {
-                iSk.filterKernel(WT[y], BT[y], BC[y], WC[y], BC[y-1], WC[y-1], true);
+            for (int y = 0; y < halfHeight - 1; ++y) {
+                oneLine(WC[y], BC[y], BT[y+1], WT[y+1], BT[y], WT[y], false);
             }
-            for (int y = 1; y < halfHeight - 1; ++y) {
-                iSk.filterKernel(BC[y], WC[y], WT[y+1], BT[y+1], WT[y], BT[y], true);
+            for (int y = 1; y < originalHeight/2; ++y) {
+                oneLine(BT[y], WT[y], WC[y], BC[y], WC[y-1], BC[y-1], false);
             }
         }
     }
-
+    
+    /**
+     * Runs filter on extracted part of original image (after splitting). 
+     * All parameters are given as a lines of original BT/WC/WT/BC parts.
+     *           
+     * aShifted == false
+     * ------------------------------------
+     *     n-1      |         n
+     * ------------------------------------
+     * aUpCorners   | aUp     aUpCorners
+     * aSides       | aMiddle aSides
+     * aDownCorners | aDown   aDownCorners
+     * 
+     * aShifted == true
+     * ------------------------------------
+     *         n            |    n+1
+     * ------------------------------------
+     * aUpCorners   aUp     | aUpCorners
+     * aSides       aMiddle | aSides
+     * aDownCorners aDown   | aDownCorners
+     * 
+     */
+    public void oneLine(float[] aMiddle, float[] aSides, float[] aDown, float[] aDownCorners, float[] aUp, float[] aUpCorners, boolean aShifted) {
+        /*
+         * endIdx point to the last column in subsets (BC, BT..) that should be used. 
+         * In case of aShifted==true it is always n-2 (n - length of array)
+         * In case of aShifted==false we have two cases:
+         * - originalWidth is even: then endIdx should be n-1
+         * - originalWidth is odd:  then endIdx should be n-2
+         */
+        int endIdx = (originalWidth - (aShifted ? 1 : 0))/2 - 1;
+        
+        /*
+         * startIdx and left/middle/right indices are calculated depending on aShifted flag.
+         * This is done to correctly calculate indices of neighbors:
+         *          0         1         2    .
+         *      -----------------------------.
+         *  0  | BT   WT | BT   WT | BT   WT .
+         *     | WC   BC | WC   BC | WC   BC .
+         *     |---------+---------+-------- .
+         *     ...............................
+         * Shifted:              ^- true
+         *                 ^------- false  
+         */
+        final int startIdx = 2 + (aShifted ? -1 : 0);
+        int rightIdx = (startIdx + 1) / 2;
+        int leftIdx = rightIdx - 1;
+        int middleIdx = startIdx / 2;
+        
+        for (int j = startIdx/2; j <= endIdx; ++j) {
+            /*
+             * Naming:
+             * 
+             *       lu | u | ru
+             *       ---+---+---
+             *       l  | m |  r
+             *       ---+---+---
+             *       ld | d | rd
+             */
+            final float m = aMiddle[middleIdx];
+            final float u = aUp[middleIdx];
+            final float d = aDown[middleIdx];
+            final float l = aSides[leftIdx];
+            final float r = aSides[rightIdx];
+            final float ld = aDownCorners[leftIdx];
+            final float rd = aDownCorners[rightIdx];
+            final float lu = aUpCorners[leftIdx];
+            final float ru = aUpCorners[rightIdx];
+            
+            aMiddle[middleIdx] += iSk.filterKernel(lu, u, ru, l, m, r, ld, d, rd);
+            
+            // Go to next pixel
+            ++rightIdx;
+            ++leftIdx;
+            ++middleIdx;
+        }
+    }
 }
