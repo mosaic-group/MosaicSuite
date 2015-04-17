@@ -173,6 +173,8 @@ public class VariationalCurvatureFilter implements PlugInFilter {
 
     /**
      * Converts ImageProcessor to 2D array with first dim Y and second X
+     * If new image array is bigger than input image then additional pixels (right column(s) and
+     * bottom row(s)) are padded with neighbors values.
      * All pixels are normalized by dividing them by provided normalization value (if 
      * this step is not needed 1.0 should be given).
      * 
@@ -198,6 +200,7 @@ public class VariationalCurvatureFilter implements PlugInFilter {
     /**
      * Updates ImageProcessor image with provided 2D pixel array. All pixels are multiplied by
      * normalization value (if this step is not needed 1.0 should be provided)
+     * If output image is smaller than pixel array then it is truncated.
      * 
      * @param aIp                  ImageProcessor to be updated
      * @param aImg                 2D array (first dim Y, second X)
