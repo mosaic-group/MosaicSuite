@@ -41,15 +41,19 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
     
     /**
      * @param aTrajectory Trajectory to be analyzed and plotted.
+     * @param aPixelDim Dimensions of pixel in meters (needed for proper trajectory analysis)
+     * @param aTimeInterval Time interval between frames used to calculate trajectory analysis.
      */
-    public TrajectoryAnalysisPlot(Trajectory aTrajectory) {
-        this(aTrajectory.existing_particles);
+    public TrajectoryAnalysisPlot(Trajectory aTrajectory, double aPixelDim, double aTimeInterval) {
+        this(aTrajectory.existing_particles, aPixelDim, aTimeInterval);
     }
     
     /**
      * @param aParticles Particles to be analyzed and plotted.
+     * @param aPixelDim Dimensions of pixel in meters (needed for proper trajectory analysis)
+     * @param aTimeInterval Time interval between frames used to calculate trajectory analysis.
      */
-    public TrajectoryAnalysisPlot(final Particle[] aParticles) {
+    public TrajectoryAnalysisPlot(final Particle[] aParticles, double aPixelDim, double aTimeInterval) {
         // A little bit nasty but working method of setting window size (and further plot size).
         // Other methods like setSize(...) do not work even if applied to both - ImageWindow and Plot
         super(new ImagePlus("Trajectory Analysis", new ByteProcessor(WIDTH,HEIGHT, new byte[WIDTH*HEIGHT], null)));
@@ -74,6 +78,8 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
 
         // Calculate MSD / MSS
         iTrajectoryAnalysis = new TrajectoryAnalysis(aParticles);
+        iTrajectoryAnalysis.setLengthOfAPixel(aPixelDim);
+        iTrajectoryAnalysis.setTimeInterval(aTimeInterval);
         if (iTrajectoryAnalysis.calculateAll() != TrajectoryAnalysis.SUCCESS) {
             this.close();
             IJ.error("It is impossible to calculate MSS/MSD for this trajectory!");                                      
@@ -130,7 +136,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
         plot.addLabel(0.05, 0.10, String.format("slope = %4.3f", aSlope));
         plot.addLabel(0.05, 0.15, String.format("y0 intercept = %5.3f", aY0));
         if (aDiffusionCoefficient != null) {
-            plot.addLabel(0.05, 0.20, String.format("diffusion coefficient D2 = %5.3f", aDiffusionCoefficient));
+            plot.addLabel(0.05, 0.20, String.format("diffusion coefficient D2 = %5.3e", aDiffusionCoefficient));
         }
         
         // color for slope line
