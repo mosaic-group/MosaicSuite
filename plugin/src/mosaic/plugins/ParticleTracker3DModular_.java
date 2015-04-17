@@ -183,6 +183,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	public int linkrange = 2; 			// default
 	public double displacement = 10.0; 	// default
 
+	// Fields required by trajectory analysis
+    private double pixelDimensions; // physical pixel dimensions in meters
+    private double timeInterval;    // physical time interval between frames in seconds
+    
 	public NonBlockingGenericDialog gd;
 	
 	/* flags */	
@@ -465,6 +469,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	int f_size = 0;
 	double f_intensity = 0.0;
 	private String file_sel;
+
 	
 	private void featureFilteringStage()
 	{
@@ -840,6 +845,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		String d_pos[] = {"Brownian","straight","constant velocity"};
 		gd.addChoice("Dynamics: ", d_pos, d_pos[0]);
 		
+        gd.addMessage("Trajectory Analysis Data :\n");
+        // These 2 params are relevant for both working modes
+        gd.addNumericField("Length of pixel (in mm)", 1, 3);
+        gd.addNumericField("Time interval between frames (in s)", 1.0, 3);
+        
 		// Create advanced option panel
 		
 		Button a_opt = new Button("Advanced options");
@@ -920,6 +930,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		this.linkrange = (int)gd.getNextNumber();
 		this.displacement = gd.getNextNumber();
 
+		this.pixelDimensions = gd.getNextNumber()/1000.0;
+		this.timeInterval = gd.getNextNumber();
+		
 		// if Cancel button was clicked
 		if (gd.wasCanceled()) return false;
 
@@ -1861,7 +1874,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			
             if (source == mssButton) {
                 Trajectory trajectory = all_traj.elementAt(chosen_traj);
-                new TrajectoryAnalysisPlot(trajectory);
+                new TrajectoryAnalysisPlot(trajectory, pixelDimensions, timeInterval);
                 return;
             }
             
@@ -2068,6 +2081,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			traj_info.append("%% Trajectory " + curr_traj.serial_number +"\n");
 			
 			TrajectoryAnalysis ta = new TrajectoryAnalysis(curr_traj);
+			ta.setLengthOfAPixel(pixelDimensions);
+			ta.setTimeInterval(timeInterval);
 			if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
 			    traj_info.append("%% MSS(slope): " + String.format("%4.3f", ta.getMSSlinear()) + 
 			                       " MSD(slope): " + String.format("%4.3f", ta.getGammasLogarithmic()[1]) + "\n");
@@ -3212,6 +3227,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	   
     private void computeMssForOneTrajectory(ResultsTable rt, Trajectory currentTrajectory) {
         TrajectoryAnalysis ta = new TrajectoryAnalysis(currentTrajectory);
+        ta.setLengthOfAPixel(pixelDimensions);
+        ta.setTimeInterval(timeInterval);
         if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
             rt.incrementCounter();
             int rownum = rt.getCounter() - 1;
@@ -3224,6 +3241,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             rt.setValue("MSD: slope", rownum, ta.getGammasLogarithmic()[secondOrder]);
             rt.setValue("MSD: y-axis intercept", rownum, ta.getGammasLogarithmicY0()[secondOrder]);
             rt.setValue("Diffusion Coefficient D2", rownum, ta.getDiffusionCoefficients()[secondOrder]);
+            rt.setValue("Pixel size", rownum, pixelDimensions);
+            rt.setValue("Time interval", rownum, timeInterval);
         }
     }
 
