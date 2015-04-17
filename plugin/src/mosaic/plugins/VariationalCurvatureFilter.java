@@ -94,6 +94,11 @@ public class VariationalCurvatureFilter implements PlugInFilter {
         IJ.showStatus("Done.");
     }
 
+    /**
+     * Takes information from user about wanted filterType, filtering method and
+     * number of iterations.
+     * @return true in case if configuration was successful - false otherwise.
+     */
     boolean showDialog() {
         final String[] filters = {"GC", "MC", "TV"};
         final String[] types = {"Split", "No split"};
@@ -107,6 +112,7 @@ public class VariationalCurvatureFilter implements PlugInFilter {
         gd.showDialog();
         
         if (!gd.wasCanceled()) {
+            // Create user's chosen filter
             String filter = gd.getNextRadioButton();
             String type = gd.getNextRadioButton();
             iNumberOfIterations = (int)gd.getNextNumber();
@@ -138,6 +144,8 @@ public class VariationalCurvatureFilter implements PlugInFilter {
     /**
      * Run filter on given image.
      * @param aInputIp Input image (will be changed during processing)
+     * @param aFilter Filter to be used
+     * @param aNumberOfIterations Number of iterations for filter
      */
     private void filterImage(ImageProcessor aInputIp, CurvatureFilter aFilter, int aNumberOfIterations) {
         // Get dimensions of input image

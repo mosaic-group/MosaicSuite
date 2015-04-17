@@ -1,6 +1,9 @@
 package mosaic.variationalCurvatureFilters;
 
-
+/**
+ * Implementation of MC (Mean Curvature) filter
+ * @author Krzysztof Gonciarz
+ */
 public class FilterKernelMc implements FilterKernel {
 
     @Override

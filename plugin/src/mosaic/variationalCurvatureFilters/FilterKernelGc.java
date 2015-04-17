@@ -1,6 +1,9 @@
 package mosaic.variationalCurvatureFilters;
 
-
+/**
+ * Implementation of GC (Gaussian Curvature) filter
+ * @author Krzysztof Gonciarz
+ */
 public class FilterKernelGc implements FilterKernel {
     @Override
     public float filterKernel(float lu, float u, float ru, float l, float m, float r, float ld, float d, float rd) {

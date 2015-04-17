@@ -3,26 +3,34 @@ package mosaic.variationalCurvatureFilters;
 /**
  * This class implements filter running in "split" mode. 
  * Image is divided into 4 subsets called WC, WT, BC, BT
- * It requires proper split filter kernel (GC, MC, TV...)
+ * It requires proper filter kernel (GC, MC, TV...)
  * @author Krzysztof Gonciarz
  */
 public class SplitFilter implements CurvatureFilter {
+    // Original image dimensions
     int originalWidth;
     int originalHeight;
+    // Rounded up to divisible by 2 dimensions
     int roundedWidth;
     int roundedHeight;
+    // rounded(Width/Height)/2
     int halfWidth; 
     int halfHeight;
     
     // Keeps provided split filter kernel
-    FilterKernel iSk;
+    FilterKernel iFk;
     
-    public SplitFilter(FilterKernel aSk) {
-        iSk = aSk;
+    public SplitFilter(FilterKernel aFk) {
+        iFk = aFk;
     }
     
+    /**
+     * Runs a configured filter kernel on given image with given number
+     * of iterations.
+     */
     @Override
     public void runFilter(float[][] aImg, int aNumOfIterations) {
+        // Calculate dimensions of processed image
         originalWidth = aImg[0].length;
         originalHeight = aImg.length;
         roundedWidth = (int) (Math.ceil(originalWidth/2.0) * 2);
@@ -39,6 +47,7 @@ public class SplitFilter implements CurvatureFilter {
         
         runFilter(WC, WT, BC, BT, aNumOfIterations);
         
+        // Merge it back to original dimensions
         mergeImage(aImg, WC, WT, BC, BT);
     }
     
@@ -76,7 +85,6 @@ public class SplitFilter implements CurvatureFilter {
      * @param WT
      * @param BC
      * @param BT
-     * @param aMaxPixelValue
      */
     private void mergeImage(float[][] aOutputImg, float[][] WC, float[][] WT, float[][] BC, float[][] BT) {
         for (int x = 0; x < originalWidth; ++x) {
@@ -108,7 +116,6 @@ public class SplitFilter implements CurvatureFilter {
      * @param BC               2D array containing part of image
      * @param BT               2D array containing part of image
      * @param aNumOfIterations Number of iteration to run filter
-     * @param aFilter          Filter object
      */
     private void runFilter(float[][] WC, float[][] WT, float[][] BC, float[][] BT, final int aNumOfIterations) {
         for (int i = 0; i < aNumOfIterations; ++i) {
@@ -122,16 +129,16 @@ public class SplitFilter implements CurvatureFilter {
              * and 1..n-2 if original image is not divisible by 2. 
              */
             for (int y = 0; y < halfHeight - 1; ++y) {
-                oneLine(BC[y], WC[y], WT[y+1], BT[y+1], WT[y], BT[y], true);
+                processOneImageLine(BC[y], WC[y], WT[y+1], BT[y+1], WT[y], BT[y], true);
             }
             for (int y = 1; y < originalHeight/2; ++y) {
-                oneLine(WT[y], BT[y], BC[y], WC[y], BC[y-1], WC[y-1], true);
+                processOneImageLine(WT[y], BT[y], BC[y], WC[y], BC[y-1], WC[y-1], true);
             }
             for (int y = 0; y < halfHeight - 1; ++y) {
-                oneLine(WC[y], BC[y], BT[y+1], WT[y+1], BT[y], WT[y], false);
+                processOneImageLine(WC[y], BC[y], BT[y+1], WT[y+1], BT[y], WT[y], false);
             }
             for (int y = 1; y < originalHeight/2; ++y) {
-                oneLine(BT[y], WT[y], WC[y], BC[y], WC[y-1], BC[y-1], false);
+                processOneImageLine(BT[y], WT[y], WC[y], BC[y], WC[y-1], BC[y-1], false);
             }
         }
     }
@@ -157,7 +164,7 @@ public class SplitFilter implements CurvatureFilter {
      * aDownCorners aDown   | aDownCorners
      * 
      */
-    public void oneLine(float[] aMiddle, float[] aSides, float[] aDown, float[] aDownCorners, float[] aUp, float[] aUpCorners, boolean aShifted) {
+    public void processOneImageLine(float[] aMiddle, float[] aSides, float[] aDown, float[] aDownCorners, float[] aUp, float[] aUpCorners, boolean aShifted) {
         /*
          * endIdx point to the last column in subsets (BC, BT..) that should be used. 
          * In case of aShifted==true it is always n-2 (n - length of array)
@@ -204,7 +211,7 @@ public class SplitFilter implements CurvatureFilter {
             final float lu = aUpCorners[leftIdx];
             final float ru = aUpCorners[rightIdx];
             
-            aMiddle[middleIdx] += iSk.filterKernel(lu, u, ru, l, m, r, ld, d, rd);
+            aMiddle[middleIdx] += iFk.filterKernel(lu, u, ru, l, m, r, ld, d, rd);
             
             // Go to next pixel
             ++rightIdx;

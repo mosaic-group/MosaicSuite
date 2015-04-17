@@ -17,18 +17,18 @@ public class NoSplitFilter implements CurvatureFilter {
         int M = aImg.length - 1;
         int N = aImg[0].length - 1;
         float[] pCurrentRow, pNextRow, pPreviousRow;
-        //System.out.println("M " + M + " N " + N);
+
         for (int it = 0; it < aNumOfIterations; ++it) {
-            for (int sq = 0; sq <= 3; ++sq) {
+            for (int seq = 0; seq <= 3; ++seq) {
                 // Sequence:
-                // col row set
-                // --------------
-                // 1   1   BC
-                // 1   2   WT
-                // 2   1   WC
-                // 2   2   BT
-                int col = sq/2 + 1;
-                int row = sq%2 + 1;
+                // col | row | set corresponding to split filter
+                // ---------------------------------------------
+                // 1     1     BC
+                // 1     2     WT
+                // 2     1     WC
+                // 2     2     BT
+                int col = seq/2 + 1;
+                int row = seq%2 + 1;
 
                 for (int i = row; i < M; i += 2) {
                     pPreviousRow = aImg[i - 1];
@@ -49,7 +49,7 @@ public class NoSplitFilter implements CurvatureFilter {
                         pCurrentRow[j] += iFk.filterKernel(lu, u, ru, l, m, r, ld, d, rd);
                     }
                 }
-            } //System.out.println("-------------------------");
+            }
         }
     }
 }
