@@ -22,6 +22,13 @@ public class CommonFilterTests {
         testEqualitySplitVsNoSplit(new FilterKernelTv());
     }
 
+    /**
+     * Test helper. For given FilterKernel it tests equality between
+     * split and non split version of filter. It compares different sizes of
+     * tested image from 1x1 to 20x20.
+     * 
+     * @param aFk Tested FilterKernel
+     */
     void testEqualitySplitVsNoSplit(FilterKernel aFk) {
         final int numOfIterations = 10;
         final float expectedPrecision = 0.000001f;

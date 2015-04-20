@@ -77,64 +77,22 @@ public class CommonBase extends Info {
     }
     
     /**
-     * Tests plugin (one image input, one image output)
-     * TODO: this method should be refactored to handle many-to-many cases
-     *       (for example 1 img input -> 3 img output or opposite)
-     * @param aTestedPlugin Tested plugin
-     * @param aTcDirName Directory name with input files
-     * @param aInputFiles Input files used to test plugin
-     * @param aExpectedFiles Expected output files (WindowManager)
-     * @param aReferenceFiles Reference files used to compare values
-     * @param aSetupString Setup string passed to plugin
-     * @param aExpectedSetupRetValue Expected setup(..) method output from plugin
+     * This method uses original PlugInFilterRunner which makes it suitable to test 
+     * any kind of plugin.
+     * TODO: This should be default plugin tester. Possible the others are not needed.
+     * @param aTestedPlugin
+     * @param aTcDirName
+     * @param aInputFiles
+     * @param aExpectedFiles
+     * @param aReferenceFiles
+     * @param aSetupString
+     * @param aExpectedSetupRetValue
      */
-    protected void testPlugin(PlugInFilter aTestedPlugin, 
-                              final String aTcDirName,
-                              final String[] aInputFiles,
-                              final String[] aExpectedFiles,
-                              final String[] aReferenceFiles,
-                              final String aSetupString,
-                              final int aExpectedSetupRetValue) {
-        // TODO: extend test base functionality
-        if (aInputFiles.length != 1 || aExpectedFiles.length != 1 || aReferenceFiles.length != 1) {
-            logger.error("Wrong lenght of input file's array");
-            fail("Wrong test data");
-        }
-        
-        // Prepare needed paths
-        final String tmpPath = SystemOperations.getCleanTestTmpPath();
-        final String tcPath = SystemOperations.getTestDataPath() + aTcDirName;
-        
-        logger.debug("Preparing test directory");
-        prepareTestDirectory(aInputFiles, tcPath, tmpPath);
-        
-        // Make it running in batch mode (no GUI)
-        Interpreter.batchMode = true;
-        
-        // Test plugin
-        for (String file : aInputFiles) {
-            logger.debug("Loading image for testing: [" + tmpPath + file + "]");
-            ImagePlus ip = loadImagePlus(tmpPath + file);
-            logger.debug("Testing plugin");
-            assertEquals("Setup result.", aExpectedSetupRetValue, aTestedPlugin.setup(aSetupString, ip));
-            aTestedPlugin.run(null);
-            
-            // compare output from plugin with reference images
-            logger.debug("Comparing output of two images:");
-            logger.debug("    ref: [" + tcPath + aReferenceFiles[0] + "]");
-            logger.debug("    test:[" + aExpectedFiles[0] +"]");
-            Img<?> referenceImg = loadImage(tcPath + aReferenceFiles[0]);
-            Img<?> processedImg = loadImageByName(aExpectedFiles[0]);
-            
-            assertTrue("Reference vs. processed file.", compare(referenceImg, processedImg));
-        }
-    }
-    
-    protected void testPlugin2(PlugInFilter aTestedPlugin,
+    protected void testPlugin(PlugInFilter aTestedPlugin,
             final String aTcDirName, final String[] aInputFiles,
             final String[] aExpectedFiles, final String[] aReferenceFiles,
             final String aSetupString, final int aExpectedSetupRetValue) {
-        testPlugin2(aTestedPlugin, aTcDirName, aInputFiles, aExpectedFiles,
+        testPlugin(aTestedPlugin, aTcDirName, aInputFiles, aExpectedFiles,
                     aReferenceFiles, aSetupString, null);
     }
     
@@ -150,7 +108,7 @@ public class CommonBase extends Info {
      * @param aSetupArg Setup string passed to plugin
      * @param aMacroOptions Macro options if needed (to not show GUI elements)
      */
-    protected void testPlugin2(PlugInFilter aTestedPlugin, 
+    protected void testPlugin(PlugInFilter aTestedPlugin, 
                               final String aTcDirName,
                               final String[] aInputFiles,
                               final String[] aExpectedFiles,
@@ -251,8 +209,6 @@ public class CommonBase extends Info {
                 }
                 errorMsg += "] Values: [" + t1 + "] vs. [" + t2 + "]";
                 logger.error(errorMsg);
-                if (Math.abs( Integer.parseInt(t1.toString()) - Integer.parseInt(t2.toString()))  > 1)
-                return false;
             }
         }
         

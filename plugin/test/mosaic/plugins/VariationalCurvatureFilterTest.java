@@ -20,7 +20,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         VariationalCurvatureFilter nt = new VariationalCurvatureFilter();
        
         // Test it
-        testPlugin2(nt, tcDirName, 
+        testPlugin(nt, tcDirName, 
                     inputFiles, expectedFiles, referenceFiles, 
                     setupString, macroOptions);
 
@@ -40,7 +40,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         VariationalCurvatureFilter nt = new VariationalCurvatureFilter();
        
         // Test it
-        testPlugin2(nt, tcDirName, 
+        testPlugin(nt, tcDirName, 
                     inputFiles, expectedFiles, referenceFiles, 
                     setupString, macroOptions);
 
@@ -60,7 +60,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         VariationalCurvatureFilter nt = new VariationalCurvatureFilter();
        
         // Test it
-        testPlugin2(nt, tcDirName, 
+        testPlugin(nt, tcDirName, 
                     inputFiles, expectedFiles, referenceFiles, 
                     setupString, macroOptions);
 

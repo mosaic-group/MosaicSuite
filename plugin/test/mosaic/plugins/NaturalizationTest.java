@@ -29,7 +29,7 @@ public class NaturalizationTest extends CommonBase {
         Naturalization nt = new Naturalization();
         
         // Test it
-        testPlugin2(nt, tcDirName, 
+        testPlugin(nt, tcDirName, 
                    inputFiles, expectedFiles, referenceFiles, 
                    setupString, expectedSetupRetValue);
     }
@@ -48,7 +48,7 @@ public class NaturalizationTest extends CommonBase {
         Naturalization nt = new Naturalization();
     
         // Test it
-        testPlugin2(nt, tcDirName, 
+        testPlugin(nt, tcDirName, 
                    inputFiles, expectedFiles, referenceFiles, 
                    setupString, expectedSetupRetValue);    
     }
