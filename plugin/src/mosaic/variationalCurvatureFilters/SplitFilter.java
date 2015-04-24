@@ -219,4 +219,10 @@ public class SplitFilter implements CurvatureFilter {
             ++middleIdx;
         }
     }
+
+    @Override
+    public void runFilter(float[][] aImg, int aNumOfIterations, Mask aMask) {
+        // TODO Auto-generated method stub
+        
+    }
 }

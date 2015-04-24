@@ -13,22 +13,16 @@ import mosaic.variationalCurvatureFilters.NoSplitFilter;
 import mosaic.variationalCurvatureFilters.SplitFilter;
 
 /**
- * Plugin providing variational curvature filters (GC/TV/MC) functionality for ImageJ/Fiji
+ * Super resolution based on curvature filters
  * @author Krzysztof Gonciarz
  */
-public class VariationalCurvatureFilter extends PluginBase {
+public class SuperResolution extends PluginBase {
     // Chosen filter
     CurvatureFilter iCf;
     
     // Number of iterations to run filter
     private int iNumberOfIterations;
 
-    // Image dimensions
-    int originalWidth;
-    int originalHeight;
-    int roundedWidth;
-    int roundedHeight;
-    
     /**
      * Takes information from user about wanted filterType, filtering method and
      * number of iterations.
@@ -76,92 +70,77 @@ public class VariationalCurvatureFilter extends PluginBase {
         
         return false;
     }
-
+    
     /**
      * Run filter on given image.
-     * @param aOutputIp Image with result
-     * @param aOriginalIp Input image
+     * @param aInputIp Input image (will be changed during processing)
      * @param aFilter Filter to be used
      * @param aNumberOfIterations Number of iterations for filter
      */
-    private void filterImage(ImageProcessor aOutputIp, ImageProcessor aOriginalIp, CurvatureFilter aFilter, int aNumberOfIterations) {
+    private void superResolution(ImageProcessor aInputIp, ImageProcessor aOriginalIp, CurvatureFilter aFilter, int aNumberOfIterations) {
+        // Image dimensions
+        int originalWidth;
+        int originalHeight;
+        
         // Get dimensions of input image
         originalWidth = aOriginalIp.getWidth();
         originalHeight = aOriginalIp.getHeight();
         
-        // Generate 2D array for image (it will be rounded up to be divisible
-        // by 2). Possible additional points will be filled with last column/row
-        // values in convertToArrayAndNormalize
-        roundedWidth = (int) (Math.ceil(originalWidth/2.0) * 2);
-        roundedHeight = (int) (Math.ceil(originalHeight/2.0) * 2);
-        float[][] img = new float[roundedHeight][roundedWidth]; 
+        int superHeight = originalHeight * 2;
+        int superWidth = originalWidth * 2;
+        float[][] img = new float[superHeight][superWidth]; 
 
         // create (normalized) 2D array with input image
-        float maxValueOfPixel = (float) aOriginalIp.getMax();
-        if (maxValueOfPixel < 1.0f) maxValueOfPixel = 1.0f;
-        convertToArrayAndNormalize(aOriginalIp, img, maxValueOfPixel);
-        
+        float maxValueOfPixel = (float) aInputIp.getMax();
+        if (maxValueOfPixel < 1.0f) 
+            maxValueOfPixel = 1.0f;
+        convertToArrayAndNormalize(aOriginalIp, img, maxValueOfPixel); //maxValueOfPixel);
+
         // Run chosen filter on image      
-        aFilter.runFilter(img, aNumberOfIterations);
+        aFilter.runFilter(img, aNumberOfIterations, new CurvatureFilter.Mask() {
+            public boolean shouldBeProcessed(int x, int y) {
+                // Skip pixels from original image
+                return !(x % 2 == 1 && y % 2 == 1);
+            }
+        });
 
-        // Update input image with a result
-        updateOriginal(aOutputIp, img, maxValueOfPixel);
+        updateOriginal(aInputIp, img, maxValueOfPixel);
     }
-
-    /**
-     * Converts ImageProcessor to 2D array with first dim Y and second X
-     * If new image array is bigger than input image then additional pixels (right column(s) and
-     * bottom row(s)) are padded with neighbors values.
-     * All pixels are normalized by dividing them by provided normalization value (if 
-     * this step is not needed 1.0 should be given).
-     * 
-     * @param aInputIp       Original image
-     * @param aNewImgArray   Created 2D array to keep converted original image     
-     * @param aNormalizationValue Maximum pixel value of original image -> converted one will be normalized [0..1]
-     */
+    
     private void convertToArrayAndNormalize(ImageProcessor aInputIp, float[][] aNewImgArray, float aNormalizationValue) {
         float[] pixels = (float[])aInputIp.getPixels();
-    
-        for (int y = 0; y < roundedHeight; ++y) {
-            for (int x = 0; x < roundedWidth; ++x) {
-                int yIdx = y;
-                int xIdx = x;
-                if (yIdx >= originalHeight) yIdx = originalHeight - 1;
-                if (xIdx >= originalWidth) xIdx = originalWidth - 1;
-                aNewImgArray[y][x] = (float)pixels[xIdx + yIdx * originalWidth]/aNormalizationValue;
+        int w = aInputIp.getWidth();
+        int h = aInputIp.getHeight();
+        
+        for (int y = 0; y < h; ++y) {
+            for (int x = 0; x < w; ++x) {
+                aNewImgArray[2*y+1][2*x+1] = (float)pixels[x + y * w] / aNormalizationValue;
     
             }
         }
     }
-
-    /**
-     * Updates ImageProcessor image with provided 2D pixel array. All pixels are multiplied by
-     * normalization value (if this step is not needed 1.0 should be provided)
-     * If output image is smaller than pixel array then it is truncated.
-     * 
-     * @param aIp                  ImageProcessor to be updated
-     * @param aImg                 2D array (first dim Y, second X)
-     * @param aNormalizationValue  Normalization value.
-     */
+    
     private void updateOriginal(ImageProcessor aIp, float[][] aImg, float aNormalizationValue) {
         float[] pixels = (float[])aIp.getPixels();
+        int w = aIp.getWidth();
+        int h = aIp.getHeight();
         
-        for (int x = 0; x < originalWidth; ++x) {
-            for (int y = 0; y < originalHeight; ++y) {
-                     pixels[x + y * originalWidth] = aImg[y][x] * aNormalizationValue;
+        for (int x = 0; x < w; ++x) {
+            for (int y = 0; y < h; ++y) {
+                     pixels[x + y * w] = aImg[y][x] * aNormalizationValue;
             }
         }
     }
 
     @Override
     void setup(String aArgs) {
-        if (aArgs.equals("updateOriginal")) setChangeOriginal(true);
-        setFilePrefix("filtered_");
+        setFilePrefix("resized_");
+        setScaleX(2.0);
+        setScaleY(2.0);
     }
 
     @Override
     void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg) {
-        filterImage(aOutputImg, aOrigImg, iCf, iNumberOfIterations);
-        
+        superResolution(aOutputImg, aOrigImg, iCf, iNumberOfIterations);
     }
 }

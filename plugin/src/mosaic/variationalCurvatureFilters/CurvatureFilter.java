@@ -5,10 +5,16 @@ package mosaic.variationalCurvatureFilters;
  * @author Krzysztof Gonciarz
  */
 public interface CurvatureFilter {
+    interface Mask {
+        boolean shouldBeProcessed(int aX, int aY);// {return false;}
+    }
+    
     /**
      * Run filter on given image and perform given number of iterations.
      * @param aImg 2D image. Notice: it should be in format aImg[y][x] (first dim is Y)
      * @param aNumOfIterations Nubmer of iterations.
      */
     void runFilter(float[][] aImg, int aNumOfIterations);
+    
+    void runFilter(float[][] aImg, int aNumOfIterations, Mask aMask);
 }

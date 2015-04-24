@@ -209,6 +209,7 @@ public class CommonBase extends Info {
                 }
                 errorMsg += "] Values: [" + t1 + "] vs. [" + t2 + "]";
                 logger.error(errorMsg);
+                return false;
             }
         }
         

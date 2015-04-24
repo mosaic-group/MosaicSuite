@@ -1,5 +1,7 @@
 package mosaic.variationalCurvatureFilters;
 
+import java.util.Arrays;
+
 import mosaic.test.framework.CommonBase;
 
 import org.junit.Assert;
@@ -35,7 +37,7 @@ public class NoSplitFilterTest extends CommonBase {
         
         NoSplitFilter nsf = new NoSplitFilter(new IncreasingValueFilter());
         nsf.runFilter(img, 1);
-        
+
         for (int y = 0; y < yLen; ++y) {
             Assert.assertArrayEquals("Arrays should have same values!",
                     expectedOutput[y], img[y], expectedPrecision);
