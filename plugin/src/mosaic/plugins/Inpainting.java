@@ -1,5 +1,6 @@
 package mosaic.plugins;
 
+import ij.IJ;
 import ij.ImagePlus;
 import ij.io.OpenDialog;
 import ij.io.Opener;
@@ -91,9 +92,21 @@ public class Inpainting extends CurvatureFilterBase {
 
         if (name != null) {
             iMask = new Opener().openImage(directory + name);
+            // TODO: Check if mask is valid (resolution, type of image)
+
+            int iw = getInputImg().getWidth();
+            int ih = getInputImg().getHeight();
+            
+            if (iMask.getWidth() != iw || iMask.getHeight() != ih) {
+                IJ.error("Mask should have same dimensions as input image!" +
+                         " Input image: [" + iw + "x" + ih +"]" +
+                         " Mask: [" + iMask.getWidth() + "x" + iMask.getHeight() + "]");
+                return false;
+            }
+            
             return true;
         }
-        // TODO: Check if mask is valid (resolution, type of image)
+        
         return false;
     }
 

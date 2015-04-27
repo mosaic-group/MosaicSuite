@@ -211,4 +211,8 @@ public abstract class PluginBase implements PlugInFilter {
     public void setFilePrefix(String aFilePrefix) {
         iFilePrefix = aFilePrefix;
     }
+    
+    public ImagePlus getInputImg() {
+        return iInputImg;
+    }
 }

@@ -21,6 +21,17 @@ public class SplitFilterTest extends CommonBase {
         
     }
     
+    /** 
+     * Test if pixels are processed in correct order.
+     * Sequence:
+     * col | row | set corresponding to split filter
+     * ---------------------------------------------
+     * 1     1     BC
+     * 1     2     WT
+     * 2     1     WC
+     * 2     2     BT
+     * Naming of subsets (BC, WT..) is taken from split version of filter.
+     */
     @Test
     public void testOrderOfUpdatingPixels() {
         final float expectedPrecision = 0.000001f;
@@ -42,6 +53,9 @@ public class SplitFilterTest extends CommonBase {
         }
     }
     
+    /**
+     * Check if more than one iteration is correctly handled.
+     */
     @Test
     public void testIncrements() {
         final float expectedPrecision = 0.000001f;
@@ -63,4 +77,28 @@ public class SplitFilterTest extends CommonBase {
         }
     }
 
+    /**
+     * Split Filter should not support mask feature.
+     */
+    @Test (expected = RuntimeException.class)
+    public void testMask() {
+        final int noOfIncrements = 1;
+        final float[][] expectedOutput = {{0.0f, 0.0f, 0.0f, 0.0f},
+                                          {0.0f, 1.0f, 2.0f, 0.0f},
+                                          {0.0f, 0.0f, 0.0f, 0.0f},
+                                          {0.0f, 0.0f, 0.0f, 0.0f}};
+        final int yLen = expectedOutput.length;
+        final int xLen = expectedOutput[0].length;
+        float[][] img = new float[yLen][xLen];
+        
+        SplitFilter nsf = new SplitFilter(new IncreasingValueFilter());
+        
+        // Should throw RuntimeException
+        nsf.runFilter(img, noOfIncrements, new CurvatureFilter.Mask() {
+            public boolean shouldBeProcessed(int x, int y) {
+                // Allow to update pixels only for rows: 0, 1
+                return y <= 1;
+            }
+        });
+    }
 }

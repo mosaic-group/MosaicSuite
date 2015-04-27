@@ -10,9 +10,11 @@ public class SplitFilter implements CurvatureFilter {
     // Original image dimensions
     int originalWidth;
     int originalHeight;
+    
     // Rounded up to divisible by 2 dimensions
     int roundedWidth;
     int roundedHeight;
+    
     // rounded(Width/Height)/2
     int halfWidth; 
     int halfHeight;
@@ -84,7 +86,7 @@ public class SplitFilter implements CurvatureFilter {
     }
 
     /**
-     * Merges WC/WT/BC/BT into one image. Original image was splitted by {@link splitImage}
+     * Merges WC/WT/BC/BT into one image. Original image was split by {@link splitImage}
      * @param aIp
      * @param WC
      * @param WT
