@@ -9,6 +9,12 @@ import mosaic.variationalCurvatureFilters.FilterKernelTv;
 import mosaic.variationalCurvatureFilters.NoSplitFilter;
 import mosaic.variationalCurvatureFilters.SplitFilter;
 
+/**
+ * Base for plugIns working with Curvature Filters. Mainly it shows dialog to user, gets information
+ * about wanted filter/iterations and creates filter which can be used in plugIn.
+ * @author Krzysztof Gonciarz
+ *
+ */
 public abstract class CurvatureFilterBase extends PluginBase {
 
     // Chosen filter
@@ -17,15 +23,28 @@ public abstract class CurvatureFilterBase extends PluginBase {
     // Number of iterations to run filter
     private int iNumberOfIterations;
 
+    // flag telling if split/no split choice should be allowed for user
     private boolean hasSplitMethodMenu = false;
     
+    /**
+     * Allows to show/disable part of dialog with type of filter (split/no split)
+     * @param aSplitMethodMenuAvailable If true user can chose split/no split version
+     *                                  of filter (false by default)
+     */
     void setSplitMethodMenu(boolean aSplitMethodMenuAvailable) {
         hasSplitMethodMenu = aSplitMethodMenuAvailable;
     }
+    
+    /**
+     * @return Filter created basing on user input.
+     */
     protected CurvatureFilter getCurvatureFilter() {
         return iCf;
     }
 
+    /**
+     * @return Number of iterations provided by user.
+     */
     protected int getNumberOfIterations() {
         return iNumberOfIterations;
     }

@@ -75,8 +75,8 @@ public class Inpainting extends CurvatureFilterBase {
         int w = aIp.getWidth();
         int h = aIp.getHeight();
 
-        for (int x = 0; x < w; ++x) {
-            for (int y = 0; y < h; ++y) {
+        for (int y = 0; y < h; ++y) {
+            for (int x = 0; x < w; ++x) {
                 pixels[x + y * w] = aImg[y][x] * aNormalizationValue;
             }
         }
@@ -92,7 +92,6 @@ public class Inpainting extends CurvatureFilterBase {
 
         if (name != null) {
             iMask = new Opener().openImage(directory + name);
-            // TODO: Check if mask is valid (resolution, type of image)
 
             int iw = getInputImg().getWidth();
             int ih = getInputImg().getHeight();

@@ -16,7 +16,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         String[] expectedFiles    = {"filtered_x8bit.png"};
         String[] referenceFiles   = {"filteredGcSplit10_x8bit.tif"};
         
-        // Create tested plugin
+        // Create tested plugIn
         CurvatureFilterBase nt = new VariationalCurvatureFilter();
        
         // Test it
@@ -36,7 +36,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         String[] expectedFiles    = {"filtered_x.png"};
         String[] referenceFiles   = {"filteredTvNoSplit10_x.tif"};
         
-        // Create tested plugin
+        // Create tested plugIn
         CurvatureFilterBase nt = new VariationalCurvatureFilter();
        
         // Test it
@@ -56,7 +56,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         String[] expectedFiles    = {"filtered_x8bit.png"};
         String[] referenceFiles   = {"filteredMcSplit2_x8bit.tif"};
         
-        // Create tested plugin
+        // Create tested plugIn
         CurvatureFilterBase nt = new VariationalCurvatureFilter();
        
         // Test it

@@ -1,7 +1,5 @@
 package mosaic.variationalCurvatureFilters;
 
-import java.util.Arrays;
-
 import mosaic.test.framework.CommonBase;
 
 import org.junit.Assert;
