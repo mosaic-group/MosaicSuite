@@ -1,82 +1,16 @@
 package mosaic.plugins;
 
 
-import ij.gui.GenericDialog;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
-import mosaic.variationalCurvatureFilters.FilterKernel;
-import mosaic.variationalCurvatureFilters.FilterKernelGc;
-import mosaic.variationalCurvatureFilters.FilterKernelMc;
-import mosaic.variationalCurvatureFilters.FilterKernelTv;
-import mosaic.variationalCurvatureFilters.NoSplitFilter;
-import mosaic.variationalCurvatureFilters.SplitFilter;
 
 /**
  * Plugin providing variational curvature filters (GC/TV/MC) functionality for ImageJ/Fiji
  * @author Krzysztof Gonciarz
  */
-public class VariationalCurvatureFilter extends PluginBase {
-    // Chosen filter
-    CurvatureFilter iCf;
+public class VariationalCurvatureFilter extends CurvatureFilterBase {
     
-    // Number of iterations to run filter
-    private int iNumberOfIterations;
-
-    // Image dimensions
-    int originalWidth;
-    int originalHeight;
-    int roundedWidth;
-    int roundedHeight;
-    
-    /**
-     * Takes information from user about wanted filterType, filtering method and
-     * number of iterations.
-     * @return true in case if configuration was successful - false otherwise.
-     */
-    @Override
-    boolean showDialog() {
-        final String[] filters = {"GC", "MC", "TV"};
-        final String[] types = {"Split", "No split"};
-        
-        GenericDialog gd = new GenericDialog("Curvature Filter Settings");
-    
-        gd.addRadioButtonGroup("Filter type: ", filters, 1, 3, filters[0]);
-        gd.addRadioButtonGroup("Method: ", types, 1, 2, types[1]);
-        gd.addNumericField("Number of iterations: ", 10, 0);
-        
-        gd.showDialog();
-        
-        if (!gd.wasCanceled()) {
-            // Create user's chosen filter
-            String filter = gd.getNextRadioButton();
-            String type = gd.getNextRadioButton();
-            iNumberOfIterations = (int)gd.getNextNumber();
-            FilterKernel fk = null;
-            if (filter.equals(filters[0])) {
-                fk = new FilterKernelGc(); 
-            } 
-            else if (filter.equals(filters[1])) {
-                fk = new FilterKernelMc(); 
-            }
-            else if (filter.equals(filters[2])) {
-                fk = new FilterKernelTv(); 
-            }
-            if (fk == null) return false;
-            
-            if (type.equals(types[0])) {
-                iCf = new SplitFilter(fk); 
-            }
-            else {
-                iCf = new NoSplitFilter(fk); 
-            }
-            
-            if (iCf != null && iNumberOfIterations >= 0) return true;
-        }
-        
-        return false;
-    }
-
     /**
      * Run filter on given image.
      * @param aOutputIp Image with result
@@ -86,14 +20,14 @@ public class VariationalCurvatureFilter extends PluginBase {
      */
     private void filterImage(ImageProcessor aOutputIp, ImageProcessor aOriginalIp, CurvatureFilter aFilter, int aNumberOfIterations) {
         // Get dimensions of input image
-        originalWidth = aOriginalIp.getWidth();
-        originalHeight = aOriginalIp.getHeight();
+        int originalWidth = aOriginalIp.getWidth();
+        int originalHeight = aOriginalIp.getHeight();
         
         // Generate 2D array for image (it will be rounded up to be divisible
         // by 2). Possible additional points will be filled with last column/row
         // values in convertToArrayAndNormalize
-        roundedWidth = (int) (Math.ceil(originalWidth/2.0) * 2);
-        roundedHeight = (int) (Math.ceil(originalHeight/2.0) * 2);
+        int roundedWidth = (int) (Math.ceil(originalWidth/2.0) * 2);
+        int roundedHeight = (int) (Math.ceil(originalHeight/2.0) * 2);
         float[][] img = new float[roundedHeight][roundedWidth]; 
 
         // create (normalized) 2D array with input image
@@ -121,15 +55,18 @@ public class VariationalCurvatureFilter extends PluginBase {
      */
     private void convertToArrayAndNormalize(ImageProcessor aInputIp, float[][] aNewImgArray, float aNormalizationValue) {
         float[] pixels = (float[])aInputIp.getPixels();
-    
-        for (int y = 0; y < roundedHeight; ++y) {
-            for (int x = 0; x < roundedWidth; ++x) {
+        int w = aInputIp.getWidth();
+        int h = aInputIp.getHeight();
+        int arrayW = aNewImgArray[0].length;
+        int arrayH = aNewImgArray.length;
+        
+        for (int y = 0; y < arrayH; ++y) {
+            for (int x = 0; x < arrayW; ++x) {
                 int yIdx = y;
                 int xIdx = x;
-                if (yIdx >= originalHeight) yIdx = originalHeight - 1;
-                if (xIdx >= originalWidth) xIdx = originalWidth - 1;
-                aNewImgArray[y][x] = (float)pixels[xIdx + yIdx * originalWidth]/aNormalizationValue;
-    
+                if (yIdx >= h) yIdx = h - 1;
+                if (xIdx >= w) xIdx = w - 1;
+                aNewImgArray[y][x] = (float)pixels[xIdx + yIdx * w]/aNormalizationValue;
             }
         }
     }
@@ -144,24 +81,27 @@ public class VariationalCurvatureFilter extends PluginBase {
      * @param aNormalizationValue  Normalization value.
      */
     private void updateOriginal(ImageProcessor aIp, float[][] aImg, float aNormalizationValue) {
-        float[] pixels = (float[])aIp.getPixels();
-        
-        for (int x = 0; x < originalWidth; ++x) {
-            for (int y = 0; y < originalHeight; ++y) {
-                     pixels[x + y * originalWidth] = aImg[y][x] * aNormalizationValue;
+        float[] pixels = (float[]) aIp.getPixels();
+        int w = aIp.getWidth();
+        int h = aIp.getHeight();
+
+        for (int x = 0; x < w; ++x) {
+            for (int y = 0; y < h; ++y) {
+                pixels[x + y * w] = aImg[y][x] * aNormalizationValue;
             }
         }
     }
 
     @Override
-    void setup(String aArgs) {
+    boolean setup(String aArgs) {
         if (aArgs.equals("updateOriginal")) setChangeOriginal(true);
         setFilePrefix("filtered_");
+        setSplitMethodMenu(true);
+        return true;
     }
 
     @Override
     void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg) {
-        filterImage(aOutputImg, aOrigImg, iCf, iNumberOfIterations);
-        
+        filterImage(aOutputImg, aOrigImg, getCurvatureFilter(), getNumberOfIterations());
     }
 }

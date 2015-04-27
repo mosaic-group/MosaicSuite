@@ -1,18 +1,14 @@
 package mosaic.test.framework;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
 import ij.Macro;
 import ij.WindowManager;
 import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
 import io.scif.SCIFIOService;
 import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
@@ -21,7 +17,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import mosaic.plugins.VariationalCurvatureFilter;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
@@ -186,6 +181,9 @@ public class CommonBase extends Info {
         RandomAccess<?> ci2 = aTestedImg.randomAccess();
         
         int loc[] = new int[aRefImg.numDimensions()];
+        int countAll = 0;
+        int countDifferent = 0;
+        boolean firstDiffFound = false;
         
         while (ci1.hasNext())
         {
@@ -196,21 +194,33 @@ public class CommonBase extends Info {
             Object t1 = ci1.get();
             Object t2 = ci2.get();
             
+            countAll++;
+            
             if (!t1.equals(t2))
             {
-                // Produce error log with coordinates and values of first 
-                // not matching location
-                String errorMsg = "Images differ. First occurence at: [";
-                for (int i = 0; i < aRefImg.numDimensions(); ++i) {
-                    errorMsg += loc[i];
-                    if (i < aRefImg.numDimensions() - 1) {
-                        errorMsg += ",";
+                countDifferent++;
+                if (!firstDiffFound) {
+                    // Produce error log with coordinates and values of first 
+                    // not matching location
+                    String errorMsg = "Images differ. First occurence at: [";
+                    for (int i = 0; i < aRefImg.numDimensions(); ++i) {
+                        errorMsg += loc[i];
+                        if (i < aRefImg.numDimensions() - 1) {
+                            errorMsg += ",";
+                        }
                     }
+                    errorMsg += "] Values: [" + t1 + "] vs. [" + t2 + "]";
+                    logger.error(errorMsg);
+                    firstDiffFound = true;
                 }
-                errorMsg += "] Values: [" + t1 + "] vs. [" + t2 + "]";
-                logger.error(errorMsg);
-                return false;
+                //return false;
             }
+            
+        }
+        
+        if (firstDiffFound) {
+            logger.error("Different pixels / all pixels: [" + countDifferent + "/" + countAll + "]");
+            return false;
         }
         
         return true;

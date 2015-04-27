@@ -51,6 +51,11 @@ public class SplitFilter implements CurvatureFilter {
         mergeImage(aImg, WC, WT, BC, BT);
     }
     
+    @Override
+    public void runFilter(float[][] aImg, int aNumOfIterations, Mask aMask) {
+        throw new RuntimeException("Split filter cannot be used with mask.");
+    }
+
     /**
      * Splits input image into four sets containing every second pixel. 
      * BT WT
@@ -218,11 +223,5 @@ public class SplitFilter implements CurvatureFilter {
             ++leftIdx;
             ++middleIdx;
         }
-    }
-
-    @Override
-    public void runFilter(float[][] aImg, int aNumOfIterations, Mask aMask) {
-        // TODO Auto-generated method stub
-        
     }
 }

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Super resolution based on curvature filters
+ * Base for plugins that use float values as a algorithm base.
  * @author Krzysztof Gonciarz
  */
 public abstract class PluginBase implements PlugInFilter {
@@ -41,7 +41,7 @@ public abstract class PluginBase implements PlugInFilter {
     // shall be changed
     boolean iChangeOriginal = false;
     
-    abstract void setup(final String aArgs);
+    abstract boolean setup(final String aArgs);
     abstract boolean showDialog();
     abstract void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg);
    
@@ -60,8 +60,11 @@ public abstract class PluginBase implements PlugInFilter {
             iInputImg = aImp;
             iInputArgs = aArgs;
             
-            setup(iInputArgs);
+            // Allow plugin to make it own configuration
+            if (!setup(iInputArgs)) return DONE;
             
+            // Set the original image as being processed or generate new empty copy of
+            // input img otherwise
             if (iChangeOriginal) {
                 iProcessedImg = iInputImg;
             }
@@ -102,13 +105,19 @@ public abstract class PluginBase implements PlugInFilter {
     @Override
     public void run(ImageProcessor aIp) {
         IJ.showStatus("In progress...");
-        List<Thread> th = new ArrayList<Thread>(aIp.getNChannels());
-        List<ProcessOneChannel> poc = new ArrayList<ProcessOneChannel>(aIp.getNChannels());
-        for (int i = 0; i < aIp.getNChannels(); ++i) {
+        
+        final int noOfChannels = aIp.getNChannels();
+        
+        // Lists to keep information about threads
+        List<Thread> th = new ArrayList<Thread>(noOfChannels);
+        List<ProcessOneChannel> poc = new ArrayList<ProcessOneChannel>(noOfChannels);
+        
+        for (int i = 0; i < noOfChannels; ++i) {
             final ImageProcessor currentIp = iProcessedImg.getStack().getProcessor(aIp.getSliceNumber());
             final FloatProcessor res = currentIp.toFloat(i, null);
             final FloatProcessor orig = aIp.toFloat(i, null);
             
+            // Start separate thread on each channel
             ProcessOneChannel p = new ProcessOneChannel(currentIp, res, orig, i);
             Thread t = new Thread(p);
             t.start();
@@ -116,8 +125,10 @@ public abstract class PluginBase implements PlugInFilter {
             poc.add(p);
         }
         
-        for (int i = 0; i < aIp.getNChannels(); ++i) {
+        for (int i = 0; i < noOfChannels; ++i) {
             try {
+                // wait for each channel to complete and then run update method - it will 
+                // be run in sequence which is needed since ImageProcessor is not thread safe
                 th.get(i).join(); 
                 poc.get(i).update(); 
             } 
@@ -127,7 +138,18 @@ public abstract class PluginBase implements PlugInFilter {
         IJ.showStatus("Done.");
     }
 
-    ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale) {
+    /**
+     * Creates new empty ImagePlus basing on information from original aOrigIp image.
+     * Newly generated img will have same structure (like slices/frames/channels, composite,
+     * calibration settings etc.). It can be rescaled if needed by providing aXscale and aYscale
+     * other than 1.0
+     * @param aOrigIp
+     * @param aTitle
+     * @param aXscale
+     * @param aYscale
+     * @return newly created ImagePlus
+     */
+    protected ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale) {
         int nSlices = aOrigIp.getStackSize();
         int w=aOrigIp.getWidth();
         int h=aOrigIp.getHeight();
