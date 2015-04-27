@@ -60,7 +60,7 @@ public class NaturalizationTest extends CommonBase {
         
         // Check values
         logger.debug("Testting PSNR for different ranges of input values");
-        System.out.println("" + nt.calculate_PSNR(0) + "  " + nt.calculate_PSNR(0.9));
+
         assertTrue("x >=  0 && x <= 0.934", nt.calculate_PSNR(0).startsWith("3.6"));
         assertTrue("x >=  0 && x <= 0.934", nt.calculate_PSNR(0.9).startsWith("40.56"));
         

@@ -6,6 +6,7 @@ import ij.io.OpenDialog;
 import ij.io.Opener;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
+import mosaic.plugins.utils.ConvertImg;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 
 /**
@@ -24,7 +25,7 @@ public class Inpainting extends CurvatureFilterBase {
      * @param aFilter Filter to be used
      * @param aNumberOfIterations Number of iterations for filter
      */
-    private void superResolution(ImageProcessor aInputIp, ImageProcessor aOriginalIp, CurvatureFilter aFilter, int aNumberOfIterations) {
+    private void superResolution(FloatProcessor aInputIp, FloatProcessor aOriginalIp, CurvatureFilter aFilter, int aNumberOfIterations) {
         // Get dimensions of input image
         int originalWidth = aOriginalIp.getWidth();
         int originalHeight = aOriginalIp.getHeight();
@@ -39,7 +40,7 @@ public class Inpainting extends CurvatureFilterBase {
         // create (normalized) 2D array with input image
         float maxValueOfPixel = (float) aOriginalIp.getMax();
         if (maxValueOfPixel < 1.0f) maxValueOfPixel = 1.0f;
-        convertToArrayAndNormalize(aOriginalIp, img, maxValueOfPixel);
+        ConvertImg.ImgToYX2Darray(aOriginalIp, img, maxValueOfPixel);
 
         // Run chosen filter on image
         aFilter.runFilter(img, aNumberOfIterations, new CurvatureFilter.Mask() {
@@ -49,41 +50,11 @@ public class Inpainting extends CurvatureFilterBase {
             }
         });
 
-        updateOriginal(aInputIp, img, maxValueOfPixel);
-    }
-
-    private void convertToArrayAndNormalize(ImageProcessor aInputIp, float[][] aNewImgArray, float aNormalizationValue) {
-        float[] pixels = (float[])aInputIp.getPixels();
-        int w = aInputIp.getWidth();
-        int h = aInputIp.getHeight();
-        int arrayW = aNewImgArray[0].length;
-        int arrayH = aNewImgArray.length;
-        
-        for (int y = 0; y < arrayH; ++y) {
-            for (int x = 0; x < arrayW; ++x) {
-                int yIdx = y;
-                int xIdx = x;
-                if (yIdx >= h) yIdx = h - 1;
-                if (xIdx >= w) xIdx = w - 1;
-                aNewImgArray[y][x] = (float)pixels[xIdx + yIdx * w]/aNormalizationValue;
-            }
-        }
-    }
-
-    private void updateOriginal(ImageProcessor aIp, float[][] aImg, float aNormalizationValue) {
-        float[] pixels = (float[]) aIp.getPixels();
-        int w = aIp.getWidth();
-        int h = aIp.getHeight();
-
-        for (int y = 0; y < h; ++y) {
-            for (int x = 0; x < w; ++x) {
-                pixels[x + y * w] = aImg[y][x] * aNormalizationValue;
-            }
-        }
+        ConvertImg.YX2DarrayToImg(img, aInputIp, maxValueOfPixel);
     }
 
     @Override
-    boolean setup(String aArgs) {
+    protected boolean setup(String aArgs) {
         setFilePrefix("inpainting_");
 
         OpenDialog od = new OpenDialog("(Inpainting) Open mask file", "");
@@ -110,7 +81,7 @@ public class Inpainting extends CurvatureFilterBase {
     }
 
     @Override
-    void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg) {
+    protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg) {
         superResolution(aOutputImg, aOrigImg, getCurvatureFilter(), getNumberOfIterations());
     }
 }

@@ -1,4 +1,4 @@
-package mosaic.plugins;
+package mosaic.plugins.utils;
 
 
 import ij.CompositeImage;
@@ -14,11 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Base for plugins that use float values as a algorithm base.
+ * Base for plugIns that use float values as a algorithm base.
  * @author Krzysztof Gonciarz
  */
-public abstract class PluginBase implements PlugInFilter {
-    // ImageJ plugin flags defined for setup method
+public abstract class PlugInBase implements PlugInFilter {
+    // ImageJ plugIn flags defined for setup method
     private int iFlags = DOES_ALL |
                          DOES_STACKS | 
                          FINAL_PROCESSING | 
@@ -41,9 +41,9 @@ public abstract class PluginBase implements PlugInFilter {
     // shall be changed
     boolean iChangeOriginal = false;
     
-    abstract boolean setup(final String aArgs);
-    abstract boolean showDialog();
-    abstract void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg);
+    abstract protected boolean setup(final String aArgs);
+    abstract protected boolean showDialog();
+    abstract protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg);
    
     @Override
     public int setup(final String aArgs, final ImagePlus aImp) {

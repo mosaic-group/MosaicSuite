@@ -73,7 +73,7 @@ public class LeastSquaresTest extends CommonBase {
         final double slope = 2.0;
         final double y0 = 1.0;
         final double[] xValues = {1.0, 2.0};
-        final double[] yValues = {3.0, 4.0};
+        final double[] yValues = {3.0, 5.0};
         
         iLeastSquares.calculate(xValues, yValues);
         
