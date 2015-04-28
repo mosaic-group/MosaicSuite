@@ -1,8 +1,6 @@
 package mosaic.plugins.utils;
 
-import static org.junit.Assert.*;
 import ij.process.FloatProcessor;
-import mosaic.core.utils.ImgTest;
 
 import org.junit.Assert;
 import org.junit.Test;

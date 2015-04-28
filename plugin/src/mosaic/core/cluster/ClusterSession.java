@@ -8,10 +8,8 @@ import ij.io.DirectoryChooser;
 import ij.io.Opener;
 import ij.process.StackStatistics;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -99,19 +97,19 @@ public class ClusterSession
 		this.ia_s = ia_s;
 	}
 	
-	private String readFileAsString(String filePath) throws IOException {
-        StringBuffer fileData = new StringBuffer();
-        BufferedReader reader = new BufferedReader(
-                new FileReader(filePath));
-        char[] buf = new char[1024];
-        int numRead=0;
-        while((numRead=reader.read(buf)) != -1){
-            String readData = String.valueOf(buf, 0, numRead);
-            fileData.append(readData);
-        }
-        reader.close();
-        return fileData.toString();
-    }
+//	private String readFileAsString(String filePath) throws IOException {
+//        StringBuffer fileData = new StringBuffer();
+//        BufferedReader reader = new BufferedReader(
+//                new FileReader(filePath));
+//        char[] buf = new char[1024];
+//        int numRead=0;
+//        while((numRead=reader.read(buf)) != -1){
+//            String readData = String.valueOf(buf, 0, numRead);
+//            fileData.append(readData);
+//        }
+//        reader.close();
+//        return fileData.toString();
+//    }
 	
 	/**
 	 * Cleanup all the data you created
@@ -711,7 +709,6 @@ public class ClusterSession
 	
 	public boolean runPluginsOnFrames(ImagePlus img,String command, String options, String output[], double ExtTime, boolean sync)
 	{
-		String tmp_dir = IJ.getDirectory("temp");
 		if (ss == null)
 			ss = new SecureShellSession(cp);
 		ProgressBarWin wp = new ProgressBarWin();
@@ -1079,7 +1076,6 @@ public class ClusterSession
 	{
 		if (cg == null)
 			cg = new ClusterGUI();
-		boolean sync = false;
 		
 		// open the image and process image
 		

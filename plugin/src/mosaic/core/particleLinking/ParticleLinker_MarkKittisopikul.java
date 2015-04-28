@@ -18,9 +18,9 @@ public class ParticleLinker_MarkKittisopikul{
 	 */
 	public void linkParticles(MyFrame[] frames, int frames_number, int linkrange, double displacement) {
 
-		int m, i, j, k, l, nop, nop_next, n;
-		int ok, prev, x = 0, y = 0, curr_linkrange;
-		int prev_i, prev_j, prev_x, prev_y;
+		int m, i, j, l, nop, nop_next, n;
+		int prev, x = 0, y = 0, curr_linkrange;
+		int prev_i, prev_j;
 		int[] xv,yv;
 		boolean[][] g;
 		boolean[][] inrange;
@@ -314,13 +314,13 @@ public class ParticleLinker_MarkKittisopikul{
 		
 				min = -1.0;
 				double firstMin = 0;
-				double checkMin = 0;
-				int check_i =0;
-				int check_j = 0;
-				int pp_i = 0;
-				int pp_j = 0;
-				int pp_x = 0;
-				int pp_y = 0;
+//				double checkMin = 0;
+//				int check_i =0;
+//				int check_j = 0;
+//				int pp_i = 0;
+//				int pp_j = 0;
+//				int pp_x = 0;
+//				int pp_y = 0;
 				prev_i = 0;
 				prev_j = 0;
 				

@@ -642,11 +642,11 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	{
 		int idx = iterator.pointToIndex(p);
 		
-		if (idx >= dataLabel.length)
-		{
-			int debug = 0;
-			debug++;
-		}
+//		if (idx >= dataLabel.length)
+//		{
+//			int debug = 0;
+//			debug++;
+//		}
 		
 		return Math.abs(dataLabel[idx]);
 //		return labelToAbs(getLabel(p));
@@ -654,11 +654,11 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 
 	public int getLabelAbs(int idx)
 	{
-		if (idx >= dataLabel.length)
-		{
-			int debug = 0;
-			debug++;
-		}
+//		if (idx >= dataLabel.length)
+//		{
+//			int debug = 0;
+//			debug++;
+//		}
 		
 		return Math.abs(dataLabel[idx]);
 //		return labelToAbs(getLabel(idx));

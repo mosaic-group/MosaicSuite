@@ -23,7 +23,6 @@ import mosaic.core.utils.CircleMask;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.core.utils.Point;
-import mosaic.core.utils.RectangleMask;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.particleTracker.Trajectory;
 import net.imglib2.Cursor;
@@ -876,8 +875,6 @@ import net.imglib2.view.Views;
 	        
 	        double radius = p_radius;
 
-	        float sp[] = new float[out_a.numDimensions()];
-	        	
 	        float scaling_[] = getScaling(out_a.numDimensions(), cal);
 	    	int rc = (int) radius;	
 	        
@@ -959,9 +956,7 @@ import net.imglib2.view.Views;
 	        	if (radius < 1.0)
 	        		radius = 1.0;
 	        	
-	        	float sp[] = new float[out_a.numDimensions()];
-	        	
-	    		float scaling_[] = getScaling(out_a.numDimensions(), cal);
+	        	float scaling_[] = getScaling(out_a.numDimensions(), cal);
 	    		
 	    		// Create a circle Mask and an iterator
 	    		
@@ -1194,185 +1189,185 @@ import net.imglib2.view.Views;
 		 * @param p2 end line
 		 * @param col Color of the line
 		 */
-		static private void drawLineBold(RandomAccessibleInterval<ARGBType> out, Particle p1, Particle p2, int col, int w)
-		{
-			// w
-			
-			int bold[] = new int [3];
-			bold[0] = w;
-			bold[1] = w;
-			bold[2] = w;
-			
-			RegionIteratorMask rg_m = null;
-			
-			if ((rg_m = RectangleCache.get(w)) != null)
-			{
-				RectangleMask rm = new RectangleMask(bold);
-				int size[] = new int [3];
-				size[0] = (int) out.dimension(0);
-				size[1] = (int) out.dimension(1);
-				size[2] = (int) out.dimension(2);
-				
-				rg_m = new RegionIteratorMask(rm, size);
-			}
-				
-	        // the number of dimensions
-	        int numDimensions = out.numDimensions();
-	        
-	        long dims[] = new long[numDimensions];
-	        out.dimensions(dims);
-			
-			RandomAccess<ARGBType> out_a = out.randomAccess();
-
-			int i, dx, dy, dz, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
-			long pixel[] = new long[3];
-			    
-			while (rg_m.hasNext())
-			{
-				Point p = rg_m.nextP();
-				Point middle = new Point(w/2,w/2,w/2);
-				
-			    pixel[0] = (int) p1.x + p.x[0] - middle.x[0];
-			    pixel[1] = (int) p1.y + p.x[1] - middle.x[1];
-			    pixel[2] = (int) p1.z + p.x[2] - middle.x[2];
-			    dx = (int) (p2.x + p.x[0] - middle.x[0] - p1.x);
-			    dy = (int) (p2.y + p.x[1] - middle.x[1] - p1.y);
-			    dz = (int) (p2.z + p.x[2] - middle.x[2] - p1.z);
-			    x_inc = (dx < 0) ? -1 : 1;
-			    l = Math.abs(dx);
-			    y_inc = (dy < 0) ? -1 : 1;
-			    m = Math.abs(dy);
-			    z_inc = (dz < 0) ? -1 : 1;
-			    n = Math.abs(dz);
-			    dx2 = l << 1;
-			    dy2 = m << 1;
-			    dz2 = n << 1;
-
-			    if ((l >= m) && (l >= n)) 
-			    {
-			        err_1 = dy2 - l;
-			        err_2 = dz2 - l;
-			        for (i = 0; i < l; i++) 
-			        {
-			        	boolean out_pix = false;
-			        	for (int k = 0 ; k < out_a.numDimensions(); k++)
-			        	{
-			        		if (pixel[k] >= dims[k])
-			        		{
-			        			out_pix = true;
-			        			break;
-			        		}
-			        	}
-			        	
-			        	if (out_pix == true)
-			        		continue;
-			        	
-		    	        out_a.setPosition(pixel);
-		    	        	
-		    	        out_a.get().set(col);
-			            if (err_1 > 0) 
-			            {
-			                pixel[1] += y_inc;
-			                err_1 -= dx2;
-			            }
-			            if (err_2 > 0) 
-			            {
-			                pixel[2] += z_inc;
-			                err_2 -= dx2;
-			            }
-			            err_1 += dy2;
-			            err_2 += dz2;
-			            pixel[0] += x_inc;
-			        }
-			    } 
-			    else if ((m >= l) && (m >= n)) 
-			    {
-			        err_1 = dx2 - m;
-			        err_2 = dz2 - m;
-			        for (i = 0; i < m; i++) 
-			        {
-			        	boolean out_pix = false;
-			        	for (int k = 0 ; k < out_a.numDimensions(); k++)
-			        	{
-			        		if (pixel[k] >= dims[k])
-			        		{
-			        			out_pix = true;
-			        			break;
-			        		}
-			        	}
-			        	
-			        	if (out_pix == true)
-			        		continue;
-			        		
-		    	        out_a.setPosition(pixel);
-		    	        out_a.get().set(col);
-			            if (err_1 > 0) 
-			            {
-			                pixel[0] += x_inc;
-			                err_1 -= dy2;
-			            }
-			            if (err_2 > 0) 
-			            {
-			                pixel[2] += z_inc;
-			                err_2 -= dy2;
-			            }
-			            err_1 += dx2;
-			            err_2 += dz2;
-			            pixel[1] += y_inc;
-			        }
-			    } 
-			    else 
-			    {
-			        err_1 = dy2 - n;
-			        err_2 = dx2 - n;
-			        for (i = 0; i < n; i++) 
-			        {
-			        	boolean out_pix = false;
-			        	for (int k = 0 ; k < out_a.numDimensions(); k++)
-			        	{
-			        		if (pixel[k] >= dims[k])
-			        		{
-			        			out_pix = true;
-			        			break;
-			        		}
-			        	}
-			        	
-			        	if (out_pix == true)
-			        		continue;
-			        	
-		    	        out_a.setPosition(pixel);
-		    	        out_a.get().set(col);
-			            if (err_1 > 0) {
-			                pixel[1] += y_inc;
-			                err_1 -= dz2;
-			            }
-			            if (err_2 > 0) {
-			                pixel[0] += x_inc;
-			                err_2 -= dz2;
-			            }
-			            err_1 += dy2;
-			            err_2 += dx2;
-			            pixel[2] += z_inc;
-			        }
-			    }
-			    
-	        	boolean out_pix = false;
-	        	for (int k = 0 ; k < out_a.numDimensions(); k++)
-	        	{
-	        		if (pixel[k] >= dims[k])
-	        		{
-	        			out_pix = true;
-	        			break;
-	        		}
-	        	}
-	        	
-	        	if (out_pix == false)
-	        	{
-	        		out_a.setPosition(pixel);
-	        		out_a.get().set(col);
-	        	}
-			}
-		}
+//		static private void drawLineBold(RandomAccessibleInterval<ARGBType> out, Particle p1, Particle p2, int col, int w)
+//		{
+//			// w
+//			
+//			int bold[] = new int [3];
+//			bold[0] = w;
+//			bold[1] = w;
+//			bold[2] = w;
+//			
+//			RegionIteratorMask rg_m = null;
+//			
+//			if ((rg_m = RectangleCache.get(w)) != null)
+//			{
+//				RectangleMask rm = new RectangleMask(bold);
+//				int size[] = new int [3];
+//				size[0] = (int) out.dimension(0);
+//				size[1] = (int) out.dimension(1);
+//				size[2] = (int) out.dimension(2);
+//				
+//				rg_m = new RegionIteratorMask(rm, size);
+//			}
+//				
+//	        // the number of dimensions
+//	        int numDimensions = out.numDimensions();
+//	        
+//	        long dims[] = new long[numDimensions];
+//	        out.dimensions(dims);
+//			
+//			RandomAccess<ARGBType> out_a = out.randomAccess();
+//
+//			int i, dx, dy, dz, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
+//			long pixel[] = new long[3];
+//			    
+//			while (rg_m.hasNext())
+//			{
+//				Point p = rg_m.nextP();
+//				Point middle = new Point(w/2,w/2,w/2);
+//				
+//			    pixel[0] = (int) p1.x + p.x[0] - middle.x[0];
+//			    pixel[1] = (int) p1.y + p.x[1] - middle.x[1];
+//			    pixel[2] = (int) p1.z + p.x[2] - middle.x[2];
+//			    dx = (int) (p2.x + p.x[0] - middle.x[0] - p1.x);
+//			    dy = (int) (p2.y + p.x[1] - middle.x[1] - p1.y);
+//			    dz = (int) (p2.z + p.x[2] - middle.x[2] - p1.z);
+//			    x_inc = (dx < 0) ? -1 : 1;
+//			    l = Math.abs(dx);
+//			    y_inc = (dy < 0) ? -1 : 1;
+//			    m = Math.abs(dy);
+//			    z_inc = (dz < 0) ? -1 : 1;
+//			    n = Math.abs(dz);
+//			    dx2 = l << 1;
+//			    dy2 = m << 1;
+//			    dz2 = n << 1;
+//
+//			    if ((l >= m) && (l >= n)) 
+//			    {
+//			        err_1 = dy2 - l;
+//			        err_2 = dz2 - l;
+//			        for (i = 0; i < l; i++) 
+//			        {
+//			        	boolean out_pix = false;
+//			        	for (int k = 0 ; k < out_a.numDimensions(); k++)
+//			        	{
+//			        		if (pixel[k] >= dims[k])
+//			        		{
+//			        			out_pix = true;
+//			        			break;
+//			        		}
+//			        	}
+//			        	
+//			        	if (out_pix == true)
+//			        		continue;
+//			        	
+//		    	        out_a.setPosition(pixel);
+//		    	        	
+//		    	        out_a.get().set(col);
+//			            if (err_1 > 0) 
+//			            {
+//			                pixel[1] += y_inc;
+//			                err_1 -= dx2;
+//			            }
+//			            if (err_2 > 0) 
+//			            {
+//			                pixel[2] += z_inc;
+//			                err_2 -= dx2;
+//			            }
+//			            err_1 += dy2;
+//			            err_2 += dz2;
+//			            pixel[0] += x_inc;
+//			        }
+//			    } 
+//			    else if ((m >= l) && (m >= n)) 
+//			    {
+//			        err_1 = dx2 - m;
+//			        err_2 = dz2 - m;
+//			        for (i = 0; i < m; i++) 
+//			        {
+//			        	boolean out_pix = false;
+//			        	for (int k = 0 ; k < out_a.numDimensions(); k++)
+//			        	{
+//			        		if (pixel[k] >= dims[k])
+//			        		{
+//			        			out_pix = true;
+//			        			break;
+//			        		}
+//			        	}
+//			        	
+//			        	if (out_pix == true)
+//			        		continue;
+//			        		
+//		    	        out_a.setPosition(pixel);
+//		    	        out_a.get().set(col);
+//			            if (err_1 > 0) 
+//			            {
+//			                pixel[0] += x_inc;
+//			                err_1 -= dy2;
+//			            }
+//			            if (err_2 > 0) 
+//			            {
+//			                pixel[2] += z_inc;
+//			                err_2 -= dy2;
+//			            }
+//			            err_1 += dx2;
+//			            err_2 += dz2;
+//			            pixel[1] += y_inc;
+//			        }
+//			    } 
+//			    else 
+//			    {
+//			        err_1 = dy2 - n;
+//			        err_2 = dx2 - n;
+//			        for (i = 0; i < n; i++) 
+//			        {
+//			        	boolean out_pix = false;
+//			        	for (int k = 0 ; k < out_a.numDimensions(); k++)
+//			        	{
+//			        		if (pixel[k] >= dims[k])
+//			        		{
+//			        			out_pix = true;
+//			        			break;
+//			        		}
+//			        	}
+//			        	
+//			        	if (out_pix == true)
+//			        		continue;
+//			        	
+//		    	        out_a.setPosition(pixel);
+//		    	        out_a.get().set(col);
+//			            if (err_1 > 0) {
+//			                pixel[1] += y_inc;
+//			                err_1 -= dz2;
+//			            }
+//			            if (err_2 > 0) {
+//			                pixel[0] += x_inc;
+//			                err_2 -= dz2;
+//			            }
+//			            err_1 += dy2;
+//			            err_2 += dx2;
+//			            pixel[2] += z_inc;
+//			        }
+//			    }
+//			    
+//	        	boolean out_pix = false;
+//	        	for (int k = 0 ; k < out_a.numDimensions(); k++)
+//	        	{
+//	        		if (pixel[k] >= dims[k])
+//	        		{
+//	        			out_pix = true;
+//	        			break;
+//	        		}
+//	        	}
+//	        	
+//	        	if (out_pix == false)
+//	        	{
+//	        		out_a.setPosition(pixel);
+//	        		out_a.get().set(col);
+//	        	}
+//			}
+//		}
 		/**
 		 * 
 		 * Draw Lines on a  Image
@@ -1485,19 +1480,19 @@ import net.imglib2.view.Views;
 		 * @param col Color
 		 */
 		
-		static private void drawParticles(Img<ARGBType> out, Vector<Particle> particles, Calibration cal, int col)
-		{
-	        // Create a list of particles
-	        
-	        List<Particle> pt = new ArrayList<Particle>();
-	 
-	        for (int i = 0 ; i < particles.size() ; i++)
-	        {
-	        	pt.add(particles.get(i));
-	        }
-	        
-	        drawParticles(out,pt,cal,col);
-		}
+//		static private void drawParticles(Img<ARGBType> out, Vector<Particle> particles, Calibration cal, int col)
+//		{
+//	        // Create a list of particles
+//	        
+//	        List<Particle> pt = new ArrayList<Particle>();
+//	 
+//	        for (int i = 0 ; i < particles.size() ; i++)
+//	        {
+//	        	pt.add(particles.get(i));
+//	        }
+//	        
+//	        drawParticles(out,pt,cal,col);
+//		}
 		
 		/**
 		 * 
@@ -1868,7 +1863,7 @@ import net.imglib2.view.Views;
 			
 			// Get image
 	        
-	        Cursor<ARGBType> curOut = Views.iterable(out).cursor();
+	        //Cursor<ARGBType> curOut = Views.iterable(out).cursor();
 	        
 	        //
 	        
@@ -1915,8 +1910,8 @@ import net.imglib2.view.Views;
 		{
 			// Get image
 	        
-			MyFrame f = new MyFrame();
-	        Cursor<ARGBType> curOut = out.cursor();
+			new MyFrame();
+	        //Cursor<ARGBType> curOut = out.cursor();
 	        
 	        //
 	        
@@ -2013,7 +2008,7 @@ import net.imglib2.view.Views;
 	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
 	        Img<ARGBType> out = imgFactory.create(vMax, new ARGBType());
 	        
-	        Cursor<ARGBType> curOut = out.cursor();
+	        //Cursor<ARGBType> curOut = out.cursor();
 	        
 	        //
 	        

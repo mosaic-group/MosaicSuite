@@ -20,8 +20,8 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker
 	 */	
 	public boolean linkParticles(MyFrame[] frames, int frames_number, linkerOptions l) 
 	{
-		int m, i, j, k, nop, nop_next, n;
-		int ok, prev, prev_s, x = 0, y = 0, curr_linkrange;
+		int m, i, j, nop, nop_next, n;
+		int ok, prev, x = 0, y = 0, curr_linkrange;
 		/** The association matirx g */
 		boolean[][] g;
 		/** g_x stores the index of the currently associated particle, and vice versa.
@@ -263,11 +263,11 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker
 									z = 0.0;
 								if(z < min) {
 									
-									if ((i == 11  || x == 11) && m == 88)
-									{
-										int debug = 0;
-										debug++;
-									}
+//									if ((i == 11  || x == 11) && m == 88)
+//									{
+//										int debug = 0;
+//										debug++;
+//									}
 									min = z;
 
 									prev_i = i;

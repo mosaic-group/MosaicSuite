@@ -223,9 +223,8 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		long lStartTime = new Date().getTime(); //start time
 		//energy=0;
 
-		int ichunk= p.ni;
+
 		int ilastchunk= p.ni; 
-		int jchunk= p.nj;
 		int jlastchunk= p.nj;
 		int iStart=0; 
 		int jStart=0;

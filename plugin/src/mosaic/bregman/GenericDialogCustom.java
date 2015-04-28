@@ -15,7 +15,12 @@ import java.awt.TextField;
 
 public class GenericDialogCustom extends GenericDialog {
 
-	public GenericDialogCustom(String title) 
+	/**
+     * Default serial version UID
+     */
+    private static final long serialVersionUID = 1L;
+
+    public GenericDialogCustom(String title) 
 	{
 		super(title);
 	}

@@ -311,25 +311,22 @@ public class Tools
 
 					}
 					
-					if (k >= temp.length)
-					{
-						if (i >= temp[k].length)
-						{
-							if (j >= temp[k][i].length)
-							{
-								int debug = 0;
-								debug++;
-							}
-						}
-					}
+//					if (k >= temp.length)
+//					{
+//						if (i >= temp[k].length)
+//						{
+//							if (j >= temp[k][i].length)
+//							{
+//								int debug = 0;
+//								debug++;
+//							}
+//						}
+//					}
 					
 					temp[k][i][j] = sum;
 				}
 			}
 		}
-
-
-
 
 		//convolve in z (k coordinate), slices
 		for(k=0; k < islices; ++k)                // columns

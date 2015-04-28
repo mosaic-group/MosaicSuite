@@ -1,9 +1,7 @@
 package mosaic.plugins;
 
 
-import ij.IJ;
 import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
 import mosaic.plugins.utils.ConvertImg;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 

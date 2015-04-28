@@ -533,7 +533,8 @@ public class GenericGUI
 			
 			// Check if we selected a directory
 			
-			ClusterSession ss = null;
+			@SuppressWarnings("unused")
+            ClusterSession ss = null;
 			File[] fileslist = null;
 			File fl = null;
 			
@@ -740,7 +741,7 @@ public class GenericGUI
 
 			Point p =gd.getLocationOnScreen();
 			//IJ.log("plugin location :" + p.toString());
-			PSFWindow hw = new PSFWindow(p.x, p.y, gd);
+			new PSFWindow(p.x, p.y, gd);
 
 		}
 	}
@@ -764,7 +765,7 @@ public class GenericGUI
 		{
 			Point p =gd.getLocationOnScreen();
 			//IJ.log("plugin location :" + p.toString());
-			Helpwindow hw = new Helpwindow(p.x, p.y);
+			new Helpwindow(p.x, p.y);
 		}
 	}
 

@@ -1,35 +1,24 @@
 package mosaic.ia;
 
 import ij.IJ;
-import ij.gui.Plot;
 
-import java.awt.Color;
 import java.util.Arrays;
 import java.util.Random;
 
 import mosaic.ia.utils.IAPUtils;
-import weka.estimators.KernelEstimator;
 
 public class HypothesisTesting {
 	private double [] CDFGrid;
 	private double [] DGrid;
 	private double [] D;
 	private double [] DRand;
-	private int N;
 	private double [] T;
 	private double [] params; //same convention
 	private int type;
 	private int K;
 	private double alpha;
-	private double Tob,Uob;
-	private int binNum=20;
-	private double binSpace;
-	private double [] Tl;
-	private double [][] Td1,Td2;
+	private double Tob;
 	//private double [] tempTd;
-	private double [] TdMean;
-	private double [][]  TdCov, TdInvCov;
-	private double [] U;
 	
 	
 	public HypothesisTesting(double[] cDFGrid, double[] dGrid,double[] D,
@@ -38,7 +27,6 @@ public class HypothesisTesting {
 		CDFGrid = cDFGrid;
 		DGrid = dGrid;
 	//	System.out.println("CDFGrid size:"+cDFGrid.length+" Dgrid size"+dGrid.length);
-		this.N = dGrid.length;
 		this.params = params;
 		this.type = type;
 		this.D=D;
@@ -48,55 +36,55 @@ public class HypothesisTesting {
 	}
 	
 	
-	private void displayResultNonParam()
-	{
-		int no=100;
-		KernelEstimator kde=IAPUtils.createkernelDensityEstimator(U, .01);
-		double [] Ulinspace=new double[no],Udens=new double[no];
-		double Udiff=(U[U.length-1]-U[0])/no;
-		double sum=0,max=0,min=Double.MAX_VALUE;
-		for(int i=0;i<no;i++)
-		{
-			Ulinspace[i]=U[0]+Udiff*i;
-			Udens[i]=kde.getProbability(Ulinspace[i]);
-			sum=sum+Udens[i];
-		}
-	//	PlotUtils.histPlotDoubleArray("Statistic:T",T);
-		for(int i=0;i<no;i++)
-		{
-		
-			Udens[i]=Udens[i]/sum;
-			if(Udens[i]>max)
-				max=Udens[i];
-			if(Udens[i]<min)
-				min=Udens[i];
-		}
-		Plot plot = new Plot("Result: NonParam Hypothesis testing","U","Probability density",Ulinspace,Udens);
-		
-		plot.setLimits(Math.min(Ulinspace[0],Uob),Math.max(Ulinspace[Ulinspace.length-1],Uob)+Udiff*50, min, max);
-		
-		plot.setColor(Color.BLUE);
-       // plot.setLimits(0, 1, 0, 10);
-        plot.setLineWidth(2);
-        plot.addLabel(.7, .2, "----  ");
-        plot.draw();
-        plot.setColor(Color.black);
-        plot.addLabel(.75, .2, "H0: True - Random");
-        plot.draw();
-        double [] Tx={Uob,Uob};
-        double [] Ty={0, max};
-        
-        plot.setColor(Color.RED);
-        plot.addPoints(Tx, Ty, Plot.LINE);
-        plot.setLineWidth(2);
-        plot.addLabel(.7, .3, "----  ");
-        plot.draw();
-        plot.setColor(Color.black);
-        plot.addLabel(.75, .3, "H0: True - Estimated");
-        plot.draw();
-        plot.show();
-        System.out.println("Uob at plot stage:"+Uob);
-	}
+//	private void displayResultNonParam()
+//	{
+//		int no=100;
+//		KernelEstimator kde=IAPUtils.createkernelDensityEstimator(U, .01);
+//		double [] Ulinspace=new double[no],Udens=new double[no];
+//		double Udiff=(U[U.length-1]-U[0])/no;
+//		double sum=0,max=0,min=Double.MAX_VALUE;
+//		for(int i=0;i<no;i++)
+//		{
+//			Ulinspace[i]=U[0]+Udiff*i;
+//			Udens[i]=kde.getProbability(Ulinspace[i]);
+//			sum=sum+Udens[i];
+//		}
+//	//	PlotUtils.histPlotDoubleArray("Statistic:T",T);
+//		for(int i=0;i<no;i++)
+//		{
+//		
+//			Udens[i]=Udens[i]/sum;
+//			if(Udens[i]>max)
+//				max=Udens[i];
+//			if(Udens[i]<min)
+//				min=Udens[i];
+//		}
+//		Plot plot = new Plot("Result: NonParam Hypothesis testing","U","Probability density",Ulinspace,Udens);
+//		
+//		plot.setLimits(Math.min(Ulinspace[0],Uob),Math.max(Ulinspace[Ulinspace.length-1],Uob)+Udiff*50, min, max);
+//		
+//		plot.setColor(Color.BLUE);
+//       // plot.setLimits(0, 1, 0, 10);
+//        plot.setLineWidth(2);
+//        plot.addLabel(.7, .2, "----  ");
+//        plot.draw();
+//        plot.setColor(Color.black);
+//        plot.addLabel(.75, .2, "H0: True - Random");
+//        plot.draw();
+//        double [] Tx={Uob,Uob};
+//        double [] Ty={0, max};
+//        
+//        plot.setColor(Color.RED);
+//        plot.addPoints(Tx, Ty, Plot.LINE);
+//        plot.setLineWidth(2);
+//        plot.addLabel(.7, .3, "----  ");
+//        plot.draw();
+//        plot.setColor(Color.black);
+//        plot.addLabel(.75, .3, "H0: True - Estimated");
+//        plot.draw();
+//        plot.show();
+//        System.out.println("Uob at plot stage:"+Uob);
+//	}
 	
 	
 
@@ -337,54 +325,54 @@ public class HypothesisTesting {
 		
 	}
 	
-	private void displayResult()
-	{
-		int no=100;
-		KernelEstimator kde=IAPUtils.createkernelDensityEstimator(T, .01);
-		double [] Tlinspace=new double[no],Tdens=new double[no];
-		double Tdiff=(T[T.length-1]-T[0])/no;
-		double sum=0,max=0,min=Double.MAX_VALUE;
-		for(int i=0;i<no;i++)
-		{
-			Tlinspace[i]=T[0]+Tdiff*i;
-			Tdens[i]=kde.getProbability(Tlinspace[i]);
-			sum=sum+Tdens[i];
-		}
-	//	PlotUtils.histPlotDoubleArray("Statistic:T",T);
-		for(int i=0;i<no;i++)
-		{
-		
-			Tdens[i]=Tdens[i]/sum;
-			if(Tdens[i]>max)
-				max=Tdens[i];
-			if(Tdens[i]<min)
-				min=Tdens[i];
-		}
-		Plot plot = new Plot("Result: Hypothesis testing","T","Probability density",Tlinspace,Tdens);
-		
-		plot.setLimits(Math.min(Tlinspace[0],Tob),Math.max(Tlinspace[Tlinspace.length-1],Tob)+Tdiff*50, min, max);
-		
-		plot.setColor(Color.BLUE);
-       // plot.setLimits(0, 1, 0, 10);
-        plot.setLineWidth(2);
-        plot.addLabel(.7, .2, "----  ");
-        plot.draw();
-        plot.setColor(Color.black);
-        plot.addLabel(.75, .2, "H0: True - Random");
-        plot.draw();
-        double [] Tx={Tob,Tob};
-        double [] Ty={0, max};
-        plot.setColor(Color.RED);
-        plot.addPoints(Tx, Ty, Plot.LINE);
-        plot.setLineWidth(2);
-        plot.addLabel(.7, .3, "----  ");
-        plot.draw();
-        plot.setColor(Color.black);
-        plot.addLabel(.75, .3, "H0: True - Estimated");
-        plot.draw();
-        plot.show();
-        
-	}
+//	private void displayResult()
+//	{
+//		int no=100;
+//		KernelEstimator kde=IAPUtils.createkernelDensityEstimator(T, .01);
+//		double [] Tlinspace=new double[no],Tdens=new double[no];
+//		double Tdiff=(T[T.length-1]-T[0])/no;
+//		double sum=0,max=0,min=Double.MAX_VALUE;
+//		for(int i=0;i<no;i++)
+//		{
+//			Tlinspace[i]=T[0]+Tdiff*i;
+//			Tdens[i]=kde.getProbability(Tlinspace[i]);
+//			sum=sum+Tdens[i];
+//		}
+//	//	PlotUtils.histPlotDoubleArray("Statistic:T",T);
+//		for(int i=0;i<no;i++)
+//		{
+//		
+//			Tdens[i]=Tdens[i]/sum;
+//			if(Tdens[i]>max)
+//				max=Tdens[i];
+//			if(Tdens[i]<min)
+//				min=Tdens[i];
+//		}
+//		Plot plot = new Plot("Result: Hypothesis testing","T","Probability density",Tlinspace,Tdens);
+//		
+//		plot.setLimits(Math.min(Tlinspace[0],Tob),Math.max(Tlinspace[Tlinspace.length-1],Tob)+Tdiff*50, min, max);
+//		
+//		plot.setColor(Color.BLUE);
+//       // plot.setLimits(0, 1, 0, 10);
+//        plot.setLineWidth(2);
+//        plot.addLabel(.7, .2, "----  ");
+//        plot.draw();
+//        plot.setColor(Color.black);
+//        plot.addLabel(.75, .2, "H0: True - Random");
+//        plot.draw();
+//        double [] Tx={Tob,Tob};
+//        double [] Ty={0, max};
+//        plot.setColor(Color.RED);
+//        plot.addPoints(Tx, Ty, Plot.LINE);
+//        plot.setLineWidth(2);
+//        plot.addLabel(.7, .3, "----  ");
+//        plot.draw();
+//        plot.setColor(Color.black);
+//        plot.addLabel(.75, .3, "H0: True - Estimated");
+//        plot.draw();
+//        plot.show();
+//        
+//	}
 	
 //	private double [][] calculateTd()
 //	{

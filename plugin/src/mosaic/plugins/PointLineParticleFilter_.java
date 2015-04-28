@@ -2007,7 +2007,9 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 	}	
 
 	private class TrajectoryStackWindow extends StackWindow implements ActionListener, MouseListener{
-//		private static final long serialVersionUID = 1L;
+
+        private static final long serialVersionUID = 1L;
+        //		private static final long serialVersionUID = 1L;
 		private Button mCalcFromHereButton;
 		private Button mMouseInitializationButton;
 		private Button mSaveInitButton;
@@ -2194,7 +2196,9 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 				setupStateVectorFromPoints(mSPB1.x, mSPB1.y, mSPB2.x, mSPB2.y, mTip.x, mTip.y, mZProjectedImagePlus.getProcessor());
 				mStateVectorsMemory.setElementAt(CopyStateVector(mStateVectors), mFrameOfInitialization-1);
 				mZProjectedImagePlus.repaintWindow();
-				break;				
+				break;		
+			default:
+			    break;
 			}	
 
 		}

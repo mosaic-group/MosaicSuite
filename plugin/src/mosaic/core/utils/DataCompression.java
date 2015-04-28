@@ -88,33 +88,33 @@ public class DataCompression
 	 * 
 	 */
 	
-	private void selectCompressor(int j)
-	{
-		int i = 0;
-		for (i = j+1 ; i < al.size() ; i++)
-		{
-			String out = null;
-			try {
-				out = ShellCommand.exeCmdString(al.get(i).cmd);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return;
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return;
-			}
-			
-			if (out.contains(al.get(i).finger_print))
-			{
-				selC = i;
-				return;
-			}
-		}
-		
-		selC = i;
-	}
+//	private void selectCompressor(int j)
+//	{
+//		int i = 0;
+//		for (i = j+1 ; i < al.size() ; i++)
+//		{
+//			String out = null;
+//			try {
+//				out = ShellCommand.exeCmdString(al.get(i).cmd);
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//				return;
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//				return;
+//			}
+//			
+//			if (out.contains(al.get(i).finger_print))
+//			{
+//				selC = i;
+//				return;
+//			}
+//		}
+//		
+//		selC = i;
+//	}
 	
 	/**
 	 * 

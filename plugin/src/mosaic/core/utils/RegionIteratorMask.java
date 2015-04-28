@@ -192,11 +192,11 @@ public class RegionIteratorMask
 			
 			// Bug
 			
-			if (jumpTableGeo.length == 0)
-			{
-				int debug = 0;
-				debug++;
-			}
+//			if (jumpTableGeo.length == 0)
+//			{
+//				int debug = 0;
+//				debug++;
+//			}
 				
 			///////
 			tmpM.p = new Point (jumpTableGeo[idx_j]);
@@ -248,7 +248,7 @@ public class RegionIteratorMask
 	private boolean isValidAndAdjust(MovePoint p)
 	{
 		int fac = 1;
-		int dim = p.p.x.length;
+
 		boolean val = true;
 		p.idx = 0;
 		int i = 0;

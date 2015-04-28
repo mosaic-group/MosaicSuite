@@ -1,7 +1,6 @@
 package mosaic.core.ipc;
 
 import static org.junit.Assert.fail;
-import ij.IJ;
 
 import java.io.File;
 import java.io.IOException;
@@ -95,7 +94,6 @@ public class Jtest
 		String dir = MosaicUtils.getTestDir();
 		String dir_test = dir + File.separator + "csv_stitch_enumerating" + File.separator + "Test";
 		String dir_sample = dir + File.separator + "csv_stitch_enumerating" + File.separator + "Sample";
-		String tmp = IJ.getDirectory("temp");
 			
 		// put all the jobs dir into tmp
 
@@ -151,7 +149,6 @@ public class Jtest
 		dir = MosaicUtils.getTestDir();
 		dir_test = dir + File.separator + "csv_stitch_enumerating2" + File.separator + "Test";
 		dir_sample = dir + File.separator + "csv_stitch_enumerating2" + File.separator + "Sample";
-		tmp = IJ.getDirectory("temp");
 			
 		// put all the jobs dir into tmp
 

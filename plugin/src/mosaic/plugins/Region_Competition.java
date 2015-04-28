@@ -51,33 +51,31 @@ import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.Segmentation;
-//import view4d.Timeline;
-import mosaic.region_competition.utils.Timer;
-import mosaic.region_competition.GUI.ControllerFrame;
-import mosaic.region_competition.utils.IntConverter;
-import mosaic.region_competition.initializers.MaximaBubbles;
-import mosaic.region_competition.initializers.BubbleInitializer;
-import mosaic.region_competition.initializers.BoxInitializer;
-import mosaic.region_competition.energies.E_Gamma;
-import mosaic.region_competition.energies.E_CurvatureFlow;
-import mosaic.region_competition.energies.RegularizationType;
-import mosaic.region_competition.energies.E_Deconvolution;
-import mosaic.region_competition.energies.E_PS;
-import mosaic.region_competition.energies.E_CV;
-import mosaic.region_competition.energies.E_KLMergingCriterion;
-import mosaic.region_competition.LabelInformation;
-import mosaic.region_competition.energies.Energy;
-import mosaic.region_competition.output.RCOutput;
-import mosaic.region_competition.initializers.InitializationType;
-import mosaic.region_competition.GUI.GenericDialogGUI;
-import mosaic.region_competition.energies.EnergyFunctionalType;
-import mosaic.region_competition.GUI.InputReadable;
-import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.LabelImageRC;
+import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
-
-import net.imglib2.Cursor;
+import mosaic.region_competition.GUI.ControllerFrame;
+import mosaic.region_competition.GUI.GenericDialogGUI;
+import mosaic.region_competition.GUI.InputReadable;
+import mosaic.region_competition.energies.E_CV;
+import mosaic.region_competition.energies.E_CurvatureFlow;
+import mosaic.region_competition.energies.E_Deconvolution;
+import mosaic.region_competition.energies.E_Gamma;
+import mosaic.region_competition.energies.E_KLMergingCriterion;
+import mosaic.region_competition.energies.E_PS;
+import mosaic.region_competition.energies.Energy;
+import mosaic.region_competition.energies.EnergyFunctionalType;
+import mosaic.region_competition.energies.ImageModel;
+import mosaic.region_competition.energies.RegularizationType;
+import mosaic.region_competition.initializers.BoxInitializer;
+import mosaic.region_competition.initializers.BubbleInitializer;
+import mosaic.region_competition.initializers.InitializationType;
+import mosaic.region_competition.initializers.MaximaBubbles;
+import mosaic.region_competition.output.RCOutput;
+import mosaic.region_competition.utils.IntConverter;
+//import view4d.Timeline;
+import mosaic.region_competition.utils.Timer;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
@@ -98,7 +96,6 @@ public class Region_Competition implements Segmentation
 	
 	private String[] out = {"*_ObjectsData_c1.csv","*_seg_c1.tif"};
 	private String output_label;
-	private String config;
 	private String oip_location;
 	private String oip_title;
 	Region_Competition MVC;		// interface to image application (imageJ)
@@ -507,22 +504,22 @@ public class Region_Competition implements Segmentation
 	 * @param ip
 	 */
 	
-	private <T extends IntegerType<T>>void EliminateForbidden(ImagePatch ip)
-	{
-		Img<T> lbg = ip.getResult();
-		
-		Cursor<T> cur = lbg.cursor();
-		
-		while (cur.hasNext())
-		{
-			cur.next();
-			
-			if (cur.get().getInteger() == labelImage.forbiddenLabel)
-			{
-				cur.get().setInteger(0);
-			}
-		}
-	}
+//	private <T extends IntegerType<T>>void EliminateForbidden(ImagePatch ip)
+//	{
+//		Img<T> lbg = ip.getResult();
+//		
+//		Cursor<T> cur = lbg.cursor();
+//		
+//		while (cur.hasNext())
+//		{
+//			cur.next();
+//			
+//			if (cur.get().getInteger() == labelImage.forbiddenLabel)
+//			{
+//				cur.get().setInteger(0);
+//			}
+//		}
+//	}
 	
 	/**
 	 * 
@@ -1094,7 +1091,6 @@ public class Region_Competition implements Segmentation
 			n = userDialog.getKBest();
 		if(n<1) n = 1;
 		Timer t = new Timer();
-		ArrayList<Long> timeList = new ArrayList<Long>();
 		
 //		for(int i=0; i<n; i++)
 //		{
@@ -1604,10 +1600,10 @@ public class Region_Competition implements Segmentation
 		
 		// -43
 		p.setf(index, value);
-		float f = p.getf(index); // -42.0
+		//float f = p.getf(index); // -42.0
 		
 		p.set(index, value);
-		f = p.getf(index);		//NaN
+		//f = p.getf(index);		//NaN
 		
 		System.out.println(result);
 	}
@@ -1634,21 +1630,20 @@ public class Region_Competition implements Segmentation
 		
 	}
 	
-	static void testNumbers()
-	{
-		Double d = 14.2;
-		Integer i = 12;
-		
-		Number n1 = d;
-		Number n2 = i;
-//		boolean b = n1>n2; //error
-		boolean b = d<i; // ok
-		
-		Comparable<Number> c1 = (Comparable<Number>)n1;
-		Comparable c2 = (Comparable)n2;
-		c1.compareTo(n2);
-		c2.compareTo(c1);
-	}
+//	static void testNumbers()
+//	{
+//		Double d = 14.2;
+//		Integer i = 12;
+//		
+//		Number n1 = d;
+//		Number n2 = i;
+////		boolean b = n1>n2; //error
+//		
+//		Comparable<Number> c1 = (Comparable<Number>)n1;
+//		Comparable c2 = (Comparable)n2;
+//		c1.compareTo(n2);
+//		c2.compareTo(c1);
+//	}
 
 	
 	/**

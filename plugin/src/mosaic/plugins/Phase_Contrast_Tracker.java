@@ -2482,22 +2482,22 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 		 * @return the created processor
 		 * @see ImageProcessor#drawDot(int, int)
 		 */
-		private ImageStack createImage(int width, int height, int depth) {
-			ImageStack is = new ImageStack(width, height);
-			for(int d = 0; d < depth; d++) {
-				ImageProcessor ip = new ByteProcessor(width, height);
-				ip.setColor(Color.black);
-				ip.fill();
-				is.addSlice(null, ip);
-				ip.setColor(Color.white);
-			}
-			for (int i = 0; i<this.particles.size(); i++) {
-				is.getProcessor(Math.round(this.particles.elementAt(i).z) + 1).drawDot(
-						Math.round(this.particles.elementAt(i).y), 
-						Math.round(this.particles.elementAt(i).x));
-			}
-			return is;		
-		}
+//		private ImageStack createImage(int width, int height, int depth) {
+//			ImageStack is = new ImageStack(width, height);
+//			for(int d = 0; d < depth; d++) {
+//				ImageProcessor ip = new ByteProcessor(width, height);
+//				ip.setColor(Color.black);
+//				ip.fill();
+//				is.addSlice(null, ip);
+//				ip.setColor(Color.white);
+//			}
+//			for (int i = 0; i<this.particles.size(); i++) {
+//				is.getProcessor(Math.round(this.particles.elementAt(i).z) + 1).drawDot(
+//						Math.round(this.particles.elementAt(i).y), 
+//						Math.round(this.particles.elementAt(i).x));
+//			}
+//			return is;		
+//		}
 
 
 		/**

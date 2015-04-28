@@ -76,7 +76,7 @@ public class Calibration_ implements PlugIn, PreviewInterface {
 		for (Particle parA : particlesA)
 		{
 			int i = 0;
-			double[] tempVec = new double[3];
+
 			if (parA.next[0] >= 0) {
 				Particle parB = particlesB.get(parA.next[0]);
 				shifts.add(new double[]{parB.x -parA.x,parB.y -parA.y, parB.z -parA.z});
@@ -104,9 +104,9 @@ public class Calibration_ implements PlugIn, PreviewInterface {
 	 * @param c: width
 	 * @return
 	 */
-	private int coord (int a, int b, int c) {
-		return (((a) * (c)) + (b));
-	}
+//	private int coord (int a, int b, int c) {
+//		return (((a) * (c)) + (b));
+//	}
 	
 	private void detect() {
 		// TODO Do we use the same detector for both images or two different detectors?
@@ -183,10 +183,10 @@ public class Calibration_ implements PlugIn, PreviewInterface {
 	/**
 	 * Shows an ImageJ message with info about this plugin
 	 */
-	private void showAbout() {
-		IJ.showMessage("Calibration...",
-				"TODO, shift the blame on the developper." //TODO     
-		);
-	}
+//	private void showAbout() {
+//		IJ.showMessage("Calibration...",
+//				"TODO, shift the blame on the developper." //TODO     
+//		);
+//	}
 
 }
