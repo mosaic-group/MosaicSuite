@@ -91,7 +91,7 @@ public class ClusterGUI  extends JDialog
 				
 		//
 		
-		JComboBox<String> comboBox_1 = new JComboBox<String>(CBcp);
+		JComboBox comboBox_1 = new JComboBox(CBcp);
 		comboBox_1.setSelectedIndex(cp.length - 1);
 		comboBox_1.addActionListener(new ActionListener() 
 		{

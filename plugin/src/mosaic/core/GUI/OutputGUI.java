@@ -151,7 +151,7 @@ public class OutputGUI extends JDialog
 		
 		c.gridx = 1;
 		c.gridy = 1;
-		JComboBox<String> comboBox = new JComboBox<String>(pn);
+		JComboBox comboBox = new JComboBox(pn);
 		comboBox.setSelectedIndex(oc_s);
 		contentPane.add(comboBox,c);
 		comboBox.addActionListener(new ActionListener() 
