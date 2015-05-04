@@ -53,5 +53,7 @@
 	<classpathentry kind="lib" path="lib/scijava-common-2.39.0.jar"/>
 	<classpathentry kind="lib" path="lib/junit-4.12.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="lib/fiji-scripting-2.0.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/Jython_Interpreter-2.0.0-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
