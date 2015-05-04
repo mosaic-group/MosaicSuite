@@ -7,44 +7,35 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Calibration;
 import ij.plugin.filter.PlugInFilter;
-import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Base for plugIns that use float values as a algorithm base.
  * @author Krzysztof Gonciarz
  */
 public abstract class PlugInBase implements PlugInFilter {
-    // ImageJ plugIn flags defined for setup method
-    private int iFlags = DOES_ALL |
-                         DOES_STACKS | 
-                         FINAL_PROCESSING | 
-                         PARALLELIZE_STACKS;
     
     // Original input image
-    private ImagePlus iInputImg;
-    private ImagePlus iProcessedImg;
-    private String iInputArgs;
+    protected ImagePlus iInputImg;
+    protected ImagePlus iProcessedImg;
+    protected String iInputArgs;
     
     // Prefix added to filtered image
-    private String iFilePrefix = "processed_";
-
+    protected String iFilePrefix = "processed_";
 
     // Scale of output ImagePlus
-    private double iScaleX = 1.0;
-    private double iScaleY = 1.0;
+    protected double iScaleX = 1.0;
+    protected double iScaleY = 1.0;
     
     // If false new ImagePlus is generated, otherwise original (input) image
     // shall be changed
     boolean iChangeOriginal = false;
-    
-    abstract protected boolean setup(final String aArgs);
-    abstract protected boolean showDialog();
-    abstract protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg);
    
+    abstract protected boolean showDialog();
+    abstract protected int getFlags();
+    abstract protected void updateFlags(int aFlag);
+    abstract protected boolean setup(final String aArgs);
+    
     @Override
     public int setup(final String aArgs, final ImagePlus aImp) {
         // Filter expects image to work on...
@@ -54,6 +45,8 @@ public abstract class PlugInBase implements PlugInFilter {
         }
 
         if (aArgs.equals("final")) {
+        	// Changed during updating
+        	iProcessedImg.setSlice(1);
             iProcessedImg.show();
         }
         else {
@@ -70,72 +63,13 @@ public abstract class PlugInBase implements PlugInFilter {
             }
             else {
                 iProcessedImg = createNewEmptyImgPlus(iInputImg, iFilePrefix + iInputImg.getTitle(), iScaleX, iScaleY);
-                iFlags |= NO_CHANGES;
+                updateFlags(NO_CHANGES);
             }
 
             if (!showDialog()) return DONE;
         }
         
-        return iFlags;
-    }
-     
-    class ProcessOneChannel implements Runnable {
-        int i;
-        ImageProcessor currentIp;
-        FloatProcessor res;
-        FloatProcessor orig;
-        
-        ProcessOneChannel(ImageProcessor currentIp, FloatProcessor res, FloatProcessor orig, int i) {
-            this.i = i;
-            this.currentIp = currentIp;
-            this.res = res;
-            this.orig = orig;
-        }
-        
-        @Override
-        public void run() {
-                processImg(res, orig);
-        }
-        
-        public void update() {
-            currentIp.setPixels(i, res);
-        }
-    }
-    
-    @Override
-    public void run(ImageProcessor aIp) {
-        IJ.showStatus("In progress...");
-        
-        final int noOfChannels = aIp.getNChannels();
-        
-        // Lists to keep information about threads
-        List<Thread> th = new ArrayList<Thread>(noOfChannels);
-        List<ProcessOneChannel> poc = new ArrayList<ProcessOneChannel>(noOfChannels);
-        
-        for (int i = 0; i < noOfChannels; ++i) {
-            final ImageProcessor currentIp = iProcessedImg.getStack().getProcessor(aIp.getSliceNumber());
-            final FloatProcessor res = currentIp.toFloat(i, null);
-            final FloatProcessor orig = aIp.toFloat(i, null);
-            
-            // Start separate thread on each channel
-            ProcessOneChannel p = new ProcessOneChannel(currentIp, res, orig, i);
-            Thread t = new Thread(p);
-            t.start();
-            th.add(t);
-            poc.add(p);
-        }
-        
-        for (int i = 0; i < noOfChannels; ++i) {
-            try {
-                // wait for each channel to complete and then run update method - it will 
-                // be run in sequence which is needed since ImageProcessor is not thread safe
-                th.get(i).join(); 
-                poc.get(i).update(); 
-            } 
-            catch (InterruptedException e) {}
-        }
-        
-        IJ.showStatus("Done.");
+        return getFlags();
     }
 
     /**

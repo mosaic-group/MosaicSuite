@@ -1,7 +1,7 @@
 package mosaic.plugins;
 
 import ij.gui.GenericDialog;
-import mosaic.plugins.utils.PlugInBase;
+import mosaic.plugins.utils.PlugInFloatBase;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 import mosaic.variationalCurvatureFilters.FilterKernel;
 import mosaic.variationalCurvatureFilters.FilterKernelGc;
@@ -16,7 +16,7 @@ import mosaic.variationalCurvatureFilters.SplitFilter;
  * @author Krzysztof Gonciarz
  *
  */
-public abstract class CurvatureFilterBase extends PlugInBase {
+public abstract class CurvatureFilterBase extends PlugInFloatBase {
 
     // Chosen filter
     private CurvatureFilter iCf;
