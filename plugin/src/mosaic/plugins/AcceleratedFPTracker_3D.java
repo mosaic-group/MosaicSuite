@@ -270,7 +270,7 @@ public class AcceleratedFPTracker_3D extends PFTracking3D {
 			for(float[] vDataPoint : vImageThresholded){
 				int vCentroidIndex = 0;
 				int vBestIndex = -1;
-				float vZScale = (float)(getPixelDepthInNm() / getPixelWidthInNm());
+				float vZScale = getPixelDepthInNm() / getPixelWidthInNm();
 				float vBestScore = mWidth*mWidth + mHeight*mHeight + mNSlices * mNSlices * vZScale * vZScale;
 				for(float[] vCentroid : vCentroids){
 					float vScore = (vCentroid[0]-vDataPoint[0]) * (vCentroid[0]-vDataPoint[0]) + 

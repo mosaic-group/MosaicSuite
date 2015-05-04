@@ -162,7 +162,7 @@ public class FeaturePointDetector {
 			float tmp_pix_value;
 			for (int i = 0; i < pixels.length; i++) {
 				tmp_pix_value = (pixels[i]-global_min)/(global_max - global_min);
-				pixels[i] = (float)(tmp_pix_value);
+				pixels[i] = tmp_pix_value;
 			}
 		}
 	}
@@ -835,7 +835,7 @@ public class FeaturePointDetector {
 		double cut = Double.parseDouble((vec.elementAt(1)).getText());
 		float per = (Float.parseFloat((vec.elementAt(2)).getText()))/100;
 		//float sigma_fac = (Float.parseFloat((vec.elementAt(3)).getText()));
-		float intThreshold = (float)(per*100);
+		float intThreshold = per*100;
 		Vector<Checkbox> vecb = gd.getCheckboxes();
 		boolean absolute = vecb.elementAt(0).getState();
 		//		int thsmode = ((Choice)gd.getChoices().elementAt(0)).getSelectedIndex();

@@ -56,12 +56,11 @@ public class Spot_detection implements PlugInFilter
 	@Override
 	public void run(ImageProcessor arg0) 
 	{
-		// TODO Auto-generated method stub
 		
 		frames = new MyFrame[frames_number];
 		
 		// process all frames
-		for (int frame_i = 0, file_index = 0; frame_i < frames_number; frame_i++, file_index++) 
+		for (int frame_i = 0; frame_i < frames_number; frame_i++) 
 		{
 			// sequence of images mode:
 			// construct each frame from the corresponding image

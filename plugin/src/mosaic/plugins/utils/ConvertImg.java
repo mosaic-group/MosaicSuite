@@ -27,7 +27,7 @@ public class ConvertImg {
                 int xIdx = x;
                 if (yIdx >= h) yIdx = h - 1;
                 if (xIdx >= w) xIdx = w - 1;
-                aNewImgArray[y][x] = (float)pixels[xIdx + yIdx * w]/aNormalizationValue;
+                aNewImgArray[y][x] = pixels[xIdx + yIdx * w]/aNormalizationValue;
             }
         }
     }

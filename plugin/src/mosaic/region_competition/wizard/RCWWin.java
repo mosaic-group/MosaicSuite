@@ -52,6 +52,7 @@ import mosaic.region_competition.wizard.score_function.TypeImage;
 
 public class RCWWin extends JDialog implements MouseListener, Runnable
 {
+	private static final long serialVersionUID = 1L;
 
 	enum segType
 	{
@@ -594,8 +595,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		// if is a Cell produce 1 region (region tol 16)
 		
 		boolean AreaSet = false;
-		boolean TopoSet = false;
-		boolean SmoothSet = false;
 		
 		// Convert ImagePlus into Intensity image
 		
@@ -813,9 +812,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 					sizeS[i] = fiRC.Smooth(lbtmp);
 				}
 				
-				// Set
-				
-				SmoothSet = true;
 				
 				// Print out
 				

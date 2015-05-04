@@ -19,11 +19,14 @@ import javax.swing.table.AbstractTableModel;
 
 public class OutputGUI extends JDialog
 {
+	private static final long serialVersionUID = 1L;
 	JDialog myself;
 	
 	private class OutputTable extends AbstractTableModel 
 	{
-	    private String[] columnNames = {"Enable",
+		private static final long serialVersionUID = 1L;
+
+		private String[] columnNames = {"Enable",
                 "Column",
                 "Factor"};
 	    
@@ -45,7 +48,7 @@ public class OutputGUI extends JDialog
 	        return data[row][col];
 	    }
 
-	    public Class getColumnClass(int c) {
+	    public Class<?> getColumnClass(int c) {
 	        return getValueAt(0, c).getClass();
 	    }
 
@@ -86,11 +89,11 @@ public class OutputGUI extends JDialog
 			}
 	    }
 	    
-	    void setChoose(int idx)
-	    {
-	    	if (idx < 0)
-	    		oc = out[idx];
-	    }
+//	    void setChoose(int idx)
+//	    {
+//	    	if (idx < 0)
+//	    		oc = out[idx];
+//	    }
 	}
 	
 	JPanel contentPane;

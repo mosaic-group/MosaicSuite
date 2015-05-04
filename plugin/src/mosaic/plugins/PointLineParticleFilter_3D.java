@@ -201,129 +201,129 @@ public class PointLineParticleFilter_3D extends PFTracking3D{
 				aSPB1Intensity - mBackground, aSPB2Intensity - mBackground, aTipIntensity - mBackground};
 	}
 
-	private Vector<Vector<Integer>> SearchAreasInBitmap(boolean[] aBitmap) 
-	{
-		Vector<Vector<Integer>> vAreas = new Vector<Vector<Integer>>();
-		boolean[] vAlreadyVisited = new boolean[aBitmap.length];
-		for(int vP = 0; vP < aBitmap.length; vP++){
-			if(aBitmap[vP] && !vAlreadyVisited[vP]){
-				vAreas.add(SearchArea(aBitmap, vAlreadyVisited, vP));
-			}
-		}
-		return vAreas;
-	}
+//	private Vector<Vector<Integer>> SearchAreasInBitmap(boolean[] aBitmap) 
+//	{
+//		Vector<Vector<Integer>> vAreas = new Vector<Vector<Integer>>();
+//		boolean[] vAlreadyVisited = new boolean[aBitmap.length];
+//		for(int vP = 0; vP < aBitmap.length; vP++){
+//			if(aBitmap[vP] && !vAlreadyVisited[vP]){
+//				vAreas.add(SearchArea(aBitmap, vAlreadyVisited, vP));
+//			}
+//		}
+//		return vAreas;
+//	}
 
-	private Vector<Integer> SearchArea(boolean[] aBitmap, boolean[] aAlreadyVisitedMask, int aPixel) 
-	{
-		if(!aBitmap[aPixel] || aAlreadyVisitedMask[aPixel])
-			return new Vector<Integer>();
+//	private Vector<Integer> SearchArea(boolean[] aBitmap, boolean[] aAlreadyVisitedMask, int aPixel) 
+//	{
+//		if(!aBitmap[aPixel] || aAlreadyVisitedMask[aPixel])
+//			return new Vector<Integer>();
+//
+//		Vector<Integer> vArea = new Vector<Integer>();
+//		vArea.add(aPixel);
+//		aAlreadyVisitedMask[aPixel] = true;
+//		if(aPixel % mWidth != mWidth - 1 && aBitmap[aPixel + 1] && !aAlreadyVisitedMask[aPixel + 1]) {
+//			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel + 1));
+//		}
+//		if(aPixel % mWidth != mWidth -1 && aPixel > mWidth && aBitmap[aPixel - mWidth + 1] && ! aAlreadyVisitedMask[aPixel - mWidth + 1]) {
+//			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel - mWidth + 1));
+//		}
+//		if(aPixel > mWidth && aBitmap[aPixel - mWidth] && !aAlreadyVisitedMask[aPixel - mWidth]) {
+//			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel - mWidth));
+//		}
+//		if(aPixel % mWidth != 0 && aPixel > mWidth && aBitmap[aPixel - mWidth - 1] && ! aAlreadyVisitedMask[aPixel - mWidth - 1]) {
+//			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel - mWidth - 1));
+//		}
+//		if(aPixel % mWidth != 0 && aBitmap[aPixel - 1] && !aAlreadyVisitedMask[aPixel - 1]) {
+//			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel - 1));
+//		}
+//		if(aPixel % mWidth != 0 && aPixel < (mHeight-1)*mWidth && aBitmap[aPixel + mWidth - 1] && !aAlreadyVisitedMask[aPixel + mWidth - 1]){
+//			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel + mWidth - 1));
+//		}
+//		if(aPixel < (mHeight-1)*mWidth && aBitmap[aPixel + mWidth] && !aAlreadyVisitedMask[aPixel + mWidth]){
+//			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel + mWidth));
+//		}
+//		if(aPixel % mWidth != mWidth -1 && aPixel < (mHeight-1)*mWidth && aBitmap[aPixel + mWidth + 1] && !aAlreadyVisitedMask[aPixel + mWidth + 1]){
+//			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel + mWidth + 1));
+//		}
+//		return vArea;
+//	}
 
-		Vector<Integer> vArea = new Vector<Integer>();
-		vArea.add(aPixel);
-		aAlreadyVisitedMask[aPixel] = true;
-		if(aPixel % mWidth != mWidth - 1 && aBitmap[aPixel + 1] && !aAlreadyVisitedMask[aPixel + 1]) {
-			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel + 1));
-		}
-		if(aPixel % mWidth != mWidth -1 && aPixel > mWidth && aBitmap[aPixel - mWidth + 1] && ! aAlreadyVisitedMask[aPixel - mWidth + 1]) {
-			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel - mWidth + 1));
-		}
-		if(aPixel > mWidth && aBitmap[aPixel - mWidth] && !aAlreadyVisitedMask[aPixel - mWidth]) {
-			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel - mWidth));
-		}
-		if(aPixel % mWidth != 0 && aPixel > mWidth && aBitmap[aPixel - mWidth - 1] && ! aAlreadyVisitedMask[aPixel - mWidth - 1]) {
-			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel - mWidth - 1));
-		}
-		if(aPixel % mWidth != 0 && aBitmap[aPixel - 1] && !aAlreadyVisitedMask[aPixel - 1]) {
-			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel - 1));
-		}
-		if(aPixel % mWidth != 0 && aPixel < (mHeight-1)*mWidth && aBitmap[aPixel + mWidth - 1] && !aAlreadyVisitedMask[aPixel + mWidth - 1]){
-			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel + mWidth - 1));
-		}
-		if(aPixel < (mHeight-1)*mWidth && aBitmap[aPixel + mWidth] && !aAlreadyVisitedMask[aPixel + mWidth]){
-			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel + mWidth));
-		}
-		if(aPixel % mWidth != mWidth -1 && aPixel < (mHeight-1)*mWidth && aBitmap[aPixel + mWidth + 1] && !aAlreadyVisitedMask[aPixel + mWidth + 1]){
-			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel + mWidth + 1));
-		}
-		return vArea;
-	}
+//	private Vector<Integer> SearchBoundary(boolean[] aBitmap, Vector<Integer> aArea) {
+//		Vector<Integer> vB = new Vector<Integer>();
+//		for(int vP : aArea){
+//			//
+//			// Get the neighbours, first handle the boundaries of the image
+//			//
+//			//corners
+//			if(vP == 0 || vP == mWidth-1 || vP == (mHeight-1)*mWidth || vP == (mHeight-1)*mWidth + mWidth - 1) {
+//				vB.add(vP);
+//			}
+//			//right
+//			if(vP % mWidth == mWidth - 1) {
+//				if(!aBitmap[vP-mWidth] || !aBitmap[vP+mWidth]){
+//					vB.add(vP);
+//				}
+//				continue;
+//			}
+//			//top
+//			if(vP < mWidth) {
+//				if(!aBitmap[vP-1] || !aBitmap[vP+1]){
+//					vB.add(vP);
+//				}
+//				continue;
+//			}
+//			//left
+//			if(vP % mWidth == 0) {
+//				if(!aBitmap[vP-mWidth] || !aBitmap[vP+mWidth]){
+//					vB.add(vP);
+//				}
+//				continue;
+//			}
+//			//bottom
+//			if(vP > (mHeight - 1) * mWidth) {
+//				if(!aBitmap[vP-1] || !aBitmap[vP+1]){
+//					vB.add(vP);
+//				}
+//				continue;
+//			}
+//			//not boundary
+//			int vNeighbourCode = 0;
+//			if(!aBitmap[vP + 1]) vNeighbourCode += 1;
+//			if(!aBitmap[vP + 1 - mWidth]) vNeighbourCode += 2;
+//			if(!aBitmap[vP - mWidth]) vNeighbourCode += 4;
+//			if(!aBitmap[vP - 1 - mWidth]) vNeighbourCode += 8;
+//			if(!aBitmap[vP - 1]) vNeighbourCode += 16;
+//			if(!aBitmap[vP - 1 + mWidth]) vNeighbourCode += 32;
+//			if(!aBitmap[vP + mWidth]) vNeighbourCode += 64;
+//			if(!aBitmap[vP + mWidth + 1]) vNeighbourCode += 128;
+//
+//			if((vNeighbourCode & 15) == 15  ||
+//					(vNeighbourCode & 30) == 30  ||
+//					(vNeighbourCode & 60) == 60  ||
+//					(vNeighbourCode & 120) == 120  ||
+//					(vNeighbourCode & 240) == 240  ||
+//					(vNeighbourCode & 225) == 225  ||
+//					(vNeighbourCode & 195) == 195  ||
+//					(vNeighbourCode & 135) == 135  ) {
+//				vB.add(vP);
+//			}
+//
+//		}
+//		return vB;
+//	}
 
-	private Vector<Integer> SearchBoundary(boolean[] aBitmap, Vector<Integer> aArea) {
-		Vector<Integer> vB = new Vector<Integer>();
-		for(int vP : aArea){
-			//
-			// Get the neighbours, first handle the boundaries of the image
-			//
-			//corners
-			if(vP == 0 || vP == mWidth-1 || vP == (mHeight-1)*mWidth || vP == (mHeight-1)*mWidth + mWidth - 1) {
-				vB.add(vP);
-			}
-			//right
-			if(vP % mWidth == mWidth - 1) {
-				if(!aBitmap[vP-mWidth] || !aBitmap[vP+mWidth]){
-					vB.add(vP);
-				}
-				continue;
-			}
-			//top
-			if(vP < mWidth) {
-				if(!aBitmap[vP-1] || !aBitmap[vP+1]){
-					vB.add(vP);
-				}
-				continue;
-			}
-			//left
-			if(vP % mWidth == 0) {
-				if(!aBitmap[vP-mWidth] || !aBitmap[vP+mWidth]){
-					vB.add(vP);
-				}
-				continue;
-			}
-			//bottom
-			if(vP > (mHeight - 1) * mWidth) {
-				if(!aBitmap[vP-1] || !aBitmap[vP+1]){
-					vB.add(vP);
-				}
-				continue;
-			}
-			//not boundary
-			int vNeighbourCode = 0;
-			if(!aBitmap[vP + 1]) vNeighbourCode += 1;
-			if(!aBitmap[vP + 1 - mWidth]) vNeighbourCode += 2;
-			if(!aBitmap[vP - mWidth]) vNeighbourCode += 4;
-			if(!aBitmap[vP - 1 - mWidth]) vNeighbourCode += 8;
-			if(!aBitmap[vP - 1]) vNeighbourCode += 16;
-			if(!aBitmap[vP - 1 + mWidth]) vNeighbourCode += 32;
-			if(!aBitmap[vP + mWidth]) vNeighbourCode += 64;
-			if(!aBitmap[vP + mWidth + 1]) vNeighbourCode += 128;
-
-			if((vNeighbourCode & 15) == 15  ||
-					(vNeighbourCode & 30) == 30  ||
-					(vNeighbourCode & 60) == 60  ||
-					(vNeighbourCode & 120) == 120  ||
-					(vNeighbourCode & 240) == 240  ||
-					(vNeighbourCode & 225) == 225  ||
-					(vNeighbourCode & 195) == 195  ||
-					(vNeighbourCode & 135) == 135  ) {
-				vB.add(vP);
-			}
-
-		}
-		return vB;
-	}
-
-	private void QualityMeasure(Vector<Vector<float[]>> aParticles, int aFrameIndex) 
-	{
-		for(Vector<float[]> vFeaturePointParticles : aParticles){ //should only be one here
-			int vDimOfState = aParticles.elementAt(0).elementAt(0).length - 1;
-			float vNeff = 0;
-			for(float[] vParticle : vFeaturePointParticles){
-				vNeff += vParticle[vDimOfState] * vParticle[vDimOfState];
-			}
-			vNeff = 1/vNeff;
-			mQualityMeasure.setElementAt(vNeff, aFrameIndex-1);
-		}
-	}
+//	private void QualityMeasure(Vector<Vector<float[]>> aParticles, int aFrameIndex) 
+//	{
+//		for(Vector<float[]> vFeaturePointParticles : aParticles){ //should only be one here
+//			int vDimOfState = aParticles.elementAt(0).elementAt(0).length - 1;
+//			float vNeff = 0;
+//			for(float[] vParticle : vFeaturePointParticles){
+//				vNeff += vParticle[vDimOfState] * vParticle[vDimOfState];
+//			}
+//			vNeff = 1/vNeff;
+//			mQualityMeasure.setElementAt(vNeff, aFrameIndex-1);
+//		}
+//	}
 
 	private void CalculateLikelihoodMonitorProcessor(ImageProcessor aObservationImage)
 	{

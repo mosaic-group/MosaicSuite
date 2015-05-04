@@ -56,7 +56,6 @@ public class ProgressBarWin extends JDialog
 		// text with some padding.
 		Dimension size = new Dimension(adv+2, hgt+2);
 		
-		Dimension dim = Status.getSize();
 		setSize(2*size.width + 50,getSize().height);
 	}
 	

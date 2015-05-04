@@ -144,7 +144,7 @@ public class VisualizationGUI
 
 			Point p =gd.getLocationOnScreen();
 			//IJ.log("plugin location :" + p.toString());
-			PSFWindow hw = new PSFWindow(p.x, p.y, gd);
+			new PSFWindow(p.x, p.y, gd);
 
 		}
 	}

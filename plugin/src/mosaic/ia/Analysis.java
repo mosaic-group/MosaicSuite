@@ -26,13 +26,13 @@ public class Analysis
 {
 	private ImagePlus[] impList;
 	private ImagePlus X, Y;
-	private ImagePlus mask, genMask, loadedMask;
+	private ImagePlus mask, genMask;
 	private Point3d[] particleXSetCoordUnfiltered;
 	private Point3d[] particleYSetCoordUnfiltered;
 
 	private int dgrid_size = 1000;
 	private double[] q_D_grid, NN_D_grid;
-	private KernelEstimator ke, kep; // ke for q and kep for NN
+	private KernelEstimator kep; // kep for NN
 	private double x1, y1, x2, y2, z1, z2;
 	private int cmaReRunTimes;
 	private boolean showAllRerunResults = false;
@@ -185,7 +185,6 @@ public class Analysis
 		double SumNormQ [] =new double[dgrid.length];
 		double QD [] =new double[D.length];
 		double n [] =new double[D.length];
-		double likRatio [] =new double[D.length];
 		double [] D1=new double [D.length];
 		D1=D;
 		Arrays.sort(D1);
@@ -254,47 +253,47 @@ public class Analysis
 	}
 
 
-	private void fillQofD_grid(float D_grid[]) // just to run kernel density
-	{
-
-		// double min=Double.MAX_VALUE;
-		double min = 0;
-		double max = 0;
-
-		for (int i = 0; i < D_grid.length; i++) {
-
-			if (D_grid[i] > max)
-				max = D_grid[i];
-		}
-		// updateKernelforNonParam(min,max);
-		dgrid = new double[dgrid_size];
-		dgrid[0] = 0;
-
-		double bin_size = (max - min) / dgrid.length;
-		System.out.println("Grid bin size" + bin_size);
-		System.out.println("Grid bins length" + dgrid.length);
-
-		q_D_grid = new double[dgrid.length];
-		NN_D_grid = new double[dgrid.length];
-		q_D_grid[0] = ke.getProbability(dgrid[0]); // how does this work?
-													// q_D_grid is a histogram.
-													// how do we give the bin
-													// size to ke?
-		NN_D_grid[0] = kep.getProbability(dgrid[0]);
-		double sumProbability = 0;
-		for (int i = 1; i < dgrid.length; i++) {
-			dgrid[i] = dgrid[i - 1] + bin_size;
-			q_D_grid[i] = ke.getProbability(dgrid[i]); // how does this work?
-														// q_D_grid is a
-														// histogram. how do we
-														// give the bin size to
-														// ke?
-			NN_D_grid[i] = kep.getProbability(dgrid[i]);
-			sumProbability = q_D_grid[i] + sumProbability;
-		}
-		System.out.println("Sum of q_D grid: " + sumProbability);
-		
-	}
+//	private void fillQofD_grid(float D_grid[]) // just to run kernel density
+//	{
+//
+//		// double min=Double.MAX_VALUE;
+//		double min = 0;
+//		double max = 0;
+//
+//		for (int i = 0; i < D_grid.length; i++) {
+//
+//			if (D_grid[i] > max)
+//				max = D_grid[i];
+//		}
+//		// updateKernelforNonParam(min,max);
+//		dgrid = new double[dgrid_size];
+//		dgrid[0] = 0;
+//
+//		double bin_size = (max - min) / dgrid.length;
+//		System.out.println("Grid bin size" + bin_size);
+//		System.out.println("Grid bins length" + dgrid.length);
+//
+//		q_D_grid = new double[dgrid.length];
+//		NN_D_grid = new double[dgrid.length];
+//		q_D_grid[0] = ke.getProbability(dgrid[0]); // how does this work?
+//													// q_D_grid is a histogram.
+//													// how do we give the bin
+//													// size to ke?
+//		NN_D_grid[0] = kep.getProbability(dgrid[0]);
+//		double sumProbability = 0;
+//		for (int i = 1; i < dgrid.length; i++) {
+//			dgrid[i] = dgrid[i - 1] + bin_size;
+//			q_D_grid[i] = ke.getProbability(dgrid[i]); // how does this work?
+//														// q_D_grid is a
+//														// histogram. how do we
+//														// give the bin size to
+//														// ke?
+//			NN_D_grid[i] = kep.getProbability(dgrid[i]);
+//			sumProbability = q_D_grid[i] + sumProbability;
+//		}
+//		System.out.println("Sum of q_D grid: " + sumProbability);
+//		
+//	}
 
 	public boolean calcMask() {
 
@@ -435,9 +434,6 @@ public class Analysis
 				cma.setInitialStandardDeviations(initialsigma);
 
 			} else {
-
-				double l[] = { 0d, 0d };
-				double u[] = { 10.00d, 10.00d };
 
 				cma.setDimension(2);
 				double[] initialX = new double[2];
@@ -588,7 +584,6 @@ public class Analysis
 			if (potentialType == PotentialFunctions.NONPARAM) {
 				String estim = "";
 				double[] dp = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
-				double[] kp = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
 				double minW = Double.MAX_VALUE, maxW = Double.MIN_VALUE;
 				for (int i = 0; i < PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1; i++) {
 					dp[i] = PotentialFunctions.dp[i];

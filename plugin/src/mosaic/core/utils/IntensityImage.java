@@ -176,7 +176,7 @@ public class IntensityImage
 		{
 			cur.fwd();
 			
-			cur.get().setReal((float)cur.get().getRealFloat()*r);
+			cur.get().setReal(cur.get().getRealFloat()*r);
 			
 		}			
 	}

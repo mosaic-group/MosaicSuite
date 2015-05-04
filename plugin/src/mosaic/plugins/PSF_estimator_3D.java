@@ -309,7 +309,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
   		float tmp_pix_value;
   		for (int i = 0; i < pixels.length; i++) {
   			tmp_pix_value = (pixels[i]-mGlobalMin)/(mGlobalMax - mGlobalMin);
-  			pixels[i] = (float)(tmp_pix_value);
+  			pixels[i] = (tmp_pix_value);
   		}
   	}
   }
@@ -703,42 +703,42 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		 * leave the edges unchanged and recording a lot of beads :-)
 		 * @param aMap
 		 */
-		protected void fillPSFmapEdges(double[][] aMap) {
-			int vFirstZ = -1;
-			int vLastZ = -1;
-			//search for first valuable row
-			for(int vZ = 0; vZ < aMap.length; vZ++) {
-				for(int vR = 0; vR < aMap[0].length; vR++) {
-					if(aMap[vZ][vR] > 0f) {
-						vFirstZ = vZ;
-						break;
-					}
-				}
-				if(vFirstZ >= 0) break;
-			}
-			//search for last valuable row
-			for(int vZ = aMap.length-1; vZ >= 0; vZ--) {
-				for(int vR = aMap[0].length-1; vR >= 0; vR--) {
-					if(aMap[vZ][vR] > 0f) {
-						vLastZ = vZ;
-						break;
-					}
-				}
-				if(vLastZ >= 0) break;
-			}
-			//copy the first valuable row to all rows before
-			for(int vZ = 0; vZ < vFirstZ; vZ++) {
-				for(int vR = 0; vR < aMap[0].length; vR++) {
-					aMap[vZ][vR] = aMap[vFirstZ][vR];
-				}
-			}
-			//copy the last valuable row to all rows after
-			for(int vZ = vLastZ+1; vZ < aMap.length; vZ++) {
-				for(int vR = 0; vR < aMap[0].length; vR++) {
-					aMap[vZ][vR] = aMap[vLastZ][vR];
-				}
-			}
-		}
+//		protected void fillPSFmapEdges(double[][] aMap) {
+//			int vFirstZ = -1;
+//			int vLastZ = -1;
+//			//search for first valuable row
+//			for(int vZ = 0; vZ < aMap.length; vZ++) {
+//				for(int vR = 0; vR < aMap[0].length; vR++) {
+//					if(aMap[vZ][vR] > 0f) {
+//						vFirstZ = vZ;
+//						break;
+//					}
+//				}
+//				if(vFirstZ >= 0) break;
+//			}
+//			//search for last valuable row
+//			for(int vZ = aMap.length-1; vZ >= 0; vZ--) {
+//				for(int vR = aMap[0].length-1; vR >= 0; vR--) {
+//					if(aMap[vZ][vR] > 0f) {
+//						vLastZ = vZ;
+//						break;
+//					}
+//				}
+//				if(vLastZ >= 0) break;
+//			}
+//			//copy the first valuable row to all rows before
+//			for(int vZ = 0; vZ < vFirstZ; vZ++) {
+//				for(int vR = 0; vR < aMap[0].length; vR++) {
+//					aMap[vZ][vR] = aMap[vFirstZ][vR];
+//				}
+//			}
+//			//copy the last valuable row to all rows after
+//			for(int vZ = vLastZ+1; vZ < aMap.length; vZ++) {
+//				for(int vR = 0; vR < aMap[0].length; vR++) {
+//					aMap[vZ][vR] = aMap[vLastZ][vR];
+//				}
+//			}
+//		}
 		
 		/**
 		 * 
@@ -896,31 +896,31 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			return aKnotsY[vI - 1] * (1.f-vA/vL) + aKnotsY[vI] * (vA/vL);
 		}
 		
-		public float interpolateQuadratic(float aX, float[] aKnotsX, float[] aKnotsY) {
-			//next bigger element is:
-			int vI = 0;
-			if(aX < aKnotsX[0] || aX > aKnotsX[aKnotsX.length-1])
-				throw new IllegalArgumentException("x is not in knot interval");
-			for(vI = 0; vI < aKnotsX.length; vI++) {
-				if(aX < aKnotsX[vI]) {
-					break;
-				}
-			}
-			//which one is closer?
-			if(aKnotsX[vI] - aX > aX - aKnotsX[vI -1]) {
-				vI = vI - 1;
-			}
-			//at the boundaries:
-			if(vI == 0) vI++;
-			if(vI == aKnotsX.length-1) vI--;
-			
-			//now vI is the index of the mid-point
-			float vY = 0;
-			vY += aKnotsY[vI-1] * ((aX - aKnotsX[vI]) * (aX - aKnotsX[vI+1])) / ((aKnotsX[vI-1]-aKnotsX[vI])*(aKnotsX[vI-1] - aKnotsX[vI+1]));
-			vY += aKnotsY[vI]   * ((aX - aKnotsX[vI-1]) * (aX - aKnotsX[vI+1])) / ((aKnotsX[vI]-aKnotsX[vI-1])*(aKnotsX[vI] - aKnotsX[vI+1]));
-			vY += aKnotsY[vI+1] * ((aX - aKnotsX[vI-1]) * (aX - aKnotsX[vI])) / ((aKnotsX[vI+1]-aKnotsX[vI-1])*(aKnotsX[vI+1] - aKnotsX[vI]));
-			return vY;
-		}
+//		public float interpolateQuadratic(float aX, float[] aKnotsX, float[] aKnotsY) {
+//			//next bigger element is:
+//			int vI = 0;
+//			if(aX < aKnotsX[0] || aX > aKnotsX[aKnotsX.length-1])
+//				throw new IllegalArgumentException("x is not in knot interval");
+//			for(vI = 0; vI < aKnotsX.length; vI++) {
+//				if(aX < aKnotsX[vI]) {
+//					break;
+//				}
+//			}
+//			//which one is closer?
+//			if(aKnotsX[vI] - aX > aX - aKnotsX[vI -1]) {
+//				vI = vI - 1;
+//			}
+//			//at the boundaries:
+//			if(vI == 0) vI++;
+//			if(vI == aKnotsX.length-1) vI--;
+//			
+//			//now vI is the index of the mid-point
+//			float vY = 0;
+//			vY += aKnotsY[vI-1] * ((aX - aKnotsX[vI]) * (aX - aKnotsX[vI+1])) / ((aKnotsX[vI-1]-aKnotsX[vI])*(aKnotsX[vI-1] - aKnotsX[vI+1]));
+//			vY += aKnotsY[vI]   * ((aX - aKnotsX[vI-1]) * (aX - aKnotsX[vI+1])) / ((aKnotsX[vI]-aKnotsX[vI-1])*(aKnotsX[vI] - aKnotsX[vI+1]));
+//			vY += aKnotsY[vI+1] * ((aX - aKnotsX[vI-1]) * (aX - aKnotsX[vI])) / ((aKnotsX[vI+1]-aKnotsX[vI-1])*(aKnotsX[vI+1] - aKnotsX[vI]));
+//			return vY;
+//		}
 		
 		public double[][] getPSFMap() {
 			return mPSFMap;

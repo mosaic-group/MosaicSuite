@@ -1551,7 +1551,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 			for(int vY = 0; vY < mHeight; vY++){
 				for(int vX = 0; vX < mWidth; vX++){			
 					if(aBitmap[vY][vX]){					
-						vLogLikelihood += -aGivenImage[vY][vX] + (float)aImageProc.getf(vX, vY) * (float)Math.log(aGivenImage[vY][vX]);
+						vLogLikelihood += -aGivenImage[vY][vX] + aImageProc.getf(vX, vY) * (float)Math.log(aGivenImage[vY][vX]);
 //						mBW.write(vLogLikelihood + " " + aGivenImage[vY][vX] + " " + aImageProc.get(vX, vY)+"\n");
 					}
 				}

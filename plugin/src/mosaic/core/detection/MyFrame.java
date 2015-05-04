@@ -1408,13 +1408,13 @@ import net.imglib2.view.Views;
 	        	
 	        	if (cal != null)
 	        	{
-	        		p_ini.x /= (float)scaling_[0];
-	        		p_ini.y /= (float)scaling_[1];
-	        		p_ini.z /= (float)scaling_[2];
+	        		p_ini.x /= scaling_[0];
+	        		p_ini.y /= scaling_[1];
+	        		p_ini.z /= scaling_[2];
     	
-	        		p_end.x /= (float)scaling_[0];
-	        		p_end.y /= (float)scaling_[1];
-	        		p_end.z /= (float)scaling_[2];
+	        		p_end.x /= scaling_[0];
+	        		p_end.y /= scaling_[1];
+	        		p_end.z /= scaling_[2];
 	        	}
 	        	
 	        	drawLine(out,p_ini,p_end, col);
@@ -1434,13 +1434,13 @@ import net.imglib2.view.Views;
 	        	
 	    	        	if (cal != null)
 	    	        	{
-	    	        		p_ini.x /= (float)scaling_[0];
-	    	        		p_ini.y /= (float)scaling_[1];
-		        			p_ini.z = p_ini.z / (float)scaling[2] - i;
+	    	        		p_ini.x /= scaling_[0];
+	    	        		p_ini.y /= scaling_[1];
+		        			p_ini.z = p_ini.z / scaling[2] - i;
 	        	
-	    	        		p_end.x /= (float)scaling_[0];
-	    	        		p_end.y /= (float)scaling_[1];
-		        			p_end.z = p_end.z / (float)scaling_[2] - i;
+	    	        		p_end.x /= scaling_[0];
+	    	        		p_end.y /= scaling_[1];
+		        			p_end.z = p_end.z / scaling_[2] - i;
 	    	        	}
 	        			
 	        			drawLine(out,p_ini,p_end, col);
@@ -1455,13 +1455,13 @@ import net.imglib2.view.Views;
 	        	
 	    	        	if (cal != null)
 	    	        	{
-	    	        		p_ini.x /= (float)scaling_[0];
-	    	        		p_ini.y /= (float)scaling_[1];
-		        			p_ini.z = p_ini.z / (float)scaling_[2] + i;
+	    	        		p_ini.x /= scaling_[0];
+	    	        		p_ini.y /= scaling_[1];
+		        			p_ini.z = p_ini.z / scaling_[2] + i;
 	        	
-	    	        		p_end.x /= (float)scaling_[0];
-	    	        		p_end.y /= (float)scaling_[1];
-		        			p_end.z = p_end.z /(float)scaling_[2] + i;
+	    	        		p_end.x /= scaling_[0];
+	    	        		p_end.y /= scaling_[1];
+		        			p_end.z = p_end.z /scaling_[2] + i;
 	    	        	}
 	        			
 	        			drawLine(out,p_ini,p_end, col);

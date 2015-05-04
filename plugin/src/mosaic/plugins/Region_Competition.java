@@ -95,9 +95,7 @@ public class Region_Competition implements Segmentation
 {
 	
 	private String[] out = {"*_ObjectsData_c1.csv","*_seg_c1.tif"};
-	private String output_label;
-	private String oip_location;
-	private String oip_title;
+	//private String output_label;
 	Region_Competition MVC;		// interface to image application (imageJ)
 	public Settings settings;
 
@@ -264,12 +262,6 @@ public class Region_Competition implements Segmentation
 			String tmp = null;
 			Boolean tmp_b = null;
 			
-			// output
-			
-			if ((tmp = MosaicUtils.parseOutput(options)) != null)
-			{
-				output_label = tmp;
-			}
 			
 			// normalize 
 			
@@ -470,10 +462,6 @@ public class Region_Competition implements Segmentation
 				{
 					originalIP = aImp;
 			
-					// Save the location of the original IP
-			
-					oip_location = MosaicUtils.ValidFolderFromImage(aImp);
-					oip_title = aImp.getTitle();
 				}
 			}
 			else
@@ -638,10 +626,10 @@ public class Region_Competition implements Segmentation
 	 * 
 	 */
 	
-	private void HideProcess() 
-	{
-		hide_p = true;
-	}
+//	private void HideProcess() 
+//	{
+//		hide_p = true;
+//	}
 
 	/**
 	 * 

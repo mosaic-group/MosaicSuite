@@ -27,7 +27,6 @@ import java.awt.Graphics;
 public class SPBsTracker_ extends PFTracking3D {
 	private float mBackground = 1;
 	private float[] mSigmaOfDynamics = {150, 150, 150, 1};
-	private boolean mDoPrecisionCorrection = true;
 	protected static enum STATE_OF_INIT {NOTHING, POINT1_CLICKED};
 	protected STATE_OF_INIT mStateOfInit = STATE_OF_INIT.NOTHING;
 	
@@ -45,7 +44,6 @@ public class SPBsTracker_ extends PFTracking3D {
 	@Override
 	protected float calculatePriorPDF(float[] aSample,
 			float[] aReferenceParticle) {
-		// TODO Auto-generated method stub
 		return 1;
 	}
 

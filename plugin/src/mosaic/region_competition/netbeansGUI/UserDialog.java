@@ -24,6 +24,8 @@ import mosaic.region_competition.Settings;
 
 public class UserDialog extends OptionPanel
 {
+	private static final long serialVersionUID = 1L;
+
 	Settings settings;
 	
 	public boolean doRect;
@@ -131,6 +133,7 @@ public class UserDialog extends OptionPanel
 						// If the drop items are files
 						if(flavor.isFlavorJavaFileListType()) {
 							// Get all of the dropped files
+							@SuppressWarnings("unchecked")
 							List<File> files = (List<File>)transferable.getTransferData(flavor);
 							// Loop them through
 							for(File file : files) {

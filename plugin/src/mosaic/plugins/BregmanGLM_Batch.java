@@ -1,7 +1,6 @@
 package mosaic.plugins;
 
 import ij.IJ;
-import ij.ImageJ;
 import ij.ImagePlus;
 import ij.Macro;
 import ij.process.ImageProcessor;
@@ -73,7 +72,6 @@ public class BregmanGLM_Batch implements Segmentation
 			String path;
 			Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
 			Pattern config = Pattern.compile("config");
-			Pattern output = Pattern.compile("output");
 			Pattern min = Pattern.compile("min");
 			Pattern max = Pattern.compile("max");
 			Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
@@ -144,7 +142,6 @@ public class BregmanGLM_Batch implements Segmentation
 		}
 		catch (ClassNotFoundException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -154,17 +151,16 @@ public class BregmanGLM_Batch implements Segmentation
 		
 		this.OriginalImagePlus = active_img;
 		//IJ.log("arg0 " + arg0);
-		String[] args =ImageJ.getArgs();
+//		String[] args =ImageJ.getArgs();
 		
 		// Check the argument
 		
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment(); 
-		boolean batch = ge.isHeadless();
+		boolean batch = GraphicsEnvironment.isHeadless();
 		
-		int l = 0;
-		if (args != null)
-			l=args.length;
-		//IJ.log("args" + l);
+//		int l = 0;
+//		if (args != null)
+//			l=args.length;
+//		//IJ.log("args" + l);
 /*		 batch=false;
 		for(int i=0; i<l; i++)
 		{

@@ -280,7 +280,7 @@ public class Naturalization implements PlugInFilterExt
         
         // Average T2_pr
         
-        float T2_pr_a = (float) ((T2_pr[channel_prior]));
+        float T2_pr_a = ((T2_pr[channel_prior]));
         
    	 	// Find the best parameter and divide by the T2 prior
         T2 = (float)FindT(LapCDF, N_Lap, Lap_Offset, EPS)/T2_pr_a;

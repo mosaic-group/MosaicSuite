@@ -48,12 +48,12 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
 	{
 		 stateDensity(x1,y1,z1,x2,y2,z2);
 	}
-	private float[] genD_grid() {
-		// TODO Auto-generated method stub
-		
-			return genCubeGridDist(x1,y1,z1,x2,y2,z2);
-		
-	}
+//	private float[] genD_grid() {
+//		// TODO Auto-generated method stub
+//		
+//			return genCubeGridDist(x1,y1,z1,x2,y2,z2);
+//		
+//	}
 	
 	
 	

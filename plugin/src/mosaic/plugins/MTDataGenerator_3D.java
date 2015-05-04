@@ -144,9 +144,9 @@ public class MTDataGenerator_3D implements PlugIn {
     	for(int vFrame = 1; vFrame < mNFrames; vFrame++){
     		for(int vE = 0; vE < mPositions[0].length; vE++){
     			if(mRandomGenerator.nextBoolean())
-    				mPositions[vFrame][vE] = mPositions[vFrame-1][vE] + (float)mRandomGenerator.nextFloat() * mSigmaOfDynamics[vE];
+    				mPositions[vFrame][vE] = mPositions[vFrame-1][vE] + mRandomGenerator.nextFloat() * mSigmaOfDynamics[vE];
     			else
-    				mPositions[vFrame][vE] = mPositions[vFrame-1][vE] - (float)mRandomGenerator.nextFloat() * mSigmaOfDynamics[vE];
+    				mPositions[vFrame][vE] = mPositions[vFrame-1][vE] - mRandomGenerator.nextFloat() * mSigmaOfDynamics[vE];
     		}
     	}
     }

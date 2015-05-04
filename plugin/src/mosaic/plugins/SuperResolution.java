@@ -70,7 +70,7 @@ public class SuperResolution extends CurvatureFilterBase {
         
         for (int y = 0; y < h; ++y) {
             for (int x = 0; x < w; ++x) {
-                aNewImgArray[2*y+1][2*x+1] = (float)pixels[x + y * w] / aNormalizationValue;
+                aNewImgArray[2*y+1][2*x+1] = pixels[x + y * w] / aNormalizationValue;
     
             }
         }

@@ -228,14 +228,12 @@ public class ImageProcessUtils {
 	{
 		
 		int onPixels=0;
-			ImageStack stackedImage=image.getStack();
 		ImageStack stackedMask=mask.getStack();
 		
-		ImageProcessor imageProc,maskProc,newProc;
+		ImageProcessor maskProc;
 	
 		for(int k=0;k<image.getStackSize();k++)
 		{
-			imageProc = stackedImage.getProcessor(k+1);
 			maskProc=stackedMask.getProcessor(k+1);
 		
 			for(int i=0;i<image.getHeight();i++)
@@ -289,7 +287,6 @@ public class ImageProcessUtils {
 		double [][][] thisStack= new double [depth][width][height];
 		int x,y,z;
 		System.out.println("Here");
-		double [] t=new double[3];
 		for(int i=0;i<points.length;i++)
 		{
 			//points[i].get(t);
@@ -359,7 +356,6 @@ public class ImageProcessUtils {
 		try {
 			pw = new PrintWriter(file);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		pw.write(doubleString);
@@ -374,7 +370,6 @@ public class ImageProcessUtils {
 		try {
 			pw = new PrintWriter(file);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String doubleString=null;
@@ -405,7 +400,6 @@ public class ImageProcessUtils {
 		try {
 			CSVFile = new BufferedReader(new FileReader(file));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -452,7 +446,6 @@ public class ImageProcessUtils {
 		   try {
 			dataRow = CSVFile.readLine();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} // Read next line of data.
 		  }
@@ -460,7 +453,6 @@ public class ImageProcessUtils {
 		  try {
 			CSVFile.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		  

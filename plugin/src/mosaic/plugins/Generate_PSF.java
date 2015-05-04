@@ -244,8 +244,8 @@ public class Generate_PSF implements  PlugInFilter{
     				// calc the vector from the pixel center to the point to sample:
     				float vCenterOfCenterPixelR = (float) (Math.floor(vPSFCoordinateR) + 0.5f);
     				float vCenterOfCenterPixelZ = (float) (Math.floor(vPSFCoordinateZ) + 0.5f);
-    				float vSignedDist_Center_P_R = (float) (vPSFCoordinateR - vCenterOfCenterPixelR);
-    				float vSignedDist_Center_P_Z = (float) (vPSFCoordinateZ - vCenterOfCenterPixelZ);
+    				float vSignedDist_Center_P_R = (vPSFCoordinateR - vCenterOfCenterPixelR);
+    				float vSignedDist_Center_P_Z = (vPSFCoordinateZ - vCenterOfCenterPixelZ);
     				
     				// check in what quadrant of the pixel we are to figure out which 4 pixel to look at:
     				int vRoff = 1;

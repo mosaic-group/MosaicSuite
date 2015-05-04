@@ -108,9 +108,6 @@ public class GT_Calibration implements PlugInFilter
 		
 		// do statistics of the position
 		
-		double mean_pos = 0.0;
-		double var_pos = 0.0;
-		
 		for (int i = 0 ; i < sfrm.size() ; i++)
 		{
 			Vector<Particle> p1 = sfrm.get(i)[0].getParticles();

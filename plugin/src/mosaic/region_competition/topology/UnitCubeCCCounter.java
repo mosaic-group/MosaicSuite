@@ -176,22 +176,22 @@ public class UnitCubeCCCounter
 	 * @return			True, if the two Points are neighbors within the Connectivity
 	 */
 
-	private boolean isUnitCubeNeighbors(Connectivity conn, int current, int neighbor)
-	{
-		// precalculate this for each combination of points
-		// precalculation is slower!
-//		boolean precalculated = offsetNeighbors[current][neighbor];
-		
-		Point pCurrent = conn.ofsIndexToPoint(current);
-		Point pNeighbor = conn.ofsIndexToPoint(neighbor);
-//		return conn.isNeighborhoodOfs(pCurrent.sub(pNeighbor));
-		boolean onthefly = conn.areNeighbors(pCurrent, pNeighbor);
-		
-//		if(precalculated != onthefly)
-//			System.out.println("precalculated and onthefly not the same");
-		return onthefly;
-		
-	}
+//	private boolean isUnitCubeNeighbors(Connectivity conn, int current, int neighbor)
+//	{
+//		// precalculate this for each combination of points
+//		// precalculation is slower!
+////		boolean precalculated = offsetNeighbors[current][neighbor];
+//		
+//		Point pCurrent = conn.ofsIndexToPoint(current);
+//		Point pNeighbor = conn.ofsIndexToPoint(neighbor);
+////		return conn.isNeighborhoodOfs(pCurrent.sub(pNeighbor));
+//		boolean onthefly = conn.areNeighbors(pCurrent, pNeighbor);
+//		
+////		if(precalculated != onthefly)
+////			System.out.println("precalculated and onthefly not the same");
+//		return onthefly;
+//		
+//	}
 
 	/**
 	 * Precalculates neighborhood within the unit cube and stores them into boolean array. 

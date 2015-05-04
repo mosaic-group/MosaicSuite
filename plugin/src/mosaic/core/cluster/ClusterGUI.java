@@ -37,6 +37,8 @@ import mosaic.core.utils.ShellCommand;
 
 public class ClusterGUI  extends JDialog
 {
+
+	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private ClusterProfile cp_sel;
 	private ClusterSession cl;

@@ -16,7 +16,8 @@ package mosaic.region_competition.netbeansGUI;
  */
 public class GUIFrame extends javax.swing.JFrame {
 
-    /** Creates new form NewJFrame1 */
+	private static final long serialVersionUID = 1L;
+	/** Creates new form NewJFrame1 */
     public GUIFrame() {
         initComponents();
     }

@@ -393,18 +393,18 @@ public class VarMuFixLambdaWithSigmaAdaption implements EvolutionStrategy {
 	 *            the value which is being checked
 	 * @return true if the value satisfies all bounds and false otherwise
 	 */
-	private boolean isWithinBounds(double[] value) {
-		// Check if value is not null and has the right dimension
-		if (value == null || value.length != dimension)
-			return false;
-		// If the value in any of the dimensions is out of bounds then return
-		// false.
-		for (int i = 0; i < dimension; i++)
-			if (value[i] < 0 || value[i] > internalUpperBounds[i])
-				return false;
-		// All values passed the bounds check.
-		return true;
-	}
+//	private boolean isWithinBounds(double[] value) {
+//		// Check if value is not null and has the right dimension
+//		if (value == null || value.length != dimension)
+//			return false;
+//		// If the value in any of the dimensions is out of bounds then return
+//		// false.
+//		for (int i = 0; i < dimension; i++)
+//			if (value[i] < 0 || value[i] > internalUpperBounds[i])
+//				return false;
+//		// All values passed the bounds check.
+//		return true;
+//	}
 	
 	/**
 	 * Checks if the given value is within the bounded space and if it is not

@@ -77,7 +77,7 @@ public class Metaphase_Detector_PCA /*extends ParticleTracker3D_ implements Plug
 			
 			
 			
-			float vD = (float)(vMean[0] * vNormalVec[0] + vMean[1] * vNormalVec[1] + vMean[2] * vNormalVec[2]);
+			float vD = (vMean[0] * vNormalVec[0] + vMean[1] * vNormalVec[1] + vMean[2] * vNormalVec[2]);
 			float[] vPlane = new float[4];
 			vPlane[0] = vNormalVec[0];
 			vPlane[1] = vNormalVec[1];

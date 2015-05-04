@@ -2,8 +2,6 @@ package mosaic.plugins.utils;
 
 
 import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
@@ -20,7 +18,7 @@ public abstract class PlugIn8bitBase extends PlugInBase {
     private int iFlags = DOES_8G |
                          DOES_RGB |
                          DOES_STACKS | 
-                      //   PARALLELIZE_STACKS |
+                         PARALLELIZE_STACKS |
                          FINAL_PROCESSING; 
   
     abstract protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg);

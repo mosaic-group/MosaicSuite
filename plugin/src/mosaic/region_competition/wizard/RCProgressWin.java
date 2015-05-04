@@ -29,6 +29,7 @@ import mosaic.region_competition.Settings;
 
 class RCProgressWin extends JFrame implements MouseListener
 {
+	private static final long serialVersionUID = 1L;
 	JLabel score_l[];
 	
 	class ImageList

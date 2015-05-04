@@ -844,7 +844,6 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 	protected boolean createParticleIntensityVisualization(float[][] aSetOfParticles) {
 		
 		int vZoomfactor = 10;
-		int vIntensity = 10;
 		int vWidth = getMWidth() * vZoomfactor;
 		int vHeight = getMHeight() * vZoomfactor;
 		int vSlices = getMNSlices() * vZoomfactor;

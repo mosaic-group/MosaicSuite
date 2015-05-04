@@ -17,7 +17,8 @@ package mosaic.region_competition.netbeansGUI;
  */
 public class OptionPanel2 extends javax.swing.JPanel {
 
-    /** Creates new form NewJPanel */
+	private static final long serialVersionUID = 1L;
+	/** Creates new form NewJPanel */
     public OptionPanel2() {
         initComponents();
     }

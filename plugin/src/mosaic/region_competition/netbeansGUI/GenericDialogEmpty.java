@@ -13,6 +13,8 @@ import javax.swing.JButton;
 
 public class GenericDialogEmpty extends GenericDialog
 {
+
+	private static final long serialVersionUID = 1L;
 	List<GDElement> list;
 	GenericDialog gd;
 	

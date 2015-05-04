@@ -161,7 +161,6 @@ public class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 		P_grid=new double[D_grid.length];
 		double sumPGrid=0;
 		double l2Norm=0;
-		double sumGibbs=0;
 		double [] DiffD= new double[D_grid.length-1];
 		for(int i=0;i<D_grid.length-1;i++)
 		{
@@ -194,7 +193,6 @@ public class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 		P_grid=new double[D_grid.length];
 		double sumPGrid=0;
 		double l1Norm=0;
-		double sumGibbs=0;
 		double [] DiffD= new double[D_grid.length-1];
 		for(int i=0;i<D_grid.length-1;i++)
 		{
@@ -231,7 +229,6 @@ public class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 	
 	@Override
 	public boolean isFeasible(double[] x) {
-		// TODO Auto-generated method stub
 		//if non param, return true.
 		//if param: epsilon >=0 & epsilon <=20
 		//& scale/threshold>min * < max

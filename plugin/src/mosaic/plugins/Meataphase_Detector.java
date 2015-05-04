@@ -1056,7 +1056,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 					float tmp_pix_value;
 					for (int i = 0; i < pixels.length; i++) {
 						tmp_pix_value = (pixels[i]-global_min)/(global_max - global_min);
-						pixels[i] = (float)(tmp_pix_value);
+						pixels[i] = (tmp_pix_value);
 					}
 				}
 				normalized = true;

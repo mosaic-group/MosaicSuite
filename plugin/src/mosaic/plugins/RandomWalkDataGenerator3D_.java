@@ -232,7 +232,7 @@ public class RandomWalkDataGenerator3D_ implements PlugInFilter
 		float tmp_pix_value;
 		for (int i = 0; i < pixels.length; i++) {
 			tmp_pix_value = (pixels[i]-global_min)/(global_max - global_min);
-			pixels[i] = (float)(tmp_pix_value);
+			pixels[i] = (tmp_pix_value);
 		}
 	}
 	
@@ -253,78 +253,78 @@ public class RandomWalkDataGenerator3D_ implements PlugInFilter
     		mPositions[vPoint][0][2] = (mNSlices-1) * .5f;
 
     		for(int vFrame = 1; vFrame < mNFrames; vFrame++){
-    			mPositions[vPoint][vFrame][0] = mPositions[vPoint][vFrame-1][0] + ((float)mRandomGenerator.nextFloat()-.5f) * 2f * aScaler;
-    			mPositions[vPoint][vFrame][1] = mPositions[vPoint][vFrame-1][1] + ((float)mRandomGenerator.nextFloat()-.5f) * 2f * aScaler;
-    			mPositions[vPoint][vFrame][2] = mPositions[vPoint][vFrame-1][2] + ((float)mRandomGenerator.nextFloat()-.5f) * 2f * aScaler;
+    			mPositions[vPoint][vFrame][0] = mPositions[vPoint][vFrame-1][0] + (mRandomGenerator.nextFloat()-.5f) * 2f * aScaler;
+    			mPositions[vPoint][vFrame][1] = mPositions[vPoint][vFrame-1][1] + (mRandomGenerator.nextFloat()-.5f) * 2f * aScaler;
+    			mPositions[vPoint][vFrame][2] = mPositions[vPoint][vFrame-1][2] + (mRandomGenerator.nextFloat()-.5f) * 2f * aScaler;
     		}
     	}
     }
-    private void GenerateLinearPositions() {
-    	for(int vPoint = 0; vPoint < mNPoints; vPoint++){
-    		float velocityX = 5.0f; //pixel
-    		float velocityY = 0.5f; //pixel
-    		float velocityZ = 0.5f;	//slices
-    		mPositions[vPoint][0][0] = (int) (0.1*(mWidth-1) + vPoint*(mWidth*.8f)*(1f/mNPoints));
-    		mPositions[vPoint][0][1] = (mHeight-1) * .5f;
-    		mPositions[vPoint][0][2] = (mNSlices-1) * .5f;
-
-    		for(int vFrame = 1; vFrame < mNFrames; vFrame++){
-    			velocityX = velocityX + (float)mRandomGenerator.nextGaussian() * 1.0f;
-    			velocityY = velocityY + (float)mRandomGenerator.nextGaussian() * 0.2f;
-    			velocityZ = velocityZ + (float)mRandomGenerator.nextGaussian() * 0.2f;
-    			mPositions[vPoint][vFrame][0] = mPositions[vPoint][vFrame-1][0] + velocityX;
-    			mPositions[vPoint][vFrame][1] = mPositions[vPoint][vFrame-1][1] + velocityY;
-    			mPositions[vPoint][vFrame][2] = mPositions[vPoint][vFrame-1][2] + velocityZ;
-    		}
-    	}
-    }
-    private void GeneratePositions(){
-    	/*
-    	 * init position x0 and y0
-    	 */
-    	for(int vPoint = 0; vPoint < mNPoints; vPoint++){
-//    		mPositions[vPoint][0][0] = mRandomGenerator.nextFloat()*mWidth;
-//    		mPositions[vPoint][0][1] = mRandomGenerator.nextFloat()*mHeight;
-//    		mPositions[vPoint][0][2] = mRandomGenerator.nextFloat()*mNSlices;
-    		mPositions[vPoint][0][0] = (int) (0.1*(mWidth-1) + vPoint*(mWidth*.8f)*(1f/mNPoints));
-    		mPositions[vPoint][0][1] = (mHeight-1) * .5f;
-    		mPositions[vPoint][0][2] = (mNSlices-1) * .5f;
-
-    		float vYScale = (float)mHeight / (float)mWidth;
-    		float vZScale = (float)mNSlices / (float)mWidth;
-    		/*
-    		 * for each frame, generate a direction and a step length
-    		 */
-    		for(int vFrame = 1; vFrame < mNFrames; vFrame++){
-    			float vAnglePolar = mRandomGenerator.nextFloat()*(float)Math.PI;
-    			float vAngleAzimuth = mRandomGenerator.nextFloat()*(float)Math.PI;
-    			float vStepLength = (float)mRandomGenerator.nextGaussian()*mSigmaDynamics*mSigmaDynamics;
-    			float vCosAzimuth = (float)Math.cos(vAngleAzimuth);
-    			float vSinAzimuth = (float)Math.sin(vAngleAzimuth);
-    			float vSinPolar = (float)Math.sin(vAnglePolar);
-    			float vCosPolar = (float)Math.cos(vAnglePolar);
-    			mPositions[vPoint][vFrame][0] = mPositions[vPoint][vFrame-1][0] + vCosAzimuth * vSinPolar * vStepLength;
-    			mPositions[vPoint][vFrame][1] = mPositions[vPoint][vFrame-1][1] + vYScale * vSinAzimuth * vSinPolar * vStepLength;
-    			mPositions[vPoint][vFrame][2] = mPositions[vPoint][vFrame-1][2] + vZScale * vCosPolar * vStepLength;
-    			if(mPositions[vPoint][vFrame][0] < 0)
-    				mPositions[vPoint][vFrame][0] *= -1; //TODO: find a proper solution
-    			if(mPositions[vPoint][vFrame][0] >= mWidth)
-    				mPositions[vPoint][vFrame][0] = mWidth - mPositions[vPoint][vFrame][0];
-    			
-    			if(mPositions[vPoint][vFrame][1] < 0)
-    				mPositions[vPoint][vFrame][1] *= -1; //TODO: find a proper solution
-    			if(mPositions[vPoint][vFrame][1] >= mHeight)
-    				mPositions[vPoint][vFrame][1] = mHeight - mPositions[vPoint][vFrame][1];
-    			
-    			if(mPositions[vPoint][vFrame][2] < 0)
-    				mPositions[vPoint][vFrame][2] *= -1; //TODO: find a proper solution
-    			if(mPositions[vPoint][vFrame][2] >= mNSlices)
-    				mPositions[vPoint][vFrame][2] = mWidth - mPositions[vPoint][vFrame][2];
-    			
-    		}
-
-    	}
-    }
+//    private void GenerateLinearPositions() {
+//    	for(int vPoint = 0; vPoint < mNPoints; vPoint++){
+//    		float velocityX = 5.0f; //pixel
+//    		float velocityY = 0.5f; //pixel
+//    		float velocityZ = 0.5f;	//slices
+//    		mPositions[vPoint][0][0] = (int) (0.1*(mWidth-1) + vPoint*(mWidth*.8f)*(1f/mNPoints));
+//    		mPositions[vPoint][0][1] = (mHeight-1) * .5f;
+//    		mPositions[vPoint][0][2] = (mNSlices-1) * .5f;
+//
+//    		for(int vFrame = 1; vFrame < mNFrames; vFrame++){
+//    			velocityX = velocityX + (float)mRandomGenerator.nextGaussian() * 1.0f;
+//    			velocityY = velocityY + (float)mRandomGenerator.nextGaussian() * 0.2f;
+//    			velocityZ = velocityZ + (float)mRandomGenerator.nextGaussian() * 0.2f;
+//    			mPositions[vPoint][vFrame][0] = mPositions[vPoint][vFrame-1][0] + velocityX;
+//    			mPositions[vPoint][vFrame][1] = mPositions[vPoint][vFrame-1][1] + velocityY;
+//    			mPositions[vPoint][vFrame][2] = mPositions[vPoint][vFrame-1][2] + velocityZ;
+//    		}
+//    	}
+//    }
+//    private void GeneratePositions(){
+//    	/*
+//    	 * init position x0 and y0
+//    	 */
+//    	for(int vPoint = 0; vPoint < mNPoints; vPoint++){
+////    		mPositions[vPoint][0][0] = mRandomGenerator.nextFloat()*mWidth;
+////    		mPositions[vPoint][0][1] = mRandomGenerator.nextFloat()*mHeight;
+////    		mPositions[vPoint][0][2] = mRandomGenerator.nextFloat()*mNSlices;
+//    		mPositions[vPoint][0][0] = (int) (0.1*(mWidth-1) + vPoint*(mWidth*.8f)*(1f/mNPoints));
+//    		mPositions[vPoint][0][1] = (mHeight-1) * .5f;
+//    		mPositions[vPoint][0][2] = (mNSlices-1) * .5f;
+//
+//    		float vYScale = (float)mHeight / (float)mWidth;
+//    		float vZScale = (float)mNSlices / (float)mWidth;
+//    		/*
+//    		 * for each frame, generate a direction and a step length
+//    		 */
+//    		for(int vFrame = 1; vFrame < mNFrames; vFrame++){
+//    			float vAnglePolar = mRandomGenerator.nextFloat()*(float)Math.PI;
+//    			float vAngleAzimuth = mRandomGenerator.nextFloat()*(float)Math.PI;
+//    			float vStepLength = (float)mRandomGenerator.nextGaussian()*mSigmaDynamics*mSigmaDynamics;
+//    			float vCosAzimuth = (float)Math.cos(vAngleAzimuth);
+//    			float vSinAzimuth = (float)Math.sin(vAngleAzimuth);
+//    			float vSinPolar = (float)Math.sin(vAnglePolar);
+//    			float vCosPolar = (float)Math.cos(vAnglePolar);
+//    			mPositions[vPoint][vFrame][0] = mPositions[vPoint][vFrame-1][0] + vCosAzimuth * vSinPolar * vStepLength;
+//    			mPositions[vPoint][vFrame][1] = mPositions[vPoint][vFrame-1][1] + vYScale * vSinAzimuth * vSinPolar * vStepLength;
+//    			mPositions[vPoint][vFrame][2] = mPositions[vPoint][vFrame-1][2] + vZScale * vCosPolar * vStepLength;
+//    			if(mPositions[vPoint][vFrame][0] < 0)
+//    				mPositions[vPoint][vFrame][0] *= -1; //TODO: find a proper solution
+//    			if(mPositions[vPoint][vFrame][0] >= mWidth)
+//    				mPositions[vPoint][vFrame][0] = mWidth - mPositions[vPoint][vFrame][0];
+//    			
+//    			if(mPositions[vPoint][vFrame][1] < 0)
+//    				mPositions[vPoint][vFrame][1] *= -1; //TODO: find a proper solution
+//    			if(mPositions[vPoint][vFrame][1] >= mHeight)
+//    				mPositions[vPoint][vFrame][1] = mHeight - mPositions[vPoint][vFrame][1];
+//    			
+//    			if(mPositions[vPoint][vFrame][2] < 0)
+//    				mPositions[vPoint][vFrame][2] *= -1; //TODO: find a proper solution
+//    			if(mPositions[vPoint][vFrame][2] >= mNSlices)
+//    				mPositions[vPoint][vFrame][2] = mWidth - mPositions[vPoint][vFrame][2];
+//    			
+//    		}
+//
+//    	}
+//    }
     
     public boolean getUserDefinedParams() {
     	GenericDialog gd = new GenericDialog("Enter param");

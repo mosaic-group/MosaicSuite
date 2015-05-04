@@ -165,7 +165,7 @@ public class MasksDisplay {
 
 		for (int i=0; i<ni; i++) {  
 			for (int j=0;j< nj; j++) {  	
-				temp[i][j]= (float) array[i][j];
+				temp[i][j] = array[i][j];
 			}	
 		}
 

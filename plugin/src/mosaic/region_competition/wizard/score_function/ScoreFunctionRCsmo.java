@@ -65,10 +65,10 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 			Area = sizeA;
 		}
 		
-		private double frm(double t)
-		{
-			return 1.0/(1.0 + Math.exp(-t));
-		}
+//		private double frm(double t)
+//		{
+//			return 1.0/(1.0 + Math.exp(-t));
+//		}
 		
 		public static double SmoothNorm(LabelImageRC l)
 		{

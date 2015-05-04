@@ -53,7 +53,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
-import java.awt.geom.Point2D;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -1072,7 +1071,7 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 				float tmp_pix_value;
 				for (int i = 0; i < pixels.length; i++) {
 					tmp_pix_value = (pixels[i]-global_min)/(global_max - global_min);
-					pixels[i] = (float)(tmp_pix_value);
+					pixels[i] = (tmp_pix_value);
 				}
 				normalized = true;
 			} else {
@@ -1143,313 +1142,313 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 	        }	        
 	    }
 	    
-	    private void pointLocationsRefinement_sphere(ImageProcessor ip) {
-	    	float r = 0.5f;
-			float R = radius;
-			float epsx, epsy, epsz, c;
-
-			int mask_width = 2 * radius +1;
-
-			/* Set every value that ist smaller than 0 to 0 */		
-			for (int i = 0; i < ip.getHeight(); i++) {
-				for (int j = 0; j < ip.getWidth(); j++) {
-					if(ip.getPixelValue(j, i) < 0.0)
-						ip.putPixelValue(j, i, 0.0);
-				}
-			}
-			
-			
-			/* Loop over all particles */
-			for(int m = 0; m < this.particles.length; m++) {
-				this.particles[m].special = true;
-				this.particles[m].score = 0.0F;
-				epsx = epsy = epsz = 1.0F;
-				int iteration_nb = 0;
-				
-				while ((Math.abs(epsx) > 0.00001 || Math.abs(epsy) > 0.00001 )) {
-					iteration_nb++;
-					particles[m].nbIterations++;
-					if(iteration_nb > 200) {
-//						IJ.write("Warning for point " + m + " at x=" + this.particles.elementAt(m).x 
-//								+ ", y=" + this.particles.elementAt(m).y + ", z=" + this.particles.elementAt(m).z
-//								+ ": no convergence in point-location-refinement.");
-						
-						break;
-					}
-//					System.out.println("iterations: "  + iteration_nb);
-					this.particles[m].m0 = 0.0F;
-//					this.particles.elementAt(m).m1 = 0.0F;
-					this.particles[m].m2 = 0.0F;
-//					this.particles.elementAt(m).m3 = 0.0F;
-//					this.particles.elementAt(m).m4 = 0.0F;
-					
-					epsx = 0.0F;
-					epsy = 0.0F;
-					epsz = 0.0F;
-					
-					float x_tilde = this.particles[m].x;
-					float y_tilde = this.particles[m].y;
-//					float z_tilde = this.particles.elementAt(m).z;
-					
-					float x_hat = (float) (Math.floor(x_tilde)) + .5f;
-					float y_hat = (float) (Math.floor(y_tilde)) + .5f;
-//					float z_hat = (float) (Math.floor(z_tilde)) + .5f;
-					
-					float x_diff = x_hat - x_tilde;
-					float y_diff = y_hat - y_tilde;
-					//					float z_diff = z_hat - z_tilde;
-
-
-					//						generateWeightedMask_2D(radius, xDiff, yDiff, zDiff);
-					for(int i = -radius; i <= radius; i++) {
-						if(x_hat+i < 0 || x_hat+i >= ip.getHeight()) continue;
-
-						for(int j = -radius; j <= radius; j++) {
-							if(y_hat+j < 0 || y_hat+j >= ip.getWidth()) continue;
-
-							float intensity = ip.getPixelValue((int)y_hat+j,(int)x_hat+i);
-
-							float delta_x = x_diff + i;
-							float delta_y = y_diff + j;
-
-							float d = (float) Math.sqrt(delta_x * delta_x + delta_y * delta_y);
-
-							if(d > R + r){ 
-								continue;
-							}
-							if(d < Math.abs(R - r)){
-								epsx += intensity*delta_x;
-								epsy += intensity*delta_y;
-								this.particles[m].m0 += intensity;
-								this.particles[m].m2 += (float)(delta_x*delta_x + delta_y*delta_y) * intensity;
-								//									this.particles.elementAt(m).m1 += (float)Math.sqrt(delta_x*delta_x + delta_y*delta_y) * intensity;
-								//									this.particles.elementAt(m).m3 += (float)Math.pow(delta_x*delta_x + delta_y*delta_y,1.5) * intensity;
-								//									this.particles.elementAt(m).m4 += (float)Math.pow(delta_x*delta_x + delta_y*delta_y, 2) * intensity;	
-
-								continue;
-							}
-
-							float d1 = (d*d-r*r+R*R)/(2*d);
-							float d2 = (d*d+r*r-R*R)/(2*d);
-
-							float alpha = (float) Math.acos(d1/R);
-							float beta = (float) Math.acos(d2/r);
-
-							float A1 = R * R * alpha - d1 * (float)Math.sqrt(R * R - d1 * d1);
-							float A2 = r * r * beta - d2 * (float)Math.sqrt(r * r - d2 * d2);
-							float A=A1+A2;
-
-							float s1 = (float) ((2*R*Math.pow(Math.sin(alpha),3))/(3*(alpha-Math.sin(alpha)*d1/R)));
-							float s2 = (float) ((2*r*Math.pow(Math.sin(beta),3))/(3*(beta-Math.sin(beta)*d2/r)));
-							float s = (A1*s1 + A2*(d-s2))/A;
-
-							float s_x = delta_x * s / d;
-							float s_y = delta_y * s / d;
-
-							float weight = (float) (A/(Math.PI*r*r));
-
-
-							this.particles[m].m0 += weight*intensity;
-							this.particles[m].m2 += (float)(s_x*s_x + s_y*s_y) * weight * intensity;
-							//								this.particles.elementAt(m).m1 += (float)Math.sqrt(s_x*s_x + s_y*s_y) * weight * intensity;
-							//								this.particles.elementAt(m).m3 += (float)Math.pow(s_x*s_x + s_y*s_y, 1.5f) * weight * intensity;
-							//								this.particles.elementAt(m).m4 += (float)Math.pow(s_x*s_x + s_y*s_y, 2) * weight * intensity;																	
-
-							epsx += intensity * weight * s_x;
-							epsy += intensity * weight * s_y;
-						}
-					}
-
-
-					epsx /= this.particles[m].m0;
-					epsy /= this.particles[m].m0;
-//					epsz /= this.particles.elementAt(m).m0;
-					
-					this.particles[m].m2  /= this.particles[m].m0;
-//					this.particles.elementAt(m).m1  /= this.particles.elementAt(m).m0;
-//					this.particles.elementAt(m).m3  /= this.particles.elementAt(m).m0;
-//					this.particles.elementAt(m).m4  /= this.particles.elementAt(m).m0;
-			
-				
-					this.particles[m].x += epsx;
-					this.particles[m].y += epsy;
-//					this.particles[m].z += epsz;
-					
-//					System.out.println(particles.elementAt(m).x + "," + particles.elementAt(m).y);
-					
-				}
-			}		
-	    }
-
-	    private void pointLocationsRefinement_prop(ImageProcessor ip) {
-	    	for (int i = 0; i < ip.getHeight(); i++) {
-	    		for (int j = 0; j < ip.getWidth(); j++) {
-	    			if(ip.getPixelValue(j, i) < 0.0)
-	    				ip.putPixelValue(j, i, 0.0);
-	    		}
-	    	}
-	    	
-	    	CircleGridIntersectionCalculator calc = new CircleGridIntersectionCalculator();
-	    	for(int m = 0; m < this.particles.length; m++) {
-				float epsx = 1f, epsy = 1f, epsz = 1f;
-				int iteration_nb=0;
-				
-				
-				while ((Math.abs(epsx) > 0.00001 || Math.abs(epsy) > 0.00001)) {
-//					float area_integrator = 0f;
-//					float centroid_integrator_x = 0f;
-//					float centroid_integrator_y = 0f;
-					iteration_nb++;
-					particles[m].nbIterations++;
-					if(iteration_nb > 200) {
-//						IJ.write("Warning for point " + m + " at x=" + this.particles.elementAt(m).x 
-//								+ ", y=" + this.particles.elementAt(m).y + ", z=" + this.particles.elementAt(m).z
-//								+ ": no convergence in point-location-refinement.");
-						break;
-					}
-					
-					this.particles[m].m0 = 0.0F;
-					this.particles[m].m2 = 0.0F;
-					
-					epsx = 0.0F;
-					epsy = 0.0F;
-					
-					float maskCenterX = this.particles[m].x;
-					float maskCenterY = this.particles[m].y;
-					calc.setCircle(maskCenterX, maskCenterY, radius);
-					//
-					// DEBUG
-//					System.out.println("new round "+ iteration_nb+"\n-----------------:\ncircleX = " + calc.getCircleX() + "circleY = " + calc.getCircleY());
-//					for(Point pixel : calc.getPixelToIntersectionPointsMap().keySet()) {
-//						for(Point2D.Float ips: calc.getPixelToIntersectionPointsMap().get(pixel)){
-//							System.out.println(ips.x + " " + ips.y + " ");
+//	    private void pointLocationsRefinement_sphere(ImageProcessor ip) {
+//	    	float r = 0.5f;
+//			float R = radius;
+//			float epsx, epsy, epsz, c;
+//
+//			int mask_width = 2 * radius +1;
+//
+//			/* Set every value that ist smaller than 0 to 0 */		
+//			for (int i = 0; i < ip.getHeight(); i++) {
+//				for (int j = 0; j < ip.getWidth(); j++) {
+//					if(ip.getPixelValue(j, i) < 0.0)
+//						ip.putPixelValue(j, i, 0.0);
+//				}
+//			}
+//			
+//			
+//			/* Loop over all particles */
+//			for(int m = 0; m < this.particles.length; m++) {
+//				this.particles[m].special = true;
+//				this.particles[m].score = 0.0F;
+//				epsx = epsy = epsz = 1.0F;
+//				int iteration_nb = 0;
+//				
+//				while ((Math.abs(epsx) > 0.00001 || Math.abs(epsy) > 0.00001 )) {
+//					iteration_nb++;
+//					particles[m].nbIterations++;
+//					if(iteration_nb > 200) {
+////						IJ.write("Warning for point " + m + " at x=" + this.particles.elementAt(m).x 
+////								+ ", y=" + this.particles.elementAt(m).y + ", z=" + this.particles.elementAt(m).z
+////								+ ": no convergence in point-location-refinement.");
+//						
+//						break;
+//					}
+////					System.out.println("iterations: "  + iteration_nb);
+//					this.particles[m].m0 = 0.0F;
+////					this.particles.elementAt(m).m1 = 0.0F;
+//					this.particles[m].m2 = 0.0F;
+////					this.particles.elementAt(m).m3 = 0.0F;
+////					this.particles.elementAt(m).m4 = 0.0F;
+//					
+//					epsx = 0.0F;
+//					epsy = 0.0F;
+//					epsz = 0.0F;
+//					
+//					float x_tilde = this.particles[m].x;
+//					float y_tilde = this.particles[m].y;
+////					float z_tilde = this.particles.elementAt(m).z;
+//					
+//					float x_hat = (float) (Math.floor(x_tilde)) + .5f;
+//					float y_hat = (float) (Math.floor(y_tilde)) + .5f;
+////					float z_hat = (float) (Math.floor(z_tilde)) + .5f;
+//					
+//					float x_diff = x_hat - x_tilde;
+//					float y_diff = y_hat - y_tilde;
+//					//					float z_diff = z_hat - z_tilde;
+//
+//
+//					//						generateWeightedMask_2D(radius, xDiff, yDiff, zDiff);
+//					for(int i = -radius; i <= radius; i++) {
+//						if(x_hat+i < 0 || x_hat+i >= ip.getHeight()) continue;
+//
+//						for(int j = -radius; j <= radius; j++) {
+//							if(y_hat+j < 0 || y_hat+j >= ip.getWidth()) continue;
+//
+//							float intensity = ip.getPixelValue((int)y_hat+j,(int)x_hat+i);
+//
+//							float delta_x = x_diff + i;
+//							float delta_y = y_diff + j;
+//
+//							float d = (float) Math.sqrt(delta_x * delta_x + delta_y * delta_y);
+//
+//							if(d > R + r){ 
+//								continue;
+//							}
+//							if(d < Math.abs(R - r)){
+//								epsx += intensity*delta_x;
+//								epsy += intensity*delta_y;
+//								this.particles[m].m0 += intensity;
+//								this.particles[m].m2 += (delta_x*delta_x + delta_y*delta_y) * intensity;
+//								//									this.particles.elementAt(m).m1 += (float)Math.sqrt(delta_x*delta_x + delta_y*delta_y) * intensity;
+//								//									this.particles.elementAt(m).m3 += (float)Math.pow(delta_x*delta_x + delta_y*delta_y,1.5) * intensity;
+//								//									this.particles.elementAt(m).m4 += (float)Math.pow(delta_x*delta_x + delta_y*delta_y, 2) * intensity;	
+//
+//								continue;
+//							}
+//
+//							float d1 = (d*d-r*r+R*R)/(2*d);
+//							float d2 = (d*d+r*r-R*R)/(2*d);
+//
+//							float alpha = (float) Math.acos(d1/R);
+//							float beta = (float) Math.acos(d2/r);
+//
+//							float A1 = R * R * alpha - d1 * (float)Math.sqrt(R * R - d1 * d1);
+//							float A2 = r * r * beta - d2 * (float)Math.sqrt(r * r - d2 * d2);
+//							float A=A1+A2;
+//
+//							float s1 = (float) ((2*R*Math.pow(Math.sin(alpha),3))/(3*(alpha-Math.sin(alpha)*d1/R)));
+//							float s2 = (float) ((2*r*Math.pow(Math.sin(beta),3))/(3*(beta-Math.sin(beta)*d2/r)));
+//							float s = (A1*s1 + A2*(d-s2))/A;
+//
+//							float s_x = delta_x * s / d;
+//							float s_y = delta_y * s / d;
+//
+//							float weight = (float) (A/(Math.PI*r*r));
+//
+//
+//							this.particles[m].m0 += weight*intensity;
+//							this.particles[m].m2 += (s_x*s_x + s_y*s_y) * weight * intensity;
+//							//								this.particles.elementAt(m).m1 += (float)Math.sqrt(s_x*s_x + s_y*s_y) * weight * intensity;
+//							//								this.particles.elementAt(m).m3 += (float)Math.pow(s_x*s_x + s_y*s_y, 1.5f) * weight * intensity;
+//							//								this.particles.elementAt(m).m4 += (float)Math.pow(s_x*s_x + s_y*s_y, 2) * weight * intensity;																	
+//
+//							epsx += intensity * weight * s_x;
+//							epsy += intensity * weight * s_y;
 //						}
+//					}
 //
 //
-//					}
-//					System.out.println("centroids:");
-//					for(Point pixel : calc.getPixelToIntersectionPointsMap().keySet()) {
-//						System.out.println(pixel.x + " " + pixel.y + " " + calc.getPixelToCentroidMap().get(pixel).x + " " + calc.getPixelToCentroidMap().get(pixel).y + " " + 
-//								calc.getPixelToAreaMap().get(pixel));
-//					}
-					//
-					// DEBUG
-					// Iterate through all pixel and check if all their corners are inside the 
-					// circle
-					for(int i = -radius; i <= radius; i++) {
-						for(int j = -radius; j <= radius; j++) {
-							float intensity = ip.getPixelValue((int)maskCenterY+j, (int)maskCenterX+i);
-							if(calc.isInside((int)maskCenterX+i, (int)maskCenterY+j) &&
-									calc.isInside((int)maskCenterX+i+1, (int)maskCenterY+j) &&
-									calc.isInside((int)maskCenterX+i, (int)maskCenterY+j+1) &&
-									calc.isInside((int)maskCenterX+i+1, (int)maskCenterY+j+1)) {
-								this.particles[m].m0 += intensity;
-//								area_integrator += 1f;
-//								centroid_integrator_x += (int)maskCenterX+i+0.5f;
-//								centroid_integrator_y += (int)maskCenterY+j+0.5f;
-								this.particles[m].m2 += (i+.5f)*(i+.5f) + (j+.5f)*(j+.5f) * intensity;
-								
-								epsx += intensity * ((int)maskCenterX+i+0.5f - maskCenterX);
-								epsy += intensity * ((int)maskCenterY+j+0.5f - maskCenterY);
-							}
-						}
-					}
-					
-					// Iterate through the pixels at the boundary of the circle:
-					for(Point pixel: calc.getPixelToAreaMap().keySet()){
-						
-						float intensity = ip.getPixelValue(pixel.y, pixel.x);
-						float area = calc.getPixelToAreaMap().get(pixel);
-						Point2D.Float centroid = calc.getPixelToCentroidMap().get(pixel);
-						
-						
-//						area_integrator += area;
-//						centroid_integrator_x += area*centroid.x;
-//						centroid_integrator_y += area*centroid.y;
-						
-						this.particles[m].m0 += area*intensity;
-						this.particles[m].m2 += (centroid.x-maskCenterX)*(centroid.x-maskCenterX) + (centroid.y-maskCenterY)*(centroid.y-maskCenterY) * area * intensity;
-						//	this.particles.elementAt(m).m1 += (float)Math.sqrt(s_x*s_x + s_y*s_y) * weight * intensity;
-						//	this.particles.elementAt(m).m3 += (float)Math.pow(s_x*s_x + s_y*s_y, 1.5f) * weight * intensity;
-						//	this.particles.elementAt(m).m4 += (float)Math.pow(s_x*s_x + s_y*s_y, 2) * weight * intensity;																	
+//					epsx /= this.particles[m].m0;
+//					epsy /= this.particles[m].m0;
+////					epsz /= this.particles.elementAt(m).m0;
+//					
+//					this.particles[m].m2  /= this.particles[m].m0;
+////					this.particles.elementAt(m).m1  /= this.particles.elementAt(m).m0;
+////					this.particles.elementAt(m).m3  /= this.particles.elementAt(m).m0;
+////					this.particles.elementAt(m).m4  /= this.particles.elementAt(m).m0;
+//			
+//				
+//					this.particles[m].x += epsx;
+//					this.particles[m].y += epsy;
+////					this.particles[m].z += epsz;
+//					
+////					System.out.println(particles.elementAt(m).x + "," + particles.elementAt(m).y);
+//					
+//				}
+//			}		
+//	    }
 
-						epsx += intensity * area * (centroid.x-maskCenterX);
-						epsy += intensity * area * (centroid.y-maskCenterY);
-					}
-					
-//					System.out.println("Circle area from segments: " + area_integrator);
-//					centroid_integrator_x /= area_integrator;
-//					centroid_integrator_y /= area_integrator;
-//					System.out.println("maskCenter(x): " + maskCenterX + "centroid_center:" + centroid_integrator_x + " diff: " + (maskCenterX-centroid_integrator_x));
-//					System.out.println("maskCenter(y): " + maskCenterY + "centroid_center:" + centroid_integrator_y + " diff: " + (maskCenterY-centroid_integrator_y));
-					epsx /= this.particles[m].m0;
-					epsy /= this.particles[m].m0;
-//					epsz /= this.particles.elementAt(m).m0;
-					
-					this.particles[m].m2  /= this.particles[m].m0;
-//					this.particles.elementAt(m).m1  /= this.particles.elementAt(m).m0;
-//					this.particles.elementAt(m).m3  /= this.particles.elementAt(m).m0;
-//					this.particles.elementAt(m).m4  /= this.particles.elementAt(m).m0;
-			
-				
-					this.particles[m].x += epsx;
-					this.particles[m].y += epsy;
-//					System.out.println(particles[m].x + " " + particles[m].y + ", " + epsx + " " + epsy);
-					
-				}
-	    	}
-	    }
+//	    private void pointLocationsRefinement_prop(ImageProcessor ip) {
+//	    	for (int i = 0; i < ip.getHeight(); i++) {
+//	    		for (int j = 0; j < ip.getWidth(); j++) {
+//	    			if(ip.getPixelValue(j, i) < 0.0)
+//	    				ip.putPixelValue(j, i, 0.0);
+//	    		}
+//	    	}
+//	    	
+//	    	CircleGridIntersectionCalculator calc = new CircleGridIntersectionCalculator();
+//	    	for(int m = 0; m < this.particles.length; m++) {
+//				float epsx = 1f, epsy = 1f, epsz = 1f;
+//				int iteration_nb=0;
+//				
+//				
+//				while ((Math.abs(epsx) > 0.00001 || Math.abs(epsy) > 0.00001)) {
+////					float area_integrator = 0f;
+////					float centroid_integrator_x = 0f;
+////					float centroid_integrator_y = 0f;
+//					iteration_nb++;
+//					particles[m].nbIterations++;
+//					if(iteration_nb > 200) {
+////						IJ.write("Warning for point " + m + " at x=" + this.particles.elementAt(m).x 
+////								+ ", y=" + this.particles.elementAt(m).y + ", z=" + this.particles.elementAt(m).z
+////								+ ": no convergence in point-location-refinement.");
+//						break;
+//					}
+//					
+//					this.particles[m].m0 = 0.0F;
+//					this.particles[m].m2 = 0.0F;
+//					
+//					epsx = 0.0F;
+//					epsy = 0.0F;
+//					
+//					float maskCenterX = this.particles[m].x;
+//					float maskCenterY = this.particles[m].y;
+//					calc.setCircle(maskCenterX, maskCenterY, radius);
+//					//
+//					// DEBUG
+////					System.out.println("new round "+ iteration_nb+"\n-----------------:\ncircleX = " + calc.getCircleX() + "circleY = " + calc.getCircleY());
+////					for(Point pixel : calc.getPixelToIntersectionPointsMap().keySet()) {
+////						for(Point2D.Float ips: calc.getPixelToIntersectionPointsMap().get(pixel)){
+////							System.out.println(ips.x + " " + ips.y + " ");
+////						}
+////
+////
+////					}
+////					System.out.println("centroids:");
+////					for(Point pixel : calc.getPixelToIntersectionPointsMap().keySet()) {
+////						System.out.println(pixel.x + " " + pixel.y + " " + calc.getPixelToCentroidMap().get(pixel).x + " " + calc.getPixelToCentroidMap().get(pixel).y + " " + 
+////								calc.getPixelToAreaMap().get(pixel));
+////					}
+//					//
+//					// DEBUG
+//					// Iterate through all pixel and check if all their corners are inside the 
+//					// circle
+//					for(int i = -radius; i <= radius; i++) {
+//						for(int j = -radius; j <= radius; j++) {
+//							float intensity = ip.getPixelValue((int)maskCenterY+j, (int)maskCenterX+i);
+//							if(calc.isInside((int)maskCenterX+i, (int)maskCenterY+j) &&
+//									calc.isInside((int)maskCenterX+i+1, (int)maskCenterY+j) &&
+//									calc.isInside((int)maskCenterX+i, (int)maskCenterY+j+1) &&
+//									calc.isInside((int)maskCenterX+i+1, (int)maskCenterY+j+1)) {
+//								this.particles[m].m0 += intensity;
+////								area_integrator += 1f;
+////								centroid_integrator_x += (int)maskCenterX+i+0.5f;
+////								centroid_integrator_y += (int)maskCenterY+j+0.5f;
+//								this.particles[m].m2 += (i+.5f)*(i+.5f) + (j+.5f)*(j+.5f) * intensity;
+//								
+//								epsx += intensity * ((int)maskCenterX+i+0.5f - maskCenterX);
+//								epsy += intensity * ((int)maskCenterY+j+0.5f - maskCenterY);
+//							}
+//						}
+//					}
+//					
+//					// Iterate through the pixels at the boundary of the circle:
+//					for(Point pixel: calc.getPixelToAreaMap().keySet()){
+//						
+//						float intensity = ip.getPixelValue(pixel.y, pixel.x);
+//						float area = calc.getPixelToAreaMap().get(pixel);
+//						Point2D.Float centroid = calc.getPixelToCentroidMap().get(pixel);
+//						
+//						
+////						area_integrator += area;
+////						centroid_integrator_x += area*centroid.x;
+////						centroid_integrator_y += area*centroid.y;
+//						
+//						this.particles[m].m0 += area*intensity;
+//						this.particles[m].m2 += (centroid.x-maskCenterX)*(centroid.x-maskCenterX) + (centroid.y-maskCenterY)*(centroid.y-maskCenterY) * area * intensity;
+//						//	this.particles.elementAt(m).m1 += (float)Math.sqrt(s_x*s_x + s_y*s_y) * weight * intensity;
+//						//	this.particles.elementAt(m).m3 += (float)Math.pow(s_x*s_x + s_y*s_y, 1.5f) * weight * intensity;
+//						//	this.particles.elementAt(m).m4 += (float)Math.pow(s_x*s_x + s_y*s_y, 2) * weight * intensity;																	
+//
+//						epsx += intensity * area * (centroid.x-maskCenterX);
+//						epsy += intensity * area * (centroid.y-maskCenterY);
+//					}
+//					
+////					System.out.println("Circle area from segments: " + area_integrator);
+////					centroid_integrator_x /= area_integrator;
+////					centroid_integrator_y /= area_integrator;
+////					System.out.println("maskCenter(x): " + maskCenterX + "centroid_center:" + centroid_integrator_x + " diff: " + (maskCenterX-centroid_integrator_x));
+////					System.out.println("maskCenter(y): " + maskCenterY + "centroid_center:" + centroid_integrator_y + " diff: " + (maskCenterY-centroid_integrator_y));
+//					epsx /= this.particles[m].m0;
+//					epsy /= this.particles[m].m0;
+////					epsz /= this.particles.elementAt(m).m0;
+//					
+//					this.particles[m].m2  /= this.particles[m].m0;
+////					this.particles.elementAt(m).m1  /= this.particles.elementAt(m).m0;
+////					this.particles.elementAt(m).m3  /= this.particles.elementAt(m).m0;
+////					this.particles.elementAt(m).m4  /= this.particles.elementAt(m).m0;
+//			
+//				
+//					this.particles[m].x += epsx;
+//					this.particles[m].y += epsy;
+////					System.out.println(particles[m].x + " " + particles[m].y + ", " + epsx + " " + epsy);
+//					
+//				}
+//	    	}
+//	    }
 	    
-	    private void pointLocationsRefinement_gauss(ImageProcessor ip) {
-	    	//			/* Set every value that is smaller than 0 to 0 */		
-	    	for (int i = 0; i < ip.getHeight(); i++) {
-	    		for (int j = 0; j < ip.getWidth(); j++) {
-	    			if(ip.getPixelValue(j, i) < 0.0)
-	    				ip.putPixelValue(j, i, 0.0);
-	    		}
-	    	}
-	    	float s = 1f;
-
-			for(int m = 0; m < this.particles.length; m++) {
-				float epsx = 1f, epsy = 1f, epsz = 1f;
-				int iteration_nb=0;
-				while ((Math.abs(epsx) > 0.00001 || Math.abs(epsy) > 0.00001)) {
-					iteration_nb++;
-					particles[m].nbIterations++;
-					if(iteration_nb > 200) {
-//						IJ.write("Warning for point " + m + " at x=" + this.particles.elementAt(m).x 
-//								+ ", y=" + this.particles.elementAt(m).y + ", z=" + this.particles.elementAt(m).z
-//								+ ": no convergence in point-location-refinement.");
-						
-						break;
-					}
-					float x = this.particles[m].x;
-					float y = this.particles[m].y;
-					
-					float num_x = 0f, num_y = 0f;
-					float denum = 0f;
-					for(int i = (int)x-radius; i <= (int)x+radius; i++) {
-						for(int j = (int)y-radius; j <= (int)y+radius; j++) {
-							float j_c = j+.5f;
-							float i_c = i+.5f;
-							float N = (float) Math.exp(-((i_c-x)*(i_c-x))/(2*s*s) - ((j_c-y)*(j_c-y))/(2*s*s));
-							float intensity = ip.getPixelValue(j,i);
-							num_x += i_c * intensity * N;
-							num_y += j_c * intensity * N;
-							denum += intensity * N;						
-						}
-					}
-					float x_new = num_x/denum;
-					float y_new = num_y/denum;
-					
-					epsx = x_new - x;
-					epsy = y_new - y;
-					
-					this.particles[m].x = x_new;
-					this.particles[m].y = y_new;
-				}
-			}
-		}
+//	    private void pointLocationsRefinement_gauss(ImageProcessor ip) {
+//	    	//			/* Set every value that is smaller than 0 to 0 */		
+//	    	for (int i = 0; i < ip.getHeight(); i++) {
+//	    		for (int j = 0; j < ip.getWidth(); j++) {
+//	    			if(ip.getPixelValue(j, i) < 0.0)
+//	    				ip.putPixelValue(j, i, 0.0);
+//	    		}
+//	    	}
+//	    	float s = 1f;
+//
+//			for(int m = 0; m < this.particles.length; m++) {
+//				float epsx = 1f, epsy = 1f, epsz = 1f;
+//				int iteration_nb=0;
+//				while ((Math.abs(epsx) > 0.00001 || Math.abs(epsy) > 0.00001)) {
+//					iteration_nb++;
+//					particles[m].nbIterations++;
+//					if(iteration_nb > 200) {
+////						IJ.write("Warning for point " + m + " at x=" + this.particles.elementAt(m).x 
+////								+ ", y=" + this.particles.elementAt(m).y + ", z=" + this.particles.elementAt(m).z
+////								+ ": no convergence in point-location-refinement.");
+//						
+//						break;
+//					}
+//					float x = this.particles[m].x;
+//					float y = this.particles[m].y;
+//					
+//					float num_x = 0f, num_y = 0f;
+//					float denum = 0f;
+//					for(int i = (int)x-radius; i <= (int)x+radius; i++) {
+//						for(int j = (int)y-radius; j <= (int)y+radius; j++) {
+//							float j_c = j+.5f;
+//							float i_c = i+.5f;
+//							float N = (float) Math.exp(-((i_c-x)*(i_c-x))/(2*s*s) - ((j_c-y)*(j_c-y))/(2*s*s));
+//							float intensity = ip.getPixelValue(j,i);
+//							num_x += i_c * intensity * N;
+//							num_y += j_c * intensity * N;
+//							denum += intensity * N;						
+//						}
+//					}
+//					float x_new = num_x/denum;
+//					float y_new = num_y/denum;
+//					
+//					epsx = x_new - x;
+//					epsy = y_new - y;
+//					
+//					this.particles[m].x = x_new;
+//					this.particles[m].y = y_new;
+//				}
+//			}
+//		}
 		
 		/**
 		 * The positions of the found particles will be refined according to their momentum terms
@@ -3084,7 +3083,7 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 			System.out.println(s);
 			break;
 		case IJ_RESULTS_WINDOW:
-			IJ.write(s.toString());
+			IJ.log(s.toString());
 			break;
 		}		
 	}	

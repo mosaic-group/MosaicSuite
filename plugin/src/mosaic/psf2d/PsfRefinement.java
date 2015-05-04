@@ -73,17 +73,17 @@ public class PsfRefinement{
 	 * <br>All pixel intensity values I are normalized as (I-gMin)/(gMax-gMin)
 	 * @param ip ImageProcessor to be normalized
 	 */
-	private void normalizeFrameFloat(ImageProcessor ip) {
-		global_max = (float)ip.getMax();
-		global_min = (float)ip.getMin();
-		
-		float[] pixels=(float[])ip.getPixels();
-		float tmp_pix_value;
-		for (int i = 0; i < pixels.length; i++) {
-			tmp_pix_value = (pixels[i]-global_min)/(global_max - global_min);
-			pixels[i] = (float)(tmp_pix_value);
-		}
-	}
+//	private void normalizeFrameFloat(ImageProcessor ip) {
+//		global_max = (float)ip.getMax();
+//		global_min = (float)ip.getMin();
+//		
+//		float[] pixels=(float[])ip.getPixels();
+//		float tmp_pix_value;
+//		for (int i = 0; i < pixels.length; i++) {
+//			tmp_pix_value = (pixels[i]-global_min)/(global_max - global_min);
+//			pixels[i] = (tmp_pix_value);
+//		}
+//	}
 	
 	/**
 	 * Corrects imperfections in the given <code>ImageProcessor</code> by

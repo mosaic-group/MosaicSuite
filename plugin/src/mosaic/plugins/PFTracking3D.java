@@ -361,17 +361,17 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		new TrajectoryStackWindow(mZProjectedImagePlus, vDrawCanvas);
 	}
 
-	private void setCovMatrixAtFrameToIdentity(FeatureObject aFO, int aF) {
-		int vDimOfState = aFO.getDimension();
-		for(int vI = 0; vI < vDimOfState; vI++) {
-			for (int vJ = 0; vJ < vDimOfState; vJ++) {
-				aFO.mCovMatrix[aF][vI][vJ] = 0;
-				if(vI == vJ) {
-					aFO.mCovMatrix[aF][vI][vJ] = 1;
-				}
-			}
-		}
-	}
+//	private void setCovMatrixAtFrameToIdentity(FeatureObject aFO, int aF) {
+//		int vDimOfState = aFO.getDimension();
+//		for(int vI = 0; vI < vDimOfState; vI++) {
+//			for (int vJ = 0; vJ < vDimOfState; vJ++) {
+//				aFO.mCovMatrix[aF][vI][vJ] = 0;
+//				if(vI == vJ) {
+//					aFO.mCovMatrix[aF][vI][vJ] = 1;
+//				}
+//			}
+//		}
+//	}
 
 	/**
 	 * To override. If youre successful, create for each object to track a <code>FeatureObject</code> and add this to 
@@ -1091,21 +1091,21 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	 * @param aParticles set of parameters to resample.
 	 * @return true if resampling was performed, false if not.
 	 */
-	private boolean resample(float[][] aParticles)
-	{		
-		//
-		// First check if the threshold is smaller than Neff
-		//
-		float vNeff = calculateNeff(aParticles);
-		
-		if(vNeff > mResamplingThreshold) {
-			return false; 
-		}
-//		System.out.println("Resampling");
-		forcedResample(aParticles);
-
-		return true;
-	}
+//	private boolean resample(float[][] aParticles)
+//	{		
+//		//
+//		// First check if the threshold is smaller than Neff
+//		//
+//		float vNeff = calculateNeff(aParticles);
+//		
+//		if(vNeff > mResamplingThreshold) {
+//			return false; 
+//		}
+////		System.out.println("Resampling");
+//		forcedResample(aParticles);
+//
+//		return true;
+//	}
 	
 	/**
 	 * Calculates the Kullback-Leibler Distance of two normal distributions with same mean.
@@ -1508,43 +1508,43 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	 * Tests if all true values in the 3D bitmap <code>aSubset</code> is a subset of all
 	 * true values in the 3D bitmap <code>aArray</code>.
 	 */
-	private boolean isSubset(boolean[][][] aArray, boolean[][][] aSubset) {
-		int vLX = aArray[0][0].length;
-		int vLY = aArray[0].length;
-		int vLZ = aArray.length;
-		for(int vZ = 0; vZ < vLZ; vZ++) {
-			for(int vY = 0; vY < vLY; vY++) {
-				for(int vX = 0; vX < vLX; vX++) {
-					if(aSubset[vZ][vY][vX]) {
-						if(!aArray[vZ][vY][vX]) {
-							return false;
-						}
-					}
-				}
-			}
-		}
-		return true;
-	}
+//	private boolean isSubset(boolean[][][] aArray, boolean[][][] aSubset) {
+//		int vLX = aArray[0][0].length;
+//		int vLY = aArray[0].length;
+//		int vLZ = aArray.length;
+//		for(int vZ = 0; vZ < vLZ; vZ++) {
+//			for(int vY = 0; vY < vLY; vY++) {
+//				for(int vX = 0; vX < vLX; vX++) {
+//					if(aSubset[vZ][vY][vX]) {
+//						if(!aArray[vZ][vY][vX]) {
+//							return false;
+//						}
+//					}
+//				}
+//			}
+//		}
+//		return true;
+//	}
 	
 	/**
 	 * Performs the or operation on 3D bitmaps. The result is stored in the first bitmap.
 	 * @param aArray The result
 	 * @param aOperand The array to OR
 	 */
-	private void orOperation(boolean[][][] aArray, boolean[][][] aOperand) {
-		int vLX = aArray[0][0].length;
-		int vLY = aArray[0].length;
-		int vLZ = aArray.length;
-		for(int vZ = 0; vZ < vLZ; vZ++) {
-			for(int vY = 0; vY < vLY; vY++) {
-				for(int vX = 0; vX < vLX; vX++) {
-					if(!aArray[vZ][vY][vX]) {
-						aArray[vZ][vY][vX] = aOperand[vZ][vY][vX];
-					}
-				}
-			}
-		}
-	}
+//	private void orOperation(boolean[][][] aArray, boolean[][][] aOperand) {
+//		int vLX = aArray[0][0].length;
+//		int vLY = aArray[0].length;
+//		int vLZ = aArray.length;
+//		for(int vZ = 0; vZ < vLZ; vZ++) {
+//			for(int vY = 0; vY < vLY; vY++) {
+//				for(int vX = 0; vX < vLX; vX++) {
+//					if(!aArray[vZ][vY][vX]) {
+//						aArray[vZ][vY][vX] = aOperand[vZ][vY][vX];
+//					}
+//				}
+//			}
+//		}
+//	}
 	
 	
 	private void updateParticleWeights(ImageStack aObservationStack, float[][] aSetOfParticles, float[][] aReferenceParticleSet) {
@@ -1665,19 +1665,19 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	/**
 	 * Estimates all state vectors from the particles and their weights	 
 	 */
-	private void estimateStateVector(float[] aStateVec, float[][] aParticles)
-	{
-		int vDim = aStateVec.length;
-		/* Set the old state to 0*/
-		for(int vI = 0; vI < vDim; vI++)
-			aStateVec[vI] = 0f;
-
-		for(float[] vParticle : aParticles){
-			for(int vD = 0; vD < vDim; vD++) {
-				aStateVec[vD] += vParticle[vDim + 1] * vParticle[vD];
-			}
-		}
-	}
+//	private void estimateStateVector(float[] aStateVec, float[][] aParticles)
+//	{
+//		int vDim = aStateVec.length;
+//		/* Set the old state to 0*/
+//		for(int vI = 0; vI < vDim; vI++)
+//			aStateVec[vI] = 0f;
+//
+//		for(float[] vParticle : aParticles){
+//			for(int vD = 0; vD < vDim; vD++) {
+//				aStateVec[vD] += vParticle[vDim + 1] * vParticle[vD];
+//			}
+//		}
+//	}
 	
 	/**
 	 * Estimates all state vectors from the particles (without weights, only according to their position)
@@ -1814,7 +1814,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 				for(int vX = 0; vX < mWidth; vX++){			
 					if(aBitmap[vZ][vY][vX]){
 						vLogLikelihood += -aGivenImage[vZ][vY][vX] + 
-						(float)aObservation[vZ][vY*mWidth+vX] * (float)Math.log(aGivenImage[vZ][vY][vX]);
+						aObservation[vZ][vY*mWidth+vX] * (float)Math.log(aGivenImage[vZ][vY][vX]);
 //						if(Float.isNaN(vLogLikelihood)){
 //							System.out.println("NAN at vz = " + vZ +", vY = " + vY + ", vX = " + vX);
 //						}
@@ -1867,7 +1867,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		for(int vZ = 0; vZ < mNSlices; vZ++){
 			for(int vY = 0; vY < mHeight; vY++){
 				for(int vX = 0; vX < mWidth; vX++){			
-					vLogLikelihood += -aGivenImage[vZ][vY][vX] + (float)aObservation[vZ][vY*mWidth+vX] * (float)Math.log(aGivenImage[vZ][vY][vX]);
+					vLogLikelihood += -aGivenImage[vZ][vY][vX] + aObservation[vZ][vY*mWidth+vX] * (float)Math.log(aGivenImage[vZ][vY][vX]);
 				}
 			}
 		}
@@ -1911,7 +1911,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	protected int sliceToFrame(int aSlice){
 		if(aSlice < 1)
 			System.err.println("wrong argument in particle filter in SliceToFrame: < 1" );
-		return (int)(aSlice-1)/mOriginalImagePlus.getNSlices() + 1;
+		return (aSlice-1)/mOriginalImagePlus.getNSlices() + 1;
 	}
 
 //	/**
@@ -2932,8 +2932,8 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
     				// calc the vector from the pixel center to the point to sample:
     				float vCenterOfCenterPixelR = (float) (Math.floor(vPSFCoordinateR) + 0.5f);
     				float vCenterOfCenterPixelZ = (float) (Math.floor(vPSFCoordinateZ) + 0.5f);
-    				float vSignedDist_Center_P_R = (float) (vPSFCoordinateR - vCenterOfCenterPixelR);
-    				float vSignedDist_Center_P_Z = (float) (vPSFCoordinateZ - vCenterOfCenterPixelZ);
+    				float vSignedDist_Center_P_R = (vPSFCoordinateR - vCenterOfCenterPixelR);
+    				float vSignedDist_Center_P_Z = (vPSFCoordinateZ - vCenterOfCenterPixelZ);
     				
     				// check in what quadrant of the pixel we are to figure out which 4 pixel to look at:
     				int vRoff = 1;
@@ -3046,8 +3046,8 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
     				// calc the vector from the pixel center to the point to sample:
     				float vCenterOfCenterPixelR = (float) (Math.floor(vPSFCoordinateR) + 0.5f);
     				float vCenterOfCenterPixelZ = (float) (Math.floor(vPSFCoordinateZ) + 0.5f);
-    				float vDist_Center_P_R = (float) (vPSFCoordinateR - vCenterOfCenterPixelR);
-    				float vDist_Center_P_Z = (float) (vPSFCoordinateZ - vCenterOfCenterPixelZ);
+    				float vDist_Center_P_R = (vPSFCoordinateR - vCenterOfCenterPixelR);
+    				float vDist_Center_P_Z = (vPSFCoordinateZ - vCenterOfCenterPixelZ);
     				
     				// check in what quadrant of the pixel we are to figure out which 4 pixel to look at:
     				int vRoff = 0;
