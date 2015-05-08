@@ -798,7 +798,7 @@ public class Region_Competition implements Segmentation
 //			String fileName= "Clipboard01.png";
 			//		String fileName= "icecream3_shaded_130x130.tif";
 //			ip = o.openImage(dir+fileName);
-			Opener o = new Opener();
+			new Opener();
 		}
 		
 			
@@ -1745,8 +1745,7 @@ public class Region_Competition implements Segmentation
 		
 		// if is headless do not show
 		
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment(); 
-		boolean headless_check = ge.isHeadless();
+		boolean headless_check = GraphicsEnvironment.isHeadless();
 		
 		if (headless_check == false)
 			rts.show("statistics");
@@ -1781,8 +1780,7 @@ public class Region_Competition implements Segmentation
 		
 		String oip = originalIP.getTitle().substring(0, originalIP.getTitle().lastIndexOf("."));
 		
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment(); 
-		boolean headless_check = ge.isHeadless();
+		boolean headless_check = GraphicsEnvironment.isHeadless();
 		
 		if (headless_check == false)
 			MosaicUtils.reorganize(out,oip, fold.substring(0,fold.lastIndexOf(File.separator)), 1);

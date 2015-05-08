@@ -8,14 +8,14 @@ import ij.WindowManager;
 import ij.gui.GUI;
 import ij.gui.GenericDialog;
 import ij.gui.ImageCanvas;
-import ij.gui.PlotWindow;
+import ij.gui.Plot;
 import ij.gui.Roi;
 import ij.gui.StackWindow;
 import ij.io.OpenDialog;
 import ij.io.SaveDialog;
 import ij.measure.Measurements;
+import ij.plugin.Duplicator;
 import ij.plugin.filter.Convolver;
-import ij.plugin.filter.Duplicater;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
@@ -449,10 +449,11 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 	 */
 	void getUserDefinedPreviewParams() {
 		
-		Vector vec = gd.getNumericFields();
-		int rad = Integer.parseInt(((TextField)vec.elementAt(0)).getText());
-		double cut = Double.parseDouble(((TextField)vec.elementAt(1)).getText());
-		float per = (Float.parseFloat(((TextField)vec.elementAt(2)).getText()))/100;
+		@SuppressWarnings("unchecked") // old IJ implementation
+		Vector<TextField> vec = gd.getNumericFields();
+		int rad = Integer.parseInt(vec.elementAt(0).getText());
+		double cut = Double.parseDouble(vec.elementAt(1).getText());
+		float per = (Float.parseFloat(vec.elementAt(2).getText()))/100;
     	
 		// even if the frames were already processed (particles detected) but
     	// the user changed the detection params then the frames needs to be processed again
@@ -829,9 +830,9 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 			for (int i = 0; i<this.existing_particles.length; i++) {
 				y_values[i] = Double.parseDouble(this.existing_particles[i].all_params[param_choice]);
 			}			
-			PlotWindow pw = new PlotWindow("Particle Data along trajectory " + this.serial_number, 
+			Plot pw = new Plot("Particle Data along trajectory " + this.serial_number, 
 							"frame number", "param number " + (param_choice+1) + " value", x_values, y_values);		
-			pw.draw();
+			pw.show();
 		}
 		
 		/** 
@@ -938,7 +939,7 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 		 */
 		private boolean loadParticlesFromFile (String path) {
 	        
-			Vector particles_info = new Vector(); 	// a vector to hold all particles info as String[]
+			Vector<String[]> particles_info = new Vector<String[]>(); 	// a vector to hold all particles info as String[]
 			String[] particle_info; 				// will hold all the info for one particle (splitted)
 			String[] frame_number_info;				// will fold the frame info line (splitted)
 			String line;
@@ -981,12 +982,12 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 	        /* initialise the particles array */
 	        this.particles = new Particle[this.particles_number];
 	        
-	        Iterator iter = particles_info.iterator();
+	        Iterator<String[]> iter = particles_info.iterator();
 	        int counter = 0;
 	        
 	        /* go over all particles String info and construct Particles Ojectes from it*/
 	        while (iter.hasNext()) {
-	        	particle_info = (String[])iter.next();
+	        	particle_info = iter.next();
 	        	this.particles[counter] = new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), this.frame_number, particle_info);
 	        	max_coord = Math.max((int)Math.max(this.particles[counter].x, this.particles[counter].y), max_coord);
 	        	if (momentum_from_text) {
@@ -2638,7 +2639,7 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 				Iterator<Trajectory> iter = all_traj.iterator();
 				// iterate of all trajectories
 				while (iter.hasNext()) {					
-					Trajectory traj = (Trajectory)iter.next();
+					Trajectory traj = iter.next();
 					// for each trajectory - go over all particles
 					for (int i = 0; i< traj.existing_particles.length; i++) {
 						// if a particle in the trajectory is within the ROI
@@ -2958,7 +2959,7 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 		
 		Trajectory curr_traj;
 		// temporary vector to hold particles for current trajctory
-		Vector curr_traj_particles = new Vector(frames_number);		
+		Vector<Particle> curr_traj_particles = new Vector<Particle>(frames_number);		
 		// initialize trajectories vector
 		all_traj = new Vector<Trajectory>();
 		this.number_of_trajectories = 0;		
@@ -3020,7 +3021,7 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 					
 					// Create the current trajectory
 					Particle[] curr_traj_particles_array = new Particle[curr_traj_particles.size()];
-					curr_traj = new Trajectory((Particle[])curr_traj_particles.toArray(curr_traj_particles_array));
+					curr_traj = new Trajectory(curr_traj_particles.toArray(curr_traj_particles_array));
 					
 					// set current trajectory parameters
 					curr_traj.serial_number = this.number_of_trajectories;
@@ -3063,7 +3064,7 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 		
 		Iterator<Trajectory> iter = all_traj.iterator();
 		while (iter.hasNext()) {
-			Trajectory curr_traj = (Trajectory)iter.next();
+			Trajectory curr_traj = iter.next();
 			traj_info.append("%% Trajectory " + curr_traj.serial_number +"\n");
 			traj_info.append(curr_traj.toStringBuffer());
 		}
@@ -3358,8 +3359,8 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 		if (duplicated_imp == null) {
 			// if there is no image to generate the view on:
 			// generate a new image by duplicating the original image
-			Duplicater dup = new Duplicater();
-			duplicated_imp= dup.duplicateStack(original_imp, new_title);
+			duplicated_imp = (new Duplicator()).run(original_imp);
+			duplicated_imp.setTitle(new_title);
 			if (this.text_files_mode) {
 				// there is no original image so set magnification to default(1)	
 				magnification = 1;

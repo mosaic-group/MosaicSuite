@@ -9,15 +9,15 @@ import ij.WindowManager;
 import ij.gui.GUI;
 import ij.gui.GenericDialog;
 import ij.gui.ImageCanvas;
-import ij.gui.PlotWindow;
+import ij.gui.Plot;
 import ij.gui.Roi;
 import ij.gui.StackWindow;
 import ij.io.FileInfo;
 import ij.io.OpenDialog;
 import ij.io.SaveDialog;
 import ij.measure.Measurements;
+import ij.plugin.Duplicator;
 import ij.plugin.filter.Convolver;
-import ij.plugin.filter.Duplicater;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.Blitter;
 import ij.process.ByteProcessor;
@@ -931,9 +931,9 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 			for (int i = 0; i<this.existing_particles.length; i++) {
 				y_values[i] = Double.parseDouble(this.existing_particles[i].all_params[param_choice]);
 			}			
-			PlotWindow pw = new PlotWindow("Particle Data along trajectory " + this.serial_number, 
+			Plot pw = new Plot("Particle Data along trajectory " + this.serial_number, 
 					"frame number", "param number " + (param_choice+1) + " value", x_values, y_values);		
-			pw.draw();
+			pw.show();
 		}
 
 		/** 
@@ -4105,8 +4105,8 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 		if (duplicated_imp == null) {
 			// if there is no image to generate the view on:
 			// generate a new image by duplicating the original image
-			Duplicater dup = new Duplicater();
-			duplicated_imp= dup.duplicateStack(original_imp, new_title);
+			duplicated_imp = (new Duplicator()).run(original_imp);
+			duplicated_imp.setTitle(new_title);
 			if (this.text_files_mode) {
 				// there is no original image so set magnification to default(1)	
 				magnification = 1;

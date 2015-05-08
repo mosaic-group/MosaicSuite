@@ -29,6 +29,7 @@ public class ProgressBarWin extends JDialog
 	JPanel contentPane;
 	JProgressBar Prog_s;
 	JLabel Status;
+	@SuppressWarnings("unused")
 	private Object lock;
 	
 	public void SetStatusMessage(String Message)

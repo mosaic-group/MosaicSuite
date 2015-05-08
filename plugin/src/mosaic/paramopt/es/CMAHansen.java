@@ -23,7 +23,7 @@ public class CMAHansen implements EvolutionStrategy {
 	// Internally used upper bounds for the values in logarithmic space.
 	private double[] internalUpperBounds;
 	// The strategy parameter mu which can vary in this implementation.
-	private int mu = UNINITIALIZED;
+//	private int mu = UNINITIALIZED;
 	// The strategy parameter lambda defining the size of the population.
 	private int lambda = UNINITIALIZED;
 	// Flag to mark whether the strategy has been initialized.
@@ -47,7 +47,7 @@ public class CMAHansen implements EvolutionStrategy {
 	 * Creates a new instance of the strategy.
 	 */
 	public CMAHansen() {
-		mu = 3;
+//		mu = 3;
 	}
 
 	/**

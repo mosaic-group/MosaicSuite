@@ -401,7 +401,7 @@ public class MosaicUtils
 		String Folder = MosaicUtils.ValidFolderFromImage(aImp);
 		Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
 		
-		Vector<File> PossibleFile = new Vector();
+		Vector<File> PossibleFile = new Vector<File>();
 		
 		MosaicUtils MS = new MosaicUtils();
 		SegmentationInfo sI = MS.new SegmentationInfo();
@@ -966,7 +966,6 @@ public class MosaicUtils
 			{
 				String tmp = new String(output[j]);
 					
-				Process tProcess;
 				for (int k = 0 ; k < bases.size() ; k++)
 				{
 					ShellCommand.exeCmdNoPrint("mv " + "'" + sv + File.separator + tmp.replace("*",bases.get(k)) + "'" + "   " + "'" + sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", "") + "'");
@@ -1221,7 +1220,6 @@ public class MosaicUtils
 
 	public static int [] getCoord(long index, Img<?> img)
 	{
-		long tot = 1;
 		int crd[] = new int[img.numDimensions()];
 		
 		for (int i = 0 ; i < crd.length ; i++)

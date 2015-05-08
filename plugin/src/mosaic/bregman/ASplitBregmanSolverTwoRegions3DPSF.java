@@ -141,8 +141,11 @@ public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRe
 		// multi thread part
 		// DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
 		
+		@SuppressWarnings("unused")
 		double kernelx[] = p.PSF.getSeparableImageAsDoubleArray(0);
+		@SuppressWarnings("unused")
 		double kernely[] = p.PSF.getSeparableImageAsDoubleArray(1);
+		@SuppressWarnings("unused")
 		double kernelz[] = p.PSF.getSeparableImageAsDoubleArray(2);
 		
 		for(int nt=0; nt< p.nthreads-1;nt++){

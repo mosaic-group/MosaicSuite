@@ -31,9 +31,7 @@ public class BackgroundSubGUI
 		//Initialize Buttons
 		private JPanel panel;
 		private JButton Close;
-		private Font header = new Font(null, Font.BOLD,14);
-
-
+		
 		public BackgroundSubHelp(int x, int y )
 		{		
 			frame = new JDialog();
@@ -128,11 +126,9 @@ public class BackgroundSubGUI
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
-				
 				Point p =gd.getLocationOnScreen();
 				
-				BackgroundSubHelp pth = new BackgroundSubHelp(p.x,p.y);
+				new BackgroundSubHelp(p.x,p.y);
 				
 			}});
 		

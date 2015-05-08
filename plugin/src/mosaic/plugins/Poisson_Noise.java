@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.Vector;
 
@@ -70,7 +69,7 @@ public class Poisson_Noise implements PlugInFilter
 	ImagePlus imp;
 	int erodePixel;
 	public int mSeed = 8888;
-	private Random mRandomGenerator;
+//	private Random mRandomGenerator;
 	private static final int BYTE=0, SHORT=1, FLOAT=2;
 	NoiseSample<?> ns;
 	SegmentationInfo seg;
@@ -420,15 +419,6 @@ public class Poisson_Noise implements PlugInFilter
 		
 		if (seg != null)
 		{
-			try {
-				int nbin = getNBins(cls.newInstance());
-			} catch (InstantiationException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IllegalAccessException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
 			
 			// check the type of the segmentation image
 			
@@ -440,6 +430,7 @@ public class Poisson_Noise implements PlugInFilter
 
 			try
 			{
+				@SuppressWarnings("unchecked")
 				Img< UnsignedByteType > imageSeg = (Img< UnsignedByteType >) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0);
 
 				// Open the segmentation image, erode filter small region,
@@ -452,6 +443,7 @@ public class Poisson_Noise implements PlugInFilter
 			
 			try
 			{
+				@SuppressWarnings("unchecked")
 				Img< ShortType > imageSeg = (Img<ShortType>) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0).getImg();
 				
 				// Open the segmentation image, erode filter small region,
@@ -464,6 +456,7 @@ public class Poisson_Noise implements PlugInFilter
 			
 			try
 			{
+				@SuppressWarnings("unchecked")
 				Img< IntType > imageSeg = (Img<IntType>) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0).getImg();
 				
 				// Open the segmentation image, erode filter small region,
@@ -547,7 +540,7 @@ public class Poisson_Noise implements PlugInFilter
 	public int setup(String aArgs, ImagePlus aImp) 
 	{
 		imp = aImp;
-		mRandomGenerator = new Random(mSeed);
+//		mRandomGenerator = new Random(mSeed);
 		//run(new FloatProcessor(1,1));		
 		//return DONE;
 		
@@ -670,11 +663,11 @@ public class Poisson_Noise implements PlugInFilter
 			cur.next();
 			
 			cur.localize(loc);
-			if (loc[0] == 35 && loc[1] == 29)
-			{
-				int debug = 0;
-				debug++;
-			}
+//			if (loc[0] == 35 && loc[1] == 29)
+//			{
+//				int debug = 0;
+//				debug++;
+//			}
 			
 			nsT.sample(cur.get(), smp);
 			cur.get().set(smp);

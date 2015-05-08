@@ -92,7 +92,7 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
     private boolean   thresholded;                  // whether the input image has a threshold
     private boolean   roiSaved;                     // whether the filter has changed the roi and saved the original roi
     private boolean   previewing;                   // true while dialog is displayed (processing for preview)
-    private Vector    checkboxes;                   // a reference to the Checkboxes of the dialog
+    private Vector<Checkbox>    checkboxes;                   // a reference to the Checkboxes of the dialog
     private boolean thresholdWarningShown = false;  // whether the warning "can't find minima with thresholding" has been shown
     private Label     messageArea;                  // reference to the textmessage area for displaying the number of maxima
     private double    progressDone;                 // for progress bar, fraction of work done so far
@@ -131,7 +131,8 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
         return flags;
     }
 
-    public int showDialog(ImagePlus imp, String command, PlugInFilterRunner pfr) {
+    @SuppressWarnings("unchecked")
+	public int showDialog(ImagePlus imp, String command, PlugInFilterRunner pfr) {
         ImageProcessor ip = imp.getProcessor();
         ip.resetBinaryThreshold(); // remove invisible threshold set by MakeBinary and Convert to Mask
         thresholded = ip.getMinThreshold()!=ImageProcessor.NO_THRESHOLD;
@@ -320,7 +321,6 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
             return null;
         
         ByteProcessor outIp;
-        byte[] pixels;
         if (outputType == SEGMENTED) {
             // Segmentation required, convert to 8bit (also for 8-bit images, since the calibration
             // may have a negative slope). outIp has background 0, maximum areas 255
@@ -441,11 +441,11 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
         byte[] types =  (byte[])typeP.getPixels();
         int nMax = maxPoints.length;
         int [] pList = new int[width*height];       //here we enter points starting from a maximum
-        Vector xyVector = null;
+        Vector<int[]> xyVector = null;
         Roi roi = null;
         boolean displayOrCount = outputType==POINT_SELECTION||outputType==LIST||outputType==COUNT;
         if (displayOrCount) 
-            xyVector=new Vector();
+            xyVector=new Vector<int[]>();
         if (imp!=null)
             roi = imp.getRoi();     
       
@@ -552,7 +552,7 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                     if (maxPossible) {
                         int offset = pList[nearestI];
                         types[offset] |= MAX_POINT;
-                        if (displayOrCount && !(this.excludeOnEdges && isEdgeMaximum)) {
+                        if (displayOrCount && !(excludeOnEdges && isEdgeMaximum)) {
                             int x = offset % width;
                             int y = offset / width;
                             if (roi==null || roi.contains(x, y))
@@ -570,13 +570,13 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                 int[] xpoints = new int[npoints];
                 int[] ypoints = new int[npoints];
                 for (int i=0; i<npoints; i++) {
-                    int[] xy = (int[])xyVector.elementAt(i);
+                    int[] xy = xyVector.elementAt(i);
                     xpoints[i] = xy[0];
                     ypoints[i] = xy[1];
                 }
                 if (imp!=null) {
                     Roi points = new PointRoi(xpoints, ypoints, npoints);
-                    ((PointRoi)points).setHideLabels(true);
+                    ((PointRoi)points).setShowLabels(false);
                     imp.setRoi(points);
                 }
                 points = new Polygon(xpoints, ypoints, npoints);
@@ -584,7 +584,7 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                 Analyzer.resetCounter();
                 ResultsTable rt = ResultsTable.getResultsTable();
                 for (int i=0; i<npoints; i++) {
-                    int[] xy = (int[])xyVector.elementAt(i);
+                    int[] xy = xyVector.elementAt(i);
                     rt.incrementCounter();
                     rt.addValue("X", xy[0]);
                     rt.addValue("Y", xy[1]);
@@ -1115,7 +1115,7 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                     isSet[(i+7)%8] = true;
                 }
             int transitions=0;
-            for (int i=0, mask=1; i<8; i++) {
+            for (int i=0; i<8; i++) {
                 if (isSet[i] != isSet[(i+1)%8])
                     transitions++;
             }

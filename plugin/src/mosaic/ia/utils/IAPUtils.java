@@ -165,7 +165,6 @@ public class IAPUtils {
 	
 	public static double calcStandDev(double [] distances) {
 
-		double sd = 0;
 		double sum = 0.0;
 		for (double a : distances)
 			sum += a;
@@ -180,7 +179,6 @@ public class IAPUtils {
 	}
 	
 	public static double calcStandDev(float[] distances) {
-		double sd = 0;
 		double sum = 0.0;
 		for (float a : distances)
 			sum += a;

@@ -328,11 +328,11 @@ public class ImagePatches {
 			for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
 				Pix v = it2.next();
 				//count number of free edges
-				if (v.pz >= regions_refined.length || v.px >= regions_refined[0].length || v.py >= regions_refined[0][0].length)
-				{
-					int debug = 0;
-					debug++;
-				}
+//				if (v.pz >= regions_refined.length || v.px >= regions_refined[0].length || v.py >= regions_refined[0][0].length)
+//				{
+//					int debug = 0;
+//					debug++;
+//				}
 				
 				regions_refined[v.pz][v.px][v.py]= (short) r.value;
 

@@ -14,7 +14,6 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -52,7 +51,6 @@ public class GUIDesign implements ActionListener
 
 		private JButton help;
 		private double alpha=.05;
-		private JDialog dialog;
 		private JFormattedTextField mCRuns, numSupport,smoothnessNP,gridSizeInp,reRuns,kernelWeightq, kernelWeightp;
 		
 		private JFormattedTextField alphaField;
@@ -610,7 +608,7 @@ public class GUIDesign implements ActionListener
 	
 		if(e.getSource()==help)
 		{
-			HelpInteractionAnalysis  iaH = new HelpInteractionAnalysis(0,0);
+			new HelpInteractionAnalysis(0,0);
 		}
 		else if(e.getSource()==browseX)
 		{

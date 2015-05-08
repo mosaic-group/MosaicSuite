@@ -803,12 +803,10 @@ public class Algorithm
 //		}
 		
 		
-		int vNSplits = 0;
 		for(Pair<Point, Integer> vSeedIt : m_Seeds) 
 		{
 			RelabelRegionsAfterSplit(labelImage, vSeedIt.first, vSeedIt.second);
 			vSplit = true;
-			vNSplits++;
 		}
 		        
         /// Merge the the competing regions if they meet merging criterion.
@@ -1638,6 +1636,7 @@ public class Algorithm
 		for(Object o : copy) 
 //		for(Entry<Point, ContourParticle> vIt : copy) 
 		{
+			@SuppressWarnings("unchecked")
 			Entry<Point, ContourParticle> vIt = (Entry<Point, ContourParticle>) o;
 			
 			ContourParticle vWorkingIt = vIt.getValue();
@@ -1782,7 +1781,6 @@ public class Algorithm
 	void UpdateStatisticsWhenJump(Entry<Point,ContourParticle> aParticle, 
 			int aFromLabelIdx, int aToLabelIdx)
 	{
-		Point vCurrentIndex = aParticle.getKey();
 		ContourParticle vOCCV = aParticle.getValue();
 		float vCurrentImageValue = vOCCV.intensity;
 

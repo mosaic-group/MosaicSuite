@@ -36,8 +36,6 @@ import mosaic.region_competition.wizard.PickRegion;
 public class ScoreFunctionRCtop implements ScoreFunction
 {	
 	String[] file;
-	private double smooth[];
-	private int Area[];
 	
 	IntensityImage i[];
 	LabelImageRC l[];
@@ -71,15 +69,6 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		return l[im];
 	}
 	
-	public void setSmooth(double a[])
-	{
-		smooth = a;
-	}
-		
-	public void setArea(int[] sizeA)
-	{
-		Area = sizeA;
-	}
 	
 	public void setCMModel(PointCM [] mod,int i)
 	{
@@ -91,7 +80,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	{
 		int off[] = l.getDimensions().clone();
 		Arrays.fill(off, 0);
-		RegionIterator img = new RegionIterator(l.getDimensions(),l.getDimensions(),off);
+		new RegionIterator(l.getDimensions(),l.getDimensions(),off);
 		
 		PointCM Reg[] = l.createCMModel();
 		
@@ -106,8 +95,6 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		PointCM reoMod2[] = new PointCM[Reg.length];
 		PointCM reoMod1[] = new PointCM[pntMod.length];
 		int k = 0;
-		
-		int it = 0;
 		
 		while (pntModV.size() != 0 && RegV.size() != 0)
 		{
@@ -185,10 +172,6 @@ public class ScoreFunctionRCtop implements ScoreFunction
 				
 			// Scoring
 		 		
-			int count = 0;
-			double a1 = 0.0;
-			double a2 = 0.0;
-			
 			result = Topo(l[im],pntMod[im],x);
 				
 //			result += 10.0/Math.abs(a1 - a2);
@@ -488,7 +471,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		btnMerge.addActionListener(btnL);
 		btnDivide.addActionListener(new DivideBtn(ip,btnL.getImagePlus()));
 		
-		frm.show();
+		frm.setVisible(true);
 		
 		waitClose();
 		

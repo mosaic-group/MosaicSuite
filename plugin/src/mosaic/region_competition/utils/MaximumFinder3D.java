@@ -28,7 +28,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
 {
     //filter params
     /** maximum height difference between points that are not counted as separate maxima */
-    private static double tolerance = 10;
+    //private static double tolerance = 10;
     /** Output type single points */
     public final static int SINGLE_POINTS=0;
     /** Output type all points around the maximum within the tolerance */
@@ -42,29 +42,29 @@ public class MaximumFinder3D implements MaximumFinderInterface
     /** Do not create an image, just count maxima and add count to Results table */
     public final static int COUNT=5;
     /** what type of output to create (see constants above)*/
-    private static int outputType;
+    //private static int outputType;
     /** what type of output to create was chosen in the dialog (see constants above)*/
-    private static int dialogOutputType = POINT_SELECTION;
+    //private static int dialogOutputType = POINT_SELECTION;
     /** output type names */
     final static String[] outputTypeNames = new String[]
         {"Single Points", "Maxima Within Tolerance", "Segmented Particles", "Point Selection", "List", "Count"};
     /** whether to exclude maxima at the edge of the image*/
     private static boolean excludeOnEdges;
     /** whether to accept maxima only in the thresholded height range*/
-    private static boolean useMinThreshold;
+    //private static boolean useMinThreshold;
     /** whether to find darkest points on light background */
-    private static boolean lightBackground;
+    //private static boolean lightBackground;
 //    private ImagePlus imp;                          // the ImagePlus of the setup call
-    private boolean   thresholded;                  // whether the input image has a threshold
+  //  private boolean   thresholded;                  // whether the input image has a threshold
     private boolean   previewing;                   // true while dialog is displayed (processing for preview)
-    private boolean thresholdWarningShown = false;  // whether the warning "can't find minima with thresholding" has been shown
+//    private boolean thresholdWarningShown = false;  // whether the warning "can't find minima with thresholding" has been shown
     private Label     messageArea;                  // reference to the textmessage area for displaying the number of maxima
-    private double    progressDone;                 // for progress bar, fraction of work done so far
-    private int       nPasses = 0;                  // for progress bar, how many images to process (sequentially or parallel threads)
+//    private double    progressDone;                 // for progress bar, fraction of work done so far
+//    private int       nPasses = 0;                  // for progress bar, how many images to process (sequentially or parallel threads)
     //the following are class variables for having shorter argument lists
     private int       width, height;                // image dimensions
     /** directions to 8 neighboring pixels, clockwise: 0=North (-y), 1=NE, 2=East (+x), ... 7=NW */
-    private int[]     dirOffset;                    // pixel offsets of neighbor pixels for direct addressing
+//    private int[]     dirOffset;                    // pixel offsets of neighbor pixels for direct addressing
     private int[][] points;                    // maxima found by findMaxima() when outputType is POINT_SELECTION
     final static int[] DIR_X_OFFSET = new int[] {  0,  1,  1,  1,  0, -1, -1, -1 };
     final static int[] DIR_Y_OFFSET = new int[] { -1, -1,  0,  1,  1,  1,  0, -1 };
@@ -333,11 +333,11 @@ public class MaximumFinder3D implements MaximumFinderInterface
         byte[] types =  typeP;
         int nMax = maxPoints.length;
         int [] pList = new int[size];       //here we enter points starting from a maximum
-        Vector xyVector = null;
+        Vector<int[]> xyVector = null;
         Roi roi = null;
         boolean displayOrCount = outputType==POINT_SELECTION||outputType==LIST||outputType==COUNT;
         if (displayOrCount) 
-            xyVector=new Vector();
+            xyVector=new Vector<int[]>();
       
         for (int iMax=nMax-1; iMax>=0; iMax--) {    //process all maxima now, starting from the highest
             int offset0 = (int)maxPoints[iMax];     //type cast gets 32 lower bits, where pixel index is encoded
@@ -466,7 +466,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
 					if (maxPossible) {
 						int offset = pList[nearestI];
 						types[offset] |= MAX_POINT;
-						if (displayOrCount && !(this.excludeOnEdges && isEdgeMaximum)) 
+						if (displayOrCount && !(excludeOnEdges && isEdgeMaximum)) 
 						{
 							Point pp = iterator.indexToPoint(offset);
 							
@@ -489,7 +489,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
                 int[] ypoints = new int[npoints];
                 int[] zpoints = new int[npoints];
                 for (int i=0; i<npoints; i++) {
-                    int[] xy = (int[])xyVector.elementAt(i);
+                    int[] xy = xyVector.elementAt(i);
                     xpoints[i] = xy[0];
                     ypoints[i] = xy[1];
                     zpoints[i] = xy[2];
@@ -500,7 +500,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
                 Analyzer.resetCounter();
                 ResultsTable rt = ResultsTable.getResultsTable();
                 for (int i=0; i<npoints; i++) {
-                    int[] xy = (int[])xyVector.elementAt(i);
+                    int[] xy = xyVector.elementAt(i);
                     rt.incrementCounter();
                     rt.addValue("X", xy[0]);
                     rt.addValue("Y", xy[1]);

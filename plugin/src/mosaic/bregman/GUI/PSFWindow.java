@@ -2,7 +2,6 @@ package mosaic.bregman.GUI;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -32,8 +31,6 @@ public class PSFWindow implements ActionListener,PropertyChangeListener
 	public JDialog frame;
 	//Initialize Buttons
 	private JPanel panel;
-	private JButton Close;
-	private Font header = new Font(null, Font.BOLD,14);
 	private boolean confocal = true;
 
 	private String [] items={"Confocal Microscope", "Wide Field Fluorescence Microscope"};

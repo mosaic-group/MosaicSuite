@@ -11,13 +11,12 @@ class PSFGenerator implements PlugInFilter
 	@Override
 	public void run(ImageProcessor arg0) 
 	{
-		GeneratePSF gpsf = new GeneratePSF();
+		new GeneratePSF();
 		
 	}
 
 	@Override
 	public int setup(String arg0, ImagePlus arg1) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 

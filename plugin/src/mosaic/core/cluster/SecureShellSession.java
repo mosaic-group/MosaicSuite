@@ -4,11 +4,9 @@ import ij.IJ;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.Date;
-import java.util.Random;
 import java.util.Vector;
 
 import mosaic.core.GUI.ProgressBarWin;
@@ -155,6 +153,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 			if (createSftpChannel() == false)
 				return null;
 			
+			@SuppressWarnings("unchecked")
 			Vector<ChannelSftp.LsEntry> list = cSFTP.ls(Directory);
 			
 			for(ChannelSftp.LsEntry entry : list) 
@@ -232,6 +231,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 			if (createSftpChannel() == false)
 				return false;
 			
+			@SuppressWarnings("unchecked")
 			Vector<LsEntry> fl = cSFTP.ls(Directory);
 			
 			for (LsEntry f : fl)
@@ -267,7 +267,6 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 	 */
 	public boolean runCommands(String pwd, String [] commands)
 	{
-		OutputStream os = null;
 		
 	    String cmd_list = new String();
 	    for (int i = 0 ; i < commands.length ; i++)
@@ -593,8 +592,6 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 	 */
 	public boolean upload(String pwd, File files[], File dir , ProgressBarWin wp, ClusterProfile cp)	
 	{
-		Random grn = new Random();
-		
 		try
 		{
 			if (createSftpChannel() == false)

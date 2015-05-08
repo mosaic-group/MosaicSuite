@@ -160,7 +160,6 @@ class LSFBatch implements BatchInterface
 			unparse_last = false;
 		
 		String[] elements = prs.split("\n");
-		Vector<Vector<String>> Clm_flt = new Vector<Vector<String>>();
 		nele = elements.length-1;
 		
 		if (unparse_last == false)
@@ -382,7 +381,6 @@ class LSFBatch implements BatchInterface
 		
 		fl[0] = new File(dir + File.separator + "JobID");
 		
-		Process tProcess;
 		try 
 		{	
 			ShellCommand.exeCmdNoPrint("mkdir " + tmp_dir);	
@@ -433,7 +431,6 @@ class LSFBatch implements BatchInterface
 	@Override
 	public BatchInterface[] getAllJobs(SecureShellSession ss, String command) 
 	{
-		int n_b = 0;
 		String[] dirs = ss.getDirs(cp.getRunningDir());
 		if (dirs == null)
 			return null;
@@ -448,7 +445,6 @@ class LSFBatch implements BatchInterface
 			{
 				continue;
 			}
-			n_b++;
 			bc_v.add(tmp);
 		}
 		

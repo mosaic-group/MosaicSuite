@@ -507,6 +507,7 @@ public class GenericDialogGUI implements InputReadable
 	 */
 	private void addWheelListeners()
 	{
+		@SuppressWarnings("unchecked")
 		Vector<TextField> v = gd.getNumericFields();
 		for(TextField tf:v)
 		{
@@ -821,6 +822,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 				if(flavor.isFlavorJavaFileListType()) 
 				{
 					// Get all of the dropped files
+					@SuppressWarnings("unchecked")
 					List<File> files = (List<File>)transferable.getTransferData(flavor);
 					// Loop them through
 					for(File file : files) {
@@ -943,12 +945,12 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 		{
 			// there was a non-default change in the textfield. 
 			// set input choice to file if it was TextArea for labelImage 
-			if(defaultText.equals(gd.TextDefaultLabelImage))
+			if(defaultText.equals(GenericDialogGUI.TextDefaultLabelImage))
 			{
 				gd.setInitToFileInput();
 				gd.setLabelImageChoiceEmpty();
 			}
-			if(defaultText.equals(gd.TextDefaultInputImage))
+			if(defaultText.equals(GenericDialogGUI.TextDefaultInputImage))
 			{
 				gd.setInputImageChoiceEmpty();
 			}

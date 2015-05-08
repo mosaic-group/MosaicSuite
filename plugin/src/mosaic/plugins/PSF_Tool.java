@@ -90,7 +90,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	private PsfPointSpreadFunction EstimatePSF[];	// Instance of class PointSpreadFunction that does the actual work		
 	private float[] PSF;						// Float Array containing PSF-values
 	private float rad[];						// Float Array containing PSF-radius to plot the function
-	private Vector Positions;					// Vector to hold user selected coordinates
+	private Vector<PsfSourcePosition> Positions;					// Vector to hold user selected coordinates
 	private double whm = 0.0;					// Width of PSF at half maximum
 	
 	private ImagePlus imp;						// Image to be loaded
@@ -181,7 +181,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		//mag_fact = (int)gd.getNextNumber();
 		//sample_points = (int)gd.getNextNumber();
 		
-		Positions = new Vector();	// Create Vector to hold selected Positions
+		Positions = new Vector<PsfSourcePosition>();	// Create Vector to hold selected Positions
 		
 
 		
@@ -308,6 +308,10 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 				IJ.error("Please select point source before refinement!");
 			else{
 				deleteUnchecked();				// only calculate psf for selected checkboxes
+				if (num_of_particles == 0) {
+					// All checkboxes were unchecked -> nothing to do
+					return;
+				}
 				selections.setLength(0);		// and clear variables
 				for(int i=0; i<PSF.length;i++)
 					PSF[i] = 0;
@@ -318,7 +322,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 				// Loop over Point Sources
 				for(int i=0; i<num_of_particles; i++){
 					float[] PSFtmp;
-					particles[i] = (PsfSourcePosition)Positions.elementAt(i);
+					particles[i] = Positions.elementAt(i);
 					selections.append("\n%" + (i+1) + ":\t" + particles[i].x + "\t" + particles[i].y);	// update report file
 					EstimatePSF[i] = new PsfPointSpreadFunction(org_ip, particles[i], (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
 					EstimatePSF[i].calculatePSF();
@@ -353,19 +357,14 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	 * Deletes unselected checkboxes, related point sources and their color marks in the image window
 	 */
 	private void deleteUnchecked(){
-		/* this is a little hack: removing an element from a java vector (here: Positions) changes the elements index
-		 the programm would crash while looping over the checkboxes...(null-pointer). therefore empty indices are filled up with dummies!*/
-		String d = new String("dummy");	
-		
 		// lets see which checkboxes are unchecked and delete the related sources
 		Component[] components = checkbox_panel.getComponents(  );
-		for (int i = 0; i < components.length; i++) {
+		for (int i = components.length - 1; i >= 0; i--) {
 			JCheckBox cb = (JCheckBox)components[i];
 			if (!cb.isSelected(  )){
 	       	  	num_of_particles--;
-	       	  	PsfSourcePosition last = (PsfSourcePosition)Positions.elementAt(i);
+	       	  	PsfSourcePosition last = Positions.elementAt(i);
 	       	  	Positions.removeElementAt(i);
-	       	  	Positions.insertElementAt(d, i); // fill removed position with dummy
 	       	  	// Get original RGB-value and re-draw
 	       	  	iArray  = lastcolor.getPixel(Math.round(last.x), Math.round(last.y), iArray);
 	       	  	color.putPixel(Math.round(last.x), Math.round(last.y), iArray);
@@ -373,10 +372,6 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		        checkbox_panel.remove(cb);
 	        }
        	}
-		// Lets get rid of the dummies now...
-		for(int i=0; i<Positions.size(); i++){
-			Positions.removeElement(d);
-		}
 		checkbox_panel.updateUI();	// update gui
 	}
 	
@@ -462,7 +457,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	 * @see PlotWindow
 	 */
 	private void drawPSF(String title){
-		PlotWindow plotWin = new PlotWindow(title, "Radius [nm]", "Intensity", rad, PSF);
+		Plot plotWin = new Plot(title, "Radius [nm]", "Intensity", rad, PSF);
 		plotWin.setLimits(0, rad[rad.length - 1], 0, 1);
 		double[] r = new double[rad.length];
 		for(int i=0; i<r.length; i++)
@@ -484,7 +479,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 			y[1] = 0.5;
 			plotWin.addPoints(x,y,Plot.LINE);
 		}
-		plotWin.draw();
+		plotWin.show();
 	}
 	
 	
@@ -493,14 +488,13 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	 * @return Theoretical PSF
 	 */
 	private double[] theoreticalPSF(){
-		PsfBessel bessel = new PsfBessel();
 		double arg = 2*Math.PI*na/lambda;
 		double[] b = new double[rad.length];
 		//double barg = Math.PI*2.68;
 		double barg;
 		for(int i=0;i<rad.length;i++){
 			barg = arg*rad[i];
-			b[i] = (2*bessel.j1(barg)/barg)*(2*bessel.j1(barg)/barg);
+			b[i] = (2*PsfBessel.j1(barg)/barg)*(2*PsfBessel.j1(barg)/barg);
 		}
 		b[0] = 1;
 		return b;

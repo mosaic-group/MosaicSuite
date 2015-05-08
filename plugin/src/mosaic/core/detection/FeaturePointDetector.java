@@ -188,20 +188,14 @@ public class FeaturePointDetector {
 		/* find this ImageStacks min and max pixel value */
 		float min = 0f;
 		float max = 0f;
-		float mode = 0f;
-		float std = 0f;
 		if(ips.getSize() > 1) {
 			StackStatistics sstats = new StackStatistics(new ImagePlus(null,ips));
 			min = (float)sstats.min;
 			max = (float)sstats.max;
-			mode = (float)sstats.dmode;	
-			std = (float)sstats.stdDev;
 		} else { //speeds up the 2d version:
 			ImageStatistics istats = ImageStatistics.getStatistics(ips.getProcessor(1), Measurements.MIN_MAX + Measurements.MODE + Measurements.STD_DEV, null);
 			min = (float)istats.min;
 			max = (float)istats.max;
-			std = (float)istats.stdDev;
-			mode = (float)istats.dmode;
 		}
 
 		double[] hist = new double[256];
@@ -836,6 +830,7 @@ public class FeaturePointDetector {
 		float per = (Float.parseFloat((vec.elementAt(2)).getText()))/100;
 		//float sigma_fac = (Float.parseFloat((vec.elementAt(3)).getText()));
 		float intThreshold = per*100;
+		@SuppressWarnings("unchecked") // the warning is due to old imagej code
 		Vector<Checkbox> vecb = gd.getCheckboxes();
 		boolean absolute = vecb.elementAt(0).getState();
 		//		int thsmode = ((Choice)gd.getChoices().elementAt(0)).getSelectedIndex();

@@ -2,7 +2,6 @@ package mosaic.ia.gui;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,9 +18,7 @@ public class HelpInteractionAnalysis extends HelpGUI implements ActionListener
 	//Initialize Buttons
 	private JPanel panel;
 	private JButton Close;
-	private Font header = new Font(null, Font.BOLD,14);
-
-
+	
 	public HelpInteractionAnalysis(int x, int y )
 	{		
 		frame = new JFrame("Interaction Analysis Help");

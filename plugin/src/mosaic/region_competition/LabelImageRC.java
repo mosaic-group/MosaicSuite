@@ -450,8 +450,6 @@ public class LabelImageRC extends LabelImage
 		
 		HashMap<Integer,PointCM> Labels = new HashMap<Integer,PointCM>();		// set of the old labels
 		
-		int newLabel=1;
-		
 		int size=iterator.getSize();
 		
 		// what are the old labels?
@@ -728,23 +726,23 @@ class LabelDispenser
 }
 
 
-class LabelImageG<T> extends LabelImageRC
-{
-
-	public LabelImageG(ImagePlus ip)
-	{
-		super((int[])null);
-		// TODO Auto-generated constructor stub
-	}
-	
-	public T getG(int idx)
-	{
-		int i = getLabel(idx);
-		T t=  (T)new Integer(i);
-		
-		return t;
-	}
-}
+//class LabelImageG<T> extends LabelImageRC
+//{
+//
+//	public LabelImageG(ImagePlus ip)
+//	{
+//		super((int[])null);
+//		// TODO Auto-generated constructor stub
+//	}
+//	
+//	public T getG(int idx)
+//	{
+//		int i = getLabel(idx);
+//		T t=  (T)new Integer(i);
+//		
+//		return t;
+//	}
+//}
 
 
 class StackProjector extends GroupedZProjector
