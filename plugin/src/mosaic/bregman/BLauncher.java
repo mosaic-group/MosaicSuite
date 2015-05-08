@@ -353,7 +353,6 @@ public class BLauncher
 		{
 			// Remove extension from filename
 			
-			String ff = MosaicUtils.removeExtension(filename);
 			String ffo = MosaicUtils.removeExtension(outfilename);
 			
 			out  = new PrintWriter(path + File.separator + ffo + "_ImagesData"+ ".csv");
@@ -407,12 +406,11 @@ public class BLauncher
 		
 		if (Analysis.p.nchannels == 2)
 		{
-			double corr_mask, corr, corr_zero;
+			double corr_mask, corr;
 			double [] temp;
 			temp=Analysis.pearson_corr();
 			corr=temp[0];
 			corr_mask=temp[1];
-			corr_zero=temp[2];
 			
 			double meanSA= Analysis.meansurface(Analysis.regionslist[0]);
 			double meanSB= Analysis.meansurface(Analysis.regionslist[1]);
@@ -479,9 +477,9 @@ public class BLauncher
 
 			if(Analysis.p.save_images)
 			{
-				String savepath = null;
+//				String savepath = null;
 				//IJ.log(wpath);
-				savepath = MosaicUtils.ValidFolderFromImage(aImp);
+//				savepath = MosaicUtils.ValidFolderFromImage(aImp);
 				//IJ.log(savepath);
 			}
 			//IJ.log("single file start headless");
@@ -711,8 +709,8 @@ public class BLauncher
 			//IJ.log("mean size");
 			Analysis.meana=Analysis.meansize(Analysis.regionslist[0]);
 
-			double meanSA= Analysis.meansurface(Analysis.regionslist[0]);			
-			double meanLA= Analysis.meanlength(Analysis.regionslist[0]);
+//			double meanSA= Analysis.meansurface(Analysis.regionslist[0]);			
+//			double meanLA= Analysis.meanlength(Analysis.regionslist[0]);
 
 			//IJ.log("save");
 			if(Analysis.p.save_images)

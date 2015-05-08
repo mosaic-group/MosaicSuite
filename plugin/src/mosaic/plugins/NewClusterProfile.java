@@ -48,6 +48,7 @@ public class NewClusterProfile implements PlugInFilter
 	 * 
 	 */
 	
+	@SuppressWarnings("unchecked")
 	void popupClusterProfile(ClusterProfile cp)
 	{
 		final Vector<QueueProfile> cq = new Vector<QueueProfile>();
@@ -294,7 +295,7 @@ public class NewClusterProfile implements PlugInFilter
 				
 				// Selected index
 				
-				int id = cc.get(2).getSelectedIndex();
+//				int id = cc.get(2).getSelectedIndex();
 				
 				fcp.removeCompressorString(cc.get(2).getSelectedItem());
 				

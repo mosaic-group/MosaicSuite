@@ -119,8 +119,8 @@ public class E_Deconvolution extends ExternalEnergy
             
             if (Float.isInfinite((float)labelMap.get(vLabel).median))
             {
-            	int debug = 0;
-            	debug++;
+//            	int debug = 0;
+//            	debug++;
             }
             	
 			cVModelImage.get().set((float)labelMap.get(vLabel).median);
@@ -242,8 +242,8 @@ public class E_Deconvolution extends ExternalEnergy
                 {
                 	// Search for the first non infinite value
                 	
-                	int debug = 0;
-                	debug++;
+//                	int debug = 0;
+//                	debug++;
                 	vMedian = Median(vScalings3.get(vLabel.getKey()));
                 }
                 
@@ -277,7 +277,7 @@ public class E_Deconvolution extends ExternalEnergy
     
     	// middle coord
     	
-    	Point sizeP = new Point (dimlen);
+//    	Point sizeP = new Point (dimlen);
     	
     	for (int i = 0 ; i < m_PSF.numDimensions() ; i++)	{dimlen[i] = dimlen[i] / 2;}
     	Point middle = new Point(dimlen);
@@ -287,7 +287,7 @@ public class E_Deconvolution extends ExternalEnergy
     	int loc[] = new int [m_PSF.numDimensions()];
     	Cursor< FloatType > vPSF = m_PSF.localizingCursor();
     	
-    	Point UpperCorner = LowerCorner.add(sizeP);
+//    	Point UpperCorner = LowerCorner.add(sizeP);
     	
     	// if we are
     	

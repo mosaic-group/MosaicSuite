@@ -5,8 +5,6 @@ import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.RegionIterator;
-import mosaic.core.utils.RegionIteratorMask;
-import mosaic.core.utils.SphereMask;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.RealType;
 
@@ -35,8 +33,8 @@ class MetricFilter implements PlugInFilter
 		
 		// the radius
 		
-		SphereMask mask = new SphereMask(radius, 2*radius+1, ImgI.getDimensions().length);
-		RegionIteratorMask rgm = new RegionIteratorMask(mask, ImgI.getDimensions());
+//		SphereMask mask = new SphereMask(radius, 2*radius+1, ImgI.getDimensions().length);
+//		RegionIteratorMask rgm = new RegionIteratorMask(mask, ImgI.getDimensions());
 		
 		while(rg.hasNext())
 		{

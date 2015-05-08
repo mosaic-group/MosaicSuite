@@ -524,7 +524,6 @@ public class PrintfFormat {
    *     to the beginning of the control string.
    */
   private String nonControl(String s,int start) {
-    String ret="";
     cPos=s.indexOf("%",start);
     if (cPos==-1) cPos=s.length();
     return s.substring(start,cPos);
@@ -1169,7 +1168,7 @@ public class PrintfFormat {
      */
     private char[] fFormatDigits(double x) {
       // int defaultDigits=6;
-      String sx,sxOut;
+      String sx;
       int i,j,k;
       int n1In,n2In;
       int expon=0;
@@ -1360,7 +1359,6 @@ public class PrintfFormat {
 	 * @return the converted double value.
 	 */
     private String fFormatString(double x) {
-      boolean noDigits=false;
       char[] ca6,ca7;
       if (Double.isInfinite(x)) {
         if (x==Double.POSITIVE_INFINITY) {
@@ -1371,14 +1369,12 @@ public class PrintfFormat {
         }
         else
           ca6 = "-Inf".toCharArray();
-        noDigits = true;
       }
       else if (Double.isNaN(x)) {
         if (leadingSign) ca6 = "+NaN".toCharArray();
         else if (leadingSpace)
           ca6 = " NaN".toCharArray();
         else ca6 = "NaN".toCharArray();
-        noDigits = true;
       }
       else
         ca6 = fFormatDigits(x);
@@ -1418,7 +1414,7 @@ public class PrintfFormat {
     private char[] eFormatDigits(double x,char eChar) {
       char[] ca1,ca2,ca3;
       // int defaultDigits=6;
-      String sx,sxOut;
+      String sx;
       int i,j,k,p;
       int n1In,n2In;
       int expon=0;

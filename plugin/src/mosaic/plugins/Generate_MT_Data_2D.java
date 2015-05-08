@@ -145,10 +145,10 @@ public class Generate_MT_Data_2D implements PlugIn{
 //		new ImagePlus("bessel visualized", new FloatProcessor(vPseudoKernel)).show();
 		
 		aIP.setRoi(
-				mRoi.getBoundingRect().x - vSBP.getKernelWidth(), 
-				mRoi.getBoundingRect().y - vSBP.getKernelHeight(), 
-				mRoi.getBoundingRect().width + 2*vSBP.getKernelWidth(), 
-				mRoi.getBoundingRect().height + 2*vSBP.getKernelWidth());
+				mRoi.getBounds().x - vSBP.getKernelWidth(), 
+				mRoi.getBounds().y - vSBP.getKernelHeight(), 
+				mRoi.getBounds().width + 2*vSBP.getKernelWidth(), 
+				mRoi.getBounds().height + 2*vSBP.getKernelWidth());
 		
 		aIP.convolve(vBesselKernel, vSBP.getKernelWidth(), vSBP.getKernelHeight());
 	}

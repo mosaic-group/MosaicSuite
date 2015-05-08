@@ -52,12 +52,12 @@ public class ScoreFunctionRCvol implements ScoreFunction
 	public int Area(LabelImageRC l)
 	{	
 		int count = 0;
-		double a1 = 0.0;
-		double a2 = 0.0;
+//		double a1 = 0.0;
+//		double a2 = 0.0;
 	
 		Collection<LabelInformation> li = l.getLabelMap().values();
 
-		a1 = ((LabelInformation)li.toArray()[0]).mean;
+//		a1 = ((LabelInformation)li.toArray()[0]).mean;
 
 		for (int i = 1 ; i < li.toArray().length ; i++)
 		{
@@ -121,12 +121,12 @@ public class ScoreFunctionRCvol implements ScoreFunction
 //			result += Math.abs(l[im].getLabelMap().size()-off[im]);
 	
 			int count = 0;
-			double a1 = 0.0;
-			double a2 = 0.0;
+//			double a1 = 0.0;
+//			double a2 = 0.0;
 
 			Collection<LabelInformation> li = l[im].getLabelMap().values();
 
-			a1 = ((LabelInformation)li.toArray()[0]).mean;
+//			a1 = ((LabelInformation)li.toArray()[0]).mean;
 
 			for (int i = 1 ; i < li.toArray().length ; i++)
 			{

@@ -71,7 +71,6 @@ public class KDTreeNearestNeighbor {
 	public double [] getNNDistances(Point3d [] pointsX)
 	{
 		
-		float [] D1=new float[pointsX.length];
 		double [] D=new double[pointsX.length];
 	
 		

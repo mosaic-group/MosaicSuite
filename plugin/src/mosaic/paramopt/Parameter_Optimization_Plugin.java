@@ -373,7 +373,6 @@ public class Parameter_Optimization_Plugin implements PlugInFilter,
 
 		// Count the number of images which have been selected and compute their
 		// mean.
-		int numSelected = 0;
 		int dimension = currentPopulation[0].length;
 		double[] mean = new double[dimension];
 		for (int i = 0; i < imageCount; i++) {
@@ -381,7 +380,6 @@ public class Parameter_Optimization_Plugin implements PlugInFilter,
 				for (int j = 0; j < dimension; j++) {
 					mean[j] += currentPopulation[i][j];
 				}
-				numSelected++;
 			}
 		}
 		

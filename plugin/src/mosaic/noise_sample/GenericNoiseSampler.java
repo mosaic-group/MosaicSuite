@@ -198,7 +198,6 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 	public void sample(T x, T out)
 	{
 		int i = 0;
-		double s = x.getRealDouble();
 		
 		// figure out in which interval we are
 		

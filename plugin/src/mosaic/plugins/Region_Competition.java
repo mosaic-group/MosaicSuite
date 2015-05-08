@@ -551,6 +551,7 @@ public class Region_Competition implements Segmentation
 			
 			// for each patch run region competition
 			
+			@SuppressWarnings("unchecked")
 			ImagePatch<FloatType,IntType>[] ips = ip.getPathes();
 			
 			

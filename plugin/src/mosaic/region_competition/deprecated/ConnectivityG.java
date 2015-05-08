@@ -264,6 +264,7 @@ public class ConnectivityG<T extends Point> implements Iterable<T>
 			this.point=p;
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public T next() {
 			T ofs = super.next();

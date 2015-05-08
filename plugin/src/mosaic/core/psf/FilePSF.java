@@ -308,6 +308,7 @@ public class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , 
 		
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <S extends RealType<S>> void convolve(RandomAccessibleInterval<S> img, S bound) 
 	{		
@@ -357,8 +358,6 @@ public class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , 
 	@Override
 	public String getStringParameters() 
 	{
-		String opt = new String();
-				
 		return "file="+filename;
 	}
 	

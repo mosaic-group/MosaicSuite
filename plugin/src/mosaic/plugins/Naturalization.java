@@ -28,7 +28,6 @@ import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.ops.operation.iterable.unary.Mean;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
@@ -184,8 +183,6 @@ public class Naturalization implements PlugInFilterExt
 		// Otherwise return an error or hint to scale down
 		//
 		
-		// Class to calculate the Mean
-		Mean<T,S> m = new Mean<T,S>();
 		
 		// Check if the image is 8-bit
 		T image_check = cls_t.newInstance();
@@ -198,22 +195,39 @@ public class Naturalization implements PlugInFilterExt
 		}
 		
 		// Calculate the parameters for any x-bit image
+
 		
-		// Mean of the original image
-		S mean_original = null;
-		try {
-			mean_original = cls_s.newInstance();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// Class to calculate the Mean
+//		Mean<T,S> m = new Mean<T,S>();
+//		
+//		// Mean of the original image
+//		S mean_original = null;
+//		try {
+//			mean_original = cls_s.newInstance();
+//		} catch (InstantiationException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IllegalAccessException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//		// Calculate mean intensity of the original image
+//		m.compute(image_orig.cursor(), mean_original);
 		
-		// Calculate mean intensity of the original image
-		m.compute(image_orig.cursor(), mean_original);
 		
+		// TODO: quick fix for deprecated code above. Is new 'mean' utility introduced in imglib2?
+        float mean_original = 0.0f;
+
+        Cursor<T> c2 = image_orig.cursor();
+        float count = 0.0f;
+        while (c2.hasNext()) {
+                c2.next();
+                mean_original += c2.get().getRealFloat();
+                count += 1.0f;
+        }
+        mean_original /= count;
+        
 		long dims[] = {N_Lap};
 		
 		// Create one dimensional image or (Histogram)
@@ -310,7 +324,7 @@ public class Naturalization implements PlugInFilterExt
         	
         	// Naturalize
         	
-        	float Nat = (float) ((tmp - mean_original.getRealFloat())*Nf + mean_original.getRealFloat() + 0.5);
+        	float Nat = (float) ((tmp - mean_original)*Nf + mean_original + 0.5);
         	if (Nat < 0)
         	{Nat = 0;}
         	else if (Nat > 255)

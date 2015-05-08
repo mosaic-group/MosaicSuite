@@ -214,7 +214,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		
 		RoiManager manager = RoiManager.getInstance();
 	    Hashtable<String, Roi> table = (Hashtable<String, Roi>)manager.getROIs();
-	    String[] md = new String[table.size()];
 	    img = new ImagePlus[table.size()];
 	    for (String label : table.keySet())
 	    {
@@ -382,7 +381,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	
 	LabelImageRC RCPainter(ImagePlus aImg, Settings s)
 	{
-		double result = 0.0;
 		
 		s.RC_free = true;
 		s.m_EnergyContourLengthCoeff = (float) 0.001;
@@ -428,7 +426,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		
 		g.addMouseListener(pc);
 		
-		g.show();
+		g.setVisible(true);
 		
 		try {
 			t.join();
@@ -451,7 +449,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		
 		RCProgressWin RCp = new RCProgressWin(9,img.length);
 		RCp.SetProgress(0);
-		RCp.show();
+		RCp.setVisible(true);
 		
 		double aMean[] = fi.getAMean(s);
 		
@@ -598,7 +596,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		
 		// Convert ImagePlus into Intensity image
 		
-		int dim = 2;
 		int sigma = 2;
 		double tol = 0.005;
 		int r_t = 8;
@@ -671,7 +668,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		
 		int sizeA[] = new int [in.length];
 		double sizeS[] = new double [in.length];
-		int sizeT[] = new int [in.length];
 		int stop[] = new int [in.length];
 		double stopd[] = new double [in.length];
 		

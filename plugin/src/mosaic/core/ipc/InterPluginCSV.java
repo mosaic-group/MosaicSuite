@@ -490,6 +490,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 	 * @param occ format choosen
 	 */
 	
+	@SuppressWarnings("unchecked")
 	private void Readv(String CsvFilename, Vector<E> out, OutputChoose occ)
 	{
         ICsvDozerBeanReader beanReader = null;

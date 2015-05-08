@@ -95,10 +95,11 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	 * 
 	 * Create a labelImage from a short 3D array
 	 * 
-	 * @deprecated
+	 * 
 	 * 
 	 * @param img short array
 	 */
+	//@Deprecated
 	public LabelImage(short[][][] img)
 	{
 		int dims[] = new int[3];

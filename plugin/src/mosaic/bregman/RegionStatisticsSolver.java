@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import net.imglib2.img.Img;
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.core.Dataset;
 import net.sf.javaml.core.DefaultDataset;
@@ -22,8 +21,8 @@ import weka.clusterers.SimpleKMeans;
  * @author i-bird
  *
  */
-
-public class RegionStatisticsSolver<T> {
+//public class RegionStatisticsSolver<T> {
+public class RegionStatisticsSolver {
 	private double [] [] [] Z;
 	private double [] [] [] W;
 	private double [] [] [] mu;
@@ -63,23 +62,23 @@ public class RegionStatisticsSolver<T> {
 
 	}
 
-	Class<T> cls;
-	Img<T> image2;
-	
-	public RegionStatisticsSolver(Img<T> img,int max_iter, Class<T> cls)
-	{
-		this.image2 = img;
-		this.cls = cls;
-		
-		// Create native arrays for fast computation
-		
-//		IntensityImage mimg = new IntensityImage(MosaicUtils.getImageIntDimensions(img));
-//		IntensityImage W = new IntensityImage(MosaicUtils.getImageIntDimensions(img));
-//		IntensityImage z = new IntensityImage(MosaicUtils.getImageIntDimensions(img));
-//		IntensityImage mu = new IntensityImage(MosaicUtils.getImageIntDimensions(img));
-		
-		fill_weights();
-	}
+//	Class<T> cls;
+//	Img<T> image2;
+//	
+//	public RegionStatisticsSolver(Img<T> img,int max_iter, Class<T> cls)
+//	{
+//		this.image2 = img;
+//		this.cls = cls;
+//		
+//		// Create native arrays for fast computation
+//		
+////		IntensityImage mimg = new IntensityImage(MosaicUtils.getImageIntDimensions(img));
+////		IntensityImage W = new IntensityImage(MosaicUtils.getImageIntDimensions(img));
+////		IntensityImage z = new IntensityImage(MosaicUtils.getImageIntDimensions(img));
+////		IntensityImage mu = new IntensityImage(MosaicUtils.getImageIntDimensions(img));
+//		
+//		fill_weights();
+//	}
 
 	/**
 	 * 

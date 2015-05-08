@@ -1,7 +1,6 @@
 package mosaic.core.psf;
 
 import ij.IJ;
-import ij.Macro;
 import ij.gui.GenericDialog;
 
 import java.io.File;
@@ -313,8 +312,7 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		GenericDialog gd = new GenericDialog("Gauss PSF");
 		
 		// sigma
-		
-		String test = Macro.getOptions();
+
 		
 		if (pos.length >= 1)
 			gd.addNumericField("sigma_X", 1.0, 3);

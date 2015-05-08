@@ -37,20 +37,10 @@ import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.img.Img;
-import net.imglib2.img.ImgFactory;
-import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.ops.img.BinaryOperationAssignment;
-import net.imglib2.ops.operation.UnaryOperation;
-import net.imglib2.ops.operation.bool.binary.BinaryXor;
-import net.imglib2.ops.operation.randomaccessibleinterval.unary.morph.Erode;
-import net.imglib2.ops.types.ConnectedType;
 import net.imglib2.type.NativeType;
-import net.imglib2.type.logic.BitType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.view.IntervalView;
-import net.imglib2.view.IterableRandomAccessibleInterval;
 import net.imglib2.view.Views;
 
 class FloatToARGB implements ToARGB
@@ -335,7 +325,7 @@ public class MosaicUtils
 		Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
 		
 		MosaicUtils MS = new MosaicUtils();
-		SegmentationInfo sI = MS.new SegmentationInfo();
+//		SegmentationInfo sI = MS.new SegmentationInfo();
 		
 		// Get infos from possible segmentation
 		
@@ -1161,52 +1151,52 @@ public class MosaicUtils
 	 * 
 	 */
 	
-	public  <T extends RealType<T>> Img<BitType> displayoutline(Img<BitType> labelImage, Img<T> image)
-	{
-		/* Create the output image */
-		
-		int dim = labelImage.numDimensions();
-		
-		long [] sz = new long[dim+1];
-		
-		sz[0] = labelImage.dimension(0);
-		sz[1] = labelImage.dimension(1);
-		sz[2] = 2;
-		if (dim >= 3)
-		{
-			sz[3] = labelImage.dimension(2);
-		}
-		final ImgFactory< BitType > imgFactory = new ArrayImgFactory< BitType >();
-		
-		// labelImage.firstElement() should ensure that the output is the same as labelImage
-		
-		Img<BitType> out = imgFactory.create( sz, labelImage.firstElement() );
-		
-		/* Convert Label Image into region contour image */
-		
-		BinaryOperationAssignment<BitType,BitType,BitType> m_imgManWith = new BinaryOperationAssignment<BitType,BitType,BitType>(new BinaryXor());
-		UnaryOperation<RandomAccessibleInterval<BitType>, RandomAccessibleInterval<BitType>> m_op = new Erode(ConnectedType.EIGHT_CONNECTED, null, 1);
-		
-		m_op.compute(labelImage, out);
-		m_imgManWith.compute(labelImage, out, out);
-		
-		/* Create the visualization */
-		
-		Cursor<T> cur = image.cursor();
-		IntervalView<BitType> iv = Views.hyperSlice(out, 2, 1);
-		IterableRandomAccessibleInterval<BitType> iout = IterableRandomAccessibleInterval.create(iv);
-		Cursor<BitType> curL = iout.cursor();
-		
-		while (curL.hasNext())
-		{
-			cur.next();
-			curL.next();
-			
-			curL.get().setReal(cur.get().getRealDouble());	
-		}
-		
-		return out;
-	}
+//	public  <T extends RealType<T>> Img<BitType> displayoutline(Img<BitType> labelImage, Img<T> image)
+//	{
+//		/* Create the output image */
+//		
+//		int dim = labelImage.numDimensions();
+//		
+//		long [] sz = new long[dim+1];
+//		
+//		sz[0] = labelImage.dimension(0);
+//		sz[1] = labelImage.dimension(1);
+//		sz[2] = 2;
+//		if (dim >= 3)
+//		{
+//			sz[3] = labelImage.dimension(2);
+//		}
+//		final ImgFactory< BitType > imgFactory = new ArrayImgFactory< BitType >();
+//		
+//		// labelImage.firstElement() should ensure that the output is the same as labelImage
+//		
+//		Img<BitType> out = imgFactory.create( sz, labelImage.firstElement() );
+//		
+//		/* Convert Label Image into region contour image */
+//		
+//		BinaryOperationAssignment<BitType,BitType,BitType> m_imgManWith = new BinaryOperationAssignment<BitType,BitType,BitType>(new BinaryXor());
+//		UnaryOperation<RandomAccessibleInterval<BitType>, RandomAccessibleInterval<BitType>> m_op = new Erode(ConnectedType.EIGHT_CONNECTED, null, 1);
+//		
+//		m_op.compute(labelImage, out);
+//		m_imgManWith.compute(labelImage, out, out);
+//		
+//		/* Create the visualization */
+//		
+//		Cursor<T> cur = image.cursor();
+//		IntervalView<BitType> iv = Views.hyperSlice(out, 2, 1);
+//		IterableRandomAccessibleInterval<BitType> iout = IterableRandomAccessibleInterval.create(iv);
+//		Cursor<BitType> curL = iout.cursor();
+//		
+//		while (curL.hasNext())
+//		{
+//			cur.next();
+//			curL.next();
+//			
+//			curL.get().setReal(cur.get().getRealDouble());	
+//		}
+//		
+//		return out;
+//	}
 	
 	/**
 	 * 
