@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 
 /* An inner class to make the results list sortable. */
-public class Region implements Comparable 
+public class Region implements Comparable<Region>
 {
 	boolean colocpositive=false;
 
@@ -43,10 +43,11 @@ public class Region implements Comparable
 	float beta_out;
 	boolean singlec;
 	double coloc_o_int;
-	public int compareTo(Object otherRegion) 
+	
+	public int compareTo(Region otherRegion) 
 	{
-		Region o = (Region) otherRegion;
-		return (value < o.value) ? 1 : ((value  > o.value) ? -1 : 0);
+		//Region o = (Region) otherRegion;
+		return (value < otherRegion.value) ? 1 : ((value  > otherRegion.value) ? -1 : 0);
 	}
 		
 	public double getcx()

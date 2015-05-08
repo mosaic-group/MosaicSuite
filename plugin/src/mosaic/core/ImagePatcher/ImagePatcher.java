@@ -34,6 +34,7 @@ import net.imglib2.type.numeric.NumericType;
 
 public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends NativeType<E> & IntegerType<E>>
 {
+	@SuppressWarnings("rawtypes")
 	ImagePatch[] img_p;
 	long [] dims;
 	
@@ -167,6 +168,7 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 	 * 
 	 */
 	
+	@SuppressWarnings("unchecked")
 	public Img<E> assemble(Class<E> cls, int start)
 	{
 		ImgFactory< E > imgFactory_lbl = new ArrayImgFactory< E >( );;
@@ -190,6 +192,7 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 		return img_ass;
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public ImagePatch[] getPathes()
 	{
 		// Get the patches back

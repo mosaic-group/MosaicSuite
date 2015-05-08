@@ -32,9 +32,7 @@ public class SegmentationGUI
 		//Initialize Buttons
 		private JPanel panel;
 		private JButton Close;
-		private Font header = new Font(null, Font.BOLD,14);
-
-
+		
 		public SegmentationGUIHelp(int x, int y )
 		{		
 			frame = new JDialog();
@@ -162,7 +160,7 @@ public class SegmentationGUI
 				
 				Point p =gd.getLocationOnScreen();
 				
-				SegmentationGUIHelp pth = new SegmentationGUIHelp(p.x,p.y);
+				new SegmentationGUIHelp(p.x,p.y);
 				
 			}});
 		
@@ -304,7 +302,7 @@ public class SegmentationGUI
 		{
 			Point p =gd.getLocationOnScreen();
 			//IJ.log("plugin location :" + p.toString());
-			PSFWindow hw = new PSFWindow(p.x, p.y, gd);
+			new PSFWindow(p.x, p.y, gd);
 		}
 	}
 

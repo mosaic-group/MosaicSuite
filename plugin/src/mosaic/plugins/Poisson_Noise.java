@@ -443,7 +443,7 @@ public class Poisson_Noise implements PlugInFilter
 			
 			try
 			{
-				@SuppressWarnings("unchecked")
+				@SuppressWarnings({ "unchecked", "deprecation" })
 				Img< ShortType > imageSeg = (Img<ShortType>) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0).getImg();
 				
 				// Open the segmentation image, erode filter small region,
@@ -456,7 +456,7 @@ public class Poisson_Noise implements PlugInFilter
 			
 			try
 			{
-				@SuppressWarnings("unchecked")
+				@SuppressWarnings({ "unchecked", "deprecation" })
 				Img< IntType > imageSeg = (Img<IntType>) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0).getImg();
 				
 				// Open the segmentation image, erode filter small region,

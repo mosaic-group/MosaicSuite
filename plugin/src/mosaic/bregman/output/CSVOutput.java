@@ -114,7 +114,8 @@ public class CSVOutput
      * 
      */
     
-    public static void initCSV(int oc_s)
+    @SuppressWarnings("unchecked")
+	public static void initCSV(int oc_s)
     {
     	Region3DTrackCellProcessor = getRegion3DTrackCellProcessor();
     	
