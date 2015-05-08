@@ -38,7 +38,6 @@ public class ConvertImgTest {
                                             {7.0f, 8.0f}, 
                                             {9.0f,10.0f}};
         FloatProcessor fp = new FloatProcessor(originalImgArray[0].length, originalImgArray.length);
-        System.out.println("" + fp.getWidth() + " " +fp.getHeight());
         ConvertImg.YX2DarrayToImg(originalImgArray, fp, 1.0f);
         float[] pixels = (float[])fp.getPixels();
         
