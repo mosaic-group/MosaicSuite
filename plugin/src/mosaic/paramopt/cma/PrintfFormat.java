@@ -537,14 +537,13 @@ public class PrintfFormat {
    * @return  The formatted String.
    */
   public String sprintf(Object[] o) {
-    Enumeration e = vFmt.elements();
+    Enumeration<ConversionSpecification> e = vFmt.elements();
     ConversionSpecification cs = null;
     char c = 0;
     int i=0;
     StringBuffer sb=new StringBuffer();
     while (e.hasMoreElements()) {
-      cs = (ConversionSpecification)
-        e.nextElement();
+      cs = e.nextElement();
       c = cs.getConversionCharacter();
       if (c=='\0') sb.append(cs.getLiteral());
       else if (c=='%') sb.append("%");
@@ -608,13 +607,12 @@ public class PrintfFormat {
    * @return  the formatted String.
    */
   public String sprintf() {
-    Enumeration e = vFmt.elements();
+    Enumeration<ConversionSpecification> e = vFmt.elements();
     ConversionSpecification cs = null;
     char c = 0;
     StringBuffer sb=new StringBuffer();
     while (e.hasMoreElements()) {
-      cs = (ConversionSpecification)
-        e.nextElement();
+      cs = e.nextElement();
       c = cs.getConversionCharacter();
       if (c=='\0') sb.append(cs.getLiteral());
       else if (c=='%') sb.append("%");
@@ -631,13 +629,12 @@ public class PrintfFormat {
    */
   public String sprintf(int x)
       throws IllegalArgumentException {
-    Enumeration e = vFmt.elements();
+    Enumeration<ConversionSpecification> e = vFmt.elements();
     ConversionSpecification cs = null;
     char c = 0;
     StringBuffer sb=new StringBuffer();
     while (e.hasMoreElements()) {
-      cs = (ConversionSpecification)
-        e.nextElement();
+      cs = e.nextElement();
       c = cs.getConversionCharacter();
       if (c=='\0') sb.append(cs.getLiteral());
       else if (c=='%') sb.append("%");
@@ -655,13 +652,12 @@ public class PrintfFormat {
    */
   public String sprintf(long x)
       throws IllegalArgumentException {
-    Enumeration e = vFmt.elements();
+    Enumeration<ConversionSpecification> e = vFmt.elements();
     ConversionSpecification cs = null;
     char c = 0;
     StringBuffer sb=new StringBuffer();
     while (e.hasMoreElements()) {
-      cs = (ConversionSpecification)
-        e.nextElement();
+      cs = e.nextElement();
       c = cs.getConversionCharacter();
       if (c=='\0') sb.append(cs.getLiteral());
       else if (c=='%') sb.append("%");
@@ -679,13 +675,12 @@ public class PrintfFormat {
    */
   public String sprintf(double x)
       throws IllegalArgumentException {
-    Enumeration e = vFmt.elements();
+    Enumeration<ConversionSpecification> e = vFmt.elements();
     ConversionSpecification cs = null;
     char c = 0;
     StringBuffer sb=new StringBuffer();
     while (e.hasMoreElements()) {
-      cs = (ConversionSpecification)
-        e.nextElement();
+      cs = e.nextElement();
       c = cs.getConversionCharacter();
       if (c=='\0') sb.append(cs.getLiteral());
       else if (c=='%') sb.append("%");
@@ -702,13 +697,12 @@ public class PrintfFormat {
    */
   public String sprintf(String x)
       throws IllegalArgumentException {
-    Enumeration e = vFmt.elements();
+    Enumeration<ConversionSpecification> e = vFmt.elements();
     ConversionSpecification cs = null;
     char c = 0;
     StringBuffer sb=new StringBuffer();
     while (e.hasMoreElements()) {
-      cs = (ConversionSpecification)
-        e.nextElement();
+      cs = e.nextElement();
       c = cs.getConversionCharacter();
       if (c=='\0') sb.append(cs.getLiteral());
       else if (c=='%') sb.append("%");
@@ -731,13 +725,12 @@ public class PrintfFormat {
    */
   public String sprintf(Object x)
       throws IllegalArgumentException {
-    Enumeration e = vFmt.elements();
+    Enumeration<ConversionSpecification> e = vFmt.elements();
     ConversionSpecification cs = null;
     char c = 0;
     StringBuffer sb=new StringBuffer();
     while (e.hasMoreElements()) {
-      cs = (ConversionSpecification)
-        e.nextElement();
+      cs = e.nextElement();
       c = cs.getConversionCharacter();
       if (c=='\0') sb.append(cs.getLiteral());
       else if (c=='%') sb.append("%");
@@ -1413,10 +1406,8 @@ public class PrintfFormat {
      */
     private char[] eFormatDigits(double x,char eChar) {
       char[] ca1,ca2,ca3;
-      // int defaultDigits=6;
       String sx;
       int i,j,k,p;
-      int n1In,n2In;
       int expon=0;
       int ePos,rPos,eSize;
       boolean minusSign=false;
@@ -1436,15 +1427,6 @@ public class PrintfFormat {
       ePos = sx.indexOf('E');
       if (ePos==-1) ePos = sx.indexOf('e');
       rPos = sx.indexOf('.');
-      if (rPos!=-1) n1In=rPos;
-      else if (ePos!=-1) n1In=ePos;
-      else n1In=sx.length();
-      if (rPos!=-1) {
-        if (ePos!=-1) n2In = ePos-rPos-1;
-        else n2In = sx.length()-rPos-1;
-      }
-      else
-        n2In = 0;
       if (ePos!=-1) {
         int ie=ePos+1;
         expon=0;
@@ -1714,7 +1696,6 @@ public class PrintfFormat {
 	 * @return the converted double value.
 	 */
     private String eFormatString(double x,char eChar) {
-      boolean noDigits=false;
       char[] ca4,ca5;
       if (Double.isInfinite(x)) {
         if (x==Double.POSITIVE_INFINITY) {
@@ -1725,14 +1706,12 @@ public class PrintfFormat {
         }
         else
           ca4 = "-Inf".toCharArray();
-        noDigits = true;
       }
       else if (Double.isNaN(x)) {
         if (leadingSign) ca4 = "+NaN".toCharArray();
         else if (leadingSpace)
           ca4 = " NaN".toCharArray();
         else ca4 = "NaN".toCharArray();
-        noDigits = true;
       }
       else
         ca4 = eFormatDigits(x,eChar);
@@ -1837,7 +1816,6 @@ public class PrintfFormat {
       int savePrecision=precision;
       int i;
       char[] ca4,ca5;
-      boolean noDigits=false;
       if (Double.isInfinite(x)) {
         if (x==Double.POSITIVE_INFINITY) {
           if (leadingSign) ca4 = "+Inf".toCharArray();
@@ -1847,14 +1825,12 @@ public class PrintfFormat {
         }
         else
           ca4 = "-Inf".toCharArray();
-        noDigits = true;
       }
       else if (Double.isNaN(x)) {
         if (leadingSign) ca4 = "+NaN".toCharArray();
         else if (leadingSpace)
           ca4 = " NaN".toCharArray();
         else ca4 = "NaN".toCharArray();
-        noDigits = true;
       }
       else {
         if (!precisionSet) precision=defaultDigits;
@@ -3079,7 +3055,7 @@ public class PrintfFormat {
     private String fmt;
   }
   /** Vector of control strings and format literals. */
-  private Vector vFmt = new Vector();
+  private Vector<ConversionSpecification> vFmt = new Vector<ConversionSpecification>();
   /** Character position.  Used by the constructor. */
   private int cPos=0;
   /** Character position.  Used by the constructor. */

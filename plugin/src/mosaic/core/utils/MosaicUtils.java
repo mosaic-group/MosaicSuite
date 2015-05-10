@@ -238,6 +238,7 @@ public class MosaicUtils
 	 * @return
 	 */
 	
+	@SuppressWarnings("unchecked")
 	static public <T extends RealType<T>> ToARGB getConversion(Object data, Cursor<T> crs)
 	{
 		ToARGB conv = null;
@@ -324,7 +325,7 @@ public class MosaicUtils
 		String Folder = MosaicUtils.ValidFolderFromImage(aImp);
 		Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
 		
-		MosaicUtils MS = new MosaicUtils();
+//		MosaicUtils MS = new MosaicUtils();
 //		SegmentationInfo sI = MS.new SegmentationInfo();
 		
 		// Get infos from possible segmentation

@@ -114,9 +114,9 @@ import net.imglib2.view.Views;
 		/**
 		 * Constructor for text mode
 		 * 
-		 * @deprecated
 		 * 
 		 */
+		//@Deprecated
 		public MyFrame (String path, int frame_num, int aLinkrange) {
 			loadParticlesFromFile(path);
 		}
@@ -124,9 +124,9 @@ import net.imglib2.view.Views;
 		/**
 		 * Constructor for text mode
 		 * 
-		 * @deprecated
 		 * 
 		 */
+		//@Deprecated
 		public MyFrame (BufferedReader r,String path, int frame_num, int aLinkrange) {
 			try {
 				loadParticlesFromFileMultipleFrame(r,path,frame_num);
@@ -175,13 +175,12 @@ import net.imglib2.view.Views;
 		 * (this information can be plotted later along a trajectory).
 		 * <br>The number of parameters must be equal for all particles.  
 		 * 
-		 * @deprecated
 		 * 
 		 * @param path full path to the file (including full file name) e.g c:\ImageJ\frame0.txt
 		 * @return false if there was any problem
 		 * @see Particle   
 		 */
-		
+		//@Deprecated
 		private boolean loadParticlesFromFile(String path) 
 		{
 			boolean ret;
@@ -730,8 +729,8 @@ import net.imglib2.view.Views;
 		 * @return the created processor
 		 * @see ImageProcessor#drawDot(int, int)
 		 * 
-		 * @deprecated
 		 */
+		//@Deprecated
 		@SuppressWarnings("unused")
 		private ImageStack createImage(int width, int height, int depth) 
 		{
@@ -767,8 +766,8 @@ import net.imglib2.view.Views;
 		 * @return the created processor
 		 * @see ImageProcessor#drawDot(int, int)
 		 * 
-		 * @deprecated
 		 */
+		//@Deprecated
 		public ImageProcessor createImage(int width, int height) {
 			ImageProcessor ip = new ByteProcessor(width, height);
 			ip.setColor(Color.black);

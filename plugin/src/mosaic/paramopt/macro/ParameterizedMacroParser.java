@@ -204,6 +204,7 @@ public class ParameterizedMacroParser implements MacroConstants {
 		case PI:
 			function.addStaticCode("PI");
 			function.localtoken++;
+			break;
 		default:
 			// Expected a number or a string as argument of the function but
 			// the current token is something else therefore abort the parsing

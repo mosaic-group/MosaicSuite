@@ -295,7 +295,8 @@ public class InterPluginCSV<E extends ICSVGeneral>
         {
         	beanReader = new CsvDozerBeanReader(new FileReader(CsvFilename), c);
         	
-            E element = p.newInstance();
+            @SuppressWarnings("unused")
+			E element = p.newInstance();
             
             String[] map = beanReader.getHeader(true); // ignore the header
             
@@ -344,7 +345,8 @@ public class InterPluginCSV<E extends ICSVGeneral>
         {
         	beanReader = new CsvDozerBeanReader(new FileReader(CsvFilename), c);
         	
-            E element = p.newInstance();
+            @SuppressWarnings("unused")
+			E element = p.newInstance();
             
             String[] map = beanReader.getHeader(true); // ignore the header
             
@@ -408,6 +410,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
         return out;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private OutputChoose ReadGeneral(String CsvFilename, Vector<E> out)
 	{
 		OutputChoose occ = new OutputChoose();

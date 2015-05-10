@@ -557,8 +557,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	 * @see MyFrame
 	 * @see MyFrame#featurePointDetection()
 	 */
-	@SuppressWarnings("deprecation")
-    public boolean processFrames() 
+	public boolean processFrames() 
 	{
 		if (frames_processed) return true;
 
@@ -2924,62 +2923,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
  		return out_fs;
      }
      
-
-	/**
-	 * Creates a new <code>ImageStack</code> and draws particles on it according to
-	 * the particle positions defined in <code>frames</code>.  
-	 * <br>It is used to visualize particles and trajectories when working in text-files-mode,
-	 * since there is no visual stack to start with
-	 * @return the created ImageStack
-	 * @see MyFrame#createImage(int, int)
-	 * 
-	 * @deprecated
-	 * 
-	 */
-	public ImageStack createStackFromTextFiles() {
-		int[] vMax = {0,0,0};	
-		/* find the max coordinates for each coordinate */
-		for (int i = 0; i < frames.length; i++) 
-		{
-			for (int p = 0; p < frames[i].getParticles().size(); p++) 
-			{
-				Particle vParticle = frames[i].getParticles().elementAt(p);
-				if(vParticle.x > vMax[0]) {
-					vMax[0] = (int) Math.ceil(vParticle.x);
-				}
-				if(vParticle.y > vMax[1]) {
-					vMax[1] = (int) Math.ceil(vParticle.y);
-				}
-				if(vParticle.z > vMax[2]) {
-					vMax[2] = (int) Math.ceil(vParticle.z);
-				}
-			}
-		}
-		
-		
-		/* Create a new, empty, square ImageStack with 10 pixels padding from the max particle position*/
-
-		ImageStack from_text = new ImageStack(vMax[0]+10, vMax[1]+10);
-		
-		/* for each frame we have add a stack to the image */
-		for (int i = 0; i<frames.length; i++) 
-		{
-			// 2D
-			if (vMax[2] < 1) 
-			{
-				from_text.addSlice("" + i, frames[i].createImage(vMax[0]+10, vMax[1]+10));
-			} 
-			else 
-			{ // 3D
-				for (int s = 0; s <= vMax[2]+1; s++) 
-				{
-					from_text.addSlice("" + i, frames[i].createImage(vMax[0]+10, vMax[1]+10));
-				}
-			}
-			
-		}
-		return from_text;
-	}
 
 	/**
 	 * Generates (in real time) a "ready to print" report with this information:

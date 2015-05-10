@@ -32,7 +32,6 @@ import net.imglib2.Interval;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
 import net.imglib2.iterator.LocalizingZeroMinIntervalIterator;
-import net.imglib2.multithreading.SimpleMultiThreading;
 import net.imglib2.type.numeric.ComplexType;
 import net.imglib2.type.numeric.RealType;
 import edu.mines.jtk.dsp.FftComplex;
@@ -44,6 +43,7 @@ import edu.mines.jtk.dsp.FftReal;
  * 
  * @author Stephan Preibisch (stephan.preibisch@gmx.de)
  */
+@SuppressWarnings("deprecation")
 public class FFTMethods
 {
 	/**
@@ -158,7 +158,7 @@ public class FFTMethods
 		if ( numDimensions > 1  )
 		{
 			final AtomicInteger ai = new AtomicInteger( 0 );
-			Thread[] threads = SimpleMultiThreading.newThreads( numThreads );
+			Thread[] threads = net.imglib2.multithreading.SimpleMultiThreading.newThreads( numThreads );
 			
 			for ( int ithread = 0; ithread < threads.length; ++ithread )
 				threads[ithread] = new Thread(new Runnable()
@@ -237,7 +237,7 @@ A:						while ( cursorDim.hasNext() )
 					}
 				});
 			
-			SimpleMultiThreading.startAndJoin(threads);			
+			net.imglib2.multithreading.SimpleMultiThreading.startAndJoin(threads);			
 		}
 		else
 		{
@@ -375,7 +375,7 @@ A:						while ( cursorDim.hasNext() )
 		if ( numDimensions > 1 )
 		{		
 			final AtomicInteger ai = new AtomicInteger( 0 );
-			Thread[] threads = SimpleMultiThreading.newThreads( numThreads );
+			Thread[] threads = net.imglib2.multithreading.SimpleMultiThreading.newThreads( numThreads );
 			
 			for ( int ithread = 0; ithread < threads.length; ++ithread )
 				threads[ithread] = new Thread(new Runnable()
@@ -454,7 +454,7 @@ A:						while ( cursorDim.hasNext() )
 					}
 				});
 			
-			SimpleMultiThreading.startAndJoin(threads);
+			net.imglib2.multithreading.SimpleMultiThreading.startAndJoin(threads);
 		}
 		else
 		{
@@ -548,7 +548,7 @@ A:						while ( cursorDim.hasNext() )
 		if ( numDimensions > 1 )
 		{		
 			final AtomicInteger ai = new AtomicInteger( 0 );
-			Thread[] threads = SimpleMultiThreading.newThreads( numThreads );
+			Thread[] threads = net.imglib2.multithreading.SimpleMultiThreading.newThreads( numThreads );
 			
 			for ( int ithread = 0; ithread < threads.length; ++ithread )
 				threads[ithread] = new Thread(new Runnable()
@@ -610,7 +610,7 @@ A:						while ( cursorDim.hasNext() )
 					}
 				});
 			
-			SimpleMultiThreading.startAndJoin(threads);
+			net.imglib2.multithreading.SimpleMultiThreading.startAndJoin(threads);
 		}
 		else
 		{
