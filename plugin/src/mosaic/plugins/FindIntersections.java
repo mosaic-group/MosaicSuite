@@ -54,7 +54,7 @@ public class FindIntersections {
 	}
 
 	public static int getYCoordFromIndex(int index, int width) {
-		return (int)(index/width);
+		return index/width;
 	}
 
 	public static int getCoord(int x, int y, int width){

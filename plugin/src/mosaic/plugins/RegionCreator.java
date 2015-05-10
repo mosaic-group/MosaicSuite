@@ -337,7 +337,7 @@ public class RegionCreator implements PlugInFilter
 
 		final ImgFactory< T > imgFactory = new ArrayImgFactory< T >();
 		try {
-			out = (Img<T>) imgFactory.create(Image_sz, cls.newInstance());
+			out = imgFactory.create(Image_sz, cls.newInstance());
 		} catch (InstantiationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

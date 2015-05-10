@@ -173,7 +173,7 @@ public class Analysis
 			//q = normalize(q_D_grid);
 			nnObserved = IAPUtils.normalize(NN_D_grid);
 			plotQP(dgrid, q, nnObserved);
-			PlotUtils.histPlotDoubleArray_imageJ("ObservedDistances", D,IAPUtils.getOptimBins(D, 8, (int)D.length/8));
+			PlotUtils.histPlotDoubleArray_imageJ("ObservedDistances", D,IAPUtils.getOptimBins(D, 8, D.length/8));
 			double[] minMaxMean = IAPUtils.getMinMaxMeanD(D);
 			minD = minMaxMean[0];
 			maxD = minMaxMean[1];

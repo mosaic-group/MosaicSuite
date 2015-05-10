@@ -643,9 +643,9 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 					vIntensityOfTip = findMaxIntensityPixelValueAt((int)mInitTipinPx.mX, (int)mInitTipinPx.mY, vCurrentFrameIS)- mBackground;
 					vInitState = getStateVectorFromPixelPoints(mInitSPB1inPx, mInitSPB2inPx, mInitTipinPx, vIntensityOfSPB1, vIntensityOfSPB2, vIntensityOfTip);
 				} else {
-					vIntensityOfSPB1 = findMaxIntensityPixelValueAt((int)mInitSPB1inPx.mX, (int)mInitSPB1inPx.mY, vCurrentFrameIS)/(float)mGain - mBackground;
-					vIntensityOfSPB2 = findMaxIntensityPixelValueAt((int)mInitSPB2inPx.mX, (int)mInitSPB2inPx.mY, vCurrentFrameIS)/(float)mGain - mBackground;
-					vIntensityOfTip = findMaxIntensityPixelValueAt((int)mInitTipinPx.mX, (int)mInitTipinPx.mY, vCurrentFrameIS)/(float)mGain - mBackground;
+					vIntensityOfSPB1 = findMaxIntensityPixelValueAt((int)mInitSPB1inPx.mX, (int)mInitSPB1inPx.mY, vCurrentFrameIS)/mGain - mBackground;
+					vIntensityOfSPB2 = findMaxIntensityPixelValueAt((int)mInitSPB2inPx.mX, (int)mInitSPB2inPx.mY, vCurrentFrameIS)/mGain - mBackground;
+					vIntensityOfTip = findMaxIntensityPixelValueAt((int)mInitTipinPx.mX, (int)mInitTipinPx.mY, vCurrentFrameIS)/mGain - mBackground;
 					vInitState = getStateVectorFromPixelPoints(mInitSPB1inPx, mInitSPB2inPx, mInitTipinPx, 
 							vIntensityOfSPB1, vIntensityOfSPB2, vIntensityOfTip);
 				}
@@ -732,7 +732,7 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 		float[] vWeightedMean = new float[vDimOfState];
 		for (float[] vParticle : vConvertedParticles) {
 			for(int vI = 0; vI < vDimOfState; vI++) {
-				vWeightedMean[vI] += vParticle[vI] / (float)vNbParticles;// * vParticle[vDimOfState + 1];//falsch!
+				vWeightedMean[vI] += vParticle[vI] / vNbParticles;// * vParticle[vDimOfState + 1];//falsch!
 			}
 		}
 		
@@ -749,7 +749,7 @@ public class MTandSPBsTracker_3D extends PFTracking3D {
 			}
 		}
 		//normalize
-		float vNorm = 1f/(float)(vNbParticles-1);
+		float vNorm = 1f/(vNbParticles-1);
 		for(int vY = 0; vY < vDimOfState; vY++) {
 			for(int vX = 0; vX < vDimOfState; vX++) {
 				mCovMatricesInSphereCoord[aFrameIndex-1][vY][vX] *= vNorm;

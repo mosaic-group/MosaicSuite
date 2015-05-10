@@ -2120,7 +2120,7 @@ public class Tools
 
 		long lStartTime = new Date().getTime(); //start time
 		for(int l=0; l< 10000000;l++){
-			temp=Math.pow(((double)l+0.1), 2);
+			temp=Math.pow((l+0.1), 2);
 		}
 		long lEndTime = new Date().getTime(); //start time
 		long difference = lEndTime - lStartTime; //check different
@@ -2131,7 +2131,7 @@ public class Tools
 		Ttime=0;
 		lStartTime = new Date().getTime(); //start time
 		for(int l=0; l< 10000000;l++){
-			temp2=((double)l+0.1)*((double)l+0.1);
+			temp2=(l+0.1)*(l+0.1);
 		}
 		lEndTime = new Date().getTime(); //start time
 		difference = lEndTime - lStartTime; //check different

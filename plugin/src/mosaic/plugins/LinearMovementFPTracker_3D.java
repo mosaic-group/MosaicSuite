@@ -222,7 +222,7 @@ public class LinearMovementFPTracker_3D extends PFTracking3D {
 		for(int vSliceInd = 0; vSliceInd < mNSlices; vSliceInd++){
 			for(int vI = 0; vI < vPixels[0].length; vI++) {
 				if(vPixels[vSliceInd][vI] > (vMinValueInList + getMBackground())/2f) {
-					vImageThresholded.add(new float[] {vI%mWidth, (int)(vI/mWidth), vSliceInd, vPixels[vSliceInd][vI]}); //evt. noch das Gewicht rein												
+					vImageThresholded.add(new float[] {vI%mWidth, vI/mWidth, vSliceInd, vPixels[vSliceInd][vI]}); //evt. noch das Gewicht rein												
 				}
 			}
 		}
@@ -296,9 +296,9 @@ public class LinearMovementFPTracker_3D extends PFTracking3D {
 			vState[3] = 0; //the velocity
 			vState[4] = 0; //the velocity
 			vState[5] = 0; //the velocity
-			int[] vLocalMax = searchLocalMaximumIntensityWithSteepestAscent((int)Math.round(vCentroid[0]), 
-					(int)Math.round(vCentroid[1]), 
-					(int)Math.round(vCentroid[2]+1), 
+			int[] vLocalMax = searchLocalMaximumIntensityWithSteepestAscent(Math.round(vCentroid[0]), 
+					Math.round(vCentroid[1]), 
+					Math.round(vCentroid[2]+1), 
 					aImageStack);
 			
 			vState[6] = vPixels[vLocalMax[2]-1][mWidth*vLocalMax[1] + vLocalMax[0]]; //the intensity

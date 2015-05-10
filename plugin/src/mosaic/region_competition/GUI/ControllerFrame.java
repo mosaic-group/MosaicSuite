@@ -96,7 +96,7 @@ public class ControllerFrame extends JFrame
 			public void actionPerformed(ActionEvent e)
 			{
 				GenericDialogGUI userDialog = new GenericDialogGUI(MVC);
-				((GenericDialogGUI)userDialog).showDialog();
+				userDialog.showDialog();
 				userDialog.processInput();
 			}
 		});

@@ -1164,7 +1164,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 			float[] kernel = new float[radius * 2 +1];
 			int n = kernel.length;
 			for(int i = 0; i < kernel.length; i++)
-				kernel[i] = 1f/(float)n;
+				kernel[i] = 1f/n;
 			for(int s = 1; s <= is.getSize(); s++) {
 				ImageProcessor bg_proc = is.getProcessor(s).duplicate();
 				convolver.convolveFloat(bg_proc, kernel, 1, n);
@@ -1310,12 +1310,12 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 									continue;
 								y = (int)this.particles.elementAt(m).y + l;
 
-								c = ips.getProcessor(z + 1).getPixelValue(y, x) * (float)mask[s + radius][coord(k + radius, l + radius, mask_width)];
+								c = ips.getProcessor(z + 1).getPixelValue(y, x) * mask[s + radius][coord(k + radius, l + radius, mask_width)];
 								this.particles.elementAt(m).m0 += c;
-								epsx += (float)k * c;
-								epsy += (float)l * c;
-								epsz += (float)s * c;
-								this.particles.elementAt(m).m2 += (float)(k * k + l * l + s * s) * c;
+								epsx += k * c;
+								epsy += l * c;
+								epsz += s * c;
+								this.particles.elementAt(m).m2 += (k * k + l * l + s * s) * c;
 							}
 						}
 					}
@@ -1330,34 +1330,34 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 					ty = (int)(10.0 * epsy);
 					tz = (int)(10.0 * epsz);
 
-					if((float)(tx)/10.0 > 0.5) {
+					if((tx)/10.0 > 0.5) {
 						if((int)this.particles.elementAt(m).x + 1 < ips.getHeight())
 							this.particles.elementAt(m).x++;
 					}
-					else if((float)(tx)/10.0 < -0.5) {
+					else if((tx)/10.0 < -0.5) {
 						if((int)this.particles.elementAt(m).x - 1 >= 0)
 							this.particles.elementAt(m).x--;						
 					}
-					if((float)(ty)/10.0 > 0.5) {
+					if((ty)/10.0 > 0.5) {
 						if((int)this.particles.elementAt(m).y + 1 < ips.getWidth())
 							this.particles.elementAt(m).y++;
 					}
-					else if((float)(ty)/10.0 < -0.5) {
+					else if((ty)/10.0 < -0.5) {
 						if((int)this.particles.elementAt(m).y - 1 >= 0)
 							this.particles.elementAt(m).y--;
 					}
-					if((float)(tz)/10.0 > 0.5) {
+					if((tz)/10.0 > 0.5) {
 						if((int)this.particles.elementAt(m).z + 1 < ips.getSize())
 							this.particles.elementAt(m).z++;
 					}
-					else if((float)(tz)/10.0 < -0.5) {
+					else if((tz)/10.0 < -0.5) {
 						if((int)this.particles.elementAt(m).z - 1 >= 0)
 							this.particles.elementAt(m).z--;
 					}
 
-					if((float)(tx)/10.0 <= 0.5 && (float)(tx)/10.0 >= -0.5 && 
-							(float)(ty)/10.0 <= 0.5 && (float)(ty)/10.0 >= -0.5 &&
-							(float)(tz)/10.0 <= 0.5 && (float)(tz)/10.0 >= -0.5)
+					if((tx)/10.0 <= 0.5 && (tx)/10.0 >= -0.5 && 
+							(ty)/10.0 <= 0.5 && (ty)/10.0 >= -0.5 &&
+							(tz)/10.0 <= 0.5 && (tz)/10.0 >= -0.5)
 						break;
 				}
 				
@@ -1381,11 +1381,11 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 			this.real_particles_number = this.particles_number;
 			for(j = 0; j < this.particles.size(); j++) {				
 				for(k = j + 1; k < this.particles.size(); k++) {
-					score = (double)((1.0 / (2.0 * Math.PI * 0.1 * 0.1)) * 
+					score = (1.0 / (2.0 * Math.PI * 0.1 * 0.1)) * 
 							Math.exp(-(this.particles.elementAt(j).m0 - this.particles.elementAt(k).m0) *
 							(this.particles.elementAt(j).m0 - this.particles.elementAt(k).m0) / (2.0 * 0.1) -
 							(this.particles.elementAt(j).m2 - this.particles.elementAt(k).m2) * 
-							(this.particles.elementAt(j).m2 - this.particles.elementAt(k).m2) / (2.0 * 0.1)));
+							(this.particles.elementAt(j).m2 - this.particles.elementAt(k).m2) / (2.0 * 0.1));
 					this.particles.elementAt(j).score += score;
 					this.particles.elementAt(k).score += score;
 				}
@@ -1929,7 +1929,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 			Iterator<Trajectory> iter = all_traj.iterator();  	   
 			// Iterate over all the trajectories 
 			while (iter.hasNext()) {
-				Trajectory curr_traj = (Trajectory)iter.next();	
+				Trajectory curr_traj = iter.next();	
 				// if the trajectory to_display value is true
 				if (curr_traj.to_display) {	   		   				   
 					curr_traj.drawStatic(g, this);
@@ -2096,7 +2096,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 			Iterator<Trajectory> iter = all_traj.iterator();
 			/* find the best Trajectory to match the mouse click*/
 			while (iter.hasNext()) {
-				Trajectory curr_traj = (Trajectory)iter.next();				
+				Trajectory curr_traj = iter.next();				
 				// only trajectories that the mouse click is within their mouse_selection_area
 				// and that are not filtered (to_display == true) are considered as a candidate
 				if (curr_traj.mouse_selection_area.contains(offscreenX, offscreenY) && curr_traj.to_display){					
@@ -2619,7 +2619,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
     		}
 
     		for(n = 0; n < curr_linkrange; n++) {
-    			max_cost = (double)(n + 1) * this.displacement * (double)(n + 1) * this.displacement * (double)(n + 1) * this.displacement;
+    			max_cost = (n + 1) * this.displacement * (n + 1) * this.displacement * (n + 1) * this.displacement;
   
     			nop_next = frames[m + (n + 1)].particles.size();
 
@@ -3351,7 +3351,7 @@ public class Meataphase_Detector implements PlugInFilter, Measurements, ActionLi
 		// Iterate over all trajectories
 		Iterator<Trajectory> iter = all_traj.iterator();
 		while (iter.hasNext()) {
-			Trajectory traj = (Trajectory)iter.next();
+			Trajectory traj = iter.next();
 			// Iterate over all particles in the current trajectory
 			for (int i = 0; i< traj.existing_particles.length; i++) {
 				// if at least one particle of this trajectory is in the selected area of the user (ROI)

@@ -1967,7 +1967,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
 					// Create the current trajectory
 					Particle[] curr_traj_particles_array = new Particle[curr_traj_particles.size()];
-					curr_traj = new Trajectory((Particle[])curr_traj_particles.toArray(curr_traj_particles_array), original_imp);
+					curr_traj = new Trajectory(curr_traj_particles.toArray(curr_traj_particles_array), original_imp);
 					
 					// set current trajectory parameters
 					curr_traj.serial_number = this.number_of_trajectories;

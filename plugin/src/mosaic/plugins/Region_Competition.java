@@ -697,7 +697,7 @@ public class Region_Competition implements Segmentation
 			case e_DeconvolutionPC:
 			{
 				int dims[] = intensityImage.getDimensions();
-				e_data = new E_Deconvolution(intensityImage,labelMap,(ImgFactory< FloatType >)new ArrayImgFactory< FloatType >(),dims);
+				e_data = new E_Deconvolution(intensityImage,labelMap,new ArrayImgFactory< FloatType >(),dims);
 				break;
 			}
 			default : 
@@ -1585,7 +1585,7 @@ public class Region_Competition implements Segmentation
 		
 		// high number
 		int result = p.get(index);
-		result = (int)p.get(index);
+		result = p.get(index);
 		
 		// -43
 		p.setf(index, value);

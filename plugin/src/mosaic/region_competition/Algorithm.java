@@ -20,7 +20,6 @@ import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.Point;
 import mosaic.plugins.Region_Competition;
-import mosaic.region_competition.LabelDispenser.LabelDispenserInc;
 import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.Energy.EnergyResult;
 import mosaic.region_competition.energies.EnergyFunctionalType;
@@ -164,7 +163,7 @@ public class Algorithm
     	m_AcceptedPointsFactor = settings.m_AcceptedPointsFactor;
     	
 		labelDispenser = new LabelDispenser(10000);
-		labelDispenser = new LabelDispenserInc();
+		labelDispenser = new LabelDispenser.LabelDispenserInc();
 		m_MaxNLabels=0;
     }
 	

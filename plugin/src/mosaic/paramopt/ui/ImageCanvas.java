@@ -164,8 +164,8 @@ public class ImageCanvas extends Canvas {
 		if (imagePlus == null)
 			return;
 		// Compute the width and height of the source region.
-		srcWidth = (int) ((double) canvasWidth / effectiveMagnification); 
-		srcHeight = (int) ((double) canvasHeight / effectiveMagnification);
+		srcWidth = (int) (canvasWidth / effectiveMagnification); 
+		srcHeight = (int) (canvasHeight / effectiveMagnification);
 		if (srcWidth > imageWidth) {
 			srcWidth = imageWidth;
 			dstWidth = (int) Math.ceil(srcWidth * effectiveMagnification);
@@ -406,11 +406,11 @@ public class ImageCanvas extends Canvas {
 	}
 	
 	public double screenToImageX(int x) {
-		return srcX + (double) x / effectiveMagnification;
+		return srcX + x / effectiveMagnification;
 	}
 	
 	public double screenToImageY(int y) {
-		return srcY + (double) y / effectiveMagnification;
+		return srcY + y / effectiveMagnification;
 	}
 
 	public void setFocus(double x, double y) {

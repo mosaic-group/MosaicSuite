@@ -242,7 +242,7 @@ public class IAPUtils {
 			if (size == 1) {
 				return values[0]; // always return single value for n = 1
 			}
-			double n = (double) size;
+			double n = size;
 			double pos = p * (n + 1);
 			double fpos = Math.floor(pos);
 			int intPos = (int) fpos;

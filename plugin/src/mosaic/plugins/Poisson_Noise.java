@@ -474,7 +474,7 @@ public class Poisson_Noise implements PlugInFilter
 		RoiManager manager = RoiManager.getInstance();
 		if (manager == null)
 		    manager = new RoiManager();
-	    Hashtable<String, Roi> table = (Hashtable<String, Roi>)manager.getROIs();
+	    Hashtable<String, Roi> table = manager.getROIs();
 	    for (String label : table.keySet())
 	    {
 	    	int slice = manager.getSliceNumber(label);

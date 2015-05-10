@@ -75,7 +75,7 @@ public class RandomWalkDataGenerator2D_ implements PlugIn {
 //    		float vStepLength = mTempVelocity;
     		
     		
-    		mPositions[vFrame][0] = mPositions[vFrame-1][0] + ((float)1/200f);//(float)Math.cos(vAngle)*vStepLength;
+    		mPositions[vFrame][0] = mPositions[vFrame-1][0] + (1/200f);//(float)Math.cos(vAngle)*vStepLength;
     		mPositions[vFrame][1] = mPositions[vFrame-1][1]; //+ (float)Math.sin(vAngle)*vStepLength;
     	}
     }

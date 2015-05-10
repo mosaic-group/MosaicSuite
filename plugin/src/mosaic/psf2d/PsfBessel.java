@@ -102,7 +102,7 @@ public class PsfBessel {
 		ax=Math.abs(x);
 		if(ax == 0.0)  return 0.0;
 	
-		if (ax > (double)n) {
+		if (ax > n) {
 			tox=2.0/ax;
 			bjm=j0(ax);
 			bj=j1(ax);

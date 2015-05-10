@@ -349,7 +349,7 @@ public class ASplitBregmanSolver {
 
 
 			if(p.firstphase)
-				IJ.showProgress(0.5*((double) stepk)/(p.max_nsb-1));
+				IJ.showProgress(0.5*(stepk)/(p.max_nsb-1));
 		}
 		
 		if(iw3kbest<50) { // use what iteration threshold  ?
@@ -617,7 +617,7 @@ public class ASplitBregmanSolver {
 				//										+"convert float" + ((float) ( ((int)(255*mask_im.getProcessor().getPixelValue(i,j)))))
 				//										+ "thresh " + (255*thresh)
 				//												);
-				if(  (float)  ( (int)  (255*mask_im.getProcessor().getPixelValue(i,j))  ) > 255*thresh) 
+				if(  ( (int)  (255*mask_im.getProcessor().getPixelValue(i,j))  ) > 255*thresh) 
 					//weird conversion to have same thing than in find connected regions
 					mask_bytes[j * p.ni + i]= 0;
 				else

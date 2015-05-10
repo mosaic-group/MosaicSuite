@@ -99,7 +99,7 @@ public class IntConverter
 		int[] pixels = new int[n];
 		
 		for(int i=0; i<n; i++) {
-			pixels[i] = (int)proc[i];
+			pixels[i] = proc[i];
 		}
 		return pixels;
 	}
@@ -110,7 +110,7 @@ public class IntConverter
 		int[] pixels = new int[n];
 		
 		for(int i=0; i<n; i++) {
-			pixels[i] = (int)proc[i];
+			pixels[i] = proc[i];
 		}
 		return pixels;
 	}

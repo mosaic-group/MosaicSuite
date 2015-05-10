@@ -332,13 +332,13 @@ public class FeaturePointDetector {
 							y = (int)this.particles.elementAt(m).x + l;
 							//
 							//								c = ips.getProcessor(z + 1).getPixelValue(y, x) * (float)mask[s + radius][(k + radius)*mask_width + (l + radius)];
-							c = ((float[])(ips.getPixels(z + 1)))[x*image_width+y] * (float)mask[s + radius][(k + radius)*mask_width + (l + radius)];
+							c = ((float[])(ips.getPixels(z + 1)))[x*image_width+y] * mask[s + radius][(k + radius)*mask_width + (l + radius)];
 
 							this.particles.elementAt(m).m0 += c;
-							epsx += (float)k * c;
-							epsy += (float)l * c;
-							epsz += (float)s * c;
-							this.particles.elementAt(m).m2 += (float)(k * k + l * l + s * s) * c;
+							epsx += k * c;
+							epsy += l * c;
+							epsz += s * c;
+							this.particles.elementAt(m).m2 += (k * k + l * l + s * s) * c;
 							this.particles.elementAt(m).m1 += (float)Math.sqrt(k * k + l * l + s * s) * c;
 							this.particles.elementAt(m).m3 += (float)Math.pow(k * k + l * l + s * s, 1.5f) * c;
 							this.particles.elementAt(m).m4 += (float)Math.pow(k * k + l * l + s * s, 2) * c;								
@@ -359,34 +359,34 @@ public class FeaturePointDetector {
 				ty = (int)(10.0 * epsy);
 				tz = (int)(10.0 * epsz);
 
-				if((float)(tx)/10.0 > 0.5) {
+				if((tx)/10.0 > 0.5) {
 					if((int)this.particles.elementAt(m).y + 1 < ips.getHeight())
 						this.particles.elementAt(m).y++;
 				}
-				else if((float)(tx)/10.0 < -0.5) {
+				else if((tx)/10.0 < -0.5) {
 					if((int)this.particles.elementAt(m).y - 1 >= 0)
 						this.particles.elementAt(m).y--;						
 				}
-				if((float)(ty)/10.0 > 0.5) {
+				if((ty)/10.0 > 0.5) {
 					if((int)this.particles.elementAt(m).x + 1 < ips.getWidth())
 						this.particles.elementAt(m).x++;
 				}
-				else if((float)(ty)/10.0 < -0.5) {
+				else if((ty)/10.0 < -0.5) {
 					if((int)this.particles.elementAt(m).x - 1 >= 0)
 						this.particles.elementAt(m).x--;
 				}
-				if((float)(tz)/10.0 > 0.5) {
+				if((tz)/10.0 > 0.5) {
 					if((int)this.particles.elementAt(m).z + 1 < ips.getSize())
 						this.particles.elementAt(m).z++;
 				}
-				else if((float)(tz)/10.0 < -0.5) {
+				else if((tz)/10.0 < -0.5) {
 					if((int)this.particles.elementAt(m).z - 1 >= 0)
 						this.particles.elementAt(m).z--;
 				}
 
-				if((float)(tx)/10.0 <= 0.5 && (float)(tx)/10.0 >= -0.5 && 
-						(float)(ty)/10.0 <= 0.5 && (float)(ty)/10.0 >= -0.5 &&
-						(float)(tz)/10.0 <= 0.5 && (float)(tz)/10.0 >= -0.5)
+				if((tx)/10.0 <= 0.5 && (tx)/10.0 >= -0.5 && 
+						(ty)/10.0 <= 0.5 && (ty)/10.0 >= -0.5 &&
+						(tz)/10.0 <= 0.5 && (tz)/10.0 >= -0.5)
 					break;
 			}
 			//				System.out.println("iterations for particle " + m + ": " + this.particles.elementAt(m).nbIterations);
@@ -419,11 +419,11 @@ public class FeaturePointDetector {
 			max_z = Math.max((int)this.particles.elementAt(j).z,max_z);
 			
 			for(k = j + 1; k < this.particles.size(); k++) {
-				score = (double)((1.0 / (2.0 * Math.PI * 0.1 * 0.1)) * 
+				score = (1.0 / (2.0 * Math.PI * 0.1 * 0.1)) * 
 						Math.exp(-(this.particles.elementAt(j).m0 - this.particles.elementAt(k).m0) *
 								(this.particles.elementAt(j).m0 - this.particles.elementAt(k).m0) / (2.0 * 0.1) -
 								(this.particles.elementAt(j).m2 - this.particles.elementAt(k).m2) * 
-								(this.particles.elementAt(j).m2 - this.particles.elementAt(k).m2) / (2.0 * 0.1)));
+								(this.particles.elementAt(j).m2 - this.particles.elementAt(k).m2) / (2.0 * 0.1));
 				this.particles.elementAt(j).score += score;
 				this.particles.elementAt(k).score += score;
 			}
@@ -620,7 +620,7 @@ public class FeaturePointDetector {
 		float[] kernel = new float[radius * 2 +1];
 		int n = kernel.length;
 		for(int i = 0; i < kernel.length; i++)
-			kernel[i] = 1f/(float)n;
+			kernel[i] = 1f/n;
 		for(int s = 1; s <= is.getSize(); s++) {
 			ImageProcessor bg_proc = is.getProcessor(s).duplicate();
 			convolver.convolveFloat(bg_proc, kernel, 1, n);

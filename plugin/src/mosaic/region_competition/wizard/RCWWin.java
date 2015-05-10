@@ -100,7 +100,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		RoiManager manager = RoiManager.getInstance();
 		if (manager == null)
 		    manager = new RoiManager();
-	    Hashtable<String, Roi> table = (Hashtable<String, Roi>)manager.getROIs();
+	    Hashtable<String, Roi> table = manager.getROIs();
 	    int i = 0;
 	    String[] md = new String[table.size()];
 	    for (String label : table.keySet())
@@ -213,7 +213,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		// Get the regions
 		
 		RoiManager manager = RoiManager.getInstance();
-	    Hashtable<String, Roi> table = (Hashtable<String, Roi>)manager.getROIs();
+	    Hashtable<String, Roi> table = manager.getROIs();
 	    img = new ImagePlus[table.size()];
 	    for (String label : table.keySet())
 	    {
@@ -534,7 +534,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				if (n_it >= 40)
 					break;
 				
-				RCp.SetProgress((int)((double)n_it/40.0*100.0));
+				RCp.SetProgress((int)(n_it/40.0*100.0));
 				
 				System.out.println(n_it);
 			}

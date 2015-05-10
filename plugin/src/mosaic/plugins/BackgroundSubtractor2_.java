@@ -503,9 +503,9 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 		for(int vI = 0; vI < vBoundary.size(); vI++){
 			for(int vJ = vI + 1; vJ < vBoundary.size(); vJ++){
 				int vX1 = vBoundary.elementAt(vI) % mWidth;
-				int vY1 = (int)(vBoundary.elementAt(vI) / mWidth);
+				int vY1 = vBoundary.elementAt(vI) / mWidth;
 				int vX2 = vBoundary.elementAt(vJ) % mWidth;
-				int vY2 = (int)(vBoundary.elementAt(vJ) / mWidth);
+				int vY2 = vBoundary.elementAt(vJ) / mWidth;
 				float vD = (vX1 - vX2) * (vX1 - vX2) + (vY1 -vY2) * (vY1 - vY2);
 				if(vD > vMaxDist) {
 					vMaxDist = vD;

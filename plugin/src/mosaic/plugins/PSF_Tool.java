@@ -219,7 +219,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		// If we are in the point selection mode and user clicks on image, a new source on refined position will be created	
 		if(select_start == true){
 			//TODO
-			PsfSourcePosition selected = new PsfSourcePosition((float)canvas.offScreenX(e.getX()), (float)canvas.offScreenY(e.getY()));
+			PsfSourcePosition selected = new PsfSourcePosition(canvas.offScreenX(e.getX()), canvas.offScreenY(e.getY()));
 			Refine = new PsfRefinement(org_ip, (int)radius, selected);							// Start centroid refinement
 			Refine.refineParticlePosition();
 			selected = Refine.getRefinedParticle();
@@ -442,10 +442,10 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		while(PSF[v] > d){
 			v++;
 		}
-		double p0 = (double)PSF[v-1];
-		double p1 = (double)PSF[v];
-		double r0 = (double)rad[v-1];
-		double r1 = (double)rad[v];
+		double p0 = PSF[v-1];
+		double p1 = PSF[v];
+		double r0 = rad[v-1];
+		double r1 = rad[v];
 		whm = r0 + (r1-r0)/(p1-p0)*(d-p0);
 		return whm;
 		}
@@ -461,7 +461,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		plotWin.setLimits(0, rad[rad.length - 1], 0, 1);
 		double[] r = new double[rad.length];
 		for(int i=0; i<r.length; i++)
-			r[i] = (double)rad[i];
+			r[i] = rad[i];
 		double[] thpsf = theoreticalPSF();
 		plotWin.setColor(Color.BLACK);
 		plotWin.addLabel(0.5,0.4,"Theoretical PSF");
@@ -526,7 +526,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		for (int v=0; v<h; v++) {
 			for (int u=0; u<w; u++) {
 				int p = eq.getPixel(u,v);
-				int q = (int)((p-min)*255/c);
+				int q = (p-min)*255/c;
 				eq.putPixel(u,v,q);		
 			}
 		}

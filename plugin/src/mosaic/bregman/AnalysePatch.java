@@ -1430,7 +1430,7 @@ public class AnalysePatch implements Runnable
 			imp=iobject.getProcessor();
 			for (int i=0; i<isx; i++){  
 				for (int j=0;j< isy; j++){  
-					interpolated_object[z][i][j]=  (double) Float.intBitsToFloat(imp.getPixel(i,j));
+					interpolated_object[z][i][j]=  Float.intBitsToFloat(imp.getPixel(i,j));
 				}	
 			}
 		}

@@ -1511,7 +1511,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 			float[] kernel = new float[radius * 2 +1];
 			int n = kernel.length;
 			for(int i = 0; i < kernel.length; i++)
-				kernel[i] = 1f/(float)n;
+				kernel[i] = 1f/n;
 			for(int s = 1; s <= is.getSize(); s++) {
 				ImageProcessor bg_proc = is.getProcessor(s).duplicate();
 				convolver.convolveFloat(bg_proc, kernel, 1, n);
@@ -1781,13 +1781,13 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 								y = (int)this.particles.elementAt(m).y + l;
 								//
 								//								c = ips.getProcessor(z + 1).getPixelValue(y, x) * (float)mask[s + radius][(k + radius)*mask_width + (l + radius)];
-								c = ((float[])(ips.getPixels(z + 1)))[x*image_width+y] * (float)mask[s + radius][(k + radius)*mask_width + (l + radius)];
+								c = ((float[])(ips.getPixels(z + 1)))[x*image_width+y] * mask[s + radius][(k + radius)*mask_width + (l + radius)];
 
 								this.particles.elementAt(m).m0 += c;
-								epsx += (float)k * c;
-								epsy += (float)l * c;
-								epsz += (float)s * c;
-								this.particles.elementAt(m).m2 += (float)(k * k + l * l + s * s) * c;
+								epsx += k * c;
+								epsy += l * c;
+								epsz += s * c;
+								this.particles.elementAt(m).m2 += (k * k + l * l + s * s) * c;
 								this.particles.elementAt(m).m1 += (float)Math.sqrt(k * k + l * l + s * s) * c;
 								this.particles.elementAt(m).m3 += (float)Math.pow(k * k + l * l + s * s, 1.5f) * c;
 								this.particles.elementAt(m).m4 += (float)Math.pow(k * k + l * l + s * s, 2) * c;								
@@ -1808,34 +1808,34 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 					ty = (int)(10.0 * epsy);
 					tz = (int)(10.0 * epsz);
 
-					if((float)(tx)/10.0 > 0.5) {
+					if((tx)/10.0 > 0.5) {
 						if((int)this.particles.elementAt(m).x + 1 < ips.getHeight())
 							this.particles.elementAt(m).x++;
 					}
-					else if((float)(tx)/10.0 < -0.5) {
+					else if((tx)/10.0 < -0.5) {
 						if((int)this.particles.elementAt(m).x - 1 >= 0)
 							this.particles.elementAt(m).x--;						
 					}
-					if((float)(ty)/10.0 > 0.5) {
+					if((ty)/10.0 > 0.5) {
 						if((int)this.particles.elementAt(m).y + 1 < ips.getWidth())
 							this.particles.elementAt(m).y++;
 					}
-					else if((float)(ty)/10.0 < -0.5) {
+					else if((ty)/10.0 < -0.5) {
 						if((int)this.particles.elementAt(m).y - 1 >= 0)
 							this.particles.elementAt(m).y--;
 					}
-					if((float)(tz)/10.0 > 0.5) {
+					if((tz)/10.0 > 0.5) {
 						if((int)this.particles.elementAt(m).z + 1 < ips.getSize())
 							this.particles.elementAt(m).z++;
 					}
-					else if((float)(tz)/10.0 < -0.5) {
+					else if((tz)/10.0 < -0.5) {
 						if((int)this.particles.elementAt(m).z - 1 >= 0)
 							this.particles.elementAt(m).z--;
 					}
 
-					if((float)(tx)/10.0 <= 0.5 && (float)(tx)/10.0 >= -0.5 && 
-							(float)(ty)/10.0 <= 0.5 && (float)(ty)/10.0 >= -0.5 &&
-							(float)(tz)/10.0 <= 0.5 && (float)(tz)/10.0 >= -0.5)
+					if((tx)/10.0 <= 0.5 && (tx)/10.0 >= -0.5 && 
+							(ty)/10.0 <= 0.5 && (ty)/10.0 >= -0.5 &&
+							(tz)/10.0 <= 0.5 && (tz)/10.0 >= -0.5)
 						break;
 				}
 				//				System.out.println("iterations for particle " + m + ": " + this.particles.elementAt(m).nbIterations);
@@ -3431,7 +3431,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 			}
 
 			for(n = 0; n < curr_linkrange; n++) {
-				max_cost = (double)(n + 1) * this.displacement * (double)(n + 1) * this.displacement;
+				max_cost = (n + 1) * this.displacement * (n + 1) * this.displacement;
 
 				nop_next = frames[m + (n + 1)].particles.size();
 
@@ -3673,7 +3673,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 
 					// Create the current trajectory
 					Particle[] curr_traj_particles_array = new Particle[curr_traj_particles.size()];
-					curr_traj = new Trajectory((Particle[])curr_traj_particles.toArray(curr_traj_particles_array));
+					curr_traj = new Trajectory(curr_traj_particles.toArray(curr_traj_particles_array));
 
 					// set current trajectory parameters
 					curr_traj.serial_number = this.number_of_trajectories;
@@ -4369,7 +4369,7 @@ public class Phase_Contrast_Tracker implements PlugInFilter, Measurements, Actio
 					float distPxToCenter = (float) Math.sqrt((xCenter-ix)*(xCenter-ix)+(yCenter-iy)*(yCenter-iy)+(zCenter-iz)*(zCenter-iz)); 
 
 					//the weight is approximative the amount of the voxel inside the (spherical) mask.
-					float weight = (float)mask_radius - distPxToCenter + .5f; 
+					float weight = mask_radius - distPxToCenter + .5f; 
 					if(weight < 0) {
 						weight = 0f;    				
 					} 

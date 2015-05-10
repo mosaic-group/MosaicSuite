@@ -1,12 +1,6 @@
 package mosaic.core.cluster;
 
 
-enum OutputType
-{
-	LAUNCH,
-	STATUS
-}
-
 /**
  * 
  * Define an interface to control a batch system

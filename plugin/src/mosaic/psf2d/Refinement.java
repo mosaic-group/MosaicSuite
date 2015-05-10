@@ -144,11 +144,11 @@ public class Refinement{
 							continue;
 						x = (int)particle.x + l;
 
-						c = ip.getPixelValue(x, y) * (float)mask[coord(k + radius, l + radius, mask_width)];
+						c = ip.getPixelValue(x, y) * mask[coord(k + radius, l + radius, mask_width)];
 						particle.m0 += c;
-						epsy += (float)k * c;
-						epsx += (float)l * c;
-						particle.m2 += (float)(k * k + l * l) * c;
+						epsy += k * c;
+						epsx += l * c;
+						particle.m2 += (k * k + l * l) * c;
 					}
 				}
 
@@ -160,24 +160,24 @@ public class Refinement{
 				tx = (int)(10.0 * epsx);
 				ty = (int)(10.0 * epsy);
 
-				if((float)(ty)/10.0 > 0.5) {
+				if((ty)/10.0 > 0.5) {
 					if((int)particle.y + 1 < ip.getHeight())
 						particle.y++;
 				}
-				else if((float)(ty)/10.0 < -0.5) {
+				else if((ty)/10.0 < -0.5) {
 					if((int)particle.y - 1 >= 0)
 						particle.y--;						
 				}
-				if((float)(tx)/10.0 > 0.5) {
+				if((tx)/10.0 > 0.5) {
 					if((int)particle.x + 1 < ip.getWidth())
 						particle.x++;
 				}
-				else if((float)(tx)/10.0 < -0.5) {
+				else if((tx)/10.0 < -0.5) {
 					if((int)particle.x - 1 >= 0)
 						particle.x--;
 				}
 
-				if((float)(ty)/10.0 <= 0.5 && (float)(ty)/10.0 >= -0.5 && (float)(tx)/10.0 <= 0.5 && (float)(tx)/10.0 >= -0.5)
+				if((ty)/10.0 <= 0.5 && (ty)/10.0 >= -0.5 && (tx)/10.0 <= 0.5 && (tx)/10.0 >= -0.5)
 					break;
 			}
 			
@@ -227,7 +227,7 @@ public class Refinement{
 				int index = (i + kernel_radius)*kernel_width + j + kernel_radius;
 				this.kernel[index]= (float)((1.0/b)* Math.exp(-((i * i + j * j)/(4.0*lambda_n*lambda_n))));				
 				this.kernel[index]= this.kernel[index] - (float)(1.0/(kernel_width * kernel_width));
-				this.kernel[index]= (float) ((double)this.kernel[index] / norm_cons);
+				this.kernel[index]= (float) (this.kernel[index] / norm_cons);
 			}
 		}			
 	}
@@ -261,9 +261,9 @@ public class Refinement{
 		double constant = 0.0;
 		int kernel_width = (kernel_radius * 2) + 1;
 		for (int i=-(kernel_radius); i<=kernel_radius; i++) {
-			constant = constant + Math.exp(-((double)(i * i)/(2.0*(lambda * lambda)))); 
+			constant = constant + Math.exp(-(i * i/(2.0*(lambda * lambda)))); 
 		}		
-		constant = ((constant * constant) / b) - (b/(double)(kernel_width * kernel_width));		
+		constant = ((constant * constant) / b) - (b/(kernel_width * kernel_width));		
 		return constant;
 	}
 	

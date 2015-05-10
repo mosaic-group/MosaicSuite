@@ -44,7 +44,7 @@ public class PlotUtils {
 		
 		double [] ydouble = new double[yvalues.length];
 		for(int i=0;i<ydouble.length;i++)
-			ydouble[i]=(double)yvalues[i];
+			ydouble[i]=yvalues[i];
 		Plot plot=new Plot(title,"d","Y(int)",xvalues,ydouble);
 	
 		plot.show();

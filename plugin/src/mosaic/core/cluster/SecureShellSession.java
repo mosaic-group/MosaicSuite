@@ -354,7 +354,7 @@ public class SecureShellSession implements Runnable, ShellProcessOutput, SftpPro
 		if (createSession() == false)
 			return false;
 		
-		cSSH = (Channel) session.openChannel("shell");
+		cSSH = session.openChannel("shell");
 		
 	    cSSH.setInputStream(pinput_in);
 	    cSSH.setOutputStream(poutput_out);

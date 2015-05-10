@@ -189,8 +189,8 @@ public class Generate_PSF implements  PlugInFilter{
     	//calculate the maximal distance of the influence of the PSF.
     	float vPSFPixelWidth = (float) mPSF.getCalibration().pixelWidth;
     	float vPSFPixelHeight = (float) mPSF.getCalibration().pixelHeight;
-    	int vZMaxInPx = (int) Math.ceil(((float)mPSF.getWidth() / 2.0) * (vPSFPixelWidth / aPxDepthInNm));
-    	int vRMaxInPx = (int) Math.ceil(((float)mPSF.getHeight()       * (vPSFPixelHeight / aPxWidthInNm)));
+    	int vZMaxInPx = (int) Math.ceil((mPSF.getWidth() / 2.0) * (vPSFPixelWidth / aPxDepthInNm));
+    	int vRMaxInPx = (int) Math.ceil((mPSF.getHeight()       * (vPSFPixelHeight / aPxWidthInNm)));
     	
     	float vPX = aPoint.mX/aPxWidthInNm;
     	float vPY = aPoint.mY/aPxWidthInNm;

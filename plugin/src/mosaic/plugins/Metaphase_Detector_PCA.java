@@ -33,9 +33,9 @@ public class Metaphase_Detector_PCA /*extends ParticleTracker3D_ implements Plug
 				vMean[2] += vParticle[2];
 				vParticleCounter++;
 			}
-			vMean[0] /= (float)vParticleCounter;
-			vMean[1] /= (float)vParticleCounter;
-			vMean[2] /= (float)vParticleCounter;
+			vMean[0] /= vParticleCounter;
+			vMean[1] /= vParticleCounter;
+			vMean[2] /= vParticleCounter;
 			mMeans.setElementAt(vMean, vFrameCounter-1);
 			for(int vI = 0; vI < vParticleCounter; vI++) {
 				vParticleValues[0][vI] -= vMean[0];
@@ -47,7 +47,7 @@ public class Metaphase_Detector_PCA /*extends ParticleTracker3D_ implements Plug
 			Matrix vParticleValuesMatrixT = vParticleValuesMatrix.transpose();
 			
 			Matrix vCovMatrix = vParticleValuesMatrix.times(vParticleValuesMatrixT);
-			vCovMatrix = vCovMatrix.times(1.0 / (double)vParticleCounter);
+			vCovMatrix = vCovMatrix.times(1.0 / vParticleCounter);
 			
 			EigenvalueDecomposition vEigenvalueDecomposition = new EigenvalueDecomposition(vCovMatrix);
 			Matrix vEigenValues = vEigenvalueDecomposition.getD();
@@ -120,14 +120,14 @@ public class Metaphase_Detector_PCA /*extends ParticleTracker3D_ implements Plug
 		}
 		aG.setColor(Color.green);
 		//paint the center of mass.
-		int vMeanX = (int)Math.round(mMeans.elementAt(aFrameIndex - 1)[1]);
-		int vMeanY = (int)Math.round(mMeans.elementAt(aFrameIndex - 1)[0]);
+		int vMeanX = Math.round(mMeans.elementAt(aFrameIndex - 1)[1]);
+		int vMeanY = Math.round(mMeans.elementAt(aFrameIndex - 1)[0]);
 		aG.fillRect(vMeanX - 2, vMeanY - 2, 4, 4);
 		aG.drawLine(
-				(int)Math.round(vMeanX - 50 * aMagnification * mPlanes.elementAt(aFrameIndex - 1)[0]), 
-				(int)Math.round(vMeanY - 50 * aMagnification * mPlanes.elementAt(aFrameIndex - 1)[1]),
-				(int)Math.round(vMeanX + 50 * aMagnification * mPlanes.elementAt(aFrameIndex - 1)[0]), 
-				(int)Math.round(vMeanY + 50 * aMagnification * mPlanes.elementAt(aFrameIndex - 1)[1]));
+				Math.round(vMeanX - 50 * aMagnification * mPlanes.elementAt(aFrameIndex - 1)[0]), 
+				Math.round(vMeanY - 50 * aMagnification * mPlanes.elementAt(aFrameIndex - 1)[1]),
+				Math.round(vMeanX + 50 * aMagnification * mPlanes.elementAt(aFrameIndex - 1)[0]), 
+				Math.round(vMeanY + 50 * aMagnification * mPlanes.elementAt(aFrameIndex - 1)[1]));
 	}
 }
 

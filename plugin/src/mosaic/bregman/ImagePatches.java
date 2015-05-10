@@ -396,7 +396,7 @@ public class ImagePatches {
 		jobs_done++;
 
 		IJ.showStatus("Computing segmentation  " + round(55+ (45*((double) jobs_done)/(nb_jobs)),2) + "%");
-		IJ.showProgress(0.55+0.45*((double) jobs_done)/(nb_jobs));
+		IJ.showProgress(0.55+0.45*(jobs_done)/(nb_jobs));
 
 
 	}

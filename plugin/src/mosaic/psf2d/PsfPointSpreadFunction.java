@@ -67,7 +67,7 @@ public class PsfPointSpreadFunction{
 			psf_data.append("\n%Sampling Positions of Point Source:\n");
 			// Loop over Sampling Points
 			for(int i=0; i<sample_number; i++){
-				phi = (float)(2*Math.PI*i)/(float)sample_number;
+				phi = (float)(2*Math.PI*i)/sample_number;
 				x_pos = source.x + radius*(float)Math.cos(phi);
 			    y_pos = source.y + radius*(float)Math.sin(phi);
 			    psf_data.append("(" + x_pos + " , " + y_pos + ");");
@@ -80,7 +80,7 @@ public class PsfPointSpreadFunction{
 			}
 			
 			//Calculate PSF on circle
-			PSF[j] /= (float)sample_number;
+			PSF[j] /= sample_number;
 			psf_data.append("\n%Overall Mean Intensity Value on Radius:\t" + PSF[j] + "\n");
 		}
 		normalizePSF(PSF);

@@ -545,7 +545,7 @@ public class GenericDialogGUI implements InputReadable
 		settings.m_EnergyContourLengthCoeff=(float)gd_p.getNextNumber();
 		settings.m_RegionMergingThreshold = (float)gd_p.getNextNumber();
 		settings.m_MaxNbIterations = (int)gd_p.getNextNumber();
-		settings.m_OscillationThreshold = (double)gd_p.getNextNumber();
+		settings.m_OscillationThreshold = gd_p.getNextNumber();
 		
 		// Initialization
 		String initialization = gd_p.getNextChoice();
@@ -846,7 +846,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 					String elem="";
 					while(tokenizer.hasMoreElements())
 					{
-						elem = (String)tokenizer.nextToken();
+						elem = tokenizer.nextToken();
 						if(elem.startsWith("file"))
 							break;
 						else

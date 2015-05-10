@@ -249,7 +249,7 @@ public class BipartiteMatcher {
 	int findAugmentingPath() {
 		while ((!eligibleS.isEmpty()) || (!eligibleT.isEmpty())) {
 			if (!eligibleS.isEmpty()) {
-				int i = ((Integer) eligibleS.get(eligibleS.size() - 1)).intValue();
+				int i = eligibleS.get(eligibleS.size() - 1).intValue();
 				eligibleS.remove(eligibleS.size() - 1);
 				for (int j = 0; j < n; j++) {
 					// If pi[j] has already been decreased essentially
@@ -271,7 +271,7 @@ public class BipartiteMatcher {
 					}
 				}
 			} else {
-				int j = ((Integer) eligibleT.get(eligibleT.size() - 1)).intValue();
+				int j = eligibleT.get(eligibleT.size() - 1).intValue();
 				eligibleT.remove(eligibleT.size() - 1);
 				if (tMatches[j] == -1) {
 					return j; // we've found an augmenting path

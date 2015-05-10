@@ -895,7 +895,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 		float[] vWeightedMean = new float[vDimOfState];
 		for (float[] vParticle : aPartilces) {
 			for(int vI = 0; vI < vDimOfState; vI++) {
-				vWeightedMean[vI] += vParticle[vI] / (float)vNbParticles;// * vParticle[vDimOfState + 1]; // wrong !
+				vWeightedMean[vI] += vParticle[vI] / vNbParticles;// * vParticle[vDimOfState + 1]; // wrong !
 			} 
 		}
 		
@@ -912,7 +912,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 			}
 		}
 		//normalize
-		float vNorm = 1f/(float)(vNbParticles-1);
+		float vNorm = 1f/(vNbParticles-1);
 		for(int vY = 0; vY < vDimOfState; vY++) {
 			for(int vX = 0; vX < vDimOfState; vX++) {
 				vCov[vY][vX] *= vNorm;
@@ -1061,7 +1061,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	private void forcedResample(float[][] aParticles) {
 		int vDimOfState = aParticles[0].length - 2;
 		int vNbParticles = aParticles.length;
-		float VNBPARTICLES_1 = 1f/(float)vNbParticles;
+		float VNBPARTICLES_1 = 1f/vNbParticles;
 		double[] vC = new double[vNbParticles + 1];
 		vC[0] = 0;
 		for(int vInd = 1; vInd <= vNbParticles; vInd++){
@@ -1646,7 +1646,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	private void normalizeWeights(float[][] aSetOfParticles) {
 		float vSumOfWeights = 0;
 		int vDim = aSetOfParticles[0].length - 2;
-		float vNbP = (float)aSetOfParticles.length;
+		float vNbP = aSetOfParticles.length;
 		for(float[] vP : aSetOfParticles) {
 			vSumOfWeights += vP[vDim + 1];
 		}
@@ -1685,7 +1685,7 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
 	private void estimateStateVectorFromPositions(float[] aStateVec, float[][] aParticles)
 	{
 		int vDim = aStateVec.length;
-		float vW = 1f/(float)aParticles.length;
+		float vW = 1f/aParticles.length;
 		/* Set the old state to 0*/
 		for(int vI = 0; vI < vDim; vI++)
 			aStateVec[vI] = 0f;
@@ -2878,8 +2878,8 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
     	//calculate the maximal distance of the influence of the PSF.
     	float vPSFPixelWidth = (float) mPSF.getCalibration().pixelWidth;
     	float vPSFPixelHeight = (float) mPSF.getCalibration().pixelHeight;
-    	int vZMaxInPx = (int) Math.ceil(((float)mPSF.getWidth() / 2.0) * (vPSFPixelWidth / aPxDepthInNm));
-    	int vRMaxInPx = (int) Math.ceil(((float)mPSF.getHeight()       * (vPSFPixelHeight / aPxWidthInNm)));
+    	int vZMaxInPx = (int) Math.ceil((mPSF.getWidth() / 2.0) * (vPSFPixelWidth / aPxDepthInNm));
+    	int vRMaxInPx = (int) Math.ceil((mPSF.getHeight()       * (vPSFPixelHeight / aPxWidthInNm)));
     	
     	float vPX = aPoint.mX/aPxWidthInNm;
     	float vPY = aPoint.mY/aPxWidthInNm;
@@ -2996,8 +2996,8 @@ public abstract class PFTracking3D implements  PlugInFilter, CMAES.CMAESProblem{
     	//calculate the maximal distance of the influence of the PSF.
     	float vPSFPixelWidth = (float) mPSF.getCalibration().pixelWidth;
     	float vPSFPixelHeight = (float) mPSF.getCalibration().pixelHeight;
-    	int vZMaxInPx = (int) Math.ceil(((float)mPSF.getWidth() / 2.0) * (vPSFPixelWidth / aPxDepthInNm));
-    	int vRMaxInPx = (int) Math.ceil(((float)mPSF.getHeight()       * (vPSFPixelHeight / aPxWidthInNm)));
+    	int vZMaxInPx = (int) Math.ceil((mPSF.getWidth() / 2.0) * (vPSFPixelWidth / aPxDepthInNm));
+    	int vRMaxInPx = (int) Math.ceil((mPSF.getHeight()       * (vPSFPixelHeight / aPxWidthInNm)));
     	
     	float vPX = aPoint.mX/aPxWidthInNm;
     	float vPY = aPoint.mY/aPxWidthInNm;

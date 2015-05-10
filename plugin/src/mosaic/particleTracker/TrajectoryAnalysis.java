@@ -252,7 +252,7 @@ public class TrajectoryAnalysis {
     public double[] toDouble(final int[] aValues) {
         double[] result = new double[aValues.length];
         for (int i = 0; i < aValues.length; ++i) {
-            result[i] = (double)aValues[i];
+            result[i] = aValues[i];
         }
         
         return result;
@@ -390,7 +390,7 @@ public class TrajectoryAnalysis {
             for (int i = 0; i < iFrameShifts.length; ++ i) {
                 if (m[i] != 0.0d) {
                     moments[count] = m[i];
-                    deltas[count] = (double)iFrameShifts[i];
+                    deltas[count] = iFrameShifts[i];
                     count++;
                 }
             }

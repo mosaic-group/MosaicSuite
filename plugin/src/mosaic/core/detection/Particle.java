@@ -332,7 +332,7 @@ public class Particle extends StubProp implements ICSVGeneral
 	}
 	
 	public double[] getPosition() {
-		double[] result =  {(double) x,(double) y,(double) z};
+		double[] result =  {x,y,z};
 		return result;
 	}
 

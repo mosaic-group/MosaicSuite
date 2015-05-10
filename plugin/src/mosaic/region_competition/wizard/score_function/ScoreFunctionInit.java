@@ -87,7 +87,7 @@ public class ScoreFunctionInit implements ScoreFunction
 			Map.remove(0);  // remove background
 			for (LabelInformation lb : Map.values())
 			{
-				result += 2.0*Math.abs((double)lb.count - l[im].getSize()/4.0/off[im])/l[im].getSize();
+				result += 2.0*Math.abs(lb.count - l[im].getSize()/4.0/off[im])/l[im].getSize();
 			}
 
 			result += Math.abs(c - (off[im]+1)) /**l[im].getSize()*/;

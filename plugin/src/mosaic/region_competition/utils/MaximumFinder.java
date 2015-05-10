@@ -187,7 +187,7 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                 return false;               // if faulty input is not detected during preview, "cancel" quits
             thresholdWarningShown = true;
             useMinThreshold = false;
-            ((Checkbox)(checkboxes.elementAt(1))).setState(false); //reset "Above Lower Threshold" checkbox
+            (checkboxes.elementAt(1)).setState(false); //reset "Above Lower Threshold" checkbox
         }
         if (!gd.getPreviewCheckbox().getState())
             messageArea.setText("");        // no "nnn Maxima" message when not previewing
@@ -541,7 +541,7 @@ public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                         if (maxPossible) {
                             types[offset] |= MAX_AREA;
                             if ((types[offset]&EQUAL)!=0) {
-                                double dist2 = (xEqual-x)*(double)(xEqual-x) + (yEqual-y)*(double)(yEqual-y);
+                                double dist2 = (xEqual-x)*(xEqual-x) + (yEqual-y)*(yEqual-y);
                                 if (dist2 < minDist2) {
                                     minDist2 = dist2;   //this could be the best "single maximum" point
                                     nearestI = listI;

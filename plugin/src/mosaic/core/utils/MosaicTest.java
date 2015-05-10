@@ -205,7 +205,7 @@ public class MosaicTest
 					
 				// open the result image
 			
-	        	image_rs = (Img<?>) imgOpener.openImgs(filename).get(0);
+	        	image_rs = imgOpener.openImgs(filename).get(0);
 			} catch (ImgIOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

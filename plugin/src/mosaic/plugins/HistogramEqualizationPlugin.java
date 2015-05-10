@@ -46,7 +46,7 @@ public class HistogramEqualizationPlugin extends PlugIn8bitBase {
     	final double G = GRAY_LEVELS;
     	final double N_M = aImgPixels.length; // N * M -> width * height
     	for (int i = 0; i < GRAY_LEVELS; ++i) {
-    		T[i] = ((double)hist[i]) * (G-1)/(N_M);
+    		T[i] = (hist[i]) * (G-1)/(N_M);
     	}
 
     	// Apply new scale of brightness to image

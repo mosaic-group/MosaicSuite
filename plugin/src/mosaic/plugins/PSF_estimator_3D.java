@@ -94,7 +94,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		
 		if(!getUserDefinedParams()) return DONE;
 		
-		mRInc = 1./((double)mMapSizeR*1.1);
+		mRInc = 1./(mMapSizeR*1.1);
 		
 		StackStatistics vSS = new StackStatistics(aOrigImp);
 		mGlobalMin = (float)vSS.min;
@@ -166,7 +166,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		float[] kernel = new float[mMaskRadius * 2 +1];
 		int n = kernel.length;
 		for(int i = 0; i < kernel.length; i++)
-			kernel[i] = 1f/(float)n;
+			kernel[i] = 1f/n;
 		for(int s = 1; s <= is.getSize(); s++) {
 			ImageProcessor bg_proc = is.getProcessor(s).duplicate();
 			convolver.convolveFloat(bg_proc, kernel, 1, n);
@@ -220,7 +220,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 							continue;
 						int vX = (int)aX + vU;
 
-						float vPxVal = aIS.getProcessor(vZ + 1).getPixelValue(vX, vY) * (float)mMask[vS + vRadius][vV + vRadius][vU + vRadius];
+						float vPxVal = aIS.getProcessor(vZ + 1).getPixelValue(vX, vY) * mMask[vS + vRadius][vV + vRadius][vU + vRadius];
 						vM0 += vPxVal;
 						vEpsX += vU * vPxVal;
 						vEpsY += vV * vPxVal;
@@ -239,34 +239,34 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			int ty = (int)(10.0 * vEpsY);
 			int tz = (int)(10.0 * vEpsZ);
 
-			if((double)(tx)/10.0 > 0.5) {
+			if((tx)/10.0 > 0.5) {
 				if((int)aX + 1 < aIS.getHeight())
 					aX++;
 			}
-			else if((double)(tx)/10.0 < -0.5) {
+			else if((tx)/10.0 < -0.5) {
 				if((int)aX - 1 >= 0)
 					aX--;						
 			}
-			if((double)(ty)/10.0 > 0.5) {
+			if((ty)/10.0 > 0.5) {
 				if((int)aY + 1 < aIS.getWidth())
 					aY++;
 			}
-			else if((double)(ty)/10.0 < -0.5) {
+			else if((ty)/10.0 < -0.5) {
 				if((int)aY - 1 >= 0)
 					aY--;
 			}
-			if((double)(tz)/10.0 > 0.5) {
+			if((tz)/10.0 > 0.5) {
 				if((int)aZ + 1 < aIS.getSize())
 					aZ++;
 			}
-			else if((double)(tz)/10.0 < -0.5) {
+			else if((tz)/10.0 < -0.5) {
 				if((int)aZ - 1 >= 0)
 					aZ--;
 			}
 
-			if((double)(tx)/10.0 <= 0.5 && (double)(tx)/10.0 >= -0.5 && 
-					(double)(ty)/10.0 <= 0.5 && (double)(ty)/10.0 >= -0.5 &&
-					(double)(tz)/10.0 <= 0.5 && (double)(tz)/10.0 >= -0.5)
+			if((tx)/10.0 <= 0.5 && (tx)/10.0 >= -0.5 && 
+					(ty)/10.0 <= 0.5 && (ty)/10.0 >= -0.5 &&
+					(tz)/10.0 <= 0.5 && (tz)/10.0 >= -0.5)
 				break;
 		}
 		return new double[]{aX + vEpsX + .5f, aY + vEpsY + .5f, aZ + vEpsZ + .5f};
@@ -567,7 +567,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			}
 			mBeadImage = new ImagePlus("bsp map",new FloatProcessor(vMap));
 			mBeadImage.getCalibration().setUnit("nm");
-			mBeadImage.getCalibration().pixelWidth = (2f*(float)mZMaxInNm / (float)mMapSizeZ);
+			mBeadImage.getCalibration().pixelWidth = (2f*mZMaxInNm / mMapSizeZ);
 			mBeadImage.getCalibration().pixelHeight = ((float)mRMaxInNm / (float)mMapSizeR);
 			mBeadImage.show();
 		}
@@ -656,7 +656,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 				float[] vNodeX = new float[vValuableZIndices.size()];
 				float[] vNodeY = new float[vValuableZIndices.size()]; 
 				for(int vI = 0; vI < vValuableZIndices.size(); vI++) {
-					vNodeX[vI] = (float)vValuableZIndices.elementAt(vI);
+					vNodeX[vI] = vValuableZIndices.elementAt(vI);
 					vNodeY[vI] = (float)aMap[vValuableZIndices.elementAt(vI)][vR];
 				}
 				if(vValuableZIndices.isEmpty()) continue; /// a empty line in R

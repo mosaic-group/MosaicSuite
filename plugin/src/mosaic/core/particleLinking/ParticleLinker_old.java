@@ -48,7 +48,7 @@ public class ParticleLinker_old {
 			}
 
 			for(n = 0; n < curr_linkrange; n++) {
-				max_cost = (double)(n + 1) * displacement * (double)(n + 1) * displacement;
+				max_cost = (n + 1) * displacement * (n + 1) * displacement;
 
 				nop_next = frames[m + (n + 1)].getParticles().size();
 

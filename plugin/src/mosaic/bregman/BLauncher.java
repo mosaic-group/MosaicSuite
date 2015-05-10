@@ -814,7 +814,7 @@ public class BLauncher
 			{  
 				for (int j=0; j<Analysis.p.nj; j++) 
 				{  
-					mask_bytes[j * Analysis.p.ni + i]=(byte) ((int) 255*image[z][i][j]);
+					mask_bytes[j * Analysis.p.ni + i]=(byte) (255*image[z][i][j]);
 				}
 			}
 
@@ -981,7 +981,7 @@ public class BLauncher
 			{
 				for (int j=0; j<height; j++) 
 				{
-					mask_short[j * width + i]= (short) regions[z][i][j];
+					mask_short[j * width + i]= regions[z][i][j];
 				}
 			}
 			ShortProcessor sp = new ShortProcessor(width, height);

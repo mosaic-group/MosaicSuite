@@ -122,7 +122,7 @@ public class ParticleLinkerHun implements ParticleLinker
 
 			for(n = 0; n < curr_linkrange; n++) 
 			{
-				max_cost = (float)(n + 1) * l.displacement * (float)(n + 1) * l.displacement;
+				max_cost = (n + 1) * l.displacement * (n + 1) * l.displacement;
 
 				nop_next = frames[m + (n + 1)].getParticles().size();
 

@@ -293,7 +293,7 @@ public class CommonBase extends Info {
 
         try {
             logger.debug("Opening file: [" + aFileName + "]");
-            Img<?> img = (Img<?>) iImgOpener.openImgs(aFileName).get(0);
+            Img<?> img = iImgOpener.openImgs(aFileName).get(0);
             return img;
         } catch (ImgIOException e) {
             e.printStackTrace();

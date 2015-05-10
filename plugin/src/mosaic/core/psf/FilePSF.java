@@ -278,7 +278,7 @@ public class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , 
 		ImgOpener imgOpener = new ImgOpener();
 		try {
 			try {
-				image = (Img< T >) imgOpener.openImgs( filename, factory, clCreator.newInstance()).get(0);
+				image = imgOpener.openImgs( filename, factory, clCreator.newInstance()).get(0);
 			} catch (InstantiationException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

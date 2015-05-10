@@ -455,7 +455,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
 						if (maxPossible) {
 							types[offset] |= MAX_AREA;
 							if ((types[offset]&EQUAL)!=0) {
-								double dist2 = (xEqual-x)*(double)(xEqual-x) + (yEqual-y)*(double)(yEqual-y)+ (zEqual-z)*(double)(zEqual-z);
+								double dist2 = (xEqual-x)*(xEqual-x) + (yEqual-y)*(yEqual-y)+ (zEqual-z)*(zEqual-z);
 								if (dist2 < minDist2) {
 									minDist2 = dist2;	//this could be the best "single maximum" point
 									nearestI = listI;

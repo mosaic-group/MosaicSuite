@@ -135,7 +135,7 @@ public class MosaicImageProcessingTools {
 					float distPxToCenter = (float) Math.sqrt((xCenter-ix)*(xCenter-ix)+(yCenter-iy)*(yCenter-iy)+(zCenter-iz)*(zCenter-iz)); 
 
 					//the weight is approximative the amount of the voxel inside the (spherical) mask.
-					float weight = (float)mask_radius - distPxToCenter + .5f; 
+					float weight = mask_radius - distPxToCenter + .5f; 
 					if(weight < 0) {
 						weight = 0f;    				
 					} 

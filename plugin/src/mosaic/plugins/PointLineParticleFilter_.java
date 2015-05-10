@@ -846,9 +846,9 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 		for(int vI = 0; vI < vBoundary.size(); vI++){
 			for(int vJ = vI + 1; vJ < vBoundary.size(); vJ++){
 				int vX1 = vBoundary.elementAt(vI) % mWidth;
-				int vY1 = (int)(vBoundary.elementAt(vI) / mWidth);
+				int vY1 = vBoundary.elementAt(vI) / mWidth;
 				int vX2 = vBoundary.elementAt(vJ) % mWidth;
-				int vY2 = (int)(vBoundary.elementAt(vJ) / mWidth);
+				int vY2 = vBoundary.elementAt(vJ) / mWidth;
 				float vD = (vX1 - vX2) * (vX1 - vX2) + (vY1 -vY2) * (vY1 - vY2);
 				if(vD > vMaxDist) {
 					vLx1 = vX1;
@@ -866,8 +866,8 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 			vInensitySum += vPixels[vP];			
 		}
 		for(int vP : vAreas.elementAt(v2ndPointer)){
-			vPx += (float)(vP % mWidth) * vPixels[vP] / vInensitySum;
-			vPy += (float)(vP / mWidth) * vPixels[vP] / vInensitySum;
+			vPx += vP % mWidth * vPixels[vP] / vInensitySum;
+			vPy += vP / mWidth * vPixels[vP] / vInensitySum;
 		}
 		//
 		// Read out the intensities(the maximum intensity of a pixel)
@@ -898,9 +898,9 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 		//
 		// Read out the intensities
 		//
-		float vPointIntensity = aImageProcessor.getf((int)Math.round(aSPB1x), (int)Math.round(aSPB1y));
-		float vLineIntensity = (aImageProcessor.getf((int)Math.round(aSPB1x), (int)Math.round(aSPB1y)) +
-							aImageProcessor.getf((int)Math.round(aSPB1x), (int)Math.round(aSPB1y))) /2f;
+		float vPointIntensity = aImageProcessor.getf(Math.round(aSPB1x), Math.round(aSPB1y));
+		float vLineIntensity = (aImageProcessor.getf(Math.round(aSPB1x), Math.round(aSPB1y)) +
+							aImageProcessor.getf(Math.round(aSPB1x), Math.round(aSPB1y))) /2f;
 		//
 		// Set up the state vector with streight foreward calculations
 		//
@@ -1174,7 +1174,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 			 * Begin resampling
 			 */
 //			System.out.println("Resampling");
-			float VNBPARTICLES_1 = 1f/(float)mNbParticles;
+			float VNBPARTICLES_1 = 1f/mNbParticles;
 			double[] vC = new double[mNbParticles + 1];
 			vC[0] = 0;
 			for(int vInd = 1; vInd <= mNbParticles; vInd++){
@@ -1289,7 +1289,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 			 */
 			if(vSumOfWeights == 0.0f) { //can happen if the winning particle before had a weight of 0.0
 				for(float[] vParticle : vFeatureParticles){
-					vParticle[vDimOfState] = 1.0f / (float)mNbParticles;
+					vParticle[vDimOfState] = 1.0f / mNbParticles;
 				}
 			}
 			else {
@@ -1779,7 +1779,7 @@ public class PointLineParticleFilter_ implements  PlugInFilter{
 	private int SliceToFrame(int aSlice){
 		if(aSlice < 1)
 			System.err.println("error in particle filter in SliceToFrame: < 1" );
-		return (int)(aSlice-1)/mOriginalImagePlus.getNSlices() + 1;
+		return (aSlice-1)/mOriginalImagePlus.getNSlices() + 1;
 	}
 
 

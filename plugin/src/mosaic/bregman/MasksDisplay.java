@@ -402,7 +402,7 @@ public class MasksDisplay {
 
 			for (int i=0; i<ni; i++) {  
 				for (int j=0;j< nj; j++) {  	
-					temp[j * p.ni + i]= (byte) ( (int)(array[z][i][j]));//(float) array[z][i][j];
+					temp[j * p.ni + i]= ( (array[z][i][j]));//(float) array[z][i][j];
 					//ims3d.setVoxel(i, j, z, array[z][i][j]);
 				}	
 			}

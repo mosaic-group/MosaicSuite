@@ -2410,7 +2410,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
     	String s = new String();    
     	s = countiter + " " + counteval + " " + sigma + " " + axisratio + " " 
     	   + maxsqrtdiagC/minsqrtdiagC + " "; 
-    	double[] tmp = (double[]) diagD.clone();
+    	double[] tmp = diagD.clone();
     	java.util.Arrays.sort(tmp);
     	for (int i = 0; i < N; ++i) {
     		s += tmp[i] + " ";

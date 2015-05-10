@@ -269,8 +269,8 @@ public class TwoRegions extends NRegions
 
 			if(!Analysis.p.looptest)
 			{	
-				if(p.findregionthresh)Analysis.compute_connected_regions_a((int) 255*p.thresh,RiN);
-				else Analysis.compute_connected_regions_a((int) 255*p.thresh,null);
+				if(p.findregionthresh)Analysis.compute_connected_regions_a(255*p.thresh,RiN);
+				else Analysis.compute_connected_regions_a(255*p.thresh,null);
 				//A_solver=null; // for testing
 				//test
 				//IJ.log("start test" + "nlevels " +p.nlevels);
@@ -433,8 +433,8 @@ public class TwoRegions extends NRegions
 			
 			if(!Analysis.p.looptest)
 			{
-				if(p.findregionthresh)Analysis.compute_connected_regions_b((int) 255*p.thresh,RiN);
-				else Analysis.compute_connected_regions_b((int) 255*p.thresh,null);
+				if(p.findregionthresh)Analysis.compute_connected_regions_b(255*p.thresh,RiN);
+				else Analysis.compute_connected_regions_b(255*p.thresh,null);
 				//A_solver=null;
 
 

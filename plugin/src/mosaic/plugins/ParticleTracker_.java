@@ -1494,11 +1494,11 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 								continue;
 							y = (int)this.particles[m].y + l;
 
-							c = ip.getPixelValue(y, x) * (float)mask[coord(k + radius, l + radius, mask_width)];
+							c = ip.getPixelValue(y, x) * mask[coord(k + radius, l + radius, mask_width)];
 							this.particles[m].m0 += c;
-							epsx += (float)k * c;
-							epsy += (float)l * c;
-							this.particles[m].m2 += (float)(k * k + l * l) * c;
+							epsx += k * c;
+							epsy += l * c;
+							this.particles[m].m2 += (k * k + l * l) * c;
 						}
 					}
 
@@ -1510,24 +1510,24 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 					tx = (int)(10.0 * epsx);
 					ty = (int)(10.0 * epsy);
 
-					if((float)(tx)/10.0 > 0.5) {
+					if((tx)/10.0 > 0.5) {
 						if((int)this.particles[m].x + 1 < ip.getHeight())
 							this.particles[m].x++;
 					}
-					else if((float)(tx)/10.0 < -0.5) {
+					else if((tx)/10.0 < -0.5) {
 						if((int)this.particles[m].x - 1 >= 0)
 							this.particles[m].x--;						
 					}
-					if((float)(ty)/10.0 > 0.5) {
+					if((ty)/10.0 > 0.5) {
 						if((int)this.particles[m].y + 1 < ip.getWidth())
 							this.particles[m].y++;
 					}
-					else if((float)(ty)/10.0 < -0.5) {
+					else if((ty)/10.0 < -0.5) {
 						if((int)this.particles[m].y - 1 >= 0)
 							this.particles[m].y--;
 					}
 
-					if((float)(tx)/10.0 <= 0.5 && (float)(tx)/10.0 >= -0.5 && (float)(ty)/10.0 <= 0.5 && (float)(ty)/10.0 >= -0.5)
+					if((tx)/10.0 <= 0.5 && (tx)/10.0 >= -0.5 && (ty)/10.0 <= 0.5 && (ty)/10.0 >= -0.5)
 						break;
 				}
 				System.out.println("iterations for particle " + m + ": " + this.particles[m].nbIterations);
@@ -1550,11 +1550,11 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 			this.real_particles_number = this.particles_number;
 			for(j = 0; j < this.particles.length; j++) {				
 				for(k = j + 1; k < this.particles.length; k++) {
-					score = (double)((1.0 / (2.0 * Math.PI * 0.1 * 0.1)) * 
+					score = (1.0 / (2.0 * Math.PI * 0.1 * 0.1)) * 
 							Math.exp(-(this.particles[j].m0 - this.particles[k].m0) *
 							(this.particles[j].m0 - this.particles[k].m0) / (2.0 * 0.1) -
 							(this.particles[j].m2 - this.particles[k].m2) * 
-							(this.particles[j].m2 - this.particles[k].m2) / (2.0 * 0.1)));
+							(this.particles[j].m2 - this.particles[k].m2) / (2.0 * 0.1));
 					this.particles[j].score += score;
 					this.particles[k].score += score;
 				}
@@ -2784,7 +2784,7 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
     		}
 
     		for(n = 0; n < curr_linkrange; n++) {
-    			max_cost = (double)(n + 1) * this.displacement * (double)(n + 1) * this.displacement;
+    			max_cost = (n + 1) * this.displacement * (n + 1) * this.displacement;
   
     			nop_next = frames[m + (n + 1)].particles.length;
 
@@ -3588,7 +3588,7 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 				int index = (i + kernel_radius)*kernel_width + j + kernel_radius;
 				this.kernel[index]= (float)((1.0/b)* Math.exp(-((i * i + j * j)/(4.0*lambda_n*lambda_n))));				
 				this.kernel[index]= this.kernel[index] - (float)(1.0/(kernel_width * kernel_width));
-				this.kernel[index]= (float) ((double)this.kernel[index] / norm_cons);
+				this.kernel[index]= (float) (this.kernel[index] / norm_cons);
 			}
 		}			
 	}
@@ -3619,9 +3619,9 @@ public class ParticleTracker_ implements PlugInFilter, Measurements, ActionListe
 		double constant = 0.0;
 		int kernel_width = (kernel_radius * 2) + 1;
 		for (int i=-(kernel_radius); i<=kernel_radius; i++) {
-			constant = constant + Math.exp(-((double)(i * i)/(2.0*(lambda * lambda)))); 
+			constant = constant + Math.exp(-(i * i/(2.0*(lambda * lambda)))); 
 		}		
-		constant = ((constant * constant) / b) - (b/(double)(kernel_width * kernel_width));		
+		constant = ((constant * constant) / b) - (b/(kernel_width * kernel_width));		
 		return constant;
 	}
 

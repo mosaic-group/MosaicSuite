@@ -90,7 +90,7 @@ public class OscillationDetection2 extends OscillationDetection
 			sum+=data.get(i);
 		}
 		
-		return sum/(double)n;
+		return sum/n;
 	}
 	
 	

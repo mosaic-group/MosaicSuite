@@ -1391,13 +1391,13 @@ public class Analysis {
 		positive=((double)countcoloc)/count > p.colocthreshold;
 		r.colocpositive=positive;
 		r.overlap=(float) Tools.round(((double)countcoloc)/count,3) ;
-		r.over_size=(float) Tools.round(((double)sizeColoc)/countcoloc,3);
+		r.over_size=(float) Tools.round((sizeColoc)/countcoloc,3);
 		if(p.nz==1)
 			r.over_size=(float) Tools.round( r.over_size/(osxy*osxy),3);
 		else
 			r.over_size=(float) Tools.round( r.over_size/(osxy*osxy*osxy),3);
 		
-		r.over_int=(float) Tools.round(((double)intColoc)/countcoloc,3);
+		r.over_int=(float) Tools.round((intColoc)/countcoloc,3);
 		r.singlec=oneColoc;
 
 		//		if(out != null){
@@ -1872,7 +1872,7 @@ public class Analysis {
 		for (int z=0; z<p.nz; z++){
 			for (int i=0; i<p.ni; i++){  
 				for (int j=0;j< p.nj; j++){  
-					maskA[z][i][j] = (byte) ( (int)(mask[z][i][j])) ;
+					maskA[z][i][j] = (byte) ( (mask[z][i][j])) ;
 
 					//((double)mask[z][i][j]) / 255;		
 				}
@@ -1888,7 +1888,7 @@ public class Analysis {
 		for (int z=0; z<p.nz; z++){
 			for (int i=0; i<p.ni; i++){  
 				for (int j=0;j< p.nj; j++){  
-					maskB[z][i][j] = (byte) ( (int)(mask[z][i][j])) ;
+					maskB[z][i][j] = (byte) ( (mask[z][i][j])) ;
 					//maskb[z][i][j] = ((double)mask[z][i][j]) / 255;		
 				}
 			}
@@ -2057,8 +2057,8 @@ public class Analysis {
 	public static void computeRegions(){
 		IJ.log("deprecated");
 		if(p.usePSF==true || p.nz>1 ||p.nlevels==1 ){
-			if(p.findregionthresh)compute_connected_regions_a((int) 255*p.thresh,solverX.Ri[0]);
-			else compute_connected_regions_a((int) 255*p.thresh,null);
+			if(p.findregionthresh)compute_connected_regions_a(255*p.thresh,solverX.Ri[0]);
+			else compute_connected_regions_a(255*p.thresh,null);
 		}
 		else{
 			if(p.nlevels==2)compute_connected_regions_a(0.5,null);
@@ -2067,8 +2067,8 @@ public class Analysis {
 
 
 		if(p.usePSF==true || p.nz>1 ||p.nlevels==1 ){
-			if(p.findregionthresh)compute_connected_regions_b((int) 255*p.thresh,solverY.Ri[0]);
-			else compute_connected_regions_b((int) 255*p.thresh,null);
+			if(p.findregionthresh)compute_connected_regions_b(255*p.thresh,solverY.Ri[0]);
+			else compute_connected_regions_b(255*p.thresh,null);
 		}
 		else{
 			if(p.nlevels==2)compute_connected_regions_b(0.5,null);
