@@ -314,7 +314,7 @@ public class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , 
 	{		
 		// Convolve
 		
-		new FFTConvolution< S > (img,(RandomAccessibleInterval<S>) image, new ArrayImgFactory<ComplexFloatType>()).run();
+		new FFTConvolution< S > (img,(RandomAccessibleInterval<S>) image, new ArrayImgFactory<ComplexFloatType>()).convolve();
 	}
 
 	@Override

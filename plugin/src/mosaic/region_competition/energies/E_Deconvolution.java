@@ -129,7 +129,7 @@ public class E_Deconvolution extends ExternalEnergy
 		
 		// Convolve
 		
-		new FFTConvolution< FloatType > (DevImage,m_PSF).run();
+		new FFTConvolution< FloatType > (DevImage,m_PSF).convolve();
 		
 	}
 	
