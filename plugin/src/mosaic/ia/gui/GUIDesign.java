@@ -717,9 +717,7 @@ public class GUIDesign implements ActionListener
 		}
 		else if(e.getSource()==jcb)
 		{
-			
-			JComboBox cb = (JComboBox)e.getSource();
-	        String selected = (String)cb.getSelectedItem();
+	        String selected = (String)jcb.getSelectedItem();
 	        System.out.println("Selected: "+selected);
 	        if(selected==items[5])
 		      {	

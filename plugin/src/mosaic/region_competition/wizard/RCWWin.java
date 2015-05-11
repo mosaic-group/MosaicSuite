@@ -19,7 +19,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.Hashtable;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -99,17 +98,14 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	{
 		RoiManager manager = RoiManager.getInstance();
 		if (manager == null)
-		    manager = new RoiManager();
-	    Hashtable<String, Roi> table = manager.getROIs();
+			manager = new RoiManager();
+	    Roi[] roisArray = manager.getRoisAsArray();
+	    String[] md = new String[roisArray.length];
 	    int i = 0;
-	    String[] md = new String[table.size()];
-	    for (String label : table.keySet())
-	    {
-	    	int slice = manager.getSliceNumber(label);
-	        Roi roi = table.get(label);
-	        md[i] = roi.getName();
-	        i++;
-	    }
+		for (Roi roi : roisArray) {
+			md[i] = roi.getName();
+			i++;
+		}
 	    return md;
 	}
 	
@@ -150,14 +146,14 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		contentPane.add(lblNewLabel);
 		
 		sT = segType.Tissue;
-		JComboBox comboBox = new JComboBox(segType.values());
+		final JComboBox comboBox = new JComboBox(segType.values());
 		contentPane.add(comboBox);
 		comboBox.addActionListener(new ActionListener() 
 		{
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				sT = (segType)((JComboBox)arg0.getSource()).getSelectedItem();
+				sT = (segType)comboBox.getSelectedItem();
 			}
 		});
 		
@@ -213,17 +209,12 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		// Get the regions
 		
 		RoiManager manager = RoiManager.getInstance();
-	    Hashtable<String, Roi> table = manager.getROIs();
-	    img = new ImagePlus[table.size()];
-	    for (String label : table.keySet())
-	    {
-	    	int slice = manager.getSliceNumber(label);
-	        Roi roi = table.get(label);
-	        
+	    Roi[] roisArray = manager.getRoisAsArray();
+	    img = new ImagePlus[roisArray.length];
+	    for (Roi roi : roisArray) {
 	        Rectangle b = roi.getBounds();
 	        
 	        // Convert the whole image to float and normalize
-	        
 	        img[i] = new ImagePlus(roi.getName(),IntensityImage.normalize(ij.WindowManager.getImage(roi.getImageID())).getProcessor());
 	        ImageProcessor ip = img[i].getProcessor();
 	        ip.setRoi(b.x,b.y,b.width,b.height);
@@ -338,7 +329,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 			int offscreenX = canvas.offScreenX(x);
 			int offscreenY = canvas.offScreenY(y);
 			
-			ImagePlus img = t.getRC().getStackImPlus();
+			//ImagePlus img = t.getRC().getStackImPlus();
 			
 			LabelImageRC lb = t.getRC().getLabelImage();
 			int size[] = lb.getDimensions();

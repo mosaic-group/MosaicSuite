@@ -77,7 +77,6 @@ import mosaic.region_competition.utils.IntConverter;
 //import view4d.Timeline;
 import mosaic.region_competition.utils.Timer;
 import net.imglib2.img.Img;
-import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.IntegerType;

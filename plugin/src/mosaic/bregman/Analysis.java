@@ -124,7 +124,7 @@ public class Analysis {
 
 	public static Tools iTools;
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked"})
     public static void init()
 	{
 		regions = new short[2][][][];

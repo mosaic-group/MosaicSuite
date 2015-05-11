@@ -263,8 +263,7 @@ public class PSFWindow implements ActionListener,PropertyChangeListener
 
 		if(source==micr)
 		{
-			JComboBox cb = (JComboBox)source;
-			String selected = (String)cb.getSelectedItem();
+			String selected = (String)micr.getSelectedItem();
 			//System.out.println("Selected: "+selected);
 			if(selected==items[1])
 			{

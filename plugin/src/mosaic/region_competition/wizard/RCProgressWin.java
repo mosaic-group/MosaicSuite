@@ -89,7 +89,6 @@ class RCProgressWin extends JFrame implements MouseListener
 		if (c == null)
 			return;
 		
-		GridBagLayout layout = (GridBagLayout) contentImage.getLayout();
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = i;
 		gbc.gridy = j;
@@ -346,11 +345,6 @@ class RCProgressWin extends JFrame implements MouseListener
 		// TODO Auto-generated method stub
 		
 		ImageCanvas c = (ImageCanvas) arg0.getComponent();
-		
-		int x = arg0.getX();
-		int y = arg0.getY();
-		int offscreenX = c.offScreenX(x);
-		int offscreenY = c.offScreenY(y);
 		
 		GridBagConstraints bgc = ((GridBagLayout)contentImage.getLayout()).getConstraints(c);
 		int lab = bgc.gridx;

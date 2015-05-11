@@ -154,7 +154,7 @@ public class OutputGUI extends JDialog
 		
 		c.gridx = 1;
 		c.gridy = 1;
-		JComboBox comboBox = new JComboBox(pn);
+		final JComboBox comboBox = new JComboBox(pn);
 		comboBox.setSelectedIndex(oc_s);
 		contentPane.add(comboBox,c);
 		comboBox.addActionListener(new ActionListener() 
@@ -162,8 +162,10 @@ public class OutputGUI extends JDialog
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				int idx = ((JComboBox)arg0.getSource()).getSelectedIndex();
-				oc = out[idx];
+				if (arg0.getSource() == comboBox) {
+					int idx = comboBox.getSelectedIndex();
+					oc = out[idx];
+				}
 			}
 		});		
 		

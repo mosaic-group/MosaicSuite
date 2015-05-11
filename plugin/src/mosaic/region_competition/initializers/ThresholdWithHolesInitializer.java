@@ -50,7 +50,6 @@ public class ThresholdWithHolesInitializer extends DataDrivenInitializer
 			int size = proc1.getPixelCount();
 			for(int idx=0; idx<size; idx++)
 			{
-				int v1 = proc1.get(idx);
 				int v2 = proc2.get(idx);
 				
 				if(v2!=0) // on hole (hole is non zero), set black in main imp

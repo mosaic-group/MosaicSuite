@@ -18,7 +18,6 @@ import java.io.File;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -474,11 +473,9 @@ public class Poisson_Noise implements PlugInFilter
 		RoiManager manager = RoiManager.getInstance();
 		if (manager == null)
 		    manager = new RoiManager();
-	    Hashtable<String, Roi> table = manager.getROIs();
-	    for (String label : table.keySet())
+	    Roi[] roisArray = manager.getRoisAsArray();
+	    for (Roi roi : roisArray)
 	    {
-	    	int slice = manager.getSliceNumber(label);
-	        Roi roi = table.get(label);
 	        ImagePlus tmp = new ImagePlus(roi.getName(),ij.WindowManager.getImage(roi.getImageID()).getProcessor());
 	        
 	        Rectangle b = roi.getBounds();
@@ -492,7 +489,7 @@ public class Poisson_Noise implements PlugInFilter
 	        double histMin = tmp.getStatistics().histMin;
 	        double histMax = tmp.getStatistics().histMax;
 	        
-	        BinMapper1d bM = createMapper(cls,histMin,histMax);
+	        BinMapper1d<T> bM = createMapper(cls,histMin,histMax);
 	        
 	        Histogram1d<T> hist = new Histogram1d<T>(bM);
 	        

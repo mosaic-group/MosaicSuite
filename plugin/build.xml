@@ -172,6 +172,9 @@
         <javac debug="true" includeantruntime="false" srcdir="src/:test/" destdir="bin/" classpathref="build.classpath" classpath="${build.classpath}" source="1.6" target="1.6">
                     <compilerarg value="-Xlint:all" />
                     <compilerarg value="-Xlint:-path" />
+                    <compilerarg value="-proc:none" />
+                    <compilerarg value="-Xlint:-options"/>
+		    <compilerarg value="-Werror" />
                     <compilerarg line="-Xmaxwarns 10000" /> 
         </javac>
     </target>

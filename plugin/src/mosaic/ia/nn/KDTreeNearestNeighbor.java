@@ -105,14 +105,13 @@ public class KDTreeNearestNeighbor {
 		attributes.add(z);
 		 double [] val=new double[3];
 		 
-		 Instance neighbor=null;
-
+		
 	     
 	      p.get(val);
 	 
 	    Instance inst = new DenseInstance(1,val);               
 	       inst.setDataset(pointsYinstances);
-	       neighbor =kdtree.nearestNeighbour(inst);
+	       kdtree.nearestNeighbour(inst);
 	    		return kdtree.getDistances()[0];
 	    
 	    
