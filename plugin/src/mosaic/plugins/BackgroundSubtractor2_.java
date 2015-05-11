@@ -270,23 +270,6 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 	}
 	
 	/**
-	 * Subtracts the background from all the slices in the stack from <code>aImagePlus</code>.
-	 * @param aImagePlus The image to be processed.
-	 * @param aRadius This parameter should be bigger than the biggest object(in pixel) but smaller than any inter-object separation.
-	 */
-	public void SubtractBackground(ImagePlus aImagePlus, int aRadius) {
-		mAPICall = true;
-		mOriginalImagePlus = aImagePlus;
-		mHeight = mOriginalImagePlus.getHeight();
-		mWidth = mOriginalImagePlus.getWidth();
-		mShowBackgroundImage = false;
-		mDoAll = true;
-		mLength = aRadius;
-		mStepSize = mLength/2;
-		mGaussBlurRadius = mStepSize;
-		run(aImagePlus.getProcessor());
-	}
-	/**
 	 * Same as <code>SubtractBackground(ImagePlus aImagePlus, int aRadius)</code> but only for a ImageProcessor.
 	 * @param aImageProcessor The image to process.
 	 * @param aSideLength 

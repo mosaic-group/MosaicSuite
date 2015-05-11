@@ -45,7 +45,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
 	int mMask[][][];	
 	int mHeight;
 	int mWidth;
-	int mNFrames;
 	int mNSlices;
 	float mGlobalMin;
 	float mGlobalMax;
@@ -56,7 +55,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
 	ImageStack mPreprocessedFrameImage;
 	int mPreprocessedFrameNb = 0;
 	Vector<Bead> mBeads = new Vector<Bead>();
-	Bead mBeadMean = null;
 	ImagePlus mBeadImage;
 	
 	//int mMaskHeight = 10;
@@ -89,7 +87,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		mOriginalImagePlus = aOrigImp;
 		mHeight = aOrigImp.getHeight();
 		mWidth = aOrigImp.getWidth();
-		mNFrames = aOrigImp.getNFrames();
 		mNSlices = aOrigImp.getNSlices(); 
 		
 		if(!getUserDefinedParams()) return DONE;

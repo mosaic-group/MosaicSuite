@@ -14,11 +14,9 @@ import ij.io.FileSaver;
 import ij.io.Opener;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
-import ij.plugin.Duplicator;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
-import ij3d.Image3DUniverse;
 
 import java.awt.GraphicsEnvironment;
 import java.awt.Window;
@@ -1182,45 +1180,6 @@ public class Region_Competition implements Segmentation
 		OpenedImages.add(li.show("", algorithm.getBiggestLabel()));
 	}
 	
-	public void show3DViewer()
-	{
-		if(!userDialog.show3DResult())
-		{
-			return;
-		}
-		if(stackImPlus==null)
-			return;
-		ImagePlus imp = new Duplicator().run(stackImPlus);
-		ImageStack stack = imp.getImageStack();
-		
-		// clean up
-		int n = stack.getSize();
-		for(int i=1; i<=n; i++)
-		{
-			short[] pixels = (short[])stack.getPixels(i);
-			for(int j=0; j<pixels.length; j++)
-			{
-				short val = pixels[j];
-				if(val<0) 
-					pixels[j] = (short)(-val);
-				if(val == Short.MAX_VALUE)
-					pixels[j] = 0;
-			}
-		}
-		
-		
-		IJ.run(imp, "8-bit", "");
-		Image3DUniverse univ = new Image3DUniverse();
-		univ.show();
-		univ.addVoltex(imp, null, "Name", 0, new boolean[] {true, true, true}, 1);
-//		univ.addVoltex(stackImPlus, null, null, 1, 1, 1);
-//		univ.addVoltex(imp);
-		
-		// uncomment to see 3D
-//		Timeline tl = univ.getTimeline();
-//		tl.play();
-	}
-	
 	
 	public void showStatus(String s)
 	{
@@ -1528,23 +1487,6 @@ public class Region_Competition implements Segmentation
 		return this.originalIP;
 	}
 	
-//	public ImagePlus getNormalizedIP()
-//	{
-//		return this.dataNormalizedIP;
-//	}
-
-	
-/**
- * Debug: selects a point in the current image to see it faster in the GUI.
- */
-	public void selectPoint(Point p)
-	{
-		//TODO multidim
-//		stackImPlus.setRoi(p.x[0], p.x[1], 1, 1);
-		IJ.makePoint(p.x[0], p.x[1]);
-//		stackImPlus.draw();
-	}
-	
 	
 	void testOpenedImages()
 	{
@@ -1682,23 +1624,6 @@ public class Region_Competition implements Segmentation
 	{
 		return algorithm;
 	}
-	
-	
-	/**
-	 * 
-	 * Initialize region competition to run on an image given some settings
-	 * 
-	 * @param img Image 2D
-	 * @param s Setting
-	 */
-	
-	public Region_Competition(ImagePlus img, Settings s)
-	{
-		RC_ImgPlus = img;
-		settings = s;
-	}
-
-	ImagePlus RC_ImgPlus;
 	
 	public void runP()
 	{

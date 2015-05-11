@@ -297,22 +297,6 @@ public class BregmanGLM_Batch implements Segmentation
 		gM[1] = new String(Analysis.out[outputF.MASK.getNumVal()+1].replace("*", "_") + File.separator + Analysis.out[outputF.MASK.getNumVal()+1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())) );
 		return gM;
 	}
-	
-	/**
-	 * 
-	 * Get Mask images name output
-	 * 
-	 * @param aImp image
-	 * @return set of possible output
-	 */
-	
-	public String[] getRegions(ImagePlus aImp)
-	{
-		String[] gM = new String[2];
-		gM[0] = new String(Analysis.out[outputF.MASK.getNumVal()].replace("*", "_") + File.separator + Analysis.out[outputF.MASK.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())) );
-		gM[1] = new String(Analysis.out[outputF.MASK.getNumVal()+1].replace("*", "_") + File.separator + Analysis.out[outputF.MASK.getNumVal()+1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())) );
-		return gM;
-	}
 
 	/**
 	 * 

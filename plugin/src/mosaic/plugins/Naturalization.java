@@ -10,7 +10,6 @@ import ij.process.ImageProcessor;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.io.File;
-import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
@@ -33,7 +32,6 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.NumericType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.IntervalView;
@@ -98,17 +96,6 @@ public class Naturalization implements PlugInFilterExt
 		win.setVisible(true);
 	}
 	
-	// Parameters balance between first order and second order
-	// 
-	// Parameter of the algorithm
-	//
-    // (if you give more than one it perform the algorithm with all
-	// the specified parameters )
-	//
-	// is an ADVANCED parameter
-	//
-	Vector<Float> Theta;
-	
 	
 	// Precision in finding your best T 
 	final float EPS = 0.0001f;
@@ -142,7 +129,6 @@ public class Naturalization implements PlugInFilterExt
 	
 	// Image factory for float and int images
 	ImgFactory< FloatType > imgFactoryF;
-	final ImgFactory<IntType> imgFactoryI = new ArrayImgFactory< IntType >( );
 	final ImgFactory<UnsignedByteType> imgFactoryUS = new ArrayImgFactory< UnsignedByteType >( );
 	final ImgFactory<ARGBType> imgFactoryARGB = new ArrayImgFactory< ARGBType >( );
 	

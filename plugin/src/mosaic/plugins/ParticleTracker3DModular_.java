@@ -97,15 +97,12 @@ import net.imglib2.Cursor;
 import net.imglib2.FinalInterval;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
-import net.imglib2.RandomAccessible;
 import net.imglib2.RandomAccessibleInterval;
-import net.imglib2.RealInterval;
 import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.type.Type;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
@@ -170,7 +167,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	private float l_s = 1.0f;
 	private float l_f = 1.0f;
 	private float l_d = 1.0f;
-	public ImageStack stack ,traj_stack;	
+	public ImageStack stack;	
 	public StackConverter sc;
 	public ImagePlus original_imp;
 	public MyFrame[] frames;
@@ -205,8 +202,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	//public Button preview, save_detected;
 	//public Scrollbar preview_scrollbar;
 	//public Label previewLabel = new Label("");
-	public int preview_slice_calculated;
-
 
 	/* vars for text_files_mode*/
 	public String files_dir;
@@ -2300,7 +2295,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		return info;
 	}
 
-	TrajectoryStackWin tsw;
 	
 	/**
 	 * Creates a new view of the trajectories as an overlay on the given <code>ImagePlus</code>.
@@ -2354,7 +2348,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		}
 		
 		// Create a new window to hold the image and canvas
-		tsw = new TrajectoryStackWin(duplicated_imp,duplicated_imp.getWindow().getCanvas(), out);
+		new TrajectoryStackWin(duplicated_imp,duplicated_imp.getWindow().getCanvas(), out);
 
 		// zoom the window until its magnification will reach the set magnification magnification
 /*		while (tsw.getCanvas().getMagnification() < magnification) {
@@ -2362,73 +2356,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		}		*/
 	}
 
-    /**
-     * Compute a magnified version of a given real interval
-     *
-     * @param source - the input data
-     * @param interval - the real interval on the source that should be magnified
-     * @param factory - the image factory for the output image
-     * @param magnification - the ratio of magnification
-     * @return - an Img that contains the magnified image content
-     */
-    public static < T extends Type< T > > Img< ARGBType > magnify( RandomAccessible< T > source,
-        RealInterval interval, ImgFactory< T > factory, double magnification )
-    {
-/*        int numDimensions = source.numDimensions();
-        
-        // compute the number of pixels of the output and the size of the real interval
-        long[] pixelSize = new long[ numDimensions ];
-        double[] intervalSize = new double[ numDimensions ];
  
-        for ( int d = 0; d < numDimensions; ++d )
-        {
-        	intervalSize[ d ] = interval.realMax( d ) - interval.realMin( d );
-        	if (d < 2)
-        		pixelSize[ d ] = Math.round( intervalSize[ d ] * magnification ) + 1;
-        	else
-        		pixelSize[ d ] = Math.round( intervalSize[ d ] ) + 1;
-        }
- 
-        // create the output image
-        
-		final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
-		Img<ARGBType>output = imgFactory.create(pixelSize, new ARGBType());
- 
-        // cursor to iterate over all pixels
-        Cursor< ARGBType > cursor = output.localizingCursor();
- 
-        // create a RealRandomAccess on the source (interpolator)
-        RealRandomAccess< T > realRandomAccess = source.realRandomAccess();
- 
-        // the temporary array to compute the position
-        double[] tmp = new double[ numDimensions ];
- 
-        // get conversion;
-        
-        ToARGB conv = MosaicUtils.getConversion(realRandomAccess.get());
-        
-        // for all pixels of the output image
-        while ( cursor.hasNext() )
-        {
-            cursor.fwd();
- 
-            // compute the appropriate location of the interpolator
-            for ( int d = 0; d < 
-            		numDimensions; ++d )
-                tmp[ d ] = cursor.getIntPosition( d ) / output.realMax( d ) * intervalSize[ d ]
-                        + interval.realMin( d );
- 
-            // set the position
-            realRandomAccess.setPosition( tmp );
- 
-            // set the new value
-            cursor.get().set( conv.toARGB(realRandomAccess.get()) );
-        }
- 
-        return output;*/
-    	return null;
-    }
-	
 	/**
 	 * 
 	 * Take an image take the ROI, scale (2D) it without interpolation
@@ -2611,7 +2539,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
 		// Convert the stack to RGB so color can been drawn on it and get its ImageStack
 		IJ.run("RGB Color");
-		traj_stack = duplicated_imp.getStack();
+		//traj_stack = duplicated_imp.getStack();
 		IJ.freeMemory();
 
 		// Reset the active imageJ window to the one the ROI was selected on - info from the Roi is still needed
