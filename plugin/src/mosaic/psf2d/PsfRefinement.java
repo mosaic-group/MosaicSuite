@@ -4,7 +4,6 @@ package mosaic.psf2d;
 
 import ij.plugin.filter.Convolver;
 import ij.process.ImageProcessor;
-import mosaic.plugins.ParticleTracker_;
 
 /**
  * Refines Point Source Positions to floating point accuracy based on intensity centroid calculation.

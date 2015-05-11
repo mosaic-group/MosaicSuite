@@ -92,6 +92,7 @@ import mosaic.particleTracker.TrajectoriesReportXML;
 import mosaic.particleTracker.Trajectory;
 import mosaic.particleTracker.TrajectoryAnalysis;
 import mosaic.particleTracker.TrajectoryAnalysisPlot;
+import mosaic.plugins.utils.PlugInFilterExt;
 import net.imglib2.Cursor;
 import net.imglib2.FinalInterval;
 import net.imglib2.IterableInterval;

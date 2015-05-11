@@ -1,7 +1,6 @@
-package mosaic.plugins;
+package mosaic.plugins.utils;
 
 import ij.process.ByteProcessor;
-import mosaic.plugins.utils.PlugIn8bitBase;
 
 /**
  * This class serves as a example of how PlugIn8BitBase should be used.

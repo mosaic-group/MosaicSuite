@@ -1,5 +1,6 @@
 package mosaic.plugins;
 
+import mosaic.plugins.utils.CurvatureFilterBase;
 import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;

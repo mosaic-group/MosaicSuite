@@ -16,7 +16,7 @@ import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
-import mosaic.plugins.PlugInFilterExt;
+import mosaic.plugins.utils.PlugInFilterExt;
 import net.imglib2.img.Img;
 
 import org.scijava.Context;

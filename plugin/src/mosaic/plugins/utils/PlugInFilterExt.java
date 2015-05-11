@@ -1,4 +1,4 @@
-package mosaic.plugins;
+package mosaic.plugins.utils;
 
 import ij.plugin.filter.PlugInFilter;
 

@@ -20,6 +20,7 @@ import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
 import mosaic.core.utils.MosaicUtils;
+import mosaic.plugins.utils.PlugInFilterExt;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;

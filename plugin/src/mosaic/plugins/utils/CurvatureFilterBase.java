@@ -1,7 +1,6 @@
-package mosaic.plugins;
+package mosaic.plugins.utils;
 
 import ij.gui.GenericDialog;
-import mosaic.plugins.utils.PlugInFloatBase;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 import mosaic.variationalCurvatureFilters.FilterKernel;
 import mosaic.variationalCurvatureFilters.FilterKernelGc;
@@ -32,7 +31,7 @@ public abstract class CurvatureFilterBase extends PlugInFloatBase {
      * @param aSplitMethodMenuAvailable If true user can chose split/no split version
      *                                  of filter (false by default)
      */
-    void setSplitMethodMenu(boolean aSplitMethodMenuAvailable) {
+    protected void setSplitMethodMenu(boolean aSplitMethodMenuAvailable) {
         hasSplitMethodMenu = aSplitMethodMenuAvailable;
     }
     

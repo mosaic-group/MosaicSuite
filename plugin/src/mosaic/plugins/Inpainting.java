@@ -6,6 +6,7 @@ import ij.io.OpenDialog;
 import ij.io.Opener;
 import ij.process.FloatProcessor;
 import mosaic.plugins.utils.ConvertImg;
+import mosaic.plugins.utils.CurvatureFilterBase;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 
 /**
