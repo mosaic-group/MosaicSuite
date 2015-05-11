@@ -5,7 +5,7 @@ import java.util.concurrent.CountDownLatch;
 
 
 
-public class ZoneTask implements Runnable {
+class ZoneTask implements Runnable {
 	private final CountDownLatch ZoneDoneSignal;
 	private final CountDownLatch Sync1;
 	private final CountDownLatch Sync2;

@@ -4,7 +4,7 @@ package mosaic.paramopt.cma.fitness;
  * that accepts an array
  * of points double[][], a population to be evaluated within one call to method valuesOf().
 */
-public interface IObjectiveFunctionParallel {
+interface IObjectiveFunctionParallel {
 
     /** 
      * @param pop is an array of search points to be evaluated, where

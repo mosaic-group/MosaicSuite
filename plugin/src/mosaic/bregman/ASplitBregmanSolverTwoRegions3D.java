@@ -4,7 +4,7 @@ import java.util.Date;
 
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
 
-public class ASplitBregmanSolverTwoRegions3D  extends ASplitBregmanSolverTwoRegions {
+class ASplitBregmanSolverTwoRegions3D  extends ASplitBregmanSolverTwoRegions {
 
 	public double [] [] [] [] w2zk;
 	public double [] [] [] [] b2zk;

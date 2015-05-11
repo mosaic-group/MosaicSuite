@@ -7,13 +7,10 @@ import ij.gui.GenericDialog;
 import java.awt.Button;
 import java.awt.Font;
 import java.awt.Panel;
-import java.awt.Point;
-import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import mosaic.bregman.Analysis;
-import mosaic.bregman.GenericDialogCustom;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.SquasshOutputChoose;
 import mosaic.core.GUI.OutputGUI;
@@ -123,29 +120,5 @@ public class VisualizationGUI
 		
 		
 		Analysis.p.nbconditions=(int) gd.getNextNumber();
-	}
-
-
-	class PSFOpenerActionListener implements ActionListener
-	{
-		GenericDialogCustom gd;
-		TextArea taxy;
-		TextArea taz;
-
-		public PSFOpenerActionListener(GenericDialogCustom gd)
-		{
-			this.gd=gd;
-			//this.ta=ta;
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-
-			Point p =gd.getLocationOnScreen();
-			//IJ.log("plugin location :" + p.toString());
-			new PSFWindow(p.x, p.y, gd);
-
-		}
 	}
 }

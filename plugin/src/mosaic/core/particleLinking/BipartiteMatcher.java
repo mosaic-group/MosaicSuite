@@ -70,7 +70,7 @@ import java.util.StringTokenizer;
  * given node have weight Double.NEGATIVE_INFINITY, then the final result will
  * not be a perfect matching, and an exception will be thrown.
  */
-public class BipartiteMatcher {
+class BipartiteMatcher {
 	/**
 	 * Creates a BipartiteMatcher without specifying the graph size. Calling any
 	 * other method before calling reset will yield an IllegalStateException.

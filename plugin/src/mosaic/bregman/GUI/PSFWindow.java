@@ -22,7 +22,7 @@ import mosaic.bregman.GaussianPSFModel;
 import mosaic.bregman.GenericDialogCustom;
 
 
-public class PSFWindow implements ActionListener,PropertyChangeListener
+class PSFWindow implements ActionListener,PropertyChangeListener
 {
 	
 	

@@ -41,21 +41,6 @@ class LSFBatch implements BatchInterface
 		public String exe_host;
 		public String job_name ;
 		public String Sub_time;
-		
-		boolean allComplete(LSFJob jb[], int jobsID)
-		{
-			for (int i = 0 ; i < jb.length ; i++)
-			{
-				if (jb[i] != null)
-					continue;
-				
-				if (jb[i].job_id.equals(((Integer)jobsID).toString()) == true)
-				{
-					return false;
-				}
-			}
-			return true;
-		}
 	};
 	
 	

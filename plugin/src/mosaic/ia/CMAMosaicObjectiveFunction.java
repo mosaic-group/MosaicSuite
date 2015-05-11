@@ -6,7 +6,7 @@ package mosaic.ia;
 import mosaic.ia.utils.IAPUtils;
 import mosaic.paramopt.cma.fitness.AbstractObjectiveFunction;
 
-public class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
+class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 	
 	/**
 	 *

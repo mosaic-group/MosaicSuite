@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 //import ij.process.ColorProcessor;
 
 
-public class ImagePatches {
+class ImagePatches {
 	ImagePlus regsresultx;
 	ImagePlus regsresulty;
 	//	ImageWindow iwx;

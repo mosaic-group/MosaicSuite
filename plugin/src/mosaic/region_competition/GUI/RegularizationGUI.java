@@ -3,7 +3,7 @@ package mosaic.region_competition.GUI;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.RegularizationType;
 
-public abstract class RegularizationGUI extends GUImeMore
+abstract class RegularizationGUI extends GUImeMore
 {
 	protected RegularizationGUI(Settings settings)
 	{

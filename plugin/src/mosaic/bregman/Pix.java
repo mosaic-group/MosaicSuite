@@ -1,7 +1,7 @@
 package mosaic.bregman;
 
 
-public class Pix {
+class Pix {
 	
 	public int pz;
 	public int px;

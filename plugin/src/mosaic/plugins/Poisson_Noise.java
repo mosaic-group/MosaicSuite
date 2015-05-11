@@ -142,7 +142,7 @@ public class Poisson_Noise implements PlugInFilter
 		}
 	}
 	
-	interface ConnectedRegionsCB
+	private interface ConnectedRegionsCB
 	{
 		public void regionProcess(Set<Point> pnt);
 	}
@@ -234,7 +234,7 @@ public class Poisson_Noise implements PlugInFilter
 		return null;
 	}
 	
-	class processCCRegion<T extends RealType<T>> implements ConnectedRegionsCB
+	private class processCCRegion<T extends RealType<T>> implements ConnectedRegionsCB
 	{
 		Img<T> img;
 		HashMap<T,Histogram1d<T>> hset;

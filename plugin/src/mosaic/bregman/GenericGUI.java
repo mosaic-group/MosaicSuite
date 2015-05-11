@@ -1,9 +1,29 @@
 package mosaic.bregman;
 
 
+import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
+//import ij.gui.NonBlockingGenericDialog;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
+//import java.awt.event.FocusEvent;
+//import java.awt.event.FocusListener;
+//import java.awt.event.TextEvent;
+//import java.awt.event.TextListener;
+//import java.io.File;
+//import java.io.InputStream;
+//import java.io.InputStreamReader;
+//import java.util.List;
+//import java.util.StringTokenizer;
+//import javax.swing.JTextArea;
+//
+//
+//
+//import ij.IJ;
+//import ij.ImagePlus;
+import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
 
 import java.awt.Button;
 import java.awt.Dimension;
@@ -31,7 +51,6 @@ import javax.swing.JPanel;
 
 import mosaic.bregman.GUI.BackgroundSubGUI;
 import mosaic.bregman.GUI.ColocalizationGUI;
-import mosaic.bregman.GUI.PSFWindow;
 import mosaic.bregman.GUI.SegmentationGUI;
 import mosaic.bregman.GUI.VisualizationGUI;
 import mosaic.bregman.output.CSVOutput;
@@ -39,26 +58,6 @@ import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BregmanGLM_Batch;
-//import java.awt.event.FocusEvent;
-//import java.awt.event.FocusListener;
-//import java.awt.event.TextEvent;
-//import java.awt.event.TextListener;
-//import java.io.File;
-//import java.io.InputStream;
-//import java.io.InputStreamReader;
-//import java.util.List;
-//import java.util.StringTokenizer;
-//import javax.swing.JTextArea;
-//
-//
-//
-//import ij.IJ;
-//import ij.ImagePlus;
-import ij.process.ImageProcessor;
-import ij.process.ImageStatistics;
-import ij.IJ;
-import ij.ImageStack;
-//import ij.gui.NonBlockingGenericDialog;
 
 public class GenericGUI 
 {
@@ -594,17 +593,13 @@ public class GenericGUI
 		//Analysis.load2channels(imagePlus);
 	}
 
-	class FileOpenerActionListener implements ActionListener
+	private class FileOpenerActionListener implements ActionListener
 	{
-		GenericDialog gd;
 		TextArea ta;
-		Panel pp;
-
+		
 		public FileOpenerActionListener(Panel p,GenericDialog gd, TextArea ta)
 		{
-			this.gd=gd;
 			this.ta=ta;
-			this.pp=p;
 		}
 
 		@Override
@@ -721,43 +716,14 @@ public class GenericGUI
 		}
 	}
 
-	class PSFOpenerActionListener implements ActionListener
-	{
-		GenericDialogCustom gd;
-		TextArea taxy;
-		TextArea taz;
-		Panel pp;
-
-		public PSFOpenerActionListener(Panel p, GenericDialogCustom gd)
-		{
-			this.gd=gd;
-			//this.ta=ta;
-			this.pp=p;
-		}
-
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-
-			Point p =gd.getLocationOnScreen();
-			//IJ.log("plugin location :" + p.toString());
-			new PSFWindow(p.x, p.y, gd);
-
-		}
-	}
-
-
-	class HelpOpenerActionListener implements ActionListener
+	private class HelpOpenerActionListener implements ActionListener
 	{
 		GenericDialog gd;
-
-		Panel pp;
 
 		public HelpOpenerActionListener(Panel p,GenericDialog gd)
 		{
 			this.gd=gd;
 
-			this.pp=p;
 		}
 
 		@Override
@@ -769,10 +735,10 @@ public class GenericGUI
 		}
 	}
 
-	public class Helpwindow extends HelpGUI
+	private class Helpwindow extends HelpGUI
 	{
 		JFrame frame;
-		JPanel panel;
+		private JPanel panel;
 		
 		public Helpwindow(int x, int y )
 		{

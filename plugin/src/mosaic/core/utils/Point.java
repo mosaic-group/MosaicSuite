@@ -359,41 +359,5 @@ public class Point
 	{
 		return dim;
 	}
-	
-	/**
-	 * 
-	 * Point factory interface
-	 *
-	 * @param <T>
-	 */
-	
-	public interface PointFactoryInterface<T>
-	{
-		T pointFromArray(int array[]);
-		T copylessPointFromArray(int array[]);
-	}
-	
-	/**
-	 * 
-	 * Point factory
-	 * 
-	 *
-	 */
-	
-	public static class PointFactory implements PointFactoryInterface<Point>
-	{
-		@Override
-		public Point pointFromArray(int vec[])
-		{
-			return new Point(vec);
-		}
-
-		@Override
-		public Point copylessPointFromArray(int[] array)
-		{
-			return Point.CopyLessArray(array);
-		}
-	}
-	
 }
 

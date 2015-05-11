@@ -7,7 +7,7 @@ import java.util.Random;
 
 import mosaic.ia.utils.IAPUtils;
 
-public class HypothesisTesting {
+class HypothesisTesting {
 	private double [] CDFGrid;
 	private double [] DGrid;
 	private double [] D;

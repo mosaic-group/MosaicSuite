@@ -10,7 +10,7 @@ import mosaic.core.utils.FloodFill;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.Point;
 
-public class ForestFire
+class ForestFire
 {
 	
 	Algorithm algorithm;

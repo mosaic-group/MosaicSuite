@@ -31,7 +31,7 @@ public abstract class Energy
 	 * Responsible for regularization
 	 * Independent of image I
 	 */
-	public static abstract class InternalEnergy extends Energy
+	static abstract class InternalEnergy extends Energy
 	{
 		protected LabelImageRC labelImage;
 		public InternalEnergy(LabelImageRC labelImage)
@@ -43,7 +43,7 @@ public abstract class Energy
 	/**
 	 * Responsible for data fidelity
 	 */
-	public static abstract class ExternalEnergy extends Energy
+	static abstract class ExternalEnergy extends Energy
 	{
 		protected IntensityImage intensityImage;
 		protected LabelImageRC labelImage;

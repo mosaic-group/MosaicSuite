@@ -3,7 +3,7 @@ package mosaic.paramopt.cma;
     /** solution point in search space, single-objective case
      *  
      * */
-public interface ISolutionPoint {
+interface ISolutionPoint {
     /** objective function value (fitness) of the search point x */ 
     public double getFitness();  
     /** count at what evaluation number the search point x was evaluated */

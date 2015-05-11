@@ -6,7 +6,7 @@ import java.util.concurrent.CountDownLatch;
 
 
 
-public class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D {
+class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D {
 	public double [] [] [] eigenPSF;
 	double c0,c1;
 	public double [] energytab2;

@@ -30,7 +30,7 @@ class ProcessorGeneral
 	public CellProcessor getProcessorSingle_Coloc()				{return new ParseBool();}
 	public CellProcessor getProcessorColoc_image_intensity()		{return new ParseDouble();}
 	
-	class Map
+	private class Map
 	{
 		String from;
 		String To;

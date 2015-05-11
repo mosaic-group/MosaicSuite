@@ -28,7 +28,7 @@ import net.imglib2.type.numeric.real.DoubleType;
  *
  */
 
-public class TwoRegions extends NRegions 
+class TwoRegions extends NRegions 
 {
 	double [] [] [] [] SpeedData;
 	public TwoRegions(ImagePlus img,Parameters params, CountDownLatch DoneSignal, int channel)

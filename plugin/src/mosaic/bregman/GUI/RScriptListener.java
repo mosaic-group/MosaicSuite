@@ -9,7 +9,7 @@ import java.awt.event.ActionListener;
 
 import mosaic.bregman.Analysis;
 
-public class RScriptListener implements ActionListener {
+class RScriptListener implements ActionListener {
 
 	GenericDialog gd;
 	int nbgroups;

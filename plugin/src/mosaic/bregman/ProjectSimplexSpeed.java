@@ -1,7 +1,7 @@
 package mosaic.bregman;
 
 
-public class ProjectSimplexSpeed {
+class ProjectSimplexSpeed {
 
 	static	void  bubble_sort_descend(double [] a , int len) {
 

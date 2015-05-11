@@ -1,13 +1,15 @@
 package mosaic.bregman;
 
 
+import ij.IJ;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
 
-public class RScript {
+class RScript {
 	
 
 	
@@ -151,6 +153,7 @@ public class RScript {
 		
 		try{
 			//works when plugin running from .jar plugin file
+			IJ.log("RSCRIPT..........");
 			InputStream in = this.getClass().getResourceAsStream("/Rscript.r");
 			Scanner scanner = new Scanner(in);
 			String content = scanner.useDelimiter("\\Z").next();

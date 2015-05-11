@@ -5,7 +5,7 @@ import java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
 
 
-public class SingleRegionTask implements Runnable 
+class SingleRegionTask implements Runnable 
 {
 	private final CountDownLatch RegionsTasksDoneSignal;
 	private final CountDownLatch UkDoneSignal;

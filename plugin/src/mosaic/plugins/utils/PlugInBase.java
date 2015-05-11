@@ -13,7 +13,7 @@ import ij.process.ImageProcessor;
  * Base for plugIns that use float values as a algorithm base.
  * @author Krzysztof Gonciarz
  */
-public abstract class PlugInBase implements PlugInFilter {
+abstract class PlugInBase implements PlugInFilter {
     
     // Original input image
     protected ImagePlus iInputImg;

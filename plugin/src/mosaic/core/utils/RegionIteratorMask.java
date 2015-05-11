@@ -29,16 +29,15 @@ public class RegionIteratorMask
 	RegionIterator regionIt;
 	MaskIterator maskIt;
 
-	class MovePoint
+	private class MovePoint
 	{
 		public Point p;
 		public int idx;
 	};
 	
-	class RJmp
+	private class RJmp
 	{
 		public int idx = 0;
-		public int dim_r = 0;
 	};
 	
 	// Crop type
@@ -72,7 +71,6 @@ public class RegionIteratorMask
 			{
 				RJmp tmp = new RJmp();
 				tmp.idx = jidx;
-				tmp.dim_r = reset;
 				
 				rJmpTmp.add(tmp);
 			}

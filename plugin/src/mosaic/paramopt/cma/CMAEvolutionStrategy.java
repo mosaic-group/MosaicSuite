@@ -455,14 +455,13 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
     long countCupdatesSinceEigenupdate;
     
     /* fitness information */
-    class FitnessCollector {
+    private class FitnessCollector {
         double history[];
         IntDouble[] fitness;   // int holds index for respective arx
         IntDouble[] raw; // sorted differently than fitness!
         /** history of delta fitness / sigma^2. Here delta fitness is the minimum of 
          * fitness value differences with distance lambda/2 in the ranking.  */
         double[] deltaFitHist = new double[5];
-        int idxDeltaFitHist = 0;
     }
     protected FitnessCollector fit = new FitnessCollector();
 
@@ -706,7 +705,6 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
 
 
     	fit.deltaFitHist = new double[5];
-    	fit.idxDeltaFitHist = -1;
     	for (i = 0; i < fit.deltaFitHist.length; ++i)
     		fit.deltaFitHist[i] = 1.;
 
@@ -874,31 +872,8 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
     }
     
     /** some simple math utilities */
-    class MyMath { // implements java.io.Serializable {
-        int itest;
-        
-        double square(double d) {
-            return d*d;
-        }
-        double prod(double []ar) {
-            double res = 1.0;
-            for(int i = 0; i < ar.length; ++i)
-                res *= ar[i];
-            return res;
-        }
-        
-        public double median(double ar[]) {
-            // need a copy of ar
-            double [] ar2 = new double[ar.length];
-            for (int i = 0; i < ar.length; ++i)
-                ar2[i] = ar[i];
-            Arrays.sort(ar2);
-            if (ar2.length % 2 == 0)
-                return (ar2[ar.length/2] + ar2[ar.length/2-1]) / 2.;
-            else    
-                return ar2[ar.length/2];
-        }
-        
+    private class MyMath { // implements java.io.Serializable {
+               
         /** @return Maximum value of 1-D double array */
         public double max(double ar[]) {
             int i;
@@ -946,17 +921,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
          *   array between index 0 and maxidx 
          * @param ar double[] 
          * @param maxidx last index to be considered */
-        protected int minidx(IntDouble[] ar, int maxidx) {
-            int i, idx;
-            idx = 0;
-            for (i = 1; i < maxidx; ++i) {
-                if (ar[idx].val > ar[i].val)
-                    idx = i;
-            }
-            return idx;
-        }
-
-        /** @return index of maximum value of 1-D double array */
+               /** @return index of maximum value of 1-D double array */
         public int maxidx(double ar[]) {
             int i, idx;
             idx = 0;
@@ -973,19 +938,6 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
             m = ar[0];
             for (i = 1; i < ar.length; ++i) {
                 if (m > ar[i])
-                    m = ar[i];
-            }
-            return m;
-        }
-        
-        /** @return Maximum value of 1-D Object array where the object implements Comparator 
-         *    Example: max(Double arx, arx[0]) */
-        public Double max(Double ar[], Comparator<Double> c) {
-            int i;
-            Double m;
-            m = ar[0];
-            for (i = 1; i < ar.length; ++i) {
-                if (c.compare(m, ar[i]) > 0)
                     m = ar[i];
             }
             return m;
@@ -1015,17 +967,6 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
             return m;
         }
         
-        /** @return Minimum value of 1-D Object array defining a Comparator */
-        public Double min(Double ar[], Comparator<Double> c) {
-            int i;
-            Double m;
-            m = ar[0];
-            for (i = 1; i < ar.length; ++i) {
-                if (c.compare(m, ar[i]) < 0)
-                    m = ar[i];
-            }
-            return m;
-        }
         
         /**
          * @return Diagonal of an 2-D double array
@@ -1049,7 +990,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
         }
     } // MyMath
     
-    class Timing {
+    private class Timing {
         Timing(){
             birth = System.currentTimeMillis();
             start = birth; // on the save side 
@@ -2611,7 +2552,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
      * CMAEvolutionStrategy might throw the CMAException, that
      * need not be catched, because it extends the "unchecked"
      * RuntimeException class */ 
-    public class CMAException extends RuntimeException {
+    class CMAException extends RuntimeException {
         private static final long serialVersionUID = 1L;
     
         CMAException(String s) {

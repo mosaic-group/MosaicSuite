@@ -4,7 +4,7 @@ package mosaic.bregman;
 import java.util.Date;
 
 
-public class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
+class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 
 	int l=0; // use mask etc of level 0 
 

@@ -35,7 +35,7 @@ import net.sf.javaml.tools.DatasetTools;
  *
  */
 
-public class NRegions implements Runnable{
+class NRegions implements Runnable{
 
 	Tools LocalTools;
 	//image and mask data

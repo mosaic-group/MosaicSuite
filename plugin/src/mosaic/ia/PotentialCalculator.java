@@ -1,6 +1,6 @@
 package mosaic.ia;
 
-public class PotentialCalculator {
+class PotentialCalculator {
 	public double[] getGibbsPotential() {
 		return gibbspotential;
 	}

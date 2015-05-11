@@ -6,7 +6,7 @@ import java.awt.Font;
 
 import mosaic.bregman.Analysis;
 
-public class RScriptWindow {
+class RScriptWindow {
 
 	int nbgroups;
 	int posx, posy;

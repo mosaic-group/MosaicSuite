@@ -6,7 +6,7 @@ import java.util.Queue;
 import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.Point;
 
-public class UnitCubeCCCounter
+class UnitCubeCCCounter
 {
 	boolean[] m_ConnectivityTest;
 	

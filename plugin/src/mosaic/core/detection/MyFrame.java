@@ -1613,7 +1613,7 @@ import net.imglib2.view.Views;
 			TRAJECTORY_HISTORY_WITH_NEXT
 		}
 		
-		class pParticle
+		private class pParticle
 		{
 			Particle p1;
 			Particle p2;

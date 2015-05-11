@@ -4,7 +4,7 @@ package mosaic.core.utils;
  * Iterates over a Region within an InputImage, 
  * but returns indices relative to the region (and not input)
  */
-public class MaskIterator extends RegionIterator
+class MaskIterator extends RegionIterator
 {
 	/**
 	 * Iterating over region is implemented in such a way, 

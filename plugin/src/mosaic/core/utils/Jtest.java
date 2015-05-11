@@ -19,7 +19,7 @@ import org.junit.Test;
 
 public class Jtest 
 {
-	class segStub implements Segmentation
+	private class segStub implements Segmentation
 	{
 		int cnt = 0;
 		

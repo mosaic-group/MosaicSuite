@@ -3,7 +3,7 @@ package mosaic.region_competition.GUI;
 import ij.gui.GenericDialog;
 import mosaic.region_competition.Settings;
 
-public abstract class GUImeMore
+abstract class GUImeMore
 {
 	protected GenericDialog gd;
 	protected Settings settings;	

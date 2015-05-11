@@ -8,7 +8,7 @@ package mosaic.core.utils;
  *
  */
 
-public abstract class Mask
+abstract class Mask
 {
 	public final byte bgVal = 0;
 	public final byte fgVal = 1;

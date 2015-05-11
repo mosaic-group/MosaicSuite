@@ -25,7 +25,7 @@ import mosaic.core.GUI.HelpGUI;
 public class BackgroundSubGUI 
 {
 	
-	class BackgroundSubHelp extends HelpGUI implements ActionListener
+	private class BackgroundSubHelp extends HelpGUI implements ActionListener
 	{
 		public JDialog frame;
 		//Initialize Buttons

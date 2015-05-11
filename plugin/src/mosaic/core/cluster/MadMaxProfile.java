@@ -12,7 +12,7 @@ import mosaic.core.utils.DataCompression.Algorithm;
  *
  */
 
-public class MadMaxProfile extends GeneralProfile
+class MadMaxProfile extends GeneralProfile
 {
 	MadMaxProfile()
 	{

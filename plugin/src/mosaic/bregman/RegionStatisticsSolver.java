@@ -21,8 +21,7 @@ import weka.clusterers.SimpleKMeans;
  * @author i-bird
  *
  */
-//public class RegionStatisticsSolver<T> {
-public class RegionStatisticsSolver {
+class RegionStatisticsSolver {
 	private double [] [] [] Z;
 	private double [] [] [] W;
 	private double [] [] [] mu;

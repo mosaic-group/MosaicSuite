@@ -5,7 +5,7 @@ import mosaic.region_competition.LabelImageRC;
 /**
  * Abstract Initializer class that do not depend on input image
  */
-public abstract class Initializer
+abstract class Initializer
 {
 	LabelImageRC labelImage;
 	int dim;

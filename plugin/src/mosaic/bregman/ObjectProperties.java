@@ -10,7 +10,7 @@ import java.util.Iterator;
 import mosaic.core.psf.GaussPSF;
 import net.imglib2.type.numeric.real.DoubleType;
 
-public class ObjectProperties implements Runnable {
+class ObjectProperties implements Runnable {
 	double intmin, intmax;
 	double [][][] image;
 	public Region region;

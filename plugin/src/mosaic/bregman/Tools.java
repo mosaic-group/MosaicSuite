@@ -13,7 +13,7 @@ import mosaic.core.psf.psf;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
-public class Tools 
+class Tools 
 {
 	static ImagePlus imgd=new ImagePlus();
 	static boolean disp=true;

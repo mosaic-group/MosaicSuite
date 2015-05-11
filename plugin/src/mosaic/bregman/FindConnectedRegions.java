@@ -71,7 +71,7 @@ import java.util.Collections;
 
 
 
-public class FindConnectedRegions  
+class FindConnectedRegions  
 {
 	public static final String PLUGIN_VERSION = "1.2";
 	public byte  [] [] [] softmask;

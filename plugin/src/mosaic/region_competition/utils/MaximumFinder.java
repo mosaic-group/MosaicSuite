@@ -58,7 +58,7 @@ import java.util.Vector;
  * version 22-May-2011 Bugfix: Maximum search in EDM and float images with large dynamic range could omit maxima
  */
 
-public class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
+class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
     //filter params
     /** maximum height difference between points that are not counted as separate maxima */
     private static double tolerance = 10;

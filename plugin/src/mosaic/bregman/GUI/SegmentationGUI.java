@@ -9,7 +9,6 @@ import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.Panel;
 import java.awt.Point;
-import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -26,7 +25,7 @@ import mosaic.core.GUI.HelpGUI;
 
 public class SegmentationGUI 
 {
-	class SegmentationGUIHelp extends HelpGUI implements ActionListener
+	private class SegmentationGUIHelp extends HelpGUI implements ActionListener
 	{
 		public JDialog frame;
 		//Initialize Buttons
@@ -285,11 +284,9 @@ public class SegmentationGUI
 	}
 
 
-	class PSFOpenerActionListener implements ActionListener
+	private class PSFOpenerActionListener implements ActionListener
 	{
 		GenericDialogCustom gd;
-		TextArea taxy;
-		TextArea taz;
 
 		public PSFOpenerActionListener(GenericDialogCustom gd)
 		{

@@ -3,7 +3,7 @@ package mosaic.region_competition.GUI;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.EnergyFunctionalType;
 
-public abstract class EnergyGUI extends GUImeMore
+abstract class EnergyGUI extends GUImeMore
 {
 	protected EnergyGUI(Settings settings)
 	{

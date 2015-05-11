@@ -32,7 +32,7 @@ import com.jcraft.jsch.SftpProgressMonitor;
  *
  */
 
-public class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMonitor
+class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMonitor
 {
 	ShellProcessOutput shp;
 	PipedInputStream pinput_in;

@@ -3,7 +3,7 @@ package mosaic.region_competition.GUI;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.initializers.InitializationType;
 
-public abstract class InitializationGUI extends GUImeMore
+abstract class InitializationGUI extends GUImeMore
 {
 
 	protected InitializationGUI(Settings settings)

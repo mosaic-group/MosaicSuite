@@ -19,7 +19,7 @@ import mosaic.core.utils.MosaicUtils;
 
 
 //TODO : display for 3D
-public class MasksDisplay {
+class MasksDisplay {
 	private ImageStack imgcolocstack;
 	private ImageStack imgcolocastack;
 	//private ImageStack imgcolocbstack;

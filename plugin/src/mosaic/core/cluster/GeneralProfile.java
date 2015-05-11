@@ -13,7 +13,7 @@ import mosaic.core.utils.DataCompression.Algorithm;
  *
  */
 
-public class GeneralProfile implements ClusterProfile
+class GeneralProfile implements ClusterProfile
 {
 	BatchInterface bc;
 	String ProfileName;
@@ -24,7 +24,7 @@ public class GeneralProfile implements ClusterProfile
 	String pwd;
 	hw acc;
 	
-	class Tqueue
+	private class Tqueue
 	{
 		Tqueue(double minutes_, String name_)
 		{

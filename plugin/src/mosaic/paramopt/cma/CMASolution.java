@@ -4,7 +4,7 @@ package mosaic.paramopt.cma;
  * 
  * @see ISolutionPoint
  * */
-public class CMASolution implements ISolutionPoint, java.io.Serializable {
+class CMASolution implements ISolutionPoint, java.io.Serializable {
     /**
 	 * 
 	 */

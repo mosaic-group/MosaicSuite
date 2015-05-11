@@ -1639,7 +1639,7 @@ public class Region_Competition implements Segmentation
 	 * This indicates to not further producing stackframes. 
 	 * For Hyperstacks (for which IJ reopens new Window on each update) it hooks to the new Windows. 
 	 */
-	class StackWindowListener implements WindowListener
+	private class StackWindowListener implements WindowListener
 	{
 		@Override
 		public void windowClosing(WindowEvent e)

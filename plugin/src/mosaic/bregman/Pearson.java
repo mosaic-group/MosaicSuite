@@ -11,7 +11,7 @@ import ij.process.ImageProcessor;
 
 
 
-public class Pearson {
+class Pearson {
 	int width, height, nbSlices, depth, length, widthCostes, heightCostes, nbsliceCostes, lengthCostes;
 	String titleA, titleB;
 	int[] A, B;

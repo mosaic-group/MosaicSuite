@@ -439,7 +439,7 @@ import java.util.Vector;
  *              formatting of -0.0f
  *              round up/down when last digits are 50000...
  */
-public class PrintfFormat {
+class PrintfFormat {
   /**
    * Constructs an array of control specifications
    * possibly preceded, separated, or followed by

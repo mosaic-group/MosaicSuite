@@ -68,58 +68,6 @@ class FloatToARGB implements ToARGB
 	}
 }
 
-/**
- * 
- * Class to convert a float into an ARGB type
- * 
- * Red Green Blue Channels are set to f/(max - min)*255
- * 
- * @author Pietro Incardona
- *
- */
-
-class FloatToARGBNorm implements ToARGB
-{
-	double min = 0.0;
-	double max = 255;
-	
-	/**
-	 * 
-	 * From data convert into ARGBType
-	 * 
-	 * @param Object pixel value (suppose to be an imgLib2 class extending RealType )
-	 * 
-	 */
-	
-	@Override
-	public ARGBType toARGB(Object data)
-	{
-		ARGBType t = new ARGBType();
-		
-		float td = 0.0f;
-		td = (float) (255*(((RealType<?>)data).getRealFloat()-min)/max);
-		t.set(ARGBType.rgba(td, td, td, 255.0f));
-		
-		return t;
-	}
-	
-	/**
-	 * 
-	 * Set the minimum and the maximum, used for renormalization
-	 * 
-	 * @param min
-	 * @param max
-	 * 
-	 */
-	
-	@Override
-	public void setMinMax(double min, double max) 
-	{
-		this.min = min;
-		this.max = max;
-	}
-}
-
 class IntToARGB implements ToARGB
 {
 	double min = 0.0;
@@ -170,12 +118,6 @@ public class MosaicUtils
 	{
 		public File RegionList;
 		public File RegionMask;
-	}
-	
-	public class ImageStat
-	{
-		public double Min;
-		public double Max;
 	}
 	
 	//////////////////////////////////// Procedures for draw //////////////////

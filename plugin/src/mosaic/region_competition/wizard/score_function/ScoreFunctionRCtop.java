@@ -256,32 +256,16 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	}
 	
 	
-	class DivideBtn implements ActionListener
+	private class DivideBtn implements ActionListener
 	{
 
 		LabelImageRC ip[];
 		ImagePlus ipp[];
 		
-		DivideBtn(LabelImageRC ip_[])
-		{
-			ip = ip_;
-			ipp = new ImagePlus[ip.length];
-			for (int i = 0 ; i < ip_.length ; i++)
-			{
-				ipp[i] = ip[i].convert("Topo-fix", 255);
-				ipp[i].show();
-			}
-		}
-		
 		DivideBtn(LabelImageRC ip_[], ImagePlus ipp_[])
 		{
 			ip = ip_;
 			ipp = ipp_;
-		}
-		
-		ImagePlus [] getImagePlus()
-		{
-			return ipp;
 		}
 		
 		@Override
@@ -352,7 +336,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		
 	}
 	
-	class MergeBtn implements ActionListener
+	private class MergeBtn implements ActionListener
 	{
 		LabelImageRC ip[];
 		ImagePlus ipp[];

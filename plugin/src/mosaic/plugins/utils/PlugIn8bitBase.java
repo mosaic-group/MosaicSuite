@@ -13,7 +13,7 @@ import java.util.List;
  * Base for plugIns that use float values as a algorithm base.
  * @author Krzysztof Gonciarz
  */
-public abstract class PlugIn8bitBase extends PlugInBase {
+abstract class PlugIn8bitBase extends PlugInBase {
     // ImageJ plugIn flags defined for setup method
     private int iFlags = DOES_8G |
                          DOES_RGB |
@@ -26,7 +26,7 @@ public abstract class PlugIn8bitBase extends PlugInBase {
     protected int getFlags() {return iFlags;}
     protected void updateFlags(int aFlag) {iFlags |= aFlag;}
     
-    class ProcessOneChannel implements Runnable {
+    private class ProcessOneChannel implements Runnable {
         int i;
         ColorProcessor currentIp;
         ByteProcessor res;

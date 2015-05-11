@@ -68,7 +68,7 @@ public class Settings implements Serializable
 	// SettingsListener ////////////////////////////////
 	// To update values on the fly
 	
-	public static interface SettingsListener extends EventListener
+	private static interface SettingsListener extends EventListener
 	{
 		public void settingsChanged(Settings settings);
 	}

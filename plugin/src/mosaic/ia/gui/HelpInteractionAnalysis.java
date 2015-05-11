@@ -12,7 +12,7 @@ import javax.swing.JPanel;
 
 import mosaic.core.GUI.HelpGUI;
 
-public class HelpInteractionAnalysis extends HelpGUI implements ActionListener
+class HelpInteractionAnalysis extends HelpGUI implements ActionListener
 {
 	public JFrame frame;
 	//Initialize Buttons

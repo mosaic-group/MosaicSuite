@@ -278,7 +278,7 @@ public class CMAParameters implements java.io.Serializable {
 		setLambda(lambda);
 	}
 	
-	public enum RecombinationType {superlinear, linear, equal};
+	private enum RecombinationType {superlinear, linear, equal};
 	RecombinationType recombinationType = RecombinationType.superlinear; // otherwise null
 	/**
 	 * Getter for property weights.

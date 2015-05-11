@@ -4,7 +4,7 @@ package mosaic.bregman;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 
-public class ASplitBregmanSolverTwoRegionsPSF extends
+class ASplitBregmanSolverTwoRegionsPSF extends
 ASplitBregmanSolverTwoRegions {
 
 	public double [] [] [] eigenPSF;

@@ -29,7 +29,7 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 	Class<T> cls = null;
 	T center;
 	
-	class InterpolateHistogram
+	private class InterpolateHistogram
 	{
 		Ihist h1;
 		Ihist h2;
@@ -134,7 +134,7 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 		}
 	}
 	
-	class Ihist
+	private class Ihist
 	{
 		T intensity;
 		Histogram1d<T> hist;

@@ -110,7 +110,7 @@ class StringLong implements Comparable<StringLong>
 
 public class InterPluginCSV<E extends ICSVGeneral>
 {
-	class ExtParam
+	private class ExtParam
 	{
 		ExtParam(String p1, String p2)
 		{
@@ -122,7 +122,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 		String p2;
 	}
 	
-	class CommentExtendedCSV implements CommentMatcher
+	private class CommentExtendedCSV implements CommentMatcher
 	{
 
 		@Override

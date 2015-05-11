@@ -5,7 +5,7 @@ package mosaic.particleTracker;
  * Calculates linear least squares for given pairs (x, y)
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
-public class LeastSquares {
+class LeastSquares {
     private double iBeta;  // slope of line
     private double iAlpha; // Y-axis intercept value
     

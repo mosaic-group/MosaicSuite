@@ -6,7 +6,7 @@ import mosaic.region_competition.LabelImageRC;
 /*
  * Abstract initializer class for initializers that depend on the input image
  */
-public abstract class DataDrivenInitializer extends Initializer
+abstract class DataDrivenInitializer extends Initializer
 {
 	IntensityImage intensityImage;
 	public DataDrivenInitializer(IntensityImage intensityImage, LabelImageRC labelImage)

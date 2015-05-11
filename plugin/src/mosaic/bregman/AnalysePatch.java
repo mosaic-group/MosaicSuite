@@ -22,7 +22,7 @@ import net.sf.javaml.core.DenseInstance;
 import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.DatasetTools;
 
-public class AnalysePatch implements Runnable
+class AnalysePatch implements Runnable
 {
 	//add oversampling here
 	Tools ATools;

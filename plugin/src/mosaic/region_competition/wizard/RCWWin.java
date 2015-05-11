@@ -49,11 +49,11 @@ import mosaic.region_competition.wizard.score_function.ScoreFunctionRCtop;
 import mosaic.region_competition.wizard.score_function.ScoreFunctionRCvol;
 import mosaic.region_competition.wizard.score_function.TypeImage;
 
-public class RCWWin extends JDialog implements MouseListener, Runnable
+class RCWWin extends JDialog implements MouseListener, Runnable
 {
 	private static final long serialVersionUID = 1L;
 
-	enum segType
+	private enum segType
 	{
 		Tissue,
 		Cell,
@@ -254,16 +254,12 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	
 
 	
-	class RCThread implements Runnable
+	private class RCThread implements Runnable
 	{
-		Settings s;
-		ImageProcessor img;
 		Region_Competition rg;
 		
 		RCThread(ImageProcessor img_, Settings set)
 		{
-			img = img_;
-			s = set;
 		}
 		
 		Region_Competition getRC()
@@ -274,16 +270,13 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		@Override
 		public void run() 
 		{
-			// TODO Auto-generated method stub
-		
-//			rg = new Region_Competition(img,s);
 			rg.runP();
 		}
 		
 	}
 	
 	
-	class RCPainterListener implements MouseListener, ChangeListener
+	private class RCPainterListener implements MouseListener, ChangeListener
 	{
 		JSlider slid;
 		JTextArea text;

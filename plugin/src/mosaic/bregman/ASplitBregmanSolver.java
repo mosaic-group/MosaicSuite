@@ -15,7 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
 
 
-public class ASplitBregmanSolver {
+class ASplitBregmanSolver {
 	Tools LocalTools;
 	public DoubleDCT_2D dct2d;
 	double totaltime=0;
