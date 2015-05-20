@@ -137,6 +137,8 @@
             <zipgroupfileset dir="lib" includes="mines-jtk-20100113.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="super-csv-2.1.0.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="super-csv-dozer-2.1.0.jar" excludes="*.config" />
+            <zipgroupfileset dir="lib" includes="jgeom-core.jar" excludes="*.config" />
+
 	    <manifest>
                 <attribute name="Built-By" value="${name}" />
             </manifest>

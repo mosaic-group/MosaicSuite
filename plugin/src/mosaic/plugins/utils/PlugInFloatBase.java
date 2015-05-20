@@ -12,7 +12,7 @@ import java.util.List;
  * Base for plugIns that use float values as a algorithm base.
  * @author Krzysztof Gonciarz
  */
-abstract class PlugInFloatBase extends PlugInBase {
+public abstract class PlugInFloatBase extends PlugInBase {
     // ImageJ plugIn flags defined for setup method
     private int iFlags = DOES_ALL |
                          DOES_STACKS | 

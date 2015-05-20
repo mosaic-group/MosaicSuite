@@ -56,5 +56,6 @@
 	<classpathentry kind="lib" path="lib/fiji-scripting-2.0.0-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/Jython_Interpreter-2.0.0-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/imglib2-algorithm-gpl-0.1.3.jar"/>
+	<classpathentry kind="lib" path="lib/jgeom-core.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
