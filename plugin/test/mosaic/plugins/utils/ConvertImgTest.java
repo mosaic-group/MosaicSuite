@@ -20,7 +20,7 @@ public class ConvertImgTest {
         
         float[][] outputArray = new float[2][5];
         
-        ConvertImg.ImgToYX2Darray(fp, outputArray, 1.0f);
+        ImgUtils.ImgToYX2Darray(fp, outputArray, 1.0f);
         
         for (int x = 0; x < 5; ++x) {
             for (int y = 0; y < 2; ++y) {
@@ -38,7 +38,7 @@ public class ConvertImgTest {
                                             {7.0f, 8.0f}, 
                                             {9.0f,10.0f}};
         FloatProcessor fp = new FloatProcessor(originalImgArray[0].length, originalImgArray.length);
-        ConvertImg.YX2DarrayToImg(originalImgArray, fp, 1.0f);
+        ImgUtils.YX2DarrayToImg(originalImgArray, fp, 1.0f);
         float[] pixels = (float[])fp.getPixels();
         
         for (int x = 0; x < 2; ++x) {
