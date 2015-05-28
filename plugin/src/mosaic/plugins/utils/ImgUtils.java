@@ -1,6 +1,5 @@
 package mosaic.plugins.utils;
 
-import ij.IJ;
 import ij.process.FloatProcessor;
 
 public class ImgUtils {
