@@ -13,7 +13,7 @@ public class PhaseContrastPsf {
 		// [xx,yy] = meshgrid(linspace(-r,r,2*M+1),linspace(-r,r,2*M+1));
 		// Z = sqrt(xx.^2 + yy.^2);
 		//
-		Matrix[] meshgrid = Matrix.meshgrid(Matlab.linspace(-aM, aM,(int)(2*aM+1)), Matlab.linspace(-aM,aM,(int)(2*aM+1)));
+		Matrix[] meshgrid = Matlab.meshgrid(Matlab.linspace(-aM, aM,(int)(2*aM+1)), Matlab.linspace(-aM,aM,(int)(2*aM+1)));
 		Matrix m1 = meshgrid[0].pow2();
 		Matrix m2 = meshgrid[1].pow2();
 		Matrix Z = m1.add(m2).sqrt();

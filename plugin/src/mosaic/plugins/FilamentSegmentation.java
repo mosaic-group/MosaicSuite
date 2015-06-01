@@ -1,9 +1,11 @@
 package mosaic.plugins;
 
 import ij.process.FloatProcessor;
+import mosaic.math.Matrix;
 import mosaic.nurbs.BSplineSurface;
 import mosaic.nurbs.BSplineSurfaceFactory;
 import mosaic.nurbs.Function;
+import mosaic.plugins.utils.Convert;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.ImgUtils.MinMax;
 import mosaic.plugins.utils.PlugInFloatBase;
@@ -26,6 +28,7 @@ public class FilamentSegmentation extends PlugInFloatBase {
         MinMax<Float> minMax = ImgUtils.findMinMax(img);
         ImgUtils.normalize(img);
         
+        double[][] id = Convert.toDouble(img);
         
         // TODO: segmentation goes here...
 //        System.out.println("function jav()");
@@ -38,8 +41,10 @@ public class FilamentSegmentation extends PlugInFloatBase {
 //        System.out.println("hold on");
 //        BSplineSurface psi = generatePsi(88, 73, scale);
 
-
-        
+        Matrix m = new Matrix(id);
+        m.pow2().add(0.4);
+        id = m.getArrayYX();
+        img = Convert.toFloat(id);
         
         // Convert array to Image with converting back range of values
         ImgUtils.convertRange(img, minMax.getMax() - minMax.getMin(), minMax.getMin());

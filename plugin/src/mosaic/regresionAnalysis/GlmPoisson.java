@@ -2,7 +2,7 @@ package mosaic.regresionAnalysis;
 
 import mosaic.math.Matrix;
 
-public class GlmGaussian implements Glm {
+public class GlmPoisson implements Glm {
 
 	@Override
 	public double link(double aX) {
@@ -21,19 +21,22 @@ public class GlmGaussian implements Glm {
 
 	@Override
 	public double varFunction(double aX) {
-		return 1;
+		return aX;
 	}
 
 	@Override
 	public double nllMean(Matrix aImage, Matrix aMu, Matrix aWeights) {
-		// nll = weights.*(image-mu).^2;
+		// nll = weights .* ( image .* log((image+eps)./(mu+eps)) + mu - image );
 		// snll = sum(nll(:));
-		Matrix snll = new Matrix(aWeights).elementMult( (new Matrix(aImage).sub(aMu)).pow2() );
+		Matrix snll = new Matrix(aImage).add(Double.MIN_VALUE).elementDiv(new Matrix(aMu).add(Double.MIN_VALUE)).log();
+		snll.elementMult(aImage).add(aMu).sub(aImage).elementMult(aWeights);
 		return snll.sum();
 	}
 
 	@Override
 	public NoiseType flag() {
-		return NoiseType.GAUSSIAN;
+		return NoiseType.POISSON;
 	}
+
+
 }

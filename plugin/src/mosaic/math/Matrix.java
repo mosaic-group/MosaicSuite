@@ -2,7 +2,11 @@ package mosaic.math;
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
-
+/**
+ * Wrapper for ejml library.
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+ *
+ */
 public class Matrix {
 	private DenseMatrix64F iMatrix;
 	
@@ -16,6 +20,12 @@ public class Matrix {
 	//[y][x] or [r][c]
 	public Matrix(double[][] aArray) {
 		iMatrix = new DenseMatrix64F(aArray);
+	}
+	public Matrix(double[][] aArray, boolean aIsXYmatrix) {
+		this(aArray);
+		if (aIsXYmatrix) {
+			this.transpose();
+		}
 	}
 	// Factory --------------
 	public static Matrix mkRowVector(double[] aInput) {
@@ -42,6 +52,28 @@ public class Matrix {
 		for (int i = 0; i < c; ++i) CommonOps.insert(aVector2.iMatrix, m2, 0, i);
 		
 		return new Matrix[] {new Matrix(m1), new Matrix(m2)};
+	}
+	//[y][x] or [r][c]
+	public static double[][] getArrayYX(Matrix aMatrix) {
+		int r = aMatrix.iMatrix.numRows; int c = aMatrix.iMatrix.numCols;
+		double [][] result = new double[r][c];
+		for (int ry = 0; ry < r; ++ry) {
+			for (int cx = 0; cx < c; ++cx) {
+				result[ry][cx] = aMatrix.get(ry, cx);
+			}
+		}
+		return result;
+	}
+	//[x][y] or [c][r]
+	public static double[][] getArrayXY(Matrix aMatrix) {
+		int r = aMatrix.iMatrix.numRows; int c = aMatrix.iMatrix.numCols;
+		double [][] result = new double[c][r];
+		for (int ry = 0; ry < r; ++ry) {
+			for (int cx = 0; cx < c; ++cx) {
+				result[cx][ry] = aMatrix.get(ry, cx);
+			}
+		}
+		return result;
 	}
 	// -------------------------
 	public Matrix process(MFunc aMf) {
@@ -99,8 +131,20 @@ public class Matrix {
 		for (int i = 0; i < len; ++i) iMatrix.data[i] = aVal;
 		return this;
 	}
-	
-	
+	public Matrix transpose() {
+		CommonOps.transpose(this.iMatrix);
+		return this;
+	}
+	public Matrix ones() {
+		int len = iMatrix.data.length;
+		for (int i = 0; i < len; ++i) iMatrix.data[i] = 1.0;
+		return this;
+	}
+	public Matrix zeros() {
+		int len = iMatrix.data.length;
+		for (int i = 0; i < len; ++i) iMatrix.data[i] = 0.0;
+		return this;
+	}
 	// helpers
 	public Matrix pow2() {
 		int len = iMatrix.data.length;
@@ -112,6 +156,26 @@ public class Matrix {
 		for (int i = 0; i < len; ++i) iMatrix.data[i] = Math.sqrt(iMatrix.data[i]);
 		return this;
 	}
+	public Matrix log() {
+		int len = iMatrix.data.length;
+		for (int i = 0; i < len; ++i) iMatrix.data[i] = Math.log(iMatrix.data[i]);
+		return this;
+	}
+	public double[][] getArrayYX() {
+		return getArrayYX(this);
+	}
+	public double[][] getArrayXY() {
+		return getArrayYX(this);
+	}
+	public Matrix insert(Matrix aMatrix, int aRow, int aCol) {
+		CommonOps.insert(aMatrix.iMatrix, this.iMatrix, aRow, aCol);
+		return this;
+	}
+	
+	public double sum() {
+		return CommonOps.elementSum(this.iMatrix);
+	}
+	
 	@Override
 	public
 	String toString() {

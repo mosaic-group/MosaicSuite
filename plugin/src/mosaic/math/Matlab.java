@@ -1,6 +1,5 @@
 package mosaic.math;
 
-
 public class Matlab {
 	/**
 	 * Generates linear spaced numbers in array (as in Matlab)
@@ -34,5 +33,18 @@ public class Matlab {
 	 */
 	public static Matrix linspace(double aMin, double aMax, int aNoOfSteps) {
 		return Matrix.mkRowVector(linspaceArray(aMin, aMax, aNoOfSteps)); 
+	}
+	
+	public static Matrix[] meshgrid(Matrix aVector1, Matrix aVector2) {
+		aVector2.transpose();
+		int r = aVector2.numRows(); int c = aVector1.numCols();
+		
+		Matrix m1 = new Matrix(r, c);
+		Matrix m2 = new Matrix(r, c);
+
+		for (int i = 0; i < r; ++i) m1.insert(aVector1, i,  0);
+		for (int i = 0; i < c; ++i) m2.insert(aVector2, 0, i);
+		
+		return new Matrix[] {m1, m2};
 	}
 }
