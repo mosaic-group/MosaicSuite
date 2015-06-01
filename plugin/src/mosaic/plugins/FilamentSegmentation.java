@@ -28,18 +28,16 @@ public class FilamentSegmentation extends PlugInFloatBase {
         
         
         // TODO: segmentation goes here...
-        float scale = 1f;
+//        System.out.println("function jav()");
+//        System.out.println("figure(1); hold off");
+//        System.out.println("view([90 0])");
+//        System.out.println("end");
         
-        System.out.println("function jav()");
-        System.out.println("figure(1); hold off");
-        BSplineSurface phi = generatePhi(88, 73, scale);
-        phi.showMatlabCode(1, 1);
-        phi.showMatlabCode((88/50)*1/scale, (73/50) *1/scale);
-        System.out.println("hold on");
-        BSplineSurface psi = generatePsi(88, 73, scale);
-        psi.showMatlabCode((88/50)*1/scale, (73/50) *1/scale);
-        System.out.println("view([90 0])");
-        System.out.println("end");
+//        BSplineSurface imgS = new BSplineSurface(img, (float)1, (float)width, (float)1, (float)height, 2, (float)20).showMatlabCode(2.5f, 2.5f);
+//        BSplineSurface phi = generatePhi(88, 73, scale);
+//        System.out.println("hold on");
+//        BSplineSurface psi = generatePsi(88, 73, scale);
+
 
         
         
@@ -52,15 +50,15 @@ public class FilamentSegmentation extends PlugInFloatBase {
 	 * Generate Phi function needed for segmentation
 	 * @param aX
 	 * @param aY
-	 * @param aStep
+	 * @param aScale
 	 * @return
 	 */
-	BSplineSurface generatePhi(int aX, int aY, float aStep) {
+	BSplineSurface generatePhi(int aX, int aY, float aScale) {
 		final float min = (aX < aY) ? aX : aY ;
 		final float uMax = aX;
 		final float vMax = aY;
 			
-		return BSplineSurfaceFactory.generateFromFunction(1.0f, uMax, 1.0f, vMax, aStep, 3, new Function() {
+		return BSplineSurfaceFactory.generateFromFunction(1.0f, uMax, 1.0f, vMax, aScale, 3, new Function() {
 					@Override
 					public float getValue(float u, float v) {
 						return min/4 - (float) Math.sqrt(Math.pow(v - vMax/2, 2) + Math.pow(u - uMax/2, 2));
@@ -72,15 +70,15 @@ public class FilamentSegmentation extends PlugInFloatBase {
 	 * Generate Psi function needed for segmentation
 	 * @param aX
 	 * @param aY
-	 * @param aStep
+	 * @param aScale
 	 * @return
 	 */
-	BSplineSurface generatePsi(int aX, int aY, float aStep) {
+	BSplineSurface generatePsi(int aX, int aY, float aScale) {
 		final float min = (aX < aY) ? aX : aY ;
 		final float uMax = aX;
 		final float vMax = aY;
 			
-		return BSplineSurfaceFactory.generateFromFunction(1.0f, uMax, 1.0f, vMax, aStep, 3, new Function() {
+		return BSplineSurfaceFactory.generateFromFunction(1.0f, uMax, 1.0f, vMax, aScale, 3, new Function() {
 					@Override
 					public float getValue(float u, float v) {
 						return min/3 - (float)Math.sqrt(Math.pow(v - vMax/3, 2) + Math.pow(u - uMax/3, 2));

@@ -45,7 +45,7 @@ public class BSplineSurface {
 	 * @param aScale - scale common to both directions
 	 * @throws InterpolationException
 	 */
-	public BSplineSurface(float[][] aPoints, float aUmin, float aUmax, float aVmin, float aVmax, int aDegree, float aScale) throws InterpolationException {
+	public BSplineSurface(float[][] aPoints, float aUmin, float aUmax, float aVmin, float aVmax, int aDegree, float aScale) {
 		this(aPoints, aUmin, aUmax, aVmin, aVmax, aDegree, aDegree, aScale, aScale);	
 	}
 	
@@ -62,7 +62,7 @@ public class BSplineSurface {
 	 * @param aScaleV - scale in 'v' direction
 	 * @throws InterpolationException
 	 */
-	public BSplineSurface(float[][] aPoints, float aUmin, float aUmax, float aVmin, float aVmax, int aDegreeUdir, int aDegreeVdir, float aScaleU, float aScaleV) throws InterpolationException {
+	public BSplineSurface(float[][] aPoints, float aUmin, float aUmax, float aVmin, float aVmax, int aDegreeUdir, int aDegreeVdir, float aScaleU, float aScaleV) {
 		iDegreeInUdir = aDegreeUdir;
 		iDegreeInVdir = aDegreeVdir;
 		iOriginalU = aPoints.length;
@@ -200,8 +200,9 @@ public class BSplineSurface {
 	
 	/**
 	 * Debug method. It prints out information about knots and coefficients. 
+	 * @return 
 	 */
-	public void showDebugInfo() {
+	public BSplineSurface showDebugInfo() {
 		System.out.println("------------------------------");
 		System.out.println("Degree in direction u: " + iSurface.getUDegree() + " v: " + iSurface.getVDegree());
 		
@@ -236,6 +237,8 @@ public class BSplineSurface {
 		}
 		System.out.println("v-knots[" + vk.length + "] = " + Arrays.toString(vk));
 		System.out.println("------------------------------");
+		
+		return this;
 	}
 	
 	/**
@@ -244,8 +247,9 @@ public class BSplineSurface {
 	 * comparing to input data for surface. This scaling values are trimmed to step sizes.
 	 * @param aScaleU - scale in direction u
 	 * @param aScaleV - scale in direction v
+	 * @return 
 	 */
-	public void showMatlabCode(float aScaleU, float aScaleV) {
+	public BSplineSurface showMatlabCode(float aScaleU, float aScaleV) {
 		int noOfStepsU = (int)(iOriginalU / aScaleU);		
 		int noOfStepsV = (int)(iOriginalV / aScaleV);
 		
@@ -282,11 +286,22 @@ public class BSplineSurface {
 		System.out.println(zv);
 
 		System.out.println("surf(x,y,z);\n");
+		
+		return this;
 	}
 
-	private void generateSurface() throws InterpolationException {
-		//iSurface = (BasicNurbsSurface) NurbsCreator.globalSurfaceInterpolation(iPoints, iDegreeInUdir, iDegreeInVdir);
-		iSurface = BSplineCreator.globalSurfaceInterpolation(iPoints, iDegreeInUdir, iDegreeInVdir);
+	private void generateSurface()  {
+		try {
+			iSurface = BSplineCreator.globalSurfaceInterpolation(iPoints, iDegreeInUdir, iDegreeInVdir);
+		} catch (InterpolationException e) {
+			iSurface = null;
+			iCtrlNet = null;
+			iCoeffLenU = 0;
+			iCoeffLenV = 0;
+			e.printStackTrace();
+			return;
+		}
+		
 		iCtrlNet = iSurface.getControlNet();
 		iCoeffLenU = iCtrlNet.uLength();
 		iCoeffLenV = iCtrlNet.vLength();

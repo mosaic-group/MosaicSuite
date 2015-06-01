@@ -1,0 +1,120 @@
+package mosaic.math;
+import org.ejml.data.DenseMatrix64F;
+import org.ejml.ops.CommonOps;
+
+
+public class Matrix {
+	private DenseMatrix64F iMatrix;
+	
+	private Matrix(DenseMatrix64F aDM) {iMatrix = aDM;}
+	public Matrix(int aRows, int aCols) {
+		iMatrix = new DenseMatrix64F(aRows, aCols);
+	}
+	public Matrix(Matrix aM) {
+		iMatrix = new DenseMatrix64F(aM.iMatrix);
+	}
+	//[y][x] or [r][c]
+	public Matrix(double[][] aArray) {
+		iMatrix = new DenseMatrix64F(aArray);
+	}
+	// Factory --------------
+	public static Matrix mkRowVector(double[] aInput) {
+		DenseMatrix64F result = new DenseMatrix64F(1, aInput.length);
+		result.setData(aInput);
+		
+		return new Matrix(result); 
+	}
+	
+	public static Matrix mkColVector(double[] aInput) {
+		DenseMatrix64F result = new DenseMatrix64F(aInput.length, 1);
+		result.setData(aInput);
+		
+		return new Matrix(result); 
+	}
+	
+	public static Matrix[] meshgrid(Matrix aVector1, Matrix aVector2) {
+		CommonOps.transpose(aVector2.iMatrix);
+		int r = aVector2.iMatrix.numRows; int c = aVector1.iMatrix.numCols;
+		DenseMatrix64F m1 = new DenseMatrix64F(r, c);
+		DenseMatrix64F m2 = new DenseMatrix64F(r, c);
+
+		for (int i = 0; i < r; ++i) CommonOps.insert(aVector1.iMatrix, m1, i, 0);
+		for (int i = 0; i < c; ++i) CommonOps.insert(aVector2.iMatrix, m2, 0, i);
+		
+		return new Matrix[] {new Matrix(m1), new Matrix(m2)};
+	}
+	// -------------------------
+	public Matrix process(MFunc aMf) {
+		int len = iMatrix.data.length;
+		for (int i = 0; i < len; ++i) iMatrix.data[i] = aMf.f(iMatrix.data[i], i/iMatrix.numCols, i % iMatrix.numRows);
+		return this;
+	}
+	public Matrix processNoSet(MFunc aMf) {
+		int len = iMatrix.data.length;
+		for (int i = 0; i < len; ++i) aMf.f(iMatrix.data[i], i/iMatrix.numCols, i % iMatrix.numRows);
+		return this;
+	}
+	
+	public Matrix elementMult(Matrix aM) {
+		CommonOps.elementMult(this.iMatrix, aM.iMatrix);
+		return this;
+	}
+	
+	public Matrix elementDiv(Matrix aM) {
+		CommonOps.elementDiv(this.iMatrix, aM.iMatrix);
+		return this;
+	}
+	
+	public Matrix add(Matrix aM) {
+		CommonOps.add(this.iMatrix, aM.iMatrix, this.iMatrix);
+		return this;
+	}
+	public Matrix add(double aVal) {
+		CommonOps.add(this.iMatrix, aVal);
+		return this;
+	}
+	public Matrix sub(Matrix aM) {
+		CommonOps.sub(this.iMatrix, aM.iMatrix, this.iMatrix);
+		return this;
+	}
+	public Matrix scale(double aVal) {
+		CommonOps.scale(aVal, this.iMatrix);	
+		return this;
+	}
+	public double get(int r, int c) {
+		return this.iMatrix.get(r, c);
+	}
+	public Matrix set(int r, int c, double aVal) {
+		this.iMatrix.set(r, c, aVal);
+		return this;
+	}
+	public int numRows() {
+		return iMatrix.numRows;
+	}
+	public int numCols() {
+		return iMatrix.numCols;
+	}
+	public Matrix fill(double aVal) {
+		int len = iMatrix.data.length;
+		for (int i = 0; i < len; ++i) iMatrix.data[i] = aVal;
+		return this;
+	}
+	
+	
+	// helpers
+	public Matrix pow2() {
+		int len = iMatrix.data.length;
+		for (int i = 0; i < len; ++i) iMatrix.data[i] = Math.pow(iMatrix.data[i],2);
+		return this;
+	}
+	public Matrix sqrt() {
+		int len = iMatrix.data.length;
+		for (int i = 0; i < len; ++i) iMatrix.data[i] = Math.sqrt(iMatrix.data[i]);
+		return this;
+	}
+	@Override
+	public
+	String toString() {
+		return this.iMatrix.toString();
+	}
+}

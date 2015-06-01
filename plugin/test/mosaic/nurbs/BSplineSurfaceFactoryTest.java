@@ -17,12 +17,12 @@ public class BSplineSurfaceFactoryTest extends CommonBase {
 	@Test
 	public void testBSplineSurface1stDegree() {
 		// Set some tolerance on float numbers comparisons
-        float epsilon = 0.0001f;
+        float epsilon = 0.001f;
 			// Generate flat surface increasing in u direction
-			 BSplineSurface surf = BSplineSurfaceFactory.generateFromFunction(10, 20, 30, 40, 1, 1, new Function() {
+			 BSplineSurface surf = BSplineSurfaceFactory.generateFromFunction(10.0f, 20.0f, 30.0f, 40.0f, 1.0f, 1, new Function() {
 						@Override
 						public float getValue(float u, float v) {
-							return (float)u;
+							return u;
 						}
 					});
 			 // Test values at the beginning, in the middle and in the end of surface 
@@ -35,15 +35,15 @@ public class BSplineSurfaceFactoryTest extends CommonBase {
 	@Test
 	public void testBSplineSurface2ndDegreeUdir() {
 		// Set some tolerance on float numbers comparisons
-        float epsilon = 0.0001f;
+        float epsilon = 0.001f;
         
         // Generate square function (u - dir). With u in range [-9, 9] and scale factor 6 there will be only
         // three points generated for function. Still with degree 2 it should give correct values of funciton
         // in whole range.
-		BSplineSurface surf = BSplineSurfaceFactory.generateFromFunction(-9, 9, 0, 20, 6, 2, new Function() {
+		BSplineSurface surf = BSplineSurfaceFactory.generateFromFunction(-9.0f, 9.0f, 0.0f, 20.0f, 6.0f, 2, new Function() {
 					@Override
 					public float getValue(float u, float v) {
-						return (float)u*u;
+						return u*u;
 					}
 				});
 		 
@@ -55,15 +55,15 @@ public class BSplineSurfaceFactoryTest extends CommonBase {
 	@Test
 	public void testBSplineSurface3rdDegreeVdir() {
 		// Set some tolerance on float numbers comparisons
-        float epsilon = 0.0001f;
+        float epsilon = 0.001f;
         
         // Generate square function (v - dir). With u in range [-10, 10] and scale factor 4 there will be only
         // five points generated for function. Still with degree 3 it should give correct values of function
         // in whole range.
-		BSplineSurface surf = BSplineSurfaceFactory.generateFromFunction(-9, 9,-10, 10, 4, 3, new Function() {
+		BSplineSurface surf = BSplineSurfaceFactory.generateFromFunction(-9.0f, 9.0f,-10.0f, 10.0f, 4.0f, 3, new Function() {
 					@Override
 					public float getValue(float u, float v) {
-						return (float)-1.5f*v*v;
+						return -1.5f*v*v;
 					}
 				});
 		 
@@ -74,15 +74,20 @@ public class BSplineSurfaceFactoryTest extends CommonBase {
 	}
 	
 	@Test
-	public void test2() {
-
-		BSplineSurfaceFactory.generateFromFunction(0, 1, -10, 10, 0.33f, 2, new Function() {
+	public void testBSplineSurface2ndDegreeVdirWithFixedNumberOfSteps() {
+		// Set some tolerance on float numbers comparisons
+        float epsilon = 0.001f;
+        
+        // Generate square function (v - dir) with 11 steps.
+        BSplineSurface surf = BSplineSurfaceFactory.generateFromFunction(-9.0f, 9.0f,-10.0f, 10.0f, 11, 11, 2, 2, new Function() {
 					@Override
 					public float getValue(float u, float v) {
-						return (float)u*u;
+						return -1.5f*v*v;
 					}
-				}).showMatlabCode(1, 1);
-
+				});
+		for (float v = -10; v <= 10f; v += 1.0) {
+			assertEquals("Value at u = " + v + " should be " + -1.5f*v*v, -1.5f*v*v, surf.getValue(12.0f, v), epsilon);
+		}
 	}
 	
 }
