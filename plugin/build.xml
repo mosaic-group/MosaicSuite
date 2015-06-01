@@ -51,6 +51,7 @@
     </target>
 
     <target name="jtest" depends="build">
+        <copy file="${test}/log4j.properties" todir="${build}"/>
         <junit printsummary="yes" haltonfailure="yes">
             <classpath>
                 <pathelement location="bin" />    
