@@ -1,6 +1,7 @@
 package mosaic.plugins;
 
 import ij.process.FloatProcessor;
+import mosaic.math.Matlab;
 import mosaic.math.Matrix;
 import mosaic.nurbs.BSplineSurface;
 import mosaic.nurbs.BSplineSurfaceFactory;
@@ -21,10 +22,10 @@ public class FilamentSegmentation extends PlugInFloatBase {
         int stepSize = (int) Math.pow(2, iCoefficientStep);
         int width = (int) (Math.ceil((float)originalWidth/stepSize) * stepSize);
         int height = (int) (Math.ceil((float)originalHeight/stepSize) * stepSize);        
-        float[][] img = new float[width][height];
+        float[][] img = new float[height][width];
 
         // Convert to array and normalize to 0..1 values range
-        ImgUtils.ImgToXY2Darray(aOrigImg, img, 1.0f);
+        ImgUtils.ImgToYX2Darray(aOrigImg, img, 1.0f);
         MinMax<Float> minMax = ImgUtils.findMinMax(img);
         ImgUtils.normalize(img);
         
@@ -42,13 +43,14 @@ public class FilamentSegmentation extends PlugInFloatBase {
 //        BSplineSurface psi = generatePsi(88, 73, scale);
 
         Matrix m = new Matrix(id);
-        m.pow2().add(0.4);
+        
+        m = Matlab.imfilterSymmetric(m, new Matrix(new double[][]{{0, 1, 0}, {1, -4, 1}, {0, 1, 0}}));
         id = m.getArrayYX();
         img = Convert.toFloat(id);
         
         // Convert array to Image with converting back range of values
         ImgUtils.convertRange(img, minMax.getMax() - minMax.getMin(), minMax.getMin());
-        ImgUtils.XY2DarrayToImg(img, aOutputImg, 1.0f);
+        ImgUtils.YX2DarrayToImg(img, aOutputImg, 1.0f);
 	}
 
 	/**
