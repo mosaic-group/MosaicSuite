@@ -898,9 +898,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		"Journal of Structural Biology<br> 151(2):182-195, 2005.<br>" +
         "</html>");
 		
-		p = new Panel();
-		p.add(labelJ);
-		gd.addPanel(p);
+//		p = new Panel();
+//		p.add(labelJ);
+//		gd.addPanel(p);
 		
         gd.showDialog();
         
