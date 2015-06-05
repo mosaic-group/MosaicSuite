@@ -55,10 +55,10 @@ public class BregmanGLM_Batch implements Segmentation
 		
 		// if is a macro get the arguments from macro arguments
 		
-		if (IJ.isMacro())
+		if (IJ.isMacro()) {
 			arg0 = Macro.getOptions();
-		
-		//
+			if (arg0 == null) arg0 = "";
+		}
 		
 		String dir = IJ.getDirectory("temp");
 		savedSettings = dir+"spb_settings.dat";
