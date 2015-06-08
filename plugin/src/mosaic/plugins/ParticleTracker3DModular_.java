@@ -839,11 +839,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		
 		String d_pos[] = {"Brownian","straight","constant velocity"};
 		gd.addChoice("Dynamics: ", d_pos, d_pos[0]);
-		
-        gd.addMessage("Trajectory Analysis Data :\n");
-        // These 2 params are relevant for both working modes
-        gd.addNumericField("Length of pixel (in mm)", 1, 3);
-        gd.addNumericField("Time interval between frames (in s)", 1.0, 3);
+//		
+//        gd.addMessage("Trajectory Analysis Data :\n");
+//        // These 2 params are relevant for both working modes
+//        gd.addNumericField("Length of pixel (in mm)", 1, 3);
+//        gd.addNumericField("Time interval between frames (in s)", 1.0, 3);
         
 		// Create advanced option panel
 		
@@ -898,9 +898,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		"Journal of Structural Biology<br> 151(2):182-195, 2005.<br>" +
         "</html>");
 		
-		p = new Panel();
-		p.add(labelJ);
-		gd.addPanel(p);
+//		p = new Panel();
+//		p.add(labelJ);
+//		gd.addPanel(p);
 		
         gd.showDialog();
         
@@ -925,8 +925,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		this.linkrange = (int)gd.getNextNumber();
 		this.displacement = gd.getNextNumber();
 
-		this.pixelDimensions = gd.getNextNumber()/1000.0;
-		this.timeInterval = gd.getNextNumber();
+//		this.pixelDimensions = gd.getNextNumber()/1000.0;
+//		this.timeInterval = gd.getNextNumber();
+		this.pixelDimensions = 1;
+		this.timeInterval = 1;
+		
 		
 		// if Cancel button was clicked
 		if (gd.wasCanceled()) return false;

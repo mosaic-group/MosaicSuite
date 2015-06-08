@@ -125,7 +125,7 @@ public class OutputGUI extends JDialog
 		
 		out = out_;
 		String[] pn = new String[out.length]; 
-		
+
 		for (int i = 0 ; i < out.length ; i++)
 		{
 			pn[i] = out[i].name;
@@ -156,7 +156,9 @@ public class OutputGUI extends JDialog
 		c.gridy = 1;
 		final JComboBox comboBox = new JComboBox(pn);
 		comboBox.setSelectedIndex(oc_s);
+		oc = out[oc_s];
 		contentPane.add(comboBox,c);
+		outTM = new OutputTable();
 		comboBox.addActionListener(new ActionListener() 
 		{
 			@Override
@@ -165,18 +167,18 @@ public class OutputGUI extends JDialog
 				if (arg0.getSource() == comboBox) {
 					int idx = comboBox.getSelectedIndex();
 					oc = out[idx];
+					outTM.setOutput(out[idx]);
+					outTM.fireTableDataChanged();
 				}
 			}
 		});		
 		
 		
-		outTM = new OutputTable();
-		outTM.setOutput(out[0]);
+		outTM.setOutput(out[oc_s]);
 		table = new JTable(outTM);
-		
+	
 		JScrollPane scrollPane = new JScrollPane(table);
 		table.setFillsViewportHeight(true);
-//		table.setMinimumSize(new Dimension(450,200));
 		
 		scrollPane.setMinimumSize(new Dimension(450,150));
 		
@@ -199,8 +201,6 @@ public class OutputGUI extends JDialog
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				// TODO Auto-generated method stub
-				
 				myself.dispose();
 				
 			}
@@ -214,12 +214,10 @@ public class OutputGUI extends JDialog
 		JButton bCancel = new JButton("Cancel");
 		contentPane.add(bCancel,c);
 		
-		
 		setModal(true);
 		setVisible(true);
-		
+
 		oc.factor = new double[oc.map.length];
-		
 		for (int i = 0 ; i < oc.map.length ; i++)
 		{
 			oc.factor[i] = (Double)outTM.data[i][2];

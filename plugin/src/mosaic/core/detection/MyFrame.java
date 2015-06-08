@@ -859,7 +859,7 @@ import net.imglib2.view.Views;
 	    	return scaling_;
 		}
 		
-		static private void drawParticlesWithRadius(RandomAccessibleInterval<ARGBType> out, List<Particle> pt , Calibration cal, int col, int p_radius)
+		static private void drawParticlesWithRadius(RandomAccessibleInterval<ARGBType> out, List<Particle> pt , Calibration cal, float scaling, int col, int p_radius)
 		{
 			RandomAccess<ARGBType> out_a = out.randomAccess();
 			
@@ -875,6 +875,11 @@ import net.imglib2.view.Views;
 	        double radius = p_radius;
 
 	        float scaling_[] = getScaling(out_a.numDimensions(), cal);
+        	for (int i = 0 ; i < scaling_.length ; i++)
+        	{
+        		scaling_[i] /= scaling;
+        	}
+        	
 	    	int rc = (int) radius;	
 	        
 	    	// Create a circle Mask and an iterator
@@ -884,7 +889,7 @@ import net.imglib2.view.Views;
 		    if ((rg_m = CircleCache.get(rc)) == null)
 		    {
 		    	if (rc < 1) rc = 1;
-	        	CircleMask cm = new CircleMask(rc, 2*rc + 1, out_a.numDimensions(), scaling_);
+	        	CircleMask cm = new CircleMask(rc, (int)(2*rc*scaling + 1), out_a.numDimensions(), scaling_);
 	        	rg_m = new RegionIteratorMask(cm, sz);
 	    		CircleCache.put(rc, rg_m);
 	    	}
@@ -931,7 +936,8 @@ import net.imglib2.view.Views;
 			return min;
 		}
 		
-		static private void drawParticles(RandomAccessibleInterval<ARGBType> out, List<Particle> pt , Calibration cal, int col)
+		
+		static private void drawParticles(RandomAccessibleInterval<ARGBType> out, List<Particle> pt , Calibration cal, float scaling, int col)
 		{
 			RandomAccess<ARGBType> out_a = out.randomAccess();
 			
@@ -956,7 +962,11 @@ import net.imglib2.view.Views;
 	        		radius = 1.0;
 	        	
 	        	float scaling_[] = getScaling(out_a.numDimensions(), cal);
-	    		
+	        	for (int i = 0 ; i < scaling_.length ; i++)
+	        	{
+	        		scaling_[i] /= scaling;
+	        	}
+	        	
 	    		// Create a circle Mask and an iterator
 	    		
 		    	RegionIteratorMask rg_m = null;
@@ -965,7 +975,7 @@ import net.imglib2.view.Views;
 			    if ((rg_m = CircleCache.get(rc)) == null)
 			    {
 			    	if (rc < 1) rc = 1;
-		        	CircleMask cm = new CircleMask(rc, 2*rc + 1, out_a.numDimensions(), scaling_);
+		        	CircleMask cm = new CircleMask(rc, (int)(2*rc *scaling + 1), out_a.numDimensions(), scaling_);
 		        	rg_m = new RegionIteratorMask(cm, sz);
 		    		CircleCache.put(rc, rg_m);
 		    	}
@@ -1376,7 +1386,7 @@ import net.imglib2.view.Views;
 		 * @param cal calibration
 		 * @param col Color of the line
 		 */
-		static private void drawLines(RandomAccessibleInterval<ARGBType> out, List<pParticle> lines , Calibration cal, int col)
+		static private void drawLines(RandomAccessibleInterval<ARGBType> out, List<pParticle> lines , Calibration cal, float scale, int col)
 		{
 			if (cal == null)
 			{
@@ -1404,6 +1414,10 @@ import net.imglib2.view.Views;
 	        	
 	        	float scaling[] = new float[out_a.numDimensions()];
 	    		float scaling_[] = getScaling(out_a.numDimensions(),cal);
+	        	for (int i = 0 ; i < scaling.length ; i++)
+	        	{
+	        		scaling_[i] /= scale;
+	        	}
 	        	
 	        	if (cal != null)
 	        	{
@@ -1502,7 +1516,7 @@ import net.imglib2.view.Views;
 		 * @param col Color
 		 */
 		
-		private void drawParticles(Img<ARGBType> out, Calibration cal, int col)
+		private void drawParticles(Img<ARGBType> out, Calibration cal, float scale, int col)
 		{
 	        // Create a list of particles
 	        
@@ -1514,9 +1528,9 @@ import net.imglib2.view.Views;
 	        }
 	        
 	        if (p_radius == -1)
-	        	drawParticles(out,pt,cal,col);
+	        	drawParticles(out,pt,cal, scale, col);
 	        else
-	        	drawParticlesWithRadius(out,pt,cal,col,p_radius);
+	        	drawParticlesWithRadius(out,pt,cal, scale, col,p_radius);
 		}
 		
 		/**
@@ -1535,7 +1549,7 @@ import net.imglib2.view.Views;
 	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
 	        Img<ARGBType> out = imgFactory.create(vMax, new ARGBType());
 	        
-	        drawParticles(out,null,ARGBType.rgba(255, 0, 0, 255));
+	        drawParticles(out,null,1.0f,ARGBType.rgba(255, 0, 0, 255));
 	        
 	        return out;
 		}
@@ -1599,7 +1613,7 @@ import net.imglib2.view.Views;
 	        	curOut.get().set(conv.toARGB(curBack.get()));
 	        }
 	        
-	        drawParticles(out,cal, ARGBType.rgba(255, 0, 0, 255));
+	        drawParticles(out,cal,1.0f, ARGBType.rgba(255, 0, 0, 255));
 	        
 	        return out;
 		}
@@ -1645,7 +1659,7 @@ import net.imglib2.view.Views;
 		 * @param typ type of draw
 		 */
 		
-		private static void TrajectoriesDraw(RandomAccessibleInterval<ARGBType> out, int nframe, Vector<Trajectory> tr, int start_frame, Rectangle focus, Calibration cal_ ,  DrawType typ, int p_radius)
+		private static void TrajectoriesDraw(RandomAccessibleInterval<ARGBType> out, int nframe, Vector<Trajectory> tr, int start_frame, Rectangle focus, Calibration cal_ , float scaling ,  DrawType typ, int p_radius)
 		{
 			MyFrame f = new MyFrame();
 			
@@ -1823,15 +1837,15 @@ import net.imglib2.view.Views;
 	        			view = out;
 	        		
 	        		if (p_radius == -1)
-	        			drawParticles(view,vp,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+	        			drawParticles(view,vp,cal_, scaling, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
 	        		else
-	        			drawParticlesWithRadius(view,vp,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()),p_radius);
+	        			drawParticlesWithRadius(view,vp,cal_, scaling, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()),p_radius);
 	        		
 	        		// Real link
-			        drawLines(view,lines,cal_, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
+			        drawLines(view,lines,cal_,scaling, ARGBType.rgba(tr.get(t).color.getRed(), tr.get(t).color.getGreen(), tr.get(t).color.getBlue(), tr.get(t).color.getTransparency()));
 			        
 			        // Jump link
-			        drawLines(view,lines_jmp,cal_, ARGBType.rgba(255,0.0,0.0,0.0));
+			        drawLines(view,lines_jmp,cal_,scaling, ARGBType.rgba(255,0.0,0.0,0.0));
 	        	}
 	        } 
 		}
@@ -1855,11 +1869,6 @@ import net.imglib2.view.Views;
 			int scale_x = (int) (out.dimension(0) / focus.width);
 			int scale_y = (int) (out.dimension(1) / focus.height);
 			
-			Calibration cal_ = new Calibration();
-			cal_.pixelWidth = cal.pixelWidth / scale_x;
-			cal_.pixelHeight = cal.pixelHeight / scale_y;
-			cal_.pixelDepth = cal.pixelDepth;
-			
 			// Get image
 	        
 	        //Cursor<ARGBType> curOut = Views.iterable(out).cursor();
@@ -1872,7 +1881,7 @@ import net.imglib2.view.Views;
 	        
 	        // Draw trajectories
 	        
-	        TrajectoriesDraw(out,nframe, tr, start_frame, focus, cal_ , typ, p_radius);
+	        TrajectoriesDraw(out,nframe, tr, start_frame, focus, cal , scale_x , typ, p_radius);
 		}
 		
 		/**
@@ -1918,7 +1927,7 @@ import net.imglib2.view.Views;
 	        
 	        // Collect particles to draw and spline to draw
 	        
-	        TrajectoriesDraw(out,nframe, tr, 0, null, cal, typ, p_radius);
+	        TrajectoriesDraw(out,nframe, tr, 0, null, cal, 1.0f, typ, p_radius);
 		}
 
 		/**
@@ -1977,7 +1986,7 @@ import net.imglib2.view.Views;
 	        
 	        // Collect particles to draw and spline to draw
 	        
-	        TrajectoriesDraw(out, 1, tr, frame, null, cal, typ, p_radius);
+	        TrajectoriesDraw(out, 1, tr, frame, null, cal, 1.0f, typ, p_radius);
 	        
 	        return out;
 		}
@@ -2011,7 +2020,7 @@ import net.imglib2.view.Views;
 	        
 	        //
 	        
-	        TrajectoriesDraw(out, 1, tr, frame, null, null, typ, p_radius);
+	        TrajectoriesDraw(out, 1, tr, frame, null, null, 1.0f, typ, p_radius);
 	        
 	        return out;
 		}

@@ -165,8 +165,8 @@ public class SegmentationGUI
 		
 		gd.addPanel(pp);
 		
-		gd.addNumericField("Regularization (>0) Ch1", Analysis.p.lreg_[0], 3);
-		gd.addNumericField("Regularization (>0) Ch2", Analysis.p.lreg_[1], 3);
+		gd.addNumericField("Regularization_(>0)_Ch1", Analysis.p.lreg_[0], 3);
+		gd.addNumericField("Regularization_(>0)_Ch2", Analysis.p.lreg_[1], 3);
 		
 		gd.addNumericField("Minimum_object_intensity,_channel_1 (0 to 1)", Analysis.p.min_intensity, 3);
 		gd.addNumericField("                         _channel_2 (0 to 1)", Analysis.p.min_intensityY, 3);
@@ -185,7 +185,7 @@ public class SegmentationGUI
 		///////////////
 		
 		gd.addCheckbox("Subpixel segmentation", Analysis.p.subpixel);
-		gd.addCheckbox("Exclude Z edge", Analysis.p.exclude_z_edges);
+		gd.addCheckbox("Exclude_Z_edge", Analysis.p.exclude_z_edges);
 		
 		String choice1[] = {
 				"Automatic", "Low", "Medium","High"};
@@ -197,8 +197,8 @@ public class SegmentationGUI
 		
 		gd.addMessage("PSF model (Gaussian approximation)",bf);
 		
-		gd.addNumericField("standard deviation xy (in pixels)", Analysis.p.sigma_gaussian, 2);
-		gd.addNumericField("standard deviation z  (in pixels)", Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 2);
+		gd.addNumericField("standard_deviation_xy (in pixels)", Analysis.p.sigma_gaussian, 2);
+		gd.addNumericField("standard_deviation_z  (in pixels)", Analysis.p.sigma_gaussian/Analysis.p.zcorrec, 2);
 		
 		gd.addMessage("Region filter",bf);
 		gd.addNumericField("Remove region with intensities < ", Analysis.p.min_region_filter_intensities,0);

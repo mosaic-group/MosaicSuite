@@ -26,21 +26,21 @@ class RScriptWindow {
 		gd.setInsets(-10,0,3);
 		gd.addMessage("Channel names",bf);
 
-		gd.addStringField("Channel 1", Analysis.p.ch1, 20);
-		gd.addStringField("Channel 2", Analysis.p.ch2, 20);
+		gd.addStringField("Channel_1", Analysis.p.ch1, 20);
+		gd.addStringField("Channel_2", Analysis.p.ch2, 20);
 		
 		gd.addMessage("Number of images per condition",bf);
 		
 		for (int i=0; i < nbgroups; i++)
 		{
-			gd.addNumericField("Conditon " + (i+1), Analysis.p.nbimages[i], 0);
+			gd.addNumericField("Conditon_" + (i+1), Analysis.p.nbimages[i], 0);
 		}
 		
 		
 		gd.addMessage("Condition names",bf);
 		for (int i=0; i < nbgroups; i++)
 		{
-			gd.addStringField("Conditon " + (i+1), Analysis.p.groupnames[i], 20);
+			gd.addStringField("Conditon_" + (i+1), Analysis.p.groupnames[i], 20);
 		}
 		
 		gd.centerDialog(false);

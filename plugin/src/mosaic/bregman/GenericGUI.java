@@ -614,6 +614,7 @@ public class GenericGUI
 			fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 			fc.showOpenDialog(null);
 			File selFile = fc.getSelectedFile();
+			if (selFile == null) return;
 			path=selFile.getAbsolutePath();
 
 
