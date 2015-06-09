@@ -1867,7 +1867,6 @@ import net.imglib2.view.Views;
 			// Adjust calibration according to magnification
 			
 			int scale_x = (int) (out.dimension(0) / focus.width);
-			int scale_y = (int) (out.dimension(1) / focus.height);
 			
 			// Get image
 	        
