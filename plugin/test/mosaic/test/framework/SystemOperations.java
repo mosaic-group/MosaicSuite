@@ -65,7 +65,7 @@ public class SystemOperations {
         } catch (IOException e) {
             e.printStackTrace();
             // intentionally break execution
-            throw new RuntimeException("Cannot copy file [" + aSrcFile + "] to dir [" + aDestDir + "]");
+            throw new RuntimeException("Cannot copy file [" + aSrcFile + "] to dir [" + aDestDir + "] [" + e.getMessage() + "]");
         }
     }
     
@@ -83,17 +83,93 @@ public class SystemOperations {
             throw new RuntimeException("Cannot copy file [" + aSrcFile + "] to [" + aDestFile + "]");
         }
     }
+    
+    /**
+     * Creates with specified absolute path.
+     * @param aDirName - absolute path dir name
+     */
+    public static void createDir(String aDirName) {
+        try {
+            FileUtils.forceMkdir(new File(aDirName));
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Creating directory: [" + aDirName + "] failed! [" + e.getMessage() + "]");
+        }
+    }
+    
+    /**
+     * Moves file to file. 
+     * @param aSrcFile - absolute path to source file
+     * @param aDestFile - absolute path to destination file
+     */
+    public static void moveFile(String aSrcFile, String aDestFile) {
+    	File src = new File(aSrcFile);
+    	File dest = new File(aDestFile);
+    	moveFile(src, dest, false);
+    }
+    
+    /**
+     * Moves file to file. 
+     * @param aSrcFile - absolute path to source file
+     * @param aDestFile - absolute path to destination file
+     * @param aQuiteModeActive - if set to true, problems with execution will not be visible
+     */
+    public static void moveFile(String aSrcFile, String aDestFile, boolean aQuiteModeActive) {
+    	File src = new File(aSrcFile);
+    	File dest = new File(aDestFile);
+    	moveFile(src, dest, aQuiteModeActive);
+    }
+    
+    /**
+     * Moves file to file.
+     * @param aSrcFile - source file
+     * @param aDestFile - destination file
+     * @param aQuiteModeActive - if set to true, problems iwth execution will not be visible
+     */
+    public static void moveFile(File aSrcFile, File aDestFile, boolean aQuiteModeActive) {
+        try {
+        	if (aDestFile.exists()) {
+        		FileUtils.deleteQuietly(aDestFile);
+        	}
+        	if (!aSrcFile.exists() && aQuiteModeActive) {
+        		// Return quietly - just to comply to current behavior.
+        		return;
+        	}
+            FileUtils.moveFile(aSrcFile, aDestFile); 
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Cannot move file [" + aSrcFile + "] to [" + aDestFile + "] [" + e.getMessage() + "]");
+        }
+    }
+    
+    /**
+     * Removes a directory.
+     * @param aDirName - absolute path to directory to be deleted
+     */
+    public static void removeDir(String aDirName) {
+    	removeDir(new File(aDirName));
+    }
+    
+    /**
+     * Removes a directory
+     * @param aDir - directory to be deleted
+     */
+    public static void removeDir(File aDir) {
+        try {
+            FileUtils.deleteDirectory(aDir);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Deleting directory: [" + aDir.getAbsolutePath() + "] failed! [" + e.getMessage() + "]");
+        }
+    }
+    
     /**
      * Removes test temporary directory. If any problem arise it
      * will throw and break an execution of test.
      */
     public static void removeTestTmpDir() {
-        try {
-            FileUtils.deleteDirectory(new File(getTestTmpPath()));
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Deleting directory: [" + getTestTmpPath() + "] failed!");
-        }
+    	removeDir(getTestTmpPath());
+
     }
     
     /**
@@ -101,16 +177,15 @@ public class SystemOperations {
      * will throw and break an execution of test.
      */
     private static void createTestTmpDir() {
-        try {
-            FileUtils.forceMkdir(new File(getTestTmpPath()));
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Creating directory: [" + getTestTmpPath() + "] failed!");
-        }
-
+    	createDir(getTestTmpPath());
     }
 
+    /** 
+     * Provides temporary path in system
+     * @return path to temp
+     */
     private static String getTmpPath() {
+    	// Simply use IJ functionality
         return IJ.getDirectory("temp");
     }
     

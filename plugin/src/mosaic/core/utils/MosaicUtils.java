@@ -206,10 +206,8 @@ public class MosaicUtils
 			min = (T) crs.get().getClass().newInstance();
 	        max = (T) crs.get().getClass().newInstance();
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         MosaicUtils.getMinMax(crs, min,max);
@@ -481,7 +479,6 @@ public class MosaicUtils
 		} 
 		catch (FileNotFoundException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
@@ -884,54 +881,35 @@ public class MosaicUtils
 	
 	public static void reorganize(String output[], Vector<String> bases, String sv )
 	{
-		// reorganize
+		// Crate directories
+		for (int j = 0 ; j < output.length ; j++) {
+			String tmp = new String(output[j]);
+			String dirName = sv + "/" + tmp.replace("*","_");
+			SystemOperations.createDir(dirName);
+		}
 		
-		try 
+		// Copy all existing files
+		for (int j = 0 ; j < output.length ; j++)
 		{
-			for (int j = 0 ; j < output.length ; j++)
+			String tmp = new String(output[j]);
+				
+			for (int k = 0 ; k < bases.size() ; k++)
 			{
-				String tmp = new String(output[j]);
+				String src = sv + File.separator + tmp.replace("*",bases.get(k));
+				String dest = sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", "");
+				SystemOperations.moveFile(src, dest, true /* quiet */);
+			}
+		}
 		
-				ShellCommand.exeCmdNoPrint("mkdir " + sv + "/" + tmp.replace("*","_"));
+		// check for all the folder created if empty delete it
+		for (int j = 0 ; j < output.length ; j++) {
+			String tmp = new String(output[j]);
+			String dirStr = sv + "/" + tmp.replace("*","_");
+			File dir = new File(dirStr);
+			if (dir.listFiles() != null && dir.listFiles().length == 0) {
+				SystemOperations.removeDir(dir);
 			}
-				
-			for (int j = 0 ; j < output.length ; j++)
-			{
-				String tmp = new String(output[j]);
-					
-				for (int k = 0 ; k < bases.size() ; k++)
-				{
-					ShellCommand.exeCmdNoPrint("mv " + "'" + sv + File.separator + tmp.replace("*",bases.get(k)) + "'" + "   " + "'" + sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", "") + "'");
-				}
-			}
-			
-			// check all the folder created if empty delete it
-			
-			for (int j = 0 ; j < output.length ; j++)
-			{
-				String tmp = new String(output[j]);
-				
-				File dir = new File(sv + "/" + tmp.replace("*","_"));
-				if (dir.listFiles() == null)
-				{
-					System.out.println("Critical error " + dir.getAbsolutePath() + "does not exist");
-				}
-				if (dir.listFiles() != null && dir.listFiles().length == 0)
-				{
-					dir.delete();
-				}
-			}
-			
-			
-		} 
-		catch (IOException e) 
-		{
-		// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-		// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
+		}	
 	}
 	
 	
@@ -952,59 +930,46 @@ public class MosaicUtils
 	 * @param sv base dir where the data are located
 	 * @param nf is N, the number of file, if nf == 0 the file pattern is data_tmp_file without number
 	 */
-	
 	public static void reorganize(String output[], String base, String sv , int nf)
 	{
-		// reorganize
+		// Crate directories
+		for (int j = 0 ; j < output.length ; j++) {
+			String tmp = new String(output[j]);
+			String dirName = sv + "/" + tmp.replace("*","_");
+			SystemOperations.createDir(dirName);
+		}
 		
-		try 
-		{
-			for (int j = 0 ; j < output.length ; j++)
+		// Copy all existing files
+		for (int j = 0 ; j < output.length ; j++) {
+			String tmp = new String(output[j]);
+				
+			for (int k = 0 ; k < nf ; k++)
 			{
-				String tmp = new String(output[j]);
+				String src = "";
+				String dest = "";
+				if (new File(sv + File.separator + tmp.replace("*",base)).exists()) {
+					src = sv + File.separator + tmp.replace("*",base);
+					dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base + tmp.replace("*", "");
+				}
+				else {
+					src = sv + File.separator + tmp.replace("*",base + (k+1));
+					dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base + (k+1) + tmp.replace("*", "");
+				}	
+
+				SystemOperations.moveFile(src, dest, true /* quiet */);
+			}
+		}
 		
-				Process tProcess;
-				tProcess = Runtime.getRuntime().exec("mkdir " + sv + "/" + tmp.replace("*","_"));
-				tProcess.waitFor();
+		// check for all the folder created if empty delete it
+		for (int j = 0 ; j < output.length ; j++) {
+			String tmp = new String(output[j]);
+			String dirStr = sv + "/" + tmp.replace("*","_");
+			File dir = new File(dirStr);
+			if (dir.listFiles() != null && dir.listFiles().length == 0) {
+				SystemOperations.removeDir(dir);
 			}
-				
-			for (int j = 0 ; j < output.length ; j++)
-			{
-				String tmp = new String(output[j]);
-					
-				Process tProcess;
-				for (int k = 0 ; k < nf ; k++)
-				{
-					if (new File(sv + File.separator + tmp.replace("*",base)).exists())
-						tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",base) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base + tmp.replace("*", ""));
-					else
-						tProcess = Runtime.getRuntime().exec("mv " + sv + File.separator + tmp.replace("*",base + (k+1)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base + (k+1) + tmp.replace("*", ""));
-						
-					tProcess.waitFor();
-				}
-			}
-			
-			// check for all the folder created if empty delete it
-			
-			for (int j = 0 ; j < output.length ; j++)
-			{
-				String tmp = new String(output[j]);
-				
-				File dir = new File(sv + "/" + tmp.replace("*","_"));
-				if (dir.listFiles() != null && dir.listFiles().length == 0)
-				{
-					dir.delete();
-				}
-			}
-		} 
-		catch (IOException e) 
-		{
-		// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-		// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
+		}
+
 	}
 	
 	/**
@@ -1029,59 +994,50 @@ public class MosaicUtils
 	
 	public static void reorganize(String output[], String base_src, String base_dst, String sv , int nf)
 	{
-		// reorganize
-		
-		try 
+		// Crate directories
+		for (int j = 0 ; j < output.length ; j++) {
+			String tmp = new String(output[j]);
+			String dirName = sv + "/" + tmp.replace("*","_");
+			SystemOperations.createDir(dirName);
+		}
+			
+		for (int j = 0 ; j < output.length ; j++)
 		{
-			for (int j = 0 ; j < output.length ; j++)
+			String tmp = new String(output[j]);
+			for (int k = 0 ; k < nf ; k++)
 			{
-				String tmp = new String(output[j]);
-		
-				Process tProcess;
-				tProcess = Runtime.getRuntime().exec("mkdir " + sv + "/" + tmp.replace("*","_"));
-				tProcess.waitFor();
-			}
-				
-			for (int j = 0 ; j < output.length ; j++)
-			{
-				String tmp = new String(output[j]);
-				for (int k = 0 ; k < nf ; k++)
+				String src = "";
+				String dest = "";
+				if (new File(sv + File.separator + tmp.replace("*",base_src)).exists())
 				{
-					if (new File(sv + File.separator + tmp.replace("*",base_src)).exists())
-					{
-						ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*",base_src) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", ""));
+					src = sv + File.separator + tmp.replace("*",base_src);
+					dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", "");
+				}
+				else
+				{
+					if (nf ==1) {
+						src = sv + File.separator + tmp.replace("*",base_src + "_" + (k+1));
+						dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", "");
 					}
-					else
-					{
-						if (nf ==1)
-							ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*",base_src + "_" + (k+1)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", ""));
-						else
-							ShellCommand.exeCmdNoPrint("mv " + sv + File.separator + tmp.replace("*",base_src + "_" + (k+1)) + "   " + sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + "_" + (k+1) + tmp.replace("*", ""));
+					else {
+						src = sv + File.separator + tmp.replace("*",base_src + "_" + (k+1));
+						dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + "_" + (k+1) + tmp.replace("*", "");
 					}
 				}
-			}
-			
-			// check for all the folder created if empty delete it
-			
-			for (int j = 0 ; j < output.length ; j++)
-			{
-				String tmp = new String(output[j]);
 				
-				File dir = new File(sv + "/" + tmp.replace("*","_"));
-				if (dir.listFiles().length == 0)
-				{
-					dir.delete();
-				}
+				SystemOperations.moveFile(src, dest, true /* quiet */);
 			}
-		} 
-		catch (IOException e) 
-		{
-		// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-		// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
+		}
+		
+		// check for all the folder created if empty delete it
+		for (int j = 0 ; j < output.length ; j++) {
+			String tmp = new String(output[j]);
+			String dirStr = sv + "/" + tmp.replace("*","_");
+			File dir = new File(dirStr);
+			if (dir.listFiles() != null && dir.listFiles().length == 0) {
+				SystemOperations.removeDir(dir);
+			}
+		}
 	}
 	
 	/**

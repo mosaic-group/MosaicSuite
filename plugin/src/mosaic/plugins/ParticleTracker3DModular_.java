@@ -839,11 +839,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		
 		String d_pos[] = {"Brownian","straight","constant velocity"};
 		gd.addChoice("Dynamics: ", d_pos, d_pos[0]);
-		
-        gd.addMessage("Trajectory Analysis Data :\n");
-        // These 2 params are relevant for both working modes
-        gd.addNumericField("Length of pixel (in mm)", 1, 3);
-        gd.addNumericField("Time interval between frames (in s)", 1.0, 3);
+//		
+//        gd.addMessage("Trajectory Analysis Data :\n");
+//        // These 2 params are relevant for both working modes
+//        gd.addNumericField("Length of pixel (in mm)", 1, 3);
+//        gd.addNumericField("Time interval between frames (in s)", 1.0, 3);
         
 		// Create advanced option panel
 		
@@ -898,9 +898,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		"Journal of Structural Biology<br> 151(2):182-195, 2005.<br>" +
         "</html>");
 		
-//		p = new Panel();
-//		p.add(labelJ);
-//		gd.addPanel(p);
+		p = new Panel();
+		p.add(labelJ);
+		gd.addPanel(p);
 		
         gd.showDialog();
         
@@ -925,8 +925,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		this.linkrange = (int)gd.getNextNumber();
 		this.displacement = gd.getNextNumber();
 
-		this.pixelDimensions = gd.getNextNumber()/1000.0;
-		this.timeInterval = gd.getNextNumber();
+//		this.pixelDimensions = gd.getNextNumber()/1000.0;
+//		this.timeInterval = gd.getNextNumber();
+		this.pixelDimensions = 1;
+		this.timeInterval = 1;
+		
 		
 		// if Cancel button was clicked
 		if (gd.wasCanceled()) return false;
@@ -1685,6 +1688,57 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				(all_traj.elementAt(chosen_traj-1)).plotParticleAlongTrajectory(param_choice);
 				return;
 			}
+			
+            if (source == mssButton || source == mssTrajectoryResultButton || source == mssAllResultsButton) {
+
+                // Get all calibration data from image
+                double width = original_imp.getCalibration().pixelWidth;
+                double height = original_imp.getCalibration().pixelHeight;
+                double interval = original_imp.getCalibration().frameInterval;
+                String intervalUnit = original_imp.getCalibration().getTimeUnit();
+                String unit = original_imp.getCalibration().getUnit();
+
+                // Do checking and complain if necessary
+                String message = "";
+                if (width != height) {
+                    message += "Pixel width is different than height. \n";
+                } else if (interval == 0) {
+                    message += "Frame interval is equall to 0. To perform analysis it must have correct value \n";
+                } else if (!(unit.equals("nm") || unit.equals(IJ.micronSymbol + "m") || unit.equals("um") || unit.equals("mm") || unit.equals("m"))) {
+                    message += "Dimension unit must be one of: m, mm, um or (" + IJ.micronSymbol + "m), nm";
+                } else if (!(intervalUnit.equals("us") || intervalUnit.equals(IJ.micronSymbol + "s") || intervalUnit.equals("ms") || intervalUnit.equals("sec") || intervalUnit.equals("s"))) {
+                    message += "Time interval unit must be one of: s, sec, ms, us, " + IJ.micronSymbol + "m";
+                }
+                if (!message.equals("")) {
+                    IJ.showMessage(message);
+                    IJ.run("Properties...");
+                    return;
+                } else {
+                    // All provided data are correct! Get it and recalculate if
+                    // needed.
+
+                    pixelDimensions = width;
+                    timeInterval = interval;
+
+                    // Convert dimension unit to meters
+                    if (unit.equals("nm")) {
+                        pixelDimensions /= 1000000000; // convert from nm to m
+                    } else if (unit.equals(IJ.micronSymbol + "m") || unit.equals("um")) {
+                        pixelDimensions /= 1000000; // convert from um to m
+                    } else if (unit.equals("mm")) {
+                        pixelDimensions /= 1000; // convert from mm to nm
+                    }
+
+                    // convert time unit to seconds
+                    if (intervalUnit.equals(IJ.micronSymbol + "s") || intervalUnit.equals("us")) {
+                        timeInterval /= 1000000; // convert from us to s
+                    } else if (intervalUnit.equals("ms")) {
+                        timeInterval /= 1000; // convert from ms to s
+                    }
+
+                }
+            }
+			
 			/* save full report to file */
 			if (source == save_report) {				
 				// show save file user dialog with default file name 'Traj_{title}.txt'				 
@@ -1753,6 +1807,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 					return;
 				}
 			}
+
 			/* create Trajectory focus view */
 			if (source == trajectory_focus) {
 				// user selects trajectory according to serial number (starts with 1)
@@ -2075,16 +2130,19 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			Trajectory curr_traj = iter.next();
 			traj_info.append("%% Trajectory " + curr_traj.serial_number +"\n");
 			
-			TrajectoryAnalysis ta = new TrajectoryAnalysis(curr_traj);
-			ta.setLengthOfAPixel(pixelDimensions);
-			ta.setTimeInterval(timeInterval);
-			if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
-			    traj_info.append("%% MSS(slope): " + String.format("%4.3f", ta.getMSSlinear()) + 
-			                       " MSD(slope): " + String.format("%4.3f", ta.getGammasLogarithmic()[1]) + "\n");
-			}
-			else {
-			    traj_info.append("%% Calculating MSS/MSD not possible for this trajectory.\n");
-			}
+//			 Uncomment these lines if you want to add trajectory analysis to final report:
+//			 -----------------------------------------------------------------------------
+//			TrajectoryAnalysis ta = new TrajectoryAnalysis(curr_traj);
+//			ta.setLengthOfAPixel(pixelDimensions);
+//			ta.setTimeInterval(timeInterval);
+//			if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
+//			    traj_info.append("%% MSS(slope): " + String.format("%4.3f", ta.getMSSlinear()) + 
+//			                       " MSD(slope): " + String.format("%4.3f", ta.getGammasLogarithmic()[1]) + "\n");
+//			}
+//			else {
+//			    traj_info.append("%% Calculating MSS/MSD not possible for this trajectory.\n");
+//			}
+//			 -----------------------------------------------------------------------------
 			
 			traj_info.append(trajectoryHeader());
 			curr_traj.setScaling(getScaling());
