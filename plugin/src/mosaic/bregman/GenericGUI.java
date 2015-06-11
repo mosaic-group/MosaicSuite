@@ -127,6 +127,9 @@ public class GenericGUI
 	
 	public void drawBatchWindow(GenericDialog gd)
 	{
+		// file to process
+		gd.addStringField("filepath","path",10);
+		
 		// Add Regularization Channel 1
 		gd.addNumericField("Reg_ch1",0.05,3);
 		
@@ -150,6 +153,7 @@ public class GenericGUI
 		
 		// Get the parameters
 		
+		Analysis.p.wd=  gd.getNextString();
 		Analysis.p.lreg_[0] = gd.getNextNumber();
 		Analysis.p.lreg_[1] = gd.getNextNumber();
 		Analysis.p.min_intensity = gd.getNextNumber();
@@ -386,6 +390,8 @@ public class GenericGUI
 			Analysis.p.wd=  gd.getNextString();
 		}
 
+		System.out.println("Regularizer: " + Analysis.p.lreg_[0]);
+		
 		if(Analysis.p.mode_voronoi2)
 		{
 			//betamleout to be determined by clustering of whole image
