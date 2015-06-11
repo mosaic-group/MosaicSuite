@@ -441,9 +441,12 @@ public class InterPluginCSV<E extends ICSVGeneral>
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (NoSuchMethodException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					c[i] = null;
+				    // getProcessor from above getMethod is not existing
+				    // figure out what to do with this. Anyway this situation seems to be handled below.
+				    // 
+				    // e.printStackTrace();
+					
+				    c[i] = null;
 					map[i] = "Nothing";
 					continue;
 				}

@@ -313,11 +313,8 @@ public class Region_Competition implements Segmentation
 		initAndParse();
 		
 		originalIP = aImp;
-		userDialog = new GenericDialogGUI(this);
-		
-		
-		//TODO ugly
-		((GenericDialogGUI)userDialog).showDialog();
+		userDialog = new GenericDialogGUI(this.settings, this.getOriginalImPlus());
+		userDialog.showDialog();
 		
 		boolean success=userDialog.processInput();
 		if(!success)
