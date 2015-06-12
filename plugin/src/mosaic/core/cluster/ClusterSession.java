@@ -721,6 +721,7 @@ public class ClusterSession
 			if (createJobArrayFromImage(img,command,options,ss,ExtTime,wp) == false)
 			{
 				wp.SetStatusMessage("Failed to create job array");
+				ss.close();
 				ss = null;
 				wp.dispose();
 				return false;
@@ -733,6 +734,7 @@ public class ClusterSession
 				// Close the progress bar
 			
 				wp.dispose();
+				ss.close();
 				ss = null;
 				return true;
 			}
@@ -1203,6 +1205,16 @@ public class ClusterSession
 		}
 		
 		return new File(dirS);
+	}
+	
+	/**
+	 * 
+	 * Close the cluster session
+	 * 
+	 */
+	void close()
+	{
+		
 	}
 	
 	/**

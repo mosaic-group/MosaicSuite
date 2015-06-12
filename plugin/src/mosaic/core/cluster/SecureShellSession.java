@@ -65,64 +65,30 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 			e.printStackTrace();
 		}
 		
-		cprof = cprof_;
-		
-		// This class require Jsch 1.50 but Fiji use Jsch 1.49
-		// if we found Jsch 1.49 we inform the user to update that component
-		
-/*		File[] fl = new File(IJ.getDirectory("imagej") + File.separator + "jars" + File.separator).listFiles();
-		if (fl != null)
+		cprof = cprof_;		
+	}
+	
+	/**
+	 * 
+	 * Close the connections
+	 * 
+	 */
+	void close()
+	{
+		try 
 		{
-			for (File f : fl)
-			{
-				if (f.getName().startsWith("jsch-") && f.getName().endsWith(".jar"))
-				{
-					String psplit[] = f.getName().substring(5, f.getName().length() - 4).split("\\.");
-				
-					if (psplit.length >= 1 && Integer.parseInt(psplit[0]) > 0)
-					{
-						//  Newer
-					}
-					else if (psplit.length >= 2 && Integer.parseInt(psplit[1]) > 1)
-					{
-						// Newer
-					}
-					else if (psplit.length >= 3 && Integer.parseInt(psplit[2]) > 49)
-					{
-						// Newer
-					}
-					else
-					{
-						GenericDialog gd = new GenericDialog("JSCH component conflict");
-					
-						String ad[] = {"No","Yes"};
-						gd.addChoice("JSCH component conflict found, update to 0.1.50 ? ",ad,"Yes");
-						gd.addMessage("If you press yes we will replace jars/" + f.getName() + " with a newer version");
-						gd.addMessage("If something goes wrong a backup version can be founded at mosaic.mpi-cbg.de/Downloads/dep/jsch-0.1.49.jar");
-						gd.addMessage("fiji/ImageJ will close after update");
-						gd.showDialog();
-					
-						if(!gd.wasCanceled() && gd.getNextChoice().equals("Yes"))
-						{
-
-							try 
-							{
-								ShellCommand.exeCmd("wget mosaic.mpi-cbg.de/Downloads/dep/jsch-0.1.50.jar",new File(IJ.getDirectory("imagej") + "/jars/"), null);
-								ShellCommand.exeCmd("rm " + f.getName(),new File(IJ.getDirectory("imagej") + File.separator + "jars" + File.separator), null);
-							} 
-							catch (IOException e)
-							{e.printStackTrace();}
-							catch (InterruptedException e) 
-							{e.printStackTrace();}
-							System.exit(1);
-						}
-					}
-					
-					
-				}
-			}
-		}*/
-		
+			poutput_in.close();
+			pinput_out.close();
+			poutput_out.close();
+			pinput_in.close();
+		} 
+		catch (IOException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		cSFTP.disconnect();
+		cSSH.disconnect();
 	}
 	
 	/**
@@ -267,7 +233,6 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 	 */
 	public boolean runCommands(String pwd, String [] commands)
 	{
-		
 	    String cmd_list = new String();
 	    for (int i = 0 ; i < commands.length ; i++)
 	    {

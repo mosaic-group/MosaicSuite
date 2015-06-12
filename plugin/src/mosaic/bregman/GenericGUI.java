@@ -125,41 +125,50 @@ public class GenericGUI
 	 * 
 	 */
 	
-	public void drawBatchWindow(GenericDialog gd)
+	public int drawBatchWindow()
 	{
-		// file to process
-		gd.addStringField("filepath","path",10);
+		// No visualization is active by default
+		Analysis.p.livedisplay = false;
+		Analysis.p.dispcolors = false;
+		Analysis.p.dispint = false;
+		Analysis.p.displabels = false;
+		Analysis.p.dispoutline = false;
+		Analysis.p.dispSoftMask = false;
+		Analysis.p.save_images = true;
 		
-		// Add Regularization Channel 1
-		gd.addNumericField("Reg_ch1",0.05,3);
+		System.out.println("Batch window");
 		
-		// Add Regularization Channel 2
-		gd.addNumericField("Reg_ch2",0.05,3);
+		GenericDialogCustom gd = new GenericDialogCustom("Batch window");
 		
-		// Add Min int Channel 1
-		gd.addNumericField("Min_int_ch1",0.15,3);
-		
-		// Add Min int Channel 2
-		gd.addNumericField("Min_int_ch2",0.15,3);
-		
-		// PSF xy
-		gd.addNumericField("PSF_xy", 1.0, 3);
-		
-		// PSF z
-		gd.addNumericField("PSF_z", 1.0, 3);
+		addTextArea(gd);
 		
 		gd.showDialog();
-		if (gd.wasCanceled()) return;
+		if (gd.wasCanceled()) return -1;
+		Analysis.p.wd=  gd.getNextText();
 		
-		// Get the parameters
+		BackgroundSubGUI.getParameters();
+		SegmentationGUI.getParameters();
+		VisualizationGUI.getParameters();
 		
-		Analysis.p.wd=  gd.getNextString();
-		Analysis.p.lreg_[0] = gd.getNextNumber();
-		Analysis.p.lreg_[1] = gd.getNextNumber();
-		Analysis.p.min_intensity = gd.getNextNumber();
-		Analysis.p.min_intensityY = gd.getNextNumber();
-		Analysis.p.sigma_gaussian = gd.getNextNumber();
-		Analysis.p.zcorrec=Analysis.p.sigma_gaussian/gd.getNextNumber();
+		System.out.println(Analysis.p);
+		return 0;
+	}
+	
+	/**
+	 * 
+	 * Add text are for file path
+	 * 
+	 * @param gd
+	 */
+	private void addTextArea(GenericDialog gd)
+	{
+		if (Analysis.p.wd == null)
+			gd.addTextAreas("Input Image: \n" +
+			"insert Path to file or folder, " +
+			"or press Button below.", 
+			null, 2, 50);
+		else
+			gd.addTextAreas(Analysis.p.wd,null, 2, 50);
 	}
 	
 	/**
@@ -170,11 +179,11 @@ public class GenericGUI
 	 * @param Active imagePlus
 	 * @param It output if we have to use the cluster
 	 * 
-	 * @return true if you have to use the cluster
+	 * @return run mode, -1 when cancelled
 	 * 
 	 */
 	
-	boolean drawStandardWindow(GenericDialog gd, ImagePlus aImp)
+	int drawStandardWindow(GenericDialog gd, ImagePlus aImp)
 	{
 		// font for reference
 		Font bf = new Font(null, Font.BOLD ,12);
@@ -185,13 +194,7 @@ public class GenericGUI
 	
 		gd.setInsets(-10,0,3);
 	
-		if (Analysis.p.wd == null)
-			gd.addTextAreas("Input Image: \n" +
-			"insert Path to file or folder, " +
-			"or press Button below.", 
-			null, 2, 50);
-		else
-			gd.addTextAreas(Analysis.p.wd,null, 2, 50);
+		addTextArea(gd);
 	
 		//FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
 		FlowLayout fl = new FlowLayout(FlowLayout.LEFT,75,3);
@@ -324,7 +327,7 @@ public class GenericGUI
 		//////////////////////////////////
 	
 		gd.showDialog();
-		if (gd.wasCanceled()) return false;
+		if (gd.wasCanceled()) return -1;
 	
 		Analysis.p.wd=  gd.getNextText();
 	
@@ -333,7 +336,11 @@ public class GenericGUI
 		//IJ.log("Number of processors available to the Java Virtual Machine: " + nrOfProcessors);		
 		Analysis.p.nthreads=nrOfProcessors;
 	
-		return gd.getNextBoolean();
+		int run_mode = 0;
+		if (gd.getNextBoolean() == true)
+			run_mode = 1;
+		
+		return run_mode;
 	}
 	
 	public void run(String arg, ImagePlus aImp)
@@ -341,34 +348,37 @@ public class GenericGUI
 		Boolean use_cluster = false;
 		//String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
 		//boolean bgroup1[] = {false, false};
-
-		GenericDialog gd = null;
-		
-		if (!clustermode)
-			gd = new NonBlockingGenericDialog("Squassh");
-		else
-			gd = new GenericDialog("Squassh");
 		
 		//for rscript generation
 		Analysis.p.initrsettings=true;
 		
 		if (!clustermode)
 		{
+			
+			
 			if (IJ.isMacro() == true)
 			{
+				GenericDialogCustom gd = new GenericDialogCustom("Squassh");
 				// Draw a batch system window
 				
-				drawBatchWindow(gd);
+				drawBatchWindow();
 			}
 			else
 			{
+				GenericDialog gd = new NonBlockingGenericDialog("Squassh");
+				
 				// Draw a standard window
 				
-				use_cluster = drawStandardWindow(gd,aImp);
+				int ret = drawStandardWindow(gd,aImp);
+				if (ret == -1)
+					return;
+				use_cluster = (ret == 1);
 			}
 		}
 		else
 		{
+			GenericDialogCustom gd = new GenericDialogCustom("Squassh");
+			
 			gd.addStringField("config","path",10);
 			gd.addStringField("filepath","path",10);
 			
@@ -390,7 +400,7 @@ public class GenericGUI
 			Analysis.p.wd=  gd.getNextString();
 		}
 
-		System.out.println("Regularizer: " + Analysis.p.lreg_[0]);
+		System.out.println("Paramenters: " + Analysis.p);
 		
 		if(Analysis.p.mode_voronoi2)
 		{

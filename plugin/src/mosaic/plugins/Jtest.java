@@ -33,34 +33,34 @@ public class Jtest implements PlugInFilter
 	@Override
 	public int setup(String arg0, ImagePlus arg1) 
 	{
-//		// Test Squassh segmentation
-//		
-//		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
-//		
-//		jtestBR.segmentation();
-//		
-//		// Test Naturalization
-//		
-//		mosaic.plugins.test.Jtest JtestPlug = new mosaic.plugins.test.Jtest();
-//		JtestPlug.naturalization();
-//		
-//		// Test CSV system
-//		
-//		mosaic.core.ipc.Jtest jtestIPC = new mosaic.core.ipc.Jtest();
-//		
-//		jtestIPC.csvtest();
-//		
-//		// Test core utils
-//		
-//		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
-//		
-//		jtestTS.testtestsegmentation();
-//	
-//		// Test core utils
-//		
-//		mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
-//		
-//		jtestMj.mergetest();
+		// Test Squassh segmentation
+		
+		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
+		
+		jtestBR.segmentation();
+		
+		// Test Naturalization
+		
+		mosaic.plugins.test.Jtest JtestPlug = new mosaic.plugins.test.Jtest();
+		JtestPlug.naturalization();
+		
+		// Test CSV system
+		
+		mosaic.core.ipc.Jtest jtestIPC = new mosaic.core.ipc.Jtest();
+		
+		jtestIPC.csvtest();
+		
+		// Test core utils
+		
+		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
+		
+		jtestTS.testtestsegmentation();
+	
+		// Test core utils
+		
+		mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
+		
+		jtestMj.mergetest();
 		
 		// Test Region competition segmentation
 		

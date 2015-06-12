@@ -75,6 +75,7 @@ public class CurvatureBasedFlow
 		while (sphereIt.hasNext())
 		{
 			int idx = sphereIt.next();
+			
 			int absLabel=labelImage.getLabelAbs(idx);
 			
 			//directly access data; only 1-2% faster

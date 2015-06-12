@@ -213,5 +213,29 @@ public class Parameters  implements Serializable
 		this.mode_watershed=p.mode_watershed;
 		
 	}
+	
+	public String toString()
+	{
+		String str = new String();
+		
+		str += "save_images=" + this.save_images + "\n";
+		str += "wd=" + this.wd + "\n";
+
+		for (int i = 0 ; i < this.lreg_.length ; i++)
+		{
+			str += "lreg_[" + i + "]" + this.lreg_[i] + "\n";
+		}
+
+		str += "size_rollingball=" + this.size_rollingball + "\n";
+		str += "removebackground=" + this.removebackground + "\n";
+
+		str += "min_intensity=" + this.min_intensity + "\n";
+		str += "min_intensityY" + this.min_intensityY + "\n";
+
+		str += "sigma_gaussian=" + this.sigma_gaussian + "\n";
+		str += "zcorrec=" + this.zcorrec + "\n";
+		
+		return str;
+	}
 
 }
