@@ -56,8 +56,6 @@ import mosaic.region_competition.wizard.RCWizard;
  */
 public class GenericDialogGUI implements InputReadable
 {
-	private Region_Competition MVC;
-	
 	private Settings settings;
 	private GenericDialog gd;
 	private GenericDialog gd_p;
@@ -98,11 +96,10 @@ public class GenericDialogGUI implements InputReadable
 	* Create main plugins dialog
 	*/
 	
-	public GenericDialogGUI(final Region_Competition region_Competition)
+	public GenericDialogGUI(Settings aSettings, ImagePlus aImg)
 	{		
-		this.MVC = region_Competition;
-		this.settings=region_Competition.settings;
-		aImp = region_Competition.getOriginalImPlus();
+		settings= aSettings; // region_Competition.settings;
+		aImp = aImg; // region_Competition.getOriginalImPlus();
 		
 		if (IJ.isMacro() == true)
 		{
@@ -158,16 +155,12 @@ public class GenericDialogGUI implements InputReadable
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				CreateParametersDialog(MVC);
+				CreateParametersDialog();
 			}
 		});
 		p.add(b);
 
 		gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
-		
-//		gd.addPanel(p);
-//		gd.add(b);
-		
 		
 		addOpenedImageChooser();
 		
@@ -189,22 +182,6 @@ public class GenericDialogGUI implements InputReadable
 		
 		gd.addCheckboxGroup(2, strings.length, 
 				strings, bools);
-		
-		 
-//		{
-//			b = new Button("delete saved");
-//			b.addActionListener(new ActionListener() {
-//				
-//				@Override
-//				public void actionPerformed(ActionEvent e)
-//				{
-//					String fileName = MVC.savedSettings;
-//					File file = new File(fileName);
-//					file.delete();
-//				}
-//			});
-//			gd.add(b);
-//		}
 		
 		// Parameter opener Buttons
 		
@@ -232,7 +209,6 @@ public class GenericDialogGUI implements InputReadable
 				try {
 					Region_Competition.SaveConfigFile("/tmp/rc_settings.dat",settings);
 				} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 				}
 			}
@@ -261,19 +237,9 @@ public class GenericDialogGUI implements InputReadable
 	* Create parameters dialog
 	*/
 	
-	private void CreateParametersDialog(Region_Competition region_Competition)
+	private void CreateParametersDialog()
 	{
-		
-//		EmptyGenericDialog gde = new EmptyGenericDialog("Region Competition");
-//		if(gde!= null)
-//		{
-//			gde.showDialog();
-//			gde.recordValues();
-//			return;
-//		}
-
 		gd_p = new GenericDialog("Region Competition Parameters");
-//		gd_p.setMinimumSize(new Dimension(600, 600));
 		
 		Button optionButton;
 		GridBagConstraints c;
@@ -281,13 +247,11 @@ public class GenericDialogGUI implements InputReadable
 		int gridx=2;
 		
 		// components: 
-
 		final Choice choiceEnergy;
 		final Choice choiceRegularization;
 		
 		
 		// Energy Functional
-		
 		EnergyFunctionalType[] energyValues = EnergyFunctionalType.values();
 		String[] energyItems = new String[energyValues.length];
 		for(int i=0; i<energyItems.length; i++)
@@ -365,10 +329,7 @@ public class GenericDialogGUI implements InputReadable
 		
 		// default choice
 		String defaultInit = settings.labelImageInitType.name();
-//		if(aImp!=null && aImp.getRoi()!=null)
-//		{
-//			defaultInit=User_Defined_Initialization;
-//		}
+
 		gd_p.addChoice(Initialization, initializationItems, defaultInit);
 //		save reference to this choice, so we can handle it
 		initializationChoice = (Choice)gd_p.getChoices().lastElement();
@@ -601,11 +562,11 @@ public class GenericDialogGUI implements InputReadable
 			// if bug gets fixed, this will cause problems!
 			gd.getTextArea1().setText("[]");
 		}
-		else
-		{
-			String s = filenameInput.replace('\\', '/');
-			filenameInput = s;
-		}
+//		else
+//		{
+//			String s = filenameInput.replace('\\', '/');
+//			filenameInput = s;
+//		}
 
 		// IJ Macro
 		
@@ -619,11 +580,11 @@ public class GenericDialogGUI implements InputReadable
 			if (IJ.isMacro() == false)
 				gd.getTextArea2().setText("[]");
 		}
-		else
-		{
-			String s = filenameLabelImage.replace('\\', '/');
-			filenameLabelImage = s;
-		}
+//		else
+//		{
+//			String s = filenameLabelImage.replace('\\', '/');
+//			filenameLabelImage = s;
+//		}
 		
 		// TODO IJ BUG
 		if(filenameLabelImage.equals("[]")){
@@ -880,15 +841,12 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 			}
 			catch (ClassNotFoundException e) 
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} 
 			catch (UnsupportedFlavorException e)
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -902,9 +860,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 				}
 		    
 				textArea.setText(token);
-			
-//				IJ.open(filename);
-			
+
 				// Print out the file path
 				System.out.println("File path is '" + token + "'.");
 			}
@@ -1076,9 +1032,3 @@ class NumericFieldWheelListener implements MouseWheelListener
 	}
 	
 }
-
-
-
-
-
-

@@ -95,7 +95,7 @@ public class ControllerFrame extends JFrame
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				GenericDialogGUI userDialog = new GenericDialogGUI(MVC);
+				GenericDialogGUI userDialog = new GenericDialogGUI(MVC.settings, MVC.getOriginalImPlus());
 				userDialog.showDialog();
 				userDialog.processInput();
 			}
