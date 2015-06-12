@@ -34,11 +34,11 @@ public class Jtest implements PlugInFilter
 	public int setup(String arg0, ImagePlus arg1) 
 	{
 //		// Test Squassh segmentation
-//		
-//		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
-//		
-//		jtestBR.segmentation();
-//		
+		
+		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
+		
+		jtestBR.segmentation();
+		
 //		// Test Naturalization
 //		
 //		mosaic.plugins.test.Jtest JtestPlug = new mosaic.plugins.test.Jtest();
@@ -64,10 +64,10 @@ public class Jtest implements PlugInFilter
 		
 		// Test Region competition segmentation
 		
-		mosaic.region_competition.Jtest jtestRC = new mosaic.region_competition.Jtest();
-		
-		jtestRC.segmentation();
-		
+//		mosaic.region_competition.Jtest jtestRC = new mosaic.region_competition.Jtest();
+//		
+//		jtestRC.segmentation();
+//		
 		IJ.showMessage("All test SUCCEFULLY completed");
 		
 		return DONE;
