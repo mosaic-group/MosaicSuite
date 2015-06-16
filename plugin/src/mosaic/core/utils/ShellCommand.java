@@ -291,7 +291,7 @@ public class ShellCommand
 	 *      /some_path/image_B
 	 *      /some_other_path/image_C
 	 * 
-	 * img = image_C
+	 * fl = image_C
 	 * 
 	 * the function return 2
 	 * 

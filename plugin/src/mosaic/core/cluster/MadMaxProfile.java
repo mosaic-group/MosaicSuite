@@ -41,7 +41,7 @@ class MadMaxProfile extends GeneralProfile
 
 	public String getAccessAddress()
 	{
-		return "wetcluster";
+		return "falcon";
 	}
 	
 	@Override

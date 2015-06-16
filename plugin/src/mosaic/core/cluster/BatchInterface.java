@@ -30,7 +30,7 @@ interface BatchInterface extends ShellProcessOutput
 	 * @param Ext estimated execution time
 	 * @param njob number of jobs
 	 * @param ns number of slot to allocate per process
-	 * @return
+	 * @return The script string null if it fail
 	 */
 	
 	public String getScript(String img_script_ , String session_id, double Ext, int njob, int ns);

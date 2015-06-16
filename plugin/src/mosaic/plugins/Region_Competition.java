@@ -284,6 +284,8 @@ public class Region_Competition implements Segmentation
 				LoadConfigFile(sv);
 			}
 			
+			output = MosaicUtils.parseOutput(options);
+			
 			// no config file open the GUI
 		}
 		else
@@ -515,6 +517,8 @@ public class Region_Competition implements Segmentation
 		this.cal = cal;
 	}
 	
+	String output;
+	
 	/**
 	 * 
 	 * Run region competition plugins
@@ -553,7 +557,7 @@ public class Region_Competition implements Segmentation
 			{
 				settings.labelImageInitType = InitializationType.File;
 				
-				// Run region competition on the patch image
+				// Run region competition on the patches image
 				
 				ips[i].show();
 				Region_Competition RC = new Region_Competition();
@@ -602,8 +606,10 @@ public class Region_Competition implements Segmentation
 		if (labelImage == null)
 			return;
 		
-		System.out.println("Saving labelImage: " + folder + File.separator + MosaicUtils.getRegionMaskName(MVC.getOriginalImPlus().getTitle()));
-		labelImage.save(folder + File.separator + MosaicUtils.getRegionMaskName(MVC.getOriginalImPlus().getTitle()));
+		if (output == null)
+			labelImage.save(folder + File.separator + MosaicUtils.getRegionMaskName(MVC.getOriginalImPlus().getTitle()));
+		else
+			labelImage.save(output);
 		
 		labelImage.calculateRegionsCenterOfMass();
 		
@@ -1116,7 +1122,7 @@ public class Region_Competition implements Segmentation
 					IJ.setMinAndMax(stackImPlus, 0, algorithm.getBiggestLabel());
 				}
 //				stackImPlus.updateAndDraw();
-				if (userDialog != null)
+				if (userDialog != null && output == null)
 					OpenedImages.add(labelImage.show("", algorithm.getBiggestLabel()));
 			}
 			

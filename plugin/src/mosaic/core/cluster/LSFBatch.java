@@ -52,9 +52,17 @@ class LSFBatch implements BatchInterface
 	@Override
 	public String getScript(String img_script_ , String session_id, double ext, int njob, int ns) 
 	{
+		// Check if exist a queue
+		String queue = cp.getQueue(ext);
+		if (queue == null)
+		{
+			IJ.error("Error", "Error the following cluster has all the queues shorter than " + ext + " minutes");
+			return null;
+		}
+		
 		script = session_id;
 		return new String("#!/bin/bash \n" +
-		"#BSUB -q " + cp.getQueue(ext) + "\n" +
+		"#BSUB -q " + queue + "\n" +
 		"#BSUB -n "+ ns +" \n" +
 		"#BSUB -J \"" + session_id + "[1-" + njob  + "]\" \n" +
 		"#BSUB -R span[hosts=1]\n" +

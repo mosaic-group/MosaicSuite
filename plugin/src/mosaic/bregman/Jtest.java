@@ -1,6 +1,7 @@
 package mosaic.bregman;
 
 import mosaic.bregman.output.Region3DColocRScript;
+import mosaic.bregman.output.Region3DRScript;
 import mosaic.core.utils.MosaicTest;
 import mosaic.plugins.BregmanGLM_Batch;
 
@@ -17,13 +18,12 @@ public class Jtest
 		MosaicTest.<Region3DColocRScript>testPlugin(BG,"Squassh_testa",Region3DColocRScript.class);
 		
 		BG.setUseCluster(false);
-		MosaicTest.<Region3DColocRScript>testPlugin(BG,"Squassh",Region3DColocRScript.class);
+
+		MosaicTest.<Region3DRScript>testPlugin(BG,"Squassh",Region3DRScript.class);
 		
-		//TODO: This test is not working
-//		// test the cluster		
-//		BG.setUseCluster(true);
-//		MosaicTest.<Region3DRScript>testPlugin(BG,"Squassh_cluster",Region3DRScript.class);
+		// test the cluster
 		
-		// Test batch system		
+		BG.setUseCluster(true);
+		MosaicTest.<Region3DRScript>testPlugin(BG,"Squassh_cluster",Region3DRScript.class);
 	}
 }

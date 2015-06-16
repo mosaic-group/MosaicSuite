@@ -44,8 +44,10 @@ public class ClusterGUI  extends JDialog
 	private ClusterSession cl;
 	
 	private JTextField tx_u;
+	private JTextField tx_e;
 	private JPasswordField tx_p;
 	private ClusterProfile[] cp = null;
+	private float estimated_time = 0;
 	
 	public ClusterGUI()
 	{
@@ -120,7 +122,12 @@ public class ClusterGUI  extends JDialog
 		tx_p = new JPasswordField();
 		contentPane.add(tx_p);
 		
-			
+		lblNewLabel_2 = new JLabel("Estimated time (minutes)");
+		contentPane.add(lblNewLabel_2);
+		
+		tx_e = new JTextField("0.0");
+		contentPane.add(tx_e);
+		
 		// OK and Cancel button
 			
 		JButton btnOKButton = new JButton("OK");
@@ -153,6 +160,18 @@ public class ClusterGUI  extends JDialog
 		setModal(true);
 		setVisible(true);
 		
+	}
+	
+	/**
+	 * 
+	 * Return the estimated time for each job
+	 * 
+	 * @return the created cluster session
+	 */
+	
+	public float getEstimatedTime()
+	{
+		return estimated_time;
 	}
 	
 	/**

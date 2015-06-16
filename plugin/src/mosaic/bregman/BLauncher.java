@@ -280,11 +280,66 @@ class BLauncher
 			if (Analysis.p.nchannels == 2) {displayRegionsLab(2,sep);}
 		}
 		if (Analysis.p.dispSoftMask)
-		{			
+		{
+			Analysis.out_soft_mask[0].setTitle(getSoftMask(0));
 			Analysis.out_soft_mask[0].show();
-			if (Analysis.p.nchannels == 2) {Analysis.out_soft_mask[1].show();}
+			if (Analysis.p.nchannels == 2) 
+			{
+				Analysis.out_soft_mask[1].setTitle(getSoftMask(1));
+				Analysis.out_soft_mask[1].show();
+			}
 		}
 
+	}
+	
+	/**
+	 * 
+	 * Get the outline filename
+	 * 
+	 * @return the outline name
+	 */
+	private String getOutlineName(int i)
+	{
+		return Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_outline_overlay_c" + (i+1);
+	}
+	
+	/**
+	 * 
+	 * Get the outline filename
+	 * 
+	 * @return the outline filename
+	 */
+	private String getIntensitiesName(int i)
+	{
+		return Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_intensities" + "_c"+(i+1);
+	}
+	
+	/**
+	 * 
+	 * Get the Intensities filename
+	 * 
+	 * @return the intensities filename
+	 */
+	private String getSegmentationName(int i)
+	{
+		return Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c" + (i+1);
+	}
+	
+	/**
+	 * 
+	 * Get the Mask filename
+	 * 
+	 * @param i
+	 * @return the mask filename
+	 */
+	private String getMaskName(int i)
+	{
+		return Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_mask_c" + (i+1);
+	}
+	
+	private String getSoftMask(int i)
+	{
+		return Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_soft_mask_c" + (i+1);
 	}
 	
 	/**
@@ -296,39 +351,39 @@ class BLauncher
 	 */
 	
 	private void saveAllImages(String path)
-	{		
+	{
 		// Save images
 			
 		for (int i = 0 ; i < out_over.length ; i++)
 		{
-			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_outline_overlay_c" + (i+1) + ".zip";
+			String savepath = path + File.separator + getOutlineName(i) + ".zip";
 			if (out_over[i] != null)
 				IJ.saveAs(out_over[i], "ZIP", savepath);
 		}
 			
 		for (int i = 0 ; i < out_disp.length ; i++)
 		{
-			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_intensities" + "_c"+(i+1)+".zip";
+			String savepath = path + File.separator + getIntensitiesName(i) +".zip";
 			if (out_disp[i] != null)
 				IJ.saveAs(out_disp[i], "ZIP", savepath);
 		}
 		
 		for (int i = 0 ; i < out_label.length ; i++)
 		{
-			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_seg_c" + (i+1) +".zip";
+			String savepath = path + File.separator + getSegmentationName(i) +".zip";
 			if (out_label[i] != null)
 				IJ.saveAs(out_label[i], "ZIP", savepath);
 		}
 		
 		for (int i = 0 ; i < out_label_gray.length ; i++)
 		{
-			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_mask_c" + (i+1) +".zip";
+			String savepath = path + File.separator + getMaskName(i) +".zip";
 			if (out_label_gray[i] != null)
 				IJ.saveAs(out_label_gray[i], "ZIP", savepath);
 		}
 		for (int i = 0 ; i < Analysis.out_soft_mask.length ; i++)
 		{
-			String savepath = path + File.separator + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_soft_mask_c" + (i+1) +".tiff";
+			String savepath = path + File.separator + getSoftMask(i) +".tiff";
 			if (Analysis.out_soft_mask[i] != null)
 				IJ.saveAsTiff(Analysis.out_soft_mask[i], savepath);
 		}
@@ -813,7 +868,7 @@ class BLauncher
 			for (int i=0; i<Analysis.p.ni; i++) 
 			{  
 				for (int j=0; j<Analysis.p.nj; j++) 
-				{  
+				{
 					mask_bytes[j * Analysis.p.ni + i]=(byte) (255*image[z][i][j]);
 				}
 			}
@@ -853,12 +908,15 @@ class BLauncher
 		// if we have already an outline overlay image merge the frame
 		
 		if (sep == false)
-			updateImages(out_over,over,"Objects outlines, channel " + channel,Analysis.p.dispoutline,channel);
+		{
+			updateImages(out_over,over,getOutlineName(channel-1),Analysis.p.dispoutline,channel);
+		}
 		else
 		{
 			ip.add(over);
 			out_over[channel-1] = over;
 			over.show();
+			over.setTitle(getOutlineName(channel-1));
 		}
 	}
 
@@ -907,12 +965,13 @@ class BLauncher
 		ImagePlus intensities = ImageJFunctions.wrap(imgInt,"Intensities");
 		
 		if (sep == false)
-			updateImages(out_disp,intensities,"Intensities reconstruction, channel " +channel,Analysis.p.dispint,channel);
+			updateImages(out_disp,intensities,getIntensitiesName(channel-1),Analysis.p.dispint,channel);
 		else
 		{
 			ip.add(intensities);
 			out_disp[channel-1] = intensities;
 			intensities.show();
+			intensities.setTitle(getIntensitiesName(channel-1));
 		}
 	}
 
@@ -994,12 +1053,13 @@ class BLauncher
 		label.setStack("Regions " + chan_s[channel-1],labS);
 
 		if (sep == false)
-			updateImages(out_label,label,"Colorized objects, channel " + channel,Analysis.p.dispcolors,channel);
+			updateImages(out_label,label,getSegmentationName(channel-1),Analysis.p.dispcolors,channel);
 		else
 		{
 			out_label[channel-1] = label;
 			ip.add(label);
 			label.show();
+			label.setTitle(getSegmentationName(channel-1));
 		}
 	}
 	
@@ -1021,12 +1081,13 @@ class BLauncher
 		IJ.run(label_, "Grays", "");
 		
 		if (sep == true)
-			updateImages(out_label_gray,label_,"Labelized objects, channel " + channel,Analysis.p.displabels,channel);
+			updateImages(out_label_gray,label_,getMaskName(channel-1),Analysis.p.displabels,channel);
 		else
 		{
 			out_label_gray[channel-1] = label_;
 			ip.add(label_);
 			label_.show();
+			label_.setTitle(getMaskName(channel-1));
 		}
 	}
 	
@@ -1050,7 +1111,7 @@ class BLauncher
 		{
 			ipd[channel-1] = ips;
 			ip.add(ips);
-			ipd[channel-1].setTitle("Labelized objects, channel " + channel);
+			ipd[channel-1].setTitle(title);
 		}
 		
 		if(disp)
