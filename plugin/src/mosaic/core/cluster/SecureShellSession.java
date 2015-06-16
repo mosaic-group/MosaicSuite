@@ -71,24 +71,26 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 	/**
 	 * 
 	 * Close the connections
+	 * @throws InterruptedException 
+	 * @throws IOException 
 	 * 
 	 */
-	void close()
+	void close() throws InterruptedException, IOException
 	{
-		try 
+		// Check that all the pipe are empty
+		
+		while (poutput_in.available() != 0 &&
+			   pinput_in.available() != 0)
 		{
-			poutput_in.close();
-			pinput_out.close();
-			poutput_out.close();
-			pinput_in.close();
-		} 
-		catch (IOException e) 
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Thread.sleep(1000);
 		}
+		pinput_in.close();
+		pinput_out.close();
+		poutput_in.close();;
+		poutput_out.close();
 		cSFTP.disconnect();
 		cSSH.disconnect();
+		session.disconnect();
 	}
 	
 	/**

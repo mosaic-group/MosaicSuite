@@ -4,6 +4,7 @@ package mosaic.bregman;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.Macro;
 //import ij.gui.NonBlockingGenericDialog;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
@@ -146,9 +147,9 @@ public class GenericGUI
 		if (gd.wasCanceled()) return -1;
 		Analysis.p.wd=  gd.getNextText();
 		
-		BackgroundSubGUI.getParameters();
-		SegmentationGUI.getParameters();
-		VisualizationGUI.getParameters();
+		if (BackgroundSubGUI.getParameters() == -1) return -1;
+		if (SegmentationGUI.getParameters() == -1) return -1;
+		if (VisualizationGUI.getParameters() == -1) return -1;
 		
 		System.out.println(Analysis.p);
 		return 0;
@@ -354,14 +355,17 @@ public class GenericGUI
 		
 		if (!clustermode)
 		{
-			
+			int ret = 0;
 			
 			if (IJ.isMacro() == true)
 			{
 				GenericDialogCustom gd = new GenericDialogCustom("Squassh");
 				// Draw a batch system window
 				
-				drawBatchWindow();
+				ret = drawBatchWindow();
+				if (ret == -1)
+					Macro.abort();
+				
 			}
 			else
 			{
@@ -369,11 +373,12 @@ public class GenericGUI
 				
 				// Draw a standard window
 				
-				int ret = drawStandardWindow(gd,aImp);
-				if (ret == -1)
-					return;
+				ret = drawStandardWindow(gd,aImp);
 				use_cluster = (ret == 1);
 			}
+			
+			if (ret == -1)
+				return;
 		}
 		else
 		{

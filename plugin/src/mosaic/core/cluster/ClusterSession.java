@@ -208,7 +208,8 @@ public class ClusterSession
 	 * @param img Image to process
 	 * @param options Plugins options
 	 * @param ss Secure Shell session
-	 * @return false if fail, true if successfully
+	 * @param Ext estimated running time for the job
+	 * @return false if fail, true if successful
 	 * 
 	 */
 	
@@ -721,7 +722,13 @@ public class ClusterSession
 			if (createJobArrayFromImage(img,command,options,ss,ExtTime,wp) == false)
 			{
 				wp.SetStatusMessage("Failed to create job array");
-				ss.close();
+				try {
+					ss.close();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				ss = null;
 				wp.dispose();
 				return false;
@@ -734,7 +741,15 @@ public class ClusterSession
 				// Close the progress bar
 			
 				wp.dispose();
-				ss.close();
+				try {
+					ss.close();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				ss = null;
 				return true;
 			}
@@ -965,7 +980,7 @@ public class ClusterSession
 		
 		// Run plugin on frames
 		
-		if (ss.runPluginsOnFrames(aImp, command, "min="+ min + " max="+max + " " + options, out, 180.0, sync) == false)
+		if (ss.runPluginsOnFrames(aImp, command, "min="+ min + " max="+max + " " + options, out, cg.getEstimatedTime(), sync) == false)
 			return null;
 		
 		return ss;
@@ -1023,7 +1038,7 @@ public class ClusterSession
 			processFile(fl,command,options,out,cg,mm.max,mm.min);
 		}
 		
-		ss.runPluginsOnFrames(null,command,options, Analysis.out, 180.0);
+		ss.runPluginsOnFrames(null,command,options, Analysis.out, cg.getEstimatedTime());
 		return ss;
 	}
 	
@@ -1085,9 +1100,6 @@ public class ClusterSession
 		ImagePlus imp = opener.openImage(fl.getAbsolutePath());
 		ClusterSession ss = processImage(imp,command,options,out,cg,new Float(0.0),new Float(0.0),true);
 		
-//		ClusterSession ss = cg.getClusterSession();
-		
-//		ss.runPluginsOnFrames(null,null, Analysis.out, 180.0, sync);
 		return ss;
 	}
 	
@@ -1132,8 +1144,8 @@ public class ClusterSession
 	 * It post-process the jobs data performing the following operation:
 	 * 
 	 * It search on the temporal directory for Job directory and for each founded
-	 * job directory create a JobXXXX directory where XXXXX is the JobID for each 
-	 * Jobs directory copy all output file there for all csv filename
+	 * job directory create a JobXXXX directory in path, where XXXXX is the JobID. For each 
+	 * Jobs directory copy all files and for all csv filename
 	 * supplied in outcsv perform a stitch operation (it try to stitch
 	 *  all the CSV in one)
 	 * 

@@ -14,11 +14,11 @@ public class Jtest
 	{
 		BregmanGLM_Batch BG = new BregmanGLM_Batch();
 		
-		BG.setUseCluster(false);
+/*		BG.setUseCluster(false);
 		MosaicTest.<Region3DColocRScript>testPlugin(BG,"Squassh_testa",Region3DColocRScript.class);
 		
 		BG.setUseCluster(false);
-		MosaicTest.<Region3DRScript>testPlugin(BG,"Squassh",Region3DRScript.class);
+		MosaicTest.<Region3DRScript>testPlugin(BG,"Squassh",Region3DRScript.class);*/
 		
 		// test the cluster
 		

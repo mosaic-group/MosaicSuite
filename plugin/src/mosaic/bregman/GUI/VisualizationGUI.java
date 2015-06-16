@@ -37,7 +37,7 @@ public class VisualizationGUI
 		getParameters();
 	}
 	
-	public static void getParameters()
+	public static int getParameters()
 	{
 		Font bf = new Font(null, Font.BOLD,12);
 		
@@ -108,7 +108,7 @@ public class VisualizationGUI
 		
 		gd.centerDialog(false);
 		gd.showDialog();
-		if (gd.wasCanceled()) return;
+		if (gd.wasCanceled()) return -1;
 
 		Analysis.p.save_images= true;
 
@@ -124,5 +124,7 @@ public class VisualizationGUI
 		
 		
 		Analysis.p.nbconditions=(int) gd.getNextNumber();
+		
+		return 0;
 	}
 }

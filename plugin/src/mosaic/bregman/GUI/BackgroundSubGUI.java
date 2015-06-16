@@ -41,7 +41,7 @@ public class BackgroundSubGUI
 		getParameters();		
 	}
 	
-	static public void getParameters()
+	static public int getParameters()
 	{
 		final GenericDialog gd = new GenericDialog("Background subtractor options");
 		
@@ -72,13 +72,14 @@ public class BackgroundSubGUI
 		gd.addNumericField("rolling_ball_window_size_(in_pixels)", Analysis.p.size_rollingball,0);
 		
 		gd.showDialog();
-		if (gd.wasCanceled()) return;
+		if (gd.wasCanceled()) return -1;
 		
 		//general options	
 		Analysis.p.removebackground=gd.getNextBoolean();
 		//IJ.log("rem back:" +  Analysis.p.removebackground);
 		Analysis.p.size_rollingball=(int) gd.getNextNumber();
 		//Analysis.p.usePSF=gd.getNextBoolean();
+		return 0;
 	}
 
 }

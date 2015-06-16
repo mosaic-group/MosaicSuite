@@ -45,7 +45,7 @@ public class SegmentationGUI
 		//Analysis.load2channels(imagePlus);
 	}
 
-	public static void getParameters()
+	public static int getParameters()
 	{
 		final GenericDialogCustom  gd = new GenericDialogCustom("Segmentation options");
 		
@@ -141,7 +141,7 @@ public class SegmentationGUI
 
 		gd.centerDialog(false);
 		gd.showDialog();
-		if (gd.wasCanceled()) return;
+		if (gd.wasCanceled()) return -1;
 
 		Analysis.p.lreg_[0]= gd.getNextNumber();
 		Analysis.p.lreg_[1]= gd.getNextNumber();
@@ -186,5 +186,7 @@ public class SegmentationGUI
 			Analysis.p.oversampling2ndstep=1;
 			Analysis.p.interpolation=1;
 		}
+		
+		return 0;
 	}
 }
