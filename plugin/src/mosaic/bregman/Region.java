@@ -80,6 +80,11 @@ public class Region implements Comparable<Region>
 		return perimeter;
 	}
 	
+	public double getlength()
+	{
+		return length;
+	}
+	
 	public double getoverlap_with_ch()
 	{
 		return overlap;
