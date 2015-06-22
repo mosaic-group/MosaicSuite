@@ -2,7 +2,9 @@ package mosaic.bregman;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.process.ByteProcessor;
+
 
 //import java.util.ArrayList;
 import java.util.Iterator;
@@ -113,11 +115,7 @@ class ObjectProperties implements Runnable {
 		if(p.save_images){
 			setIntensitiesandCenters(region,image);
 			setPerimeter(region,regions);
-			if(Analysis.p.nz==1){
-				setlength(region, regions);
-			}
-			else
-				setlength3D(region, regions);
+			setlength(region, regions);
 		}
 		//IJ.log("int :" +region.intensity +"r"+ region.value );
 		//IJ.log(" " );
@@ -437,23 +435,31 @@ class ObjectProperties implements Runnable {
 		//		int di,dj;
 		//		di=p.ni *osxy;
 		//		dj=p.nj *osxy;
-		byte[] mask_bytes = new byte[sx*sy];
-		for (int i=0; i<sx; i++) {
-			for (int j=0; j<sy; j++) {  
-				if(regionsA[0][cx+i][cy+j]>0)
-					mask_bytes[j * sx + i]= (byte) 0;
-				else
-					mask_bytes[j * sx + i]=(byte) 255;
+		ImageStack is = new ImageStack(sx,sy);
+		
+		for (int k=0; k<sz; k++) {
+			byte[] mask_bytes = new byte[sx*sy];
+			for (int i=0; i<sx; i++) {
+				for (int j=0; j<sy; j++) {
+				
+					if(regionsA[cz+k][cx+i][cy+j]>0)
+						mask_bytes[j * sx + i]= (byte) 255;
+					else
+						mask_bytes[j * sx + i]=(byte) 0;
+				}
 			}
+			
+			ByteProcessor bp = new ByteProcessor(sx, sy);
+			bp.setPixels(mask_bytes);
+			
+			is.addSlice(bp);
 		}
-		ByteProcessor bp = new ByteProcessor(sx, sy);
-		bp.setPixels(mask_bytes);
-		skeleton.setProcessor("Skeleton",bp);
-		//skeleton.show();
 
+		skeleton.setStack(is);
 
 		//do voronoi in 2D on Z projection
-		IJ.run(skeleton, "Skeletonize", "");
+		IJ.run(skeleton, "Skeletonize (2D/3D)", "");
+		
 		//skeleton.show();
 		//		if (Analysis.p.save_images){
 		//		String savepath = Analysis.p.wd + Analysis.currentImage.substring(0,Analysis.currentImage.length()-4) + "_skel_c1" +".zip";
@@ -466,7 +472,7 @@ class ObjectProperties implements Runnable {
 	}
 
 
-	public  void setlength3D(Region r, short [][][] regionsA){
+/*	public  void setlength3D(Region r, short [][][] regionsA){
 		//2D only yet
 		ImagePlus skeleton= new ImagePlus();
 		//compute skeletonization
@@ -522,7 +528,7 @@ class ObjectProperties implements Runnable {
 
 
 
-	}
+	}*/
 
 	public  void regionlength3D(Region r, ImagePlus skel){
 		//2 Dimensions only
@@ -550,22 +556,20 @@ class ObjectProperties implements Runnable {
 
 
 	public  void regionlength(Region r, ImagePlus skel){
-		//2 Dimensions only
 		int length=0;
+		ImageStack is = skel.getStack();
 		//IJ.log("object clength "+ r.value);
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 			Pix v = it.next();
 			//count number of pixels in skeleton
-			if(skel.getProcessor().getPixel(v.px-cx, v.py-cy)==0)length++;
+			if(is.getProcessor(v.pz-cz+1).getPixel(v.px-cx, v.py-cy)!=0)length++;
 			//if(skel.getProcessor().getPixel(v.px, v.py)==0)IJ.log("coord " + v.px + ", " + v.py);
 
 		}
 		//return (sum/count);
 		r.length=length;
+		// osz assumed to me == osxy
 		if(osxy>1){r.length= ((double)length)/osxy;}
-
-
-
 	}
 
 	private float round(float y, int z){

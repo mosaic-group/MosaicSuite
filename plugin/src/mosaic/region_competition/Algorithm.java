@@ -1708,7 +1708,7 @@ public class Algorithm
 			boolean vValid = true;
 			while(vAcceptedCandIterator.hasNext())
 			{
-//				Point vCIndex = vAcceptedCandIterator.next().getKey();
+				vAcceptedCandIterator.next().getKey();
 
 				// TODO nothing happens in here. itk::2074
 				// itk commented
@@ -1942,7 +1942,7 @@ public class Algorithm
 			if(entry.getValue().count == 0) 
 			{
 				if(entry.getKey()==bgLabel){
-					debug("bglabel in"); System.out.println("LabelImage.CleanUp()");
+					debug("bglabel in"); //System.out.println("LabelImage.CleanUp()");
 					continue;
 //					throw new RuntimeException("tried to remove bglabel in cleanUp()");
 				}

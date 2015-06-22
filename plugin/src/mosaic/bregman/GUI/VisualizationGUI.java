@@ -34,6 +34,11 @@ public class VisualizationGUI
 
 	public void run(String arg) 
 	{
+		getParameters();
+	}
+	
+	public static int getParameters()
+	{
 		Font bf = new Font(null, Font.BOLD,12);
 		
 		GenericDialog  gd = new GenericDialog("Visualization and output options");
@@ -43,8 +48,8 @@ public class VisualizationGUI
 
 		String sgroup2[] = 
 		{
-				"Intermediate steps", "Colored objects","Objects intensities",
-				"Labeled objects","Outlines overlay","Soft Mask","Save objects characteristics",
+				"Intermediate_steps", "Colored_objects","Objects_intensities",
+				"Labeled_objects","Outlines_overlay","Soft_Mask","Save_objects_characteristics",
 		};
 		boolean bgroup2[] =
 		{
@@ -94,7 +99,7 @@ public class VisualizationGUI
 		Button rscript = new Button("Set condition names and number of images per condition");
 		Panel p = new Panel();
 		p.add(rscript);
-		rscript.addActionListener(new RScriptListener(gd, posx, posy)); 
+		rscript.addActionListener(new RScriptListener(gd, 0, 0)); 
 
 		
 		gd.addPanel(p);
@@ -102,9 +107,8 @@ public class VisualizationGUI
 		
 		
 		gd.centerDialog(false);
-		gd.setLocation(posx, posy);
 		gd.showDialog();
-		if (gd.wasCanceled()) return;
+		if (gd.wasCanceled()) return -1;
 
 		Analysis.p.save_images= true;
 
@@ -120,5 +124,7 @@ public class VisualizationGUI
 		
 		
 		Analysis.p.nbconditions=(int) gd.getNextNumber();
+		
+		return 0;
 	}
 }

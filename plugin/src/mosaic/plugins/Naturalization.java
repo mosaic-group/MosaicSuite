@@ -337,7 +337,7 @@ public class Naturalization implements PlugInFilterExt
 	{
 		if (x >=  0 && x <= 0.934)
 		{
-			return Double.toString(23.65 * Math.exp(0.6 * x) - 20.0 * Math.exp(-7.508 * x));
+			return String.format("%.2f", new Float(23.65 * Math.exp(0.6 * x) - 20.0 * Math.exp(-7.508 * x)));
 		}
 		else if (x > 0.934 && x < 1.07)
 		{
@@ -345,11 +345,11 @@ public class Naturalization implements PlugInFilterExt
 		}
 		else if (x >= 1.07 && x < 1.9)
 		{
-			return Double.toString(-11.566 * x + 52.776);
+			return String.format("%.2f", new Float(-11.566 * x + 52.776));
 		}
 		else
 		{
-			return Double.toString(13.06*x*x*x*x - 121.4 * x*x*x + 408.5 * x*x -595.5*x + 349);
+			return String.format("%.2f",new Float(13.06*x*x*x*x - 121.4 * x*x*x + 408.5 * x*x -595.5*x + 349));
 		}
 	}
 	

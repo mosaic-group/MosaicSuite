@@ -54,6 +54,8 @@ public interface InputReadable
 	public boolean showAndSaveStatistics();
 	public boolean show3DResult();
 	
+	void showDialog();
+	
 	// Debugging
 	
 	public boolean useOldRegionIterator();

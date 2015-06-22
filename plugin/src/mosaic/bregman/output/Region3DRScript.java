@@ -39,6 +39,7 @@ public class Region3DRScript extends StubProp implements ICSVGeneral
 		Object_ID = 0;
 		Intensity = r.getintensity();
 		Perimeter = r.getperimeter();
+		Length = r.getlength();
 		Size = r.getrsize();
 		x = r.getcx();
 		y = r.getcy();

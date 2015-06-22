@@ -18,15 +18,12 @@ public class Jtest
 		MosaicTest.<Region3DColocRScript>testPlugin(BG,"Squassh_testa",Region3DColocRScript.class);
 		
 		BG.setUseCluster(false);
+
 		MosaicTest.<Region3DRScript>testPlugin(BG,"Squassh",Region3DRScript.class);
 		
 		// test the cluster
 		
 		BG.setUseCluster(true);
 		MosaicTest.<Region3DRScript>testPlugin(BG,"Squassh_cluster",Region3DRScript.class);
-		
-		// Test batch system
-		
-		
 	}
 }

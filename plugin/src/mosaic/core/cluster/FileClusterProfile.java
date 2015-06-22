@@ -107,11 +107,11 @@ public class FileClusterProfile extends GeneralProfile
 		String meta = csv.getMetaInformation("run_dir");
 		if (meta.replace("*",getUsername()) == null)
 		{
-			return csv.getMetaInformation("run_dir");
+			return csv.getMetaInformation("run_dir") + File.separator;
 		}
 		else
 		{
-			return meta.replace("*", getUsername());
+			return meta.replace("*", getUsername()) + File.separator;
 		}
 		
 	}
