@@ -47,6 +47,12 @@ public class FilamentSegmentation extends PlugInFloatBase {
         m = Matlab.imfilterSymmetric(m, new Matrix(new double[][]{{0, 1, 0}, {1, -4, 1}, {0, 1, 0}}));
         id = m.getArrayYX();
         img = Convert.toFloat(id);
+  
+        System.out.println("function l()");
+        System.out.println("figure(1);");
+        System.out.println("view([90 0])");
+        new BSplineSurface(img, 1, width, 1, height, 2, 1).showMatlabCode(2, 2);
+        System.out.println("end");
         
         // Convert array to Image with converting back range of values
         ImgUtils.convertRange(img, minMax.getMax() - minMax.getMin(), minMax.getMin());

@@ -1,27 +1,28 @@
-package mosaic.regresionAnalysis;
+package mosaic.generalizedLinearModel;
 
 import mosaic.math.Matrix;
 
 public class GlmPoisson implements Glm {
 
-	@Override
-	public double link(double aX) {
-		return aX;
-	}
+    @Override
+    public Matrix link(Matrix aX) {
+        return aX.copy();
+    }
+
+
+    @Override
+    public Matrix linkDerivative(Matrix aX) {
+        return new Matrix(aX.numRows(), aX.numCols()).ones();
+    }
+
+    @Override
+    public Matrix linkInverse(Matrix aX) {
+        return aX.copy();
+    }
 
 	@Override
-	public double linkDerivative(double aX) {
-		return 1;
-	}
-
-	@Override
-	public double linkInverse(double aX) {
-		return aX;
-	}
-
-	@Override
-	public double varFunction(double aX) {
-		return aX;
+	public Matrix varFunction(Matrix aX) {
+	    return aX.copy();
 	}
 
 	@Override

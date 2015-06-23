@@ -42,6 +42,8 @@ public class Matrix {
 		return new Matrix(result); 
 	}
 	
+	public Matrix copy() {return new Matrix(this);}
+	
 	public static Matrix[] meshgrid(Matrix aVector1, Matrix aVector2) {
 		CommonOps.transpose(aVector2.iMatrix);
 		int r = aVector2.iMatrix.numRows; int c = aVector1.iMatrix.numCols;

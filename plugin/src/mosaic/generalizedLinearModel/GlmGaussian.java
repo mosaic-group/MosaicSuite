@@ -1,27 +1,27 @@
-package mosaic.regresionAnalysis;
+package mosaic.generalizedLinearModel;
 
 import mosaic.math.Matrix;
 
 public class GlmGaussian implements Glm {
 
 	@Override
-	public double link(double aX) {
-		return aX;
+	public Matrix link(Matrix aX) {
+		return aX.copy();
 	}
 
 	@Override
-	public double linkDerivative(double aX) {
-		return 1;
+	public Matrix linkDerivative(Matrix aX) {
+		return new Matrix(aX.numRows(), aX.numCols()).ones();
 	}
 
 	@Override
-	public double linkInverse(double aX) {
-		return aX;
+	public Matrix linkInverse(Matrix aX) {
+		return aX.copy();
 	}
 
 	@Override
-	public double varFunction(double aX) {
-		return 1;
+	public Matrix varFunction(Matrix aX) {
+		return new Matrix(aX.numRows(), aX.numCols()).ones();
 	}
 
 	@Override
