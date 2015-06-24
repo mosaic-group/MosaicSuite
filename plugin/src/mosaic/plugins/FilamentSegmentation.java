@@ -59,10 +59,31 @@ public class FilamentSegmentation extends PlugInFloatBase {
 //        m1.sqrt();
 //        id = m1.getArrayYX();
        
-        // Laplace filter
-        Matrix m1  = Matlab.imfilterSymmetric(m, new Matrix(new double[][] {{1, 1 ,1}, {1, -8, 1}, {1, 1, 1}}));
+//        // Laplace filter
+//        Matrix m1  = Matlab.imfilterSymmetric(m, new Matrix(new double[][] {{1, 1 ,1}, {1, -8, 1}, {1, 1, 1}}));
+//        id = m1.getArrayYX();
+        
+//      // Laplacian of a Gaussian LoG filter
+        Matrix m1  = Matlab.imfilterSymmetric(m, new Matrix(new double[][] {{0,0,-1,0,0}, {0,-1,-2,-1,0},{-1,-2,16,-2,-1}, {0,-1,-2,-1,0}, {0,0,-1,0,0}}));
         id = m1.getArrayYX();
-        System.out.println("Hello");
+        int h = id.length; int w = id[0].length;
+        double [][] result = new double[h][w];
+        for (int y = 0; y < h-1; ++y) {
+            for (int x = 0; x < w-1; ++x) {
+                double val = 100;
+                boolean plu = false;
+                boolean min = false;
+                if (id[y][x] >=0) plu = true; else min = true;
+                if (id[y+1][x] >=0) plu = true; else min = true;
+                if (id[y][x+1] >=0) plu = true; else min = true;
+                if (id[y+1][x+1] >=0) plu = true; else min = true;
+                
+                if (min && plu) val = 0;
+                result[y][x] = val;
+            }
+        }
+        id = result;
+        System.out.println("Hello2");
         
         Matrix im = new Matrix(new double[][] {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
         Matrix ma = new Matrix(new double[][] {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}});
