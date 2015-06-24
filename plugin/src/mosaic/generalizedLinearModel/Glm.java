@@ -10,5 +10,7 @@ public interface Glm {
 	Matrix linkInverse(Matrix aX);
 	Matrix varFunction(Matrix aX);
 	double nllMean(Matrix aImage, Matrix aMu, Matrix aWeights);
+	Matrix priorWeights(Matrix aImage);
+	
 	NoiseType flag();
 }

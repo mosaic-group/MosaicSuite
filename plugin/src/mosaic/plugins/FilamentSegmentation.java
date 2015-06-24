@@ -1,8 +1,10 @@
 package mosaic.plugins;
 
+import net.imglib2.type.numeric.real.DoubleType;
 import ij.process.FloatProcessor;
 import mosaic.math.Matlab;
 import mosaic.math.Matrix;
+import mosaic.math.RegionStatisticsSolver;
 import mosaic.nurbs.BSplineSurface;
 import mosaic.nurbs.BSplineSurfaceFactory;
 import mosaic.nurbs.Function;
@@ -10,6 +12,11 @@ import mosaic.plugins.utils.Convert;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.ImgUtils.MinMax;
 import mosaic.plugins.utils.PlugInFloatBase;
+import mosaic.bregman.Analysis;
+import mosaic.bregman.Parameters;
+import mosaic.core.psf.GaussPSF;
+import mosaic.generalizedLinearModel.Glm;
+import mosaic.generalizedLinearModel.GlmGaussian;
 
 public class FilamentSegmentation extends PlugInFloatBase {
 	// Distance between control points 
@@ -44,15 +51,48 @@ public class FilamentSegmentation extends PlugInFloatBase {
 
         Matrix m = new Matrix(id);
         
-        m = Matlab.imfilterSymmetric(m, new Matrix(new double[][]{{0, 1, 0}, {1, -4, 1}, {0, 1, 0}}));
-        id = m.getArrayYX();
+        // Sobel Filter
+        Matrix m1 = Matlab.imfilterSymmetric(m, new Matrix(new double[][]{{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}}));
+        Matrix m2 = Matlab.imfilterSymmetric(m, new Matrix(new double[][]{{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}}));
+        m1.elementMult(m1);
+        m2.elementMult(m2);
+        m1.add(m2);
+        m1.sqrt();
+        
+        id = m1.getArrayYX();
         img = Convert.toFloat(id);
-  
-        System.out.println("function l()");
-        System.out.println("figure(1);");
-        System.out.println("view([90 0])");
-        new BSplineSurface(img, 1, width, 1, height, 2, 1).showMatlabCode(2, 2);
-        System.out.println("end");
+        System.out.println("Hello");
+        
+        Matrix im = new Matrix(new double[][] {{11111, 2, 3}, {4, 5, 6}, {7, 8, 9999}});
+        Matrix ma = new Matrix(new double[][] {{0, 1, 0.5}, {0.001, 0.5 , 1}, {1, 1, 0.1}});
+        Glm glm = new GlmGaussian();
+        System.out.println(new RegionStatisticsSolver(im, ma, glm, im, 2).calculate().getModelImage());
+        
+//        double[][][] temp1 = new double[1][3][3];
+//        double[][][] temp2 = new double[1][3][3];
+//        double[][][] temp3 = new double[1][3][3];
+//        double[][][] image = {{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}};
+//        double[][][] mu = {{{1, 2 ,3}, {4, 5, 6}, {7, 8, 9}}};
+//        double[][][] mask  = {{{0, 1, 1}, {1, 1 , 1}, {1, 1, 1}}};
+//        double[][][] weights = {{{1, 1, 1} ,{ 1,1,1} , {1,1,1}}};
+//        Parameters p = new Parameters();
+//        p.nz=1;
+//        p.ni=3;
+//        p.nj=3;
+//        Analysis.p.PSF = new GaussPSF<DoubleType>(3,DoubleType.class);
+//        RegionStatisticsSolver rss = new RegionStatisticsSolver(temp1, temp2, mask, image, weights, 10, p);
+//        rss.eval(mask);
+//        System.out.println(rss.betaMLEout);
+//        System.out.println(rss.betaMLEin);
+        
+//        System.out.println("function l()");
+//        System.out.println("figure(1);");
+//        System.out.println("view([90 0])");
+//        new BSplineSurface(img, 1, width, 1, height, 2, 1).showMatlabCode(2, 2);
+//        System.out.println("end");
+
+        
+        
         
         // Convert array to Image with converting back range of values
         ImgUtils.convertRange(img, minMax.getMax() - minMax.getMin(), minMax.getMin());

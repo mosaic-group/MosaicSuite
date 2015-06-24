@@ -379,7 +379,7 @@ class RegionStatisticsSolver {
 	}
 
 
-	public void scale_mask(double [][][] ScaledMask, double [][][] Mask ){
+	private void scale_mask(double [][][] ScaledMask, double [][][] Mask ){
 		int ni=p.ni;
 		int nj=p.nj;
 		int nz=p.nz;
@@ -415,133 +415,133 @@ class RegionStatisticsSolver {
 
 	}
 
+//
+//	public  void eval(double [][][] Mask, double [][][] Ri,double [][][] Ro, ArrayList<Region> regionslist){
+//
+//		int ni=Analysis.p.ni;
+//		int nj=Analysis.p.nj;
+//		int nz=Analysis.p.nz;
+//
+//		//do 3D version
+//		//use mu as temp tab
+//		//Tools.disp_vals(Mask[0],"Mask0");
+//
+//		this.scale_mask(W,Mask);
+//		Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.p.PSF, mu[0]);
+//		//Tools.disp_vals(KMask[0],"Kmask");
+//		//		
+//		//IJ.log("KMask done");
+//
+//		//mu  = muInit;K11 //=Ih
+//		//Z   = link(mu)+(I_h-mu).*linkDerivative(mu);// = Ih
+//		//W   = priorWeights./(varFunction(mu).*linkDerivative(mu).^2+eps);
+//
+//		double K11=0, K12=0, K22=0, U1=0, U2=0;
+//		double detK = 0;
+//		betaMLEout = 0; betaMLEin = 0;
+//
+//		//		Tools.copytab(mu, image);
+//		//Tools.copytab(Z, image);
+//
+//
+//
+//		for (int z=0; z<nz; z++) {  
+//			for (int i=0; i<ni; i++) {  
+//				for (int j=0;j< nj; j++) {  
+//					if(Z[z][i][j] != 0)
+//						W[z][i][j]=1/Z[z][i][j];
+//					else 
+//						W[z][i][j]=4.50359962737e+15;//1e4;
+//					//W[z][i][j]=10000;
+//				}	
+//			}
+//		}
+//
+//		//Tools.disp_vals(W[0],"W");
+//
+//		int iter=0;
+//		while(iter < max_iter){
+//
+//
+//
+//			for (Iterator<Region> itr = regionslist.iterator(); itr.hasNext();) {
+//				Region r = itr.next();
+//
+//
+//				K11=0;K12=0;K22=0;
+//				U1=0;U2=0;
+//
+//				for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+//					Pix p = it.next();
+//					int i=p.px;
+//					int j=p.py;
+//					int z=p.pz;
+//					K11+=W[z][i][j]*Math.pow(1-KMask[z][i][j],2);
+//					K12+=W[z][i][j]*(1-KMask[z][i][j])*KMask[z][i][j];
+//					K22+=W[z][i][j]*(KMask[z][i][j])*KMask[z][i][j];
+//					U1+=W[z][i][j]*(1-KMask[z][i][j])*Z[z][i][j];
+//					U2+=W[z][i][j]*(KMask[z][i][j])*Z[z][i][j];
+//				}
+//
+//
+//
+//				//   detK = K11*K22-K12^2;
+//				// betaMLE_out = ( K22*U1-K12*U2)/detK;
+//				// betaMLE_in  = (-K12*U1+K11*U2)/detK;
+//				detK = K11*K22-Math.pow(K12,2);		
+//				betaMLEout = Math.max((K22*U1-K12*U2)/detK, 0.0001);	
+//				betaMLEin  = Math.min((-K12*U1+K11*U2)/detK,0.9);
+//				betaMLEout = ( K22*U1-K12*U2)/detK;	
+//				betaMLEin  = (-K12*U1+K11*U2)/detK;
+//
+//
+//				//IJ.log(String.format("K11 %7.2e K22 %7.2e K12 %7.2e U1 %7.2e U2 %7.2e detK %7.2e %n", K11,K22,K12,U1,U2, detK));
+//				//IJ.log(String.format("bin %7.2e bout %7.2e  region %d iter %d %n", betaMLEin,betaMLEout, r.value, iter ));
+//				//mu update
+//				for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+//					Pix p = it.next();
+//					int i=p.px;
+//					int j=p.py;
+//					int z=p.pz;
+//
+//					Ri[z][i][j]=betaMLEin;
+//					Ro[z][i][j]=betaMLEout;
+//					mu[z][i][j]=(betaMLEin-betaMLEout)*KMask[z][i][j]+betaMLEout;
+//
+//
+//				}
+//
+//				//Tools.disp_vals(mu[0],"mu");
+//
+//
+//				//Z= image
+//				//W update
+//				for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+//					Pix p = it.next();
+//					int i=p.px;
+//					int j=p.py;
+//					int z=p.pz;
+//					if(mu[z][i][j] != 0)
+//						W[z][i][j]=1/mu[z][i][j];
+//					else 
+//						W[z][i][j]=4.50359962737e+15;//10000;//Double.MAX_VALUE;
+//
+//				}
+//
+//				//Tools.disp_vals(W[0],"W");
+//
+//				//IJ.log(String.format("Photometry %d:%n backgroung %7.2e %n foreground %7.2e", iter,betaMLEout,betaMLEin));
+//				//	
+//			}
+//			iter++;
+//		}
+//
+//
+//
+//	}
+//
 
-	public  void eval(double [][][] Mask, double [][][] Ri,double [][][] Ro, ArrayList<Region> regionslist){
-
-		int ni=Analysis.p.ni;
-		int nj=Analysis.p.nj;
-		int nz=Analysis.p.nz;
-
-		//do 3D version
-		//use mu as temp tab
-		//Tools.disp_vals(Mask[0],"Mask0");
-
-		this.scale_mask(W,Mask);
-		Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.p.PSF, mu[0]);
-		//Tools.disp_vals(KMask[0],"Kmask");
-		//		
-		//IJ.log("KMask done");
-
-		//mu  = muInit;K11 //=Ih
-		//Z   = link(mu)+(I_h-mu).*linkDerivative(mu);// = Ih
-		//W   = priorWeights./(varFunction(mu).*linkDerivative(mu).^2+eps);
-
-		double K11=0, K12=0, K22=0, U1=0, U2=0;
-		double detK = 0;
-		betaMLEout = 0; betaMLEin = 0;
-
-		//		Tools.copytab(mu, image);
-		//Tools.copytab(Z, image);
-
-
-
-		for (int z=0; z<nz; z++) {  
-			for (int i=0; i<ni; i++) {  
-				for (int j=0;j< nj; j++) {  
-					if(Z[z][i][j] != 0)
-						W[z][i][j]=1/Z[z][i][j];
-					else 
-						W[z][i][j]=4.50359962737e+15;//1e4;
-					//W[z][i][j]=10000;
-				}	
-			}
-		}
-
-		//Tools.disp_vals(W[0],"W");
-
-		int iter=0;
-		while(iter < max_iter){
-
-
-
-			for (Iterator<Region> itr = regionslist.iterator(); itr.hasNext();) {
-				Region r = itr.next();
-
-
-				K11=0;K12=0;K22=0;
-				U1=0;U2=0;
-
-				for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-					Pix p = it.next();
-					int i=p.px;
-					int j=p.py;
-					int z=p.pz;
-					K11+=W[z][i][j]*Math.pow(1-KMask[z][i][j],2);
-					K12+=W[z][i][j]*(1-KMask[z][i][j])*KMask[z][i][j];
-					K22+=W[z][i][j]*(KMask[z][i][j])*KMask[z][i][j];
-					U1+=W[z][i][j]*(1-KMask[z][i][j])*Z[z][i][j];
-					U2+=W[z][i][j]*(KMask[z][i][j])*Z[z][i][j];
-				}
-
-
-
-				//   detK = K11*K22-K12^2;
-				// betaMLE_out = ( K22*U1-K12*U2)/detK;
-				// betaMLE_in  = (-K12*U1+K11*U2)/detK;
-				detK = K11*K22-Math.pow(K12,2);		
-				betaMLEout = Math.max((K22*U1-K12*U2)/detK, 0.0001);	
-				betaMLEin  = Math.min((-K12*U1+K11*U2)/detK,0.9);
-				betaMLEout = ( K22*U1-K12*U2)/detK;	
-				betaMLEin  = (-K12*U1+K11*U2)/detK;
-
-
-				//IJ.log(String.format("K11 %7.2e K22 %7.2e K12 %7.2e U1 %7.2e U2 %7.2e detK %7.2e %n", K11,K22,K12,U1,U2, detK));
-				//IJ.log(String.format("bin %7.2e bout %7.2e  region %d iter %d %n", betaMLEin,betaMLEout, r.value, iter ));
-				//mu update
-				for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-					Pix p = it.next();
-					int i=p.px;
-					int j=p.py;
-					int z=p.pz;
-
-					Ri[z][i][j]=betaMLEin;
-					Ro[z][i][j]=betaMLEout;
-					mu[z][i][j]=(betaMLEin-betaMLEout)*KMask[z][i][j]+betaMLEout;
-
-
-				}
-
-				//Tools.disp_vals(mu[0],"mu");
-
-
-				//Z= image
-				//W update
-				for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-					Pix p = it.next();
-					int i=p.px;
-					int j=p.py;
-					int z=p.pz;
-					if(mu[z][i][j] != 0)
-						W[z][i][j]=1/mu[z][i][j];
-					else 
-						W[z][i][j]=4.50359962737e+15;//10000;//Double.MAX_VALUE;
-
-				}
-
-				//Tools.disp_vals(W[0],"W");
-
-				//IJ.log(String.format("Photometry %d:%n backgroung %7.2e %n foreground %7.2e", iter,betaMLEout,betaMLEin));
-				//	
-			}
-			iter++;
-		}
-
-
-
-	}
-
-
-	public void cluster_region(float [][][] Ri,float [][][] Ro, ArrayList<Region> regionslist){
+	void cluster_region(float [][][] Ri,float [][][] Ro, ArrayList<Region> regionslist){
 		int nk=3;//3
 		double [] pixel = new double[1];
 		double [] levels= new double[nk];
@@ -646,7 +646,7 @@ class RegionStatisticsSolver {
 	}
 
 
-	public void cluster_region_voronoi2(float [][][] Ri,float [][][] Ro, ArrayList<Region> regionslist){
+	void cluster_region_voronoi2(float [][][] Ri,float [][][] Ro, ArrayList<Region> regionslist){
 		//int nk=3;//3
 
 		//double [] levels= new double[nk];

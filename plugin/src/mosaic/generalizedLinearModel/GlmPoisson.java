@@ -34,6 +34,11 @@ public class GlmPoisson implements Glm {
 		return snll.sum();
 	}
 
+    @Override
+    public Matrix priorWeights(Matrix aImage) {
+       return new Matrix(aImage.numRows(), aImage.numCols()).ones();
+    }
+    
 	@Override
 	public NoiseType flag() {
 		return NoiseType.POISSON;
