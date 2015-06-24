@@ -1,7 +1,16 @@
 package mosaic.math;
 
 import mosaic.generalizedLinearModel.Glm;
-
+import java.lang.Math;
+/**
+ * Region Statistics Solver class. Based on:
+ * 
+ * G. Paul, J. Cardinale, and I. F. Sbalzarini, 
+ * “Coupling image restoration and segmentation: A generalized linear model/Bregman perspective,” 
+ * Intl. J. Comp. Vis., pp. 1–25, 2013.
+ * 
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+ */
 public class RegionStatisticsSolver {
     private Matrix iImage;
     private Matrix iMask;
@@ -13,26 +22,34 @@ public class RegionStatisticsSolver {
     private double iBetaMLEout = 0.0;
     private double iBetaMLEin = 0.0;
     
-    // Calculate model image
+    // Calculated model image
     private Matrix iModelImage;
     
+    /**
+     * RegionStatisticsSolver calculates maximum likelihood estimator (MLE) and resulting model image
+     * @param aImage Input image
+     * @param aMask Input mask
+     * @param aGlm Generalized linear mode (Gauss, Poisson)
+     * @param aMuInit Initial value of Model Image (usually equal to input image)
+     * @param aNumOfIterations Number of iterations
+     */
     public RegionStatisticsSolver(Matrix aImage, Matrix aMask, Glm aGlm, Matrix aMuInit, int aNumOfIterations) {
         iImage = aImage;
         iMask = aMask;
         iMu = aMuInit;
         iGlm = aGlm;
         iNumOfIterations = aNumOfIterations;
-        
-        
     }
 
+    /**
+     * Calculates beta MLE and model image
+     * @return this
+     */
     public RegionStatisticsSolver calculate() {
         Matrix mu = iMu.copy();
         Matrix Z = iImage.copy().sub(mu).elementMult(iGlm.linkDerivative(mu)).add(iGlm.link(mu));
-        Matrix W = iGlm.priorWeights(iImage).elementDiv(iGlm.varFunction(mu).elementMult(iGlm.linkDerivative(mu).pow2().add(Float.MIN_NORMAL)));
-        System.out.println(Z);
-        System.out.println(W);
-        
+        Matrix W = iGlm.priorWeights(iImage).elementDiv( iGlm.varFunction(mu).elementMult(iGlm.linkDerivative(mu).pow2()).add(Math.ulp(1.0)) );
+
         Matrix ones = iMask.copy().ones();
         Matrix maskSubFrom1 = ones.copy().sub(iMask);
         Matrix maskPow2 = iMask.copy().pow2();
@@ -50,11 +67,11 @@ public class RegionStatisticsSolver {
             double detK = K11 * K22 - Math.pow(K12, 2);
             iBetaMLEout = (K22*U1-K12*U2)/detK;
             iBetaMLEin = (-K12*U1+K11*U2)/detK;
-            System.out.println(iBetaMLEout +" "+ iBetaMLEin);
+
             Matrix linearPredictor = iMask.copy().scale(iBetaMLEin - iBetaMLEout).add(iBetaMLEout);
             mu = iGlm.linkInverse(linearPredictor);
             Z = iImage.copy().sub(mu).elementMult(iGlm.linkDerivative(mu)).add(iGlm.link(mu));
-            W = iGlm.priorWeights(iImage).elementDiv(iGlm.varFunction(mu).elementMult(iGlm.linkDerivative(mu).pow2().add(Float.MIN_NORMAL)));
+            W = iGlm.priorWeights(iImage).elementDiv( iGlm.varFunction(mu).elementMult(iGlm.linkDerivative(mu).pow2()).add(Math.ulp(1.0)) );
         }
         
         if (iBetaMLEout > iBetaMLEin) {

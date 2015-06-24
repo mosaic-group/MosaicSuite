@@ -26,10 +26,11 @@ public class GlmGaussian implements Glm {
 
 	@Override
 	public double nllMean(Matrix aImage, Matrix aMu, Matrix aWeights) {
+	    // MATLAB:
 		// nll = weights.*(image-mu).^2;
 		// snll = sum(nll(:));
-		Matrix snll = new Matrix(aWeights).elementMult( (new Matrix(aImage).sub(aMu)).pow2() );
-		return snll.sum();
+		Matrix nll = new Matrix(aWeights).elementMult( (new Matrix(aImage).sub(aMu)).pow2() );
+		return nll.sum();
 	}
 
 	@Override

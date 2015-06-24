@@ -183,4 +183,29 @@ public class Matrix {
 	String toString() {
 		return this.iMatrix.toString();
 	}
+	
+	// =================================
+	public double[] getData() {
+	    return this.iMatrix.data;
+	}
+	
+    public boolean compare(Matrix aMatrix, double aEpsilon) {
+        int len = iMatrix.data.length;
+        for (int i = 0; i < len; ++i) {
+            if (Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]) > aEpsilon) {
+                return false;
+            }
+        }
+        return true;
+    }
+	
+	@Override
+	public boolean equals(Object obj) {
+	    if (obj == this) return true;
+	    if (obj == null || obj.getClass() != this.getClass()) return false;
+	    Matrix cmp = (Matrix)obj;
+	    if (cmp.numCols() != this.numCols() || cmp.numRows() != this.numRows()) return false;
+	    
+        return compare(cmp, 0.0);
+	}
 }

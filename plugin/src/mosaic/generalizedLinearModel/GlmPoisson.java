@@ -9,7 +9,6 @@ public class GlmPoisson implements Glm {
         return aX.copy();
     }
 
-
     @Override
     public Matrix linkDerivative(Matrix aX) {
         return new Matrix(aX.numRows(), aX.numCols()).ones();
@@ -27,11 +26,12 @@ public class GlmPoisson implements Glm {
 
 	@Override
 	public double nllMean(Matrix aImage, Matrix aMu, Matrix aWeights) {
+	    // MATLAB:
 		// nll = weights .* ( image .* log((image+eps)./(mu+eps)) + mu - image );
 		// snll = sum(nll(:));
-		Matrix snll = new Matrix(aImage).add(Double.MIN_VALUE).elementDiv(new Matrix(aMu).add(Double.MIN_VALUE)).log();
-		snll.elementMult(aImage).add(aMu).sub(aImage).elementMult(aWeights);
-		return snll.sum();
+		Matrix nll = new Matrix(aImage).add(Math.ulp(1.0)).elementDiv(new Matrix(aMu).add(Math.ulp(1.0))).log();
+		nll.elementMult(aImage).add(aMu).sub(aImage).elementMult(aWeights);
+		return nll.sum();
 	}
 
     @Override
@@ -43,6 +43,4 @@ public class GlmPoisson implements Glm {
 	public NoiseType flag() {
 		return NoiseType.POISSON;
 	}
-
-
 }
