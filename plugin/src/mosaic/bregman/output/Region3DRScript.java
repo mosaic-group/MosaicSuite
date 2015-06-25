@@ -61,30 +61,23 @@ public class Region3DRScript extends StubProp implements ICSVGeneral
 		z = r.z;
 	}
 	
-	public boolean equals(Region3DRScript r)
-	{		
-		if (Size != r.Size)
-			return true;
+	@Override
+	public boolean equals(Object r)
+	{
+	    if (r instanceof Region3DRScript)
+	    {
+	    	Region3DRScript r_ = (Region3DRScript ) r;
+	    	
+	    	if (Size != r_.Size) return false;
+			if (Perimeter != r_.Perimeter) return false;
+			if (Length != r_.Length) return false;
+			if (Intensity != r_.Intensity) return false;
+			if (x != r_.x) return false;
+			if (y != r_.y) return false;
+			if (z != r_.z) return false;
+	    }
 		
-		if (Perimeter != r.Perimeter)
-			return true;
-			
-		if (Length != r.Length)
-			return true;
-		
-		if (Intensity != r.Intensity)
-			return true;
-		
-		if (x != r.x)
-			return true;
-		
-		if (y != r.y)
-			return true;
-		
-		if (z != r.z)
-			return true;
-		
-		return false;
+		return true;
 	}
 	
 	public void setFrame(int fr) {Image_ID = fr;}

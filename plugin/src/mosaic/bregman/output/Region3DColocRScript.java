@@ -50,6 +50,7 @@ public class Region3DColocRScript extends StubProp implements ICSVGeneral
 		Intensity = r.getintensity();
 		Perimeter = r.getperimeter();
 		Size = r.getrsize();
+		Length = r.getlength();
 		Overlap_with_ch = r.getoverlap_with_ch();
 		Coloc_object_size = r.getcoloc_object_size();
 		Coloc_object_intensity = r.getcoloc_object_intensity();
@@ -78,6 +79,32 @@ public class Region3DColocRScript extends StubProp implements ICSVGeneral
 		x = r.x;
 		y = r.y;
 		z = r.z;
+	}
+	
+	@Override
+	public boolean equals(Object r)
+	{
+	    if (r instanceof Region3DColocRScript)
+	    {
+	    	Region3DColocRScript r_ = (Region3DColocRScript ) r;
+	    	
+	    	if (Image_ID != r_.Image_ID)	return false;
+	    	if (Object_ID != r_.Object_ID) return false;
+	    	if (Intensity != r_.Intensity) return false;
+	    	if (Perimeter != r_.Perimeter) return false;
+	    	if (Size != r_.Size) return false;
+	    	if (Length != r_.Length) return false;
+	    	if (Overlap_with_ch != r_.Overlap_with_ch) return false;
+	    	if (Coloc_object_size != r_.Coloc_object_size) return false;
+	    	if (Coloc_object_intensity != r_.Coloc_object_intensity) return false;
+	    	if (Single_Coloc = r_.Single_Coloc) return false;
+	    	if (Coloc_image_intensity != r_.Coloc_image_intensity) return false;
+	    	if (x != r_.x) return false;
+	    	if (y != r_.y) return false;
+	    	if (z != r_.z) return false;
+	    }
+	    	
+		return true;
 	}
 	
 	public void setFrame(int fr) {Image_ID = fr;}
