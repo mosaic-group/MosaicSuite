@@ -2,6 +2,8 @@ package mosaic.math;
 
 import mosaic.generalizedLinearModel.Glm;
 import java.lang.Math;
+
+
 /**
  * Region Statistics Solver class. Based on:
  * 
@@ -46,15 +48,22 @@ public class RegionStatisticsSolver {
      * @return this
      */
     public RegionStatisticsSolver calculate() {
-        Matrix mu = iMu.copy();
-        Matrix Z = iImage.copy().sub(mu).elementMult(iGlm.linkDerivative(mu)).add(iGlm.link(mu));
-        Matrix W = iGlm.priorWeights(iImage).elementDiv( iGlm.varFunction(mu).elementMult(iGlm.linkDerivative(mu).pow2()).add(Math.ulp(1.0)) );
-
+        // Precalculate some helpers
+        
+        // All ones with size of iMask
         Matrix ones = iMask.copy().ones();
+        // (1 - iMask)
         Matrix maskSubFrom1 = ones.copy().sub(iMask);
+        // iMask.^2
         Matrix maskPow2 = iMask.copy().pow2();
+        // (1 - iMask).*iMask
         Matrix maskMul1SubMask = maskSubFrom1.copy().elementMult(iMask);
+        // (1 - iMask).^2
         Matrix pow2Of1SubMask = maskSubFrom1.copy().pow2();
+
+        Matrix mu = iMu.copy();
+        Matrix Z = calcualteZ(mu);
+        Matrix W = calculateW(mu);
         
         for (int i = 0; i < iNumOfIterations; ++i) {
             double K11 = W.copy().elementMult(pow2Of1SubMask).sum();
@@ -68,10 +77,9 @@ public class RegionStatisticsSolver {
             iBetaMLEout = (K22*U1-K12*U2)/detK;
             iBetaMLEin = (-K12*U1+K11*U2)/detK;
 
-            Matrix linearPredictor = iMask.copy().scale(iBetaMLEin - iBetaMLEout).add(iBetaMLEout);
-            mu = iGlm.linkInverse(linearPredictor);
-            Z = iImage.copy().sub(mu).elementMult(iGlm.linkDerivative(mu)).add(iGlm.link(mu));
-            W = iGlm.priorWeights(iImage).elementDiv( iGlm.varFunction(mu).elementMult(iGlm.linkDerivative(mu).pow2()).add(Math.ulp(1.0)) );
+            mu = calculateModelImage();
+            Z = calcualteZ(mu);
+            W = calculateW(mu);
         }
         
         if (iBetaMLEout > iBetaMLEin) {
@@ -80,13 +88,12 @@ public class RegionStatisticsSolver {
             iBetaMLEin = temp;
         }
         
-        Matrix linearPredictor = iMask.copy().scale(iBetaMLEin - iBetaMLEout).add(iBetaMLEout);
-        mu = iGlm.linkInverse(linearPredictor);
+        mu = calculateModelImage();
         iModelImage = mu;
         
         return this;
     }
-    
+
     public double getBetaMLEout() {
         return iBetaMLEout;
     }
@@ -98,4 +105,22 @@ public class RegionStatisticsSolver {
     public Matrix getModelImage() {
         return iModelImage;
     }
+
+    private Matrix calculateW(Matrix mu) {
+        // Matlab: priorWeights./(varFunction(mu).*linkDerivative(mu).^2+eps);
+        return iGlm.priorWeights(iImage).elementDiv( iGlm.varFunction(mu).elementMult(iGlm.linkDerivative(mu).pow2()).add(Math.ulp(1.0)) );
+    }
+
+    private Matrix calcualteZ(Matrix mu) {
+        // Matlab: link(mu)+(image-mu).*linkDerivative(mu);
+        return iImage.copy().sub(mu).elementMult(iGlm.linkDerivative(mu)).add(iGlm.link(mu));
+    }
+
+    private Matrix calculateModelImage() {
+        // Matlab: linearPredictor = (betaMLE_in-betaMLE_out)*KMask+betaMLE_out; 
+        //         mu  = linkInverse(linearPredictor);
+        Matrix linearPredictor = iMask.copy().scale(iBetaMLEin - iBetaMLEout).add(iBetaMLEout);
+        return iGlm.linkInverse(linearPredictor);
+    }
+    
 }
