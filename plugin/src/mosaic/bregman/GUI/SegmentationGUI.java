@@ -1,27 +1,19 @@
 package mosaic.bregman.GUI;
 
 import ij.ImagePlus;
-import ij.gui.GenericDialog;
 
 import java.awt.Button;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridBagLayout;
 import java.awt.Panel;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JPanel;
 
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericDialogCustom;
-import mosaic.core.GUI.HelpGUI;
 
 
 public class SegmentationGUI 

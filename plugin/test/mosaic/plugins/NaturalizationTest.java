@@ -67,9 +67,9 @@ public class NaturalizationTest extends CommonBase {
         assertEquals("x > 0.934 && x < 1.07", "> 40", nt.calculate_PSNR(1.00));
         
         assertTrue("x >= 1.07 && x < 1.9", nt.calculate_PSNR(1.08).startsWith("40.28"));
-        assertTrue("x >= 1.07 && x < 1.9", nt.calculate_PSNR(1.8).startsWith("31.95"));
+        assertTrue("x >= 1.07 && x < 1.9", nt.calculate_PSNR(1.8).startsWith("31.96"));
 
-        assertTrue("x >= 1.9", nt.calculate_PSNR(1.95).startsWith("29.76"));
+        assertTrue("x >= 1.9", nt.calculate_PSNR(1.95).startsWith("29.77"));
         assertTrue("x >= 1.9", nt.calculate_PSNR(10.0).startsWith("44444."));
     }
     

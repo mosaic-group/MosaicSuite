@@ -3,7 +3,6 @@ package mosaic.bregman.GUI;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -11,7 +10,6 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 
-import mosaic.bregman.GenericDialogCustom;
 import mosaic.core.GUI.HelpGUI;
 
 class BackgroundSubHelp extends HelpGUI implements ActionListener

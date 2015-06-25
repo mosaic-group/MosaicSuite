@@ -359,7 +359,7 @@ public class GenericGUI
 			
 			if (IJ.isMacro() == true)
 			{
-				GenericDialogCustom gd = new GenericDialogCustom("Squassh");
+				new GenericDialogCustom("Squassh");
 				// Draw a batch system window
 				
 				ret = drawBatchWindow();
