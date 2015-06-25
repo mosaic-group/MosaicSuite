@@ -8,6 +8,7 @@ import org.apache.commons.math3.special.BesselJ;
 
 public class PhaseContrastPsf {
 	public static Matrix generate(double aR, double aW, double aM) {
+	    // Comments show equivalent in Matlab code:
 		// --------------------------------------------------------------------
 		// r = M; 
 		// [xx,yy] = meshgrid(linspace(-r,r,2*M+1),linspace(-r,r,2*M+1));
@@ -46,10 +47,22 @@ public class PhaseContrastPsf {
 		
 		// --------------------------------------------------------------------
 		// Airy(Z==0) = R*besselj(1,2*pi*R*eps)./eps - (R-W)*besselj(1,2*pi*(R-W)*eps)./eps;
-		double valForZero= (aR*BesselJ.value(1, 2*Math.PI*aR*Float.MIN_NORMAL)/Float.MIN_NORMAL - (aR-aW)*BesselJ.value(1,2*Math.PI*(aR-aW)*Float.MIN_NORMAL)/Float.MIN_NORMAL);
+		
+		// BesselJ cannot of first order cannot be calculated for arguments less then zero.
+		// Calculate it then for absolute value and then change sign (it match results from Matlab).
+		double valForZero= aR*BesselJ.value(1, 2*Math.PI*aR*Math.ulp(1.0))/Math.ulp(1.0);
+		double RsubW = Math.abs(aR - aW);
+		double subValue = (aR-aW)*BesselJ.value(1,2*Math.PI*(RsubW)*Math.ulp(1.0))/Math.ulp(1.0);
+		if (aR - aW < 0) {
+		    valForZero += subValue;
+		}
+		else {
+		    valForZero -= subValue;
+		}
+		
 		for (int i = 0; i < RZW.numRows(); ++i) {
 			for (int j = 0; j < RZW.numCols(); ++j) {
-				if (Z.get(i, j) == 0.0f) {
+				if (Z.get(i, j) == 0.0f) {System.out.println("LESSSSS");
 					Airy.set(i, j, valForZero);
 				}
 			}

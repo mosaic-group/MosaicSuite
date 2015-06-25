@@ -5,7 +5,7 @@ import java.lang.Math;
 
 
 /**
- * Region Statistics Solver class. Based on:
+ * Region Statistics Solver (RSS) class. Based on:
  * 
  * G. Paul, J. Cardinale, and I. F. Sbalzarini, 
  * “Coupling image restoration and segmentation: A generalized linear model/Bregman perspective,” 
@@ -14,6 +14,7 @@ import java.lang.Math;
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class RegionStatisticsSolver {
+    // Input parameters for RSS
     private Matrix iImage;
     private Matrix iMask;
     private Matrix iMu;
@@ -49,7 +50,7 @@ public class RegionStatisticsSolver {
      */
     public RegionStatisticsSolver calculate() {
         // Precalculate some helpers
-        
+        // ============================
         // All ones with size of iMask
         Matrix ones = iMask.copy().ones();
         // (1 - iMask)
@@ -61,6 +62,8 @@ public class RegionStatisticsSolver {
         // (1 - iMask).^2
         Matrix pow2Of1SubMask = maskSubFrom1.copy().pow2();
 
+        // Main loop of algorithm
+        // ============================
         Matrix mu = iMu.copy();
         Matrix Z = calcualteZ(mu);
         Matrix W = calculateW(mu);
@@ -108,12 +111,16 @@ public class RegionStatisticsSolver {
 
     private Matrix calculateW(Matrix mu) {
         // Matlab: priorWeights./(varFunction(mu).*linkDerivative(mu).^2+eps);
-        return iGlm.priorWeights(iImage).elementDiv( iGlm.varFunction(mu).elementMult(iGlm.linkDerivative(mu).pow2()).add(Math.ulp(1.0)) );
+        return iGlm.priorWeights(iImage).elementDiv( 
+                iGlm.varFunction(mu).elementMult(iGlm.linkDerivative(mu).pow2()).add(Math.ulp(1.0)) 
+               );
     }
 
     private Matrix calcualteZ(Matrix mu) {
         // Matlab: link(mu)+(image-mu).*linkDerivative(mu);
-        return iImage.copy().sub(mu).elementMult(iGlm.linkDerivative(mu)).add(iGlm.link(mu));
+        return iImage.copy().sub(mu).elementMult(
+                iGlm.linkDerivative(mu)).add(iGlm.link(mu)
+               );
     }
 
     private Matrix calculateModelImage() {
