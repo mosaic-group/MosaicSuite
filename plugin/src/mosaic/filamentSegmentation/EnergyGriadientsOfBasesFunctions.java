@@ -9,34 +9,43 @@ import mosaic.math.Matrix;
  * 
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
-public class EnergyGriadientsOfBasesFunctions {
+class EnergyGriadientsOfBasesFunctions {
 
+    /**
+     * Returns Matrix with energy gradients
+     * @param aCoefficientStep coefficient in range 0..4
+     * @return
+     */
     static Matrix getEnergyGradients(int aCoefficientStep) {
         Matrix result = null;
         
         switch (aCoefficientStep) {
-        case 0: 
-            result = getGradientsFor0();
-            break;
-        case 1: 
-            result = getGradientsFor1();
-            break;
-        case 2: 
-            result = getGradientsFor2();
-            break;
-        case 3: 
-            result = getGradientsFor3();
-            break;
-        case 4: 
-            result = getGradientsFor4();
-            break;
-        default:
-            result = new Matrix(new double [][] {{0}});
-            break;
-                   
+            case 0: 
+                result = getGradientsFor0();
+                break;
+            case 1: 
+                result = getGradientsFor1();
+                break;
+            case 2: 
+                result = getGradientsFor2();
+                break;
+            case 3: 
+                result = getGradientsFor3();
+                break;
+            case 4: 
+                result = getGradientsFor4();
+                break;
+            default:
+                // Not handled case - return zero
+                result = new Matrix(new double [][] {{0}});
+                break;    
         }
         return result;
     }
+    
+    // ===============================================
+    // Below are values precomputed in Matlab code
+    // ===============================================
     
     private static Matrix getGradientsFor0() {
         return new Matrix(new double [][] {{0.1667, 0.6667, 0.1667}});

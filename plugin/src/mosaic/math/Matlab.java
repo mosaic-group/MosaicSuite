@@ -1,5 +1,9 @@
 package mosaic.math;
 
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import mosaic.plugins.utils.Convert;
+
 
 public class Matlab {
 	/**
@@ -36,6 +40,39 @@ public class Matlab {
 		return Matrix.mkRowVector(linspaceArray(aMin, aMax, aNoOfSteps)); 
 	}
 	
+	   /**
+     * Generates spaced array (as in Matlab double start:step:stop operation)
+     * @param aStart
+     * @param aStep
+     * @param aNoOfSteps
+     * @return
+     */
+    public static double[] regularySpacedArray(double aStart, double aStep, double aStop) {
+        if (aStep == 0 || !((aStart > aStop) ^ (aStep > 0))) return null;
+        
+        int noOfSteps = (int)((aStop - aStart)/aStep) + 1;
+        double[] result = new double[noOfSteps];
+        
+        double val = aStart;
+        for (int i = 0; i < noOfSteps; ++i) {
+            result[i] = val;
+            val += aStep;
+        }
+        
+        return result;
+    }
+    
+	/**
+     * Generates spaced vector (as in Matlab double start:step:stop operation)
+     * @param aMin
+     * @param aMax
+     * @param aStep
+     * @return
+     */
+    public static Matrix regularySpacedVector(double aMin, double aStep, double aMax) {
+        return Matrix.mkRowVector(regularySpacedArray(aMin, aStep, aMax)); 
+    }
+    
 	public static Matrix[] meshgrid(Matrix aVector1, Matrix aVector2) {
 		aVector2.transpose();
 		int r = aVector2.numRows(); int c = aVector1.numCols();
@@ -102,4 +139,42 @@ public class Matlab {
 
 		return result;
 	}
+	
+	/**
+	 * Implementation of 'imresize' Matlab function for bicubic interpolation
+	 * @param aM Input image
+	 * @param scale scale of image
+	 * @return scaled image
+	 */
+    public static Matrix imresize(Matrix aM, double scale) {
+        int w = aM.numCols(); int h = aM.numRows();
+        int nw = (int) Math.ceil(w * scale); int nh = (int)Math.ceil(h * scale);
+        
+        return imresize(aM, nw, nh);
+    }
+    
+    /**
+     * Implementation of 'imresize' Matlab function for bicubic interpolation
+     * @param aM Input image
+     * @param aNewWidth
+     * @param aNewHeight
+     * @return scaled image
+     */
+    public static Matrix imresize(Matrix aM, int aNewWidth, int aNewHeight) {
+        // TODO: This is temporary implementation with IJ functionality
+        //       It is not fully compatibile with Matlab's output - should be investigated.
+        //       and decided if it is to be changed or not. 
+        //       Notice: Matlab's implementation is little bit strange and does not scale good at the beginning and and of 
+        //       resized image.
+        float[][] input = Convert.toFloat(aM.getArrayYX());
+        ImageProcessor ip = new FloatProcessor(input);
+        ip.setInterpolationMethod(FloatProcessor.BICUBIC);
+        ImageProcessor ip2 = ip.resize(aNewHeight, aNewWidth);
+        float[][] output = ip2.getFloatArray();
+        
+        Matrix result = new Matrix(Convert.toDouble(output));
+        
+        
+        return result;
+    }
 }

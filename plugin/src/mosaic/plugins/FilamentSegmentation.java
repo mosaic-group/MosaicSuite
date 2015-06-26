@@ -3,13 +3,9 @@ package mosaic.plugins;
 import ij.process.FloatProcessor;
 import mosaic.generalizedLinearModel.Glm;
 import mosaic.generalizedLinearModel.GlmGaussian;
-import mosaic.generalizedLinearModel.GlmPoisson;
 import mosaic.math.Matlab;
 import mosaic.math.Matrix;
 import mosaic.math.RegionStatisticsSolver;
-import mosaic.nurbs.BSplineSurface;
-import mosaic.nurbs.BSplineSurfaceFactory;
-import mosaic.nurbs.Function;
 import mosaic.plugins.utils.Convert;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.ImgUtils.MinMax;
@@ -124,46 +120,6 @@ public class FilamentSegmentation extends PlugInFloatBase {
         // Convert array to Image with converting back range of values
         ImgUtils.convertRange(img, minMax.getMax() - minMax.getMin(), minMax.getMin());
         ImgUtils.YX2DarrayToImg(img, aOutputImg, 1.0f);
-	}
-
-	/**
-	 * Generate Phi function needed for segmentation
-	 * @param aX
-	 * @param aY
-	 * @param aScale
-	 * @return
-	 */
-	BSplineSurface generatePhi(int aX, int aY, float aScale) {
-		final float min = (aX < aY) ? aX : aY ;
-		final float uMax = aX;
-		final float vMax = aY;
-			
-		return BSplineSurfaceFactory.generateFromFunction(1.0f, uMax, 1.0f, vMax, aScale, 3, new Function() {
-					@Override
-					public float getValue(float u, float v) {
-						return min/4 - (float) Math.sqrt(Math.pow(v - vMax/2, 2) + Math.pow(u - uMax/2, 2));
-					}
-				}).normalizeCoefficients();
-	}
-	
-	/**
-	 * Generate Psi function needed for segmentation
-	 * @param aX
-	 * @param aY
-	 * @param aScale
-	 * @return
-	 */
-	BSplineSurface generatePsi(int aX, int aY, float aScale) {
-		final float min = (aX < aY) ? aX : aY ;
-		final float uMax = aX;
-		final float vMax = aY;
-			
-		return BSplineSurfaceFactory.generateFromFunction(1.0f, uMax, 1.0f, vMax, aScale, 3, new Function() {
-					@Override
-					public float getValue(float u, float v) {
-						return min/3 - (float)Math.sqrt(Math.pow(v - vMax/3, 2) + Math.pow(u - uMax/3, 2));
-					}
-				}).normalizeCoefficients();
 	}
 	
 	@Override

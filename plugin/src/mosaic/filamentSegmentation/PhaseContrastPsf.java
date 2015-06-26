@@ -62,7 +62,7 @@ public class PhaseContrastPsf {
 		
 		for (int i = 0; i < RZW.numRows(); ++i) {
 			for (int j = 0; j < RZW.numCols(); ++j) {
-				if (Z.get(i, j) == 0.0f) {System.out.println("LESSSSS");
+				if (Z.get(i, j) == 0.0f) {
 					Airy.set(i, j, valForZero);
 				}
 			}

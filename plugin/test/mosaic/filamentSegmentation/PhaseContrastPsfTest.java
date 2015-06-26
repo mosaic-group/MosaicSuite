@@ -1,8 +1,6 @@
 package mosaic.filamentSegmentation;
 
-import static org.junit.Assert.*;
-import mosaic.generalizedLinearModel.Glm;
-import mosaic.generalizedLinearModel.GlmGaussian;
+import static org.junit.Assert.assertTrue;
 import mosaic.math.Matrix;
 
 import org.junit.Test;

@@ -83,6 +83,56 @@ public class ImgUtils {
     }
     
     /**
+     * Resizes 2D array to 2D array with different size
+     * If output image array is bigger than input image then additional pixels (right column(s) and
+     * bottom row(s)) are padded with neighbors values.
+     * 
+     * @param aInputImg      Original image array
+     * @param aNewImgArray   Resized image array (must be created by user)     
+     */
+    static public void imgResize(float[][] aInputImg, float[][] aOutputImg) {
+        int w = aInputImg[0].length;
+        int h = aInputImg.length;
+        int arrayW = aOutputImg[0].length;
+        int arrayH = aOutputImg.length;
+        
+        for (int y = 0; y < arrayH; ++y) {
+            for (int x = 0; x < arrayW; ++x) {
+                int yIdx = y;
+                int xIdx = x;
+                if (yIdx >= h) yIdx = h - 1;
+                if (xIdx >= w) xIdx = w - 1;
+                aOutputImg[y][x] = aInputImg[yIdx][xIdx];
+            }
+        }
+    }
+    
+    /**
+     * Resizes 2D array to 2D array with different size
+     * If output image array is bigger than input image then additional pixels (right column(s) and
+     * bottom row(s)) are padded with neighbors values.
+     * 
+     * @param aInputImg      Original image array
+     * @param aNewImgArray   Resized image array (must be created by user)     
+     */
+    static public void imgResize(double[][] aInputImg, double[][] aOutputImg) {
+        int w = aInputImg[0].length;
+        int h = aInputImg.length;
+        int arrayW = aOutputImg[0].length;
+        int arrayH = aOutputImg.length;
+        
+        for (int y = 0; y < arrayH; ++y) {
+            for (int x = 0; x < arrayW; ++x) {
+                int yIdx = y;
+                int xIdx = x;
+                if (yIdx >= h) yIdx = h - 1;
+                if (xIdx >= w) xIdx = w - 1;
+                aOutputImg[y][x] = aInputImg[yIdx][xIdx];
+            }
+        }
+    }
+    
+    /**
      * Updates ImageProcessor image with provided 2D pixel array. All pixels are multiplied by
      * normalization value (if this step is not needed 1.0 should be provided)
      * If output image is smaller than pixel array then it is truncated.
@@ -166,6 +216,35 @@ public class ImgUtils {
 				}
 			}
 		}
+    }
+    
+    /**
+     * Normalize values in array to 0..1 range
+     * @param aImgArray
+     */
+    static public void normalize(final double[][] aImgArray) {
+        final int arrayW = aImgArray[0].length;
+        final int arrayH = aImgArray.length;
+        
+        // Find min and max value of image
+        double min = Float.MAX_VALUE;
+        double max = Float.MIN_VALUE;
+        for (int y = 0; y < arrayH; ++y) {
+            for (int x = 0; x < arrayW; ++x) {
+                final double pix = aImgArray[y][x];
+                if (pix < min) min = pix;
+                if (pix > max) max = pix;
+            }
+        }
+        
+        // Normalize with found values
+        if (max != min) {
+            for (int y = 0; y < arrayH; ++y) {
+                for (int x = 0; x < arrayW; ++x) {
+                    aImgArray[y][x] = (aImgArray[y][x] - min) / (max - min);
+                }
+            }
+        }
     }
     
     /**

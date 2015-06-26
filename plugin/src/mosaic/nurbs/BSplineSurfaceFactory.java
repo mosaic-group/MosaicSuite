@@ -21,8 +21,8 @@ public class BSplineSurfaceFactory {
 	 */
 	public static BSplineSurface generateFromFunction(float aUmin, float aUmax, float aVmin, float aVmax, float aScale, int aDegree, Function aFunc) {
 		// Calculate number of steps in each directions and create container for function values
-		int noOfStepsU = (int)((aUmax - aUmin) / aScale);		
-		int noOfStepsV = (int)((aVmax - aVmin) / aScale);
+		int noOfStepsU = (int)((aUmax - aUmin) / aScale) + 1;		
+		int noOfStepsV = (int)((aVmax - aVmin) / aScale) + 1;
 
 		return generateFromFunction(aUmin, aUmax, aVmin, aVmax, noOfStepsU, noOfStepsV, aDegree, aDegree, aFunc);
 	}
@@ -50,7 +50,6 @@ public class BSplineSurfaceFactory {
 		// Calculate values of function in for all requested points
 		for (int u = 0; u < aNoOfStepsInUdir; ++u) {
 			for (int v = 0; v < aNoOfStepsInVdir; ++v) {
-
 				float uVal = u * iStepU + aUmin;
 				float vVal = v * iStepV + aVmin;
 				float val = aFunc.getValue(uVal, vVal);

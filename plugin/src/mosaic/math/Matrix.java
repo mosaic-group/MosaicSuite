@@ -80,7 +80,7 @@ public class Matrix {
 	// -------------------------
 	public Matrix process(MFunc aMf) {
 		int len = iMatrix.data.length;
-		for (int i = 0; i < len; ++i) iMatrix.data[i] = aMf.f(iMatrix.data[i], i/iMatrix.numCols, i % iMatrix.numRows);
+		for (int i = 0; i < len; ++i) iMatrix.data[i] = aMf.f(iMatrix.data[i], i/iMatrix.numCols, i % iMatrix.numCols);
 		return this;
 	}
 	public Matrix processNoSet(MFunc aMf) {
@@ -163,11 +163,25 @@ public class Matrix {
 		for (int i = 0; i < len; ++i) iMatrix.data[i] = Math.log(iMatrix.data[i]);
 		return this;
 	}
+   public Matrix inv() {
+        int len = iMatrix.data.length;
+        for (int i = 0; i < len; ++i) iMatrix.data[i] = 1/iMatrix.data[i];
+        return this;
+    }
+   public Matrix normalize() {
+       int len = iMatrix.data.length;
+       double max = 0.0;
+       for (int i = 0; i < len; ++i) if (max < Math.abs(iMatrix.data[i])) max = Math.abs(iMatrix.data[i]);
+       if (max > 0) {
+           for (int i = 0; i < len; ++i) iMatrix.data[i] = iMatrix.data[i]/max;
+       }
+       return this;
+   }
 	public double[][] getArrayYX() {
 		return getArrayYX(this);
 	}
 	public double[][] getArrayXY() {
-		return getArrayYX(this);
+		return getArrayXY(this);
 	}
 	public Matrix insert(Matrix aMatrix, int aRow, int aCol) {
 		CommonOps.insert(aMatrix.iMatrix, this.iMatrix, aRow, aCol);
