@@ -1,6 +1,6 @@
 package mosaic.core.ipc;
 
-public interface ICSVGeneral
+public interface ICSVGeneral<T>
 {
 	public void setImage_ID(int Image_ID_);
 	public void setObject_ID(int Object_ID_);
@@ -33,4 +33,5 @@ public interface ICSVGeneral
 	public double getCoord_Z();
 	public String getNothing();
 	public void setNothing(String st);
+	public boolean equals(Object r);
 }

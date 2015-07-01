@@ -258,7 +258,7 @@ public class MosaicTest
 			
 			for (int i = 0 ; i < outsrc.size() ; i++)
 			{
-				if (outsrc.get(i).equals(outdst.get(i)))
+				if (outsrc.get(i).equals(outdst.get(i)) == false)
 				{
 					// Maybe the order is changed
 					int j = 0;
