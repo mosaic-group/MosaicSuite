@@ -2,7 +2,6 @@ package mosaic.math;
 
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import mosaic.plugins.utils.Convert;
 
 
 public class Matlab {
@@ -73,8 +72,17 @@ public class Matlab {
         return Matrix.mkRowVector(regularySpacedArray(aMin, aStep, aMax)); 
     }
     
+    /**
+     * Generates two matrices as Matlab's command 'meshgrid'
+     * @param aVector1 - row values
+     * @param aVector2 - col values
+     * @return
+     */
 	public static Matrix[] meshgrid(Matrix aVector1, Matrix aVector2) {
-		aVector2.transpose();
+	    // Adjust data but do not change users input - if needed make a copy.
+	    if (aVector1.isColVector()) aVector1 = aVector1.copy().transpose();
+		if (aVector2.isRowVector()) aVector2 = aVector2.copy().transpose();
+		
 		int r = aVector2.numRows(); int c = aVector1.numCols();
 		
 		Matrix m1 = new Matrix(r, c);
@@ -93,7 +101,7 @@ public class Matlab {
 	 * @return - filtered image (aImg is not changed)
 	 */
 	public static Matrix imfilterSymmetric(Matrix aImg, Matrix aFilter) {
-		Matrix result = new Matrix(aImg);
+		Matrix result = new Matrix(aImg.numRows(), aImg.numCols());
 		
 		int filterRows = aFilter.numRows(); 
 		int filterCols = aFilter.numCols();
@@ -166,13 +174,13 @@ public class Matlab {
         //       and decided if it is to be changed or not. 
         //       Notice: Matlab's implementation is little bit strange and does not scale good at the beginning and and of 
         //       resized image.
-        float[][] input = Convert.toFloat(aM.getArrayYX());
+        float[][] input = aM.getArrayYXasFloats();
         ImageProcessor ip = new FloatProcessor(input);
         ip.setInterpolationMethod(FloatProcessor.BICUBIC);
         ImageProcessor ip2 = ip.resize(aNewHeight, aNewWidth);
         float[][] output = ip2.getFloatArray();
         
-        Matrix result = new Matrix(Convert.toDouble(output));
+        Matrix result = new Matrix(output);
         
         
         return result;

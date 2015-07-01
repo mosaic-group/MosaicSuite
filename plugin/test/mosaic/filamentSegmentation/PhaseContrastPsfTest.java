@@ -2,10 +2,11 @@ package mosaic.filamentSegmentation;
 
 import static org.junit.Assert.assertTrue;
 import mosaic.math.Matrix;
+import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;
 
-public class PhaseContrastPsfTest {
+public class PhaseContrastPsfTest extends CommonBase {
 
     @Test
     public void testPcp3by3Matrix() {

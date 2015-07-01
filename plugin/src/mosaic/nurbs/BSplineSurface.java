@@ -2,7 +2,7 @@ package mosaic.nurbs;
 
 import java.util.Arrays;
 
-import javax.vecmath.Point3f;
+import javax.vecmath.Point3d;
 
 import net.jgeom.nurbs.BasicNurbsSurface;
 import net.jgeom.nurbs.ControlNet;
@@ -21,12 +21,12 @@ public class BSplineSurface {
 	private int iDegreeInVdir;
 	private int iOriginalU;
 	private int iOriginalV;
-	float uMin;
-	float vMin;
-	float uMax;
-	float vMax;
+	double uMin;
+	double vMin;
+	double uMax;
+	double vMax;
 
-	private Point3f[][] iPoints;
+	private Point3d[][] iPoints;
 
 	private BasicNurbsSurface iSurface;
 	private int iCoeffLenU;
@@ -45,7 +45,7 @@ public class BSplineSurface {
 	 * @param aScale - scale common to both directions
 	 * @throws InterpolationException
 	 */
-	public BSplineSurface(float[][] aPoints, float aUmin, float aUmax, float aVmin, float aVmax, int aDegree, float aScale) {
+	public BSplineSurface(double[][] aPoints, double aUmin, double aUmax, double aVmin, double aVmax, int aDegree, double aScale) {
 		this(aPoints, aUmin, aUmax, aVmin, aVmax, aDegree, aDegree, aScale, aScale);	
 	}
 	
@@ -62,7 +62,7 @@ public class BSplineSurface {
 	 * @param aScaleV - scale in 'v' direction
 	 * @throws InterpolationException
 	 */
-	public BSplineSurface(float[][] aPoints, float aUmin, float aUmax, float aVmin, float aVmax, int aDegreeUdir, int aDegreeVdir, float aScaleU, float aScaleV) {
+	public BSplineSurface(double[][] aPoints, double aUmin, double aUmax, double aVmin, double aVmax, int aDegreeUdir, int aDegreeVdir, double aScaleU, double aScaleV) {
 		iDegreeInUdir = aDegreeUdir;
 		iDegreeInVdir = aDegreeVdir;
 		iOriginalU = aPoints.length;
@@ -74,20 +74,20 @@ public class BSplineSurface {
 		
 		// TODO: add some check for provided parameters or decide not to :-)
 
-		float iOriginalStepU = (uMax - uMin) / (iOriginalU - 1);
-		float iOriginalStepV = (vMax - vMin) / (iOriginalV - 1);
+		double iOriginalStepU = (uMax - uMin) / (iOriginalU - 1);
+		double iOriginalStepV = (vMax - vMin) / (iOriginalV - 1);
 		
 		int noOfStepsU = (int)(iOriginalU / aScaleU);		
 		int noOfStepsV = (int)(iOriginalV / aScaleV);
 		
-		float iStepU = (uMax - uMin) / (noOfStepsU - 1);
-		float iStepV = (vMax - vMin) / (noOfStepsV - 1);
+		double iStepU = (uMax - uMin) / (noOfStepsU - 1);
+		double iStepV = (vMax - vMin) / (noOfStepsV - 1);
 
-		iPoints = new Point3f[noOfStepsU][noOfStepsV];
+		iPoints = new Point3d[noOfStepsU][noOfStepsV];
 		for (int u = 0; u < noOfStepsU; ++u) {
 			for (int v = 0; v < noOfStepsV; ++v) {
 
-				float uVal = u * iStepU + uMin;
+				double uVal = u * iStepU + uMin;
 				
 				int maxu=0;
 				int minu=0;
@@ -100,9 +100,9 @@ public class BSplineSurface {
 						break;
 					}
 				}
-				float shiftu = uVal - (minu * iStepU + uMin);
+				double shiftu = uVal - (minu * iStepU + uMin);
 				
-				float vVal = v * iStepV + vMin;
+				double vVal = v * iStepV + vMin;
 				int maxv = 0;
 				int minv = 0;
 				for (int w = 0 ; w < iOriginalV; ++w) {
@@ -114,37 +114,38 @@ public class BSplineSurface {
 						break;
 					}
 				}
-				float shiftv = vVal - (minv * iStepV + vMin);
+				double shiftv = vVal - (minv * iStepV + vMin);
 				
-				float u11 = aPoints[minu][minv];
-				float u12 = aPoints[minu][maxv];
-				float u21 = aPoints[maxu][minv];
-				float u22 = aPoints[maxu][maxv];
+				double u11 = aPoints[minu][minv];
+				double u12 = aPoints[minu][maxv];
+				double u21 = aPoints[maxu][minv];
+				double u22 = aPoints[maxu][maxv];
 				// u11 u21
 				// u12 u22
-				float realV = (u21 * shiftu + u11 * (1-shiftu)) * (1 - shiftv) + (u22 * shiftu + u12 * (1-shiftu)) * shiftv;
+				double realV = (u21 * shiftu + u11 * (1-shiftu)) * (1 - shiftv) + (u22 * shiftu + u12 * (1-shiftu)) * shiftv;
 				
-				iPoints[u][v] = new Point3f(u * iStepU + uMin, v * iStepV + vMin, realV);
+				iPoints[u][v] = new Point3d(u * iStepU + uMin, v * iStepV + vMin, realV);
 			}
 		}
 
 		generateSurface();
 	}
 	
-	public float getValue(float u, float v) {
+	public double getValue(double u, double v) {
 		
-		float us =  (u - uMin)/(uMax - uMin);
-		float vs =  (v - vMin)/(vMax - vMin);
+		double us =  (u - uMin)/(uMax - uMin);
+		double vs =  (v - vMin)/(vMax - vMin);
 		
 		return iSurface.pointOnSurface(us, vs).z;
 	}
 
 	/**
-	 * Normalize coefficients to be in range -1..1
+	 * Normalize coefficients to be in range -1..1 and multiply by aMultiplier
+	 * @param aMultiplier
 	 * @return 
 	 */
-	public BSplineSurface normalizeCoefficients() {
-		float[][] coeff = getCoefficients();
+	public BSplineSurface normalizeCoefficients(double aMultiplier) {
+		double[][] coeff = getCoefficients();
 		
 		// Find maximum (absolute) value of coefficient
 		double max = 0;
@@ -159,7 +160,7 @@ public class BSplineSurface {
 		if (max != 0) {
 			for (int u = 0; u < iCoeffLenU; ++u) {
 				for (int v = 0; v < iCoeffLenV; ++v) {
-					coeff[u][v] = (float) ((double)coeff[u][v] / max);
+					coeff[u][v] = (double) (2*(double)coeff[u][v] / max);
 				}
 			}
 			setCoefficients(coeff);
@@ -172,11 +173,11 @@ public class BSplineSurface {
 	 * Get coefficients from b-spline
 	 * @return 2D array [u][v]-directions
 	 */
-	public float[][] getCoefficients() {
-		float[][] coeff = new float[iCoeffLenU][iCoeffLenV];
+	public double[][] getCoefficients() {
+		double[][] coeff = new double[iCoeffLenU][iCoeffLenV];
 		
-		for (int v = 0; v < iCoeffLenV; v++) {
-			for (int u = 0; u < iCoeffLenU; u++) {
+		for (int u = 0; u < iCoeffLenU; u++) {
+ 		    for (int v = 0; v < iCoeffLenV; v++) {
 				coeff[u][v] = iCtrlNet.get(u, v).z;
 			}
 		}
@@ -188,9 +189,9 @@ public class BSplineSurface {
 	 * Set coefficients for b-spline
 	 * @param aCoefficients 2D array of coefficients with [u][v] directions
 	 */
-	public void setCoefficients(float[][] aCoefficients) {
-		for (int v = 0; v < iCoeffLenV; v++) {
-			for (int u = 0; u < iCoeffLenU; u++) {
+	public void setCoefficients(double[][] aCoefficients) {
+	    for (int u = 0; u < iCoeffLenU; u++) {
+  		    for (int v = 0; v < iCoeffLenV; v++) {
 				ControlPoint4f cp = iCtrlNet.get(u, v);
 				cp.z =  aCoefficients[u][v];
 				iCtrlNet.set(u, v, cp);
@@ -214,7 +215,7 @@ public class BSplineSurface {
 		
 		System.out.println("Number coefficients in direction u:" + uLength + " v: " + vLength);
 		
-		float[] coefs = new float[uLength];	
+		double[] coefs = new double[uLength];	
 		for (int v = 0; v < vLength; v++) {
 			for (int u = 0; u < uLength; u++) {
 					coefs[u] = cn.get(u, v).z;
@@ -223,15 +224,15 @@ public class BSplineSurface {
 		}
 		
 		System.out.println("------------------------------");
-		float[] uKnots = iSurface.getUKnots();
-		float[] uk = new float[uKnots.length];
+		double[] uKnots = iSurface.getUKnots();
+		double[] uk = new double[uKnots.length];
 		for (int i = 0; i < uKnots.length; ++i) {
 			uk[i] = uKnots[i] * (uMax - uMin) + uMin;
 		}
 		System.out.println("u-knots[" + uk.length + "] = " + Arrays.toString(uk));
 
-		float[] vKnots = iSurface.getVKnots();
-		float[] vk = new float[vKnots.length];
+		double[] vKnots = iSurface.getVKnots();
+		double[] vk = new double[vKnots.length];
 		for (int i = 0; i < vKnots.length; ++i) {
 			vk[i] = vKnots[i] * (vMax - vMin) + vMin;
 		}
@@ -249,12 +250,12 @@ public class BSplineSurface {
 	 * @param aScaleV - scale in direction v
 	 * @return 
 	 */
-	public BSplineSurface showMatlabCode(float aScaleU, float aScaleV) {
+	public BSplineSurface showMatlabCode(double aScaleU, double aScaleV) {
 		int noOfStepsU = (int)(iOriginalU / aScaleU);		
 		int noOfStepsV = (int)(iOriginalV / aScaleV);
 		
-		float iStepU = (uMax - uMin) / (noOfStepsU - 1);
-		float iStepV = (vMax - vMin) / (noOfStepsV - 1);
+		double iStepU = (uMax - uMin) / (noOfStepsU - 1);
+		double iStepV = (vMax - vMin) / (noOfStepsV - 1);
 		
 		String xv = "\nx = [ ";
 		for (int u = 0; u < noOfStepsU; ++u) {
@@ -275,8 +276,8 @@ public class BSplineSurface {
 		String zv = "z = [ ";
 		for (int v = 0; v < noOfStepsV; ++v) {
 			for (int u = 0; u < noOfStepsU; ++u) {
-				float us = uMin + u * iStepU;
-				float vs = vMin + v * iStepV;
+				double us = uMin + u * iStepU;
+				double vs = vMin + v * iStepV;
 				zv += getValue(us, vs);
 				zv += " ";
 			}

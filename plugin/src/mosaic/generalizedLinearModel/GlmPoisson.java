@@ -10,8 +10,8 @@ public class GlmPoisson implements Glm {
     }
 
     @Override
-    public Matrix linkDerivative(Matrix aX) {
-        return new Matrix(aX.numRows(), aX.numCols()).ones();
+    public double linkDerivative(Matrix aX) {
+        return 1.0;
     }
 
     @Override
@@ -38,9 +38,4 @@ public class GlmPoisson implements Glm {
     public Matrix priorWeights(Matrix aImage) {
        return new Matrix(aImage.numRows(), aImage.numCols()).ones();
     }
-    
-	@Override
-	public NoiseType flag() {
-		return NoiseType.POISSON;
-	}
 }

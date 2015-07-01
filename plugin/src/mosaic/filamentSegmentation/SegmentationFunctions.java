@@ -6,25 +6,24 @@ import mosaic.math.Matrix;
 import mosaic.nurbs.BSplineSurface;
 import mosaic.nurbs.BSplineSurfaceFactory;
 import mosaic.nurbs.Function;
-import mosaic.plugins.utils.ImgUtils;
 
 class SegmentationFunctions {
 
-    // TOOD: Is this needed???
+
     static Matrix calculateBSplinePoints(int aWidth, int aHeight, final double aSubPixelStep, final BSplineSurface aBSpline) {
-        Matrix dx = Matlab.regularySpacedVector(1, aSubPixelStep, aWidth);
-        Matrix dy = Matlab.regularySpacedVector(1, aSubPixelStep, aHeight);
+        int sizeX = (int)((aWidth - 1)/aSubPixelStep) + 1;
+        int sizeY = (int)((aHeight - 1)/aSubPixelStep) + 1;
         
-        
-        MFunc phi = new MFunc() {
+        MFunc func = new MFunc() {
             @Override
             public double f(double aElement, int r, int c) {
-                //System.out.println((float)((c)* aSubPixelStep + 1) + "," + (float)((r) * aSubPixelStep + 1));
-                return aBSpline.getValue((float)((c)* aSubPixelStep + 1), (float)((r) * aSubPixelStep + 1));
+                // All values are calculated in Matlab style - that is why "+ 1" which 
+                // follows indexing in Matlab
+                return aBSpline.getValue(c * aSubPixelStep + 1, r * aSubPixelStep + 1);
             }
         };
         
-        return new Matrix(dy.numCols(), dx.numCols()).process(phi);
+        return new Matrix(sizeY, sizeX).process(func);
     }
     
     /**
@@ -34,17 +33,17 @@ class SegmentationFunctions {
      * @param aScale
      * @return
      */
-    static BSplineSurface generatePhi(int aX, int aY, float aScale) {
-        final float min = (aX < aY) ? aX : aY ;
-        final float uMax = aX;
-        final float vMax = aY;
+    static BSplineSurface generatePhi(int aX, int aY, double aScale) {
+        final double min = (aX < aY) ? aX : aY ;
+        final double uMax = aX;
+        final double vMax = aY;
             
         return BSplineSurfaceFactory.generateFromFunction(1.0f, uMax, 1.0f, vMax, aScale, 3, new Function() {
                     @Override
-                    public float getValue(float u, float v) {
-                        return min/4 - (float) Math.sqrt(Math.pow(v - vMax/2, 2) + Math.pow(u - uMax/2, 2));
+                    public double getValue(double u, double v) {
+                        return min/4 - Math.sqrt(Math.pow(v - vMax/2, 2) + Math.pow(u - uMax/2, 2));
                     }
-                }).normalizeCoefficients();
+                }).normalizeCoefficients(2.0);
     }
     
     /**
@@ -54,26 +53,24 @@ class SegmentationFunctions {
      * @param aScale
      * @return
      */
-    static BSplineSurface generatePsi(int aX, int aY, float aScale) {
-        final float min = (aX < aY) ? aX : aY ;
-        final float uMax = aX;
-        final float vMax = aY;
+    static BSplineSurface generatePsi(int aX, int aY, double aScale) {
+        final double min = (aX < aY) ? aX : aY ;
+        final double uMax = aX;
+        final double vMax = aY;
             
         return BSplineSurfaceFactory.generateFromFunction(1.0f, uMax, 1.0f, vMax, aScale, 3, new Function() {
                     @Override
-                    public float getValue(float u, float v) {
-                        return min/3 - (float)Math.sqrt(Math.pow(v - vMax/3, 2) + Math.pow(u - uMax/3, 2));
+                    public double getValue(double u, double v) {
+                        return min/3 - Math.sqrt(Math.pow(v - vMax/3, 2) + Math.pow(u - uMax/3, 2));
                     }
-                }).normalizeCoefficients();
+                }).normalizeCoefficients(2.0);
     }
     
     static Matrix generateMask(Matrix aPhiValues, Matrix aPsiValues) {
         Matrix mask = calculateDirac(aPhiValues).elementMult(calculateHeavySide(aPsiValues));
-        
+
         // scale mask to 0..1 range
-        double[][] values = mask.getArrayYX();
-        ImgUtils.normalize(values);
-        mask = new Matrix(values);
+        mask.normalizeInRange0to1();
         
         return mask;
     }
@@ -122,7 +119,7 @@ class SegmentationFunctions {
         double epsilon = 0.1;
         
         //Matlab code: y = (-1/pi^2)* (2*x./(x.^2 + epsilon^2).^2);   
-        Matrix result= aM.copy().scale(2).elementDiv( aM.copy().pow2().add(Math.pow(epsilon, 2)).pow2() ).scale( -1/Math.pow(Math.PI, 2) );
+        Matrix result= aM.copy().scale(-1*2/Math.pow(Math.PI, 2)).elementDiv( aM.copy().pow2().add(Math.pow(epsilon, 2)).pow2() );
         
         return result;
     }
@@ -132,8 +129,8 @@ class SegmentationFunctions {
      * @param aM - input image
      * @return - calculated energy
      */
-    static double calculateRegularizerEnergy(Matrix aM) {
-        Matrix regEnergy = calculateRegularizerEnergyMatrix(aM);
+    static double calculateRegularizerEnergy(Matrix aM, Matrix aWeights) {
+        Matrix regEnergy = calculateRegularizerEnergyMatrix(aM, aWeights);
         
         return regEnergy.sum();
     }
@@ -145,15 +142,15 @@ class SegmentationFunctions {
      * @param aM - input Matrix
      * @return
      */
-    static Matrix calculateRegularizerEnergyMatrix(Matrix aM) {
+    static Matrix calculateRegularizerEnergyMatrix(Matrix aM, Matrix aWeights) {
         // Calculate forward finite difference with Neumann Boundary Conditions
         Matrix stencilx = Matrix.mkRowVector(new double[] {0, -1, 1});
-        Matrix stencily = stencilx.copy().transpose();
         Matrix gradX = Matlab.imfilterSymmetric(aM, stencilx);
+        Matrix stencily = stencilx.transpose();
         Matrix gradY = Matlab.imfilterSymmetric(aM, stencily);
         
         // Calculate the regularizer energy
-        Matrix regEnergy = gradX.pow2().add(gradY.pow2()).sqrt();
+        Matrix regEnergy = gradX.pow2().add(gradY.pow2()).sqrt().elementMult(aWeights);
         
         return regEnergy;
     }

@@ -2,10 +2,11 @@ package mosaic.generalizedLinearModel;
 
 import static org.junit.Assert.assertEquals;
 import mosaic.math.Matrix;
+import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;
 
-public class GlmGaussianTest {
+public class GlmGaussianTest extends CommonBase {
 
     @Test
     public void testLink() {
@@ -20,13 +21,13 @@ public class GlmGaussianTest {
     
     @Test
     public void testLinkDerivative() {
-        Matrix expected = new Matrix(new double[][] {{1, 1, 1}, {1, 1, 1}});
+        double expected = 1.0;
         Matrix input    = new Matrix(new double[][] {{18, 17, 16}, {15, 14, 13}});
         
         Glm glm = new GlmGaussian();
-        Matrix result = glm.linkDerivative(input);
+        double result = glm.linkDerivative(input);
         
-        assertEquals("Output should match", expected, result);
+        assertEquals("Output should match", expected, result, 0.001);
     }
 
     @Test

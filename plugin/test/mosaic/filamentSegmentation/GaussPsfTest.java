@@ -2,10 +2,11 @@ package mosaic.filamentSegmentation;
 
 import static org.junit.Assert.*;
 import mosaic.math.Matrix;
+import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;
 
-public class GaussPsfTest {
+public class GaussPsfTest extends CommonBase {
     
     @Test
     public void testGauss3by3Matrix() {

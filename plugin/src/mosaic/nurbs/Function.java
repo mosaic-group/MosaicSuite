@@ -11,5 +11,5 @@ public interface Function {
 	 * @param v value of v (or y)
 	 * @return value of function (z)
 	 */
-	float getValue(float u, float v);
+	double getValue(double u, double v);
 }

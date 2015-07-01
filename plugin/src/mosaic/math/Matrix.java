@@ -1,4 +1,6 @@
 package mosaic.math;
+import mosaic.plugins.utils.Convert;
+
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 
@@ -21,12 +23,21 @@ public class Matrix {
 	public Matrix(double[][] aArray) {
 		iMatrix = new DenseMatrix64F(aArray);
 	}
+   public Matrix(float[][] aArray) {
+        iMatrix = new DenseMatrix64F(Convert.toDouble(aArray));
+    }
 	public Matrix(double[][] aArray, boolean aIsXYmatrix) {
 		this(aArray);
 		if (aIsXYmatrix) {
 			this.transpose();
 		}
 	}
+   public Matrix(float[][] aArray, boolean aIsXYmatrix) {
+        this(aArray);
+        if (aIsXYmatrix) {
+            this.transpose();
+        }
+    }
 	// Factory --------------
 	public static Matrix mkRowVector(double[] aInput) {
 		DenseMatrix64F result = new DenseMatrix64F(1, aInput.length);
@@ -55,28 +66,50 @@ public class Matrix {
 		
 		return new Matrix[] {new Matrix(m1), new Matrix(m2)};
 	}
-	//[y][x] or [r][c]
-	public static double[][] getArrayYX(Matrix aMatrix) {
-		int r = aMatrix.iMatrix.numRows; int c = aMatrix.iMatrix.numCols;
-		double [][] result = new double[r][c];
-		for (int ry = 0; ry < r; ++ry) {
-			for (int cx = 0; cx < c; ++cx) {
-				result[ry][cx] = aMatrix.get(ry, cx);
-			}
-		}
-		return result;
-	}
-	//[x][y] or [c][r]
-	public static double[][] getArrayXY(Matrix aMatrix) {
-		int r = aMatrix.iMatrix.numRows; int c = aMatrix.iMatrix.numCols;
-		double [][] result = new double[c][r];
-		for (int ry = 0; ry < r; ++ry) {
-			for (int cx = 0; cx < c; ++cx) {
-				result[cx][ry] = aMatrix.get(ry, cx);
-			}
-		}
-		return result;
-	}
+    //[y][x] or [r][c]
+    public static double[][] getArrayYX(Matrix aMatrix) {
+        int r = aMatrix.iMatrix.numRows; int c = aMatrix.iMatrix.numCols;
+        double [][] result = new double[r][c];
+        for (int ry = 0; ry < r; ++ry) {
+            for (int cx = 0; cx < c; ++cx) {
+                result[ry][cx] = aMatrix.get(ry, cx);
+            }
+        }
+        return result;
+    }
+    //[x][y] or [c][r]
+    public static double[][] getArrayXY(Matrix aMatrix) {
+        int r = aMatrix.iMatrix.numRows; int c = aMatrix.iMatrix.numCols;
+        double [][] result = new double[c][r];
+        for (int ry = 0; ry < r; ++ry) {
+            for (int cx = 0; cx < c; ++cx) {
+                result[cx][ry] = aMatrix.get(ry, cx);
+            }
+        }
+        return result;
+    }
+    //[y][x] or [r][c]
+    public static float[][] getArrayYXasFloats(Matrix aMatrix) {
+        int r = aMatrix.iMatrix.numRows; int c = aMatrix.iMatrix.numCols;
+        float [][] result = new float[r][c];
+        for (int ry = 0; ry < r; ++ry) {
+            for (int cx = 0; cx < c; ++cx) {
+                result[ry][cx] = (float)aMatrix.get(ry, cx);
+            }
+        }
+        return result;
+    }
+    //[x][y] or [c][r]
+    public static float[][] getArrayXYasFloats(Matrix aMatrix) {
+        int r = aMatrix.iMatrix.numRows; int c = aMatrix.iMatrix.numCols;
+        float [][] result = new float[c][r];
+        for (int ry = 0; ry < r; ++ry) {
+            for (int cx = 0; cx < c; ++cx) {
+                result[cx][ry] = (float)aMatrix.get(ry, cx);
+            }
+        }
+        return result;
+    }
 	// -------------------------
 	public Matrix process(MFunc aMf) {
 		int len = iMatrix.data.length;
@@ -138,13 +171,11 @@ public class Matrix {
 		return this;
 	}
 	public Matrix ones() {
-		int len = iMatrix.data.length;
-		for (int i = 0; i < len; ++i) iMatrix.data[i] = 1.0;
+		fill(1.0);
 		return this;
 	}
 	public Matrix zeros() {
-		int len = iMatrix.data.length;
-		for (int i = 0; i < len; ++i) iMatrix.data[i] = 0.0;
+		fill(0.0);
 		return this;
 	}
 	// helpers
@@ -171,18 +202,44 @@ public class Matrix {
    public Matrix normalize() {
        int len = iMatrix.data.length;
        double max = 0.0;
-       for (int i = 0; i < len; ++i) if (max < Math.abs(iMatrix.data[i])) max = Math.abs(iMatrix.data[i]);
+       for (int i = 0; i < len; ++i) {
+           double absValue = Math.abs(iMatrix.data[i]);
+           if (max < absValue) max = absValue;
+       }
        if (max > 0) {
            for (int i = 0; i < len; ++i) iMatrix.data[i] = iMatrix.data[i]/max;
        }
        return this;
    }
+   
+   public Matrix normalizeInRange0to1() {
+       int len = iMatrix.data.length;
+       double min = Double.MAX_VALUE;
+       double max = Double.MIN_VALUE;
+       for (int i = 0; i < len; ++i) {
+           double val = iMatrix.data[i];
+           if (max < val) max = val;
+           if (min > val) min = val;
+       }
+       // Normalize with found values
+       if (max != min) {
+           for (int i = 0; i < len; ++i) iMatrix.data[i] = (iMatrix.data[i]  - min) / (max - min);;
+       }
+       return this;
+   }
+   
 	public double[][] getArrayYX() {
 		return getArrayYX(this);
 	}
 	public double[][] getArrayXY() {
 		return getArrayXY(this);
 	}
+   public float[][] getArrayYXasFloats() {
+        return getArrayYXasFloats(this);
+    }
+    public float[][] getArrayXYasFloats() {
+        return getArrayXYasFloats(this);
+    }
 	public Matrix insert(Matrix aMatrix, int aRow, int aCol) {
 		CommonOps.insert(aMatrix.iMatrix, this.iMatrix, aRow, aCol);
 		return this;
@@ -190,6 +247,33 @@ public class Matrix {
 	
 	public double sum() {
 		return CommonOps.elementSum(this.iMatrix);
+	}
+	public Matrix resize(int aStartRow, int aStartCol, int aStepRow, int aStepCol) {
+	    if (aStartRow == 0 && aStartCol == 0 && aStepRow == 1 && aStepCol == 1) return this;
+	    
+	    int cols = iMatrix.numCols;
+	    int rows = iMatrix.numRows;
+	    
+	    int newCols = (cols + 1 - aStartCol) / aStepCol;
+	    int newRows = (rows + 1 - aStartRow) / aStepRow;
+	    
+	    DenseMatrix64F result = new DenseMatrix64F(newRows, newCols);
+	    for (int r = aStartRow, rn = 0; r < rows; r += aStepRow, ++rn) {
+	        for (int c = aStartCol, cn = 0; c < cols; c += aStepCol, ++cn) {
+	            result.set(rn, cn, iMatrix.get(r, c));
+	        }
+	    }
+	    iMatrix = result;
+	    
+	    return this;
+	}
+	
+	public boolean isRowVector() {
+	    return iMatrix.numRows == 1;
+	}
+	
+	public boolean isColVector() {
+	        return iMatrix.numCols == 1;
 	}
 	
 	@Override

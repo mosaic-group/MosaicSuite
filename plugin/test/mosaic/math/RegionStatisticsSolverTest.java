@@ -1,5 +1,6 @@
 package mosaic.math;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import mosaic.generalizedLinearModel.Glm;
 import mosaic.generalizedLinearModel.GlmGaussian;
@@ -18,16 +19,20 @@ public class RegionStatisticsSolverTest extends CommonBase {
     public void testRssWithGaussianGlm() {
         // expectations taken from Matlab's RegionStatisticsSolver
         Matrix expectedImageModel = new Matrix(new double[][] {{18, 17, 16}, {15, 14, 13}, {12, 11, 10}});
+        double expectedMLEout = 9.0;
+        double expectedMLEin = 10.0;
         
         // Input data
         Matrix image = new Matrix(new double[][] {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
         Matrix mask = new Matrix(new double[][] {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}});
         Glm glm = new GlmGaussian();
         
-        RegionStatisticsSolver rss = new RegionStatisticsSolver(image, mask, glm, image, 2);
+        RegionStatisticsSolver rss = new RegionStatisticsSolver(image, mask, glm, image, 4);
         Matrix resultImageModel = rss.calculate().getModelImage();
-        
+
         assertTrue("Image Model should match", expectedImageModel.compare(resultImageModel, 0.0001));
+        assertEquals("BetaMLEout", expectedMLEout, rss.getBetaMLEout(), 0.001);
+        assertEquals("BetaMLEin", expectedMLEin, rss.getBetaMLEin(), 0.001);
         
     }
     
@@ -35,6 +40,8 @@ public class RegionStatisticsSolverTest extends CommonBase {
     public void testRssWithPoissonGlm() {
         // expectations taken from Matlab's RegionStatisticsSolver
         Matrix expectedImageModel = new Matrix(new double[][] {{1.4, 1.4, 1.4}, {1.2, 1.2, 1.2}, {1.6, 1.6, 1.6}});
+        double expectedMLEout = 1.15;
+        double expectedMLEin = 1.65;
         
         // Input data
         Matrix image = new Matrix(new double[][] {{1, 1, 1}, {1.5, 1.5, 1.5}, {2, 2, 2}});
@@ -45,6 +52,8 @@ public class RegionStatisticsSolverTest extends CommonBase {
         Matrix resultImageModel = rss.calculate().getModelImage();
         
         assertTrue("Image Model should match", expectedImageModel.compare(resultImageModel, 0.0001));
+        assertEquals("BetaMLEout", expectedMLEout, rss.getBetaMLEout(), 0.001);
+        assertEquals("BetaMLEin", expectedMLEin, rss.getBetaMLEin(), 0.001);
     }
     
     @Test
@@ -62,4 +71,5 @@ public class RegionStatisticsSolverTest extends CommonBase {
         assertTrue("Image Model should match", expectedImageModel.compare(resultImageModel, 0.0001));
     }
 
+    
 }

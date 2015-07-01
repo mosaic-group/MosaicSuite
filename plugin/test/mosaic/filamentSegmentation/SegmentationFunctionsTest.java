@@ -1,15 +1,13 @@
 package mosaic.filamentSegmentation;
 
-import static org.junit.Assert.*;
-import mosaic.math.Matlab;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import mosaic.math.Matrix;
-import mosaic.nurbs.BSplineSurface;
-import mosaic.nurbs.BSplineSurfaceFactory;
-import mosaic.nurbs.Function;
+import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;
 
-public class SegmentationFunctionsTest {
+public class SegmentationFunctionsTest extends CommonBase {
 
     @Test
     public void testCalculateRegularizerEnergy() {
@@ -17,7 +15,7 @@ public class SegmentationFunctionsTest {
         Matrix input = new Matrix(new double[][] {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
         
         // Tested function
-        double result = SegmentationFunctions.calculateRegularizerEnergy(input);
+        double result = SegmentationFunctions.calculateRegularizerEnergy(input, input.copy().ones());
         
         assertEquals("Regularizer energy", expected, result, 0.001);
     }

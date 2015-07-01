@@ -21,7 +21,7 @@ public class BSplineSurfaceFactoryTest extends CommonBase {
 			// Generate flat surface increasing in u direction
 			 BSplineSurface surf = BSplineSurfaceFactory.generateFromFunction(10.0f, 20.0f, 30.0f, 40.0f, 1.0f, 1, new Function() {
 						@Override
-						public float getValue(float u, float v) {
+						public double getValue(double u, double v) {
 							return u;
 						}
 					});
@@ -42,7 +42,7 @@ public class BSplineSurfaceFactoryTest extends CommonBase {
         // in whole range.
 		BSplineSurface surf = BSplineSurfaceFactory.generateFromFunction(-9.0f, 9.0f, 0.0f, 20.0f, 6.0f, 2, new Function() {
 					@Override
-					public float getValue(float u, float v) {
+					public double getValue(double u, double v) {
 						return u*u;
 					}
 				});
@@ -62,7 +62,7 @@ public class BSplineSurfaceFactoryTest extends CommonBase {
         // in whole range.
 		BSplineSurface surf = BSplineSurfaceFactory.generateFromFunction(-9.0f, 9.0f,-10.0f, 10.0f, 4.0f, 3, new Function() {
 					@Override
-					public float getValue(float u, float v) {
+					public double getValue(double u, double v) {
 						return -1.5f*v*v;
 					}
 				});
@@ -81,7 +81,7 @@ public class BSplineSurfaceFactoryTest extends CommonBase {
         // Generate square function (v - dir) with 11 steps.
         BSplineSurface surf = BSplineSurfaceFactory.generateFromFunction(-9.0f, 9.0f,-10.0f, 10.0f, 11, 11, 2, 2, new Function() {
 					@Override
-					public float getValue(float u, float v) {
+					public double getValue(double u, double v) {
 						return -1.5f*v*v;
 					}
 				});

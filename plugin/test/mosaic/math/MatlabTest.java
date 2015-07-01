@@ -3,10 +3,11 @@ package mosaic.math;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;
 
-public class MatlabTest {
+public class MatlabTest extends CommonBase {
 
     @Test
     public void testRegularySpacedArray() {
@@ -62,10 +63,129 @@ public class MatlabTest {
     }
     
     @Test
-    public void test() {
-        Matrix m = new Matrix(new double [][] {{1, 2, 3 , 4, 5, 6 ,7, 8, 9, 10}});
-        Matrix r = Matlab.imresize(m, 2);
-        System.out.println(r);
+    public void testLinspace() {
+        {   // values increasing
+            Matrix expected = new Matrix(new double [][] {{1, 1.75, 2.5, 3.25, 4}});
+            Matrix result = Matlab.linspace(1, 4, 5); 
+            assertEquals(expected, result);
+        }
+        {   // same values repeated
+            Matrix expected = new Matrix(new double [][] {{1, 1, 1}});
+            Matrix result = Matlab.linspace(1, 1, 3); 
+            assertEquals(expected, result);
+        }
+        {   // values decreasing
+            Matrix expected = new Matrix(new double [][] {{2, 1.5, 1}});
+            Matrix result = Matlab.linspace(2, 1, 3); 
+            assertEquals(expected, result);
+        }
+    }
+    
+    @Test
+    public void testMeshgrid() {
+            Matrix expectedM1 = new Matrix(new double [][] {{1, 2, 3}, 
+                                                            {1, 2, 3}});
+            Matrix expectedM2 = new Matrix(new double [][] {{4, 4, 4}, 
+                                                            {5, 5, 5}});
+            
+            // Test several configurations of input vectors.
+            // It should give same results regardless of input vectors are row / col type.
+            
+            {
+                // Input values
+                Matrix rows = Matrix.mkRowVector(new double [] {1, 2, 3});
+                Matrix cols = Matrix.mkColVector(new double[] {4, 5});
+                
+                // Tested function
+                Matrix[] result = Matlab.meshgrid(rows, cols); 
+                
+                assertEquals(expectedM1, result[0]);
+                assertEquals(expectedM2, result[1]);
+            }
+            {
+                // Input values
+                Matrix rows = Matrix.mkRowVector(new double [] {1, 2, 3});
+                Matrix cols = Matrix.mkRowVector(new double[] {4, 5});
+                
+                // Tested function
+                Matrix[] result = Matlab.meshgrid(rows, cols); 
+                
+                assertEquals(expectedM1, result[0]);
+                assertEquals(expectedM2, result[1]);
+            }
+            {
+                // Input values
+                Matrix rows = Matrix.mkColVector(new double [] {1, 2, 3});
+                Matrix cols = Matrix.mkRowVector(new double[] {4, 5});
+                
+                // Tested function
+                Matrix[] result = Matlab.meshgrid(rows, cols); 
+                
+                assertEquals(expectedM1, result[0]);
+                assertEquals(expectedM2, result[1]);
+            }
+    }
+    
+    @Test
+    public void testImfiltersymmetricVectorFilter() {
+            Matrix expected = new Matrix(new double [][] {{-1, 2, -1}, 
+                                                          {-1, 2, -1}});
+            
+            // Input values
+            Matrix img = new Matrix(new double[][] {{ 1, 2, 1},
+                                                    { 2, 3, 2}});
+            
+            Matrix filter = Matrix.mkRowVector(new double[] {-1, 2, -1});
+            
+            // Tested function
+            Matrix result = Matlab.imfilterSymmetric(img, filter); 
+            
+            assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testImfiltersymmetricMatrixFilter() {
+            Matrix expected = new Matrix(new double [][] {{2, -1, 2}, 
+                                                          {0, -3, 0}});
+            
+            // Input values
+            Matrix img = new Matrix(new double[][] {{ 1, 2, 1},
+                                                    { 2, 3, 2}});
+            
+            Matrix filter = new Matrix(new double[][] {{0,  1,  0},
+                                                       {1, -4,  1},
+                                                       {0,  1,  0}});
+            
+            // Tested function
+            Matrix result = Matlab.imfilterSymmetric(img, filter); 
+            
+            assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testImresizeScale() {
+        Matrix expected = new Matrix(new double[][] {{1, 1.5, 2, 2.5, 3, 3.5, 4},
+                                                     {1, 1.5, 2, 2.5, 3, 3.5, 4}});
         
+        
+        Matrix input = new Matrix(new double [][] {{1, 2, 3 , 4}});
+        
+        // Tested function
+        Matrix result = Matlab.imresize(input, (double)7/4);
+        
+        assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testImresizeDims() {
+        Matrix expected = new Matrix(new double[][] {{1, 1.5, 2, 2.5, 3, 3.5, 4}});
+        
+        
+        Matrix input = new Matrix(new double [][] {{1, 2, 3 , 4}});
+        
+        // Tested function
+        Matrix result = Matlab.imresize(input, 7, 1);
+        
+        assertEquals(expected, result);
     }
 }

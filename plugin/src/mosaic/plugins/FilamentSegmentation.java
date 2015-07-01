@@ -1,11 +1,12 @@
 package mosaic.plugins;
 
 import ij.process.FloatProcessor;
-import mosaic.generalizedLinearModel.Glm;
-import mosaic.generalizedLinearModel.GlmGaussian;
-import mosaic.math.Matlab;
-import mosaic.math.Matrix;
-import mosaic.math.RegionStatisticsSolver;
+
+import java.awt.Dimension;
+
+import mosaic.filamentSegmentation.SegmentationAlgorithm;
+import mosaic.filamentSegmentation.SegmentationAlgorithm.NoiseType;
+import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
 import mosaic.plugins.utils.Convert;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.ImgUtils.MinMax;
@@ -19,15 +20,13 @@ public class FilamentSegmentation extends PlugInFloatBase {
 		// Get dimensions of input image
         final int originalWidth = aOrigImg.getWidth();
         final int originalHeight = aOrigImg.getHeight();
-        int stepSize = (int) Math.pow(2, iCoefficientStep);
-        int width = (int) (Math.ceil((float)originalWidth/stepSize) * stepSize);
-        int height = (int) (Math.ceil((float)originalHeight/stepSize) * stepSize);        
-        float[][] img = new float[height][width];
+
+        float[][] img = new float[originalHeight][originalWidth];
 
         // Convert to array and normalize to 0..1 values range
         ImgUtils.ImgToYX2Darray(aOrigImg, img, 1.0f);
         MinMax<Float> minMax = ImgUtils.findMinMax(img);
-        ImgUtils.normalize(img);
+//        ImgUtils.normalize(img);
         
         double[][] id = Convert.toDouble(img);
         
@@ -44,7 +43,7 @@ public class FilamentSegmentation extends PlugInFloatBase {
 //        System.out.println("hold on");
 //        BSplineSurface psi = generatePsi(88, 73, scale);
 
-        Matrix m = new Matrix(id);
+//        Matrix m = new Matrix(id);
         
 //        // Sobel Filter`
 //        Matrix m1 = Matlab.imfilterSymmetric(m, new Matrix(new double[][]{{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}}));
@@ -60,34 +59,36 @@ public class FilamentSegmentation extends PlugInFloatBase {
 //        id = m1.getArrayYX();
         
 //      // Laplacian of a Gaussian LoG filter
-        Matrix m1  = Matlab.imfilterSymmetric(m, new Matrix(new double[][] {{0,0,-1,0,0}, {0,-1,-2,-1,0},{-1,-2,16,-2,-1}, {0,-1,-2,-1,0}, {0,0,-1,0,0}}));
-        id = m1.getArrayYX();
-        int h = id.length; int w = id[0].length;
-        double [][] result = new double[h][w];
-        for (int y = 0; y < h-1; ++y) {
-            for (int x = 0; x < w-1; ++x) {
-                double val = 100;
-                boolean plu = false;
-                boolean min = false;
-                if (id[y][x] >=0) plu = true; else min = true;
-                if (id[y+1][x] >=0) plu = true; else min = true;
-                if (id[y][x+1] >=0) plu = true; else min = true;
-                if (id[y+1][x+1] >=0) plu = true; else min = true;
-                
-                if (min && plu) val = 0;
-                result[y][x] = val;
-            }
-        }
-        id = result;
-        System.out.println("Hello2");
+//        Matrix m1  = Matlab.imfilterSymmetric(m, new Matrix(new double[][] {{0,0,-1,0,0}, {0,-1,-2,-1,0},{-1,-2,16,-2,-1}, {0,-1,-2,-1,0}, {0,0,-1,0,0}}));
+//        id = m1.getArrayYX();
+//        int h = id.length; int w = id[0].length;
+//        double [][] result = new double[h][w];
+//        for (int y = 0; y < h-1; ++y) {
+//            for (int x = 0; x < w-1; ++x) {
+//                double val = 100;
+//                boolean plu = false;
+//                boolean min = false;
+//                if (id[y][x] >=0) plu = true; else min = true;
+//                if (id[y+1][x] >=0) plu = true; else min = true;
+//                if (id[y][x+1] >=0) plu = true; else min = true;
+//                if (id[y+1][x+1] >=0) plu = true; else min = true;
+//                
+//                if (min && plu) val = 0;
+//                result[y][x] = val;
+//            }
+//        }
+//        id = result;
+//        System.out.println("Hello2");
+//        
+//        Matrix im = new Matrix(new double[][] {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+//        Matrix ma = new Matrix(new double[][] {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}});
+//        Glm glm = new GlmGaussian();
+//        RegionStatisticsSolver rss = new RegionStatisticsSolver(im, ma, glm, im, 2);
+//        Matrix mi = rss.calculate().getModelImage();
+//        System.out.println(mi);
+//        System.out.println(glm.nllMean(im, mi, glm.priorWeights(im)));
         
-        Matrix im = new Matrix(new double[][] {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
-        Matrix ma = new Matrix(new double[][] {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}});
-        Glm glm = new GlmGaussian();
-        RegionStatisticsSolver rss = new RegionStatisticsSolver(im, ma, glm, im, 2);
-        Matrix mi = rss.calculate().getModelImage();
-        System.out.println(mi);
-        System.out.println(glm.nllMean(im, mi, glm.priorWeights(im)));
+        
 //        double[][][] temp1 = new double[1][3][3];
 //        double[][][] temp2 = new double[1][3][3];
 //        double[][][] temp3 = new double[1][3][3];
@@ -112,6 +113,15 @@ public class FilamentSegmentation extends PlugInFloatBase {
 //        System.out.println("end");
 
         
+        SegmentationAlgorithm sa = new SegmentationAlgorithm(id, 
+                NoiseType.GAUSSIAN, 
+                PsfType.GAUSSIAN, 
+                new Dimension(1, 1), 
+/* subpixel sumpling */      1, 
+/* scale */                  iCoefficientStep, 
+/* regularizer term */       0.0001);
+        id = sa.performSegmentation();
+        
         
         // ==============================================================================
 
@@ -127,7 +137,7 @@ public class FilamentSegmentation extends PlugInFloatBase {
 		// TODO: this data should be handled in dialog window, hard-coded in a meantime
 		
 		// Should take values from 0..4 -> distance between control points is then 2**scale => 1..16
-		iCoefficientStep = 5;
+		iCoefficientStep = 1;
 		
 		return true;
 	}

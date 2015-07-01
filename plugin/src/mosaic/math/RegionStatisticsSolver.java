@@ -52,19 +52,19 @@ public class RegionStatisticsSolver {
         // Precalculate some helpers
         // ============================
         // All ones with size of iMask
-        Matrix ones = iMask.copy().ones();
+        Matrix ones = new Matrix(iMask.numRows(), iMask.numCols()).ones();
         // (1 - iMask)
-        Matrix maskSubFrom1 = ones.copy().sub(iMask);
+        Matrix maskSubFrom1 = ones.sub(iMask);
         // iMask.^2
         Matrix maskPow2 = iMask.copy().pow2();
         // (1 - iMask).*iMask
         Matrix maskMul1SubMask = maskSubFrom1.copy().elementMult(iMask);
         // (1 - iMask).^2
         Matrix pow2Of1SubMask = maskSubFrom1.copy().pow2();
-
+        
         // Main loop of algorithm
         // ============================
-        Matrix mu = iMu.copy();
+        Matrix mu = iMu;
         Matrix Z = calcualteZ(mu);
         Matrix W = calculateW(mu);
         
@@ -74,12 +74,13 @@ public class RegionStatisticsSolver {
             double K22 = W.copy().elementMult(maskPow2).sum();
             
             double U1 = W.copy().elementMult(Z).elementMult(maskSubFrom1).sum();
-            double U2 = W.copy().elementMult(Z).elementMult(iMask).sum();
+            double U2 = W.elementMult(Z).elementMult(iMask).sum();
             
             double detK = K11 * K22 - Math.pow(K12, 2);
+            
             iBetaMLEout = (K22*U1-K12*U2)/detK;
             iBetaMLEin = (-K12*U1+K11*U2)/detK;
-
+            
             mu = calculateModelImage();
             Z = calcualteZ(mu);
             W = calculateW(mu);
@@ -112,15 +113,13 @@ public class RegionStatisticsSolver {
     private Matrix calculateW(Matrix mu) {
         // Matlab: priorWeights./(varFunction(mu).*linkDerivative(mu).^2+eps);
         return iGlm.priorWeights(iImage).elementDiv( 
-                iGlm.varFunction(mu).elementMult(iGlm.linkDerivative(mu).pow2()).add(Math.ulp(1.0)) 
+                iGlm.varFunction(mu).scale(Math.pow(iGlm.linkDerivative(mu),2) + Math.ulp(1.0)) 
                );
     }
 
     private Matrix calcualteZ(Matrix mu) {
         // Matlab: link(mu)+(image-mu).*linkDerivative(mu);
-        return iImage.copy().sub(mu).elementMult(
-                iGlm.linkDerivative(mu)).add(iGlm.link(mu)
-               );
+        return iImage.copy().sub(mu).scale(iGlm.linkDerivative(mu)).add(iGlm.link(mu));
     }
 
     private Matrix calculateModelImage() {

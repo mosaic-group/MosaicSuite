@@ -83,6 +83,27 @@ public class ImgUtils {
     }
     
     /**
+     * Updates ImageProcessor image with provided 2D pixel array. All pixels are multiplied by
+     * normalization value (if this step is not needed 1.0 should be provided)
+     * If output image is smaller than pixel array then it is truncated.
+     * 
+     * @param aIp                  ImageProcessor to be updated
+     * @param aImg                 2D array (first dim X, second Y)
+     * @param aNormalizationValue  Normalization value.
+     */
+    static public void XY2DarrayToImg(final float[][] aImg, FloatProcessor aIp, float aNormalizationValue) {
+        float[] pixels = (float[]) aIp.getPixels();
+        int w = aIp.getWidth();
+        int h = aIp.getHeight();
+    
+        for (int y = 0; y < h; ++y) {
+            for (int x = 0; x < w; ++x) {
+                pixels[x + y * w] = aImg[x][y] * aNormalizationValue;
+            }
+        }
+    }
+
+    /**
      * Resizes 2D array to 2D array with different size
      * If output image array is bigger than input image then additional pixels (right column(s) and
      * bottom row(s)) are padded with neighbors values.
@@ -128,27 +149,6 @@ public class ImgUtils {
                 if (yIdx >= h) yIdx = h - 1;
                 if (xIdx >= w) xIdx = w - 1;
                 aOutputImg[y][x] = aInputImg[yIdx][xIdx];
-            }
-        }
-    }
-    
-    /**
-     * Updates ImageProcessor image with provided 2D pixel array. All pixels are multiplied by
-     * normalization value (if this step is not needed 1.0 should be provided)
-     * If output image is smaller than pixel array then it is truncated.
-     * 
-     * @param aIp                  ImageProcessor to be updated
-     * @param aImg                 2D array (first dim X, second Y)
-     * @param aNormalizationValue  Normalization value.
-     */
-    static public void XY2DarrayToImg(final float[][] aImg, FloatProcessor aIp, float aNormalizationValue) {
-        float[] pixels = (float[]) aIp.getPixels();
-        int w = aIp.getWidth();
-        int h = aIp.getHeight();
-
-        for (int y = 0; y < h; ++y) {
-            for (int x = 0; x < w; ++x) {
-                pixels[x + y * w] = aImg[x][y] * aNormalizationValue;
             }
         }
     }
@@ -227,8 +227,8 @@ public class ImgUtils {
         final int arrayH = aImgArray.length;
         
         // Find min and max value of image
-        double min = Float.MAX_VALUE;
-        double max = Float.MIN_VALUE;
+        double min = Double.MAX_VALUE;
+        double max = Double.MIN_VALUE;
         for (int y = 0; y < arrayH; ++y) {
             for (int x = 0; x < arrayW; ++x) {
                 final double pix = aImgArray[y][x];
