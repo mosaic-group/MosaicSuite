@@ -160,7 +160,7 @@ public class BSplineSurface {
 		if (max != 0) {
 			for (int u = 0; u < iCoeffLenU; ++u) {
 				for (int v = 0; v < iCoeffLenV; ++v) {
-					coeff[u][v] = (double) (2*(double)coeff[u][v] / max);
+					coeff[u][v] = 2*coeff[u][v] / max;
 				}
 			}
 			setCoefficients(coeff);
