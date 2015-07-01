@@ -191,7 +191,7 @@ public class BSplineCreator {
 	            for (int j = 0; j <= n; j++) {
 	                cps[j].x = points[j].x;
 	                cps[j].y = points[j].y;
-	                cps[j].z = (double) sol.getElement(j);
+	                cps[j].z = sol.getElement(j);
 	            }   
 	
 	            return new BasicNurbsCurve(cps, uKnots);

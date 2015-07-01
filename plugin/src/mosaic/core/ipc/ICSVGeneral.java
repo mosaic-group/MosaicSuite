@@ -1,6 +1,6 @@
 package mosaic.core.ipc;
 
-public interface ICSVGeneral<T>
+public interface ICSVGeneral
 {
 	public void setImage_ID(int Image_ID_);
 	public void setObject_ID(int Object_ID_);
