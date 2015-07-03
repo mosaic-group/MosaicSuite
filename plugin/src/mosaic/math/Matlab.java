@@ -1,5 +1,10 @@
 package mosaic.math;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
@@ -148,6 +153,46 @@ public class Matlab {
 		return result;
 	}
 	
+	   /**
+     * Implementation of matlab's imfilter for 'symmetric' boundary options
+     * @param aImg - input image
+     * @param aFilter - filter to be used
+     * @return - filtered image (aImg is not changed)
+     */
+    public static Matrix imfilterConv(Matrix aImg, Matrix aFilter) {
+        Matrix result = new Matrix(aImg.numRows(), aImg.numCols());
+        
+        int filterRows = aFilter.numRows(); 
+        int filterCols = aFilter.numCols();
+        int filterRowMiddle = ((filterRows + 2) / 2) - 1;
+        int filterColMiddle = ((filterCols + 2) / 2) - 1;
+        double[][] filter = aFilter.getArrayYX();
+        int imageRows = aImg.numRows(); 
+        int imageCols = aImg.numCols(); 
+        double[][] image = aImg.getArrayYX();
+
+        for (int r = 0; r < imageRows; ++r) {
+            for (int c = 0; c < imageCols; ++c) {
+                // (r,c) - element of image to be calculated
+                double sum = 0.0;
+                for (int fr = 0; fr < filterRows; ++fr) {
+                    for (int fc = 0; fc < filterCols; ++fc) {
+                        // Calculate image coordinates for (fr, fc) filter element
+                        int imr = r + filterRowMiddle - fr;
+                        int imc = c + filterColMiddle - fc;
+                        double imgVal = 0; 
+                        if (imr >= 0 && imr < imageRows && imc >= 0 && imc < imageCols) imgVal = image[imr][imc];
+                        
+                        // After finding coordinates just compute next part of filter sum.
+                        sum += imgVal * filter[fr][fc];
+                    }
+                }
+                result.set(r, c, sum);
+            }
+        }
+
+        return result;
+    }
 	/**
 	 * Implementation of 'imresize' Matlab function for bicubic interpolation
 	 * @param aM Input image
@@ -184,5 +229,90 @@ public class Matlab {
         
         
         return result;
+    }
+    
+    /**
+     * Implementation of 'bwconncomp' Matlab's command for finding connected components in binary images
+     * @param aInputImg Matrix with values 0 and 1
+     * @param aIs8connected if set to true then 8 based connectivity is used, otherwise 4 based connectivity
+     * @return map with all found components altogheter with pixel indices (Matlab style of numbering). 
+     *             Labels (which are keys) starts from number 2.
+     */
+    public static Map<Integer, List<Integer>> bwconncomp(Matrix aInputImg, boolean aIs8connected) {
+        double[][] img = aInputImg.getArrayXY();
+        int width = img.length;
+        int height = img[0].length;
+        
+        // Number for first label
+        int labelIndex = 2;
+        
+        // Contains all found regions with element indices
+        Map<Integer, List<Integer>> connectedComponents = new HashMap<Integer, List<Integer>>();
+        
+        // Go through whole array
+        for (int x = 0; x < width; ++x) {
+            for (int y = 0; y < height; ++y) {
+                if (img[x][y] == 1) {
+                    // Every time first pixel of new object is found do graph searching
+                    connectedComponents.put(labelIndex,
+                                            findAllElementsOfObject(img, x, y, width, height, labelIndex, aIs8connected));
+                    
+                    // Increase label value and continue searching
+                    labelIndex++;
+                }
+            }
+        }
+        
+        return connectedComponents;
+    }
+
+    /**
+     * Do graph based searching for all pixels of connected component
+     * @return list with all pixel indices (Matlab's style of inexing top-down then right and again)
+     */
+    private static List<Integer> findAllElementsOfObject(double[][] aM, int aStartXpoint, int aStartYpoint, int aWidth, int aHeight, int aLabel, boolean aIs8connected) {
+        // List of found elements belonging to one componnent
+        List<Integer> elements = new ArrayList<Integer>();
+        
+        // List of elements to be visited
+        List<Integer> q = new ArrayList<Integer>();
+        
+        // Initialize list with entry point
+        q.add(aStartXpoint * aHeight + aStartYpoint);
+    
+        // Iterate until all elements of component are visited
+        while(!q.isEmpty()) {
+            // Get first element on the list and remove it
+            int id = q.remove(0);
+            int x = id/aHeight;
+            int y = id % aHeight;
+            
+            // Mark pixel and add it to element's container
+            aM[x][y] = aLabel;
+            elements.add(id);
+            
+            // Check all neighbours of currently processed pixel 
+            // (do some additional logic to skip point itself and to handle 4/8 base connectivity) 
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    if (dx!= 0 || dy != 0) {
+                        int indX = x + dx;
+                        int indY = y + dy;
+                        if (indX >= 0 && indX < aWidth && indY >= 0 && indY < aHeight) {
+                            if (aIs8connected || (dy * dx == 0))
+                            if (aM[indX][indY] == 1) {
+                                int idx = indX * aHeight + indY;
+                                if (!q.contains(idx)) {
+                                    // If element was not visited yet put it on list
+                                    q.add(idx);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return elements;
     }
 }

@@ -163,6 +163,42 @@ public class MatlabTest extends CommonBase {
     }
     
     @Test
+    public void testImfilterConvMatrixFilter() {
+            Matrix expected = new Matrix(new double [][] {{20, 34, 30}, 
+                                                          {44, 67, 54}});
+            
+            // Input values
+            Matrix img = new Matrix(new double[][] {{ 1, 2, 1},
+                                                    { 2, 3, 2}});
+            
+            Matrix filter = new Matrix(new double[][] {{1, 2, 3},
+                                                       {4, 5, 6},
+                                                       {7, 8, 9}});
+            
+            // Tested function
+            Matrix result = Matlab.imfilterConv(img, filter); 
+
+            assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testImfilterConvMatrixFilter2() {
+            Matrix expected = new Matrix(new double [][] {{60, 86, 63}, 
+                                                          {79, 97, 66}});
+            
+            // Input values
+            Matrix img = new Matrix(new double[][] {{ 1, 2, 3},
+                                                    { 4, 5, 6}});
+            
+            Matrix filter = new Matrix(new double[][] {{3, 5}, {7, 11}});
+            
+            // Tested function
+            Matrix result = Matlab.imfilterConv(img, filter); 
+
+            assertEquals(expected, result);
+    }
+    
+    @Test
     public void testImresizeScale() {
         Matrix expected = new Matrix(new double[][] {{1, 1.5, 2, 2.5, 3, 3.5, 4},
                                                      {1, 1.5, 2, 2.5, 3, 3.5, 4}});

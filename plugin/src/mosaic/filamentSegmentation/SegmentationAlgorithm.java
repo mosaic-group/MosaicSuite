@@ -10,10 +10,15 @@ import static mosaic.filamentSegmentation.SegmentationFunctions.generatePhi;
 import static mosaic.filamentSegmentation.SegmentationFunctions.generatePsi;
 
 import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import mosaic.generalizedLinearModel.Glm;
 import mosaic.generalizedLinearModel.GlmGaussian;
 import mosaic.generalizedLinearModel.GlmPoisson;
+import mosaic.math.MFunc;
 import mosaic.math.Matlab;
 import mosaic.math.Matrix;
 import mosaic.math.RegionStatisticsSolver;
@@ -77,24 +82,83 @@ public class SegmentationAlgorithm {
     public double[][] performSegmentation() {
 
         // Minimize total energy
-         EnergyOutput resultOfEnergyMinimalization = minimizeEnergy();
+        EnergyOutput resultOfEnergyMinimalization = minimizeEnergy();
      
+        ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
+        
         // TODO: this is temporary return value, should be changed probably
         return resultOfEnergyMinimalization.iMask.getArrayYX();
     }
 
+    class ThresholdFuzzyOutput {
+        ThresholdFuzzyOutput(Matrix aopt_MK, Matrix aH_f) {iopt_MK = aopt_MK; iH_f = aH_f;}
+        public Matrix iopt_MK; // best founded mask
+        public Matrix iH_f; // thresholded mask
+    }
+    
+    ThresholdFuzzyOutput ThresholdFuzzyVLS(double aTotalEnergy) {
+        final Matrix mask = generateMask(false /*resize*/);
+
+        final double key_pts_th = 0.7;
+        final double th_step = 0.02;
+        int noOfIterations = (int)(key_pts_th/th_step);
+        Matrix maskLogical = logical(mask, key_pts_th);
+        
+        List<Matrix> BMK = new ArrayList<Matrix>(noOfIterations);
+        List<Double> energies = new ArrayList<Double>(noOfIterations);
+        for (;noOfIterations >= 0; noOfIterations--) {
+            final double th = th_step * noOfIterations;
+
+            Matrix bmk = logical(mask, th);
+            Map<Integer, List<Integer>> cc = Matlab.bwconncomp(bmk, true /* 8-connected */);
+            for (List<Integer> list : cc.values()) {
+                Matrix tmk = new Matrix(bmk.numRows(), bmk.numCols()).zeros();
+                for (int idx : list) tmk.set(idx, 1);
+                double flag = tmk.elementMult(maskLogical).sum();
+                if (flag == 0.0) {
+                    for (int idx : list) bmk.set(idx, 0);
+                }
+            }
+            BMK.add(bmk);
+
+            Matrix rmk = Matlab.imresize(bmk, iSubpixelSampling);
+            Matrix Krmk = Matlab.imfilterSymmetric(rmk, iPsf);
+            RegionStatisticsSolver rss = new RegionStatisticsSolver(iImageData, Krmk, iGlm, iImageData, 2).calculate();
+
+            double totalEnergy = calculateTotalEnergy(iImageData, rmk, rss.getModelImage(), true);
+            double diffEnergy = totalEnergy - aTotalEnergy;
+            energies.add(diffEnergy);
+        }
+        int minIndex = energies.indexOf(Collections.min(energies));
+        Matrix opt_Mask = BMK.get(minIndex);
+        Matrix H_f = mask.elementMult(opt_Mask);
+        
+        return new ThresholdFuzzyOutput(opt_Mask, H_f);
+    }
+    
+    private Matrix logical(final Matrix mask, final double th) {
+        Matrix bmk = mask.copy().process(new MFunc() {
+            @Override
+            public double f(double aElement, int aRow, int aCol) {
+                return aElement > th ? 1 : 0;
+            }
+        });
+        return bmk;
+    }
+
     class EnergyOutput {
-        EnergyOutput(Matrix aMask, RegionStatisticsSolver aRss) {iMask = aMask; iRss = aRss;}
+        EnergyOutput(Matrix aMask, RegionStatisticsSolver aRss, double aTotalEnergy) {iMask = aMask; iRss = aRss; iTotalEnergy = aTotalEnergy;}
         public Matrix iMask;
         public RegionStatisticsSolver iRss;
+        public double iTotalEnergy;
     }
     
     EnergyOutput minimizeEnergy() {
         // Calculate initial energy
-        Matrix mask = generateMask();     
+        Matrix mask = generateMask(true /*resize*/);  
         RegionStatisticsSolver rss = generateRss(mask);
         Matrix mu = rss.getModelImage();
-        double totalEnergy = calculateTotalEnergy(mask, mu);
+        double totalEnergy = calculateTotalEnergy(iImageData, mask, mu);
         
         Matrix phiCoefs = new Matrix(iPhi.getCoefficients());
         Matrix psiCoefs = new Matrix(iPsi.getCoefficients());
@@ -122,13 +186,14 @@ public class SegmentationAlgorithm {
                 iPhi.setCoefficients(phiCoefsTemp.getArrayYX());
                 psiCoefsTemp = grad_Psi.copy().scale(-alpha).add(psiCoefs).normalize();
                 iPsi.setCoefficients(psiCoefsTemp.getArrayYX());
-                
+
                 // Recalculate energy with new coefficients
-                mask = generateMask();     
+                mask = generateMask(true /*resize*/);
+                
                 rss = generateRss(mask);
                 mu = rss.getModelImage();
-                double tempEngy = calculateTotalEnergy(mask, mu);
-
+                
+                double tempEngy = calculateTotalEnergy(iImageData, mask, mu);
                 diffEnergy = tempEngy - totalEnergy;
                 if (diffEnergy < 0) {
                     totalEnergy = tempEngy;
@@ -146,7 +211,7 @@ public class SegmentationAlgorithm {
             }
         }
         
-        return new EnergyOutput(mask, rss);
+        return new EnergyOutput(mask, rss, totalEnergy);
     }
 
     private Matrix[] calculateEnergyGradient(Matrix aMu, RegionStatisticsSolver aRss) {
@@ -156,27 +221,33 @@ public class SegmentationAlgorithm {
                 w_g0 = iImageData.copy().sub(aMu).scale(2*(aRss.getBetaMLEout() - aRss.getBetaMLEin()));
                 break;
             case POISSON:
-                w_g0 = iImageData.copy().ones().sub(iImageData).elementDiv(aMu).scale(aRss.getBetaMLEin()-aRss.getBetaMLEout());
+                w_g0 = iImageData.copy().ones().sub( iImageData.copy().elementDiv(aMu) ).scale(aRss.getBetaMLEin()-aRss.getBetaMLEout());
                 break;
             default:
                 new RuntimeException("Uknown NoiseType: [" + iNoiseType + "]");
                 break;
         }
-
+        
+            
         Matrix phiPts2 = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), 1, iPhi);
         Matrix psiPts2 = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), 1, iPsi);
-
+        
         Matrix der_phi = calculateDiffDirac(phiPts2).elementMult(calculateHeavySide(psiPts2));
         Matrix der_psi = calculateDirac(phiPts2).elementMult(calculateDirac(psiPts2));
-        Matrix grad_Phi = CalculateEnergyGradient(w_g0, der_phi).transpose();
-        Matrix grad_Psi = CalculateEnergyGradient(w_g0, der_psi).transpose();
+        
+        Matrix grad_Phi = CalculateEnergyGradient(w_g0, der_phi, false).transpose();
+        Matrix grad_Psi = CalculateEnergyGradient(w_g0, der_psi, true).transpose();
         
         return new Matrix[] {grad_Phi, grad_Psi};
     }
 
-    private double calculateTotalEnergy(Matrix mask, Matrix mu) {
-        double dataEnergy = iGlm.nllMean(iImageData, mu, iGlm.priorWeights(iImageData));
-        double regularizerEnergy = calculateRegularizerEnergy(mask, iWeightBoundary);
+    private double calculateTotalEnergy(Matrix aImageData, Matrix mask, Matrix mu) {
+        return calculateTotalEnergy(aImageData, mask, mu, false);
+    }
+    
+    private double calculateTotalEnergy(Matrix aImageData, Matrix mask, Matrix mu, boolean aIsMatrixLogical) {
+        double dataEnergy = iGlm.nllMean(aImageData, mu, iGlm.priorWeights(aImageData));
+        double regularizerEnergy = calculateRegularizerEnergy(mask, iWeightBoundary, aIsMatrixLogical);
         double totalEnergy = iLambdaData * dataEnergy + iLambdaReg * regularizerEnergy;
         
         return totalEnergy;
@@ -189,19 +260,23 @@ public class SegmentationAlgorithm {
         return rss;
     }
 
-    private Matrix generateMask() {
+    private Matrix generateMask(boolean aResizeMask) {
         Matrix phiPts = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), iSubpixelSampling, iPhi);
         Matrix psiPts = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), iSubpixelSampling, iPsi);
         Matrix mask = SegmentationFunctions.generateMask(phiPts, psiPts);
-        mask = Matlab.imresize(mask, iSubpixelSampling);
+        
+        if (aResizeMask) mask = Matlab.imresize(mask, iSubpixelSampling);
         
         return mask;
     }
 
-    private Matrix CalculateEnergyGradient(Matrix w_g0, Matrix der_phi) {
-        Matrix rEngyPhi = calculateRegularizerEnergyMatrix(der_phi, iWeightBoundary);
+    private Matrix CalculateEnergyGradient(Matrix w_g0, Matrix der_phi, boolean aShouldConvolve) {
+        Matrix rEngyPhi = calculateRegularizerEnergyMatrix(der_phi, iWeightBoundary, false);
         Matrix w_g = w_g0.copy().elementMult(der_phi).add( rEngyPhi.copy().scale(iLambdaReg) ).normalize();
-        w_g = Matlab.imfilterSymmetric(w_g, iPsf);
+        
+        if (aShouldConvolve) w_g = Matlab.imfilterConv(w_g, iPsf);
+        else w_g = Matlab.imfilterSymmetric(w_g, iPsf);
+        
         Matrix grad_Phi = Matlab.imfilterSymmetric(Matlab.imfilterSymmetric(w_g, iEnergyGradOfBases.copy().transpose()), iEnergyGradOfBases);
         grad_Phi = grad_Phi.resize(0, 0, iStepSize, iStepSize);
         return grad_Phi;

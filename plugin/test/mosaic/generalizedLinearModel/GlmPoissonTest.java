@@ -78,4 +78,18 @@ public class GlmPoissonTest extends CommonBase {
         assertEquals("Output should match", expected, result, 0.0001);
     }
 
+    @Test
+    public void testNllMean2() {
+        // Output from Matlab from nllMeanPoisson
+        double expected = 3.6294;
+        
+        Matrix inputImage = new Matrix(new double[][] {{0.2, 0.001}, {0.0005, 0}});
+        Matrix inputMu    = new Matrix(new double[][] {{0.000001, 0.9}, {0.5, - 0.0001}});
+        Matrix inputWeight= new Matrix(new double[][] {{1, 1}, {1, 1}});
+        
+        Glm glm = new GlmPoisson();
+        double result = glm.nllMean(inputImage, inputMu, inputWeight);
+
+        assertEquals("Output should match", expected, result, 0.0001);
+    }
 }

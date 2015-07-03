@@ -68,7 +68,7 @@ class SegmentationFunctions {
     
     static Matrix generateMask(Matrix aPhiValues, Matrix aPsiValues) {
         Matrix mask = calculateDirac(aPhiValues).elementMult(calculateHeavySide(aPsiValues));
-
+        
         // scale mask to 0..1 range
         mask.normalizeInRange0to1();
         
@@ -101,7 +101,7 @@ class SegmentationFunctions {
 
             @Override
             public double f(double aElement, int aRow, int aCol) {
-                return Math.exp(-20 * aElement) + 1;
+                return 1 + Math.exp(-20 * aElement);
             }
         };
         
@@ -130,8 +130,17 @@ class SegmentationFunctions {
      * @return - calculated energy
      */
     static double calculateRegularizerEnergy(Matrix aM, Matrix aWeights) {
-        Matrix regEnergy = calculateRegularizerEnergyMatrix(aM, aWeights);
-        
+        Matrix regEnergy = calculateRegularizerEnergyMatrix(aM, aWeights, false);
+        return regEnergy.sum();
+    }
+    
+    /**
+     * Calculate regularizer energy
+     * @param aM - input image
+     * @return - calculated energy
+     */
+    static double calculateRegularizerEnergy(Matrix aM, Matrix aWeights, boolean aIsMatrixLogical) {
+        Matrix regEnergy = calculateRegularizerEnergyMatrix(aM, aWeights, aIsMatrixLogical);
         return regEnergy.sum();
     }
 
@@ -142,16 +151,30 @@ class SegmentationFunctions {
      * @param aM - input Matrix
      * @return
      */
-    static Matrix calculateRegularizerEnergyMatrix(Matrix aM, Matrix aWeights) {
+    static Matrix calculateRegularizerEnergyMatrix(Matrix aM, Matrix aWeights, boolean aIsMatrixLogical) {
         // Calculate forward finite difference with Neumann Boundary Conditions
         Matrix stencilx = Matrix.mkRowVector(new double[] {0, -1, 1});
         Matrix gradX = Matlab.imfilterSymmetric(aM, stencilx);
         Matrix stencily = stencilx.transpose();
         Matrix gradY = Matlab.imfilterSymmetric(aM, stencily);
         
+        if (aIsMatrixLogical) {
+            MFunc make1and0 = new MFunc() {
+                
+                @Override
+                public double f(double aElement, int aRow, int aCol) {
+                    if (aElement > 0) return 1;
+                    return 0;
+                }
+            };
+            
+            gradX.process(make1and0);
+            gradY.process(make1and0);
+        }
+        
         // Calculate the regularizer energy
         Matrix regEnergy = gradX.pow2().add(gradY.pow2()).sqrt().elementMult(aWeights);
-        
+
         return regEnergy;
     }
 

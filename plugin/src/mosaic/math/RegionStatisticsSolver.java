@@ -67,7 +67,7 @@ public class RegionStatisticsSolver {
         Matrix mu = iMu;
         Matrix Z = calcualteZ(mu);
         Matrix W = calculateW(mu);
-        
+
         for (int i = 0; i < iNumOfIterations; ++i) {
             double K11 = W.copy().elementMult(pow2Of1SubMask).sum();
             double K12 = W.copy().elementMult(maskMul1SubMask).sum();
@@ -77,11 +77,11 @@ public class RegionStatisticsSolver {
             double U2 = W.elementMult(Z).elementMult(iMask).sum();
             
             double detK = K11 * K22 - Math.pow(K12, 2);
-            
             iBetaMLEout = (K22*U1-K12*U2)/detK;
             iBetaMLEin = (-K12*U1+K11*U2)/detK;
-            
+
             mu = calculateModelImage();
+
             Z = calcualteZ(mu);
             W = calculateW(mu);
         }
@@ -113,7 +113,7 @@ public class RegionStatisticsSolver {
     private Matrix calculateW(Matrix mu) {
         // Matlab: priorWeights./(varFunction(mu).*linkDerivative(mu).^2+eps);
         return iGlm.priorWeights(iImage).elementDiv( 
-                iGlm.varFunction(mu).scale(Math.pow(iGlm.linkDerivative(mu),2) + Math.ulp(1.0)) 
+                iGlm.varFunction(mu).scale(Math.pow(iGlm.linkDerivative(mu),2)).add(Math.ulp(1.0)) 
                );
     }
 

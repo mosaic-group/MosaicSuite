@@ -149,12 +149,20 @@ public class Matrix {
 		return this;
 	}
 	public double get(int r, int c) {
-		return this.iMatrix.get(r, c);
+		return iMatrix.get(r, c);
 	}
 	public Matrix set(int r, int c, double aVal) {
-		this.iMatrix.set(r, c, aVal);
+		iMatrix.set(r, c, aVal);
 		return this;
 	}
+	public double get(int idx) {
+        return iMatrix.get(idx % iMatrix.numRows, idx / iMatrix.numRows);
+    }
+    public Matrix set(int idx, double aVal) {
+        iMatrix.set(idx % iMatrix.numRows, idx / iMatrix.numRows, aVal);
+        return this;
+    }
+    
 	public int numRows() {
 		return iMatrix.numRows;
 	}
@@ -291,6 +299,7 @@ public class Matrix {
         int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i) {
             if (Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]) > aEpsilon) {
+                System.out.println("["+ i/iMatrix.numCols +"][" + i%iMatrix.numCols + "] " + this.iMatrix.data[i] + " vs " + aMatrix.iMatrix.data[i] + " Diff: " + Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]));
                 return false;
             }
         }

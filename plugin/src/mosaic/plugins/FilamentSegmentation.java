@@ -23,10 +23,9 @@ public class FilamentSegmentation extends PlugInFloatBase {
 
         float[][] img = new float[originalHeight][originalWidth];
 
-        // Convert to array and normalize to 0..1 values range
+        // Convert to array
         ImgUtils.ImgToYX2Darray(aOrigImg, img, 1.0f);
         MinMax<Float> minMax = ImgUtils.findMinMax(img);
-//        ImgUtils.normalize(img);
         
         double[][] id = Convert.toDouble(img);
         
@@ -114,12 +113,13 @@ public class FilamentSegmentation extends PlugInFloatBase {
 
         
         SegmentationAlgorithm sa = new SegmentationAlgorithm(id, 
-                NoiseType.GAUSSIAN, 
-                PsfType.GAUSSIAN, 
-                new Dimension(1, 1), 
-/* subpixel sumpling */      1, 
-/* scale */                  iCoefficientStep, 
-/* regularizer term */       0.0001);
+                                                             NoiseType.GAUSSIAN, 
+                                                             PsfType.GAUSSIAN, 
+                                                             new Dimension(1, 1), 
+                                /* subpixel sumpling */      1, 
+                                /* scale */                  iCoefficientStep, 
+                                /* regularizer term */       0.0001,
+                                5);
         id = sa.performSegmentation();
         
         
@@ -137,7 +137,7 @@ public class FilamentSegmentation extends PlugInFloatBase {
 		// TODO: this data should be handled in dialog window, hard-coded in a meantime
 		
 		// Should take values from 0..4 -> distance between control points is then 2**scale => 1..16
-		iCoefficientStep = 1;
+		iCoefficientStep = 0;
 		
 		return true;
 	}
