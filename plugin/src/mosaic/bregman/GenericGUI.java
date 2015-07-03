@@ -3,28 +3,10 @@ package mosaic.bregman;
 
 import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
 import ij.Macro;
 //import ij.gui.NonBlockingGenericDialog;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
-//import java.awt.event.FocusEvent;
-//import java.awt.event.FocusListener;
-//import java.awt.event.TextEvent;
-//import java.awt.event.TextListener;
-//import java.io.File;
-//import java.io.InputStream;
-//import java.io.InputStreamReader;
-//import java.util.List;
-//import java.util.StringTokenizer;
-//import javax.swing.JTextArea;
-//
-//
-//
-//import ij.IJ;
-//import ij.ImagePlus;
-import ij.process.ImageProcessor;
-import ij.process.ImageStatistics;
 
 import java.awt.Button;
 import java.awt.Dimension;
@@ -59,6 +41,21 @@ import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BregmanGLM_Batch;
+//import java.awt.event.FocusEvent;
+//import java.awt.event.FocusListener;
+//import java.awt.event.TextEvent;
+//import java.awt.event.TextListener;
+//import java.io.File;
+//import java.io.InputStream;
+//import java.io.InputStreamReader;
+//import java.util.List;
+//import java.util.StringTokenizer;
+//import javax.swing.JTextArea;
+//
+//
+//
+//import ij.IJ;
+//import ij.ImagePlus;
 
 public class GenericGUI 
 {
