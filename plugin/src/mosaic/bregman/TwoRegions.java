@@ -199,15 +199,7 @@ class TwoRegions extends NRegions
 		else //if (!p.usePSF && p.nz==1)
 			A_solver= new ASplitBregmanSolverTwoRegions(p,image,SpeedData,mask,md,channel,null);
 
-		//first run
-		
-		// Harcoded for Murrey
-		//
-		// Load the patches only for channel 2
-		//
-		//
-		
-		if (Analysis.p.patches_from_file == null || channel==0)
+		if (Analysis.p.patches_from_file == null)
 		{
 			try 
 			{

@@ -172,41 +172,13 @@ class BLauncher
 		}
 		else
 		{
-			// Open the image
-			
+			// Open the image and process
 			aImp = MosaicUtils.openImg(path);
-			if (aImp == null)
-			{
-				System.out.println("No image to process " + path);
-				return;
-			}
-			pf.add(MosaicUtils.removeExtension(aImp.getTitle()));
-			Headless_file();
-			
-			// Display results
-			
-			displayResult(false);
-			
-			if (Analysis.p.save_images)
-			{
-				// Save images
-				
-				saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
-				
-				// Write a file with output infos
-				
-				PrintWriter out = null;
-				File fl = new File(path);
-				try
-				{out = writeImageDataCsv(out, fl.getParent(), fl.getName(), fl.getName(), 0);
-				out.close();} 
-				catch (FileNotFoundException e) 
-				{e.printStackTrace();}
-			}
+			start(aImp);
 		}
 	}
 
-	public BLauncher(ImagePlus aImp_)
+	private void start(ImagePlus aImp_) 
 	{
 		aImp = aImp_;
 		
@@ -240,6 +212,13 @@ class BLauncher
 		
 		if (out != null)
 			out.close();
+		
+	}
+
+	public BLauncher(ImagePlus aImp_)
+	{
+		// start processing
+		start(aImp_);
 	}
 	
 

@@ -3,28 +3,10 @@ package mosaic.bregman;
 
 import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
 import ij.Macro;
 //import ij.gui.NonBlockingGenericDialog;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
-//import java.awt.event.FocusEvent;
-//import java.awt.event.FocusListener;
-//import java.awt.event.TextEvent;
-//import java.awt.event.TextListener;
-//import java.io.File;
-//import java.io.InputStream;
-//import java.io.InputStreamReader;
-//import java.util.List;
-//import java.util.StringTokenizer;
-//import javax.swing.JTextArea;
-//
-//
-//
-//import ij.IJ;
-//import ij.ImagePlus;
-import ij.process.ImageProcessor;
-import ij.process.ImageStatistics;
 
 import java.awt.Button;
 import java.awt.Dimension;
@@ -59,6 +41,21 @@ import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BregmanGLM_Batch;
+//import java.awt.event.FocusEvent;
+//import java.awt.event.FocusListener;
+//import java.awt.event.TextEvent;
+//import java.awt.event.TextListener;
+//import java.io.File;
+//import java.io.InputStream;
+//import java.io.InputStreamReader;
+//import java.util.List;
+//import java.util.StringTokenizer;
+//import javax.swing.JTextArea;
+//
+//
+//
+//import ij.IJ;
+//import ij.ImagePlus;
 
 public class GenericGUI 
 {
@@ -646,86 +643,7 @@ public class GenericGUI
 
 				ImagePlus img2=IJ.openImage(path);
 
-
-
-
-				ni=img2.getWidth();
-				nj=img2.getHeight();
-				nz=img2.getNSlices();
-				nc=img2.getNChannels();
-
-				int Amin=(int) Double.POSITIVE_INFINITY;
-				int Amax=0;
-
-				int Bmin=(int) Double.POSITIVE_INFINITY;;
-				int Bmax=0;
-
-
-				int bits = img2.getBitDepth();
-
-				imgch1=new ImagePlus();
-				ImageStack imga_s= new ImageStack(ni,nj);
-
-				//channel 1
-				for (int z=0; z<nz; z++){  
-					img2.setPosition(1,z+1,1);
-
-					ImageStatistics st1=img2.getStatistics();
-					Amin=Math.min(Amin, (int) st1.min);
-					Amax=Math.max(Amax, (int) st1.max);
-
-					ImageProcessor impt;
-					if(bits==32)
-						impt=img2.getProcessor().convertToShort(false);
-					else
-						impt = img2.getProcessor();
-					imga_s.addSlice("", impt);
-				}
-
-
-
-
-				imgch1.setStack(img2.getTitle(),imga_s);
-				//imgA.setTitle("A2");
-				imgch1.setTitle(imgch1.getShortTitle() + " ch1");
-
-//				ImageStatistics st1=imgch1.getStatistics();
-				//IJ.log("min " + Amin + "max " +Amax);
-
-				imgch1.setDisplayRange(Amin,Amax);
-
-				imgch1.show("");
-
-				if(nc>1){
-					imgch2=new ImagePlus();
-					ImageStack imgb_s= new ImageStack(ni,nj);
-
-					//channel 2
-					for (int z=0; z<nz; z++){  
-						img2.setPosition(2,z+1,1);	
-						ImageProcessor impt;
-
-						ImageStatistics st2=img2.getStatistics();
-						Bmin=Math.min(Bmin, (int) st2.min);
-						Bmax=Math.max(Bmax, (int) st2.max);
-
-						if(bits==32)
-							impt=img2.getProcessor().convertToShort(false);
-						else
-							impt = img2.getProcessor();
-						imgb_s.addSlice("", impt);
-					}
-
-					imgch2.setStack(img2.getTitle(),imgb_s);
-
-					imgch2.setTitle(imgch2.getShortTitle() + " ch2");
-
-					imgch2.setDisplayRange(Bmin,Bmax);
-
-					imgch2.show("");
-				}
-
-
+				img2.show();
 				
 			}
 
