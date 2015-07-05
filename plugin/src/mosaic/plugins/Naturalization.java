@@ -3,6 +3,7 @@ package mosaic.plugins;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.Macro;
 import ij.macro.Interpreter;
 import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
@@ -360,6 +361,9 @@ public class Naturalization implements PlugInFilterExt
 		{IJ.error("The plugin require an 8-bit image");return DONE;}
 		source = imp;
 		
+		// Save the arguments string
+		arg = Macro.getOptions();
+		
 		// Analyse the image
 		
 		if (imp.getType() == ImagePlus.COLOR_RGB)
@@ -611,17 +615,8 @@ public class Naturalization implements PlugInFilterExt
 			showMessage("");
 
 		
-/*		try {
-			FloatType Theta = new FloatType(0.5f);
-//			Naturalization(imp,Theta,4,IntType.class,FloatType.class);
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-		
+		// Re-set the macro options
+		Macro.setOptions(arg);
 		return DONE;
 	}
 

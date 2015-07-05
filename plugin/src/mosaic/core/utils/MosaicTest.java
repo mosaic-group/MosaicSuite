@@ -73,15 +73,16 @@ public class MosaicTest
 			e2.printStackTrace();
 		}
 		
+		// For unknown reason IJ.save kill macro options
+		String options = Macro.getOptions();
 		
 		for (int i = 0 ; i < tmp.img.length ; i++)
 		{
 			String temp_img = tmp_dir + tmp.img[i].substring(tmp.img[i].lastIndexOf(File.separator)+1);
 			IJ.save(MosaicUtils.openImg(tmp.img[i]), temp_img);
 		}
-			
-//		FileSaver fs = new FileSaver(MosaicUtils.openImg(tmp.img));
-//		fs.saveAsTiff(temp_img);
+		
+		Macro.setOptions(options);
 		
 		// copy the config file
 		
@@ -312,11 +313,18 @@ public class MosaicTest
 			return;
 		}
 		
+		// String
+		String original_options = Macro.getOptions();
+		
 		// for each image
 		
 		for (ImgTest tmp : imgT)
 		{
 			prepareTestEnvironment(wp,tmp);
+			
+			// append the macro set options with the test specific options
+			String plugin_options = original_options + " " + tmp.options.replace("*", tmp.base);
+			Macro.setOptions(plugin_options);
 			
 			// Create a plugin filter
 			
@@ -327,11 +335,11 @@ public class MosaicTest
 				ImagePlus img = MosaicUtils.openImg(temp_img);
 				img.show();
 			
-				rt = BG.setup(tmp.options, img);
+				rt = BG.setup(plugin_options, img);
 			}
 			else
 			{
-				rt = BG.setup(tmp.options,null);
+				rt = BG.setup(plugin_options,null);
 			}
 			
 			if (rt != tmp.setup_return)
@@ -345,6 +353,8 @@ public class MosaicTest
 			
 			processResult(BG,tmp,wp,cls);
 		}
+		
+		Macro.setOptions(original_options);
 		
 		wp.dispose();
 	}

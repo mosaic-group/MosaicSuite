@@ -3,7 +3,6 @@ package mosaic.bregman;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
-//import ij.gui.NonBlockingGenericDialog;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 
