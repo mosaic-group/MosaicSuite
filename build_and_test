@@ -7,6 +7,6 @@ cd plugin
 
 ant main
 
-cd ../../Fiji.app
+cd ~/Fiji.app
 
 ./ImageJ-linux64 -batch test.ijm "username=incardon"
