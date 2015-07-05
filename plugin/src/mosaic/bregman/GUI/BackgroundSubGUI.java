@@ -12,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import mosaic.bregman.Analysis;
+import mosaic.bregman.GenericGUI;
 
 
 public class BackgroundSubGUI 
@@ -60,16 +61,20 @@ public class BackgroundSubGUI
 		gd.addPanel(p);
 		
 		gd.addCheckbox("Remove_background", Analysis.p.removebackground);
-		
+			
 		gd.addNumericField("rolling_ball_window_size_(in_pixels)", Analysis.p.size_rollingball,0);
 		
-		gd.showDialog();
-		if (gd.wasCanceled()) return -1;
+		if (GenericGUI.bypass_GUI == false)
+		{
+			gd.showDialog();
+			if (gd.wasCanceled()) return -1;
 		
-		//general options	
-		Analysis.p.removebackground=gd.getNextBoolean();
-		//IJ.log("rem back:" +  Analysis.p.removebackground);
-		Analysis.p.size_rollingball=(int) gd.getNextNumber();
+			//general options
+			Analysis.p.removebackground=gd.getNextBoolean();
+			
+			//IJ.log("rem back:" +  Analysis.p.removebackground);
+			Analysis.p.size_rollingball=(int) gd.getNextNumber();
+		}
 		//Analysis.p.usePSF=gd.getNextBoolean();
 		return 0;
 	}

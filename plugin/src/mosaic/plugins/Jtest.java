@@ -3,6 +3,7 @@ package mosaic.plugins;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.Macro;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 
@@ -33,7 +34,11 @@ public class Jtest implements PlugInFilter
 	@Override
 	public int setup(String arg0, ImagePlus arg1) 
 	{
-
+		// Test CSV system
+		
+		mosaic.core.ipc.Jtest jtestIPC = new mosaic.core.ipc.Jtest();
+		jtestIPC.csvtest();
+		
 		// Test Squassh segmentation
 		
 		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
@@ -43,11 +48,6 @@ public class Jtest implements PlugInFilter
 		
 		mosaic.plugins.test.Jtest JtestPlug = new mosaic.plugins.test.Jtest();
 		JtestPlug.naturalization();
-		
-		// Test CSV system
-		
-		mosaic.core.ipc.Jtest jtestIPC = new mosaic.core.ipc.Jtest();
-		jtestIPC.csvtest();
 		
 		// Test core utils
 		

@@ -1,6 +1,7 @@
 package mosaic.core.cluster;
 
 import ij.IJ;
+import ij.Macro;
 
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -17,6 +18,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 
 /**
@@ -157,8 +159,20 @@ public class ClusterGUI  extends JDialog
 		
 		contentPane.add(btnCancelButton);
 		
-		setModal(true);
-		setVisible(true);
+		// check if we have the username option in macro mode if yes avoid to draw a window
+		String test_set = MosaicUtils.parseString("username", Macro.getOptions());
+		if (test_set != null && test_set.length() != 0)
+		{
+			cp_sel.setUsername(MosaicUtils.parseString("username",Macro.getOptions()));
+			cp_sel.setPassword(MosaicUtils.parseString("password",Macro.getOptions()));
+			cl = new ClusterSession(cp_sel);
+			dispose();
+		}
+		else
+		{
+			setModal(true);
+			setVisible(true);
+		}
 		
 	}
 	

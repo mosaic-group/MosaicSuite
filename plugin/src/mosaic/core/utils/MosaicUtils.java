@@ -3,6 +3,7 @@ package mosaic.core.utils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.Macro;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.io.Opener;
@@ -1563,13 +1564,14 @@ public class MosaicUtils
 	
 	/**
 	 * 
-	 * It return the set of test images for a certain plugin
+	 * It return the set of test images to test
 	 * 
-	 * @param name of the plugin
+	 * @param name of the test set
+	 * @param test name
 	 * @return an array of test images
 	 */
 	
-	static public ImgTest[] getTestImages(String plugin)
+	static public ImgTest[] getTestImages(String plugin, String filter)
 	{
 		// Search for test images
 		
@@ -1611,6 +1613,9 @@ public class MosaicUtils
 		
 			try
 			{
+				if (filter != null && filter.length() != 0 && dir.getAbsolutePath().endsWith(filter.trim()) == false)
+					continue;
+				
 				BufferedReader br = new BufferedReader(new FileReader(cfg));
  
 				imgT = new ImgTest();

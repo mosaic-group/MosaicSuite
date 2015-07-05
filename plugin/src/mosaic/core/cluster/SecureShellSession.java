@@ -9,6 +9,8 @@ import java.io.PipedOutputStream;
 import java.util.Date;
 import java.util.Vector;
 
+import org.apache.commons.io.FileUtils;
+
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.utils.DataCompression;
 
@@ -269,30 +271,31 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 		
 		if (session != null && session.isConnected() == true)
 			return true;
-		
-//	    ConfigRepository configRepository;
 
+		// Open the private key
 		String host = cprof.getAccessAddress();
 	    String user=cprof.getUsername();
 	    
-/*	    String config =
-    	        "Port 22\n"+
-    	        "\n"+
-    	        "Host Automated_cluster_command\n"+
-    	        "  User "+user+"\n"+
-    	        "  Hostname "+host+"\n"+
-    	        "Host *\n"+
-    	        "  ConnectTime 30000\n"+
-    	        "  PreferredAuthentications keyboard-interactive,password,publickey\n"+
-    	        "  #ForwardAgent yes\n"+ 
-    	        "  #StrictHostKeyChecking no\n"+
-    	        "  #IdentityFile ~/.ssh/id_rsa\n"+
-    	        "  #UserKnownHostsFile ~/.ssh/known_hosts";
+	    if (cprof.getPassword() == null || cprof.getPassword().length() == 0)
+	    {
+	    	File p_key = null;
+	    	
+	    	// Try to open the standard private key
+	    	if (IJ.isLinux())
+	    		p_key = new File("/home/" + cprof.getUsername() + "/.ssh/id_rsa");
+	    	else if (IJ.isMacOSX())
+	    		p_key = new File("/Users/" + cprof.getUsername() + "/.ssh/id_rsa");
+	    	
+    		jsch.addIdentity(p_key.getAbsolutePath());
+    		
+    		session = jsch.getSession(user, host, 22);
+	    }
+	    else
+	    {
+	    	session = jsch.getSession(user, host, 22);
+	    	session.setPassword(cprof.getPassword());
+	    }
 	    
-		configRepository = com.jcraft.jsch.OpenSSHConfig.parse(config);
-    	jsch.setConfigRepository(configRepository);*/
-		session = jsch.getSession(user, host, 22);
-		session.setPassword(cprof.getPassword());
 		java.util.Properties config_ = new java.util.Properties(); 
 		config_.put("StrictHostKeyChecking", "no");
 		session.setConfig(config_);

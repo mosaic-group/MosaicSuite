@@ -3,6 +3,7 @@ package mosaic.core.utils;
 import static org.junit.Assert.fail;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.Macro;
 import io.scif.SCIFIOService;
 import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
@@ -35,7 +36,7 @@ import org.scijava.app.StatusService;
 
 public class MosaicTest
 {
-	private static String getTestEnvironment()
+	public static String getTestEnvironment()
 	{
 		return IJ.getDirectory("temp") + File.separator + "test" + File.separator;
 	}
@@ -264,7 +265,7 @@ public class MosaicTest
 					int j = 0;
 					for (j = 0 ; j < outdst.size() ; j++)
 					{
-						if (outsrc.get(i).equals(outdst.get(i)))
+						if (outsrc.get(i).equals(outdst.get(j)) == true)
 						{
 							break;
 						}
@@ -294,16 +295,16 @@ public class MosaicTest
 		BG.setIsOnTest(true);
 		
 		// Save on tmp and reopen
-		
 		String tmp_dir = getTestEnvironment();
-		
-		// 
-		
 		ProgressBarWin wp = new ProgressBarWin();
 		
-		// Get all test images
+		// if macro options is different from "" or null filter the tests
+		String test_set = MosaicUtils.parseString("test", Macro.getOptions());
+		if (test_set != null && test_set.length() != 0 && test_set.startsWith(testset) == false)
+			return;
 		
-		ImgTest imgT[] = MosaicUtils.getTestImages(testset);
+		// Get all test images
+		ImgTest imgT[] = MosaicUtils.getTestImages(testset, test_set);
 		
 		if (imgT == null)
 		{
@@ -361,9 +362,14 @@ public class MosaicTest
 	{
 		ProgressBarWin wp = new ProgressBarWin();
 		
-		// Get all test images
+		// if macro options is different from "" or null filter the test
+		String test_set = MosaicUtils.parseString("test", Macro.getOptions());
+		if (test_set != null && test_set.length() != 0 && test_set.startsWith(testset) == false)
+			return;
+			
 		
-		ImgTest imgT[] = MosaicUtils.getTestImages(testset);
+		// Get all test sets
+		ImgTest imgT[] = MosaicUtils.getTestImages(testset, test_set);
 		
 		if (imgT == null)
 		{

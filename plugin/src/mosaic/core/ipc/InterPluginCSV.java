@@ -1173,7 +1173,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 				for (int i = 0 ; i < ext.length ; i++)
 				csv.setMetaInformation(ext[i].par, ext[i].value);
 			}
-			csv.StitchConvert(str, output_file + dir_p[j].replace("*", "_"), occ,"Frame",0);
+			csv.StitchConvert(str, output_file + dir_p[j].replace("*", "_") + ".csv", occ,"Frame",0);
 		}
     	
     	return true;

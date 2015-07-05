@@ -135,10 +135,14 @@ class BLauncher
 				
 				displayResult(true);
 				
+				System.out.println("Display result");
+				
 				// Write a file info output
 				
 				if (Analysis.p.save_images)
 				{
+					System.out.println("Display result save");
+					
 					saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
 					
 					try

@@ -14,12 +14,13 @@ import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 
 import org.junit.Test;
+import org.scijava.util.FileUtils;
 
 public class Jtest 
 {
 	@Test
 	public void csvtest() 
-	{
+	{		
 		CSVOutput.initCSV(-1);
 		
 		// Stitch files all together
@@ -30,16 +31,8 @@ public class Jtest
 		// Remove previous test files
 		
 		for (int i = 0 ; i < out.length ; i++)
-		{
-			try {
-				ShellCommand.exeCmdNoPrint(TestDir + File.separator + "test_result" + out[i].replace("*", "_") + ".csv");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		{	
+			FileUtils.deleteRecursively(new File(TestDir + File.separator + "test_result" + out[i].replace("*", "_") + ".csv"));
 		}
 		
 		// Put some metadata
@@ -64,7 +57,7 @@ public class Jtest
 		for (int i = 0 ; i < out.length ; i++)
 		{
 			InterPluginCSV<Region3DRScript> iCSVsrc = new InterPluginCSV<Region3DRScript>(Region3DRScript.class);
-			iCSVsrc.setCSVPreferenceFromFile(TestDir + File.separator + "test_result" + out[i].replace("*", "_") + ".csv");
+			iCSVsrc.setCSVPreferenceFromFile(TestDir + File.separator + "test_result_res" + out[i].replace("*", "_") + ".csv");
 			Vector<Region3DRScript> outsrc = iCSVsrc.Read(TestDir + File.separator + "test_result" + out[i].replace("*", "_") + ".csv");
 
 			InterPluginCSV<Region3DRScript> iCSVdst = new InterPluginCSV<Region3DRScript>(Region3DRScript.class);
@@ -76,7 +69,7 @@ public class Jtest
 		
 			for (int k = 0 ; k < outsrc.size() ; k++)
 			{
-				if (outsrc.get(k).equals(outdst.get(k)))
+				if (outsrc.get(k).equals(outdst.get(k)) == false)
 				{
 					fail("Error: CSV output does not match");
 				}
