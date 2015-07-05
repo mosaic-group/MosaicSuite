@@ -4,6 +4,7 @@ import ij.IJ;
 import ij.Macro;
 import ij.gui.GenericDialog;
 import ij.io.OpenDialog;
+import io.scif.SCIFIOService;
 import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
 
@@ -20,6 +21,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+
+import org.scijava.Context;
+import org.scijava.app.AppService;
+import org.scijava.app.StatusService;
 
 import mosaic.core.utils.MosaicUtils;
 import net.imglib2.Localizable;
@@ -284,7 +289,7 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , PSFGui
 		// open the image
 		
 		final ImgFactory<T> factory = new ArrayImgFactory<T>();
-		ImgOpener imgOpener = new ImgOpener();
+		ImgOpener imgOpener = new ImgOpener(new Context(SCIFIOService.class, AppService.class, StatusService.class ));
 		try {
 			try {
 				image = imgOpener.openImgs( filename, factory, clCreator.newInstance()).get(0);
