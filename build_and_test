@@ -1,0 +1,10 @@
+#! /bin/bash
+
+export JAVA_HOME=/usr/lib/jvm/java-6-oracle
+cd plugin
+
+ant main
+
+cd ../../Fiji.app
+
+./ImageJ-linux64 -batch test.ijm "username=incardon"
