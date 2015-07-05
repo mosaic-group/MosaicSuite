@@ -236,9 +236,6 @@ public class MosaicTest
 		
 		cnt = 0;
 		
-		Arrays.sort(tmp.csv_results);
-		Arrays.sort(tmp.csv_results_rel);
-		
 		for (String rs : tmp.csv_results)
 		{
 			wp.SetStatusMessage("Checking... " + new File(rs).getName());
