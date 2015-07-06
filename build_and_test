@@ -1,5 +1,6 @@
 #! /bin/bash
 
+echo "Set environment"
 source ~/.bashrc
 
 export JAVA_HOME=/usr/lib/jvm/java-6-oracle
