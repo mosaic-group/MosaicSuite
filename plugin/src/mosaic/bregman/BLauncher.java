@@ -140,7 +140,7 @@ class BLauncher
 				// Write a file info output
 				
 				if (Analysis.p.save_images)
-				{
+				{					
 					System.out.println("Display result save");
 					
 					saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
@@ -196,22 +196,22 @@ class BLauncher
 			aImp.setPosition(aImp.getChannel(),aImp.getSlice(),f);
 			Headless_file();
 			
+			try
+			{
+				out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), aImp.getTitle(),  f-1);} 
+			catch (FileNotFoundException e) 
+			{e.printStackTrace();}
+			
 			// Display results
 			
 			displayResult(false);
-			
-			// Write a file info output
-			
-			if (Analysis.p.save_images)
-			{
-				saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
-				
-				try
-				{
-					out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), aImp.getTitle(),  f-1);} 
-				catch (FileNotFoundException e) 
-				{e.printStackTrace();}
-			}
+		}
+		
+		// Write a file info output
+		
+		if (Analysis.p.save_images)
+		{
+			saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
 		}
 		
 		if (out != null)
@@ -334,9 +334,9 @@ class BLauncher
 	 */
 	
 	private void saveAllImages(String path)
-	{
+	{		
 		// Save images
-			
+		
 		for (int i = 0 ; i < out_over.length ; i++)
 		{
 			String savepath = path + File.separator + getOutlineName(i) + ".zip";
@@ -947,14 +947,17 @@ class BLauncher
 	    
 		ImagePlus intensities = ImageJFunctions.wrap(imgInt,"Intensities");
 		
+		// copy to imageJ1
+		ImagePlus intensities2 = intensities.duplicate();
+		
 		if (sep == false)
-			updateImages(out_disp,intensities,getIntensitiesName(channel-1),Analysis.p.dispint,channel);
+			updateImages(out_disp,intensities2,getIntensitiesName(channel-1),Analysis.p.dispint,channel);
 		else
 		{
-			ip.add(intensities);
-			out_disp[channel-1] = intensities;
-			intensities.show();
-			intensities.setTitle(getIntensitiesName(channel-1));
+			ip.add(intensities2);
+			out_disp[channel-1] = intensities2;
+			intensities2.show();
+			intensities2.setTitle(getIntensitiesName(channel-1));
 		}
 	}
 
@@ -1058,12 +1061,12 @@ class BLauncher
 	 */
 	
 	public void displayRegionsLab(int channel, boolean sep)
-	{		
+	{
 		ImagePlus label_ = label.duplicate();
 		
 		IJ.run(label_, "Grays", "");
 		
-		if (sep == true)
+		if (sep == false)
 			updateImages(out_label_gray,label_,getMaskName(channel-1),Analysis.p.displabels,channel);
 		else
 		{

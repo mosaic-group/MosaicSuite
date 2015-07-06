@@ -436,7 +436,7 @@ public class MosaicUtils
 	 */
 	
 	static public void MergeFrames(ImagePlus a1, ImagePlus a2)
-	{
+	{	
 		// If a1 does not have an imageStack set it to a2 and return
 		if (a1.getImageStack().getSize() == 0)
 		{
