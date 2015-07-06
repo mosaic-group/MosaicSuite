@@ -70,8 +70,8 @@ class TwoRegions extends NRegions
         // Iterate on all particles
         
 		int sz[] = new int[3];
-		sz[0] = out[0][0].length;
-		sz[1] = out[0].length;
+		sz[1] = out[0][0].length;
+		sz[0] = out[0].length;
 		sz[2] = out.length;
 		   		    		
     	// Create a circle Mask and an iterator
@@ -99,6 +99,11 @@ class TwoRegions extends NRegions
         		{
         			out[p.x[2]][p.x[0]][p.x[1]] = 255.0f;
         			mask[p.x[2]][p.x[0]][p.x[1]] = 1.0f;
+        		}
+        		else
+        		{
+        			int diocane = 0;
+        			diocane++;
         		}
         	}
         }
@@ -229,9 +234,9 @@ class TwoRegions extends NRegions
 		
 			double img[][][] = new double[p.nz][p.ni][p.nj];
 			
-			drawParticles(img,A_solver.w3kbest[0],pt_f,(int)1.0);
+			drawParticles(img,A_solver.w3kbest[0],pt_f,(int)3.0);
 			
-//			Tools.disp_array3D_new(img, "particles");
+			Tools.disp_array3D_new(img, "particles");
 			
 			A_solver.regions_intensity_findthresh(img);
 		}
