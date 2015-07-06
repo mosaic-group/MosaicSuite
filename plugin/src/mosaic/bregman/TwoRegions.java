@@ -236,7 +236,7 @@ class TwoRegions extends NRegions
 			
 			drawParticles(img,A_solver.w3kbest[0],pt_f,(int)3.0);
 			
-			Tools.disp_array3D_new(img, "particles");
+//			Tools.disp_array3D_new(img, "particles");
 			
 			A_solver.regions_intensity_findthresh(img);
 		}
