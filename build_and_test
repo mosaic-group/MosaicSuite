@@ -3,7 +3,7 @@
 echo "Set environment"
 
 # Custom script to set environment variables like FIJI path TEST path JAVA_HOME
-~/.bashrc_custom
+source ~/.bashrc_custom
 
 cd plugin
 
