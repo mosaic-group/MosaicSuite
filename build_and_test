@@ -5,7 +5,7 @@ echo "Set environment"
 # For unkown reason source the file on the slave does not work so we have to do in this horrible way
 export JAVA_HOME=/usr/lib/jvm/java-6-oracle
 export FIJI_MOSAIC_PLUGIN_PATH=/home/jenkins/Fiji.app/plugins/Mosaic_ToolSuite
-export MOSAIC_PLUGIN_TEST_DATA_PATH=/home/jenkins/workspace/label/nyu/ImageJ/plugin/Jtest_data
+export MOSAIC_PLUGIN_TEST_DATA_PATH=/home/jenkins/workspace/Mosaic_ToolSuite/label/nyu/plugin/Jtest_data/
 
 
 export JAVA_HOME=/usr/lib/jvm/java-6-oracle
