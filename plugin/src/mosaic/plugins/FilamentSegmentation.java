@@ -120,6 +120,7 @@ public class FilamentSegmentation extends PlugInFloatBase {
                                 /* scale */                  iCoefficientStep, 
                                 /* regularizer term */       0.0001,
                                 5);
+        
         id = sa.performSegmentation();
         
         

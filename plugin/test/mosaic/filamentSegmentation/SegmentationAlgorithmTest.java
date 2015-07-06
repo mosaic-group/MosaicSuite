@@ -172,7 +172,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
         EnergyOutput resultOfEnergyMinimalization = sa.minimizeEnergy();
         ThresholdFuzzyOutput resultOfThresholding = sa.ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
         
-        double epsilon = 0.000005;
+        double epsilon = 0.0000025;
         assertTrue("Mask", new Matrix(expectedMask).compare(resultOfThresholding.iopt_MK, epsilon));
         assertTrue("Mask", new Matrix(expectedThresholdedMask).compare(resultOfThresholding.iH_f, epsilon));
     }

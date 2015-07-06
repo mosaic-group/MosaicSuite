@@ -84,10 +84,10 @@ public class SegmentationAlgorithm {
         // Minimize total energy
         EnergyOutput resultOfEnergyMinimalization = minimizeEnergy();
      
-        ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
+        ThresholdFuzzyOutput resultOfthresholdFuzzyVLS = ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
         
         // TODO: this is temporary return value, should be changed probably
-        return resultOfEnergyMinimalization.iMask.getArrayYX();
+        return resultOfthresholdFuzzyVLS.iH_f.getArrayYX();
     }
 
     class ThresholdFuzzyOutput {
@@ -99,8 +99,10 @@ public class SegmentationAlgorithm {
     ThresholdFuzzyOutput ThresholdFuzzyVLS(double aTotalEnergy) {
         final Matrix mask = generateMask(false /*resize*/);
 
-        final double key_pts_th = 0.7;
+        // Thresholding constants
+        final double key_pts_th = 0.70;
         final double th_step = 0.02;
+        
         int noOfIterations = (int)(key_pts_th/th_step);
         Matrix maskLogical = logical(mask, key_pts_th);
         
@@ -158,6 +160,7 @@ public class SegmentationAlgorithm {
         Matrix mask = generateMask(true /*resize*/);  
         RegionStatisticsSolver rss = generateRss(mask);
         Matrix mu = rss.getModelImage();
+        
         double totalEnergy = calculateTotalEnergy(iImageData, mask, mu);
         
         Matrix phiCoefs = new Matrix(iPhi.getCoefficients());
@@ -188,8 +191,7 @@ public class SegmentationAlgorithm {
                 iPsi.setCoefficients(psiCoefsTemp.getArrayYX());
 
                 // Recalculate energy with new coefficients
-                mask = generateMask(true /*resize*/);
-                
+                mask = generateMask(true /*resize*/); 
                 rss = generateRss(mask);
                 mu = rss.getModelImage();
                 
