@@ -1,10 +1,8 @@
 package mosaic.bregman;
 
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
-//import ij.gui.NonBlockingGenericDialog;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 
@@ -39,6 +37,7 @@ import mosaic.bregman.GUI.VisualizationGUI;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
+import mosaic.core.utils.MosaicTest;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BregmanGLM_Batch;
 //import java.awt.event.FocusEvent;
@@ -59,6 +58,14 @@ import mosaic.plugins.BregmanGLM_Batch;
 
 public class GenericGUI 
 {
+	private enum run_mode
+	{
+		USE_CLUSTER,
+		LOCAL,
+		STOP
+	};
+	
+	public static boolean bypass_GUI = false;
 	boolean clustermode;
 	ImagePlus imgch1;
 	ImagePlus imgch2;
@@ -123,16 +130,19 @@ public class GenericGUI
 	 * 
 	 */
 	
-	public int drawBatchWindow()
+	public run_mode drawBatchWindow()
 	{
 		// No visualization is active by default
-		Analysis.p.livedisplay = false;
-		Analysis.p.dispcolors = false;
-		Analysis.p.dispint = false;
-		Analysis.p.displabels = false;
-		Analysis.p.dispoutline = false;
-		Analysis.p.dispSoftMask = false;
-		Analysis.p.save_images = true;
+		if (GenericGUI.bypass_GUI == false)
+		{
+			Analysis.p.livedisplay = false;
+			Analysis.p.dispcolors = false;
+			Analysis.p.dispint = false;
+			Analysis.p.displabels = false;
+			Analysis.p.dispoutline = false;
+			Analysis.p.dispSoftMask = false;
+			Analysis.p.save_images = true;
+		}
 		
 		System.out.println("Batch window");
 		
@@ -140,16 +150,23 @@ public class GenericGUI
 		
 		addTextArea(gd);
 		
-		gd.showDialog();
-		if (gd.wasCanceled()) return -1;
-		Analysis.p.wd=  gd.getNextText();
+		if (GenericGUI.bypass_GUI == false)
+		{
+			gd.showDialog();
+			if (gd.wasCanceled()) return run_mode.STOP;
+			Analysis.p.wd=  gd.getNextText();
+		}
 		
-		if (BackgroundSubGUI.getParameters() == -1) return -1;
-		if (SegmentationGUI.getParameters() == -1) return -1;
-		if (VisualizationGUI.getParameters() == -1) return -1;
+		if (BackgroundSubGUI.getParameters() == -1) return run_mode.STOP;
+		if (SegmentationGUI.getParameters() == -1) return run_mode.STOP;
+		if (VisualizationGUI.getParameters() == -1) return run_mode.STOP;
 		
 		System.out.println(Analysis.p);
-		return 0;
+		
+		if (gui_use_cluster == true)
+			return run_mode.USE_CLUSTER;
+		
+		return run_mode.LOCAL;
 	}
 	
 	/**
@@ -181,7 +198,7 @@ public class GenericGUI
 	 * 
 	 */
 	
-	int drawStandardWindow(GenericDialog gd, ImagePlus aImp)
+	run_mode drawStandardWindow(GenericDialog gd, ImagePlus aImp)
 	{
 		// font for reference
 		Font bf = new Font(null, Font.BOLD ,12);
@@ -325,7 +342,7 @@ public class GenericGUI
 		//////////////////////////////////
 	
 		gd.showDialog();
-		if (gd.wasCanceled()) return -1;
+		if (gd.wasCanceled()) return run_mode.STOP;
 	
 		Analysis.p.wd=  gd.getNextText();
 	
@@ -334,11 +351,11 @@ public class GenericGUI
 		//IJ.log("Number of processors available to the Java Virtual Machine: " + nrOfProcessors);		
 		Analysis.p.nthreads=nrOfProcessors;
 	
-		int run_mode = 0;
+		run_mode rm = run_mode.LOCAL;
 		if (gd.getNextBoolean() == true)
-			run_mode = 1;
+			rm = run_mode.USE_CLUSTER;
 		
-		return run_mode;
+		return rm;
 	}
 	
 	public void run(String arg, ImagePlus aImp)
@@ -352,15 +369,15 @@ public class GenericGUI
 		
 		if (!clustermode)
 		{
-			int ret = 0;
+			run_mode rm = null;
 			
 			if (IJ.isMacro() == true)
 			{
 				new GenericDialogCustom("Squassh");
 				// Draw a batch system window
 				
-				ret = drawBatchWindow();
-				if (ret == -1)
+				rm = drawBatchWindow();
+				if (rm == run_mode.STOP)
 					Macro.abort();
 				
 			}
@@ -370,11 +387,12 @@ public class GenericGUI
 				
 				// Draw a standard window
 				
-				ret = drawStandardWindow(gd,aImp);
-				use_cluster = (ret == 1);
+				rm = drawStandardWindow(gd,aImp);
 			}
 			
-			if (ret == -1)
+			use_cluster = (rm == run_mode.USE_CLUSTER);
+			
+			if (rm == run_mode.STOP)
 				return;
 		}
 		else
@@ -401,7 +419,7 @@ public class GenericGUI
 			}
 			Analysis.p.wd=  gd.getNextString();
 		}
-
+		
 		System.out.println("Paramenters: " + Analysis.p);
 		
 		if(Analysis.p.mode_voronoi2)
@@ -479,26 +497,22 @@ public class GenericGUI
 				else
 					savepath = fl.getParent();
 				
-				if (IJ.isMacro() == false)
+				if (fl.isDirectory() == true)
 				{
-					if (fl.isDirectory() == true)
-					{
-						MosaicUtils.reorganize(Analysis.out_w,pf,Analysis.p.wd);
+					MosaicUtils.reorganize(Analysis.out_w,pf,Analysis.p.wd);
+					MosaicUtils.StitchCSV(fl.getAbsolutePath(),Analysis.out,null);
 						
-						MosaicUtils.StitchCSV(fl.getAbsolutePath(),Analysis.out,null);
-						
-						Analysis.p.file1=Analysis.p.wd+File.separator+"stitch__ObjectsData_c1"+ ".csv";
-						Analysis.p.file2=Analysis.p.wd+File.separator+"stitch__ObjectsData_c2"+ ".csv";
-						Analysis.p.file3=Analysis.p.wd+File.separator+"stitch_ImagesData"+ ".csv";
-					}
-					else
-					{						
-						Analysis.p.file1=fl.getParent()+File.separator+Analysis.out_w[0].replace("*", "_")+File.separator+MosaicUtils.removeExtension(fl.getName())+"_ObjectsData_c1"+ ".csv";
-						Analysis.p.file2=fl.getParent()+File.separator+Analysis.out_w[1].replace("*", "_")+File.separator+MosaicUtils.removeExtension(fl.getName())+"_ObjectsData_c2"+ ".csv";
-						Analysis.p.file3=fl.getParent()+File.separator+Analysis.out_w[4].replace("*", "_")+File.separator+MosaicUtils.removeExtension(fl.getName())+"_ImagesData"+ ".csv";
-						
-						MosaicUtils.reorganize(Analysis.out_w,pf,new File(Analysis.p.wd).getParent());
-					}
+					Analysis.p.file1=Analysis.p.wd+File.separator+"stitch__ObjectsData_c1"+ ".csv";
+					Analysis.p.file2=Analysis.p.wd+File.separator+"stitch__ObjectsData_c2"+ ".csv";
+					Analysis.p.file3=Analysis.p.wd+File.separator+"stitch_ImagesData"+ ".csv";
+				}
+				else
+				{						
+					Analysis.p.file1=fl.getParent()+File.separator+Analysis.out_w[0].replace("*", "_")+File.separator+MosaicUtils.removeExtension(fl.getName())+"_ObjectsData_c1"+ ".csv";
+					Analysis.p.file2=fl.getParent()+File.separator+Analysis.out_w[1].replace("*", "_")+File.separator+MosaicUtils.removeExtension(fl.getName())+"_ObjectsData_c2"+ ".csv";
+					Analysis.p.file3=fl.getParent()+File.separator+Analysis.out_w[4].replace("*", "_")+File.separator+MosaicUtils.removeExtension(fl.getName())+"_ImagesData"+ ".csv";
+	
+					MosaicUtils.reorganize(Analysis.out_w,pf,new File(Analysis.p.wd).getParent());
 				}
 			}
 
@@ -597,7 +611,10 @@ public class GenericGUI
 			// Get output format and Stitch the output in the output selected
 			
 			String outcsv[] = {"*_ObjectsData_c1.csv"};
-			File dir = ClusterSession.processJobsData(outcsv,MosaicUtils.ValidFolderFromImage(aImp),CSVOutput.occ.classFactory);
+			String path = MosaicUtils.ValidFolderFromImage(aImp);
+			if (BregmanGLM_Batch.test_mode == true)
+				path = MosaicTest.getTestEnvironment();
+			File dir = ClusterSession.processJobsData(outcsv,path,CSVOutput.occ.classFactory);
 			
 			// if background is != null it mean that is a video or is an image so try to stitch
 			if (Background != null)

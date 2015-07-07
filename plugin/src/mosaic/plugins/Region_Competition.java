@@ -308,7 +308,7 @@ public class Region_Competition implements Segmentation
 	Img<FloatType> image_psf;
 	
 	public int setup(String aArgs, ImagePlus aImp)
-	{		
+	{
 		if (MosaicUtils.checkRequirement() == false)
 			return DONE;
 		
@@ -613,7 +613,7 @@ public class Region_Competition implements Segmentation
 		
 		labelImage.calculateRegionsCenterOfMass();
 		
-		if(userDialog.showAndSaveStatistics())
+		if(userDialog.showAndSaveStatistics() || test_mode == true)
 		{
 			showAndSaveStatistics(algorithm.getLabelMap());
 		}
@@ -1304,9 +1304,9 @@ public class Region_Competition implements Segmentation
 
 	public void closeAll()
 	{
-		labelImage.close();
-		intensityImage.close();
-		stackImPlus.close();
+		if (labelImage != null)	labelImage.close();
+		if (intensityImage != null) intensityImage.close();
+		if (stackImPlus != null) stackImPlus.close();
 		if (originalIP != null)
 			originalIP.close();
 		

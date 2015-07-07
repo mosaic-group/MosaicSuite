@@ -1,6 +1,13 @@
 package mosaic.plugins;
 
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+
+import org.scijava.util.FileUtils;
+
+import mosaic.core.utils.MosaicTest;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
@@ -33,22 +40,26 @@ public class Jtest implements PlugInFilter
 	@Override
 	public int setup(String arg0, ImagePlus arg1) 
 	{
-
-		// Test Squassh segmentation
-		
-		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
-		jtestBR.segmentation();
-		
-		// Test Naturalization
-		
-		mosaic.plugins.test.Jtest JtestPlug = new mosaic.plugins.test.Jtest();
-		JtestPlug.naturalization();
+		// Get the User home directory
+		String test = MosaicTest.getTestEnvironment();
+		File s_file = new File(test + File.separator + "succeful");
+		FileUtils.deleteRecursively(s_file);
 		
 		// Test CSV system
 		
 		mosaic.core.ipc.Jtest jtestIPC = new mosaic.core.ipc.Jtest();
 		jtestIPC.csvtest();
 		
+		// Test Squassh segmentation
+		
+		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
+		jtestBR.segmentation();
+
+		// Test Naturalization
+		
+		mosaic.plugins.test.Jtest JtestPlug = new mosaic.plugins.test.Jtest();
+		JtestPlug.naturalization();
+
 		// Test core utils
 		
 		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
@@ -65,6 +76,18 @@ public class Jtest implements PlugInFilter
 		jtestRC.segmentation();
 		
 		IJ.showMessage("All test SUCCEFULLY completed");
+		// Create a file that notify all test has been completed suceffuly
+		
+		try 
+		{
+			PrintWriter succeful = new PrintWriter(test + File.separator + "succeful");
+			succeful.write(1);
+			succeful.close();
+		}
+		catch (FileNotFoundException e) 
+		{
+			e.printStackTrace();
+		}
 		
 		return DONE;
 	}

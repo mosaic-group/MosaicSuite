@@ -339,28 +339,8 @@ public class Algorithm
 	public boolean GenerateData(Img<FloatType> image_psf)
 	{
 		/**
-		 * Set up the regions and allocate the output-image
-		 */
-		
-		// CopyRegionsAndAllocateOutput();
-
-		/**
-		 * Set up the containers and allocate the label image:
-		 */
-		
-		// InitializeLabelImageAndContourContainer(this->GetInitInput());
-
-		/**
-		 * Set the inputs for the image functions:
-		 */
-		// m_SimplicityCriterion->SetInputImage(m_LabelImage);
-		// m_TopologicalNumberFunction->SetInputImage(m_LabelImage);
-		// m_ContourLengthFunction->SetInputImage(m_LabelImage);
-
-		/**
 		 * Initialize standard statistics (mean, variances, length, area etc)
 		 */
-		
 		renewStatistics();
 
 		/**

@@ -14,6 +14,7 @@ import javax.swing.JFileChooser;
 
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericDialogCustom;
+import mosaic.bregman.GenericGUI;
 
 
 public class SegmentationGUI 
@@ -132,21 +133,25 @@ public class SegmentationGUI
 		gd.addPanel(p);
 
 		gd.centerDialog(false);
-		gd.showDialog();
-		if (gd.wasCanceled()) return -1;
+		
+		if (GenericGUI.bypass_GUI == false)
+		{
+			gd.showDialog();
+			if (gd.wasCanceled()) return -1;
 
-		Analysis.p.lreg_[0]= gd.getNextNumber();
-		Analysis.p.lreg_[1]= gd.getNextNumber();
-		Analysis.p.min_intensity=gd.getNextNumber();
-		Analysis.p.min_intensityY=gd.getNextNumber();
-		Analysis.p.subpixel= gd.getNextBoolean();
-		Analysis.p.exclude_z_edges = gd.getNextBoolean();
-		Analysis.p.sigma_gaussian=gd.getNextNumber();
-		Analysis.p.zcorrec=Analysis.p.sigma_gaussian/gd.getNextNumber();
-		Analysis.p.min_region_filter_intensities = gd.getNextNumber();
-		Analysis.p.mode_intensity=gd.getNextChoiceIndex();
-		Analysis.p.noise_model=gd.getNextChoiceIndex();
-
+			Analysis.p.lreg_[0]= gd.getNextNumber();
+			Analysis.p.lreg_[1]= gd.getNextNumber();
+			Analysis.p.min_intensity=gd.getNextNumber();
+			Analysis.p.min_intensityY=gd.getNextNumber();
+			Analysis.p.subpixel= gd.getNextBoolean();
+			Analysis.p.exclude_z_edges = gd.getNextBoolean();
+			Analysis.p.sigma_gaussian=gd.getNextNumber();
+			Analysis.p.zcorrec=Analysis.p.sigma_gaussian/gd.getNextNumber();
+			Analysis.p.min_region_filter_intensities = gd.getNextNumber();
+			Analysis.p.mode_intensity=gd.getNextChoiceIndex();
+			Analysis.p.noise_model=gd.getNextChoiceIndex();
+		}
+			
 		if(Analysis.p.mode_voronoi2)
 		{
 			//betamleout to be determined by clustering of whole image

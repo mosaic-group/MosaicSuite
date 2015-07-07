@@ -193,6 +193,12 @@ public class BregmanGLM_Batch implements Segmentation
 		{
 			e.printStackTrace();
 		}
+		
+		System.out.println("Setting macro options: " + arg0);
+		
+		// Re-set the arguments
+		Macro.setOptions(arg0);
+		
 		return DONE;
 	}
 
@@ -332,7 +338,7 @@ public class BregmanGLM_Batch implements Segmentation
 		return "Squassh";
 	}
 
-	boolean test_mode;
+	public static boolean test_mode;
 	
 	@Override
 	public void setIsOnTest(boolean test) 
@@ -344,5 +350,16 @@ public class BregmanGLM_Batch implements Segmentation
 	public boolean isOnTest() 
 	{
 		return test_mode;
+	}
+	
+	/**
+	 * 
+	 * Unfortunately where is not way to hide the GUI in test mode, set the plugin to explicitly
+	 * bypass the GUI
+	 * 
+	 */
+	public void bypass_GUI()
+	{
+		GenericGUI.bypass_GUI = true;
 	}
 }

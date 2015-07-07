@@ -435,7 +435,7 @@ public class MosaicUtils
 	 */
 	
 	static public void MergeFrames(ImagePlus a1, ImagePlus a2)
-	{
+	{	
 		// If a1 does not have an imageStack set it to a2 and return
 		if (a1.getImageStack().getSize() == 0)
 		{
@@ -1563,13 +1563,14 @@ public class MosaicUtils
 	
 	/**
 	 * 
-	 * It return the set of test images for a certain plugin
+	 * It return the set of test images to test
 	 * 
-	 * @param name of the plugin
+	 * @param name of the test set
+	 * @param test name
 	 * @return an array of test images
 	 */
 	
-	static public ImgTest[] getTestImages(String plugin)
+	static public ImgTest[] getTestImages(String plugin, String filter)
 	{
 		// Search for test images
 		
@@ -1611,6 +1612,9 @@ public class MosaicUtils
 		
 			try
 			{
+				if (filter != null && filter.length() != 0 && dir.getAbsolutePath().endsWith(filter.trim()) == false)
+					continue;
+				
 				BufferedReader br = new BufferedReader(new FileReader(cfg));
  
 				imgT = new ImgTest();

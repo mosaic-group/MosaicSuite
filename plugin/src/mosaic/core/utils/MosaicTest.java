@@ -3,13 +3,13 @@ package mosaic.core.utils;
 import static org.junit.Assert.fail;
 import ij.IJ;
 import ij.ImagePlus;
+import ij.Macro;
 import io.scif.SCIFIOService;
 import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Vector;
 
 import mosaic.core.GUI.ProgressBarWin;
@@ -35,7 +35,7 @@ import org.scijava.app.StatusService;
 
 public class MosaicTest
 {
-	private static String getTestEnvironment()
+	public static String getTestEnvironment()
 	{
 		return IJ.getDirectory("temp") + File.separator + "test" + File.separator;
 	}
@@ -72,15 +72,16 @@ public class MosaicTest
 			e2.printStackTrace();
 		}
 		
+		// For unknown reason IJ.save kill macro options
+		String options = Macro.getOptions();
 		
 		for (int i = 0 ; i < tmp.img.length ; i++)
 		{
 			String temp_img = tmp_dir + tmp.img[i].substring(tmp.img[i].lastIndexOf(File.separator)+1);
 			IJ.save(MosaicUtils.openImg(tmp.img[i]), temp_img);
 		}
-			
-//		FileSaver fs = new FileSaver(MosaicUtils.openImg(tmp.img));
-//		fs.saveAsTiff(temp_img);
+		
+		Macro.setOptions(options);
 		
 		// copy the config file
 		
@@ -234,9 +235,6 @@ public class MosaicTest
 		
 		cnt = 0;
 		
-		Arrays.sort(tmp.csv_results);
-		Arrays.sort(tmp.csv_results_rel);
-		
 		for (String rs : tmp.csv_results)
 		{
 			wp.SetStatusMessage("Checking... " + new File(rs).getName());
@@ -264,7 +262,7 @@ public class MosaicTest
 					int j = 0;
 					for (j = 0 ; j < outdst.size() ; j++)
 					{
-						if (outsrc.get(i).equals(outdst.get(i)))
+						if (outsrc.get(i).equals(outdst.get(j)) == true)
 						{
 							break;
 						}
@@ -294,16 +292,16 @@ public class MosaicTest
 		BG.setIsOnTest(true);
 		
 		// Save on tmp and reopen
-		
 		String tmp_dir = getTestEnvironment();
-		
-		// 
-		
 		ProgressBarWin wp = new ProgressBarWin();
 		
-		// Get all test images
+		// if macro options is different from "" or null filter the tests
+		String test_set = MosaicUtils.parseString("test", Macro.getOptions());
+		if (test_set != null && test_set.length() != 0 && test_set.startsWith(testset) == false)
+			return;
 		
-		ImgTest imgT[] = MosaicUtils.getTestImages(testset);
+		// Get all test images
+		ImgTest imgT[] = MosaicUtils.getTestImages(testset, test_set);
 		
 		if (imgT == null)
 		{
@@ -311,11 +309,18 @@ public class MosaicTest
 			return;
 		}
 		
+		// String
+		String original_options = Macro.getOptions();
+		
 		// for each image
 		
 		for (ImgTest tmp : imgT)
 		{
 			prepareTestEnvironment(wp,tmp);
+			
+			// append the macro set options with the test specific options
+			String plugin_options = original_options + " " + tmp.options.replace("*", tmp.base);
+			Macro.setOptions(plugin_options);
 			
 			// Create a plugin filter
 			
@@ -326,11 +331,11 @@ public class MosaicTest
 				ImagePlus img = MosaicUtils.openImg(temp_img);
 				img.show();
 			
-				rt = BG.setup(tmp.options, img);
+				rt = BG.setup(plugin_options, img);
 			}
 			else
 			{
-				rt = BG.setup(tmp.options,null);
+				rt = BG.setup(plugin_options,null);
 			}
 			
 			if (rt != tmp.setup_return)
@@ -344,6 +349,8 @@ public class MosaicTest
 			
 			processResult(BG,tmp,wp,cls);
 		}
+		
+		Macro.setOptions(original_options);
 		
 		wp.dispose();
 	}
@@ -361,9 +368,14 @@ public class MosaicTest
 	{
 		ProgressBarWin wp = new ProgressBarWin();
 		
-		// Get all test images
+		// if macro options is different from "" or null filter the test
+		String test_set = MosaicUtils.parseString("test", Macro.getOptions());
+		if (test_set != null && test_set.length() != 0 && test_set.startsWith(testset) == false)
+			return;
+			
 		
-		ImgTest imgT[] = MosaicUtils.getTestImages(testset);
+		// Get all test sets
+		ImgTest imgT[] = MosaicUtils.getTestImages(testset, test_set);
 		
 		if (imgT == null)
 		{

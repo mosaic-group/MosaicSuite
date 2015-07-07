@@ -128,4 +128,20 @@ public class RCOutput extends StubProp implements ICSVGeneral
 		size = rco.size;
 		var = rco.var;
 	}
+	
+	@Override
+	public
+	boolean equals(Object rc)
+	{
+		RCOutput rco = (RCOutput) rc;
+		
+		if (x != rco.x) return false;
+		if (y != rco.y) return false; y = rco.y;
+		if (z != rco.z) z = rco.z;
+		if (mean != rco.mean) mean = rco.mean;
+		if (size != rco.size) size = rco.size;
+		if (var != rco.var) var = rco.var;
+		
+		return true;
+	}
 }

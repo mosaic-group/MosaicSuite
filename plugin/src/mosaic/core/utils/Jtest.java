@@ -86,7 +86,7 @@ public class Jtest
 		
 		// test the cluster
 		
-		testImg = MosaicUtils.getTestImages("job_compare_test");
+		testImg = MosaicUtils.getTestImages("job_compare_test",null);
 		to = IJ.getDirectory("temp") + File.separator + "test";
 		MosaicTest.<Region3DRScript>testPlugin(BG,"job_compare_test",Region3DRScript.class);
 	}

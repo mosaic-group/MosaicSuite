@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import mosaic.bregman.Analysis;
+import mosaic.bregman.GenericGUI;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.SquasshOutputChoose;
 import mosaic.core.GUI.OutputGUI;
@@ -18,7 +19,6 @@ import mosaic.core.GUI.OutputGUI;
 
 public class VisualizationGUI 
 {
-	
 	ImagePlus imgch1;
 	ImagePlus imgch2;
 	int ni,nj,nz,nc;
@@ -107,19 +107,21 @@ public class VisualizationGUI
 		
 		
 		gd.centerDialog(false);
-		gd.showDialog();
-		if (gd.wasCanceled()) return -1;
-
-		Analysis.p.save_images= true;
 
 		//Visualization
-		Analysis.p.livedisplay= gd.getNextBoolean();
-		Analysis.p.dispcolors= gd.getNextBoolean();
-		Analysis.p.dispint= gd.getNextBoolean();
-		Analysis.p.displabels= gd.getNextBoolean();
-		Analysis.p.dispoutline= gd.getNextBoolean();
-		Analysis.p.dispSoftMask = gd.getNextBoolean();
-		Analysis.p.save_images= gd.getNextBoolean();
+		if (GenericGUI.bypass_GUI == false)
+		{
+			gd.showDialog();
+			if (gd.wasCanceled()) return -1;
+
+			Analysis.p.livedisplay= gd.getNextBoolean();
+			Analysis.p.dispcolors= gd.getNextBoolean();
+			Analysis.p.dispint= gd.getNextBoolean();
+			Analysis.p.displabels= gd.getNextBoolean();
+			Analysis.p.dispoutline= gd.getNextBoolean();
+			Analysis.p.dispSoftMask = gd.getNextBoolean();
+			Analysis.p.save_images= gd.getNextBoolean();
+		}
 		//IJ.log(Analysis.p.wd);
 		
 		
