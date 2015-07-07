@@ -19,7 +19,6 @@ import mosaic.bregman.Analysis;
 import mosaic.bregman.Analysis.outputF;
 import mosaic.bregman.GenericGUI;
 import mosaic.bregman.Parameters;
-import mosaic.bregman.GUI.VisualizationGUI;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.psf.psf;
 import mosaic.core.utils.MosaicUtils;

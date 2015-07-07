@@ -10,7 +10,6 @@ import io.scif.img.ImgOpener;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Vector;
 
 import mosaic.core.GUI.ProgressBarWin;
