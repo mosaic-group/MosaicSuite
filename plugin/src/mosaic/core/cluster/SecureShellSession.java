@@ -9,8 +9,6 @@ import java.io.PipedOutputStream;
 import java.util.Date;
 import java.util.Vector;
 
-import org.apache.commons.io.FileUtils;
-
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.utils.DataCompression;
 

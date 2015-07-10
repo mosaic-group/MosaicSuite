@@ -100,11 +100,6 @@ class TwoRegions extends NRegions
         			out[p.x[2]][p.x[0]][p.x[1]] = 255.0f;
         			mask[p.x[2]][p.x[0]][p.x[1]] = 1.0f;
         		}
-        		else
-        		{
-        			int diocane = 0;
-        			diocane++;
-        		}
         	}
         }
 	}

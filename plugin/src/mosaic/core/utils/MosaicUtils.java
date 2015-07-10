@@ -3,7 +3,6 @@ package mosaic.core.utils;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.Macro;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.io.Opener;
