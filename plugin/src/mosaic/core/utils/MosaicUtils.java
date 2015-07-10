@@ -1376,6 +1376,9 @@ public class MosaicUtils
 	
 	public static String parseString(String name, String options)
 	{
+		if (options == null)
+			return null;
+		
 		Pattern config = Pattern.compile(name);
 		Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
 		Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-:-]+");
