@@ -11,7 +11,6 @@ import static mosaic.filamentSegmentation.SegmentationFunctions.generatePsi;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +24,10 @@ import mosaic.math.CubicSmoothingSpline;
 import mosaic.math.MFunc;
 import mosaic.math.Matlab;
 import mosaic.math.Matrix;
-import mosaic.math.Polynomial;
 import mosaic.math.RegionStatisticsSolver;
 import mosaic.nurbs.BSplineSurface;
 import mosaic.plugins.utils.Convert;
+import mosaic.plugins.utils.Debug;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.region_competition.utils.MaximumFinder2D;
 
@@ -105,6 +104,7 @@ public class SegmentationAlgorithm {
         for (CubicSmoothingSpline css : filamentInfo) {
             System.out.println("LEN: ");
             System.out.println(calcualteFilamentLenght(css));
+            Debug.print("LEN", calcualteFilamentLenght(css));
         }
         
         // TODO: this is temporary return value, should be changed probably
@@ -263,7 +263,7 @@ public class SegmentationAlgorithm {
                 yz[i] = yc.get(i);
             }
             
-            System.out.println(xc);
+            Debug.print(xc);
             CubicSmoothingSpline css = new CubicSmoothingSpline(xz, yz, 0.01);
             result.add(css);
             //for (Polynomial p : ps) System.out.println(p);
@@ -271,8 +271,7 @@ public class SegmentationAlgorithm {
         }
         
         for (CubicSmoothingSpline css : result) {
-            System.out.println("LEN: ");
-            System.out.println(calcualteFilamentLenght(css));
+            Debug.print("LEN", calcualteFilamentLenght(css));
         }
         
         return result;
