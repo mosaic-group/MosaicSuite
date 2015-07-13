@@ -119,7 +119,7 @@ public class FilamentSegmentation extends PlugInFloatBase {
                                 /* subpixel sumpling */      1, 
                                 /* scale */                  iCoefficientStep, 
                                 /* regularizer term */       0.0001,
-                                5);
+                                                             100);
         
         id = sa.performSegmentation();
         
@@ -131,6 +131,8 @@ public class FilamentSegmentation extends PlugInFloatBase {
         // Convert array to Image with converting back range of values
         ImgUtils.convertRange(img, minMax.getMax() - minMax.getMin(), minMax.getMin());
         ImgUtils.YX2DarrayToImg(img, aOutputImg, 1.0f);
+        
+
 	}
 	
 	@Override

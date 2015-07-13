@@ -37,4 +37,32 @@ public class Convert {
 		}
 		return result;
 	}
+	
+    /**
+     * Converts 1D array from double to float
+     * @param aArray 1D array of doubles
+     * @return 1D array of floats
+     */
+    public static float[] toFloat(double[] aArray) {
+        int len = aArray.length;
+        float [] result = new float[len];
+        for (int i = 0; i < len; ++i) {
+            result[i] = (float)aArray[i];
+        }
+        return result;
+    }
+    
+    /**
+     * Converts 1D array from float to double
+     * @param aArray 1D array of floats
+     * @return 1D array of doubles
+     */
+    public static double[] toDouble(float[] aArray) {
+        int h = aArray.length;
+        double[] result = new double[h];
+        for (int y = 0; y < h; ++y) {
+            result[y] = (double)aArray[y];
+        }
+        return result;
+    }
 }

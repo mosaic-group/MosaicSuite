@@ -10,7 +10,7 @@ import java.util.Arrays;
  *
  */
 public class CubicSmoothingSpline {
-    private Polynomial[] iSplines;
+    public Polynomial[] iSplines;
     private double[] iX;
     private double[] iY;
     private double iSmoothingParameter;
@@ -29,7 +29,8 @@ public class CubicSmoothingSpline {
         
         resolve(iX, iY, iSplines, iSmoothingParameter);
         
-        for (Polynomial p : iSplines) System.out.println(p);
+        // Uncomment for debug
+         for (Polynomial p : iSplines) System.out.println(p);
     }
     
     /**
@@ -42,15 +43,23 @@ public class CubicSmoothingSpline {
      */
     public double getValue(double aX) {
         int idx = Arrays.binarySearch(iX, aX);
-        System.out.println("B " + idx);
+
         // Handle not exact values (possible insertion points)
         // -(idx + 1) handles output from binarySearch in case not exact match,
         // additional -1 points to the earlier element.
         if (idx < 0) idx = -(idx + 1) - 1;
         if (idx < 0) idx = 0; // Special case for "inserting point" equal -1 (0 in array)
         if (idx >= iX.length - 1) idx--;
-        System.out.println("A " + idx);
+
         return iSplines[idx].getValue(aX - iX[idx]);
+    }
+    
+    public int getNumberOfKNots() {
+        return iX.length;
+    }
+    
+    public double getKnot(int aIdx) {
+        return iX[aIdx];
     }
     
     

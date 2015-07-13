@@ -170,10 +170,35 @@ public class SegmentationAlgorithmTest extends CommonBase {
                                                              5);
         
         EnergyOutput resultOfEnergyMinimalization = sa.minimizeEnergy();
+        
+        // Tested method
         ThresholdFuzzyOutput resultOfThresholding = sa.ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
         
         double epsilon = 0.0000025;
         assertTrue("Mask", new Matrix(expectedMask).compare(resultOfThresholding.iopt_MK, epsilon));
         assertTrue("Mask", new Matrix(expectedThresholdedMask).compare(resultOfThresholding.iH_f, epsilon));
+    }
+    
+    @Test
+    public void testPostprocess() {
+     // Expected data taken from Matlab implementation
+
+        
+        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament, 
+                                                             NoiseType.GAUSSIAN, 
+                                                             PsfType.GAUSSIAN, 
+                                                             new Dimension(1,1), 
+                                /* subpixel sumpling */      1, 
+                                /* scale */                  0, 
+                                /* regularizer term */       0.0001,
+                                                             5);
+        
+        EnergyOutput resultOfEnergyMinimalization = sa.minimizeEnergy();
+        ThresholdFuzzyOutput resultOfThresholding = sa.ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
+        
+        // Tested method
+        sa.generateFilamentInfo(resultOfThresholding);
+        
+        
     }
 }

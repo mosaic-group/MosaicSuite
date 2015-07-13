@@ -39,14 +39,14 @@ public class Matrix {
         }
     }
 	// Factory --------------
-	public static Matrix mkRowVector(double[] aInput) {
+	public static Matrix mkRowVector(double... aInput) {
 		DenseMatrix64F result = new DenseMatrix64F(1, aInput.length);
 		result.setData(aInput);
 		
 		return new Matrix(result); 
 	}
 	
-	public static Matrix mkColVector(double[] aInput) {
+	public static Matrix mkColVector(double... aInput) {
 		DenseMatrix64F result = new DenseMatrix64F(aInput.length, 1);
 		result.setData(aInput);
 		
@@ -169,6 +169,7 @@ public class Matrix {
 	public int numCols() {
 		return iMatrix.numCols;
 	}
+	public int size() {return numRows() * numCols();}
 	public Matrix fill(double aVal) {
 		int len = iMatrix.data.length;
 		for (int i = 0; i < len; ++i) iMatrix.data[i] = aVal;
@@ -283,6 +284,16 @@ public class Matrix {
 	public boolean isColVector() {
 	        return iMatrix.numCols == 1;
 	}
+	
+	public Matrix insertRow(Matrix aRowMatrix, int aRowNum) {
+	    CommonOps.insert(aRowMatrix.iMatrix, iMatrix, aRowNum, 0);
+	    return this;
+	}
+	
+   public Matrix insertCol(Matrix aColMatrix, int aColNum) {
+        CommonOps.insert(aColMatrix.iMatrix, iMatrix, 0, aColNum);
+        return this;
+    }
 	
 	@Override
 	public
