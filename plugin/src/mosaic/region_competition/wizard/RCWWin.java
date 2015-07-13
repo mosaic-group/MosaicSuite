@@ -62,7 +62,7 @@ class RCWWin extends JDialog implements MouseListener, Runnable
 	
 	private Settings ref_save;
 	private JPanel contentPane;
-	private JComboBox b1;
+	private JComboBox<String> b1;
 	private ImagePlus img[];
 	private segType sT;
 	
@@ -146,7 +146,7 @@ class RCWWin extends JDialog implements MouseListener, Runnable
 		contentPane.add(lblNewLabel);
 		
 		sT = segType.Tissue;
-		final JComboBox comboBox = new JComboBox(segType.values());
+		final JComboBox<segType> comboBox = new JComboBox<segType>(segType.values());
 		contentPane.add(comboBox);
 		comboBox.addActionListener(new ActionListener() 
 		{
@@ -166,13 +166,13 @@ class RCWWin extends JDialog implements MouseListener, Runnable
 		JLabel lblNewLabel_2 = new JLabel("<html>Select a region of interest <br>with the imageJ selection<br> tool</html>");
 		contentPane.add(lblNewLabel_2);
 		
-		JComboBox comboBox_1 = new JComboBox();;
+		JComboBox<String> comboBox_1 = new JComboBox<String>();;
 	    
 	    String[] md = GetROI();
 	    
 		comboBox_1.setBackground(Color.YELLOW);
 		contentPane.add(comboBox_1);
-		comboBox_1.setModel((new DefaultComboBoxModel(md)));
+		comboBox_1.setModel((new DefaultComboBoxModel<String>(md)));
 		
 		b1 = comboBox_1;
 		
@@ -241,7 +241,7 @@ class RCWWin extends JDialog implements MouseListener, Runnable
 	public void mousePressed(MouseEvent arg0) 
 	{
 		String[] md = GetROI();
-		b1.setModel((new DefaultComboBoxModel(md)));
+		b1.setModel((new DefaultComboBoxModel<String>(md)));
 	}
 
 	@Override

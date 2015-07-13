@@ -123,7 +123,7 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 		
 		// create an array
 		
-		img_p = new ImagePatch[img_pt.size()];
+		img_p = new ImagePatch<?,?>[img_pt.size()];
 		
 		for (int i = 0 ; i < img_p.length ; i++)
 		{
