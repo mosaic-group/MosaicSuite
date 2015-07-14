@@ -617,7 +617,7 @@ public class Matrix {
      * @return
      */
     public Matrix resize(int aStartRow, int aStartCol, int aStepRow, int aStepCol) {
-        if (aStartRow == 0 && aStartCol == 0 && aStepRow == 1 && aStepCol == 1)
+        if (aStartRow == 0 && aStartCol == 0 && aStepRow <= 1 && aStepCol <= 1)
             return this;
 
         int cols = iMatrix.numCols;

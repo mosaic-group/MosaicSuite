@@ -23,7 +23,7 @@ public class CubicSmoothingSplineTest {
     
     @Test
     public void testExactInterpolation() {
-        
+        // f=csaps([0, 1, 2, 4], [3, 5, 11, 35], 1)
         // y = 2 * x^2 + 3
         double[] inputX = new double[] {0, 1, 2, 4};
         double[] inputY = new double[] {3, 5, 11, 35};

@@ -209,19 +209,34 @@ public class MatrixTest extends CommonBase {
 
     @Test
     public void testResize() {
-        int startRow = 0;
-        int startCol = 1;
-        int step = 2;
-        Matrix expected = new Matrix(new double[][] {{ 2,  4},
-                                                     {10, 12}});
-        
-        Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
-                                                  { 5,  6,  7,  8}, 
-                                                  { 9, 10, 11, 12}});
-        // Tested method
-        Matrix result = input.resize(startRow, startCol, step, step);
+        {
+            int startRow = 0;
+            int startCol = 1;
+            int step = 2;
+            Matrix expected = new Matrix(new double[][] {{ 2,  4},
+                                                         {10, 12}});
+            
+            Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
+                                                      { 5,  6,  7,  8}, 
+                                                      { 9, 10, 11, 12}});
+            // Tested method
+            Matrix result = input.resize(startRow, startCol, step, step);
+    
+            assertEquals(expected, result);
+        }
+        {
+            int startRow = 0;
+            int startCol = 0;
+            int step = 1;
 
-        assertEquals(expected, result);
+            Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
+                                                      { 5,  6,  7,  8}, 
+                                                      { 9, 10, 11, 12}});
+            // Tested method
+            Matrix result = input.resize(startRow, startCol, step, step);
+    
+            assertEquals(result, input);
+        }
     }
     
     @Test 
@@ -532,43 +547,125 @@ public class MatrixTest extends CommonBase {
     
     @Test
     public void testInsertRow() {
-        final Matrix expected = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
-                                                           {10, 20, 30, 40}, 
-                                                           { 9, 10, 11, 12}});
-        
-        final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
-                                                        { 5,  6,  7,  8}, 
-                                                        { 9, 10, 11, 12}});
-
-        // Tested method
-        input.insertRow(Matrix.mkRowVector(10, 20, 30, 40), 1);
-        
-        assertEquals(expected, input);
+        {
+            final Matrix expected = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
+                                                               {10, 20, 30, 40}, 
+                                                               { 9, 10, 11, 12}});
+            
+            final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
+                                                            { 5,  6,  7,  8}, 
+                                                            { 9, 10, 11, 12}});
+    
+            // Tested method
+            input.insertRow(Matrix.mkRowVector(10, 20, 30, 40), 1);
+            
+            assertEquals(expected, input);
+        }
+        {
+            // Wrong dimensions
+            Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
+            
+            try {
+                m1.insertRow(Matrix.mkRowVector(1, 2, 3), 1);
+                fail("It should throw IllegalArgumentException since matrices have different dimensions");
+            }
+            catch (IllegalArgumentException e) {
+                // It is OK to be here
+            }
+        }
     }
     
     @Test
     public void testInsertCol() {
-        final Matrix expected = new Matrix(new double[][] {{ 1,  2, 10,  4}, 
-                                                           { 5,  6, 20,  8}, 
-                                                           { 9, 10, 30, 12}});
-        
-        final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
-                                                        { 5,  6,  7,  8}, 
-                                                        { 9, 10, 11, 12}});
-
-        // Tested method
-        input.insertCol(Matrix.mkColVector(10, 20, 30), 2);
-        
-        assertEquals(expected, input);
+        {
+            final Matrix expected = new Matrix(new double[][] {{ 1,  2, 10,  4}, 
+                                                               { 5,  6, 20,  8}, 
+                                                               { 9, 10, 30, 12}});
+            
+            final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
+                                                            { 5,  6,  7,  8}, 
+                                                            { 9, 10, 11, 12}});
+    
+            // Tested method
+            input.insertCol(Matrix.mkColVector(10, 20, 30), 2);
+            assertEquals(expected, input);
+        }
+        {
+            // Wrong dimensions
+            Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
+            
+            try {
+                m1.insertCol(Matrix.mkColVector(1, 2, 3, 4, 5), 1);
+                fail("It should throw IllegalArgumentException since matrices have different dimensions");
+            }
+            catch (IllegalArgumentException e) {
+                // It is OK to be here
+            }
+        }
     }
     
     @Test
-    public void testCompare() {
-        Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
-        Matrix m2 = new Matrix(new double [][] {{1, 2.5}, {3, 4.1}, {4.5, 6}});
+    public void testInsert() {
+            final Matrix expected = new Matrix(new double[][] {{ 1,  2, 3,  4}, 
+                                                               { 5,  6, 66, 77}, 
+                                                               { 9, 10, 88, 99}});
+            
+            final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
+                                                            { 5,  6,  7,  8}, 
+                                                            { 9, 10, 11, 12}});
+    
+            // Tested method
+            input.insert(new Matrix(new double[][] {{66, 77}, {88, 99}}), 1,2);
+            assertEquals(expected, input);
+    }
+    
+    @Test
+    public void testCompareEquals() {
+        {
+            Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
+            Matrix m2 = new Matrix(new double [][] {{1, 2.5}, {3, 4.1}, {4.5, 6}});
+                    
+            assertTrue(m1.compare(m2, 0.5));
+            assertFalse(m1.compare(m2, 0.45));
+        }
+        {
+            Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});       
+            assertTrue(m1.equals(m1));
+        }
+        {
+            Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
+            assertFalse(m1.equals(null));
+        }
+        {
+            Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
+            assertFalse(m1.equals("Hello world"));
+        }
+        {
+            Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
+            Matrix m2 = new Matrix(new double [][] {{1, 2.5}, {3, 4.1}});
+                    
+            assertFalse(m1.equals(m2));
+        }
+        {
+            Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
+            Matrix m2 = new Matrix(new double [][] {{1, 2.5, 3}, {3, 4.1, 5}, {1, 2, 3}});
+                    
+            assertFalse(m1.equals(m2));
+        }
+        {
+            Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
+            Matrix m2 = m1.copy();
+                    
+            assertTrue(m1.equals(m2));
+        }
+    }
+    
+    @Test
+    public void testGetData() {
+        Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}});
+        double[] data = m1.getData();
         
-        
-        assertTrue(m1.compare(m2, 0.5));
-        assertFalse(m1.compare(m2, 0.45));
+        // Internal data is kept rows-wise
+        for (int i = 0; i < 4; ++i) assertEquals((double)i + 1, data[i], 0.0);
     }
 }

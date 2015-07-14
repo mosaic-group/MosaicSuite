@@ -11,10 +11,13 @@ import static mosaic.filamentSegmentation.SegmentationFunctions.generatePsi;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 
 import mosaic.core.utils.Point;
 import mosaic.generalizedLinearModel.Glm;
@@ -263,11 +266,12 @@ public class SegmentationAlgorithm {
                 yz[i] = yc.get(i);
             }
             
-            Debug.print(xc);
-            CubicSmoothingSpline css = new CubicSmoothingSpline(xz, yz, 0.01);
+            Debug.print("XZ: ", Arrays.toString(xz));
+            Debug.print("YZ: ", Arrays.toString(yz));
+            CubicSmoothingSpline css = new CubicSmoothingSpline(xz, yz, 0.00001);
             result.add(css);
             //for (Polynomial p : ps) System.out.println(p);
-            // for (double xs : xv) {System.out.println(css.getValue(xs));}
+            for (double xs : xz) {System.out.println(css.getValue(xs));}
         }
         
         for (CubicSmoothingSpline css : result) {
