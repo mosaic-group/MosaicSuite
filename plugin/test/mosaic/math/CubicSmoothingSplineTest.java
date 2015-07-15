@@ -1,6 +1,7 @@
 package mosaic.math;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -105,5 +106,24 @@ public class CubicSmoothingSplineTest {
         
         assertEquals(-17, s.getValue(4), 0.000001);
         assertEquals(-51, s.getValue(-5), 0.000001);
+    }
+    
+    @Test
+    public void testWeights() {
+        double [][] expected = new double[][]
+                {{-0.125,      0, 0.375, 0.75},
+                 { 0.125, -0.375,     0, 1.00}};
+        
+        double[] inputX = new double[] {0, 1, 2};
+        double[] inputY = new double[] {0, 1.5, 0};
+        double[] weights = new double[] {1, 3, 1};
+        double smoothingParameter = 0.5; // exact interpolation
+        
+        CubicSmoothingSpline s = new CubicSmoothingSpline(inputX, inputY, smoothingParameter, weights);
+        double[][] test = s.getCoefficients();
+        
+        assertEquals(expected.length, test.length);
+        for (int i = 0; i < test.length; ++i)
+        assertArrayEquals(expected[i], test[i], 0.0001);
     }
 }

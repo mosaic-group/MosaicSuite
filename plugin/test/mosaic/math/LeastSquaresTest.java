@@ -1,6 +1,7 @@
-package mosaic.particleTracker;
+package mosaic.math;
 
 import static org.junit.Assert.assertEquals;
+import mosaic.math.LeastSquares;
 import mosaic.test.framework.CommonBase;
 
 import org.junit.Before;

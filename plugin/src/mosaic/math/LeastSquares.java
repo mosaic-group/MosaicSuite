@@ -1,11 +1,11 @@
-package mosaic.particleTracker;
+package mosaic.math;
 
 
 /**
  * Calculates linear least squares for given pairs (x, y)
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
-class LeastSquares {
+public class LeastSquares {
     private double iBeta;  // slope of line
     private double iAlpha; // Y-axis intercept value
     

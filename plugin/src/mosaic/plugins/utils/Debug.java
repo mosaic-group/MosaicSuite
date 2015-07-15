@@ -1,5 +1,6 @@
 package mosaic.plugins.utils;
 
+
 /**
  * Debug printouts for troubleshooting. Contains some convinient methods
  * for usual style of printing out on console.
@@ -10,7 +11,7 @@ public class Debug {
 
     public static void print(Object... aObjects) {
         for (Object o : aObjects) { 
-            System.out.print("[" + o + "] ");
+                System.out.print("[" + o + "] ");
         }
         System.out.println();
     }

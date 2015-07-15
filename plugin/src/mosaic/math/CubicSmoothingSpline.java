@@ -13,6 +13,7 @@ public class CubicSmoothingSpline {
     public Polynomial[] iSplines;
     private double[] iX;
     private double[] iY;
+    private double[] iWeights;
     private double iSmoothingParameter;
     
     /**
@@ -22,15 +23,31 @@ public class CubicSmoothingSpline {
      * @param aSmoothingParameter - smoothing parameter in range (0, 1]. For 1 it produces exact interpolation.
      */
     public CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, double aSmoothingParameter) {
+        this(aXvalues, aYvalues, aSmoothingParameter, null);
+    }
+    
+    /**
+     * Creates smoothing spline. Note: Input parameters are not checked for validity!
+     * @param aXvalues Increasing numbers representing x-values
+     * @param aYvalues y-values corresponding to x-values (aXvalues nad aValues must be same size)
+     * @param aSmoothingParameter - smoothing parameter in range (0, 1]. For 1 it produces exact interpolation.
+     * @param aWeights - weights applied to each (x,y) pair. If null then default value '1' is used for every point.
+     */
+    public CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, double aSmoothingParameter, double[] aWeights) {
+        if (aWeights == null) {
+        iWeights = new double[aXvalues.length];
+        for (int i = 0; i < iWeights.length; ++i) iWeights[i] = 1;
+        }
+        else {
+            iWeights = aWeights;
+        }
+        
         iX = aXvalues;
         iY = aYvalues;
         iSmoothingParameter = aSmoothingParameter;
         iSplines = new Polynomial[iX.length - 1];
         
-        resolve(iX, iY, iSplines, iSmoothingParameter);
-        
-        // Uncomment for debug
-         for (Polynomial p : iSplines) System.out.println(p);
+        resolve(iX, iY, iSplines, iSmoothingParameter, iWeights);
     }
     
     /**
@@ -60,6 +77,34 @@ public class CubicSmoothingSpline {
     
     public double getKnot(int aIdx) {
         return iX[aIdx];
+    }
+    
+    public double[][] getCoefficients() {
+        double[][] l = new double[iSplines.length][4];
+        for (int i = 0; i < iSplines.length; ++i) {
+            l[i] = iSplines[i].getCoefficients();
+        }
+        
+        return l;
+    }
+    
+    @Override
+    public String toString() {
+        String result = "--------------- Cubic smoothing splines ----------------------\n";
+        result += "Knots: (" + iX.length + ")\n";
+        result += Arrays.toString(iX);
+        result += "\n\nValues: (" + iY.length + ")\n";
+        result += Arrays.toString(iY);
+        result += "\n\nWeights: (" + iWeights.length + ")\n";
+        result += Arrays.toString(iWeights);
+        result += "\n\nPolynomials: \n";
+        for (Polynomial p : iSplines) {
+            result += p;
+            result += "\n";
+        }
+        result += "--------------------------------------------------------------\n";
+        
+        return result;
     }
     
     
@@ -114,10 +159,10 @@ public class CubicSmoothingSpline {
      * 
      * with:
      * S:SplineVec  - changed to aX, aY and aSplines separate parameters
-     * sigma - removed, all of them changed to 1. (no weighting needed)
      * n - not necessary in Java
      */
-    void resolve(double[] aX, double[] aY, Polynomial[] aSplines, double aLambda)  {
+    
+    void resolve(double[] aX, double[] aY, Polynomial[] aSplines, double aLambda, double[] aWeights)  {
         int n = aX.length;
         double[] h = new double[n];
         double[] r = new double[n];
@@ -127,6 +172,11 @@ public class CubicSmoothingSpline {
         double[] v = new double[n];
         double[] w = new double[n];
         double[] q = new double[n + 1];
+        
+        double[] sigma = new double[n]; 
+        for (int i = 0; i < n; ++i) {
+               sigma[i] = 1.0/aWeights[i];
+        }
         
         // Let n point last element of arrays
         n--;
@@ -147,18 +197,21 @@ public class CubicSmoothingSpline {
         }
         
         for (i = 1; i <= n-1; ++i) {
-            u[i] = Math.pow(r[i - 1], 2) + Math.pow(f[i], 2) + Math.pow(r[i], 2);
+            u[i] = Math.pow(r[i - 1], 2) * sigma[i - 1] + Math.pow(f[i], 2) * sigma[i] + Math.pow(r[i], 2) * sigma[i + 1];
             u[i] = mu * u[i] + p[i];
-            v[i] = f[i] * r[i] + r[i] * f[i+1]; 
+            v[i] = f[i] * r[i] * sigma[i] + r[i] * f[i+1] * sigma[i + 1]; 
             v[i] = mu * v[i] + h[i];
-            w[i] = mu * r[i] * r[i+1];
+            w[i] = mu * r[i] * r[i+1] * sigma[i + 1];
         }
         
         Quincunx(u, v, w, q);
         
         // Spline Parameters
-        double d = aY[0] - mu * r[0] * q[1];
-        double nextD = aY[1] - mu * (f[1] * q[1] + r[1] * q[2]); 
+        double d = aY[0] - mu * r[0] * q[1] * sigma[0];
+        // For belows line there seems to be mistake in original paper since
+        // there is at the end of line "* sigma[0]", after changing index to 1
+        // it gives same results as in Matlab
+        double nextD = aY[1] - mu * (f[1] * q[1] + r[1] * q[2]) * sigma[1]; 
         double a = q[1] / (3 * h[0]);
         double b = 0;
         double c = (nextD - d) / h[0] - q[1] * h[0]/3;
@@ -171,7 +224,7 @@ public class CubicSmoothingSpline {
             b = q[j];
             c = (q[j] + q[j - 1]) * h[j - 1] + previousC;
             d = r[j - 1] * q[j - 1] + f[j] * q[j] + r[j] * q[j + 1]; 
-            d = aY[j] - mu * d;
+            d = aY[j] - mu * d * sigma[j];
             
             previousC = c;
             aSplines[j] = new Polynomial(a, b, c, d);

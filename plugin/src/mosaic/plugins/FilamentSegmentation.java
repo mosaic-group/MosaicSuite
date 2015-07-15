@@ -9,7 +9,6 @@ import mosaic.filamentSegmentation.SegmentationAlgorithm.NoiseType;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
 import mosaic.plugins.utils.Convert;
 import mosaic.plugins.utils.ImgUtils;
-import mosaic.plugins.utils.ImgUtils.MinMax;
 import mosaic.plugins.utils.PlugInFloatBase;
 
 public class FilamentSegmentation extends PlugInFloatBase {
@@ -25,10 +24,10 @@ public class FilamentSegmentation extends PlugInFloatBase {
 
         // Convert to array
         ImgUtils.ImgToYX2Darray(aOrigImg, img, 1.0f);
-        MinMax<Float> minMax = ImgUtils.findMinMax(img);
+        //MinMax<Float> minMax = ImgUtils.findMinMax(img);
         
         double[][] id = Convert.toDouble(img);
-        
+
         // TODO: segmentation goes here...
         // ==============================================================================
         
@@ -119,7 +118,7 @@ public class FilamentSegmentation extends PlugInFloatBase {
                                 /* subpixel sumpling */      1, 
                                 /* scale */                  iCoefficientStep, 
                                 /* regularizer term */       0.0001,
-                                                             100);
+                                                             5);
         
         id = sa.performSegmentation();
         
@@ -127,9 +126,9 @@ public class FilamentSegmentation extends PlugInFloatBase {
         // ==============================================================================
 
         img = Convert.toFloat(id);
-        
+
         // Convert array to Image with converting back range of values
-        ImgUtils.convertRange(img, minMax.getMax() - minMax.getMin(), minMax.getMin());
+        //ImgUtils.convertRange(img, minMax.getMax() - minMax.getMin(), minMax.getMin());
         ImgUtils.YX2DarrayToImg(img, aOutputImg, 1.0f);
         
 

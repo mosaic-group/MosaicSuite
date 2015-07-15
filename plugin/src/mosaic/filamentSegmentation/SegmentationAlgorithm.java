@@ -17,8 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
-
 import mosaic.core.utils.Point;
 import mosaic.generalizedLinearModel.Glm;
 import mosaic.generalizedLinearModel.GlmGaussian;
@@ -111,7 +109,7 @@ public class SegmentationAlgorithm {
         }
         
         // TODO: this is temporary return value, should be changed probably
-        double[][] img = resultOfEnergyMinimalization.iMask.getArrayYX();
+        double[][] img = iImage; //  resultOfEnergyMinimalization.iMask.getArrayYX();
         
         for (CubicSmoothingSpline css : filamentInfo) {
             final CubicSmoothingSpline css1 = css;
@@ -127,7 +125,7 @@ public class SegmentationAlgorithm {
             });
             
             for (int i = 0; i < x.size(); ++i) {
-                img[(int)y.get(i)][(int)x.get(i)] = 3;
+                img[(int)y.get(i)][(int)x.get(i)] = 0;
             }
         }
         
@@ -163,9 +161,7 @@ public class SegmentationAlgorithm {
     List<CubicSmoothingSpline> generateFilamentInfo(ThresholdFuzzyOutput resultOfthresholdFuzzyVLS) {
         Matrix mk = resultOfthresholdFuzzyVLS.iopt_MK;
         Matrix H_f = resultOfthresholdFuzzyVLS.iH_f;
-        Map<Integer, List<Integer>> cc = Matlab.bwconncomp(mk, true /*
-                                                                     * 8-connected
-                                                                     */);
+        Map<Integer, List<Integer>> cc = Matlab.bwconncomp(mk, true /* 8-connected */);
         int nComp = cc.size();
         System.out.println("NUMBER OF CC : " + nComp);
 
@@ -218,26 +214,36 @@ public class SegmentationAlgorithm {
             int divider = 1;
             int size = x.size();
             System.out.println("SIZE: ------------------------- " + size);
+            Debug.print("X: ", x);
+            Debug.print("Y:", y);
             if (size < 10) continue;
             if (size < 30) divider = 1;
             else if (size < 50) divider = 3;
             else if (size < 100) divider = 4;
             else divider = 2; // TODO: ??? to be verified
             
+            
+            
             Matrix  indices = Matlab.linspace(0, size - 1, size/divider);
-
+            Debug.print("indices", indices);
             double[] xv = new double[indices.size()]; 
             double[] yv = new double[indices.size()]; 
+            double[] weights = new double[indices.size()];
             for (int i = 0; i < indices.size(); ++i) { 
                 xv[i] = (double) x.get((int)indices.get(i));
                 yv[i] = y.get((int)indices.get(i));
+                weights[i] = 1;
             }
-            
-            
+            Debug.print(xv.getClass(), xv.getClass().getName(), xv.getClass().getSimpleName());
+            Debug.print("xv", Arrays.toString(xv));
+            Debug.print("yv", Arrays.toString(yv));
+            Debug.print("wv", Arrays.toString(weights));
             
             List<Double> xc = new ArrayList<Double>();
             List<Double> yc= new ArrayList<Double>();
+            List<Double> wc= new ArrayList<Double>();
             double sum = 0.0;
+            double weight = 0.0;
             int lastIdx = -1;
             int count = 1;
             for (int i = 0; i < xv.length; ++i) {
@@ -246,29 +252,36 @@ public class SegmentationAlgorithm {
                     if (lastIdx != -1) {
                         xc.add((double)lastIdx + 1);
                         yc.add(sum/count + 1);
+                        wc.add(weight);
                     }
                     count = 1;
                     lastIdx = xIdx;
                     sum = yv[i];
+                    weight = weights[i];
                 }
                 else {
                     sum += yv[i];
+                    weight += weights[i];
                     count++;
                 }
             }
             xc.add((double)lastIdx + 1);
             yc.add(sum/count + 1);
+            wc.add(weight);
             
             double[] xz = new double[xc.size()]; 
             double[] yz = new double[xc.size()]; 
+            double[] wz = new double[xc.size()];
             for (int i = 0; i < xc.size(); ++i) { 
                 xz[i] = xc.get(i);
                 yz[i] = yc.get(i);
+                wz[i] = wc.get(i);
             }
             
             Debug.print("XZ: ", Arrays.toString(xz));
             Debug.print("YZ: ", Arrays.toString(yz));
-            CubicSmoothingSpline css = new CubicSmoothingSpline(xz, yz, 0.00001);
+            Debug.print("WZ: ", Arrays.toString(wz));
+            CubicSmoothingSpline css = new CubicSmoothingSpline(xz, yz, 0.01, wz);
             result.add(css);
             //for (Polynomial p : ps) System.out.println(p);
             for (double xs : xz) {System.out.println(css.getValue(xs));}

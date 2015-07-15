@@ -71,6 +71,15 @@ public class PolynomialTest {
     }
     
     @Test
+    public void testGetCoefficients() {
+        double[] expected = new double[] {4.0, 5.0, 3.0, -2.0};
+        
+        Polynomial f = new Polynomial(expected);
+        
+        assertArrayEquals("coeffs", expected, f.getCoefficients(), 0.0);
+    }
+    
+    @Test
     public void testGetDegree() {
         Polynomial f = new Polynomial(4.0, 5.0, 3.0, -2.0);
         

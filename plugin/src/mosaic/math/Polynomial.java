@@ -67,6 +67,16 @@ public class Polynomial {
     }
     
     /**
+     * Returns all coefficients in Matlab style 
+     * (first element of array is the coefficient for highest power of polynomial, the last is constant).
+     * @return
+     */
+    public double[] getCoefficients() {
+
+        return iCoeffs;
+    }
+    
+    /**
      * Creates new polynomial which is derivative of original one
      * @param aOrder - order of derivative
      * @return new polynomial
