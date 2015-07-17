@@ -71,14 +71,45 @@ public class CubicSmoothingSpline {
         return iSplines[idx].getValue(aX - iX[idx]);
     }
     
+    /**
+     * Returns number of knots (x values)
+     */
     public int getNumberOfKNots() {
         return iX.length;
     }
     
+    /**
+     * Returns knots (x values)
+     */
+    public double[] getKnots() {
+        return iX;
+    }
+    
+    /**
+     * Returns values in knots (y values)
+     */
+    public double[] getValues() {
+        return iY;
+    }
+    
+    /**
+     * Returns weights for each knot (if they are not provided explicitly by user they will be 1)
+     */
+    public double[] getWeights() {
+        return iWeights;
+    }
+    
+    /**
+     * Returns knot value for given index
+     * @param aIdx index of knot. Must be in range 0..getNumberOfKnots()-1
+     */
     public double getKnot(int aIdx) {
         return iX[aIdx];
     }
     
+    /**
+     * Returns all coefficients from each generated polynomial.
+     */
     public double[][] getCoefficients() {
         double[][] l = new double[iSplines.length][4];
         for (int i = 0; i < iSplines.length; ++i) {
@@ -98,7 +129,10 @@ public class CubicSmoothingSpline {
         result += "\n\nWeights: (" + iWeights.length + ")\n";
         result += Arrays.toString(iWeights);
         result += "\n\nPolynomials: \n";
+        int count = 1;
         for (Polynomial p : iSplines) {
+            result += count++;
+            result += ": ";
             result += p;
             result += "\n";
         }

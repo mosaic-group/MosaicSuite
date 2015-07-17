@@ -3,11 +3,20 @@ package mosaic.plugins;
 import ij.process.FloatProcessor;
 
 import java.awt.Dimension;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import mosaic.filamentSegmentation.SegmentationAlgorithm;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.NoiseType;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
+import mosaic.math.CubicSmoothingSpline;
+import mosaic.math.MFunc;
+import mosaic.math.Matlab;
+import mosaic.math.Matrix;
 import mosaic.plugins.utils.Convert;
+import mosaic.plugins.utils.Debug;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.PlugInFloatBase;
 
@@ -15,6 +24,11 @@ public class FilamentSegmentation extends PlugInFloatBase {
 	// Distance between control points 
 	private int iCoefficientStep;
 
+	
+	static Map<Integer, List<CubicSmoothingSpline>> m = new TreeMap<Integer, List<CubicSmoothingSpline>>();;
+	static synchronized void addNewFindings(List<CubicSmoothingSpline> css, Integer number) {
+	    m.put(number, css);
+	}
 	protected void segmentation(FloatProcessor aOutputImg, FloatProcessor aOrigImg) {
 		// Get dimensions of input image
         final int originalWidth = aOrigImg.getWidth();
@@ -25,6 +39,8 @@ public class FilamentSegmentation extends PlugInFloatBase {
         // Convert to array
         ImgUtils.ImgToYX2Darray(aOrigImg, img, 1.0f);
         //MinMax<Float> minMax = ImgUtils.findMinMax(img);
+        
+        
         
         double[][] id = Convert.toDouble(img);
 
@@ -118,10 +134,32 @@ public class FilamentSegmentation extends PlugInFloatBase {
                                 /* subpixel sumpling */      1, 
                                 /* scale */                  iCoefficientStep, 
                                 /* regularizer term */       0.0001,
-                                                             5);
+                                                             100);
         
-        id = sa.performSegmentation();
+        List<CubicSmoothingSpline> ps = sa.performSegmentation();
+        addNewFindings(ps, aOrigImg.getSliceNumber());
         
+        System.out.println("SLICE NUMBER: " + aOrigImg.getSliceNumber());
+        
+        for (CubicSmoothingSpline css : ps) {
+            final CubicSmoothingSpline css1 = css;
+            double start = css1.getKnot(0);
+            double stop = css1.getKnot(css1.getNumberOfKNots() - 1);
+            
+            final Matrix x  = Matlab.linspace(start, stop, 1000);
+            Matrix y = x.copy().process(new MFunc() { 
+                @Override
+                public double f(double aElement, int aRow, int aCol) {
+                    return css1.getValue(x.get(aRow, aCol));
+                }
+            });
+            
+            for (int i = 0; i < x.size(); ++i) {
+                id[(int)y.get(i)][(int)x.get(i)] = 255;
+            }
+            
+
+        }
         
         // ==============================================================================
 
@@ -133,13 +171,22 @@ public class FilamentSegmentation extends PlugInFloatBase {
         
 
 	}
+	@Override
+    protected void postprocess() {
+	    
+        System.out.println(m.size());
+        for (Entry<Integer, List<CubicSmoothingSpline>> e : m.entrySet()) {
+            Debug.print(e.getKey(), e.getValue().size());
+            if (e.getValue().size() > 4) System.out.println(e.getValue());
+        }
+	};
 	
 	@Override
 	protected boolean showDialog() {
 		// TODO: this data should be handled in dialog window, hard-coded in a meantime
 		
 		// Should take values from 0..4 -> distance between control points is then 2**scale => 1..16
-		iCoefficientStep = 0;
+		iCoefficientStep = 1;
 		
 		return true;
 	}

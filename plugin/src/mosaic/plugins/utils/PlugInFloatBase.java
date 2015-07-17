@@ -62,6 +62,7 @@ public abstract class PlugInFloatBase extends PlugInBase {
             final ImageProcessor currentIp = iProcessedImg.getStack().getProcessor(aIp.getSliceNumber());
             final FloatProcessor res = currentIp.toFloat(i, null);
             final FloatProcessor orig = aIp.toFloat(i, null);
+            orig.setSliceNumber(aIp.getSliceNumber());
             
             // Start separate thread on each channel
             ProcessOneChannel p = new ProcessOneChannel(currentIp, res, orig, i);

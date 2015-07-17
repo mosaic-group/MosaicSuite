@@ -1,6 +1,8 @@
 package mosaic.math;
 
 import mosaic.generalizedLinearModel.Glm;
+import mosaic.plugins.utils.Debug;
+
 import java.lang.Math;
 
 

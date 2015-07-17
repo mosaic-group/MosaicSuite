@@ -29,7 +29,8 @@ public class PolynomialTest {
         
         assertEquals("Value", 3.0, f.getValue(0), 0.0);
         assertEquals("Value", 18.0, f.getValue(3), 0.0);
-        assertEquals("Str", "f(x) = 1.0*x^2 + 2.0*x^1 + 3.0", f.toString());
+
+        assertEquals("Str", "f(x) = 1.00000*x^2 + 2.00000*x^1 + 3.00000", f.toString());
     }
 
     @Test

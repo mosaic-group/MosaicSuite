@@ -35,6 +35,7 @@ abstract class PlugInBase implements PlugInFilter {
     abstract protected int getFlags();
     abstract protected void updateFlags(int aFlag);
     abstract protected boolean setup(final String aArgs);
+    protected void postprocess() {};
     
     @Override
     public int setup(final String aArgs, final ImagePlus aImp) {
@@ -45,6 +46,8 @@ abstract class PlugInBase implements PlugInFilter {
         }
 
         if (aArgs.equals("final")) {
+            postprocess();
+            
         	// Changed during updating
         	iProcessedImg.setSlice(1);
             iProcessedImg.show();

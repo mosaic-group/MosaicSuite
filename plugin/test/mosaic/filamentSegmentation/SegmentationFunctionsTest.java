@@ -38,7 +38,7 @@ public class SegmentationFunctionsTest extends CommonBase {
         
         assertEquals("Rows", expected.numRows(), result.numRows());
         assertEquals("Cols", expected.numCols(), result.numCols());
-        assertTrue("Values", expected.compare(result, 0.001));
+        assertTrue("Values", expected.compare(result, 0.00000000000001));
     }
     
     @Test 
@@ -64,7 +64,7 @@ public class SegmentationFunctionsTest extends CommonBase {
 
         assertEquals("Rows", expected.numRows(), result.numRows());
         assertEquals("Cols", expected.numCols(), result.numCols());
-        assertTrue("Values", expected.compare(result, 0.000001));
+        assertTrue("Values", expected.compare(result, 0.00000000000001));
     }
     
     @Test 
@@ -90,18 +90,18 @@ public class SegmentationFunctionsTest extends CommonBase {
 
         assertEquals("Rows", expected.numRows(), result.numRows());
         assertEquals("Cols", expected.numCols(), result.numCols());
-        assertTrue("Values", expected.compare(result, 0.000001));
+        assertTrue("Values", expected.compare(result, 0.00000000000001));
     }
     
     @Test
     public void testCalculateRegularizerEnergy() {
-        double expected = 20.649;
+        double expected = 20.649110640673520;
         Matrix input = new Matrix(new double[][] {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
         
         // Tested function
-        double result = SegmentationFunctions.calculateRegularizerEnergy(input, input.copy().ones());
+        double result = SegmentationFunctions.calculateRegularizerEnergy(input, input.copy().ones(), false);
         
-        assertEquals("Regularizer energy", expected, result, 0.001);
+        assertEquals("Regularizer energy", expected, result, 0.00000000000001);
     }
     
     @Test
@@ -118,22 +118,24 @@ public class SegmentationFunctionsTest extends CommonBase {
         // Tested function
         Matrix result = SegmentationFunctions.calculateDirac(input);
         
-        assertTrue("Output should match matlab: ", expected.compare(result, 0.00001));
+        assertTrue("Output should match matlab: ", expected.compare(result, 0.00000000000001));
     }
 
     @Test
     public void testCalculateHeavySide() {
         // Expected matrix is taken from Matlab.
-        Matrix expected = new Matrix(new double [][] {{2.0612e-09, 4.5398e-05, 0.017986},
-                                                      {0.45017, 0.5, 0.54983},
-                                                      {0.98201, 0.99995, 1}});
+        Matrix expected = new Matrix(new double [][] {
+                                        {0.000000002061154, 0.000045397868702, 0.017986209962092},
+                                        {0.450166002687522, 0.500000000000000, 0.549833997312478},
+                                        {0.982013790037908, 0.999954602131298, 0.999999997938846},
+                                     });
         
         Matrix input = new Matrix(new double[][] {{-1, -0.5, -0.2}, {-0.01, 0.0, 0.01}, {0.2, 0.5, 1}});
         
         // Tested function
         Matrix result = SegmentationFunctions.calculateHeavySide(input);
 
-        assertTrue("Output should match matlab: ", expected.compare(result, 0.0001));
+        assertTrue("Output should match matlab: ", expected.compare(result, 0.00000000000001));
     }
     
     @Test
@@ -146,7 +148,7 @@ public class SegmentationFunctionsTest extends CommonBase {
         Matrix inputPsi = new Matrix(new double[][] {{7, 8, 9}, {10, 11, 12}});
         
         // Tested function
-        Matrix result = SegmentationFunctions.generateMask(inputPhi, inputPsi);
+        Matrix result = SegmentationFunctions.generateNormalizedMask(inputPhi, inputPsi);
         
         assertTrue("Output should match matlab: ", expected.compare(result, 0.001));
     }
@@ -154,16 +156,18 @@ public class SegmentationFunctionsTest extends CommonBase {
     @Test
     public void testGenerateMask2() {
         // Expected matrix is taken from Matlab.
-        Matrix expected = new Matrix(new double [][] {{0.4902, 0, 1},
-                                                      {0.4902, 0.49529, 0.46814}});
+        Matrix expected = new Matrix(new double [][] {
+                                        {0.490196084992651, 0, 1.000000000000000},
+                                        {0.490196086043435, 0.495293440509157, 0.468137282596113},
+                                    });
         
         Matrix inputPhi = new Matrix(new double[][] {{0.1, -0.5, 0}, {0, 0.0001, 0.02}});
         Matrix inputPsi = new Matrix(new double[][] {{1, 0, 0.9}, {0, 0.001, -0.0005}});
         
         // Tested function
-        Matrix result = SegmentationFunctions.generateMask(inputPhi, inputPsi);
+        Matrix result = SegmentationFunctions.generateNormalizedMask(inputPhi, inputPsi);
         
-        assertTrue("Output should match matlab: ", expected.compare(result, 0.00001));
+        assertTrue("Output should match matlab: ", expected.compare(result, 0.00000000000001));
     }
     
     @Test
@@ -180,7 +184,7 @@ public class SegmentationFunctionsTest extends CommonBase {
         // Tested function
         Matrix result = SegmentationFunctions.calculateDiffDirac(input);
 
-        assertTrue("Output should match matlab: ", expected.compare(result, 0.000001));
+        assertTrue("Output should match matlab: ", expected.compare(result, 0.00000000000001));
     }
 
 }

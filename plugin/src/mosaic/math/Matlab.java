@@ -143,7 +143,7 @@ public class Matlab {
 						} while (!(imr >= 0 && imr < imageRows && imc >= 0 && imc < imageCols)); 
 
 						// After finding coordinates just compute next part of filter sum.
-						sum += image[imr][imc] * filter[fr][fc];
+						sum +=  filter[fr][fc] * image[imr][imc];
 					}
 				}
 				result.set(r, c, sum);
@@ -219,14 +219,21 @@ public class Matlab {
         //       and decided if it is to be changed or not. 
         //       Notice: Matlab's implementation is little bit strange and does not scale good at the beginning and and of 
         //       resized image.
-        float[][] input = aM.getArrayYXasFloats();
-        ImageProcessor ip = new FloatProcessor(input);
-        ip.setInterpolationMethod(FloatProcessor.BICUBIC);
-        ImageProcessor ip2 = ip.resize(aNewHeight, aNewWidth);
-        float[][] output = ip2.getFloatArray();
-        
-        Matrix result = new Matrix(output);
-        
+        //       Notice2: IJ implementation is unfortunatelly 'float' based. It introduces
+        //       after a lot of iterations quite huge error comparing to Matlab output.
+        Matrix result = null;
+        if (aM.numCols() != aNewWidth || aM.numRows() != aNewHeight) {
+            float[][] input = aM.getArrayYXasFloats();
+            ImageProcessor ip = new FloatProcessor(input);
+            ip.setInterpolationMethod(FloatProcessor.BICUBIC);
+            ImageProcessor ip2 = ip.resize(aNewHeight, aNewWidth);
+            float[][] output = ip2.getFloatArray();
+            
+            result = new Matrix(output);
+        }
+        else {
+            result = aM.copy();
+        }
         
         return result;
     }

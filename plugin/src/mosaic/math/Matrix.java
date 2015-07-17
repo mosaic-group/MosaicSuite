@@ -498,9 +498,16 @@ public class Matrix {
      * Sets each element of matrix as its power of two
      */
     public Matrix pow2() {
+        return pow(2);
+    }
+    
+    /**
+     * Sets each element of matrix as its power of aPower
+     */
+    public Matrix pow(int aPower) {
         int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i)
-            iMatrix.data[i] = Math.pow(iMatrix.data[i], 2);
+            iMatrix.data[i] = Math.pow(iMatrix.data[i], aPower);
         return this;
     }
 
@@ -673,11 +680,13 @@ public class Matrix {
         int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i) {
             if (Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]) > aEpsilon) {
-                // Uncomment below to see different element
-                // System.out.println("["+ i/iMatrix.numCols +"][" +
-                // i%iMatrix.numCols + "] " + this.iMatrix.data[i] + " vs " +
-                // aMatrix.iMatrix.data[i] + " Diff: " +
-                // Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]));
+                // DEBUG: Uncomment below to see different element
+                // =====================================================
+                // System.out.println("["+ i/iMatrix.numCols +"][" + i%iMatrix.numCols + "] " + 
+                //                    this.iMatrix.data[i] + " vs " + aMatrix.iMatrix.data[i] + 
+                //                    " Diff: " + Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]));
+                // =====================================================
+                 
                 return false;
             }
         }

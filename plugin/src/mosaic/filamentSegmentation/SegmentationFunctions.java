@@ -1,5 +1,6 @@
 package mosaic.filamentSegmentation;
 
+import mosaic.math.CubicSmoothingSpline;
 import mosaic.math.MFunc;
 import mosaic.math.Matlab;
 import mosaic.math.Matrix;
@@ -66,12 +67,12 @@ class SegmentationFunctions {
                 }).normalizeCoefficients(2.0);
     }
     
-    static Matrix generateMask(Matrix aPhiValues, Matrix aPsiValues) {
+    static Matrix generateNormalizedMask(Matrix aPhiValues, Matrix aPsiValues) {
         Matrix mask = calculateDirac(aPhiValues).elementMult(calculateHeavySide(aPsiValues));
-        
+
         // scale mask to 0..1 range
         mask.normalizeInRange0to1();
-        
+
         return mask;
     }
     
@@ -127,16 +128,8 @@ class SegmentationFunctions {
     /**
      * Calculate regularizer energy
      * @param aM - input image
-     * @return - calculated energy
-     */
-    static double calculateRegularizerEnergy(Matrix aM, Matrix aWeights) {
-        Matrix regEnergy = calculateRegularizerEnergyMatrix(aM, aWeights, false);
-        return regEnergy.sum();
-    }
-    
-    /**
-     * Calculate regularizer energy
-     * @param aM - input image
+     * @param aWeights - input weights
+     * @param aIsMatrixLogical - is aM a bool matrix? (0, 1 values only)
      * @return - calculated energy
      */
     static double calculateRegularizerEnergy(Matrix aM, Matrix aWeights, boolean aIsMatrixLogical) {
@@ -176,6 +169,32 @@ class SegmentationFunctions {
         Matrix regEnergy = gradX.pow2().add(gradY.pow2()).sqrt().elementMult(aWeights);
 
         return regEnergy;
+    }
+
+    static double calcualteFilamentLenght(final CubicSmoothingSpline css) {
+        double start = css.getKnot(0);
+        double stop = css.getKnot(css.getNumberOfKNots() - 1);
+        
+        final Matrix x  = Matlab.linspace(start, stop, 1000);
+        Matrix y = x.copy().process(new MFunc() { 
+            @Override
+            public double f(double aElement, int aRow, int aCol) {
+                return css.getValue(x.get(aRow, aCol));
+            }
+        });
+        
+        double prevX = x.get(0);
+        double prevY = y.get(0);
+        double length = 0.0;
+        
+        for (int i = 0; i < x.size(); ++i) {
+            length += Math.sqrt(Math.pow(x.get(i) - prevX,2) + Math.pow(y.get(i) - prevY,2));
+            prevX = x.get(i);
+            prevY = y.get(i);
+        }
+        
+        
+        return length;
     }
 
 }

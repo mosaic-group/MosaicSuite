@@ -143,10 +143,17 @@ public class Polynomial {
      */
     public String toString() {
         String str = "f(x) = ";
-        for (int n = 0; n < iDegree; ++n) {
-            str += iCoeffs[n] + "*x^" + (iDegree - n) + " + ";
+        boolean firstCoefficient = true;
+        for (int n = 0; n <= iDegree; ++n) {
+            if (!firstCoefficient || iCoeffs[n] < 0) {
+                str += " " + (iCoeffs[n] >= 0 ? "+ " : "- ");
+            }
+            firstCoefficient = false;
+                
+            // abs since sign is printed above
+            str += String.format("%g", Math.abs(iCoeffs[n]));
+            if ((iDegree - n) != 0) str += "*x^" + (iDegree - n);
         }
-        str += iCoeffs[iDegree];
         
         return str;
     }
