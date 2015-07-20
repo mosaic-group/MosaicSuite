@@ -204,8 +204,8 @@ public class MatlabTest extends CommonBase {
     
     @Test
     public void testImresizeScale() {
-        Matrix expected = new Matrix(new double[][] {{1, 1.5, 2, 2.5, 3, 3.5, 4},
-                                                     {1, 1.5, 2, 2.5, 3, 3.5, 4}});
+        Matrix expected = new Matrix(new double[][] {{0.933855685131195, 1.283345481049561, 1.926202623906705, 2.500000000000000, 3.073797376093295, 3.716654518950438, 4.066144314868804},
+                                                     {0.933855685131195, 1.283345481049561, 1.926202623906705, 2.500000000000000, 3.073797376093295, 3.716654518950438, 4.066144314868804}});
         
         
         Matrix input = new Matrix(new double [][] {{1, 2, 3 , 4}});
@@ -213,12 +213,12 @@ public class MatlabTest extends CommonBase {
         // Tested function
         Matrix result = Matlab.imresize(input, (double)7/4);
         
-        assertEquals(expected, result);
+        assertTrue(expected.compare(result, 1e-14));
     }
     
     @Test
     public void testImresizeDims() {
-        Matrix expected = new Matrix(new double[][] {{1, 1.5, 2, 2.5, 3, 3.5, 4}});
+        Matrix expected = new Matrix(new double[][] {{0.933855685131195, 1.283345481049561, 1.926202623906705, 2.500000000000000, 3.073797376093295, 3.716654518950438, 4.066144314868804}});
         
         
         Matrix input = new Matrix(new double [][] {{1, 2, 3 , 4}});
@@ -226,7 +226,7 @@ public class MatlabTest extends CommonBase {
         // Tested function
         Matrix result = Matlab.imresize(input, 7, 1);
         
-        assertEquals(expected, result);
+        assertTrue(expected.compare(result, 1e-14));
     }
     
     @Test
@@ -258,5 +258,20 @@ public class MatlabTest extends CommonBase {
         assertArrayEquals("Connected object: ", new Object[] {3}, result.get(3).toArray());
         assertArrayEquals("Connected object: ", new Object[] {8, 11}, result.get(4).toArray());
         assertArrayEquals("Connected object: ", new Object[] {9}, result.get(5).toArray());
+    }
+    
+    @Test
+    public void testImresizeDims2() {
+        
+        Matrix input = new Matrix(new double [][]{{1, 1, 1, 1, 1},
+                {1, 1, 1, 1, 1},
+                {1, 1, 0, 1, 1},
+                {1, 1, 1, 1, 1},
+                {1, 1, 1, 1, 1}});
+//        
+//        Matrix input2 = new Matrix(new double [][] {{1, 2 ,3 ,4, 5}});
+        // Tested function
+        Matrix result = Matlab.imresize(input, 9,9);
+        System.out.println(result);
     }
 }

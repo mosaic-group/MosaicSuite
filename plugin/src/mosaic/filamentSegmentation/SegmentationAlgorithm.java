@@ -450,7 +450,7 @@ public class SegmentationAlgorithm {
 
         if (aResizeMask)
             mask = Matlab.imresize(mask, iSubpixelSampling);
-        
+
         return mask;
     }
 
