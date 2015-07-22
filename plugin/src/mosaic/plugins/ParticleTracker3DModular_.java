@@ -58,6 +58,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -102,6 +103,7 @@ import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
 import net.imglib2.img.array.ArrayImgFactory;
+import net.imglib2.img.cell.CellImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.ARGBType;
 import net.imglib2.type.numeric.RealType;
@@ -766,14 +768,27 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			{
 				text_mode_gd = new GenericDialog("input files info", IJ.getInstance());
 				text_mode_gd.addMessage("Please specify the info provided for the Particles...");
-				text_mode_gd.addCheckbox("one file multiple frame (deprecated)", false);
-				text_mode_gd.addCheckbox("CSV File", true);
+				//text_mode_gd.addCheckbox("one file multiple frame (deprecated)", false);
+				text_mode_gd.addCheckbox("multiple frame files", true);
+				text_mode_gd.addCheckbox("CSV File", false);
+				
 				//			text_mode_gd.addCheckbox("3rd or 5th position and on- all other data", true);
 				text_mode_gd.showDialog();
 				if (text_mode_gd.wasCanceled()) return false;
-
+				
 				one_file_multiple_frame = text_mode_gd.getNextBoolean();
 				csv_format = text_mode_gd.getNextBoolean();
+				
+				// This is just a quick fix to not mislead users. one_file_multiple_frame and its functionality
+				// should be removed from code. Unfortunately to load multiples files both checkboxes must have been 
+				// unchecked (!) which was not so user friendly.
+				if (one_file_multiple_frame == true && csv_format == false) {
+				    one_file_multiple_frame = false;
+				}
+				else if (one_file_multiple_frame == false && csv_format == false || 
+				         one_file_multiple_frame == true && csv_format == true) {
+				    return false;
+				}
 				
 				// gets the input files directory form
 				files_list  = getFilesList();
@@ -2771,8 +2786,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     				vMaxp1[i] = vMax[i];
     			}
     			vMaxp1[vMax.length] = this.frames.length;
-    		
-    			final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
+    			
+    			final ImgFactory< ARGBType > imgFactory = new CellImgFactory< ARGBType >();
     			out_fs = imgFactory.create(vMaxp1, new ARGBType());
     		}
     		else
@@ -2818,7 +2833,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     	    		return null;
     	    	}
         		
-    	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
+    	        final ImgFactory< ARGBType > imgFactory = new CellImgFactory< ARGBType >();
     	        out_fs = imgFactory.create(vMaxp1, new ARGBType());
     		}
  		}
@@ -2835,7 +2850,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     			vMaxp1[i] = backgroundImg.dimension(i);
     		}
     		
-	        final ImgFactory< ARGBType > imgFactory = new ArrayImgFactory< ARGBType >();
+	        final ImgFactory< ARGBType > imgFactory = new CellImgFactory< ARGBType >();
 	        out_fs = imgFactory.create(vMaxp1, new ARGBType());
     	}
     	
