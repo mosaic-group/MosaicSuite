@@ -1,7 +1,9 @@
 package mosaic.filamentSegmentation;
 
 import static mosaic.filamentSegmentation.SegmentationFunctions.calcualteFilamentLenght;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.awt.Dimension;
 import java.util.List;
@@ -12,7 +14,6 @@ import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.ThresholdFuzzyOutput;
 import mosaic.math.CubicSmoothingSpline;
 import mosaic.math.Matrix;
-import mosaic.plugins.utils.Debug;
 import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;
@@ -89,10 +90,10 @@ public class SegmentationAlgorithmTest extends CommonBase {
         // Tested function
         EnergyOutput result = sa.minimizeEnergy();
         
-        double epsilon = 0.00000000000001;
+        double epsilon = 1e-14;
         assertTrue("Mask", new Matrix(expectedMask).compare(result.iMask, epsilon));
-        assertEquals("MLEin", expectedMLEin, result.iRss.getBetaMLEin(), expectedMLEin/1000000000);
-        assertEquals("MLEout", expectedMLEout, result.iRss.getBetaMLEout(), expectedMLEout/1000000000);
+        assertEquals("MLEin", expectedMLEin, result.iRss.getBetaMLEin(), expectedMLEin/1e-9);
+        assertEquals("MLEout", expectedMLEout, result.iRss.getBetaMLEout(), expectedMLEout/1e-9);
     }
     
     @Test
@@ -165,7 +166,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
         // Tested method
         ThresholdFuzzyOutput resultOfThresholding = sa.ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
         
-        double epsilon = 0.0000000000001;
+        double epsilon = 1e-13;
         assertTrue("Mask", new Matrix(expectedMask).compare(resultOfThresholding.iopt_MK, epsilon));
         assertTrue("Mask", new Matrix(expectedThresholdedMask).compare(resultOfThresholding.iH_f, epsilon));
     }

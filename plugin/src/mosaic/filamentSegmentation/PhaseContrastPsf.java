@@ -48,7 +48,7 @@ public class PhaseContrastPsf {
 		// --------------------------------------------------------------------
 		// Airy(Z==0) = R*besselj(1,2*pi*R*eps)./eps - (R-W)*besselj(1,2*pi*(R-W)*eps)./eps;
 		
-		// BesselJ cannot of first order cannot be calculated for arguments less then zero.
+		// BesselJ of first order cannot be calculated for arguments less then zero.
 		// Calculate it then for absolute value and then change sign (it match results from Matlab).
 		double valForZero= aR*BesselJ.value(1, 2*Math.PI*aR*Math.ulp(1.0))/Math.ulp(1.0);
 		double RsubW = Math.abs(aR - aW);

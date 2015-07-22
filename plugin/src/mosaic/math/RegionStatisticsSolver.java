@@ -1,9 +1,6 @@
 package mosaic.math;
 
 import mosaic.generalizedLinearModel.Glm;
-import mosaic.plugins.utils.Debug;
-
-import java.lang.Math;
 
 
 /**
@@ -70,6 +67,11 @@ public class RegionStatisticsSolver {
         Matrix Z = calcualteZ(mu);
         Matrix W = calculateW(mu);
 
+        // Used for performance optimization
+        double tempBetaMLEout = 0.0;
+        double tempBetaMLEin = 0.0;
+        boolean isThatFirstIteration = true;
+        
         for (int i = 0; i < iNumOfIterations; ++i) {
             double K11 = W.copy().elementMult(pow2Of1SubMask).sum();
             double K12 = W.copy().elementMult(maskMul1SubMask).sum();
@@ -82,6 +84,13 @@ public class RegionStatisticsSolver {
             iBetaMLEout = (K22*U1-K12*U2)/detK;
             iBetaMLEin = (-K12*U1+K11*U2)/detK;
 
+            // Performance optimization - if betaMLE is not changed after iteration, next iteration
+            // would also produce same results (all mu, Z, W are generated basing on betaMLE).
+            if (!isThatFirstIteration && tempBetaMLEout == iBetaMLEout && tempBetaMLEin == iBetaMLEin) break;
+            isThatFirstIteration = false;
+            tempBetaMLEout = iBetaMLEout;
+            tempBetaMLEin = iBetaMLEin;
+            
             mu = calculateModelImage();
 
             Z = calcualteZ(mu);

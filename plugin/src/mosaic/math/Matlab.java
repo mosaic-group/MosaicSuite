@@ -8,8 +8,6 @@ import java.util.Map;
 import mosaic.plugins.utils.Interpolation;
 import mosaic.plugins.utils.Interpolation.InterpolationMode;
 import mosaic.plugins.utils.Interpolation.InterpolationType;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
 
 public class Matlab {
     /**

@@ -8,7 +8,7 @@ import mosaic.nurbs.BSplineSurface;
 import mosaic.nurbs.BSplineSurfaceFactory;
 import mosaic.nurbs.Function;
 
-class SegmentationFunctions {
+public class SegmentationFunctions {
 
 
     static Matrix calculateBSplinePoints(int aWidth, int aHeight, final double aSubPixelStep, final BSplineSurface aBSpline) {
@@ -171,7 +171,7 @@ class SegmentationFunctions {
         return regEnergy;
     }
 
-    static double calcualteFilamentLenght(final CubicSmoothingSpline css) {
+    static public double calcualteFilamentLenght(final CubicSmoothingSpline css) {
         double start = css.getKnot(0);
         double stop = css.getKnot(css.getNumberOfKNots() - 1);
         

@@ -2,8 +2,11 @@ package mosaic.plugins.utils;
 
 import mosaic.math.Matlab;
 
-import java.util.Arrays;
-
+/**
+ * Interpolation functionality with some support for Matlab style 'imresize' command (does not support antialiasing)
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+ *
+ */
 public class Interpolation {
     /**
      * Interpolation type: BILINEAR, BICUBIC, NEAREST

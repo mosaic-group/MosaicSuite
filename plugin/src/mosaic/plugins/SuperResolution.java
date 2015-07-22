@@ -89,7 +89,7 @@ public class SuperResolution extends CurvatureFilterBase {
     }
 
     @Override
-    protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg) {
+    protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber) {
         superResolution(aOutputImg, aOrigImg, getCurvatureFilter(), getNumberOfIterations());
     }
 }

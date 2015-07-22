@@ -53,7 +53,7 @@ public class VariationalCurvatureFilter extends CurvatureFilterBase {
     }
 
     @Override
-    protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg) {
+    protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber) {
         filterImage(aOutputImg, aOrigImg, getCurvatureFilter(), getNumberOfIterations());
     }
 }

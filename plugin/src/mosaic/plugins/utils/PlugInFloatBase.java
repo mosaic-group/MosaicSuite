@@ -20,7 +20,7 @@ public abstract class PlugInFloatBase extends PlugInBase {
                          PARALLELIZE_STACKS;
     
 
-    abstract protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg);
+    abstract protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber);
     
     protected int getFlags() {return iFlags;}
     protected void updateFlags(int aFlag) {iFlags |= aFlag;}
@@ -31,8 +31,8 @@ public abstract class PlugInFloatBase extends PlugInBase {
         FloatProcessor res;
         FloatProcessor orig;
         
-        ProcessOneChannel(ImageProcessor currentIp, FloatProcessor res, FloatProcessor orig, int i) {
-            this.i = i;
+        ProcessOneChannel(ImageProcessor currentIp, FloatProcessor res, FloatProcessor orig, int aChannel) {
+            this.i = aChannel;
             this.currentIp = currentIp;
             this.res = res;
             this.orig = orig;
@@ -40,7 +40,7 @@ public abstract class PlugInFloatBase extends PlugInBase {
         
         @Override
         public void run() {
-                processImg(res, orig);
+                processImg(res, orig, i);
         }
         
         public void update() {
@@ -63,7 +63,7 @@ public abstract class PlugInFloatBase extends PlugInBase {
             final FloatProcessor res = currentIp.toFloat(i, null);
             final FloatProcessor orig = aIp.toFloat(i, null);
             orig.setSliceNumber(aIp.getSliceNumber());
-            
+            System.out.println("Running: " + aIp.getSliceNumber() + "/" + i);
             // Start separate thread on each channel
             ProcessOneChannel p = new ProcessOneChannel(currentIp, res, orig, i);
             Thread t = new Thread(p);

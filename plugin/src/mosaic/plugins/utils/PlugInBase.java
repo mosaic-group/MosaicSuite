@@ -7,6 +7,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Calibration;
 import ij.plugin.filter.PlugInFilter;
+import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 
 /**
@@ -87,6 +88,10 @@ abstract class PlugInBase implements PlugInFilter {
      * @return newly created ImagePlus
      */
     protected ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale) {
+        return createNewEmptyImgPlus(aOrigIp, aTitle, aXscale, aYscale, false);
+    }
+        
+    protected ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale, boolean convertToRgb) {
         int nSlices = aOrigIp.getStackSize();
         int w=aOrigIp.getWidth();
         int h=aOrigIp.getHeight();
@@ -102,7 +107,12 @@ abstract class PlugInBase implements PlugInFilter {
         for (int i = 1; i <= nSlices; i++) {
             ip1 = origStack.getProcessor(i);
             String label = origStack.getSliceLabel(i);
-            ip2 = ip1.createProcessor(newWidth, newHeight);
+            if (!convertToRgb) {
+                ip2 = ip1.createProcessor(newWidth, newHeight);
+            }
+            else {
+                ip2 = new ColorProcessor(newWidth, newHeight);
+            }
             if (ip2 != null) {
                 copyStack.addSlice(label, ip2);
             }
