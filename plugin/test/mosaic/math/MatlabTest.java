@@ -259,19 +259,4 @@ public class MatlabTest extends CommonBase {
         assertArrayEquals("Connected object: ", new Object[] {8, 11}, result.get(4).toArray());
         assertArrayEquals("Connected object: ", new Object[] {9}, result.get(5).toArray());
     }
-    
-    @Test
-    public void testImresizeDims2() {
-        
-        Matrix input = new Matrix(new double [][]{{1, 1, 1, 1, 1},
-                {1, 1, 1, 1, 1},
-                {1, 1, 0, 1, 1},
-                {1, 1, 1, 1, 1},
-                {1, 1, 1, 1, 1}});
-//        
-//        Matrix input2 = new Matrix(new double [][] {{1, 2 ,3 ,4, 5}});
-        // Tested function
-        Matrix result = Matlab.imresize(input, 9,9);
-        System.out.println(result);
-    }
 }

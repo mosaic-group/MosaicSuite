@@ -324,23 +324,24 @@ public class SegmentationAlgorithm {
     EnergyOutput minimizeEnergy() {
         // Calculate initial energy
         Matrix mask = generateMask(true /* resize */);
-        
         RegionStatisticsSolver rss = generateRss(mask);
         Matrix mu = rss.getModelImage();
-        
-        double totalEnergy = calculateTotalEnergy(iImageData, mask, mu);
-        Matrix outputMask = mask;
-        RegionStatisticsSolver outputRss = rss;
-        
+        double totalEnergy = calculateTotalEnergy(iImageData, mask, mu, false);
+
         Matrix phiCoefs = new Matrix(iPhi.getCoefficients());
         Matrix psiCoefs = new Matrix(iPsi.getCoefficients());
+
+        // Initiate best founded matches - they can be updated during 
+        // next iterations
+        Matrix finalMask = mask;
+        RegionStatisticsSolver finalRss = rss;
         Matrix finalPhiCoefs = phiCoefs;
         Matrix finalPsiCoefs = psiCoefs;
         
         boolean isEnergyOptimal = false;
 
         for (int i = 0; i < iNoOfIterations && isEnergyOptimal == false; ++i) {
-            Matrix[] grads = calculateEnergyGradient(mu, rss);
+            Matrix[] grads = calculateEnergyGradients(mu, rss);
             Matrix grad_Phi = grads[0];
             Matrix grad_Psi = grads[1];
 
@@ -364,15 +365,15 @@ public class SegmentationAlgorithm {
                 // Recalculate energy with new coefficients
                 mask = generateMask(true /* resize */);
                 rss = generateRss(mask);
-                mu = rss.getModelImage();
+                mu = rss.getModelImage();            
+                double tempEngy = calculateTotalEnergy(iImageData, mask, mu, false);
                 
-                double tempEngy = calculateTotalEnergy(iImageData, mask, mu);
+                // Remember all best matches found so far
                 diffEnergy = tempEngy - totalEnergy;
                 if (diffEnergy < 0) {
-                    // Remember all best matches found so far
                     totalEnergy = tempEngy;
-                    outputMask = mask;
-                    outputRss = rss;
+                    finalMask = mask;
+                    finalRss = rss;
                     finalPhiCoefs = phiCoefsTemp;
                     finalPsiCoefs = psiCoefsTemp;
                     break;
@@ -393,10 +394,18 @@ public class SegmentationAlgorithm {
         iPhi.setCoefficients(finalPhiCoefs.getArrayYX());
         iPsi.setCoefficients(finalPsiCoefs.getArrayYX());
         
-        return new EnergyOutput(outputMask, outputRss, totalEnergy);
+        return new EnergyOutput(finalMask, finalRss, totalEnergy);
     }
 
-    private Matrix[] calculateEnergyGradient(Matrix aMu, RegionStatisticsSolver aRss) {
+    private double calculateTotalEnergy(Matrix aImageData, Matrix mask, Matrix mu, boolean aIsMatrixLogical) {
+        double dataEnergy = iGlm.nllMean(aImageData, mu, iGlm.priorWeights(aImageData));
+        double regularizerEnergy = calculateRegularizerEnergy(mask, iWeightBoundary, aIsMatrixLogical);
+        double totalEnergy = iLambdaData * dataEnergy + iLambdaReg * regularizerEnergy;
+    
+        return totalEnergy;
+    }
+
+    private Matrix[] calculateEnergyGradients(Matrix aMu, RegionStatisticsSolver aRss) {
         Matrix w_g0 = null;
         switch (iNoiseType) {
         case GAUSSIAN:
@@ -417,22 +426,26 @@ public class SegmentationAlgorithm {
         Matrix der_phi = calculateDiffDirac(phiPts2).elementMult(calculateHeavySide(psiPts2));
         Matrix der_psi = calculateDirac(phiPts2).elementMult(calculateDirac(psiPts2));
 
-        Matrix grad_Phi = CalculateEnergyGradient(w_g0, der_phi, false).transpose();
-        Matrix grad_Psi = CalculateEnergyGradient(w_g0, der_psi, true).transpose();
+        Matrix grad_Phi = calculateEnergyGradient(w_g0, der_phi, false /* shouldConvolve */).transpose();
+        Matrix grad_Psi = calculateEnergyGradient(w_g0, der_psi, true /* shouldConvolve */).transpose();
 
         return new Matrix[] { grad_Phi, grad_Psi };
     }
 
-    private double calculateTotalEnergy(Matrix aImageData, Matrix mask, Matrix mu) {
-        return calculateTotalEnergy(aImageData, mask, mu, false);
-    }
-
-    private double calculateTotalEnergy(Matrix aImageData, Matrix mask, Matrix mu, boolean aIsMatrixLogical) {
-        double dataEnergy = iGlm.nllMean(aImageData, mu, iGlm.priorWeights(aImageData));
-        double regularizerEnergy = calculateRegularizerEnergy(mask, iWeightBoundary, aIsMatrixLogical);
-        double totalEnergy = iLambdaData * dataEnergy + iLambdaReg * regularizerEnergy;
-
-        return totalEnergy;
+    private Matrix calculateEnergyGradient(Matrix w_g0, Matrix aFuncPoints, boolean aShouldConvolve) {
+        Matrix rEngyPhi = calculateRegularizerEnergyMatrix(aFuncPoints, iWeightBoundary, false);
+        Matrix w_g = w_g0.copy().elementMult(aFuncPoints).add(rEngyPhi.copy().scale(iLambdaReg)).normalize();
+    
+        if (aShouldConvolve)
+            w_g = Matlab.imfilterConv(w_g, iPsf);
+        else
+            w_g = Matlab.imfilterSymmetric(w_g, iPsf);
+    
+        Matrix grad = Matlab.imfilterSymmetric(
+                        Matlab.imfilterSymmetric(w_g, iEnergyGradOfBases.copy().transpose()), 
+                        iEnergyGradOfBases);
+        grad = grad.resize(0, 0, iStepSize, iStepSize);
+        return grad;
     }
 
     private RegionStatisticsSolver generateRss(Matrix mask) {
@@ -452,21 +465,6 @@ public class SegmentationAlgorithm {
             mask = Matlab.imresize(mask, iSubpixelSampling);
 
         return mask;
-    }
-
-    private Matrix CalculateEnergyGradient(Matrix w_g0, Matrix der_phi, boolean aShouldConvolve) {
-        Matrix rEngyPhi = calculateRegularizerEnergyMatrix(der_phi, iWeightBoundary, false);
-        Matrix w_g = w_g0.copy().elementMult(der_phi).add(rEngyPhi.copy().scale(iLambdaReg)).normalize();
-
-        if (aShouldConvolve)
-            w_g = Matlab.imfilterConv(w_g, iPsf);
-        else
-            w_g = Matlab.imfilterSymmetric(w_g, iPsf);
-
-        Matrix grad_Phi = Matlab.imfilterSymmetric(
-                Matlab.imfilterSymmetric(w_g, iEnergyGradOfBases.copy().transpose()), iEnergyGradOfBases);
-        grad_Phi = grad_Phi.resize(0, 0, iStepSize, iStepSize);
-        return grad_Phi;
     }
 
     /**
@@ -492,35 +490,35 @@ public class SegmentationAlgorithm {
 
         // Generate Generalized Linear Model
         switch (iNoiseType) {
-        case POISSON:
-            iGlm = new GlmPoisson();
-            break;
-        case GAUSSIAN:
-        default:
-            iGlm = new GlmGaussian();
-            break;
+            case POISSON:
+                iGlm = new GlmPoisson();
+                break;
+            case GAUSSIAN:
+            default:
+                iGlm = new GlmGaussian();
+                break;
         }
 
         // Generate PSF
         switch (iPsfType) {
-        case DARK_FIELD:
-            // Intentionally falling down
-        case GAUSSIAN:
-            // sigma 0.5 follows default value for sigma in Matlab's command
-            // 'fspecial'
-            iPsf = GaussPsf.generate(iPsfSize.width, iPsfSize.height, 0.5);
-            break;
-        case PHASE_CONTRAST:
-            // Values taken from Matlab's implementation
-            iPsf = PhaseContrastPsf.generate(2.9, 0.195, 3);
-            break;
-        case NONE:
-            iPsf = new Matrix(new double[][] { { 1 } });
-            break;
-        default:
-            // Default case - use 4x4 Gauss psf
-            iPsf = GaussPsf.generate(4, 4, 0.5);
-            break;
+            case DARK_FIELD:
+                // Intentionally falling down
+            case GAUSSIAN:
+                // sigma 0.5 follows default value for sigma in Matlab's command
+                // 'fspecial'
+                iPsf = GaussPsf.generate(iPsfSize.width, iPsfSize.height, 0.5);
+                break;
+            case PHASE_CONTRAST:
+                // Values taken from Matlab's implementation
+                iPsf = PhaseContrastPsf.generate(2.9, 0.195, 3);
+                break;
+            case NONE:
+                iPsf = new Matrix(new double[][] { { 1 } });
+                break;
+            default:
+                // Default case - use 4x4 Gauss psf
+                iPsf = GaussPsf.generate(4, 4, 0.5);
+                break;
         }
 
         iLambdaData = 1;

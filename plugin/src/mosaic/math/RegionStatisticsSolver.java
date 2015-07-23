@@ -20,7 +20,7 @@ public class RegionStatisticsSolver {
     private Glm iGlm;
     private int iNumOfIterations;
     
-    // Calculated beta
+    // Calculated beta Maximum Likelihood Estimators
     private double iBetaMLEout = 0.0;
     private double iBetaMLEin = 0.0;
     
@@ -109,10 +109,16 @@ public class RegionStatisticsSolver {
         return this;
     }
 
+    /**
+     * @return Maximum Likelihood Estimator (out)
+     */
     public double getBetaMLEout() {
         return iBetaMLEout;
     }
     
+    /**
+     * @return Maximum Likelihood Estimators (in)
+     */
     public double getBetaMLEin() {
         return iBetaMLEin;
     }

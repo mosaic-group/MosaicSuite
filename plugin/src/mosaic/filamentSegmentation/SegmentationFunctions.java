@@ -10,7 +10,15 @@ import mosaic.nurbs.Function;
 
 public class SegmentationFunctions {
 
-
+    /**
+     * Calculates values of given b-spline in range (1 .. aHeight) x (1 .. aWidth) with a step given by
+     * aSubPixelStep (by default value 1 should be used) and put values in a Matrix.
+     * @param aWidth
+     * @param aHeight
+     * @param aSubPixelStep
+     * @param aBSpline
+     * @return
+     */
     static Matrix calculateBSplinePoints(int aWidth, int aHeight, final double aSubPixelStep, final BSplineSurface aBSpline) {
         int sizeX = (int)((aWidth - 1)/aSubPixelStep) + 1;
         int sizeY = (int)((aHeight - 1)/aSubPixelStep) + 1;
@@ -67,6 +75,12 @@ public class SegmentationFunctions {
                 }).normalizeCoefficients(2.0);
     }
     
+    /**
+     * Computes dirac(PhiValues)*heavyside(PsiValues) and normalize it in 0..1 range
+     * @param aPhiValues
+     * @param aPsiValues
+     * @return computed mask
+     */
     static Matrix generateNormalizedMask(Matrix aPhiValues, Matrix aPsiValues) {
         Matrix mask = calculateDirac(aPhiValues).elementMult(calculateHeavySide(aPsiValues));
 
@@ -171,15 +185,20 @@ public class SegmentationFunctions {
         return regEnergy;
     }
 
-    static public double calcualteFilamentLenght(final CubicSmoothingSpline css) {
-        double start = css.getKnot(0);
-        double stop = css.getKnot(css.getNumberOfKNots() - 1);
+    /**
+     * Calcualtes filament length from given cubic smoothing spline
+     * @param aCubicSmoothingSpline
+     * @return length of filament
+     */
+    static public double calcualteFilamentLenght(final CubicSmoothingSpline aCubicSmoothingSpline) {
+        double start = aCubicSmoothingSpline.getKnot(0);
+        double stop = aCubicSmoothingSpline.getKnot(aCubicSmoothingSpline.getNumberOfKNots() - 1);
         
         final Matrix x  = Matlab.linspace(start, stop, 1000);
         Matrix y = x.copy().process(new MFunc() { 
             @Override
             public double f(double aElement, int aRow, int aCol) {
-                return css.getValue(x.get(aRow, aCol));
+                return aCubicSmoothingSpline.getValue(x.get(aRow, aCol));
             }
         });
         
