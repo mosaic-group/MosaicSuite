@@ -198,25 +198,27 @@ public class FilamentSegmentation extends PlugInFloatBase {
 	
 	@Override
 	protected boolean showDialog() {
+	    
+	    // Create GUI for entering segmentation parameters
 	    GenericDialog gd = new GenericDialog("Filament Segmentation Settings");
 
         final String[] noiseType = {"Gaussian", "Poisson"};
         gd.addRadioButtonGroup("Noise Type: ", noiseType, 3, 1, Prefs.get(PropNoiseType, noiseType[0]));
         
         final String[] psfType = {"Gaussian", "Dark Field", "Phase Contrast"};
-        gd.addRadioButtonGroup("PSF Type: ", psfType, 3, 1, Prefs.get(PropPsfType, psfType[0]));
-        gd.addNumericField("PSF dimensions:     [rows]", (int)Prefs.get(PropPsfDimensionY, 1), 0);
+        gd.addRadioButtonGroup("PSF_Type: ", psfType, 3, 1, Prefs.get(PropPsfType, psfType[0]));
+        gd.addNumericField("PSF_dimensions:_____[rows]", (int)Prefs.get(PropPsfDimensionY, 1), 0);
         gd.addNumericField("                 [columns]", (int)Prefs.get(PropPsfDimensionX, 1), 0);
         
         final String[] subPixel = {"1x", "2x", "4x"};
-        gd.addRadioButtonGroup("Subpixel sampling: ", subPixel, 1, 3, Prefs.get(PropSubpixel, subPixel[0]));
+        gd.addRadioButtonGroup("Subpixel_sampling: ", subPixel, 1, 3, Prefs.get(PropSubpixel, subPixel[0]));
         
         final String[] scales = {"100 %", "50 %", "25 %", "12.5 %", "6.25 %"};
         gd.addRadioButtonGroup("Scale of level set mask (% of input image): ", scales, 5, 1, Prefs.get(PropScale, scales[1]));
 
         gd.addMessage("");
         gd.addNumericField("Regularizer (lambda): 0.001 * ", Prefs.get(PropRegularizerTerm, 0.1), 3);
-        gd.addNumericField("Maximum number of iterations: ", (int)Prefs.get(PropNoOfIterations, 100), 0);
+        gd.addNumericField("Maximum_number_of_iterations: ", (int)Prefs.get(PropNoOfIterations, 100), 0);
 
         gd.addMessage("\n");
         final String info = "\"Generalized Linear Models and B-Spline\nLevel-Sets enable Automatic Optimal\nFilament Segmentation with Sub-pixel Accuracy\"\n\nXun Xiao, Veikko Geyer, Hugo Bowne-Anderson,\nJonathon Howard, Ivo F. Sbalzarini";
@@ -229,9 +231,11 @@ public class FilamentSegmentation extends PlugInFloatBase {
         panel.add(ta);
         gd.addPanel(panel);
         
+        // Show and check if user want to continue
         gd.showDialog();
         if (gd.wasCanceled()) return false;
         
+        // Read data from all fields and remember it in preferences
         String noise = gd.getNextRadioButton();
         String psf = gd.getNextRadioButton();
         int psfx = (int)gd.getNextNumber();
@@ -250,6 +254,7 @@ public class FilamentSegmentation extends PlugInFloatBase {
         Prefs.set(PropRegularizerTerm, lambda);
         Prefs.set(PropNoOfIterations, iterations);
 
+        // Set segmentation paramters for futher use
         iNoiseType = NoiseType.values()[Arrays.asList(noiseType).indexOf(noise)];
         iPsfType = PsfType.values()[Arrays.asList(psfType).indexOf(psf)];
         iPsfDimension = new Dimension(psfx, psfy);
