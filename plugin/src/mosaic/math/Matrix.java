@@ -288,6 +288,44 @@ public class Matrix {
     public float[][] getArrayXYasFloats() {
         return getArrayXYasFloats(this);
     }
+    
+    /**
+     * Return array containing specified column
+     */
+    public double[] getArrayColumn(int aColumn) {
+        double[] column = new double[this.numRows()];
+        for (int i = 0; i < this.numRows(); ++i) {
+            column[i] = get(i, aColumn);
+        }
+        
+        return column;
+    }
+    
+    /**
+     * Return array containing specified row
+     */
+    public double[] getArrayRow(int aRow) {
+        double[] row = new double[this.numCols()];
+        for (int i = 0; i < this.numCols(); ++i) {
+            row[i] = get(aRow, i);
+        }
+        
+        return row;
+    }
+    
+    /**
+     * Return matrix containing specified column
+     */
+    public Matrix getColumn(int aColumn) {
+        return mkColVector(getArrayColumn(aColumn));
+    }
+    
+    /**
+     * Return matrix containing specified row
+     */
+    public Matrix getRow(int aRow) {
+        return mkRowVector(getArrayRow(aRow));
+    }
 
     /**
      * Return matrix internal data. Should be used only for processing each element
@@ -682,9 +720,9 @@ public class Matrix {
             if (Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]) > aEpsilon) {
                 // DEBUG: Uncomment below to see different element
                 // =====================================================
-//                 System.out.println("["+ i/iMatrix.numCols +"][" + i%iMatrix.numCols + "] " + 
-//                                    this.iMatrix.data[i] + " vs " + aMatrix.iMatrix.data[i] + 
-//                                    " Diff: " + Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]));
+                 System.out.println("["+ i/iMatrix.numCols +"][" + i%iMatrix.numCols + "] " + 
+                                    this.iMatrix.data[i] + " vs " + aMatrix.iMatrix.data[i] + 
+                                    " Diff: " + Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]));
                 // =====================================================
                  
                 return false;

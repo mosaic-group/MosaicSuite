@@ -38,7 +38,7 @@ public class SegmentationFunctionsTest extends CommonBase {
         
         assertEquals("Rows", expected.numRows(), result.numRows());
         assertEquals("Cols", expected.numCols(), result.numCols());
-        assertTrue("Values", expected.compare(result, 0.00000000000001));
+        assertTrue("Values", expected.compare(result, 1e-15));
     }
     
     @Test 
@@ -64,7 +64,7 @@ public class SegmentationFunctionsTest extends CommonBase {
 
         assertEquals("Rows", expected.numRows(), result.numRows());
         assertEquals("Cols", expected.numCols(), result.numCols());
-        assertTrue("Values", expected.compare(result, 0.00000000000001));
+        assertTrue("Values", expected.compare(result, 1e-15));
     }
     
     @Test 
@@ -90,7 +90,7 @@ public class SegmentationFunctionsTest extends CommonBase {
 
         assertEquals("Rows", expected.numRows(), result.numRows());
         assertEquals("Cols", expected.numCols(), result.numCols());
-        assertTrue("Values", expected.compare(result, 0.00000000000001));
+        assertTrue("Values", expected.compare(result, 1e-15));
     }
     
     @Test
@@ -101,7 +101,7 @@ public class SegmentationFunctionsTest extends CommonBase {
         // Tested function
         double result = SegmentationFunctions.calculateRegularizerEnergy(input, input.copy().ones(), false);
         
-        assertEquals("Regularizer energy", expected, result, 0.00000000000001);
+        assertEquals("Regularizer energy", expected, result, 1e-15);
     }
     
     @Test
@@ -118,7 +118,7 @@ public class SegmentationFunctionsTest extends CommonBase {
         // Tested function
         Matrix result = SegmentationFunctions.calculateDirac(input);
         
-        assertTrue("Output should match matlab: ", expected.compare(result, 0.00000000000001));
+        assertTrue("Output should match matlab: ", expected.compare(result, 1e-15));
     }
 
     @Test
@@ -135,7 +135,7 @@ public class SegmentationFunctionsTest extends CommonBase {
         // Tested function
         Matrix result = SegmentationFunctions.calculateHeavySide(input);
 
-        assertTrue("Output should match matlab: ", expected.compare(result, 0.00000000000001));
+        assertTrue("Output should match matlab: ", expected.compare(result, 1e-15));
     }
     
     @Test
@@ -167,7 +167,7 @@ public class SegmentationFunctionsTest extends CommonBase {
         // Tested function
         Matrix result = SegmentationFunctions.generateNormalizedMask(inputPhi, inputPsi);
         
-        assertTrue("Output should match matlab: ", expected.compare(result, 0.00000000000001));
+        assertTrue("Output should match matlab: ", expected.compare(result, 1e-15));
     }
     
     @Test
@@ -184,7 +184,7 @@ public class SegmentationFunctionsTest extends CommonBase {
         // Tested function
         Matrix result = SegmentationFunctions.calculateDiffDirac(input);
 
-        assertTrue("Output should match matlab: ", expected.compare(result, 0.00000000000001));
+        assertTrue("Output should match matlab: ", expected.compare(result, 1e-15));
     }
 
 }

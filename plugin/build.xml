@@ -178,7 +178,7 @@
                     <compilerarg value="-Xlint:-path" />
                     <compilerarg value="-proc:none" />
                     <compilerarg value="-Xlint:-options"/>
-		    <compilerarg value="-Werror" />
+	<!--	    <compilerarg value="-Werror" /> -->
                     <compilerarg line="-Xmaxwarns 10000" /> 
         </javac>
     </target>

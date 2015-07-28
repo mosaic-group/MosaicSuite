@@ -6,6 +6,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.awt.Dimension;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import mosaic.filamentSegmentation.SegmentationAlgorithm.EnergyOutput;
@@ -14,6 +16,7 @@ import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.ThresholdFuzzyOutput;
 import mosaic.math.CubicSmoothingSpline;
 import mosaic.math.Matrix;
+import mosaic.plugins.utils.Debug;
 import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;
@@ -56,7 +59,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
         
         // Tested function
         EnergyOutput result = sa.minimizeEnergy();
-        
+       
         double epsilon = 1e-14;
         assertTrue("Mask", new Matrix(expectedMask).compare(result.iMask, epsilon));
         assertEquals("MLEin", expectedMLEin, result.iRss.getBetaMLEin(), expectedMLEin / 1e10);
@@ -244,4 +247,239 @@ public class SegmentationAlgorithmTest extends CommonBase {
         assertEquals("Number of found filaments", 1, result.size());
         assertTrue(new Matrix(expectedCoefficients).compare(new Matrix(result.get(0).getCoefficients()), 0.000000001));
     }
+    
+    @Test
+    public void testGenerateFilamentInfo2() {
+        // Matrices below are taken from Matlab (both - input masks and expected result).
+        double[][] mask = 
+               {
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                };
+        double[][] thresMask = 
+               {
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0.451374356276127, 0.881030332987749, 0.966029088010224, 0.444633291317662, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0.564828630721963, 0.928075042656205, 0.889672601248121, 0.965710578835770, 0.554636912658168, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0.730021593484628, 0.998966316892269, 0.992493628015381, 0.974452939642755, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0.558430714491194, 0.988490888902313, 0.849176593042148, 0.577180548703722, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0.704680352605598, 0.981817799927692, 0.668429004225885, 0.407375187659188, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0.389860688089553, 0.838694732270388, 0.959601357487264, 0.643342233816376, 0.386763812952287, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0.548426436506120, 0.959494632593251, 0.885123770679988, 0.593176963581349, 0.363655171657864, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0.421591758541020, 0.821231977180627, 0.979570543620863, 0.788190991055422, 0.722191221594935, 0.725630620802927, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0.643065275049463, 0.906065344154813, 0.963016871015114, 0.915056821273320, 0.799558944540624, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.792559812215735, 0.959902902615398, 0.826060116794134, 0.498764482315306, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.500858019175207, 0.791707143133260, 1.000000000000000, 0.651828495264204, 0.350100189835824, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.462349967374751, 0.736475615709141, 0.909554924727538, 0.990893366585723, 0.717455284702580, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.452605348152121, 0.773982204435407, 0.718177376938364, 0.825741245012937, 0.939408249041080, 0.653726110922819, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.665736085480708, 0.976461145102577, 0.441341888023675, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.430439044484251, 0.913521121299610, 0.943116004595476, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.452632186499626, 0.707442496910979, 0.994103464058208, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.424598776635331, 0.928180999184151, 0.795494327020329, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+                };
+        
+        double[][] expectedCoefficients = 
+              {
+                {0.001199034765807, 0, 1.138098972231266, 3.287773349110843},
+                {0.002163561102325, 0.003597104297420, 1.141696076528686, 4.427071356107915},
+                {-0.000335295514421, 0.016578470911372, 1.182047226946268, 6.742160415173570},
+                {-0.001818294899999, 0.015572584368110, 1.214198282225751, 7.940450817516790},
+                {-0.004068811361988, 0.010117699668112, 1.239888566261973, 9.168403389210651},
+                {0.002718558185936, -0.014295168503815, 1.231533628590569, 11.656100829511145},
+                {-0.003326715449649, 0.010171855169606, 1.219163688587942, 15.295446269768783},
+                {-0.000031951470110, 0.000191708820658, 1.229527252578208, 16.521455098076682},
+               };
+        
+        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament, 
+                                                             NoiseType.GAUSSIAN, 
+                                                             PsfType.GAUSSIAN, 
+                                                             new Dimension(1,1), 
+                                /* subpixel sumpling */      1, 
+                                /* scale */                  1, 
+                                /* regularizer term */       0.0001,
+                                                             150);
+        ThresholdFuzzyOutput params = sa.new ThresholdFuzzyOutput(new Matrix(mask), new Matrix(thresMask));
+        
+        // Tested method
+        List<CubicSmoothingSpline> result = sa.generateFilamentInfo(params);
+        
+        assertEquals("Number of found filaments", 1, result.size());
+        assertTrue(new Matrix(expectedCoefficients).compare(new Matrix(result.get(0).getCoefficients()), 1e-14));
+    }
+    
+    @Test
+    public void testLimitNumberOfPoints() {
+        /*
+         * Test limitNumberOfPoints() method in case when number of points is big.
+         * Expected limited number of points (15) comparing to input points. First and last point must
+         * match input points.
+         */
+        final int size = 30;
+        List<Integer> x = new ArrayList<Integer>();
+        List<Integer> y = new ArrayList<Integer>();
+        for (int i = 0; i < size; ++i) {
+            x.add(i);
+            y.add(i);
+        }
+        
+        List<Double> xl = new ArrayList<Double>();
+        List<Double> yl = new ArrayList<Double>();
+        List<Double> wl = new ArrayList<Double>();
+        
+        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament, 
+                                                             NoiseType.GAUSSIAN, 
+                                                             PsfType.GAUSSIAN, 
+                                                             new Dimension(1,1), 
+                                /* subpixel sumpling */      1, 
+                                /* scale */                  1, 
+                                /* regularizer term */       0.0001,
+                                                             150);
+        sa.limitNumberOfPoints(xl, yl, wl, x, y);
+        List<Double> expectedXY = Arrays.asList(0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 15.0, 17.0, 19.0, 21.0, 23.0, 25.0, 27.0, 29.0);
+        List<Double> expectedW  = Arrays.asList(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+        
+        assertEquals(expectedXY, xl);
+        assertEquals(expectedXY, yl);
+        assertEquals(expectedW , wl);
+    }
+    
+    @Test
+    public void testLimitNumberOfPointsSmall() {
+        /*
+         * Test limitNumberOfPoints() method in case when number of points is small.
+         * Expected same output as input.
+         */
+        final int size = 19;
+        List<Integer> x = new ArrayList<Integer>();
+        List<Integer> y = new ArrayList<Integer>();
+        List<Double> expectedWeights = new ArrayList<Double>();
+        List<Double> expectedX = new ArrayList<Double>();
+        List<Double> expectedY = new ArrayList<Double>();
+        for (int i = 0; i < size; ++i) {
+            x.add(i);
+            y.add(i);
+            expectedWeights.add(1.0);
+            expectedX.add((double) i);
+            expectedY.add((double) i);
+        }
+        
+        List<Double> xl = new ArrayList<Double>();
+        List<Double> yl = new ArrayList<Double>();
+        List<Double> wl = new ArrayList<Double>();
+        
+        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament, 
+                                                             NoiseType.GAUSSIAN, 
+                                                             PsfType.GAUSSIAN, 
+                                                             new Dimension(1,1), 
+                                /* subpixel sumpling */      1, 
+                                /* scale */                  1, 
+                                /* regularizer term */       0.0001,
+                                                             150);
+        sa.limitNumberOfPoints(xl, yl, wl, x, y);
+
+        // Small number of points, outputs should be equal to inputs
+        assertEquals(expectedX, xl);
+        assertEquals(expectedY, yl);
+        assertEquals(expectedWeights , wl);
+    }
+    
+    @Test
+    public void testMergePointsWithSameX() {
+        List<Double> inputX = new ArrayList<Double>(Arrays.asList(1.0, 1.0, 2.0, 3.0, 3.0, 4.0, 5.0, 5.0));
+        List<Double> inputY = new ArrayList<Double>(Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 9.0));        
+        List<Double> inputW = new ArrayList<Double>(Arrays.asList(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0));
+        
+        List<Double> expectedX = Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0);
+        List<Double> expectedY = Arrays.asList(1.5, 3.0, 4.5, 6.0, 8.0);        
+        List<Double> expectedW = Arrays.asList(2.0, 1.0, 2.0, 1.0, 3.0);
+        
+        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament, 
+                                                             NoiseType.GAUSSIAN, 
+                                                             PsfType.GAUSSIAN, 
+                                                             new Dimension(1,1), 
+                                /* subpixel sumpling */      1, 
+                                /* scale */                  1, 
+                                /* regularizer term */       0.0001,
+                                                             150);
+        sa.mergePointsWithSameX(inputX, inputY, inputW);
+        
+
+        assertEquals(expectedX, inputX);
+        assertEquals(expectedY, inputY);
+        assertEquals(expectedW , inputW);
+    }
+    
+    @Test
+    public void testGenerateCoordinatesOfFilament() {
+        double[][] region = 
+               {{0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0},
+                {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0},
+                {0,   0,   1,   1,   1,   1,   1,   1,   0,   0,   0},
+                {0,   0,   1,   1,   1,   1,   1,   1,   0,   0,   0},
+                {0,   0,   1,   1,   1,   1,   1,   0,   0,   0,   0},
+                {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0},
+                {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0}};
+        double[][] filament = 
+               {{0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0},
+                {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0},
+                {0,   0,   1,   1,   1, 0.5,   1, 0.5,   0,   0,   0},
+                {0,   0,   1,   1,   1, 0.6,   1,   1,   0,   0,   0},
+                {0,   0,   1,   1,   1, 0.5,   1,   0,   0,   0,   0},
+                {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0},
+                {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0}};
+        
+        
+        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament, 
+                                                             NoiseType.GAUSSIAN, 
+                                                             PsfType.GAUSSIAN, 
+                                                             new Dimension(1,1), 
+                                /* subpixel sumpling */      1, 
+                                /* scale */                  0, 
+                                /* regularizer term */       0.0002,
+                                                             150);
+        
+        // Tested method
+        List<Integer> x = new ArrayList<Integer>();
+        List<Integer> y = new ArrayList<Integer>();
+        sa.generateCoordinatesOfFilament(new Matrix(region), new Matrix(filament), x, y);
+        
+        // Matlab's solution output matrix looks like: 
+        //     0     0     0     0     0     0     0     0     0     0     0
+        //     0     0     0     0     0     0     0     0     0     0     0
+        //     0     0     1     1     1     1     1     0     0     0     0
+        //     0     0     0     0     0     1     0     1     0     0     0
+        //     0     0     0     0     0     1     0     0     0     0     0
+        //     0     0     0     0     0     0     0     0     0     0     0
+        //     0     0     0     0     0     0     0     0     0     0     0
+        List<Integer> expectedX = Arrays.asList(3, 4, 5, 6, 6, 6, 7, 8);
+        List<Integer> expectedY = Arrays.asList(3, 3, 3, 3, 4, 5, 3, 4); 
+        
+        assertEquals(expectedX, x);
+        assertEquals(expectedY, y);
+    }
+    
 }

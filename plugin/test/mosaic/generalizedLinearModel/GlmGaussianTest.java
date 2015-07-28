@@ -77,5 +77,20 @@ public class GlmGaussianTest extends CommonBase {
         
         assertEquals("Output should match", expected, result, 0.00001);
     }
+    
+    @Test
+    public void testNllMean2() {
+        // Output from Matlab from nllMeanGauss
+        double expected = 0.232462490802876;
+        
+        Matrix inputImage = new Matrix(new double[][] {{0.1111, 0.22222}, {0.33333, 0.44444}});
+        Matrix inputMu    = new Matrix(new double[][] {{0.010001, 0.500009}, {0.0, 0.111}});
+        Matrix inputWeight= new Matrix(new double[][] {{1, 2}, {0.5, 0.1111111111}});
+        
+        Glm glm = new GlmGaussian();
+        double result = glm.nllMean(inputImage, inputMu, inputWeight);
+        
+        assertEquals("Output should match", expected, result, 2e-16);
+    }
 
 }

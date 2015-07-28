@@ -47,6 +47,8 @@ public class SegmentationFunctions {
         final double uMax = aX;
         final double vMax = aY;
             
+        // In original code sample in Matlab beginning coefficients are normalized in range -2..2
+        // Not as stated in paper to -1..1. This code follows Matlab implementation.
         return BSplineSurfaceFactory.generateFromFunction(1.0f, uMax, 1.0f, vMax, aScale, 3, new Function() {
                     @Override
                     public double getValue(double u, double v) {
@@ -67,6 +69,8 @@ public class SegmentationFunctions {
         final double uMax = aX;
         final double vMax = aY;
             
+        // In original code sample in Matlab beginning coefficients are normalized in range -2..2
+        // Not as stated in paper to -1..1. This code follows Matlab implementation.
         return BSplineSurfaceFactory.generateFromFunction(1.0f, uMax, 1.0f, vMax, aScale, 3, new Function() {
                     @Override
                     public double getValue(double u, double v) {
@@ -100,7 +104,7 @@ public class SegmentationFunctions {
         
         //Matlab code: y = (1/pi)*(epsilon./(x.^2 + epsilon^2));        
         Matrix result= aM.copy().pow2().add(Math.pow(epsilon, 2)).scale(Math.PI/epsilon).inv();
-        
+                
         return result;
     }
     
@@ -121,7 +125,7 @@ public class SegmentationFunctions {
         };
         
         Matrix result= aM.copy().process(denominatorFunc).inv();
-        
+
         return result;
     }
     

@@ -100,8 +100,8 @@ public class Interpolation {
                         int vs = v;
                         if (u < 0) us = 0;
                         if (v < 0) vs = 0;
-                        if (u >= srcWidth) us = (int)srcWidth-1;
-                        if (v >= srcHeight) vs = (int)srcHeight -1;
+                        if (u >= srcWidth) us = srcWidth-1;
+                        if (v >= srcHeight) vs = srcHeight -1;
                         p += aSrc[us][vs] * nearestNeighbourKernel(aX - u);
                 }
                 value += p * nearestNeighbourKernel(aY - v);
@@ -134,8 +134,8 @@ public class Interpolation {
                 int vs = v;
                 if (u < 0) us = 0;
                 if (v < 0) vs = 0;
-                if (u >= srcWidth) us = (int)srcWidth-1;
-                if (v >= srcHeight) vs = (int)srcHeight -1;
+                if (u >= srcWidth) us = srcWidth-1;
+                if (v >= srcHeight) vs = srcHeight -1;
                 p += aSrc[us][vs] * triangleKernel(aX - u);
             }
             value += p * triangleKernel(aY - v);

@@ -106,6 +106,32 @@ public class MatrixTest extends CommonBase {
             assertArrayEquals(expected, Matrix.getArrayXYasFloats(test));
             assertArrayEquals(expected, test.getArrayXYasFloats());
         }
+        {
+            double[][] input = {{1, 2}, {3, 4}, {5, 6}, {7, 8}};
+            double[] expected = {2, 4, 6, 8};
+            
+            Matrix test = new Matrix(input);
+            
+            assertArrayEquals(expected, test.getArrayColumn(1), 0.0);
+        }
+        {
+            double[][] input = {{1, 2}, {3, 4}, {5, 6}, {7, 8}};
+            double[] expected = {5, 6};
+            
+            Matrix test = new Matrix(input);
+            
+            assertArrayEquals(expected, test.getArrayRow(2), 0.0);
+        }
+    }
+    
+    @Test 
+    public void testgetColumnRow() {
+        Matrix input = new Matrix(new double[][] {{1, 2}, {3, 4}, {5, 6}, {7, 8}});
+        Matrix expectedRow = Matrix.mkRowVector(7, 8);
+        Matrix expectedCol = Matrix.mkColVector(1, 3, 5, 7);
+        
+        assertEquals(expectedRow, input.getRow(3));
+        assertEquals(expectedCol, input.getColumn(0));
     }
     
     @Test
