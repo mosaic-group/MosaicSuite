@@ -720,9 +720,9 @@ public class Matrix {
             if (Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]) > aEpsilon) {
                 // DEBUG: Uncomment below to see different element
                 // =====================================================
-                 System.out.println("["+ i/iMatrix.numCols +"][" + i%iMatrix.numCols + "] " + 
-                                    this.iMatrix.data[i] + " vs " + aMatrix.iMatrix.data[i] + 
-                                    " Diff: " + Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]));
+//                 System.out.println("["+ i/iMatrix.numCols +"][" + i%iMatrix.numCols + "] " + 
+//                                    this.iMatrix.data[i] + " vs " + aMatrix.iMatrix.data[i] + 
+//                                    " Diff: " + Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]));
                 // =====================================================
                  
                 return false;

@@ -369,4 +369,21 @@ public class Matlab {
 
         return elements;
     }
+    
+    /**
+     * Generates new Matrix with elements of aMatrix >aTreshold set to 1 and elements below are set to 0
+     * @param aMatrix
+     * @param aTreshold
+     * @return
+     */
+    public static Matrix logical(final Matrix aMatrix, final double aTreshold) {
+        Matrix result = aMatrix.copy().process(new MFunc() {
+            @Override
+            public double f(double aElement, int aRow, int aCol) {
+                return aElement > aTreshold ? 1 : 0;
+            }
+        });
+        
+        return result;
+    }
 }

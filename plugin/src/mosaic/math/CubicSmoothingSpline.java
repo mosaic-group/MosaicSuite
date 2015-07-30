@@ -242,7 +242,7 @@ public class CubicSmoothingSpline {
         
         // Spline Parameters
         double d = aY[0] - mu * r[0] * q[1] * sigma[0];
-        // For belows line there seems to be mistake in original paper since
+        // For below line there seems to be mistake in original paper since
         // there is at the end of line "* sigma[0]", after changing index to 1
         // it gives same results as in Matlab
         double nextD = aY[1] - mu * (f[1] * q[1] + r[1] * q[2]) * sigma[1]; 

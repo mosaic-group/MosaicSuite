@@ -44,7 +44,9 @@ public abstract class PlugInFloatBase extends PlugInBase {
         }
         
         public void update() {
-            currentIp.setPixels(i, res);
+            if (iResultOutput != ResultOutput.NONE) {
+                currentIp.setPixels(i, res);
+            }
         }
     }
     
@@ -59,8 +61,12 @@ public abstract class PlugInFloatBase extends PlugInBase {
         List<ProcessOneChannel> poc = new ArrayList<ProcessOneChannel>(noOfChannels);
         
         for (int i = 0; i < noOfChannels; ++i) {
-            final ImageProcessor currentIp = iProcessedImg.getStack().getProcessor(aIp.getSliceNumber());
-            final FloatProcessor res = currentIp.toFloat(i, null);
+            FloatProcessor res = null;
+            ImageProcessor currentIp = null;
+            if (iResultOutput != ResultOutput.NONE) {
+                currentIp = iProcessedImg.getStack().getProcessor(aIp.getSliceNumber());
+                res = currentIp.toFloat(i, null);
+            }
             final FloatProcessor orig = aIp.toFloat(i, null);
             orig.setSliceNumber(aIp.getSliceNumber());
 

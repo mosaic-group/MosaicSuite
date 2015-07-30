@@ -9,6 +9,8 @@ import ij.process.ImageProcessor;
 import java.util.ArrayList;
 import java.util.List;
 
+import mosaic.plugins.utils.PlugInBase.ResultOutput;
+
 /**
  * Base for plugIns that use float values as a algorithm base.
  * @author Krzysztof Gonciarz
@@ -45,7 +47,9 @@ abstract class PlugIn8bitBase extends PlugInBase {
         }
         
         public void update() {
-            currentIp.setChannel(i, res);
+            if (iResultOutput != ResultOutput.NONE) {
+                currentIp.setChannel(i, res);
+            }
         }
     }
     
@@ -60,11 +64,14 @@ abstract class PlugIn8bitBase extends PlugInBase {
             List<Thread> th = new ArrayList<Thread>(noOfChannels);
             List<ProcessOneChannel> poc = new ArrayList<ProcessOneChannel>(noOfChannels);
             for (int i = 0; i < noOfChannels; ++i) {
-
-                final ColorProcessor currentIp = (ColorProcessor) iProcessedImg.getStack().getProcessor(aIp.getSliceNumber());
+                ColorProcessor currentIp = null;
+                ByteProcessor res = null;
                 // ColorProcessor has RGB channels starting from 1 not from 0.
                 final int channelNumber = i + 1;
-                final ByteProcessor res = currentIp.getChannel(channelNumber, null);
+                if (iResultOutput != ResultOutput.NONE) {
+                    currentIp = (ColorProcessor) iProcessedImg.getStack().getProcessor(aIp.getSliceNumber());
+                    res = currentIp.getChannel(channelNumber, null);
+                }
                 final ByteProcessor orig = ((ColorProcessor)aIp).getChannel(channelNumber, null);
                 orig.setSliceNumber(aIp.getSliceNumber());
                 

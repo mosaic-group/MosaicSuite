@@ -259,4 +259,14 @@ public class MatlabTest extends CommonBase {
         assertArrayEquals("Connected object: ", new Object[] {8, 11}, result.get(4).toArray());
         assertArrayEquals("Connected object: ", new Object[] {9}, result.get(5).toArray());
     }
+    
+    @Test
+    public void testLogical() {
+        final Matrix input = Matrix.mkRowVector(0, 1, 0.5, 0.501, 2);
+        
+        // Tested method
+        Matrix result = Matlab.logical(input, 0.5);
+        
+        assertEquals(Matrix.mkRowVector(0, 1, 0, 1, 1), result);
+    }
 }

@@ -46,7 +46,7 @@ public class VariationalCurvatureFilter extends CurvatureFilterBase {
 
     @Override
     protected boolean setup(String aArgs) {
-        if (aArgs.equals("updateOriginal")) setChangeOriginal(true);
+        if (aArgs.equals("updateOriginal")) setResultDestination(ResultOutput.UPDATE_ORIGINAL);
         setFilePrefix("filtered_");
         setSplitMethodMenu(true);
         return true;

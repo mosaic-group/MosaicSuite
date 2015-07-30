@@ -16,7 +16,6 @@ import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.ThresholdFuzzyOutput;
 import mosaic.math.CubicSmoothingSpline;
 import mosaic.math.Matrix;
-import mosaic.plugins.utils.Debug;
 import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;
