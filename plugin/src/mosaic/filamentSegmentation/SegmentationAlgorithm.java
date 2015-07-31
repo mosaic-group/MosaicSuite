@@ -166,20 +166,23 @@ public class SegmentationAlgorithm {
             
             // Merge points with same x values and adequately calculate y (mean value) and weights (sum of weights).
             mergePointsWithSameX(xv, yv, wv);
-
-            // Calculate cubic smoothing spline for calculated points and weights
-            double[] xz = new double[xv.size()]; 
-            double[] yz = new double[xv.size()]; 
-            double[] wz = new double[xv.size()];
-            for (int i = 0; i < xv.size(); ++i) { 
-                xz[i] = xv.get(i);
-                yz[i] = yv.get(i);
-                wz[i] = wv.get(i);
-            }
-            CubicSmoothingSpline css = new CubicSmoothingSpline(xz, yz, 0.01, wz);
             
-            // Save result and continue
-            result.add(css);
+            // Check if after merging we have enough points to generate css.
+            if (xv.size() > 1) {
+                // Calculate cubic smoothing spline for calculated points and weights
+                double[] xz = new double[xv.size()]; 
+                double[] yz = new double[xv.size()]; 
+                double[] wz = new double[xv.size()];
+                for (int i = 0; i < xv.size(); ++i) { 
+                    xz[i] = xv.get(i);
+                    yz[i] = yv.get(i);
+                    wz[i] = wv.get(i);
+                }
+                CubicSmoothingSpline css = new CubicSmoothingSpline(xz, yz, 0.01, wz);
+                
+                // Save result and continue
+                result.add(css);
+            }
         }
         
         return result;
