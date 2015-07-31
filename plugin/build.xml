@@ -116,6 +116,7 @@
             <fileset dir="${build}" includes="**/*.*" />
             <fileset dir="." includes="macros/*.ijm" />
             <fileset dir="." includes="Rscript.r" />
+            <fileset dir="." includes="src/mosaic/plugins/scripts/Stack_Overlay.py" />
 
             <!-- Add needed libs directly to the IJ eclipse project and not 
                  into this ant target "compress", for faster debugging 
