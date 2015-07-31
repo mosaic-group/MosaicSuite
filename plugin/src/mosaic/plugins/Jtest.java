@@ -55,11 +55,6 @@ public class Jtest implements PlugInFilter
 		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
 		jtestBR.segmentation();
 
-		// Test Naturalization
-		
-		mosaic.plugins.test.Jtest JtestPlug = new mosaic.plugins.test.Jtest();
-		JtestPlug.naturalization();
-
 		// Test core utils
 		
 		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();

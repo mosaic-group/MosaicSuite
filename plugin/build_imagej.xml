@@ -6,7 +6,10 @@
   
   <!-- Adapt paths to your environment -->
 <!--  <property name="pluginsDir"  location="/home/i-bird/Desktop/MOSAIC/imageJ/ImageJ_1.45/ImageJ/plugins/Mosaic_ToolSuite" /> -->
-  <property name="pluginsDir"  location="/home/i-bird/Desktop/MOSAIC/imageJ/ImageJ/plugins/Mosaic_ToolSuite" />
+    <property environment="env" />
+    <echo message="MOSAIC plugin path to Fiji: [${env.FIJI_MOSAIC_PLUGIN_PATH}]" />
+    <property name="pluginsDir" location="${env.FIJI_MOSAIC_PLUGIN_PATH}" />
+
   <!-- Shouldn't be necessary to change something below here, except you know what you are doing. -->
 
   <property name="src" location="src" />
@@ -151,7 +154,7 @@
   </path>
   
   <target name="build">  
-    <javac debug="true" includeantruntime="false" srcdir="src/" destdir="bin/" classpathref="build.classpath"
+    <javac debug="true" includeantruntime="false" srcdir="src/:test/" destdir="bin/" classpathref="build.classpath"
 	   classpath="${build.classpath}"/>
   </target>
   
