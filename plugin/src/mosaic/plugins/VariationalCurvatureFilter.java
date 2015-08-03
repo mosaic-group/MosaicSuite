@@ -2,7 +2,7 @@ package mosaic.plugins;
 
 
 import ij.process.FloatProcessor;
-import mosaic.plugins.utils.ConvertImg;
+import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.CurvatureFilterBase;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 
@@ -35,25 +35,25 @@ public class VariationalCurvatureFilter extends CurvatureFilterBase {
         // create (normalized) 2D array with input image
         float maxValueOfPixel = (float) aOriginalIp.getMax(); 
         if (maxValueOfPixel < 1.0f) maxValueOfPixel = 1.0f;
-        ConvertImg.ImgToYX2Darray(aOriginalIp, img, maxValueOfPixel);
+        ImgUtils.ImgToYX2Darray(aOriginalIp, img, maxValueOfPixel);
         
         // Run chosen filter on image      
         aFilter.runFilter(img, aNumberOfIterations);
 
         // Update input image with a result
-        ConvertImg.YX2DarrayToImg(img, aOutputIp, maxValueOfPixel);
+        ImgUtils.YX2DarrayToImg(img, aOutputIp, maxValueOfPixel);
     }
 
     @Override
     protected boolean setup(String aArgs) {
-        if (aArgs.equals("updateOriginal")) setChangeOriginal(true);
+        if (aArgs.equals("updateOriginal")) setResultDestination(ResultOutput.UPDATE_ORIGINAL);
         setFilePrefix("filtered_");
         setSplitMethodMenu(true);
         return true;
     }
 
     @Override
-    protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg) {
+    protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber) {
         filterImage(aOutputImg, aOrigImg, getCurvatureFilter(), getNumberOfIterations());
     }
 }

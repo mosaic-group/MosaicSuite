@@ -1,6 +1,7 @@
 package mosaic.particleTracker;
 
 import mosaic.core.detection.Particle;
+import mosaic.math.LeastSquares;
 
 
 /**

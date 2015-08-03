@@ -3,7 +3,7 @@ package mosaic.plugins;
 
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import mosaic.plugins.utils.ConvertImg;
+import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.CurvatureFilterBase;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 
@@ -42,7 +42,7 @@ public class SuperResolution extends CurvatureFilterBase {
             }
         });
 
-        ConvertImg.YX2DarrayToImg(img, aInputIp, maxValueOfPixel);
+        ImgUtils.YX2DarrayToImg(img, aInputIp, maxValueOfPixel);
     }
     
     /**
@@ -89,7 +89,7 @@ public class SuperResolution extends CurvatureFilterBase {
     }
 
     @Override
-    protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg) {
+    protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber) {
         superResolution(aOutputImg, aOrigImg, getCurvatureFilter(), getNumberOfIterations());
     }
 }

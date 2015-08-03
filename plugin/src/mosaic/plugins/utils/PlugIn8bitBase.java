@@ -45,7 +45,9 @@ public abstract class PlugIn8bitBase extends PlugInBase {
         }
         
         public void update() {
-            currentIp.setChannel(i, res);
+            if (iResultOutput != ResultOutput.NONE) {
+                currentIp.setChannel(i, res);
+            }
         }
     }
     
@@ -60,11 +62,14 @@ public abstract class PlugIn8bitBase extends PlugInBase {
             List<Thread> th = new ArrayList<Thread>(noOfChannels);
             List<ProcessOneChannel> poc = new ArrayList<ProcessOneChannel>(noOfChannels);
             for (int i = 0; i < noOfChannels; ++i) {
-
-                final ColorProcessor currentIp = (ColorProcessor) iProcessedImg.getStack().getProcessor(aIp.getSliceNumber());
+                ColorProcessor currentIp = null;
+                ByteProcessor res = null;
                 // ColorProcessor has RGB channels starting from 1 not from 0.
                 final int channelNumber = i + 1;
-                final ByteProcessor res = currentIp.getChannel(channelNumber, null);
+                if (iResultOutput != ResultOutput.NONE) {
+                    currentIp = (ColorProcessor) iProcessedImg.getStack().getProcessor(aIp.getSliceNumber());
+                    res = currentIp.getChannel(channelNumber, null);
+                }
                 final ByteProcessor orig = ((ColorProcessor)aIp).getChannel(channelNumber, null);
                 orig.setSliceNumber(aIp.getSliceNumber());
                 
@@ -89,6 +94,8 @@ public abstract class PlugIn8bitBase extends PlugInBase {
             int slice = aIp.getSliceNumber();
             final ByteProcessor res = (ByteProcessor) iProcessedImg.getStack().getProcessor(slice);
             final ByteProcessor orig = (ByteProcessor)aIp;
+            orig.setSliceNumber(aIp.getSliceNumber());
+            
             processImg(res, orig, 3);
             
             iProcessedImg.setSlice(slice);

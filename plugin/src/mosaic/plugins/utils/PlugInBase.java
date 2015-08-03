@@ -7,6 +7,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Calibration;
 import ij.plugin.filter.PlugInFilter;
+import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 
 /**
@@ -27,10 +28,25 @@ abstract class PlugInBase implements PlugInFilter {
     protected double iScaleX = 1.0;
     protected double iScaleY = 1.0;
     
-    // If false new ImagePlus is generated, otherwise original (input) image
-    // shall be changed
-    boolean iChangeOriginal = false;
-   
+    // Decides where result of processing shall be placed.
+    /**
+     * UPDATE_ORIGINAL - updates source image with processed data
+     * GENERATE_NEW - crates new image with same parameters (type, number of slices...) as original one
+     * NONE - do nothing, plugin itself should generate and update output image
+     */
+    protected enum ResultOutput {UPDATE_ORIGINAL, GENERATE_NEW, NONE};
+    ResultOutput iResultOutput = ResultOutput.GENERATE_NEW;
+    
+    /*
+     * Timeline of plugin's life:
+     * 1. initialize variables with input stuff
+     * 2. setup(final String aArgs) is called
+     * 3. showDialog() is called
+     * 4. set/getFlags()
+     * 5. postprocess()
+     * 6. shows output...
+     */
+    
     abstract protected boolean showDialog();
     abstract protected int getFlags();
     abstract protected void updateFlags(int aFlag);
@@ -61,11 +77,13 @@ abstract class PlugInBase implements PlugInFilter {
             
             // Set the original image as being processed or generate new empty copy of
             // input img otherwise
-            if (iChangeOriginal) {
+            if (iResultOutput == ResultOutput.UPDATE_ORIGINAL) {
                 iProcessedImg = iInputImg;
             }
-            else {
+            else if (iResultOutput == ResultOutput.GENERATE_NEW){
                 iProcessedImg = createNewEmptyImgPlus(iInputImg, iFilePrefix + iInputImg.getTitle(), iScaleX, iScaleY);
+                updateFlags(NO_CHANGES);
+            } else {
                 updateFlags(NO_CHANGES);
             }
 
@@ -87,6 +105,10 @@ abstract class PlugInBase implements PlugInFilter {
      * @return newly created ImagePlus
      */
     protected ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale) {
+        return createNewEmptyImgPlus(aOrigIp, aTitle, aXscale, aYscale, false);
+    }
+        
+    protected ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale, boolean convertToRgb) {
         int nSlices = aOrigIp.getStackSize();
         int w=aOrigIp.getWidth();
         int h=aOrigIp.getHeight();
@@ -102,7 +124,12 @@ abstract class PlugInBase implements PlugInFilter {
         for (int i = 1; i <= nSlices; i++) {
             ip1 = origStack.getProcessor(i);
             String label = origStack.getSliceLabel(i);
-            ip2 = ip1.createProcessor(newWidth, newHeight);
+            if (!convertToRgb) {
+                ip2 = ip1.createProcessor(newWidth, newHeight);
+            }
+            else {
+                ip2 = new ColorProcessor(newWidth, newHeight);
+            }
             if (ip2 != null) {
                 copyStack.addSlice(label, ip2);
             }
@@ -133,23 +160,27 @@ abstract class PlugInBase implements PlugInFilter {
         return copyIp;
     }
 
-    public void setScaleX(double aScaleX) {
+    protected void setScaleX(double aScaleX) {
         iScaleX = aScaleX;
     }
 
-    public void setScaleY(double aScaleY) {
+    protected void setScaleY(double aScaleY) {
         iScaleY = aScaleY;
     }
 
-    public void setChangeOriginal(boolean aChangeOriginal) {
-        iChangeOriginal = aChangeOriginal;
+    protected void setResultDestination(ResultOutput aResultOutput) {
+        iResultOutput = aResultOutput;
     }   
     
-    public void setFilePrefix(String aFilePrefix) {
+    protected void setFilePrefix(String aFilePrefix) {
         iFilePrefix = aFilePrefix;
     }
     
-    public ImagePlus getInputImg() {
+    protected ImagePlus getInputImg() {
         return iInputImg;
+    }
+    
+    protected void setProcessedImg(ImagePlus aProcessedImg) {
+        iProcessedImg = aProcessedImg;
     }
 }

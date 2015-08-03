@@ -2,10 +2,12 @@ package mosaic.variationalCurvatureFilters;
 
 import java.util.Random;
 
+import mosaic.test.framework.CommonBase;
+
 import org.junit.Assert;
 import org.junit.Test;
 
-public class CommonFilterTests {
+public class CommonFilterTests extends CommonBase {
 
     @Test
     public void testFilterGcSplitVsNoSplitMethod() {

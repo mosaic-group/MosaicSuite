@@ -51,6 +51,7 @@
     </target>
 
     <target name="jtest" depends="build">
+        <copy file="${test}/log4j.properties" todir="${build}"/>
         <junit printsummary="yes" haltonfailure="yes">
             <classpath>
                 <pathelement location="bin" />    
@@ -137,6 +138,8 @@
             <zipgroupfileset dir="lib" includes="mines-jtk-20100113.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="super-csv-2.1.0.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="super-csv-dozer-2.1.0.jar" excludes="*.config" />
+            <zipgroupfileset dir="lib" includes="jgeom-core.jar" excludes="*.config" />
+
 	    <manifest>
                 <attribute name="Built-By" value="${name}" />
             </manifest>
@@ -176,7 +179,7 @@
                     <compilerarg value="-Xlint:-path" />
                     <compilerarg value="-proc:none" />
                     <compilerarg value="-Xlint:-options"/>
-		    <compilerarg value="-Werror" />
+	<!--	    <compilerarg value="-Werror" /> -->
                     <compilerarg line="-Xmaxwarns 10000" /> 
         </javac>
     </target>
