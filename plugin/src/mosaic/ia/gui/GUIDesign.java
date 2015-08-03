@@ -39,7 +39,7 @@ public class GUIDesign implements ActionListener
 
 	private double gridSize=.5;
 	private ImagePlus imgx,imgy;
-	private JComboBox jcb;
+	private JComboBox<String> jcb;
 	private int potentialType=PotentialFunctions.HERNQUIST;
 	private Point3d [] Xcoords, Ycoords;
 	
@@ -219,7 +219,7 @@ public class GUIDesign implements ActionListener
 		
 		JLabel lblPotentialEstimation = new JLabel("Potential estimation");
 		
-		 jcb = new JComboBox(items);
+		 jcb = new JComboBox<String>(items);
 		//jcb.setModel(new DefaultComboBoxModel(potentialOptions));
 		jcb.addActionListener(this);
 		
