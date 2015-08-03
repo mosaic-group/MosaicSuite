@@ -9,6 +9,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
@@ -72,7 +73,10 @@ public class Naturalization extends PlugIn8bitBase
     private final float T2_pr[] = {0.2421f ,0.2550f, 0.2474f, 0.24816666f};
     private final float Nf_s[] = {0,0,0};
 
-    private List<List<Float>> iPsnrOutput = new ArrayList<List<Float>>();
+    private List<Map<Integer, Float>> iPsnrOutput = new ArrayList<Map<Integer, Float>>();
+    private synchronized void addPsnr(int aSlice, int aChannel, float aValue) {
+        
+    }
     
 //    @Override
 //    public int setup(String arg, ImagePlus imp)

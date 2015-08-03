@@ -66,6 +66,7 @@ public abstract class PlugIn8bitBase extends PlugInBase {
                 final int channelNumber = i + 1;
                 final ByteProcessor res = currentIp.getChannel(channelNumber, null);
                 final ByteProcessor orig = ((ColorProcessor)aIp).getChannel(channelNumber, null);
+                orig.setSliceNumber(aIp.getSliceNumber());
                 
                 // Start separate thread on each channel
                 ProcessOneChannel p = new ProcessOneChannel(currentIp, res, orig, channelNumber);
