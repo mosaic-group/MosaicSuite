@@ -41,7 +41,7 @@ public abstract class PlugIn8bitBase extends PlugInBase {
         
         @Override
         public void run() {
-                processImg(res, orig, i);
+                processImg(res, orig, i - 1);
         }
         
         public void update() {
