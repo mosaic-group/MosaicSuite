@@ -140,7 +140,7 @@ public class CommonBase extends Info {
             // Set active image and run plugin
             WindowManager.setTempCurrentImage(ip);
             new PlugInFilterRunner(aTestedPlugin, "pluginTest", aSetupArg);
-            
+            debugOutput();
             // compare output from plugin with reference images
             logger.debug("Comparing output of two images:");
             logger.debug("    ref: [" + tcPath + aReferenceFiles[0] + "]");

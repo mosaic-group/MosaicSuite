@@ -22,7 +22,7 @@ public class NaturalizationTest extends CommonBase {
         String setupString        = "run";
         int expectedSetupRetValue = PlugInFilter.DONE;
         String[] inputFiles       = {"x.png"};
-        String[] expectedFiles    = {"x.png_naturalized"};
+        String[] expectedFiles    = {"naturalized_x.png"};
         String[] referenceFiles   = {"x_nat.tif"};
            
         // Create tested plugin
@@ -41,7 +41,7 @@ public class NaturalizationTest extends CommonBase {
         String setupString        = "run";
         int expectedSetupRetValue = PlugInFilter.DONE;
         String[] inputFiles       = {"x8bit.png"};
-        String[] expectedFiles    = {"x8bit.png_naturalized"};
+        String[] expectedFiles    = {"naturalized_x8bit.png"};
         String[] referenceFiles   = {"x8bit_nat.tif"};
            
         // Create tested plugin
