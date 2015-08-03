@@ -13,7 +13,7 @@ import java.util.List;
  * Base for plugIns that use float values as a algorithm base.
  * @author Krzysztof Gonciarz
  */
-abstract class PlugIn8bitBase extends PlugInBase {
+public abstract class PlugIn8bitBase extends PlugInBase {
     // ImageJ plugIn flags defined for setup method
     private int iFlags = DOES_8G |
                          DOES_RGB |
@@ -21,7 +21,7 @@ abstract class PlugIn8bitBase extends PlugInBase {
                          PARALLELIZE_STACKS |
                          FINAL_PROCESSING; 
   
-    abstract protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg);
+    abstract protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg, int aChannelNumber);
     
     protected int getFlags() {return iFlags;}
     protected void updateFlags(int aFlag) {iFlags |= aFlag;}
@@ -41,7 +41,7 @@ abstract class PlugIn8bitBase extends PlugInBase {
         
         @Override
         public void run() {
-                processImg(res, orig);
+                processImg(res, orig, i);
         }
         
         public void update() {
@@ -88,7 +88,7 @@ abstract class PlugIn8bitBase extends PlugInBase {
             int slice = aIp.getSliceNumber();
             final ByteProcessor res = (ByteProcessor) iProcessedImg.getStack().getProcessor(slice);
             final ByteProcessor orig = (ByteProcessor)aIp;
-            processImg(res, orig);
+            processImg(res, orig, 3);
             
             iProcessedImg.setSlice(slice);
             iProcessedImg.getProcessor().setPixels(res.getPixels());

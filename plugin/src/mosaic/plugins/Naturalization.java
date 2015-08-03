@@ -2,14 +2,13 @@ package mosaic.plugins;
 
 import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
-import ij.macro.Interpreter;
 import ij.measure.ResultsTable;
-import ij.plugin.filter.PlugInFilter;
-import ij.process.ImageProcessor;
+import ij.process.ByteProcessor;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
@@ -18,6 +17,7 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
+import mosaic.plugins.utils.PlugIn8bitBase;
 import net.imglib2.Cursor;
 import net.imglib2.IterableInterval;
 import net.imglib2.RandomAccess;
@@ -40,7 +40,7 @@ import net.imglib2.view.Views;
  * channel independently averaging all the channels
  * of T2_pr
  */
-public class Naturalization implements PlugInFilter
+public class Naturalization extends PlugIn8bitBase
 {
     // Precision in finding your best T 
     private static final float EPS = 0.0001f;
@@ -72,115 +72,128 @@ public class Naturalization implements PlugInFilter
     private final float T2_pr[] = {0.2421f ,0.2550f, 0.2474f, 0.24816666f};
     private final float Nf_s[] = {0,0,0};
 
-    @Override
-    public int setup(String arg, ImagePlus imp)
-    {
-        if (imp == null || !(imp.getType() == ImagePlus.COLOR_RGB || imp.getType() == ImagePlus.GRAY8)) {
-            IJ.error("Naturalization require 8-bit images or RGB");
-            return DONE;
-        }
+    private List<List<Float>> iPsnrOutput = new ArrayList<List<Float>>();
+    
+//    @Override
+//    public int setup(String arg, ImagePlus imp)
+//    {
+//        if (imp == null || !(imp.getType() == ImagePlus.COLOR_RGB || imp.getType() == ImagePlus.GRAY8)) {
+//            IJ.error("Naturalization require 8-bit images or RGB");
+//            return DONE;
+//        }
+//
+//        ImageStack is = imp.getStack();
+//        
+//        long rdims[] = new long[3];
+//        rdims[0] = imp.getWidth();
+//        rdims[1] = imp.getHeight();
+//        rdims[2] = is.getSize();
+//        
+//        ResultsTable rs = new ResultsTable();
+//        ImagePlus nat;
+//        
+//        if (imp.getType() == ImagePlus.COLOR_RGB) {
+//            nat = naturalizeColorRgb(imp, is, rdims, rs);
+//        }
+//        else if (imp.getType() == ImagePlus.GRAY8) {
+//            nat = naturalizeGray8(imp, is, rdims, rs);
+//        }
+//        else {
+//            return DONE; // Should not happen
+//        }
+//        
+//        nat.show();
+//        
+//        if (!Interpreter.isBatchMode()) {
+//            rs.show("Naturalization and PSNR");
+//            showMessage();
+//        }
+//        
+//        return DONE;
+//    }
 
-        ImageStack is = imp.getStack();
+
+    @Override
+    protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg, int aChannelNumber) {
+        // get input/original image pixels
         
+        // perform naturalization
+        ResultsTable rs = new ResultsTable();
+System.out.println("Doing...");
+        ImagePlus nat = naturalizeGray8(aOrigImg, rs, aChannelNumber);
+System.out.println("DONE....");
+        // set processed pixels to output image
+        aOutputImg.setPixels(nat.getProcessor().getPixels());
+        
+        rs.show("Naturalization and PSNR");
+    }
+    
+//    private ImagePlus naturalizeColorRgb(ImagePlus imp, ImageStack is, long[] rdims, ResultsTable rs) {
+//        // It work only on 2D images
+//        long dims[] = new long[2];
+//        dims[0] = imp.getWidth();
+//        dims[1] = imp.getHeight();
+//        Img<ARGBType> img_result = new ArrayImgFactory<ARGBType>().create(rdims, new ARGBType());
+//
+//        for (int i = 0 ; i < is.getSize() ; i++) {
+//            ImagePlus RGBb = new ImagePlus("RGB_tmp", is.getProcessor(i+1));
+//            Img<ARGBType> image_orig = ImagePlusAdapter.wrap( RGBb );
+//            
+//            // Red channel
+//            Img<UnsignedByteType> R_Channel = naturalizeOneChannel(dims, image_orig, 2);
+//            // Green channel
+//            Img<UnsignedByteType> G_Channel = naturalizeOneChannel(dims, image_orig, 1);
+//            // Blue channel
+//            Img<UnsignedByteType> B_Channel = naturalizeOneChannel(dims, image_orig, 0);
+//             
+//            // Merge the Naturalized channel into an RGB image      
+//            IntervalView<ARGBType> view = Views.hyperSlice(img_result, 2, i);
+//            RandomAccess<ARGBType> result_ra = view.randomAccess();
+//        
+//            int loc[] = new int[2];
+//            Cursor<UnsignedByteType> rc = R_Channel.cursor();
+//            Cursor<UnsignedByteType> gc = G_Channel.cursor();
+//            Cursor<UnsignedByteType> bc = B_Channel.cursor();
+//        
+//            while (rc.hasNext()) {
+//                rc.next();
+//                gc.next();
+//                bc.next();
+//            
+//                rc.localize(loc);
+//                result_ra.setPosition(loc);
+//                result_ra.get().set(ARGBType.rgba(rc.get().getRealFloat(), gc.get().getRealFloat(), bc.get().getRealFloat(), 255.0f));
+//            }
+//            
+//            rs.incrementCounter();
+//            rs.addValue("Naturalization R", Nf_s[2]);
+//            rs.addValue("Estimated R PSNR", calculate_PSNR(Nf_s[2]));
+//            rs.addValue("Naturalization G", Nf_s[1]);
+//            rs.addValue("Estimated G PSNR", calculate_PSNR(Nf_s[1]));
+//            rs.addValue("Naturalization B", Nf_s[0]);
+//            rs.addValue("Estimated B PSNR", calculate_PSNR(Nf_s[0]));
+//            
+//            IJ.showStatus("Processing image " + (i+1));
+//            IJ.showProgress((((double)i+1)/is.getSize()));
+//        }
+//        
+//        return ImageJFunctions.wrap(img_result,imp.getTitle() + "_naturalized");
+//    }
+
+    private ImagePlus naturalizeGray8(ByteProcessor imp, ResultsTable rs, int aChannelNumber) {
         long rdims[] = new long[3];
         rdims[0] = imp.getWidth();
         rdims[1] = imp.getHeight();
-        rdims[2] = is.getSize();
-        
-        ResultsTable rs = new ResultsTable();
-        ImagePlus nat;
-        
-        if (imp.getType() == ImagePlus.COLOR_RGB) {
-            nat = naturalizeColorRgb(imp, is, rdims, rs);
-        }
-        else if (imp.getType() == ImagePlus.GRAY8) {
-            nat = naturalizeGray8(imp, is, rdims, rs);
-        }
-        else {
-            return DONE; // Should not happen
-        }
-        
-        nat.show();
-        
-        if (!Interpreter.isBatchMode()) {
-            rs.show("Naturalization and PSNR");
-            showMessage();
-        }
-        
-        return DONE;
-    }
+        rdims[2] = 1;
 
-    /**
-     * @see ij.plugin.filter.PlugInFilter#run(ij.process.ImageProcessor)
-     */
-    @Override
-    public void run(ImageProcessor ip) 
-    {
-    }
-    
-    private ImagePlus naturalizeColorRgb(ImagePlus imp, ImageStack is, long[] rdims, ResultsTable rs) {
-        // It work only on 2D images
-        long dims[] = new long[2];
-        dims[0] = imp.getWidth();
-        dims[1] = imp.getHeight();
-        Img<ARGBType> img_result = new ArrayImgFactory<ARGBType>().create(rdims, new ARGBType());
-
-        for (int i = 0 ; i < is.getSize() ; i++) {
-            ImagePlus RGBb = new ImagePlus("RGB_tmp", is.getProcessor(i+1));
-            Img<ARGBType> image_orig = ImagePlusAdapter.wrap( RGBb );
-            
-            // Red channel
-            Img<UnsignedByteType> R_Channel = naturalizeOneChannel(dims, image_orig, 2);
-            // Green channel
-            Img<UnsignedByteType> G_Channel = naturalizeOneChannel(dims, image_orig, 1);
-            // Blue channel
-            Img<UnsignedByteType> B_Channel = naturalizeOneChannel(dims, image_orig, 0);
-             
-            // Merge the Naturalized channel into an RGB image      
-            IntervalView<ARGBType> view = Views.hyperSlice(img_result, 2, i);
-            RandomAccess<ARGBType> result_ra = view.randomAccess();
-        
-            int loc[] = new int[2];
-            Cursor<UnsignedByteType> rc = R_Channel.cursor();
-            Cursor<UnsignedByteType> gc = G_Channel.cursor();
-            Cursor<UnsignedByteType> bc = B_Channel.cursor();
-        
-            while (rc.hasNext()) {
-                rc.next();
-                gc.next();
-                bc.next();
-            
-                rc.localize(loc);
-                result_ra.setPosition(loc);
-                result_ra.get().set(ARGBType.rgba(rc.get().getRealFloat(), gc.get().getRealFloat(), bc.get().getRealFloat(), 255.0f));
-            }
-            
-            rs.incrementCounter();
-            rs.addValue("Naturalization R", Nf_s[2]);
-            rs.addValue("Estimated R PSNR", calculate_PSNR(Nf_s[2]));
-            rs.addValue("Naturalization G", Nf_s[1]);
-            rs.addValue("Estimated G PSNR", calculate_PSNR(Nf_s[1]));
-            rs.addValue("Naturalization B", Nf_s[0]);
-            rs.addValue("Estimated B PSNR", calculate_PSNR(Nf_s[0]));
-            
-            IJ.showStatus("Processing image " + (i+1));
-            IJ.showProgress((((double)i+1)/is.getSize()));
-        }
-        
-        return ImageJFunctions.wrap(img_result,imp.getTitle() + "_naturalized");
-    }
-
-    private ImagePlus naturalizeGray8(ImagePlus imp, ImageStack is, long[] rdims, ResultsTable rs) {
         Img<UnsignedByteType> Channel = new ArrayImgFactory<UnsignedByteType>().create(rdims, new UnsignedByteType());
         
-        for (int i = 0 ; i < is.getSize() ; i++) {
-            ImagePlus Cb = new ImagePlus("Gray8_tmp", is.getProcessor(i+1));
-            Img<UnsignedByteType> TChannel = ImagePlusAdapter.wrap( Cb );
+            Img<UnsignedByteType> TChannel = ImagePlusAdapter.wrap(new ImagePlus("", imp));
             
-            TChannel = performNaturalization(3, TChannel);
+            TChannel = performNaturalization(3-aChannelNumber, TChannel);
             
             // Merge the result
-            IntervalView<UnsignedByteType> view = Views.hyperSlice(Channel, 2, i);
+            IntervalView<UnsignedByteType> view = Views.hyperSlice(Channel, 2, 0);
             RandomAccess<UnsignedByteType> result_ra = view.randomAccess();
         
             int loc[] = new int[2];
@@ -196,12 +209,10 @@ public class Naturalization implements PlugInFilter
             rs.incrementCounter();
             rs.addValue("Naturalization ", Nf_s[0]);
             rs.addValue("Estimated PSNR", calculate_PSNR(Nf_s[0]));
-            
-            IJ.showStatus("Processing image " + (i+1));
-            IJ.showProgress((((double)i+1)/is.getSize()));
-        }
+           
+
         
-        return ImageJFunctions.wrap(Channel, imp.getTitle() + "_naturalized");
+        return ImageJFunctions.wrap(Channel,"asdf");
     }
     
     /**
@@ -703,5 +714,19 @@ public class Naturalization implements PlugInFilter
         win.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         
         win.setVisible(true);
+    }
+
+    @Override
+    protected boolean showDialog() {
+        // TODO Auto-generated method stub
+        System.out.println("SHOW DIALOG");
+        return true;
+    }
+
+    @Override
+    protected boolean setup(String aArgs) {
+        setFilePrefix("naturalized_");
+        System.out.println("SETUP");
+        return true;
     }
 }

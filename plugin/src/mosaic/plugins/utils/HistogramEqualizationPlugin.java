@@ -9,7 +9,7 @@ import ij.process.ByteProcessor;
 public class HistogramEqualizationPlugin extends PlugIn8bitBase {
 
     @Override
-    protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg) {
+    protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg, int aChannelNumber) {
     	// get input/original image pixels
     	byte[] pixels = (byte[]) aOrigImg.getPixelsCopy();
     	
