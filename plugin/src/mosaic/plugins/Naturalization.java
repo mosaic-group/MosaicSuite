@@ -36,11 +36,7 @@ import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
 
-/**
- * The Code is for RGB but it has to run on each
- * channel independently averaging all the channels
- * of T2_pr
- */
+
 public class Naturalization extends PlugIn8bitBase
 {
     // Precision in finding your best T 
@@ -66,8 +62,7 @@ public class Naturalization extends PlugIn8bitBase
     // Offset for the gradient histogram shift
     private static final int Grad_Offset = 256;
     
-    // Prior parameter for second order
-    // (Parameters learned from trained data set)
+    // Prior parameter for second order (Parameters learned from trained data set)
     // For different color R G B
     // For one channel image use an average of them
     private final float T2_pr[] = {0.2421f ,0.2550f, 0.2474f, 0.24816666f};
@@ -88,16 +83,16 @@ public class Naturalization extends PlugIn8bitBase
     @Override
     protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg, int aChannelNumber) {
         // perform naturalization
-        ImagePlus nat = naturalize8bitImage(aOrigImg, aChannelNumber);
+        ImagePlus naturalizedImg = naturalize8bitImage(aOrigImg, aChannelNumber);
 
         // set processed pixels to output image
-        aOutputImg.setPixels(nat.getProcessor().getPixels());
+        aOutputImg.setPixels(naturalizedImg.getProcessor().getPixels());
     }
     
     @Override 
     protected void postprocess() {
+        // Create result table with all stored PSNRs.
         ResultsTable rs = new ResultsTable();
-        
         for (Entry<Integer, Map<Integer, Float>> e : iPsnrOutput.entrySet()) {
             rs.incrementCounter();
             for (Entry<Integer, Float> m : e.getValue().entrySet()) {
@@ -117,51 +112,29 @@ public class Naturalization extends PlugIn8bitBase
     };
 
     private ImagePlus naturalize8bitImage(ByteProcessor imp, int aChannelNumber) {
-        long rdims[] = new long[3];
-        rdims[0] = imp.getWidth();
-        rdims[1] = imp.getHeight();
-        rdims[2] = 1;
-
-        Img<UnsignedByteType> Channel = new ArrayImgFactory<UnsignedByteType>().create(rdims, new UnsignedByteType());
-        
         Img<UnsignedByteType> TChannel = ImagePlusAdapter.wrap(new ImagePlus("", imp));
-        int priorNumber = (aChannelNumber < 3) ? 2-aChannelNumber : 3;
-        float T2_prior = T2_pr[priorNumber];
+        float T2_prior = T2_pr[(aChannelNumber < 3) ? 2-aChannelNumber : 3];
         float[] result = {0.0f}; // ugly but one of way to get result back via parameters;
+
+        // Perform naturalization and store PSNR result. Finally return image in ImageJ format.
         TChannel = performNaturalization(TChannel, T2_prior, result);
-        
-        // Merge the result
-        IntervalView<UnsignedByteType> view = Views.hyperSlice(Channel, 2, 0);
-        RandomAccess<UnsignedByteType> result_ra = view.randomAccess();
-    
-        int loc[] = new int[2];
-        Cursor<UnsignedByteType> rc = TChannel.cursor();
-    
-        while (rc.hasNext()) {
-            rc.next();
-            rc.localize(loc);
-            result_ra.setPosition(loc);
-            result_ra.get().set(rc.get());
-        }
-       
         addPsnr(imp.getSliceNumber(), aChannelNumber, result[0]);
 
-        return ImageJFunctions.wrap(Channel,"temporaryName");
+        return ImageJFunctions.wrap(TChannel,"temporaryName");
     }
     
     /**
      * Naturalize the image
-     * 
      * @param Img original image
      * @param Theta parameter
      * @param Class<T> Original image
      * @param Class<S> Calculation Type
-     * @param channel_prior Channel prior to use
+     * @param T2_prior Prior to use
+     * @param result One element array to store nautralization factor
      */
     private <T extends NumericType<T> & NativeType<T> & RealType<T>, S extends RealType<S>> Img<T> doNaturalization(Img<T> image_orig, S Theta,Class<T> cls_t, Class<S> cls_s, float T2_prior, float[] result) throws InstantiationException, IllegalAccessException
     {
-        if (image_orig == null)
-        {return null;}
+        if (image_orig == null) {return null;}
         
         // Check that the image data set is 8 bit
         // Otherwise return an error or hint to scale down
@@ -174,7 +147,6 @@ public class Naturalization extends PlugIn8bitBase
         
         float Nf = findNaturalizationFactor(image_orig, Theta, T2_prior);
         result[0] = Nf;
-        
         Img<T> image_result = naturalizeImage(image_orig, Nf, cls_t, cls_s);
         
         return image_result;
