@@ -1,6 +1,5 @@
 package mosaic.plugins;
 
-import ij.IJ;
 import ij.plugin.PlugIn;
 
 import java.io.InputStream;

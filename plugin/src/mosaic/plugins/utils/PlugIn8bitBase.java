@@ -9,8 +9,6 @@ import ij.process.ImageProcessor;
 import java.util.ArrayList;
 import java.util.List;
 
-import mosaic.plugins.utils.PlugInBase.ResultOutput;
-
 /**
  * Base for plugIns that use float values as a algorithm base.
  * @author Krzysztof Gonciarz

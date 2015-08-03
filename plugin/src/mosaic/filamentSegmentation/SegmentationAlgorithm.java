@@ -22,7 +22,6 @@ import mosaic.generalizedLinearModel.Glm;
 import mosaic.generalizedLinearModel.GlmGaussian;
 import mosaic.generalizedLinearModel.GlmPoisson;
 import mosaic.math.CubicSmoothingSpline;
-import mosaic.math.MFunc;
 import mosaic.math.Matlab;
 import mosaic.math.Matrix;
 import mosaic.math.RegionStatisticsSolver;
