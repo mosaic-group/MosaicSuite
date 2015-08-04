@@ -1,15 +1,12 @@
 package mosaic.plugins.utils;
 
 
-import mosaic.noise_sample.noiseList;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.gui.GenericDialog;
 import ij.measure.Calibration;
 import ij.plugin.filter.ExtendedPlugInFilter;
-import ij.plugin.filter.PlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
 import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
