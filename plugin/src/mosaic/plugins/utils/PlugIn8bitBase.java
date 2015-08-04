@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Base for plugIns that use float values as a algorithm base.
+ * Base for plugIns that use 8bit processing as a algorithm base (8bit images or RGB with color channels processed 
+ * separately).
  * @author Krzysztof Gonciarz
  */
 public abstract class PlugIn8bitBase extends PlugInBase {
@@ -26,11 +27,13 @@ public abstract class PlugIn8bitBase extends PlugInBase {
     protected static final int CHANNEL_B = 2;
     protected static final int CHANNEL_8G = 3;
     
+    // This method should be implemented by plugin for processing image
     abstract protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg, int aChannelNumber);
     
     protected int getFlags() {return iFlags;}
     protected void updateFlags(int aFlag) {iFlags |= aFlag;}
     
+    // Class for storing information needed to process one color channel in RGB images
     private class ProcessOneChannel implements Runnable {
         int channelNumber;
         ColorProcessor processedProcessor;

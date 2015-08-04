@@ -54,6 +54,7 @@ public abstract class PlugInFloatBase extends PlugInBase {
     public void run(ImageProcessor aIp) {
         IJ.showStatus("In progress...");
         
+        // Can be 3 in case when RGB image is processed as a float.
         final int noOfChannels = aIp.getNChannels();
         
         // Lists to keep information about threads
