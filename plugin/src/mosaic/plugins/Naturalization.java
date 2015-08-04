@@ -8,14 +8,19 @@ import ij.process.ByteProcessor;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextPane;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
@@ -562,27 +567,37 @@ public class Naturalization extends PlugIn8bitBase
      */
     private void showMessage()
     {
-        JDialog win = new JDialog((JDialog)null,"Naturalization",true);
-        
+        // Create main window with panel to store gui components
+        final JDialog win = new JDialog((JDialog)null, "Naturalization", true);
         JPanel msg = new JPanel();
-        win.getContentPane().add(msg);
-        Border main_border = BorderFactory.createEmptyBorder(5, 5, 5, 5);
-        msg.setBorder(main_border);
+        msg.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Create message not editable but still focusable for copying
+        JTextPane text = new JTextPane();
+        text.setContentType("text/html");
+        text.setText("<html>Y. Gong and I. F. Sbalzarini. Image enhancement by gradient distribution specification. In Proc. ACCV, <br>"
+                   + "12th Asian Conference on Computer Vision, Workshop on Emerging Topics in Image Enhancement and Restoration,<br>"
+                   + "pages w7–p3, Singapore, November 2014.<br><br>"
+                   + "Y. Gong and I. F. Sbalzarini, Gradient Distributions Priors for Biomedical Image Processing, 2014<br><a href=\"http://arxiv.org/abs/1408.3300\">http://arxiv.org/abs/1408.3300</a></html>");
+        text.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+        text.setEditable(false);
+        msg.add(text);
+
+        // Add button "Close" for closing window easily
+        JButton button = new JButton("Close");
+        button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                win.dispose();
+                
+            }
+        });
+        msg.add(button);
+        
+        // Finally show window with message
         win.add(msg);
-        
-        JPanel mP1 = new JPanel();
-        JLabel lbl_pap1 = new JLabel("<html>Y. Gong and I. F. Sbalzarini. Image enhancement by gradient distribution specification. In Proc. ACCV, <br>"
-                + "12th Asian Conference on Computer Vision, Workshop on Emerging Topics in Image Enhancement and Restoration,<br>"
-                + "pages w7–p3, Singapore, November 2014.<br><br>"
-                + "Y. Gong and I. F. Sbalzarini, Gradient Distributions Priors for Biomedical Image Processing, 2014 <a href=\"http://arxiv.org/abs/1408.3300\">http://arxiv.org/abs/1408.3300</a></html>");
-        Border border = BorderFactory.createLineBorder(Color.BLACK, 2);
-        lbl_pap1.setBorder(border);
-        mP1.add(lbl_pap1);
-        win.getContentPane().add(mP1, BorderLayout.SOUTH);
-        
         win.pack();
         win.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        
         win.setVisible(true);
     }
 
