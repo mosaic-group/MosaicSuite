@@ -1,5 +1,6 @@
-package mosaic.plugins.utils;
+package mosaic.plugins.utils.templatePlugins;
 
+import mosaic.plugins.utils.PlugIn8bitBase;
 import ij.process.ByteProcessor;
 
 /**

@@ -97,10 +97,10 @@ public class Naturalization extends PlugIn8bitBase
             rs.incrementCounter();
             for (Entry<Integer, Float> m : e.getValue().entrySet()) {
                 switch(m.getKey()) {
-                    case 0: rs.addValue("Naturalization R", m.getValue()); rs.addValue("Estimated R PSNR", calculate_PSNR(m.getValue())); break;
-                    case 1: rs.addValue("Naturalization G", m.getValue()); rs.addValue("Estimated G PSNR", calculate_PSNR(m.getValue())); break;
-                    case 2: rs.addValue("Naturalization B", m.getValue()); rs.addValue("Estimated B PSNR", calculate_PSNR(m.getValue())); break;
-                    case 3: rs.addValue("Naturalization", m.getValue()); rs.addValue("Estimated PSNR", calculate_PSNR(m.getValue())); break;
+                    case CHANNEL_R: rs.addValue("Naturalization R", m.getValue()); rs.addValue("Estimated R PSNR", calculate_PSNR(m.getValue())); break;
+                    case CHANNEL_G: rs.addValue("Naturalization G", m.getValue()); rs.addValue("Estimated G PSNR", calculate_PSNR(m.getValue())); break;
+                    case CHANNEL_B: rs.addValue("Naturalization B", m.getValue()); rs.addValue("Estimated B PSNR", calculate_PSNR(m.getValue())); break;
+                    case CHANNEL_8G: rs.addValue("Naturalization", m.getValue()); rs.addValue("Estimated PSNR", calculate_PSNR(m.getValue())); break;
                 }
             }
         }
@@ -113,8 +113,8 @@ public class Naturalization extends PlugIn8bitBase
 
     private ImagePlus naturalize8bitImage(ByteProcessor imp, int aChannelNumber) {
         Img<UnsignedByteType> TChannel = ImagePlusAdapter.wrap(new ImagePlus("", imp));
-        float T2_prior = T2_pr[(aChannelNumber < 3) ? 2-aChannelNumber : 3];
-        float[] result = {0.0f}; // ugly but one of way to get result back via parameters;
+        float T2_prior = T2_pr[(aChannelNumber <= CHANNEL_B) ? 2-aChannelNumber : CHANNEL_8G];
+        float[] result = {0.0f}; // ugly but one of ways to get result back via parameters;
 
         // Perform naturalization and store PSNR result. Finally return image in ImageJ format.
         TChannel = performNaturalization(TChannel, T2_prior, result);

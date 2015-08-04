@@ -55,12 +55,13 @@ abstract class PlugInBase implements PlugInFilter {
     
     @Override
     public int setup(final String aArgs, final ImagePlus aImp) {
+        System.out.println("setup()00000000");
         // Filter expects image to work on...
         if (aImp == null) {
             IJ.noImage();
             return DONE;
         }
-
+        System.out.println("setup()");
         if (aArgs.equals("final")) {
             postprocess();
             
@@ -71,10 +72,10 @@ abstract class PlugInBase implements PlugInFilter {
         else {
             iInputImg = aImp;
             iInputArgs = aArgs;
-            
+            System.out.println("setup()2");
             // Allow plugin to make it own configuration
             if (!setup(iInputArgs)) return DONE;
-            
+            System.out.println("setup()3");
             // Set the original image as being processed or generate new empty copy of
             // input img otherwise
             if (iResultOutput == ResultOutput.UPDATE_ORIGINAL) {
@@ -89,7 +90,7 @@ abstract class PlugInBase implements PlugInFilter {
 
             if (!showDialog()) return DONE;
         }
-        
+        System.out.println("setup()4");
         return getFlags();
     }
 
