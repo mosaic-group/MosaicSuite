@@ -1,12 +1,16 @@
 package mosaic.plugins.utils;
 
 
+import mosaic.noise_sample.noiseList;
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.gui.GenericDialog;
 import ij.measure.Calibration;
+import ij.plugin.filter.ExtendedPlugInFilter;
 import ij.plugin.filter.PlugInFilter;
+import ij.plugin.filter.PlugInFilterRunner;
 import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 
@@ -14,7 +18,7 @@ import ij.process.ImageProcessor;
  * Base for plugIns that use float values as a algorithm base.
  * @author Krzysztof Gonciarz
  */
-abstract class PlugInBase implements PlugInFilter {
+abstract class PlugInBase implements ExtendedPlugInFilter {
     
     // Original input image
     protected ImagePlus iInputImg;
@@ -86,13 +90,23 @@ abstract class PlugInBase implements PlugInFilter {
             } else {
                 updateFlags(NO_CHANGES);
             }
-
-            if (!showDialog()) return DONE;
         }
         
         return getFlags();
     }
 
+    @Override
+    public void setNPasses(int arg0) {
+        // Nothing to do here
+    }
+    
+    @Override
+    public int showDialog(ImagePlus arg0, String arg1, PlugInFilterRunner arg2) {
+        if (!showDialog()) return DONE;
+        
+        return getFlags();
+    }
+    
     /**
      * Creates new empty ImagePlus basing on information from original aOrigIp image.
      * Newly generated img will have same structure (like slices/frames/channels, composite,
