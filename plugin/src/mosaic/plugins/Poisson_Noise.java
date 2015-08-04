@@ -4,7 +4,9 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import ij.gui.Roi;
+import ij.plugin.filter.ExtendedPlugInFilter;
 import ij.plugin.filter.PlugInFilter;
+import ij.plugin.filter.PlugInFilterRunner;
 import ij.plugin.frame.RoiManager;
 import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
@@ -63,12 +65,12 @@ import net.imglib2.type.numeric.real.FloatType;
  * OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.<p>
  *
  */
-public class Poisson_Noise implements PlugInFilter
+public class Poisson_Noise implements ExtendedPlugInFilter
 {
+    static final int FLAGS = DOES_8G + DOES_16 + DOES_32;
 	ImagePlus imp;
 	int erodePixel;
 	public int mSeed = 8888;
-//	private Random mRandomGenerator;
 	private static final int BYTE=0, SHORT=1, FLOAT=2;
 	NoiseSample<?> ns;
 	SegmentationInfo seg;
@@ -216,10 +218,8 @@ public class Poisson_Noise implements PlugInFilter
 		try {
 			test = cls.newInstance();
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -317,10 +317,8 @@ public class Poisson_Noise implements PlugInFilter
 				try {
 					meanT = cls.newInstance();
 				} catch (InstantiationException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				meanT.setReal(mean);
@@ -379,10 +377,8 @@ public class Poisson_Noise implements PlugInFilter
 		try {
 			bck = clsS.newInstance();
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		bck.setZero();
@@ -505,10 +501,8 @@ public class Poisson_Noise implements PlugInFilter
 			try {
 				mean_t = cls.newInstance();
 			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			@SuppressWarnings("unchecked")
@@ -533,139 +527,38 @@ public class Poisson_Noise implements PlugInFilter
 	    
 	}
 	
-	
 	public int setup(String aArgs, ImagePlus aImp) 
 	{
 		imp = aImp;
-//		mRandomGenerator = new Random(mSeed);
-		//run(new FloatProcessor(1,1));		
-		//return DONE;
-		
-		// Ask if you have an image or you know the noise type
-		
-/*		YesNoCancelDialog YNd = new YesNoCancelDialog(null, "Noise type",  " 1) You know EXACTLY if the noise model is Poisson or Gaussian ..., Press (No)\n"                                                                + " 2) The noise distribution is unknown, but you have an image. Press (Yes) \n");
- 
- 
-		if (YNd.yesPressed())
-		{
-			GenericDialog gd = new GenericDialog("Select the source image");
-			Choice cc = MosaicUtils.chooseImage(gd,"Image select",aImp);
-			
-			gd.showDialog();
-			
-			// get the image
-			
-			String selImage = cc.getItem(cc.getSelectedIndex());
-			ImagePlus imgs = WindowManager.getImage(selImage);
-			
-			if (imgs != null)
-			{
-				// Check if you have segmentation information
-				
-				if (MosaicUtils.checkSegmentationInfo(aImp))
-				{					
-					// Ask to the user if we will gone use it
-					
-					YesNoCancelDialog YNs = new YesNoCancelDialog(null, "Segmentation found","Do you want to use the segmentation to collect information on the noise profile");
-					YNs.show(true);
-					
-					if (YNs.yesPressed())
-					{
-						// We will gonna use the segmentation information
-						
-						// get the segmentation
-						
-						seg = MosaicUtils.getSegmentationInfo(aImp);
-						
-						// Ask if the user know PSF to erode
-						
-						GenericDialog gde = new GenericDialog("PSF to erode");
-						
-						gde.addNumericField("N iteration", 0, 0);
-						
-						gde.addMessage("In order to eliminate border effect produced by the PSF, indicate how much to erode the regions");
-						
-						gde.showDialog();
-						
-						if (gde.wasOKed())
-						{
-							erodePixel = (int) gde.getNextNumber();
-						}
-					}
-				}
-			}*/
-			
-/*	        if (aImp.getProcessor() instanceof ByteProcessor)
-	        {<UnsignedByteType>setupGenericNoise();}
-	        else if (aImp.getProcessor() instanceof ShortProcessor)
-	        {vType = SHORT;}
-	        else if (aImp.getProcessor() instanceof FloatProcessor)
-	        {vType = FLOAT;}
-	        else {
-	        	IJ.showMessage("Wrong image type");
-	        	return;
-	        }
-			
-			setupGenericNoiseSample();*/
-/*		}
-		else
-		{*/
-			GenericDialog gd = new GenericDialog("Choose type of noise");
-			
-			gd.addChoice("Choose noise model", noiseList.noiseList, noiseList.noiseList[0]);
-			
-			gd.addNumericField("Offset", 0.0, 3);
-			gd.showDialog();
-			
-			if (gd.wasCanceled())
-				return DONE;
-			
-			dilatation = gd.getNextNumber();
-			NoiseModel = gd.getNextChoice();
-/*		}*/
-		
-//		YesNoCancelDialog YNd = new YesNoCancelDialog("Do you know the noise ?","Bhoo","Bhoo");
-		
-		// Ask to select some ROI
-		
-		return DOES_ALL - DOES_RGB;
+		return FLAGS;
 	}
 	
 	private <T extends RealType< T > & NativeType< T > > void sample(ImagePlus imp, Class<T> cls)
 	{
-		T smp = null;
+		// Convert an imagePlus into ImgLib2
+		final Img< T > image = ImagePlusAdapter.wrap(imp);
+		Cursor<T> cur = image.cursor();
+
+		int numOfDims = 2;
+		numOfDims += (imp.getNFrames() > 1) ? 1 : 0;
+		numOfDims += (imp.getNChannels() > 1) ? 1 : 0;
+		numOfDims += (imp.getNSlices() > 1) ? 1 : 0;
+		int loc[] = new int[numOfDims];
+
 		@SuppressWarnings("unchecked")
 		NoiseSample<T> nsT = (NoiseSample<T>) ns;
-		
-		try {
-			smp = cls.newInstance();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		// Convert an imagePlus into ImgLib2
-		
-		final Img< T > image = ImagePlusAdapter.wrap( imp );
-		
-		Cursor<T> cur = image.cursor();
-		
-		int loc[] = new int[2];
-		
-		while (cur.hasNext())
-		{
+        T smp = null;
+        try {
+            smp = cls.newInstance();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+	        
+		while (cur.hasNext()) {
 			cur.next();
-			
 			cur.localize(loc);
-//			if (loc[0] == 35 && loc[1] == 29)
-//			{
-//				int debug = 0;
-//				debug++;
-//			}
-			
 			nsT.sample(cur.get(), smp);
 			cur.get().set(smp);
 		}
@@ -674,39 +567,56 @@ public class Poisson_Noise implements PlugInFilter
 	public void run(ImageProcessor aImageProcessor) 
 	{
 		// Get the Type
-		
-		int vType;
-        if (aImageProcessor instanceof ByteProcessor)
-        {vType = BYTE; ns = noiseList.<UnsignedByteType>factory(NoiseModel,dilatation);}
-        else if (aImageProcessor instanceof ShortProcessor)
-        {vType = SHORT; ns = noiseList.<ShortType>factory(NoiseModel,dilatation);}
-        else if (aImageProcessor instanceof FloatProcessor)
-        {vType = FLOAT; ns = noiseList.<FloatType>factory(NoiseModel,dilatation);}
-        else {
-        	IJ.showMessage("Wrong image type");
-        	return;
+        int vType;
+        if (aImageProcessor instanceof ByteProcessor) {
+            vType = BYTE;
+            ns = noiseList.<UnsignedByteType> factory(NoiseModel, dilatation);
+        } else if (aImageProcessor instanceof ShortProcessor) {
+            vType = SHORT;
+            ns = noiseList.<ShortType> factory(NoiseModel, dilatation);
+        } else if (aImageProcessor instanceof FloatProcessor) {
+            vType = FLOAT;
+            ns = noiseList.<FloatType> factory(NoiseModel, dilatation);
+        } else {
+            IJ.showMessage("Wrong image type");
+            return;
         }
-		
-		// We do not have a noise model (yet)
-		
-		if (ns == null)
-		{
-			if (vType == BYTE)
-				this.<UnsignedByteType>setupGenericNoise(UnsignedByteType.class);
-			else if (vType == SHORT)
-				this.<ShortType>setupGenericNoise(ShortType.class);
-			else if (vType == FLOAT)
-				this.<FloatType>setupGenericNoise(FloatType.class);
-		}
-		
-		// Sample from it
-        
-		if (vType == BYTE)
-			this.<UnsignedByteType>sample(imp,UnsignedByteType.class);
-		else if (vType == SHORT)
-			this.<ShortType>sample(imp,ShortType.class);
-		else if (vType == FLOAT)
-			this.<FloatType>sample(imp,FloatType.class);
-	}
 
+        // We do not have a noise model (yet)
+        if (ns == null) {
+            if (vType == BYTE)
+                this.<UnsignedByteType> setupGenericNoise(UnsignedByteType.class);
+            else if (vType == SHORT)
+                this.<ShortType> setupGenericNoise(ShortType.class);
+            else if (vType == FLOAT)
+                this.<FloatType> setupGenericNoise(FloatType.class);
+        }
+
+        // Sample from it
+        if (vType == BYTE)
+            this.<UnsignedByteType> sample(imp, UnsignedByteType.class);
+        else if (vType == SHORT)
+            this.<ShortType> sample(imp, ShortType.class);
+        else if (vType == FLOAT)
+            this.<FloatType> sample(imp, FloatType.class);
+    }
+	
+    @Override
+    public void setNPasses(int arg0) {
+        // Nothing to do here
+    }
+    
+    @Override
+    public int showDialog(ImagePlus arg0, String arg1, PlugInFilterRunner arg2) {
+        // Take input from user
+        GenericDialog gd = new GenericDialog("Choose type of noise");
+        gd.addChoice("Choose noise model", noiseList.noiseList, noiseList.noiseList[0]);
+        gd.addNumericField("Offset", 0.0, 3);
+        gd.showDialog();
+        if (gd.wasCanceled()) return DONE;
+        dilatation = gd.getNextNumber();
+        NoiseModel = gd.getNextChoice();
+        
+        return FLAGS;
+    }
 }
