@@ -154,7 +154,7 @@ class RScript {
 		try{
 			//works when plugin running from .jar plugin file
 			IJ.log("RSCRIPT..........");
-			InputStream in = this.getClass().getResourceAsStream("/Rscript.r");
+			InputStream in = this.getClass().getResourceAsStream("/src/mosaic/plugins/scripts/Rscript.r");
 			Scanner scanner = new Scanner(in);
 			String content = scanner.useDelimiter("\\Z").next();
 			

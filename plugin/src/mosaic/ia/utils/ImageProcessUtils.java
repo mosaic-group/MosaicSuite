@@ -273,8 +273,7 @@ public class ImageProcessUtils {
 		ImagePlus mask=dupe.run(image);
 		
 		mask.show();
-		new Macro_Runner().run("JAR:macros/GenerateMask_.ijm");
-	//	new Macro_Runner().run("JAR:macros/GenerateROIs_.ijm");
+		new Macro_Runner().run("JAR:src/mosaic/plugins/scripts/GenerateMask_.ijm");
 		mask.changes=false;
 		
 	
