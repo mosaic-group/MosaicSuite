@@ -18,13 +18,13 @@ ant jtest
 
 if [ $? -ne 0 ]
 then
-	echo "Error in the tests"
+	echo "Error in the unit tests"
 	exit 1
 fi
 
 cd $FIJI_MOSAIC_PLUGIN_PATH/../..
 
-./ImageJ-linux64 -batch test.ijm "username=incardon"
+./ImageJ-linux64 --system -batch test.ijm "username=incardon"
 
 # check if tmp/test has succeful file
 
