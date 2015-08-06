@@ -28,7 +28,7 @@ class LabelDispenser
 		tempList = new TreeSet<Integer>();
 		
 		highestLabelEverUsed = 0;
-		for(int i=1; i<maxLabels; i++) // don't start at 0
+		for (int i=1; i<maxLabels; i++) // don't start at 0
 		{
 			labels.add(i);
 		}
@@ -49,7 +49,7 @@ class LabelDispenser
 	 */
 	public void addTempFree()
 	{
-//		for(int label : tempList)
+//		for (int label : tempList)
 //		{
 //			labels.addFirst(label);
 //		}
@@ -71,11 +71,11 @@ class LabelDispenser
 	
 	private void checkAndSetNewMax(Integer newMax)
 	{
-		if(newMax==null)
+		if (newMax==null)
 		{
 			newMax=highestLabelEverUsed+1;
 		}
-		if(newMax>highestLabelEverUsed)
+		if (newMax>highestLabelEverUsed)
 			highestLabelEverUsed=newMax;
 	}
 	
@@ -133,10 +133,10 @@ class LabelDispenser
 		@Override
 		public void setLabelsInUse(Collection<Integer> used)
 		{
-			if(used.isEmpty()) return;
+			if (used.isEmpty()) return;
 			
 			int max = Collections.max(used);
-			if(max>label)
+			if (max>label)
 				label = max;
 		}
 		

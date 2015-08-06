@@ -52,7 +52,7 @@ public class ControllerFrame extends JFrame
 			{
 				Algorithm algorithm = MVC.getAlgorithm();
 				
-				if(!isPaused){
+				if (!isPaused){
 					isPaused = true;
 					resumeButton.setText("Resume");
 					algorithm.pause();

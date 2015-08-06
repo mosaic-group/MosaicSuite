@@ -75,8 +75,8 @@ class Tools
 		//IJ.log("apres xmin "+ icols + "ymin" + irows);
 
 		// check validity of params
-		//if(!in || !out || !kernel) return ;
-		///if(ix <= 0 || kx <= 0) return ;
+		//if (!in || !out || !kernel) return ;
+		///if (ix <= 0 || kx <= 0) return ;
 
 		// find center position of kernel (half of kernel size)
 		
@@ -85,16 +85,16 @@ class Tools
 		kCenterY = sz[1] / 2;
 		double kernel[][] = psf.getImage2DAsDoubleArray();
 
-		for(i=0; i < icols; ++i)                // columns
+		for (i=0; i < icols; ++i)                // columns
 		{
-			for(j=0; j < irows; ++j)            // rows
+			for (j=0; j < irows; ++j)            // rows
 			{
 				sum = 0;                            // init to 0 before sum
-				for(m=0; m < sz[0]; ++m)      // kernel cols
+				for (m=0; m < sz[0]; ++m)      // kernel cols
 				{
 					mm = sz[0] - 1 - m;       // col index of flipped kernel
 
-					for(n=0; n < sz[1]; ++n)  // kernel rows
+					for (n=0; n < sz[1]; ++n)  // kernel rows
 					{
 						nn = sz[1] - 1 - n;   // row index of flipped kernel
 
@@ -104,15 +104,15 @@ class Tools
 						rowIndex = j + n - kCenterY;
 
 
-						if(rowIndex >= 0 && rowIndex < irows && colIndex >= 0 && colIndex < icols)
+						if (rowIndex >= 0 && rowIndex < irows && colIndex >= 0 && colIndex < icols)
 							sum += in[colIndex][rowIndex] * kernel[mm] [nn];
 						// syymetric boundaries
 						else{
-							if(rowIndex < 0)rowIndex= - rowIndex -1;
-							if(rowIndex > irows-1)rowIndex=irows-(rowIndex-irows) -1;
+							if (rowIndex < 0)rowIndex= - rowIndex -1;
+							if (rowIndex > irows-1)rowIndex=irows-(rowIndex-irows) -1;
 
-							if(colIndex < 0)colIndex=- colIndex -1;
-							if(colIndex > icols-1)colIndex=icols-(colIndex-icols) -1;
+							if (colIndex < 0)colIndex=- colIndex -1;
+							if (colIndex > icols-1)colIndex=icols-(colIndex-icols) -1;
 							sum += in[colIndex][rowIndex] * kernel[mm][nn];							
 						}
 
@@ -148,12 +148,12 @@ class Tools
 		kCenterY = sz[1] / 2;
 		//IJ.log("convolve" + "irows" + irows+ "icols" + icols + "istart" + iStart + "iend" + iEnd);
 		//convolve in x (i coordinate), horizontal
-		for(i=iStart; i < iEnd; ++i)                // columns
+		for (i=iStart; i < iEnd; ++i)                // columns
 		{
-			for(j=0; j < irows; ++j)            // rows
+			for (j=0; j < irows; ++j)            // rows
 			{
 				sum = 0;                            // init to 0 before sum
-				for(m=0; m < sz[0]; ++m)      // kernel cols
+				for (m=0; m < sz[0]; ++m)      // kernel cols
 				{
 					mm = sz[0] - 1 - m;       // col index of flipped kernel
 
@@ -162,12 +162,12 @@ class Tools
 					rowIndex = j;
 
 
-					if(colIndex >= 0 && colIndex < icols)
+					if (colIndex >= 0 && colIndex < icols)
 						sum += in[colIndex][rowIndex] * kernelx[mm];
 					// syymetric boundaries
 					else{
-						if(colIndex < 0)colIndex=- colIndex -1;
-						if(colIndex > icols-1)colIndex=icols-(colIndex-icols) -1;
+						if (colIndex < 0)colIndex=- colIndex -1;
+						if (colIndex > icols-1)colIndex=icols-(colIndex-icols) -1;
 						sum += in[colIndex][rowIndex] * kernelx[mm];							
 					}
 
@@ -179,12 +179,12 @@ class Tools
 
 
 		//convolve in y (j coordinate), vertical
-		for(i=iStart; i < iEnd; ++i)                    // columns
+		for (i=iStart; i < iEnd; ++i)                    // columns
 		{
-			for(j=0; j < irows; ++j)            // rows
+			for (j=0; j < irows; ++j)            // rows
 			{
 				sum = 0;                            // init to 0 before sum
-				for(n=0; n < sz[1]; ++n)  // kernel rows
+				for (n=0; n < sz[1]; ++n)  // kernel rows
 				{
 					nn = sz[1] - 1 - n;   // row index of flipped kernel
 
@@ -192,12 +192,12 @@ class Tools
 					colIndex = i ;
 					rowIndex = j + n - kCenterY;
 
-					if(rowIndex >= 0 && rowIndex < irows)
+					if (rowIndex >= 0 && rowIndex < irows)
 						sum += temp[colIndex][rowIndex] * kernely[nn];
 					// syymetric boundaries
 					else{
-						if(rowIndex < 0)rowIndex= - rowIndex -1;
-						if(rowIndex > irows-1)rowIndex=irows-(rowIndex-irows) -1;
+						if (rowIndex < 0)rowIndex= - rowIndex -1;
+						if (rowIndex > irows-1)rowIndex=irows-(rowIndex-irows) -1;
 						sum += temp[colIndex][rowIndex] * kernely[nn];							
 					}
 
@@ -235,8 +235,8 @@ class Tools
 		double kernelz[] = psf.getSeparableImageAsDoubleArray(2);
 		
 		// check validity of params
-		//if(!in || !out || !kernel) return ;
-		///if(ix <= 0 || kx <= 0) return ;
+		//if (!in || !out || !kernel) return ;
+		///if (ix <= 0 || kx <= 0) return ;
 
 		// find center position of kernel (half of kernel size)
 		//double [] kernelx = {0.00176900911404382,	0.0215509428482683,	0.0965846250185641,	0.159241125690702,	0.0965846250185641,	0.0215509428482683,	0.00176900911404382};
@@ -249,14 +249,14 @@ class Tools
 		kCenterZ = sz[2] / 2;
 
 		//convolve in x (i coordinate), horizontal
-		for(k=0; k < islices; ++k)                // columns
+		for (k=0; k < islices; ++k)                // columns
 		{
-			for(i=iStart; i < iEnd; ++i)                // columns
+			for (i=iStart; i < iEnd; ++i)                // columns
 			{
-				for(j=0; j < irows; ++j)            // rows
+				for (j=0; j < irows; ++j)            // rows
 				{
 					sum = 0;                            // init to 0 before sum
-					for(m=0; m < sz[0]; ++m)      // kernel cols
+					for (m=0; m < sz[0]; ++m)      // kernel cols
 					{
 						mm = sz[0] - 1 - m;       // col index of flipped kernel
 
@@ -265,12 +265,12 @@ class Tools
 						rowIndex = j;
 
 
-						if(colIndex >= 0 && colIndex < icols)
+						if (colIndex >= 0 && colIndex < icols)
 							sum += in[k][colIndex][rowIndex] * kernelx[mm];
 						// syymetric boundaries
 						else{
-							if(colIndex < 0)colIndex=- colIndex -1;
-							if(colIndex > icols-1)colIndex=icols-(colIndex-icols) -1;
+							if (colIndex < 0)colIndex=- colIndex -1;
+							if (colIndex > icols-1)colIndex=icols-(colIndex-icols) -1;
 							sum += in[k][colIndex][rowIndex] * kernelx[mm];							
 						}
 
@@ -284,14 +284,14 @@ class Tools
 
 
 		//convolve in y (j coordinate), vertical
-		for(k=0; k < islices; ++k)                // columns
+		for (k=0; k < islices; ++k)                // columns
 		{
-			for(i=iStart; i < iEnd; ++i)                // columns
+			for (i=iStart; i < iEnd; ++i)                // columns
 			{
-				for(j=0; j < irows; ++j)            // rows
+				for (j=0; j < irows; ++j)            // rows
 				{
 					sum = 0;                            // init to 0 before sum
-					for(n=0; n < sz[1]; ++n)  // kernel rows
+					for (n=0; n < sz[1]; ++n)  // kernel rows
 					{
 						nn = sz[1] - 1 - n;   // row index of flipped kernel
 
@@ -299,12 +299,12 @@ class Tools
 						colIndex = i ;
 						rowIndex = j + n - kCenterY;
 
-						if(rowIndex >= 0 && rowIndex < irows)
+						if (rowIndex >= 0 && rowIndex < irows)
 							sum += out[k][colIndex][rowIndex] * kernely[nn];
 						// syymetric boundaries
 						else{
-							if(rowIndex < 0)rowIndex= - rowIndex -1;
-							if(rowIndex > irows-1)rowIndex=irows-(rowIndex-irows) -1;
+							if (rowIndex < 0)rowIndex= - rowIndex -1;
+							if (rowIndex > irows-1)rowIndex=irows-(rowIndex-irows) -1;
 							sum += out[k][colIndex][rowIndex] * kernely[nn];							
 						}
 
@@ -329,14 +329,14 @@ class Tools
 		}
 
 		//convolve in z (k coordinate), slices
-		for(k=0; k < islices; ++k)                // columns
+		for (k=0; k < islices; ++k)                // columns
 		{
-			for(i=iStart; i < iEnd; ++i)          // columns
+			for (i=iStart; i < iEnd; ++i)          // columns
 			{
-				for(j=0; j < irows; ++j)            // rows
+				for (j=0; j < irows; ++j)            // rows
 				{
 					sum = 0;                            // init to 0 before sum
-					for(l=0; l < sz[2]; ++l)  // kernel slices
+					for (l=0; l < sz[2]; ++l)  // kernel slices
 					{
 						ll = sz[2] - 1 - l;   // row index of flipped kernel
 
@@ -345,13 +345,13 @@ class Tools
 						rowIndex = j ;
 						sliceIndex = k + l - kCenterZ;
 
-						if(sliceIndex >= 0 && sliceIndex < islices)
+						if (sliceIndex >= 0 && sliceIndex < islices)
 							sum += temp[sliceIndex][colIndex][rowIndex] * kernelz[ll];
 						// syymetric boundaries
 						else{
-							if(sliceIndex < 0)sliceIndex=Math.min(islices-1, - sliceIndex -1) ;
+							if (sliceIndex < 0)sliceIndex=Math.min(islices-1, - sliceIndex -1) ;
 							//IJ.log("islices" + islices + "sliceindex "+ sliceIndex );
-							if(sliceIndex > islices-1)sliceIndex=Math.max(0, islices-(sliceIndex-islices) -1);
+							if (sliceIndex > islices-1)sliceIndex=Math.max(0, islices-(sliceIndex-islices) -1);
 							//IJ.log("sl" + sliceIndex + "col "+ colIndex + "row "+ rowIndex + "ll "+ ll);
 							sum += temp[sliceIndex][colIndex][rowIndex] * kernelz[ll];							
 						}
@@ -846,7 +846,7 @@ class Tools
 		for (int z=0; z<nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0;j< nj; j++) {  
-					if(image[z][i][j] !=0)
+					if (image[z][i][j] !=0)
 						res[z][i][j]=ldata*weight*(image[z][i][j]*Math.log(image[z][i][j]/mu[z][i][j]) +mu[z][i][j] -image[z][i][j]);
 					else
 						res[z][i][j]=ldata*mu[z][i][j];
@@ -898,7 +898,7 @@ class Tools
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0;j< nj; j++) {  
-					if(image[z][i][j] !=0)
+					if (image[z][i][j] !=0)
 						res[z][i][j]=ldata*weight*(image[z][i][j]*Math.log(image[z][i][j]/mu) +mu -image[z][i][j]);
 					else
 						res[z][i][j]=ldata*mu;
@@ -919,7 +919,7 @@ class Tools
 		for (int z=0; z<nz; z++){
 			for (int i=iStart; i<iEnd; i++) {  
 				for (int j=0;j< nj; j++) {  
-					if(image[z][i][j] !=0)
+					if (image[z][i][j] !=0)
 						res[z][i][j]=ldata*(Math.pow(image[z][i][j]-mu[z][i][j],2));
 				}	
 			}
@@ -932,15 +932,15 @@ class Tools
 	private double noise(double im, double mu){
 		//
 		double res;
-		if(mu<0)mu=0.0001;
-		if(Analysis.p.noise_model==0){//poisson
+		if (mu<0)mu=0.0001;
+		if (Analysis.p.noise_model==0){//poisson
 
-			if(im !=0)
+			if (im !=0)
 				res=(im*Math.log(im/mu) +mu -im);
 			else
 				res=mu;
 			
-			if(mu==0)res=im;
+			if (mu==0)res=im;
 		}
 		else//gauss
 		{
@@ -957,7 +957,7 @@ class Tools
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0;j< nj; j++) {  
-					if(image[z][i][j] !=0)
+					if (image[z][i][j] !=0)
 						res[z][i][j]=ldata*(Math.pow(image[z][i][j]-mu,2));
 				}	
 			}
@@ -972,7 +972,7 @@ class Tools
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0;j< nj; j++) {  
-					if(image[z][i][j] !=0 && image[z][i][j] !=1)
+					if (image[z][i][j] !=0 && image[z][i][j] !=1)
 						res[z][i][j]=ldata*(-image[z][i][j]*Math.log(mu/image[z][i][j]) -(1-image[z][i][j])*Math.log((1-mu)/(1-image[z][i][j])));
 					else if (image[z][i][j] !=0)
 						res[z][i][j]=-ldata*Math.log(1-mu);
@@ -997,12 +997,12 @@ class Tools
 
 		for (int l=0; l<nlevels; l++)
 		{
-			if(nlevels>2)thr=cl[l]; else thr=cl[1];//if only two regions only first mask is used
-			if(thr==1) thr=0.5;// should not have threhold to 1: creates empty mask and wrong behavior in dct3D  computation
+			if (nlevels>2)thr=cl[l]; else thr=cl[1];//if only two regions only first mask is used
+			if (thr==1) thr=0.5;// should not have threhold to 1: creates empty mask and wrong behavior in dct3D  computation
 			for (int z=0; z<nz; z++){
 				for (int i=0; i<ni; i++) {  
 					for (int j=0;j< nj; j++) {
-						if(image[z][i][j]>=thr)//  && image[z][i][j]<=cltemp[l+2])
+						if (image[z][i][j]>=thr)//  && image[z][i][j]<=cltemp[l+2])
 							res[l][z][i][j]=1;
 						else
 							res[l][z][i][j]=0;
@@ -1193,7 +1193,7 @@ class Tools
 				for (int j=0; j<nj; j++) {
 					u1tmp=u1[z][i][j];u2tmp=u2[z][i][j];
 					norm= Math.sqrt(u1tmp*u1tmp + u2tmp*u2tmp);
-					if(norm>=t)
+					if (norm>=t)
 					{
 						res1[z][i][j]=u1[z][i][j] - t*u1[z][i][j]/norm;
 						res2[z][i][j]=u2[z][i][j] - t*u2[z][i][j]/norm;
@@ -1232,7 +1232,7 @@ class Tools
 					u2tmp=u2[z][i][j];
 					u3tmp=u3[z][i][j];
 					norm= Math.sqrt(u1tmp*u1tmp + u2tmp*u2tmp+ u3tmp*u3tmp);
-					if(norm>=t)
+					if (norm>=t)
 					{
 						res1[z][i][j]=u1tmp - t*u1tmp/norm;
 						res2[z][i][j]=u2tmp - t*u2tmp/norm;
@@ -2018,7 +2018,7 @@ class Tools
 
 		ImageProcessor imp= new FloatProcessor(temp);
 		imgd.setProcessor(s,imp);
-		if(disp){ imgd.show(); disp=false;} 
+		if (disp){ imgd.show(); disp=false;} 
 
 	}
 
@@ -2100,8 +2100,8 @@ class Tools
 			for (int i=0; i<ni; i++) {  
 				for (int j=0;j< nj; j++) {  
 					max=0;index_max=0;
-					for(int l=0; l< nlevels;l++){
-						if( (mask[l][z][i][j]) >= max){
+					for (int l=0; l< nlevels;l++){
+						if ( (mask[l][z][i][j]) >= max){
 							max=mask[l][z][i][j];	
 							index_max=l;
 						}
@@ -2119,7 +2119,7 @@ class Tools
 
 
 		long lStartTime = new Date().getTime(); //start time
-		for(int l=0; l< 10000000;l++){
+		for (int l=0; l< 10000000;l++){
 			temp=Math.pow((l+0.1), 2);
 		}
 		long lEndTime = new Date().getTime(); //start time
@@ -2130,7 +2130,7 @@ class Tools
 		double temp2=0;
 		Ttime=0;
 		lStartTime = new Date().getTime(); //start time
-		for(int l=0; l< 10000000;l++){
+		for (int l=0; l< 10000000;l++){
 			temp2=(l+0.1)*(l+0.1);
 		}
 		lEndTime = new Date().getTime(); //start time
@@ -2139,7 +2139,7 @@ class Tools
 		IJ.log("Total Time mult: " + Ttime/1000 + "s");
 
 
-		if(temp!=temp2)IJ.log("diff "+"t"+ temp +" t2" + temp2);
+		if (temp!=temp2)IJ.log("diff "+"t"+ temp +" t2" + temp2);
 		
 		return temp;
 	}

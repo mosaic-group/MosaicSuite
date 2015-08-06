@@ -22,7 +22,7 @@ public class BoxInitializer extends Initializer
 	{
 		int[] region = dimensions.clone();
 		int[] ofs = dimensions.clone();
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			region[i]=(int)(region[i]*r);
 			ofs[i] = (dimensions[i]-region[i])/2;
@@ -32,7 +32,7 @@ public class BoxInitializer extends Initializer
 		
 		int label = 1;
 		RegionIterator it = new RegionIterator(dimensions, region, ofs);
-		while(it.hasNext())
+		while (it.hasNext())
 		{
 			int idx = it.next();
 			labelImage.setLabel(idx, label);

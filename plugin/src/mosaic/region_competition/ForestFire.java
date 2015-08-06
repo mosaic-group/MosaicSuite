@@ -48,7 +48,7 @@ class ForestFire
 		int vN = 0;
 //		double vLengthEnergy = 0;
 
-        while(vLit.hasNext())
+        while (vLit.hasNext())
         {
 			// InputPixelType vImageValue = vDit.Get();
 			Point vCurrentIndex = vLit.next();
@@ -61,7 +61,7 @@ class ForestFire
 			
 			labelImage.setLabel(vCurrentIndex, aNewLabel);
 			
-			if(labelImage.isContourLabel(vLabelValue)) 
+			if (labelImage.isContourLabel(vLabelValue)) 
 			{
 				// m_InnerContourContainer[static_cast<ContourIndexType>(vLit.GetIndex())].first = vNewLabel;
 				// ContourIndexType vCurrentIndex = static_cast<ContourIndexType>(vLit.GetIndex());
@@ -78,7 +78,7 @@ class ForestFire
 
 
         /// Delete the contour points that are not needed anymore:
-        for(Point vCurrentCIndex: vSetOfAncientContourIndices) 
+        for (Point vCurrentCIndex: vSetOfAncientContourIndices) 
         {
             if (labelImage.isBoundaryPoint(vCurrentCIndex)) 
             {
@@ -111,7 +111,7 @@ class ForestFire
 //		displaySlice("after forestfire");
 		
 		/// Clean up the statistics of non valid regions.
-		for(int vVisitedIt : vVisitedOldLabels) 
+		for (int vVisitedIt : vVisitedOldLabels) 
 		{
 //			debug("Freed label " + vVisitedIt);
 			algorithm.FreeLabelStatistics(vVisitedIt);

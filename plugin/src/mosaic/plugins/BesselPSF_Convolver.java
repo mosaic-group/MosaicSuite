@@ -96,36 +96,36 @@ public class BesselPSF_Convolver implements ExtendedPlugInFilter {
 	 * @return true if setup correctly, false otherwise
 	 */
 	private boolean checkAndSetUnit(ImagePlus aImp) {
-		if(!aImp.getCalibration().getUnit().endsWith("m")){
+		if (!aImp.getCalibration().getUnit().endsWith("m")){
 			IJ.showMessage("Please set a 'x-meter'(e.g. \"nm\",\"mm\" unit in the image properties.");
 			return false;
 		}
 		
 		String vUnit = aImp.getCalibration().getUnit();
 		double vS = 0;
-		if(vUnit.equalsIgnoreCase("km")) {
+		if (vUnit.equalsIgnoreCase("km")) {
 			vS = 0.001;
 		}
-		if(vUnit.equalsIgnoreCase("m")) {
+		if (vUnit.equalsIgnoreCase("m")) {
 			vS = 1;
 		}
-		if(vUnit.equalsIgnoreCase("dm")) {
+		if (vUnit.equalsIgnoreCase("dm")) {
 			vS = 10;
 		}
-		if(vUnit.equalsIgnoreCase("cm")) {
+		if (vUnit.equalsIgnoreCase("cm")) {
 			vS = 100;
 		}
-		if(vUnit.equalsIgnoreCase("mm")) {
+		if (vUnit.equalsIgnoreCase("mm")) {
 			vS = 1000;
 		}
-		if(vUnit.equalsIgnoreCase(IJ.micronSymbol + "m") || vUnit.equalsIgnoreCase("um")) {
+		if (vUnit.equalsIgnoreCase(IJ.micronSymbol + "m") || vUnit.equalsIgnoreCase("um")) {
 			vS = 1000000;
 		}
-		if(vUnit.equalsIgnoreCase("nm")) {
+		if (vUnit.equalsIgnoreCase("nm")) {
 			vS = 1e9;
 		}
 		
-		if(vS != 0) {
+		if (vS != 0) {
 			mXResolution = aImp.getCalibration().pixelWidth / vS;
 			mYResolution = aImp.getCalibration().pixelHeight / vS;
 			return true;

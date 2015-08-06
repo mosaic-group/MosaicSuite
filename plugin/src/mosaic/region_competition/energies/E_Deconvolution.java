@@ -108,7 +108,7 @@ public class E_Deconvolution extends ExternalEnergy
 	{ 
 		Cursor< FloatType > cVModelImage = DevImage.cursor();
         int size = aLabelImage.getSize();
-		for(int i=0; i < size && cVModelImage.hasNext() ; i++)
+		for (int i=0; i < size && cVModelImage.hasNext() ; i++)
 		{
 			cVModelImage.fwd();
 			int vLabel = aLabelImage.getLabelAbs(i);
@@ -179,7 +179,7 @@ public class E_Deconvolution extends ExternalEnergy
 
 		Cursor< FloatType > cVDevImage = DevImage.cursor();
 		int size = aInitImage.getSize();
-		for( int i = 0 ; i < size && cVDevImage.hasNext() ; i++)
+		for ( int i = 0 ; i < size && cVDevImage.hasNext() ; i++)
 		{
 			cVDevImage.fwd();
 			int vLabelAbs = aInitImage.getLabelAbs(i);

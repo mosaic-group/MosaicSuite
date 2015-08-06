@@ -152,7 +152,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	{
 		this.dimensions = dims;
 		this.dim = dimensions.length;
-		if(dim>3)
+		if (dim>3)
 		{
 			throw new RuntimeException("Dim > 3 not supported");
 		}
@@ -161,7 +161,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		this.height = dims[1];
 		
 		size=1;
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			size *= dimensions[i];
 		}
@@ -170,7 +170,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	
 	private void initLabelData()
 	{
-		if(dim==3){
+		if (dim==3){
 			labelPlus = null;
 			labelIP = null;
 			dataLabel = new int[size];
@@ -201,7 +201,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
      */
 	public void initZero()
 	{
-		for(int i=0; i<size; i++)
+		for (int i=0; i<size; i++)
 		{
 			setLabel(i, 0);
 		}
@@ -256,14 +256,14 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	{
 		ImagePlus ip = IntConverter.IPtoInt(imagePlus);
 		
-		if(dim==3)
+		if (dim==3)
 		{
 			this.labelPlus = ip; 
 			ImageStack stack = ip.getImageStack();
 			this.dataLabel = IntConverter.intStackToArray(stack);
 			this.labelIP = null;
 		}
-		if(dim==2)
+		if (dim==2)
 		{
 			initWithImageProc(ip.getProcessor());
 		}
@@ -339,7 +339,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		final int n = dataLabel.length;
 		
 		short[] shortData = new short[n];
-		for(int i=0; i<n; i++)
+		for (int i=0; i<n; i++)
 		{
 			shortData[i] = (short)dataLabel[i];
 		}
@@ -348,7 +348,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	
 	public ImagePlus convert(Object title, int maxl)
 	{
-		if(getDim()==3)
+		if (getDim()==3)
 		{
 			ImagePlus imp = new ImagePlus("ResultWindow "+title, this.get3DShortStack(true));
 			
@@ -366,7 +366,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		
 		// convert it to short
 		short[] shorts = getShortCopy();
-		for(int i=0; i<shorts.length; i++){
+		for (int i=0; i<shorts.length; i++){
 			shorts[i] = (short)Math.abs(shorts[i]);
 		}
 		ShortProcessor shortProc = new ShortProcessor(imProc.getWidth(), imProc.getHeight());
@@ -393,7 +393,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	
 	public void deleteParticles()
 	{
-		for(int i=0; i<size; i++)
+		for (int i=0; i<size; i++)
 		{
 			setLabel(i,getLabelAbs(i));
 		}
@@ -468,24 +468,24 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		int size=iterator.getSize();
 		
 		// what are the old labels?
-		for(int i=0; i<size; i++)
+		for (int i=0; i<size; i++)
 		{
 			int l=getLabel(i);
-			if(l==bgLabel)
+			if (l==bgLabel)
 			{
 				continue;
 			}
 			oldLabels.add(l);
 		}
 		
-		for(int i=0; i<size; i++)
+		for (int i=0; i<size; i++)
 		{
 			int l=getLabel(i);
-			if(l==bgLabel)
+			if (l==bgLabel)
 			{
 				continue;
 			}
-			if(oldLabels.contains(l))
+			if (oldLabels.contains(l))
 			{
 				// l is an old label
 				BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
@@ -493,7 +493,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 				FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iterator.indexToPoint(i));
 				
 				//find a new label
-				while(oldLabels.contains(newLabel)){
+				while (oldLabels.contains(newLabel)){
 					newLabel++;
 				}
 				
@@ -501,7 +501,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 				newLabels.add(newLabel);
 				
 				// set region to new label
-				for(Point p:ff)
+				for (Point p:ff)
 				{
 					setLabel(p, newLabel);
 				}
@@ -511,7 +511,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		}
 		
 //		labelDispenser.setLabelsInUse(newLabels);
-//		for(int label: oldLabels)
+//		for (int label: oldLabels)
 //		{
 //			labelDispenser.addFreedUpLabel(label);
 //		}
@@ -522,17 +522,17 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	{
 		Connectivity conn = connFG;
 		
-		for(int i: iterator.getIndexIterable())
+		for (int i: iterator.getIndexIterable())
 		{
 			int label=getLabelAbs(i);
-			if(label!=bgLabel) // region pixel
+			if (label!=bgLabel) // region pixel
 				// && label<negOfs
 			{
 				Point p = iterator.indexToPoint(i);
-				for(Point neighbor : conn.iterateNeighbors(p))
+				for (Point neighbor : conn.iterateNeighbors(p))
 				{
 					int neighborLabel=getLabelAbs(neighbor);
-					if(neighborLabel!=label)
+					if (neighborLabel!=label)
 					{
 						setLabel(p, labelToNeg(label));
 						
@@ -555,9 +555,9 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	public boolean isBoundaryPoint(Point aIndex)
 	{
 		int vLabelAbs = getLabelAbs(aIndex);
-		for(Point q : connFG.iterateNeighbors(aIndex)) 
+		for (Point q : connFG.iterateNeighbors(aIndex)) 
 		{
-			if(getLabelAbs(q) != vLabelAbs)
+			if (getLabelAbs(q) != vLabelAbs)
 				return true;
 		}
 
@@ -574,9 +574,9 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	{
 		int absLabel = labelToAbs(pLabel);
 		Connectivity conn = connFG;
-		for(Point qIndex : conn.iterateNeighbors(pIndex))
+		for (Point qIndex : conn.iterateNeighbors(pIndex))
 		{
-			if(labelToAbs(getLabel(qIndex))!=absLabel)
+			if (labelToAbs(getLabel(qIndex))!=absLabel)
 			{
 				return false;
 			}
@@ -586,7 +586,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	
 	protected boolean isInnerLabel(int label)
 	{
-		if(label == bgLabel || isContourLabel(label)) {
+		if (label == bgLabel || isContourLabel(label)) {
 			return false;
 		} else {
 			return true;
@@ -604,7 +604,7 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 	public boolean isContourLabel(int label)
 	{
 		return (label<0);
-//		if(isForbiddenLabel(label)) {
+//		if (isForbiddenLabel(label)) {
 //			return false;
 //		} else {
 //			return (label > negOfs);

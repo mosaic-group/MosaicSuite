@@ -54,7 +54,7 @@ public class IntensityImage
 		
 		dims[0]=ip.getWidth();
 		dims[1]=ip.getHeight();
-		if(dim==3)
+		if (dim==3)
 		{
 			dims[2]=ip.getSize();
 		}
@@ -78,7 +78,7 @@ public class IntensityImage
 	{	
 		ImageProcessor proc = stack.getProcessor(1);
 		Object test = proc.getPixels();
-		if(! (test instanceof float[]))
+		if (! (test instanceof float[]))
 		{
 			throw new RuntimeException("ImageProcessor has to be of type FloatProcessor");
 		}
@@ -102,14 +102,14 @@ public class IntensityImage
 		int crd[] = new int [dims.length];
 		if (dims.length == 3)
 		{
-			for(int i=1; i<=nSlices; i++)
+			for (int i=1; i<=nSlices; i++)
 			{
 				crd[2] = i-1;
 				pixels = (float[])stack.getPixels(i);
-				for(int y=0; y<dims[1]; y++)
+				for (int y=0; y<dims[1]; y++)
 				{
 					crd[1] = y;
-					for(int x=0; x<dims[0]; x++)
+					for (int x=0; x<dims[0]; x++)
 					{
 						crd[0] = x;
 						vCrs.setPosition(crd);
@@ -121,10 +121,10 @@ public class IntensityImage
 		else
 		{
 			pixels = (float[])stack.getPixels(1);
-			for(int y=0; y<dims[1]; y++)
+			for (int y=0; y<dims[1]; y++)
 			{
 				crd[1] = y;
-				for(int x=0; x<dims[0]; x++)
+				for (int x=0; x<dims[0]; x++)
 				{
 					crd[0] = x;
 					vCrs.setPosition(crd);
@@ -149,7 +149,7 @@ public class IntensityImage
 		double Vol = 0.0f;
 		Cursor<T> cur = ip.cursor();
 		
-		while( cur.hasNext() )
+		while ( cur.hasNext() )
 		{
 			cur.fwd();
 			
@@ -172,7 +172,7 @@ public class IntensityImage
 	{		
 		Cursor<T> cur = image_psf.cursor();
 		
-		while( cur.hasNext() )
+		while ( cur.hasNext() )
 		{
 			cur.fwd();
 			
@@ -250,7 +250,7 @@ public class IntensityImage
 	{
 		this.dimensions = dims;
 		this.dim = dimensions.length;
-		if(dim>3)
+		if (dim>3)
 		{
 			throw new RuntimeException("Dim > 3 not supported");
 		}
@@ -259,7 +259,7 @@ public class IntensityImage
 		this.height = dims[1];
 		
 		size=1;
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			size *= dimensions[i];
 		}
@@ -320,7 +320,7 @@ public class IntensityImage
 	{
 		ImageProcessor proc = ip.getProcessor();
 		Object test = proc.getPixels();
-		if(! (test instanceof float[])){
+		if (! (test instanceof float[])){
 			throw new RuntimeException("ImageProcessor has to be of type FloatProcessor");
 		}
 		
@@ -333,12 +333,12 @@ public class IntensityImage
 		ImageStack stack = ip.getStack();
 		
 		float[] pixels;
-		for(int i=1; i<=nSlices; i++)
+		for (int i=1; i<=nSlices; i++)
 		{
 			pixels = (float[])stack.getPixels(i);
-			for(int y=0; y<height; y++)
+			for (int y=0; y<height; y++)
 			{
-				for(int x=0; x<width; x++)
+				for (int x=0; x<width; x++)
 				{
 					dataIntensity[(i-1)*area+y*width+x] = pixels[y*width+x];
 				}
@@ -360,7 +360,7 @@ public class IntensityImage
 		
 		ImageStack normalizedStack = new ImageStack(stack.getWidth(), stack.getHeight());
 		
-		for(int i=1; i<=nSlices; i++)
+		for (int i=1; i<=nSlices; i++)
 		{
 			ImageProcessor p = stack.getProcessor(i);
 			ImageStatistics stat = p.getStatistics();
@@ -368,8 +368,8 @@ public class IntensityImage
 			double min = stat.min;
 			double max = stat.max;
 			
-			if(max>maximum) maximum=max;
-			if(min<minimum) minimum=min;
+			if (max>maximum) maximum=max;
+			if (min<minimum) minimum=min;
 		}
 		
 		double range = maximum-minimum;
@@ -382,7 +382,7 @@ public class IntensityImage
 			{range = 1.0; minimum = 0.0;}
 		}
 		
-		for(int i=1; i<=nSlices; i++)
+		for (int i=1; i<=nSlices; i++)
 		{
 			ImageProcessor p = stack.getProcessor(i);
 //			p.setColorModel(null); // force IJ to directly convert to float (else it would first go to RGB)
@@ -500,11 +500,11 @@ public class IntensityImage
 		int dim = ip.getNDimensions();
 		int[] dims = new int[dim];
 		
-		for(int i=0; i<2; i++)
+		for (int i=0; i<2; i++)
 		{
 			dims[i]=ip.getDimensions()[i];
 		}
-		if(dim==3)
+		if (dim==3)
 		{
 			dims[2]=ip.getStackSize();
 		}

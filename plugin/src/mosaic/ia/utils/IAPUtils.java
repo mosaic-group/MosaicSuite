@@ -83,8 +83,8 @@ public class IAPUtils {
 		}
 
 		/*
-		 * for(int i=0;i<is.getSize();i++) { for(int j=0;j<is.getWidth();j++) {
-		 * for(int k=0;k<is.getHeight();k++)
+		 * for (int i=0;i<is.getSize();i++) { for (int j=0;j<is.getWidth();j++) {
+		 * for (int k=0;k<is.getHeight();k++)
 		 * System.out.print(image3d[i][j][k]+" ");
 		 * 
 		 * System.out.println("\n"); } System.out.println("\n"); }

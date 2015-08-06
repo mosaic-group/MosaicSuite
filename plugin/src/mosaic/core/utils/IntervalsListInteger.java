@@ -37,9 +37,9 @@ public class IntervalsListInteger
 	
 	public boolean Evaluate(int value)
 	{
-		for(int vI = 0; vI < m_NThresholds; vI++)
+		for (int vI = 0; vI < m_NThresholds; vI++)
 		{
-			if(m_Thresholds.get(vI).lower <= value && value <= m_Thresholds.get(vI).higher)
+			if (m_Thresholds.get(vI).lower <= value && value <= m_Thresholds.get(vI).higher)
 			{
 				return true;
 			}

@@ -49,7 +49,7 @@ public abstract class DistanceCalculations {
 		this.gridSize = gridSize;
 		this.kernelWeightq=kernelWeightq;
 		this.discretizationSize=discretizationSize;
-		if(mask!=null)
+		if (mask!=null)
 			maskImage3d=IAPUtils.imageTo3Darray(mask);
 	}
 
@@ -81,7 +81,7 @@ public abstract class DistanceCalculations {
 	{
 		
 		try{
-		if(maskImage3d[(int) Math.floor(coords[2])][(int) Math.floor(coords[1])][(int) Math.floor(coords[0])]>0)
+		if (maskImage3d[(int) Math.floor(coords[2])][(int) Math.floor(coords[1])][(int) Math.floor(coords[0])]>0)
 		{
 			
 		           return true;
@@ -108,10 +108,10 @@ public abstract class DistanceCalculations {
 	//	Point3d [] xPtsRand =new Point3d[particleXSetCoord.length];
 		
 		float [] distRand=new float[particleXSetCoord.length*1000];
-		for(int i=0; i<1000; i++) // 1000 MC runs
+		for (int i=0; i<1000; i++) // 1000 MC runs
 		{
 			
-			for(int j=0;j<particleXSetCoord.length;j++)
+			for (int j=0;j<particleXSetCoord.length;j++)
 			{
 				Random rn = new Random(System.nanoTime());
 			//	System.out.println("Running "+j);
@@ -143,7 +143,7 @@ public abstract class DistanceCalculations {
 		int y_size=(int)Math.floor((Math.abs(y1-y2)+1)*yscale/gridSize);
 		int z_size=(int)Math.floor((Math.abs(z1-z2)+1)*zscale/gridSize);
 		
-		if(z2-z1 == 0) //2D
+		if (z2-z1 == 0) //2D
 			z_size=1;
 		
 		System.out.println("x_size,y_size,z_size"+x_size+","+y_size+","+z_size);
@@ -155,14 +155,14 @@ public abstract class DistanceCalculations {
 			double [] tempPosition=new double[3];
 			KDTreeNearestNeighbor kdtnn=new KDTreeNearestNeighbor();
 			kdtnn.createKDTree(particleYSetCoord);
-		if(mask==null)
+		if (mask==null)
 		{
 			
-		for(int i=0;i<x_size;i++)
+		for (int i=0;i<x_size;i++)
 		{
-			for(int j=0;j<y_size;j++)
+			for (int j=0;j<y_size;j++)
 			{
-				for(int k=0;k<z_size;k++) //shitty code
+				for (int k=0;k<z_size;k++) //shitty code
 				{
 					tempPosition[0]=x1+i*gridSize;  //x1+ in the case of coords, if the coords are not starting at 0... 
 					tempPosition[1]=y1+j*gridSize;
@@ -170,9 +170,9 @@ public abstract class DistanceCalculations {
 					
 					try {
 						distance=kdtnn.getNNDistance(new Point3d(tempPosition));
-						if(distance>max)
+						if (distance>max)
 							max=distance;
-						if(distance<min)
+						if (distance<min)
 							min=distance;
 						ker.addValue(distance,kernelWeightq);
 					} catch (Exception e) {
@@ -184,23 +184,23 @@ public abstract class DistanceCalculations {
 		}
 		else
 		{
-			for(int i=0;i<x_size;i++)
+			for (int i=0;i<x_size;i++)
 			{
-				for(int j=0;j<y_size;j++)
+				for (int j=0;j<y_size;j++)
 				{
-					for(int k=0;k<z_size;k++) 
+					for (int k=0;k<z_size;k++) 
 					{
 						tempPosition[0]=x1+i*gridSize;  //x1+ in the case of coords, if the coords are not starting at 0... 
 						tempPosition[1]=y1+j*gridSize;
 						tempPosition[2]=z1+k*gridSize;
 						
-						if(isInsideMask(tempPosition))
+						if (isInsideMask(tempPosition))
 						{
 						try {
 							distance=kdtnn.getNNDistance(new Point3d(tempPosition));
-							if(distance>max)
+							if (distance>max)
 								max=distance;
-							if(distance<min)
+							if (distance<min)
 								min=distance;
 							ker.addValue(distance,kernelWeightq);
 						} catch (Exception e) {
@@ -243,7 +243,7 @@ public abstract class DistanceCalculations {
 		int y_size=(int)Math.floor((Math.abs(y1-y2)+1)*yscale/gridSize);
 		int z_size=(int)Math.floor((Math.abs(z1-z2)+1)*zscale/gridSize);
 		
-		if(z_size==(int)Math.floor(1/gridSize)) //2D
+		if (z_size==(int)Math.floor(1/gridSize)) //2D
 			z_size=1;
 		
 		System.out.println("x_size,y_size,z_size"+x_size+","+y_size+","+z_size);
@@ -256,15 +256,15 @@ public abstract class DistanceCalculations {
 			kdtnn.createKDTree(particleYSetCoord);
 	//	PlotUtils.histPlotDoubleArray_imageJ("HistYvsYcoords", kdtnn.getNNDistances(particleYSetCoord));
 		int lastIndex=0;
-		if(mask==null)
+		if (mask==null)
 		{
 	//		griddd=genRandomDdist(x2, y2, z2);
 			griddd=new float[total_size];
-		for(int i=0;i<x_size;i++)
+		for (int i=0;i<x_size;i++)
 		{
-			for(int j=0;j<y_size;j++)
+			for (int j=0;j<y_size;j++)
 			{
-				for(int k=0;k<z_size;k++) //shitty code
+				for (int k=0;k<z_size;k++) //shitty code
 				{
 					tempPosition[0]=x1+i*gridSize;  //x1+ in the case of coords, if the coords are not starting at 0... 
 					tempPosition[1]=y1+j*gridSize;
@@ -283,17 +283,17 @@ public abstract class DistanceCalculations {
 		}
 		else
 		{
-			for(int i=0;i<x_size;i++)
+			for (int i=0;i<x_size;i++)
 			{
-				for(int j=0;j<y_size;j++)
+				for (int j=0;j<y_size;j++)
 				{
-					for(int k=0;k<z_size;k++) 
+					for (int k=0;k<z_size;k++) 
 					{
 						tempPosition[0]=x1+i*gridSize;  //x1+ in the case of coords, if the coords are not starting at 0... 
 						tempPosition[1]=y1+j*gridSize;
 						tempPosition[2]=z1+k*gridSize;
 						
-						if(isInsideMask(tempPosition))
+						if (isInsideMask(tempPosition))
 						{
 						try {
 							griddVector.add((float) kdtnn.getNNDistance(new Point3d(tempPosition)));
@@ -307,7 +307,7 @@ public abstract class DistanceCalculations {
 				}
 			}
 			griddd=new float[lastIndex];
-			for(int i=0;i<lastIndex;i++)
+			for (int i=0;i<lastIndex;i++)
 			{
 				Float f=griddVector.get(i);
 				griddd[i] = (f != null ? f : Float.NaN); 
@@ -332,15 +332,15 @@ public abstract class DistanceCalculations {
 	 protected  Point3d[] applyMaskandgetCoordinates(Point3d [] points) //if mask==null, dont use this. this is used to filter the point3d array with the mask.
 
 		{
-		 	if(mask==null)
+		 	if (mask==null)
 		 		return points;
 		 	Vector<Point3d> vectorPoints=new Vector<Point3d>();
 		 	double [] coords=new double[3];
 		 	int count=0;
-			for(int i=0;i<points.length;i++)
+			for (int i=0;i<points.length;i++)
 			{
 				points[i].get(coords);
-				if(isInsideMask(coords))
+				if (isInsideMask(coords))
 						{
 						vectorPoints.add(new Point3d(coords[0]*xscale,coords[1]*yscale,coords[2]*zscale));
 						//vectorPoints.add(points[i]);

@@ -32,10 +32,10 @@ public class E_Gamma extends InternalEnergy
 		Connectivity conn = labelImage.getConnFG();
 		
 		int nSameNeighbors=0;
-		for(Point neighbor:conn.iterateNeighbors(pIndex))
+		for (Point neighbor:conn.iterateNeighbors(pIndex))
 		{
 			int neighborLabel=labelImage.getLabelAbs(neighbor);
-			if(neighborLabel==pLabel)
+			if (neighborLabel==pLabel)
 			{
 				nSameNeighbors++;
 			}

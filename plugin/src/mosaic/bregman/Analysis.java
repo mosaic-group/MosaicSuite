@@ -152,7 +152,7 @@ public class Analysis {
 		for (int z=0; z<p.nz; z++){  
 			img2.setPosition(1,z+1,f);
 			ImageProcessor impt;
-			if(bits==32)
+			if (bits==32)
 				impt=img2.getProcessor().convertToShort(false);
 			else
 				impt = img2.getProcessor();
@@ -170,7 +170,7 @@ public class Analysis {
 		for (int z=0; z<p.nz; z++){  
 			img2.setPosition(2,z+1,f);	
 			ImageProcessor impt;
-			if(bits==32)
+			if (bits==32)
 				impt=img2.getProcessor().convertToShort(false);
 			else
 				impt = img2.getProcessor();
@@ -180,7 +180,7 @@ public class Analysis {
 		imgB.setStack(img2.getTitle(),imgb_s);
 		setimageb();
 		//imgB.setTitle("B2");
-//		if(p.dispwindows){
+//		if (p.dispwindows){
 //			imgA.setTitle(imgA.getShortTitle() + " ch1");
 //			imgB.setTitle(imgB.getShortTitle() + " ch2");
 //			imgA.show("");
@@ -230,7 +230,7 @@ public class Analysis {
 		for (int z=0; z<p.nz; z++){  
 			img2.setPosition(1,z+1,f);	
 			ImageProcessor impt;
-			if(bits==32)
+			if (bits==32)
 				impt=img2.getProcessor().convertToShort(false);
 			else
 				impt = img2.getProcessor();
@@ -241,7 +241,7 @@ public class Analysis {
 		imgA.setStack(img2.getTitle(),imga_s);
 		setimagea();
 
-//		if(p.dispwindows){
+//		if (p.dispwindows){
 //			imgA.setTitle(imgA.getShortTitle());
 //			imgA.show("");
 //		}
@@ -369,7 +369,7 @@ public class Analysis {
 				{  
 					maska_bytes[j * p.ni + i] =  maskA[z][i][j] ;//(byte) ( (int)(255*maska[z][i][j]));	
 					//IJ.log("byte" + (maska[0][i][j]));
-					//if(i==277 && j==202 && z==7){IJ.log("test value :" +(maskA[z][i][j] & 0xFF));}
+					//if (i==277 && j==202 && z==7){IJ.log("test value :" +(maskA[z][i][j] & 0xFF));}
 				}
 			}
 			ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
@@ -382,7 +382,7 @@ public class Analysis {
 		maska_im.setStack("test Ma",maska_ims);
 		//IJ.log("float threshold :" + p.min_intensity +" byte threshold :" + (255*p.min_intensity));
 
-		//		if(p.mode_voronoi2 && false){
+		//		if (p.mode_voronoi2 && false){
 		//			//project mask on single slice (maximum values)
 		//			ZProjector proj = new ZProjector(maska_im);
 		//			proj.setImage(maska_im);
@@ -398,10 +398,10 @@ public class Analysis {
 
 		FindConnectedRegions fcr= new FindConnectedRegions(maska_im, maskA);//maska_im only
 		float [][][] Ri ;
-		if(p.mode_voronoi2)
+		if (p.mode_voronoi2)
 		{
 			Ri = new float [p.nz][p.ni][p.nj];
-			for(int z=0; z<p.nz; z++)
+			for (int z=0; z<p.nz; z++)
 			{
 				for (int i=0; i<p.ni; i++)
 				{  
@@ -414,10 +414,10 @@ public class Analysis {
 		}
 		else
 		{
-			if(RiN==null)
+			if (RiN==null)
 			{
 				Ri = new float [p.nz][p.ni][p.nj];
-				for(int z=0; z<p.nz; z++)
+				for (int z=0; z<p.nz; z++)
 				{
 					for (int i=0; i<p.ni; i++) 
 					{
@@ -434,7 +434,7 @@ public class Analysis {
 		/* */
 		
 		//fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,false,true);
-		if(p.debug)
+		if (p.debug)
 			fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,true,p.save_images);//&&(!p.refinement)
 		else
 			fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,p.dispcolors&&(!p.refinement) ,p.save_images&&(!p.refinement));
@@ -443,10 +443,10 @@ public class Analysis {
 		regions[0]=fcr.tempres;
 		regionslist[0]=fcr.results;
 		na=regionslist[0].size();
-		if(!p.mode_voronoi2)
+		if (!p.mode_voronoi2)
 		{
 			meana=meansize(regionslist[0]);
-			if(p.nz>1)
+			if (p.nz>1)
 				IJ.log(na + " objects found in X, mean volume : " + Tools.round(meana,2)+ " pixels.");
 			else
 				IJ.log(na + " objects found in X, mean area : " + Tools.round(meana,2)+ " pixels.");
@@ -470,7 +470,7 @@ public class Analysis {
 					cellmask=true;
 
 
-					if(cellmask)
+					if (cellmask)
 						maskb_bytes[j * p.ni + i] =  maskB[z][i][j];
 					//maskb_bytes[j * p.ni + i] = (byte) ( (int)(255*maskb[z][i][j]));
 					else
@@ -490,9 +490,9 @@ public class Analysis {
 
 		float [][][] Ri ;
 
-		if(p.mode_voronoi2){
+		if (p.mode_voronoi2){
 			Ri = new float [p.nz][p.ni][p.nj];
-			for(int z=0; z<p.nz; z++){
+			for (int z=0; z<p.nz; z++){
 				for (int i=0; i<p.ni; i++) {  
 					for (int j=0; j<p.nj; j++) {  
 						Ri[z][i][j]=(float) p.min_intensityY;
@@ -501,9 +501,9 @@ public class Analysis {
 			}
 		}
 		else{
-			if(RiN==null){//==true   for testing with minimum intensity 
+			if (RiN==null){//==true   for testing with minimum intensity 
 				Ri = new float [p.nz][p.ni][p.nj];
-				for(int z=0; z<p.nz; z++){
+				for (int z=0; z<p.nz; z++){
 					for (int i=0; i<p.ni; i++) {  
 						for (int j=0; j<p.nj; j++) {  
 							Ri[z][i][j]=(float) d;
@@ -521,9 +521,9 @@ public class Analysis {
 		regions[1]=fcr.tempres;
 		regionslist[1]=fcr.results;
 		nb=regionslist[1].size();
-		if(!p.mode_voronoi2){
+		if (!p.mode_voronoi2){
 			meanb=meansize(regionslist[1]);
-			if(p.nz>1)
+			if (p.nz>1)
 				IJ.log(nb + " objects found in Y, mean volume : " + Tools.round(meanb,2)+ " pixels.");
 			else
 				IJ.log(nb + " objects found in Y, mean area : " + Tools.round(meanb,2)+ " pixels.");
@@ -632,8 +632,8 @@ public class Analysis {
 		//				for (int j=0;j< p.nj; j++){  
 		//					imageb[z][i][j]=imp.getPixel(i,j);	
 		//					//IJ.log("deb"+ imageb[z][i][j]);
-		//					if(imageb[z][i][j]>maxb)maxb=imageb[z][i][j];
-		//					if(imageb[z][i][j]<minb)minb=imageb[z][i][j];
+		//					if (imageb[z][i][j]>maxb)maxb=imageb[z][i][j];
+		//					if (imageb[z][i][j]<minb)minb=imageb[z][i][j];
 		//				}	
 		//			}
 		//		}
@@ -648,21 +648,21 @@ public class Analysis {
 		//double sum=0;
 
 
-		if(p.usePSF){
+		if (p.usePSF){
 			for (int z=0; z<p.nz; z++){
 				for (int i=0; i<p.ni; i++) {  
 					for (int j=0; j<p.nj; j++) {  
-						if(maxMaskA[z][i][j]!=0 && maxMaskA[z][i][j]!=1){
+						if (maxMaskA[z][i][j]!=0 && maxMaskA[z][i][j]!=1){
 							ka3++;
-							if(maxMaskB[z][i][j]>1)kb3a3++;
-							if(maxMaskB[z][i][j]>2)kb2a3++;
+							if (maxMaskB[z][i][j]>1)kb3a3++;
+							if (maxMaskB[z][i][j]>2)kb2a3++;
 							//k++;
 							//sum+=(imageb[z][i][j]-minb)/(maxb-minb);
 						}
-						if(maxMaskA[z][i][j]>2){
+						if (maxMaskA[z][i][j]>2){
 							ka2++;
-							if(maxMaskB[z][i][j]>1)kb3a2++;
-							if(maxMaskB[z][i][j]>2)kb2a2++;
+							if (maxMaskB[z][i][j]>1)kb3a2++;
+							if (maxMaskB[z][i][j]>2)kb2a2++;
 							//k++;
 							//sum+=(imageb[z][i][j]-minb)/(maxb-minb);
 						}
@@ -675,17 +675,17 @@ public class Analysis {
 			for (int z=0; z<p.nz; z++){
 				for (int i=0; i<p.ni; i++) {  
 					for (int j=0; j<p.nj; j++) {  
-						if(maxMaskA[z][i][j]!=0 && maxMaskA[z][i][j]!=1){
+						if (maxMaskA[z][i][j]!=0 && maxMaskA[z][i][j]!=1){
 							ka3++;
-							if(maxMaskB[z][i][j]>1)kb3a3++;
-							if(maxMaskB[z][i][j]>2)kb2a3++;
+							if (maxMaskB[z][i][j]>1)kb3a3++;
+							if (maxMaskB[z][i][j]>2)kb2a3++;
 							//k++;
 							//sum+=(imageb[z][i][j]-minb)/(maxb-minb);
 						}
-						if(maxMaskA[z][i][j]>2){
+						if (maxMaskA[z][i][j]>2){
 							ka2++;
-							if(maxMaskB[z][i][j]>1)kb3a2++;
-							if(maxMaskB[z][i][j]>2)kb2a2++;
+							if (maxMaskB[z][i][j]>1)kb3a2++;
+							if (maxMaskB[z][i][j]>2)kb2a2++;
 							//k++;
 							//sum+=(imageb[z][i][j]-minb)/(maxb-minb);
 						}
@@ -825,7 +825,7 @@ public class Analysis {
 
 
 					//no looptest
-					if(!p.looptest){
+					if (!p.looptest){
 
 						computeOverallMask();
 						regionslist[0]=removeExternalObjects(regionslist[0]);
@@ -841,14 +841,14 @@ public class Analysis {
 
 						//out2.print("Cell"+ list[i]);
 						///out2.println();
-						if(i==0){out2.print("Image number" + ";" + "Region in X"+ ";" + "Overlap with Y" + ";" + "Size" + ";" +
+						if (i==0){out2.print("Image number" + ";" + "Region in X"+ ";" + "Overlap with Y" + ";" + "Size" + ";" +
 								"Intensity" + ";" + "MColoc size" + ";"+ "MColoc Intensity" + ";" + "Single Coloc" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 						out2.println();}
 						double colocAB=Tools.round(colocsegAB( i/2),4);
 
 						//out3.print("Cell"+ list[i]);
 						//out3.println();
-						if(i==0){out3.print("Image number" + ";" + "Region in Y"+ ";" + "Overlap with X" + ";" + "Size" + ";" +
+						if (i==0){out3.print("Image number" + ";" + "Region in Y"+ ";" + "Overlap with X" + ";" + "Size" + ";" +
 								"Intensity" + ";" + "MColoc size" + ";"+ "MColoc Intensity" + ";" + "Single Coloc" + ";"  + "Coord X"+ ";" + "Coord Y"+ ";" + "Coord Z");
 						out3.println();}
 						double colocBA=Tools.round(colocsegBA(i/2),4);
@@ -878,7 +878,7 @@ public class Analysis {
 						int ival;
 
 						computeOverallMask();
-						for(val=0.1; val<0.85; val+=0.05){
+						for (val=0.1; val<0.85; val+=0.05){
 							p.min_intensity=val;
 							//IJ.log("minint" + val);
 							out.print(String.format(
@@ -906,7 +906,7 @@ public class Analysis {
 						p.min_intensity=0.15;
 
 
-						for(val=0.1; val<0.85; val+=0.05){
+						for (val=0.1; val<0.85; val+=0.05){
 							//IJ.log("minintY" + val);
 							p.min_intensityY=val;
 							out.print(String.format(
@@ -930,7 +930,7 @@ public class Analysis {
 						p.min_intensityY=0.15;
 
 
-						for(ival=2; ival<30; ival+=3){
+						for (ival=2; ival<30; ival+=3){
 							p.minves_size=ival;
 							out.print(String.format(
 									"Min intensity X  %7.2e Min intensity Y %7.2e Min vesicle size %d Max vesicle size %d Overlap threshold %7.2e ,", 
@@ -949,7 +949,7 @@ public class Analysis {
 
 						p.minves_size=5;
 
-						for(ival=100; ival<1600; ival+=100){
+						for (ival=100; ival<1600; ival+=100){
 							p.maxves_size=ival;
 							out.print(String.format(
 									"Min intensity X  %7.2e Min intensity Y %7.2e Min vesicle size %d Max vesicle size %d Overlap threshold %7.2e ,", 
@@ -969,7 +969,7 @@ public class Analysis {
 
 						p.maxves_size=500;
 
-						for(val=0.1; val<1; val+=0.1){
+						for (val=0.1; val<1; val+=0.1){
 							p.colocthreshold=val;
 							out.print(String.format(
 									"Min intensity X  %7.2e Min intensity Y %7.2e Min vesicle size %d Max vesicle size %d Overlap threshold %7.2e ,", 
@@ -994,7 +994,7 @@ public class Analysis {
 					}
 
 
-					//					if(p.nz>1)
+					//					if (p.nz>1)
 					//						IJ.log(
 					//								"Objects in X :" + na + " Mean volume in X " + Tools.round(meana , 4)+
 					//								" Objects in Y :" + nb + " Mean volume in Y " + Tools.round(meanb , 4) +
@@ -1083,9 +1083,9 @@ public class Analysis {
 		md.displaycolocpositiveA(regionslist[0],ip);
 		md.displaycolocpositiveB(regionslist[1],ip);
 
-		//		if(p.usecellmaskX){cellmask=cellMaskABinary[z][i][j]>254;} 
-		//		if(p.usecellmaskY){cellmask=cellMaskBBinary[z][i][j]>254;}
-		//		if(p.usecellmaskY && p.usecellmaskX){cellmask=
+		//		if (p.usecellmaskX){cellmask=cellMaskABinary[z][i][j]>254;} 
+		//		if (p.usecellmaskY){cellmask=cellMaskBBinary[z][i][j]>254;}
+		//		if (p.usecellmaskY && p.usecellmaskX){cellmask=
 		//				cellMaskBBinary[z][i][j]>254  && 
 		//				cellMaskABinary[z][i][j]>254
 		//				;}
@@ -1109,8 +1109,8 @@ public class Analysis {
 //				for (int j=0;j< p.nj; j++){  
 //					imageb[z][i][j]=imp.getPixel(i,j);	
 //					//IJ.log("deb"+ imageb[z][i][j]);
-//					if(imageb[z][i][j]>maxb)maxb=imageb[z][i][j];
-//					if(imageb[z][i][j]<minb)minb=imageb[z][i][j];
+//					if (imageb[z][i][j]>maxb)maxb=imageb[z][i][j];
+//					if (imageb[z][i][j]<minb)minb=imageb[z][i][j];
 //				}	
 //			}
 //		}
@@ -1146,8 +1146,8 @@ public class Analysis {
 				for (int j=0;j< p.nj; j++){  
 					imagea[z][i][j]=imp.getPixel(i,j);	
 					//IJ.log("deb"+ imageb[z][i][j]);
-					if(imagea[z][i][j]>maxa)maxa=imagea[z][i][j];
-					if(imagea[z][i][j]<mina)mina=imagea[z][i][j];
+					if (imagea[z][i][j]>maxa)maxa=imagea[z][i][j];
+					if (imagea[z][i][j]<mina)mina=imagea[z][i][j];
 				}	
 			}
 		}
@@ -1179,8 +1179,8 @@ public class Analysis {
 				for (int j=0;j< p.nj; j++){  
 					imageb[z][i][j]=imp.getPixel(i,j);	
 					//IJ.log("deb"+ imageb[z][i][j]);
-					if(imageb[z][i][j]>maxb)maxb=imageb[z][i][j];
-					if(imageb[z][i][j]<minb)minb=imageb[z][i][j];
+					if (imageb[z][i][j]>maxb)maxb=imageb[z][i][j];
+					if (imageb[z][i][j]<minb)minb=imageb[z][i][j];
 				}	
 			}
 		}
@@ -1214,8 +1214,8 @@ public class Analysis {
 		//				for (int j=0;j< p.nj; j++){  
 		//					imagea[z][i][j]=imp.getPixel(i,j);	
 		//					//IJ.log("deb"+ imageb[z][i][j]);
-		//					if(imagea[z][i][j]>maxa)maxa=imagea[z][i][j];
-		//					if(imagea[z][i][j]<mina)mina=imagea[z][i][j];
+		//					if (imagea[z][i][j]>maxa)maxa=imagea[z][i][j];
+		//					if (imagea[z][i][j]<mina)mina=imagea[z][i][j];
 		//				}	
 		//			}
 		//		}
@@ -1308,7 +1308,7 @@ public class Analysis {
 			//IJ.log("obj" + r.value);
 			objects++;
 			if (r.colocpositive)objectscoloc++;
-			//if(p.livedisplay)IJ.log(r.toString() + "ncoloc"+ objectscoloc);
+			//if (p.livedisplay)IJ.log(r.toString() + "ncoloc"+ objectscoloc);
 
 		}
 		positiveB=objectscoloc;
@@ -1331,7 +1331,7 @@ public class Analysis {
 
 			if (regioncoloc(r,regionslist[0], regions[0],maskB, imgnumber))objectscoloc++;
 
-			//if(p.livedisplay)IJ.log(r.toString() + "ncoloc"+ objectscoloc);
+			//if (p.livedisplay)IJ.log(r.toString() + "ncoloc"+ objectscoloc);
 			totalsignal+=r.rsize*r.intensity;
 			colocsignal+=r.rsize*r.intensity*r.overlap;
 		}
@@ -1378,9 +1378,9 @@ public class Analysis {
 			Pix p = it.next();
 			valcoloc=regions[p.pz][p.px][p.py];
 			//IJ.log("valcoloc " + valcoloc);
-			if(valcoloc > 0){
+			if (valcoloc > 0){
 				countcoloc++;
-				if(previousvalcoloc!=0 && valcoloc!=previousvalcoloc)oneColoc=false;
+				if (previousvalcoloc!=0 && valcoloc!=previousvalcoloc)oneColoc=false;
 				intColoc+=regionlist.get(valcoloc-1).intensity;
 				sizeColoc+=regionlist.get(valcoloc-1).points;
 				previousvalcoloc=valcoloc;
@@ -1392,7 +1392,7 @@ public class Analysis {
 		r.colocpositive=positive;
 		r.overlap=(float) Tools.round(((double)countcoloc)/count,3) ;
 		r.over_size=(float) Tools.round((sizeColoc)/countcoloc,3);
-		if(p.nz==1)
+		if (p.nz==1)
 			r.over_size=(float) Tools.round( r.over_size/(osxy*osxy),3);
 		else
 			r.over_size=(float) Tools.round( r.over_size/(osxy*osxy*osxy),3);
@@ -1400,7 +1400,7 @@ public class Analysis {
 		r.over_int=(float) Tools.round((intColoc)/countcoloc,3);
 		r.singlec=oneColoc;
 
-		//		if(out != null){
+		//		if (out != null){
 		//			//regionIntensityAndCenter(r,mask);
 		//			regionCenter(r);
 		//			out.print(imgnumber 
@@ -1455,11 +1455,11 @@ public class Analysis {
 		////			count++;
 		//		}
 		//IJ.log("print object " + r.value);
-		if(out != null && p.nchannels==1){
+		if (out != null && p.nchannels==1){
 			//regionIntensityAndCenter(r,mask);
 			regionCenter(r);
 
-			if(p.nz>1){
+			if (p.nz>1){
 /*				out.print(imgnumber 
 						+";" + r.value  
 						+";"+ r.rsize //size
@@ -1505,10 +1505,10 @@ public class Analysis {
 		}
 
 		//		double size=count;
-		//		if(p.subpixel){
+		//		if (p.subpixel){
 		//			size= count/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);
 		//		}
-		if(out != null && p.nchannels==2){
+		if (out != null && p.nchannels==2){
 			//regionIntensityAndCenter(r,mask);
 			regionCenter(r);
 			out.print(imgnumber 
@@ -1545,7 +1545,7 @@ public class Analysis {
 	public static void setPerimeter(ArrayList<Region> regionlist, int [][][] regionsA){
 		for (Iterator<Region> it = regionlist.iterator(); it.hasNext();) {
 			Region r = it.next();
-			if(p.nz==1)
+			if (p.nz==1)
 				regionPerimeter(r,regionsA);
 			else
 				regionPerimeter3D(r,regionsA);
@@ -1564,15 +1564,15 @@ public class Analysis {
 			int edges=0;
 			Pix v = it.next();
 			//count number of free edges
-			if(v.px!=0 && v.px!=p.ni-1 && v.py!=0 && v.py!=p.ni-1){//not on edges of image
-				if(regionsA[v.pz][v.px-1][v.py]==0)edges++;
-				if(regionsA[v.pz][v.px+1][v.py]==0)edges++;
-				if(regionsA[v.pz][v.px][v.py-1]==0)edges++;
-				if(regionsA[v.pz][v.px][v.py+1]==0)edges++;//!=rvalue
+			if (v.px!=0 && v.px!=p.ni-1 && v.py!=0 && v.py!=p.ni-1){//not on edges of image
+				if (regionsA[v.pz][v.px-1][v.py]==0)edges++;
+				if (regionsA[v.pz][v.px+1][v.py]==0)edges++;
+				if (regionsA[v.pz][v.px][v.py-1]==0)edges++;
+				if (regionsA[v.pz][v.px][v.py+1]==0)edges++;//!=rvalue
 			}
-			if(edges==1)pr+=1;
-			if(edges==2)pr+=Math.sqrt(2);
-			if(edges==3)pr+=2;
+			if (edges==1)pr+=1;
+			if (edges==2)pr+=Math.sqrt(2);
+			if (edges==3)pr+=2;
 			//IJ.log("coord " + v.px + ", " + v.py +", "+ v.pz +"edges " + edges);
 
 
@@ -1580,7 +1580,7 @@ public class Analysis {
 		//return (sum/count);
 		r.perimeter=pr;
 		//IJ.log("perimeter " +pr);
-		if(Analysis.p.subpixel){r.perimeter=pr/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);}
+		if (Analysis.p.subpixel){r.perimeter=pr/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);}
 		//IJ.log("perimeter " +r.perimeter);
 
 	}
@@ -1594,19 +1594,19 @@ public class Analysis {
 			int edges=0;
 			Pix v = it.next();
 			//count number of free edges
-			if(v.px!=0 && v.px!=p.ni-1 && v.py!=0 && v.py!=p.ni-1 && v.pz!=0 && v.pz!=p.nz-1){//not on edges of image
-				if(regionsA[v.pz][v.px-1][v.py]==0)edges++;
-				if(regionsA[v.pz][v.px+1][v.py]==0)edges++;
-				if(regionsA[v.pz][v.px][v.py-1]==0)edges++;
-				if(regionsA[v.pz][v.px][v.py+1]==0)edges++;
-				if(regionsA[v.pz+1][v.px][v.py]==0)edges++;
-				if(regionsA[v.pz-1][v.px][v.py]==0)edges++;
+			if (v.px!=0 && v.px!=p.ni-1 && v.py!=0 && v.py!=p.ni-1 && v.pz!=0 && v.pz!=p.nz-1){//not on edges of image
+				if (regionsA[v.pz][v.px-1][v.py]==0)edges++;
+				if (regionsA[v.pz][v.px+1][v.py]==0)edges++;
+				if (regionsA[v.pz][v.px][v.py-1]==0)edges++;
+				if (regionsA[v.pz][v.px][v.py+1]==0)edges++;
+				if (regionsA[v.pz+1][v.px][v.py]==0)edges++;
+				if (regionsA[v.pz-1][v.px][v.py]==0)edges++;
 			}
-			if(edges==1)pr+=1;
-			if(edges==2)pr+=Math.sqrt(2);
-			if(edges==3)pr+=Math.sqrt(2);
-			if(edges==4)pr+=Math.sqrt(2);
-			if(edges==5)pr+=2*Math.sqrt(2);
+			if (edges==1)pr+=1;
+			if (edges==2)pr+=Math.sqrt(2);
+			if (edges==3)pr+=Math.sqrt(2);
+			if (edges==4)pr+=Math.sqrt(2);
+			if (edges==5)pr+=2*Math.sqrt(2);
 			//IJ.log("coord " + v.px + ", " + v.py +", "+ v.pz +"edges " + edges);
 
 
@@ -1614,7 +1614,7 @@ public class Analysis {
 		//return (sum/count);
 		r.perimeter=pr;
 		//IJ.log("perimeter " +pr);
-		if(Analysis.p.subpixel){r.perimeter=pr/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);}
+		if (Analysis.p.subpixel){r.perimeter=pr/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);}
 		//IJ.log("perimeter " +r.perimeter);
 
 	}
@@ -1627,9 +1627,9 @@ public class Analysis {
 		//compute skeletonization
 		int osxy=1;
 		//int osz=1;
-		if(p.subpixel && p.refinement){
+		if (p.subpixel && p.refinement){
 			osxy=p.oversampling2ndstep*p.interpolation;
-//			if(p.nz>1){
+//			if (p.nz>1){
 //				osz=p.oversampling2ndstep*p.interpolation;
 //			}
 		}
@@ -1639,7 +1639,7 @@ public class Analysis {
 		byte[] mask_bytes = new byte[di*dj];
 		for (int i=0; i<di; i++) {
 			for (int j=0; j<dj; j++) {  
-				if(regionsA[0][i][j]>0)
+				if (regionsA[0][i][j]>0)
 					mask_bytes[j * di + i]= (byte) 0;
 				else
 					mask_bytes[j * di + i]=(byte) 255;
@@ -1674,13 +1674,13 @@ public class Analysis {
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 			Pix v = it.next();
 			//count number of pixels in skeleton
-			if(skel.getProcessor().getPixel(v.px, v.py)==0)length++;
-			//if(skel.getProcessor().getPixel(v.px, v.py)==0)IJ.log("coord " + v.px + ", " + v.py);
+			if (skel.getProcessor().getPixel(v.px, v.py)==0)length++;
+			//if (skel.getProcessor().getPixel(v.px, v.py)==0)IJ.log("coord " + v.px + ", " + v.py);
 
 		}
 		//return (sum/count);
 		r.length=length;
-		if(Analysis.p.subpixel){r.length= ((double)length)/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);}
+		if (Analysis.p.subpixel){r.length= ((double)length)/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);}
 
 
 
@@ -1719,7 +1719,7 @@ public class Analysis {
 
 		int factor2 =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 		int fz2;
-		if(Analysis.p.nz>1)fz2=factor2; else fz2=1;
+		if (Analysis.p.nz>1)fz2=factor2; else fz2=1;
 		
 		int count=0;
 		double sum=0;
@@ -1729,7 +1729,7 @@ public class Analysis {
 			count++;
 		}
 
-		//		if(out!=null){
+		//		if (out!=null){
 		//			out.print("");
 		//			out.println();
 		//		}
@@ -1754,7 +1754,7 @@ public class Analysis {
 			count++;
 		}
 
-		//		if(out!=null){
+		//		if (out!=null){
 		//			out.print("");
 		//			out.println();
 		//		}
@@ -1763,7 +1763,7 @@ public class Analysis {
 		r.cx= (float) (sumx/count);
 		r.cy= (float) (sumy/count);
 		r.cz= (float) (sumz/count);
-		if(Analysis.p.subpixel){
+		if (Analysis.p.subpixel){
 
 			r.cx= r.cx/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);
 			r.cy= r.cy/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);
@@ -1783,13 +1783,13 @@ public class Analysis {
 		double sumz=0;
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 			Pix p = it.next();
-			if(!Analysis.p.refinement){
+			if (!Analysis.p.refinement){
 				sum+= image[p.pz][p.px][p.py] ;
 			}
 			//sum+= mask[p.pz][p.px][p.py] & 0xFF; //for conversion, corrects sign problem
 
-			//if(p.px==277 && p.py==202 && p.pz==7){IJ.log("test value rint:" + maskA[p.pz][p.px][p.py]);}
-			//if(r.value==6)IJ.log("value byte" + mask[p.pz][p.px][p.py] + " x"+ p.px +"y" + p.py + "z"+ p.pz);
+			//if (p.px==277 && p.py==202 && p.pz==7){IJ.log("test value rint:" + maskA[p.pz][p.px][p.py]);}
+			//if (r.value==6)IJ.log("value byte" + mask[p.pz][p.px][p.py] + " x"+ p.px +"y" + p.py + "z"+ p.pz);
 			sumx+=p.px;
 			sumy+=p.py;
 			sumz+=p.pz;
@@ -1798,7 +1798,7 @@ public class Analysis {
 
 		//return (sum/count);
 		//r.intensity=(sum/(count*255));
-		if(!Analysis.p.refinement){
+		if (!Analysis.p.refinement){
 			r.intensity=(sum/(count));
 		}//done in refinement
 		//IJ.log("inten " + r.intensity);
@@ -1807,7 +1807,7 @@ public class Analysis {
 		r.cy= (float) (sumy/count);
 		r.cz= (float) (sumz/count);
 
-		if(Analysis.p.subpixel){
+		if (Analysis.p.subpixel){
 			r.cx= r.cx/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);
 			r.cy= r.cy/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);
 			r.cz= r.cz/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);
@@ -1924,7 +1924,7 @@ public class Analysis {
 			totalsize+= r.perimeter;
 		}
 
-		//if(Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
+		//if (Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
 		return(totalsize/objects);
 
 	}
@@ -1939,7 +1939,7 @@ public class Analysis {
 			totalsize+= r.length;
 		}
 		
-		//if(Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
+		//if (Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
 		return(totalsize/objects);
 
 	}
@@ -1956,7 +1956,7 @@ public class Analysis {
 			totalsize+= r.points;
 		}
 
-		if(Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
+		if (Analysis.p.subpixel){return (totalsize/objects)/(Math.pow(Analysis.p.oversampling2ndstep*Analysis.p.interpolation, 2));}
 		else return(totalsize/objects);
 
 	}
@@ -2006,7 +2006,7 @@ public class Analysis {
 
 		for (Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
 			Region r = it.next();
-			if(isInside(r))newregionlist.add(r);
+			if (isInside(r))newregionlist.add(r);
 		}
 		regionslist=newregionlist;
 		//IJ.log("new size" + newregionlist.size());
@@ -2018,12 +2018,12 @@ public class Analysis {
 
 		int factor2 =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 		int fz2;
-		if(Analysis.p.nz>1)fz2=factor2; else fz2=1;
+		if (Analysis.p.nz>1)fz2=factor2; else fz2=1;
 		double size=0;
 		int inside=0;
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {	
 			Pix px = it.next();
-			if(overallCellMaskBinary[px.pz/fz2][px.px/factor2][px.py/factor2])inside++;
+			if (overallCellMaskBinary[px.pz/fz2][px.px/factor2][px.py/factor2])inside++;
 			size++;
 		}
 		return ((inside/size)>0.1);
@@ -2036,7 +2036,7 @@ public class Analysis {
 		for (int z=0; z<p.nz; z++){
 			for (int i=0; i<p.ni; i++){  
 				for (int j=0;j< p.nj; j++){  
-					if(p.usecellmaskX && p.usecellmaskY){
+					if (p.usecellmaskX && p.usecellmaskY){
 						mask[z][i][j]=cellMaskABinary[z][i][j]//>254  
 								&&
 								cellMaskBBinary[z][i][j];//>254;
@@ -2056,22 +2056,22 @@ public class Analysis {
 
 	public static void computeRegions(){
 		IJ.log("deprecated");
-		if(p.usePSF==true || p.nz>1 ||p.nlevels==1 ){
-			if(p.findregionthresh)compute_connected_regions_a(255*p.thresh,solverX.Ri[0]);
+		if (p.usePSF==true || p.nz>1 ||p.nlevels==1 ){
+			if (p.findregionthresh)compute_connected_regions_a(255*p.thresh,solverX.Ri[0]);
 			else compute_connected_regions_a(255*p.thresh,null);
 		}
 		else{
-			if(p.nlevels==2)compute_connected_regions_a(0.5,null);
+			if (p.nlevels==2)compute_connected_regions_a(0.5,null);
 			else compute_connected_regions_a(1.5,null);
 		}
 
 
-		if(p.usePSF==true || p.nz>1 ||p.nlevels==1 ){
-			if(p.findregionthresh)compute_connected_regions_b(255*p.thresh,solverY.Ri[0]);
+		if (p.usePSF==true || p.nz>1 ||p.nlevels==1 ){
+			if (p.findregionthresh)compute_connected_regions_b(255*p.thresh,solverY.Ri[0]);
 			else compute_connected_regions_b(255*p.thresh,null);
 		}
 		else{
-			if(p.nlevels==2)compute_connected_regions_b(0.5,null);
+			if (p.nlevels==2)compute_connected_regions_b(0.5,null);
 			else compute_connected_regions_b(1.5,null);
 		}
 	}
@@ -2082,7 +2082,7 @@ public class Analysis {
 	{
 		int factor2 =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 		int fz2;
-		if(Analysis.p.nz>1)fz2=factor2; else fz2=1;
+		if (Analysis.p.nz>1)fz2=factor2; else fz2=1;
 		int index=1;
 
 		for (int z=0; z<p.nz*fz2; z++)

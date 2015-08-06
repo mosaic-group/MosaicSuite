@@ -479,7 +479,7 @@ class PrintfFormat {
       sFmt.setLiteral(unCS);
       vFmt.addElement(sFmt);
     }
-    while(cPos!=-1 && cPos<fmtArg.length()) {
+    while (cPos!=-1 && cPos<fmtArg.length()) {
       for (ePos=cPos+1; ePos<fmtArg.length();
                     ePos++) {
         char c=0;
@@ -833,10 +833,10 @@ class PrintfFormat {
         setOptionalHL();
         if (setConversionCharacter()) {
           if (pos==fmtArg.length()) {
-            if(leadingZeros&&leftJustify)
+            if (leadingZeros&&leftJustify)
               leadingZeros=false;
-            if(precisionSet&&leadingZeros){
-              if(conversionCharacter=='d'
+            if (precisionSet&&leadingZeros){
+              if (conversionCharacter=='d'
               ||conversionCharacter=='i'
               ||conversionCharacter=='o'
               ||conversionCharacter=='x')
@@ -1108,7 +1108,7 @@ class PrintfFormat {
     String internalsprintf(String s)
         throws IllegalArgumentException {
       String s2 = "";
-      if(conversionCharacter=='s'
+      if (conversionCharacter=='s'
       || conversionCharacter=='S')
         s2 = printSFormat(s);
       else
@@ -1127,7 +1127,7 @@ class PrintfFormat {
      */
     String internalsprintf(Object s) {
       String s2 = "";
-      if(conversionCharacter=='s'
+      if (conversionCharacter=='s'
       || conversionCharacter=='S')
         s2 = printSFormat(s.toString());
       else
@@ -1239,16 +1239,16 @@ class PrintfFormat {
         ca4 = new char[2+p];
         if (!carry) ca4[0]='0';
         else ca4[0]='1';
-        if(alternateForm||!precisionSet||precision!=0){
+        if (alternateForm||!precisionSet||precision!=0){
           ca4[1]='.';
-          for(i=0,j=2;i<Math.min(p,ca3.length);i++,j++)
+          for (i=0,j=2;i<Math.min(p,ca3.length);i++,j++)
             ca4[j]=ca3[i];
           for (; j<ca4.length; j++) ca4[j]='0';
         }
       }
       else {
         if (!carry) {
-          if(alternateForm||!precisionSet
+          if (alternateForm||!precisionSet
           ||precision!=0)
             ca4 = new char[n1In+expon+p+1];
           else
@@ -1256,7 +1256,7 @@ class PrintfFormat {
           j=0;
         }
         else {
-          if(alternateForm||!precisionSet
+          if (alternateForm||!precisionSet
           ||precision!=0)
             ca4 = new char[n1In+expon+p+2];
           else
@@ -1268,7 +1268,7 @@ class PrintfFormat {
           ca4[j]=ca3[i];
         for (; i<n1In+expon; i++,j++)
           ca4[j]='0';
-        if(alternateForm||!precisionSet||precision!=0){
+        if (alternateForm||!precisionSet||precision!=0){
           ca4[j]='.'; j++;
           for (k=0; i<ca3.length && k<p; i++,j++,k++)
             ca4[j]=ca3[i];

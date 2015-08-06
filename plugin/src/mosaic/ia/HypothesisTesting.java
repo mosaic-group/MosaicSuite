@@ -43,20 +43,20 @@ class HypothesisTesting {
 //		double [] Ulinspace=new double[no],Udens=new double[no];
 //		double Udiff=(U[U.length-1]-U[0])/no;
 //		double sum=0,max=0,min=Double.MAX_VALUE;
-//		for(int i=0;i<no;i++)
+//		for (int i=0;i<no;i++)
 //		{
 //			Ulinspace[i]=U[0]+Udiff*i;
 //			Udens[i]=kde.getProbability(Ulinspace[i]);
 //			sum=sum+Udens[i];
 //		}
 //	//	PlotUtils.histPlotDoubleArray("Statistic:T",T);
-//		for(int i=0;i<no;i++)
+//		for (int i=0;i<no;i++)
 //		{
 //		
 //			Udens[i]=Udens[i]/sum;
-//			if(Udens[i]>max)
+//			if (Udens[i]>max)
 //				max=Udens[i];
-//			if(Udens[i]<min)
+//			if (Udens[i]<min)
 //				min=Udens[i];
 //		}
 //		Plot plot = new Plot("Result: NonParam Hypothesis testing","U","Probability density",Ulinspace,Udens);
@@ -116,12 +116,12 @@ class HypothesisTesting {
 		
 		
 		
-	/*	for(int i=0;i<K;i++)
+	/*	for (int i=0;i<K;i++)
 		{
 			//generate d
 			
 			
-			for(int j=0;j<Tl.length;j++)
+			for (int j=0;j<Tl.length;j++)
 				System.out.print("Td1["+i+"]["+j+"]:"+Td1[i][j]+",");
 			System.out.println(";");
 
@@ -135,15 +135,15 @@ class HypothesisTesting {
 		//System.out.println("1st term of Td1: "+Td1[0][0]);
 		//	RealMatrix rmTd1= new RealMatrixImpl(Td1);
 		//System.out.println("1st term of rmTd1: "+rmTd1.getEntry(0, 0));
-		for(int i=0;i<Td1.length;i++){
-			for(int j=0;j<Td1[0].length;j++)
+		for (int i=0;i<Td1.length;i++){
+			for (int j=0;j<Td1[0].length;j++)
 				System.out.print(Td1[i][j]+",");
 			System.out.println("");
 		}
 			System.out.println("Mean:");
-			for(int i=0;i<Tl.length;i++)
+			for (int i=0;i<Tl.length;i++)
 			{
-				for(int j=0;j<K;j++)
+				for (int j=0;j<K;j++)
 				{
 					TdMean[i]=TdMean[i]+Td1[j][i];
 					
@@ -179,10 +179,10 @@ class HypothesisTesting {
 		
 		U=new double[K];
 		double [] dT=new double[Tl.length];
-		for(int i=0;i<K;i++)
+		for (int i=0;i<K;i++)
 		{
 			
-			for(int j=0;j<Tl.length;j++)
+			for (int j=0;j<Tl.length;j++)
 			{
 				dT[j]=TdMean[j]-Td2[i][j];
 			}
@@ -197,10 +197,10 @@ class HypothesisTesting {
 		//now for D
 		double [] tempTD=new double[Tl.length];
 	
-		for(int i=0;i<D.length;i++)
+		for (int i=0;i<D.length;i++)
 		{
-			for(int j=0;j<Tl.length-1;j++){
-				if(D[i]>= Tl[j] && D[i]< Tl[j+1])
+			for (int j=0;j<Tl.length-1;j++){
+				if (D[i]>= Tl[j] && D[i]< Tl[j+1])
 				{
 					tempTD[j]++;
 					break;
@@ -210,7 +210,7 @@ class HypothesisTesting {
 		}
 		
 
-		for(int j=0;j<Tl.length;j++)
+		for (int j=0;j<Tl.length;j++)
 		{
 			dT[j]=TdMean[j]-tempTD[j];
 		}
@@ -219,13 +219,13 @@ class HypothesisTesting {
 		Uob=LinearAlgebra.times(dT,LinearAlgebra.times(TdInvCov,dT))[0];
 		//rank
 		int i;
-		for(i=0;i<K;i++)
+		for (i=0;i<K;i++)
 		{
-			if(Uob<=U[i])
+			if (Uob<=U[i])
 				break;
 		}
 		
-		if(i>(int)((1-alpha)*K) )
+		if (i>(int)((1-alpha)*K) )
 		{
 			System.out.println("NonParametric: Null hypothesis rejected, rank: "+i+" out of "+K);
 			IJ.showMessage("NonParametric with "+binNum+" bins: Null hypothesis: No interaction - Rejected, rank: "+i+" out of "+K+"MC runs with alpha= "+alpha);
@@ -257,25 +257,25 @@ class HypothesisTesting {
 		Tob= -1*pcOb.getSumPotential();
 		
 	//double [] oneToK=new double[K];
-	//	for(i=0;i<K;i++)
+	//	for (i=0;i<K;i++)
 		//{
 			//oneToK[i]=(double)i;
 		//}
 		double maxT=Double.MIN_VALUE,minT=Double.MAX_VALUE;
 		
 		
-		for(int i=0;i<K;i++)
+		for (int i=0;i<K;i++)
 		{
-			if(minT>T[i])
+			if (minT>T[i])
 				minT=T[i];
-			if(maxT<T[i])
+			if (maxT<T[i])
 				maxT=T[i];
 			
 		}
 		int i=0;
-		for(i=0;i<K;i++)
+		for (i=0;i<K;i++)
 		{
-			if(Tob<=T[i])
+			if (Tob<=T[i])
 				break;
 		}
 		
@@ -283,7 +283,7 @@ class HypothesisTesting {
 	//	PlotUtils.plotDoubleArray("T", oneToK, T);
 		System.out.println("MinT: "+minT+" maxT: "+maxT);
 		System.out.println("T obs: "+Tob+" found at rank: "+i);
-		if(i>(int)((1-alpha)*K))
+		if (i>(int)((1-alpha)*K))
 		{
 			if ((K-i) == 0)
 			{
@@ -314,7 +314,7 @@ class HypothesisTesting {
 		DRand=new double[D.length];
 		T=new double[K];
 		
-		for(int i=0;i<K;i++)
+		for (int i=0;i<K;i++)
 		{
 			//System.out.println("Calculating TK, K= "+i);
 			T[i]=calculateTk();
@@ -332,20 +332,20 @@ class HypothesisTesting {
 //		double [] Tlinspace=new double[no],Tdens=new double[no];
 //		double Tdiff=(T[T.length-1]-T[0])/no;
 //		double sum=0,max=0,min=Double.MAX_VALUE;
-//		for(int i=0;i<no;i++)
+//		for (int i=0;i<no;i++)
 //		{
 //			Tlinspace[i]=T[0]+Tdiff*i;
 //			Tdens[i]=kde.getProbability(Tlinspace[i]);
 //			sum=sum+Tdens[i];
 //		}
 //	//	PlotUtils.histPlotDoubleArray("Statistic:T",T);
-//		for(int i=0;i<no;i++)
+//		for (int i=0;i<no;i++)
 //		{
 //		
 //			Tdens[i]=Tdens[i]/sum;
-//			if(Tdens[i]>max)
+//			if (Tdens[i]>max)
 //				max=Tdens[i];
-//			if(Tdens[i]<min)
+//			if (Tdens[i]<min)
 //				min=Tdens[i];
 //		}
 //		Plot plot = new Plot("Result: Hypothesis testing","T","Probability density",Tlinspace,Tdens);
@@ -377,15 +377,15 @@ class HypothesisTesting {
 //	private double [][] calculateTd()
 //	{
 //		double [][] tempTd=new double[K][Tl.length];
-//		for(int k=0;k<K;k++)
+//		for (int k=0;k<K;k++)
 //		{
 //			//generate d
 //			generateRandomD();
-//			for(int i=0;i<DRand.length;i++)
+//			for (int i=0;i<DRand.length;i++)
 //			{
 //				{
-//				for(int j=0;j<Tl.length-1;j++){
-//					if(DRand[i]>= Tl[j] && DRand[i]< Tl[j+1]){
+//				for (int j=0;j<Tl.length-1;j++){
+//					if (DRand[i]>= Tl[j] && DRand[i]< Tl[j+1]){
 //						tempTd[k][j]++;
 //						break;
 //						
@@ -404,7 +404,7 @@ class HypothesisTesting {
 		PotentialCalculator pc=new PotentialCalculator(DRand, params, type);
 		pc.calculateWOEpsilon();
 	//	PlotUtils.plotDoubleArray("Null Hyp Pot", D, pc.getPotential());
-		/*for(int i=0;i<N;i++)
+		/*for (int i=0;i<N;i++)
 		{
 			
 			System.out.print("D: "+DRand[i]+" Potential: "+pc.getPotential()[i]);
@@ -423,10 +423,10 @@ class HypothesisTesting {
 //		System.out.println("CDFGrid[0]: "+CDFGrid[0]);
 	//	System.out.println("CDFGrid[N-1]: "+CDFGrid[N-1]);
 		
-		for(int i=0;i<D.length;)
+		for (int i=0;i<D.length;)
 		{
 		R=rn.nextDouble();
-		if(R>=CDFGrid[0]) /// to make sure that random value will be gte the least in cdf
+		if (R>=CDFGrid[0]) /// to make sure that random value will be gte the least in cdf
 		{
 			DRand[i]=findD(R);
 			i++;
@@ -441,9 +441,9 @@ class HypothesisTesting {
 	private double  findD(double R)
 	{
 		int i;
-		for(i=0;i<CDFGrid.length-1;i++)
+		for (i=0;i<CDFGrid.length-1;i++)
 		{
-			if(R>= CDFGrid[i] && R < CDFGrid[i+1])
+			if (R>= CDFGrid[i] && R < CDFGrid[i+1])
 			{
 				break;
 				

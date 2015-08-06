@@ -65,7 +65,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 	private boolean mAPICall = false;
 	
 	public int setup(String aArgs, ImagePlus aImagePlus){
-		if(IJ.versionLessThan("1.36x"))
+		if (IJ.versionLessThan("1.36x"))
 			return DONE;
 		if (aImagePlus == null) {
 			IJ.showMessage("Load an image first.");
@@ -81,18 +81,18 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 			//nothing			
 		}
 		int vWhatToDo = 2;
-		while(vWhatToDo == 2){			
+		while (vWhatToDo == 2){			
 			vWhatToDo = showDialog();
-			if(vWhatToDo == 0)
+			if (vWhatToDo == 0)
 				return DONE;
-			if(vWhatToDo == 1) //actually unnecessary
+			if (vWhatToDo == 1) //actually unnecessary
 				break;
 		}		
-		if(mShowBackgroundImage) {
+		if (mShowBackgroundImage) {
 			mBackgroundImageStack = new ImageStack(aImagePlus.getWidth(), aImagePlus.getHeight());
 		}
 		int vReturnValue = IJ.setupDialog(aImagePlus, DOES_8G + DOES_16 + DOES_32);
-		if((vReturnValue & DOES_STACKS) != 0) {
+		if ((vReturnValue & DOES_STACKS) != 0) {
 			mDoAll = true;
 			vReturnValue -= DOES_STACKS;
 		}
@@ -115,8 +115,8 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         	return;
         }
         
-        if(!mAPICall && mLength >= .5 * Math.min(mWidth, mHeight)) {
-        	if(!IJ.showMessageWithCancel("Unsure parameter", "Your square length parameter seems to be too big. \n " + 
+        if (!mAPICall && mLength >= .5 * Math.min(mWidth, mHeight)) {
+        	if (!IJ.showMessageWithCancel("Unsure parameter", "Your square length parameter seems to be too big. \n " + 
         			"The background image will be dominated by the edge of your image." + 
         			"\nClick cancel to abort.")) {
         		return;
@@ -124,10 +124,10 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         }
         int vStartSlice = 0;
         int vStopSlice = 0;
-        if(!mAPICall) {
+        if (!mAPICall) {
         	vStartSlice = 1;
         	vStopSlice = mOriginalImagePlus.getStackSize();
-        	if(!mDoAll) {
+        	if (!mDoAll) {
         		vStartSlice = mOriginalImagePlus.getCurrentSlice();
         		vStopSlice = vStartSlice;        	
         	}
@@ -136,10 +136,10 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         	vStopSlice = 1;
         }
         
-        for(int vS = vStartSlice; vS <= vStopSlice; vS++) {
+        for (int vS = vStartSlice; vS <= vStopSlice; vS++) {
         	ImageProcessor vImageProcessor = null;
         	ImageProcessor vOrigImageProcessor = null;
-        	if(!mAPICall){
+        	if (!mAPICall){
         		IJ.showProgress(vS - vStartSlice + 1, vStopSlice - vStartSlice + 1);
         		vOrigImageProcessor = mOriginalImagePlus.getStack().getProcessor(vS);
 
@@ -157,36 +157,36 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         	FloatProcessor vBackgroundProcessor = new FloatProcessor(vWidth, vHeight);
         	vImageProcessor.resetMinAndMax();
         	mBinSize = (float)( vImageProcessor.getMax() -  vImageProcessor.getMin()) / mBins;
-        	if(mBinSize == 0f)
+        	if (mBinSize == 0f)
         		mBinSize = 1f;//only the minmum value will be subtracted->image = 0
         	
         	//
         	// Begin with sampling the expensive BG function
         	//
-        	for(int vY = 0; vY < vHeight; vY = vY + mStepSize){
-        		for(int vX = 0; vX < vWidth; vX = vX + mStepSize){  
+        	for (int vY = 0; vY < vHeight; vY = vY + mStepSize){
+        		for (int vX = 0; vX < vWidth; vX = vX + mStepSize){  
         			vBackgroundProcessor.setf(vX, vY, GetBackgroundIntensityAt(vX, vY, vImageProcessor));
         		}
         	}
         	//
         	// Sample also at the last pixel row and column
         	//
-        	for(int vX = 0; vX < vWidth; vX = vX + mStepSize){  
+        	for (int vX = 0; vX < vWidth; vX = vX + mStepSize){  
         		vBackgroundProcessor.setf(vX, mHeight - 1, GetBackgroundIntensityAt(vX, mHeight - 1, vImageProcessor));
         	}
-        	for(int vY = 0; vY < mHeight; vY = vY + mStepSize){  
+        	for (int vY = 0; vY < mHeight; vY = vY + mStepSize){  
         		vBackgroundProcessor.setf(mWidth - 1, vY, GetBackgroundIntensityAt(mWidth - 1, vY, vImageProcessor));
         	}
         	vBackgroundProcessor.setf(mWidth - 1, mHeight - 1, GetBackgroundIntensityAt(mWidth - 1, mHeight - 1, vImageProcessor));
         	//
         	// shade(linear interpolate) the rows
         	//
-        	for(int vY = 0; vY < vHeight + mStepSize - 1; vY = vY + mStepSize){
-        		if(vY >= vHeight)
+        	for (int vY = 0; vY < vHeight + mStepSize - 1; vY = vY + mStepSize){
+        		if (vY >= vHeight)
         			vY = vHeight - 1; //reset to the last row if necessary
-        		for(int vX = 0; vX < vWidth; vX++){ 
+        		for (int vX = 0; vX < vWidth; vX++){ 
         			int vA = vX % mStepSize; 
-        			if(vA == 0)
+        			if (vA == 0)
         				continue;
         			int vRightPixelIndex = (vX - vA + mStepSize < vWidth) ? vX - vA + mStepSize : vWidth - 1;
         			float vShadedIntensity = (((float)(mStepSize - vA) / (float)mStepSize) * vBackgroundProcessor.getPixelValue(vX - vA, vY) +
@@ -197,13 +197,13 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         	//
         	// shade the columns
         	//
-        	for(int vY = 0; vY < vHeight; vY++){
+        	for (int vY = 0; vY < vHeight; vY++){
         		int vB = vY % mStepSize; 
-        		if(vB == 0)
+        		if (vB == 0)
     				continue;
         		int vBottomPixelIndex = (vY - vB + mStepSize < vHeight) ? vY - vB + mStepSize : vHeight - 1;
-        		for(int vX = 0; vX < vWidth + mStepSize - 1; vX = vX + mStepSize){ 
-        			if(vX >= mWidth) 
+        		for (int vX = 0; vX < vWidth + mStepSize - 1; vX = vX + mStepSize){ 
+        			if (vX >= mWidth) 
         				vX = mWidth - 1;
         			float vShadedIntensity = (((float)(mStepSize - vB) / (float)mStepSize) * vBackgroundProcessor.getPixelValue(vX, vY - vB) +
         					((float)vB / (float)(mStepSize)) * vBackgroundProcessor.getPixelValue(vX, vBottomPixelIndex));
@@ -213,14 +213,14 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         	//
         	// shade the rest of the pixels
         	//
-        	for(int vY = 0; vY < vHeight; vY++){
+        	for (int vY = 0; vY < vHeight; vY++){
         		int vB = vY % mStepSize;
-        		if(vB == 0)
+        		if (vB == 0)
     				continue;
         		int vBottomPixelIndex = (vY - vB + mStepSize < vHeight) ? vY - vB + mStepSize : vHeight - 1;
-        		for(int vX = 0; vX < vWidth; vX++){ 
+        		for (int vX = 0; vX < vWidth; vX++){ 
         			int vA = vX % mStepSize;
-        			if(vA == 0)
+        			if (vA == 0)
         				continue;
         			int vRightPixelIndex = (vX - vA + mStepSize < vWidth) ? vX - vA + mStepSize : vWidth - 1;
         			float vShadedIntensityInX = (((float)(mStepSize - vA) / (float)mStepSize) * vBackgroundProcessor.getPixelValue(vX - vA, vY) +
@@ -237,15 +237,15 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         	vBackgroundProcessor.convolve(vKernel, vKernel.length, 1);
         	vBackgroundProcessor.convolve(vKernel, 1, vKernel.length);
 
-        	if(mShowBackgroundImage) {
+        	if (mShowBackgroundImage) {
         		mBackgroundImageStack.addSlice("", vBackgroundProcessor);        		
         	}
         	
         	float[] vPixels = (float[])vImageProcessor.getPixels();
         	float[] vBackgroundPixels = (float[])vBackgroundProcessor.getPixels();
-        	for(int vI = 0; vI < vPixels.length; vI++){
+        	for (int vI = 0; vI < vPixels.length; vI++){
         		vPixels[vI] -= vBackgroundPixels[vI];
-        		if(vPixels[vI] < 0){ //what to do?
+        		if (vPixels[vI] < 0){ //what to do?
         			vPixels[vI] = 0;
         		}
         	}
@@ -264,7 +264,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         		break;
         	}
         }
-        if(mShowBackgroundImage) {
+        if (mShowBackgroundImage) {
         	new StackWindow(new ImagePlus("BG of " + mOriginalImagePlus.getTitle(), mBackgroundImageStack));
         }
 	}
@@ -299,36 +299,36 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 		int[] vHistogramm = new int[mBins+1];
 		int vPointerOnMax = 0;
 		float vHistoStartIntensity = (float)aImageProcessor.getMin();
-//		if(vHistoStartIntensity < 0) {
+//		if (vHistoStartIntensity < 0) {
 //			//TODO: The filter will stop by a IndexOutOfBoundsException. Important is that it'll stop.
 //			IJ.showMessage("Error in BackgroundSubtractor", "The image contains below 0 values.");
 //		}
-		for(int vSliderIndY = aY - mLength; vSliderIndY <= aY + mLength; vSliderIndY++) {
-			for(int vSliderIndX = aX - mLength; vSliderIndX <= aX + mLength; vSliderIndX++) {
+		for (int vSliderIndY = aY - mLength; vSliderIndY <= aY + mLength; vSliderIndY++) {
+			for (int vSliderIndX = aX - mLength; vSliderIndX <= aX + mLength; vSliderIndX++) {
 //				TODO: the following edge-handling stuff could be in a separate loop to increase performance a little bit.
 				int vPX = vSliderIndX;
 				int vPY = vSliderIndY;
-				if(vSliderIndX < 0) {
+				if (vSliderIndX < 0) {
 //					vPX *= -1; //this would mirror at the edge of the image 
 					vPX = 0; //this replicates the last/first row/column at the edge of the image
 				}
-				if(vSliderIndY < 0) {
+				if (vSliderIndY < 0) {
 //					vPY *= -1;
 					vPY = 0;
 				}
-				if(vSliderIndX >= mWidth) {
+				if (vSliderIndX >= mWidth) {
 //					vPX = 2*mWidth - 2 - vSliderIndX;
 					vPX = mWidth - 1;
 				}
-				if(vSliderIndY >= mHeight) {
+				if (vSliderIndY >= mHeight) {
 //					vPY = 2*mHeight - 2 - vSliderIndY;
 					vPY = mHeight - 1;
 				}
 				
 				float vV = aImageProcessor.getPixelValue(vPX, vPY);
-				if(vPointerOnMax == 334)
+				if (vPointerOnMax == 334)
 					System.out.println("Stop");
-				if(++vHistogramm[(int)((vV-vHistoStartIntensity)/mBinSize)] > vHistogramm[vPointerOnMax])
+				if (++vHistogramm[(int)((vV-vHistoStartIntensity)/mBinSize)] > vHistogramm[vPointerOnMax])
 					vPointerOnMax = (int)((vV-vHistoStartIntensity)/mBinSize);
 			}
 		}
@@ -343,7 +343,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 	public float[] GenerateGaussKernel(float aRadius){
 		float[] vKernel = new float[3 * (int)aRadius * 2 + 1];
 		int vM = vKernel.length / 2;
-		for(int vI = 0; vI < vM; vI++){
+		for (int vI = 0; vI < vM; vI++){
 			vKernel[vI] = (float)(1f/(2f*Math.PI * aRadius * aRadius) * Math.exp(-(float)((vM-vI)*(vM-vI))/(2f * aRadius * aRadius)));
 			vKernel[vKernel.length - vI - 1] = vKernel[vI];
 		}
@@ -352,19 +352,19 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 	}
 	
 //	private int AddColumnToHistogramm(int[] aHistogramm, float aHistogrammStartIntensity, float[] aColumn, int aPointer){
-//		for(float vV : aColumn){
-//			if(++aHistogramm[(int)((vV-aHistogrammStartIntensity) / mBinSize)] > aHistogramm[aPointer])
+//		for (float vV : aColumn){
+//			if (++aHistogramm[(int)((vV-aHistogrammStartIntensity) / mBinSize)] > aHistogramm[aPointer])
 //				aPointer = (int)((vV-aHistogrammStartIntensity) / mBinSize);
 //		}
 //		return aPointer;
 //	}
 //
 //	private int RemoveColumnFromHistogramm(int[] aHistogramm, float aHistogrammStartIntensity, float[] aColumn, int aPointer){
-//		for(float vV : aColumn){
+//		for (float vV : aColumn){
 //			aHistogramm[(int)((vV - aHistogrammStartIntensity) / mBinSize)]--;
 //		}
 //		aPointer = 0;
-//		for(int vI = 0; vI < aHistogramm.length; vI++){
+//		for (int vI = 0; vI < aHistogramm.length; vI++){
 //			if (aHistogramm[vI] > aHistogramm[aPointer]){
 //				aPointer = vI;
 //			}
@@ -448,7 +448,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 		}
 		
 		//convert the threshold if a calibration table is used
-		if(aImageProcessor.getCalibrationTable() != null) {
+		if (aImageProcessor.getCalibrationTable() != null) {
 			vThreshold = aImageProcessor.getCalibrationTable()[(int)vThreshold];
 		}
 		
@@ -458,8 +458,8 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 		boolean[] vBitmap = null;
 		
 		vBitmap = new boolean[vPixels.length];
-		for(int vP = 0; vP < vPixels.length; vP++){
-			if(vPixels[vP] > vThreshold) {
+		for (int vP = 0; vP < vPixels.length; vP++){
+			if (vPixels[vP] > vThreshold) {
 				vBitmap[vP] = true;
 			}
 			else {
@@ -475,22 +475,22 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 					"(Menu Image\\Adjust\\Threshold)");
 			return mLength;
 		}
-		for(int vI = 1; vI < vAreas.size(); vI++){
-			if(vAreas.elementAt(vI).size() > vAreas.elementAt(vMaxPointer).size()) {
+		for (int vI = 1; vI < vAreas.size(); vI++){
+			if (vAreas.elementAt(vI).size() > vAreas.elementAt(vMaxPointer).size()) {
 				vMaxPointer = vI;
 			}
 		}
 //		for the largest area, get the boundary
 		Vector<Integer> vBoundary = SearchBoundary(vBitmap, vAreas.elementAt(vMaxPointer));
 		float vMaxDist = 0;
-		for(int vI = 0; vI < vBoundary.size(); vI++){
-			for(int vJ = vI + 1; vJ < vBoundary.size(); vJ++){
+		for (int vI = 0; vI < vBoundary.size(); vI++){
+			for (int vJ = vI + 1; vJ < vBoundary.size(); vJ++){
 				int vX1 = vBoundary.elementAt(vI) % mWidth;
 				int vY1 = vBoundary.elementAt(vI) / mWidth;
 				int vX2 = vBoundary.elementAt(vJ) % mWidth;
 				int vY2 = vBoundary.elementAt(vJ) / mWidth;
 				float vD = (vX1 - vX2) * (vX1 - vX2) + (vY1 -vY2) * (vY1 - vY2);
-				if(vD > vMaxDist) {
+				if (vD > vMaxDist) {
 					vMaxDist = vD;
 				}
 			}
@@ -507,9 +507,9 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 	private Vector<Vector<Integer>> SearchAreasInBitmap(boolean[] aBitmap) {
 		Vector<Vector<Integer>> vAreas = new Vector<Vector<Integer>>();
 		boolean[] vAlreadyVisited = new boolean[aBitmap.length];
-		for(int vP = 0; vP < aBitmap.length; vP++){
+		for (int vP = 0; vP < aBitmap.length; vP++){
 			IJ.showProgress(vP,aBitmap.length);
-			if(aBitmap[vP] && !vAlreadyVisited[vP]){
+			if (aBitmap[vP] && !vAlreadyVisited[vP]){
 				vAreas.add(SearchArea(aBitmap, vAlreadyVisited, vP));
 			}
 		}
@@ -524,35 +524,35 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 	 * @return a Area.
 	 */
 	private Vector<Integer> SearchArea(boolean[] aBitmap, boolean[] aAlreadyVisitedMask, int aPixel) {
-		if(!aBitmap[aPixel] || aAlreadyVisitedMask[aPixel])
+		if (!aBitmap[aPixel] || aAlreadyVisitedMask[aPixel])
 			return new Vector<Integer>();
 		int vWidth = mOriginalImagePlus.getWidth();
 		int vHeight = mOriginalImagePlus.getHeight();
 		Vector<Integer> vArea = new Vector<Integer>();
 		vArea.add(aPixel);
 		aAlreadyVisitedMask[aPixel] = true;
-		if(aPixel % vWidth != vWidth - 1 && aBitmap[aPixel + 1] && !aAlreadyVisitedMask[aPixel + 1]) {
+		if (aPixel % vWidth != vWidth - 1 && aBitmap[aPixel + 1] && !aAlreadyVisitedMask[aPixel + 1]) {
 			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel + 1));
 		}
-		if(aPixel % vWidth != vWidth -1 && aPixel > vWidth && aBitmap[aPixel - vWidth + 1] && ! aAlreadyVisitedMask[aPixel - vWidth + 1]) {
+		if (aPixel % vWidth != vWidth -1 && aPixel > vWidth && aBitmap[aPixel - vWidth + 1] && ! aAlreadyVisitedMask[aPixel - vWidth + 1]) {
 			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel - vWidth + 1));
 		}
-		if(aPixel > vWidth && aBitmap[aPixel - vWidth] && !aAlreadyVisitedMask[aPixel - vWidth]) {
+		if (aPixel > vWidth && aBitmap[aPixel - vWidth] && !aAlreadyVisitedMask[aPixel - vWidth]) {
 			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel - vWidth));
 		}
-		if(aPixel % vWidth != 0 && aPixel > vWidth && aBitmap[aPixel - vWidth - 1] && ! aAlreadyVisitedMask[aPixel - vWidth - 1]) {
+		if (aPixel % vWidth != 0 && aPixel > vWidth && aBitmap[aPixel - vWidth - 1] && ! aAlreadyVisitedMask[aPixel - vWidth - 1]) {
 			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel - vWidth - 1));
 		}
-		if(aPixel % vWidth != 0 && aBitmap[aPixel - 1] && !aAlreadyVisitedMask[aPixel - 1]) {
+		if (aPixel % vWidth != 0 && aBitmap[aPixel - 1] && !aAlreadyVisitedMask[aPixel - 1]) {
 			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel - 1));
 		}
-		if(aPixel % vWidth != 0 && aPixel < (vHeight-1)*vWidth && aBitmap[aPixel + vWidth - 1] && !aAlreadyVisitedMask[aPixel + vWidth - 1]){
+		if (aPixel % vWidth != 0 && aPixel < (vHeight-1)*vWidth && aBitmap[aPixel + vWidth - 1] && !aAlreadyVisitedMask[aPixel + vWidth - 1]){
 			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel + vWidth - 1));
 		}
-		if(aPixel < (vHeight-1)*vWidth && aBitmap[aPixel + vWidth] && !aAlreadyVisitedMask[aPixel + vWidth]){
+		if (aPixel < (vHeight-1)*vWidth && aBitmap[aPixel + vWidth] && !aAlreadyVisitedMask[aPixel + vWidth]){
 			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel + vWidth));
 		}
-		if(aPixel % vWidth != vWidth -1 && aPixel < (vHeight-1)*vWidth && aBitmap[aPixel + vWidth + 1] && !aAlreadyVisitedMask[aPixel + vWidth + 1]){
+		if (aPixel % vWidth != vWidth -1 && aPixel < (vHeight-1)*vWidth && aBitmap[aPixel + vWidth + 1] && !aAlreadyVisitedMask[aPixel + vWidth + 1]){
 			vArea.addAll(SearchArea(aBitmap, aAlreadyVisitedMask, aPixel + vWidth + 1));
 		}
 		return vArea;
@@ -565,55 +565,55 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 		Vector<Integer> vB = new Vector<Integer>();
 		int vWidth = mOriginalImagePlus.getWidth();
 		int vHeight = mOriginalImagePlus.getHeight();
-		for(int vP : aArea){
+		for (int vP : aArea){
 			//
 			// Get the neighbours, first handle the boundaries of the image
 			//
 			//corners
-			if(vP == 0 || vP == vWidth-1 || vP == (vHeight-1)*vWidth || vP == (vHeight-1)*vWidth + vWidth - 1) {
+			if (vP == 0 || vP == vWidth-1 || vP == (vHeight-1)*vWidth || vP == (vHeight-1)*vWidth + vWidth - 1) {
 				vB.add(vP);
 				continue;
 			}
 			//right
-			if(vP % vWidth == vWidth - 1) {
-				if(!aBitmap[vP-vWidth] || !aBitmap[vP+vWidth]){
+			if (vP % vWidth == vWidth - 1) {
+				if (!aBitmap[vP-vWidth] || !aBitmap[vP+vWidth]){
 					vB.add(vP);
 				}
 				continue;
 			}
 			//top
-			if(vP < vWidth) {
-				if(!aBitmap[vP-1] || !aBitmap[vP+1]){
+			if (vP < vWidth) {
+				if (!aBitmap[vP-1] || !aBitmap[vP+1]){
 					vB.add(vP);
 				}
 				continue;
 			}
 			//left
-			if(vP % vWidth == 0) {
-				if(!aBitmap[vP-vWidth] || !aBitmap[vP+vWidth]){
+			if (vP % vWidth == 0) {
+				if (!aBitmap[vP-vWidth] || !aBitmap[vP+vWidth]){
 					vB.add(vP);
 				}
 				continue;
 			}
 			//bottom
-			if(vP > (vHeight - 1) * vWidth) {
-				if(!aBitmap[vP-1] || !aBitmap[vP+1]){
+			if (vP > (vHeight - 1) * vWidth) {
+				if (!aBitmap[vP-1] || !aBitmap[vP+1]){
 					vB.add(vP);
 				}
 				continue;
 			}
 			//not boundary
 			int vNeighbourCode = 0;
-			if(!aBitmap[vP + 1]) vNeighbourCode += 1;
-			if(!aBitmap[vP + 1 - vWidth]) vNeighbourCode += 2;
-			if(!aBitmap[vP - vWidth]) vNeighbourCode += 4;
-			if(!aBitmap[vP - 1 - vWidth]) vNeighbourCode += 8;
-			if(!aBitmap[vP - 1]) vNeighbourCode += 16;
-			if(!aBitmap[vP - 1 + vWidth]) vNeighbourCode += 32;
-			if(!aBitmap[vP + vWidth]) vNeighbourCode += 64;
-			if(!aBitmap[vP + vWidth + 1]) vNeighbourCode += 128;
+			if (!aBitmap[vP + 1]) vNeighbourCode += 1;
+			if (!aBitmap[vP + 1 - vWidth]) vNeighbourCode += 2;
+			if (!aBitmap[vP - vWidth]) vNeighbourCode += 4;
+			if (!aBitmap[vP - 1 - vWidth]) vNeighbourCode += 8;
+			if (!aBitmap[vP - 1]) vNeighbourCode += 16;
+			if (!aBitmap[vP - 1 + vWidth]) vNeighbourCode += 32;
+			if (!aBitmap[vP + vWidth]) vNeighbourCode += 64;
+			if (!aBitmap[vP + vWidth + 1]) vNeighbourCode += 128;
 
-			if((vNeighbourCode & 15) == 15  ||
+			if ((vNeighbourCode & 15) == 15  ||
 					(vNeighbourCode & 30) == 30  ||
 					(vNeighbourCode & 60) == 60  ||
 					(vNeighbourCode & 120) == 120  ||

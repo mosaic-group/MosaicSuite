@@ -174,7 +174,7 @@ public class Point
 	public Point add(Point p)
 	{
 		Point result = new Point(dim);
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			result.x[i]= x[i]+p.x[i];
 		}
@@ -192,7 +192,7 @@ public class Point
 	public Point sub(Point p)
 	{
 		Point result = new Point(dim);
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			result.x[i]= x[i]-p.x[i];
 		}
@@ -210,7 +210,7 @@ public class Point
 	public Point mult(int f)
 	{
 		Point result = new Point(dim);
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			result.x[i]= (x[i]*f);
 		}
@@ -227,7 +227,7 @@ public class Point
 	public Point div(int f)
 	{
 		Point result = new Point(dim);
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			result.x[i]= (x[i]/f);
 		}
@@ -244,7 +244,7 @@ public class Point
 	public Point div(float scaling[])
 	{
 		Point result = new Point(dim);
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			result.x[i]= (int) (x[i]/scaling[i]);
 		}
@@ -258,7 +258,7 @@ public class Point
 	 */
 	public void fill(int f)
 	{
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			x[i]= f;
 		}
@@ -271,7 +271,7 @@ public class Point
 	 */
 	public void zero()
 	{
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			x[i]= 0;
 		}
@@ -290,7 +290,7 @@ public class Point
 	{
 		String result="[";
 		int i=0;
-		for(i=0; i<x.length-1; i++)
+		for (i=0; i<x.length-1; i++)
 		{
 			result=result+x[i]+", ";
 		}
@@ -309,9 +309,9 @@ public class Point
 	{
 		return Arrays.equals(x, ((Point)o).x);
 //		return x.equals(((Point)o).x);
-//		for(int i=0; i<dim; i++)
+//		for (int i=0; i<dim; i++)
 //		{
-//			if(this.x[i]!=((Point)o).x[i]) return false;
+//			if (this.x[i]!=((Point)o).x[i]) return false;
 //		}
 //		return true;
 	};
@@ -341,7 +341,7 @@ public class Point
 	@Override
 	public int hashCode() {
 		int sum=0;
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			sum=sum*1024+x[i];
 		}

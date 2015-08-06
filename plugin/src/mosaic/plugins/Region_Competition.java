@@ -297,7 +297,7 @@ public class Region_Competition implements Segmentation
 			LoadConfigFile(sv);
 		}
 		
-		if(settings == null)
+		if (settings == null)
 		{
 			settings = new Settings();
 		}
@@ -319,7 +319,7 @@ public class Region_Competition implements Segmentation
 		userDialog.showDialog();
 		
 		boolean success=userDialog.processInput();
-		if(!success)
+		if (!success)
 		{
 			return DONE;
 		}
@@ -593,7 +593,7 @@ public class Region_Competition implements Segmentation
 			}
 			catch (Exception e)
 			{
-				if(controllerFrame!=null)
+				if (controllerFrame!=null)
 					controllerFrame.dispose();
 				e.printStackTrace();
 			}
@@ -613,7 +613,7 @@ public class Region_Competition implements Segmentation
 		
 		labelImage.calculateRegionsCenterOfMass();
 		
-		if(userDialog.showAndSaveStatistics() || test_mode == true)
+		if (userDialog.showAndSaveStatistics() || test_mode == true)
 		{
 			showAndSaveStatistics(algorithm.getLabelMap());
 		}
@@ -755,7 +755,7 @@ public class Region_Competition implements Segmentation
 		ImagePlus choiceIP = (ImagePlus)userDialog.getInputImage();
 		
 		// first try: filepath of inputReader
-		if(file!=null && !file.isEmpty())
+		if (file!=null && !file.isEmpty())
 		{
 			Opener o = new Opener();
 			ip = o.openImage(file);
@@ -772,12 +772,12 @@ public class Region_Competition implements Segmentation
 		}
 		
 		// next try: opened image
-		if(ip==null)
+		if (ip==null)
 		{
 			ip=originalIP;
 			
 			// manually open image in a new frame.
-//			if(ip!=null)
+//			if (ip!=null)
 //			{
 //				Image image = ip.getImage();
 //				JFrame f = new JFrame();
@@ -793,7 +793,7 @@ public class Region_Competition implements Segmentation
 		
 		//debug
 		// next try: default image
-		if(ip==null)
+		if (ip==null)
 		{
 //			String dir = IJ.getDirectory("current");
 //			String fileName= "Clipboard01.png";
@@ -803,7 +803,7 @@ public class Region_Competition implements Segmentation
 		}
 		
 			
-		if(ip!=null)
+		if (ip!=null)
 		{
 			originalIP = ip;
 			
@@ -815,12 +815,12 @@ public class Region_Competition implements Segmentation
 			
 			// image loaded
 			boolean showOriginal = true;
-			if(showOriginal && userDialog != null)
+			if (showOriginal && userDialog != null)
 			{
 				originalIP.show();
 			}
 			
-			if(userDialog != null && userDialog.showNormalized())
+			if (userDialog != null && userDialog.showNormalized())
 			{
 //				ImagePlusAdapter a;
 //				originalIP.show();
@@ -828,7 +828,7 @@ public class Region_Competition implements Segmentation
 			
 		}
 		
-		if(ip==null)
+		if (ip==null)
 		{
 			// failed to load anything
 			originalIP=null;
@@ -896,7 +896,7 @@ public class Region_Competition implements Segmentation
 				
 			
 				// first priority: filename was entered
-				if(fileName!=null && !fileName.isEmpty())
+				if (fileName!=null && !fileName.isEmpty())
 				{
 					Opener o = new Opener();
 					ip = o.openImage(fileName);
@@ -908,7 +908,7 @@ public class Region_Competition implements Segmentation
 					ip = choiceIP;
 				}
 				
-				if(ip!=null){
+				if (ip!=null){
 					labelImage.initWithIP(ip);
 					labelImage.initBoundary();
 					labelImage.connectedComponents();
@@ -929,14 +929,14 @@ public class Region_Competition implements Segmentation
 			}
 		}
 		
-		if(labelImage == null)
+		if (labelImage == null)
 		{
 			throw new RuntimeException("Not able to build a LabelImage.");
 		}
 		
 		
 //		TODO sts 3D_comment
-//		if(labelImage.getDim()==2)
+//		if (labelImage.getDim()==2)
 		{
 			initialStack = IntConverter.intArrayToStack(labelImage.dataLabel, labelImage.getDimensions());
 //			initialLabelImageProcessor = labelImage.getLabelImageProcessor().duplicate();
@@ -953,12 +953,12 @@ public class Region_Competition implements Segmentation
 		// save the initial guess (random/user defined/whatever) to a tiff
 		// so we can reuse it for debugging
 		boolean doSaveGuess = false;
-		if(doSaveGuess)
+		if (doSaveGuess)
 		{
 //			String s = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
 //			System.out.println(s);
 			FileInfo fi = originalIP.getOriginalFileInfo();
-			if(fi!=null)
+			if (fi!=null)
 			{
 				String d = fi.directory;
 				ImagePlus ip = new ImagePlus("", labelImage.getLabelImageProcessor());
@@ -1003,7 +1003,7 @@ public class Region_Competition implements Segmentation
 			stackImPlus.getWindow().addWindowListener(new StackWindowListener());
 			
 		// first stack image without boundary&contours
-		for(int i=1; i<=initialStack.getSize(); i++)
+		for (int i=1; i<=initialStack.getSize(); i++)
 		{
 			Object pixels = initialStack.getPixels(i);
 			short[] shortData = IntConverter.intToShort((int[])pixels);
@@ -1046,7 +1046,7 @@ public class Region_Competition implements Segmentation
 			@Override
 			public void windowClosing(WindowEvent e)
 			{
-				if(algorithm!=null)
+				if (algorithm!=null)
 				{
 					algorithm.stop();
 				}
@@ -1055,7 +1055,7 @@ public class Region_Competition implements Segmentation
 			@Override
 			public void windowClosed(WindowEvent e)
 			{
-				if(algorithm!=null)
+				if (algorithm!=null)
 				{
 					algorithm.stop();
 				}
@@ -1078,10 +1078,10 @@ public class Region_Competition implements Segmentation
 		int n = 1;
 		if (userDialog != null)
 			n = userDialog.getKBest();
-		if(n<1) n = 1;
+		if (n<1) n = 1;
 		Timer t = new Timer();
 		
-//		for(int i=0; i<n; i++)
+//		for (int i=0; i<n; i++)
 //		{
 //			t.tic();
 //			labelImage.initMembers();
@@ -1090,15 +1090,15 @@ public class Region_Competition implements Segmentation
 //		}
 		
 
-		if(userDialog != null && userDialog.getKBest()>0)
+		if (userDialog != null && userDialog.getKBest()>0)
 		{
 			ArrayList<Long> list = new ArrayList<Long>();
 
-			for(int i=0; i<userDialog.getKBest(); i++)
+			for (int i=0; i<userDialog.getKBest(); i++)
 			{
 				t.tic();
 				labelImage.initMembers();
-//				if(true)
+//				if (true)
 //				{
 //					throw new RuntimeException("init with stack");
 //				}
@@ -1117,7 +1117,7 @@ public class Region_Competition implements Segmentation
 				updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
 				list.add(t.lastResult());
 				
-				if(stackImPlus!=null)
+				if (stackImPlus!=null)
 				{
 					IJ.setMinAndMax(stackImPlus, 0, algorithm.getBiggestLabel());
 				}
@@ -1128,13 +1128,13 @@ public class Region_Competition implements Segmentation
 			
 			System.out.println("--- kbest: (set in GenericDialogGui.kbest) ---");
 			
-			for(Long l:list)
+			for (Long l:list)
 			{
 				System.out.println(l);
 			}
 			System.out.println("--- sorted ---");
 			Collections.sort(list);
-			for(Long l:list)
+			for (Long l:list)
 			{
 				System.out.println(l);
 			}
@@ -1145,7 +1145,7 @@ public class Region_Competition implements Segmentation
 			
 			updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
 			
-			if(stackImPlus!=null)
+			if (stackImPlus!=null)
 			{
 				IJ.setMinAndMax(stackImPlus, 0, algorithm.getBiggestLabel());
 			}
@@ -1206,7 +1206,7 @@ public class Region_Competition implements Segmentation
 	{
 		Roi roi=null;
 		roi = originalIP.getRoi();
-		if(roi==null)
+		if (roi==null)
 		{
 			System.out.println("no ROIs yet. Get from UserInput");
 	//		IJ.showMessage("Select initial guesses (holding shift). press space to process");
@@ -1215,7 +1215,7 @@ public class Region_Competition implements Segmentation
 			
 			// save old keylisteners, remove them (so we can use all keys to select guess ROIs)
 			KeyListener[] kls = canvas.getKeyListeners();
-			for(KeyListener kl: kls)
+			for (KeyListener kl: kls)
 			{
 				canvas.removeKeyListener(kl);
 			}
@@ -1229,7 +1229,7 @@ public class Region_Competition implements Segmentation
 					//				System.out.println("id " + e.getID());
 					//				System.out.println("char " + ((int)e.getKeyChar()));
 					
-					//				if(e.getKeyChar() == KeyEvent.VK_SPACE) 
+					//				if (e.getKeyChar() == KeyEvent.VK_SPACE) 
 					{
 						//					e.consume();
 						
@@ -1251,7 +1251,7 @@ public class Region_Competition implements Segmentation
 			canvas.addKeyListener(keyListener);
 			
 			// try to get a ROI from user
-			while(roi==null)
+			while (roi==null)
 			{
 				synchronized(labelImg)
 				{
@@ -1264,7 +1264,7 @@ public class Region_Competition implements Segmentation
 					}
 					
 					roi = originalIP.getRoi();
-					if(roi==null)
+					if (roi==null)
 					{
 						IJ.showMessage("No ROI selcted. maybe wrong window");
 					}
@@ -1272,7 +1272,7 @@ public class Region_Competition implements Segmentation
 			}
 			//we have a roi, remove keylistener and reattach the old ones
 			canvas.removeKeyListener(keyListener);
-			for(KeyListener kl: kls)
+			for (KeyListener kl: kls)
 			{
 				canvas.addKeyListener(kl);
 			}
@@ -1292,11 +1292,11 @@ public class Region_Competition implements Segmentation
 	public void addSlice(LabelImageRC labelImage, String title)
 	{
 		int dim = labelImage.getDim();
-		if(dim==2)
+		if (dim==2)
 		{
 			addSliceToStackAndShow(title, labelImage.getSlice());
 		}
-		if(dim==3)
+		if (dim==3)
 		{
 			addSliceToHyperstack(title, labelImage.get3DShortStack(false));
 		}
@@ -1326,7 +1326,7 @@ public class Region_Competition implements Segmentation
  */
 	void addSliceToStackAndShow(String title, Object pixels)
 	{
-		if(stack==null)
+		if (stack==null)
 		{
 			// stack was closed by user, don't reopen
 			System.out.println("stack is null");
@@ -1335,7 +1335,7 @@ public class Region_Competition implements Segmentation
 
 //		stack = stackImPlus.getStack();
 		
-		if(!stackKeepFrames)
+		if (!stackKeepFrames)
 		{
 			stack.deleteLastSlice();
 		}
@@ -1355,15 +1355,15 @@ public class Region_Competition implements Segmentation
 	{
 		
 		int oldpos = stackImPlus.getCurrentSlice();
-		if(oldpos<1) oldpos = 1;
+		if (oldpos<1) oldpos = 1;
 		
-		while(stack.getSize()>0)
+		while (stack.getSize()>0)
 		{
 			stack.deleteLastSlice();
 		}
 		
 		int nnewslices = stackslice.getSize();
-		for(int i=1; i<=nnewslices; i++)
+		for (int i=1; i<=nnewslices; i++)
 		{
 			stack.addSlice(title+" "+i, stackslice.getPixels(i));
 		}
@@ -1380,14 +1380,14 @@ public class Region_Competition implements Segmentation
 	 */
 	void addSliceToHyperstack(String title, ImageStack stackslice)
 	{
-		if(stack==null)
+		if (stack==null)
 		{
 			// stack was closed by user, dont reopen
 			System.out.println("stack is null");
 			return;
 		}
 		
-		if(!stackKeepFrames)
+		if (!stackKeepFrames)
 		{
 			add3DtoStaticStack(title, stackslice);
 			return;
@@ -1396,12 +1396,12 @@ public class Region_Competition implements Segmentation
 //		stack = stackImPlus.getStack();
 		
 		// clean the stack, hyperstack must not contain additional slices
-		while(stack.getSize() % stackslice.getSize() != 0){
+		while (stack.getSize() % stackslice.getSize() != 0){
 			stack.deleteSlice(1);
 		}
 		
 		// in first iteration, convert to hyperstack
-		if(stackImPlus.getNFrames()<=2)
+		if (stackImPlus.getNFrames()<=2)
 		{
 //			new HyperStackConverter().run("stacktohs");
 			ImagePlus imp2 = stackImPlus;
@@ -1413,7 +1413,7 @@ public class Region_Competition implements Segmentation
 		int lastFrame = stackImPlus.getFrame();
 		boolean wasLastFrame = lastFrame == stackImPlus.getDimensions()[4];
 		
-		for(int i=1; i<=stackslice.getSize(); i++)
+		for (int i=1; i<=stackslice.getSize(); i++)
 		{
 			stack.addSlice(title+i, stackslice.getProcessor(i));
 		}
@@ -1427,12 +1427,12 @@ public class Region_Competition implements Segmentation
 		
 		// scroll lock on last frame
 		int nextFrame = lastFrame;
-		if(wasLastFrame){
+		if (wasLastFrame){
 			nextFrame++;
 		}
 		
 		//go to mid in first iteration
-		if(timeSlices<=2){
+		if (timeSlices<=2){
 			lastSlice = depth/2;
 		}
 		try
@@ -1455,7 +1455,7 @@ public class Region_Competition implements Segmentation
 	private int maxLabel=100;
 	private void adjustLUT()
 	{
-		if(algorithm.getBiggestLabel()>maxLabel)
+		if (algorithm.getBiggestLabel()>maxLabel)
 		{
 			maxLabel*=2;
 		}
@@ -1494,9 +1494,9 @@ public class Region_Competition implements Segmentation
 	void testOpenedImages()
 	{
 		int[] ids = WindowManager.getIDList();
-		if(ids!=null)
+		if (ids!=null)
 		{
-			for(int id: ids)
+			for (int id: ids)
 			{
 				ImagePlus ip = WindowManager.getImage(id);
 				System.out.println(ip.getTitle());
@@ -1508,7 +1508,7 @@ public class Region_Competition implements Segmentation
 	void testConnNew()
 	{
 		Connectivity conn = new Connectivity(2, 0);
-		for(Point p : conn) {
+		for (Point p : conn) {
 			System.out.println(p);
 		}
 	}
@@ -1600,7 +1600,7 @@ public class Region_Competition implements Segmentation
 			System.out.println("stackimp closed");
 			// hook to new window
 			Window win = stackImPlus.getWindow();
-			if(win!=null){
+			if (win!=null){
 				win.addWindowListener(this);
 			}
 		}
@@ -1636,7 +1636,7 @@ public class Region_Competition implements Segmentation
 		}
 		catch (Exception e)
 		{
-			if(controllerFrame!=null)
+			if (controllerFrame!=null)
 				controllerFrame.dispose();
 			e.printStackTrace();
 		}		
@@ -1719,7 +1719,7 @@ public class Region_Competition implements Segmentation
 		ResultsTable rt = new ResultsTable();
 		
 		// over all labels
-		for(Entry<Integer, LabelInformation> entry: labelMap.entrySet())
+		for (Entry<Integer, LabelInformation> entry: labelMap.entrySet())
 		{
 			LabelInformation info = entry.getValue();
 			

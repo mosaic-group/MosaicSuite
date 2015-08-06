@@ -650,7 +650,7 @@ import net.imglib2.view.Views;
 			StringBuffer sb = new StringBuffer("% Frame ");
 			sb.append(this.frame_number);
 			sb.append("\n");
-			for(int j = 0; j < this.particles.size(); j++) 
+			for (int j = 0; j < this.particles.size(); j++) 
 			{
 				sb.append("%\tParticle ");
 				sb.append(j);
@@ -661,7 +661,7 @@ import net.imglib2.view.Views;
 				sb.append(", ");		
 				sb.append(nf.format(this.particles.elementAt(j).z));
 				sb.append(")\n");	
-				for(int k = 0; k < linkrange; k++) 
+				for (int k = 0; k < linkrange; k++) 
 				{
 					sb.append("%\t\tlinked to particle ");
 					sb.append(this.particles.elementAt(j).next[k]);
@@ -735,7 +735,7 @@ import net.imglib2.view.Views;
 		private ImageStack createImage(int width, int height, int depth) 
 		{
 			ImageStack is = new ImageStack(width, height);
-			for(int d = 0; d < depth; d++) 
+			for (int d = 0; d < depth; d++) 
 			{
 				ImageProcessor ip = new ByteProcessor(width, height);
 				ip.setColor(Color.black);

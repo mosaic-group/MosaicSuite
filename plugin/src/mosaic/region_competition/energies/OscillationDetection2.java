@@ -50,7 +50,7 @@ public class OscillationDetection2 extends OscillationDetection
         sums.add(sumNew);
         
         double oldSumAvg = sumAvg;
-        if(isFirstRound)
+        if (isFirstRound)
         	oldSumAvg=sumNew;
         
         double newSumAvg = alpha*sumNew + (1-alpha)*oldSumAvg;
@@ -63,7 +63,7 @@ public class OscillationDetection2 extends OscillationDetection
         double winstd = std(sumsAvg.subList(start, n));
         
         double fac = 1;
-        if(!isFirstRound){
+        if (!isFirstRound){
         	fac = winstd/totstd;
         }
         
@@ -72,7 +72,7 @@ public class OscillationDetection2 extends OscillationDetection
         
         isFirstRound=false;
         
-        if(fac<threshold)
+        if (fac<threshold)
         {
         	result = true;
         	debug("***NEW Oscillation detected***");
@@ -85,7 +85,7 @@ public class OscillationDetection2 extends OscillationDetection
 	{
 		int n=data.size();
 		double sum=0;
-		for(int i=0; i<n; i++)
+		for (int i=0; i<n; i++)
 		{
 			sum+=data.get(i);
 		}
@@ -100,7 +100,7 @@ public class OscillationDetection2 extends OscillationDetection
 
 		int n=data.size();
 		double sum=0;
-		for(int i=0; i<n; i++)
+		for (int i=0; i<n; i++)
 		{
 			double d = m-data.get(i);
 			sum+=(d*d);

@@ -41,7 +41,7 @@ ASplitBregmanSolverTwoRegions {
 
 
 
-		for(int i =0; i< nl;i++){
+		for (int i =0; i< nl;i++){
 			LocalTools.fgradx2D(w2xk[i], mask[i]);
 			LocalTools.fgrady2D(w2yk[i], mask[i]);			
 		}
@@ -68,7 +68,7 @@ ASplitBregmanSolverTwoRegions {
 		} 
 
 
-		for(int i =0; i< nl;i++){
+		for (int i =0; i< nl;i++){
 			LocalTools.fgradx2D(w2xk[i], w3k[i]);
 			LocalTools.fgrady2D(w2yk[i], w3k[i]);			
 		}
@@ -123,7 +123,7 @@ ASplitBregmanSolverTwoRegions {
 		@SuppressWarnings("unused")
 		double kernely[] = p.PSF.getSeparableImageAsDoubleArray(1);
 		
-		for(int nt=0; nt< p.nthreads-1;nt++){
+		for (int nt=0; nt< p.nthreads-1;nt++){
 //						IJ.log("thread + istart iend jstart jend"+
 //								iStart +" " + (iStart+ichunk)+" " + jStart+" " + (jStart+jchunk));
 			
@@ -191,7 +191,7 @@ ASplitBregmanSolverTwoRegions {
 
 		for (int i=0; i<ni; i++){  
 			for (int j=0; j<nj; j++){  
-				if((1+ eigenLaplacian[i][j] + eigenPSF[0][i][j]) !=0) temp1[l][0][i][j]=temp1[l][0][i][j]/(1+ eigenLaplacian[i][j] + eigenPSF[0][i][j]);
+				if ((1+ eigenLaplacian[i][j] + eigenPSF[0][i][j]) !=0) temp1[l][0][i][j]=temp1[l][0][i][j]/(1+ eigenLaplacian[i][j] + eigenPSF[0][i][j]);
 			}	
 		}
 
@@ -299,9 +299,9 @@ ASplitBregmanSolverTwoRegions {
 
 		//energytab[l]=Tools.computeEnergyPSF(speedData[l], w3k[l], temp3[l], temp4[l], p.ldata, p.lreg,p,c0,c1,image);
 
-		if(stepk % p.energyEvaluationModulo ==0){	
+		if (stepk % p.energyEvaluationModulo ==0){	
 			energy=0;
-			for(int nt=0; nt< p.nthreads;nt++){
+			for (int nt=0; nt< p.nthreads;nt++){
 				energy+=energytab2[nt];
 			}
 		}
@@ -315,7 +315,7 @@ ASplitBregmanSolverTwoRegions {
 		//norm=Math.max(norm, normtab[l]);
 		//Tools.max_mask(maxmask, w3k);
 		//Tools.disp_array(w3k[l][0], "mask");
-		if(p.livedisplay && p.firstphase) md.display2regions(w3k[l][0], "Mask", channel);
+		if (p.livedisplay && p.firstphase) md.display2regions(w3k[l][0], "Mask", channel);
 
 
 		long lEndTime = new Date().getTime(); //end time

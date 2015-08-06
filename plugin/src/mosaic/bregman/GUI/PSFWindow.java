@@ -225,13 +225,13 @@ class PSFWindow implements ActionListener,PropertyChangeListener
 	{
 		Object source = ae.getSource();	// Identify Button that was clicked
 
-		if(source == estimate)
+		if (source == estimate)
 		{
 
 			GaussianPSFModel psf= new GaussianPSFModel(lem,lex,NA,pinhole,n);
 
 			double sz,sx;
-			if(confocal)
+			if (confocal)
 			{
 				sz=1000*psf.axial_LSCM();
 				sx=1000*psf.lateral_LSCM();
@@ -261,17 +261,17 @@ class PSFWindow implements ActionListener,PropertyChangeListener
 					+ "</html>");
 		}
 
-		if(source==micr)
+		if (source==micr)
 		{
 			String selected = (String)micr.getSelectedItem();
 			//System.out.println("Selected: "+selected);
-			if(selected==items[1])
+			if (selected==items[1])
 			{
 				//widefield
 				confocal=false;
 
 			}
-			if(selected==items[0])
+			if (selected==items[0])
 			{
 					//confocal
 					confocal=true;

@@ -93,7 +93,7 @@ class ObjectProperties implements Runnable {
 
 	public void run(){
 
-		//		if(region.value==21){
+		//		if (region.value==21){
 		//			IJ.log("la");
 		//		}
 
@@ -103,16 +103,16 @@ class ObjectProperties implements Runnable {
 		estimate_int(mask[0]);
 		region.intensity=cin*(intmax-intmin) +intmin;
 		//IJ.log("region " + region.value + "size" +region.pixels.size()  + "osxy" + osxy);
-		if(p.nz==1){
+		if (p.nz==1){
 			region.rsize= round((region.pixels.size())/((float)osxy*osxy),3);
 			//IJ.log("region " + region.value + "size" +region.rsize);	
 		}
 		else
 			region.rsize= round((region.pixels.size())/((float) osxy*osxy*osxy),3);
 
-		if(p.dispint)fill_ints();
+		if (p.dispint)fill_ints();
 
-		if(p.save_images){
+		if (p.save_images){
 			setIntensitiesandCenters(region,image);
 			setPerimeter(region,regions);
 			setlength(region, regions);
@@ -121,7 +121,7 @@ class ObjectProperties implements Runnable {
 		//IJ.log(" " );
 
 		//		MasksDisplay md= new MasksDisplay(sx,sy,sz,2,p.cl,p);
-		//		if(region.value==10){md.display2regions3Dnew(patch, "iPatch "+region.value, 1);
+		//		if (region.value==10){md.display2regions3Dnew(patch, "iPatch "+region.value, 1);
 		//		md.display2regions3Dnew(mask[0], "iMask "+region.value, 1);
 		//		}
 	}
@@ -187,12 +187,12 @@ class ObjectProperties implements Runnable {
 
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 			Pix p = it.next();
-			if(p.px<xmin)xmin=p.px;
-			if(p.px>xmax)xmax=p.px;
-			if(p.py<ymin)ymin=p.py;
-			if(p.py>ymax)ymax=p.py;
-			if(p.pz<zmin)zmin=p.pz;
-			if(p.pz>zmax)zmax=p.pz; 
+			if (p.px<xmin)xmin=p.px;
+			if (p.px>xmax)xmax=p.px;
+			if (p.py<ymin)ymin=p.py;
+			if (p.py>ymax)ymax=p.py;
+			if (p.pz<zmin)zmin=p.pz;
+			if (p.pz>zmax)zmax=p.pz; 
 		}
 
 		xmin=Math.max(0,xmin-margin);
@@ -201,7 +201,7 @@ class ObjectProperties implements Runnable {
 		ymin=Math.max(0,ymin-margin);
 		ymax=Math.min(ny,ymax+margin+1);
 
-		if(nz>1){//if(zmax-zmin>0){
+		if (nz>1){//if (zmax-zmin>0){
 			// do whole column
 			//zmin=0;
 			//zmax=p.nz-1;
@@ -218,7 +218,7 @@ class ObjectProperties implements Runnable {
 		cx=xmin;
 		cy=ymin;
 
-		if(nz==1){//if(zmax-zmin==0){
+		if (nz==1){//if (zmax-zmin==0){
 			this.sz=1;
 			cz=0;
 		}
@@ -238,8 +238,8 @@ class ObjectProperties implements Runnable {
 		for (int z=0; z<sz; z++){	
 			for (int i=0; i<sx; i++){  
 				for (int j=0;j< sy; j++){  		
-					if(patch[z][i][j]>intmax)intmax=patch[z][i][j];
-					if(patch[z][i][j]<intmin)intmin=patch[z][i][j];
+					if (patch[z][i][j]>intmax)intmax=patch[z][i][j];
+					if (patch[z][i][j]<intmin)intmin=patch[z][i][j];
 				}	
 			}
 		}
@@ -289,7 +289,7 @@ class ObjectProperties implements Runnable {
 
 	public  void setPerimeter(Region r, short [][][] regionsA){
 
-		if(p.nz==1)
+		if (p.nz==1)
 			regionPerimeter(r,regionsA);
 		else
 			regionPerimeter3D(r,regionsA);
@@ -308,17 +308,17 @@ class ObjectProperties implements Runnable {
 			int edges=0;
 			Pix v = it.next();
 			//count number of free edges
-			if(v.px!=0 && v.px!=nx-1 && v.py!=0 && v.py!=ny-1){//not on edges of image
-				if(regionsA[v.pz][v.px-1][v.py]==0)edges++;
-				if(regionsA[v.pz][v.px+1][v.py]==0)edges++;
-				if(regionsA[v.pz][v.px][v.py-1]==0)edges++;
-				if(regionsA[v.pz][v.px][v.py+1]==0)edges++;//!=rvalue
+			if (v.px!=0 && v.px!=nx-1 && v.py!=0 && v.py!=ny-1){//not on edges of image
+				if (regionsA[v.pz][v.px-1][v.py]==0)edges++;
+				if (regionsA[v.pz][v.px+1][v.py]==0)edges++;
+				if (regionsA[v.pz][v.px][v.py-1]==0)edges++;
+				if (regionsA[v.pz][v.px][v.py+1]==0)edges++;//!=rvalue
 			}
 			else
 				edges++;
-			//			if(edges==1)pr+=1;
-			//			if(edges==2)pr+=Math.sqrt(2);
-			//			if(edges==3)pr+=2;
+			//			if (edges==1)pr+=1;
+			//			if (edges==2)pr+=Math.sqrt(2);
+			//			if (edges==3)pr+=2;
 
 			pr+=edges; // real number of edges (should be used with the subpixel)
 
@@ -329,7 +329,7 @@ class ObjectProperties implements Runnable {
 		//return (sum/count);
 		r.perimeter=pr;
 		//IJ.log("perimeter " +pr);
-		if(Analysis.p.subpixel){r.perimeter=pr/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);}
+		if (Analysis.p.subpixel){r.perimeter=pr/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);}
 		//IJ.log("perimeter " +r.perimeter);
 
 	}
@@ -343,20 +343,20 @@ class ObjectProperties implements Runnable {
 			int edges=0;
 			Pix v = it.next();
 			//count number of free edges
-			if(v.px!=0 && v.px!=nx-1 && v.py!=0 && v.py!=ny-1 && v.pz!=0 && v.pz!=nz-1){//not on edges of image
-				if(regionsA[v.pz][v.px-1][v.py]==0)edges++;
-				if(regionsA[v.pz][v.px+1][v.py]==0)edges++;
-				if(regionsA[v.pz][v.px][v.py-1]==0)edges++;
-				if(regionsA[v.pz][v.px][v.py+1]==0)edges++;
-				if(regionsA[v.pz+1][v.px][v.py]==0)edges++;
-				if(regionsA[v.pz-1][v.px][v.py]==0)edges++;
+			if (v.px!=0 && v.px!=nx-1 && v.py!=0 && v.py!=ny-1 && v.pz!=0 && v.pz!=nz-1){//not on edges of image
+				if (regionsA[v.pz][v.px-1][v.py]==0)edges++;
+				if (regionsA[v.pz][v.px+1][v.py]==0)edges++;
+				if (regionsA[v.pz][v.px][v.py-1]==0)edges++;
+				if (regionsA[v.pz][v.px][v.py+1]==0)edges++;
+				if (regionsA[v.pz+1][v.px][v.py]==0)edges++;
+				if (regionsA[v.pz-1][v.px][v.py]==0)edges++;
 			}else
 				edges++;
-			//			if(edges==1)pr+=1;
-			//			if(edges==2)pr+=Math.sqrt(2);
-			//			if(edges==3)pr+=Math.sqrt(2);
-			//			if(edges==4)pr+=Math.sqrt(2);
-			//			if(edges==5)pr+=2*Math.sqrt(2);
+			//			if (edges==1)pr+=1;
+			//			if (edges==2)pr+=Math.sqrt(2);
+			//			if (edges==3)pr+=Math.sqrt(2);
+			//			if (edges==4)pr+=Math.sqrt(2);
+			//			if (edges==5)pr+=2*Math.sqrt(2);
 
 			pr+=edges;
 
@@ -367,8 +367,8 @@ class ObjectProperties implements Runnable {
 		//return (sum/count);
 		r.perimeter=pr;
 		//IJ.log("perimeter " +pr);
-		if(osxy>1){
-			if(p.nz==1){
+		if (osxy>1){
+			if (p.nz==1){
 				r.perimeter=pr/(osxy);
 			}
 			else
@@ -387,13 +387,13 @@ class ObjectProperties implements Runnable {
 		double sumz=0;
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 			Pix p = it.next();
-			if(!Analysis.p.refinement){
+			if (!Analysis.p.refinement){
 				sum+= image[p.pz][p.px][p.py] ;
 			}
 			//sum+= mask[p.pz][p.px][p.py] & 0xFF; //for conversion, corrects sign problem
 
-			//if(p.px==277 && p.py==202 && p.pz==7){IJ.log("test value rint:" + maskA[p.pz][p.px][p.py]);}
-			//if(r.value==6)IJ.log("value byte" + mask[p.pz][p.px][p.py] + " x"+ p.px +"y" + p.py + "z"+ p.pz);
+			//if (p.px==277 && p.py==202 && p.pz==7){IJ.log("test value rint:" + maskA[p.pz][p.px][p.py]);}
+			//if (r.value==6)IJ.log("value byte" + mask[p.pz][p.px][p.py] + " x"+ p.px +"y" + p.py + "z"+ p.pz);
 			sumx+=p.px;
 			sumy+=p.py;
 			sumz+=p.pz;
@@ -402,7 +402,7 @@ class ObjectProperties implements Runnable {
 
 		//return (sum/count);
 		//r.intensity=(sum/(count*255));
-		if(!Analysis.p.refinement){
+		if (!Analysis.p.refinement){
 			r.intensity=(sum/(count));
 		}//done in refinement
 		//IJ.log("inten " + r.intensity);
@@ -411,7 +411,7 @@ class ObjectProperties implements Runnable {
 		r.cy= (float) (sumy/count);
 		r.cz= (float) (sumz/count);
 
-		if(Analysis.p.subpixel){
+		if (Analysis.p.subpixel){
 			r.cx= r.cx/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);
 			r.cy= r.cy/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);
 			r.cz= r.cz/(Analysis.p.oversampling2ndstep*Analysis.p.interpolation);
@@ -426,9 +426,9 @@ class ObjectProperties implements Runnable {
 		//compute skeletonization
 		//	int osxy=1;
 		//	int osz=1;
-		//		if(p.subpixel && p.refinement){
+		//		if (p.subpixel && p.refinement){
 		//			osxy=p.oversampling2ndstep*p.interpolation;
-		//			if(p.nz>1){
+		//			if (p.nz>1){
 		//				osz=p.oversampling2ndstep*p.interpolation;
 		//			}
 		//		}
@@ -442,7 +442,7 @@ class ObjectProperties implements Runnable {
 			for (int i=0; i<sx; i++) {
 				for (int j=0; j<sy; j++) {
 				
-					if(regionsA[cz+k][cx+i][cy+j]>0)
+					if (regionsA[cz+k][cx+i][cy+j]>0)
 						mask_bytes[j * sx + i]= (byte) 255;
 					else
 						mask_bytes[j * sx + i]=(byte) 0;
@@ -478,9 +478,9 @@ class ObjectProperties implements Runnable {
 		//compute skeletonization
 		//	int osxy=1;
 		//	int osz=1;
-		//		if(p.subpixel && p.refinement){
+		//		if (p.subpixel && p.refinement){
 		//			osxy=p.oversampling2ndstep*p.interpolation;
-		//			if(p.nz>1){
+		//			if (p.nz>1){
 		//				osz=p.oversampling2ndstep*p.interpolation;
 		//			}
 		//		}
@@ -500,7 +500,7 @@ class ObjectProperties implements Runnable {
 		for (int i=0; i<sx; i++) {
 			for (int j=0; j<sy; j++) {
 				for (int k=0; k<sz; k++) {
-					if(regionsA[cz+k][cx+i][cy+j]>0)
+					if (regionsA[cz+k][cx+i][cy+j]>0)
 						mask_bytes[j * sx + i]= (byte) 0;
 					//else
 					//	mask_bytes[j * sx + i]=(byte) 255;
@@ -515,7 +515,7 @@ class ObjectProperties implements Runnable {
 
 		//do voronoi in 2D on Z projection
 		IJ.run(skeleton, "Skeletonize", "");
-		//if(region.value==6 ||region.value==19)
+		//if (region.value==6 ||region.value==19)
 		//skeleton.show();
 
 
@@ -541,14 +541,14 @@ class ObjectProperties implements Runnable {
 			for (int j=0; j<y; j++) {
 				//Pix v = it.next();
 				//count number of pixels in skeleton
-				if(skel.getProcessor().getPixel(i, j)==0)length++;
-				//if(skel.getProcessor().getPixel(v.px, v.py)==0)IJ.log("coord " + v.px + ", " + v.py);
+				if (skel.getProcessor().getPixel(i, j)==0)length++;
+				//if (skel.getProcessor().getPixel(v.px, v.py)==0)IJ.log("coord " + v.px + ", " + v.py);
 
 			}
 		}
 		//return (sum/count);
 		r.length=length;
-		if(osxy>1){r.length= ((double)length)/osxy;}
+		if (osxy>1){r.length= ((double)length)/osxy;}
 
 
 
@@ -562,14 +562,14 @@ class ObjectProperties implements Runnable {
 		for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 			Pix v = it.next();
 			//count number of pixels in skeleton
-			if(is.getProcessor(v.pz-cz+1).getPixel(v.px-cx, v.py-cy)!=0)length++;
-			//if(skel.getProcessor().getPixel(v.px, v.py)==0)IJ.log("coord " + v.px + ", " + v.py);
+			if (is.getProcessor(v.pz-cz+1).getPixel(v.px-cx, v.py-cy)!=0)length++;
+			//if (skel.getProcessor().getPixel(v.px, v.py)==0)IJ.log("coord " + v.px + ", " + v.py);
 
 		}
 		//return (sum/count);
 		r.length=length;
 		// osz assumed to me == osxy
-		if(osxy>1){r.length= ((double)length)/osxy;}
+		if (osxy>1){r.length= ((double)length)/osxy;}
 	}
 
 	private float round(float y, int z){

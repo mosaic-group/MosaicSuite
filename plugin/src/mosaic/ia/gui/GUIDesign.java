@@ -606,16 +606,16 @@ public class GUIDesign implements ActionListener
 	public void actionPerformed(ActionEvent e) 
 	{
 	
-		if(e.getSource()==help)
+		if (e.getSource()==help)
 		{
 			new HelpInteractionAnalysis(0,0);
 		}
-		else if(e.getSource()==browseX)
+		else if (e.getSource()==browseX)
 		{
 		//	 imgx=new ImagePlus();
 			//a=null; garbage collection OK?
 			 imgx=ImageProcessUtils.openImage("Open Image X", "");
-			 if(imgx==null)
+			 if (imgx==null)
 			 {
 				 IJ.showMessage("Cancelled/Filetype not recognized");
 				 return;
@@ -623,9 +623,9 @@ public class GUIDesign implements ActionListener
 			 imgx.show("Image X");
 			 
 			 browseX.setText(imgx.getTitle());
-			 if(imgy!=null && imgx!=null)
+			 if (imgy!=null && imgx!=null)
 			 {
-			 if(!checkIfImagesAreRightSize())	
+			 if (!checkIfImagesAreRightSize())	
 				{
 					System.out.println("Distance calc: different image sizes");
 					IJ.showMessage("Error: Image sizes/scale/unit do not match");
@@ -639,13 +639,13 @@ public class GUIDesign implements ActionListener
 			 }
 			 return;
 		}
-		else if(e.getSource()==browseY)
+		else if (e.getSource()==browseY)
 		{
 		//	a=null;
 		//	imgy=new ImagePlus();
 			 imgy=ImageProcessUtils.openImage("Open Image Y", "");
 			 
-			 if(imgy==null)
+			 if (imgy==null)
 			 {
 				 IJ.showMessage("Cancelled/Filetype not recognized");
 				 return;
@@ -653,9 +653,9 @@ public class GUIDesign implements ActionListener
 			 imgy.show("Image Y");
 			 browseY.setText(imgy.getTitle());
 		//	 System.out.println("ImageY size"+imgy.getWidth()+"x"+imgy.getHeight());
-			 if(imgy!=null && imgx!=null)
+			 if (imgy!=null && imgx!=null)
 			 {
-			 if(!checkIfImagesAreRightSize())	
+			 if (!checkIfImagesAreRightSize())	
 				{
 					System.out.println("Distance calc: different image sizes");
 					IJ.showMessage("Error: Image sizes/scale do not match");
@@ -669,20 +669,20 @@ public class GUIDesign implements ActionListener
 			 }
 			 return;
 		}
-		else if(e.getSource()==btnLoadCsvFileX)
+		else if (e.getSource()==btnLoadCsvFileX)
 		{
 			
 		//	IJ.showMessage("TestX");
 			
 		//	Problem: how to make masks, how to calculate q(d), etc
 			Xcoords=ImageProcessUtils.openCSVFile("Open CSV file for image X", "");
-			if(Xcoords==null)
+			if (Xcoords==null)
 			{
 				IJ.showMessage("Error: Wrong CSV format");
 				return;
 			}
 			System.out.println("Loaded X with size"+Xcoords.length);
-			if(Xcoords!=null && Ycoords!=null)
+			if (Xcoords!=null && Ycoords!=null)
 			{
 				a=new Analysis(Xcoords,Ycoords);
 				a.setCmaReRunTimes(numReRuns);
@@ -691,13 +691,13 @@ public class GUIDesign implements ActionListener
 			}
 			return;
 		}
-		else if(e.getSource()==btnLoadCsvFileY)
+		else if (e.getSource()==btnLoadCsvFileY)
 		{
 			
 		//	MyFrame myframe=new MyFrame();
 			
 			Ycoords=ImageProcessUtils.openCSVFile("Open CSV file for image Y", "");
-			if(Ycoords==null)
+			if (Ycoords==null)
 			{
 				IJ.showMessage("Error: Wrong CSV format");
 				return;
@@ -706,7 +706,7 @@ public class GUIDesign implements ActionListener
 			System.out.println("Loaded Y with size"+Ycoords.length);
 		//	ImageProcessUtils.openCSVFile("Open CSV file for image Y", "");
 			//a.loadYCoordinates();
-			if(Xcoords!=null && Ycoords!=null)
+			if (Xcoords!=null && Ycoords!=null)
 			{
 				a=new Analysis(Xcoords,Ycoords);
 				a.setCmaReRunTimes(numReRuns);
@@ -715,11 +715,11 @@ public class GUIDesign implements ActionListener
 			}
 			return;
 		}
-		else if(e.getSource()==jcb)
+		else if (e.getSource()==jcb)
 		{
 	        String selected = (String)jcb.getSelectedItem();
 	        System.out.println("Selected: "+selected);
-	        if(selected==items[5])
+	        if (selected==items[5])
 		      {	
 		    	  //  IJ.showMessage("Nonparametric estimation - feature under testing - may not be perfect");
 				
@@ -738,33 +738,33 @@ public class GUIDesign implements ActionListener
 				smoothnessNP.setEnabled(false);
 				lblSmoothness.setEnabled(false);
 				lblsupportPts.setEnabled(false);
-	      if(selected==items[1]){
+	      if (selected==items[1]){
 			potentialType=PotentialFunctions.STEP;
 			//System.out.println("Step's gonna work");
 	      }
-	      if(selected==items[0])
+	      if (selected==items[0])
 	      {
 				potentialType=PotentialFunctions.HERNQUIST;
 			//	System.out.println("HERNQUIST gonna work");
 	      }
-	      if(selected==items[2])
+	      if (selected==items[2])
 	      {
 				potentialType=PotentialFunctions.L1;
 			//	System.out.println("HERNQUIST gonna work");
 	      }
-	      if(selected==items[3])
+	      if (selected==items[3])
 	      {
 				potentialType=PotentialFunctions.L2;
 			//	System.out.println("HERNQUIST gonna work");
 	      }
-	      if(selected==items[4])
+	      if (selected==items[4])
 	      {
 				potentialType=PotentialFunctions.PlUMMER;
 			//	System.out.println("HERNQUIST gonna work");
 	      }
 	        }
 	      
-	//      if(selected==items[6])
+	//      if (selected==items[6])
 	  //    {
 		//		potentialType=PotentialFunctions.COULOMB;
 	  //    }
@@ -773,7 +773,7 @@ public class GUIDesign implements ActionListener
 			a.setPotentialType(potentialType);
 	      return;
 		}
-		else if(e.getSource()==btnCalculateDistances)
+		else if (e.getSource()==btnCalculateDistances)
 		{			
 			gridSize=Double.parseDouble(gridSizeInp.getText());
 			a.setKernelWeightq(Double.parseDouble(kernelWeightq.getText()));
@@ -781,7 +781,7 @@ public class GUIDesign implements ActionListener
 			
 		//	a.setImageList(imgx, imgy);
 			
-			if(!a.getIsImage())
+			if (!a.getIsImage())
 			{
 				xmin=Double.parseDouble(txtXmin.getText());
 				ymin=Double.parseDouble(txtYmin.getText());
@@ -790,7 +790,7 @@ public class GUIDesign implements ActionListener
 				ymax=Double.parseDouble(txtYmax.getText());
 				zmax=Double.parseDouble(txtZmax.getText());
 				
-				if(xmin>Double.MAX_VALUE-1|| xmax>Double.MAX_VALUE-1|| ymin> Double.MAX_VALUE-1 || ymax> Double.MAX_VALUE-1 || zmin>Double.MAX_VALUE-1 || zmax>Double.MAX_VALUE-1
+				if (xmin>Double.MAX_VALUE-1|| xmax>Double.MAX_VALUE-1|| ymin> Double.MAX_VALUE-1 || ymax> Double.MAX_VALUE-1 || zmin>Double.MAX_VALUE-1 || zmax>Double.MAX_VALUE-1
 						|| xmax<xmin || ymax<ymin || zmax<zmin)
 				{
 					IJ.showMessage("Error: boundary values are not correct");
@@ -806,12 +806,12 @@ public class GUIDesign implements ActionListener
 			
 			}
 			
-			if(!a.calcDist(gridSize))
+			if (!a.calcDist(gridSize))
 				IJ.showMessage("No X and Y images/coords loaded. Cannot calculate distance");
 			
 			return;
 		}
-		else if(e.getSource()==estimate)
+		else if (e.getSource()==estimate)
 		{
 			PotentialFunctions.NONPARAM_WEIGHT_SIZE=Integer.parseInt(numSupport.getText());
 			PotentialFunctions.NONPARAM_SMOOTHNESS=Double.parseDouble(smoothnessNP.getText());
@@ -819,24 +819,24 @@ public class GUIDesign implements ActionListener
 			a.setCmaReRunTimes(numReRuns);
 			
 			System.out.println("Estimating with potential type:"+potentialType);
-			if(potentialType==PotentialFunctions.NONPARAM)
+			if (potentialType==PotentialFunctions.NONPARAM)
 				PotentialFunctions.initializeNonParamWeights(a.getMinD(), a.getMaxD());
 			 a.setPotentialType(potentialType); // for the first time
 		    // a.test();
-			if(!a.cmaOptimization())
+			if (!a.cmaOptimization())
 				IJ.showMessage("Error: Calculate distances first!");
 			return;
 		}
-		else if(e.getSource()==test)
+		else if (e.getSource()==test)
 		{
 			monteCarloRunsForTest = Integer.parseInt(mCRuns.getText());
 			alpha = Double.parseDouble(alphaField.getText());
 			
-			if(!a.hypTest(monteCarloRunsForTest,alpha))
+			if (!a.hypTest(monteCarloRunsForTest,alpha))
 				IJ.showMessage("Error: Run estimation first");
 			return;
 		}
-		else if(e.getSource()==numSupport)
+		else if (e.getSource()==numSupport)
 		{
 			PotentialFunctions.NONPARAM_WEIGHT_SIZE=Integer.parseInt(e.getActionCommand());
 			
@@ -845,22 +845,22 @@ public class GUIDesign implements ActionListener
 			
 			return;
 		}
-		else if(e.getSource()==smoothnessNP)
+		else if (e.getSource()==smoothnessNP)
 		{
 			PotentialFunctions.NONPARAM_SMOOTHNESS=Double.parseDouble(e.getActionCommand());
 			System.out.println("Smoothness:"+PotentialFunctions.NONPARAM_SMOOTHNESS);
 			return;
 		}
-		else if(e.getSource()==genMask)
+		else if (e.getSource()==genMask)
 		{
-			if(!a.getIsImage())
+			if (!a.getIsImage())
 			{
 				IJ.showMessage("Cannot generate mask for coordinates. Load a mask instead");
 				return;
 			}
 			try{
 			
-			if(!a.calcMask())
+			if (!a.calcMask())
 				IJ.showMessage("Image Y is null: Cannot generate mask");
 			}
 			catch(NullPointerException npe)
@@ -870,25 +870,25 @@ public class GUIDesign implements ActionListener
 			}
 			return;
 		}
-		else if(e.getSource()==loadMask)
+		else if (e.getSource()==loadMask)
 		{
 			
 			a.loadMask();
 			
-			if(a.applyMask()==true)
+			if (a.applyMask()==true)
 				IJ.showMessage("Mask set to:"+a.getMaskTitle());
 			else
 				IJ.showMessage("No mask to apply! Load/Generate a mask.");
 			return;
 		}
-		else if(e.getSource()==resetMask)
+		else if (e.getSource()==resetMask)
 		{
 			
 			a.resetMask();
 			IJ.showMessage("Mask reset to Null");
 			return;
 		}
-		else if(a==null)
+		else if (a==null)
 		{
 			IJ.showMessage("Load images/coordinates first");
 			return;
@@ -907,7 +907,7 @@ public class GUIDesign implements ActionListener
 		{
 			Calibration imgxc =imgx.getCalibration();
 			Calibration imgyc =imgy.getCalibration();
-			if((imgx.getWidth()==imgy.getWidth())&&(imgx.getHeight()==imgy.getHeight())&&(imgx.getStackSize()==imgy.getStackSize())&& (imgxc.pixelDepth==imgyc.pixelDepth) && (imgxc.pixelHeight==imgyc.pixelHeight)&&(imgxc.pixelWidth==imgyc.pixelWidth) &&(imgxc.getUnit().equals(imgyc.getUnit())) )
+			if ((imgx.getWidth()==imgy.getWidth())&&(imgx.getHeight()==imgy.getHeight())&&(imgx.getStackSize()==imgy.getStackSize())&& (imgxc.pixelDepth==imgyc.pixelDepth) && (imgxc.pixelHeight==imgyc.pixelHeight)&&(imgxc.pixelWidth==imgyc.pixelWidth) &&(imgxc.getUnit().equals(imgyc.getUnit())) )
 					return true;
 			else {
 				System.out.println(imgx.getWidth()+","+imgy.getWidth()+","+imgx.getHeight()+","+imgy.getHeight()+","+imgx.getStackSize()+","+imgy.getStackSize()+","+imgxc.pixelDepth+","+imgyc.pixelDepth+","+imgxc.pixelHeight+","+imgyc.pixelHeight+","+imgxc.pixelWidth+","+imgyc.pixelWidth+","+imgxc.getUnit()+","+imgyc.getUnit());

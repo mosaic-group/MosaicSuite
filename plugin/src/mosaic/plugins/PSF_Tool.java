@@ -217,7 +217,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	 */
 	public synchronized void mouseClicked(MouseEvent e){
 		// If we are in the point selection mode and user clicks on image, a new source on refined position will be created	
-		if(select_start == true){
+		if (select_start == true){
 			//TODO
 			PsfSourcePosition selected = new PsfSourcePosition(canvas.offScreenX(e.getX()), canvas.offScreenY(e.getY()));
 			Refine = new PsfRefinement(org_ip, (int)radius, selected);							// Start centroid refinement
@@ -272,7 +272,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		Object source = ae.getSource();	// Get Button that was clicked
 		
 		// start new selection
-		if(source == start){
+		if (source == start){
 			selections.setLength(0);
 			selections.append(centroid);
 			eq = org_ip.duplicate();
@@ -293,7 +293,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		}
 		
 		// Enhance Image Contrast and Convert Image Processor to RGB
-		if(source == equalize){
+		if (source == equalize){
 			eq = enhanceContrast();		// see method enhanceContrast()
 			eq.convertToRGB();			// Convert loaded image to rgb, so selections can me made visible
 			lastcolor.insert(eq,0,0);	// save image colors so selections can be undone
@@ -303,8 +303,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		}
 		
 		// start PSF estimation TODO
-		if(source == estimate){			
-			if(Positions.isEmpty())
+		if (source == estimate){			
+			if (Positions.isEmpty())
 				IJ.error("Please select point source before refinement!");
 			else{
 				deleteUnchecked();				// only calculate psf for selected checkboxes
@@ -313,25 +313,25 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 					return;
 				}
 				selections.setLength(0);		// and clear variables
-				for(int i=0; i<PSF.length;i++)
+				for (int i=0; i<PSF.length;i++)
 					PSF[i] = 0;
 				selections.append(centroid);
 				// Start the calculations
 				PsfSourcePosition[] particles = new PsfSourcePosition[num_of_particles];
 				EstimatePSF = new PsfPointSpreadFunction[num_of_particles];
 				// Loop over Point Sources
-				for(int i=0; i<num_of_particles; i++){
+				for (int i=0; i<num_of_particles; i++){
 					float[] PSFtmp;
 					particles[i] = Positions.elementAt(i);
 					selections.append("\n%" + (i+1) + ":\t" + particles[i].x + "\t" + particles[i].y);	// update report file
 					EstimatePSF[i] = new PsfPointSpreadFunction(org_ip, particles[i], (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
 					EstimatePSF[i].calculatePSF();
 					PSFtmp = EstimatePSF[i].getPSF();
-					for(int j=0; j<PSFtmp.length; j++)
+					for (int j=0; j<PSFtmp.length; j++)
 						PSF[j] = PSF[j] + PSFtmp[j];
 				}
 				// Calculate Mean
-				for(int i=0; i<PSF.length;i++)
+				for (int i=0; i<PSF.length;i++)
 					PSF[i] = PSF[i]/num_of_particles;
 				// Normalize values to [0,1] TODO
 				EstimatePSF[0].normalizePSF(PSF);
@@ -344,7 +344,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		}
 		
 		// Write report file
-		if(source == report){
+		if (source == report){
 			SaveDialog sd = new SaveDialog("Save report", IJ.getDirectory("image"), "PSF_Report.txt");
 			if (sd.getDirectory() == null || sd.getFileName() == null) return; 
 			write2File(sd.getDirectory(), sd.getFileName(), getFullReport().toString());
@@ -435,11 +435,11 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	 */
 	public double widthAtHalfMaximum(){
 		double d = 0.5;
-		if(PSF[0]< d)
+		if (PSF[0]< d)
 			return 0.0;
 		else{
 		int v = 0;
-		while(PSF[v] > d){
+		while (PSF[v] > d){
 			v++;
 		}
 		double p0 = PSF[v-1];
@@ -460,7 +460,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		Plot plotWin = new Plot(title, "Radius [nm]", "Intensity", rad, PSF);
 		plotWin.setLimits(0, rad[rad.length - 1], 0, 1);
 		double[] r = new double[rad.length];
-		for(int i=0; i<r.length; i++)
+		for (int i=0; i<r.length; i++)
 			r[i] = rad[i];
 		double[] thpsf = theoreticalPSF();
 		plotWin.setColor(Color.BLACK);
@@ -468,7 +468,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		plotWin.addPoints(r, thpsf, Plot.LINE);
 		plotWin.setColor(Color.BLUE);
 		// Draw Width at half maximum if != 0
-		if(whm != 0.0f){
+		if (whm != 0.0f){
 			plotWin.setColor(Color.BLUE);
 			plotWin.addLabel(0.5,0.25,"Width at Half Maximum: " + (int)(whm*100)/100.0 + " nm");
 			double[] x = new double[2];
@@ -492,7 +492,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		double[] b = new double[rad.length];
 		//double barg = Math.PI*2.68;
 		double barg;
-		for(int i=0;i<rad.length;i++){
+		for (int i=0;i<rad.length;i++){
 			barg = arg*rad[i];
 			b[i] = (2*PsfBessel.j1(barg)/barg)*(2*PsfBessel.j1(barg)/barg);
 		}
@@ -515,9 +515,9 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		for (int v=0; v<h; v++) {
 			for (int u=0; u<w; u++) {
 				int p = eq.getPixel(u,v);
-				if(p>max)
+				if (p>max)
 					max = p;
-				if(p<min)
+				if (p<min)
 					min = p;
 			}
 		}
@@ -592,7 +592,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	private StringBuffer getPSFdata(){
 		StringBuffer PSFdata = new StringBuffer("%PSF Data:\n");
 		PSFdata.append("%\tRadius [nm]\t\tValue\n");
-		for(int i=0;i<PSF.length;i++)
+		for (int i=0;i<PSF.length;i++)
 			PSFdata.append("\t" + rad[i] + "\t\t" + PSF[i] + "\n");
 				
 		PSFdata.append("%\n");
@@ -611,13 +611,13 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 			report.append(this.getConfiguration());
 			report.append("\n");
 			report.append(this.selections);
-			if(PSF != null){
+			if (PSF != null){
 				report.append("\n\n");
 				report.append(getPSFdata().toString());
 			}
 			report.append("\n");
-			if(EstimatePSF != null){
-				for(int i=0; i<EstimatePSF.length; i++){
+			if (EstimatePSF != null){
+				for (int i=0; i<EstimatePSF.length; i++){
 					report.append("\n\n%Point Source " + (i+1) + ":");
 					report.append(EstimatePSF[i].getPSFreport());
 				}

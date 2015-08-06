@@ -95,17 +95,17 @@ public class LabelImageRC extends LabelImage
 	{
 		Connectivity conn = connFG;
 		
-		for(int i: iterator.getIndexIterable())
+		for (int i: iterator.getIndexIterable())
 		{
 			int label=getLabelAbs(i);
-			if(label!=bgLabel && label!=forbiddenLabel) // region pixel
+			if (label!=bgLabel && label!=forbiddenLabel) // region pixel
 				// && label<negOfs
 			{
 				Point p = iterator.indexToPoint(i);
-				for(Point neighbor : conn.iterateNeighbors(p))
+				for (Point neighbor : conn.iterateNeighbors(p))
 				{
 					int neighborLabel=getLabelAbs(neighbor);
-					if(neighborLabel!=label)
+					if (neighborLabel!=label)
 					{
 						setLabel(p, labelToNeg(label));
 						
@@ -169,24 +169,24 @@ public class LabelImageRC extends LabelImage
 		int size=iterator.getSize();
 		
 		// what are the old labels?
-		for(int i=0; i<size; i++)
+		for (int i=0; i<size; i++)
 		{
 			int l=getLabel(i);
-			if(l==forbiddenLabel || l==bgLabel)
+			if (l==forbiddenLabel || l==bgLabel)
 			{
 				continue;
 			}
 			oldLabels.add(l);
 		}
 		
-		for(int i=0; i<size; i++)
+		for (int i=0; i<size; i++)
 		{
 			int l=getLabel(i);
-			if(l==forbiddenLabel || l==bgLabel)
+			if (l==forbiddenLabel || l==bgLabel)
 			{
 				continue;
 			}
-			if(oldLabels.contains(l))
+			if (oldLabels.contains(l))
 			{
 				// l is an old label
 				BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
@@ -194,7 +194,7 @@ public class LabelImageRC extends LabelImage
 				FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iterator.indexToPoint(i));
 				
 				//find a new label
-				while(oldLabels.contains(newLabel)){
+				while (oldLabels.contains(newLabel)){
 					newLabel++;
 				}
 				
@@ -202,7 +202,7 @@ public class LabelImageRC extends LabelImage
 				newLabels.add(newLabel);
 				
 				// set region to new label
-				for(Point p:ff)
+				for (Point p:ff)
 				{
 					setLabel(p, newLabel);
 				}
@@ -250,7 +250,7 @@ public class LabelImageRC extends LabelImage
 		
 		// Iterate through all the regions
 		
-		for(Entry<Integer, LabelInformation> entry: labelMap.entrySet())
+		for (Entry<Integer, LabelInformation> entry: labelMap.entrySet())
 		{
 			for (int i = 0 ; i < entry.getValue().mean_pos.length ; i++)
 			{
@@ -265,7 +265,7 @@ public class LabelImageRC extends LabelImage
 	 */
 	public short[] getShortCopy()
 	{
-		if(dim==3)
+		if (dim==3)
 		{
 			return (short[])getProjected3D(false).getProcessor().getPixels();
 		}
@@ -273,7 +273,7 @@ public class LabelImageRC extends LabelImage
 		final int n = dataLabel.length;
 		
 		short[] shortData = new short[n];
-		for(int i=0; i<n; i++)
+		for (int i=0; i<n; i++)
 		{
 			shortData[i] = (short)dataLabel[i];
 		}
@@ -282,7 +282,7 @@ public class LabelImageRC extends LabelImage
 	
 	public Object getSlice()
 	{
-		if(dim==3)
+		if (dim==3)
 		{
 			return get3DShortStack(false);
 		}
@@ -294,7 +294,7 @@ public class LabelImageRC extends LabelImage
 	
 	public ImageProcessor getLabelImageProcessor()
 	{
-		if(dim==3){
+		if (dim==3){
 			return getProjected3D(true).getProcessor();
 		}
 		return labelIP;
@@ -311,14 +311,14 @@ public class LabelImageRC extends LabelImage
 	{
 		int nSlices = labelPlus.getNSlices();
 
-		for(int i=1; i<=nSlices;)
+		for (int i=1; i<=nSlices;)
 		{
 			ImageProcessor ipr = new FloatProcessor(labelIP.getWidth(),labelIP.getHeight());
 			float [] pixels = (float[])ipr.getPixels();
 			int [] labid = (int [])labelIP.getPixels();
-			for(int y=0; y<height; y++)
+			for (int y=0; y<height; y++)
 			{
-				for(int x=0; x<width; x++)
+				for (int x=0; x<width; x++)
 				{
 					if (labelMap.get(Math.abs(labid[y*width+x])) != null )
 						pixels[y*width+x] = (float) labelMap.get(Math.abs(labid[y*width+x])).mean;
@@ -335,7 +335,7 @@ public class LabelImageRC extends LabelImage
 //	private void clearStats()
 //	{
 //		//clear stats
-//		for(LabelInformation stat: labelMap.values())
+//		for (LabelInformation stat: labelMap.values())
 //		{
 //			stat.reset();
 //		}
@@ -346,14 +346,14 @@ public class LabelImageRC extends LabelImage
 	 */
 	public void initBoundary()
 	{
-		for(int idx: iterator.getIndexIterable())
+		for (int idx: iterator.getIndexIterable())
 		{
 			Point p = iterator.indexToPoint(idx);
 			int xs[] = p.x;
-			for(int d=0; d<dim; d++)
+			for (int d=0; d<dim; d++)
 			{
 				int x = xs[d];
-				if(x == 0 || x==dimensions[d]-1)
+				if (x == 0 || x==dimensions[d]-1)
 				{
 					setLabel(idx, forbiddenLabel);
 					break;
@@ -364,7 +364,7 @@ public class LabelImageRC extends LabelImage
 	
 	protected boolean isInnerLabel(int label)
 	{
-		if(label == forbiddenLabel || label == bgLabel || isContourLabel(label)) {
+		if (label == forbiddenLabel || label == bgLabel || isContourLabel(label)) {
 			return false;
 		} else {
 			return true;
@@ -378,7 +378,7 @@ public class LabelImageRC extends LabelImage
 		HashSet<Integer> usedLabels = new HashSet<Integer>();
 		
 		int size = iterator.getSize();
-		for(int i=0; i<size; i++)
+		for (int i=0; i<size; i++)
 		{
 //			int label = get(x, y);
 //			int absLabel = labelToAbs(label);
@@ -390,7 +390,7 @@ public class LabelImageRC extends LabelImage
 				usedLabels.add(absLabel);
 				
 				LabelInformation stats = labelMap.get(absLabel);
-				if(stats==null)
+				if (stats==null)
 				{
 					stats = new LabelInformation(absLabel,dim);
 					labelMap.put(absLabel, stats);
@@ -406,7 +406,7 @@ public class LabelImageRC extends LabelImage
 		// if background label do not exist add it
 		
 		LabelInformation stats = labelMap.get(0);
-		if(stats==null)
+		if (stats==null)
 		{
 			stats = new LabelInformation(0,dim);
 			labelMap.put(0, stats);
@@ -414,7 +414,7 @@ public class LabelImageRC extends LabelImage
 		
 		// now we have in all LabelInformation: 
 		// in mean the sum of the values, in var the sum of val^2
-		for(LabelInformation stat: labelMap.values())
+		for (LabelInformation stat: labelMap.values())
 		{
 			int n = stat.count;
 			if (n > 1)
@@ -449,10 +449,10 @@ public class LabelImageRC extends LabelImage
 		int size=iterator.getSize();
 		
 		// what are the old labels?
-		for(int i=0; i<size; i++)
+		for (int i=0; i<size; i++)
 		{
 			int l=getLabel(i);
-			if(l==forbiddenLabel || l==bgLabel)
+			if (l==forbiddenLabel || l==bgLabel)
 			{
 				continue;
 			}
@@ -489,7 +489,7 @@ public class LabelImageRC extends LabelImage
 		}
 		
 //		labelDispenser.setLabelsInUse(newLabels);
-//		for(int label: oldLabels)
+//		for (int label: oldLabels)
 //		{
 //			labelDispenser.addFreedUpLabel(label);
 //		}

@@ -103,7 +103,7 @@ public class ClusterSession
 //                new FileReader(filePath));
 //        char[] buf = new char[1024];
 //        int numRead=0;
-//        while((numRead=reader.read(buf)) != -1){
+//        while ((numRead=reader.read(buf)) != -1){
 //            String readData = String.valueOf(buf, 0, numRead);
 //            fileData.append(readData);
 //        }
@@ -275,7 +275,7 @@ public class ClusterSession
 		// create the macro script
 
 		String macro = new String("job_id = getArgument();\n"
-			   + "if(job_id == \"\" )\n"
+			   + "if (job_id == \"\" )\n"
 			   + "   exit(\"No job id\");\n"
 			   + "\n"
 			   + "run(\""+command+"\",\"config=" + ss.getTransfertDir() + "settings.dat" + " "+ia_s+"=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
@@ -468,7 +468,7 @@ public class ClusterSession
 	{
 		ChooseGUI cg = new ChooseGUI();
 		String c = cg.choose("Job Selector", "Select a Job to visualize", directories);
-		if(c== null)
+		if (c== null)
 			return 0;
 		int l = c.length() -1;
 		
@@ -509,7 +509,7 @@ public class ClusterSession
 		}
 		gd.showDialog();
 		
-		if(gd.wasCanceled())
+		if (gd.wasCanceled())
 			return;
 		
 		boolean cs[] = new boolean[output.length];

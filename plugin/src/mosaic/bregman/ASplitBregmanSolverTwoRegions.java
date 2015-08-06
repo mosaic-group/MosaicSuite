@@ -44,7 +44,7 @@ class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 		dct2d.forward(temp1[l][0], true);
 		for (int i=0; i<ni; i++) {  
 			for (int j=0; j<nj; j++) {  
-				if(eigenLaplacian[i][j] !=0) temp1[l][0][i][j]=temp1[l][0][i][j]/eigenLaplacian[i][j];
+				if (eigenLaplacian[i][j] !=0) temp1[l][0][i][j]=temp1[l][0][i][j]/eigenLaplacian[i][j];
 			}	
 		}
 		dct2d.inverse(temp1[l][0], true);
@@ -122,7 +122,7 @@ class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 
 		energy+=energytab[l];
 
-		if(p.livedisplay) md.display2regions(w3k[l][0], "Mask", channel);
+		if (p.livedisplay) md.display2regions(w3k[l][0], "Mask", channel);
 
 
 		long lEndTime = new Date().getTime(); //end time

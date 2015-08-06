@@ -27,7 +27,7 @@ public class OscillationDetection
         m_OscillationsNumberHist = new int[m_OscillationHistoryLength];
         m_OscillationsEnergyHist = new double[m_OscillationHistoryLength];
     	
-		for(int vI = 0; vI < m_OscillationHistoryLength; vI++) {
+		for (int vI = 0; vI < m_OscillationHistoryLength; vI++) {
 			m_OscillationsNumberHist[vI] = 0;
 			m_OscillationsEnergyHist[vI] = 0;
 		}
@@ -45,11 +45,11 @@ public class OscillationDetection
         double vSum = SumAllEnergies(m_Candidates);
         debug("sum of energies: "+vSum);
         debug("num of candidat: "+m_Candidates.size());
-		for(int vI = 0; vI < m_OscillationHistoryLength; vI++) 
+		for (int vI = 0; vI < m_OscillationHistoryLength; vI++) 
 		{
 			double vSumOld = m_OscillationsEnergyHist[vI];
 
-			if(m_Candidates.size() == m_OscillationsNumberHist[vI]
+			if (m_Candidates.size() == m_OscillationsNumberHist[vI]
 					&& Math.abs(vSum - vSumOld) <= 1e-5 * Math.abs(vSum)) 
 			{
 				/// here we assume that we're oscillating, 

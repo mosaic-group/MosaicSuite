@@ -22,11 +22,11 @@ class ASplitBregmanSolverTwoRegions3D  extends ASplitBregmanSolverTwoRegions {
 		this.eigenLaplacian3D= new double [nz] [ni] [nj];
 		dct3d= new DoubleDCT_3D(nz,ni,nj);
 		
-		for(int i =0; i< nl;i++){
+		for (int i =0; i< nl;i++){
 			LocalTools.fgradz2D(w2zk[i], mask[i]);
 		}
 		
-		for(int l =0; l< nl;l++){
+		for (int l =0; l< nl;l++){
 			for (int z=0; z<nz; z++){
 				for (int i=0; i<ni; i++) {  
 					for (int j=0; j<nj; j++) {  
@@ -90,7 +90,7 @@ class ASplitBregmanSolverTwoRegions3D  extends ASplitBregmanSolverTwoRegions {
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0; j<nj; j++) {  
-					if(eigenLaplacian[i][j] !=0) temp1[l][z][i][j]=temp1[l][z][i][j]/eigenLaplacian3D[z][i][j];
+					if (eigenLaplacian[i][j] !=0) temp1[l][z][i][j]=temp1[l][z][i][j]/eigenLaplacian3D[z][i][j];
 				}	
 			}
 		}
@@ -180,7 +180,7 @@ class ASplitBregmanSolverTwoRegions3D  extends ASplitBregmanSolverTwoRegions {
 
 		energy+=energytab[l];
 
-		//if(p.livedisplay) md.display2regions3D(w3k[l], "Mask");
+		//if (p.livedisplay) md.display2regions3D(w3k[l], "Mask");
 
 
 		long lEndTime = new Date().getTime(); //end time

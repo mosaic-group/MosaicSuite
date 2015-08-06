@@ -78,7 +78,7 @@ public class ImageModel
 			
 	        /// add a balloon force and a constant outward flow. If fronts were
 	        /// touching, no constant flow is imposed (cancels out).
-	        if(vCurrentLabel == 0)  // growing
+	        if (vCurrentLabel == 0)  // growing
 	        {
 	            vEnergy -= settings.m_ConstantOutwardFlow;
 	            if (settings.m_EnergyFunctional == EnergyFunctionalType.e_PS)
@@ -98,7 +98,7 @@ public class ImageModel
 	        /// For the full-region based energy models, register competing regions
 	        /// undergo a merge.
 			
-			if(e_merge!=null) // use e_merge explicitly
+			if (e_merge!=null) // use e_merge explicitly
 			{
 				vV = e_merge.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel);
 				vMerge = vV.merge;

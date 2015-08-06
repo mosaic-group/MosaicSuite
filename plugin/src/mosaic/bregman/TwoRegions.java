@@ -35,7 +35,7 @@ class TwoRegions extends NRegions
 	{
 		super( img, params,  DoneSignal,channel);	
 
-		if(p.nlevels >1  || !p.usePSF)
+		if (p.nlevels >1  || !p.usePSF)
 		{ 
 			//save memory when Ei not needed
 			SpeedData = new double [1] [nz] [ni] [nj];//only one level used 
@@ -238,7 +238,7 @@ class TwoRegions extends NRegions
 		
 		mergeSoftMask(A_solver);
 		
-		if(channel==0)
+		if (channel==0)
 		{
 			// Take the soft membership mask
 			
@@ -259,14 +259,14 @@ class TwoRegions extends NRegions
 			
 			//A_solver=null; //for testing
 
-			if(!Analysis.p.looptest)
+			if (!Analysis.p.looptest)
 			{	
-				if(p.findregionthresh)Analysis.compute_connected_regions_a(255*p.thresh,RiN);
+				if (p.findregionthresh)Analysis.compute_connected_regions_a(255*p.thresh,RiN);
 				else Analysis.compute_connected_regions_a(255*p.thresh,null);
 				//A_solver=null; // for testing
 				//test
 				//IJ.log("start test" + "nlevels " +p.nlevels);
-				if(Analysis.p.refinement&& Analysis.p.mode_voronoi2)
+				if (Analysis.p.refinement&& Analysis.p.mode_voronoi2)
 				{
 					Analysis.setregionsThresholds(Analysis.regionslist[0], RiN, RoN);
 					Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[0], regions, RiN);
@@ -286,7 +286,7 @@ class TwoRegions extends NRegions
 
 
 
-				if(Analysis.p.refinement && Analysis.p.mode_classic)
+				if (Analysis.p.refinement && Analysis.p.mode_classic)
 				{
 					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslist[0],image,channel, A_solver.w3kbest[0],min,max);
 					A_solver=null;
@@ -380,7 +380,7 @@ class TwoRegions extends NRegions
 				int sz = 1;
 				int osz = 1;
 				//IJ.log("sx " + sx);
-				if(p.nz==1)
+				if (p.nz==1)
 				{
 					sz=1;
 					osz=1;
@@ -423,14 +423,14 @@ class TwoRegions extends NRegions
 			//A_solver=null;
 			
 			
-			if(!Analysis.p.looptest)
+			if (!Analysis.p.looptest)
 			{
-				if(p.findregionthresh)Analysis.compute_connected_regions_b(255*p.thresh,RiN);
+				if (p.findregionthresh)Analysis.compute_connected_regions_b(255*p.thresh,RiN);
 				else Analysis.compute_connected_regions_b(255*p.thresh,null);
 				//A_solver=null;
 
 
-				if(Analysis.p.refinement&& Analysis.p.mode_voronoi2)
+				if (Analysis.p.refinement&& Analysis.p.mode_voronoi2)
 				{
 					Analysis.setregionsThresholds(Analysis.regionslist[1], RiN, RoN);
 					Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[1], regions, RiN);
@@ -447,7 +447,7 @@ class TwoRegions extends NRegions
 
 
 
-				if(Analysis.p.refinement && Analysis.p.mode_classic)
+				if (Analysis.p.refinement && Analysis.p.mode_classic)
 				{
 					ImagePatches ipatches= new ImagePatches(p, Analysis.regionslist[1],image,channel, A_solver.w3kbest[0], min, max);
 					A_solver=null;

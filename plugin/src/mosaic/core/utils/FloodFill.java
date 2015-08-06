@@ -41,12 +41,12 @@ public class FloodFill implements Iterable<Point>
 		checkedSet = new HashSet<Point>();
 		stack.add(seed);
 		
-		while(!stack.isEmpty())
+		while (!stack.isEmpty())
 		{
 			Point p = stack.pop();
-			for(Point q: conn.iterateNeighbors(p))
+			for (Point q: conn.iterateNeighbors(p))
 			{
-				if(foo.EvaluateAtIndex(q) && !isPointChecked(q))
+				if (foo.EvaluateAtIndex(q) && !isPointChecked(q))
 				{
 					stack.add(q);
 				}

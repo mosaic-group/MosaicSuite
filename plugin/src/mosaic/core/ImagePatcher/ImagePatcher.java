@@ -61,24 +61,24 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 		int size=lbl_t.getSize();
 		
 		// what are the old labels?
-		for(int i=0; i<size; i++)
+		for (int i=0; i<size; i++)
 		{
 			int l=lbl_t.getLabel(i);
-			if(l==lbl_t.bgLabel)
+			if (l==lbl_t.bgLabel)
 			{
 				continue;
 			}
 			oldLabels.add(l);
 		}
 		
-		for(int i=0; i<size; i++)
+		for (int i=0; i<size; i++)
 		{
 			int l = lbl_t.getLabel(i);
-			if(l == lbl_t.bgLabel)
+			if (l == lbl_t.bgLabel)
 			{
 				continue;
 			}
-			if(oldLabels.contains(l))
+			if (oldLabels.contains(l))
 			{
 				// l is an old label
 				BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(lbl_t);
@@ -86,7 +86,7 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 				FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, lbl_t.iterator.indexToPoint(i));
 				
 				//find a new label
-				while(oldLabels.contains(newLabel))
+				while (oldLabels.contains(newLabel))
 				{
 					newLabel++;
 				}
@@ -99,7 +99,7 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 				ImagePatch<T,E> ip = img_pt.get(img_pt.size()-1);
 				
 				// set region to new label
-				for(Point p:ff)
+				for (Point p:ff)
 				{
 					lbl_t.setLabel(p, newLabel);
 					

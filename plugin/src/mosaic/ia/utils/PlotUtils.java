@@ -30,7 +30,7 @@ public class PlotUtils {
 	public static void histPlotDoubleArray_imageJ(String title, double [] array, int bins)
 	{
 		float floatArray [][]=new float[array.length][1];
-		for(int i=0;i<array.length;i++)
+		for (int i=0;i<array.length;i++)
 		{
 			floatArray[i][0]=(float)array[i];
 			
@@ -43,7 +43,7 @@ public class PlotUtils {
 		// TODO Auto-generated method stub
 		
 		double [] ydouble = new double[yvalues.length];
-		for(int i=0;i<ydouble.length;i++)
+		for (int i=0;i<ydouble.length;i++)
 			ydouble[i]=yvalues[i];
 		Plot plot=new Plot(title,"d","Y(int)",xvalues,ydouble);
 	

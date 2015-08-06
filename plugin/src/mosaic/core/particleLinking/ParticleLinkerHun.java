@@ -104,23 +104,23 @@ public class ParticleLinkerHun implements ParticleLinker
 		curr_linkrange = l.linkrange;
 
 		/* If the linkrange is too big, set it the right value */
-		if(frames_number < (curr_linkrange + 1))
+		if (frames_number < (curr_linkrange + 1))
 			curr_linkrange = frames_number - 1;
 
 //		max_cost = displacement * displacement;
 
-		for(m = 0; m < frames_number - curr_linkrange; m++) 
+		for (m = 0; m < frames_number - curr_linkrange; m++) 
 		{
 			IJ.showStatus("Linking Frame " + (m+1));
 			nop = frames[m].getParticles().size();
-			for(i = 0; i < nop; i++) 
+			for (i = 0; i < nop; i++) 
 			{
 				frames[m].getParticles().elementAt(i).special = false;
-				for(n = 0; n < l.linkrange; n++)
+				for (n = 0; n < l.linkrange; n++)
 					frames[m].getParticles().elementAt(i).next[n] = -1;
 			}
 
-			for(n = 0; n < curr_linkrange; n++) 
+			for (n = 0; n < curr_linkrange; n++) 
 			{
 				max_cost = (n + 1) * l.displacement * (n + 1) * l.displacement;
 
@@ -145,9 +145,9 @@ public class ParticleLinkerHun implements ParticleLinker
 				//
 				
 				/* Fill in the costs */
-				for(i = 0; i < nop + nop_next; i++) 
+				for (i = 0; i < nop + nop_next; i++) 
 				{
-					for(j = 0; j < nop + nop_next; j++) 
+					for (j = 0; j < nop + nop_next; j++) 
 					{
 						if (i < nop && j < nop_next)
 						{
@@ -164,7 +164,7 @@ public class ParticleLinkerHun implements ParticleLinker
 				int[] mac = bpm.getMatching();
 				
 				/* After optimization, the particles needs to be linked */
-				for(i = 0; i < nop + nop_next; i++) 
+				for (i = 0; i < nop + nop_next; i++) 
 				{
 					// Adjust mac[i]
 					
@@ -243,15 +243,15 @@ public class ParticleLinkerHun implements ParticleLinker
 				}
 			}
 
-			if(m == (frames_number - curr_linkrange - 1) && curr_linkrange > 1)
+			if (m == (frames_number - curr_linkrange - 1) && curr_linkrange > 1)
 				curr_linkrange--;
 		}
 
 		/* At the last frame all trajectories end */
-		for(i = 0; i < frames[frames_number - 1].getParticles().size(); i++) 
+		for (i = 0; i < frames[frames_number - 1].getParticles().size(); i++) 
 		{
 			frames[frames_number - 1].getParticles().elementAt(i).special = false;
-			for(n = 0; n < l.linkrange; n++)
+			for (n = 0; n < l.linkrange; n++)
 				frames[frames_number - 1].getParticles().elementAt(i).next[n] = -1;
 		}
 		

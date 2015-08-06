@@ -56,7 +56,7 @@ public class PsfPointSpreadFunction{
 		PSF = new float[k+1];
 		Rad = new float[k+1];
 		// Loop over circles
-		for(int j=0; j<=k; j++){
+		for (int j=0; j<=k; j++){
 			// Calculate circle radius
 			radius = (float)j/fact;
 			Rad[j] = 1000*radius*pixel_size/mag;
@@ -66,7 +66,7 @@ public class PsfPointSpreadFunction{
 			val_int = 0.0f;
 			psf_data.append("\n%Sampling Positions of Point Source:\n");
 			// Loop over Sampling Points
-			for(int i=0; i<sample_number; i++){
+			for (int i=0; i<sample_number; i++){
 				phi = (float)(2*Math.PI*i)/sample_number;
 				x_pos = source.x + radius*(float)Math.cos(phi);
 			    y_pos = source.y + radius*(float)Math.sin(phi);
@@ -96,9 +96,9 @@ public class PsfPointSpreadFunction{
 		float c = 1;
 		for (int v=0; v<PSF.length; v++){ 
 			float p = PSF[v];
-				if(p>max)
+				if (p>max)
 					max = p;
-				if(p<min)
+				if (p<min)
 					min = p;
 		}
 		c = max - min;

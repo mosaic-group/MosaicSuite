@@ -82,14 +82,14 @@ public class E_PS extends ExternalEnergy
 			
 			int dataIdx = labelIdx;
 			int absLabel=labelImage.getLabelAbs(labelIdx);
-			if(absLabel == fromLabel)
+			if (absLabel == fromLabel)
 			{
 				double data = intensityImage.get(dataIdx);
 				vSumFrom += data;
 				vSumOfSqFrom += data*data;
 				vNFrom++;
 			}
-			else if(absLabel == toLabel)
+			else if (absLabel == toLabel)
 			{
 				double data = intensityImage.get(dataIdx);
 				vSumTo += data;
@@ -102,7 +102,7 @@ public class E_PS extends ExternalEnergy
 		double vVarTo;
 		double vMeanFrom;
 		double vVarFrom;
-		if(vNTo == 0) // this should only happen with the BG label
+		if (vNTo == 0) // this should only happen with the BG label
 		{
 			LabelInformation info = labelMap.get(toLabel);
 			vMeanTo = info.mean;
@@ -115,7 +115,7 @@ public class E_PS extends ExternalEnergy
 			vVarTo = (vSumOfSqTo - vSumTo*vSumTo/vNTo) / (vNTo);
 		}
 
-		if(vNFrom == 0)
+		if (vNFrom == 0)
 		{
 			LabelInformation info = labelMap.get(fromLabel);
 			vMeanFrom = info.mean;
@@ -132,10 +132,10 @@ public class E_PS extends ExternalEnergy
 		boolean vMerge = false;
 		
 		
-		if(fromLabel != bgLabel && toLabel != bgLabel)
+		if (fromLabel != bgLabel && toLabel != bgLabel)
 		{
 			double e = E_KLMergingCriterion.CalculateKLMergingCriterion(vMeanFrom, vMeanTo, vVarFrom, vVarTo, vNFrom, vNTo);
-			if(e < regionMergingThreshold)
+			if (e < regionMergingThreshold)
 			{
 				vMerge = true;
 			}

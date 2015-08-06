@@ -162,10 +162,10 @@ public class BregmanGLM_Batch implements Segmentation
 //			l=args.length;
 //		//IJ.log("args" + l);
 /*		 batch=false;
-		for(int i=0; i<l; i++)
+		for (int i=0; i<l; i++)
 		{
 			//IJ.log("arg" + i+ args[i]);
-			if(args[i]!=null)
+			if (args[i]!=null)
 			{
 				if (args[i].endsWith("batch")) batch=true;
 			}

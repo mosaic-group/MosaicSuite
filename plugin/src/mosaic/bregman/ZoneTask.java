@@ -149,7 +149,7 @@ class ZoneTask implements Runnable {
 
 		//%-- w1k subproblem
 
-		if(AS.p.noise_model==0){
+		if (AS.p.noise_model==0){
 			//poisson
 			//temp3=detw2
 			//  detw2 = (lambda*gamma.*weightData-b2k-muk).^2+4*lambda*gamma*weightData.*image;
@@ -236,7 +236,7 @@ class ZoneTask implements Runnable {
 		Sync7.countDown();
 		Sync7.await();
 
-		if(AS.stepk % AS.p.energyEvaluationModulo ==0  || AS.stepk==AS.p.max_nsb -1){
+		if (AS.stepk % AS.p.energyEvaluationModulo ==0  || AS.stepk==AS.p.max_nsb -1){
 			AS.energytab2[num]=LocalTools.computeEnergyPSF(AS.temp1[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l],
 					AS.p.ldata, AS.p.lreg_[AS.channel],AS.p,AS.c0,AS.c1,AS.image,
 					iStart, iEnd, jStart, jEnd, Sync8,Sync9);

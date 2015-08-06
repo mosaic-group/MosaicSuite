@@ -320,7 +320,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 		}
         finally 
         {
-                if( beanReader != null ) 
+                if ( beanReader != null ) 
                 {
                         try 
                         {beanReader.close();}
@@ -379,7 +379,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 		}
         finally 
         {
-                if( beanReader != null ) 
+                if ( beanReader != null ) 
                 {
                         try 
                         {beanReader.close();}
@@ -458,7 +458,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
             occ.map = map;
             occ.cel = c;
             
-            while( (element = (E)beanReader.read(element.getClass(), c)) != null ) 
+            while ( (element = (E)beanReader.read(element.getClass(), c)) != null ) 
             {
             	out.add(element);
             }
@@ -475,7 +475,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 		}
         finally 
         {
-                if( beanReader != null ) 
+                if ( beanReader != null ) 
                 {
                         try 
                         {beanReader.close();}
@@ -511,7 +511,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
             
             // read the file
             
-            while( (element = (E)beanReader.read(element.getClass(), occ.cel)) != null ) 
+            while ( (element = (E)beanReader.read(element.getClass(), occ.cel)) != null ) 
             {
             	out.add(element);
             }
@@ -528,7 +528,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 		}
         finally 
         {
-                if( beanReader != null ) 
+                if ( beanReader != null ) 
                 {
                         try 
                         {beanReader.close();}
@@ -654,7 +654,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 					return;
 				}
                 
-                for( int i = 0 ; i < out.size() ; i++ ) 
+                for ( int i = 0 ; i < out.size() ; i++ ) 
                 {
                 	try {
 						element = p.newInstance();
@@ -690,7 +690,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 		}
         finally 
         {
-                if( beanWriter != null ) 
+                if ( beanWriter != null ) 
                 {
                         try 
                         {beanWriter.close();}
@@ -1000,7 +1000,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 			
 			for (int i = 1 ; i <= nf ; i++)
 			{
-				if(fl[i-1].getName().endsWith(".csv"))
+				if (fl[i-1].getName().endsWith(".csv"))
 					str[i-1] = fl[i-1].getAbsolutePath();
 			}
 			
@@ -1041,7 +1041,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
     	long stride = 1;
     	Pattern p = Pattern.compile("[0-9]+");
     	Matcher m = p.matcher(new StringBuilder(f.getName()).reverse());
-    	while(m.find()) 
+    	while (m.find()) 
     	{
     	    String result = m.group();
     	    id += Integer.parseInt((new StringBuilder(result).reverse()).toString())*stride;
@@ -1095,7 +1095,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 			
 			for (int i = 1 ; i <= nf ; i++)
 			{
-				if(fl[i-1].getName().endsWith(".csv"))
+				if (fl[i-1].getName().endsWith(".csv"))
 				{
 					si.add(new StringLong(fl[i-1].getAbsolutePath(),FileToNumber(fl[i-1])));
 				}
@@ -1164,7 +1164,7 @@ public class InterPluginCSV<E extends ICSVGeneral>
 			
 			for (int i = 1 ; i <= nf ; i++)
 			{
-				if(fl[i-1].getName().endsWith(".csv"))
+				if (fl[i-1].getName().endsWith(".csv"))
 					str[i-1] = fl[i-1].getAbsolutePath();
 			}
 			

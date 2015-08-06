@@ -72,7 +72,7 @@ class BackgroundSubHelp extends HelpGUI implements ActionListener
 		Object source = ae.getSource();	// Identify Button that was clicked
 
 
-		if(source == Close)
+		if (source == Close)
 		{
 			//IJ.log("close called");
 			frame.dispose();				

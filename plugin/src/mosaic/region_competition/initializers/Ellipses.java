@@ -27,7 +27,7 @@ package mosaic.region_competition.initializers;
 //		System.out.println("x, y, w, h, label");
 //		System.out.println(n);
 //		
-//		for(int i=0; i<n; i++)
+//		for (int i=0; i<n; i++)
 //		{
 //			int min = 10;
 //			int w=min+rand.nextInt(width/2-min);
@@ -70,7 +70,7 @@ package mosaic.region_competition.initializers;
 //
 //		System.out.println(n);
 //
-//		for(int i = 0; i < n; i++) 
+//		for (int i = 0; i < n; i++) 
 //		{
 //			int e[] = ellipses[i];
 //			x = e[0];
@@ -98,15 +98,15 @@ package mosaic.region_competition.initializers;
 //		
 //		int ellipses[][] = new int[n][5]; //5=2*dim+1
 //		
-//		for(int i = 0; i < n; i++) 
+//		for (int i = 0; i < n; i++) 
 //		{
 //			int e[]=ellipses[i];
 //			//coords
-//			for(int j=0; j<dim; j++){
+//			for (int j=0; j<dim; j++){
 //				e[j]=scanner.nextInt();
 //			}
 //			//sizes
-//			for(int j=dim; j<2*dim; j++){
+//			for (int j=dim; j<2*dim; j++){
 //				e[j]=scanner.nextInt();
 //			}
 //			//label

@@ -22,9 +22,9 @@ class MaskIterator extends RegionIterator
 		int[] maskOfs = new int[dimensions];
 		
 		//TODO: this is cropping, actually? 
-		for(int i=0; i<dimensions; i++)
+		for (int i=0; i<dimensions; i++)
 		{
-			if(ofs[i]<0)
+			if (ofs[i]<0)
 			{
 				// if ofs < 0, then region is cropped, and the iterator' doesn't start at 0,0
 				// but starts at an ofs which points to the intersection(input, region)
@@ -37,7 +37,7 @@ class MaskIterator extends RegionIterator
 				maskOfs[i]=0;
 			}
 			//mask overflow
-			if(ofs[i]+region[i]>input[i])
+			if (ofs[i]+region[i]>input[i])
 			{
 				int diff=ofs[i]+region[i]-input[i];
 				maskSizes[i]-=diff;

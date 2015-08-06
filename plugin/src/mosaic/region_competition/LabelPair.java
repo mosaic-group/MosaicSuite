@@ -11,7 +11,7 @@ class LabelPair implements Comparable<LabelPair>
 	
 	public LabelPair(int l1, int l2)
 	{
-		if(l1<l2){
+		if (l1<l2){
 			first=l1;
 			second=l2;
 		}
@@ -38,7 +38,7 @@ class LabelPair implements Comparable<LabelPair>
 	public int compareTo(LabelPair o)
 	{
 		int result = this.first-o.first;
-		if(result == 0)
+		if (result == 0)
 		{
 			result = this.second - o.second;
 		}

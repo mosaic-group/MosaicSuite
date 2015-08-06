@@ -21,7 +21,7 @@ class ProjectSimplexSpeed {
 
 			}
 
-			if(finished) return;
+			if (finished) return;
 		}
 		return;
 	}
@@ -41,11 +41,11 @@ class ProjectSimplexSpeed {
 		double [] mu = new double[dimz];
 		double sm, row, sm_row, theta, val;
 
-		for(x= 0; x < dimx; x++) {
-			for(y = 0; y < dimy; y++) {
+		for (x= 0; x < dimx; x++) {
+			for (y = 0; y < dimy; y++) {
 
 				// along the z axis: get the vector v,mu values:
-				for(z = 0; z < dimz; z++) {
+				for (z = 0; z < dimz; z++) {
 					//IJ.log("z value : " + z + "x" +x + "y"+y);
 					v[z] = input1[z][0][x][y];
 					mu[z] = v[z];
@@ -58,9 +58,9 @@ class ProjectSimplexSpeed {
 				sm = 0.0;
 				row=sm_row=1;// init to what ??
 				//bool values_set = false;
-				for(z = 0; z < dimz; z++) {
+				for (z = 0; z < dimz; z++) {
 					sm += mu[z];
-					if(mu[z] - (1.0/(z+1)) * (sm-1) > 0){
+					if (mu[z] - (1.0/(z+1)) * (sm-1) > 0){
 						row = z+1;
 						sm_row = sm;
 						//  values_set = true;
@@ -70,7 +70,7 @@ class ProjectSimplexSpeed {
 
 
 				// subtract theta from v
-				for(z = 0; z < dimz; z++) {
+				for (z = 0; z < dimz; z++) {
 					val = v[z]-theta;
 					output1[z][0][x][y] = (val > 0.0)? val : 0.0;
 				}

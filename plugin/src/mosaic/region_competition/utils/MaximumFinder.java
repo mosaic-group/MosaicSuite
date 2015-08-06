@@ -475,14 +475,14 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                     int offset = pList[listI];
                     int x = offset % width;
                     int y = offset / width;
-                    //if(x==18&&y==20)IJ.write("x0,y0="+x0+","+y0+"@18,20;v0="+v0+" sortingError="+sortingError);
+                    //if (x==18&&y==20)IJ.write("x0,y0="+x0+","+y0+"@18,20;v0="+v0+" sortingError="+sortingError);
                     boolean isInner = (y!=0 && y!=height-1) && (x!=0 && x!=width-1); //not necessary, but faster than isWithin
                     for (int d=0; d<8; d++) {       //analyze all neighbors (in 8 directions) at the same level
                         int offset2 = offset+dirOffset[d];
                         if ((isInner || isWithin(x, y, d)) && (types[offset2]&LISTED)==0) {
                             if ((types[offset2]&PROCESSED)!=0) {
                                 maxPossible = false; //we have reached a point processed previously, thus it is no maximum now
-                                //if(x0<25&&y0<20)IJ.write("x0,y0="+x0+","+y0+":stop at processed neighbor from x,y="+x+","+y+", dir="+d);
+                                //if (x0<25&&y0<20)IJ.write("x0,y0="+x0+","+y0+":stop at processed neighbor from x,y="+x+","+y+", dir="+d);
                                 break;
                             }
                             int x2 = x+DIR_X_OFFSET[d];
@@ -490,7 +490,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                             float v2 = isEDM ? trueEdmHeight(x2, y2, ip) : ip.getPixelValue(x2, y2);
                             if (v2 > v0 + maxSortingError) {
                                 maxPossible = false;    //we have reached a higher point, thus it is no maximum
-                                //if(x0<25&&y0<20)IJ.write("x0,y0="+x0+","+y0+":stop at higher neighbor from x,y="+x+","+y+", dir="+d+",value,value2,v2-v="+v0+","+v2+","+(v2-v0));
+                                //if (x0<25&&y0<20)IJ.write("x0,y0="+x0+","+y0+":stop at higher neighbor from x,y="+x+","+y+", dir="+d+",value,value2,v2-v="+v0+","+v2+","+(v2-v0));
                                 break;
                             } else if (v2 >= v0-(float)tolerance) {
                                 if (v2 > v0) {          //maybe this point should have been treated earlier
@@ -790,7 +790,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
     /** delete a line starting at x, y up to the next (4-connected) vertex */
     void removeLineFrom (byte[] pixels, int x, int y) {
         //IJ.log("del line from "+x+","+y);
-        //if(x<50&&y<40)IJ.write("x,y start="+x+","+y);
+        //if (x<50&&y<40)IJ.write("x,y start="+x+","+y);
         pixels[x + width*y] = (byte)255;                        //delete the first point
         boolean continues;
         do {
@@ -811,7 +811,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                     }
                 }
             } // for directions d
-        //if(!continues && x<50&&y<40)IJ.write("x,y end="+x+","+y);
+        //if (!continues && x<50&&y<40)IJ.write("x,y end="+x+","+y);
         } while (continues);
         //IJ.log("deleted to "+x+","+y);
     } // void removeLineFrom

@@ -33,7 +33,7 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
 		
 		particleXSetCoord=applyMaskandgetCoordinates(X);
 		particleYSetCoord=applyMaskandgetCoordinates(Y);
-		if(boundarySet==true)
+		if (boundarySet==true)
 		{
 			particleXSetCoord=applyBoundaryandgetCoordinates(particleXSetCoord);
 			particleYSetCoord=applyBoundaryandgetCoordinates(particleYSetCoord);
@@ -61,7 +61,7 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
 	{
 		
 		
-			if(coords[0]>=x1 && coords[0]<=x2 && coords[1]>=y1 && coords[1]<=y2 && coords[2]>=z1 && coords[2]<=z2)
+			if (coords[0]>=x1 && coords[0]<=x2 && coords[1]>=y1 && coords[1]<=y2 && coords[2]>=z1 && coords[2]<=z2)
 			{
 				
 			           return true;
@@ -77,10 +77,10 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
 		 	Vector<Point3d> vectorPoints=new Vector<Point3d>();
 		 	double [] coords=new double[3];
 		 	int count=0;
-			for(int i=0;i<points.length;i++)
+			for (int i=0;i<points.length;i++)
 			{
 				points[i].get(coords);
-				if(isInsideBoundary(coords))
+				if (isInsideBoundary(coords))
 						{
 						vectorPoints.add(points[i]);
 						count++;

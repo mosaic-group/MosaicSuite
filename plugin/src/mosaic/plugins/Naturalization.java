@@ -319,14 +319,14 @@ public class Naturalization extends PlugIn8bitBase
         }
             
         // While the precision is bigger than eps
-        while(right-left>=eps)
+        while (right-left>=eps)
         {
             // move left and right of 1/3 (m1 and m2)
             m1=left+(right-left)/3;
             m2=right-(right-left)/3;
                 
             // Evaluate on m1 and m2, ane move the extreme point
-            if(FindT_Evalue(p_t, N, OffSet, m1) <=FindT_Evalue(p_t, N, OffSet, m2))
+            if (FindT_Evalue(p_t, N, OffSet, m1) <=FindT_Evalue(p_t, N, OffSet, m2))
                 right=m2;
             else
                 left=m1;

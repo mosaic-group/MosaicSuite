@@ -416,7 +416,7 @@ public class GeneratePSF
 		
 		Cursor<FloatType> cft = PSFimg.cursor();
 		
-		while(cft.hasNext())
+		while (cft.hasNext())
 		{
 			cft.next();
 			cft.localize(loc);

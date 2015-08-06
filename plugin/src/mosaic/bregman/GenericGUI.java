@@ -422,7 +422,7 @@ public class GenericGUI
 		
 		System.out.println("Paramenters: " + Analysis.p);
 		
-		if(Analysis.p.mode_voronoi2)
+		if (Analysis.p.mode_voronoi2)
 		{
 			//betamleout to be determined by clustering of whole image
 
@@ -438,7 +438,7 @@ public class GenericGUI
 		}
 
 
-		if(!Analysis.p.subpixel)
+		if (!Analysis.p.subpixel)
 		{
 			Analysis.p.oversampling2ndstep=1;
 			Analysis.p.interpolation=1;
@@ -518,9 +518,9 @@ public class GenericGUI
 
 		//		    hd.bcolocheadless(imagePlus);*/
 			
-			if(Analysis.p.nchannels==2)
+			if (Analysis.p.nchannels==2)
 			{
-				if(Analysis.p.save_images)
+				if (Analysis.p.save_images)
 				{
 					RScript script = new RScript(
 							savepath, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3,
@@ -640,8 +640,8 @@ public class GenericGUI
 		@Override
 		public void actionPerformed(ActionEvent e)
 		{
-			if(imgch1!=null){imgch1.close();imgch1=null;}
-			if(imgch2!=null){imgch2.close();imgch2=null;}// close previosuly opened images 
+			if (imgch1!=null){imgch1.close();imgch1=null;}
+			if (imgch2!=null){imgch2.close();imgch2=null;}// close previosuly opened images 
 			
 			String path;
 			//with JFileChooser
@@ -655,7 +655,7 @@ public class GenericGUI
 
 
 			boolean processdirectory =(new File(path)).isDirectory();
-			if(!processdirectory)
+			if (!processdirectory)
 			{
 
 				ImagePlus img2=IJ.openImage(path);
@@ -666,7 +666,7 @@ public class GenericGUI
 
 
 
-			if(path!=null)//(file!=null && dir!=null)
+			if (path!=null)//(file!=null && dir!=null)
 			{
 				ta.setText(path);
 			}

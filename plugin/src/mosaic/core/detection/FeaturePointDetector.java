@@ -98,7 +98,7 @@ public class FeaturePointDetector {
 		ImageStack restored_fps = new ImageStack(original_ips.getWidth(),original_ips.getHeight());
 
 
-		for(int i = 1; i <= original_ips.getSize(); i++) 
+		for (int i = 1; i <= original_ips.getSize(); i++) 
 		{
 			//if it is already a float, ImageJ does not create a duplicate
 			restored_fps.addSlice(null, original_ips.getProcessor(i).convertToFloat().duplicate());
@@ -119,7 +119,7 @@ public class FeaturePointDetector {
 		pointLocationsEstimation(restored_fps, frame.frame_number, frame.linkrange);
 		//
 		//					System.out.println("particles after location estimation:");
-		//					for(Particle p : this.particles) {
+		//					for (Particle p : this.particles) {
 		//						System.out.println("particle: " + p.toString());
 		//					}
 
@@ -127,7 +127,7 @@ public class FeaturePointDetector {
 		pointLocationsRefinement(restored_fps);
 		//new StackWindow(new ImagePlus("after location ref",restored_fps));
 		//			System.out.println("particles after location refinement:");
-		//			for(Particle p : this.particles) {
+		//			for (Particle p : this.particles) {
 		//				System.out.println("particle: " + p.toString());
 		//			}
 
@@ -157,7 +157,7 @@ public class FeaturePointDetector {
 	 * @param global_max 
 	 */
 	private void normalizeFrameFloat(ImageStack is, float global_min, float global_max) {
-		for(int s = 1; s <= is.getSize(); s++){
+		for (int s = 1; s <= is.getSize(); s++){
 			float[] pixels=(float[])is.getPixels(s);
 			float tmp_pix_value;
 			for (int i = 0; i < pixels.length; i++) {
@@ -177,7 +177,7 @@ public class FeaturePointDetector {
 	 * @param absIntensityThreshold2 a intensity value which defines a threshold.
 	 */
 	private void findThreshold(ImageStack ips, double percent, float absIntensityThreshold2) {
-		if(getThresholdMode() == ABS_THRESHOLD_MODE){
+		if (getThresholdMode() == ABS_THRESHOLD_MODE){
 			//the percent parameter corresponds to an absolute value (not percent)
 			this.setThreshold(absIntensityThreshold2 - global_min/(global_max-global_min));
 			return;
@@ -188,7 +188,7 @@ public class FeaturePointDetector {
 		/* find this ImageStacks min and max pixel value */
 		float min = 0f;
 		float max = 0f;
-		if(ips.getSize() > 1) {
+		if (ips.getSize() > 1) {
 			StackStatistics sstats = new StackStatistics(new ImagePlus(null,ips));
 			min = (float)sstats.min;
 			max = (float)sstats.max;
@@ -202,22 +202,22 @@ public class FeaturePointDetector {
 		for (i = 0; i< hist.length; i++) {
 			hist[i] = 0;
 		}
-		for(s = 0; s < ips.getSize(); s++) {
+		for (s = 0; s < ips.getSize(); s++) {
 			float[] pixels = (float[])ips.getProcessor(s + 1).getPixels();
-			for(i = 0; i < ips.getHeight(); i++) {
-				for(j = 0; j < ips.getWidth(); j++) {
+			for (i = 0; i < ips.getHeight(); i++) {
+				for (j = 0; j < ips.getWidth(); j++) {
 					hist[(int)((pixels[i*width+j] - min) * 255.0 / (max - min))]++;
 				}
 			}				
 		}
 
-		for(i = 254; i >= 0; i--)
+		for (i = 254; i >= 0; i--)
 			hist[i] += hist[i + 1];
 
 		thold = 0;
-		while(hist[255 - thold] / hist[0] < percent) {
+		while (hist[255 - thold] / hist[0] < percent) {
 			thold++;	
-			if(thold > 255)
+			if (thold > 255)
 				break;				
 		}
 		thold = 255 - thold + 1;
@@ -283,24 +283,24 @@ public class FeaturePointDetector {
 		int mask_width = 2 * radius +1;
 		int image_width = ips.getWidth();
 		/* Set every value that is smaller than 0 to 0 */		
-		for(int s = 0; s < ips.getSize(); s++) {
+		for (int s = 0; s < ips.getSize(); s++) {
 			//				for (int i = 0; i < ips.getHeight(); i++) {
 			//					for (int j = 0; j < ips.getWidth(); j++) {
-			//						if(ips.getProcessor(s + 1).getPixelValue(j, i) < 0.0)
+			//						if (ips.getProcessor(s + 1).getPixelValue(j, i) < 0.0)
 			//							ips.getProcessor(s + 1).putPixelValue(j, i, 0.0);
 			//
 			//					}
 			//				}
 			float[] pixels = (float[])ips.getPixels(s+1);
-			for(int i = 0; i < pixels.length; i++) {
-				if(pixels[i] < 0) {
+			for (int i = 0; i < pixels.length; i++) {
+				if (pixels[i] < 0) {
 					pixels[i] = 0f;
 				}
 			}
 		}
 
 		/* Loop over all particles */
-		for(m = 0; m < this.particles.size(); m++) {
+		for (m = 0; m < this.particles.size(); m++) {
 			this.particles.elementAt(m).special = true;
 			this.particles.elementAt(m).score = 0.0F;
 			epsx = epsy = epsz = 1.0F;
@@ -316,18 +316,18 @@ public class FeaturePointDetector {
 				epsx = 0.0F;
 				epsy = 0.0F;
 				epsz = 0.0F;
-				for(int s = -radius; s <= radius; s++) 
+				for (int s = -radius; s <= radius; s++) 
 				{
-					if(((int)this.particles.elementAt(m).z + s) < 0 || ((int)this.particles.elementAt(m).z + s) >= ips.getSize())
+					if (((int)this.particles.elementAt(m).z + s) < 0 || ((int)this.particles.elementAt(m).z + s) >= ips.getSize())
 						continue;
 					z = (int)this.particles.elementAt(m).z + s;
-					for(k = -radius; k <= radius; k++) {
-						if(((int)this.particles.elementAt(m).y + k) < 0 || ((int)this.particles.elementAt(m).y + k) >= ips.getHeight())
+					for (k = -radius; k <= radius; k++) {
+						if (((int)this.particles.elementAt(m).y + k) < 0 || ((int)this.particles.elementAt(m).y + k) >= ips.getHeight())
 							continue;
 						x = (int)this.particles.elementAt(m).y + k;
 
-						for(l = -radius; l <= radius; l++) {
-							if(((int)this.particles.elementAt(m).x + l) < 0 || ((int)this.particles.elementAt(m).x + l) >= ips.getWidth())
+						for (l = -radius; l <= radius; l++) {
+							if (((int)this.particles.elementAt(m).x + l) < 0 || ((int)this.particles.elementAt(m).x + l) >= ips.getWidth())
 								continue;
 							y = (int)this.particles.elementAt(m).x + l;
 							//
@@ -359,32 +359,32 @@ public class FeaturePointDetector {
 				ty = (int)(10.0 * epsy);
 				tz = (int)(10.0 * epsz);
 
-				if((tx)/10.0 > 0.5) {
-					if((int)this.particles.elementAt(m).y + 1 < ips.getHeight())
+				if ((tx)/10.0 > 0.5) {
+					if ((int)this.particles.elementAt(m).y + 1 < ips.getHeight())
 						this.particles.elementAt(m).y++;
 				}
-				else if((tx)/10.0 < -0.5) {
-					if((int)this.particles.elementAt(m).y - 1 >= 0)
+				else if ((tx)/10.0 < -0.5) {
+					if ((int)this.particles.elementAt(m).y - 1 >= 0)
 						this.particles.elementAt(m).y--;						
 				}
-				if((ty)/10.0 > 0.5) {
-					if((int)this.particles.elementAt(m).x + 1 < ips.getWidth())
+				if ((ty)/10.0 > 0.5) {
+					if ((int)this.particles.elementAt(m).x + 1 < ips.getWidth())
 						this.particles.elementAt(m).x++;
 				}
-				else if((ty)/10.0 < -0.5) {
-					if((int)this.particles.elementAt(m).x - 1 >= 0)
+				else if ((ty)/10.0 < -0.5) {
+					if ((int)this.particles.elementAt(m).x - 1 >= 0)
 						this.particles.elementAt(m).x--;
 				}
-				if((tz)/10.0 > 0.5) {
-					if((int)this.particles.elementAt(m).z + 1 < ips.getSize())
+				if ((tz)/10.0 > 0.5) {
+					if ((int)this.particles.elementAt(m).z + 1 < ips.getSize())
 						this.particles.elementAt(m).z++;
 				}
-				else if((tz)/10.0 < -0.5) {
-					if((int)this.particles.elementAt(m).z - 1 >= 0)
+				else if ((tz)/10.0 < -0.5) {
+					if ((int)this.particles.elementAt(m).z - 1 >= 0)
 						this.particles.elementAt(m).z--;
 				}
 
-				if((tx)/10.0 <= 0.5 && (tx)/10.0 >= -0.5 && 
+				if ((tx)/10.0 <= 0.5 && (tx)/10.0 >= -0.5 && 
 						(ty)/10.0 <= 0.5 && (ty)/10.0 >= -0.5 &&
 						(tz)/10.0 <= 0.5 && (tz)/10.0 >= -0.5)
 					break;
@@ -409,16 +409,16 @@ public class FeaturePointDetector {
 		double score;
 		int max_x = 1, max_y = 1, max_z = 1;
 		this.real_particles_number = this.particles_number;
-		if(this.particles.size() == 1){
+		if (this.particles.size() == 1){
 			this.particles.elementAt(0).score = Float.MAX_VALUE;
 		}
-		for(j = 0; j < this.particles.size(); j++) {		
+		for (j = 0; j < this.particles.size(); j++) {		
 			//				int accepted = 1;
 			max_x = Math.max((int)this.particles.elementAt(j).x,max_x);	
 			max_y = Math.max((int)this.particles.elementAt(j).y,max_y);	
 			max_z = Math.max((int)this.particles.elementAt(j).z,max_z);
 			
-			for(k = j + 1; k < this.particles.size(); k++) {
+			for (k = j + 1; k < this.particles.size(); k++) {
 				score = (1.0 / (2.0 * Math.PI * 0.1 * 0.1)) * 
 						Math.exp(-(this.particles.elementAt(j).m0 - this.particles.elementAt(k).m0) *
 								(this.particles.elementAt(j).m0 - this.particles.elementAt(k).m0) / (2.0 * 0.1) -
@@ -427,7 +427,7 @@ public class FeaturePointDetector {
 				this.particles.elementAt(j).score += score;
 				this.particles.elementAt(k).score += score;
 			}
-			if(this.particles.elementAt(j).score < cutoff) {
+			if (this.particles.elementAt(j).score < cutoff) {
 				this.particles.elementAt(j).special = false;
 				this.real_particles_number--;		
 				//					accepted = 0;
@@ -440,29 +440,29 @@ public class FeaturePointDetector {
 		 */
 		// Create a bitmap (with ghostlayers to not have to perform bounds checking)
 		boolean[][][] vBitmap = new boolean[max_z+3][max_y+3][max_x+3];
-		for(int z = 0; z < max_z+3; z++){
-			for(int y = 0; y < max_y+3; y++) {
-				for(int x =0;x < max_x+3;x++) {				
+		for (int z = 0; z < max_z+3; z++){
+			for (int y = 0; y < max_y+3; y++) {
+				for (int x =0;x < max_x+3;x++) {				
 					vBitmap[z][y][x] = false;
 				}
 			}
 		} 
 
-		for(j = 0; j < this.particles.size(); j++) {	
-//			for(k = j + 1; k < this.particles.size(); k++) {
+		for (j = 0; j < this.particles.size(); j++) {	
+//			for (k = j + 1; k < this.particles.size(); k++) {
 //			}
 			boolean vParticleInNeighborhood = false;
-			for(int oz = -1; !vParticleInNeighborhood && oz <=1; oz++){ 
-				for(int oy = -1; !vParticleInNeighborhood && oy <=1; oy++){
-					for(int ox = -1; !vParticleInNeighborhood && ox <=1; ox++){
-						if(vBitmap[(int)this.particles.elementAt(j).z+1+oz][(int)this.particles.elementAt(j).y+1+oy][(int)this.particles.elementAt(j).x+1+ox]) {
+			for (int oz = -1; !vParticleInNeighborhood && oz <=1; oz++){ 
+				for (int oy = -1; !vParticleInNeighborhood && oy <=1; oy++){
+					for (int ox = -1; !vParticleInNeighborhood && ox <=1; ox++){
+						if (vBitmap[(int)this.particles.elementAt(j).z+1+oz][(int)this.particles.elementAt(j).y+1+oy][(int)this.particles.elementAt(j).x+1+ox]) {
 							vParticleInNeighborhood = true; 
 						}
 					}
 				}
 			}
 				
-			if(vParticleInNeighborhood){
+			if (vParticleInNeighborhood){
 				this.particles.elementAt(j).special = false;
 				this.real_particles_number--;		
 			} else {
@@ -490,8 +490,8 @@ public class FeaturePointDetector {
 		//	    		}
 		//	    	}
 		//	    	this.particles = new_particles;
-		for(int i = this.particles.size()-1; i >= 0; i--) {
-			if(!this.particles.elementAt(i).special) {
+		for (int i = this.particles.size()-1; i >= 0; i--) {
+			if (!this.particles.elementAt(i).special) {
 				this.particles.removeElementAt(i);
 			}
 		}
@@ -511,7 +511,7 @@ public class FeaturePointDetector {
 		ImageStack restored = null; 
 
 		//pad the imagestack 	
-		if(is.getSize() > 1) {
+		if (is.getSize() > 1) {
 			//3D mode 
 			restored = MosaicUtils.padImageStack3D(is,radius);
 		} else {
@@ -538,7 +538,7 @@ public class FeaturePointDetector {
 		case BG_SUBTRACTOR:
 			GaussBlur3D(restored, 1*lambda_n);
 			BackgroundSubtractor2_ bgSubtractor = new BackgroundSubtractor2_();
-			for(int s = 1; s <= restored.getSize(); s++) {
+			for (int s = 1; s <= restored.getSize(); s++) {
 				//					IJ.showProgress(s, restored.getSize());
 				//					IJ.showStatus("Preprocessing: subtracting background...");
 				bgSubtractor.SubtractBackground(restored.getProcessor(s), radius*4);
@@ -553,7 +553,7 @@ public class FeaturePointDetector {
 		default:
 			break; 
 		}
-		if(is.getSize() > 1) {
+		if (is.getSize() > 1) {
 			//again, 3D crop
 //			new StackWindow(new ImagePlus("before cropping",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
 			restored = MosaicUtils.cropImageStack3D(restored,radius);
@@ -575,7 +575,7 @@ public class FeaturePointDetector {
 		int kernel_radius = vKernel.length / 2;
 		int nSlices = is.getSize();
 		int vWidth = is.getWidth();
-		for(int i = 1; i <= nSlices; i++){
+		for (int i = 1; i <= nSlices; i++){
 			ImageProcessor restored_proc = is.getProcessor(i);
 			Convolver convolver = new Convolver();
 			// no need to normalize the kernel - its already normalized
@@ -585,7 +585,7 @@ public class FeaturePointDetector {
 			convolver.convolve(restored_proc, vKernel, 1 , vKernel.length);  
 		}
 		//2D mode, abort here; the rest is unnecessary
-		if(is.getSize() == 1) {
+		if (is.getSize() == 1) {
 			return;
 		}			
 
@@ -597,16 +597,16 @@ public class FeaturePointDetector {
 		//to speed up the method, store the processor in an array (not invoke getProcessor()):
 		float[][] vOrigProcessors = new float[nSlices][];
 		float[][] vRestoredProcessors = new float[nSlices][];
-		for(int s = 0; s < nSlices; s++) {
+		for (int s = 0; s < nSlices; s++) {
 			vOrigProcessors[s] = (float[])is.getProcessor(s + 1).getPixelsCopy();
 			vRestoredProcessors[s] = (float[])is.getProcessor(s + 1).getPixels();
 		}
 		// convolution with 1D gaussian in 3rd dimension:
-		for(int y = kernel_radius; y < is.getHeight() - kernel_radius; y++){
-			for(int x = kernel_radius; x < is.getWidth() - kernel_radius; x++){
-				for(int s = kernel_radius + 1; s <= is.getSize() - kernel_radius; s++) {
+		for (int y = kernel_radius; y < is.getHeight() - kernel_radius; y++){
+			for (int x = kernel_radius; x < is.getWidth() - kernel_radius; x++){
+				for (int s = kernel_radius + 1; s <= is.getSize() - kernel_radius; s++) {
 					float sum = 0;
-					for(int i = -kernel_radius; i <= kernel_radius; i++) {	        				
+					for (int i = -kernel_radius; i <= kernel_radius; i++) {	        				
 						sum += vKernel[i + kernel_radius] * vOrigProcessors[s + i - 1][y*vWidth+x];
 					}
 					vRestoredProcessors[s-1][y*vWidth+x] = sum;
@@ -619,9 +619,9 @@ public class FeaturePointDetector {
 		Convolver convolver = new Convolver();
 		float[] kernel = new float[radius * 2 +1];
 		int n = kernel.length;
-		for(int i = 0; i < kernel.length; i++)
+		for (int i = 0; i < kernel.length; i++)
 			kernel[i] = 1f/n;
-		for(int s = 1; s <= is.getSize(); s++) {
+		for (int s = 1; s <= is.getSize(); s++) {
 			ImageProcessor bg_proc = is.getProcessor(s).duplicate();
 			convolver.convolveFloat(bg_proc, kernel, 1, n);
 			convolver.convolveFloat(bg_proc, kernel, n, 1);
@@ -638,7 +638,7 @@ public class FeaturePointDetector {
 		//
 		//in x dimension
 		//
-		for(int vI = 1; vI <= aIS.getSize(); vI++){
+		for (int vI = 1; vI <= aIS.getSize(); vI++){
 			ImageProcessor vConvolvedSlice = aIS.getProcessor(vI).duplicate();
 			Convolver vConvolver = new Convolver();
 			vConvolver.setNormalize(false);
@@ -648,14 +648,14 @@ public class FeaturePointDetector {
 		//
 		//in y dimension and sum it to the result
 		//
-		for(int vI = 1; vI <= aIS.getSize(); vI++){
+		for (int vI = 1; vI <= aIS.getSize(); vI++){
 			ImageProcessor vConvolvedSlice = aIS.getProcessor(vI).duplicate();
 			Convolver vConvolver = new Convolver();
 			vConvolver.setNormalize(false);
 			vConvolver.convolve(vConvolvedSlice, vKernel_1D, 1 , vKernelWidth);  
 			vResultStack.getProcessor(vI).copyBits(vConvolvedSlice, 0, 0, Blitter.ADD);
 		}
-		//			if(true) return vResultStack; //TODO: abort here? yes if gauss3d is scaled in z
+		//			if (true) return vResultStack; //TODO: abort here? yes if gauss3d is scaled in z
 
 		//
 		//z dimension
@@ -664,16 +664,16 @@ public class FeaturePointDetector {
 		float[][] vOriginalStackPixels = new float[aIS.getSize()][];
 		float[][] vConvolvedStackPixels = new float[aIS.getSize()][];
 		float[][] vResultStackPixels = new float[aIS.getSize()][];
-		for(int vS = 0; vS < aIS.getSize(); vS++) {
+		for (int vS = 0; vS < aIS.getSize(); vS++) {
 			vOriginalStackPixels[vS] = (float[])aIS.getProcessor(vS + 1).getPixels();			
 			vConvolvedStackPixels[vS] = (float[])aIS.getProcessor(vS + 1).getPixelsCopy();
 			vResultStackPixels[vS] = (float[])vResultStack.getProcessor(vS + 1).getPixels();
 		}
-		for(int vY = 0; vY < aIS.getHeight(); vY++){
-			for(int vX = 0; vX < aIS.getWidth(); vX++){
-				for(int vS = vKernelRadius; vS < aIS.getSize() - vKernelRadius; vS++) {
+		for (int vY = 0; vY < aIS.getHeight(); vY++){
+			for (int vX = 0; vX < aIS.getWidth(); vX++){
+				for (int vS = vKernelRadius; vS < aIS.getSize() - vKernelRadius; vS++) {
 					float vSum = 0;
-					for(int vI = -vKernelRadius; vI <= vKernelRadius; vI++) {
+					for (int vI = -vKernelRadius; vI <= vKernelRadius; vI++) {
 						vSum += vKernel_1D[vI + vKernelRadius] * vOriginalStackPixels[vS + vI][vY*vWidth+vX];
 					}
 					vConvolvedStackPixels[vS][vY*vWidth+vX] = vSum;
@@ -681,8 +681,8 @@ public class FeaturePointDetector {
 			}
 		}
 		//add the results
-		for(int vS = vKernelRadius; vS < aIS.getSize() - vKernelRadius; vS++){
-			for(int vI = 0; vI < vResultStackPixels[vS].length; vI++){
+		for (int vS = vKernelRadius; vS < aIS.getSize() - vKernelRadius; vS++){
+			for (int vI = 0; vI < vResultStackPixels[vS].length; vI++){
 				vResultStackPixels[vS][vI] += vConvolvedStackPixels[vS][vI];
 			}
 		}
@@ -692,10 +692,10 @@ public class FeaturePointDetector {
 
 	public float[] CalculateNormalizedGaussKernel(float aSigma){
 		int vL = (int)aSigma * 3 * 2 + 1;
-		if(vL < 3) vL = 3;
+		if (vL < 3) vL = 3;
 		float[] vKernel = new float[vL];
 		int vM = vKernel.length/2;
-		for(int vI = 0; vI < vM; vI++){
+		for (int vI = 0; vI < vM; vI++){
 			vKernel[vI] = (float)(1f/(2f*Math.PI*aSigma*aSigma) * Math.exp(-(float)((vM-vI)*(vM-vI))/(2f*aSigma*aSigma)));
 			vKernel[vKernel.length - vI - 1] = vKernel[vI];
 		}
@@ -703,11 +703,11 @@ public class FeaturePointDetector {
 
 		//normalize the kernel numerically:
 		float vSum = 0;
-		for(int vI = 0; vI < vKernel.length; vI++){
+		for (int vI = 0; vI < vKernel.length; vI++){
 			vSum += vKernel[vI];
 		}
 		float vScale = 1.0f/vSum;
-		for(int vI = 0; vI < vKernel.length; vI++){
+		for (int vI = 0; vI < vKernel.length; vI++){
 			vKernel[vI] *= vScale;
 		}
 		return vKernel;
@@ -773,10 +773,10 @@ public class FeaturePointDetector {
 		//	        ((Choice)gd.getChoices().firstElement()).addItemListener(new ItemListener(){
 		//				public void itemStateChanged(ItemEvent e) {
 		//					int mode = 0;
-		//					if(e.getItem().toString().equals("Absolute Threshold")) {
+		//					if (e.getItem().toString().equals("Absolute Threshold")) {
 		//						mode = ABS_THRESHOLD_MODE;						
 		//					}
-		//					if(e.getItem().toString().equals("Percentile")) {
+		//					if (e.getItem().toString().equals("Percentile")) {
 		//						mode = PERCENTILE_MODE;						
 		//					}
 		//					thresholdModeChanged(mode);
@@ -1027,20 +1027,20 @@ public class FeaturePointDetector {
 //		curr_linkrange = linkrange;
 //
 //		/* If the linkrange is too big, set it the right value */
-//		if(frames_number < (curr_linkrange + 1))
+//		if (frames_number < (curr_linkrange + 1))
 //			curr_linkrange = frames_number - 1;
 //
 //		max_cost = displacement * displacement;
 //
-//		for(m = 0; m < frames_number - curr_linkrange; m++) {
+//		for (m = 0; m < frames_number - curr_linkrange; m++) {
 //			nop = frames[m].getParticles().size();
-//			for(i = 0; i < nop; i++) {
+//			for (i = 0; i < nop; i++) {
 //				frames[m].getParticles().elementAt(i).special = false;
-//				for(n = 0; n < linkrange; n++)
+//				for (n = 0; n < linkrange; n++)
 //					frames[m].getParticles().elementAt(i).next[n] = -1;
 //			}
 //
-//			for(n = 0; n < curr_linkrange; n++) {
+//			for (n = 0; n < curr_linkrange; n++) {
 //				max_cost = (double)(n + 1) * displacement * (double)(n + 1) * displacement;
 //
 //				nop_next = frames[m + (n + 1)].getParticles().size();
@@ -1061,8 +1061,8 @@ public class FeaturePointDetector {
 //
 //
 //				/* Fill in the costs */
-//				for(i = 0; i < nop; i++) {
-//					for(j = 0; j < nop_next; j++) {
+//				for (i = 0; i < nop; i++) {
+//					for (j = 0; j < nop_next; j++) {
 //						cost[coord(i, j, nop_next + 1)] = 
 //							(p1.elementAt(i).x - p2.elementAt(j).x)*(p1.elementAt(i).x - p2.elementAt(j).x) + 
 //							(p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) + 
@@ -1072,30 +1072,30 @@ public class FeaturePointDetector {
 //					}
 //				}
 //
-//				for(i = 0; i < nop + 1; i++)
+//				for (i = 0; i < nop + 1; i++)
 //					cost[coord(i, nop_next, nop_next + 1)] = max_cost;
-//				for(j = 0; j < nop_next + 1; j++)
+//				for (j = 0; j < nop_next + 1; j++)
 //					cost[coord(nop, j, nop_next + 1)] = max_cost;
 //				cost[coord(nop, nop_next, nop_next + 1)] = 0.0;
 //
 //				/* Initialize the relation matrix */
-//				for(i = 0; i < nop; i++) { // Loop over the x-axis
+//				for (i = 0; i < nop; i++) { // Loop over the x-axis
 //					min = max_cost;
 //					prev = 0;
-//					for(j = 0; j < nop_next; j++) { // Loop over the y-axis
+//					for (j = 0; j < nop_next; j++) { // Loop over the y-axis
 //						/* Let's see if we can use this coordinate */
 //						ok = 1;
-//						for(k = 0; k < nop + 1; k++) {
-//							if(g[coord(k, j, nop_next + 1)] == 1) {
+//						for (k = 0; k < nop + 1; k++) {
+//							if (g[coord(k, j, nop_next + 1)] == 1) {
 //								ok = 0;
 //								break;
 //							}
 //						}
-//						if(ok == 0) // No, we can't. Try the next column
+//						if (ok == 0) // No, we can't. Try the next column
 //							continue;
 //
 //						/* This coordinate is OK */
-//						if(cost[coord(i, j, nop_next + 1)] < min) {
+//						if (cost[coord(i, j, nop_next + 1)] < min) {
 //							min = cost[coord(i, j, nop_next + 1)];
 //							g[coord(i, prev, nop_next + 1)] = 0;
 //							prev = j;
@@ -1104,21 +1104,21 @@ public class FeaturePointDetector {
 //					}
 //
 //					/* Check if we have a dummy particle */
-//					if(min == max_cost) {
+//					if (min == max_cost) {
 //						g[coord(i, prev, nop_next + 1)] = 0;
 //						g[coord(i, nop_next, nop_next + 1)] = 1;
 //					}
 //				}
 //
 //				/* Look for columns that are zero */
-//				for(j = 0; j < nop_next; j++) {
+//				for (j = 0; j < nop_next; j++) {
 //					ok = 1;
-//					for(i = 0; i < nop + 1; i++) {
-//						if(g[coord(i, j, nop_next + 1)] == 1)
+//					for (i = 0; i < nop + 1; i++) {
+//						if (g[coord(i, j, nop_next + 1)] == 1)
 //							ok = 0;
 //					}
 //
-//					if(ok == 1)
+//					if (ok == 1)
 //						g[coord(nop, j, nop_next + 1)] = 1;
 //				}
 //
@@ -1126,23 +1126,23 @@ public class FeaturePointDetector {
 //
 //				/* Now the relation matrix needs to be optimized */
 //				min = -1.0;
-//				while(min < 0.0) {
+//				while (min < 0.0) {
 //					min = 0.0;
 //					prev = 0;
 //					prev_s = 0;
-//					for(i = 0; i < nop + 1; i++) {
-//						for(j = 0; j < nop_next + 1; j++) {
-//							if(i == nop && j == nop_next)
+//					for (i = 0; i < nop + 1; i++) {
+//						for (j = 0; j < nop_next + 1; j++) {
+//							if (i == nop && j == nop_next)
 //								continue;
 //
-//							if(g[coord(i, j, nop_next + 1)] == 0 && 
+//							if (g[coord(i, j, nop_next + 1)] == 0 && 
 //									cost[coord(i, j, nop_next + 1)] <= max_cost) {
 //								/* Calculate the reduced cost */
 //
 //								// Look along the x-axis, including
 //								// the dummy particles
-//								for(k = 0; k < nop + 1; k++) {
-//									if(g[coord(k, j, nop_next + 1)] == 1) {
+//								for (k = 0; k < nop + 1; k++) {
+//									if (g[coord(k, j, nop_next + 1)] == 1) {
 //										x = k;
 //										break;
 //									}
@@ -1150,26 +1150,26 @@ public class FeaturePointDetector {
 //
 //								// Look along the y-axis, including
 //								// the dummy particles
-//								for(k = 0; k < nop_next + 1; k++) {
-//									if(g[coord(i, k, nop_next + 1)] == 1) {
+//								for (k = 0; k < nop_next + 1; k++) {
+//									if (g[coord(i, k, nop_next + 1)] == 1) {
 //										y = k;
 //										break;
 //									}
 //								}
 //
 //								/* z is the reduced cost */
-//								if(j == nop_next)
+//								if (j == nop_next)
 //									x = nop;
-//								if(i == nop)
+//								if (i == nop)
 //									y = nop_next;
 //
 //								z = cost[coord(i, j, nop_next + 1)] + 
 //								cost[coord(x, y, nop_next + 1)] - 
 //								cost[coord(i, y, nop_next + 1)] - 
 //								cost[coord(x, j, nop_next + 1)];
-//								if(z > -1.0e-10)
+//								if (z > -1.0e-10)
 //									z = 0.0;
-//								if(z < min) {
+//								if (z < min) {
 //									min = z;
 //									prev = coord(i, j, nop_next + 1);
 //									prev_s = coord(x, y, nop_next + 1);
@@ -1178,7 +1178,7 @@ public class FeaturePointDetector {
 //						}
 //					}
 //
-//					if(min < 0.0) {
+//					if (min < 0.0) {
 //						g[prev] = 1;
 //						g[prev_s] = 1;
 //						g[coord(prev / (nop_next + 1), prev_s % (nop_next + 1), nop_next + 1)] = 0;
@@ -1187,22 +1187,22 @@ public class FeaturePointDetector {
 //				}
 //
 //				/* After optimization, the particles needs to be linked */
-//				for(i = 0; i < nop; i++) {
-//					for(j = 0; j < nop_next; j++) {
-//						if(g[coord(i, j, nop_next + 1)] == 1)
+//				for (i = 0; i < nop; i++) {
+//					for (j = 0; j < nop_next; j++) {
+//						if (g[coord(i, j, nop_next + 1)] == 1)
 //							p1.elementAt(i).next[n] = j;
 //					}
 //				}
 //			}
 //
-//			if(m == (frames_number - curr_linkrange - 1) && curr_linkrange > 1)
+//			if (m == (frames_number - curr_linkrange - 1) && curr_linkrange > 1)
 //				curr_linkrange--;
 //		}
 //
 //		/* At the last frame all trajectories end */
-//		for(i = 0; i < frames[frames_number - 1].getParticles().size(); i++) {
+//		for (i = 0; i < frames[frames_number - 1].getParticles().size(); i++) {
 //			frames[frames_number - 1].getParticles().elementAt(i).special = false;
-//			for(n = 0; n < linkrange; n++)
+//			for (n = 0; n < linkrange; n++)
 //				frames[frames_number - 1].getParticles().elementAt(i).next[n] = -1;
 //		}
 //	}

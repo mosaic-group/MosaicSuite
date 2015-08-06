@@ -118,7 +118,7 @@ class ASplitBregmanSolver {
 		//IJ.log("nlevels asplit" + p.nlevels);
 		//speedData used as temp tab
 
-		//if(nz>1)dct3d= new DoubleDCT_3D(nz,ni,nj);
+		//if (nz>1)dct3d= new DoubleDCT_3D(nz,ni,nj);
 		this.image=image;
 		this.speedData=speedData;//used only for NRegions and two regions without PSF
 		//this.mask=mask;
@@ -151,7 +151,7 @@ class ASplitBregmanSolver {
 		this.maxmask0= new int [nz] [ni] [nj];
 
 		int nzmin;
-		if(nz>1){nzmin=Math.max(7, nz);}
+		if (nz>1){nzmin=Math.max(7, nz);}
 		else nzmin=nz;
 
 		int nimin=Math.max(7, ni);
@@ -175,7 +175,7 @@ class ASplitBregmanSolver {
 			}	
 		}
 
-		for(int i =0; i< nl;i++)
+		for (int i =0; i< nl;i++)
 		{
 			//temp1=w2xk temp2=w2yk
 			LocalTools.fgradx2D(temp1[i], mask[i]);
@@ -185,7 +185,7 @@ class ASplitBregmanSolver {
 			LocalTools.copytab(w3k[i], mask[i]);
 		}
 
-		if(p.RSSinit)
+		if (p.RSSinit)
 		{
 			RSS.eval(w3k[0]);
 			//Analysis.p.cl[0]=RSS.betaMLEout;
@@ -197,14 +197,14 @@ class ASplitBregmanSolver {
 			IJ.log(String.format("Photometry init:%n background %7.2e %n foreground %7.2e", RSS.betaMLEout,RSS.betaMLEin));	
 		}
 
-		if(p.remask){
+		if (p.remask){
 			LocalTools.createmask(mask,image,p.cl);
 			md.display2regionsnewd(mask[0][0], "remask init", 0);;
 
 		}
 
 
-		for(int l =0; l< nl;l++){
+		for (int l =0; l< nl;l++){
 			for (int z=0; z<nz; z++){
 				for (int i=0; i<ni; i++) {  
 					for (int j=0; j<nj; j++) {  
@@ -229,7 +229,7 @@ class ASplitBregmanSolver {
 
 
 		//initialize variables
-		for(int l =0; l< nl;l++)
+		for (int l =0; l< nl;l++)
 		{
 			for (int z=0; z<nz; z++)
 			{
@@ -249,7 +249,7 @@ class ASplitBregmanSolver {
 		totaltime=0;
 		int modulo=p.dispEmodulo;
 
-		if(p.firstphase){
+		if (p.firstphase){
 			IJ.showStatus("Computing segmentation");
 			IJ.showProgress(0.0);
 		}
@@ -257,14 +257,14 @@ class ASplitBregmanSolver {
 
 		double lastenergy_mod = Double.MAX_VALUE;
 		
-		while(stepk<p.max_nsb  && !StopFlag){
+		while (stepk<p.max_nsb  && !StopFlag){
 			//Bregman step
 			step();
 
 			//energy=500-stepk;
 			//stop criterion
 
-			//			if(p.firstphase && stepk % p.energyEvaluationModulo ==0){
+			//			if (p.firstphase && stepk % p.energyEvaluationModulo ==0){
 			//				//swap masks
 			//				boolean [][][] temp = tmask_previous;
 			//				tmask_previous=tmask;
@@ -272,22 +272,22 @@ class ASplitBregmanSolver {
 			//				compute_binaryMask(w3k[0], tmask);
 			//				int diff=compare_binaryMask(tmask, tmask_previous);
 			//				IJ.log("difference step "+ stepk +": " + diff);
-			////				if(stepk==10 || stepk==11){md.display2regionsnewd(w3k[0][0], "w3k"+stepk, 0);
+			////				if (stepk==10 || stepk==11){md.display2regionsnewd(w3k[0][0], "w3k"+stepk, 0);
 			////				md.display2regionsnewboolean(tmask[0], "mask"+stepk,0);
 			////				}
 			//			}
 
-			if(energy < bestNrj) 
+			if (energy < bestNrj) 
 			{
 				LocalTools.copytab(w3kbest[0], w3k[0]);
 				iw3kbest=stepk;
 				bestNrj=energy;
 			}
-			if(stepk % modulo ==0 || stepk==p.max_nsb -1)
+			if (stepk % modulo ==0 || stepk==p.max_nsb -1)
 			{	
 				//IJ.log(String.format("Ediff %d : %7.6e", stepk, Math.abs((energy-lastenergy)/lastenergy)));	
-				if(Math.abs((energy-lastenergy)/lastenergy) < p.tol){
-					StopFlag=true;if(p.livedisplay && p.firstphase){IJ.log("energy stop");}}
+				if (Math.abs((energy-lastenergy)/lastenergy) < p.tol){
+					StopFlag=true;if (p.livedisplay && p.firstphase){IJ.log("energy stop");}}
 				
 				// experiment to speedup we stop if the energy increase after evaluation modulo step
 				
@@ -305,16 +305,16 @@ class ASplitBregmanSolver {
 			}
 			lastenergy=energy;
 			//energy output
-			//if(p.livedisplay){
+			//if (p.livedisplay){
 
-			if(stepk % modulo ==0 && p.livedisplay && p.firstphase)
+			if (stepk % modulo ==0 && p.livedisplay && p.firstphase)
 				IJ.log(String.format("Energy at step %d : %7.6e", stepk, energy));
-				//if(p.debug)IJ.log("cout " + p.cl[1]);
+				//if (p.debug)IJ.log("cout " + p.cl[1]);
 			//IJ.log("Energy at step :" + stepk+ " : " +Tools.round(energy,3));
 
 			//IJ.log("Best energy step: " + stepk + " : " + Tools.round(bestNrj , 3));+ " norm between masks " + Tools.round(norm, 2));
 			//}
-			if((stepk+1) % p.RSSmodulo ==0 && stepk!=0)
+			if ((stepk+1) % p.RSSmodulo ==0 && stepk!=0)
 			{
 				RSS.eval(w3k[0]);
 				//Analysis.p.cl[0]=RSS.betaMLEout;
@@ -325,19 +325,19 @@ class ASplitBregmanSolver {
 				IJ.log(String.format("Photometry :%n backgroung %10.8e %n foreground %10.8e", RSS.betaMLEout,RSS.betaMLEin));	
 			}
 
-			if(!p.firstphase  && p.mode_intensity==0 && (stepk==40 || stepk==70) ){ // && new mode automatic intensity && p.mode_intensity==0 // do it all the time				
+			if (!p.firstphase  && p.mode_intensity==0 && (stepk==40 || stepk==70) ){ // && new mode automatic intensity && p.mode_intensity==0 // do it all the time				
 				
 				Ap.find_best_thresh_and_int(w3k[0]);
 				p.cl[0]=Math.max(0, Ap.cout);
 				p.cl[1]=Math.max(0.75*(Ap.firstminval- Ap.intmin)/(Ap.intmax-Ap.intmin), Ap.cin);//lower bound withg some margin
 				//p.cl[1]=Ap.cin;
 				this.init();
-				if(p.debug){
+				if (p.debug){
 					IJ.log("region" + Ap.r.value +" pcout" + p.cl[1] );
 					IJ.log("region" + Ap.r.value + String.format(" Photometry :%n backgroung %10.8e %n foreground %10.8e", Ap.cout, Ap.cin));}	
 			}
 
-			if(p.RegionsIntensitymodulo ==stepk && stepk!=0){
+			if (p.RegionsIntensitymodulo ==stepk && stepk!=0){
 				IJ.log("best energy at"+iw3kbest);
 				this.regions_intensity(w3kbest[0]);
 				this.init();
@@ -345,19 +345,19 @@ class ASplitBregmanSolver {
 			}
 
 			stepk++;
-			if(stepk % modulo ==0 &&p.firstphase)IJ.showStatus("Computing segmentation  " + Tools.round((((double) 50* stepk)/(p.max_nsb-1)),2) + "%");
+			if (stepk % modulo ==0 &&p.firstphase)IJ.showStatus("Computing segmentation  " + Tools.round((((double) 50* stepk)/(p.max_nsb-1)),2) + "%");
 
 
-			if(p.firstphase)
+			if (p.firstphase)
 				IJ.showProgress(0.5*(stepk)/(p.max_nsb-1));
 		}
 		
-		if(iw3kbest<50) { // use what iteration threshold  ?
+		if (iw3kbest<50) { // use what iteration threshold  ?
 			int iw3kbestold=iw3kbest;
 			LocalTools.copytab(w3kbest[0], w3k[0]);
 			iw3kbest=stepk-1;
 			bestNrj=energy;
-			if(p.livedisplay && p.firstphase) IJ.log("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + iw3kbestold);
+			if (p.livedisplay && p.firstphase) IJ.log("Warning : increasing energy. Last computed mask is then used for first phase object segmentation." + iw3kbestold);
 		}
 
 		if (p.findregionthresh )
@@ -365,18 +365,18 @@ class ASplitBregmanSolver {
 			this.regions_intensity_findthresh(w3kbest[0]);
 		}
 
-		if(!p.mode_voronoi2)
+		if (!p.mode_voronoi2)
 			IJ.showStatus("Segmentation Done");
 		//display combination of masks
-		//if(p.nlevels==1 && p.nz==1) md.display2regionsnew(w3kbest[0][0], "Best Mask", channel);
-		if(p.livedisplay && p.firstphase){if(p.nlevels<=2 && p.nz==1)  md.display2regions(w3kbest[0][0], "Mask", channel);}
-		if(p.livedisplay && p.nz>1 &&p.nlevels<=2 && p.firstphase) md.display2regions3D(w3kbest[0], "Mask", channel);
+		//if (p.nlevels==1 && p.nz==1) md.display2regionsnew(w3kbest[0][0], "Best Mask", channel);
+		if (p.livedisplay && p.firstphase){if (p.nlevels<=2 && p.nz==1)  md.display2regions(w3kbest[0][0], "Mask", channel);}
+		if (p.livedisplay && p.nz>1 &&p.nlevels<=2 && p.firstphase) md.display2regions3D(w3kbest[0], "Mask", channel);
 
-		//if(p.nz>1) md.display2regions3D(w3k[0], "Mask");
-		////if(p.nz>1) md.display2regions3Dscaled(w3k[0], "Mask scaled");
-		//if(p.nz>1) md.display2regions3Dscaledcolor(w3k[0], "Mask scaled");
-		if(p.livedisplay){if(p.nlevels>2)md.display(maxmask, "Masks");}
-		if(p.livedisplay && p.firstphase){
+		//if (p.nz>1) md.display2regions3D(w3k[0], "Mask");
+		////if (p.nz>1) md.display2regions3Dscaled(w3k[0], "Mask scaled");
+		//if (p.nz>1) md.display2regions3Dscaledcolor(w3k[0], "Mask scaled");
+		if (p.livedisplay){if (p.nlevels>2)md.display(maxmask, "Masks");}
+		if (p.livedisplay && p.firstphase){
 			IJ.log("Best energy : " + Tools.round(bestNrj , 3)+ ", found at step " + iw3kbest);
 			IJ.log("Total phase one time: " + totaltime/1000 + "s");}
 	}
@@ -389,7 +389,7 @@ class ASplitBregmanSolver {
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<p.ni; i++){  
 				for (int j=0;j< p.nj; j++){  
-					if(softmask[z][i][j]>p.min_intensity) tmask[z][i][j]=true;
+					if (softmask[z][i][j]>p.min_intensity) tmask[z][i][j]=true;
 					else tmask[z][i][j]=false;
 				}
 			}
@@ -402,7 +402,7 @@ class ASplitBregmanSolver {
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<p.ni; i++){  
 				for (int j=0;j< p.nj; j++){  
-					if(tmask1[z][i][j]!=tmask2[z][i][j]) cpt++;
+					if (tmask1[z][i][j]!=tmask2[z][i][j]) cpt++;
 				}
 			}
 		}
@@ -413,9 +413,9 @@ class ASplitBregmanSolver {
 
 	public void run() throws InterruptedException{
 		stepk=0;
-		while(stepk< p.max_nsb){
+		while (stepk< p.max_nsb){
 			step();
-			if(energy < bestNrj) bestNrj=energy;
+			if (energy < bestNrj) bestNrj=energy;
 			stepk++;
 		}
 	}
@@ -432,7 +432,7 @@ class ASplitBregmanSolver {
 		CountDownLatch UkDoneSignal = new CountDownLatch(nl);
 		CountDownLatch W3kDoneSignal = new CountDownLatch(1);
 
-		for(int l=0; l< nl;l++){
+		for (int l=0; l< nl;l++){
 			new Thread(new SingleRegionTask(RegionsTasksDoneSignal,UkDoneSignal,W3kDoneSignal, l, channel,this, LocalTools)).start();
 		}
 
@@ -456,14 +456,14 @@ class ASplitBregmanSolver {
 		//doneSignal2.await();
 		norm=0;
 		energy=0;
-		for(int l=0; l< nl;l++){
+		for (int l=0; l< nl;l++){
 			energy+=energytab[l];
 			norm=Math.max(norm, normtab[l]);
 		}
 		
-		if(p.livedisplay) md.display(maxmask, "Masks");
+		if (p.livedisplay) md.display(maxmask, "Masks");
 
-		//if(p.livedisplay) md.display2regions(w3k[1][0], "Mask lev 1",0);
+		//if (p.livedisplay) md.display2regions(w3k[1][0], "Mask lev 1",0);
 
 
 
@@ -478,7 +478,7 @@ class ASplitBregmanSolver {
 	}
 
 	public void init(){
-		if(p.debug)IJ.log("init super");
+		if (p.debug)IJ.log("init super");
 	}
 
 	public void compute_eigenPSF(){
@@ -495,7 +495,7 @@ class ASplitBregmanSolver {
 			byte[] mask_bytes = new byte[p.ni*p.nj];
 			for (int i=0; i<ni; i++) {  
 				for (int j=0; j<nj; j++) {  
-					if(mask[z][i][j]> thresh)
+					if (mask[z][i][j]> thresh)
 						mask_bytes[j * p.ni + i]= 0;
 					else
 						mask_bytes[j * p.ni + i]=(byte) 255;
@@ -561,7 +561,7 @@ class ASplitBregmanSolver {
 		//short [] [] [] regions;
 		ArrayList<Region> regionslist;
 		double thresh;
-		if(channel==0)
+		if (channel==0)
 			thresh=p.regionthresh;//0.19
 		else
 			thresh=p.regionthreshy;
@@ -611,13 +611,13 @@ class ASplitBregmanSolver {
 		byte[] mask_bytes = new byte[p.ni*p.nj];
 		for (int i=0; i<ni; i++) {
 			for (int j=0; j<nj; j++) {
-				//								if(i==361 && j==231)IJ.log("raw : " + mask_im.getProcessor().getPixelValue(i,j)
+				//								if (i==361 && j==231)IJ.log("raw : " + mask_im.getProcessor().getPixelValue(i,j)
 				//										+"convert int" + ((int)(255*mask_im.getProcessor().getPixelValue(i,j))) 
 				//										+"convert byte" + ((byte)  ((int)(255*mask_im.getProcessor().getPixelValue(i,j))))
 				//										+"convert float" + ((float) ( ((int)(255*mask_im.getProcessor().getPixelValue(i,j)))))
 				//										+ "thresh " + (255*thresh)
 				//												);
-				if(  ( (int)  (255*mask_im.getProcessor().getPixelValue(i,j))  ) > 255*thresh) 
+				if (  ( (int)  (255*mask_im.getProcessor().getPixelValue(i,j))  ) > 255*thresh) 
 					//weird conversion to have same thing than in find connected regions
 					mask_bytes[j * p.ni + i]= 0;
 				else
@@ -632,7 +632,7 @@ class ASplitBregmanSolver {
 
 		//do voronoi in 2D on Z projection
 
-		//		if(p.blackbackground){
+		//		if (p.blackbackground){
 		//			mask_im.getProcessor().invert();
 		//		}
 
@@ -647,7 +647,7 @@ class ASplitBregmanSolver {
 
 		//IJ.run(mask_im,"Voronoi","");
 		//IJ.run(mask_im,"Invert","");
-		//		if(!p.blackbackground){
+		//		if (!p.blackbackground){
 		mask_im.getProcessor().invert();
 		//		}
 		IJ.showStatus("Computing segmentation  " + 53 + "%");
@@ -687,19 +687,19 @@ class ASplitBregmanSolver {
 			}
 		}
 
-		if(p.mode_voronoi2)
+		if (p.mode_voronoi2)
 			fcr.run(thr,1,p.ni*p.nj*p.nz,0,0,Ri[0],false,false);//min size was 5
 		else
 			fcr.run(thr,1,p.ni*p.nj*p.nz,5,0,Ri[0],false,false);//min size was 5
 
-		if(p.dispvoronoi){
-			if(nz==1) md.display2regions(w3kbest[0][0], "Mask", channel);
+		if (p.dispvoronoi){
+			if (nz==1) md.display2regions(w3kbest[0][0], "Mask", channel);
 			else md.display2regions3D(w3kbest[0], "Mask", channel);
 
 			IJ.setThreshold(mask_im,0,254);
 			IJ.run(mask_im,"Convert to Mask","stack");
 
-			if(channel==0)
+			if (channel==0)
 				IJ.selectWindow("Mask X");
 			else
 				IJ.selectWindow("Mask Y");
@@ -725,7 +725,7 @@ class ASplitBregmanSolver {
 			}
 			//replace imageplus with additon of both
 
-			if(channel==0){
+			if (channel==0){
 				mask_im.setStack("Voronoi X",mask_ims2);
 
 				//IJ.run(imp3, "Invert LUT","stack");
@@ -750,7 +750,7 @@ class ASplitBregmanSolver {
 		int na=regionslist.size();
 
 		double total=Analysis.totalsize(regionslist);
-		if(p.dispvoronoi)IJ.log(na + " Voronoi cells found, total area : " + Tools.round(total,2)+ " pixels.");
+		if (p.dispvoronoi)IJ.log(na + " Voronoi cells found, total area : " + Tools.round(total,2)+ " pixels.");
 
 		//use Ri to store voronoi regions indices
 
@@ -763,7 +763,7 @@ class ASplitBregmanSolver {
 		}
 
 		RegionStatisticsSolver RSS2;
-		if(p.mode_voronoi2){
+		if (p.mode_voronoi2){
 			RSS2= new RegionStatisticsSolver(temp1[0],temp2[0], temp3[0], image,10, p);
 		}
 		else
@@ -775,7 +775,7 @@ class ASplitBregmanSolver {
 		long lStartTime = new Date().getTime(); //start time
 
 
-		if(p.mode_voronoi2)
+		if (p.mode_voronoi2)
 			RSS2.cluster_region_voronoi2(Ri[0], Ro[0], regionslist);
 		else
 			RSS2.cluster_region(Ri[0], Ro[0], regionslist);
@@ -788,8 +788,8 @@ class ASplitBregmanSolver {
 		long difference = lEndTime - lStartTime; //check different
 		totaltime +=difference;
 		//IJ.log("Elapsed milliseconds RSS2: " + difference);
-		if(p.dispvoronoi){
-			if(p.nz==1)
+		if (p.dispvoronoi){
+			if (p.nz==1)
 			{md.display2regionsnew(Ri[0][0], "Regions thresholds", channel,true);}
 			else
 			{md.display2regions3Dnew(Ri[0], "Regions thresholds", channel);}	}

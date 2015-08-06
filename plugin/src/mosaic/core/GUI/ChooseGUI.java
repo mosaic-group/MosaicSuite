@@ -35,7 +35,7 @@ public class ChooseGUI
 		gd.addChoice(message,ad,ad[0]);
 		gd.showDialog();
 	
-		if(!gd.wasCanceled())
+		if (!gd.wasCanceled())
 		{
 			return gd.getNextChoice();
 		}
@@ -68,7 +68,7 @@ public class ChooseGUI
 		gd.addChoice(message,ad,ad[0]);
 		gd.showDialog();
 	
-		if(!gd.wasCanceled())
+		if (!gd.wasCanceled())
 		{
 			String c = gd.getNextChoice();
 			return new File(c);
@@ -102,7 +102,7 @@ public class ChooseGUI
 		gd.addChoice(message,ad,ad[0]);
 		gd.showDialog();
 	
-		if(!gd.wasCanceled())
+		if (!gd.wasCanceled())
 		{
 			String c = gd.getNextChoice();
 			return new File(c);

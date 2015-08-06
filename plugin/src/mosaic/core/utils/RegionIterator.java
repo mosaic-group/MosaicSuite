@@ -60,7 +60,7 @@ public class RegionIterator
 	
 	private void setInput(int[] dim)
 	{
-		if(dim.length==dimensions)
+		if (dim.length==dimensions)
 		{
 			this.input=dim.clone();
 		}
@@ -77,7 +77,7 @@ public class RegionIterator
 	{
 		//TODO if public, maybe crop here, save old ofs and region sizes
 
-		if(region.length==dimensions)
+		if (region.length==dimensions)
 		{
 			this.region=region.clone();
 		}
@@ -94,7 +94,7 @@ public class RegionIterator
 	{
 		//TODO if public, maybe crop here, save old ofs and region sizes
 		
-		if(ofs.length==dimensions)
+		if (ofs.length==dimensions)
 		{
 			this.ofs=ofs.clone();
 		}
@@ -125,10 +125,10 @@ public class RegionIterator
 	 */
 	void crop()
 	{
-		for(int i=0; i<dimensions; i++)
+		for (int i=0; i<dimensions; i++)
 		{
 			// crop too small values
-			if(ofs[i]<0)
+			if (ofs[i]<0)
 			{
 				crop_size[i] = ofs[i];
 				region[i]+=ofs[i]; // shrink region for left border alignment
@@ -136,7 +136,7 @@ public class RegionIterator
 			}
 			// crop too large values
 			//TODO reuse of region, ofs
-			if(ofs[i]+region[i]>input[i])
+			if (ofs[i]+region[i]>input[i])
 			{
 				crop_size[i] = -(region[i] - (input[i]-ofs[i]));
 				region[i]=input[i]-ofs[i];	//shrink region for right border alignment
@@ -145,7 +145,7 @@ public class RegionIterator
 		
 		// recalculate size
 		size=1;
-		for(int i=0; i<dimensions; i++)
+		for (int i=0; i<dimensions; i++)
 		{
 			size*=region[i];
 		}
@@ -162,7 +162,7 @@ public class RegionIterator
 		// calc startindex
 		itInput=0;
 		int fac = 1;
-		for(int i=0; i<dimensions; i++)
+		for (int i=0; i<dimensions; i++)
 		{
 			itInput+=ofs[i]*fac;
 			fac *= input[i]; 
@@ -223,9 +223,9 @@ public class RegionIterator
 		
 		//TODO ersetze itCounter durch it%region[i]==0 oder so
 		int prod = 1;
-		for(int i=0; i<dimensions; i++)
+		for (int i=0; i<dimensions; i++)
 		{
-			if(itDim[i]>=region[i]) // some dimension(s) wrap(s)
+			if (itDim[i]>=region[i]) // some dimension(s) wrap(s)
 			{
 				//TODO prod*(...) sind schritte, die man nicht macht. merke diese, und wisse, wo man absolut ware?
 				// we reached the end of region in this dimension, so add the step not made in input to the input iterator 
@@ -294,9 +294,9 @@ public class RegionIterator
 		
 		//TODO ersetze itCounter durch it%region[i]==0 oder so
 		int prod = 1;
-		for(int i=0; i<dimensions; i++)
+		for (int i=0; i<dimensions; i++)
 		{
-			if(itDim[i]>=region[i]) // some dimension(s) wrap(s)
+			if (itDim[i]>=region[i]) // some dimension(s) wrap(s)
 			{
 				//TODO prod*(...) sind schritte, die man nicht macht. merke diese, und wisse, wo man absolut ware?
 				// we reached the end of region in this dimension, so add the step not made in input to the input iterator 
@@ -345,7 +345,7 @@ public class RegionIterator
 		int size = it.getSize();
 		
 		int mask[] = new int[size];
-		for(int i=0; i<size; i++)
+		for (int i=0; i<size; i++)
 		{
 			mask[i]=i;
 		}
@@ -353,7 +353,7 @@ public class RegionIterator
 		RegionIterator regionIt = new RegionIterator(testinput, testregion, testofs);
 		MaskIterator maskIt = new MaskIterator(testinput, testregion, testofs);
 		
-		while(regionIt.hasNext())
+		while (regionIt.hasNext())
 		{
 //			int idx = regionIt.next();
 			int imask = maskIt.next();
@@ -378,21 +378,21 @@ public class RegionIterator
 		List<Integer> list1 = null; 
 		List<Point> list2 = null;
 
-		for(int i=0; i<50; i++)
+		for (int i=0; i<50; i++)
 		{
 			list1= RegionItTest(testinput, testofs, testregion);
 			list2 = naiveTest(testinput, testofs, testregion);
 		}
 		
 		IndexIterator proofer = new IndexIterator(testinput);
-		for(int i=0; i<list1.size(); i++)
+		for (int i=0; i<list1.size(); i++)
 		{
 			Point p = proofer.indexToPoint(list1.get(i));
-			if(!p.equals(list2.get(i)))
+			if (!p.equals(list2.get(i)))
 				return false;
 		}
 		
-//		if(list1.equals(list2))
+//		if (list1.equals(list2))
 //			return true;
 //		else
 //			return false;
@@ -410,7 +410,7 @@ public class RegionIterator
 		Timer t = new Timer();
 		t.tic();
 		
-		while(testiterator.hasNext())
+		while (testiterator.hasNext())
 		{
 			int index = testiterator.next();
 //			Point p = proofer.indexToPoint(index);
@@ -437,11 +437,11 @@ public class RegionIterator
 		Point pstart = new Point(testofs);
 		
 		int size = iterator.getSize();
-		for(int i=0; i<size; i++)	// over region
+		for (int i=0; i<size; i++)	// over region
 		{
 			Point ofs = iterator.indexToPoint(i);
 			Point p = pstart.add(ofs);
-			if(labelImageIt.isInBound(p))
+			if (labelImageIt.isInBound(p))
 			{
 				list.add(p);
 //				System.out.println(p);

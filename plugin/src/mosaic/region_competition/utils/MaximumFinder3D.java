@@ -126,7 +126,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
 		
 		ArrayList<Point> list = new ArrayList<Point>();
 		
-		if(points==null)
+		if (points==null)
 		{
 			System.out.println("no maxima");
 			return list;
@@ -138,7 +138,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
 		int[] zs = points[2];
 
 		int n = xs.length;
-		for(int i=0; i<n; i++)
+		for (int i=0; i<n; i++)
 		{
 			int x = xs[i];
 			int y = ys[i];
@@ -194,7 +194,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
     	float globalMin = Float.MAX_VALUE;
     	float globalMax = -Float.MAX_VALUE;
 
-    	for(int i=0; i<size; i++)
+    	for (int i=0; i<size; i++)
     	{
     		float v = ip[i];
 			if (globalMin>v) globalMin = v;
@@ -257,7 +257,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
         int nMax = 0;  //counts local maxima
         boolean checkThreshold = threshold!=ImageProcessor.NO_THRESHOLD;
         
-        for(int i=0; i<size; i++)
+        for (int i=0; i<size; i++)
         {
         	Point p = iterator.indexToPoint(i);
         	int x = p.x[0];
@@ -274,7 +274,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
             if (checkThreshold && v<threshold) continue;
             boolean isMax = true;
             
-            for(Point q : conn.iterateNeighbors(p))
+            for (Point q : conn.iterateNeighbors(p))
             {
                 if (isInner || iterator.isInBound(q))
                 {
@@ -298,9 +298,9 @@ public class MaximumFinder3D implements MaximumFinderInterface
         long[] maxPoints = new long[nMax];                  //value (int) is in the upper 32 bit, pixel offset in the lower
         int iMax = 0;
         
-        for(int i=0; i<size; i++)
+        for (int i=0; i<size; i++)
         {
-			if(types[i] == MAXIMUM)
+			if (types[i] == MAXIMUM)
 			{
 				float fValue = ip[i];
 				int iValue = (int)((fValue - globalMin) * vFactor); // 32-bit int, linear function of float value
@@ -381,7 +381,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
                     
                     
 //                    for (int d=0; d<8; d++) 	//analyze all neighbors (in 8 directions) at the same level
-                    for(Point q : conn.iterateNeighbors(pp))
+                    for (Point q : conn.iterateNeighbors(pp))
                     {       
                     	int offset2 = iterator.pointToIndex(q);
 //                        int offset2 = offset+dirOffset[d];
@@ -389,7 +389,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
                         {
                             if ((types[offset2]&PROCESSED)!=0) {
                                 maxPossible = false; //we have reached a point processed previously, thus it is no maximum now
-                                //if(x0<25&&y0<20)IJ.write("x0,y0="+x0+","+y0+":stop at processed neighbor from x,y="+x+","+y+", dir="+d);
+                                //if (x0<25&&y0<20)IJ.write("x0,y0="+x0+","+y0+":stop at processed neighbor from x,y="+x+","+y+", dir="+d);
                                 break;
                             }
                             int x2 = q.x[0];
@@ -398,7 +398,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
                             float v2 = ip[offset2];
                             if (v2 > v0 + maxSortingError) {
                                 maxPossible = false;    //we have reached a higher point, thus it is no maximum
-                                //if(x0<25&&y0<20)IJ.write("x0,y0="+x0+","+y0+":stop at higher neighbor from x,y="+x+","+y+", dir="+d+",value,value2,v2-v="+v0+","+v2+","+(v2-v0));
+                                //if (x0<25&&y0<20)IJ.write("x0,y0="+x0+","+y0+":stop at higher neighbor from x,y="+x+","+y+", dir="+d+",value,value2,v2-v="+v0+","+v2+","+(v2-v0));
                                 break;
                             } else if (v2 >= v0-(float)tolerance) {
                                 if (v2 > v0) {          //maybe this point should have been treated earlier

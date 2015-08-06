@@ -186,7 +186,7 @@ class FindConnectedRegions
 		int point_roi_y = -1;
 		int point_roi_z = -1;
 
-		if( startFromPointROI ) 
+		if ( startFromPointROI ) 
 		{
 
 			Roi roi = imagePlus.getRoi();
@@ -199,7 +199,7 @@ class FindConnectedRegions
 				return;
 			}			
 			Polygon p = roi.getPolygon();
-			if(p.npoints > 1) {
+			if (p.npoints > 1) {
 				IJ.error("You can only have one point selected.");
 				return;
 			}
@@ -281,7 +281,7 @@ class FindConnectedRegions
 		{
 //			tk++;
 
-			if( pleaseStop )
+			if ( pleaseStop )
 				break;
 
 			/* Find one pixel that's above the minimum, or
@@ -306,7 +306,7 @@ class FindConnectedRegions
 				initial_y = point_roi_y;
 				initial_z = point_roi_z;
 
-				if(byteImage)
+				if (byteImage)
 					foundValueInt = sliceDataBytes[initial_z][initial_y * width + initial_x] & 0xFF;
 				else
 					foundValueFloat = sliceDataFloats[initial_z][initial_y * width + initial_x];
@@ -319,7 +319,7 @@ class FindConnectedRegions
 					for (int y = 0; y < height; ++y) {
 						for (int x = 0; x < width; ++x) {
 							int value = sliceDataBytes[z][y * width + x] & 0xFF;
-							//	if(x==78 && y==415){IJ.log("value " + value + "tr" + tr[z][x][y]);}
+							//	if (x==78 && y==415){IJ.log("value " + value + "tr" + tr[z][x][y]);}
 							if (value > maxValueInt && value>tr[z][x][y] && value>minInt) {
 								initial_x = x;
 								initial_y = y;
@@ -424,7 +424,7 @@ class FindConnectedRegions
 
 			while (pointsInQueue > 0) 
 			{
-				if(pleaseStop)
+				if (pleaseStop)
 					break;
 
 				int nextIndex = queue[--pointsInQueue];
@@ -517,7 +517,7 @@ class FindConnectedRegions
 				}
 			}
 
-			if(pleaseStop)
+			if (pleaseStop)
 				break;
 
 			// So now pointState should have no IN_QUEUE
@@ -565,7 +565,7 @@ class FindConnectedRegions
 
 							if (status == ADDED) 
 							{
-								if(region.points<= maxvesiclesize)
+								if (region.points<= maxvesiclesize)
 								{
 									tempres[z][x][y]= (short) tag;//tag;
 									region.pixels.add(new Pix(z,x,y));
@@ -603,7 +603,7 @@ class FindConnectedRegions
 						
 				}
 
-				//if(region.value==43 || region.value==2000)test_clustering(region);
+				//if (region.value==43 || region.value==2000)test_clustering(region);
 
 			}
 
@@ -615,7 +615,7 @@ class FindConnectedRegions
 		
 		Collections.sort(results, Collections.reverseOrder());
 
-		if( showResults )
+		if ( showResults )
 			rt.show("Results");
 	}
 }

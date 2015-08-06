@@ -69,7 +69,7 @@ class BubblesInitGUI extends InitializationGUI
 	@Override
 	public void process()
 	{
-		if(gd.wasCanceled())
+		if (gd.wasCanceled())
 			return;
 		
 		settings.m_BubblesRadius = (int)gd.getNextNumber();
@@ -97,7 +97,7 @@ class BoxInitGUI extends InitializationGUI
 	@Override
 	public void process()
 	{
-		if(gd.wasCanceled())
+		if (gd.wasCanceled())
 			return;
 		
 		settings.l_BoxRatio = gd.getNextNumber();
@@ -127,7 +127,7 @@ class LocalMaxGUI extends InitializationGUI
 	@Override
 	public void process()
 	{
-		if(gd.wasCanceled())
+		if (gd.wasCanceled())
 			return;
 		
 		settings.l_BubblesRadius = (int)gd.getNextNumber();

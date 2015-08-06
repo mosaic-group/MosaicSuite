@@ -45,7 +45,7 @@ public class IndexIterator
 		dim = dimensions.length;
 		
 		size=1;
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			size*=dimensions[i];
 		}
@@ -58,7 +58,7 @@ public class IndexIterator
 		for (int i = 0 ; i < dims.length ; i++) {dimensions[i] = (int)dims[i];}
 		
 		size=1;
-		for(int i=0; i<dim; i++)
+		for (int i=0; i<dim; i++)
 		{
 			size*=dimensions[i];
 		}
@@ -86,7 +86,7 @@ public class IndexIterator
 	
 		int idx = 0;
 		int fac = 1;
-		for(int i = 0; i < dim; i++) {
+		for (int i = 0; i < dim; i++) {
 			idx += fac * p.x[i];
 			fac *= dimensions[i];
 		}
@@ -104,7 +104,7 @@ public class IndexIterator
 		int index=idx;
 		int x[] = new int[this.dim];
 		
-		for(int i = 0; i < dim; i++) 
+		for (int i = 0; i < dim; i++) 
 		{
 			int r=index%dimensions[i];
 			x[i]=r;
@@ -116,7 +116,7 @@ public class IndexIterator
 		
 		//TODO !!! test, is this correct?
 		int dummy=pointToIndex(result);
-		if(dummy!=idx)
+		if (dummy!=idx)
 		{
 			System.out.println("indexToPoint is not correct");
 			return null;
@@ -133,9 +133,9 @@ public class IndexIterator
 	 */
 	public boolean isInBound(Point p)
 	{
-		for(int d=0; d<dim; d++)
+		for (int d=0; d<dim; d++)
 		{
-			if(p.x[d]<0 || p.x[d]>=dimensions[d])
+			if (p.x[d]<0 || p.x[d]>=dimensions[d])
 			{
 				return false;
 			}

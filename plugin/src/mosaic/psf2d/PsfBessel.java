@@ -25,7 +25,7 @@ public class PsfBessel {
 	static public double j0(double x) throws ArithmeticException {
 		double ax;
 	
-		if( (ax=Math.abs(x)) < 8.0 ) {
+		if ( (ax=Math.abs(x)) < 8.0 ) {
 		   double y=x*x;
 		   double ans1=57568490574.0+y*(-13362590354.0+y*(651619640.7
 					   +y*(-11214424.18+y*(77392.33017+y*(-184.9052456)))));
@@ -96,11 +96,11 @@ public class PsfBessel {
 		final double BIGNO = 1.0e+10;
 		final double BIGNI = 1.0e-10;
 	
-		if(n == 0) return j0(x);
-		if(n == 1) return j1(x);
+		if (n == 0) return j0(x);
+		if (n == 1) return j1(x);
 	
 		ax=Math.abs(x);
-		if(ax == 0.0)  return 0.0;
+		if (ax == 0.0)  return 0.0;
 	
 		if (ax > n) {
 			tox=2.0/ax;
@@ -202,8 +202,8 @@ public class PsfBessel {
 	static public double yn(int n, double x) throws ArithmeticException {
 		double by,bym,byp,tox;
 	
-		if(n == 0) return y0(x);
-		if(n == 1) return y1(x);
+		if (n == 0) return y0(x);
+		if (n == 1) return y1(x);
 	
 		tox=2.0/x;
 		by=y1(x);

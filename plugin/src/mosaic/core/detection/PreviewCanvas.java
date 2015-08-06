@@ -76,10 +76,10 @@ public class PreviewCanvas extends ImageCanvas
 		super.paint(g);
 		int frameToDisplay = getFrameNumberFromSlice(this.imp.getCurrentSlice());
 		Vector<Particle> particlesToDisplay = null;
-		if(frameToDisplay == getFrameNumberFromSlice(preview_slice_calculated)) {
+		if (frameToDisplay == getFrameNumberFromSlice(preview_slice_calculated)) {
 			// the preview display color is set to red
 			g.setColor(Color.red);
-			if(preview_frame != null){
+			if (preview_frame != null){
 				particlesToDisplay = preview_frame.getParticles();
 				circleParticles(g, particlesToDisplay);
 				if (shifts != null) {
@@ -89,7 +89,7 @@ public class PreviewCanvas extends ImageCanvas
 				}
 			}
 		}
-//		if(frames != null){
+//		if (frames != null){
 //			particlesToDisplay = frames[frameToDisplay-1].getParticles();
 //			// the located particles display color is set to blue
 //			g.setColor(Color.blue);

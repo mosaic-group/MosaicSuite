@@ -137,7 +137,7 @@ public class ScoreFunctionInit implements ScoreFunction
 	{
 		ImagePlus ip[] = new ImagePlus[l.length];
 
-		for(int i = 0 ; i < l.length ; i++)
+		for (int i = 0 ; i < l.length ; i++)
 		{
 			ip[i] = l[i].convert("image", off[i]);
 		}

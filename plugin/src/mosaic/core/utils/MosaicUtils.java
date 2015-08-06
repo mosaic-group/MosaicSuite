@@ -518,9 +518,9 @@ public class MosaicUtils
 		float[] croppedpx = (float[])cropped_proc.getPixels();
 		float[] origpx = (float[])ip.getPixels();
 		int offset = cropsize*width+cropsize;
-		for(int i = offset, j = 0; j < croppedpx.length; i++, j++) {
+		for (int i = offset, j = 0; j < croppedpx.length; i++, j++) {
 			croppedpx[j] = origpx[i];		
-			if(j%newWidth == newWidth - 1) {
+			if (j%newWidth == newWidth - 1) {
 				i+=2*cropsize;
 			}
 		} 
@@ -535,7 +535,7 @@ public class MosaicUtils
 	 */
 	public static ImageStack cropImageStack3D(ImageStack is, int cropSize) {
 		ImageStack cropped_is = new ImageStack(is.getWidth()-2*cropSize, is.getHeight()-2*cropSize);
-		for(int s = cropSize + 1; s <= is.getSize()-cropSize; s++) {
+		for (int s = cropSize + 1; s <= is.getSize()-cropSize; s++) {
 			cropped_is.addSlice("", MosaicUtils.cropImageStack2D(is.getProcessor(s), cropSize));
 		}
 		return cropped_is;
@@ -548,12 +548,12 @@ public class MosaicUtils
 		float[] paddedpx = (float[])padded_proc.getPixels();
 		float[] origpx = (float[])ip.getPixels();
 		//first r pixel lines
-		for(int i = 0; i < padSize*newWidth; i++) {
-			if(i%newWidth < padSize) { 			//right corner
+		for (int i = 0; i < padSize*newWidth; i++) {
+			if (i%newWidth < padSize) { 			//right corner
 				paddedpx[i] = origpx[0];
 				continue;
 			}
-			if(i%newWidth >= padSize + width) {
+			if (i%newWidth >= padSize + width) {
 				paddedpx[i] = origpx[width-1];	//left corner
 				continue;
 			}
@@ -561,17 +561,17 @@ public class MosaicUtils
 		}
 
 		//the original pixel lines and left & right edges				
-		for(int i = 0, j = padSize*newWidth; i < origpx.length; i++,j++) {
+		for (int i = 0, j = padSize*newWidth; i < origpx.length; i++,j++) {
 			int xcoord = i%width;
-			if(xcoord==0) {//add r pixel rows (left)
-				for(int a = 0; a < padSize; a++) {
+			if (xcoord==0) {//add r pixel rows (left)
+				for (int a = 0; a < padSize; a++) {
 					paddedpx[j] = origpx[i];
 					j++;
 				}
 			}
 			paddedpx[j] = origpx[i];
-			if(xcoord==width-1) {//add r pixel rows (right)
-				for(int a = 0; a < padSize; a++) {
+			if (xcoord==width-1) {//add r pixel rows (right)
+				for (int a = 0; a < padSize; a++) {
 					j++;
 					paddedpx[j] = origpx[i];
 				}
@@ -580,16 +580,16 @@ public class MosaicUtils
 
 		//last r pixel lines
 		int lastlineoffset = origpx.length-width;
-		for(int j = (padSize+ip.getHeight())*newWidth, i = 0; j < paddedpx.length; j++, i++) {
-			if(i%width == 0) { 			//left corner
-				for(int a = 0; a < padSize; a++) {
+		for (int j = (padSize+ip.getHeight())*newWidth, i = 0; j < paddedpx.length; j++, i++) {
+			if (i%width == 0) { 			//left corner
+				for (int a = 0; a < padSize; a++) {
 					paddedpx[j] = origpx[lastlineoffset];
 					j++;
 				}
 				//					continue;
 			}
-			if(i%width == width-1) {	
-				for(int a = 0; a < padSize; a++) {
+			if (i%width == width-1) {	
+				for (int a = 0; a < padSize; a++) {
 					paddedpx[j] = origpx[lastlineoffset+width-1];	//right corner
 					j++;
 				}
@@ -609,11 +609,11 @@ public class MosaicUtils
 	public static ImageStack padImageStack3D(ImageStack is, int padSize) 
 	{
 		ImageStack padded_is = new ImageStack(is.getWidth() + 2*padSize, is.getHeight() + 2*padSize);
-		for(int s = 0; s < is.getSize(); s++){
+		for (int s = 0; s < is.getSize(); s++){
 			ImageProcessor padded_proc = MosaicUtils.padImageStack2D(is.getProcessor(s+1),padSize);
 			//if we are on the top or bottom of the stack, add r slices
-			if(s == 0 || s == is.getSize() - 1) {
-				for(int i = 0; i < padSize; i++) {
+			if (s == 0 || s == is.getSize() - 1) {
+				for (int i = 0; i < padSize; i++) {
 					padded_is.addSlice("", padded_proc);
 				}
 			} 
@@ -633,54 +633,54 @@ public class MosaicUtils
 	 * @param aIS
 	 */
 	public static void repadImageStack3D(ImageStack aIS, int padSize){
-		if(aIS.getSize() > 1) { //only in the 3D case
-			for(int s = 1; s <= padSize; s++) {
+		if (aIS.getSize() > 1) { //only in the 3D case
+			for (int s = 1; s <= padSize; s++) {
 				aIS.deleteSlice(1);
 				aIS.deleteLastSlice();
 			}
 		}
-		for(int s = 1; s <= aIS.getSize(); s++) {
+		for (int s = 1; s <= aIS.getSize(); s++) {
 			float[] pixels = (float[])aIS.getProcessor(s).getPixels();
 			int width = aIS.getWidth();
 			int height = aIS.getHeight();
-			for(int i = 0; i < pixels.length; i++) {
+			for (int i = 0; i < pixels.length; i++) {
 				int xcoord = i%width;
 				int ycoord = i/width;
-				if(xcoord < padSize && ycoord < padSize) {
+				if (xcoord < padSize && ycoord < padSize) {
 					pixels[i] = pixels[padSize*width+padSize];
 					continue;
 				}
-				if(xcoord < padSize && ycoord >= height-padSize) {
+				if (xcoord < padSize && ycoord >= height-padSize) {
 					pixels[i] = pixels[(height-padSize-1)*width+padSize];
 					continue;
 				}
-				if(xcoord >= width-padSize && ycoord < padSize) {
+				if (xcoord >= width-padSize && ycoord < padSize) {
 					pixels[i] = pixels[(padSize + 1) * width - padSize - 1];
 					continue;
 				}
-				if(xcoord >= width-padSize && ycoord >= height-padSize) {
+				if (xcoord >= width-padSize && ycoord >= height-padSize) {
 					pixels[i] = pixels[(height-padSize)*width - padSize - 1];
 					continue;
 				}
-				if(xcoord < padSize) {
+				if (xcoord < padSize) {
 					pixels[i] = pixels[ycoord*width+padSize];
 					continue;
 				}
-				if(xcoord >= width - padSize) {
+				if (xcoord >= width - padSize) {
 					pixels[i] = pixels[(ycoord+1)*width - padSize - 1];
 					continue;
 				}
-				if(ycoord < padSize) {
+				if (ycoord < padSize) {
 					pixels[i] = pixels[padSize*width + xcoord];
 					continue;
 				}
-				if(ycoord >= height-padSize) {
+				if (ycoord >= height-padSize) {
 					pixels[i] = pixels[(height-padSize-1)*width + xcoord];
 				}
 			}
 		}
-		if(aIS.getSize() > 1) {
-			for(int s = 1; s <= padSize; s++) { //only in 3D case
+		if (aIS.getSize() > 1) {
+			for (int s = 1; s <= padSize; s++) { //only in 3D case
 				aIS.addSlice("", aIS.getProcessor(1).duplicate(),1);
 				aIS.addSlice("", aIS.getProcessor(aIS.getSize()).duplicate());
 			}
@@ -689,9 +689,9 @@ public class MosaicUtils
 
 	public static ImageStack GetSubStackInFloat(ImageStack is, int startPos, int endPos){
 		ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
-		if(startPos > endPos || startPos < 0 || endPos < 0)
+		if (startPos > endPos || startPos < 0 || endPos < 0)
 			return null;
-		for(int i = startPos; i <= endPos; i++) {
+		for (int i = startPos; i <= endPos; i++) {
 			res.addSlice(is.getSliceLabel(i), is.getProcessor(i).convertToFloat());
 		}
 		return res;
@@ -699,9 +699,9 @@ public class MosaicUtils
 	
 	public static ImageStack GetSubStackCopyInFloat(ImageStack is, int startPos, int endPos){
 		ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
-		if(startPos > endPos || startPos < 0 || endPos < 0)
+		if (startPos > endPos || startPos < 0 || endPos < 0)
 			return null;
-		for(int i = startPos; i <= endPos; i++) {
+		for (int i = startPos; i <= endPos; i++) {
 			res.addSlice(is.getSliceLabel(i), is.getProcessor(i).convertToFloat().duplicate());
 		}
 		return res;
@@ -746,9 +746,9 @@ public class MosaicUtils
 	
 	public static ImageStack GetSubStack(ImageStack is, int startPos, int endPos){
 		ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
-		if(startPos > endPos || startPos < 0 || endPos < 0)
+		if (startPos > endPos || startPos < 0 || endPos < 0)
 			return null;
-		for(int i = startPos; i <= endPos; i++) {
+		for (int i = startPos; i <= endPos; i++) {
 			res.addSlice(is.getSliceLabel(i), is.getProcessor(i));
 		}
 		return res;
@@ -1135,7 +1135,7 @@ public class MosaicUtils
 		int nOpenedImages = 0;
 		int[] ids = WindowManager.getIDList();
 			
-		if(ids!=null)
+		if (ids!=null)
 		{
 			nOpenedImages = ids.length;
 		}
@@ -1143,7 +1143,7 @@ public class MosaicUtils
 		
 		String[] names = new String[nOpenedImages+1];
 		names[0]="";
-		for(int i = 0; i<nOpenedImages; i++)
+		for (int i = 0; i<nOpenedImages; i++)
 		{
 			ImagePlus ip = WindowManager.getImage(ids[i]);
 			names[i+1] = ip.getTitle();
@@ -1154,7 +1154,7 @@ public class MosaicUtils
 		
 		Choice choiceInputImage = (Choice)gd.getChoices().lastElement();
 		
-		if(imp !=null)
+		if (imp !=null)
 		{
 			for (int i = 0 ; i < names.length ; i++)
 				choiceInputImage.addItem(names[i]);
@@ -1880,7 +1880,7 @@ public class MosaicUtils
 	
 	static public boolean checkRequirement()
 	{
-		if(IJ.versionLessThan("1.48"))
+		if (IJ.versionLessThan("1.48"))
 		{
 			IJ.error("Your Fiji or ImageJ version is too old to run the MosaicToolSuite please update it");
 			return false;

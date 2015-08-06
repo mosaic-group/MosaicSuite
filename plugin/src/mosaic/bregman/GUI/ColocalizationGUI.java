@@ -165,9 +165,9 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		val2 = new Double((v2.getText()));
 		
 		
-		if(imgch1!=null){
+		if (imgch1!=null){
 			int nslices= imgch1.getNSlices();
-			if(nslices>1){
+			if (nslices>1){
 				ns1 =imgch1.getSlice();
 				tz1.setMinimum(1);
 				tz1.setMaximum(nslices);
@@ -179,9 +179,9 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		else tz1.setEnabled(false);
 
 
-		if(imgch2!=null){
+		if (imgch2!=null){
 			int nslices= imgch2.getNSlices();
-			if(nslices>1){
+			if (nslices>1){
 				ns2 =imgch2.getSlice();
 				tz2.setMinimum(1);
 				tz2.setMaximum(nslices);
@@ -193,7 +193,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		else tz2.setEnabled(false);
 
 
-		if(Analysis.p.usecellmaskX && imgch1!=null)
+		if (Analysis.p.usecellmaskX && imgch1!=null)
 		{
 			maska_im1= new ImagePlus();
 			initpreviewch1(imgch1);
@@ -202,7 +202,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 				
 		}
 		
-		if(Analysis.p.usecellmaskY && imgch2!=null)
+		if (Analysis.p.usecellmaskY && imgch2!=null)
 		{
 			maska_im2= new ImagePlus();
 			initpreviewch2(imgch2);
@@ -214,15 +214,15 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		gd.setLocation(posx, posy);
 		gd.showDialog();
 
-		if(maska_im1!=null)maska_im1.close();
-		if(maska_im2!=null)maska_im2.close();
+		if (maska_im1!=null)maska_im1.close();
+		if (maska_im2!=null)maska_im2.close();
 		
-		if(imgch1!=null){
+		if (imgch1!=null){
 			imgch1.setSlice(ns1);
 			imgch1=null;		
 		}
 
-		if(imgch2!=null){
+		if (imgch2!=null){
 			imgch2.setSlice(ns2);
 			imgch2=null;
 		}
@@ -256,12 +256,12 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 		Object source = e.getSource();	// Identify checkbox that was clicked
 
 		boxval=true;
-		if(source == m1)
+		if (source == m1)
 		{
 			boolean b=m1.getState();
-			if(b){
-				if(imgch1!=null){
-					if(maska_im1==null)
+			if (b){
+				if (imgch1!=null){
+					if (maska_im1==null)
 						maska_im1= new ImagePlus();
 					initpreviewch1(imgch1);
 					previewBinaryCellMask(new Double((v1.getText())),imgch1,maska_im1,1);
@@ -272,19 +272,19 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 			}
 			else{
 				//hide and clean
-				if(maska_im1!=null)
+				if (maska_im1!=null)
 				maska_im1.hide();
 				//maska_im1=null;
 				init1=false;
 			}
 		}
 
-		if(source==m2)
+		if (source==m2)
 		{
 			boolean b=m2.getState();
-			if(b){
-				if(imgch2!=null){
-					if(maska_im2==null)
+			if (b){
+				if (imgch2!=null){
+					if (maska_im2==null)
 						maska_im2= new ImagePlus();
 					initpreviewch2(imgch2);
 					previewBinaryCellMask(new Double((v2.getText())),imgch2,maska_im2,2);
@@ -296,7 +296,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 			}
 			else{
 				//close and clean
-				if(maska_im2!=null)
+				if (maska_im2!=null)
 					maska_im2.hide();
 //				maska_im2.close();
 //				maska_im2=null;
@@ -312,11 +312,11 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	public void textValueChanged(TextEvent e){
 		Object source = e.getSource();
 		
-		if(!boxval && !sliderval){//prevents looped calls
+		if (!boxval && !sliderval){//prevents looped calls
 			fieldval=true;
 			if (source == v1 && init1) {
 				double v = new Double((v1.getText()));
-				if(!sliderval && val1!=v && !refreshing){
+				if (!sliderval && val1!=v && !refreshing){
 					val1=v;
 					previewBinaryCellMask(v,imgch1,maska_im1,1);
 					int vv= (int) (logvalue(v));
@@ -327,7 +327,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
 			} else if (source == v2 && init2) {
 				double v =new Double((v2.getText()));
-				if(!sliderval && val2!=v && !refreshing){
+				if (!sliderval && val2!=v && !refreshing){
 					val2=v;
 					previewBinaryCellMask(v,imgch2,maska_im2,2);
 					int vv= (int) (logvalue(v));
@@ -336,7 +336,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 				}
 			} else if (source == v1 && !init1) {
 				double v =new Double((v1.getText()));
-				if(!sliderval){
+				if (!sliderval){
 
 					int vv= (int) (logvalue(v));
 					t1.setValue(vv);
@@ -345,7 +345,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
 			} else if (source == v2 && !init2) {
 				double v =new Double((v2.getText()));
-				if(!sliderval){
+				if (!sliderval){
 
 					int vv= (int) (logvalue(v));
 					t2.setValue(vv);
@@ -361,25 +361,25 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	public void stateChanged(ChangeEvent e) {
 		Object origin=e.getSource();
 
-		if(origin == tz1 && maska_im1!=null){
+		if (origin == tz1 && maska_im1!=null){
 			maska_im1.setZ(tz1.getValue());
 			imgch1.setZ(tz1.getValue());
 			return;
 		}
 
-		if(origin == tz2 && maska_im2!=null){
+		if (origin == tz2 && maska_im2!=null){
 			maska_im2.setZ(tz2.getValue());
 			imgch2.setZ(tz2.getValue());
 			return;
 		}
 		
-		if(!boxval && !fieldval){//prevents looped calls
+		if (!boxval && !fieldval){//prevents looped calls
 			sliderval=true;
 			if (origin==t1 && init1 && !t1.getValueIsAdjusting()){
 				double value=t1.getValue();
 				double vv= expvalue(value);
 
-				if(!fieldval && val1!=vv){
+				if (!fieldval && val1!=vv){
 					v1.setText(String.format(Locale.US,"%.4f", vv));
 					val1=vv;
 					previewBinaryCellMask(vv,imgch1,maska_im1,1);
@@ -391,7 +391,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 			if ((origin==t1 && init1 && t1.getValueIsAdjusting()) || (origin==t1 && !init1)){
 				double value=t1.getValue();
 				double vv= expvalue(value);
-				if(!fieldval) {v1.setText(String.format(Locale.US,"%.4f", vv));
+				if (!fieldval) {v1.setText(String.format(Locale.US,"%.4f", vv));
 				}
 				refreshing = true;
 			}
@@ -400,7 +400,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 			if (origin==t2 && init2 && !t2.getValueIsAdjusting()){
 				double value=t2.getValue();
 				double vv= expvalue(value);
-				if(!fieldval && val2!=vv) {
+				if (!fieldval && val2!=vv) {
 					v2.setText(String.format(Locale.US,"%.4f", vv));
 					previewBinaryCellMask(vv,imgch2,maska_im2,2);
 					val2=vv;
@@ -412,7 +412,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 			if ((origin==t2 && init2 && t2.getValueIsAdjusting()) || (origin==t2 && !init2)){
 				double value=t2.getValue();
 				double vv= expvalue(value);
-				if(!fieldval) {v2.setText(String.format(Locale.US,"%.4f", vv));
+				if (!fieldval) {v2.setText(String.format(Locale.US,"%.4f", vv));
 				}
 				refreshing = true;
 			}
@@ -440,8 +440,8 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 			{  
 				for (int j=0;j< nj; j++)
 				{
-					if(imp.getPixel(i,j)>max)max=imp.getPixel(i,j);
-					if(imp.getPixel(i,j)<min)min=imp.getPixel(i,j);
+					if (imp.getPixel(i,j)>max)max=imp.getPixel(i,j);
+					if (imp.getPixel(i,j)<min)min=imp.getPixel(i,j);
 				}	
 			}
 		}
@@ -462,8 +462,8 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 			imp=img.getProcessor();
 			for (int i=0; i<ni; i++){  
 				for (int j=0;j< nj; j++){  
-					if(imp.getPixel(i,j)>max2)max2=imp.getPixel(i,j);
-					if(imp.getPixel(i,j)<min2)min2=imp.getPixel(i,j);
+					if (imp.getPixel(i,j)>max2)max2=imp.getPixel(i,j);
+					if (imp.getPixel(i,j)<min2)min2=imp.getPixel(i,j);
 				}	
 			}
 		}
@@ -478,7 +478,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
 		ImageProcessor imp;
 
-		if(channel==1)
+		if (channel==1)
 			threshold= threshold_i*(max-min)+min;
 		else
 			threshold= threshold_i*(max2-min2)+min2;
@@ -492,7 +492,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 			byte[] maska_bytes = new byte[ni*nj];
 			for (int i=0; i<ni; i++){  
 				for (int j=0;j< nj; j++){  
-					if(imp.getPixel(i,j)>threshold)
+					if (imp.getPixel(i,j)>threshold)
 						maska_bytes[j * ni + i]=(byte) 255;
 					else 
 						maska_bytes[j * ni + i]=0;

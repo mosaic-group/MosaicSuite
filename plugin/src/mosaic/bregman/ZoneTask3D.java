@@ -155,7 +155,7 @@ class ZoneTask3D implements Runnable {
 			for (int z=0; z<AS.nz; z++){
 				for (int i=0; i<AS.ni; i++) {  
 					for (int j=0; j<AS.nj; j++) {  
-						if((1+ AS.eigenLaplacian[i][j] + AS.eigenPSF[0][i][j]) !=0) 
+						if ((1+ AS.eigenLaplacian[i][j] + AS.eigenPSF[0][i][j]) !=0) 
 							AS.temp1[AS.l][z][i][j]=AS.temp1[AS.l][z][i][j]/(1+ AS.eigenLaplacian3D[z][i][j] + AS.eigenPSF[z][i][j]);
 					}	
 				}
@@ -185,7 +185,7 @@ class ZoneTask3D implements Runnable {
 
 
 		//%-- w1k subproblem
-		if(AS.p.noise_model==0){
+		if (AS.p.noise_model==0){
 			//poisson
 			for (int z=0; z<AS.nz; z++){
 				for (int i=iStart; i<iEnd; i++) {  
@@ -277,7 +277,7 @@ class ZoneTask3D implements Runnable {
 		}
 		
 		// faire le menage dans les tableaux ici w2xk utilise comme temp
-		if(AS.stepk % AS.p.energyEvaluationModulo ==0  || AS.stepk==AS.p.max_nsb -1){	
+		if (AS.stepk % AS.p.energyEvaluationModulo ==0  || AS.stepk==AS.p.max_nsb -1){	
 			AS.energytab2[nt]=
 					LocalTools.computeEnergyPSF3D(AS.w2xk[AS.l], AS.w3k[AS.l], AS.temp3[AS.l], AS.temp4[AS.l],
 							AS.p.ldata, AS.p.lreg_[AS.channel],AS.p,AS.c0,AS.c1,AS.image,

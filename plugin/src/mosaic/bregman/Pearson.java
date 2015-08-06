@@ -53,7 +53,7 @@ class Pearson {
 
 		//buildArray( ipA,  ipB);
 
-		if(p.nz>1)
+		if (p.nz>1)
 			osz=p.model_oversampling;
 		else
 			osz=1;
@@ -66,7 +66,7 @@ class Pearson {
 			for (int i=0; i<ni/os; i++){  
 				for (int j=0;j< nj/os; j++){  
 					imageA[z][i][j]=imp.getPixel(i,j);	
-					if(imp.getPixel(i,j)>maxA)maxA=imp.getPixel(i,j);
+					if (imp.getPixel(i,j)>maxA)maxA=imp.getPixel(i,j);
 				}	
 			}
 		}
@@ -77,14 +77,14 @@ class Pearson {
 			for (int i=0; i<ni/os; i++){  
 				for (int j=0;j< nj/os; j++){  
 					imageB[z][i][j]=imp.getPixel(i,j);	
-					if(imp.getPixel(i,j)>maxB)maxB=imp.getPixel(i,j);
+					if (imp.getPixel(i,j)>maxB)maxB=imp.getPixel(i,j);
 				}	
 			}
 		}
 
 		double tx,ty;
-		if(Analysis.p.usecellmaskX)tx=Analysis.p.thresholdcellmask*maxA; else tx=0;
-		if(Analysis.p.usecellmaskY)ty=Analysis.p.thresholdcellmasky*maxB; else ty=0;
+		if (Analysis.p.usecellmaskX)tx=Analysis.p.thresholdcellmask*maxA; else tx=0;
+		if (Analysis.p.usecellmaskY)ty=Analysis.p.thresholdcellmasky*maxB; else ty=0;
 		cellmaskA=createBinaryCellMask(tx, ipA, 0, osz);		
 		cellmaskB=createBinaryCellMask(ty, ipB, 1, osz);
 
@@ -158,11 +158,11 @@ class Pearson {
 			for (int i=0; i<ni; i++){  
 				for (int j=0;j< nj; j++){  
 					boolean cond;
-					if(mask==1) cond =(Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB  && cellmaskB[z][i][j] && cellmaskA[z][i][j]);
+					if (mask==1) cond =(Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB  && cellmaskB[z][i][j] && cellmaskA[z][i][j]);
 					else
 						cond = (Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB) ;
 					if (cond){
-						if(mask==2 && (!cellmaskB[z][i][j] || !cellmaskA[z][i][j])){
+						if (mask==2 && (!cellmaskB[z][i][j] || !cellmaskA[z][i][j])){
 							count++;	
 						}
 						else{
@@ -186,11 +186,11 @@ class Pearson {
 			for (int i=0; i<ni; i++){  
 				for (int j=0;j< nj; j++){  
 					boolean cond;
-					if(mask==1) cond =(Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB  && cellmaskB[z][i][j] && cellmaskA[z][i][j]);
+					if (mask==1) cond =(Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB  && cellmaskB[z][i][j] && cellmaskA[z][i][j]);
 					else
 						cond = (Aarray[z][i][j]>=TA && Barray[z][i][j]>=TB)  ;
 					if (cond){
-						if(mask==2 && (!cellmaskB[z][i][j] || !cellmaskA[z][i][j])){
+						if (mask==2 && (!cellmaskB[z][i][j] || !cellmaskA[z][i][j])){
 							
 						}
 						else{
@@ -217,7 +217,7 @@ class Pearson {
 	boolean [][][] createBinaryCellMask(double threshold, ImagePlus img, int channel, int osz){
 		boolean [][][] cellmask= new boolean [nz] [ni] [nj];
 
-		if(threshold==0){ 
+		if (threshold==0){ 
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++){  
 				for (int j=0;j< nj; j++){  
@@ -239,7 +239,7 @@ class Pearson {
 			byte[] maska_bytes = new byte[ni*nj];
 			for (int i=0; i<ni; i++){  
 				for (int j=0;j< nj; j++){  
-					if(imp.getPixel(i/p.model_oversampling,j/p.model_oversampling)>threshold)
+					if (imp.getPixel(i/p.model_oversampling,j/p.model_oversampling)>threshold)
 						maska_bytes[j * ni + i]=(byte) 255;
 					else 
 						maska_bytes[j * ni + i]=0;

@@ -176,7 +176,7 @@ public class ImageProcessUtils {
 	{
 		
 		Vector<Point> p=new Vector<Point>();
-		for(int i=0;i<p3d.length;i++)
+		for (int i=0;i<p3d.length;i++)
 		{
 			p.add(new Point(p3d[i].x,p3d[i].y,p3d[i].z));
 		}
@@ -194,16 +194,16 @@ public class ImageProcessUtils {
 		ImageStack stackedNewImage=maskedImage.getStack();
 		ImageProcessor imageProc,maskProc,newProc;
 		System.out.println("WidthxHeight"+image.getWidth()+" "+image.getHeight());
-		for(int k=0;k<image.getStackSize();k++)
+		for (int k=0;k<image.getStackSize();k++)
 		{
 			imageProc = stackedImage.getProcessor(k+1);
 			maskProc=stackedMask.getProcessor(k+1);
 			newProc=stackedNewImage.getProcessor(k+1);
-			for(int i=0;i<image.getHeight();i++)
+			for (int i=0;i<image.getHeight();i++)
 			{
-				for(int j=0;j<image.getWidth();j++)
+				for (int j=0;j<image.getWidth();j++)
 				{
-					if(maskProc.getPixelValue(j, i)>0)
+					if (maskProc.getPixelValue(j, i)>0)
 					{
 						newProc.putPixelValue(j, i, imageProc.getPixelValue(j, i));
 						onPixels++;
@@ -232,15 +232,15 @@ public class ImageProcessUtils {
 		
 		ImageProcessor maskProc;
 	
-		for(int k=0;k<image.getStackSize();k++)
+		for (int k=0;k<image.getStackSize();k++)
 		{
 			maskProc=stackedMask.getProcessor(k+1);
 		
-			for(int i=0;i<image.getHeight();i++)
+			for (int i=0;i<image.getHeight();i++)
 			{
-				for(int j=0;j<image.getWidth();j++)
+				for (int j=0;j<image.getWidth();j++)
 				{
-					if(maskProc.getPixelValue(j, i)>0)
+					if (maskProc.getPixelValue(j, i)>0)
 					{
 					
 						onPixels++;
@@ -286,7 +286,7 @@ public class ImageProcessUtils {
 		double [][][] thisStack= new double [depth][width][height];
 		int x,y,z;
 		System.out.println("Here");
-		for(int i=0;i<points.length;i++)
+		for (int i=0;i<points.length;i++)
 		{
 			//points[i].get(t);
 			System.out.println(i);
@@ -296,7 +296,7 @@ public class ImageProcessUtils {
 			thisStack[z][x][y]=255;
 		}
 
-		for(int k=0; k< depth; k++)
+		for (int k=0; k< depth; k++)
 		{
 			is.setPixels(thisStack[k], k);
 			
@@ -311,14 +311,14 @@ public class ImageProcessUtils {
 	public static double[] nearestNeighbourBrute(Point3d[] x, Point3d [] particleYSetCoord )
 	{
 		double nnDistance []=new double[x.length];
-		for(int i=0;i<x.length;i++)
+		for (int i=0;i<x.length;i++)
 		{
 			nnDistance[i]=Double.MAX_VALUE;
 			Point3d currentX=x[i];
-			for(int j=0;j<particleYSetCoord.length;j++)
+			for (int j=0;j<particleYSetCoord.length;j++)
 			{
 				double tempDist=currentX.distance(particleYSetCoord[j]);
-				if(tempDist<nnDistance[i])
+				if (tempDist<nnDistance[i])
 					nnDistance[i]=tempDist;
 				
 			}
@@ -372,7 +372,7 @@ public class ImageProcessUtils {
 			e.printStackTrace();
 		}
 		String doubleString=null;
-		for(int i=0;i<array.length;i++)
+		for (int i=0;i<array.length;i++)
 			doubleString=doubleString+Double.toString(array[i])+",";
 		System.out.println(doubleString);
 		pw.write(doubleString);
@@ -414,20 +414,20 @@ public class ImageProcessUtils {
 		int count=0,size=0;
 		  while (dataRow != null){
 		   dataArray = dataRow.split(",");
-		   if(count ==0)
+		   if (count ==0)
 		   {
 			   size=dataArray.length;
-			   if(size!=2 && size!=3)
+			   if (size!=2 && size!=3)
 				   return null;
 			   count++;
 		   }
-		   if(dataArray.length!=size)
+		   if (dataArray.length!=size)
 			   return null;
 		  
 		   
 		   xtemp=Double.parseDouble(dataArray[0]);
 		   ytemp=Double.parseDouble(dataArray[1]);
-		   if(size>2)
+		   if (size>2)
 			   ztemp=Double.parseDouble(dataArray[2]);	
 		   else
 			   ztemp=0f; //2D -- if only 2 columns, assume 2D.

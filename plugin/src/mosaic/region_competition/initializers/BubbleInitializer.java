@@ -29,7 +29,7 @@ public class BubbleInitializer extends Initializer
 		
 		// Check we have at least one bubble
 		
-		for(int i = 0; i < dim; i++)
+		for (int i = 0; i < dim; i++)
 		{
 			int size = dimensions[i];
 			
@@ -44,7 +44,7 @@ public class BubbleInitializer extends Initializer
 			{rad = 1;}
 		}
 		
-		for(int i = 0; i < dim; i++)
+		for (int i = 0; i < dim; i++)
 		{
 			int size = dimensions[i];
 			int n = (size)/displ; // how many bubbles per length
@@ -57,7 +57,7 @@ public class BubbleInitializer extends Initializer
 		BubbleDrawer bd = new BubbleDrawer(labelImage, rad, 2*rad);
 		IndexIterator it = new IndexIterator(grid);
 		int bubbleIndex = 1;
-		for(Point ofs : it.getPointIterable())
+		for (Point ofs : it.getPointIterable())
 		{
 			// upper left startpoint of a bubble+spacing
 			ofs = ofs.mult(displ).add(gapPoint); 
@@ -84,7 +84,7 @@ public class BubbleInitializer extends Initializer
 	 */
 	public void initWidthCount(int countWidth, double fillRatio)
 	{
-		if(countWidth<=0)
+		if (countWidth<=0)
 		{
 			throw new RuntimeException("Choose bubble number > 0");
 		}

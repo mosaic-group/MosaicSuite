@@ -66,7 +66,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 		//Tools.disp_vals(w1k[l][2], "w1k");
 
 
-		for(int i =0; i< nl;i++){
+		for (int i =0; i< nl;i++){
 			//temp1=w2xk temp2=w2yk
 			LocalTools.fgradx2D(temp1[i], mask[i]);
 			LocalTools.fgrady2D(temp2[i], mask[i]);			
@@ -90,7 +90,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 		}  
 
 
-		for(int i =0; i< nl;i++){
+		for (int i =0; i< nl;i++){
 			//temp1=w2xk temp2=w2yk
 			LocalTools.fgradx2D(temp1[i], w3k[i]);
 			LocalTools.fgrady2D(temp2[i], w3k[i]);			
@@ -148,7 +148,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 		@SuppressWarnings("unused")
 		double kernelz[] = p.PSF.getSeparableImageAsDoubleArray(2);
 		
-		for(int nt=0; nt< p.nthreads-1;nt++){
+		for (int nt=0; nt< p.nthreads-1;nt++){
 			//			IJ.log("thread + istart iend jstart jend"+
 			//					iStart +" " + (iStart+ichunk)+" " + jStart+" " + (jStart+jchunk));			
 			// Check if we can create threads
@@ -181,7 +181,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++) {  
 				for (int j=0; j<nj; j++) {  
-					if((1+ eigenLaplacian[i][j] + eigenPSF[0][i][j]) !=0) 
+					if ((1+ eigenLaplacian[i][j] + eigenPSF[0][i][j]) !=0) 
 						temp1[l][z][i][j]=temp1[l][z][i][j]/(1+ eigenLaplacian3D[z][i][j] + eigenPSF[z][i][j]);
 				}	
 			}
@@ -197,15 +197,15 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 		ZoneDoneSignal.await(); 
 
 
-		if(stepk % p.energyEvaluationModulo ==0){	
+		if (stepk % p.energyEvaluationModulo ==0){	
 			energy=0;
-			for(int nt=0; nt< p.nthreads;nt++){
+			for (int nt=0; nt< p.nthreads;nt++){
 				energy+=energytab2[nt];
 			}
 		}
 
 		//int centerim=p.nz/2;
-		if(p.livedisplay && p.firstphase)
+		if (p.livedisplay && p.firstphase)
 			md.display2regions3D(w3k[l], "Mask", channel);
 
 		long lEndTime = new Date().getTime(); //end time
@@ -248,15 +248,15 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 		//energytab[l]=Tools.computeEnergyPSF3D(speedData[l], w3k[l], temp3[l], temp4[l], p.ldata, p.lreg,p,c0,c1,image);
 		//energy+=energytab[l];
 
-		if(stepk % p.energyEvaluationModulo ==0){	
+		if (stepk % p.energyEvaluationModulo ==0){	
 			energy=0;
-			for(int nt=0; nt< p.nthreads;nt++){
+			for (int nt=0; nt< p.nthreads;nt++){
 				energy+=energytab2[nt];
 			}
 		}
 
 		//int centerim=p.nz/2;
-		if(p.livedisplay && p.firstphase) md.display2regions3D(w3k[l], "Mask", channel);
+		if (p.livedisplay && p.firstphase) md.display2regions3D(w3k[l], "Mask", channel);
 
 
 		long lEndTime = new Date().getTime(); //end time

@@ -254,7 +254,7 @@ public class GenericDialogGUI implements InputReadable
 		// Energy Functional
 		EnergyFunctionalType[] energyValues = EnergyFunctionalType.values();
 		String[] energyItems = new String[energyValues.length];
-		for(int i=0; i<energyItems.length; i++)
+		for (int i=0; i<energyItems.length; i++)
 		{
 			energyItems[i]=energyValues[i].name();
 		}
@@ -288,7 +288,7 @@ public class GenericDialogGUI implements InputReadable
 		RegularizationType[] regularizationValues = RegularizationType.values();
 		int n = regularizationValues.length;
 		String[] regularizationItems = new String[n];
-		for(int i=0; i<n; i++)
+		for (int i=0; i<n; i++)
 		{
 			regularizationItems[i]=regularizationValues[i].name();
 		}
@@ -322,7 +322,7 @@ public class GenericDialogGUI implements InputReadable
 		InitializationType[] initTypes = InitializationType.values();
 		String[] initializationItems = new String[initTypes.length];
 		
-		for(int i=0; i<initializationItems.length; i++)
+		for (int i=0; i<initializationItems.length; i++)
 		{
 			initializationItems[i]=initTypes[i].name();
 		}
@@ -402,25 +402,25 @@ public class GenericDialogGUI implements InputReadable
 		nOpenedImages = 0;
 		int[] ids = WindowManager.getIDList();
 		
-		if(ids!=null){
+		if (ids!=null){
 			nOpenedImages = ids.length;
 		}
 		
 		
 		String[] names = new String[nOpenedImages+1];
 		names[0]=emptyOpenedImage;
-		for(int i = 0; i<nOpenedImages; i++)
+		for (int i = 0; i<nOpenedImages; i++)
 		{
 			ImagePlus ip = WindowManager.getImage(ids[i]);
 			names[i+1] = ip.getTitle();
 		}
 		
-//		if(nOpenedImages>0)
+//		if (nOpenedImages>0)
 		{
 			// Input Image
 			gd.addChoice("InputImage", names, names[0]);
 			choiceInputImage = (Choice)gd.getChoices().lastElement();
-			if(aImp!=null){
+			if (aImp!=null){
 				String title = aImp.getTitle();
 				choiceInputImage.select(title);
 			}
@@ -430,7 +430,7 @@ public class GenericDialogGUI implements InputReadable
 			choiceLabelImage = (Choice)gd.getChoices().lastElement();
 			
 			// select second image
-			if(nOpenedImages>=2 && aImp!= null)
+			if (nOpenedImages>=2 && aImp!= null)
 			{
 				WindowManager.putBehind();
 				String title = WindowManager.getCurrentImage().getTitle();
@@ -447,7 +447,7 @@ public class GenericDialogGUI implements InputReadable
 					Choice choice = (Choice)e.getSource();
 					int idx = choice.getSelectedIndex();
 					
-					if(idx>0){
+					if (idx>0){
 						setInitToFileInput();
 					}
 				}
@@ -458,7 +458,7 @@ public class GenericDialogGUI implements InputReadable
 	
 	private void readOpenedImageChooser()
 	{
-        // if(nOpenedImages>0)
+        // if (nOpenedImages>0)
         inputImageTitle = gd.getNextChoice();
         labelImageTitle = gd.getNextChoice();
 	}
@@ -470,7 +470,7 @@ public class GenericDialogGUI implements InputReadable
 	{
 		@SuppressWarnings("unchecked")
 		Vector<TextField> v = gd.getNumericFields();
-		for(TextField tf:v)
+		for (TextField tf:v)
 		{
 			tf.addMouseWheelListener(new NumericFieldWheelListener(tf));
 		}
@@ -487,7 +487,7 @@ public class GenericDialogGUI implements InputReadable
 	{
 		boolean success = true;
 		
-		if(gd_p.wasCanceled())
+		if (gd_p.wasCanceled())
 			return false;
 		
 		// Energy Choice
@@ -535,7 +535,7 @@ public class GenericDialogGUI implements InputReadable
 	public boolean processInput()
 	{
 		
-		if(gd.wasCanceled())
+		if (gd.wasCanceled())
 			return false;
 		
 		boolean success = true;
@@ -555,7 +555,7 @@ public class GenericDialogGUI implements InputReadable
 		//only record valid inputs
 		
 		filenameInput=gd.getTextArea1().getText();	
-		if(filenameInput==null || filenameInput.isEmpty() || filenameInput.equals(TextDefaultInputImage))
+		if (filenameInput==null || filenameInput.isEmpty() || filenameInput.equals(TextDefaultInputImage))
 		{
 			//TODO 
 			// set text to [] due to a bug in GenericDialog
@@ -571,7 +571,7 @@ public class GenericDialogGUI implements InputReadable
 		// IJ Macro
 		
 		filenameLabelImage=gd.getTextArea2().getText();
-		if(filenameLabelImage==null || filenameLabelImage.isEmpty() || filenameLabelImage.equals(TextDefaultLabelImage))
+		if (filenameLabelImage==null || filenameLabelImage.isEmpty() || filenameLabelImage.equals(TextDefaultLabelImage))
 		{
 			//TODO IJ BUG
 			// set text to [] due to a bug in GenericDialog
@@ -587,7 +587,7 @@ public class GenericDialogGUI implements InputReadable
 //		}
 		
 		// TODO IJ BUG
-		if(filenameLabelImage.equals("[]")){
+		if (filenameLabelImage.equals("[]")){
 			filenameLabelImage="";
 		}
 		
@@ -699,7 +699,7 @@ public class GenericDialogGUI implements InputReadable
 	
 	void setInputImageChoiceEmpty()
 	{
-		if(choiceInputImage != null)
+		if (choiceInputImage != null)
 		{
 			choiceInputImage.select(0);
 		}
@@ -707,7 +707,7 @@ public class GenericDialogGUI implements InputReadable
 	
 	void setLabelImageChoiceEmpty()
 	{
-		if(choiceLabelImage != null)
+		if (choiceLabelImage != null)
 		{
 			choiceLabelImage.select(0);
 		}
@@ -776,17 +776,17 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 		DataFlavor[] flavors = transferable.getTransferDataFlavors();
 
 		// Loop through the flavors
-		for(DataFlavor flavor : flavors) {
+		for (DataFlavor flavor : flavors) {
 
 			try {
 				// If the drop items are files
-				if(flavor.isFlavorJavaFileListType()) 
+				if (flavor.isFlavorJavaFileListType()) 
 				{
 					// Get all of the dropped files
 					@SuppressWarnings("unchecked")
 					List<File> files = (List<File>)transferable.getTransferData(flavor);
 					// Loop them through
-					for(File file : files) {
+					for (File file : files) {
 						filename=file.getPath();
 						textArea.setText(filename);
 						
@@ -805,10 +805,10 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 					String dndString = ta.getText().trim();
 					StringTokenizer tokenizer = new StringTokenizer(dndString);
 					String elem="";
-					while(tokenizer.hasMoreElements())
+					while (tokenizer.hasMoreElements())
 					{
 						elem = tokenizer.nextToken();
-						if(elem.startsWith("file"))
+						if (elem.startsWith("file"))
 							break;
 						else
 							elem="";
@@ -850,10 +850,10 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 				e.printStackTrace();
 			}
 
-			for(StringTokenizer st = new StringTokenizer(data, "\r\n"); st.hasMoreTokens();)
+			for (StringTokenizer st = new StringTokenizer(data, "\r\n"); st.hasMoreTokens();)
 			{
 				String token = st.nextToken().trim();
-				if(token.startsWith("#") || token.isEmpty())
+				if (token.startsWith("#") || token.isEmpty())
 				{
 					// comment line, by RFC 2483
 					continue;
@@ -893,7 +893,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 		// Change input choice to file if text in textfield was changed explicitly
 		
 		String text = textArea.getText();
-		if(text.isEmpty() || text.equals(defaultText))
+		if (text.isEmpty() || text.equals(defaultText))
 		{
 			// changed to default, do nothing
 		}
@@ -901,12 +901,12 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 		{
 			// there was a non-default change in the textfield. 
 			// set input choice to file if it was TextArea for labelImage 
-			if(defaultText.equals(GenericDialogGUI.TextDefaultLabelImage))
+			if (defaultText.equals(GenericDialogGUI.TextDefaultLabelImage))
 			{
 				gd.setInitToFileInput();
 				gd.setLabelImageChoiceEmpty();
 			}
-			if(defaultText.equals(GenericDialogGUI.TextDefaultInputImage))
+			if (defaultText.equals(GenericDialogGUI.TextDefaultInputImage))
 			{
 				gd.setInputImageChoiceEmpty();
 			}
@@ -918,7 +918,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 	@Override
 	public void focusGained(FocusEvent e)
 	{
-		if(textArea.getText().equals(defaultText))
+		if (textArea.getText().equals(defaultText))
 		{
 			// delete defaultText on focus gain to allow input
 			textArea.setText("");
@@ -933,7 +933,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 	@Override
 	public void focusLost(FocusEvent e)
 	{
-		if(textArea.getText().isEmpty())
+		if (textArea.getText().isEmpty())
 		{
 			// there was no input. recover default text on focus lost
 			textArea.setText(defaultText);
@@ -971,7 +971,7 @@ class FileOpenerActionListener implements ActionListener
 		String dir = fd.getDirectory();
 		String file = fd.getFile();
 		
-		if(file!=null && dir!=null)
+		if (file!=null && dir!=null)
 		{
 			ta.setText(dir+file);
 		}
@@ -999,7 +999,7 @@ class NumericFieldWheelListener implements MouseWheelListener
 		
 		boolean inc=false;
 		double f = 1.0;
-		if(n>0){
+		if (n>0){
 			f = 1-fac;
 		}
 		else{
@@ -1012,20 +1012,20 @@ class NumericFieldWheelListener implements MouseWheelListener
 		double val = Double.valueOf(tf.getText());
 		
 		boolean isInteger=false;
-		if(val==Math.floor(val))
+		if (val==Math.floor(val))
 			isInteger=true;
 		
 		
 		System.out.println(val);
-		for(int i=0; i<n; i++)
+		for (int i=0; i<n; i++)
 		{
 			val*=f;
 		}
-		if(isInteger && !inc)
+		if (isInteger && !inc)
 			val=Math.floor(val);
-		if(isInteger && inc)
+		if (isInteger && inc)
 			val=Math.ceil(val);
-		if(inc && val==0)
+		if (inc && val==0)
 			val=1;
 		tf.setText(Double.toString(val));
 		System.out.println("wheeee "+val);

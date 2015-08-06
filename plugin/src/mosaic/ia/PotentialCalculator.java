@@ -41,7 +41,7 @@ class PotentialCalculator {
 		switch(type)
 		{
 		case 1:	//step
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double threshold=Math.abs(params[1]);
 				double epsilon=Math.abs(params[0]);
@@ -51,7 +51,7 @@ class PotentialCalculator {
 			}
 			break;
 		case 2: //hernquist
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				
 				double threshold=0;
@@ -68,7 +68,7 @@ class PotentialCalculator {
 			}
 			break;
 		case 3: //l1
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double threshold=0;
 		
@@ -81,7 +81,7 @@ class PotentialCalculator {
 			}
 			break;
 		case 4: //l2
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double threshold=0;
 				double sigma=Math.abs(params[1]);
@@ -92,7 +92,7 @@ class PotentialCalculator {
 			}
 			break;
 		case 5: //l2
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double threshold=0;
 				double sigma=Math.abs(params[1]);
@@ -103,7 +103,7 @@ class PotentialCalculator {
 			}
 			break;
 		case 6: //nonparam
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double [] weights=params;
 				potential[i]=PotentialFunctions.nonParametric(D_sample[i], weights);
@@ -113,7 +113,7 @@ class PotentialCalculator {
 			break;
 			
 		case 7: //coulomb
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double threshold=0;
 				double sigma=Math.abs(params[1]);
@@ -137,7 +137,7 @@ class PotentialCalculator {
 		switch(type)
 		{
 		case 1:	//step
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double threshold=Math.abs(params[1]);
 				
@@ -148,7 +148,7 @@ class PotentialCalculator {
 			
 			break;
 		case 2: //hernquist
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double threshold=0;
 				double sigma=Math.abs(params[1]);
@@ -158,7 +158,7 @@ class PotentialCalculator {
 			}
 			break;
 		case 3: //l1
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double threshold=0;
 				double sigma=Math.abs(params[1]);
@@ -169,7 +169,7 @@ class PotentialCalculator {
 			}
 			break;
 		case 4: //l2
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double threshold=0;
 				double sigma=Math.abs(params[1]);
@@ -180,7 +180,7 @@ class PotentialCalculator {
 			}
 			break;
 		case 5: //l2
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double threshold=0;
 				double sigma=Math.abs(params[1]);
@@ -191,7 +191,7 @@ class PotentialCalculator {
 			}
 			break;
 		case 6: //nonparam
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double [] weights=params;
 				potential[i]=PotentialFunctions.nonParametric(D_sample[i], weights);
@@ -201,7 +201,7 @@ class PotentialCalculator {
 			break;
 			
 		case 7: //coulomb
-			for(int i=0;i<D_sample.length;i++)
+			for (int i=0;i<D_sample.length;i++)
 			{
 				double threshold=0;
 				double sigma=Math.abs(params[1]);

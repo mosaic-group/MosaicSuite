@@ -57,7 +57,7 @@ public class TopologicalNumberImageFunction
 	protected void initOffsets()
 	{
         // allocate points
-        for(int i=0; i<imageSize; i++)
+        for (int i=0; i<imageSize; i++)
         {
         	m_Offsets[i] = new Point(dimension);
         }
@@ -93,14 +93,14 @@ public class TopologicalNumberImageFunction
         
         readImageData(index);
         
-        for(int vLinearIndex:TFGConnectivity.itOfsInt())
+        for (int vLinearIndex:TFGConnectivity.itOfsInt())
         {
             if (m_DataSubImage[vLinearIndex] != Zero) {
                 vAdjacentLabels.add(m_DataSubImage[vLinearIndex]);
             }
         }
 
-        for(int vLabelsIt : vAdjacentLabels)
+        for (int vLabelsIt : vAdjacentLabels)
         {
             for (int i = 0; i < imageSize; ++i) 
             {

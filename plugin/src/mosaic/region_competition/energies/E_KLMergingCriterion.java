@@ -38,12 +38,12 @@ public class E_KLMergingCriterion extends ExternalEnergy
 	{
 		// store this event to check afterwards if we should merge
 		// the 2 regions.
-		if(aLabelA != bgLabel && aLabelB != bgLabel) // we are competeing.
+		if (aLabelA != bgLabel && aLabelB != bgLabel) // we are competeing.
 		{ 
 			/// test if merge should be performed:
 			double value = CalculateKLMergingCriterion(aLabelA, aLabelB);
 //			debug("KL: it="+m_iteration_counter+" "+aLabelA+" "+aLabelB+" "+value);
-			if(value < m_RegionMergingThreshold)
+			if (value < m_RegionMergingThreshold)
 			{
 				return true;
 			}
@@ -83,15 +83,15 @@ public class E_KLMergingCriterion extends ExternalEnergy
 		double vVar12 = (1.0 / (aN1 + aN2 - 1.0))
 				* (vSumOfSq1 + vSumOfSq2 - (aN1 + aN2) * vMu12 * vMu12);
 		
-		if(vVar12<=0)
+		if (vVar12<=0)
 		{
 //			System.out.print("vVar12==0");
 			debug("vVar12==0");
 			return 0;
 		}
-		if(aVar1<0)
+		if (aVar1<0)
 			aVar1=0;
-		if(aVar2<0)
+		if (aVar2<0)
 			aVar2=0;
 
 		double vDKL1 = (aMu1 - vMu12) * (aMu1 - vMu12) / (2.0 * vVar12) + 0.5
@@ -101,7 +101,7 @@ public class E_KLMergingCriterion extends ExternalEnergy
 				* (aVar2 / vVar12 - 1.0 - Math.log(aVar2 / vVar12));
 
 		double result = vDKL1 + vDKL2;
-		if(Double.isNaN(result))
+		if (Double.isNaN(result))
 		{
 			debug("CalculateKLMergingCriterion is NaN");
 			throw new RuntimeException("Double.isNaN in CalculateKLMergingCriterion");

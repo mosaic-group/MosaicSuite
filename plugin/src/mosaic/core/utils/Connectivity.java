@@ -61,7 +61,7 @@ public class Connectivity implements Iterable<Point>
 	 */
 	public Connectivity getNeighborhoodConnectivity()
 	{
-		if(neighborhoodConnectivity==null)
+		if (neighborhoodConnectivity==null)
 		{
 			initNeighborhoodConnectivity();
 		}
@@ -78,7 +78,7 @@ public class Connectivity implements Iterable<Point>
 	{
 		//TODO zwischenspeichern
 		
-		if(VCellDim == VDim-1)
+		if (VCellDim == VDim-1)
 			return new Connectivity(VDim, 0);
 		else
 			return new Connectivity(VDim, VDim-1);
@@ -91,7 +91,7 @@ public class Connectivity implements Iterable<Point>
 	private int ComputeNumberOfNeighbors()
 	{
 		int numberOfNeighbors = 0;
-		for(int i = VCellDim; i <= VDim - 1; ++i) 
+		for (int i = VCellDim; i <= VDim - 1; ++i) 
 		{
 			numberOfNeighbors += 
 				factorial(VDim)/(factorial(VDim - i) * factorial(i)) * (1<<(VDim-i));
@@ -108,12 +108,12 @@ public class Connectivity implements Iterable<Point>
 	{
 		int currentNbNeighbors = 0;
 
-		for(int i = 0; i < m_NeighborhoodSize; ++i) 
+		for (int i = 0; i < m_NeighborhoodSize; ++i) 
 		{
 			Point p = ofsIndexToPoint(i);
 			int numberOfZeros = countZeros(p);
 
-			if(numberOfZeros != VDim && numberOfZeros >= VCellDim) 
+			if (numberOfZeros != VDim && numberOfZeros >= VCellDim) 
 			{
 				neighborsP[currentNbNeighbors] = p;
 				neighborsOfs[currentNbNeighbors] = i;
@@ -129,9 +129,9 @@ public class Connectivity implements Iterable<Point>
 	 */
 	public boolean isNeighborhoodOfs(Point ofs)
 	{
-		for(Point p : neighborsP) 
+		for (Point p : neighborsP) 
 		{
-			if(ofs.equals(p)) {
+			if (ofs.equals(p)) {
 				return true;
 			}
 		}
@@ -146,9 +146,9 @@ public class Connectivity implements Iterable<Point>
 	public boolean isNeighborhoodOfs(int ofs)
 	{
 		//TODO to be tested
-		for(int idx : neighborsOfs) 
+		for (int idx : neighborsOfs) 
 		{
-			if(ofs==idx) {
+			if (ofs==idx) {
 				return true;
 			}
 		}
@@ -181,7 +181,7 @@ public class Connectivity implements Iterable<Point>
 		int remainder = offset;
 		int x[] = new int[VDim];
 	
-		for(int i = 0; i < this.VDim; ++i) 
+		for (int i = 0; i < this.VDim; ++i) 
 		{
 			x[i] = remainder % 3;	// x for this dimension
 			remainder -= x[i]; 		// 
@@ -202,7 +202,7 @@ public class Connectivity implements Iterable<Point>
 	{
 		 int offset=0;
 		 int factor=1;
-		 for(int i=0; i<VDim; i++)
+		 for (int i=0; i<VDim; i++)
 		 {
 			 offset += factor * (p.x[i]+1);
 			 factor*=3;
@@ -243,9 +243,9 @@ public class Connectivity implements Iterable<Point>
 	private static int countZeros(Point p)
 	{
 		int count=0;
-		for(int i: p.x)
+		for (int i: p.x)
 		{
-			if(i==0) count++;
+			if (i==0) count++;
 		}
 		return count;
 	}
@@ -259,7 +259,7 @@ public class Connectivity implements Iterable<Point>
 	private static int factorial(int n)
 	{
 		int fac = 1;
-		for(int i = 1; i <= n; i++) {
+		for (int i = 1; i <= n; i++) {
 			fac = i * fac;
 		}
 		return fac;
@@ -400,7 +400,7 @@ public class Connectivity implements Iterable<Point>
 		connectivities.ensureCapacity(VDim+1);
 		
 		int size = connectivities.size();
-		while(size<=VDim)
+		while (size<=VDim)
 		{
 			size++;
 			connectivities.add(new Connectivity[size]);
@@ -409,7 +409,7 @@ public class Connectivity implements Iterable<Point>
 		Connectivity[] conns = connectivities.get(VDim);
 		Connectivity conn = conns[VCellDim];
 		
-		if(conn==null){
+		if (conn==null){
 			conn = new Connectivity(VDim, VCellDim);
 			conns[VCellDim]=conn;
 		}

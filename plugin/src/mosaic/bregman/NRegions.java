@@ -78,7 +78,7 @@ class NRegions implements Runnable{
 		p.ni=p.ni*p.model_oversampling;
 		p.nj=p.nj*p.model_oversampling;
 
-		if(p.nz>1)
+		if (p.nz>1)
 			osz=p.model_oversampling;
 		else
 			osz=1;
@@ -90,7 +90,7 @@ class NRegions implements Runnable{
 		this.nz=p.nz;
 
 		bits= img.getBitDepth();
-		if(bits==32){IJ.log("Error converting float image to short");}
+		if (bits==32){IJ.log("Error converting float image to short");}
 
 		this.channel=channel;
 
@@ -100,7 +100,7 @@ class NRegions implements Runnable{
 		//allocate
 		image = new double [nz] [ni] [nj];
 		mask= new double [nl] [nz] [ni] [nj];
-		if(p.nlevels >1  || !p.usePSF) //save memory when Ei not needed
+		if (p.nlevels >1  || !p.usePSF) //save memory when Ei not needed
 			Ei = new double [nl] [nz] [ni] [nj];
 		else
 			Ei=null;
@@ -121,8 +121,8 @@ class NRegions implements Runnable{
 				{
 					for (int j=0;j< nj/os; j++)
 					{
-						if(imp.getPixel(i,j)>max)max=imp.getPixel(i,j);
-						if(imp.getPixel(i,j)<min)min=imp.getPixel(i,j);
+						if (imp.getPixel(i,j)>max)max=imp.getPixel(i,j);
+						if (imp.getPixel(i,j)<min)min=imp.getPixel(i,j);
 					}	
 				}
 			}
@@ -136,9 +136,9 @@ class NRegions implements Runnable{
 		//IJ.log("before, max : " + max + " min : " + min);
 
 
-		if(p.usecellmaskX && channel==0)
+		if (p.usecellmaskX && channel==0)
 			Analysis.cellMaskABinary=createBinaryCellMask(Analysis.p.thresholdcellmask*(max-min) +min, img, channel, osz);
-		if(p.usecellmaskY && channel==1)
+		if (p.usecellmaskY && channel==1)
 			Analysis.cellMaskBBinary=createBinaryCellMask(Analysis.p.thresholdcellmasky*(max-min) +min, img, channel, osz);
 		//get imagedata and copy to array image
 
@@ -151,7 +151,7 @@ class NRegions implements Runnable{
 			imp=img.getProcessor();
 			//remove background
 			//rollingball version
-			if(p.removebackground)
+			if (p.removebackground)
 			{
 				bs.rollingBallBackground(imp, p.size_rollingball, false, false, false, true, true);
 			}
@@ -166,8 +166,8 @@ class NRegions implements Runnable{
 				for (int j=0;j< nj; j++)
 				{  
 					image[z][i][j]=imp.getPixel(i/os,j/os);					
-					if(image[z][i][j]>max)max=image[z][i][j];
-					if(image[z][i][j]<min)min=image[z][i][j];
+					if (image[z][i][j]>max)max=image[z][i][j];
+					if (image[z][i][j]<min)min=image[z][i][j];
 				}	
 			}
 			
@@ -178,7 +178,7 @@ class NRegions implements Runnable{
 		if (Analysis.norm_max != 0)
 		{
 			max = Analysis.norm_max;
-			if(p.removebackground)
+			if (p.removebackground)
 			{
 				// if we are removing the background we have no idea which
 				// is the minumum across all the movie so let be conservative and put
@@ -193,7 +193,7 @@ class NRegions implements Runnable{
 		}
 		
 		//IJ.log("after, max : " + max + " min : " + min);
-		if(p.livedisplay && p.removebackground)
+		if (p.livedisplay && p.removebackground)
 		{
 			ImagePlus back=img.duplicate();
 			back.setTitle("Background reduction channel " + (channel+1));
@@ -217,12 +217,12 @@ class NRegions implements Runnable{
 			}
 		}
 
-		if(p.nlevels>2)
+		if (p.nlevels>2)
 		{
 			p.cl=cluster();
 		}
 
-		if(p.nlevels==2 || p.nlevels==1)
+		if (p.nlevels==2 || p.nlevels==1)
 		{
 
 			p.cl[0]=p.betaMLEoutdefault;//0.0027356;
@@ -231,7 +231,7 @@ class NRegions implements Runnable{
 			//p.cl[1]=0.2;
 		}
 
-		if(Analysis.p.automatic_int)
+		if (Analysis.p.automatic_int)
 		{
 			double [] levs=cluster_int(5);
 			p.cl[0]=levs[0];//0.0027356;
@@ -251,14 +251,14 @@ class NRegions implements Runnable{
 		//IJ.log(String.format(" cl0 :  %4.2e %ncl1 :  %4.2e %ncl2 :  %4.2e %ncl3 :  %4.2e %ncl4 :  %4.2e %n",
 		//		 p.cl[0],p.cl[1],p.cl[2],p.cl[3],p.cl[4]));
 
-		//		if(p.livedisplay){
+		//		if (p.livedisplay){
 		//			IJ.log("Intensities :");
-		//			for(int i=0; i <p.nlevels; i++){
+		//			for (int i=0; i <p.nlevels; i++){
 		//				IJ.log("level "+ i +" :"+ p.cl[i]);
 		//			}
 		//		}
 
-		if(p.JunitTest)
+		if (p.JunitTest)
 		{
 			p.cl[0]=0.00227;
 			p.cl[1]=0.0504;
@@ -270,9 +270,9 @@ class NRegions implements Runnable{
 		//md= new MasksDisplay(ni,nj,nz,nl,p.cl,p);
 		LocalTools.createmask(mask, image,p.cl);	
 		//md.display2regionsnewd(mask[0][0], "mask init", 0);
-		if(p.nlevels >1  || !p.usePSF)
+		if (p.nlevels >1  || !p.usePSF)
 		{
-			for(int i =0; i< nl;i++)
+			for (int i =0; i< nl;i++)
 			{
 				//Tools.nllMeanPoisson(Ei[i], image, p.cl[i], 1, p.ldata );
 				LocalTools.nllMean1(Ei[i], image, p.cl[i], 1, p.ldata );
@@ -283,7 +283,7 @@ class NRegions implements Runnable{
 
 	//	private int returnpix(ImageProcessor imp){
 	//		
-	//		if(bits==32)
+	//		if (bits==32)
 	//		Float.intBitsToFloat()
 	//	}
 
@@ -304,13 +304,13 @@ class NRegions implements Runnable{
 
 		double minInt=Analysis.p.min_intensity;
 		Analysis.p.min_intensity=0;
-		if(channel==0){
+		if (channel==0){
 			//Analysis.maxmaska=A_solver.maxmask;
 			Analysis.setmaska(A_solver.maxmask);
 			Analysis.bestEnergyX=A_solver.bestNrj;
 			//Analysis.maska=A_solver.w3k[0];
-			if(!Analysis.p.looptest){
-				if(p.nlevels==2)Analysis.compute_connected_regions_a(0.5,null);
+			if (!Analysis.p.looptest){
+				if (p.nlevels==2)Analysis.compute_connected_regions_a(0.5,null);
 				else Analysis.compute_connected_regions_a(1.5,null);
 				A_solver=null;
 			}
@@ -322,8 +322,8 @@ class NRegions implements Runnable{
 			Analysis.bestEnergyY=A_solver.bestNrj;
 			//Analysis.maxmaskb=A_solver.maxmask;
 			//Analysis.maskb=A_solver.w3k[0];	
-			if(!Analysis.p.looptest){
-				if(p.nlevels==2)Analysis.compute_connected_regions_b(0.5,null);
+			if (!Analysis.p.looptest){
+				if (p.nlevels==2)Analysis.compute_connected_regions_b(0.5,null);
 				else Analysis.compute_connected_regions_b(1.5,null);
 				A_solver=null;
 			}
@@ -480,7 +480,7 @@ class NRegions implements Runnable{
 			byte[] maska_bytes = new byte[ni*nj];
 			for (int i=0; i<ni; i++){  
 				for (int j=0;j< nj; j++){  
-					if(imp.getPixel(i/p.model_oversampling,j/p.model_oversampling)>threshold)
+					if (imp.getPixel(i/p.model_oversampling,j/p.model_oversampling)>threshold)
 						maska_bytes[j * ni + i]=(byte) 255;
 					else 
 						maska_bytes[j * ni + i]=0;
@@ -505,7 +505,7 @@ class NRegions implements Runnable{
 		IJ.run(maska_im, "Invert", "stack");
 		//maska_im.show("mask");
 
-		if(Analysis.p.dispwindows && Analysis.p.livedisplay){
+		if (Analysis.p.dispwindows && Analysis.p.livedisplay){
 		maska_im.show();
 	}
 		

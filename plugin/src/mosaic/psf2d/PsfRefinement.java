@@ -120,7 +120,7 @@ public class PsfRefinement{
 		/* Set every value that ist smaller than 0 to 0 */		
 		for (int i = 0; i < ip.getHeight(); i++) {
 			for (int j = 0; j < ip.getWidth(); j++) {
-				if(ip.getPixelValue(j, i) < 0.0)
+				if (ip.getPixelValue(j, i) < 0.0)
 					ip.putPixelValue(j, i, 0.0);
 			}
 		}
@@ -134,13 +134,13 @@ public class PsfRefinement{
 				epsx = 0.0F;
 				epsy = 0.0F;
 								
-				for(k = -radius; k <= radius; k++) {
-					if(((int)particle.y + k) < 0 || ((int)particle.y + k) >= ip.getHeight())
+				for (k = -radius; k <= radius; k++) {
+					if (((int)particle.y + k) < 0 || ((int)particle.y + k) >= ip.getHeight())
 						continue;
 					y = (int)particle.y + k;
 
-					for(l = -radius; l <= radius; l++) {
-						if(((int)particle.x + l) < 0 || ((int)particle.x + l) >= ip.getWidth())
+					for (l = -radius; l <= radius; l++) {
+						if (((int)particle.x + l) < 0 || ((int)particle.x + l) >= ip.getWidth())
 							continue;
 						x = (int)particle.x + l;
 
@@ -160,24 +160,24 @@ public class PsfRefinement{
 				tx = (int)(10.0 * epsx);
 				ty = (int)(10.0 * epsy);
 
-				if((ty)/10.0 > 0.5) {
-					if((int)particle.y + 1 < ip.getHeight())
+				if ((ty)/10.0 > 0.5) {
+					if ((int)particle.y + 1 < ip.getHeight())
 						particle.y++;
 				}
-				else if((ty)/10.0 < -0.5) {
-					if((int)particle.y - 1 >= 0)
+				else if ((ty)/10.0 < -0.5) {
+					if ((int)particle.y - 1 >= 0)
 						particle.y--;						
 				}
-				if((tx)/10.0 > 0.5) {
-					if((int)particle.x + 1 < ip.getWidth())
+				if ((tx)/10.0 > 0.5) {
+					if ((int)particle.x + 1 < ip.getWidth())
 						particle.x++;
 				}
-				else if((tx)/10.0 < -0.5) {
-					if((int)particle.x - 1 >= 0)
+				else if ((tx)/10.0 < -0.5) {
+					if ((int)particle.x - 1 >= 0)
 						particle.x--;
 				}
 
-				if((ty)/10.0 <= 0.5 && (ty)/10.0 >= -0.5 && (tx)/10.0 <= 0.5 && (tx)/10.0 >= -0.5)
+				if ((ty)/10.0 <= 0.5 && (ty)/10.0 >= -0.5 && (tx)/10.0 <= 0.5 && (tx)/10.0 >= -0.5)
 					break;
 			}
 			
@@ -197,10 +197,10 @@ public class PsfRefinement{
     	int width = (2 * mask_radius) + 1;
     	this.mask = new int[width*width];
 
-    	for(int i = -mask_radius; i <= mask_radius; i++) {
-    		for(int j = -mask_radius; j <= mask_radius; j++) {
+    	for (int i = -mask_radius; i <= mask_radius; i++) {
+    		for (int j = -mask_radius; j <= mask_radius; j++) {
     			int index = coord(i + mask_radius, j + mask_radius, width);
-    			if((i * i) + (j * j) <= mask_radius * mask_radius)
+    			if ((i * i) + (j * j) <= mask_radius * mask_radius)
     				this.mask[index] = 1;
     			else
     				this.mask[index] = 0;

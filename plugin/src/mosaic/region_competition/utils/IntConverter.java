@@ -26,7 +26,7 @@ public class IntConverter
 		ImageStack newStack = new ImageStack(ip.getWidth(), ip.getHeight());
 		
 		ImagePlus newIP = new ImagePlus();
-		for(int i=1; i<=nSlices; i++)
+		for (int i=1; i<=nSlices; i++)
 		{
 			ImageProcessor proc = stack.getProcessor(i);
 			ColorProcessor newProc = procToIntProc(proc);
@@ -48,7 +48,7 @@ public class IntConverter
 		Object pixels = proc.getPixels();
 		
 		int[] intArray = null;
-		if(pixels instanceof int[]){
+		if (pixels instanceof int[]){
 			intArray = ((int[])pixels).clone();
 		} else {
 			intArray = arrayToInt(pixels);
@@ -69,11 +69,11 @@ public class IntConverter
 	{
 		int[] intArray = null;
 		
-		if(array instanceof float[]){
+		if (array instanceof float[]){
 			intArray = floatToInt((float[])array);
-		} else if(array instanceof byte[]){
+		} else if (array instanceof byte[]){
 			intArray = byteToInt((byte[])array);
-		} else if(array instanceof short[]){
+		} else if (array instanceof short[]){
 			intArray = shortToInt((short[])array);
 		} else {
 			throw new RuntimeException("not Supported conversion");
@@ -87,7 +87,7 @@ public class IntConverter
 		int n = proc.length;
 		int[] pixels = new int[n];
 		
-		for(int i=0; i<n; i++) {
+		for (int i=0; i<n; i++) {
 			pixels[i] = (int)proc[i];
 		}
 		return pixels;
@@ -98,7 +98,7 @@ public class IntConverter
 		int n = proc.length;
 		int[] pixels = new int[n];
 		
-		for(int i=0; i<n; i++) {
+		for (int i=0; i<n; i++) {
 			pixels[i] = proc[i];
 		}
 		return pixels;
@@ -109,7 +109,7 @@ public class IntConverter
 		int n = proc.length;
 		int[] pixels = new int[n];
 		
-		for(int i=0; i<n; i++) {
+		for (int i=0; i<n; i++) {
 			pixels[i] = proc[i];
 		}
 		return pixels;
@@ -135,36 +135,36 @@ public class IntConverter
 		int n = ints.length;
 		short[] shorts = new short[n];
 		
-		if(abs){
-			for(int i=0; i<n; i++) {
+		if (abs){
+			for (int i=0; i<n; i++) {
 				int a = Math.abs(ints[i]);
-				if(clamp)
+				if (clamp)
 				{
-					if(a>Short.MAX_VALUE)
+					if (a>Short.MAX_VALUE)
 						a=Short.MAX_VALUE;
 				}
 				shorts[i] = (short)a;
 			}
 		} else {
-			for(int i=0; i<n; i++) {
+			for (int i=0; i<n; i++) {
 				int a = ints[i];
-				if(clamp)
+				if (clamp)
 				{
-					if(a>Short.MAX_VALUE)
+					if (a>Short.MAX_VALUE)
 						a=Short.MAX_VALUE;
-					else if(a<Short.MIN_VALUE)
+					else if (a<Short.MIN_VALUE)
 						a=Short.MIN_VALUE;
 				}
 				shorts[i] = (short)a;
 			}
 		}
 		
-		if(borderRemove)
+		if (borderRemove)
 		{
-			for(int i=0; i<n; i++) 
+			for (int i=0; i<n; i++) 
 			{
 				short a = shorts[i];
-				if(a==Short.MAX_VALUE){
+				if (a==Short.MAX_VALUE){
 					a=0;
 				}
 				shorts[i]=a;
@@ -190,15 +190,15 @@ public class IntConverter
 		
 		Cursor <IntType> cur = ints.cursor();
 		
-		if(abs)
+		if (abs)
 		{
-			for(int i=0; i<n && cur.hasNext(); i++) 
+			for (int i=0; i<n && cur.hasNext(); i++) 
 			{
 				cur.fwd();
 				int a = Math.abs(cur.get().get());
-				if(clamp)
+				if (clamp)
 				{
-					if(a>Short.MAX_VALUE)
+					if (a>Short.MAX_VALUE)
 						a=Short.MAX_VALUE;
 				}
 				shorts[i] = (short)a;
@@ -206,27 +206,27 @@ public class IntConverter
 		} 
 		else 
 		{
-			for(int i=0; i<n && cur.hasNext(); i++) 
+			for (int i=0; i<n && cur.hasNext(); i++) 
 			{
 				cur.fwd();
 				int a = Math.abs(cur.get().get());
-				if(clamp)
+				if (clamp)
 				{
-					if(a>Short.MAX_VALUE)
+					if (a>Short.MAX_VALUE)
 						a=Short.MAX_VALUE;
-					else if(a<Short.MIN_VALUE)
+					else if (a<Short.MIN_VALUE)
 						a=Short.MIN_VALUE;
 				}
 				shorts[i] = (short)a;
 			}
 		}
 		
-		if(borderRemove)
+		if (borderRemove)
 		{
-			for(int i=0; i<n; i++) 
+			for (int i=0; i<n; i++) 
 			{
 				short a = shorts[i];
-				if(a==Short.MAX_VALUE){
+				if (a==Short.MAX_VALUE){
 					a=0;
 				}
 				shorts[i]=a;
@@ -247,10 +247,10 @@ public class IntConverter
 		int area = stack.getWidth()*stack.getHeight();
 		result = new int[zs*area];
 		
-		for(int z=0; z<zs; z++)
+		for (int z=0; z<zs; z++)
 		{
 			int[] pixels = (int[])stack.getPixels(z+1);
-			for(int j=0; j<area; j++){
+			for (int j=0; j<area; j++){
 				result[z*area+j]=pixels[j];
 			}
 		}
@@ -309,7 +309,7 @@ public class IntConverter
 		int area = w*h;
 		
 		ImageStack stack = new ImageStack(w,h);
-		for(int i=0; i<z; i++)
+		for (int i=0; i<z; i++)
 		{
 			Object pixels = Arrays.copyOfRange(shortData, i*area, (i+1)*area);
 			stack.addSlice("", pixels);
@@ -331,7 +331,7 @@ public class IntConverter
 		int area = w*h;
 		
 		ImageStack stack = new ImageStack(w,h);
-		for(int i=0; i<z; i++)
+		for (int i=0; i<z; i++)
 		{
 			Object pixels = Arrays.copyOfRange(shortData, i*area, (i+1)*area);
 			stack.addSlice("", pixels);
@@ -354,13 +354,13 @@ public class IntConverter
 		w=dims[0];
 		h=dims[1];
 		z=1;
-		if(dim==3){
+		if (dim==3){
 			z=dims[2];
 		}
 		int area = w*h;
 		
 		ImageStack stack = new ImageStack(w,h);
-		for(int i=0; i<z; i++)
+		for (int i=0; i<z; i++)
 		{
 			Object pixels = Arrays.copyOfRange(intData, i*area, (i+1)*area);
 			stack.addSlice("", pixels);
@@ -377,7 +377,7 @@ public class IntConverter
 		w=dims[0];
 		h=dims[1];
 		z=1;
-		if(dim==3){
+		if (dim==3){
 			z=dims[2];
 		}
 		int area = w*h;
@@ -387,7 +387,7 @@ public class IntConverter
 		
 		Cursor<IntType> cur = initData.cursor();
 		
-		for(int i=0; i<z && cur.hasNext(); i++)
+		for (int i=0; i<z && cur.hasNext(); i++)
 		{
 			for (int j = 0 ; j < area && cur.hasNext() ; j++)
 			{

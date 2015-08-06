@@ -73,7 +73,7 @@ public class CircleMask  extends Mask
 	private float rHypEllipse(int[] vIndex)
 	{
 		float vHypEllipse = 0.0f;
-		for(int vD = 0; vD < dim; vD++)
+		for (int vD = 0; vD < dim; vD++)
 		{
 			vHypEllipse += 
 				(vIndex[vD] + 0.5 - (m_Size[vD]) / 2.0)*spacing[vD]
@@ -90,7 +90,7 @@ public class CircleMask  extends Mask
 		{
 			p = p.add(ps);
 			float vHypEllipse = rHypEllipse(p.x);
-			if(vHypEllipse >= 1.0f)
+			if (vHypEllipse >= 1.0f)
 			{
 				return true;
 			}
@@ -103,13 +103,13 @@ public class CircleMask  extends Mask
 		Connectivity c = new Connectivity(this.dim,this.dim-1);
 		fgPoints = 0;
 		int size = iterator.getSize();
-		for(int i=0; i<size; i++)	// over region
+		for (int i=0; i<size; i++)	// over region
 		{
 			Point ofs = iterator.indexToPoint(i);
 			
 			float vHypEllipse = rHypEllipse(ofs.x);
 			
-			if(vHypEllipse < 1.0f)
+			if (vHypEllipse < 1.0f)
 			{
 				// Check the neighboorhood
 				

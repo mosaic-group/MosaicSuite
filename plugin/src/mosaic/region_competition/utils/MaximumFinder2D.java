@@ -35,7 +35,7 @@ public class MaximumFinder2D extends MaximumFinder implements MaximumFinderInter
     	int[] ys = poly.ypoints;
     	
     	ArrayList<Point> list = new ArrayList<Point>(n);
-    	for(int i=0; i<n; i++)
+    	for (int i=0; i<n; i++)
     	{
     		list.add(new Point(new int[]{xs[i], ys[i]}));
     	}

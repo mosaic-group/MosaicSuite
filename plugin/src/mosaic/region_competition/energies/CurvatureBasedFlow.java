@@ -80,14 +80,14 @@ public class CurvatureBasedFlow
 			
 			//directly access data; only 1-2% faster
 //			int absLabel=labelImage.labelIP.get(idx);
-//			if(absLabel >= LabelImage.negOfs)
+//			if (absLabel >= LabelImage.negOfs)
 //				absLabel-=LabelImage.negOfs;
 			
-			if(absLabel==aTo)
+			if (absLabel==aTo)
 			{
 				vNto++;
 			}
-			else if(absLabel==aFrom)
+			else if (absLabel==aFrom)
 			{
 				vNFrom++;
 			}
@@ -98,27 +98,27 @@ public class CurvatureBasedFlow
 		RegionIterator it = new RegionIterator(labelImage.getDimensions(), this.m_Size, start.x);
 		RegionIteratorMask maskIt = new RegionIteratorMask(inputDims, this.m_Size, start.x);
 		
-		while(it.hasNext())	// iterate over sphere region
+		while (it.hasNext())	// iterate over sphere region
 		{
 			int idx = it.next();
 			
 			int maskIdx = maskIt.next();
 			int maskvalue = mask[maskIdx];
 			
-			if(maskvalue==fgVal)
+			if (maskvalue==fgVal)
 			{
 				int absLabel=labelImage.getLabelAbs(idx);
 				
 				//directly access data; only 1-2% faster
 //				int absLabel=labelImage.labelIP.get(idx);
-//				if(absLabel >= LabelImage.negOfs)
+//				if (absLabel >= LabelImage.negOfs)
 //					absLabel-=LabelImage.negOfs;
 				
-				if(absLabel==aTo)
+				if (absLabel==aTo)
 				{
 					vNto++;
 				}
-				else if(absLabel==aFrom)
+				else if (absLabel==aFrom)
 				{
 					vNFrom++;
 				}
@@ -130,11 +130,11 @@ public class CurvatureBasedFlow
 		
 		final float r = this.rad;
 		
-		if(dim == 2)
+		if (dim == 2)
 		{
 			vVolume = 3.141592f * r*r;
 		} 
-		else if(dim == 3)
+		else if (dim == 3)
 		{
 			vVolume = 1.3333333f * 3.141592f * r*r*r;
 		} 
@@ -147,7 +147,7 @@ public class CurvatureBasedFlow
 		///////////////////////////////////////////////
 		
 		
-		if(aFrom==labelImage.bgLabel)	// growing
+		if (aFrom==labelImage.bgLabel)	// growing
 		{
 			int vN=vNto;
 			if (dim== 2) {

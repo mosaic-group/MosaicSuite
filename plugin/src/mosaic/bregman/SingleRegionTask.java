@@ -61,7 +61,7 @@ class SingleRegionTask implements Runnable
 		dct2d.forward(AS.temp1[l][0], true);
 		for (int i=0; i<AS.ni; i++) {  
 			for (int j=0; j<AS.nj; j++) {  
-				if(AS.eigenLaplacian[i][j] !=0) AS.temp1[l][0][i][j]=AS.temp1[l][0][i][j]/AS.eigenLaplacian[i][j];
+				if (AS.eigenLaplacian[i][j] !=0) AS.temp1[l][0][i][j]=AS.temp1[l][0][i][j]/AS.eigenLaplacian[i][j];
 			}	
 		}
 		dct2d.inverse(AS.temp1[l][0], true);

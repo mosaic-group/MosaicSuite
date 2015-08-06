@@ -316,7 +316,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	            saved_options = Macro.getOptions();
 			} 
 			
-			if(!gd.wasCanceled() && gd.getNextChoice().equals("No"))
+			if (!gd.wasCanceled() && gd.getNextChoice().equals("No"))
 			{
 				IJ.run(imp, "Stack to Hyperstack...", "order=xyczt(default) channels=1 slices=1 frames=" + imp.getNSlices() + " display=Composite");
 			}
@@ -346,7 +346,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	{
 		initializeMembers();
 		 System.out.println("IJ macro is running: " + IJ.isMacro());
-		if(!text_files_mode && !IJ.isMacro()) 
+		if (!text_files_mode && !IJ.isMacro()) 
 		{
 			preview_canvas = detector.generatePreviewCanvas(original_imp);	
 		} 
@@ -570,7 +570,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			P_csv.setCSVPreferenceFromFile(files_dir + File.separator + file_sel);
 			Vector<Particle> p =  P_csv.Read(files_dir + File.separator + file_sel);
 			
-			if(p.size() == 0)
+			if (p.size() == 0)
 			{
 				IJ.error("No regions defined for this image,nothing to do");
 				return false;
@@ -974,11 +974,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
 //	private void thresholdModeChanged(int aThresholdMode) {
 //		setThresholdMode(aThresholdMode);
-//		if(aThresholdMode == ABS_THRESHOLD_MODE) {
+//		if (aThresholdMode == ABS_THRESHOLD_MODE) {
 //			int defaultIntensity = (int)(global_max - (global_max-global_min) / 5);
 //			((TextField)gd.getNumericFields().elementAt(2)).setText("" + defaultIntensity);
 //		}
-//		if(aThresholdMode == PERCENTILE_MODE) {
+//		if (aThresholdMode == PERCENTILE_MODE) {
 //			((TextField)gd.getNumericFields().elementAt(2)).setText(IJ.d2s(0.1, 5));
 //		}
 //
@@ -1965,19 +1965,19 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		this.number_of_trajectories = 0;
 		int cur_traj_start = 0;
 		
-		for(i = 0; i < frames_number; i++) 
+		for (i = 0; i < frames_number; i++) 
 		{
-			for(j = 0; j < this.frames[i].getParticles().size(); j++) 
+			for (j = 0; j < this.frames[i].getParticles().size(); j++) 
 			{	
-				if(!this.frames[i].getParticles().elementAt(j).special) 
+				if (!this.frames[i].getParticles().elementAt(j).special) 
 				{
 					this.frames[i].getParticles().elementAt(j).special = true;
 					found = -1;
 					// go over all particles that this particle (particles[j]) is linked to
-					for(n = 0; n < this.linkrange; n++) 
+					for (n = 0; n < this.linkrange; n++) 
 					{
 						// if it is NOT a dummy particle - stop looking
-						if(this.frames[i].getParticles().elementAt(j).next[n] != -1) 
+						if (this.frames[i].getParticles().elementAt(j).next[n] != -1) 
 						{
 							found = n;
 							break;
@@ -1985,13 +1985,13 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 					}
 					// if this particle is not linked to any other
 					// go to next particle and dont add a trajectory
-					if(found == -1)
+					if (found == -1)
 						continue;
 
 					// Added by Guy Levy, 18.08.06 - A change form original implementation
 					// if this particle is linkd to a "real" paritcle that was already linked
 					// break the trajectory and start again from the next particle. dont add a trajectory
-					if(this.frames[i + n + 1].getParticles().elementAt(this.frames[i].getParticles().elementAt(j).next[n]).special) 
+					if (this.frames[i + n + 1].getParticles().elementAt(this.frames[i].getParticles().elementAt(j).next[n]).special) 
 						continue;
 
 					// this particle is linked to another "real" particle that is not already linked
@@ -2006,11 +2006,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 					m = j;
 					do {
 						found = -1;
-						for(n = 0; n < this.linkrange; n++) {
-							if(this.frames[k].getParticles().elementAt(m).next[n] != -1) {
+						for (n = 0; n < this.linkrange; n++) {
+							if (this.frames[k].getParticles().elementAt(m).next[n] != -1) {
 								// If this particle is linked to a "real" particle that
 								// that is NOT already linked, continue with building the trajectory
-								if(this.frames[k + n + 1].getParticles().elementAt(this.frames[k].getParticles().elementAt(m).next[n]).special == false) {
+								if (this.frames[k + n + 1].getParticles().elementAt(this.frames[k].getParticles().elementAt(m).next[n]).special == false) {
 									found = n;
 									break;
 									// Added by Guy Levy, 18.08.06 - A change form original implementation
@@ -2021,13 +2021,13 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 								}
 							}
 						}
-						if(found == -1)
+						if (found == -1)
 							break;
 						m = this.frames[k].getParticles().elementAt(m).next[found];
 						k += (found + 1);
 						curr_traj_particles.add(this.frames[k].getParticles().elementAt(m));
 						this.frames[k].getParticles().elementAt(m).special = true;
-					} while(m != -1);					
+					} while (m != -1);					
 
 					// Create the current trajectory
 					Particle[] curr_traj_particles_array = new Particle[curr_traj_particles.size()];
@@ -2064,7 +2064,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		if (step == 0)
 			step = 1;
 		
-		for(int s = 0; s < all_traj.size() ; s++) 
+		for (int s = 0; s < all_traj.size() ; s++) 
 		{
 			vI.add(new Color(base));
 			base += step;
@@ -2072,7 +2072,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		
 		Collections.shuffle(vI);
 		
-		for(int s = 0; s < all_traj.size() ; s++) 
+		for (int s = 0; s < all_traj.size() ; s++) 
 		{			
 			all_traj.elementAt(s).color = vI.elementAt(s);
 		}
@@ -2176,7 +2176,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		
 		// create new directory
 		//		File newDir = new File(vFI.directory,"ParticleTracker3DResults");
-		//		if(!newDir.mkdir() && !newDir.exists()) {
+		//		if (!newDir.mkdir() && !newDir.exists()) {
 		//			IJ.error("You probably do not have the permission to write in the directory where your image is stored. Data are not written to disk.");
 		//			return;
 		//		}
@@ -2312,12 +2312,12 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			configuration.append("% \tCutoff radius: ");
 			configuration.append(detector.cutoff);
 			configuration.append("\n");
-			if(detector.threshold_mode == FeaturePointDetector.PERCENTILE_MODE) {
+			if (detector.threshold_mode == FeaturePointDetector.PERCENTILE_MODE) {
 				configuration.append("% \tPercentile: ");
 				configuration.append((detector.percentile*100));
 				configuration.append("\n");
 			}
-			else if(detector.threshold_mode == FeaturePointDetector.ABS_THRESHOLD_MODE) {
+			else if (detector.threshold_mode == FeaturePointDetector.ABS_THRESHOLD_MODE) {
 				configuration.append("% \tAbsolute threshold: ");
 				configuration.append((detector.absIntensityThreshold));
 				configuration.append("\n");
@@ -2708,11 +2708,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	//    	}
 	//    	//normalize the kernel numerically:
 	//    	float sum = 0;
-	//    	for(int i = 0; i < kernel.length; i++){
+	//    	for (int i = 0; i < kernel.length; i++){
 	//    		sum += kernel[i];
 	//    	}
 	//    	float scale = 1.0f/sum;
-	//    	for(int i = 0; i < kernel.length; i++){
+	//    	for (int i = 0; i < kernel.length; i++){
 	//    		kernel[i] *= scale;
 	//    	}
 	//    }
@@ -2727,13 +2727,13 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
  			for (int p = 0; p < frames[i].getParticles().size(); p++) 
  			{
  				Particle vParticle = frames[i].getParticles().elementAt(p);
- 				if(vParticle.x > vMax[0]) {
+ 				if (vParticle.x > vMax[0]) {
  					vMax[0] = (int) Math.ceil(vParticle.x);
  				}
- 				if(vParticle.y > vMax[1]) {
+ 				if (vParticle.y > vMax[1]) {
  					vMax[1] = (int) Math.ceil(vParticle.y);
  				}
- 				if(vParticle.z > vMax[2]) {
+ 				if (vParticle.z > vMax[2]) {
  					vMax[2] = (int) Math.ceil(vParticle.z);
  				}
  			}
@@ -2956,7 +2956,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
 		/* Add linking info */
 		report.append("% Trajectory linking (verbose output):\n");
-		for(int i = 0; i < frames.length; i++) {
+		for (int i = 0; i < frames.length; i++) {
 			report.append(this.frames[i].toStringBuffer());
 		}
 
@@ -3001,7 +3001,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				Element particleElement = doc.createElement("particle");
 				Trajectory curr_traj = iter.next();
 				
-				for(Particle vP : curr_traj.existing_particles) {
+				for (Particle vP : curr_traj.existing_particles) {
 					Element detectionElement = doc.createElement("detection");
 					detectionElement.setAttribute("t", "" + vP.getFrame());
 					detectionElement.setAttribute("x", "" + (vP.y-0.5f));

@@ -116,11 +116,11 @@ import java.util.Random; // Properties, Arrays.sort, Formatter not needed anymor
         cma.writeToDefaultFilesHeaders(0); // 0 == overwrites old files
 
         // iteration loop
-        while(cma.stopConditions.getNumber() == 0) {
+        while (cma.stopConditions.getNumber() == 0) {
 
             // core iteration step 
             double[][] pop = cma.samplePopulation(); // get a new population of solutions
-            for(int i = 0; i < pop.length; ++i) {    // for each candidate solution i
+            for (int i = 0; i < pop.length; ++i) {    // for each candidate solution i
                 fitness[i] = fitfun.valueOf(pop[i]); //    compute fitness value, where fitfun
             }                                        //    is the function to be minimized
             cma.updateDistribution(fitness);         // use fitness array to update search distribution
@@ -376,7 +376,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
 
     	if (fac != 1.) {
     		sigma /= fac;
-    		for(int i = 0; i < N; ++i) {
+    		for (int i = 0; i < N; ++i) {
     			pc[i] *= fac;
     			diagD[i] *= fac;
     			for (int j = 0; j <= i; ++j)
@@ -751,7 +751,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
     		}
     	}
     	String[] s = stopConditions.getMessages();
-    	if(!s[0].equals(""))
+    	if (!s[0].equals(""))
     		warning("termination condition satisfied at initialization: \n  " + s[0]);
 
     	initialX = xmean.clone(); // keep finally chosen initialX
@@ -760,7 +760,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
     	timings.starteigen = System.currentTimeMillis();
 
     	state = 0;
-    	if(options.verbosity > -1)
+    	if (options.verbosity > -1)
     		printlnHelloWorld();
 
     	return new double[sp.getLambda()];
@@ -984,7 +984,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
          */
         public double[] abs(double v[]) {
             double res[] = new double[v.length];
-            for(int i = 0; i < v.length; ++i)
+            for (int i = 0; i < v.length; ++i)
                 res[i] = Math.abs(v[i]);
             return res;
         }
@@ -1378,7 +1378,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
     		y = x.clone();
     		return y; // for now return an identical copy
     	}
-    	for(int i = 0; i < N; ++i)
+    	for (int i = 0; i < N; ++i)
     		y[i] = x[i];
     	return y;		
     }
@@ -1393,7 +1393,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
     		y = x.clone();
     		return y; // for now return an identical copy
     	}
-    	for(int i = 0; i < N; ++i)
+    	for (int i = 0; i < N; ++i)
     		y[i] = x[i];
     	return y;		
     }
@@ -1427,7 +1427,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
         if (options.lowerStandardDeviations != null && options.lowerStandardDeviations.length > 0)
             for (i = 0; i < N; ++i) {
                 double d = options.lowerStandardDeviations[Math.min(i,options.lowerStandardDeviations.length-1)]; 
-                if(d > sigma * minsqrtdiagC) 
+                if (d > sigma * minsqrtdiagC) 
                     sigma = d / minsqrtdiagC;
             }
         if (options.upperStandardDeviations != null && options.upperStandardDeviations.length > 0)
@@ -1754,8 +1754,8 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
      */
     double[] assignNew(double[] rhs, double[] lhs) {
     	assert rhs != null; // will produce an error anyway
-    	if(lhs != null && lhs != rhs && lhs.length == rhs.length)
-    		for(int i = 0; i < lhs.length; ++i)
+    	if (lhs != null && lhs != rhs && lhs.length == rhs.length)
+    		for (int i = 0; i < lhs.length; ++i)
     			lhs[i] = rhs[i];
     	else
     		lhs = rhs.clone();
@@ -1959,7 +1959,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
 //     * @param xup see xlow
 //     */
 //    public void setBoundaries(double[] xlow, double[] xup) {
-//        if( xlow == null || xup ==  null)
+//        if ( xlow == null || xup ==  null)
 //            error("boundaries cannot be null");
 //        if (xlow.length == 1 && xup.length == 1) {
 //            setBoundaries(xlow[0], xup[0]);
@@ -2397,7 +2397,7 @@ public class CMAEvolutionStrategy implements java.io.Serializable {
     public void writeToFile(String filename, String data, int flgAppend) {
         boolean appendflag = flgAppend > 0;
         for (int i = 0; !appendflag && i < fileswritten.length; ++i)
-            if(filename.equals(fileswritten[i])) {
+            if (filename.equals(fileswritten[i])) {
                 appendflag = true;
             }
         java.io.PrintWriter out = null;

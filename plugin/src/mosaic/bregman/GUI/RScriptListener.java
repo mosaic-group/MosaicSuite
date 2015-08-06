@@ -29,7 +29,7 @@ class RScriptListener implements ActionListener {
 		nbgroups=new Integer(((TextField) gd.getNumericFields().elementAt(0)).getText());
 		
 		
-		if( nbgroups > 5 )
+		if ( nbgroups > 5 )
 		{
 			
 			Analysis.p.nbimages= new int[nbgroups];

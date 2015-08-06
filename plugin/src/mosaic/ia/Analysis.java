@@ -192,24 +192,24 @@ public class Analysis
 	//	ImageProcessUtils.saveArraytoFile(new File("/Users/arun/Documents/matlab/nonParam/q.txt"), q);
 		//ImageProcessUtils.saveArraytoFile(new File("/Users/arun/Documents/matlab/nonParam/d.txt"), dgrid);
 		//ImageProcessUtils.saveArraytoFile(new File("/Users/arun/Documents/matlab/nonParam/Dfile.txt"), D);
-		for(int i=1;i<dgrid.length;i++)
+		for (int i=1;i<dgrid.length;i++)
 			SumNormQ[i]=SumNormQ[i-1]+q[i];
 		
 		
-		for(int i=0;i<D.length;i++)
+		for (int i=0;i<D.length;i++)
 		{
-			for(int j=1;j<dgrid.length;j++)
+			for (int j=1;j<dgrid.length;j++)
 			{
-				if(dgrid[j-1]<=D1[i] && dgrid[j]>D1[i])
+				if (dgrid[j-1]<=D1[i] && dgrid[j]>D1[i])
 					QD[i]=IAPUtils.linearInterpolation(SumNormQ[j-1], dgrid[j-1], SumNormQ[j], dgrid[j], D1[i]);
 					//(SumNormQ[j-1]+SumNormQ[j])/2;
 				//	QD[i]=(SumNormQ[j-1]);
 					
 			}
 			
-			for(int k=0;k<D.length;k++)
+			for (int k=0;k<D.length;k++)
 			{
-				if(D1[k]<=D1[i])
+				if (D1[k]<=D1[i])
 					n[i]++;
 					
 			}
@@ -224,10 +224,10 @@ public class Analysis
 		PlotUtils.plotDoubleArrayPts("nVSQNorm","n (Number of d_i < d)","Normalized cumulative Q", n, QD);
 		PlotUtils.plotDoubleArrayPts("nVSQNorm","Threshold","n (Number of d_i < d)", D1,n);
 		
-		for(int j=0;j<5;j++)
+		for (int j=0;j<5;j++)
 		{
 		double v= Math.exp(j*.01+.51);
-		for(int i=0;i<D.length;i++)
+		for (int i=0;i<D.length;i++)
 		{
 			likRatio[i]= Math.pow(Math.pow(v, n[i]/D.length)/(1+((v-1)*QD[i])),D.length);
 		}
@@ -384,7 +384,7 @@ public class Analysis
 		        Analyzer.setResultsTable(rt);
 		}
 		int rowNums=rt.getCounter();
-		for(int i=0;i<rowNums;i++)
+		for (int i=0;i<rowNums;i++)
 			rt.deleteRow(i);
 		rt.updateResults();*/
 		boolean diffFitness=false;
@@ -528,9 +528,9 @@ public class Analysis
 			// double [] best;
 
 					allFitness[k] = cma.getBestFunctionValue();
-			if(allFitness[k]<bestFitness)
+			if (allFitness[k]<bestFitness)
 			{
-				if(k>0 && bestFitness-allFitness[k]>allFitness[k]*.00001)
+				if (k>0 && bestFitness-allFitness[k]>allFitness[k]*.00001)
 					diffFitness=true;
 				bestFitness=allFitness[k];
 				bestFitnessindex=k;
@@ -538,7 +538,7 @@ public class Analysis
 			}
 			best[k] = cma.getBestX();
 			rt.incrementCounter();
-			if(potentialType!=PotentialFunctions.NONPARAM)
+			if (potentialType!=PotentialFunctions.NONPARAM)
 			{
 			
 			rt.addValue("Strength", best[k][0]);
@@ -552,7 +552,7 @@ public class Analysis
 		rt.updateResults();
 		rt.show("Results");
 		
-		if(diffFitness)
+		if (diffFitness)
 		{
 			
 				IJ.showMessage("Warning: Optimization returned different results for reruns. The results may not be accurate. Displaying the parameters and the plots corr. to best fitness.");
@@ -653,7 +653,7 @@ public class Analysis
 
 		}
 		
-	/*	for(int i=0;i<cmaReRunTimes;i++)
+	/*	for (int i=0;i<cmaReRunTimes;i++)
 		{
 			System.out.println("Best parameters:  Epsilon, Sigma:"
 					+ best[i][0] + " " + best[i][1]);
@@ -668,7 +668,7 @@ public class Analysis
 
 	private void plotQP(double[] d, double[] q, double[] nn) {
 		String xlabel ="Distance";
-		if(isImage)
+		if (isImage)
 		{
 			xlabel=xlabel+" ("+X.getCalibration().getUnit()+")";
 			
@@ -710,7 +710,7 @@ public class Analysis
 
 	private void plotQPNN(double[] d, double[] p, double[] q, double[] nn, double strength, double sigma, double fitness) {
 		String xlabel="Distance";
-		if(isImage)
+		if (isImage)
 		{
 			xlabel=xlabel+" ("+X.getCalibration().getUnit()+")";
 			
@@ -757,14 +757,14 @@ public class Analysis
 		plot.draw();
 		plot.addLabel(.7, .4, "p(d): Model fit");
 		DecimalFormat format = new DecimalFormat("#.####E0");
-		if(potentialType==PotentialFunctions.STEP)
+		if (potentialType==PotentialFunctions.STEP)
 		{
 			plot.addLabel(.65, .6, "Strength: " + format.format(best[bestFitnessindex][0]));
 			plot.addLabel(.65, .7, "Threshold: " + format.format(best[bestFitnessindex][1]));
 			plot.addLabel(.65, .8,
 					"Residual: " + format.format(allFitness[bestFitnessindex]));
 		}
-		else if(potentialType==PotentialFunctions.NONPARAM)
+		else if (potentialType==PotentialFunctions.NONPARAM)
 		{
 			plot.addLabel(.65, .6,
 					"Residual: " + format.format(allFitness[bestFitnessindex]));
@@ -781,7 +781,7 @@ public class Analysis
 		double [] l1norm=new double[nn.length];
 		double [] l2norm=new double[nn.length];
 		double l2Sum=0, l1Sum=0;
-		for(int i=0;i<l1norm.length;i++)
+		for (int i=0;i<l1norm.length;i++)
 		{
 			l1norm[i]=Math.abs(nn[i]-p[i]);
 			l2norm[i]=(nn[i]-p[i])*(nn[i]-p[i]);
@@ -825,7 +825,7 @@ public class Analysis
 		
 		
 		}
-		else if(potentialType==PotentialFunctions.NONPARAM)	{
+		else if (potentialType==PotentialFunctions.NONPARAM)	{
 			IJ.showMessage("Hypothesis test is not applicable for Non Parametric potential \n since it does not have 'strength' parameter");
 			return false;
 		}

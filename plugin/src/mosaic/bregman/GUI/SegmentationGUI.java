@@ -152,7 +152,7 @@ public class SegmentationGUI
 			Analysis.p.noise_model=gd.getNextChoiceIndex();
 		}
 			
-		if(Analysis.p.mode_voronoi2)
+		if (Analysis.p.mode_voronoi2)
 		{
 			//betamleout to be determined by clustering of whole image
 
@@ -178,7 +178,7 @@ public class SegmentationGUI
 		}
 
 
-		if(!Analysis.p.subpixel)
+		if (!Analysis.p.subpixel)
 		{
 			Analysis.p.oversampling2ndstep=1;
 			Analysis.p.interpolation=1;

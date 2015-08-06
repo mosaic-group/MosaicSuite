@@ -157,7 +157,7 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 			
 		RegionIterator rg_b = new RegionIterator(sz.x);
 		RegionIterator rg = new RegionIterator(dimensions, sz.x, p1.x);
-		while(rg.hasNext())
+		while (rg.hasNext())
 		{
 			Point p = rg.getPoint();
 			Point pp = rg_b.getPoint();

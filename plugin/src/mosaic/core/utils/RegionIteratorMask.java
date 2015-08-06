@@ -60,7 +60,7 @@ public class RegionIteratorMask
 		maskAdjTable = new int [regionIt.getSize()];
 		List<RJmp> rJmpTmp = new ArrayList<RJmp>();
 		
-		while(regionIt.hasNext())
+		while (regionIt.hasNext())
 		{
 			Point pt = regionIt.getPoint();
 			int idx = regionIt.nextRmask();
@@ -75,7 +75,7 @@ public class RegionIteratorMask
 				rJmpTmp.add(tmp);
 			}
 			
-			if(mask.isInMask(itMask))
+			if (mask.isInMask(itMask))
 			{
 				// found another index
 				// Move backward
@@ -225,10 +225,10 @@ public class RegionIteratorMask
 	{
 		if (idx_j < jumpTable.length)
 		{
-			if(cachedNext<0)
+			if (cachedNext<0)
 			{
 				cachedNext = calcNext();
-				if(cachedNext<0)
+				if (cachedNext<0)
 					return false;
 				else
 					return true;
@@ -303,10 +303,10 @@ public class RegionIteratorMask
 	 */	
 	public int next()
 	{
-		if(cachedNext<0)
+		if (cachedNext<0)
 		{
 			int result = calcNext();
-			if(result<0)
+			if (result<0)
 			{
 				throw new NoSuchElementException();
 			}
@@ -362,7 +362,7 @@ public class RegionIteratorMask
 				int val;
 				MovePoint p = new MovePoint();
 				p.p = new Point(jumpTableGeo[idx_j]);
-				while(isValidAndAdjust(p) == false)
+				while (isValidAndAdjust(p) == false)
 				{
 					if (p.idx >= maskAdjTable.length)	return -1;
 					idx_j = maskAdjTable[p.idx];

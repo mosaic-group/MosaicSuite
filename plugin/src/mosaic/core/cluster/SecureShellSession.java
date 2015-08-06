@@ -124,7 +124,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 			@SuppressWarnings("unchecked")
 			Vector<ChannelSftp.LsEntry> list = cSFTP.ls(Directory);
 			
-			for(ChannelSftp.LsEntry entry : list) 
+			for (ChannelSftp.LsEntry entry : list) 
 			{
 			    if (entry.getAttrs().isDir() == true)
 			    {
@@ -398,7 +398,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 		    
 				    if (cmp.getCompressor() == null)
 				    {
-				    	if(wp != null)
+				    	if (wp != null)
 				    		wp.SetProgress(100*i/files.length);
 		    	
 				    	cSFTP.get(files[i].getName(),dir.getAbsolutePath() + File.separator + files[i].getName());
@@ -608,7 +608,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 		    	
 		    	for (int i = 0 ; i < files.length ; i++)
 		    	{
-		    		if(wp != null)
+		    		if (wp != null)
 		    			wp.SetProgress(100*i/files.length);
 		    	
 		    		cSFTP.put(files[i].getAbsolutePath(), files[i].getName());

@@ -461,7 +461,7 @@ public class RegionCreator implements PlugInFilter
         Img<T> out = createImage(Image_sz,cls);
         
         Cursor<T> c = out.cursor();
-        while(c.hasNext())
+        while (c.hasNext())
         {
         	c.next();
         	c.get().set(Background);

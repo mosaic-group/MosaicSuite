@@ -139,7 +139,7 @@ class RegionStatisticsSolver {
 		
 		// Convolve the mask
 		
-		if(nz==1)
+		if (nz==1)
 			Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.p.kernelx, Analysis.p.kernely, Analysis.p.px, Analysis.p.py, mu[0]);
 		else
 			Tools.convolve3Dseparable(KMask, W,
@@ -170,7 +170,7 @@ class RegionStatisticsSolver {
 			{
 				for (int j=0;j< nj; j++) 
 				{
-					if(Z[z][i][j] != 0)
+					if (Z[z][i][j] != 0)
 						W[z][i][j]=weights[z][i][j]/Z[z][i][j];
 					else 
 						W[z][i][j]=4.50359962737e+15;//1e4;
@@ -182,7 +182,7 @@ class RegionStatisticsSolver {
 		//Tools.disp_vals(W[0],"W");
 
 		int iter=0;
-		while(iter < max_iter)
+		while (iter < max_iter)
 		{
 			K11=0;K12=0;K22=0;
 			U1=0;U2=0;
@@ -203,7 +203,7 @@ class RegionStatisticsSolver {
 			// betaMLE_out = ( K22*U1-K12*U2)/detK;
 			// betaMLE_in  = (-K12*U1+K11*U2)/detK;
 			detK = K11*K22-Math.pow(K12,2);	
-			if(detK!=0){
+			if (detK!=0){
 			betaMLEout = ( K22*U1-K12*U2)/detK;	
 			betaMLEin  = (-K12*U1+K11*U2)/detK;
 			}
@@ -231,7 +231,7 @@ class RegionStatisticsSolver {
 			for (int z=0; z<nz; z++) {
 				for (int i=0; i<ni; i++) {  
 					for (int j=0;j< nj; j++) {  
-						if(mu[z][i][j] != 0)
+						if (mu[z][i][j] != 0)
 							W[z][i][j]=weights[z][i][j]/mu[z][i][j];
 						else 
 							W[z][i][j]=4.50359962737e+15;//10000;//Double.MAX_VALUE;
@@ -271,7 +271,7 @@ class RegionStatisticsSolver {
 		
 		// Convolve the mask
 		
-		if(nz==1)
+		if (nz==1)
 			Tools.convolve2Dseparable(KMask[0], W[0], ni, nj, Analysis.p.PSF, mu[0]);
 		else
 			Tools.convolve3Dseparable(KMask, W,
@@ -301,7 +301,7 @@ class RegionStatisticsSolver {
 			{
 				for (int j=0;j< nj; j++) 
 				{
-					if(Z[z][i][j] != 0)
+					if (Z[z][i][j] != 0)
 						W[z][i][j]=weights[z][i][j]/Z[z][i][j];
 					else 
 						W[z][i][j]=4.50359962737e+15;//1e4;
@@ -313,7 +313,7 @@ class RegionStatisticsSolver {
 		//Tools.disp_vals(W[0],"W");
 
 		int iter=0;
-		while(iter < max_iter)
+		while (iter < max_iter)
 		{
 			K11=0;K12=0;K22=0;
 			U1=0;U2=0;
@@ -334,7 +334,7 @@ class RegionStatisticsSolver {
 			// betaMLE_out = ( K22*U1-K12*U2)/detK;
 			// betaMLE_in  = (-K12*U1+K11*U2)/detK;
 			detK = K11*K22-Math.pow(K12,2);	
-			if(detK!=0){
+			if (detK!=0){
 			betaMLEout = ( K22*U1-K12*U2)/detK;	
 			betaMLEin  = (-K12*U1+K11*U2)/detK;
 			}
@@ -362,7 +362,7 @@ class RegionStatisticsSolver {
 			for (int z=0; z<nz; z++) {
 				for (int i=0; i<ni; i++) {  
 					for (int j=0;j< nj; j++) {  
-						if(mu[z][i][j] != 0)
+						if (mu[z][i][j] != 0)
 							W[z][i][j]=weights[z][i][j]/mu[z][i][j];
 						else 
 							W[z][i][j]=4.50359962737e+15;//10000;//Double.MAX_VALUE;
@@ -395,14 +395,14 @@ class RegionStatisticsSolver {
 		for (int z=0; z<nz; z++){
 			for (int i=0; i<ni; i++){  
 				for (int j=0;j< nj; j++){  	
-					if(Mask[z][i][j]>max)max=Mask[z][i][j];
-					if(Mask[z][i][j]<min)min=Mask[z][i][j];
+					if (Mask[z][i][j]>max)max=Mask[z][i][j];
+					if (Mask[z][i][j]<min)min=Mask[z][i][j];
 				}	
 			}
 		}
 		//IJ.log("max"+max+"min"+min);
 
-		if((max-min)!=0){
+		if ((max-min)!=0){
 			for (int z=0; z<nz; z++){
 				for (int i=0; i<ni; i++){  
 					for (int j=0;j<nj; j++){  
@@ -448,7 +448,7 @@ class RegionStatisticsSolver {
 //		for (int z=0; z<nz; z++) {  
 //			for (int i=0; i<ni; i++) {  
 //				for (int j=0;j< nj; j++) {  
-//					if(Z[z][i][j] != 0)
+//					if (Z[z][i][j] != 0)
 //						W[z][i][j]=1/Z[z][i][j];
 //					else 
 //						W[z][i][j]=4.50359962737e+15;//1e4;
@@ -460,7 +460,7 @@ class RegionStatisticsSolver {
 //		//Tools.disp_vals(W[0],"W");
 //
 //		int iter=0;
-//		while(iter < max_iter){
+//		while (iter < max_iter){
 //
 //
 //
@@ -521,7 +521,7 @@ class RegionStatisticsSolver {
 //					int i=p.px;
 //					int j=p.py;
 //					int z=p.pz;
-//					if(mu[z][i][j] != 0)
+//					if (mu[z][i][j] != 0)
 //						W[z][i][j]=1/mu[z][i][j];
 //					else 
 //						W[z][i][j]=4.50359962737e+15;//10000;//Double.MAX_VALUE;
@@ -551,7 +551,7 @@ class RegionStatisticsSolver {
 			Region r = itr.next();
 			Dataset data = new DefaultDataset();
 			//IJ.log("Region " + r.value + "size :" + r.points);
-			if(r.points<6)continue;
+			if (r.points<6)continue;
 			for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 				Pix p = it.next();
 				int i=p.px;
@@ -615,7 +615,7 @@ class RegionStatisticsSolver {
 
 			//IJ.log("bin " + betaMLEin + " bout "+betaMLEout);
 
-			if(p.mode_voronoi2){
+			if (p.mode_voronoi2){
 				for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 
 					Pix p = it.next();

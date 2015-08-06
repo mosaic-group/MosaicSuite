@@ -112,11 +112,11 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 		double sumQGrid=0;
 		double sumGibbs=0;
 		double [] DiffD= new double[D_grid.length-1];
-		for(int i=0;i<D_grid.length-1;i++)
+		for (int i=0;i<D_grid.length-1;i++)
 		{
 			DiffD[i]=D_grid[i+1]-D_grid[i];
 		}
-		for(int i=0;i<D_grid.length;i++)
+		for (int i=0;i<D_grid.length;i++)
 		{
 			P_grid[i]=gibbspotential[i]*qofD_grid[i]*1/Z;
 			sumPGrid=sumPGrid+P_grid[i];// why hundred times smq
@@ -132,7 +132,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 		System.out.println("gibbspotential(100),qofD_grid(100),P_grid(100) :"+gibbspotential[100]+","+qofD_grid[100]+","+P_grid[100]);*/
 		
 		double [] P = new double[D.length];
-		for(int i=0;i<D.length;i++)
+		for (int i=0;i<D.length;i++)
 		{
 			P[i]=linearInterpolation(P_grid[interpInterval[0][i]], D_grid[interpInterval[0][i]], P_grid[interpInterval[1][i]], D_grid[interpInterval[1][i]], D[i]);
 		}
@@ -162,11 +162,11 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 		double sumPGrid=0;
 		double l2Norm=0;
 		double [] DiffD= new double[D_grid.length-1];
-		for(int i=0;i<D_grid.length-1;i++)
+		for (int i=0;i<D_grid.length-1;i++)
 		{
 			DiffD[i]=D_grid[i+1]-D_grid[i];
 		}
-		for(int i=0;i<D_grid.length;i++)
+		for (int i=0;i<D_grid.length;i++)
 		{
 			P_grid[i]=gibbspotential[i]*qofD_grid[i]*1/Z;
 			sumPGrid=sumPGrid+P_grid[i];// why hundred times smq
@@ -194,11 +194,11 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 		double sumPGrid=0;
 		double l1Norm=0;
 		double [] DiffD= new double[D_grid.length-1];
-		for(int i=0;i<D_grid.length-1;i++)
+		for (int i=0;i<D_grid.length-1;i++)
 		{
 			DiffD[i]=D_grid[i+1]-D_grid[i];
 		}
-		for(int i=0;i<D_grid.length;i++)
+		for (int i=0;i<D_grid.length;i++)
 		{
 			P_grid[i]=gibbspotential[i]*qofD_grid[i]*1/Z;
 			sumPGrid=sumPGrid+P_grid[i];// why hundred times smq
@@ -214,7 +214,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 	{
 		double sum=0;
 		double diff=0;
-		for(int i=0;i<weights.length-1;i++) 
+		for (int i=0;i<weights.length-1;i++) 
 		{
 			diff=(weights[i]-weights[i+1]);
 			sum=sum+diff*diff;
@@ -243,7 +243,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 			double []minmaxmeanD=IAPUtils.getMinMaxMeanD(D);
 		//	System.out.println(x[0]+" "+x[1]+" "+"min:"+minmaxmean[0]+"max:"+minmaxmean[1]);
 			
-			if(x[0]>=IAPUtils.MACHEPS&&x[0]<=50 && x[1]>=Math.max(Math.min(minmaxmeanDg[0],minmaxmeanD[0]),IAPUtils.MACHEPS) && x[1]<=Math.max(minmaxmeanDg[1],minmaxmeanD[1])) // 50 is aribtrary. but log(Double.MAXVAL)= log((2-(2^-52))*(2^1023))= 709.7827
+			if (x[0]>=IAPUtils.MACHEPS&&x[0]<=50 && x[1]>=Math.max(Math.min(minmaxmeanDg[0],minmaxmeanD[0]),IAPUtils.MACHEPS) && x[1]<=Math.max(minmaxmeanDg[1],minmaxmeanD[1])) // 50 is aribtrary. but log(Double.MAXVAL)= log((2-(2^-52))*(2^1023))= 709.7827
 				return true;
 			else
 				return false;
@@ -253,11 +253,11 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 	public void findInterpInterval()  //this can be optimized. search can be done better.
 	{
 		interpInterval=new int[2][D.length];  // will have xl and xr for each 
-		for(int i=0;i<D.length;i++)
+		for (int i=0;i<D.length;i++)
 		{
-			for(int j=0;j<D_grid.length-1;j++)
+			for (int j=0;j<D_grid.length-1;j++)
 			{
-				if(D[i] >= D_grid[j] && D[i] < D_grid[j+1])
+				if (D[i] >= D_grid[j] && D[i] < D_grid[j+1])
 				{
 					interpInterval[0][i]=j;
 					interpInterval[1][i]=j+1;
@@ -292,9 +292,9 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 		
 		
 		
-		for(int i=0;i<D.length;i++)
+		for (int i=0;i<D.length;i++)
 		{
-			if(P[i]>0)
+			if (P[i]>0)
 			{
 			unloggedSum=unloggedSum+P[i];
 			P[i]=Math.log(P[i]);
@@ -319,7 +319,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 		
 	//System.out.println("negloglik(param):"+-1*sum+"nonparam penalty"+nonParamPenalty(params, PotentialFunctions.NONPARAM_SMOOTHNESS));
 		
-		//if(potentialType==PotentialFunctions.NONPARAM)
+		//if (potentialType==PotentialFunctions.NONPARAM)
 		//	return -1*sum+nonParamPenalty(params, PotentialFunctions.NONPARAM_SMOOTHNESS); // 2=s, smoothness. 
 	//	else
 			return -1*sum;
@@ -331,14 +331,14 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 		//using trapizoidal rule.
 		
 		double [] DiffD= new double[D_grid.length-1];
-		for(int i=0;i<D_grid.length-1;i++)
+		for (int i=0;i<D_grid.length-1;i++)
 		{
 			DiffD[i]=D_grid[i+1]-D_grid[i];
 		}
 
 		double [] support = new double[D_grid.length];
 		double sumSupport=0;
-		for(int i=0;i<D_grid.length;i++)
+		for (int i=0;i<D_grid.length;i++)
 		{
 			support[i]=gibbspotential[i]*this.qofD_grid[i];
 			sumSupport=sumSupport+support[i];
@@ -347,7 +347,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 		System.out.println("sum Support:"+sumSupport);*/
 		double [] integrand =new double[D_grid.length-1];
 		double Z=0;
-		for(int i=0;i<D_grid.length-1;i++)
+		for (int i=0;i<D_grid.length-1;i++)
 		{
 			integrand[i]=(support[i]+support[i+1])/2;
 		//	Z=Z+integrand[i]*DiffD[i];
@@ -374,7 +374,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 		
 		
 	/*	System.out.print("Current evaluation params:");
-		for(int i=0;i<x.length;i++)
+		for (int i=0;i<x.length;i++)
 		{
 			System.out.print(x[i]+",");
 		}*/

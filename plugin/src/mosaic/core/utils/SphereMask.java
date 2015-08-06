@@ -170,14 +170,14 @@ public class SphereMask extends Mask
 		{
 			Random r = new Random();
 			
-			for(int i=0; i<size; i++)	// over region
+			for (int i=0; i<size; i++)	// over region
 			{
 				Point ofs = iterator.indexToPoint(i);
 			
 				int[] vIndex = (ofs).x;
 
 				float vHypEllipse = 0;
-				for(int vD = 0; vD < dim; vD++)
+				for (int vD = 0; vD < dim; vD++)
 				{
 					vHypEllipse += 
 							(vIndex[vD] + 0.5 - (m_Size[vD]) / 2.0)*spacing[vD]
@@ -198,7 +198,7 @@ public class SphereMask extends Mask
 				{
 					vHypEllipse += 3.0 * (r.nextFloat()-0.001f) / (m_Radius[0] * m_Radius[0]);
 				
-					if(vHypEllipse <= 1.0f)
+					if (vHypEllipse <= 1.0f)
 					{
 						fgPoints++;
 				
@@ -214,14 +214,14 @@ public class SphereMask extends Mask
 		}
 		else
 		{
-			for(int i=0; i<size; i++)	// over region
+			for (int i=0; i<size; i++)	// over region
 			{
 				Point ofs = iterator.indexToPoint(i);
 			
 				int[] vIndex = (ofs).x;
 
 				float vHypEllipse = 0;
-				for(int vD = 0; vD < dim; vD++)
+				for (int vD = 0; vD < dim; vD++)
 				{
 					vHypEllipse += 
 							(vIndex[vD] - (m_Size[vD]) / 2.0)*spacing[vD]
@@ -229,7 +229,7 @@ public class SphereMask extends Mask
 							/(m_Radius[vD] * m_Radius[vD]);
 				}
 			
-				if(vHypEllipse <= 1.0f)
+				if (vHypEllipse <= 1.0f)
 				{
 					fgPoints++;
 				

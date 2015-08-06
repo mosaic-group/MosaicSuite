@@ -50,7 +50,7 @@ class UnitCubeCCCounter
         int neighborhoodSize = conn.GetNeighborhoodSize();
         boolean[] result = new boolean[neighborhoodSize];
         
-		for(int i = 0; i < neighborhoodSize; i++) 
+		for (int i = 0; i < neighborhoodSize; i++) 
 		{
 			result[i] = conn.isNeighborhoodOfs(i);
 		}
@@ -64,7 +64,7 @@ class UnitCubeCCCounter
 		int neighborhoodSize = TConnectivity.GetNeighborhoodSize();
 		int seed = 0;
 		// Find first seed
-		while(seed != neighborhoodSize && (m_Image[seed] == 0 || !m_ConnectivityTest[seed])){
+		while (seed != neighborhoodSize && (m_Image[seed] == 0 || !m_ConnectivityTest[seed])){
 			++seed;
 		}
 
@@ -72,7 +72,7 @@ class UnitCubeCCCounter
 		Queue<Integer> q = new LinkedList<Integer>();
 
 		int nbCC = 0;
-		while(seed != neighborhoodSize)
+		while (seed != neighborhoodSize)
 		{
 			++nbCC;
 			vProcessed_new[seed] = true;
@@ -80,14 +80,14 @@ class UnitCubeCCCounter
 			q.clear();
 			q.add(seed);
 
-			while(!q.isEmpty())
+			while (!q.isEmpty())
 			{
 				int current = q.poll();
 
 				// For each neighbor check if m_UnitCubeNeighbors is true.
-				for(int neighbor = 0; neighbor < neighborhoodSize; ++neighbor)
+				for (int neighbor = 0; neighbor < neighborhoodSize; ++neighbor)
 				{
-					if(!vProcessed_new[neighbor] && m_Image[neighbor] != 0 && m_UnitCubeNeighbors[current][neighbor])
+					if (!vProcessed_new[neighbor] && m_Image[neighbor] != 0 && m_UnitCubeNeighbors[current][neighbor])
 					{
 						q.add(neighbor);
 						vProcessed_new[neighbor] = true;
@@ -96,7 +96,7 @@ class UnitCubeCCCounter
 			}
 
 			// Look for next seed
-			while(seed != neighborhoodSize && (vProcessed_new[seed] || m_Image[seed] == 0 || !m_ConnectivityTest[seed]))
+			while (seed != neighborhoodSize && (vProcessed_new[seed] || m_Image[seed] == 0 || !m_ConnectivityTest[seed]))
 			{
 				++seed;
 			}
@@ -122,10 +122,10 @@ class UnitCubeCCCounter
 		Queue<Integer> q = new LinkedList<Integer>();
 		
 		int nbCC = 0;
-		for(int i=0; i<neighborhoodSize; i++)
+		for (int i=0; i<neighborhoodSize; i++)
 		{
 			//find next seed
-			if(m_Image[i] == 0 || !m_ConnectivityTest[i] || visited[i])
+			if (m_Image[i] == 0 || !m_ConnectivityTest[i] || visited[i])
 			{
 				// i is not a seed
 				// since it is BG || not a neighbor of midpoint|| already visited
@@ -142,14 +142,14 @@ class UnitCubeCCCounter
 			q.add(seed);
 
 			// "Floodfill" seed, setting visited pixels to processed 
-			while(!q.isEmpty()) 
+			while (!q.isEmpty()) 
 			{
 				int current = q.poll();
 				
 				// For each pixel in subimage, check if it is a neighbor of current.
-				for(int neighbor = 0; neighbor < neighborhoodSize; neighbor++) 
+				for (int neighbor = 0; neighbor < neighborhoodSize; neighbor++) 
 				{
-					if(!visited[neighbor] && m_Image[neighbor] != 0 
+					if (!visited[neighbor] && m_Image[neighbor] != 0 
 							// statically or dynamically
 //							&& isUnitCubeNeighbors(conn, current, neighbor)) 
 						    && m_UnitCubeNeighbors[current][neighbor]) 
@@ -187,7 +187,7 @@ class UnitCubeCCCounter
 ////		return conn.isNeighborhoodOfs(pCurrent.sub(pNeighbor));
 //		boolean onthefly = conn.areNeighbors(pCurrent, pNeighbor);
 //		
-////		if(precalculated != onthefly)
+////		if (precalculated != onthefly)
 ////			System.out.println("precalculated and onthefly not the same");
 //		return onthefly;
 //		
@@ -211,13 +211,13 @@ class UnitCubeCCCounter
 		
 		int dim = connectivity.getDim();
 
-		for(int neighbor1 = 0; neighbor1 < neighborhoodSize; neighbor1++)
+		for (int neighbor1 = 0; neighbor1 < neighborhoodSize; neighbor1++)
 		{
 			Point p1 = connectivity.ofsIndexToPoint(neighbor1);
 
-			if(neighborhoodConnectivity.isNeighborhoodOfs(p1))
+			if (neighborhoodConnectivity.isNeighborhoodOfs(p1))
 			{
-				for(int neighbor2 = 0; neighbor2 < neighborhoodSize; neighbor2++)
+				for (int neighbor2 = 0; neighbor2 < neighborhoodSize; neighbor2++)
 				{
 					Point p2 = connectivity.ofsIndexToPoint(neighbor2);
 
@@ -225,14 +225,14 @@ class UnitCubeCCCounter
 					int sumOffset = connectivity.pointToOffset(sum);
 
 					boolean inUnitCube = true;
-					for(int d = 0; d < dim && inUnitCube; d++)
+					for (int d = 0; d < dim && inUnitCube; d++)
 					{
-						if(sum.x[d] < -1 || sum.x[d] > +1){
+						if (sum.x[d] < -1 || sum.x[d] > +1){
 							inUnitCube = false;
 						}
 					}
 
-					if(inUnitCube && connectivity.areNeighbors(p1, sum)){
+					if (inUnitCube && connectivity.areNeighbors(p1, sum)){
 						neighborsInUnitCube[neighbor1][sumOffset] = true;
 					}
 				}
@@ -255,14 +255,14 @@ class UnitCubeCCCounter
 		boolean neighborsInUnitCube[][];
 		neighborsInUnitCube = new boolean[neighborhoodSize][neighborhoodSize];
 
-		for(int i = 0; i < neighborhoodSize; i++) {
-			for(int j = 0; j < neighborhoodSize; j++) {
+		for (int i = 0; i < neighborhoodSize; i++) {
+			for (int j = 0; j < neighborhoodSize; j++) {
 				
 				boolean areUnitCubeNeighbors = connectivity.areNeighbors(
 						connectivity.ofsIndexToPoint(i), 
 						connectivity.ofsIndexToPoint(j));
-//				if(isUnitCubeNeighbors(connectivity, i, j)) {
-				if(areUnitCubeNeighbors 
+//				if (isUnitCubeNeighbors(connectivity, i, j)) {
+				if (areUnitCubeNeighbors 
 						// TODO lamy solution doesn't seem to be symmetric
 						// eg [0,3] is false but [3, 0] is true in ITK (3,2)
 						// uncommenting following lines "swaps" in THIS solution exactly these values, 
@@ -389,7 +389,7 @@ class UnitCubeCCCounter
 		printArray(their);
 		
 		same = compare(their, mine);
-		if(same)
+		if (same)
 			System.out.println("FG was ok");
 		else
 			System.out.println("FG was BAAAAAD");
@@ -400,7 +400,7 @@ class UnitCubeCCCounter
 		System.out.println("compare theirs with itk");
 		same = compare(intToBooleanArray(itk3DFG), their);
 		System.out.println("compare theirs with itk");
-		if(same)
+		if (same)
 			System.out.println("FG was ok");
 		else
 			System.out.println("FG was BAAAAAD");
@@ -417,7 +417,7 @@ class UnitCubeCCCounter
 		printArray(their);
 		
 		same2 = compare(their, mine);
-		if(same2)
+		if (same2)
 			System.out.println("BG was ok");
 		else
 			System.out.println("BG was BAAAAAD");
@@ -428,7 +428,7 @@ class UnitCubeCCCounter
 		System.out.println("compare itk with theirs");
 		same2 = compare(intToBooleanArray(itk3dbg), their);
 		System.out.println("compare theirs with itk");
-		if(same2)
+		if (same2)
 			System.out.println("BG was ok");
 		else
 			System.out.println("BG was BAAAAAD");
@@ -440,9 +440,9 @@ class UnitCubeCCCounter
 	{
 		System.out.println("array "+array.length);
 		
-		for(int i=0; i<array.length; i++)
+		for (int i=0; i<array.length; i++)
 		{
-			for(int j=0; j<array[i].length; j++)
+			for (int j=0; j<array[i].length; j++)
 			{
 				System.out.println(i+"\t"+j+"\t" + (array[i][j] ? 1 : 0) );
 			}
@@ -453,10 +453,10 @@ class UnitCubeCCCounter
 	{
 		boolean[][] b = new boolean[array.length][];
 		
-		for(int i=0; i<array.length; i++)
+		for (int i=0; i<array.length; i++)
 		{
 			b[i] = new boolean[array[i].length];
-			for(int j=0; j<array[i].length; j++)
+			for (int j=0; j<array[i].length; j++)
 			{
 				b[i][j] = (array[i][j] == 1) ? true : false;
 			}
@@ -469,11 +469,11 @@ class UnitCubeCCCounter
 	{
 		boolean same = true;
 		
-		for(int i=0; i<their.length; i++)
+		for (int i=0; i<their.length; i++)
 		{
-			for(int j=0; j<their[i].length; j++)
+			for (int j=0; j<their[i].length; j++)
 			{
-				if(their[i][j]==mine[i][j]){
+				if (their[i][j]==mine[i][j]){
 //					System.out.println("same");
 				}
 				else{

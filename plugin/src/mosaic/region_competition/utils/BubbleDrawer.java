@@ -31,7 +31,7 @@ public class BubbleDrawer
 	public void drawUpperLeft(Point ofs, int val)
 	{
 		sphereIt.setUpperLeft(ofs);
-		while(sphereIt.hasNext())
+		while (sphereIt.hasNext())
 		{
 			int idx = sphereIt.next();
 			labelImage.setLabel(idx, val);
@@ -41,7 +41,7 @@ public class BubbleDrawer
 	public void drawCenter(Point center, int val)
 	{
 		sphereIt.setMidPoint(center);
-		while(sphereIt.hasNext())
+		while (sphereIt.hasNext())
 		{
 			int idx = sphereIt.next();
 			labelImage.setLabel(idx, val);

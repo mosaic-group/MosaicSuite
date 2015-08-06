@@ -25,7 +25,7 @@ abstract class GUImeMore
 	 */
 	public final void processDialog()
 	{
-		if(gd.wasCanceled())
+		if (gd.wasCanceled())
 			return;
 		else
 			process();

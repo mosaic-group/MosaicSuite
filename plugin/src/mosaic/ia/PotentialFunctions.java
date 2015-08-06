@@ -30,7 +30,7 @@ public class PotentialFunctions {
 			System.out.println("Min:"+min+" Max:"+max);
 			double inc=(max-min)/PotentialFunctions.NONPARAM_WEIGHT_SIZE;
 			double begin=-inc;
-			for(int i=0;i<PotentialFunctions.NONPARAM_WEIGHT_SIZE;i++)
+			for (int i=0;i<PotentialFunctions.NONPARAM_WEIGHT_SIZE;i++)
 			{
 				PotentialFunctions.dp[i]=begin+inc*i;
 							System.out.print(PotentialFunctions.dp[i]+",");
@@ -39,7 +39,7 @@ public class PotentialFunctions {
 	 
 	 static double stepPotential(double di, double threshold)
 	{
-		if(di<threshold)
+		if (di<threshold)
 			return -1d;
 		else
 			return 0d;
@@ -50,7 +50,7 @@ public class PotentialFunctions {
 	{
 		
 		double z=(di-threshold)/sigma;
-		if(z>0)
+		if (z>0)
 			return -1/(1+z);
 		else
 			return -1*(1-z);
@@ -59,7 +59,7 @@ public class PotentialFunctions {
 	 static double plummerPotential(double di, double threshold, double sigma)
 	{
 		double z=(di-threshold)/sigma;
-		if(z>0)
+		if (z>0)
 			return -1*Math.pow(1+z*z, -.5);
 		else
 			return -1;
@@ -69,7 +69,7 @@ public class PotentialFunctions {
 	 static double linearType1(double di, double threshold, double sigma)
 		{
 			double z=(di-threshold)/sigma;
-			if(z>1)
+			if (z>1)
 				return 0;
 			else
 				return -1*(1-z);
@@ -78,7 +78,7 @@ public class PotentialFunctions {
 	 static double coulomb(double di, double threshold, double sigma)
 		{
 			double z=(di-threshold)/sigma;
-			if(z!=0)
+			if (z!=0)
 				return 1/(z*z);
 			else
 				return Math.sqrt(Double.MAX_VALUE); // this is a hack.
@@ -87,7 +87,7 @@ public class PotentialFunctions {
 	 static double linearType2(double di, double threshold, double sigma)
 		{
 			double z=(di-threshold)/sigma;
-			if(z>1)
+			if (z>1)
 				return 0;
 			else if (z<0)
 				return -1;
@@ -103,10 +103,10 @@ public class PotentialFunctions {
 		 double h=Math.abs(dp[1]-dp[0]);
 		 double sum=0;
 		 double z=0,kappa=0;
-		 for(int i=0;i<weights.length;i++)
+		 for (int i=0;i<weights.length;i++)
 		 {
 			 z=Math.abs(di-dp[i]);
-			 if(z<=h)
+			 if (z<=h)
 				 kappa=z/h;
 			 else
 				 kappa=0;

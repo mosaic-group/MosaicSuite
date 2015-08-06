@@ -63,7 +63,7 @@ class MasksDisplay {
 
 		//		this.img3d=new ImagePlus("3d mask", ims3d);
 		//heatmap R=x, G=sqrt(x), B=x**2 on kmeans found intensities
-		for(int l=0; l< this.nlevels;l++){
+		for (int l=0; l< this.nlevels;l++){
 			colors[l][1]= (int) Math.min(255, 255*Math.sqrt(cl[l])) ; //Green
 			colors[l][0]= (int) Math.min(255, 255*cl[l]) ; //Red
 			colors[l][2]= (int) Math.min(255, 255*Math.pow(cl[l],2)) ; //Blue
@@ -85,7 +85,7 @@ class MasksDisplay {
 			}
 		}	
 		img.setProcessor(s,cp);
-		if(firstdisp){img.show(); 
+		if (firstdisp){img.show(); 
 		firstdisp=false;} 
 	}
 
@@ -103,7 +103,7 @@ class MasksDisplay {
 
 
 		img.setProcessor(s,cp);
-		if(firstdisp){img.show(); 
+		if (firstdisp){img.show(); 
 		firstdisp=false;}
 
 
@@ -132,14 +132,14 @@ class MasksDisplay {
 		}
 
 		ImageProcessor imp= new FloatProcessor(temp);
-		if(channel==0){
+		if (channel==0){
 			imgda.setProcessor(s + " X" ,imp);
-			if(firstdispa){ imgda.show(); firstdispa=false;}
+			if (firstdispa){ imgda.show(); firstdispa=false;}
 			imgda.changes=false;
 		}
 		else{
 			imgdb.setProcessor(s + " Y" ,imp);
-			if(firstdispb){ imgdb.show(); firstdispb=false;}
+			if (firstdispb){ imgdb.show(); firstdispb=false;}
 			imgdb.changes=false;
 		}
 	}
@@ -170,7 +170,7 @@ class MasksDisplay {
 		}
 
 		ImageProcessor imp= new FloatProcessor(temp);
-		if(channel==0)
+		if (channel==0)
 			imgtemp.setProcessor(s + "X",imp);
 		else
 			imgtemp.setProcessor(s + "Y",imp);
@@ -204,7 +204,7 @@ class MasksDisplay {
 		}
 
 		ImageProcessor imp= new FloatProcessor(temp);
-		if(channel==0)
+		if (channel==0)
 			imgtemp.setProcessor(s + "X",imp);
 		else
 			imgtemp.setProcessor(s + "Y",imp);
@@ -220,7 +220,7 @@ class MasksDisplay {
 
 		for (int i=0; i<ni; i++) {  
 			for (int j=0;j< nj; j++) { 
-				if(array[i][j])
+				if (array[i][j])
 					temp[i][j]=1; 
 				else
 					temp[i][j]=0;
@@ -228,7 +228,7 @@ class MasksDisplay {
 		}
 
 		ImageProcessor imp= new FloatProcessor(temp);
-		if(channel==0)
+		if (channel==0)
 			imgtemp.setProcessor(s + "X",imp);
 		else
 			imgtemp.setProcessor(s + "Y",imp);
@@ -262,7 +262,7 @@ class MasksDisplay {
 		}
 
 		ImageProcessor imp= new FloatProcessor(temp);
-		if(channel==0)
+		if (channel==0)
 			imgtemp.setProcessor(s + "X",imp);
 		else
 			imgtemp.setProcessor(s + "Y",imp);
@@ -304,7 +304,7 @@ class MasksDisplay {
 			img3temp.addSlice("", imp);
 		}
 
-		if(channel==0)
+		if (channel==0)
 			imgtemp.setStack(s + "X",img3temp);
 		else
 			imgtemp.setStack(s + "Y",img3temp);
@@ -326,7 +326,7 @@ class MasksDisplay {
 	
 	public ImagePlus getSoftMask(int channel)
 	{
-		if(channel==0)
+		if (channel==0)
 		{return imgda;}
 		else
 		{return imgdb;}
@@ -363,15 +363,15 @@ class MasksDisplay {
 		}
 
 
-		if(channel==0){
+		if (channel==0){
 			imgda.setStack(s + " X", ims3d);
 			imgda.resetDisplayRange();
-			if(firstdispa){imgda.show(); firstdispa=false;}
+			if (firstdispa){imgda.show(); firstdispa=false;}
 		}
 		else{
 			imgdb.setStack(s + " Y", ims3d);
 			imgdb.resetDisplayRange();
-			if(firstdispb){ imgdb.show(); firstdispb=false;}
+			if (firstdispb){ imgdb.show(); firstdispb=false;}
 		}
 
 
@@ -411,7 +411,7 @@ class MasksDisplay {
 			ims3da.addSlice("", bp);
 		}
 
-		if(channel==0)
+		if (channel==0)
 			imgd.setStack(s + " X", ims3da);
 		else
 			imgd.setStack(s + " Y", ims3da);
@@ -456,7 +456,7 @@ class MasksDisplay {
 			ims3da.addSlice("", bp);
 		}
 
-		if(channel==0)
+		if (channel==0)
 			imgd.setStack(s + " X", ims3da);
 		else
 			imgd.setStack(s + " Y", ims3da);
@@ -659,7 +659,7 @@ class MasksDisplay {
 					tabt[0]=imagecolor[t+j*3 + 0] & 0xFF;
 					tabt[1]=imagecolor[t+j*3 + 1] & 0xFF;
 					tabt[2]=imagecolor[t+j*3 + 2] & 0xFF;	
-					//if(i==0 && j==0){IJ.log("tabt0 :" + tabt[0] + "t1 :" + tabt[1] + "t2:" + tabt[2]);}
+					//if (i==0 && j==0){IJ.log("tabt0 :" + tabt[0] + "t1 :" + tabt[1] + "t2:" + tabt[2]);}
 					cpcoloc.putPixel(i, j, tabt);
 				}
 			}
@@ -671,7 +671,7 @@ class MasksDisplay {
 
 		ip.add(this.imgcoloc);
 		
-		if(Analysis.p.dispwindows){
+		if (Analysis.p.dispwindows){
 			this.imgcoloc.show();
 		}
 
@@ -716,7 +716,7 @@ class MasksDisplay {
 				//cpcoloc.getPixel(p.px, p.py, color);
 				//imagecolor[p.pz][p.px][p.py]=color;
 
-				if(r.colocpositive) {
+				if (r.colocpositive) {
 					imagecolor[p.pz][p.px][p.py][0]=255;
 					imagecolor[p.pz][p.px][p.py][1]=255;
 					imagecolor[p.pz][p.px][p.py][2]=255;
@@ -776,7 +776,7 @@ class MasksDisplay {
 				Pix p = it2.next();
 				//cpcoloc.getPixel(p.px, p.py, color);
 
-				if(r.colocpositive) {
+				if (r.colocpositive) {
 					imagecolor[p.pz][p.px][p.py][0]=255;
 					imagecolor[p.pz][p.px][p.py][1]=255;
 					imagecolor[p.pz][p.px][p.py][2]=255;
@@ -883,7 +883,7 @@ class MasksDisplay {
 	//					Pix p = it2.next();
 	//					cpcoloc.getPixel(p.px, p.py, color);
 	//
-	//					if(r.colocpositive) {color[0]=255;color[1]=255;color[2]=255;}//white
+	//					if (r.colocpositive) {color[0]=255;color[1]=255;color[2]=255;}//white
 	//					else color[0]=255;//red
 	//					cpcoloc.putPixel(p.px, p.py, color);
 	//				}

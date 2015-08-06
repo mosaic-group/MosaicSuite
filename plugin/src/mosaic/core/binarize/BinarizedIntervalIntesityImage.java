@@ -30,7 +30,7 @@ public class BinarizedIntervalIntesityImage extends IntervalsListDouble implemen
 	public boolean EvaluateAtIndex(int index)
 	{
 		//Check bounds for intensity image
-		if(index<0 || index >= image.dataIntensity.length)
+		if (index<0 || index >= image.dataIntensity.length)
 			return false;
 		
 		float value = image.get(index);

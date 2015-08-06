@@ -88,7 +88,7 @@ class RCWWin extends JDialog implements MouseListener, Runnable
 		ask.addNumericField(message, 1, 1);
 		ask.showDialog();
 		
-		if(ask.wasCanceled())
+		if (ask.wasCanceled())
 			return -1;
 		else
 			return ask.getNextNumber();

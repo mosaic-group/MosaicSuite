@@ -142,7 +142,7 @@ public class Settings implements Serializable
 	
 	public void settingsChanged()
 	{
-		for(SettingsListener l : listeners)
+		for (SettingsListener l : listeners)
 		{
 			l.settingsChanged(this);
 		}

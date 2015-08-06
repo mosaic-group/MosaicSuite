@@ -194,7 +194,7 @@ public class Trajectory
 //          g.setColor(this.color);                         
 //      }
 //      //mark death of particle
-//      if((this.existing_particles[this.existing_particles.length-1].getFrame()) < frames_number - 1){
+//      if ((this.existing_particles[this.existing_particles.length-1].getFrame()) < frames_number - 1){
 //          g.fillOval(ic.screenXD(this.existing_particles[this.existing_particles.length-1].y), 
 //                  ic.screenYD(this.existing_particles[this.existing_particles.length-1].x), 5, 5);
 //      }

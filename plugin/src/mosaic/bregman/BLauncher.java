@@ -81,7 +81,7 @@ class BLauncher
 	public BLauncher(String path)
 	{
 		boolean processdirectory =(new File(path)).isDirectory();
-		if(processdirectory)
+		if (processdirectory)
 		{
 			//IJ.log("Processing directory");
 //			Headless_directory();
@@ -238,16 +238,16 @@ class BLauncher
 	{
 		int factor =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 		int fz;
-		if(Analysis.p.nz>1)fz=factor; else fz=1;
+		if (Analysis.p.nz>1)fz=factor; else fz=1;
 		
 		System.out.println("Separate: " + sep);
 		
-		if(Analysis.p.dispoutline)
+		if (Analysis.p.dispoutline)
 		{
 			displayoutline(Analysis.regions[0], Analysis.imagea,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1,sep);
 			if (Analysis.p.nchannels == 2) {displayoutline(Analysis.regions[1], Analysis.imageb,Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2,sep);}
 		}
-		if(Analysis.p.dispint)
+		if (Analysis.p.dispint)
 		{
 			displayintensities(Analysis.regionslist[0], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 1,sep);
 			if (Analysis.p.nchannels == 2) {displayintensities(Analysis.regionslist[1], Analysis.p.nz*fz,Analysis.p.ni*factor,Analysis.p.nj*factor, 2, sep);}
@@ -513,7 +513,7 @@ class BLauncher
 			
 			Analysis.p.nchannels=img.getNChannels();
 
-			if(Analysis.p.save_images)
+			if (Analysis.p.save_images)
 			{
 //				String savepath = null;
 				//IJ.log(wpath);
@@ -546,7 +546,7 @@ class BLauncher
 
 		//IJ.log("dialog j" + ij.Prefs.useJFileChooser);
 
-		if(Analysis.p.nchannels==2){
+		if (Analysis.p.nchannels==2){
 			Analysis.load2channels(img2);
 		}
 
@@ -593,21 +593,21 @@ class BLauncher
 
 		//IJ.log("dialog j" + ij.Prefs.useJFileChooser);
 
-		if(Analysis.p.nchannels==2)
+		if (Analysis.p.nchannels==2)
 		{
 			Analysis.load2channels(img2);
 		}
 
-		if(Analysis.p.nchannels==1)
+		if (Analysis.p.nchannels==1)
 		{
 			Analysis.load1channel(img2);
 		}
 
 		//Analysis.p.dispvoronoi=true;
 		//Analysis.p.livedisplay=true;
-		if(Analysis.p.mode_voronoi2)
+		if (Analysis.p.mode_voronoi2)
 		{
-			if(Analysis.p.nz>1)
+			if (Analysis.p.nz>1)
 			{
 				Analysis.p.max_nsb=151;
 				Analysis.p.interpolation=2;
@@ -635,7 +635,7 @@ class BLauncher
 		
 		//IJ.log("imgb :" +list[i+1]);
 
-		if(Analysis.p.nchannels==2){
+		if (Analysis.p.nchannels==2){
 			Analysis.segmentb();
 		}
 
@@ -646,7 +646,7 @@ class BLauncher
 
 
 
-		if(Analysis.p.nchannels==2)
+		if (Analysis.p.nchannels==2)
 		{
 			//IJ.log("computemask");
 			Analysis.computeOverallMask();
@@ -660,7 +660,7 @@ class BLauncher
 			Analysis.setRegionsLabels(Analysis.regionslist[1], Analysis.regions[1]);
 			int factor2 =Analysis.p.oversampling2ndstep*Analysis.p.interpolation;
 			int fz2;
-			if(Analysis.p.nz>1)fz2=factor2; else fz2=1;
+			if (Analysis.p.nz>1)fz2=factor2; else fz2=1;
 
 			MasksDisplay md= new MasksDisplay(Analysis.p.ni*factor2,Analysis.p.nj*factor2,Analysis.p.nz*fz2,Analysis.p.nlevels,Analysis.p.cl,Analysis.p);
 			md.displaycoloc(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle(),Analysis.regionslist[0],Analysis.regionslist[1],ip);
@@ -673,12 +673,12 @@ class BLauncher
 
 			//IJ.log("f");
 
-			//if(Analysis.p.dispwindows){
+			//if (Analysis.p.dispwindows){
 			
 //			IJ.log("Colocalization ch1 in ch2: " +mosaic.bregman.Tools.round(colocsegAB,4));
 //			IJ.log("Colocalization ch2 in ch1: " +mosaic.bregman.Tools.round(colocsegBA,4));
 			//}
-			if(Analysis.p.save_images)
+			if (Analysis.p.save_images)
 			{
 				// Write object 2 list
 				
@@ -739,7 +739,7 @@ class BLauncher
 		}
 
 
-		if(Analysis.p.nchannels==1)
+		if (Analysis.p.nchannels==1)
 		{
 			Analysis.na=Analysis.regionslist[0].size();
 			//IJ.log("intensities");
@@ -751,7 +751,7 @@ class BLauncher
 //			double meanLA= Analysis.meanlength(Analysis.regionslist[0]);
 
 			//IJ.log("save");
-			if(Analysis.p.save_images)
+			if (Analysis.p.save_images)
 			{
 				String savepath = null;
 				savepath = MosaicUtils.ValidFolderFromImage(aImp);
@@ -822,7 +822,7 @@ class BLauncher
 			{  
 				for (int j=0; j<dj; j++)
 				{
-					if(regions[z][i][j]> 0)
+					if (regions[z][i][j]> 0)
 						mask_bytes[j * di + i]= 0;
 					else
 					mask_bytes[j * di + i]=(byte) 255;
@@ -966,13 +966,13 @@ class BLauncher
 	
 	public static IndexColorModel backgroundAndSpectrum(int maximum) 
 	{
-		if( maximum > 255 )
+		if ( maximum > 255 )
 			maximum = 255;
 		byte [] reds = new byte[256];
 		byte [] greens = new byte[256];
 		byte [] blues = new byte[256];
 		// Set all to white:
-		for( int i = 0; i < 256; ++i ) 
+		for ( int i = 0; i < 256; ++i ) 
 		{
 			reds[i] = greens[i] = blues[i] = (byte)255;
 		}
@@ -980,7 +980,7 @@ class BLauncher
 		reds[0] = greens[0] = blues[0] = 0;
 		float divisions = maximum;
 		Color c;
-		for( int i = 1; i <= maximum; ++i ) 
+		for ( int i = 1; i <= maximum; ++i ) 
 		{
 			float h = (i - 1) / divisions;
 			c = Color.getHSBColor(h,1f,1f);
@@ -1100,7 +1100,7 @@ class BLauncher
 			ipd[channel-1].setTitle(title);
 		}
 		
-		if(disp)
+		if (disp)
 		{
 			// this force the update of the image
 			ipd[channel-1].setStack(ipd[channel-1].getStack());

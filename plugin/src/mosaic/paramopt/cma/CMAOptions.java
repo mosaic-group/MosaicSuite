@@ -143,7 +143,7 @@ public class CMAOptions implements java.io.Serializable {
         void setOptions(Properties properties) {
             String s;
             diagonalCovarianceMatrix = getFirstToken(properties.getProperty("diagonalCovarianceMatrix"), diagonalCovarianceMatrix);
-            if((s = properties.getProperty("stopFitness")) != null)
+            if ((s = properties.getProperty("stopFitness")) != null)
                 stopFitness = Double.valueOf(getFirstToken(s));
             stopTolFun = getFirstToken(properties.getProperty("stopTolFun"), stopTolFun);
             stopTolFunHist = getFirstToken(properties.getProperty("stopTolFunHist"), stopTolFunHist);
@@ -248,7 +248,7 @@ public class CMAOptions implements java.io.Serializable {
 
 		double[] parseDouble(String[] ars) {
 		    double[] ard = new double[ars.length];
-		    for(int i = 0; i < ars.length; ++i) {
+		    for (int i = 0; i < ars.length; ++i) {
 		        ard[i] = Double.parseDouble(ars[i]);
 		    }
 		    return ard;
