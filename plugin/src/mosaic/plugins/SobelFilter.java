@@ -6,6 +6,10 @@ import mosaic.math.Matrix;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.PlugInFloatBase;
 
+/**
+ * Sobel filter implementation.
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+ */
 public class SobelFilter extends PlugInFloatBase {
 
     @Override
