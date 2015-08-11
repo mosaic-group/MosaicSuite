@@ -220,8 +220,8 @@ public class SegmentationAlgorithm {
     }
     
     /**
-     * Merge points with same X coordinates. Y values for given X are average and 
-     * weights are sum. After merging input containers are shrunk to fit new number 
+     * Merge points with same X coordinates. Y values for given X are averaged and 
+     * weights are added. After merging input containers are shrunk to fit new number 
      * of elements.
      * @param aX - input X
      * @param aY - input Y
@@ -603,6 +603,8 @@ public class SegmentationAlgorithm {
         ImgUtils.imgResize(iImage, img);
         ImgUtils.normalize(img);
         iImageData = new Matrix(img);
+        
+        
         // --------------------------------------------------------------
         // IMM data (subpixel sampling, regularizer term are already given)
 

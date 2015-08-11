@@ -10,22 +10,29 @@ public class SobelFilter extends PlugInFloatBase {
 
     @Override
     protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber) {
+      // Convert input to Matrix
       int w = aOutputImg.getWidth(); 
       int h = aOutputImg.getHeight();
-      double[][] ma = new double[h][w];
-      ImgUtils.ImgToYX2Darray(aOrigImg, ma, 1.0);
-      Matrix m = new Matrix(ma);
+      double[][] img = new double[h][w];
+      ImgUtils.ImgToYX2Darray(aOrigImg, img, 1.0);
+      Matrix imgMatrix = new Matrix(img);
       
-      // Sobel Filter
-      Matrix m1 = Matlab.imfilterSymmetric(m, new Matrix(new double[][]{{-1, 0, 1}, {-2, 0, 2}, {-1, 0, 1}}));
-      Matrix m2 = Matlab.imfilterSymmetric(m, new Matrix(new double[][]{{-1, -2, -1}, {0, 0, 0}, {1, 2, 1}}));
+      // Sobel Filter    resutl = sqrt((K1*img)^2 + (K2*img)^2)
+      Matrix m1 = Matlab.imfilterSymmetric(imgMatrix, new Matrix(new double[][]{{-1,  0,  1}, 
+                                                                                {-2,  0,  2}, 
+                                                                                {-1,  0,  1}}));
+      
+      Matrix m2 = Matlab.imfilterSymmetric(imgMatrix, new Matrix(new double[][]{{-1, -2, -1}, 
+                                                                                { 0,  0,  0}, 
+                                                                                { 1,  2,  1}}));
       m1.elementMult(m1);
       m2.elementMult(m2);
       m1.add(m2);
       m1.sqrt();
-      double[][] id = m1.getArrayYX();
-
-      ImgUtils.YX2DarrayToImg(id, aOutputImg, 1.0);
+      
+      // Update output with reslt
+      double[][] result = m1.getArrayYX();
+      ImgUtils.YX2DarrayToImg(result, aOutputImg, 1.0);
     }
 
     @Override
@@ -37,5 +44,4 @@ public class SobelFilter extends PlugInFloatBase {
     protected boolean setup(String aArgs) {
         return true;
     }
-
 }
