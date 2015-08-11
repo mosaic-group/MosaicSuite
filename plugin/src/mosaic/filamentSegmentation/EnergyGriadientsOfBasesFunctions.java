@@ -48,7 +48,7 @@ class EnergyGriadientsOfBasesFunctions {
     //
     // NoOfValues = 4 * 2^coeff - 1;
     // Calculated values closed to: 
-    //      fspecial('gaussian',[1,4*2^coeff-1], coeff^2*0.59933) * coeff^2
+    //      fspecial('gaussian',[1,4*2^coeff-1], 2^coeff*0.59933) * 2^coeff
     //
     // ===============================================
     
