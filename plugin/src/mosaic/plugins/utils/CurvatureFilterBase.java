@@ -4,6 +4,7 @@ import ij.gui.GenericDialog;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 import mosaic.variationalCurvatureFilters.FilterKernel;
 import mosaic.variationalCurvatureFilters.FilterKernelGc;
+import mosaic.variationalCurvatureFilters.FilterKernelBernstein;
 import mosaic.variationalCurvatureFilters.FilterKernelMc;
 import mosaic.variationalCurvatureFilters.FilterKernelTv;
 import mosaic.variationalCurvatureFilters.NoSplitFilter;
@@ -56,12 +57,12 @@ public abstract class CurvatureFilterBase extends PlugInFloatBase {
      */
     @Override
     protected boolean showDialog() {
-        final String[] filters = {"GC", "MC", "TV"};
+        final String[] filters = {"GC (Gaussian Curvature)", "MC (Mean Curvature)", "TV (Total Variation)", "Bernstein"};
         final String[] types = {"Split", "No split"};
         
         GenericDialog gd = new GenericDialog("Curvature Filter Settings");
     
-        gd.addRadioButtonGroup("Filter type: ", filters, 1, 3, filters[0]);
+        gd.addRadioButtonGroup("Filter type: ", filters, 4, 1, filters[0]);
         if (hasSplitMethodMenu) gd.addRadioButtonGroup("Method: ", types, 1, 2, types[1]);
         gd.addNumericField("Number of iterations: ", 10, 0);
         
@@ -84,6 +85,9 @@ public abstract class CurvatureFilterBase extends PlugInFloatBase {
             }
             else if (filter.equals(filters[2])) {
                 fk = new FilterKernelTv(); 
+            }
+            else if (filter.equals(filters[3])) {
+                fk = new FilterKernelBernstein(); 
             }
             if (fk == null) return false;
             

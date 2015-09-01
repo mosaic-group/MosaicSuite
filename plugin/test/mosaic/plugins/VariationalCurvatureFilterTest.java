@@ -12,7 +12,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         // Define test data
         String tcDirName          = "VCF/";
         String setupString        = "run";
-        String macroOptions       = "filter=GC method=Split number=10";
+        String macroOptions       = "filter=[GC (Gaussian Curvature)] method=Split number=10";
         String[] inputFiles       = {"x8bit.png"};
         String[] expectedFiles    = {"filtered_x8bit.png"};
         String[] referenceFiles   = {"filteredGcSplit10_x8bit.tif"};
@@ -32,7 +32,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         // Define test data
         String tcDirName          = "VCF/";
         String setupString        = "run";
-        String macroOptions       = "filter=TV method=[No Split] number=10";
+        String macroOptions       = "filter=[TV (Total Variation)] method=[No Split] number=10";
         String[] inputFiles       = {"x.png"};
         String[] expectedFiles    = {"filtered_x.png"};
         String[] referenceFiles   = {"filteredTvNoSplit10_x.tif"};
@@ -52,7 +52,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         // Define test data
         String tcDirName          = "VCF/";
         String setupString        = "run";
-        String macroOptions       = "filter=MC method=Split number=2";
+        String macroOptions       = "filter=[MC (Mean Curvature)] method=Split number=2";
         String[] inputFiles       = {"x8bit.png"};
         String[] expectedFiles    = {"filtered_x8bit.png"};
         String[] referenceFiles   = {"filteredMcSplit2_x8bit.tif"};
@@ -66,4 +66,25 @@ public class VariationalCurvatureFilterTest extends CommonBase {
                    setupString, macroOptions);
 
     }
+    
+    @Test
+    public void testBernsteinSplitGrey8()  {
+        // Define test data
+        String tcDirName          = "VCF/";
+        String setupString        = "run";
+        String macroOptions       = "filter=[Bernstein] method=Split number=5";
+        String[] inputFiles       = {"x8bit.png"};
+        String[] expectedFiles    = {"filtered_x8bit.png"};
+        String[] referenceFiles   = {"filteredBernsteinSplit5_x8bit.tif"};
+        
+        // Create tested plugIn
+        CurvatureFilterBase nt = new VariationalCurvatureFilter();
+       
+        // Test it
+        testPlugin(nt, tcDirName, 
+                   inputFiles, expectedFiles, referenceFiles, 
+                   setupString, macroOptions);
+
+    }
+    
 }
