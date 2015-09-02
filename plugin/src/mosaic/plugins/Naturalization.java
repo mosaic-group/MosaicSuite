@@ -91,7 +91,7 @@ public class Naturalization extends PlugIn8bitBase
     }
     
     @Override 
-    protected void postprocess() {
+    protected void postprocessBeforeShow() {
         // Create result table with all stored PSNRs.
         ResultsTable rs = new ResultsTable();
         for (Entry<Integer, Map<Integer, Float>> e : iPsnrOutput.entrySet()) {

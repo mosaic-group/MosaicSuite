@@ -52,7 +52,8 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
     abstract protected int getFlags();
     abstract protected void updateFlags(int aFlag);
     abstract protected boolean setup(final String aArgs);
-    protected void postprocess() {};
+    protected void postprocessBeforeShow() {};
+    protected void postprocessFinal() {};
     
     @Override
     public int setup(final String aArgs, final ImagePlus aImp) {
@@ -63,11 +64,13 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
         }
         
         if (aArgs.equals("final")) {
-            postprocess();
+            postprocessBeforeShow();
             
         	// Changed during updating
         	iProcessedImg.setSlice(1);
             iProcessedImg.show();
+            
+            postprocessFinal();
         }
         else {
             iInputImg = aImp;

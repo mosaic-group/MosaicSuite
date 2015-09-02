@@ -4,6 +4,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.Prefs;
 import ij.gui.GenericDialog;
+import ij.gui.ImageWindow;
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
 import ij.process.FloatProcessor;
@@ -15,16 +16,16 @@ import java.awt.FlowLayout;
 import java.awt.Panel;
 import java.awt.SystemColor;
 import java.awt.TextArea;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import mosaic.filamentSegmentation.SegmentationAlgorithm;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.NoiseType;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
-import mosaic.filamentSegmentation.SegmentationFunctions;
 import mosaic.math.CubicSmoothingSpline;
 import mosaic.math.MFunc;
 import mosaic.math.Matlab;
@@ -57,9 +58,10 @@ public class FilamentSegmentation extends PlugInFloatBase {
     private final String PropNoOfIterations  = "FilamentSegmentation.noOfIterations";
     
     // Synchronized map used to collect segmentation data from all plugin threads
-	private Map<Integer, List<CubicSmoothingSpline>> m = new TreeMap<Integer, List<CubicSmoothingSpline>>();
-	private synchronized void addNewFinding(List<CubicSmoothingSpline> aCubicSpline, Integer aSlieceNumber) {
-	    m.put(aSlieceNumber, aCubicSpline);
+	private Map<Integer, Map<Integer, List<CubicSmoothingSpline>>> m = new TreeMap<Integer, Map<Integer, List<CubicSmoothingSpline>>>();
+	private synchronized void addNewFinding(List<CubicSmoothingSpline> aCubicSpline, Integer aSlieceNumber, Integer aChannelNumber) {
+	    if (m.get(aSlieceNumber) == null) m.put(aSlieceNumber, new TreeMap<Integer, List<CubicSmoothingSpline>>());
+	    m.get(aSlieceNumber).put(aChannelNumber, aCubicSpline);
 	}
 
 	// Output image with marked filaments
@@ -90,9 +92,9 @@ public class FilamentSegmentation extends PlugInFloatBase {
                                 /* regularizer term */       iRegularizerTerm,
                                                              iNumberOfIterations);
         List<CubicSmoothingSpline> ps = sa.performSegmentation();
-        
+
         // Save results and update output image
-        addNewFinding(ps, aOrigImg.getSliceNumber());
+        addNewFinding(ps, aOrigImg.getSliceNumber(), aChannelNumber);
         drawFinalImg(aOrigImg, aChannelNumber, ps);
 	}
 
@@ -125,31 +127,35 @@ public class FilamentSegmentation extends PlugInFloatBase {
             });
 
             int w = ip.getWidth(), h = ip.getHeight();
+            int color = 0;
+            if (aChannelNumber == 0) color = 255 << 16;
+            else if (aChannelNumber == 1) color = 255 << 8;
+            else if (aChannelNumber == 2) color = 255 << 0;
             for (int i = 0; i < x.size(); ++i) {
                 int xp = (int) (x.get(i)) - 1;
                 int yp = (int) (y.get(i)) - 1;
                 if (xp < 0 || xp >= w - 1 || yp < 0 || yp >= h - 1)
                     continue;
-                pixels[yp * w + xp] = pixels[yp * w + xp] | 255 << ((2-aChannelNumber) * 8);
+                pixels[yp * w + xp] = pixels[yp * w + xp] | color;
             }
         }
     }
 
 	@Override
-    protected void postprocess() {
+    protected void postprocessBeforeShow() {
         // TODO: Output that to table or to file(s)
         // TODO: This is temporary implementation. After taking decision how to 
         // proceed with filaments this method must be revised
         System.out.println(m.size());
-        for (Entry<Integer, List<CubicSmoothingSpline>> e : m.entrySet()) {
-            String lenstr = "";
-            for (CubicSmoothingSpline css : e.getValue()) {
-                lenstr += SegmentationFunctions.calcualteFilamentLenght(css);
-                lenstr += ", ";
-            }
-                   
-           System.out.println(e.getKey() +  ", " + lenstr);
-        }
+//        for (Entry<Integer, List<CubicSmoothingSpline>> e : m.entrySet()) {
+//            String lenstr = "";
+//            for (CubicSmoothingSpline css : e.getValue()) {
+//                lenstr += SegmentationFunctions.calcualteFilamentLenght(css);
+//                lenstr += ", ";
+//            }
+//                   
+//           System.out.println(e.getKey() +  ", " + lenstr);
+//        }
         
         PlotWindow.noGridLines = false; // draw grid lines
         Plot plot = new Plot("All filaments", "X", "Y");
@@ -158,8 +164,8 @@ public class FilamentSegmentation extends PlugInFloatBase {
         
         // Plot data
         plot.setColor(Color.blue);
-        
-        for (List<CubicSmoothingSpline> ps : m.values()) {
+        for (Map<Integer, List<CubicSmoothingSpline>> ms : m.values())
+        for (List<CubicSmoothingSpline> ps : ms.values()) {
             int count = 0;
             for (CubicSmoothingSpline css : ps) {
                 switch(count) {
@@ -269,6 +275,22 @@ public class FilamentSegmentation extends PlugInFloatBase {
 		return true;
 	}
 
+	@Override
+	protected void postprocessFinal() {
+	    ImageWindow window = iProcessedImg.getWindow();
+	    
+	    // When in batch mode there is no window
+	    if (window != null) {
+    	    window.addComponentListener(new ComponentAdapter() {
+    	        @Override
+    	        public void componentResized(ComponentEvent e)
+    	        {
+    	            // TODO: Add here implementation for drawing filaments when windows size/zoom is changed.
+    	        }
+    	    });
+	    }
+	};
+	
 	@Override
 	protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber) {
 		segmentation(aOutputImg, aOrigImg, aChannelNumber);
