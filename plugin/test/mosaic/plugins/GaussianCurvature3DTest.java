@@ -1,7 +1,5 @@
 package mosaic.plugins;
 
-import static org.junit.Assert.*;
-import mosaic.plugins.utils.CurvatureFilterBase;
 import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;
