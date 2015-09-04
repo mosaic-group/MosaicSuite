@@ -4,7 +4,10 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import mosaic.bregman.Analysis;
 import mosaic.bregman.output.CSVOutput;
@@ -18,6 +21,193 @@ import org.scijava.util.FileUtils;
 
 public class Jtest 
 {
+    static class StringLong implements Comparable<StringLong>
+    {
+        String v;
+        long number;
+        
+        /**
+         * 
+         * Strint int constructor
+         * 
+         * @param v file string
+         * @param l 
+         * 
+         */
+        
+        StringLong(String v, long l)
+        {
+            this.v = v;
+            this.number = l;
+        }
+
+        @Override
+        public int compareTo(StringLong a) 
+        {
+            if (a.number > number)
+            {
+                return -1;
+            }
+            else if (a.number < number)
+            {
+                return 1;
+            }
+            
+            return 0;
+        }
+    };
+
+
+    /**
+     * 
+     * Convert a File name to number
+     * 
+     * @param f file
+     * @return the number of the file
+     * 
+     */
+    
+    private static long FileToNumber(File f)
+    {
+        long id = 1;
+        long stride = 1;
+        Pattern p = Pattern.compile("[0-9]+");
+        Matcher m = p.matcher(new StringBuilder(f.getName()).reverse());
+        while (m.find()) 
+        {
+            String result = m.group();
+            id += Integer.parseInt((new StringBuilder(result).reverse()).toString())*stride;
+            stride *= 65536;
+        }
+        
+        return id;
+    }
+    
+    /**
+     * 
+     * Stitch the CSV files all together in the directory dir/dir_p[]
+     * save the result in dir/output_file + dir_p[]
+     * "*" are substituted by "_", it set the property selected to the
+     * number of the file
+     * 
+     * @param dir_p list of directories
+     * @param dir Base
+     * @param output_file stitched file
+     * @param property property to set
+     * @param ext Meta information to supply (if null the meta information are stitched too, if provided only the provided meta-information are inserted into the stitched file)
+     * @param Class<T> internal data for conversion
+     * @return true if success, false otherwise
+     */
+    
+    private static <T extends ICSVGeneral>boolean Stitch(String dir_p[], File dir, File output_file, MetaInfo ext[], String property , Class<T> cls)
+    {
+        boolean first = true;
+        InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
+        
+        if (ext != null) {
+            for (int i = 0 ; i < ext.length ; i++)
+            csv.setMetaInformation(ext[i].par, ext[i].value);
+        }
+        
+        for (int j = 0 ; j < dir_p.length ; j++)
+        {
+            File [] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
+            if (fl == null)
+                continue;
+            int nf = fl.length;
+            
+            
+            Vector<StringLong> si = new Vector<StringLong>();
+            
+            // Check all csv file
+            
+            for (int i = 1 ; i <= nf ; i++)
+            {
+                if (fl[i-1].getName().endsWith(".csv"))
+                {
+                    si.add(new StringLong(fl[i-1].getAbsolutePath(),FileToNumber(fl[i-1])));
+                }
+            }
+            
+            // reorder these files by number
+            
+            Collections.sort(si);
+            
+            // Construct the sorted file list
+            
+            String str[] = new String[si.size()];
+            
+            for (int i = 0 ; i < si.size() ; i++)
+            {
+                str[i] = si.get(i).v;
+            }
+            
+            // sorted
+            
+            if (first == true)
+            {
+                // if it is the first time set the file preference from the first file
+                
+                first = false;
+                
+                csv.setCSVPreferenceFromFile(str[0]);
+            }
+            
+            csv.Stitch(str, output_file + dir_p[j],property,0);
+        }
+        
+        return true;
+    }
+    
+    /**
+     * 
+     * Stitch the CSV files all together in the directory dir/dir_p[]
+     * save the result in output_file + dir_p[]. 
+     * "*" are substituted by "_"
+     * 
+     * @param dir_p list of directories
+     * @param dir Base
+     * @param output_file stitched file (without .csv)
+     * @param ExtParam optionally an array of metadata information
+     * @param OutputChoose occ Format of the output
+     * @param Class<T> Internal data for conversion
+     * @return true if success, false otherwise
+     * 
+     */
+    
+    private static <T extends ICSVGeneral>boolean StitchConvert(String dir_p[], File dir, File output_file , MetaInfo ext[], OutputChoose occ, Class<T> cls)
+    {
+        InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
+        
+        for (int j = 0 ; j < dir_p.length ; j++)
+        {
+            csv.clearMetaInformation();
+            File [] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
+            if (fl == null)
+                return false;
+            
+            int nf = fl.length;
+            
+            String str[] = new String[nf];
+            
+            for (int i = 1 ; i <= nf ; i++)
+            {
+                if (fl[i-1].getName().endsWith(".csv"))
+                    str[i-1] = fl[i-1].getAbsolutePath();
+            }
+            
+            if (ext != null)
+            {
+                for (int i = 0 ; i < ext.length ; i++)
+                csv.setMetaInformation(ext[i].par, ext[i].value);
+            }
+            csv.StitchConvert(str, output_file + dir_p[j].replace("*", "_") + ".csv", occ,"Frame",0);
+        }
+        
+        return true;
+    }
+
+    
 	@Test
 	public void csvtest() 
 	{		
@@ -50,7 +240,7 @@ public class Jtest
 		
 		// Force to Bregman output
 		
-		InterPluginCSV.StitchConvert(out,new File(TestDir) ,new File(TestDir + File.separator + "test_result"),mt,CSVOutput.occ,CSVOutput.occ.classFactory);
+	    StitchConvert(out,new File(TestDir) ,new File(TestDir + File.separator + "test_result"),mt,CSVOutput.occ,CSVOutput.occ.classFactory);
 		
 		// Check the result
 		
@@ -135,7 +325,7 @@ public class Jtest
 		
 		// Stitch
 		
-		InterPluginCSV.Stitch(outcsv_dir, new File(dir_test + File.separator + "Job291370"), new File(dir_test + File.separator + "Job291370" + File.separator + "test_out") , mt, "Image_ID", Region3DColocRScript.class);
+	    Stitch(outcsv_dir, new File(dir_test + File.separator + "Job291370"), new File(dir_test + File.separator + "Job291370" + File.separator + "test_out") , mt, "Image_ID", Region3DColocRScript.class);
 		
 		// test Stitch with enumerating2
 		
@@ -190,7 +380,7 @@ public class Jtest
 		
 		// Stitch
 		
-		InterPluginCSV.Stitch(outcsv_dir, new File(dir_test + File.separator + "Job469867"), new File(dir_test + File.separator + "Job469867" + File.separator + "test_out") , mt, "Image_ID", Region3DColocRScript.class);
+		Stitch(outcsv_dir, new File(dir_test + File.separator + "Job469867"), new File(dir_test + File.separator + "Job469867" + File.separator + "test_out") , mt, "Image_ID", Region3DColocRScript.class);
 		
 /*		if (new File(dir_test + File.separator + "Job237666" + File.separator + "Test_Cell_stitch.csv").exists() == false)
 		{
