@@ -7,6 +7,8 @@ source ~/.bashrc_custom
 
 cd plugin
 
+export ANT_OPTS="-Xms1024m -Xmx4096m -XX:PermSize=1024m -XX:MaxPermSize=2048m"
+
 ant main
 if [ $? -ne 0 ]
 then
