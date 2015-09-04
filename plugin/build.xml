@@ -23,7 +23,6 @@
     <property name="jarfilename" value="Mosaic_ToolSuite" />
 
     <target name="jtest" depends="build">
-        <copy file="${test}/log4j.properties" todir="${build}"/>
         <junit printsummary="yes" haltonfailure="yes">
             <classpath>
                 <pathelement location="bin" />    
@@ -109,6 +108,10 @@
 
     <target name="build">
         <mkdir dir="${build}" />
+        <copy file="${test}/log4j.properties" todir="${build}"/>
+        <copy file="${test}/logging.properties" todir="${build}"/>
+        <copy file="${test}/logback-test.xml" todir="${build}"/>
+
         <javac debug="true" includeantruntime="false" srcdir="src/:test/" destdir="bin/" classpathref="build.classpath" classpath="${build.classpath}" source="1.7" target="1.7">
                     <compilerarg value="-Xlint:all" />
                     <compilerarg value="-Xlint:-path" />
