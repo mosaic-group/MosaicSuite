@@ -8,7 +8,7 @@ package mosaic.core.ipc;
  *
  */
 
-public class StubProp
+public class StubProp implements ICSVGeneral
 {
 
 	public void setImage_ID(int Image_ID_) {
