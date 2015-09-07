@@ -169,11 +169,11 @@ public class Jtest
     private static <T extends ICSVGeneral>boolean Stitch(String dir_p[], File dir, File output_file, MetaInfo ext[], String property , Class<T> cls)
     {
         boolean first = true;
-        InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
+        InterPluginCSV<T> csv = new InterPluginCSV<T>(cls);
         
         if (ext != null) {
             for (int i = 0 ; i < ext.length ; i++)
-            csv.setMetaInformation(ext[i].par, ext[i].value);
+            csv.setMetaInformation(ext[i].parameter, ext[i].value);
         }
         
         for (int j = 0 ; j < dir_p.length ; j++)
@@ -280,7 +280,7 @@ public class Jtest
     
     private static <T extends ICSVGeneral>boolean StitchConvert(String dir_p[], File dir, File output_file , MetaInfo ext[], OutputChoose occ, Class<T> cls)
     {
-        InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
+        InterPluginCSV<T> csv = new InterPluginCSV<T>(cls);
         
         for (int j = 0 ; j < dir_p.length ; j++)
         {
@@ -302,7 +302,7 @@ public class Jtest
             if (ext != null)
             {
                 for (int i = 0 ; i < ext.length ; i++)
-                csv.setMetaInformation(ext[i].par, ext[i].value);
+                csv.setMetaInformation(ext[i].parameter, ext[i].value);
             }
             StitchConvert(csv, str, output_file + dir_p[j].replace("*", "_") + ".csv", occ,"Frame",0);
         }
@@ -332,13 +332,13 @@ public class Jtest
 		
 		MetaInfo mt[] = new MetaInfo[3];
 		mt[0] = new MetaInfo();
-		mt[0].par = new String("test1");
+		mt[0].parameter = new String("test1");
 		mt[0].value = new String("test1");
 		mt[1] = new MetaInfo();
-		mt[1].par = new String("test1");
+		mt[1].parameter = new String("test1");
 		mt[1].value = new String("test1");
 		mt[2] = new MetaInfo();
-		mt[2].par = new String("test1");
+		mt[2].parameter = new String("test1");
 		mt[2].value = new String("test1");
 		
 		// Force to Bregman output
@@ -419,7 +419,7 @@ public class Jtest
 
 		mt = new MetaInfo[1];
 		mt[0] = new MetaInfo();
-		mt[0].par = new String("Background");
+		mt[0].parameter = new String("Background");
 		mt[0].value = new String("test_bck");
 		
 		// Filter out csv output data
@@ -474,7 +474,7 @@ public class Jtest
 
 		mt = new MetaInfo[1];
 		mt[0] = new MetaInfo();
-		mt[0].par = new String("Background");
+		mt[0].parameter = new String("Background");
 		mt[0].value = new String("test_bck");
 		
 		// Filter out csv output data
