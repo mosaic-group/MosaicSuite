@@ -47,29 +47,29 @@ public class Jtest implements PlugInFilter
 		FileUtils.deleteRecursively(s_file);
 		
 		// Test CSV system
-		
+		IJ.log("========================== TestSuite: CSV ===================================");
 		mosaic.core.ipc.Jtest jtestIPC = new mosaic.core.ipc.Jtest();
 		jtestIPC.csvtest();
 		
-//		// Test Squassh segmentation
-//		
-//		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
-//		jtestBR.segmentation();
-//
-//		// Test core utils
-//		
-//		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
-//		jtestTS.testtestsegmentation();
-//	
-//		// Test core utils
-//		
-//		mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
-//		jtestMj.mergetest();
-//		
-//		// Test Region competition segmentation
-//		
-//		mosaic.region_competition.Jtest jtestRC = new mosaic.region_competition.Jtest();
-//		jtestRC.segmentation();
+		// Test Squassh segmentation
+		IJ.log("========================== TestSuite: bregman.Jtest  ===================================");
+		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
+		jtestBR.segmentation();
+
+		// Test core utils
+		IJ.log("========================== TestSuite: core.utils.Jtest ===================================");
+		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
+		jtestTS.testtestsegmentation();
+	
+		// Test core utils
+		IJ.log("========================== TestSuite: core.cluster.Jtest ===================================");
+		mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
+		jtestMj.mergetest();
+		
+		// Test Region competition segmentation
+		IJ.log("========================== TestSuite: region_competition.Jtest ===================================");
+		mosaic.region_competition.Jtest jtestRC = new mosaic.region_competition.Jtest();
+		jtestRC.segmentation();
 		
 		// Tracker
 //	    ParticleTracker3DModular_ pt = new ParticleTracker3DModular_();

@@ -135,13 +135,13 @@ public class Jtest
             return false;
         Vector<T> out = new Vector<T>();
 
-        OutputChoose occ = csv.ReadGeneral(csvs[0], out);
+        OutputChoose occ = csv.readData(csvs[0], out, null);
         if (occ == null)
             return false;
 
         for (int i = 1; i < csvs.length; i++) {
             prev_id = out.size();
-            csv.Readv(csvs[i], out, occ);
+            csv.readData(csvs[i], out, occ);
             setProperty(property, out, base + i, prev_id, out.size() - 1);
         }
 
@@ -245,7 +245,7 @@ public class Jtest
             return false;
 
         csv.setCSVPreferenceFromFile(output[0]);
-        OutputChoose occr = csv.ReadGeneral(output[0], out);
+        OutputChoose occr = csv.readData(output[0], out, null);
         if (occr == null)
             return false;
 
@@ -253,7 +253,7 @@ public class Jtest
 
         for (int i = 1; i < output.length; i++) {
             prev_id = out.size();
-            csv.Readv(output[i], out, occr);
+            csv.readData(output[i], out, occr);
             setProperty(property, out, base + i, prev_id, out.size() - 1);
         }
 

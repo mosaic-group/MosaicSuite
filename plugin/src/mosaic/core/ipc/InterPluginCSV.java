@@ -1,11 +1,14 @@
 package mosaic.core.ipc;
 
+import ij.IJ;
+
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Vector;
 
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -131,6 +134,7 @@ public class InterPluginCSV<E> {
                 }
 
                 if (map[0].split(" ").length > 1) {
+                    // TODO: dangerous! What if there is only one column but has spaces in name?
                     setDelimiter(' ');
                     return;
                 }
@@ -157,10 +161,7 @@ public class InterPluginCSV<E> {
      * @return out output vector
      */
     public Vector<E> Read(String CsvFilename) {
-        Vector<E> out = new Vector<E>();
-        ReadGeneral(CsvFilename, out);
-
-        return out;
+        return Read(CsvFilename, null);
     }
 
     /**
@@ -172,7 +173,7 @@ public class InterPluginCSV<E> {
      */
     public Vector<E> Read(String CsvFilename, OutputChoose occ) {
         Vector<E> out = new Vector<E>();
-        Readv(CsvFilename, out, occ);
+        readData(CsvFilename, out, occ);
 
         return out;
     }
@@ -352,12 +353,12 @@ public class InterPluginCSV<E> {
             return false;
         Vector<E> out = new Vector<E>();
     
-        OutputChoose occ = ReadGeneral(csvs[0], out);
+        OutputChoose occ = readData(csvs[0], out, null);
         if (occ == null)
             return false;
     
         for (int i = 1; i < csvs.length; i++) {
-            Readv(csvs[i], out, occ);
+            readData(csvs[i], out, occ);
         }
     
         Write(Sttch, out, occ, false);
@@ -365,55 +366,30 @@ public class InterPluginCSV<E> {
         return true;
     }
 
-    OutputChoose ReadGeneral(String CsvFilename, Vector<E> out) {
-        OutputChoose occ = new OutputChoose();
+    /**
+     * Read a CSV file
+     * 
+     * @param aCsvFilename - CSV filename
+     * @param out output - container for output data
+     * @param aOutputChoose - chosen output (if null, it will be generated from header)
+     */
+    OutputChoose readData(String aCsvFilename, Vector<E> aOutput, OutputChoose aOutputChoose) {
         ICsvDozerBeanReader beanReader = null;
         try {
-            beanReader = new CsvDozerBeanReader(new FileReader(CsvFilename), iCsvPreference);
-
-            String[] map = beanReader.getHeader(true); // ignore the header
-
-            // number of column
-
-            if (map == null) // we cannot get the header
-                return null;
-
-            CellProcessor c[] = new CellProcessor[map.length];
-            ProcessorGeneral pc = new ProcessorGeneral();
-
-            for (int i = 0; i < c.length; i++) {
-                try {
-                    map[i] = pc.getMap(map[i].replace(" ", "_"));
-                    c[i] = (CellProcessor) pc.getClass().getMethod("getProcessor" + map[i].replace(" ", "_")).invoke(pc);
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                } catch (NoSuchMethodException e) {
-                    // getProcessor from above getMethod is not existing
-                    // figure out what to do with this. Anyway this situation
-                    // seems to be handled below.
-                    //
-                    // e.printStackTrace();
-
-                    c[i] = null;
-                    map[i] = "Nothing";
-                    continue;
-                }
-                map[i] = map[i].replace(" ", "_");
+            beanReader = new CsvDozerBeanReader(new FileReader(aCsvFilename), iCsvPreference);
+    
+            String[] map = beanReader.getHeader(true);
+            if (map == null) return null; // we cannot get the header
+            if (aOutputChoose == null) aOutputChoose = generateOutputChoose(map);
+            System.out.println(aCsvFilename + " " + Arrays.deepToString(map));
+            beanReader.configureBeanMapping(iClazz, aOutputChoose.map);
+    
+            E element;
+            while ((element = beanReader.read(iClazz, aOutputChoose.cel)) != null) {
+                aOutput.add(element);
             }
-
-            beanReader.configureBeanMapping(iClazz, map);
-
-            occ.map = map;
-            occ.cel = c;
-
-            E element = null;
-            while ((element = beanReader.read(iClazz, c)) != null) {
-                out.add(element);
-            }
-
+    
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
             e.printStackTrace();
         } finally {
             if (beanReader != null) {
@@ -424,42 +400,41 @@ public class InterPluginCSV<E> {
                 }
             }
         }
-
-        return occ;
+        
+        return aOutputChoose;
     }
 
-    /**
-     * Read a Csv file given a format occ (combination of map and Cell
-     * processor)
-     * 
-     * @param CsvFilename csv filename
-     * @param out output vector
-     * @param occ format choosen
-     */
-    void Readv(String CsvFilename, Vector<E> out, OutputChoose occ) {
-        ICsvDozerBeanReader beanReader = null;
-        try {
-            beanReader = new CsvDozerBeanReader(new FileReader(CsvFilename), iCsvPreference);
+    private OutputChoose generateOutputChoose(String[] map) {
+        OutputChoose occ = new OutputChoose();
+        CellProcessor c[] = new CellProcessor[map.length];
+        ProcessorGeneral pc = new ProcessorGeneral();
 
-            beanReader.getHeader(true); // ignore the header
-            beanReader.configureBeanMapping(iClazz, occ.map);
-
-            E element = null;
-            while ((element = beanReader.read(iClazz, occ.cel)) != null) {
-                out.add(element);
+        for (int i = 0; i < c.length; i++) {
+            try {
+                map[i] = pc.getMap(map[i].replace(" ", "_"));
+                c[i] = (CellProcessor) pc.getClass().getMethod("getProcessor" + map[i].replace(" ", "_")).invoke(pc);
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            } catch (NoSuchMethodException e) {
+                // getProcessor from above getMethod is not existing
+                // Set handling to use stub method getNothing/setNothing
+                IJ.log("Method not found: [getProcessor" + map[i].replace(" ", "_") + "]");
+                c[i] = null;
+                map[i] = "Nothing";
+                continue;
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            } catch (SecurityException e) {
+                e.printStackTrace();
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (beanReader != null) {
-                try {
-                    beanReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            map[i] = map[i].replace(" ", "_");
         }
+        occ.map = map;
+        occ.cel = c;
+        
+        return occ;
     }
 
     private void setCsvPreference(char aDelimiter) {
