@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.cluster.ClusterSession;
+import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.ipc.MetaInfo;
 import mosaic.core.utils.MosaicUtils.ToARGB;
@@ -1812,6 +1813,51 @@ public class MosaicUtils
 		return outS;
 	}
 	
+    /**
+     * Stitch the CSV files all together in the directory dir/dir_p[] save the
+     * result in output_file + dir_p[] "*" are substituted by "_"
+     * 
+     * @param dir_p list of directories
+     * @param dir Base
+     * @param output_file stitched file
+     * @param Class<T> internal data for conversion
+     * @return true if success, false otherwise
+     */
+    public static <T extends ICSVGeneral> boolean Stitch(String dir_p[], File dir, File output_file, MetaInfo ext[], Class<T> cls) {
+        boolean first = true;
+        InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
+
+        for (int j = 0; j < dir_p.length; j++) {
+            File[] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
+            if (fl == null)
+                continue;
+            int nf = fl.length;
+
+            String str[] = new String[nf];
+
+            for (int i = 1; i <= nf; i++) {
+                if (fl[i - 1].getName().endsWith(".csv"))
+                    str[i - 1] = fl[i - 1].getAbsolutePath();
+            }
+
+            if (ext != null) {
+                for (int i = 0; i < ext.length; i++)
+                    csv.setMetaInformation(ext[i].parameter, ext[i].value);
+            }
+
+            if (first == true) {
+                // if it is the first time set the file preference from the first file
+                first = false;
+
+                csv.setCSVPreferenceFromFile(str[0]);
+            }
+
+            csv.Stitch(str, output_file + dir_p[j]);
+        }
+
+        return true;
+    }
+	
 	/**
 	 * 
 	 * Stitch the CSV in the directory
@@ -1829,7 +1875,7 @@ public class MosaicUtils
 		{
 			mt = new MetaInfo[1];
 			mt[0] = new MetaInfo();
-			mt[0].par = new String("background");
+			mt[0].parameter = new String("background");
 			mt[0].value = new String(bck);
 		}
 		else
@@ -1839,7 +1885,7 @@ public class MosaicUtils
 		
 
 		String[] outcsv = MosaicUtils.getCSV(output);
-		InterPluginCSV.Stitch(outcsv, new File(fl), new File(fl + File.separator + "stitch"), mt, Region3DColocRScript.class);
+		Stitch(outcsv, new File(fl), new File(fl + File.separator + "stitch"), mt, Region3DColocRScript.class);
 		
 		return true;
 	}
