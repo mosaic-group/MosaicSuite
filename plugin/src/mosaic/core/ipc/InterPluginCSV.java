@@ -47,10 +47,10 @@ public class InterPluginCSV<E extends ICSVGeneral> {
 
     }
 
-    private Class<E> p;
+    final private Class<E> p;
     private CsvPreference c;
-    private Vector<ExtParam> fld;
-    private Vector<ExtParam> fld_r;
+    final private Vector<ExtParam> fld;
+    final private Vector<ExtParam> fld_r;
 
     /**
      * Constructor, require the class type of the Generic parameter, example for
@@ -76,6 +76,28 @@ public class InterPluginCSV<E extends ICSVGeneral> {
     public void setMetaInformation(String parameter, String Value) {
         ExtParam prm = new ExtParam(parameter, Value);
         fld.add(prm);
+    }
+
+    /**
+     * Get Meta information
+     * 
+     * @param String meta information
+     * @return Value of the meta information
+     */
+    public String getMetaInformation(String parameter) {
+        for (int i = 0; i < fld.size(); i++) {
+            if (fld.get(i).p1.equals(parameter)) {
+                return fld.get(i).p2;
+            }
+        }
+    
+        for (int i = 0; i < fld_r.size(); i++) {
+            if (fld_r.get(i).p1.equals(parameter)) {
+                return fld_r.get(i).p2;
+            }
+        }
+    
+        return null;
     }
 
     /**
@@ -111,28 +133,6 @@ public class InterPluginCSV<E extends ICSVGeneral> {
     }
 
     /**
-     * Get Meta information
-     * 
-     * @param String meta information
-     * @return Value of the meta information
-     */
-    public String getMetaInformation(String parameter) {
-        for (int i = 0; i < fld.size(); i++) {
-            if (fld.get(i).p1.equals(parameter)) {
-                return fld.get(i).p2;
-            }
-        }
-
-        for (int i = 0; i < fld_r.size(); i++) {
-            if (fld_r.get(i).p1.equals(parameter)) {
-                return fld_r.get(i).p2;
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * Trying to figure out the best setting to read the CSV file
      * 
      * @param CsvFilename
@@ -158,112 +158,6 @@ public class InterPluginCSV<E extends ICSVGeneral> {
                     return;
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } finally {
-            if (beanReader != null) {
-                try {
-                    beanReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private OutputChoose ReadGeneral(String CsvFilename, Vector<E> out) {
-        OutputChoose occ = new OutputChoose();
-        ICsvDozerBeanReader beanReader = null;
-        try {
-            beanReader = new CsvDozerBeanReader(new FileReader(CsvFilename), c);
-
-            E element = p.newInstance();
-            String[] map = beanReader.getHeader(true); // ignore the header
-
-            // number of column
-
-            if (map == null) // we cannot get the header
-                return null;
-
-            CellProcessor c[] = new CellProcessor[map.length];
-            ProcessorGeneral pc = new ProcessorGeneral();
-
-            for (int i = 0; i < c.length; i++) {
-                try {
-                    map[i] = pc.getMap(map[i].replace(" ", "_"));
-                    c[i] = (CellProcessor) pc.getClass().getMethod("getProcessor" + map[i].replace(" ", "_")).invoke(pc);
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                } catch (NoSuchMethodException e) {
-                    // getProcessor from above getMethod is not existing
-                    // figure out what to do with this. Anyway this situation
-                    // seems to be handled below.
-                    //
-                    // e.printStackTrace();
-
-                    c[i] = null;
-                    map[i] = "Nothing";
-                    continue;
-                }
-                map[i] = map[i].replace(" ", "_");
-            }
-
-            beanReader.configureBeanMapping(element.getClass(), map);
-
-            occ.map = map;
-            occ.cel = c;
-
-            while ((element = (E) beanReader.read(element.getClass(), c)) != null) {
-                out.add(element);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } finally {
-            if (beanReader != null) {
-                try {
-                    beanReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return occ;
-    }
-
-    /**
-     * Read a Csv file given a format occ (combination of map and Cell
-     * processor)
-     * 
-     * @param CsvFilename csv filename
-     * @param out output vector
-     * @param occ format choosen
-     */
-    @SuppressWarnings("unchecked")
-    private void Readv(String CsvFilename, Vector<E> out, OutputChoose occ) {
-        ICsvDozerBeanReader beanReader = null;
-        try {
-            beanReader = new CsvDozerBeanReader(new FileReader(CsvFilename), c);
-
-            E element = p.newInstance();
-
-            beanReader.getHeader(true); // ignore the header
-            beanReader.configureBeanMapping(element.getClass(), occ.map);
-
-            while ((element = (E) beanReader.read(element.getClass(), occ.cel)) != null) {
-                out.add(element);
-            }
-
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
@@ -408,133 +302,6 @@ public class InterPluginCSV<E extends ICSVGeneral> {
     }
 
     /**
-     * Set an integer property of a vector of class from r1 to r2
-     * 
-     * @param property
-     *            Property to set, setX() must be defined in the class where X
-     *            is the value of the string property
-     * @param v Vector
-     * @param number value to set
-     * @param r1 start element in the vector
-     * @param r2 end element in the vector
-     */
-    private void setProperty(String property, Vector<E> v, int number, int r1, int r2) {
-        Method m;
-        try {
-            if (r1 >= v.size())
-                return;
-
-            m = v.get(r1).getClass().getMethod("set" + property, int.class);
-            for (int i = r1; i <= r2; i++) {
-                m.invoke(v.get(i), number);
-            }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Stitch CSV files with unknown format in one, converting to a choosen
-     * format set the property specified to base + n where n run across the
-     * files (Example usefull to enumerate frames if each file is a frame)
-     * 
-     * @param output files to read
-     * @param Sttch output file name
-     * @param occ format choose
-     * @param base number
-     * @return true if success
-     */
-    boolean StitchConvert(String output[], String Sttch, OutputChoose occ, String property, int base) {
-        int prev_id = 0;
-        Vector<E> out = new Vector<E>();
-
-        if (output.length == 0)
-            return false;
-
-        setCSVPreferenceFromFile(output[0]);
-        OutputChoose occr = ReadGeneral(output[0], out);
-        if (occr == null)
-            return false;
-
-        setProperty(property, out, base, prev_id, out.size() - 1);
-
-        for (int i = 1; i < output.length; i++) {
-            prev_id = out.size();
-            Readv(output[i], out, occr);
-            setProperty(property, out, base + i, prev_id, out.size() - 1);
-        }
-
-        Write(Sttch, out, occ, false);
-
-        return true;
-    }
-
-    /**
-     * Stitch CSV files in one with an unknown (but equal between files) format
-     * (the first CSV format file drive the output conversion)
-     * 
-     * @param csvs files to stitch
-     * @param Sttch output stitched file
-     * @return
-     */
-    private boolean Stitch(String csvs[], String Sttch) {
-        if (csvs.length == 0)
-            return false;
-        Vector<E> out = new Vector<E>();
-
-        OutputChoose occ = ReadGeneral(csvs[0], out);
-        if (occ == null)
-            return false;
-
-        for (int i = 1; i < csvs.length; i++) {
-            Readv(csvs[i], out, occ);
-        }
-
-        Write(Sttch, out, occ, false);
-
-        return true;
-    }
-
-    /**
-     * Stitch CSV files in one with an unknown (but equal between files) format
-     * (the first CSV format file drive the output conversion). Set the property
-     * specified to base + n where n run across the files (Example usefull to
-     * enumerate frames if each file is a frame)
-     * 
-     * @param csvs files to stitch
-     * @param Sttch output stitched file
-     * @return true if success
-     */
-    boolean Stitch(String csvs[], String Sttch, String property, int base) {
-        int prev_id = 0;
-        if (csvs.length == 0)
-            return false;
-        Vector<E> out = new Vector<E>();
-
-        OutputChoose occ = ReadGeneral(csvs[0], out);
-        if (occ == null)
-            return false;
-
-        for (int i = 1; i < csvs.length; i++) {
-            prev_id = out.size();
-            Readv(csvs[i], out, occ);
-            setProperty(property, out, base + i, prev_id, out.size() - 1);
-        }
-
-        Write(Sttch, out, occ, false);
-
-        return true;
-    }
-
-    /**
      * Set delimiter
      * 
      * @param d delimiter
@@ -639,6 +406,136 @@ public class InterPluginCSV<E extends ICSVGeneral> {
             csv.Stitch(str, output_file + dir_p[j]);
         }
 
+        return true;
+    }
+
+    @SuppressWarnings("unchecked") OutputChoose ReadGeneral(String CsvFilename, Vector<E> out) {
+        OutputChoose occ = new OutputChoose();
+        ICsvDozerBeanReader beanReader = null;
+        try {
+            beanReader = new CsvDozerBeanReader(new FileReader(CsvFilename), c);
+    
+            E element = p.newInstance();
+            String[] map = beanReader.getHeader(true); // ignore the header
+    
+            // number of column
+    
+            if (map == null) // we cannot get the header
+                return null;
+    
+            CellProcessor c[] = new CellProcessor[map.length];
+            ProcessorGeneral pc = new ProcessorGeneral();
+    
+            for (int i = 0; i < c.length; i++) {
+                try {
+                    map[i] = pc.getMap(map[i].replace(" ", "_"));
+                    c[i] = (CellProcessor) pc.getClass().getMethod("getProcessor" + map[i].replace(" ", "_")).invoke(pc);
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                } catch (NoSuchMethodException e) {
+                    // getProcessor from above getMethod is not existing
+                    // figure out what to do with this. Anyway this situation
+                    // seems to be handled below.
+                    //
+                    // e.printStackTrace();
+    
+                    c[i] = null;
+                    map[i] = "Nothing";
+                    continue;
+                }
+                map[i] = map[i].replace(" ", "_");
+            }
+    
+            beanReader.configureBeanMapping(element.getClass(), map);
+    
+            occ.map = map;
+            occ.cel = c;
+    
+            while ((element = (E) beanReader.read(element.getClass(), c)) != null) {
+                out.add(element);
+            }
+    
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } finally {
+            if (beanReader != null) {
+                try {
+                    beanReader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    
+        return occ;
+    }
+
+    /**
+     * Read a Csv file given a format occ (combination of map and Cell
+     * processor)
+     * 
+     * @param CsvFilename csv filename
+     * @param out output vector
+     * @param occ format choosen
+     */
+    @SuppressWarnings("unchecked") void Readv(String CsvFilename, Vector<E> out, OutputChoose occ) {
+        ICsvDozerBeanReader beanReader = null;
+        try {
+            beanReader = new CsvDozerBeanReader(new FileReader(CsvFilename), c);
+    
+            E element = p.newInstance();
+    
+            beanReader.getHeader(true); // ignore the header
+            beanReader.configureBeanMapping(element.getClass(), occ.map);
+    
+            while ((element = (E) beanReader.read(element.getClass(), occ.cel)) != null) {
+                out.add(element);
+            }
+    
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } finally {
+            if (beanReader != null) {
+                try {
+                    beanReader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * Stitch CSV files in one with an unknown (but equal between files) format
+     * (the first CSV format file drive the output conversion)
+     * 
+     * @param csvs files to stitch
+     * @param Sttch output stitched file
+     * @return
+     */
+    private boolean Stitch(String csvs[], String Sttch) {
+        if (csvs.length == 0)
+            return false;
+        Vector<E> out = new Vector<E>();
+    
+        OutputChoose occ = ReadGeneral(csvs[0], out);
+        if (occ == null)
+            return false;
+    
+        for (int i = 1; i < csvs.length; i++) {
+            Readv(csvs[i], out, occ);
+        }
+    
+        Write(Sttch, out, occ, false);
+    
         return true;
     }
 }

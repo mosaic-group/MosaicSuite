@@ -4,6 +4,8 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -21,7 +23,7 @@ import org.scijava.util.FileUtils;
 
 public class Jtest 
 {
-    static class StringLong implements Comparable<StringLong>
+    private static class StringLong implements Comparable<StringLong>
     {
         String v;
         long number;
@@ -81,6 +83,71 @@ public class Jtest
         }
         
         return id;
+    }
+    
+    /**
+     * Set an integer property of a vector of class from r1 to r2
+     * 
+     * @param property
+     *            Property to set, setX() must be defined in the class where X
+     *            is the value of the string property
+     * @param v Vector
+     * @param number value to set
+     * @param r1 start element in the vector
+     * @param r2 end element in the vector
+     */
+    private static <E extends ICSVGeneral>void setProperty(String property, Vector<E> v, int number, int r1, int r2) {
+        Method m;
+        try {
+            if (r1 >= v.size())
+                return;
+
+            m = v.get(r1).getClass().getMethod("set" + property, int.class);
+            for (int i = r1; i <= r2; i++) {
+                m.invoke(v.get(i), number);
+            }
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Stitch CSV files in one with an unknown (but equal between files) format
+     * (the first CSV format file drive the output conversion). Set the property
+     * specified to base + n where n run across the files (Example usefull to
+     * enumerate frames if each file is a frame)
+     * 
+     * @param csvs files to stitch
+     * @param Sttch output stitched file
+     * @return true if success
+     */
+    private static <T extends ICSVGeneral>boolean Stitch(InterPluginCSV<T> csv, String csvs[], String Sttch, String property, int base) {
+        int prev_id = 0;
+        if (csvs.length == 0)
+            return false;
+        Vector<T> out = new Vector<T>();
+
+        OutputChoose occ = csv.ReadGeneral(csvs[0], out);
+        if (occ == null)
+            return false;
+
+        for (int i = 1; i < csvs.length; i++) {
+            prev_id = out.size();
+            csv.Readv(csvs[i], out, occ);
+            setProperty(property, out, base + i, prev_id, out.size() - 1);
+        }
+
+        csv.Write(Sttch, out, occ, false);
+
+        return true;
     }
     
     /**
@@ -153,9 +220,45 @@ public class Jtest
                 csv.setCSVPreferenceFromFile(str[0]);
             }
             
-            csv.Stitch(str, output_file + dir_p[j],property,0);
+            Stitch(csv, str, output_file + dir_p[j],property,0);
         }
         
+        return true;
+    }
+    
+    /**
+     * Stitch CSV files with unknown format in one, converting to a choosen
+     * format set the property specified to base + n where n run across the
+     * files (Example usefull to enumerate frames if each file is a frame)
+     * 
+     * @param output files to read
+     * @param Sttch output file name
+     * @param occ format choose
+     * @param base number
+     * @return true if success
+     */
+    private static <T extends ICSVGeneral> boolean StitchConvert(InterPluginCSV<T> csv, String output[], String Sttch, OutputChoose occ, String property, int base) {
+        int prev_id = 0;
+        Vector<T> out = new Vector<T>();
+
+        if (output.length == 0)
+            return false;
+
+        csv.setCSVPreferenceFromFile(output[0]);
+        OutputChoose occr = csv.ReadGeneral(output[0], out);
+        if (occr == null)
+            return false;
+
+        setProperty(property, out, base, prev_id, out.size() - 1);
+
+        for (int i = 1; i < output.length; i++) {
+            prev_id = out.size();
+            csv.Readv(output[i], out, occr);
+            setProperty(property, out, base + i, prev_id, out.size() - 1);
+        }
+
+        csv.Write(Sttch, out, occ, false);
+
         return true;
     }
     
@@ -201,7 +304,7 @@ public class Jtest
                 for (int i = 0 ; i < ext.length ; i++)
                 csv.setMetaInformation(ext[i].par, ext[i].value);
             }
-            csv.StitchConvert(str, output_file + dir_p[j].replace("*", "_") + ".csv", occ,"Frame",0);
+            StitchConvert(csv, str, output_file + dir_p[j].replace("*", "_") + ".csv", occ,"Frame",0);
         }
         
         return true;
