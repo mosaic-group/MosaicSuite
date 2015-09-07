@@ -502,7 +502,6 @@ class BLauncher
 
 			/* Get Image directory */
 			
-			System.out.println(Thread.currentThread().getStackTrace().toString());
 			img = aImp;
 			
 			if (img == null)
@@ -523,8 +522,8 @@ class BLauncher
 			//IJ.log("single file start headless");
 			//IJ.log("start headless file");
 			bcolocheadless(img);
-			IJ.log("");
 			IJ.log("Done");
+			IJ.log("");
 		}
 		catch (Exception e)
 		{//Catch exception if any
@@ -787,7 +786,7 @@ class BLauncher
 
 		long difference = lEndTime - lStartTime; //check different
 		Ttime +=difference;
-		IJ.log("Total Time : " + Ttime/1000 + "s");
+		IJ.log("Total Time: " + Ttime/1000 + "s");
 
 	}
 

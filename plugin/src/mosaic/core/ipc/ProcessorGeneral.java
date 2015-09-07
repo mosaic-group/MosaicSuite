@@ -42,7 +42,7 @@ class ProcessorGeneral
 		}
 	}
 	
-	Vector<Map> stp;
+	final private Vector<Map> stp;
 	
 	ProcessorGeneral()
 	{

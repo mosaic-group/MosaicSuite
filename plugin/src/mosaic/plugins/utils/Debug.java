@@ -16,6 +16,14 @@ public class Debug {
         System.out.println();
     }
     
+    public static String getString(Object... aObjects) {
+        String str = "";
+        for (Object o : aObjects) { 
+            str += "[" + o + "] ";
+        }
+        return str;
+    }
+    
     public static void print(String aPrefix, Object... aObjects) {
         System.out.print(aPrefix + ": ");
         print(aObjects);
