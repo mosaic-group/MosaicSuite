@@ -724,6 +724,8 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 		out = new byte[1025];
 		String sout = new String();
 		
+		System.out.println("");
+		System.out.println("--------------------------- SecureShell output: -----------------------------");
 		while (true)
 		{			
 			try 
@@ -752,6 +754,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				System.out.println("--------------------------- SecureShell output [END] ------------------------");
 				return;
 			}
 			if (shp != null)

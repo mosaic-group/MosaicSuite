@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Vector;
 
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -232,7 +233,14 @@ public class InterPluginCSV<E> {
         }
     }
 
-    public void Write(String aCsvFilename, Vector<E> aOutputData, OutputChoose aOutputChoose, boolean aShouldAppend) {
+    /**
+     * Writes data to csv file.
+     * @param aCsvFilename - full absolute path/name of output file
+     * @param aOutputData - container with data to be written
+     * @param aOutputChoose - names/processors of expected output
+     * @param aShouldAppend - if appends, then header and metainformation is not written
+     */
+    public void Write(String aCsvFilename, List<E> aOutputData, OutputChoose aOutputChoose, boolean aShouldAppend) {
         if (aOutputData.size() == 0) return;
 
         ICsvDozerBeanWriter beanWriter = null;
@@ -353,15 +361,22 @@ public class InterPluginCSV<E> {
         return aOutputChoose;
     }
 
-    private OutputChoose generateOutputChoose(String[] map) {
+    /**
+     * Generates OutputChoose from provided header keywords.
+     * TODO: This method must be refactored or removed. It is not generic and supports some specific keywords and mappings.
+     *       (via ProcessorGeneral class).
+     * @param aHeaderKeywords - array of keywords strings
+     * @return generated OutputChoose
+     */
+    private OutputChoose generateOutputChoose(String[] aHeaderKeywords) {
         OutputChoose occ = new OutputChoose();
-        CellProcessor c[] = new CellProcessor[map.length];
+        CellProcessor c[] = new CellProcessor[aHeaderKeywords.length];
         ProcessorGeneral pc = new ProcessorGeneral();
 
         for (int i = 0; i < c.length; i++) {
             try {
-                map[i] = pc.getMap(map[i].replace(" ", "_"));
-                c[i] = (CellProcessor) pc.getClass().getMethod("getProcessor" + map[i].replace(" ", "_")).invoke(pc);
+                aHeaderKeywords[i] = pc.getMap(aHeaderKeywords[i].replace(" ", "_"));
+                c[i] = (CellProcessor) pc.getClass().getMethod("getProcessor" + aHeaderKeywords[i].replace(" ", "_")).invoke(pc);
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
             } catch (NoSuchMethodException e) {
@@ -369,7 +384,7 @@ public class InterPluginCSV<E> {
                 // Set handling to use stub method getNothing/setNothing
                 // IJ.log("Method not found: [getProcessor" + map[i].replace(" ", "_") + "]");
                 c[i] = null;
-                map[i] = "Nothing";
+                aHeaderKeywords[i] = "Nothing";
                 continue;
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
@@ -378,9 +393,9 @@ public class InterPluginCSV<E> {
             } catch (SecurityException e) {
                 e.printStackTrace();
             }
-            map[i] = map[i].replace(" ", "_");
+            aHeaderKeywords[i] = aHeaderKeywords[i].replace(" ", "_");
         }
-        occ.map = map;
+        occ.map = aHeaderKeywords;
         occ.cel = c;
         
         return occ;

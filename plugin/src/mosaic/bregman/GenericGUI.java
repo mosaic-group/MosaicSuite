@@ -159,9 +159,7 @@ public class GenericGUI
 		if (BackgroundSubGUI.getParameters() == -1) return run_mode.STOP;
 		if (SegmentationGUI.getParameters() == -1) return run_mode.STOP;
 		if (VisualizationGUI.getParameters() == -1) return run_mode.STOP;
-		
-		System.out.println(Analysis.p);
-		
+
 		if (gui_use_cluster == true)
 			return run_mode.USE_CLUSTER;
 		

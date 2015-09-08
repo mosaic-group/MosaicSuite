@@ -393,8 +393,8 @@ public class IntensityImage
 			
 			double newMax = fp.getStatistics().max;
 			double newMin = fp.getStatistics().min;
-			System.out.println("intensity max = "+newMax);
-			System.out.println("intensity min = "+newMin);
+//			System.out.println("intensity max = "+newMax);
+//			System.out.println("intensity min = "+newMin);
 			
 			String oldTitle = stack.getSliceLabel(i);
 			normalizedStack.addSlice(oldTitle, fp);

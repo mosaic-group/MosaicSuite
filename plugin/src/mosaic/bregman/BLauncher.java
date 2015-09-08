@@ -136,14 +136,12 @@ class BLauncher
 				
 				displayResult(true);
 				
-				System.out.println("Display result");
+				System.out.println("Display result (save images = " + Analysis.p.save_images + ")");
 				
 				// Write a file info output
 				
 				if (Analysis.p.save_images)
 				{					
-					System.out.println("Display result save");
-					
 					saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
 					
 					try
@@ -718,23 +716,17 @@ class BLauncher
 				
 				InterPluginCSV<? extends Outdata<Region>> IpCSV = CSVOutput.getInterPluginCSV();
 				IpCSV.clearMetaInformation();
-				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
-				
-				
-				System.out.println("============== WRITE 1 ====================");
+				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());	
 				System.out.println(output2);
 				CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ, append);
-				//IpCSV.Write(output2,obl,CSVOutput.occ, append);
 				
 				// Write channel 1
 				
 				obl = Analysis.getObjectsList(hcount,0);
 				IpCSV.clearMetaInformation();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
-				System.out.println("============== WRITE 2 ====================");
 				System.out.println(output1);
 				CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ, append);
-				//IpCSV.Write(output1,obl,CSVOutput.occ, append);
 			}
 
 			Analysis.doingbatch=false;
@@ -776,10 +768,8 @@ class BLauncher
 				
 				InterPluginCSV<? extends Outdata<Region>> IpCSV = CSVOutput.getInterPluginCSV();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
-				System.out.println("============== WRITE 3 ====================");
 				System.out.println(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv");
 				CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ, append);
-				//IpCSV.Write(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv", obl,CSVOutput.occ, append);
 			}
 
 			hcount++;
