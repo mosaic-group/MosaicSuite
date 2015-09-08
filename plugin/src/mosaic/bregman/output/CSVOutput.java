@@ -176,7 +176,7 @@ public class CSVOutput
     	oc[2].classFactory = Region3DColocRScript.class;
     	oc[2].vectorFactory = (Class<Vector<? extends Outdata<Region>>>) new Vector<Region3DColocRScript>().getClass();
     	oc[2].InterPluginCSVFactory = (Class<InterPluginCSV<? extends Outdata<Region>>>) new InterPluginCSV<Region3DColocRScript>(Region3DColocRScript.class).getClass();
-    	oc[1].converter = (ConvertAndWrite<? extends Outdata<Region>>) new ConvertAndWrite<Region3DColocRScript>(Region3DColocRScript.class);
+    	oc[2].converter = (ConvertAndWrite<? extends Outdata<Region>>) new ConvertAndWrite<Region3DColocRScript>(Region3DColocRScript.class);
     	oc[2].delimiter = ';';
     	
     	if (oc_s == -1)
@@ -219,6 +219,9 @@ public class CSVOutput
     @SuppressWarnings("unchecked")
 	public static Vector<? extends Outdata<Region>> getVector(ArrayList<Region> v)
     {
+        ConvertAndWrite<? extends Outdata<Region>> c = CSVOutput.occ.converter;
+        if (c == null) System.out.println("NO CONVERTER !!!!!!!!!!!");
+        if (v == null) System.out.println("VECTOR NULL !!!!!!!!!");
     	return CSVOutput.occ.converter.getVector(v);
     }
     
