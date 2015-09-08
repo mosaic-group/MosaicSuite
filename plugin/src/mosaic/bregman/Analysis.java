@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.ipc.ICSVGeneral;
+import mosaic.core.ipc.Outdata;
 import mosaic.core.utils.MosaicUtils;
 
 public class Analysis {
@@ -199,8 +200,10 @@ public class Analysis {
 	 * @return Vector with objects
 	 */
 	
-	public static Vector<?> getObjectsList(int f, int channel)
+	@SuppressWarnings("unchecked")
+    public static Vector<? extends Outdata<Region> > getObjectsList(int f, int channel)
 	{
+	    // Welcome to OOAD -> Convert stuff twice to set some missing data... 
 		@SuppressWarnings("unchecked")
 		Vector<? extends ICSVGeneral > v = (Vector<? extends ICSVGeneral>) CSVOutput.getVector(regionslist[channel]);
 		
@@ -211,7 +214,8 @@ public class Analysis {
 			v.get(i).setFrame(f);
 		}
 		
-		return v;
+		// Convert it back to original type.
+		return (Vector<? extends Outdata<Region> >)v;
 	}
 	
 	public static void load1channel(ImagePlus img2){

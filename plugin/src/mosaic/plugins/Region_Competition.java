@@ -70,7 +70,6 @@ import mosaic.region_competition.initializers.BoxInitializer;
 import mosaic.region_competition.initializers.BubbleInitializer;
 import mosaic.region_competition.initializers.InitializationType;
 import mosaic.region_competition.initializers.MaximaBubbles;
-import mosaic.region_competition.output.RCOutput;
 import mosaic.region_competition.utils.IntConverter;
 //import view4d.Timeline;
 import mosaic.region_competition.utils.Timer;
@@ -425,7 +424,7 @@ public class Region_Competition implements Segmentation
 			// Get output format and Stitch the output in the output selected
 			
 			String outcsv[] = {"*_ObjectsData_c1.csv"};
-			File f = ClusterSession.processJobsData(outcsv,MosaicUtils.ValidFolderFromImage(aImp),RCOutput.class);
+			File f = ClusterSession.processJobsData(outcsv,MosaicUtils.ValidFolderFromImage(aImp));
 			
 			if (aImp != null)
 				MosaicUtils.StitchCSV(MosaicUtils.ValidFolderFromImage(aImp),out,MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle());

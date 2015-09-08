@@ -1,13 +1,10 @@
 package mosaic.core.ipc;
 
-import ij.IJ;
-
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Vector;
 
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -112,8 +109,7 @@ public class InterPluginCSV<E> {
                     setDelimiter(';');
                     return;
                 }
-
-                if (map[0].split(" ").length > 1) {
+                else if (map[0].split(" ").length > 1) {
                     // TODO: dangerous! What if there is only one column but has spaces in name?
                     setDelimiter(' ');
                     return;
@@ -168,31 +164,15 @@ public class InterPluginCSV<E> {
      * @param out Input file of object
      * @param occ Output choose
      */
-    public void Write(String aCsvFilename, Vector<?> aOutputData, OutputChoose aOutputChoose, boolean aShouldAppend) {
-        if (aOutputData.size() == 0)
-            return;
-
-        Class<?> cl = aOutputData.get(0).getClass();
+    public void Write2(String aCsvFilename, Vector<?> aOutputData, OutputChoose aOutputChoose, boolean aShouldAppend) {
+        if (aOutputData.size() == 0) return;
 
         ICsvDozerBeanWriter beanWriter = null;
         try {
             beanWriter = new CsvDozerBeanWriter(new FileWriter(aCsvFilename, aShouldAppend), iCsvPreference);
+            beanWriter.configureBeanMapping(iClazz, aOutputChoose.map);
 
-            E element = null;
-            try {
-                element = iClazz.newInstance();
-            } catch (InstantiationException e1) {
-                e1.printStackTrace();
-                return;
-            } catch (IllegalAccessException e1) {
-                e1.printStackTrace();
-                return;
-            }
-
-            // configure the mapping from the fields to the CSV columns
-            beanWriter.configureBeanMapping(element.getClass(), aOutputChoose.map);
-
-            // write the header and metainformation
+            // write the header and meta information
             if (aShouldAppend == false) {
                 beanWriter.writeHeader(aOutputChoose.map);
 
@@ -208,42 +188,37 @@ public class InterPluginCSV<E> {
             }
 
             // write the beans
-            Method m = null;
-
             try {
-                m = element.getClass().getMethod("setData", cl);
-            } catch (NoSuchMethodException e1) {
-                e1.printStackTrace();
+                
+                Class<?> cl = aOutputData.get(0).getClass();
+                Method m = iClazz.getMethod("setData", cl);
+                
+                E element = null;
+                for (int i = 0; i < aOutputData.size(); i++) {
+                    element = iClazz.newInstance();
+                    m.invoke(element, aOutputData.get(i));
+                    beanWriter.write(element, aOutputChoose.cel);
+                }
+                
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
                 System.err.println("Error in order to Write on CSV the base class has to implement Outdata<>");
                 return;
-            } catch (SecurityException e1) {
-                e1.printStackTrace();
+            } catch (SecurityException e) {
+                e.printStackTrace();
                 return;
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+                return;
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+                return;
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
             }
 
-            for (int i = 0; i < aOutputData.size(); i++) {
-                try {
-                    element = iClazz.newInstance();
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                    return;
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                    return;
-                }
-
-                try {
-                    m.invoke(element, aOutputData.get(i));
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-
-                beanWriter.write(element, aOutputChoose.cel);
-            }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -257,64 +232,62 @@ public class InterPluginCSV<E> {
         }
     }
 
+    public void Write(String aCsvFilename, Vector<E> aOutputData, OutputChoose aOutputChoose, boolean aShouldAppend) {
+        if (aOutputData.size() == 0) return;
+
+        ICsvDozerBeanWriter beanWriter = null;
+        try {
+            beanWriter = new CsvDozerBeanWriter(new FileWriter(aCsvFilename, aShouldAppend), iCsvPreference);
+            beanWriter.configureBeanMapping(iClazz, aOutputChoose.map);
+
+            // write the header and meta information
+            if (aShouldAppend == false) {
+                beanWriter.writeHeader(aOutputChoose.map);
+
+                // Write meta information
+                for (int i = 0; i < iMetaInfos.size(); i++) {
+                    beanWriter.writeComment("%" + iMetaInfos.get(i).parameter + ":" + iMetaInfos.get(i).value);
+                }
+
+                // write read meta information if specified
+                for (int i = 0; i < iMetaInfosRead.size(); i++) {
+                    beanWriter.writeComment("%" + iMetaInfosRead.get(i).parameter + ":" + iMetaInfosRead.get(i).value);
+                }
+            }
+
+            // write the beans
+            try {
+
+                for (int i = 0; i < aOutputData.size(); i++) {
+                    beanWriter.write(aOutputData.get(i), aOutputChoose.cel);
+                }
+                
+            } catch (SecurityException e) {
+                e.printStackTrace();
+                return;
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (beanWriter != null) {
+                try {
+                    beanWriter.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    
     /**
      * Set delimiter
      * @param d delimiter
      */
     public void setDelimiter(char d) {
         setCsvPreference(d);
-    }
-
-    /**
-     * Create a vector of the internal type from an array of unknown type
-     * 
-     * @param ar
-     * @return
-     */
-    public Vector<?> getVector(ArrayList<?> ar) {
-        Vector<E> v = new Vector<E>();
-
-        if (ar.size() == 0)
-            return v;
-
-        Class<?> car = ar.get(0).getClass();
-        E element = null;
-        Method m = null;
-
-        try {
-            element = iClazz.newInstance();
-            m = element.getClass().getMethod("setData", car);
-        } catch (NoSuchMethodException e1) {
-            e1.printStackTrace();
-        } catch (SecurityException e1) {
-            e1.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-
-        for (int i = 0; i < ar.size(); i++) {
-            try {
-                element = iClazz.newInstance();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-            try {
-                m.invoke(element, ar.get(i));
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-            v.add(element);
-        }
-
-        return v;
     }
 
     /**
@@ -331,8 +304,7 @@ public class InterPluginCSV<E> {
         Vector<E> out = new Vector<E>();
     
         OutputChoose occ = readData(aInputFileNames[0], out, null);
-        if (occ == null)
-            return false;
+        if (occ == null) return false;
     
         for (int i = 1; i < aInputFileNames.length; i++) {
             readData(aInputFileNames[i], out, occ);
@@ -395,7 +367,7 @@ public class InterPluginCSV<E> {
             } catch (NoSuchMethodException e) {
                 // getProcessor from above getMethod is not existing
                 // Set handling to use stub method getNothing/setNothing
-                IJ.log("Method not found: [getProcessor" + map[i].replace(" ", "_") + "]");
+                // IJ.log("Method not found: [getProcessor" + map[i].replace(" ", "_") + "]");
                 c[i] = null;
                 map[i] = "Nothing";
                 continue;

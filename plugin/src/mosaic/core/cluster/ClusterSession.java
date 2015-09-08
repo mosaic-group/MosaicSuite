@@ -19,7 +19,6 @@ import java.util.regex.Pattern;
 import mosaic.bregman.Analysis;
 import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
-import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.utils.MM;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
@@ -1158,7 +1157,7 @@ public class ClusterSession
 	 * 
 	 */
 	
-	public static <T extends ICSVGeneral> File processJobsData(String[] outcsv , String path, Class<T> cls)
+	public static File processJobsData(String[] outcsv , String path)
 	{
 		String dirS = null;
 		

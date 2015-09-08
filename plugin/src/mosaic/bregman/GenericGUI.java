@@ -34,7 +34,6 @@ import mosaic.bregman.GUI.BackgroundSubGUI;
 import mosaic.bregman.GUI.ColocalizationGUI;
 import mosaic.bregman.GUI.SegmentationGUI;
 import mosaic.bregman.GUI.VisualizationGUI;
-import mosaic.bregman.output.CSVOutput;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicTest;
@@ -614,7 +613,7 @@ public class GenericGUI
 			String path = MosaicUtils.ValidFolderFromImage(aImp);
 			if (BregmanGLM_Batch.test_mode == true)
 				path = MosaicTest.getTestEnvironment();
-			File dir = ClusterSession.processJobsData(outcsv,path,CSVOutput.occ.classFactory);
+			File dir = ClusterSession.processJobsData(outcsv,path);
 			
 			// if background is != null it mean that is a video or is an image so try to stitch
 			if (Background != null)

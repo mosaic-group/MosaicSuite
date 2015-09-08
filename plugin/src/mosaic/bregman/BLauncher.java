@@ -27,6 +27,7 @@ import java.util.Vector;
 
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.ipc.Outdata;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 import net.imglib2.RandomAccess;
@@ -713,23 +714,27 @@ class BLauncher
 				
 				// Choose the Rscript coloc format
 				CSVOutput.occ = CSVOutput.oc[2];
-				Vector<?> obl = Analysis.getObjectsList(hcount,1);
+				Vector<? extends Outdata<Region>> obl = Analysis.getObjectsList(hcount,1);
 				
-				InterPluginCSV<?> IpCSV = CSVOutput.getInterPluginCSV();
+				InterPluginCSV<? extends Outdata<Region>> IpCSV = CSVOutput.getInterPluginCSV();
 				IpCSV.clearMetaInformation();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
 				
+				
+				System.out.println("============== WRITE 1 ====================");
 				System.out.println(output2);
-				IpCSV.Write(output2,obl,CSVOutput.occ, append);
+				CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ, append);
+				//IpCSV.Write(output2,obl,CSVOutput.occ, append);
 				
 				// Write channel 1
 				
 				obl = Analysis.getObjectsList(hcount,0);
 				IpCSV.clearMetaInformation();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
-				
+				System.out.println("============== WRITE 2 ====================");
 				System.out.println(output1);
-				IpCSV.Write(output1,obl,CSVOutput.occ, append);
+				CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ, append);
+				//IpCSV.Write(output1,obl,CSVOutput.occ, append);
 			}
 
 			Analysis.doingbatch=false;
@@ -765,15 +770,16 @@ class BLauncher
 				else
 					append = true;
 				
-				Vector<?> obl = Analysis.getObjectsList(hcount,0);
+				Vector<? extends Outdata<Region>> obl = Analysis.getObjectsList(hcount,0);
 				
 				String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
 				
-				InterPluginCSV<?> IpCSV = CSVOutput.getInterPluginCSV();
+				InterPluginCSV<? extends Outdata<Region>> IpCSV = CSVOutput.getInterPluginCSV();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
-				
+				System.out.println("============== WRITE 3 ====================");
 				System.out.println(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv");
-				IpCSV.Write(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv",obl,CSVOutput.occ, append);
+				CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ, append);
+				//IpCSV.Write(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv", obl,CSVOutput.occ, append);
 			}
 
 			hcount++;

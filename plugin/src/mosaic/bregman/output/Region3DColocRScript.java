@@ -2,11 +2,12 @@ package mosaic.bregman.output;
 
 import mosaic.bregman.Region;
 import mosaic.core.ipc.ICSVGeneral;
+import mosaic.core.ipc.Outdata;
 import mosaic.core.ipc.StubProp;
 
 
 
-public class Region3DColocRScript extends StubProp implements ICSVGeneral
+public class Region3DColocRScript extends StubProp implements ICSVGeneral, Outdata<Region>
 {
 	int Image_ID;
 	int Object_ID;

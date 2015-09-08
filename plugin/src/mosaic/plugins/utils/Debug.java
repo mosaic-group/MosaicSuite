@@ -23,10 +23,4 @@ public class Debug {
         }
         return str;
     }
-    
-    public static void print(String aPrefix, Object... aObjects) {
-        System.out.print(aPrefix + ": ");
-        print(aObjects);
-    }
-
 }

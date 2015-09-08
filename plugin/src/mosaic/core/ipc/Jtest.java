@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import mosaic.bregman.Analysis;
+import mosaic.bregman.Region;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.bregman.output.Region3DRScript;
@@ -96,7 +97,7 @@ public class Jtest
      * @param r1 start element in the vector
      * @param r2 end element in the vector
      */
-    private static <E extends ICSVGeneral>void setProperty(String property, Vector<E> v, int number, int r1, int r2) {
+    private static <E extends Outdata<Region>>void setProperty(String property, Vector<E> v, int number, int r1, int r2) {
         Method m;
         try {
             if (r1 >= v.size())
@@ -129,7 +130,7 @@ public class Jtest
      * @param Sttch output stitched file
      * @return true if success
      */
-    private static <T extends ICSVGeneral>boolean Stitch(InterPluginCSV<T> csv, String csvs[], String Sttch, String property, int base) {
+    private static <T extends Outdata<Region>>boolean Stitch(InterPluginCSV<T> csv, String csvs[], String Sttch, String property, int base) {
         int prev_id = 0;
         if (csvs.length == 0)
             return false;
@@ -166,7 +167,7 @@ public class Jtest
      * @return true if success, false otherwise
      */
     
-    private static <T extends ICSVGeneral>boolean Stitch(String dir_p[], File dir, File output_file, MetaInfo ext[], String property , Class<T> cls)
+    private static <T extends Outdata<Region>>boolean Stitch(String dir_p[], File dir, File output_file, MetaInfo ext[], String property , Class<T> cls)
     {
         boolean first = true;
         InterPluginCSV<T> csv = new InterPluginCSV<T>(cls);
@@ -237,7 +238,7 @@ public class Jtest
      * @param base number
      * @return true if success
      */
-    private static <T extends ICSVGeneral> boolean StitchConvert(InterPluginCSV<T> csv, String output[], String Sttch, OutputChoose occ, String property, int base) {
+    private static <T extends Outdata<Region>> boolean StitchConvert(InterPluginCSV<T> csv, String output[], String Sttch, OutputChoose occ, String property, int base) {
         int prev_id = 0;
         Vector<T> out = new Vector<T>();
 
@@ -278,7 +279,7 @@ public class Jtest
      * 
      */
     
-    private static <T extends ICSVGeneral>boolean StitchConvert(String dir_p[], File dir, File output_file , MetaInfo ext[], OutputChoose occ, Class<T> cls)
+    private static <T extends Outdata<Region>>boolean StitchConvert(String dir_p[], File dir, File output_file , MetaInfo ext[], OutputChoose occ, Class<T> cls)
     {
         InterPluginCSV<T> csv = new InterPluginCSV<T>(cls);
         
