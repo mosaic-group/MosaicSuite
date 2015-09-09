@@ -17,6 +17,7 @@ import java.util.List;
 import mosaic.test.framework.CommonBase;
 import mosaic.test.framework.SystemOperations;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
@@ -99,91 +100,105 @@ public class InterPluginCSVTest extends CommonBase {
         }
     }
     
+    static String fullFileName(String aFileName) {
+        String testDir = SystemOperations.getTestTmpPath();
+        return testDir + aFileName;
+    }
+    
+    static void verifyFileContent(String aFileName, String aExpectedContent) {
+        String content = readFile(aFileName);
+        assertEquals(aExpectedContent, content);
+    }
+    
+    // These guys are updated before each test to fresh state 
+    InterPluginCSV<TestThing> csv;
+    OutputChoose oc;
+    
+    @Before 
+    public void initialize() {
+        csv = new InterPluginCSV<TestThing>(TestThing.class);
+        oc = new OutputChoose( TestThing.Thing_map, TestThing.Thing_CellProcessor);
+     }
+    
     // --------------------- Test methods -----------------------------------------------
     
     @Test
     public void testWrite() {
-        String testDir = SystemOperations.getTestTmpPath();
+        String fullFileName = fullFileName("testWrite.csv");
         
-        String fullFileName = testDir + "testWrite.csv";
+        // Data to be written
         List<TestThing> data = new ArrayList<TestThing>();
         data.add(new TestThing(1, 33.3));
         data.add(new TestThing(4, 99.1));
         
-        InterPluginCSV<TestThing> csv = new InterPluginCSV<TestThing>(TestThing.class);
-        OutputChoose oc = new OutputChoose( TestThing.Thing_map, TestThing.Thing_CellProcessor);
+        // Tested method
         csv.Write(fullFileName, data , oc , false);
         
-        String content = readFile(fullFileName);
+        // Verify
         String expectedContent = "ID,CalculatedValue\n" +
                                  "1,33.3\n" +
                                  "4,99.1\n";
-        assertEquals(expectedContent, content);
+        verifyFileContent(fullFileName, expectedContent);
     }
     
     @Test
     public void testRead() {
-        String testDir = SystemOperations.getTestTmpPath();
+        String fullFileName = fullFileName("testRead.csv");
         
-        String fullFileName = testDir + "testRead.csv";
-        
+        // Prepare data
         String expectedContent = "ID,CalculatedValue\n" +
                                  "1,33.3\n" +
                                  "4,99.1\n";
         saveFile(fullFileName, expectedContent);
         
-        List<TestThing> expectedData = new ArrayList<TestThing>();
-        expectedData.add(new TestThing(1, 33.3));
-        expectedData.add(new TestThing(4, 99.1));
-        
-        InterPluginCSV<TestThing> csv = new InterPluginCSV<TestThing>(TestThing.class);
-        OutputChoose oc = new OutputChoose( TestThing.Thing_map, TestThing.Thing_CellProcessor);
+        // Tested method
         List<TestThing> outdst = csv.Read(fullFileName, oc);
 
+        // Verify
+        List<TestThing> expectedData = new ArrayList<TestThing>();
+        expectedData.add(new TestThing(1, 33.3));
+        expectedData.add(new TestThing(4, 99.1));        
         assertEquals(expectedData, outdst);
     }
     
     @Test
     public void testWriteMetaInformation() {
-        String testDir = SystemOperations.getTestTmpPath();
+        String fullFileName = fullFileName("testWriteMetaInformation.csv");
         
-        String fullFileName = testDir + "testWriteMetaInformation.csv";
+        // Generate data
         List<TestThing> data = new ArrayList<TestThing>();
         data.add(new TestThing(1, 5.2));
-        
-        InterPluginCSV<TestThing> csv = new InterPluginCSV<TestThing>(TestThing.class);
-        OutputChoose oc = new OutputChoose( TestThing.Thing_map, TestThing.Thing_CellProcessor);
         csv.setMetaInformation("name1", "valueForName1");
         csv.setMetaInformation("name2", "valueForName2");
-        csv.Write(fullFileName, data , oc , false);
         
-        String content = readFile(fullFileName);
+        // Tested method
+        csv.Write(fullFileName, data , oc , false);
+   
+        // Verify
         String expectedContent = "ID,CalculatedValue\n" +
                                  "%name1:valueForName1\n" +
                                  "%name2:valueForName2\n" +
-                                 "1,5.2\n";;
-        assertEquals(expectedContent, content);
+                                 "1,5.2\n";
+        verifyFileContent(fullFileName, expectedContent);
     }
     
     @Test
     public void testReadMetaInformation() {
-        String testDir = SystemOperations.getTestTmpPath();
-        
-        String fullFileName = testDir + "testReadMetaInformation.csv";
-        
+        String fullFileName = fullFileName("testReadMetaInformation.csv");
+
+        // Prepare data
         String expectedContent = "ID,CalculatedValue\n" +
                                  "%name1:valueForName1\n" +
                                  "%name2:valueForName2\n" +
                                  "4,5.2\n";;
         saveFile(fullFileName, expectedContent);
         
-        List<TestThing> expectedData = new ArrayList<TestThing>();
-        expectedData.add(new TestThing(4, 5.2));
-        
-        InterPluginCSV<TestThing> csv = new InterPluginCSV<TestThing>(TestThing.class);
-        OutputChoose oc = new OutputChoose( TestThing.Thing_map, TestThing.Thing_CellProcessor);
+        // Tested method
         List<TestThing> outdst = csv.Read(fullFileName, oc);
 
+        // Verify
+        List<TestThing> expectedData = new ArrayList<TestThing>();
+        expectedData.add(new TestThing(4, 5.2));
         assertEquals(expectedData, outdst);
         assertEquals("valueForName1", csv.getMetaInformation("name1"));
         assertEquals("valueForName2", csv.getMetaInformation("name2"));
@@ -191,121 +206,119 @@ public class InterPluginCSVTest extends CommonBase {
     
     @Test
     public void testWriteAppend() {
-        String testDir = SystemOperations.getTestTmpPath();
+        String fullFileName = fullFileName("testWriteAppend.csv");
         
-        String fullFileName = testDir + "testWriteAppend.csv";
-        
-        {
+        {  // Save first version of file
+            
+            // Generate data
             List<TestThing> data = new ArrayList<TestThing>();
             data.add(new TestThing(1, 33.3));
             data.add(new TestThing(4, 99.1));
-
-            InterPluginCSV<TestThing> csv = new InterPluginCSV<TestThing>(TestThing.class);
-            OutputChoose oc = new OutputChoose( TestThing.Thing_map, TestThing.Thing_CellProcessor);
             csv.setMetaInformation("anyName", "anyValue");
+
+            // Tested method
             csv.Write(fullFileName, data , oc , false);
             
-            String content = readFile(fullFileName);
+            // Verify
             String expectedContent = "ID,CalculatedValue\n" +
                                      "%anyName:anyValue\n" +
                                      "1,33.3\n" +
                                      "4,99.1\n";
-            
-            assertEquals(expectedContent, content);
+            verifyFileContent(fullFileName, expectedContent);
         }
-        {
-            InterPluginCSV<TestThing> csv = new InterPluginCSV<TestThing>(TestThing.class);
-            OutputChoose oc = new OutputChoose( TestThing.Thing_map, TestThing.Thing_CellProcessor);
+        {  // Append additional data to that file
+            
+            // Generate new InterPluginCSV just to refresh state
+            csv = new InterPluginCSV<TestThing>(TestThing.class);
+            
+            // Tested method
             csv.Write(fullFileName, Arrays.asList(new TestThing(5, 1.23)) , oc , true);
             
-            String content = readFile(fullFileName);
+            // Verify
             String expectedContent = "ID,CalculatedValue\n" +
                                      "%anyName:anyValue\n" +
                                      "1,33.3\n" +
                                      "4,99.1\n" +
                                      "5,1.23\n";
-            
-            assertEquals(expectedContent, content);
+            verifyFileContent(fullFileName, expectedContent);
         }
     }
     
     @Test
     public void testStitch() {
-        String testDir = SystemOperations.getTestTmpPath();
-        
-        String fullFileName1 = testDir + "testStitch1.csv";
-        String fullFileName2 = testDir + "testStitch2.csv";
+        String fullFileName1 = fullFileName("testStitch1.csv");
+        String fullFileName2 = fullFileName("testStitch2.csv");
 
-        {
-            InterPluginCSV<TestThing> csv = new InterPluginCSV<TestThing>(TestThing.class);
-            OutputChoose oc = new OutputChoose( TestThing.Thing_map, TestThing.Thing_CellProcessor);
+        {   // Generate first file
+            
             csv.setMetaInformation("name1", "valueForName1");
             csv.Write(fullFileName1, Arrays.asList(new TestThing(5, 1.23)) , oc , false);
         }
-        {
-            InterPluginCSV<TestThing> csv = new InterPluginCSV<TestThing>(TestThing.class);
-            OutputChoose oc = new OutputChoose( TestThing.Thing_map, TestThing.Thing_CellProcessor);
+        {   // Generate second file
+            
+            // Generate new InterPluginCSV just to refresh state
+            csv = new InterPluginCSV<TestThing>(TestThing.class);
             csv.setMetaInformation("name2", "valueForName2");
             csv.Write(fullFileName2, Arrays.asList(new TestThing(3, 3.14)) , oc , false);
         }
         
-        String fullFileName = testDir + "testStitchEd.csv";
-        InterPluginCSV<TestThing> csv = new InterPluginCSV<TestThing>(TestThing.class);
-        OutputChoose oc = new OutputChoose( TestThing.Thing_map, TestThing.Thing_CellProcessor);
+        // Add additional meta information before joining files together
+        String fullFileName = fullFileName("testStitchEd.csv");
+        // Generate new InterPluginCSV just to refresh state
+        csv = new InterPluginCSV<TestThing>(TestThing.class);
         csv.setMetaInformation("name3", "valueForName3");
+        
+        // Tested method
         assertTrue(csv.Stitch(new String[] {fullFileName1, fullFileName2}, fullFileName , oc));
         
-        String content = readFile(fullFileName);
+        // Verify
         String expectedContent = "ID,CalculatedValue\n" +
                                  "%name3:valueForName3\n" +
                                  "%name1:valueForName1\n" +
                                  "%name2:valueForName2\n" +
                                  "5,1.23\n" +
                                  "3,3.14\n";
-        assertEquals(expectedContent, content);
+        verifyFileContent(fullFileName, expectedContent);
     }
     
     @Test
     public void testWriteChangedDelimieter() {
-        String testDir = SystemOperations.getTestTmpPath();
+        String fullFileName = fullFileName("testWriteChangedDelimieter.csv");
         
-        String fullFileName = testDir + "testWriteChangedDelimieter.csv";
+        // Prepare data
         List<TestThing> data = new ArrayList<TestThing>();
         data.add(new TestThing(1, 33.3));
         data.add(new TestThing(4, 99.1));
         
-        InterPluginCSV<TestThing> csv = new InterPluginCSV<TestThing>(TestThing.class);
+        // Tested methods
         csv.setDelimiter(';');
-        OutputChoose oc = new OutputChoose( TestThing.Thing_map, TestThing.Thing_CellProcessor);
         csv.Write(fullFileName, data , oc , false);
         
-        String content = readFile(fullFileName);
+        // Verify
         String expectedContent = "ID;CalculatedValue\n" +
                                  "1;33.3\n" +
                                  "4;99.1\n";
-        assertEquals(expectedContent, content);
+        verifyFileContent(fullFileName, expectedContent);
     }
     
     @Test
     public void testReadChangedDelimieter() {
-        String testDir = SystemOperations.getTestTmpPath();
+        String fullFileName = fullFileName("testReadChangedDelimieter.csv");
         
-        String fullFileName = testDir + "testReadChangedDelimieter.csv";
-        
+        // Prepare data
         String expectedContent = "ID;CalculatedValue\n" +
                                  "1;33.3\n" +
                                  "4;99.1\n";
         saveFile(fullFileName, expectedContent);
         
-        List<TestThing> expectedData = new ArrayList<TestThing>();
-        expectedData.add(new TestThing(1, 33.3));
-        expectedData.add(new TestThing(4, 99.1));
-        
-        InterPluginCSV<TestThing> csv = new InterPluginCSV<TestThing>(TestThing.class);
-        OutputChoose oc = new OutputChoose( TestThing.Thing_map, TestThing.Thing_CellProcessor);
+        // Tested methods
         csv.setCSVPreferenceFromFile(fullFileName);
         List<TestThing> outdst = csv.Read(fullFileName, oc);
 
+        // Verify
+        List<TestThing> expectedData = new ArrayList<TestThing>();
+        expectedData.add(new TestThing(1, 33.3));
+        expectedData.add(new TestThing(4, 99.1));
         assertEquals(expectedData, outdst);
     }
 }
