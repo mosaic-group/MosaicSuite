@@ -718,7 +718,7 @@ class BLauncher
 				IpCSV.clearMetaInformation();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());	
 				System.out.println(output2);
-				CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ, append);
+				CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ.outputChoose, append);
 				
 				// Write channel 1
 				
@@ -726,7 +726,7 @@ class BLauncher
 				IpCSV.clearMetaInformation();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
 				System.out.println(output1);
-				CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ, append);
+				CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ.outputChoose, append);
 			}
 
 			Analysis.doingbatch=false;
@@ -769,7 +769,7 @@ class BLauncher
 				InterPluginCSV<? extends Outdata<Region>> IpCSV = CSVOutput.getInterPluginCSV();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
 				System.out.println(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv");
-				CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ, append);
+				CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, append);
 			}
 
 			hcount++;

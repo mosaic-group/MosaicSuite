@@ -578,9 +578,7 @@ public class RegionCreator implements PlugInFilter
 		
 		//
 		
-		OutputChoose oc = new OutputChoose();
-		oc.map = CSVOutput.Region3DTrack_map;
-		oc.cel = CSVOutput.getRegion3DTrackCellProcessor();
+		OutputChoose oc = new OutputChoose(CSVOutput.Region3DTrack_map, CSVOutput.getRegion3DTrackCellProcessor());
 		
 		P_csv.Write(output, pt_r, oc, false);
 	}

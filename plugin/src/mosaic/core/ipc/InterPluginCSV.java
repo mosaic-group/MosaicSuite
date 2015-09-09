@@ -4,7 +4,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Vector;
 
@@ -104,16 +103,15 @@ public class InterPluginCSV<E> {
             beanReader = new CsvDozerBeanReader(new FileReader(aCsvFilename), iCsvPreference);
 
             String[] map = beanReader.getHeader(true);
-
+            // In case when header map is equal to 1 it is probable that current delimiter is not correct
+            // Try to find better. (Of course there is always a chanse that there is only one column).
             if (map.length == 1) {
                 if (map[0].split(";").length > 1) {
                     setDelimiter(';');
-                    return;
                 }
                 else if (map[0].split(" ").length > 1) {
                     // TODO: dangerous! What if there is only one column but has spaces in name?
                     setDelimiter(' ');
-                    return;
                 }
             }
         } 
@@ -156,84 +154,6 @@ public class InterPluginCSV<E> {
     }
 
     /**
-     * Write a CSV file, perform an automatic conversion from the element
-     * inside vector and the internal type, setData(T) where T is the type of
-     * the single element in the out vector has to be implemented in the POJO
-     * Class (aka internal type)
-     * 
-     * @param CsvFilename Filename
-     * @param out Input file of object
-     * @param occ Output choose
-     */
-    public void Write2(String aCsvFilename, Vector<?> aOutputData, OutputChoose aOutputChoose, boolean aShouldAppend) {
-        if (aOutputData.size() == 0) return;
-
-        ICsvDozerBeanWriter beanWriter = null;
-        try {
-            beanWriter = new CsvDozerBeanWriter(new FileWriter(aCsvFilename, aShouldAppend), iCsvPreference);
-            beanWriter.configureBeanMapping(iClazz, aOutputChoose.map);
-
-            // write the header and meta information
-            if (aShouldAppend == false) {
-                beanWriter.writeHeader(aOutputChoose.map);
-
-                // Write meta information
-                for (int i = 0; i < iMetaInfos.size(); i++) {
-                    beanWriter.writeComment("%" + iMetaInfos.get(i).parameter + ":" + iMetaInfos.get(i).value);
-                }
-
-                // write read meta information if specified
-                for (int i = 0; i < iMetaInfosRead.size(); i++) {
-                    beanWriter.writeComment("%" + iMetaInfosRead.get(i).parameter + ":" + iMetaInfosRead.get(i).value);
-                }
-            }
-
-            // write the beans
-            try {
-                
-                Class<?> cl = aOutputData.get(0).getClass();
-                Method m = iClazz.getMethod("setData", cl);
-                
-                E element = null;
-                for (int i = 0; i < aOutputData.size(); i++) {
-                    element = iClazz.newInstance();
-                    m.invoke(element, aOutputData.get(i));
-                    beanWriter.write(element, aOutputChoose.cel);
-                }
-                
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-                System.err.println("Error in order to Write on CSV the base class has to implement Outdata<>");
-                return;
-            } catch (SecurityException e) {
-                e.printStackTrace();
-                return;
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-                return;
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-                return;
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (beanWriter != null) {
-                try {
-                    beanWriter.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    /**
      * Writes data to csv file.
      * @param aCsvFilename - full absolute path/name of output file
      * @param aOutputData - container with data to be written
@@ -253,13 +173,13 @@ public class InterPluginCSV<E> {
                 beanWriter.writeHeader(aOutputChoose.map);
 
                 // Write meta information
-                for (int i = 0; i < iMetaInfos.size(); i++) {
-                    beanWriter.writeComment("%" + iMetaInfos.get(i).parameter + ":" + iMetaInfos.get(i).value);
+                for (MetaInfo mi : iMetaInfos) {
+                    beanWriter.writeComment("%" + mi.parameter + ":" + mi.value);
                 }
 
                 // write read meta information if specified
-                for (int i = 0; i < iMetaInfosRead.size(); i++) {
-                    beanWriter.writeComment("%" + iMetaInfosRead.get(i).parameter + ":" + iMetaInfosRead.get(i).value);
+                for (MetaInfo mi : iMetaInfosRead) {
+                    beanWriter.writeComment("%" + mi.parameter + ":" + mi.value);
                 }
             }
 
@@ -306,12 +226,23 @@ public class InterPluginCSV<E> {
      * @param aOutputFileName - output stitched file
      * @return true when succeed
      */
-    public boolean Stitch(String aInputFileNames[], String aOutputFileName) {
-        if (aInputFileNames.length == 0)
-            return false;
-        Vector<E> out = new Vector<E>();
+    public boolean Stitch(String[] aInputFileNames, String aOutputFileName) {
+        return Stitch(aInputFileNames, aOutputFileName, null);
+    }
     
-        OutputChoose occ = readData(aInputFileNames[0], out, null);
+    /**
+     * Stitch CSV files in one with an unknown (but equal between files) format
+     * (the first CSV format file drive the output conversion)
+     * 
+     * @param aInputFileNames - files to stitch
+     * @param aOutputFileName - output stitched file
+     * @return true when succeed
+     */
+    public boolean Stitch(String[] aInputFileNames, String aOutputFileName, OutputChoose aOutputChoose) {
+        if (aInputFileNames.length == 0) return false;
+        
+        Vector<E> out = new Vector<E>();
+        OutputChoose occ = readData(aInputFileNames[0], out, aOutputChoose);
         if (occ == null) return false;
     
         for (int i = 1; i < aInputFileNames.length; i++) {
@@ -369,7 +300,6 @@ public class InterPluginCSV<E> {
      * @return generated OutputChoose
      */
     private OutputChoose generateOutputChoose(String[] aHeaderKeywords) {
-        OutputChoose occ = new OutputChoose();
         CellProcessor c[] = new CellProcessor[aHeaderKeywords.length];
         ProcessorGeneral pc = new ProcessorGeneral();
 
@@ -395,8 +325,8 @@ public class InterPluginCSV<E> {
             }
             aHeaderKeywords[i] = aHeaderKeywords[i].replace(" ", "_");
         }
-        occ.map = aHeaderKeywords;
-        occ.cel = c;
+        
+        OutputChoose occ = new OutputChoose(aHeaderKeywords, c);
         
         return occ;
     }

@@ -391,8 +391,8 @@ public class IntensityImage
 			fp.multiply(1.0/range);
 //			IJ.run(ip, "Divide...", "value=1.250000000");
 			
-			double newMax = fp.getStatistics().max;
-			double newMin = fp.getStatistics().min;
+//			double newMax = fp.getStatistics().max;
+//			double newMin = fp.getStatistics().min;
 //			System.out.println("intensity max = "+newMax);
 //			System.out.println("intensity min = "+newMin);
 			

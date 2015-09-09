@@ -31,7 +31,7 @@ public class FileClusterProfile extends GeneralProfile
 	public FileClusterProfile(File filename)
 	{
 		csv = new InterPluginCSV<QueueProfile>(QueueProfile.class);
-		occ = new OutputChoose();
+		occ = new OutputChoose(new String[]{"queue","hardware","limit"}, new CellProcessor[]{null,null,new ParseDouble()});
 		occ.map = new String[]{"queue","hardware","limit"};
 		occ.cel = new CellProcessor[]{null,null,new ParseDouble()};
 		

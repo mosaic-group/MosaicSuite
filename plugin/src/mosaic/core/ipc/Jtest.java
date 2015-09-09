@@ -344,7 +344,7 @@ public class Jtest
 		
 		// Force to Bregman output
 		
-	    StitchConvert(out,new File(TestDir) ,new File(TestDir + File.separator + "test_result"),mt,CSVOutput.occ,CSVOutput.occ.classFactory);
+	    StitchConvert(out,new File(TestDir) ,new File(TestDir + File.separator + "test_result"),mt,CSVOutput.occ.outputChoose,CSVOutput.occ.classFactory);
 		
 		// Check the result
 		

@@ -8,6 +8,7 @@ import java.util.Vector;
 import mosaic.bregman.Region;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.ipc.Outdata;
+import mosaic.core.ipc.OutputChoose;
 
 import org.supercsv.cellprocessor.ParseBool;
 import org.supercsv.cellprocessor.ParseDouble;
@@ -153,8 +154,7 @@ public class CSVOutput
     	
     	oc[0] = new SquasshOutputChoose();
     	oc[0].name = new String("Format for region tracking)");
-    	oc[0].cel = Region3DTrackCellProcessor;
-    	oc[0].map = Region3DTrack_map;
+    	oc[0].outputChoose = new OutputChoose(Region3DTrack_map, Region3DTrackCellProcessor);
     	oc[0].classFactory = Region3DTrack.class;
     	oc[0].vectorFactory = (Class<Vector<? extends Outdata<Region>>>) new Vector<Region3DTrack>().getClass();
     	oc[0].InterPluginCSVFactory = (Class<InterPluginCSV<? extends Outdata<Region>>>) new InterPluginCSV<Region3DTrack>(Region3DTrack.class).getClass();
@@ -162,8 +162,7 @@ public class CSVOutput
     	oc[0].delimiter = ',';
     	oc[1] = new SquasshOutputChoose();
     	oc[1].name = new String("Format for R script");
-    	oc[1].cel = Region3DRScriptCellProcessor;
-    	oc[1].map = Region3DRScript_map;
+    	oc[1].outputChoose = new OutputChoose(Region3DRScript_map, Region3DRScriptCellProcessor);
     	oc[1].classFactory = Region3DRScript.class;
     	oc[1].vectorFactory = (Class<Vector<? extends Outdata<Region>>>) new Vector<Region3DRScript>().getClass();
     	oc[1].InterPluginCSVFactory = (Class<InterPluginCSV<? extends Outdata<Region>>>) new InterPluginCSV<Region3DRScript>(Region3DRScript.class).getClass();
@@ -171,8 +170,7 @@ public class CSVOutput
     	oc[1].delimiter = ';';
     	oc[2] = new SquasshOutputChoose();
     	oc[2].name = new String("Format for R coloc script");
-    	oc[2].cel = Region3DColocRScriptCellProcessor;
-    	oc[2].map = Region3DColocRScript_map;
+    	oc[2].outputChoose = new OutputChoose(Region3DColocRScript_map, Region3DColocRScriptCellProcessor);
     	oc[2].classFactory = Region3DColocRScript.class;
     	oc[2].vectorFactory = (Class<Vector<? extends Outdata<Region>>>) new Vector<Region3DColocRScript>().getClass();
     	oc[2].InterPluginCSVFactory = (Class<InterPluginCSV<? extends Outdata<Region>>>) new InterPluginCSV<Region3DColocRScript>(Region3DColocRScript.class).getClass();

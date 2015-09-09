@@ -101,10 +101,7 @@ public class Spot_detection implements PlugInFilter
 		if (dir == null)
 			dir = IJ.getDirectory("Choose output directory");
 		
-		OutputChoose oc = new OutputChoose();
-		
-		oc.map = Particle.ParticleDetection_map;
-		oc.cel = Particle.ParticleDetectionCellProcessor;
+		OutputChoose oc = new OutputChoose(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor);
 		
 		P_csv.Write(dir + aImp.getTitle() + "det.csv", pt , oc , false);
 	}

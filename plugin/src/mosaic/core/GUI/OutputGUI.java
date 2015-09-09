@@ -79,12 +79,12 @@ public class OutputGUI extends JDialog
 	    
 	    void setOutput(GUIOutputChoose out)
 	    {
-			data = new Object[out.map.length][3];
+			data = new Object[out.outputChoose.map.length][3];
 			
-			for (int i = 0 ; i < out.map.length ; i++)
+			for (int i = 0 ; i < out.outputChoose.map.length ; i++)
 			{
 				data[i][0] = new Boolean(true);
-				data[i][1] = out.map[i];
+				data[i][1] = out.outputChoose.map[i];
 				data[i][2] = new Double(1.0);
 			}
 	    }
@@ -217,8 +217,8 @@ public class OutputGUI extends JDialog
 		setModal(true);
 		setVisible(true);
 
-		oc.factor = new double[oc.map.length];
-		for (int i = 0 ; i < oc.map.length ; i++)
+		oc.factor = new double[oc.outputChoose.map.length];
+		for (int i = 0 ; i < oc.outputChoose.map.length ; i++)
 		{
 			oc.factor[i] = (Double)outTM.data[i][2];
 		}
