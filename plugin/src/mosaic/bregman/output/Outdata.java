@@ -1,4 +1,4 @@
-package mosaic.core.ipc;
+package mosaic.bregman.output;
 
 public interface Outdata<E>
 {

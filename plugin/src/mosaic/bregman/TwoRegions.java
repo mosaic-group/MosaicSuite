@@ -11,6 +11,7 @@ import java.util.concurrent.CountDownLatch;
 
 import mosaic.core.detection.Particle;
 import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.ipc.OutputChoose;
 import mosaic.core.psf.GaussPSF;
 import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
@@ -219,7 +220,7 @@ class TwoRegions extends NRegions
 			InterPluginCSV<Particle> csv = new InterPluginCSV<Particle>(Particle.class);
 			
 			csv.setCSVPreferenceFromFile(Analysis.p.patches_from_file);
-			pt = csv.Read(Analysis.p.patches_from_file);
+			pt = csv.Read(Analysis.p.patches_from_file, new OutputChoose(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
 			
 			// Get the particle related inly to one frames
 			

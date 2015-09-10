@@ -32,7 +32,13 @@ public class Particle extends StubProp implements ICSVGeneral
         "Size"
     };
 	
-	public static CellProcessor[] ParticleDetectionCellProcessor;
+    public static CellProcessor[] ParticleDetectionCellProcessor = new CellProcessor[] { 
+        new ParseInt(),
+        new ParseDouble(), 
+        new ParseDouble(), 
+        new ParseDouble(), 
+        new ParseDouble()
+        };
 	
 	public float x, y, z; 					// the originally given coordinates - to be refined 
 	public float original_x; 				// the originally given coordinates - not to be changed 		
@@ -55,24 +61,7 @@ public class Particle extends StubProp implements ICSVGeneral
 	public String[] all_params; 			// all params that relate to this particle,
 											// 1st 2 should be x and y respectfully
 	int linkrange;	
-	
-	/**
-	 * 
-	 * Init CSV structure
-	 * 
-	 */
-	
-	static public void initCSV()
-	{
-		ParticleDetectionCellProcessor = new CellProcessor[] 
-		{
-				new ParseInt(),
-				new ParseDouble(),
-				new ParseDouble(),
-	            new ParseDouble(),
-	            new ParseDouble(),
-		};
-	}
+
 	
 	/**
 	 * 

@@ -3,10 +3,11 @@ package mosaic.core.ipc;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.comment.CommentMatcher;
 import org.supercsv.io.dozer.CsvDozerBeanReader;
@@ -17,6 +18,8 @@ import org.supercsv.prefs.CsvPreference;
 
 
 public class InterPluginCSV<E> {
+    protected static final Logger logger = Logger.getLogger(InterPluginCSV.class);
+    
     final private Class<E> iClazz;
     private CsvPreference iCsvPreference;
     final private Vector<MetaInfo> iMetaInfos;
@@ -161,55 +164,22 @@ public class InterPluginCSV<E> {
      * @param aShouldAppend - if appends, then header and metainformation is not written
      */
     public void Write(String aCsvFilename, List<E> aOutputData, OutputChoose aOutputChoose, boolean aShouldAppend) {
-        if (aOutputData.size() == 0) return;
-
-        ICsvDozerBeanWriter beanWriter = null;
-        try {
-            beanWriter = new CsvDozerBeanWriter(new FileWriter(aCsvFilename, aShouldAppend), iCsvPreference);
-            beanWriter.configureBeanMapping(iClazz, aOutputChoose.map);
-
-            // write the header and meta information
-            if (aShouldAppend == false) {
-                beanWriter.writeHeader(aOutputChoose.map);
-
-                // Write meta information
-                for (MetaInfo mi : iMetaInfos) {
-                    beanWriter.writeComment("%" + mi.parameter + ":" + mi.value);
-                }
-
-                // write read meta information if specified
-                for (MetaInfo mi : iMetaInfosRead) {
-                    beanWriter.writeComment("%" + mi.parameter + ":" + mi.value);
-                }
-            }
-
-            // write the beans
-            try {
-
-                for (int i = 0; i < aOutputData.size(); i++) {
-                    beanWriter.write(aOutputData.get(i), aOutputChoose.cel);
-                }
-                
-            } catch (SecurityException e) {
-                e.printStackTrace();
-                return;
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (beanWriter != null) {
-                try {
-                    beanWriter.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        // Make sure that OutputChoose does not contain empty (null) values for header
+        List<String> map = new ArrayList<String>();
+        List<CellProcessor> cp = new ArrayList<CellProcessor>();
+        for (int i = 0; i < aOutputChoose.map.length; ++i) {
+            if (aOutputChoose.map[i] != null) {
+                map.add(aOutputChoose.map[i]);
+                cp.add(aOutputChoose.cel[i]);
             }
         }
+        String[] mapString = map.toArray(new String[map.size()]);
+        CellProcessor[] cel = cp.toArray(new CellProcessor[cp.size()]);
+        OutputChoose oc = new OutputChoose(mapString, cel);
+        
+        writeData(aCsvFilename, aOutputData, oc, aShouldAppend);  
     }
-    
+        
     /**
      * Set delimiter
      * @param d delimiter
@@ -264,6 +234,7 @@ public class InterPluginCSV<E> {
     OutputChoose readData(String aCsvFilename, Vector<E> aOutput, OutputChoose aOutputChoose) {
         ICsvDozerBeanReader beanReader = null;
         try {
+            logger.info("Reading file: [" + aCsvFilename + "]");
             beanReader = new CsvDozerBeanReader(new FileReader(aCsvFilename), iCsvPreference);
     
             String[] map = beanReader.getHeader(true);
@@ -292,45 +263,89 @@ public class InterPluginCSV<E> {
         return aOutputChoose;
     }
 
+    private void writeData(String aCsvFilename, List<E> aOutputData, OutputChoose aOutputChoose, boolean aShouldAppend) {
+        if (aOutputData.size() == 0) return;
+    
+        ICsvDozerBeanWriter beanWriter = null;
+        try {
+            logger.info("Writing file: [" + aCsvFilename + "]");
+            beanWriter = new CsvDozerBeanWriter(new FileWriter(aCsvFilename, aShouldAppend), iCsvPreference);
+            beanWriter.configureBeanMapping(iClazz, aOutputChoose.map);
+    
+            // write the header and meta information
+            if (aShouldAppend == false) {
+                beanWriter.writeHeader(aOutputChoose.map);
+    
+                // Write meta information
+                for (MetaInfo mi : iMetaInfos) {
+                    beanWriter.writeComment("%" + mi.parameter + ":" + mi.value);
+                }
+    
+                // write read meta information if specified
+                for (MetaInfo mi : iMetaInfosRead) {
+                    beanWriter.writeComment("%" + mi.parameter + ":" + mi.value);
+                }
+            }
+    
+            // write the beans
+            try {
+    
+                for (int i = 0; i < aOutputData.size(); i++) {
+                    beanWriter.write(aOutputData.get(i), aOutputChoose.cel);
+                }
+                
+            } catch (SecurityException e) {
+                e.printStackTrace();
+                return;
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+    
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (beanWriter != null) {
+                try {
+                    beanWriter.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     /**
      * Generates OutputChoose from provided header keywords.
-     * TODO: This method must be refactored or removed. It is not generic and supports some specific keywords and mappings.
-     *       (via ProcessorGeneral class).
      * @param aHeaderKeywords - array of keywords strings
      * @return generated OutputChoose
      */
     private OutputChoose generateOutputChoose(String[] aHeaderKeywords) {
         CellProcessor c[] = new CellProcessor[aHeaderKeywords.length];
-        ProcessorGeneral pc = new ProcessorGeneral();
 
         for (int i = 0; i < c.length; i++) {
             try {
-                aHeaderKeywords[i] = pc.getMap(aHeaderKeywords[i].replace(" ", "_"));
-                c[i] = (CellProcessor) pc.getClass().getMethod("getProcessor" + aHeaderKeywords[i].replace(" ", "_")).invoke(pc);
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            } catch (NoSuchMethodException e) {
-                // getProcessor from above getMethod is not existing
-                // Set handling to use stub method getNothing/setNothing
-                // IJ.log("Method not found: [getProcessor" + map[i].replace(" ", "_") + "]");
+                aHeaderKeywords[i] = aHeaderKeywords[i].replace(" ", "_");
                 c[i] = null;
-                aHeaderKeywords[i] = "Nothing";
+                
+                iClazz.getMethod("get" + aHeaderKeywords[i]);
+            } catch (NoSuchMethodException e) {
+                // getProcessor from above get(MethodName) is not existing
+                logger.info("Method not found: [" + "get" + aHeaderKeywords[i] + "], setting to default (ignore) setup.");
+                c[i] = null;
+                aHeaderKeywords[i] = null;
                 continue;
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
             } catch (SecurityException e) {
                 e.printStackTrace();
             }
-            aHeaderKeywords[i] = aHeaderKeywords[i].replace(" ", "_");
         }
         
         OutputChoose occ = new OutputChoose(aHeaderKeywords, c);
-        
+        System.out.println(occ);
         return occ;
     }
-
+    
     private class CommentExtendedCSV implements CommentMatcher {
         @Override
         public boolean isComment(String s) {

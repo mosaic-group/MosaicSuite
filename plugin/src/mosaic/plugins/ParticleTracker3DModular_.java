@@ -81,6 +81,7 @@ import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
 import mosaic.core.ipc.InterPluginCSV;
+import mosaic.core.ipc.OutputChoose;
 import mosaic.core.particleLinking.ParticleLinker;
 import mosaic.core.particleLinking.ParticleLinkerBestOnePerm;
 import mosaic.core.particleLinking.ParticleLinkerHun;
@@ -568,7 +569,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 			InterPluginCSV<Particle> P_csv = new InterPluginCSV<Particle>(Particle.class);
 			
 			P_csv.setCSVPreferenceFromFile(files_dir + File.separator + file_sel);
-			Vector<Particle> p =  P_csv.Read(files_dir + File.separator + file_sel);
+			Vector<Particle> p =  P_csv.Read(files_dir + File.separator + file_sel, new OutputChoose(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
 			
 			if (p.size() == 0)
 			{

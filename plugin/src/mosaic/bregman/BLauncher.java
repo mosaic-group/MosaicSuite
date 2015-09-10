@@ -26,8 +26,8 @@ import java.util.Date;
 import java.util.Vector;
 
 import mosaic.bregman.output.CSVOutput;
+import mosaic.bregman.output.Outdata;
 import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.Outdata;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 import net.imglib2.RandomAccess;

@@ -2,7 +2,6 @@ package mosaic.bregman.output;
 
 import mosaic.bregman.Region;
 import mosaic.core.ipc.ICSVGeneral;
-import mosaic.core.ipc.Outdata;
 import mosaic.core.ipc.StubProp;
 import mosaic.core.utils.Point;
 
@@ -98,5 +97,8 @@ public class Region3DTrack extends StubProp implements ICSVGeneral, Outdata<Regi
 			y = point.x[1];
 		}
 	}
+    
+	public void setFile(String dummy) {}
+    public String getFile() {return null;}
 }
 	

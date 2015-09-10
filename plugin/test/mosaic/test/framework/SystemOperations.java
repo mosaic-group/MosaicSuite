@@ -38,7 +38,7 @@ public class SystemOperations {
      * @return Absolute path to temporary test data.
      */
     public static String getTestTmpPath() {
-        return getTmpPath() + SEPARATOR + TEST_TMP_DIR + SEPARATOR;
+        return getTmpPath() + TEST_TMP_DIR + SEPARATOR;
     }
     
     /**

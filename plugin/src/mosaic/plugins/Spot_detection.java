@@ -72,8 +72,6 @@ public class Spot_detection implements PlugInFilter
 			frames[current_frame.frame_number] = current_frame;
 			IJ.freeMemory();
 		} // for
-		
-		Particle.initCSV();
 	
 		InterPluginCSV<Particle> P_csv = new InterPluginCSV<Particle>(Particle.class);
 		

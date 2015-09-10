@@ -7,7 +7,6 @@ import java.util.Vector;
 
 import mosaic.bregman.Region;
 import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.Outdata;
 import mosaic.core.ipc.OutputChoose;
 
 import org.supercsv.cellprocessor.ParseBool;

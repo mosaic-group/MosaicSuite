@@ -77,6 +77,52 @@ public class InterPluginCSVTest extends CommonBase {
         }
     }
     
+    /**
+     * TestThing is a helper class used for testing CSV
+     */
+    @SuppressWarnings("unused") // get/set methods are accessed via reflection
+    static public class TestSmall {
+        // Definitions for CSV input/output
+        public static final String[] Small_map = new String[] 
+        { 
+            "ID"
+        };
+        public static final CellProcessor[] Small_CellProcessor = new CellProcessor[] 
+        {
+            new ParseInt()
+        };
+        
+        
+        // Getters/Setters for input/output CSV
+        public int getID() {return id;}
+        public void setID(int aId) {id = aId;}
+
+        // ---------------------------------------
+        private int id;
+        
+        public TestSmall(int aId) {id = aId;}
+        public TestSmall() {}
+        
+        @Override 
+        public String toString() { 
+            String str = "TestSmall {ID: " + id + "}";
+            return str;
+        }
+        
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this)
+                return true;
+            if (obj == null || obj.getClass() != this.getClass())
+                return false;
+            TestSmall cmp = (TestSmall) obj;
+            if (cmp.id != this.id)
+                return false;
+
+            return true;
+        }
+    }
+    
     // --------------------- Helper methods -----------------------------------------------
     static String readFile(String aFullPathFile) {
         try {
@@ -319,6 +365,51 @@ public class InterPluginCSVTest extends CommonBase {
         List<TestThing> expectedData = new ArrayList<TestThing>();
         expectedData.add(new TestThing(1, 33.3));
         expectedData.add(new TestThing(4, 99.1));
+        assertEquals(expectedData, outdst);
+    }
+    
+    @Test
+    public void testReadDefault() {
+        String fullFileName = fullFileName("testReadDefault.csv");
+        
+        // Prepare data
+        String expectedContent = "ID,CalculatedValue\n" +
+                                 "1,33.3\n" +
+                                 "4,99.1\n";
+        saveFile(fullFileName, expectedContent);
+        
+        // Tested method (do not specify columns with OutputChoose)
+        List<TestThing> outdst = csv.Read(fullFileName);
+
+        // Verify
+        List<TestThing> expectedData = new ArrayList<TestThing>();
+        expectedData.add(new TestThing(1, 33.3));
+        expectedData.add(new TestThing(4, 99.1));        
+        assertEquals(expectedData, outdst);
+    }
+    
+    @Test
+    public void testReadDefaultWithMissingColumn() {
+        // Class TestSmall has defined less getters/setters than CSV file
+        // In such case additional columns should be ignored and only fields defined
+        // in given class should be set/loaded.
+        
+        String fullFileName = fullFileName("testReadDefaultWithMissingColumn.csv");
+        
+        // Prepare data
+        String expectedContent = "ID,CalculatedValue\n" +
+                                 "1,33.3\n" +
+                                 "4,99.1\n";
+        saveFile(fullFileName, expectedContent);
+        
+        InterPluginCSV<TestSmall> csv =  new InterPluginCSV<TestSmall>(TestSmall.class);
+        // Tested method (do not specify columns with OutputChoose)
+        List<TestSmall> outdst = csv.Read(fullFileName);
+
+        // Verify
+        List<TestSmall> expectedData = new ArrayList<TestSmall>();
+        expectedData.add(new TestSmall(1));
+        expectedData.add(new TestSmall(4));        
         assertEquals(expectedData, outdst);
     }
 }

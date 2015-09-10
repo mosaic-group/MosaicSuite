@@ -17,8 +17,8 @@ import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
 import mosaic.bregman.output.CSVOutput;
+import mosaic.bregman.output.Outdata;
 import mosaic.core.ipc.ICSVGeneral;
-import mosaic.core.ipc.Outdata;
 import mosaic.core.utils.MosaicUtils;
 
 public class Analysis {

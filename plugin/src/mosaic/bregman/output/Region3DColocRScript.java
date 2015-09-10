@@ -2,7 +2,6 @@ package mosaic.bregman.output;
 
 import mosaic.bregman.Region;
 import mosaic.core.ipc.ICSVGeneral;
-import mosaic.core.ipc.Outdata;
 import mosaic.core.ipc.StubProp;
 
 
@@ -133,4 +132,6 @@ public class Region3DColocRScript extends StubProp implements ICSVGeneral, Outda
 	public double getColoc_object_intensity() {return Coloc_object_intensity;}
 	public String getSingle_Coloc() {return Boolean.toString(Single_Coloc);}
 	public double getColoc_image_intensity() {return Coloc_image_intensity;}
+    public void setFile(String dummy) {}
+    public String getFile() {return null;}
 }

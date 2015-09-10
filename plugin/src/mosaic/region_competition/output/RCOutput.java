@@ -32,7 +32,11 @@ public class RCOutput extends StubProp implements ICSVGeneral
 	{
 		size = Size_;
 	}
-
+    public void setsize(double Size_)
+    {
+        size = Size_;
+    }
+    
 	@Override
 	public void setx(double Coord_X_) 
 	{
@@ -62,7 +66,20 @@ public class RCOutput extends StubProp implements ICSVGeneral
 	{
 		mean = intensity;
 	}
+
+    public void setmean(double intensity)
+    {
+        mean = intensity;
+    }
 	
+    public void setlabel(int Object_ID_) {
+        setObject_ID(Object_ID_);
+    }
+    
+    public int getlabel() {
+        return getObject_ID();
+    }
+    
 	@Override
 	public void setCoord_X(double Coord_X_) 
 	{
@@ -92,7 +109,10 @@ public class RCOutput extends StubProp implements ICSVGeneral
 	{
 		return mean;
 	}
-	
+   public double getmean() 
+    {
+        return mean;
+    }
 	@Override
 	public int getImage_ID() 
 	{
@@ -117,7 +137,10 @@ public class RCOutput extends StubProp implements ICSVGeneral
 	{
 		return size;
 	}
-	
+   public double getsize() 
+    {
+        return size;
+    }
 	public void setData(RCOutput rco)
 	{
 		Frame = rco.Frame;

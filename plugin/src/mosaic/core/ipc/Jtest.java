@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.Region;
 import mosaic.bregman.output.CSVOutput;
+import mosaic.bregman.output.Outdata;
 import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.bregman.output.Region3DRScript;
 import mosaic.core.utils.MosaicUtils;

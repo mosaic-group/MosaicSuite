@@ -5,7 +5,6 @@ import java.util.Vector;
 import mosaic.bregman.Region;
 import mosaic.core.GUI.GUIOutputChoose;
 import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.Outdata;
 
 
 public class SquasshOutputChoose extends GUIOutputChoose

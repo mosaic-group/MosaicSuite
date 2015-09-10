@@ -1,5 +1,7 @@
 package mosaic.core.ipc;
 
+import java.util.Arrays;
+
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
 /**
@@ -20,4 +22,9 @@ public class OutputChoose {
 
     public String[] map;
     public CellProcessor cel[];
+    
+    @Override
+    public String toString() {
+        return new String("Map: " + Arrays.toString(map) + " CellProcessors: " + Arrays.toString(cel));
+    }
 };

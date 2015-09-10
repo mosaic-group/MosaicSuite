@@ -2,7 +2,6 @@ package mosaic.bregman.output;
 
 import mosaic.bregman.Region;
 import mosaic.core.ipc.ICSVGeneral;
-import mosaic.core.ipc.Outdata;
 import mosaic.core.ipc.StubProp;
 
 
@@ -20,11 +19,14 @@ public class Region3DRScript extends StubProp implements ICSVGeneral, Outdata<Re
 	double z;
 	
 	public void setImage_ID(int Image_ID_) {Image_ID = Image_ID_;}
+	public void setlabel(int aID) {setImage_ID(aID);}
 	public void setObject_ID(int Object_ID_)	{Object_ID = Object_ID_;}
 	public void setSize(double Size_)	{Size = Size_;}
+	public void setsize(double aSize) {setSize(aSize);}
 	public void setPerimeter(double Perimeter_)	{Perimeter = Perimeter_;}
 	public void setLength(double Length_)	{Length = Length_;}
 	public void setIntensity(double Intensity_)	{Intensity = Intensity_;}
+	public void setmean(double aVal) {setIntensity(aVal);}
 	public void setx(double Coord_X_)		{x = Coord_X_;}
 	public void sety(double Coord_Y_)		{y = Coord_Y_;}
 	public void setz(double Coord_Z_)		{z = Coord_Z_;}
@@ -88,12 +90,15 @@ public class Region3DRScript extends StubProp implements ICSVGeneral, Outdata<Re
 	public void setCoord_Z(double Coord_Z_) {z = Coord_Z_;}
 	
 	public int getImage_ID()	{return Image_ID;}
+	public int getlabel() {return getImage_ID();}
 	public int getObject_ID()	{return Object_ID;}
 	public double getCoord_X()	{return x;}
 	public double getCoord_Y()	{return y;}
 	public double getCoord_Z()	{return z;}
 	public double getIntensity()	{return Intensity;}
+	public double getmean() {return getIntensity();}
 	public double getSize()				{return Size;}
+	public double getsize() {return getSize();}
 	public double getPerimeter()		{return Perimeter;}
 	public double getLength()		{return Length;}
 	public double getx() {return x;}
@@ -101,4 +106,7 @@ public class Region3DRScript extends StubProp implements ICSVGeneral, Outdata<Re
 	public double getz() {return z;}
 	public int getFrame() {return Image_ID;}
 	public double getSurface() {return 0;}
+	
+	public void setFile(String dummy) {}
+	public String getFile() {return null;}
 }
