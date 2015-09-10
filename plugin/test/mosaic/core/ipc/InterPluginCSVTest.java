@@ -412,4 +412,24 @@ public class InterPluginCSVTest extends CommonBase {
         expectedData.add(new TestSmall(4));        
         assertEquals(expectedData, outdst);
     }
+    
+    @Test
+    public void testWriteWithWronglySetupOfColumField() {
+        String fullFileName = fullFileName("testWriteWithWronglySetupOfColumField.csv");
+        
+        // Data to be written
+        List<TestThing> data = new ArrayList<TestThing>();
+        data.add(new TestThing(1, 33.3));
+        data.add(new TestThing(4, 99.1));
+        
+        // Tested method
+        OutputChoose oc = new OutputChoose(new String[] {"ID", null}, new CellProcessor[] {new ParseInt(), null});        
+        csv.Write(fullFileName, data , oc , false);
+        
+        // Verify (in case when column is wrongly provided it will not be save in output file).
+        String expectedContent = "ID\n" +
+                                 "1\n" +
+                                 "4\n";
+        verifyFileContent(fullFileName, expectedContent);
+    }
 }

@@ -248,7 +248,7 @@ class LSFBatch implements BatchInterface
 				}
 			}
 			
-			System.out.println("Parsing: " + elements[i]);
+			System.out.println("Parsing: [" + elements[i] + "]");
 			System.out.println(" nele_parsed: " + nele_parsed);
 		}
 		
@@ -303,7 +303,7 @@ class LSFBatch implements BatchInterface
 		}
 		else if (tp == OutputType.LAUNCH)
 		{
-			System.out.println(str);
+			System.out.println("ParseJobID [" + str + "]");
 			int tmp = parseJobID(str);
 			if (tmp == 0)
 				return str;
@@ -311,7 +311,7 @@ class LSFBatch implements BatchInterface
 			{
 				if (AJobID == 0)
 					AJobID = tmp;
-				System.out.println("get Job ID  " + AJobID);
+				System.out.println("get Job ID: " + AJobID);
 				return "";
 			}
 		}

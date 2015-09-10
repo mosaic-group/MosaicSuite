@@ -167,10 +167,18 @@ public class InterPluginCSV<E> {
         // Make sure that OutputChoose does not contain empty (null) values for header
         List<String> map = new ArrayList<String>();
         List<CellProcessor> cp = new ArrayList<CellProcessor>();
+        boolean isErrorReported = false;
         for (int i = 0; i < aOutputChoose.map.length; ++i) {
-            if (aOutputChoose.map[i] != null) {
+            if (aOutputChoose.map[i] != null && !aOutputChoose.map[i].equals("")) {
                 map.add(aOutputChoose.map[i]);
                 cp.add(aOutputChoose.cel[i]);
+            }
+            else {
+                if (!isErrorReported) {
+                    logger.error("Empty or null [" + aOutputChoose.map[i] + "] field declared for file [" + aCsvFilename + "]!");
+                    logger.error(aOutputChoose);
+                    isErrorReported = true;
+                }
             }
         }
         String[] mapString = map.toArray(new String[map.size()]);
@@ -342,7 +350,8 @@ public class InterPluginCSV<E> {
         }
         
         OutputChoose occ = new OutputChoose(aHeaderKeywords, c);
-        System.out.println(occ);
+        logger.debug("Generated field mapping: " + occ);
+        
         return occ;
     }
     
