@@ -54,26 +54,25 @@ public class Jtest implements PlugInFilter
 		logger.info("========================== TestSuite: bregman.Jtest  ===================================");
 		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
 		jtestBR.segmentation();
-		tm.logLapTimeSec("bregman");
+		tm.logLapTimeSec("========================== bregman");
 		
 		// Test core utils
 		logger.info("========================== TestSuite: core.utils.Jtest ===================================");
 		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
 		jtestTS.testtestsegmentation();
-		tm.logLapTimeSec("core.utils.Jtest");
+		tm.logLapTimeSec("========================== core.utils.Jtest");
 		
 		// Test core utils
 		logger.info("========================== TestSuite: core.cluster.Jtest ===================================");
 		mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
 		jtestMj.mergetest();
-		tm.logLapTimeSec("core.cluster.Jtest");
+		tm.logLapTimeSec("========================== core.cluster.Jtest");
         
-		
 		// Test Region competition segmentation
 		logger.info("========================== TestSuite: region_competition.Jtest ===================================");
 		mosaic.region_competition.Jtest jtestRC = new mosaic.region_competition.Jtest();
 		jtestRC.segmentation();
-		tm.logLapTimeSec("region_competition.Jtest");
+		tm.logLapTimeSec("========================== region_competition.Jtest");
 		
 		// Tracker
 		// TODO: Not working. Seems that test data are not complete (mandatory .cfg file is missing)
