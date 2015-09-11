@@ -9,6 +9,7 @@ import java.io.File;
 
 import mosaic.bregman.output.Region3DRScript;
 
+import org.apache.log4j.Logger;
 import org.junit.Test;
 
 /**
@@ -19,6 +20,8 @@ import org.junit.Test;
 
 public class Jtest 
 {
+    protected static final Logger logger = Logger.getLogger(Jtest.class);
+    
 	private class segStub implements Segmentation
 	{
 		int cnt = 0;
@@ -85,7 +88,7 @@ public class Jtest
 		segStub BG = new segStub();
 		
 		// test the cluster
-		IJ.log("----------------------- TestCase: job_compare_test -----------------------");
+		logger.info("----------------------- TestCase: job_compare_test -----------------------");
 		testImg = MosaicUtils.getTestImages("job_compare_test",null);
 		to = IJ.getDirectory("temp") + File.separator + "test";
 		MosaicTest.<Region3DRScript>testPlugin(BG,"job_compare_test",Region3DRScript.class);

@@ -10,10 +10,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
+import mosaic.core.detection.Particle;
 import mosaic.core.utils.MosaicTest;
+import mosaic.plugins.ParticleTracker3DModular_;
 
 import org.scijava.util.FileUtils;
-
+import org.apache.log4j.Logger;
 
 /**
  * 
@@ -25,6 +27,7 @@ import org.scijava.util.FileUtils;
 
 public class Jtest implements PlugInFilter
 {
+    protected static final Logger logger = Logger.getLogger(Jtest.class);
 
 	/**
 	 * 
@@ -47,34 +50,38 @@ public class Jtest implements PlugInFilter
 		FileUtils.deleteRecursively(s_file);
 		
 		// Test CSV system
-		IJ.log("========================== TestSuite: CSV ===================================");
+		logger.info("========================== TestSuite: CSV ===================================");
 		mosaic.core.ipc.Jtest jtestIPC = new mosaic.core.ipc.Jtest();
 		jtestIPC.csvtest();
 		
 		// Test Squassh segmentation
-		IJ.log("========================== TestSuite: bregman.Jtest  ===================================");
+		logger.info("========================== TestSuite: bregman.Jtest  ===================================");
 		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
 		jtestBR.segmentation();
 
 		// Test core utils
-		IJ.log("========================== TestSuite: core.utils.Jtest ===================================");
+		logger.info("========================== TestSuite: core.utils.Jtest ===================================");
 		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
 		jtestTS.testtestsegmentation();
 	
 		// Test core utils
-		IJ.log("========================== TestSuite: core.cluster.Jtest ===================================");
+		logger.info("========================== TestSuite: core.cluster.Jtest ===================================");
 		mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
 		jtestMj.mergetest();
 		
 		// Test Region competition segmentation
-		IJ.log("========================== TestSuite: region_competition.Jtest ===================================");
+		logger.info("========================== TestSuite: region_competition.Jtest ===================================");
 		mosaic.region_competition.Jtest jtestRC = new mosaic.region_competition.Jtest();
 		jtestRC.segmentation();
 		
 		// Tracker
-//	    ParticleTracker3DModular_ pt = new ParticleTracker3DModular_();
-//	    MosaicTest.<Particle>testPlugin(pt,"Particle Tracker",Particle.class);
-	        
+		logger.info("========================== TestSuite: ParticleTracker3DModular_ ===================================");
+	    ParticleTracker3DModular_ pt = new ParticleTracker3DModular_();
+	    MosaicTest.<Particle>testPlugin(pt,"Particle Tracker",Particle.class);
+	    
+	    
+		logger.info("All tests SUCCESSFULLY completed");
+		
 		IJ.showMessage("All test SUCCEFULLY completed");
 		// Create a file that notify all test has been completed suceffuly
 		

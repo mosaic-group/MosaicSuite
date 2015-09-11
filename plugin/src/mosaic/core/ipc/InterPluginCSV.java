@@ -49,6 +49,10 @@ public class InterPluginCSV<E> {
      * @param aMetaInfo - meta information
      */
     public void setMetaInformation(MetaInfo aMetaInfo) {
+        String value = getMetaInformation(aMetaInfo.parameter);
+        if (value != null) {
+            logger.debug("MetaInfo " + aMetaInfo + " added, but same parameter with value [" + value + "] already exists!");
+        }
         iMetaInfos.add(aMetaInfo);
     }
 
@@ -59,14 +63,9 @@ public class InterPluginCSV<E> {
      * @return Value of the meta information or null if not found
      */
     public String getMetaInformation(String parameter) {
-        for (MetaInfo mi : iMetaInfos) {
-            if (mi.parameter.equals(parameter)) return mi.value;
-        }
-        for (MetaInfo mi : iMetaInfosRead) {
-            if (mi.parameter.equals(parameter)) return mi.value;
-        }
-    
-        return null;
+        String value = getMetaInformation(iMetaInfos, parameter);
+        if (value == null) value = getMetaInformation(iMetaInfosRead, parameter);
+        return value;
     }
 
     /**
@@ -318,6 +317,13 @@ public class InterPluginCSV<E> {
         }
     }
 
+    private String getMetaInformation(List<MetaInfo> aContainer, String aParameter) {
+        for (MetaInfo mi : aContainer) {
+            if (mi.parameter.equals(aParameter)) return mi.value;
+        }
+        return null;
+    }
+
     /**
      * Generates OutputChoose from provided header keywords.
      * @param aHeaderKeywords - array of keywords strings
@@ -360,7 +366,12 @@ public class InterPluginCSV<E> {
                 String[] pr = s.split(":");
 
                 if (pr.length == 2) {
-                    iMetaInfosRead.add(new MetaInfo(pr[0].substring(1), pr[1].trim()));
+                    MetaInfo mi = new MetaInfo(pr[0].substring(1), pr[1].trim());
+                    String value = getMetaInformation(iMetaInfosRead, mi.parameter);
+                    if (value != null) {
+                        logger.debug("MetaInfo " + mi + " added, but same parameter with value [" + value + "] already exists!");
+                    }
+                    iMetaInfosRead.add(mi);
                 }
                 return true;
             }
