@@ -1,16 +1,17 @@
 package mosaic.io.csv;
 
 import static org.junit.Assert.*;
+import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
-public class CsvColumnConfigTest {
+public class CsvColumnConfigTest extends CommonBase {
 
     @Test
-    public void test() {
+    public void testGeneral() {
         String[] fieldMapping = new String[] {"column1", "column2"};
         CellProcessor[] cellProcessors = new CellProcessor[] {new ParseInt(), new ParseDouble()};
         
