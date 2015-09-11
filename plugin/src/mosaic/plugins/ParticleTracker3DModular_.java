@@ -602,7 +602,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				Img<ARGBType> iw = createHyperStackFromFrames(background);
 				if (iw != null)
 				{
-					ImageJFunctions.wrap( iw, "Video").show();
+					original_imp = ImageJFunctions.wrap( iw, "Video");
+					original_imp.show();
 					// reslice
 				}
 				else
@@ -664,7 +665,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 				Img<ARGBType> iw = createHyperStackFromFrames(background);
 				if (iw != null)
 				{
-					ImageJFunctions.wrap( iw, "Video").show();
+	                   original_imp = ImageJFunctions.wrap( iw, "Video");
+	                   original_imp.show();
 				}
 			}
 		}
