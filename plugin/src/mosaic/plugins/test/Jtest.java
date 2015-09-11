@@ -10,12 +10,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-import mosaic.core.detection.Particle;
 import mosaic.core.utils.MosaicTest;
-import mosaic.plugins.ParticleTracker3DModular_;
 
-import org.scijava.util.FileUtils;
 import org.apache.log4j.Logger;
+import org.scijava.util.FileUtils;
 
 /**
  * 
