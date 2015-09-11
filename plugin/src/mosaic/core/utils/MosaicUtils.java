@@ -28,7 +28,6 @@ import java.util.regex.Pattern;
 import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.cluster.ClusterSession;
-import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.ipc.MetaInfo;
 import mosaic.core.utils.MosaicUtils.ToARGB;
@@ -1823,7 +1822,7 @@ public class MosaicUtils
      * @param Class<T> internal data for conversion
      * @return true if success, false otherwise
      */
-    public static <T extends ICSVGeneral> boolean Stitch(String dir_p[], File dir, File output_file, MetaInfo ext[], Class<T> cls) {
+    public static <T> boolean Stitch(String dir_p[], File dir, File output_file, MetaInfo ext[], Class<T> cls) {
         boolean first = true;
         InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
 

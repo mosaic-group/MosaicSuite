@@ -14,7 +14,6 @@ import java.util.Vector;
 
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ClusterSession;
-import mosaic.core.ipc.ICSVGeneral;
 import mosaic.core.ipc.InterPluginCSV;
 import mosaic.plugins.utils.PlugInFilterExt;
 import net.imglib2.img.Img;
@@ -102,7 +101,7 @@ public class MosaicTest
 		}
 	}
 	
-	private static <T extends ICSVGeneral> void processResult(PlugInFilterExt BG, ImgTest tmp, ProgressBarWin wp,Class<T> cls)
+	private static <T> void processResult(PlugInFilterExt BG, ImgTest tmp, ProgressBarWin wp,Class<T> cls)
 	{
 		// Check the results
 		
@@ -286,7 +285,7 @@ public class MosaicTest
 	 * @param Class<T> Class for reading csv files used for InterPlugInCSV class
 	 */
 	
-	public static <T extends ICSVGeneral> void testPlugin(PlugInFilterExt BG, String testset,Class<T> cls)
+	public static <T> void testPlugin(PlugInFilterExt BG, String testset,Class<T> cls)
 	{
 		// Set the plugin in test mode
 		BG.setIsOnTest(true);
@@ -364,7 +363,7 @@ public class MosaicTest
 	 * @param Class<T> Class for reading csv files used for InterPlugInCSV class
 	 */
 	
-	public static <T extends ICSVGeneral> void testPlugin(String plugin_command,String options, String testset,Class<T> cls)
+	public static <T> void testPlugin(String plugin_command,String options, String testset,Class<T> cls)
 	{
 		ProgressBarWin wp = new ProgressBarWin();
 		

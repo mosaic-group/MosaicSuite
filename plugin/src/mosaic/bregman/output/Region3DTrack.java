@@ -1,11 +1,9 @@
 package mosaic.bregman.output;
 
 import mosaic.bregman.Region;
-import mosaic.core.ipc.ICSVGeneral;
-import mosaic.core.ipc.StubProp;
 import mosaic.core.utils.Point;
 
-public class Region3DTrack extends StubProp implements ICSVGeneral, Outdata<Region>
+public class Region3DTrack implements Outdata<Region>
 {
 	int Frame;
 	double x;
@@ -56,14 +54,13 @@ public class Region3DTrack extends StubProp implements ICSVGeneral, Outdata<Regi
 		Surface = r.Surface;
 	}
 	
-	@Override
 	public void setObject_ID(int Object_ID_) {
 		// TODO Auto-generated method stub
 		
 	}
-	@Override
+
 	public void setPerimeter(double Perimeter_) {Surface = Perimeter_;}
-	@Override
+
 	public void setLength(double Length_) {
 		// TODO Auto-generated method stub
 		

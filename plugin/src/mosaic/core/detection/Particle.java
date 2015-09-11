@@ -3,9 +3,6 @@ package mosaic.core.detection;
 import java.awt.Rectangle;
 import java.text.DecimalFormat;
 
-import mosaic.core.ipc.ICSVGeneral;
-import mosaic.core.ipc.StubProp;
-
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -20,7 +17,7 @@ import org.supercsv.cellprocessor.ift.CellProcessor;
  *  	y is horizontal left to right
  */
 
-public class Particle extends StubProp implements ICSVGeneral
+public class Particle
 {
 
 	public static final String[] ParticleDetection_map = new String[] 
@@ -325,105 +322,83 @@ public class Particle extends StubProp implements ICSVGeneral
 		return result;
 	}
 
-	@Override
 	public void setImage_ID(int Image_ID_) 
 	{
 		frame = Image_ID_;
 	}
 
-	@Override
 	public void setSize(double Size_) 
 	{
 		m0 = (float) Size_;
 	}
 
 
-	@Override
 	public void setIntensity(double Intensity_) 
 	{
 		m2 = (float) Intensity_;
 	}
 
-	@Override
 	public void setx(double Coord_X_) 
 	{
 		x = (float) Coord_X_;
 	}
 
-	@Override
 	public void sety(double Coord_Y_) 
 	{
 		y = (float) Coord_Y_;
 	}
 
-	@Override
 	public void setz(double Coord_Z_) 
 	{
 		z = (float) Coord_Z_;
 	}
 
-	@Override
 	public void setCoord_X(double Coord_X_) 
 	{
 		x = (float) Coord_X_;
 	}
 
-	@Override
 	public void setCoord_Y(double Coord_Y_) 
 	{
 		y = (float) Coord_Y_;
 	}
 
-	@Override
 	public void setCoord_Z(double Coord_Z_) 
 	{
 		z = (float) Coord_Z_;
 	}
 	
-	@Override
 	public double getCoord_X() 
 	{
 		return x;
 	}
 
-	@Override
 	public double getCoord_Y() 
 	{
 		return y;
 	}
 
-	@Override
 	public double getCoord_Z() 
 	{
 		return z;
 	}
 
-
-	@Override
 	public double getSize() {
 		return m0;
 	}
 
-
-	@Override
 	public double getIntensity() {
 		return m2;
 	}
 
-
-	@Override
 	public double getx() {
 		return x;
 	}
 
-
-	@Override
 	public double gety() {
 		return y;
 	}
 
-
-	@Override
 	public double getz() {
 		return z;
 	}

@@ -31,5 +31,10 @@ public interface Outdata<E>
 	 */
 	
 	void setData(E r);
+	
+	
+	// TODO: This is added temporarily to "simulate" all interface ICSVGeneral
+	//       After Regions3D*.java classes are cleaned up it should go away (possibly wiht Outdata itself).
+	public void setFrame(int fr);
 }
 

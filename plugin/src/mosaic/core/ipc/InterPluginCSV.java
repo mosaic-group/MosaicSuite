@@ -112,10 +112,6 @@ public class InterPluginCSV<E> {
                 if (map[0].split(";").length > 1) {
                     setDelimiter(';');
                 }
-                else if (map[0].split(" ").length > 1) {
-                    // TODO: dangerous! What if there is only one column but has spaces in name?
-                    setDelimiter(' ');
-                }
             }
         } 
         catch (IOException e) {
@@ -338,7 +334,7 @@ public class InterPluginCSV<E> {
                 iClazz.getMethod("get" + aHeaderKeywords[i]);
             } catch (NoSuchMethodException e) {
                 // getProcessor from above get(MethodName) is not existing
-                logger.info("Method not found: [" + "get" + aHeaderKeywords[i] + "], setting to default (ignore) setup.");
+                logger.info("Method not found: [" + "get" + aHeaderKeywords[i] + "], setting to default (ignore) setup. Class: " + iClazz.getName());
                 c[i] = null;
                 aHeaderKeywords[i] = null;
                 continue;
