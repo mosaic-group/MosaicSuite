@@ -80,8 +80,6 @@ import mosaic.core.detection.MyFrame.DrawType;
 import mosaic.core.detection.Particle;
 import mosaic.core.detection.PreviewCanvas;
 import mosaic.core.detection.PreviewInterface;
-import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.OutputChoose;
 import mosaic.core.particleLinking.ParticleLinker;
 import mosaic.core.particleLinking.ParticleLinkerBestOnePerm;
 import mosaic.core.particleLinking.ParticleLinkerHun;
@@ -89,6 +87,8 @@ import mosaic.core.particleLinking.linkerOptions;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.SegmentationInfo;
 import mosaic.core.utils.MosaicUtils.ToARGB;
+import mosaic.io.csv.CSV;
+import mosaic.io.csv.CsvColumnConfig;
 import mosaic.particleTracker.TrajectoriesReportXML;
 import mosaic.particleTracker.Trajectory;
 import mosaic.particleTracker.TrajectoryAnalysis;
@@ -566,10 +566,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		if (csv_format == true)
 		{
 			IJ.showStatus("Reading CSV Regions data ...");
-			InterPluginCSV<Particle> P_csv = new InterPluginCSV<Particle>(Particle.class);
+			CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
 			
 			P_csv.setCSVPreferenceFromFile(files_dir + File.separator + file_sel);
-			Vector<Particle> p =  P_csv.Read(files_dir + File.separator + file_sel, new OutputChoose(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
+			Vector<Particle> p =  P_csv.Read(files_dir + File.separator + file_sel, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
 			
 			if (p.size() == 0)
 			{

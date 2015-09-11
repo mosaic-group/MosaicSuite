@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Vector;
 
 import mosaic.bregman.Region;
-import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.OutputChoose;
+import mosaic.io.csv.CSV;
+import mosaic.io.csv.CsvColumnConfig;
 
 /**
  * Hopefully temporary class to perform some needed conversions and write output as CSV. 
@@ -23,8 +23,8 @@ public class ConvertAndWrite<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public void Write(InterPluginCSV<? extends Outdata<Region>> aCsv, String aCsvFilename, Vector<?> aOutputData, OutputChoose aOutputChoose, boolean aShouldAppend) {
-        ((InterPluginCSV<T>)aCsv).Write(aCsvFilename, (Vector<T>) aOutputData, aOutputChoose, aShouldAppend);
+    public void Write(CSV<? extends Outdata<Region>> aCsv, String aCsvFilename, Vector<?> aOutputData, CsvColumnConfig aOutputChoose, boolean aShouldAppend) {
+        ((CSV<T>)aCsv).Write(aCsvFilename, (Vector<T>) aOutputData, aOutputChoose, aShouldAppend);
     }
     
     /**

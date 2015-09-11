@@ -5,10 +5,10 @@ import ij.IJ;
 import java.io.File;
 import java.util.Vector;
 
-import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.OutputChoose;
 import mosaic.core.utils.DataCompression;
 import mosaic.core.utils.DataCompression.Algorithm;
+import mosaic.io.csv.CSV;
+import mosaic.io.csv.CsvColumnConfig;
 
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ift.CellProcessor;
@@ -25,15 +25,15 @@ import org.supercsv.cellprocessor.ift.CellProcessor;
 
 public class FileClusterProfile extends GeneralProfile
 {
-	InterPluginCSV<QueueProfile> csv;
-	OutputChoose occ;
+	CSV<QueueProfile> csv;
+	CsvColumnConfig occ;
 	
 	public FileClusterProfile(File filename)
 	{
-		csv = new InterPluginCSV<QueueProfile>(QueueProfile.class);
-		occ = new OutputChoose(new String[]{"queue","hardware","limit"}, new CellProcessor[]{null,null,new ParseDouble()});
-		occ.map = new String[]{"queue","hardware","limit"};
-		occ.cel = new CellProcessor[]{null,null,new ParseDouble()};
+		csv = new CSV<QueueProfile>(QueueProfile.class);
+		occ = new CsvColumnConfig(new String[]{"queue","hardware","limit"}, new CellProcessor[]{null,null,new ParseDouble()});
+		occ.fieldMapping = new String[]{"queue","hardware","limit"};
+		occ.cellProcessors = new CellProcessor[]{null,null,new ParseDouble()};
 		
 		if (filename != null)
 		{

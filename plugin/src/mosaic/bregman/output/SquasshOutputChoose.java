@@ -4,14 +4,14 @@ import java.util.Vector;
 
 import mosaic.bregman.Region;
 import mosaic.core.GUI.GUIOutputChoose;
-import mosaic.core.ipc.InterPluginCSV;
+import mosaic.io.csv.CSV;
 
 
 public class SquasshOutputChoose extends GUIOutputChoose
 {
 	/* Class to produce InterPluginsCSV of internal type */
 	
-	public Class< InterPluginCSV< ? extends Outdata<Region>> > InterPluginCSVFactory;
+	public Class< CSV< ? extends Outdata<Region>> > CSVFactory;
 	
 	/* Class to produce vactor of internal type */
 	

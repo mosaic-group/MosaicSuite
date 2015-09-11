@@ -13,9 +13,9 @@ import java.util.Vector;
 import mosaic.core.detection.FeaturePointDetector;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
-import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.OutputChoose;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.io.csv.CSV;
+import mosaic.io.csv.CsvColumnConfig;
 
 /**
  * 
@@ -73,7 +73,7 @@ public class Spot_detection implements PlugInFilter
 			IJ.freeMemory();
 		} // for
 	
-		InterPluginCSV<Particle> P_csv = new InterPluginCSV<Particle>(Particle.class);
+		CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
 		
 		Vector<Particle> pt = new Vector<Particle>();
 		
@@ -99,7 +99,7 @@ public class Spot_detection implements PlugInFilter
 		if (dir == null)
 			dir = IJ.getDirectory("Choose output directory");
 		
-		OutputChoose oc = new OutputChoose(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor);
+		CsvColumnConfig oc = new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor);
 		
 		P_csv.Write(dir + aImp.getTitle() + "det.csv", pt , oc , false);
 	}

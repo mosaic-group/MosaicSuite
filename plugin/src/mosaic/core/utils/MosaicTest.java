@@ -14,7 +14,7 @@ import java.util.Vector;
 
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ClusterSession;
-import mosaic.core.ipc.InterPluginCSV;
+import mosaic.io.csv.CSV;
 import mosaic.plugins.utils.PlugInFilterExt;
 import net.imglib2.img.Img;
 
@@ -238,7 +238,7 @@ public class MosaicTest
 		{
 			wp.SetStatusMessage("Checking... " + new File(rs).getName());
 			
-			InterPluginCSV<T> iCSVsrc = new InterPluginCSV<T>(cls);
+			CSV<T> iCSVsrc = new CSV<T>(cls);
 		
 			String filename = null;
 			filename = tmp_dir + File.separator + tmp.csv_results_rel[cnt];
@@ -246,7 +246,7 @@ public class MosaicTest
 			iCSVsrc.setCSVPreferenceFromFile(filename);
 			Vector<T> outsrc = iCSVsrc.Read(filename);
 			
-			InterPluginCSV<T> iCSVdst = new InterPluginCSV<T>(cls);
+			CSV<T> iCSVdst = new CSV<T>(cls);
 			iCSVdst.setCSVPreferenceFromFile(rs);
 			Vector<T> outdst = iCSVdst.Read(rs);
 			
@@ -282,7 +282,7 @@ public class MosaicTest
 	 * 
 	 * @param BG plugins filter filter
 	 * @param testset String that indicate the test to use (all the test are in Jtest_data folder)
-	 * @param Class<T> Class for reading csv files used for InterPlugInCSV class
+	 * @param Class<T> Class for reading csv files used for CSV class
 	 */
 	
 	public static <T> void testPlugin(PlugInFilterExt BG, String testset,Class<T> cls)
@@ -360,7 +360,7 @@ public class MosaicTest
 	 * 
 	 * @param plugin command to test
 	 * @param testset String that indicate the test to use (all the test are in Jtest_data folder)
-	 * @param Class<T> Class for reading csv files used for InterPlugInCSV class
+	 * @param Class<T> Class for reading csv files used for CSV class
 	 */
 	
 	public static <T> void testPlugin(String plugin_command,String options, String testset,Class<T> cls)

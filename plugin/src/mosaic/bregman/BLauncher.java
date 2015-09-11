@@ -27,9 +27,9 @@ import java.util.Vector;
 
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Outdata;
-import mosaic.core.ipc.InterPluginCSV;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
+import mosaic.io.csv.CSV;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
@@ -714,7 +714,7 @@ class BLauncher
 				CSVOutput.occ = CSVOutput.oc[2];
 				Vector<? extends Outdata<Region>> obl = Analysis.getObjectsList(hcount,1);
 				
-				InterPluginCSV<? extends Outdata<Region>> IpCSV = CSVOutput.getInterPluginCSV();
+				CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
 				IpCSV.clearMetaInformation();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());	
 				System.out.println(output2);
@@ -766,7 +766,7 @@ class BLauncher
 				
 				String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
 				
-				InterPluginCSV<? extends Outdata<Region>> IpCSV = CSVOutput.getInterPluginCSV();
+				CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
 				System.out.println(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv");
 				CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, append);

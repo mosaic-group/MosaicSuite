@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import mosaic.bregman.Region;
-import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.OutputChoose;
+import mosaic.io.csv.CSV;
+import mosaic.io.csv.CsvColumnConfig;
 
 import org.supercsv.cellprocessor.ParseBool;
 import org.supercsv.cellprocessor.ParseDouble;
@@ -153,26 +153,26 @@ public class CSVOutput
     	
     	oc[0] = new SquasshOutputChoose();
     	oc[0].name = new String("Format for region tracking)");
-    	oc[0].outputChoose = new OutputChoose(Region3DTrack_map, Region3DTrackCellProcessor);
+    	oc[0].outputChoose = new CsvColumnConfig(Region3DTrack_map, Region3DTrackCellProcessor);
     	oc[0].classFactory = Region3DTrack.class;
     	oc[0].vectorFactory = (Class<Vector<? extends Outdata<Region>>>) new Vector<Region3DTrack>().getClass();
-    	oc[0].InterPluginCSVFactory = (Class<InterPluginCSV<? extends Outdata<Region>>>) new InterPluginCSV<Region3DTrack>(Region3DTrack.class).getClass();
+    	oc[0].CSVFactory = (Class<CSV<? extends Outdata<Region>>>) new CSV<Region3DTrack>(Region3DTrack.class).getClass();
     	oc[0].converter = (ConvertAndWrite<? extends Outdata<Region>>) new ConvertAndWrite<Region3DTrack>(Region3DTrack.class);
     	oc[0].delimiter = ',';
     	oc[1] = new SquasshOutputChoose();
     	oc[1].name = new String("Format for R script");
-    	oc[1].outputChoose = new OutputChoose(Region3DRScript_map, Region3DRScriptCellProcessor);
+    	oc[1].outputChoose = new CsvColumnConfig(Region3DRScript_map, Region3DRScriptCellProcessor);
     	oc[1].classFactory = Region3DRScript.class;
     	oc[1].vectorFactory = (Class<Vector<? extends Outdata<Region>>>) new Vector<Region3DRScript>().getClass();
-    	oc[1].InterPluginCSVFactory = (Class<InterPluginCSV<? extends Outdata<Region>>>) new InterPluginCSV<Region3DRScript>(Region3DRScript.class).getClass();
+    	oc[1].CSVFactory = (Class<CSV<? extends Outdata<Region>>>) new CSV<Region3DRScript>(Region3DRScript.class).getClass();
     	oc[1].converter = (ConvertAndWrite<? extends Outdata<Region>>) new ConvertAndWrite<Region3DRScript>(Region3DRScript.class);
     	oc[1].delimiter = ';';
     	oc[2] = new SquasshOutputChoose();
     	oc[2].name = new String("Format for R coloc script");
-    	oc[2].outputChoose = new OutputChoose(Region3DColocRScript_map, Region3DColocRScriptCellProcessor);
+    	oc[2].outputChoose = new CsvColumnConfig(Region3DColocRScript_map, Region3DColocRScriptCellProcessor);
     	oc[2].classFactory = Region3DColocRScript.class;
     	oc[2].vectorFactory = (Class<Vector<? extends Outdata<Region>>>) new Vector<Region3DColocRScript>().getClass();
-    	oc[2].InterPluginCSVFactory = (Class<InterPluginCSV<? extends Outdata<Region>>>) new InterPluginCSV<Region3DColocRScript>(Region3DColocRScript.class).getClass();
+    	oc[2].CSVFactory = (Class<CSV<? extends Outdata<Region>>>) new CSV<Region3DColocRScript>(Region3DColocRScript.class).getClass();
     	oc[2].converter = (ConvertAndWrite<? extends Outdata<Region>>) new ConvertAndWrite<Region3DColocRScript>(Region3DColocRScript.class);
     	oc[2].delimiter = ';';
     	
@@ -207,7 +207,7 @@ public class CSVOutput
      * Get a vector of objects with the selected format, 
      * in particular convert the Region arraylist into 
      * objects vector implementing Outdata and a particular output format.
-     * The array created can be given to InterPluginCSV to write a CSV file
+     * The array created can be given to CSV to write a CSV file
      * 
      * @param v ArrayList of Region objects
      * @return Vector of object of the selected format
@@ -224,16 +224,16 @@ public class CSVOutput
     
     /**
      * 
-     * Get an InterPluginCSV object with the selected format
+     * Get an CSV object with the selected format
      * 
-     * @return InterPluginCSV
+     * @return CSV
      */
     
-    public static InterPluginCSV<? extends Outdata<Region>> getInterPluginCSV()
+    public static CSV<? extends Outdata<Region>> getCSV()
     {
     	try {
-			Constructor<InterPluginCSV<? extends Outdata<Region>>> c = occ.InterPluginCSVFactory.getDeclaredConstructor(occ.classFactory.getClass());
-			InterPluginCSV<? extends Outdata<Region>> csv = c.newInstance(occ.classFactory.newInstance().getClass());
+			Constructor<CSV<? extends Outdata<Region>>> c = occ.CSVFactory.getDeclaredConstructor(occ.classFactory.getClass());
+			CSV<? extends Outdata<Region>> csv = c.newInstance(occ.classFactory.newInstance().getClass());
 			csv.setDelimiter(occ.delimiter);
 			return csv;
 		} catch (InstantiationException e) {
@@ -260,14 +260,14 @@ public class CSVOutput
     
     /**
      * 
-     * Get an InterPluginCSV object with the selected format
+     * Get an CSV object with the selected format
      * 
-     * @return InterPluginCSV
+     * @return CSV
      */
     
-    public static InterPluginCSV<?> getInterPluginColocCSV()
+    public static CSV<?> getInterPluginColocCSV()
     {
-		InterPluginCSV<Region3DColocRScript> csv = new InterPluginCSV<Region3DColocRScript>(Region3DColocRScript.class);
+		CSV<Region3DColocRScript> csv = new CSV<Region3DColocRScript>(Region3DColocRScript.class);
 		csv.setDelimiter(occ.delimiter);
 		return csv;
     }

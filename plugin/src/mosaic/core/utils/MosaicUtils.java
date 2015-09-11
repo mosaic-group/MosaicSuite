@@ -28,9 +28,9 @@ import java.util.regex.Pattern;
 import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.cluster.ClusterSession;
-import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.MetaInfo;
 import mosaic.core.utils.MosaicUtils.ToARGB;
+import mosaic.io.csv.CSV;
+import mosaic.io.csv.CsvMetaInfo;
 import mosaic.plugins.BregmanGLM_Batch;
 import mosaic.test.framework.SystemOperations;
 import net.imglib2.Cursor;
@@ -1822,9 +1822,9 @@ public class MosaicUtils
      * @param Class<T> internal data for conversion
      * @return true if success, false otherwise
      */
-    public static <T> boolean Stitch(String dir_p[], File dir, File output_file, MetaInfo ext[], Class<T> cls) {
+    public static <T> boolean Stitch(String dir_p[], File dir, File output_file, CsvMetaInfo ext[], Class<T> cls) {
         boolean first = true;
-        InterPluginCSV<?> csv = new InterPluginCSV<T>(cls);
+        CSV<?> csv = new CSV<T>(cls);
 
         for (int j = 0; j < dir_p.length; j++) {
             File[] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
@@ -1869,17 +1869,17 @@ public class MosaicUtils
 	
 	static public boolean StitchCSV(String fl, String[] output, String bck)
 	{
-		MetaInfo mt[] = null;
+		CsvMetaInfo mt[] = null;
 		if (bck != null)
 		{
-			mt = new MetaInfo[1];
-			mt[0] = new MetaInfo();
+			mt = new CsvMetaInfo[1];
+			mt[0] = new CsvMetaInfo();
 			mt[0].parameter = new String("background");
 			mt[0].value = new String(bck);
 		}
 		else
 		{
-			mt = new MetaInfo[0];
+			mt = new CsvMetaInfo[0];
 		}
 		
 

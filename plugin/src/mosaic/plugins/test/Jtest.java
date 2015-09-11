@@ -47,11 +47,6 @@ public class Jtest implements PlugInFilter
 		File s_file = new File(test + File.separator + "succeful");
 		FileUtils.deleteRecursively(s_file);
 		
-		// Test CSV system
-		logger.info("========================== TestSuite: CSV ===================================");
-		mosaic.core.ipc.Jtest jtestIPC = new mosaic.core.ipc.Jtest();
-		jtestIPC.csvtest();
-		
 		// Test Squassh segmentation
 		logger.info("========================== TestSuite: bregman.Jtest  ===================================");
 		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();

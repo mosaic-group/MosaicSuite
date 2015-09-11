@@ -22,8 +22,6 @@ import java.util.Vector;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Region3DTrack;
 import mosaic.core.detection.MyFrame;
-import mosaic.core.ipc.InterPluginCSV;
-import mosaic.core.ipc.OutputChoose;
 import mosaic.core.psf.psf;
 import mosaic.core.psf.psfList;
 import mosaic.core.utils.MosaicUtils;
@@ -31,6 +29,8 @@ import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
+import mosaic.io.csv.CSV;
+import mosaic.io.csv.CsvColumnConfig;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -569,7 +569,7 @@ public class RegionCreator implements PlugInFilter
         
 		// Output ground thruth
 		
-		InterPluginCSV<Region3DTrack> P_csv = new InterPluginCSV<Region3DTrack>(Region3DTrack.class);
+		CSV<Region3DTrack> P_csv = new CSV<Region3DTrack>(Region3DTrack.class);
 		
 		// get output folder
 		
@@ -578,7 +578,7 @@ public class RegionCreator implements PlugInFilter
 		
 		//
 		
-		OutputChoose oc = new OutputChoose(CSVOutput.Region3DTrack_map, CSVOutput.getRegion3DTrackCellProcessor());
+		CsvColumnConfig oc = new CsvColumnConfig(CSVOutput.Region3DTrack_map, CSVOutput.getRegion3DTrackCellProcessor());
 		
 		P_csv.Write(output, pt_r, oc, false);
 	}
