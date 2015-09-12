@@ -13,7 +13,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -26,7 +25,7 @@ import javax.swing.border.EmptyBorder;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
-import mosaic.plugins.Region_Competition;
+import mosaic.io.serialize.SerializedDataFile;
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.PointCM;
@@ -149,13 +148,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		s.m_RegionMergingThreshold = (float) x[0];
 		
 		// write the settings
-		
-		try {
-			Region_Competition.SaveConfigFile(IJ.getDirectory("temp")+"RC_top"+x[0], s);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		new SerializedDataFile<Settings>().SaveToFile(IJ.getDirectory("temp")+"RC_top"+x[0], s);
 			
 		for (int im = 0 ; im < i.length ; im++)
 		{
