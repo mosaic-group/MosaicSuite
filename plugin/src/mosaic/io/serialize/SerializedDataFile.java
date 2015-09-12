@@ -48,7 +48,6 @@ public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
         return false;
     }
 
-    @SuppressWarnings("unchecked") // Needed for (T) casting
     @Override
     public T LoadFromFile(String aSerializedFileName, Class<T> aClazz) {
         logger.debug("LoadFromFile [" + aSerializedFileName + "]");
