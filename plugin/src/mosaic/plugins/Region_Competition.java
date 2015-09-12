@@ -49,6 +49,7 @@ import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.Segmentation;
+import mosaic.io.serialize.SerializedDataFile;
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
@@ -112,39 +113,6 @@ public class Region_Competition implements Segmentation
 	
 	public InputReadable userDialog;
 	JFrame controllerFrame;
-	
-	
-	static public void SaveConfigFile(String sv, Settings settings) throws IOException
-	{
-		FileOutputStream fout = new FileOutputStream(sv);
-		ObjectOutputStream oos = new ObjectOutputStream(fout);
-		oos.writeObject(settings);
-		oos.close();
-	}
-
-	
-	private boolean LoadConfigFile(String savedSettings)
-	{
-		System.out.println(savedSettings);
-		try
-		{
-			FileInputStream fin = new FileInputStream(savedSettings);
-			ObjectInputStream ois = new ObjectInputStream(fin);
-			settings = (Settings)ois.readObject();
-			ois.close();
-		}
-		catch (FileNotFoundException e)
-		{
-			System.err.println("Settings File not found "+savedSettings);
-			return false;
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		
-		return true;
-	}
 	
 	/**
 	 * 
@@ -271,8 +239,7 @@ public class Region_Competition implements Segmentation
 			if ((tmp = MosaicUtils.parseConfig(options)) != null)
 			{
 				path = tmp;
-						
-				LoadConfigFile(path);
+				settings = new SerializedDataFile<Settings>().LoadFromFile(path, Settings.class);
 			}
 			else
 			{
@@ -280,7 +247,7 @@ public class Region_Competition implements Segmentation
 				
 				String dir = IJ.getDirectory("temp");
 				sv = dir+"rc_settings.dat";
-				LoadConfigFile(sv);
+				settings = new SerializedDataFile<Settings>().LoadFromFile(sv, Settings.class);
 			}
 			
 			output = MosaicUtils.parseOutput(options);
@@ -293,7 +260,7 @@ public class Region_Competition implements Segmentation
 			
 			String dir = IJ.getDirectory("temp");
 			sv = dir+"rc_settings.dat";
-			LoadConfigFile(sv);
+			settings = new SerializedDataFile<Settings>().LoadFromFile(sv, Settings.class);
 		}
 		
 		if (settings == null)
@@ -333,22 +300,11 @@ public class Region_Competition implements Segmentation
 		if (userDialog.useCluster() == true)
 		{
 			// We run on cluster
-			
-			try 
-			{
-				// Copying parameters
-				
-				Settings p = new Settings(settings);
-				
-				// saving config file
-				
-				SaveConfigFile("/tmp/settings.dat",p);
-			}
-			catch (IOException e) 
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			// Copying parameters
+            Settings p = new Settings(settings);
+
+            // saving config file
+            new SerializedDataFile<Settings>().SaveToFile("/tmp/settings.dat", p);
 			
 			ClusterGUI cg = new ClusterGUI();
 			ClusterSession ss = cg.getClusterSession();
@@ -438,16 +394,9 @@ public class Region_Competition implements Segmentation
 		}
 		else
 		{
-			// save
-			try
-			{
-				SaveConfigFile(sv,settings);
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-			}
-			// init the input image we need to open it before run
+		    new SerializedDataFile<Settings>().SaveToFile(sv, settings);
+
+		    // init the input image we need to open it before run
 		
 			// if is 3D save the originalIP
 		
