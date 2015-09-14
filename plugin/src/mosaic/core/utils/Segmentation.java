@@ -37,14 +37,6 @@ public interface Segmentation extends PlugInFilterExt
 	
 	/**
 	 * 
-	 * Close all windows and images produced
-	 * 
-	 */
-	
-	void closeAll();
-	
-	/**
-	 * 
 	 * Get the name of the segmentation plugin
 	 * 
 	 * @return the name of the segmentation plugin
