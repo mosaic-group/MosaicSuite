@@ -44,6 +44,7 @@ import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.Segmentation;
+import mosaic.io.serialize.DataFile;
 import mosaic.io.serialize.SerializedDataFile;
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.LabelImageRC;
@@ -234,7 +235,7 @@ public class Region_Competition implements Segmentation
 			if ((tmp = MosaicUtils.parseConfig(options)) != null)
 			{
 				path = tmp;
-				settings = new SerializedDataFile<Settings>().LoadFromFile(path, Settings.class);
+				settings = getConfigHandler().LoadFromFile(path, Settings.class);
 			}
 			else
 			{
@@ -242,7 +243,7 @@ public class Region_Competition implements Segmentation
 				
 				String dir = IJ.getDirectory("temp");
 				sv = dir+"rc_settings.dat";
-				settings = new SerializedDataFile<Settings>().LoadFromFile(sv, Settings.class);
+				settings = getConfigHandler().LoadFromFile(sv, Settings.class);
 			}
 			
 			output = MosaicUtils.parseOutput(options);
@@ -255,7 +256,7 @@ public class Region_Competition implements Segmentation
 			
 			String dir = IJ.getDirectory("temp");
 			sv = dir+"rc_settings.dat";
-			settings = new SerializedDataFile<Settings>().LoadFromFile(sv, Settings.class);
+			settings = getConfigHandler().LoadFromFile(sv, Settings.class);
 		}
 		
 		if (settings == null)
@@ -299,8 +300,8 @@ public class Region_Competition implements Segmentation
             Settings p = new Settings(settings);
 
             // saving config file
-            new SerializedDataFile<Settings>().SaveToFile("/tmp/settings.dat", p);
-			
+            getConfigHandler().SaveToFile("/tmp/settings.dat", p);
+
 			ClusterGUI cg = new ClusterGUI();
 			ClusterSession ss = cg.getClusterSession();
 			ss.setInputArgument("text1");
@@ -389,7 +390,7 @@ public class Region_Competition implements Segmentation
 		}
 		else
 		{
-		    new SerializedDataFile<Settings>().SaveToFile(sv, settings);
+		    getConfigHandler().SaveToFile(sv, settings);
 
 		    // init the input image we need to open it before run
 		
@@ -424,29 +425,9 @@ public class Region_Competition implements Segmentation
 		return DOES_ALL+NO_CHANGES;
 	}
 	
-	/**
-	 * 
-	 * Eliminate Forbidden region
-	 * 
-	 * @param ip
-	 */
-	
-//	private <T extends IntegerType<T>>void EliminateForbidden(ImagePatch ip)
-//	{
-//		Img<T> lbg = ip.getResult();
-//		
-//		Cursor<T> cur = lbg.cursor();
-//		
-//		while (cur.hasNext())
-//		{
-//			cur.next();
-//			
-//			if (cur.get().getInteger() == labelImage.forbiddenLabel)
-//			{
-//				cur.get().setInteger(0);
-//			}
-//		}
-//	}
+	public static DataFile<Settings> getConfigHandler() {
+	    return new SerializedDataFile<Settings>();
+	}
 	
 	/**
 	 * 

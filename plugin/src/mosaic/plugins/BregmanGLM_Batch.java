@@ -7,11 +7,6 @@ import ij.process.ImageProcessor;
 
 import java.awt.GraphicsEnvironment;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,6 +18,8 @@ import mosaic.bregman.output.CSVOutput;
 import mosaic.core.psf.psf;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Segmentation;
+import mosaic.io.serialize.DataFile;
+import mosaic.io.serialize.SerializedDataFile;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
@@ -63,87 +60,77 @@ public class BregmanGLM_Batch implements Segmentation
 		String dir = IJ.getDirectory("temp");
 		savedSettings = dir+"spb_settings.dat";
 		
-		try 
-		{
-			LoadConfig();
-			
-			// Command line interface search for config file
-			
-			String path;
-			Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
-			Pattern config = Pattern.compile("config");
-			Pattern min = Pattern.compile("min");
-			Pattern max = Pattern.compile("max");
-			Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
-			
-			// config
-			
-			Matcher matcher = config.matcher(arg0);
-			if (matcher.find())
-			{
-				String sub = arg0.substring(matcher.end());
-				matcher = spaces.matcher(sub);
-				if (matcher.find())
-				{
-					sub = sub.substring(matcher.end());
-					matcher = pathp.matcher(sub);
-					if (matcher.find())
-					{
-						path = matcher.group(0);
-						
-						LoadConfig(path);
-						System.out.println("Loaded batch config");
-					}
-				}
-			}
-			
-			// min
+		Analysis.p = getConfigHandler().LoadFromFile(savedSettings, Parameters.class);
+        // Command line interface search for config file
+        
+        String path;
+        Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+        Pattern config = Pattern.compile("config");
+        Pattern min = Pattern.compile("min");
+        Pattern max = Pattern.compile("max");
+        Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+        
+        // config
+        
+        Matcher matcher = config.matcher(arg0);
+        if (matcher.find())
+        {
+        	String sub = arg0.substring(matcher.end());
+        	matcher = spaces.matcher(sub);
+        	if (matcher.find())
+        	{
+        		sub = sub.substring(matcher.end());
+        		matcher = pathp.matcher(sub);
+        		if (matcher.find())
+        		{
+        			path = matcher.group(0);
+        			
+        			Analysis.p = getConfigHandler().LoadFromFile(path, Parameters.class);
+        		}
+        	}
+        }
+        
+        // min
 
-			matcher = min.matcher(arg0);
-			if (matcher.find())
-			{
-				String sub = arg0.substring(matcher.end());
-				matcher = spaces.matcher(sub);
-				if (matcher.find())
-				{
-					sub = sub.substring(matcher.end());
-					matcher = pathp.matcher(sub);
-					if (matcher.find())
-					{
-						String norm = matcher.group(0);
-						
-						Analysis.norm_min = Double.parseDouble(norm);
-						System.out.println("min norm " + Analysis.norm_min);
-					}
-				}
-			}
-			
-			// max
-			
-			matcher = max.matcher(arg0);
-			if (matcher.find())
-			{
-				String sub = arg0.substring(matcher.end());
-				matcher = spaces.matcher(sub);
-				if (matcher.find())
-				{
-					sub = sub.substring(matcher.end());
-					matcher = pathp.matcher(sub);
-					if (matcher.find())
-					{
-						String norm = matcher.group(0);
-						
-						Analysis.norm_max = Double.parseDouble(norm);
-						System.out.println("max norm " + Analysis.norm_max);
-					}
-				}
-			}
-			
-		}
-		catch (ClassNotFoundException e) 
-		{
-			e.printStackTrace();
-		}
+        matcher = min.matcher(arg0);
+        if (matcher.find())
+        {
+        	String sub = arg0.substring(matcher.end());
+        	matcher = spaces.matcher(sub);
+        	if (matcher.find())
+        	{
+        		sub = sub.substring(matcher.end());
+        		matcher = pathp.matcher(sub);
+        		if (matcher.find())
+        		{
+        			String norm = matcher.group(0);
+        			
+        			Analysis.norm_min = Double.parseDouble(norm);
+        			System.out.println("min norm " + Analysis.norm_min);
+        		}
+        	}
+        }
+        
+        // max
+        
+        matcher = max.matcher(arg0);
+        if (matcher.find())
+        {
+        	String sub = arg0.substring(matcher.end());
+        	matcher = spaces.matcher(sub);
+        	if (matcher.find())
+        	{
+        		sub = sub.substring(matcher.end());
+        		matcher = pathp.matcher(sub);
+        		if (matcher.find())
+        		{
+        			String norm = matcher.group(0);
+        			
+        			Analysis.norm_max = Double.parseDouble(norm);
+        			System.out.println("max norm " + Analysis.norm_max);
+        		}
+        	}
+        }
 		
 		// Initialize CSV format
 		
@@ -182,7 +169,7 @@ public class BregmanGLM_Batch implements Segmentation
 			window.setUseCluster(gui_use_cluster);
 			window.run("",active_img);
 			
-			SaveConfig(Analysis.p);
+			saveConfig(savedSettings, Analysis.p);
 			
 			//IJ.log("Plugin exiting");
 			//Headless hd= new Headless("/Users/arizk/tmpt/");
@@ -206,36 +193,29 @@ public class BregmanGLM_Batch implements Segmentation
 	{
 	}
 
-	void LoadConfig() throws ClassNotFoundException
-	{
-		try
-		{
-			FileInputStream fin = new FileInputStream(savedSettings);
-			ObjectInputStream ois = new ObjectInputStream(fin);
-			Analysis.p = (Parameters)ois.readObject();
-			ois.close();
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-	}
+	/**
+	 * Returns handler for (un)serializing Parameters objects.
+	 */
+    public static DataFile<Parameters> getConfigHandler() {
+        return new SerializedDataFile<Parameters>();
+    }
 	
-	public static void LoadConfig(String ss) throws ClassNotFoundException
-	{
-		try
-		{
-			FileInputStream fin = new FileInputStream(ss);
-			ObjectInputStream ois = new ObjectInputStream(fin);
-			Analysis.p = (Parameters)ois.readObject();
-			ois.close();
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-	}
-	
+    /**
+     * Saves Parameters objects with additional handling of unserializable PSF object.
+     * TODO: It (PSF) should be verified and probably corrected.
+     * @param aFullFileName - absolute path and file name
+     * @param aParams - object to be serialized
+     */
+    public static void saveConfig(String aFullFileName, Parameters aParams) {
+        // Nullify PSF since it is not Serializable
+        psf<DoubleType> tempPsf = aParams.PSF;
+        aParams.PSF = null;
+        
+        getConfigHandler().SaveToFile(aFullFileName, aParams);
+        
+        aParams.PSF = tempPsf;
+    }
+
 	/**
 	 * 
 	 * Close all the file
@@ -252,42 +232,6 @@ public class BregmanGLM_Batch implements Segmentation
 		window.closeAll();
 	}
 	
-	public static void SaveConfig(Parameters p, String savePath) throws IOException
-	{
-		FileOutputStream fout = new FileOutputStream(savePath);
-		ObjectOutputStream oos = new ObjectOutputStream(fout);
-		
-		// Nullify PSF is not Serializable
-		
-		psf<DoubleType> psf_old = p.PSF;
-		p.PSF = null;
-		oos.writeObject(p);
-		oos.close();
-		p.PSF = psf_old;
-		
-	}
-	
-	/**
-	 * 
-	 * Save the Config file
-	 * 
-	 * @param p Setting file
-	 * @throws IOException
-	 */
-	
-	void SaveConfig(Parameters p) throws IOException
-	{
-		FileOutputStream fout = new FileOutputStream(savedSettings);
-		ObjectOutputStream oos = new ObjectOutputStream(fout);
-		
-		// Nullify PSF is not Serializable
-		
-		psf<DoubleType> psf_old = p.PSF;
-		p.PSF = null;
-		oos.writeObject(p);
-		oos.close();
-		p.PSF = psf_old;
-	}
 	
 	/**
 	 * 

@@ -22,7 +22,6 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
@@ -242,8 +241,6 @@ public class GenericGUI
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				// TODO Auto-generated method stub
-		
 				BackgroundSubGUI gds = new BackgroundSubGUI(posx, posy);
 				gds.run("");
 			}
@@ -264,8 +261,6 @@ public class GenericGUI
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				// TODO Auto-generated method stub
-
 				SegmentationGUI gds = new SegmentationGUI(posx, posy);
 				gds.run("");
 			}
@@ -283,8 +278,6 @@ public class GenericGUI
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				// TODO Auto-generated method stub
-		
 				ColocalizationGUI gds = new ColocalizationGUI(imgch1,imgch2,posx, posy);
 				gds.run("");
 			}
@@ -305,8 +298,6 @@ public class GenericGUI
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				// TODO Auto-generated method stub
-
 				VisualizationGUI gds = new VisualizationGUI(posx, posy);
 				gds.run("");
 			}
@@ -405,15 +396,7 @@ public class GenericGUI
 			if (gd.wasCanceled()) return;
 						
 			Analysis.p.nthreads= (int) gd.getNextNumber();
-			try 
-			{
-				BregmanGLM_Batch.LoadConfig(gd.getNextString());
-			} 
-			catch (ClassNotFoundException e) 
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			Analysis.p = BregmanGLM_Batch.getConfigHandler().LoadFromFile(gd.getNextString(), Parameters.class);
 			Analysis.p.wd=  gd.getNextString();
 		}
 		
@@ -532,35 +515,25 @@ public class GenericGUI
 		{
 			// We run on cluster
 			
-			try 
-			{
-				// Copying parameters
-				
-				Parameters p = new Parameters(Analysis.p);
-				
-				// disabling display options
-				
-				p.dispwindows = false;
-				
-				// save for the cluster
-				
-				// For the cluster we have to nullify the directory option
-				
-				p.wd = null;
-				BregmanGLM_Batch.SaveConfig(p,"/tmp/settings.dat");
-				
-				// save locally
-				
-				BregmanGLM_Batch.SaveConfig(p,"/tmp/spb_settings.dat");
-			}
-			catch (IOException e) 
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			Parameters p = new Parameters(Analysis.p);
+            
+            // disabling display options
+            
+            p.dispwindows = false;
+            
+            // save for the cluster
+            
+            // For the cluster we have to nullify the directory option
+            
+            p.wd = null;
+            
+            // TODO: Why settings are saved twice to two different files? To be investigated.
+            BregmanGLM_Batch.saveConfig("/tmp/settings.dat", p);
+            
+            // save locally
+            BregmanGLM_Batch.saveConfig("/tmp/spb_settings.dat", p);
 			
 			// Check if we selected a directory
-			
 			@SuppressWarnings("unused")
             ClusterSession ss = null;
 			File[] fileslist = null;

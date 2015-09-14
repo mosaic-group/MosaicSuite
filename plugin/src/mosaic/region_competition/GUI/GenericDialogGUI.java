@@ -44,7 +44,7 @@ import java.util.Vector;
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
-import mosaic.io.serialize.SerializedDataFile;
+import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.EnergyFunctionalType;
 import mosaic.region_competition.energies.RegularizationType;
@@ -206,7 +206,7 @@ public class GenericDialogGUI implements InputReadable
 			public void actionPerformed(ActionEvent e)
 			{
 				settings = new Settings();
-				new SerializedDataFile<Settings>().SaveToFile("/tmp/rc_settings.dat", settings);
+				Region_Competition.getConfigHandler().SaveToFile("/tmp/rc_settings.dat", settings);
 			}
 		});
 		p.add(b);

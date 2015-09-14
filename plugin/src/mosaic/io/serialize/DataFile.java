@@ -1,8 +1,7 @@
 package mosaic.io.serialize;
 
-import java.io.Serializable;
 
-public interface  DataFile <T extends Serializable> {
+public interface  DataFile <T> {
     /**
      * Serialize given object to aSerializedFileName.
      * @param aSerializedFileName

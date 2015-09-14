@@ -60,5 +60,6 @@
 	<classpathentry kind="lib" path="lib/scifio-hdf5-0.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/scifio-ome-xml-0.13.0.jar"/>
 	<classpathentry kind="lib" path="lib/scijava-common-2.44.2.jar"/>
+	<classpathentry kind="lib" path="lib/gson-2.2.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

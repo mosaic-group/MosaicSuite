@@ -8,7 +8,7 @@ import ij.io.Opener;
 import java.util.Collection;
 
 import mosaic.core.utils.IntensityImage;
-import mosaic.io.serialize.SerializedDataFile;
+import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
@@ -94,7 +94,7 @@ public class ScoreFunctionRCvol implements ScoreFunction
 			s.m_EnergyFunctional = EnergyFunctionalType.e_PC;
 
 		// write the settings
-		new SerializedDataFile<Settings>().SaveToFile(IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1], s);
+		Region_Competition.getConfigHandler().SaveToFile(IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1], s);
 			
 		for (int im = 0 ; im < i.length ; im++)
 		{

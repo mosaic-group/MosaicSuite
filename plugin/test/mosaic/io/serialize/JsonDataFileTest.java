@@ -15,8 +15,8 @@ import mosaic.test.framework.SystemOperations;
 
 import org.junit.Test;
 
+public class JsonDataFileTest extends CommonBase {
 
-public class DataFileTest extends CommonBase {
     /**
      * Object used for testing serialization
      */
@@ -46,11 +46,11 @@ public class DataFileTest extends CommonBase {
         expectedData.iValue = 1.23;
         
         // Tested method - write object to file
-        DataFile<TestConfig> df = new SerializedDataFile<TestConfig>();
+        DataFile<TestConfig> df = new JsonDataFile<TestConfig>();
         assertTrue(df.SaveToFile(fileName, expectedData));
         
         // Tested method - read object from file
-        TestConfig result = new SerializedDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
+        TestConfig result = new JsonDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
         
         // Verify result
         assertNotNull(result);
@@ -58,7 +58,7 @@ public class DataFileTest extends CommonBase {
         assertEquals(expectedData.iValue, result.iValue, 0.0);
         assertArrayEquals(expectedData.iNames, result.iNames);
     }
-    
+
     @Test
     public void testReadNotExisting() {
         // Prepare data
@@ -69,7 +69,7 @@ public class DataFileTest extends CommonBase {
         assertFalse(f.exists());
         
         // Tested method - read object from file
-        TestConfig result = new SerializedDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
+        TestConfig result = new JsonDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
         
         // Verify result
         assertNull(result);
@@ -81,11 +81,11 @@ public class DataFileTest extends CommonBase {
         String fileName = SystemOperations.getCleanTestTmpPath() + "testReadWrongObject.dat";
         
         // Write different type of object than the one to be read.
-        DataFile<String> df = new SerializedDataFile<String>();
+        DataFile<String> df = new JsonDataFile<String>();
         df.SaveToFile(fileName, new String("Hello world!!!"));
         
         // Tested method - read object from file
-        TestConfig result = new SerializedDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
+        TestConfig result = new JsonDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
         
         // Verify result
         assertNull(result);
@@ -101,7 +101,7 @@ public class DataFileTest extends CommonBase {
         expectedData.iValue = 1.23;
         
         // Tested method - write object to file
-        DataFile<TestConfig> df = new SerializedDataFile<TestConfig>();
+        DataFile<TestConfig> df = new JsonDataFile<TestConfig>();
         assertFalse(df.SaveToFile(fileName, expectedData));
     }
 }

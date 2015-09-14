@@ -12,7 +12,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 
 /**
- * Class for storing objects using standard serialization mechanism.
+ * Class for serializing objects using standard serialization Java mechanism.
  * @param <T> type of object to (un)serialize
  *
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
