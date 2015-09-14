@@ -28,6 +28,7 @@ public class BregmanGLM_Batch implements Segmentation {
     private GenericGUI window;
     boolean gui_use_cluster = false;
 
+    @Override
     public int setup(String arg0, ImagePlus active_img) {
         if (MosaicUtils.checkRequirement() == false)
             return DONE;
@@ -44,63 +45,24 @@ public class BregmanGLM_Batch implements Segmentation {
 
         String dir = IJ.getDirectory("temp");
         savedSettings = dir + "spb_settings.dat";
-
         Analysis.p = getConfigHandler().LoadFromFile(savedSettings, Parameters.class);
 
-        Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
-        Pattern config = Pattern.compile("config");
-        Pattern min = Pattern.compile("min");
-        Pattern max = Pattern.compile("max");
-        Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
-
-        // config
-        Matcher matcher = config.matcher(arg0);
-        if (matcher.find()) {
-            String sub = arg0.substring(matcher.end());
-            matcher = spaces.matcher(sub);
-            if (matcher.find()) {
-                sub = sub.substring(matcher.end());
-                matcher = pathp.matcher(sub);
-                if (matcher.find()) {
-                    String path = matcher.group(0);
-
-                    Analysis.p = getConfigHandler().LoadFromFile(path, Parameters.class);
-                }
-            }
+       
+        String path = findMatchedString(arg0, "config");
+        if (path != null) {
+            Analysis.p = getConfigHandler().LoadFromFile(path, Parameters.class);
         }
-
-        // min
-        matcher = min.matcher(arg0);
-        if (matcher.find()) {
-            String sub = arg0.substring(matcher.end());
-            matcher = spaces.matcher(sub);
-            if (matcher.find()) {
-                sub = sub.substring(matcher.end());
-                matcher = pathp.matcher(sub);
-                if (matcher.find()) {
-                    String norm = matcher.group(0);
-
-                    Analysis.norm_min = Double.parseDouble(norm);
-                    System.out.println("min norm " + Analysis.norm_min);
-                }
-            }
+        
+        String norm = findMatchedString(arg0, "min");
+        if (norm != null) {
+            Analysis.norm_min = Double.parseDouble(norm);
+            System.out.println("min norm " + Analysis.norm_min);
         }
-
-        // max
-        matcher = max.matcher(arg0);
-        if (matcher.find()) {
-            String sub = arg0.substring(matcher.end());
-            matcher = spaces.matcher(sub);
-            if (matcher.find()) {
-                sub = sub.substring(matcher.end());
-                matcher = pathp.matcher(sub);
-                if (matcher.find()) {
-                    String norm = matcher.group(0);
-
-                    Analysis.norm_max = Double.parseDouble(norm);
-                    System.out.println("max norm " + Analysis.norm_max);
-                }
-            }
+        
+        norm = findMatchedString(arg0, "max");
+        if (norm != null) {
+            Analysis.norm_max = Double.parseDouble(norm);
+            System.out.println("max norm " + Analysis.norm_max);
         }
 
         // Initialize CSV format
@@ -111,18 +73,13 @@ public class BregmanGLM_Batch implements Segmentation {
         // Check the argument
         boolean batch = GraphicsEnvironment.isHeadless();
 
-        try {
-            if (batch == true)
-                Analysis.p.dispwindows = false;
+        if (batch == true) Analysis.p.dispwindows = false;
 
-            window = new GenericGUI(batch, active_img);
-            window.setUseCluster(gui_use_cluster);
-            window.run("", active_img);
+        window = new GenericGUI(batch, active_img);
+        window.setUseCluster(gui_use_cluster);
+        window.run("", active_img);
 
-            saveConfig(savedSettings, Analysis.p);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        saveConfig(savedSettings, Analysis.p);
 
         System.out.println("Setting macro options: " + arg0);
 
@@ -132,6 +89,33 @@ public class BregmanGLM_Batch implements Segmentation {
         return DONE;
     }
 
+    /**
+     * Find argument for given parameter
+     * @param aInputArgs - input string containing all parameters and arguments
+     * @param aParameter - search parameter name 
+     * @return arguments for given parameter
+     */
+    private String findMatchedString(String aInputArgs, String aParameter) {
+        Pattern aParameterPattern = Pattern.compile(aParameter);
+        Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+        Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+        Matcher matcher = aParameterPattern.matcher(aInputArgs);
+        if (matcher.find()) {
+            String sub = aInputArgs.substring(matcher.end());
+            matcher = spaces.matcher(sub);
+            if (matcher.find()) {
+                sub = sub.substring(matcher.end());
+                matcher = pathp.matcher(sub);
+                if (matcher.find()) {
+                    return matcher.group(0);
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    @Override
     public void run(ImageProcessor imp) {
     }
 
