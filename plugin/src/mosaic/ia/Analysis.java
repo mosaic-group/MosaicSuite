@@ -1,5 +1,6 @@
 package mosaic.ia;
 
+import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Plot;
@@ -19,7 +20,6 @@ import mosaic.ia.nn.DistanceCalculationsImage;
 import mosaic.ia.utils.IAPUtils;
 import mosaic.ia.utils.ImageProcessUtils;
 import mosaic.ia.utils.PlotUtils;
-import mosaic.paramopt.cma.CMAEvolutionStrategy;
 import weka.estimators.KernelEstimator;
 
 public class Analysis 
@@ -392,6 +392,7 @@ public class Analysis
 		for (int k = 0; k < cmaReRunTimes; k++) {
 			CMAEvolutionStrategy cma = new CMAEvolutionStrategy();
 			cma.options.writeDisplayToFile = 0;
+			
 			cma.readProperties(); // read options, see file
 									// CMAEvolutionStrategy.properties
 			cma.options.stopFitness = 1e-12; // optional setting

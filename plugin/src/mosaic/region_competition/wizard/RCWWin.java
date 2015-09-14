@@ -33,7 +33,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import mosaic.core.utils.IntensityImage;
-import mosaic.paramopt.cma.CMAEvolutionStrategy;
+import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.PointCM;

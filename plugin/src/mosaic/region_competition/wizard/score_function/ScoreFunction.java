@@ -1,7 +1,7 @@
 package mosaic.region_competition.wizard.score_function;
 
 import ij.ImagePlus;
-import mosaic.paramopt.cma.fitness.IObjectiveFunction;
+import fr.inria.optimization.cmaes.fitness.IObjectiveFunction;
 import mosaic.region_competition.Settings;
 
 // Score function try to find out the best initialization on all area selected

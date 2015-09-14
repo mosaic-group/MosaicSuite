@@ -4,7 +4,7 @@ package mosaic.ia;
 // 5 is nonparam etc; make a parameter for this so that the numbers can be uniform and global
 
 import mosaic.ia.utils.IAPUtils;
-import mosaic.paramopt.cma.fitness.AbstractObjectiveFunction;
+import fr.inria.optimization.cmaes.fitness.AbstractObjectiveFunction;
 
 class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 	
