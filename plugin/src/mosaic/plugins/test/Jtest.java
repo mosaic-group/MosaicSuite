@@ -51,22 +51,22 @@ public class Jtest implements PlugInFilter
 		TimeMeasurement tm = new TimeMeasurement();
 		
 		// Test Squassh segmentation
-//		logger.info("========================== TestSuite: bregman.Jtest  ===================================");
-//		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
-//		jtestBR.segmentation();
-//		tm.logLapTimeSec("========================== bregman");
-//		
-//		// Test core utils
-//		logger.info("========================== TestSuite: core.utils.Jtest ===================================");
-//		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
-//		jtestTS.testtestsegmentation();
-//		tm.logLapTimeSec("========================== core.utils.Jtest");
-//		
-//		// Test core utils
-//		logger.info("========================== TestSuite: core.cluster.Jtest ===================================");
-//		mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
-//		jtestMj.mergetest();
-//		tm.logLapTimeSec("========================== core.cluster.Jtest");
+		logger.info("========================== TestSuite: bregman.Jtest  ===================================");
+		mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
+		jtestBR.segmentation();
+		tm.logLapTimeSec("========================== bregman");
+		
+		// Test core utils
+		logger.info("========================== TestSuite: core.utils.Jtest ===================================");
+		mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
+		jtestTS.testtestsegmentation();
+		tm.logLapTimeSec("========================== core.utils.Jtest");
+		
+		// Test core utils
+		logger.info("========================== TestSuite: core.cluster.Jtest ===================================");
+		mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
+		jtestMj.mergetest();
+		tm.logLapTimeSec("========================== core.cluster.Jtest");
 //        
 		// Test Region competition segmentation
 		logger.info("========================== TestSuite: region_competition.Jtest ===================================");
