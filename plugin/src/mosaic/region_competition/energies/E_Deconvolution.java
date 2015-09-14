@@ -55,7 +55,6 @@ public class E_Deconvolution extends ExternalEnergy
 	@Override
 	public Object atStart()
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 	

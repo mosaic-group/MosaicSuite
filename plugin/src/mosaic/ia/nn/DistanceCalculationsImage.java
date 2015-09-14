@@ -22,7 +22,6 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 		this.X=X;
 		this.Y=Y;
 			
-		// TODO Auto-generated constructor stub
 	}
 	
 	

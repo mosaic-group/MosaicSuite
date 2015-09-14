@@ -71,7 +71,6 @@ class LSFBatch implements BatchInterface
 		"echo \"running " + script + " on index $LSB_JOBINDEX\" \n" +
 		cp.getRunningDir() + "Fiji.app/ImageJ-linux64" + " --headless -batch " + img_script_ + " $LSB_JOBINDEX");
 		
-		// TODO Auto-generated method stub
 	}
 	
 	@Override
@@ -342,7 +341,6 @@ class LSFBatch implements BatchInterface
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			ntime++;
@@ -350,7 +348,6 @@ class LSFBatch implements BatchInterface
 		try {
 		Thread.sleep(100);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		System.out.println("Send Command");
@@ -378,10 +375,8 @@ class LSFBatch implements BatchInterface
 		{	
 			ShellCommand.exeCmdNoPrint("mkdir " + tmp_dir);	
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -456,7 +451,6 @@ class LSFBatch implements BatchInterface
 	@Override
 	public JobStatus[] getJobsStatus() 
 	{
-		// TODO Auto-generated method stub
 		return jb;
 	}
 
@@ -469,7 +463,6 @@ class LSFBatch implements BatchInterface
 	@Override
 	public int getNJobs() 
 	{
-		// TODO Auto-generated method stub
 		return nJobs;
 	}
 
@@ -497,7 +490,6 @@ class LSFBatch implements BatchInterface
 	@Override
 	public String getDir() 
 	{
-		// TODO Auto-generated method stub
 		return lDir;
 	}
 

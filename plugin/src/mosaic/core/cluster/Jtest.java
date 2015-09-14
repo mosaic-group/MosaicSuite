@@ -36,10 +36,8 @@ public class Jtest
 			ShellCommand.exeCmd("mkdir " + dir_test);
 			ShellCommand.copy(new File(dir_sample),new File(dir_test),null);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

@@ -30,7 +30,6 @@ class MadMaxProfile extends GeneralProfile
 	@Override
 	public String getProfileName() 
 	{
-		// TODO Auto-generated method stub
 		return "Mad Max";
 	}
 

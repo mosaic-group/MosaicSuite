@@ -80,7 +80,6 @@ public class VisualizationGUI
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
 			
 				OutputGUI og = new OutputGUI();
 				

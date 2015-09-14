@@ -87,10 +87,8 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 				offset[i] = cl.newInstance();
 		}
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -284,10 +282,8 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		try {
 			rt = clCreator.newInstance();
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		rt.setReal(res);

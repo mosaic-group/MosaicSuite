@@ -57,7 +57,6 @@ public class SegmentationGUI
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				// TODO Auto-generated method stub
 				
 				Point p =gd.getLocationOnScreen();
 				
@@ -112,7 +111,6 @@ public class SegmentationGUI
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				// TODO Auto-generated method stub
 				
 				JFileChooser fc = new JFileChooser();
 				fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);

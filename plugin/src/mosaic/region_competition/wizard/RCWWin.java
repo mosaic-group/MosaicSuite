@@ -296,26 +296,22 @@ class RCWWin extends JDialog implements MouseListener, Runnable
 		
 		@Override
 		public void mouseClicked(MouseEvent arg0) {
-			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
 		public void mouseEntered(MouseEvent arg0) {
-			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
 		public void mouseExited(MouseEvent arg0) {
-			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
 		public void mousePressed(MouseEvent e) 
 		{
-			// TODO Auto-generated method stub
 			
 			int x = e.getX();
 			int y = e.getY();
@@ -335,13 +331,11 @@ class RCWWin extends JDialog implements MouseListener, Runnable
 
 		@Override
 		public void mouseReleased(MouseEvent arg0) {
-			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
 		public void stateChanged(ChangeEvent arg0) {
-			// TODO Auto-generated method stub
 			
 			text.setText(String.valueOf(slid.getValue()/1000.0));
 			
@@ -401,7 +395,6 @@ class RCWWin extends JDialog implements MouseListener, Runnable
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		RCPainterListener pc = new RCPainterListener(RCT,slid,text);
@@ -415,7 +408,6 @@ class RCWWin extends JDialog implements MouseListener, Runnable
 		try {
 			t.join();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

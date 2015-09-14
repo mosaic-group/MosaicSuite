@@ -191,21 +191,18 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		if (x[0] >= 1.0 || x[0] <= 0.0)
 			return false;
 			
-		// TODO Auto-generated method stub
 		return true;
 	}
 
 	@Override
 	public void incrementStep() 
 	{
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void show() 
 	{
-		// TODO Auto-generated method stub
 	
 		for (int im = 0 ;  im < l.length ; im++)
 			l[im].show("init", 255);
@@ -215,7 +212,6 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	@Override
 	public double[] getAMean(Settings s) 
 	{
-		// TODO Auto-generated method stub
 		double [] aMean = new double [1];
 		
 		aMean[0] = s.m_RegionMergingThreshold;
@@ -226,25 +222,21 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	@Override
 	public int getNImg() 
 	{
-		// TODO Auto-generated method stub
 		return l.length;
 	}
 
 	@Override
 	public TypeImage getTypeImage() {
-		// TODO Auto-generated method stub
 		return TypeImage.FILENAME;
 	}
 
 	@Override
 	public ImagePlus[] getImagesIP() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String[] getImagesString() {
-		// TODO Auto-generated method stub
 		return file;
 	}
 	
@@ -264,7 +256,6 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		@Override
 		public void actionPerformed(ActionEvent arg0) 
 		{
-			// TODO Auto-generated method stub
 			
 			for (int i = 0 ; i < ipp.length ; i++)
 			{
@@ -361,7 +352,6 @@ public class ScoreFunctionRCtop implements ScoreFunction
 			
 			int Col[] = new int [3];
 			
-			// TODO Auto-generated method stub
 			
 			for (int i = 0 ; i < ip.length ; i++)
 			{
@@ -468,7 +458,6 @@ public class ScoreFunctionRCtop implements ScoreFunction
 			try {
 				lock.wait();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

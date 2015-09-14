@@ -207,7 +207,6 @@ class RCProgressWin extends JFrame implements MouseListener
 			try {
 				lock.wait();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -342,7 +341,6 @@ class RCProgressWin extends JFrame implements MouseListener
 	@Override
 	public void mouseClicked(MouseEvent arg0) 
 	{
-		// TODO Auto-generated method stub
 		
 		ImageCanvas c = (ImageCanvas) arg0.getComponent();
 		
@@ -369,7 +367,6 @@ class RCProgressWin extends JFrame implements MouseListener
 	@Override
 	public void mouseEntered(MouseEvent arg0) 
 	{
-		// TODO Auto-generated method stub
 		
 		
 	}
@@ -377,7 +374,6 @@ class RCProgressWin extends JFrame implements MouseListener
 	@Override
 	public void mouseExited(MouseEvent arg0) 
 	{
-		// TODO Auto-generated method stub
 		
 		
 	}
@@ -385,7 +381,6 @@ class RCProgressWin extends JFrame implements MouseListener
 	@Override
 	public void mousePressed(MouseEvent arg0) 
 	{
-		// TODO Auto-generated method stub
 		
 		
 	}
@@ -393,7 +388,6 @@ class RCProgressWin extends JFrame implements MouseListener
 	@Override
 	public void mouseReleased(MouseEvent arg0) 
 	{
-		// TODO Auto-generated method stub
 		
 		
 	}

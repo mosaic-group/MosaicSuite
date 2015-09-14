@@ -41,7 +41,6 @@ public class Region3DColocRScript implements Outdata<Region>
 
 	public void setData(Region r) 
 	{
-		// TODO Auto-generated method stub
 		
 		Image_ID = 0;
 		Object_ID = 0;
@@ -61,7 +60,6 @@ public class Region3DColocRScript implements Outdata<Region>
 	
 	public void setData(Region3DColocRScript r) 
 	{
-		// TODO Auto-generated method stub
 		
 		Image_ID = r.Image_ID;
 		Object_ID = r.Object_ID;

@@ -110,7 +110,6 @@ public class ScoreFunctionInit implements ScoreFunction
 		if (x[0] >= 20.0)
 			return false;
 
-		// TODO Auto-generated method stub
 		return true;
 	}
 
@@ -122,7 +121,6 @@ public class ScoreFunctionInit implements ScoreFunction
 
 	@Override
 	public int getNImg() {
-		// TODO Auto-generated method stub
 		return l.length;
 	}
 
@@ -147,7 +145,6 @@ public class ScoreFunctionInit implements ScoreFunction
 
 	@Override
 	public String[] getImagesString() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 		

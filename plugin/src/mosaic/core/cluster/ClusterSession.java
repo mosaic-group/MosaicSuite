@@ -258,7 +258,6 @@ public class ClusterSession
 				try {
 					Thread.sleep(30000);
 				} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -308,7 +307,6 @@ public class ClusterSession
 			} 
 			catch (FileNotFoundException e) 
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -361,7 +359,6 @@ public class ClusterSession
 		} 
 		catch (FileNotFoundException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -611,10 +608,8 @@ public class ClusterSession
 		try {
 			ShellCommand.exeCmdNoPrint("mkdir " + tmp_dir + File.separator + "Job" + bc.getJobID());
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
@@ -743,10 +738,8 @@ public class ClusterSession
 				try {
 					ss.close();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				ss = null;
@@ -848,7 +841,6 @@ public class ClusterSession
 				}
 				catch (InterruptedException e) 
 				{
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1204,10 +1196,8 @@ public class ClusterSession
 				}
 				catch (IOException e) 
 				{
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -1251,10 +1241,8 @@ public class ClusterSession
 			ShellCommand.copy( jobsrc, new File(tmp), pbw);
 			pbw.dispose();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -1298,10 +1286,8 @@ public class ClusterSession
 						ShellCommand.copy(t, dir,pbw);
 						pbw.dispose();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -1334,7 +1320,6 @@ public class ClusterSession
 				out.print(" " + s);
 			out.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -1347,10 +1332,8 @@ public class ClusterSession
 				ShellCommand.exeCmd("rm -rf " + f.getAbsolutePath());
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -1365,10 +1348,8 @@ public class ClusterSession
 		try {
 			ShellCommand.exeCmd("rm -rf " + new File(tmp).getAbsolutePath());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -1379,10 +1360,8 @@ public class ClusterSession
 			try {
 				ShellCommand.exeCmd("rm -rf " + jobdst[i].getAbsolutePath());
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

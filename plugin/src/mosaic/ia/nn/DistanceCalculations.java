@@ -119,7 +119,6 @@ public abstract class DistanceCalculations {
 					distRand[i*particleXSetCoord.length+j]=(float) kdtnn.getNNDistance(new Point3d(rn.nextDouble()*xmax,rn.nextDouble()*ymax,0));
 					
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				

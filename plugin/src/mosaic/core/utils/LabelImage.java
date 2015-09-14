@@ -426,10 +426,8 @@ public class LabelImage// implements MultipleThresholdImageFunction.ParamGetter<
 		try {
 			it = imgFactory.create(lg , cls.newInstance() );
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		RandomAccess<T> randomAccess_it = it.randomAccess();

@@ -22,14 +22,12 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
 		x2=xmax;
 		z2=zmax;
 		
-		// TODO Auto-generated constructor stub
 	}
 	private Point3d [] X, Y; //unfiltered points
 	private double x1,x2,y1,y2,z1,z2; //ask for users input, if no mask. currently, force mask for csv.
 	boolean boundarySet=false;
 	@Override
 	public void calcDistances() {
-		// TODO Auto-generated method stub
 		
 		particleXSetCoord=applyMaskandgetCoordinates(X);
 		particleYSetCoord=applyMaskandgetCoordinates(Y);
@@ -49,7 +47,6 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
 		 stateDensity(x1,y1,z1,x2,y2,z2);
 	}
 //	private float[] genD_grid() {
-//		// TODO Auto-generated method stub
 //		
 //			return genCubeGridDist(x1,y1,z1,x2,y2,z2);
 //		

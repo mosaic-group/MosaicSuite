@@ -314,21 +314,18 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 			if (x[0] <= 2.0 || x[1] <= 0.0 || x[0] > minSz/2 || x[1] > 1.0)
 				return false;
 			
-			// TODO Auto-generated method stub
 			return true;
 		}
 
 		@Override
 		public void incrementStep() 
 		{
-			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
 		public void show() 
 		{
-			// TODO Auto-generated method stub
 		
 			for (int im = 0 ;  im < l.length ; im++)
 				l[im].show("init", 255);
@@ -338,7 +335,6 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 		@Override
 		public double[] getAMean(Settings s) 
 		{
-			// TODO Auto-generated method stub
 			double [] aMean = new double [2];
 			
 			aMean[0] = s.m_CurvatureMaskRadius;
@@ -350,25 +346,21 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 		@Override
 		public int getNImg() 
 		{
-			// TODO Auto-generated method stub
 			return l.length;
 		}
 
 		@Override
 		public TypeImage getTypeImage() {
-			// TODO Auto-generated method stub
 			return TypeImage.FILENAME;
 		}
 
 		@Override
 		public ImagePlus[] getImagesIP() {
-			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
 		public String[] getImagesString() {
-			// TODO Auto-generated method stub
 			return file;
 		}
 		

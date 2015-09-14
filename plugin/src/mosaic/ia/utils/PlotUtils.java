@@ -40,7 +40,6 @@ public class PlotUtils {
 	}
 
 	public static void plotDoubleArray(String title, double[] xvalues, int[] yvalues) {
-		// TODO Auto-generated method stub
 		
 		double [] ydouble = new double[yvalues.length];
 		for (int i=0;i<ydouble.length;i++)

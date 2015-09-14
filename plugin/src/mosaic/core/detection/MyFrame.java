@@ -131,7 +131,6 @@ import net.imglib2.view.Views;
 			try {
 				loadParticlesFromFileMultipleFrame(r,path,frame_num);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

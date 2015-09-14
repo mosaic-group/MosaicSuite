@@ -291,14 +291,11 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , PSFGui
 			try {
 				image = imgOpener.openImgs( filename, factory, clCreator.newInstance()).get(0);
 			} catch (InstantiationException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IllegalAccessException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} catch (ImgIOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

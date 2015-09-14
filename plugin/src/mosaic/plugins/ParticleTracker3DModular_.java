@@ -3299,7 +3299,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
 	@Override
 	public boolean isOnTest() {
-		// TODO Auto-generated method stub
 		return test_mode;
 	}
 }

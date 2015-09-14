@@ -152,10 +152,8 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 		try {
 			center = cls.newInstance();
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

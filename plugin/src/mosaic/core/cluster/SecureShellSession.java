@@ -61,7 +61,6 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 		}
 		catch (IOException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -134,13 +133,10 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 		} 
 		catch (SftpException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (JSchException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -249,12 +245,10 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 		} 
 		catch (JSchException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		catch (IOException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -458,7 +452,6 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 		    	}
 				catch (SftpException e) 
 				{
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 					ret = false;
 				}
@@ -466,13 +459,11 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 		}
 		catch (JSchException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			ret = false;
 		}  
 		catch (IOException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			ret = false;
 		}
@@ -673,19 +664,16 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 		}
 		catch (JSchException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		} 
 		catch (SftpException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		} 
 		catch (IOException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -752,7 +740,6 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 			}
 			catch (IOException e) 
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				System.out.println("--------------------------- SecureShell output [END] ------------------------");
 				return;
@@ -819,13 +806,11 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 			wp_p.SetProgress((int)(total * 100 / size_total) );
 		}
 		
-		// TODO Auto-generated method stub
 		return true;
 	}
 
 	@Override
 	public void end() {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -833,7 +818,6 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 	public void init(int arg0, String arg1, String arg2, long max) 
 	{
 		size_total = max;
-		// TODO Auto-generated method stub
 		
 	}
 }

@@ -66,7 +66,6 @@ class GeneralProfile implements ClusterProfile
 	@Override
 	public String getProfileName() 
 	{
-		// TODO Auto-generated method stub
 		return ProfileName;
 	}
 

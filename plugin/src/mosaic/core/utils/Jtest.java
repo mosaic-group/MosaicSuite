@@ -42,19 +42,16 @@ public class Jtest
 
 		@Override
 		public String[] getMask(ImagePlus imp) {
-			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
 		public String[] getRegionList(ImagePlus imp) {
-			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
 		public void closeAll() {
-			// TODO Auto-generated method stub
 			
 		}
 

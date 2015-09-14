@@ -30,7 +30,6 @@ public class E_CurvatureFlow extends InternalEnergy// implements SettingsListene
 	@Override
 	public Object atStart()
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 

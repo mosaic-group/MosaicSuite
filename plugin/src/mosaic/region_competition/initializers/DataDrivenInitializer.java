@@ -13,6 +13,5 @@ abstract class DataDrivenInitializer extends Initializer
 	{
 		super(labelImage);
 		this.intensityImage = intensityImage;
-		// TODO Auto-generated constructor stub
 	}
 }

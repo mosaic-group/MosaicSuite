@@ -63,11 +63,9 @@ public class DataCompression
 			try {
 				out = ShellCommand.exeCmdString(al.get(i).cmd);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				out = new String();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				out = new String();
 			}
@@ -97,11 +95,9 @@ public class DataCompression
 //			try {
 //				out = ShellCommand.exeCmdString(al.get(i).cmd);
 //			} catch (IOException e) {
-//				// TODO Auto-generated catch block
 //				e.printStackTrace();
 //				return;
 //			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
 //				e.printStackTrace();
 //				return;
 //			}
@@ -170,11 +166,9 @@ public class DataCompression
 		try {
 			ShellCommand.exeCmd(al.get(selC).compress_command.replace("#", file_a.getAbsolutePath()).replace("*", o));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
@@ -207,11 +201,9 @@ public class DataCompression
 		try {
 			ShellCommand.exeCmd(al.get(selC).compress_command.replace("#", file_a.getAbsolutePath()).replace("*", o),start_dir,null);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
@@ -245,11 +237,9 @@ public class DataCompression
 		try {
 			ShellCommand.exeCmd(al.get(selC).compress_command.replace("#", file_a.getAbsolutePath()).replace("*", o) + " ; echo \"COMPRESSION END\"; \n",start_dir,null,out);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
@@ -270,11 +260,9 @@ public class DataCompression
 		try {
 			ShellCommand.exeCmdNoPrint(al.get(selC).uncompress_command.replace("*", file_a.getAbsolutePath()));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}
@@ -296,11 +284,9 @@ public class DataCompression
 		try {
 			ShellCommand.exeCmd(al.get(selC).uncompress_command.replace("*", file_a.getAbsolutePath()),work_dir,null);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
 		}

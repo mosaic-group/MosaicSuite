@@ -339,10 +339,8 @@ public class RegionCreator implements PlugInFilter
 		try {
 			out = imgFactory.create(Image_sz, cls.newInstance());
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -514,10 +512,8 @@ public class RegionCreator implements PlugInFilter
 				try {
 					inte_a = cls.newInstance();
 				} catch (InstantiationException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
         		inte_a.setReal(min_it + (max_it - min_it) * r.nextDouble());

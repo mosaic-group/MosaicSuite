@@ -70,12 +70,10 @@ public class HelpGUI
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				// TODO Auto-generated method stub
 				
 				try {
 					open(new URI(link));
 				} catch (URISyntaxException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -111,12 +109,10 @@ public class HelpGUI
 			@Override
 			public void actionPerformed(ActionEvent arg0) 
 			{
-				// TODO Auto-generated method stub
 				
 				try {
 					open(new URI(link));
 				} catch (URISyntaxException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
@@ -171,12 +167,10 @@ public class HelpGUI
 				@Override
 				public void actionPerformed(ActionEvent arg0) 
 				{
-					// TODO Auto-generated method stub
 					
 					try {
 						open(new URI(link));
 					} catch (URISyntaxException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					
@@ -217,12 +211,10 @@ public class HelpGUI
 					@Override
 					public void actionPerformed(ActionEvent arg0) 
 					{
-						// TODO Auto-generated method stub
 						
 						try {
 							open(new URI(link));
 						} catch (URISyntaxException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 						

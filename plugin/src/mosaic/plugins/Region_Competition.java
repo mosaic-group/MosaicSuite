@@ -1168,11 +1168,9 @@ public class Region_Competition implements Segmentation
 				}
 				@Override
 				public void keyReleased(KeyEvent e){
-					// TODO Auto-generated method stub
 				}
 				@Override
 				public void keyPressed(KeyEvent e){
-					// TODO Auto-generated method stub
 				}
 			};
 			canvas.addKeyListener(keyListener);
@@ -1186,7 +1184,6 @@ public class Region_Competition implements Segmentation
 						System.out.println("Waiting for user input (pressing space");
 						labelImg.wait();
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					
@@ -1629,7 +1626,6 @@ public class Region_Competition implements Segmentation
 		}
 		catch (IOException e) 
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

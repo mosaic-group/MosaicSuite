@@ -55,14 +55,12 @@ public class Region3DTrack implements Outdata<Region>
 	}
 	
 	public void setObject_ID(int Object_ID_) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	public void setPerimeter(double Perimeter_) {Surface = Perimeter_;}
 
 	public void setLength(double Length_) {
-		// TODO Auto-generated method stub
 		
 	}
 

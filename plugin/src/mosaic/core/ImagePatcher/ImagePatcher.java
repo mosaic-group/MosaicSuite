@@ -177,10 +177,8 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 		try {
 			img_ass = imgFactory_lbl.create(dims, cls.newInstance());
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

@@ -52,10 +52,8 @@ public class MosaicTest
 		try {
 			ShellCommand.exeCmdNoPrint("rm -rf " + tmp_dir);
 		} catch (IOException e3) {
-			// TODO Auto-generated catch block
 			e3.printStackTrace();
 		} catch (InterruptedException e3) {
-			// TODO Auto-generated catch block
 			e3.printStackTrace();
 		}
 		
@@ -64,10 +62,8 @@ public class MosaicTest
 		try {
 			ShellCommand.exeCmd("mkdir " + tmp_dir);
 		} catch (IOException e2) {
-			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		} catch (InterruptedException e2) {
-			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
 		
@@ -93,10 +89,8 @@ public class MosaicTest
 				ShellCommand.exeCmdNoPrint("cp -r " + tmp.setup_files[i] + " " + str);
 			}
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
@@ -207,7 +201,6 @@ public class MosaicTest
 			
 	        	image_rs = imgOpener.openImgs(filename).get(0);
 			} catch (ImgIOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			catch (java.lang.UnsupportedOperationException e)	{

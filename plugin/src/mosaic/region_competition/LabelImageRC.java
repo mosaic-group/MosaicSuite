@@ -530,7 +530,6 @@ class LabelImage3D extends LabelImageRC
 	public LabelImage3D()
 	{
 		super((int[])null);
-		// TODO Auto-generated constructor stub
 	}}
 
 
@@ -544,7 +543,6 @@ class LabelImage3D extends LabelImageRC
 //	public LabelImageG(ImagePlus ip)
 //	{
 //		super((int[])null);
-//		// TODO Auto-generated constructor stub
 //	}
 //	
 //	public T getG(int idx)

@@ -44,7 +44,6 @@ public class E_CV extends ExternalEnergy
 	@Override
 	public Object atStart()
 	{
-		// TODO Auto-generated method stub
 		return null;
 	}
 
