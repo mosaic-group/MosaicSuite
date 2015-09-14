@@ -95,6 +95,34 @@ public class MosaicTest
 		}
 	}
 	
+	   /**
+     * Get a the path that contain the file
+     * 
+     * example:
+     * 
+     * cs = /some_path/image_A
+     *      /some_path/image_B
+     *      /some_other_path/image_C
+     * 
+     * fl = image_C
+     * 
+     * the function return 2
+     * 
+     * @param cs List of paths
+     * @param fl name of the file
+     * 
+     * @return String of the JobID
+     */
+    private static int getIDfromFileList(String path[], String fl) {
+        for (int k = 0; k < path.length; k++) {
+            if (new File(path[k]).getName().contains(fl)) {
+                return k;
+            }
+        }
+
+        return -1;
+    }
+    
 	private static <T> void processResult(PlugInFilterExt BG, ImgTest tmp, ProgressBarWin wp,Class<T> cls)
 	{
 		// Check the results
@@ -128,7 +156,7 @@ public class MosaicTest
 				String fname = MosaicUtils.removeExtension(fr[2]);
 				String JobID = fr[0];
 				
-				int id = ShellCommand.getIDfromFileList(tmp.result_imgs_rel, fname);
+				int id = getIDfromFileList(tmp.result_imgs_rel, fname);
 				
 				tmp.result_imgs_rel[id] = tmp.result_imgs_rel[id].replace("*", JobID);
 				
@@ -141,7 +169,7 @@ public class MosaicTest
 				String fname = MosaicUtils.removeExtension(fr[2]);
 				String JobID = fr[0];
 				
-				int id = ShellCommand.getIDfromFileList(tmp.result_imgs, fname);
+				int id = getIDfromFileList(tmp.result_imgs, fname);
 				
 				tmp.result_imgs[id] = tmp.result_imgs[id].replace("*", JobID);		
 			}
@@ -154,7 +182,7 @@ public class MosaicTest
 				String fname = MosaicUtils.removeExtension(fr[2]);
 				String JobID = fr[0];
 				
-				int id = ShellCommand.getIDfromFileList(tmp.csv_results_rel, fname);
+				int id = getIDfromFileList(tmp.csv_results_rel, fname);
 				
 				tmp.csv_results_rel[id] = tmp.csv_results_rel[id].replace("*", JobID);
 			}
@@ -165,7 +193,7 @@ public class MosaicTest
 				String fname = MosaicUtils.removeExtension(fr[2]);
 				String JobID = fr[0];
 
-				int id = ShellCommand.getIDfromFileList(tmp.csv_results, fname);
+				int id = getIDfromFileList(tmp.csv_results, fname);
 				
 				tmp.csv_results[id] = tmp.csv_results[id].replace("*", JobID);
 			}

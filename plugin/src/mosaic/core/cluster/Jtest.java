@@ -4,6 +4,7 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
@@ -20,6 +21,43 @@ public class Jtest
 	 * @see MergeJobs
 	 * 
 	 */
+    
+    /**
+     * Recursively take all the tree structure of a directory
+     * 
+     * @param set
+     * @param dir
+     */
+    public static void populate(HashSet<File> set, File dir) {
+        set.add(dir);
+
+        if (dir.isDirectory()) {
+            for (File t : dir.listFiles()) {
+                populate(set, t);
+            }
+        }
+    }
+    
+    /**
+     * Compare if two directories are the same as dir and file structure
+     * 
+     * @param a1 dir1
+     * @param a2 dir3
+     * @return true if they match, false otherwise
+     */
+    public static boolean compare(File a1, File a2) 
+    {
+        // 
+        HashSet<File> seta1 = new HashSet<File>();
+        populate(seta1, a1);
+        
+        HashSet<File> seta2 = new HashSet<File>();
+        populate(seta2,a2);
+        
+        // Check if the two HashSet match
+        return seta1.containsAll(seta2);
+    }
+    
 	
 	@Test
 	public void mergetest() 
@@ -56,7 +94,7 @@ public class Jtest
 		
 		for (int i = 0 ; i < result.length ; i++)
 		{
-			if (ShellCommand.compare(new File(dir_result), new File(dir_test)))
+			if (compare(new File(dir_result), new File(dir_test)))
 			{
 				fail("Error: Merging jobs differs");
 			}
