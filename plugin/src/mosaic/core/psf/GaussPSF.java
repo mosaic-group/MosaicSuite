@@ -4,15 +4,11 @@ import ij.IJ;
 import ij.gui.GenericDialog;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 
+import mosaic.io.serialize.DataFile;
+import mosaic.io.serialize.SerializedDataFile;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessible;
@@ -307,12 +303,9 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 	@Override
 	public void getParamenters() 
 	{
-		LoadConfigFile(IJ.getDirectory("temp")+ File.separator + "psf_gauss_settings.dat");
+		settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp")+ File.separator + "psf_gauss_settings.dat", GaussPSFSettings.class);
 		
 		GenericDialog gd = new GenericDialog("Gauss PSF");
-		
-		// sigma
-
 		
 		if (pos.length >= 1)
 			gd.addNumericField("sigma_X", 1.0, 3);
@@ -341,12 +334,7 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 			var[i].setReal(gd.getNextNumber());
 		}
 		
-		try {
-			SaveConfigFile(IJ.getDirectory("temp")+ File.separator + "psf_gauss_settings.dat",settings);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		getConfigHandler().SaveToFile(IJ.getDirectory("temp")+ File.separator + "psf_gauss_settings.dat", settings);
 	}
 
 	@Override
@@ -408,39 +396,12 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 		return false;
 	}
 	
-	
-	static public void SaveConfigFile(String sv, GaussPSFSettings settings) throws IOException
-	{
-		FileOutputStream fout = new FileOutputStream(sv);
-		ObjectOutputStream oos = new ObjectOutputStream(fout);
-		oos.writeObject(settings);
-		oos.close();
-	}
-
-	
-	private boolean LoadConfigFile(String savedSettings)
-	{
-		System.out.println(savedSettings);
-		
-		try
-		{
-			FileInputStream fin = new FileInputStream(savedSettings);
-			ObjectInputStream ois = new ObjectInputStream(fin);
-			settings = (GaussPSFSettings)ois.readObject();
-			ois.close();
-		}
-		catch (FileNotFoundException e)
-		{
-			System.err.println("Settings File not found "+savedSettings);
-			return false;
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		
-		return true;
-	}
+	/**
+     * Returns handler for (un)serializing GaussPSFSettings objects.
+     */
+    public static DataFile<GaussPSFSettings> getConfigHandler() {
+        return new SerializedDataFile<GaussPSFSettings>();
+    }
 
 	@Override
 	public int[] getSuggestedImageSize()

@@ -10,14 +10,10 @@ import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import mosaic.io.serialize.DataFile;
+import mosaic.io.serialize.SerializedDataFile;
 import net.imglib2.Cursor;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
@@ -328,11 +324,10 @@ public class GeneratePSF
 	
 	public Img< FloatType > generate(int dim)
 	{
-		settings.clist = psfList.psfList[0];
-		LoadConfigFile(IJ.getDirectory("temp")+ File.separator + "psf_settings.dat");
+		settings.clist = psfList.psfList[0]; // TODO: Investigate if needed
+		settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp")+ File.separator + "psf_settings.dat", PSFSettings.class);
 		
 		GenericDialog gd = new GenericDialog("PSF Generator");
-		
 		gd.addNumericField("Dimensions ", dim, 0);
 		
 		if (IJ.isMacro() == false)
@@ -425,17 +420,10 @@ public class GeneratePSF
 			cft.get().set(f);
 		}
 		
-		// Save on settings
-		
+		// Save settings
 		settings.dim = dim;
 		settings.clist = choice;
-		
-		try {
-			SaveConfigFile(IJ.getDirectory("temp")+ File.separator + "psf_settings.dat",settings);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		getConfigHandler().SaveToFile(IJ.getDirectory("temp")+ File.separator + "psf_settings.dat", settings);
 		
 		return PSFimg;
 	}
@@ -445,36 +433,10 @@ public class GeneratePSF
 		return psfc.getStringParameters();
 	}
 	
-	static public void SaveConfigFile(String sv, PSFSettings settings) throws IOException
-	{
-		FileOutputStream fout = new FileOutputStream(sv);
-		ObjectOutputStream oos = new ObjectOutputStream(fout);
-		oos.writeObject(settings);
-		oos.close();
-	}
-
-	
-	private boolean LoadConfigFile(String savedSettings)
-	{
-		System.out.println(savedSettings);
-		
-		try
-		{
-			FileInputStream fin = new FileInputStream(savedSettings);
-			ObjectInputStream ois = new ObjectInputStream(fin);
-			settings = (PSFSettings)ois.readObject();
-			ois.close();
-		}
-		catch (FileNotFoundException e)
-		{
-			System.err.println("Settings File not found "+savedSettings);
-			return false;
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		
-		return true;
-	}
+	/**
+     * Returns handler for (un)serializing PSFSettings objects.
+     */
+    public static DataFile<PSFSettings> getConfigHandler() {
+        return new SerializedDataFile<PSFSettings>();
+    }
 }

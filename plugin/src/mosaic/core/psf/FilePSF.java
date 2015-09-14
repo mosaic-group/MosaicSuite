@@ -14,19 +14,11 @@ import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import org.scijava.Context;
-import org.scijava.app.AppService;
-import org.scijava.app.StatusService;
-
 import mosaic.core.utils.MosaicUtils;
+import mosaic.io.serialize.DataFile;
+import mosaic.io.serialize.SerializedDataFile;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;
@@ -39,6 +31,10 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.complex.ComplexFloatType;
 import net.imglib2.view.Views;
+
+import org.scijava.Context;
+import org.scijava.app.AppService;
+import org.scijava.app.StatusService;
 
 class FilePSFSettings implements Serializable
 {
@@ -241,8 +237,9 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , PSFGui
 	@Override
 	public void getParamenters() 
 	{
-		settings.filePSF = new String();
-		LoadConfigFile(IJ.getDirectory("temp")+ File.separator + "psf_file_settings.dat");
+		settings.filePSF = new String(); // TODO: ??? in the next line settings are loaded...
+		
+		settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp") + File.separator + "psf_file_settings.dat", FilePSFSettings.class);
 		
 		GenericDialog gd = new GenericDialog("File PSF");
 		
@@ -311,15 +308,8 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , PSFGui
 		rd = image.randomAccess();
 		
 		// save the parameters
-		
 		settings.filePSF = filename;
-		try {
-			SaveConfigFile(IJ.getDirectory("temp")+ File.separator + "psf_file_settings.dat",settings);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+		getConfigHandler().SaveToFile(IJ.getDirectory("temp")+ File.separator + "psf_file_settings.dat", settings);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -377,44 +367,16 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , PSFGui
 	
 	@Override
 	public boolean isFile() {
-		// TODO Auto-generated method stub
 		return true;
 	}
 	
-	static public void SaveConfigFile(String sv, FilePSFSettings settings) throws IOException
-	{
-		FileOutputStream fout = new FileOutputStream(sv);
-		ObjectOutputStream oos = new ObjectOutputStream(fout);
-		oos.writeObject(settings);
-		oos.close();
-	}
-
-	
-	private boolean LoadConfigFile(String savedSettings)
-	{
-		System.out.println(savedSettings);
-		
-		try
-		{
-			FileInputStream fin = new FileInputStream(savedSettings);
-			ObjectInputStream ois = new ObjectInputStream(fin);
-			settings = (FilePSFSettings)ois.readObject();
-			ois.close();
-		}
-		catch (FileNotFoundException e)
-		{
-			System.err.println("Settings File not found "+savedSettings);
-			return false;
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		
-		return true;
-	}
-
-
+	/**
+     * Returns handler for (un)serializing FilePSFSettings objects.
+     */
+    public static DataFile<FilePSFSettings> getConfigHandler() {
+        return new SerializedDataFile<FilePSFSettings>();
+    }
+	   
 	@Override
 	public int[] getCenter() 
 	{

@@ -425,6 +425,9 @@ public class Region_Competition implements Segmentation
 		return DOES_ALL+NO_CHANGES;
 	}
 	
+	/**
+     * Returns handler for (un)serializing Settings objects.
+     */
 	public static DataFile<Settings> getConfigHandler() {
 	    return new SerializedDataFile<Settings>();
 	}
