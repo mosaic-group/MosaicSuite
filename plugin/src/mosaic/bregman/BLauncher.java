@@ -519,7 +519,6 @@ class BLauncher
 			//IJ.log("single file start headless");
 			//IJ.log("start headless file");
 			bcolocheadless(img);
-			IJ.log("Done");
 			IJ.log("");
 		}
 		catch (Exception e)
@@ -563,7 +562,7 @@ class BLauncher
 
 		long difference = lEndTime - lStartTime; //check different
 		Ttime +=difference;
-		IJ.log("Total Time : " + Ttime/1000 + "s");
+		IJ.log("Done. Total Time : " + Ttime/1000 + "s");
 
 	}
 
@@ -715,7 +714,6 @@ class BLauncher
 				CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
 				IpCSV.clearMetaInformation();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());	
-				System.out.println(output2);
 				CSVOutput.occ.converter.Write(IpCSV, output2, obl, CSVOutput.occ.outputChoose, append);
 				
 				// Write channel 1
@@ -723,7 +721,6 @@ class BLauncher
 				obl = Analysis.getObjectsList(hcount,0);
 				IpCSV.clearMetaInformation();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
-				System.out.println(output1);
 				CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ.outputChoose, append);
 			}
 
@@ -766,7 +763,6 @@ class BLauncher
 				
 				CSV<? extends Outdata<Region>> IpCSV = CSVOutput.getCSV();
 				IpCSV.setMetaInformation("background", savepath + File.separator + img2.getTitle());
-				System.out.println(savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv");
 				CSVOutput.occ.converter.Write(IpCSV, savepath + File.separator +  filename_without_ext + "_ObjectsData_c1" + ".csv", obl, CSVOutput.occ.outputChoose, append);
 			}
 
@@ -780,7 +776,7 @@ class BLauncher
 
 		long difference = lEndTime - lStartTime; //check different
 		Ttime +=difference;
-		IJ.log("Total Time: " + Ttime/1000 + "s");
+		IJ.log("Done. Total Time: " + Ttime/1000 + "s");
 
 	}
 
