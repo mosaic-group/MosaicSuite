@@ -7,7 +7,7 @@ package mosaic.core.cluster;
  * @author Pietro Incardona
  */
 
-abstract class JobStatus {
+class JobStatus {
 
     enum jobS {
         PENDING, RUNNING, COMPLETE, FAILED, UNKNOWN
