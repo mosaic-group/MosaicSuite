@@ -210,13 +210,8 @@ public class CSVOutput
      * @param v ArrayList of Region objects
      * @return Vector of object of the selected format
      */
-    
-    @SuppressWarnings("unchecked")
 	public static Vector<? extends Outdata<Region>> getVector(ArrayList<Region> v)
     {
-        ConvertAndWrite<? extends Outdata<Region>> c = CSVOutput.occ.converter;
-        if (c == null) System.out.println("NO CONVERTER !!!!!!!!!!!");
-        if (v == null) System.out.println("VECTOR NULL !!!!!!!!!");
     	return CSVOutput.occ.converter.getVector(v);
     }
     
