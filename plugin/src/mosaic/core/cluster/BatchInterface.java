@@ -12,6 +12,12 @@ package mosaic.core.cluster;
 
 interface BatchInterface extends ShellProcessOutput
 {
+    enum OutputType
+    {
+        LAUNCH,
+        STATUS
+    }
+    
 	/**
 	 * 
 	 * Get the string to run a job array. This is a script based run

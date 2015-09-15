@@ -8,6 +8,12 @@ import mosaic.region_competition.Settings;
 
 public interface ScoreFunction extends IObjectiveFunction
 {
+    public enum TypeImage
+    {
+        FILENAME,
+        IMAGEPLUS
+    }
+    
 	abstract void incrementStep();
 	abstract void show();
 	abstract int getNImg();

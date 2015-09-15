@@ -16,9 +16,9 @@ import java.util.Vector;
 import mosaic.core.cluster.BatchList;
 import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterProfile;
+import mosaic.core.cluster.ClusterProfile.hw;
 import mosaic.core.cluster.FileClusterProfile;
 import mosaic.core.cluster.QueueProfile;
-import mosaic.core.cluster.hw;
 import mosaic.core.utils.DataCompression;
 import mosaic.core.utils.DataCompression.Algorithm;
 

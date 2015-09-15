@@ -1,5 +1,6 @@
 package mosaic.region_competition.wizard;
 
+import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -33,7 +34,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import mosaic.core.utils.IntensityImage;
-import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.PointCM;
@@ -47,9 +47,8 @@ import mosaic.region_competition.wizard.score_function.ScoreFunctionInit;
 import mosaic.region_competition.wizard.score_function.ScoreFunctionRCsmo;
 import mosaic.region_competition.wizard.score_function.ScoreFunctionRCtop;
 import mosaic.region_competition.wizard.score_function.ScoreFunctionRCvol;
-import mosaic.region_competition.wizard.score_function.TypeImage;
 
-class RCWWin extends JDialog implements MouseListener, Runnable
+public class RCWWin extends JDialog implements MouseListener, Runnable
 {
 	private static final long serialVersionUID = 1L;
 
@@ -471,7 +470,7 @@ class RCWWin extends JDialog implements MouseListener, Runnable
 					if (RCp.getSelectionStatus() == StatusSel.STOP)
 						break;
 						
-					if (fi.getTypeImage() == TypeImage.IMAGEPLUS)
+					if (fi.getTypeImage() == ScoreFunction.TypeImage.IMAGEPLUS)
 						RCp.SetImage(fitness[i],fi.createSettings(s,pop[i]),fi.getImagesIP());
 					else
 						RCp.SetImage(fitness[i],fi.createSettings(s,pop[i]),fi.getImagesString());

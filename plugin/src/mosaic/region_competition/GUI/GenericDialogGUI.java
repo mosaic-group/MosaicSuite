@@ -49,7 +49,7 @@ import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.EnergyFunctionalType;
 import mosaic.region_competition.energies.RegularizationType;
 import mosaic.region_competition.initializers.InitializationType;
-import mosaic.region_competition.wizard.RCWizard;
+import mosaic.region_competition.wizard.RCWWin;
 
 /**
  * Adapts GenericDialog from ImageJ for our purposes
@@ -193,8 +193,8 @@ public class GenericDialogGUI implements InputReadable
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				RCWizard w = new RCWizard();
-				w.StartWizard(settings);
+			    RCWWin w = new RCWWin();
+                w.start(settings);
 			}
 		});
 		p.add(b);
