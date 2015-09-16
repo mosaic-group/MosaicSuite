@@ -539,7 +539,7 @@ public class GenericGUI
 			File[] fileslist = null;
 			File fl = null;
 			
-			ClusterSession.setPreferredSlotPerProcess(4);
+			ClusterSession.setPreferredSlotPerProcess(8);
 			String Background = null;
 			
 			if (aImp == null)
