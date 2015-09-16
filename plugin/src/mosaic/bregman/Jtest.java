@@ -22,11 +22,11 @@ public class Jtest
 		TimeMeasurement tm = new TimeMeasurement();
 		
 		// test the cluster
-//		logger.info("----------------------- TestCase: Squassh_cluster -----------------------");
-//		BG.setUseCluster(true);
-//		MosaicTest.<Region3DRScript>testPlugin(BG,"Squassh_cluster",Region3DRScript.class);
-//		tm.logLapTimeSec("----------------------- Squassh_cluster");
-//		
+		logger.info("----------------------- TestCase: Squassh_cluster -----------------------");
+		BG.setUseCluster(true);
+		MosaicTest.<Region3DRScript>testPlugin(BG,"Squassh_cluster",Region3DRScript.class);
+		tm.logLapTimeSec("----------------------- Squassh_cluster");
+		
 		logger.info("----------------------- TestCase: Squassh_testa -----------------------");
 		BG.setUseCluster(false);
 		MosaicTest.<Region3DColocRScript>testPlugin(BG,"Squassh_testa",Region3DColocRScript.class);
