@@ -52,15 +52,11 @@ class BLauncher {
 
     private int hcount = 0;
     private ImagePlus aImp;
-    private Tools Tools;
 
     private Vector<ImagePlus> ip = new Vector<ImagePlus>();
 
     private String choice1[] = { "Automatic", "Low layer", "Medium layer", "High layer" };
     private String choice2[] = { "Poisson", "Gauss" };
-
-    double colocsegAB = 0;
-    double colocsegBA = 0;
 
     private Vector<String> pf = new Vector<String>();
 
@@ -455,9 +451,6 @@ class BLauncher {
         Analysis.p.nj = nnj;
         Analysis.p.nz = nnz;
 
-        Tools = new Tools(nni, nnj, nnz);
-        Analysis.iTools = Tools;
-
         Analysis.segmentA();
 
         if (Analysis.p.nchannels == 2) {
@@ -538,7 +531,6 @@ class BLauncher {
                 CSVOutput.occ.converter.Write(IpCSV, output1, obl, CSVOutput.occ.outputChoose, append);
             }
 
-            Analysis.doingbatch = false;
             hcount++;
         }
 

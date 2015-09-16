@@ -12,16 +12,15 @@ import ij.process.ImageProcessor;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
-import net.sf.javaml.core.Dataset;
-import net.sf.javaml.core.DefaultDataset;
-import net.sf.javaml.core.DenseInstance;
-import net.sf.javaml.core.Instance;
 //import weka.clusterers.Cobweb;
 //import weka.clusterers.SimpleKMeans;
 //import weka.clusterers.XMeans;
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
-
+import net.sf.javaml.core.Dataset;
+import net.sf.javaml.core.DefaultDataset;
+import net.sf.javaml.core.DenseInstance;
+import net.sf.javaml.core.Instance;
 import net.sf.javaml.tools.DatasetTools;
 
 /**
@@ -60,7 +59,6 @@ class NRegions implements Runnable{
 	CountDownLatch DoneSignal;
 	double min;
 	double max;
-	
 
 	public NRegions(ImagePlus img, Parameters params, CountDownLatch DoneSignal, int channel)
 	{
@@ -307,19 +305,16 @@ class NRegions implements Runnable{
 		if (channel==0){
 			//Analysis.maxmaska=A_solver.maxmask;
 			Analysis.setmaska(A_solver.maxmask);
-			Analysis.bestEnergyX=A_solver.bestNrj;
 			//Analysis.maska=A_solver.w3k[0];
 			if (!Analysis.p.looptest){
 				if (p.nlevels==2)Analysis.compute_connected_regions_a(0.5,null);
 				else Analysis.compute_connected_regions_a(1.5,null);
 				A_solver=null;
 			}
-			else
-				Analysis.solverX=A_solver;
+
 		}
 		else{
 			Analysis.setmaskb(A_solver.maxmask);
-			Analysis.bestEnergyY=A_solver.bestNrj;
 			//Analysis.maxmaskb=A_solver.maxmask;
 			//Analysis.maskb=A_solver.w3k[0];	
 			if (!Analysis.p.looptest){
@@ -327,8 +322,7 @@ class NRegions implements Runnable{
 				else Analysis.compute_connected_regions_b(1.5,null);
 				A_solver=null;
 			}
-			else
-				Analysis.solverY=A_solver;
+
 		}
 		Analysis.p.min_intensity=minInt;
 

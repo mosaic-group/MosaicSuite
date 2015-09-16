@@ -23,8 +23,6 @@ public class Analysis {
 	public enum outputF
 	{
 		MASK(2),
-		SEG(9),
-		INT(7),
 		OBJECT(0);
 		
 		private int numVal;
@@ -68,12 +66,8 @@ public class Analysis {
         "*_soft_mask_c2.tiff",
         "*_coloc.zip"};
 
-    static double meansize_refined;
     static String currentImage = "currentImage";
-    static double bestEnergyX;
-    static double bestEnergyY;
-    static ASplitBregmanSolver solverX;
-    static ASplitBregmanSolver solverY;
+
     static ImagePlus imgA;
     private static ImagePlus imgB;
     public static Parameters p = new Parameters();
@@ -87,7 +81,6 @@ public class Analysis {
     static int nb;
     static int na;
     static double meana, meanb;
-    static boolean doingbatch = false;
 
     static int frame;
 
@@ -101,9 +94,6 @@ public class Analysis {
     static short[][][][] regions;
     static ArrayList<Region> regionslist[];
 
-    static byte[] imagecolor_c1;
-    static byte[] imagecolor_c2;
-
     private static CountDownLatch DoneSignala;
     private static CountDownLatch DoneSignalb;
     static double[][][] imageb;// = new double [p.nz][p.ni][p.nj];
@@ -112,8 +102,6 @@ public class Analysis {
     private static double minb = Double.POSITIVE_INFINITY;
     private static double maxa = 0;
     private static double mina = Double.POSITIVE_INFINITY;
-
-    static Tools iTools;
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public static void init() {

@@ -245,7 +245,6 @@ class TwoRegions extends NRegions
 			
 			Analysis.setMaskaTworegions(A_solver.w3kbest[0]);
 			//Analysis.setMaskaTworegions(A_solver.w3kbest[0],A_solver.bp_watermask);
-			Analysis.bestEnergyX=A_solver.bestNrj;
 
 			//A_solver A
 			float [][][] RiN ;
@@ -281,8 +280,6 @@ class TwoRegions extends NRegions
 					ipatches.run();
 					Analysis.regionslist[0]=ipatches.regionslist_refined;
 					Analysis.regions[0]=ipatches.regions_refined;
-					Analysis.imagecolor_c1=ipatches.imagecolor_c1;
-					//Tools.showmem();
 				}
 
 
@@ -408,7 +405,6 @@ class TwoRegions extends NRegions
 		{
 			Analysis.setMaskbTworegions(A_solver.w3kbest[0]);
 			//Analysis.setMaskaTworegions(A_solver.w3kbest[0],A_solver.bp_watermask);
-			Analysis.bestEnergyY=A_solver.bestNrj;
 
 			//A_solver A
 			float [][][] RiN ;
@@ -443,7 +439,6 @@ class TwoRegions extends NRegions
 					ipatches.run();
 					Analysis.regionslist[1]=ipatches.regionslist_refined;
 					Analysis.regions[1]=ipatches.regions_refined;
-					Analysis.imagecolor_c2=ipatches.imagecolor_c1;
 				}
 
 

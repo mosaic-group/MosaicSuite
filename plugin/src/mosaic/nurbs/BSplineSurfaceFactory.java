@@ -26,14 +26,6 @@ public class BSplineSurfaceFactory {
 
 		return generateFromFunction(aUmin, aUmax, aVmin, aVmax, noOfStepsU, noOfStepsV, aDegree, aDegree, aFunc);
 	}
-	
-	/**
-	 * Generates surface in given range in u/v directions basing on provided function and numbers of steps.
-	 * @return B-Spline surface
-	 */
-	public static BSplineSurface generateFromFunction(double aUmin, double aUmax, double aVmin, double aVmax, int aNoOfSteps, int aDegree, Function aFunc) {
-		return generateFromFunction(aUmin, aUmax, aVmin, aVmax, aNoOfSteps, aNoOfSteps, aDegree, aDegree, aFunc);
-	}
 		
 	/**
 	 * Generates surface in given range in u/v directions basing on provided function and numbers of steps. Degree and steps can

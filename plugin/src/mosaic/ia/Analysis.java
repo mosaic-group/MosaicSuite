@@ -24,7 +24,6 @@ import weka.estimators.KernelEstimator;
 
 public class Analysis 
 {
-	private ImagePlus[] impList;
 	private ImagePlus X, Y;
 	private ImagePlus mask, genMask;
 	private Point3d[] particleXSetCoordUnfiltered;
@@ -100,13 +99,6 @@ public class Analysis
 
 	private double minD, maxD, meanD;
 	private boolean isImage; // to distinguish b/wimage and coords
-	// private Vector<Point> Xcoords, Ycoords;
-
-	public void setImageList(ImagePlus X, ImagePlus Y) {
-		impList = new ImagePlus[2];
-		impList[0] = Y;
-		impList[1] = X;
-	}
 
 	public Analysis(ImagePlus X, ImagePlus Y) {
 		this.X = X;

@@ -16,6 +16,7 @@ public class Region3DTrack implements Outdata<Region>
 	public void setFrame(int fr) {Frame = fr;}
 	public void setx(double x_)	{x = x_;}
 	public void sety(double y_)	{y = y_;}
+
 	public void setz(double z_)	{z = z_;}
 	public void setIntensity(double Intensity_)	{Intensity = Intensity_;}
 	public void setSize(double Size_)				{Size = Size_;}

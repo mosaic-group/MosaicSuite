@@ -27,7 +27,6 @@ class ASplitBregmanSolver {
     private ArrayList<Region> regionslistr;
     protected MasksDisplay md;
     protected double[][][] image;
-    protected double weight;
     private double norm;
     protected double[][][][] speedData; // used only
 

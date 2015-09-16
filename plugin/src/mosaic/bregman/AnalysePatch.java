@@ -46,7 +46,6 @@ class AnalysePatch implements Runnable {
     private int zmargin;
     private int ox, oy, oz;// size of full image
     private int wmar;// weights margin
-    int rmmar;// mask for refined object computation (must be inside)
     // size of patch
     int sx;
     int sy;
@@ -102,7 +101,6 @@ class AnalysePatch implements Runnable {
         this.r = r;
         this.channel = channel;
         wmar = 4;
-        rmmar = 8;
         ox = pa.ni;
         oy = pa.nj;
         oz = pa.nz;
@@ -864,9 +862,6 @@ class AnalysePatch implements Runnable {
 
     }
 
-    static int pnum = 0;
-    double patch_quality = 0.0;
-
     double find_best_thresh_and_int(double[][][] w3kbest) {
         double t;
         double energy = Double.MAX_VALUE;
@@ -911,10 +906,6 @@ class AnalysePatch implements Runnable {
                 cout_front = 0;
             }
         }
-
-        // quality Patch
-
-        patch_quality = 1 / (max_energy - min_energy);
 
         // Debug
 
