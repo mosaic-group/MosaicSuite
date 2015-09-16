@@ -50,7 +50,7 @@ ASplitBregmanSolverTwoRegions {
 
 
 	@Override
-	public void init(){
+	protected void init(){
 		this.compute_eigenPSF();
 		
 		

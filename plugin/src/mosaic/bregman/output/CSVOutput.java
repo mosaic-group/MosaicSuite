@@ -1,5 +1,6 @@
 package mosaic.bregman.output;
 
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -14,18 +15,14 @@ import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 
+
 /**
- * 
  * Here we define all the possible csv output format for Squassh
  * 
  * @author Pietro Incardona
- *
  */
-
-public class CSVOutput
-{
+public class CSVOutput {
 	// Region3DTrack
-	
 	public static final String[] Region3DTrack_map = new String[] 
 	{ 
 		"Frame",
@@ -38,8 +35,7 @@ public class CSVOutput
     };
       
     // Region3DRscript
-    
-	public static final String[] Region3DRScript_map = new String[] 
+	private static final String[] Region3DRScript_map = new String[] 
 	{ 
 		"Image_ID",
         "Object_ID",
@@ -53,8 +49,7 @@ public class CSVOutput
     };
     
     // Region3DColocRscript
-    
-	public static final String[] Region3DColocRScript_map = new String[] 
+	private static final String[] Region3DColocRScript_map = new String[] 
 	{ 
 		"Image_ID",
         "Object_ID",
@@ -71,28 +66,16 @@ public class CSVOutput
         "Coord_Y",
         "Coord_Z",
     };
-    
-    public static CellProcessor[] Region3DTrackCellProcessor;
-    public static CellProcessor[] Region3DRScriptCellProcessor;
-    public static CellProcessor[] Region3DColocRScriptCellProcessor;
-    
-    /**
-     * 
-     * Get CellProcessor for Region3DColocRscript objects
-     * 
-     */
-    
-    public static CellProcessor[] getRegion3DColocRScriptCellProcessor()
-    {
-    	return Region3DColocRScriptCellProcessor;
-    }
-    
+
+    private static CellProcessor[] Region3DTrackCellProcessor;
+    private static CellProcessor[] Region3DRScriptCellProcessor;
+    private static CellProcessor[] Region3DColocRScriptCellProcessor;
+
     /**
      * 
      * Get CellProcessor for Region3DTrack objects
      * 
      */
-    
     public static CellProcessor[] getRegion3DTrackCellProcessor()
     {
     	return new CellProcessor[] 
@@ -112,7 +95,6 @@ public class CSVOutput
      * Init CSV structure
      * 
      */
-    
     @SuppressWarnings("unchecked")
 	public static void initCSV(int oc_s)
     {
@@ -184,24 +166,6 @@ public class CSVOutput
     
     /**
      * 
-     * Get an empty vector of object of the selected format
-     */
-    
-    public static Vector<?> getVector()
-    {
-    	
-    	try {
-			return occ.vectorFactory.newInstance();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
-    	return null;
-    }
-    
-    /**
-     * 
      * Get a vector of objects with the selected format, 
      * in particular convert the Region arraylist into 
      * objects vector implementing Outdata and a particular output format.
@@ -216,12 +180,10 @@ public class CSVOutput
     }
     
     /**
-     * 
      * Get an CSV object with the selected format
      * 
      * @return CSV
      */
-    
     public static CSV<? extends Outdata<Region>> getCSV()
     {
     	try {
@@ -245,21 +207,6 @@ public class CSVOutput
     	return null;
     }
     
-    /**
-     * 
-     * Get an CSV object with the selected format
-     * 
-     * @return CSV
-     */
-    
-    public static CSV<?> getInterPluginColocCSV()
-    {
-		CSV<Region3DColocRScript> csv = new CSV<Region3DColocRScript>(Region3DColocRScript.class);
-		csv.setDelimiter(occ.delimiter);
-		return csv;
-    }
-    
     public static SquasshOutputChoose occ;
-    public static SquasshOutputChoose oc[];
-    
+    public static SquasshOutputChoose oc[];  
 }

@@ -1,5 +1,8 @@
 package mosaic.plugins.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 
 /**
  * Debug printouts for troubleshooting. Contains some convinient methods
@@ -20,6 +23,16 @@ public class Debug {
         String str = "";
         for (Object o : aObjects) { 
             str += "[" + o + "] ";
+        }
+        return str;
+    }
+    
+    public static String getJsonString(Object... aObjects) {
+        String str = "";
+        for (Object obj : aObjects) { 
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String json = gson.toJson(obj);
+            str += "[" + json + "] ";
         }
         return str;
     }

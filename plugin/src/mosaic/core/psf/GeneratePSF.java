@@ -324,9 +324,9 @@ public class GeneratePSF
 	
 	public Img< FloatType > generate(int dim)
 	{
-		settings.clist = psfList.psfList[0]; // TODO: Investigate if needed
-		settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp")+ File.separator + "psf_settings.dat", PSFSettings.class);
-		
+	    settings.clist = psfList.psfList[0]; 
+	    settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp")+ File.separator + "psf_settings.dat", PSFSettings.class, settings);
+				
 		GenericDialog gd = new GenericDialog("PSF Generator");
 		gd.addNumericField("Dimensions ", dim, 0);
 		

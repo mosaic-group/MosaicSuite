@@ -24,6 +24,8 @@ import mosaic.core.utils.MM;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 
+import org.apache.log4j.Logger;
+
 
 /**
  * Main class to handle a Session to an HPC cluster
@@ -38,7 +40,8 @@ import mosaic.core.utils.ShellCommand;
  * @author Pietro Incardona
  */
 public class ClusterSession {
-
+    protected static final Logger logger = Logger.getLogger(ClusterSession.class);
+    
     private int nImages;
     private ClusterProfile cp;
     private SecureShellSession ss;
@@ -200,7 +203,8 @@ public class ClusterSession {
             // Wait to install Fiji
             do {
                 try {
-                    Thread.sleep(30000);
+                    System.out.println("Expected directory: [" + cp.getRunningDir() + "Fiji.app]");
+                    Thread.sleep(10000);
                 }
                 catch (InterruptedException e) {
                     e.printStackTrace();
@@ -424,8 +428,13 @@ public class ClusterSession {
                 if (cs[i] == true
                         && (output[i].endsWith(".tiff") || output[i].endsWith(".tif") || output[i].endsWith(".zip"))) {
                     wp.SetStatusMessage("Visualizing " + output[i]);
-
-                    File[] fl = new File(directories[j] + File.separator + output[i].replace("*", "_")).listFiles();
+                    String dirName = directories[j] + File.separator + output[i].replace("*", "_");
+                    logger.debug("Listing files in: [" + dirName + "]");
+                    File[] fl = new File(dirName).listFiles();
+                    if (fl == null) {
+                        logger.error("Null file array");
+                        continue;
+                    }
                     int nf = fl.length;
                     Opener op = new Opener();
 

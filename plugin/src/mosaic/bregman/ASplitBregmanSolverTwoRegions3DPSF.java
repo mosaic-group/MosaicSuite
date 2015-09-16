@@ -74,7 +74,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 	}
 
 	@Override
-	public void init(){
+	protected void init() {
 		this.compute_eigenPSF();
 		
 		

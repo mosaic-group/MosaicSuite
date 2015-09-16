@@ -67,7 +67,7 @@ public class Jtest implements PlugInFilter
 		mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
 		jtestMj.mergetest();
 		tm.logLapTimeSec("========================== core.cluster.Jtest");
-//        
+        
 		// Test Region competition segmentation
 		logger.info("========================== TestSuite: region_competition.Jtest ===================================");
 		mosaic.region_competition.Jtest jtestRC = new mosaic.region_competition.Jtest();

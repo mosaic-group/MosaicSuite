@@ -299,7 +299,7 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 	@Override
 	public void getParamenters() 
 	{
-		settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp")+ File.separator + "psf_gauss_settings.dat", GaussPSFSettings.class);
+		settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp")+ File.separator + "psf_gauss_settings.dat", GaussPSFSettings.class, settings);
 		
 		GenericDialog gd = new GenericDialog("Gauss PSF");
 		

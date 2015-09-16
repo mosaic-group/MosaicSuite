@@ -16,4 +16,13 @@ public interface  DataFile <T> {
      * @return object on success or null otherwise
      */
     public T LoadFromFile(String aSerializedFileName, Class<T> aClazz);
+    
+    /**
+     * Loads serialized object from given aSerializedFileName 
+     * @param aSerializedFileName
+     * @param aClazz Class type
+     * @param aDefaultValue - value to be returned if loading from file failed
+     * @return object on success or null otherwise
+     */
+    public T LoadFromFile(String aSerializedFileName, Class<T> aClazz, T aDefaultValue);
 }

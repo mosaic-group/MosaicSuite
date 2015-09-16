@@ -82,4 +82,13 @@ public class JsonDataFile<T> implements DataFile<T> {
         }
     }
 
+    public T LoadFromFile(String aSerializedFileName, Class<T> aClazz, T aDefaultValue) {
+        T temp = LoadFromFile(aSerializedFileName, aClazz);
+        if (temp != null) {
+            return temp;
+        }
+        else {
+            return aDefaultValue;
+        }
+    }
 }

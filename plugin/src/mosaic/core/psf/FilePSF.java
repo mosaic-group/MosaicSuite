@@ -237,9 +237,9 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , PSFGui
 	@Override
 	public void getParamenters() 
 	{
-		settings.filePSF = new String(); // TODO: ??? in the next line settings are loaded...
-		
-		settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp") + File.separator + "psf_file_settings.dat", FilePSFSettings.class);
+		settings.filePSF = new String();
+		settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp") + File.separator + "psf_file_settings.dat", FilePSFSettings.class, settings);
+
 		
 		GenericDialog gd = new GenericDialog("File PSF");
 		

@@ -395,9 +395,9 @@ public class GenericGUI
 			gd.showDialog();
 			if (gd.wasCanceled()) return;
 						
-			Analysis.p.nthreads= (int) gd.getNextNumber();
-			Analysis.p = BregmanGLM_Batch.getConfigHandler().LoadFromFile(gd.getNextString(), Parameters.class);
-			Analysis.p.wd=  gd.getNextString();
+			Analysis.p.nthreads = (int) gd.getNextNumber();
+			Analysis.p = BregmanGLM_Batch.getConfigHandler().LoadFromFile(gd.getNextString(), Parameters.class, Analysis.p);
+			Analysis.p.wd =  gd.getNextString();
 		}
 		
 		System.out.println("Paramenters: " + Analysis.p);
@@ -539,7 +539,7 @@ public class GenericGUI
 			File[] fileslist = null;
 			File fl = null;
 			
-			ClusterSession.setPreferredSlotPerProcess(8);
+			ClusterSession.setPreferredSlotPerProcess(4);
 			String Background = null;
 			
 			if (aImp == null)

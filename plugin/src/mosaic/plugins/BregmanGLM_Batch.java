@@ -45,12 +45,11 @@ public class BregmanGLM_Batch implements Segmentation {
 
         String dir = IJ.getDirectory("temp");
         savedSettings = dir + "spb_settings.dat";
-        Analysis.p = getConfigHandler().LoadFromFile(savedSettings, Parameters.class);
+        Analysis.p = getConfigHandler().LoadFromFile(savedSettings, Parameters.class, Analysis.p);
 
-       
         String path = findMatchedString(arg0, "config");
         if (path != null) {
-            Analysis.p = getConfigHandler().LoadFromFile(path, Parameters.class);
+            Analysis.p = getConfigHandler().LoadFromFile(path, Parameters.class, Analysis.p);
         }
         
         String norm = findMatchedString(arg0, "min");
