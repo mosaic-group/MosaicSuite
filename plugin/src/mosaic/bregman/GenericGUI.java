@@ -79,13 +79,6 @@ public class GenericGUI
 		clustermode = mode;
 	}
 	
-	public GenericGUI(boolean  	mode){
-		clustermode=mode;
-		//clustermode=true;
-	}
-	
-
-	
 	/**
 	 * 
 	 * Use the cluster

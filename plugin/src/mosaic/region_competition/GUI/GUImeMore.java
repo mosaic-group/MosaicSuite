@@ -45,13 +45,6 @@ abstract class GUImeMore
 		gd.showDialog();
 	}
 	
-	public void createShowProcess()
-	{
-		createDialog();
-		showDialog();
-		processDialog();
-	}
-	
 	/**
 	 * Gets an empty {@link GenericDialog}
 	 * @return
