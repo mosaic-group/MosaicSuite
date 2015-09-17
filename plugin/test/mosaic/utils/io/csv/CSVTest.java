@@ -31,16 +31,8 @@ public class CSVTest extends CommonBase {
     @SuppressWarnings("unused") // get/set methods are accessed via reflection
     static public class TestThing {
         // Definitions for CSV input/output
-        public static final String[] Thing_map = new String[]
-                {
-            "ID",
-            "CalculatedValue"
-                };
-        public static final CellProcessor[] Thing_CellProcessor = new CellProcessor[]
-                {
-            new ParseInt(),
-            new ParseDouble()
-                };
+        public static final String[] Thing_map = new String[] { "ID", "CalculatedValue" };
+        public static final CellProcessor[] Thing_CellProcessor = new CellProcessor[] { new ParseInt(), new ParseDouble() };
 
 
         // Getters/Setters for input/output CSV
@@ -79,21 +71,15 @@ public class CSVTest extends CommonBase {
             return true;
         }
     }
-
+    
     /**
      * TestThing is a helper class used for testing CSV
      */
     @SuppressWarnings("unused") // get/set methods are accessed via reflection
     static public class TestSmall {
         // Definitions for CSV input/output
-        public static final String[] Small_map = new String[]
-                {
-            "ID"
-                };
-        public static final CellProcessor[] Small_CellProcessor = new CellProcessor[]
-                {
-            new ParseInt()
-                };
+        public static final String[] Small_map = new String[] {"ID"};
+        public static final CellProcessor[] Small_CellProcessor = new CellProcessor[] {new ParseInt()};
 
 
         // Getters/Setters for input/output CSV
@@ -188,8 +174,8 @@ public class CSVTest extends CommonBase {
 
         // Verify
         String expectedContent = "ID,CalculatedValue\n" +
-                "1,33.3\n" +
-                "4,99.1\n";
+                                 "1,33.3\n" +
+                                 "4,99.1\n";
         verifyFileContent(fullFileName, expectedContent);
     }
 
@@ -199,8 +185,8 @@ public class CSVTest extends CommonBase {
 
         // Prepare data
         String expectedContent = "ID,CalculatedValue\n" +
-                "1,33.3\n" +
-                "4,99.1\n";
+                                 "1,33.3\n" +
+                                 "4,99.1\n";
         saveFile(fullFileName, expectedContent);
 
         // Tested method
@@ -228,9 +214,9 @@ public class CSVTest extends CommonBase {
 
         // Verify
         String expectedContent = "ID,CalculatedValue\n" +
-                "%name1:valueForName1\n" +
-                "%name2:valueForName2\n" +
-                "1,5.2\n";
+                                 "%name1:valueForName1\n" +
+                                 "%name2:valueForName2\n" +
+                                 "1,5.2\n";
         verifyFileContent(fullFileName, expectedContent);
     }
 
@@ -240,9 +226,9 @@ public class CSVTest extends CommonBase {
 
         // Prepare data
         String expectedContent = "ID,CalculatedValue\n" +
-                "%name1:valueForName1\n" +
-                "%name2:valueForName2\n" +
-                "4,5.2\n";;
+                                 "%name1:valueForName1\n" +
+                                 "%name2:valueForName2\n" +
+                                 "4,5.2\n";
                 saveFile(fullFileName, expectedContent);
 
                 // Tested method
@@ -273,9 +259,9 @@ public class CSVTest extends CommonBase {
 
             // Verify
             String expectedContent = "ID,CalculatedValue\n" +
-                    "%anyName:anyValue\n" +
-                    "1,33.3\n" +
-                    "4,99.1\n";
+                                     "%anyName:anyValue\n" +
+                                     "1,33.3\n" +
+                                     "4,99.1\n";
             verifyFileContent(fullFileName, expectedContent);
         }
         {  // Append additional data to that file
@@ -288,10 +274,10 @@ public class CSVTest extends CommonBase {
 
             // Verify
             String expectedContent = "ID,CalculatedValue\n" +
-                    "%anyName:anyValue\n" +
-                    "1,33.3\n" +
-                    "4,99.1\n" +
-                    "5,1.23\n";
+                                     "%anyName:anyValue\n" +
+                                     "1,33.3\n" +
+                                     "4,99.1\n" +
+                                     "5,1.23\n";
             verifyFileContent(fullFileName, expectedContent);
         }
     }
@@ -325,11 +311,11 @@ public class CSVTest extends CommonBase {
 
         // Verify
         String expectedContent = "ID,CalculatedValue\n" +
-                "%name3:valueForName3\n" +
-                "%name1:valueForName1\n" +
-                "%name2:valueForName2\n" +
-                "5,1.23\n" +
-                "3,3.14\n";
+                                 "%name3:valueForName3\n" +
+                                 "%name1:valueForName1\n" +
+                                 "%name2:valueForName2\n" +
+                                 "5,1.23\n" +
+                                 "3,3.14\n";
         verifyFileContent(fullFileName, expectedContent);
     }
 
@@ -348,8 +334,8 @@ public class CSVTest extends CommonBase {
 
         // Verify
         String expectedContent = "ID;CalculatedValue\n" +
-                "1;33.3\n" +
-                "4;99.1\n";
+                                 "1;33.3\n" +
+                                 "4;99.1\n";
         verifyFileContent(fullFileName, expectedContent);
     }
 
@@ -359,8 +345,8 @@ public class CSVTest extends CommonBase {
 
         // Prepare data
         String expectedContent = "ID;CalculatedValue\n" +
-                "1;33.3\n" +
-                "4;99.1\n";
+                                 "1;33.3\n" +
+                                 "4;99.1\n";
         saveFile(fullFileName, expectedContent);
 
         // Tested methods
@@ -380,8 +366,8 @@ public class CSVTest extends CommonBase {
 
         // Prepare data
         String expectedContent = "ID,CalculatedValue\n" +
-                "1,33.3\n" +
-                "4,99.1\n";
+                                 "1,33.3\n" +
+                                 "4,99.1\n";
         saveFile(fullFileName, expectedContent);
 
         // Tested method (do not specify columns with OutputChoose)
@@ -404,8 +390,8 @@ public class CSVTest extends CommonBase {
 
         // Prepare data
         String expectedContent = "ID,CalculatedValue\n" +
-                "1,33.3\n" +
-                "4,99.1\n";
+                                 "1,33.3\n" +
+                                 "4,99.1\n";
         saveFile(fullFileName, expectedContent);
 
         CSV<TestSmall> csv =  new CSV<TestSmall>(TestSmall.class);
@@ -434,8 +420,8 @@ public class CSVTest extends CommonBase {
 
         // Verify (in case when column is wrongly provided it will not be save in output file).
         String expectedContent = "ID\n" +
-                "1\n" +
-                "4\n";
+                                 "1\n" +
+                                 "4\n";
         verifyFileContent(fullFileName, expectedContent);
     }
 }

@@ -306,8 +306,8 @@ public class CSV<E> {
             // write the beans
             try {
 
-                for (int i = 0; i < aOutputData.size(); i++) {
-                    beanWriter.write(aOutputData.get(i), aOutputChoose.cellProcessors);
+                for (E element : aOutputData) {
+                    beanWriter.write(element, aOutputChoose.cellProcessors);
                 }
 
             } catch (SecurityException e) {
