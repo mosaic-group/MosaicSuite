@@ -24,11 +24,6 @@ public class IntervalsListDouble
 		m_Thresholds = new ArrayList<ThresholdIntervalDouble>();
 	}
     
-	public void AddThreshold(double value)
-	{
-		AddThresholdBetween(value, value);
-	}
-    
 	public void AddThresholdBetween(double lower, double upper) 
     {
         m_Thresholds.add(new ThresholdIntervalDouble(lower, upper));
