@@ -118,7 +118,7 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
      * @param aYscale
      * @return newly created ImagePlus
      */
-    protected ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale) {
+    private ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale) {
         return createNewEmptyImgPlus(aOrigIp, aTitle, aXscale, aYscale, false);
     }
         

@@ -15,14 +15,14 @@ import mosaic.core.utils.DataCompression.Algorithm;
 
 class GeneralProfile implements ClusterProfile
 {
-	BatchInterface bc;
-	String ProfileName;
-	String RunningDir;
-	String ImageJCommand;
-	String UserName;
-	String AccessAddress;
-	String pwd;
-	hw acc;
+    private BatchInterface bc;
+    private String ProfileName;
+    private String RunningDir;
+    private String ImageJCommand;
+    private String AccessAddress;
+    private String pwd;
+    private hw acc;
+    protected String UserName;
 	
 	private class Tqueue
 	{
@@ -36,28 +36,32 @@ class GeneralProfile implements ClusterProfile
 		String name;
 	}
 	
-	Vector<Vector<Tqueue>> cq;
+	private Vector<Vector<Tqueue>> cq;
 	
 	GeneralProfile()
 	{
 		cq = new Vector<Vector<Tqueue>>();
 	}
 	
+	@Override
 	public void setUsername(String UserName_)
 	{
 		UserName = UserName_;
 	}
 	
+	@Override
 	public String getUsername()
 	{
 		return UserName;
 	}
 	
+	@Override
 	public void setPassword(String pwd_)
 	{
 		pwd = pwd_;
 	}
 	
+	@Override
 	public String getPassword()
 	{
 		return pwd;
@@ -99,6 +103,7 @@ class GeneralProfile implements ClusterProfile
 		ImageJCommand = ImageJCommand_;
 	}
 	
+	@Override
 	public String getQueue(double minutes)
 	{
 		for (int i = 0 ; i < cq.size() ; i++)
@@ -112,11 +117,13 @@ class GeneralProfile implements ClusterProfile
 		return null;
 	}
 	
+	@Override
 	public void setAcc(hw acc_)
 	{
 		acc = acc_;
 	}
 	
+	@Override
 	public void setQueue(double minutes, String name)
 	{		
 		if (cq.size() <= acc.ordinal())
@@ -146,6 +153,7 @@ class GeneralProfile implements ClusterProfile
 		AccessAddress = AccessAddress_;
 	}
 
+	@Override
 	public void setBatchSystem(BatchInterface bc_)
 	{
 		bc = bc_;

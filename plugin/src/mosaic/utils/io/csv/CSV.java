@@ -234,7 +234,7 @@ public class CSV<E> {
      * @param out output - container for output data
      * @param aOutputChoose - chosen output (if null, it will be generated from header)
      */
-    CsvColumnConfig readData(String aCsvFilename, Vector<E> aOutput, CsvColumnConfig aOutputChoose) {
+    private CsvColumnConfig readData(String aCsvFilename, Vector<E> aOutput, CsvColumnConfig aOutputChoose) {
         ICsvDozerBeanReader beanReader = null;
         try {
             logger.info("Reading file: [" + aCsvFilename + "]");

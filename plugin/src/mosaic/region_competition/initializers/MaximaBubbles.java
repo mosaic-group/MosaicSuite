@@ -101,7 +101,7 @@ public class MaximaBubbles extends DataDrivenInitializer
 		}
 	}
 
-	public void initBrightBubbles()
+	private void initBrightBubbles()
 	{
 		smoothIntensityImage();
 		

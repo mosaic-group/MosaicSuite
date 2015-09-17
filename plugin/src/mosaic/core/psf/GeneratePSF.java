@@ -98,7 +98,7 @@ public class GeneratePSF
 	 * @return 2D array image
 	 */
 	
-	public static <T extends RealType<T>> double[][] generateImage2DAsDoubleArray(psf<T> psf) 
+	static <T extends RealType<T>> double[][] generateImage2DAsDoubleArray(psf<T> psf) 
 	{
 		if (psf.getSuggestedImageSize().length != 2)
 			return null;
@@ -148,7 +148,7 @@ public class GeneratePSF
 		return img;
 	}
 
-	public static <T extends RealType<T>> float[][] generateImage2DAsFloatArray(psf<T> psf) 
+	static <T extends RealType<T>> float[][] generateImage2DAsFloatArray(psf<T> psf) 
 	{
 		if (psf.getSuggestedImageSize().length != 2)
 			return null;
@@ -206,7 +206,7 @@ public class GeneratePSF
 	 * @return 3D array image
 	 */
 	
-	public static <T extends RealType<T>> double[][][] generateImage3DAsDoubleArray(psf<T> psf) 
+	static <T extends RealType<T>> double[][][] generateImage3DAsDoubleArray(psf<T> psf) 
 	{
 		if (psf.getSuggestedImageSize().length != 3)
 			return null;
@@ -260,7 +260,7 @@ public class GeneratePSF
 		return img;
 	}
 
-	public static <T extends RealType<T>> float[][][] generateImage3DAsFloatArray(psf<T> psf) 
+	static <T extends RealType<T>> float[][][] generateImage3DAsFloatArray(psf<T> psf) 
 	{
 		if (psf.getSuggestedImageSize().length != 3)
 			return null;
@@ -436,7 +436,7 @@ public class GeneratePSF
 	/**
      * Returns handler for (un)serializing PSFSettings objects.
      */
-    public static DataFile<PSFSettings> getConfigHandler() {
+    private static DataFile<PSFSettings> getConfigHandler() {
         return new SerializedDataFile<PSFSettings>();
     }
 }

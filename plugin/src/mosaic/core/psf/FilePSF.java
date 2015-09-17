@@ -370,7 +370,7 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , PSFGui
 	/**
      * Returns handler for (un)serializing FilePSFSettings objects.
      */
-    public static DataFile<FilePSFSettings> getConfigHandler() {
+    private static DataFile<FilePSFSettings> getConfigHandler() {
         return new SerializedDataFile<FilePSFSettings>();
     }
 	   

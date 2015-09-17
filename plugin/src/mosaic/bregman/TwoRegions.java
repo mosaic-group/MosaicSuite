@@ -477,7 +477,7 @@ class TwoRegions extends NRegions
 	 * @param A_solver the solver used to produce the soft mask
 	 */
 	
-	void mergeSoftMask(ASplitBregmanSolver A_solver)
+	private void mergeSoftMask(ASplitBregmanSolver A_solver)
 	{
 		if (p.dispSoftMask) 
 		{

@@ -121,7 +121,7 @@ public class GenericGUI
 	 * 
 	 */
 	
-	public run_mode drawBatchWindow()
+	private run_mode drawBatchWindow()
 	{
 		// No visualization is active by default
 		if (GenericGUI.bypass_GUI == false)
@@ -187,7 +187,7 @@ public class GenericGUI
 	 * 
 	 */
 	
-	run_mode drawStandardWindow(GenericDialog gd, ImagePlus aImp)
+	private run_mode drawStandardWindow(GenericDialog gd, ImagePlus aImp)
 	{
 		// font for reference
 		Font bf = new Font(null, Font.BOLD ,12);

@@ -1,6 +1,8 @@
 package mosaic.core.cluster;
 
+
 import mosaic.core.utils.DataCompression.Algorithm;
+
 
 /**
  * This interface define an interface to get information of a cluster any class
@@ -10,13 +12,10 @@ import mosaic.core.utils.DataCompression.Algorithm;
  */
 
 public interface ClusterProfile {
-    
+
     // A list of all hardware for a queue
     public enum hw {
-        CPU, 
-        GPU, 
-        MIKE, 
-        OTHER
+        CPU, GPU, MIKE, OTHER
     }
 
     /**
@@ -144,7 +143,6 @@ public interface ClusterProfile {
     public BatchInterface getBatchSystem();
 
     public void setBatchSystem(BatchInterface bc_);
-
 
     /**
      * Check if the cluster has a specified compressor

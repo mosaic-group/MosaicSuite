@@ -115,7 +115,7 @@ class ImagePatches {
      * Patch creation, distribution and assembly
      */
 
-    public void distribute_regions() {
+    private void distribute_regions() {
         // assuming rvoronoi and regionslists (objects) in same order (and same
         // length)
 
@@ -258,7 +258,7 @@ class ImagePatches {
         }
     }
 
-    void assemble(ArrayList<Region> regionslist_refined) {
+    private void assemble(ArrayList<Region> regionslist_refined) {
         for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
             Region r = it.next();
 

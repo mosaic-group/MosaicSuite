@@ -18,9 +18,9 @@ import net.jgeom.nurbs.util.InterpolationException;
  * They were modified so generated b-spline surface has knots/coefficients 
  * matching values generated in Matlab by command 'spapi'
  */
-public class BSplineCreator {
+class BSplineCreator {
 
-	public static BasicNurbsSurface globalSurfaceInterpolation(Point3d points[][], int p, int q)
+	static BasicNurbsSurface globalSurfaceInterpolation(Point3d points[][], int p, int q)
 	        throws InterpolationException {
 	    int n = points.length - 1;
 	    int m = points[0].length - 1;

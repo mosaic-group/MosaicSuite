@@ -402,7 +402,7 @@ public class SegmentationAlgorithm {
     }
 
     class EnergyOutput {
-        EnergyOutput(Matrix aMask, RegionStatisticsSolver aRss, double aTotalEnergy) {
+        private EnergyOutput(Matrix aMask, RegionStatisticsSolver aRss, double aTotalEnergy) {
             iMask = aMask;
             iRss = aRss;
             iTotalEnergy = aTotalEnergy;

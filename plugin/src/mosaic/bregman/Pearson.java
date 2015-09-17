@@ -139,7 +139,7 @@ class Pearson {
 //	}
 
 
-	public double[] linreg(double [][][] Aarray, double [][][] Barray, int TA, int TB, int mask){//mask == 0 no mask, 1 : mask,  2 : outside zet to zero only
+	private double[] linreg(double [][][] Aarray, double [][][] Barray, int TA, int TB, int mask){//mask == 0 no mask, 1 : mask,  2 : outside zet to zero only
 		double num=0;
 		double den1=0;
 		double den2=0;
@@ -214,7 +214,7 @@ class Pearson {
 	}
 
 
-	boolean [][][] createBinaryCellMask(double threshold, ImagePlus img, int channel, int osz){
+	private boolean [][][] createBinaryCellMask(double threshold, ImagePlus img, int channel, int osz){
 		boolean [][][] cellmask= new boolean [nz] [ni] [nj];
 
 		if (threshold==0){ 

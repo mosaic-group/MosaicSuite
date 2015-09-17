@@ -595,7 +595,7 @@ public class MosaicUtils {
      * @param c: width
      * @return
      */
-    public static int coord(int a, int b, int c) {
+    static int coord(int a, int b, int c) {
         return (((a) * (c)) + (b));
     }
 
@@ -1140,7 +1140,7 @@ public class MosaicUtils {
      * @param test name
      * @return an array of test images
      */
-    static public ImgTest[] getTestImages(String plugin, String filter) {
+    static ImgTest[] getTestImages(String plugin, String filter) {
         // Search for test images
 
         Vector<ImgTest> it = new Vector<ImgTest>();
@@ -1249,7 +1249,7 @@ public class MosaicUtils {
      * @return true if they match, false otherwise
      */
 
-    public static boolean compare(Img<?> img1, Img<?> img2) {
+    static boolean compare(Img<?> img1, Img<?> img2) {
 
         Cursor<?> ci1 = img1.cursor();
         RandomAccess<?> ci2 = img2.randomAccess();

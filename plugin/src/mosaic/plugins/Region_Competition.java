@@ -1184,16 +1184,6 @@ public class Region_Competition implements Segmentation {
         OpenedImages = new Vector<ImagePlus>();
     }
 
-    public void runP() {
-        try {
-            RCImageFilter();
-        } catch (Exception e) {
-            if (controllerFrame != null)
-                controllerFrame.dispose();
-            e.printStackTrace();
-        }
-    }
-
     /**
      * 
      * Show and save statistics

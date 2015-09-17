@@ -10,7 +10,7 @@ abstract class RegularizationGUI extends GUImeMore
 		super(settings);
 	}
 	
-	public static RegularizationGUI factory(Settings settings, RegularizationType type)
+	private static RegularizationGUI factory(Settings settings, RegularizationType type)
 	{
 		RegularizationGUI result = null; 
 		

@@ -34,7 +34,7 @@ public class E_KLMergingCriterion extends ExternalEnergy
 	}
 	
 	
-	boolean CalculateMergingEnergyForLabel(int aLabelA, int aLabelB)
+	private boolean CalculateMergingEnergyForLabel(int aLabelA, int aLabelB)
 	{
 		// store this event to check afterwards if we should merge
 		// the 2 regions.
@@ -52,7 +52,7 @@ public class E_KLMergingCriterion extends ExternalEnergy
 	}
 
 	
-	double CalculateKLMergingCriterion(int L1, int L2)
+	private double CalculateKLMergingCriterion(int L1, int L2)
 	{
 		LabelInformation aL1 = labelMap.get(L1);
 		LabelInformation aL2 = labelMap.get(L2);
@@ -71,7 +71,7 @@ public class E_KLMergingCriterion extends ExternalEnergy
 
 	}
 	
-	public static double CalculateKLMergingCriterion(double aMu1, double aMu2, double aVar1, double aVar2, int aN1, int aN2)
+	static double CalculateKLMergingCriterion(double aMu1, double aMu2, double aVar1, double aVar2, int aN1, int aN2)
 	{
 		double vMu12 = (aN1 * aMu1 + aN2 * aMu2) / (aN1 + aN2);
 		
@@ -109,7 +109,7 @@ public class E_KLMergingCriterion extends ExternalEnergy
 		return result;
 	}
 	
-	static void debug(String s)
+	private static void debug(String s)
 	{
 		System.out.println(s);
 	}

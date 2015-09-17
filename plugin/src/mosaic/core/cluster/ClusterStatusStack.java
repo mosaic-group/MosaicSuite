@@ -27,7 +27,7 @@ class ClusterStatusStack
 	 * @return ColorProcessor is the image
 	 */
 	
-	ColorProcessor createResult(JobStatus js)
+	private ColorProcessor createResult(JobStatus js)
 	{
 		ColorProcessor ip = null;
 		if (js == null)

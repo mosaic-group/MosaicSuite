@@ -28,7 +28,7 @@ public class Jtest
      * @param set
      * @param dir
      */
-    public static void populate(HashSet<File> set, File dir) {
+    private static void populate(HashSet<File> set, File dir) {
         set.add(dir);
 
         if (dir.isDirectory()) {
@@ -45,7 +45,7 @@ public class Jtest
      * @param a2 dir3
      * @return true if they match, false otherwise
      */
-    public static boolean compare(File a1, File a2) 
+    private static boolean compare(File a1, File a2) 
     {
         // 
         HashSet<File> seta1 = new HashSet<File>();

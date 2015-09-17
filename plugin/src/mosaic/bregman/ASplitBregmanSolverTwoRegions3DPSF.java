@@ -105,7 +105,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 	 * @throws InterruptedException
 	 */
 	
-	protected void step_multit() throws InterruptedException
+	private void step_multit() throws InterruptedException
 	{
 		long lStartTime = new Date().getTime(); //start time
 		//energy=0;
@@ -221,7 +221,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 	 * 
 	 */
 	
-	protected void step_single()
+	private void step_single()
 	{
 		long lStartTime = new Date().getTime(); //start time
 		//energy=0;
@@ -278,7 +278,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 
 
 
-	public void compute_eigenPSF3D(){
+	private void compute_eigenPSF3D(){
 		this.c0=p.cl[0];
 		this.c1=p.cl[1];
 		

@@ -3,7 +3,7 @@ package mosaic.filamentSegmentation;
 import mosaic.utils.math.Matrix;
 
 public class GaussPsf {
-	public static double[][] generateKernel(int xl, int yl, double sigma) {
+	private static double[][] generateKernel(int xl, int yl, double sigma) {
 		double[][] psf = new double[yl][xl];
 		double middlex = (double)(xl-1)/2;
 		double middley = (double)(yl-1)/2;

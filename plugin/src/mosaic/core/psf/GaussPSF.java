@@ -395,7 +395,7 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 	/**
      * Returns handler for (un)serializing GaussPSFSettings objects.
      */
-    public static DataFile<GaussPSFSettings> getConfigHandler() {
+    private static DataFile<GaussPSFSettings> getConfigHandler() {
         return new SerializedDataFile<GaussPSFSettings>();
     }
 

@@ -103,7 +103,7 @@ public class IAPUtils {
         return ker;
     }
 
-    public static double calcSilvermanBandwidth(double[] distances) {
+    private static double calcSilvermanBandwidth(double[] distances) {
         double q1 = getPercentile(distances, 0.25);
         double q3 = getPercentile(distances, 0.75);
         double silBandwidth = .9 * Math.min(IAPUtils.calcStandDev(distances), (q3 - q1) / 1.34) * Math.pow(distances.length, -.2);
@@ -121,7 +121,7 @@ public class IAPUtils {
         return ((1.0d / distances.length) * (range / bw) * (range / bw));
     }
 
-    public static double calcStandDev(double[] distances) {
+    private static double calcStandDev(double[] distances) {
 
         double sum = 0.0;
         for (double a : distances)
@@ -151,7 +151,7 @@ public class IAPUtils {
      * Returns an estimate of the <code>p</code>th percentile of the values
      * in the <code>values</code> array. Taken from commons-math.
      */
-    public static final double getPercentile(final double[] values, final double p) {
+    private static final double getPercentile(final double[] values, final double p) {
 
         final int size = values.length;
         if ((p > 1) || (p <= 0)) {

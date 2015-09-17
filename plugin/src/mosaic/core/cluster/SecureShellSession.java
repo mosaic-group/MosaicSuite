@@ -90,7 +90,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * the command output
      */
 
-    public void setShellProcessOutput(ShellProcessOutput prc_) {
+    void setShellProcessOutput(ShellProcessOutput prc_) {
         shp = prc_;
     }
 
@@ -101,7 +101,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * @return All directories, return null if there are problems to connect
      */
 
-    public String[] getDirs(String Directory) {
+    String[] getDirs(String Directory) {
         Vector<String> vs = new Vector<String>();
         try {
             if (createSftpChannel() == false) return null;
@@ -137,7 +137,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * @return
      */
 
-    public boolean checkDirectory(String Directory) {
+    boolean checkDirectory(String Directory) {
         try {
             if (createSftpChannel() == false) return false;
 
@@ -165,7 +165,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * @return
      */
 
-    public boolean checkFile(String Directory, String file_name) {
+    boolean checkFile(String Directory, String file_name) {
         try {
             if (createSftpChannel() == false) return false;
 
@@ -198,7 +198,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * @return false, if where is a problem with the connection
      *         true, does not mean that the command succeffuly run
      */
-    public boolean runCommands(String pwd, String[] commands) {
+    boolean runCommands(String pwd, String[] commands) {
         String cmd_list = new String();
         for (int i = 0; i < commands.length; i++) {
             cmd_list += commands[i] + "\n";
@@ -304,7 +304,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      *         downloaded, if does not exist remotely
      *         you can receive a true
      */
-    public boolean download(String pwd, File files[], File dir, ProgressBarWin wp, ClusterProfile cp) {
+    boolean download(String pwd, File files[], File dir, ProgressBarWin wp, ClusterProfile cp) {
         boolean ret = true;
 
         try {
@@ -461,7 +461,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * @param cp Cluster profile (Optional) can be null
      * @return true if all file are uploaded, false trasnfert fail
      */
-    public boolean upload(String pwd, File files[], ProgressBarWin wp, ClusterProfile cp) {
+    boolean upload(String pwd, File files[], ProgressBarWin wp, ClusterProfile cp) {
         return upload(pwd, files, null, wp, cp);
     }
 
@@ -475,7 +475,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * @param cp Cluster profile (Optional) can be null
      * @return true if all file are uploaded, false trasnfert fail
      */
-    public boolean upload(String pwd, File files[], File dir, ProgressBarWin wp, ClusterProfile cp) {
+    boolean upload(String pwd, File files[], File dir, ProgressBarWin wp, ClusterProfile cp) {
         try {
             if (createSftpChannel() == false) return false;
 
@@ -601,7 +601,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * @return Session id as string
      */
 
-    public String getSession_id() {
+    String getSession_id() {
         return session_id;
     }
 
@@ -611,7 +611,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * @return String where the files are located
      */
 
-    public String getTransfertDir() {
+    String getTransfertDir() {
         return tdir;
     }
 
@@ -652,10 +652,10 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         }
     }
 
-    boolean computed = false;
-    String waitString;
-    String doing;
-    ProgressBarWin wp_p;
+    private boolean computed = false;
+    private String waitString;
+    private String doing;
+    private ProgressBarWin wp_p;
 
     /* Parse the compression stage output */
 
@@ -689,8 +689,8 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         return str;
     }
 
-    long size_total = 0;
-    long total = 0;
+    private long size_total = 0;
+    private long total = 0;
 
     @Override
     public boolean count(long arg0) {

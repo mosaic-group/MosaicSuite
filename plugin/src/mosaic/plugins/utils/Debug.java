@@ -10,7 +10,7 @@ import com.google.gson.GsonBuilder;
  * 
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
-public class Debug {
+public class Debug { // NO_UCD (code used only for debugging)
 
     public static void print(Object... aObjects) {
         for (Object o : aObjects) { 

@@ -67,7 +67,7 @@ public class Particle
 	 * @param p Particle
 	 */
 	
-	public Particle(Particle p)
+	Particle(Particle p)
 	{
 		this.frame = p.frame;
 		this.x = p.x;
@@ -197,7 +197,7 @@ public class Particle
 	 * @param frame_num - the number of the frame this particle is in
 	 * @param params - all params that relate to this particle, first 2 should be x and y respectfully 
 	 */
-	public Particle (float x, float y, float z, int frame_num, String[] params, int linkrange) {
+	Particle (float x, float y, float z, int frame_num, String[] params, int linkrange) {
 		this.x = x;
 		this.original_x = x;
 		this.y = y;
@@ -277,7 +277,7 @@ public class Particle
 		return sb;
 	}
 	
-	public boolean match(Particle p)
+	boolean match(Particle p)
 	{
 		if (this.x == p.x && this.y == p.y && this.z == p.z && this.m0 == p.m0 &&
 			this.m1 == p.m1 && this.m2 == p.m2 && this.m3 == p.m3 && this.m4 == p.m4)

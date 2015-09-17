@@ -31,7 +31,7 @@ public class PreviewCanvas extends ImageCanvas
 	 * @param preview_f - the <code>MyFrame</code> with the detected particles to display
 	 * @param mag - the magnification factor of the <code>ImagePlus</code> relative to the initial
 	 */
-	public PreviewCanvas(ImagePlus aimp, double mag) 
+	PreviewCanvas(ImagePlus aimp, double mag) 
 	{
 		super(aimp);
 		this.preview_frame = null;

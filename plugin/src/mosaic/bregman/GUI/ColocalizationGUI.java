@@ -239,13 +239,13 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	}
 	
 	
-	public double expvalue(double slidervalue){
+	private double expvalue(double slidervalue){
 
 		return(Math.pow(10,(slidervalue/maxslider)*logspan + logmin));
 
 	}
 
-	public double logvalue(double tvalue){
+	private double logvalue(double tvalue){
 
 		return(maxslider*(Math.log10(tvalue) - logmin)/logspan);
 
@@ -424,7 +424,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	}
 	
 	//find min and max values in channel 1
-	public void initpreviewch1(ImagePlus img)
+	private void initpreviewch1(ImagePlus img)
 	{
 
 		ni=img.getWidth();
@@ -449,7 +449,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	}
 
 	//find min and max values in channel 2
-	public void initpreviewch2(ImagePlus img)
+	private void initpreviewch2(ImagePlus img)
 	{
 
 		ni=img.getWidth();
@@ -470,7 +470,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	}
 	
 	//compute and display cell mask
-	public void previewBinaryCellMask(double threshold_i, ImagePlus img, ImagePlus maska_im, int channel)
+	private void previewBinaryCellMask(double threshold_i, ImagePlus img, ImagePlus maska_im, int channel)
 	{
 		
 		int ns = img.getSlice();

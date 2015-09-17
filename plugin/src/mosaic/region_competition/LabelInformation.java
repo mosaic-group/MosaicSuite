@@ -19,7 +19,7 @@ public class LabelInformation {
      * @param dim dimensions of the problem
      */
 
-    public LabelInformation(int label, int dim) {
+    LabelInformation(int label, int dim) {
         this.label = label;
         this.dim = dim;
         mean_pos = new double[dim];
@@ -29,7 +29,7 @@ public class LabelInformation {
      * Reset all the values of the label
      */
 
-    public void reset() {
+    void reset() {
         label = 0;
         count = 0;
         mean = 0;

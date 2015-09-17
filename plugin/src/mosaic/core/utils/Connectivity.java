@@ -394,7 +394,7 @@ public class Connectivity implements Iterable<Point>
 	 * @param VCellDim
 	 * @return Singleton connectivity of type (VDim, VCellDim)
 	 */
-	public static Connectivity getConnectivity(int VDim, int VCellDim)
+	private static Connectivity getConnectivity(int VDim, int VCellDim)
 	{
 		// ensure there is place for connectivities of dimension VDim 
 		connectivities.ensureCapacity(VDim+1);

@@ -102,7 +102,7 @@ public class IntensityImage {
      * @param ip
      */
 
-    public <T extends RealType<T>> IntensityImage(Img<T> ip, Class<T> cls, boolean nrm) {
+    private <T extends RealType<T>> IntensityImage(Img<T> ip, Class<T> cls, boolean nrm) {
         this.imageIP = null;
 
         int[] dims = MosaicUtils.getImageIntDimensions(ip);
@@ -360,7 +360,7 @@ public class IntensityImage {
         return it;
     }
 
-    public static int[] dimensionsFromIP(ImagePlus ip) {
+    private static int[] dimensionsFromIP(ImagePlus ip) {
         // IJ 1.46r bug, force to update internal dim
         // call before getNDimensions() or it won't return the correct value
         ip.getStackSize();

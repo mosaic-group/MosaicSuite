@@ -53,7 +53,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
      * @param aPixelDim Dimensions of pixel in meters (needed for proper trajectory analysis)
      * @param aTimeInterval Time interval between frames used to calculate trajectory analysis.
      */
-    public TrajectoryAnalysisPlot(final Particle[] aParticles, double aPixelDim, double aTimeInterval) {
+    private TrajectoryAnalysisPlot(final Particle[] aParticles, double aPixelDim, double aTimeInterval) {
         // A little bit nasty but working method of setting window size (and further plot size).
         // Other methods like setSize(...) do not work even if applied to both - ImageWindow and Plot
         super(new ImagePlus("Trajectory Analysis", new ByteProcessor(WIDTH,HEIGHT, new byte[WIDTH*HEIGHT], null)));

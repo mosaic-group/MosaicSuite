@@ -477,7 +477,7 @@ public class GenericDialogGUI implements InputReadable
 	 * Input Processing (valid values)
 	 */
 	
-	public boolean processParameters()
+	private boolean processParameters()
 	{
 		boolean success = true;
 		

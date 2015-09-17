@@ -54,7 +54,7 @@ public class TopologicalNumberImageFunction
         initOffsets();
 	}
 	
-	protected void initOffsets()
+	private void initOffsets()
 	{
         // allocate points
         for (int i=0; i<imageSize; i++)
@@ -69,7 +69,7 @@ public class TopologicalNumberImageFunction
         }
 	}
 	
-	protected void readImageData(Point p)
+	private void readImageData(Point p)
 	{
         for (int i = 0; i < imageSize; ++i) 
         {
@@ -140,7 +140,7 @@ public class TopologicalNumberImageFunction
     	public int FGNumber;
     	public int BGNumber;
     	
-    	public TopologicalNumberPair(int fg, int bg)
+    	private TopologicalNumberPair(int fg, int bg)
 		{
 			this.FGNumber = fg;
 			this.BGNumber = bg;
@@ -152,7 +152,7 @@ public class TopologicalNumberImageFunction
     	public int label;
     	public TopologicalNumberPair topologicalNumberPair;
     	
-    	public TopologicalNumberResult(int label, TopologicalNumberPair tn)
+    	private TopologicalNumberResult(int label, TopologicalNumberPair tn)
 		{
     		this.label = label;
 			this.topologicalNumberPair = tn; 

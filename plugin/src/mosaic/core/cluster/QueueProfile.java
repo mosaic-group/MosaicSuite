@@ -9,9 +9,9 @@ package mosaic.core.cluster;
  */
 public class QueueProfile
 {
-	String queue;
-	String hardware;
-	double limit;
+	protected String queue;
+	protected String hardware;
+	protected double limit;
 	
 	public void setqueue(String queue)
 	{

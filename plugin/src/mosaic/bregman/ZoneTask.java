@@ -62,7 +62,7 @@ class ZoneTask implements Runnable {
 		ZoneDoneSignal.countDown();
 	}
 
-	void doWork() throws InterruptedException{
+	private void doWork() throws InterruptedException{
 		// IJ.log("thread : " +l +"starting work");
 		//		double c0, c1;
 		//IJ.log("istart " + iStart +"iend" + iEnd);

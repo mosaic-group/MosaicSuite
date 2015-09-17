@@ -70,7 +70,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	}
 	
 	
-	public double Topo(LabelImageRC l, PointCM pntMod[], double pop[])
+	private double Topo(LabelImageRC l, PointCM pntMod[], double pop[])
 	{
 		int off[] = l.getDimensions().clone();
 		Arrays.fill(off, 0);
@@ -434,7 +434,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	
 	Object lock;
 	
-	void waitClose()
+	private void waitClose()
 	{
 		synchronized(lock)
 		{

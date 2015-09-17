@@ -32,7 +32,7 @@ public class BSplineSurfaceFactory {
 	 * be configured independently in each direction.
 	 * @return B-Spline surface
 	 */
-	public static BSplineSurface generateFromFunction(double aUmin, double aUmax, double aVmin, double aVmax, int aNoOfStepsInUdir, int aNoOfStepsInVdir, int aDegreeInUdir, int aDegreeInVdir, Function aFunc) {
+	static BSplineSurface generateFromFunction(double aUmin, double aUmax, double aVmin, double aVmax, int aNoOfStepsInUdir, int aNoOfStepsInVdir, int aDegreeInUdir, int aDegreeInVdir, Function aFunc) {
 		double[][] func = new double[aNoOfStepsInUdir][aNoOfStepsInVdir];
 
 		// Calculate step value in each direction

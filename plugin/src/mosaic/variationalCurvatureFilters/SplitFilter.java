@@ -171,7 +171,7 @@ public class SplitFilter implements CurvatureFilter {
      * aDownCorners aDown   | aDownCorners
      * 
      */
-    public void processOneImageLine(float[] aMiddle, float[] aSides, float[] aDown, float[] aDownCorners, float[] aUp, float[] aUpCorners, boolean aShifted) {
+    private void processOneImageLine(float[] aMiddle, float[] aSides, float[] aDown, float[] aDownCorners, float[] aUp, float[] aUpCorners, boolean aShifted) {
         /*
          * endIdx point to the last column in subsets (BC, BT..) that should be used. 
          * In case of aShifted==true it is always n-2 (n - length of array)

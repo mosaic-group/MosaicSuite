@@ -66,6 +66,7 @@ class LSFBatch implements BatchInterface {
         return new String("bsub < " + script);
     }
 
+    @Override
     public String statusJobCommand() {
         tp = OutputType.STATUS;
         return new String("bjobs " + AJobID);
@@ -74,6 +75,7 @@ class LSFBatch implements BatchInterface {
     /**
      * Create an array of jobs
      */
+    @Override
     public void createJobStatus() {
         jb = new JobStatus[nJobs];
     }
@@ -195,10 +197,12 @@ class LSFBatch implements BatchInterface {
         return 0;
     }
 
+    @Override
     public void setJobStatus(JobStatus[] jb_) {
         jb = jb_;
     }
 
+    @Override
     public JobStatus[] getJobStatus() {
         return jb;
     }
@@ -227,12 +231,14 @@ class LSFBatch implements BatchInterface {
         return "";
     }
 
+    @Override
     public void reset() {
         nele_parsed = 0;
     }
 
     private int nele_parsed = 0;
 
+    @Override
     public void waitParsing() {
         int ntime = 0;
 

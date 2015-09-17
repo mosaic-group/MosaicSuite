@@ -403,7 +403,7 @@ public class LabelImageRC extends LabelImage {
         return Labels.values().toArray(new PointCM[Labels.size()]);
     }
 
-    public boolean isForbiddenLabel(int label) {
+    private boolean isForbiddenLabel(int label) {
         return (label == forbiddenLabel);
     }
 
@@ -411,7 +411,7 @@ public class LabelImageRC extends LabelImage {
         return this.labelMap;
     }
 
-    public ImagePlus getProjected3D(boolean abs) {
+    private ImagePlus getProjected3D(boolean abs) {
         ImageStack stack = get3DShortStack(abs);
         int z = getDimensions()[2];
 
@@ -420,13 +420,6 @@ public class LabelImageRC extends LabelImage {
         imp = projector.doIt(imp, z);
 
         return imp;
-    }
-}
-
-class LabelImage3D extends LabelImageRC {
-
-    public LabelImage3D() {
-        super((int[]) null);
     }
 }
 

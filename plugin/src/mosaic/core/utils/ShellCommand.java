@@ -54,7 +54,7 @@ public class ShellCommand {
      * @throws InterruptedException
      */
 
-    public static String exeCmdString(String cmd) throws IOException, InterruptedException {
+    static String exeCmdString(String cmd) throws IOException, InterruptedException {
         String cmd_[] = produceShell(cmd);
         Process tProcess = Runtime.getRuntime().exec(cmd_);
 

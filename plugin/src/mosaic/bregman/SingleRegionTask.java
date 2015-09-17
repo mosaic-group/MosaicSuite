@@ -38,7 +38,7 @@ class SingleRegionTask implements Runnable
 		RegionsTasksDoneSignal.countDown();
 	}
 
-	void doWork() throws InterruptedException{
+	private void doWork() throws InterruptedException{
 		// IJ.log("thread : " +l +"starting work");
 		//WARNING !! : temp1 and temp2 (resp =w2xk and =w2yk) passed to next iteration : do not change .
 		Tools.subtab(AS.temp1[l], AS.temp1[l], AS.b2xk[l]);  

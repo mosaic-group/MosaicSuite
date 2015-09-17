@@ -283,7 +283,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      *                       are set to 255 (Background 0). Pixels outside of the roi of the input ip are not set.
      *                       Returns null if outputType does not require an output or if cancelled by escape
      */
-    public ByteProcessor findMaxima(ImageProcessor ip, double tolerance, double threshold,
+    private ByteProcessor findMaxima(ImageProcessor ip, double tolerance, double threshold,
             int outputType, boolean excludeOnEdges, boolean isEDM) {
         if (dirOffset == null) makeDirectionOffsets(ip);
         Rectangle roi = ip.getRoi();
@@ -365,7 +365,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      *                  is encoded in the upper 32 bits and the pixel offset in the lower 32 bit
      * Note: Do not use the positions of the points marked as MAXIMUM in typeP, they are invalid for images with a roi.
      */    
-    long[] getSortedMaxPoints(ImageProcessor ip, ByteProcessor typeP, boolean excludeEdgesNow,
+    private long[] getSortedMaxPoints(ImageProcessor ip, ByteProcessor typeP, boolean excludeEdgesNow,
             boolean isEDM, float globalMin, float globalMax, double threshold) {
         Rectangle roi = ip.getRoi();
         byte[] types =  (byte[])typeP.getPixels();
@@ -436,7 +436,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
     *                       take the height correction in 'trueEdmHeight' into account
     * @param outputType 
     */   
-   void analyzeAndMarkMaxima(ImageProcessor ip, ByteProcessor typeP, long[] maxPoints, boolean excludeEdgesNow,
+   private void analyzeAndMarkMaxima(ImageProcessor ip, ByteProcessor typeP, long[] maxPoints, boolean excludeEdgesNow,
         boolean isEDM, float globalMin, double tolerance, int outputType, float maxSortingError) {
         byte[] types =  (byte[])typeP.getPixels();
         int nMax = maxPoints.length;
@@ -629,7 +629,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
     * @param threshold  Pixels of ip below this value (calibrated) are considered background. Ignored if ImageProcessor.NO_THRESHOLD
     * @return           The 8-bit output image.
     */
-    ByteProcessor make8bit(ImageProcessor ip, ByteProcessor typeP, boolean isEDM, float globalMin, float globalMax, double threshold) {
+    private ByteProcessor make8bit(ImageProcessor ip, ByteProcessor typeP, boolean isEDM, float globalMin, float globalMax, double threshold) {
         byte[] types = (byte[])typeP.getPixels();
         double minValue;
         if (isEDM) {
@@ -672,7 +672,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @param ip    the EDM (FloatProcessor)
      * @return      estimated height
      */
-    float trueEdmHeight(int x, int y, ImageProcessor ip) {
+    private float trueEdmHeight(int x, int y, ImageProcessor ip) {
         int xmax = width - 1;
         int ymax = ip.getHeight() - 1;
         float[] pixels = (float[])ip.getPixels();
@@ -710,7 +710,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @param typeP     the types of the pixels are marked here
      * @param maxPoints array containing the coordinates of all maxima that might be relevant
      */    
-    void cleanupMaxima(ByteProcessor outIp, ByteProcessor typeP, long[] maxPoints) {
+    private void cleanupMaxima(ByteProcessor outIp, ByteProcessor typeP, long[] maxPoints) {
         byte[] pixels = (byte[])outIp.getPixels();
         byte[] types = (byte[])typeP.getPixels();
         int nMax = maxPoints.length;
@@ -771,7 +771,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      *  Needed for post-processing watershed-segmented images that can have local minima
      *  @param ip 8-bit image with background = 0, lines between 1 and 254 and segmented particles = 255
      */    
-    void cleanupExtraLines(ImageProcessor ip) {
+    private void cleanupExtraLines(ImageProcessor ip) {
         byte[] pixels =  (byte[])ip.getPixels();
         for (int y=0, i=0; y<height; y++) {
             for (int x=0; x<width; x++,i++) {
@@ -788,7 +788,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
     } // void cleanupExtraLines
 
     /** delete a line starting at x, y up to the next (4-connected) vertex */
-    void removeLineFrom (byte[] pixels, int x, int y) {
+    private void removeLineFrom (byte[] pixels, int x, int y) {
         //IJ.log("del line from "+x+","+y);
         //if (x<50&&y<40)IJ.write("x,y start="+x+","+y);
         pixels[x + width*y] = (byte)255;                        //delete the first point
@@ -824,7 +824,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @return  Number of 4-connected lines emanating from this point. Zero if the point is
      *          embedded in either foreground or background
      */
-    int nRadii (byte[] pixels, int x, int y) {
+    private int nRadii (byte[] pixels, int x, int y) {
         int offset = x + y*width;
         int countTransitions = 0;
         boolean prevPixelSet = true;
@@ -870,7 +870,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @param ip the image resulting from watershed segmentaiton
      * (foreground pixels, i.e. particles, are 255, background 0)
      */
-    void deleteEdgeParticles(ByteProcessor ip, ByteProcessor typeP) {
+    private void deleteEdgeParticles(ByteProcessor ip, ByteProcessor typeP) {
         byte[] pixels = (byte[])ip.getPixels();
         byte[] types = (byte[])typeP.getPixels();
         width = ip.getWidth();
@@ -898,7 +898,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
     /** delete a particle (set from value 255 to current fill value).
      * Position x,y must be within the particle
      */
-    void deleteParticle(int x, int y, ByteProcessor ip, Wand wand) {
+    private void deleteParticle(int x, int y, ByteProcessor ip, Wand wand) {
         wand.autoOutline(x, y, 255, 255);
         if (wand.npoints==0) {
             IJ.log("wand error selecting edge particle at x, y = "+x+", "+y);
@@ -1137,7 +1137,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * Returns as class variables: the arrays of the offsets to the 8 neighboring pixels
      * and the array maskAndShift for watershed
      */
-    void makeDirectionOffsets(ImageProcessor ip) {
+    private void makeDirectionOffsets(ImageProcessor ip) {
         width = ip.getWidth();
         height = ip.getHeight();
         int shift = 0, mult=1;
@@ -1162,7 +1162,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @param direction the direction from the pixel towards the neighbor (see makeDirectionOffsets)
      * @return          true if the neighbor is within the image (provided that x, y is within)
      */
-    boolean isWithin(int x, int y, int direction) {
+    private boolean isWithin(int x, int y, int direction) {
         int xmax = width - 1;
         int ymax = height -1;
         switch(direction) {

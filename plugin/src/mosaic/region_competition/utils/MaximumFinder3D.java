@@ -15,9 +15,6 @@ import java.util.Vector;
 import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.Point;
-import net.imglib2.Cursor;
-import net.imglib2.img.Img;
-import net.imglib2.type.numeric.real.FloatType;
 
 /** 
  * Edit of {@link MaximumFinder} of ImageJ 1.4x, to work with 3D images (stacks)
@@ -91,7 +88,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
     	this(dims[0], dims[1], dims[2]);
     }
     
-    public MaximumFinder3D(int w, int h, int z)
+    private MaximumFinder3D(int w, int h, int z)
 	{
 		this.width=w;
 		this.height=h;
@@ -111,7 +108,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
      * @param excludeOnEdges Whether to exclude edge maxima
      * @return               A Polygon containing the coordinates of the maxima
      */
-    public int[][] getMaxima(float[] ip, double tolerance, boolean excludeOnEdges) {
+    private int[][] getMaxima(float[] ip, double tolerance, boolean excludeOnEdges) {
 		findMaxima(ip, tolerance, ImageProcessor.NO_THRESHOLD,
 			MaximumFinder.POINT_SELECTION, excludeOnEdges, false);
 //		if (points==null)
@@ -152,25 +149,6 @@ public class MaximumFinder3D implements MaximumFinderInterface
 		return list;
 
     }
-
-    public List<Point> getMaximaPointList(Img< FloatType > pixels, double tolerance, boolean excludeOnEdges)
-    {
-		float pixels_prc[] = new float [(int) pixels.size()];
-		Cursor < FloatType > vCrs = pixels.cursor();
-		
-		int loc[] = new int [2];
-		
-		while (vCrs.hasNext())
-		{
-			vCrs.fwd();
-			vCrs.localize(loc);
-			pixels_prc[loc[1]*width+loc[0]] = vCrs.get().get();
-		}
-		
-		List<Point> list = getMaximaPointList(pixels_prc,tolerance,excludeOnEdges);
-    	
-    	return list;
-    }
     
     /** Here the processing is done: Find the maxima of an image (does not find minima).
      * @param ip             The input image
@@ -186,7 +164,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
      *                       are set to 255 (Background 0). Pixels outside of the roi of the input ip are not set.
      *                       Returns null if outputType does not require an output or if cancelled by escape
      */
-    public byte[] findMaxima(float[] ip, double tolerance, double threshold,
+    private byte[] findMaxima(float[] ip, double tolerance, double threshold,
             int outputType, boolean excludeOnEdges, boolean isEDM) 
     {
 //        if (dirOffset == null) makeDirectionOffsets(ip);
@@ -250,7 +228,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
      *                  is encoded in the upper 32 bits and the pixel offset in the lower 32 bit
      * Note: Do not use the positions of the points marked as MAXIMUM in typeP, they are invalid for images with a roi.
      */    
-    long[] getSortedMaxPoints(float[] ip, byte[] typeP, boolean excludeEdgesNow,
+    private long[] getSortedMaxPoints(float[] ip, byte[] typeP, boolean excludeEdgesNow,
             boolean isEDM, float globalMin, float globalMax, double threshold) 
     {
         byte[] types =  typeP;
@@ -327,7 +305,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
     *                       take the height correction in 'trueEdmHeight' into account
     * @param outputType 
     */   
-   void analyzeAndMarkMaxima(float[] ip, byte[] typeP, long[] maxPoints, boolean excludeEdgesNow,
+   private void analyzeAndMarkMaxima(float[] ip, byte[] typeP, long[] maxPoints, boolean excludeEdgesNow,
         boolean isEDM, float globalMin, double tolerance, int outputType, float maxSortingError) 
    {
         byte[] types =  typeP;

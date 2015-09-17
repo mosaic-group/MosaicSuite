@@ -36,7 +36,7 @@ public class BicubicInterpolator extends PixelInterpolator {
 		return q;
 	}
 	
-	double cubic(double x) {
+	private double cubic(double x) {
 		if (x < 0) x = -x;
 		double z = 0;
 		if (x < 1) 

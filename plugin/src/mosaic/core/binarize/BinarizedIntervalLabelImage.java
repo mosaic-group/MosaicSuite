@@ -28,7 +28,7 @@ public class BinarizedIntervalLabelImage extends IntervalsListInteger implements
 		SetInputImage(aLabelImage);
 	}
 	
-	void SetInputImage(LabelImage labelImage)
+	private void SetInputImage(LabelImage labelImage)
 	{
 		this.labelImage = labelImage;
 	}

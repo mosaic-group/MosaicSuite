@@ -69,7 +69,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 //			return 1.0/(1.0 + Math.exp(-t));
 //		}
 		
-		public static double SmoothNorm(LabelImageRC l)
+		static double SmoothNorm(LabelImageRC l)
 		{
 			// Scan for particles
 			

@@ -52,7 +52,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
         // PlotUtils.plotDoubleArray("Distance internval", D,interpInterval[0]);
     }
 
-    public double[] getGibbsPotential(double[] params) {
+    private double[] getGibbsPotential(double[] params) {
 
         PotentialCalculator pc = null;
         pc = new PotentialCalculator(D_grid, params, potentialType);
@@ -100,7 +100,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
         return l2Norm;
     }
 
-    public double nonParamPenalty(double[] weights, double s) {
+    private double nonParamPenalty(double[] weights, double s) {
         double sum = 0;
         double diff = 0;
         for (int i = 0; i < weights.length - 1; i++) {
@@ -139,7 +139,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
         }
     }
 
-    public void findInterpInterval() // this can be optimized. search can be
+    private void findInterpInterval() // this can be optimized. search can be
                                      // done better.
     {
         interpInterval = new int[2][D.length]; // will have xl and xr for each
@@ -156,14 +156,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
         }
     }
 
-    public static double linearInterpolation(double yl, double xl, double yr, double xr, double x) {
-        double m = (yl - yr) / (xl - xr);
-        double c = yl - m * xl;
-        return m * x + c;
-
-    }
-
-    public double calculateZ(double[] gibbspotential) {
+    private double calculateZ(double[] gibbspotential) {
         // using trapizoidal rule.
 
         double[] DiffD = new double[D_grid.length - 1];

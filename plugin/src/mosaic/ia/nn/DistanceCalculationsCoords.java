@@ -67,7 +67,7 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
 	}
 	
 	 
-	 protected  Point3d[] applyBoundaryandgetCoordinates(Point3d [] points) //if mask==null, dont use this. this is used to filter the point3d array with the mask.
+	 private  Point3d[] applyBoundaryandgetCoordinates(Point3d [] points) //if mask==null, dont use this. this is used to filter the point3d array with the mask.
 
 		{
 		 

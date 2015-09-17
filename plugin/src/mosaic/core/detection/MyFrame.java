@@ -136,7 +136,7 @@ public class MyFrame {
      * @param aLinkRange linking range
      */
 
-    public MyFrame(Vector<Particle> p, int frame, int aLinkrange) {
+    private MyFrame(Vector<Particle> p, int frame, int aLinkrange) {
         this.frame_number = frame;
         this.particles_number = p.size();
         this.real_particles_number = p.size();
@@ -437,7 +437,7 @@ public class MyFrame {
      * 
      * @see #info_before_discrimination
      */
-    public void generateFrameInfoBeforeDiscrimination() {
+    void generateFrameInfoBeforeDiscrimination() {
 
         // NumberFormat nf = NumberFormat.getInstance();
         // nf.setMaximumFractionDigits(6);
@@ -564,7 +564,7 @@ public class MyFrame {
      * @return the <code>StringBuffer</code> with this information
      * @see MyFrame#loadParticlesFromFile(String)
      */
-    public StringBuffer frameDetectedParticlesForSave(boolean with_momentum) {
+    StringBuffer frameDetectedParticlesForSave(boolean with_momentum) {
         DecimalFormat nf = new DecimalFormat("#####0.000000");
         nf.setGroupingUsed(false);
         StringBuffer info1 = new StringBuffer("frame ");
@@ -619,7 +619,7 @@ public class MyFrame {
         return is;
     }
 
-    public void setParticles(Vector<Particle> particles, int particles_number) {
+    void setParticles(Vector<Particle> particles, int particles_number) {
         this.particles = particles;
         this.particles_number = particles_number;
     }
@@ -1118,7 +1118,7 @@ public class MyFrame {
      * @return the image
      */
 
-    public Img<ARGBType> createImage(int[] vMax, int frame) {
+    private Img<ARGBType> createImage(int[] vMax, int frame) {
         // Create image
 
         final ImgFactory<ARGBType> imgFactory = new ArrayImgFactory<ARGBType>();

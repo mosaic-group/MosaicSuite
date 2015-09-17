@@ -423,7 +423,7 @@ class NRegions implements Runnable{
 	}
 
 
-	public double [] cluster_int(int nll){
+	private double [] cluster_int(int nll){
 
 		Dataset data = new DefaultDataset();
 		double [] pixel = new double[1];
@@ -461,7 +461,7 @@ class NRegions implements Runnable{
 
 
 
-	boolean [][][] createBinaryCellMask(double threshold, ImagePlus img, int channel, int osz){
+	private boolean [][][] createBinaryCellMask(double threshold, ImagePlus img, int channel, int osz){
 		boolean [][][] cellmask= new boolean [nz] [ni] [nj];
 
 		ImagePlus maska_im= new ImagePlus();

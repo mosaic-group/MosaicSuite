@@ -22,7 +22,7 @@ public class BubbleInitializer extends Initializer
  * @param rad
  * @param displ
  */
-	public void initSizeDispl(int rad, int displ)
+	private void initSizeDispl(int rad, int displ)
 	{
 		int[] grid = new int[dim];
 		int[] gap = new int[dim];

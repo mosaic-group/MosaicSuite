@@ -32,7 +32,7 @@ public class BinarizedIntervalImgLib2Int<T extends IntegerType<T>> extends Inter
 //		m_Thresholds = new ArrayList<Pair<Double,Double>>();
 	}
 	
-	void SetInputImage(Img<T> labelImage)
+	private void SetInputImage(Img<T> labelImage)
 	{
 		this.labelImage = labelImage;
 	}

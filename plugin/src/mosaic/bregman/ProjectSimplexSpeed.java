@@ -3,7 +3,7 @@ package mosaic.bregman;
 
 class ProjectSimplexSpeed {
 
-	static	void  bubble_sort_descend(double [] a , int len) {
+	private static	void  bubble_sort_descend(double [] a , int len) {
 
 		int i, j;
 		double temp;

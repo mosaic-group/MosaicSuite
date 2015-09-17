@@ -47,7 +47,7 @@ public class BSplineSurface {
 	 * @param aScaleV - scale in 'v' direction
 	 * @throws InterpolationException
 	 */
-	public BSplineSurface(double[][] aPoints, double aUmin, double aUmax, double aVmin, double aVmax, int aDegreeUdir, int aDegreeVdir, double aScaleU, double aScaleV) {
+	BSplineSurface(double[][] aPoints, double aUmin, double aUmax, double aVmin, double aVmax, int aDegreeUdir, int aDegreeVdir, double aScaleU, double aScaleV) {
 		iDegreeInUdir = aDegreeUdir;
 		iDegreeInVdir = aDegreeVdir;
 		iOriginalU = aPoints.length;

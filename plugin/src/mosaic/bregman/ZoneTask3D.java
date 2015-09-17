@@ -66,7 +66,7 @@ class ZoneTask3D implements Runnable {
 		}
 	}
 
-	void doWork() throws InterruptedException{
+	private void doWork() throws InterruptedException{
 
 
 		LocalTools.subtab(AS.temp1[AS.l], AS.temp1[AS.l], AS.b2xk[AS.l], iStart,iEnd);  

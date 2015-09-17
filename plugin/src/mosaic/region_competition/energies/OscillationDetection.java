@@ -17,7 +17,7 @@ public class OscillationDetection
     
     float m_AcceptedPointsReductionFactor;
     
-	public OscillationDetection(Algorithm algo, Settings settings)
+	OscillationDetection(Algorithm algo, Settings settings)
 	{
 		this.algorithm = algo; 
 		
@@ -85,7 +85,7 @@ public class OscillationDetection
 	    return vTotalEnergyDiff;
 	}
 	
-	public static void debug(String s)
+	static void debug(String s)
 	{
 		System.out.println(s);
 	}

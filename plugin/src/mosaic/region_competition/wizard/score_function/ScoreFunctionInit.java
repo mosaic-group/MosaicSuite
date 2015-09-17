@@ -32,14 +32,6 @@ public class ScoreFunctionInit implements ScoreFunction
 		off = new int [i_.length];
 		inc_step = new int [i_.length];
 	}
-
-	public void incrementStep()
-	{
-		for (int j = 0 ; j < off.length ; j++)
-		{
-			off[j] += inc_step[j];
-		}
-	}
 	
 	/*
 	 * Set the number of objects

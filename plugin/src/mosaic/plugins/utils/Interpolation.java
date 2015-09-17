@@ -40,7 +40,7 @@ public class Interpolation {
      *  
      *  See function number (15)
      */
-    public static final double cubicKernel(double x) {
+    private static final double cubicKernel(double x) {
         double u = 0.0;
         
         double s = Math.abs(x);
@@ -56,7 +56,7 @@ public class Interpolation {
     /**
      * Triangle kernel in range (-1, 1)
      */
-    public static final double triangleKernel(double x) {
+    private static final double triangleKernel(double x) {
         double u = 0.0;
 
         if ((x > -1 ) && (x < 0)) u = x + 1;
@@ -68,7 +68,7 @@ public class Interpolation {
     /**
      * Nearest neighbour kernel in range [-0.5, 0.5)
      */
-    public static final double nearestNeighbourKernel(double x) {
+    private static final double nearestNeighbourKernel(double x) {
         double u = 0.0;
        
         if (x >= -0.5 && x < 0.5) u = 1;

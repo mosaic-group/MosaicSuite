@@ -76,7 +76,7 @@ public abstract class DistanceCalculations {
 
 
 
-	protected boolean isInsideMask(double [] coords)
+	private boolean isInsideMask(double [] coords)
 	{
 		
 		try{

@@ -188,7 +188,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 		
 	}
 	
-	void ComputePar()
+	private void ComputePar()
 	{
 		int i = 0;
 		
@@ -239,7 +239,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 
 	JDialog g;
 	
-	Settings OptimizeWithCMA(ScoreFunction fi,Settings s, double aDev[], String Question, double stop ,boolean debug)
+	private Settings OptimizeWithCMA(ScoreFunction fi,Settings s, double aDev[], String Question, double stop ,boolean debug)
 	{
 		// Start a progress window
 		

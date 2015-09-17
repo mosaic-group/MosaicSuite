@@ -278,7 +278,7 @@ public class RegionIterator
 	 * 
 	 */
 	
-	public int nextRmask() 
+	int nextRmask() 
 	{
 		int result=itInput;
 		
@@ -324,7 +324,7 @@ public class RegionIterator
 	 * 
 	 */
 	
-	public void reset()
+	private void reset()
 	{
 		itInput=0;
 		it=0;

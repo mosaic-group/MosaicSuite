@@ -31,7 +31,7 @@ public class OscillationDetection2 extends OscillationDetection
 		initMembeers(settings.m_MaxNbIterations);
 	}
 	
-	void initMembeers(int maxIt)
+	private void initMembeers(int maxIt)
 	{
 		sums = new ArrayList<Double>(maxIt);
 		sumsAvg = new ArrayList<Double>(maxIt);
@@ -81,7 +81,7 @@ public class OscillationDetection2 extends OscillationDetection
         return result;
 	}
 	
-	double mean(List<Double> data)
+	private double mean(List<Double> data)
 	{
 		int n=data.size();
 		double sum=0;
@@ -94,7 +94,7 @@ public class OscillationDetection2 extends OscillationDetection
 	}
 	
 	
-	double std(List<Double> data)
+	private double std(List<Double> data)
 	{
 		double m = mean(data);
 

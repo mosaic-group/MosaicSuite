@@ -193,7 +193,7 @@ public class LabelImage// implements
      * (invoke initBoundary() and generateContour();
      */
     @Deprecated
-    public void initWithImageProc(ImageProcessor ip) {
+    private void initWithImageProc(ImageProcessor ip) {
         // TODO check for dimensions etc
         this.labelIP = IntConverter.procToIntProc(ip);
         this.dataLabel = (int[]) labelIP.getPixels();
@@ -244,7 +244,7 @@ public class LabelImage// implements
     /**
      * LabelImage loaded from 3D array
      */
-    public void initWith3DArray(short[][][] ar) {
+    private void initWith3DArray(short[][][] ar) {
         for (int i = 0; i < ar.length; i++) {
             for (int j = 0; j < ar[0].length; j++) {
                 for (int k = 0; k < ar[0][0].length; k++) {

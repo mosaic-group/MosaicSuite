@@ -91,7 +91,7 @@ class BipartiteMatcher {
 	 * Resets the BipartiteMatcher to run on an n x n graph. The weights are all
 	 * reset to 1.
 	 */
-	public void reset(int n) {
+	private void reset(int n) {
 		if (n < 0) {
 			throw new IllegalArgumentException("Negative num nodes: " + n);
 		}
@@ -246,7 +246,7 @@ class BipartiteMatcher {
 	 * in the path. Otherwise, returns -1. In any case, updates the labels and pi
 	 * values.
 	 */
-	int findAugmentingPath() {
+	private int findAugmentingPath() {
 		while ((!eligibleS.isEmpty()) || (!eligibleT.isEmpty())) {
 			if (!eligibleS.isEmpty()) {
 				int i = eligibleS.get(eligibleS.size() - 1).intValue();
@@ -292,7 +292,7 @@ class BipartiteMatcher {
 	 * it was not in the matching before the flip. An augmenting path connects two
 	 * unmatched nodes, so the result is still a matching.
 	 */
-	void flipPath(int lastNode) {
+	private void flipPath(int lastNode) {
 		while (lastNode != EMPTY_LABEL) {
 			int parent = tLabels[lastNode];
 
@@ -310,7 +310,7 @@ class BipartiteMatcher {
 		}
 	}
 
-	void changeDualVars(double delta) {
+	private void changeDualVars(double delta) {
 		for (int i = 0; i < n; i++) {
 			if (sLabels[i] != NO_LABEL) {
 				u[i] -= delta;

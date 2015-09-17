@@ -805,7 +805,7 @@ public class ClusterSession {
      * @param max maximum value
      * @return the session cluster
      */
-    static public ClusterSession processImage(ImagePlus aImp, String command, String options, String[] out,
+    static private ClusterSession processImage(ImagePlus aImp, String command, String options, String[] out,
             ClusterGUI cg, Float max, Float min, boolean sync) {
         if (cg == null) {
             cg = new ClusterGUI();

@@ -22,7 +22,7 @@ public class CubicSmoothingSpline {
      * @param aYvalues y-values corresponding to x-values (aXvalues nad aValues must be same size)
      * @param aSmoothingParameter - smoothing parameter in range (0, 1]. For 1 it produces exact interpolation.
      */
-    public CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, double aSmoothingParameter) {
+    CubicSmoothingSpline(double[] aXvalues, double[] aYvalues, double aSmoothingParameter) {
         this(aXvalues, aYvalues, aSmoothingParameter, null);
     }
     
@@ -196,7 +196,7 @@ public class CubicSmoothingSpline {
      * n - not necessary in Java
      */
     
-    void resolve(double[] aX, double[] aY, Polynomial[] aSplines, double aLambda, double[] aWeights)  {
+    private void resolve(double[] aX, double[] aY, Polynomial[] aSplines, double aLambda, double[] aWeights)  {
         int n = aX.length;
         double[] h = new double[n];
         double[] r = new double[n];

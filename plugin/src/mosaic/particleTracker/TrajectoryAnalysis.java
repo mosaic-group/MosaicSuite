@@ -42,7 +42,7 @@ public class TrajectoryAnalysis {
     /**
      * @param aParticles Particles to be analyzed
      */
-    public TrajectoryAnalysis(final Particle[] aParticles) {
+    TrajectoryAnalysis(final Particle[] aParticles) {
         iParticles = aParticles;
 
         // set some default data for calculations, it can be overwritten by user
@@ -61,7 +61,7 @@ public class TrajectoryAnalysis {
      * @param aMin start index (included)
      * @param aMax stop index (included)
      */
-    public void setMomentOrders(final int aMin, final int aMax) {
+    private void setMomentOrders(final int aMin, final int aMax) {
         if (aMax >= aMin) {
             iMomentOrders = generateArrayRange(aMin, aMax);
         }
@@ -87,7 +87,7 @@ public class TrajectoryAnalysis {
      * @param aMin start index (included)
      * @param aMax stop index (included)
      */
-    public void setFrameShifts(final int aMin, final int aMax) {
+    private void setFrameShifts(final int aMin, final int aMax) {
         if (aMax >= aMin) {
             iFrameShifts = generateArrayRange(aMin, aMax);
         }
@@ -131,7 +131,7 @@ public class TrajectoryAnalysis {
     /**
      * @return mean displacement for given index (according to given moment orders)
      */
-    public double[] getMSDforMomentIdx(final int aMomentIdx) {
+    double[] getMSDforMomentIdx(final int aMomentIdx) {
         return iMSDs[aMomentIdx];
     }
     
@@ -221,7 +221,7 @@ public class TrajectoryAnalysis {
      * @param aVector input array
      * @return Converted array
      */
-    public double[] toLogScale(final double[] aVector) {
+    double[] toLogScale(final double[] aVector) {
         double[] result = new double[aVector.length];
         for (int i = 0; i < aVector.length; ++i) {
             result[i] = Math.log(aVector[i]);
@@ -236,7 +236,7 @@ public class TrajectoryAnalysis {
      * @param aVector input array
      * @return Converted array
      */
-    public double[] toLogScale(final int[] aVector) {
+    double[] toLogScale(final int[] aVector) {
         double[] result = new double[aVector.length];
         for (int i = 0; i < aVector.length; ++i) {
             result[i] = Math.log(aVector[i]);
@@ -250,7 +250,7 @@ public class TrajectoryAnalysis {
      * @param aValues input array
      * @return Converted array
      */
-    public double[] toDouble(final int[] aValues) {
+    double[] toDouble(final int[] aValues) {
         double[] result = new double[aValues.length];
         for (int i = 0; i < aValues.length; ++i) {
             result[i] = aValues[i];

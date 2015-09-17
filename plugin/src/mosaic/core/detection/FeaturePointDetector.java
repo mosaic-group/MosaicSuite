@@ -615,7 +615,7 @@ public class FeaturePointDetector {
 		}
 	}
 
-	public void boxCarBackgroundSubtractor(ImageStack is) {
+	private void boxCarBackgroundSubtractor(ImageStack is) {
 		Convolver convolver = new Convolver();
 		float[] kernel = new float[radius * 2 +1];
 		int n = kernel.length;
@@ -690,7 +690,7 @@ public class FeaturePointDetector {
 		return vResultStack;	        
 	}
 
-	public float[] CalculateNormalizedGaussKernel(float aSigma){
+	private float[] CalculateNormalizedGaussKernel(float aSigma){
 		int vL = (int)aSigma * 3 * 2 + 1;
 		if (vL < 3) vL = 3;
 		float[] vKernel = new float[vL];
@@ -720,7 +720,7 @@ public class FeaturePointDetector {
 	 * The memory allocations are performed in advance (in this method) for efficiency reasons.
 	 * @param mask_radius
 	 */
-	public void generateMasks(int mask_radius){
+	private void generateMasks(int mask_radius){
 		//the binary mask can be calculated already:
 //		int width = (2 * mask_radius) + 1;
 //		this.binary_mask = new short[width][width*width];
@@ -740,7 +740,7 @@ public class FeaturePointDetector {
 	 * and generates the <code>mask</code> according to these params
 	 * @see #generateMasks(int)
 	 */
-	public void setUserDefinedParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute)
+	private void setUserDefinedParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute)
 	{
 		//, float sigma_factor) {
 		
@@ -949,15 +949,15 @@ public class FeaturePointDetector {
 	 * @param sliceIndex: 1..#slices
 	 * @return a frame index: 1..#frames
 	 */
-	public int getFrameNumberFromSlice(int sliceIndex, int slices_number) {
+	private int getFrameNumberFromSlice(int sliceIndex, int slices_number) {
 		return (sliceIndex-1) / slices_number + 1;
 	}
 	
-	void setThreshold(float threshold) {
+	private void setThreshold(float threshold) {
 		this.threshold = threshold;
 	}
 
-	int getThresholdMode() {
+	private int getThresholdMode() {
 		return threshold_mode;
 	}
 
