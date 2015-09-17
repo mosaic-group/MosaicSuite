@@ -71,7 +71,8 @@ public class PreviewCanvas extends ImageCanvas
 	/* (non-Javadoc)
 	 * @see java.awt.Component#paint(java.awt.Graphics)
 	 */
-	public void paint(Graphics g) 
+	@Override
+    public void paint(Graphics g) 
 	{
 		super.paint(g);
 		int frameToDisplay = getFrameNumberFromSlice(this.imp.getCurrentSlice());

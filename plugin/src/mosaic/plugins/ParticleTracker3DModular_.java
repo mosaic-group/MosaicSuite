@@ -234,7 +234,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	 * @return a flag word that represents the filters capabilities according to arg String argument
 	 * @see ij.plugin.filter.PlugInFilter#setup(java.lang.String, ij.ImagePlus)
 	 */
-	public int setup(String arg, ImagePlus imp) 
+	@Override
+    public int setup(String arg, ImagePlus imp) 
 	{
 		if (MosaicUtils.checkRequirement() == false)
 			return DONE;
@@ -343,7 +344,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 	 * <br>This method is called by ImageJ after <code>setup(String arg, ImagePlus imp)</code> returns  
 	 * @see ij.plugin.filter.PlugInFilter#run(ij.process.ImageProcessor)
 	 */
-	public void run(ImageProcessor ip) 
+	@Override
+    public void run(ImageProcessor ip) 
 	{
 		initializeMembers();
 		 System.out.println("IJ macro is running: " + IJ.isMacro());
@@ -1161,7 +1163,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		 * <br><code>Button filter_length</code>
 		 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 		 */
-		public synchronized void actionPerformed(ActionEvent e) 
+		@Override
+        public synchronized void actionPerformed(ActionEvent e) 
 		{
 			Object b = e.getSource();
 			if (b==filter_length) { 
@@ -1182,7 +1185,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		 * the mouse anywhere in this <code>TrajectoryStackWindow</code>
 		 * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
 		 */
-		public synchronized void mousePressed(MouseEvent e) 
+		@Override
+        public synchronized void mousePressed(MouseEvent e) 
 		{
 
 			/* Reset selected trajectory */
@@ -1284,28 +1288,32 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		/* (non-Javadoc)
 		 * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
 		 */
-		public void mouseClicked(MouseEvent e) {
+		@Override
+        public void mouseClicked(MouseEvent e) {
 			// Auto-generated method stub
 		}
 
 		/* (non-Javadoc)
 		 * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
 		 */
-		public void mouseEntered(MouseEvent arg0) {
+		@Override
+        public void mouseEntered(MouseEvent arg0) {
 			// Auto-generated method stub			
 		}
 
 		/* (non-Javadoc)
 		 * @see java.awt.event.MouseListener#mouseExited(java.awt.event.MouseEvent)
 		 */
-		public void mouseExited(MouseEvent arg0) {
+		@Override
+        public void mouseExited(MouseEvent arg0) {
 			// Auto-generated method stub			
 		}
 
 		/* (non-Javadoc)
 		 * @see java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
 		 */
-		public void mouseReleased(MouseEvent arg0) {
+		@Override
+        public void mouseReleased(MouseEvent arg0) {
 			// Auto-generated method stub			
 		}
 
@@ -1647,7 +1655,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		/* (non-Javadoc)
 		 * @see java.awt.Window#processWindowEvent(java.awt.event.WindowEvent)
 		 */
-		public void processWindowEvent(WindowEvent e) {
+		@Override
+        public void processWindowEvent(WindowEvent e) {
 			super.processWindowEvent(e);
 			int id = e.getID();
 			if (id==WindowEvent.WINDOW_CLOSING) {
@@ -1662,7 +1671,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		/* (non-Javadoc)
 		 * @see java.awt.event.FocusListener#focusGained(java.awt.event.FocusEvent)
 		 */
-		public void focusGained(FocusEvent e) {
+		@Override
+        public void focusGained(FocusEvent e) {
 			WindowManager.setWindow(this);
 		}
 
@@ -1673,12 +1683,14 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 		/* (non-Javadoc)
 		 * @see java.awt.event.FocusListener#focusLost(java.awt.event.FocusEvent)
 		 */
-		public void focusLost(FocusEvent e) {}
+		@Override
+        public void focusLost(FocusEvent e) {}
 
 		/** 
 		 * Takes care about user actions.
 		 */
-		public synchronized void actionPerformed(ActionEvent ae) 
+		@Override
+        public synchronized void actionPerformed(ActionEvent ae) 
 		{
 			Object source = ae.getSource();						
 			Roi user_roi = null;

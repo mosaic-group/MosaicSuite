@@ -76,7 +76,8 @@ public class ParticleLinkerHun implements ParticleLinker
 		return (float) cost;
 	}
 	
-	public boolean linkParticles(MyFrame[] frames, int frames_number, linkerOptions l) 
+	@Override
+    public boolean linkParticles(MyFrame[] frames, int frames_number, linkerOptions l) 
 	{
 		int m, i, j, nop, nop_next, n;
 		int curr_linkrange;

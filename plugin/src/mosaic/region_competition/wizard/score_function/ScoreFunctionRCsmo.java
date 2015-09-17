@@ -30,7 +30,8 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 	Algorithm al;
 	Settings s;
 		
-	public Settings createSettings(Settings s, double pop[])
+	@Override
+    public Settings createSettings(Settings s, double pop[])
 	{
 		Settings st = new Settings(s);
 	

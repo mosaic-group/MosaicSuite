@@ -470,6 +470,7 @@ public class GUIDesign implements ActionListener {
 
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
 
         if (e.getSource() == help) {

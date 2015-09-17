@@ -32,7 +32,7 @@ public class Convert {
 		double [][] result = new double[h][w];
 		for (int y = 0; y < h; ++y) {
 			for (int x = 0; x < w; ++x) {
-				result[y][x] = (double)aArray[y][x];
+				result[y][x] = aArray[y][x];
 			}
 		}
 		return result;
@@ -61,7 +61,7 @@ public class Convert {
         int h = aArray.length;
         double[] result = new double[h];
         for (int y = 0; y < h; ++y) {
-            result[y] = (double)aArray[y];
+            result[y] = aArray[y];
         }
         return result;
     }

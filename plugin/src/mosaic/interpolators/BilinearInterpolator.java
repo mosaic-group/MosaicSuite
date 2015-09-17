@@ -14,7 +14,8 @@ import java.awt.geom.Point2D;
 
 public class BilinearInterpolator extends PixelInterpolator {
 
-	public double getInterpolatedPixel(Point2D pnt) {
+	@Override
+    public double getInterpolatedPixel(Point2D pnt) {
 		double x = pnt.getX();
 		double y = pnt.getY();
 		int u = (int) Math.floor(x);

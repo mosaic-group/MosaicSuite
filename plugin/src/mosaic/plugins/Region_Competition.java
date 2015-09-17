@@ -236,6 +236,7 @@ public class Region_Competition implements Segmentation {
 
     private Img<FloatType> image_psf;
 
+    @Override
     public int setup(String aArgs, ImagePlus aImp) {
         if (MosaicUtils.checkRequirement() == false)
             return DONE;
@@ -387,6 +388,7 @@ public class Region_Competition implements Segmentation {
      * 
      */
 
+    @Override
     public void run(ImageProcessor aImageP) {
         if (settings.labelImageInitType == InitializationType.File_Patcher) {
             // Open the label and intensity image with imgLib2
@@ -972,6 +974,7 @@ public class Region_Competition implements Segmentation {
         }
     }
 
+    @Override
     public void closeAll() {
         if (labelImage != null)
             labelImage.close();

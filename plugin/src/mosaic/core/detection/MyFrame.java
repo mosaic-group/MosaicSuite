@@ -499,6 +499,7 @@ public class MyFrame {
      * 
      * @return a String with the info
      */
+    @Override
     public String toString() {
         return toStringBuffer().toString();
     }

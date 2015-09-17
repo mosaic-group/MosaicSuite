@@ -53,6 +53,7 @@ public class LabelImageRC extends LabelImage {
     /**
      * LabelImage loaded from file
      */
+    @Override
     public void initWithIP(ImagePlus imagePlus) {
         super.initWithIP(imagePlus);
         initBoundary();
@@ -61,11 +62,13 @@ public class LabelImageRC extends LabelImage {
     /**
      * @param stack Stack of Int processors
      */
+    @Override
     public void initWithStack(ImageStack stack) {
         super.initWithStack(stack);
         initBoundary();
     }
 
+    @Override
     protected void init(int dims[]) {
         super.init(dims);
         initMembers();
@@ -79,6 +82,7 @@ public class LabelImageRC extends LabelImage {
      * Initialize the countor setting it to (-)label
      */
 
+    @Override
     public void initContour() {
         Connectivity conn = connFG;
 
@@ -117,6 +121,7 @@ public class LabelImageRC extends LabelImage {
      * @param label a label
      * @return the contour form of the label
      */
+    @Override
     protected int labelToNeg(int label) {
         if (label == bgLabel || isForbiddenLabel(label) || isContourLabel(label)) {
             return label;
@@ -137,6 +142,7 @@ public class LabelImageRC extends LabelImage {
      * 
      * @param li LabelImage
      */
+    @Override
     public void connectedComponents() {
         // TODO ! test this
 
@@ -231,6 +237,7 @@ public class LabelImageRC extends LabelImage {
      * 
      * @return short[] representation of the labelImage
      */
+    @Override
     public short[] getShortCopy() {
         if (dim == 3) {
             return (short[]) getProjected3D(false).getProcessor().getPixels();
@@ -254,6 +261,7 @@ public class LabelImageRC extends LabelImage {
         }
     }
 
+    @Override
     public ImageProcessor getLabelImageProcessor() {
         if (dim == 3) {
             return getProjected3D(true).getProcessor();
@@ -278,6 +286,7 @@ public class LabelImageRC extends LabelImage {
         }
     }
 
+    @Override
     protected boolean isInnerLabel(int label) {
         if (label == forbiddenLabel || label == bgLabel || isContourLabel(label)) {
             return false;

@@ -117,6 +117,7 @@ public class MaximumFinder3D implements MaximumFinderInterface
 			return points;
     }
     
+    @Override
     public List<Point> getMaximaPointList(float[] ip, double tolerance, boolean excludeOnEdges)
     {
 		int[][] points = getMaxima(ip, tolerance, excludeOnEdges);

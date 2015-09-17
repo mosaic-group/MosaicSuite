@@ -125,7 +125,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	 * @return a flag word that represents the filters capabilities according to arg String argument
 	 * @see PlugInFilter#setup(java.lang.String, ij.ImagePlus)
 	 */
-	public int setup(String arg, ImagePlus imp){
+	@Override
+    public int setup(String arg, ImagePlus imp){
 		if (arg.equals("about")) {
 			showAbout(); 
 			return DONE;
@@ -146,7 +147,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	 * does. It takes the image processor it works on as an argument. 
 	 * @see PlugInFilter#run(ij.process.ImageProcessor)
 	 */
-	public void run(ImageProcessor ip){
+	@Override
+    public void run(ImageProcessor ip){
 		
 		org_ip = ip;	// Original image processor to do calculations on
 		eq = ip;		// ImageProcessor used for contrast enhancement
@@ -192,7 +194,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 		canvas.addMouseListener(this);
 		
 		  javax.swing.SwingUtilities.invokeLater(new Runnable() {
-	            public void run() {
+	            @Override
+                public void run() {
 	            	userInterface();	// Start GUI
 	            }
 	        });
@@ -215,7 +218,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	 * Creates new point sources based on user selection
 	 * @see MouseListener#mouseClicked(java.awt.event.MouseEvent)
 	 */
-	public synchronized void mouseClicked(MouseEvent e){
+	@Override
+    public synchronized void mouseClicked(MouseEvent e){
 		// If we are in the point selection mode and user clicks on image, a new source on refined position will be created	
 		if (select_start == true){
 			//TODO
@@ -248,19 +252,23 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	/**
 	 * @see MouseListener#mouseEntered(java.awt.event.MouseEvent)
 	 */
-	public synchronized void mouseEntered(MouseEvent e){}
+	@Override
+    public synchronized void mouseEntered(MouseEvent e){}
 	/**
 	 * @see MouseListener#mouseExited(java.awt.event.MouseEvent)
 	 */
-	public synchronized void mouseExited(MouseEvent e){}
+	@Override
+    public synchronized void mouseExited(MouseEvent e){}
 	/**
 	 * @see MouseListener#mousePressed(java.awt.event.MouseEvent)
 	 */
-	public synchronized void mousePressed(MouseEvent e){}
+	@Override
+    public synchronized void mousePressed(MouseEvent e){}
 	/**
 	 * @see MouseListener#mouseReleased(java.awt.event.MouseEvent)
 	 */
-	public synchronized void mouseReleased(MouseEvent e){}
+	@Override
+    public synchronized void mouseReleased(MouseEvent e){}
 	
 	
 	
@@ -268,7 +276,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	 * Defines the action taken upon an <code>ActionEvent</code> triggered from buttons
 	 * @see ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
-	public void actionPerformed(ActionEvent ae){
+	@Override
+    public void actionPerformed(ActionEvent ae){
 		Object source = ae.getSource();	// Get Button that was clicked
 		
 		// start new selection
@@ -628,12 +637,14 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	}
 
 
-	public void windowOpened(WindowEvent arg0) {
+	@Override
+    public void windowOpened(WindowEvent arg0) {
 		
 	}
 
 
-	public void windowClosing(WindowEvent arg0) {
+	@Override
+    public void windowClosing(WindowEvent arg0) {
         ui.setVisible(false);
         ui.dispose();
         canvas.removeMouseListener(this);
@@ -641,27 +652,32 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 	}
 
 
-	public void windowClosed(WindowEvent arg0) {
+	@Override
+    public void windowClosed(WindowEvent arg0) {
 		
 	}
 
 
-	public void windowIconified(WindowEvent arg0) {
+	@Override
+    public void windowIconified(WindowEvent arg0) {
 		
 	}
 
 
-	public void windowDeiconified(WindowEvent arg0) {
+	@Override
+    public void windowDeiconified(WindowEvent arg0) {
 		
 	}
 
 
-	public void windowActivated(WindowEvent arg0) {
+	@Override
+    public void windowActivated(WindowEvent arg0) {
 		
 	}
 
 
-	public void windowDeactivated(WindowEvent arg0) {
+	@Override
+    public void windowDeactivated(WindowEvent arg0) {
 		
 	}
 }

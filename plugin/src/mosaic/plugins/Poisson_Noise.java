@@ -526,7 +526,8 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
 	    
 	}
 	
-	public int setup(String aArgs, ImagePlus aImp) 
+	@Override
+    public int setup(String aArgs, ImagePlus aImp) 
 	{
 		imp = aImp;
 		return FLAGS;
@@ -563,7 +564,8 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
 		}
 	}
 	
-	public void run(ImageProcessor aImageProcessor) 
+	@Override
+    public void run(ImageProcessor aImageProcessor) 
 	{
 		// Get the Type
         int vType;

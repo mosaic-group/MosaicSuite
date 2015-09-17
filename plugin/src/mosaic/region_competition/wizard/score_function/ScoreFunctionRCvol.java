@@ -68,7 +68,8 @@ public class ScoreFunctionRCvol implements ScoreFunction
 		return count;
 	}
 		
-	public Settings createSettings(Settings s, double pop[])
+	@Override
+    public Settings createSettings(Settings s, double pop[])
 	{
 		Settings st = new Settings(s);
 

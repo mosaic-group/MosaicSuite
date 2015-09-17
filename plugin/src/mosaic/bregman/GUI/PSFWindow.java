@@ -202,7 +202,8 @@ class PSFWindow implements ActionListener,PropertyChangeListener
 
 	}
 
-	public void propertyChange(PropertyChangeEvent e) 
+	@Override
+    public void propertyChange(PropertyChangeEvent e) 
 	{
 		Object source = e.getSource();
 		if (source == Vlem) 
@@ -221,7 +222,8 @@ class PSFWindow implements ActionListener,PropertyChangeListener
 		{pix_z=((Number)Vpix_z.getValue()).doubleValue();}
 	}
 
-	public void actionPerformed(ActionEvent ae)
+	@Override
+    public void actionPerformed(ActionEvent ae)
 	{
 		Object source = ae.getSource();	// Identify Button that was clicked
 

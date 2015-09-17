@@ -64,7 +64,8 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 	private int mWidth = 0;
 	private boolean mAPICall = false;
 	
-	public int setup(String aArgs, ImagePlus aImagePlus){
+	@Override
+    public int setup(String aArgs, ImagePlus aImagePlus){
 		if (IJ.versionLessThan("1.36x"))
 			return DONE;
 		if (aImagePlus == null) {
@@ -102,7 +103,8 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 	/**
 	 * Subtracts the background for the processor in the argument.
 	 */
-	public void run(ImageProcessor aImageProcessor){
+	@Override
+    public void run(ImageProcessor aImageProcessor){
 		int vType;
         if (aImageProcessor instanceof ByteProcessor)
         	vType = BYTE;
@@ -415,7 +417,8 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 		return 1;
 	}	
 	
-	public synchronized void actionPerformed(ActionEvent e) {
+	@Override
+    public synchronized void actionPerformed(ActionEvent e) {
 		Object vSource = e.getSource();
 		if (vSource == mAutoParamButton) {
 			mLength = AutoDetectParameters(mOriginalImagePlus.getProcessor());

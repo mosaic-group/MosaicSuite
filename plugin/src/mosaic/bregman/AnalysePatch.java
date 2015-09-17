@@ -263,6 +263,7 @@ class AnalysePatch implements Runnable {
      * Or run SplitBregman segmentation solver on it
      */
 
+    @Override
     public void run() {
         // IJ.log("");
         // IJ.log("region " + r.value);

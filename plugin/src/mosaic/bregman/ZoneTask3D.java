@@ -55,7 +55,8 @@ class ZoneTask3D implements Runnable {
 	}
 
 
-	public void run() {
+	@Override
+    public void run() {
 		try {
 			doWork();
 		}catch (InterruptedException ex) {}

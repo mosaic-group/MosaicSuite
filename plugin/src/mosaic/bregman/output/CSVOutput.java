@@ -139,7 +139,7 @@ public class CSVOutput {
     	oc[0].classFactory = Region3DTrack.class;
     	oc[0].vectorFactory = (Class<Vector<? extends Outdata<Region>>>) new Vector<Region3DTrack>().getClass();
     	oc[0].CSVFactory = (Class<CSV<? extends Outdata<Region>>>) new CSV<Region3DTrack>(Region3DTrack.class).getClass();
-    	oc[0].converter = (ConvertAndWrite<? extends Outdata<Region>>) new ConvertAndWrite<Region3DTrack>(Region3DTrack.class);
+    	oc[0].converter = new ConvertAndWrite<Region3DTrack>(Region3DTrack.class);
     	oc[0].delimiter = ',';
     	oc[1] = new SquasshOutputChoose();
     	oc[1].name = new String("Format for R script");
@@ -147,7 +147,7 @@ public class CSVOutput {
     	oc[1].classFactory = Region3DRScript.class;
     	oc[1].vectorFactory = (Class<Vector<? extends Outdata<Region>>>) new Vector<Region3DRScript>().getClass();
     	oc[1].CSVFactory = (Class<CSV<? extends Outdata<Region>>>) new CSV<Region3DRScript>(Region3DRScript.class).getClass();
-    	oc[1].converter = (ConvertAndWrite<? extends Outdata<Region>>) new ConvertAndWrite<Region3DRScript>(Region3DRScript.class);
+    	oc[1].converter = new ConvertAndWrite<Region3DRScript>(Region3DRScript.class);
     	oc[1].delimiter = ';';
     	oc[2] = new SquasshOutputChoose();
     	oc[2].name = new String("Format for R coloc script");
@@ -155,7 +155,7 @@ public class CSVOutput {
     	oc[2].classFactory = Region3DColocRScript.class;
     	oc[2].vectorFactory = (Class<Vector<? extends Outdata<Region>>>) new Vector<Region3DColocRScript>().getClass();
     	oc[2].CSVFactory = (Class<CSV<? extends Outdata<Region>>>) new CSV<Region3DColocRScript>(Region3DColocRScript.class).getClass();
-    	oc[2].converter = (ConvertAndWrite<? extends Outdata<Region>>) new ConvertAndWrite<Region3DColocRScript>(Region3DColocRScript.class);
+    	oc[2].converter = new ConvertAndWrite<Region3DColocRScript>(Region3DColocRScript.class);
     	oc[2].delimiter = ';';
     	
     	if (oc_s == -1)

@@ -46,7 +46,8 @@ public class ScoreFunctionInit implements ScoreFunction
 			inc_step[i] = 1;
 	}
 	
-	public Settings createSettings(Settings s, double pop[])
+	@Override
+    public Settings createSettings(Settings s, double pop[])
 	{
 		Settings st = new Settings(s);
 			
@@ -100,7 +101,8 @@ public class ScoreFunctionInit implements ScoreFunction
 		return true;
 	}
 
-	public void show()
+	@Override
+    public void show()
 	{
 		for (int im = 0 ;  im < l.length ; im++)
 			l[im].show("init", 255);
@@ -130,7 +132,8 @@ public class ScoreFunctionInit implements ScoreFunction
 		return null;
 	}
 		
-	public double [] getAMean(Settings s)
+	@Override
+    public double [] getAMean(Settings s)
 	{
 		double [] aMean = new double [2];
 		aMean[0] = s.l_Sigma;

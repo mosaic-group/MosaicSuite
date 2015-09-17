@@ -23,7 +23,9 @@ public abstract class PlugInFloat3DBase extends PlugInBase {
 
     abstract protected void processImg(FloatProcessor[] aOutputImg, FloatProcessor[] aOrigImg, int aChannelNumber);
     
+    @Override
     protected int getFlags() {return iFlags;}
+    @Override
     protected void updateFlags(int aFlag) {iFlags |= aFlag;}
 
     // Class to keep all information needed for one thread: input/output processor arrays

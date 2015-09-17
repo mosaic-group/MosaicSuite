@@ -59,7 +59,8 @@ public class PSF_estimator_3D implements  PlugInFilter{
 	
 	//int mMaskHeight = 10;
 	 
-	public int setup(String arg, ImagePlus aOrigImp) {
+	@Override
+    public int setup(String arg, ImagePlus aOrigImp) {
 		if (aOrigImp == null) { 
 			IJ.showMessage("Please open an image with beads first.");
 			return DONE;
@@ -107,7 +108,8 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		return DONE;
 	}
 
-	public void run(ImageProcessor ip) {
+	@Override
+    public void run(ImageProcessor ip) {
 		
 	}
 
@@ -929,7 +931,8 @@ public class PSF_estimator_3D implements  PlugInFilter{
 		public DrawCanvas(ImagePlus aImagePlus){
 			super(aImagePlus);
 		}
-		public void paint(Graphics aG){
+		@Override
+        public void paint(Graphics aG){
 			super.paint(aG);
 			int vFrame = mZProjectedImagePlus.getCurrentSlice();
 			aG.setColor(Color.red);
@@ -952,27 +955,32 @@ public class PSF_estimator_3D implements  PlugInFilter{
 			aIC.addMouseListener(this);
 		}
 
-		public void mouseClicked(MouseEvent arg0) {
+		@Override
+        public void mouseClicked(MouseEvent arg0) {
 			
 			
 		}
 
-		public void mouseEntered(MouseEvent arg0) {
+		@Override
+        public void mouseEntered(MouseEvent arg0) {
 			
 			
 		}
 
-		public void mouseExited(MouseEvent arg0) {
+		@Override
+        public void mouseExited(MouseEvent arg0) {
 			
 			
 		}
 
-		public void mousePressed(MouseEvent arg0) {
+		@Override
+        public void mousePressed(MouseEvent arg0) {
 			
 			
 		}
 
-		public void mouseReleased(MouseEvent aE) {
+		@Override
+        public void mouseReleased(MouseEvent aE) {
 			PSF_estimator_3D.this.mouseClicked(this.ic.offScreenX(aE.getPoint().x),this.ic.offScreenY(aE.getPoint().y));
 		}
 		

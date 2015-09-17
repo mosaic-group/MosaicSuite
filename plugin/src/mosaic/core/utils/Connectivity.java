@@ -347,19 +347,22 @@ public class Connectivity implements Iterable<Point>
 		private int cursor=0;
 		
 //		@Override
-		public boolean hasNext() {
+		@Override
+        public boolean hasNext() {
 			return (cursor < nNeighbors);
 		}
 
 //		@Override
-		public Integer next() {
+		@Override
+        public Integer next() {
 			int result = neighborsOfs[cursor];
 			cursor++;
 			return result;
 		}
 
 //		@Override
-		public void remove() {
+		@Override
+        public void remove() {
 			// do nothing
 		}
 	}

@@ -126,11 +126,13 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @return      Code describing supported formats etc.
      * (see ij.plugin.filter.PlugInFilter & ExtendedPlugInFilter)
      */
+    @Override
     public int setup(String arg, ImagePlus imp) {
         this.imp = imp;
         return flags;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
 	public int showDialog(ImagePlus imp, String command, PlugInFilterRunner pfr) {
         ImageProcessor ip = imp.getProcessor();
@@ -164,6 +166,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
     } // boolean showDialog
 
     /** Read the parameters (during preview or after showing the dialog) */
+    @Override
     public boolean dialogItemChanged(GenericDialog gd, AWTEvent e) {
         tolerance = gd.getNextNumber();
         if (tolerance<0) tolerance = 0;
@@ -196,6 +199,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
 
     /** Set his to the number of images to process (for the watershed progress bar only).
      *  Don't call or set nPasses to zero if no progress bar is desired. */
+    @Override
     public void setNPasses(int nPasses) {
         this.nPasses = nPasses;
     }
@@ -203,6 +207,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
     /** The plugin is inferred from ImageJ by this method
      * @param ip The image where maxima (or minima) should be found
      */
+    @Override
     public void run(ImageProcessor ip) {
         Roi roi = imp.getRoi();
         if (outputType == POINT_SELECTION && !roiSaved) {

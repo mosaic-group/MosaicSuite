@@ -44,7 +44,8 @@ public class Region implements Comparable<Region>
 	boolean singlec;
 	double coloc_o_int;
 	
-	public int compareTo(Region otherRegion) 
+	@Override
+    public int compareTo(Region otherRegion) 
 	{
 		//Region o = (Region) otherRegion;
 		return (value < otherRegion.value) ? 1 : ((value  > otherRegion.value) ? -1 : 0);

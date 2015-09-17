@@ -172,7 +172,7 @@ public class Analysis {
         }
 
         // Convert it back to original type.
-        return (Vector<? extends Outdata<Region>>) v;
+        return v;
     }
 
     static void load1channel(ImagePlus img2) {

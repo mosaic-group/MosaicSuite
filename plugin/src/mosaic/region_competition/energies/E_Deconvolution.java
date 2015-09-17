@@ -256,6 +256,7 @@ public class E_Deconvolution extends ExternalEnergy
 	}
 
 
+    @Override
     public EnergyResult CalculateEnergyDifference(
     Point aIndex,
     ContourParticle contourParticle,

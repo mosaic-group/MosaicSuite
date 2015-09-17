@@ -32,7 +32,8 @@ public class Region3DRScript implements Outdata<Region>
 	
 	public Region3DRScript() {}
 
-	public void setData(Region r) 
+	@Override
+    public void setData(Region r) 
 	{
 		
 		Image_ID = 0;
@@ -79,7 +80,8 @@ public class Region3DRScript implements Outdata<Region>
 		return true;
 	}
 	
-	public void setFrame(int fr) {Image_ID = fr;}
+	@Override
+    public void setFrame(int fr) {Image_ID = fr;}
 	public void setSurface(double Surface_) {Perimeter = Surface_;}
 	public void setCoord_X(double Coord_X_) {x = Coord_X_;}
 	public void setCoord_Y(double Coord_Y_) {y = Coord_Y_;}

@@ -94,7 +94,8 @@ public class SegmentationGUIHelp extends HelpGUI implements ActionListener
 
 	}
 
-	public void actionPerformed(ActionEvent ae) 
+	@Override
+    public void actionPerformed(ActionEvent ae) 
 	{
 		Object source = ae.getSource();	// Identify Button that was clicked
 

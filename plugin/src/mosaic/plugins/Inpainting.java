@@ -44,6 +44,7 @@ public class Inpainting extends CurvatureFilterBase {
 
         // Run chosen filter on image
         aFilter.runFilter(img, aNumberOfIterations, new CurvatureFilter.Mask() {
+            @Override
             public boolean shouldBeProcessed(int x, int y) {
                 // Skip pixels from original image
                 return iMask.getProcessor().getf(x, y) != 0;

@@ -252,7 +252,8 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	}
 	
 	
-	public void itemStateChanged(ItemEvent e) {
+	@Override
+    public void itemStateChanged(ItemEvent e) {
 		Object source = e.getSource();	// Identify checkbox that was clicked
 
 		boxval=true;
@@ -309,7 +310,8 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	}
 
 	
-	public void textValueChanged(TextEvent e){
+	@Override
+    public void textValueChanged(TextEvent e){
 		Object source = e.getSource();
 		
 		if (!boxval && !sliderval){//prevents looped calls
@@ -358,7 +360,8 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 	}
 
 
-	public void stateChanged(ChangeEvent e) {
+	@Override
+    public void stateChanged(ChangeEvent e) {
 		Object origin=e.getSource();
 
 		if (origin == tz1 && maska_im1!=null){

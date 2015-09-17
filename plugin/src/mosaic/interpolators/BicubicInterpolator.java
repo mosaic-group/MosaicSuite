@@ -17,7 +17,8 @@ public class BicubicInterpolator extends PixelInterpolator {
 	
 	public BicubicInterpolator() {}
 	
-	public double getInterpolatedPixel(Point2D pnt) {
+	@Override
+    public double getInterpolatedPixel(Point2D pnt) {
 		double x0 = pnt.getX();
 		double y0 = pnt.getY();
 		int u0 = (int) Math.floor(x0);	//use floor to handle negative coordinates too

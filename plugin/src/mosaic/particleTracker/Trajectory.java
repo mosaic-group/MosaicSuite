@@ -328,6 +328,7 @@ public class Trajectory
      * in this trajectory in the right order. 
      * @return a String with the info
      */
+    @Override
     public String toString() {
         return toStringBuffer().toString();
     }

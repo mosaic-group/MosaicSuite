@@ -193,6 +193,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
         return Z;
     }
 
+    @Override
     public double valueOf(double[] x) {
 
         // take mod;

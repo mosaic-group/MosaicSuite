@@ -37,7 +37,8 @@ class MadMaxProfile extends GeneralProfile
 	{
 	}
 
-	public String getAccessAddress()
+	@Override
+    public String getAccessAddress()
 	{
 		return "falcon";
 	}

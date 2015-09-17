@@ -863,7 +863,8 @@ public class FeaturePointDetector {
 		/* scroll bar to navigate through the slices of the movie */
 		final Scrollbar preview_scrollbar = new Scrollbar(Scrollbar.HORIZONTAL, img.getCurrentSlice(), 1, 1, img.getStackSize()+1);
 		preview_scrollbar.addAdjustmentListener( new AdjustmentListener() {	
-			public void adjustmentValueChanged(AdjustmentEvent e) {
+			@Override
+            public void adjustmentValueChanged(AdjustmentEvent e) {
 				// set the current visible slice to the one selected on the bar
 				img.setSlice(preview_scrollbar.getValue());
 				// update the preview view to this silce
@@ -876,7 +877,8 @@ public class FeaturePointDetector {
 		/* button to generate preview of the detected particles */
 		Button preview = new Button("Preview Detected");
 		preview.addActionListener( new ActionListener() {
-            						public void actionPerformed(ActionEvent e) {
+            						@Override
+                                    public void actionPerformed(ActionEvent e) {
             							previewHandler.preview(e);
             						}
         });
@@ -884,7 +886,8 @@ public class FeaturePointDetector {
 		/* button to save the detected particles */
 		Button 	save_detected = new Button("Save Detected");
 		save_detected.addActionListener( new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+			@Override
+            public void actionPerformed(ActionEvent e) {
 				previewHandler.saveDetected(e);
 			}
 		});

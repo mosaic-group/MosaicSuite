@@ -43,7 +43,8 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	
 	private PointCM pntMod[][];
 	
-	public Settings createSettings(Settings s, double pop[])
+	@Override
+    public Settings createSettings(Settings s, double pop[])
 	{
 		Settings st = new Settings(s);
 	

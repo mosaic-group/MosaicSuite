@@ -13,7 +13,8 @@ public class Region3DTrack implements Outdata<Region>
 	double Intensity;
 	double Surface;
 	
-	public void setFrame(int fr) {Frame = fr;}
+	@Override
+    public void setFrame(int fr) {Frame = fr;}
 	public void setx(double x_)	{x = x_;} // NO_UCD (unused code)
 	public void sety(double y_)	{y = y_;} // NO_UCD (unused code)
 
@@ -33,7 +34,8 @@ public class Region3DTrack implements Outdata<Region>
 		
 	public Region3DTrack() {}
 
-	public void setData(Region r) 
+	@Override
+    public void setData(Region r) 
 	{
 		Frame = 0;
 		x = r.getcx();

@@ -106,7 +106,8 @@ class DilateGenericThread extends Thread{
 		threshold = aThreshold;
 	}
 
-	public void run() {
+	@Override
+    public void run() {
 		float max;
 		int z;
 		while ((z = atomic_z.incrementAndGet()) < ips.getSize()) {

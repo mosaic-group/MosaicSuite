@@ -30,7 +30,9 @@ public abstract class PlugIn8bitBase extends PlugInBase {
     // This method should be implemented by plugin for processing image
     abstract protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg, int aChannelNumber);
     
+    @Override
     protected int getFlags() {return iFlags;}
+    @Override
     protected void updateFlags(int aFlag) {iFlags |= aFlag;}
     
     // Class for storing information needed to process one color channel in RGB images

@@ -60,7 +60,8 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	{
 		ref_save = s;
 		EventQueue.invokeLater(new Runnable() {
-			public void run() {
+			@Override
+            public void run() {
 				try {
 					RCWWin frame = new RCWWin();
 					frame.ref_save = ref_save;

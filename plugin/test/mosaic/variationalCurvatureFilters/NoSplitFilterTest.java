@@ -95,6 +95,7 @@ public class NoSplitFilterTest extends CommonBase {
         
         NoSplitFilter nsf = new NoSplitFilter(new IncreasingValueFilter());
         nsf.runFilter(img, noOfIncrements, new CurvatureFilter.Mask() {
+            @Override
             public boolean shouldBeProcessed(int x, int y) {
                 // Allow to update pixels only for rows: 0, 1
                 return y <= 1;

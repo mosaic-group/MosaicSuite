@@ -380,7 +380,8 @@ public class GenericDialogGUI implements InputReadable
 			
 	}
 	
-	public void showDialog()
+	@Override
+    public void showDialog()
 	{
 		gd.showDialog();
 	}
@@ -619,7 +620,8 @@ public class GenericDialogGUI implements InputReadable
 		return filenameInput;
 	}
 	
-	public boolean useCluster()
+	@Override
+    public boolean useCluster()
 	{
 		return useCluster;
 	}

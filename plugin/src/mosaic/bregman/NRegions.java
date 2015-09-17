@@ -286,7 +286,8 @@ class NRegions implements Runnable{
 	//	}
 
 
-	public void  run()
+	@Override
+    public void  run()
 	{
 		md= new MasksDisplay(ni,nj,nz,nl,p.cl,p);
 		md.firstdisp=p.livedisplay;
