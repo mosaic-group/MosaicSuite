@@ -47,18 +47,13 @@ public interface InputReadable
 	public int getNumIterations();
 	
 	// UI
-	
-	public boolean useStack();
 	public boolean showAllFrames();
-	public boolean showNormalized();
 	public boolean showAndSaveStatistics();
-	public boolean show3DResult();
 	
 	void showDialog();
 	
 	// Debugging
 	
-	public boolean useOldRegionIterator();
 	public int getKBest();
 
 	public boolean useCluster();

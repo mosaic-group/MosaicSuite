@@ -157,12 +157,6 @@ public class TopologicalNumberImageFunction
     		this.label = label;
 			this.topologicalNumberPair = tn; 
 		}
-    	
-    	TopologicalNumberResult(int label, int fg, int bg)
-    	{
-    		this.label = label; 
-    		this.topologicalNumberPair = new TopologicalNumberPair(fg, bg);
-    	}
     }
 
 }

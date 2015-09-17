@@ -204,17 +204,6 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 	
 	/**
 	 * 
-	 * Show the label image patch
-	 * 
-	 */
-	
-	public void showLabel()
-	{
-		ImageJFunctions.show(lb);
-	}
-	
-	/**
-	 * 
 	 * Get the result image
 	 * 
 	 * @return the result image

@@ -13,33 +13,6 @@ public class CircleMask  extends Mask
 	int fgPoints = 0;
 	
 	/**
-	 * Create a circle mask
-	 * 
-	 * @param radius 	Radius of the circle
-	 * @param size 		Size of the region containing the circle
-	 * @param dim		dimensionality
-	 */
-	CircleMask(int radius, int size, int dim) 
-	{
-		this.dim = dim;
-		rad = radius;
-		
-		m_Size = new int[dim];
-		m_Radius = new int[dim];
-		
-		for (int i = 0; i < dim; i++) 
-		{
-			m_Radius[i] = radius;
-			m_Size[i] = size;
-		}
-		
-		iterator = new IndexIterator(m_Size);
-		
-		mask = new byte[iterator.getSize()];
-		fillMask();		
-	}
-
-	/**
 	 * 
 	 * Create a circle mask with radius and spacing
 	 * 

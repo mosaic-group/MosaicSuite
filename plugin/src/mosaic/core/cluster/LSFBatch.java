@@ -227,11 +227,6 @@ class LSFBatch implements BatchInterface {
         return "";
     }
 
-    @Override
-    public void setOutputType(OutputType tp_) {
-        tp = tp_;
-    }
-
     public void reset() {
         nele_parsed = 0;
     }

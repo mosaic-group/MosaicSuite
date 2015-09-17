@@ -394,14 +394,6 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> , PSFGui
 		return null;
 	}
 
-
-	@Override
-	public float[] getSeparableImageAsFloatArray(int dim) 
-	{
-		return null;
-	}
-
-
 	@Override
 	public float[][][] getImage3DAsFloatArray() 
 	{

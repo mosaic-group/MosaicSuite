@@ -14,18 +14,18 @@ public class Region3DTrack implements Outdata<Region>
 	double Surface;
 	
 	public void setFrame(int fr) {Frame = fr;}
-	public void setx(double x_)	{x = x_;}
-	public void sety(double y_)	{y = y_;}
+	public void setx(double x_)	{x = x_;} // NO_UCD (unused code)
+	public void sety(double y_)	{y = y_;} // NO_UCD (unused code)
 
-	public void setz(double z_)	{z = z_;}
+	public void setz(double z_)	{z = z_;} // NO_UCD (unused code)
 	public void setIntensity(double Intensity_)	{Intensity = Intensity_;}
 	public void setSize(double Size_)				{Size = Size_;}
 	public void setSurface(double Surface_)		{Surface = Surface_;}
 		
 	public int getFrame()	{return Frame;}
-	public double getx()	{return x;}
-	public double gety()	{return y;}
-	public double getz()	{return z;}
+	public double getx()	{return x;} // NO_UCD (unused code)
+	public double gety()	{return y;} // NO_UCD (unused code)
+	public double getz()	{return z;} // NO_UCD (unused code)
 	public double getIntensity()	{return Intensity;}
 	public double getSize()				{return Size;}
 	public double getSurface()		{return Surface;}
@@ -66,9 +66,9 @@ public class Region3DTrack implements Outdata<Region>
 	}
 
 	public void setImage_ID(int Image_ID_) {Frame = Image_ID_;}
-	public void Coord_X(double Coord_X_) {x = Coord_X_;}
-	public void Coord_Y(double Coord_Y_) {y = Coord_Y_;}
-	public void Coord_Z(double Coord_Z_) {z = Coord_Z_;}
+	public void Coord_X(double Coord_X_) {x = Coord_X_;} // NO_UCD (unused code)
+	public void Coord_Y(double Coord_Y_) {y = Coord_Y_;} // NO_UCD (unused code)
+	public void Coord_Z(double Coord_Z_) {z = Coord_Z_;} // NO_UCD (unused code)
 	public void setCoord_X(double Coord_X_) {x = Coord_X_;}
 	public void setCoord_Y(double Coord_Y_) {y = Coord_Y_;}
 	public void setCoord_Z(double Coord_Z_) {z = Coord_Z_;}

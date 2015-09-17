@@ -28,22 +28,22 @@ public class RCOutput
 	{
 		size = Size_;
 	}
-    public void setsize(double Size_)
+    public void setsize(double Size_) // NO_UCD (unused code)
     {
         size = Size_;
     }
     
-	public void setx(double Coord_X_) 
+	public void setx(double Coord_X_)  // NO_UCD (unused code)
 	{
 		x = Coord_X_;
 	}
 
-	public void sety(double Coord_Y_) 
+	public void sety(double Coord_Y_)  // NO_UCD (unused code)
 	{
 		y = Coord_Y_;
 	}
 
-	public void setz(double Coord_Z_) 
+	public void setz(double Coord_Z_)  // NO_UCD (unused code)
 	{
 		z = Coord_Z_;
 	}
@@ -58,7 +58,7 @@ public class RCOutput
 		mean = intensity;
 	}
 
-    public void setmean(double intensity)
+    public void setmean(double intensity) // NO_UCD (unused code)
     {
         mean = intensity;
     }
@@ -67,14 +67,14 @@ public class RCOutput
         return 0;
     }
     
-    public void setlabel(int Object_ID_) {
+    public void setlabel(int Object_ID_) { // NO_UCD (unused code)
         setObject_ID(Object_ID_);
     }
     
     public void setObject_ID(int Object_ID_) {
     }
     
-    public int getlabel() {
+    public int getlabel() { // NO_UCD (unused code)
         return getObject_ID();
     }
     
@@ -102,7 +102,7 @@ public class RCOutput
 	{
 		return mean;
 	}
-   public double getmean() 
+   public double getmean()  // NO_UCD (unused code)
     {
         return mean;
     }
@@ -125,7 +125,7 @@ public class RCOutput
 	{
 		return size;
 	}
-    public double getsize() 
+    public double getsize()  // NO_UCD (unused code)
     {
         return size;
     }

@@ -134,20 +134,6 @@ public class Settings implements Serializable
 	{
 		copy(s);
 	}
-
-	public void addSettingsListener(SettingsListener listener)
-	{
-		listeners.add(listener);
-	}
-	
-	public void settingsChanged()
-	{
-		for (SettingsListener l : listeners)
-		{
-			l.settingsChanged(this);
-		}
-	}
-	
 }
 
 

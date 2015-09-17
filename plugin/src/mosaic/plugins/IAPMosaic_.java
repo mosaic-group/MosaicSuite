@@ -10,7 +10,7 @@ import mosaic.ia.gui.GUIDesign;
  * To do: Mask check. for q(d), p(d). ROI. h in q(d).3D
  * sorting array of NN: might be dangerous.
  */
-public class IAPMosaic_ implements PlugIn {
+public class IAPMosaic_ implements PlugIn { // NO_UCD (unused code)
 	@Override
 	public void run(String arg0) {
 		if (MosaicUtils.checkRequirement() == false) return;

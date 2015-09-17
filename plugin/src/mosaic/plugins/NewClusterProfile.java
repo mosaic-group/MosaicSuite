@@ -30,7 +30,7 @@ import mosaic.core.utils.DataCompression.Algorithm;
  * 
  */
 
-public class NewClusterProfile implements PlugInFilter
+public class NewClusterProfile implements PlugInFilter // NO_UCD (unused code)
 {
 	FileClusterProfile fcp;
 	

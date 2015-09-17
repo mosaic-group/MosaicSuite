@@ -41,21 +41,6 @@ public class BSplineSurface {
 	 * @param aUmax - maximum value for 'u' direction
 	 * @param aVmin - minimum value for 'v' direction
 	 * @param aVmax - maximum value for 'v' direction
-	 * @param aDegree - degree common to both directions
-	 * @param aScale - scale common to both directions
-	 * @throws InterpolationException
-	 */
-	public BSplineSurface(double[][] aPoints, double aUmin, double aUmax, double aVmin, double aVmax, int aDegree, double aScale) {
-		this(aPoints, aUmin, aUmax, aVmin, aVmax, aDegree, aDegree, aScale, aScale);	
-	}
-	
-	/**
-	 * Create B-Spline surface from provided data.
-	 * @param aPoints - 2D array of values of surface
-	 * @param aUmin - minimum value for 'u' direction
-	 * @param aUmax - maximum value for 'u' direction
-	 * @param aVmin - minimum value for 'v' direction
-	 * @param aVmax - maximum value for 'v' direction
 	 * @param aDegreeUdir - degree in 'u' direction
 	 * @param aDegreeVdir - degree in 'v' direction
 	 * @param aScaleU - scale in 'u' direction
@@ -203,7 +188,7 @@ public class BSplineSurface {
 	 * Debug method. It prints out information about knots and coefficients. 
 	 * @return 
 	 */
-	public BSplineSurface showDebugInfo() {
+	public BSplineSurface showDebugInfo() { // NO_UCD (unused code)
 		System.out.println("------------------------------");
 		System.out.println("Degree in direction u: " + iSurface.getUDegree() + " v: " + iSurface.getVDegree());
 		
@@ -250,7 +235,7 @@ public class BSplineSurface {
 	 * @param aScaleV - scale in direction v
 	 * @return 
 	 */
-	public BSplineSurface showMatlabCode(double aScaleU, double aScaleV) {
+	public BSplineSurface showMatlabCode(double aScaleU, double aScaleV) { // NO_UCD (unused code)
 		int noOfStepsU = (int)(iOriginalU / aScaleU);		
 		int noOfStepsV = (int)(iOriginalV / aScaleV);
 		

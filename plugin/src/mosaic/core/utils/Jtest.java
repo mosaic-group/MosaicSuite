@@ -1,6 +1,5 @@
 package mosaic.core.utils;
 
-import static org.junit.Assert.fail;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.process.ImageProcessor;
@@ -89,15 +88,5 @@ public class Jtest
 		testImg = MosaicUtils.getTestImages("job_compare_test",null);
 		to = IJ.getDirectory("temp") + File.separator + "test";
 		MosaicTest.<Region3DRScript>testPlugin(BG,"job_compare_test",Region3DRScript.class);
-	}
-	
-	@Test
-	public void coreUtilGeneral()
-	{
-		String test = MosaicUtils.removeExtension("tmp_1.tif");
-		if (!test.equals("tmp_1"))
-		{
-			fail("Remove extension: expected tmp_1 got " + test);
-		}
 	}
 }

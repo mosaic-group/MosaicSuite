@@ -66,13 +66,6 @@ public class ProgressBarWin extends JDialog
 		Prog_s.setValue(p);
 	}
 	
-	double GetProgress()
-	{
-		return Prog_s.getValue();
-		
-	}
-	
-	
 	public ProgressBarWin()
 	{
 		

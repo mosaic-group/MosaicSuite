@@ -26,16 +26,6 @@ public class BinarizedIntervalIntesityImage extends IntervalsListDouble implemen
 	{
 		this.image = image;
 	}
-	@Override
-	public boolean EvaluateAtIndex(int index)
-	{
-		//Check bounds for intensity image
-		if (index<0 || index >= image.dataIntensity.length)
-			return false;
-		
-		float value = image.get(index);
-		return Evaluate(value);
-	}
 
 	@Override
 	public boolean EvaluateAtIndex(Point p)

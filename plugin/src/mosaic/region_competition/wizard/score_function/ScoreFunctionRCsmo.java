@@ -318,12 +318,6 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 		}
 
 		@Override
-		public void incrementStep() 
-		{
-			
-		}
-
-		@Override
 		public void show() 
 		{
 		
@@ -341,12 +335,6 @@ public class ScoreFunctionRCsmo implements ScoreFunction
 			aMean[1] = s.m_EnergyContourLengthCoeff;
 			
 			return aMean;
-		}
-		
-		@Override
-		public int getNImg() 
-		{
-			return l.length;
 		}
 
 		@Override

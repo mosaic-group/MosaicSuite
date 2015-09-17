@@ -54,11 +54,6 @@ public class ScoreFunctionInit implements ScoreFunction
 			inc_step[i] = 1;
 	}
 	
-	int [] getObject()
-	{
-		return off;
-	}
-		
 	public Settings createSettings(Settings s, double pop[])
 	{
 		Settings st = new Settings(s);
@@ -117,11 +112,6 @@ public class ScoreFunctionInit implements ScoreFunction
 	{
 		for (int im = 0 ;  im < l.length ; im++)
 			l[im].show("init", 255);
-	}
-
-	@Override
-	public int getNImg() {
-		return l.length;
 	}
 
 	@Override

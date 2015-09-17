@@ -23,7 +23,7 @@ import ij.process.ImageProcessor;
  * OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.<p>
  */
 
-public class BesselPSF_Convolver implements ExtendedPlugInFilter {
+public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD (unused code)
     // Setup stuff + input arguments
     static final int FLAGS = DOES_8G + DOES_16 + DOES_32;
     int mSetupFlags = FLAGS;

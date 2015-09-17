@@ -14,9 +14,7 @@ public interface ScoreFunction extends IObjectiveFunction
         IMAGEPLUS
     }
     
-	abstract void incrementStep();
 	abstract void show();
-	abstract int getNImg();
 	abstract TypeImage getTypeImage();
 	abstract ImagePlus[] getImagesIP();
 	abstract String[] getImagesString();

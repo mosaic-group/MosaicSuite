@@ -19,17 +19,6 @@ public class IndexIterator
 	
 	/**
 	 * 
-	 * Create the index iterator
-	 * 
-	 * @param dims integer array of dimensions (width/height/depth/...)
-	 */
-	public IndexIterator(long[] dims)
-	{
-		init(dims);
-	}
-	
-	/**
-	 * 
 	 * Create the index itarator
 	 * 
 	 * @param dims integer array of dimensions (width/height/depth/...)
@@ -51,19 +40,6 @@ public class IndexIterator
 		}
 	}
 
-	private void init(long[] dims)
-	{
-		dim = dims.length;
-		dimensions = new int [dims.length];
-		for (int i = 0 ; i < dims.length ; i++) {dimensions[i] = (int)dims[i];}
-		
-		size=1;
-		for (int i=0; i<dim; i++)
-		{
-			size*=dimensions[i];
-		}
-	}
-	
 	/**
 	 *
 	 * Get the total size of the iterator

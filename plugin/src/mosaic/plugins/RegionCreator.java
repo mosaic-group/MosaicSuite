@@ -56,7 +56,7 @@ import net.imglib2.view.Views;
  */
 
 
-public class RegionCreator implements PlugInFilter
+public class RegionCreator implements PlugInFilter // NO_UCD (unused code)
 {
 	int N_region;
 	int Max_radius;

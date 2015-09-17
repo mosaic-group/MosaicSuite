@@ -459,35 +459,6 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> , PSFGui
 	}
 
 	@Override
-	public float[] getSeparableImageAsFloatArray(int dim) 
-	{
-		if (sepDimF[dim] == null)
-		{
-			int sz[] = getSuggestedImageSize();
-			int mid[] = new int[sz.length];
-			int[] old_mid = new int[sz.length];
-			
-			for (int i = 0 ; i < sz.length ; i++)
-			{
-				mid[i] = sz[i] / 2;
-			}
-			setCenter(mid);
-			
-			sepDimF[dim] = new float [sz[dim]];
-			
-			for (int i = 0 ; i < sepDimF[dim].length ; i++)
-			{
-				float res = (float)(1.0 / Math.sqrt(2.0 * Math.PI) / var[dim].getRealDouble() * Math.exp(-(i - offset[dim].getRealDouble())*(i - offset[dim].getRealDouble())/ (2.0 * var[dim].getRealDouble() * var[dim].getRealDouble())));
-				
-				sepDimF[dim][i] = res;
-			}
-			
-			setCenter(old_mid);
-		}
-		return sepDimF[dim];
-	}
-
-	@Override
 	public float[][][] getImage3DAsFloatArray() 
 	{
 		if (Image3DF == null)

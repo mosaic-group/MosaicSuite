@@ -12,16 +12,7 @@ import mosaic.core.utils.Point;
 
 public interface BinarizedImage
 {
-	/**
-	 * 
-	 * Evaluate the value of the pixel at point index (index is linearized)
-	 * 
-	 * @param index id of the point
-	 * @return true or false (1 or 0) of the binarization of the image
-	 */
-	public abstract boolean EvaluateAtIndex(int index);
-	
-	
+
 	/**
 	 * 
 	 * Evaluate the value of the pixel at one point

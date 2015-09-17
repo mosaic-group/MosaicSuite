@@ -1,7 +1,6 @@
 package mosaic.core.cluster;
 
 import mosaic.core.utils.DataCompression;
-import mosaic.core.utils.DataCompression.Algorithm;
 
 
 /**
@@ -62,11 +61,6 @@ class MadMaxProfile extends GeneralProfile
 
 	@Override
 	public void setImageJCommand(String ImageJCommand_)
-	{
-	}
-	
-	@Override
-	public void setCompressor(Algorithm a)
 	{
 	}
 	

@@ -74,25 +74,6 @@ public class BubbleInitializer extends Initializer
 		int displ=padding + 2*radius; 
 		initSizeDispl(radius, displ);
 	}
-	
-	/**
-	 * 
-	 * @param countWidth Number of bubbles for the width. 
-	 * @param fillRatio The ratio of the diameter of the bubbles 
-	 * to the distances of the midpoints of the bubbles <br>
-	 * (0.0: zero size bubbles, 1.0: touching bubbles)
-	 */
-	public void initWidthCount(int countWidth, double fillRatio)
-	{
-		if (countWidth<=0)
-		{
-			throw new RuntimeException("Choose bubble number > 0");
-		}
-		
-		int displ = dimensions[0]/countWidth;
-		int rad = (int)(displ*fillRatio/2);
-		initSizeDispl(rad, displ);
-	}
 
 	@Override
 	public void initDefault()

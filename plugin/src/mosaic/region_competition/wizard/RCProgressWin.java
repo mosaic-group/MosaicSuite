@@ -72,12 +72,6 @@ class RCProgressWin extends JFrame implements MouseListener
 		Prog_s.setValue(p);
 	}
 	
-	double GetProgress()
-	{
-		return Prog_s.getValue();
-		
-	}
-	
 	private void RemoveComponent(int i,int j)
 	{
 		if (img[i].img_p[j] != null)

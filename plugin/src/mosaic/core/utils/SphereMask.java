@@ -29,44 +29,6 @@ public class SphereMask extends Mask
 	 * @param radius 	Radius of the sphere
 	 * @param size 		Size of the region containing the sphere
 	 * @param dim		dimensionality
-	 * @param rnd       subpixel Randomizer
-	 */
-	
-	public SphereMask(int radius, int size, int dim, boolean rnd_)
-	{
-		this.dim = dim;
-		rad = radius;
-		
-		m_Size = new int[dim];
-		m_Radius = new int[dim];
-		
-		for (int i = 0; i < dim; i++) 
-		{
-			m_Radius[i] = radius;
-			m_Size[i] = size;
-		}
-		
-		iterator = new IndexIterator(m_Size);
-		
-		spacing = new float[dim];
-		for (int i = 0 ; i < dim ; i++)
-		{
-			spacing[i] = 1.0f;
-		}
-		
-		rnd = rnd_;
-		
-		mask = new byte[iterator.getSize()];
-		fillMask();			
-    }
-	
-	/**
-	 * 
-	 * Create a sphere mask
-	 * 
-	 * @param radius 	Radius of the sphere
-	 * @param size 		Size of the region containing the sphere
-	 * @param dim		dimensionality
 	 */
 	
 	public SphereMask(int radius, int size, int dim)
@@ -128,38 +90,6 @@ public class SphereMask extends Mask
 		mask = new byte[iterator.getSize()];
 		fillMask();		
 	}
-	
-	/**
-	 * 
-	 * Create a Sphere mask with radius and spacing
-	 * 
-	 * @param radius Radius of the circle
-	 * @param size Size of the region containing the circle
-	 * @param dim dimensionality
-	 * @param spacing Coordinate spacing
-	 * 
-	 */
-	public SphereMask(int radius, int size, int dim, float [] spacing) 
-	{
-		this.dim = dim;
-		rad = radius;
-		
-		m_Size = new int[dim];
-		m_Radius = new int[dim];
-		
-		for (int i = 0; i < dim; i++) 
-		{
-			m_Radius[i] = radius;
-			m_Size[i] = size;
-		}
-		
-		iterator = new IndexIterator(m_Size);
-		
-		this.spacing = spacing;
-		mask = new byte[iterator.getSize()];
-		fillMask();		
-	}
-	
 	
 	private void fillMask()
 	{

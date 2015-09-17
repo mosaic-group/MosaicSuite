@@ -87,19 +87,6 @@ public interface psf<T extends RealType<T>> extends RandomAccess<T>, PSFGui {
 
     /**
      * 
-     * Get the image for the kernel on one direction. Useful if the kernel is
-     * separable. The origin is always in the center of the image
-     * 
-     * @param dim
-     *            direction of the image
-     * 
-     * @return the 1D image of the kernel
-     */
-
-    public float[] getSeparableImageAsFloatArray(int dim);
-
-    /**
-     * 
      * Get the image for the kernel as 3D array. The origin is always in the
      * center of the image
      * 

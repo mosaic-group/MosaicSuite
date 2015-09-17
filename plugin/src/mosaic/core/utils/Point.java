@@ -88,15 +88,6 @@ public class Point
 		for (int i = 0 ; i < coords.length ; i++)	{x[i] = (int) coords[i];}
 	}
 	
-	public void positive()
-	{
-		for (int i = 0 ; i < dim ; i++)
-		{
-			if (x[i] < 0)
-				x[i] = 0;
-		}
-	}
-	
 	/**
 	 * Makes a Point from an Array, without copying the array. 
 	 * @param array Coordinates of the Point
@@ -249,19 +240,6 @@ public class Point
 			result.x[i]= (int) (x[i]/scaling[i]);
 		}
 		return result;
-	}
-	
-	/**
-	 * 
-	 * Set coordinate to zero
-	 * 
-	 */
-	public void fill(int f)
-	{
-		for (int i=0; i<dim; i++)
-		{
-			x[i]= f;
-		}
 	}
 	
 	/**

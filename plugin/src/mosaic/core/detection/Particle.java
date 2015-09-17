@@ -128,18 +128,7 @@ public class Particle
 		return (float) Math.sqrt(lx*lx + ly*ly + lz*lz);
 	}
 	
-	/**
-	 * 
-	 * Get the square of the linking vector
-	 * 
-	 * @return the square of the linking vector
-	 */
-	
-	public float linkModuleSq()
-	{
-		return lx*lx + ly*ly + lz*lz;
-	}
-	
+
 	/**
 	 * 
 	 * Get the square of the accumulated linking vector
@@ -287,18 +276,6 @@ public class Particle
 
 		return sb;
 	}
-
-	
-	
-	public float distanceSq(Particle p)
-	{
-		return (x-p.x)*(x-p.x) + (y-p.y)*(y-p.y) + (z-p.z)*(z-p.z);
-	}
-	
-	public float distance(Particle p)
-	{
-		return (float) Math.sqrt((x-p.x)*(x-p.x) + (y-p.y)*(y-p.y) + (z-p.z)*(z-p.z));
-	}
 	
 	public boolean match(Particle p)
 	{
@@ -338,17 +315,17 @@ public class Particle
 		m2 = (float) Intensity_;
 	}
 
-	public void setx(double Coord_X_) 
+	public void setx(double Coord_X_)  // NO_UCD (unused code)
 	{
 		x = (float) Coord_X_;
 	}
 
-	public void sety(double Coord_Y_) 
+	public void sety(double Coord_Y_)  // NO_UCD (unused code)
 	{
 		y = (float) Coord_Y_;
 	}
 
-	public void setz(double Coord_Z_) 
+	public void setz(double Coord_Z_)  // NO_UCD (unused code)
 	{
 		z = (float) Coord_Z_;
 	}

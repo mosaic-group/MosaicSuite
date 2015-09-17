@@ -72,59 +72,6 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 
     }
 
-    /*
-     * likelihood
-     * calculate P_grid i.e for all distances in dgrid
-     * then take the probabilities of only d, i.e, P(1:d) from P(1:d_grid)
-     * this is the likelihood.
-     */
-
-    public double[] likelihood(double[] params) {
-        double[] gibbspotential = new double[D_grid.length];
-
-        gibbspotential = getGibbsPotential(params);
-        // PlotUtils.plotDoubleArray("Gibbs", D_grid, gibbspotential);
-        // double sumPotential=pc.getSumPotential();
-        double Z = calculateZ(gibbspotential);
-        // Z=Z*100000;
-        P_grid = new double[D_grid.length];
-        double sumPGrid = 0;
-        double sumQGrid = 0;
-        double sumGibbs = 0;
-        double[] DiffD = new double[D_grid.length - 1];
-        for (int i = 0; i < D_grid.length - 1; i++) {
-            DiffD[i] = D_grid[i + 1] - D_grid[i];
-        }
-        for (int i = 0; i < D_grid.length; i++) {
-            P_grid[i] = gibbspotential[i] * qofD_grid[i] * 1 / Z;
-            sumPGrid = sumPGrid + P_grid[i];// why hundred times smq
-            sumQGrid = sumQGrid + qofD_grid[i];
-            sumGibbs = sumGibbs + gibbspotential[i];
-        }
-        /*
-         * System.out.println("sum p grid"+sumPGrid);
-         * System.out.println("sum q grid"+sumQGrid);
-         * System.out.println("sum gibbs"+sumGibbs);
-         * System.out.println("gibbspotential(0),qofD_grid(0),P_grid(0) :"+
-         * gibbspotential[0]+","+qofD_grid[0]+","+P_grid[0]);
-         * System.out.println("gibbspotential(1),qofD_grid(1),P_grid(1) :"+
-         * gibbspotential[1]+","+qofD_grid[1]+","+P_grid[1]);
-         * System.out.println("gibbspotential(100),qofD_grid(100),P_grid(100) :"+
-         * gibbspotential[100]+","+qofD_grid[100]+","+P_grid[100]);
-         */
-
-        double[] P = new double[D.length];
-        for (int i = 0; i < D.length; i++) {
-            P[i] = linearInterpolation(P_grid[interpInterval[0][i]], D_grid[interpInterval[0][i]], P_grid[interpInterval[1][i]], D_grid[interpInterval[1][i]], D[i]);
-        }
-        /*
-         * System.out.println("P[0]"+P[0]);
-         * System.out.println("P[1]"+P[1]);
-         * System.out.println("P[2]"+P[2]);
-         */
-        return P;
-
-    }
 
     public double l2Norm(double[] params) {
 

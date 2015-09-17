@@ -1,7 +1,6 @@
 package mosaic.core.binarize;
 
 import mosaic.core.utils.IntervalsListInteger;
-import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
@@ -38,26 +37,6 @@ public class BinarizedIntervalImgLib2Int<T extends IntegerType<T>> extends Inter
 		this.labelImage = labelImage;
 	}
 	
-	/**
-	 * 
-	 * Evaluate the binarized image at index
-	 * 
-	 * @param index where to evaluate
-	 * @return true or false
-	 * 
-	 */
-	
-	@Override
-	public boolean EvaluateAtIndex(int index)
-	{
-		int id[] = MosaicUtils.getCoord(index,labelImage);
-		raLb.localize(id);
-		int value = raLb.get().getInteger();
-		
-		return Evaluate(value);
-	}
-	
-
 	/**
 	 * 
 	 * Evaluate the binarized image at Point p

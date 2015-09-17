@@ -1,7 +1,6 @@
 package mosaic.ia.nn;
 
 import java.util.ArrayList;
-import java.util.Vector;
 
 import javax.vecmath.Point3d;
 
@@ -20,14 +19,6 @@ public class KDTreeNearestNeighbor {
 	
 	KDTree kdtree;
 	Instances pointsYinstances;
-	
-	public void createKDTree(Vector<Point3d> pointsY)
-	{
-	
-		createKDTree(pointsY.toArray(new Point3d[pointsY.size()]));
-	    
-	    
-	}
 	
 	public void createKDTree(Point3d [] pointsY)
 	{

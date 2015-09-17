@@ -160,12 +160,6 @@ class GeneralProfile implements ClusterProfile
 	Vector<Algorithm> alc;
 	
 	@Override
-	public void setCompressor(Algorithm a) 
-	{
-		alc.add(a);
-	}
-	
-	@Override
 	public boolean hasCompressor(Algorithm a) 
 	{
 		for (int i = 0 ; i < alc.size() ; i++)

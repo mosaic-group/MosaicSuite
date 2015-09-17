@@ -24,11 +24,6 @@ public class IntervalsListInteger
 		m_Thresholds = new ArrayList<ThresholdIntervalInteger>();
 	}
     
-	public void AddThreshold(int value)
-	{
-		AddThresholdBetween(value, value);
-	}
-    
 	public void AddThresholdBetween(int lower, int upper) 
     {
         m_Thresholds.add(new ThresholdIntervalInteger(lower, upper));
@@ -45,12 +40,6 @@ public class IntervalsListInteger
 			}
 		}
 		return false;
-	}
-	
-	public void clearThresholds()
-	{
-		m_NThresholds = 0;
-		m_Thresholds.clear();
 	}
 }
 

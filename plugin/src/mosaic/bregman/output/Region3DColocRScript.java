@@ -27,9 +27,9 @@ public class Region3DColocRScript implements Outdata<Region>
 	public void setPerimeter(double Perimeter_)	{Perimeter = Perimeter_;}
 	public void setLength(double Length_)	{Length = Length_;}
 	public void setIntensity(double Intensity_)	{Intensity = Intensity_;}
-	public void setx(double Coord_X_)		{x = Coord_X_;}
-	public void sety(double Coord_Y_)		{y = Coord_Y_;}
-	public void setz(double Coord_Z_)		{z = Coord_Z_;}
+	public void setx(double Coord_X_)		{x = Coord_X_;} // NO_UCD (unused code)
+	public void sety(double Coord_Y_)		{y = Coord_Y_;} // NO_UCD (unused code)
+	public void setz(double Coord_Z_)		{z = Coord_Z_;} // NO_UCD (unused code)
 	public void setOverlap_with_ch(double Overlap_with_ch_)		{Overlap_with_ch = Overlap_with_ch_;}
 	public void setColoc_object_size(double cos)		{Coloc_object_size = cos;}
 	public void setColoc_object_intensity(double coi)	{Coloc_object_intensity = coi;}
@@ -118,9 +118,9 @@ public class Region3DColocRScript implements Outdata<Region>
 	public double getSize()				{return Size;}
 	public double getPerimeter()		{return Perimeter;}
 	public double getLength()		{return Length;}
-	public double getx() {return x;}
-	public double gety() {return y;}
-	public double getz() {return z;}
+	public double getx() {return x;} // NO_UCD (unused code)
+	public double gety() {return y;} // NO_UCD (unused code)
+	public double getz() {return z;} // NO_UCD (unused code)
 	public int getFrame() {return Image_ID;}
 	public double getSurface() {return 0;}
 	public double getOverlap_with_ch() {return Overlap_with_ch;}

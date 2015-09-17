@@ -17,17 +17,17 @@ public class Region3DRScript implements Outdata<Region>
 	double z;
 	
 	public void setImage_ID(int Image_ID_) {Image_ID = Image_ID_;}
-	public void setlabel(int aID) {setImage_ID(aID);}
+	public void setlabel(int aID) {setImage_ID(aID);} // NO_UCD (unused code)
 	public void setObject_ID(int Object_ID_)	{Object_ID = Object_ID_;}
 	public void setSize(double Size_)	{Size = Size_;}
-	public void setsize(double aSize) {setSize(aSize);}
+	public void setsize(double aSize) {setSize(aSize);} // NO_UCD (unused code)
 	public void setPerimeter(double Perimeter_)	{Perimeter = Perimeter_;}
 	public void setLength(double Length_)	{Length = Length_;}
 	public void setIntensity(double Intensity_)	{Intensity = Intensity_;}
-	public void setmean(double aVal) {setIntensity(aVal);}
-	public void setx(double Coord_X_)		{x = Coord_X_;}
-	public void sety(double Coord_Y_)		{y = Coord_Y_;}
-	public void setz(double Coord_Z_)		{z = Coord_Z_;}
+	public void setmean(double aVal) {setIntensity(aVal);} // NO_UCD (unused code)
+	public void setx(double Coord_X_)		{x = Coord_X_;} // NO_UCD (unused code)
+	public void sety(double Coord_Y_)		{y = Coord_Y_;} // NO_UCD (unused code)
+	public void setz(double Coord_Z_)		{z = Coord_Z_;} // NO_UCD (unused code)
 
 	
 	public Region3DRScript() {}
@@ -86,20 +86,20 @@ public class Region3DRScript implements Outdata<Region>
 	public void setCoord_Z(double Coord_Z_) {z = Coord_Z_;}
 	
 	public int getImage_ID()	{return Image_ID;}
-	public int getlabel() {return getImage_ID();}
+	public int getlabel() {return getImage_ID();} // NO_UCD (unused code)
 	public int getObject_ID()	{return Object_ID;}
 	public double getCoord_X()	{return x;}
 	public double getCoord_Y()	{return y;}
 	public double getCoord_Z()	{return z;}
 	public double getIntensity()	{return Intensity;}
-	public double getmean() {return getIntensity();}
+	public double getmean() {return getIntensity();} // NO_UCD (unused code)
 	public double getSize()				{return Size;}
-	public double getsize() {return getSize();}
+	public double getsize() {return getSize();} // NO_UCD (unused code)
 	public double getPerimeter()		{return Perimeter;}
 	public double getLength()		{return Length;}
-	public double getx() {return x;}
-	public double gety() {return y;}
-	public double getz() {return z;}
+	public double getx() {return x;} // NO_UCD (unused code)
+	public double gety() {return y;} // NO_UCD (unused code)
+	public double getz() {return z;} // NO_UCD (unused code)
 	public int getFrame() {return Image_ID;}
 	public double getSurface() {return 0;}
 	

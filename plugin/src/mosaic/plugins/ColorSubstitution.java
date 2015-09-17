@@ -12,7 +12,7 @@ import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
 
-public class ColorSubstitution implements  ExtendedPlugInFilter
+public class ColorSubstitution implements  ExtendedPlugInFilter // NO_UCD (unused code)
 {
 	<T extends RealType<T> & NativeType<T> > 
 	void substitute(ImagePlus imp, double col_from, double col_to)

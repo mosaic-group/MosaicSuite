@@ -8,7 +8,7 @@ import ij.process.FloatProcessor;
  * This class serves as a example of how PlugInFloat3DBase should be used.
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
-public class FrameSplitterPlugin extends PlugInFloat3DBase {
+public class FrameSplitterPlugin extends PlugInFloat3DBase { // NO_UCD (unused code)
 
     @Override
     protected void processImg(FloatProcessor[] aOutputImg, FloatProcessor[] aOrigImg, int aChannelNumber) {

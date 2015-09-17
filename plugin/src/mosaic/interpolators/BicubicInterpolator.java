@@ -17,10 +17,6 @@ public class BicubicInterpolator extends PixelInterpolator {
 	
 	public BicubicInterpolator() {}
 	
-	public BicubicInterpolator(double a){
-		this.a = a;
-	}
-	
 	public double getInterpolatedPixel(Point2D pnt) {
 		double x0 = pnt.getX();
 		double y0 = pnt.getY();

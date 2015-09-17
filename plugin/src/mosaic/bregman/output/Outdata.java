@@ -30,7 +30,7 @@ public interface Outdata<E>
 	 * @param r Object to convert
 	 */
 	
-	void setData(E r);
+	void setData(E r); // NO_UCD (unused code)
 	
 	
 	// TODO: This is added temporarily to "simulate" all interface ICSVGeneral

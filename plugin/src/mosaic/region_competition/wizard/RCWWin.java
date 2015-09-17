@@ -1,11 +1,8 @@
 package mosaic.region_competition.wizard;
 
 import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
-import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
-import ij.gui.ImageCanvas;
-import ij.gui.ImageWindow;
 import ij.gui.Roi;
 import ij.plugin.frame.RoiManager;
 import ij.process.ImageProcessor;
@@ -27,17 +24,11 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSlider;
-import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import mosaic.core.utils.IntensityImage;
-import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.PointCM;
-import mosaic.region_competition.RCMean;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.EnergyFunctionalType;
 import mosaic.region_competition.initializers.InitializationType;
@@ -246,177 +237,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 	@Override
 	public void mouseReleased(MouseEvent arg0) {}
 
-	void runRC(ImagePlus img, Settings s)
-	{
-		IJ.run("Region Competition", "config=");
-	}
-	
-
-	
-	private class RCThread implements Runnable
-	{
-		Region_Competition rg;
-		
-		RCThread(ImageProcessor img_, Settings set)
-		{
-		}
-		
-		Region_Competition getRC()
-		{
-			return rg;
-		}
-		
-		@Override
-		public void run() 
-		{
-			rg.runP();
-		}
-		
-	}
-	
-	
-	private class RCPainterListener implements MouseListener, ChangeListener
-	{
-		JSlider slid;
-		JTextArea text;
- 		ImageCanvas canvas;
-		RCThread t;
-		int id = -1;
-		
-		RCPainterListener(RCThread th, JSlider js, JTextArea tx)
-		{
-			ImageWindow win = th.getRC().getStackImPlus().getWindow();
-			canvas = win.getCanvas();
-			canvas.addMouseListener(this);
-			slid = js;
-			text = tx;
-			t = th;
-		}
-		
-		@Override
-		public void mouseClicked(MouseEvent arg0) {
-			
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent arg0) {
-			
-		}
-
-		@Override
-		public void mouseExited(MouseEvent arg0) {
-			
-		}
-
-		@Override
-		public void mousePressed(MouseEvent e) 
-		{
-			
-			int x = e.getX();
-			int y = e.getY();
-			int offscreenX = canvas.offScreenX(x);
-			int offscreenY = canvas.offScreenY(y);
-			
-			//ImagePlus img = t.getRC().getStackImPlus();
-			
-			LabelImageRC lb = t.getRC().getLabelImage();
-			int size[] = lb.getDimensions();
-			
-			id = lb.getLabel(offscreenX+offscreenY*size[0]);
-			Double r_FG = lb.getLabelMap().get(id).mean;
-			text.setText(r_FG.toString());
-			slid.setValue((int)(r_FG * 1000.0));
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent arg0) {
-			
-		}
-
-		@Override
-		public void stateChanged(ChangeEvent arg0) {
-			
-			text.setText(String.valueOf(slid.getValue()/1000.0));
-			
-			if (id != -1)
-			{
-				LabelImageRC lb = t.getRC().getLabelImage();
-				double bg = lb.getLabelMap().get(0).mean;
-				
-				if (bg < slid.getValue()/1000.0 || id == 0)
-				{
-					RCMean rcm = new RCMean(id,slid.getValue()/1000.0);
-			
-					t.getRC().getAlgorithm().Process(rcm);
-				}
-			}
-		}
-		
-	}
-	
 	JDialog g;
-	
-	LabelImageRC RCPainter(ImagePlus aImg, Settings s)
-	{
-		
-		s.RC_free = true;
-		s.m_EnergyContourLengthCoeff = (float) 0.001;
-		s.m_RegionMergingThreshold = (float) 0.0;
-		
-		// Create the drawing window
-		
-		g = new JDialog();
-		
-		g.setTitle("RC Painter");
-		g.setBounds(100, 100, 150, 100);
-		contentPane = new JPanel();
-		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		g.setContentPane(contentPane);
-		contentPane.setLayout(new GridLayout(0, 1, 0, 0));
-		
-		JLabel lblNewLabel = new JLabel("Pick a region and move the cursor");
-		contentPane.add(lblNewLabel);
-		
-		JSlider slid = new JSlider();
-		slid.setMaximum(1000);
-		slid.setMinimum(0);
-		
-		JTextArea text = new JTextArea("0.5");
-		contentPane.add(slid);
-		contentPane.add(text);
-		
-		RCThread RCT = new RCThread(aImg.getProcessor(),s);
-		Thread t = new Thread(RCT);
-		t.start();
-		
-		// Delay we have to start
-		
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		RCPainterListener pc = new RCPainterListener(RCT,slid,text);
-		
-        slid.addChangeListener(pc);
-		
-		g.addMouseListener(pc);
-		
-		g.setVisible(true);
-		
-		try {
-			t.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		return RCT.getRC().getLabelImage();
-		
-		//
-		
-//		t.stop();
-	}
-	
 	
 	Settings OptimizeWithCMA(ScoreFunction fi,Settings s, double aDev[], String Question, double stop ,boolean debug)
 	{
@@ -790,24 +611,9 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 				System.out.println("Energy Contour Length  " + s.m_EnergyContourLengthCoeff);
 				System.out.println("Baloon force " + s.m_BalloonForceCoeff);
 				System.out.println("PS radius " + s.m_GaussPSEnergyRadius);
-//				System.out.println("Smooth target " + fiRC.smooth[0] + "  Smooth reached: " + fiRC.Smooth(fiRC.getLabel(0)));
 				System.out.println("Area " + sizeA[0]);
 			}
 		}
-			// run Region Competition on all images
-		
-			// Filter out with ROI
-		
-			// Scoring
-		
-			// N(nr) + a/(Iman - Imin) * N
-		
-			// Selection*/
-	}
-	
-	Settings getSet()
-	{
-		return ref_save;
 	}
 }
 

@@ -8,9 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import mosaic.core.utils.Point;
-import net.imglib2.Cursor;
-import net.imglib2.img.Img;
-import net.imglib2.type.numeric.real.FloatType;
 
 
 
@@ -42,25 +39,4 @@ public class MaximumFinder2D extends MaximumFinder implements MaximumFinderInter
     	
     	return list;
     }
-	
-	@Override
-    public List<Point> getMaximaPointList(Img< FloatType > pixels, double tolerance, boolean excludeOnEdges)
-    {
-		float pixels_prc[] = new float [(int) pixels.size()];
-		Cursor < FloatType > vCrs = pixels.cursor();
-		
-		int loc[] = new int [2];
-		
-		while (vCrs.hasNext())
-		{
-			vCrs.fwd();
-			vCrs.localize(loc);
-			pixels_prc[loc[1]*width+loc[0]] = vCrs.get().get();
-		}
-		
-		List<Point> list = getMaximaPointList(pixels_prc,tolerance,excludeOnEdges);
-    	
-    	return list;
-    }
-
 }

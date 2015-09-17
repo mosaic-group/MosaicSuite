@@ -868,23 +868,6 @@ public class MosaicUtils {
     }
 
     /**
-     * Given an index return the set of Coordinate (Stride ordering)
-     * 
-     * @param index is the idex
-     * @param img is the image
-     */
-    public static int[] getCoord(long index, Img<?> img) {
-        int crd[] = new int[img.numDimensions()];
-
-        for (int i = 0; i < crd.length; i++) {
-            crd[i] = (int) (index % img.dimension(i));
-            index /= img.dimension(i);
-        }
-
-        return crd;
-    }
-
-    /**
      * Create a choose image selector
      * 
      * @param gd Generic Dialog

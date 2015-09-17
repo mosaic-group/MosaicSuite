@@ -63,11 +63,6 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		pntMod = new PointCM[l.length][];
 	}
 
-	public LabelImageRC getLabel(int im)
-	{
-		return l[im];
-	}
-	
 	
 	public void setCMModel(PointCM [] mod,int i)
 	{
@@ -195,12 +190,6 @@ public class ScoreFunctionRCtop implements ScoreFunction
 	}
 
 	@Override
-	public void incrementStep() 
-	{
-		
-	}
-
-	@Override
 	public void show() 
 	{
 	
@@ -217,12 +206,6 @@ public class ScoreFunctionRCtop implements ScoreFunction
 		aMean[0] = s.m_RegionMergingThreshold;
 		
 		return aMean;
-	}
-		
-	@Override
-	public int getNImg() 
-	{
-		return l.length;
 	}
 
 	@Override

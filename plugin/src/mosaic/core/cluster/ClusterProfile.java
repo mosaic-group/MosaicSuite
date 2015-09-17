@@ -145,13 +145,6 @@ public interface ClusterProfile {
 
     public void setBatchSystem(BatchInterface bc_);
 
-    /**
-     * Set the a compressor algorithm for the cluster
-     * 
-     * @param a Batch system
-     */
-
-    void setCompressor(Algorithm a);
 
     /**
      * Check if the cluster has a specified compressor

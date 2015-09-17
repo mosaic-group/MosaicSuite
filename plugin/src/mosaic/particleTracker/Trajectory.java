@@ -262,7 +262,7 @@ public class Trajectory
     /**
      * Debug method - prints all the gaps in this trajectory (coordinates that defines a gap)
      */
-    void printGaps() {
+    void printGaps() { // NO_UCD (unused code)
         if (gaps == null) return;           
         Object[] gaps_tmp = gaps.toArray();
         for (int i = 0; i<num_of_gaps; i++) {               

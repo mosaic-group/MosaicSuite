@@ -158,21 +158,11 @@ public class ScoreFunctionRCvol implements ScoreFunction
 	}
 
 	@Override
-	public void incrementStep() {
-			
-	}
-
-	@Override
 	public void show() {
 		
 		for (int im = 0 ;  im < l.length ; im++)
 			l[im].show("init", 255);
 			
-	}
-
-	@Override
-	public int getNImg() {
-		return l.length;
 	}
 
 	@Override

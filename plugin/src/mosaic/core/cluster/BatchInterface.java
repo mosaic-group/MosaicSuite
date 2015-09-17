@@ -88,19 +88,6 @@ interface BatchInterface extends ShellProcessOutput
 	
 	/**
 	 * 
-	 * A class that implement this interface is suppose to parse the output
-	 * produced by the batch system during several phases ( For now two phase are
-	 * required LAUNCH (Job creation) and STATUS (Job status request))
-	 * 
-	 * @param tp parsing phase
-	 * @see ShellProcessOutput
-	 * 
-	 */
-	
-	void setOutputType(OutputType tp);
-	
-	/**
-	 * 
 	 * Wait to complete the parsing of the output produced by the command
 	 *  performed
 	 * 

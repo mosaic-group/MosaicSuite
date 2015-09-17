@@ -26,20 +26,11 @@ public class BinarizedIntervalLabelImage extends IntervalsListInteger implements
 	{
 		super();
 		SetInputImage(aLabelImage);
-//		m_NThresholds = 0;
-//		m_Thresholds = new ArrayList<Pair<Double,Double>>();
 	}
 	
 	void SetInputImage(LabelImage labelImage)
 	{
 		this.labelImage = labelImage;
-	}
-	
-	@Override
-	public boolean EvaluateAtIndex(int index)
-	{
-		int value = labelImage.getLabel(index);
-		return Evaluate(value);
 	}
 	
 	/**

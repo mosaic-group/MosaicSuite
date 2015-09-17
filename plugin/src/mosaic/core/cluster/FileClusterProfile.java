@@ -6,7 +6,6 @@ import java.io.File;
 import java.util.Vector;
 
 import mosaic.core.utils.DataCompression;
-import mosaic.core.utils.DataCompression.Algorithm;
 import mosaic.io.csv.CSV;
 import mosaic.io.csv.CsvColumnConfig;
 
@@ -131,12 +130,6 @@ public class FileClusterProfile extends GeneralProfile
 	@Override
 	public void setImageJCommand(String ImageJCommand_)
 	{
-	}
-	
-	@Override
-	public void setCompressor(Algorithm a)
-	{
-		csv.setMetaInformation(a.name, "true");
 	}
 	
 	@Override

@@ -72,9 +72,7 @@ public class GenericDialogGUI implements InputReadable
 	private boolean showNormalized = false;
 	private boolean useStack = true;
 	public boolean keepAllFrames = true;	// keep result of last segmentation iteratior?
-	private boolean show3DResult = false;
 //	private boolean useRegularization;
-	private boolean useOldRegionIterator=false;
 	private boolean useCluster=false;
 	
 	static final String EnergyFunctional = "E_data";
@@ -620,22 +618,10 @@ public class GenericDialogGUI implements InputReadable
 	{
 		return filenameInput;
 	}
-
-	@Override
-	public boolean showNormalized()
-	{
-		return showNormalized;
-	}
 	
 	public boolean useCluster()
 	{
 		return useCluster;
-	}
-	
-	@Override
-	public boolean useStack()
-	{
-		return useStack;
 	}
 
 	@Override
@@ -645,24 +631,10 @@ public class GenericDialogGUI implements InputReadable
 	}
 
 	@Override
-	public boolean show3DResult()
-	{
-		return show3DResult;
-	}
-
-	@Override
 	public boolean showAndSaveStatistics()
 	{
 		return showAndSaveStatistics;
 	}
-
-
-	@Override
-	public boolean useOldRegionIterator()
-	{
-		return useOldRegionIterator;
-	}
-
 
 	@Override
 	public int getKBest()

@@ -7,7 +7,7 @@ import ij.process.ByteProcessor;
  * This class serves as a example of how PlugIn8BitBase should be used.
  * @author Krzysztof Gonciarz
  */
-public class HistogramEqualizationPlugin extends PlugIn8bitBase {
+public class HistogramEqualizationPlugin extends PlugIn8bitBase { // NO_UCD (unused code)
 
     @Override
     protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg, int aChannelNumber) {
