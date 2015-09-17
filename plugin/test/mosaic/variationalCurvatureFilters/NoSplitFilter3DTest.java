@@ -29,21 +29,21 @@ public class NoSplitFilter3DTest {
                     {0.0f, 0.0f, 0.0f, 0.0f},
                     {0.0f, 0.0f, 0.0f, 0.0f}},
 
-                    {{0.0f, 0.0f, 0.0f, 0.0f},
-                        {0.0f, 1.0f, 6.0f, 0.0f},
-                        {0.0f, 5.0f, 2.0f, 0.0f},
-                        {0.0f, 0.0f, 0.0f, 0.0f}},
+                 {{0.0f, 0.0f, 0.0f, 0.0f},
+                  {0.0f, 1.0f, 6.0f, 0.0f},
+                  {0.0f, 5.0f, 2.0f, 0.0f},
+                  {0.0f, 0.0f, 0.0f, 0.0f}},
 
-                        {{0.0f, 0.0f, 0.0f, 0.0f},
-                            {0.0f, 7.0f, 3.0f, 0.0f},
-                            {0.0f, 4.0f, 8.0f, 0.0f},
-                            {0.0f, 0.0f, 0.0f, 0.0f}},
+                 {{0.0f, 0.0f, 0.0f, 0.0f},
+                  {0.0f, 7.0f, 3.0f, 0.0f},
+                  {0.0f, 4.0f, 8.0f, 0.0f},
+                  {0.0f, 0.0f, 0.0f, 0.0f}},
 
-                            {{0.0f, 0.0f, 0.0f, 0.0f},
-                                {0.0f, 0.0f, 0.0f, 0.0f},
-                                {0.0f, 0.0f, 0.0f, 0.0f},
-                                {0.0f, 0.0f, 0.0f, 0.0f}}
-        };
+                 {{0.0f, 0.0f, 0.0f, 0.0f},
+                  {0.0f, 0.0f, 0.0f, 0.0f},
+                  {0.0f, 0.0f, 0.0f, 0.0f},
+                  {0.0f, 0.0f, 0.0f, 0.0f}}
+                };
 
         final int zLen = expectedOutput.length;
         final int yLen = expectedOutput[0].length;
@@ -65,46 +65,46 @@ public class NoSplitFilter3DTest {
     /**
      * Check if more than one iteration is correctly handled.
      */
-     @Test
-     public void testIncrements() {
-         final float expectedPrecision = 0.000001f;
-         final int noOfIncrements = 2;
-         final float[][][] expectedOutput = {
-                 {{0.0f, 0.0f, 0.0f, 0.0f},
-                     {0.0f, 0.0f, 0.0f, 0.0f},
-                     {0.0f, 0.0f, 0.0f, 0.0f},
-                     {0.0f, 0.0f, 0.0f, 0.0f}},
+    @Test
+    public void testIncrements() {
+        final float expectedPrecision = 0.000001f;
+        final int noOfIncrements = 2;
+        final float[][][] expectedOutput = {
+                {{0.0f, 0.0f, 0.0f, 0.0f},
+                 {0.0f, 0.0f, 0.0f, 0.0f},
+                 {0.0f, 0.0f, 0.0f, 0.0f},
+                 {0.0f, 0.0f, 0.0f, 0.0f}},
 
-                     {{0.0f, 0.0f, 0.0f, 0.0f},
-                         {0.0f, 10.0f, 20.0f, 0.0f},
-                         {0.0f, 18.0f, 12.0f, 0.0f},
-                         {0.0f, 0.0f, 0.0f, 0.0f}},
+                {{0.0f, 0.0f, 0.0f, 0.0f},
+                 {0.0f, 10.0f, 20.0f, 0.0f},
+                 {0.0f, 18.0f, 12.0f, 0.0f},
+                 {0.0f, 0.0f, 0.0f, 0.0f}},
 
-                         {{0.0f, 0.0f, 0.0f, 0.0f},
-                             {0.0f, 22.0f, 14.0f, 0.0f},
-                             {0.0f, 16.0f, 24.0f, 0.0f},
-                             {0.0f, 0.0f, 0.0f, 0.0f}},
+                {{0.0f, 0.0f, 0.0f, 0.0f},
+                 {0.0f, 22.0f, 14.0f, 0.0f},
+                 {0.0f, 16.0f, 24.0f, 0.0f},
+                 {0.0f, 0.0f, 0.0f, 0.0f}},
 
-                             {{0.0f, 0.0f, 0.0f, 0.0f},
-                                 {0.0f, 0.0f, 0.0f, 0.0f},
-                                 {0.0f, 0.0f, 0.0f, 0.0f},
-                                 {0.0f, 0.0f, 0.0f, 0.0f}}
-         };
+                {{0.0f, 0.0f, 0.0f, 0.0f},
+                 {0.0f, 0.0f, 0.0f, 0.0f},
+                 {0.0f, 0.0f, 0.0f, 0.0f},
+                 {0.0f, 0.0f, 0.0f, 0.0f}}
+        };
 
-         final int zLen = expectedOutput.length;
-         final int yLen = expectedOutput[0].length;
-         final int xLen = expectedOutput[0][0].length;
+        final int zLen = expectedOutput.length;
+        final int yLen = expectedOutput[0].length;
+        final int xLen = expectedOutput[0][0].length;
 
-         float[][][] img = new float[zLen][yLen][xLen];
+        float[][][] img = new float[zLen][yLen][xLen];
 
-         NoSplitFilter3D nsf = new NoSplitFilter3D(new IncreasingValueFilter());
-         nsf.runFilter(img, noOfIncrements);
+        NoSplitFilter3D nsf = new NoSplitFilter3D(new IncreasingValueFilter());
+        nsf.runFilter(img, noOfIncrements);
 
-         for (int z = 0; z < zLen; ++z) {
-             for (int y = 0; y < yLen; ++y) {
-                 Assert.assertArrayEquals("Arrays should have same values!",
-                         expectedOutput[z][y], img[z][y], expectedPrecision);
-             }
-         }
-     }
+        for (int z = 0; z < zLen; ++z) {
+            for (int y = 0; y < yLen; ++y) {
+                Assert.assertArrayEquals("Arrays should have same values!",
+                        expectedOutput[z][y], img[z][y], expectedPrecision);
+            }
+        }
+    }
 }

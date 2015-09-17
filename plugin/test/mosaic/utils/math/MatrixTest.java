@@ -581,11 +581,11 @@ public class MatrixTest extends CommonBase {
     @Test
     public void testNormalizeInRange0to1() {
         {   // (-5, -2, 1, 4, 7, 10) => (0, 0.2, 0.4, 0.6, 0.8, 1)
-                Matrix m1 = new Matrix(new double [][] {{1, 7}, {4, -5}, {-2, 10}});
+            Matrix m1 = new Matrix(new double [][] {{1, 7}, {4, -5}, {-2, 10}});
 
-        Matrix expected = new Matrix(new double [][] {{0.4, 0.8}, {0.6, 0}, {0.2, 1.0}});
+            Matrix expected = new Matrix(new double [][] {{0.4, 0.8}, {0.6, 0}, {0.2, 1.0}});
 
-        assertEquals(expected, m1.normalizeInRange0to1());
+            assertEquals(expected, m1.normalizeInRange0to1());
         }
     }
 
