@@ -56,7 +56,7 @@ import mosaic.psf2d.PsfSourcePosition;
  * @since 1.0
  * @author Benedikt Baumgartner - Academic guest at the <a href="http://www.cbl.ethz.ch/">Computational Biophysics Lab<a>, ETH Zurich
  */
-public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, WindowListener{ // NO_UCD (unused code)
+public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, WindowListener{ // NO_UCD
 
 	/** Radius of selected point sources*/
 	public double radius;	

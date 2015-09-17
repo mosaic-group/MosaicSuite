@@ -10,7 +10,7 @@ import mosaic.plugins.utils.PlugInFloatBase;
  * Laplace filter implementation.
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
-public class LaplaceFilter extends PlugInFloatBase { // NO_UCD (unused code)
+public class LaplaceFilter extends PlugInFloatBase { // NO_UCD
 
     @Override
     protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber) {

@@ -37,7 +37,7 @@ import mosaic.plugins.utils.PlugInFloatBase;
  * Implementation of filament segmentation plugin.
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
-public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD (unused code)
+public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD 
 	// Segmentation parameters  
 	private NoiseType iNoiseType;
 	private PsfType iPsfType;

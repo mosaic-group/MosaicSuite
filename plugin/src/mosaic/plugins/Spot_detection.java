@@ -26,7 +26,7 @@ import mosaic.io.csv.CsvColumnConfig;
  */
 
 
-public class Spot_detection implements PlugInFilter // NO_UCD (unused code)
+public class Spot_detection implements PlugInFilter // NO_UCD
 {
 
 	String dir;

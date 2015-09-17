@@ -64,7 +64,7 @@ import net.imglib2.type.numeric.real.FloatType;
  * OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.<p>
  *
  */
-public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD (unused code)
+public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
 {
     static final int FLAGS = DOES_8G + DOES_16 + DOES_32;
 	ImagePlus imp;
