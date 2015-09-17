@@ -8,7 +8,12 @@ import mosaic.region_competition.energies.Energy.EnergyResult;
 
 
 public class ImageModel {
-
+    
+    // Settings
+    public final float EnergyRegionCoeff = 1.0f;
+    public final float ConstantOutwardFlow = 0.0f; 
+    
+    
     Energy e_data;
     Energy e_length;
     Energy e_merge;
@@ -36,7 +41,7 @@ public class ImageModel {
     }
 
     public EnergyResult CalculateEnergyDifferenceForLabel(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel) {
-        float m_EnergyRegionCoeff = settings.m_EnergyRegionCoeff;
+        float m_EnergyRegionCoeff = EnergyRegionCoeff;
 
         float vCurrentImageValue = aContourPointPtr.intensity;
         int vCurrentLabel = aContourPointPtr.label;
@@ -69,7 +74,7 @@ public class ImageModel {
         // / touching, no constant flow is imposed (cancels out).
         if (vCurrentLabel == 0) // growing
         {
-            vEnergy -= settings.m_ConstantOutwardFlow;
+            vEnergy -= ConstantOutwardFlow;
             if (settings.m_EnergyFunctional == EnergyFunctionalType.e_PS) {
                 if (settings.m_BalloonForceCoeff > 0) { // outward flow
                     vEnergy -= settings.m_BalloonForceCoeff * vCurrentImageValue;
@@ -81,7 +86,7 @@ public class ImageModel {
         }
         else if (aToLabel == 0) // shrinking
         {
-            vEnergy += settings.m_ConstantOutwardFlow;
+            vEnergy += ConstantOutwardFlow;
         }
 
         // / For the full-region based energy models, register competing regions

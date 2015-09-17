@@ -130,6 +130,11 @@ public class Algorithm {
     EnergyFunctionalType m_EnergyFunctional;
     private int m_MaxNLabels;
 
+    // Settings
+    public final float AcceptedPointsFactor = 1;
+    public final boolean RemoveNonSignificantRegions = true;
+  
+    
     // ///////////////////////////////////////////////////
 
     private void initMembers() {
@@ -153,7 +158,7 @@ public class Algorithm {
 
         m_iteration_counter = 0;
         m_converged = false;
-        m_AcceptedPointsFactor = settings.m_AcceptedPointsFactor;
+        m_AcceptedPointsFactor = AcceptedPointsFactor;
 
         labelDispenser = new LabelDispenser(10000);
         labelDispenser = new LabelDispenser.LabelDispenserInc();
@@ -280,6 +285,8 @@ public class Algorithm {
         labelDispenser.setLabelsInUse(usedLabels);
     }
 
+    static private boolean RC_free = false;
+    
     public boolean GenerateData(Img<FloatType> image_psf) {
         /**
          * Initialize standard statistics (mean, variances, length, area etc)
@@ -307,7 +314,7 @@ public class Algorithm {
 
         boolean vConvergence = false;
 
-        while (settings.RC_free == true || (settings.m_MaxNbIterations > m_iteration_counter && !(vConvergence))) {
+        while (RC_free == true || (settings.m_MaxNbIterations > m_iteration_counter && !(vConvergence))) {
             synchronized (pauseMonitor) {
                 if (pause) {
                     try {
@@ -356,7 +363,7 @@ public class Algorithm {
                 debug("Done with shrinking, now allow growing");
                 vConvergence = false;
                 shrinkFirst = false;
-                m_AcceptedPointsFactor = settings.m_AcceptedPointsFactor;
+                m_AcceptedPointsFactor = AcceptedPointsFactor;
             }
 
             // labelImage.displaySlice("iteration " + m_iteration_counter);
@@ -456,11 +463,7 @@ public class Algorithm {
             ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage);
         }
 
-        if (settings.m_UseShapePrior) {
-            // TODO sts
-        }
-
-        if (settings.m_RemoveNonSignificantRegions) {
+        if (RemoveNonSignificantRegions) {
             RemoveSinglePointRegions();
             RemoveNotSignificantRegions();
         }
@@ -786,7 +789,7 @@ public class Algorithm {
      * Detect oscillations and store values in history.
      */
     private void DetectOscillations(HashMap<Point, ContourParticle> m_Candidates) {
-        if (settings.RC_free == false) {
+        if (RC_free == false) {
             oscillationDetection.DetectOscillations(m_Candidates);
         }
     }
@@ -1267,7 +1270,7 @@ public class Algorithm {
         // / Update the statistics of the propagating and the loser region.
         // /
 
-        if (settings.RC_free == false) {
+        if (RC_free == false) {
             UpdateStatisticsWhenJump(aParticle, vFromLabel, vToLabel);
         }
         if (imageModel.getEdataType() == EnergyFunctionalType.e_DeconvolutionPC) {
@@ -1747,6 +1750,9 @@ public class Algorithm {
          */
     }
 
+    // Settings
+    private final int AreaThreshold = 1;
+    
     private void RemoveNotSignificantRegions() {
         // Iterate through the active labels and check for significance.
         for (Entry<Integer, LabelInformation> vActiveLabelsIt : labelMap.entrySet()) {
@@ -1755,7 +1761,7 @@ public class Algorithm {
                 continue;
             }
 
-            if (vActiveLabelsIt.getValue().count <= settings.m_AreaThreshold) {
+            if (vActiveLabelsIt.getValue().count <= AreaThreshold) {
                 RemoveFGRegion(vActiveLabelsIt.getKey());
             }
         }

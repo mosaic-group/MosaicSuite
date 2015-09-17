@@ -11,19 +11,21 @@ import mosaic.region_competition.Settings;
 
 public class OscillationDetection {
 
+    public final float AcceptedPointsReductionFactor = 0.5f;
     Algorithm algorithm;
 
     int m_OscillationsNumberHist[];
     double m_OscillationsEnergyHist[];
-    int m_OscillationHistoryLength;
+    
+    // Settings
+    int m_OscillationHistoryLength = 10;
 
     float m_AcceptedPointsReductionFactor;
 
     OscillationDetection(Algorithm algo, Settings settings) {
         this.algorithm = algo;
 
-        this.m_OscillationHistoryLength = settings.m_OscillationHistoryLength;
-        this.m_AcceptedPointsReductionFactor = settings.m_AcceptedPointsReductionFactor;
+        this.m_AcceptedPointsReductionFactor = AcceptedPointsReductionFactor;
 
         m_OscillationsNumberHist = new int[m_OscillationHistoryLength];
         m_OscillationsEnergyHist = new double[m_OscillationHistoryLength];

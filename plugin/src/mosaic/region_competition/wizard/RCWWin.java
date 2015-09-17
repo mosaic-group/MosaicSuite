@@ -528,7 +528,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
                 // Print out
 
                 System.out.println("Mask radius  " + s.m_CurvatureMaskRadius);
-                System.out.println("Outward Flow  " + s.m_ConstantOutwardFlow);
                 System.out.println("Baloon force " + s.m_BalloonForceCoeff);
                 System.out.println("PS radius " + s.m_GaussPSEnergyRadius);
                 // System.out.println("Area target " + fiRC.Area[0] + "  Area reached: " + sizeA[0]);
