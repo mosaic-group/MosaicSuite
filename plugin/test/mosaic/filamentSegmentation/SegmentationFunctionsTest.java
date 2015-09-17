@@ -2,11 +2,11 @@ package mosaic.filamentSegmentation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import mosaic.math.Matrix;
-import mosaic.nurbs.BSplineSurface;
-import mosaic.nurbs.BSplineSurfaceFactory;
-import mosaic.nurbs.Function;
 import mosaic.test.framework.CommonBase;
+import mosaic.utils.math.Matrix;
+import mosaic.utils.nurbs.BSplineSurface;
+import mosaic.utils.nurbs.BSplineSurfaceFactory;
+import mosaic.utils.nurbs.Function;
 
 import org.junit.Test;
 

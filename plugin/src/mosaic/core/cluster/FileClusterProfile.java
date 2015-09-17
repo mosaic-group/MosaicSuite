@@ -6,8 +6,8 @@ import java.io.File;
 import java.util.Vector;
 
 import mosaic.core.utils.DataCompression;
-import mosaic.io.csv.CSV;
-import mosaic.io.csv.CsvColumnConfig;
+import mosaic.utils.io.csv.CSV;
+import mosaic.utils.io.csv.CsvColumnConfig;
 
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ift.CellProcessor;

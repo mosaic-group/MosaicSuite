@@ -15,8 +15,8 @@ import java.util.Vector;
 
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ClusterSession;
-import mosaic.io.csv.CSV;
 import mosaic.plugins.utils.PlugInFilterExt;
+import mosaic.utils.io.csv.CSV;
 import net.imglib2.img.Img;
 
 import org.scijava.Context;

@@ -26,12 +26,12 @@ import java.util.TreeMap;
 import mosaic.filamentSegmentation.SegmentationAlgorithm;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.NoiseType;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
-import mosaic.math.CubicSmoothingSpline;
-import mosaic.math.MFunc;
-import mosaic.math.Matlab;
-import mosaic.math.Matrix;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.PlugInFloatBase;
+import mosaic.utils.math.CubicSmoothingSpline;
+import mosaic.utils.math.MFunc;
+import mosaic.utils.math.Matlab;
+import mosaic.utils.math.Matrix;
 
 /**
  * Implementation of filament segmentation plugin.

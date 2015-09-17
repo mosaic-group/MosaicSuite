@@ -1,9 +1,10 @@
 package mosaic.plugins.utils;
 
 import static org.junit.Assert.*;
-import mosaic.math.Matrix;
+import mosaic.utils.math.Matrix;
 
 import org.junit.Test;
+
 import static mosaic.plugins.utils.Interpolation.InterpolationType.*;
 import static mosaic.plugins.utils.Interpolation.InterpolationMode.*;
 

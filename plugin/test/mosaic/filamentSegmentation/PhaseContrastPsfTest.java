@@ -1,8 +1,8 @@
 package mosaic.filamentSegmentation;
 
 import static org.junit.Assert.assertTrue;
-import mosaic.math.Matrix;
 import mosaic.test.framework.CommonBase;
+import mosaic.utils.math.Matrix;
 
 import org.junit.Test;
 

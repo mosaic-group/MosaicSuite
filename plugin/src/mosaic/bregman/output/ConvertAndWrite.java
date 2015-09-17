@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Vector;
 
 import mosaic.bregman.Region;
-import mosaic.io.csv.CSV;
-import mosaic.io.csv.CsvColumnConfig;
+import mosaic.utils.io.csv.CSV;
+import mosaic.utils.io.csv.CsvColumnConfig;
 
 /**
  * Hopefully temporary class to perform some needed conversions and write output as CSV. 

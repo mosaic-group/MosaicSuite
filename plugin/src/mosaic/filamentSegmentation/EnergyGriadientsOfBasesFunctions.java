@@ -1,6 +1,6 @@
 package mosaic.filamentSegmentation;
 
-import mosaic.math.Matrix;
+import mosaic.utils.math.Matrix;
 
 /**
  * This class provides energy griadients from B-Spline coeffcients.

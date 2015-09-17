@@ -14,8 +14,8 @@ import mosaic.core.detection.FeaturePointDetector;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.io.csv.CSV;
-import mosaic.io.csv.CsvColumnConfig;
+import mosaic.utils.io.csv.CSV;
+import mosaic.utils.io.csv.CsvColumnConfig;
 
 /**
  * 

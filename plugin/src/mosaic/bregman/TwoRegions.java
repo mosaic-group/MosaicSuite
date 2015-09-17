@@ -16,8 +16,8 @@ import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
-import mosaic.io.csv.CSV;
-import mosaic.io.csv.CsvColumnConfig;
+import mosaic.utils.io.csv.CSV;
+import mosaic.utils.io.csv.CsvColumnConfig;
 import net.imglib2.type.numeric.real.DoubleType;
 
 

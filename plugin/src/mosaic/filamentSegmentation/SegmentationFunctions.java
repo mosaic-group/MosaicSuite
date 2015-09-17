@@ -1,12 +1,12 @@
 package mosaic.filamentSegmentation;
 
-import mosaic.math.CubicSmoothingSpline;
-import mosaic.math.MFunc;
-import mosaic.math.Matlab;
-import mosaic.math.Matrix;
-import mosaic.nurbs.BSplineSurface;
-import mosaic.nurbs.BSplineSurfaceFactory;
-import mosaic.nurbs.Function;
+import mosaic.utils.math.CubicSmoothingSpline;
+import mosaic.utils.math.MFunc;
+import mosaic.utils.math.Matlab;
+import mosaic.utils.math.Matrix;
+import mosaic.utils.nurbs.BSplineSurface;
+import mosaic.utils.nurbs.BSplineSurfaceFactory;
+import mosaic.utils.nurbs.Function;
 
 public class SegmentationFunctions {
 

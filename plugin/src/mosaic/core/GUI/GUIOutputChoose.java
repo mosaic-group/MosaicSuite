@@ -1,6 +1,6 @@
 package mosaic.core.GUI;
 
-import mosaic.io.csv.CsvColumnConfig;
+import mosaic.utils.io.csv.CsvColumnConfig;
 
 
 

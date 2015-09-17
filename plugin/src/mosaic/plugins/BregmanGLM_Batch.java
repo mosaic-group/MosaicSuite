@@ -18,8 +18,8 @@ import mosaic.bregman.output.CSVOutput;
 import mosaic.core.psf.psf;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Segmentation;
-import mosaic.io.serialize.DataFile;
-import mosaic.io.serialize.SerializedDataFile;
+import mosaic.utils.io.serialize.DataFile;
+import mosaic.utils.io.serialize.SerializedDataFile;
 import net.imglib2.type.numeric.real.DoubleType;
 
 public class BregmanGLM_Batch implements Segmentation {

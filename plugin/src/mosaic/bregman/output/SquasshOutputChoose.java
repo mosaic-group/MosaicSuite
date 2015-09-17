@@ -4,7 +4,7 @@ import java.util.Vector;
 
 import mosaic.bregman.Region;
 import mosaic.core.GUI.GUIOutputChoose;
-import mosaic.io.csv.CSV;
+import mosaic.utils.io.csv.CSV;
 
 
 public class SquasshOutputChoose extends GUIOutputChoose

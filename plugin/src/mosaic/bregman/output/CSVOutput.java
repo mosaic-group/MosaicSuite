@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.Vector;
 
 import mosaic.bregman.Region;
-import mosaic.io.csv.CSV;
-import mosaic.io.csv.CsvColumnConfig;
+import mosaic.utils.io.csv.CSV;
+import mosaic.utils.io.csv.CsvColumnConfig;
 
 import org.supercsv.cellprocessor.ParseBool;
 import org.supercsv.cellprocessor.ParseDouble;

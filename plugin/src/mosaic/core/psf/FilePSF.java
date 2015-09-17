@@ -17,8 +17,8 @@ import java.io.File;
 import java.io.Serializable;
 
 import mosaic.core.utils.MosaicUtils;
-import mosaic.io.serialize.DataFile;
-import mosaic.io.serialize.SerializedDataFile;
+import mosaic.utils.io.serialize.DataFile;
+import mosaic.utils.io.serialize.SerializedDataFile;
 import net.imglib2.Localizable;
 import net.imglib2.RandomAccess;
 import net.imglib2.RandomAccessibleInterval;

@@ -1,6 +1,6 @@
 package mosaic.filamentSegmentation;
 
-import mosaic.math.Matrix;
+import mosaic.utils.math.Matrix;
 
 public class GaussPsf {
 	public static double[][] generateKernel(int xl, int yl, double sigma) {

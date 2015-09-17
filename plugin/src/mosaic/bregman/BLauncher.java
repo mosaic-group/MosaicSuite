@@ -30,7 +30,7 @@ import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Outdata;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
-import mosaic.io.csv.CSV;
+import mosaic.utils.io.csv.CSV;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;

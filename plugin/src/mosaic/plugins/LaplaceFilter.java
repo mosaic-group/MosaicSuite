@@ -1,10 +1,10 @@
 package mosaic.plugins;
 
 import ij.process.FloatProcessor;
-import mosaic.math.Matlab;
-import mosaic.math.Matrix;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.PlugInFloatBase;
+import mosaic.utils.math.Matlab;
+import mosaic.utils.math.Matrix;
 
 /**
  * Laplace filter implementation.

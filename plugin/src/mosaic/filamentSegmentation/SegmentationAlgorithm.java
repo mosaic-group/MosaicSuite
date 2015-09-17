@@ -18,17 +18,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import mosaic.core.utils.Point;
-import mosaic.generalizedLinearModel.Glm;
-import mosaic.generalizedLinearModel.GlmGaussian;
-import mosaic.generalizedLinearModel.GlmPoisson;
-import mosaic.math.CubicSmoothingSpline;
-import mosaic.math.Matlab;
-import mosaic.math.Matrix;
-import mosaic.math.RegionStatisticsSolver;
-import mosaic.nurbs.BSplineSurface;
 import mosaic.plugins.utils.Convert;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.region_competition.utils.MaximumFinder2D;
+import mosaic.utils.math.CubicSmoothingSpline;
+import mosaic.utils.math.Matlab;
+import mosaic.utils.math.Matrix;
+import mosaic.utils.math.RegionStatisticsSolver;
+import mosaic.utils.math.generalizedLinearModel.Glm;
+import mosaic.utils.math.generalizedLinearModel.GlmGaussian;
+import mosaic.utils.math.generalizedLinearModel.GlmPoisson;
+import mosaic.utils.nurbs.BSplineSurface;
 
 
 /**

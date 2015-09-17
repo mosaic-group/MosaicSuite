@@ -12,8 +12,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.Serializable;
 
-import mosaic.io.serialize.DataFile;
-import mosaic.io.serialize.SerializedDataFile;
+import mosaic.utils.io.serialize.DataFile;
+import mosaic.utils.io.serialize.SerializedDataFile;
 import net.imglib2.Cursor;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;
