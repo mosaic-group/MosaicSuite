@@ -14,7 +14,7 @@ public class LabelInformation {
 
     /**
      * Create a label that store information
-     * 
+     *
      * @param label id of the label
      * @param dim dimensions of the problem
      */

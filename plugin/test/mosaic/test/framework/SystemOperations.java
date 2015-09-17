@@ -15,11 +15,11 @@ public class SystemOperations {
     static final String SEPARATOR = File.separator;
     static final String TEST_TMP_DIR = "test";
 
-    
+
     /**
-     * Returns test data path. 
+     * Returns test data path.
      * @return Absolute path to test data
-     * 
+     *
      */
     static public String getTestDataPath() {
         final String path = System.getenv("MOSAIC_PLUGIN_TEST_DATA_PATH");
@@ -32,7 +32,7 @@ public class SystemOperations {
 
         return path + SEPARATOR;
     }
-    
+
     /**
      * Returns temporary test path which should be used during tests execution.
      * @return Absolute path to temporary test data.
@@ -40,20 +40,20 @@ public class SystemOperations {
     public static String getTestTmpPath() {
         return getTmpPath() + TEST_TMP_DIR + SEPARATOR;
     }
-    
+
     /**
-     * Returns prepared (empty) temporary test path which should be used 
+     * Returns prepared (empty) temporary test path which should be used
      * during tests execution.
-     * 
+     *
      * @return Absolute path to temporary test data.
      */
     public static String getCleanTestTmpPath() {
         removeTestTmpDir();
         createTestTmpDir();
-        
+
         return getTestTmpPath();
     }
-    
+
     /**
      * Copies file to directory
      * @param aSrcFile
@@ -68,7 +68,7 @@ public class SystemOperations {
             throw new RuntimeException("Cannot copy file [" + aSrcFile + "] to dir [" + aDestDir + "] [" + e.getMessage() + "]");
         }
     }
-    
+
     /**
      * Copies file to new file
      * @param aSrcFile
@@ -83,7 +83,7 @@ public class SystemOperations {
             throw new RuntimeException("Cannot copy file [" + aSrcFile + "] to [" + aDestFile + "]");
         }
     }
-    
+
     /**
      * Creates with specified absolute path.
      * @param aDirName - absolute path dir name
@@ -96,30 +96,30 @@ public class SystemOperations {
             throw new RuntimeException("Creating directory: [" + aDirName + "] failed! [" + e.getMessage() + "]");
         }
     }
-    
+
     /**
-     * Moves file to file. 
+     * Moves file to file.
      * @param aSrcFile - absolute path to source file
      * @param aDestFile - absolute path to destination file
      */
     public static void moveFile(String aSrcFile, String aDestFile) {
-    	File src = new File(aSrcFile);
-    	File dest = new File(aDestFile);
-    	moveFile(src, dest, false);
+        File src = new File(aSrcFile);
+        File dest = new File(aDestFile);
+        moveFile(src, dest, false);
     }
-    
+
     /**
-     * Moves file to file. 
+     * Moves file to file.
      * @param aSrcFile - absolute path to source file
      * @param aDestFile - absolute path to destination file
      * @param aQuiteModeActive - if set to true, problems with execution will not be visible
      */
     public static void moveFile(String aSrcFile, String aDestFile, boolean aQuiteModeActive) {
-    	File src = new File(aSrcFile);
-    	File dest = new File(aDestFile);
-    	moveFile(src, dest, aQuiteModeActive);
+        File src = new File(aSrcFile);
+        File dest = new File(aDestFile);
+        moveFile(src, dest, aQuiteModeActive);
     }
-    
+
     /**
      * Moves file to file.
      * @param aSrcFile - source file
@@ -128,28 +128,28 @@ public class SystemOperations {
      */
     public static void moveFile(File aSrcFile, File aDestFile, boolean aQuiteModeActive) {
         try {
-        	if (aDestFile.exists()) {
-        		FileUtils.deleteQuietly(aDestFile);
-        	}
-        	if (!aSrcFile.exists() && aQuiteModeActive) {
-        		// Return quietly - just to comply to current behavior.
-        		return;
-        	}
-            FileUtils.moveFile(aSrcFile, aDestFile); 
+            if (aDestFile.exists()) {
+                FileUtils.deleteQuietly(aDestFile);
+            }
+            if (!aSrcFile.exists() && aQuiteModeActive) {
+                // Return quietly - just to comply to current behavior.
+                return;
+            }
+            FileUtils.moveFile(aSrcFile, aDestFile);
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("Cannot move file [" + aSrcFile + "] to [" + aDestFile + "] [" + e.getMessage() + "]");
         }
     }
-    
+
     /**
      * Removes a directory.
      * @param aDirName - absolute path to directory to be deleted
      */
     public static void removeDir(String aDirName) {
-    	removeDir(new File(aDirName));
+        removeDir(new File(aDirName));
     }
-    
+
     /**
      * Removes a directory
      * @param aDir - directory to be deleted
@@ -162,31 +162,31 @@ public class SystemOperations {
             throw new RuntimeException("Deleting directory: [" + aDir.getAbsolutePath() + "] failed! [" + e.getMessage() + "]");
         }
     }
-    
+
     /**
      * Removes test temporary directory. If any problem arise it
      * will throw and break an execution of test.
      */
     public static void removeTestTmpDir() {
-    	removeDir(getTestTmpPath());
+        removeDir(getTestTmpPath());
 
     }
-    
+
     /**
      * Creates test temporary directory. If any problem arise it
      * will throw and break an execution of test.
      */
     private static void createTestTmpDir() {
-    	createDir(getTestTmpPath());
+        createDir(getTestTmpPath());
     }
 
-    /** 
+    /**
      * Provides temporary path in system
      * @return path to temp
      */
     private static String getTmpPath() {
-    	// Simply use IJ functionality
+        // Simply use IJ functionality
         return IJ.getDirectory("temp");
     }
-    
+
 }

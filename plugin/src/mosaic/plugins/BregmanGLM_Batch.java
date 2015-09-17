@@ -30,8 +30,9 @@ public class BregmanGLM_Batch implements Segmentation {
 
     @Override
     public int setup(String arg0, ImagePlus active_img) {
-        if (MosaicUtils.checkRequirement() == false)
+        if (MosaicUtils.checkRequirement() == false) {
             return DONE;
+        }
 
         // init basic structure
         Analysis.init();
@@ -39,8 +40,9 @@ public class BregmanGLM_Batch implements Segmentation {
         // if is a macro get the arguments from macro arguments
         if (IJ.isMacro()) {
             arg0 = Macro.getOptions();
-            if (arg0 == null)
+            if (arg0 == null) {
                 arg0 = "";
+            }
         }
 
         String dir = IJ.getDirectory("temp");
@@ -51,13 +53,13 @@ public class BregmanGLM_Batch implements Segmentation {
         if (path != null) {
             Analysis.p = getConfigHandler().LoadFromFile(path, Parameters.class, Analysis.p);
         }
-        
+
         String norm = findMatchedString(arg0, "min");
         if (norm != null) {
             Analysis.norm_min = Double.parseDouble(norm);
             System.out.println("min norm " + Analysis.norm_min);
         }
-        
+
         norm = findMatchedString(arg0, "max");
         if (norm != null) {
             Analysis.norm_max = Double.parseDouble(norm);
@@ -72,7 +74,9 @@ public class BregmanGLM_Batch implements Segmentation {
         // Check the argument
         boolean batch = GraphicsEnvironment.isHeadless();
 
-        if (batch == true) Analysis.p.dispwindows = false;
+        if (batch == true) {
+            Analysis.p.dispwindows = false;
+        }
 
         window = new GenericGUI(batch, active_img);
         window.setUseCluster(gui_use_cluster);
@@ -91,7 +95,7 @@ public class BregmanGLM_Batch implements Segmentation {
     /**
      * Find argument for given parameter
      * @param aInputArgs - input string containing all parameters and arguments
-     * @param aParameter - search parameter name 
+     * @param aParameter - search parameter name
      * @return arguments for given parameter
      */
     private String findMatchedString(String aInputArgs, String aParameter) {
@@ -110,10 +114,10 @@ public class BregmanGLM_Batch implements Segmentation {
                 }
             }
         }
-        
+
         return null;
     }
-    
+
     @Override
     public void run(ImageProcessor imp) {
     }
@@ -128,7 +132,7 @@ public class BregmanGLM_Batch implements Segmentation {
     /**
      * Saves Parameters objects with additional handling of unserializable PSF
      * object. TODO: It (PSF) should be verified and probably corrected.
-     * 
+     *
      * @param aFullFileName - absolute path and file name
      * @param aParams - object to be serialized
      */
@@ -185,7 +189,7 @@ public class BregmanGLM_Batch implements Segmentation {
 
     /**
      * Get Mask images name output
-     * 
+     *
      * @param aImp image
      * @return set of possible output
      */
@@ -201,7 +205,7 @@ public class BregmanGLM_Batch implements Segmentation {
 
     /**
      * Get CSV regions list name output
-     * 
+     *
      * @param aImp image
      * @return set of possible output
      */

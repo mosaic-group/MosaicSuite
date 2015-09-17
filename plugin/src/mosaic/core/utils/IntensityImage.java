@@ -29,8 +29,12 @@ public class IntensityImage {
 
     public boolean isOutOfBound(Point p) {
         for (int i = 0; i < p.x.length; i++) {
-            if (p.x[i] < 0) return true;
-            if (p.x[i] >= dimensions[i]) return true;
+            if (p.x[i] < 0) {
+                return true;
+            }
+            if (p.x[i] >= dimensions[i]) {
+                return true;
+            }
         }
         return false;
     }
@@ -44,12 +48,14 @@ public class IntensityImage {
      */
 
     public void close() {
-        if (imageIP != null) imageIP.close();
+        if (imageIP != null) {
+            imageIP.close();
+        }
     }
 
     /**
      * Calculate the sum of all pixels
-     * 
+     *
      * @param ip
      * @return
      */
@@ -70,7 +76,7 @@ public class IntensityImage {
 
     /**
      * It rescale all the pixels of a factor r
-     * 
+     *
      * @param image_psf Image
      * @param r factor to rescale
      */
@@ -88,7 +94,7 @@ public class IntensityImage {
 
     /**
      * Initialize an intensity image from an ImgLib2
-     * 
+     *
      * @param ip
      */
 
@@ -98,7 +104,7 @@ public class IntensityImage {
 
     /**
      * Initialize an intensity image from an ImgLib2
-     * 
+     *
      * @param ip
      */
 
@@ -114,7 +120,7 @@ public class IntensityImage {
 
     /**
      * Initialize an intensity image from an Image Plus
-     * 
+     *
      * @param ip
      */
 
@@ -125,7 +131,7 @@ public class IntensityImage {
     /**
      * Initialize an intensity image from an Image Plus
      * choosing is normalizing or not
-     * 
+     *
      * @param ip ImagePlus
      * @param nrm true normalize false don' t
      */
@@ -137,7 +143,9 @@ public class IntensityImage {
         initDimensions(dims);
         iterator = new IndexIterator(dims);
 
-        if (nrm == true) this.imageIP = normalize(ip);
+        if (nrm == true) {
+            this.imageIP = normalize(ip);
+        }
         initIntensityData(imageIP);
     }
 
@@ -159,7 +167,7 @@ public class IntensityImage {
 
     /**
      * Initialize intensity data
-     * 
+     *
      * @param ip Image
      */
 
@@ -246,8 +254,12 @@ public class IntensityImage {
             double min = stat.min;
             double max = stat.max;
 
-            if (max > maximum) maximum = max;
-            if (min < minimum) minimum = min;
+            if (max > maximum) {
+                maximum = max;
+            }
+            if (min < minimum) {
+                minimum = min;
+            }
         }
 
         double range = maximum - minimum;
@@ -299,8 +311,12 @@ public class IntensityImage {
 
     public float getSafe(Point p) {
         for (int i = 0; i < p.x.length; i++) {
-            if (p.x[i] < 0) return 0.0f;
-            if (p.x[i] >= dimensions[i]) return 0.0f;
+            if (p.x[i] < 0) {
+                return 0.0f;
+            }
+            if (p.x[i] >= dimensions[i]) {
+                return 0.0f;
+            }
         }
 
         return get(iterator.pointToIndex(p));
@@ -316,7 +332,7 @@ public class IntensityImage {
 
     /**
      * Get an ImgLib2 from a intensity image
-     * 
+     *
      * @return an ImgLib2 image
      */
 

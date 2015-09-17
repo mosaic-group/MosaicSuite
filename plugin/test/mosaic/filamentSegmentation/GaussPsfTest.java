@@ -1,31 +1,31 @@
 package mosaic.filamentSegmentation;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 import mosaic.test.framework.CommonBase;
 import mosaic.utils.math.Matrix;
 
 import org.junit.Test;
 
 public class GaussPsfTest extends CommonBase {
-    
+
     @Test
     public void testGauss3by3Matrix() {
         // Expected values generated in Matlab
-        Matrix expected = new Matrix(new double[][] {{0.0113, 0.0838, 0.0113}, 
-                                                     {0.0838, 0.6193, 0.0838}, 
-                                                     {0.0113, 0.0838, 0.0113}});
-        
+        Matrix expected = new Matrix(new double[][] {{0.0113, 0.0838, 0.0113},
+                {0.0838, 0.6193, 0.0838},
+                {0.0113, 0.0838, 0.0113}});
+
         // Tested method
         Matrix result = GaussPsf.generate(3, 3, 0.5);
 
         assertTrue("Output should match", expected.compare(result, 0.001));
     }
-    
+
     @Test
     public void testGaussOneValue() {
         // Expected values generated in Matlab
         Matrix expected = new Matrix(new double[][] {{1.000}});
-        
+
         // Tested method
         Matrix result = GaussPsf.generate(1, 1, 0.5);
 
@@ -41,7 +41,7 @@ public class GaussPsfTest extends CommonBase {
 
         assertTrue("Output should match", expected.compare(result, 0.001));
     }
-    
+
     @Test
     public void testGauss4by1Matrix() {
         // Expected values generated in Matlab

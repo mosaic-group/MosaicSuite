@@ -13,14 +13,14 @@ public interface CurvatureFilter {
     interface Mask {
         boolean shouldBeProcessed(int aX, int aY);
     }
-    
+
     /**
      * Run filter on given image and perform given number of iterations.
      * @param aImg 2D image. Notice: it should be in format aImg[y][x] (first dim is Y)
      * @param aNumOfIterations Number of iterations.
      */
     void runFilter(float[][] aImg, int aNumOfIterations);
-    
+
     /**
      * Run filter on given image and perform given number of iterations.
      * @param aImg 2D image. Notice: it should be in format aImg[y][x] (first dim is Y)

@@ -1,8 +1,7 @@
 package mosaic.utils.io.csv;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
 import mosaic.test.framework.CommonBase;
-import mosaic.utils.io.csv.CsvColumnConfig;
 
 import org.junit.Test;
 import org.supercsv.cellprocessor.ParseDouble;
@@ -15,9 +14,9 @@ public class CsvColumnConfigTest extends CommonBase {
     public void testGeneral() {
         String[] fieldMapping = new String[] {"column1", "column2"};
         CellProcessor[] cellProcessors = new CellProcessor[] {new ParseInt(), new ParseDouble()};
-        
+
         CsvColumnConfig ccc = new CsvColumnConfig(fieldMapping, cellProcessors);
-        
+
         assertArrayEquals(fieldMapping, ccc.fieldMapping);
         assertArrayEquals(cellProcessors, ccc.cellProcessors);
     }

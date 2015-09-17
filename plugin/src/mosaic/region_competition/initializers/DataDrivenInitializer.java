@@ -8,10 +8,10 @@ import mosaic.region_competition.LabelImageRC;
  */
 abstract class DataDrivenInitializer extends Initializer
 {
-	IntensityImage intensityImage;
-	public DataDrivenInitializer(IntensityImage intensityImage, LabelImageRC labelImage)
-	{
-		super(labelImage);
-		this.intensityImage = intensityImage;
-	}
+    IntensityImage intensityImage;
+    public DataDrivenInitializer(IntensityImage intensityImage, LabelImageRC labelImage)
+    {
+        super(labelImage);
+        this.intensityImage = intensityImage;
+    }
 }

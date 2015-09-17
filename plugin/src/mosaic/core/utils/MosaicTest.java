@@ -26,7 +26,7 @@ import org.scijava.app.StatusService;
 
 /**
  * This class expose static member to test every plugins in our Mosaic Toolsuite
- * 
+ *
  * @author Pietro Incardona
  */
 public class MosaicTest {
@@ -98,7 +98,7 @@ public class MosaicTest {
      * /some_other_path/image_C
      * fl = image_C
      * the function return 2
-     * 
+     *
      * @param cs List of paths
      * @param fl name of the file
      * @return String of the JobID
@@ -210,7 +210,9 @@ public class MosaicTest {
         }
 
         // Close all images
-        if (BG != null) BG.closeAll();
+        if (BG != null) {
+            BG.closeAll();
+        }
 
         // Open csv
         cnt = 0;
@@ -230,7 +232,9 @@ public class MosaicTest {
             iCSVdst.setCSVPreferenceFromFile(rs);
             Vector<T> outdst = iCSVdst.Read(rs);
 
-            if (outsrc.size() != outdst.size() || outsrc.size() == 0) fail("Error: CSV outout does not match");
+            if (outsrc.size() != outdst.size() || outsrc.size() == 0) {
+                fail("Error: CSV outout does not match");
+            }
 
             for (int i = 0; i < outsrc.size(); i++) {
                 if (outsrc.get(i).equals(outdst.get(i)) == false) {
@@ -242,7 +246,9 @@ public class MosaicTest {
                         }
                     }
 
-                    if (j == outdst.size()) fail("Error: CSV output does not match");
+                    if (j == outdst.size()) {
+                        fail("Error: CSV output does not match");
+                    }
                 }
             }
 
@@ -252,7 +258,7 @@ public class MosaicTest {
 
     /**
      * Test the plugin filter
-     * 
+     *
      * @param BG plugins filter filter
      * @param testset String that indicate the test to use (all the test are in
      *            Jtest_data folder)
@@ -268,7 +274,9 @@ public class MosaicTest {
 
         // if macro options is different from "" or null filter the tests
         String test_set = MosaicUtils.parseString("test", Macro.getOptions());
-        if (test_set != null && test_set.length() != 0 && test_set.startsWith(testset) == false) return;
+        if (test_set != null && test_set.length() != 0 && test_set.startsWith(testset) == false) {
+            return;
+        }
 
         // Get all test images
         ImgTest imgT[] = MosaicUtils.getTestImages(testset, test_set);
@@ -308,7 +316,7 @@ public class MosaicTest {
 
             // run the filter
             BG.run(null);
-            
+
             processResult(BG, tmp, wp, cls);
         }
 

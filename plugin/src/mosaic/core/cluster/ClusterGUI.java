@@ -29,7 +29,7 @@ import mosaic.core.utils.ShellCommand;
  * usage:
  * ClusterGUI cg = new ClusterGUI()
  * It also create a ClusterSession that you can get with getClusterSession
- * 
+ *
  * @author : Pietro Incardona
  */
 
@@ -69,8 +69,9 @@ public class ClusterGUI extends JDialog {
                 cnt++;
             }
         }
-        else
+        else {
             cp = new ClusterProfile[1];
+        }
 
         // Set coded profile
 
@@ -163,7 +164,7 @@ public class ClusterGUI extends JDialog {
 
     /**
      * Return the estimated time for each job
-     * 
+     *
      * @return the created cluster session
      */
 
@@ -173,7 +174,7 @@ public class ClusterGUI extends JDialog {
 
     /**
      * Return the created ClusterSession
-     * 
+     *
      * @return the created cluster session
      */
 
@@ -183,7 +184,7 @@ public class ClusterGUI extends JDialog {
 
     /**
      * Get a list of all cluster profiles
-     * 
+     *
      * @return A list of all cluster profiles
      */
 
@@ -193,7 +194,7 @@ public class ClusterGUI extends JDialog {
 
     /**
      * Get a list of all cluster profiles
-     * 
+     *
      * @param s allocate at the end s free slot
      * @return A list of all cluster profiles
      */
@@ -221,7 +222,9 @@ public class ClusterGUI extends JDialog {
      */
 
     static public void createClusterProfileDir() {
-        if (new File(getClusterProfileDir()).exists() == true) return;
+        if (new File(getClusterProfileDir()).exists() == true) {
+            return;
+        }
 
         String dir = IJ.getDirectory("home") + File.separator + ".MosaicToolSuite";
         try {

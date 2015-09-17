@@ -11,7 +11,7 @@ import mosaic.core.cluster.ShellProcessOutput;
 /**
  * This Class is an helping class to compress and uncompress files and directory
  * it support tar zip 7zip rar
- * 
+ *
  * @author Pietro Incardona
  */
 
@@ -74,7 +74,7 @@ public class DataCompression {
 
     /**
      * Select internaly the best compressor starting from the j compressor
-     * 
+     *
      * @param j
      */
 
@@ -118,19 +118,21 @@ public class DataCompression {
 
     /**
      * Return the algorithm selected
-     * 
+     *
      * @return the algorithm selected null there os no selection
      */
 
     public Algorithm getCompressor() {
-        if (selC == -1 || selC >= al.size()) return null;
+        if (selC == -1 || selC >= al.size()) {
+            return null;
+        }
 
         return al.get(selC);
     }
 
     /**
      * It compress a set of files and directory
-     * 
+     *
      * @param start_dir starting dir
      * @param fs Array of files,relative from starting dir
      * @param file_a Archive
@@ -139,7 +141,9 @@ public class DataCompression {
      */
 
     public boolean Compress(File start_dir, File[] fs, File file_a, ShellProcessOutput out) {
-        if (selC == -1) return false;
+        if (selC == -1) {
+            return false;
+        }
 
         String o = new String();
 
@@ -164,7 +168,7 @@ public class DataCompression {
 
     /**
      * Uncompress archive
-     * 
+     *
      * @param file_a Archive to uncompress
      * @param work_dir Working directory
      * @return true if the archive has been uncompressed
@@ -188,21 +192,23 @@ public class DataCompression {
 
     /**
      * Get uncompress archive command
-     * 
+     *
      * @param file_a Archive to uncompress
      * @return Command string to uncompress the archive,
      *         null if no-compression algorithm has been selected
      */
 
     public String unCompressCommand(File file_a) {
-        if (selC == -1) return null;
+        if (selC == -1) {
+            return null;
+        }
 
         return al.get(selC).uncompress_command.replace("*", file_a.getAbsolutePath());
     }
 
     /**
      * Get compress archive command
-     * 
+     *
      * @param start_dir starting dir
      * @param fs Array of files, relative path from starting dir
      * @param file_a Archive
@@ -210,7 +216,9 @@ public class DataCompression {
      */
 
     public String compressCommand(File start_dir, File[] fs, File file_a) {
-        if (selC == -1) return null;
+        if (selC == -1) {
+            return null;
+        }
 
         String o = new String();
 
@@ -223,7 +231,7 @@ public class DataCompression {
 
     /**
      * Get a list of all compressor algorithm
-     * 
+     *
      * @return A list of all compression algorithms
      */
 

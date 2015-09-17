@@ -30,7 +30,7 @@ class UnitCubeCCCounter {
     /**
      * Set the sub image (data of unitcube)
      * midpoint has to be 0!
-     * 
+     *
      * @param data of unitcube as linear array
      */
     void SetImage(char[] subImage) {
@@ -102,7 +102,7 @@ class UnitCubeCCCounter {
      * <b>WARNING!</b> this does not generate symmetric solutions, but it's the
      * lamy solution...
      * eg [0,3] is false but [3, 0] is true in ITK (3,2)
-     * 
+     *
      * @param connectivity Connectivity to be checked
      * @param neighborhoodConnectivity Neighborhood connectivity. This has to be
      *            more lax (reach more neighbors) than connectivity

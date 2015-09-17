@@ -81,7 +81,7 @@ class MasksDisplay {
 
     /**
      * Display the soft membership
-     * 
+     *
      * @param array 2D array of double
      * @param s String of the image
      * @param channel channel
@@ -117,7 +117,7 @@ class MasksDisplay {
 
     /**
      * Display the soft membership
-     * 
+     *
      * @param array 2D array of float
      * @param s String of the image
      * @param channel channel
@@ -136,17 +136,21 @@ class MasksDisplay {
         }
 
         ImageProcessor imp = new FloatProcessor(temp);
-        if (channel == 0)
+        if (channel == 0) {
             imgtemp.setProcessor(s + "X", imp);
-        else
+        }
+        else {
             imgtemp.setProcessor(s + "Y", imp);
-        if (vs == true) imgtemp.show();
+        }
+        if (vs == true) {
+            imgtemp.show();
+        }
         return imgtemp;
     }
 
     /**
      * Display the soft membership
-     * 
+     *
      * @param array 2D array of double
      * @param s String of the image
      * @param channel channel
@@ -164,17 +168,19 @@ class MasksDisplay {
         }
 
         ImageProcessor imp = new FloatProcessor(temp);
-        if (channel == 0)
+        if (channel == 0) {
             imgtemp.setProcessor(s + "X", imp);
-        else
+        }
+        else {
             imgtemp.setProcessor(s + "Y", imp);
+        }
         imgtemp.show();
         return imgtemp;
     }
 
     /**
      * Display the soft membership
-     * 
+     *
      * @param array 3D array of double
      * @param s String of the image
      * @param channel channel
@@ -193,19 +199,23 @@ class MasksDisplay {
         }
 
         ImageProcessor imp = new FloatProcessor(temp);
-        if (channel == 0)
+        if (channel == 0) {
             imgtemp.setProcessor(s + "X", imp);
-        else
+        }
+        else {
             imgtemp.setProcessor(s + "Y", imp);
+        }
 
-        if (vs == true) imgtemp.show();
+        if (vs == true) {
+            imgtemp.show();
+        }
         imgtemp.changes = false;
         return imgtemp;
     }
 
     /**
      * Display the soft membership
-     * 
+     *
      * @param array 3D array of double
      * @param s String of the image
      * @param channel channel
@@ -229,19 +239,23 @@ class MasksDisplay {
             img3temp.addSlice("", imp);
         }
 
-        if (channel == 0)
+        if (channel == 0) {
             imgtemp.setStack(s + "X", img3temp);
-        else
+        }
+        else {
             imgtemp.setStack(s + "Y", img3temp);
+        }
 
-        if (vs == true) imgtemp.show();
+        if (vs == true) {
+            imgtemp.show();
+        }
         imgtemp.changes = false;
         return imgtemp;
     }
 
     /**
      * Display the soft membership
-     * 
+     *
      * @param array 3D array of double
      * @param s String of the image
      * @param channel channel
@@ -257,7 +271,7 @@ class MasksDisplay {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     temp[j * p.ni + i] = (byte) ((int) (255 * array[z][i][j]));// (float)
-                                                                               // array[z][i][j];
+                    // array[z][i][j];
                     // ims3d.setVoxel(i, j, z, array[z][i][j]);
                 }
             }
@@ -287,7 +301,7 @@ class MasksDisplay {
 
     /**
      * Display the soft membership
-     * 
+     *
      * @param array 3D array of float
      * @param s String of the image
      * @param channel channel
@@ -307,7 +321,7 @@ class MasksDisplay {
             for (int j = 0; j < nj; j++) {
                 for (int i = 0; i < ni; i++) {
                     temp[j * p.ni + i] = (byte) ((int) (array[z][i][j]));// (float)
-                                                                         // array[z][i][j];
+                    // array[z][i][j];
                     // ims3d.setVoxel(i, j, z, array[z][i][j]);
                 }
             }
@@ -316,10 +330,12 @@ class MasksDisplay {
             ims3da.addSlice("", bp);
         }
 
-        if (channel == 0)
+        if (channel == 0) {
             imgd.setStack(s + " X", ims3da);
-        else
+        }
+        else {
             imgd.setStack(s + " Y", ims3da);
+        }
         imgd.resetDisplayRange();
         imgd.show();
 
@@ -328,7 +344,7 @@ class MasksDisplay {
 
     /**
      * Display the colocalization image
-     * 
+     *
      * @param savepath path + filename "_coloc.zip" is appended to the name,
      *            extension is removed
      * @param regionslistA Regions list A

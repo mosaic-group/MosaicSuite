@@ -15,14 +15,14 @@ public class GaussianCurvature3DTest extends CommonBase {
         String[] inputFiles       = {"sphereSmall.tif"};
         String[] expectedFiles    = {"filtered_sphereSmall.tif"};
         String[] referenceFiles   = {"filteredGc2_sphereSmall.tif"};
-        
+
         // Create tested plugIn
         GaussianCurvature3D nt = new GaussianCurvature3D();
-       
+
         // Test it
-        testPlugin(nt, tcDirName, 
-                   inputFiles, expectedFiles, referenceFiles, 
-                   setupString, macroOptions);
+        testPlugin(nt, tcDirName,
+                inputFiles, expectedFiles, referenceFiles,
+                setupString, macroOptions);
 
     }
 }

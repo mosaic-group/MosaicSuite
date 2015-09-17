@@ -1,12 +1,15 @@
 package mosaic.plugins.utils;
 
-import static org.junit.Assert.*;
+import static mosaic.plugins.utils.Interpolation.InterpolationMode.MATLAB;
+import static mosaic.plugins.utils.Interpolation.InterpolationMode.NONE;
+import static mosaic.plugins.utils.Interpolation.InterpolationMode.SMART;
+import static mosaic.plugins.utils.Interpolation.InterpolationType.BICUBIC;
+import static mosaic.plugins.utils.Interpolation.InterpolationType.BILINEAR;
+import static mosaic.plugins.utils.Interpolation.InterpolationType.NEAREST;
+import static org.junit.Assert.assertTrue;
 import mosaic.utils.math.Matrix;
 
 import org.junit.Test;
-
-import static mosaic.plugins.utils.Interpolation.InterpolationType.*;
-import static mosaic.plugins.utils.Interpolation.InterpolationMode.*;
 
 public class InterpolationTest {
 
@@ -21,17 +24,17 @@ public class InterpolationTest {
                 {11.209499999999998, 11.918499999999998, 12.750000000000000, 13.581500000000002, 14.290500000000002},
                 {13.190981481481478, 13.899981481481477, 14.731481481481477, 15.562981481481481, 16.271981481481482}
         };
-        
+
         double[][] input = {{1, 2, 3, 4},
-                            {5, 6, 7, 8},
-                            {9, 10, 11, 12},
-                            {13, 14, 15, 16}};
-        
+                {5, 6, 7, 8},
+                {9, 10, 11, 12},
+                {13, 14, 15, 16}};
+
         double[][] result = Interpolation.resize(input, 6, 5, BICUBIC, MATLAB);
-        
+
         assertTrue(new Matrix(expected).compare(new Matrix(result), 1e-13));
     }
-    
+
     @Test
     public void testBicubicMatlabShrink() {
         // imresize ([1 2 3 4; 2 3 4 5; 3 4 5 6; 4 5 6 7], [2 2 ])
@@ -39,17 +42,17 @@ public class InterpolationTest {
                 {1.875000000000000, 4.000000000000000},
                 {4.000000000000000, 6.125000000000000},
         };
-        
+
         double[][] input = {{1, 2, 3, 4},
-                            {2, 3, 4, 5},
-                            {3, 4, 5, 6},
-                            {4, 5, 6, 7}};
+                {2, 3, 4, 5},
+                {3, 4, 5, 6},
+                {4, 5, 6, 7}};
 
         double[][] result = Interpolation.resize(input, 2, 2, BICUBIC, MATLAB);
 
         assertTrue(new Matrix(expected).compare(new Matrix(result), 1e-13));
     }
-    
+
     @Test
     public void testBilinearMatlab() {
         // imresize([1 2 3 4; 5 6 7 8; 9 10 11 12; 13 14 15 16], [6 5], 'bilinear')
@@ -61,17 +64,17 @@ public class InterpolationTest {
                 {11.000000000000000, 11.699999999999999, 12.500000000000000, 13.300000000000001, 14.000000000000000},
                 {13.000000000000000, 13.699999999999999, 14.500000000000000, 15.300000000000001, 16.000000000000000}
         };
-        
+
         double[][] input = {{1, 2, 3, 4},
-                            {5, 6, 7, 8},
-                            {9, 10, 11, 12},
-                            {13, 14, 15, 16}};
-        
+                {5, 6, 7, 8},
+                {9, 10, 11, 12},
+                {13, 14, 15, 16}};
+
         double[][] result = Interpolation.resize(input, 6, 5, BILINEAR, MATLAB);
-        
+
         assertTrue(new Matrix(expected).compare(new Matrix(result), 1e-13));
     }
-    
+
     @Test
     public void testNearestMatlab() {
         // imresize([1 2 3 4; 5 6 7 8; 9 10 11 12; 13 14 15 16], [6 5], 'nearest')
@@ -83,50 +86,50 @@ public class InterpolationTest {
                 {13, 14, 15, 15, 16},
                 {13, 14, 15, 15, 16},
         };
-        
+
         double[][] input = {{1, 2, 3, 4},
-                            {5, 6, 7, 8},
-                            {9, 10, 11, 12},
-                            {13, 14, 15, 16}};
-        
+                {5, 6, 7, 8},
+                {9, 10, 11, 12},
+                {13, 14, 15, 16}};
+
         double[][] result = Interpolation.resize(input, 6, 5, NEAREST, MATLAB);
-        
+
         assertTrue(new Matrix(expected).compare(new Matrix(result), 1e-13));
     }
-    
+
     @Test
     public void testBicubicNone() {
         double[][] expected = new double[][] {
-                { 1.000, 1.438, 2.000, 2.500, 3.000, 3.563, 4.000}             
+                { 1.000, 1.438, 2.000, 2.500, 3.000, 3.563, 4.000}
         };
         double[][] input = {{1, 2, 3, 4}};
-    
+
         double[][] result = Interpolation.resize(input, 1, 7, BICUBIC, NONE);
-                
+
         assertTrue(new Matrix(expected).compare(new Matrix(result), 1e-3));
     }
-    
+
     @Test
     public void testBicubicSmart() {
         double[][] expected = new double[][] {
-                { 1.000, 1.500, 2.000, 2.500, 3.000, 3.500, 4.000}             
-        };        
+                { 1.000, 1.500, 2.000, 2.500, 3.000, 3.500, 4.000}
+        };
         double[][] input = {{1, 2, 3, 4}};
-    
+
         double[][] result = Interpolation.resize(input, 1, 7, BICUBIC, SMART);
-        
+
         assertTrue(new Matrix(expected).compare(new Matrix(result), 1e-3));
     }
-    
+
     @Test
     public void testBilinearNone() {
         double[][] expected = new double[][] {
-                { 2.5 }             
-        };        
+                { 2.5 }
+        };
         double[][] input = {{1, 2},{ 3, 4}};
-    
+
         double[][] result = Interpolation.resize(input, 1, 1, BILINEAR, NONE);
-        
+
         assertTrue(new Matrix(expected).compare(new Matrix(result), 1e-3));
     }
 }

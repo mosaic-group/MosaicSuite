@@ -58,7 +58,7 @@ public class IntConverter {
 
     /**
      * Converts float/byte/short array into int array <br>
-     * 
+     *
      * @param array float/byte/short array (NO int!)
      * @return converted array
      */
@@ -131,7 +131,9 @@ public class IntConverter {
             for (int i = 0; i < n; i++) {
                 int a = Math.abs(ints[i]);
                 if (clamp) {
-                    if (a > Short.MAX_VALUE) a = Short.MAX_VALUE;
+                    if (a > Short.MAX_VALUE) {
+                        a = Short.MAX_VALUE;
+                    }
                 }
                 shorts[i] = (short) a;
             }
@@ -140,9 +142,12 @@ public class IntConverter {
             for (int i = 0; i < n; i++) {
                 int a = ints[i];
                 if (clamp) {
-                    if (a > Short.MAX_VALUE)
+                    if (a > Short.MAX_VALUE) {
                         a = Short.MAX_VALUE;
-                    else if (a < Short.MIN_VALUE) a = Short.MIN_VALUE;
+                    }
+                    else if (a < Short.MIN_VALUE) {
+                        a = Short.MIN_VALUE;
+                    }
                 }
                 shorts[i] = (short) a;
             }
@@ -189,7 +194,7 @@ public class IntConverter {
 
     /**
      * Int array to short image conversion
-     * 
+     *
      * @param intData
      * @param dims
      * @param abs

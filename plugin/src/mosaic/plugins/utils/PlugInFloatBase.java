@@ -15,13 +15,13 @@ import java.util.List;
 public abstract class PlugInFloatBase extends PlugInBase {
     // ImageJ plugIn flags defined for setup method
     private int iFlags = DOES_ALL |
-                         DOES_STACKS | 
-                         FINAL_PROCESSING | 
-                         PARALLELIZE_STACKS;
-    
+            DOES_STACKS |
+            FINAL_PROCESSING |
+            PARALLELIZE_STACKS;
+
 
     abstract protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber);
-    
+
     @Override
     protected int getFlags() {return iFlags;}
     @Override
@@ -32,37 +32,37 @@ public abstract class PlugInFloatBase extends PlugInBase {
         ImageProcessor currentIp;
         FloatProcessor res;
         FloatProcessor orig;
-        
+
         ProcessOneChannel(ImageProcessor currentIp, FloatProcessor res, FloatProcessor orig, int aChannel) {
             this.i = aChannel;
             this.currentIp = currentIp;
             this.res = res;
             this.orig = orig;
         }
-        
+
         @Override
         public void run() {
-                processImg(res, orig, i);
+            processImg(res, orig, i);
         }
-        
+
         public void update() {
             if (iResultOutput != ResultOutput.NONE) {
                 currentIp.setPixels(i, res);
             }
         }
     }
-    
+
     @Override
     public void run(ImageProcessor aIp) {
         IJ.showStatus("In progress...");
-        
+
         // Can be 3 in case when RGB image is processed as a float.
         final int noOfChannels = aIp.getNChannels();
-        
+
         // Lists to keep information about threads
         List<Thread> th = new ArrayList<Thread>(noOfChannels);
         List<ProcessOneChannel> poc = new ArrayList<ProcessOneChannel>(noOfChannels);
-        
+
         for (int i = 0; i < noOfChannels; ++i) {
             FloatProcessor res = null;
             ImageProcessor currentIp = null;
@@ -80,17 +80,17 @@ public abstract class PlugInFloatBase extends PlugInBase {
             th.add(t);
             poc.add(p);
         }
-        
+
         for (int i = 0; i < noOfChannels; ++i) {
             try {
-                // wait for each channel to complete and then run update method - it will 
+                // wait for each channel to complete and then run update method - it will
                 // be run in sequence which is needed since ImageProcessor is not thread safe
-                th.get(i).join(); 
-                poc.get(i).update(); 
-            } 
+                th.get(i).join();
+                poc.get(i).update();
+            }
             catch (InterruptedException e) {}
         }
-        
+
         IJ.showStatus("Done.");
     }
 }

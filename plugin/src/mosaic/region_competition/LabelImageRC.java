@@ -39,7 +39,7 @@ public class LabelImageRC extends LabelImage {
 
     /**
      * Create a labelImageRC from another labelImageRC
-     * 
+     *
      * @param l LabelImageRC
      */
     public LabelImageRC(LabelImageRC l) {
@@ -89,7 +89,7 @@ public class LabelImageRC extends LabelImage {
         for (int i : iterator.getIndexIterable()) {
             int label = getLabelAbs(i);
             if (label != bgLabel && label != forbiddenLabel) // region pixel
-            // && label<negOfs
+                // && label<negOfs
             {
                 Point p = iterator.indexToPoint(i);
                 for (Point neighbor : conn.iterateNeighbors(p)) {
@@ -111,9 +111,13 @@ public class LabelImageRC extends LabelImage {
 
     public void eliminateForbidden() {
         for (int i = 0; i < getSize(); i++) {
-            if (dataLabel[i] == forbiddenLabel) dataLabel[i] = 0;
+            if (dataLabel[i] == forbiddenLabel) {
+                dataLabel[i] = 0;
+            }
 
-            if (dataLabel[i] < 0) dataLabel[i] = Math.abs(dataLabel[i]);
+            if (dataLabel[i] < 0) {
+                dataLabel[i] = Math.abs(dataLabel[i]);
+            }
         }
     }
 
@@ -139,7 +143,7 @@ public class LabelImageRC extends LabelImage {
      * so use this function only for BEFORE contour particles are added to the
      * labelImage
      * (eg. to process user input for region guesses)
-     * 
+     *
      * @param li LabelImage
      */
     @Override
@@ -147,9 +151,9 @@ public class LabelImageRC extends LabelImage {
         // TODO ! test this
 
         HashSet<Integer> oldLabels = new HashSet<Integer>(); // set of the old
-                                                             // labels
+        // labels
         ArrayList<Integer> newLabels = new ArrayList<Integer>(); // set of new
-                                                                 // labels
+        // labels
 
         int newLabel = 1;
 
@@ -201,8 +205,9 @@ public class LabelImageRC extends LabelImage {
         // iterate through all the regions and reset mean_pos
 
         for (Integer lbl : labelMap.keySet()) {
-            for (int i = 0; i < labelMap.get(lbl).mean_pos.length; i++)
+            for (int i = 0; i < labelMap.get(lbl).mean_pos.length; i++) {
                 labelMap.get(lbl).mean_pos[i] = 0.0;
+            }
         }
 
         // Iterate through all the region
@@ -218,8 +223,9 @@ public class LabelImageRC extends LabelImage {
             // Label information
 
             if (lbi != null) {
-                for (int i = 0; i < p.x.length; i++)
+                for (int i = 0; i < p.x.length; i++) {
                     lbi.mean_pos[i] += p.x[i];
+                }
             }
         }
 
@@ -234,7 +240,7 @@ public class LabelImageRC extends LabelImage {
 
     /**
      * Gets a copy of the labelImage as a short array.
-     * 
+     *
      * @return short[] representation of the labelImage
      */
     @Override
@@ -320,7 +326,7 @@ public class LabelImageRC extends LabelImage {
                 stats.count++;
 
                 stats.mean += val; // only sum up, mean and var are computed
-                                   // below
+                // below
                 stats.var = (stats.var + val * val);
             }
         }
@@ -346,10 +352,12 @@ public class LabelImageRC extends LabelImage {
                 stat.var = 0;
             }
 
-            if (n > 0)
+            if (n > 0) {
                 stat.mean = stat.mean / n;
-            else
+            }
+            else {
                 stat.mean = 0.0;
+            }
 
             // Median on start set equal to mean
 
@@ -362,10 +370,10 @@ public class LabelImageRC extends LabelImage {
         // TODO ! test this
 
         HashMap<Integer, PointCM> Labels = new HashMap<Integer, PointCM>(); // set
-                                                                            // of
-                                                                            // the
-                                                                            // old
-                                                                            // labels
+        // of
+        // the
+        // old
+        // labels
 
         int size = iterator.getSize();
 

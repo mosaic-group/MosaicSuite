@@ -20,7 +20,7 @@ import mosaic.core.utils.ShellCommand;
  * to is able to return LSF specific commands based on what we want to do, and
  * is able to parse LSF specific
  * output to get the job information
- * 
+ *
  * @author Pietro Incardona
  */
 class LSFBatch implements BatchInterface {
@@ -47,16 +47,16 @@ class LSFBatch implements BatchInterface {
         }
 
         script = session_id;
-                       return new String(
-                               "#!/bin/bash \n" +
-                               "#BSUB -q " + queue + "\n" +
-                               "#BSUB -n "+ ns +" \n" +
-                               "#BSUB -J \"" + session_id + "[1-" + njob  + "]\" \n" +
-                               "#BSUB -R span[hosts=1]\n" +
-                               "#BSUB -o " + session_id + ".out.%J \n" +
-                               "\n" +
-                               "echo \"running " + script + " on index $LSB_JOBINDEX\" \n" +
-                               cp.getRunningDir() + "Fiji.app/ImageJ-linux64" + " --headless -batch " + img_script_ + " $LSB_JOBINDEX");
+        return new String(
+                "#!/bin/bash \n" +
+                        "#BSUB -q " + queue + "\n" +
+                        "#BSUB -n "+ ns +" \n" +
+                        "#BSUB -J \"" + session_id + "[1-" + njob  + "]\" \n" +
+                        "#BSUB -R span[hosts=1]\n" +
+                        "#BSUB -o " + session_id + ".out.%J \n" +
+                        "\n" +
+                        "echo \"running " + script + " on index $LSB_JOBINDEX\" \n" +
+                        cp.getRunningDir() + "Fiji.app/ImageJ-linux64" + " --headless -batch " + img_script_ + " $LSB_JOBINDEX");
 
     }
 
@@ -120,12 +120,16 @@ class LSFBatch implements BatchInterface {
         int nele = 0;
         boolean unparse_last = true;
 
-        if (prs.endsWith("\n")) unparse_last = false;
+        if (prs.endsWith("\n")) {
+            unparse_last = false;
+        }
 
         String[] elements = prs.split("\n");
         nele = elements.length - 1;
 
-        if (unparse_last == false) nele = elements.length;
+        if (unparse_last == false) {
+            nele = elements.length;
+        }
 
         for (int i = 0; i < nele; i++) {
             if (elements[i].equals("Job <" + AJobID + "> is not found\r")) {
@@ -142,7 +146,9 @@ class LSFBatch implements BatchInterface {
             Vector<String> vt = new Vector<String>();
             String[] sub_elements = elements[i].split(" ");
             for (int j = 0; j < sub_elements.length; j++) {
-                if (sub_elements[j].length() != 0) vt.add(sub_elements[j]);
+                if (sub_elements[j].length() != 0) {
+                    vt.add(sub_elements[j]);
+                }
             }
 
             int ja_id = 0;
@@ -158,7 +164,9 @@ class LSFBatch implements BatchInterface {
                     updateJobStatus(jobs, vt, ja_id);
                 }
                 else if (jobArrayStatus(vt.get(2)) == jobS.UNKNOWN) {
-                    if (vt.size() < 6) continue;
+                    if (vt.size() < 6) {
+                        continue;
+                    }
 
                     ja_id = jobArrayID(vt.get(5));
                     updateJobStatus(jobs, vt, ja_id);
@@ -169,10 +177,12 @@ class LSFBatch implements BatchInterface {
             System.out.println(" nele_parsed: " + nele_parsed);
         }
 
-        if (unparse_last == true)
+        if (unparse_last == true) {
             return elements[elements.length - 1];
-        else
+        }
+        else {
             return new String("");
+        }
     }
 
     private void updateJobStatus(JobStatus[] jobs, Vector<String> vt, int ja_id) {
@@ -220,10 +230,13 @@ class LSFBatch implements BatchInterface {
         else if (tp == OutputType.LAUNCH) {
             System.out.println("ParseJobID [" + str + "]");
             int tmp = parseJobID(str);
-            if (tmp == 0)
+            if (tmp == 0) {
                 return str;
+            }
             else {
-                if (AJobID == 0) AJobID = tmp;
+                if (AJobID == 0) {
+                    AJobID = tmp;
+                }
                 System.out.println("get Job ID: " + AJobID);
                 return "";
             }
@@ -263,7 +276,7 @@ class LSFBatch implements BatchInterface {
 
     /**
      * Try to load the dir
-     * 
+     *
      * @param dir Directory to load
      * @param ss SecureShellSession
      * @param cp_ cluster profile
@@ -297,7 +310,9 @@ class LSFBatch implements BatchInterface {
         String s[] = MosaicUtils.readAndSplit(tmp_dir + File.separator + "JobID");
 
         String tmp = new String(command);
-        if (s.length < 3 && !s[2].equals(tmp.replace(" ", "_"))) return false;
+        if (s.length < 3 && !s[2].equals(tmp.replace(" ", "_"))) {
+            return false;
+        }
 
         AJobID = Integer.parseInt(s[0]);
         nJobs = Integer.parseInt(s[1]);
@@ -311,14 +326,16 @@ class LSFBatch implements BatchInterface {
 
     /**
      * Get all jobs running on the cluster
-     * 
+     *
      * @param ss Shell channel
      * @return List of Batch Interfaces, null if fail
      */
     @Override
     public BatchInterface[] getAllJobs(SecureShellSession ss, String command) {
         String[] dirs = ss.getDirs(cp.getRunningDir());
-        if (dirs == null) return null;
+        if (dirs == null) {
+            return null;
+        }
 
         Vector<LSFBatch> bc_v = new Vector<LSFBatch>();
 

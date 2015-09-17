@@ -39,7 +39,7 @@ public class ImageProcessUtils {
 
     /**
      * Detect the particle in a stack from an image using particle tracker
-     * 
+     *
      * @param imp Image
      * @return Vector of particle detected
      */
@@ -66,7 +66,7 @@ public class ImageProcessUtils {
     /**
      * Detect the particle in a stack from an image using particle tracker
      * The generic parameter is the type of the image
-     * 
+     *
      * @param imp Image
      * @return Vector of particle detected
      */
@@ -107,7 +107,7 @@ public class ImageProcessUtils {
 
     /**
      * Get the coordinate of the Particles
-     * 
+     *
      * @param particles
      * @return
      */
@@ -123,7 +123,7 @@ public class ImageProcessUtils {
             // System.out.println("position: "+tempPosition[0]+tempPosition[1]+tempPosition[2]);
             try {
                 tempCoords[i] = new Point3d(tempPosition); // duplicate
-                                                           // initialization?
+                // initialization?
                 // System.out.println(tempPosition[2]);
             }
             catch (NullPointerException e) {
@@ -195,17 +195,23 @@ public class ImageProcessUtils {
             dataArray = dataRow.split(",");
             if (count == 0) {
                 size = dataArray.length;
-                if (size != 2 && size != 3) return null;
+                if (size != 2 && size != 3) {
+                    return null;
+                }
                 count++;
             }
-            if (dataArray.length != size) return null;
+            if (dataArray.length != size) {
+                return null;
+            }
 
             xtemp = Double.parseDouble(dataArray[0]);
             ytemp = Double.parseDouble(dataArray[1]);
-            if (size > 2)
+            if (size > 2) {
                 ztemp = Double.parseDouble(dataArray[2]);
-            else
+            }
+            else {
                 ztemp = 0f; // 2D -- if only 2 columns, assume 2D.
+            }
 
             points.add(new Point3d(xtemp, ytemp, ztemp));
 

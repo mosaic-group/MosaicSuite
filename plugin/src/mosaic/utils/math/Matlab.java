@@ -12,15 +12,16 @@ import mosaic.plugins.utils.Interpolation.InterpolationType;
 public class Matlab {
     /**
      * Generates linear spaced numbers in array (as in Matlab)
-     * 
+     *
      * @param aMin
      * @param aMax
      * @param aNoOfSteps
      * @return
      */
     public static double[] linspaceArray(double aMin, double aMax, int aNoOfSteps) {
-        if (aNoOfSteps < 1)
+        if (aNoOfSteps < 1) {
             return null;
+        }
 
         double[] result = new double[aNoOfSteps];
         if (aNoOfSteps > 1) {
@@ -37,7 +38,7 @@ public class Matlab {
 
     /**
      * Generates linear spaced vector (as in Matlab)
-     * 
+     *
      * @param aMin
      * @param aMax
      * @param aNoOfSteps
@@ -49,15 +50,16 @@ public class Matlab {
 
     /**
      * Generates spaced array (as in Matlab double start:step:stop operation)
-     * 
+     *
      * @param aStart
      * @param aStep
      * @param aNoOfSteps
      * @return
      */
     public static double[] regularySpacedArray(double aStart, double aStep, double aStop) {
-        if (aStep == 0 || !((aStart > aStop) ^ (aStep > 0)))
+        if (aStep == 0 || !((aStart > aStop) ^ (aStep > 0))) {
             return null;
+        }
 
         int noOfSteps = (int) ((aStop - aStart) / aStep) + 1;
         double[] result = new double[noOfSteps];
@@ -73,7 +75,7 @@ public class Matlab {
 
     /**
      * Generates spaced vector (as in Matlab double start:step:stop operation)
-     * 
+     *
      * @param aMin
      * @param aMax
      * @param aStep
@@ -85,7 +87,7 @@ public class Matlab {
 
     /**
      * Generates two matrices as Matlab's command 'meshgrid'
-     * 
+     *
      * @param aVector1
      *            - row values
      * @param aVector2
@@ -94,10 +96,12 @@ public class Matlab {
      */
     public static Matrix[] meshgrid(Matrix aVector1, Matrix aVector2) {
         // Adjust data but do not change users input - if needed make a copy.
-        if (aVector1.isColVector())
+        if (aVector1.isColVector()) {
             aVector1 = aVector1.copy().transpose();
-        if (aVector2.isRowVector())
+        }
+        if (aVector2.isRowVector()) {
             aVector2 = aVector2.copy().transpose();
+        }
 
         int r = aVector2.numRows();
         int c = aVector1.numCols();
@@ -105,17 +109,19 @@ public class Matlab {
         Matrix m1 = new Matrix(r, c);
         Matrix m2 = new Matrix(r, c);
 
-        for (int i = 0; i < r; ++i)
+        for (int i = 0; i < r; ++i) {
             m1.insert(aVector1, i, 0);
-        for (int i = 0; i < c; ++i)
+        }
+        for (int i = 0; i < c; ++i) {
             m2.insert(aVector2, 0, i);
+        }
 
         return new Matrix[] { m1, m2 };
     }
 
     /**
      * Implementation of matlab's imfilter for 'symmetric' boundary options
-     * 
+     *
      * @param aImg
      *            - input image
      * @param aFilter
@@ -162,14 +168,18 @@ public class Matlab {
                             // is not a case but still left here to fully comply
                             // with Matlab
                             // version).
-                            if (imr < 0)
+                            if (imr < 0) {
                                 imr = -imr - 1;
-                            if (imr >= imageRows)
+                            }
+                            if (imr >= imageRows) {
                                 imr = (imageRows - 1) - (imr - (imageRows - 1) - 1);
-                            if (imc < 0)
+                            }
+                            if (imc < 0) {
                                 imc = -imc - 1;
-                            if (imc >= imageCols)
+                            }
+                            if (imc >= imageCols) {
                                 imc = (imageCols - 1) - (imc - (imageCols - 1) - 1);
+                            }
                         } while (!(imr >= 0 && imr < imageRows && imc >= 0 && imc < imageCols));
 
                         // After finding coordinates just compute next part of
@@ -186,7 +196,7 @@ public class Matlab {
 
     /**
      * Implementation of matlab's imfilter for 'symmetric' boundary options
-     * 
+     *
      * @param aImg
      *            - input image
      * @param aFilter
@@ -216,8 +226,9 @@ public class Matlab {
                         int imr = r + filterRowMiddle - fr;
                         int imc = c + filterColMiddle - fc;
                         double imgVal = 0;
-                        if (imr >= 0 && imr < imageRows && imc >= 0 && imc < imageCols)
+                        if (imr >= 0 && imr < imageRows && imc >= 0 && imc < imageCols) {
                             imgVal = image[imr][imc];
+                        }
 
                         // After finding coordinates just compute next part of
                         // filter sum.
@@ -233,7 +244,7 @@ public class Matlab {
 
     /**
      * Implementation of 'imresize' Matlab function for bicubic interpolation
-     * 
+     *
      * @param aM
      *            Input image
      * @param scale
@@ -251,7 +262,7 @@ public class Matlab {
 
     /**
      * Implementation of 'imresize' Matlab function for bicubic interpolation
-     * 
+     *
      * @param aM Input image
      * @param aNewWidth
      * @param aNewHeight
@@ -260,10 +271,10 @@ public class Matlab {
     public static Matrix imresize(Matrix aM, int aNewWidth, int aNewHeight) {
         Matrix result = null;
         if (aM.numCols() != aNewWidth || aM.numRows() != aNewHeight) {
-            double[][] output = Interpolation.resize(aM.getArrayYX(), 
-                                                     aNewHeight, aNewWidth, 
-                                                     InterpolationType.BICUBIC,
-                                                     InterpolationMode.MATLAB);
+            double[][] output = Interpolation.resize(aM.getArrayYX(),
+                    aNewHeight, aNewWidth,
+                    InterpolationType.BICUBIC,
+                    InterpolationMode.MATLAB);
 
             result = new Matrix(output);
         } else {
@@ -276,7 +287,7 @@ public class Matlab {
     /**
      * Implementation of 'bwconncomp' Matlab's command for finding connected
      * components in binary images
-     * 
+     *
      * @param aInputImg
      *            Matrix with values 0 and 1
      * @param aIs8connected
@@ -317,7 +328,7 @@ public class Matlab {
 
     /**
      * Do graph based searching for all pixels of connected component
-     * 
+     *
      * @return list with all pixel indices (Matlab's style of inexing top-down
      *         then right and again)
      */
@@ -352,7 +363,7 @@ public class Matlab {
                         int indX = x + dx;
                         int indY = y + dy;
                         if (indX >= 0 && indX < aWidth && indY >= 0 && indY < aHeight) {
-                            if (aIs8connected || (dy * dx == 0))
+                            if (aIs8connected || (dy * dx == 0)) {
                                 if (aM[indX][indY] == 1) {
                                     int idx = indX * aHeight + indY;
                                     if (!q.contains(idx)) {
@@ -361,6 +372,7 @@ public class Matlab {
                                         q.add(idx);
                                     }
                                 }
+                            }
                         }
                     }
                 }
@@ -369,7 +381,7 @@ public class Matlab {
 
         return elements;
     }
-    
+
     /**
      * Generates new Matrix with elements of aMatrix >aTreshold set to 1 and elements below are set to 0
      * @param aMatrix
@@ -383,7 +395,7 @@ public class Matlab {
                 return aElement > aTreshold ? 1 : 0;
             }
         });
-        
+
         return result;
     }
 }

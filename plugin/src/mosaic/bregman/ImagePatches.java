@@ -135,11 +135,15 @@ class ImagePatches {
             // if (r.value==5){
             // IJ.log("call os " + p.oversampling2ndstep);
             // IJ.log("interp " + p.interpolation);
-            if (p.interpolation > 1) p.subpixel = true;
-            if (p.subpixel)
+            if (p.interpolation > 1) {
+                p.subpixel = true;
+            }
+            if (p.subpixel) {
                 p.oversampling2ndstep = p.overs;
-            else
+            }
+            else {
                 p.oversampling2ndstep = 1;
+            }
             ap = new AnalysePatch(image, r, p, p.oversampling2ndstep, channel, regions_refined, this);
             if (p.mode_voronoi2) {
                 threadPool.execute(ap);
@@ -154,10 +158,12 @@ class ImagePatches {
             // add refined result into regions refined :
             if (!p.mode_voronoi2) {
 
-                if (interp == 1)
+                if (interp == 1) {
                     assemble_result(ap, r);
-                else
+                }
+                else {
                     assemble_result_interpolated(ap, r);
+                }
             }
 
             // else{
@@ -273,7 +279,7 @@ class ImagePatches {
 
     /**
      * Assemble the result
-     * 
+     *
      * @param regionslist_refined List of regions to assemble
      * @param regions_refined regions refined
      */

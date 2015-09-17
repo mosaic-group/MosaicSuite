@@ -77,7 +77,9 @@ class FindConnectedRegions {
 
         int tag = 0;
 
-        if (minvesiclesize < 0) minvesiclesize = 0;
+        if (minvesiclesize < 0) {
+            minvesiclesize = 0;
+        }
         boolean diagonal = false;
         boolean display = false;
         boolean showResults = false;
@@ -148,7 +150,9 @@ class FindConnectedRegions {
         int height = imagePlus.getHeight();
         int depth = imagePlus.getStackSize();
 
-        if (maxvesiclesize < 0) maxvesiclesize = width * height * depth;
+        if (maxvesiclesize < 0) {
+            maxvesiclesize = width * height * depth;
+        }
 
         if (width * height * depth > Integer.MAX_VALUE) {
             IJ.error("This stack is too large for this plugin (must have less than " + Integer.MAX_VALUE + " points.");
@@ -205,7 +209,9 @@ class FindConnectedRegions {
         while (true) {
             // tk++;
 
-            if (pleaseStop) break;
+            if (pleaseStop) {
+                break;
+            }
 
             /*
              * Find one pixel that's above the minimum, or
@@ -230,10 +236,12 @@ class FindConnectedRegions {
                 initial_y = point_roi_y;
                 initial_z = point_roi_z;
 
-                if (byteImage)
+                if (byteImage) {
                     foundValueInt = sliceDataBytes[initial_z][initial_y * width + initial_x] & 0xFF;
-                else
+                }
+                else {
                     foundValueFloat = sliceDataFloats[initial_z][initial_y * width + initial_x];
+                }
 
             }
             else if (byteImage && startAtMaxValue) {
@@ -348,7 +356,9 @@ class FindConnectedRegions {
             // IJ.log("vint :" + vint + "seuil " + ((int) (0.1*vint)));
 
             while (pointsInQueue > 0) {
-                if (pleaseStop) break;
+                if (pleaseStop) {
+                    break;
+                }
 
                 int nextIndex = queue[--pointsInQueue];
 
@@ -411,8 +421,8 @@ class FindConnectedRegions {
                                     // || neighbourValue <=minInt){ // for 3D
                                     // mito{//valuesOverDouble)
                                     if (neighbourValue <= tr[z][x][y] || neighbourValue <= minInt) { // for
-                                                                                                     // 3D
-                                                                                                     // mito{//valuesOverDouble)
+                                        // 3D
+                                        // mito{//valuesOverDouble)
                                         continue;
                                     }
                                 }
@@ -422,9 +432,9 @@ class FindConnectedRegions {
                                 float neighbourValue = sliceDataFloats[z][newSliceIndex];
 
                                 if (neighbourValue <= tr[z][x][y] || neighbourValue <= minInt) {// for
-                                                                                                // 3D
-                                                                                                // mito
-                                                                                                // {//valuesOverDouble)
+                                    // 3D
+                                    // mito
+                                    // {//valuesOverDouble)
                                     continue;
                                 }
                             }
@@ -445,7 +455,9 @@ class FindConnectedRegions {
                 }
             }
 
-            if (pleaseStop) break;
+            if (pleaseStop) {
+                break;
+            }
 
             // So now pointState should have no IN_QUEUE
             // status points...
@@ -526,6 +538,8 @@ class FindConnectedRegions {
 
         Collections.sort(results, Collections.reverseOrder());
 
-        if (showResults) rt.show("Results");
+        if (showResults) {
+            rt.show("Results");
+        }
     }
 }

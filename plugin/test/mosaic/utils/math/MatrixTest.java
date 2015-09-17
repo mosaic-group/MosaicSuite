@@ -6,8 +6,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import mosaic.test.framework.CommonBase;
-import mosaic.utils.math.MFunc;
-import mosaic.utils.math.Matrix;
 
 import org.junit.Test;
 
@@ -31,7 +29,7 @@ public class MatrixTest extends CommonBase {
             test.set(1, 0, 4);
             test.set(1, 1, 5);
             test.set(1, 2, 6);
-            
+
             assertEquals("Matrices should be same", new Matrix(new double[][] {{1, 2, 3}, {4, 5, 6}}), test);
         }
         {
@@ -43,24 +41,24 @@ public class MatrixTest extends CommonBase {
         }
         {
             double[][] yx = {{1, 2}, {3, 4}, {5, 6}};
-            
+
             Matrix test1 = new Matrix(yx);
             Matrix test2 = new Matrix(test1);
-            
+
             assertEquals("Matrices should be same", test1, test2);
-            
+
             // Check if matrices are not sharing any data when one created from the other
             test1.set(0, 13);
             assertFalse("Matrices should not be same", test1.equals(test2));
         }
         {
             double[][] yx = {{1, 2}, {3, 4}, {5, 6}};
-            
+
             Matrix test1 = new Matrix(yx);
             Matrix test2 = test1.copy();
-            
+
             assertEquals("Matrices should be same", test1, test2);
-            
+
             // Check if matrices are not sharing any data when one created from the other
             test1.set(0, 13);
             assertFalse("Matrices should not be same", test1.equals(test2));
@@ -73,75 +71,75 @@ public class MatrixTest extends CommonBase {
             assertEquals("Matrices should be same", new Matrix(yxDouble), new Matrix(yxFloat));
         }
     }
-    
-    @Test 
+
+    @Test
     public void testGetArray() {
         {
             double[][] expected = {{1, 2}, {3, 4}, {5, 6}};
-            
+
             Matrix test = new Matrix(expected);
-            
+
             assertArrayEquals(expected, Matrix.getArrayYX(test));
             assertArrayEquals(expected, test.getArrayYX());
         }
         {
             float[][] expected = {{1, 2}, {3, 4}, {5, 6}};
-            
+
             Matrix test = new Matrix(expected);
-            
+
             assertArrayEquals(expected, Matrix.getArrayYXasFloats(test));
             assertArrayEquals(expected, test.getArrayYXasFloats());
         }
         {
             double[][] expected = {{1, 2}, {3, 4}, {5, 6}};
-            
+
             Matrix test = new Matrix(expected, true);
-            
+
             assertArrayEquals(expected, Matrix.getArrayXY(test));
             assertArrayEquals(expected, test.getArrayXY());
         }
         {
             float[][] expected = {{1, 2}, {3, 4}, {5, 6}};
-            
+
             Matrix test = new Matrix(expected, true);
-            
+
             assertArrayEquals(expected, Matrix.getArrayXYasFloats(test));
             assertArrayEquals(expected, test.getArrayXYasFloats());
         }
         {
             double[][] input = {{1, 2}, {3, 4}, {5, 6}, {7, 8}};
             double[] expected = {2, 4, 6, 8};
-            
+
             Matrix test = new Matrix(input);
-            
+
             assertArrayEquals(expected, test.getArrayColumn(1), 0.0);
         }
         {
             double[][] input = {{1, 2}, {3, 4}, {5, 6}, {7, 8}};
             double[] expected = {5, 6};
-            
+
             Matrix test = new Matrix(input);
-            
+
             assertArrayEquals(expected, test.getArrayRow(2), 0.0);
         }
     }
-    
-    @Test 
+
+    @Test
     public void testgetColumnRow() {
         Matrix input = new Matrix(new double[][] {{1, 2}, {3, 4}, {5, 6}, {7, 8}});
         Matrix expectedRow = Matrix.mkRowVector(7, 8);
         Matrix expectedCol = Matrix.mkColVector(1, 3, 5, 7);
-        
+
         assertEquals(expectedRow, input.getRow(3));
         assertEquals(expectedCol, input.getColumn(0));
     }
-    
+
     @Test
     public void testMkVectors() {
-        {   
+        {
             Matrix expected = new Matrix(new double[][] {{1, 2, 3, 4}});
             Matrix test = Matrix.mkRowVector(1, 2, 3, 4);
-            
+
             assertEquals(expected, test);
         }
         {
@@ -163,74 +161,74 @@ public class MatrixTest extends CommonBase {
             assertEquals(expected, test);
         }
     }
-    
+
     @Test
     public void testDimensionGetters() {
         {
             Matrix test = Matrix.mkRowVector(1, 2, 3);
-            
+
             assertTrue(test.isRowVector());
             assertFalse(test.isColVector());
         }
         {
             Matrix test = Matrix.mkColVector(1, 2, 3);
-            
+
             assertFalse(test.isRowVector());
             assertTrue(test.isColVector());
         }
         {
             // Special case - one number in 1x1 matrix
             Matrix test = new Matrix(new double[][] {{1}});
-            
+
             assertTrue(test.isRowVector());
             assertTrue(test.isColVector());
         }
         {
             // Special case - empty matrix
             Matrix test = new Matrix(new double[][] {{}});
-            
+
             assertFalse(test.isRowVector());
             assertFalse(test.isColVector());
         }
     }
-    
+
     @Test
     public void testProcess() {
-        final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
-                                                        { 5,  6,  7,  8}, 
-                                                        { 9, 10, 11, 12}});
+        final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4},
+                { 5,  6,  7,  8},
+                { 9, 10, 11, 12}});
         final Matrix copy = new Matrix(input);
-        
+
         // Tested method
         input.process(new MFunc() {
-            
+
             @Override
             public double f(double aElement, int aRow, int aCol) {
                 assertEquals(input.get(aRow, aCol), aElement, 0.0);
                 return 2 * aElement;
             }
         });
-        
+
         assertEquals(copy.scale(2.0), input);
     }
-    
+
     @Test
     public void testProcessNoSet() {
-        final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
-                                                        { 5,  6,  7,  8}, 
-                                                        { 9, 10, 11, 12}});
+        final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4},
+                { 5,  6,  7,  8},
+                { 9, 10, 11, 12}});
         final Matrix copy = new Matrix(input);
-        
+
         // Tested method
         input.processNoSet(new MFunc() {
-            
+
             @Override
             public double f(double aElement, int aRow, int aCol) {
                 assertEquals(input.get(aRow, aCol), aElement, 0.0);
                 return 2 * aElement;
             }
         });
-        
+
         // No change expected
         assertEquals(copy, input);
     }
@@ -242,14 +240,14 @@ public class MatrixTest extends CommonBase {
             int startCol = 1;
             int step = 2;
             Matrix expected = new Matrix(new double[][] {{ 2,  4},
-                                                         {10, 12}});
-            
-            Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
-                                                      { 5,  6,  7,  8}, 
-                                                      { 9, 10, 11, 12}});
+                    {10, 12}});
+
+            Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4},
+                    { 5,  6,  7,  8},
+                    { 9, 10, 11, 12}});
             // Tested method
             Matrix result = input.resize(startRow, startCol, step, step);
-    
+
             assertEquals(expected, result);
         }
         {
@@ -257,39 +255,39 @@ public class MatrixTest extends CommonBase {
             int startCol = 0;
             int step = 1;
 
-            Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
-                                                      { 5,  6,  7,  8}, 
-                                                      { 9, 10, 11, 12}});
+            Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4},
+                    { 5,  6,  7,  8},
+                    { 9, 10, 11, 12}});
             // Tested method
             Matrix result = input.resize(startRow, startCol, step, step);
-    
+
             assertEquals(result, input);
         }
     }
-    
-    @Test 
+
+    @Test
     public void testElementAdd() {
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2}, {0, 3}, {4,-1}});
-            
+
             Matrix expected = new Matrix(new double [][] {{2, 4}, {3, 7}, {9, 5}});
-            
+
             assertEquals(expected, m1.copy().add(m2));
             assertEquals(expected, m2.add(m1));
         }
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             Matrix expected = m1.copy().scale(2);
-            
+
             assertEquals(expected, m1.add(m1));
         }
         {
             // Wrong dimensions
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2}, {0, 3}});
-            
+
             try {
                 m1.copy().add(m2);
                 fail("It should throw IllegalArgumentException since matrices have different dimensions");
@@ -299,30 +297,30 @@ public class MatrixTest extends CommonBase {
             }
         }
     }
-    
-    @Test 
+
+    @Test
     public void testElementMult() {
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2}, {0, 3}, {4,-1}});
-            
+
             Matrix expected = new Matrix(new double [][] {{1, 4}, {0,12}, {20, -6}});
-            
+
             assertEquals(expected, m1.copy().elementMult(m2));
             assertEquals(expected, m2.elementMult(m1));
         }
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             Matrix expected = new Matrix(new double [][] {{1, 4}, {9,16}, {25, 36}});
-            
+
             assertEquals(expected, m1.elementMult(m1));
         }
         {
             // Wrong dimensions
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2}, {0, 3}});
-            
+
             try {
                 m1.copy().elementMult(m2);
                 fail("It should throw IllegalArgumentException since matrices have different dimensions");
@@ -336,44 +334,44 @@ public class MatrixTest extends CommonBase {
                     {0.814723686393179, 0.913375856139019, 0.278498218867048},
                     {0.905791937075619, 0.632359246225410, 0.546881519204984},
                     {0.126986816293506, 0.097540404999410, 0.957506835434298},
-                    });
+            });
             Matrix m2 = new Matrix(new double [][] {
                     {0.964888535199277, 0.957166948242946, 0.141886338627215},
                     {0.157613081677548, 0.485375648722841, 0.421761282626275},
                     {0.970592781760616, 0.800280468888800, 0.915735525189067},
-                    });
+            });
             Matrix expected = new Matrix(new double [][] {
                     {0.786117544356069, 0.874253180819373, 0.039515092589246},
                     {0.142764658561164, 0.306931779362545, 0.230653450984500},
                     {0.123252487273238, 0.078059681048531, 0.876823024818548},
-                    });
+            });
             assertTrue(expected.compare(m1.elementMult(m2), 0.000000000000001));
         }
     }
-    
-    @Test 
+
+    @Test
     public void testElementDiv() {
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
             Matrix m2 = new Matrix(new double [][] {{2, 1}, {3, 2}, {2.5, -3}});
-            
+
             Matrix expected = new Matrix(new double [][] {{0.5, 2}, {1, 2}, {2, -2}});
-            
+
             assertEquals(expected, m1.copy().elementDiv(m2));
             assertEquals(expected.inv(), m2.elementDiv(m1));
         }
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             Matrix expected = new Matrix(new double [][] {{1, 1}, {1, 1}, {1, 1}});
-            
+
             assertEquals(expected, m1.elementDiv(m1));
         }
         {
             // Wrong dimensions
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2}, {0, 3}});
-            
+
             try {
                 m1.copy().elementDiv(m2);
                 fail("It should throw IllegalArgumentException since matrices have different dimensions");
@@ -383,48 +381,48 @@ public class MatrixTest extends CommonBase {
             }
         }
     }
-    
+
     @Test
     public void testScalarOperations() {
         {   // add
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             Matrix expected = new Matrix(new double [][] {{2, 3}, {4, 5}, {6, 7}});
-            
+
             assertEquals(expected, m1.add(1.0));
         }
         {   // scale
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             Matrix expected = new Matrix(new double [][] {{10, 20}, {30, 40}, {50, 60}});
-            
+
             assertEquals(expected, m1.scale(10.0));
         }
     }
-    
-    @Test 
+
+    @Test
     public void testElementSub() {
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2}, {0, 3}, {4,-1}});
-            
+
             Matrix expected = new Matrix(new double [][] {{0, 0}, {3, 1}, {1, 7}});
-            
+
             assertEquals(expected, m1.copy().sub(m2));
             assertEquals(expected, m2.sub(m1).negative());
         }
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             Matrix expected = m1.copy().zeros();
-            
+
             assertEquals(expected, m1.sub(m1));
         }
         {
             // Wrong dimensions
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2}, {0, 3}});
-            
+
             try {
                 m1.copy().sub(m2);
                 fail("It should throw IllegalArgumentException since matrices have different dimensions");
@@ -434,30 +432,30 @@ public class MatrixTest extends CommonBase {
             }
         }
     }
-    
-    @Test 
+
+    @Test
     public void testMult() {
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2, 0}, {3, 4,-1}});
-            
+
             Matrix expected = new Matrix(new double [][] {{7, 10, -2}, {15, 22, -4}, {23, 34, -6}});
-            
+
             assertEquals(expected, m1.mult(m2));
         }
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2, 0}, {3, 4,-1}});
-            
+
             Matrix expected = new Matrix(new double [][] {{7, 10}, {10, 16}});
-            
+
             assertEquals(expected, m2.mult(m1));
         }
         {
             // Wrong dimensions
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2, 0}, {3, 4,-1}, {1, 1, 1}});
-            
+
             try {
                 m1.copy().sub(m2);
                 fail("It should throw IllegalArgumentException since matrices have different dimensions");
@@ -467,12 +465,12 @@ public class MatrixTest extends CommonBase {
             }
         }
     }
-    
+
     @Test
     public void testGettersSetters() {
         {   // set/get based on row/col indexes
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             for (int r = 0; r <= 2; r++) {
                 for (int c = 0; c <= 1; c++) {
                     assertEquals(c + 1 + 2 * r, m1.get(r, c), 0.0);
@@ -483,134 +481,134 @@ public class MatrixTest extends CommonBase {
         }
         {   // set/get based on element index
             Matrix m1 = new Matrix(new double [][] {{1, 4}, {2, 5}, {3, 6}});
-            
+
             for (int r = 0; r <= 5; r++) {
-                    assertEquals(r + 1, m1.get(r), 0.0);
-                    m1.set(r, r * 2);
-                    assertEquals(r * 2, m1.get(r), 0.0);
-                
+                assertEquals(r + 1, m1.get(r), 0.0);
+                m1.set(r, r * 2);
+                assertEquals(r * 2, m1.get(r), 0.0);
+
             }
         }
     }
-    
+
     @Test
-    public void testFillFunctions() { 
-        {   
+    public void testFillFunctions() {
+        {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             Matrix expected = new Matrix(new double [][] {{3, 3}, {3, 3}, {3, 3}});
-            
-            assertEquals(expected, m1.fill(3.0)); 
+
+            assertEquals(expected, m1.fill(3.0));
         }
-        {   
+        {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             Matrix expected = new Matrix(new double [][] {{1, 1}, {1, 1}, {1, 1}});
-            
-            assertEquals(expected, m1.ones()); 
+
+            assertEquals(expected, m1.ones());
         }
-        {   
+        {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             Matrix expected = new Matrix(new double [][] {{0, 0}, {0, 0}, {0, 0}});
-            
-            assertEquals(expected, m1.zeros()); 
+
+            assertEquals(expected, m1.zeros());
         }
     }
-    
+
     @Test
-    public void testElementWiseMathFunctions() { 
-        {   
+    public void testElementWiseMathFunctions() {
+        {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             Matrix expected = new Matrix(new double [][] {{1, 4}, {9, 16}, {25, 36}});
-            
-            assertEquals(expected, m1.pow2()); 
+
+            assertEquals(expected, m1.pow2());
         }
-        {   
+        {
             Matrix m1 = new Matrix(new double [][] {{1, 4}, {9, 16}, {25, 36}});
-            
+
             Matrix expected = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
-            assertEquals(expected, m1.sqrt()); 
+
+            assertEquals(expected, m1.sqrt());
         }
-        {   
+        {
             Matrix m1 = new Matrix(new double [][] {{1, Math.exp(2)}, {Math.exp(3), Math.exp(4)}});
-            
+
             Matrix expected = new Matrix(new double [][] {{0, 2}, {3, 4}});
-            
-            assertEquals(expected, m1.log()); 
+
+            assertEquals(expected, m1.log());
         }
-        {   
+        {
             Matrix m1 = new Matrix(new double [][] {{1, 2, 0.5}});
-            
+
             Matrix expected = new Matrix(new double [][] {{1, 0.5, 2}});
-            
-            assertEquals(expected, m1.inv()); 
+
+            assertEquals(expected, m1.inv());
         }
-        {   
+        {
             Matrix m1 = new Matrix(new double [][] {{1, 2, 0.5}});
-            
+
             Matrix expected = new Matrix(new double [][] {{-1, -2, -0.5}});
-            
-            assertEquals(expected, m1.negative()); 
+
+            assertEquals(expected, m1.negative());
         }
-        {   
+        {
             Matrix m1 = new Matrix(new double [][] {{1, 2, 0.5}});
-            
-            assertEquals(3.5, m1.sum(), 0.0); 
+
+            assertEquals(3.5, m1.sum(), 0.0);
         }
     }
-    
+
     @Test
-    public void testNormalize() { 
+    public void testNormalize() {
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, -4}, {5, 10}});
-            
+
             Matrix expected = new Matrix(new double [][] {{0.1, 0.2}, {0.3, -0.4}, {0.5, 1.0}});
-            
-            assertEquals(expected, m1.normalize()); 
+
+            assertEquals(expected, m1.normalize());
         }
         {
             Matrix m1 = new Matrix(new double [][] {{-10, 2}, {3, -4}, {5, 6}});
-            
+
             Matrix expected = new Matrix(new double [][] {{-1, 0.2}, {0.3, -0.4}, {0.5, 0.6}});
-            
-            assertEquals(expected, m1.normalize()); 
+
+            assertEquals(expected, m1.normalize());
         }
     }
-    
+
     @Test
-    public void testNormalizeInRange0to1() { 
+    public void testNormalizeInRange0to1() {
         {   // (-5, -2, 1, 4, 7, 10) => (0, 0.2, 0.4, 0.6, 0.8, 1)
-            Matrix m1 = new Matrix(new double [][] {{1, 7}, {4, -5}, {-2, 10}});
-            
-            Matrix expected = new Matrix(new double [][] {{0.4, 0.8}, {0.6, 0}, {0.2, 1.0}});
-            
-            assertEquals(expected, m1.normalizeInRange0to1()); 
+                Matrix m1 = new Matrix(new double [][] {{1, 7}, {4, -5}, {-2, 10}});
+
+        Matrix expected = new Matrix(new double [][] {{0.4, 0.8}, {0.6, 0}, {0.2, 1.0}});
+
+        assertEquals(expected, m1.normalizeInRange0to1());
         }
     }
-    
+
     @Test
     public void testInsertRow() {
         {
-            final Matrix expected = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
-                                                               {10, 20, 30, 40}, 
-                                                               { 9, 10, 11, 12}});
-            
-            final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
-                                                            { 5,  6,  7,  8}, 
-                                                            { 9, 10, 11, 12}});
-    
+            final Matrix expected = new Matrix(new double[][] {{ 1,  2,  3,  4},
+                    {10, 20, 30, 40},
+                    { 9, 10, 11, 12}});
+
+            final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4},
+                    { 5,  6,  7,  8},
+                    { 9, 10, 11, 12}});
+
             // Tested method
             input.insertRow(Matrix.mkRowVector(10, 20, 30, 40), 1);
-            
+
             assertEquals(expected, input);
         }
         {
             // Wrong dimensions
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             try {
                 m1.insertRow(Matrix.mkRowVector(1, 2, 3), 1);
                 fail("It should throw IllegalArgumentException since matrices have different dimensions");
@@ -620,18 +618,18 @@ public class MatrixTest extends CommonBase {
             }
         }
     }
-    
+
     @Test
     public void testInsertCol() {
         {
-            final Matrix expected = new Matrix(new double[][] {{ 1,  2, 10,  4}, 
-                                                               { 5,  6, 20,  8}, 
-                                                               { 9, 10, 30, 12}});
-            
-            final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
-                                                            { 5,  6,  7,  8}, 
-                                                            { 9, 10, 11, 12}});
-    
+            final Matrix expected = new Matrix(new double[][] {{ 1,  2, 10,  4},
+                    { 5,  6, 20,  8},
+                    { 9, 10, 30, 12}});
+
+            final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4},
+                    { 5,  6,  7,  8},
+                    { 9, 10, 11, 12}});
+
             // Tested method
             input.insertCol(Matrix.mkColVector(10, 20, 30), 2);
             assertEquals(expected, input);
@@ -639,7 +637,7 @@ public class MatrixTest extends CommonBase {
         {
             // Wrong dimensions
             Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
-            
+
             try {
                 m1.insertCol(Matrix.mkColVector(1, 2, 3, 4, 5), 1);
                 fail("It should throw IllegalArgumentException since matrices have different dimensions");
@@ -649,33 +647,33 @@ public class MatrixTest extends CommonBase {
             }
         }
     }
-    
+
     @Test
     public void testInsert() {
-            final Matrix expected = new Matrix(new double[][] {{ 1,  2, 3,  4}, 
-                                                               { 5,  6, 66, 77}, 
-                                                               { 9, 10, 88, 99}});
-            
-            final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4}, 
-                                                            { 5,  6,  7,  8}, 
-                                                            { 9, 10, 11, 12}});
-    
-            // Tested method
-            input.insert(new Matrix(new double[][] {{66, 77}, {88, 99}}), 1,2);
-            assertEquals(expected, input);
+        final Matrix expected = new Matrix(new double[][] {{ 1,  2, 3,  4},
+                { 5,  6, 66, 77},
+                { 9, 10, 88, 99}});
+
+        final Matrix input = new Matrix(new double[][] {{ 1,  2,  3,  4},
+                { 5,  6,  7,  8},
+                { 9, 10, 11, 12}});
+
+        // Tested method
+        input.insert(new Matrix(new double[][] {{66, 77}, {88, 99}}), 1,2);
+        assertEquals(expected, input);
     }
-    
+
     @Test
     public void testCompareEquals() {
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2.5}, {3, 4.1}, {4.5, 6}});
-                    
+
             assertTrue(m1.compare(m2, 0.5));
             assertFalse(m1.compare(m2, 0.45));
         }
         {
-            Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});       
+            Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
             assertTrue(m1.equals(m1));
         }
         {
@@ -689,29 +687,31 @@ public class MatrixTest extends CommonBase {
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2.5}, {3, 4.1}});
-                    
+
             assertFalse(m1.equals(m2));
         }
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
             Matrix m2 = new Matrix(new double [][] {{1, 2.5, 3}, {3, 4.1, 5}, {1, 2, 3}});
-                    
+
             assertFalse(m1.equals(m2));
         }
         {
             Matrix m1 = new Matrix(new double [][] {{1, 2.0}, {3, 4.0}, {5.0, 6}});
             Matrix m2 = m1.copy();
-                    
+
             assertTrue(m1.equals(m2));
         }
     }
-    
+
     @Test
     public void testGetData() {
         Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}});
         double[] data = m1.getData();
-        
+
         // Internal data is kept rows-wise
-        for (int i = 0; i < 4; ++i) assertEquals((double)i + 1, data[i], 0.0);
+        for (int i = 0; i < 4; ++i) {
+            assertEquals((double)i + 1, data[i], 0.0);
+        }
     }
 }

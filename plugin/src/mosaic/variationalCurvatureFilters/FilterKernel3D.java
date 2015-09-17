@@ -5,12 +5,12 @@ package mosaic.variationalCurvatureFilters;
  * @author Krzysztof Gonciarz
  */
 interface FilterKernel3D {
-        /**
-         * This method calculates delta value which should be applied to middle pixel pointed by (aX, aY, aZ)
-         * @param aImage should be in format [Z][Y][X]
-         * @param aX - coordinate of processed point
-         * @param aY - coordinate of processed point
-         * @param aZ - coordinate of processed point
-         */
-        float filterKernel(float[][][] aImage, int aX, int aY, int aZ);
+    /**
+     * This method calculates delta value which should be applied to middle pixel pointed by (aX, aY, aZ)
+     * @param aImage should be in format [Z][Y][X]
+     * @param aX - coordinate of processed point
+     * @param aY - coordinate of processed point
+     * @param aZ - coordinate of processed point
+     */
+    float filterKernel(float[][][] aImage, int aX, int aY, int aZ);
 }

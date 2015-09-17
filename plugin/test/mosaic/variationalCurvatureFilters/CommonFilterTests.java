@@ -13,12 +13,12 @@ public class CommonFilterTests extends CommonBase {
     public void testFilterGcSplitVsNoSplitMethod() {
         testEqualitySplitVsNoSplit(new FilterKernelGc());
     }
-    
+
     @Test
     public void testFilterMcSplitVsNoSplitMethod() {
         testEqualitySplitVsNoSplit(new FilterKernelMc());
     }
-    
+
     @Test
     public void testFilterTvSplitVsNoSplitMethod() {
         testEqualitySplitVsNoSplit(new FilterKernelTv());
@@ -28,7 +28,7 @@ public class CommonFilterTests extends CommonBase {
      * Test helper. For given FilterKernel it tests equality between
      * split and non split version of filter. It compares different sizes of
      * tested image from 1x1 to 20x20.
-     * 
+     *
      * @param aFk Tested FilterKernel
      */
     void testEqualitySplitVsNoSplit(FilterKernel aFk) {
@@ -36,7 +36,7 @@ public class CommonFilterTests extends CommonBase {
         final float expectedPrecision = 0.000001f;
         final int maxSizeX = 20;
         final int maxSizeY = 20;
-        
+
         Random randomGenerator = new Random();
 
         for (int xSize = 1; xSize < maxSizeX; xSize++) {
@@ -55,7 +55,7 @@ public class CommonFilterTests extends CommonBase {
 
                 SplitFilter sf = new SplitFilter(aFk);
                 sf.runFilter(testImgSplit, numOfIterations);
-                
+
                 for (int y = 0; y < ySize; ++y) {
                     Assert.assertArrayEquals("Pixels should have same values!",
                             testImgSplit[y], testImgNoSplit[y], expectedPrecision);

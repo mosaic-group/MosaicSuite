@@ -5,8 +5,8 @@ import ij.ImagePlus;
 import ij.io.OpenDialog;
 import ij.io.Opener;
 import ij.process.FloatProcessor;
-import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.CurvatureFilterBase;
+import mosaic.plugins.utils.ImgUtils;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 
 /**
@@ -14,13 +14,13 @@ import mosaic.variationalCurvatureFilters.CurvatureFilter;
  * @author Krzysztof Gonciarz
  */
 public class Inpainting extends CurvatureFilterBase {
-    
+
     // Mask with inpainting pixels
     ImagePlus iMask;
 
     /**
      * Run filter on given image.
-     * 
+     *
      * @param aInputIp Input image (will be changed during processing)
      * @param aFilter Filter to be used
      * @param aNumberOfIterations Number of iterations for filter
@@ -39,7 +39,9 @@ public class Inpainting extends CurvatureFilterBase {
 
         // create (normalized) 2D array with input image
         float maxValueOfPixel = (float) aOriginalIp.getMax();
-        if (maxValueOfPixel < 1.0f) maxValueOfPixel = 1.0f;
+        if (maxValueOfPixel < 1.0f) {
+            maxValueOfPixel = 1.0f;
+        }
         ImgUtils.ImgToYX2Darray(aOriginalIp, img, maxValueOfPixel);
 
         // Run chosen filter on image
@@ -67,17 +69,17 @@ public class Inpainting extends CurvatureFilterBase {
 
             int iw = getInputImg().getWidth();
             int ih = getInputImg().getHeight();
-            
+
             if (iMask.getWidth() != iw || iMask.getHeight() != ih) {
                 IJ.error("Mask should have same dimensions as input image!" +
-                         " Input image: [" + iw + "x" + ih +"]" +
-                         " Mask: [" + iMask.getWidth() + "x" + iMask.getHeight() + "]");
+                        " Input image: [" + iw + "x" + ih +"]" +
+                        " Mask: [" + iMask.getWidth() + "x" + iMask.getHeight() + "]");
                 return false;
             }
-            
+
             return true;
         }
-        
+
         return false;
     }
 

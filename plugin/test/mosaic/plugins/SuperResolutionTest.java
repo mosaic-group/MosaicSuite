@@ -15,14 +15,14 @@ public class SuperResolutionTest extends CommonBase {
         String[] inputFiles       = {"lenaSmall.tif"};
         String[] expectedFiles    = {"resized_lenaSmall.tif"};
         String[] referenceFiles   = {"resizedLenaSmall.tif"};
-        
+
         // Create tested plugIn
         SuperResolution nt = new SuperResolution();
-       
+
         // Test it
-        testPlugin(nt, tcDirName, 
-                   inputFiles, expectedFiles, referenceFiles, 
-                   setupString, macroOptions);
+        testPlugin(nt, tcDirName,
+                inputFiles, expectedFiles, referenceFiles,
+                setupString, macroOptions);
 
     }
 

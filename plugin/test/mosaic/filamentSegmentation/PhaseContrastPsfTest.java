@@ -15,12 +15,12 @@ public class PhaseContrastPsfTest extends CommonBase {
         final double W = 2;
         final double M = 1;
         Matrix expected = new Matrix(new double[][] {{-0.163, 0.166, -0.163}, {0.166, -34.516, 0.166}, {-0.163, 0.166, -0.163}});
-        
+
         Matrix result = PhaseContrastPsf.generate(R, W, M);
-        
+
         assertTrue("Output should match", expected.compare(result, 0.001));
     }
-    
+
     /*
      * This test is checking behaviour in "special" case when R is smaller than W.
      * It seems that Java's BesselJ cannot calculate values when they are < 0. It is handled in
@@ -33,12 +33,12 @@ public class PhaseContrastPsfTest extends CommonBase {
         final double W = 9;
         final double M = 0;
         Matrix expected = new Matrix(new double[][] {{144.55}});
-        
+
         Matrix result = PhaseContrastPsf.generate(R, W, M);
 
         assertTrue("Output should match", expected.compare(result, 0.01));
     }
-    
+
     @Test
     public void testPcpSingleValue2() {
         // Expected values generated in Matlab with genPahsecontrastPSF with input values R/W/M as below.
@@ -46,7 +46,7 @@ public class PhaseContrastPsfTest extends CommonBase {
         final double W = 2;
         final double M = 0;
         Matrix expected = new Matrix(new double[][] {{-97.348}});
-        
+
         Matrix result = PhaseContrastPsf.generate(R, W, M);
 
         assertTrue("Output should match", expected.compare(result, 0.01));

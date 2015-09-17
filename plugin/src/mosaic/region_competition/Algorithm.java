@@ -81,12 +81,14 @@ public class Algorithm {
 
     /**
      * creates a new LabelImage with size of ip
-     * 
+     *
      * @param proc is saved as originalIP
      */
     public Algorithm(IntensityImage intensityImage, LabelImageRC labelImage, ImageModel model, Settings settings, Region_Competition mvc) {
 
-        if (shrinkFirst) IJ.showMessage("shrinkfirst=true");
+        if (shrinkFirst) {
+            IJ.showMessage("shrinkfirst=true");
+        }
 
         this.MVC = mvc;
         this.labelImage = labelImage;
@@ -168,7 +170,7 @@ public class Algorithm {
         for (int i : iterator.getIndexIterable()) {
             int label = labelImage.getLabelAbs(i);
             if (label != bgLabel && label != forbiddenLabel) // region pixel
-            // && label<negOfs
+                // && label<negOfs
             {
                 Point p = iterator.indexToPoint(i);
                 for (Point neighbor : conn.iterateNeighbors(p)) {
@@ -235,7 +237,7 @@ public class Algorithm {
                 stats.count++;
 
                 stats.mean += val; // only sum up, mean and var are computed
-                                   // below
+                // below
                 stats.var = (stats.var + val * val);
             }
         }
@@ -261,10 +263,12 @@ public class Algorithm {
                 stat.var = 0;
             }
 
-            if (n > 0)
+            if (n > 0) {
                 stat.mean = stat.mean / n;
-            else
+            }
+            else {
                 stat.mean = 0.0;
+            }
 
             // Median on start set equal to mean
 
@@ -286,7 +290,9 @@ public class Algorithm {
          * Depending on the functional to use, prepare stuff for faster
          * computation.
          */
-        if (PrepareEnergyCaluclation(image_psf) == false) return false;
+        if (PrepareEnergyCaluclation(image_psf) == false) {
+            return false;
+        }
 
         /**
          * Start time measurement
@@ -398,7 +404,7 @@ public class Algorithm {
 
     /**
      * Initialize the energy function
-     * 
+     *
      * @param img The PSF image optionally is de-convolving segmentation is
      *            selected
      * @return
@@ -501,7 +507,7 @@ public class Algorithm {
 
     /**
      * Move the points in the candidate list
-     * 
+     *
      * @param m_Candidates
      * @return
      */
@@ -780,14 +786,16 @@ public class Algorithm {
      * Detect oscillations and store values in history.
      */
     private void DetectOscillations(HashMap<Point, ContourParticle> m_Candidates) {
-        if (settings.RC_free == false) oscillationDetection.DetectOscillations(m_Candidates);
+        if (settings.RC_free == false) {
+            oscillationDetection.DetectOscillations(m_Candidates);
+        }
     }
 
     /**
      * Iterates through ContourParticles in m_InnerContourContainer <br>
      * Builds mothers, daughters, computes energies and <br>
      * fills m_CompetingRegionsMap
-     * 
+     *
      * @param aReturnContainer
      */
     private void RebuildCandidateList(HashMap<Point, ContourParticle> aReturnContainer) {
@@ -986,8 +994,8 @@ public class Algorithm {
             Iterator<Entry<Point, ContourParticle>> it = m_Candidates.entrySet().iterator();
             while (it.hasNext()) {
                 Entry<Point, ContourParticle> vStoreIt = it.next(); // iterator
-                                                                    // to work
-                                                                    // with
+                // to work
+                // with
                 if (vStoreIt.getValue().energyDifference >= 0) {
                     it.remove();
                     // m_Candidates.remove(vStoreIt);
@@ -1165,7 +1173,9 @@ public class Algorithm {
                             }
                         }
 
-                        if (!vRule3Fulfilled) vLegalMove = false;
+                        if (!vRule3Fulfilled) {
+                            vLegalMove = false;
+                        }
                     }
 
                     if (vLegalMove) {
@@ -1209,7 +1219,7 @@ public class Algorithm {
         Iterator<Entry<Point, ContourParticle>> it = m_Candidates.entrySet().iterator();
         while (it.hasNext()) {
             Entry<Point, ContourParticle> vStoreIt = it.next(); // iterator to
-                                                                // work with
+            // work with
             if (vStoreIt.getValue().energyDifference >= 0) {
                 it.remove();
                 // m_Candidates.remove(vStoreIt);
@@ -1257,7 +1267,9 @@ public class Algorithm {
         // / Update the statistics of the propagating and the loser region.
         // /
 
-        if (settings.RC_free == false) UpdateStatisticsWhenJump(aParticle, vFromLabel, vToLabel);
+        if (settings.RC_free == false) {
+            UpdateStatisticsWhenJump(aParticle, vFromLabel, vToLabel);
+        }
         if (imageModel.getEdataType() == EnergyFunctionalType.e_DeconvolutionPC) {
             ((E_Deconvolution) imageModel.getEdata()).UpdateConvolvedImage(vCurrentIndex, labelImage, vFromLabel, vToLabel);
         }
@@ -1316,7 +1328,7 @@ public class Algorithm {
      * This method generates the new contour particles and adds them to
      * container
      * itk::AddNeighborsAtRemove
-     * 
+     *
      * @param pIndex changing point
      * @param aAbsLabel old label of this point
      */
@@ -1341,14 +1353,14 @@ public class Algorithm {
             }
 
             if (labelImage.isInnerLabel(qLabel) && qLabel == aAbsLabel) // q is
-                                                                        // a
-                                                                        // inner
-                                                                        // point
-                                                                        // with
-                                                                        // the
-                                                                        // same
-                                                                        // label
-                                                                        // as p
+                // a
+                // inner
+                // point
+                // with
+                // the
+                // same
+                // label
+                // as p
             {
                 ContourParticle q = new ContourParticle();
                 q.label = aAbsLabel;
@@ -1362,12 +1374,12 @@ public class Algorithm {
             // (since isContourLabel==> neg values AND (qLabel == aAbsLabel) =>
             // pos labels
             else if (labelImage.isContourLabel(qLabel) && qLabel == aAbsLabel) // q
-                                                                               // is
-                                                                               // contour
-                                                                               // of
-                                                                               // the
-                                                                               // same
-                                                                               // label
+                // is
+                // contour
+                // of
+                // the
+                // same
+                // label
             {
                 // TODO itk Line 1520, modifiedcounter
                 // / the point is already in the contour. We reactivate it by
@@ -1520,7 +1532,7 @@ public class Algorithm {
 
         Object[] copy = m_InnerContourContainer.entrySet().toArray();
         for (Object o : copy)
-        // for (Entry<Point, ContourParticle> vIt : copy)
+            // for (Entry<Point, ContourParticle> vIt : copy)
         {
             @SuppressWarnings("unchecked")
             Entry<Point, ContourParticle> vIt = (Entry<Point, ContourParticle>) o;
@@ -1580,7 +1592,9 @@ public class Algorithm {
         aContainer.clear();
 
         for (ContourPointWithIndexType vSortedListIterator : vSortedList) {
-            if (!(vNbElements >= 1)) break;
+            if (!(vNbElements >= 1)) {
+                break;
+            }
 
             vNbElements--;
             // Point vCandCIndex = vSortedListIterator.pIndex;

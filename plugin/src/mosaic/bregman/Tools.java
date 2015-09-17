@@ -23,29 +23,29 @@ class Tools {
         this.nlevels = 1;
     }
 
-//    public void showmem() {
-//        // Get current size of heap in bytes
-//        long heapSize = Runtime.getRuntime().totalMemory();
-//
-//        // Get maximum size of heap in bytes. The heap cannot grow beyond this
-//        // size.
-//        // Any attempt will result in an OutOfMemoryException.
-//        long heapMaxSize = Runtime.getRuntime().maxMemory();
-//
-//        // Get amount of free memory within the heap in bytes. This size will
-//        // increase
-//        // after garbage collection and decrease as new objects are created.
-//        long heapFreeSize = Runtime.getRuntime().freeMemory();
-//
-//        long used = heapSize - heapFreeSize;
-//
-//        IJ.log(" ");
-//        IJ.log("Total mem" + round(heapSize / Math.pow(2, 20), 2));
-//        IJ.log("Max mem" + round(heapMaxSize / Math.pow(2, 20), 2));
-//        IJ.log("Free mem" + round(heapFreeSize / Math.pow(2, 20), 2));
-//        IJ.log("Used mem" + round(used / Math.pow(2, 20), 2));
-//        IJ.log(" ");
-//    }
+    //    public void showmem() {
+    //        // Get current size of heap in bytes
+    //        long heapSize = Runtime.getRuntime().totalMemory();
+    //
+    //        // Get maximum size of heap in bytes. The heap cannot grow beyond this
+    //        // size.
+    //        // Any attempt will result in an OutOfMemoryException.
+    //        long heapMaxSize = Runtime.getRuntime().maxMemory();
+    //
+    //        // Get amount of free memory within the heap in bytes. This size will
+    //        // increase
+    //        // after garbage collection and decrease as new objects are created.
+    //        long heapFreeSize = Runtime.getRuntime().freeMemory();
+    //
+    //        long used = heapSize - heapFreeSize;
+    //
+    //        IJ.log(" ");
+    //        IJ.log("Total mem" + round(heapSize / Math.pow(2, 20), 2));
+    //        IJ.log("Max mem" + round(heapMaxSize / Math.pow(2, 20), 2));
+    //        IJ.log("Free mem" + round(heapFreeSize / Math.pow(2, 20), 2));
+    //        IJ.log("Used mem" + round(used / Math.pow(2, 20), 2));
+    //        IJ.log(" ");
+    //    }
 
     void setDims(int i, int j, int z, int n) {
         ni = i;
@@ -89,15 +89,23 @@ class Tools {
                         colIndex = i + m - kCenterX;
                         rowIndex = j + n - kCenterY;
 
-                        if (rowIndex >= 0 && rowIndex < irows && colIndex >= 0 && colIndex < icols)
+                        if (rowIndex >= 0 && rowIndex < irows && colIndex >= 0 && colIndex < icols) {
                             sum += in[colIndex][rowIndex] * kernel[mm][nn];
-                        // syymetric boundaries
+                        }
                         else {
-                            if (rowIndex < 0) rowIndex = -rowIndex - 1;
-                            if (rowIndex > irows - 1) rowIndex = irows - (rowIndex - irows) - 1;
+                            if (rowIndex < 0) {
+                                rowIndex = -rowIndex - 1;
+                            }
+                            if (rowIndex > irows - 1) {
+                                rowIndex = irows - (rowIndex - irows) - 1;
+                            }
 
-                            if (colIndex < 0) colIndex = -colIndex - 1;
-                            if (colIndex > icols - 1) colIndex = icols - (colIndex - icols) - 1;
+                            if (colIndex < 0) {
+                                colIndex = -colIndex - 1;
+                            }
+                            if (colIndex > icols - 1) {
+                                colIndex = icols - (colIndex - icols) - 1;
+                            }
                             sum += in[colIndex][rowIndex] * kernel[mm][nn];
                         }
 
@@ -138,12 +146,16 @@ class Tools {
                     colIndex = i + m - kCenterX;
                     rowIndex = j;
 
-                    if (colIndex >= 0 && colIndex < icols)
+                    if (colIndex >= 0 && colIndex < icols) {
                         sum += in[colIndex][rowIndex] * kernelx[mm];
-                    // syymetric boundaries
+                    }
                     else {
-                        if (colIndex < 0) colIndex = -colIndex - 1;
-                        if (colIndex > icols - 1) colIndex = icols - (colIndex - icols) - 1;
+                        if (colIndex < 0) {
+                            colIndex = -colIndex - 1;
+                        }
+                        if (colIndex > icols - 1) {
+                            colIndex = icols - (colIndex - icols) - 1;
+                        }
                         sum += in[colIndex][rowIndex] * kernelx[mm];
                     }
 
@@ -166,12 +178,16 @@ class Tools {
                     colIndex = i;
                     rowIndex = j + n - kCenterY;
 
-                    if (rowIndex >= 0 && rowIndex < irows)
+                    if (rowIndex >= 0 && rowIndex < irows) {
                         sum += temp[colIndex][rowIndex] * kernely[nn];
-                    // syymetric boundaries
+                    }
                     else {
-                        if (rowIndex < 0) rowIndex = -rowIndex - 1;
-                        if (rowIndex > irows - 1) rowIndex = irows - (rowIndex - irows) - 1;
+                        if (rowIndex < 0) {
+                            rowIndex = -rowIndex - 1;
+                        }
+                        if (rowIndex > irows - 1) {
+                            rowIndex = irows - (rowIndex - irows) - 1;
+                        }
                         sum += temp[colIndex][rowIndex] * kernely[nn];
                     }
 
@@ -218,12 +234,16 @@ class Tools {
                         colIndex = i + m - kCenterX;
                         rowIndex = j;
 
-                        if (colIndex >= 0 && colIndex < icols)
+                        if (colIndex >= 0 && colIndex < icols) {
                             sum += in[k][colIndex][rowIndex] * kernelx[mm];
-                        // syymetric boundaries
+                        }
                         else {
-                            if (colIndex < 0) colIndex = -colIndex - 1;
-                            if (colIndex > icols - 1) colIndex = icols - (colIndex - icols) - 1;
+                            if (colIndex < 0) {
+                                colIndex = -colIndex - 1;
+                            }
+                            if (colIndex > icols - 1) {
+                                colIndex = icols - (colIndex - icols) - 1;
+                            }
                             sum += in[k][colIndex][rowIndex] * kernelx[mm];
                         }
 
@@ -250,12 +270,16 @@ class Tools {
                         colIndex = i;
                         rowIndex = j + n - kCenterY;
 
-                        if (rowIndex >= 0 && rowIndex < irows)
+                        if (rowIndex >= 0 && rowIndex < irows) {
                             sum += out[k][colIndex][rowIndex] * kernely[nn];
-                        // syymetric boundaries
+                        }
                         else {
-                            if (rowIndex < 0) rowIndex = -rowIndex - 1;
-                            if (rowIndex > irows - 1) rowIndex = irows - (rowIndex - irows) - 1;
+                            if (rowIndex < 0) {
+                                rowIndex = -rowIndex - 1;
+                            }
+                            if (rowIndex > irows - 1) {
+                                rowIndex = irows - (rowIndex - irows) - 1;
+                            }
                             sum += out[k][colIndex][rowIndex] * kernely[nn];
                         }
 
@@ -283,12 +307,16 @@ class Tools {
                         rowIndex = j;
                         sliceIndex = k + l - kCenterZ;
 
-                        if (sliceIndex >= 0 && sliceIndex < islices)
+                        if (sliceIndex >= 0 && sliceIndex < islices) {
                             sum += temp[sliceIndex][colIndex][rowIndex] * kernelz[ll];
-                        // syymetric boundaries
+                        }
                         else {
-                            if (sliceIndex < 0) sliceIndex = Math.min(islices - 1, -sliceIndex - 1);
-                            if (sliceIndex > islices - 1) sliceIndex = Math.max(0, islices - (sliceIndex - islices) - 1);
+                            if (sliceIndex < 0) {
+                                sliceIndex = Math.min(islices - 1, -sliceIndex - 1);
+                            }
+                            if (sliceIndex > islices - 1) {
+                                sliceIndex = Math.max(0, islices - (sliceIndex - islices) - 1);
+                            }
                             sum += temp[sliceIndex][colIndex][rowIndex] * kernelz[ll];
                         }
                     }
@@ -534,15 +562,21 @@ class Tools {
 
     private double noise(double im, double mu) {
         double res;
-        if (mu < 0) mu = 0.0001;
+        if (mu < 0) {
+            mu = 0.0001;
+        }
         if (Analysis.p.noise_model == 0) {// poisson
 
-            if (im != 0)
+            if (im != 0) {
                 res = (im * Math.log(im / mu) + mu - im);
-            else
+            }
+            else {
                 res = mu;
+            }
 
-            if (mu == 0) res = im;
+            if (mu == 0) {
+                res = im;
+            }
         }
         else// gauss
         {
@@ -563,21 +597,28 @@ class Tools {
         double thr;
 
         for (int l = 0; l < nlevels; l++) {
-            if (nlevels > 2)
+            if (nlevels > 2) {
                 thr = cl[l];
-            else
+            }
+            else {
                 thr = cl[1];// if only two regions only first mask is used
-            if (thr == 1) thr = 0.5;// should not have threhold to 1: creates
-                                    // empty mask and wrong behavior in dct3D
-                                    // computation
+            }
+            if (thr == 1)
+            {
+                thr = 0.5;// should not have threhold to 1: creates
+            }
+            // empty mask and wrong behavior in dct3D
+            // computation
             for (int z = 0; z < nz; z++) {
                 for (int i = 0; i < ni; i++) {
                     for (int j = 0; j < nj; j++) {
-                        if (image[z][i][j] >= thr)// &&
-                                                  // image[z][i][j]<=cltemp[l+2])
+                        if (image[z][i][j] >= thr) {
+                            // image[z][i][j]<=cltemp[l+2])
                             res[l][z][i][j] = 1;
-                        else
+                        }
+                        else {
                             res[l][z][i][j] = 0;
+                        }
                     }
                 }
             }
@@ -831,8 +872,9 @@ class Tools {
     double computeEnergyPSF_weighted(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] weights, double ldata, double lreg, Parameters p, double c0,
             double c1, double[][][] image) {
 
-        if (p.PSF.isSeparable() == true)
+        if (p.PSF.isSeparable() == true) {
             Tools.convolve2Dseparable(speedData[0], mask[0], ni, nj, p.PSF, maskx[0], 0, ni);
+        }
         else {
             IJ.error("Error: non-separable PSF calculation are not implemented");
             return 0.0;
@@ -1004,7 +1046,7 @@ class Tools {
     double computeEnergyPSF3D_weighted(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double[][][] weights, double ldata, double lreg, Parameters p, double c0,
             double c1, double[][][] image
 
-    ) {
+            ) {
         Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, p.PSF, temp);
 
         // for (int z=0; z<nz; z++){

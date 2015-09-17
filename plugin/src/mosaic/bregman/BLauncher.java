@@ -66,7 +66,7 @@ class BLauncher {
 
     /**
      * Launch the Segmentation + Analysis from path
-     * 
+     *
      * @param path
      */
     BLauncher(String path) {
@@ -84,16 +84,24 @@ class BLauncher {
 
             // Check if we have more than one frame
             for (File f : fl) {
-                if (f.isDirectory() == true) continue;
+                if (f.isDirectory() == true) {
+                    continue;
+                }
 
                 // If it is the Rscript continue
-                if (f.getName().equals("R_analysis.R")) continue;
+                if (f.getName().equals("R_analysis.R")) {
+                    continue;
+                }
 
                 // It is an hidden file
-                if (f.getName().startsWith(".") == true) continue;
+                if (f.getName().startsWith(".") == true) {
+                    continue;
+                }
 
                 // It is a csv file
-                if (f.getName().endsWith(".csv") == true) continue;
+                if (f.getName().endsWith(".csv") == true) {
+                    continue;
+                }
 
                 // Attempt to open a file
 
@@ -116,10 +124,12 @@ class BLauncher {
                     saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
 
                     try {
-                        if (fl.length != 1)
+                        if (fl.length != 1) {
                             out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), "stitch", hcount - 1);
-                        else
+                        }
+                        else {
                             out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), aImp.getTitle(), 0);
+                        }
                     }
                     catch (FileNotFoundException e) {
                         e.printStackTrace();
@@ -177,7 +187,9 @@ class BLauncher {
             saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
         }
 
-        if (out != null) out.close();
+        if (out != null) {
+            out.close();
+        }
     }
 
     BLauncher(ImagePlus aImp_) {
@@ -187,16 +199,18 @@ class BLauncher {
 
     /**
      * Display results
-     * 
+     *
      * @param separate true if you do not want separate the images
      */
     private void displayResult(boolean sep) {
         int factor = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
         int fz;
-        if (Analysis.p.nz > 1)
+        if (Analysis.p.nz > 1) {
             fz = factor;
-        else
+        }
+        else {
             fz = 1;
+        }
 
         System.out.println("Separate: " + sep);
 
@@ -237,7 +251,7 @@ class BLauncher {
 
     /**
      * Get the outline filename
-     * 
+     *
      * @return the outline name
      */
     private String getOutlineName(int i) {
@@ -246,7 +260,7 @@ class BLauncher {
 
     /**
      * Get the outline filename
-     * 
+     *
      * @return the outline filename
      */
     private String getIntensitiesName(int i) {
@@ -255,7 +269,7 @@ class BLauncher {
 
     /**
      * Get the Intensities filename
-     * 
+     *
      * @return the intensities filename
      */
     private String getSegmentationName(int i) {
@@ -264,7 +278,7 @@ class BLauncher {
 
     /**
      * Get the Mask filename
-     * 
+     *
      * @param i
      * @return the mask filename
      */
@@ -278,39 +292,49 @@ class BLauncher {
 
     /**
      * Save all images
-     * 
+     *
      * @param path where to save
      */
     private void saveAllImages(String path) {
         // Save images
         for (int i = 0; i < out_over.length; i++) {
             String savepath = path + File.separator + getOutlineName(i) + ".zip";
-            if (out_over[i] != null) IJ.saveAs(out_over[i], "ZIP", savepath);
+            if (out_over[i] != null) {
+                IJ.saveAs(out_over[i], "ZIP", savepath);
+            }
         }
 
         for (int i = 0; i < out_disp.length; i++) {
             String savepath = path + File.separator + getIntensitiesName(i) + ".zip";
-            if (out_disp[i] != null) IJ.saveAs(out_disp[i], "ZIP", savepath);
+            if (out_disp[i] != null) {
+                IJ.saveAs(out_disp[i], "ZIP", savepath);
+            }
         }
 
         for (int i = 0; i < out_label.length; i++) {
             String savepath = path + File.separator + getSegmentationName(i) + ".zip";
-            if (out_label[i] != null) IJ.saveAs(out_label[i], "ZIP", savepath);
+            if (out_label[i] != null) {
+                IJ.saveAs(out_label[i], "ZIP", savepath);
+            }
         }
 
         for (int i = 0; i < out_label_gray.length; i++) {
             String savepath = path + File.separator + getMaskName(i) + ".zip";
-            if (out_label_gray[i] != null) IJ.saveAs(out_label_gray[i], "ZIP", savepath);
+            if (out_label_gray[i] != null) {
+                IJ.saveAs(out_label_gray[i], "ZIP", savepath);
+            }
         }
         for (int i = 0; i < Analysis.out_soft_mask.length; i++) {
             String savepath = path + File.separator + getSoftMask(i) + ".tiff";
-            if (Analysis.out_soft_mask[i] != null) IJ.saveAsTiff(Analysis.out_soft_mask[i], savepath);
+            if (Analysis.out_soft_mask[i] != null) {
+                IJ.saveAsTiff(Analysis.out_soft_mask[i], savepath);
+            }
         }
     }
 
     /**
      * Write the CSV ImageData file information
-     * 
+     *
      * @param path directory where to save
      * @param filename name of the file processed
      * @param outfilename output file (extension is removed)
@@ -471,10 +495,12 @@ class BLauncher {
             Analysis.setRegionsLabels(Analysis.regionslist[1], Analysis.regions[1]);
             int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
             int fz2;
-            if (Analysis.p.nz > 1)
+            if (Analysis.p.nz > 1) {
                 fz2 = factor2;
-            else
+            }
+            else {
                 fz2 = 1;
+            }
 
             MasksDisplay md = new MasksDisplay(Analysis.p.ni * factor2, Analysis.p.nj * factor2, Analysis.p.nz * fz2, Analysis.p.nlevels, Analysis.p.cl, Analysis.p);
             md.displaycoloc(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle(), Analysis.regionslist[0], Analysis.regionslist[1], ip);
@@ -507,10 +533,12 @@ class BLauncher {
 
                 boolean append = false;
 
-                if (new File(output1).exists())
+                if (new File(output1).exists()) {
                     append = true;
-                else
+                }
+                else {
                     append = false;
+                }
 
                 // Write channel 2
 
@@ -543,10 +571,12 @@ class BLauncher {
 
                 boolean append = false;
 
-                if (hcount == 0)
+                if (hcount == 0) {
                     append = false;
-                else
+                }
+                else {
                     append = true;
+                }
 
                 Vector<? extends Outdata<Region>> obl = Analysis.getObjectsList(hcount, 0);
 
@@ -573,7 +603,7 @@ class BLauncher {
 
     /**
      * Display outline overlay segmentation
-     * 
+     *
      * @param regions mask with intensities
      * @param image image
      * @param dz z size
@@ -593,10 +623,12 @@ class BLauncher {
             byte[] mask_bytes = new byte[di * dj];
             for (int i = 0; i < di; i++) {
                 for (int j = 0; j < dj; j++) {
-                    if (regions[z][i][j] > 0)
+                    if (regions[z][i][j] > 0) {
                         mask_bytes[j * di + i] = 0;
-                    else
+                    }
+                    else {
                         mask_bytes[j * di + i] = (byte) 255;
+                    }
                 }
             }
 
@@ -670,7 +702,7 @@ class BLauncher {
 
     /**
      * Display intensity result
-     * 
+     *
      * @param regionslist Regions
      * @param dz image size z
      * @param di image size x
@@ -707,8 +739,9 @@ class BLauncher {
         // copy to imageJ1
         ImagePlus intensities2 = intensities.duplicate();
 
-        if (sep == false)
+        if (sep == false) {
             updateImages(out_disp, intensities2, getIntensitiesName(channel - 1), Analysis.p.dispint, channel);
+        }
         else {
             ip.add(intensities2);
             out_disp[channel - 1] = intensities2;
@@ -721,7 +754,9 @@ class BLauncher {
     private ImagePlus label = null;
 
     private static IndexColorModel backgroundAndSpectrum(int maximum) {
-        if (maximum > 255) maximum = 255;
+        if (maximum > 255) {
+            maximum = 255;
+        }
         byte[] reds = new byte[256];
         byte[] greens = new byte[256];
         byte[] blues = new byte[256];
@@ -747,7 +782,7 @@ class BLauncher {
 
     /**
      * Display regions colors
-     * 
+     *
      * @param regions label image
      * @param channel number of the channel
      * @param max_r max number of region
@@ -784,8 +819,9 @@ class BLauncher {
         labS.setColorModel(backgroundAndSpectrum(Math.min(max_r, 255)));
         label.setStack("Regions " + chan_s[channel - 1], labS);
 
-        if (sep == false)
+        if (sep == false) {
             updateImages(out_label, label, getSegmentationName(channel - 1), Analysis.p.dispcolors, channel);
+        }
         else {
             out_label[channel - 1] = label;
             ip.add(label);
@@ -798,7 +834,7 @@ class BLauncher {
 
     /**
      * Display regions labels
-     * 
+     *
      * @param channel
      * @param sep = true if you want to separate
      */
@@ -807,8 +843,9 @@ class BLauncher {
 
         IJ.run(label_, "Grays", "");
 
-        if (sep == false)
+        if (sep == false) {
             updateImages(out_label_gray, label_, getMaskName(channel - 1), Analysis.p.displabels, channel);
+        }
         else {
             out_label_gray[channel - 1] = label_;
             ip.add(label_);
@@ -819,7 +856,7 @@ class BLauncher {
 
     /**
      * Update the images array, merging frames and display it
-     * 
+     *
      * @param ipd array of images
      * @param ips image
      * @param title of the image

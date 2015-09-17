@@ -12,8 +12,6 @@ import java.util.Arrays;
 
 import mosaic.test.framework.CommonBase;
 import mosaic.test.framework.SystemOperations;
-import mosaic.utils.io.serialize.DataFile;
-import mosaic.utils.io.serialize.SerializedDataFile;
 
 import org.junit.Test;
 
@@ -34,7 +32,7 @@ public class DataFileTest extends CommonBase {
             return "[" + iId + ", " + iValue + ", (" + Arrays.toString(iNames) + ")]";
         }
     }
-    
+
     /**
      * This test saves a object and after that reads it again and validates data.
      */
@@ -46,53 +44,53 @@ public class DataFileTest extends CommonBase {
         expectedData.iId = 3;
         expectedData.iNames = new String[] {"Krzysztof", "Magdalena"};
         expectedData.iValue = 1.23;
-        
+
         // Tested method - write object to file
         DataFile<TestConfig> df = new SerializedDataFile<TestConfig>();
         assertTrue(df.SaveToFile(fileName, expectedData));
-        
+
         // Tested method - read object from file
         TestConfig result = new SerializedDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
-        
+
         // Verify result
         assertNotNull(result);
         assertEquals(expectedData.iId, result.iId);
         assertEquals(expectedData.iValue, result.iValue, 0.0);
         assertArrayEquals(expectedData.iNames, result.iNames);
     }
-    
+
     @Test
     public void testReadNotExisting() {
         // Prepare data
         String fileName = SystemOperations.getCleanTestTmpPath() + "testReadNotExisting.dat";
-        
+
         // Make sure that file is not existing
         File f = new File(fileName);
         assertFalse(f.exists());
-        
+
         // Tested method - read object from file
         TestConfig result = new SerializedDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
-        
+
         // Verify result
         assertNull(result);
     }
-    
+
     @Test
     public void testReadWrongObject() {
         // Prepare data
         String fileName = SystemOperations.getCleanTestTmpPath() + "testReadWrongObject.dat";
-        
+
         // Write different type of object than the one to be read.
         DataFile<String> df = new SerializedDataFile<String>();
         df.SaveToFile(fileName, new String("Hello world!!!"));
-        
+
         // Tested method - read object from file
         TestConfig result = new SerializedDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
-        
+
         // Verify result
         assertNull(result);
     }
-    
+
     @Test
     public void testWriteToWrongFile() {
         // Prepare data
@@ -101,7 +99,7 @@ public class DataFileTest extends CommonBase {
         expectedData.iId = 3;
         expectedData.iNames = new String[] {"Krzysztof", "Magdalena"};
         expectedData.iValue = 1.23;
-        
+
         // Tested method - write object to file
         DataFile<TestConfig> df = new SerializedDataFile<TestConfig>();
         assertFalse(df.SaveToFile(fileName, expectedData));

@@ -1,6 +1,7 @@
 package mosaic.filamentSegmentation;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import mosaic.test.framework.CommonBase;
 import mosaic.utils.math.Matrix;
 
@@ -25,16 +26,16 @@ public class EnergyGriadientsOfBasesFunctionsTest extends CommonBase {
     @Test
     public void testEnergySumForNotSupportedValues() {
         Matrix expected = new Matrix(new double[][] {{0}});
-        
+
         {
             Matrix result = EnergyGriadientsOfBasesFunctions.getEnergyGradients(-1);
             assertTrue("Output for unsupported values should be [0]", expected.compare(result, 0.0));
         }
-        
+
         {
             Matrix result = EnergyGriadientsOfBasesFunctions.getEnergyGradients(5);
             assertTrue("Output for unsupported values should be [0]", expected.compare(result, 0.0));
-    
+
         }
     }
 }

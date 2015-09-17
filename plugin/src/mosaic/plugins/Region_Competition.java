@@ -98,15 +98,15 @@ public class Region_Competition implements Segmentation {
     private boolean normalize_ip = false;
 
     private ImageStack initialStack; // copy of the initial guess (without
-                                     // contour/boundary)
+    // contour/boundary)
 
     private InputReadable userDialog;
     private JFrame controllerFrame;
 
     /**
-     * 
+     *
      * Return the dimension of a file
-     * 
+     *
      * @param f file
      * @return
      */
@@ -119,18 +119,20 @@ public class Region_Competition implements Segmentation {
     }
 
     /**
-     * 
+     *
      * Return the dimension of an image
-     * 
+     *
      * @param aImp image
      * @return
      */
 
     private int getDimension(ImagePlus aImp) {
-        if (aImp.getNSlices() == 1)
+        if (aImp.getNSlices() == 1) {
             return 2;
-        else
+        }
+        else {
             return 3;
+        }
     }
 
     private String getOptions(File f) {
@@ -166,9 +168,9 @@ public class Region_Competition implements Segmentation {
     }
 
     /**
-     * 
+     *
      * Run the segmentation on ImgLib2
-     * 
+     *
      * @param aArgs arguments
      * @param img Image
      * @param lbl Label image
@@ -238,8 +240,9 @@ public class Region_Competition implements Segmentation {
 
     @Override
     public int setup(String aArgs, ImagePlus aImp) {
-        if (MosaicUtils.checkRequirement() == false)
+        if (MosaicUtils.checkRequirement() == false) {
             return DONE;
+        }
 
         initAndParse();
 
@@ -254,8 +257,9 @@ public class Region_Competition implements Segmentation {
 
         if (userDialog.getInputImage() != null) {
             originalIP = (ImagePlus) userDialog.getInputImage();
-            if (originalIP != null)
+            if (originalIP != null) {
                 cal = originalIP.getCalibration();
+            }
         }
 
         if (userDialog.useCluster() == true) {
@@ -335,11 +339,13 @@ public class Region_Competition implements Segmentation {
             String outcsv[] = { "*_ObjectsData_c1.csv" };
             File f = ClusterSession.processJobsData(outcsv, MosaicUtils.ValidFolderFromImage(aImp));
 
-            if (aImp != null)
+            if (aImp != null) {
                 MosaicUtils.StitchCSV(MosaicUtils.ValidFolderFromImage(aImp), out,
                         MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle());
-            else
+            }
+            else {
                 MosaicUtils.StitchCSV(f.getParent(), out, null);
+            }
 
             return NO_IMAGE_REQUIRED;
         } else {
@@ -364,10 +370,12 @@ public class Region_Competition implements Segmentation {
 
                 GeneratePSF gPsf = new GeneratePSF();
 
-                if (aImp.getNSlices() == 1)
+                if (aImp.getNSlices() == 1) {
                     image_psf = gPsf.generate(2);
-                else
+                }
+                else {
                     image_psf = gPsf.generate(3);
+                }
             }
         }
         return DOES_ALL + NO_CHANGES;
@@ -383,9 +391,9 @@ public class Region_Competition implements Segmentation {
     private String output;
 
     /**
-     * 
+     *
      * Run region competition plugins
-     * 
+     *
      */
 
     @Override
@@ -402,8 +410,9 @@ public class Region_Competition implements Segmentation {
 
             for (int i = 0; i < margins.length; i++) {
                 margins[i] = (int) (image_psf.dimension(i));
-                if (margins[i] < 50)
+                if (margins[i] < 50) {
                     margins[i] = 50;
+                }
             }
 
             ImagePatcher<FloatType, IntType> ip = new ImagePatcher<FloatType, IntType>(
@@ -440,8 +449,9 @@ public class Region_Competition implements Segmentation {
             try {
                 RCImageFilter();
             } catch (Exception e) {
-                if (controllerFrame != null)
+                if (controllerFrame != null) {
                     controllerFrame.dispose();
+                }
                 e.printStackTrace();
             }
         }
@@ -450,14 +460,17 @@ public class Region_Competition implements Segmentation {
 
         // Remove eventually extension
 
-        if (labelImage == null)
+        if (labelImage == null) {
             return;
+        }
 
-        if (output == null)
+        if (output == null) {
             labelImage
-                    .save(folder + File.separator + MosaicUtils.getRegionMaskName(MVC.getOriginalImPlus().getTitle()));
-        else
+            .save(folder + File.separator + MosaicUtils.getRegionMaskName(MVC.getOriginalImPlus().getTitle()));
+        }
+        else {
             labelImage.save(output);
+        }
 
         labelImage.calculateRegionsCenterOfMass();
 
@@ -469,9 +482,9 @@ public class Region_Competition implements Segmentation {
     private final boolean hide_p = false;
 
     /**
-     * 
+     *
      * Hide get hide processing status
-     * 
+     *
      */
 
     public boolean getHideProcess() {
@@ -479,9 +492,9 @@ public class Region_Competition implements Segmentation {
     }
 
     /**
-     * 
+     *
      * Initialize the energy function
-     * 
+     *
      */
 
     private void initEnergies() {
@@ -497,49 +510,49 @@ public class Region_Competition implements Segmentation {
         Energy e_merge_NONE = null;
 
         switch (type) {
-        case e_PC: {
-            e_data = new E_CV(labelMap);
-            e_merge = e_merge_KL;
-            break;
-        }
-        case e_PS: {
-            e_data = new E_PS(labelImage, intensityImage, labelMap, settings.m_GaussPSEnergyRadius,
-                    settings.m_RegionMergingThreshold);
-            e_merge = e_merge_NONE;
-            break;
-        }
-        case e_DeconvolutionPC: {
-            int dims[] = intensityImage.getDimensions();
-            e_data = new E_Deconvolution(intensityImage, labelMap, new ArrayImgFactory<FloatType>(), dims);
-            break;
-        }
-        default: {
-            String s = "Unsupported Energy functional";
-            IJ.showMessage(s);
-            throw new RuntimeException(s);
-        }
+            case e_PC: {
+                e_data = new E_CV(labelMap);
+                e_merge = e_merge_KL;
+                break;
+            }
+            case e_PS: {
+                e_data = new E_PS(labelImage, intensityImage, labelMap, settings.m_GaussPSEnergyRadius,
+                        settings.m_RegionMergingThreshold);
+                e_merge = e_merge_NONE;
+                break;
+            }
+            case e_DeconvolutionPC: {
+                int dims[] = intensityImage.getDimensions();
+                e_data = new E_Deconvolution(intensityImage, labelMap, new ArrayImgFactory<FloatType>(), dims);
+                break;
+            }
+            default: {
+                String s = "Unsupported Energy functional";
+                IJ.showMessage(s);
+                throw new RuntimeException(s);
+            }
         }
 
         RegularizationType rType = settings.regularizationType;
         switch (rType) {
-        case Sphere_Regularization: {
-            int rad = (int) settings.m_CurvatureMaskRadius;
-            e_length = new E_CurvatureFlow(labelImage, rad, cal);
-            break;
-        }
-        case Approximative: {
-            e_length = new E_Gamma(labelImage);
-            break;
-        }
-        case None: {
-            e_length = null;
-            break;
-        }
-        default: {
-            String s = "Unsupported Regularization";
-            IJ.showMessage(s);
-            throw new RuntimeException(s);
-        }
+            case Sphere_Regularization: {
+                int rad = (int) settings.m_CurvatureMaskRadius;
+                e_length = new E_CurvatureFlow(labelImage, rad, cal);
+                break;
+            }
+            case Approximative: {
+                e_length = new E_Gamma(labelImage);
+                break;
+            }
+            case None: {
+                e_length = null;
+                break;
+            }
+            default: {
+                String s = "Unsupported Regularization";
+                IJ.showMessage(s);
+                throw new RuntimeException(s);
+            }
         }
 
         imageModel = new ImageModel(e_data, e_length, e_merge, settings);
@@ -584,10 +597,12 @@ public class Region_Competition implements Segmentation {
         if (ip != null) {
             originalIP = ip;
 
-            if (normalize_ip)
+            if (normalize_ip) {
                 intensityImage = new IntensityImage(originalIP);
-            else
+            }
+            else {
                 intensityImage = new IntensityImage(originalIP, false);
+            }
 
             // image loaded
             boolean showOriginal = true;
@@ -610,69 +625,72 @@ public class Region_Competition implements Segmentation {
         labelImage = new LabelImageRC(intensityImage.getDimensions());
         InitializationType input;
 
-        if (userDialog != null)
+        if (userDialog != null) {
             input = userDialog.getLabelImageInitType();
-        else
+        }
+        else {
             input = settings.labelImageInitType;
+        }
 
         switch (input) {
-        case ROI_2D: {
-            System.out.println("manualSelect");
-            manualSelect(labelImage);
-            break;
-        }
-        case Rectangle: {
-            BoxInitializer bi = new BoxInitializer(labelImage);
-            bi.initRatio(settings.l_BoxRatio);
-            break;
-        }
-        case Bubbles: {
-            BubbleInitializer bi = new BubbleInitializer(labelImage);
-            bi.initSizePaddig(settings.m_BubblesRadius, settings.m_BubblesDispl);
-            break;
-        }
-        case LocalMax: {
-            MaximaBubbles mb = new MaximaBubbles(intensityImage, labelImage, settings.l_BubblesRadius,
-                    settings.l_Sigma, settings.l_Tolerance, settings.l_RegionTolerance);
-            mb.initFloodFilled();
-            break;
-        }
-        case File_Patcher:
-        case File: {
-            ImagePlus ip = null;
+            case ROI_2D: {
+                System.out.println("manualSelect");
+                manualSelect(labelImage);
+                break;
+            }
+            case Rectangle: {
+                BoxInitializer bi = new BoxInitializer(labelImage);
+                bi.initRatio(settings.l_BoxRatio);
+                break;
+            }
+            case Bubbles: {
+                BubbleInitializer bi = new BubbleInitializer(labelImage);
+                bi.initSizePaddig(settings.m_BubblesRadius, settings.m_BubblesDispl);
+                break;
+            }
+            case LocalMax: {
+                MaximaBubbles mb = new MaximaBubbles(intensityImage, labelImage, settings.l_BubblesRadius,
+                        settings.l_Sigma, settings.l_Tolerance, settings.l_RegionTolerance);
+                mb.initFloodFilled();
+                break;
+            }
+            case File_Patcher:
+            case File: {
+                ImagePlus ip = null;
 
-            String fileName = userDialog.getLabelImageFilename();
-            ImagePlus choiceIP = (ImagePlus) userDialog.getLabelImage();
+                String fileName = userDialog.getLabelImageFilename();
+                ImagePlus choiceIP = (ImagePlus) userDialog.getLabelImage();
 
-            // first priority: filename was entered
-            if (fileName != null && !fileName.isEmpty()) {
-                Opener o = new Opener();
-                ip = o.openImage(fileName);
-                if (ip == null)
+                // first priority: filename was entered
+                if (fileName != null && !fileName.isEmpty()) {
+                    Opener o = new Opener();
+                    ip = o.openImage(fileName);
+                    if (ip == null) {
+                        ip = choiceIP;
+                    }
+                } else // no filename. fileName == null || fileName()
+                {
                     ip = choiceIP;
-            } else // no filename. fileName == null || fileName()
-            {
-                ip = choiceIP;
-            }
+                }
 
-            if (ip != null) {
-                labelImage.initWithIP(ip);
-                labelImage.initBoundary();
-                labelImage.connectedComponents();
-            } else {
+                if (ip != null) {
+                    labelImage.initWithIP(ip);
+                    labelImage.initBoundary();
+                    labelImage.connectedComponents();
+                } else {
+                    labelImage = null;
+                    String msg = "Failed to load LabelImage (" + fileName + ")";
+                    IJ.showMessage(msg);
+                    throw new RuntimeException(msg);
+                }
+
+                break;
+            }
+            default: {
+                // was aborted
                 labelImage = null;
-                String msg = "Failed to load LabelImage (" + fileName + ")";
-                IJ.showMessage(msg);
-                throw new RuntimeException(msg);
+                throw new RuntimeException("No valid input option in User Input. Abort");
             }
-
-            break;
-        }
-        default: {
-            // was aborted
-            labelImage = null;
-            throw new RuntimeException("No valid input option in User Input. Abort");
-        }
         }
 
         if (labelImage == null) {
@@ -708,13 +726,16 @@ public class Region_Competition implements Segmentation {
     }
 
     private void initStack() {
-        if (IJ.isMacro() == true || hide_p == true)
+        if (IJ.isMacro() == true || hide_p == true) {
             return;
+        }
 
-        if (userDialog != null)
+        if (userDialog != null) {
             stackKeepFrames = userDialog.showAllFrames();
-        else
+        }
+        else {
             stackKeepFrames = false;
+        }
 
         ImageProcessor labelImageProc;
 
@@ -731,8 +752,9 @@ public class Region_Competition implements Segmentation {
 
         // add a windowlistener to
 
-        if (IJ.isMacro() == false)
+        if (IJ.isMacro() == false) {
             stackImPlus.getWindow().addWindowListener(new StackWindowListener());
+        }
 
         // first stack image without boundary&contours
         for (int i = 1; i <= initialStack.getSize(); i++) {
@@ -746,15 +768,16 @@ public class Region_Competition implements Segmentation {
 
         IJ.setMinAndMax(stackImPlus, 0, maxLabel);
         IJ.run(stackImPlus, "3-3-2 RGB", null); // stack has to contain at least
-                                                // 2 slices so this LUT applies
-                                                // to all future slices.
+        // 2 slices so this LUT applies
+        // to all future slices.
     }
 
     private void initControls() {
         // no control when is a script
 
-        if (IJ.isMacro() == true)
+        if (IJ.isMacro() == true) {
             return;
+        }
 
         controllerFrame = new ControllerFrame(this);
         controllerFrame.setVisible(true);
@@ -806,10 +829,12 @@ public class Region_Competition implements Segmentation {
         initControls();
 
         int n = 1;
-        if (userDialog != null)
+        if (userDialog != null) {
             n = userDialog.getKBest();
-        if (n < 1)
+        }
+        if (n < 1) {
             n = 1;
+        }
         Timer t = new Timer();
 
         if (userDialog != null && userDialog.getKBest() > 0) {
@@ -822,8 +847,9 @@ public class Region_Competition implements Segmentation {
                 initEnergies();
 
                 initAlgorithm();
-                if (algorithm.GenerateData(image_psf) == false)
+                if (algorithm.GenerateData(image_psf) == false) {
                     return;
+                }
                 t.toc();
 
                 updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
@@ -833,8 +859,9 @@ public class Region_Competition implements Segmentation {
                     IJ.setMinAndMax(stackImPlus, 0, algorithm.getBiggestLabel());
                 }
 
-                if (userDialog != null && output == null)
+                if (userDialog != null && output == null) {
                     OpenedImages.add(labelImage.show("", algorithm.getBiggestLabel()));
+                }
             }
 
             System.out.println("--- kbest: (set in GenericDialogGui.kbest) ---");
@@ -856,12 +883,14 @@ public class Region_Competition implements Segmentation {
             if (stackImPlus != null) {
                 IJ.setMinAndMax(stackImPlus, 0, algorithm.getBiggestLabel());
             }
-            if (userDialog != null)
+            if (userDialog != null) {
                 showFinalResult(labelImage);
+            }
         }
 
-        if (IJ.isMacro() == false)
+        if (IJ.isMacro() == false) {
             controllerFrame.dispose();
+        }
     }
 
     private <T extends RealType<T>, E extends IntegerType<E>> void RCImageFilter(Img<T> img, Img<E> lbl, Class<T> cls) {
@@ -976,14 +1005,18 @@ public class Region_Competition implements Segmentation {
 
     @Override
     public void closeAll() {
-        if (labelImage != null)
+        if (labelImage != null) {
             labelImage.close();
-        if (intensityImage != null)
+        }
+        if (intensityImage != null) {
             intensityImage.close();
-        if (stackImPlus != null)
+        }
+        if (stackImPlus != null) {
             stackImPlus.close();
-        if (originalIP != null)
+        }
+        if (originalIP != null) {
             originalIP.close();
+        }
 
         for (int i = 0; i < OpenedImages.size(); i++) {
             OpenedImages.get(i).close();
@@ -994,7 +1027,7 @@ public class Region_Competition implements Segmentation {
     /**
      * Adds a new slice pixels to the end of the stack, and sets the new stack
      * position to this slice
-     * 
+     *
      * @param title Title of the stack slice
      * @param pixels data of the new slice (pixel array)
      */
@@ -1022,8 +1055,9 @@ public class Region_Competition implements Segmentation {
     private void add3DtoStaticStack(String title, ImageStack stackslice) {
 
         int oldpos = stackImPlus.getCurrentSlice();
-        if (oldpos < 1)
+        if (oldpos < 1) {
             oldpos = 1;
+        }
 
         while (stack.getSize() > 0) {
             stack.deleteLastSlice();
@@ -1128,9 +1162,9 @@ public class Region_Competition implements Segmentation {
     }
 
     /**
-     * 
+     *
      * Get the original imagePlus
-     * 
+     *
      * @return
      */
 
@@ -1188,11 +1222,11 @@ public class Region_Competition implements Segmentation {
     }
 
     /**
-     * 
+     *
      * Show and save statistics
-     * 
+     *
      * @param labelMap HashMap that contain the labels information
-     * 
+     *
      */
 
     private void showAndSaveStatistics(HashMap<Integer, LabelInformation> labelMap) {
@@ -1207,14 +1241,15 @@ public class Region_Competition implements Segmentation {
 
         boolean headless_check = GraphicsEnvironment.isHeadless();
 
-        if (headless_check == false)
+        if (headless_check == false) {
             rts.show("statistics");
+        }
     }
 
     /**
-     * 
+     *
      * Save the csv region statistics
-     * 
+     *
      * @param fold where to save
      * @param labelMap HashMap that save the label information
      */
@@ -1222,8 +1257,9 @@ public class Region_Competition implements Segmentation {
     private void saveStatistics(String fold, HashMap<Integer, LabelInformation> labelMap) {
         // Remove the string file:
 
-        if (fold.indexOf("file:") >= 0)
+        if (fold.indexOf("file:") >= 0) {
             fold = fold.substring(fold.indexOf("file:") + 5);
+        }
 
         ResultsTable rts = createStatistics(labelMap);
 
@@ -1237,8 +1273,9 @@ public class Region_Competition implements Segmentation {
 
         boolean headless_check = GraphicsEnvironment.isHeadless();
 
-        if (headless_check == false)
+        if (headless_check == false) {
             MosaicUtils.reorganize(out, oip, fold.substring(0, fold.lastIndexOf(File.separator)), 1);
+        }
     }
 
     private ResultsTable createStatistics(HashMap<Integer, LabelInformation> labelMap) {
@@ -1256,19 +1293,21 @@ public class Region_Competition implements Segmentation {
             rt.addValue("variance", info.var);
             rt.addValue("Coord_X", info.mean_pos[0]);
             rt.addValue("Coord_Y", info.mean_pos[1]);
-            if (info.mean_pos.length > 2)
+            if (info.mean_pos.length > 2) {
                 rt.addValue("Coord_Z", info.mean_pos[2]);
-            else
+            }
+            else {
                 rt.addValue("Coord_Z", 0.0);
+            }
         }
 
         return rt;
     }
 
     /**
-     * 
+     *
      * Get CSV regions list name output
-     * 
+     *
      * @param aImp image
      * @return set of possible output
      */

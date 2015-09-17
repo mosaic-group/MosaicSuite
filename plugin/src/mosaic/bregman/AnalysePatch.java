@@ -80,7 +80,7 @@ class AnalysePatch implements Runnable {
 
     /**
      * Create patches
-     * 
+     *
      * @param image Image
      * @param r Region
      * @param pa Paramenters for split Bregman
@@ -106,7 +106,9 @@ class AnalysePatch implements Runnable {
         oz = pa.nz;
 
         margin = 4;// add margin to size of object to create patch
-        if (pa.mode_voronoi2) margin = 6;
+        if (pa.mode_voronoi2) {
+            margin = 6;
+        }
         zmargin = 1;// was 2
         this.regions_refined = regionsf;
 
@@ -137,10 +139,12 @@ class AnalysePatch implements Runnable {
         temp3 = new double[1][sz][sx][sy];
 
         // create weights mask (binary)
-        if (p.mode_voronoi2)
+        if (p.mode_voronoi2) {
             voronoi_mask(r.rvoronoi);// mask for voronoi region into weights
-        else
+        }
+        else {
             fill_weights(r);
+        }
 
         // create patch image with oversampling
         this.patch = new double[sz][sx][sy];
@@ -199,26 +203,30 @@ class AnalysePatch implements Runnable {
         }
 
         rescaled_min_int_all = firstminval / 0.99; // first val with ~3% margin
-                                                   // (15 % compensated in
-                                                   // find_best_t_and_int...)
+        // (15 % compensated in
+        // find_best_t_and_int...)
 
         // estimate ints
         if (p.mode_voronoi2) {
-            if (p.debug) IJ.log("object :" + r.value);
-            if (p.mode_intensity == 0)
+            if (p.debug) {
+                IJ.log("object :" + r.value);
+            }
+            if (p.mode_intensity == 0) {
                 find_best_thresh_and_int(w3kpatch[0]);
-            // estimate_int_weighted(mask[0]);
-            // estimate_int_weighted(w3kpatch);
+            }
             else {
-                if (p.mode_intensity == 1)
+                if (p.mode_intensity == 1) {
                     estimate_int_weighted(mask[0]);
-                // estimate_int_weighted(w3kpatch[0]);
-                else if (p.mode_intensity == 2) estimate_int_clustering(p.mode_intensity - 1);// (-1
-                                                                                              // to
-                                                                                              // correct
-                                                                                              // for
-                                                                                              // old
-                                                                                              // numbering)
+                }
+                else if (p.mode_intensity == 2)
+                {
+                    estimate_int_clustering(p.mode_intensity - 1);// (-1
+                    // to
+                    // correct
+                    // for
+                    // old
+                    // numbering)
+                }
             }
             p.cl[0] = Math.max(cout, 0);
             p.cl[1] = Math.max(0.75 * (firstminval - intmin) / (intmax - intmin), cin);
@@ -237,7 +245,9 @@ class AnalysePatch implements Runnable {
         }
 
         rescaled_min_int_all = Math.max(0, (rescaled_min_int - cout) / (cin - cout)); // /cin
-        if (p.debug) IJ.log(r.value + "min all " + rescaled_min_int_all);
+        if (p.debug) {
+            IJ.log(r.value + "min all " + rescaled_min_int_all);
+        }
 
         // max iterations
         p.max_nsb = 101;
@@ -286,9 +296,9 @@ class AnalysePatch implements Runnable {
             }
 
             A_solver = new ASplitBregmanSolverTwoRegions3DPSF(p, patch, speedData, w3kpatch, md, channel, this);// mask
-                                                                                                                // instead
-                                                                                                                // of
-                                                                                                                // w3kpatch
+            // instead
+            // of
+            // w3kpatch
         }
         else {
             // Check the delta beta, if it is bigger than two ignore it, because
@@ -302,9 +312,9 @@ class AnalysePatch implements Runnable {
             }
 
             A_solver = new ASplitBregmanSolverTwoRegionsPSF(p, patch, speedData, w3kpatch, md, channel, this);// mask
-                                                                                                              // instead
-                                                                                                              // of
-                                                                                                              // w3kpatch
+            // instead
+            // of
+            // w3kpatch
         }
 
         try {
@@ -316,19 +326,23 @@ class AnalysePatch implements Runnable {
             // IJ.log("cout " + cout + "cin" + cin);
 
             int ll = p.mode_intensity;
-            if (ll == 0 || ll == 1)
+            if (ll == 0 || ll == 1) {
                 min_thresh = rescaled_min_int_all * 0.96;
-            else
+            }
+            else {
                 min_thresh = 0.25;
-            // min_thresh= 0.99*mask_clustering(A_solver.w3kbest[0],ll);//allow
-            // 1% margin
+                // min_thresh= 0.99*mask_clustering(A_solver.w3kbest[0],ll);//allow
+                // 1% margin
+            }
 
             if (p.debug) {
                 IJ.log("region" + r.value + "minth " + min_thresh);
 
             }
             double t = 0;
-            if (p.mode_intensity != 3) t = find_best_thresh(A_solver.w3kbest[0]);
+            if (p.mode_intensity != 3) {
+                t = find_best_thresh(A_solver.w3kbest[0]);
+            }
 
             if (p.mode_intensity == 3)// mode high
             {
@@ -339,7 +353,7 @@ class AnalysePatch implements Runnable {
                 // double t2=find_best_thresh(A_solver.w3kbest[0]);
                 if (p.debug) {
                     IJ.log("obj" + r.value + " effective t:" + t_high);// +"test2"
-                                                                       // +t2);
+                    // +t2);
                 }
                 t = t_high - 0.04;
                 // t=t2;
@@ -347,7 +361,9 @@ class AnalysePatch implements Runnable {
             }
 
             // todo : compute best threshold for p.thresh
-            if (p.debug) IJ.log("best thresh : " + t + "region" + r.value);
+            if (p.debug) {
+                IJ.log("best thresh : " + t + "region" + r.value);
+            }
             set_object(A_solver.w3kbest[0], t);
             if (p.mode_classic) {
                 estimate_int_weighted(object);
@@ -388,12 +404,17 @@ class AnalysePatch implements Runnable {
                         // else
                         // {
                         if (sz <= 1)
+                        {
                             if ((i == 0 && offsetx != 0) || (i == (sx - 1) && (offsetx + sx / os) != ox) || (j == 0 && offsety != 0) || (j == (sy - 1) && (offsety + sy / os) != oy))
+                            {
                                 border_attained = true;
-                        // }
+                                // }
+                            }
+                        }
                     }
-                    else
+                    else {
                         this.object[z][i][j] = 0;
+                    }
                 }
             }
         }
@@ -402,7 +423,7 @@ class AnalysePatch implements Runnable {
 
     /**
      * Compute the geometry of the patch
-     * 
+     *
      * @param r Region
      * @param oversampling level of oversampling
      */
@@ -418,12 +439,24 @@ class AnalysePatch implements Runnable {
 
         for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
             Pix p = it.next();
-            if (p.px < xmin) xmin = p.px;
-            if (p.px > xmax) xmax = p.px;
-            if (p.py < ymin) ymin = p.py;
-            if (p.py > ymax) ymax = p.py;
-            if (p.pz < zmin) zmin = p.pz;
-            if (p.pz > zmax) zmax = p.pz;
+            if (p.px < xmin) {
+                xmin = p.px;
+            }
+            if (p.px > xmax) {
+                xmax = p.px;
+            }
+            if (p.py < ymin) {
+                ymin = p.py;
+            }
+            if (p.py > ymax) {
+                ymax = p.py;
+            }
+            if (p.pz < zmin) {
+                zmin = p.pz;
+            }
+            if (p.pz > zmax) {
+                zmax = p.pz;
+            }
         }
 
         xmin = Math.max(0, xmin - margin);
@@ -480,7 +513,9 @@ class AnalysePatch implements Runnable {
             for (int z = 0; z < sz; z++) {
                 for (int i = 0; i < sx; i++) {
                     for (int j = 0; j < sy; j++) {
-                        if (weights[z][i][j] == 0) this.patch[z][i][j] = 0;
+                        if (weights[z][i][j] == 0) {
+                            this.patch[z][i][j] = 0;
+                        }
                     }
                 }
             }
@@ -502,7 +537,9 @@ class AnalysePatch implements Runnable {
             for (int z = 0; z < sz; z++) {
                 for (int i = 0; i < sx; i++) {
                     for (int j = 0; j < sy; j++) {
-                        if (weights[z][i][j] == 0) this.w3kpatch[0][z][i][j] = 0;
+                        if (weights[z][i][j] == 0) {
+                            this.w3kpatch[0][z][i][j] = 0;
+                        }
                     }
                 }
             }
@@ -516,8 +553,12 @@ class AnalysePatch implements Runnable {
         for (int z = 0; z < sz; z++) {
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
-                    if (patch[z][i][j] > intmax) intmax = patch[z][i][j];
-                    if (patch[z][i][j] < intmin) intmin = patch[z][i][j];
+                    if (patch[z][i][j] > intmax) {
+                        intmax = patch[z][i][j];
+                    }
+                    if (patch[z][i][j] < intmin) {
+                        intmin = patch[z][i][j];
+                    }
                 }
             }
         }
@@ -546,8 +587,12 @@ class AnalysePatch implements Runnable {
             for (int z = 0; z < sz; z++) {
                 for (int i = 0; i < sx; i++) {
                     for (int j = 0; j < sy; j++) {
-                        if (w3kpatch[0][z][i][j] > intmax2) intmax2 = w3kpatch[0][z][i][j];
-                        if (w3kpatch[0][z][i][j] < intmin2) intmin2 = w3kpatch[0][z][i][j];
+                        if (w3kpatch[0][z][i][j] > intmax2) {
+                            intmax2 = w3kpatch[0][z][i][j];
+                        }
+                        if (w3kpatch[0][z][i][j] < intmin2) {
+                            intmin2 = w3kpatch[0][z][i][j];
+                        }
                     }
                 }
             }
@@ -601,18 +646,26 @@ class AnalysePatch implements Runnable {
         }
 
         int nk;
-        if (level == 1)
+        if (level == 1) {
             nk = 4;
-        else
+        }
+        else {
             nk = 3;// 3level culstering for low (removed) and high, 4 levels for
-                   // medium
-        //
-        // nk=4;//test high mode
+            // medium
+            //
+            // nk=4;//test high mode
+        }
 
         int nk_in = 0;
         // if (level==0)nk_in=1;//low
-        if (level == 2) nk_in = 2;// high
-        if (level == 1) nk_in = 2;// medium
+        if (level == 2)
+        {
+            nk_in = 2;// high
+        }
+        if (level == 1)
+        {
+            nk_in = 2;// medium
+        }
 
         // nk_in=3;// test high mode
         // int nk=4;//3
@@ -626,7 +679,10 @@ class AnalysePatch implements Runnable {
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
                     pixel[0] = patch[z][i][j];
-                    if (level == 2) pixel[0] = A_solver.w3kbest[0][z][i][j]; // w3kpatch[0]
+                    if (level == 2)
+                    {
+                        pixel[0] = A_solver.w3kbest[0][z][i][j]; // w3kpatch[0]
+                    }
                     Instance instance = new DenseInstance(pixel);
                     if (p.mode_voronoi2) {
                         if (weights[z][i][j] == 1) {
@@ -634,8 +690,9 @@ class AnalysePatch implements Runnable {
                             cpt_vals++;
                         }
                     }
-                    else
+                    else {
                         data.add(instance);
+                    }
                 }
             }
         }
@@ -675,7 +732,7 @@ class AnalysePatch implements Runnable {
             // IJ.log("clust done ");
 
             nk = data2.length;// get number of clusters really found (usually =
-                              // 3 = setNumClusters but not always)
+            // 3 = setNumClusters but not always)
             for (int i = 0; i < nk; i++) {
                 // Instance inst =DatasetTools.minAttributes(data2[i]);
                 Instance inst = DatasetTools.average(data2[i]);
@@ -693,7 +750,9 @@ class AnalysePatch implements Runnable {
             int nkm1 = Math.max(nk2 - 1, 0);
             cout_front = levels[nkm1];
             cout = levels[0];
-            if (level == 2) cout = cout_front;
+            if (level == 2) {
+                cout = cout_front;
+            }
 
             mint = 0.25;
 
@@ -766,10 +825,12 @@ class AnalysePatch implements Runnable {
             rz = os * (p.pz - offsetz);
             rx = os * (p.px - offsetx);
             ry = os * (p.py - offsety);
-            if (rz < 0 || rz + osz > sz || rx < 0 || rx + os > sx || ry < 0 || ry + os > sy) continue;
+            if (rz < 0 || rz + osz > sz || rx < 0 || rx + os > sx || ry < 0 || ry + os > sy) {
+                continue;
+            }
 
             for (int z = rz; z < rz + osz; z++) {// for (int z=rz; z<rz+osz;
-                                                 // z++){
+                // z++){
                 for (int i = rx; i < rx + os; i++) {
                     for (int j = ry; j < ry + os; j++) {
                         this.weights[z][i][j] = 1;
@@ -824,7 +885,7 @@ class AnalysePatch implements Runnable {
 
     /**
      * Here is calculated the best threshold for the patches
-     * 
+     *
      * @param w3kbest the mask
      * @return the best threshold based on energy calculation
      */
@@ -839,8 +900,8 @@ class AnalysePatch implements Runnable {
         // IJ.log("find bess thresh" +r.value +"cin " + cin + " coutfront " +
         // cout_front);
         for (t = 1; t > min_thresh; t -= 0.02) { // mint
-                                                 // //rescaled_min_int_all*0.85
-                                                 // 0.5*cout
+            // //rescaled_min_int_all*0.85
+            // 0.5*cout
             set_object(w3kbest, t);
 
             if (obj && !border_attained) {
@@ -851,7 +912,9 @@ class AnalysePatch implements Runnable {
                     temp = ATools.computeEnergyPSF3D_weighted(temp1[0], object, temp2[0], temp3[0], weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
                 }
 
-                if (p.debug) IJ.log("energy " + temp + " t " + t + "region" + r.value);
+                if (p.debug) {
+                    IJ.log("energy " + temp + " t " + t + "region" + r.value);
+                }
                 if (temp < energy) {
                     energy = temp;
                     threshold = t;
@@ -891,9 +954,15 @@ class AnalysePatch implements Runnable {
                     temp = ATools.computeEnergyPSF3D_weighted(temp1[0], object, temp2[0], temp3[0], weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
                 }
 
-                if (p.debug == true) IJ.log("energy and int " + temp + " t " + t + "region" + r.value + " cin " + cin + " cout " + cout + " obj " + obj);
-                if (temp < min_energy) min_energy = temp;
-                if (temp > max_energy) max_energy = temp;
+                if (p.debug == true) {
+                    IJ.log("energy and int " + temp + " t " + t + "region" + r.value + " cin " + cin + " cout " + cout + " obj " + obj);
+                }
+                if (temp < min_energy) {
+                    min_energy = temp;
+                }
+                if (temp > max_energy) {
+                    max_energy = temp;
+                }
                 if (temp < energy) {
                     energy = temp;
                     threshold = t;
@@ -920,9 +989,13 @@ class AnalysePatch implements Runnable {
         }
 
         rescaled_min_int_all = Math.max((rescaled_min_int - cout) / (cin - cout), 0);
-        if (p.debug) IJ.log("fbest" + r.value + "min all " + rescaled_min_int_all);
+        if (p.debug) {
+            IJ.log("fbest" + r.value + "min all " + rescaled_min_int_all);
+        }
 
-        if (p.debug) IJ.log(" best energy and int " + energy + " t " + tbest + "region" + r.value + " cin " + cin + " cout " + cout);
+        if (p.debug) {
+            IJ.log(" best energy and int " + energy + " t " + tbest + "region" + r.value + " cin " + cin + " cout " + cout);
+        }
 
         return threshold;
 
@@ -957,7 +1030,7 @@ class AnalysePatch implements Runnable {
         // maska_im.show();
 
         FindConnectedRegions fcr = new FindConnectedRegions(maska_im, isx, isy, isz);// maska_im
-                                                                                     // only
+        // only
 
         double thr = 0.5;
 
@@ -971,9 +1044,9 @@ class AnalysePatch implements Runnable {
         }
 
         fcr.run(thr, channel, isx * isy * isz, 0 * fsxy, 0, Ri, false, false);// min
-                                                                              // size
-                                                                              // was
-                                                                              // 5//5*osxy
+        // size
+        // was
+        // 5//5*osxy
         // fcr.run(d,0,p.maxves_size,p.minves_size,255*p.min_intensity,Ri,true,p.save_images&&(!p.refinement));
 
         // add to list with critical section
@@ -1054,10 +1127,12 @@ class AnalysePatch implements Runnable {
         for (int z = 0; z < isz; z++) {
             for (int i = 0; i < isx; i++) {
                 for (int j = 0; j < isy; j++) {
-                    if (interpolated_object[z][i][j] > t && weights[z / interpolationz][i / interpolation][j / interpolation] == 1)
+                    if (interpolated_object[z][i][j] > t && weights[z / interpolationz][i / interpolation][j / interpolation] == 1) {
                         this.interpolated_object[z][i][j] = 1;
-                    else
+                    }
+                    else {
                         this.interpolated_object[z][i][j] = 0;
+                    }
                 }
             }
         }

@@ -7,7 +7,7 @@ import mosaic.core.utils.DataCompression.Algorithm;
 /**
  * This interface define an interface to get information of a cluster any class
  * that store information of a cluster must implement this interface
- * 
+ *
  * @author i-bird
  */
 
@@ -20,7 +20,7 @@ public interface ClusterProfile {
 
     /**
      * Get the username to access the cluster
-     * 
+     *
      * @return the username
      */
 
@@ -28,7 +28,7 @@ public interface ClusterProfile {
 
     /**
      * Set the username to access the cluster
-     * 
+     *
      * @param Username to set
      */
 
@@ -36,7 +36,7 @@ public interface ClusterProfile {
 
     /**
      * Get the password to access the cluster
-     * 
+     *
      * @return the password
      */
 
@@ -44,7 +44,7 @@ public interface ClusterProfile {
 
     /**
      * Set the password to access the cluster
-     * 
+     *
      * @param Password
      */
 
@@ -52,7 +52,7 @@ public interface ClusterProfile {
 
     /**
      * Set the type of hardware to use for the jobs
-     * 
+     *
      * @param Acc_
      */
 
@@ -60,7 +60,7 @@ public interface ClusterProfile {
 
     /**
      * Get the Address to access the cluster
-     * 
+     *
      * @return the string of the address to access the cluster
      */
 
@@ -68,7 +68,7 @@ public interface ClusterProfile {
 
     /**
      * Set the address to access the cluster
-     * 
+     *
      * @param AccessAddress_
      */
 
@@ -76,7 +76,7 @@ public interface ClusterProfile {
 
     /**
      * Get the profile name (in general is the name of the cluster)
-     * 
+     *
      * @return
      */
 
@@ -84,7 +84,7 @@ public interface ClusterProfile {
 
     /**
      * Set the profile name (in general is the name of the cluster)
-     * 
+     *
      * @return
      */
 
@@ -92,7 +92,7 @@ public interface ClusterProfile {
 
     /**
      * Get the directory to run jobs. the (*) are replaced with the username
-     * 
+     *
      * @return
      */
 
@@ -100,7 +100,7 @@ public interface ClusterProfile {
 
     /**
      * Set the Running dir. (*) are replaced with the username
-     * 
+     *
      * @param RunningDir_
      */
 
@@ -110,7 +110,7 @@ public interface ClusterProfile {
 
     /**
      * Set the command to run imageJ/fiji
-     * 
+     *
      * @param ImageJCommand_
      */
 
@@ -118,7 +118,7 @@ public interface ClusterProfile {
 
     /**
      * Get the queue suitable to run a jobs for x minutes
-     * 
+     *
      * @param minutes
      * @return
      */
@@ -127,7 +127,7 @@ public interface ClusterProfile {
 
     /**
      * Set the expiration time of a queue
-     * 
+     *
      * @param minutes
      * @param name of the queue
      */
@@ -136,7 +136,7 @@ public interface ClusterProfile {
 
     /**
      * Get the interface to control the Batch system of the cluste
-     * 
+     *
      * @return BatchInterface
      */
 
@@ -146,7 +146,7 @@ public interface ClusterProfile {
 
     /**
      * Check if the cluster has a specified compressor
-     * 
+     *
      * @param a Compressor algorithm
      * @return true if present
      */
@@ -155,7 +155,7 @@ public interface ClusterProfile {
 
     /**
      * Return all the queues in this cluster
-     * 
+     *
      * @return
      */
 

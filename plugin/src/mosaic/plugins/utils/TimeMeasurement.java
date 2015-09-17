@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 
 /**
  * Simple class used for time measurement.
- * 
+ *
  * Usage:
  *  SomeMethod() {
  *      TimeMeasurement tm = new TimeMeasurement();
@@ -13,20 +13,20 @@ import org.apache.log4j.Logger;
  *      ....
  *      tm.logLapTimeSec("Sim stop");
  *  }
- *  
+ *
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class TimeMeasurement {
     protected static final Logger logger = Logger.getLogger(TimeMeasurement.class);
-    
-    private final long startTime; 
+
+    private final long startTime;
     private long lastTime;
-    
+
     public TimeMeasurement() {
         startTime = System.nanoTime();
         lastTime = startTime;
     }
-    
+
     /**
      * @return Number of nanoseconds from moment this object was created.
      */
@@ -50,7 +50,7 @@ public class TimeMeasurement {
     public long getTimeMilliSec() {
         return getTimeNanoSec()/1000000;
     }
-    
+
     /**
      * @return Number of seconds from moment this object was created.
      */
@@ -67,7 +67,7 @@ public class TimeMeasurement {
         lastTime = endTime;
         return duration;
     }
-    
+
     /**
      * @return Number of microseconds from last call to any "getTime*" method.
      */
@@ -81,14 +81,14 @@ public class TimeMeasurement {
     public long getLapTimeMilliSec() {
         return getLapTimeNanoSec()/1000000;
     }
-    
+
     /**
      * @return Number of seconds from last call to any "getTime*" method.
      */
     public long getLapTimeSec() {
         return getLapTimeNanoSec()/1000000000;
     }
-    
+
     /**
      * Logs number of nanoseconds from last call to any "get(Lap)Time*" method.
      * @param aName name used in log in format: "aName (ns): 12412"
@@ -96,7 +96,7 @@ public class TimeMeasurement {
     public void logLapTimeNanoSec(String aName) {
         logger.info(aName + " (ns): " + getLapTimeNanoSec());
     }
-    
+
     /**
      * Logs number of nanoseconds from last call to any "get(Lap)Time*" method.
      * @param aName name used in log in format: "aName (s): 12412"

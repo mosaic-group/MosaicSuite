@@ -17,7 +17,7 @@ import org.supercsv.cellprocessor.ift.CellProcessor;
 /**
  * Read a file and convert into a Cluster Profile, can be directly used with
  * ClusterSession
- * 
+ *
  * @author Pietro Incardona
  */
 
@@ -79,7 +79,7 @@ public class FileClusterProfile extends GeneralProfile {
 
     /**
      * Return the running dir without any replacement
-     * 
+     *
      * @return the raw string
      */
     public String getRunningDirRaw() {
@@ -114,22 +114,28 @@ public class FileClusterProfile extends GeneralProfile {
 
     @Override
     public boolean hasCompressor(DataCompression.Algorithm a) {
-        if (a == null) return true;
+        if (a == null) {
+            return true;
+        }
 
         String cp_name = a.name;
         String has_cp = csv.getMetaInformation(cp_name);
 
-        if (has_cp == null) return false;
-
-        if (has_cp.equals("true"))
-            return true;
-        else
+        if (has_cp == null) {
             return false;
+        }
+
+        if (has_cp.equals("true")) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
     /**
      * Write the configuration file
-     * 
+     *
      * @param Config filename
      */
 
@@ -147,7 +153,7 @@ public class FileClusterProfile extends GeneralProfile {
     /**
      * Set the batch system by string
      * (used to write csv config file)
-     * 
+     *
      * @param Batch system string
      */
 
@@ -157,7 +163,7 @@ public class FileClusterProfile extends GeneralProfile {
 
     /**
      * Set one compressor by string
-     * 
+     *
      * @param compressor string string
      */
 
@@ -167,7 +173,7 @@ public class FileClusterProfile extends GeneralProfile {
 
     /**
      * Remove a compressor from the list of compression algorithm by String
-     * 
+     *
      * @param cp
      */
     public void removeCompressorString(String cp) {
@@ -176,16 +182,20 @@ public class FileClusterProfile extends GeneralProfile {
 
     /**
      * Check if a compressor algorithm is active
-     * 
+     *
      * @param cp Compressor to check
      * @return return true if active
      */
     public boolean isActiveCompressorString(String cp) {
         String s = csv.getMetaInformation(cp);
 
-        if (s == null) return false;
+        if (s == null) {
+            return false;
+        }
 
-        if (s.equals("true")) return true;
+        if (s.equals("true")) {
+            return true;
+        }
 
         return false;
     }

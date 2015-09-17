@@ -87,10 +87,13 @@ class ObjectProperties implements Runnable {
         if (p.nz == 1) {
             region.rsize = round((region.pixels.size()) / ((float) osxy * osxy), 3);
         }
-        else
+        else {
             region.rsize = round((region.pixels.size()) / ((float) osxy * osxy * osxy), 3);
+        }
 
-        if (p.dispint) fill_ints();
+        if (p.dispint) {
+            fill_ints();
+        }
 
         if (p.save_images) {
             setIntensitiesandCenters(region, image);
@@ -100,7 +103,9 @@ class ObjectProperties implements Runnable {
     }
 
     private void fill_ints() {
-        if (imagecolor_c1 == null) return;
+        if (imagecolor_c1 == null) {
+            return;
+        }
         int c1 = (int) Math.min(255, 255 * Math.sqrt(region.intensity)); // Green
         int c0 = (int) Math.min(255, 255 * region.intensity); // Red
         int c2 = (int) Math.min(255, 255 * Math.pow(region.intensity, 2)); // Blue
@@ -148,12 +153,24 @@ class ObjectProperties implements Runnable {
 
         for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
             Pix p = it.next();
-            if (p.px < xmin) xmin = p.px;
-            if (p.px > xmax) xmax = p.px;
-            if (p.py < ymin) ymin = p.py;
-            if (p.py > ymax) ymax = p.py;
-            if (p.pz < zmin) zmin = p.pz;
-            if (p.pz > zmax) zmax = p.pz;
+            if (p.px < xmin) {
+                xmin = p.px;
+            }
+            if (p.px > xmax) {
+                xmax = p.px;
+            }
+            if (p.py < ymin) {
+                ymin = p.py;
+            }
+            if (p.py > ymax) {
+                ymax = p.py;
+            }
+            if (p.pz < zmin) {
+                zmin = p.pz;
+            }
+            if (p.pz > zmax) {
+                zmax = p.pz;
+            }
         }
 
         xmin = Math.max(0, xmin - margin);
@@ -193,8 +210,12 @@ class ObjectProperties implements Runnable {
         for (int z = 0; z < sz; z++) {
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
-                    if (patch[z][i][j] > intmax) intmax = patch[z][i][j];
-                    if (patch[z][i][j] < intmin) intmin = patch[z][i][j];
+                    if (patch[z][i][j] > intmax) {
+                        intmax = patch[z][i][j];
+                    }
+                    if (patch[z][i][j] < intmin) {
+                        intmin = patch[z][i][j];
+                    }
                 }
             }
         }
@@ -235,10 +256,12 @@ class ObjectProperties implements Runnable {
     }
 
     private void setPerimeter(Region r, short[][][] regionsA) {
-        if (p.nz == 1)
+        if (p.nz == 1) {
             regionPerimeter(r, regionsA);
-        else
+        }
+        else {
             regionPerimeter3D(r, regionsA);
+        }
     }
 
     private void regionPerimeter(Region r, short[][][] regionsA) {
@@ -252,16 +275,26 @@ class ObjectProperties implements Runnable {
             // count number of free edges
             if (v.px != 0 && v.px != nx - 1 && v.py != 0 && v.py != ny - 1) {
                 // not on edges of image
-                if (regionsA[v.pz][v.px - 1][v.py] == 0) edges++;
-                if (regionsA[v.pz][v.px + 1][v.py] == 0) edges++;
-                if (regionsA[v.pz][v.px][v.py - 1] == 0) edges++;
-                if (regionsA[v.pz][v.px][v.py + 1] == 0) edges++;// !=rvalue
+                if (regionsA[v.pz][v.px - 1][v.py] == 0) {
+                    edges++;
+                }
+                if (regionsA[v.pz][v.px + 1][v.py] == 0) {
+                    edges++;
+                }
+                if (regionsA[v.pz][v.px][v.py - 1] == 0) {
+                    edges++;
+                }
+                if (regionsA[v.pz][v.px][v.py + 1] == 0)
+                {
+                    edges++;// !=rvalue
+                }
             }
-            else
+            else {
                 edges++;
+            }
 
             pr += edges; // real number of edges (should be used with the
-                         // subpixel)
+            // subpixel)
         }
 
         r.perimeter = pr;
@@ -281,19 +314,32 @@ class ObjectProperties implements Runnable {
             Pix v = it.next();
             // count number of free edges
             if (v.px != 0 && v.px != nx - 1 && v.py != 0 && v.py != ny - 1 && v.pz != 0 && v.pz != nz - 1) {// not
-                                                                                                            // on
-                                                                                                            // edges
-                                                                                                            // of
-                                                                                                            // image
-                if (regionsA[v.pz][v.px - 1][v.py] == 0) edges++;
-                if (regionsA[v.pz][v.px + 1][v.py] == 0) edges++;
-                if (regionsA[v.pz][v.px][v.py - 1] == 0) edges++;
-                if (regionsA[v.pz][v.px][v.py + 1] == 0) edges++;
-                if (regionsA[v.pz + 1][v.px][v.py] == 0) edges++;
-                if (regionsA[v.pz - 1][v.px][v.py] == 0) edges++;
+                // on
+                // edges
+                // of
+                // image
+                if (regionsA[v.pz][v.px - 1][v.py] == 0) {
+                    edges++;
+                }
+                if (regionsA[v.pz][v.px + 1][v.py] == 0) {
+                    edges++;
+                }
+                if (regionsA[v.pz][v.px][v.py - 1] == 0) {
+                    edges++;
+                }
+                if (regionsA[v.pz][v.px][v.py + 1] == 0) {
+                    edges++;
+                }
+                if (regionsA[v.pz + 1][v.px][v.py] == 0) {
+                    edges++;
+                }
+                if (regionsA[v.pz - 1][v.px][v.py] == 0) {
+                    edges++;
+                }
             }
-            else
+            else {
                 edges++;
+            }
             pr += edges;
         }
 
@@ -302,8 +348,9 @@ class ObjectProperties implements Runnable {
             if (p.nz == 1) {
                 r.perimeter = pr / (osxy);
             }
-            else
+            else {
                 r.perimeter = pr / (osxy * osxy);
+            }
         }
     }
 
@@ -351,10 +398,12 @@ class ObjectProperties implements Runnable {
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
 
-                    if (regionsA[cz + k][cx + i][cy + j] > 0)
+                    if (regionsA[cz + k][cx + i][cy + j] > 0) {
                         mask_bytes[j * sx + i] = (byte) 255;
-                    else
+                    }
+                    else {
                         mask_bytes[j * sx + i] = (byte) 0;
+                    }
                 }
             }
 
@@ -379,7 +428,9 @@ class ObjectProperties implements Runnable {
         for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
             Pix v = it.next();
             // count number of pixels in skeleton
-            if (is.getProcessor(v.pz - cz + 1).getPixel(v.px - cx, v.py - cy) != 0) length++;
+            if (is.getProcessor(v.pz - cz + 1).getPixel(v.px - cx, v.py - cy) != 0) {
+                length++;
+            }
         }
 
         r.length = length;

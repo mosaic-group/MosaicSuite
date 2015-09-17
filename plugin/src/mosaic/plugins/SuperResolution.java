@@ -3,8 +3,8 @@ package mosaic.plugins;
 
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.CurvatureFilterBase;
+import mosaic.plugins.utils.ImgUtils;
 import mosaic.variationalCurvatureFilters.CurvatureFilter;
 
 /**
@@ -12,7 +12,7 @@ import mosaic.variationalCurvatureFilters.CurvatureFilter;
  * @author Krzysztof Gonciarz
  */
 public class SuperResolution extends CurvatureFilterBase {
-    
+
     /**
      * Run filter on given image.
      * @param aInputIp Input image (will be changed during processing)
@@ -23,18 +23,20 @@ public class SuperResolution extends CurvatureFilterBase {
         // Get dimensions of input image
         int originalWidth = aOriginalIp.getWidth();
         int originalHeight = aOriginalIp.getHeight();
-        
+
         // Create array able to keep twice bigger image (super resolutions orignalDim x 2)
         int superHeight = originalHeight * 2;
         int superWidth = originalWidth * 2;
-        float[][] img = new float[superHeight][superWidth]; 
+        float[][] img = new float[superHeight][superWidth];
 
         // create (normalized) 2D array with input image
         float maxValueOfPixel = (float) aInputIp.getMax();
-        if (maxValueOfPixel < 1.0f) maxValueOfPixel = 1.0f;
+        if (maxValueOfPixel < 1.0f) {
+            maxValueOfPixel = 1.0f;
+        }
         convertToArrayAndNormalize(aOriginalIp, img, maxValueOfPixel);
-        
-        // Run chosen filter on image      
+
+        // Run chosen filter on image
         aFilter.runFilter(img, aNumberOfIterations, new CurvatureFilter.Mask() {
             @Override
             public boolean shouldBeProcessed(int x, int y) {
@@ -45,15 +47,15 @@ public class SuperResolution extends CurvatureFilterBase {
 
         ImgUtils.YX2DarrayToImg(img, aInputIp, maxValueOfPixel);
     }
-    
+
     /**
      * Copies aInputIp pixels to aNewImgArray with step 2 and shifted by 1:
-     * For example from image 4x2 (XxY) it creates 8x4 witch padding pixels 'o': 
-     *   +----+    
-     *   |1234|    
-     *   |5678|    
-     *   +----+    
-     *             
+     * For example from image 4x2 (XxY) it creates 8x4 witch padding pixels 'o':
+     *   +----+
+     *   |1234|
+     *   |5678|
+     *   +----+
+     *
      *   +--------+
      *   |oooooooo|
      *   |o1o2o3o4|
@@ -69,11 +71,11 @@ public class SuperResolution extends CurvatureFilterBase {
         float[] pixels = (float[])aInputIp.getPixels();
         int w = aInputIp.getWidth();
         int h = aInputIp.getHeight();
-        
+
         for (int y = 0; y < h; ++y) {
             for (int x = 0; x < w; ++x) {
                 aNewImgArray[2*y+1][2*x+1] = pixels[x + y * w] / aNormalizationValue;
-    
+
             }
         }
     }
@@ -81,11 +83,11 @@ public class SuperResolution extends CurvatureFilterBase {
     @Override
     protected boolean setup(String aArgs) {
         setFilePrefix("resized_");
-        
+
         // Super resolution will generate 2x bigger image than original one.
         setScaleX(2.0);
         setScaleY(2.0);
-        
+
         return true;
     }
 

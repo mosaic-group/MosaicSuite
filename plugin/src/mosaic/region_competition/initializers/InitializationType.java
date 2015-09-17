@@ -5,10 +5,10 @@ package mosaic.region_competition.initializers;
  */
 public enum InitializationType
 {
-	Rectangle, 
-	Bubbles, 
-	LocalMax, 
-	ROI_2D, 
-	File,
-	File_Patcher
+    Rectangle,
+    Bubbles,
+    LocalMax,
+    ROI_2D,
+    File,
+    File_Patcher
 }

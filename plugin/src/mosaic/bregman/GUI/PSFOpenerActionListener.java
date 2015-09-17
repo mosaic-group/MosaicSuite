@@ -8,19 +8,19 @@ import mosaic.bregman.GenericDialogCustom;
 
 public class PSFOpenerActionListener implements ActionListener
 {
-	GenericDialogCustom gd;
+    GenericDialogCustom gd;
 
-	public PSFOpenerActionListener(GenericDialogCustom gd)
-	{
-		this.gd=gd;
-		//this.ta=ta;
-	}
+    public PSFOpenerActionListener(GenericDialogCustom gd)
+    {
+        this.gd=gd;
+        //this.ta=ta;
+    }
 
-	@Override
-	public void actionPerformed(ActionEvent e)
-	{
-		Point p =gd.getLocationOnScreen();
-		//IJ.log("plugin location :" + p.toString());
-		new PSFWindow(p.x, p.y, gd);
-	}
+    @Override
+    public void actionPerformed(ActionEvent e)
+    {
+        Point p =gd.getLocationOnScreen();
+        //IJ.log("plugin location :" + p.toString());
+        new PSFWindow(p.x, p.y, gd);
+    }
 }

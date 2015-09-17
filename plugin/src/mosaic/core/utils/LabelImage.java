@@ -29,7 +29,7 @@ import net.imglib2.type.numeric.IntegerType;
  */
 
 public class LabelImage// implements
-                       // MultipleThresholdImageFunction.ParamGetter<Integer>
+// MultipleThresholdImageFunction.ParamGetter<Integer>
 {
 
     // ImagePlus imageIP; // input image
@@ -52,8 +52,8 @@ public class LabelImage// implements
 
     public final int bgLabel = 0;
     final int negOfs = 10000; // labels above this number stands for
-                              // "negative numbers" (problem with displaying
-                              // negative numbers in ij.ShortProcessor)
+    // "negative numbers" (problem with displaying
+    // negative numbers in ij.ShortProcessor)
     // private int m_MaxNLabels;
     // private LabelDispenser labelDispenser;
 
@@ -80,7 +80,7 @@ public class LabelImage// implements
 
     /**
      * Create a labelImage from another label Image
-     * 
+     *
      * @param l LabelImage
      */
     public LabelImage(LabelImage l) {
@@ -91,7 +91,7 @@ public class LabelImage// implements
 
     /**
      * Create a labelImage from a short 3D array
-     * 
+     *
      * @param img short array
      */
     // @Deprecated
@@ -107,7 +107,7 @@ public class LabelImage// implements
 
     /**
      * Create an empty label image of a given dimension
-     * 
+     *
      * @param dims dimensions of the LabelImage
      */
 
@@ -117,15 +117,19 @@ public class LabelImage// implements
 
     /**
      * Check of p is inside the label image
-     * 
+     *
      * @param p Point
      * @return true if is inside
      */
 
     public boolean isOutOfBound(Point p) {
         for (int i = 0; i < p.x.length; i++) {
-            if (p.x[i] < 0) return true;
-            if (p.x[i] >= dimensions[i]) return true;
+            if (p.x[i] < 0) {
+                return true;
+            }
+            if (p.x[i] >= dimensions[i]) {
+                return true;
+            }
         }
         return false;
     }
@@ -203,7 +207,7 @@ public class LabelImage// implements
 
     /**
      * LabelImage loaded from an imgLib2 image
-     * 
+     *
      * @param imgLib2
      */
     private <T extends IntegerType<T>> void initImgLib2(Img<T> img) {
@@ -259,7 +263,9 @@ public class LabelImage// implements
      */
 
     public void close() {
-        if (labelPlus != null) labelPlus.close();
+        if (labelPlus != null) {
+            labelPlus.close();
+        }
     }
 
     /**
@@ -271,14 +277,16 @@ public class LabelImage// implements
 
     /**
      * Save the label image as tiff
-     * 
+     *
      * @param file where to save (full or relative path)
      */
 
     public void save(String file) {
         // Remove eventually the "file:" string
 
-        if (file.indexOf("file:") >= 0) file = file.substring(file.indexOf("file:") + 5);
+        if (file.indexOf("file:") >= 0) {
+            file = file.substring(file.indexOf("file:") + 5);
+        }
 
         ImagePlus ip = convert("save", 256);
         IJ.save(ip, file);
@@ -291,7 +299,7 @@ public class LabelImage// implements
 
     /**
      * Gets a copy of the labelImage as a short array.
-     * 
+     *
      * @return short[] representation of the labelImage
      */
     public short[] getShortCopy() {
@@ -355,7 +363,7 @@ public class LabelImage// implements
 
     /**
      * Get an ImgLib2 from a intensity image
-     * 
+     *
      * @return an ImgLib2 image
      */
 
@@ -402,16 +410,16 @@ public class LabelImage// implements
     /**
      * Gives disconnected components in a labelImage distinct labels
      * (eg. to process user input for region guesses)
-     * 
+     *
      * @param li LabelImage
      */
     public void connectedComponents() {
         // TODO ! test this
 
         HashSet<Integer> oldLabels = new HashSet<Integer>(); // set of the old
-                                                             // labels
+        // labels
         ArrayList<Integer> newLabels = new ArrayList<Integer>(); // set of new
-                                                                 // labels
+        // labels
 
         int newLabel = 1;
 
@@ -468,7 +476,7 @@ public class LabelImage// implements
         for (int i : iterator.getIndexIterable()) {
             int label = getLabelAbs(i);
             if (label != bgLabel) // region pixel
-            // && label<negOfs
+                // && label<negOfs
             {
                 Point p = iterator.indexToPoint(i);
                 for (Point neighbor : conn.iterateNeighbors(p)) {
@@ -486,7 +494,7 @@ public class LabelImage// implements
 
     /**
      * Is the point at the boundary
-     * 
+     *
      * @param aIndex Point
      * @return true if is at the boundary false otherwise
      */
@@ -494,7 +502,9 @@ public class LabelImage// implements
     public boolean isBoundaryPoint(Point aIndex) {
         int vLabelAbs = getLabelAbs(aIndex);
         for (Point q : connFG.iterateNeighbors(aIndex)) {
-            if (getLabelAbs(q) != vLabelAbs) return true;
+            if (getLabelAbs(q) != vLabelAbs) {
+                return true;
+            }
         }
 
         return false;
@@ -502,7 +512,7 @@ public class LabelImage// implements
 
     /**
      * is point surrounded by points of the same (abs) label
-     * 
+     *
      * @param aIndex
      * @return
      */
@@ -544,7 +554,7 @@ public class LabelImage// implements
 
     /**
      * return the label at the position index (linearized)
-     * 
+     *
      * @param index position
      * @return the label value
      */
@@ -640,7 +650,7 @@ public class LabelImage// implements
 
     /**
      * The size of each dimension of this LabelImage as an int array
-     * 
+     *
      * @return Reference to the dimensions
      */
     public int[] getDimensions() {
@@ -670,7 +680,7 @@ public class LabelImage// implements
 
     /**
      * if 3D image, converts to a stack of ShortProcessors
-     * 
+     *
      * @return
      */
     public ImageStack get3DShortStack(boolean clean) {

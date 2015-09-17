@@ -16,19 +16,19 @@ import ij.process.ImageProcessor;
  * @author Krzysztof Gonciarz
  */
 abstract class PlugInBase implements ExtendedPlugInFilter {
-    
+
     // Original input image
     protected ImagePlus iInputImg;
     protected ImagePlus iProcessedImg;
     protected String iInputArgs;
-    
+
     // Prefix added to filtered image
     protected String iFilePrefix = "processed_";
 
     // Scale of output ImagePlus
     protected double iScaleX = 1.0;
     protected double iScaleY = 1.0;
-    
+
     // Decides where result of processing shall be placed.
     /**
      * UPDATE_ORIGINAL - updates source image with processed data
@@ -37,7 +37,7 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
      */
     protected enum ResultOutput {UPDATE_ORIGINAL, GENERATE_NEW, NONE};
     ResultOutput iResultOutput = ResultOutput.GENERATE_NEW;
-    
+
     /*
      * Timeline of plugin's life:
      * 1. initialize variables with input stuff
@@ -47,14 +47,14 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
      * 5. postprocess()
      * 6. shows output...
      */
-    
+
     abstract protected boolean showDialog();
     abstract protected int getFlags();
     abstract protected void updateFlags(int aFlag);
     abstract protected boolean setup(final String aArgs);
     protected void postprocessBeforeShow() {};
     protected void postprocessFinal() {};
-    
+
     @Override
     public int setup(final String aArgs, final ImagePlus aImp) {
         // Filter expects image to work on...
@@ -62,23 +62,25 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
             IJ.noImage();
             return DONE;
         }
-        
+
         if (aArgs.equals("final")) {
             postprocessBeforeShow();
-            
-        	// Changed during updating
-        	iProcessedImg.setSlice(1);
+
+            // Changed during updating
+            iProcessedImg.setSlice(1);
             iProcessedImg.show();
-            
+
             postprocessFinal();
         }
         else {
             iInputImg = aImp;
             iInputArgs = aArgs;
-        
+
             // Allow plugin to make it own configuration
-            if (!setup(iInputArgs)) return DONE;
-            
+            if (!setup(iInputArgs)) {
+                return DONE;
+            }
+
             // Set the original image as being processed or generate new empty copy of
             // input img otherwise
             if (iResultOutput == ResultOutput.UPDATE_ORIGINAL) {
@@ -91,7 +93,7 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
                 updateFlags(NO_CHANGES);
             }
         }
-        
+
         return getFlags();
     }
 
@@ -99,14 +101,16 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
     public void setNPasses(int arg0) {
         // Nothing to do here
     }
-    
+
     @Override
     public int showDialog(ImagePlus arg0, String arg1, PlugInFilterRunner arg2) {
-        if (!showDialog()) return DONE;
-        
+        if (!showDialog()) {
+            return DONE;
+        }
+
         return getFlags();
     }
-    
+
     /**
      * Creates new empty ImagePlus basing on information from original aOrigIp image.
      * Newly generated img will have same structure (like slices/frames/channels, composite,
@@ -121,17 +125,17 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
     private ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale) {
         return createNewEmptyImgPlus(aOrigIp, aTitle, aXscale, aYscale, false);
     }
-        
+
     protected ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale, boolean convertToRgb) {
         int nSlices = aOrigIp.getStackSize();
         int w=aOrigIp.getWidth();
         int h=aOrigIp.getHeight();
-        
+
         ImagePlus copyIp = aOrigIp.createImagePlus();
 
         int newWidth = (int)aXscale*w;
         int newHeight = (int)aYscale*h;
-        
+
         ImageStack origStack = aOrigIp.getStack();
         ImageStack copyStack = new ImageStack(newWidth, newHeight);
         ImageProcessor ip1, ip2;
@@ -147,16 +151,16 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
             if (ip2 != null) {
                 copyStack.addSlice(label, ip2);
             }
-        }  
-        
+        }
+
         copyIp.setStack(aTitle, copyStack);
-        
+
         Calibration cal = copyIp.getCalibration();
         if (cal.scaled()) {
             cal.pixelWidth *= 1.0 / aXscale;
             cal.pixelHeight *= 1.0 / aYscale;
         }
-        
+
         int[] dim = aOrigIp.getDimensions();
         copyIp.setDimensions(dim[2], dim[3], dim[4]);
 
@@ -165,12 +169,12 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
             ((CompositeImage)copyIp).copyLuts(aOrigIp);
         }
 
-        
+
         if (aOrigIp.isHyperStack()) {
             copyIp.setOpenAsHyperStack(true);
         }
         copyIp.changes = true;
-        
+
         return copyIp;
     }
 
@@ -184,16 +188,16 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
 
     protected void setResultDestination(ResultOutput aResultOutput) {
         iResultOutput = aResultOutput;
-    }   
-    
+    }
+
     protected void setFilePrefix(String aFilePrefix) {
         iFilePrefix = aFilePrefix;
     }
-    
+
     protected ImagePlus getInputImg() {
         return iInputImg;
     }
-    
+
     protected void setProcessedImg(ImagePlus aProcessedImg) {
         iProcessedImg = aProcessedImg;
     }

@@ -7,7 +7,7 @@ import org.ejml.ops.CommonOps;
 
 /**
  * Wrapper for ejml library with additional number of helpful functions and operations.
- * 
+ *
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  *
  */
@@ -17,7 +17,7 @@ public class Matrix {
 
     /**
      * Only for private use. Keeps provided matrix reference (not copy!).
-     * 
+     *
      * @param aDM
      */
     private Matrix(DenseMatrix64F aDM) {
@@ -26,7 +26,7 @@ public class Matrix {
 
     /**
      * Creates new Matrix with provided number rows and columns
-     * 
+     *
      * @param aRows
      * @param aCols
      */
@@ -36,7 +36,7 @@ public class Matrix {
 
     /**
      * Creates new Matrix from copy of provided matrix
-     * 
+     *
      * @param aM
      */
     public Matrix(Matrix aM) {
@@ -46,7 +46,7 @@ public class Matrix {
     /**
      * Creates new Matrix from provided 2D array first dimension is rows and
      * then cols ([r][c] or [y][x]).
-     * 
+     *
      * @param aArray
      */
     public Matrix(double[][] aArray) {
@@ -56,7 +56,7 @@ public class Matrix {
     /**
      * Creates new Matrix from provided 2D array first dimension is rows and
      * then cols ([r][c] or [y][x]).
-     * 
+     *
      * @param aArray
      */
     public Matrix(float[][] aArray) {
@@ -66,7 +66,7 @@ public class Matrix {
     /**
      * Creates new Matrix from provided 2D array. Setup of 2D array [rows][cols]
      * or [cols][rows] can be chosen.
-     * 
+     *
      * @param aArray
      * @param aIsXYmatrix
      *            if true then [cols][rows] setup expected. If false then
@@ -82,7 +82,7 @@ public class Matrix {
     /**
      * Creates new Matrix from provided 2D array. Setup of 2D array [rows][cols]
      * or [cols][rows] can be chosen.
-     * 
+     *
      * @param aArray
      * @param aIsXYmatrix
      *            if true then [cols][rows] setup expected. If false then
@@ -98,7 +98,7 @@ public class Matrix {
     /**
      * Creates row vector (Matrix 1xN) from given array or list of doubles
      * number
-     * 
+     *
      * @param aInput
      * @return
      */
@@ -112,7 +112,7 @@ public class Matrix {
     /**
      * Creates column vector (Matrix Nx1) from given array or list of doubles
      * number
-     * 
+     *
      * @param aInput
      * @return
      */
@@ -125,7 +125,7 @@ public class Matrix {
 
     /**
      * Returns copy of Matrix.
-     * 
+     *
      * @return
      */
     public Matrix copy() {
@@ -134,7 +134,7 @@ public class Matrix {
 
     /**
      * Return number of rows in matrix
-     * 
+     *
      * @return
      */
     public int numRows() {
@@ -143,7 +143,7 @@ public class Matrix {
 
     /**
      * Return number of columns in matrix
-     * 
+     *
      * @return
      */
     public int numCols() {
@@ -152,7 +152,7 @@ public class Matrix {
 
     /**
      * Return number of elements in matrix (cols * rows)
-     * 
+     *
      * @return
      */
     public int size() {
@@ -161,7 +161,7 @@ public class Matrix {
 
     /**
      * Returns true if matrix has 1xN dimensions
-     * 
+     *
      * @return
      */
     public boolean isRowVector() {
@@ -170,7 +170,7 @@ public class Matrix {
 
     /**
      * Returns true if matrix has Nx1 dimensions
-     * 
+     *
      * @return
      */
     public boolean isColVector() {
@@ -179,7 +179,7 @@ public class Matrix {
 
     /**
      * Returns Matrix content as a 2D array of values [rows][cols]
-     * 
+     *
      * @param aMatrix
      *            input matrix
      * @return
@@ -198,7 +198,7 @@ public class Matrix {
 
     /**
      * Returns Matrix content as a 2D array of values [cols][rows]
-     * 
+     *
      * @param aMatrix
      *            input matrix
      * @return
@@ -217,7 +217,7 @@ public class Matrix {
 
     /**
      * Returns Matrix content as a 2D array of float values [rows][cols]
-     * 
+     *
      * @param aMatrix
      *            input matrix
      * @return
@@ -236,7 +236,7 @@ public class Matrix {
 
     /**
      * Returns Matrix content as a 2D array of float values [cols][rows]
-     * 
+     *
      * @param aMatrix
      *            input matrix
      * @return
@@ -255,7 +255,7 @@ public class Matrix {
 
     /**
      * Returns Matrix content as a 2D array of values [rows][cols]
-     * 
+     *
      * @return
      */
     public double[][] getArrayYX() {
@@ -264,7 +264,7 @@ public class Matrix {
 
     /**
      * Returns Matrix content as a 2D array of values [cols][rows]
-     * 
+     *
      * @return
      */
     public double[][] getArrayXY() {
@@ -273,7 +273,7 @@ public class Matrix {
 
     /**
      * Returns Matrix content as a 2D array of values [rows][cols]
-     * 
+     *
      * @return
      */
     public float[][] getArrayYXasFloats() {
@@ -282,13 +282,13 @@ public class Matrix {
 
     /**
      * Returns Matrix content as a 2D array of values [cols][rows]
-     * 
+     *
      * @return
      */
     public float[][] getArrayXYasFloats() {
         return getArrayXYasFloats(this);
     }
-    
+
     /**
      * Return array containing specified column
      */
@@ -297,10 +297,10 @@ public class Matrix {
         for (int i = 0; i < this.numRows(); ++i) {
             column[i] = get(i, aColumn);
         }
-        
+
         return column;
     }
-    
+
     /**
      * Return array containing specified row
      */
@@ -309,17 +309,17 @@ public class Matrix {
         for (int i = 0; i < this.numCols(); ++i) {
             row[i] = get(aRow, i);
         }
-        
+
         return row;
     }
-    
+
     /**
      * Return matrix containing specified column
      */
     public Matrix getColumn(int aColumn) {
         return mkColVector(getArrayColumn(aColumn));
     }
-    
+
     /**
      * Return matrix containing specified row
      */
@@ -339,34 +339,36 @@ public class Matrix {
     /**
      * Use MFunc function to process every element of Matrix. Output value of
      * aMf is used to set currently processed element.
-     * 
+     *
      * @param aMf
      * @return
      */
     public Matrix process(MFunc aMf) {
         int len = iMatrix.data.length;
-        for (int i = 0; i < len; ++i)
+        for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = aMf.f(iMatrix.data[i], i / iMatrix.numCols, i % iMatrix.numCols);
+        }
         return this;
     }
 
     /**
      * Use MFunc function to process every element of Matrix. Output value is
      * ignored and Matrix is not changed.
-     * 
+     *
      * @param aMf
      * @return
      */
     public Matrix processNoSet(MFunc aMf) {
         int len = iMatrix.data.length;
-        for (int i = 0; i < len; ++i)
+        for (int i = 0; i < len; ++i) {
             aMf.f(iMatrix.data[i], i / iMatrix.numCols, i % iMatrix.numCols);
+        }
         return this;
     }
 
     /**
      * Multiplies two Matrices element-wise (same as .* operator in Matlab)
-     * 
+     *
      * @param aM
      * @return
      */
@@ -377,7 +379,7 @@ public class Matrix {
 
     /**
      * Multiplies two Matrices element-wise (same as .* operator in Matlab)
-     * 
+     *
      * @param aM
      * @return
      */
@@ -390,7 +392,7 @@ public class Matrix {
 
     /**
      * Divides two Matrices element-wise (same as ./ operator in Matlab)
-     * 
+     *
      * @param aM
      * @return
      */
@@ -401,7 +403,7 @@ public class Matrix {
 
     /**
      * Adds two Matrices
-     * 
+     *
      * @param aM
      * @return
      */
@@ -412,7 +414,7 @@ public class Matrix {
 
     /**
      * Adds scalar to every element of Matrix
-     * 
+     *
      * @param aM
      * @return
      */
@@ -423,7 +425,7 @@ public class Matrix {
 
     /**
      * Subtracts two Matrices
-     * 
+     *
      * @param aM
      * @return
      */
@@ -434,7 +436,7 @@ public class Matrix {
 
     /**
      * Scale (multiplies) each element of Matrix by given scalar
-     * 
+     *
      * @param aVal
      * @return
      */
@@ -445,7 +447,7 @@ public class Matrix {
 
     /**
      * Return value of element at given row/col indexes (they starting from 0)
-     * 
+     *
      * @param aRow
      * @param aCol
      * @return
@@ -456,7 +458,7 @@ public class Matrix {
 
     /**
      * Sets value of element at given row/col indexes (they starting from 0)
-     * 
+     *
      * @param aRow
      * @param aCol
      * @param aVal
@@ -470,7 +472,7 @@ public class Matrix {
 
     /**
      * Return value of element at given index (Matlab style - rows first)
-     * 
+     *
      * @param aIdx
      * @return
      */
@@ -480,7 +482,7 @@ public class Matrix {
 
     /**
      * Sets value of element at given index (Matlab style)
-     * 
+     *
      * @param aIdx
      * @param aVal
      *            value to be set
@@ -493,7 +495,7 @@ public class Matrix {
 
     /**
      * Transponse Matrix
-     * 
+     *
      * @return
      */
     public Matrix transpose() {
@@ -503,20 +505,21 @@ public class Matrix {
 
     /**
      * Fills every element of Matrix with given value
-     * 
+     *
      * @param aVal
      * @return
      */
     public Matrix fill(double aVal) {
         int len = iMatrix.data.length;
-        for (int i = 0; i < len; ++i)
+        for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = aVal;
+        }
         return this;
     }
 
     /**
      * Sets every element of Matrix with 1.0
-     * 
+     *
      * @return this
      */
     public Matrix ones() {
@@ -538,14 +541,15 @@ public class Matrix {
     public Matrix pow2() {
         return pow(2);
     }
-    
+
     /**
      * Sets each element of matrix as its power of aPower
      */
     public Matrix pow(int aPower) {
         int len = iMatrix.data.length;
-        for (int i = 0; i < len; ++i)
+        for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = Math.pow(iMatrix.data[i], aPower);
+        }
         return this;
     }
 
@@ -554,8 +558,9 @@ public class Matrix {
      */
     public Matrix sqrt() {
         int len = iMatrix.data.length;
-        for (int i = 0; i < len; ++i)
+        for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = Math.sqrt(iMatrix.data[i]);
+        }
         return this;
     }
 
@@ -564,8 +569,9 @@ public class Matrix {
      */
     public Matrix log() {
         int len = iMatrix.data.length;
-        for (int i = 0; i < len; ++i)
+        for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = Math.log(iMatrix.data[i]);
+        }
         return this;
     }
 
@@ -574,8 +580,9 @@ public class Matrix {
      */
     public Matrix inv() {
         int len = iMatrix.data.length;
-        for (int i = 0; i < len; ++i)
+        for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = 1 / iMatrix.data[i];
+        }
         return this;
     }
 
@@ -584,8 +591,9 @@ public class Matrix {
      */
     public Matrix negative() {
         int len = iMatrix.data.length;
-        for (int i = 0; i < len; ++i)
+        for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = -iMatrix.data[i];
+        }
         return this;
     }
 
@@ -605,12 +613,14 @@ public class Matrix {
         double max = 0.0;
         for (int i = 0; i < len; ++i) {
             double absValue = Math.abs(iMatrix.data[i]);
-            if (max < absValue)
+            if (max < absValue) {
                 max = absValue;
+            }
         }
         if (max > 0) {
-            for (int i = 0; i < len; ++i)
+            for (int i = 0; i < len; ++i) {
                 iMatrix.data[i] = iMatrix.data[i] / max;
+            }
         }
         return this;
     }
@@ -624,15 +634,18 @@ public class Matrix {
         double max = Double.MIN_VALUE;
         for (int i = 0; i < len; ++i) {
             double val = iMatrix.data[i];
-            if (max < val)
+            if (max < val) {
                 max = val;
-            if (min > val)
+            }
+            if (min > val) {
                 min = val;
+            }
         }
         // Normalize with found values
         if (max != min) {
-            for (int i = 0; i < len; ++i)
+            for (int i = 0; i < len; ++i) {
                 iMatrix.data[i] = (iMatrix.data[i] - min) / (max - min);
+            }
             ;
         }
         return this;
@@ -654,7 +667,7 @@ public class Matrix {
     /**
      * Resize matrix by choosing elements with step (aStepRow, aStepCol)
      * starting from (aStartRow, aStartCol).
-     * 
+     *
      * @param aStartRow
      * @param aStartCol
      * @param aStepRow
@@ -662,8 +675,9 @@ public class Matrix {
      * @return
      */
     public Matrix resize(int aStartRow, int aStartCol, int aStepRow, int aStepCol) {
-        if (aStartRow == 0 && aStartCol == 0 && aStepRow <= 1 && aStepCol <= 1)
+        if (aStartRow == 0 && aStartCol == 0 && aStepRow <= 1 && aStepCol <= 1) {
             return this;
+        }
 
         int cols = iMatrix.numCols;
         int rows = iMatrix.numRows;
@@ -689,8 +703,9 @@ public class Matrix {
      * @return
      */
     public Matrix insertRow(Matrix aRowMatrix, int aRowNum) {
-        if (aRowMatrix.numCols() != iMatrix.numCols)
+        if (aRowMatrix.numCols() != iMatrix.numCols) {
             throw new IllegalArgumentException("Dimensions of row vector must match matrix");
+        }
         CommonOps.insert(aRowMatrix.iMatrix, iMatrix, aRowNum, 0);
         return this;
     }
@@ -702,8 +717,9 @@ public class Matrix {
      * @return
      */
     public Matrix insertCol(Matrix aColMatrix, int aColNum) {
-        if (aColMatrix.numRows() != iMatrix.numRows)
+        if (aColMatrix.numRows() != iMatrix.numRows) {
             throw new IllegalArgumentException("Dimensions of row vector must match matrix");
+        }
         CommonOps.insert(aColMatrix.iMatrix, iMatrix, 0, aColNum);
         return this;
     }
@@ -720,11 +736,11 @@ public class Matrix {
             if (Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]) > aEpsilon) {
                 // DEBUG: Uncomment below to see different element
                 // =====================================================
-//                 System.out.println("["+ i/iMatrix.numCols +"][" + i%iMatrix.numCols + "] " + 
-//                                    this.iMatrix.data[i] + " vs " + aMatrix.iMatrix.data[i] + 
-//                                    " Diff: " + Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]));
+                //                 System.out.println("["+ i/iMatrix.numCols +"][" + i%iMatrix.numCols + "] " +
+                //                                    this.iMatrix.data[i] + " vs " + aMatrix.iMatrix.data[i] +
+                //                                    " Diff: " + Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]));
                 // =====================================================
-                 
+
                 return false;
             }
         }
@@ -738,13 +754,16 @@ public class Matrix {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this)
+        if (obj == this) {
             return true;
-        if (obj == null || obj.getClass() != this.getClass())
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
             return false;
+        }
         Matrix cmp = (Matrix) obj;
-        if (cmp.numCols() != this.numCols() || cmp.numRows() != this.numRows())
+        if (cmp.numCols() != this.numCols() || cmp.numRows() != this.numRows()) {
             return false;
+        }
 
         return compare(cmp, 0.0);
     }

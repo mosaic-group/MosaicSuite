@@ -28,7 +28,7 @@ import com.jcraft.jsch.SftpProgressMonitor;
  * access to HPC system or other services. Accept a profile that
  * specify the property of the cluster and use it to perform operation
  * on it like run remote command or transfert data
- * 
+ *
  * @author Pietro Incardona
  */
 
@@ -65,7 +65,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     /**
      * Close the connections
-     * 
+     *
      * @throws InterruptedException
      * @throws IOException
      */
@@ -96,7 +96,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     /**
      * Get all the directory inside Directory
-     * 
+     *
      * @param Directory
      * @return All directories, return null if there are problems to connect
      */
@@ -104,7 +104,9 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
     String[] getDirs(String Directory) {
         Vector<String> vs = new Vector<String>();
         try {
-            if (createSftpChannel() == false) return null;
+            if (createSftpChannel() == false) {
+                return null;
+            }
 
             @SuppressWarnings("unchecked")
             Vector<ChannelSftp.LsEntry> list = cSFTP.ls(Directory);
@@ -132,14 +134,16 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     /**
      * Check if exist a directory
-     * 
+     *
      * @param Directory
      * @return
      */
 
     boolean checkDirectory(String Directory) {
         try {
-            if (createSftpChannel() == false) return false;
+            if (createSftpChannel() == false) {
+                return false;
+            }
 
             cSFTP.cd(Directory);
 
@@ -159,7 +163,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     /**
      * Check if exist a file
-     * 
+     *
      * @param Directory
      * @param file_name to check
      * @return
@@ -167,7 +171,9 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     boolean checkFile(String Directory, String file_name) {
         try {
-            if (createSftpChannel() == false) return false;
+            if (createSftpChannel() == false) {
+                return false;
+            }
 
             @SuppressWarnings("unchecked")
             Vector<LsEntry> fl = cSFTP.ls(Directory);
@@ -192,7 +198,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     /**
      * run a sequence of SSH commands
-     * 
+     *
      * @param pwd password to access the ssh session
      * @param commands string to execute
      * @return false, if where is a problem with the connection
@@ -204,7 +210,9 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
             cmd_list += commands[i] + "\n";
         }
         try {
-            if (createSSHChannel() == false) return false;
+            if (createSSHChannel() == false) {
+                return false;
+            }
 
             pinput_out.write(cmd_list.getBytes());
         }
@@ -219,9 +227,13 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
     };
 
     private boolean createSession() throws IOException, JSchException {
-        if (jsch == null) jsch = new JSch();
+        if (jsch == null) {
+            jsch = new JSch();
+        }
 
-        if (session != null && session.isConnected() == true) return true;
+        if (session != null && session.isConnected() == true) {
+            return true;
+        }
 
         // Open the private key
         String host = cprof.getAccessAddress();
@@ -231,9 +243,12 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
             File p_key = null;
 
             // Try to open the standard private key
-            if (IJ.isLinux())
+            if (IJ.isLinux()) {
                 p_key = new File("/home/" + cprof.getUsername() + "/.ssh/id_rsa");
-            else if (IJ.isMacOSX()) p_key = new File("/Users/" + cprof.getUsername() + "/.ssh/id_rsa");
+            }
+            else if (IJ.isMacOSX()) {
+                p_key = new File("/Users/" + cprof.getUsername() + "/.ssh/id_rsa");
+            }
 
             jsch.addIdentity(p_key.getAbsolutePath());
 
@@ -260,11 +275,17 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
     }
 
     private boolean createSSHChannel() throws JSchException, IOException {
-        if (jsch == null) jsch = new JSch();
+        if (jsch == null) {
+            jsch = new JSch();
+        }
 
-        if (cSSH != null && cSSH.isConnected() == true) return true;
+        if (cSSH != null && cSSH.isConnected() == true) {
+            return true;
+        }
 
-        if (createSession() == false) return false;
+        if (createSession() == false) {
+            return false;
+        }
 
         cSSH = session.openChannel("shell");
 
@@ -279,11 +300,17 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
     }
 
     private boolean createSftpChannel() throws JSchException, IOException {
-        if (jsch == null) jsch = new JSch();
+        if (jsch == null) {
+            jsch = new JSch();
+        }
 
-        if (cSFTP != null && cSFTP.isConnected() == true) return true;
+        if (cSFTP != null && cSFTP.isConnected() == true) {
+            return true;
+        }
 
-        if (createSession() == false) return false;
+        if (createSession() == false) {
+            return false;
+        }
 
         cSFTP = (ChannelSftp) session.openChannel("sftp");
         cSFTP.connect();
@@ -293,7 +320,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     /**
      * run a sequence of SFTP commands to downloads files
-     * 
+     *
      * @param pwd password to access the sftp session
      * @param files to transfer locally (Absolute path)
      * @param dir Directory where to download
@@ -308,7 +335,9 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         boolean ret = true;
 
         try {
-            if (createSftpChannel() == false) return false;
+            if (createSftpChannel() == false) {
+                return false;
+            }
 
             // Create a Compressor
 
@@ -330,15 +359,21 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                     cSFTP.cd(tdir);
 
                     if (cmp.getCompressor() == null) {
-                        if (wp != null) wp.SetProgress(100 * i / files.length);
+                        if (wp != null) {
+                            wp.SetProgress(100 * i / files.length);
+                        }
 
                         cSFTP.get(files[i].getName(), dir.getAbsolutePath() + File.separator + files[i].getName());
                     }
                     else {
                         // Compress data on cluster
 
-                        if (wp != null) wp.SetStatusMessage("Compressing data on cluster");
-                        if (createSSHChannel() == false) return false;
+                        if (wp != null) {
+                            wp.SetStatusMessage("Compressing data on cluster");
+                        }
+                        if (createSSHChannel() == false) {
+                            return false;
+                        }
 
                         String s = new String("cd " + tdir + " ; ");
                         File start_dir = findCommonPathAndDelete(files);
@@ -410,7 +445,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     /**
      * Find the common prefix in the array and delete it from File array
-     * 
+     *
      * @param f Set of file
      * @return the common prefix
      */
@@ -429,7 +464,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     /**
      * Find the common prefix in the array
-     * 
+     *
      * @param f Set of file
      * @return the common prefix
      */
@@ -454,7 +489,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     /**
      * run a sequence of SFTP commands to upload files
-     * 
+     *
      * @param pwd password to access the sftp session
      * @param files to transfer
      * @param wp Progress window bar can be null
@@ -467,7 +502,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     /**
      * run a sequence of SFTP commands to upload files
-     * 
+     *
      * @param pwd password to access the sftp session
      * @param files to transfer
      * @param dir create the relative dir where to store the files
@@ -477,7 +512,9 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      */
     boolean upload(String pwd, File files[], File dir, ProgressBarWin wp, ClusterProfile cp) {
         try {
-            if (createSftpChannel() == false) return false;
+            if (createSftpChannel() == false) {
+                return false;
+            }
 
             // Create a Compressor
 
@@ -515,7 +552,9 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                 /* No compression */
 
                 for (int i = 0; i < files.length; i++) {
-                    if (wp != null) wp.SetProgress(100 * i / files.length);
+                    if (wp != null) {
+                        wp.SetProgress(100 * i / files.length);
+                    }
 
                     cSFTP.put(files[i].getAbsolutePath(), files[i].getName());
                 }
@@ -539,7 +578,9 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                 wp.SetProgress(66);
                 wp.SetStatusMessage("Decompressing Data on cluster");
 
-                if (createSSHChannel() == false) return false;
+                if (createSSHChannel() == false) {
+                    return false;
+                }
 
                 // Getting the string to uncompress + appending the string
                 // to print out when the task has been accomplished
@@ -597,7 +638,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     /**
      * Return the session id as a String
-     * 
+     *
      * @return Session id as string
      */
 
@@ -607,7 +648,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
     /**
      * Directory on the cluster where file are transfert
-     * 
+     *
      * @return String where the files are located
      */
 
@@ -629,14 +670,18 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                 int len = poutput_in.available();
                 if (len == 0) {
                     poutput_in.read(out, 0, 1);
-                    if (out[0] != 0) sout += new String(out, 0, 1, "UTF-8");
+                    if (out[0] != 0) {
+                        sout += new String(out, 0, 1, "UTF-8");
+                    }
                     System.out.print(new String(out, 0, 1, "UTF-8"));
                 }
                 else {
                     for (int i = 0; i < out.length; i++) {
                         out[i] = 0;
                     }
-                    if (len >= out.length - 1) len = out.length - 1;
+                    if (len >= out.length - 1) {
+                        len = out.length - 1;
+                    }
                     poutput_in.read(out, 0, len);
                     String tmp = new String(out, 0, len, "UTF-8");
                     System.out.print(tmp);
@@ -648,7 +693,9 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                 System.out.println("--------------------------- SecureShell output [END] ------------------------");
                 return;
             }
-            if (shp != null) sout = shp.Process(sout);
+            if (shp != null) {
+                sout = shp.Process(sout);
+            }
         }
     }
 
@@ -668,17 +715,23 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         /* search for a complete last line */
 
         while (lidx >= 0) {
-            if (str.charAt(lidx) == '\n') break;
+            if (str.charAt(lidx) == '\n') {
+                break;
+            }
             lidx--;
         }
 
         /* get the line */
 
-        if (lidx >= 0 && lidx2 >= 0) print_out = str.substring(lidx + 1, lidx2);
+        if (lidx >= 0 && lidx2 >= 0) {
+            print_out = str.substring(lidx + 1, lidx2);
+        }
 
         /* print the line */
 
-        if (wp_p != null) wp_p.SetStatusMessage(doing + " " + print_out);
+        if (wp_p != null) {
+            wp_p.SetStatusMessage(doing + " " + print_out);
+        }
 
         /* End line mark the end of computation */
 

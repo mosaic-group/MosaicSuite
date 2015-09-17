@@ -11,11 +11,13 @@ import mosaic.ia.gui.GUIDesign;
  * sorting array of NN: might be dangerous.
  */
 public class IAPMosaic_ implements PlugIn { // NO_UCD
-	@Override
-	public void run(String arg0) {
-		if (MosaicUtils.checkRequirement() == false) return;
-		
-		GUIDesign window = new GUIDesign();
-		window.frmInteractionAnalysis.setVisible(true);
-	}
+    @Override
+    public void run(String arg0) {
+        if (MosaicUtils.checkRequirement() == false) {
+            return;
+        }
+
+        GUIDesign window = new GUIDesign();
+        window.frmInteractionAnalysis.setVisible(true);
+    }
 }

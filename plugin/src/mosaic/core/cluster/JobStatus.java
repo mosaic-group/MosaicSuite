@@ -3,7 +3,7 @@ package mosaic.core.cluster;
 
 /**
  * Structure that store and retain information about the status of a job
- * 
+ *
  * @author Pietro Incardona
  */
 
@@ -18,7 +18,7 @@ class JobStatus {
 
     /**
      * Count the number of complete jobs
-     * 
+     *
      * @param jb List of jobs
      * @return the number of completed jobs
      */
@@ -27,7 +27,9 @@ class JobStatus {
 
         for (int i = 0; i < jb.length; i++) {
             if (jb[i] == null || jb[i].getStatus() == jobS.COMPLETE || jb[i].getStatus() == jobS.UNKNOWN
-                    || jb[i].getStatus() == jobS.FAILED) ncc++;
+                    || jb[i].getStatus() == jobS.FAILED) {
+                ncc++;
+            }
         }
 
         return ncc;
@@ -35,7 +37,7 @@ class JobStatus {
 
     /**
      * Check if all the jobs are completed
-     * 
+     *
      * @param jb list of jobs
      * @return true if all jobs are completed
      */
@@ -51,7 +53,7 @@ class JobStatus {
     }
     /**
      * Get the status of the job
-     * 
+     *
      * @return jobS enum
      */
     jobS getStatus() {
@@ -62,7 +64,7 @@ class JobStatus {
      * Get the notified status of the job (used by Cluster status stack
      * to understand if it has to change the status of the job from
      * the previous time )
-     * 
+     *
      * @return
      */
     jobS getNotifiedStatus() {
@@ -71,7 +73,7 @@ class JobStatus {
 
     /**
      * Set the notified status of the job
-     * 
+     *
      * @see getNotifiedStatus()
      * @param js_
      */
@@ -81,7 +83,7 @@ class JobStatus {
 
     /**
      * Set the status of the job
-     * 
+     *
      * @param js_ job status
      */
     void setStatus(jobS js_) {

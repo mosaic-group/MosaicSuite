@@ -18,7 +18,7 @@ import org.apache.log4j.Logger;
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
-    
+
     protected static final Logger logger = Logger.getLogger(SerializedDataFile.class);
 
     @Override
@@ -39,8 +39,12 @@ public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
             logger.error(ExceptionUtils.getStackTrace(e));
         } finally {
             try {
-                if (objectOutput != null) objectOutput.close();
-                if (fileOutput != null) fileOutput.close();
+                if (objectOutput != null) {
+                    objectOutput.close();
+                }
+                if (fileOutput != null) {
+                    fileOutput.close();
+                }
             } catch (IOException e) {
                 logger.error(ExceptionUtils.getStackTrace(e));
             }
@@ -79,14 +83,18 @@ public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
             return null;
         } finally {
             try {
-                if (objectInput != null) objectInput.close();
-                if (fileInput != null) fileInput.close();
+                if (objectInput != null) {
+                    objectInput.close();
+                }
+                if (fileInput != null) {
+                    fileInput.close();
+                }
             } catch (IOException e) {
                 logger.error(ExceptionUtils.getStackTrace(e));
             }
         }
     }
-    
+
     @Override
     public T LoadFromFile(String aSerializedFileName, Class<T> aClazz, T aDefaultValue) {
         T temp = LoadFromFile(aSerializedFileName, aClazz);

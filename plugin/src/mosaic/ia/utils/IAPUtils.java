@@ -34,10 +34,12 @@ public class IAPUtils {
 
         double sum = 0;
         double[] retarray = new double[array.length];
-        for (int i = 0; i < array.length; i++)
+        for (int i = 0; i < array.length; i++) {
             sum = sum + array[i];
-        for (int i = 0; i < array.length; i++)
+        }
+        for (int i = 0; i < array.length; i++) {
             retarray[i] = array[i] / sum;
+        }
         return retarray;
     }
 
@@ -64,8 +66,12 @@ public class IAPUtils {
         minMax[1] = Double.MIN_VALUE;// max
         minMax[2] = 0;// mean
         for (int i = 0; i < D.length; i++) {
-            if (D[i] < minMax[0]) minMax[0] = D[i];
-            if (D[i] > minMax[1]) minMax[1] = D[i];
+            if (D[i] < minMax[0]) {
+                minMax[0] = D[i];
+            }
+            if (D[i] > minMax[1]) {
+                minMax[1] = D[i];
+            }
             minMax[2] = minMax[2] + D[i];
         }
         minMax[2] = minMax[2] / D.length;
@@ -84,21 +90,23 @@ public class IAPUtils {
         KernelEstimator ker = new KernelEstimator(1 / precision);
         System.out.println("Weight:" + weight);
         for (int i = 0; i < distances.length; i++)
+        {
             ker.addValue(distances[i], weight); // weight is important, since
-                                                // bandwidth is calculated with
-                                                // it:
-                                                // http://stackoverflow.com/questions/3511012/how-ist-the-bandwith-calculated-in-weka-kernelestimator-class
-        // depending on the changes to the grid, this might have to be changed.
-        // System.out.println("Added values to kernel:"+ke.getNumKernels());
-        /*
-         * System.out.println("Standard deviation of sample: " +
-         * IAPUtils.calcStandDev(distances));
-         * System.out.println("Standard deviation Kernel: " + ker.getStdDev());
-         * System.out.println("Silverman's bandwidth: " + (1.06 *
-         * IAPUtils.calcStandDev(distances)
-         * Math.pow(distances.length, -.2)));
-         * System.out.println("Length:" + distances.length);
-         */
+            // bandwidth is calculated with
+            // it:
+            // http://stackoverflow.com/questions/3511012/how-ist-the-bandwith-calculated-in-weka-kernelestimator-class
+            // depending on the changes to the grid, this might have to be changed.
+            // System.out.println("Added values to kernel:"+ke.getNumKernels());
+            /*
+             * System.out.println("Standard deviation of sample: " +
+             * IAPUtils.calcStandDev(distances));
+             * System.out.println("Standard deviation Kernel: " + ker.getStdDev());
+             * System.out.println("Silverman's bandwidth: " + (1.06 *
+             * IAPUtils.calcStandDev(distances)
+             * Math.pow(distances.length, -.2)));
+             * System.out.println("Length:" + distances.length);
+             */
+        }
 
         return ker;
     }
@@ -124,13 +132,15 @@ public class IAPUtils {
     private static double calcStandDev(double[] distances) {
 
         double sum = 0.0;
-        for (double a : distances)
+        for (double a : distances) {
             sum += a;
+        }
         double mean = sum / distances.length;
 
         double temp = 0;
-        for (double a : distances)
+        for (double a : distances) {
             temp += (mean - a) * (mean - a);
+        }
         double var = temp / (distances.length - 1);
 
         return Math.sqrt(var);
@@ -141,9 +151,9 @@ public class IAPUtils {
     // to update machine epsilon
     public static void updateMacheps() {
         MACHEPS = 1.0d;
-        do
+        do {
             MACHEPS /= 2.0d;
-        while (1 + MACHEPS / 2 != 1);
+        } while (1 + MACHEPS / 2 != 1);
         System.out.println("Machine epsilon: " + MACHEPS);
     }
 
@@ -198,9 +208,12 @@ public class IAPUtils {
         double[] range = IAPUtils.getMinMaxMeanD(values);
 
         int noBins = (int) ((range[1] - range[0]) / binWidth + 1);
-        if (noBins > maxBinNumber)
+        if (noBins > maxBinNumber) {
             noBins = maxBinNumber;
-        else if (noBins < minBinNumber) noBins = minBinNumber;
+        }
+        else if (noBins < minBinNumber) {
+            noBins = minBinNumber;
+        }
         return noBins;
     }
 

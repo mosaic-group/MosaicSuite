@@ -126,21 +126,23 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
             double[] minmaxmeanD = IAPUtils.getMinMaxMeanD(D);
             // System.out.println(x[0]+" "+x[1]+" "+"min:"+minmaxmean[0]+"max:"+minmaxmean[1]);
 
-            if (x[0] >= IAPUtils.MACHEPS && x[0] <= 50 && x[1] >= Math.max(Math.min(minmaxmeanDg[0], minmaxmeanD[0]), IAPUtils.MACHEPS) && x[1] <= Math.max(minmaxmeanDg[1], minmaxmeanD[1])) // 50
-                                                                                                                                                                                              // is
-                                                                                                                                                                                              // aribtrary.
-                                                                                                                                                                                              // but
-                                                                                                                                                                                              // log(Double.MAXVAL)=
-                                                                                                                                                                                              // log((2-(2^-52))*(2^1023))=
-                                                                                                                                                                                              // 709.7827
+            if (x[0] >= IAPUtils.MACHEPS && x[0] <= 50 && x[1] >= Math.max(Math.min(minmaxmeanDg[0], minmaxmeanD[0]), IAPUtils.MACHEPS) && x[1] <= Math.max(minmaxmeanDg[1], minmaxmeanD[1])) {
+                // is
+                // aribtrary.
+                // but
+                // log(Double.MAXVAL)=
+                // log((2-(2^-52))*(2^1023))=
+                // 709.7827
                 return true;
-            else
+            }
+            else {
                 return false;
+            }
         }
     }
 
     private void findInterpInterval() // this can be optimized. search can be
-                                     // done better.
+    // done better.
     {
         interpInterval = new int[2][D.length]; // will have xl and xr for each
         for (int i = 0; i < D.length; i++) {
@@ -215,10 +217,11 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
             // PotentialFunctions.NONPARAM_SMOOTHNESS);
             return l2Norm(x) + nonParamPenalty(weights, PotentialFunctions.NONPARAM_SMOOTHNESS);
         }
-        else
+        else {
             // return loglikelhihoodSummed(x);
             // return l1Norm(x);
             return l2Norm(x);
+        }
     }
 
 }

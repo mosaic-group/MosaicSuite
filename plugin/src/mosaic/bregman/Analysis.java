@@ -20,38 +20,38 @@ import mosaic.core.utils.MosaicUtils;
 
 public class Analysis {
 
-	public enum outputF
-	{
-		MASK(2),
-		OBJECT(0);
-		
-		private int numVal;
-		
-		outputF(int numVal) 
-		{this.numVal = numVal;}
+    public enum outputF
+    {
+        MASK(2),
+        OBJECT(0);
 
-		public int getNumVal() {return numVal;}
-	};
-	
-	// This is the output for cluster
-	public static String out[] = {"*_ObjectsData_c1.csv",
-	        "*_ObjectsData_c2.csv",
-	        "*_mask_c1.zip",
-	        "*_mask_c2.zip",
-	        "*_ImagesData.csv",
-	        "*_outline_overlay_c1.zip",
-	        "*_outline_overlay_c2.zip",
-	        "*_intensities_c1.zip",
-	        "*_intensities_c2.zip",
-	        "*_seg_c1.zip",
-	        "*_seg_c2.zip",
-	        "*_coloc.zip",
-	        "*_soft_mask_c1.tiff",
-	        "*_soft_mask_c2.tiff",
-	        "*.tif"};
+        private int numVal;
 
-	// This is the output local
-	public static String out_w[] = {"*_ObjectsData_c1.csv",
+        outputF(int numVal)
+        {this.numVal = numVal;}
+
+        public int getNumVal() {return numVal;}
+    };
+
+    // This is the output for cluster
+    public static String out[] = {"*_ObjectsData_c1.csv",
+        "*_ObjectsData_c2.csv",
+        "*_mask_c1.zip",
+        "*_mask_c2.zip",
+        "*_ImagesData.csv",
+        "*_outline_overlay_c1.zip",
+        "*_outline_overlay_c2.zip",
+        "*_intensities_c1.zip",
+        "*_intensities_c2.zip",
+        "*_seg_c1.zip",
+        "*_seg_c2.zip",
+        "*_coloc.zip",
+        "*_soft_mask_c1.tiff",
+        "*_soft_mask_c2.tiff",
+    "*.tif"};
+
+    // This is the output local
+    public static String out_w[] = {"*_ObjectsData_c1.csv",
         "*_ObjectsData_c2.csv",
         "*_mask_c1.zip",
         "*_mask_c2.zip",
@@ -64,7 +64,7 @@ public class Analysis {
         "*_seg_c2.zip",
         "*_soft_mask_c1.tiff",
         "*_soft_mask_c2.tiff",
-        "*_coloc.zip"};
+    "*_coloc.zip"};
 
     static String currentImage = "currentImage";
 
@@ -77,7 +77,7 @@ public class Analysis {
     static boolean[][][] cellMaskABinary;// =new double [p.nz][p.ni][p.nj];
     static boolean[][][] cellMaskBBinary;// =new double [p.nz][p.ni][p.nj];
     private static boolean[][][] overallCellMaskBinary;// =new double
-                                                       // [p.nz][p.ni][p.nj];
+    // [p.nz][p.ni][p.nj];
     static int nb;
     static int na;
     static double meana, meanb;
@@ -126,10 +126,12 @@ public class Analysis {
         for (int z = 0; z < p.nz; z++) {
             img2.setPosition(1, z + 1, f);
             ImageProcessor impt;
-            if (bits == 32)
+            if (bits == 32) {
                 impt = img2.getProcessor().convertToShort(false);
-            else
+            }
+            else {
                 impt = img2.getProcessor();
+            }
             imga_s.addSlice("", impt);
         }
 
@@ -144,10 +146,12 @@ public class Analysis {
         for (int z = 0; z < p.nz; z++) {
             img2.setPosition(2, z + 1, f);
             ImageProcessor impt;
-            if (bits == 32)
+            if (bits == 32) {
                 impt = img2.getProcessor().convertToShort(false);
-            else
+            }
+            else {
                 impt = img2.getProcessor();
+            }
             imgb_s.addSlice("", impt);
         }
 
@@ -157,7 +161,7 @@ public class Analysis {
 
     /**
      * Get the objects list and set the frame
-     * 
+     *
      * @param f Frame
      * @param channel
      * @return Vector with objects
@@ -190,10 +194,12 @@ public class Analysis {
         for (int z = 0; z < p.nz; z++) {
             img2.setPosition(1, z + 1, f);
             ImageProcessor impt;
-            if (bits == 32)
+            if (bits == 32) {
                 impt = img2.getProcessor().convertToShort(false);
-            else
+            }
+            else {
                 impt = img2.getProcessor();
+            }
             imga_s.addSlice("", impt);
         }
 
@@ -222,10 +228,12 @@ public class Analysis {
         // for this plugin AFAIK is always TwoRegion
         TwoRegions rg = null;
 
-        if (p.usePSF == true || p.nz > 1 || p.nlevels == 1)
+        if (p.usePSF == true || p.nz > 1 || p.nlevels == 1) {
             new Thread(rg = new TwoRegions(imgA, p, DoneSignala, 0)).start();
-        else
+        }
+        else {
             new Thread(new NRegions(imgA, p, DoneSignala, 0)).start();
+        }
 
         try {
             Analysis.DoneSignala.await();
@@ -235,7 +243,9 @@ public class Analysis {
 
         // Merge frames
         if (p.dispSoftMask) {
-            if (out_soft_mask[0] == null) out_soft_mask[0] = new ImagePlus();
+            if (out_soft_mask[0] == null) {
+                out_soft_mask[0] = new ImagePlus();
+            }
 
             MosaicUtils.MergeFrames(out_soft_mask[0], rg.out_soft_mask[0]);
             out_soft_mask[0].setStack(out_soft_mask[0].getStack());
@@ -250,10 +260,12 @@ public class Analysis {
         // for this plugin AFAIK is always TwoRegion
         TwoRegions rg = null;
 
-        if (p.usePSF == true || p.nz > 1 || p.nlevels == 1)
+        if (p.usePSF == true || p.nz > 1 || p.nlevels == 1) {
             new Thread(rg = new TwoRegions(imgB, p, DoneSignalb, 1)).start();
-        else
+        }
+        else {
             new Thread(new NRegions(imgB, p, DoneSignalb, 1)).start();
+        }
 
         try {
             Analysis.DoneSignalb.await();
@@ -263,7 +275,9 @@ public class Analysis {
 
         // Merge software
         if (p.dispSoftMask) {
-            if (out_soft_mask[1] == null) out_soft_mask[1] = new ImagePlus();
+            if (out_soft_mask[1] == null) {
+                out_soft_mask[1] = new ImagePlus();
+            }
 
             MosaicUtils.MergeFrames(out_soft_mask[1], rg.out_soft_mask[1]);
             out_soft_mask[1].setStack(out_soft_mask[1].getStack());
@@ -290,7 +304,7 @@ public class Analysis {
         maska_im.setStack("test Ma", maska_ims);
 
         FindConnectedRegions fcr = new FindConnectedRegions(maska_im, maskA);// maska_im
-                                                                             // only
+        // only
         float[][][] Ri;
         if (p.mode_voronoi2) {
             Ri = new float[p.nz][p.ni][p.nj];
@@ -318,21 +332,25 @@ public class Analysis {
             }
         }
 
-        if (p.debug)
+        if (p.debug) {
             fcr.run(d, 0, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri, true, p.save_images);// &&(!p.refinement)
-        else
+        }
+        else {
             fcr.run(d, 0, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri, p.dispcolors && (!p.refinement),
                     p.save_images && (!p.refinement));
+        }
 
         regions[0] = fcr.tempres;
         regionslist[0] = fcr.results;
         na = regionslist[0].size();
         if (!p.mode_voronoi2) {
             meana = meansize(regionslist[0]);
-            if (p.nz > 1)
+            if (p.nz > 1) {
                 IJ.log(na + " objects found in X, mean volume : " + Tools.round(meana, 2) + " pixels.");
-            else
+            }
+            else {
                 IJ.log(na + " objects found in X, mean area : " + Tools.round(meana, 2) + " pixels.");
+            }
         }
     }
 
@@ -348,10 +366,12 @@ public class Analysis {
                 for (int j = 0; j < p.nj; j++) {
                     cellmask = true;
 
-                    if (cellmask)
+                    if (cellmask) {
                         maskb_bytes[j * p.ni + i] = maskB[z][i][j];
-                    else
+                    }
+                    else {
                         maskb_bytes[j * p.ni + i] = 0;
+                    }
 
                 }
             }
@@ -399,10 +419,12 @@ public class Analysis {
         nb = regionslist[1].size();
         if (!p.mode_voronoi2) {
             meanb = meansize(regionslist[1]);
-            if (p.nz > 1)
+            if (p.nz > 1) {
                 IJ.log(nb + " objects found in Y, mean volume : " + Tools.round(meanb, 2) + " pixels.");
-            else
+            }
+            else {
                 IJ.log(nb + " objects found in Y, mean area : " + Tools.round(meanb, 2) + " pixels.");
+            }
         }
     }
 
@@ -432,8 +454,12 @@ public class Analysis {
             for (int i = 0; i < p.ni; i++) {
                 for (int j = 0; j < p.nj; j++) {
                     imagea[z][i][j] = imp.getPixel(i, j);
-                    if (imagea[z][i][j] > maxa) maxa = imagea[z][i][j];
-                    if (imagea[z][i][j] < mina) mina = imagea[z][i][j];
+                    if (imagea[z][i][j] > maxa) {
+                        maxa = imagea[z][i][j];
+                    }
+                    if (imagea[z][i][j] < mina) {
+                        mina = imagea[z][i][j];
+                    }
                 }
             }
         }
@@ -461,8 +487,12 @@ public class Analysis {
             for (int i = 0; i < p.ni; i++) {
                 for (int j = 0; j < p.nj; j++) {
                     imageb[z][i][j] = imp.getPixel(i, j);
-                    if (imageb[z][i][j] > maxb) maxb = imageb[z][i][j];
-                    if (imageb[z][i][j] < minb) minb = imageb[z][i][j];
+                    if (imageb[z][i][j] > maxb) {
+                        maxb = imageb[z][i][j];
+                    }
+                    if (imageb[z][i][j] < minb) {
+                        minb = imageb[z][i][j];
+                    }
                 }
             }
         }
@@ -531,7 +561,9 @@ public class Analysis {
         for (Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
             Region r = it.next();
             objects++;
-            if (r.colocpositive) objectscoloc++;
+            if (r.colocpositive) {
+                objectscoloc++;
+            }
         }
 
         return (((double) objectscoloc) / objects);
@@ -544,7 +576,9 @@ public class Analysis {
             Region r = it.next();
             // IJ.log("obj" + r.value);
             objects++;
-            if (r.colocpositive) objectscoloc++;
+            if (r.colocpositive) {
+                objectscoloc++;
+            }
         }
 
         return (((double) objectscoloc) / objects);
@@ -604,7 +638,9 @@ public class Analysis {
             // IJ.log("valcoloc " + valcoloc);
             if (valcoloc > 0) {
                 countcoloc++;
-                if (previousvalcoloc != 0 && valcoloc != previousvalcoloc) oneColoc = false;
+                if (previousvalcoloc != 0 && valcoloc != previousvalcoloc) {
+                    oneColoc = false;
+                }
                 intColoc += regionlist.get(valcoloc - 1).intensity;
                 sizeColoc += regionlist.get(valcoloc - 1).points;
                 previousvalcoloc = valcoloc;
@@ -616,10 +652,12 @@ public class Analysis {
         r.colocpositive = positive;
         r.overlap = (float) Tools.round(((double) countcoloc) / count, 3);
         r.over_size = (float) Tools.round((sizeColoc) / countcoloc, 3);
-        if (p.nz == 1)
+        if (p.nz == 1) {
             r.over_size = (float) Tools.round(r.over_size / (osxy * osxy), 3);
-        else
+        }
+        else {
             r.over_size = (float) Tools.round(r.over_size / (osxy * osxy * osxy), 3);
+        }
 
         r.over_int = (float) Tools.round((intColoc) / countcoloc, 3);
         r.singlec = oneColoc;
@@ -655,10 +693,12 @@ public class Analysis {
 
         int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
         int fz2;
-        if (Analysis.p.nz > 1)
+        if (Analysis.p.nz > 1) {
             fz2 = factor2;
-        else
+        }
+        else {
             fz2 = 1;
+        }
 
         int count = 0;
         double sum = 0;
@@ -783,8 +823,9 @@ public class Analysis {
         if (Analysis.p.subpixel) {
             return (totalsize / objects) / (Math.pow(Analysis.p.oversampling2ndstep * Analysis.p.interpolation, 2));
         }
-        else
+        else {
             return (totalsize / objects);
+        }
     }
 
     static double totalsize(ArrayList<Region> regionslist) {
@@ -804,7 +845,9 @@ public class Analysis {
 
         for (Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
             Region r = it.next();
-            if (isInside(r)) newregionlist.add(r);
+            if (isInside(r)) {
+                newregionlist.add(r);
+            }
         }
         regionslist = newregionlist;
 
@@ -814,15 +857,19 @@ public class Analysis {
     private static boolean isInside(Region r) {
         int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
         int fz2;
-        if (Analysis.p.nz > 1)
+        if (Analysis.p.nz > 1) {
             fz2 = factor2;
-        else
+        }
+        else {
             fz2 = 1;
+        }
         double size = 0;
         int inside = 0;
         for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
             Pix px = it.next();
-            if (overallCellMaskBinary[px.pz / fz2][px.px / factor2][px.py / factor2]) inside++;
+            if (overallCellMaskBinary[px.pz / fz2][px.px / factor2][px.py / factor2]) {
+                inside++;
+            }
             size++;
         }
         return ((inside / size) > 0.1);
@@ -858,10 +905,12 @@ public class Analysis {
     static void setRegionsLabels(ArrayList<Region> regionslist, short[][][] regions) {
         int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
         int fz2;
-        if (Analysis.p.nz > 1)
+        if (Analysis.p.nz > 1) {
             fz2 = factor2;
-        else
+        }
+        else {
             fz2 = 1;
+        }
         int index = 1;
 
         for (int z = 0; z < p.nz * fz2; z++) {

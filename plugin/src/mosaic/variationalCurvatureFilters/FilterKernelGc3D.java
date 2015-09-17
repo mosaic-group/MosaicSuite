@@ -9,7 +9,7 @@ public class FilterKernelGc3D implements FilterKernel3D {
     public float filterKernel(float[][][] aImage, int aX, int aY, int aZ) {
         float[] d = new float[50];
         int i=aX, j=aY , k=aZ;
-        
+
         // Calculating minimum distances (taken from Fortran code "ppm_rc_gc.f")
         d[1] = (aImage[k - 1][j][i] + aImage[k + 1][j][i]) / 2.0f - aImage[k][j][i];
         d[2] = (aImage[k][j - 1][i] + aImage[k][j + 1][i]) / 2.0f - aImage[k][j][i];
@@ -61,15 +61,15 @@ public class FilterKernelGc3D implements FilterKernel3D {
         d[47] = (aImage[k - 1][j - 1][i] + aImage[k][j][i + 1] + aImage[k - 1][j - 1][i + 1]) / 3.0f - aImage[k][j][i];
         d[48] = (aImage[k - 1][j + 1][i] + aImage[k][j][i - 1] + aImage[k - 1][j + 1][i - 1]) / 3.0f - aImage[k][j][i];
         d[49] = (aImage[k - 1][j + 1][i] + aImage[k][j][i + 1] + aImage[k - 1][j + 1][i + 1]) / 3.0f - aImage[k][j][i];
-        
+
         // Find minimum absolute change
         d[0] = d[1];
         for (int idx = 2; idx <= 49; ++idx) {
             float da = Math.abs(d[idx]);
             if (da < Math.abs(d[0])) {d[0] = d[idx];}
         }
-        
-        // Finally return minimum change 
+
+        // Finally return minimum change
         return d[0];
     }
 }

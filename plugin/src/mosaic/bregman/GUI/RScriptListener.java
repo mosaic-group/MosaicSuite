@@ -11,46 +11,46 @@ import mosaic.bregman.Analysis;
 
 class RScriptListener implements ActionListener {
 
-	GenericDialog gd;
-	int nbgroups;
-	int posx;
-	int posy;
-	
-	public RScriptListener(GenericDialog gd, int ParentPosx, int ParentPosy)
-	{
-		this.gd=gd;
-		posx= ParentPosx;
-		posy= ParentPosy;
-	}
-	
-	@Override
-	public void actionPerformed(ActionEvent e) {
+    GenericDialog gd;
+    int nbgroups;
+    int posx;
+    int posy;
 
-		nbgroups=new Integer(((TextField) gd.getNumericFields().elementAt(0)).getText());
-		
-		
-		if ( nbgroups > 5 )
-		{
-			
-			Analysis.p.nbimages= new int[nbgroups];
-			for (int i=0; i < nbgroups; i++)
-			{
-				Analysis.p.nbimages[i]=1;
-			}
-			Analysis.p.groupnames= new String[nbgroups];
+    public RScriptListener(GenericDialog gd, int ParentPosx, int ParentPosy)
+    {
+        this.gd=gd;
+        posx= ParentPosx;
+        posy= ParentPosy;
+    }
 
-			for (int i=0; i < nbgroups; i++)
-			{
-				Analysis.p.groupnames[i]="Condition " + (i+1) + " name";
-			}
-			Analysis.p.nbconditions=nbgroups;
-			Analysis.p.initrsettings=false;
-			//Analysis.p.ch1="channel 1 name";
-			//Analysis.p.ch2="channel 2 name";
-		}
+    @Override
+    public void actionPerformed(ActionEvent e) {
 
-		RScriptWindow rw = new RScriptWindow(nbgroups, posx, posy);
-		rw.run("");
-	}
+        nbgroups=new Integer(((TextField) gd.getNumericFields().elementAt(0)).getText());
+
+
+        if ( nbgroups > 5 )
+        {
+
+            Analysis.p.nbimages= new int[nbgroups];
+            for (int i=0; i < nbgroups; i++)
+            {
+                Analysis.p.nbimages[i]=1;
+            }
+            Analysis.p.groupnames= new String[nbgroups];
+
+            for (int i=0; i < nbgroups; i++)
+            {
+                Analysis.p.groupnames[i]="Condition " + (i+1) + " name";
+            }
+            Analysis.p.nbconditions=nbgroups;
+            Analysis.p.initrsettings=false;
+            //Analysis.p.ch1="channel 1 name";
+            //Analysis.p.ch2="channel 2 name";
+        }
+
+        RScriptWindow rw = new RScriptWindow(nbgroups, posx, posy);
+        rw.run("");
+    }
 
 }

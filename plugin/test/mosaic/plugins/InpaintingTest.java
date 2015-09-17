@@ -13,19 +13,19 @@ public class InpaintingTest extends CommonBase  {
         String tcDirName          = "VCF/";
         String setupString        = "run";
         final String tcPath = SystemOperations.getTestDataPath() + tcDirName;
-        final String maskFile = tcPath + "inpaint_mask.png"; 
+        final String maskFile = tcPath + "inpaint_mask.png";
         String macroOptions       = "(inpainting)=" + maskFile + " filter=[TV (Total Variation)] number=20";
         String[] inputFiles       = {"inpaint.png"};
         String[] expectedFiles    = {"inpainting_inpaint.png"};
         String[] referenceFiles   = {"inpaintTvNoSplit20.tif"};
-        
+
         // Create tested plugin
         Inpainting nt = new Inpainting();
-       
+
         // Test it
-        testPlugin(nt, tcDirName, 
-                    inputFiles, expectedFiles, referenceFiles, 
-                    setupString, macroOptions);
+        testPlugin(nt, tcDirName,
+                inputFiles, expectedFiles, referenceFiles,
+                setupString, macroOptions);
 
     }
 

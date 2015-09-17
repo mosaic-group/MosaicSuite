@@ -26,13 +26,13 @@ public class JsonDataFile<T> implements DataFile<T> {
     @Override
     public boolean SaveToFile(String aSerializedFileName, T aObject2Save) {
         logger.debug("SaveToFile ["+ aSerializedFileName +"]");
-        
+
         // Generates nicer json string than just "new Gson();" would do
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String json = gson.toJson(aObject2Save);
-        
+
         FileOutputStream fileOutput = null;
-        
+
         try {
             fileOutput = new FileOutputStream(aSerializedFileName);
             fileOutput.write(json.getBytes());
@@ -45,7 +45,9 @@ public class JsonDataFile<T> implements DataFile<T> {
             logger.error(ExceptionUtils.getStackTrace(e));
         } finally {
             try {
-                if (fileOutput != null) fileOutput.close();
+                if (fileOutput != null) {
+                    fileOutput.close();
+                }
             } catch (IOException e) {
                 logger.error(ExceptionUtils.getStackTrace(e));
             }
@@ -58,7 +60,7 @@ public class JsonDataFile<T> implements DataFile<T> {
         logger.debug("LoadFromFile [" + aSerializedFileName + "]");
 
         Gson gson = new Gson();
-                
+
         try {
             FileInputStream fileInput = new FileInputStream(aSerializedFileName);
             BufferedReader reader = new BufferedReader(new InputStreamReader(fileInput));
@@ -66,11 +68,11 @@ public class JsonDataFile<T> implements DataFile<T> {
             String aDataRow = "";
             while ((aDataRow = reader.readLine()) != null) {
                 json.append(aDataRow);
-           }
+            }
             reader.close();
-            
-            T obj = gson.fromJson(json.toString(), aClazz); 
-            
+
+            T obj = gson.fromJson(json.toString(), aClazz);
+
             return obj;
         } catch (FileNotFoundException e) {
             logger.debug("File [" + aSerializedFileName + "] not found.");

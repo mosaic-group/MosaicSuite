@@ -122,7 +122,7 @@ public class MosaicUtils {
      * time set a re-normalization Useful when you have a Generic T, you can use
      * in the following way T data; ToARGB conv = getConvertion(data,cursor<T>)
      * conv.toARGB(data);
-     * 
+     *
      * @param data
      * @return
      */
@@ -162,13 +162,14 @@ public class MosaicUtils {
     /**
      * Filter out from Possible candidate file the one chosen by the user If
      * only one file present nothing appear
-     * 
+     *
      * @param PossibleFile Vector of possible File
      * @return Chosen file
      */
     static private File filter_possible(Vector<File> PossibleFile) {
-        if (PossibleFile == null)
+        if (PossibleFile == null) {
             return null;
+        }
 
         if (PossibleFile.size() > 1) {
             // Ask user to choose
@@ -177,16 +178,18 @@ public class MosaicUtils {
 
             return cg.choose("Choose segmentation", "Found multiple segmentations", PossibleFile);
         } else {
-            if (PossibleFile.size() == 1)
+            if (PossibleFile.size() == 1) {
                 return PossibleFile.get(0);
-            else
+            }
+            else {
                 return null;
+            }
         }
     }
 
     /**
      * Check if there are segmentation information for the image
-     * 
+     *
      * @param Image
      */
     static public boolean checkSegmentationInfo(ImagePlus aImp, String plugin) {
@@ -236,7 +239,7 @@ public class MosaicUtils {
 
     /**
      * Get if there are segmentation information for the image
-     * 
+     *
      * @param Image
      */
     static public SegmentationInfo getSegmentationInfo(ImagePlus aImp) {
@@ -277,8 +280,9 @@ public class MosaicUtils {
                     sR = sg[i].getRegionList(aImp);
                     for (int j = 0; j < sR.length; j++) {
                         File fR = new File(jb[k] + File.separator + sR[j]);
-                        if (fR.exists() == true)
+                        if (fR.exists() == true) {
                             PossibleFile.add(fR);
+                        }
                     }
                 }
             }
@@ -286,8 +290,9 @@ public class MosaicUtils {
             sI.RegionList = filter_possible(PossibleFile);
 
             // if not segmentation choosen
-            if (sI.RegionList == null)
+            if (sI.RegionList == null) {
                 return null;
+            }
 
             PossibleFile.clear();
 
@@ -310,7 +315,7 @@ public class MosaicUtils {
 
     /**
      * Get segmentation classes
-     * 
+     *
      * @return an array of the classes
      */
     static private Segmentation[] getSegmentationPluginsClasses() {
@@ -322,7 +327,7 @@ public class MosaicUtils {
 
     /**
      * This function merge the frames of the image a2 into a1
-     * 
+     *
      * @param a1 Image a1
      * @param a2 Image a2
      */
@@ -349,7 +354,7 @@ public class MosaicUtils {
 
     /**
      * Read a file and split the String by space
-     * 
+     *
      * @param file
      * @return values array of String
      */
@@ -370,13 +375,14 @@ public class MosaicUtils {
     /**
      * Return the folder where the image is stored, if it is not saved it return
      * the folder of the original image
-     * 
+     *
      * @param img Image
      * @return folder of the image
      */
     public static String ValidFolderFromImage(ImagePlus img) {
-        if (img == null)
+        if (img == null) {
             return null;
+        }
 
         if (img.getFileInfo().directory == "") {
             if (img.getOriginalFileInfo() == null || img.getOriginalFileInfo().directory == "") {
@@ -407,7 +413,7 @@ public class MosaicUtils {
 
     /**
      * crops a 3D image at all of sides of the imagestack cube.
-     * 
+     *
      * @param is a frame to crop
      * @see pad ImageStack3D
      * @return the cropped image
@@ -470,7 +476,7 @@ public class MosaicUtils {
             if (i % width == width - 1) {
                 for (int a = 0; a < padSize; a++) {
                     paddedpx[j] = origpx[lastlineoffset + width - 1]; // right
-                                                                      // corner
+                    // corner
                     j++;
                 }
                 // continue;
@@ -483,7 +489,7 @@ public class MosaicUtils {
     /**
      * Before convolution, the image is padded such that no artifacts occure at
      * the edge of an image.
-     * 
+     *
      * @param is a frame (not a movie!)
      * @see cropImageStack3D(ImageStack)
      * @return the padded imagestack to (w+2*r, h+2r, s+2r) by copying the last
@@ -508,7 +514,7 @@ public class MosaicUtils {
     /**
      * Does the same as padImageStack3D but does not create a new image. It
      * recreates the edge of the cube (frame).
-     * 
+     *
      * @see padImageStack3D, cropImageStack3D
      * @param aIS
      */
@@ -569,8 +575,9 @@ public class MosaicUtils {
 
     public static ImageStack GetSubStackInFloat(ImageStack is, int startPos, int endPos) {
         ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
-        if (startPos > endPos || startPos < 0 || endPos < 0)
+        if (startPos > endPos || startPos < 0 || endPos < 0) {
             return null;
+        }
         for (int i = startPos; i <= endPos; i++) {
             res.addSlice(is.getSliceLabel(i), is.getProcessor(i).convertToFloat());
         }
@@ -579,8 +586,9 @@ public class MosaicUtils {
 
     public static ImageStack GetSubStackCopyInFloat(ImageStack is, int startPos, int endPos) {
         ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
-        if (startPos > endPos || startPos < 0 || endPos < 0)
+        if (startPos > endPos || startPos < 0 || endPos < 0) {
             return null;
+        }
         for (int i = startPos; i <= endPos; i++) {
             res.addSlice(is.getSliceLabel(i), is.getProcessor(i).convertToFloat().duplicate());
         }
@@ -589,7 +597,7 @@ public class MosaicUtils {
 
     /**
      * Returns a * c + b
-     * 
+     *
      * @param a: y-coordinate
      * @param b: x-coordinate
      * @param c: width
@@ -605,7 +613,7 @@ public class MosaicUtils {
      * overwriting older information If the file does not exists it will be
      * created. Any problem creating, writing to or closing the file will
      * generate an ImageJ error
-     * 
+     *
      * @param directory location of the file to write to
      * @param file_name file name to write to
      * @param info info the write to file
@@ -628,7 +636,7 @@ public class MosaicUtils {
 
     /**
      * Copy an image B as a subspace into an image A
-     * 
+     *
      * @param A Image A
      * @param B Image B
      * @param fix subspace on A, dim(A) - dim(B) == 1
@@ -638,11 +646,13 @@ public class MosaicUtils {
         // Check that the image are != null and the images has a difference
         // in dimensionality of one
 
-        if (A == null || B == null)
+        if (A == null || B == null) {
             return false;
+        }
 
-        if (A.numDimensions() - B.numDimensions() != 1)
+        if (A.numDimensions() - B.numDimensions() != 1) {
             return false;
+        }
 
         Cursor<T> img_c = B.cursor();
         RandomAccessibleInterval<T> view = Views.hyperSlice(A, B.numDimensions(), fix);
@@ -660,14 +670,15 @@ public class MosaicUtils {
 
     /**
      * Get the frame ImagePlus from an ImagePlus
-     * 
+     *
      * @param img Image
      * @param frame frame (frame start from 1)
      * @return An ImagePlus of the frame
      */
     public static ImagePlus getImageFrame(ImagePlus img, int frame) {
-        if (frame == 0)
+        if (frame == 0) {
             return null;
+        }
 
         int nImages = img.getNFrames();
 
@@ -686,14 +697,15 @@ public class MosaicUtils {
 
     /**
      * Get the ImagePlus slice from an ImagePlus
-     * 
+     *
      * @param img Image
      * @param channel (channel start from 1)
      * @return An ImagePlus of the channel
      */
     public static ImagePlus getImageSlice(ImagePlus img, int slice) {
-        if (slice == 0)
+        if (slice == 0) {
             return null;
+        }
 
         int nImages = img.getNSlices();
 
@@ -717,7 +729,7 @@ public class MosaicUtils {
      * (* is replaced with _) and inside put all the file with pattern
      * dataAfile1 ..... dataZfile1 in the first and dataAfile2 ..... dataZfile2
      * in the second. If the folder is empty the folder is deleted
-     * 
+     *
      * @param output List of output patterns
      * @param bases String of the image/data to substitute
      * @param sv base dir where the data are located
@@ -760,7 +772,7 @@ public class MosaicUtils {
      * with _) and inside put all the file with pattern data_tmp_1file1 .....
      * data_tmp_Nfile1 in the first and data_tmp_1file2 ..... data_tmp_Nfile2 in
      * the second. If the folder is empty the folder is deleted
-     * 
+     *
      * @param output List of output patterns
      * @param base String of the image/data to substitute
      * @param sv base dir where the data are located
@@ -816,7 +828,7 @@ public class MosaicUtils {
      * data_dst_1file1 ..... data_dst_Nfile1 and data_src_1file2 .....
      * data_src_Nfile2 in the second renaming to data_dst_1file2 .....
      * data_dst_Nfile2 If the folder is empty the folder is deleted
-     * 
+     *
      * @param output List of output patterns
      * @param base String of the image/data to substitute
      * @param sv base dir where the data are located
@@ -869,7 +881,7 @@ public class MosaicUtils {
 
     /**
      * Create a choose image selector
-     * 
+     *
      * @param gd Generic Dialog
      * @param cs string for the choice caption
      * @param imp ImagePlus to start with
@@ -890,14 +902,16 @@ public class MosaicUtils {
             names[i + 1] = ip.getTitle();
         }
 
-        if (gd.getChoices() == null)
+        if (gd.getChoices() == null) {
             return null;
+        }
 
         Choice choiceInputImage = (Choice) gd.getChoices().lastElement();
 
         if (imp != null) {
-            for (int i = 0; i < names.length; i++)
+            for (int i = 0; i < names.length; i++) {
                 choiceInputImage.addItem(names[i]);
+            }
 
             String title = imp.getTitle();
             choiceInputImage.select(title);
@@ -917,7 +931,7 @@ public class MosaicUtils {
 
     /**
      * Get the CSV Region filename
-     * 
+     *
      * @param filename of the image
      * @return the CSV region filename
      */
@@ -931,7 +945,7 @@ public class MosaicUtils {
 
     /**
      * Get the maximum and the minimum of a video
-     * 
+     *
      * @param mm output min and max
      */
     private static void getMaxMin(File fl, MM mm) {
@@ -949,16 +963,18 @@ public class MosaicUtils {
             // get the min and the max
         }
 
-        if (global_max > mm.max)
+        if (global_max > mm.max) {
             mm.max = global_max;
+        }
 
-        if (global_min < mm.min)
+        if (global_min < mm.min) {
             mm.min = global_min;
+        }
     }
 
     /**
      * Get the maximum and the minimum of a video
-     * 
+     *
      * @param mm output min and max
      */
     public static void getFilesMaxMin(File fls[], MM mm) {
@@ -969,7 +985,7 @@ public class MosaicUtils {
 
     /**
      * Parse normalize
-     * 
+     *
      * @param options string of options " ..... normalize = true ...... "
      * @return the value of the argument, null if the argument does not exist
      */
@@ -979,7 +995,7 @@ public class MosaicUtils {
 
     /**
      * Parse the options string to get the argument config
-     * 
+     *
      * @param options string of options " ..... config = xxxxx ...... "
      * @return the value of the argument, null if the argument does not exist
      */
@@ -989,7 +1005,7 @@ public class MosaicUtils {
 
     /**
      * Parse the options string to get the argument output
-     * 
+     *
      * @param options string of options " ..... config = xxxxx ...... "
      * @return the value of the argument, null if the argument does not exist
      */
@@ -999,14 +1015,15 @@ public class MosaicUtils {
 
     /**
      * Parse the options string to get an argument
-     * 
+     *
      * @param name the string identify the argument
      * @param options string of options " ..... config = xxxxx ...... "
      * @return the value of the argument, null if the argument does not exist
      */
     public static String parseString(String name, String options) {
-        if (options == null)
+        if (options == null) {
             return null;
+        }
 
         Pattern config = Pattern.compile(name);
         Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
@@ -1032,7 +1049,7 @@ public class MosaicUtils {
 
     /**
      * Parse the options string to get an argument
-     * 
+     *
      * @param name the string identify the argument
      * @param options string of options " ..... config = xxxxx ...... "
      * @return the value of the argument, null if the argument does not exist
@@ -1062,7 +1079,7 @@ public class MosaicUtils {
 
     /**
      * Given an imglib2 image return the dimensions as an array of integer
-     * 
+     *
      * @param img Image
      * @return array with the image dimensions
      */
@@ -1077,7 +1094,7 @@ public class MosaicUtils {
 
     /**
      * Given an imglib2 image return the dimensions as an array of long
-     * 
+     *
      * @param img Image
      * @return array with the image dimensions
      */
@@ -1092,7 +1109,7 @@ public class MosaicUtils {
 
     /**
      * Get the minimal value and maximal value of an image
-     * 
+     *
      * @param img Image
      * @param min minimum value
      * @param max maximum value
@@ -1107,16 +1124,18 @@ public class MosaicUtils {
 
         while (cur.hasNext()) {
             cur.fwd();
-            if (cur.get().getRealDouble() < min.getRealDouble())
+            if (cur.get().getRealDouble() < min.getRealDouble()) {
                 min.setReal(cur.get().getRealDouble());
-            if (cur.get().getRealDouble() > max.getRealDouble())
+            }
+            if (cur.get().getRealDouble() > max.getRealDouble()) {
                 max.setReal(cur.get().getRealDouble());
+            }
         }
     }
 
     /**
      * Open an image
-     * 
+     *
      * @param fl Filename
      * @return An image
      */
@@ -1126,7 +1145,7 @@ public class MosaicUtils {
 
     /**
      * Test data directory
-     * 
+     *
      * @return Test data directory
      */
     static public String getTestDir() {
@@ -1135,7 +1154,7 @@ public class MosaicUtils {
 
     /**
      * It return the set of test images to test
-     * 
+     *
      * @param name of the test set
      * @param test name
      * @return an array of test images
@@ -1156,12 +1175,14 @@ public class MosaicUtils {
         File fl = new File(TestFolder);
         File dirs[] = fl.listFiles();
 
-        if (dirs == null)
+        if (dirs == null) {
             return null;
+        }
 
         for (File dir : dirs) {
-            if (dir.isDirectory() == false)
+            if (dir.isDirectory() == false) {
                 continue;
+            }
 
             // open config
 
@@ -1179,8 +1200,9 @@ public class MosaicUtils {
             // ..... List of csv result
 
             try {
-                if (filter != null && filter.length() != 0 && dir.getAbsolutePath().endsWith(filter.trim()) == false)
+                if (filter != null && filter.length() != 0 && dir.getAbsolutePath().endsWith(filter.trim()) == false) {
                     continue;
+                }
 
                 BufferedReader br = new BufferedReader(new FileReader(cfg));
 
@@ -1243,7 +1265,7 @@ public class MosaicUtils {
 
     /**
      * Compare two images
-     * 
+     *
      * @param img1 Image1
      * @param img2 Image2
      * @return true if they match, false otherwise
@@ -1274,7 +1296,7 @@ public class MosaicUtils {
 
     /**
      * Remove the file extension
-     * 
+     *
      * @param str String from where to remove the extension
      * @return the String
      */
@@ -1290,7 +1312,7 @@ public class MosaicUtils {
 
     /**
      * Filter out the csv output dir
-     * 
+     *
      * @param dir Array of directories
      * @return CSV output dir
      */
@@ -1316,7 +1338,7 @@ public class MosaicUtils {
     /**
      * Stitch the CSV files all together in the directory dir/dir_p[] save the
      * result in output_file + dir_p[] "*" are substituted by "_"
-     * 
+     *
      * @param dir_p list of directories
      * @param dir Base
      * @param output_file stitched file
@@ -1329,20 +1351,23 @@ public class MosaicUtils {
 
         for (int j = 0; j < dir_p.length; j++) {
             File[] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
-            if (fl == null)
+            if (fl == null) {
                 continue;
+            }
             int nf = fl.length;
 
             String str[] = new String[nf];
 
             for (int i = 1; i <= nf; i++) {
-                if (fl[i - 1].getName().endsWith(".csv"))
+                if (fl[i - 1].getName().endsWith(".csv")) {
                     str[i - 1] = fl[i - 1].getAbsolutePath();
+                }
             }
 
             if (ext != null) {
-                for (int i = 0; i < ext.length; i++)
+                for (int i = 0; i < ext.length; i++) {
                     csv.setMetaInformation(ext[i].parameter, ext[i].value);
+                }
             }
 
             if (first == true) {
@@ -1361,7 +1386,7 @@ public class MosaicUtils {
 
     /**
      * Stitch the CSV in the directory
-     * 
+     *
      * @param fl directory where search for files to stitch directory to stitch
      * @param output string array that list all the outputs produced by the
      *            plugin
@@ -1387,7 +1412,7 @@ public class MosaicUtils {
 
     /**
      * Stitch the CSV in the Jobs directory
-     * 
+     *
      * @param fl directory where search for JobsXXX directory to stitch the csv
      * @param output string array that list all the outputs produced by the
      *            plugin
@@ -1409,7 +1434,7 @@ public class MosaicUtils {
     /**
      * This function check if the Fiji respect all the requirement to run the
      * MosaicToolSuite
-     * 
+     *
      * @return true if respect the requirement
      */
     static public boolean checkRequirement() {

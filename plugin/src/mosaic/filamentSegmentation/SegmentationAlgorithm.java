@@ -33,15 +33,15 @@ import mosaic.utils.nurbs.BSplineSurface;
 
 /**
  * Implementation of filament segmentation algorithm.
- * 
- * "Generalized Linear Models and B_Spline Level-Sets enable Automatic Optimal 
+ *
+ * "Generalized Linear Models and B_Spline Level-Sets enable Automatic Optimal
  *  Filament Segmentation with Sub-pixel Accuracy"
  *  Xun Xiao, Veikko Geyer, Hugo Bowne-Anderson, Jonathon Howard, Ivo F. Sbalzarini
- *  
+ *
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class SegmentationAlgorithm {
-    
+
     // Possible noise type of input image
     public static enum NoiseType {
         GAUSSIAN, POISSON
@@ -103,22 +103,22 @@ public class SegmentationAlgorithm {
      * @return List of generated cubis smoothing splines for each found filament.
      */
     public List<CubicSmoothingSpline> performSegmentation() {
-        
+
         // Step 1 - Minimize total energy
         EnergyOutput resultOfEnergyMinimalization = minimizeEnergy();
 
         // Step 2 - find best threshold values basing on found energy value
         ThresholdFuzzyOutput resultOfthresholdFuzzyVLS = ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
 
-        // Step 3 - generate cubic smoothing splines for each found filament 
+        // Step 3 - generate cubic smoothing splines for each found filament
         //          (filter filaments shorter than 10 points)
         List<CubicSmoothingSpline> filamentInfo = generateFilamentInfo(resultOfthresholdFuzzyVLS);
-        
+
         return filamentInfo;
     }
-    
+
     /**
-     * Generates filament information - for each found filament longer or equal 10 pixels CubicSmoothingSpline is 
+     * Generates filament information - for each found filament longer or equal 10 pixels CubicSmoothingSpline is
      * generated.
      * @param aResultOfthresholdFuzzyVLS - input with masks after thresholding
      * @return list of all CubicSmoothingSplines for each filament
@@ -130,7 +130,7 @@ public class SegmentationAlgorithm {
         Matrix mk = aResultOfthresholdFuzzyVLS.iopt_MK;
         // thresholded mask
         Matrix H_f = aResultOfthresholdFuzzyVLS.iH_f;
-        
+
         // Find all possible location of filaments
         Map<Integer, List<Integer>> cc = Matlab.bwconncomp(mk, true /* 8-connected */);
         int nComp = cc.size();
@@ -157,33 +157,35 @@ public class SegmentationAlgorithm {
             // If data set is too small just continue with next filament
             // If it's big enough then limit number of point to be processed if necessary
             int size = x.size();
-            if (size < 10) continue;
+            if (size < 10) {
+                continue;
+            }
             List<Double> xv = new ArrayList<Double>();
             List<Double> yv= new ArrayList<Double>();
             List<Double> wv= new ArrayList<Double>();
             limitNumberOfPoints(xv,yv,wv, x, y);
-            
+
             // Merge points with same x values and adequately calculate y (mean value) and weights (sum of weights).
             mergePointsWithSameX(xv, yv, wv);
-            
+
             // Check if after merging we have enough points to generate css.
             if (xv.size() > 1) {
                 // Calculate cubic smoothing spline for calculated points and weights
-                double[] xz = new double[xv.size()]; 
-                double[] yz = new double[xv.size()]; 
+                double[] xz = new double[xv.size()];
+                double[] yz = new double[xv.size()];
                 double[] wz = new double[xv.size()];
-                for (int i = 0; i < xv.size(); ++i) { 
+                for (int i = 0; i < xv.size(); ++i) {
                     xz[i] = xv.get(i);
                     yz[i] = yv.get(i);
                     wz[i] = wv.get(i);
                 }
                 CubicSmoothingSpline css = new CubicSmoothingSpline(xz, yz, 0.01, wz);
-                
+
                 // Save result and continue
                 result.add(css);
             }
         }
-        
+
         return result;
     }
 
@@ -198,7 +200,7 @@ public class SegmentationAlgorithm {
      */
     void limitNumberOfPoints(List<Double> aOutputX, List<Double> aOutputY, List<Double> aOutputWeights, List<Integer> aOriginalX, List<Integer> aOriginalY) {
         int size = aOriginalX.size();
-        
+
         // Choose divider to limit number of points for further calculation. Original implementation
         // from Matlab decides about divider using logic commented below. It seems not to be very correct since it limits
         // points in the beginning and then fix divider to 2...
@@ -209,19 +211,19 @@ public class SegmentationAlgorithm {
         // else divider = 2;
         // ====================================
         int divider = (size/20) + 1;
-        
+
         Matrix indices = Matlab.linspace(0, size - 1, size/divider);
 
-        for (int i = 0; i < indices.size(); ++i) { 
+        for (int i = 0; i < indices.size(); ++i) {
             aOutputX.add((double) aOriginalX.get((int)(indices.get(i)+0.5)));
             aOutputY.add((double) aOriginalY.get((int)(indices.get(i)+0.5)));
             aOutputWeights.add(1.0);
         }
     }
-    
+
     /**
-     * Merge points with same X coordinates. Y values for given X are averaged and 
-     * weights are added. After merging input containers are shrunk to fit new number 
+     * Merge points with same X coordinates. Y values for given X are averaged and
+     * weights are added. After merging input containers are shrunk to fit new number
      * of elements.
      * @param aX - input X
      * @param aY - input Y
@@ -253,7 +255,7 @@ public class SegmentationAlgorithm {
                 count++;
             }
         }
-        
+
         // Save last point being processed
         aX.set(outIndex, (double)lastIdx);
         aY.set(outIndex, sum/count);
@@ -265,12 +267,12 @@ public class SegmentationAlgorithm {
         aY.subList(outIndex, aY.size()).clear();
         aWeights.subList(outIndex, aWeights.size()).clear();
     }
-    
+
     void generateCoordinatesOfFilament(Matrix selectedRegion, Matrix selectedFilament, List<Integer> aX, List<Integer> aY) {
-        
+
         MaximumFinder2D maximumFinder2D = new MaximumFinder2D(selectedFilament.numCols(), selectedFilament.numRows());
         List<Point> mm = maximumFinder2D.getMaximaPointList(Convert.toFloat(selectedFilament.getData()), 0.0, false);
-        
+
         // Find local max intensity matrix by getting pixels from Maximum Finder and doing simple graph search.
         // If neighbor pixel have same intensity as those find by MaximumFinder they are will be also marked as 1
         // in localMaxIntensity matrix.
@@ -317,7 +319,7 @@ public class SegmentationAlgorithm {
                 }
             }
         }
-        
+
         selectedFilament = selectedFilament.elementMult(localMaxIntensity);
         for (int col = 0; col < selectedFilament.numCols(); ++col) {
             double maxVal = 0.0;
@@ -329,18 +331,19 @@ public class SegmentationAlgorithm {
                     idx = row;
                 }
             }
-            if (idx == -1)
+            if (idx == -1) {
                 continue;
+            }
             selectedRegion.insertCol(new Matrix(selectedRegion.numRows(), 1).zeros(), col);
             selectedRegion.set(idx, col, 1.0);
         }
-        
-        // Find all (filament) points and put them into containers. Add 1 to 
+
+        // Find all (filament) points and put them into containers. Add 1 to
         // all elements to be compatible with Matlab (Indexing starts from 1).
         for (int col = 0; col < selectedFilament.numCols(); ++col) {
             for (int row = 0; row < selectedFilament.numRows(); ++row) {
                 if (selectedRegion.get(row, col) > 0) {
-                    aX.add((int)(col * iSubpixelSampling) + 1); 
+                    aX.add((int)(col * iSubpixelSampling) + 1);
                     aY.add((int)(row * iSubpixelSampling) + 1);
                 }
             }
@@ -375,12 +378,14 @@ public class SegmentationAlgorithm {
             Map<Integer, List<Integer>> cc = Matlab.bwconncomp(bmk, true /* 8-connected */);
             for (List<Integer> list : cc.values()) {
                 Matrix tmk = new Matrix(bmk.numRows(), bmk.numCols()).zeros();
-                for (int idx : list)
+                for (int idx : list) {
                     tmk.set(idx, 1);
+                }
                 double flag = tmk.elementMult(maskLogical).sum();
                 if (flag == 0.0) {
-                    for (int idx : list)
+                    for (int idx : list) {
                         bmk.set(idx, 0);
+                    }
                 }
             }
             BMK.add(bmk);
@@ -414,7 +419,7 @@ public class SegmentationAlgorithm {
     }
 
     /**
-     * Performs first part of algorithm. Tries to minimize energy between generated 
+     * Performs first part of algorithm. Tries to minimize energy between generated
      * mask (based on phi/psi b-splines) and input image.
      */
     EnergyOutput minimizeEnergy() {
@@ -422,23 +427,23 @@ public class SegmentationAlgorithm {
         Matrix mask = generateMask(true /* resize */);
         RegionStatisticsSolver rss = generateRss(mask);
         Matrix mu = rss.getModelImage();
-        
+
         double totalEnergy = calculateTotalEnergy(iImageData, mask, mu, false);
-       
+
         Matrix phiCoefs = new Matrix(iPhi.getCoefficients());
         Matrix psiCoefs = new Matrix(iPsi.getCoefficients());
 
-        // Initiate best founded matches - they can be updated during 
+        // Initiate best founded matches - they can be updated during
         // next iterations
         Matrix finalMask = mask;
         RegionStatisticsSolver finalRss = rss;
         Matrix finalPhiCoefs = phiCoefs;
         Matrix finalPsiCoefs = psiCoefs;
-        
+
         boolean isEnergyOptimal = false;
 
         for (int i = 0; i < iNoOfIterations && isEnergyOptimal == false; ++i) {
-                    
+
             Matrix[] grads = calculateEnergyGradients(mu, rss);
             Matrix grad_Phi = grads[0];
             Matrix grad_Psi = grads[1];
@@ -463,12 +468,12 @@ public class SegmentationAlgorithm {
                 // Recalculate energy with new coefficients
                 mask = generateMask(true /* resize */);
                 rss = generateRss(mask);
-                mu = rss.getModelImage();            
+                mu = rss.getModelImage();
                 double tempEngy = calculateTotalEnergy(iImageData, mask, mu, false);
-                
+
                 // Remember all best matches found so far
                 diffEnergy = tempEngy - totalEnergy;
-        
+
                 if (diffEnergy < 0) {
                     totalEnergy = tempEngy;
                     finalMask = mask;
@@ -482,18 +487,18 @@ public class SegmentationAlgorithm {
             // Update B-spline coefficients with the best match
             phiCoefs = phiCoefsTemp;
             psiCoefs = psiCoefsTemp;
-            
+
             if (diffEnergy > 0 && alphaCount == 0) {
                 // Not able to minimize energy further
                 isEnergyOptimal = true;
             }
         }
-        
+
         // Set the best matching coefficients
         iPhi.setCoefficients(finalPhiCoefs.getArrayYX());
         iPsi.setCoefficients(finalPsiCoefs.getArrayYX());
-        
-        
+
+
         return new EnergyOutput(finalMask, finalRss, totalEnergy);
     }
 
@@ -515,21 +520,21 @@ public class SegmentationAlgorithm {
     private Matrix[] calculateEnergyGradients(Matrix aMu, RegionStatisticsSolver aRss) {
         Matrix w_g0 = null;
         switch (iNoiseType) {
-        case GAUSSIAN:
-            w_g0 = iImageData.copy().sub(aMu).scale(2 * (aRss.getBetaMLEout() - aRss.getBetaMLEin()));
-            break;
-        case POISSON:
-            w_g0 = iImageData.copy().ones().sub(iImageData.copy().elementDiv(aMu))
-                    .scale(aRss.getBetaMLEin() - aRss.getBetaMLEout());
-            break;
-        default:
-            new RuntimeException("Uknown NoiseType: [" + iNoiseType + "]");
-            break;
+            case GAUSSIAN:
+                w_g0 = iImageData.copy().sub(aMu).scale(2 * (aRss.getBetaMLEout() - aRss.getBetaMLEin()));
+                break;
+            case POISSON:
+                w_g0 = iImageData.copy().ones().sub(iImageData.copy().elementDiv(aMu))
+                .scale(aRss.getBetaMLEin() - aRss.getBetaMLEout());
+                break;
+            default:
+                new RuntimeException("Uknown NoiseType: [" + iNoiseType + "]");
+                break;
         }
-        
+
         Matrix phiPts2 = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), 1, iPhi);
         Matrix psiPts2 = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), 1, iPsi);
-        
+
         Matrix der_phi = calculateDiffDirac(phiPts2).elementMult(calculateHeavySide(psiPts2));
         Matrix der_psi = calculateDirac(phiPts2).elementMult(calculateDirac(psiPts2));
 
@@ -540,7 +545,7 @@ public class SegmentationAlgorithm {
     }
 
     /**
-     * Helper method for calculating energy gradient for given Phi/Psi set of values 
+     * Helper method for calculating energy gradient for given Phi/Psi set of values
      * @param w_g0
      * @param aFuncPoints - Matrix with calculated values of Psi/Phi
      * @param aShouldConvolve - if true then convolves if not then runs symmetric filter
@@ -548,40 +553,43 @@ public class SegmentationAlgorithm {
      */
     private Matrix calculateEnergyGradient(Matrix w_g0, Matrix aFuncPoints, boolean aShouldConvolve) {
         Matrix rEngyPhi = calculateRegularizerEnergyMatrix(aFuncPoints, iWeightBoundary, false);
-        
+
         Matrix w_g = w_g0.copy().elementMult(aFuncPoints).add(rEngyPhi.copy().scale(iLambdaReg)).normalize();
 
-        if (aShouldConvolve)
+        if (aShouldConvolve) {
             w_g = Matlab.imfilterConv(w_g, iPsf);
-        else
+        }
+        else {
             w_g = Matlab.imfilterSymmetric(w_g, iPsf);
+        }
 
         // Run filter for both - rows and columns.
         Matrix grad = Matlab.imfilterSymmetric(
-                        Matlab.imfilterSymmetric(w_g, iEnergyGradOfBases.copy().transpose()), 
-                        iEnergyGradOfBases);
-        
+                Matlab.imfilterSymmetric(w_g, iEnergyGradOfBases.copy().transpose()),
+                iEnergyGradOfBases);
+
         // Resize gradient to original image size by choosing each iStepSize value from each row/col.
         grad = grad.resize(0, 0, iStepSize, iStepSize);
-        
+
         return grad;
     }
 
     private RegionStatisticsSolver generateRss(Matrix mask) {
         Matrix kmask = Matlab.imfilterSymmetric(mask, iPsf);
         RegionStatisticsSolver rss = new RegionStatisticsSolver(iImageData, kmask, iGlm, iImageData, 6).calculate();
-        
+
         return rss;
     }
 
     private Matrix generateMask(boolean aResizeMask) {
         Matrix phiPts = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), iSubpixelSampling, iPhi);
         Matrix psiPts = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), iSubpixelSampling, iPsi);
-        
+
         Matrix mask = generateNormalizedMask(phiPts, psiPts);
 
-        if (aResizeMask)
+        if (aResizeMask) {
             mask = Matlab.imresize(mask, iSubpixelSampling);
+        }
 
         return mask;
     }
@@ -603,8 +611,8 @@ public class SegmentationAlgorithm {
         ImgUtils.imgResize(iImage, img);
         ImgUtils.normalize(img);
         iImageData = new Matrix(img);
-        
-        
+
+
         // --------------------------------------------------------------
         // IMM data (subpixel sampling, regularizer term are already given)
 
@@ -650,11 +658,11 @@ public class SegmentationAlgorithm {
         iPhi = generatePhi(iImageData.numCols(), iImageData.numRows(), iStepSize);
         iEnergyGradOfBases = EnergyGriadientsOfBasesFunctions.getEnergyGradients(iCoeffsStepScale);
     }
-    
+
     @Override
     public String toString() {
-        String str = 
-               "-------- Segmentation Algorithm Parameters --------\n";
+        String str =
+                "-------- Segmentation Algorithm Parameters --------\n";
         str += "Input Img dims: " + iOriginalWidth + "x" + iOriginalHeight + "\n";
         str += "NoiseType: " + iNoiseType.toString() + "\n";
         str += "PsfType: " +  iPsfType.toString() + "\n";

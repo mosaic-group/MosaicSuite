@@ -16,14 +16,14 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         String[] inputFiles       = {"x8bit.png"};
         String[] expectedFiles    = {"filtered_x8bit.png"};
         String[] referenceFiles   = {"filteredGcSplit10_x8bit.tif"};
-        
+
         // Create tested plugIn
         CurvatureFilterBase nt = new VariationalCurvatureFilter();
-       
+
         // Test it
-        testPlugin(nt, tcDirName, 
-                   inputFiles, expectedFiles, referenceFiles, 
-                   setupString, macroOptions);
+        testPlugin(nt, tcDirName,
+                inputFiles, expectedFiles, referenceFiles,
+                setupString, macroOptions);
 
     }
 
@@ -36,17 +36,17 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         String[] inputFiles       = {"x.png"};
         String[] expectedFiles    = {"filtered_x.png"};
         String[] referenceFiles   = {"filteredTvNoSplit10_x.tif"};
-        
+
         // Create tested plugIn
         CurvatureFilterBase nt = new VariationalCurvatureFilter();
-       
+
         // Test it
-        testPlugin(nt, tcDirName, 
-                   inputFiles, expectedFiles, referenceFiles, 
-                   setupString, macroOptions);
+        testPlugin(nt, tcDirName,
+                inputFiles, expectedFiles, referenceFiles,
+                setupString, macroOptions);
 
     }
-    
+
     @Test
     public void testMcSplitGrey8()  {
         // Define test data
@@ -56,17 +56,17 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         String[] inputFiles       = {"x8bit.png"};
         String[] expectedFiles    = {"filtered_x8bit.png"};
         String[] referenceFiles   = {"filteredMcSplit2_x8bit.tif"};
-        
+
         // Create tested plugIn
         CurvatureFilterBase nt = new VariationalCurvatureFilter();
-       
+
         // Test it
-        testPlugin(nt, tcDirName, 
-                   inputFiles, expectedFiles, referenceFiles, 
-                   setupString, macroOptions);
+        testPlugin(nt, tcDirName,
+                inputFiles, expectedFiles, referenceFiles,
+                setupString, macroOptions);
 
     }
-    
+
     @Test
     public void testBernsteinSplitGrey8()  {
         // Define test data
@@ -76,15 +76,15 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         String[] inputFiles       = {"x8bit.png"};
         String[] expectedFiles    = {"filtered_x8bit.png"};
         String[] referenceFiles   = {"filteredBernsteinSplit5_x8bit.tif"};
-        
+
         // Create tested plugIn
         CurvatureFilterBase nt = new VariationalCurvatureFilter();
-       
+
         // Test it
-        testPlugin(nt, tcDirName, 
-                   inputFiles, expectedFiles, referenceFiles, 
-                   setupString, macroOptions);
+        testPlugin(nt, tcDirName,
+                inputFiles, expectedFiles, referenceFiles,
+                setupString, macroOptions);
 
     }
-    
+
 }
