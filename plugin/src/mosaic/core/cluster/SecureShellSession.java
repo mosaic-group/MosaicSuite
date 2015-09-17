@@ -377,8 +377,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
                         String s = new String("cd " + tdir + " ; ");
                         File start_dir = findCommonPathAndDelete(files);
-                        s += cmp.compressCommand(start_dir, files,
-                                new File(start_dir + File.separator + files[0].getName() + "_compressed"));
+                        s += cmp.compressCommand(start_dir, files, new File(start_dir + File.separator + files[0].getName() + "_compressed"));
                         s += " ; echo \"JSCH REMOTE COMMAND\"; echo \"COMPRESSION END\"; \n";
                         waitString = new String("JSCH REMOTE COMMAND\r\nCOMPRESSION END");
                         wp_p = wp;
@@ -412,16 +411,14 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
                         cSFTP.ls(tdir);
                         total = 0;
-                        cSFTP.get(files[0].getName() + "_compressed",
-                                dir.getAbsolutePath() + File.separator + files[0].getName() + "_compressed", this);
+                        cSFTP.get(files[0].getName() + "_compressed", dir.getAbsolutePath() + File.separator + files[0].getName() + "_compressed", this);
                         cSFTP.rm(files[0].getName() + "_compressed");
 
                         if (wp != null) {
                             wp.SetProgress(66);
                             wp.SetStatusMessage("Decompressing Data");
                         }
-                        cmp.unCompress(new File(dir.getAbsolutePath() + File.separator + files[0].getName()
-                                + "_compressed"), new File(dir.getAbsolutePath()));
+                        cmp.unCompress(new File(dir.getAbsolutePath() + File.separator + files[0].getName() + "_compressed"), new File(dir.getAbsolutePath()));
                         break;
                     }
                 }
@@ -567,13 +564,11 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                 wp_p = wp;
                 waitString = new String("COMPRESSION END");
                 doing = new String("Compressing ");
-                cmp.Compress(start_dir, files,
-                        new File(start_dir + File.separator + files[0].getPath() + "_compressed"), this);
+                cmp.Compress(start_dir, files, new File(start_dir + File.separator + files[0].getPath() + "_compressed"), this);
 
                 wp.SetProgress(33);
                 wp.SetStatusMessage("Uploading");
-                cSFTP.put(start_dir + File.separator + files[0].getPath() + "_compressed", files[0].getName()
-                        + "_compressed", this);
+                cSFTP.put(start_dir + File.separator + files[0].getPath() + "_compressed", files[0].getName() + "_compressed", this);
 
                 wp.SetProgress(66);
                 wp.SetStatusMessage("Decompressing Data on cluster");
@@ -592,8 +587,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                 }
                 else {
                     s += "cd " + tdir + File.separator + dir.getPath() + File.separator + " ; ";
-                    s += cmp.unCompressCommand(new File(tdir + File.separator + dir.getName() + File.separator
-                            + files[0].getName() + "_compressed"));
+                    s += cmp.unCompressCommand(new File(tdir + File.separator + dir.getName() + File.separator + files[0].getName() + "_compressed"));
                 }
                 s += " ; echo \"JSCH REMOTE COMMAND\"; echo \"COMPRESSION END\"; \n";
                 waitString = new String("JSCH REMOTE COMMAND\r\nCOMPRESSION END");

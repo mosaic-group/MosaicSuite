@@ -1,5 +1,6 @@
 package mosaic.region_competition.energies;
 
+
 import java.util.HashMap;
 
 import mosaic.core.utils.IntensityImage;
@@ -11,8 +12,8 @@ import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
-public class E_PS extends ExternalEnergy
-{
+
+public class E_PS extends ExternalEnergy {
 
     private int[] dimensions;
     private int bgLabel;
@@ -22,13 +23,7 @@ public class E_PS extends ExternalEnergy
     SphereMask sphere;
     RegionIteratorMask sphereIt;
 
-    public E_PS(
-            LabelImageRC labelImage,
-            IntensityImage intensityImage,
-            HashMap<Integer, LabelInformation> labelMap,
-            int PSenergyRadius,
-            float regionMergingThreshold)
-    {
+    public E_PS(LabelImageRC labelImage, IntensityImage intensityImage, HashMap<Integer, LabelInformation> labelMap, int PSenergyRadius, float regionMergingThreshold) {
         super(labelImage, intensityImage);
         this.dimensions = labelImage.getDimensions();
         this.bgLabel = labelImage.bgLabel;
@@ -37,28 +32,25 @@ public class E_PS extends ExternalEnergy
 
         this.regionMergingThreshold = regionMergingThreshold;
         int rad = PSenergyRadius;
-        sphere = new SphereMask(rad, 2*rad+1, labelImage.getDim());
+        sphere = new SphereMask(rad, 2 * rad + 1, labelImage.getDim());
 
         // sphereIt is slower than separate version
 
         sphereIt = new RegionIteratorMask(sphere, dimensions);
     }
 
-
     /**
      * Here we have the possibility to either put the current pixel
      * value to the BG, calculate the BG-mean and then calculate the
      * squared distance of the pixel to both means, BG and the mean
      * of the region (where the pixel currently still belongs to).
-     *
      * The second option is to remove the pixel from the region and
      * calculate the new mean of this region. Then compare the squared
      * distance to both means. This option needs a region to be larger
      * than 1 pixel/voxel.
      */
     @Override
-    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel)
-    {
+    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel) {
         double value = contourParticle.intensity;
         int fromLabel = contourParticle.label;
 
@@ -76,24 +68,21 @@ public class E_PS extends ExternalEnergy
         int vNFrom = -1;
         int vNTo = 0;
 
-        while (sphereIt.hasNext())
-        {
+        while (sphereIt.hasNext()) {
             int labelIdx = sphereIt.next();
 
             int dataIdx = labelIdx;
-            int absLabel=labelImage.getLabelAbs(labelIdx);
-            if (absLabel == fromLabel)
-            {
+            int absLabel = labelImage.getLabelAbs(labelIdx);
+            if (absLabel == fromLabel) {
                 double data = intensityImage.get(dataIdx);
                 vSumFrom += data;
-                vSumOfSqFrom += data*data;
+                vSumOfSqFrom += data * data;
                 vNFrom++;
             }
-            else if (absLabel == toLabel)
-            {
+            else if (absLabel == toLabel) {
                 double data = intensityImage.get(dataIdx);
                 vSumTo += data;
-                vSumOfSqTo += data*data;
+                vSumOfSqTo += data * data;
                 vNTo++;
             }
         }
@@ -108,21 +97,18 @@ public class E_PS extends ExternalEnergy
             vMeanTo = info.mean;
             vVarTo = info.var;
         }
-        else
-        {
+        else {
             vMeanTo = vSumTo / vNTo;
             // vVarTo = (vSumOfSqTo - vSumTo * vSumTo / vNTo) / (vNTo - 1);
-            vVarTo = (vSumOfSqTo - vSumTo*vSumTo/vNTo) / (vNTo);
+            vVarTo = (vSumOfSqTo - vSumTo * vSumTo / vNTo) / (vNTo);
         }
 
-        if (vNFrom == 0)
-        {
+        if (vNFrom == 0) {
             LabelInformation info = labelMap.get(fromLabel);
             vMeanFrom = info.mean;
             vVarFrom = info.var;
         }
-        else
-        {
+        else {
             vMeanFrom = vSumFrom / vNFrom;
             vVarFrom = (vSumOfSqFrom - vSumFrom * vSumFrom / vNFrom) / (vNFrom);
         }
@@ -131,12 +117,9 @@ public class E_PS extends ExternalEnergy
 
         boolean vMerge = false;
 
-
-        if (fromLabel != bgLabel && toLabel != bgLabel)
-        {
+        if (fromLabel != bgLabel && toLabel != bgLabel) {
             double e = E_KLMergingCriterion.CalculateKLMergingCriterion(vMeanFrom, vMeanTo, vVarFrom, vVarTo, vNFrom, vNTo);
-            if (e < regionMergingThreshold)
-            {
+            if (e < regionMergingThreshold) {
                 vMerge = true;
             }
         }
@@ -147,8 +130,7 @@ public class E_PS extends ExternalEnergy
     }
 
     @Override
-    public Object atStart()
-    {
+    public Object atStart() {
         return null;
     }
 

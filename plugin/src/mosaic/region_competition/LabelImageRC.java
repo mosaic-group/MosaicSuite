@@ -89,7 +89,7 @@ public class LabelImageRC extends LabelImage {
         for (int i : iterator.getIndexIterable()) {
             int label = getLabelAbs(i);
             if (label != bgLabel && label != forbiddenLabel) // region pixel
-                // && label<negOfs
+            // && label<negOfs
             {
                 Point p = iterator.indexToPoint(i);
                 for (Point neighbor : conn.iterateNeighbors(p)) {

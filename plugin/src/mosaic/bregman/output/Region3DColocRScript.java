@@ -1,11 +1,11 @@
 package mosaic.bregman.output;
 
+
 import mosaic.bregman.Region;
 
 
+public class Region3DColocRScript implements Outdata<Region> {
 
-public class Region3DColocRScript implements Outdata<Region>
-{
     int Image_ID;
     int Object_ID;
     double Size;
@@ -21,27 +21,67 @@ public class Region3DColocRScript implements Outdata<Region>
     double y;
     double z;
 
-    public void setImage_ID(int Image_ID_) {Image_ID = Image_ID_;}
-    public void setObject_ID(int Object_ID_)	{Object_ID = Object_ID_;}
-    public void setSize(double Size_)	{Size = Size_;}
-    public void setPerimeter(double Perimeter_)	{Perimeter = Perimeter_;}
-    public void setLength(double Length_)	{Length = Length_;}
-    public void setIntensity(double Intensity_)	{Intensity = Intensity_;}
-    public void setx(double Coord_X_)		{x = Coord_X_;} // NO_UCD (unused code)
-    public void sety(double Coord_Y_)		{y = Coord_Y_;} // NO_UCD (unused code)
-    public void setz(double Coord_Z_)		{z = Coord_Z_;} // NO_UCD (unused code)
-    public void setOverlap_with_ch(double Overlap_with_ch_)		{Overlap_with_ch = Overlap_with_ch_;}
-    public void setColoc_object_size(double cos)		{Coloc_object_size = cos;}
-    public void setColoc_object_intensity(double coi)	{Coloc_object_intensity = coi;}
-    public void setSingle_Coloc(String sc)			{Single_Coloc = Boolean.getBoolean(sc);}
-    public void setColoc_image_intensity(double cii)	{Coloc_image_intensity = cii;}
+    public void setImage_ID(int Image_ID_) {
+        Image_ID = Image_ID_;
+    }
 
+    public void setObject_ID(int Object_ID_) {
+        Object_ID = Object_ID_;
+    }
 
-    public Region3DColocRScript() {}
+    public void setSize(double Size_) {
+        Size = Size_;
+    }
+
+    public void setPerimeter(double Perimeter_) {
+        Perimeter = Perimeter_;
+    }
+
+    public void setLength(double Length_) {
+        Length = Length_;
+    }
+
+    public void setIntensity(double Intensity_) {
+        Intensity = Intensity_;
+    }
+
+    public void setx(double Coord_X_) {
+        x = Coord_X_;
+    } // NO_UCD (unused code)
+
+    public void sety(double Coord_Y_) {
+        y = Coord_Y_;
+    } // NO_UCD (unused code)
+
+    public void setz(double Coord_Z_) {
+        z = Coord_Z_;
+    } // NO_UCD (unused code)
+
+    public void setOverlap_with_ch(double Overlap_with_ch_) {
+        Overlap_with_ch = Overlap_with_ch_;
+    }
+
+    public void setColoc_object_size(double cos) {
+        Coloc_object_size = cos;
+    }
+
+    public void setColoc_object_intensity(double coi) {
+        Coloc_object_intensity = coi;
+    }
+
+    public void setSingle_Coloc(String sc) {
+        Single_Coloc = Boolean.getBoolean(sc);
+    }
+
+    public void setColoc_image_intensity(double cii) {
+        Coloc_image_intensity = cii;
+    }
+
+    public Region3DColocRScript() {
+    }
 
     @Override
-    public void setData(Region r)
-    {
+    public void setData(Region r) {
 
         Image_ID = 0;
         Object_ID = 0;
@@ -59,8 +99,7 @@ public class Region3DColocRScript implements Outdata<Region>
         z = r.getcz();
     }
 
-    public void setData(Region3DColocRScript r)
-    {
+    public void setData(Region3DColocRScript r) {
 
         Image_ID = r.Image_ID;
         Object_ID = r.Object_ID;
@@ -79,11 +118,9 @@ public class Region3DColocRScript implements Outdata<Region>
     }
 
     @Override
-    public boolean equals(Object r)
-    {
-        if (r instanceof Region3DColocRScript)
-        {
-            Region3DColocRScript r_ = (Region3DColocRScript ) r;
+    public boolean equals(Object r) {
+        if (r instanceof Region3DColocRScript) {
+            Region3DColocRScript r_ = (Region3DColocRScript) r;
 
             if (Image_ID != r_.Image_ID) {
                 return false;
@@ -133,31 +170,106 @@ public class Region3DColocRScript implements Outdata<Region>
     }
 
     @Override
-    public void setFrame(int fr) {Image_ID = fr;}
-    public void setSurface(double Surface_) {Perimeter = Surface_;}
-    public void setCoord_X(double Coord_X_) {x = Coord_X_;}
-    public void setCoord_Y(double Coord_Y_) {y = Coord_Y_;}
-    public void setCoord_Z(double Coord_Z_) {z = Coord_Z_;}
+    public void setFrame(int fr) {
+        Image_ID = fr;
+    }
 
-    public int getImage_ID()	{return Image_ID;}
-    public int getObject_ID()	{return Object_ID;}
-    public double getCoord_X()	{return x;}
-    public double getCoord_Y()	{return y;}
-    public double getCoord_Z()	{return z;}
-    public double getIntensity()	{return Intensity;}
-    public double getSize()				{return Size;}
-    public double getPerimeter()		{return Perimeter;}
-    public double getLength()		{return Length;}
-    public double getx() {return x;} // NO_UCD (unused code)
-    public double gety() {return y;} // NO_UCD (unused code)
-    public double getz() {return z;} // NO_UCD (unused code)
-    public int getFrame() {return Image_ID;}
-    public double getSurface() {return 0;}
-    public double getOverlap_with_ch() {return Overlap_with_ch;}
-    public double getColoc_object_size() {return Coloc_object_size;}
-    public double getColoc_object_intensity() {return Coloc_object_intensity;}
-    public String getSingle_Coloc() {return Boolean.toString(Single_Coloc);}
-    public double getColoc_image_intensity() {return Coloc_image_intensity;}
-    public void setFile(String dummy) {}
-    public String getFile() {return null;}
+    public void setSurface(double Surface_) {
+        Perimeter = Surface_;
+    }
+
+    public void setCoord_X(double Coord_X_) {
+        x = Coord_X_;
+    }
+
+    public void setCoord_Y(double Coord_Y_) {
+        y = Coord_Y_;
+    }
+
+    public void setCoord_Z(double Coord_Z_) {
+        z = Coord_Z_;
+    }
+
+    public int getImage_ID() {
+        return Image_ID;
+    }
+
+    public int getObject_ID() {
+        return Object_ID;
+    }
+
+    public double getCoord_X() {
+        return x;
+    }
+
+    public double getCoord_Y() {
+        return y;
+    }
+
+    public double getCoord_Z() {
+        return z;
+    }
+
+    public double getIntensity() {
+        return Intensity;
+    }
+
+    public double getSize() {
+        return Size;
+    }
+
+    public double getPerimeter() {
+        return Perimeter;
+    }
+
+    public double getLength() {
+        return Length;
+    }
+
+    public double getx() {
+        return x;
+    } // NO_UCD (unused code)
+
+    public double gety() {
+        return y;
+    } // NO_UCD (unused code)
+
+    public double getz() {
+        return z;
+    } // NO_UCD (unused code)
+
+    public int getFrame() {
+        return Image_ID;
+    }
+
+    public double getSurface() {
+        return 0;
+    }
+
+    public double getOverlap_with_ch() {
+        return Overlap_with_ch;
+    }
+
+    public double getColoc_object_size() {
+        return Coloc_object_size;
+    }
+
+    public double getColoc_object_intensity() {
+        return Coloc_object_intensity;
+    }
+
+    public String getSingle_Coloc() {
+        return Boolean.toString(Single_Coloc);
+    }
+
+    public double getColoc_image_intensity() {
+        return Coloc_image_intensity;
+    }
+
+    public void setFile(String dummy) {
+    }
+
+    public String getFile() {
+        return null;
+    }
 }

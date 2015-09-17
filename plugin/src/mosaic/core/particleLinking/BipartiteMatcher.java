@@ -36,12 +36,14 @@
 
 package mosaic.core.particleLinking;
 
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+
 
 /**
  * An engine for finding the maximum-weight matching in a complete bipartite
@@ -55,7 +57,6 @@ import java.util.StringTokenizer;
  * <i>j</i>) in <i>X</i>, of <i>w<sub>ij</sub></i>. A BipartiteMatcher takes the
  * number <i>n</i> and the weights <i>w<sub>ij</sub></i>, and finds a perfect
  * matching of maximum weight.
- *
  * It uses the Hungarian algorithm of Kuhn (1955), as improved and presented by
  * E. L. Lawler in his book <cite>Combinatorial Optimization: Networks and
  * Matroids</cite> (Holt, Rinehart and Winston, 1976, p. 205-206). The running
@@ -64,13 +65,13 @@ import java.util.StringTokenizer;
  * constant <i>c</i> to all the weights before running the algorithm. This
  * increases the weight of every perfect matching by <i>nc</i>, which doesn't
  * change which perfect matchings have maximum weight.
- *
  * If a weight is set to Double.NEGATIVE_INFINITY, then the algorithm will
  * behave as if that edge were not in the graph. If all the edges incident on a
  * given node have weight Double.NEGATIVE_INFINITY, then the final result will
  * not be a perfect matching, and an exception will be thrown.
  */
 class BipartiteMatcher {
+
     /**
      * Creates a BipartiteMatcher without specifying the graph size. Calling any
      * other method before calling reset will yield an IllegalStateException.
@@ -119,7 +120,7 @@ class BipartiteMatcher {
      * Sets the weight w<sub>ij</sub> to the given value w.
      *
      * @throws IllegalArgumentException
-     *           if i or j is outside the range [0, n).
+     *             if i or j is outside the range [0, n).
      */
     public void setWeight(int i, int j, double w) {
         if (n == -1) {
@@ -270,7 +271,8 @@ class BipartiteMatcher {
                         }
                     }
                 }
-            } else {
+            }
+            else {
                 int j = eligibleT.get(eligibleT.size() - 1).intValue();
                 eligibleT.remove(eligibleT.size() - 1);
                 if (tMatches[j] == -1) {
@@ -320,7 +322,8 @@ class BipartiteMatcher {
         for (int j = 0; j < n; j++) {
             if (pi[j] < TOL) {
                 v[j] += delta;
-            } else if (tLabels[j] != NO_LABEL) {
+            }
+            else if (tLabels[j] != NO_LABEL) {
                 pi[j] -= delta;
                 if (pi[j] < TOL) {
                     eligibleT.add(new Integer(j));
@@ -347,14 +350,14 @@ class BipartiteMatcher {
         }
     }
 
-    //	private void printWeights() {
-    //		for (int i = 0; i < n; i++) {
-    //			for (int j = 0; j < n; j++) {
-    //				System.out.print(weights[i][j] + " ");
-    //			}
-    //			System.out.println("");
-    //		}
-    //	}
+    // private void printWeights() {
+    // for (int i = 0; i < n; i++) {
+    // for (int j = 0; j < n; j++) {
+    // System.out.print(weights[i][j] + " ");
+    // }
+    // System.out.println("");
+    // }
+    // }
 
     /**
      * Tolerance for comparisons to zero, to account for floating-point
@@ -409,7 +412,8 @@ class BipartiteMatcher {
                     matcher.setWeight(i, j, w);
                 }
             }
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
 

@@ -1,5 +1,6 @@
 package mosaic.core.cluster;
 
+
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -12,14 +13,13 @@ import mosaic.plugins.MergeJobs;
 
 import org.junit.Test;
 
-public class Jtest
-{
+
+public class Jtest {
+
     /**
-     *
      * It test the merging Jobs plugins functionality
      *
      * @see MergeJobs
-     *
      */
 
     /**
@@ -45,23 +45,20 @@ public class Jtest
      * @param a2 dir3
      * @return true if they match, false otherwise
      */
-    private static boolean compare(File a1, File a2)
-    {
+    private static boolean compare(File a1, File a2) {
         //
         HashSet<File> seta1 = new HashSet<File>();
         populate(seta1, a1);
 
         HashSet<File> seta2 = new HashSet<File>();
-        populate(seta2,a2);
+        populate(seta2, a2);
 
         // Check if the two HashSet match
         return seta1.containsAll(seta2);
     }
 
-
     @Test
-    public void mergetest()
-    {
+    public void mergetest() {
         MergeJobs mj = new MergeJobs();
 
         String dir = MosaicUtils.getTestDir();
@@ -72,15 +69,17 @@ public class Jtest
         try {
             ShellCommand.exeCmd("rm -rf " + dir_test);
             ShellCommand.exeCmd("mkdir " + dir_test);
-            ShellCommand.copy(new File(dir_sample),new File(dir_test),null);
-        } catch (IOException e) {
+            ShellCommand.copy(new File(dir_sample), new File(dir_test), null);
+        }
+        catch (IOException e) {
             e.printStackTrace();
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         mj.setDir(dir_test);
-        mj.setup("",null);
+        mj.setup("", null);
 
         // Check the result
 
@@ -93,10 +92,8 @@ public class Jtest
             fail("Error: Merging jobs");
         }
 
-        for (int i = 0 ; i < result.length ; i++)
-        {
-            if (compare(new File(dir_result), new File(dir_test)))
-            {
+        for (int i = 0; i < result.length; i++) {
+            if (compare(new File(dir_result), new File(dir_test))) {
                 fail("Error: Merging jobs differs");
             }
         }

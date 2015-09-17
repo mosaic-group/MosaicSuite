@@ -89,8 +89,7 @@ public class IAPUtils {
         double precision = 100d;
         KernelEstimator ker = new KernelEstimator(1 / precision);
         System.out.println("Weight:" + weight);
-        for (int i = 0; i < distances.length; i++)
-        {
+        for (int i = 0; i < distances.length; i++) {
             ker.addValue(distances[i], weight); // weight is important, since
             // bandwidth is calculated with
             // it:

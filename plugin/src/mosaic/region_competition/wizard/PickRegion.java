@@ -1,5 +1,6 @@
 package mosaic.region_competition.wizard;
 
+
 import ij.ImagePlus;
 import ij.gui.ImageCanvas;
 
@@ -9,42 +10,38 @@ import java.util.Vector;
 
 import mosaic.core.utils.Point;
 
-public class PickRegion implements MouseListener
-{
+
+public class PickRegion implements MouseListener {
+
     ImagePlus ip;
     int offX;
     int offY;
     Vector<Point> aC;
 
-    public PickRegion(ImagePlus img)
-    {
+    public PickRegion(ImagePlus img) {
         ImageCanvas canvas = img.getWindow().getCanvas();
         canvas.addMouseListener(this);
-        ip =  img;
+        ip = img;
         aC = new Vector<Point>();
     }
 
     @Override
-    public void mouseClicked(MouseEvent arg0)
-    {
+    public void mouseClicked(MouseEvent arg0) {
 
     }
 
     @Override
-    public void mouseEntered(MouseEvent arg0)
-    {
+    public void mouseEntered(MouseEvent arg0) {
 
     }
 
     @Override
-    public void mouseExited(MouseEvent arg0)
-    {
+    public void mouseExited(MouseEvent arg0) {
 
     }
 
     @Override
-    public void mousePressed(MouseEvent e)
-    {
+    public void mousePressed(MouseEvent e) {
 
         int x = e.getX();
         int y = e.getY();
@@ -57,19 +54,17 @@ public class PickRegion implements MouseListener
 
         aC.add(p);
 
-        //		int size[] = ip.getDimensions();
+        // int size[] = ip.getDimensions();
 
-        //		id = ip.getLabel(offscreenX+offscreenY*size[0]);
+        // id = ip.getLabel(offscreenX+offscreenY*size[0]);
     }
 
     @Override
-    public void mouseReleased(MouseEvent arg0)
-    {
+    public void mouseReleased(MouseEvent arg0) {
 
     }
 
-    public Vector<Point> getClick()
-    {
+    public Vector<Point> getClick() {
         return aC;
     }
 }

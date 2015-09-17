@@ -1,17 +1,15 @@
 package mosaic.core.GUI;
 
+
 import ij.gui.GenericDialog;
 
 import java.io.File;
 import java.util.Vector;
 
 
+public class ChooseGUI {
 
-
-public class ChooseGUI
-{
     /**
-     *
      * Create a Choose Window
      *
      * @param Window title
@@ -20,8 +18,7 @@ public class ChooseGUI
      * @return chosen String
      */
 
-    public String choose(String title, String message, String sel[])
-    {
+    public String choose(String title, String message, String sel[]) {
         if (sel.length == 0) {
             return null;
         }
@@ -29,15 +26,13 @@ public class ChooseGUI
         GenericDialog gd = new GenericDialog(title);
 
         String ad[] = new String[sel.length];
-        for (int i = 0 ; i < sel.length ; i++)
-        {
+        for (int i = 0; i < sel.length; i++) {
             ad[i] = sel[i];
         }
-        gd.addChoice(message,ad,ad[0]);
+        gd.addChoice(message, ad, ad[0]);
         gd.showDialog();
 
-        if (!gd.wasCanceled())
-        {
+        if (!gd.wasCanceled()) {
             return gd.getNextChoice();
         }
 
@@ -45,7 +40,6 @@ public class ChooseGUI
     }
 
     /**
-     *
      * Create a Choose Window
      *
      * @param Window title
@@ -54,8 +48,7 @@ public class ChooseGUI
      * @return chosen File
      */
 
-    public File choose(String title, String message, Vector<File> sel)
-    {
+    public File choose(String title, String message, Vector<File> sel) {
         if (sel.size() == 0) {
             return null;
         }
@@ -63,15 +56,13 @@ public class ChooseGUI
         GenericDialog gd = new GenericDialog(title);
 
         String ad[] = new String[sel.size()];
-        for (int i = 0 ; i < sel.size() ; i++)
-        {
+        for (int i = 0; i < sel.size(); i++) {
             ad[i] = sel.get(i).getAbsolutePath();
         }
-        gd.addChoice(message,ad,ad[0]);
+        gd.addChoice(message, ad, ad[0]);
         gd.showDialog();
 
-        if (!gd.wasCanceled())
-        {
+        if (!gd.wasCanceled()) {
             String c = gd.getNextChoice();
             return new File(c);
         }

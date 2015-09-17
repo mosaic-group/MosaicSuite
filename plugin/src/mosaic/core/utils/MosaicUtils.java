@@ -1,5 +1,6 @@
 package mosaic.core.utils;
 
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -42,7 +43,9 @@ import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.view.Views;
 
+
 class FloatToARGB implements ToARGB {
+
     double min = 0.0;
     double max = 255;
 
@@ -65,6 +68,7 @@ class FloatToARGB implements ToARGB {
 }
 
 class IntToARGB implements ToARGB {
+
     double min = 0.0;
     double max = 255;
 
@@ -87,6 +91,7 @@ class IntToARGB implements ToARGB {
 }
 
 class ARGBToARGB implements ToARGB {
+
     double min = 0.0;
     double max = 255;
 
@@ -103,7 +108,9 @@ class ARGBToARGB implements ToARGB {
 }
 
 public class MosaicUtils {
+
     public class SegmentationInfo {
+
         public File RegionList;
         public File RegionMask;
     }
@@ -112,6 +119,7 @@ public class MosaicUtils {
 
     // ///// Conversion to ARGB from different Type ////////////////////////////
     public interface ToARGB {
+
         void setMinMax(double min, double max);
 
         ARGBType toARGB(Object data);
@@ -131,9 +139,11 @@ public class MosaicUtils {
         ToARGB conv = null;
         if (data instanceof RealType) {
             conv = new FloatToARGB();
-        } else if (data instanceof IntegerType) {
+        }
+        else if (data instanceof IntegerType) {
             conv = new IntToARGB();
-        } else if (data instanceof ARGBType) {
+        }
+        else if (data instanceof ARGBType) {
             conv = new ARGBToARGB();
         }
 
@@ -145,9 +155,11 @@ public class MosaicUtils {
         try {
             min = (T) crs.get().getClass().newInstance();
             max = (T) crs.get().getClass().newInstance();
-        } catch (InstantiationException e) {
+        }
+        catch (InstantiationException e) {
             e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        }
+        catch (IllegalAccessException e) {
             e.printStackTrace();
         }
         MosaicUtils.getMinMax(crs, min, max);
@@ -177,7 +189,8 @@ public class MosaicUtils {
             ChooseGUI cg = new ChooseGUI();
 
             return cg.choose("Choose segmentation", "Found multiple segmentations", PossibleFile);
-        } else {
+        }
+        else {
             if (PossibleFile.size() == 1) {
                 return PossibleFile.get(0);
             }
@@ -225,7 +238,8 @@ public class MosaicUtils {
                 if (fl[2].contains(aImp.getTitle()) && sg[i].getName().equals(fl[3])) {
                     if (plugin == null) {
                         return true;
-                    } else {
+                    }
+                    else {
                         if (sg[i].getName().equals(plugin)) {
                             return true;
                         }
@@ -364,7 +378,8 @@ public class MosaicUtils {
         String output = null;
         try {
             output = new Scanner(new File(file)).useDelimiter("\\Z").next();
-        } catch (FileNotFoundException e) {
+        }
+        catch (FileNotFoundException e) {
             e.printStackTrace();
             return null;
         }
@@ -387,10 +402,12 @@ public class MosaicUtils {
         if (img.getFileInfo().directory == "") {
             if (img.getOriginalFileInfo() == null || img.getOriginalFileInfo().directory == "") {
                 return null;
-            } else {
+            }
+            else {
                 return img.getOriginalFileInfo().directory;
             }
-        } else {
+        }
+        else {
             return img.getFileInfo().directory;
         }
     }
@@ -608,8 +625,7 @@ public class MosaicUtils {
     }
 
     /**
-     * Writes the given <code>info</code> to given file information.
-     * <code>info</code> will be written to the beginning of the file,
+     * Writes the given <code>info</code> to given file information. <code>info</code> will be written to the beginning of the file,
      * overwriting older information If the file does not exists it will be
      * created. Any problem creating, writing to or closing the file will
      * generate an ImageJ error
@@ -627,7 +643,8 @@ public class MosaicUtils {
             print_writer.print(info);
             print_writer.close();
             return true;
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             IJ.error("" + e);
             return false;
         }
@@ -748,8 +765,7 @@ public class MosaicUtils {
 
             for (int k = 0; k < bases.size(); k++) {
                 String src = sv + File.separator + tmp.replace("*", bases.get(k));
-                String dest = sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k)
-                        + tmp.replace("*", "");
+                String dest = sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", "");
                 SystemOperations.moveFile(src, dest, true /* quiet */);
             }
         }
@@ -797,10 +813,10 @@ public class MosaicUtils {
                 if (new File(sv + File.separator + tmp.replace("*", base)).exists()) {
                     src = sv + File.separator + tmp.replace("*", base);
                     dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base + tmp.replace("*", "");
-                } else {
+                }
+                else {
                     src = sv + File.separator + tmp.replace("*", base + (k + 1));
-                    dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base + (k + 1)
-                            + tmp.replace("*", "");
+                    dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base + (k + 1) + tmp.replace("*", "");
                 }
 
                 SystemOperations.moveFile(src, dest, true /* quiet */);
@@ -850,17 +866,16 @@ public class MosaicUtils {
                 String dest = "";
                 if (new File(sv + File.separator + tmp.replace("*", base_src)).exists()) {
                     src = sv + File.separator + tmp.replace("*", base_src);
-                    dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst
-                            + tmp.replace("*", "");
-                } else {
+                    dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", "");
+                }
+                else {
                     if (nf == 1) {
                         src = sv + File.separator + tmp.replace("*", base_src + "_" + (k + 1));
-                        dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst
-                                + tmp.replace("*", "");
-                    } else {
+                        dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + tmp.replace("*", "");
+                    }
+                    else {
                         src = sv + File.separator + tmp.replace("*", base_src + "_" + (k + 1));
-                        dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + "_" + (k + 1)
-                                + tmp.replace("*", "");
+                        dest = sv + File.separator + tmp.replace("*", "_") + File.separator + base_dst + "_" + (k + 1) + tmp.replace("*", "");
                     }
                 }
 
@@ -915,7 +930,8 @@ public class MosaicUtils {
 
             String title = imp.getTitle();
             choiceInputImage.select(title);
-        } else {
+        }
+        else {
             choiceInputImage.select(0);
         }
 
@@ -1244,7 +1260,8 @@ public class MosaicUtils {
                     imgT.csv_results[i] = dir.getAbsolutePath() + File.separator + imgT.csv_results_rel[i];
                 }
                 br.close();
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 e.printStackTrace();
                 return null;
             }
@@ -1305,7 +1322,8 @@ public class MosaicUtils {
         int idp = str.lastIndexOf(".");
         if (idp < 0) {
             return str;
-        } else {
+        }
+        else {
             return str.substring(0, idp);
         }
     }
@@ -1400,7 +1418,8 @@ public class MosaicUtils {
             mt[0] = new CsvMetaInfo();
             mt[0].parameter = new String("background");
             mt[0].value = new String(bck);
-        } else {
+        }
+        else {
             mt = new CsvMetaInfo[0];
         }
 

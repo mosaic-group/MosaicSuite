@@ -218,8 +218,7 @@ class AnalysePatch implements Runnable {
                 if (p.mode_intensity == 1) {
                     estimate_int_weighted(mask[0]);
                 }
-                else if (p.mode_intensity == 2)
-                {
+                else if (p.mode_intensity == 2) {
                     estimate_int_clustering(p.mode_intensity - 1);// (-1
                     // to
                     // correct
@@ -403,10 +402,8 @@ class AnalysePatch implements Runnable {
                         // }
                         // else
                         // {
-                        if (sz <= 1)
-                        {
-                            if ((i == 0 && offsetx != 0) || (i == (sx - 1) && (offsetx + sx / os) != ox) || (j == 0 && offsety != 0) || (j == (sy - 1) && (offsety + sy / os) != oy))
-                            {
+                        if (sz <= 1) {
+                            if ((i == 0 && offsetx != 0) || (i == (sx - 1) && (offsetx + sx / os) != ox) || (j == 0 && offsety != 0) || (j == (sy - 1) && (offsety + sy / os) != oy)) {
                                 border_attained = true;
                                 // }
                             }
@@ -658,12 +655,10 @@ class AnalysePatch implements Runnable {
 
         int nk_in = 0;
         // if (level==0)nk_in=1;//low
-        if (level == 2)
-        {
+        if (level == 2) {
             nk_in = 2;// high
         }
-        if (level == 1)
-        {
+        if (level == 1) {
             nk_in = 2;// medium
         }
 
@@ -679,8 +674,7 @@ class AnalysePatch implements Runnable {
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
                     pixel[0] = patch[z][i][j];
-                    if (level == 2)
-                    {
+                    if (level == 2) {
                         pixel[0] = A_solver.w3kbest[0][z][i][j]; // w3kpatch[0]
                     }
                     Instance instance = new DenseInstance(pixel);

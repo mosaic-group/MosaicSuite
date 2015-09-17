@@ -23,29 +23,29 @@ class Tools {
         this.nlevels = 1;
     }
 
-    //    public void showmem() {
-    //        // Get current size of heap in bytes
-    //        long heapSize = Runtime.getRuntime().totalMemory();
+    // public void showmem() {
+    // // Get current size of heap in bytes
+    // long heapSize = Runtime.getRuntime().totalMemory();
     //
-    //        // Get maximum size of heap in bytes. The heap cannot grow beyond this
-    //        // size.
-    //        // Any attempt will result in an OutOfMemoryException.
-    //        long heapMaxSize = Runtime.getRuntime().maxMemory();
+    // // Get maximum size of heap in bytes. The heap cannot grow beyond this
+    // // size.
+    // // Any attempt will result in an OutOfMemoryException.
+    // long heapMaxSize = Runtime.getRuntime().maxMemory();
     //
-    //        // Get amount of free memory within the heap in bytes. This size will
-    //        // increase
-    //        // after garbage collection and decrease as new objects are created.
-    //        long heapFreeSize = Runtime.getRuntime().freeMemory();
+    // // Get amount of free memory within the heap in bytes. This size will
+    // // increase
+    // // after garbage collection and decrease as new objects are created.
+    // long heapFreeSize = Runtime.getRuntime().freeMemory();
     //
-    //        long used = heapSize - heapFreeSize;
+    // long used = heapSize - heapFreeSize;
     //
-    //        IJ.log(" ");
-    //        IJ.log("Total mem" + round(heapSize / Math.pow(2, 20), 2));
-    //        IJ.log("Max mem" + round(heapMaxSize / Math.pow(2, 20), 2));
-    //        IJ.log("Free mem" + round(heapFreeSize / Math.pow(2, 20), 2));
-    //        IJ.log("Used mem" + round(used / Math.pow(2, 20), 2));
-    //        IJ.log(" ");
-    //    }
+    // IJ.log(" ");
+    // IJ.log("Total mem" + round(heapSize / Math.pow(2, 20), 2));
+    // IJ.log("Max mem" + round(heapMaxSize / Math.pow(2, 20), 2));
+    // IJ.log("Free mem" + round(heapFreeSize / Math.pow(2, 20), 2));
+    // IJ.log("Used mem" + round(used / Math.pow(2, 20), 2));
+    // IJ.log(" ");
+    // }
 
     void setDims(int i, int j, int z, int n) {
         ni = i;
@@ -603,8 +603,7 @@ class Tools {
             else {
                 thr = cl[1];// if only two regions only first mask is used
             }
-            if (thr == 1)
-            {
+            if (thr == 1) {
                 thr = 0.5;// should not have threhold to 1: creates
             }
             // empty mask and wrong behavior in dct3D
@@ -1046,7 +1045,7 @@ class Tools {
     double computeEnergyPSF3D_weighted(double[][][] speedData, double[][][] mask, double[][][] temp, double[][][] temp2, double[][][] weights, double ldata, double lreg, Parameters p, double c0,
             double c1, double[][][] image
 
-            ) {
+    ) {
         Tools.convolve3Dseparable(speedData, mask, ni, nj, nz, p.PSF, temp);
 
         // for (int z=0; z<nz; z++){

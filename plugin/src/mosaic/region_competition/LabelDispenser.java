@@ -1,14 +1,16 @@
 package mosaic.region_competition;
 
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.TreeSet;
 
-class LabelDispenser
-{
+
+class LabelDispenser {
+
     TreeSet<Integer> labels;
-    //	LinkedList<Integer> labels;
+    // LinkedList<Integer> labels;
 
     /**
      * Labels freed up during an iteration gets collected in here
@@ -21,14 +23,13 @@ class LabelDispenser
     /**
      * @param maxLabels maximal number of labels
      */
-    public LabelDispenser(int maxLabels)
-    {
+    public LabelDispenser(int maxLabels) {
         labels = new TreeSet<Integer>();
-        //		labels = new LinkedList<Integer>();
+        // labels = new LinkedList<Integer>();
         tempList = new TreeSet<Integer>();
 
         highestLabelEverUsed = 0;
-        for (int i=1; i<maxLabels; i++) // don't start at 0
+        for (int i = 1; i < maxLabels; i++) // don't start at 0
         {
             labels.add(i);
         }
@@ -36,23 +37,22 @@ class LabelDispenser
 
     /**
      * Adds a freed up label to the list of free labels
+     * 
      * @param label Has to be absLabel (non-contour)
      */
-    public void addFreedUpLabel(int label)
-    {
+    public void addFreedUpLabel(int label) {
         tempList.add(label);
-        //		labels.add(label);
+        // labels.add(label);
     }
 
     /**
      * add the tempList to labels at the end of an iteration
      */
-    public void addTempFree()
-    {
-        //		for (int label : tempList)
-        //		{
-        //			labels.addFirst(label);
-        //		}
+    public void addTempFree() {
+        // for (int label : tempList)
+        // {
+        // labels.addFirst(label);
+        // }
         labels.addAll(tempList);
 
         tempList.clear();
@@ -62,21 +62,18 @@ class LabelDispenser
      * @return an unused label
      * @throws NoSuchElementException - if this list is empty
      */
-    public int getNewLabel()
-    {
+    public int getNewLabel() {
         Integer result = labels.pollFirst();
         checkAndSetNewMax(result);
         return result;
     }
 
-    private void checkAndSetNewMax(Integer newMax)
-    {
-        if (newMax==null)
-        {
-            newMax=highestLabelEverUsed+1;
+    private void checkAndSetNewMax(Integer newMax) {
+        if (newMax == null) {
+            newMax = highestLabelEverUsed + 1;
         }
-        if (newMax>highestLabelEverUsed) {
-            highestLabelEverUsed=newMax;
+        if (newMax > highestLabelEverUsed) {
+            highestLabelEverUsed = newMax;
         }
     }
 
@@ -86,64 +83,56 @@ class LabelDispenser
      * (for example, initialization with n=100 regions, and only n=1...5 survive).
      * Setting brightness/contrast in visualization to 1...5 would not show the
      * labels>5 correctly
+     * 
      * @return The highest label ever assigned to a region
      */
-    public int getHighestLabelEverUsed()
-    {
+    public int getHighestLabelEverUsed() {
         return highestLabelEverUsed;
     }
 
-    public void setLabelsInUse(Collection<Integer> used)
-    {
+    public void setLabelsInUse(Collection<Integer> used) {
         labels.removeAll(used);
         int max = Collections.max(used);
         checkAndSetNewMax(max);
     }
 
-    public LabelDispenserInc getIncrementingDispenser()
-    {
+    public LabelDispenserInc getIncrementingDispenser() {
         return new LabelDispenserInc();
     }
-
 
     /**
      * A LabelDispenser that only increments and does not reuse labels
      */
-    public static class LabelDispenserInc extends LabelDispenser
-    {
+    public static class LabelDispenserInc extends LabelDispenser {
+
         int label = 0;
 
-        public LabelDispenserInc()
-        {
+        public LabelDispenserInc() {
             super(0);
         }
 
         @Override
-        public int getHighestLabelEverUsed()
-        {
+        public int getHighestLabelEverUsed() {
             return label;
         }
 
         @Override
-        public int getNewLabel()
-        {
+        public int getNewLabel() {
             label++;
             return label;
         }
 
         @Override
-        public void setLabelsInUse(Collection<Integer> used)
-        {
+        public void setLabelsInUse(Collection<Integer> used) {
             if (used.isEmpty()) {
                 return;
             }
 
             int max = Collections.max(used);
-            if (max>label) {
+            if (max > label) {
                 label = max;
             }
         }
-
 
     }
 }

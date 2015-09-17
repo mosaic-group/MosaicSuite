@@ -22,114 +22,40 @@ import org.supercsv.cellprocessor.ift.CellProcessor;
  * @author Pietro Incardona
  */
 public class CSVOutput {
+
     // Region3DTrack
-    public static final String[] Region3DTrack_map = new String[]
-            {
-        "Frame",
-        "x",
-        "y",
-        "z",
-        "Size",
-        "Intensity",
-        "Surface"
-            };
+    public static final String[] Region3DTrack_map = new String[] { "Frame", "x", "y", "z", "Size", "Intensity", "Surface" };
 
     // Region3DRscript
-    private static final String[] Region3DRScript_map = new String[]
-            {
-        "Image_ID",
-        "Object_ID",
-        "Size",
-        "Perimeter",
-        "Length",
-        "Intensity",
-        "Coord_X",
-        "Coord_Y",
-        "Coord_Z",
-            };
+    private static final String[] Region3DRScript_map = new String[] { "Image_ID", "Object_ID", "Size", "Perimeter", "Length", "Intensity", "Coord_X", "Coord_Y", "Coord_Z", };
 
     // Region3DColocRscript
-    private static final String[] Region3DColocRScript_map = new String[]
-            {
-        "Image_ID",
-        "Object_ID",
-        "Size",
-        "Perimeter",
-        "Length",
-        "Intensity",
-        "Overlap_with_ch",
-        "Coloc_object_size",
-        "Coloc_object_intensity",
-        "Single_Coloc",
-        "Coloc_image_intensity",
-        "Coord_X",
-        "Coord_Y",
-        "Coord_Z",
-            };
+    private static final String[] Region3DColocRScript_map = new String[] { "Image_ID", "Object_ID", "Size", "Perimeter", "Length", "Intensity", "Overlap_with_ch", "Coloc_object_size",
+            "Coloc_object_intensity", "Single_Coloc", "Coloc_image_intensity", "Coord_X", "Coord_Y", "Coord_Z", };
 
     private static CellProcessor[] Region3DTrackCellProcessor;
     private static CellProcessor[] Region3DRScriptCellProcessor;
     private static CellProcessor[] Region3DColocRScriptCellProcessor;
 
     /**
-     *
      * Get CellProcessor for Region3DTrack objects
-     *
      */
-    public static CellProcessor[] getRegion3DTrackCellProcessor()
-    {
-        return new CellProcessor[]
-                {
-                new ParseInt(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                };
+    public static CellProcessor[] getRegion3DTrackCellProcessor() {
+        return new CellProcessor[] { new ParseInt(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), };
     }
 
     /**
-     *
      * Init CSV structure
-     *
      */
     @SuppressWarnings("unchecked")
-    public static void initCSV(int oc_s)
-    {
+    public static void initCSV(int oc_s) {
         Region3DTrackCellProcessor = getRegion3DTrackCellProcessor();
 
-        Region3DRScriptCellProcessor = new CellProcessor[]
-                {
-                new ParseInt(),
-                new ParseInt(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                };
+        Region3DRScriptCellProcessor = new CellProcessor[] { new ParseInt(), new ParseInt(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(),
+                new ParseDouble(), new ParseDouble(), };
 
-        Region3DColocRScriptCellProcessor = new CellProcessor[]
-                {
-                new ParseInt(),
-                new ParseInt(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseBool(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                new ParseDouble(),
-                };
+        Region3DColocRScriptCellProcessor = new CellProcessor[] { new ParseInt(), new ParseInt(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(),
+                new ParseDouble(), new ParseDouble(), new ParseBool(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble(), };
 
         oc = new SquasshOutputChoose[3];
 
@@ -167,7 +93,6 @@ public class CSVOutput {
     }
 
     /**
-     *
      * Get a vector of objects with the selected format,
      * in particular convert the Region arraylist into
      * objects vector implementing Outdata and a particular output format.
@@ -176,38 +101,42 @@ public class CSVOutput {
      * @param v ArrayList of Region objects
      * @return Vector of object of the selected format
      */
-    public static Vector<? extends Outdata<Region>> getVector(ArrayList<Region> v)
-            {
+    public static Vector<? extends Outdata<Region>> getVector(ArrayList<Region> v) {
         return CSVOutput.occ.converter.getVector(v);
-            }
+    }
 
     /**
      * Get an CSV object with the selected format
      *
      * @return CSV
      */
-    public static CSV<? extends Outdata<Region>> getCSV()
-            {
+    public static CSV<? extends Outdata<Region>> getCSV() {
         try {
             Constructor<CSV<? extends Outdata<Region>>> c = occ.CSVFactory.getDeclaredConstructor(occ.classFactory.getClass());
             CSV<? extends Outdata<Region>> csv = c.newInstance(occ.classFactory.newInstance().getClass());
             csv.setDelimiter(occ.delimiter);
             return csv;
-        } catch (InstantiationException e) {
+        }
+        catch (InstantiationException e) {
             e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        }
+        catch (IllegalAccessException e) {
             e.printStackTrace();
-        } catch (NoSuchMethodException e) {
+        }
+        catch (NoSuchMethodException e) {
             e.printStackTrace();
-        } catch (SecurityException e) {
+        }
+        catch (SecurityException e) {
             e.printStackTrace();
-        } catch (IllegalArgumentException e) {
+        }
+        catch (IllegalArgumentException e) {
             e.printStackTrace();
-        } catch (InvocationTargetException e) {
+        }
+        catch (InvocationTargetException e) {
             e.printStackTrace();
         }
         return null;
-            }
+    }
 
     public static SquasshOutputChoose occ;
     public static SquasshOutputChoose oc[];

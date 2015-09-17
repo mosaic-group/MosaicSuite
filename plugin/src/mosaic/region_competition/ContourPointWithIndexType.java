@@ -1,9 +1,11 @@
 package mosaic.region_competition;
 
+
 import mosaic.core.utils.Point;
 
-class ContourPointWithIndexType implements Comparable<ContourPointWithIndexType>
-{
+
+class ContourPointWithIndexType implements Comparable<ContourPointWithIndexType> {
+
     Point pIndex;
     ContourParticle p;
 

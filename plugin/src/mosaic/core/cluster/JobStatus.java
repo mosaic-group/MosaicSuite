@@ -26,8 +26,7 @@ class JobStatus {
         int ncc = 0;
 
         for (int i = 0; i < jb.length; i++) {
-            if (jb[i] == null || jb[i].getStatus() == jobS.COMPLETE || jb[i].getStatus() == jobS.UNKNOWN
-                    || jb[i].getStatus() == jobS.FAILED) {
+            if (jb[i] == null || jb[i].getStatus() == jobS.COMPLETE || jb[i].getStatus() == jobS.UNKNOWN || jb[i].getStatus() == jobS.FAILED) {
                 ncc++;
             }
         }
@@ -43,14 +42,14 @@ class JobStatus {
      */
     static boolean allComplete(JobStatus jb[]) {
         for (int i = 0; i < jb.length; i++) {
-            if (jb[i] != null
-                    && (jb[i].getStatus() != jobS.COMPLETE && jb[i].getStatus() != jobS.UNKNOWN && jb[i].getStatus() != jobS.FAILED)) {
+            if (jb[i] != null && (jb[i].getStatus() != jobS.COMPLETE && jb[i].getStatus() != jobS.UNKNOWN && jb[i].getStatus() != jobS.FAILED)) {
                 return false;
             }
         }
 
         return true;
     }
+
     /**
      * Get the status of the job
      *

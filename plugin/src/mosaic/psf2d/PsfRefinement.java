@@ -1,18 +1,18 @@
 package mosaic.psf2d;
 
 
-
 import ij.plugin.filter.Convolver;
 import ij.process.ImageProcessor;
 
+
 /**
- * Refines Point Source Positions to floating point accuracy based on intensity centroid calculation.
- * <br>Code for Refinement is mainly taken from <a href="http://weeman.inf.ethz.ch/ParticleTracker/">
+ * Refines Point Source Positions to floating point accuracy based on intensity centroid calculation. <br>
+ * Code for Refinement is mainly taken from <a href="http://weeman.inf.ethz.ch/ParticleTracker/">
  * Particle Tracker<a> developed at CBL, ETH Zurich, Switzerland.
  */
-public class PsfRefinement{
+public class PsfRefinement {
 
-    /** Radius that defines area of position refinement*/
+    /** Radius that defines area of position refinement */
     public int radius;
 
     // some variables for the refinement algorithm
@@ -23,39 +23,43 @@ public class PsfRefinement{
     float global_max;
     PsfSourcePosition particle;
 
-    ImageProcessor original_ip;	// the original image
+    ImageProcessor original_ip; // the original image
     ImageProcessor original_fp; // the original image after convertion to float processor
     ImageProcessor restored_fp; // the floating processor after image restoration
 
     /**
      * Constructor
+     * 
      * @param ip ImageProcessor to work on
      * @param rad Radius in which centroid should be calculated
      * @param pat Particle holding position information
      */
-    public PsfRefinement (ImageProcessor ip, int rad, PsfSourcePosition pat) {
+    public PsfRefinement(ImageProcessor ip, int rad, PsfSourcePosition pat) {
         this.radius = rad;
         this.original_ip = ip;
         this.particle = pat;
-        //		create Kernel and Mask for imageRestoration with the user defined radius
+        // create Kernel and Mask for imageRestoration with the user defined radius
         makeKernel(radius);
         generateMask(radius);
     }
 
     /**
-     * Refines particle position
-     * <br>Converts the <code>original_ip</code> to <code>FloatProcessor</code>, normalizes and convolutes it,
+     * Refines particle position <br>
+     * Converts the <code>original_ip</code> to <code>FloatProcessor</code>, normalizes and convolutes it,
      * refines particle position to sub-pixel accuracy based on centriod-detection using internal methods
+     * 
      * @see ImageProcessor#convertToFloat()
      * @see #normalizeFrameFloat(ImageProcessor)
      * @see #imageRestoration(ImageProcessor)
      * @see #pointLocationsRefinement(ImageProcessor)
      */
-    public void refineParticlePosition () {
+    public void refineParticlePosition() {
 
-        /* Converting the original imageProcessor to float
+        /*
+         * Converting the original imageProcessor to float
          * This is a constraint caused by the lack of floating point precision of pixels
-         * value in 16bit and 8bit image processors in ImageJ */
+         * value in 16bit and 8bit image processors in ImageJ
+         */
         this.original_fp = this.original_ip.convertToFloat();
 
         /* Image Restoration */
@@ -65,28 +69,29 @@ public class PsfRefinement{
         pointLocationsRefinement(this.restored_fp);
     }
 
-
     /**
-     * Normalizes a given <code>ImageProcessor</code> to [0,1].
-     * <br>According to the pre determend global min and max pixel value in the movie.
-     * <br>All pixel intensity values I are normalized as (I-gMin)/(gMax-gMin)
+     * Normalizes a given <code>ImageProcessor</code> to [0,1]. <br>
+     * According to the pre determend global min and max pixel value in the movie. <br>
+     * All pixel intensity values I are normalized as (I-gMin)/(gMax-gMin)
+     * 
      * @param ip ImageProcessor to be normalized
      */
-    //	private void normalizeFrameFloat(ImageProcessor ip) {
-    //		global_max = (float)ip.getMax();
-    //		global_min = (float)ip.getMin();
+    // private void normalizeFrameFloat(ImageProcessor ip) {
+    // global_max = (float)ip.getMax();
+    // global_min = (float)ip.getMin();
     //
-    //		float[] pixels=(float[])ip.getPixels();
-    //		float tmp_pix_value;
-    //		for (int i = 0; i < pixels.length; i++) {
-    //			tmp_pix_value = (pixels[i]-global_min)/(global_max - global_min);
-    //			pixels[i] = (tmp_pix_value);
-    //		}
-    //	}
+    // float[] pixels=(float[])ip.getPixels();
+    // float tmp_pix_value;
+    // for (int i = 0; i < pixels.length; i++) {
+    // tmp_pix_value = (pixels[i]-global_min)/(global_max - global_min);
+    // pixels[i] = (tmp_pix_value);
+    // }
+    // }
 
     /**
      * Corrects imperfections in the given <code>ImageProcessor</code> by
      * convolving it with the pre calculated <code>kernel</code>
+     * 
      * @param ip ImageProcessor to be restored
      * @return the restored <code>ImageProcessor</code>
      * @see Convolver#convolve(ij.process.ImageProcessor, float[], int, int)
@@ -100,14 +105,14 @@ public class PsfRefinement{
         Convolver convolver = new Convolver();
         // no need to normalize the kernel - its already normalized
         convolver.setNormalize(false);
-        convolver.convolve(restored, kernel, kernel_width , kernel_width);
+        convolver.convolve(restored, kernel, kernel_width, kernel_width);
         return restored;
     }
 
-
     /**
-     * The positions of the found particles will be refined according to their momentum terms
-     * <br> Adapted "as is" from Ingo Oppermann implementation
+     * The positions of the found particles will be refined according to their momentum terms <br>
+     * Adapted "as is" from Ingo Oppermann implementation
+     * 
      * @param ip ImageProcessor, should be after conversion, normalization and restoration
      */
     private void pointLocationsRefinement(ImageProcessor ip) {
@@ -115,7 +120,7 @@ public class PsfRefinement{
         int k, l, x, y, tx, ty;
         float epsx, epsy, c;
 
-        int mask_width = 2 * radius +1;
+        int mask_width = 2 * radius + 1;
 
         /* Set every value that ist smaller than 0 to 0 */
         for (int i = 0; i < ip.getHeight(); i++) {
@@ -126,7 +131,7 @@ public class PsfRefinement{
             }
         }
 
-        /* Calculate Refined Positions*/
+        /* Calculate Refined Positions */
         epsx = epsy = 1.0F;
 
         while (epsy > 0.5 || epsy < -0.5 || epsx > 0.5 || epsx < -0.5) {
@@ -136,16 +141,16 @@ public class PsfRefinement{
             epsy = 0.0F;
 
             for (k = -radius; k <= radius; k++) {
-                if (((int)particle.y + k) < 0 || ((int)particle.y + k) >= ip.getHeight()) {
+                if (((int) particle.y + k) < 0 || ((int) particle.y + k) >= ip.getHeight()) {
                     continue;
                 }
-                y = (int)particle.y + k;
+                y = (int) particle.y + k;
 
                 for (l = -radius; l <= radius; l++) {
-                    if (((int)particle.x + l) < 0 || ((int)particle.x + l) >= ip.getWidth()) {
+                    if (((int) particle.x + l) < 0 || ((int) particle.x + l) >= ip.getWidth()) {
                         continue;
                     }
-                    x = (int)particle.x + l;
+                    x = (int) particle.x + l;
 
                     c = ip.getPixelValue(x, y) * mask[coord(k + radius, l + radius, mask_width)];
                     particle.m0 += c;
@@ -160,31 +165,31 @@ public class PsfRefinement{
             particle.m2 /= particle.m0;
 
             // This is a little hack to avoid numerical inaccuracy
-            tx = (int)(10.0 * epsx);
-            ty = (int)(10.0 * epsy);
+            tx = (int) (10.0 * epsx);
+            ty = (int) (10.0 * epsy);
 
-            if ((ty)/10.0 > 0.5) {
-                if ((int)particle.y + 1 < ip.getHeight()) {
+            if ((ty) / 10.0 > 0.5) {
+                if ((int) particle.y + 1 < ip.getHeight()) {
                     particle.y++;
                 }
             }
-            else if ((ty)/10.0 < -0.5) {
-                if ((int)particle.y - 1 >= 0) {
+            else if ((ty) / 10.0 < -0.5) {
+                if ((int) particle.y - 1 >= 0) {
                     particle.y--;
                 }
             }
-            if ((tx)/10.0 > 0.5) {
-                if ((int)particle.x + 1 < ip.getWidth()) {
+            if ((tx) / 10.0 > 0.5) {
+                if ((int) particle.x + 1 < ip.getWidth()) {
                     particle.x++;
                 }
             }
-            else if ((tx)/10.0 < -0.5) {
-                if ((int)particle.x - 1 >= 0) {
+            else if ((tx) / 10.0 < -0.5) {
+                if ((int) particle.x - 1 >= 0) {
                     particle.x--;
                 }
             }
 
-            if ((ty)/10.0 <= 0.5 && (ty)/10.0 >= -0.5 && (tx)/10.0 <= 0.5 && (tx)/10.0 >= -0.5) {
+            if ((ty) / 10.0 <= 0.5 && (ty) / 10.0 >= -0.5 && (tx) / 10.0 <= 0.5 && (tx) / 10.0 >= -0.5) {
                 break;
             }
         }
@@ -193,17 +198,16 @@ public class PsfRefinement{
         particle.y += epsy;
     }
 
-
     /**
-     * Generates the dilation mask.
-     * <code>mask</code> is a var of class ParticleTracker_ and its modified internally here
+     * Generates the dilation mask. <code>mask</code> is a var of class ParticleTracker_ and its modified internally here
      * Adapted from Ingo Oppermann implementation
+     * 
      * @param mask_radius the radius of the mask (user defined)
      */
     private void generateMask(int mask_radius) {
 
         int width = (2 * mask_radius) + 1;
-        this.mask = new int[width*width];
+        this.mask = new int[width * width];
 
         for (int i = -mask_radius; i <= mask_radius; i++) {
             for (int j = -mask_radius; j <= mask_radius; j++) {
@@ -221,39 +225,39 @@ public class PsfRefinement{
 
     /**
      * Generates the Convolution Kernel as described in the Image Restoration
-     * part of the original algorithm.
-     * <code>kernel</code> is a var of class ParticleTracker_ and is modified internally here
+     * part of the original algorithm. <code>kernel</code> is a var of class ParticleTracker_ and is modified internally here
+     * 
      * @param kernel_radius (the radius of the kernel (user defined))
      */
-    private void makeKernel(int kernel_radius){
+    private void makeKernel(int kernel_radius) {
 
         int kernel_width = (kernel_radius * 2) + 1;
-        this.kernel = new float[kernel_width*kernel_width];
+        this.kernel = new float[kernel_width * kernel_width];
         double b = calculateB(kernel_radius, lambda_n);
         double norm_cons = calculateNormalizationConstant(b, kernel_radius, lambda_n);
 
-        for (int i = -kernel_radius; i<=kernel_radius; i++){
-            for (int j = -kernel_radius; j<=kernel_radius; j++){
-                int index = (i + kernel_radius)*kernel_width + j + kernel_radius;
-                this.kernel[index]= (float)((1.0/b)* Math.exp(-((i * i + j * j)/(4.0*lambda_n*lambda_n))));
-                this.kernel[index]= this.kernel[index] - (float)(1.0/(kernel_width * kernel_width));
-                this.kernel[index]= (float) (this.kernel[index] / norm_cons);
+        for (int i = -kernel_radius; i <= kernel_radius; i++) {
+            for (int j = -kernel_radius; j <= kernel_radius; j++) {
+                int index = (i + kernel_radius) * kernel_width + j + kernel_radius;
+                this.kernel[index] = (float) ((1.0 / b) * Math.exp(-((i * i + j * j) / (4.0 * lambda_n * lambda_n))));
+                this.kernel[index] = this.kernel[index] - (float) (1.0 / (kernel_width * kernel_width));
+                this.kernel[index] = (float) (this.kernel[index] / norm_cons);
             }
         }
     }
 
-
     /**
      * Auxiliary function for the kernel generation.
+     * 
      * @param kernel_radius
      * @param lambda
      * @return the calculated B parameter
      * @see #makeKernel(int)
      */
-    private double calculateB(int kernel_radius, int lambda){
+    private double calculateB(int kernel_radius, int lambda) {
         double b = 0.0;
-        for (int i=-(kernel_radius); i<=kernel_radius; i++) {
-            b = b + Math.exp(-((i * i)/(4.0 * (lambda * lambda))));
+        for (int i = -(kernel_radius); i <= kernel_radius; i++) {
+            b = b + Math.exp(-((i * i) / (4.0 * (lambda * lambda))));
         }
         b = b * b;
         return b;
@@ -261,35 +265,37 @@ public class PsfRefinement{
 
     /**
      * Auxiliary function for the kernel generation.
+     * 
      * @param b
      * @param kernel_radius
      * @param lambda
      * @return the calculated normalization constant
      * @see #makeKernel(int)
      */
-    private double calculateNormalizationConstant(double b, int kernel_radius, int lambda){
+    private double calculateNormalizationConstant(double b, int kernel_radius, int lambda) {
         double constant = 0.0;
         int kernel_width = (kernel_radius * 2) + 1;
-        for (int i=-(kernel_radius); i<=kernel_radius; i++) {
-            constant = constant + Math.exp(-(i * i/(2.0*(lambda * lambda))));
+        for (int i = -(kernel_radius); i <= kernel_radius; i++) {
+            constant = constant + Math.exp(-(i * i / (2.0 * (lambda * lambda))));
         }
-        constant = ((constant * constant) / b) - (b/(kernel_width * kernel_width));
+        constant = ((constant * constant) / b) - (b / (kernel_width * kernel_width));
         return constant;
     }
 
     /**
      * Auxiliary function for Dilation Mask generation.
+     * 
      * @param a
      * @param b
      * @param c
      * @return (((a) * (c)) + (b))
      * @see #generateMask(int)
      */
-    private int coord (int a, int b, int c) {
+    private int coord(int a, int b, int c) {
         return (((a) * (c)) + (b));
     }
 
-    public PsfSourcePosition getRefinedParticle(){
+    public PsfSourcePosition getRefinedParticle() {
         return particle;
     }
 }

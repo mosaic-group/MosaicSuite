@@ -1,12 +1,14 @@
 package mosaic.bregman;
 
+
 import java.io.Serializable;
 
 import mosaic.core.psf.psf;
 import net.imglib2.type.numeric.real.DoubleType;
 
-public class Parameters  implements Serializable
-{
+
+public class Parameters implements Serializable {
+
     private static final long serialVersionUID = 2894976420127964864L;
 
     //
@@ -16,29 +18,29 @@ public class Parameters  implements Serializable
     public int output_format = -1;
 
     // method parameters
-    public  boolean mode_classic=false;
-    public  boolean mode_watershed=false;
-    public  boolean mode_voronoi2=true;
+    public boolean mode_classic = false;
+    public boolean mode_watershed = false;
+    public boolean mode_voronoi2 = true;
 
-    public boolean save_images=true;
-    public String wd=null;
+    public boolean save_images = true;
+    public String wd = null;
 
-    public int overs=2;
+    public int overs = 2;
     public boolean pearson = false;
-    public boolean debug=false;
+    public boolean debug = false;
     public boolean blackbackground;
-    public int noise_model=0; //0: poisson, 1:gauss
-    public boolean firstphase=true;
-    public boolean dispwindows=true;
-    public boolean automatic_int=false;
-    public boolean subpixel=false;
-    public boolean refinement=false;
-    public int model_oversampling=1;
-    public int oversampling2ndstep=2;//2
-    public int interpolation=2;//4
+    public int noise_model = 0; // 0: poisson, 1:gauss
+    public boolean firstphase = true;
+    public boolean dispwindows = true;
+    public boolean automatic_int = false;
+    public boolean subpixel = false;
+    public boolean refinement = false;
+    public int model_oversampling = 1;
+    public int oversampling2ndstep = 2;// 2
+    public int interpolation = 2;// 4
     public boolean JunitTest = false;
     public double ldata = 1;
-    public double lreg_[] = {0.05,0.05};
+    public double lreg_[] = { 0.05, 0.05 };
     // region non psf test
     public double gamma = 1;// was 10 : use 1 for two region PSF version
     public int size_rollingball = 10;
@@ -55,7 +57,7 @@ public class Parameters  implements Serializable
     public boolean cintY = true;
     public boolean looptest = false;
     public int maxves_size = -1;
-    public int minves_size = 5;//5// set in genericgui now (pour mode voronoi2)
+    public int minves_size = 5;// 5// set in genericgui now (pour mode voronoi2)
     public double min_intensity = 0.15;// 0.1
     public double min_intensityY = 0.15;// 0.1
     public double colocthreshold = 0.5;
@@ -74,47 +76,42 @@ public class Parameters  implements Serializable
     public boolean usecellmaskY = false;
     public boolean dispvesicles = true;
     public double thresholdcellmask = 0.0015;
-    public double thresholdcellmasky = 0.0015;//(RAB channel)
+    public double thresholdcellmasky = 0.0015;// (RAB channel)
     public int energyEvaluationModulo = 5;
-    public int dispEmodulo=10;
+    public int dispEmodulo = 10;
     public boolean dispSoftMask = false;
     public int nbconditions = 1;
     public int regionSegmentLevel = 2;
-    public boolean remask=false;
-    public boolean exclude_z_edges=true;
+    public boolean remask = false;
+    public boolean exclude_z_edges = true;
 
-    public int nchannels=2;
-    public int mode_intensity=0;//0 automatic, 1 low int, 2 high int (by clustering)
-
+    public int nchannels = 2;
+    public int mode_intensity = 0;// 0 automatic, 1 low int, 2 high int (by clustering)
 
     public double thresh = 0.75;
-    public double betaMLEoutdefault =0.0003;// 0.0298;//0.003;// 0.003 // 0.0027356;
-    public double betaMLEindefault = 0.3;//0.082;//0.3;// 0.25;//25;//1340026;//0..//0.45 for//0.3
+    public double betaMLEoutdefault = 0.0003;// 0.0298;//0.003;// 0.003 // 0.0027356;
+    public double betaMLEindefault = 0.3;// 0.082;//0.3;// 0.25;//25;//1340026;//0..//0.45 for//0.3
     // mito segmentation 0.4 (in latest, was 0.45..)
 
-
     public boolean fastsquassh = false;
-    public boolean dispint= false;
-    public boolean displabels= false;
-    public boolean dispcolors= false;
-    public boolean dispoutline= true;
-    public boolean dispcoloc= false;
+    public boolean dispint = false;
+    public boolean displabels = false;
+    public boolean dispcolors = false;
+    public boolean dispoutline = true;
+    public boolean dispcoloc = false;
     public double min_region_filter_intensities = 0.0;
 
-    //Rscript parameters
-    public boolean initrsettings= true;
+    // Rscript parameters
+    public boolean initrsettings = true;
     public String file1;
     public String file2;
     public String file3;
-    public int [] nbimages ={1,1,1,1,1};//init with size 5, extended if needed in Rscriptlistener
-    public String [] groupnames={"Condition " + 1 + " name","Condition " + 2 + " name",
-            "Condition " + 3 + " name","Condition " + 4 + " name","Condition " + 5 + " name"};
-    public String ch1="channel 1 name";
-    public String ch2="channel 2 name";
-
+    public int[] nbimages = { 1, 1, 1, 1, 1 };// init with size 5, extended if needed in Rscriptlistener
+    public String[] groupnames = { "Condition " + 1 + " name", "Condition " + 2 + " name", "Condition " + 3 + " name", "Condition " + 4 + " name", "Condition " + 5 + " name" };
+    public String ch1 = "channel 1 name";
+    public String ch2 = "channel 2 name";
 
     public psf<DoubleType> PSF;
-
 
     public int ni, nj, nz;
 
@@ -122,8 +119,7 @@ public class Parameters  implements Serializable
 
     // todo : clean code by using ni nj nz in this parameters class
 
-    public Parameters()
-    {
+    public Parameters() {
         int max = Math.max(2, nlevels);
         cl = new double[max];
         lreg_ = new double[2];
@@ -131,19 +127,17 @@ public class Parameters  implements Serializable
         lreg_[1] = 0.05;
     }
 
-    //copy constructor
-    public Parameters(Parameters p)
-    {
-        this.save_images=p.save_images;
-        this.wd=p.wd;
+    // copy constructor
+    public Parameters(Parameters p) {
+        this.save_images = p.save_images;
+        this.wd = p.wd;
 
-        this.debug=p.debug;
-        this.model_oversampling=p.model_oversampling;
-        this.interpolation=p.interpolation;
+        this.debug = p.debug;
+        this.model_oversampling = p.model_oversampling;
+        this.interpolation = p.interpolation;
         this.JunitTest = p.JunitTest;
         this.ldata = p.ldata;
-        for (int i = 0 ; i < this.lreg_.length ; i++)
-        {
+        for (int i = 0; i < this.lreg_.length; i++) {
             this.lreg_[i] = p.lreg_[i];
         }
         // region non psf test
@@ -184,7 +178,7 @@ public class Parameters  implements Serializable
         this.thresholdcellmasky = p.thresholdcellmasky;
         this.energyEvaluationModulo = p.energyEvaluationModulo;
         this.regionSegmentLevel = p.regionSegmentLevel;
-        this.nchannels=p.nchannels;
+        this.nchannels = p.nchannels;
         this.thresh = p.thresh;
         this.betaMLEoutdefault = p.betaMLEoutdefault;// 0.003 // 0.0027356;
         this.betaMLEindefault = p.betaMLEindefault;// 0.25;//25;//1340026;//0..//0.45 for//0.3
@@ -192,38 +186,38 @@ public class Parameters  implements Serializable
 
         this.dispSoftMask = p.dispSoftMask;
         this.fastsquassh = p.fastsquassh;
-        this.overs=p.overs;
-        this.dispint= p.dispint;
-        this.displabels= p.displabels;
-        this.dispcolors= p.dispcolors;
-        this.dispoutline= p.dispoutline;
-        this.dispcoloc= p.dispcoloc;
-        this.PSF= p.PSF;
-        this.mode_intensity=p.mode_intensity;
-        this.noise_model=p.noise_model;
+        this.overs = p.overs;
+        this.dispint = p.dispint;
+        this.displabels = p.displabels;
+        this.dispcolors = p.dispcolors;
+        this.dispoutline = p.dispoutline;
+        this.dispcoloc = p.dispcoloc;
+        this.PSF = p.PSF;
+        this.mode_intensity = p.mode_intensity;
+        this.noise_model = p.noise_model;
 
-        this.ni=p.ni; this.nj=p.nj; this.nz=p.nz;
-        this.blackbackground=p.blackbackground;
+        this.ni = p.ni;
+        this.nj = p.nj;
+        this.nz = p.nz;
+        this.blackbackground = p.blackbackground;
 
         int max = Math.max(2, this.nlevels);
         this.cl = new double[max];
 
-        this.mode_voronoi2=p.mode_voronoi2;
-        this.mode_classic=p.mode_classic;
-        this.mode_watershed=p.mode_watershed;
+        this.mode_voronoi2 = p.mode_voronoi2;
+        this.mode_classic = p.mode_classic;
+        this.mode_watershed = p.mode_watershed;
 
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         String str = new String();
 
         str += "save_images=" + this.save_images + "\n";
         str += "wd=" + this.wd + "\n";
 
-        for (int i = 0 ; i < this.lreg_.length ; i++)
-        {
+        for (int i = 0; i < this.lreg_.length; i++) {
             str += "lreg_[" + i + "]" + this.lreg_[i] + "\n";
         }
 

@@ -72,7 +72,6 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
 
     }
 
-
     public double l2Norm(double[] params) {
 
         double[] gibbspotential = new double[D_grid.length];

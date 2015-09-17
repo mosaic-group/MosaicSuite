@@ -1,5 +1,6 @@
 package mosaic.core.ImagePatcher;
 
+
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
@@ -14,15 +15,13 @@ import net.imglib2.type.numeric.NumericType;
 
 
 /**
- *
  * This class store the patch of an image
  *
  * @author Pietro Incardona
- *
  */
 
-public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends NativeType<E> & IntegerType<E>>
-{
+public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends NativeType<E> & IntegerType<E>> {
+
     Img<T> it;
     Img<E> lb;
     Img<E> rs;
@@ -32,97 +31,84 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
     Point p2;
 
     /**
-     *
      * Create an image patch
      *
      * @param margins
      */
 
-    ImagePatch(int dim)
-    {
+    ImagePatch(int dim) {
         p1 = new Point(dim);
         p2 = new Point(dim);
 
         // Initialize point
 
-        for (int i = 0 ; i < dim ; i++)
-        {
+        for (int i = 0; i < dim; i++) {
             p1.x[i] = Integer.MAX_VALUE;
             p2.x[i] = Integer.MIN_VALUE;
         }
     }
 
     /**
-     *
      * Extends the patch to include the point
      *
      * @param Point p
      */
 
-    void extendPoint(Point p)
-    {
+    void extendPoint(Point p) {
         // check if lower bound respected
 
-        for (int i = 0; i < p.getDimension() ; i++)
-        {
+        for (int i = 0; i < p.getDimension(); i++) {
             // lower bound
 
-            if (p.x[i] < p1.x[i])
-            {
+            if (p.x[i] < p1.x[i]) {
                 p1.x[i] = p.x[i];
             }
 
             // upper bound
 
-            if (p.x[i] > p2.x[i])
-            {
+            if (p.x[i] > p2.x[i]) {
                 p2.x[i] = p.x[i];
             }
         }
     }
 
     /**
-     *
      * Add point to P1
      *
      * @param p
      */
 
-    void SubToP1(int p[])
-    {
-        for (int i = 0 ; i < p.length ; i++) {
+    void SubToP1(int p[]) {
+        for (int i = 0; i < p.length; i++) {
             p1.x[i] -= p[i];
         }
     }
 
     /**
-     *
      * Add Point to P2
      *
      * @param p
      */
 
-    void AddToP2(int p[])
-    {
-        for (int i = 0 ; i < p.length ; i++) {
+    void AddToP2(int p[]) {
+        for (int i = 0; i < p.length; i++) {
             p2.x[i] += p[i];
         }
     }
 
     /**
-     *
      * Create the patch from an image (It copy the portion of the region)
      *
      * @param img source image
      * @param lbl optionally a label image
      */
 
-    void createPatch(Img<T> img, Img<E> lbl)
-    {
+    void createPatch(Img<T> img, Img<E> lbl) {
         RandomAccess<T> randomAccess = img.randomAccess();
         RandomAccess<E> randomAccess_lb = null;
-        if (lbl != null )
-        {randomAccess_lb = lbl.randomAccess();}
+        if (lbl != null) {
+            randomAccess_lb = lbl.randomAccess();
+        }
 
         // Get the image dimensions
 
@@ -130,8 +116,7 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 
         // Crop p1 and p2 to remain internally
 
-        for (int i = 0 ; i < p1.x.length ; i++)
-        {
+        for (int i = 0; i < p1.x.length; i++) {
             if (p1.x[i] < 0) {
                 p1.x[i] = 0;
             }
@@ -144,25 +129,23 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 
         Point sz = p2.sub(p1);
 
-        ImgFactory< T > imgFactory = new ArrayImgFactory< T >( );
-        ImgFactory< E > imgFactory_lbl = new ArrayImgFactory< E >( );
+        ImgFactory<T> imgFactory = new ArrayImgFactory<T>();
+        ImgFactory<E> imgFactory_lbl = new ArrayImgFactory<E>();
 
         // create an Img of the same type of T and create the patch
 
-        it = imgFactory.create(sz.x , img.firstElement() );
+        it = imgFactory.create(sz.x, img.firstElement());
         RandomAccess<T> randomAccess_it = it.randomAccess();
 
         RandomAccess<E> randomAccess_it_lb = null;
-        if (lbl != null)
-        {
-            lb = imgFactory_lbl.create(sz.x , lbl.firstElement() );
+        if (lbl != null) {
+            lb = imgFactory_lbl.create(sz.x, lbl.firstElement());
             randomAccess_it_lb = lb.randomAccess();
         }
 
         RegionIterator rg_b = new RegionIterator(sz.x);
         RegionIterator rg = new RegionIterator(dimensions, sz.x, p1.x);
-        while (rg.hasNext())
-        {
+        while (rg.hasNext()) {
             Point p = rg.getPoint();
             Point pp = rg_b.getPoint();
             rg.next();
@@ -187,84 +170,68 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
     }
 
     /**
-     *
      * Set the image result for the patch
      *
      * @param img
      */
 
-    public void setResult(Img<E> img)
-    {
+    public void setResult(Img<E> img) {
         rs = img;
     }
 
     /**
-     *
      * Show the patch
-     *
      */
 
-    public void show()
-    {
-        ImageJFunctions.show( it );
+    public void show() {
+        ImageJFunctions.show(it);
     }
 
     /**
-     *
      * Get the result image
      *
      * @return the result image
      */
 
-    public Img<E> getResult()
-    {
+    public Img<E> getResult() {
         return rs;
     }
 
     /**
-     *
      * Get the patch image
      *
      * @return the patch image
      */
 
-    public Img<T> getImage()
-    {
+    public Img<T> getImage() {
         return it;
     }
 
     /**
-     *
      * Get the label image
      *
      * @return the label image patch
      */
 
-    public Img<E> getLabelImage()
-    {
+    public Img<E> getLabelImage() {
         return lb;
     }
 
     /**
-     *
      * Show the label image result
-     *
      */
 
-    public void showResult()
-    {
+    public void showResult() {
         ImageJFunctions.show(rs);
     }
 
     /**
-     *
      * Return P1
      *
      * @return the point p1
      */
 
-    public Point getP1()
-    {
+    public Point getP1() {
         return p1;
     }
 };

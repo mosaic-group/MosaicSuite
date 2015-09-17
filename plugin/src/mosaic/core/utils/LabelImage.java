@@ -476,7 +476,7 @@ public class LabelImage// implements
         for (int i : iterator.getIndexIterable()) {
             int label = getLabelAbs(i);
             if (label != bgLabel) // region pixel
-                // && label<negOfs
+            // && label<negOfs
             {
                 Point p = iterator.indexToPoint(i);
                 for (Point neighbor : conn.iterateNeighbors(p)) {

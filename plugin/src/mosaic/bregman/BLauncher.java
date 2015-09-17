@@ -447,7 +447,6 @@ class BLauncher {
         ij.Prefs.blackBackground = false;
         Analysis.p.nchannels = img2.getNChannels();
 
-
         if (Analysis.p.nchannels == 2) {
             Analysis.load2channels(img2);
         }

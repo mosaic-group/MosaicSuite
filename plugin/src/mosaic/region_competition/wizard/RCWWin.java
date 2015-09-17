@@ -1,5 +1,6 @@
 package mosaic.region_competition.wizard;
 
+
 import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -39,15 +40,13 @@ import mosaic.region_competition.wizard.score_function.ScoreFunctionRCsmo;
 import mosaic.region_competition.wizard.score_function.ScoreFunctionRCtop;
 import mosaic.region_competition.wizard.score_function.ScoreFunctionRCvol;
 
-public class RCWWin extends JDialog implements MouseListener, Runnable
-{
+
+public class RCWWin extends JDialog implements MouseListener, Runnable {
+
     private static final long serialVersionUID = 1L;
 
-    private enum segType
-    {
-        Tissue,
-        Cell,
-        Other
+    private enum segType {
+        Tissue, Cell, Other
     }
 
     private Settings ref_save;
@@ -56,25 +55,25 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
     private ImagePlus img[];
     private segType sT;
 
-    public void start(Settings s)
-    {
+    public void start(Settings s) {
         ref_save = s;
         EventQueue.invokeLater(new Runnable() {
+
             @Override
             public void run() {
                 try {
                     RCWWin frame = new RCWWin();
                     frame.ref_save = ref_save;
                     frame.setVisible(true);
-                } catch (Exception e) {
+                }
+                catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
     }
 
-    private double Ask(String title,String message)
-    {
+    private double Ask(String title, String message) {
         GenericDialog ask = new GenericDialog(title);
         ask.addNumericField(message, 1, 1);
         ask.showDialog();
@@ -87,8 +86,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
         }
     }
 
-    private String[] GetROI()
-    {
+    private String[] GetROI() {
         RoiManager manager = RoiManager.getInstance();
         if (manager == null) {
             manager = new RoiManager();
@@ -103,21 +101,15 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
         return md;
     }
 
-
-    private static JButton getButtonSubComponent(Container container)
-    {
-        if (container instanceof JButton)
-        {
+    private static JButton getButtonSubComponent(Container container) {
+        if (container instanceof JButton) {
             return (JButton) container;
         }
-        else
-        {
+        else {
             Component[] components = container.getComponents();
-            for (Component component : components)
-            {
-                if (component instanceof Container)
-                {
-                    return getButtonSubComponent((Container)component);
+            for (Component component : components) {
+                if (component instanceof Container) {
+                    return getButtonSubComponent((Container) component);
                 }
             }
         }
@@ -127,9 +119,8 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
     /**
      * Create the frame.
      */
-    public RCWWin()
-    {
-        //		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    public RCWWin() {
+        // setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 450, 300);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -142,12 +133,11 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
         sT = segType.Tissue;
         final JComboBox<segType> comboBox = new JComboBox<segType>(segType.values());
         contentPane.add(comboBox);
-        comboBox.addActionListener(new ActionListener()
-        {
+        comboBox.addActionListener(new ActionListener() {
+
             @Override
-            public void actionPerformed(ActionEvent arg0)
-            {
-                sT = (segType)comboBox.getSelectedItem();
+            public void actionPerformed(ActionEvent arg0) {
+                sT = (segType) comboBox.getSelectedItem();
             }
         });
 
@@ -160,7 +150,8 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
         JLabel lblNewLabel_2 = new JLabel("<html>Select a region of interest <br>with the imageJ selection<br> tool</html>");
         contentPane.add(lblNewLabel_2);
 
-        JComboBox<String> comboBox_1 = new JComboBox<String>();;
+        JComboBox<String> comboBox_1 = new JComboBox<String>();
+        ;
 
         String[] md = GetROI();
 
@@ -178,11 +169,10 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 
         JButton btnOKButton = new JButton("OK");
         contentPane.add(btnOKButton);
-        btnOKButton.addActionListener(new ActionListener()
-        {
+        btnOKButton.addActionListener(new ActionListener() {
+
             @Override
-            public void actionPerformed(ActionEvent arg0)
-            {
+            public void actionPerformed(ActionEvent arg0) {
                 ComputePar();
             }
         });
@@ -192,13 +182,10 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 
     }
 
-    private void ComputePar()
-    {
+    private void ComputePar() {
         int i = 0;
 
         // Get if is Tissue or Cell
-
-
 
         // Get the regions
 
@@ -209,45 +196,47 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
             Rectangle b = roi.getBounds();
 
             // Convert the whole image to float and normalize
-            img[i] = new ImagePlus(roi.getName(),IntensityImage.normalize(ij.WindowManager.getImage(roi.getImageID())).getProcessor());
+            img[i] = new ImagePlus(roi.getName(), IntensityImage.normalize(ij.WindowManager.getImage(roi.getImageID())).getProcessor());
             ImageProcessor ip = img[i].getProcessor();
-            ip.setRoi(b.x,b.y,b.width,b.height);
-            img[i].setProcessor(null,ip.crop());
+            ip.setRoi(b.x, b.y, b.width, b.height);
+            img[i].setProcessor(null, ip.crop());
             i++;
         }
 
         // Start computation thread
 
-        Thread t = new Thread(this,"Compute parameters");
+        Thread t = new Thread(this, "Compute parameters");
         t.start();
     }
 
     @Override
-    public void mouseClicked(MouseEvent e) {}
+    public void mouseClicked(MouseEvent e) {
+    }
 
     @Override
-    public void mouseEntered(MouseEvent arg0) {}
+    public void mouseEntered(MouseEvent arg0) {
+    }
 
     @Override
-    public void mouseExited(MouseEvent arg0) {}
+    public void mouseExited(MouseEvent arg0) {
+    }
 
     @Override
-    public void mousePressed(MouseEvent arg0)
-    {
+    public void mousePressed(MouseEvent arg0) {
         String[] md = GetROI();
         b1.setModel((new DefaultComboBoxModel<String>(md)));
     }
 
     @Override
-    public void mouseReleased(MouseEvent arg0) {}
+    public void mouseReleased(MouseEvent arg0) {
+    }
 
     JDialog g;
 
-    private Settings OptimizeWithCMA(ScoreFunction fi,Settings s, double aDev[], String Question, double stop ,boolean debug)
-    {
+    private Settings OptimizeWithCMA(ScoreFunction fi, Settings s, double aDev[], String Question, double stop, boolean debug) {
         // Start a progress window
 
-        RCProgressWin RCp = new RCProgressWin(9,img.length);
+        RCProgressWin RCp = new RCProgressWin(9, img.length);
         RCp.SetProgress(0);
         RCp.setVisible(true);
 
@@ -256,8 +245,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
         CMAEvolutionStrategy solver = null;
         boolean restart = true;
         int restart_it = 0;
-        while (restart == true && restart_it < 5)
-        {
+        while (restart == true && restart_it < 5) {
             solver = new CMAEvolutionStrategy();
             solver.parameters.setPopulationSize(6);
             solver.parameters.setMu(4);
@@ -279,28 +267,25 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 
             int n_it = 0;
 
-            while (solver.stopConditions.getNumber() == 0)
-            {
-                double [][] pop = solver.samplePopulation();
+            while (solver.stopConditions.getNumber() == 0) {
+                double[][] pop = solver.samplePopulation();
 
-                for (int i = 0 ; i < pop.length ; i++)
-                {
-                    while (!fi.isFeasible(pop[i]))
-                    {
+                for (int i = 0; i < pop.length; i++) {
+                    while (!fi.isFeasible(pop[i])) {
                         solver.resampleSingle(i);
                     }
 
                     fitness[i] = fi.valueOf(pop[i]);
-                    //					String test[] = {"/tmp/RC_test.tif"};
+                    // String test[] = {"/tmp/RC_test.tif"};
                     if (RCp.getSelectionStatus() == StatusSel.STOP) {
                         break;
                     }
 
                     if (fi.getTypeImage() == ScoreFunction.TypeImage.IMAGEPLUS) {
-                        RCp.SetImage(fitness[i],fi.createSettings(s,pop[i]),fi.getImagesIP());
+                        RCp.SetImage(fitness[i], fi.createSettings(s, pop[i]), fi.getImagesIP());
                     }
                     else {
-                        RCp.SetImage(fitness[i],fi.createSettings(s,pop[i]),fi.getImagesString());
+                        RCp.SetImage(fitness[i], fi.createSettings(s, pop[i]), fi.getImagesString());
                     }
                 }
 
@@ -308,38 +293,40 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
                     break;
                 }
 
-                for (int i = 0 ; i < pop.length ; i++)
-                {
+                for (int i = 0; i < pop.length; i++) {
                     System.out.println("Pop " + i);
-                    for (int j = 0 ; j < pop[i].length ; j++)
-                    {
+                    for (int j = 0; j < pop[i].length; j++) {
                         System.out.println(pop[i][j]);
                     }
                     System.out.println("fitness " + fitness[i]);
                 }
 
-                if (debug == true)
-                {
+                if (debug == true) {
                     System.out.println("Press Enter to continue");
-                    try{System.in.read();}
-                    catch (Exception e) {}
+                    try {
+                        System.in.read();
+                    }
+                    catch (Exception e) {
+                    }
                 }
 
                 solver.updateDistribution(fitness);
 
                 solver.writeToDefaultFiles();
                 int outmod = 150;
-                if (solver.getCountIter() % (15*outmod) == 1)
-                {solver.printlnAnnotation();}
-                if (solver.getCountIter() % outmod == 1)
-                {solver.println();}
+                if (solver.getCountIter() % (15 * outmod) == 1) {
+                    solver.printlnAnnotation();
+                }
+                if (solver.getCountIter() % outmod == 1) {
+                    solver.println();
+                }
 
                 n_it++;
                 if (n_it >= 40) {
                     break;
                 }
 
-                RCp.SetProgress((int)(n_it/40.0*100.0));
+                RCp.SetProgress((int) (n_it / 40.0 * 100.0));
 
                 System.out.println(n_it);
             }
@@ -351,13 +338,15 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
             solver.writeToDefaultFiles(1);
             solver.println();
             solver.println("Terminated due to");
-            for (String sc : solver.stopConditions.getMessages())
-            {solver.println("    " + sc);}
-            solver.println("best function value " + solver.getBestFunctionValue() +
-                    " at evaluation " + solver.getBestEvaluationNumber());
+            for (String sc : solver.stopConditions.getMessages()) {
+                solver.println("    " + sc);
+            }
+            solver.println("best function value " + solver.getBestFunctionValue() + " at evaluation " + solver.getBestEvaluationNumber());
 
-            /*			System.out.println("Parameter 0: " + (solver.getBestX())[0]);
-			System.out.println("Parameter 1: " + (solver.getBestX())[1]);*/
+            /*
+             * System.out.println("Parameter 0: " + (solver.getBestX())[0]);
+             * System.out.println("Parameter 1: " + (solver.getBestX())[1]);
+             */
 
             RCp.SetStatusMessage(Question);
             RCp.waitClose();
@@ -371,14 +360,16 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 
             restart = false;
 
-            //			double ans = Ask("Question",Question);
-            /*			if (ans == 1.0)
-				restart = false;
-			else
-			{
-				restart = true;
-				fi.incrementStep();
-			}*/
+            // double ans = Ask("Question",Question);
+            /*
+             * if (ans == 1.0)
+             * restart = false;
+             * else
+             * {
+             * restart = true;
+             * fi.incrementStep();
+             * }
+             */
 
             restart_it++;
         }
@@ -387,8 +378,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         // Start with standard settings
 
         Settings s = ref_save;
@@ -414,9 +404,8 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
         IntensityImage in[] = new IntensityImage[img.length];
         LabelImageRC lb[] = new LabelImageRC[img.length];
 
-        for (int i = 0 ; i < img.length ; i++)
-        {
-            in[i] = new IntensityImage(img[i],false);
+        for (int i = 0; i < img.length; i++) {
+            in[i] = new IntensityImage(img[i], false);
             lb[i] = new LabelImageRC(in[i].getDimensions());
         }
 
@@ -424,28 +413,26 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 
         ScoreFunctionInit fi = null;
 
-        if (sT == segType.Cell || sT == segType.Tissue)
-        {
-            for (int i = 0 ; i < img.length ; i++)
-            {
-                in[i] = new IntensityImage(img[i],false);
+        if (sT == segType.Cell || sT == segType.Tissue) {
+            for (int i = 0; i < img.length; i++) {
+                in[i] = new IntensityImage(img[i], false);
                 lb[i] = new LabelImageRC(in[i].getDimensions());
                 in[i].imageIP.show();
             }
 
-            fi = new ScoreFunctionInit(in,lb,r_t,rad);
-            for (int i = 0 ; i < img.length ; i++)
-            {
+            fi = new ScoreFunctionInit(in, lb, r_t, rad);
+            for (int i = 0; i < img.length; i++) {
                 if (sT == segType.Tissue) {
-                    fi.setObject(i,(int)(1.5*Ask("Question", "How many edge do you see on " + in[i].imageIP.getShortTitle() + "?")));
+                    fi.setObject(i, (int) (1.5 * Ask("Question", "How many edge do you see on " + in[i].imageIP.getShortTitle() + "?")));
                 }
                 else {
-                    fi.setObject(i,(int)Ask("Question", "How many object do you see on " + in[i].imageIP.getShortTitle() + "?"));
+                    fi.setObject(i, (int) Ask("Question", "How many object do you see on " + in[i].imageIP.getShortTitle() + "?"));
                 }
             }
         }
-        else
-        {fi = new ScoreFunctionInit(in,lb,r_t,rad);}
+        else {
+            fi = new ScoreFunctionInit(in, lb, r_t, rad);
+        }
 
         double aMean[] = new double[2];
         double aDev[] = new double[2];
@@ -454,38 +441,37 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
         aDev[0] = 0.5;
         aDev[1] = 0.005;
 
-        s.copy(OptimizeWithCMA(fi,s,aDev,"Check whenever all objects has at least 1 or more region (Yes = 1)",0.3,false));
+        s.copy(OptimizeWithCMA(fi, s, aDev, "Check whenever all objects has at least 1 or more region (Yes = 1)", 0.3, false));
 
-        // we work on E_lenght and R_k E_merge  PS_radius Ballon
+        // we work on E_lenght and R_k E_merge PS_radius Ballon
 
         s.labelImageInitType = InitializationType.LocalMax;
         s.m_EnergyFunctional = EnergyFunctionalType.e_PC;
         s.m_CurvatureMaskRadius = 4;
-        if (sT == segType.Tissue)
-        {
+        if (sT == segType.Tissue) {
             s.m_RegionMergingThreshold = 2.0f;
-            //		s.m_BalloonForceCoeff = 0.03f;
-            //		s.m_GaussPSEnergyRadius = 22;
-            //		s.m_ConstantOutwardFlow = (float) 0.04;
+            // s.m_BalloonForceCoeff = 0.03f;
+            // s.m_GaussPSEnergyRadius = 22;
+            // s.m_ConstantOutwardFlow = (float) 0.04;
         }
 
-        /*		img[0].show();
-		lb[0] = RCPainter(img[0],s);
+        /*
+         * img[0].show();
+         * lb[0] = RCPainter(img[0],s);
+         * ImagePlus lb_m = lb[0].createMeanImage();
+         * lb_m.show();
+         */
 
-		ImagePlus lb_m = lb[0].createMeanImage();
-		lb_m.show();*/
+        int sizeA[] = new int[in.length];
+        double sizeS[] = new double[in.length];
+        int stop[] = new int[in.length];
+        double stopd[] = new double[in.length];
 
-        int sizeA[] = new int [in.length];
-        double sizeS[] = new double [in.length];
-        int stop[] = new int [in.length];
-        double stopd[] = new double [in.length];
-
-        for (int i = 0 ; i < lb.length ; i++)
-        {
-            ScoreFunctionRCvol tmpA = new ScoreFunctionRCvol(in,lb,s);
+        for (int i = 0; i < lb.length; i++) {
+            ScoreFunctionRCvol tmpA = new ScoreFunctionRCvol(in, lb, s);
             sizeA[i] = tmpA.Area(lb[i]);
             LabelImageRC lbtmp = new LabelImageRC(lb[i]);
-            ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in,lb,s);
+            ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in, lb, s);
             lbtmp.initBoundary();
             lbtmp.initContour();
             sizeS[i] = tmpS.Smooth(lbtmp);
@@ -493,48 +479,42 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 
         int fun = 0;
 
-        while (fun <= 3)
-        {
+        while (fun <= 3) {
             // choose the score
 
-            fun = (int) Ask("Choose the scoring function","Choose the scooring function 1 = volume, 2 = Topology, 3=Smooth");
+            fun = (int) Ask("Choose the scoring function", "Choose the scooring function 1 = volume, 2 = Topology, 3=Smooth");
 
             //
 
-            if (fun == 1)
-            {
+            if (fun == 1) {
                 aDev = new double[2];
 
                 aDev[0] = 3.0;
                 aDev[1] = 0.01;
 
-                ScoreFunctionRCvol fiRC = new ScoreFunctionRCvol(in,lb,s);
+                ScoreFunctionRCvol fiRC = new ScoreFunctionRCvol(in, lb, s);
 
                 double factor[] = new double[in.length];
 
-                for (int i = 0 ; i < in.length ; i++)
-                {
-                    factor[i] = Ask("Area fix","Increase the region by a factor of " + in[i].imageIP.getShortTitle());
-                    stop[i] = (int) (Math.abs(((factor[i] * sizeA[i]) - sizeA[i]))/100.0*50.0);
+                for (int i = 0; i < in.length; i++) {
+                    factor[i] = Ask("Area fix", "Increase the region by a factor of " + in[i].imageIP.getShortTitle());
+                    stop[i] = (int) (Math.abs(((factor[i] * sizeA[i]) - sizeA[i])) / 100.0 * 50.0);
                     sizeA[i] = (int) (factor[i] * sizeA[i]);
                 }
                 fiRC.setArea(sizeA);
 
+                s.copy(OptimizeWithCMA(fiRC, s, aDev, "Check and choose the best segmentation", stop[0], false));
 
-                s.copy(OptimizeWithCMA(fiRC,s,aDev,"Check and choose the best segmentation",stop[0],false));
-
-                //				s.m_GaussPSEnergyRadius = (int)solver.getBestX()[0];
-                //				s.m_BalloonForceCoeff = (float)solver.getBestX()[1];
+                // s.m_GaussPSEnergyRadius = (int)solver.getBestX()[0];
+                // s.m_BalloonForceCoeff = (float)solver.getBestX()[1];
 
                 // Recalculate Area and smooth
 
-
-                for (int i = 0 ; i < in.length ; i++)
-                {
+                for (int i = 0; i < in.length; i++) {
                     System.out.println("Area target: " + sizeA[i]);
                     sizeA[i] = fiRC.Area(fiRC.getLabel(i));
                     System.out.println("Area: " + sizeA[i]);
-                    ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in,lb,s);
+                    ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in, lb, s);
                     LabelImageRC lbtmp = fiRC.getLabel(i);
                     lbtmp.initBoundary();
                     lbtmp.initContour();
@@ -551,18 +531,17 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
                 System.out.println("Outward Flow  " + s.m_ConstantOutwardFlow);
                 System.out.println("Baloon force " + s.m_BalloonForceCoeff);
                 System.out.println("PS radius " + s.m_GaussPSEnergyRadius);
-                //				System.out.println("Area target " + fiRC.Area[0] + "  Area reached: " + sizeA[0]);
+                // System.out.println("Area target " + fiRC.Area[0] + "  Area reached: " + sizeA[0]);
                 System.out.println("Smooth " + sizeS[0]);
 
             }
-            else if (fun == 2)
-            {
+            else if (fun == 2) {
                 aDev = new double[1];
                 aDev[0] = 0.005;
 
                 // Show the image and wait to close
 
-                ScoreFunctionRCtop fiRC = new ScoreFunctionRCtop(in,lb,s);
+                ScoreFunctionRCtop fiRC = new ScoreFunctionRCtop(in, lb, s);
 
                 fiRC.MergeAndDivideWin(lb);
 
@@ -570,44 +549,40 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
 
                 //
 
-                for (int i = 0 ; i < lb.length ; i++)
-                {
+                for (int i = 0; i < lb.length; i++) {
                     PointCM mod[] = lb[i].createCMModel();
-                    fiRC.setCMModel(mod,i);
+                    fiRC.setCMModel(mod, i);
                 }
 
-                s.copy(OptimizeWithCMA(fiRC,s,aDev,"Check whenever the segmentation is reasonable",stopd[0],false));
+                s.copy(OptimizeWithCMA(fiRC, s, aDev, "Check whenever the segmentation is reasonable", stopd[0], false));
             }
-            else if (fun == 3)
-            {
+            else if (fun == 3) {
                 aDev = new double[2];
 
                 aDev[0] = 2.0;
                 aDev[1] = 0.005;
 
-                ScoreFunctionRCsmo fiRC = new ScoreFunctionRCsmo(in,lb,s);
+                ScoreFunctionRCsmo fiRC = new ScoreFunctionRCsmo(in, lb, s);
 
-                double factor = Ask("Smooth fix","Increase the smooth of the region");
+                double factor = Ask("Smooth fix", "Increase the smooth of the region");
 
                 sizeS[0] = factor * sizeS[0];
-                stopd[0] = (Math.abs(((factor * sizeS[0]) - sizeS[0]))/100.0*50.0);
+                stopd[0] = (Math.abs(((factor * sizeS[0]) - sizeS[0])) / 100.0 * 50.0);
                 fiRC.setSmooth(sizeS);
 
-                ScoreFunctionRCvol tmpA = new ScoreFunctionRCvol(in,lb,s);
+                ScoreFunctionRCvol tmpA = new ScoreFunctionRCvol(in, lb, s);
                 sizeA[0] = tmpA.Area(fiRC.getLabel(0));
 
-                if (AreaSet == true)
-                {
+                if (AreaSet == true) {
                     fiRC.setArea(sizeA);
                 }
 
-                s.copy(OptimizeWithCMA(fiRC,s,aDev,"Check whenever the segmentation is reasonable",stopd[0],false));
+                s.copy(OptimizeWithCMA(fiRC, s, aDev, "Check whenever the segmentation is reasonable", stopd[0], false));
 
                 // Recalculate Area and smooth
 
-                for (int i = 0 ; i < in.length ; i++)
-                {
-                    ScoreFunctionRCvol tmpS = new ScoreFunctionRCvol(in,lb,s);
+                for (int i = 0; i < in.length; i++) {
+                    ScoreFunctionRCvol tmpS = new ScoreFunctionRCvol(in, lb, s);
                     System.out.println("Area target: " + sizeA[i]);
                     sizeA[i] = tmpS.Area(fiRC.getLabel(i));
                     System.out.println("Area: " + sizeA[i]);
@@ -616,7 +591,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
                     lbtmp.initContour();
                     sizeS[i] = fiRC.Smooth(lbtmp);
                 }
-
 
                 // Print out
 
@@ -629,4 +603,3 @@ public class RCWWin extends JDialog implements MouseListener, Runnable
         }
     }
 }
-

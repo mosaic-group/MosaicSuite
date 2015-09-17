@@ -40,6 +40,7 @@ import org.apache.log4j.Logger;
  * @author Pietro Incardona
  */
 public class ClusterSession {
+
     protected static final Logger logger = Logger.getLogger(ClusterSession.class);
 
     private int nImages;
@@ -172,8 +173,7 @@ public class ClusterSession {
      * @param Ext estimated running time for the job
      * @return false if fail, true if successful
      */
-    private boolean createJobArrayFromImage(ImagePlus img, String command, String options, SecureShellSession ss,
-            double Ext, ProgressBarWin wp) {
+    private boolean createJobArrayFromImage(ImagePlus img, String command, String options, SecureShellSession ss, double Ext, ProgressBarWin wp) {
         if (img == null) {
             nImages = 0;
             return true;
@@ -188,10 +188,8 @@ public class ClusterSession {
 
         // Download a working version of Fiji
         // and copy the plugins
-        if (ss.checkDirectory(cp.getRunningDir() + "Fiji.app") == false
-                || ss.checkFile(cp.getRunningDir() + "Fiji.app", "ImageJ-linux64") == false
-                || ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator
-                        + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar") == false) {
+        if (ss.checkDirectory(cp.getRunningDir() + "Fiji.app") == false || ss.checkFile(cp.getRunningDir() + "Fiji.app", "ImageJ-linux64") == false
+                || ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar") == false) {
             wp.SetStatusMessage("Installing Fiji on cluster... ");
 
             // Remove previously Fiji
@@ -200,9 +198,8 @@ public class ClusterSession {
 
             ss.runCommands(cp.getPassword(), commands);
 
-            String CommandL[] = { "cd " + cp.getRunningDir(), "wget mosaic.mpi-cbg.de/Downloads/fiji-linux64.tar.gz",
-                    "tar -xf fiji-linux64.tar.gz", "cd Fiji.app", "cd plugins", "mkdir Mosaic_ToolSuite",
-                    "cd Mosaic_ToolSuite", "wget mosaic.mpi-cbg.de/Downloads/Mosaic_ToolSuite_for_cluster.jar" };
+            String CommandL[] = { "cd " + cp.getRunningDir(), "wget mosaic.mpi-cbg.de/Downloads/fiji-linux64.tar.gz", "tar -xf fiji-linux64.tar.gz", "cd Fiji.app", "cd plugins",
+                    "mkdir Mosaic_ToolSuite", "cd Mosaic_ToolSuite", "wget mosaic.mpi-cbg.de/Downloads/Mosaic_ToolSuite_for_cluster.jar" };
 
             ss.runCommands(cp.getPassword(), CommandL);
 
@@ -217,19 +214,16 @@ public class ClusterSession {
                 }
 
                 System.out.println("Checking Fiji installation");
-            } while (ss.checkDirectory(cp.getRunningDir() + "Fiji.app") == false
-                    || ss.checkFile(cp.getRunningDir() + "Fiji.app", "ImageJ-linux64") == false
-                    || ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator
-                            + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar") == false);
+            } while (ss.checkDirectory(cp.getRunningDir() + "Fiji.app") == false || ss.checkFile(cp.getRunningDir() + "Fiji.app", "ImageJ-linux64") == false
+                    || ss.checkFile(cp.getRunningDir() + "Fiji.app" + File.separator + "plugins" + File.separator + "Mosaic_ToolSuite" + File.separator, "Mosaic_ToolSuite_for_cluster.jar") == false);
         }
 
         wp.SetStatusMessage("Interfacing with batch system...");
 
         // create the macro script
 
-        String macro = new String("job_id = getArgument();\n" + "if (job_id == \"\" )\n" + "   exit(\"No job id\");\n"
-                + "\n" + "run(\"" + command + "\",\"config=" + ss.getTransfertDir() + "settings.dat" + " " + ia_s + "="
-                + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
+        String macro = new String("job_id = getArgument();\n" + "if (job_id == \"\" )\n" + "   exit(\"No job id\");\n" + "\n" + "run(\"" + command + "\",\"config=" + ss.getTransfertDir()
+                + "settings.dat" + " " + ia_s + "=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
 
         // Create the batch script if required and upload it
 
@@ -443,8 +437,7 @@ public class ClusterSession {
         // Visualize all jobs directory
         for (int j = 0; j < directories.length; j++) {
             for (int i = 0; i < output.length; i++) {
-                if (cs[i] == true
-                        && (output[i].endsWith(".tiff") || output[i].endsWith(".tif") || output[i].endsWith(".zip"))) {
+                if (cs[i] == true && (output[i].endsWith(".tiff") || output[i].endsWith(".tif") || output[i].endsWith(".zip"))) {
                     wp.SetStatusMessage("Visualizing " + output[i]);
                     String dirName = directories[j] + File.separator + output[i].replace("*", "_");
                     logger.debug("Listing files in: [" + dirName + "]");
@@ -468,11 +461,8 @@ public class ClusterSession {
 
                         ip.close();
 
-                        IJ.run("Image Sequence...",
-                                "open=" + directories[j] + File.separator + output[i].replace("*", "_")
-                                + " starting=1 increment=1 scale=100 file=[] or=[] sort");
-                        IJ.run("Stack to Hyperstack...", "order=xyczt(default) channels=" + nc + " slices=" + ns
-                                + " frames=" + nf + " display=Composite");
+                        IJ.run("Image Sequence...", "open=" + directories[j] + File.separator + output[i].replace("*", "_") + " starting=1 increment=1 scale=100 file=[] or=[] sort");
+                        IJ.run("Stack to Hyperstack...", "order=xyczt(default) channels=" + nc + " slices=" + ns + " frames=" + nf + " display=Composite");
                     }
                 }
             }
@@ -522,8 +512,7 @@ public class ClusterSession {
         for (int i = 0; i < bc.getNJobs(); i++) {
             for (int j = 0; j < output.length; j++) {
                 String tmp = new String(output[j]);
-                fldw[i * output.length + j + 1] = new File(bc.getDir() + File.separator
-                        + tmp.replace("*", "tmp_" + (i + 1)));
+                fldw[i * output.length + j + 1] = new File(bc.getDir() + File.separator + tmp.replace("*", "tmp_" + (i + 1)));
             }
         }
 
@@ -621,8 +610,7 @@ public class ClusterSession {
      * @param sync wait or not job to complete
      * @return true if done, false if fail (or nothing to do)
      */
-    private boolean runPluginsOnFrames(ImagePlus img, String command, String options, String output[], double ExtTime,
-            boolean sync) {
+    private boolean runPluginsOnFrames(ImagePlus img, String command, String options, String output[], double ExtTime, boolean sync) {
         if (ss == null) {
             ss = new SecureShellSession(cp);
         }
@@ -806,8 +794,7 @@ public class ClusterSession {
      * @param cg ClusterGUI
      * @return the session cluster
      */
-    static public ClusterSession processImage(ImagePlus aImp, String command, String options, String[] out,
-            ClusterGUI cg) {
+    static public ClusterSession processImage(ImagePlus aImp, String command, String options, String[] out, ClusterGUI cg) {
         return processImage(aImp, command, options, out, cg, new Float(0.0), new Float(0.0), true);
     }
 
@@ -836,8 +823,7 @@ public class ClusterSession {
      * @param max maximum value
      * @return the session cluster
      */
-    static private ClusterSession processImage(ImagePlus aImp, String command, String options, String[] out,
-            ClusterGUI cg, Float max, Float min, boolean sync) {
+    static private ClusterSession processImage(ImagePlus aImp, String command, String options, String[] out, ClusterGUI cg, Float max, Float min, boolean sync) {
         if (cg == null) {
             cg = new ClusterGUI();
         }
@@ -858,8 +844,7 @@ public class ClusterSession {
 
         // Run plugin on frames
 
-        if (ss.runPluginsOnFrames(aImp, command, "min=" + min + " max=" + max + " " + options, out,
-                cg.getEstimatedTime(), sync) == false) {
+        if (ss.runPluginsOnFrames(aImp, command, "min=" + min + " max=" + max + " " + options, out, cg.getEstimatedTime(), sync) == false) {
             return null;
         }
 
@@ -978,8 +963,7 @@ public class ClusterSession {
      *            images)
      * @param ClusterGUI optionally a cluster GUI
      */
-    static private ClusterSession processFile(File fl, String command, String options, String[] out, ClusterGUI cg,
-            Float max, Float min) {
+    static private ClusterSession processFile(File fl, String command, String options, String[] out, ClusterGUI cg, Float max, Float min) {
         // open the image and process image
 
         Opener opener = new Opener();

@@ -93,8 +93,7 @@ public class MyFrame {
 
     /**
      * Constructor for ImageProcessor based MyFrame. <br>
-     * All particles and other information will be derived from the given
-     * <code>ImageProcessor</code> by applying Detector methods
+     * All particles and other information will be derived from the given <code>ImageProcessor</code> by applying Detector methods
      *
      * @param ip the original ImageProcessor upon this MyFrame is based, will
      *            remain unchanged!
@@ -152,8 +151,7 @@ public class MyFrame {
     /**
      * ONLY FOR text_files_mode. <br>
      * Loads particles information for all frames from the file located
-     * at the given path and adds these particles to the <code>particles</code>
-     * array. <br>
+     * at the given path and adds these particles to the <code>particles</code> array. <br>
      * These particles are considered to be "after discrimination". <br>
      * File must have the word 'frame' (case sensitive) at the beginning of the
      * first line and when a frame
@@ -612,8 +610,7 @@ public class MyFrame {
      * therefore the created image is only an estimation
      *
      * @param width defines the width of the created <code>ByteProcessor</code>
-     * @param height defines the height of the created
-     *            <code>ByteProcessor</code>
+     * @param height defines the height of the created <code>ByteProcessor</code>
      * @return the created processor
      * @see ImageProcessor#drawDot(int, int)
      */

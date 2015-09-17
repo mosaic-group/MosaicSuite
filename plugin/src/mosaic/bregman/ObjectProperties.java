@@ -284,8 +284,7 @@ class ObjectProperties implements Runnable {
                 if (regionsA[v.pz][v.px][v.py - 1] == 0) {
                     edges++;
                 }
-                if (regionsA[v.pz][v.px][v.py + 1] == 0)
-                {
+                if (regionsA[v.pz][v.px][v.py + 1] == 0) {
                     edges++;// !=rvalue
                 }
             }

@@ -10,18 +10,23 @@
  */
 
 package mosaic.interpolators;
+
+
 import java.awt.geom.Point2D;
 
+
 public class BicubicInterpolator extends PixelInterpolator {
+
     double a = 1;
 
-    public BicubicInterpolator() {}
+    public BicubicInterpolator() {
+    }
 
     @Override
     public double getInterpolatedPixel(Point2D pnt) {
         double x0 = pnt.getX();
         double y0 = pnt.getY();
-        int u0 = (int) Math.floor(x0);	//use floor to handle negative coordinates too
+        int u0 = (int) Math.floor(x0); // use floor to handle negative coordinates too
         int v0 = (int) Math.floor(y0);
 
         double q = 0;
@@ -30,7 +35,7 @@ public class BicubicInterpolator extends PixelInterpolator {
             double p = 0;
             for (int i = 0; i <= 3; i++) {
                 int u = u0 - 1 + i;
-                p = p + ip.getPixel(u,v) * cubic(x0 - u);
+                p = p + ip.getPixel(u, v) * cubic(x0 - u);
             }
             q = q + p * cubic(y0 - v);
         }
@@ -43,11 +48,11 @@ public class BicubicInterpolator extends PixelInterpolator {
         }
         double z = 0;
         if (x < 1) {
-            //			z = (-a+2)*x*x*x + (a-3)*x*x + 1;
-            z = (-a+2)*x*x*x + (-a+3)*x*x + 1;
+            // z = (-a+2)*x*x*x + (a-3)*x*x + 1;
+            z = (-a + 2) * x * x * x + (-a + 3) * x * x + 1;
         }
         else if (x < 2) {
-            z = -a*x*x*x + 5*a*x*x - 8*a*x + 4*a;
+            z = -a * x * x * x + 5 * a * x * x - 8 * a * x + 4 * a;
         }
         return z;
     }

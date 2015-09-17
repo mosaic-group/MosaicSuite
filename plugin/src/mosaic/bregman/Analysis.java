@@ -20,51 +20,27 @@ import mosaic.core.utils.MosaicUtils;
 
 public class Analysis {
 
-    public enum outputF
-    {
-        MASK(2),
-        OBJECT(0);
+    public enum outputF {
+        MASK(2), OBJECT(0);
 
         private int numVal;
 
-        outputF(int numVal)
-        {this.numVal = numVal;}
+        outputF(int numVal) {
+            this.numVal = numVal;
+        }
 
-        public int getNumVal() {return numVal;}
+        public int getNumVal() {
+            return numVal;
+        }
     };
 
     // This is the output for cluster
-    public static String out[] = {"*_ObjectsData_c1.csv",
-        "*_ObjectsData_c2.csv",
-        "*_mask_c1.zip",
-        "*_mask_c2.zip",
-        "*_ImagesData.csv",
-        "*_outline_overlay_c1.zip",
-        "*_outline_overlay_c2.zip",
-        "*_intensities_c1.zip",
-        "*_intensities_c2.zip",
-        "*_seg_c1.zip",
-        "*_seg_c2.zip",
-        "*_coloc.zip",
-        "*_soft_mask_c1.tiff",
-        "*_soft_mask_c2.tiff",
-    "*.tif"};
+    public static String out[] = { "*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", "*_mask_c1.zip", "*_mask_c2.zip", "*_ImagesData.csv", "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
+            "*_intensities_c1.zip", "*_intensities_c2.zip", "*_seg_c1.zip", "*_seg_c2.zip", "*_coloc.zip", "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", "*.tif" };
 
     // This is the output local
-    public static String out_w[] = {"*_ObjectsData_c1.csv",
-        "*_ObjectsData_c2.csv",
-        "*_mask_c1.zip",
-        "*_mask_c2.zip",
-        "*_ImagesData.csv",
-        "*_outline_overlay_c1.zip",
-        "*_outline_overlay_c2.zip",
-        "*_intensities_c1.zip",
-        "*_intensities_c2.zip",
-        "*_seg_c1.zip",
-        "*_seg_c2.zip",
-        "*_soft_mask_c1.tiff",
-        "*_soft_mask_c2.tiff",
-    "*_coloc.zip"};
+    public static String out_w[] = { "*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", "*_mask_c1.zip", "*_mask_c2.zip", "*_ImagesData.csv", "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
+            "*_intensities_c1.zip", "*_intensities_c2.zip", "*_seg_c1.zip", "*_seg_c2.zip", "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", "*_coloc.zip" };
 
     static String currentImage = "currentImage";
 
@@ -336,8 +312,7 @@ public class Analysis {
             fcr.run(d, 0, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri, true, p.save_images);// &&(!p.refinement)
         }
         else {
-            fcr.run(d, 0, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri, p.dispcolors && (!p.refinement),
-                    p.save_images && (!p.refinement));
+            fcr.run(d, 0, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri, p.dispcolors && (!p.refinement), p.save_images && (!p.refinement));
         }
 
         regions[0] = fcr.tempres;
@@ -411,8 +386,7 @@ public class Analysis {
             }
         }
 
-        fcr.run(d, 1, p.maxves_size, p.minves_size, 255 * p.min_intensityY, Ri, p.dispcolors && (!p.refinement),
-                p.save_images && (!p.refinement));
+        fcr.run(d, 1, p.maxves_size, p.minves_size, 255 * p.min_intensityY, Ri, p.dispcolors && (!p.refinement), p.save_images && (!p.refinement));
 
         regions[1] = fcr.tempres;
         regionslist[1] = fcr.results;
@@ -527,7 +501,7 @@ public class Analysis {
 
             if (regioncoloc(r, regionslist[1], regions[1], maskA, imgnumber)) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
-                //objectscoloc++;
+                // objectscoloc++;
             }
 
             totalsignal += r.rsize * r.intensity;
@@ -545,7 +519,7 @@ public class Analysis {
             Region r = it.next();
             if (regioncoloc(r, regionslist[1], regions[1], maskA, imgnumber)) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
-                //objectscoloc++;
+                // objectscoloc++;
             }
 
             totalsize += r.rsize;
@@ -593,7 +567,7 @@ public class Analysis {
 
             if (regioncoloc(r, regionslist[0], regions[0], maskB, imgnumber)) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
-                //objectscoloc++;
+                // objectscoloc++;
             }
 
             totalsignal += r.rsize * r.intensity;
@@ -612,7 +586,7 @@ public class Analysis {
 
             if (regioncoloc(r, regionslist[0], regions[0], maskB, imgnumber)) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
-                //objectscoloc++;
+                // objectscoloc++;
             }
 
             totalsize += r.rsize;
@@ -786,7 +760,6 @@ public class Analysis {
 
     }
 
-
     static double meansurface(ArrayList<Region> regionslist) {
         double totalsize = 0;
         int objects = 0;
@@ -940,4 +913,3 @@ public class Analysis {
         }
     }
 }
-

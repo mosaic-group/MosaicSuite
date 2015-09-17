@@ -47,16 +47,9 @@ class LSFBatch implements BatchInterface {
         }
 
         script = session_id;
-        return new String(
-                "#!/bin/bash \n" +
-                        "#BSUB -q " + queue + "\n" +
-                        "#BSUB -n "+ ns +" \n" +
-                        "#BSUB -J \"" + session_id + "[1-" + njob  + "]\" \n" +
-                        "#BSUB -R span[hosts=1]\n" +
-                        "#BSUB -o " + session_id + ".out.%J \n" +
-                        "\n" +
-                        "echo \"running " + script + " on index $LSB_JOBINDEX\" \n" +
-                        cp.getRunningDir() + "Fiji.app/ImageJ-linux64" + " --headless -batch " + img_script_ + " $LSB_JOBINDEX");
+        return new String("#!/bin/bash \n" + "#BSUB -q " + queue + "\n" + "#BSUB -n " + ns + " \n" + "#BSUB -J \"" + session_id + "[1-" + njob + "]\" \n" + "#BSUB -R span[hosts=1]\n" + "#BSUB -o "
+                + session_id + ".out.%J \n" + "\n" + "echo \"running " + script + " on index $LSB_JOBINDEX\" \n" + cp.getRunningDir() + "Fiji.app/ImageJ-linux64" + " --headless -batch " + img_script_
+                + " $LSB_JOBINDEX");
 
     }
 
@@ -154,8 +147,7 @@ class LSFBatch implements BatchInterface {
             int ja_id = 0;
 
             if (vt.size() > 2) {
-                if (jobArrayStatus(vt.get(2)) == jobS.RUNNING || jobArrayStatus(vt.get(2)) == jobS.COMPLETE
-                        || jobArrayStatus(vt.get(2)) == jobS.FAILED) {
+                if (jobArrayStatus(vt.get(2)) == jobS.RUNNING || jobArrayStatus(vt.get(2)) == jobS.COMPLETE || jobArrayStatus(vt.get(2)) == jobS.FAILED) {
                     ja_id = jobArrayID(vt.get(6));
                     updateJobStatus(jobs, vt, ja_id);
                 }

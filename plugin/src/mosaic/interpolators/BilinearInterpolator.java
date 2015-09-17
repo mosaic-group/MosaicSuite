@@ -10,7 +10,10 @@
  */
 
 package mosaic.interpolators;
+
+
 import java.awt.geom.Point2D;
+
 
 public class BilinearInterpolator extends PixelInterpolator {
 
@@ -22,13 +25,13 @@ public class BilinearInterpolator extends PixelInterpolator {
         int v = (int) Math.floor(y);
         double a = x - u;
         double b = y - v;
-        int A = ip.getPixel(u,v);
-        int B = ip.getPixel(u+1,v);
-        int C = ip.getPixel(u,v+1);
-        int D = ip.getPixel(u+1,v+1);
-        double E = A + a*(B-A);
-        double F = C + a*(D-C);
-        double G = E + b*(F-E);
+        int A = ip.getPixel(u, v);
+        int B = ip.getPixel(u + 1, v);
+        int C = ip.getPixel(u, v + 1);
+        int D = ip.getPixel(u + 1, v + 1);
+        double E = A + a * (B - A);
+        double F = C + a * (D - C);
+        double G = E + b * (F - E);
         return G;
     }
 

@@ -1,5 +1,6 @@
 package mosaic.region_competition.initializers;
 
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.plugin.Duplicator;
@@ -16,29 +17,28 @@ import mosaic.region_competition.utils.MaximumFinder2D;
 import mosaic.region_competition.utils.MaximumFinder3D;
 import mosaic.region_competition.utils.MaximumFinderInterface;
 
-public class MaximaBubbles extends DataDrivenInitializer
-{
+
+public class MaximaBubbles extends DataDrivenInitializer {
+
     MaximumFinderInterface maximumFinder;
-    int rad = 5;	// bubble size
-    double sigma = 2.0; 	// smoothing gauss sigma
-    double tolerance = 0.005;		// localmax tolerance
+    int rad = 5; // bubble size
+    double sigma = 2.0; // smoothing gauss sigma
+    double tolerance = 0.005; // localmax tolerance
     boolean excludeOnEdges = false;
 
     int regionThreshold = 4; // regions smaller than this values will be bubbled
 
-    public MaximaBubbles(IntensityImage intensityImage, LabelImageRC labelImage, int rad_t, double sigma_t, double tol_t, int r_t)
-    {
+    public MaximaBubbles(IntensityImage intensityImage, LabelImageRC labelImage, int rad_t, double sigma_t, double tol_t, int r_t) {
         super(intensityImage, labelImage);
         int dim = labelImage.getDim();
-        if (dim==2)
-        {
+        if (dim == 2) {
             int[] dims = intensityImage.getDimensions();
             maximumFinder = new MaximumFinder2D(dims[0], dims[1]);
-        } else if (dim==3)
-        {
+        }
+        else if (dim == 3) {
             maximumFinder = new MaximumFinder3D(labelImage.getDimensions());
-        } else
-        {
+        }
+        else {
             throw new RuntimeException("Not supported dimension for MaximumFinder");
         }
 
@@ -48,22 +48,20 @@ public class MaximaBubbles extends DataDrivenInitializer
         regionThreshold = r_t;
     }
 
-
     /**
      * Smoothes a copy of the {@link IntensityImage} and sets it as new
      * one. Smoothing by gaussian blur with sigma.
      */
-    private void smoothIntensityImage()
-    {
-        ImagePlus imp = intensityImage.imageIP;;
+    private void smoothIntensityImage() {
+        ImagePlus imp = intensityImage.imageIP;
+        ;
         imp = new Duplicator().run(imp);
-        IJ.run(imp, "Gaussian Blur...", "sigma="+sigma+" stack");
+        IJ.run(imp, "Gaussian Blur...", "sigma=" + sigma + " stack");
         IJ.wait(40);
         this.intensityImage = new IntensityImage(imp);
     }
 
-    public void initFloodFilled()
-    {
+    public void initFloodFilled() {
         smoothIntensityImage();
 
         List<Point> list;
@@ -71,27 +69,24 @@ public class MaximaBubbles extends DataDrivenInitializer
 
         BinarizedIntervalIntesityImage foo = new BinarizedIntervalIntesityImage(intensityImage);
         int color = 1;
-        for (Point p : list)
-        {
+        for (Point p : list) {
             float val2 = intensityImage.get(p);
-            float val1 = (float)(val2*(1.0-2*tolerance));
+            float val1 = (float) (val2 * (1.0 - 2 * tolerance));
             foo.AddThresholdBetween(val1, val2);
 
             FloodFill ff = new FloodFill(labelImage.getConnFG(), foo, p);
 
-            int n=0;
-            for (Point pp : ff)
-            {
+            int n = 0;
+            for (Point pp : ff) {
                 labelImage.setLabel(pp, color);
                 n++;
             }
 
-            //			System.out.print("Region " + n);
+            // System.out.print("Region " + n);
 
             // if region was very small, draw a bubble
-            if (n<regionThreshold)
-            {
-                BubbleDrawer bd = new BubbleDrawer(labelImage, rad/2, rad);
+            if (n < regionThreshold) {
+                BubbleDrawer bd = new BubbleDrawer(labelImage, rad / 2, rad);
                 bd.drawCenter(p, color);
             }
 
@@ -101,54 +96,41 @@ public class MaximaBubbles extends DataDrivenInitializer
         }
     }
 
-    private void initBrightBubbles()
-    {
+    private void initBrightBubbles() {
         smoothIntensityImage();
 
         List<Point> list;
         list = maximumFinder.getMaximaPointList(intensityImage.dataIntensity, tolerance, false);
 
-        BubbleDrawer bubbler = new BubbleDrawer(labelImage, rad, 2*rad+1);
+        BubbleDrawer bubbler = new BubbleDrawer(labelImage, rad, 2 * rad + 1);
 
         int color = 1;
-        for (Point p : list)
-        {
+        for (Point p : list) {
             bubbler.drawCenter(p, color++);
         }
     }
 
-
-
     @Override
-    public void initDefault()
-    {
+    public void initDefault() {
         initBrightBubbles();
     }
 
-
-
-
-
-    public void setGaussSigma(int sigma)
-    {
+    public void setGaussSigma(int sigma) {
         this.sigma = sigma;
     }
 
-    public void setBubbleRadius(int radius)
-    {
+    public void setBubbleRadius(int radius) {
         this.rad = radius;
     }
 
-    public void setTolerance(double tolerance)
-    {
+    public void setTolerance(double tolerance) {
         this.tolerance = tolerance;
     }
 
     /**
      *
      */
-    public void setExcludeOnEdges(boolean b)
-    {
+    public void setExcludeOnEdges(boolean b) {
         this.excludeOnEdges = b;
     }
 
@@ -156,19 +138,9 @@ public class MaximaBubbles extends DataDrivenInitializer
      * If floodfilled maximum is smaller than this value,
      * it draws a bubble with radius rad.
      */
-    public void setMinimalRegionThreshold(int regionThreshold)
-    {
+    public void setMinimalRegionThreshold(int regionThreshold) {
         this.regionThreshold = regionThreshold;
 
     }
-
-
-
-
-
-
-
-
-
 
 }

@@ -1,5 +1,6 @@
 package mosaic.core.GUI;
 
+
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -17,18 +18,17 @@ import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
 
-public class OutputGUI extends JDialog
-{
+
+public class OutputGUI extends JDialog {
+
     private static final long serialVersionUID = 1L;
     JDialog myself;
 
-    private class OutputTable extends AbstractTableModel
-    {
+    private class OutputTable extends AbstractTableModel {
+
         private static final long serialVersionUID = 1L;
 
-        private String[] columnNames = {"Enable",
-                "Column",
-        "Factor"};
+        private String[] columnNames = { "Enable", "Column", "Factor" };
 
         private Object[][] data;
 
@@ -62,13 +62,13 @@ public class OutputGUI extends JDialog
          * editable.
          */
         @Override
-        public boolean isCellEditable(int row, int col)
-        {
-            //Note that the data/cell address is constant,
-            //no matter where the cell appears onscreen.
+        public boolean isCellEditable(int row, int col) {
+            // Note that the data/cell address is constant,
+            // no matter where the cell appears onscreen.
             if (col == 0 || col == 2) {
                 return true;
-            } else {
+            }
+            else {
                 return false;
             }
         }
@@ -83,24 +83,21 @@ public class OutputGUI extends JDialog
             fireTableCellUpdated(row, col);
         }
 
-
-        void setOutput(GUIOutputChoose out)
-        {
+        void setOutput(GUIOutputChoose out) {
             data = new Object[out.outputChoose.fieldMapping.length][3];
 
-            for (int i = 0 ; i < out.outputChoose.fieldMapping.length ; i++)
-            {
+            for (int i = 0; i < out.outputChoose.fieldMapping.length; i++) {
                 data[i][0] = new Boolean(true);
                 data[i][1] = out.outputChoose.fieldMapping[i];
                 data[i][2] = new Double(1.0);
             }
         }
 
-        //	    void setChoose(int idx)
-        //	    {
-        //	    	if (idx < 0)
-        //	    		oc = out[idx];
-        //	    }
+        // void setChoose(int idx)
+        // {
+        // if (idx < 0)
+        // oc = out[idx];
+        // }
     }
 
     JPanel contentPane;
@@ -109,22 +106,20 @@ public class OutputGUI extends JDialog
     GUIOutputChoose out[];
     OutputTable outTM;
 
-    public OutputGUI()
-    {
+    public OutputGUI() {
         oc = null;
         myself = this;
     }
 
     /**
-     *  Visualize a window to select all the possible output format and related option
+     * Visualize a window to select all the possible output format and related option
      *
      * @param out_ all Output format
      * @param selected oc_s
      * @return Choose output + information on the option choose
      */
 
-    public GUIOutputChoose visualizeOutput(GUIOutputChoose out_[], int oc_s)
-    {
+    public GUIOutputChoose visualizeOutput(GUIOutputChoose out_[], int oc_s) {
         if (out_ == null) {
             return null;
         }
@@ -135,8 +130,7 @@ public class OutputGUI extends JDialog
         out = out_;
         String[] pn = new String[out.length];
 
-        for (int i = 0 ; i < out.length ; i++)
-        {
+        for (int i = 0; i < out.length; i++) {
             pn[i] = out[i].name;
         }
 
@@ -150,29 +144,28 @@ public class OutputGUI extends JDialog
         c.gridx = 0;
         c.gridy = 0;
         c.gridwidth = 2;
-        c.insets = new Insets(0,0,0,0);
+        c.insets = new Insets(0, 0, 0, 0);
         JLabel lblNewLabel = new JLabel("<html><h2><font color=\"red\">CSV Format</font></h2></html>");
-        lblNewLabel.setMinimumSize(new Dimension(300,30));
-        contentPane.add(lblNewLabel,c);
+        lblNewLabel.setMinimumSize(new Dimension(300, 30));
+        contentPane.add(lblNewLabel, c);
 
         c.gridx = 0;
         c.gridy = 1;
         c.gridwidth = 1;
         lblNewLabel = new JLabel("Choose output format ");
-        contentPane.add(lblNewLabel,c);
+        contentPane.add(lblNewLabel, c);
 
         c.gridx = 1;
         c.gridy = 1;
         final JComboBox<String> comboBox = new JComboBox<String>(pn);
         comboBox.setSelectedIndex(oc_s);
         oc = out[oc_s];
-        contentPane.add(comboBox,c);
+        contentPane.add(comboBox, c);
         outTM = new OutputTable();
-        comboBox.addActionListener(new ActionListener()
-        {
+        comboBox.addActionListener(new ActionListener() {
+
             @Override
-            public void actionPerformed(ActionEvent arg0)
-            {
+            public void actionPerformed(ActionEvent arg0) {
                 if (arg0.getSource() == comboBox) {
                     int idx = comboBox.getSelectedIndex();
                     oc = out[idx];
@@ -182,54 +175,51 @@ public class OutputGUI extends JDialog
             }
         });
 
-
         outTM.setOutput(out[oc_s]);
         table = new JTable(outTM);
 
         JScrollPane scrollPane = new JScrollPane(table);
         table.setFillsViewportHeight(true);
 
-        scrollPane.setMinimumSize(new Dimension(450,150));
+        scrollPane.setMinimumSize(new Dimension(450, 150));
 
         c.gridx = 0;
         c.gridy = 2;
         c.gridwidth = 2;
-        c.insets = new Insets(10,0,0,10);
+        c.insets = new Insets(10, 0, 0, 10);
         c.fill = GridBagConstraints.BOTH;
-        contentPane.add(scrollPane,c);
+        contentPane.add(scrollPane, c);
 
         c.gridx = 0;
         c.gridy = 3;
         c.gridwidth = 1;
-        c.insets = new Insets(10,0,0,10);
+        c.insets = new Insets(10, 0, 0, 10);
         c.fill = GridBagConstraints.NONE;
 
         JButton bOK = new JButton("OK");
         bOK.addActionListener(new ActionListener() {
 
             @Override
-            public void actionPerformed(ActionEvent arg0)
-            {
+            public void actionPerformed(ActionEvent arg0) {
                 myself.dispose();
 
             }
 
         });
 
-        contentPane.add(bOK,c);
+        contentPane.add(bOK, c);
 
         c.gridx = 1;
         c.gridy = 3;
         JButton bCancel = new JButton("Cancel");
-        contentPane.add(bCancel,c);
+        contentPane.add(bCancel, c);
 
         setModal(true);
         setVisible(true);
 
         oc.factor = new double[oc.outputChoose.fieldMapping.length];
-        for (int i = 0 ; i < oc.outputChoose.fieldMapping.length ; i++)
-        {
-            oc.factor[i] = (Double)outTM.data[i][2];
+        for (int i = 0; i < oc.outputChoose.fieldMapping.length; i++) {
+            oc.factor[i] = (Double) outTM.data[i][2];
         }
 
         return oc;

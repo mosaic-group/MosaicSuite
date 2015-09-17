@@ -1,5 +1,6 @@
 package mosaic.core.GUI;
 
+
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -13,18 +14,15 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
 
+
 /**
- *
  * It is a Dialog with a progress bar
  *
- *
- *
  * @author Pietro Incardona
- *
  */
 
-public class ProgressBarWin extends JDialog
-{
+public class ProgressBarWin extends JDialog {
+
     private static final long serialVersionUID = 147834134785813L;
     JPanel contentPane;
     JProgressBar Prog_s;
@@ -32,10 +30,8 @@ public class ProgressBarWin extends JDialog
     @SuppressWarnings("unused")
     private Object lock;
 
-    public void SetStatusMessage(String Message)
-    {
+    public void SetStatusMessage(String Message) {
         Status.setText(Message);
-
 
         // Measure the text
 
@@ -56,19 +52,17 @@ public class ProgressBarWin extends JDialog
         int adv = metrics.stringWidth(Message);
         // calculate the size of a box to hold the
         // text with some padding.
-        Dimension size = new Dimension(adv+2, hgt+2);
+        Dimension size = new Dimension(adv + 2, hgt + 2);
 
-        setSize(2*size.width + 50,getSize().height);
+        setSize(2 * size.width + 50, getSize().height);
     }
 
-    public void SetProgress(int p)
-    {
-        Prog_s.setString(((Integer)p).toString() + " %");
+    public void SetProgress(int p) {
+        Prog_s.setString(((Integer) p).toString() + " %");
         Prog_s.setValue(p);
     }
 
-    public ProgressBarWin()
-    {
+    public ProgressBarWin() {
 
         lock = new Object();
 
@@ -88,11 +82,11 @@ public class ProgressBarWin extends JDialog
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
-        contentPane.add(contentMessage,c);
+        contentPane.add(contentMessage, c);
 
         lblNewLabel = new JLabel("Warming up");
         Status = lblNewLabel;
-        Status.setSize(new Dimension(50,300));
+        Status.setSize(new Dimension(50, 300));
         contentMessage.add(lblNewLabel);
 
         c.gridx = 0;
@@ -101,7 +95,7 @@ public class ProgressBarWin extends JDialog
         JProgressBar pbar = new JProgressBar();
         pbar.setStringPainted(true);
         Prog_s = pbar;
-        contentPane.add(pbar,c);
+        contentPane.add(pbar, c);
 
     }
 }

@@ -1,11 +1,11 @@
 package mosaic.region_competition.utils;
 
 
-
 /**
-http://stackoverflow.com/questions/156275/what-is-the-equivalent-of-the-c-pairl-r-in-java
+ * http://stackoverflow.com/questions/156275/what-is-the-equivalent-of-the-c-pairl-r-in-java
  */
 public class Pair<A, B> {
+
     public A first;
     public B second;
 
@@ -27,21 +27,15 @@ public class Pair<A, B> {
     public boolean equals(Object other) {
         if (other instanceof Pair) {
             Pair<?, ?> otherPair = (Pair<?, ?>) other;
-            return
-                    ((  this.first == otherPair.first ||
-                    ( this.first != null && otherPair.first != null &&
-                    this.first.equals(otherPair.first))) &&
-                    (	this.second == otherPair.second ||
-                    ( this.second != null && otherPair.second != null &&
-                    this.second.equals(otherPair.second))) );
+            return ((this.first == otherPair.first || (this.first != null && otherPair.first != null && this.first.equals(otherPair.first))) && (this.second == otherPair.second || (this.second != null
+                    && otherPair.second != null && this.second.equals(otherPair.second))));
         }
 
         return false;
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "(" + first + ", " + second + ")";
     }
 

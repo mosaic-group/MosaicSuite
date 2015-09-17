@@ -1,5 +1,6 @@
 package mosaic.region_competition.initializers;
 
+
 // from: LabelImage
 
 //import ij.gui.OvalRoi;
@@ -113,4 +114,4 @@ package mosaic.region_competition.initializers;
 //			e[2*dim]=scanner.nextInt();
 //		}
 //		initialGuessEllipses(ellipses);
-//	}
+// }

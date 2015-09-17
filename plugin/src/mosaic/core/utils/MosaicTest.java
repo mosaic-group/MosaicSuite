@@ -77,8 +77,7 @@ public class MosaicTest {
         try {
             for (int i = 0; i < tmp.setup_files.length; i++) {
                 String str = new String();
-                str = IJ.getDirectory("temp") + File.separator
-                        + tmp.setup_files[i].substring(tmp.setup_files[i].lastIndexOf(File.separator) + 1);
+                str = IJ.getDirectory("temp") + File.separator + tmp.setup_files[i].substring(tmp.setup_files[i].lastIndexOf(File.separator) + 1);
                 ShellCommand.exeCmdNoPrint("cp -r " + tmp.setup_files[i] + " " + str);
             }
         }

@@ -1,5 +1,6 @@
 package mosaic.core.utils;
 
+
 import ij.IJ;
 
 import java.io.BufferedReader;
@@ -11,12 +12,14 @@ import java.util.Map;
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ShellProcessOutput;
 
+
 /**
  * Utility class to run shell command All function members are static
  *
  * @author Pietro Incardona
  */
 public class ShellCommand {
+
     /**
      * Produce a shell command from cmd
      *
@@ -27,7 +30,8 @@ public class ShellCommand {
         if (IJ.isLinux() == true || IJ.isMacOSX() == true) {
             // we can use bash
             return new String[] { "bash", "-c", cmd };
-        } else {
+        }
+        else {
             return new String[] { "cmd", cmd };
         }
     }
@@ -144,8 +148,7 @@ public class ShellCommand {
      * @throws IOException
      * @throws InterruptedException
      */
-    public static void exeCmd(String cmd, File wdir, String env[], ShellProcessOutput out) throws IOException,
-    InterruptedException {
+    public static void exeCmd(String cmd, File wdir, String env[], ShellProcessOutput out) throws IOException, InterruptedException {
         Map<String, String> envi = System.getenv();
         if (env == null) {
             env = new String[0];
@@ -207,9 +210,11 @@ public class ShellCommand {
 
             try {
                 exeCmd("cp -R " + t.getAbsoluteFile() + " " + to.getAbsolutePath());
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
                 e.printStackTrace();
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 e.printStackTrace();
             }
             cnt++;

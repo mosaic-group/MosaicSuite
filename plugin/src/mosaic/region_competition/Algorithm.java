@@ -170,7 +170,7 @@ public class Algorithm {
         for (int i : iterator.getIndexIterable()) {
             int label = labelImage.getLabelAbs(i);
             if (label != bgLabel && label != forbiddenLabel) // region pixel
-                // && label<negOfs
+            // && label<negOfs
             {
                 Point p = iterator.indexToPoint(i);
                 for (Point neighbor : conn.iterateNeighbors(p)) {
@@ -1353,14 +1353,14 @@ public class Algorithm {
             }
 
             if (labelImage.isInnerLabel(qLabel) && qLabel == aAbsLabel) // q is
-                // a
-                // inner
-                // point
-                // with
-                // the
-                // same
-                // label
-                // as p
+            // a
+            // inner
+            // point
+            // with
+            // the
+            // same
+            // label
+            // as p
             {
                 ContourParticle q = new ContourParticle();
                 q.label = aAbsLabel;
@@ -1374,12 +1374,12 @@ public class Algorithm {
             // (since isContourLabel==> neg values AND (qLabel == aAbsLabel) =>
             // pos labels
             else if (labelImage.isContourLabel(qLabel) && qLabel == aAbsLabel) // q
-                // is
-                // contour
-                // of
-                // the
-                // same
-                // label
+            // is
+            // contour
+            // of
+            // the
+            // same
+            // label
             {
                 // TODO itk Line 1520, modifiedcounter
                 // / the point is already in the contour. We reactivate it by
@@ -1532,7 +1532,7 @@ public class Algorithm {
 
         Object[] copy = m_InnerContourContainer.entrySet().toArray();
         for (Object o : copy)
-            // for (Entry<Point, ContourParticle> vIt : copy)
+        // for (Entry<Point, ContourParticle> vIt : copy)
         {
             @SuppressWarnings("unchecked")
             Entry<Point, ContourParticle> vIt = (Entry<Point, ContourParticle>) o;

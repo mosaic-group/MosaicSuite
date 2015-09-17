@@ -1,20 +1,19 @@
 package mosaic.core.cluster;
 
+
 import java.util.Vector;
 
 import mosaic.core.utils.DataCompression.Algorithm;
 
 
 /**
- *
  * It implement the interface Cluster Profile and it store all the information of a cluster
  *
  * @author Pietro Incardona
- *
  */
 
-class GeneralProfile implements ClusterProfile
-{
+class GeneralProfile implements ClusterProfile {
+
     private BatchInterface bc;
     private String ProfileName;
     private String RunningDir;
@@ -24,10 +23,9 @@ class GeneralProfile implements ClusterProfile
     private hw acc;
     protected String UserName;
 
-    private class Tqueue
-    {
-        Tqueue(double minutes_, String name_)
-        {
+    private class Tqueue {
+
+        Tqueue(double minutes_, String name_) {
             minutes = minutes_;
             name = name_;
         }
@@ -38,78 +36,64 @@ class GeneralProfile implements ClusterProfile
 
     private Vector<Vector<Tqueue>> cq;
 
-    GeneralProfile()
-    {
+    GeneralProfile() {
         cq = new Vector<Vector<Tqueue>>();
     }
 
     @Override
-    public void setUsername(String UserName_)
-    {
+    public void setUsername(String UserName_) {
         UserName = UserName_;
     }
 
     @Override
-    public String getUsername()
-    {
+    public String getUsername() {
         return UserName;
     }
 
     @Override
-    public void setPassword(String pwd_)
-    {
+    public void setPassword(String pwd_) {
         pwd = pwd_;
     }
 
     @Override
-    public String getPassword()
-    {
+    public String getPassword() {
         return pwd;
     }
 
     @Override
-    public String getProfileName()
-    {
+    public String getProfileName() {
         return ProfileName;
     }
 
     @Override
-    public void setProfileName(String ProfileName_)
-    {
+    public void setProfileName(String ProfileName_) {
         ProfileName = ProfileName_;
     }
 
     @Override
-    public String getRunningDir()
-    {
+    public String getRunningDir() {
         return RunningDir;
     }
 
     @Override
-    public void setRunningDir(String RunningDir_)
-    {
+    public void setRunningDir(String RunningDir_) {
         RunningDir = RunningDir_;
     }
 
     @Override
-    public String getImageJCommand()
-    {
+    public String getImageJCommand() {
         return ImageJCommand;
     }
 
     @Override
-    public void setImageJCommand(String ImageJCommand_)
-    {
+    public void setImageJCommand(String ImageJCommand_) {
         ImageJCommand = ImageJCommand_;
     }
 
     @Override
-    public String getQueue(double minutes)
-    {
-        for (int i = 0 ; i < cq.size() ; i++)
-        {
-            if (cq.get(acc.ordinal()).get(i).minutes > minutes)
-            {
+    public String getQueue(double minutes) {
+        for (int i = 0; i < cq.size(); i++) {
+            if (cq.get(acc.ordinal()).get(i).minutes > minutes) {
                 return cq.get(acc.ordinal()).get(i).name;
             }
         }
@@ -118,61 +102,51 @@ class GeneralProfile implements ClusterProfile
     }
 
     @Override
-    public void setAcc(hw acc_)
-    {
+    public void setAcc(hw acc_) {
         acc = acc_;
     }
 
     @Override
-    public void setQueue(double minutes, String name)
-    {
+    public void setQueue(double minutes, String name) {
         if (cq.size() <= acc.ordinal()) {
             cq.add(new Vector<Tqueue>());
         }
 
-        for (int i = 0 ; i < cq.get(acc.ordinal()).size() ; i++)
-        {
-            if (cq.get(acc.ordinal()).get(i).minutes > minutes)
-            {
+        for (int i = 0; i < cq.get(acc.ordinal()).size(); i++) {
+            if (cq.get(acc.ordinal()).get(i).minutes > minutes) {
                 cq.get(acc.ordinal()).insertElementAt(new Tqueue(minutes, name), i);
                 return;
             }
         }
 
-        cq.get(acc.ordinal()).add(new Tqueue(minutes,name));
+        cq.get(acc.ordinal()).add(new Tqueue(minutes, name));
     }
 
     @Override
-    public String getAccessAddress()
-    {
+    public String getAccessAddress() {
         return AccessAddress;
     }
 
     @Override
-    public void setAccessAddress(String AccessAddress_)
-    {
+    public void setAccessAddress(String AccessAddress_) {
         AccessAddress = AccessAddress_;
     }
 
     @Override
-    public void setBatchSystem(BatchInterface bc_)
-    {
+    public void setBatchSystem(BatchInterface bc_) {
         bc = bc_;
     }
 
     @Override
-    public BatchInterface getBatchSystem()
-    {
+    public BatchInterface getBatchSystem() {
         return bc;
     }
 
     Vector<Algorithm> alc;
 
     @Override
-    public boolean hasCompressor(Algorithm a)
-    {
-        for (int i = 0 ; i < alc.size() ; i++)
-        {
+    public boolean hasCompressor(Algorithm a) {
+        for (int i = 0; i < alc.size(); i++) {
             if (alc.get(i) == a) {
                 return true;
             }
@@ -182,16 +156,14 @@ class GeneralProfile implements ClusterProfile
     }
 
     @Override
-    public QueueProfile[] getQueues(hw Acc_)
-    {
+    public QueueProfile[] getQueues(hw Acc_) {
         if (Acc_.ordinal() >= cq.size()) {
             return new QueueProfile[0];
         }
 
         QueueProfile[] cpt = new QueueProfile[cq.get(Acc_.ordinal()).size()];
 
-        for (int i = 0 ; i < cq.get(Acc_.ordinal()).size() ; i++)
-        {
+        for (int i = 0; i < cq.get(Acc_.ordinal()).size(); i++) {
             cpt[i] = new QueueProfile();
             cpt[i].queue = cq.get(Acc_.ordinal()).get(i).name;
             cpt[i].hardware = Acc_.toString();

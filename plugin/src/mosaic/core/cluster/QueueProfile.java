@@ -7,39 +7,33 @@ package mosaic.core.cluster;
  *
  * @author Pietro Incardona
  */
-public class QueueProfile
-{
+public class QueueProfile {
+
     protected String queue;
     protected String hardware;
     protected double limit;
 
-    public void setqueue(String queue)
-    {
+    public void setqueue(String queue) {
         this.queue = queue;
     }
 
-    public void sethardware(String hardware)
-    {
+    public void sethardware(String hardware) {
         this.hardware = hardware;
     }
 
-    public void setlimit(double limit)
-    {
+    public void setlimit(double limit) {
         this.limit = limit;
     }
 
-    public String getqueue()
-    {
+    public String getqueue() {
         return queue;
     }
 
-    public String gethardware()
-    {
+    public String gethardware() {
         return hardware;
     }
 
-    public double getlimit()
-    {
+    public double getlimit() {
         return limit;
     }
 };

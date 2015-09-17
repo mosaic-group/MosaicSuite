@@ -2,16 +2,13 @@ package mosaic.core.utils;
 
 
 /**
- *
  * Class that store a plugin test
  *
- *
  * @author Pietro Incardona
- *
  */
 
-public class ImgTest
-{
+public class ImgTest {
+
     public String base;
     public String img[];
     public String options;

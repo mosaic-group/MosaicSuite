@@ -1,5 +1,6 @@
 package mosaic.region_competition.wizard.score_function;
 
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.Line;
@@ -32,8 +33,9 @@ import mosaic.region_competition.PointCM;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.wizard.PickRegion;
 
-public class ScoreFunctionRCtop implements ScoreFunction
-{
+
+public class ScoreFunctionRCtop implements ScoreFunction {
+
     String[] file;
 
     IntensityImage i[];
@@ -44,18 +46,16 @@ public class ScoreFunctionRCtop implements ScoreFunction
     private PointCM pntMod[][];
 
     @Override
-    public Settings createSettings(Settings s, double pop[])
-    {
+    public Settings createSettings(Settings s, double pop[]) {
         Settings st = new Settings(s);
 
         st.m_RegionMergingThreshold = (float) pop[0];
-        //		st.m_RegionMergingCoeff = (int) pop[0];
+        // st.m_RegionMergingCoeff = (int) pop[0];
 
         return st;
     }
 
-    public ScoreFunctionRCtop(IntensityImage i_[], LabelImageRC l_[], Settings s_)
-    {
+    public ScoreFunctionRCtop(IntensityImage i_[], LabelImageRC l_[], Settings s_) {
         i = i_;
         l = l_;
 
@@ -64,18 +64,14 @@ public class ScoreFunctionRCtop implements ScoreFunction
         pntMod = new PointCM[l.length][];
     }
 
-
-    public void setCMModel(PointCM [] mod,int i)
-    {
+    public void setCMModel(PointCM[] mod, int i) {
         pntMod[i] = mod;
     }
 
-
-    private double Topo(LabelImageRC l, PointCM pntMod[], double pop[])
-    {
+    private double Topo(LabelImageRC l, PointCM pntMod[], double pop[]) {
         int off[] = l.getDimensions().clone();
         Arrays.fill(off, 0);
-        new RegionIterator(l.getDimensions(),l.getDimensions(),off);
+        new RegionIterator(l.getDimensions(), l.getDimensions(), off);
 
         PointCM Reg[] = l.createCMModel();
 
@@ -91,16 +87,12 @@ public class ScoreFunctionRCtop implements ScoreFunction
         PointCM reoMod1[] = new PointCM[pntMod.length];
         int k = 0;
 
-        while (pntModV.size() != 0 && RegV.size() != 0)
-        {
+        while (pntModV.size() != 0 && RegV.size() != 0) {
             Min = Double.MAX_VALUE;
-            for (PointCM pCM : pntModV)
-            {
-                for (PointCM pReg : RegV)
-                {
+            for (PointCM pCM : pntModV) {
+                for (PointCM pReg : RegV) {
                     double d = pReg.p.distance(pCM.p);
-                    if (d < Min)
-                    {
+                    if (d < Min) {
                         Min = d;
                         pMin1 = pCM;
                         pMin2 = pReg;
@@ -120,13 +112,12 @@ public class ScoreFunctionRCtop implements ScoreFunction
 
         double ret = 0.0;
 
-        for (int i = 0 ; i < reoMod1.length && i < reoMod2.length ; i++)
-        {
+        for (int i = 0; i < reoMod1.length && i < reoMod2.length; i++) {
             ret += reoMod1[i].p.distance(reoMod2[i].p);
         }
 
         double expo = 1.0 / l.getDim();
-        ret += Math.abs(reoMod1.length - reoMod2.length)*Math.pow(l.getSize()/pntMod.length,expo);
+        ret += Math.abs(reoMod1.length - reoMod2.length) * Math.pow(l.getSize() / pntMod.length, expo);
 
         if (reoMod1.length - reoMod2.length > 0) {
             ret += Math.abs(reoMod1.length - reoMod2.length) * 1000.0 * pop[0];
@@ -139,23 +130,22 @@ public class ScoreFunctionRCtop implements ScoreFunction
     }
 
     @Override
-    public double valueOf(double[] x)
-    {
+    public double valueOf(double[] x) {
         double result = 0.0;
 
         s.m_RegionMergingThreshold = (float) x[0];
 
         // write the settings
-        Region_Competition.getConfigHandler().SaveToFile(IJ.getDirectory("temp")+"RC_top"+x[0], s);
+        Region_Competition.getConfigHandler().SaveToFile(IJ.getDirectory("temp") + "RC_top" + x[0], s);
 
-        for (int im = 0 ; im < i.length ; im++)
-        {
-            IJ.run(i[im].imageIP,"Region Competition","config="+IJ.getDirectory("temp")+"RC_top"+x[0] + "  " + "output=" +IJ.getDirectory("temp")+"RC_top"+x[0]+".tif" + " normalize=false");
+        for (int im = 0; im < i.length; im++) {
+            IJ.run(i[im].imageIP, "Region Competition", "config=" + IJ.getDirectory("temp") + "RC_top" + x[0] + "  " + "output=" + IJ.getDirectory("temp") + "RC_top" + x[0] + ".tif"
+                    + " normalize=false");
 
             // Read Label Image
 
             Opener o = new Opener();
-            file[im] = new String(IJ.getDirectory("temp")+"RC_top"+x[0]+".tif");
+            file[im] = new String(IJ.getDirectory("temp") + "RC_top" + x[0] + ".tif");
             ImagePlus ip = o.openImage(file[im]);
 
             l[im].initWithIP(ip);
@@ -163,24 +153,20 @@ public class ScoreFunctionRCtop implements ScoreFunction
 
             // Scoring
 
-            result = Topo(l[im],pntMod[im],x);
+            result = Topo(l[im], pntMod[im], x);
 
-            //			result += 10.0/Math.abs(a1 - a2);
+            // result += 10.0/Math.abs(a1 - a2);
         }
 
         return result;
     }
 
     @Override
-    public boolean isFeasible(double[] x)
-    {
+    public boolean isFeasible(double[] x) {
         int minSz = Integer.MAX_VALUE;
-        for (LabelImageRC lbt : l)
-        {
-            for (int d : lbt.getDimensions())
-            {
-                if (d < minSz)
-                {
+        for (LabelImageRC lbt : l) {
+            for (int d : lbt.getDimensions()) {
+                if (d < minSz) {
                     minSz = d;
                 }
             }
@@ -194,19 +180,17 @@ public class ScoreFunctionRCtop implements ScoreFunction
     }
 
     @Override
-    public void show()
-    {
+    public void show() {
 
-        for (int im = 0 ;  im < l.length ; im++) {
+        for (int im = 0; im < l.length; im++) {
             l[im].show("init", 255);
         }
 
     }
 
     @Override
-    public double[] getAMean(Settings s)
-    {
-        double [] aMean = new double [1];
+    public double[] getAMean(Settings s) {
+        double[] aMean = new double[1];
 
         aMean[0] = s.m_RegionMergingThreshold;
 
@@ -228,28 +212,23 @@ public class ScoreFunctionRCtop implements ScoreFunction
         return file;
     }
 
-
-    private class DivideBtn implements ActionListener
-    {
+    private class DivideBtn implements ActionListener {
 
         LabelImageRC ip[];
         ImagePlus ipp[];
 
-        DivideBtn(LabelImageRC ip_[], ImagePlus ipp_[])
-        {
+        DivideBtn(LabelImageRC ip_[], ImagePlus ipp_[]) {
             ip = ip_;
             ipp = ipp_;
         }
 
         @Override
-        public void actionPerformed(ActionEvent arg0)
-        {
+        public void actionPerformed(ActionEvent arg0) {
 
-            for (int i = 0 ; i < ipp.length ; i++)
-            {
+            for (int i = 0; i < ipp.length; i++) {
                 Roi r = ipp[i].getRoi();
 
-                Line lr = (Line)r;
+                Line lr = (Line) r;
 
                 int xp = 0;
                 int yp = 0;
@@ -280,30 +259,28 @@ public class ScoreFunctionRCtop implements ScoreFunction
                 int deltay = y2 - y1;
 
                 Point p = new Point(2);
-                double deltaerr = Math.abs((double)deltay/deltax);
+                double deltaerr = Math.abs((double) deltay / deltax);
                 double error = 0;
 
                 p.x[1] = y1;
                 p.x[0] = x1;
 
-                int Col[] = new int [3];
+                int Col[] = new int[3];
 
-                while (p.x[0] != x2 && p.x[1] != y2)
-                {
+                while (p.x[0] != x2 && p.x[1] != y2) {
                     ip[i].setLabel(p, 0);
                     Col[0] = 0;
 
                     ipp[i].getProcessor().putPixel(p.x[0], p.x[1], Col);
                     error = error + deltaerr;
 
-                    while (error >= 0.5)
-                    {
-                        p.x[1]+=yp;
+                    while (error >= 0.5) {
+                        p.x[1] += yp;
                         error = error - 1.0;
                         ip[i].setLabel(p, 0);
                         ipp[i].getProcessor().putPixel(p.x[0], p.x[1], Col);
                     }
-                    p.x[0]+=xp;
+                    p.x[0] += xp;
                 }
 
                 ipp[i].updateAndDraw();
@@ -312,56 +289,47 @@ public class ScoreFunctionRCtop implements ScoreFunction
 
     }
 
-    private class MergeBtn implements ActionListener
-    {
+    private class MergeBtn implements ActionListener {
+
         LabelImageRC ip[];
         ImagePlus ipp[];
         PickRegion pr[];
 
-        MergeBtn(LabelImageRC ip_[])
-        {
+        MergeBtn(LabelImageRC ip_[]) {
             ip = ip_;
             pr = new PickRegion[ip_.length];
             ipp = new ImagePlus[ip_.length];
-            for (int i = 0 ; i < ip_.length ; i++)
-            {
+            for (int i = 0; i < ip_.length; i++) {
                 ipp[i] = ip[i].convert("Topo-fix", 255);
                 ipp[i].show();
                 pr[i] = new PickRegion(ipp[i]);
             }
         }
 
-        ImagePlus [] getImagePlus()
-        {
+        ImagePlus[] getImagePlus() {
             return ipp;
         }
 
         @Override
-        public void actionPerformed(ActionEvent arg0)
-        {
+        public void actionPerformed(ActionEvent arg0) {
             int from;
             int to;
 
-            int Col[] = new int [3];
+            int Col[] = new int[3];
 
-
-            for (int i = 0 ; i < ip.length ; i++)
-            {
+            for (int i = 0; i < ip.length; i++) {
                 Vector<Point> pC = pr[i].getClick();
-                for (int j = 0 ; j < pC.size() ; j += 2)
-                {
+                for (int j = 0; j < pC.size(); j += 2) {
                     from = ip[i].getLabel(pC.get(j));
-                    to = ip[i].getLabel(pC.get(j+1));
+                    to = ip[i].getLabel(pC.get(j + 1));
 
                     RegionIterator itImg = new RegionIterator(ip[i].getDimensions());
 
                     Col[0] = to;
-                    while (itImg.hasNext())
-                    {
+                    while (itImg.hasNext()) {
                         int k = itImg.next();
                         Point p = itImg.getPoint();
-                        if (ip[i].getLabelAbs(k) == from)
-                        {
+                        if (ip[i].getLabelAbs(k) == from) {
                             ip[i].setLabel(k, to);
                             ipp[i].getProcessor().putPixel(p.x[0], p.x[1], Col);
                         }
@@ -375,18 +343,15 @@ public class ScoreFunctionRCtop implements ScoreFunction
 
     JDialog frm;
 
-    public void MergeAndDivideWin(LabelImageRC ip[])
-    {
+    public void MergeAndDivideWin(LabelImageRC ip[]) {
         lock = new Object();
         frm = new JDialog();
 
-        frm.addWindowListener( new WindowAdapter()
-        {
+        frm.addWindowListener(new WindowAdapter() {
+
             @Override
-            public void windowClosing(WindowEvent e)
-            {
-                synchronized(lock)
-                {
+            public void windowClosing(WindowEvent e) {
+                synchronized (lock) {
                     lock.notify();
                 }
             }
@@ -410,7 +375,7 @@ public class ScoreFunctionRCtop implements ScoreFunction
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
-        contentPane.add(contentDivide,c);
+        contentPane.add(contentDivide, c);
 
         // Merge message
         JPanel contentMerge = new JPanel();
@@ -423,19 +388,18 @@ public class ScoreFunctionRCtop implements ScoreFunction
         c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 1;
-        contentPane.add(contentMerge,c);
+        contentPane.add(contentMerge, c);
 
         MergeBtn btnL = new MergeBtn(ip);
 
         btnMerge.addActionListener(btnL);
-        btnDivide.addActionListener(new DivideBtn(ip,btnL.getImagePlus()));
+        btnDivide.addActionListener(new DivideBtn(ip, btnL.getImagePlus()));
 
         frm.setVisible(true);
 
         waitClose();
 
-        for (int i = 0 ; i < ip.length ; i++)
-        {
+        for (int i = 0; i < ip.length; i++) {
             ip[i].deleteParticles();
             ip[i].connectedComponents();
         }
@@ -443,17 +407,15 @@ public class ScoreFunctionRCtop implements ScoreFunction
 
     Object lock;
 
-    private void waitClose()
-    {
-        synchronized(lock)
-        {
+    private void waitClose() {
+        synchronized (lock) {
             try {
                 lock.wait();
-            } catch (InterruptedException e) {
+            }
+            catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
-
 
 }

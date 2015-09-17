@@ -1,5 +1,6 @@
 package mosaic.bregman.output;
 
+
 import java.util.Vector;
 
 import mosaic.bregman.Region;
@@ -7,11 +8,11 @@ import mosaic.core.GUI.GUIOutputChoose;
 import mosaic.utils.io.csv.CSV;
 
 
-public class SquasshOutputChoose extends GUIOutputChoose
-{
+public class SquasshOutputChoose extends GUIOutputChoose {
+
     /* Class to produce InterPluginsCSV of internal type */
 
-    public Class< CSV< ? extends Outdata<Region>> > CSVFactory;
+    public Class<CSV<? extends Outdata<Region>>> CSVFactory;
 
     /* Class to produce vactor of internal type */
 

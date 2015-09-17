@@ -10,15 +10,19 @@
  */
 
 package mosaic.interpolators;
+
+
 import ij.process.ImageProcessor;
 
 import java.awt.geom.Point2D;
 
 
 abstract class PixelInterpolator {
+
     ImageProcessor ip;
 
-    PixelInterpolator() {}
+    PixelInterpolator() {
+    }
 
     public void setImageProcessor(ImageProcessor ip) {
         this.ip = ip;

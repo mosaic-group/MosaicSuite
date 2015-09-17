@@ -1,5 +1,6 @@
 package mosaic.bregman.output;
 
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -9,6 +10,7 @@ import mosaic.bregman.Region;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 
+
 /**
  * Hopefully temporary class to perform some needed conversions and write output as CSV.
  * It remembers full type of objects so can perform some nasty conversions.
@@ -16,6 +18,7 @@ import mosaic.utils.io.csv.CsvColumnConfig;
  * @param <T>
  */
 public class ConvertAndWrite<T> {
+
     Class<T> iClazz;
 
     ConvertAndWrite(Class<T> aClazz) {
@@ -24,11 +27,12 @@ public class ConvertAndWrite<T> {
 
     @SuppressWarnings("unchecked")
     public void Write(CSV<? extends Outdata<Region>> aCsv, String aCsvFilename, Vector<?> aOutputData, CsvColumnConfig aOutputChoose, boolean aShouldAppend) {
-        ((CSV<T>)aCsv).Write(aCsvFilename, (Vector<T>) aOutputData, aOutputChoose, aShouldAppend);
+        ((CSV<T>) aCsv).Write(aCsvFilename, (Vector<T>) aOutputData, aOutputChoose, aShouldAppend);
     }
 
     /**
      * Create a vector of the internal type from an array of unknown type
+     * 
      * @param aData
      * @return
      */
@@ -49,17 +53,23 @@ public class ConvertAndWrite<T> {
                 v.add(element);
             }
 
-        } catch (NoSuchMethodException e) {
+        }
+        catch (NoSuchMethodException e) {
             e.printStackTrace();
-        } catch (SecurityException e) {
+        }
+        catch (SecurityException e) {
             e.printStackTrace();
-        } catch (InstantiationException e) {
+        }
+        catch (InstantiationException e) {
             e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        }
+        catch (IllegalAccessException e) {
             e.printStackTrace();
-        } catch (IllegalArgumentException e) {
+        }
+        catch (IllegalArgumentException e) {
             e.printStackTrace();
-        } catch (InvocationTargetException e) {
+        }
+        catch (InvocationTargetException e) {
             e.printStackTrace();
         }
 

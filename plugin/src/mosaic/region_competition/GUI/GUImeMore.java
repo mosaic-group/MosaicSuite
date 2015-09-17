@@ -1,15 +1,16 @@
 package mosaic.region_competition.GUI;
 
+
 import ij.gui.GenericDialog;
 import mosaic.region_competition.Settings;
 
-abstract class GUImeMore
-{
+
+abstract class GUImeMore {
+
     protected GenericDialog gd;
     protected Settings settings;
 
-    protected GUImeMore(Settings settings)
-    {
+    protected GUImeMore(Settings settings) {
         this.settings = settings;
         gd = new GenericDialog("");
     }
@@ -23,8 +24,7 @@ abstract class GUImeMore
      * Read out values from {@link GenericDialog} to {@link Settings} <br>
      * Always check first for GenericDialog.wasCancled()
      */
-    public final void processDialog()
-    {
+    public final void processDialog() {
         if (gd.wasCanceled()) {
             return;
         }
@@ -38,21 +38,19 @@ abstract class GUImeMore
      */
     protected abstract void process();
 
-
     /**
      * Shows the dialog (waits for confirmation)
      */
-    public void showDialog()
-    {
+    public void showDialog() {
         gd.showDialog();
     }
 
     /**
      * Gets an empty {@link GenericDialog}
+     * 
      * @return
      */
-    public static GenericDialog getNoGUI()
-    {
+    public static GenericDialog getNoGUI() {
         GenericDialog noGUI;
         noGUI = new GenericDialog("No additional Options");
         String text = "No additional options available";
@@ -62,4 +60,3 @@ abstract class GUImeMore
         return noGUI;
     }
 }
-
