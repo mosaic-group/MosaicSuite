@@ -1829,7 +1829,7 @@ public class Algorithm {
     }
 
     private static void debug(Object s) {
-        System.out.println(s);
+        //System.out.println(s);
     }
 
     // Control //////////////////////////////////////////////////

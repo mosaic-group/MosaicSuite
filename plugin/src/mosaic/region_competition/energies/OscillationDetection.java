@@ -83,7 +83,7 @@ public class OscillationDetection {
     }
 
     static void debug(String s) {
-        System.out.println(s);
+        //System.out.println(s);
     }
 
 }

@@ -269,7 +269,7 @@ public class Region_Competition implements Segmentation {
 
             // saving config file
             getConfigHandler().SaveToFile("/tmp/settings.dat", p);
-
+//            System.out.println(Debug.getJsonString(p));
             ClusterGUI cg = new ClusterGUI();
             ClusterSession ss = cg.getClusterSession();
             ss.setInputArgument("text1");
@@ -350,7 +350,7 @@ public class Region_Competition implements Segmentation {
             return NO_IMAGE_REQUIRED;
         } else {
             getConfigHandler().SaveToFile(sv, settings);
-
+//            System.out.println(Debug.getJsonString(settings));
             // init the input image we need to open it before run
 
             // if is 3D save the originalIP
@@ -1181,13 +1181,13 @@ public class Region_Competition implements Segmentation {
     private class StackWindowListener implements WindowListener {
         @Override
         public void windowClosing(WindowEvent e) {
-            System.out.println("stackimp closing");
+            //System.out.println("stackimp closing");
             stack = null;
         }
 
         @Override
         public void windowClosed(WindowEvent e) {
-            System.out.println("stackimp closed");
+            //System.out.println("stackimp closed");
             // hook to new window
             Window win = stackImPlus.getWindow();
             if (win != null) {
