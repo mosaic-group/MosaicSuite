@@ -24,12 +24,15 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Vector;
 
 import javax.swing.JFrame;
+
+import org.apache.log4j.Logger;
 
 import mosaic.core.ImagePatcher.ImagePatch;
 import mosaic.core.ImagePatcher.ImagePatcher;
@@ -62,6 +65,7 @@ import mosaic.region_competition.initializers.InitializationType;
 import mosaic.region_competition.initializers.MaximaBubbles;
 import mosaic.region_competition.utils.IntConverter;
 import mosaic.region_competition.utils.Timer;
+import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.serialize.DataFile;
 import mosaic.utils.io.serialize.SerializedDataFile;
 import net.imglib2.img.Img;
@@ -79,6 +83,8 @@ import net.imglib2.type.numeric.real.FloatType;
 
 public class Region_Competition implements Segmentation {
 
+    protected static final Logger logger = Logger.getLogger(Region_Competition.class);
+    
     private final String[] out = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
 
     private Region_Competition MVC; // interface to image application (imageJ)
@@ -864,16 +870,10 @@ public class Region_Competition implements Segmentation {
                 }
             }
 
-            System.out.println("--- kbest: (set in GenericDialogGui.kbest) ---");
-
-            for (Long l : list) {
-                System.out.println(l);
-            }
-            System.out.println("--- sorted ---");
+            logger.debug("--- kbest: (set in GenericDialogGui.kbest): " + Arrays.toString(list.toArray()));
             Collections.sort(list);
-            for (Long l : list) {
-                System.out.println(l);
-            }
+            logger.debug("--- sorted: " + Arrays.toString(list.toArray()));
+
         } else // no kbest
         {
             algorithm.GenerateData(image_psf);
@@ -932,7 +932,7 @@ public class Region_Competition implements Segmentation {
         Roi roi = null;
         roi = originalIP.getRoi();
         if (roi == null) {
-            System.out.println("no ROIs yet. Get from UserInput");
+            //System.out.println("no ROIs yet. Get from UserInput");
             ImageCanvas canvas = originalIP.getCanvas();
 
             // save old keylisteners, remove them (so we can use all keys to
@@ -1034,7 +1034,7 @@ public class Region_Competition implements Segmentation {
     private void addSliceToStackAndShow(String title, Object pixels) {
         if (stack == null) {
             // stack was closed by user, don't reopen
-            System.out.println("stack is null");
+            //System.out.println("stack is null");
             return;
         }
 
@@ -1081,7 +1081,7 @@ public class Region_Competition implements Segmentation {
     private void addSliceToHyperstack(String title, ImageStack stackslice) {
         if (stack == null) {
             // stack was closed by user, dont reopen
-            System.out.println("stack is null");
+            // System.out.println("stack is null");
             return;
         }
 
