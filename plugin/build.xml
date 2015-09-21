@@ -87,7 +87,8 @@
             Deleting files...
         </echo>
         <mkdir dir="${build}" />
-        <delete>
+        <mkdir dir="${pluginsDir}" />
+	<delete>
             <fileset dir="${pluginsDir}" includes="${jarfilename}.jar" />
         </delete>
         <delete includeEmptyDirs="true">
