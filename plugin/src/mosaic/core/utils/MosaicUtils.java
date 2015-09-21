@@ -376,12 +376,17 @@ public class MosaicUtils {
     public static String[] readAndSplit(String file) {
         // Z means: "The end of the input but for the final terminator, if any"
         String output = null;
+        Scanner scanner = null;
         try {
-            output = new Scanner(new File(file)).useDelimiter("\\Z").next();
+            scanner = new Scanner(new File(file));
+            output = scanner.useDelimiter("\\Z").next();
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
             return null;
+        } 
+        finally {
+            if (scanner != null) scanner.close();
         }
 
         return output.split(" ");

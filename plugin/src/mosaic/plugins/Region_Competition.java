@@ -32,8 +32,6 @@ import java.util.Vector;
 
 import javax.swing.JFrame;
 
-import org.apache.log4j.Logger;
-
 import mosaic.core.ImagePatcher.ImagePatch;
 import mosaic.core.ImagePatcher.ImagePatcher;
 import mosaic.core.cluster.ClusterGUI;
@@ -65,7 +63,6 @@ import mosaic.region_competition.initializers.InitializationType;
 import mosaic.region_competition.initializers.MaximaBubbles;
 import mosaic.region_competition.utils.IntConverter;
 import mosaic.region_competition.utils.Timer;
-import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.serialize.DataFile;
 import mosaic.utils.io.serialize.SerializedDataFile;
 import net.imglib2.img.Img;
@@ -75,6 +72,8 @@ import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
+
+import org.apache.log4j.Logger;
 
 /**
  * @author Stephan Semmler, ETH Zurich
