@@ -105,6 +105,6 @@ public class CircleMask extends Mask {
     @Override
     public int getFgPoints() {
         return fgPoints;
-    };
+    }
 
 }

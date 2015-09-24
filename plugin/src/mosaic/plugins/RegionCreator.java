@@ -575,7 +575,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         // get output folder
 
-        String output = IJ.getDirectory("Choose output directory");;
+        String output = IJ.getDirectory("Choose output directory");
         output += ImgTitle + ".csv";
 
         //

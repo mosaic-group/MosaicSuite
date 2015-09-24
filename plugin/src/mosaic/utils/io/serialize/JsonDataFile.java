@@ -90,8 +90,7 @@ public class JsonDataFile<T> implements DataFile<T> {
         if (temp != null) {
             return temp;
         }
-        else {
-            return aDefaultValue;
-        }
+        
+        return aDefaultValue;
     }
 }

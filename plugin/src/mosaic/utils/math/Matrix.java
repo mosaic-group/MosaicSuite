@@ -646,7 +646,6 @@ public class Matrix {
             for (int i = 0; i < len; ++i) {
                 iMatrix.data[i] = (iMatrix.data[i] - min) / (max - min);
             }
-            ;
         }
         return this;
     }

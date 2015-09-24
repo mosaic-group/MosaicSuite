@@ -1,29 +1,5 @@
 package mosaic.plugins;
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.Macro;
-import ij.WindowManager;
-import ij.gui.GUI;
-import ij.gui.GenericDialog;
-import ij.gui.ImageCanvas;
-import ij.gui.NonBlockingGenericDialog;
-import ij.gui.Roi;
-import ij.gui.StackWindow;
-import ij.gui.YesNoCancelDialog;
-import ij.io.FileInfo;
-import ij.io.OpenDialog;
-import ij.io.Opener;
-import ij.io.SaveDialog;
-import ij.measure.Calibration;
-import ij.measure.Measurements;
-import ij.measure.ResultsTable;
-import ij.process.ImageProcessor;
-import ij.process.StackConverter;
-import ij.process.StackStatistics;
-import ij.text.TextPanel;
-
 import java.awt.AWTEvent;
 import java.awt.Button;
 import java.awt.Checkbox;
@@ -45,7 +21,6 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
@@ -73,6 +48,32 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.WindowManager;
+import ij.gui.GUI;
+import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
+import ij.gui.NonBlockingGenericDialog;
+import ij.gui.Roi;
+import ij.gui.StackWindow;
+import ij.gui.YesNoCancelDialog;
+import ij.io.FileInfo;
+import ij.io.OpenDialog;
+import ij.io.Opener;
+import ij.io.SaveDialog;
+import ij.measure.Calibration;
+import ij.measure.Measurements;
+import ij.measure.ResultsTable;
+import ij.process.ImageProcessor;
+import ij.process.StackConverter;
+import ij.process.StackStatistics;
+import ij.text.TextPanel;
 import mosaic.core.GUI.ParticleTrackerHelp;
 import mosaic.core.detection.FeaturePointDetector;
 import mosaic.core.detection.MyFrame;
@@ -111,9 +112,6 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
 import net.imglib2.view.IntervalView;
 import net.imglib2.view.Views;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /**
  * <h2>ParticleTracker</h2>
@@ -1090,7 +1088,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      *
      */
 
-    private class TrajectoryStackWin extends StackWindow implements ActionListener, MouseListener
+    private class TrajectoryStackWin extends StackWindow implements MouseListener
     {
 
         private static final long serialVersionUID = 1L;
@@ -1353,7 +1351,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      *
      */
 
-    private class FocusStackWin extends StackWindow implements ItemListener, AdjustmentListener
+    private class FocusStackWin extends StackWindow implements ItemListener
     {
         private static final long serialVersionUID = 1L;
         private Checkbox Auto_Z;
@@ -1411,7 +1409,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         }
 
         @Override
-        public
+        public synchronized
         void adjustmentValueChanged(AdjustmentEvent e)
         {
             if (Auto_Z.getState() == true)

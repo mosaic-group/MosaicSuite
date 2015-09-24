@@ -259,6 +259,7 @@ public class Trajectory {
                 System.out.println(s);
                 break;
             case IJ_RESULTS_WINDOW:
+            default:
                 IJ.log(s.toString());
                 break;
         }

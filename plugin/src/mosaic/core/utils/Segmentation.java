@@ -39,4 +39,4 @@ public interface Segmentation extends PlugInFilterExt {
      */
 
     String getName();
-};
+}

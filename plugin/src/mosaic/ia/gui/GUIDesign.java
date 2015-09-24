@@ -257,10 +257,10 @@ public class GUIDesign implements ActionListener {
                         .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addComponent(estimate).addContainerGap()));
         panel_5.setLayout(gl_panel_5);
 
-        JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+        JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP);
         // tabbedPane.setEnabled(false);
 
-        JTabbedPane tabbedPane_1 = new JTabbedPane(JTabbedPane.TOP);
+        JTabbedPane tabbedPane_1 = new JTabbedPane(SwingConstants.TOP);
 
         JPanel panel_3 = new JPanel();
         tabbedPane_1.addTab("Apply mask", null, panel_3, null);

@@ -151,7 +151,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
         contentPane.add(lblNewLabel_2);
 
         JComboBox<String> comboBox_1 = new JComboBox<String>();
-        ;
 
         String[] md = GetROI();
 

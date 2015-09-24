@@ -20,8 +20,7 @@ import net.jgeom.nurbs.util.InterpolationException;
  */
 class BSplineCreator {
 
-    static BasicNurbsSurface globalSurfaceInterpolation(Point3d points[][], int p, int q)
-            throws InterpolationException {
+    static BasicNurbsSurface globalSurfaceInterpolation(Point3d points[][], int p, int q) {
         int n = points.length - 1;
         int m = points[0].length - 1;
 

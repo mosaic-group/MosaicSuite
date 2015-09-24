@@ -47,7 +47,7 @@ class RCProgressWin extends JFrame implements MouseListener {
 
     enum StatusSel {
         RUNNING, STOP,
-    };
+    }
 
     StatusSel sStat = StatusSel.RUNNING;
     int selection = -1;

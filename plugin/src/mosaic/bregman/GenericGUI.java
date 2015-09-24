@@ -39,28 +39,13 @@ import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicTest;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BregmanGLM_Batch;
-//import java.awt.event.FocusEvent;
-//import java.awt.event.FocusListener;
-//import java.awt.event.TextEvent;
-//import java.awt.event.TextListener;
-//import java.io.File;
-//import java.io.InputStream;
-//import java.io.InputStreamReader;
-//import java.util.List;
-//import java.util.StringTokenizer;
-//import javax.swing.JTextArea;
-//
-//
-//
-//import ij.IJ;
-//import ij.ImagePlus;
 
 
 public class GenericGUI {
 
     private enum run_mode {
         USE_CLUSTER, LOCAL, STOP
-    };
+    }
 
     public static boolean bypass_GUI = false;
     boolean clustermode;

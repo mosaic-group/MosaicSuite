@@ -154,7 +154,7 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
     @SuppressWarnings("unchecked")
     public Img<E> assemble(Class<E> cls, int start) {
         ImgFactory<E> imgFactory_lbl = new ArrayImgFactory<E>();
-        ;
+        
         Img<E> img_ass = null;
 
         try {

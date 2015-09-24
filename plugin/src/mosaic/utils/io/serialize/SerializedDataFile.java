@@ -101,8 +101,7 @@ public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
         if (temp != null) {
             return temp;
         }
-        else {
-            return aDefaultValue;
-        }
+        
+        return aDefaultValue;
     }
 }

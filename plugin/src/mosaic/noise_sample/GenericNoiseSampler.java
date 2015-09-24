@@ -126,7 +126,7 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
         T intensity;
         Histogram1d<T> hist;
         long integral;
-    };
+    }
 
     Vector<Ihist> inteHist;
 

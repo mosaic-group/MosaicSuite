@@ -35,7 +35,7 @@ class GaussPSFSettings implements Serializable {
     float var[] = new float[16];
 }
 
-public class GaussPSF<T extends RealType<T>> implements psf<T>, PSFGui {
+public class GaussPSF<T extends RealType<T>> implements psf<T> {
 
     GaussPSFSettings settings = new GaussPSFSettings();
 
@@ -453,4 +453,4 @@ public class GaussPSF<T extends RealType<T>> implements psf<T>, PSFGui {
 
         return ofs;
     }
-};
+}

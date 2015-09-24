@@ -1360,9 +1360,10 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                 return (x > 0);
             case 7:
                 return (x > 0 && y > 0);
+            default:
+                return false;
         }
-        return false; // to make the compiler happy :-)
-    } // isWithin
+    }
 
     /** add work done in the meanwhile and show progress */
     private void addProgress(double deltaProgress) {

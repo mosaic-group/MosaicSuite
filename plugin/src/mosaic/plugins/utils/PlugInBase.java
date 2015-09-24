@@ -35,7 +35,7 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
      * GENERATE_NEW - crates new image with same parameters (type, number of slices...) as original one
      * NONE - do nothing, plugin itself should generate and update output image
      */
-    protected enum ResultOutput {UPDATE_ORIGINAL, GENERATE_NEW, NONE};
+    protected enum ResultOutput {UPDATE_ORIGINAL, GENERATE_NEW, NONE}
     ResultOutput iResultOutput = ResultOutput.GENERATE_NEW;
 
     /*
@@ -52,8 +52,8 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
     abstract protected int getFlags();
     abstract protected void updateFlags(int aFlag);
     abstract protected boolean setup(final String aArgs);
-    protected void postprocessBeforeShow() {};
-    protected void postprocessFinal() {};
+    protected void postprocessBeforeShow() {}
+    protected void postprocessFinal() {}
 
     @Override
     public int setup(final String aArgs, final ImagePlus aImp) {

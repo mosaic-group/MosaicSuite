@@ -11,7 +11,7 @@ class JobStatus {
 
     enum jobS {
         PENDING, RUNNING, COMPLETE, FAILED, UNKNOWN
-    };
+    }
 
     private jobS js;
     private jobS js_N;
@@ -88,4 +88,4 @@ class JobStatus {
     void setStatus(jobS js_) {
         js = js_;
     }
-};
+}

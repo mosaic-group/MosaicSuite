@@ -234,4 +234,4 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
     public Point getP1() {
         return p1;
     }
-};
+}

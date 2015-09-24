@@ -112,4 +112,4 @@ public interface psf<T extends RealType<T>> extends RandomAccess<T>, PSFGui {
      */
     // @Deprecated
     public float[][] getImage2DAsFloatArray();
-};
+}

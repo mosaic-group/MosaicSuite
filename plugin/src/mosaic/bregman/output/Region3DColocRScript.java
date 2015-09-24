@@ -149,7 +149,7 @@ public class Region3DColocRScript implements Outdata<Region> {
             if (Coloc_object_intensity != r_.Coloc_object_intensity) {
                 return false;
             }
-            if (Single_Coloc = r_.Single_Coloc) {
+            if (Single_Coloc != r_.Single_Coloc) {
                 return false;
             }
             if (Coloc_image_intensity != r_.Coloc_image_intensity) {

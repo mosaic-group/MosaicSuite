@@ -28,7 +28,6 @@ public class CSVTest extends CommonBase {
     /**
      * TestThing is a helper class used for testing CSV
      */
-    @SuppressWarnings("unused") // get/set methods are accessed via reflection
     static public class TestThing {
         // Definitions for CSV input/output
         public static final String[] Thing_map = new String[] { "ID", "CalculatedValue" };
@@ -75,7 +74,7 @@ public class CSVTest extends CommonBase {
     /**
      * TestThing is a helper class used for testing CSV
      */
-    @SuppressWarnings("unused") // get/set methods are accessed via reflection
+    //@SuppressWarnings("unused") // get/set methods are accessed via reflection
     static public class TestSmall {
         // Definitions for CSV input/output
         public static final String[] Small_map = new String[] {"ID"};
@@ -128,10 +127,8 @@ public class CSVTest extends CommonBase {
     }
 
     static void saveFile(String aFullPathFile, String aContent) {
-        try {
-            PrintWriter out = new PrintWriter(aFullPathFile);
+        try (PrintWriter out = new PrintWriter(aFullPathFile)) {
             out.print(aContent);
-            out.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             fail("Writing [" + aFullPathFile + "] file failed.");

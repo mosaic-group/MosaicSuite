@@ -179,7 +179,7 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
 
         for (Map.Entry<Integer,Point> entry : LabelsList.entrySet())
         {
-            img.AddThresholdBetween(entry.getKey(), entry.getKey());;
+            img.AddThresholdBetween(entry.getKey(), entry.getKey());
             FloodFill ff = new FloodFill(cnv,img,entry.getValue());
 
             // Found a region and process it

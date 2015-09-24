@@ -2,11 +2,11 @@ package mosaic.plugins;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import ij.plugin.filter.PlugInFilter;
-import mosaic.test.framework.CommonBase;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
+
+import mosaic.test.framework.CommonBase;
 
 /**
  * {@link Naturalization} plugin tests.
@@ -20,7 +20,6 @@ public class NaturalizationTest extends CommonBase {
         // Define test data
         String tcDirName          = "Naturalization/flower/";
         String setupString        = "run";
-        int expectedSetupRetValue = PlugInFilter.DONE;
         String[] inputFiles       = {"x.png"};
         String[] expectedFiles    = {"naturalized_x.png"};
         String[] referenceFiles   = {"x_nat.tif"};
@@ -31,7 +30,7 @@ public class NaturalizationTest extends CommonBase {
         // Test it
         testPlugin(nt, tcDirName,
                 inputFiles, expectedFiles, referenceFiles,
-                setupString, expectedSetupRetValue);
+                setupString);
     }
 
     @Test
@@ -39,7 +38,6 @@ public class NaturalizationTest extends CommonBase {
         // Define test data
         String tcDirName          = "Naturalization/flower/";
         String setupString        = "run";
-        int expectedSetupRetValue = PlugInFilter.DONE;
         String[] inputFiles       = {"x8bit.png"};
         String[] expectedFiles    = {"naturalized_x8bit.png"};
         String[] referenceFiles   = {"x8bit_nat.tif"};
@@ -50,7 +48,7 @@ public class NaturalizationTest extends CommonBase {
         // Test it
         testPlugin(nt, tcDirName,
                 inputFiles, expectedFiles, referenceFiles,
-                setupString, expectedSetupRetValue);
+                setupString);
     }
 
     @Test

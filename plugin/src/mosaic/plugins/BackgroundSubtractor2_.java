@@ -270,15 +270,19 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
             switch (vType) {
                 case BYTE:
                     vImageProcessor = vImageProcessor.convertToByte(false);
-                    vOrigImageProcessor.insert(vImageProcessor,0,0);
+                    vOrigImageProcessor.insert(vImageProcessor, 0, 0);
                     break;
                 case SHORT:
                     vImageProcessor = vImageProcessor.convertToShort(false);
-                    vOrigImageProcessor.insert(vImageProcessor,0, 0);
+                    vOrigImageProcessor.insert(vImageProcessor, 0, 0);
                     break;
                 case FLOAT:
                     vOrigImageProcessor.insert(vImageProcessor, 0, 0);
                     break;
+                default:
+                    // Should not happen
+                    IJ.showMessage("Wrong image type");
+                    return;
             }
         }
         if (mShowBackgroundImage) {

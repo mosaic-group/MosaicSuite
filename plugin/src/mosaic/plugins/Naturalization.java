@@ -104,6 +104,7 @@ public class Naturalization extends PlugIn8bitBase
                     case CHANNEL_G: rs.addValue("Naturalization G", m.getValue()); rs.addValue("Estimated G PSNR", calculate_PSNR(m.getValue())); break;
                     case CHANNEL_B: rs.addValue("Naturalization B", m.getValue()); rs.addValue("Estimated B PSNR", calculate_PSNR(m.getValue())); break;
                     case CHANNEL_8G: rs.addValue("Naturalization", m.getValue()); rs.addValue("Estimated PSNR", calculate_PSNR(m.getValue())); break;
+                    default: break;
                 }
             }
         }
@@ -112,7 +113,7 @@ public class Naturalization extends PlugIn8bitBase
             rs.show("Naturalization and PSNR");
             showMessage();
         }
-    };
+    }
 
     private ImagePlus naturalize8bitImage(ByteProcessor imp, int aChannelNumber) {
         Img<UnsignedByteType> TChannel = ImagePlusAdapter.wrap(new ImagePlus("", imp));

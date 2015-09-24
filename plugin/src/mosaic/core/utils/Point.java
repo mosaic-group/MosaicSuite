@@ -21,7 +21,7 @@ public class Point {
     }
 
     public Point() {
-    };
+    }
 
     /**
      * Constructs a Point by copying a Point
@@ -250,13 +250,7 @@ public class Point {
     @Override
     public boolean equals(Object o) {
         return Arrays.equals(x, ((Point) o).x);
-        // return x.equals(((Point)o).x);
-        // for (int i=0; i<dim; i++)
-        // {
-        // if (this.x[i]!=((Point)o).x[i]) return false;
-        // }
-        // return true;
-    };
+    }
 
     /**
      * Clone the point

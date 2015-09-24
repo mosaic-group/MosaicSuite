@@ -301,7 +301,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                 }
             });
         }
-    };
+    }
 
     @Override
     protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber) {

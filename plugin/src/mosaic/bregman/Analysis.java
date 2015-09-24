@@ -32,7 +32,7 @@ public class Analysis {
         public int getNumVal() {
             return numVal;
         }
-    };
+    }
 
     // This is the output for cluster
     public static String out[] = { "*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", "*_mask_c1.zip", "*_mask_c2.zip", "*_ImagesData.csv", "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
@@ -142,7 +142,6 @@ public class Analysis {
      * @param channel
      * @return Vector with objects
      */
-    @SuppressWarnings("unchecked")
     static Vector<? extends Outdata<Region>> getObjectsList(int f, int channel) {
         Vector<? extends Outdata<Region>> v = CSVOutput.getVector(regionslist[channel]);
 

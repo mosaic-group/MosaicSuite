@@ -45,12 +45,12 @@ public class SegmentationAlgorithm {
     // Possible noise type of input image
     public static enum NoiseType {
         GAUSSIAN, POISSON
-    };
+    }
 
     // PSF kernel type / Microscopy type
     public static enum PsfType {
         GAUSSIAN, DARK_FIELD, PHASE_CONTRAST, NONE
-    };
+    }
 
     // Input data
     private double[][] iImage;

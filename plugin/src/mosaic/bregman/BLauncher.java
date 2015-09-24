@@ -231,7 +231,6 @@ class BLauncher {
             if (Analysis.p.nchannels == 2) {
                 displayRegionsCol(Analysis.regions[0], 2, Analysis.regionslist[0].size(), sep);
             }
-            ;
         }
         if (Analysis.p.dispcolors) {
             displayRegionsLab(1, sep);

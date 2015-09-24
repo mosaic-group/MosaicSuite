@@ -52,7 +52,7 @@ class FilePSFSettings implements Serializable {
  * @param <T> Type of image to produce FloatType, Short .......
  */
 
-class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T>, PSFGui {
+class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> {
 
     FilePSFSettings settings = new FilePSFSettings();
     Img<T> image;

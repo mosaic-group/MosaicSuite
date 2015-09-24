@@ -78,7 +78,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         pinput_in.close();
         pinput_out.close();
         poutput_in.close();
-        ;
+        
         poutput_out.close();
         cSFTP.disconnect();
         cSSH.disconnect();
@@ -89,7 +89,6 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * Set the batch interface. Required in order to parse
      * the command output
      */
-
     void setShellProcessOutput(ShellProcessOutput prc_) {
         shp = prc_;
     }
@@ -100,7 +99,6 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * @param Directory
      * @return All directories, return null if there are problems to connect
      */
-
     String[] getDirs(String Directory) {
         Vector<String> vs = new Vector<String>();
         try {
@@ -121,9 +119,6 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
             e.printStackTrace();
         }
         catch (JSchException e) {
-            e.printStackTrace();
-        }
-        catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -149,9 +144,6 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
         }
         catch (JSchException e) {
-            return false;
-        }
-        catch (IOException e) {
             return false;
         }
         catch (SftpException e) {
@@ -188,9 +180,6 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         catch (JSchException e) {
             return false;
         }
-        catch (IOException e) {
-            return false;
-        }
         catch (SftpException e) {
             return false;
         }
@@ -224,9 +213,9 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         }
 
         return true;
-    };
+    }
 
-    private boolean createSession() throws IOException, JSchException {
+    private boolean createSession() throws JSchException {
         if (jsch == null) {
             jsch = new JSch();
         }
@@ -274,7 +263,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         return true;
     }
 
-    private boolean createSSHChannel() throws JSchException, IOException {
+    private boolean createSSHChannel() throws JSchException {
         if (jsch == null) {
             jsch = new JSch();
         }
@@ -299,7 +288,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         return true;
     }
 
-    private boolean createSftpChannel() throws JSchException, IOException {
+    private boolean createSftpChannel() throws JSchException {
         if (jsch == null) {
             jsch = new JSch();
         }
@@ -438,7 +427,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         }
 
         return ret;
-    };
+    }
 
     /**
      * Find the common prefix in the array and delete it from File array
@@ -628,7 +617,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         }
 
         return true;
-    };
+    }
 
     /**
      * Return the session id as a String

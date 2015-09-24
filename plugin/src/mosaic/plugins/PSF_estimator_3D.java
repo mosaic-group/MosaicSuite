@@ -1,5 +1,11 @@
 package mosaic.plugins;
 
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.Vector;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -13,14 +19,6 @@ import ij.process.Blitter;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.StackStatistics;
-
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.Vector;
-
 import mosaic.interpolators.BilinearInterpolator;
 
 //TODO: GUI,
@@ -976,7 +974,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
     }
 
     @SuppressWarnings("serial")
-    private class TrajectoryStackWindow extends StackWindow implements ActionListener, MouseListener{
+    private class TrajectoryStackWindow extends StackWindow implements MouseListener{
 
         public TrajectoryStackWindow(ImagePlus aIMP, ImageCanvas aIC) {
             super(aIMP, aIC);

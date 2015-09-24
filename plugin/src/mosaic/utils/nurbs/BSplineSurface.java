@@ -147,7 +147,7 @@ public class BSplineSurface {
         if (max != 0) {
             for (int u = 0; u < iCoeffLenU; ++u) {
                 for (int v = 0; v < iCoeffLenV; ++v) {
-                    coeff[u][v] = 2*coeff[u][v] / max;
+                    coeff[u][v] = aMultiplier * coeff[u][v] / max;
                 }
             }
             setCoefficients(coeff);
@@ -279,16 +279,7 @@ public class BSplineSurface {
     }
 
     private void generateSurface()  {
-        try {
-            iSurface = BSplineCreator.globalSurfaceInterpolation(iPoints, iDegreeInUdir, iDegreeInVdir);
-        } catch (InterpolationException e) {
-            iSurface = null;
-            iCtrlNet = null;
-            iCoeffLenU = 0;
-            iCoeffLenV = 0;
-            e.printStackTrace();
-            return;
-        }
+        iSurface = BSplineCreator.globalSurfaceInterpolation(iPoints, iDegreeInUdir, iDegreeInVdir);
 
         iCtrlNet = iSurface.getControlNet();
         iCoeffLenU = iCtrlNet.uLength();

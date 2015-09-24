@@ -27,4 +27,4 @@ public class CsvColumnConfig {
     public String toString() {
         return new String("FieldMapping: " + Arrays.toString(fieldMapping) + " CellProcessors: " + Arrays.toString(cellProcessors));
     }
-};
+}

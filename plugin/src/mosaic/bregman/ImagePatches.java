@@ -379,7 +379,6 @@ class ImagePatches {
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
                     regions_refined[z][i][j] = 0;
-                    ;
                 }
             }
         }

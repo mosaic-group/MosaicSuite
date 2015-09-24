@@ -36,4 +36,4 @@ public class QueueProfile {
     public double getlimit() {
         return limit;
     }
-};
+}

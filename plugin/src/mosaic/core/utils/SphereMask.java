@@ -23,7 +23,7 @@ public class SphereMask extends Mask {
     @Override
     public int getFgPoints() {
         return fgPoints;
-    };
+    }
 
     /**
      * Create a sphere mask

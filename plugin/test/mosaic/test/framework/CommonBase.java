@@ -86,7 +86,7 @@ public class CommonBase extends Info {
     protected void testPlugin(PlugInFilter aTestedPlugin,
             final String aTcDirName, final String[] aInputFiles,
             final String[] aExpectedFiles, final String[] aReferenceFiles,
-            final String aSetupString, final int aExpectedSetupRetValue) {
+            final String aSetupString) {
         testPlugin(aTestedPlugin, aTcDirName, aInputFiles, aExpectedFiles,
                 aReferenceFiles, aSetupString, null);
     }
