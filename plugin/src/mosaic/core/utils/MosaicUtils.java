@@ -907,7 +907,7 @@ public class MosaicUtils {
      * @param imp ImagePlus to start with
      * @return awt Choice control
      */
-    public static Choice chooseImage(GenericDialog gd, String cs, ImagePlus imp) {
+    public static Choice chooseImage(GenericDialog gd, ImagePlus imp) {
         int nOpenedImages = 0;
         int[] ids = WindowManager.getIDList();
 

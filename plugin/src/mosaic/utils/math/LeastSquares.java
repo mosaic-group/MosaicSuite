@@ -49,7 +49,7 @@ public class LeastSquares {
      * @param aValues
      * @return sum of all elements
      */
-    private double Sum(final double[] aValues) {
+    private static double Sum(final double[] aValues) {
         double sum = 0;
         for (int i = 0; i < aValues.length; ++i) {
             sum += aValues[i];
@@ -66,7 +66,7 @@ public class LeastSquares {
      * @param aY
      * @return product of aX and aY
      */
-    private double SumMultiplied(final double[] aX, final double[] aY) {
+    private static double SumMultiplied(final double[] aX, final double[] aY) {
         double sum = 0;
         for (int i = 0; i < aX.length; ++i) {
             sum += aX[i] * aY[i];

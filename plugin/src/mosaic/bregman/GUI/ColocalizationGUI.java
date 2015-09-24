@@ -75,7 +75,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
     }
 
-    public void run(String arg) {
+    public void run() {
         Font bf = new Font(null, Font.BOLD, 12);
 
         GenericDialog gd = new GenericDialog("Cell masks");

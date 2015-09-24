@@ -73,7 +73,7 @@ class FindConnectedRegions {
     private static final byte IN_QUEUE = 1;
     private static final byte ADDED = 2;
 
-    public void run(double threshold, int channel, int maxvesiclesize, int minvesiclesize, double minInt, float[][][] tr, boolean displ, boolean save) {
+    public void run(double threshold, int maxvesiclesize, int minvesiclesize, double minInt, float[][][] tr) {
 
         int tag = 0;
 
@@ -158,14 +158,6 @@ class FindConnectedRegions {
             IJ.error("This stack is too large for this plugin (must have less than " + Integer.MAX_VALUE + " points.");
             return;
         }
-
-        String[] materialList = null;
-
-        // AmiraParameters parameters = null;
-        // if (AmiraParameters.isAmiraLabelfield(imagePlus)) {
-        // parameters = new AmiraParameters(imagePlus);
-        // materialList = parameters.getMaterialList();
-        // }
 
         ImageStack stack = imagePlus.getStack();
 
@@ -336,12 +328,7 @@ class FindConnectedRegions {
             firstTime = false;
 
             int vint = foundValueInt;
-            // float vfloat = foundValueFloat;
 
-            String materialName = null;
-            if (materialList != null) {
-                materialName = materialList[vint];
-            }
             int pointsInQueue = 0;
             int queueArrayLength = 1024;
             int[] queue = new int[queueArrayLength];
@@ -465,10 +452,10 @@ class FindConnectedRegions {
 
             if (byteImage) {
                 // IJ.log("region tag t2" + vint);
-                region = new Region(vint, materialName, pointsInThisRegion, mustHaveSameValue);
+                region = new Region(vint, pointsInThisRegion);
             }
             else {
-                region = new Region(pointsInThisRegion, mustHaveSameValue);
+                region = new Region(pointsInThisRegion);
             }
 
             // IJ.log("size " + pointsInThisRegion);

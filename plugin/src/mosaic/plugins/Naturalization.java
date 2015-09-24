@@ -136,7 +136,7 @@ public class Naturalization extends PlugIn8bitBase
      * @param T2_prior Prior to use
      * @param result One element array to store nautralization factor
      */
-    private <T extends NumericType<T> & NativeType<T> & RealType<T>, S extends RealType<S>> Img<T> doNaturalization(Img<T> image_orig, S Theta,Class<T> cls_t, Class<S> cls_s, float T2_prior, float[] result) throws InstantiationException, IllegalAccessException
+    private <T extends NumericType<T> & NativeType<T> & RealType<T>, S extends RealType<S>> Img<T> doNaturalization(Img<T> image_orig, S Theta,Class<T> cls_t, float T2_prior, float[] result) throws InstantiationException, IllegalAccessException
     {
         if (image_orig == null) {return null;}
 
@@ -151,13 +151,13 @@ public class Naturalization extends PlugIn8bitBase
 
         float Nf = findNaturalizationFactor(image_orig, Theta, T2_prior);
         result[0] = Nf;
-        Img<T> image_result = naturalizeImage(image_orig, Nf, cls_t, cls_s);
+        Img<T> image_result = naturalizeImage(image_orig, Nf, cls_t);
 
         return image_result;
     }
 
     private <S extends RealType<S>, T extends NumericType<T> & NativeType<T> & RealType<T>>
-    Img<T> naturalizeImage(Img<T> image_orig, float Nf, Class<T> cls_t, Class<S> cls_s)
+    Img<T> naturalizeImage(Img<T> image_orig, float Nf, Class<T> cls_t)
             throws InstantiationException, IllegalAccessException
             {
         // Mean of the original image
@@ -268,7 +268,7 @@ public class Naturalization extends PlugIn8bitBase
         // Parameters balance between first order and second order
         FloatType Theta = new FloatType(0.5f);
         try {
-            channel = doNaturalization(channel, Theta, UnsignedByteType.class, FloatType.class, T2_prior, result);
+            channel = doNaturalization(channel, Theta, UnsignedByteType.class, T2_prior, result);
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {

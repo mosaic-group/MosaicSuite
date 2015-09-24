@@ -612,7 +612,7 @@ class RegionStatisticsSolver {
 
     }
 
-    void cluster_region_voronoi2(float[][][] Ri, float[][][] Ro, ArrayList<Region> regionslist) {
+    void cluster_region_voronoi2(float[][][] Ri, ArrayList<Region> regionslist) {
         // int nk=3;//3
 
         // double [] levels= new double[nk];

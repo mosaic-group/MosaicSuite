@@ -294,7 +294,7 @@ class LSFBatch implements BatchInterface {
         // Get the Job ID
         File jid = new File(tmp_dir + "JobID");
         jid.delete();
-        ss.download(cp.getPassword(), fl, new File(tmp_dir), null, cp);
+        ss.download(fl, new File(tmp_dir), null, cp);
         if (jid.exists() == false) {
             return false;
         }
@@ -370,7 +370,7 @@ class LSFBatch implements BatchInterface {
         String[] commands = new String[1];
         commands[0] = new String("rm -rf " + lDir);
 
-        ss.runCommands(cp.getPassword(), commands);
+        ss.runCommands(commands);
     }
 
     /**

@@ -27,6 +27,9 @@ abstract class InitializationGUI extends GUImeMore {
                 result = new LocalMaxGUI(settings);
                 break;
             }
+            case File:
+            case File_Patcher:
+            case ROI_2D:
             default: {
                 result = new DefaultInitGUI();
                 break;

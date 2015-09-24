@@ -154,7 +154,7 @@ public class ClusterSession {
         wp.SetProgress(0);
         wp.SetStatusMessage("Uploading...");
 
-        if (ss.upload(cp.getPassword(), fl, dir, wp, cp) == false) {
+        if (ss.upload(fl, dir, wp, cp) == false) {
             CleanUp();
             return false;
         }
@@ -196,12 +196,12 @@ public class ClusterSession {
             String[] commands = new String[1];
             commands[0] = new String("rm -rf Fiji.app");
 
-            ss.runCommands(cp.getPassword(), commands);
+            ss.runCommands(commands);
 
             String CommandL[] = { "cd " + cp.getRunningDir(), "wget mosaic.mpi-cbg.de/Downloads/fiji-linux64.tar.gz", "tar -xf fiji-linux64.tar.gz", "cd Fiji.app", "cd plugins",
                     "mkdir Mosaic_ToolSuite", "cd Mosaic_ToolSuite", "wget mosaic.mpi-cbg.de/Downloads/Mosaic_ToolSuite_for_cluster.jar" };
 
-            ss.runCommands(cp.getPassword(), CommandL);
+            ss.runCommands(CommandL);
 
             // Wait to install Fiji
             do {
@@ -248,7 +248,7 @@ public class ClusterSession {
                 fll[0] = new File(tmp_dir + ss.getSession_id());
                 fll[1] = new File(tmp_dir + "settings.dat");
                 fll[2] = new File(tmp_dir + ss.getSession_id() + ".ijm");
-                ss.upload(cp.getPassword(), fll, null, null);
+                ss.upload(fll, null, null);
             }
             catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -264,7 +264,7 @@ public class ClusterSession {
         commands[1] = bc.runCommand(ss.getTransfertDir());
 
         bc.setJobID(0);
-        ss.runCommands(cp.getPassword(), commands);
+        ss.runCommands(commands);
 
         // Wait that the command get processed
         // horrible but it work
@@ -301,7 +301,7 @@ public class ClusterSession {
             File fll[] = new File[1];
             fll[0] = new File(tmp_dir + "JobID");
 
-            ss.upload(cp.getPassword(), fll, null, null);
+            ss.upload(fll, null, null);
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -474,9 +474,8 @@ public class ClusterSession {
      *
      * @param output List of output patterns
      * @param JobID ID of the job to reorganize
-     * @param wp eventually a progress bar window
      */
-    private void reorganize(String output[], int JobID, ProgressBarWin wp) {
+    private void reorganize(String output[], int JobID) {
         String directories[] = getJobDirectories(JobID, null);
 
         // reorganize
@@ -527,7 +526,7 @@ public class ClusterSession {
         }
 
         wp.SetStatusMessage("Downloading...");
-        ss.download(cp.getPassword(), fldw, new File(tmp_dir + File.separator + "Job" + bc.getJobID()), wp, cp);
+        ss.download(fldw, new File(tmp_dir + File.separator + "Job" + bc.getJobID()), wp, cp);
     }
 
     /**
@@ -575,7 +574,7 @@ public class ClusterSession {
         }
 
         ProgressBarWin wp = new ProgressBarWin();
-        ss.upload(cp.getPassword(), fl, dir, wp, null);
+        ss.upload(fl, dir, wp, null);
     }
 
     /**
@@ -590,7 +589,7 @@ public class ClusterSession {
         }
 
         ProgressBarWin wp = new ProgressBarWin();
-        ss.upload(cp.getPassword(), fl, wp, null);
+        ss.upload(fl, wp, null);
     }
 
     /**
@@ -694,7 +693,7 @@ public class ClusterSession {
                 commands[0] = bcl[j].statusJobCommand();
                 bcl[j].reset();
                 ss.setShellProcessOutput(bcl[j]);
-                ss.runCommands(cp.getPassword(), commands);
+                ss.runCommands(commands);
 
                 // Wait the command get Processed
                 bcl[j].waitParsing();
@@ -708,7 +707,7 @@ public class ClusterSession {
 
                     wp.SetProgress(0);
                     wp.SetStatusMessage("Reorganize...");
-                    reorganize(output, bcl[j].getJobID(), wp);
+                    reorganize(output, bcl[j].getJobID());
 
                     // wp.SetProgress(0);
                     // wp.SetStatusMessage("Stack visualize...");
@@ -750,7 +749,7 @@ public class ClusterSession {
         // It never went online
         wp.SetProgress(0);
         wp.SetStatusMessage("Reorganize...");
-        reorganize(output, 0, wp);
+        reorganize(output, 0);
 
         wp.SetProgress(0);
         wp.SetStatusMessage("Stack visualize...");
@@ -983,7 +982,6 @@ public class ClusterSession {
      * supplied in outcsv perform a stitch operation (it try to stitch
      * all the CSV in one)
      *
-     * @param outcsv set of csv output data
      * @param path where to save
      * @param property if not null the stitch operation try to enumerate the
      *            file and set the property
@@ -991,7 +989,7 @@ public class ClusterSession {
      * @param cls base class for internal conversion
      * @return File where the data are saved
      */
-    public static File processJobsData(String[] outcsv, String path) {
+    public static File processJobsData(String path) {
         String dirS = null;
 
         // Save all JobID to the image folder

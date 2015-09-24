@@ -46,7 +46,7 @@ class RScriptListener implements ActionListener {
         }
 
         RScriptWindow rw = new RScriptWindow(nbgroups, posx, posy);
-        rw.run("");
+        rw.run();
     }
 
 }

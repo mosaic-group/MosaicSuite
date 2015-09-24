@@ -332,7 +332,7 @@ class TwoRegions extends NRegions {
 
                         Region r = r_list.get(lbl);
                         if (r == null) {
-                            r = new Region(lbl, null, 0, false);
+                            r = new Region(lbl, 0);
                             r.pixels.add(new Pix(p.x[2], p.x[0], p.x[1]));
                             r_list.put(lbl, r);
                         }

@@ -9,7 +9,7 @@ public class Region implements Comparable<Region> {
 
     boolean colocpositive = false;
 
-    Region(int value, String materialName, int points, boolean sameValue) {
+    Region(int value, int points) {
         // byteImage = true;
         this.value = value;
         // this.materialName = materialName;
@@ -17,7 +17,7 @@ public class Region implements Comparable<Region> {
         // this.sameValue = sameValue;
     }
 
-    Region(int points, boolean sameValue) {
+    Region(int points) {
         // byteImage = false;
         this.points = points;
         // this.sameValue = sameValue;

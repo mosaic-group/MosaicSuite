@@ -516,14 +516,14 @@ class BLauncher {
 
                 // Calculate colocalization quantities
 
-                colocAB = mosaic.bregman.Tools.round(Analysis.colocsegAB(hcount), 4);
-                colocBA = mosaic.bregman.Tools.round(Analysis.colocsegBA(hcount), 4);
+                colocAB = mosaic.bregman.Tools.round(Analysis.colocsegAB(), 4);
+                colocBA = mosaic.bregman.Tools.round(Analysis.colocsegBA(), 4);
                 colocABnumber = mosaic.bregman.Tools.round(Analysis.colocsegABnumber(), 4);
-                colocABsize = mosaic.bregman.Tools.round(Analysis.colocsegABsize(hcount), 4);
+                colocABsize = mosaic.bregman.Tools.round(Analysis.colocsegABsize(), 4);
                 colocBAnumber = mosaic.bregman.Tools.round(Analysis.colocsegBAnumber(), 4);
-                colocBAsize = mosaic.bregman.Tools.round(Analysis.colocsegBAsize(hcount), 4);
-                colocA = mosaic.bregman.Tools.round(Analysis.colocsegA(null), 4);
-                colocB = mosaic.bregman.Tools.round(Analysis.colocsegB(null), 4);
+                colocBAsize = mosaic.bregman.Tools.round(Analysis.colocsegBAsize(), 4);
+                colocA = mosaic.bregman.Tools.round(Analysis.colocsegA(), 4);
+                colocB = mosaic.bregman.Tools.round(Analysis.colocsegB(), 4);
 
                 String filename_without_ext = img2.getTitle().substring(0, img2.getTitle().lastIndexOf("."));
                 String output1 = new String(savepath + File.separator + filename_without_ext + "_ObjectsData_c1" + ".csv");

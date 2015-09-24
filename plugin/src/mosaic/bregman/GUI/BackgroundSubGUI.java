@@ -27,7 +27,7 @@ public class BackgroundSubGUI {
         posy = ParentPosy + 20;
     }
 
-    public void run(String arg) {
+    public void run() {
         getParameters();
     }
 

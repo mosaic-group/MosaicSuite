@@ -19,6 +19,8 @@ abstract class RegularizationGUI extends GUImeMore {
                 result = new CurvatureFlowGUI(settings);
                 break;
             }
+            case Approximative:
+            case None:
             default: {
                 result = new DefaultRegularizationGUI();
                 break;

@@ -23,7 +23,7 @@ public class CSV<E> {
     final private Class<E> iClazz;
     private CsvPreference iCsvPreference;
     final private Vector<CsvMetaInfo> iMetaInfos;
-    final private Vector<CsvMetaInfo> iMetaInfosRead;
+    final Vector<CsvMetaInfo> iMetaInfosRead;
 
     /**
      * @param aClazz E.class
@@ -330,7 +330,7 @@ public class CSV<E> {
         }
     }
 
-    private String getMetaInformation(List<CsvMetaInfo> aContainer, String aParameter) {
+    String getMetaInformation(List<CsvMetaInfo> aContainer, String aParameter) {
         for (CsvMetaInfo mi : aContainer) {
             if (mi.parameter.equals(aParameter)) {
                 return mi.value;
@@ -373,6 +373,8 @@ public class CSV<E> {
     }
 
     private class CommentExtendedCSV implements CommentMatcher {
+        protected CommentExtendedCSV() {}
+        
         @Override
         public boolean isComment(String s) {
             // Comment style:

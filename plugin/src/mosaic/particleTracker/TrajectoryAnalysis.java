@@ -449,7 +449,7 @@ public class TrajectoryAnalysis {
      * @param aMax
      * @return array of requested values
      */
-    private int[] generateArrayRange(int aMin, int aMax) {
+    private static int[] generateArrayRange(int aMin, int aMax) {
         int[] range = new int[aMax - aMin + 1];
         int idx = 0;
         for (int m = aMin; m <= aMax; ++m) {

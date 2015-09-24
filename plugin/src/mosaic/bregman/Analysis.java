@@ -1,18 +1,16 @@
 package mosaic.bregman;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.process.ByteProcessor;
-import ij.process.ImageProcessor;
-
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.process.ByteProcessor;
+import ij.process.ImageProcessor;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Outdata;
 import mosaic.core.utils.MosaicUtils;
@@ -308,10 +306,10 @@ public class Analysis {
         }
 
         if (p.debug) {
-            fcr.run(d, 0, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri, true, p.save_images);// &&(!p.refinement)
+            fcr.run(d, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri);// &&(!p.refinement)
         }
         else {
-            fcr.run(d, 0, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri, p.dispcolors && (!p.refinement), p.save_images && (!p.refinement));
+            fcr.run(d, p.maxves_size, p.minves_size, 255 * p.min_intensity, Ri);
         }
 
         regions[0] = fcr.tempres;
@@ -385,7 +383,7 @@ public class Analysis {
             }
         }
 
-        fcr.run(d, 1, p.maxves_size, p.minves_size, 255 * p.min_intensityY, Ri, p.dispcolors && (!p.refinement), p.save_images && (!p.refinement));
+        fcr.run(d, p.maxves_size, p.minves_size, 255 * p.min_intensityY, Ri);
 
         regions[1] = fcr.tempres;
         regionslist[1] = fcr.results;
@@ -401,13 +399,13 @@ public class Analysis {
         }
     }
 
-    static double colocsegA(PrintWriter out) {
+    static double colocsegA() {
         double sum = 0;
         int objects = 0;
         for (Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
             Region r = it.next();
             objects++;
-            sum += regionsum(r, imageb, out);
+            sum += regionsum(r, imageb);
         }
 
         return (sum / objects);
@@ -479,26 +477,26 @@ public class Analysis {
         }
     }
 
-    static double colocsegB(PrintWriter out) {
+    static double colocsegB() {
         double sum = 0;
         int objects = 0;
         for (Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
             Region r = it.next();
             objects++;
-            sum += regionsum(r, imagea, out);
+            sum += regionsum(r, imagea);
         }
 
         return (sum / objects);
     }
 
-    static double colocsegAB(int imgnumber) {
+    static double colocsegAB() {
         double totalsignal = 0;
         double colocsignal = 0;
 
         for (Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
             Region r = it.next();
 
-            if (regioncoloc(r, regionslist[1], regions[1], maskA, imgnumber)) {
+            if (regioncoloc(r, regionslist[1], regions[1])) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
                 // objectscoloc++;
             }
@@ -510,13 +508,13 @@ public class Analysis {
         return (colocsignal / totalsignal);
     }
 
-    static double colocsegABsize(int imgnumber) {
+    static double colocsegABsize() {
         double totalsize = 0;
         double colocsize = 0;
 
         for (Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
             Region r = it.next();
-            if (regioncoloc(r, regionslist[1], regions[1], maskA, imgnumber)) {
+            if (regioncoloc(r, regionslist[1], regions[1])) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
                 // objectscoloc++;
             }
@@ -557,14 +555,14 @@ public class Analysis {
         return (((double) objectscoloc) / objects);
     }
 
-    static double colocsegBA(int imgnumber) {
+    static double colocsegBA() {
         double totalsignal = 0;
         double colocsignal = 0;
 
         for (Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
             Region r = it.next();
 
-            if (regioncoloc(r, regionslist[0], regions[0], maskB, imgnumber)) {
+            if (regioncoloc(r, regionslist[0], regions[0])) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
                 // objectscoloc++;
             }
@@ -576,14 +574,14 @@ public class Analysis {
         return (colocsignal / totalsignal);
     }
 
-    static double colocsegBAsize(int imgnumber) {
+    static double colocsegBAsize() {
         double totalsize = 0;
         double colocsize = 0;
 
         for (Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
             Region r = it.next();
 
-            if (regioncoloc(r, regionslist[0], regions[0], maskB, imgnumber)) {
+            if (regioncoloc(r, regionslist[0], regions[0])) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
                 // objectscoloc++;
             }
@@ -595,7 +593,7 @@ public class Analysis {
         return (colocsize / totalsize);
     }
 
-    private static boolean regioncoloc(Region r, ArrayList<Region> regionlist, short[][][] regions, byte[][][] mask, int imgnumber) {
+    private static boolean regioncoloc(Region r, ArrayList<Region> regionlist, short[][][] regions) {
         boolean positive = false;
         int count = 0;
         int countcoloc = 0;
@@ -662,7 +660,7 @@ public class Analysis {
         }
     }
 
-    private static double regionsum(Region r, double[][][] image, PrintWriter out) {
+    private static double regionsum(Region r, double[][][] image) {
 
         int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
         int fz2;

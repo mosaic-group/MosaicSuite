@@ -440,7 +440,7 @@ class ASplitBregmanSolver {
             }
         }
 
-        fcr.run(thr, 0, 512 * 512, 2, 0, Ri[0], false, false);
+        fcr.run(thr, 512 * 512, 2, 0, Ri[0]);
 
         // regions=fcr.tempres;
         this.regionslistr = fcr.results;
@@ -558,10 +558,10 @@ class ASplitBregmanSolver {
         }
 
         if (p.mode_voronoi2) {
-            fcr.run(thr, 1, p.ni * p.nj * p.nz, 0, 0, Ri[0], false, false);// min size was 5
+            fcr.run(thr, p.ni * p.nj * p.nz, 0, 0, Ri[0]);// min size was 5
         }
         else {
-            fcr.run(thr, 1, p.ni * p.nj * p.nz, 5, 0, Ri[0], false, false);// min size was 5
+            fcr.run(thr, p.ni * p.nj * p.nz, 5, 0, Ri[0]);// min size was 5
         }
 
         if (p.dispvoronoi) {
@@ -649,7 +649,7 @@ class ASplitBregmanSolver {
         long lStartTime = new Date().getTime(); // start time
 
         if (p.mode_voronoi2) {
-            RSS2.cluster_region_voronoi2(Ri[0], Ro[0], regionslist);
+            RSS2.cluster_region_voronoi2(Ri[0], regionslist);
         }
         else {
             RSS2.cluster_region(Ri[0], Ro[0], regionslist);

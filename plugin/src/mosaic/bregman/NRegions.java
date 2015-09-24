@@ -264,7 +264,7 @@ class NRegions implements Runnable {
         if (p.nlevels > 1 || !p.usePSF) {
             for (int i = 0; i < nl; i++) {
                 // Tools.nllMeanPoisson(Ei[i], image, p.cl[i], 1, p.ldata );
-                LocalTools.nllMean1(Ei[i], image, p.cl[i], 1, p.ldata);
+                LocalTools.nllMean1(Ei[i], image, p.cl[i]);
             }
         }
     }

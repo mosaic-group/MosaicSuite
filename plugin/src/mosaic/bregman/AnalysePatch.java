@@ -1037,7 +1037,7 @@ class AnalysePatch implements Runnable {
             }
         }
 
-        fcr.run(thr, channel, isx * isy * isz, 0 * fsxy, 0, Ri, false, false);// min
+        fcr.run(thr, isx * isy * isz, 0 * fsxy, 0, Ri);// min
         // size
         // was
         // 5//5*osxy

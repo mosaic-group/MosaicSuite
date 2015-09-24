@@ -86,7 +86,7 @@ public class LeastSquaresTest extends CommonBase {
      * @param aSlope expected slope
      * @param aYaxisIntercept expected y-axis intercept
      */
-    private void testExpectations(LeastSquares aLS, double aSlope, double aYaxisIntercept) {
+    private static void testExpectations(LeastSquares aLS, double aSlope, double aYaxisIntercept) {
         // Set some tolerance on double numbers comparisons
         double epsilon = 0.000001;
         assertEquals("Slope should be equal", aSlope, aLS.getBeta(), epsilon);

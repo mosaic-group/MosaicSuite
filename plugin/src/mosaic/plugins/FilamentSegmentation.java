@@ -75,7 +75,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
      * @param aOrigImg - input image (to be segmented)
      * @param aChannelNumber - channel number used for drawing output image.
      */
-    private void segmentation(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber) {
+    private void segmentation(FloatProcessor aOrigImg, int aChannelNumber) {
         // Get dimensions of input image
         final int originalWidth = aOrigImg.getWidth();
         final int originalHeight = aOrigImg.getHeight();
@@ -305,7 +305,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
 
     @Override
     protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber) {
-        segmentation(aOutputImg, aOrigImg, aChannelNumber);
+        segmentation(aOrigImg, aChannelNumber);
     }
 
 }

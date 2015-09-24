@@ -193,7 +193,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * @return false, if where is a problem with the connection
      *         true, does not mean that the command succeffuly run
      */
-    boolean runCommands(String pwd, String[] commands) {
+    boolean runCommands(String[] commands) {
         String cmd_list = new String();
         for (int i = 0; i < commands.length; i++) {
             cmd_list += commands[i] + "\n";
@@ -310,7 +310,6 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
     /**
      * run a sequence of SFTP commands to downloads files
      *
-     * @param pwd password to access the sftp session
      * @param files to transfer locally (Absolute path)
      * @param dir Directory where to download
      * @param wp (Optional) Progress bar window
@@ -320,7 +319,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      *         downloaded, if does not exist remotely
      *         you can receive a true
      */
-    boolean download(String pwd, File files[], File dir, ProgressBarWin wp, ClusterProfile cp) {
+    boolean download(File files[], File dir, ProgressBarWin wp, ClusterProfile cp) {
         boolean ret = true;
 
         try {
@@ -482,21 +481,20 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * @param cp Cluster profile (Optional) can be null
      * @return true if all file are uploaded, false trasnfert fail
      */
-    boolean upload(String pwd, File files[], ProgressBarWin wp, ClusterProfile cp) {
-        return upload(pwd, files, null, wp, cp);
+    boolean upload(File files[], ProgressBarWin wp, ClusterProfile cp) {
+        return upload(files, null, wp, cp);
     }
 
     /**
      * run a sequence of SFTP commands to upload files
      *
-     * @param pwd password to access the sftp session
      * @param files to transfer
      * @param dir create the relative dir where to store the files
      * @param wp Progress window bar can be null
      * @param cp Cluster profile (Optional) can be null
      * @return true if all file are uploaded, false trasnfert fail
      */
-    boolean upload(String pwd, File files[], File dir, ProgressBarWin wp, ClusterProfile cp) {
+    boolean upload(File files[], File dir, ProgressBarWin wp, ClusterProfile cp) {
         try {
             if (createSftpChannel() == false) {
                 return false;

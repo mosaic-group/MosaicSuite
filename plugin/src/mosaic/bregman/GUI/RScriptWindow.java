@@ -19,7 +19,7 @@ class RScriptWindow {
         posy = ParentPosy + 20;
     }
 
-    public void run(String arg) {
+    public void run() {
         Font bf = new Font(null, Font.BOLD, 12);
 
         GenericDialog gd = new GenericDialog("Visualization and output options");

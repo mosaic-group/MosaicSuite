@@ -23,6 +23,7 @@ abstract class EnergyGUI extends GUImeMore {
                 result = new DefaultEnergyGUI();
                 break;
             }
+            case e_PC:
             default: {
                 result = new DefaultEnergyGUI();
                 break;

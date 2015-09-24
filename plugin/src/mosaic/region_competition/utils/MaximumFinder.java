@@ -358,7 +358,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
         if (ip instanceof FloatProcessor) {
             maxSortingError = 1.1f * (isEDM ? SQRT2 / 2f : (globalMax - globalMin) / 2e9f);
         }
-        analyzeAndMarkMaxima(ip, typeP, maxPoints, excludeEdgesNow, isEDM, globalMin, tolerance, outputType, maxSortingError);
+        analyzeAndMarkMaxima(ip, typeP, maxPoints, excludeEdgesNow, isEDM, tolerance, outputType, maxSortingError);
         // new ImagePlus("Pixel types",typeP.duplicate()).show();
         if (outputType == POINT_SELECTION || outputType == LIST || outputType == COUNT) {
             return null;
@@ -510,8 +510,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      *            take the height correction in 'trueEdmHeight' into account
      * @param outputType
      */
-    private void analyzeAndMarkMaxima(ImageProcessor ip, ByteProcessor typeP, long[] maxPoints, boolean excludeEdgesNow, boolean isEDM, float globalMin, double tolerance, int outputType,
-            float maxSortingError) {
+    private void analyzeAndMarkMaxima(ImageProcessor ip, ByteProcessor typeP, long[] maxPoints, boolean excludeEdgesNow, boolean isEDM, double tolerance, int outputType, float maxSortingError) {
         byte[] types = (byte[]) typeP.getPixels();
         int nMax = maxPoints.length;
         int[] pList = new int[width * height]; // here we enter points starting from a maximum

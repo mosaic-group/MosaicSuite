@@ -188,14 +188,14 @@ public class MaximumFinder3D implements MaximumFinderInterface {
         boolean excludeEdgesNow = excludeOnEdges && outputType != SEGMENTED;
 
         IJ.showStatus("Getting sorted maxima...");
-        long[] maxPoints = getSortedMaxPoints(ip, types, excludeEdgesNow, isEDM, globalMin, globalMax, threshold);
+        long[] maxPoints = getSortedMaxPoints(ip, types, excludeEdgesNow, globalMin, globalMax, threshold);
 
         IJ.showStatus("Analyzing  maxima...");
         float maxSortingError = 0;
 
         maxSortingError = 1.1f * (isEDM ? SQRT2 / 2f : (globalMax - globalMin) / 2e9f);
 
-        analyzeAndMarkMaxima(ip, types, maxPoints, excludeEdgesNow, isEDM, globalMin, tolerance, outputType, maxSortingError);
+        analyzeAndMarkMaxima(ip, types, maxPoints, excludeEdgesNow, tolerance, outputType, maxSortingError);
         // new ImagePlus("Pixel types",typeP.duplicate()).show();
         if (outputType == POINT_SELECTION || outputType == LIST || outputType == COUNT) {
             return null;
@@ -231,7 +231,7 @@ public class MaximumFinder3D implements MaximumFinderInterface {
      *         is encoded in the upper 32 bits and the pixel offset in the lower 32 bit
      *         Note: Do not use the positions of the points marked as MAXIMUM in typeP, they are invalid for images with a roi.
      */
-    private long[] getSortedMaxPoints(float[] ip, byte[] typeP, boolean excludeEdgesNow, boolean isEDM, float globalMin, float globalMax, double threshold) {
+    private long[] getSortedMaxPoints(float[] ip, byte[] typeP, boolean excludeEdgesNow, float globalMin, float globalMax, double threshold) {
         byte[] types = typeP;
         int nMax = 0; // counts local maxima
         boolean checkThreshold = threshold != ImageProcessor.NO_THRESHOLD;
@@ -307,7 +307,7 @@ public class MaximumFinder3D implements MaximumFinderInterface {
      *            take the height correction in 'trueEdmHeight' into account
      * @param outputType
      */
-    private void analyzeAndMarkMaxima(float[] ip, byte[] typeP, long[] maxPoints, boolean excludeEdgesNow, boolean isEDM, float globalMin, double tolerance, int outputType, float maxSortingError) {
+    private void analyzeAndMarkMaxima(float[] ip, byte[] typeP, long[] maxPoints, boolean excludeEdgesNow, double tolerance, int outputType, float maxSortingError) {
         byte[] types = typeP;
         int nMax = maxPoints.length;
         int[] pList = new int[size]; // here we enter points starting from a maximum

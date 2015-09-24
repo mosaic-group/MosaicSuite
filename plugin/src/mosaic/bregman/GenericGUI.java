@@ -179,11 +179,11 @@ public class GenericGUI {
         Panel p = new Panel(fl);
 
         Button b = new Button("Select File/Folder");
-        b.addActionListener(new FileOpenerActionListener(p, gd, gd.getTextArea1()));
+        b.addActionListener(new FileOpenerActionListener(gd.getTextArea1()));
         p.add(b);
 
         Button bh = new Button("Help");
-        bh.addActionListener(new HelpOpenerActionListener(p, gd));
+        bh.addActionListener(new HelpOpenerActionListener(gd));
         p.add(bh);
 
         gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
@@ -191,7 +191,7 @@ public class GenericGUI {
         // Image chooser
 
         gd.addChoice("Input image", new String[] { "" }, "");
-        MosaicUtils.chooseImage(gd, "Image", aImp);
+        MosaicUtils.chooseImage(gd, aImp);
 
         // Background Options
 
@@ -206,7 +206,7 @@ public class GenericGUI {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 BackgroundSubGUI gds = new BackgroundSubGUI(posx, posy);
-                gds.run("");
+                gds.run();
             }
         });
         gd.addPanel(p);
@@ -224,7 +224,7 @@ public class GenericGUI {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 SegmentationGUI gds = new SegmentationGUI(posx, posy);
-                gds.run("");
+                gds.run();
             }
         });
         gd.addPanel(p);
@@ -240,7 +240,7 @@ public class GenericGUI {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 ColocalizationGUI gds = new ColocalizationGUI(imgch1, imgch2, posx, posy);
-                gds.run("");
+                gds.run();
             }
         });
         gd.addPanel(p);
@@ -258,7 +258,7 @@ public class GenericGUI {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 VisualizationGUI gds = new VisualizationGUI(posx, posy);
-                gds.run("");
+                gds.run();
             }
         });
         gd.addPanel(p);
@@ -302,7 +302,7 @@ public class GenericGUI {
         return rm;
     }
 
-    public void run(String arg, ImagePlus aImp) {
+    public void run(ImagePlus aImp) {
         Boolean use_cluster = false;
         // String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
         // boolean bgroup1[] = {false, false};
@@ -515,13 +515,11 @@ public class GenericGUI {
             }
 
             // Get output format and Stitch the output in the output selected
-
-            String outcsv[] = { "*_ObjectsData_c1.csv" };
             String path = MosaicUtils.ValidFolderFromImage(aImp);
             if (BregmanGLM_Batch.test_mode == true) {
                 path = MosaicTest.getTestEnvironment();
             }
-            File dir = ClusterSession.processJobsData(outcsv, path);
+            File dir = ClusterSession.processJobsData(path);
 
             // if background is != null it mean that is a video or is an image so try to stitch
             if (Background != null) {
@@ -541,7 +539,7 @@ public class GenericGUI {
 
         TextArea ta;
 
-        public FileOpenerActionListener(Panel p, GenericDialog gd, TextArea ta) {
+        public FileOpenerActionListener(TextArea ta) {
             this.ta = ta;
         }
 
@@ -587,7 +585,7 @@ public class GenericGUI {
 
         GenericDialog gd;
 
-        public HelpOpenerActionListener(Panel p, GenericDialog gd) {
+        public HelpOpenerActionListener(GenericDialog gd) {
             this.gd = gd;
 
         }

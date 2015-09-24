@@ -252,7 +252,7 @@ public class ImgUtilsTest extends CommonBase {
         }
     }
 
-    private void compareArrays(float[][] expected, float[][] result) {
+    static private void compareArrays(float[][] expected, float[][] result) {
         for (int i = 0; i < expected.length; ++i) {
             for (int j = 0; j < expected[0].length; ++j) {
                 assertEquals("Elements at [" + i + "][" + j + "] should be same", expected[i][j], result[i][j], 0.0f);
@@ -260,7 +260,7 @@ public class ImgUtilsTest extends CommonBase {
         }
     }
 
-    private void compareArrays(double[][] expected, double[][] result) {
+    static private void compareArrays(double[][] expected, double[][] result) {
         for (int i = 0; i < expected.length; ++i) {
             for (int j = 0; j < expected[0].length; ++j) {
                 assertEquals("Elements at [" + i + "][" + j + "] should be same", expected[i][j], result[i][j], 0.0f);

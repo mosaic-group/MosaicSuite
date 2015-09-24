@@ -30,7 +30,7 @@ public class SegmentationGUI {
         posy = ParentPosy + 20;
     }
 
-    public void run(String arg) {
+    public void run() {
         getParameters();
 
         // Analysis.load2channels(imagePlus);

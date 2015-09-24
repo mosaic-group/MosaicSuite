@@ -536,11 +536,11 @@ class Tools {
         }
     }
 
-    private void nllMean(double[][][] res, double[][][] image, double[][][] mu, double weight, double ldata) {
-        nllMean(res, image, mu, weight, ldata, 0, ni);
+    private void nllMean(double[][][] res, double[][][] image, double[][][] mu) {
+        nllMean(res, image, mu, 0, ni);
     }
 
-    private void nllMean(double[][][] res, double[][][] image, double[][][] mu, double weight, double ldata, int iStart, int iEnd) {
+    private void nllMean(double[][][] res, double[][][] image, double[][][] mu, int iStart, int iEnd) {
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -550,7 +550,7 @@ class Tools {
         }
     }
 
-    void nllMean1(double[][][] res, double[][][] image, double mu, double weight, double ldata) {
+    void nllMean1(double[][][] res, double[][][] image, double mu) {
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -884,7 +884,7 @@ class Tools {
                 speedData[0][i][j] = (c1 - c0) * speedData[0][i][j] + c0;
             }
         }
-        nllMean(speedData, image, speedData, 1, ldata, 0, ni);
+        nllMean(speedData, image, speedData, 0, ni);
 
         double energyData = 0;
         for (int i = 0; i < ni; i++) {
@@ -925,7 +925,7 @@ class Tools {
 
         // }
         // nllMeanPoisson2(speedData, image, speedData, 1, ldata, iStart, iEnd);
-        nllMean(speedData, image, speedData, 1, ldata, iStart, iEnd);
+        nllMean(speedData, image, speedData, iStart, iEnd);
         double energyData = 0;
         // for (int z=0; z<nz; z++){
         for (int i = iStart; i < iEnd; i++) {
@@ -976,7 +976,7 @@ class Tools {
 
         // }
         // nllMeanPoisson2(speedData, image, speedData, 1, ldata, iStart, iEnd);
-        nllMean(speedData, image, speedData, 1, ldata, iStart, iEnd);
+        nllMean(speedData, image, speedData, iStart, iEnd);
         double energyData = 0;
         for (int z = 0; z < nz; z++) {
             for (int i = iStart; i < iEnd; i++) {
@@ -1059,7 +1059,7 @@ class Tools {
 
         // }
         // nllMeanPoisson2(speedData, image, speedData, 1, ldata);
-        nllMean(speedData, image, speedData, 1, ldata);
+        nllMean(speedData, image, speedData);
         double energyData = 0;
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {

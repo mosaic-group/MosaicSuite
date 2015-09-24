@@ -80,7 +80,7 @@ public class BregmanGLM_Batch implements Segmentation {
 
         window = new GenericGUI(batch, active_img);
         window.setUseCluster(gui_use_cluster);
-        window.run("", active_img);
+        window.run(active_img);
 
         saveConfig(savedSettings, Analysis.p);
 
