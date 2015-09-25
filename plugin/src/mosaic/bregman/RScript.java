@@ -4,6 +4,7 @@ package mosaic.bregman;
 import ij.IJ;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.Scanner;
@@ -106,10 +107,11 @@ class RScript {
 
         Script.flush();
 
+        InputStream in = null;
         try {
             // works when plugin running from .jar plugin file
             IJ.log("RSCRIPT..........");
-            InputStream in = this.getClass().getResourceAsStream("/src/mosaic/plugins/scripts/Rscript.r");
+            in = this.getClass().getResourceAsStream("/src/mosaic/plugins/scripts/Rscript.r");
             Scanner scanner = new Scanner(in);
             String content = scanner.useDelimiter("\\Z").next();
 
@@ -120,6 +122,14 @@ class RScript {
         }
         catch (Exception e) {
             System.err.println("Error generating R Script " + e.getMessage());
+        }
+        finally {
+            try {
+                in.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
     }

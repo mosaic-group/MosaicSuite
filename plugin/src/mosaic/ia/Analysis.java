@@ -312,7 +312,7 @@ public class Analysis {
         // genMask=loaded image
 
         ImagePlus tempMask = new ImagePlus();
-        tempMask = ImageProcessUtils.openImage("Open Mask", "");
+        tempMask = ImageProcessUtils.openImage("");
         if (tempMask == null) {
             IJ.showMessage("Filetype not recognized");
             return false;
@@ -638,7 +638,7 @@ public class Analysis {
 
             P_grid = IAPUtils.normalize(P_grid);
 
-            plotQPNN(dgrid, P_grid, q, nnObserved, best[bestFitnessindex][0], best[bestFitnessindex][1], allFitness[bestFitnessindex]);
+            plotQPNN(dgrid, P_grid, q, nnObserved);
 
         }
 
@@ -695,7 +695,7 @@ public class Analysis {
 
     }
 
-    private void plotQPNN(double[] d, double[] p, double[] q, double[] nn, double strength, double sigma, double fitness) {
+    private void plotQPNN(double[] d, double[] p, double[] q, double[] nn) {
         String xlabel = "Distance";
         if (isImage) {
             xlabel = xlabel + " (" + X.getCalibration().getUnit() + ")";

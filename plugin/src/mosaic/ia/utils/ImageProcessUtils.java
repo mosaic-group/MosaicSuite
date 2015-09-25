@@ -158,7 +158,7 @@ public class ImageProcessUtils {
         return mask;
     }
 
-    public static ImagePlus openImage(String title, String path) {
+    public static ImagePlus openImage(String path) {
         // open image dialog and opens it and returns
         Opener opener = new Opener();
 
@@ -178,6 +178,14 @@ public class ImageProcessUtils {
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
+        }
+        finally {
+            try {
+                CSVFile.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         String dataRow = null;

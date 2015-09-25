@@ -98,24 +98,14 @@ public class IntensityImage {
      * @param ip
      */
 
-    public <T extends RealType<T>> IntensityImage(Img<T> ip, Class<T> cls) {
-        this(ip, cls, true);
-    }
-
-    /**
-     * Initialize an intensity image from an ImgLib2
-     *
-     * @param ip
-     */
-
-    private <T extends RealType<T>> IntensityImage(Img<T> ip, Class<T> cls, boolean nrm) {
+    public <T extends RealType<T>> IntensityImage(Img<T> ip) {
         this.imageIP = null;
 
         int[] dims = MosaicUtils.getImageIntDimensions(ip);
         initDimensions(dims);
         iterator = new IndexIterator(dims);
 
-        initIntensityData(ip, cls, nrm);
+        initIntensityData(ip);
     }
 
     /**
@@ -171,7 +161,7 @@ public class IntensityImage {
      * @param ip Image
      */
 
-    private <T extends RealType<T>> void initIntensityData(Img<T> ip, Class<T> cls, boolean nrm) {
+    private <T extends RealType<T>> void initIntensityData(Img<T> ip) {
         RandomAccess<T> ra = ip.randomAccess();
 
         // Allocate data intensity

@@ -96,7 +96,7 @@ public class Region3DTrack implements Outdata<Region> {
         Surface = r.Surface;
     }
 
-    public void setObject_ID(int Object_ID_) {
+    public void setObject_ID(@SuppressWarnings("unused") int Object_ID_) {
 
     }
 
@@ -104,7 +104,7 @@ public class Region3DTrack implements Outdata<Region> {
         Surface = Perimeter_;
     }
 
-    public void setLength(double Length_) {
+    public void setLength(@SuppressWarnings("unused") double Length_) {
 
     }
 
@@ -176,7 +176,7 @@ public class Region3DTrack implements Outdata<Region> {
         }
     }
 
-    public void setFile(String dummy) {
+    public void setFile(@SuppressWarnings("unused") String dummy) {
     }
 
     public String getFile() {

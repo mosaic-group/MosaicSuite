@@ -479,7 +479,7 @@ public class GUIDesign implements ActionListener {
         else if (e.getSource() == browseX) {
             // imgx=new ImagePlus();
             // a=null; garbage collection OK?
-            imgx = ImageProcessUtils.openImage("Open Image X", "");
+            imgx = ImageProcessUtils.openImage("");
             if (imgx == null) {
                 IJ.showMessage("Cancelled/Filetype not recognized");
                 return;
@@ -504,7 +504,7 @@ public class GUIDesign implements ActionListener {
         else if (e.getSource() == browseY) {
             // a=null;
             // imgy=new ImagePlus();
-            imgy = ImageProcessUtils.openImage("Open Image Y", "");
+            imgy = ImageProcessUtils.openImage("");
 
             if (imgy == null) {
                 IJ.showMessage("Cancelled/Filetype not recognized");

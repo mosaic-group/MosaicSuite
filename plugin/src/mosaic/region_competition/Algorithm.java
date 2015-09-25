@@ -445,7 +445,7 @@ public class Algorithm {
             // Ugly forced to be float
 
             ((E_Deconvolution) imageModel.getEdata()).setPSF(image_psf);
-            ((E_Deconvolution) imageModel.getEdata()).GenerateModelImage(devImage, labelImage, labelMap);
+            ((E_Deconvolution) imageModel.getEdata()).GenerateModelImage(labelImage, labelMap);
 
             ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage);
         }
@@ -635,7 +635,7 @@ public class Algorithm {
                 }
                 if (vSplit) {
                     if (settings.m_AllowFission) {
-                        RegisterSeedsAfterSplit(this, vCurrentIndex, vCurrentLabel, m_Candidates);
+                        RegisterSeedsAfterSplit(vCurrentIndex, vCurrentLabel, m_Candidates);
                     }
                     else {
                         // / disallow the move.
@@ -660,7 +660,7 @@ public class Algorithm {
                 vConvergence = false;
 
                 if (e.getValue().m_processed) {
-                    RegisterSeedsAfterSplit(this, vCurrentIndex, vCurrentLabel, m_Candidates);
+                    RegisterSeedsAfterSplit(vCurrentIndex, vCurrentLabel, m_Candidates);
                     boolean wasContained = m_Seeds.remove(new Pair<Point, Integer>(vCurrentIndex, vCurrentLabel));
                     if (!wasContained) {
                         throw new RuntimeException("no seed in set");
@@ -758,7 +758,7 @@ public class Algorithm {
         return vConvergence;
     }
 
-    private void RegisterSeedsAfterSplit(Algorithm aLabelImage, Point aIndex, int aLabel, HashMap<Point, ContourParticle> aCandidateContainer) {
+    private void RegisterSeedsAfterSplit(Point aIndex, int aLabel, HashMap<Point, ContourParticle> aCandidateContainer) {
 
         for (Point vSeedIndex : connFG.iterateNeighbors(aIndex)) {
             int vLabel = labelImage.getLabelAbs(vSeedIndex);
@@ -1828,7 +1828,7 @@ public class Algorithm {
 
     }
 
-    private static void debug(Object s) {
+    private static void debug(@SuppressWarnings("unused") Object s) {
         //System.out.println(s);
     }
 

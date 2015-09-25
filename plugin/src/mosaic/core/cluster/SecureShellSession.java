@@ -365,7 +365,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
                         String s = new String("cd " + tdir + " ; ");
                         File start_dir = findCommonPathAndDelete(files);
-                        s += cmp.compressCommand(start_dir, files, new File(start_dir + File.separator + files[0].getName() + "_compressed"));
+                        s += cmp.compressCommand(files, new File(start_dir + File.separator + files[0].getName() + "_compressed"));
                         s += " ; echo \"JSCH REMOTE COMMAND\"; echo \"COMPRESSION END\"; \n";
                         waitString = new String("JSCH REMOTE COMMAND\r\nCOMPRESSION END");
                         wp_p = wp;

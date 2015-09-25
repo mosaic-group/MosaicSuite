@@ -266,7 +266,7 @@ public class Region3DColocRScript implements Outdata<Region> {
         return Coloc_image_intensity;
     }
 
-    public void setFile(String dummy) {
+    public void setFile(@SuppressWarnings("unused") String dummy) {
     }
 
     public String getFile() {

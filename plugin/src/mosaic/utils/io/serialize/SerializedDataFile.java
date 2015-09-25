@@ -1,5 +1,6 @@
 package mosaic.utils.io.serialize;
 
+import java.io.Closeable;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -24,13 +25,15 @@ public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
     @Override
     public boolean SaveToFile(String aSerializedFileName, T aObject2Save) {
         logger.debug("SaveToFile ["+ aSerializedFileName +"]");
+        
+        boolean ret = false;
         FileOutputStream fileOutput = null;
         ObjectOutputStream objectOutput = null;
         try {
             fileOutput = new FileOutputStream(aSerializedFileName);
             objectOutput = new ObjectOutputStream(fileOutput);
             objectOutput.writeObject(aObject2Save);
-            return true;
+            ret = true;
         } catch (FileNotFoundException e) {
             logger.debug("File [" + aSerializedFileName + "] cannot be written!");
             logger.error(ExceptionUtils.getStackTrace(e));
@@ -38,61 +41,44 @@ public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
             logger.error("An error occured during writing serialized file [" + aSerializedFileName + "]");
             logger.error(ExceptionUtils.getStackTrace(e));
         } finally {
-            try {
-                if (objectOutput != null) {
-                    objectOutput.close();
-                }
-                if (fileOutput != null) {
-                    fileOutput.close();
-                }
-            } catch (IOException e) {
-                logger.error(ExceptionUtils.getStackTrace(e));
-            }
+            close(objectOutput);
+            close(fileOutput);
         }
-        return false;
+        
+        return ret;
     }
 
     @Override
     public T LoadFromFile(String aSerializedFileName, Class<T> aClazz) {
         logger.debug("LoadFromFile [" + aSerializedFileName + "]");
 
+        T ret = null;
         FileInputStream fileInput = null;
         ObjectInputStream objectInput = null;
-
         try {
             fileInput = new FileInputStream(aSerializedFileName);
             objectInput = new ObjectInputStream(fileInput);
             Object readObj = null;
-            T obj;
             try {
                 readObj = objectInput.readObject();
-                obj = aClazz.cast(readObj);
+                ret = aClazz.cast(readObj);
             } catch (ClassCastException e) {
                 String readObjName = (readObj == null) ? "null" : readObj.getClass().getName();
                 logger.error("Different type of object read [" + readObjName + "] vs. [" + aClazz.getName() + "]");
                 logger.error(ExceptionUtils.getStackTrace(e));
-                return null;
+                ret = null;
             }
-            return obj;
         } catch (FileNotFoundException e) {
             logger.debug("File [" + aSerializedFileName + "] not found.");
-            return null;
         } catch (Exception e) {
             logger.error("An error occured during reading serialized file [" + aSerializedFileName + "]");
             logger.error(ExceptionUtils.getStackTrace(e));
-            return null;
         } finally {
-            try {
-                if (objectInput != null) {
-                    objectInput.close();
-                }
-                if (fileInput != null) {
-                    fileInput.close();
-                }
-            } catch (IOException e) {
-                logger.error(ExceptionUtils.getStackTrace(e));
-            }
+            close(objectInput);
+            close(fileInput);
         }
+        
+        return ret;
     }
 
     @Override
@@ -103,5 +89,16 @@ public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
         }
         
         return aDefaultValue;
+    }
+    
+    private void close(Closeable c) {
+        if (c != null) {
+            try {
+                c.close();
+            }
+            catch (IOException e) {
+                logger.error(ExceptionUtils.getStackTrace(e));
+            }
+        }
     }
 }

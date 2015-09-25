@@ -6,7 +6,6 @@ import java.util.HashMap;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.Settings;
 
 
 public class OscillationDetection {
@@ -22,7 +21,7 @@ public class OscillationDetection {
 
     float m_AcceptedPointsReductionFactor;
 
-    OscillationDetection(Algorithm algo, Settings settings) {
+    OscillationDetection(Algorithm algo) {
         this.algorithm = algo;
 
         this.m_AcceptedPointsReductionFactor = AcceptedPointsReductionFactor;
@@ -82,7 +81,7 @@ public class OscillationDetection {
         return vTotalEnergyDiff;
     }
 
-    static void debug(String s) {
+    static void debug(@SuppressWarnings("unused") String s) {
         //System.out.println(s);
     }
 

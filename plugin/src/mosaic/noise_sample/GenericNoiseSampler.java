@@ -60,7 +60,7 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
          * @return occurrence as integer
          */
 
-        int get(T inte, T bin, Class<T> cls) {
+        int get(T inte, Class<T> cls) {
             // calculate distance from h1 and h2
 
             double h1dist = h1.intensity.getRealDouble() - inte.getRealDouble();
@@ -205,7 +205,7 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 
         for (i = 0; i < inteHist.get(0).hist.getBinCount(); i++) {
             inteHist.get(0).hist.getCenterValue(i, center);
-            tot += Ih.get(x, center, cls);
+            tot += Ih.get(x, cls);
 
             if (tot >= gen) {
                 break;

@@ -94,7 +94,7 @@ public class E_Deconvolution extends ExternalEnergy {
         }
     }
 
-    public void GenerateModelImage(Img<FloatType> aPointerToResultImage, LabelImageRC aLabelImage, HashMap<Integer, LabelInformation> labelMap) {
+    public void GenerateModelImage(LabelImageRC aLabelImage, HashMap<Integer, LabelInformation> labelMap) {
         Cursor<FloatType> cVModelImage = DevImage.cursor();
         int size = aLabelImage.getSize();
         for (int i = 0; i < size && cVModelImage.hasNext(); i++) {
@@ -229,7 +229,7 @@ public class E_Deconvolution extends ExternalEnergy {
         }
 
         // The model image has to be renewed as well to match the new statistic values:
-        GenerateModelImage(DevImage, aInitImage, aInitImage.getLabelMap());
+        GenerateModelImage(aInitImage, aInitImage.getLabelMap());
     }
 
     @Override

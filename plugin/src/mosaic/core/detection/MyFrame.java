@@ -110,7 +110,7 @@ public class MyFrame {
      * Constructor for text mode
      */
     // @Deprecated
-    public MyFrame(String path, int frame_num, int aLinkrange) {
+    public MyFrame(String path) {
         loadParticlesFromFile(path);
     }
 
@@ -118,9 +118,9 @@ public class MyFrame {
      * Constructor for text mode
      */
     // @Deprecated
-    public MyFrame(BufferedReader r, String path, int frame_num, int aLinkrange) {
+    public MyFrame(BufferedReader r) {
         try {
-            loadParticlesFromFileMultipleFrame(r, path, frame_num);
+            loadParticlesFromFileMultipleFrame(r);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -175,7 +175,7 @@ public class MyFrame {
     // @Deprecated
     private boolean loadParticlesFromFile(String path) {
         boolean ret;
-        BufferedReader r;
+        BufferedReader r = null;
 
         try {
             r = new BufferedReader(new FileReader(path));
@@ -189,6 +189,14 @@ public class MyFrame {
             e.printStackTrace();
             return false;
         }
+        finally {
+            try {
+                if (r != null) r.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         return ret;
     }
@@ -197,7 +205,7 @@ public class MyFrame {
         p_radius = pt_radius;
     }
 
-    private boolean loadParticlesFromFileMultipleFrame(BufferedReader r, String path, int nf) throws IOException {
+    private boolean loadParticlesFromFileMultipleFrame(BufferedReader r) throws IOException {
         Vector<String[]> particles_info = new Vector<String[]>(); // a vector to
         // hold all
         // particles
@@ -1164,7 +1172,7 @@ public class MyFrame {
      * @return the image
      */
 
-    private Img<ARGBType> createImage(int[] vMax, int frame) {
+    private Img<ARGBType> createImage(int[] vMax) {
         // Create image
 
         final ImgFactory<ARGBType> imgFactory = new ArrayImgFactory<ARGBType>();
@@ -1514,33 +1522,12 @@ public class MyFrame {
 
     static public void updateImage(Img<ARGBType> out, Vector<Trajectory> tr, Calibration cal, DrawType typ, int p_radius) {
         for (int i = 0; i < tr.size(); i++) {
-            updateImage(out, tr, cal, new Color(tr.get(i).color.getRed(), tr.get(i).color.getGreen(), tr.get(i).color.getBlue(), tr.get(i).color.getTransparency()), typ, p_radius);
+            new MyFrame();
+            int nframe = (int) out.dimension(out.numDimensions() - 1);
+            
+            // Collect particles to draw and spline to draw
+            TrajectoriesDraw(out, nframe, tr, 0, null, cal, 1.0f, typ, p_radius);
         }
-    }
-
-    /**
-     * Update the image
-     *
-     * @param An array of frames in ImgLib2 format (last dimension is frame)
-     * @param A vector of Trajectory
-     * @param cal Calibration
-     * @param Color to use for draw
-     * @param Type of draw
-     */
-
-    static public void updateImage(Img<ARGBType> out, Vector<Trajectory> tr, Calibration cal, Color cl, DrawType typ, int p_radius) {
-        // Get image
-
-        new MyFrame();
-        // Cursor<ARGBType> curOut = out.cursor();
-
-        //
-
-        int nframe = (int) out.dimension(out.numDimensions() - 1);
-
-        // Collect particles to draw and spline to draw
-
-        TrajectoriesDraw(out, nframe, tr, 0, null, cal, 1.0f, typ, p_radius);
     }
 
     /**
@@ -1615,7 +1602,7 @@ public class MyFrame {
         // if you have no trajectory draw use the other function
 
         if (tr == null) {
-            return createImage(vMax, frame);
+            return createImage(vMax);
         }
 
         // the number of dimensions

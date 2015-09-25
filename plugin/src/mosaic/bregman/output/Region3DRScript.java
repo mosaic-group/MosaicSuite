@@ -214,7 +214,7 @@ public class Region3DRScript implements Outdata<Region> {
         return 0;
     }
 
-    public void setFile(String dummy) {
+    public void setFile(@SuppressWarnings("unused") String dummy) {
     }
 
     public String getFile() {

@@ -13,17 +13,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MosaicImageProcessingTools {
 
     /**
-     * Dilates a copy of a given ImageProcessor with a spherical structuring element of size <code>radius</code>.
-     * Adapted as is from Ingo Oppermann implementation
-     * 
-     * @param ip ImageProcessor to do the dilation with
-     * @return the dilated copy of the given <code>ImageProcessor</code>
-     */
-    public static ImageStack dilateGeneric(ImageStack ips, int radius, int number_of_threads) {
-        return dilateGeneric(ips, radius, Float.NEGATIVE_INFINITY, number_of_threads);
-    }
-
-    /**
      * Dilates all values larger than <code>threshold</code> and returns a copy of the input image.
      * A spherical structuring element of radius <code>radius</code> is used.
      * Adapted as is from Ingo Oppermann implementation
@@ -31,7 +20,7 @@ public class MosaicImageProcessingTools {
      * @param ip ImageProcessor to do the dilation with
      * @return the dilated copy of the given <code>ImageProcessor</code>
      */
-    private static ImageStack dilateGeneric(ImageStack ips, int radius, float threshold, int number_of_threads) {
+    public static ImageStack dilateGeneric(ImageStack ips, int radius, int number_of_threads) {
         FloatProcessor[] dilated_procs = new FloatProcessor[ips.getSize()];
         AtomicInteger z = new AtomicInteger(-1);
         Vector<Thread> threadsVector = new Vector<Thread>();

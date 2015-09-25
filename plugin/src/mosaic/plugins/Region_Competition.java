@@ -182,12 +182,11 @@ public class Region_Competition implements Segmentation {
      * @return
      */
 
-    private <T extends RealType<T>, E extends IntegerType<E>> void runOnImgLib2(String aArgs, Img<T> img, Img<E> lbl,
-            Class<T> cls) {
+    private <T extends RealType<T>, E extends IntegerType<E>> void runOnImgLib2(Img<T> img, Img<E> lbl) {
         initAndParse();
 
         // Run Region Competition as usual
-        RCImageFilter(img, lbl, cls);
+        RCImageFilter(img, lbl);
     }
 
     private String sv = null;
@@ -340,8 +339,6 @@ public class Region_Competition implements Segmentation {
             }
 
             // Get output format and Stitch the output in the output selected
-
-            String outcsv[] = { "*_ObjectsData_c1.csv" };
             File f = ClusterSession.processJobsData(MosaicUtils.ValidFolderFromImage(aImp));
 
             if (aImp != null) {
@@ -438,7 +435,7 @@ public class Region_Competition implements Segmentation {
                 RC.settings = settings;
                 RC.image_psf = image_psf;
                 RC.cal = cal;
-                RC.runOnImgLib2(null, ips[i].getImage(), ips[i].getLabelImage(), FloatType.class);
+                RC.runOnImgLib2(ips[i].getImage(), ips[i].getLabelImage());
                 RC.labelImage.eliminateForbidden();
                 ips[i].setResult(RC.labelImage.getImgLib2(IntType.class));
                 ips[i].showResult();
@@ -892,9 +889,9 @@ public class Region_Competition implements Segmentation {
         }
     }
 
-    private <T extends RealType<T>, E extends IntegerType<E>> void RCImageFilter(Img<T> img, Img<E> lbl, Class<T> cls) {
+    private <T extends RealType<T>, E extends IntegerType<E>> void RCImageFilter(Img<T> img, Img<E> lbl) {
         labelImage = new LabelImageRC(lbl);
-        intensityImage = new IntensityImage(img, cls);
+        intensityImage = new IntensityImage(img);
         initialStack = IntConverter.intArrayToStack(labelImage.dataLabel, labelImage.getDimensions());
         labelImage.initBoundary();
 

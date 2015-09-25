@@ -134,11 +134,13 @@ class BLauncher {
                     catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
+                    finally {
+                        if (out != null) {
+                            out.close();
+                            out = null;
+                        }
+                    }
                 }
-            }
-            if (out != null) {
-                out.close();
-                out = null;
             }
 
             // Try to run the R script

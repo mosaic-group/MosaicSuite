@@ -337,7 +337,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
      *
      */
 
-    <T extends RealType<T> & NativeType<T>> Img<T> createImage(long[] size, Class<T> cls)
+    <T extends RealType<T> & NativeType<T>> Img<T> createImage(Class<T> cls)
     {
         Img<T> out = null;
 
@@ -462,7 +462,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         // Grid of possible region
 
-        Img<T> out = createImage(Image_sz,cls);
+        Img<T> out = createImage(cls);
 
         Cursor<T> c = out.cursor();
         while (c.hasNext())

@@ -66,7 +66,7 @@ public class RCOutput {
         setObject_ID(Object_ID_);
     }
 
-    public void setObject_ID(int Object_ID_) {
+    public void setObject_ID(@SuppressWarnings("unused") int Object_ID_) {
     }
 
     public int getlabel() { // NO_UCD (unused code)

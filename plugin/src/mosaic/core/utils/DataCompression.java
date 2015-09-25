@@ -215,7 +215,7 @@ public class DataCompression {
      * @return Command string to compress the archive
      */
 
-    public String compressCommand(File start_dir, File[] fs, File file_a) {
+    public String compressCommand(File[] fs, File file_a) {
         if (selC == -1) {
             return null;
         }

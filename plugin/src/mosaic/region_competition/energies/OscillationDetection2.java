@@ -27,7 +27,7 @@ public class OscillationDetection2 extends OscillationDetection {
     private double threshold = 0.02;
 
     public OscillationDetection2(Algorithm algo, Settings settings) {
-        super(algo, settings);
+        super(algo);
         threshold = settings.m_OscillationThreshold;
         initMembeers(settings.m_MaxNbIterations);
     }
