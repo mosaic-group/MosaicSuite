@@ -60,8 +60,8 @@ public abstract class PlugInFloatBase extends PlugInBase {
         final int noOfChannels = aIp.getNChannels();
 
         // Lists to keep information about threads
-        List<Thread> th = new ArrayList<Thread>(noOfChannels);
-        List<ProcessOneChannel> poc = new ArrayList<ProcessOneChannel>(noOfChannels);
+        final List<Thread> th = new ArrayList<Thread>(noOfChannels);
+        final List<ProcessOneChannel> poc = new ArrayList<ProcessOneChannel>(noOfChannels);
 
         for (int i = 0; i < noOfChannels; ++i) {
             FloatProcessor res = null;
@@ -74,8 +74,8 @@ public abstract class PlugInFloatBase extends PlugInBase {
             orig.setSliceNumber(aIp.getSliceNumber());
 
             // Start separate thread on each channel
-            ProcessOneChannel p = new ProcessOneChannel(currentIp, res, orig, i);
-            Thread t = new Thread(p);
+            final ProcessOneChannel p = new ProcessOneChannel(currentIp, res, orig, i);
+            final Thread t = new Thread(p);
             t.start();
             th.add(t);
             poc.add(p);
@@ -88,7 +88,7 @@ public abstract class PlugInFloatBase extends PlugInBase {
                 th.get(i).join();
                 poc.get(i).update();
             }
-            catch (InterruptedException e) {}
+            catch (final InterruptedException e) {}
         }
 
         IJ.showStatus("Done.");

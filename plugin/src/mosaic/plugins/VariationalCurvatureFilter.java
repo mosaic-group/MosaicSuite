@@ -22,15 +22,15 @@ public class VariationalCurvatureFilter extends CurvatureFilterBase {
      */
     private void filterImage(FloatProcessor aOutputIp, FloatProcessor aOriginalIp, CurvatureFilter aFilter, int aNumberOfIterations) {
         // Get dimensions of input image
-        int originalWidth = aOriginalIp.getWidth();
-        int originalHeight = aOriginalIp.getHeight();
+        final int originalWidth = aOriginalIp.getWidth();
+        final int originalHeight = aOriginalIp.getHeight();
 
         // Generate 2D array for image (it will be rounded up to be divisible
         // by 2). Possible additional points will be filled with last column/row
         // values in convertToArrayAndNormalize
-        int roundedWidth = (int) (Math.ceil(originalWidth/2.0) * 2);
-        int roundedHeight = (int) (Math.ceil(originalHeight/2.0) * 2);
-        float[][] img = new float[roundedHeight][roundedWidth];
+        final int roundedWidth = (int) (Math.ceil(originalWidth/2.0) * 2);
+        final int roundedHeight = (int) (Math.ceil(originalHeight/2.0) * 2);
+        final float[][] img = new float[roundedHeight][roundedWidth];
 
         // create (normalized) 2D array with input image
         float maxValueOfPixel = (float) aOriginalIp.getMax();

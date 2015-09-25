@@ -44,7 +44,7 @@ public class ClusterSession {
     protected static final Logger logger = Logger.getLogger(ClusterSession.class);
 
     private int nImages;
-    private ClusterProfile cp;
+    private final ClusterProfile cp;
     private SecureShellSession ss;
     private int ns_pp = ns_pp_preferred;
     private static int ns_pp_preferred = 1;
@@ -117,21 +117,21 @@ public class ClusterSession {
         wp.setFocusableWindowState(false);
 
         nImages = img.getNFrames();
-        String tmp_dir = IJ.getDirectory("temp");
+        final String tmp_dir = IJ.getDirectory("temp");
 
         wp.SetStatusMessage("Preparing data...");
 
-        ImageStack stk = img.getStack();
+        final ImageStack stk = img.getStack();
 
-        int stack_size = stk.getSize() / nImages;
+        final int stack_size = stk.getSize() / nImages;
 
         for (int i = 0; i < nImages; i++) {
-            ImageStack tmp_stk = new ImageStack(img.getWidth(), img.getHeight());
+            final ImageStack tmp_stk = new ImageStack(img.getWidth(), img.getHeight());
             for (int j = 0; j < stack_size; j++) {
                 tmp_stk.addSlice("st" + j, stk.getProcessor(i * stack_size + j + 1));
             }
 
-            ImagePlus ip = new ImagePlus("tmp", tmp_stk);
+            final ImagePlus ip = new ImagePlus("tmp", tmp_stk);
             IJ.saveAs(ip, "Tiff", tmp_dir + "tmp_" + (i + 1));
 
             wp.SetProgress(100 * i / nImages);
@@ -141,12 +141,12 @@ public class ClusterSession {
         // Get the batch system of the cluster and set the class
         // to process the batch system output
 
-        BatchInterface bc = cp.getBatchSystem();
+        final BatchInterface bc = cp.getBatchSystem();
 
         ss.setShellProcessOutput(bc);
 
         // transfert the images
-        File[] fl = new File[nImages];
+        final File[] fl = new File[nImages];
         for (int i = 0; i < nImages; i++) {
             fl[i] = new File(tmp_dir + "tmp_" + (i + 1) + ".tif");
         }
@@ -183,8 +183,8 @@ public class ClusterSession {
             return false;
         }
 
-        BatchInterface bc = cp.getBatchSystem();
-        String tmp_dir = IJ.getDirectory("temp");
+        final BatchInterface bc = cp.getBatchSystem();
+        final String tmp_dir = IJ.getDirectory("temp");
 
         // Download a working version of Fiji
         // and copy the plugins
@@ -193,12 +193,12 @@ public class ClusterSession {
             wp.SetStatusMessage("Installing Fiji on cluster... ");
 
             // Remove previously Fiji
-            String[] commands = new String[1];
+            final String[] commands = new String[1];
             commands[0] = new String("rm -rf Fiji.app");
 
             ss.runCommands(commands);
 
-            String CommandL[] = { "cd " + cp.getRunningDir(), "wget mosaic.mpi-cbg.de/Downloads/fiji-linux64.tar.gz", "tar -xf fiji-linux64.tar.gz", "cd Fiji.app", "cd plugins",
+            final String CommandL[] = { "cd " + cp.getRunningDir(), "wget mosaic.mpi-cbg.de/Downloads/fiji-linux64.tar.gz", "tar -xf fiji-linux64.tar.gz", "cd Fiji.app", "cd plugins",
                     "mkdir Mosaic_ToolSuite", "cd Mosaic_ToolSuite", "wget mosaic.mpi-cbg.de/Downloads/Mosaic_ToolSuite_for_cluster.jar" };
 
             ss.runCommands(CommandL);
@@ -209,7 +209,7 @@ public class ClusterSession {
                     System.out.println("Expected directory: [" + cp.getRunningDir() + "Fiji.app]");
                     Thread.sleep(10000);
                 }
-                catch (InterruptedException e) {
+                catch (final InterruptedException e) {
                     e.printStackTrace();
                 }
 
@@ -222,13 +222,13 @@ public class ClusterSession {
 
         // create the macro script
 
-        String macro = new String("job_id = getArgument();\n" + "if (job_id == \"\" )\n" + "   exit(\"No job id\");\n" + "\n" + "run(\"" + command + "\",\"config=" + ss.getTransfertDir()
+        final String macro = new String("job_id = getArgument();\n" + "if (job_id == \"\" )\n" + "   exit(\"No job id\");\n" + "\n" + "run(\"" + command + "\",\"config=" + ss.getTransfertDir()
                 + "settings.dat" + " " + ia_s + "=" + ss.getTransfertDir() + "tmp_" + "\"" + "+ job_id" + " + \".tif " + options + " \" );\n");
 
         // Create the batch script if required and upload it
 
-        String run_s = cp.getRunningDir() + ss.getSession_id() + "/" + ss.getSession_id() + ".ijm";
-        String scr = bc.getScript(run_s, ss.getSession_id(), Ext, nImages, ns_pp);
+        final String run_s = cp.getRunningDir() + ss.getSession_id() + "/" + ss.getSession_id() + ".ijm";
+        final String scr = bc.getScript(run_s, ss.getSession_id(), Ext, nImages, ns_pp);
         if (scr != null) {
             PrintWriter out;
             try {
@@ -244,13 +244,13 @@ public class ClusterSession {
                 out.println(macro);
                 out.close();
 
-                File fll[] = new File[3];
+                final File fll[] = new File[3];
                 fll[0] = new File(tmp_dir + ss.getSession_id());
                 fll[1] = new File(tmp_dir + "settings.dat");
                 fll[2] = new File(tmp_dir + ss.getSession_id() + ".ijm");
                 ss.upload(fll, null, null);
             }
-            catch (FileNotFoundException e) {
+            catch (final FileNotFoundException e) {
                 e.printStackTrace();
             }
         }
@@ -259,7 +259,7 @@ public class ClusterSession {
         wp.SetProgress(0);
         wp.SetStatusMessage("Running...");
 
-        String[] commands = new String[2];
+        final String[] commands = new String[2];
         commands[0] = new String("cd " + ss.getTransfertDir());
         commands[1] = bc.runCommand(ss.getTransfertDir());
 
@@ -273,7 +273,7 @@ public class ClusterSession {
             try {
                 Thread.sleep(100);
             }
-            catch (InterruptedException e) {
+            catch (final InterruptedException e) {
                 e.printStackTrace();
             }
             n_attempt++;
@@ -293,17 +293,17 @@ public class ClusterSession {
 
             // Create jobID file
             out = new PrintWriter(tmp_dir + "JobID");
-            String tmp = new String(command);
+            final String tmp = new String(command);
             tmp.replace(" ", "_");
             out.println(new String(bc.getJobID() + " " + nImages + " " + img.getTitle() + " " + command));
             out.close();
 
-            File fll[] = new File[1];
+            final File fll[] = new File[1];
             fll[0] = new File(tmp_dir + "JobID");
 
             ss.upload(fll, null, null);
         }
-        catch (FileNotFoundException e) {
+        catch (final FileNotFoundException e) {
             e.printStackTrace();
         }
 
@@ -341,17 +341,17 @@ public class ClusterSession {
 
         final String tmp_dir = new File(tmp_dir_).getAbsolutePath();
 
-        String[] directories = file.list(new FilenameFilter() {
+        final String[] directories = file.list(new FilenameFilter() {
 
             @Override
             public boolean accept(File dir, String name) {
-                File fp = new File(tmp_dir + File.separator + "Job[0-9]+");
-                Pattern jobID = Pattern.compile(fp.getAbsolutePath().replace("\\", "\\\\"));
+                final File fp = new File(tmp_dir + File.separator + "Job[0-9]+");
+                final Pattern jobID = Pattern.compile(fp.getAbsolutePath().replace("\\", "\\\\"));
 
-                File fpm = new File(dir + File.separator + name);
-                Matcher matcher = jobID.matcher(fpm.getAbsolutePath());
+                final File fpm = new File(dir + File.separator + name);
+                final Matcher matcher = jobID.matcher(fpm.getAbsolutePath());
 
-                File f = new File(dir, name);
+                final File f = new File(dir, name);
                 if (f.isDirectory() == true && matcher.find()) {
                     if (JobID != 0) {
                         if (f.getAbsolutePath().equals(tmp_dir + "Job" + JobID) == true) {
@@ -386,8 +386,8 @@ public class ClusterSession {
      * @param all the directory job
      */
     private int CreateJobSelector(String directories[]) {
-        ChooseGUI cg = new ChooseGUI();
-        String c = cg.choose("Job Selector", "Select a Job to visualize", directories);
+        final ChooseGUI cg = new ChooseGUI();
+        final String c = cg.choose("Job Selector", "Select a Job to visualize", directories);
         if (c == null) {
             return 0;
         }
@@ -409,7 +409,7 @@ public class ClusterSession {
      * @param wp Progress bar window
      */
     private void stackVisualize(String output[], int JobID, ProgressBarWin wp) {
-        String directories[] = getJobDirectories(JobID, null);
+        final String directories[] = getJobDirectories(JobID, null);
 
         if (JobID == 0) {
             if ((JobID = CreateJobSelector(directories)) == 0) {
@@ -417,7 +417,7 @@ public class ClusterSession {
             }
         }
 
-        GenericDialog gd = new GenericDialog("Job output selector:");
+        final GenericDialog gd = new GenericDialog("Job output selector:");
 
         for (int i = 0; i < output.length; i++) {
             gd.addCheckbox(output[i], false);
@@ -428,7 +428,7 @@ public class ClusterSession {
             return;
         }
 
-        boolean cs[] = new boolean[output.length];
+        final boolean cs[] = new boolean[output.length];
 
         for (int i = 0; i < output.length; i++) {
             cs[i] = gd.getNextBoolean();
@@ -439,25 +439,25 @@ public class ClusterSession {
             for (int i = 0; i < output.length; i++) {
                 if (cs[i] == true && (output[i].endsWith(".tiff") || output[i].endsWith(".tif") || output[i].endsWith(".zip"))) {
                     wp.SetStatusMessage("Visualizing " + output[i]);
-                    String dirName = directories[j] + File.separator + output[i].replace("*", "_");
+                    final String dirName = directories[j] + File.separator + output[i].replace("*", "_");
                     logger.debug("Listing files in: [" + dirName + "]");
-                    File[] fl = new File(dirName).listFiles();
+                    final File[] fl = new File(dirName).listFiles();
                     if (fl == null) {
                         logger.error("Null file array");
                         continue;
                     }
-                    int nf = fl.length;
-                    Opener op = new Opener();
+                    final int nf = fl.length;
+                    final Opener op = new Opener();
 
                     if (fl.length != 0) {
-                        ImagePlus ip = op.openImage(fl[0].getAbsolutePath());
+                        final ImagePlus ip = op.openImage(fl[0].getAbsolutePath());
 
                         if (ip == null) {
                             continue;
                         }
 
-                        int nc = ip.getNChannels();
-                        int ns = ip.getNSlices();
+                        final int nc = ip.getNChannels();
+                        final int ns = ip.getNSlices();
 
                         ip.close();
 
@@ -476,16 +476,16 @@ public class ClusterSession {
      * @param JobID ID of the job to reorganize
      */
     private void reorganize(String output[], int JobID) {
-        String directories[] = getJobDirectories(JobID, null);
+        final String directories[] = getJobDirectories(JobID, null);
 
         // reorganize
 
         for (int i = 0; i < directories.length; i++) {
-            String s[] = MosaicUtils.readAndSplit(directories[i] + File.separator + "JobID");
-            int nf = Integer.parseInt(s[1]);
+            final String s[] = MosaicUtils.readAndSplit(directories[i] + File.separator + "JobID");
+            final int nf = Integer.parseInt(s[1]);
             String filename = s[2];
 
-            int idp = filename.lastIndexOf(".");
+            final int idp = filename.lastIndexOf(".");
             if (idp >= 0) {
                 filename = filename.substring(0, idp);
             }
@@ -504,13 +504,13 @@ public class ClusterSession {
      * @param bc Batch interface
      */
     private void getData(String output[], SecureShellSession ss, ProgressBarWin wp, BatchInterface bc) {
-        String tmp_dir = IJ.getDirectory("temp");
-        File[] fldw = new File[bc.getNJobs() * output.length + 1];
+        final String tmp_dir = IJ.getDirectory("temp");
+        final File[] fldw = new File[bc.getNJobs() * output.length + 1];
 
         fldw[0] = new File(bc.getDir() + File.separator + "JobID");
         for (int i = 0; i < bc.getNJobs(); i++) {
             for (int j = 0; j < output.length; j++) {
-                String tmp = new String(output[j]);
+                final String tmp = new String(output[j]);
                 fldw[i * output.length + j + 1] = new File(bc.getDir() + File.separator + tmp.replace("*", "tmp_" + (i + 1)));
             }
         }
@@ -518,10 +518,10 @@ public class ClusterSession {
         try {
             ShellCommand.exeCmdNoPrint("mkdir " + tmp_dir + File.separator + "Job" + bc.getJobID());
         }
-        catch (IOException e1) {
+        catch (final IOException e1) {
             e1.printStackTrace();
         }
-        catch (InterruptedException e1) {
+        catch (final InterruptedException e1) {
             e1.printStackTrace();
         }
 
@@ -573,7 +573,7 @@ public class ClusterSession {
             ss = new SecureShellSession(cp);
         }
 
-        ProgressBarWin wp = new ProgressBarWin();
+        final ProgressBarWin wp = new ProgressBarWin();
         ss.upload(fl, dir, wp, null);
     }
 
@@ -588,7 +588,7 @@ public class ClusterSession {
             ss = new SecureShellSession(cp);
         }
 
-        ProgressBarWin wp = new ProgressBarWin();
+        final ProgressBarWin wp = new ProgressBarWin();
         ss.upload(fl, wp, null);
     }
 
@@ -613,7 +613,7 @@ public class ClusterSession {
         if (ss == null) {
             ss = new SecureShellSession(cp);
         }
-        ProgressBarWin wp = new ProgressBarWin();
+        final ProgressBarWin wp = new ProgressBarWin();
         wp.setFocusableWindowState(false);
         wp.setVisible(true);
         wp.setFocusableWindowState(true);
@@ -625,10 +625,10 @@ public class ClusterSession {
             try {
                 ss.close();
             }
-            catch (InterruptedException e) {
+            catch (final InterruptedException e) {
                 e.printStackTrace();
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 e.printStackTrace();
             }
             ss = null;
@@ -643,17 +643,17 @@ public class ClusterSession {
             try {
                 ss.close();
             }
-            catch (InterruptedException e) {
+            catch (final InterruptedException e) {
                 e.printStackTrace();
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 e.printStackTrace();
             }
             ss = null;
             return true;
         }
 
-        BatchInterface bc = cp.getBatchSystem();
+        final BatchInterface bc = cp.getBatchSystem();
 
         wp.SetProgress(0);
         wp.SetStatusMessage("Getting all jobs ...");
@@ -662,9 +662,9 @@ public class ClusterSession {
         if (bcl == null) {
             bcl = new BatchInterface[0];
         }
-        ClusterStatusStack css[] = new ClusterStatusStack[bcl.length];
-        ImageStack st[] = new ImageStack[bcl.length];
-        ImagePlus ip[] = new ImagePlus[bcl.length];
+        final ClusterStatusStack css[] = new ClusterStatusStack[bcl.length];
+        final ImageStack st[] = new ImageStack[bcl.length];
+        final ImagePlus ip[] = new ImagePlus[bcl.length];
 
         // get the status wait competition;
         for (int j = 0; j < bcl.length; j++) {
@@ -689,7 +689,7 @@ public class ClusterSession {
                     n_bc++;
                     continue;
                 }
-                String commands[] = new String[1];
+                final String commands[] = new String[1];
                 commands[0] = bcl[j].statusJobCommand();
                 bcl[j].reset();
                 ss.setShellProcessOutput(bcl[j]);
@@ -716,7 +716,7 @@ public class ClusterSession {
                     bcl[j] = null;
 
                     wp.SetStatusMessage("Computing ...");
-                    int p = (int) (progress * 100.0 / total);
+                    final int p = (int) (progress * 100.0 / total);
                     wp.SetProgress(p);
 
                     continue;
@@ -729,14 +729,14 @@ public class ClusterSession {
             }
 
             wp.SetStatusMessage("Computing ...");
-            int p = (int) (progress * 100.0 / total);
+            final int p = (int) (progress * 100.0 / total);
             wp.SetProgress(p);
 
             // wait 10 second to send and get again the status
             try {
                 Thread.sleep(3000);
             }
-            catch (InterruptedException e) {
+            catch (final InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -827,13 +827,13 @@ public class ClusterSession {
             cg = new ClusterGUI();
         }
 
-        ClusterSession ss = cg.getClusterSession();
+        final ClusterSession ss = cg.getClusterSession();
 
         // Get all image processor statistics and calculate the maximum
 
         if (max == 0.0) {
             if (aImp != null) {
-                StackStatistics stack_stats = new StackStatistics(aImp);
+                final StackStatistics stack_stats = new StackStatistics(aImp);
                 max = (float) stack_stats.max;
                 min = (float) stack_stats.min;
 
@@ -881,16 +881,16 @@ public class ClusterSession {
         if (cg == null) {
             cg = new ClusterGUI();
         }
-        ClusterSession ss = cg.getClusterSession();
+        final ClusterSession ss = cg.getClusterSession();
 
-        MM mm = new MM();
+        final MM mm = new MM();
 
         mm.min = new Float(Float.MAX_VALUE);
         mm.max = new Float(0.0);
 
         MosaicUtils.getFilesMaxMin(list, mm);
 
-        for (File fl : list) {
+        for (final File fl : list) {
             // File
 
             processFile(fl, command, options, out, cg, mm.max, mm.min);
@@ -933,9 +933,9 @@ public class ClusterSession {
         }
 
         // open the image and process image
-        Opener opener = new Opener();
-        ImagePlus imp = opener.openImage(fl.getAbsolutePath());
-        ClusterSession ss = processImage(imp, command, options, out, cg, new Float(0.0), new Float(0.0), true);
+        final Opener opener = new Opener();
+        final ImagePlus imp = opener.openImage(fl.getAbsolutePath());
+        final ClusterSession ss = processImage(imp, command, options, out, cg, new Float(0.0), new Float(0.0), true);
 
         return ss;
     }
@@ -965,9 +965,9 @@ public class ClusterSession {
     static private ClusterSession processFile(File fl, String command, String options, String[] out, ClusterGUI cg, Float max, Float min) {
         // open the image and process image
 
-        Opener opener = new Opener();
-        ImagePlus imp = opener.openImage(fl.getAbsolutePath());
-        ClusterSession ss = processImage(imp, command, options, out, cg, max, min, false);
+        final Opener opener = new Opener();
+        final ImagePlus imp = opener.openImage(fl.getAbsolutePath());
+        final ClusterSession ss = processImage(imp, command, options, out, cg, max, min, false);
 
         return ss;
     }
@@ -994,7 +994,7 @@ public class ClusterSession {
 
         // Save all JobID to the image folder
         // or ask for a directory
-        String dir[] = ClusterSession.getJobDirectories(0, null);
+        final String dir[] = ClusterSession.getJobDirectories(0, null);
 
         if (dir.length > 0) {
 
@@ -1002,19 +1002,19 @@ public class ClusterSession {
                 dirS = path;
             }
             else {
-                DirectoryChooser dc = new DirectoryChooser("Choose directory where to save result");
+                final DirectoryChooser dc = new DirectoryChooser("Choose directory where to save result");
                 dirS = dc.getDirectory();
             }
 
-            ProgressBarWin wp = new ProgressBarWin();
+            final ProgressBarWin wp = new ProgressBarWin();
 
             for (int i = 0; i < dir.length; i++) {
                 wp.SetStatusMessage("Moving " + dir[i]);
 
                 try {
-                    String[] tmp = dir[i].split(File.separator);
+                    final String[] tmp = dir[i].split(File.separator);
 
-                    File t = new File(dirS + File.separator + tmp[tmp.length - 1]);
+                    final File t = new File(dirS + File.separator + tmp[tmp.length - 1]);
 
                     ShellCommand.exeCmdNoPrint("cp -r " + dir[i] + " " + t);
                     System.out.println("cp -r " + dir[i] + " " + t);
@@ -1023,10 +1023,10 @@ public class ClusterSession {
                     ShellCommand.exeCmdNoPrint("rm -rf " + dir[i]);
                     System.out.println("rm -rf " + dir[i]);
                 }
-                catch (IOException e) {
+                catch (final IOException e) {
                     e.printStackTrace();
                 }
-                catch (InterruptedException e) {
+                catch (final InterruptedException e) {
                     e.printStackTrace();
                 }
             }
@@ -1049,40 +1049,40 @@ public class ClusterSession {
         }
 
         // Get a temporary directory create a dir
-        String tmp = IJ.getDirectory("temp") + File.separator + "temp_merge" + File.separator;
+        final String tmp = IJ.getDirectory("temp") + File.separator + "temp_merge" + File.separator;
         try {
             ShellCommand.exeCmd("mkdir " + tmp);
-            ProgressBarWin pbw = new ProgressBarWin();
+            final ProgressBarWin pbw = new ProgressBarWin();
             ShellCommand.copy(jobsrc, new File(tmp), pbw);
             pbw.dispose();
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
-        catch (InterruptedException e) {
+        catch (final InterruptedException e) {
             e.printStackTrace();
         }
 
-        String[] sp_src = MosaicUtils.readAndSplit(jobsrc.getAbsolutePath() + File.separator + "JobID");
-        String sp[] = new String[sp_src.length];
+        final String[] sp_src = MosaicUtils.readAndSplit(jobsrc.getAbsolutePath() + File.separator + "JobID");
+        final String sp[] = new String[sp_src.length];
         for (int i = 0; i < sp_src.length; i++) {
             sp[i] = sp_src[i];
         }
 
         // For each directory in job2 check if exist a directory in job1
         for (int i = 0; i < jobdst.length; i++) {
-            File fl[] = jobdst[i].listFiles();
+            final File fl[] = jobdst[i].listFiles();
 
-            for (File t : fl) {
+            for (final File t : fl) {
                 if (t.isDirectory() == false) {
                     continue;
                 }
 
-                File dir = new File(tmp + File.separator + t.getName());
+                final File dir = new File(tmp + File.separator + t.getName());
 
                 if (dir.exists() == true) {
                     // exist the directory in job1
-                    ProgressBarWin pbw = new ProgressBarWin();
+                    final ProgressBarWin pbw = new ProgressBarWin();
                     ShellCommand.copy(t, dir, pbw);
                     pbw.dispose();
                 }
@@ -1090,21 +1090,21 @@ public class ClusterSession {
                     // Create a directory and copy
                     try {
                         ShellCommand.exeCmd("mkdir " + dir.getAbsolutePath());
-                        ProgressBarWin pbw = new ProgressBarWin();
+                        final ProgressBarWin pbw = new ProgressBarWin();
                         ShellCommand.copy(t, dir, pbw);
                         pbw.dispose();
                     }
-                    catch (IOException e) {
+                    catch (final IOException e) {
                         e.printStackTrace();
                     }
-                    catch (InterruptedException e) {
+                    catch (final InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }
 
             // create a new JobID
-            String[] sp_dst = MosaicUtils.readAndSplit(jobdst[i].getAbsolutePath() + File.separator + "JobID");
+            final String[] sp_dst = MosaicUtils.readAndSplit(jobdst[i].getAbsolutePath() + File.separator + "JobID");
 
             sp[0] = sp[0] + "#" + sp_dst[0];
             sp[1] = Integer.toString(Integer.parseInt(sp[1]) + Integer.parseInt(sp_dst[1]));
@@ -1122,31 +1122,31 @@ public class ClusterSession {
         try {
             out = new PrintWriter(tmp + File.separator + "JobID");
             out.print(sp[0]);
-            for (String s : sp) {
+            for (final String s : sp) {
                 out.print(" " + s);
             }
             out.close();
         }
-        catch (FileNotFoundException e) {
+        catch (final FileNotFoundException e) {
             e.printStackTrace();
         }
 
         // remove the content from jobsrc
         try {
-            File[] fl_ = jobsrc.listFiles();
-            for (File f : fl_) {
+            final File[] fl_ = jobsrc.listFiles();
+            for (final File f : fl_) {
                 ShellCommand.exeCmd("rm -rf " + f.getAbsolutePath());
             }
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
-        catch (InterruptedException e) {
+        catch (final InterruptedException e) {
             e.printStackTrace();
         }
 
         // Copy the content
-        ProgressBarWin pbw = new ProgressBarWin();
+        final ProgressBarWin pbw = new ProgressBarWin();
         ShellCommand.copy(new File(tmp), jobsrc, pbw);
         pbw.dispose();
 
@@ -1154,10 +1154,10 @@ public class ClusterSession {
         try {
             ShellCommand.exeCmd("rm -rf " + new File(tmp).getAbsolutePath());
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
-        catch (InterruptedException e) {
+        catch (final InterruptedException e) {
             e.printStackTrace();
         }
 
@@ -1166,10 +1166,10 @@ public class ClusterSession {
             try {
                 ShellCommand.exeCmd("rm -rf " + jobdst[i].getAbsolutePath());
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 e.printStackTrace();
             }
-            catch (InterruptedException e) {
+            catch (final InterruptedException e) {
                 e.printStackTrace();
             }
         }

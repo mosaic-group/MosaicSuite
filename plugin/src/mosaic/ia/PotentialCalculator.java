@@ -18,9 +18,9 @@ class PotentialCalculator {
     private double[] potential;
     private double[] gibbspotential;
     private double sumPotential = 0;
-    private double[] D_sample; // distance at which P should be sampled (need not be measured D)
-    private int type;
-    private double[] params;
+    private final double[] D_sample; // distance at which P should be sampled (need not be measured D)
+    private final int type;
+    private final double[] params;
 
     // params: threshold, epsilon: for step function
     // threshold, epsilon,sigma for all other parametric functions
@@ -41,8 +41,8 @@ class PotentialCalculator {
         switch (type) {
             case 1: // step
                 for (int i = 0; i < D_sample.length; i++) {
-                    double threshold = Math.abs(params[1]);
-                    double epsilon = Math.abs(params[0]);
+                    final double threshold = Math.abs(params[1]);
+                    final double epsilon = Math.abs(params[0]);
                     potential[i] = epsilon * PotentialFunctions.stepPotential(D_sample[i], threshold);
                     sumPotential = sumPotential + potential[i];
                     gibbspotential[i] = Math.exp(-1 * potential[i]);
@@ -51,12 +51,12 @@ class PotentialCalculator {
             case 2: // hernquist
                 for (int i = 0; i < D_sample.length; i++) {
 
-                    double threshold = 0;
+                    final double threshold = 0;
 
-                    double sigma = Math.abs(params[1]); // if sigma is large, z=d/sigma= small => -1/(1+z) is large => will be chosen during maximum likelihood.
+                    final double sigma = Math.abs(params[1]); // if sigma is large, z=d/sigma= small => -1/(1+z) is large => will be chosen during maximum likelihood.
                     // double sigma=1;
 
-                    double epsilon = Math.abs(params[0]);
+                    final double epsilon = Math.abs(params[0]);
                     potential[i] = epsilon * PotentialFunctions.hernquistPotential(D_sample[i], threshold, sigma);
                     // System.out.println("d:"+D_sample[i]+"pot:"+potential[i]);
                     sumPotential = sumPotential + potential[i];
@@ -65,10 +65,10 @@ class PotentialCalculator {
                 break;
             case 3: // l1
                 for (int i = 0; i < D_sample.length; i++) {
-                    double threshold = 0;
+                    final double threshold = 0;
 
-                    double sigma = Math.abs(params[1]);
-                    double epsilon = params[0];
+                    final double sigma = Math.abs(params[1]);
+                    final double epsilon = params[0];
 
                     potential[i] = epsilon * PotentialFunctions.linearType1(D_sample[i], threshold, sigma);
                     sumPotential = sumPotential + potential[i];
@@ -77,9 +77,9 @@ class PotentialCalculator {
                 break;
             case 4: // l2
                 for (int i = 0; i < D_sample.length; i++) {
-                    double threshold = 0;
-                    double sigma = Math.abs(params[1]);
-                    double epsilon = Math.abs(params[0]);
+                    final double threshold = 0;
+                    final double sigma = Math.abs(params[1]);
+                    final double epsilon = Math.abs(params[0]);
                     gibbspotential[i] = epsilon * PotentialFunctions.linearType2(D_sample[i], threshold, sigma);
                     sumPotential = sumPotential + gibbspotential[i];
                     gibbspotential[i] = Math.exp(-1 * gibbspotential[i]);
@@ -87,9 +87,9 @@ class PotentialCalculator {
                 break;
             case 5: // l2
                 for (int i = 0; i < D_sample.length; i++) {
-                    double threshold = 0;
-                    double sigma = Math.abs(params[1]);
-                    double epsilon = params[0];
+                    final double threshold = 0;
+                    final double sigma = Math.abs(params[1]);
+                    final double epsilon = params[0];
                     potential[i] = epsilon * PotentialFunctions.plummerPotential(D_sample[i], threshold, sigma);
                     sumPotential = sumPotential + potential[i];
                     gibbspotential[i] = Math.exp(-1 * potential[i]);
@@ -97,7 +97,7 @@ class PotentialCalculator {
                 break;
             case 6: // nonparam
                 for (int i = 0; i < D_sample.length; i++) {
-                    double[] weights = params;
+                    final double[] weights = params;
                     potential[i] = PotentialFunctions.nonParametric(D_sample[i], weights);
                     sumPotential = sumPotential + potential[i];
                     gibbspotential[i] = Math.exp(-1 * potential[i]);
@@ -106,9 +106,9 @@ class PotentialCalculator {
 
             case 7: // coulomb
                 for (int i = 0; i < D_sample.length; i++) {
-                    double threshold = 0;
-                    double sigma = Math.abs(params[1]);
-                    double epsilon = params[0];
+                    final double threshold = 0;
+                    final double sigma = Math.abs(params[1]);
+                    final double epsilon = params[0];
                     potential[i] = epsilon * PotentialFunctions.coulomb(D_sample[i], threshold, sigma);
                     sumPotential = sumPotential + potential[i];
                     gibbspotential[i] = Math.exp(-1 * potential[i]);
@@ -128,7 +128,7 @@ class PotentialCalculator {
         switch (type) {
             case 1: // step
                 for (int i = 0; i < D_sample.length; i++) {
-                    double threshold = Math.abs(params[1]);
+                    final double threshold = Math.abs(params[1]);
 
                     potential[i] = PotentialFunctions.stepPotential(D_sample[i], threshold);
                     sumPotential = sumPotential + potential[i];
@@ -138,8 +138,8 @@ class PotentialCalculator {
                 break;
             case 2: // hernquist
                 for (int i = 0; i < D_sample.length; i++) {
-                    double threshold = 0;
-                    double sigma = Math.abs(params[1]);
+                    final double threshold = 0;
+                    final double sigma = Math.abs(params[1]);
                     potential[i] = PotentialFunctions.hernquistPotential(D_sample[i], threshold, sigma);
                     sumPotential = sumPotential + potential[i];
                     gibbspotential[i] = Math.exp(-1 * potential[i]);
@@ -147,8 +147,8 @@ class PotentialCalculator {
                 break;
             case 3: // l1
                 for (int i = 0; i < D_sample.length; i++) {
-                    double threshold = 0;
-                    double sigma = Math.abs(params[1]);
+                    final double threshold = 0;
+                    final double sigma = Math.abs(params[1]);
 
                     potential[i] = PotentialFunctions.linearType1(D_sample[i], threshold, sigma);
                     sumPotential = sumPotential + potential[i];
@@ -157,8 +157,8 @@ class PotentialCalculator {
                 break;
             case 4: // l2
                 for (int i = 0; i < D_sample.length; i++) {
-                    double threshold = 0;
-                    double sigma = Math.abs(params[1]);
+                    final double threshold = 0;
+                    final double sigma = Math.abs(params[1]);
 
                     gibbspotential[i] = PotentialFunctions.linearType2(D_sample[i], threshold, sigma);
                     sumPotential = sumPotential + gibbspotential[i];
@@ -167,8 +167,8 @@ class PotentialCalculator {
                 break;
             case 5: // l2
                 for (int i = 0; i < D_sample.length; i++) {
-                    double threshold = 0;
-                    double sigma = Math.abs(params[1]);
+                    final double threshold = 0;
+                    final double sigma = Math.abs(params[1]);
 
                     potential[i] = PotentialFunctions.plummerPotential(D_sample[i], threshold, sigma);
                     sumPotential = sumPotential + potential[i];
@@ -177,7 +177,7 @@ class PotentialCalculator {
                 break;
             case 6: // nonparam
                 for (int i = 0; i < D_sample.length; i++) {
-                    double[] weights = params;
+                    final double[] weights = params;
                     potential[i] = PotentialFunctions.nonParametric(D_sample[i], weights);
                     sumPotential = sumPotential + potential[i];
                     gibbspotential[i] = Math.exp(-1 * potential[i]);
@@ -186,8 +186,8 @@ class PotentialCalculator {
 
             case 7: // coulomb
                 for (int i = 0; i < D_sample.length; i++) {
-                    double threshold = 0;
-                    double sigma = Math.abs(params[1]);
+                    final double threshold = 0;
+                    final double sigma = Math.abs(params[1]);
 
                     potential[i] = PotentialFunctions.coulomb(D_sample[i], threshold, sigma);
                     sumPotential = sumPotential + potential[i];

@@ -49,12 +49,12 @@ public class MergeJobs implements PlugInFilter
 
         // Here we merge all the jobs
 
-        String [] jbs = ClusterSession.getJobDirectories(0, dir);
+        final String [] jbs = ClusterSession.getJobDirectories(0, dir);
         if (jbs.length <= 1) {
             return DONE;
         }
 
-        File [] jbs_d = new File[jbs.length-1];
+        final File [] jbs_d = new File[jbs.length-1];
 
         for (int s = 0 ; s < jbs.length-1 ; s++)
         {

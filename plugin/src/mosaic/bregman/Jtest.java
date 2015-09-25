@@ -17,10 +17,10 @@ public class Jtest {
 
     @Test
     public void segmentation() {
-        BregmanGLM_Batch BG = new BregmanGLM_Batch();
+        final BregmanGLM_Batch BG = new BregmanGLM_Batch();
 
         BG.bypass_GUI();
-        TimeMeasurement tm = new TimeMeasurement();
+        final TimeMeasurement tm = new TimeMeasurement();
 
         // test the cluster
         logger.info("----------------------- TestCase: Squassh_cluster -----------------------");

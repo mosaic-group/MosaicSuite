@@ -37,7 +37,7 @@ public class BinarizedIntervalLabelImage extends IntervalsListInteger implements
         if (labelImage.isOutOfBound(p) == true) {
             return false;
         }
-        int value = labelImage.getLabel(p);
+        final int value = labelImage.getLabel(p);
         return Evaluate(value);
     }
 }

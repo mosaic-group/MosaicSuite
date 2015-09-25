@@ -73,7 +73,7 @@ public class GeneratePSF {
      */
 
     void selectPSF(int dim) {
-        String psf = PSFc.getSelectedItem();
+        final String psf = PSFc.getSelectedItem();
 
         if (dim == 0) {
             IJ.error("Dimension must be a valid integer != 0");
@@ -94,11 +94,11 @@ public class GeneratePSF {
             return null;
         }
 
-        int sz[] = psf.getSuggestedImageSize();
+        final int sz[] = psf.getSuggestedImageSize();
 
-        double[][] img = new double[sz[0]][sz[1]];
+        final double[][] img = new double[sz[0]][sz[1]];
 
-        int[] mid = new int[sz.length];
+        final int[] mid = new int[sz.length];
 
         for (int i = 0; i < mid.length; i++) {
             mid[i] = sz[i] / 2;
@@ -114,7 +114,7 @@ public class GeneratePSF {
 
         //
 
-        int loc[] = new int[sz.length];
+        final int loc[] = new int[sz.length];
 
         // Create an img
 
@@ -123,7 +123,7 @@ public class GeneratePSF {
                 loc[0] = i;
                 loc[1] = j;
                 psf.setPosition(loc);
-                double f = psf.get().getRealFloat();
+                final double f = psf.get().getRealFloat();
                 img[i][j] = f;
             }
         }
@@ -140,11 +140,11 @@ public class GeneratePSF {
             return null;
         }
 
-        int sz[] = psf.getSuggestedImageSize();
+        final int sz[] = psf.getSuggestedImageSize();
 
-        float[][] img = new float[sz[0]][sz[1]];
+        final float[][] img = new float[sz[0]][sz[1]];
 
-        int[] mid = new int[sz.length];
+        final int[] mid = new int[sz.length];
 
         for (int i = 0; i < mid.length; i++) {
             mid[i] = sz[i] / 2;
@@ -160,7 +160,7 @@ public class GeneratePSF {
 
         //
 
-        int loc[] = new int[sz.length];
+        final int loc[] = new int[sz.length];
 
         // Create an imglib2
 
@@ -169,7 +169,7 @@ public class GeneratePSF {
                 loc[0] = i;
                 loc[1] = j;
                 psf.setPosition(loc);
-                float f = psf.get().getRealFloat();
+                final float f = psf.get().getRealFloat();
                 img[i][j] = f;
             }
         }
@@ -193,11 +193,11 @@ public class GeneratePSF {
             return null;
         }
 
-        int sz[] = psf.getSuggestedImageSize();
+        final int sz[] = psf.getSuggestedImageSize();
 
-        double[][][] img = new double[sz[2]][sz[1]][sz[0]];
+        final double[][][] img = new double[sz[2]][sz[1]][sz[0]];
 
-        int[] mid = new int[sz.length];
+        final int[] mid = new int[sz.length];
 
         for (int i = 0; i < mid.length; i++) {
             mid[i] = sz[i] / 2;
@@ -213,7 +213,7 @@ public class GeneratePSF {
 
         //
 
-        int loc[] = new int[sz.length];
+        final int loc[] = new int[sz.length];
 
         // Create an imglib2
 
@@ -224,7 +224,7 @@ public class GeneratePSF {
                     loc[1] = j;
                     loc[2] = k;
                     psf.setPosition(loc);
-                    float f = psf.get().getRealFloat();
+                    final float f = psf.get().getRealFloat();
                     img[k][j][i] = f;
                 }
             }
@@ -242,11 +242,11 @@ public class GeneratePSF {
             return null;
         }
 
-        int sz[] = psf.getSuggestedImageSize();
+        final int sz[] = psf.getSuggestedImageSize();
 
-        float[][][] img = new float[sz[0]][sz[1]][sz[2]];
+        final float[][][] img = new float[sz[0]][sz[1]][sz[2]];
 
-        int[] mid = new int[sz.length];
+        final int[] mid = new int[sz.length];
 
         for (int i = 0; i < mid.length; i++) {
             mid[i] = sz[i] / 2;
@@ -262,7 +262,7 @@ public class GeneratePSF {
 
         //
 
-        int loc[] = new int[sz.length];
+        final int loc[] = new int[sz.length];
 
         // Create an imglib2
 
@@ -273,7 +273,7 @@ public class GeneratePSF {
                     loc[1] = j;
                     loc[2] = k;
                     psf.setPosition(loc);
-                    float f = psf.get().getRealFloat();
+                    final float f = psf.get().getRealFloat();
                     img[k][j][i] = f;
                 }
             }
@@ -297,7 +297,7 @@ public class GeneratePSF {
         settings.clist = psfList.psfList[0];
         settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp") + File.separator + "psf_settings.dat", PSFSettings.class, settings);
 
-        GenericDialog gd = new GenericDialog("PSF Generator");
+        final GenericDialog gd = new GenericDialog("PSF Generator");
         gd.addNumericField("Dimensions ", dim, 0);
 
         if (IJ.isMacro() == false) {
@@ -306,9 +306,9 @@ public class GeneratePSF {
             gd.addChoice("PSF: ", psfList.psfList, settings.clist);
             PSFc = (Choice) gd.getChoices().lastElement();
             {
-                Button optionButton = new Button("Options");
-                GridBagConstraints c = new GridBagConstraints();
-                int gridx = 2;
+                final Button optionButton = new Button("Options");
+                final GridBagConstraints c = new GridBagConstraints();
+                final int gridx = 2;
                 int gridy = 1;
                 c.gridx = gridx;
                 c.gridy = gridy++;
@@ -319,7 +319,7 @@ public class GeneratePSF {
 
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        int dim = Integer.parseInt(dimF.getText());
+                        final int dim = Integer.parseInt(dimF.getText());
                         selectPSF(dim);
                     }
                 });
@@ -333,7 +333,7 @@ public class GeneratePSF {
 
         // if Batch system
 
-        String choice = gd.getNextChoice();
+        final String choice = gd.getNextChoice();
         if (IJ.isMacro() == true) {
             dim = (int) gd.getNextNumber();
             selectPSF(dim, choice);
@@ -355,7 +355,7 @@ public class GeneratePSF {
 
         // center on the middle of the image
 
-        int[] mid = new int[sz.length];
+        final int[] mid = new int[sz.length];
 
         for (int i = 0; i < mid.length; i++) {
             mid[i] = sz[i] / 2;
@@ -369,20 +369,20 @@ public class GeneratePSF {
 
         //
 
-        int loc[] = new int[sz.length];
+        final int loc[] = new int[sz.length];
 
         // Create an imglib2
 
-        ImgFactory<FloatType> imgFactory = new ArrayImgFactory<FloatType>();
-        Img<FloatType> PSFimg = imgFactory.create(sz, new FloatType());
+        final ImgFactory<FloatType> imgFactory = new ArrayImgFactory<FloatType>();
+        final Img<FloatType> PSFimg = imgFactory.create(sz, new FloatType());
 
-        Cursor<FloatType> cft = PSFimg.cursor();
+        final Cursor<FloatType> cft = PSFimg.cursor();
 
         while (cft.hasNext()) {
             cft.next();
             cft.localize(loc);
             psfc.setPosition(loc);
-            float f = psfc.get().getRealFloat();
+            final float f = psfc.get().getRealFloat();
             cft.get().set(f);
         }
 

@@ -12,10 +12,10 @@ public class CsvColumnConfigTest extends CommonBase {
 
     @Test
     public void testGeneral() {
-        String[] fieldMapping = new String[] {"column1", "column2"};
-        CellProcessor[] cellProcessors = new CellProcessor[] {new ParseInt(), new ParseDouble()};
+        final String[] fieldMapping = new String[] {"column1", "column2"};
+        final CellProcessor[] cellProcessors = new CellProcessor[] {new ParseInt(), new ParseDouble()};
 
-        CsvColumnConfig ccc = new CsvColumnConfig(fieldMapping, cellProcessors);
+        final CsvColumnConfig ccc = new CsvColumnConfig(fieldMapping, cellProcessors);
 
         assertArrayEquals(fieldMapping, ccc.fieldMapping);
         assertArrayEquals(cellProcessors, ccc.cellProcessors);

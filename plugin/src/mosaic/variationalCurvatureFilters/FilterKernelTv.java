@@ -23,19 +23,19 @@ public class FilterKernelTv implements FilterKernel {
         // Calculate distances d0..d7
         common = u + d - m5;
         float d0 = common + lu + ld + l;
-        float d1 = common + ru + rd + r;
+        final float d1 = common + ru + rd + r;
 
         common = l + r -m5;
-        float d2 = common + lu + ru + u;
-        float d3 = common + ld + rd + d;
+        final float d2 = common + lu + ru + u;
+        final float d3 = common + ld + rd + d;
 
         common = lu + ru + u - m5;
         float d4 = common + l + ld;
-        float d5 = common + r + rd;
+        final float d5 = common + r + rd;
 
         common = ld + rd + d - m5;
-        float d6 = common + l + lu;
-        float d7 = common + r + ru;
+        final float d6 = common + l + lu;
+        final float d7 = common + r + ru;
 
         // And find minimum (absolute) change
         float da;

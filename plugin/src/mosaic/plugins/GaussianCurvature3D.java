@@ -28,10 +28,10 @@ public class GaussianCurvature3D extends PlugInFloat3DBase {
     @Override
     protected void processImg(FloatProcessor[] aOutputImg, FloatProcessor[] aOrigImg, int aChannelNumber) {
         // Get dimensions of input image and create container for it
-        int originalWidth = aOrigImg[0].getWidth();
-        int originalHeight = aOrigImg[0].getHeight();
-        int noOfSlices = aOrigImg.length;
-        float[][][] img = new float[noOfSlices][originalHeight][originalWidth];
+        final int originalWidth = aOrigImg[0].getWidth();
+        final int originalHeight = aOrigImg[0].getHeight();
+        final int noOfSlices = aOrigImg.length;
+        final float[][][] img = new float[noOfSlices][originalHeight][originalWidth];
 
         // Get all data from input images/slices for further processing
         for (int slice = 0; slice < noOfSlices; ++slice) {
@@ -39,7 +39,7 @@ public class GaussianCurvature3D extends PlugInFloat3DBase {
         }
 
         // Run filter on image data.
-        CurvatureFilter3D filter = new NoSplitFilter3D(new FilterKernelGc3D());
+        final CurvatureFilter3D filter = new NoSplitFilter3D(new FilterKernelGc3D());
         filter.runFilter(img, iNumberOfIterations);
 
         // Generate output image from processed data
@@ -51,15 +51,15 @@ public class GaussianCurvature3D extends PlugInFloat3DBase {
     @Override
     protected boolean showDialog() {
         // Create GUI for entering filtering parameters
-        GenericDialog gd = new GenericDialog("Curvature Filter 3D");
+        final GenericDialog gd = new GenericDialog("Curvature Filter 3D");
 
         gd.addNumericField("Number_of_iterations: ", (int)Prefs.get(PropNoOfIterations, 100), 0);
 
         gd.addMessage("\n");
         final String info = "Y. Gong and I. F. Sbalzarini\n\n\"Image enhancement by gradient distribution specification.\"\nIn Proc. ACCV, 12th Asian Conference on Computer Vision,\nWorkshop on Emerging Topics in Image Enhancement and Restoration,\npages w7–p3, Singapore, November 2014.";
-        Panel panel = new Panel();
+        final Panel panel = new Panel();
         panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        TextArea ta = new TextArea(info, 7,  57, TextArea.SCROLLBARS_NONE);
+        final TextArea ta = new TextArea(info, 7,  57, TextArea.SCROLLBARS_NONE);
         ta.setBackground(SystemColor.control);
         ta.setEditable(false);
         ta.setFocusable(true);
@@ -73,7 +73,7 @@ public class GaussianCurvature3D extends PlugInFloat3DBase {
         }
 
         // Read data from all fields and remember it in preferences
-        int iterations = (int)gd.getNextNumber();
+        final int iterations = (int)gd.getNextNumber();
 
         Prefs.set(PropNoOfIterations, iterations);
 

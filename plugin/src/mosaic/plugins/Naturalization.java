@@ -69,7 +69,7 @@ public class Naturalization extends PlugIn8bitBase
     private final float T2_pr[] = {0.2421f ,0.2550f, 0.2474f, 0.24816666f};
 
     // Keeps values of PSNR for all images and channels in case of RGB. Maps: imageNumber -> map (channel, PSNR value)
-    private Map<Integer, Map<Integer, Float>> iPsnrOutput = new TreeMap<Integer, Map<Integer, Float>>();
+    private final Map<Integer, Map<Integer, Float>> iPsnrOutput = new TreeMap<Integer, Map<Integer, Float>>();
     private synchronized void addPsnr(int aSlice, int aChannel, float aValue) {
         Map<Integer, Float> map = iPsnrOutput.get(aSlice);
         boolean isNewMap = false;
@@ -86,7 +86,7 @@ public class Naturalization extends PlugIn8bitBase
     @Override
     protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg, int aChannelNumber) {
         // perform naturalization
-        ImagePlus naturalizedImg = naturalize8bitImage(aOrigImg, aChannelNumber);
+        final ImagePlus naturalizedImg = naturalize8bitImage(aOrigImg, aChannelNumber);
 
         // set processed pixels to output image
         aOutputImg.setPixels(naturalizedImg.getProcessor().getPixels());
@@ -95,10 +95,10 @@ public class Naturalization extends PlugIn8bitBase
     @Override
     protected void postprocessBeforeShow() {
         // Create result table with all stored PSNRs.
-        ResultsTable rs = new ResultsTable();
-        for (Entry<Integer, Map<Integer, Float>> e : iPsnrOutput.entrySet()) {
+        final ResultsTable rs = new ResultsTable();
+        for (final Entry<Integer, Map<Integer, Float>> e : iPsnrOutput.entrySet()) {
             rs.incrementCounter();
-            for (Entry<Integer, Float> m : e.getValue().entrySet()) {
+            for (final Entry<Integer, Float> m : e.getValue().entrySet()) {
                 switch(m.getKey()) {
                     case CHANNEL_R: rs.addValue("Naturalization R", m.getValue()); rs.addValue("Estimated R PSNR", calculate_PSNR(m.getValue())); break;
                     case CHANNEL_G: rs.addValue("Naturalization G", m.getValue()); rs.addValue("Estimated G PSNR", calculate_PSNR(m.getValue())); break;
@@ -117,8 +117,8 @@ public class Naturalization extends PlugIn8bitBase
 
     private ImagePlus naturalize8bitImage(ByteProcessor imp, int aChannelNumber) {
         Img<UnsignedByteType> TChannel = ImagePlusAdapter.wrap(new ImagePlus("", imp));
-        float T2_prior = T2_pr[(aChannelNumber <= CHANNEL_B) ? 2-aChannelNumber : CHANNEL_8G];
-        float[] result = {0.0f}; // ugly but one of ways to get result back via parameters;
+        final float T2_prior = T2_pr[(aChannelNumber <= CHANNEL_B) ? 2-aChannelNumber : CHANNEL_8G];
+        final float[] result = {0.0f}; // ugly but one of ways to get result back via parameters;
 
         // Perform naturalization and store PSNR result. Finally return image in ImageJ format.
         TChannel = performNaturalization(TChannel, T2_prior, result);
@@ -142,16 +142,16 @@ public class Naturalization extends PlugIn8bitBase
 
         // Check that the image data set is 8 bit
         // Otherwise return an error or hint to scale down
-        T image_check = cls_t.newInstance();
-        Object obj = image_check;
+        final T image_check = cls_t.newInstance();
+        final Object obj = image_check;
         if (!(obj instanceof UnsignedByteType)) {
             IJ.error("Error it work only with 8-bit type");
             return null;
         }
 
-        float Nf = findNaturalizationFactor(image_orig, Theta, T2_prior);
+        final float Nf = findNaturalizationFactor(image_orig, Theta, T2_prior);
         result[0] = Nf;
-        Img<T> image_result = naturalizeImage(image_orig, Nf, cls_t);
+        final Img<T> image_result = naturalizeImage(image_orig, Nf, cls_t);
 
         return image_result;
     }
@@ -167,7 +167,7 @@ public class Naturalization extends PlugIn8bitBase
         // TODO: quick fix for deprecated code above. Is new 'mean' utility introduced in imglib2?
         float mean_original = 0.0f;
 
-        Cursor<T> c2 = image_orig.cursor();
+        final Cursor<T> c2 = image_orig.cursor();
         float count = 0.0f;
         while (c2.hasNext()) {
             c2.next();
@@ -177,19 +177,19 @@ public class Naturalization extends PlugIn8bitBase
         mean_original /= count;
 
         // Create result image
-        long[] origImgDimensions = new long[2];
+        final long[] origImgDimensions = new long[2];
         image_orig.dimensions(origImgDimensions);
-        Img<T> image_result = image_orig.factory().create(origImgDimensions, cls_t.newInstance());
+        final Img<T> image_result = image_orig.factory().create(origImgDimensions, cls_t.newInstance());
 
         // for each pixel naturalize
-        Cursor<T> cur_orig = image_orig.cursor();
-        Cursor<T> cur_ir = image_result.cursor();
+        final Cursor<T> cur_orig = image_orig.cursor();
+        final Cursor<T> cur_ir = image_result.cursor();
 
         while (cur_orig.hasNext()) {
             cur_orig.next();
             cur_ir.next();
 
-            float tmp = cur_orig.get().getRealFloat();
+            final float tmp = cur_orig.get().getRealFloat();
 
             // Naturalize
             float Nat = (int) ((tmp - mean_original)*Nf + mean_original + 0.5);
@@ -204,17 +204,17 @@ public class Naturalization extends PlugIn8bitBase
             }
 
     private <S extends RealType<S>, T extends NumericType<T> & NativeType<T> & RealType<T>> float findNaturalizationFactor(Img<T> image_orig, S Theta, float T2prior) {
-        ImgFactory<FloatType> imgFactoryF = new ArrayImgFactory<FloatType>();
+        final ImgFactory<FloatType> imgFactoryF = new ArrayImgFactory<FloatType>();
 
         // Create one dimensional image (Histogram)
-        Img<FloatType> LapCDF = imgFactoryF.create(new long[] {N_Lap}, new FloatType());
+        final Img<FloatType> LapCDF = imgFactoryF.create(new long[] {N_Lap}, new FloatType());
 
         // Two dimensional image for Gradient
-        Img<FloatType> GradCDF = imgFactoryF.create(new long[] {N_Grad, 2}, new FloatType());
+        final Img<FloatType> GradCDF = imgFactoryF.create(new long[] {N_Grad, 2}, new FloatType());
 
         // GradientCDF = Integral of the histogram of the of the Gradient field
         // LaplacianCDF = Integral of the Histogram of the Laplacian field
-        Img<FloatType> GradD = create2DGradientField();
+        final Img<FloatType> GradD = create2DGradientField();
         calculateLaplaceFieldAndGradient(image_orig, LapCDF, GradD);
         convertGrad2dToCDF(GradD);
         calculateGradCDF(GradCDF, GradD);
@@ -227,13 +227,13 @@ public class Naturalization extends PlugIn8bitBase
         // for Y component
         T_tmp += FindT(Views.iterable(Views.hyperSlice(GradCDF, GradCDF.numDimensions()-1 , 1)), N_Grad, Grad_Offset, EPS);
         // Average them and divide by the prior parameter
-        float T1 = T_tmp/(2*T1_pr);
+        final float T1 = T_tmp/(2*T1_pr);
 
         // Find the best parameter and divide by the T2 prior
-        float T2 = (float)FindT(LapCDF, N_Lap, Lap_Offset, EPS)/T2prior;
+        final float T2 = (float)FindT(LapCDF, N_Lap, Lap_Offset, EPS)/T2prior;
 
         // Calculate naturalization factor!
-        float Nf = (float) ((1.0-Theta.getRealDouble())*T1 + Theta.getRealDouble()*T2);
+        final float Nf = (float) ((1.0-Theta.getRealDouble())*T1 + Theta.getRealDouble()*T2);
 
         return Nf;
     }
@@ -266,12 +266,12 @@ public class Naturalization extends PlugIn8bitBase
 
     private Img<UnsignedByteType> performNaturalization(Img<UnsignedByteType> channel, float T2_prior, float[] result) {
         // Parameters balance between first order and second order
-        FloatType Theta = new FloatType(0.5f);
+        final FloatType Theta = new FloatType(0.5f);
         try {
             channel = doNaturalization(channel, Theta, UnsignedByteType.class, T2_prior, result);
-        } catch (InstantiationException e) {
+        } catch (final InstantiationException e) {
             e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             e.printStackTrace();
         }
 
@@ -287,7 +287,7 @@ public class Naturalization extends PlugIn8bitBase
         double error = 0;
 
         for (int i=-offset; i<N-offset; ++i) {
-            double tmp = Math.atan(T*(i)) - p_d[i+offset];
+            final double tmp = Math.atan(T*(i)) - p_d[i+offset];
             error += (tmp*tmp);
         }
 
@@ -311,10 +311,10 @@ public class Naturalization extends PlugIn8bitBase
         float m2 = 0.0f;
 
         // Crate p_t to save computation (shift and rescale the original CDF)
-        float p_t[] = new float[N];
+        final float p_t[] = new float[N];
 
         // Copy the data
-        Cursor<FloatType> cur_data = data.cursor();
+        final Cursor<FloatType> cur_data = data.cursor();
         for (int i = 0; i < N; ++i)
         {
             cur_data.next();
@@ -342,32 +342,32 @@ public class Naturalization extends PlugIn8bitBase
     }
 
     private Img<FloatType> create2DGradientField() {
-        long dims[] = new long[2];
+        final long dims[] = new long[2];
         dims[0] = N_Grad;
         dims[1] = N_Grad;
-        Img<FloatType> GradD = new ArrayImgFactory<FloatType>().create(dims, new FloatType());
+        final Img<FloatType> GradD = new ArrayImgFactory<FloatType>().create(dims, new FloatType());
         return GradD;
     }
 
     private void calculateLapCDF(Img<FloatType> LapCDF) {
-        RandomAccess<FloatType> Lap_hist2 = LapCDF.randomAccess();
+        final RandomAccess<FloatType> Lap_hist2 = LapCDF.randomAccess();
         //convert Lap to CDF
         for (int i = 1; i < N_Lap; ++i)
         {
             Lap_hist2.setPosition(i-1,0);
-            float prec = Lap_hist2.get().getRealFloat();
+            final float prec = Lap_hist2.get().getRealFloat();
             Lap_hist2.move(1,0);
             Lap_hist2.get().set(Lap_hist2.get().getRealFloat() + prec);
         }
     }
 
     private void calculateGradCDF(Img<FloatType> GradCDF, Img<FloatType> GradD) {
-        RandomAccess<FloatType> Grad_dist = GradD.randomAccess();
+        final RandomAccess<FloatType> Grad_dist = GradD.randomAccess();
 
         // Gradient on x pointer
-        IntervalView<FloatType> Gradx = Views.hyperSlice(GradCDF, GradCDF.numDimensions()-1 , 0);
+        final IntervalView<FloatType> Gradx = Views.hyperSlice(GradCDF, GradCDF.numDimensions()-1 , 0);
         // Gradient on y pointer
-        IntervalView<FloatType> Grady = Views.hyperSlice(GradCDF, GradCDF.numDimensions()-1 , 1);
+        final IntervalView<FloatType> Grady = Views.hyperSlice(GradCDF, GradCDF.numDimensions()-1 , 1);
 
         integrateOverRowAndCol(Grad_dist, Gradx, Grady);
 
@@ -375,8 +375,8 @@ public class Naturalization extends PlugIn8bitBase
     }
 
     private void scaleGradiens(IntervalView<FloatType> Gradx, IntervalView<FloatType> Grady) {
-        RandomAccess<FloatType> Gradx_r2 = Gradx.randomAccess();
-        RandomAccess<FloatType> Grady_r2 = Grady.randomAccess();
+        final RandomAccess<FloatType> Gradx_r2 = Gradx.randomAccess();
+        final RandomAccess<FloatType> Grady_r2 = Grady.randomAccess();
         //scale, divide the number of integrated bins
         for (int i = 0; i < N_Grad; ++i)
         {
@@ -388,9 +388,9 @@ public class Naturalization extends PlugIn8bitBase
     }
 
     private void integrateOverRowAndCol(RandomAccess<FloatType> Grad_dist, IntervalView<FloatType> Gradx, IntervalView<FloatType> Grady) {
-        int[] loc = new int[2];
+        final int[] loc = new int[2];
         // pGrad2D has 2D CDF
-        RandomAccess<FloatType> Gradx_r = Gradx.randomAccess();
+        final RandomAccess<FloatType> Gradx_r = Gradx.randomAccess();
 
         // Integrate over the row
         for (int i = 0; i < N_Grad; ++i)
@@ -411,7 +411,7 @@ public class Naturalization extends PlugIn8bitBase
             }
         }
 
-        RandomAccess<FloatType> Grady_r = Grady.randomAccess();
+        final RandomAccess<FloatType> Grady_r = Grady.randomAccess();
 
         // Integrate over the column
         for (int i = 0; i < N_Grad; ++i)
@@ -430,17 +430,17 @@ public class Naturalization extends PlugIn8bitBase
     }
 
     private <T extends RealType<T>> void calculateLaplaceFieldAndGradient(Img<T> image, Img<FloatType> LapCDF, Img<FloatType> GradD) {
-        RandomAccess<FloatType> Grad_dist = GradD.randomAccess();
-        long[] origImgDimensions = new long[2];
+        final RandomAccess<FloatType> Grad_dist = GradD.randomAccess();
+        final long[] origImgDimensions = new long[2];
         image.dimensions(origImgDimensions);
-        Img<FloatType> laplaceField = new ArrayImgFactory<FloatType>().create(origImgDimensions, new FloatType());
+        final Img<FloatType> laplaceField = new ArrayImgFactory<FloatType>().create(origImgDimensions, new FloatType());
 
         // Cursor localization
-        int[] indexD = new int[2];
-        int[] loc_p = new int[2];
-        RandomAccess<T> img_cur = image.randomAccess();
-        RandomAccess<FloatType> Lap_f = laplaceField.randomAccess();
-        RandomAccess<FloatType> Lap_hist = LapCDF.randomAccess();
+        final int[] indexD = new int[2];
+        final int[] loc_p = new int[2];
+        final RandomAccess<T> img_cur = image.randomAccess();
+        final RandomAccess<FloatType> Lap_f = laplaceField.randomAccess();
+        final RandomAccess<FloatType> Lap_hist = LapCDF.randomAccess();
 
 
         // Normalization 1/(Number of pixel of the original image)
@@ -448,10 +448,10 @@ public class Naturalization extends PlugIn8bitBase
         for (int i = 0 ; i < laplaceField.numDimensions() ; i++)
         {n_pixel *= laplaceField.dimension(i)-2;}
         // unit to sum
-        double f = 1.0/(n_pixel);
+        final double f = 1.0/(n_pixel);
 
         // Inside the image for Y
-        Cursor<FloatType> cur = laplaceField.cursor();
+        final Cursor<FloatType> cur = laplaceField.cursor();
 
         // For each point of the Laplacian field
         while (cur.hasNext())
@@ -485,13 +485,13 @@ public class Naturalization extends PlugIn8bitBase
             for (int i = 0 ; i < 2 ; i++)
             {
                 img_cur.move(1, i);
-                float G_p = img_cur.get().getRealFloat();
+                final float G_p = img_cur.get().getRealFloat();
 
                 img_cur.move(-1,i);
-                float G_m = img_cur.get().getRealFloat();
+                final float G_m = img_cur.get().getRealFloat();
 
                 img_cur.move(-1, i);
-                float L_m = img_cur.get().getRealFloat();
+                final float L_m = img_cur.get().getRealFloat();
 
                 img_cur.setPosition(loc_p);
 
@@ -518,8 +518,8 @@ public class Naturalization extends PlugIn8bitBase
     }
 
     private void convertGrad2dToCDF(Img<FloatType> GradD) {
-        RandomAccess<FloatType> Grad_dist = GradD.randomAccess();
-        int[] loc = new int[GradD.numDimensions()];
+        final RandomAccess<FloatType> Grad_dist = GradD.randomAccess();
+        final int[] loc = new int[GradD.numDimensions()];
 
         // for each row
         for (int j = 0; j < GradD.dimension(1); ++j)
@@ -532,7 +532,7 @@ public class Naturalization extends PlugIn8bitBase
                 Grad_dist.setPosition(loc);
 
                 // Precedent float
-                float prec = Grad_dist.get().getRealFloat();
+                final float prec = Grad_dist.get().getRealFloat();
 
                 // Move to the actual position
                 Grad_dist.move(1, 0);
@@ -554,7 +554,7 @@ public class Naturalization extends PlugIn8bitBase
                 Grad_dist.setPosition(loc);
 
                 // Precedent float
-                float prec = Grad_dist.get().getRealFloat();
+                final float prec = Grad_dist.get().getRealFloat();
 
                 // Move to the actual position
                 Grad_dist.move(1, 1);
@@ -571,11 +571,11 @@ public class Naturalization extends PlugIn8bitBase
     {
         // Create main window with panel to store gui components
         final JDialog win = new JDialog((JDialog)null, "Naturalization", true);
-        JPanel msg = new JPanel();
+        final JPanel msg = new JPanel();
         msg.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // Create message not editable but still focusable for copying
-        JTextPane text = new JTextPane();
+        final JTextPane text = new JTextPane();
         text.setContentType("text/html");
         text.setText("<html>Y. Gong and I. F. Sbalzarini. Image enhancement by gradient distribution specification. In Proc. ACCV, <br>"
                 + "12th Asian Conference on Computer Vision, Workshop on Emerging Topics in Image Enhancement and Restoration,<br>"
@@ -586,7 +586,7 @@ public class Naturalization extends PlugIn8bitBase
         msg.add(text);
 
         // Add button "Close" for closing window easily
-        JButton button = new JButton("Close");
+        final JButton button = new JButton("Close");
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

@@ -92,9 +92,9 @@ public class Polynomial {
         }
 
         // Plus 1 since constant
-        int noOfCoefs = iDegree - aOrder + 1;
+        final int noOfCoefs = iDegree - aOrder + 1;
 
-        double[] newCoeffs = new double[noOfCoefs];
+        final double[] newCoeffs = new double[noOfCoefs];
         for (int n = 0; n < noOfCoefs; ++n) {
             double coeff = iCoeffs[n];
             for (int i = 0; i < aOrder; ++i) {
@@ -113,9 +113,9 @@ public class Polynomial {
      */
     public Polynomial getIntegral(double aConstant) {
         // Plus 1 since constant
-        int noOfCoefs = iDegree + 1 + 1;
+        final int noOfCoefs = iDegree + 1 + 1;
 
-        double[] newCoeffs = new double[noOfCoefs];
+        final double[] newCoeffs = new double[noOfCoefs];
         for (int n = 0; n < noOfCoefs - 1; ++n) {
             double coeff = iCoeffs[n];
             coeff /= (iDegree - n + 1);
@@ -134,7 +134,7 @@ public class Polynomial {
     private void setCoefficients(double[] aCoefficients) {
         // Compact polynomial (remove leading zeros)
         int idx = 0;
-        for (double c : aCoefficients) {
+        for (final double c : aCoefficients) {
             if (c != 0) {
                 break;
             }
@@ -184,7 +184,7 @@ public class Polynomial {
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        Polynomial cmp = (Polynomial)obj;
+        final Polynomial cmp = (Polynomial)obj;
         if (cmp.iDegree != this.iDegree) {
             return false;
         }

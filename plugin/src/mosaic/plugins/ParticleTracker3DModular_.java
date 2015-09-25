@@ -263,7 +263,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         // Check if there are segmentation information
 
         if (MosaicUtils.checkSegmentationInfo(imp, null)) {
-            YesNoCancelDialog YN_dialog = new YesNoCancelDialog(null, "Segmentation", "A segmentation has been founded for this image, do you want to track the regions");
+            final YesNoCancelDialog YN_dialog = new YesNoCancelDialog(null, "Segmentation", "A segmentation has been founded for this image, do you want to track the regions");
 
             if (YN_dialog.yesPressed() == true) {
                 SegmentationInfo info;
@@ -283,9 +283,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         // are 2D or 3D
 
         if (imp.getStackSize() > 1 && imp.getNFrames() == 1) {
-            GenericDialog gd = new GenericDialog("Data dimension");
+            final GenericDialog gd = new GenericDialog("Data dimension");
 
-            String ad[] = { "No", "Yes" };
+            final String ad[] = { "No", "Yes" };
             gd.addChoice("Are these 3D data ?", ad, "No");
             gd.showDialog();
 
@@ -345,7 +345,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         /* link the particles found */
         IJ.showStatus("Linking Particles");
 
-        linkerOptions lo = new linkerOptions();
+        final linkerOptions lo = new linkerOptions();
         lo.linkrange = linkrange;
         lo.displacement = (float) displacement;
         lo.force = force;
@@ -426,9 +426,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             this.title = original_imp.getTitle();
 
             // get global minimum and maximum
-            StackStatistics stack_stats = new StackStatistics(original_imp);
-            float global_max = (float) stack_stats.max;
-            float global_min = (float) stack_stats.min;
+            final StackStatistics stack_stats = new StackStatistics(original_imp);
+            final float global_max = (float) stack_stats.max;
+            final float global_min = (float) stack_stats.min;
             frames_number = original_imp.getNFrames();
             slices_number = original_imp.getNSlices();
 
@@ -444,7 +444,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     private String file_sel;
 
     private void featureFilteringStage() {
-        GenericDialog gd = new GenericDialog("Filter");
+        final GenericDialog gd = new GenericDialog("Filter");
 
         gd.addMessage("Filter particle");
 
@@ -474,7 +474,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
         // Convert to a List
 
-        List<Particle> pl = new ArrayList<Particle>();
+        final List<Particle> pl = new ArrayList<Particle>();
         for (int i = 0; i < vp.size(); i++) {
             pl.add(vp.get(i));
         }
@@ -486,7 +486,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         // rescale and filter
 
         while (i.hasNext()) {
-            Particle p = i.next();
+            final Particle p = i.next();
 
             if (p.m0 >= f_size && p.m2 > f_intensity) {
                 p.x *= cal.pixelWidth;
@@ -537,10 +537,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
         if (csv_format == true) {
             IJ.showStatus("Reading CSV Regions data ...");
-            CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
+            final CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
 
             P_csv.setCSVPreferenceFromFile(files_dir + File.separator + file_sel);
-            Vector<Particle> p = P_csv.Read(files_dir + File.separator + file_sel, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
+            final Vector<Particle> p = P_csv.Read(files_dir + File.separator + file_sel, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
 
             if (p.size() == 0) {
                 IJ.error("No regions defined for this image,nothing to do");
@@ -569,7 +569,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             if (create_bck_image == true) {
                 IJ.showStatus("Creating background image ...");
 
-                Img<ARGBType> iw = createHyperStackFromFrames(background);
+                final Img<ARGBType> iw = createHyperStackFromFrames(background);
                 if (iw != null) {
                     original_imp = ImageJFunctions.wrap(iw, "Video");
                     original_imp.show();
@@ -629,7 +629,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             if (create_bck_image == true) {
                 IJ.showStatus("Creating background image ...");
 
-                Img<ARGBType> iw = createHyperStackFromFrames(background);
+                final Img<ARGBType> iw = createHyperStackFromFrames(background);
                 if (iw != null) {
                     original_imp = ImageJFunctions.wrap(iw, "Video");
                     original_imp.show();
@@ -637,12 +637,12 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             }
         }
         else {
-            Vector<MyFrame> tmf = new Vector<MyFrame>();
+            final Vector<MyFrame> tmf = new Vector<MyFrame>();
             BufferedReader r = null;
             try {
                 r = new BufferedReader(new FileReader(this.files_dir + files_list[0]));
             }
-            catch (Exception e) {
+            catch (final Exception e) {
                 IJ.error(e.getMessage());
                 return false;
             }
@@ -650,7 +650,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
                 if (r != null) try {
                     r.close();
                 }
-                catch (IOException e) {
+                catch (final IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -713,7 +713,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         // Add help panel
 
         Panel p = new Panel();
-        Button help_b = new Button("help");
+        final Button help_b = new Button("help");
         p.add(help_b);
 
         gd.addPanel(p);
@@ -722,7 +722,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                Point p = gd.getLocationOnScreen();
+                final Point p = gd.getLocationOnScreen();
                 new ParticleTrackerHelp(p.x, p.y);
 
             }
@@ -766,10 +766,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
                 if (csv_format == true) {
                     int nf = 0;
 
-                    Vector<String> v = new Vector<String>();
+                    final Vector<String> v = new Vector<String>();
 
                     for (int i = 0; i < files_list.length; i++) {
-                        File f = new File(files_dir + File.separator + files_list[i]);
+                        final File f = new File(files_dir + File.separator + files_list[i]);
                         if (files_list[i].endsWith("csv") == true && f.exists() && f.isDirectory() == false) {
                             v.add(files_list[i]);
                             nf++;
@@ -813,7 +813,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             gd.addNumericField("Displacement", 10.0, 2);
         }
 
-        String d_pos[] = { "Brownian", "straight", "constant velocity" };
+        final String d_pos[] = { "Brownian", "straight", "constant velocity" };
         gd.addChoice("Dynamics: ", d_pos, d_pos[0]);
         //
         // gd.addMessage("Trajectory Analysis Data :\n");
@@ -823,19 +823,19 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
         // Create advanced option panel
 
-        Button a_opt = new Button("Advanced options");
+        final Button a_opt = new Button("Advanced options");
         a_opt.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                GenericDialog gd = new GenericDialog("Link factor");
+                final GenericDialog gd = new GenericDialog("Link factor");
 
                 gd.addMessage("weight of different contributions for linking\n relative to the distance normalized to one");
 
                 gd.addNumericField("Object feature", l_f, 3);
                 gd.addNumericField("Dynamics", l_d, 3);
 
-                String sc[] = new String[2];
+                final String sc[] = new String[2];
 
                 sc[0] = new String("Greedy");
                 sc[1] = new String("Hungarian");
@@ -852,7 +852,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
                 l_f = (float) gd.getNextNumber();
                 l_d = (float) gd.getNextNumber();
 
-                String dm = gd.getNextChoice();
+                final String dm = gd.getNextChoice();
 
                 if (dm.equals("Greedy")) {
                     linker = new ParticleLinkerBestOnePerm();
@@ -863,14 +863,14 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             }
         });
 
-        Panel preview_panel = new Panel();
+        final Panel preview_panel = new Panel();
 
         preview_panel.add(a_opt);
         gd.addPanel(preview_panel);
 
         // Introduce a label with reference
 
-        JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br>" + "I. F. Sbalzarini and P. Koumoutsakos.<br> Feature Point "
+        final JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br>" + "I. F. Sbalzarini and P. Koumoutsakos.<br> Feature Point "
                 + "Tracking and<br> Trajectory Analysis for<br>Video Imaging in Cell Biology,<br>" + "Journal of Structural Biology<br> 151(2):182-195, 2005.<br>" + "</html>");
 
         p = new Panel();
@@ -881,7 +881,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
         // retrieve params from user
         if (!text_files_mode) {
-            Boolean changed = detector.getUserDefinedParameters(gd);
+            final Boolean changed = detector.getUserDefinedParameters(gd);
             // even if the frames were already processed (particles detected) but
             // the user changed the detection params then the frames needs to be processed again
             if (changed) {
@@ -912,7 +912,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             return false;
         }
 
-        String dm = gd.getNextChoice();
+        final String dm = gd.getNextChoice();
 
         if (dm.equals("Brownian")) {
             this.force = false;
@@ -933,7 +933,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             sc.convertToGray8();
             stack = original_imp.getStack();
             this.title = original_imp.getTitle();
-            StackStatistics stack_stats = new StackStatistics(original_imp);
+            final StackStatistics stack_stats = new StackStatistics(original_imp);
             detector.global_max = (float) stack_stats.max;
             detector.global_min = (float) stack_stats.min;
             frames_number = original_imp.getNFrames(); // ??maybe not necessary
@@ -982,7 +982,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
         Trajectory curr_traj;
         // temporary vector to hold particles for current trajectory
-        Vector<Particle> curr_traj_particles = new Vector<Particle>(frames_number);
+        final Vector<Particle> curr_traj_particles = new Vector<Particle>(frames_number);
         // initialize trajectories vector
         all_traj = new Vector<Trajectory>();
         this.number_of_trajectories = 0;
@@ -1053,7 +1053,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
                     } while (m != -1);
 
                     // Create the current trajectory
-                    Particle[] curr_traj_particles_array = new Particle[curr_traj_particles.size()];
+                    final Particle[] curr_traj_particles_array = new Particle[curr_traj_particles.size()];
                     curr_traj = new Trajectory(curr_traj_particles.toArray(curr_traj_particles_array), original_imp);
 
                     // set current trajectory parameters
@@ -1073,7 +1073,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
         /* Assign random unique color to trajectory (KNOWN BUG YOU SHOULD AVOID GREY) */
 
-        Vector<Color> vI = new Vector<Color>();
+        final Vector<Color> vI = new Vector<Color>();
 
         int base = 257; // R = 0 G = 1 B = 1
         int step = 0;
@@ -1103,7 +1103,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     }
 
     private String getUnit() {
-        Calibration cal = original_imp.getCalibration();
+        final Calibration cal = original_imp.getCalibration();
 
         return cal.getUnit();
     }
@@ -1112,8 +1112,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * Get scaling factor
      */
     public double[] getScaling() {
-        Calibration cal = original_imp.getCalibration();
-        double scaling[] = new double[3];
+        final Calibration cal = original_imp.getCalibration();
+        final double scaling[] = new double[3];
 
         scaling[0] = cal.pixelWidth;
         scaling[1] = cal.pixelHeight;
@@ -1126,7 +1126,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * Generate a String header of each colum
      */
     public String trajectoryHeader() {
-        Calibration cal = original_imp.getCalibration();
+        final Calibration cal = original_imp.getCalibration();
 
         return new String("%% frame x (" + cal.getUnit() + ")     y (" + cal.getUnit() + ")    z (" + cal.getUnit() + ")      m0 " + "        m1 " + "          m2 " + "          m3 " + "          m4 "
                 + "          s \n");
@@ -1144,7 +1144,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * @return a <code>StringBuffer</code> that holds this information
      */
     private StringBuffer getTrajectoriesInfo() {
-        StringBuffer traj_info = new StringBuffer("%% Trajectories:\n");
+        final StringBuffer traj_info = new StringBuffer("%% Trajectories:\n");
         traj_info.append("%%\t 1st column: frame number\n");
         traj_info.append("%%\t 2nd column: x coordinate top-down" + "(" + getUnit() + ")" + "\n");
         traj_info.append("%%\t 3rd column: y coordinate left-right" + "(" + getUnit() + ")" + "\n");
@@ -1162,9 +1162,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         }
         traj_info.append("\n");
 
-        Iterator<Trajectory> iter = all_traj.iterator();
+        final Iterator<Trajectory> iter = all_traj.iterator();
         while (iter.hasNext()) {
-            Trajectory curr_traj = iter.next();
+            final Trajectory curr_traj = iter.next();
             traj_info.append("%% Trajectory " + curr_traj.serial_number + "\n");
 
             // Uncomment these lines if you want to add trajectory analysis to final report:
@@ -1191,7 +1191,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
     private void writeDataToDisk() {
         // get original file location
-        FileInfo vFI = this.original_imp.getOriginalFileInfo();
+        final FileInfo vFI = this.original_imp.getOriginalFileInfo();
         if (vFI == null) {
             IJ.error("You're running a macro. Data are written to disk at the directory where your image is stored. Please store youre image first.");
             return;
@@ -1208,11 +1208,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         MosaicUtils.write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
         writeXMLFormatReport(new File(vFI.directory, title + "_r_" + getRadius() + "_c_" + detector.cutoff + "_perc_" + detector.percentile + "_PT3Dresults.xml").getAbsolutePath());
         new TrajectoriesReportXML(new File(vFI.directory, "report.xml").getAbsolutePath(), this);
-        ResultsTable rt = transferTrajectoriesToResultTable();
+        final ResultsTable rt = transferTrajectoriesToResultTable();
         try {
             rt.saveAs(new File(vFI.directory, "Traj_" + title + ".csv").getAbsolutePath());
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
     }
@@ -1247,15 +1247,15 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
         detector.getUserDefinedPreviewParams(gd);
 
-        ImagePlus frame = MosaicUtils.getImageFrame(original_imp, original_imp.getFrame());
+        final ImagePlus frame = MosaicUtils.getImageFrame(original_imp, original_imp.getFrame());
 
-        MyFrame preview_frame = new MyFrame(frame.getStack(), original_imp.getFrame(), linkrange);
+        final MyFrame preview_frame = new MyFrame(frame.getStack(), original_imp.getFrame(), linkrange);
 
         detector.featurePointDetection(preview_frame);
         final Img<FloatType> backgroundImg = ImagePlusAdapter.convertFloat(frame);
 
         preview_frame.setParticleRadius(getRadius());
-        Img<ARGBType> img_frame = preview_frame.createImage(backgroundImg, frame.getCalibration());
+        final Img<ARGBType> img_frame = preview_frame.createImage(backgroundImg, frame.getCalibration());
 
         ImageJFunctions.wrap(img_frame, "Preview detection").show();
     }
@@ -1275,22 +1275,22 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      */
     public boolean filterTrajectories() {
         int passed_traj = 0;
-        GenericDialog fod = new GenericDialog("Filter Options...", IJ.getInstance());
+        final GenericDialog fod = new GenericDialog("Filter Options...", IJ.getInstance());
         // default is not to filter any trajectories (min length of zero)
         fod.addNumericField("Only keep trajectories longer than", 0, 0, 10, "frames");
 
         // fod.addNumericField("Only keep the", this.number_of_trajectories, 0, 10, "longest trajectories");
         fod.showDialog();
-        int min_length_to_display = (int) fod.getNextNumber();
+        final int min_length_to_display = (int) fod.getNextNumber();
         // this.trajectories_longer = (int)fod.getNextNumber();
 
         if (fod.wasCanceled()) {
             return false;
         }
 
-        Iterator<Trajectory> iter = all_traj.iterator();
+        final Iterator<Trajectory> iter = all_traj.iterator();
         while (iter.hasNext()) {
-            Trajectory curr_traj = iter.next();
+            final Trajectory curr_traj = iter.next();
             if (curr_traj.length <= min_length_to_display) {
                 curr_traj.to_display = false;
             }
@@ -1308,7 +1308,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * setting the <code>to_display</code> param of each trajectory to true
      */
     public void resetTrajectoriesFilter() {
-        Iterator<Trajectory> iter = all_traj.iterator();
+        final Iterator<Trajectory> iter = all_traj.iterator();
         while (iter.hasNext()) {
             (iter.next()).to_display = true;
         }
@@ -1328,7 +1328,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * @return a <code>StringBuffer</code> that holds this information
      */
     public StringBuffer getConfiguration() {
-        StringBuffer configuration = new StringBuffer("% Configuration:\n");
+        final StringBuffer configuration = new StringBuffer("% Configuration:\n");
         if (!this.text_files_mode) {
             configuration.append("% \tKernel radius: ");
             configuration.append(getRadius());
@@ -1373,7 +1373,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         if (this.text_files_mode) {
             return new StringBuffer("Frames info was loaded from text files");
         }
-        StringBuffer info = new StringBuffer("% Frames information:\n");
+        final StringBuffer info = new StringBuffer("% Frames information:\n");
         info.append("% \tWidth : ");
         info.append(stack.getWidth());
         info.append(" pixel\n");
@@ -1407,7 +1407,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * @see TrajectoryStackWindow
      */
     public void generateView(ImagePlus duplicated_imp, Img<ARGBType> out) {
-        String new_title = "All Trajectories Visual";
+        final String new_title = "All Trajectories Visual";
 
         if (duplicated_imp == null) {
             if (out == null) {
@@ -1464,32 +1464,32 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     <T extends RealType<T>> Img<ARGBType> copyScaleConvertToRGB(RandomAccessibleInterval<T> img, FinalInterval r, int magnification) {
         // Create output image
 
-        long[] sz = new long[img.numDimensions()];
+        final long[] sz = new long[img.numDimensions()];
         r.dimensions(sz);
 
         sz[0] *= magnification;
         sz[1] *= magnification;
 
         final ImgFactory<ARGBType> imgFactory = new ArrayImgFactory<ARGBType>();
-        Img<ARGBType> output = imgFactory.create(sz, new ARGBType());
+        final Img<ARGBType> output = imgFactory.create(sz, new ARGBType());
 
         // Interval
 
-        IntervalView<T> vi = Views.interval(img, r);
-        IterableInterval<T> fvi = Views.flatIterable(vi);
-        Cursor<T> cur = fvi.cursor();
-        RandomAccess<ARGBType> rc_o = output.randomAccess();
+        final IntervalView<T> vi = Views.interval(img, r);
+        final IterableInterval<T> fvi = Views.flatIterable(vi);
+        final Cursor<T> cur = fvi.cursor();
+        final RandomAccess<ARGBType> rc_o = output.randomAccess();
 
-        ToARGB pixel_converter = MosaicUtils.getConversion(cur.get(), fvi.cursor());
+        final ToARGB pixel_converter = MosaicUtils.getConversion(cur.get(), fvi.cursor());
 
-        int start_frame = (int) r.min(rc_o.numDimensions() - 1);
-        int start_x = (int) r.min(0);
-        int start_y = (int) r.min(1);
-        int loc[] = new int[rc_o.numDimensions()];
-        int loc_p[] = new int[rc_o.numDimensions()];
+        final int start_frame = (int) r.min(rc_o.numDimensions() - 1);
+        final int start_x = (int) r.min(0);
+        final int start_y = (int) r.min(1);
+        final int loc[] = new int[rc_o.numDimensions()];
+        final int loc_p[] = new int[rc_o.numDimensions()];
 
         while (cur.hasNext()) {
-            ARGBType a = pixel_converter.toARGB(cur.next());
+            final ARGBType a = pixel_converter.toARGB(cur.next());
             cur.localize(loc);
             cur.localize(loc_p);
 
@@ -1527,20 +1527,20 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         MyFrame.cleanCache();
 
         // create a title
-        String new_title = "[Trajectory number " + (trajectory_index + 1) + "]";
+        final String new_title = "[Trajectory number " + (trajectory_index + 1) + "]";
 
         // get the trajectory at the given index
-        Trajectory traj = (all_traj.elementAt(trajectory_index));
+        final Trajectory traj = (all_traj.elementAt(trajectory_index));
 
         // Here we check the if the magnification if compatible with the Available memory
 
-        long AvaMem = IJ.maxMemory() - IJ.currentMemory();
+        final long AvaMem = IJ.maxMemory() - IJ.currentMemory();
 
-        Rectangle r = traj.focus_area.getBounds();
+        final Rectangle r = traj.focus_area.getBounds();
 
-        long cropped_size = r.height * r.width * 4 * traj.length * original_imp.getNSlices();
+        final long cropped_size = r.height * r.width * 4 * traj.length * original_imp.getNSlices();
 
-        long ReqMem = cropped_size * magnification * magnification;
+        final long ReqMem = cropped_size * magnification * magnification;
 
         if (ReqMem >= AvaMem * 3 / 4) {
             magnification = (int) Math.sqrt((AvaMem * 3 / 4) / cropped_size);
@@ -1552,10 +1552,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
         // Create a cropped rescaled image
 
-        Img<UnsignedByteType> img = ImagePlusAdapter.wrap(original_imp);
+        final Img<UnsignedByteType> img = ImagePlusAdapter.wrap(original_imp);
 
-        long min[] = new long[img.numDimensions()];
-        long max[] = new long[img.numDimensions()];
+        final long min[] = new long[img.numDimensions()];
+        final long max[] = new long[img.numDimensions()];
 
         min[0] = r.x;
         max[0] = r.x + r.width;
@@ -1570,17 +1570,17 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         min[img.numDimensions() - 1] = traj.start_frame;
         max[img.numDimensions() - 1] = traj.stop_frame;
 
-        FinalInterval in = new FinalInterval(min, max);
+        final FinalInterval in = new FinalInterval(min, max);
 
-        Img<ARGBType> focus_view = copyScaleConvertToRGB(img, in, magnification);
+        final Img<ARGBType> focus_view = copyScaleConvertToRGB(img, in, magnification);
 
         IJ.showStatus("Creating frames ... ");
-        Vector<Trajectory> vt = new Vector<Trajectory>();
+        final Vector<Trajectory> vt = new Vector<Trajectory>();
         vt.add(traj);
-        Calibration cal = original_imp.getCalibration();
+        final Calibration cal = original_imp.getCalibration();
         MyFrame.updateImage(focus_view, traj.focus_area.getBounds(), traj.start_frame, vt, cal, DrawType.TRAJECTORY_HISTORY, getRadius());
 
-        ImagePlus imp = ImageJFunctions.show(focus_view);
+        final ImagePlus imp = ImageJFunctions.show(focus_view);
         imp.setTitle(new_title);
 
         new FocusStackWin(imp, traj, (float) cal.pixelDepth);
@@ -1605,12 +1605,12 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      */
     public void generateAreaFocusView(int magnification) {
 
-        String new_title = "[Area Focus]";
+        final String new_title = "[Area Focus]";
         // Save the ID of the last active image window - the one the ROI was selected on
-        int roi_image_id = IJ.getImage().getID();
+        final int roi_image_id = IJ.getImage().getID();
 
         // Get the ROI and check its valid
-        Roi user_roi = IJ.getImage().getRoi();
+        final Roi user_roi = IJ.getImage().getRoi();
         if (user_roi == null) {
             IJ.error("generateAreaFocusView: No Roi was selected");
             return;
@@ -1622,7 +1622,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         IJ.freeMemory();
 
         // Get the new-scaled image (stack) and assign it duplicated_imp
-        ImagePlus duplicated_imp = IJ.getImage();
+        final ImagePlus duplicated_imp = IJ.getImage();
 
         // Convert the stack to RGB so color can been drawn on it and get its ImageStack
         IJ.run("RGB Color");
@@ -1676,14 +1676,14 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     private String[] getFilesList() {
 
         /* Opens an 'open file' with the default directory as the imageJ 'image' directory */
-        OpenDialog od = new OpenDialog("test", IJ.getDirectory("image"), "");
+        final OpenDialog od = new OpenDialog("test", IJ.getDirectory("image"), "");
 
         this.files_dir = od.getDirectory();
         this.file_sel = od.getFileName();
         if (files_dir == null) {
             return null;
         }
-        String[] list = new File(od.getDirectory()).list();
+        final String[] list = new File(od.getDirectory()).list();
         return list;
     }
 
@@ -1742,7 +1742,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         /* find the max coordinates for each coordinate */
         for (int i = 0; i < frames.length; i++) {
             for (int p = 0; p < frames[i].getParticles().size(); p++) {
-                Particle vParticle = frames[i].getParticles().elementAt(p);
+                final Particle vParticle = frames[i].getParticles().elementAt(p);
                 if (vParticle.x > vMax[0]) {
                     vMax[0] = (int) Math.ceil(vParticle.x);
                 }
@@ -1758,7 +1758,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         // is 2D
 
         if (vMax[2] == 0.0) {
-            int vMax_t[] = new int[2];
+            final int vMax_t[] = new int[2];
             vMax_t[0] = vMax[0];
             vMax_t[1] = vMax[1];
             vMax = vMax_t;
@@ -1788,7 +1788,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
         if (text_files_mode == true) {
             if (background == null) {
-                long vMaxp1[] = new long[vMax.length + 1];
+                final long vMaxp1[] = new long[vMax.length + 1];
 
                 for (int i = 0; i < vMax.length; i++) {
                     vMaxp1[i] = vMax[i];
@@ -1802,7 +1802,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
                 // Open first background to get the size
 
                 if (original_imp == null) {
-                    File file = new File(background.replace("*", Integer.toString(1)));
+                    final File file = new File(background.replace("*", Integer.toString(1)));
 
                     // open a file with ImageJ
                     original_imp = new Opener().openImage(file.getAbsolutePath());
@@ -1845,7 +1845,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
             final Img<UnsignedByteType> backgroundImg = ImagePlusAdapter.wrap(original_imp);
 
-            long vMaxp1[] = new long[backgroundImg.numDimensions()];
+            final long vMaxp1[] = new long[backgroundImg.numDimensions()];
 
             for (int i = 0; i < backgroundImg.numDimensions(); i++) {
                 vMaxp1[i] = backgroundImg.dimension(i);
@@ -1873,7 +1873,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
                         }
                     }
 
-                    Calibration cal = original_imp.getCalibration();
+                    final Calibration cal = original_imp.getCalibration();
 
                     if (imp == null) {
                         IJ.error("Cannot find the background image or wrong format");
@@ -1901,11 +1901,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
                 }
             }
             else {
-                Calibration cal = original_imp.getCalibration();
+                final Calibration cal = original_imp.getCalibration();
 
                 // wrap it into an ImgLib image (no copying)
 
-                ImagePlus timp = MosaicUtils.getImageFrame(original_imp, i + 1);
+                final ImagePlus timp = MosaicUtils.getImageFrame(original_imp, i + 1);
                 final Img<UnsignedByteType> backgroundImg = ImagePlusAdapter.wrap(timp);
 
                 frames[i].setParticleRadius(getRadius());
@@ -1938,7 +1938,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     public StringBuffer getFullReport() {
 
         /* initial infomation to output */
-        StringBuffer report = new StringBuffer();
+        final StringBuffer report = new StringBuffer();
         report.append(this.getConfiguration());
         report.append(this.getInputFramesInformation());
         report.append("\n");
@@ -1966,16 +1966,16 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
         try {
 
-            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+            final DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            final DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 
             // root elements
-            Document doc = docBuilder.newDocument();
-            Element rootElement = doc.createElement("root");
+            final Document doc = docBuilder.newDocument();
+            final Element rootElement = doc.createElement("root");
             doc.appendChild(rootElement);
 
             // staff elements
-            Element TrackContest = doc.createElement("TrackContestISBI2012");
+            final Element TrackContest = doc.createElement("TrackContestISBI2012");
             rootElement.appendChild(TrackContest);
 
             // set attributes
@@ -1987,15 +1987,15 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             // TrackContest.setAttribute("scenario", "__scenario__");
 
             // for each trajectory, generate a (ISBI-)particle element:
-            Iterator<Trajectory> iter = all_traj.iterator();
+            final Iterator<Trajectory> iter = all_traj.iterator();
             boolean isFirst = true;
             while (iter.hasNext() && isFirst) {
                 isFirst = false;
-                Element particleElement = doc.createElement("particle");
-                Trajectory curr_traj = iter.next();
+                final Element particleElement = doc.createElement("particle");
+                final Trajectory curr_traj = iter.next();
 
-                for (Particle vP : curr_traj.existing_particles) {
-                    Element detectionElement = doc.createElement("detection");
+                for (final Particle vP : curr_traj.existing_particles) {
+                    final Element detectionElement = doc.createElement("detection");
                     detectionElement.setAttribute("t", "" + vP.getFrame());
                     detectionElement.setAttribute("x", "" + (vP.y - 0.5f));
                     detectionElement.setAttribute("y", "" + (vP.x - 0.5f));
@@ -2006,10 +2006,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             }
 
             // write the content into xml file
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            Transformer transformer = transformerFactory.newTransformer();
-            DOMSource source = new DOMSource(doc);
-            StreamResult result = new StreamResult(new File(aFilename));
+            final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            final Transformer transformer = transformerFactory.newTransformer();
+            final DOMSource source = new DOMSource(doc);
+            final StreamResult result = new StreamResult(new File(aFilename));
 
             // Output to console for testing
             // StreamResult result = new StreamResult(System.out);
@@ -2017,10 +2017,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             transformer.transform(source, result);
 
         }
-        catch (ParserConfigurationException pce) {
+        catch (final ParserConfigurationException pce) {
             pce.printStackTrace();
         }
-        catch (TransformerException tfe) {
+        catch (final TransformerException tfe) {
             tfe.printStackTrace();
         }
     }
@@ -2059,13 +2059,13 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      */
 
     public void transferParticlesToResultsTable() {
-        ResultsTable rt = getResultsTable();
+        final ResultsTable rt = getResultsTable();
 
         if (rt != null) {
             int rownum = 0;
             for (int i = 0; i < frames.length; i++) {
-                Vector<Particle> particles = this.frames[i].getParticles();
-                for (Particle p : particles) {
+                final Vector<Particle> particles = this.frames[i].getParticles();
+                for (final Particle p : particles) {
                     rt.incrementCounter();
                     rownum = rt.getCounter() - 1;
                     rt.setValue("frame", rownum, p.getFrame());
@@ -2094,15 +2094,15 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * @see ResultsWindow
      */
     public ResultsTable transferTrajectoriesToResultTable() {
-        ResultsTable rt = getResultsTable();
+        final ResultsTable rt = getResultsTable();
 
         if (rt != null) {
-            Iterator<Trajectory> iter = all_traj.iterator();
+            final Iterator<Trajectory> iter = all_traj.iterator();
             int rownum = 0;
             while (iter.hasNext()) {
-                Trajectory curr_traj = iter.next();
-                Particle[] pts = curr_traj.existing_particles;
-                for (Particle p : pts) {
+                final Trajectory curr_traj = iter.next();
+                final Particle[] pts = curr_traj.existing_particles;
+                for (final Particle p : pts) {
                     rt.incrementCounter();
                     rownum = rt.getCounter() - 1;
                     rt.setValue("Trajectory", rownum, curr_traj.serial_number);
@@ -2133,14 +2133,14 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * @param traj
      */
     public void transferSelectedTrajectoriesToResultTable(Trajectory traj) {
-        ResultsTable rt = getResultsTable();
+        final ResultsTable rt = getResultsTable();
 
         if (rt != null) {
-            Trajectory curr_traj = traj;
+            final Trajectory curr_traj = traj;
             int rownum = 0;
-            Particle[] pts = curr_traj.existing_particles;
+            final Particle[] pts = curr_traj.existing_particles;
 
-            for (Particle p : pts) {
+            for (final Particle p : pts) {
                 rt.incrementCounter();
                 rownum = rt.getCounter() - 1;
                 rt.setValue("Trajectory", rownum, curr_traj.serial_number);
@@ -2160,7 +2160,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     }
 
     private ResultsTable getResultsTable() {
-        ResultsTable rt = ResultsTable.getResultsTable();
+        final ResultsTable rt = ResultsTable.getResultsTable();
 
         if ((rt.getCounter() != 0) || (rt.getLastColumn() != -1)) {
             if (IJ.showMessageWithCancel("Results Table", "Reset Results Table?")) {
@@ -2175,12 +2175,12 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     }
 
     private void computeMssForOneTrajectory(ResultsTable rt, Trajectory currentTrajectory) {
-        TrajectoryAnalysis ta = new TrajectoryAnalysis(currentTrajectory);
+        final TrajectoryAnalysis ta = new TrajectoryAnalysis(currentTrajectory);
         ta.setLengthOfAPixel(pixelDimensions);
         ta.setTimeInterval(timeInterval);
         if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
             rt.incrementCounter();
-            int rownum = rt.getCounter() - 1;
+            final int rownum = rt.getCounter() - 1;
             rt.setValue("Trajectory", rownum, currentTrajectory.serial_number);
             rt.setValue("Trajectory length", rownum, currentTrajectory.length);
             rt.setValue("MSS: slope", rownum, ta.getMSSlinear());
@@ -2196,7 +2196,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     }
 
     public ResultsTable mssTrajectoryResultsToTable(Trajectory aTrajectory) {
-        ResultsTable rt = getResultsTable();
+        final ResultsTable rt = getResultsTable();
 
         if (rt != null) {
             computeMssForOneTrajectory(rt, aTrajectory);
@@ -2210,12 +2210,12 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     }
 
     public ResultsTable mssAllResultsToTable() {
-        ResultsTable rt = getResultsTable();
+        final ResultsTable rt = getResultsTable();
 
         if (rt != null) {
-            Iterator<Trajectory> iter = all_traj.iterator();
+            final Iterator<Trajectory> iter = all_traj.iterator();
             while (iter.hasNext()) {
-                Trajectory currentTrajectory = iter.next();
+                final Trajectory currentTrajectory = iter.next();
                 computeMssForOneTrajectory(rt, currentTrajectory);
             }
 

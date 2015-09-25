@@ -22,7 +22,7 @@ import mosaic.region_competition.energies.EnergyFunctionalType;
 public class ScoreFunctionRCvol implements ScoreFunction {
 
     private int Area[];
-    private String[] file;
+    private final String[] file;
 
     IntensityImage i[];
     LabelImageRC l[];
@@ -50,7 +50,7 @@ public class ScoreFunctionRCvol implements ScoreFunction {
         // double a1 = 0.0;
         // double a2 = 0.0;
 
-        Collection<LabelInformation> li = l.getLabelMap().values();
+        final Collection<LabelInformation> li = l.getLabelMap().values();
 
         // a1 = ((LabelInformation)li.toArray()[0]).mean;
 
@@ -65,7 +65,7 @@ public class ScoreFunctionRCvol implements ScoreFunction {
 
     @Override
     public Settings createSettings(Settings s, double pop[]) {
-        Settings st = new Settings(s);
+        final Settings st = new Settings(s);
 
         st.m_GaussPSEnergyRadius = (int) pop[0];
         st.m_BalloonForceCoeff = (float) pop[1];
@@ -98,9 +98,9 @@ public class ScoreFunctionRCvol implements ScoreFunction {
 
             // Read Label Image
 
-            Opener o = new Opener();
+            final Opener o = new Opener();
             file[im] = new String(IJ.getDirectory("temp") + "RC_" + x[0] + "_" + x[1] + "_" + im + "_" + ".tif");
-            ImagePlus ip = o.openImage(file[im]);
+            final ImagePlus ip = o.openImage(file[im]);
 
             l[im].initWithIP(ip);
             l[im].createStatistics(i[im]);
@@ -113,7 +113,7 @@ public class ScoreFunctionRCvol implements ScoreFunction {
             // double a1 = 0.0;
             // double a2 = 0.0;
 
-            Collection<LabelInformation> li = l[im].getLabelMap().values();
+            final Collection<LabelInformation> li = l[im].getLabelMap().values();
 
             // a1 = ((LabelInformation)li.toArray()[0]).mean;
 
@@ -134,8 +134,8 @@ public class ScoreFunctionRCvol implements ScoreFunction {
     @Override
     public boolean isFeasible(double[] x) {
         int minSz = Integer.MAX_VALUE;
-        for (LabelImageRC lbt : l) {
-            for (int d : lbt.getDimensions()) {
+        for (final LabelImageRC lbt : l) {
+            for (final int d : lbt.getDimensions()) {
                 if (d < minSz) {
                     minSz = d;
                 }
@@ -175,7 +175,7 @@ public class ScoreFunctionRCvol implements ScoreFunction {
 
     @Override
     public double[] getAMean(Settings s) {
-        double[] aMean = new double[2];
+        final double[] aMean = new double[2];
 
         aMean[1] = s.m_BalloonForceCoeff;
         aMean[0] = s.m_GaussPSEnergyRadius;

@@ -37,7 +37,7 @@ class PoissonSampler<T extends RealType<T>> implements NoiseSample<T> {
         }
         double p = 1;
         int k = 0;
-        double vL = Math.exp(-aLambda);
+        final double vL = Math.exp(-aLambda);
         do {
             k++;
             p *= mRandomGenerator.nextDouble();

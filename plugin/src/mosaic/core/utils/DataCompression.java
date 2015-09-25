@@ -56,11 +56,11 @@ public class DataCompression {
             try {
                 out = ShellCommand.exeCmdString(al.get(i).cmd);
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 e.printStackTrace();
                 out = new String();
             }
-            catch (InterruptedException e) {
+            catch (final InterruptedException e) {
                 e.printStackTrace();
                 out = new String();
             }
@@ -154,11 +154,11 @@ public class DataCompression {
         try {
             ShellCommand.exeCmd(al.get(selC).compress_command.replace("#", file_a.getAbsolutePath()).replace("*", o) + " ; echo \"COMPRESSION END\"; \n", start_dir, null, out);
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
             return false;
         }
-        catch (InterruptedException e) {
+        catch (final InterruptedException e) {
             e.printStackTrace();
             return false;
         }
@@ -178,11 +178,11 @@ public class DataCompression {
         try {
             ShellCommand.exeCmd(al.get(selC).uncompress_command.replace("*", file_a.getAbsolutePath()), work_dir, null);
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
             return false;
         }
-        catch (InterruptedException e) {
+        catch (final InterruptedException e) {
             e.printStackTrace();
             return false;
         }

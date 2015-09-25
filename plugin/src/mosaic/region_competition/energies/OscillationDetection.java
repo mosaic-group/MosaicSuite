@@ -42,11 +42,11 @@ public class OscillationDetection {
 
         boolean result = false;
 
-        double vSum = SumAllEnergies(m_Candidates);
+        final double vSum = SumAllEnergies(m_Candidates);
         debug("sum of energies: " + vSum);
         debug("num of candidat: " + m_Candidates.size());
         for (int vI = 0; vI < m_OscillationHistoryLength; vI++) {
-            double vSumOld = m_OscillationsEnergyHist[vI];
+            final double vSumOld = m_OscillationsEnergyHist[vI];
 
             if (m_Candidates.size() == m_OscillationsNumberHist[vI] && Math.abs(vSum - vSumOld) <= 1e-5 * Math.abs(vSum)) {
                 // / here we assume that we're oscillating,
@@ -75,7 +75,7 @@ public class OscillationDetection {
     protected double SumAllEnergies(HashMap<Point, ContourParticle> aContainer) {
         double vTotalEnergyDiff = 0;
 
-        for (ContourParticle vPointIterator : aContainer.values()) {
+        for (final ContourParticle vPointIterator : aContainer.values()) {
             vTotalEnergyDiff += vPointIterator.energyDifference;
         }
         return vTotalEnergyDiff;

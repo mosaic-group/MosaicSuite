@@ -20,9 +20,9 @@ class ZoneTask implements Runnable {
     private final CountDownLatch Sync11;
     private final CountDownLatch Sync12;
     private final CountDownLatch Dct;
-    private ASplitBregmanSolverTwoRegionsPSF AS;
-    private int iStart, iEnd, jStart, jEnd;
-    private int num;
+    private final ASplitBregmanSolverTwoRegionsPSF AS;
+    private final int iStart, iEnd, jStart, jEnd;
+    private final int num;
     public Tools LocalTools;
 
     ZoneTask(CountDownLatch ZoneDoneSignal, CountDownLatch Sync1, CountDownLatch Sync2, CountDownLatch Sync3, CountDownLatch Sync4, CountDownLatch Dct, CountDownLatch Sync5, CountDownLatch Sync6,
@@ -57,7 +57,7 @@ class ZoneTask implements Runnable {
         try {
             doWork();
         }
-        catch (InterruptedException ex) {
+        catch (final InterruptedException ex) {
         }
 
         ZoneDoneSignal.countDown();

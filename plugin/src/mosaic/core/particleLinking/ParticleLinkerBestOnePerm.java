@@ -97,7 +97,7 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
                 /* Fill in the costs */
                 for (i = 0; i < nop; i++) {
                     for (j = 0; j < nop_next; j++) {
-                        float distance_sq = (p1.elementAt(i).x - p2.elementAt(j).x) * (p1.elementAt(i).x - p2.elementAt(j).x) + (p1.elementAt(i).y - p2.elementAt(j).y)
+                        final float distance_sq = (p1.elementAt(i).x - p2.elementAt(j).x) * (p1.elementAt(i).x - p2.elementAt(j).x) + (p1.elementAt(i).y - p2.elementAt(j).y)
                                 * (p1.elementAt(i).y - p2.elementAt(j).y) + (p1.elementAt(i).z - p2.elementAt(j).z) * (p1.elementAt(i).z - p2.elementAt(j).z);
 
                         cost[i][j] = (float) (distance_sq * l.l_s + l.l_f
@@ -106,35 +106,35 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
 
                         if (l.force == true) {
                             if (p1.elementAt(i).distance >= 0.0) {
-                                float lx = (p2.elementAt(j).x - p1.elementAt(i).x) / (n + 1) - p1.elementAt(i).lx;
-                                float ly = (p2.elementAt(j).y - p1.elementAt(i).y) / (n + 1) - p1.elementAt(i).ly;
-                                float lz = (p2.elementAt(j).z - p1.elementAt(i).z) / (n + 1) - p1.elementAt(i).lz;
+                                final float lx = (p2.elementAt(j).x - p1.elementAt(i).x) / (n + 1) - p1.elementAt(i).lx;
+                                final float ly = (p2.elementAt(j).y - p1.elementAt(i).y) / (n + 1) - p1.elementAt(i).ly;
+                                final float lz = (p2.elementAt(j).z - p1.elementAt(i).z) / (n + 1) - p1.elementAt(i).lz;
 
-                                float f_magn_sq = lx * lx + ly * ly + lz * lz;
+                                final float f_magn_sq = lx * lx + ly * ly + lz * lz;
                                 cost[i][j] += l.l_d * f_magn_sq;
                             }
                         }
                         else if (l.straight_line == true && p1.elementAt(i).distance >= 0.0) {
                             // Calculate the module
 
-                            float l1_m = p1.elementAt(i).linkModule();
+                            final float l1_m = p1.elementAt(i).linkModule();
 
-                            float lx1 = p1.elementAt(i).lx / l1_m;
-                            float ly1 = p1.elementAt(i).ly / l1_m;
-                            float lz1 = p1.elementAt(i).lz / l1_m;
+                            final float lx1 = p1.elementAt(i).lx / l1_m;
+                            final float ly1 = p1.elementAt(i).ly / l1_m;
+                            final float lz1 = p1.elementAt(i).lz / l1_m;
 
                             float lx2 = (p2.elementAt(j).x - p1.elementAt(i).x + p1.elementAt(i).lxa);
                             float ly2 = (p2.elementAt(j).y - p1.elementAt(i).y + p1.elementAt(i).lya);
                             float lz2 = (p2.elementAt(j).z - p1.elementAt(i).z + p1.elementAt(i).lza);
 
-                            float l2_m = (float) Math.sqrt(lx2 * lx2 + ly2 * ly2 + lz2 * lz2);
+                            final float l2_m = (float) Math.sqrt(lx2 * lx2 + ly2 * ly2 + lz2 * lz2);
 
                             if (l2_m >= l.r_sq) {
                                 lx2 /= l2_m;
                                 ly2 /= l2_m;
                                 lz2 /= l2_m;
 
-                                float cos_phi = lx1 * lx2 + ly1 * ly2 + lz1 * lz2;
+                                final float cos_phi = lx1 * lx2 + ly1 * ly2 + lz1 * lz2;
 
                                 cost[i][j] += (cos_phi - 1) * (cos_phi - 1) * l.displacement * l.displacement;
                             }
@@ -300,7 +300,7 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
                                 p2.elementAt(j).distance = 1.0f;
                             }
                             else if (l.straight_line == true) {
-                                float distance_sq = (float) Math.sqrt((p1.elementAt(i).x - p2.elementAt(j).x) * (p1.elementAt(i).x - p2.elementAt(j).x) + (p1.elementAt(i).y - p2.elementAt(j).y)
+                                final float distance_sq = (float) Math.sqrt((p1.elementAt(i).x - p2.elementAt(j).x) * (p1.elementAt(i).x - p2.elementAt(j).x) + (p1.elementAt(i).y - p2.elementAt(j).y)
                                         * (p1.elementAt(i).y - p2.elementAt(j).y) + (p1.elementAt(i).z - p2.elementAt(j).z) * (p1.elementAt(i).z - p2.elementAt(j).z));
 
                                 if (distance_sq >= l.r_sq) {

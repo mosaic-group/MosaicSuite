@@ -14,11 +14,11 @@ import mosaic.utils.math.generalizedLinearModel.Glm;
  */
 public class RegionStatisticsSolver {
     // Input parameters for RSS
-    private Matrix iImage;
-    private Matrix iMask;
-    private Matrix iMu;
-    private Glm iGlm;
-    private int iNumOfIterations;
+    private final Matrix iImage;
+    private final Matrix iMask;
+    private final Matrix iMu;
+    private final Glm iGlm;
+    private final int iNumOfIterations;
 
     // Calculated beta Maximum Likelihood Estimators
     private double iBetaMLEout = 0.0;
@@ -51,15 +51,15 @@ public class RegionStatisticsSolver {
         // Precalculate some helpers
         // ============================
         // All ones with size of iMask
-        Matrix ones = new Matrix(iMask.numRows(), iMask.numCols()).ones();
+        final Matrix ones = new Matrix(iMask.numRows(), iMask.numCols()).ones();
         // (1 - iMask)
-        Matrix maskSubFrom1 = ones.sub(iMask);
+        final Matrix maskSubFrom1 = ones.sub(iMask);
         // iMask.^2
-        Matrix maskPow2 = iMask.copy().pow2();
+        final Matrix maskPow2 = iMask.copy().pow2();
         // (1 - iMask).*iMask
-        Matrix maskMul1SubMask = maskSubFrom1.copy().elementMult(iMask);
+        final Matrix maskMul1SubMask = maskSubFrom1.copy().elementMult(iMask);
         // (1 - iMask).^2
-        Matrix pow2Of1SubMask = maskSubFrom1.copy().pow2();
+        final Matrix pow2Of1SubMask = maskSubFrom1.copy().pow2();
 
         // Main loop of algorithm
         // ============================
@@ -73,14 +73,14 @@ public class RegionStatisticsSolver {
         boolean isThatFirstIteration = true;
 
         for (int i = 0; i < iNumOfIterations; ++i) {
-            double K11 = W.copy().elementMult(pow2Of1SubMask).sum();
-            double K12 = W.copy().elementMult(maskMul1SubMask).sum();
-            double K22 = W.copy().elementMult(maskPow2).sum();
+            final double K11 = W.copy().elementMult(pow2Of1SubMask).sum();
+            final double K12 = W.copy().elementMult(maskMul1SubMask).sum();
+            final double K22 = W.copy().elementMult(maskPow2).sum();
 
-            double U1 = W.copy().elementMult(Z).elementMult(maskSubFrom1).sum();
-            double U2 = W.elementMult(Z).elementMult(iMask).sum();
+            final double U1 = W.copy().elementMult(Z).elementMult(maskSubFrom1).sum();
+            final double U2 = W.elementMult(Z).elementMult(iMask).sum();
 
-            double detK = K11 * K22 - Math.pow(K12, 2);
+            final double detK = K11 * K22 - Math.pow(K12, 2);
             iBetaMLEout = (K22*U1-K12*U2)/detK;
             iBetaMLEin = (-K12*U1+K11*U2)/detK;
 
@@ -100,7 +100,7 @@ public class RegionStatisticsSolver {
         }
 
         if (iBetaMLEout > iBetaMLEin) {
-            double temp = iBetaMLEout;
+            final double temp = iBetaMLEout;
             iBetaMLEout = iBetaMLEin;
             iBetaMLEin = temp;
         }
@@ -144,7 +144,7 @@ public class RegionStatisticsSolver {
     private Matrix calculateModelImage() {
         // Matlab: linearPredictor = (betaMLE_in-betaMLE_out)*KMask+betaMLE_out;
         //         mu  = linkInverse(linearPredictor);
-        Matrix linearPredictor = iMask.copy().scale(iBetaMLEin - iBetaMLEout).add(iBetaMLEout);
+        final Matrix linearPredictor = iMask.copy().scale(iBetaMLEin - iBetaMLEout).add(iBetaMLEout);
         return iGlm.linkInverse(linearPredictor);
     }
 

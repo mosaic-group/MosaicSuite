@@ -112,27 +112,27 @@ public class CSVOutput {
      */
     public static CSV<? extends Outdata<Region>> getCSV() {
         try {
-            Constructor<CSV<? extends Outdata<Region>>> c = occ.CSVFactory.getDeclaredConstructor(occ.classFactory.getClass());
-            CSV<? extends Outdata<Region>> csv = c.newInstance(occ.classFactory.newInstance().getClass());
+            final Constructor<CSV<? extends Outdata<Region>>> c = occ.CSVFactory.getDeclaredConstructor(occ.classFactory.getClass());
+            final CSV<? extends Outdata<Region>> csv = c.newInstance(occ.classFactory.newInstance().getClass());
             csv.setDelimiter(occ.delimiter);
             return csv;
         }
-        catch (InstantiationException e) {
+        catch (final InstantiationException e) {
             e.printStackTrace();
         }
-        catch (IllegalAccessException e) {
+        catch (final IllegalAccessException e) {
             e.printStackTrace();
         }
-        catch (NoSuchMethodException e) {
+        catch (final NoSuchMethodException e) {
             e.printStackTrace();
         }
-        catch (SecurityException e) {
+        catch (final SecurityException e) {
             e.printStackTrace();
         }
-        catch (IllegalArgumentException e) {
+        catch (final IllegalArgumentException e) {
             e.printStackTrace();
         }
-        catch (InvocationTargetException e) {
+        catch (final InvocationTargetException e) {
             e.printStackTrace();
         }
         return null;

@@ -23,9 +23,9 @@ public class ContourParticle {
 
     boolean m_processed = false;
 
-    private List<Point> motherList = new LinkedList<Point>();
-    private List<Point> daughterList = new LinkedList<Point>();
-    private List<Integer> testedList = new LinkedList<Integer>();
+    private final List<Point> motherList = new LinkedList<Point>();
+    private final List<Point> daughterList = new LinkedList<Point>();
+    private final List<Integer> testedList = new LinkedList<Integer>();
 
     List<Point> getMotherList() {
         return motherList;

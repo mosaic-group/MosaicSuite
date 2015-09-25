@@ -30,7 +30,7 @@ abstract class RegularizationGUI extends GUImeMore {
     }
 
     public static RegularizationGUI factory(Settings settings, String regularization) {
-        RegularizationType type = RegularizationType.valueOf(regularization);
+        final RegularizationType type = RegularizationType.valueOf(regularization);
         return factory(settings, type);
     }
 

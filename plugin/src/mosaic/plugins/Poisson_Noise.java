@@ -102,10 +102,10 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
 
     private <S extends IntegerType<S>> void erode(Img<S> seg, Connectivity cnv, S bck)
     {
-        Vector<Point> pToErode = new Vector<Point>();
-        int lc[] = new int[seg.numDimensions()];
-        Cursor<S> cur = seg.cursor();
-        RandomAccess<S> ra = seg.randomAccess();
+        final Vector<Point> pToErode = new Vector<Point>();
+        final int lc[] = new int[seg.numDimensions()];
+        final Cursor<S> cur = seg.cursor();
+        final RandomAccess<S> ra = seg.randomAccess();
 
         while (cur.hasNext())
         {
@@ -115,7 +115,7 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
                 continue;
             }
 
-            for (Point p : cnv)
+            for (final Point p : cnv)
             {
                 cur.localize(lc);
                 Point pos = Point.CopyLessArray(lc);
@@ -152,10 +152,10 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
 
     private <S extends IntegerType<S>> void FindConnectedRegions(Img<S> seg, ConnectedRegionsCB cb, S bck)
     {
-        int lc[] = new int [seg.numDimensions()];
-        HashMap<Integer,Point> LabelsList = new HashMap<Integer,Point>();		// set of the old labels
+        final int lc[] = new int [seg.numDimensions()];
+        final HashMap<Integer,Point> LabelsList = new HashMap<Integer,Point>();		// set of the old labels
 
-        Cursor<S> cur = seg.cursor();
+        final Cursor<S> cur = seg.cursor();
 
         // Take all the labels in the image != bck
 
@@ -165,22 +165,22 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
             if (cur.get().getInteger() == bck.getInteger() &&  LabelsList.get(cur.get().getInteger()) == null)
             {
                 cur.localize(lc);
-                Point p = new Point(lc);
+                final Point p = new Point(lc);
                 LabelsList.put(cur.get().getInteger(),p);
             }
         }
 
         // Create connectivity
 
-        Connectivity cnv = new Connectivity(seg.numDimensions(),seg.numDimensions()-1);
-        BinarizedIntervalImgLib2Int<S> img = new BinarizedIntervalImgLib2Int<S>(seg);
+        final Connectivity cnv = new Connectivity(seg.numDimensions(),seg.numDimensions()-1);
+        final BinarizedIntervalImgLib2Int<S> img = new BinarizedIntervalImgLib2Int<S>(seg);
 
         // Now flood fill to find regions
 
-        for (Map.Entry<Integer,Point> entry : LabelsList.entrySet())
+        for (final Map.Entry<Integer,Point> entry : LabelsList.entrySet())
         {
             img.AddThresholdBetween(entry.getKey(), entry.getKey());
-            FloodFill ff = new FloodFill(cnv,img,entry.getValue());
+            final FloodFill ff = new FloodFill(cnv,img,entry.getValue());
 
             // Found a region and process it
 
@@ -216,13 +216,13 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
         T test = null;
         try {
             test = cls.newInstance();
-        } catch (InstantiationException e) {
+        } catch (final InstantiationException e) {
             e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             e.printStackTrace();
         }
 
-        Object test_o = test;
+        final Object test_o = test;
 
         if (test_o instanceof UnsignedByteType) {
             return (BinMapper1d<T>)(BinMapper1d<?>) this.<UnsignedByteType>createIntegerMapper(256);
@@ -252,7 +252,7 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
         {
             //			ComputeMinMax<T> cMM = new ComputeMinMax<T>(img);
 
-            int Nbin = getNBins(cls);
+            final int Nbin = getNBins(cls);
 
             intervalDelta = (max - min) / Nbin;
             deltaHalf = intervalDelta / 2;
@@ -274,7 +274,7 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
         @Override
         public void regionProcess(Set<Point> pnt)
         {
-            Iterator<Point> pnt_it = pnt.iterator();
+            final Iterator<Point> pnt_it = pnt.iterator();
 
             // filter out if the region is smaller that 30 pixel
 
@@ -286,11 +286,11 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
 
             int tot_num = 0;
             double mean = 0.0;
-            RandomAccess<T> ra = img.randomAccess();
+            final RandomAccess<T> ra = img.randomAccess();
 
             while (pnt_it.hasNext())
             {
-                Point p = pnt_it.next();
+                final Point p = pnt_it.next();
                 ra.setPosition(p.x);
                 mean += ra.get().getRealDouble();
                 tot_num++;
@@ -300,7 +300,7 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
 
             // Get the center of the mean
 
-            int cbin = (int) (mean / intervalDelta);
+            final int cbin = (int) (mean / intervalDelta);
             mean = cbin * intervalDelta + deltaHalf;
 
             // Get the histogram
@@ -311,18 +311,18 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
             {
                 // Create mapper
 
-                BinMapper1d<T> b1d = createMapper(cls,max,min);
+                final BinMapper1d<T> b1d = createMapper(cls,max,min);
 
                 // Create histogram
 
-                Histogram1d<T> hist = new Histogram1d<T>(b1d);
+                final Histogram1d<T> hist = new Histogram1d<T>(b1d);
                 T meanT = null;
                 try {
                     meanT = cls.newInstance();
-                } catch (InstantiationException e) {
+                } catch (final InstantiationException e) {
                     e.printStackTrace();
                     throw new RuntimeException();
-                } catch (IllegalAccessException e) {
+                } catch (final IllegalAccessException e) {
                     e.printStackTrace();
                     throw new RuntimeException();
                 }
@@ -334,11 +334,12 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
             // Add data
 
             @SuppressWarnings("unchecked")
+            final
             T [] ipnt = (T[]) Array.newInstance(cls, pnt.size());
 
             while (pnt_it.hasNext())
             {
-                Point p = pnt_it.next();
+                final Point p = pnt_it.next();
                 ra.setPosition(p.x);
                 mean += ra.get().getRealDouble();
             }
@@ -363,28 +364,28 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
         // ImgLib2 does not have Erosion for dimension bigger that 2
         // so manual implementation
 
-        Connectivity cnv = new Connectivity(seg.numDimensions(),seg.numDimensions()-1);
+        final Connectivity cnv = new Connectivity(seg.numDimensions(),seg.numDimensions()-1);
 
         for (int i = 0 ; i < erodePixel ; i++)
         {
             S s = null;
             try {s = clsS.newInstance();}
-            catch (InstantiationException e) {e.printStackTrace(); throw new RuntimeException();}
-            catch (IllegalAccessException e) {e.printStackTrace(); throw new RuntimeException();}
+            catch (final InstantiationException e) {e.printStackTrace(); throw new RuntimeException();}
+            catch (final IllegalAccessException e) {e.printStackTrace(); throw new RuntimeException();}
             s.setZero();
             erode(seg,cnv,s);
         }
 
         // Find connected regions
 
-        processCCRegion<T> pp = new processCCRegion<T>(clsT);
+        final processCCRegion<T> pp = new processCCRegion<T>(clsT);
         S bck = null;
         try {
             bck = clsS.newInstance();
-        } catch (InstantiationException e) {
+        } catch (final InstantiationException e) {
             e.printStackTrace();
             throw new RuntimeException();
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
@@ -394,9 +395,9 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
         // Founded the connected regions and get processed the histograms
         // add them to GenericNoise
 
-        HashMap<T,Histogram1d<T>> hists = pp.getHist();
+        final HashMap<T,Histogram1d<T>> hists = pp.getHist();
 
-        for (Map.Entry<T,Histogram1d<T>> entry : hists.entrySet())
+        for (final Map.Entry<T,Histogram1d<T>> entry : hists.entrySet())
         {
             // Ad the histograms to the general noise
 
@@ -415,7 +416,7 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
     {
         // Create a generic noise
 
-        GenericNoiseSampler<T> gns = new GenericNoiseSampler<T>(cls);
+        final GenericNoiseSampler<T> gns = new GenericNoiseSampler<T>(cls);
 
         // if segmentation is present process it
 
@@ -424,8 +425,8 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
 
             // check the type of the segmentation image
 
-            ImgOpener imgOpener = new ImgOpener();
-            File rgm = seg.RegionMask;
+            final ImgOpener imgOpener = new ImgOpener();
+            final File rgm = seg.RegionMask;
 
             // Try to convert to unsigned byte, short and integer
             // to infer the type
@@ -433,6 +434,7 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
             try
             {
                 @SuppressWarnings("unchecked")
+                final
                 Img< UnsignedByteType > imageSeg = (Img< UnsignedByteType >) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0);
 
                 // Open the segmentation image, erode filter small region,
@@ -440,12 +442,13 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
 
                 createHistogramsFromSegImage(imageSeg,gns,UnsignedByteType.class,cls);
             }
-            catch(ClassCastException e) {}
-            catch(ImgIOException e) {}
+            catch(final ClassCastException e) {}
+            catch(final ImgIOException e) {}
 
             try
             {
                 @SuppressWarnings({ "unchecked", "deprecation" })
+                final
                 Img< ShortType > imageSeg = (Img<ShortType>) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0).getImg();
 
                 // Open the segmentation image, erode filter small region,
@@ -453,12 +456,13 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
 
                 createHistogramsFromSegImage(imageSeg,gns,ShortType.class,cls);
             }
-            catch(ClassCastException e) {}
-            catch(ImgIOException e) {}
+            catch(final ClassCastException e) {}
+            catch(final ImgIOException e) {}
 
             try
             {
                 @SuppressWarnings({ "unchecked", "deprecation" })
+                final
                 Img< IntType > imageSeg = (Img<IntType>) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0).getImg();
 
                 // Open the segmentation image, erode filter small region,
@@ -467,8 +471,8 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
                 createHistogramsFromSegImage(imageSeg,gns,IntType.class,cls);
 
             }
-            catch(ClassCastException e) {}
-            catch(ImgIOException e) {}
+            catch(final ClassCastException e) {}
+            catch(final ImgIOException e) {}
         }
 
         // Create histograms by ROI
@@ -477,30 +481,30 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
         if (manager == null) {
             manager = new RoiManager();
         }
-        Roi[] roisArray = manager.getRoisAsArray();
-        for (Roi roi : roisArray)
+        final Roi[] roisArray = manager.getRoisAsArray();
+        for (final Roi roi : roisArray)
         {
-            ImagePlus tmp = new ImagePlus(roi.getName(),ij.WindowManager.getImage(roi.getImageID()).getProcessor());
+            final ImagePlus tmp = new ImagePlus(roi.getName(),ij.WindowManager.getImage(roi.getImageID()).getProcessor());
 
-            Rectangle b = roi.getBounds();
+            final Rectangle b = roi.getBounds();
 
-            ImageProcessor ip = tmp.getProcessor();
+            final ImageProcessor ip = tmp.getProcessor();
             ip.setRoi(b.x,b.y,b.width,b.height);
             tmp.setProcessor(null,ip.crop());
 
             // iterate trought all the image and create the histogram
 
-            double histMin = tmp.getStatistics().histMin;
-            double histMax = tmp.getStatistics().histMax;
+            final double histMin = tmp.getStatistics().histMin;
+            final double histMax = tmp.getStatistics().histMax;
 
-            BinMapper1d<T> bM = createMapper(cls,histMin,histMax);
+            final BinMapper1d<T> bM = createMapper(cls,histMin,histMax);
 
-            Histogram1d<T> hist = new Histogram1d<T>(bM);
+            final Histogram1d<T> hist = new Histogram1d<T>(bM);
 
             // Convert an imagePlus into ImgLib2
 
             final Img< T > image = ImagePlusAdapter.wrap( tmp );
-            Cursor<T> cur = image.cursor();
+            final Cursor<T> cur = image.cursor();
 
             // Add data
 
@@ -508,14 +512,15 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
             T mean_t = null;
             try {
                 mean_t = cls.newInstance();
-            } catch (InstantiationException e) {
+            } catch (final InstantiationException e) {
                 e.printStackTrace();
                 throw new RuntimeException();
-            } catch (IllegalAccessException e) {
+            } catch (final IllegalAccessException e) {
                 e.printStackTrace();
                 throw new RuntimeException();
             }
             @SuppressWarnings("unchecked")
+            final
             T [] ipnt = (T[]) Array.newInstance(cls, (int)image.size());
             double mean = 0.0;
 
@@ -548,22 +553,23 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
     {
         // Convert an imagePlus into ImgLib2
         final Img< T > image = ImagePlusAdapter.wrap(imp);
-        Cursor<T> cur = image.cursor();
+        final Cursor<T> cur = image.cursor();
 
         int numOfDims = 2;
         numOfDims += (imp.getNFrames() > 1) ? 1 : 0;
         numOfDims += (imp.getNChannels() > 1) ? 1 : 0;
         numOfDims += (imp.getNSlices() > 1) ? 1 : 0;
-        int loc[] = new int[numOfDims];
+        final int loc[] = new int[numOfDims];
 
         @SuppressWarnings("unchecked")
+        final
         NoiseSample<T> nsT = (NoiseSample<T>) ns;
         T smp = null;
         try {
             smp = cls.newInstance();
-        } catch (InstantiationException e) {
+        } catch (final InstantiationException e) {
             e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             e.printStackTrace();
         }
 
@@ -627,7 +633,7 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
     @Override
     public int showDialog(ImagePlus arg0, String arg1, PlugInFilterRunner arg2) {
         // Take input from user
-        GenericDialog gd = new GenericDialog("Choose type of noise");
+        final GenericDialog gd = new GenericDialog("Choose type of noise");
         gd.addChoice("Choose noise model", noiseList.noiseList, noiseList.noiseList[0]);
         gd.addNumericField("Offset", 0.0, 3);
         gd.showDialog();

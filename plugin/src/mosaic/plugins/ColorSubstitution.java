@@ -18,7 +18,7 @@ public class ColorSubstitution implements  ExtendedPlugInFilter // NO_UCD
     void substitute(ImagePlus imp, double col_from, double col_to)
     {
         final Img<T> image = ImagePlusAdapter.wrap( imp );
-        Cursor<T> cur = image.cursor();
+        final Cursor<T> cur = image.cursor();
 
         while (cur.hasNext()) {
             cur.next();
@@ -38,7 +38,7 @@ public class ColorSubstitution implements  ExtendedPlugInFilter // NO_UCD
 
     @Override
     public int showDialog(ImagePlus imp, String arg1, PlugInFilterRunner arg2) {
-        GenericDialog gd = new GenericDialog("Color substitution");
+        final GenericDialog gd = new GenericDialog("Color substitution");
         gd.addNumericField("Change color value from:", 0, 3);
         gd.addNumericField("                   to:  ", 0, 3);
         gd.showDialog();
@@ -47,8 +47,8 @@ public class ColorSubstitution implements  ExtendedPlugInFilter // NO_UCD
             return DONE;
         }
 
-        double col_from = gd.getNextNumber();
-        double col_to = gd.getNextNumber();
+        final double col_from = gd.getNextNumber();
+        final double col_to = gd.getNextNumber();
 
         substitute(imp,col_from,col_to);
 

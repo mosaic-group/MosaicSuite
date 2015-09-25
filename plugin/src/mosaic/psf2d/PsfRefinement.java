@@ -99,10 +99,10 @@ public class PsfRefinement {
      */
     private ImageProcessor imageRestoration(ImageProcessor ip) {
 
-        ImageProcessor restored = ip.duplicate();
-        int kernel_radius = radius;
-        int kernel_width = (kernel_radius * 2) + 1;
-        Convolver convolver = new Convolver();
+        final ImageProcessor restored = ip.duplicate();
+        final int kernel_radius = radius;
+        final int kernel_width = (kernel_radius * 2) + 1;
+        final Convolver convolver = new Convolver();
         // no need to normalize the kernel - its already normalized
         convolver.setNormalize(false);
         convolver.convolve(restored, kernel, kernel_width, kernel_width);
@@ -120,7 +120,7 @@ public class PsfRefinement {
         int k, l, x, y, tx, ty;
         float epsx, epsy, c;
 
-        int mask_width = 2 * radius + 1;
+        final int mask_width = 2 * radius + 1;
 
         /* Set every value that ist smaller than 0 to 0 */
         for (int i = 0; i < ip.getHeight(); i++) {
@@ -206,12 +206,12 @@ public class PsfRefinement {
      */
     private void generateMask(int mask_radius) {
 
-        int width = (2 * mask_radius) + 1;
+        final int width = (2 * mask_radius) + 1;
         this.mask = new int[width * width];
 
         for (int i = -mask_radius; i <= mask_radius; i++) {
             for (int j = -mask_radius; j <= mask_radius; j++) {
-                int index = coord(i + mask_radius, j + mask_radius, width);
+                final int index = coord(i + mask_radius, j + mask_radius, width);
                 if ((i * i) + (j * j) <= mask_radius * mask_radius) {
                     this.mask[index] = 1;
                 }
@@ -231,14 +231,14 @@ public class PsfRefinement {
      */
     private void makeKernel(int kernel_radius) {
 
-        int kernel_width = (kernel_radius * 2) + 1;
+        final int kernel_width = (kernel_radius * 2) + 1;
         this.kernel = new float[kernel_width * kernel_width];
-        double b = calculateB(kernel_radius, lambda_n);
-        double norm_cons = calculateNormalizationConstant(b, kernel_radius, lambda_n);
+        final double b = calculateB(kernel_radius, lambda_n);
+        final double norm_cons = calculateNormalizationConstant(b, kernel_radius, lambda_n);
 
         for (int i = -kernel_radius; i <= kernel_radius; i++) {
             for (int j = -kernel_radius; j <= kernel_radius; j++) {
-                int index = (i + kernel_radius) * kernel_width + j + kernel_radius;
+                final int index = (i + kernel_radius) * kernel_width + j + kernel_radius;
                 this.kernel[index] = (float) ((1.0 / b) * Math.exp(-((i * i + j * j) / (4.0 * lambda_n * lambda_n))));
                 this.kernel[index] = this.kernel[index] - (float) (1.0 / (kernel_width * kernel_width));
                 this.kernel[index] = (float) (this.kernel[index] / norm_cons);
@@ -274,7 +274,7 @@ public class PsfRefinement {
      */
     private double calculateNormalizationConstant(double b, int kernel_radius, int lambda) {
         double constant = 0.0;
-        int kernel_width = (kernel_radius * 2) + 1;
+        final int kernel_width = (kernel_radius * 2) + 1;
         for (int i = -(kernel_radius); i <= kernel_radius; i++) {
             constant = constant + Math.exp(-(i * i / (2.0 * (lambda * lambda))));
         }

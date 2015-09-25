@@ -97,7 +97,7 @@ public class Region3DRScript implements Outdata<Region> {
     @Override
     public boolean equals(Object r) {
         if (r instanceof Region3DRScript) {
-            Region3DRScript r_ = (Region3DRScript) r;
+            final Region3DRScript r_ = (Region3DRScript) r;
 
             if (Size != r_.Size) {
                 return false;

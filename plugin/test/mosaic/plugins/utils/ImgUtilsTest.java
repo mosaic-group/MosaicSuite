@@ -12,9 +12,9 @@ public class ImgUtilsTest extends CommonBase {
 
     @Test
     public void testNormalizeFloat() {
-        float[][] expected = new float[][] {{0.25f, 1}, {0, 0.5f}, {0.75f, 0.25f}};
+        final float[][] expected = new float[][] {{0.25f, 1}, {0, 0.5f}, {0.75f, 0.25f}};
 
-        float[][] input = new float[][] {{0, 3}, {-1, 1}, {2, 0}};
+        final float[][] input = new float[][] {{0, 3}, {-1, 1}, {2, 0}};
 
         // Tested function
         ImgUtils.normalize(input);
@@ -24,9 +24,9 @@ public class ImgUtilsTest extends CommonBase {
 
     @Test
     public void testNormalizeDouble() {
-        double[][] expected = new double[][] {{0.25f, 1}, {0, 0.5f}, {0.75f, 0.25f}};
+        final double[][] expected = new double[][] {{0.25f, 1}, {0, 0.5f}, {0.75f, 0.25f}};
 
-        double[][] input = new double[][] {{0, 3}, {-1, 1}, {2, 0}};
+        final double[][] input = new double[][] {{0, 3}, {-1, 1}, {2, 0}};
 
         // Tested function
         ImgUtils.normalize(input);
@@ -36,15 +36,15 @@ public class ImgUtilsTest extends CommonBase {
 
     @Test
     public void testImgResizeFloat() {
-        float[][] expected = new float[][] {{ 0, 3, 3},
+        final float[][] expected = new float[][] {{ 0, 3, 3},
                 {-1, 1, 1},
                 { 2, 5, 5},
                 { 2, 5, 5}};
 
-        float[][] input = new float[][] {{ 0, 3},
+        final float[][] input = new float[][] {{ 0, 3},
                 {-1, 1},
                 { 2, 5}};
-        float[][] output = new float[4][3];
+        final float[][] output = new float[4][3];
 
         // Tested function
         ImgUtils.imgResize(input, output);
@@ -54,13 +54,13 @@ public class ImgUtilsTest extends CommonBase {
 
     @Test
     public void testImgResizeFloatSmaller() {
-        float[][] expected = new float[][] {{ 0},
+        final float[][] expected = new float[][] {{ 0},
                 {-1}};
 
-        float[][] input = new float[][] {{ 0, 3},
+        final float[][] input = new float[][] {{ 0, 3},
                 {-1, 1},
                 { 2, 5}};
-        float[][] output = new float[2][1];
+        final float[][] output = new float[2][1];
 
         // Tested function
         ImgUtils.imgResize(input, output);
@@ -70,15 +70,15 @@ public class ImgUtilsTest extends CommonBase {
 
     @Test
     public void testImgResizeDouble() {
-        double[][] expected = new double[][] {{ 0, 3, 3},
+        final double[][] expected = new double[][] {{ 0, 3, 3},
                 {-1, 1, 1},
                 { 2, 5, 5},
                 { 2, 5, 5}};
 
-        double[][] input = new double[][] {{ 0, 3},
+        final double[][] input = new double[][] {{ 0, 3},
                 {-1, 1},
                 { 2, 5}};
-        double[][] output = new double[4][3];
+        final double[][] output = new double[4][3];
 
         // Tested function
         ImgUtils.imgResize(input, output);
@@ -88,13 +88,13 @@ public class ImgUtilsTest extends CommonBase {
 
     @Test
     public void testImgResizeDoubleLonger() {
-        double[][] expected = new double[][] {{ 0, 3, 3, 3},
+        final double[][] expected = new double[][] {{ 0, 3, 3, 3},
                 {-1, 1, 1, 1}};
 
-        double[][] input = new double[][] {{ 0, 3},
+        final double[][] input = new double[][] {{ 0, 3},
                 {-1, 1},
                 { 2, 5}};
-        double[][] output = new double[2][4];
+        final double[][] output = new double[2][4];
 
         // Tested function
         ImgUtils.imgResize(input, output);
@@ -104,14 +104,14 @@ public class ImgUtilsTest extends CommonBase {
 
     @Test
     public void testFindMinMax() {
-        MinMax<Float> expected = new MinMax<Float>(-1f, 5f);
+        final MinMax<Float> expected = new MinMax<Float>(-1f, 5f);
 
-        float[][] input = new float[][] {{ 0, 3},
+        final float[][] input = new float[][] {{ 0, 3},
                 {-1, 1},
                 { 2, 5}};
 
         // Tested function
-        MinMax<Float> result = ImgUtils.findMinMax(input);
+        final MinMax<Float> result = ImgUtils.findMinMax(input);
 
         assertEquals("Min", expected.getMin(), result.getMin(), 0.001f);
         assertEquals("Max", expected.getMax(), result.getMax(), 0.001f);
@@ -119,9 +119,9 @@ public class ImgUtilsTest extends CommonBase {
 
     @Test
     public void testConvertRange() {
-        float[][] expected = new float[][] {{0, 3}, {-1, 1}, {2, 0}};
+        final float[][] expected = new float[][] {{0, 3}, {-1, 1}, {2, 0}};
 
-        float[][] input = new float[][] {{0.25f, 1}, {0, 0.5f}, {0.75f, 0.25f}};
+        final float[][] input = new float[][] {{0.25f, 1}, {0, 0.5f}, {0.75f, 0.25f}};
 
         // Tested function
         ImgUtils.convertRange(input, 3 - (-1), -1);
@@ -136,11 +136,11 @@ public class ImgUtilsTest extends CommonBase {
                 {5.0f, 6.0f},
                 {7.0f, 8.0f},
                 {9.0f,10.0f}};
-        FloatProcessor fp = new FloatProcessor(originalImgArray);
+        final FloatProcessor fp = new FloatProcessor(originalImgArray);
         Assert.assertEquals(originalImgArray.length, fp.getWidth());
         Assert.assertEquals(originalImgArray[0].length, fp.getHeight());
 
-        float[][] outputArray = new float[2][5];
+        final float[][] outputArray = new float[2][5];
 
         ImgUtils.ImgToYX2Darray(fp, outputArray, 1.0f);
 
@@ -158,11 +158,11 @@ public class ImgUtilsTest extends CommonBase {
                 {5.0f, 6.0f},
                 {7.0f, 8.0f},
                 {9.0f,10.0f}};
-        FloatProcessor fp = new FloatProcessor(originalImgArray);
+        final FloatProcessor fp = new FloatProcessor(originalImgArray);
         Assert.assertEquals(originalImgArray.length, fp.getWidth());
         Assert.assertEquals(originalImgArray[0].length, fp.getHeight());
 
-        double[][] outputArray = new double[2][5];
+        final double[][] outputArray = new double[2][5];
 
         ImgUtils.ImgToYX2Darray(fp, outputArray, 1.0f);
 
@@ -181,9 +181,9 @@ public class ImgUtilsTest extends CommonBase {
                 {5.0f, 6.0f},
                 {7.0f, 8.0f},
                 {9.0f,10.0f}};
-        FloatProcessor fp = new FloatProcessor(originalImgArray[0].length, originalImgArray.length);
+        final FloatProcessor fp = new FloatProcessor(originalImgArray[0].length, originalImgArray.length);
         ImgUtils.YX2DarrayToImg(originalImgArray, fp, 1.0f);
-        float[] pixels = (float[])fp.getPixels();
+        final float[] pixels = (float[])fp.getPixels();
 
         for (int x = 0; x < 2; ++x) {
             for (int y = 0; y < 5; ++y) {
@@ -200,9 +200,9 @@ public class ImgUtilsTest extends CommonBase {
                 {5.0, 6.0},
                 {7.0, 8.0},
                 {9.0,10.0}};
-        FloatProcessor fp = new FloatProcessor(originalImgArray[0].length, originalImgArray.length);
+        final FloatProcessor fp = new FloatProcessor(originalImgArray[0].length, originalImgArray.length);
         ImgUtils.YX2DarrayToImg(originalImgArray, fp, 1.0f);
-        float[] pixels = (float[])fp.getPixels();
+        final float[] pixels = (float[])fp.getPixels();
 
         for (int x = 0; x < 2; ++x) {
             for (int y = 0; y < 5; ++y) {
@@ -218,11 +218,11 @@ public class ImgUtilsTest extends CommonBase {
                 {5.0f, 6.0f},
                 {7.0f, 8.0f},
                 {9.0f,10.0f}};
-        FloatProcessor fp = new FloatProcessor(originalImgArray);
+        final FloatProcessor fp = new FloatProcessor(originalImgArray);
         Assert.assertEquals(originalImgArray.length, fp.getWidth());
         Assert.assertEquals(originalImgArray[0].length, fp.getHeight());
 
-        float[][] outputArray = new float[5][2];
+        final float[][] outputArray = new float[5][2];
 
         ImgUtils.ImgToXY2Darray(fp, outputArray, 1.0f);
 
@@ -241,9 +241,9 @@ public class ImgUtilsTest extends CommonBase {
                 {5.0f, 6.0f},
                 {7.0f, 8.0f},
                 {9.0f,10.0f}};
-        FloatProcessor fp = new FloatProcessor(originalImgArray.length, originalImgArray[0].length);
+        final FloatProcessor fp = new FloatProcessor(originalImgArray.length, originalImgArray[0].length);
         ImgUtils.XY2DarrayToImg(originalImgArray, fp, 1.0f);
-        float[] pixels = (float[])fp.getPixels();
+        final float[] pixels = (float[])fp.getPixels();
 
         for (int x = 0; x < 5; ++x) {
             for (int y = 0; y < 2; ++y) {

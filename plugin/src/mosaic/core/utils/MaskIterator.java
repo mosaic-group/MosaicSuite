@@ -18,8 +18,8 @@ class MaskIterator extends RegionIterator {
 
         // sets the "input size" to the region size
         super(region, region, ofs);
-        int[] maskSizes = region.clone();
-        int[] maskOfs = new int[dimensions];
+        final int[] maskSizes = region.clone();
+        final int[] maskOfs = new int[dimensions];
 
         // TODO: this is cropping, actually?
         for (int i = 0; i < dimensions; i++) {
@@ -35,7 +35,7 @@ class MaskIterator extends RegionIterator {
             }
             // mask overflow
             if (ofs[i] + region[i] > input[i]) {
-                int diff = ofs[i] + region[i] - input[i];
+                final int diff = ofs[i] + region[i] - input[i];
                 maskSizes[i] -= diff;
             }
         }

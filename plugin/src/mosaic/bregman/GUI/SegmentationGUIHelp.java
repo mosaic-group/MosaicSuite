@@ -18,7 +18,7 @@ public class SegmentationGUIHelp extends HelpGUI implements ActionListener {
 
     public JDialog frame;
     // Initialize Buttons
-    private JPanel panel;
+    private final JPanel panel;
     private JButton Close;
 
     public SegmentationGUIHelp(int x, int y) {
@@ -34,7 +34,7 @@ public class SegmentationGUIHelp extends HelpGUI implements ActionListener {
         panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panel.setPreferredSize(new Dimension(500, 620));
 
-        JPanel pref = new JPanel(new GridBagLayout());
+        final JPanel pref = new JPanel(new GridBagLayout());
         // pref.setPreferredSize(new Dimension(555, 550));
         // pref.setSize(pref.getPreferredSize());
 
@@ -88,7 +88,7 @@ public class SegmentationGUIHelp extends HelpGUI implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent ae) {
-        Object source = ae.getSource(); // Identify Button that was clicked
+        final Object source = ae.getSource(); // Identify Button that was clicked
 
         if (source == Close) {
             // IJ.log("close called");

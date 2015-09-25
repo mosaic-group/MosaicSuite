@@ -17,7 +17,7 @@ public class IAPMosaic_ implements PlugIn { // NO_UCD
             return;
         }
 
-        GUIDesign window = new GUIDesign();
+        final GUIDesign window = new GUIDesign();
         window.frmInteractionAnalysis.setVisible(true);
     }
 }

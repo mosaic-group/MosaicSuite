@@ -40,14 +40,14 @@ public class Algorithm {
 
     boolean shrinkFirst = false;
 
-    private Region_Competition MVC;
+    private final Region_Competition MVC;
     /** interface to image program */
-    private LabelImageRC labelImage;
-    private IntensityImage intensityImage;
-    private ImageModel imageModel;
+    private final LabelImageRC labelImage;
+    private final IntensityImage intensityImage;
+    private final ImageModel imageModel;
 
     // labelImage
-    private IndexIterator iterator; // iterates over the labelImage
+    private final IndexIterator iterator; // iterates over the labelImage
 
     private final int bgLabel;
     private final int forbiddenLabel;
@@ -69,15 +69,15 @@ public class Algorithm {
 
     private HashMap<Point, LabelPair> m_CompetingRegionsMap;
 
-    private Connectivity connFG;
-    private Connectivity connBG;
+    private final Connectivity connFG;
+    private final Connectivity connBG;
     private TopologicalNumberImageFunction m_TopologicalNumberFunction;
     private ForestFire forestFire;
 
     // private List<Integer> m_MergingHist;
     // private List<Integer> m_FramesHist;
 
-    private Set<Pair<Point, Integer>> m_Seeds = new HashSet<Pair<Point, Integer>>();
+    private final Set<Pair<Point, Integer>> m_Seeds = new HashSet<Pair<Point, Integer>>();
 
     /**
      * creates a new LabelImage with size of ip
@@ -170,18 +170,18 @@ public class Algorithm {
      * stores the contour particles in contourContainer
      */
     private void initContour() {
-        Connectivity conn = connFG;
+        final Connectivity conn = connFG;
 
-        for (int i : iterator.getIndexIterable()) {
-            int label = labelImage.getLabelAbs(i);
+        for (final int i : iterator.getIndexIterable()) {
+            final int label = labelImage.getLabelAbs(i);
             if (label != bgLabel && label != forbiddenLabel) // region pixel
             // && label<negOfs
             {
-                Point p = iterator.indexToPoint(i);
-                for (Point neighbor : conn.iterateNeighbors(p)) {
-                    int neighborLabel = labelImage.getLabelAbs(neighbor);
+                final Point p = iterator.indexToPoint(i);
+                for (final Point neighbor : conn.iterateNeighbors(p)) {
+                    final int neighborLabel = labelImage.getLabelAbs(neighbor);
                     if (neighborLabel != label) {
-                        ContourParticle particle = new ContourParticle();
+                        final ContourParticle particle = new ContourParticle();
                         particle.label = label;
                         particle.intensity = intensityImage.get(i);
                         m_InnerContourContainer.put(p, particle);
@@ -194,9 +194,9 @@ public class Algorithm {
         }
 
         // set contour to -label
-        for (Entry<Point, ContourParticle> entry : m_InnerContourContainer.entrySet()) {
-            Point key = entry.getKey();
-            ContourParticle value = entry.getValue();
+        for (final Entry<Point, ContourParticle> entry : m_InnerContourContainer.entrySet()) {
+            final Point key = entry.getKey();
+            final ContourParticle value = entry.getValue();
             // TODO cannot set neg values to ShortProcessor
             labelImage.setLabel(key, labelImage.labelToNeg(value.label));
         }
@@ -204,7 +204,7 @@ public class Algorithm {
 
     private void clearStats() {
         // clear stats
-        for (LabelInformation stat : labelMap.values()) {
+        for (final LabelInformation stat : labelMap.values()) {
             stat.reset();
         }
 
@@ -218,14 +218,14 @@ public class Algorithm {
     private void renewStatistics() {
         clearStats();
 
-        HashSet<Integer> usedLabels = new HashSet<Integer>();
+        final HashSet<Integer> usedLabels = new HashSet<Integer>();
 
-        int size = iterator.getSize();
+        final int size = iterator.getSize();
         for (int i = 0; i < size; i++) {
             // int label = get(x, y);
             // int absLabel = labelToAbs(label);
 
-            int absLabel = labelImage.getLabelAbs(i);
+            final int absLabel = labelImage.getLabelAbs(i);
 
             if (absLabel != forbiddenLabel /* && absLabel != bgLabel */) {
                 usedLabels.add(absLabel);
@@ -238,7 +238,7 @@ public class Algorithm {
                     stats = new LabelInformation(absLabel, labelImage.getDim());
                     labelMap.put(absLabel, stats);
                 }
-                double val = intensityImage.get(i);
+                final double val = intensityImage.get(i);
                 stats.count++;
 
                 stats.mean += val; // only sum up, mean and var are computed
@@ -257,10 +257,10 @@ public class Algorithm {
 
         // now we have in all LabelInformation:
         // in mean the sum of the values, in var the sum of val^2
-        for (LabelInformation stat : labelMap.values()) {
-            int n = stat.count;
+        for (final LabelInformation stat : labelMap.values()) {
+            final int n = stat.count;
             if (n > 1) {
-                double var = (stat.var - stat.mean * stat.mean / n) / (n - 1);
+                final double var = (stat.var - stat.mean * stat.mean / n) / (n - 1);
                 stat.var = (var);
                 // stat.var = (stat.var - stat.mean*stat.mean / n) / (n-1);
             }
@@ -305,7 +305,7 @@ public class Algorithm {
          * Start time measurement
          */
 
-        Timer timer = new Timer();
+        final Timer timer = new Timer();
         timer.tic();
 
         /**
@@ -322,7 +322,7 @@ public class Algorithm {
                         pauseMonitor.wait();
                         debug("exit pause");
                     }
-                    catch (InterruptedException e) {
+                    catch (final InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -394,7 +394,7 @@ public class Algorithm {
          * Debugging Output
          */
 
-        long executionTime = timer.lastResult();
+        final long executionTime = timer.lastResult();
         debug("time per iteration: " + executionTime / m_iteration_counter);
 
         if (m_converged) {
@@ -433,7 +433,7 @@ public class Algorithm {
                 return false;
             }
 
-            double Vol = IntensityImage.volume_image(image_psf);
+            final double Vol = IntensityImage.volume_image(image_psf);
             IntensityImage.rescale_image(image_psf, (float) (1.0f / Vol));
 
             // Show PSF Image
@@ -535,15 +535,15 @@ public class Algorithm {
         while (vChange && !m_Candidates.isEmpty()) {
             vChange = false;
 
-            Iterator<Entry<Point, ContourParticle>> vPointIterator = m_Candidates.entrySet().iterator();
+            final Iterator<Entry<Point, ContourParticle>> vPointIterator = m_Candidates.entrySet().iterator();
             while (vPointIterator.hasNext()) {
-                Entry<Point, ContourParticle> vStoreIt = vPointIterator.next();
-                Point vCurrentIndex = vStoreIt.getKey();
+                final Entry<Point, ContourParticle> vStoreIt = vPointIterator.next();
+                final Point vCurrentIndex = vStoreIt.getKey();
 
                 vFGTNvector = m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex);
                 boolean vSimple = true;
                 // / Check for FG-simplicity:
-                for (TopologicalNumberResult vTopoNbItr : vFGTNvector) {
+                for (final TopologicalNumberResult vTopoNbItr : vFGTNvector) {
                     if (vTopoNbItr.topologicalNumberPair.FGNumber != 1 || vTopoNbItr.topologicalNumberPair.BGNumber != 1) {
                         // This is a FG simple point; perform the move.
                         vSimple = false;
@@ -580,15 +580,15 @@ public class Algorithm {
         // there
         // / are not many non-simple points.
 
-        Iterator<Entry<Point, ContourParticle>> vPointIterator = m_Candidates.entrySet().iterator();
+        final Iterator<Entry<Point, ContourParticle>> vPointIterator = m_Candidates.entrySet().iterator();
 
         while (vPointIterator.hasNext()) {
-            Entry<Point, ContourParticle> e = vPointIterator.next();
-            ContourParticle vStoreIt = e.getValue();
-            Point vCurrentIndex = e.getKey();
+            final Entry<Point, ContourParticle> e = vPointIterator.next();
+            final ContourParticle vStoreIt = e.getValue();
+            final Point vCurrentIndex = e.getKey();
 
-            int vCurrentLabel = vStoreIt.label;
-            int vCandidateLabel = vStoreIt.candidateLabel;
+            final int vCurrentLabel = vStoreIt.label;
+            final int vCandidateLabel = vStoreIt.candidateLabel;
 
             boolean vValidPoint = true;
 
@@ -600,7 +600,7 @@ public class Algorithm {
             // / there is an introduction of a handle.
 
             if (vValidPoint && !settings.m_AllowHandles) {
-                for (TopologicalNumberResult vTopoNbItr : vFGTNvector) {
+                for (final TopologicalNumberResult vTopoNbItr : vFGTNvector) {
                     if (vTopoNbItr.label == vCandidateLabel) {
                         if (vTopoNbItr.topologicalNumberPair.FGNumber > 1) {
                             vValidPoint = false;
@@ -626,7 +626,7 @@ public class Algorithm {
                 // - "allow introducing holes": T_FG(x, L = l') > 1
                 // - "allow splits": T_FG > 2 && T_BG == 1
                 boolean vSplit = false;
-                for (TopologicalNumberResult vTopoNbItr : vFGTNvector) {
+                for (final TopologicalNumberResult vTopoNbItr : vFGTNvector) {
                     if (vTopoNbItr.label == vCurrentLabel) {
                         if (vTopoNbItr.topologicalNumberPair.FGNumber > 1) {
                             vSplit = true;
@@ -661,7 +661,7 @@ public class Algorithm {
 
                 if (e.getValue().m_processed) {
                     RegisterSeedsAfterSplit(vCurrentIndex, vCurrentLabel, m_Candidates);
-                    boolean wasContained = m_Seeds.remove(new Pair<Point, Integer>(vCurrentIndex, vCurrentLabel));
+                    final boolean wasContained = m_Seeds.remove(new Pair<Point, Integer>(vCurrentIndex, vCurrentLabel));
                     if (!wasContained) {
                         throw new RuntimeException("no seed in set");
                     }
@@ -708,7 +708,7 @@ public class Algorithm {
         // debug("End Seed points:");
         // }
 
-        for (Pair<Point, Integer> vSeedIt : m_Seeds) {
+        for (final Pair<Point, Integer> vSeedIt : m_Seeds) {
             RelabelRegionsAfterSplit(labelImage, vSeedIt.first, vSeedIt.second);
             vSplit = true;
         }
@@ -716,17 +716,17 @@ public class Algorithm {
         // / Merge the the competing regions if they meet merging criterion.
         if (settings.m_AllowFusion) {
 
-            Set<Integer> vCheckedLabels = new HashSet<Integer>();
+            final Set<Integer> vCheckedLabels = new HashSet<Integer>();
 
-            for (Entry<Point, LabelPair> vCRit : m_CompetingRegionsMap.entrySet()) {
+            for (final Entry<Point, LabelPair> vCRit : m_CompetingRegionsMap.entrySet()) {
                 // Entry<Point, Pair<Integer, Integer>>
                 // vCRit=competingRegions[i];
 
-                Point idx = vCRit.getKey();
-                LabelPair labels = vCRit.getValue();
+                final Point idx = vCRit.getKey();
+                final LabelPair labels = vCRit.getValue();
 
-                int vLabel1 = labels.first;
-                int vLabel2 = labels.second;
+                final int vLabel1 = labels.first;
+                final int vLabel2 = labels.second;
 
                 // m_MergingHist.add(m_iteration_counter);
                 // m_MergingHist.add(vLabel1);
@@ -760,11 +760,11 @@ public class Algorithm {
 
     private void RegisterSeedsAfterSplit(Point aIndex, int aLabel, HashMap<Point, ContourParticle> aCandidateContainer) {
 
-        for (Point vSeedIndex : connFG.iterateNeighbors(aIndex)) {
-            int vLabel = labelImage.getLabelAbs(vSeedIndex);
+        for (final Point vSeedIndex : connFG.iterateNeighbors(aIndex)) {
+            final int vLabel = labelImage.getLabelAbs(vSeedIndex);
 
             if (vLabel == aLabel) {
-                Pair<Point, Integer> vSeed = new Pair<Point, Integer>(vSeedIndex, vLabel);
+                final Pair<Point, Integer> vSeed = new Pair<Point, Integer>(vSeedIndex, vLabel);
 
                 m_Seeds.add(vSeed);
 
@@ -777,7 +777,7 @@ public class Algorithm {
                 // the
                 // / seed will be effective).
 
-                ContourParticle vParticle = aCandidateContainer.get(vSeedIndex);
+                final ContourParticle vParticle = aCandidateContainer.get(vSeedIndex);
                 if (vParticle != null) {
                     vParticle.m_processed = true;
                 }
@@ -810,11 +810,11 @@ public class Algorithm {
         // calculate energy for change to BG (shrinking)
         int counter = 0;
         int size = m_InnerContourContainer.size();
-        for (Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) {
+        for (final Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) {
             MVC.updateProgress(counter++, size);
 
-            Point vCurrentIndex = vPointIterator.getKey();
-            ContourParticle vVal = vPointIterator.getValue();
+            final Point vCurrentIndex = vPointIterator.getKey();
+            final ContourParticle vVal = vPointIterator.getValue();
 
             vVal.candidateLabel = 0;
             vVal.referenceCount = 0; // doesn't matter for the BG
@@ -856,20 +856,20 @@ public class Algorithm {
         // calculate energy for expanding into neighborhood (growing)
         counter = 0;
         size = m_InnerContourContainer.size();
-        for (Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) {
+        for (final Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) {
             MVC.updateProgress(counter++, size);
 
-            Point vCurrentIndex = vPointIterator.getKey();
-            ContourParticle vVal = vPointIterator.getValue();
+            final Point vCurrentIndex = vPointIterator.getKey();
+            final ContourParticle vVal = vPointIterator.getValue();
 
             vVal.newlyCreated = false;
 
-            int vLabelOfPropagatingRegion = vVal.label;
+            final int vLabelOfPropagatingRegion = vVal.label;
             // vLabelImageIterator.SetLocation(vCurrentIndex);
 
-            Connectivity conn = connFG;
-            for (Point q : conn.iterateNeighbors(vCurrentIndex)) {
-                int vLabelOfDefender = labelImage.getLabelAbs(q);
+            final Connectivity conn = connFG;
+            for (final Point q : conn.iterateNeighbors(vCurrentIndex)) {
+                final int vLabelOfDefender = labelImage.getLabelAbs(q);
                 if (vLabelOfDefender == forbiddenLabel) {
                     continue;
                 }
@@ -877,7 +877,7 @@ public class Algorithm {
                 // expanding into other region / label. (into same region:
                 // nothing happens)
                 if (vLabelOfDefender != vLabelOfPropagatingRegion) {
-                    Point vNeighborIndex = q;
+                    final Point vNeighborIndex = q;
 
                     // Tell the mother about the daughter:
                     // TODO senseless lookup? use vVal instead of
@@ -893,12 +893,12 @@ public class Algorithm {
                     // throw new RuntimeException("doch kein sinnloser lookup");
                     // }
 
-                    ContourParticle vContourPointItr = aReturnContainer.get(vNeighborIndex);
+                    final ContourParticle vContourPointItr = aReturnContainer.get(vNeighborIndex);
                     if (vContourPointItr == null) {
                         // create a new entry (a daughter), the contour point
                         // has not been part of the contour so far.
 
-                        ContourParticle vOCCValue = new ContourParticle();
+                        final ContourParticle vOCCValue = new ContourParticle();
                         // itk commented //
                         // vOCCValue.m_candidates.insert(vCandidateElement);
                         vOCCValue.newlyCreated = true;
@@ -931,10 +931,10 @@ public class Algorithm {
                         if (!vContourPointItr.hasLabelBeenTested((vLabelOfPropagatingRegion))) {
                             vContourPointItr.setLabelHasBeenTested(vLabelOfPropagatingRegion);
 
-                            EnergyResult energyAndMerge = CalculateEnergyDifferenceForLabel(vNeighborIndex, vContourPointItr, vLabelOfPropagatingRegion);
+                            final EnergyResult energyAndMerge = CalculateEnergyDifferenceForLabel(vNeighborIndex, vContourPointItr, vLabelOfPropagatingRegion);
 
-                            double vEnergyDiff = energyAndMerge.energyDifference;
-                            boolean aMerge = energyAndMerge.merge;
+                            final double vEnergyDiff = energyAndMerge.energyDifference;
+                            final boolean aMerge = energyAndMerge.merge;
                             if (vEnergyDiff < vContourPointItr.energyDifference) {
 
                                 vContourPointItr.candidateLabel = vLabelOfPropagatingRegion;
@@ -945,10 +945,10 @@ public class Algorithm {
                                 // if ((*aMerge)[vP] && vParticle.m_label != 0
                                 // && vParticle.m_candidateLabel != 0)
                                 if (aMerge && vContourPointItr.label != bgLabel && vContourPointItr.candidateLabel != bgLabel) {
-                                    int L1 = vContourPointItr.candidateLabel;
-                                    int L2 = vContourPointItr.label;
+                                    final int L1 = vContourPointItr.candidateLabel;
+                                    final int L2 = vContourPointItr.label;
 
-                                    LabelPair pair = new LabelPair(L1, L2);
+                                    final LabelPair pair = new LabelPair(L1, L2);
                                     // System.out.println("merge pair: "+pair.first
                                     // + " " +pair.second);
 
@@ -994,9 +994,9 @@ public class Algorithm {
     private void FilterCandidates(HashMap<Point, ContourParticle> m_Candidates) {
 
         if (shrinkFirst) {
-            Iterator<Entry<Point, ContourParticle>> it = m_Candidates.entrySet().iterator();
+            final Iterator<Entry<Point, ContourParticle>> it = m_Candidates.entrySet().iterator();
             while (it.hasNext()) {
-                Entry<Point, ContourParticle> vStoreIt = it.next(); // iterator
+                final Entry<Point, ContourParticle> vStoreIt = it.next(); // iterator
                 // to work
                 // with
                 if (vStoreIt.getValue().energyDifference >= 0) {
@@ -1011,11 +1011,11 @@ public class Algorithm {
          * Find topologically compatible candidates and store their indices in
          * vLegalIndices.
          */
-        List<Point> vLegalIndices = new LinkedList<Point>();
-        List<Point> vIllegalIndices = new LinkedList<Point>();
-        for (Entry<Point, ContourParticle> vPointIterator : m_Candidates.entrySet()) {
-            Point pIndex = vPointIterator.getKey();
-            ContourParticle p = vPointIterator.getValue();
+        final List<Point> vLegalIndices = new LinkedList<Point>();
+        final List<Point> vIllegalIndices = new LinkedList<Point>();
+        for (final Entry<Point, ContourParticle> vPointIterator : m_Candidates.entrySet()) {
+            final Point pIndex = vPointIterator.getKey();
+            final ContourParticle p = vPointIterator.getValue();
 
             // Check if this point already was processed
             if (!p.m_processed) {
@@ -1029,30 +1029,30 @@ public class Algorithm {
                 /**
                  * Build the dependency network for this seed point:
                  */
-                Stack<Point> vIndicesToVisit = new Stack<Point>();
-                List<ContourPointWithIndexType> vSortedNetworkMembers = new LinkedList<ContourPointWithIndexType>();
+                final Stack<Point> vIndicesToVisit = new Stack<Point>();
+                final List<ContourPointWithIndexType> vSortedNetworkMembers = new LinkedList<ContourPointWithIndexType>();
                 vIndicesToVisit.push(pIndex);
                 p.m_processed = true;
 
                 while (!vIndicesToVisit.empty()) {
-                    Point vSeedIndex = vIndicesToVisit.pop();
-                    ContourParticle vCurrentMother = m_Candidates.get(vSeedIndex);
+                    final Point vSeedIndex = vIndicesToVisit.pop();
+                    final ContourParticle vCurrentMother = m_Candidates.get(vSeedIndex);
 
                     // / Add the seed point to the network
-                    ContourPointWithIndexType vSeedContourPointWithIndex = new ContourPointWithIndexType(vSeedIndex, vCurrentMother);
+                    final ContourPointWithIndexType vSeedContourPointWithIndex = new ContourPointWithIndexType(vSeedIndex, vCurrentMother);
                     vSortedNetworkMembers.add(vSeedContourPointWithIndex);
 
                     // Iterate all children of the seed, push to the stack if
                     // there
                     // is a mother.
-                    List<Point> vDaughterIt = vCurrentMother.getDaughterList();
-                    for (Point vDaughterContourIndex : vDaughterIt) {
+                    final List<Point> vDaughterIt = vCurrentMother.getDaughterList();
+                    for (final Point vDaughterContourIndex : vDaughterIt) {
                         // if (vAllCandidates.find(vDaughterContourIndex) ==
                         // vAllCandidates.end())
                         // std::cout << "daughter index found not in the list: "
                         // << vDaughterContourIndex << std::endl;
 
-                        ContourParticle vDaughterContourPoint = m_Candidates.get(vDaughterContourIndex);
+                        final ContourParticle vDaughterContourPoint = m_Candidates.get(vDaughterContourIndex);
 
                         if (!vDaughterContourPoint.m_processed) {
                             vDaughterContourPoint.m_processed = true;
@@ -1061,15 +1061,15 @@ public class Algorithm {
                                 vIndicesToVisit.push(vDaughterContourIndex);
                             }
                             else {
-                                ContourPointWithIndexType vDaughterContourPointWithIndex = new ContourPointWithIndexType(vDaughterContourIndex, vDaughterContourPoint);
+                                final ContourPointWithIndexType vDaughterContourPointWithIndex = new ContourPointWithIndexType(vDaughterContourIndex, vDaughterContourPoint);
                                 vSortedNetworkMembers.add(vDaughterContourPointWithIndex);
                             }
 
                             // / Push all the non-processed mothers of this
                             // daughter to the stack
-                            List<Point> vDMIt = vDaughterContourPoint.getMotherList();
-                            for (Point vDM : vDMIt) {
-                                ContourParticle vMotherOfDaughterPoint = m_Candidates.get(vDM);
+                            final List<Point> vDMIt = vDaughterContourPoint.getMotherList();
+                            for (final Point vDM : vDMIt) {
+                                final ContourParticle vMotherOfDaughterPoint = m_Candidates.get(vDM);
                                 if (!vMotherOfDaughterPoint.m_processed) {
                                     vMotherOfDaughterPoint.m_processed = true;
                                     vIndicesToVisit.push(vDM);
@@ -1096,9 +1096,9 @@ public class Algorithm {
                  */
 
                 // TODO HashSet problem (maybe need hashmap)
-                HashSet<Point> vSelectedCandidateIndices = new HashSet<Point>();
+                final HashSet<Point> vSelectedCandidateIndices = new HashSet<Point>();
 
-                for (ContourPointWithIndexType vNetworkIt : vSortedNetworkMembers) {
+                for (final ContourPointWithIndexType vNetworkIt : vSortedNetworkMembers) {
 
                     // / If a mother is accepted, the reference count of all the
                     // / daughters (with the same label) has to be decreased.
@@ -1119,7 +1119,7 @@ public class Algorithm {
                     // r_c is > 0.
                     // /
                     if (vNetworkIt.p.isDaughter) {
-                        ContourParticle vCand = m_Candidates.get(vNetworkIt.pIndex);
+                        final ContourParticle vCand = m_Candidates.get(vNetworkIt.pIndex);
                         if (vCand.referenceCount < 1 && vCand.candidateLabel != 0) {
                             vLegalMove = false;
                         }
@@ -1141,11 +1141,11 @@ public class Algorithm {
 
                         boolean vRule3Fulfilled = false;
 
-                        for (Point vDaughterIndicesIterator : vNetworkIt.p.getDaughterList()) {
-                            ContourParticle vDaughterPoint = m_Candidates.get(vDaughterIndicesIterator);
+                        for (final Point vDaughterIndicesIterator : vNetworkIt.p.getDaughterList()) {
+                            final ContourParticle vDaughterPoint = m_Candidates.get(vDaughterIndicesIterator);
 
                             // / rule 2:
-                            boolean vAcceptedDaugtherItContained = vSelectedCandidateIndices.contains(vDaughterIndicesIterator);
+                            final boolean vAcceptedDaugtherItContained = vSelectedCandidateIndices.contains(vDaughterIndicesIterator);
 
                             if (vAcceptedDaugtherItContained) {
                                 // / This daughter has been accepted
@@ -1193,8 +1193,8 @@ public class Algorithm {
 
                         // / decrease the references of its daughters(with the
                         // same 'old' label).
-                        for (Point vDaughterIndicesIterator : vNetworkIt.p.getDaughterList()) {
-                            ContourParticle vDaughterPoint = m_Candidates.get(vDaughterIndicesIterator);
+                        for (final Point vDaughterIndicesIterator : vNetworkIt.p.getDaughterList()) {
+                            final ContourParticle vDaughterPoint = m_Candidates.get(vDaughterIndicesIterator);
                             if (vDaughterPoint.candidateLabel == vNetworkIt.p.label) {
                                 vDaughterPoint.referenceCount--;
                             }
@@ -1211,7 +1211,7 @@ public class Algorithm {
          * Filter all candidates with the illegal indices
          */
 
-        for (Point vIlligalIndicesIt : vIllegalIndices) {
+        for (final Point vIlligalIndicesIt : vIllegalIndices) {
             m_Candidates.remove(vIlligalIndicesIt);
         }
 
@@ -1219,9 +1219,9 @@ public class Algorithm {
          * Filter candidates according to their energy
          */
 
-        Iterator<Entry<Point, ContourParticle>> it = m_Candidates.entrySet().iterator();
+        final Iterator<Entry<Point, ContourParticle>> it = m_Candidates.entrySet().iterator();
         while (it.hasNext()) {
-            Entry<Point, ContourParticle> vStoreIt = it.next(); // iterator to
+            final Entry<Point, ContourParticle> vStoreIt = it.next(); // iterator to
             // work with
             if (vStoreIt.getValue().energyDifference >= 0) {
                 it.remove();
@@ -1241,11 +1241,11 @@ public class Algorithm {
      * m_InnerContourContainer.put(vCurrentIndex, vContourPoint);
      */
     private void ChangeContourPointLabelToCandidateLabel(Entry<Point, ContourParticle> aParticle) {
-        ContourParticle second = aParticle.getValue();
-        Point vCurrentIndex = aParticle.getKey();
+        final ContourParticle second = aParticle.getValue();
+        final Point vCurrentIndex = aParticle.getKey();
 
-        int vFromLabel = second.label;
-        int vToLabel = second.candidateLabel;
+        final int vFromLabel = second.label;
+        final int vToLabel = second.candidateLabel;
 
         // /
         // / The particle was modified,reset the counter in order to process
@@ -1307,7 +1307,7 @@ public class Algorithm {
             // TODO compare with itk. vContourPoint = second is unnecessary in
             // java. was this a copy in c++?
 
-            ContourParticle vContourPoint = second;
+            final ContourParticle vContourPoint = second;
             vContourPoint.label = vToLabel;
             // / The point may or may not exist already in the m_InnerContainer.
             // / The old value, if it exist, is just overwritten with the new
@@ -1338,14 +1338,14 @@ public class Algorithm {
     private void AddNeighborsAtRemove(int aAbsLabel, Point pIndex) {
 
         // TODO dummy
-        Connectivity conn = connFG;
+        final Connectivity conn = connFG;
         // END dummy
 
         // TODO statistic update?
 
         // ContourParticle p = m_InnerContourContainer.get(pIndex);
-        for (Point qIndex : conn.iterateNeighbors(pIndex)) {
-            int qLabel = labelImage.getLabel(qIndex);
+        for (final Point qIndex : conn.iterateNeighbors(pIndex)) {
+            final int qLabel = labelImage.getLabel(qIndex);
 
             // TODO can the labels be negative? somewhere, they are set (maybe
             // only temporary) to neg values
@@ -1365,7 +1365,7 @@ public class Algorithm {
             // label
             // as p
             {
-                ContourParticle q = new ContourParticle();
+                final ContourParticle q = new ContourParticle();
                 q.label = aAbsLabel;
                 q.candidateLabel = bgLabel;
                 q.intensity = intensityImage.get(qIndex);
@@ -1405,7 +1405,7 @@ public class Algorithm {
      */
     private void MaintainNeighborsAtAdd(int aLabelAbs, Point pIndex) {
         // ContourParticle p = m_InnerContourContainer.get(pIndex);
-        int aLabelNeg = labelImage.labelToNeg(aLabelAbs);
+        final int aLabelNeg = labelImage.labelToNeg(aLabelAbs);
 
         // itk 1646: we set the pixel value already to ensure the that the
         // 'enclosed' check
@@ -1413,8 +1413,8 @@ public class Algorithm {
         // TODO is p.label (always) the correct label?
         labelImage.setLabel(pIndex, labelImage.labelToNeg(aLabelAbs));
 
-        Connectivity conn = connBG;
-        for (Point qIndex : conn.iterateNeighbors(pIndex)) {
+        final Connectivity conn = connBG;
+        for (final Point qIndex : conn.iterateNeighbors(pIndex)) {
             // from itk:
             // / It might happen that a point, that was already accepted as a
             // / candidate, gets enclosed by other candidates. This
@@ -1445,9 +1445,9 @@ public class Algorithm {
         // MVC.selectPoint(aIndex);
         // template <class TInputImage, class TInitImage, class TOutputImage >
         if (aLabelImage.getLabelAbs(aIndex) == aLabel) {
-            BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
+            final BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
             vMultiThsFunction.AddThresholdBetween(aLabel, aLabel);
-            int negLabel = aLabelImage.labelToNeg(aLabel);
+            final int negLabel = aLabelImage.labelToNeg(aLabel);
             vMultiThsFunction.AddThresholdBetween(negLabel, negLabel);
 
             // ForestFire(aLabelImage, aIndex, vMultiThsFunction,
@@ -1474,23 +1474,23 @@ public class Algorithm {
         // }
         // MVC.selectPoint(aIndex);
 
-        BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
+        final BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
 
         // LinkedList<Integer> vLabelsToCheck = new LinkedList<Integer>();
-        Stack<Integer> vLabelsToCheck = new Stack<Integer>();
+        final Stack<Integer> vLabelsToCheck = new Stack<Integer>();
 
         vLabelsToCheck.push(aL1);
         vMultiThsFunction.AddThresholdBetween(aL1, aL1);
-        int aL1Neg = aLabelImage.labelToNeg(aL1);
+        final int aL1Neg = aLabelImage.labelToNeg(aL1);
         vMultiThsFunction.AddThresholdBetween(aL1Neg, aL1Neg);
         aCheckedLabels.add(aL1);
 
         // for (int vLabelToCheck : vLabelsToCheck)
         while (!vLabelsToCheck.isEmpty()) {
-            int vLabelToCheck = vLabelsToCheck.pop();
-            for (LabelPair vMergingLabelsPair : m_CompetingRegionsMap.values()) {
-                int vLabel1 = vMergingLabelsPair.first;
-                int vLabel2 = vMergingLabelsPair.second;
+            final int vLabelToCheck = vLabelsToCheck.pop();
+            for (final LabelPair vMergingLabelsPair : m_CompetingRegionsMap.values()) {
+                final int vLabel1 = vMergingLabelsPair.first;
+                final int vLabel2 = vMergingLabelsPair.second;
 
                 if (vLabel1 == vLabelToCheck && !aCheckedLabels.contains(vLabel2)) {
                     vMultiThsFunction.AddThresholdBetween(vLabel2, vLabel2);
@@ -1533,17 +1533,18 @@ public class Algorithm {
         // but atm, im happy that it detects "orphan"-contourPoints (without
         // attached labelInfo)
 
-        Object[] copy = m_InnerContourContainer.entrySet().toArray();
-        for (Object o : copy)
+        final Object[] copy = m_InnerContourContainer.entrySet().toArray();
+        for (final Object o : copy)
         // for (Entry<Point, ContourParticle> vIt : copy)
         {
             @SuppressWarnings("unchecked")
+            final
             Entry<Point, ContourParticle> vIt = (Entry<Point, ContourParticle>) o;
 
-            ContourParticle vWorkingIt = vIt.getValue();
+            final ContourParticle vWorkingIt = vIt.getValue();
             // if (m_Count[vWorkingIt->second.m_label] == 1) {
 
-            LabelInformation info = labelMap.get(vWorkingIt.label);
+            final LabelInformation info = labelMap.get(vWorkingIt.label);
             if (info == null) {
                 // TODO debug
                 // MVC.addSlice(labelImage,
@@ -1574,10 +1575,10 @@ public class Algorithm {
 
         // Copy the candidates to a set (of ContourPointWithIndex). This
         // will sort them according to their energy gradients.
-        List<ContourPointWithIndexType> vSortedList = new LinkedList<ContourPointWithIndexType>();
+        final List<ContourPointWithIndexType> vSortedList = new LinkedList<ContourPointWithIndexType>();
 
-        for (Entry<Point, ContourParticle> vPointIterator : aContainer.entrySet()) {
-            ContourPointWithIndexType vCand = new ContourPointWithIndexType(vPointIterator.getKey(), vPointIterator.getValue());
+        for (final Entry<Point, ContourParticle> vPointIterator : aContainer.entrySet()) {
+            final ContourPointWithIndexType vCand = new ContourPointWithIndexType(vPointIterator.getKey(), vPointIterator.getValue());
             vSortedList.add(vCand);
         }
 
@@ -1594,15 +1595,15 @@ public class Algorithm {
         // / all inserted points before.
         aContainer.clear();
 
-        for (ContourPointWithIndexType vSortedListIterator : vSortedList) {
+        for (final ContourPointWithIndexType vSortedListIterator : vSortedList) {
             if (!(vNbElements >= 1)) {
                 break;
             }
 
             vNbElements--;
             // Point vCandCIndex = vSortedListIterator.pIndex;
-            Iterator<Entry<Point, ContourParticle>> vAcceptedCandIterator = aContainer.entrySet().iterator();
-            boolean vValid = true;
+            final Iterator<Entry<Point, ContourParticle>> vAcceptedCandIterator = aContainer.entrySet().iterator();
+            final boolean vValid = true;
             while (vAcceptedCandIterator.hasNext()) {
                 vAcceptedCandIterator.next().getKey();
 
@@ -1654,7 +1655,7 @@ public class Algorithm {
     }
 
     private EnergyResult CalculateEnergyDifferenceForLabel(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel) {
-        EnergyResult result = imageModel.CalculateEnergyDifferenceForLabel(aContourIndex, aContourPointPtr, aToLabel);
+        final EnergyResult result = imageModel.CalculateEnergyDifferenceForLabel(aContourIndex, aContourPointPtr, aToLabel);
         return result;
     }
 
@@ -1674,22 +1675,22 @@ public class Algorithm {
     }
 
     private void UpdateStatisticsWhenJump(Entry<Point, ContourParticle> aParticle, int aFromLabelIdx, int aToLabelIdx) {
-        ContourParticle vOCCV = aParticle.getValue();
-        float vCurrentImageValue = vOCCV.intensity;
+        final ContourParticle vOCCV = aParticle.getValue();
+        final float vCurrentImageValue = vOCCV.intensity;
 
-        LabelInformation aToLabel = labelMap.get(aToLabelIdx);
-        LabelInformation aFromLabel = labelMap.get(aFromLabelIdx);
+        final LabelInformation aToLabel = labelMap.get(aToLabelIdx);
+        final LabelInformation aFromLabel = labelMap.get(aFromLabelIdx);
 
-        double vNTo = aToLabel.count;
-        double vNFrom = aFromLabel.count;
+        final double vNTo = aToLabel.count;
+        final double vNFrom = aFromLabel.count;
 
         // / Before changing the mean, compute the sum of squares of the
         // samples:
-        double vToLabelSumOfSq = aToLabel.var * (vNTo - 1.0) + vNTo * aToLabel.mean * aToLabel.mean;
-        double vFromLabelSumOfSq = aFromLabel.var * (aFromLabel.count - 1.0) + vNFrom * aFromLabel.mean * aFromLabel.mean;
+        final double vToLabelSumOfSq = aToLabel.var * (vNTo - 1.0) + vNTo * aToLabel.mean * aToLabel.mean;
+        final double vFromLabelSumOfSq = aFromLabel.var * (aFromLabel.count - 1.0) + vNFrom * aFromLabel.mean * aFromLabel.mean;
 
         // / Calculate the new means for the background and the label:
-        double vNewMeanToLabel = (aToLabel.mean * vNTo + vCurrentImageValue) / (vNTo + 1.0);
+        final double vNewMeanToLabel = (aToLabel.mean * vNTo + vCurrentImageValue) / (vNTo + 1.0);
 
         // TODO divide by zero. why does this not happen at itk?
         double vNewMeanFromLabel;
@@ -1755,8 +1756,8 @@ public class Algorithm {
     
     private void RemoveNotSignificantRegions() {
         // Iterate through the active labels and check for significance.
-        for (Entry<Integer, LabelInformation> vActiveLabelsIt : labelMap.entrySet()) {
-            int vLabelAbs = vActiveLabelsIt.getKey();
+        for (final Entry<Integer, LabelInformation> vActiveLabelsIt : labelMap.entrySet()) {
+            final int vLabelAbs = vActiveLabelsIt.getKey();
             if (vLabelAbs == bgLabel) {
                 continue;
             }
@@ -1770,11 +1771,11 @@ public class Algorithm {
 
     private void RemoveFGRegion(int aLabel) {
         // / Get the contour points of that label and copy them to vContainer:
-        HashMap<Point, ContourParticle> vContainer = new HashMap<Point, ContourParticle>();
+        final HashMap<Point, ContourParticle> vContainer = new HashMap<Point, ContourParticle>();
 
         // find all the element with this label and store them in a tentative
         // container:
-        for (Entry<Point, ContourParticle> vIt : m_InnerContourContainer.entrySet()) {
+        for (final Entry<Point, ContourParticle> vIt : m_InnerContourContainer.entrySet()) {
             if (vIt.getValue().label == aLabel) {
                 vContainer.put(vIt.getKey(), vIt.getValue());
             }
@@ -1783,10 +1784,10 @@ public class Algorithm {
         // / Successively remove the points from the contour. In the end of the
         // / loop, new points are added to vContainer.
         while (!vContainer.isEmpty()) {
-            Iterator<Entry<Point, ContourParticle>> vRemIt = vContainer.entrySet().iterator();
+            final Iterator<Entry<Point, ContourParticle>> vRemIt = vContainer.entrySet().iterator();
             while (vRemIt.hasNext()) {
                 // TODO! does it really remove from first to last?
-                Entry<Point, ContourParticle> vTempIt = vRemIt.next();
+                final Entry<Point, ContourParticle> vTempIt = vRemIt.next();
                 vTempIt.getValue().candidateLabel = bgLabel;
                 ChangeContourPointLabelToCandidateLabel(vTempIt);
                 vRemIt.remove();
@@ -1799,7 +1800,7 @@ public class Algorithm {
                 debug("refilling in remove fg region! count: " + labelMap.get(aLabel).count);
                 // vIt = m_InnerContourContainer.entrySet();
                 // vEnd = m_InnerContourContainer.end();
-                for (Entry<Point, ContourParticle> vIt : m_InnerContourContainer.entrySet()) {
+                for (final Entry<Point, ContourParticle> vIt : m_InnerContourContainer.entrySet()) {
                     if (vIt.getValue().label == aLabel) {
                         vContainer.put(vIt.getKey(), vIt.getValue());
                     }
@@ -1809,10 +1810,10 @@ public class Algorithm {
     }
 
     void CleanUp() {
-        Iterator<Entry<Integer, LabelInformation>> vActiveLabelsIt = labelMap.entrySet().iterator();
+        final Iterator<Entry<Integer, LabelInformation>> vActiveLabelsIt = labelMap.entrySet().iterator();
 
         while (vActiveLabelsIt.hasNext()) {
-            Entry<Integer, LabelInformation> entry = vActiveLabelsIt.next();
+            final Entry<Integer, LabelInformation> entry = vActiveLabelsIt.next();
 
             if (entry.getValue().count == 0) {
                 if (entry.getKey() == bgLabel) {

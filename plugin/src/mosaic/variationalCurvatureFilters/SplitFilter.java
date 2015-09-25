@@ -41,10 +41,10 @@ public class SplitFilter implements CurvatureFilter {
         halfHeight = roundedHeight / 2;
 
         // Filter image
-        float[][] WC = new float[halfHeight][halfWidth];
-        float[][] WT = new float[halfHeight][halfWidth];
-        float[][] BC = new float[halfHeight][halfWidth];
-        float[][] BT = new float[halfHeight][halfWidth];
+        final float[][] WC = new float[halfHeight][halfWidth];
+        final float[][] WT = new float[halfHeight][halfWidth];
+        final float[][] BC = new float[halfHeight][halfWidth];
+        final float[][] BT = new float[halfHeight][halfWidth];
         splitImage(aImg, WC, WT, BC, BT);
 
         runFilter(WC, WT, BC, BT, aNumOfIterations);
@@ -199,7 +199,7 @@ public class SplitFilter implements CurvatureFilter {
          * - originalWidth is even: then endIdx should be n-1
          * - originalWidth is odd:  then endIdx should be n-2
          */
-        int endIdx = (originalWidth - (aShifted ? 1 : 0))/2 - 1;
+        final int endIdx = (originalWidth - (aShifted ? 1 : 0))/2 - 1;
 
         /*
          * startIdx and left/middle/right indices are calculated depending on aShifted flag.

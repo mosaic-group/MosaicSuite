@@ -9,15 +9,15 @@ public class SuperResolutionTest extends CommonBase {
     @Test
     public void testTvSplitGrey8()  {
         // Define test data
-        String tcDirName          = "VCF/";
-        String setupString        = "run";
-        String macroOptions       = "filter=[TV (Total Variation)] method=Split number=20";
-        String[] inputFiles       = {"lenaSmall.tif"};
-        String[] expectedFiles    = {"resized_lenaSmall.tif"};
-        String[] referenceFiles   = {"resizedLenaSmall.tif"};
+        final String tcDirName          = "VCF/";
+        final String setupString        = "run";
+        final String macroOptions       = "filter=[TV (Total Variation)] method=Split number=20";
+        final String[] inputFiles       = {"lenaSmall.tif"};
+        final String[] expectedFiles    = {"resized_lenaSmall.tif"};
+        final String[] referenceFiles   = {"resizedLenaSmall.tif"};
 
         // Create tested plugIn
-        SuperResolution nt = new SuperResolution();
+        final SuperResolution nt = new SuperResolution();
 
         // Test it
         testPlugin(nt, tcDirName,

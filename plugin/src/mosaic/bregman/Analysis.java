@@ -21,7 +21,7 @@ public class Analysis {
     public enum outputF {
         MASK(2), OBJECT(0);
 
-        private int numVal;
+        private final int numVal;
 
         outputF(int numVal) {
             this.numVal = numVal;
@@ -88,13 +88,13 @@ public class Analysis {
         p.nj = img2.getHeight();
         p.nz = img2.getNSlices();
 
-        int f = img2.getFrame();
+        final int f = img2.getFrame();
 
         // IJ.log("creating a");
         imgA = new ImagePlus();
-        int bits = img2.getBitDepth();
+        final int bits = img2.getBitDepth();
 
-        ImageStack imga_s = new ImageStack(p.ni, p.nj);
+        final ImageStack imga_s = new ImageStack(p.ni, p.nj);
 
         // channel 1
         for (int z = 0; z < p.nz; z++) {
@@ -114,7 +114,7 @@ public class Analysis {
         setimagea();
 
         imgB = new ImagePlus();
-        ImageStack imgb_s = new ImageStack(p.ni, p.nj);
+        final ImageStack imgb_s = new ImageStack(p.ni, p.nj);
 
         // channel 2
         for (int z = 0; z < p.nz; z++) {
@@ -141,7 +141,7 @@ public class Analysis {
      * @return Vector with objects
      */
     static Vector<? extends Outdata<Region>> getObjectsList(int f, int channel) {
-        Vector<? extends Outdata<Region>> v = CSVOutput.getVector(regionslist[channel]);
+        final Vector<? extends Outdata<Region>> v = CSVOutput.getVector(regionslist[channel]);
 
         // Set frame
         for (int i = 0; i < v.size(); i++) {
@@ -157,12 +157,12 @@ public class Analysis {
         p.nj = img2.getHeight();
         p.nz = img2.getNSlices();
 
-        int f = img2.getFrame();
+        final int f = img2.getFrame();
 
         imgA = new ImagePlus();
 
-        ImageStack imga_s = new ImageStack(p.ni, p.nj);
-        int bits = img2.getBitDepth();
+        final ImageStack imga_s = new ImageStack(p.ni, p.nj);
+        final int bits = img2.getBitDepth();
         // channel 1
         for (int z = 0; z < p.nz; z++) {
             img2.setPosition(1, z + 1, f);
@@ -181,7 +181,7 @@ public class Analysis {
     }
 
     static double[] pearson_corr() {
-        Pearson ps = new Pearson(imgA, imgB, p);
+        final Pearson ps = new Pearson(imgA, imgB, p);
         return ps.run();
     }
 
@@ -211,7 +211,7 @@ public class Analysis {
         try {
             Analysis.DoneSignala.await();
         }
-        catch (InterruptedException ex) {
+        catch (final InterruptedException ex) {
         }
 
         // Merge frames
@@ -244,7 +244,7 @@ public class Analysis {
         try {
             Analysis.DoneSignalb.await();
         }
-        catch (InterruptedException ex) {
+        catch (final InterruptedException ex) {
         }
 
         // Merge software
@@ -261,24 +261,24 @@ public class Analysis {
 
     static void compute_connected_regions_a(double d, float[][][] RiN) {
         // IJ.log("connected ana"+d);
-        ImagePlus maska_im = new ImagePlus();
-        ImageStack maska_ims = new ImageStack(p.ni, p.nj);
+        final ImagePlus maska_im = new ImagePlus();
+        final ImageStack maska_ims = new ImageStack(p.ni, p.nj);
 
         for (int z = 0; z < p.nz; z++) {
-            byte[] maska_bytes = new byte[p.ni * p.nj];
+            final byte[] maska_bytes = new byte[p.ni * p.nj];
             for (int i = 0; i < p.ni; i++) {
                 for (int j = 0; j < p.nj; j++) {
                     maska_bytes[j * p.ni + i] = maskA[z][i][j];
                 }
             }
-            ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
+            final ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
             bp.setPixels(maska_bytes);
             maska_ims.addSlice("", bp);
         }
 
         maska_im.setStack("test Ma", maska_ims);
 
-        FindConnectedRegions fcr = new FindConnectedRegions(maska_im, maskA);// maska_im
+        final FindConnectedRegions fcr = new FindConnectedRegions(maska_im, maskA);// maska_im
         // only
         float[][][] Ri;
         if (p.mode_voronoi2) {
@@ -329,13 +329,13 @@ public class Analysis {
     }
 
     static void compute_connected_regions_b(double d, float[][][] RiN) {
-        ImagePlus maskb_im = new ImagePlus();
-        ImageStack maskb_ims = new ImageStack(p.ni, p.nj);
+        final ImagePlus maskb_im = new ImagePlus();
+        final ImageStack maskb_ims = new ImageStack(p.ni, p.nj);
 
         boolean cellmask;
 
         for (int z = 0; z < p.nz; z++) {
-            byte[] maskb_bytes = new byte[p.ni * p.nj];
+            final byte[] maskb_bytes = new byte[p.ni * p.nj];
             for (int i = 0; i < p.ni; i++) {
                 for (int j = 0; j < p.nj; j++) {
                     cellmask = true;
@@ -349,13 +349,13 @@ public class Analysis {
 
                 }
             }
-            ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
+            final ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
             bp.setPixels(maskb_bytes);
             maskb_ims.addSlice("", bp);
         }
 
         maskb_im.setStack("", maskb_ims);
-        FindConnectedRegions fcr = new FindConnectedRegions(maskb_im);
+        final FindConnectedRegions fcr = new FindConnectedRegions(maskb_im);
 
         float[][][] Ri;
 
@@ -404,8 +404,8 @@ public class Analysis {
     static double colocsegA() {
         double sum = 0;
         int objects = 0;
-        for (Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
+            final Region r = it.next();
             objects++;
             sum += regionsum(r, imageb);
         }
@@ -482,8 +482,8 @@ public class Analysis {
     static double colocsegB() {
         double sum = 0;
         int objects = 0;
-        for (Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
+            final Region r = it.next();
             objects++;
             sum += regionsum(r, imagea);
         }
@@ -495,8 +495,8 @@ public class Analysis {
         double totalsignal = 0;
         double colocsignal = 0;
 
-        for (Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
+            final Region r = it.next();
 
             if (regioncoloc(r, regionslist[1], regions[1])) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
@@ -514,8 +514,8 @@ public class Analysis {
         double totalsize = 0;
         double colocsize = 0;
 
-        for (Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
+            final Region r = it.next();
             if (regioncoloc(r, regionslist[1], regions[1])) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
                 // objectscoloc++;
@@ -531,8 +531,8 @@ public class Analysis {
     static double colocsegABnumber() {
         int objectscoloc = 0;
         int objects = 0;
-        for (Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist[0].iterator(); it.hasNext();) {
+            final Region r = it.next();
             objects++;
             if (r.colocpositive) {
                 objectscoloc++;
@@ -545,8 +545,8 @@ public class Analysis {
     static double colocsegBAnumber() {
         int objectscoloc = 0;
         int objects = 0;
-        for (Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
+            final Region r = it.next();
             // IJ.log("obj" + r.value);
             objects++;
             if (r.colocpositive) {
@@ -561,8 +561,8 @@ public class Analysis {
         double totalsignal = 0;
         double colocsignal = 0;
 
-        for (Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
+            final Region r = it.next();
 
             if (regioncoloc(r, regionslist[0], regions[0])) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
@@ -580,8 +580,8 @@ public class Analysis {
         double totalsize = 0;
         double colocsize = 0;
 
-        for (Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist[1].iterator(); it.hasNext();) {
+            final Region r = it.next();
 
             if (regioncoloc(r, regionslist[0], regions[0])) {
                 // TODO: if condition intentionally left here - not sure if it does any changes
@@ -604,9 +604,9 @@ public class Analysis {
         boolean oneColoc = true;
         double intColoc = 0;
         double sizeColoc = 0;
-        int osxy = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix p = it.next();
+        final int osxy = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix p = it.next();
             valcoloc = regions[p.pz][p.px][p.py];
             // IJ.log("valcoloc " + valcoloc);
             if (valcoloc > 0) {
@@ -640,8 +640,8 @@ public class Analysis {
 
     static void SetRegionsObjsVoronoi(ArrayList<Region> regionlist, ArrayList<Region> regionsvoronoi, float[][][] ri) {
         int x, y, z;
-        for (Iterator<Region> it = regionlist.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionlist.iterator(); it.hasNext();) {
+            final Region r = it.next();
             x = r.pixels.get(0).px;
             y = r.pixels.get(0).py;
             z = r.pixels.get(0).pz;
@@ -652,8 +652,8 @@ public class Analysis {
 
     static void setregionsThresholds(ArrayList<Region> regionlist, float[][][] ri, float[][][] ro) {
         int x, y, z;
-        for (Iterator<Region> it = regionlist.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionlist.iterator(); it.hasNext();) {
+            final Region r = it.next();
             x = r.pixels.get(0).px;
             y = r.pixels.get(0).py;
             z = r.pixels.get(0).pz;
@@ -664,7 +664,7 @@ public class Analysis {
 
     private static double regionsum(Region r, double[][][] image) {
 
-        int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
+        final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
         int fz2;
         if (Analysis.p.nz > 1) {
             fz2 = factor2;
@@ -675,8 +675,8 @@ public class Analysis {
 
         int count = 0;
         double sum = 0;
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix p = it.next();
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix p = it.next();
             sum += image[p.pz / fz2][p.px / factor2][p.py / factor2];
             count++;
         }
@@ -691,8 +691,8 @@ public class Analysis {
         double sumx = 0;
         double sumy = 0;
         double sumz = 0;
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix p = it.next();
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix p = it.next();
             sumx += p.px;
             sumy += p.py;
             sumz += p.pz;
@@ -762,8 +762,8 @@ public class Analysis {
     static double meansurface(ArrayList<Region> regionslist) {
         double totalsize = 0;
         int objects = 0;
-        for (Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
+            final Region r = it.next();
             objects++;
             totalsize += r.perimeter;
         }
@@ -774,8 +774,8 @@ public class Analysis {
     static double meanlength(ArrayList<Region> regionslist) {
         double totalsize = 0;
         int objects = 0;
-        for (Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
+            final Region r = it.next();
             objects++;
             totalsize += r.length;
         }
@@ -786,8 +786,8 @@ public class Analysis {
     static double meansize(ArrayList<Region> regionslist) {
         double totalsize = 0;
         int objects = 0;
-        for (Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
+            final Region r = it.next();
             objects++;
             totalsize += r.points;
         }
@@ -803,8 +803,8 @@ public class Analysis {
     static double totalsize(ArrayList<Region> regionslist) {
         double totalsize = 0;
 
-        for (Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
+            final Region r = it.next();
 
             totalsize += r.points;
         }
@@ -813,10 +813,10 @@ public class Analysis {
     }
 
     static ArrayList<Region> removeExternalObjects(ArrayList<Region> regionslist) {
-        ArrayList<Region> newregionlist = new ArrayList<Region>();
+        final ArrayList<Region> newregionlist = new ArrayList<Region>();
 
-        for (Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
+            final Region r = it.next();
             if (isInside(r)) {
                 newregionlist.add(r);
             }
@@ -827,7 +827,7 @@ public class Analysis {
     }
 
     private static boolean isInside(Region r) {
-        int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
+        final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
         int fz2;
         if (Analysis.p.nz > 1) {
             fz2 = factor2;
@@ -837,8 +837,8 @@ public class Analysis {
         }
         double size = 0;
         int inside = 0;
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix px = it.next();
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix px = it.next();
             if (overallCellMaskBinary[px.pz / fz2][px.px / factor2][px.py / factor2]) {
                 inside++;
             }
@@ -849,7 +849,7 @@ public class Analysis {
 
     static void computeOverallMask() {
 
-        boolean mask[][][] = new boolean[p.nz][p.ni][p.nj];
+        final boolean mask[][][] = new boolean[p.nz][p.ni][p.nj];
 
         for (int z = 0; z < p.nz; z++) {
             for (int i = 0; i < p.ni; i++) {
@@ -875,7 +875,7 @@ public class Analysis {
     }
 
     static void setRegionsLabels(ArrayList<Region> regionslist, short[][][] regions) {
-        int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
+        final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;
         int fz2;
         if (Analysis.p.nz > 1) {
             fz2 = factor2;
@@ -893,8 +893,8 @@ public class Analysis {
             }
         }
 
-        for (Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist.iterator(); it.hasNext();) {
+            final Region r = it.next();
             // r.value=index; keep old index in csv file : do not (because
             // displaying happens before, with the previous values)
             setRegionLabel(r, regions, index);
@@ -906,8 +906,8 @@ public class Analysis {
 
     private static void setRegionLabel(Region r, short[][][] regions, int label) {
 
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix px = it.next();
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix px = it.next();
             regions[px.pz][px.px][px.py] = (short) label;
         }
     }

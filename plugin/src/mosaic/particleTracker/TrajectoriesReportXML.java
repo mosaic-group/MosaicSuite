@@ -26,7 +26,7 @@ import org.w3c.dom.Element;
  */
 public class TrajectoriesReportXML {
     private Document iReport;
-    private ParticleTracker3DModular_ iTracker;
+    private final ParticleTracker3DModular_ iTracker;
 
     public TrajectoriesReportXML (String aFileName, ParticleTracker3DModular_ aTracker) {
         iTracker = aTracker;
@@ -39,21 +39,21 @@ public class TrajectoriesReportXML {
             generateReport();
 
             // Finalize and save results
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            DOMSource source = new DOMSource(iReport);
-            StreamResult result = new StreamResult(new File(aFileName));
+            final Transformer transformer = TransformerFactory.newInstance().newTransformer();
+            final DOMSource source = new DOMSource(iReport);
+            final StreamResult result = new StreamResult(new File(aFileName));
             transformer.transform(source, result);
 
-        } catch (TransformerException e) {
+        } catch (final TransformerException e) {
             e.printStackTrace();
-        } catch (ParserConfigurationException e) {
+        } catch (final ParserConfigurationException e) {
             e.printStackTrace();
         }
     }
 
     private void generateReport() {
 
-        Element rootElement = iReport.createElement("ParticleTracker");
+        final Element rootElement = iReport.createElement("ParticleTracker");
         iReport.appendChild(rootElement);
 
         // NOTE: -------------------------------------------------------------------------
@@ -70,7 +70,7 @@ public class TrajectoriesReportXML {
     }
 
     private void generateConfiguration(Element aParent) {
-        Element conf = addElement(aParent, "Configuration");
+        final Element conf = addElement(aParent, "Configuration");
 
         addElementWithAttr(conf, "KernelRadius", "value", iTracker.getRadius());
         addElementWithAttr(conf, "CutoffRadius", "value", iTracker.getCutoffRadius());
@@ -80,7 +80,7 @@ public class TrajectoriesReportXML {
     }
 
     private void generateFramesInfo(Element aParent) {
-        Element conf = addElement(aParent, "FramesInfo");
+        final Element conf = addElement(aParent, "FramesInfo");
 
         addElementWithAttr(conf, "Width", "value", iTracker.getWidth());
         addElementWithAttr(conf, "Height", "value", iTracker.getHeight());
@@ -91,33 +91,33 @@ public class TrajectoriesReportXML {
     }
 
     private void generateTrajectoriesInfo(Element aParent) {
-        Element traj = addElement(aParent, "Trajectories");
+        final Element traj = addElement(aParent, "Trajectories");
 
-        Iterator<Trajectory> iter = iTracker.all_traj.iterator();
+        final Iterator<Trajectory> iter = iTracker.all_traj.iterator();
         while (iter.hasNext()) {
             addTrajectory(traj, iter.next());
         }
     }
 
     private void addTrajectory(Element aParent, Trajectory aTrajectory) {
-        Element traj = addElementWithAttr(aParent, "Trajectory", "ID", aTrajectory.serial_number);
+        final Element traj = addElementWithAttr(aParent, "Trajectory", "ID", aTrajectory.serial_number);
 
         generateTrajectoryAnalysis(traj, aTrajectory);
         generateTrajectoryData(traj, aTrajectory);
     }
 
     private void generateTrajectoryData(Element aParent, Trajectory aTrajectory) {
-        Element trajData = addElement(aParent, "TrajectoryData");
+        final Element trajData = addElement(aParent, "TrajectoryData");
 
-        for (Particle p : aTrajectory.existing_particles) {
-            Element frame = addElementWithAttr(trajData, "Frame", "number", p.getFrame());
+        for (final Particle p : aTrajectory.existing_particles) {
+            final Element frame = addElementWithAttr(trajData, "Frame", "number", p.getFrame());
 
-            Element coordinates = addElement(frame, "Coordinates");
+            final Element coordinates = addElement(frame, "Coordinates");
             coordinates.setAttribute("x", "" + p.getx());
             coordinates.setAttribute("y", "" + p.gety());
             coordinates.setAttribute("z", "" + p.getz());
 
-            Element intensity = addElement(frame, "IntensityMoments");
+            final Element intensity = addElement(frame, "IntensityMoments");
             intensity.setAttribute("m0", "" + p.m0);
             intensity.setAttribute("m1", "" + p.m1);
             intensity.setAttribute("m2", "" + p.m2);
@@ -129,8 +129,8 @@ public class TrajectoriesReportXML {
     }
 
     private void generateTrajectoryAnalysis(Element aParent, Trajectory aTrajectory) {
-        Element trajAnalysis = addElement(aParent, "TrajectoryAnalysis");
-        TrajectoryAnalysis ta = new TrajectoryAnalysis(aTrajectory);
+        final Element trajAnalysis = addElement(aParent, "TrajectoryAnalysis");
+        final TrajectoryAnalysis ta = new TrajectoryAnalysis(aTrajectory);
         if (ta.calculateAll() == TrajectoryAnalysis.SUCCESS) {
             addElementWithAttr(trajAnalysis, "MSS", "slope", "" + ta.getMSSlinear(), "yAxisIntercept", "" + ta.getMSSlinearY0());
             addElementWithAttr(trajAnalysis, "MSD", "slope", "" + ta.getGammasLogarithmic()[1], "yAxisIntercept", "" + ta.getGammasLogarithmicY0()[1]);
@@ -144,7 +144,7 @@ public class TrajectoriesReportXML {
     }
 
     private Element addElement(Element aParent, String aName) {
-        Element el = iReport.createElement(aName);
+        final Element el = iReport.createElement(aName);
         aParent.appendChild(el);
         return el;
     }
@@ -158,7 +158,7 @@ public class TrajectoriesReportXML {
     }
 
     private Element addElementWithAttr(Element aParent, String aName, String aAttribute, String aValue) {
-        Element el = iReport.createElement(aName);
+        final Element el = iReport.createElement(aName);
         el.setAttribute(aAttribute, aValue);
         aParent.appendChild(el);
 
@@ -166,7 +166,7 @@ public class TrajectoriesReportXML {
     }
 
     private Element addElementWithAttr(Element aParent, String aName, String aAttribute1, String aValue1, String aAttribute2, String aValue2) {
-        Element el = iReport.createElement(aName);
+        final Element el = iReport.createElement(aName);
         el.setAttribute(aAttribute1, aValue1);
         el.setAttribute(aAttribute2, aValue2);
         aParent.appendChild(el);

@@ -69,7 +69,7 @@ public class LabelImage// implements
     public <T extends IntegerType<T>> LabelImage(Img<T> lbl) {
         // Get the image dimensions
 
-        int dimensions[] = MosaicUtils.getImageIntDimensions(lbl);
+        final int dimensions[] = MosaicUtils.getImageIntDimensions(lbl);
 
         // get int dimension
 
@@ -96,7 +96,7 @@ public class LabelImage// implements
      */
     // @Deprecated
     public LabelImage(short[][][] img) {
-        int dims[] = new int[3];
+        final int dims[] = new int[3];
         dims[2] = img.length;
         dims[0] = img[0].length;
         dims[1] = img[0][0].length;
@@ -211,17 +211,17 @@ public class LabelImage// implements
      * @param imgLib2
      */
     private <T extends IntegerType<T>> void initImgLib2(Img<T> img) {
-        RandomAccess<T> ra = img.randomAccess();
+        final RandomAccess<T> ra = img.randomAccess();
 
         // Create a region iterator
 
-        RegionIterator rg = new RegionIterator(MosaicUtils.getImageIntDimensions(img));
+        final RegionIterator rg = new RegionIterator(MosaicUtils.getImageIntDimensions(img));
 
         // load the image
 
         while (rg.hasNext()) {
-            Point p = rg.getPoint();
-            int id = rg.next();
+            final Point p = rg.getPoint();
+            final int id = rg.next();
 
             ra.setPosition(p.x);
             dataLabel[id] = ra.get().getInteger();
@@ -232,11 +232,11 @@ public class LabelImage// implements
      * LabelImage loaded from file
      */
     public void initWithIP(ImagePlus imagePlus) {
-        ImagePlus ip = IntConverter.IPtoInt(imagePlus);
+        final ImagePlus ip = IntConverter.IPtoInt(imagePlus);
 
         if (dim == 3) {
             this.labelPlus = ip;
-            ImageStack stack = ip.getImageStack();
+            final ImageStack stack = ip.getImageStack();
             this.dataLabel = IntConverter.intStackToArray(stack);
             this.labelIP = null;
         }
@@ -288,7 +288,7 @@ public class LabelImage// implements
             file = file.substring(file.indexOf("file:") + 5);
         }
 
-        ImagePlus ip = convert("save", 256);
+        final ImagePlus ip = convert("save", 256);
         IJ.save(ip, file);
         ip.close();
     }
@@ -305,7 +305,7 @@ public class LabelImage// implements
     public short[] getShortCopy() {
         final int n = dataLabel.length;
 
-        short[] shortData = new short[n];
+        final short[] shortData = new short[n];
         for (int i = 0; i < n; i++) {
             shortData[i] = (short) dataLabel[i];
         }
@@ -314,7 +314,7 @@ public class LabelImage// implements
 
     public ImagePlus convert(Object title, int maxl) {
         if (getDim() == 3) {
-            ImagePlus imp = new ImagePlus("ResultWindow " + title, this.get3DShortStack(true));
+            final ImagePlus imp = new ImagePlus("ResultWindow " + title, this.get3DShortStack(true));
 
             // IJ.setMinAndMax(imp, 0, maxl);
             // IJ.run(imp, "3-3-2 RGB", null);
@@ -325,30 +325,30 @@ public class LabelImage// implements
 
         // Colorprocessor doesn't support abs() (does nothing).
         // li.absAll();
-        ImageProcessor imProc = getLabelImageProcessor();
+        final ImageProcessor imProc = getLabelImageProcessor();
         // System.out.println(Arrays.toString((int[])(imProc.getPixels())));
 
         // convert it to short
-        short[] shorts = getShortCopy();
+        final short[] shorts = getShortCopy();
         for (int i = 0; i < shorts.length; i++) {
             shorts[i] = (short) Math.abs(shorts[i]);
         }
-        ShortProcessor shortProc = new ShortProcessor(imProc.getWidth(), imProc.getHeight());
+        final ShortProcessor shortProc = new ShortProcessor(imProc.getWidth(), imProc.getHeight());
         shortProc.setPixels(shorts);
 
         // TODO !!!! imProc.convertToShort() does not work, first converts to
         // byte, then to short...
-        String s = "ResultWindow " + title;
-        String titleUnique = WindowManager.getUniqueName(s);
+        final String s = "ResultWindow " + title;
+        final String titleUnique = WindowManager.getUniqueName(s);
 
-        ImagePlus imp = new ImagePlus(titleUnique, shortProc);
+        final ImagePlus imp = new ImagePlus(titleUnique, shortProc);
         IJ.setMinAndMax(imp, 0, maxl);
         IJ.run(imp, "3-3-2 RGB", null);
         return imp;
     }
 
     public ImagePlus show(Object title, int maxl) {
-        ImagePlus imp = convert(title, maxl);
+        final ImagePlus imp = convert(title, maxl);
         imp.show();
         return imp;
     }
@@ -368,11 +368,11 @@ public class LabelImage// implements
      */
 
     public <T extends NativeType<T> & IntegerType<T>> Img<T> getImgLib2(Class<T> cls) {
-        long lg[] = new long[getDim()];
+        final long lg[] = new long[getDim()];
 
         // Take the size
 
-        ImgFactory<T> imgFactory = new ArrayImgFactory<T>();
+        final ImgFactory<T> imgFactory = new ArrayImgFactory<T>();
 
         for (int i = 0; i < getDim(); i++) {
             lg[i] = getDimensions()[i];
@@ -384,23 +384,23 @@ public class LabelImage// implements
         try {
             it = imgFactory.create(lg, cls.newInstance());
         }
-        catch (InstantiationException e) {
+        catch (final InstantiationException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
-        catch (IllegalAccessException e) {
+        catch (final IllegalAccessException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
-        RandomAccess<T> randomAccess_it = it.randomAccess();
+        final RandomAccess<T> randomAccess_it = it.randomAccess();
 
         // Region iterator
 
-        RegionIterator ri = new RegionIterator(getDimensions());
+        final RegionIterator ri = new RegionIterator(getDimensions());
 
         while (ri.hasNext()) {
-            Point p = ri.getPoint();
-            int id = ri.next();
+            final Point p = ri.getPoint();
+            final int id = ri.next();
 
             randomAccess_it.setPosition(p.x);
             randomAccess_it.get().setInteger(dataLabel[id]);
@@ -418,18 +418,18 @@ public class LabelImage// implements
     public void connectedComponents() {
         // TODO ! test this
 
-        HashSet<Integer> oldLabels = new HashSet<Integer>(); // set of the old
+        final HashSet<Integer> oldLabels = new HashSet<Integer>(); // set of the old
         // labels
-        ArrayList<Integer> newLabels = new ArrayList<Integer>(); // set of new
+        final ArrayList<Integer> newLabels = new ArrayList<Integer>(); // set of new
         // labels
 
         int newLabel = 1;
 
-        int size = iterator.getSize();
+        final int size = iterator.getSize();
 
         // what are the old labels?
         for (int i = 0; i < size; i++) {
-            int l = getLabel(i);
+            final int l = getLabel(i);
             if (l == bgLabel) {
                 continue;
             }
@@ -437,15 +437,15 @@ public class LabelImage// implements
         }
 
         for (int i = 0; i < size; i++) {
-            int l = getLabel(i);
+            final int l = getLabel(i);
             if (l == bgLabel) {
                 continue;
             }
             if (oldLabels.contains(l)) {
                 // l is an old label
-                BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
+                final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
                 aMultiThsFunctionPtr.AddThresholdBetween(l, l);
-                FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iterator.indexToPoint(i));
+                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iterator.indexToPoint(i));
 
                 // find a new label
                 while (oldLabels.contains(newLabel)) {
@@ -456,7 +456,7 @@ public class LabelImage// implements
                 newLabels.add(newLabel);
 
                 // set region to new label
-                for (Point p : ff) {
+                for (final Point p : ff) {
                     setLabel(p, newLabel);
                 }
                 // next new label
@@ -473,16 +473,16 @@ public class LabelImage// implements
     }
 
     public void initContour() {
-        Connectivity conn = connFG;
+        final Connectivity conn = connFG;
 
-        for (int i : iterator.getIndexIterable()) {
-            int label = getLabelAbs(i);
+        for (final int i : iterator.getIndexIterable()) {
+            final int label = getLabelAbs(i);
             if (label != bgLabel) // region pixel
             // && label<negOfs
             {
-                Point p = iterator.indexToPoint(i);
-                for (Point neighbor : conn.iterateNeighbors(p)) {
-                    int neighborLabel = getLabelAbs(neighbor);
+                final Point p = iterator.indexToPoint(i);
+                for (final Point neighbor : conn.iterateNeighbors(p)) {
+                    final int neighborLabel = getLabelAbs(neighbor);
                     if (neighborLabel != label) {
                         setLabel(p, labelToNeg(label));
 
@@ -502,8 +502,8 @@ public class LabelImage// implements
      */
 
     public boolean isBoundaryPoint(Point aIndex) {
-        int vLabelAbs = getLabelAbs(aIndex);
-        for (Point q : connFG.iterateNeighbors(aIndex)) {
+        final int vLabelAbs = getLabelAbs(aIndex);
+        for (final Point q : connFG.iterateNeighbors(aIndex)) {
             if (getLabelAbs(q) != vLabelAbs) {
                 return true;
             }
@@ -519,9 +519,9 @@ public class LabelImage// implements
      * @return
      */
     public boolean isEnclosedByLabel(Point pIndex, int pLabel) {
-        int absLabel = labelToAbs(pLabel);
-        Connectivity conn = connFG;
-        for (Point qIndex : conn.iterateNeighbors(pIndex)) {
+        final int absLabel = labelToAbs(pLabel);
+        final Connectivity conn = connFG;
+        for (final Point qIndex : conn.iterateNeighbors(pIndex)) {
             if (labelToAbs(getLabel(qIndex)) != absLabel) {
                 return false;
             }
@@ -572,7 +572,7 @@ public class LabelImage// implements
      *         Point p.
      */
     public int getLabel(Point p) {
-        int idx = iterator.pointToIndex(p);
+        final int idx = iterator.pointToIndex(p);
         return dataLabel[idx];
         // return getLabel(idx);
     }
@@ -581,7 +581,7 @@ public class LabelImage// implements
      * @return the abs (no contour information) label at Point p
      */
     public int getLabelAbs(Point p) {
-        int idx = iterator.pointToIndex(p);
+        final int idx = iterator.pointToIndex(p);
 
         // if (idx >= dataLabel.length)
         // {
@@ -617,7 +617,7 @@ public class LabelImage// implements
      * sets the labelImage to val at Point p
      */
     public void setLabel(Point p, int label) {
-        int idx = iterator.pointToIndex(p);
+        final int idx = iterator.pointToIndex(p);
         dataLabel[idx] = label;
         // setLabel(idx, label);
     }
@@ -686,10 +686,10 @@ public class LabelImage// implements
      * @return
      */
     public ImageStack get3DShortStack(boolean clean) {
-        int dims[] = getDimensions();
-        int labeldata[] = dataLabel;
+        final int dims[] = getDimensions();
+        final int labeldata[] = dataLabel;
 
-        ImageStack stack = IntConverter.intArrayToShortStack(labeldata, dims, clean);
+        final ImageStack stack = IntConverter.intArrayToShortStack(labeldata, dims, clean);
 
         return stack;
     }

@@ -23,9 +23,9 @@ public class Matlab {
             return null;
         }
 
-        double[] result = new double[aNoOfSteps];
+        final double[] result = new double[aNoOfSteps];
         if (aNoOfSteps > 1) {
-            double step = (aMax - aMin) / (aNoOfSteps - 1);
+            final double step = (aMax - aMin) / (aNoOfSteps - 1);
             for (int i = 0; i < aNoOfSteps - 1; ++i) {
                 result[i] = aMin + i * step;
             }
@@ -61,8 +61,8 @@ public class Matlab {
             return null;
         }
 
-        int noOfSteps = (int) ((aStop - aStart) / aStep) + 1;
-        double[] result = new double[noOfSteps];
+        final int noOfSteps = (int) ((aStop - aStart) / aStep) + 1;
+        final double[] result = new double[noOfSteps];
 
         double val = aStart;
         for (int i = 0; i < noOfSteps; ++i) {
@@ -103,11 +103,11 @@ public class Matlab {
             aVector2 = aVector2.copy().transpose();
         }
 
-        int r = aVector2.numRows();
-        int c = aVector1.numCols();
+        final int r = aVector2.numRows();
+        final int c = aVector1.numCols();
 
-        Matrix m1 = new Matrix(r, c);
-        Matrix m2 = new Matrix(r, c);
+        final Matrix m1 = new Matrix(r, c);
+        final Matrix m2 = new Matrix(r, c);
 
         for (int i = 0; i < r; ++i) {
             m1.insert(aVector1, i, 0);
@@ -129,16 +129,16 @@ public class Matlab {
      * @return - filtered image (aImg is not changed)
      */
     public static Matrix imfilterSymmetric(Matrix aImg, Matrix aFilter) {
-        Matrix result = new Matrix(aImg.numRows(), aImg.numCols());
+        final Matrix result = new Matrix(aImg.numRows(), aImg.numCols());
 
-        int filterRows = aFilter.numRows();
-        int filterCols = aFilter.numCols();
-        int filterRowMiddle = ((filterRows + 1) / 2) - 1;
-        int filterColMiddle = ((filterCols + 1) / 2) - 1;
-        double[][] filter = aFilter.getArrayYX();
-        int imageRows = aImg.numRows();
-        int imageCols = aImg.numCols();
-        double[][] image = aImg.getArrayYX();
+        final int filterRows = aFilter.numRows();
+        final int filterCols = aFilter.numCols();
+        final int filterRowMiddle = ((filterRows + 1) / 2) - 1;
+        final int filterColMiddle = ((filterCols + 1) / 2) - 1;
+        final double[][] filter = aFilter.getArrayYX();
+        final int imageRows = aImg.numRows();
+        final int imageCols = aImg.numCols();
+        final double[][] image = aImg.getArrayYX();
 
         for (int r = 0; r < imageRows; ++r) {
             for (int c = 0; c < imageCols; ++c) {
@@ -204,16 +204,16 @@ public class Matlab {
      * @return - filtered image (aImg is not changed)
      */
     public static Matrix imfilterConv(Matrix aImg, Matrix aFilter) {
-        Matrix result = new Matrix(aImg.numRows(), aImg.numCols());
+        final Matrix result = new Matrix(aImg.numRows(), aImg.numCols());
 
-        int filterRows = aFilter.numRows();
-        int filterCols = aFilter.numCols();
-        int filterRowMiddle = ((filterRows + 2) / 2) - 1;
-        int filterColMiddle = ((filterCols + 2) / 2) - 1;
-        double[][] filter = aFilter.getArrayYX();
-        int imageRows = aImg.numRows();
-        int imageCols = aImg.numCols();
-        double[][] image = aImg.getArrayYX();
+        final int filterRows = aFilter.numRows();
+        final int filterCols = aFilter.numCols();
+        final int filterRowMiddle = ((filterRows + 2) / 2) - 1;
+        final int filterColMiddle = ((filterCols + 2) / 2) - 1;
+        final double[][] filter = aFilter.getArrayYX();
+        final int imageRows = aImg.numRows();
+        final int imageCols = aImg.numCols();
+        final double[][] image = aImg.getArrayYX();
 
         for (int r = 0; r < imageRows; ++r) {
             for (int c = 0; c < imageCols; ++c) {
@@ -223,8 +223,8 @@ public class Matlab {
                     for (int fc = 0; fc < filterCols; ++fc) {
                         // Calculate image coordinates for (fr, fc) filter
                         // element
-                        int imr = r + filterRowMiddle - fr;
-                        int imc = c + filterColMiddle - fc;
+                        final int imr = r + filterRowMiddle - fr;
+                        final int imc = c + filterColMiddle - fc;
                         double imgVal = 0;
                         if (imr >= 0 && imr < imageRows && imc >= 0 && imc < imageCols) {
                             imgVal = image[imr][imc];
@@ -252,10 +252,10 @@ public class Matlab {
      * @return scaled image
      */
     public static Matrix imresize(Matrix aM, double scale) {
-        int w = aM.numCols();
-        int h = aM.numRows();
-        int nw = (int) Math.ceil(w * scale);
-        int nh = (int) Math.ceil(h * scale);
+        final int w = aM.numCols();
+        final int h = aM.numRows();
+        final int nw = (int) Math.ceil(w * scale);
+        final int nh = (int) Math.ceil(h * scale);
 
         return imresize(aM, nw, nh);
     }
@@ -271,7 +271,7 @@ public class Matlab {
     public static Matrix imresize(Matrix aM, int aNewWidth, int aNewHeight) {
         Matrix result = null;
         if (aM.numCols() != aNewWidth || aM.numRows() != aNewHeight) {
-            double[][] output = Interpolation.resize(aM.getArrayYX(),
+            final double[][] output = Interpolation.resize(aM.getArrayYX(),
                     aNewHeight, aNewWidth,
                     InterpolationType.BICUBIC,
                     InterpolationMode.MATLAB);
@@ -298,15 +298,15 @@ public class Matlab {
      *         number 2.
      */
     public static Map<Integer, List<Integer>> bwconncomp(Matrix aInputImg, boolean aIs8connected) {
-        double[][] img = aInputImg.getArrayXY();
-        int width = img.length;
-        int height = img[0].length;
+        final double[][] img = aInputImg.getArrayXY();
+        final int width = img.length;
+        final int height = img[0].length;
 
         // Number for first label
         int labelIndex = 2;
 
         // Contains all found regions with element indices
-        Map<Integer, List<Integer>> connectedComponents = new HashMap<Integer, List<Integer>>();
+        final Map<Integer, List<Integer>> connectedComponents = new HashMap<Integer, List<Integer>>();
 
         // Go through whole array
         for (int x = 0; x < width; ++x) {
@@ -335,10 +335,10 @@ public class Matlab {
     private static List<Integer> findAllElementsOfObject(double[][] aM, int aStartXpoint, int aStartYpoint, int aWidth,
             int aHeight, int aLabel, boolean aIs8connected) {
         // List of found elements belonging to one componnent
-        List<Integer> elements = new ArrayList<Integer>();
+        final List<Integer> elements = new ArrayList<Integer>();
 
         // List of elements to be visited
-        List<Integer> q = new ArrayList<Integer>();
+        final List<Integer> q = new ArrayList<Integer>();
 
         // Initialize list with entry point
         q.add(aStartXpoint * aHeight + aStartYpoint);
@@ -346,9 +346,9 @@ public class Matlab {
         // Iterate until all elements of component are visited
         while (!q.isEmpty()) {
             // Get first element on the list and remove it
-            int id = q.remove(0);
-            int x = id / aHeight;
-            int y = id % aHeight;
+            final int id = q.remove(0);
+            final int x = id / aHeight;
+            final int y = id % aHeight;
 
             // Mark pixel and add it to element's container
             aM[x][y] = aLabel;
@@ -360,12 +360,12 @@ public class Matlab {
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = -1; dy <= 1; dy++) {
                     if (dx != 0 || dy != 0) {
-                        int indX = x + dx;
-                        int indY = y + dy;
+                        final int indX = x + dx;
+                        final int indY = y + dy;
                         if (indX >= 0 && indX < aWidth && indY >= 0 && indY < aHeight) {
                             if (aIs8connected || (dy * dx == 0)) {
                                 if (aM[indX][indY] == 1) {
-                                    int idx = indX * aHeight + indY;
+                                    final int idx = indX * aHeight + indY;
                                     if (!q.contains(idx)) {
                                         // If element was not visited yet put it
                                         // on list
@@ -389,7 +389,7 @@ public class Matlab {
      * @return
      */
     public static Matrix logical(final Matrix aMatrix, final double aTreshold) {
-        Matrix result = aMatrix.copy().process(new MFunc() {
+        final Matrix result = aMatrix.copy().process(new MFunc() {
             @Override
             public double f(double aElement, int aRow, int aCol) {
                 return aElement > aTreshold ? 1 : 0;

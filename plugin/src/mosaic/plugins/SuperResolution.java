@@ -21,13 +21,13 @@ public class SuperResolution extends CurvatureFilterBase {
      */
     private void superResolution(FloatProcessor aInputIp, FloatProcessor aOriginalIp, CurvatureFilter aFilter, int aNumberOfIterations) {
         // Get dimensions of input image
-        int originalWidth = aOriginalIp.getWidth();
-        int originalHeight = aOriginalIp.getHeight();
+        final int originalWidth = aOriginalIp.getWidth();
+        final int originalHeight = aOriginalIp.getHeight();
 
         // Create array able to keep twice bigger image (super resolutions orignalDim x 2)
-        int superHeight = originalHeight * 2;
-        int superWidth = originalWidth * 2;
-        float[][] img = new float[superHeight][superWidth];
+        final int superHeight = originalHeight * 2;
+        final int superWidth = originalWidth * 2;
+        final float[][] img = new float[superHeight][superWidth];
 
         // create (normalized) 2D array with input image
         float maxValueOfPixel = (float) aInputIp.getMax();
@@ -68,9 +68,9 @@ public class SuperResolution extends CurvatureFilterBase {
      * @param aNormalizationValue Maximum pixel value of original image -> converted one will be normalized [0..1]
      */
     private void convertToArrayAndNormalize(ImageProcessor aInputIp, float[][] aNewImgArray, float aNormalizationValue) {
-        float[] pixels = (float[])aInputIp.getPixels();
-        int w = aInputIp.getWidth();
-        int h = aInputIp.getHeight();
+        final float[] pixels = (float[])aInputIp.getPixels();
+        final int w = aInputIp.getWidth();
+        final int h = aInputIp.getHeight();
 
         for (int y = 0; y < h; ++y) {
             for (int x = 0; x < w; ++x) {

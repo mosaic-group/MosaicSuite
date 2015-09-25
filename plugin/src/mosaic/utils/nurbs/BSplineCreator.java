@@ -21,31 +21,31 @@ import net.jgeom.nurbs.util.InterpolationException;
 class BSplineCreator {
 
     static BasicNurbsSurface globalSurfaceInterpolation(Point3d points[][], int p, int q) {
-        int n = points.length - 1;
-        int m = points[0].length - 1;
+        final int n = points.length - 1;
+        final int m = points[0].length - 1;
 
-        Point3d[][] cloned = new Point3d[n+1][m+1];
+        final Point3d[][] cloned = new Point3d[n+1][m+1];
         for (int x = 0; x <=n; x++) {
             for (int y = 0; y <= m; y++) {
-                Point3d t = new Point3d(points[x][y]);
+                final Point3d t = new Point3d(points[x][y]);
                 t.z = 0;
                 cloned[x][y] = t;
             }
         }
-        double uv[][] = surfaceMeshParameters(cloned, n, m);
-        KnotVector u = averaging(uv[0], p);
-        KnotVector v = averaging(uv[1], q);
+        final double uv[][] = surfaceMeshParameters(cloned, n, m);
+        final KnotVector u = averaging(uv[0], p);
+        final KnotVector v = averaging(uv[1], q);
 
-        ControlPoint4f r[][] = new ControlPoint4f[m + 1][n + 1];
+        final ControlPoint4f r[][] = new ControlPoint4f[m + 1][n + 1];
         for (int l = 0; l <= m; l++) {
-            Point3d tmp[] = new Point3d[n + 1];
+            final Point3d tmp[] = new Point3d[n + 1];
             for (int i = 0; i <= n; i++) {
                 tmp[i] = points[i][l];
             }
             try {
-                NurbsCurve curve = globalCurveInterpolation(tmp, p, u, 0);
+                final NurbsCurve curve = globalCurveInterpolation(tmp, p, u, 0);
                 r[l] = curve.getControlPoints();
-            } catch (InterpolationException ex) {
+            } catch (final InterpolationException ex) {
                 for (int i = 0; i < tmp.length; i++) {
                     r[l][i] = new ControlPoint4f(tmp[i], 1);
                 }
@@ -53,16 +53,16 @@ class BSplineCreator {
 
         }
 
-        ControlPoint4f cp[][] = new ControlPoint4f[n + 1][m + 1];
+        final ControlPoint4f cp[][] = new ControlPoint4f[n + 1][m + 1];
         for (int i = 0; i <= n; i++) {
-            Point3d tmp[] = new Point3d[m + 1];
+            final Point3d tmp[] = new Point3d[m + 1];
             for (int j = 0; j <= m; j++) {
                 tmp[j] = r[j][i].getPoint3d();
             }
             try {
-                NurbsCurve curve = globalCurveInterpolation(tmp, q, v, 1);
+                final NurbsCurve curve = globalCurveInterpolation(tmp, q, v, 1);
                 cp[i] = curve.getControlPoints();
-            } catch (InterpolationException ex) {
+            } catch (final InterpolationException ex) {
                 for (int j = 0; j < tmp.length; j++) {
                     cp[i][j] = new ControlPoint4f(tmp[j], 1);
                 }
@@ -73,11 +73,11 @@ class BSplineCreator {
     }
 
     private static double[][] surfaceMeshParameters(Point3d points[][], int n, int m) {
-        double res[][] = new double[2][];
+        final double res[][] = new double[2][];
         int num = m + 1;
-        double cds[] = new double[(n + 1) * (m + 1)];
+        final double cds[] = new double[(n + 1) * (m + 1)];
 
-        double uk[] = new double[n + 1];
+        final double uk[] = new double[n + 1];
         uk[n] = 1;
         for (int l = 0; l <= m; l++) {
             double total = 0;
@@ -103,7 +103,7 @@ class BSplineCreator {
         }
 
         num = n + 1;
-        double vk[] = new double[m + 1];
+        final double vk[] = new double[m + 1];
         vk[m] = 1;
         for (int l = 0; l <= n; l++) {
             double total = 0;
@@ -135,9 +135,9 @@ class BSplineCreator {
     }
 
     private static KnotVector averaging(double uk[], int p) {
-        int m = uk.length + p;
-        int n = uk.length - 1;
-        double u[] = new double[m + 1];
+        final int m = uk.length + p;
+        final int n = uk.length - 1;
+        final double u[] = new double[m + 1];
         for (int i = 0; i <= p; i++) {
             u[i] = 0;
             u[u.length - 1 - i] = 1;
@@ -155,10 +155,10 @@ class BSplineCreator {
     private static NurbsCurve globalCurveInterpolation(Point3d points[], int p, KnotVector kv, int axe) throws InterpolationException {
         try {
 
-            int n = points.length - 1;
-            double A[] = new double[(n + 1) * (n + 1)];
+            final int n = points.length - 1;
+            final double A[] = new double[(n + 1) * (n + 1)];
 
-            double uk[] = new double[points.length];
+            final double uk[] = new double[points.length];
             for (int i = 0; i < points.length; i++) {
                 if (axe == 0) {
                     uk[i] = (points[i].x - points[0].x)/(points[points.length-1].x - points[0].x);
@@ -168,29 +168,29 @@ class BSplineCreator {
                 }
             }
 
-            KnotVector uKnots = kv;
+            final KnotVector uKnots = kv;
 
             for (int i = 0; i <= n; i++) {
-                int span = uKnots.findSpan(uk[i]);
-                double tmp[] = uKnots.basisFunctions(span, uk[i]);
+                final int span = uKnots.findSpan(uk[i]);
+                final double tmp[] = uKnots.basisFunctions(span, uk[i]);
                 System.arraycopy(tmp, 0, A, i * (n + 1) + span - p, tmp.length);
             }
-            GMatrix a = new GMatrix(n + 1, n + 1, A);
-            GVector perm = new GVector(n + 1);
-            GMatrix lu = new GMatrix(n + 1, n + 1);
+            final GMatrix a = new GMatrix(n + 1, n + 1, A);
+            final GVector perm = new GVector(n + 1);
+            final GMatrix lu = new GMatrix(n + 1, n + 1);
             a.LUD(lu, perm);
 
-            ControlPoint4f cps[] = new ControlPoint4f[n + 1];
+            final ControlPoint4f cps[] = new ControlPoint4f[n + 1];
             for (int i = 0; i < cps.length; i++) {
                 cps[i] = new ControlPoint4f(0, 0, 0, 1.0f);
             }
 
             // Calculate z-ccordinate
-            GVector b = new GVector(n + 1);
+            final GVector b = new GVector(n + 1);
             for (int j = 0; j <= n; j++) {
                 b.setElement(j, points[j].z);
             }
-            GVector sol = new GVector(n + 1);
+            final GVector sol = new GVector(n + 1);
             sol.LUDBackSolve(lu, b, perm);
 
             for (int j = 0; j <= n; j++) {
@@ -200,7 +200,7 @@ class BSplineCreator {
             }
 
             return new BasicNurbsCurve(cps, uKnots);
-        } catch (SingularMatrixException ex) {
+        } catch (final SingularMatrixException ex) {
             throw new InterpolationException(ex);
         }
 

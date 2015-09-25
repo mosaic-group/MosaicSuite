@@ -23,20 +23,20 @@ public class TrajectoryAnalysisTest extends CommonBase {
     public void testLinearMovement() {
         // Create trajectory
         final int trajectoryLen = 6;
-        Particle[] particles = new Particle[trajectoryLen];
+        final Particle[] particles = new Particle[trajectoryLen];
         for (int i = 0; i < trajectoryLen; ++i) {
             particles[i] = new Particle(i + 1, 0, 0, i, 0);
         }
 
         // Prepare Trajectory Analysis for calculations
-        TrajectoryAnalysis ta = new TrajectoryAnalysis(particles);
+        final TrajectoryAnalysis ta = new TrajectoryAnalysis(particles);
         ta.setTimeInterval(1.0);
         ta.setLengthOfAPixel(1.0);
 
         // Set some tolerance on double numbers comparisons
         assertEquals("Calculation should be successful", TrajectoryAnalysis.SUCCESS, ta.calculateAll());
 
-        double epsilon = 0.000001;
+        final double epsilon = 0.000001;
         assertEquals("MSS slope", 1.0, ta.getMSSlinear(), epsilon);
         assertEquals("MSS y-axis intercept", 0.0, ta.getMSSlinearY0(), epsilon);
         assertEquals("D2 diffusion coefficient", 0.25, ta.getDiffusionCoefficients()[1], epsilon);
@@ -53,13 +53,13 @@ public class TrajectoryAnalysisTest extends CommonBase {
     public void testLinearMovementWithManySkippedFrames() {
         // Create trajectory
         final int trajectoryLen = 6;
-        Particle[] particles = new Particle[trajectoryLen];
+        final Particle[] particles = new Particle[trajectoryLen];
         for (int i = 0; i < trajectoryLen; ++i) {
             particles[i] = new Particle(i + 1, 0, 0, i*2, 0);
         }
 
         // Prepare Trajectory Analysis for calculations
-        TrajectoryAnalysis ta = new TrajectoryAnalysis(particles);
+        final TrajectoryAnalysis ta = new TrajectoryAnalysis(particles);
         ta.setTimeInterval(1.0);
         ta.setLengthOfAPixel(1.0);
 
@@ -76,13 +76,13 @@ public class TrajectoryAnalysisTest extends CommonBase {
 
         // Create too short trajectory
         final int trajectoryLen = 5;
-        Particle[] particles = new Particle[trajectoryLen];
+        final Particle[] particles = new Particle[trajectoryLen];
         for (int i = 0; i < trajectoryLen; ++i) {
             particles[i] = new Particle(i + 1, 0, 0, i, 0);
         }
 
         // Prepare Trajectory Analysis for calculations
-        TrajectoryAnalysis ta = new TrajectoryAnalysis(particles);
+        final TrajectoryAnalysis ta = new TrajectoryAnalysis(particles);
         ta.setTimeInterval(1.0);
         ta.setLengthOfAPixel(1.0);
 
@@ -100,13 +100,13 @@ public class TrajectoryAnalysisTest extends CommonBase {
         // Create simple trajectory with particles moving in equal length intervals
         // along x axis
         final int trajectoryLen = 0;
-        Particle[] particles = new Particle[trajectoryLen];
+        final Particle[] particles = new Particle[trajectoryLen];
         for (int i = 0; i < trajectoryLen; ++i) {
             particles[i] = new Particle(i + 1, 0, 0, i, 0);
         }
 
         // Prepare Trajectory Analysis for calculations
-        TrajectoryAnalysis ta = new TrajectoryAnalysis(particles);
+        final TrajectoryAnalysis ta = new TrajectoryAnalysis(particles);
 
         // Set some tolerance on double numbers comparisons
         assertEquals("Calculation should fail", TrajectoryAnalysis.FAILURE, ta.calculateAll());
@@ -117,14 +117,14 @@ public class TrajectoryAnalysisTest extends CommonBase {
      */
     @Test
     public void testNullTrajectory() {
-        Particle[] particles = null;
-        TrajectoryAnalysis ta1 = new TrajectoryAnalysis(particles);
+        final Particle[] particles = null;
+        final TrajectoryAnalysis ta1 = new TrajectoryAnalysis(particles);
 
         // Set some tolerance on double numbers comparisons
         assertEquals("Calculation should fail", TrajectoryAnalysis.FAILURE, ta1.calculateAll());
 
-        Trajectory trajectory = null;
-        TrajectoryAnalysis ta2 = new TrajectoryAnalysis(trajectory);
+        final Trajectory trajectory = null;
+        final TrajectoryAnalysis ta2 = new TrajectoryAnalysis(trajectory);
 
         // Set some tolerance on double numbers comparisons
         assertEquals("Calculation should fail", TrajectoryAnalysis.FAILURE, ta2.calculateAll());

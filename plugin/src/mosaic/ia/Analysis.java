@@ -31,7 +31,7 @@ public class Analysis {
     private Point3d[] particleXSetCoordUnfiltered;
     private Point3d[] particleYSetCoordUnfiltered;
 
-    private int dgrid_size = 1000;
+    private final int dgrid_size = 1000;
     private double[] q_D_grid, NN_D_grid;
     private KernelEstimator kep; // kep for NN
     private double x1, y1, x2, y2, z1, z2;
@@ -100,7 +100,7 @@ public class Analysis {
     }
 
     private double minD, maxD, meanD;
-    private boolean isImage; // to distinguish b/wimage and coords
+    private final boolean isImage; // to distinguish b/wimage and coords
 
     public Analysis(ImagePlus X, ImagePlus Y) {
         this.X = X;
@@ -167,7 +167,7 @@ public class Analysis {
             nnObserved = IAPUtils.normalize(NN_D_grid);
             plotQP(dgrid, q, nnObserved);
             PlotUtils.histPlotDoubleArray_imageJ("ObservedDistances", D, IAPUtils.getOptimBins(D, 8, D.length / 8));
-            double[] minMaxMean = IAPUtils.getMinMaxMeanD(D);
+            final double[] minMaxMean = IAPUtils.getMinMaxMeanD(D);
             minD = minMaxMean[0];
             maxD = minMaxMean[1];
             meanD = minMaxMean[2];
@@ -175,9 +175,9 @@ public class Analysis {
         }
 
         // plot also Q ratio
-        double SumNormQ[] = new double[dgrid.length];
-        double QD[] = new double[D.length];
-        double n[] = new double[D.length];
+        final double SumNormQ[] = new double[dgrid.length];
+        final double QD[] = new double[D.length];
+        final double n[] = new double[D.length];
         double[] D1 = new double[D.length];
         D1 = D;
         Arrays.sort(D1);
@@ -350,7 +350,7 @@ public class Analysis {
         // PlotUtils.plotDoubleArray("CDF",iam.getDgrid(),
         // IAPUtils.calculateCDF(iam.getQ_D_grid()));
 
-        CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(dgrid, q_D_grid, D, potentialType, IAPUtils.normalize(NN_D_grid));
+        final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(dgrid, q_D_grid, D, potentialType, IAPUtils.normalize(NN_D_grid));
         /*
          * double [] P1=fitfun.likelihood(initGuess);
          * PlotUtils.plotDoubleArray("Loglikelihood", iam.getD(), P1); return
@@ -365,7 +365,7 @@ public class Analysis {
         }
         allFitness = new double[cmaReRunTimes];
         double bestFitness = Double.MAX_VALUE;
-        ResultsTable rt = new ResultsTable();
+        final ResultsTable rt = new ResultsTable();
         /*
          * Analyzer.getResultsTable();
          * if (rt == null) {
@@ -380,18 +380,18 @@ public class Analysis {
         boolean diffFitness = false;
         // cma.options.stopTolUpXFactor=10000;
         for (int k = 0; k < cmaReRunTimes; k++) {
-            CMAEvolutionStrategy cma = new CMAEvolutionStrategy();
+            final CMAEvolutionStrategy cma = new CMAEvolutionStrategy();
             cma.options.writeDisplayToFile = 0;
 
             cma.readProperties(); // read options, see file
             // CMAEvolutionStrategy.properties
             cma.options.stopFitness = 1e-12; // optional setting
             cma.options.stopTolFun = 1e-15;
-            Random rn = new Random(System.nanoTime());
+            final Random rn = new Random(System.nanoTime());
             if (potentialType == PotentialFunctions.NONPARAM) {
                 cma.setDimension(PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1);
-                double[] initialX = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
-                double[] initialsigma = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
+                final double[] initialX = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
+                final double[] initialsigma = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
                 for (int i = 0; i < PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1; i++) {
                     initialX[i] = meanD * rn.nextDouble();
                     initialsigma[i] = initialX[i] / 3;
@@ -403,9 +403,9 @@ public class Analysis {
             else if (potentialType == PotentialFunctions.STEP) {
                 cma.setDimension(2);
 
-                double[] initialX = new double[2];
+                final double[] initialX = new double[2];
 
-                double[] initialsigma = new double[2];
+                final double[] initialsigma = new double[2];
                 initialX[0] = rn.nextDouble() * 5; // epsilon. average strength
                 // of 5
 
@@ -429,9 +429,9 @@ public class Analysis {
             else {
 
                 cma.setDimension(2);
-                double[] initialX = new double[2];
+                final double[] initialX = new double[2];
 
-                double[] initialsigma = new double[2];
+                final double[] initialsigma = new double[2];
                 initialX[0] = rn.nextDouble() * 5; // epsilon. average strength
                 // of 5
 
@@ -457,7 +457,7 @@ public class Analysis {
 
             // cma.options.lowerStandardDeviations=new double[]{1e-5,1e-5};
             // initialize cma and get fitness array to fill in later
-            double[] fitness = cma.init(); // new
+            final double[] fitness = cma.init(); // new
             // double[cma.parameters.getPopulationSize()];
 
             // initial output to files
@@ -468,7 +468,7 @@ public class Analysis {
             while (cma.stopConditions.getNumber() == 0) {
 
                 // --- core iteration step ---
-                double[][] pop = cma.samplePopulation(); // get a new population
+                final double[][] pop = cma.samplePopulation(); // get a new population
                 // of solutions
                 for (int i = 0; i < pop.length; ++i) { // for each candidate
                     // solution i
@@ -500,7 +500,7 @@ public class Analysis {
 
                 // output to files and console
                 // cma.writeToDefaultFiles();
-                int outmod = 150;
+                final int outmod = 150;
                 if (cma.getCountIter() % (15 * outmod) == 1) {
                     cma.printlnAnnotation(); // might write file as well
                 }
@@ -518,7 +518,7 @@ public class Analysis {
             // cma.writeToDefaultFiles(1);
             cma.println();
             cma.println("Terminated due to");
-            for (String s : cma.stopConditions.getMessages()) {
+            for (final String s : cma.stopConditions.getMessages()) {
                 cma.println("  " + s);
             }
             cma.println("best function value " + cma.getBestFunctionValue() + " at evaluation " + cma.getBestEvaluationNumber());
@@ -555,9 +555,9 @@ public class Analysis {
         // System.out.println("Best parameters: Threshold, Sigma, Epsilon"+best[0]+" "+best[1]+" "+best[2]);
 
         if (!showAllRerunResults) { // show only best
-            double[] fitPotential = fitfun.getPotential(best[bestFitnessindex]);
+            final double[] fitPotential = fitfun.getPotential(best[bestFitnessindex]);
             fitfun.l2Norm(best[bestFitnessindex]); // to calc pgrid for best params
-            Plot plot = new Plot("Estimated potential", "distance", "Potential value", fitfun.getD_grid(), fitPotential);
+            final Plot plot = new Plot("Estimated potential", "distance", "Potential value", fitfun.getD_grid(), fitPotential);
             double min = Double.MAX_VALUE, max = Double.MIN_VALUE;
             for (int i = 0; i < fitPotential.length; i++) {
                 if (fitPotential[i] < min) {
@@ -571,11 +571,11 @@ public class Analysis {
             plot.setLimits(fitfun.getD_grid()[0] - 1, fitfun.getD_grid()[fitfun.getD_grid().length - 1], min, max);
             plot.setColor(Color.BLUE);
             plot.setLineWidth(2);
-            DecimalFormat format = new DecimalFormat("#.####E0");
+            final DecimalFormat format = new DecimalFormat("#.####E0");
 
             if (potentialType == PotentialFunctions.NONPARAM) {
                 String estim = "";
-                double[] dp = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
+                final double[] dp = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
                 double minW = Double.MAX_VALUE, maxW = Double.MIN_VALUE;
                 for (int i = 0; i < PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1; i++) {
                     dp[i] = PotentialFunctions.dp[i];
@@ -590,7 +590,7 @@ public class Analysis {
                     }
                 }
                 System.out.println(estim);
-                Plot plotWeight = new Plot("Estimated Nonparam weights for best fitness:", "Support", "Weight", new double[1], new double[1]);
+                final Plot plotWeight = new Plot("Estimated Nonparam weights for best fitness:", "Support", "Weight", new double[1], new double[1]);
                 plot.addLabel(.65, .3, "Residual: " + format.format(allFitness[bestFitnessindex]));
 
                 plotWeight.setLimits(dp[0], dp[PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1 - 1], minW, maxW);
@@ -660,7 +660,7 @@ public class Analysis {
             xlabel = xlabel + " (" + X.getCalibration().getUnit() + ")";
 
         }
-        Plot plot = new Plot("Result: Estimated distance distributions", xlabel, "Probability density", d, nn);
+        final Plot plot = new Plot("Result: Estimated distance distributions", xlabel, "Probability density", d, nn);
         double max = 0;
         for (int i = 0; i < q.length; i++) {
             if (q[i] > max) {
@@ -701,7 +701,7 @@ public class Analysis {
             xlabel = xlabel + " (" + X.getCalibration().getUnit() + ")";
 
         }
-        Plot plot = new Plot("Distance distributions", xlabel, "Probability density", d, nn);
+        final Plot plot = new Plot("Distance distributions", xlabel, "Probability density", d, nn);
 
         double max = 0;
         for (int i = 0; i < q.length; i++) {
@@ -744,7 +744,7 @@ public class Analysis {
         plot.setColor(Color.black);
         plot.draw();
         plot.addLabel(.7, .4, "p(d): Model fit");
-        DecimalFormat format = new DecimalFormat("#.####E0");
+        final DecimalFormat format = new DecimalFormat("#.####E0");
         if (potentialType == PotentialFunctions.STEP) {
             plot.addLabel(.65, .6, "Strength: " + format.format(best[bestFitnessindex][0]));
             plot.addLabel(.65, .7, "Threshold: " + format.format(best[bestFitnessindex][1]));
@@ -807,7 +807,7 @@ public class Analysis {
         }
 
         System.out.println("Running test with " + monteCarloRunsForTest + " and " + alpha);
-        HypothesisTesting ht = new HypothesisTesting(IAPUtils.calculateCDF(q_D_grid), dgrid, D, best[bestFitnessindex], potentialType, monteCarloRunsForTest, alpha);
+        final HypothesisTesting ht = new HypothesisTesting(IAPUtils.calculateCDF(q_D_grid), dgrid, D, best[bestFitnessindex], potentialType, monteCarloRunsForTest, alpha);
         ht.rankTest();
         // ht.nonParametricTest();
         return true;

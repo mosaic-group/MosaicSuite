@@ -74,10 +74,10 @@ public class ImageProcessUtils {
     private static <T extends RealType<T> & NativeType<T>> Vector<Particle> detectParticlesinStackType(ImagePlus imp) {
         // init the circle cache
         MyFrame.initCache();
-        ImageStatistics imageStat = imp.getStatistics();
-        FeaturePointDetector featurePointDetector = new FeaturePointDetector((float) imageStat.max, (float) imageStat.min);
+        final ImageStatistics imageStat = imp.getStatistics();
+        final FeaturePointDetector featurePointDetector = new FeaturePointDetector((float) imageStat.max, (float) imageStat.min);
 
-        GenericDialog gd = new GenericDialog("Particle Detection...", IJ.getInstance());
+        final GenericDialog gd = new GenericDialog("Particle Detection...", IJ.getInstance());
 
         System.out.println("No of N slices: " + imp.getNSlices());
 
@@ -93,12 +93,12 @@ public class ImageProcessUtils {
         // featurePointDetector.generatePreviewCanvas(imp);
         gd.showDialog();
         featurePointDetector.getUserDefinedParameters(gd);
-        Img<T> background = ImagePlusAdapter.wrap(imp);
+        final Img<T> background = ImagePlusAdapter.wrap(imp);
         featurePointDetector.preview(imp, gd);
-        MyFrame myFrame = featurePointDetector.getPreviewFrame();
+        final MyFrame myFrame = featurePointDetector.getPreviewFrame();
 
         myFrame.setParticleRadius(featurePointDetector.radius);
-        Img<ARGBType> detected = myFrame.createImage(background, imp.getCalibration());
+        final Img<ARGBType> detected = myFrame.createImage(background, imp.getCalibration());
         ImageJFunctions.show(detected);
 
         /* previewCanvas.repaint(); */
@@ -114,9 +114,9 @@ public class ImageProcessUtils {
 
     public static Point3d[] getCoordinates(Vector<Particle> particles) {
         double[] tempPosition = new double[3];
-        Point3d[] tempCoords = new Point3d[particles.size()];
+        final Point3d[] tempCoords = new Point3d[particles.size()];
 
-        Iterator<Particle> iter = particles.iterator();
+        final Iterator<Particle> iter = particles.iterator();
         int i = 0;
         while (iter.hasNext()) {
             tempPosition = iter.next().getPosition();
@@ -126,7 +126,7 @@ public class ImageProcessUtils {
                 // initialization?
                 // System.out.println(tempPosition[2]);
             }
-            catch (NullPointerException e) {
+            catch (final NullPointerException e) {
                 e.printStackTrace();
                 System.out.println("i= " + i + ", size:" + tempCoords.length + " temp position 0: " + tempPosition[0]);
             }
@@ -139,7 +139,7 @@ public class ImageProcessUtils {
 
     public static double[] KDTreeDistCalc(Point3d[] X, Point3d[] Y) {
         // saveCoordinates(X, Y);
-        KDTreeNearestNeighbor kdtnn = new KDTreeNearestNeighbor();
+        final KDTreeNearestNeighbor kdtnn = new KDTreeNearestNeighbor();
         System.out.println("Size of X:" + X.length);
         System.out.println("Size of Y:" + Y.length);
         kdtnn.createKDTree(Y);
@@ -148,8 +148,8 @@ public class ImageProcessUtils {
     }
 
     public static ImagePlus generateMask(ImagePlus image) {
-        Duplicator dupe = new Duplicator();
-        ImagePlus mask = dupe.run(image);
+        final Duplicator dupe = new Duplicator();
+        final ImagePlus mask = dupe.run(image);
 
         mask.show();
         new Macro_Runner().run("JAR:src/mosaic/plugins/scripts/GenerateMask_.ijm");
@@ -160,7 +160,7 @@ public class ImageProcessUtils {
 
     public static ImagePlus openImage(String path) {
         // open image dialog and opens it and returns
-        Opener opener = new Opener();
+        final Opener opener = new Opener();
 
         return opener.openImage(path);
 
@@ -169,21 +169,21 @@ public class ImageProcessUtils {
     public static Point3d[] openCSVFile(String title, String path) {
         // open image dialog and opens it and returns
 
-        OpenDialog od = new OpenDialog(title, path);
-        File file = new File(od.getDirectory() + od.getFileName());
+        final OpenDialog od = new OpenDialog(title, path);
+        final File file = new File(od.getDirectory() + od.getFileName());
         BufferedReader CSVFile = null;
-        Vector<Point3d> points = new Vector<Point3d>();
+        final Vector<Point3d> points = new Vector<Point3d>();
         try {
             CSVFile = new BufferedReader(new FileReader(file));
         }
-        catch (FileNotFoundException e) {
+        catch (final FileNotFoundException e) {
             e.printStackTrace();
         }
         finally {
             try {
                 if (CSVFile != null) CSVFile.close();
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 e.printStackTrace();
             }
         }
@@ -193,7 +193,7 @@ public class ImageProcessUtils {
             try {
                 dataRow = CSVFile.readLine();
             }
-            catch (IOException e) {
+            catch (final IOException e) {
 
                 e.printStackTrace();
             }
@@ -235,7 +235,7 @@ public class ImageProcessUtils {
                 try {
                     dataRow = CSVFile.readLine();
                 }
-                catch (IOException e) {
+                catch (final IOException e) {
                     e.printStackTrace();
                 } // Read next line of data.
             }
@@ -243,7 +243,7 @@ public class ImageProcessUtils {
             try {
                 CSVFile.close();
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 e.printStackTrace();
             }
         }

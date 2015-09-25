@@ -61,7 +61,7 @@ class Pearson {
         else {
             osz = 1;
         }
-        int os = p.model_oversampling;
+        final int os = p.model_oversampling;
 
         ImageProcessor imp;
         for (int z = 0; z < nz / osz; z++) {
@@ -109,7 +109,7 @@ class Pearson {
     }
 
     public double[] run() {
-        double[] res = new double[3];
+        final double[] res = new double[3];
 
         res[0] = linreg(this.imageA, this.imageB, 0, 0, 0)[2];// without
         res[1] = linreg(this.imageA, this.imageB, 0, 0, 1)[2];// with mask
@@ -159,7 +159,7 @@ class Pearson {
         double num = 0;
         double den1 = 0;
         double den2 = 0;
-        double[] coeff = new double[6];
+        final double[] coeff = new double[6];
         int count = 0;
 
         sumA = 0;
@@ -234,7 +234,7 @@ class Pearson {
     }
 
     private boolean[][][] createBinaryCellMask(double threshold, ImagePlus img, int channel, int osz) {
-        boolean[][][] cellmask = new boolean[nz][ni][nj];
+        final boolean[][][] cellmask = new boolean[nz][ni][nj];
 
         if (threshold == 0) {
             for (int z = 0; z < nz; z++) {
@@ -248,14 +248,14 @@ class Pearson {
             return cellmask;
         }
 
-        ImagePlus maska_im = new ImagePlus();
-        ImageStack maska_ims = new ImageStack(ni, nj);
+        final ImagePlus maska_im = new ImagePlus();
+        final ImageStack maska_ims = new ImageStack(ni, nj);
         ImageProcessor imp;
 
         for (int z = 0; z < nz; z++) {
             img.setSlice(z / osz + 1);
             imp = img.getProcessor();
-            byte[] maska_bytes = new byte[ni * nj];
+            final byte[] maska_bytes = new byte[ni * nj];
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     if (imp.getPixel(i / p.model_oversampling, j / p.model_oversampling) > threshold) {
@@ -267,7 +267,7 @@ class Pearson {
 
                 }
             }
-            ByteProcessor bp = new ByteProcessor(ni, nj);
+            final ByteProcessor bp = new ByteProcessor(ni, nj);
             bp.setPixels(maska_bytes);
             maska_ims.addSlice("", bp);
         }

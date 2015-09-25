@@ -68,32 +68,32 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolverTwoRegions {
     protected void step() throws InterruptedException {
         // WARNING !! : temp1 and temp2 (resp =w2xk and =w2yk) passed from iteration to next iteration : do not change .
 
-        long lStartTime = new Date().getTime(); // start time
+        final long lStartTime = new Date().getTime(); // start time
         // energy=0;
 
         this.c0 = p.cl[0];
         this.c1 = p.cl[1];
 
         // IJ.log("creates latch ");
-        CountDownLatch ZoneDoneSignal = new CountDownLatch(p.nthreads);// subprob 1 and 3
-        CountDownLatch Sync1 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync2 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync3 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync4 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync5 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync6 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync7 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync8 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync9 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync10 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync11 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync12 = new CountDownLatch(p.nthreads);
-        CountDownLatch Dct = new CountDownLatch(1);
+        final CountDownLatch ZoneDoneSignal = new CountDownLatch(p.nthreads);// subprob 1 and 3
+        final CountDownLatch Sync1 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync2 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync3 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync4 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync5 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync6 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync7 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync8 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync9 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync10 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync11 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync12 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Dct = new CountDownLatch(1);
 
-        int ichunk = p.ni / p.nthreads;
-        int ilastchunk = p.ni - (p.ni / (p.nthreads)) * (p.nthreads - 1);
-        int jchunk = p.nj / p.nthreads;
-        int jlastchunk = p.nj - (p.nj / (p.nthreads)) * (p.nthreads - 1);
+        final int ichunk = p.ni / p.nthreads;
+        final int ilastchunk = p.ni - (p.ni / (p.nthreads)) * (p.nthreads - 1);
+        final int jchunk = p.nj / p.nthreads;
+        final int jlastchunk = p.nj - (p.nj / (p.nthreads)) * (p.nthreads - 1);
         int iStart = 0;
         int jStart = 0;
 
@@ -103,8 +103,10 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolverTwoRegions {
         // DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
 
         @SuppressWarnings("unused")
+        final
         double kernelx[] = p.PSF.getSeparableImageAsDoubleArray(0);
         @SuppressWarnings("unused")
+        final
         double kernely[] = p.PSF.getSeparableImageAsDoubleArray(1);
 
         for (int nt = 0; nt < p.nthreads - 1; nt++) {
@@ -288,9 +290,9 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolverTwoRegions {
             md.display2regions(w3k[l][0], "Mask", channel);
         }
 
-        long lEndTime = new Date().getTime(); // end time
+        final long lEndTime = new Date().getTime(); // end time
 
-        long difference = lEndTime - lStartTime; // check different
+        final long difference = lEndTime - lStartTime; // check different
         totaltime += difference;
         // IJ.log("Elapsed milliseconds: " + difference);
 
@@ -301,9 +303,9 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolverTwoRegions {
         this.c0 = p.cl[0];
         this.c1 = p.cl[1];
 
-        int[] sz = p.PSF.getSuggestedImageSize();
-        int xmin = Math.min(sz[0], eigenPSF[0].length);
-        int ymin = Math.min(sz[1], eigenPSF[0][0].length);
+        final int[] sz = p.PSF.getSuggestedImageSize();
+        final int xmin = Math.min(sz[0], eigenPSF[0].length);
+        final int ymin = Math.min(sz[1], eigenPSF[0][0].length);
 
         // PSF2 = imfilter(PSF,PSF,'symmetric');
         // IJ.log("avant xmin "+ xmin + "ymin" + ymin);
@@ -326,8 +328,8 @@ class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolverTwoRegions {
             }
         }
 
-        int cc = (sz[0] / 2) + 1;
-        int cr = (sz[1] / 2) + 1;
+        final int cc = (sz[0] / 2) + 1;
+        final int cr = (sz[1] / 2) + 1;
 
         // temp1 = e1
         for (int z = 0; z < nz; z++) {

@@ -16,9 +16,9 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
      * @param type
      * @return
      */
-    private double[] D; // measured NN
+    private final double[] D; // measured NN
 
-    private double[] D_grid; // at which q is evalueated and p will be sampled
+    private final double[] D_grid; // at which q is evalueated and p will be sampled
 
     private double[] P_grid;
 
@@ -34,9 +34,9 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
         return P_grid;
     }
 
-    private int potentialType;
+    private final int potentialType;
 
-    private double[] qofD_grid, observedDGrid;
+    private final double[] qofD_grid, observedDGrid;
 
     private int[][] interpInterval;
 
@@ -79,12 +79,12 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
         gibbspotential = getGibbsPotential(params);
         // PlotUtils.plotDoubleArray("Gibbs", D_grid, gibbspotential);
         // double sumPotential=pc.getSumPotential();
-        double Z = calculateZ(gibbspotential);
+        final double Z = calculateZ(gibbspotential);
         // Z=Z*100000;
         P_grid = new double[D_grid.length];
         double sumPGrid = 0;
         double l2Norm = 0;
-        double[] DiffD = new double[D_grid.length - 1];
+        final double[] DiffD = new double[D_grid.length - 1];
         for (int i = 0; i < D_grid.length - 1; i++) {
             DiffD[i] = D_grid[i + 1] - D_grid[i];
         }
@@ -121,8 +121,8 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
             return true;
         }
         else {
-            double[] minmaxmeanDg = IAPUtils.getMinMaxMeanD(D_grid);
-            double[] minmaxmeanD = IAPUtils.getMinMaxMeanD(D);
+            final double[] minmaxmeanDg = IAPUtils.getMinMaxMeanD(D_grid);
+            final double[] minmaxmeanD = IAPUtils.getMinMaxMeanD(D);
             // System.out.println(x[0]+" "+x[1]+" "+"min:"+minmaxmean[0]+"max:"+minmaxmean[1]);
 
             if (x[0] >= IAPUtils.MACHEPS && x[0] <= 50 && x[1] >= Math.max(Math.min(minmaxmeanDg[0], minmaxmeanD[0]), IAPUtils.MACHEPS) && x[1] <= Math.max(minmaxmeanDg[1], minmaxmeanD[1])) {
@@ -160,12 +160,12 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
     private double calculateZ(double[] gibbspotential) {
         // using trapizoidal rule.
 
-        double[] DiffD = new double[D_grid.length - 1];
+        final double[] DiffD = new double[D_grid.length - 1];
         for (int i = 0; i < D_grid.length - 1; i++) {
             DiffD[i] = D_grid[i + 1] - D_grid[i];
         }
 
-        double[] support = new double[D_grid.length];
+        final double[] support = new double[D_grid.length];
         double sumSupport = 0;
         for (int i = 0; i < D_grid.length; i++) {
             support[i] = gibbspotential[i] * this.qofD_grid[i];
@@ -175,7 +175,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
          * System.out.println("Support 0:"+support[0]);
          * System.out.println("sum Support:"+sumSupport);
          */
-        double[] integrand = new double[D_grid.length - 1];
+        final double[] integrand = new double[D_grid.length - 1];
         double Z = 0;
         for (int i = 0; i < D_grid.length - 1; i++) {
             integrand[i] = (support[i] + support[i + 1]) / 2;
@@ -207,7 +207,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
          * }
          */
         if (potentialType == PotentialFunctions.NONPARAM) {
-            double[] weights = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE];
+            final double[] weights = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE];
             for (int i = 0; i < PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1; i++) {
                 weights[i] = x[i];
             }

@@ -19,7 +19,7 @@ public class PSFOpenerActionListener implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        Point p = gd.getLocationOnScreen();
+        final Point p = gd.getLocationOnScreen();
         // IJ.log("plugin location :" + p.toString());
         new PSFWindow(p.x, p.y, gd);
     }

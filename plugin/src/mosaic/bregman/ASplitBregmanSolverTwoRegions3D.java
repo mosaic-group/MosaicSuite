@@ -50,7 +50,7 @@ class ASplitBregmanSolverTwoRegions3D extends ASplitBregmanSolverTwoRegions {
 
     @Override
     protected void step() throws InterruptedException {
-        long lStartTime = new Date().getTime(); // start time
+        final long lStartTime = new Date().getTime(); // start time
         // energy=0;
 
         // IJ.log("thread : " +l +"starting work");
@@ -169,9 +169,9 @@ class ASplitBregmanSolverTwoRegions3D extends ASplitBregmanSolverTwoRegions {
 
         // if (p.livedisplay) md.display2regions3D(w3k[l], "Mask");
 
-        long lEndTime = new Date().getTime(); // end time
+        final long lEndTime = new Date().getTime(); // end time
 
-        long difference = lEndTime - lStartTime; // check different
+        final long difference = lEndTime - lStartTime; // check different
         totaltime += difference;
         // IJ.log("Elapsed milliseconds: " + difference);
 

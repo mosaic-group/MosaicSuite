@@ -15,11 +15,11 @@ public class ImgUtils {
      * @param aNormalizationValue Maximum pixel value of original image -> converted one will be normalized [0..1]
      */
     static public void ImgToYX2Darray(final FloatProcessor aInputIp, float[][] aNewImgArray, float aNormalizationValue) {
-        float[] pixels = (float[])aInputIp.getPixels();
-        int w = aInputIp.getWidth();
-        int h = aInputIp.getHeight();
-        int arrayW = aNewImgArray[0].length;
-        int arrayH = aNewImgArray.length;
+        final float[] pixels = (float[])aInputIp.getPixels();
+        final int w = aInputIp.getWidth();
+        final int h = aInputIp.getHeight();
+        final int arrayW = aNewImgArray[0].length;
+        final int arrayH = aNewImgArray.length;
 
         for (int y = 0; y < arrayH; ++y) {
             for (int x = 0; x < arrayW; ++x) {
@@ -48,11 +48,11 @@ public class ImgUtils {
      * @param aNormalizationValue Maximum pixel value of original image -> converted one will be normalized [0..1]
      */
     static public void ImgToYX2Darray(final FloatProcessor aInputIp, double[][] aNewImgArray, double aNormalizationValue) {
-        float[] pixels = (float[])aInputIp.getPixels();
-        int w = aInputIp.getWidth();
-        int h = aInputIp.getHeight();
-        int arrayW = aNewImgArray[0].length;
-        int arrayH = aNewImgArray.length;
+        final float[] pixels = (float[])aInputIp.getPixels();
+        final int w = aInputIp.getWidth();
+        final int h = aInputIp.getHeight();
+        final int arrayW = aNewImgArray[0].length;
+        final int arrayH = aNewImgArray.length;
 
         for (int y = 0; y < arrayH; ++y) {
             for (int x = 0; x < arrayW; ++x) {
@@ -79,9 +79,9 @@ public class ImgUtils {
      * @param aNormalizationValue  Normalization value.
      */
     static public void YX2DarrayToImg(final float[][] aImg, FloatProcessor aIp, float aNormalizationValue) {
-        float[] pixels = (float[]) aIp.getPixels();
-        int w = aIp.getWidth();
-        int h = aIp.getHeight();
+        final float[] pixels = (float[]) aIp.getPixels();
+        final int w = aIp.getWidth();
+        final int h = aIp.getHeight();
 
         for (int y = 0; y < h; ++y) {
             for (int x = 0; x < w; ++x) {
@@ -100,9 +100,9 @@ public class ImgUtils {
      * @param aNormalizationValue  Normalization value.
      */
     static public void YX2DarrayToImg(final double[][] aImg, FloatProcessor aIp, double aNormalizationValue) {
-        float[] pixels = (float[]) aIp.getPixels();
-        int w = aIp.getWidth();
-        int h = aIp.getHeight();
+        final float[] pixels = (float[]) aIp.getPixels();
+        final int w = aIp.getWidth();
+        final int h = aIp.getHeight();
 
         for (int y = 0; y < h; ++y) {
             for (int x = 0; x < w; ++x) {
@@ -123,11 +123,11 @@ public class ImgUtils {
      * @param aNormalizationValue Maximum pixel value of original image -> converted one will be normalized [0..1]
      */
     static public void ImgToXY2Darray(final FloatProcessor aInputIp, float[][] aNewImgArray, float aNormalizationValue) {
-        float[] pixels = (float[])aInputIp.getPixels();
-        int w = aInputIp.getWidth();
-        int h = aInputIp.getHeight();
-        int arrayW = aNewImgArray.length;
-        int arrayH = aNewImgArray[0].length;
+        final float[] pixels = (float[])aInputIp.getPixels();
+        final int w = aInputIp.getWidth();
+        final int h = aInputIp.getHeight();
+        final int arrayW = aNewImgArray.length;
+        final int arrayH = aNewImgArray[0].length;
 
         for (int y = 0; y < arrayH; ++y) {
             for (int x = 0; x < arrayW; ++x) {
@@ -154,9 +154,9 @@ public class ImgUtils {
      * @param aNormalizationValue  Normalization value.
      */
     static public void XY2DarrayToImg(final float[][] aImg, FloatProcessor aIp, float aNormalizationValue) {
-        float[] pixels = (float[]) aIp.getPixels();
-        int w = aIp.getWidth();
-        int h = aIp.getHeight();
+        final float[] pixels = (float[]) aIp.getPixels();
+        final int w = aIp.getWidth();
+        final int h = aIp.getHeight();
 
         for (int y = 0; y < h; ++y) {
             for (int x = 0; x < w; ++x) {
@@ -174,10 +174,10 @@ public class ImgUtils {
      * @param aNewImgArray   Resized image array (must be created by user)
      */
     static public void imgResize(float[][] aInputImg, float[][] aOutputImg) {
-        int w = aInputImg[0].length;
-        int h = aInputImg.length;
-        int arrayW = aOutputImg[0].length;
-        int arrayH = aOutputImg.length;
+        final int w = aInputImg[0].length;
+        final int h = aInputImg.length;
+        final int arrayW = aOutputImg[0].length;
+        final int arrayH = aOutputImg.length;
 
         for (int y = 0; y < arrayH; ++y) {
             for (int x = 0; x < arrayW; ++x) {
@@ -203,10 +203,10 @@ public class ImgUtils {
      * @param aNewImgArray   Resized image array (must be created by user)
      */
     static public void imgResize(double[][] aInputImg, double[][] aOutputImg) {
-        int w = aInputImg[0].length;
-        int h = aInputImg.length;
-        int arrayW = aOutputImg[0].length;
-        int arrayH = aOutputImg.length;
+        final int w = aInputImg[0].length;
+        final int h = aInputImg.length;
+        final int arrayW = aOutputImg[0].length;
+        final int arrayH = aOutputImg.length;
 
         for (int y = 0; y < arrayH; ++y) {
             for (int x = 0; x < arrayW; ++x) {

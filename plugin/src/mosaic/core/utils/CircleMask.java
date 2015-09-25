@@ -52,7 +52,7 @@ public class CircleMask extends Mask {
     private boolean isBoundary(Point ps, Connectivity c) {
         for (Point p : c) {
             p = p.add(ps);
-            float vHypEllipse = rHypEllipse(p.x);
+            final float vHypEllipse = rHypEllipse(p.x);
             if (vHypEllipse >= 1.0f) {
                 return true;
             }
@@ -61,14 +61,14 @@ public class CircleMask extends Mask {
     }
 
     private void fillMask() {
-        Connectivity c = new Connectivity(this.dim, this.dim - 1);
+        final Connectivity c = new Connectivity(this.dim, this.dim - 1);
         fgPoints = 0;
-        int size = iterator.getSize();
+        final int size = iterator.getSize();
         for (int i = 0; i < size; i++) // over region
         {
-            Point ofs = iterator.indexToPoint(i);
+            final Point ofs = iterator.indexToPoint(i);
 
-            float vHypEllipse = rHypEllipse(ofs.x);
+            final float vHypEllipse = rHypEllipse(ofs.x);
 
             if (vHypEllipse < 1.0f) {
                 // Check the neighboorhood

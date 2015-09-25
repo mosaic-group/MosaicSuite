@@ -23,9 +23,9 @@ public class ChooseGUI {
             return null;
         }
 
-        GenericDialog gd = new GenericDialog(title);
+        final GenericDialog gd = new GenericDialog(title);
 
-        String ad[] = new String[sel.length];
+        final String ad[] = new String[sel.length];
         for (int i = 0; i < sel.length; i++) {
             ad[i] = sel[i];
         }
@@ -53,9 +53,9 @@ public class ChooseGUI {
             return null;
         }
 
-        GenericDialog gd = new GenericDialog(title);
+        final GenericDialog gd = new GenericDialog(title);
 
-        String ad[] = new String[sel.size()];
+        final String ad[] = new String[sel.size()];
         for (int i = 0; i < sel.size(); i++) {
             ad[i] = sel.get(i).getAbsolutePath();
         }
@@ -63,7 +63,7 @@ public class ChooseGUI {
         gd.showDialog();
 
         if (!gd.wasCanceled()) {
-            String c = gd.getNextChoice();
+            final String c = gd.getNextChoice();
             return new File(c);
         }
 

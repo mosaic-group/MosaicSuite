@@ -222,7 +222,7 @@ public class TrajectoryAnalysis {
      * @return Converted array
      */
     double[] toLogScale(final double[] aVector) {
-        double[] result = new double[aVector.length];
+        final double[] result = new double[aVector.length];
         for (int i = 0; i < aVector.length; ++i) {
             result[i] = Math.log(aVector[i]);
         }
@@ -237,7 +237,7 @@ public class TrajectoryAnalysis {
      * @return Converted array
      */
     double[] toLogScale(final int[] aVector) {
-        double[] result = new double[aVector.length];
+        final double[] result = new double[aVector.length];
         for (int i = 0; i < aVector.length; ++i) {
             result[i] = Math.log(aVector[i]);
         }
@@ -251,7 +251,7 @@ public class TrajectoryAnalysis {
      * @return Converted array
      */
     double[] toDouble(final int[] aValues) {
-        double[] result = new double[aValues.length];
+        final double[] result = new double[aValues.length];
         for (int i = 0; i < aValues.length; ++i) {
             result[i] = aValues[i];
         }
@@ -268,9 +268,9 @@ public class TrajectoryAnalysis {
         str += "MSDs:\n";
         str += "-----------------------------------\n";
 
-        for (double[] m : iMSDs) {
+        for (final double[] m : iMSDs) {
             String line = "";
-            for (double d : m) {
+            for (final double d : m) {
                 line += String.format("%15.4f ", d);
             }
             str += line + "\n";
@@ -279,7 +279,7 @@ public class TrajectoryAnalysis {
         str += "\nGAMMAs:\n";
         str += "-----------------------------------\n";
         String line = "";
-        for (double g : iGammasLogarithmic) {
+        for (final double g : iGammasLogarithmic) {
             line += String.format("%15.4f ", g);
         }
         str += line + "\n";
@@ -287,7 +287,7 @@ public class TrajectoryAnalysis {
         str += "\nDiffusion Coefficientss:\n";
         str += "-----------------------------------\n";
         line = "";
-        for (double g : iDiffusionCoefficients) {
+        for (final double g : iDiffusionCoefficients) {
             line += String.format("%15.4f ", g);
         }
         str += line + "\n";
@@ -325,16 +325,16 @@ public class TrajectoryAnalysis {
         int noOfElements = 0;
 
         for (int i = 0; i < noOfParticles; ++i) {
-            Particle pi = iParticles[i];
+            final Particle pi = iParticles[i];
 
             // It may happen that particle has not been discovered in each frame. Try to
             // find a particle in aDelta distance. For further information about this behavior
             // please refer to 'Link Range' parameter.
             for (int j = i + 1; j < noOfParticles; ++j) {
-                Particle pj = iParticles[j];
+                final Particle pj = iParticles[j];
                 if (pj.getFrame() == pi.getFrame() + aDelta) {
-                    double dx = (pj.x - pi.x);
-                    double dy = (pj.y - pi.y);
+                    final double dx = (pj.x - pi.x);
+                    final double dy = (pj.y - pi.y);
 
                     // Calculate Euclidean norm to get distance between particles
                     // (also convert distance from pixel based to physical units)
@@ -359,10 +359,10 @@ public class TrajectoryAnalysis {
         iMSDs = new double[iMomentOrders.length][iFrameShifts.length];
 
         int orderIdx = 0;
-        for (int order : iMomentOrders) {
+        for (final int order : iMomentOrders) {
             int deltaIdx = 0;
-            for (int delta : iFrameShifts) {
-                double displacement = meanDisplacement(delta, order);
+            for (final int delta : iFrameShifts) {
+                final double displacement = meanDisplacement(delta, order);
                 iMSDs[orderIdx][deltaIdx] = displacement;
                 deltaIdx++;
             }
@@ -373,7 +373,7 @@ public class TrajectoryAnalysis {
     }
 
     private boolean calculateGammasAndDiffusionCoefficients() {
-        LeastSquares ls = new LeastSquares();
+        final LeastSquares ls = new LeastSquares();
 
         final int noOfMoments = iMomentOrders.length;
         iGammasLogarithmic = new double[noOfMoments];
@@ -383,10 +383,10 @@ public class TrajectoryAnalysis {
         iDiffusionCoefficients = new double[noOfMoments];
 
         int gammaIdx = 0;
-        for (double[] m : iMSDs) {
+        for (final double[] m : iMSDs) {
             // Get rid of MSDs equal to 0 (could happen when trajectory has not enough points).
-            double[] moments = new double[m.length];
-            double[] deltas  = new double[m.length];
+            final double[] moments = new double[m.length];
+            final double[] deltas  = new double[m.length];
             int count = 0;
             for (int i = 0; i < iFrameShifts.length; ++ i) {
                 if (m[i] != 0.0d) {
@@ -399,8 +399,8 @@ public class TrajectoryAnalysis {
                 // it is not possible to do linear regression with less than 2 points.
                 return FAILURE;
             }
-            double[] tmpMoments = new double[count];
-            double[] tmpDeltas  = new double[count];
+            final double[] tmpMoments = new double[count];
+            final double[] tmpDeltas  = new double[count];
             for (int i = 0; i < count; ++i) {
                 tmpMoments[i] = moments[i];
                 // Convert it to physical time units
@@ -408,8 +408,8 @@ public class TrajectoryAnalysis {
             }
 
 
-            double[] mLog = toLogScale(tmpMoments); // moments in log scale
-            double[] dLog = toLogScale(tmpDeltas);  // deltas in log scale
+            final double[] mLog = toLogScale(tmpMoments); // moments in log scale
+            final double[] dLog = toLogScale(tmpDeltas);  // deltas in log scale
             ls.calculate(dLog, mLog);
             if (Double.isNaN(ls.getAlpha()) || Double.isNaN(ls.getBeta())) {
                 // Usually it is a result of not enough number of points in trajectory or
@@ -429,7 +429,7 @@ public class TrajectoryAnalysis {
     }
 
     private boolean calculateMSS() {
-        LeastSquares ls = new LeastSquares();
+        final LeastSquares ls = new LeastSquares();
 
         ls.calculate(toDouble(iMomentOrders), iGammasLogarithmic);
         iMSSlinear = ls.getBeta();
@@ -450,7 +450,7 @@ public class TrajectoryAnalysis {
      * @return array of requested values
      */
     private static int[] generateArrayRange(int aMin, int aMax) {
-        int[] range = new int[aMax - aMin + 1];
+        final int[] range = new int[aMax - aMin + 1];
         int idx = 0;
         for (int m = aMin; m <= aMax; ++m) {
             range[idx] = m;

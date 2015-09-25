@@ -27,16 +27,16 @@ import net.sf.javaml.tools.DatasetTools;
 class AnalysePatch implements Runnable {
 
     // add oversampling here
-    private Tools ATools;
-    private ImagePatches impa;
-    private int interpolation;
+    private final Tools ATools;
+    private final ImagePatches impa;
+    private final int interpolation;
     private int interpolationz;
     private boolean obj = false;
     private boolean border_attained = false;
     private double mint;// min threshold
     double cin, cout, cout_front;// estimated intensities
     double intmin, intmax;
-    private int os;
+    private final int os;
     private int osz;
     // coordinate of pacth in original image
     int offsetx;
@@ -44,8 +44,8 @@ class AnalysePatch implements Runnable {
     int offsetz;
     private int margin;
     private int zmargin;
-    private int ox, oy, oz;// size of full image
-    private int wmar;// weights margin
+    private final int ox, oy, oz;// size of full image
+    private final int wmar;// weights margin
     // size of patch
     int sx;
     int sy;
@@ -57,24 +57,24 @@ class AnalysePatch implements Runnable {
     int isy;
     int isz; // interpolated object sizes
     private double min_thresh;
-    private double[][][] patch;
+    private final double[][][] patch;
     double[][][] object;
     double[][][] interpolated_object;
-    private double[][][][] mask;// nregions nslices ni nj
+    private final double[][][][] mask;// nregions nslices ni nj
     private double[][][][] speedData;// nregions nslices ni nj
-    private Parameters p;
+    private final Parameters p;
     Region r;
-    private int channel;
+    private final int channel;
     private double rescaled_min_int, rescaled_min_int_all;
-    private double[][][][] temp1;
-    private double[][][][] temp2;
-    private double[][][][] temp3;
+    private final double[][][][] temp1;
+    private final double[][][][] temp2;
+    private final double[][][][] temp3;
     private double[][][] weights;
     double firstminval;
     // double [][][] w3kbest;
-    private double[][][][] w3kpatch;
+    private final double[][][][] w3kpatch;
     // double [][][] refined_mask;
-    private short[][][] regions_refined;
+    private final short[][][] regions_refined;
     private double t_high;
     private ASplitBregmanSolver A_solver;
 
@@ -117,7 +117,7 @@ class AnalysePatch implements Runnable {
 
         // check that the margin is at least 8 time bigger than the PSF
 
-        int[] sz_psf = p.PSF.getSuggestedImageSize();
+        final int[] sz_psf = p.PSF.getSuggestedImageSize();
         if (sz_psf[0] > margin) {
             margin = sz_psf[0];
         }
@@ -170,8 +170,8 @@ class AnalysePatch implements Runnable {
         this.ATools = new Tools(p.ni, p.nj, p.nz);
         // set psf
         if (p.nz > 1) {
-            GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
-            DoubleType[] var = new DoubleType[3];
+            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
+            final DoubleType[] var = new DoubleType[3];
             var[0] = new DoubleType(p.sigma_gaussian);
             var[1] = new DoubleType(p.sigma_gaussian);
             var[2] = new DoubleType(p.sigma_gaussian / p.zcorrec);
@@ -182,8 +182,8 @@ class AnalysePatch implements Runnable {
             // p.zcorrec*oversampling);//todo verif zcorrec
         }
         else {
-            GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
-            DoubleType[] var = new DoubleType[2];
+            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
+            final DoubleType[] var = new DoubleType[2];
             var[0] = new DoubleType(p.sigma_gaussian);
             var[1] = new DoubleType(p.sigma_gaussian);
             psf.setVar(var);
@@ -276,7 +276,7 @@ class AnalysePatch implements Runnable {
     public void run() {
         // IJ.log("");
         // IJ.log("region " + r.value);
-        MasksDisplay md = new MasksDisplay(sx, sy, sz, 2, p.cl, p);
+        final MasksDisplay md = new MasksDisplay(sx, sy, sz, 2, p.cl, p);
 
         p.nthreads = 1;
         p.firstphase = false;
@@ -324,7 +324,7 @@ class AnalysePatch implements Runnable {
 
             // IJ.log("cout " + cout + "cin" + cin);
 
-            int ll = p.mode_intensity;
+            final int ll = p.mode_intensity;
             if (ll == 0 || ll == 1) {
                 min_thresh = rescaled_min_int_all * 0.96;
             }
@@ -380,7 +380,7 @@ class AnalysePatch implements Runnable {
             assemble_patch();
 
         }
-        catch (InterruptedException ex) {
+        catch (final InterruptedException ex) {
         }
     }
 
@@ -434,8 +434,8 @@ class AnalysePatch implements Runnable {
         ymax = 0;
         zmax = 0;
 
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix p = it.next();
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix p = it.next();
             if (p.px < xmin) {
                 xmin = p.px;
             }
@@ -664,12 +664,12 @@ class AnalysePatch implements Runnable {
 
         // nk_in=3;// test high mode
         // int nk=4;//3
-        double[] pixel = new double[1];
-        double[] levels = new double[nk];
+        final double[] pixel = new double[1];
+        final double[] levels = new double[nk];
         // double [] levels2= new double[4];
 
         int cpt_vals = 0;
-        Dataset data = new DefaultDataset();
+        final Dataset data = new DefaultDataset();
         for (int z = 0; z < sz; z++) {
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
@@ -677,7 +677,7 @@ class AnalysePatch implements Runnable {
                     if (level == 2) {
                         pixel[0] = A_solver.w3kbest[0][z][i][j]; // w3kpatch[0]
                     }
-                    Instance instance = new DenseInstance(pixel);
+                    final Instance instance = new DenseInstance(pixel);
                     if (p.mode_voronoi2) {
                         if (weights[z][i][j] == 1) {
                             data.add(instance);
@@ -715,21 +715,21 @@ class AnalysePatch implements Runnable {
         if (cpt_vals > 3) {
 
             // IJ.log("clust .. ");
-            Clusterer km = new KMeans(nk, 100);
+            final Clusterer km = new KMeans(nk, 100);
             // Clusterer km = new KMeans(3,200);
             /*
              * Cluster the data, it will be returned as an array of data sets,
              * with
              * each dataset representing a cluster.
              */
-            Dataset[] data2 = km.cluster(data);
+            final Dataset[] data2 = km.cluster(data);
             // IJ.log("clust done ");
 
             nk = data2.length;// get number of clusters really found (usually =
             // 3 = setNumClusters but not always)
             for (int i = 0; i < nk; i++) {
                 // Instance inst =DatasetTools.minAttributes(data2[i]);
-                Instance inst = DatasetTools.average(data2[i]);
+                final Instance inst = DatasetTools.average(data2[i]);
                 levels[i] = inst.value(0);
             }
 
@@ -741,7 +741,7 @@ class AnalysePatch implements Runnable {
             nk2 = Math.min(nk_in, nk - 1);
             cin = Math.max(rescaled_min_int, levels[nk2]);// -1;
             // betaMLEout=levels[0];
-            int nkm1 = Math.max(nk2 - 1, 0);
+            final int nkm1 = Math.max(nk2 - 1, 0);
             cout_front = levels[nkm1];
             cout = levels[0];
             if (level == 2) {
@@ -785,8 +785,8 @@ class AnalysePatch implements Runnable {
             }
         }
 
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix p = it.next();
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix p = it.next();
             int rz, rx, ry;
             rz = os * (p.pz - offsetz);
             rx = os * (p.px - offsetx);
@@ -813,8 +813,8 @@ class AnalysePatch implements Runnable {
             }
         }
 
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix p = it.next();
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix p = it.next();
             int rz, rx, ry;
             rz = os * (p.pz - offsetz);
             rx = os * (p.px - offsetx);
@@ -847,8 +847,8 @@ class AnalysePatch implements Runnable {
             }
         }
 
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix p = it.next();
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix p = it.next();
             int rzmin, rxmin, rymin;
             int rzmax, rxmax, rymax;
             // IJ.log("pixel px " + p.px + " py " + p.py);
@@ -1000,11 +1000,11 @@ class AnalysePatch implements Runnable {
 
         // IJ.log("find regions vo 2");
         // find connected regions
-        ImagePlus maska_im = new ImagePlus();
-        ImageStack maska_ims = new ImageStack(isx, isy);
+        final ImagePlus maska_im = new ImagePlus();
+        final ImageStack maska_ims = new ImageStack(isx, isy);
 
         for (int z = 0; z < isz; z++) {
-            byte[] maska_bytes = new byte[isx * isy];
+            final byte[] maska_bytes = new byte[isx * isy];
             for (int i = 0; i < isx; i++) {
                 for (int j = 0; j < isy; j++) {
                     if (object[z][i][j] >= 1) {
@@ -1015,7 +1015,7 @@ class AnalysePatch implements Runnable {
                     }
                 }
             }
-            ByteProcessor bp = new ByteProcessor(isx, isy);
+            final ByteProcessor bp = new ByteProcessor(isx, isy);
             bp.setPixels(maska_bytes);
             maska_ims.addSlice("", bp);
         }
@@ -1023,12 +1023,12 @@ class AnalysePatch implements Runnable {
         maska_im.setStack("test Mask vo2", maska_ims);
         // maska_im.show();
 
-        FindConnectedRegions fcr = new FindConnectedRegions(maska_im, isx, isy, isz);// maska_im
+        final FindConnectedRegions fcr = new FindConnectedRegions(maska_im, isx, isy, isz);// maska_im
         // only
 
-        double thr = 0.5;
+        final double thr = 0.5;
 
-        float[][][] Ri = new float[isz][isx][isy];
+        final float[][][] Ri = new float[isz][isx][isy];
         for (int z = 0; z < isz; z++) {
             for (int i = 0; i < isx; i++) {
                 for (int j = 0; j < isy; j++) {
@@ -1054,12 +1054,12 @@ class AnalysePatch implements Runnable {
 
     private void assemble(ArrayList<Region> localList) {
 
-        for (Iterator<Region> it = localList.iterator(); it.hasNext();) {
-            ArrayList<Pix> npixels = new ArrayList<Pix>();
-            Region r = it.next();
+        for (final Iterator<Region> it = localList.iterator(); it.hasNext();) {
+            final ArrayList<Pix> npixels = new ArrayList<Pix>();
+            final Region r = it.next();
 
-            for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
-                Pix v = it2.next();
+            for (final Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
+                final Pix v = it2.next();
                 npixels.add(new Pix(v.pz + offsetz * fsz, v.px + offsetx * fsxy, v.py + offsety * fsxy));
                 // count number of free edges
                 regions_refined[v.pz + offsetz * fsz][v.px + offsetx * fsxy][v.py + offsety * fsxy] = (short) r.value;
@@ -1079,25 +1079,25 @@ class AnalysePatch implements Runnable {
         iobjectS = new ImageStack(sx, sy);
 
         for (int z = 0; z < sz; z++) {
-            float[] twoD_float = new float[sx * sy];
+            final float[] twoD_float = new float[sx * sy];
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
                     twoD_float[j * sx + i] = (float) cmask[z][i][j];
                 }
             }
-            FloatProcessor fp = new FloatProcessor(sx, sy);
+            final FloatProcessor fp = new FloatProcessor(sx, sy);
             fp.setPixels(twoD_float);
             iobjectS.addSlice("", fp);
         }
         iobject.setStack("Object x", iobjectS);
 
-        Resizer re = new Resizer();
+        final Resizer re = new Resizer();
 
         if (isz != sz) {
             iobject = re.zScale(iobject, isz, ImageProcessor.BILINEAR);
         }
 
-        ImageStack imgS2 = new ImageStack(isx, isy);
+        final ImageStack imgS2 = new ImageStack(isx, isy);
         for (int z = 0; z < isz; z++) {
             iobject.setSliceWithoutUpdate(z + 1);
             iobject.getProcessor().setInterpolationMethod(ImageProcessor.BILINEAR);

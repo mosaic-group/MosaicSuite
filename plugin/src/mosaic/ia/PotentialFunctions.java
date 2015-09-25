@@ -29,8 +29,8 @@ public class PotentialFunctions {
         PotentialFunctions.dp = new double[PotentialFunctions.NONPARAM_WEIGHT_SIZE];
 
         System.out.println("Min:" + min + " Max:" + max);
-        double inc = (max - min) / PotentialFunctions.NONPARAM_WEIGHT_SIZE;
-        double begin = -inc;
+        final double inc = (max - min) / PotentialFunctions.NONPARAM_WEIGHT_SIZE;
+        final double begin = -inc;
         for (int i = 0; i < PotentialFunctions.NONPARAM_WEIGHT_SIZE; i++) {
             PotentialFunctions.dp[i] = begin + inc * i;
             System.out.print(PotentialFunctions.dp[i] + ",");
@@ -49,7 +49,7 @@ public class PotentialFunctions {
 
     static double hernquistPotential(double di, double threshold, double sigma) {
 
-        double z = (di - threshold) / sigma;
+        final double z = (di - threshold) / sigma;
         if (z > 0) {
             return -1 / (1 + z);
         }
@@ -60,7 +60,7 @@ public class PotentialFunctions {
     }
 
     static double plummerPotential(double di, double threshold, double sigma) {
-        double z = (di - threshold) / sigma;
+        final double z = (di - threshold) / sigma;
         if (z > 0) {
             return -1 * Math.pow(1 + z * z, -.5);
         }
@@ -71,7 +71,7 @@ public class PotentialFunctions {
     }
 
     static double linearType1(double di, double threshold, double sigma) {
-        double z = (di - threshold) / sigma;
+        final double z = (di - threshold) / sigma;
         if (z > 1) {
             return 0;
         }
@@ -82,7 +82,7 @@ public class PotentialFunctions {
     }
 
     static double coulomb(double di, double threshold, double sigma) {
-        double z = (di - threshold) / sigma;
+        final double z = (di - threshold) / sigma;
         if (z != 0) {
             return 1 / (z * z);
         }
@@ -93,7 +93,7 @@ public class PotentialFunctions {
     }
 
     static double linearType2(double di, double threshold, double sigma) {
-        double z = (di - threshold) / sigma;
+        final double z = (di - threshold) / sigma;
         if (z > 1) {
             return 0;
         }
@@ -109,7 +109,7 @@ public class PotentialFunctions {
     static double nonParametric(double di, double[] weights) // size(weights) <=size(dp)
     {
 
-        double h = Math.abs(dp[1] - dp[0]);
+        final double h = Math.abs(dp[1] - dp[0]);
         double sum = 0;
         double z = 0, kappa = 0;
         for (int i = 0; i < weights.length; i++) {

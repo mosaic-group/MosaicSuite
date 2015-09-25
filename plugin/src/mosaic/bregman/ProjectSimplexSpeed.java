@@ -39,8 +39,8 @@ class ProjectSimplexSpeed {
         dimz = nl;
 
         int x, y, z;
-        double[] v = new double[dimz];
-        double[] mu = new double[dimz];
+        final double[] v = new double[dimz];
+        final double[] mu = new double[dimz];
         double sm, row, sm_row, theta, val;
 
         for (x = 0; x < dimx; x++) {

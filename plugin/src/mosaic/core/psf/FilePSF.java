@@ -209,10 +209,10 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> {
         settings.filePSF = new String();
         settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp") + File.separator + "psf_file_settings.dat", FilePSFSettings.class, settings);
 
-        GenericDialog gd = new GenericDialog("File PSF");
+        final GenericDialog gd = new GenericDialog("File PSF");
 
         // if argument psf_file= set it
-        String psf = MosaicUtils.parseString("psf_file", Macro.getOptions());
+        final String psf = MosaicUtils.parseString("psf_file", Macro.getOptions());
 
         // File to open
 
@@ -225,9 +225,9 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> {
 
         final TextField PSFc = (TextField) gd.getStringFields().lastElement();
         {
-            Button optionButton = new Button("Choose");
-            GridBagConstraints c = new GridBagConstraints();
-            int gridx = 2;
+            final Button optionButton = new Button("Choose");
+            final GridBagConstraints c = new GridBagConstraints();
+            final int gridx = 2;
             int gridy = 0;
             c.gridx = gridx;
             c.gridy = gridy++;
@@ -238,7 +238,7 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    OpenDialog op = new OpenDialog("Choose PSF file", null);
+                    final OpenDialog op = new OpenDialog("Choose PSF file", null);
 
                     filename = op.getDirectory() + File.separator + op.getFileName();
                     PSFc.setText(filename);
@@ -252,24 +252,24 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> {
             return;
         }
 
-        String filename = gd.getNextString();
+        final String filename = gd.getNextString();
 
         // open the image
 
         final ImgFactory<T> factory = new ArrayImgFactory<T>();
-        ImgOpener imgOpener = new ImgOpener(new Context(SCIFIOService.class, AppService.class, StatusService.class));
+        final ImgOpener imgOpener = new ImgOpener(new Context(SCIFIOService.class, AppService.class, StatusService.class));
         try {
             try {
                 image = imgOpener.openImgs(filename, factory, clCreator.newInstance()).get(0);
             }
-            catch (InstantiationException e) {
+            catch (final InstantiationException e) {
                 e.printStackTrace();
             }
-            catch (IllegalAccessException e) {
+            catch (final IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
-        catch (ImgIOException e) {
+        catch (final ImgIOException e) {
             e.printStackTrace();
         }
 
@@ -298,7 +298,7 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> {
             return null;
         }
 
-        int sz[] = new int[image.numDimensions()];
+        final int sz[] = new int[image.numDimensions()];
 
         for (int i = 0; i < image.numDimensions(); i++) {
             sz[i] = (int) image.dimension(i);
@@ -316,7 +316,7 @@ class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> {
     @Override
     public void setCenter(int[] pos) {
 
-        long pos_[] = new long[pos.length];
+        final long pos_[] = new long[pos.length];
 
         for (int i = 0; i < pos.length; i++) {
             pos_[i] = pos[i];

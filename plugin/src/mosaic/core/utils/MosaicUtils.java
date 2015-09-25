@@ -51,7 +51,7 @@ class FloatToARGB implements ToARGB {
 
     @Override
     public ARGBType toARGB(Object data) {
-        ARGBType t = new ARGBType();
+        final ARGBType t = new ARGBType();
 
         float td = 0.0f;
         td = (float) (255 * (((RealType<?>) data).getRealFloat() - min) / max);
@@ -74,7 +74,7 @@ class IntToARGB implements ToARGB {
 
     @Override
     public ARGBType toARGB(Object data) {
-        ARGBType t = new ARGBType();
+        final ARGBType t = new ARGBType();
 
         int td = 0;
         td = (int) (255 * (((IntegerType<?>) data).getInteger() - min) / max);
@@ -159,11 +159,11 @@ public class MosaicUtils {
             min = (T) crs.get().getClass().newInstance();
             max = (T) crs.get().getClass().newInstance();
         }
-        catch (InstantiationException e) {
+        catch (final InstantiationException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
-        catch (IllegalAccessException e) {
+        catch (final IllegalAccessException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
@@ -191,7 +191,7 @@ public class MosaicUtils {
         if (PossibleFile.size() > 1) {
             // Ask user to choose
 
-            ChooseGUI cg = new ChooseGUI();
+            final ChooseGUI cg = new ChooseGUI();
 
             return cg.choose("Choose segmentation", "Found multiple segmentations", PossibleFile);
         }
@@ -211,15 +211,15 @@ public class MosaicUtils {
      * @param Image
      */
     static public boolean checkSegmentationInfo(ImagePlus aImp, String plugin) {
-        String Folder = MosaicUtils.ValidFolderFromImage(aImp);
-        Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
+        final String Folder = MosaicUtils.ValidFolderFromImage(aImp);
+        final Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
 
         // Get infos from possible segmentation
 
         for (int i = 0; i < sg.length; i++) {
-            String sR[] = sg[i].getRegionList(aImp);
+            final String sR[] = sg[i].getRegionList(aImp);
             for (int j = 0; j < sR.length; j++) {
-                File fR = new File(Folder + sR[j]);
+                final File fR = new File(Folder + sR[j]);
 
                 if (fR.exists()) {
                     return true;
@@ -231,14 +231,14 @@ public class MosaicUtils {
             // and search inside the selected directory
             //
 
-            String[] jb = ClusterSession.getJobDirectories(0, Folder);
+            final String[] jb = ClusterSession.getJobDirectories(0, Folder);
 
             // check if the jobID and filename match
 
             for (int k = 0; k < jb.length; k++) {
                 // Filename
 
-                String[] fl = MosaicUtils.readAndSplit(jb[k] + File.separator + "JobID");
+                final String[] fl = MosaicUtils.readAndSplit(jb[k] + File.separator + "JobID");
 
                 if (fl[2].contains(aImp.getTitle()) && sg[i].getName().equals(fl[3])) {
                     if (plugin == null) {
@@ -262,20 +262,20 @@ public class MosaicUtils {
      * @param Image
      */
     static public SegmentationInfo getSegmentationInfo(ImagePlus aImp) {
-        String Folder = MosaicUtils.ValidFolderFromImage(aImp);
-        Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
+        final String Folder = MosaicUtils.ValidFolderFromImage(aImp);
+        final Segmentation[] sg = MosaicUtils.getSegmentationPluginsClasses();
 
-        Vector<File> PossibleFile = new Vector<File>();
+        final Vector<File> PossibleFile = new Vector<File>();
 
-        MosaicUtils MS = new MosaicUtils();
-        SegmentationInfo sI = MS.new SegmentationInfo();
+        final MosaicUtils MS = new MosaicUtils();
+        final SegmentationInfo sI = MS.new SegmentationInfo();
 
         // Get infos from possible segmentation
 
         for (int i = 0; i < sg.length; i++) {
             String sR[] = sg[i].getRegionList(aImp);
             for (int j = 0; j < sR.length; j++) {
-                File fR = new File(Folder + sR[j]);
+                final File fR = new File(Folder + sR[j]);
 
                 if (fR.exists()) {
                     PossibleFile.add(fR);
@@ -286,19 +286,19 @@ public class MosaicUtils {
             // if there are open a job selector
             // and search inside the selected directory
 
-            String[] jb = ClusterSession.getJobDirectories(0, Folder);
+            final String[] jb = ClusterSession.getJobDirectories(0, Folder);
 
             for (int k = 0; k < jb.length; k++) {
                 // check if the jobID and filename match
 
-                String[] fl = MosaicUtils.readAndSplit(jb[k] + File.separator + "JobID");
+                final String[] fl = MosaicUtils.readAndSplit(jb[k] + File.separator + "JobID");
 
                 if (fl[2].contains(aImp.getTitle()) && sg[i].getName().equals(fl[3])) {
                     // Get the region list
 
                     sR = sg[i].getRegionList(aImp);
                     for (int j = 0; j < sR.length; j++) {
-                        File fR = new File(jb[k] + File.separator + sR[j]);
+                        final File fR = new File(jb[k] + File.separator + sR[j]);
                         if (fR.exists() == true) {
                             PossibleFile.add(fR);
                         }
@@ -315,11 +315,11 @@ public class MosaicUtils {
 
             PossibleFile.clear();
 
-            String dir = sI.RegionList.getParent();
+            final String dir = sI.RegionList.getParent();
 
-            String sM[] = sg[i].getMask(aImp);
+            final String sM[] = sg[i].getMask(aImp);
             for (int j = 0; j < sM.length; j++) {
-                File fM = new File(dir + File.separator + sM[j]);
+                final File fM = new File(dir + File.separator + sM[j]);
 
                 if (fM.exists()) {
                     PossibleFile.add(fM);
@@ -338,7 +338,7 @@ public class MosaicUtils {
      * @return an array of the classes
      */
     static private Segmentation[] getSegmentationPluginsClasses() {
-        Segmentation[] sg = new Segmentation[1];
+        final Segmentation[] sg = new Segmentation[1];
         sg[0] = new BregmanGLM_Batch();
 
         return sg;
@@ -359,7 +359,7 @@ public class MosaicUtils {
         }
 
         // merge slices channels frames
-        int hcount = a2.getNFrames() + a1.getNFrames();
+        final int hcount = a2.getNFrames() + a1.getNFrames();
         for (int k = 1; k <= a2.getNFrames(); k++) {
             for (int j = 1; j <= a2.getNSlices(); j++) {
                 for (int i = 1; i <= a2.getNChannels(); i++) {
@@ -386,7 +386,7 @@ public class MosaicUtils {
             scanner = new Scanner(new File(file));
             output = scanner.useDelimiter("\\Z").next();
         }
-        catch (FileNotFoundException e) {
+        catch (final FileNotFoundException e) {
             e.printStackTrace();
             return null;
         } 
@@ -423,12 +423,12 @@ public class MosaicUtils {
     }
 
     public static ImageProcessor cropImageStack2D(ImageProcessor ip, int cropsize) {
-        int width = ip.getWidth();
-        int newWidth = width - 2 * cropsize;
-        FloatProcessor cropped_proc = new FloatProcessor(ip.getWidth() - 2 * cropsize, ip.getHeight() - 2 * cropsize);
-        float[] croppedpx = (float[]) cropped_proc.getPixels();
-        float[] origpx = (float[]) ip.getPixels();
-        int offset = cropsize * width + cropsize;
+        final int width = ip.getWidth();
+        final int newWidth = width - 2 * cropsize;
+        final FloatProcessor cropped_proc = new FloatProcessor(ip.getWidth() - 2 * cropsize, ip.getHeight() - 2 * cropsize);
+        final float[] croppedpx = (float[]) cropped_proc.getPixels();
+        final float[] origpx = (float[]) ip.getPixels();
+        final int offset = cropsize * width + cropsize;
         for (int i = offset, j = 0; j < croppedpx.length; i++, j++) {
             croppedpx[j] = origpx[i];
             if (j % newWidth == newWidth - 1) {
@@ -446,7 +446,7 @@ public class MosaicUtils {
      * @return the cropped image
      */
     public static ImageStack cropImageStack3D(ImageStack is, int cropSize) {
-        ImageStack cropped_is = new ImageStack(is.getWidth() - 2 * cropSize, is.getHeight() - 2 * cropSize);
+        final ImageStack cropped_is = new ImageStack(is.getWidth() - 2 * cropSize, is.getHeight() - 2 * cropSize);
         for (int s = cropSize + 1; s <= is.getSize() - cropSize; s++) {
             cropped_is.addSlice("", MosaicUtils.cropImageStack2D(is.getProcessor(s), cropSize));
         }
@@ -454,11 +454,11 @@ public class MosaicUtils {
     }
 
     public static ImageProcessor padImageStack2D(ImageProcessor ip, int padSize) {
-        int width = ip.getWidth();
-        int newWidth = width + 2 * padSize;
-        FloatProcessor padded_proc = new FloatProcessor(ip.getWidth() + 2 * padSize, ip.getHeight() + 2 * padSize);
-        float[] paddedpx = (float[]) padded_proc.getPixels();
-        float[] origpx = (float[]) ip.getPixels();
+        final int width = ip.getWidth();
+        final int newWidth = width + 2 * padSize;
+        final FloatProcessor padded_proc = new FloatProcessor(ip.getWidth() + 2 * padSize, ip.getHeight() + 2 * padSize);
+        final float[] paddedpx = (float[]) padded_proc.getPixels();
+        final float[] origpx = (float[]) ip.getPixels();
         // first r pixel lines
         for (int i = 0; i < padSize * newWidth; i++) {
             if (i % newWidth < padSize) { // right corner
@@ -474,7 +474,7 @@ public class MosaicUtils {
 
         // the original pixel lines and left & right edges
         for (int i = 0, j = padSize * newWidth; i < origpx.length; i++, j++) {
-            int xcoord = i % width;
+            final int xcoord = i % width;
             if (xcoord == 0) {// add r pixel rows (left)
                 for (int a = 0; a < padSize; a++) {
                     paddedpx[j] = origpx[i];
@@ -491,7 +491,7 @@ public class MosaicUtils {
         }
 
         // last r pixel lines
-        int lastlineoffset = origpx.length - width;
+        final int lastlineoffset = origpx.length - width;
         for (int j = (padSize + ip.getHeight()) * newWidth, i = 0; j < paddedpx.length; j++, i++) {
             if (i % width == 0) { // left corner
                 for (int a = 0; a < padSize; a++) {
@@ -523,9 +523,9 @@ public class MosaicUtils {
      *         pixel row/line/slice
      */
     public static ImageStack padImageStack3D(ImageStack is, int padSize) {
-        ImageStack padded_is = new ImageStack(is.getWidth() + 2 * padSize, is.getHeight() + 2 * padSize);
+        final ImageStack padded_is = new ImageStack(is.getWidth() + 2 * padSize, is.getHeight() + 2 * padSize);
         for (int s = 0; s < is.getSize(); s++) {
-            ImageProcessor padded_proc = MosaicUtils.padImageStack2D(is.getProcessor(s + 1), padSize);
+            final ImageProcessor padded_proc = MosaicUtils.padImageStack2D(is.getProcessor(s + 1), padSize);
             // if we are on the top or bottom of the stack, add r slices
             if (s == 0 || s == is.getSize() - 1) {
                 for (int i = 0; i < padSize; i++) {
@@ -553,12 +553,12 @@ public class MosaicUtils {
             }
         }
         for (int s = 1; s <= aIS.getSize(); s++) {
-            float[] pixels = (float[]) aIS.getProcessor(s).getPixels();
-            int width = aIS.getWidth();
-            int height = aIS.getHeight();
+            final float[] pixels = (float[]) aIS.getProcessor(s).getPixels();
+            final int width = aIS.getWidth();
+            final int height = aIS.getHeight();
             for (int i = 0; i < pixels.length; i++) {
-                int xcoord = i % width;
-                int ycoord = i / width;
+                final int xcoord = i % width;
+                final int ycoord = i / width;
                 if (xcoord < padSize && ycoord < padSize) {
                     pixels[i] = pixels[padSize * width + padSize];
                     continue;
@@ -601,7 +601,7 @@ public class MosaicUtils {
     }
 
     public static ImageStack GetSubStackInFloat(ImageStack is, int startPos, int endPos) {
-        ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
+        final ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
         if (startPos > endPos || startPos < 0 || endPos < 0) {
             return null;
         }
@@ -612,7 +612,7 @@ public class MosaicUtils {
     }
 
     public static ImageStack GetSubStackCopyInFloat(ImageStack is, int startPos, int endPos) {
-        ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
+        final ImageStack res = new ImageStack(is.getWidth(), is.getHeight());
         if (startPos > endPos || startPos < 0 || endPos < 0) {
             return null;
         }
@@ -647,14 +647,14 @@ public class MosaicUtils {
      */
     public static boolean write2File(String directory, String file_name, String info) {
         try {
-            FileOutputStream fos = new FileOutputStream(new File(directory, file_name));
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
-            PrintWriter print_writer = new PrintWriter(bos);
+            final FileOutputStream fos = new FileOutputStream(new File(directory, file_name));
+            final BufferedOutputStream bos = new BufferedOutputStream(fos);
+            final PrintWriter print_writer = new PrintWriter(bos);
             print_writer.print(info);
             print_writer.close();
             return true;
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             IJ.error("" + e);
             return false;
         }
@@ -681,9 +681,9 @@ public class MosaicUtils {
             return false;
         }
 
-        Cursor<T> img_c = B.cursor();
-        RandomAccessibleInterval<T> view = Views.hyperSlice(A, B.numDimensions(), fix);
-        Cursor<T> img_v = Views.iterable(view).cursor();
+        final Cursor<T> img_c = B.cursor();
+        final RandomAccessibleInterval<T> view = Views.hyperSlice(A, B.numDimensions(), fix);
+        final Cursor<T> img_v = Views.iterable(view).cursor();
 
         while (img_c.hasNext()) {
             img_c.fwd();
@@ -707,18 +707,18 @@ public class MosaicUtils {
             return null;
         }
 
-        int nImages = img.getNFrames();
+        final int nImages = img.getNFrames();
 
-        ImageStack stk = img.getStack();
+        final ImageStack stk = img.getStack();
 
-        int stack_size = stk.getSize() / nImages;
+        final int stack_size = stk.getSize() / nImages;
 
-        ImageStack tmp_stk = new ImageStack(img.getWidth(), img.getHeight());
+        final ImageStack tmp_stk = new ImageStack(img.getWidth(), img.getHeight());
         for (int j = 0; j < stack_size; j++) {
             tmp_stk.addSlice("st" + j, stk.getProcessor((frame - 1) * stack_size + j + 1));
         }
 
-        ImagePlus ip = new ImagePlus("tmp", tmp_stk);
+        final ImagePlus ip = new ImagePlus("tmp", tmp_stk);
         return ip;
     }
 
@@ -734,18 +734,18 @@ public class MosaicUtils {
             return null;
         }
 
-        int nImages = img.getNSlices();
+        final int nImages = img.getNSlices();
 
-        ImageStack stk = img.getStack();
+        final ImageStack stk = img.getStack();
 
-        int stack_size = stk.getSize() / nImages;
+        final int stack_size = stk.getSize() / nImages;
 
-        ImageStack tmp_stk = new ImageStack(img.getWidth(), img.getHeight());
+        final ImageStack tmp_stk = new ImageStack(img.getWidth(), img.getHeight());
         for (int j = 0; j < stack_size; j++) {
             tmp_stk.addSlice("st" + j, stk.getProcessor((slice - 1) * stack_size + j + 1));
         }
 
-        ImagePlus ip = new ImagePlus("tmp", tmp_stk);
+        final ImagePlus ip = new ImagePlus("tmp", tmp_stk);
         return ip;
     }
 
@@ -764,27 +764,27 @@ public class MosaicUtils {
     public static void reorganize(String output[], Vector<String> bases, String sv) {
         // Crate directories
         for (int j = 0; j < output.length; j++) {
-            String tmp = new String(output[j]);
-            String dirName = sv + "/" + tmp.replace("*", "_");
+            final String tmp = new String(output[j]);
+            final String dirName = sv + "/" + tmp.replace("*", "_");
             SystemOperations.createDir(dirName);
         }
 
         // Copy all existing files
         for (int j = 0; j < output.length; j++) {
-            String tmp = new String(output[j]);
+            final String tmp = new String(output[j]);
 
             for (int k = 0; k < bases.size(); k++) {
-                String src = sv + File.separator + tmp.replace("*", bases.get(k));
-                String dest = sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", "");
+                final String src = sv + File.separator + tmp.replace("*", bases.get(k));
+                final String dest = sv + File.separator + tmp.replace("*", "_") + File.separator + bases.get(k) + tmp.replace("*", "");
                 SystemOperations.moveFile(src, dest, true /* quiet */);
             }
         }
 
         // check for all the folder created if empty delete it
         for (int j = 0; j < output.length; j++) {
-            String tmp = new String(output[j]);
-            String dirStr = sv + "/" + tmp.replace("*", "_");
-            File dir = new File(dirStr);
+            final String tmp = new String(output[j]);
+            final String dirStr = sv + "/" + tmp.replace("*", "_");
+            final File dir = new File(dirStr);
             if (dir.listFiles() != null && dir.listFiles().length == 0) {
                 SystemOperations.removeDir(dir);
             }
@@ -808,14 +808,14 @@ public class MosaicUtils {
     public static void reorganize(String output[], String base, String sv, int nf) {
         // Crate directories
         for (int j = 0; j < output.length; j++) {
-            String tmp = new String(output[j]);
-            String dirName = sv + "/" + tmp.replace("*", "_");
+            final String tmp = new String(output[j]);
+            final String dirName = sv + "/" + tmp.replace("*", "_");
             SystemOperations.createDir(dirName);
         }
 
         // Copy all existing files
         for (int j = 0; j < output.length; j++) {
-            String tmp = new String(output[j]);
+            final String tmp = new String(output[j]);
 
             for (int k = 0; k < nf; k++) {
                 String src = "";
@@ -835,9 +835,9 @@ public class MosaicUtils {
 
         // check for all the folder created if empty delete it
         for (int j = 0; j < output.length; j++) {
-            String tmp = new String(output[j]);
-            String dirStr = sv + "/" + tmp.replace("*", "_");
-            File dir = new File(dirStr);
+            final String tmp = new String(output[j]);
+            final String dirStr = sv + "/" + tmp.replace("*", "_");
+            final File dir = new File(dirStr);
             if (dir.listFiles() != null && dir.listFiles().length == 0) {
                 SystemOperations.removeDir(dir);
             }
@@ -864,13 +864,13 @@ public class MosaicUtils {
     public static void reorganize(String output[], String base_src, String base_dst, String sv, int nf) {
         // Crate directories
         for (int j = 0; j < output.length; j++) {
-            String tmp = new String(output[j]);
-            String dirName = sv + "/" + tmp.replace("*", "_");
+            final String tmp = new String(output[j]);
+            final String dirName = sv + "/" + tmp.replace("*", "_");
             SystemOperations.createDir(dirName);
         }
 
         for (int j = 0; j < output.length; j++) {
-            String tmp = new String(output[j]);
+            final String tmp = new String(output[j]);
             for (int k = 0; k < nf; k++) {
                 String src = "";
                 String dest = "";
@@ -895,9 +895,9 @@ public class MosaicUtils {
 
         // check for all the folder created if empty delete it
         for (int j = 0; j < output.length; j++) {
-            String tmp = new String(output[j]);
-            String dirStr = sv + "/" + tmp.replace("*", "_");
-            File dir = new File(dirStr);
+            final String tmp = new String(output[j]);
+            final String dirStr = sv + "/" + tmp.replace("*", "_");
+            final File dir = new File(dirStr);
             if (dir.listFiles() != null && dir.listFiles().length == 0) {
                 SystemOperations.removeDir(dir);
             }
@@ -914,14 +914,14 @@ public class MosaicUtils {
      */
     public static Choice chooseImage(GenericDialog gd, ImagePlus imp) {
         int nOpenedImages = 0;
-        int[] ids = WindowManager.getIDList();
+        final int[] ids = WindowManager.getIDList();
 
-        String[] names = new String[nOpenedImages + 1];
+        final String[] names = new String[nOpenedImages + 1];
         names[0] = "";
         if (ids != null) {
             nOpenedImages = ids.length;
             for (int i = 0; i < nOpenedImages; i++) {
-                ImagePlus ip = WindowManager.getImage(ids[i]);
+                final ImagePlus ip = WindowManager.getImage(ids[i]);
                 names[i + 1] = ip.getTitle();
             }
         }
@@ -930,14 +930,14 @@ public class MosaicUtils {
             return null;
         }
 
-        Choice choiceInputImage = (Choice) gd.getChoices().lastElement();
+        final Choice choiceInputImage = (Choice) gd.getChoices().lastElement();
 
         if (imp != null) {
             for (int i = 0; i < names.length; i++) {
                 choiceInputImage.addItem(names[i]);
             }
 
-            String title = imp.getTitle();
+            final String title = imp.getTitle();
             choiceInputImage.select(title);
         }
         else {
@@ -949,7 +949,7 @@ public class MosaicUtils {
 
     public static String getRegionMaskName(String filename) {
         // remove the extension
-        String s = filename.substring(0, filename.lastIndexOf("."));
+        final String s = filename.substring(0, filename.lastIndexOf("."));
 
         return s + "_seg_c1.tif";
     }
@@ -963,7 +963,7 @@ public class MosaicUtils {
     public static String getRegionCSVName(String filename) {
         // remove the extension
 
-        String s = filename.substring(0, filename.lastIndexOf("."));
+        final String s = filename.substring(0, filename.lastIndexOf("."));
 
         return s + "_ObjectsData_c1.csv";
     }
@@ -974,14 +974,14 @@ public class MosaicUtils {
      * @param mm output min and max
      */
     private static void getMaxMin(File fl, MM mm) {
-        Opener opener = new Opener();
-        ImagePlus imp = opener.openImage(fl.getAbsolutePath());
+        final Opener opener = new Opener();
+        final ImagePlus imp = opener.openImage(fl.getAbsolutePath());
 
         float global_max = 0.0f;
         float global_min = 0.0f;
 
         if (imp != null) {
-            StackStatistics stack_stats = new StackStatistics(imp);
+            final StackStatistics stack_stats = new StackStatistics(imp);
             global_max = (float) stack_stats.max;
             global_min = (float) stack_stats.min;
 
@@ -1003,7 +1003,7 @@ public class MosaicUtils {
      * @param mm output min and max
      */
     public static void getFilesMaxMin(File fls[], MM mm) {
-        for (File fl : fls) {
+        for (final File fl : fls) {
             getMaxMin(fl, mm);
         }
     }
@@ -1050,9 +1050,9 @@ public class MosaicUtils {
             return null;
         }
 
-        Pattern config = Pattern.compile(name);
-        Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
-        Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-:-]+");
+        final Pattern config = Pattern.compile(name);
+        final Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+        final Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-:-]+");
 
         // config
 
@@ -1080,9 +1080,9 @@ public class MosaicUtils {
      * @return the value of the argument, null if the argument does not exist
      */
     private static Boolean parseBoolean(String name, String options) {
-        Pattern config = Pattern.compile(name);
-        Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
-        Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+        final Pattern config = Pattern.compile(name);
+        final Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+        final Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
 
         // config
 
@@ -1109,7 +1109,7 @@ public class MosaicUtils {
      * @return array with the image dimensions
      */
     public static <T> int[] getImageIntDimensions(Img<T> img) {
-        int dimensions[] = new int[img.numDimensions()];
+        final int dimensions[] = new int[img.numDimensions()];
         for (int i = 0; i < img.numDimensions(); i++) {
             dimensions[i] = (int) img.dimension(i);
         }
@@ -1124,7 +1124,7 @@ public class MosaicUtils {
      * @return array with the image dimensions
      */
     public static <T> long[] getImageLongDimensions(Img<T> img) {
-        long dimensions_l[] = new long[img.numDimensions()];
+        final long dimensions_l[] = new long[img.numDimensions()];
         for (int i = 0; i < img.numDimensions(); i++) {
             dimensions_l[i] = img.dimension(i);
         }
@@ -1187,7 +1187,7 @@ public class MosaicUtils {
     static ImgTest[] getTestImages(String plugin, String filter) {
         // Search for test images
 
-        Vector<ImgTest> it = new Vector<ImgTest>();
+        final Vector<ImgTest> it = new Vector<ImgTest>();
 
         String TestFolder = new String();
 
@@ -1197,21 +1197,21 @@ public class MosaicUtils {
 
         // List all directories
 
-        File fl = new File(TestFolder);
-        File dirs[] = fl.listFiles();
+        final File fl = new File(TestFolder);
+        final File dirs[] = fl.listFiles();
 
         if (dirs == null) {
             return null;
         }
 
-        for (File dir : dirs) {
+        for (final File dir : dirs) {
             if (dir.isDirectory() == false) {
                 continue;
             }
 
             // open config
 
-            String cfg = dir.getAbsolutePath() + File.separator + "config.cfg";
+            final String cfg = dir.getAbsolutePath() + File.separator + "config.cfg";
 
             // Format
             //
@@ -1229,12 +1229,12 @@ public class MosaicUtils {
                     continue;
                 }
 
-                BufferedReader br = new BufferedReader(new FileReader(cfg));
+                final BufferedReader br = new BufferedReader(new FileReader(cfg));
 
                 imgT = new ImgTest();
 
                 imgT.base = dir.getAbsolutePath();
-                int nimage_file = Integer.parseInt(br.readLine());
+                final int nimage_file = Integer.parseInt(br.readLine());
                 imgT.img = new String[nimage_file];
                 for (int i = 0; i < imgT.img.length; i++) {
                     imgT.img[i] = dir.getAbsolutePath() + File.separator + br.readLine();
@@ -1242,7 +1242,7 @@ public class MosaicUtils {
 
                 imgT.options = br.readLine();
 
-                int nsetup_file = Integer.parseInt(br.readLine());
+                final int nsetup_file = Integer.parseInt(br.readLine());
                 imgT.setup_files = new String[nsetup_file];
 
                 for (int i = 0; i < imgT.setup_files.length; i++) {
@@ -1250,7 +1250,7 @@ public class MosaicUtils {
                 }
 
                 imgT.setup_return = Integer.parseInt(br.readLine());
-                int n_images = Integer.parseInt(br.readLine());
+                final int n_images = Integer.parseInt(br.readLine());
                 imgT.result_imgs = new String[n_images];
                 imgT.result_imgs_rel = new String[n_images];
                 imgT.csv_results_rel = new String[n_images];
@@ -1260,7 +1260,7 @@ public class MosaicUtils {
                     imgT.result_imgs[i] = dir.getAbsolutePath() + File.separator + imgT.result_imgs_rel[i];
                 }
 
-                int n_csv_res = Integer.parseInt(br.readLine());
+                final int n_csv_res = Integer.parseInt(br.readLine());
 
                 imgT.csv_results = new String[n_csv_res];
                 imgT.csv_results_rel = new String[n_csv_res];
@@ -1270,7 +1270,7 @@ public class MosaicUtils {
                 }
                 br.close();
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 e.printStackTrace();
                 return null;
             }
@@ -1280,7 +1280,7 @@ public class MosaicUtils {
 
         // Convert Vector to array
 
-        ImgTest[] its = new ImgTest[it.size()];
+        final ImgTest[] its = new ImgTest[it.size()];
 
         for (int i = 0; i < its.length; i++) {
             its[i] = it.get(i);
@@ -1299,18 +1299,18 @@ public class MosaicUtils {
 
     static boolean compare(Img<?> img1, Img<?> img2) {
 
-        Cursor<?> ci1 = img1.cursor();
-        RandomAccess<?> ci2 = img2.randomAccess();
+        final Cursor<?> ci1 = img1.cursor();
+        final RandomAccess<?> ci2 = img2.randomAccess();
 
-        int loc[] = new int[img1.numDimensions()];
+        final int loc[] = new int[img1.numDimensions()];
 
         while (ci1.hasNext()) {
             ci1.fwd();
             ci1.localize(loc);
             ci2.setPosition(loc);
 
-            Object t1 = ci1.get();
-            Object t2 = ci2.get();
+            final Object t1 = ci1.get();
+            final Object t2 = ci2.get();
 
             if (!t1.equals(t2)) {
                 return false;
@@ -1328,7 +1328,7 @@ public class MosaicUtils {
      */
 
     public static String removeExtension(String str) {
-        int idp = str.lastIndexOf(".");
+        final int idp = str.lastIndexOf(".");
         if (idp < 0) {
             return str;
         }
@@ -1345,7 +1345,7 @@ public class MosaicUtils {
      */
 
     private static String[] getCSV(String[] dir) {
-        Vector<String> outcsv = new Vector<String>();
+        final Vector<String> outcsv = new Vector<String>();
 
         for (int i = 0; i < dir.length; i++) {
             if (dir[i].endsWith(".csv")) {
@@ -1353,7 +1353,7 @@ public class MosaicUtils {
             }
         }
 
-        String[] outS = new String[outcsv.size()];
+        final String[] outS = new String[outcsv.size()];
 
         for (int i = 0; i < outcsv.size(); i++) {
             outS[i] = outcsv.get(i);
@@ -1374,16 +1374,16 @@ public class MosaicUtils {
      */
     private static <T> boolean Stitch(String dir_p[], File dir, File output_file, CsvMetaInfo ext[], Class<T> cls) {
         boolean first = true;
-        CSV<?> csv = new CSV<T>(cls);
+        final CSV<?> csv = new CSV<T>(cls);
 
         for (int j = 0; j < dir_p.length; j++) {
-            File[] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
+            final File[] fl = new File(dir + File.separator + dir_p[j].replace("*", "_")).listFiles();
             if (fl == null) {
                 continue;
             }
-            int nf = fl.length;
+            final int nf = fl.length;
 
-            String str[] = new String[nf];
+            final String str[] = new String[nf];
 
             for (int i = 1; i <= nf; i++) {
                 if (fl[i - 1].getName().endsWith(".csv")) {
@@ -1432,7 +1432,7 @@ public class MosaicUtils {
             mt = new CsvMetaInfo[0];
         }
 
-        String[] outcsv = MosaicUtils.getCSV(output);
+        final String[] outcsv = MosaicUtils.getCSV(output);
         Stitch(outcsv, new File(fl), new File(fl + File.separator + "stitch"), mt, Region3DColocRScript.class);
 
         return true;
@@ -1449,7 +1449,7 @@ public class MosaicUtils {
      */
     static public boolean StitchJobsCSV(String fl, String[] output, String bck) {
         // get the job directories
-        String[] JobDir = ClusterSession.getJobDirectories(0, fl);
+        final String[] JobDir = ClusterSession.getJobDirectories(0, fl);
 
         // for all job dir stitch
         for (int i = 0; i < JobDir.length; i++) {

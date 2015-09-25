@@ -41,25 +41,25 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 
         // Create a vector of image patches
 
-        Vector<ImagePatch<T, E>> img_pt = new Vector<ImagePatch<T, E>>();
+        final Vector<ImagePatch<T, E>> img_pt = new Vector<ImagePatch<T, E>>();
 
         // Find connected regions on lbl
 
-        Connectivity connFG = new Connectivity(lbl.numDimensions(), lbl.numDimensions() - 1);
-        LabelImage lbl_t = new LabelImage(lbl);
+        final Connectivity connFG = new Connectivity(lbl.numDimensions(), lbl.numDimensions() - 1);
+        final LabelImage lbl_t = new LabelImage(lbl);
 
         // Find connected regions and create statistics
 
-        HashSet<Integer> oldLabels = new HashSet<Integer>(); // set of the old labels
-        ArrayList<Integer> newLabels = new ArrayList<Integer>(); // set of new labels
+        final HashSet<Integer> oldLabels = new HashSet<Integer>(); // set of the old labels
+        final ArrayList<Integer> newLabels = new ArrayList<Integer>(); // set of new labels
 
         int newLabel = 1;
 
-        int size = lbl_t.getSize();
+        final int size = lbl_t.getSize();
 
         // what are the old labels?
         for (int i = 0; i < size; i++) {
-            int l = lbl_t.getLabel(i);
+            final int l = lbl_t.getLabel(i);
             if (l == lbl_t.bgLabel) {
                 continue;
             }
@@ -67,15 +67,15 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
         }
 
         for (int i = 0; i < size; i++) {
-            int l = lbl_t.getLabel(i);
+            final int l = lbl_t.getLabel(i);
             if (l == lbl_t.bgLabel) {
                 continue;
             }
             if (oldLabels.contains(l)) {
                 // l is an old label
-                BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(lbl_t);
+                final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(lbl_t);
                 aMultiThsFunctionPtr.AddThresholdBetween(l, l);
-                FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, lbl_t.iterator.indexToPoint(i));
+                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, lbl_t.iterator.indexToPoint(i));
 
                 // find a new label
                 while (oldLabels.contains(newLabel)) {
@@ -87,10 +87,10 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 
                 img_pt.add(new ImagePatch<T, E>(margins.length));
 
-                ImagePatch<T, E> ip = img_pt.get(img_pt.size() - 1);
+                final ImagePatch<T, E> ip = img_pt.get(img_pt.size() - 1);
 
                 // set region to new label
-                for (Point p : ff) {
+                for (final Point p : ff) {
                     lbl_t.setLabel(p, newLabel);
 
                     // check and extend the border
@@ -127,17 +127,17 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
      */
 
     private void writeOnImage(Img<E> img, ImagePatch<T, E> pt) {
-        RandomAccess<E> randomAccess = img.randomAccess();
+        final RandomAccess<E> randomAccess = img.randomAccess();
 
-        Point offset = pt.getP1();
-        Cursor<E> cur = pt.getResult().cursor();
-        Point p = new Point(img.numDimensions());
+        final Point offset = pt.getP1();
+        final Cursor<E> cur = pt.getResult().cursor();
+        final Point p = new Point(img.numDimensions());
 
         while (cur.hasNext()) {
             cur.next();
             cur.localize(p.x);
 
-            Point psum = offset.add(p);
+            final Point psum = offset.add(p);
 
             randomAccess.setPosition(psum.x);
             randomAccess.get().set(cur.get());
@@ -153,17 +153,17 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 
     @SuppressWarnings("unchecked")
     public Img<E> assemble(Class<E> cls, int start) {
-        ImgFactory<E> imgFactory_lbl = new ArrayImgFactory<E>();
+        final ImgFactory<E> imgFactory_lbl = new ArrayImgFactory<E>();
         
         Img<E> img_ass = null;
 
         try {
             img_ass = imgFactory_lbl.create(dims, cls.newInstance());
         }
-        catch (InstantiationException e) {
+        catch (final InstantiationException e) {
             e.printStackTrace();
         }
-        catch (IllegalAccessException e) {
+        catch (final IllegalAccessException e) {
             e.printStackTrace();
         }
 

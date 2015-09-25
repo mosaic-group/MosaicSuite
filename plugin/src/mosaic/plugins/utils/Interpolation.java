@@ -43,9 +43,9 @@ public class Interpolation {
     private static final double cubicKernel(double x) {
         double u = 0.0;
 
-        double s = Math.abs(x);
-        double s2 = Math.pow(x, 2);
-        double s3 = s * s2;
+        final double s = Math.abs(x);
+        final double s2 = Math.pow(x, 2);
+        final double s3 = s * s2;
 
         if (s <= 1) {
             u = (1.5 * s3 - 2.5 * s2 + 1);
@@ -94,18 +94,18 @@ public class Interpolation {
      * @return
      */
     static private double nearestNeighbourInterpolation(double aX, double aY, double[][] aSrc) {
-        int srcWidth = aSrc.length;
-        int srcHeight = aSrc[0].length;
+        final int srcWidth = aSrc.length;
+        final int srcHeight = aSrc[0].length;
 
-        int x = (int) Math.floor(aX);
-        int y = (int) Math.floor(aY);
+        final int x = (int) Math.floor(aX);
+        final int y = (int) Math.floor(aY);
 
         double value = 0;
         for (int j = 0; j <= 1; j++) {
-            int v = y + j;
+            final int v = y + j;
             double p = 0;
             for (int i = 0; i <= 1; i++) {
-                int u = x + i;
+                final int u = x + i;
                 int us = u;
                 int vs = v;
                 if (u < 0) {
@@ -136,18 +136,18 @@ public class Interpolation {
      * @return
      */
     static private double bilinearInterpolation(double aX, double aY, double[][] aSrc) {
-        int srcWidth = aSrc.length;
-        int srcHeight = aSrc[0].length;
+        final int srcWidth = aSrc.length;
+        final int srcHeight = aSrc[0].length;
 
-        int x = (int) Math.floor(aX);
-        int y = (int) Math.floor(aY);
+        final int x = (int) Math.floor(aX);
+        final int y = (int) Math.floor(aY);
 
         double value = 0;
         for (int j = 0; j <= 1; j++) {
-            int v = y + j;
+            final int v = y + j;
             double p = 0;
             for (int i = 0; i <= 1; i++) {
-                int u = x + i;
+                final int u = x + i;
                 int us = u;
                 int vs = v;
                 if (u < 0) {
@@ -178,11 +178,11 @@ public class Interpolation {
      * @return
      */
     static private double bicubicInterpolation(double aX, double aY, double[][] aSrc, InterpolationMode aMode) {
-        int srcWidth = aSrc.length;
-        int srcHeight = aSrc[0].length;
+        final int srcWidth = aSrc.length;
+        final int srcHeight = aSrc[0].length;
 
-        int x = (int) Math.floor(aX);
-        int y = (int) Math.floor(aY);
+        final int x = (int) Math.floor(aX);
+        final int y = (int) Math.floor(aY);
 
         if (aMode == InterpolationMode.SMART &&
                 (x <= 0 || x >= srcWidth - 2 || y <= 0 || y >= srcHeight - 2)) {
@@ -193,10 +193,10 @@ public class Interpolation {
 
         double value = 0;
         for (int j = 0; j <= 3; j++) {
-            int v = y - 1 + j;
+            final int v = y - 1 + j;
             double p = 0;
             for (int i = 0; i <= 3; i++) {
-                int u = x - 1 + i;
+                final int u = x - 1 + i;
                 int us = u;
                 int vs = v;
                 // If index is out of range choose value from nearest border point
@@ -235,8 +235,8 @@ public class Interpolation {
 
         if (aMode == InterpolationMode.MATLAB) {
             // Matlab is using "strange" calculation of mapping dst points into src points
-            double scale = ((double) aDstLen / aSrcLen);
-            double constant = 0.5 * (1 - 1 / scale);
+            final double scale = ((double) aDstLen / aSrcLen);
+            final double constant = 0.5 * (1 - 1 / scale);
             startIdx = 1 / scale + constant;
             stopIdx = (aDstLen) / scale + constant;
         }
@@ -263,19 +263,19 @@ public class Interpolation {
      */
     static public double[][] resize(double[][] aSrcImage, int aHeight, int aWidth, InterpolationType aType, InterpolationMode aMode) {
         // Create output image array
-        double[][] resultImg = new double[aHeight][aWidth];
+        final double[][] resultImg = new double[aHeight][aWidth];
 
-        int srcWidth = aSrcImage.length;
-        int srcHeight = aSrcImage[0].length;
+        final int srcWidth = aSrcImage.length;
+        final int srcHeight = aSrcImage[0].length;
 
         // Generate mapping of destination image into src image
-        double[] newY = generateCoordinates(aHeight, srcWidth, aMode);
-        double[] newX = generateCoordinates(aWidth, srcHeight, aMode);
+        final double[] newY = generateCoordinates(aHeight, srcWidth, aMode);
+        final double[] newX = generateCoordinates(aWidth, srcHeight, aMode);
 
         for (int x = 0; x <= aWidth - 1; x++) {
-            double ys = newX[x] - 1;
+            final double ys = newX[x] - 1;
             for (int y = 0; y <= aHeight - 1; y++) {
-                double xs = newY[y] - 1;
+                final double xs = newY[y] - 1;
                 switch(aType) {
                     case BILINEAR:
                         resultImg[y][x] = bilinearInterpolation(xs, ys, aSrcImage);

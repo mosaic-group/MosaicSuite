@@ -13,7 +13,7 @@ import com.google.gson.GsonBuilder;
 public class Debug { // NO_UCD (code used only for debugging)
 
     public static void print(Object... aObjects) {
-        for (Object o : aObjects) {
+        for (final Object o : aObjects) {
             System.out.print("[" + o + "] ");
         }
         System.out.println();
@@ -21,7 +21,7 @@ public class Debug { // NO_UCD (code used only for debugging)
 
     public static String getString(Object... aObjects) {
         String str = "";
-        for (Object o : aObjects) {
+        for (final Object o : aObjects) {
             str += "[" + o + "] ";
         }
         return str;
@@ -29,9 +29,9 @@ public class Debug { // NO_UCD (code used only for debugging)
 
     public static String getJsonString(Object... aObjects) {
         String str = "";
-        for (Object obj : aObjects) {
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            String json = gson.toJson(obj);
+        for (final Object obj : aObjects) {
+            final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            final String json = gson.toJson(obj);
             str += "[" + json + "] ";
         }
         return str;

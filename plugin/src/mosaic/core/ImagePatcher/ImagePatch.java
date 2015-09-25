@@ -104,7 +104,7 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
      */
 
     void createPatch(Img<T> img, Img<E> lbl) {
-        RandomAccess<T> randomAccess = img.randomAccess();
+        final RandomAccess<T> randomAccess = img.randomAccess();
         RandomAccess<E> randomAccess_lb = null;
         if (lbl != null) {
             randomAccess_lb = lbl.randomAccess();
@@ -112,7 +112,7 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 
         // Get the image dimensions
 
-        int[] dimensions = MosaicUtils.getImageIntDimensions(img);
+        final int[] dimensions = MosaicUtils.getImageIntDimensions(img);
 
         // Crop p1 and p2 to remain internally
 
@@ -127,15 +127,15 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 
         // create region iterators and patch image
 
-        Point sz = p2.sub(p1);
+        final Point sz = p2.sub(p1);
 
-        ImgFactory<T> imgFactory = new ArrayImgFactory<T>();
-        ImgFactory<E> imgFactory_lbl = new ArrayImgFactory<E>();
+        final ImgFactory<T> imgFactory = new ArrayImgFactory<T>();
+        final ImgFactory<E> imgFactory_lbl = new ArrayImgFactory<E>();
 
         // create an Img of the same type of T and create the patch
 
         it = imgFactory.create(sz.x, img.firstElement());
-        RandomAccess<T> randomAccess_it = it.randomAccess();
+        final RandomAccess<T> randomAccess_it = it.randomAccess();
 
         RandomAccess<E> randomAccess_it_lb = null;
         if (lbl != null) {
@@ -143,11 +143,11 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
             randomAccess_it_lb = lb.randomAccess();
         }
 
-        RegionIterator rg_b = new RegionIterator(sz.x);
-        RegionIterator rg = new RegionIterator(dimensions, sz.x, p1.x);
+        final RegionIterator rg_b = new RegionIterator(sz.x);
+        final RegionIterator rg = new RegionIterator(dimensions, sz.x, p1.x);
         while (rg.hasNext()) {
-            Point p = rg.getPoint();
-            Point pp = rg_b.getPoint();
+            final Point p = rg.getPoint();
+            final Point pp = rg_b.getPoint();
             rg.next();
             rg_b.next();
 

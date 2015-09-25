@@ -14,9 +14,9 @@ public class PhaseContrastPsfTest extends CommonBase {
         final double R = 4;
         final double W = 2;
         final double M = 1;
-        Matrix expected = new Matrix(new double[][] {{-0.163, 0.166, -0.163}, {0.166, -34.516, 0.166}, {-0.163, 0.166, -0.163}});
+        final Matrix expected = new Matrix(new double[][] {{-0.163, 0.166, -0.163}, {0.166, -34.516, 0.166}, {-0.163, 0.166, -0.163}});
 
-        Matrix result = PhaseContrastPsf.generate(R, W, M);
+        final Matrix result = PhaseContrastPsf.generate(R, W, M);
 
         assertTrue("Output should match", expected.compare(result, 0.001));
     }
@@ -32,9 +32,9 @@ public class PhaseContrastPsfTest extends CommonBase {
         final double R = 2;
         final double W = 9;
         final double M = 0;
-        Matrix expected = new Matrix(new double[][] {{144.55}});
+        final Matrix expected = new Matrix(new double[][] {{144.55}});
 
-        Matrix result = PhaseContrastPsf.generate(R, W, M);
+        final Matrix result = PhaseContrastPsf.generate(R, W, M);
 
         assertTrue("Output should match", expected.compare(result, 0.01));
     }
@@ -45,9 +45,9 @@ public class PhaseContrastPsfTest extends CommonBase {
         final double R = 9;
         final double W = 2;
         final double M = 0;
-        Matrix expected = new Matrix(new double[][] {{-97.348}});
+        final Matrix expected = new Matrix(new double[][] {{-97.348}});
 
-        Matrix result = PhaseContrastPsf.generate(R, W, M);
+        final Matrix result = PhaseContrastPsf.generate(R, W, M);
 
         assertTrue("Output should match", expected.compare(result, 0.01));
     }

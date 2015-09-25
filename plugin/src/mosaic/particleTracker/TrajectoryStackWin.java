@@ -39,7 +39,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
     private final ParticleTracker3DModular_ particleTracker3DModular;
     private static final long serialVersionUID = 1L;
     private Button filter_length;
-    private Label numberOfParticlesLabel;
+    private final Label numberOfParticlesLabel;
     private Img<ARGBType> out;
 
     /**
@@ -76,8 +76,8 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
 
         // understand the dimansionality
 
-        int nslices = this.getImagePlus().getNSlices();
-        int nframes = this.getImagePlus().getNFrames();
+        final int nslices = this.getImagePlus().getNSlices();
+        final int nframes = this.getImagePlus().getNFrames();
 
         // check the dimensionality
 
@@ -106,7 +106,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
      * Adds a Panel with filter options button and number of particles in it to this window
      */
     private void addPanel() {
-        Panel panel = new Panel(new GridLayout(2, 1));
+        final Panel panel = new Panel(new GridLayout(2, 1));
         filter_length = new Button(" Filter Options ");
         filter_length.addActionListener(this);
         panel.add(filter_length);
@@ -114,9 +114,9 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
         // pack();
         add(panel);
         pack();
-        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        Point loc = getLocation();
-        Dimension size = getSize();
+        final Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        final Point loc = getLocation();
+        final Dimension size = getSize();
         if (loc.y + size.height > screen.height) {
             getCanvas().zoomOut(0, 0);
         }
@@ -132,7 +132,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
      */
     @Override
     public synchronized void actionPerformed(ActionEvent e) {
-        Object b = e.getSource();
+        final Object b = e.getSource();
         if (b == filter_length) {
             // if user cancelled the filter dialog - do nothing
             if (!particleTracker3DModular.filterTrajectories()) {
@@ -160,10 +160,10 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
         /* Reset selected trajectory */
 
         if (particleTracker3DModular.chosen_traj != -1) {
-            Vector<Trajectory> v = new Vector<Trajectory>();
+            final Vector<Trajectory> v = new Vector<Trajectory>();
             v.add(particleTracker3DModular.all_traj.get(particleTracker3DModular.chosen_traj));
 
-            Calibration cal = particleTracker3DModular.original_imp.getCalibration();
+            final Calibration cal = particleTracker3DModular.original_imp.getCalibration();
 
             MyFrame.updateImage(out, v, cal, DrawType.TRAJECTORY_HISTORY, particleTracker3DModular.getRadius());
 
@@ -171,14 +171,14 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
         }
 
         /* get the coordinates of mouse while it was clicked */
-        int x = e.getX();
-        int y = e.getY();
+        final int x = e.getX();
+        final int y = e.getY();
         /* covert them to offScreen coordinates using the ImageCanvas of this window */
-        int offscreenX = this.ic.offScreenX(x);
-        int offscreenY = this.ic.offScreenY(y);
+        final int offscreenX = this.ic.offScreenX(x);
+        final int offscreenY = this.ic.offScreenY(y);
 
         boolean trajectory_clicked = false;
-        Iterator<Trajectory> iter = particleTracker3DModular.all_traj.iterator();
+        final Iterator<Trajectory> iter = particleTracker3DModular.all_traj.iterator();
 
         /* Get pixel color */
 
@@ -189,21 +189,21 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
             return;
         }
 
-        int cl[] = this.imp.getPixel(offscreenX, offscreenY);
+        final int cl[] = this.imp.getPixel(offscreenX, offscreenY);
 
         /* find the best Trajectory to match the mouse click */
 
         int ct = 0;
         while (iter.hasNext()) {
-            Trajectory curr_traj = iter.next();
+            final Trajectory curr_traj = iter.next();
 
             if (curr_traj.color.getRed() == cl[0] && curr_traj.color.getGreen() == cl[1] && curr_traj.color.getBlue() == cl[2]) {
                 // Redraw trajectory white
 
-                Vector<Trajectory> v = new Vector<Trajectory>();
+                final Vector<Trajectory> v = new Vector<Trajectory>();
                 v.add(curr_traj);
 
-                Calibration cal = particleTracker3DModular.original_imp.getCalibration();
+                final Calibration cal = particleTracker3DModular.original_imp.getCalibration();
 
                 MyFrame.updateImage(out, v, cal, DrawType.TRAJECTORY_HISTORY, particleTracker3DModular.getRadius());
 

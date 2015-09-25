@@ -46,17 +46,17 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
     private static final long serialVersionUID = 1L;
     public TextPanel text_panel;
     public TextPanel configuration_panel;
-    private Button view_static, save_report, display_report, dummy, plot_particle, trajectory_focus, trajectory_info, traj_in_area_info, area_focus;
+    private final Button view_static, save_report, display_report, dummy, plot_particle, trajectory_focus, trajectory_info, traj_in_area_info, area_focus;
 
-    private Button transfer_particles, transfer_trajs; // in panel left
-    private Button mssButton, transfer_traj; // in panel center
-    private Button mssAllResultsButton;
-    private Button mssTrajectoryResultButton;
+    private final Button transfer_particles, transfer_trajs; // in panel left
+    private final Button mssButton, transfer_traj; // in panel center
+    private final Button mssAllResultsButton;
+    private final Button mssTrajectoryResultButton;
 
     public Label per_traj_label;
-    private Label area_label;
-    private Label all_label;
-    private MenuItem tail, mag_factor, relink_particles;
+    private final Label area_label;
+    private final Label all_label;
+    private final MenuItem tail, mag_factor, relink_particles;
 
 //    /**
 //     * Default constructor
@@ -83,8 +83,8 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         addFocusListener(this);
 
         /* Set the layout of the window */
-        GridBagLayout gridbag = new GridBagLayout();
-        GridBagConstraints c = new GridBagConstraints();
+        final GridBagLayout gridbag = new GridBagLayout();
+        final GridBagConstraints c = new GridBagConstraints();
         setLayout(gridbag);
         c.anchor = GridBagConstraints.NORTHWEST;
         c.fill = GridBagConstraints.BOTH;
@@ -108,7 +108,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         /*----------------------------------------------------*/
         /* Panel to hold buttons for all trajectories options */
         /*----------------------------------------------------*/
-        Panel all_options = new Panel();
+        final Panel all_options = new Panel();
         all_options.setBackground(Color.LIGHT_GRAY);
         all_options.setLayout(gridbag);
 
@@ -150,7 +150,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         /*--------------------------------------------------*/
         /* Panel to hold buttons for pre trajectory options */
         /*--------------------------------------------------*/
-        Panel per_traj_options = new Panel();
+        final Panel per_traj_options = new Panel();
         per_traj_options.setBackground(Color.GRAY);
         per_traj_options.setLayout(gridbag);
 
@@ -196,7 +196,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         /*----------------------------------------*/
         /* Panel to hold buttons for area options */
         /*----------------------------------------*/
-        Panel area_options = new Panel();
+        final Panel area_options = new Panel();
         area_options.setBackground(Color.LIGHT_GRAY);
         area_options.setLayout(gridbag);
 
@@ -224,7 +224,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         /*--------------------------------------------------*/
 
         /* Create a Panel to contain all the 3 first panels */
-        Panel all_panels = new Panel(new GridLayout(1, 3));
+        final Panel all_panels = new Panel(new GridLayout(1, 3));
         all_panels.add(all_options);
         all_panels.add(per_traj_options);
         all_panels.add(area_options);
@@ -235,7 +235,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         add(all_panels);
 
         /* Create a Menu for viewing preferences */
-        Menu view = new Menu("View Preferences");
+        final Menu view = new Menu("View Preferences");
         tail = new MenuItem("Trajecotry tail length");
         tail.addActionListener(this);
         mag_factor = new MenuItem("Magnification factor");
@@ -244,13 +244,13 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         view.add(mag_factor);
 
         /* Create a Menu for re linking of particles */
-        Menu relink = new Menu("Relink Particles");
+        final Menu relink = new Menu("Relink Particles");
         relink_particles = new MenuItem("set new parameters for linking");
         relink_particles.addActionListener(this);
         relink.add(relink_particles);
 
         /* Set the MenuBar of this window to hold the 2 menus */
-        MenuBar mb = new MenuBar();
+        final MenuBar mb = new MenuBar();
         mb.add(view);
         mb.add(relink);
         this.setMenuBar(mb);
@@ -268,7 +268,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
     @Override
     public void processWindowEvent(WindowEvent e) {
         super.processWindowEvent(e);
-        int id = e.getID();
+        final int id = e.getID();
         if (id == WindowEvent.WINDOW_CLOSING) {
             setVisible(false);
             dispose();
@@ -303,7 +303,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
      */
     @Override
     public synchronized void actionPerformed(ActionEvent ae) {
-        Object source = ae.getSource();
+        final Object source = ae.getSource();
         Roi user_roi = null;
 
         /* view all trajectories */
@@ -322,7 +322,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             }
             // user selects trajectory according to serial number (starts with 1)
             // but all_traj Vector starts from 0 so (chosen_traj-1)
-            int param_choice = (particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj - 1)).getUserParamForPlotting();
+            final int param_choice = (particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj - 1)).getUserParamForPlotting();
             if (param_choice == -1) {
                 return;
             }
@@ -333,11 +333,11 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         if (source == mssButton || source == mssTrajectoryResultButton || source == mssAllResultsButton) {
 
             // Get all calibration data from image
-            double width = particleTracker3DModular.original_imp.getCalibration().pixelWidth;
-            double height = particleTracker3DModular.original_imp.getCalibration().pixelHeight;
-            double interval = particleTracker3DModular.original_imp.getCalibration().frameInterval;
-            String intervalUnit = particleTracker3DModular.original_imp.getCalibration().getTimeUnit();
-            String unit = particleTracker3DModular.original_imp.getCalibration().getUnit();
+            final double width = particleTracker3DModular.original_imp.getCalibration().pixelWidth;
+            final double height = particleTracker3DModular.original_imp.getCalibration().pixelHeight;
+            final double interval = particleTracker3DModular.original_imp.getCalibration().frameInterval;
+            final String intervalUnit = particleTracker3DModular.original_imp.getCalibration().getTimeUnit();
+            final String unit = particleTracker3DModular.original_imp.getCalibration().getUnit();
 
             // Do checking and complain if necessary
             String message = "";
@@ -391,7 +391,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         /* save full report to file */
         if (source == save_report) {
             // show save file user dialog with default file name 'Traj_{title}.txt'
-            SaveDialog sd = new SaveDialog("Save report", IJ.getDirectory("image"), "Traj_" + particleTracker3DModular.title, ".txt");
+            final SaveDialog sd = new SaveDialog("Save report", IJ.getDirectory("image"), "Traj_" + particleTracker3DModular.title, ".txt");
             // if user cancelled the save dialog - return
             if (sd.getDirectory() == null || sd.getFileName() == null) {
                 return;
@@ -426,10 +426,10 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             if (source == traj_in_area_info) {
                 particleTracker3DModular.results_window.text_panel.selectAll();
                 particleTracker3DModular.results_window.text_panel.clearSelection();
-                Iterator<Trajectory> iter = particleTracker3DModular.all_traj.iterator();
+                final Iterator<Trajectory> iter = particleTracker3DModular.all_traj.iterator();
                 // iterate of all trajectories
                 while (iter.hasNext()) {
-                    Trajectory traj = iter.next();
+                    final Trajectory traj = iter.next();
                     // for each trajectory - go over all particles
                     for (int i = 0; i < traj.existing_particles.length; i++) {
                         // if a particle in the trajectory is within the ROI
@@ -468,7 +468,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         if (source == trajectory_info) {
             // user selects trajectory according to serial number (starts with 1)
             // but all_traj Vector starts from 0 so (chosen_traj-1)
-            Trajectory traj = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
+            final Trajectory traj = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
             particleTracker3DModular.results_window.text_panel.selectAll();
             particleTracker3DModular.results_window.text_panel.clearSelection();
             particleTracker3DModular.results_window.text_panel.appendLine("%% Trajectory " + traj.serial_number);
@@ -479,7 +479,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         }
 
         if (source == transfer_traj) {
-            Trajectory traj = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
+            final Trajectory traj = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
             particleTracker3DModular.transferSelectedTrajectoriesToResultTable(traj);
             return;
         }
@@ -490,14 +490,14 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             if (particleTracker3DModular.frames_number % 50 == 0) {
                 ch_num = particleTracker3DModular.frames_number / 50 + 1;
             }
-            String[] choices = new String[ch_num];
+            final String[] choices = new String[ch_num];
             int curr_length = 0;
             for (int i = 0; i < choices.length; i++) {
                 choices[i] = "" + curr_length;
                 curr_length += 50;
             }
             choices[choices.length - 1] = "" + particleTracker3DModular.frames_number;
-            GenericDialog tail_dialog = new GenericDialog("Select Tarjectory Tail Length");
+            final GenericDialog tail_dialog = new GenericDialog("Select Tarjectory Tail Length");
             tail_dialog.addChoice("Tail Length", choices, "" + particleTracker3DModular.frames_number);
             tail_dialog.showDialog();
             if (tail_dialog.wasCanceled()) {
@@ -507,8 +507,8 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         }
         /* define the mag factor for rescaling of focused view */
         if (source == mag_factor) {
-            String[] mag_choices = { "1", "2", "4", "6", "8", "10" };
-            GenericDialog mag_dialog = new GenericDialog("Select Magnification Factor");
+            final String[] mag_choices = { "1", "2", "4", "6", "8", "10" };
+            final GenericDialog mag_dialog = new GenericDialog("Select Magnification Factor");
             mag_dialog.addChoice("Magnification factor", mag_choices, "" + particleTracker3DModular.magnification_factor);
             mag_dialog.showDialog();
             if (mag_dialog.wasCanceled()) {
@@ -519,7 +519,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         }
         /* option to relink the deteced particles with new parameters */
         if (source == relink_particles) {
-            GenericDialog relink_dialog = new GenericDialog("Select new linking parameters");
+            final GenericDialog relink_dialog = new GenericDialog("Select new linking parameters");
             relink_dialog.addNumericField("Link Range", particleTracker3DModular.linkrange, 0);
             relink_dialog.addNumericField("Displacement", particleTracker3DModular.displacement, 2);
             relink_dialog.showDialog();
@@ -532,7 +532,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
 
             /* link the particles found */
             IJ.showStatus("Linking Particles");
-            linkerOptions lo = new linkerOptions();
+            final linkerOptions lo = new linkerOptions();
             lo.linkrange = particleTracker3DModular.linkrange;
             lo.displacement = (float) particleTracker3DModular.displacement;
             lo.force = particleTracker3DModular.force;
@@ -570,7 +570,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             return;
         }
         if (source == mssTrajectoryResultButton) {
-            Trajectory trajectory = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
+            final Trajectory trajectory = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
             particleTracker3DModular.mssTrajectoryResultsToTable(trajectory);
             return;
         }
@@ -581,7 +581,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         }
 
         if (source == mssButton) {
-            Trajectory trajectory = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
+            final Trajectory trajectory = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
             new TrajectoryAnalysisPlot(trajectory, particleTracker3DModular.pixelDimensions, particleTracker3DModular.timeInterval);
             return;
         }

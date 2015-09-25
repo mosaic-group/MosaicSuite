@@ -120,7 +120,7 @@ public class Parameters implements Serializable {
     // todo : clean code by using ni nj nz in this parameters class
 
     public Parameters() {
-        int max = Math.max(2, nlevels);
+        final int max = Math.max(2, nlevels);
         cl = new double[max];
         lreg_ = new double[2];
         lreg_[0] = 0.05;
@@ -201,7 +201,7 @@ public class Parameters implements Serializable {
         this.nz = p.nz;
         this.blackbackground = p.blackbackground;
 
-        int max = Math.max(2, this.nlevels);
+        final int max = Math.max(2, this.nlevels);
         this.cl = new double[max];
 
         this.mode_voronoi2 = p.mode_voronoi2;

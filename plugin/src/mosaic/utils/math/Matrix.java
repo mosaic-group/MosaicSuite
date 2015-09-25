@@ -103,7 +103,7 @@ public class Matrix {
      * @return
      */
     public static Matrix mkRowVector(double... aInput) {
-        DenseMatrix64F result = new DenseMatrix64F(1, aInput.length);
+        final DenseMatrix64F result = new DenseMatrix64F(1, aInput.length);
         result.setData(aInput);
 
         return new Matrix(result);
@@ -117,7 +117,7 @@ public class Matrix {
      * @return
      */
     public static Matrix mkColVector(double... aInput) {
-        DenseMatrix64F result = new DenseMatrix64F(aInput.length, 1);
+        final DenseMatrix64F result = new DenseMatrix64F(aInput.length, 1);
         result.setData(aInput);
 
         return new Matrix(result);
@@ -185,9 +185,9 @@ public class Matrix {
      * @return
      */
     public static double[][] getArrayYX(Matrix aMatrix) {
-        int r = aMatrix.iMatrix.numRows;
-        int c = aMatrix.iMatrix.numCols;
-        double[][] result = new double[r][c];
+        final int r = aMatrix.iMatrix.numRows;
+        final int c = aMatrix.iMatrix.numCols;
+        final double[][] result = new double[r][c];
         for (int ry = 0; ry < r; ++ry) {
             for (int cx = 0; cx < c; ++cx) {
                 result[ry][cx] = aMatrix.get(ry, cx);
@@ -204,9 +204,9 @@ public class Matrix {
      * @return
      */
     public static double[][] getArrayXY(Matrix aMatrix) {
-        int r = aMatrix.iMatrix.numRows;
-        int c = aMatrix.iMatrix.numCols;
-        double[][] result = new double[c][r];
+        final int r = aMatrix.iMatrix.numRows;
+        final int c = aMatrix.iMatrix.numCols;
+        final double[][] result = new double[c][r];
         for (int ry = 0; ry < r; ++ry) {
             for (int cx = 0; cx < c; ++cx) {
                 result[cx][ry] = aMatrix.get(ry, cx);
@@ -223,9 +223,9 @@ public class Matrix {
      * @return
      */
     public static float[][] getArrayYXasFloats(Matrix aMatrix) {
-        int r = aMatrix.iMatrix.numRows;
-        int c = aMatrix.iMatrix.numCols;
-        float[][] result = new float[r][c];
+        final int r = aMatrix.iMatrix.numRows;
+        final int c = aMatrix.iMatrix.numCols;
+        final float[][] result = new float[r][c];
         for (int ry = 0; ry < r; ++ry) {
             for (int cx = 0; cx < c; ++cx) {
                 result[ry][cx] = (float) aMatrix.get(ry, cx);
@@ -242,9 +242,9 @@ public class Matrix {
      * @return
      */
     public static float[][] getArrayXYasFloats(Matrix aMatrix) {
-        int r = aMatrix.iMatrix.numRows;
-        int c = aMatrix.iMatrix.numCols;
-        float[][] result = new float[c][r];
+        final int r = aMatrix.iMatrix.numRows;
+        final int c = aMatrix.iMatrix.numCols;
+        final float[][] result = new float[c][r];
         for (int ry = 0; ry < r; ++ry) {
             for (int cx = 0; cx < c; ++cx) {
                 result[cx][ry] = (float) aMatrix.get(ry, cx);
@@ -293,7 +293,7 @@ public class Matrix {
      * Return array containing specified column
      */
     public double[] getArrayColumn(int aColumn) {
-        double[] column = new double[this.numRows()];
+        final double[] column = new double[this.numRows()];
         for (int i = 0; i < this.numRows(); ++i) {
             column[i] = get(i, aColumn);
         }
@@ -305,7 +305,7 @@ public class Matrix {
      * Return array containing specified row
      */
     public double[] getArrayRow(int aRow) {
-        double[] row = new double[this.numCols()];
+        final double[] row = new double[this.numCols()];
         for (int i = 0; i < this.numCols(); ++i) {
             row[i] = get(aRow, i);
         }
@@ -344,7 +344,7 @@ public class Matrix {
      * @return
      */
     public Matrix process(MFunc aMf) {
-        int len = iMatrix.data.length;
+        final int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = aMf.f(iMatrix.data[i], i / iMatrix.numCols, i % iMatrix.numCols);
         }
@@ -359,7 +359,7 @@ public class Matrix {
      * @return
      */
     public Matrix processNoSet(MFunc aMf) {
-        int len = iMatrix.data.length;
+        final int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i) {
             aMf.f(iMatrix.data[i], i / iMatrix.numCols, i % iMatrix.numCols);
         }
@@ -384,7 +384,7 @@ public class Matrix {
      * @return
      */
     public Matrix mult(Matrix aM) {
-        Matrix result = new Matrix(this.numRows(), aM.numCols());
+        final Matrix result = new Matrix(this.numRows(), aM.numCols());
         CommonOps.mult(this.iMatrix, aM.iMatrix, result.iMatrix);
         this.iMatrix = result.iMatrix;
         return this;
@@ -510,7 +510,7 @@ public class Matrix {
      * @return
      */
     public Matrix fill(double aVal) {
-        int len = iMatrix.data.length;
+        final int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = aVal;
         }
@@ -546,7 +546,7 @@ public class Matrix {
      * Sets each element of matrix as its power of aPower
      */
     public Matrix pow(int aPower) {
-        int len = iMatrix.data.length;
+        final int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = Math.pow(iMatrix.data[i], aPower);
         }
@@ -557,7 +557,7 @@ public class Matrix {
      * Sets each element of matrix as its square root
      */
     public Matrix sqrt() {
-        int len = iMatrix.data.length;
+        final int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = Math.sqrt(iMatrix.data[i]);
         }
@@ -568,7 +568,7 @@ public class Matrix {
      * Sets each element of matrix as its natural logarithm
      */
     public Matrix log() {
-        int len = iMatrix.data.length;
+        final int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = Math.log(iMatrix.data[i]);
         }
@@ -579,7 +579,7 @@ public class Matrix {
      * Sets each element of matrix to its inverse (1/x) value
      */
     public Matrix inv() {
-        int len = iMatrix.data.length;
+        final int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = 1 / iMatrix.data[i];
         }
@@ -590,7 +590,7 @@ public class Matrix {
      * Sets each element of Matrix as its negative value (multiplies by -1)
      */
     public Matrix negative() {
-        int len = iMatrix.data.length;
+        final int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i) {
             iMatrix.data[i] = -iMatrix.data[i];
         }
@@ -609,10 +609,10 @@ public class Matrix {
      * Normalize elements of Matrix to be in range (-1, 1)
      */
     public Matrix normalize() {
-        int len = iMatrix.data.length;
+        final int len = iMatrix.data.length;
         double max = 0.0;
         for (int i = 0; i < len; ++i) {
-            double absValue = Math.abs(iMatrix.data[i]);
+            final double absValue = Math.abs(iMatrix.data[i]);
             if (max < absValue) {
                 max = absValue;
             }
@@ -629,11 +629,11 @@ public class Matrix {
      * Normalize elements of Matrix to be in range (0, 1)
      */
     public Matrix normalizeInRange0to1() {
-        int len = iMatrix.data.length;
+        final int len = iMatrix.data.length;
         double min = Double.MAX_VALUE;
         double max = Double.MIN_VALUE;
         for (int i = 0; i < len; ++i) {
-            double val = iMatrix.data[i];
+            final double val = iMatrix.data[i];
             if (max < val) {
                 max = val;
             }
@@ -678,13 +678,13 @@ public class Matrix {
             return this;
         }
 
-        int cols = iMatrix.numCols;
-        int rows = iMatrix.numRows;
+        final int cols = iMatrix.numCols;
+        final int rows = iMatrix.numRows;
 
-        int newCols = (cols + 1 - aStartCol) / aStepCol;
-        int newRows = (rows + 1 - aStartRow) / aStepRow;
+        final int newCols = (cols + 1 - aStartCol) / aStepCol;
+        final int newRows = (rows + 1 - aStartRow) / aStepRow;
 
-        DenseMatrix64F result = new DenseMatrix64F(newRows, newCols);
+        final DenseMatrix64F result = new DenseMatrix64F(newRows, newCols);
         for (int r = aStartRow, rn = 0; r < rows; r += aStepRow, ++rn) {
             for (int c = aStartCol, cn = 0; c < cols; c += aStepCol, ++cn) {
                 result.set(rn, cn, iMatrix.get(r, c));
@@ -730,7 +730,7 @@ public class Matrix {
      * @return
      */
     public boolean compare(Matrix aMatrix, double aEpsilon) {
-        int len = iMatrix.data.length;
+        final int len = iMatrix.data.length;
         for (int i = 0; i < len; ++i) {
             if (Math.abs(this.iMatrix.data[i] - aMatrix.iMatrix.data[i]) > aEpsilon) {
                 // DEBUG: Uncomment below to see different element
@@ -759,7 +759,7 @@ public class Matrix {
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        Matrix cmp = (Matrix) obj;
+        final Matrix cmp = (Matrix) obj;
         if (cmp.numCols() != this.numCols() || cmp.numRows() != this.numRows()) {
             return false;
         }

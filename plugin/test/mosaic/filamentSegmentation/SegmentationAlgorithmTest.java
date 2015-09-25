@@ -47,7 +47,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
         final double expectedMLEin = 1.018718614554530;
         final double expectedMLEout = 0.007211831449837;
 
-        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
+        final SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
                 NoiseType.GAUSSIAN,
                 PsfType.GAUSSIAN,
                 new Dimension(3,2),
@@ -57,9 +57,9 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 /* no of iterations */       2);
 
         // Tested function
-        EnergyOutput result = sa.minimizeEnergy();
+        final EnergyOutput result = sa.minimizeEnergy();
 
-        double epsilon = 1e-14;
+        final double epsilon = 1e-14;
         assertTrue("Mask", new Matrix(expectedMask).compare(result.iMask, epsilon));
         assertEquals("MLEin", expectedMLEin, result.iRss.getBetaMLEin(), expectedMLEin / 1e10);
         assertEquals("MLEout", expectedMLEout, result.iRss.getBetaMLEout(), expectedMLEout / 1e10);
@@ -80,7 +80,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
         final double expectedMLEin = 1.582424937234086;
         final double expectedMLEout = 4.979662008561890e-05;
 
-        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
+        final SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
                 NoiseType.POISSON,
                 PsfType.NONE,
                 new Dimension(1, 1),
@@ -90,9 +90,9 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 /* no of iterations */       2);
 
         // Tested function
-        EnergyOutput result = sa.minimizeEnergy();
+        final EnergyOutput result = sa.minimizeEnergy();
 
-        double epsilon = 1e-14;
+        final double epsilon = 1e-14;
         assertTrue("Mask", new Matrix(expectedMask).compare(result.iMask, epsilon));
         assertEquals("MLEin", expectedMLEin, result.iRss.getBetaMLEin(), expectedMLEin/1e-9);
         assertEquals("MLEout", expectedMLEout, result.iRss.getBetaMLEout(), expectedMLEout/1e-9);
@@ -113,7 +113,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
         final double expectedMLEin = 0.74455;
         final double expectedMLEout = 0.19467;
 
-        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
+        final SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
                 NoiseType.POISSON,
                 PsfType.PHASE_CONTRAST,
                 new Dimension(1, 1),
@@ -123,9 +123,9 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 /* no of iterations */       1);
 
         // Tested function
-        EnergyOutput result = sa.minimizeEnergy();
+        final EnergyOutput result = sa.minimizeEnergy();
 
-        double epsilon = 0.000005;
+        final double epsilon = 0.000005;
 
         assertTrue("Mask", new Matrix(expectedMask).compare(result.iMask, epsilon));
         assertEquals("MLEin", expectedMLEin, result.iRss.getBetaMLEin(), expectedMLEin/10000);
@@ -154,7 +154,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
         };
 
-        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
+        final SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
                 NoiseType.GAUSSIAN,
                 PsfType.GAUSSIAN,
                 new Dimension(1,1),
@@ -163,12 +163,12 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 /* regularizer term */       0.0001,
                 5);
 
-        EnergyOutput resultOfEnergyMinimalization = sa.minimizeEnergy();
+        final EnergyOutput resultOfEnergyMinimalization = sa.minimizeEnergy();
 
         // Tested method
-        ThresholdFuzzyOutput resultOfThresholding = sa.ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
+        final ThresholdFuzzyOutput resultOfThresholding = sa.ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
 
-        double epsilon = 1e-13;
+        final double epsilon = 1e-13;
         assertTrue("Mask", new Matrix(expectedMask).compare(resultOfThresholding.iopt_MK, epsilon));
         assertTrue("Mask", new Matrix(expectedThresholdedMask).compare(resultOfThresholding.iH_f, epsilon));
     }
@@ -176,12 +176,12 @@ public class SegmentationAlgorithmTest extends CommonBase {
     @Test
     public void testPostprocess() {
         // Expected data taken from Matlab implementation
-        double[] expectedKnots = new double[] {3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
-        double[] expectedValues = new double[] {3.5, 4.0, 3.5, 3.5, 3.5, 3.5};
-        double[] expectedWeights = new double[] {2.0, 1.0, 2.0, 2.0, 2.0, 2.0};
-        double expectedFilamentLength = 5.001569684364591;
+        final double[] expectedKnots = new double[] {3.0, 4.0, 5.0, 6.0, 7.0, 8.0};
+        final double[] expectedValues = new double[] {3.5, 4.0, 3.5, 3.5, 3.5, 3.5};
+        final double[] expectedWeights = new double[] {2.0, 1.0, 2.0, 2.0, 2.0, 2.0};
+        final double expectedFilamentLength = 5.001569684364591;
 
-        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
+        final SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
                 NoiseType.GAUSSIAN,
                 PsfType.GAUSSIAN,
                 new Dimension(1,1),
@@ -190,11 +190,11 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 /* regularizer term */       0.0002,
                 150);
 
-        EnergyOutput resultOfEnergyMinimalization = sa.minimizeEnergy();
-        ThresholdFuzzyOutput resultOfThresholding = sa.ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
+        final EnergyOutput resultOfEnergyMinimalization = sa.minimizeEnergy();
+        final ThresholdFuzzyOutput resultOfThresholding = sa.ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
 
         // Tested method
-        List<CubicSmoothingSpline> result = sa.generateFilamentInfo(resultOfThresholding);
+        final List<CubicSmoothingSpline> result = sa.generateFilamentInfo(resultOfThresholding);
 
         assertEquals("Number of found filaments", 1, result.size());
         assertArrayEquals(expectedKnots, result.get(0).getKnots(), 1e-10);
@@ -206,7 +206,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
     @Test
     public void testGenerateFilamentInfo() {
         // Matrices below are taken from Matlab (both - input masks and expected result).
-        double[][] mask =
+        final double[][] mask =
             {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0},
@@ -214,7 +214,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
-        double[][] thresMask =
+        final double[][] thresMask =
             {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0.997191249752063, 0.945125483826485, 0.984305990675775, 0.897802387979837, 0.876698313697055, 0.845814436027728, 0, 0, 0},
@@ -223,14 +223,14 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}};
 
-        double[][] expectedCoefficients =
+        final double[][] expectedCoefficients =
             {{-0.000373689547152, 0, -0.023263579094167, 3.610985795504279},
                 {0.000321009902573, -0.001121068641457, -0.024384647735625, 3.587348526862959},
                 {0.000111704110019, -0.000158038933738, -0.025663755310820, 3.562163820388450},
                 {-0.000011035722485, 0.000177073396321, -0.025644720848237, 3.536453730253912},
                 {-0.000047988742955, 0.000143966228865, -0.025323681223052, 3.510975047079510}};
 
-        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
+        final SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
                 NoiseType.GAUSSIAN,
                 PsfType.GAUSSIAN,
                 new Dimension(1,1),
@@ -238,10 +238,10 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 /* scale */                  0,
                 /* regularizer term */       0.0002,
                 150);
-        ThresholdFuzzyOutput params = sa.new ThresholdFuzzyOutput(new Matrix(mask), new Matrix(thresMask));
+        final ThresholdFuzzyOutput params = sa.new ThresholdFuzzyOutput(new Matrix(mask), new Matrix(thresMask));
 
         // Tested method
-        List<CubicSmoothingSpline> result = sa.generateFilamentInfo(params);
+        final List<CubicSmoothingSpline> result = sa.generateFilamentInfo(params);
 
         assertEquals("Number of found filaments", 1, result.size());
         assertTrue(new Matrix(expectedCoefficients).compare(new Matrix(result.get(0).getCoefficients()), 0.000000001));
@@ -250,7 +250,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
     @Test
     public void testGenerateFilamentInfo2() {
         // Matrices below are taken from Matlab (both - input masks and expected result).
-        double[][] mask =
+        final double[][] mask =
             {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -275,7 +275,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
             };
-        double[][] thresMask =
+        final double[][] thresMask =
             {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -301,7 +301,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
             };
 
-        double[][] expectedCoefficients =
+        final double[][] expectedCoefficients =
             {
                 {0.001199034765807, 0, 1.138098972231266, 3.287773349110843},
                 {0.002163561102325, 0.003597104297420, 1.141696076528686, 4.427071356107915},
@@ -313,7 +313,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 {-0.000031951470110, 0.000191708820658, 1.229527252578208, 16.521455098076682},
             };
 
-        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
+        final SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
                 NoiseType.GAUSSIAN,
                 PsfType.GAUSSIAN,
                 new Dimension(1,1),
@@ -321,10 +321,10 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 /* scale */                  1,
                 /* regularizer term */       0.0001,
                 150);
-        ThresholdFuzzyOutput params = sa.new ThresholdFuzzyOutput(new Matrix(mask), new Matrix(thresMask));
+        final ThresholdFuzzyOutput params = sa.new ThresholdFuzzyOutput(new Matrix(mask), new Matrix(thresMask));
 
         // Tested method
-        List<CubicSmoothingSpline> result = sa.generateFilamentInfo(params);
+        final List<CubicSmoothingSpline> result = sa.generateFilamentInfo(params);
 
         assertEquals("Number of found filaments", 1, result.size());
         assertTrue(new Matrix(expectedCoefficients).compare(new Matrix(result.get(0).getCoefficients()), 1e-14));
@@ -338,18 +338,18 @@ public class SegmentationAlgorithmTest extends CommonBase {
          * match input points.
          */
         final int size = 30;
-        List<Integer> x = new ArrayList<Integer>();
-        List<Integer> y = new ArrayList<Integer>();
+        final List<Integer> x = new ArrayList<Integer>();
+        final List<Integer> y = new ArrayList<Integer>();
         for (int i = 0; i < size; ++i) {
             x.add(i);
             y.add(i);
         }
 
-        List<Double> xl = new ArrayList<Double>();
-        List<Double> yl = new ArrayList<Double>();
-        List<Double> wl = new ArrayList<Double>();
+        final List<Double> xl = new ArrayList<Double>();
+        final List<Double> yl = new ArrayList<Double>();
+        final List<Double> wl = new ArrayList<Double>();
 
-        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
+        final SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
                 NoiseType.GAUSSIAN,
                 PsfType.GAUSSIAN,
                 new Dimension(1,1),
@@ -358,8 +358,8 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 /* regularizer term */       0.0001,
                 150);
         sa.limitNumberOfPoints(xl, yl, wl, x, y);
-        List<Double> expectedXY = Arrays.asList(0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 15.0, 17.0, 19.0, 21.0, 23.0, 25.0, 27.0, 29.0);
-        List<Double> expectedW  = Arrays.asList(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+        final List<Double> expectedXY = Arrays.asList(0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 15.0, 17.0, 19.0, 21.0, 23.0, 25.0, 27.0, 29.0);
+        final List<Double> expectedW  = Arrays.asList(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
 
         assertEquals(expectedXY, xl);
         assertEquals(expectedXY, yl);
@@ -373,11 +373,11 @@ public class SegmentationAlgorithmTest extends CommonBase {
          * Expected same output as input.
          */
         final int size = 19;
-        List<Integer> x = new ArrayList<Integer>();
-        List<Integer> y = new ArrayList<Integer>();
-        List<Double> expectedWeights = new ArrayList<Double>();
-        List<Double> expectedX = new ArrayList<Double>();
-        List<Double> expectedY = new ArrayList<Double>();
+        final List<Integer> x = new ArrayList<Integer>();
+        final List<Integer> y = new ArrayList<Integer>();
+        final List<Double> expectedWeights = new ArrayList<Double>();
+        final List<Double> expectedX = new ArrayList<Double>();
+        final List<Double> expectedY = new ArrayList<Double>();
         for (int i = 0; i < size; ++i) {
             x.add(i);
             y.add(i);
@@ -386,11 +386,11 @@ public class SegmentationAlgorithmTest extends CommonBase {
             expectedY.add((double) i);
         }
 
-        List<Double> xl = new ArrayList<Double>();
-        List<Double> yl = new ArrayList<Double>();
-        List<Double> wl = new ArrayList<Double>();
+        final List<Double> xl = new ArrayList<Double>();
+        final List<Double> yl = new ArrayList<Double>();
+        final List<Double> wl = new ArrayList<Double>();
 
-        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
+        final SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
                 NoiseType.GAUSSIAN,
                 PsfType.GAUSSIAN,
                 new Dimension(1,1),
@@ -408,15 +408,15 @@ public class SegmentationAlgorithmTest extends CommonBase {
 
     @Test
     public void testMergePointsWithSameX() {
-        List<Double> inputX = new ArrayList<Double>(Arrays.asList(1.0, 1.0, 2.0, 3.0, 3.0, 4.0, 5.0, 5.0));
-        List<Double> inputY = new ArrayList<Double>(Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 9.0));
-        List<Double> inputW = new ArrayList<Double>(Arrays.asList(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0));
+        final List<Double> inputX = new ArrayList<Double>(Arrays.asList(1.0, 1.0, 2.0, 3.0, 3.0, 4.0, 5.0, 5.0));
+        final List<Double> inputY = new ArrayList<Double>(Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 9.0));
+        final List<Double> inputW = new ArrayList<Double>(Arrays.asList(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 1.0));
 
-        List<Double> expectedX = Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0);
-        List<Double> expectedY = Arrays.asList(1.5, 3.0, 4.5, 6.0, 8.0);
-        List<Double> expectedW = Arrays.asList(2.0, 1.0, 2.0, 1.0, 3.0);
+        final List<Double> expectedX = Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0);
+        final List<Double> expectedY = Arrays.asList(1.5, 3.0, 4.5, 6.0, 8.0);
+        final List<Double> expectedW = Arrays.asList(2.0, 1.0, 2.0, 1.0, 3.0);
 
-        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
+        final SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
                 NoiseType.GAUSSIAN,
                 PsfType.GAUSSIAN,
                 new Dimension(1,1),
@@ -434,7 +434,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
 
     @Test
     public void testGenerateCoordinatesOfFilament() {
-        double[][] region =
+        final double[][] region =
             {{0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0},
                 {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0},
                 {0,   0,   1,   1,   1,   1,   1,   1,   0,   0,   0},
@@ -442,7 +442,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 {0,   0,   1,   1,   1,   1,   1,   0,   0,   0,   0},
                 {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0},
                 {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0}};
-        double[][] filament =
+        final double[][] filament =
             {{0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0},
                 {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0},
                 {0,   0,   1,   1,   1, 0.5,   1, 0.5,   0,   0,   0},
@@ -452,7 +452,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 {0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0}};
 
 
-        SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
+        final SegmentationAlgorithm sa = new SegmentationAlgorithm(simpleImage1filament,
                 NoiseType.GAUSSIAN,
                 PsfType.GAUSSIAN,
                 new Dimension(1,1),
@@ -462,8 +462,8 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 150);
 
         // Tested method
-        List<Integer> x = new ArrayList<Integer>();
-        List<Integer> y = new ArrayList<Integer>();
+        final List<Integer> x = new ArrayList<Integer>();
+        final List<Integer> y = new ArrayList<Integer>();
         sa.generateCoordinatesOfFilament(new Matrix(region), new Matrix(filament), x, y);
 
         // Matlab's solution output matrix looks like:
@@ -474,8 +474,8 @@ public class SegmentationAlgorithmTest extends CommonBase {
         //     0     0     0     0     0     1     0     0     0     0     0
         //     0     0     0     0     0     0     0     0     0     0     0
         //     0     0     0     0     0     0     0     0     0     0     0
-        List<Integer> expectedX = Arrays.asList(3, 4, 5, 6, 6, 6, 7, 8);
-        List<Integer> expectedY = Arrays.asList(3, 3, 3, 3, 4, 5, 3, 4);
+        final List<Integer> expectedX = Arrays.asList(3, 4, 5, 6, 6, 6, 7, 8);
+        final List<Integer> expectedY = Arrays.asList(3, 3, 3, 3, 4, 5, 3, 4);
 
         assertEquals(expectedX, x);
         assertEquals(expectedY, y);

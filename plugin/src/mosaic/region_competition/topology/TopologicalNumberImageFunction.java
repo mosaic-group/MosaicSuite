@@ -81,25 +81,25 @@ public class TopologicalNumberImageFunction {
      */
     public LinkedList<TopologicalNumberResult> EvaluateAdjacentRegionsFGTNAtIndex(Point index) {
 
-        LinkedList<TopologicalNumberResult> vTNvector = new LinkedList<TopologicalNumberResult>();
-        Set<Integer> vAdjacentLabels = new HashSet<Integer>();
+        final LinkedList<TopologicalNumberResult> vTNvector = new LinkedList<TopologicalNumberResult>();
+        final Set<Integer> vAdjacentLabels = new HashSet<Integer>();
 
         readImageData(index);
 
-        for (int vLinearIndex : TFGConnectivity.itOfsInt()) {
+        for (final int vLinearIndex : TFGConnectivity.itOfsInt()) {
             if (m_DataSubImage[vLinearIndex] != Zero) {
                 vAdjacentLabels.add(m_DataSubImage[vLinearIndex]);
             }
         }
 
-        for (int vLabelsIt : vAdjacentLabels) {
+        for (final int vLabelsIt : vAdjacentLabels) {
             for (int i = 0; i < imageSize; ++i) {
                 m_SubImage[i] = (char) ((m_DataSubImage[i] == vLabelsIt) ? 255 : 0);
             }
-            int middle = imageSize / 2;
+            final int middle = imageSize / 2;
             m_SubImage[middle] = 0;
 
-            TopologicalNumberPair vFGBGTopoPair = new TopologicalNumberPair(0, 0);
+            final TopologicalNumberPair vFGBGTopoPair = new TopologicalNumberPair(0, 0);
 
             // Topological number in the foreground
             m_ForegroundUnitCubeCCCounter.SetImage(m_SubImage);

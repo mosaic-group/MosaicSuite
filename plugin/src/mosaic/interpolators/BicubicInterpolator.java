@@ -24,17 +24,17 @@ public class BicubicInterpolator extends PixelInterpolator {
 
     @Override
     public double getInterpolatedPixel(Point2D pnt) {
-        double x0 = pnt.getX();
-        double y0 = pnt.getY();
-        int u0 = (int) Math.floor(x0); // use floor to handle negative coordinates too
-        int v0 = (int) Math.floor(y0);
+        final double x0 = pnt.getX();
+        final double y0 = pnt.getY();
+        final int u0 = (int) Math.floor(x0); // use floor to handle negative coordinates too
+        final int v0 = (int) Math.floor(y0);
 
         double q = 0;
         for (int j = 0; j <= 3; j++) {
-            int v = v0 - 1 + j;
+            final int v = v0 - 1 + j;
             double p = 0;
             for (int i = 0; i <= 3; i++) {
-                int u = u0 - 1 + i;
+                final int u = u0 - 1 + i;
                 p = p + ip.getPixel(u, v) * cubic(x0 - u);
             }
             q = q + p * cubic(y0 - v);

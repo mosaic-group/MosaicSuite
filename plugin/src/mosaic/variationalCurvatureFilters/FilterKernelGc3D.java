@@ -7,8 +7,8 @@ package mosaic.variationalCurvatureFilters;
 public class FilterKernelGc3D implements FilterKernel3D {
     @Override
     public float filterKernel(float[][][] aImage, int aX, int aY, int aZ) {
-        float[] d = new float[50];
-        int i=aX, j=aY , k=aZ;
+        final float[] d = new float[50];
+        final int i=aX, j=aY , k=aZ;
 
         // Calculating minimum distances (taken from Fortran code "ppm_rc_gc.f")
         d[1] = (aImage[k - 1][j][i] + aImage[k + 1][j][i]) / 2.0f - aImage[k][j][i];
@@ -65,7 +65,7 @@ public class FilterKernelGc3D implements FilterKernel3D {
         // Find minimum absolute change
         d[0] = d[1];
         for (int idx = 2; idx <= 49; ++idx) {
-            float da = Math.abs(d[idx]);
+            final float da = Math.abs(d[idx]);
             if (da < Math.abs(d[0])) {d[0] = d[idx];}
         }
 

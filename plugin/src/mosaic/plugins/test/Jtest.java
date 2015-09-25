@@ -36,33 +36,33 @@ public class Jtest implements PlugInFilter {
     @Override
     public int setup(String arg0, ImagePlus arg1) {
         // Get the User home directory
-        String test = MosaicTest.getTestEnvironment();
-        File s_file = new File(test + File.separator + "succeful");
+        final String test = MosaicTest.getTestEnvironment();
+        final File s_file = new File(test + File.separator + "succeful");
         FileUtils.deleteRecursively(s_file);
 
-        TimeMeasurement tm = new TimeMeasurement();
+        final TimeMeasurement tm = new TimeMeasurement();
 
         // Test Squassh segmentation
         logger.info("========================== TestSuite: bregman.Jtest  ===================================");
-        mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
+        final mosaic.bregman.Jtest jtestBR = new mosaic.bregman.Jtest();
         jtestBR.segmentation();
         tm.logLapTimeSec("========================== bregman");
 
         // Test core utils
         logger.info("========================== TestSuite: core.utils.Jtest ===================================");
-        mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
+        final mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
         jtestTS.testtestsegmentation();
         tm.logLapTimeSec("========================== core.utils.Jtest");
 
         // Test core utils
         logger.info("========================== TestSuite: core.cluster.Jtest ===================================");
-        mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
+        final mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
         jtestMj.mergetest();
         tm.logLapTimeSec("========================== core.cluster.Jtest");
 
         // Test Region competition segmentation
         logger.info("========================== TestSuite: region_competition.Jtest ===================================");
-        mosaic.region_competition.Jtest jtestRC = new mosaic.region_competition.Jtest();
+        final mosaic.region_competition.Jtest jtestRC = new mosaic.region_competition.Jtest();
         jtestRC.segmentation();
         tm.logLapTimeSec("========================== region_competition.Jtest");
 
@@ -70,11 +70,11 @@ public class Jtest implements PlugInFilter {
 
         // Create a file that notify all test has been completed suceffuly
         try {
-            PrintWriter succeful = new PrintWriter(test + File.separator + "succeful");
+            final PrintWriter succeful = new PrintWriter(test + File.separator + "succeful");
             succeful.write(1);
             succeful.close();
         }
-        catch (FileNotFoundException e) {
+        catch (final FileNotFoundException e) {
             e.printStackTrace();
         }
 

@@ -91,7 +91,7 @@ public class Point {
      * @return Point
      */
     public static Point CopyLessArray(int array[]) {
-        Point p = new Point();
+        final Point p = new Point();
         p.dim = array.length;
         p.x = array;
         return p;
@@ -152,7 +152,7 @@ public class Point {
      */
 
     public Point add(Point p) {
-        Point result = new Point(dim);
+        final Point result = new Point(dim);
         for (int i = 0; i < dim; i++) {
             result.x[i] = x[i] + p.x[i];
         }
@@ -167,7 +167,7 @@ public class Point {
      */
 
     public Point sub(Point p) {
-        Point result = new Point(dim);
+        final Point result = new Point(dim);
         for (int i = 0; i < dim; i++) {
             result.x[i] = x[i] - p.x[i];
         }
@@ -182,7 +182,7 @@ public class Point {
      */
 
     public Point mult(int f) {
-        Point result = new Point(dim);
+        final Point result = new Point(dim);
         for (int i = 0; i < dim; i++) {
             result.x[i] = (x[i] * f);
         }
@@ -196,7 +196,7 @@ public class Point {
      * @return
      */
     public Point div(int f) {
-        Point result = new Point(dim);
+        final Point result = new Point(dim);
         for (int i = 0; i < dim; i++) {
             result.x[i] = (x[i] / f);
         }
@@ -210,7 +210,7 @@ public class Point {
      * @return
      */
     public Point div(float scaling[]) {
-        Point result = new Point(dim);
+        final Point result = new Point(dim);
         for (int i = 0; i < dim; i++) {
             result.x[i] = (int) (x[i] / scaling[i]);
         }

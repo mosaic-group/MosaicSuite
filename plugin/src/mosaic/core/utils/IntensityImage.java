@@ -62,7 +62,7 @@ public class IntensityImage {
 
     public static <T extends RealType<T>> double volume_image(Img<T> ip) {
         double Vol = 0.0f;
-        Cursor<T> cur = ip.cursor();
+        final Cursor<T> cur = ip.cursor();
 
         while (cur.hasNext()) {
             cur.fwd();
@@ -82,7 +82,7 @@ public class IntensityImage {
      */
 
     public static <T extends RealType<T>> void rescale_image(Img<T> image_psf, float r) {
-        Cursor<T> cur = image_psf.cursor();
+        final Cursor<T> cur = image_psf.cursor();
 
         while (cur.hasNext()) {
             cur.fwd();
@@ -101,7 +101,7 @@ public class IntensityImage {
     public <T extends RealType<T>> IntensityImage(Img<T> ip) {
         this.imageIP = null;
 
-        int[] dims = MosaicUtils.getImageIntDimensions(ip);
+        final int[] dims = MosaicUtils.getImageIntDimensions(ip);
         initDimensions(dims);
         iterator = new IndexIterator(dims);
 
@@ -129,7 +129,7 @@ public class IntensityImage {
     public IntensityImage(ImagePlus ip, boolean nrm) {
         this.imageIP = ip;
 
-        int[] dims = dimensionsFromIP(ip);
+        final int[] dims = dimensionsFromIP(ip);
         initDimensions(dims);
         iterator = new IndexIterator(dims);
 
@@ -162,7 +162,7 @@ public class IntensityImage {
      */
 
     private <T extends RealType<T>> void initIntensityData(Img<T> ip) {
-        RandomAccess<T> ra = ip.randomAccess();
+        final RandomAccess<T> ra = ip.randomAccess();
 
         // Allocate data intensity
 
@@ -172,7 +172,7 @@ public class IntensityImage {
 
         double max = Double.MIN_VALUE;
         double min = Double.MAX_VALUE;
-        Cursor<T> cur = ip.cursor();
+        final Cursor<T> cur = ip.cursor();
 
         while (cur.hasNext()) {
             cur.next();
@@ -186,13 +186,13 @@ public class IntensityImage {
 
         // Create a region iterator
 
-        RegionIterator rg = new RegionIterator(MosaicUtils.getImageIntDimensions(ip));
+        final RegionIterator rg = new RegionIterator(MosaicUtils.getImageIntDimensions(ip));
 
         // load the image
 
         while (rg.hasNext()) {
-            Point p = rg.getPoint();
-            int id = rg.next();
+            final Point p = rg.getPoint();
+            final int id = rg.next();
 
             ra.setPosition(p.x);
             dataIntensity[id] = (float) ((ra.get().getRealFloat() - min) / max);
@@ -200,18 +200,18 @@ public class IntensityImage {
     }
 
     private void initIntensityData(ImagePlus ip) {
-        ImageProcessor proc = ip.getProcessor();
-        Object test = proc.getPixels();
+        final ImageProcessor proc = ip.getProcessor();
+        final Object test = proc.getPixels();
         if (!(test instanceof float[])) {
             throw new RuntimeException("ImageProcessor has to be of type FloatProcessor");
         }
 
-        int nSlices = ip.getStackSize();
-        int area = width * height;
+        final int nSlices = ip.getStackSize();
+        final int area = width * height;
 
         dataIntensity = new float[size];
 
-        ImageStack stack = ip.getStack();
+        final ImageStack stack = ip.getStack();
 
         float[] pixels;
         for (int i = 1; i <= nSlices; i++) {
@@ -228,21 +228,21 @@ public class IntensityImage {
         ImagePlus dataNormalizedIP;
 
         // scale all values in all slices to floats between 0.0 and 1.0
-        int nSlices = ip.getStackSize();
+        final int nSlices = ip.getStackSize();
 
         ImageStack stack = ip.getStack();
 
         double minimum = Double.POSITIVE_INFINITY;
         double maximum = Double.NEGATIVE_INFINITY;
 
-        ImageStack normalizedStack = new ImageStack(stack.getWidth(), stack.getHeight());
+        final ImageStack normalizedStack = new ImageStack(stack.getWidth(), stack.getHeight());
 
         for (int i = 1; i <= nSlices; i++) {
-            ImageProcessor p = stack.getProcessor(i);
-            ImageStatistics stat = p.getStatistics();
+            final ImageProcessor p = stack.getProcessor(i);
+            final ImageStatistics stat = p.getStatistics();
 
-            double min = stat.min;
-            double max = stat.max;
+            final double min = stat.min;
+            final double max = stat.max;
 
             if (max > maximum) {
                 maximum = max;
@@ -266,10 +266,10 @@ public class IntensityImage {
         }
 
         for (int i = 1; i <= nSlices; i++) {
-            ImageProcessor p = stack.getProcessor(i);
+            final ImageProcessor p = stack.getProcessor(i);
             // p.setColorModel(null); // force IJ to directly convert to float
             // (else it would first go to RGB)
-            FloatProcessor fp = (FloatProcessor) p.convertToFloat();
+            final FloatProcessor fp = (FloatProcessor) p.convertToFloat();
             fp.subtract(minimum);
             fp.multiply(1.0 / range);
             // IJ.run(ip, "Divide...", "value=1.250000000");
@@ -279,7 +279,7 @@ public class IntensityImage {
             // System.out.println("intensity max = "+newMax);
             // System.out.println("intensity min = "+newMin);
 
-            String oldTitle = stack.getSliceLabel(i);
+            final String oldTitle = stack.getSliceLabel(i);
             normalizedStack.addSlice(oldTitle, fp);
 
             // stack.setPixels(fp.getPixels(), i);
@@ -327,11 +327,11 @@ public class IntensityImage {
      */
 
     public <T extends NativeType<T> & RealType<T>> Img<T> getImgLib2(Class<T> cls) {
-        long lg[] = new long[getDim()];
+        final long lg[] = new long[getDim()];
 
         // Take the size
 
-        ImgFactory<T> imgFactory = new ArrayImgFactory<T>();
+        final ImgFactory<T> imgFactory = new ArrayImgFactory<T>();
 
         for (int i = 0; i < getDim(); i++) {
             lg[i] = getDimensions()[i];
@@ -343,23 +343,23 @@ public class IntensityImage {
         try {
             it = imgFactory.create(lg, cls.newInstance());
         }
-        catch (InstantiationException e) {
+        catch (final InstantiationException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
-        catch (IllegalAccessException e) {
+        catch (final IllegalAccessException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
-        RandomAccess<T> randomAccess_it = it.randomAccess();
+        final RandomAccess<T> randomAccess_it = it.randomAccess();
 
         // Region iterator
 
-        RegionIterator ri = new RegionIterator(getDimensions());
+        final RegionIterator ri = new RegionIterator(getDimensions());
 
         while (ri.hasNext()) {
-            Point p = ri.getPoint();
-            int id = ri.next();
+            final Point p = ri.getPoint();
+            final int id = ri.next();
 
             randomAccess_it.setPosition(p.x);
             randomAccess_it.get().setReal(dataIntensity[id]);
@@ -373,8 +373,8 @@ public class IntensityImage {
         // call before getNDimensions() or it won't return the correct value
         ip.getStackSize();
 
-        int dim = ip.getNDimensions();
-        int[] dims = new int[dim];
+        final int dim = ip.getNDimensions();
+        final int[] dims = new int[dim];
 
         for (int i = 0; i < 2; i++) {
             dims[i] = ip.getDimensions()[i];

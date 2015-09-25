@@ -49,7 +49,7 @@ public class ScoreFunctionInit implements ScoreFunction {
 
     @Override
     public Settings createSettings(Settings s, double pop[]) {
-        Settings st = new Settings(s);
+        final Settings st = new Settings(s);
 
         st.l_Sigma = pop[0];
         st.l_Tolerance = pop[1];
@@ -59,19 +59,19 @@ public class ScoreFunctionInit implements ScoreFunction {
 
     @Override
     public double valueOf(double[] x) {
-        double sigma = x[0];
-        double tol = x[1];
+        final double sigma = x[0];
+        final double tol = x[1];
 
         double result = 0.0;
 
         for (int im = 0; im < i.length; im++) {
             l[im].initZero();
-            MaximaBubbles b = new MaximaBubbles(i[im], l[im], rad, sigma, tol, r_t);
+            final MaximaBubbles b = new MaximaBubbles(i[im], l[im], rad, sigma, tol, r_t);
             b.initFloodFilled();
-            int c = l[im].createStatistics(i[im]);
-            HashMap<Integer, LabelInformation> Map = l[im].getLabelMap();
+            final int c = l[im].createStatistics(i[im]);
+            final HashMap<Integer, LabelInformation> Map = l[im].getLabelMap();
             Map.remove(0); // remove background
-            for (LabelInformation lb : Map.values()) {
+            for (final LabelInformation lb : Map.values()) {
                 result += 2.0 * Math.abs(lb.count - l[im].getSize() / 4.0 / off[im]) / l[im].getSize();
             }
 
@@ -114,7 +114,7 @@ public class ScoreFunctionInit implements ScoreFunction {
 
     @Override
     public ImagePlus[] getImagesIP() {
-        ImagePlus ip[] = new ImagePlus[l.length];
+        final ImagePlus ip[] = new ImagePlus[l.length];
 
         for (int i = 0; i < l.length; i++) {
             ip[i] = l[i].convert("image", off[i]);
@@ -130,7 +130,7 @@ public class ScoreFunctionInit implements ScoreFunction {
 
     @Override
     public double[] getAMean(Settings s) {
-        double[] aMean = new double[2];
+        final double[] aMean = new double[2];
         aMean[0] = s.l_Sigma;
         aMean[1] = s.l_Tolerance;
         return aMean;

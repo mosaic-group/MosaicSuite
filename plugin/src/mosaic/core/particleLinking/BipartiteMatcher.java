@@ -182,7 +182,7 @@ class BipartiteMatcher {
             // current settings of the dual variables.
             while (true) {
                 // Steps 1.1-1.4: Find an augmenting path
-                int lastNode = findAugmentingPath();
+                final int lastNode = findAugmentingPath();
                 if (lastNode == -1) {
                     break; // no augmenting path
                 }
@@ -234,7 +234,7 @@ class BipartiteMatcher {
             changeDualVars(delta2);
         }
 
-        int[] matching = new int[n];
+        final int[] matching = new int[n];
         for (int i = 0; i < n; i++) {
             matching[i] = sMatches[i];
         }
@@ -250,7 +250,7 @@ class BipartiteMatcher {
     private int findAugmentingPath() {
         while ((!eligibleS.isEmpty()) || (!eligibleT.isEmpty())) {
             if (!eligibleS.isEmpty()) {
-                int i = eligibleS.get(eligibleS.size() - 1).intValue();
+                final int i = eligibleS.get(eligibleS.size() - 1).intValue();
                 eligibleS.remove(eligibleS.size() - 1);
                 for (int j = 0; j < n; j++) {
                     // If pi[j] has already been decreased essentially
@@ -261,7 +261,7 @@ class BipartiteMatcher {
                     // next line may end up being less than pi[j] due
                     // to floating point imprecision.
                     if ((tMatches[j] != i) && (pi[j] >= TOL)) {
-                        double diff = u[i] + v[j] - weights[i][j];
+                        final double diff = u[i] + v[j] - weights[i][j];
                         if (diff < pi[j]) {
                             tLabels[j] = i;
                             pi[j] = diff;
@@ -273,13 +273,13 @@ class BipartiteMatcher {
                 }
             }
             else {
-                int j = eligibleT.get(eligibleT.size() - 1).intValue();
+                final int j = eligibleT.get(eligibleT.size() - 1).intValue();
                 eligibleT.remove(eligibleT.size() - 1);
                 if (tMatches[j] == -1) {
                     return j; // we've found an augmenting path
                 }
 
-                int i = tMatches[j];
+                final int i = tMatches[j];
                 sLabels[i] = j;
                 eligibleS.add(new Integer(i)); // ok to add twice
             }
@@ -296,7 +296,7 @@ class BipartiteMatcher {
      */
     private void flipPath(int lastNode) {
         while (lastNode != EMPTY_LABEL) {
-            int parent = tLabels[lastNode];
+            final int parent = tLabels[lastNode];
 
             // Add (parent, lastNode) to matching. We don't need to
             // explicitly remove any edges from the matching because:
@@ -392,32 +392,32 @@ class BipartiteMatcher {
     List<Integer> eligibleT = new ArrayList<Integer>();
 
     public static void main(String[] args) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        BipartiteMatcher matcher = new BipartiteMatcher();
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        final BipartiteMatcher matcher = new BipartiteMatcher();
         int n = 0;
 
         try {
             System.out.print("Num nodes on each side> ");
-            String num = reader.readLine();
+            final String num = reader.readLine();
             n = Integer.parseInt(num);
             matcher.reset(n);
 
             for (int i = 0; i < n; i++) {
                 System.out.print("Weights out of node " + i + "> ");
-                String weightStr = reader.readLine();
+                final String weightStr = reader.readLine();
 
-                StringTokenizer tokenizer = new StringTokenizer(weightStr);
+                final StringTokenizer tokenizer = new StringTokenizer(weightStr);
                 for (int j = 0; j < n; j++) {
-                    double w = Double.parseDouble(tokenizer.nextToken());
+                    final double w = Double.parseDouble(tokenizer.nextToken());
                     matcher.setWeight(i, j, w);
                 }
             }
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
 
-        int[] matching = matcher.getMatching();
+        final int[] matching = matcher.getMatching();
         System.out.println("Maximum-weight matching:");
         for (int i = 0; i < n; i++) {
             System.out.println(i + ": " + matching[i]);

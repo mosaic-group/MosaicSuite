@@ -50,7 +50,7 @@ public class BinarizedIntervalImgLib2Int<T extends IntegerType<T>> extends Inter
 
         raLb.localize(p.x);
 
-        int value = raLb.get().getInteger();
+        final int value = raLb.get().getInteger();
         return Evaluate(value);
     }
 }

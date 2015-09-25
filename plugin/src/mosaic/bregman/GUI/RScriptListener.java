@@ -45,7 +45,7 @@ class RScriptListener implements ActionListener {
             // Analysis.p.ch2="channel 2 name";
         }
 
-        RScriptWindow rw = new RScriptWindow(nbgroups, posx, posy);
+        final RScriptWindow rw = new RScriptWindow(nbgroups, posx, posy);
         rw.run();
     }
 

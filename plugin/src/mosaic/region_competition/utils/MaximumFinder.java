@@ -89,7 +89,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
     /** whether to find darkest points on light background */
     private static boolean lightBackground;
     private ImagePlus imp; // the ImagePlus of the setup call
-    private int flags = DOES_ALL | NO_CHANGES | NO_UNDO;// the flags (see interfaces PlugInFilter & ExtendedPlugInFilter)
+    private final int flags = DOES_ALL | NO_CHANGES | NO_UNDO;// the flags (see interfaces PlugInFilter & ExtendedPlugInFilter)
     private boolean thresholded; // whether the input image has a threshold
     private boolean roiSaved; // whether the filter has changed the roi and saved the original roi
     private boolean previewing; // true while dialog is displayed (processing for preview)
@@ -137,11 +137,11 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
     @Override
     @SuppressWarnings("unchecked")
     public int showDialog(ImagePlus imp, String command, PlugInFilterRunner pfr) {
-        ImageProcessor ip = imp.getProcessor();
+        final ImageProcessor ip = imp.getProcessor();
         ip.resetBinaryThreshold(); // remove invisible threshold set by MakeBinary and Convert to Mask
         thresholded = ip.getMinThreshold() != ImageProcessor.NO_THRESHOLD;
-        GenericDialog gd = new GenericDialog(command);
-        int digits = (ip instanceof FloatProcessor) ? 2 : 0;
+        final GenericDialog gd = new GenericDialog(command);
+        final int digits = (ip instanceof FloatProcessor) ? 2 : 0;
         String unit = (imp.getCalibration() != null) ? imp.getCalibration().getValueUnit() : null;
         unit = (unit == null || unit.equals("Gray Value")) ? ":" : " (" + unit + "):";
         gd.addNumericField("Noise tolerance" + unit, tolerance, digits);
@@ -187,7 +187,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
             useMinThreshold = false;
         }
         lightBackground = gd.getNextBoolean();
-        boolean invertedLut = imp.isInvertedLut();
+        final boolean invertedLut = imp.isInvertedLut();
         if (useMinThreshold && ((invertedLut && !lightBackground) || (!invertedLut && lightBackground))) {
             if (!thresholdWarningShown) {
                 if (!IJ.showMessageWithCancel("Find Maxima", "\"Above Lower Threshold\" option cannot be used\n" + "when finding minima (image with light background\n"
@@ -231,17 +231,17 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
             imp.deleteRoi();
             roi = null;
         }
-        boolean invertedLut = imp.isInvertedLut();
+        final boolean invertedLut = imp.isInvertedLut();
         double threshold = useMinThreshold ? ip.getMinThreshold() : ImageProcessor.NO_THRESHOLD;
         if ((invertedLut && !lightBackground) || (!invertedLut && lightBackground)) {
             threshold = ImageProcessor.NO_THRESHOLD; // don't care about threshold when finding minima
-            float[] cTable = ip.getCalibrationTable();
+            final float[] cTable = ip.getCalibrationTable();
             ip = ip.duplicate();
             if (cTable == null) { // invert image for finding minima of uncalibrated images
                 ip.invert();
             }
             else { // we are using getPixelValue, so the CalibrationTable must be inverted
-                float[] invertedCTable = new float[cTable.length];
+                final float[] invertedCTable = new float[cTable.length];
                 for (int i = cTable.length - 1; i >= 0; i--) {
                     invertedCTable[i] = -cTable[i];
                 }
@@ -272,8 +272,8 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
         if (WindowManager.getImage(outname) != null) {
             outname = WindowManager.getUniqueName(outname);
         }
-        ImagePlus maxImp = new ImagePlus(outname, outIp);
-        Calibration cal = imp.getCalibration().copy();
+        final ImagePlus maxImp = new ImagePlus(outname, outIp);
+        final Calibration cal = imp.getCalibration().copy();
         cal.disableDensityCalibration();
         maxImp.setCalibration(cal); // keep the spatial calibration
         maxImp.show();
@@ -319,18 +319,18 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
         if (dirOffset == null) {
             makeDirectionOffsets(ip);
         }
-        Rectangle roi = ip.getRoi();
-        byte[] mask = ip.getMaskArray();
+        final Rectangle roi = ip.getRoi();
+        final byte[] mask = ip.getMaskArray();
         if (threshold != ImageProcessor.NO_THRESHOLD && ip.getCalibrationTable() != null && threshold > 0 && threshold < ip.getCalibrationTable().length) {
             threshold = ip.getCalibrationTable()[(int) threshold]; // convert threshold to calibrated
         }
-        ByteProcessor typeP = new ByteProcessor(width, height); // will be a notepad for pixel types
-        byte[] types = (byte[]) typeP.getPixels();
+        final ByteProcessor typeP = new ByteProcessor(width, height); // will be a notepad for pixel types
+        final byte[] types = (byte[]) typeP.getPixels();
         float globalMin = Float.MAX_VALUE;
         float globalMax = -Float.MAX_VALUE;
         for (int y = roi.y; y < roi.y + roi.height; y++) { // find local minimum/maximum now
             for (int x = roi.x; x < roi.x + roi.width; x++) { // ImageStatistics won't work if we have no ImagePlus
-                float v = ip.getPixelValue(x, y);
+                final float v = ip.getPixelValue(x, y);
                 if (globalMin > v) {
                     globalMin = v;
                 }
@@ -343,13 +343,13 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
             threshold -= (globalMax - globalMin) * 1e-6;// avoid rounding errors
         }
         // for segmentation, exclusion of edge maxima cannot be done now but has to be done after segmentation:
-        boolean excludeEdgesNow = excludeOnEdges && outputType != SEGMENTED;
+        final boolean excludeEdgesNow = excludeOnEdges && outputType != SEGMENTED;
 
         if (Thread.currentThread().isInterrupted()) {
             return null;
         }
         IJ.showStatus("Getting sorted maxima...");
-        long[] maxPoints = getSortedMaxPoints(ip, typeP, excludeEdgesNow, isEDM, globalMin, globalMax, threshold);
+        final long[] maxPoints = getSortedMaxPoints(ip, typeP, excludeEdgesNow, isEDM, globalMin, globalMax, threshold);
         if (Thread.currentThread().isInterrupted()) {
             return null;
         }
@@ -390,7 +390,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
             }
             outIp = typeP;
         }
-        byte[] outPixels = (byte[]) outIp.getPixels();
+        final byte[] outPixels = (byte[]) outIp.getPixels();
         // IJ.write("roi: "+roi.toString());
 
         for (int y = 0, i = 0; y < outIp.getHeight(); y++) { // delete everything outside roi
@@ -422,19 +422,19 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      *         Note: Do not use the positions of the points marked as MAXIMUM in typeP, they are invalid for images with a roi.
      */
     private long[] getSortedMaxPoints(ImageProcessor ip, ByteProcessor typeP, boolean excludeEdgesNow, boolean isEDM, float globalMin, float globalMax, double threshold) {
-        Rectangle roi = ip.getRoi();
-        byte[] types = (byte[]) typeP.getPixels();
+        final Rectangle roi = ip.getRoi();
+        final byte[] types = (byte[]) typeP.getPixels();
         int nMax = 0; // counts local maxima
-        boolean checkThreshold = threshold != ImageProcessor.NO_THRESHOLD;
-        Thread thread = Thread.currentThread();
+        final boolean checkThreshold = threshold != ImageProcessor.NO_THRESHOLD;
+        final Thread thread = Thread.currentThread();
         // long t0 = System.currentTimeMillis();
         for (int y = roi.y; y < roi.y + roi.height; y++) { // find local maxima now
             if (y % 50 == 0 && thread.isInterrupted()) {
                 return null;
             }
             for (int x = roi.x, i = x + y * width; x < roi.x + roi.width; x++, i++) { // for better performance with rois, restrict search to roi
-                float v = ip.getPixelValue(x, y);
-                float vTrue = isEDM ? trueEdmHeight(x, y, ip) : v; // for EDMs, use interpolated ridge height
+                final float v = ip.getPixelValue(x, y);
+                final float vTrue = isEDM ? trueEdmHeight(x, y, ip) : v; // for EDMs, use interpolated ridge height
                 if (v == globalMin) {
                     continue;
                 }
@@ -450,11 +450,11 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                  * Note: For an EDM, we need all maxima: those of the EDM-corrected values
                  * (needed by findMaxima) and those of the raw values (needed by cleanupMaxima)
                  */
-                boolean isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1); // not necessary, but faster than isWithin
+                final boolean isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1); // not necessary, but faster than isWithin
                 for (int d = 0; d < 8; d++) { // compare with the 8 neighbor pixels
                     if (isInner || isWithin(x, y, d)) {
-                        float vNeighbor = ip.getPixelValue(x + DIR_X_OFFSET[d], y + DIR_Y_OFFSET[d]);
-                        float vNeighborTrue = isEDM ? trueEdmHeight(x + DIR_X_OFFSET[d], y + DIR_Y_OFFSET[d], ip) : vNeighbor;
+                        final float vNeighbor = ip.getPixelValue(x + DIR_X_OFFSET[d], y + DIR_Y_OFFSET[d]);
+                        final float vNeighborTrue = isEDM ? trueEdmHeight(x + DIR_X_OFFSET[d], y + DIR_Y_OFFSET[d], ip) : vNeighbor;
                         if (vNeighbor > v && vNeighborTrue > vTrue) {
                             isMax = false;
                             break;
@@ -472,14 +472,14 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
             // long t1 = System.currentTimeMillis();IJ.log("markMax:"+(t1-t0));
         }
 
-        float vFactor = (float) (2e9 / (globalMax - globalMin)); // for converting float values into a 32-bit int
-        long[] maxPoints = new long[nMax]; // value (int) is in the upper 32 bit, pixel offset in the lower
+        final float vFactor = (float) (2e9 / (globalMax - globalMin)); // for converting float values into a 32-bit int
+        final long[] maxPoints = new long[nMax]; // value (int) is in the upper 32 bit, pixel offset in the lower
         int iMax = 0;
         for (int y = roi.y; y < roi.y + roi.height; y++) {
             for (int x = roi.x, p = x + y * width; x < roi.x + roi.width; x++, p++) {
                 if (types[p] == MAXIMUM) {
-                    float fValue = isEDM ? trueEdmHeight(x, y, ip) : ip.getPixelValue(x, y);
-                    int iValue = (int) ((fValue - globalMin) * vFactor); // 32-bit int, linear function of float value
+                    final float fValue = isEDM ? trueEdmHeight(x, y, ip) : ip.getPixelValue(x, y);
+                    final int iValue = (int) ((fValue - globalMin) * vFactor); // 32-bit int, linear function of float value
                     maxPoints[iMax++] = (long) iValue << 32 | p;
                 }
             }
@@ -510,12 +510,12 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @param outputType
      */
     private void analyzeAndMarkMaxima(ImageProcessor ip, ByteProcessor typeP, long[] maxPoints, boolean excludeEdgesNow, boolean isEDM, double tolerance, int outputType, float maxSortingError) {
-        byte[] types = (byte[]) typeP.getPixels();
-        int nMax = maxPoints.length;
-        int[] pList = new int[width * height]; // here we enter points starting from a maximum
+        final byte[] types = (byte[]) typeP.getPixels();
+        final int nMax = maxPoints.length;
+        final int[] pList = new int[width * height]; // here we enter points starting from a maximum
         Vector<int[]> xyVector = null;
         Roi roi = null;
-        boolean displayOrCount = outputType == POINT_SELECTION || outputType == LIST || outputType == COUNT;
+        final boolean displayOrCount = outputType == POINT_SELECTION || outputType == LIST || outputType == COUNT;
         if (displayOrCount) {
             xyVector = new Vector<int[]>();
         }
@@ -549,22 +549,22 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                 double yEqual = y0; // coordinates of contiguous equal-height points
                 int nEqual = 1; // counts xEqual/yEqual points that we use for averaging
                 do { // while neigbor list is not fully processed (to listLen)
-                    int offset = pList[listI];
-                    int x = offset % width;
-                    int y = offset / width;
+                    final int offset = pList[listI];
+                    final int x = offset % width;
+                    final int y = offset / width;
                     // if (x==18&&y==20)IJ.write("x0,y0="+x0+","+y0+"@18,20;v0="+v0+" sortingError="+sortingError);
-                    boolean isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1); // not necessary, but faster than isWithin
+                    final boolean isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1); // not necessary, but faster than isWithin
                     for (int d = 0; d < 8; d++) { // analyze all neighbors (in 8 directions) at the same level
-                        int offset2 = offset + dirOffset[d];
+                        final int offset2 = offset + dirOffset[d];
                         if ((isInner || isWithin(x, y, d)) && (types[offset2] & LISTED) == 0) {
                             if ((types[offset2] & PROCESSED) != 0) {
                                 maxPossible = false; // we have reached a point processed previously, thus it is no maximum now
                                 // if (x0<25&&y0<20)IJ.write("x0,y0="+x0+","+y0+":stop at processed neighbor from x,y="+x+","+y+", dir="+d);
                                 break;
                             }
-                            int x2 = x + DIR_X_OFFSET[d];
-                            int y2 = y + DIR_Y_OFFSET[d];
-                            float v2 = isEDM ? trueEdmHeight(x2, y2, ip) : ip.getPixelValue(x2, y2);
+                            final int x2 = x + DIR_X_OFFSET[d];
+                            final int y2 = y + DIR_Y_OFFSET[d];
+                            final float v2 = isEDM ? trueEdmHeight(x2, y2, ip) : ip.getPixelValue(x2, y2);
                             if (v2 > v0 + maxSortingError) {
                                 maxPossible = false; // we have reached a higher point, thus it is no maximum
                                 // if (x0<25&&y0<20)IJ.write("x0,y0="+x0+","+y0+":stop at higher neighbor from x,y="+x+","+y+", dir="+d+",value,value2,v2-v="+v0+","+v2+","+(v2-v0));
@@ -607,21 +607,21 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                     }
                 }
                 else {
-                    int resetMask = ~(maxPossible ? LISTED : (LISTED | EQUAL));
+                    final int resetMask = ~(maxPossible ? LISTED : (LISTED | EQUAL));
                     xEqual /= nEqual;
                     yEqual /= nEqual;
                     double minDist2 = 1e20;
                     int nearestI = 0;
                     for (listI = 0; listI < listLen; listI++) {
-                        int offset = pList[listI];
-                        int x = offset % width;
-                        int y = offset / width;
+                        final int offset = pList[listI];
+                        final int x = offset % width;
+                        final int y = offset / width;
                         types[offset] &= resetMask; // reset attributes no longer needed
                         types[offset] |= PROCESSED; // mark as processed
                         if (maxPossible) {
                             types[offset] |= MAX_AREA;
                             if ((types[offset] & EQUAL) != 0) {
-                                double dist2 = (xEqual - x) * (xEqual - x) + (yEqual - y) * (yEqual - y);
+                                final double dist2 = (xEqual - x) * (xEqual - x) + (yEqual - y) * (yEqual - y);
                                 if (dist2 < minDist2) {
                                     minDist2 = dist2; // this could be the best "single maximum" point
                                     nearestI = listI;
@@ -630,11 +630,11 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                         }
                     } // for listI
                     if (maxPossible) {
-                        int offset = pList[nearestI];
+                        final int offset = pList[nearestI];
                         types[offset] |= MAX_POINT;
                         if (displayOrCount && xyVector != null && !(excludeOnEdges && isEdgeMaximum)) {
-                            int x = offset % width;
-                            int y = offset / width;
+                            final int x = offset % width;
+                            final int y = offset / width;
                             if (roi == null || roi.contains(x, y)) {
                                 xyVector.addElement(new int[] { x, y });
                             }
@@ -648,17 +648,17 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
             return;
         }
         if (displayOrCount && xyVector != null) {
-            int npoints = xyVector.size();
+            final int npoints = xyVector.size();
             if (outputType == POINT_SELECTION && npoints > 0) {
-                int[] xpoints = new int[npoints];
-                int[] ypoints = new int[npoints];
+                final int[] xpoints = new int[npoints];
+                final int[] ypoints = new int[npoints];
                 for (int i = 0; i < npoints; i++) {
-                    int[] xy = xyVector.elementAt(i);
+                    final int[] xy = xyVector.elementAt(i);
                     xpoints[i] = xy[0];
                     ypoints[i] = xy[1];
                 }
                 if (imp != null) {
-                    Roi points = new PointRoi(xpoints, ypoints, npoints);
+                    final Roi points = new PointRoi(xpoints, ypoints, npoints);
                     ((PointRoi) points).setShowLabels(false);
                     imp.setRoi(points);
                 }
@@ -666,9 +666,9 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
             }
             else if (outputType == LIST) {
                 Analyzer.resetCounter();
-                ResultsTable rt = ResultsTable.getResultsTable();
+                final ResultsTable rt = ResultsTable.getResultsTable();
                 for (int i = 0; i < npoints; i++) {
-                    int[] xy = xyVector.elementAt(i);
+                    final int[] xy = xyVector.elementAt(i);
                     rt.incrementCounter();
                     rt.addValue("X", xy[0]);
                     rt.addValue("Y", xy[1]);
@@ -676,21 +676,21 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                 rt.show("Results");
             }
             else if (outputType == COUNT) {
-                ResultsTable rt = ResultsTable.getResultsTable();
+                final ResultsTable rt = ResultsTable.getResultsTable();
                 rt.incrementCounter();
                 rt.setValue("Count", rt.getCounter() - 1, npoints);
-                int measurements = Analyzer.getMeasurements();
+                final int measurements = Analyzer.getMeasurements();
                 if ((measurements & Measurements.LABELS) != 0) {
                     String s = imp.getTitle();
-                    String roiName = roi != null ? roi.getName() : null;
+                    final String roiName = roi != null ? roi.getName() : null;
                     if (roiName != null) {
                         s += ":" + roiName;
                     }
                     if (imp.getStackSize() > 1) {
-                        ImageStack stack = imp.getStack();
-                        int currentSlice = imp.getCurrentSlice();
-                        String label = stack.getShortSliceLabel(currentSlice);
-                        String colon = s.equals("") ? "" : ":";
+                        final ImageStack stack = imp.getStack();
+                        final int currentSlice = imp.getCurrentSlice();
+                        final String label = stack.getShortSliceLabel(currentSlice);
+                        final String colon = s.equals("") ? "" : ":";
                         if (label != null && !label.equals("")) {
                             s += colon + label;
                         }
@@ -721,7 +721,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @return The 8-bit output image.
      */
     private ByteProcessor make8bit(ImageProcessor ip, ByteProcessor typeP, boolean isEDM, float globalMin, float globalMax, double threshold) {
-        byte[] types = (byte[]) typeP.getPixels();
+        final byte[] types = (byte[]) typeP.getPixels();
         double minValue;
         if (isEDM) {
             threshold = 0.5;
@@ -730,19 +730,19 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
         else {
             minValue = (threshold == ImageProcessor.NO_THRESHOLD) ? globalMin : threshold;
         }
-        double offset = minValue - (globalMax - minValue) * (1. / 253 / 2 - 1e-6); // everything above minValue should become >(byte)0
+        final double offset = minValue - (globalMax - minValue) * (1. / 253 / 2 - 1e-6); // everything above minValue should become >(byte)0
         double factor = 253 / (globalMax - minValue);
         // IJ.write("min,max="+minValue+","+globalMax+"; offset, 1/factor="+offset+", "+(1./factor));
         if (isEDM && factor > 1) {
             factor = 1; // with EDM, no better resolution
         }
-        ByteProcessor outIp = new ByteProcessor(width, height);
+        final ByteProcessor outIp = new ByteProcessor(width, height);
         // convert possibly calibrated image to byte without damaging threshold (setMinAndMax would kill threshold)
-        byte[] pixels = (byte[]) outIp.getPixels();
+        final byte[] pixels = (byte[]) outIp.getPixels();
         long v;
         for (int y = 0, i = 0; y < height; y++) {
             for (int x = 0; x < width; x++, i++) {
-                float rawValue = ip.getPixelValue(x, y);
+                final float rawValue = ip.getPixelValue(x, y);
                 if (threshold != ImageProcessor.NO_THRESHOLD && rawValue < threshold) {
                     pixels[i] = (byte) 0;
                 }
@@ -777,11 +777,11 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @return estimated height
      */
     private float trueEdmHeight(int x, int y, ImageProcessor ip) {
-        int xmax = width - 1;
-        int ymax = ip.getHeight() - 1;
-        float[] pixels = (float[]) ip.getPixels();
-        int offset = x + y * width;
-        float v = pixels[offset];
+        final int xmax = width - 1;
+        final int ymax = ip.getHeight() - 1;
+        final float[] pixels = (float[]) ip.getPixels();
+        final int offset = x + y * width;
+        final float v = pixels[offset];
         if (x == 0 || y == 0 || x == xmax || y == ymax || v == 0) {
             return v; // don't recalculate for edge pixels or background
         }
@@ -789,9 +789,9 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
             float trueH = v + 0.5f * SQRT2; // true height can never by higher than this
             boolean ridgeOrMax = false;
             for (int d = 0; d < 4; d++) { // for all directions halfway around:
-                int d2 = (d + 4) % 8; // get the opposite direction and neighbors
-                float v1 = pixels[offset + dirOffset[d]];
-                float v2 = pixels[offset + dirOffset[d2]];
+                final int d2 = (d + 4) % 8; // get the opposite direction and neighbors
+                final float v1 = pixels[offset + dirOffset[d]];
+                final float v2 = pixels[offset + dirOffset[d2]];
                 float h;
                 if (v >= v1 && v >= v2) {
                     ridgeOrMax = true;
@@ -823,16 +823,16 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @param maxPoints array containing the coordinates of all maxima that might be relevant
      */
     private void cleanupMaxima(ByteProcessor outIp, ByteProcessor typeP, long[] maxPoints) {
-        byte[] pixels = (byte[]) outIp.getPixels();
-        byte[] types = (byte[]) typeP.getPixels();
-        int nMax = maxPoints.length;
-        int[] pList = new int[width * height];
+        final byte[] pixels = (byte[]) outIp.getPixels();
+        final byte[] types = (byte[]) typeP.getPixels();
+        final int nMax = maxPoints.length;
+        final int[] pList = new int[width * height];
         for (int iMax = nMax - 1; iMax >= 0; iMax--) {
-            int offset0 = (int) maxPoints[iMax]; // type cast gets lower 32 bits where pixel offset is encoded
+            final int offset0 = (int) maxPoints[iMax]; // type cast gets lower 32 bits where pixel offset is encoded
             if ((types[offset0] & (MAX_AREA | ELIMINATED)) != 0) {
                 continue;
             }
-            int level = pixels[offset0] & 255;
+            final int level = pixels[offset0] & 255;
             int loLevel = level + 1;
             pList[0] = offset0; // we start the list at the current maximum
             // if (xList[0]==122) IJ.write("max#"+iMax+" at x,y="+xList[0]+","+yList[0]+"; level="+level);
@@ -846,12 +846,12 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                 lastLen = listLen; // remember end of list for previous level
                 listI = 0; // in each level, start analyzing the neighbors of all pixels
                 do { // for all pixels listed so far
-                    int offset = pList[listI];
-                    int x = offset % width;
-                    int y = offset / width;
-                    boolean isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1); // not necessary, but faster than isWithin
+                    final int offset = pList[listI];
+                    final int x = offset % width;
+                    final int y = offset / width;
+                    final boolean isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1); // not necessary, but faster than isWithin
                     for (int d = 0; d < 8; d++) { // analyze all neighbors (in 8 directions) at the same level
-                        int offset2 = offset + dirOffset[d];
+                        final int offset2 = offset + dirOffset[d];
                         if ((isInner || isWithin(x, y, d)) && (types[offset2] & LISTED) == 0) {
                             if ((types[offset2] & MAX_AREA) != 0 || (((types[offset2] & ELIMINATED) != 0) && (pixels[offset2] & 255) >= loLevel)) {
                                 saddleFound = true; // we have reached a point touching a "true" maximum...
@@ -877,7 +877,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                 types[pList[listI]] &= ~LISTED;
             }
             for (listI = 0; listI < lastLen; listI++) { // for all points higher than the level of the saddle point
-                int offset = pList[listI];
+                final int offset = pList[listI];
                 pixels[offset] = (byte) loLevel; // set pixel value to the level of the saddle point
                 types[offset] |= ELIMINATED; // mark as processed: there can't be a local maximum in this area
             }
@@ -892,12 +892,12 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @param ip 8-bit image with background = 0, lines between 1 and 254 and segmented particles = 255
      */
     private void cleanupExtraLines(ImageProcessor ip) {
-        byte[] pixels = (byte[]) ip.getPixels();
+        final byte[] pixels = (byte[]) ip.getPixels();
         for (int y = 0, i = 0; y < height; y++) {
             for (int x = 0; x < width; x++, i++) {
-                int v = pixels[i];
+                final int v = pixels[i];
                 if (v != (byte) 255 && v != 0) {
-                    int nRadii = nRadii(pixels, x, y); // number of lines radiating
+                    final int nRadii = nRadii(pixels, x, y); // number of lines radiating
                     if (nRadii == 0) {
                         pixels[i] = (byte) 255;
                     }
@@ -917,12 +917,12 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
         boolean continues;
         do {
             continues = false;
-            boolean isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1); // not necessary, but faster than isWithin
+            final boolean isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1); // not necessary, but faster than isWithin
             for (int d = 0; d < 8; d += 2) { // analyze 4-connected neighbors
                 if (isInner || isWithin(x, y, d)) {
-                    int v = pixels[x + width * y + dirOffset[d]];
+                    final int v = pixels[x + width * y + dirOffset[d]];
                     if (v != (byte) 255 && v != 0) {
-                        int nRadii = nRadii(pixels, x + DIR_X_OFFSET[d], y + DIR_Y_OFFSET[d]);
+                        final int nRadii = nRadii(pixels, x + DIR_X_OFFSET[d], y + DIR_Y_OFFSET[d]);
                         if (nRadii <= 1) { // found a point or line end
                             x += DIR_X_OFFSET[d];
                             y += DIR_Y_OFFSET[d];
@@ -949,15 +949,15 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      *         embedded in either foreground or background
      */
     private int nRadii(byte[] pixels, int x, int y) {
-        int offset = x + y * width;
+        final int offset = x + y * width;
         int countTransitions = 0;
         boolean prevPixelSet = true;
         boolean firstPixelSet = true; // initialize to make the compiler happy
-        boolean isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1); // not necessary, but faster than isWithin
+        final boolean isInner = (y != 0 && y != height - 1) && (x != 0 && x != width - 1); // not necessary, but faster than isWithin
         for (int d = 0; d < 8; d++) { // walk around the point and note every no-line->line transition
             boolean pixelSet = prevPixelSet;
             if (isInner || isWithin(x, y, d)) {
-                boolean isSet = (pixels[offset + dirOffset[d]] != (byte) 255);
+                final boolean isSet = (pixels[offset + dirOffset[d]] != (byte) 255);
                 if ((d & 1) == 0) {
                     pixelSet = isSet; // non-diagonal directions: always regarded
                 }
@@ -987,8 +987,8 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      */
     private void watershedPostProcess(ImageProcessor ip) {
         // new ImagePlus("before postprocess",ip.duplicate()).show();
-        byte[] pixels = (byte[]) ip.getPixels();
-        int size = ip.getWidth() * ip.getHeight();
+        final byte[] pixels = (byte[]) ip.getPixels();
+        final int size = ip.getWidth() * ip.getHeight();
         for (int i = 0; i < size; i++) {
             if ((pixels[i] & 255) < 255) {
                 pixels[i] = (byte) 0;
@@ -1006,12 +1006,12 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      *            (foreground pixels, i.e. particles, are 255, background 0)
      */
     private void deleteEdgeParticles(ByteProcessor ip, ByteProcessor typeP) {
-        byte[] pixels = (byte[]) ip.getPixels();
-        byte[] types = (byte[]) typeP.getPixels();
+        final byte[] pixels = (byte[]) ip.getPixels();
+        final byte[] types = (byte[]) typeP.getPixels();
         width = ip.getWidth();
         height = ip.getHeight();
         ip.setValue(0);
-        Wand wand = new Wand(ip);
+        final Wand wand = new Wand(ip);
         for (int x = 0; x < width; x++) {
             int y = 0;
             if ((types[x + y * width] & MAX_AREA) != 0 && pixels[x + y * width] != 0) {
@@ -1044,7 +1044,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
             IJ.log("wand error selecting edge particle at x, y = " + x + ", " + y);
             return;
         }
-        Roi roi = new PolygonRoi(wand.xpoints, wand.ypoints, wand.npoints, Roi.TRACED_ROI);
+        final Roi roi = new PolygonRoi(wand.xpoints, wand.ypoints, wand.npoints, Roi.TRACED_ROI);
         ip.snapshot(); // prepare for reset outside of mask
         ip.setRoi(roi);
         ip.fill();
@@ -1062,23 +1062,23 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @return false if canceled by the user (note: can be cancelled only if called by "run" with a known ImagePlus)
      */
     private boolean watershedSegment(ByteProcessor ip) {
-        boolean debug = IJ.debugMode;
+        final boolean debug = IJ.debugMode;
         ImageStack movie = null;
         if (debug) {
             movie = new ImageStack(ip.getWidth(), ip.getHeight());
             movie.addSlice("pre-watershed EDM", ip.duplicate());
         }
-        byte[] pixels = (byte[]) ip.getPixels();
+        final byte[] pixels = (byte[]) ip.getPixels();
         // Create an array with the coordinates of all points between value 1 and 254
         // This method, suggested by Stein Roervik (stein_at_kjemi-dot-unit-dot-no),
         // greatly speeds up the watershed segmentation routine.
-        int[] histogram = ip.getHistogram();
-        int arraySize = width * height - histogram[0] - histogram[255];
-        int[] coordinates = new int[arraySize]; // from pixel coordinates, low bits x, high bits y
+        final int[] histogram = ip.getHistogram();
+        final int arraySize = width * height - histogram[0] - histogram[255];
+        final int[] coordinates = new int[arraySize]; // from pixel coordinates, low bits x, high bits y
         int highestValue = 0;
         int maxBinSize = 0;
         int offset = 0;
-        int[] levelStart = new int[256];
+        final int[] levelStart = new int[256];
         for (int v = 1; v < 255; v++) {
             levelStart[v] = offset;
             offset += histogram[v];
@@ -1089,10 +1089,10 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                 maxBinSize = histogram[v];
             }
         }
-        int[] levelOffset = new int[highestValue + 1];
+        final int[] levelOffset = new int[highestValue + 1];
         for (int y = 0, i = 0; y < height; y++) {
             for (int x = 0; x < width; x++, i++) {
-                int v = pixels[i] & 255;
+                final int v = pixels[i] & 255;
                 if (v > 0 && v < 255) {
                     offset = levelStart[v] + levelOffset[v];
                     coordinates[offset] = x | y << intEncodeShift;
@@ -1102,12 +1102,12 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
         } // for y
           // Create an array of the points (pixel offsets) that we set to 255 in one pass.
           // If we remember this list we need not create a snapshot of the ImageProcessor.
-        int[] setPointList = new int[Math.min(maxBinSize, (width * height + 2) / 3)];
+        final int[] setPointList = new int[Math.min(maxBinSize, (width * height + 2) / 3)];
         // now do the segmentation, starting at the highest level and working down.
         // At each level, dilate the particle (set pixels to 255), constrained to pixels
         // whose values are at that level and also constrained (by the fateTable)
         // to prevent features from merging.
-        int[] table = makeFateTable();
+        final int[] table = makeFateTable();
         IJ.showStatus("Segmenting (Esc to cancel)");
         final int[] directionSequence = new int[] { 7, 3, 1, 5, 0, 4, 2, 6 }; // diagonal directions first
         for (int level = highestValue; level >= 1; level--) {
@@ -1117,7 +1117,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                 int sumN = 0;
                 int dIndex = 0;
                 do { // expand each level in 8 directions
-                    int n = processLevel(directionSequence[dIndex % 8], ip, table, levelStart[level], remaining, coordinates, setPointList);
+                    final int n = processLevel(directionSequence[dIndex % 8], ip, table, levelStart[level], remaining, coordinates, setPointList);
                     // IJ.log("level="+level+" direction="+directionSequence[dIndex%8]+" remain="+remaining+"-"+n);
                     remaining -= n; // number of points processed
                     sumN += n;
@@ -1146,10 +1146,10 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                 if (nextLevel > 0) {
                     int newNextLevelEnd = levelStart[nextLevel] + histogram[nextLevel];
                     for (int i = 0, p = levelStart[level]; i < remaining; i++, p++) {
-                        int xy = coordinates[p];
-                        int x = xy & intEncodeXMask;
-                        int y = (xy & intEncodeYMask) >> intEncodeShift;
-                        int pOffset = x + y * width;
+                        final int xy = coordinates[p];
+                        final int x = xy & intEncodeXMask;
+                        final int y = (xy & intEncodeYMask) >> intEncodeShift;
+                        final int pOffset = x + y * width;
                         if ((pixels[pOffset] & 255) == 255) {
                             IJ.log("ERROR");
                         }
@@ -1197,17 +1197,17 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @return number of pixels that have been changed
      */
     private int processLevel(int pass, ImageProcessor ip, int[] fateTable, int levelStart, int levelNPoints, int[] coordinates, int[] setPointList) {
-        int xmax = width - 1;
-        int ymax = height - 1;
-        byte[] pixels = (byte[]) ip.getPixels();
+        final int xmax = width - 1;
+        final int ymax = height - 1;
+        final byte[] pixels = (byte[]) ip.getPixels();
         // byte[] pixels2 = (byte[])ip2.getPixels();
         int nChanged = 0;
         int nUnchanged = 0;
         for (int i = 0, p = levelStart; i < levelNPoints; i++, p++) {
-            int xy = coordinates[p];
-            int x = xy & intEncodeXMask;
-            int y = (xy & intEncodeYMask) >> intEncodeShift;
-            int offset = x + y * width;
+            final int xy = coordinates[p];
+            final int x = xy & intEncodeXMask;
+            final int y = (xy & intEncodeYMask) >> intEncodeShift;
+            final int offset = x + y * width;
             int index = 0; // neighborhood pixel ocupation: index in fateTable
             if (y > 0 && (pixels[offset - width] & 255) == 255) {
                 index ^= 1;
@@ -1233,7 +1233,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
             if (x > 0 && y > 0 && (pixels[offset - width - 1] & 255) == 255) {
                 index ^= 128;
             }
-            int mask = 1 << pass;
+            final int mask = 1 << pass;
             if ((fateTable[index] & mask) == mask) {
                 setPointList[nChanged++] = offset; // remember to set pixel to 255
             }
@@ -1266,8 +1266,8 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * E.g. 4 = add on 3rd pass, 3 = add on either 1st or 2nd pass.
      */
     private int[] makeFateTable() {
-        int[] table = new int[256];
-        boolean[] isSet = new boolean[8];
+        final int[] table = new int[256];
+        final boolean[] isSet = new boolean[8];
         for (int item = 0; item < 256; item++) { // dissect into pixels
             for (int i = 0, mask = 1; i < 8; i++) {
                 isSet[i] = (item & mask) == mask;
@@ -1339,8 +1339,8 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
      * @return true if the neighbor is within the image (provided that x, y is within)
      */
     private boolean isWithin(int x, int y, int direction) {
-        int xmax = width - 1;
-        int ymax = height - 1;
+        final int xmax = width - 1;
+        final int ymax = height - 1;
         switch (direction) {
             case 0:
                 return (y > 0);

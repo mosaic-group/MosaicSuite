@@ -15,23 +15,23 @@ import net.imglib2.type.numeric.real.DoubleType;
 class ObjectProperties implements Runnable {
 
     private double intmin, intmax;
-    private double[][][] image;
-    private Region region;
-    private double[][][][] temp1;
-    private double[][][][] temp2;
-    private double[][][][] temp3;
+    private final double[][][] image;
+    private final Region region;
+    private final double[][][][] temp1;
+    private final double[][][][] temp2;
+    private final double[][][][] temp3;
     private double cin;
     private double[][][] patch;
-    private short[][][] regions;
-    private int margin;
-    private int zmargin;
+    private final short[][][] regions;
+    private final int margin;
+    private final int zmargin;
     private int sx, sy, sz;// size for object
-    private int nx, ny, nz;// size of full oversampled work zone
-    private Parameters p;
+    private final int nx, ny, nz;// size of full oversampled work zone
+    private final Parameters p;
     private int cx, cy, cz;// coord of patch in full work zone (offset)
-    private int osxy, osz;
+    private final int osxy, osz;
     private double[][][][] mask;// nregions nslices ni nj
-    private byte[] imagecolor_c1;
+    private final byte[] imagecolor_c1;
 
     public ObjectProperties(double[][][] im, Region reg, int nx, int ny, int nz, Parameters p1, int osxy, int osz, byte[] color_c1, short[][][] regs) {
         this.regions = regs;
@@ -59,8 +59,8 @@ class ObjectProperties implements Runnable {
         p.nz = sz;
         // set psf
         if (p.nz > 1) {
-            GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
-            DoubleType[] var = new DoubleType[3];
+            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
+            final DoubleType[] var = new DoubleType[3];
             var[0] = new DoubleType(p.sigma_gaussian);
             var[1] = new DoubleType(p.sigma_gaussian);
             var[2] = new DoubleType(p.sigma_gaussian / p.zcorrec);
@@ -68,8 +68,8 @@ class ObjectProperties implements Runnable {
             p.PSF = psf;
         }
         else {
-            GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
-            DoubleType[] var = new DoubleType[2];
+            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
+            final DoubleType[] var = new DoubleType[2];
             var[0] = new DoubleType(p.sigma_gaussian);
             var[1] = new DoubleType(p.sigma_gaussian);
             psf.setVar(var);
@@ -106,14 +106,14 @@ class ObjectProperties implements Runnable {
         if (imagecolor_c1 == null) {
             return;
         }
-        int c1 = (int) Math.min(255, 255 * Math.sqrt(region.intensity)); // Green
-        int c0 = (int) Math.min(255, 255 * region.intensity); // Red
-        int c2 = (int) Math.min(255, 255 * Math.pow(region.intensity, 2)); // Blue
+        final int c1 = (int) Math.min(255, 255 * Math.sqrt(region.intensity)); // Green
+        final int c0 = (int) Math.min(255, 255 * region.intensity); // Red
+        final int c2 = (int) Math.min(255, 255 * Math.pow(region.intensity, 2)); // Blue
 
-        for (Iterator<Pix> it2 = region.pixels.iterator(); it2.hasNext();) {
-            Pix p = it2.next();
+        for (final Iterator<Pix> it2 = region.pixels.iterator(); it2.hasNext();) {
+            final Pix p = it2.next();
             // set correct color
-            int t = p.pz * nx * ny * 3 + p.px * ny * 3;
+            final int t = p.pz * nx * ny * 3 + p.px * ny * 3;
             imagecolor_c1[t + p.py * 3 + 0] = (byte) c0;
             imagecolor_c1[t + p.py * 3 + 1] = (byte) c1;
             imagecolor_c1[t + p.py * 3 + 2] = (byte) c2;
@@ -151,8 +151,8 @@ class ObjectProperties implements Runnable {
         ymax = 0;
         zmax = 0;
 
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix p = it.next();
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix p = it.next();
             if (p.px < xmin) {
                 xmin = p.px;
             }
@@ -241,8 +241,8 @@ class ObjectProperties implements Runnable {
             }
         }
 
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix p = it.next();
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix p = it.next();
             int rz, rx, ry;
             rz = (p.pz - cz);
             rx = (p.px - cx);
@@ -269,9 +269,9 @@ class ObjectProperties implements Runnable {
         double pr = 0;
         // int rvalue= r.value;
 
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
             int edges = 0;
-            Pix v = it.next();
+            final Pix v = it.next();
             // count number of free edges
             if (v.px != 0 && v.px != nx - 1 && v.py != 0 && v.py != ny - 1) {
                 // not on edges of image
@@ -308,9 +308,9 @@ class ObjectProperties implements Runnable {
         double pr = 0;
         // int rvalue= r.value;
 
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
             int edges = 0;
-            Pix v = it.next();
+            final Pix v = it.next();
             // count number of free edges
             if (v.px != 0 && v.px != nx - 1 && v.py != 0 && v.py != ny - 1 && v.pz != 0 && v.pz != nz - 1) {// not
                 // on
@@ -359,8 +359,8 @@ class ObjectProperties implements Runnable {
         double sumx = 0;
         double sumy = 0;
         double sumz = 0;
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix p = it.next();
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix p = it.next();
             if (!Analysis.p.refinement) {
                 sum += image[p.pz][p.px][p.py];
             }
@@ -388,12 +388,12 @@ class ObjectProperties implements Runnable {
 
     private void setlength(Region r, short[][][] regionsA) {
         // 2D only yet
-        ImagePlus skeleton = new ImagePlus();
+        final ImagePlus skeleton = new ImagePlus();
 
-        ImageStack is = new ImageStack(sx, sy);
+        final ImageStack is = new ImageStack(sx, sy);
 
         for (int k = 0; k < sz; k++) {
-            byte[] mask_bytes = new byte[sx * sy];
+            final byte[] mask_bytes = new byte[sx * sy];
             for (int i = 0; i < sx; i++) {
                 for (int j = 0; j < sy; j++) {
 
@@ -406,7 +406,7 @@ class ObjectProperties implements Runnable {
                 }
             }
 
-            ByteProcessor bp = new ByteProcessor(sx, sy);
+            final ByteProcessor bp = new ByteProcessor(sx, sy);
             bp.setPixels(mask_bytes);
 
             is.addSlice(bp);
@@ -422,10 +422,10 @@ class ObjectProperties implements Runnable {
 
     private void regionlength(Region r, ImagePlus skel) {
         int length = 0;
-        ImageStack is = skel.getStack();
+        final ImageStack is = skel.getStack();
 
-        for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-            Pix v = it.next();
+        for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            final Pix v = it.next();
             // count number of pixels in skeleton
             if (is.getProcessor(v.pz - cz + 1).getPixel(v.px - cx, v.py - cy) != 0) {
                 length++;

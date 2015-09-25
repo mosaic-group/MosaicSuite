@@ -185,7 +185,7 @@ public class RegionIterator
 
     // @Override
     public int next() {
-        int result = itInput;
+        final int result = itInput;
 
         // calculate indices for next step
 
@@ -226,7 +226,7 @@ public class RegionIterator
      */
 
     public Point getPoint() {
-        Point tmp = new Point(dimensions);
+        final Point tmp = new Point(dimensions);
         for (int i = 0; i < dimensions; i++) {
             tmp.x[i] = itDim[i] + ofs[i];
         }
@@ -245,7 +245,7 @@ public class RegionIterator
      */
 
     int nextRmask() {
-        int result = itInput;
+        final int result = itInput;
 
         // calculate indices for next step
 
@@ -297,26 +297,26 @@ public class RegionIterator
     // //////////////////////////////////////////////////////
 
     public static void tester() {
-        int[] testinput = { 100, 100, 100 };
-        int[] testofs = { -50, -50, -50 };
-        int[] testregion = { 200, 200, 200 };
+        final int[] testinput = { 100, 100, 100 };
+        final int[] testofs = { -50, -50, -50 };
+        final int[] testregion = { 200, 200, 200 };
 
-        IndexIterator it = new IndexIterator(testregion);
-        int size = it.getSize();
+        final IndexIterator it = new IndexIterator(testregion);
+        final int size = it.getSize();
 
-        int mask[] = new int[size];
+        final int mask[] = new int[size];
         for (int i = 0; i < size; i++) {
             mask[i] = i;
         }
 
-        RegionIterator regionIt = new RegionIterator(testinput, testregion, testofs);
-        MaskIterator maskIt = new MaskIterator(testinput, testregion, testofs);
+        final RegionIterator regionIt = new RegionIterator(testinput, testregion, testofs);
+        final MaskIterator maskIt = new MaskIterator(testinput, testregion, testofs);
 
         while (regionIt.hasNext()) {
             // int idx = regionIt.next();
-            int imask = maskIt.next();
+            final int imask = maskIt.next();
 
-            int x = mask[imask];
+            final int x = mask[imask];
 
             System.out.println("" + it.indexToPoint(x) + " ");
         }
@@ -326,16 +326,16 @@ public class RegionIterator
     }
 
     public static List<Integer> RegionItTest(int[] testinput, int[] testofs, int[] testregion) {
-        ArrayList<Integer> list = new ArrayList<Integer>();
+        final ArrayList<Integer> list = new ArrayList<Integer>();
 
-        RegionIterator testiterator = new RegionIterator(testinput, testregion, testofs);
+        final RegionIterator testiterator = new RegionIterator(testinput, testregion, testofs);
         // IndexIterator proofer = new IndexIterator(testinput);
 
-        Timer t = new Timer();
+        final Timer t = new Timer();
         t.tic();
 
         while (testiterator.hasNext()) {
-            int index = testiterator.next();
+            final int index = testiterator.next();
             // Point p = proofer.indexToPoint(index);
             list.add(index);
         }
@@ -348,21 +348,21 @@ public class RegionIterator
 
     public static List<Point> naiveTest(int[] testinput, int[] testofs, int[] testregion) {
 
-        ArrayList<Point> list = new ArrayList<Point>();
+        final ArrayList<Point> list = new ArrayList<Point>();
 
-        IndexIterator iterator = new IndexIterator(testregion);
-        IndexIterator labelImageIt = new IndexIterator(testinput);
+        final IndexIterator iterator = new IndexIterator(testregion);
+        final IndexIterator labelImageIt = new IndexIterator(testinput);
 
-        Timer t = new Timer();
+        final Timer t = new Timer();
         t.tic();
 
-        Point pstart = new Point(testofs);
+        final Point pstart = new Point(testofs);
 
-        int size = iterator.getSize();
+        final int size = iterator.getSize();
         for (int i = 0; i < size; i++) // over region
         {
-            Point ofs = iterator.indexToPoint(i);
-            Point p = pstart.add(ofs);
+            final Point ofs = iterator.indexToPoint(i);
+            final Point p = pstart.add(ofs);
             if (labelImageIt.isInBound(p)) {
                 list.add(p);
                 // System.out.println(p);

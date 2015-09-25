@@ -18,7 +18,7 @@ class BackgroundSubHelp extends HelpGUI implements ActionListener {
 
     public JDialog frame;
     // Initialize Buttons
-    private JPanel panel;
+    private final JPanel panel;
     private JButton Close;
 
     public BackgroundSubHelp(int x, int y) {
@@ -34,13 +34,13 @@ class BackgroundSubHelp extends HelpGUI implements ActionListener {
         panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panel.setPreferredSize(new Dimension(500, 220));
 
-        JPanel pref = new JPanel(new GridBagLayout());
+        final JPanel pref = new JPanel(new GridBagLayout());
         // pref.setPreferredSize(new Dimension(555, 550));
         // pref.setSize(pref.getPreferredSize());
 
         setPanel(pref);
         setHelpTitle("Background Subtraction");
-        String desc = new String("Reduce background fluorescence using the rolling ball algorithm " + "by selecting “Remove Background“ and entering the window edge-length "
+        final String desc = new String("Reduce background fluorescence using the rolling ball algorithm " + "by selecting “Remove Background“ and entering the window edge-length "
                 + "in units of pixels. This length should be large enough so that" + "a square with that edge length cannot fit inside the objects to be detected,"
                 + " but is smaller than the length scale of background variations");
         createField("Background subtraction window size", desc, null);
@@ -67,7 +67,7 @@ class BackgroundSubHelp extends HelpGUI implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent ae) {
-        Object source = ae.getSource(); // Identify Button that was clicked
+        final Object source = ae.getSource(); // Identify Button that was clicked
 
         if (source == Close) {
             // IJ.log("close called");

@@ -95,7 +95,7 @@ public class FeaturePointDetector {
          * converted to 32bit floating point, false particles get detected
          */
 
-        ImageStack original_ips = frame.getOriginalImageStack();
+        final ImageStack original_ips = frame.getOriginalImageStack();
         ImageStack restored_fps = new ImageStack(original_ips.getWidth(), original_ips.getHeight());
 
         for (int i = 1; i <= original_ips.getSize(); i++) {
@@ -156,7 +156,7 @@ public class FeaturePointDetector {
      */
     private void normalizeFrameFloat(ImageStack is, float global_min, float global_max) {
         for (int s = 1; s <= is.getSize(); s++) {
-            float[] pixels = (float[]) is.getPixels(s);
+            final float[] pixels = (float[]) is.getPixels(s);
             float tmp_pix_value;
             for (int i = 0; i < pixels.length; i++) {
                 tmp_pix_value = (pixels[i] - global_min) / (global_max - global_min);
@@ -188,22 +188,22 @@ public class FeaturePointDetector {
         float min = 0f;
         float max = 0f;
         if (ips.getSize() > 1) {
-            StackStatistics sstats = new StackStatistics(new ImagePlus(null, ips));
+            final StackStatistics sstats = new StackStatistics(new ImagePlus(null, ips));
             min = (float) sstats.min;
             max = (float) sstats.max;
         }
         else { // speeds up the 2d version:
-            ImageStatistics istats = ImageStatistics.getStatistics(ips.getProcessor(1), Measurements.MIN_MAX + Measurements.MODE + Measurements.STD_DEV, null);
+            final ImageStatistics istats = ImageStatistics.getStatistics(ips.getProcessor(1), Measurements.MIN_MAX + Measurements.MODE + Measurements.STD_DEV, null);
             min = (float) istats.min;
             max = (float) istats.max;
         }
 
-        double[] hist = new double[256];
+        final double[] hist = new double[256];
         for (i = 0; i < hist.length; i++) {
             hist[i] = 0;
         }
         for (s = 0; s < ips.getSize(); s++) {
-            float[] pixels = (float[]) ips.getProcessor(s + 1).getPixels();
+            final float[] pixels = (float[]) ips.getProcessor(s + 1).getPixels();
             for (i = 0; i < ips.getHeight(); i++) {
                 for (j = 0; j < ips.getWidth(); j++) {
                     hist[(int) ((pixels[i * width + j] - min) * 255.0 / (max - min))]++;
@@ -243,15 +243,15 @@ public class FeaturePointDetector {
      */
     private void pointLocationsEstimation(ImageStack ips, int frame_number, int linkrange) {
         /* do a grayscale dilation */
-        ImageStack dilated_ips = MosaicImageProcessingTools.dilateGeneric(ips, radius, 4);
+        final ImageStack dilated_ips = MosaicImageProcessingTools.dilateGeneric(ips, radius, 4);
         // new StackWindow(new ImagePlus("dilated ", dilated_ips));
         particles = new Vector<Particle>();
         /* loop over all pixels */
-        int height = ips.getHeight();
-        int width = ips.getWidth();
+        final int height = ips.getHeight();
+        final int width = ips.getWidth();
         for (int s = 0; s < ips.getSize(); s++) {
-            float[] ips_pixels = (float[]) ips.getProcessor(s + 1).getPixels();
-            float[] ips_dilated_pixels = (float[]) dilated_ips.getProcessor(s + 1).getPixels();
+            final float[] ips_pixels = (float[]) ips.getProcessor(s + 1).getPixels();
+            final float[] ips_dilated_pixels = (float[]) dilated_ips.getProcessor(s + 1).getPixels();
             for (int i = 0; i < height; i++) {
                 for (int j = 0; j < width; j++) {
                     if (ips_pixels[i * width + j] > this.threshold && ips_pixels[i * width + j] == ips_dilated_pixels[i * width + j]) { // check if pixel is a local maximum
@@ -282,8 +282,8 @@ public class FeaturePointDetector {
         int m, k, l, x, y, z, tx, ty, tz;
         float epsx, epsy, epsz, c;
 
-        int mask_width = 2 * radius + 1;
-        int image_width = ips.getWidth();
+        final int mask_width = 2 * radius + 1;
+        final int image_width = ips.getWidth();
         /* Set every value that is smaller than 0 to 0 */
         for (int s = 0; s < ips.getSize(); s++) {
             // for (int i = 0; i < ips.getHeight(); i++) {
@@ -293,7 +293,7 @@ public class FeaturePointDetector {
             //
             // }
             // }
-            float[] pixels = (float[]) ips.getPixels(s + 1);
+            final float[] pixels = (float[]) ips.getPixels(s + 1);
             for (int i = 0; i < pixels.length; i++) {
                 if (pixels[i] < 0) {
                     pixels[i] = 0f;
@@ -445,7 +445,7 @@ public class FeaturePointDetector {
          * Remove duplicates (happens when dealing with artificial images)
          */
         // Create a bitmap (with ghostlayers to not have to perform bounds checking)
-        boolean[][][] vBitmap = new boolean[max_z + 3][max_y + 3][max_x + 3];
+        final boolean[][][] vBitmap = new boolean[max_z + 3][max_y + 3][max_x + 3];
         for (int z = 0; z < max_z + 3; z++) {
             for (int y = 0; y < max_y + 3; y++) {
                 for (int x = 0; x < max_x + 3; x++) {
@@ -524,7 +524,7 @@ public class FeaturePointDetector {
         }
         else {
             // we're in 2D mode
-            ImageProcessor rp = MosaicUtils.padImageStack2D(is.getProcessor(1), radius);
+            final ImageProcessor rp = MosaicUtils.padImageStack2D(is.getProcessor(1), radius);
             restored = new ImageStack(rp.getWidth(), rp.getHeight());
             restored.addSlice("", rp);
         }
@@ -545,7 +545,7 @@ public class FeaturePointDetector {
                 break;
             case BG_SUBTRACTOR:
                 GaussBlur3D(restored, 1 * lambda_n);
-                BackgroundSubtractor2_ bgSubtractor = new BackgroundSubtractor2_();
+                final BackgroundSubtractor2_ bgSubtractor = new BackgroundSubtractor2_();
                 for (int s = 1; s <= restored.getSize(); s++) {
                     // IJ.showProgress(s, restored.getSize());
                     // IJ.showStatus("Preprocessing: subtracting background...");
@@ -568,7 +568,7 @@ public class FeaturePointDetector {
         }
         else {
             // 2D crop
-            ImageProcessor rp = MosaicUtils.cropImageStack2D(restored.getProcessor(1), radius);
+            final ImageProcessor rp = MosaicUtils.cropImageStack2D(restored.getProcessor(1), radius);
             restored = new ImageStack(rp.getWidth(), rp.getHeight());
             restored.addSlice("", rp);
         }
@@ -578,13 +578,13 @@ public class FeaturePointDetector {
     }
 
     private void GaussBlur3D(ImageStack is, float aSigma) {
-        float[] vKernel = CalculateNormalizedGaussKernel(aSigma);
+        final float[] vKernel = CalculateNormalizedGaussKernel(aSigma);
         int kernel_radius = vKernel.length / 2;
-        int nSlices = is.getSize();
-        int vWidth = is.getWidth();
+        final int nSlices = is.getSize();
+        final int vWidth = is.getWidth();
         for (int i = 1; i <= nSlices; i++) {
-            ImageProcessor restored_proc = is.getProcessor(i);
-            Convolver convolver = new Convolver();
+            final ImageProcessor restored_proc = is.getProcessor(i);
+            final Convolver convolver = new Convolver();
             // no need to normalize the kernel - its already normalized
             convolver.setNormalize(false);
             // the gaussian kernel is separable and can done in 3x 1D convolutions.
@@ -602,8 +602,8 @@ public class FeaturePointDetector {
 
         kernel_radius = vKernel.length / 2;
         // to speed up the method, store the processor in an array (not invoke getProcessor()):
-        float[][] vOrigProcessors = new float[nSlices][];
-        float[][] vRestoredProcessors = new float[nSlices][];
+        final float[][] vOrigProcessors = new float[nSlices][];
+        final float[][] vRestoredProcessors = new float[nSlices][];
         for (int s = 0; s < nSlices; s++) {
             vOrigProcessors[s] = (float[]) is.getProcessor(s + 1).getPixelsCopy();
             vRestoredProcessors[s] = (float[]) is.getProcessor(s + 1).getPixels();
@@ -623,14 +623,14 @@ public class FeaturePointDetector {
     }
 
     private void boxCarBackgroundSubtractor(ImageStack is) {
-        Convolver convolver = new Convolver();
-        float[] kernel = new float[radius * 2 + 1];
-        int n = kernel.length;
+        final Convolver convolver = new Convolver();
+        final float[] kernel = new float[radius * 2 + 1];
+        final int n = kernel.length;
         for (int i = 0; i < kernel.length; i++) {
             kernel[i] = 1f / n;
         }
         for (int s = 1; s <= is.getSize(); s++) {
-            ImageProcessor bg_proc = is.getProcessor(s).duplicate();
+            final ImageProcessor bg_proc = is.getProcessor(s).duplicate();
             convolver.convolveFloat(bg_proc, kernel, 1, n);
             convolver.convolveFloat(bg_proc, kernel, n, 1);
             is.getProcessor(s).copyBits(bg_proc, 0, 0, Blitter.SUBTRACT);
@@ -638,17 +638,17 @@ public class FeaturePointDetector {
     }
 
     private ImageStack Laplace_Separable_3D(ImageStack aIS) {
-        float[] vKernel_1D = new float[] { -1, 2, -1 };
-        ImageStack vResultStack = new ImageStack(aIS.getWidth(), aIS.getHeight());
-        int vKernelWidth = vKernel_1D.length;
-        int vKernelRadius = vKernel_1D.length / 2;
-        int vWidth = aIS.getWidth();
+        final float[] vKernel_1D = new float[] { -1, 2, -1 };
+        final ImageStack vResultStack = new ImageStack(aIS.getWidth(), aIS.getHeight());
+        final int vKernelWidth = vKernel_1D.length;
+        final int vKernelRadius = vKernel_1D.length / 2;
+        final int vWidth = aIS.getWidth();
         //
         // in x dimension
         //
         for (int vI = 1; vI <= aIS.getSize(); vI++) {
-            ImageProcessor vConvolvedSlice = aIS.getProcessor(vI).duplicate();
-            Convolver vConvolver = new Convolver();
+            final ImageProcessor vConvolvedSlice = aIS.getProcessor(vI).duplicate();
+            final Convolver vConvolver = new Convolver();
             vConvolver.setNormalize(false);
             vConvolver.convolve(vConvolvedSlice, vKernel_1D, vKernelWidth, 1);
             vResultStack.addSlice(null, vConvolvedSlice);
@@ -657,8 +657,8 @@ public class FeaturePointDetector {
         // in y dimension and sum it to the result
         //
         for (int vI = 1; vI <= aIS.getSize(); vI++) {
-            ImageProcessor vConvolvedSlice = aIS.getProcessor(vI).duplicate();
-            Convolver vConvolver = new Convolver();
+            final ImageProcessor vConvolvedSlice = aIS.getProcessor(vI).duplicate();
+            final Convolver vConvolver = new Convolver();
             vConvolver.setNormalize(false);
             vConvolver.convolve(vConvolvedSlice, vKernel_1D, 1, vKernelWidth);
             vResultStack.getProcessor(vI).copyBits(vConvolvedSlice, 0, 0, Blitter.ADD);
@@ -669,9 +669,9 @@ public class FeaturePointDetector {
         // z dimension
         //
         // first get all the processors of the frame in an array since the getProcessor method is expensive
-        float[][] vOriginalStackPixels = new float[aIS.getSize()][];
-        float[][] vConvolvedStackPixels = new float[aIS.getSize()][];
-        float[][] vResultStackPixels = new float[aIS.getSize()][];
+        final float[][] vOriginalStackPixels = new float[aIS.getSize()][];
+        final float[][] vConvolvedStackPixels = new float[aIS.getSize()][];
+        final float[][] vResultStackPixels = new float[aIS.getSize()][];
         for (int vS = 0; vS < aIS.getSize(); vS++) {
             vOriginalStackPixels[vS] = (float[]) aIS.getProcessor(vS + 1).getPixels();
             vConvolvedStackPixels[vS] = (float[]) aIS.getProcessor(vS + 1).getPixelsCopy();
@@ -703,8 +703,8 @@ public class FeaturePointDetector {
         if (vL < 3) {
             vL = 3;
         }
-        float[] vKernel = new float[vL];
-        int vM = vKernel.length / 2;
+        final float[] vKernel = new float[vL];
+        final int vM = vKernel.length / 2;
         for (int vI = 0; vI < vM; vI++) {
             vKernel[vI] = (float) (1f / (2f * Math.PI * aSigma * aSigma) * Math.exp(-(float) ((vM - vI) * (vM - vI)) / (2f * aSigma * aSigma)));
             vKernel[vKernel.length - vI - 1] = vKernel[vI];
@@ -716,7 +716,7 @@ public class FeaturePointDetector {
         for (int vI = 0; vI < vKernel.length; vI++) {
             vSum += vKernel[vI];
         }
-        float vScale = 1.0f / vSum;
+        final float vScale = 1.0f / vSum;
         for (int vI = 0; vI < vKernel.length; vI++) {
             vKernel[vI] *= vScale;
         }
@@ -807,12 +807,12 @@ public class FeaturePointDetector {
      * @return true if user changed the parameters and false if the user didn't changed them.
      */
     public Boolean getUserDefinedParameters(GenericDialog gd) {
-        int rad = (int) gd.getNextNumber();
+        final int rad = (int) gd.getNextNumber();
         // this.radius = (int)gd.getNextNumber();
-        double cut = gd.getNextNumber();
+        final double cut = gd.getNextNumber();
         // this.cutoff = gd.getNextNumber();
-        float per = ((float) gd.getNextNumber()) / 100;
-        float intThreshold = per * 100;
+        final float per = ((float) gd.getNextNumber()) / 100;
+        final float intThreshold = per * 100;
         absolute = gd.getNextBoolean();
 
         // this.percentile = ((float)gd.getNextNumber())/100;
@@ -823,7 +823,7 @@ public class FeaturePointDetector {
         // int mode = gd.getNextChoiceIndex();
         // float sigma_fac = ((float)gd.getNextNumber());
 
-        Boolean changed = (rad != radius || cut != cutoff || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
+        final Boolean changed = (rad != radius || cut != cutoff || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
         setUserDefinedParameters(cut, per, rad, intThreshold, absolute);
         // this.preprocessing_mode = mode;
         return changed;
@@ -835,23 +835,25 @@ public class FeaturePointDetector {
     public Boolean getUserDefinedPreviewParams(GenericDialog gd) {
 
         @SuppressWarnings("unchecked")
+        final
         // the warning is due to old imagej code.
         Vector<TextField> vec = gd.getNumericFields();
-        int rad = Integer.parseInt((vec.elementAt(0)).getText());
-        double cut = Double.parseDouble((vec.elementAt(1)).getText());
-        float per = (Float.parseFloat((vec.elementAt(2)).getText())) / 100;
+        final int rad = Integer.parseInt((vec.elementAt(0)).getText());
+        final double cut = Double.parseDouble((vec.elementAt(1)).getText());
+        final float per = (Float.parseFloat((vec.elementAt(2)).getText())) / 100;
         // float sigma_fac = (Float.parseFloat((vec.elementAt(3)).getText()));
-        float intThreshold = per * 100;
+        final float intThreshold = per * 100;
         @SuppressWarnings("unchecked")
+        final
         // the warning is due to old imagej code
         Vector<Checkbox> vecb = gd.getCheckboxes();
-        boolean absolute = vecb.elementAt(0).getState();
+        final boolean absolute = vecb.elementAt(0).getState();
         // int thsmode = ((Choice)gd.getChoices().elementAt(0)).getSelectedIndex();
         // int mode = ((Choice)gd.getChoices().elementAt(1)).getSelectedIndex();
 
         // even if the frames were already processed (particles detected) but
         // the user changed the detection params then the frames needs to be processed again
-        Boolean changed = (rad != radius || cut != cutoff || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
+        final Boolean changed = (rad != radius || cut != cutoff || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
         setUserDefinedParameters(cut, per, rad, intThreshold, absolute);// , sigma_fac);
         return changed;
     }
@@ -866,9 +868,9 @@ public class FeaturePointDetector {
 
     public Panel makePreviewPanel(final PreviewInterface previewHandler, final ImagePlus img) {
 
-        Panel preview_panel = new Panel();
-        GridBagLayout gridbag = new GridBagLayout();
-        GridBagConstraints c = new GridBagConstraints();
+        final Panel preview_panel = new Panel();
+        final GridBagLayout gridbag = new GridBagLayout();
+        final GridBagConstraints c = new GridBagConstraints();
         preview_panel.setLayout(gridbag);
         c.fill = GridBagConstraints.BOTH;
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -889,7 +891,7 @@ public class FeaturePointDetector {
         preview_scrollbar.setBlockIncrement(1);
 
         /* button to generate preview of the detected particles */
-        Button preview = new Button("Preview Detected");
+        final Button preview = new Button("Preview Detected");
         preview.addActionListener(new ActionListener() {
 
             @Override
@@ -899,7 +901,7 @@ public class FeaturePointDetector {
         });
 
         /* button to save the detected particles */
-        Button save_detected = new Button("Save Detected");
+        final Button save_detected = new Button("Save Detected");
         save_detected.addActionListener(new ActionListener() {
 
             @Override
@@ -907,7 +909,7 @@ public class FeaturePointDetector {
                 previewHandler.saveDetected(e);
             }
         });
-        Label seperation = new Label("______________", Label.CENTER);
+        final Label seperation = new Label("______________", Label.CENTER);
         gridbag.setConstraints(preview, c);
         preview_panel.add(preview);
         gridbag.setConstraints(preview_scrollbar, c);
@@ -927,13 +929,13 @@ public class FeaturePointDetector {
 
     public PreviewCanvas generatePreviewCanvas(ImagePlus imp) {
         // save the current magnification factor of the current image window
-        double magnification = imp.getWindow().getCanvas().getMagnification();
+        final double magnification = imp.getWindow().getCanvas().getMagnification();
 
         // generate the previewCanvas - while generating the drawing will be done
-        PreviewCanvas preview_canvas = new PreviewCanvas(imp, magnification);
+        final PreviewCanvas preview_canvas = new PreviewCanvas(imp, magnification);
 
         // display the image and canvas in a stackWindow
-        StackWindow sw = new StackWindow(imp, preview_canvas);
+        final StackWindow sw = new StackWindow(imp, preview_canvas);
 
         // magnify the canvas to match the original image magnification
         while (sw.getCanvas().getMagnification() < magnification) {
@@ -952,11 +954,11 @@ public class FeaturePointDetector {
     public synchronized void preview(ImagePlus imp, GenericDialog gd) {
 
         // the stack of the original loaded image (it can be 1 frame)
-        ImageStack stack = imp.getStack();
+        final ImageStack stack = imp.getStack();
 
         getUserDefinedPreviewParams(gd);
 
-        int first_slice = imp.getCurrentSlice(); // TODO check what should be here, figure out how slices and frames numbers work(getFrameNumberFromSlice(impA.getCurrentSlice())-1) * impA.getNSlices() + 1;
+        final int first_slice = imp.getCurrentSlice(); // TODO check what should be here, figure out how slices and frames numbers work(getFrameNumberFromSlice(impA.getCurrentSlice())-1) * impA.getNSlices() + 1;
         // create a new MyFrame from the current_slice in the stack, linkrange should not matter for a previewframe
         preview_frame = new MyFrame(MosaicUtils.GetSubStackCopyInFloat(stack, first_slice, first_slice + imp.getNSlices() - 1), getFrameNumberFromSlice(imp.getCurrentSlice(), imp.getNSlices()) - 1, 1);
 
@@ -1197,7 +1199,7 @@ public class FeaturePointDetector {
 
     public void saveDetected(MyFrame[] frames) {
         /* show save file user dialog with default file name 'frame' */
-        SaveDialog sd = new SaveDialog("Save Detected Particles", IJ.getDirectory("image"), "frame", "");
+        final SaveDialog sd = new SaveDialog("Save Detected Particles", IJ.getDirectory("image"), "frame", "");
         // if user cancelled the save dialog
         if (sd.getDirectory() == null || sd.getFileName() == null) {
             return;

@@ -12,7 +12,7 @@ public class HistogramEqualizationPlugin extends PlugIn8bitBase { // NO_UCD (unu
     @Override
     protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg, int aChannelNumber) {
         // get input/original image pixels
-        byte[] pixels = (byte[]) aOrigImg.getPixelsCopy();
+        final byte[] pixels = (byte[]) aOrigImg.getPixelsCopy();
 
         // perform equalization
         do8bitHistogramEqualization(pixels);
@@ -30,9 +30,9 @@ public class HistogramEqualizationPlugin extends PlugIn8bitBase { // NO_UCD (unu
         final int GRAY_LEVELS = 256;
 
         // Calculate histogram of a image
-        int[] hist = new int[GRAY_LEVELS];
+        final int[] hist = new int[GRAY_LEVELS];
         for (int i = 0; i < aImgPixels.length; ++i) {
-            int pv = aImgPixels[i] & 0xff;
+            final int pv = aImgPixels[i] & 0xff;
             hist[pv] += 1;
         }
 
@@ -42,7 +42,7 @@ public class HistogramEqualizationPlugin extends PlugIn8bitBase { // NO_UCD (unu
         }
 
         // Calculate  transformation 'T' of image brightness
-        double[] T = new double[GRAY_LEVELS];
+        final double[] T = new double[GRAY_LEVELS];
         final double G = GRAY_LEVELS;
         final double N_M = aImgPixels.length; // N * M -> width * height
         for (int i = 0; i < GRAY_LEVELS; ++i) {
@@ -51,8 +51,8 @@ public class HistogramEqualizationPlugin extends PlugIn8bitBase { // NO_UCD (unu
 
         // Apply new scale of brightness to image
         for (int i = 0; i < aImgPixels.length; ++i) {
-            int pv = aImgPixels[i] & 0xff;
-            double d = T[pv];
+            final int pv = aImgPixels[i] & 0xff;
+            final double d = T[pv];
             aImgPixels[i] = (byte)d;
         }
     }

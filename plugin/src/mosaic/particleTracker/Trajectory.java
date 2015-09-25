@@ -112,8 +112,8 @@ public class Trajectory {
 
         // X and Y coordinates are not in the usual graph coordinates sense but in the image sense;
         // (0,0) is the upper left corner; x is vertical top to bottom, y is horizontal left to right
-        int focus_x = Math.max((int) min_x - 8, 0);
-        int focus_y = Math.max((int) min_y - 8, 0);
+        final int focus_x = Math.max((int) min_x - 8, 0);
+        final int focus_y = Math.max((int) min_y - 8, 0);
         int focus_height = (int) max_y - focus_y + 8;
         int focus_width = (int) max_x - focus_x + 8;
         // make sure that the -8 or +8 did not create an ROI with bounds outside of the window
@@ -156,10 +156,10 @@ public class Trajectory {
 
         // X and Y coordinates are not in the usual graph coordinates sense but in the image sense;
         // (0,0) is the upper left corner; x is vertical top to bottom, y is horizontal left to right
-        int focus_x = (int) min_x - 1;
-        int focus_y = (int) min_y - 1;
-        int focus_height = (int) max_x - focus_x + 1;
-        int focus_width = (int) max_y - focus_y + 1;
+        final int focus_x = (int) min_x - 1;
+        final int focus_y = (int) min_y - 1;
+        final int focus_height = (int) max_x - focus_x + 1;
+        final int focus_width = (int) max_y - focus_y + 1;
         this.mouse_selection_area = new Roi(focus_x, focus_y, focus_height, focus_width);
 
     }
@@ -176,7 +176,7 @@ public class Trajectory {
         for (int i = 0; i < existing_particles.length - 1; i++) {
             // if two sequential particles are more then 1 frame apart - GAP
             if (existing_particles[i + 1].getFrame() - existing_particles[i].getFrame() > 1) {
-                int[] gap = { i, i + 1 };
+                final int[] gap = { i, i + 1 };
                 gaps.add(gap);
                 num_of_gaps++;
             }
@@ -253,7 +253,7 @@ public class Trajectory {
      */
     private void write(StringBuffer s) {
 
-        int output = IJ_RESULTS_WINDOW;
+        final int output = IJ_RESULTS_WINDOW;
         switch (output) {
             case SYSTEM:
                 System.out.println(s);
@@ -272,7 +272,7 @@ public class Trajectory {
         if (gaps == null) {
             return;
         }
-        Object[] gaps_tmp = gaps.toArray();
+        final Object[] gaps_tmp = gaps.toArray();
         for (int i = 0; i < num_of_gaps; i++) {
             write(new StringBuffer(Math.round((this.existing_particles[((int[]) gaps_tmp[i])[0]]).y)));
             write(new StringBuffer(","));
@@ -291,9 +291,9 @@ public class Trajectory {
      */
     public int getUserParamForPlotting() {
 
-        GenericDialog plot_dialog = new GenericDialog("Choose particle param to plot");
+        final GenericDialog plot_dialog = new GenericDialog("Choose particle param to plot");
 
-        String[] param_list = new String[this.existing_particles[0].all_params.length];
+        final String[] param_list = new String[this.existing_particles[0].all_params.length];
         for (int i = 0; i < param_list.length; i++) {
             param_list[i] = "" + (i + 1);
         }
@@ -302,7 +302,7 @@ public class Trajectory {
         if (plot_dialog.wasCanceled()) {
             return -1;
         }
-        int param_choice = plot_dialog.getNextChoiceIndex();
+        final int param_choice = plot_dialog.getNextChoiceIndex();
         return param_choice;
     }
 
@@ -319,15 +319,15 @@ public class Trajectory {
             IJ.error("plotParticleAlongTrajectory\n" + "The given parameter choice (" + (param_choice + 1) + ") does not exits");
             return;
         }
-        double[] x_values = new double[this.existing_particles.length];
+        final double[] x_values = new double[this.existing_particles.length];
         for (int i = 0; i < this.existing_particles.length; i++) {
             x_values[i] = this.existing_particles[i].getFrame();
         }
-        double[] y_values = new double[this.existing_particles.length];
+        final double[] y_values = new double[this.existing_particles.length];
         for (int i = 0; i < this.existing_particles.length; i++) {
             y_values[i] = Double.parseDouble(this.existing_particles[i].all_params[param_choice]);
         }
-        Plot pw = new Plot("Particle Data along trajectory " + this.serial_number, "frame number", "param number " + (param_choice + 1) + " value", x_values, y_values);
+        final Plot pw = new Plot("Particle Data along trajectory " + this.serial_number, "frame number", "param number " + (param_choice + 1) + " value", x_values, y_values);
         pw.draw();
     }
 
@@ -351,7 +351,7 @@ public class Trajectory {
      * @see Particle#toStringBuffer()
      */
     public StringBuffer toStringBuffer() {
-        StringBuffer s = new StringBuffer();
+        final StringBuffer s = new StringBuffer();
         for (int i = 0; i < existing_particles.length; i++) {
             s.append(existing_particles[i].toStringBuffer());
             // s.append(evaluateMomentaAfterDeath(existing_particles[i]));

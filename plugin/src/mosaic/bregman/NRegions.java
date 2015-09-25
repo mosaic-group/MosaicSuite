@@ -61,7 +61,7 @@ class NRegions implements Runnable {
 
     public NRegions(ImagePlus img, Parameters params, CountDownLatch DoneSignal, int channel) {
         // IJ.log("Computing segmentation ..");
-        BackgroundSubtracter bs = new BackgroundSubtracter();
+        final BackgroundSubtracter bs = new BackgroundSubtracter();
         // Parameters params = new Parameters();
         this.p = params;
 
@@ -69,7 +69,7 @@ class NRegions implements Runnable {
         this.DoneSignal = DoneSignal;
         this.nl = p.nlevels;
         ImageProcessor imp;
-        int os = p.model_oversampling;
+        final int os = p.model_oversampling;
         int osz;
         p.ni = p.ni * p.model_oversampling;
         p.nj = p.nj * p.model_oversampling;
@@ -191,7 +191,7 @@ class NRegions implements Runnable {
 
         // IJ.log("after, max : " + max + " min : " + min);
         if (p.livedisplay && p.removebackground) {
-            ImagePlus back = img.duplicate();
+            final ImagePlus back = img.duplicate();
             back.setTitle("Background reduction channel " + (channel + 1));
             back.changes = false;
             back.setDisplayRange(min, max);
@@ -226,7 +226,7 @@ class NRegions implements Runnable {
         }
 
         if (Analysis.p.automatic_int) {
-            double[] levs = cluster_int(5);
+            final double[] levs = cluster_int(5);
             p.cl[0] = levs[0];// 0.0027356;
             p.betaMLEoutdefault = levs[0];
             p.cl[1] = levs[3];
@@ -285,10 +285,10 @@ class NRegions implements Runnable {
         try {
             A_solver.first_run();
         }
-        catch (InterruptedException ex) {
+        catch (final InterruptedException ex) {
         }
 
-        double minInt = Analysis.p.min_intensity;
+        final double minInt = Analysis.p.min_intensity;
         Analysis.p.min_intensity = 0;
         if (channel == 0) {
             // Analysis.maxmaska=A_solver.maxmask;
@@ -327,10 +327,10 @@ class NRegions implements Runnable {
     }
 
     private double[] cluster() {
-        Dataset data = new DefaultDataset();
-        double[] pixel = new double[1];
-        int max = Math.max(2, nl);
-        double[] levels = new double[max];
+        final Dataset data = new DefaultDataset();
+        final double[] pixel = new double[1];
+        final int max = Math.max(2, nl);
+        final double[] levels = new double[max];
         // double [] levels2= new double[5];
 
         // get imagedata
@@ -338,20 +338,20 @@ class NRegions implements Runnable {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     pixel[0] = image[z][i][j];
-                    Instance instance = new DenseInstance(pixel);
+                    final Instance instance = new DenseInstance(pixel);
                     data.add(instance);
                 }
             }
         }
 
-        Clusterer km = new KMeans(nl);
+        final Clusterer km = new KMeans(nl);
         /*
          * Cluster the data, it will be returned as an array of data sets, with
          * each dataset representing a cluster.
          */
-        Dataset[] data2 = km.cluster(data);
+        final Dataset[] data2 = km.cluster(data);
         for (int i = 0; i < nl; i++) {
-            Instance inst = DatasetTools.average(data2[i]);
+            final Instance inst = DatasetTools.average(data2[i]);
             // IJ.log("instance i" + i + "is " + inst.value(0));
             levels[i] = inst.value(0);
         }
@@ -409,29 +409,29 @@ class NRegions implements Runnable {
 
     private double[] cluster_int(int nll) {
 
-        Dataset data = new DefaultDataset();
-        double[] pixel = new double[1];
-        double[] levels = new double[nll];
+        final Dataset data = new DefaultDataset();
+        final double[] pixel = new double[1];
+        final double[] levels = new double[nll];
 
         // get imagedata
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     pixel[0] = image[z][i][j];
-                    Instance instance = new DenseInstance(pixel);
+                    final Instance instance = new DenseInstance(pixel);
                     data.add(instance);
                 }
             }
         }
 
-        Clusterer km = new KMeans(nll);
+        final Clusterer km = new KMeans(nll);
         /*
          * Cluster the data, it will be returned as an array of data sets, with
          * each dataset representing a cluster.
          */
-        Dataset[] data2 = km.cluster(data);
+        final Dataset[] data2 = km.cluster(data);
         for (int i = 0; i < nll; i++) {
-            Instance inst = DatasetTools.average(data2[i]);
+            final Instance inst = DatasetTools.average(data2[i]);
             // IJ.log("instance i test" + i + "is " + inst.value(0));
             levels[i] = inst.value(0);
         }
@@ -442,16 +442,16 @@ class NRegions implements Runnable {
     }
 
     private boolean[][][] createBinaryCellMask(double threshold, ImagePlus img, int channel, int osz) {
-        boolean[][][] cellmask = new boolean[nz][ni][nj];
+        final boolean[][][] cellmask = new boolean[nz][ni][nj];
 
-        ImagePlus maska_im = new ImagePlus();
-        ImageStack maska_ims = new ImageStack(ni, nj);
+        final ImagePlus maska_im = new ImagePlus();
+        final ImageStack maska_ims = new ImageStack(ni, nj);
         ImageProcessor imp;
 
         for (int z = 0; z < nz; z++) {
             img.setSlice(z / osz + 1);
             imp = img.getProcessor();
-            byte[] maska_bytes = new byte[ni * nj];
+            final byte[] maska_bytes = new byte[ni * nj];
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     if (imp.getPixel(i / p.model_oversampling, j / p.model_oversampling) > threshold) {
@@ -463,7 +463,7 @@ class NRegions implements Runnable {
 
                 }
             }
-            ByteProcessor bp = new ByteProcessor(ni, nj);
+            final ByteProcessor bp = new ByteProcessor(ni, nj);
             bp.setPixels(maska_bytes);
             maska_ims.addSlice("", bp);
         }

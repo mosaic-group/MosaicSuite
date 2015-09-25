@@ -37,15 +37,15 @@ public class ConvertAndWrite<T> {
      * @return
      */
     public Vector<T> getVector(List<?> aData) {
-        Vector<T> v = new Vector<T>();
+        final Vector<T> v = new Vector<T>();
         if (aData.size() == 0) {
             return v;
         }
 
         try {
 
-            Class<?> car = aData.get(0).getClass();
-            Method m = iClazz.getMethod("setData", car);
+            final Class<?> car = aData.get(0).getClass();
+            final Method m = iClazz.getMethod("setData", car);
             T element = null;
             for (int i = 0; i < aData.size(); i++) {
                 element = iClazz.newInstance();
@@ -54,22 +54,22 @@ public class ConvertAndWrite<T> {
             }
 
         }
-        catch (NoSuchMethodException e) {
+        catch (final NoSuchMethodException e) {
             e.printStackTrace();
         }
-        catch (SecurityException e) {
+        catch (final SecurityException e) {
             e.printStackTrace();
         }
-        catch (InstantiationException e) {
+        catch (final InstantiationException e) {
             e.printStackTrace();
         }
-        catch (IllegalAccessException e) {
+        catch (final IllegalAccessException e) {
             e.printStackTrace();
         }
-        catch (IllegalArgumentException e) {
+        catch (final IllegalArgumentException e) {
             e.printStackTrace();
         }
-        catch (InvocationTargetException e) {
+        catch (final InvocationTargetException e) {
             e.printStackTrace();
         }
 

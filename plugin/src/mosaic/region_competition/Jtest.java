@@ -17,7 +17,7 @@ public class Jtest {
     @Test
     public void segmentation() {
         logger.info("----------------------- TestCase: Region_Competition -----------------------");
-        Segmentation BG = new Region_Competition();
+        final Segmentation BG = new Region_Competition();
         MosaicTest.<RCOutput> testPlugin(BG, "Region_Competition", RCOutput.class);
     }
 }

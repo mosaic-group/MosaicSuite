@@ -30,7 +30,7 @@ class RScript {
         try {
             Script = new PrintWriter(path + File.separator + "R_analysis.R");
         }
-        catch (Exception e) {// Catch exception if any
+        catch (final Exception e) {// Catch exception if any
             System.err.println("Error creating R Script file " + e.getMessage());
         }
 
@@ -112,22 +112,22 @@ class RScript {
             // works when plugin running from .jar plugin file
             IJ.log("RSCRIPT..........");
             in = this.getClass().getResourceAsStream("/src/mosaic/plugins/scripts/Rscript.r");
-            Scanner scanner = new Scanner(in);
-            String content = scanner.useDelimiter("\\Z").next();
+            final Scanner scanner = new Scanner(in);
+            final String content = scanner.useDelimiter("\\Z").next();
 
             Script.print(content);
             Script.flush();
             Script.close();
             scanner.close();
         }
-        catch (Exception e) {
+        catch (final Exception e) {
             System.err.println("Error generating R Script " + e.getMessage());
         }
         finally {
             try {
                 if (in != null) in.close();
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 e.printStackTrace();
             }
         }

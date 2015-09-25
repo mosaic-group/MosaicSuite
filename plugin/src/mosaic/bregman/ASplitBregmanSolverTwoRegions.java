@@ -15,7 +15,7 @@ class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 
     @Override
     protected void step() throws InterruptedException {
-        long lStartTime = new Date().getTime(); // start time
+        final long lStartTime = new Date().getTime(); // start time
         // energy=0;
 
         LocalTools.subtab(temp1[l], temp1[l], b2xk[l]);
@@ -116,9 +116,9 @@ class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
             md.display2regions(w3k[l][0], "Mask", channel);
         }
 
-        long lEndTime = new Date().getTime(); // end time
+        final long lEndTime = new Date().getTime(); // end time
 
-        long difference = lEndTime - lStartTime; // check different
+        final long difference = lEndTime - lStartTime; // check different
         totaltime += difference;
         // IJ.log("Elapsed milliseconds: " + difference);
 

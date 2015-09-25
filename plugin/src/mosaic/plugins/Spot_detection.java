@@ -64,7 +64,7 @@ public class Spot_detection implements PlugInFilter // NO_UCD
         {
             // sequence of images mode:
             // construct each frame from the corresponding image
-            MyFrame current_frame = new MyFrame(MosaicUtils.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i, 1);
+            final MyFrame current_frame = new MyFrame(MosaicUtils.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i, 1);
 
             // Detect feature points in this frame
             IJ.showStatus("Detecting Particles in Frame " + (frame_i+1) + "/" + frames_number);
@@ -73,17 +73,17 @@ public class Spot_detection implements PlugInFilter // NO_UCD
             IJ.freeMemory();
         } // for
 
-        CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
+        final CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
 
-        Vector<Particle> pt = new Vector<Particle>();
+        final Vector<Particle> pt = new Vector<Particle>();
 
         for (int i = 0 ; i < frames.length ; i++)
         {
-            int old_i = pt.size();
+            final int old_i = pt.size();
 
             pt.addAll(frames[i].getParticles());
 
-            int new_i = pt.size();
+            final int new_i = pt.size();
 
             // Set the frame number for the particles
 
@@ -100,7 +100,7 @@ public class Spot_detection implements PlugInFilter // NO_UCD
             dir = IJ.getDirectory("Choose output directory");
         }
 
-        CsvColumnConfig oc = new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor);
+        final CsvColumnConfig oc = new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor);
 
         P_csv.Write(dir + aImp.getTitle() + "det.csv", pt , oc , false);
     }
@@ -111,7 +111,7 @@ public class Spot_detection implements PlugInFilter // NO_UCD
         /* get user defined params and set more initial params accordingly 	*/
 
         aImp = original_imp;
-        GenericDialog gd = new GenericDialog("Spot detection...");
+        final GenericDialog gd = new GenericDialog("Spot detection...");
 
         // initialize ImageStack stack
 
@@ -124,9 +124,9 @@ public class Spot_detection implements PlugInFilter // NO_UCD
         stack = original_imp.getStack();
 
         // get global minimum and maximum
-        StackStatistics stack_stats = new StackStatistics(original_imp);
-        float global_max = (float)stack_stats.max;
-        float global_min = (float)stack_stats.min;
+        final StackStatistics stack_stats = new StackStatistics(original_imp);
+        final float global_max = (float)stack_stats.max;
+        final float global_min = (float)stack_stats.min;
         slices_number = original_imp.getNSlices();
         frames_number = original_imp.getNFrames();
 

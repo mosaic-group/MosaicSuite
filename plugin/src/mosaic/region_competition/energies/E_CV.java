@@ -17,7 +17,7 @@ public class E_CV extends ExternalEnergy {
     }
 
     // Algorithm algo;
-    private HashMap<Integer, LabelInformation> labelMap;
+    private final HashMap<Integer, LabelInformation> labelMap;
 
     /**
      * Here we have the possibility to either put the current pixel
@@ -31,12 +31,12 @@ public class E_CV extends ExternalEnergy {
      */
     @Override
     public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel) {
-        int fromLabel = contourParticle.label;
-        float aValue = contourParticle.intensity;
-        LabelInformation to = labelMap.get(toLabel);
-        LabelInformation from = labelMap.get(fromLabel);
-        double vNewToMean = (to.mean * to.count + aValue) / (to.count + 1);
-        double energy = (aValue - vNewToMean) * (aValue - vNewToMean) - (aValue - from.mean) * (aValue - from.mean);
+        final int fromLabel = contourParticle.label;
+        final float aValue = contourParticle.intensity;
+        final LabelInformation to = labelMap.get(toLabel);
+        final LabelInformation from = labelMap.get(fromLabel);
+        final double vNewToMean = (to.mean * to.count + aValue) / (to.count + 1);
+        final double energy = (aValue - vNewToMean) * (aValue - vNewToMean) - (aValue - from.mean) * (aValue - from.mean);
         return new EnergyResult(energy, false);
     }
 

@@ -33,7 +33,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
 
     @Override
     public Settings createSettings(Settings s, double pop[]) {
-        Settings st = new Settings(s);
+        final Settings st = new Settings(s);
 
         st.m_EnergyContourLengthCoeff = (float) pop[1];
         st.m_CurvatureMaskRadius = (int) pop[0];
@@ -69,7 +69,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
     static double SmoothNorm(LabelImageRC l) {
         // Scan for particles
 
-        int off[] = l.getDimensions().clone();
+        final int off[] = l.getDimensions().clone();
         Arrays.fill(off, 0);
 
         int np = 0;
@@ -88,29 +88,29 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
         double eCurv_tot_p = 0.0;
         double eCurv_tot_n = 0.0;
 
-        RegionIterator img = new RegionIterator(l.getDimensions(), l.getDimensions(), off);
+        final RegionIterator img = new RegionIterator(l.getDimensions(), l.getDimensions(), off);
 
         while (img.hasNext()) {
-            Point p = img.getPoint();
-            int i = img.next();
+            final Point p = img.getPoint();
+            final int i = img.next();
             if (l.dataLabel[i] < 0) {
                 np++;
-                int id = Math.abs(l.dataLabel[i]);
+                final int id = Math.abs(l.dataLabel[i]);
 
-                CurvatureBasedFlow f2 = new CurvatureBasedFlow(2, l, null);
-                CurvatureBasedFlow f4 = new CurvatureBasedFlow(4, l, null);
-                CurvatureBasedFlow f8 = new CurvatureBasedFlow(8, l, null);
-                CurvatureBasedFlow f16 = new CurvatureBasedFlow(16, l, null);
+                final CurvatureBasedFlow f2 = new CurvatureBasedFlow(2, l, null);
+                final CurvatureBasedFlow f4 = new CurvatureBasedFlow(4, l, null);
+                final CurvatureBasedFlow f8 = new CurvatureBasedFlow(8, l, null);
+                final CurvatureBasedFlow f16 = new CurvatureBasedFlow(16, l, null);
 
-                double eCurv2 = f2.generateData(p, 0, id);
-                double eCurv4 = f4.generateData(p, 0, id);
-                double eCurv8 = f8.generateData(p, 0, id);
-                double eCurv16 = f16.generateData(p, 0, id);
+                final double eCurv2 = f2.generateData(p, 0, id);
+                final double eCurv4 = f4.generateData(p, 0, id);
+                final double eCurv8 = f8.generateData(p, 0, id);
+                final double eCurv16 = f16.generateData(p, 0, id);
 
-                double c2 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI*2) */;
-                double c4 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI) */;
-                double c8 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI) */;
-                double c16 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI) */;
+                final double c2 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI*2) */;
+                final double c4 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI) */;
+                final double c8 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI) */;
+                final double c16 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI) */;
 
                 if (eCurv2 > 0.0) {
                     eCurv2_p += c2 * eCurv2;
@@ -160,7 +160,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
     public double Smooth(LabelImageRC l) {
         // Scan for particles
 
-        int off[] = l.getDimensions().clone();
+        final int off[] = l.getDimensions().clone();
         Arrays.fill(off, 0);
 
         double eCurv2_p = 0.0;
@@ -178,28 +178,28 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
         double eCurv_tot_p = 0.0;
         double eCurv_tot_n = 0.0;
 
-        RegionIterator img = new RegionIterator(l.getDimensions(), l.getDimensions(), off);
+        final RegionIterator img = new RegionIterator(l.getDimensions(), l.getDimensions(), off);
 
         while (img.hasNext()) {
-            Point p = img.getPoint();
-            int i = img.next();
+            final Point p = img.getPoint();
+            final int i = img.next();
             if (l.dataLabel[i] < 0) {
-                int id = Math.abs(l.dataLabel[i]);
+                final int id = Math.abs(l.dataLabel[i]);
 
-                CurvatureBasedFlow f2 = new CurvatureBasedFlow(2, l, null);
-                CurvatureBasedFlow f4 = new CurvatureBasedFlow(4, l, null);
-                CurvatureBasedFlow f8 = new CurvatureBasedFlow(8, l, null);
-                CurvatureBasedFlow f16 = new CurvatureBasedFlow(16, l, null);
+                final CurvatureBasedFlow f2 = new CurvatureBasedFlow(2, l, null);
+                final CurvatureBasedFlow f4 = new CurvatureBasedFlow(4, l, null);
+                final CurvatureBasedFlow f8 = new CurvatureBasedFlow(8, l, null);
+                final CurvatureBasedFlow f16 = new CurvatureBasedFlow(16, l, null);
 
-                double eCurv2 = f2.generateData(p, 0, id);
-                double eCurv4 = f4.generateData(p, 0, id);
-                double eCurv8 = f8.generateData(p, 0, id);
-                double eCurv16 = f16.generateData(p, 0, id);
+                final double eCurv2 = f2.generateData(p, 0, id);
+                final double eCurv4 = f4.generateData(p, 0, id);
+                final double eCurv8 = f8.generateData(p, 0, id);
+                final double eCurv16 = f16.generateData(p, 0, id);
 
-                double c2 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI*2) */;
-                double c4 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI) */;
-                double c8 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI) */;
-                double c16 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI) */;
+                final double c2 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI*2) */;
+                final double c4 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI) */;
+                final double c8 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI) */;
+                final double c16 = 1.0/* frm(l.getLabelMap().get(id).count - 4*Math.PI) */;
 
                 if (eCurv2 > 0.0) {
                     eCurv2_p += c2 * eCurv2;
@@ -265,9 +265,9 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
 
             // Read Label Image
 
-            Opener o = new Opener();
+            final Opener o = new Opener();
             file[im] = new String(IJ.getDirectory("temp") + "RC_smo" + x[0] + "_" + x[1] + "_" + im + "_" + ".tif");
-            ImagePlus ip = o.openImage(file[im]);
+            final ImagePlus ip = o.openImage(file[im]);
 
             l[im].initWithIP(ip);
             l[im].createStatistics(i[im]);
@@ -277,7 +277,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
             int count = 0;
             // double a1 = 0.0;
 
-            Collection<LabelInformation> li = l[im].getLabelMap().values();
+            final Collection<LabelInformation> li = l[im].getLabelMap().values();
 
             // a1 = ((LabelInformation)li.toArray()[0]).mean;
 
@@ -306,8 +306,8 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
     @Override
     public boolean isFeasible(double[] x) {
         int minSz = Integer.MAX_VALUE;
-        for (LabelImageRC lbt : l) {
-            for (int d : lbt.getDimensions()) {
+        for (final LabelImageRC lbt : l) {
+            for (final int d : lbt.getDimensions()) {
                 if (d < minSz) {
                     minSz = d;
                 }
@@ -332,7 +332,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
 
     @Override
     public double[] getAMean(Settings s) {
-        double[] aMean = new double[2];
+        final double[] aMean = new double[2];
 
         aMean[0] = s.m_CurvatureMaskRadius;
         aMean[1] = s.m_EnergyContourLengthCoeff;

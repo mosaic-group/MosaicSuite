@@ -66,29 +66,29 @@ class TwoRegions extends NRegions {
     private void drawParticles(double[][][] out, double[][][] mask, Vector<Particle> pt, int radius) {
         // Iterate on all particles
 
-        int sz[] = new int[3];
+        final int sz[] = new int[3];
         sz[1] = out[0][0].length;
         sz[0] = out[0].length;
         sz[2] = out.length;
 
         // Create a circle Mask and an iterator
 
-        SphereMask cm = new SphereMask(radius, 2 * radius + 1, 3);
-        RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
+        final SphereMask cm = new SphereMask(radius, 2 * radius + 1, 3);
+        final RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
 
-        Iterator<Particle> pt_it = pt.iterator();
+        final Iterator<Particle> pt_it = pt.iterator();
 
         while (pt_it.hasNext()) {
-            Particle ptt = pt_it.next();
+            final Particle ptt = pt_it.next();
 
             // Draw the sphere
 
-            Point p_c = new Point((int) (ptt.x), (int) (ptt.y), (int) (ptt.z));
+            final Point p_c = new Point((int) (ptt.x), (int) (ptt.y), (int) (ptt.z));
 
             rg_m.setMidPoint(p_c);
 
             while (rg_m.hasNext()) {
-                Point p = rg_m.nextP();
+                final Point p = rg_m.nextP();
 
                 if (p.x[0] < sz[0] && p.x[0] >= 0 && p.x[1] < sz[1] && p.x[1] >= 0 && p.x[2] < sz[2] && p.x[2] >= 0) {
                     out[p.x[2]][p.x[0]][p.x[1]] = 255.0f;
@@ -109,7 +109,7 @@ class TwoRegions extends NRegions {
      */
 
     private Vector<Particle> getPart(Vector<Particle> part, int frame) {
-        Vector<Particle> pp = new Vector<Particle>();
+        final Vector<Particle> pp = new Vector<Particle>();
 
         // get the particle related to one frame
 
@@ -149,8 +149,8 @@ class TwoRegions extends NRegions {
         if (p.usePSF && p.nz > 1) {
             // Tools.gaussian3Dbis(p.PSF, p.kernelx, p.kernely, p.kernelz,(int)(p.sigma_gaussian*8.0), p.sigma_gaussian*p.model_oversampling, p.zcorrec);
 
-            GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
-            DoubleType[] var = new DoubleType[3];
+            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(3, DoubleType.class);
+            final DoubleType[] var = new DoubleType[3];
             var[0] = new DoubleType(p.sigma_gaussian);
             var[1] = new DoubleType(p.sigma_gaussian);
             var[2] = new DoubleType(p.sigma_gaussian / p.zcorrec);
@@ -165,8 +165,8 @@ class TwoRegions extends NRegions {
             // Tools.gaussian2D(p.PSF[0], p.kernelx, p.kernely, (int)(p.sigma_gaussian*8.0), p.sigma_gaussian*p.model_oversampling);
             // Tools.disp_valsc(p.PSF[1], "PSF computed 1");
 
-            GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
-            DoubleType[] var = new DoubleType[2];
+            final GaussPSF<DoubleType> psf = new GaussPSF<DoubleType>(2, DoubleType.class);
+            final DoubleType[] var = new DoubleType[2];
             var[0] = new DoubleType(p.sigma_gaussian);
             var[1] = new DoubleType(p.sigma_gaussian);
             psf.setVar(var);
@@ -189,7 +189,7 @@ class TwoRegions extends NRegions {
                 A_solver.first_run();
                 // Tools.showmem();
             }
-            catch (InterruptedException ex) {
+            catch (final InterruptedException ex) {
             }
         }
         else {
@@ -198,18 +198,18 @@ class TwoRegions extends NRegions {
 
             Vector<Particle> pt;
 
-            CSV<Particle> csv = new CSV<Particle>(Particle.class);
+            final CSV<Particle> csv = new CSV<Particle>(Particle.class);
 
             csv.setCSVPreferenceFromFile(Analysis.p.patches_from_file);
             pt = csv.Read(Analysis.p.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
 
             // Get the particle related inly to one frames
 
-            Vector<Particle> pt_f = getPart(pt, Analysis.frame - 1);
+            final Vector<Particle> pt_f = getPart(pt, Analysis.frame - 1);
 
             // create a mask Image
 
-            double img[][][] = new double[p.nz][p.ni][p.nj];
+            final double img[][][] = new double[p.nz][p.ni][p.nj];
 
             drawParticles(img, A_solver.w3kbest[0], pt_f, (int) 3.0);
 
@@ -235,7 +235,7 @@ class TwoRegions extends NRegions {
 
             LocalTools.copytab(RoN, A_solver.Ro[0]);
 
-            ArrayList<Region> regions = A_solver.regionsvoronoi;
+            final ArrayList<Region> regions = A_solver.regionsvoronoi;
 
             // A_solver=null; //for testing
 
@@ -257,7 +257,7 @@ class TwoRegions extends NRegions {
 
                     // Tools.showmem();
 
-                    ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest[0], min, max);
+                    final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest[0], min, max);
                     A_solver = null;
                     ipatches.run();
                     Analysis.regionslist[0] = ipatches.regionslist_refined;
@@ -265,7 +265,7 @@ class TwoRegions extends NRegions {
                 }
 
                 if (Analysis.p.refinement && Analysis.p.mode_classic && A_solver != null) {
-                    ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest[0], min, max);
+                    final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest[0], min, max);
                     A_solver = null;
                     ipatches.run();
                     Analysis.regionslist[0] = ipatches.regionslist_refined;
@@ -275,7 +275,7 @@ class TwoRegions extends NRegions {
                 // Here we solved the patches and the regions that come from the patches
                 // we rescale the intensity to the original one
 
-                for (Region r : Analysis.regionslist[0]) {
+                for (final Region r : Analysis.regionslist[0]) {
                     r.intensity = r.intensity * (max - min) + min;
                 }
 
@@ -304,29 +304,29 @@ class TwoRegions extends NRegions {
                 // run find connected region to recompute the regions again
                 // recompute the statistics using the old intensity label image
 
-                HashMap<Integer, Float> lblInt = new HashMap<Integer, Float>();
+                final HashMap<Integer, Float> lblInt = new HashMap<Integer, Float>();
 
-                for (Region r : Analysis.regionslist[0]) {
-                    for (Pix p : r.pixels) {
-                        Integer id = p.px + p.py * ni + p.pz * ni * nj;
+                for (final Region r : Analysis.regionslist[0]) {
+                    for (final Pix p : r.pixels) {
+                        final Integer id = p.px + p.py * ni + p.pz * ni * nj;
                         lblInt.put(id, Float.valueOf((float) r.intensity));
                     }
                 }
 
                 // we run find connected regions
 
-                LabelImage img = new LabelImage(Analysis.regions[0]);
+                final LabelImage img = new LabelImage(Analysis.regions[0]);
                 img.connectedComponents();
 
-                HashMap<Integer, Region> r_list = new HashMap<Integer, Region>();
+                final HashMap<Integer, Region> r_list = new HashMap<Integer, Region>();
 
                 // Run on all pixels of the label to add pixels to the regions
 
-                RegionIterator rit = new RegionIterator(img.getDimensions());
+                final RegionIterator rit = new RegionIterator(img.getDimensions());
                 while (rit.hasNext()) {
                     rit.next();
-                    Point p = rit.getPoint();
-                    int lbl = img.getLabel(p);
+                    final Point p = rit.getPoint();
+                    final int lbl = img.getLabel(p);
                     if (lbl != 0) {
                         // foreground
 
@@ -344,9 +344,9 @@ class TwoRegions extends NRegions {
 
                 // Now we run Object properties on this regions list
 
-                int osxy = p.oversampling2ndstep * p.interpolation;
-                int sx = p.ni * p.oversampling2ndstep * p.interpolation;
-                int sy = p.nj * p.oversampling2ndstep * p.interpolation;
+                final int osxy = p.oversampling2ndstep * p.interpolation;
+                final int sx = p.ni * p.oversampling2ndstep * p.interpolation;
+                final int sy = p.nj * p.oversampling2ndstep * p.interpolation;
                 int sz = 1;
                 int osz = 1;
                 // IJ.log("sx " + sx);
@@ -361,8 +361,8 @@ class TwoRegions extends NRegions {
 
                 ImagePatches.assemble(r_list.values(), Analysis.regions[0]);
 
-                for (Region r : r_list.values()) {
-                    ObjectProperties obj = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, null, Analysis.regions[0]);
+                for (final Region r : r_list.values()) {
+                    final ObjectProperties obj = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, null, Analysis.regions[0]);
                     obj.run();
                 }
 
@@ -383,7 +383,7 @@ class TwoRegions extends NRegions {
 
             LocalTools.copytab(RoN, A_solver.Ro[0]);
 
-            ArrayList<Region> regions = A_solver.regionsvoronoi;
+            final ArrayList<Region> regions = A_solver.regionsvoronoi;
 
             // A_solver=null;
 
@@ -402,7 +402,7 @@ class TwoRegions extends NRegions {
                     IJ.showStatus("Computing segmentation  " + 55 + "%");
                     IJ.showProgress(0.55);
 
-                    ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[1], image, channel, A_solver.w3kbest[0], min, max);
+                    final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[1], image, channel, A_solver.w3kbest[0], min, max);
                     A_solver = null;
                     ipatches.run();
                     Analysis.regionslist[1] = ipatches.regionslist_refined;
@@ -410,7 +410,7 @@ class TwoRegions extends NRegions {
                 }
 
                 if (Analysis.p.refinement && Analysis.p.mode_classic && A_solver != null) {
-                    ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[1], image, channel, A_solver.w3kbest[0], min, max);
+                    final ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[1], image, channel, A_solver.w3kbest[0], min, max);
                     A_solver = null;
                     ipatches.run();
                     Analysis.regionslist[1] = ipatches.regionslist_refined;
@@ -420,7 +420,7 @@ class TwoRegions extends NRegions {
                 // Here we solved the patches and the regions that come from the patches
                 // we rescale the intensity to the original one
 
-                for (Region r : Analysis.regionslist[1]) {
+                for (final Region r : Analysis.regionslist[1]) {
                     r.intensity = r.intensity * (max - min) + min;
                 }
 

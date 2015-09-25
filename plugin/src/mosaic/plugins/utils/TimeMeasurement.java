@@ -31,8 +31,8 @@ public class TimeMeasurement {
      * @return Number of nanoseconds from moment this object was created.
      */
     public long getTimeNanoSec() {
-        long endTime = System.nanoTime();
-        long duration = (endTime - startTime);
+        final long endTime = System.nanoTime();
+        final long duration = (endTime - startTime);
         lastTime = endTime;
         return duration;
     }
@@ -62,8 +62,8 @@ public class TimeMeasurement {
      * @return Number of nanoseconds from last call to any "getTime*" method.
      */
     public long getLapTimeNanoSec() {
-        long endTime = System.nanoTime();
-        long duration = (endTime - lastTime);
+        final long endTime = System.nanoTime();
+        final long duration = (endTime - lastTime);
         lastTime = endTime;
         return duration;
     }

@@ -19,7 +19,7 @@ public class PickRegion implements MouseListener {
     Vector<Point> aC;
 
     public PickRegion(ImagePlus img) {
-        ImageCanvas canvas = img.getWindow().getCanvas();
+        final ImageCanvas canvas = img.getWindow().getCanvas();
         canvas.addMouseListener(this);
         ip = img;
         aC = new Vector<Point>();
@@ -43,12 +43,12 @@ public class PickRegion implements MouseListener {
     @Override
     public void mousePressed(MouseEvent e) {
 
-        int x = e.getX();
-        int y = e.getY();
+        final int x = e.getX();
+        final int y = e.getY();
         offX = ip.getWindow().getCanvas().offScreenX(x);
         offY = ip.getWindow().getCanvas().offScreenY(y);
 
-        Point p = new Point(2);
+        final Point p = new Point(2);
         p.x[0] = offX;
         p.x[1] = offY;
 

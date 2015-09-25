@@ -23,7 +23,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
         // c0=p.betaMLEoutdefault;//0.0027356;
         // c1=p.betaMLEindefault;//0.2340026;//sometimes not here ???
 
-        int[] sz = p.PSF.getSuggestedImageSize();
+        final int[] sz = p.PSF.getSuggestedImageSize();
         eigenPSF = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
         // IJ.log("nl " + nl);
 
@@ -97,33 +97,33 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
      */
 
     private void step_multit() throws InterruptedException {
-        long lStartTime = new Date().getTime(); // start time
+        final long lStartTime = new Date().getTime(); // start time
         // energy=0;
 
-        CountDownLatch ZoneDoneSignal = new CountDownLatch(p.nthreads);// subprob 1 and 3
-        CountDownLatch Sync1 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync2 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync3 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync4 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync5 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync6 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync7 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync8 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync9 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync10 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync11 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync12 = new CountDownLatch(p.nthreads);
-        CountDownLatch Sync13 = new CountDownLatch(p.nthreads);
-        CountDownLatch Dct = new CountDownLatch(1);
-        CountDownLatch SyncFgradx = new CountDownLatch(1);
+        final CountDownLatch ZoneDoneSignal = new CountDownLatch(p.nthreads);// subprob 1 and 3
+        final CountDownLatch Sync1 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync2 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync3 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync4 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync5 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync6 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync7 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync8 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync9 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync10 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync11 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync12 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Sync13 = new CountDownLatch(p.nthreads);
+        final CountDownLatch Dct = new CountDownLatch(1);
+        final CountDownLatch SyncFgradx = new CountDownLatch(1);
 
-        int ichunk = p.ni / p.nthreads;
-        int ilastchunk = p.ni - (p.ni / (p.nthreads)) * (p.nthreads - 1);
-        int jchunk = p.nj / p.nthreads;
-        int jlastchunk = p.nj - (p.nj / (p.nthreads)) * (p.nthreads - 1);
+        final int ichunk = p.ni / p.nthreads;
+        final int ilastchunk = p.ni - (p.ni / (p.nthreads)) * (p.nthreads - 1);
+        final int jchunk = p.nj / p.nthreads;
+        final int jlastchunk = p.nj - (p.nj / (p.nthreads)) * (p.nthreads - 1);
         int iStart = 0;
         int jStart = 0;
-        Thread t[] = new Thread[p.nthreads];
+        final Thread t[] = new Thread[p.nthreads];
 
         // Force the allocation of the buffers internally
         // if you do not do you can have race conditions in the
@@ -131,10 +131,13 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
         // DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
 
         @SuppressWarnings("unused")
+        final
         double kernelx[] = p.PSF.getSeparableImageAsDoubleArray(0);
         @SuppressWarnings("unused")
+        final
         double kernely[] = p.PSF.getSeparableImageAsDoubleArray(1);
         @SuppressWarnings("unused")
+        final
         double kernelz[] = p.PSF.getSeparableImageAsDoubleArray(2);
 
         for (int nt = 0; nt < p.nthreads - 1; nt++) {
@@ -155,7 +158,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 
         // At least on linux you can go out of memory for threads
 
-        Thread T_ext = new Thread(new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ilastchunk,
+        final Thread T_ext = new Thread(new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ilastchunk,
                 jStart, jStart + jlastchunk, p.nthreads - 1, this, LocalTools));
 
         T_ext.start();
@@ -194,9 +197,9 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
             md.display2regions3D(w3k[l], "Mask", channel);
         }
 
-        long lEndTime = new Date().getTime(); // end time
+        final long lEndTime = new Date().getTime(); // end time
 
-        long difference = lEndTime - lStartTime; // check different
+        final long difference = lEndTime - lStartTime; // check different
         totaltime += difference;
         // IJ.log("Elapsed milliseconds: " + difference);
     }
@@ -206,20 +209,20 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
      */
 
     private void step_single() {
-        long lStartTime = new Date().getTime(); // start time
+        final long lStartTime = new Date().getTime(); // start time
         // energy=0;
 
-        int ilastchunk = p.ni;
-        int jlastchunk = p.nj;
-        int iStart = 0;
-        int jStart = 0;
+        final int ilastchunk = p.ni;
+        final int jlastchunk = p.nj;
+        final int iStart = 0;
+        final int jStart = 0;
 
         // IJ.log("last thread + istart iend jstart jend"+
         // iStart +" " + (iStart+ilastchunk)+" " + jStart+" " + (jStart+jlastchunk));
 
         // At least on linux you can go out of memory for threads
 
-        ZoneTask3D zt = new ZoneTask3D(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, iStart, iStart + ilastchunk, jStart, jStart + jlastchunk,
+        final ZoneTask3D zt = new ZoneTask3D(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, iStart, iStart + ilastchunk, jStart, jStart + jlastchunk,
                 p.nthreads - 1, this, LocalTools);
 
         zt.run();
@@ -239,9 +242,9 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
             md.display2regions3D(w3k[l], "Mask", channel);
         }
 
-        long lEndTime = new Date().getTime(); // end time
+        final long lEndTime = new Date().getTime(); // end time
 
-        long difference = lEndTime - lStartTime; // check different
+        final long difference = lEndTime - lStartTime; // check different
         totaltime += difference;
         // IJ.log("Elapsed milliseconds: " + difference);
     }
@@ -289,9 +292,9 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 
         // Tools.disp_vals(temp2[l][2], "padded");
 
-        int cr = (sz[0] / 2) + 1;
-        int cc = (sz[1] / 2) + 1;
-        int cs = (sz[2] / 2) + 1;
+        final int cr = (sz[0] / 2) + 1;
+        final int cc = (sz[1] / 2) + 1;
+        final int cs = (sz[2] / 2) + 1;
 
         // temp1 = e1
         for (int z = 0; z < nz; z++) {

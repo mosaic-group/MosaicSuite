@@ -60,7 +60,7 @@ public abstract class CurvatureFilterBase extends PlugInFloatBase {
         final String[] filters = {"GC (Gaussian Curvature)", "MC (Mean Curvature)", "TV (Total Variation)", "Bernstein"};
         final String[] types = {"Split", "No split"};
 
-        GenericDialog gd = new GenericDialog("Curvature Filter Settings");
+        final GenericDialog gd = new GenericDialog("Curvature Filter Settings");
 
         gd.addRadioButtonGroup("Filter type: ", filters, 4, 1, filters[0]);
         if (hasSplitMethodMenu) {
@@ -72,7 +72,7 @@ public abstract class CurvatureFilterBase extends PlugInFloatBase {
 
         if (!gd.wasCanceled()) {
             // Create user's chosen filter
-            String filter = gd.getNextRadioButton();
+            final String filter = gd.getNextRadioButton();
             String type;
             if (hasSplitMethodMenu) {
                 type = gd.getNextRadioButton();

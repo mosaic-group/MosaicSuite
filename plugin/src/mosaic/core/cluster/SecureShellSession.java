@@ -35,12 +35,12 @@ import com.jcraft.jsch.SftpProgressMonitor;
 class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMonitor {
 
     private ShellProcessOutput shp;
-    private PipedInputStream pinput_in;
-    private PipedOutputStream pinput_out;
-    private PipedInputStream poutput_in;
-    private PipedOutputStream poutput_out;
+    private final PipedInputStream pinput_in;
+    private final PipedOutputStream pinput_out;
+    private final PipedInputStream poutput_in;
+    private final PipedOutputStream poutput_out;
     private String tdir = null;
-    private ClusterProfile cprof;
+    private final ClusterProfile cprof;
     private JSch jsch;
     private ChannelSftp cSFTP;
     private Channel cSSH;
@@ -56,7 +56,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
             poutput_out.connect(poutput_in);
             pinput_in.connect(pinput_out);
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
 
@@ -100,29 +100,30 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      * @return All directories, return null if there are problems to connect
      */
     String[] getDirs(String Directory) {
-        Vector<String> vs = new Vector<String>();
+        final Vector<String> vs = new Vector<String>();
         try {
             if (createSftpChannel() == false) {
                 return null;
             }
 
             @SuppressWarnings("unchecked")
+            final
             Vector<ChannelSftp.LsEntry> list = cSFTP.ls(Directory);
 
-            for (ChannelSftp.LsEntry entry : list) {
+            for (final ChannelSftp.LsEntry entry : list) {
                 if (entry.getAttrs().isDir() == true) {
                     vs.add(entry.getFilename());
                 }
             }
         }
-        catch (SftpException e) {
+        catch (final SftpException e) {
             e.printStackTrace();
         }
-        catch (JSchException e) {
+        catch (final JSchException e) {
             e.printStackTrace();
         }
 
-        String out[] = new String[vs.size()];
+        final String out[] = new String[vs.size()];
         vs.toArray(out);
         return out;
     }
@@ -143,10 +144,10 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
             cSFTP.cd(Directory);
 
         }
-        catch (JSchException e) {
+        catch (final JSchException e) {
             return false;
         }
-        catch (SftpException e) {
+        catch (final SftpException e) {
             return false;
         }
 
@@ -168,19 +169,20 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
             }
 
             @SuppressWarnings("unchecked")
+            final
             Vector<LsEntry> fl = cSFTP.ls(Directory);
 
-            for (LsEntry f : fl) {
+            for (final LsEntry f : fl) {
                 if (f.getFilename().contains(file_name)) {
                     return true;
                 }
             }
             return false;
         }
-        catch (JSchException e) {
+        catch (final JSchException e) {
             return false;
         }
-        catch (SftpException e) {
+        catch (final SftpException e) {
             return false;
         }
     }
@@ -205,10 +207,10 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
             pinput_out.write(cmd_list.getBytes());
         }
-        catch (JSchException e) {
+        catch (final JSchException e) {
             e.printStackTrace();
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
 
@@ -225,8 +227,8 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         }
 
         // Open the private key
-        String host = cprof.getAccessAddress();
-        String user = cprof.getUsername();
+        final String host = cprof.getAccessAddress();
+        final String user = cprof.getUsername();
 
         if (cprof.getPassword() == null || cprof.getPassword().length() == 0) {
             File p_key = null;
@@ -251,14 +253,14 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
             session.setPassword(cprof.getPassword());
         }
 
-        java.util.Properties config_ = new java.util.Properties();
+        final java.util.Properties config_ = new java.util.Properties();
         config_.put("StrictHostKeyChecking", "no");
         session.setConfig(config_);
 
         try {
             session.connect();
         }
-        catch (JSchException e) {
+        catch (final JSchException e) {
             IJ.error("Connection failed", e.getMessage());
             return false;
         }
@@ -332,7 +334,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
             // Create a Compressor
 
-            DataCompression cmp = new DataCompression();
+            final DataCompression cmp = new DataCompression();
             if (cp != null) {
 
                 cmp.selectCompressor();
@@ -343,8 +345,8 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
             for (int i = 0; i < files.length; i++) {
                 try {
-                    String absolutePath = files[i].getPath();
-                    String filePath = absolutePath.substring(0, absolutePath.lastIndexOf(File.separator));
+                    final String absolutePath = files[i].getPath();
+                    final String filePath = absolutePath.substring(0, absolutePath.lastIndexOf(File.separator));
 
                     tdir = filePath + File.separator;
                     cSFTP.cd(tdir);
@@ -367,12 +369,12 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                         }
 
                         String s = new String("cd " + tdir + " ; ");
-                        File start_dir = findCommonPathAndDelete(files);
+                        final File start_dir = findCommonPathAndDelete(files);
                         s += cmp.compressCommand(files, new File(start_dir + File.separator + files[0].getName() + "_compressed"));
                         s += " ; echo \"JSCH REMOTE COMMAND\"; echo \"COMPRESSION END\"; \n";
                         waitString = new String("JSCH REMOTE COMMAND\r\nCOMPRESSION END");
                         wp_p = wp;
-                        ShellProcessOutput stmp = shp;
+                        final ShellProcessOutput stmp = shp;
                         setShellProcessOutput(this);
                         doing = new String("Compressing on cluster");
 
@@ -385,7 +387,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                             try {
                                 Thread.sleep(100);
                             }
-                            catch (InterruptedException e) {
+                            catch (final InterruptedException e) {
                                 e.printStackTrace();
                                 ret = false;
                             }
@@ -413,17 +415,17 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                         break;
                     }
                 }
-                catch (SftpException e) {
+                catch (final SftpException e) {
                     e.printStackTrace();
                     ret = false;
                 }
             }
         }
-        catch (JSchException e) {
+        catch (final JSchException e) {
             e.printStackTrace();
             ret = false;
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
             ret = false;
         }
@@ -439,9 +441,9 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
      */
 
     private File findCommonPathAndDelete(File f[]) {
-        File common = findCommonPath(f);
+        final File common = findCommonPath(f);
 
-        int l = common.getAbsolutePath().length() + 1;
+        final int l = common.getAbsolutePath().length() + 1;
 
         for (int i = 0; i < f.length; i++) {
             f[i] = new File(f[i].getAbsolutePath().substring(l, f[i].getAbsolutePath().length()));
@@ -461,7 +463,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
         String common = f[0].getAbsolutePath();
         for (int i = 1; i < f.length; i++) {
             int j;
-            int minLength = Math.min(common.length(), f[i].getAbsolutePath().length());
+            final int minLength = Math.min(common.length(), f[i].getAbsolutePath().length());
             for (j = 0; j < minLength; j++) {
                 if (common.charAt(j) != f[i].getAbsolutePath().charAt(j)) {
                     break;
@@ -505,7 +507,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
             // Create a Compressor
 
-            DataCompression cmp = new DataCompression();
+            final DataCompression cmp = new DataCompression();
             if (cp != null) {
 
                 cmp.selectCompressor();
@@ -518,7 +520,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                 tdir = new String(cprof.getRunningDir() + "/");
 
                 cSFTP.cd(cprof.getRunningDir() + "/");
-                String ss = "session" + Long.toString(new Date().getTime());
+                final String ss = "session" + Long.toString(new Date().getTime());
                 session_id = ss;
                 tdir += ss + "/";
                 cSFTP.mkdir(ss);
@@ -550,7 +552,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                 /* Compression */
 
                 wp.SetStatusMessage("Compressing data");
-                File start_dir = findCommonPathAndDelete(files);
+                final File start_dir = findCommonPathAndDelete(files);
                 wp_p = wp;
                 waitString = new String("COMPRESSION END");
                 doing = new String("Compressing ");
@@ -582,7 +584,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                 s += " ; echo \"JSCH REMOTE COMMAND\"; echo \"COMPRESSION END\"; \n";
                 waitString = new String("JSCH REMOTE COMMAND\r\nCOMPRESSION END");
                 wp_p = wp;
-                ShellProcessOutput stmp = shp;
+                final ShellProcessOutput stmp = shp;
                 setShellProcessOutput(this);
                 doing = new String("Decompressing on cluster");
 
@@ -595,7 +597,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                     try {
                         Thread.sleep(100);
                     }
-                    catch (InterruptedException e) {
+                    catch (final InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
@@ -605,15 +607,15 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                 setShellProcessOutput(stmp);
             }
         }
-        catch (JSchException e) {
+        catch (final JSchException e) {
             e.printStackTrace();
             return false;
         }
-        catch (SftpException e) {
+        catch (final SftpException e) {
             e.printStackTrace();
             return false;
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
 
@@ -667,12 +669,12 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
                         len = out.length - 1;
                     }
                     poutput_in.read(out, 0, len);
-                    String tmp = new String(out, 0, len, "UTF-8");
+                    final String tmp = new String(out, 0, len, "UTF-8");
                     System.out.print(tmp);
                     sout += tmp;
                 }
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 e.printStackTrace();
                 System.out.println("--------------------------- SecureShell output [END] ------------------------");
                 return;
@@ -693,7 +695,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
     @Override
     public String Process(String str) {
         int lidx = str.lastIndexOf("\n") - 1;
-        int lidx2 = lidx;
+        final int lidx2 = lidx;
         String print_out = new String();
 
         /* search for a complete last line */

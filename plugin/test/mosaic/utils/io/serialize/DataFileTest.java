@@ -39,18 +39,18 @@ public class DataFileTest extends CommonBase {
     @Test
     public void testGeneral() {
         // Prepare data
-        String fileName = SystemOperations.getCleanTestTmpPath() + "testGeneral.dat";
-        TestConfig expectedData = new TestConfig();
+        final String fileName = SystemOperations.getCleanTestTmpPath() + "testGeneral.dat";
+        final TestConfig expectedData = new TestConfig();
         expectedData.iId = 3;
         expectedData.iNames = new String[] {"Krzysztof", "Magdalena"};
         expectedData.iValue = 1.23;
 
         // Tested method - write object to file
-        DataFile<TestConfig> df = new SerializedDataFile<TestConfig>();
+        final DataFile<TestConfig> df = new SerializedDataFile<TestConfig>();
         assertTrue(df.SaveToFile(fileName, expectedData));
 
         // Tested method - read object from file
-        TestConfig result = new SerializedDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
+        final TestConfig result = new SerializedDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
 
         // Verify result
         assertNotNull(result);
@@ -62,14 +62,14 @@ public class DataFileTest extends CommonBase {
     @Test
     public void testReadNotExisting() {
         // Prepare data
-        String fileName = SystemOperations.getCleanTestTmpPath() + "testReadNotExisting.dat";
+        final String fileName = SystemOperations.getCleanTestTmpPath() + "testReadNotExisting.dat";
 
         // Make sure that file is not existing
-        File f = new File(fileName);
+        final File f = new File(fileName);
         assertFalse(f.exists());
 
         // Tested method - read object from file
-        TestConfig result = new SerializedDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
+        final TestConfig result = new SerializedDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
 
         // Verify result
         assertNull(result);
@@ -78,14 +78,14 @@ public class DataFileTest extends CommonBase {
     @Test
     public void testReadWrongObject() {
         // Prepare data
-        String fileName = SystemOperations.getCleanTestTmpPath() + "testReadWrongObject.dat";
+        final String fileName = SystemOperations.getCleanTestTmpPath() + "testReadWrongObject.dat";
 
         // Write different type of object than the one to be read.
-        DataFile<String> df = new SerializedDataFile<String>();
+        final DataFile<String> df = new SerializedDataFile<String>();
         df.SaveToFile(fileName, new String("Hello world!!!"));
 
         // Tested method - read object from file
-        TestConfig result = new SerializedDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
+        final TestConfig result = new SerializedDataFile<TestConfig>().LoadFromFile(fileName, TestConfig.class);
 
         // Verify result
         assertNull(result);
@@ -94,14 +94,14 @@ public class DataFileTest extends CommonBase {
     @Test
     public void testWriteToWrongFile() {
         // Prepare data
-        String fileName = SystemOperations.getCleanTestTmpPath(); // try to write to directory instead of file
-        TestConfig expectedData = new TestConfig();
+        final String fileName = SystemOperations.getCleanTestTmpPath(); // try to write to directory instead of file
+        final TestConfig expectedData = new TestConfig();
         expectedData.iId = 3;
         expectedData.iNames = new String[] {"Krzysztof", "Magdalena"};
         expectedData.iValue = 1.23;
 
         // Tested method - write object to file
-        DataFile<TestConfig> df = new SerializedDataFile<TestConfig>();
+        final DataFile<TestConfig> df = new SerializedDataFile<TestConfig>();
         assertFalse(df.SaveToFile(fileName, expectedData));
     }
 }

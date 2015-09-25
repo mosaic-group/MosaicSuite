@@ -35,12 +35,12 @@ class ForestFire {
         // displaySlice("pre forest fire");
 
         // Set<Integer> vVisitedNewLabels = new HashSet<Integer>();
-        Set<Integer> vVisitedOldLabels = new HashSet<Integer>();
+        final Set<Integer> vVisitedOldLabels = new HashSet<Integer>();
 
-        FloodFill ff = new FloodFill(labelImage.getConnFG(), aMultiThsFunctionPtr, aIndex);
-        Iterator<Point> vLit = ff.iterator();
+        final FloodFill ff = new FloodFill(labelImage.getConnFG(), aMultiThsFunctionPtr, aIndex);
+        final Iterator<Point> vLit = ff.iterator();
 
-        Set<Point> vSetOfAncientContourIndices = new HashSet<Point>(); // ContourIndexType
+        final Set<Point> vSetOfAncientContourIndices = new HashSet<Point>(); // ContourIndexType
 
         double vSum = 0;
         double vSqSum = 0;
@@ -49,10 +49,10 @@ class ForestFire {
 
         while (vLit.hasNext()) {
             // InputPixelType vImageValue = vDit.Get();
-            Point vCurrentIndex = vLit.next();
-            int vLabelValue = labelImage.getLabel(vCurrentIndex);
-            int absLabel = labelImage.labelToAbs(vLabelValue);
-            float vImageValue = intensityImage.get(vCurrentIndex);
+            final Point vCurrentIndex = vLit.next();
+            final int vLabelValue = labelImage.getLabel(vCurrentIndex);
+            final int absLabel = labelImage.labelToAbs(vLabelValue);
+            final float vImageValue = intensityImage.get(vCurrentIndex);
 
             // the visited labels statistics will be removed later.
             vVisitedOldLabels.add(absLabel);
@@ -74,9 +74,9 @@ class ForestFire {
         } // while iterating over floodfill area
 
         // / Delete the contour points that are not needed anymore:
-        for (Point vCurrentCIndex : vSetOfAncientContourIndices) {
+        for (final Point vCurrentCIndex : vSetOfAncientContourIndices) {
             if (labelImage.isBoundaryPoint(vCurrentCIndex)) {
-                ContourParticle vPoint = m_InnerContourContainer.get(vCurrentCIndex);
+                final ContourParticle vPoint = m_InnerContourContainer.get(vCurrentCIndex);
                 vPoint.label = aNewLabel;
                 // vPoint.modifiedCounter = 0;
 
@@ -90,15 +90,15 @@ class ForestFire {
 
         // / Store the statistics of the new region (the vectors will
         // / store more and more trash of old regions).
-        double vN_ = vN;
+        final double vN_ = vN;
 
         // create a labelInformation for the new label, add to container
-        LabelInformation newLabelInformation = new LabelInformation(aNewLabel, labelImage.getDim());
+        final LabelInformation newLabelInformation = new LabelInformation(aNewLabel, labelImage.getDim());
         algorithm.labelMap.put(aNewLabel, newLabelInformation);
 
         newLabelInformation.mean = vSum / vN_;
         // TODO m_Intensities[vNewLabel] = m_Means[vNewLabel];
-        double var = (vN_ > 1) ? (vSqSum - vSum * vSum / vN_) / (vN_ - 1) : 0;
+        final double var = (vN_ > 1) ? (vSqSum - vSum * vSum / vN_) / (vN_ - 1) : 0;
         newLabelInformation.var = (var);
         newLabelInformation.count = vN;
         // TODO m_Lengths[vNewLabel] = vLengthEnergy;
@@ -106,7 +106,7 @@ class ForestFire {
         // displaySlice("after forestfire");
 
         // / Clean up the statistics of non valid regions.
-        for (int vVisitedIt : vVisitedOldLabels) {
+        for (final int vVisitedIt : vVisitedOldLabels) {
             // debug("Freed label " + vVisitedIt);
             algorithm.FreeLabelStatistics(vVisitedIt);
         }

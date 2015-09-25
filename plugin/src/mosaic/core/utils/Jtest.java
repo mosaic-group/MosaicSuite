@@ -29,7 +29,7 @@ public class Jtest {
 
         @Override
         public void run(ImageProcessor arg0) {
-            String Basefile = testImg[cnt].img[0].substring(0, testImg[cnt].img[0].lastIndexOf(File.separator)) + File.separator + "test";
+            final String Basefile = testImg[cnt].img[0].substring(0, testImg[cnt].img[0].lastIndexOf(File.separator)) + File.separator + "test";
             ShellCommand.copy(new File(Basefile), new File(to), null);
             cnt++;
         }
@@ -78,7 +78,7 @@ public class Jtest {
 
     @Test
     public void testtestsegmentation() {
-        segStub BG = new segStub();
+        final segStub BG = new segStub();
 
         // test the cluster
         logger.info("----------------------- TestCase: job_compare_test -----------------------");

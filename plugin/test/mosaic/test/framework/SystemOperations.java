@@ -62,7 +62,7 @@ public class SystemOperations {
     public static void copyFileToDirectory(File aSrcFile, File aDestDir) {
         try {
             FileUtils.copyFileToDirectory(aSrcFile, aDestDir);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
             // intentionally break execution
             throw new RuntimeException("Cannot copy file [" + aSrcFile + "] to dir [" + aDestDir + "] [" + e.getMessage() + "]");
@@ -77,7 +77,7 @@ public class SystemOperations {
     public static void copyFile(File aSrcFile, File aDestFile) {
         try {
             FileUtils.copyFile(aSrcFile, aDestFile);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
             // intentionally break execution
             throw new RuntimeException("Cannot copy file [" + aSrcFile + "] to [" + aDestFile + "]");
@@ -91,7 +91,7 @@ public class SystemOperations {
     public static void createDir(String aDirName) {
         try {
             FileUtils.forceMkdir(new File(aDirName));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
             throw new RuntimeException("Creating directory: [" + aDirName + "] failed! [" + e.getMessage() + "]");
         }
@@ -103,8 +103,8 @@ public class SystemOperations {
      * @param aDestFile - absolute path to destination file
      */
     public static void moveFile(String aSrcFile, String aDestFile) {
-        File src = new File(aSrcFile);
-        File dest = new File(aDestFile);
+        final File src = new File(aSrcFile);
+        final File dest = new File(aDestFile);
         moveFile(src, dest, false);
     }
 
@@ -115,8 +115,8 @@ public class SystemOperations {
      * @param aQuiteModeActive - if set to true, problems with execution will not be visible
      */
     public static void moveFile(String aSrcFile, String aDestFile, boolean aQuiteModeActive) {
-        File src = new File(aSrcFile);
-        File dest = new File(aDestFile);
+        final File src = new File(aSrcFile);
+        final File dest = new File(aDestFile);
         moveFile(src, dest, aQuiteModeActive);
     }
 
@@ -136,7 +136,7 @@ public class SystemOperations {
                 return;
             }
             FileUtils.moveFile(aSrcFile, aDestFile);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
             throw new RuntimeException("Cannot move file [" + aSrcFile + "] to [" + aDestFile + "] [" + e.getMessage() + "]");
         }
@@ -157,7 +157,7 @@ public class SystemOperations {
     public static void removeDir(File aDir) {
         try {
             FileUtils.deleteDirectory(aDir);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
             throw new RuntimeException("Deleting directory: [" + aDir.getAbsolutePath() + "] failed! [" + e.getMessage() + "]");
         }

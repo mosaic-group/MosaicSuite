@@ -87,16 +87,16 @@ public class SphereMask extends Mask {
 
     private void fillMask() {
         fgPoints = 0;
-        int size = iterator.getSize();
+        final int size = iterator.getSize();
 
         if (rnd == true) {
-            Random r = new Random();
+            final Random r = new Random();
 
             for (int i = 0; i < size; i++) // over region
             {
-                Point ofs = iterator.indexToPoint(i);
+                final Point ofs = iterator.indexToPoint(i);
 
-                int[] vIndex = (ofs).x;
+                final int[] vIndex = (ofs).x;
 
                 float vHypEllipse = 0;
                 for (int vD = 0; vD < dim; vD++) {
@@ -129,9 +129,9 @@ public class SphereMask extends Mask {
         else {
             for (int i = 0; i < size; i++) // over region
             {
-                Point ofs = iterator.indexToPoint(i);
+                final Point ofs = iterator.indexToPoint(i);
 
-                int[] vIndex = (ofs).x;
+                final int[] vIndex = (ofs).x;
 
                 float vHypEllipse = 0;
                 for (int vD = 0; vD < dim; vD++) {

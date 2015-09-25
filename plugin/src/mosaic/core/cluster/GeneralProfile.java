@@ -34,7 +34,7 @@ class GeneralProfile implements ClusterProfile {
         String name;
     }
 
-    private Vector<Vector<Tqueue>> cq;
+    private final Vector<Vector<Tqueue>> cq;
 
     GeneralProfile() {
         cq = new Vector<Vector<Tqueue>>();
@@ -161,7 +161,7 @@ class GeneralProfile implements ClusterProfile {
             return new QueueProfile[0];
         }
 
-        QueueProfile[] cpt = new QueueProfile[cq.get(Acc_.ordinal()).size()];
+        final QueueProfile[] cpt = new QueueProfile[cq.get(Acc_.ordinal()).size()];
 
         for (int i = 0; i < cq.get(Acc_.ordinal()).size(); i++) {
             cpt[i] = new QueueProfile();

@@ -21,18 +21,18 @@ class MasksDisplay {
 
     private ImageStack imgcolocastack;
 
-    private ImagePlus imgcoloc;
-    private int[][] colors;
-    private ColorProcessor cp;
-    private ImagePlus img;
-    private int ni, nj, nz, nlevels;
+    private final ImagePlus imgcoloc;
+    private final int[][] colors;
+    private final ColorProcessor cp;
+    private final ImagePlus img;
+    private final int ni, nj, nz, nlevels;
     boolean firstdisp = true;
     private boolean firstdispa = true;
     private boolean firstdispb = true;
-    private Parameters p;
+    private final Parameters p;
 
     private ImageStack ims3d;
-    private ImagePlus imgda, imgdb;
+    private final ImagePlus imgda, imgdb;
 
     MasksDisplay(int ni, int nj, int nz, int nlevels, double[] cl, Parameters params) {
         this.imgda = new ImagePlus();
@@ -88,7 +88,7 @@ class MasksDisplay {
      */
     void display2regions(double[][] array, String s, int channel) {
 
-        float[][] temp = new float[ni][nj];
+        final float[][] temp = new float[ni][nj];
 
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
@@ -96,7 +96,7 @@ class MasksDisplay {
             }
         }
 
-        ImageProcessor imp = new FloatProcessor(temp);
+        final ImageProcessor imp = new FloatProcessor(temp);
         if (channel == 0) {
             imgda.setProcessor(s + " X", imp);
             if (firstdispa) {
@@ -126,8 +126,8 @@ class MasksDisplay {
      */
     ImagePlus display2regionsnew(float[][] array, String s, int channel, boolean vs) {
 
-        float[][] temp = new float[ni][nj];
-        ImagePlus imgtemp = new ImagePlus();
+        final float[][] temp = new float[ni][nj];
+        final ImagePlus imgtemp = new ImagePlus();
 
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
@@ -135,7 +135,7 @@ class MasksDisplay {
             }
         }
 
-        ImageProcessor imp = new FloatProcessor(temp);
+        final ImageProcessor imp = new FloatProcessor(temp);
         if (channel == 0) {
             imgtemp.setProcessor(s + "X", imp);
         }
@@ -158,8 +158,8 @@ class MasksDisplay {
      */
     ImagePlus display2regionsnewd(double[][] array, String s, int channel) {
 
-        float[][] temp = new float[ni][nj];
-        ImagePlus imgtemp = new ImagePlus();
+        final float[][] temp = new float[ni][nj];
+        final ImagePlus imgtemp = new ImagePlus();
 
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
@@ -167,7 +167,7 @@ class MasksDisplay {
             }
         }
 
-        ImageProcessor imp = new FloatProcessor(temp);
+        final ImageProcessor imp = new FloatProcessor(temp);
         if (channel == 0) {
             imgtemp.setProcessor(s + "X", imp);
         }
@@ -189,8 +189,8 @@ class MasksDisplay {
      */
     ImagePlus display2regionsnew(double[][] array, String s, int channel, boolean vs) {
 
-        float[][] temp = new float[ni][nj];
-        ImagePlus imgtemp = new ImagePlus();
+        final float[][] temp = new float[ni][nj];
+        final ImagePlus imgtemp = new ImagePlus();
 
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
@@ -198,7 +198,7 @@ class MasksDisplay {
             }
         }
 
-        ImageProcessor imp = new FloatProcessor(temp);
+        final ImageProcessor imp = new FloatProcessor(temp);
         if (channel == 0) {
             imgtemp.setProcessor(s + "X", imp);
         }
@@ -223,19 +223,19 @@ class MasksDisplay {
      * @return the imagePlus
      */
     ImagePlus display2regions3Dnew(double[][][] array, String s, int channel, boolean vs) {
-        ImageStack img3temp = new ImageStack(ni, nj);
+        final ImageStack img3temp = new ImageStack(ni, nj);
 
-        ImagePlus imgtemp = new ImagePlus();
+        final ImagePlus imgtemp = new ImagePlus();
 
         for (int z = 0; z < nz; z++) {
-            float[][] temp = new float[ni][nj];
+            final float[][] temp = new float[ni][nj];
 
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     temp[i][j] = (float) array[z][i][j];
                 }
             }
-            ImageProcessor imp = new FloatProcessor(temp);
+            final ImageProcessor imp = new FloatProcessor(temp);
             img3temp.addSlice("", imp);
         }
 
@@ -266,7 +266,7 @@ class MasksDisplay {
         for (int z = 0; z < nz; z++) {
             // IJ.log("add slice number :" + z);
             // float [] [] temp= new float [ni][nj];
-            byte[] temp = new byte[ni * nj];
+            final byte[] temp = new byte[ni * nj];
 
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -275,7 +275,7 @@ class MasksDisplay {
                     // ims3d.setVoxel(i, j, z, array[z][i][j]);
                 }
             }
-            ImageProcessor bp = new ByteProcessor(ni, nj);
+            final ImageProcessor bp = new ByteProcessor(ni, nj);
             bp.setPixels(temp);
             this.ims3d.addSlice("", bp);
         }
@@ -309,14 +309,14 @@ class MasksDisplay {
      */
     ImagePlus display2regions3Dnew(float[][][] array, String s, int channel) {
 
-        ImageStack ims3da = new ImageStack(ni, nj);
-        ImagePlus imgd = new ImagePlus();
+        final ImageStack ims3da = new ImageStack(ni, nj);
+        final ImagePlus imgd = new ImagePlus();
 
         // this.ims3d=new ImageStack(ni,nj);
         for (int z = 0; z < nz; z++) {
             // IJ.log("add slice number :" + z);
             // float [] [] temp= new float [ni][nj];
-            byte[] temp = new byte[ni * nj];
+            final byte[] temp = new byte[ni * nj];
 
             for (int j = 0; j < nj; j++) {
                 for (int i = 0; i < ni; i++) {
@@ -325,7 +325,7 @@ class MasksDisplay {
                     // ims3d.setVoxel(i, j, z, array[z][i][j]);
                 }
             }
-            ImageProcessor bp = new ByteProcessor(ni, nj);
+            final ImageProcessor bp = new ByteProcessor(ni, nj);
             bp.setPixels(temp);
             ims3da.addSlice("", bp);
         }
@@ -352,12 +352,12 @@ class MasksDisplay {
      */
     void displaycoloc(String savepath, ArrayList<Region> regionslistA, ArrayList<Region> regionslistB, Vector<ImagePlus> ip) {
 
-        byte[] imagecolor = new byte[nz * ni * nj * 3];
+        final byte[] imagecolor = new byte[nz * ni * nj * 3];
 
         // set all to zero
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
-                int t = z * ni * nj * 3 + i * nj * 3;
+                final int t = z * ni * nj * 3 + i * nj * 3;
                 for (int j = 0; j < nj; j++) {
                     imagecolor[t + j * 3 + 0] = 0;// Red channel
                     imagecolor[t + j * 3 + 1] = 0;// Green channel
@@ -368,37 +368,37 @@ class MasksDisplay {
 
         // set green pixels
         imagecolor[1] = (byte) 255;
-        for (Iterator<Region> it = regionslistA.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslistA.iterator(); it.hasNext();) {
+            final Region r = it.next();
 
-            for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
-                Pix p = it2.next();
-                int t = p.pz * ni * nj * 3 + p.px * nj * 3;
+            for (final Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
+                final Pix p = it2.next();
+                final int t = p.pz * ni * nj * 3 + p.px * nj * 3;
                 imagecolor[t + p.py * 3 + 1] = (byte) 255;
                 // green
             }
         }
 
         // set red pixels
-        for (Iterator<Region> it = regionslistB.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslistB.iterator(); it.hasNext();) {
+            final Region r = it.next();
 
-            for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
-                Pix p = it2.next();
-                int t = p.pz * ni * nj * 3 + p.px * nj * 3;
+            for (final Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
+                final Pix p = it2.next();
+                final int t = p.pz * ni * nj * 3 + p.px * nj * 3;
                 imagecolor[t + p.py * 3 + 0] = (byte) 255;
                 // red
                 // cpcoloc.putPixel(p.px, p.py, color);
             }
         }
 
-        int[] tabt = new int[3];
+        final int[] tabt = new int[3];
 
         this.imgcolocastack = new ImageStack(ni, nj);
         for (int z = 0; z < nz; z++) {
-            ColorProcessor cpcoloc = new ColorProcessor(ni, nj);
+            final ColorProcessor cpcoloc = new ColorProcessor(ni, nj);
             for (int i = 0; i < ni; i++) {
-                int t = z * ni * nj * 3 + i * nj * 3;
+                final int t = z * ni * nj * 3 + i * nj * 3;
                 for (int j = 0; j < nj; j++) {
                     tabt[0] = imagecolor[t + j * 3 + 0] & 0xFF;
                     tabt[1] = imagecolor[t + j * 3 + 1] & 0xFF;

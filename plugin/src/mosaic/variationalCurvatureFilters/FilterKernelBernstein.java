@@ -45,16 +45,16 @@ public class FilterKernelBernstein implements FilterKernel {
         if (da < d0a) {d0 = d3;}
 
         // Second step
-        float m7 = 7 * m;
+        final float m7 = 7 * m;
         d0 *= 3.5f;
 
-        float common2 = 3 * (ru + ld) - m7;
-        float common3 = 3 * (lu + rd) - m7;
+        final float common2 = 3 * (ru + ld) - m7;
+        final float common3 = 3 * (lu + rd) - m7;
 
         d1 = u - lu + l + common2;
         d2 = u - ru + r + common3;
         d3 = d - ld + l + common3;
-        float d4 = d - rd + r + common2;
+        final float d4 = d - rd + r + common2;
 
         // And find minimal (absolute) change
         d0a = Math.abs(d0);

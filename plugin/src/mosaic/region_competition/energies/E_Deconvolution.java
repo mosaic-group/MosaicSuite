@@ -26,12 +26,12 @@ import net.imglib2.view.Views;
 public class E_Deconvolution extends ExternalEnergy {
 
     final private Img<FloatType> DevImage;
-    private RandomAccessible<FloatType> infDevAccess;
-    private RandomAccess<FloatType> infDevAccessIt;
+    private final RandomAccessible<FloatType> infDevAccess;
+    private final RandomAccess<FloatType> infDevAccessIt;
 
     private Img<FloatType> m_PSF;
-    private HashMap<Integer, LabelInformation> labelMap;
-    private IntensityImage aDataImage;
+    private final HashMap<Integer, LabelInformation> labelMap;
+    private final IntensityImage aDataImage;
 
     public E_Deconvolution(IntensityImage aDI, HashMap<Integer, LabelInformation> labelMap, ImgFactory<FloatType> imgFactory, int dim[]) {
         super(null, null);
@@ -61,7 +61,7 @@ public class E_Deconvolution extends ExternalEnergy {
         Collections.sort(values);
 
         if (values.size() % 2 == 1) {
-            int mid = (values.size() + 1) / 2 - 1;
+            final int mid = (values.size() + 1) / 2 - 1;
 
             if (Float.isInfinite(values.get(mid))) {
                 int i = mid;
@@ -76,8 +76,8 @@ public class E_Deconvolution extends ExternalEnergy {
             return values.get((values.size() + 1) / 2 - 1);
         }
         else {
-            float lower = values.get(values.size() / 2 - 1);
-            float upper = values.get(values.size() / 2);
+            final float lower = values.get(values.size() / 2 - 1);
+            final float upper = values.get(values.size() / 2);
 
             if (Float.isInfinite(lower) || Float.isInfinite(upper)) {
                 int i = values.size() / 2;
@@ -95,8 +95,8 @@ public class E_Deconvolution extends ExternalEnergy {
     }
 
     public void GenerateModelImage(LabelImageRC aLabelImage, HashMap<Integer, LabelInformation> labelMap) {
-        Cursor<FloatType> cVModelImage = DevImage.cursor();
-        int size = aLabelImage.getSize();
+        final Cursor<FloatType> cVModelImage = DevImage.cursor();
+        final int size = aLabelImage.getSize();
         for (int i = 0; i < size && cVModelImage.hasNext(); i++) {
             cVModelImage.fwd();
             int vLabel = aLabelImage.getLabelAbs(i);
@@ -128,7 +128,7 @@ public class E_Deconvolution extends ExternalEnergy {
 
         // / The BG region is not fitted above(since it may be very large and thus
         // / the mean is a good approx), set it to the mean value:
-        double vOldBG = aInitImage.getLabelMap().get(0).median;
+        final double vOldBG = aInitImage.getLabelMap().get(0).median;
 
         // Time vs. Memory:
         // Memory efficient: iterate the label image: for all new seed points (new label found),
@@ -143,17 +143,17 @@ public class E_Deconvolution extends ExternalEnergy {
         // / Set up a map datastructure that maps from labels to arrays of data
         // / values. These arrays will be sorted to read out the median.
 
-        HashMap<Integer, Integer> vLabelCounter = new HashMap<Integer, Integer>();
-        HashMap<Integer, Float> vIntensitySum = new HashMap<Integer, Float>();
+        final HashMap<Integer, Integer> vLabelCounter = new HashMap<Integer, Integer>();
+        final HashMap<Integer, Float> vIntensitySum = new HashMap<Integer, Float>();
 
-        HashMap<Integer, ArrayList<Float>> vScalings3 = new HashMap<Integer, ArrayList<Float>>();
+        final HashMap<Integer, ArrayList<Float>> vScalings3 = new HashMap<Integer, ArrayList<Float>>();
 
         // / For all the active labels, create an entry in the map and initialize
         // / an array as the corresponding value.
-        Iterator<Map.Entry<Integer, LabelInformation>> vActiveLabelsIt = aInitImage.getLabelMap().entrySet().iterator();
+        final Iterator<Map.Entry<Integer, LabelInformation>> vActiveLabelsIt = aInitImage.getLabelMap().entrySet().iterator();
         while (vActiveLabelsIt.hasNext()) {
-            Map.Entry<Integer, LabelInformation> Label = vActiveLabelsIt.next();
-            int vLabel = Label.getKey();
+            final Map.Entry<Integer, LabelInformation> Label = vActiveLabelsIt.next();
+            final int vLabel = Label.getKey();
             if (vLabel == aInitImage.forbiddenLabel) {
                 continue;
             }
@@ -162,25 +162,25 @@ public class E_Deconvolution extends ExternalEnergy {
             vIntensitySum.put(vLabel, 0.0f);
         }
 
-        Cursor<FloatType> cVDevImage = DevImage.cursor();
-        int size = aInitImage.getSize();
+        final Cursor<FloatType> cVDevImage = DevImage.cursor();
+        final int size = aInitImage.getSize();
         for (int i = 0; i < size && cVDevImage.hasNext(); i++) {
             cVDevImage.fwd();
-            int vLabelAbs = aInitImage.getLabelAbs(i);
+            final int vLabelAbs = aInitImage.getLabelAbs(i);
             if (vLabelAbs == aInitImage.forbiddenLabel) {
                 continue;
             }
             vLabelCounter.put(vLabelAbs, vLabelCounter.get(vLabelAbs) + 1);
 
             if (vLabelAbs == 0) {
-                float vBG = aDataImage.get(i) - (cVDevImage.get().get() - (float) vOldBG);
-                ArrayList<Float> arr = vScalings3.get(vLabelAbs);
+                final float vBG = aDataImage.get(i) - (cVDevImage.get().get() - (float) vOldBG);
+                final ArrayList<Float> arr = vScalings3.get(vLabelAbs);
                 arr.add(vBG);
             }
             else {
-                float vScale = (aDataImage.get(i) - (float) vOldBG) / (cVDevImage.get().get() - (float) vOldBG);
+                final float vScale = (aDataImage.get(i) - (float) vOldBG) / (cVDevImage.get().get() - (float) vOldBG);
 
-                ArrayList<Float> arr = vScalings3.get(vLabelAbs);
+                final ArrayList<Float> arr = vScalings3.get(vLabelAbs);
                 arr.add(vScale);
             }
         }
@@ -192,9 +192,9 @@ public class E_Deconvolution extends ExternalEnergy {
         // / a median of medians algorithm (O(N)) could provide a good
         // / approximation of the median.
 
-        Iterator<Map.Entry<Integer, ArrayList<Float>>> vScaling3It = vScalings3.entrySet().iterator();
+        final Iterator<Map.Entry<Integer, ArrayList<Float>>> vScaling3It = vScalings3.entrySet().iterator();
         while (vScaling3It.hasNext()) {
-            Map.Entry<Integer, ArrayList<Float>> vLabel = vScaling3It.next();
+            final Map.Entry<Integer, ArrayList<Float>> vLabel = vScaling3It.next();
             float vMedian;
             if (aInitImage.getLabelMap().get(vLabel.getKey()).count > 2) {
                 vMedian = Median(vScalings3.get(vLabel.getKey()));
@@ -235,15 +235,15 @@ public class E_Deconvolution extends ExternalEnergy {
     @Override
     public EnergyResult CalculateEnergyDifference(Point aIndex, ContourParticle contourParticle, int aToLabel) {
 
-        int aFromLabel = contourParticle.label;
+        final int aFromLabel = contourParticle.label;
         infDevAccessIt.setPosition(aIndex.x/* pos.x */);
 
-        EnergyResult vEnergyDiff = new EnergyResult(0.0, false);
+        final EnergyResult vEnergyDiff = new EnergyResult(0.0, false);
 
-        float vIntensity_FromLabel = (float) labelMap.get(aFromLabel).median;
-        float vIntensity_ToLabel = (float) labelMap.get(aToLabel).median;
+        final float vIntensity_FromLabel = (float) labelMap.get(aFromLabel).median;
+        final float vIntensity_ToLabel = (float) labelMap.get(aToLabel).median;
 
-        long dimlen[] = new long[m_PSF.numDimensions()];
+        final long dimlen[] = new long[m_PSF.numDimensions()];
         m_PSF.dimensions(dimlen);
 
         // middle coord
@@ -253,12 +253,12 @@ public class E_Deconvolution extends ExternalEnergy {
         for (int i = 0; i < m_PSF.numDimensions(); i++) {
             dimlen[i] = dimlen[i] / 2;
         }
-        Point middle = new Point(dimlen);
-        Point LowerCorner = aIndex.sub(middle);
+        final Point middle = new Point(dimlen);
+        final Point LowerCorner = aIndex.sub(middle);
 
         Point pos = new Point(dimlen);
-        int loc[] = new int[m_PSF.numDimensions()];
-        Cursor<FloatType> vPSF = m_PSF.localizingCursor();
+        final int loc[] = new int[m_PSF.numDimensions()];
+        final Cursor<FloatType> vPSF = m_PSF.localizingCursor();
 
         // Point UpperCorner = LowerCorner.add(sizeP);
 
@@ -321,7 +321,7 @@ public class E_Deconvolution extends ExternalEnergy {
 
         // / Iterate through the region and subtract the psf from the conv image.
 
-        long dimlen[] = new long[m_PSF.numDimensions()];
+        final long dimlen[] = new long[m_PSF.numDimensions()];
         m_PSF.dimensions(dimlen);
 
         // middle coord
@@ -333,14 +333,14 @@ public class E_Deconvolution extends ExternalEnergy {
         middle = aIndex.sub(middle);
 
         Point pos = new Point(m_PSF.numDimensions());
-        int loc[] = new int[m_PSF.numDimensions()];
+        final int loc[] = new int[m_PSF.numDimensions()];
 
-        Cursor<FloatType> vPSF = m_PSF.localizingCursor();
+        final Cursor<FloatType> vPSF = m_PSF.localizingCursor();
 
         if (aToLabel == 0) { // ...the point is removed and set to BG
                              // To avoid the operator map::[] in the loop:
-            float vIntensity_FromLabel = (float) aLabelImage.getLabelMap().get(aFromLabel).median;
-            float vIntensity_BGLabel = (float) aLabelImage.getLabelMap().get(aToLabel).median;
+            final float vIntensity_FromLabel = (float) aLabelImage.getLabelMap().get(aFromLabel).median;
+            final float vIntensity_BGLabel = (float) aLabelImage.getLabelMap().get(aToLabel).median;
             while (vPSF.hasNext()) {
                 vPSF.fwd();
                 // Add aindex to cursor
@@ -356,8 +356,8 @@ public class E_Deconvolution extends ExternalEnergy {
             }
         }
         else {
-            float vIntensity_ToLabel = (float) aLabelImage.getLabelMap().get(aToLabel).median;
-            float vIntensity_BGLabel = (float) aLabelImage.getLabelMap().get(0).median;
+            final float vIntensity_ToLabel = (float) aLabelImage.getLabelMap().get(aToLabel).median;
+            final float vIntensity_BGLabel = (float) aLabelImage.getLabelMap().get(0).median;
             while (vPSF.hasNext()) {
                 vPSF.fwd();
                 // Add aindex to cursor

@@ -63,14 +63,14 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
         int get(T inte, Class<T> cls) {
             // calculate distance from h1 and h2
 
-            double h1dist = h1.intensity.getRealDouble() - inte.getRealDouble();
-            double h2dist = h2.intensity.getRealDouble() - inte.getRealDouble();
-            double h2h1dist = h2.intensity.getRealDouble() - h1.intensity.getRealDouble();
+            final double h1dist = h1.intensity.getRealDouble() - inte.getRealDouble();
+            final double h2dist = h2.intensity.getRealDouble() - inte.getRealDouble();
+            final double h2h1dist = h2.intensity.getRealDouble() - h1.intensity.getRealDouble();
 
             // calculate ratio
 
-            double r1dist = h1dist / h2h1dist;
-            double r2dist = h2dist / h2h1dist;
+            final double r1dist = h1dist / h2h1dist;
+            final double r2dist = h2dist / h2h1dist;
 
             long och1 = 0;
             long och2 = 0;
@@ -81,16 +81,16 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
             try {
                 binsh1 = cls.newInstance();
                 binsh1.setReal(h1.intensity.getRealDouble() + h1dist);
-                T binsh2 = cls.newInstance();
+                final T binsh2 = cls.newInstance();
                 binsh2.setReal(h2.intensity.getRealDouble() + h2dist);
 
                 och1 = h1.hist.frequency(binsh1);
                 och2 = h2.hist.frequency(binsh2);
             }
-            catch (InstantiationException e) {
+            catch (final InstantiationException e) {
                 e.printStackTrace();
             }
-            catch (IllegalAccessException e) {
+            catch (final IllegalAccessException e) {
                 e.printStackTrace();
             }
 
@@ -106,14 +106,14 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
         long integral(T inte) {
             // calculate distance from h1 and h2
 
-            double h1dist = h1.intensity.getRealDouble() - inte.getRealDouble();
-            double h2dist = h2.intensity.getRealDouble() - inte.getRealDouble();
-            double h2h1dist = h2.intensity.getRealDouble() - h1.intensity.getRealDouble();
+            final double h1dist = h1.intensity.getRealDouble() - inte.getRealDouble();
+            final double h2dist = h2.intensity.getRealDouble() - inte.getRealDouble();
+            final double h2h1dist = h2.intensity.getRealDouble() - h1.intensity.getRealDouble();
 
             // calculate ratio
 
-            double r1dist = h1dist / h2h1dist;
-            double r2dist = h2dist / h2h1dist;
+            final double r1dist = h1dist / h2h1dist;
+            final double r2dist = h2dist / h2h1dist;
 
             // calculate the integral
 
@@ -140,10 +140,10 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
         try {
             center = cls.newInstance();
         }
-        catch (InstantiationException e) {
+        catch (final InstantiationException e) {
             e.printStackTrace();
         }
-        catch (IllegalAccessException e) {
+        catch (final IllegalAccessException e) {
             e.printStackTrace();
         }
     }
@@ -156,7 +156,7 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
      */
 
     public void setHistogram(T intensity, Histogram1d<T> hist) {
-        Ihist tmp = new Ihist();
+        final Ihist tmp = new Ihist();
         tmp.intensity = intensity;
         tmp.hist = hist;
 
@@ -190,15 +190,15 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
 
         // Create an interpolate histogram
 
-        InterpolateHistogram Ih = new InterpolateHistogram(inteHist.get(i), inteHist.get(i + 1));
+        final InterpolateHistogram Ih = new InterpolateHistogram(inteHist.get(i), inteHist.get(i + 1));
 
         // Get the integral of the histogram
 
-        long integral = Ih.integral(x);
+        final long integral = Ih.integral(x);
 
         // Generate a random number between 0 and total
 
-        long gen = (long) (rnd.nextDouble() * integral);
+        final long gen = (long) (rnd.nextDouble() * integral);
 
         // search the bin we fall into (the domain of all histogram is warranted to be the
         // same)

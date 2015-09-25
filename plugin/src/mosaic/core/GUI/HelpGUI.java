@@ -36,11 +36,11 @@ public class HelpGUI {
     }
 
     protected void setHelpTitle(String title) {
-        GridBagConstraints c = new GridBagConstraints();
+        final GridBagConstraints c = new GridBagConstraints();
         c.gridx = gridx;
         c.gridy = gridy;
         c.gridwidth = 2;
-        JLabel label = new JLabel();
+        final JLabel label = new JLabel();
         label.setText("<html>" + "<h1> " + title + " </h1>" + "</html>");
         pref.add(label, c);
 
@@ -52,10 +52,10 @@ public class HelpGUI {
             return;
         }
 
-        GridBagConstraints c = new GridBagConstraints();
+        final GridBagConstraints c = new GridBagConstraints();
 
-        JLabel label = new JLabel();
-        JButton bt_a = new JButton("<html><font color=\"blue\">click here</font></hmtl>");
+        final JLabel label = new JLabel();
+        final JButton bt_a = new JButton("<html><font color=\"blue\">click here</font></hmtl>");
         bt_a.setBorderPainted(false);
         bt_a.setOpaque(false);
         bt_a.setBackground(Color.GRAY);
@@ -68,7 +68,7 @@ public class HelpGUI {
                 try {
                     open(new URI(link));
                 }
-                catch (URISyntaxException e) {
+                catch (final URISyntaxException e) {
                     e.printStackTrace();
                 }
 
@@ -92,10 +92,10 @@ public class HelpGUI {
             return;
         }
 
-        GridBagConstraints c = new GridBagConstraints();
+        final GridBagConstraints c = new GridBagConstraints();
 
-        JLabel label = new JLabel();
-        JButton bt_t = new JButton("<html><font color=\"blue\">click here</font></hmtl>");
+        final JLabel label = new JLabel();
+        final JButton bt_t = new JButton("<html><font color=\"blue\">click here</font></hmtl>");
         bt_t.setBorderPainted(false);
         bt_t.setOpaque(false);
         bt_t.setBackground(Color.GRAY);
@@ -108,7 +108,7 @@ public class HelpGUI {
                 try {
                     open(new URI(link));
                 }
-                catch (URISyntaxException e) {
+                catch (final URISyntaxException e) {
                     e.printStackTrace();
                 }
 
@@ -129,14 +129,14 @@ public class HelpGUI {
     }
 
     protected void createSection(String sc, final String link) {
-        GridBagConstraints c = new GridBagConstraints();
+        final GridBagConstraints c = new GridBagConstraints();
         c.anchor = GridBagConstraints.WEST;
 
         if (link == null) {
             c.gridx = 0;
             c.gridy = gridy;
             c.gridwidth = 2;
-            JLabel label = new JLabel();
+            final JLabel label = new JLabel();
             label.setText("<html><h1> " + sc + " </h1>");
             pref.add(label, c);
 
@@ -146,11 +146,11 @@ public class HelpGUI {
             c.gridx = 0;
             c.gridy = gridy;
             c.gridwidth = 1;
-            JLabel label = new JLabel();
+            final JLabel label = new JLabel();
             label.setText("<html><h1> " + sc + " </h1>");
             pref.add(label, c);
 
-            JButton bt_s = new JButton("<html><font color=\"blue\">more info</font></hmtl>");
+            final JButton bt_s = new JButton("<html><font color=\"blue\">more info</font></hmtl>");
             bt_s.setBorderPainted(false);
             bt_s.setOpaque(false);
             bt_s.setBackground(Color.GRAY);
@@ -163,7 +163,7 @@ public class HelpGUI {
                     try {
                         open(new URI(link));
                     }
-                    catch (URISyntaxException e) {
+                    catch (final URISyntaxException e) {
                         e.printStackTrace();
                     }
 
@@ -177,20 +177,20 @@ public class HelpGUI {
     }
 
     protected void createField(String fld, String desc, final String link) {
-        GridBagConstraints c = new GridBagConstraints();
+        final GridBagConstraints c = new GridBagConstraints();
 
         c.anchor = GridBagConstraints.WEST;
         c.gridx = 0;
         c.gridy = gridy;
         c.gridwidth = 2;
-        JLabel label = new JLabel();
+        final JLabel label = new JLabel();
         label.setText("<html>" + "<h2> <font color=\"red\"> " + fld + " </font></h2>" + "<div style=\"width:400px\">" + desc + "</div>");
         pref.add(label, c);
 
         gridy++;
 
         if (link != null) {
-            JButton bt_pr = new JButton("<html><font color=\"blue\">more info</font></hmtl>");
+            final JButton bt_pr = new JButton("<html><font color=\"blue\">more info</font></hmtl>");
             bt_pr.setBorderPainted(false);
             bt_pr.setOpaque(false);
             bt_pr.setBackground(Color.GRAY);
@@ -203,7 +203,7 @@ public class HelpGUI {
                     try {
                         open(new URI(link));
                     }
-                    catch (URISyntaxException e) {
+                    catch (final URISyntaxException e) {
                         e.printStackTrace();
                     }
 
@@ -223,7 +223,7 @@ public class HelpGUI {
             try {
                 Desktop.getDesktop().browse(uri);
             }
-            catch (IOException e) { /* TODO: error handling */
+            catch (final IOException e) { /* TODO: error handling */
             }
         }
         else { /* TODO: error handling */

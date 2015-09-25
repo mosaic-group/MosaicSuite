@@ -20,10 +20,10 @@ public class SegmentationFunctions {
      * @return
      */
     static Matrix calculateBSplinePoints(int aWidth, int aHeight, final double aSubPixelStep, final BSplineSurface aBSpline) {
-        int sizeX = (int)((aWidth - 1)/aSubPixelStep) + 1;
-        int sizeY = (int)((aHeight - 1)/aSubPixelStep) + 1;
+        final int sizeX = (int)((aWidth - 1)/aSubPixelStep) + 1;
+        final int sizeY = (int)((aHeight - 1)/aSubPixelStep) + 1;
 
-        MFunc func = new MFunc() {
+        final MFunc func = new MFunc() {
             @Override
             public double f(double aElement, int r, int c) {
                 // All values are calculated in Matlab style - that is why "+ 1" which
@@ -86,7 +86,7 @@ public class SegmentationFunctions {
      * @return computed mask
      */
     static Matrix generateNormalizedMask(Matrix aPhiValues, Matrix aPsiValues) {
-        Matrix mask = calculateDirac(aPhiValues).elementMult(calculateHeavySide(aPsiValues));
+        final Matrix mask = calculateDirac(aPhiValues).elementMult(calculateHeavySide(aPsiValues));
 
         // scale mask to 0..1 range
         mask.normalizeInRange0to1();
@@ -100,10 +100,10 @@ public class SegmentationFunctions {
      * @return
      */
     static Matrix calculateDirac(Matrix aM) {
-        double epsilon = 0.1;
+        final double epsilon = 0.1;
 
         //Matlab code: y = (1/pi)*(epsilon./(x.^2 + epsilon^2));
-        Matrix result= aM.copy().pow2().add(Math.pow(epsilon, 2)).scale(Math.PI/epsilon).inv();
+        final Matrix result= aM.copy().pow2().add(Math.pow(epsilon, 2)).scale(Math.PI/epsilon).inv();
 
         return result;
     }
@@ -116,7 +116,7 @@ public class SegmentationFunctions {
     static Matrix calculateHeavySide(Matrix aM) {
         //Matlab code: y = 1./(1 + exp(-20*x))
 
-        MFunc denominatorFunc = new MFunc() {
+        final MFunc denominatorFunc = new MFunc() {
 
             @Override
             public double f(double aElement, int aRow, int aCol) {
@@ -124,7 +124,7 @@ public class SegmentationFunctions {
             }
         };
 
-        Matrix result= aM.copy().process(denominatorFunc).inv();
+        final Matrix result= aM.copy().process(denominatorFunc).inv();
 
         return result;
     }
@@ -135,10 +135,10 @@ public class SegmentationFunctions {
      * @return
      */
     static Matrix calculateDiffDirac(Matrix aM) {
-        double epsilon = 0.1;
+        final double epsilon = 0.1;
 
         //Matlab code: y = (-1/pi^2)* (2*x./(x.^2 + epsilon^2).^2);
-        Matrix result= aM.copy().scale(-1*2/Math.pow(Math.PI, 2)).elementDiv( aM.copy().pow2().add(Math.pow(epsilon, 2)).pow2() );
+        final Matrix result= aM.copy().scale(-1*2/Math.pow(Math.PI, 2)).elementDiv( aM.copy().pow2().add(Math.pow(epsilon, 2)).pow2() );
 
         return result;
     }
@@ -151,7 +151,7 @@ public class SegmentationFunctions {
      * @return - calculated energy
      */
     static double calculateRegularizerEnergy(Matrix aM, Matrix aWeights, boolean aIsMatrixLogical) {
-        Matrix regEnergy = calculateRegularizerEnergyMatrix(aM, aWeights, aIsMatrixLogical);
+        final Matrix regEnergy = calculateRegularizerEnergyMatrix(aM, aWeights, aIsMatrixLogical);
         return regEnergy.sum();
     }
 
@@ -164,13 +164,13 @@ public class SegmentationFunctions {
      */
     static Matrix calculateRegularizerEnergyMatrix(Matrix aM, Matrix aWeights, boolean aIsMatrixLogical) {
         // Calculate forward finite difference with Neumann Boundary Conditions
-        Matrix stencilx = Matrix.mkRowVector(new double[] {0, -1, 1});
-        Matrix gradX = Matlab.imfilterSymmetric(aM, stencilx);
-        Matrix stencily = stencilx.transpose();
-        Matrix gradY = Matlab.imfilterSymmetric(aM, stencily);
+        final Matrix stencilx = Matrix.mkRowVector(new double[] {0, -1, 1});
+        final Matrix gradX = Matlab.imfilterSymmetric(aM, stencilx);
+        final Matrix stencily = stencilx.transpose();
+        final Matrix gradY = Matlab.imfilterSymmetric(aM, stencily);
 
         if (aIsMatrixLogical) {
-            MFunc make1and0 = new MFunc() {
+            final MFunc make1and0 = new MFunc() {
 
                 @Override
                 public double f(double aElement, int aRow, int aCol) {
@@ -186,7 +186,7 @@ public class SegmentationFunctions {
         }
 
         // Calculate the regularizer energy
-        Matrix regEnergy = gradX.pow2().add(gradY.pow2()).sqrt().elementMult(aWeights);
+        final Matrix regEnergy = gradX.pow2().add(gradY.pow2()).sqrt().elementMult(aWeights);
 
         return regEnergy;
     }
@@ -197,11 +197,11 @@ public class SegmentationFunctions {
      * @return length of filament
      */
     static public double calcualteFilamentLenght(final CubicSmoothingSpline aCubicSmoothingSpline) {
-        double start = aCubicSmoothingSpline.getKnot(0);
-        double stop = aCubicSmoothingSpline.getKnot(aCubicSmoothingSpline.getNumberOfKNots() - 1);
+        final double start = aCubicSmoothingSpline.getKnot(0);
+        final double stop = aCubicSmoothingSpline.getKnot(aCubicSmoothingSpline.getNumberOfKNots() - 1);
 
         final Matrix x  = Matlab.linspace(start, stop, 1000);
-        Matrix y = x.copy().process(new MFunc() {
+        final Matrix y = x.copy().process(new MFunc() {
             @Override
             public double f(double aElement, int aRow, int aCol) {
                 return aCubicSmoothingSpline.getValue(x.get(aRow, aCol));

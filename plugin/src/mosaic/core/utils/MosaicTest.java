@@ -39,16 +39,16 @@ public class MosaicTest {
         wp.SetStatusMessage("Testing... " + new File(tmp.base).getName());
 
         // Save on tmp and reopen
-        String tmp_dir = getTestEnvironment();
+        final String tmp_dir = getTestEnvironment();
 
         // Remove everything there
         try {
             ShellCommand.exeCmdNoPrint("rm -rf " + tmp_dir);
         }
-        catch (IOException e3) {
+        catch (final IOException e3) {
             e3.printStackTrace();
         }
-        catch (InterruptedException e3) {
+        catch (final InterruptedException e3) {
             e3.printStackTrace();
         }
 
@@ -56,18 +56,18 @@ public class MosaicTest {
         try {
             ShellCommand.exeCmd("mkdir " + tmp_dir);
         }
-        catch (IOException e2) {
+        catch (final IOException e2) {
             e2.printStackTrace();
         }
-        catch (InterruptedException e2) {
+        catch (final InterruptedException e2) {
             e2.printStackTrace();
         }
 
         // For unknown reason IJ.save kill macro options
-        String options = Macro.getOptions();
+        final String options = Macro.getOptions();
 
         for (int i = 0; i < tmp.img.length; i++) {
-            String temp_img = tmp_dir + tmp.img[i].substring(tmp.img[i].lastIndexOf(File.separator) + 1);
+            final String temp_img = tmp_dir + tmp.img[i].substring(tmp.img[i].lastIndexOf(File.separator) + 1);
             IJ.save(MosaicUtils.openImg(tmp.img[i]), temp_img);
         }
 
@@ -81,10 +81,10 @@ public class MosaicTest {
                 ShellCommand.exeCmdNoPrint("cp -r " + tmp.setup_files[i] + " " + str);
             }
         }
-        catch (IOException e1) {
+        catch (final IOException e1) {
             e1.printStackTrace();
         }
-        catch (InterruptedException e1) {
+        catch (final InterruptedException e1) {
             e1.printStackTrace();
         }
     }
@@ -114,11 +114,11 @@ public class MosaicTest {
 
     private static <T> void processResult(PlugInFilterExt BG, ImgTest tmp, ProgressBarWin wp, Class<T> cls) {
         // Save on tmp and reopen
-        String tmp_dir = getTestEnvironment();
+        final String tmp_dir = getTestEnvironment();
 
         // Check if there are job directories
-        String[] cs = ClusterSession.getJobDirectories(0, tmp_dir);
-        String[] csr = ClusterSession.getJobDirectories(0, tmp.base);
+        final String[] cs = ClusterSession.getJobDirectories(0, tmp_dir);
+        final String[] csr = ClusterSession.getJobDirectories(0, tmp.base);
         if (cs != null && cs.length != 0) {
 
             // Check if result_imgs has the same number
@@ -128,43 +128,43 @@ public class MosaicTest {
 
             // replace the result dir with the job id
             for (int i = 0; i < cs.length; i++) {
-                String fr[] = MosaicUtils.readAndSplit(cs[i] + File.separator + "JobID");
-                String fname = MosaicUtils.removeExtension(fr[2]);
-                String JobID = fr[0];
+                final String fr[] = MosaicUtils.readAndSplit(cs[i] + File.separator + "JobID");
+                final String fname = MosaicUtils.removeExtension(fr[2]);
+                final String JobID = fr[0];
 
-                int id = getIDfromFileList(tmp.result_imgs_rel, fname);
+                final int id = getIDfromFileList(tmp.result_imgs_rel, fname);
 
                 tmp.result_imgs_rel[id] = tmp.result_imgs_rel[id].replace("*", JobID);
 
             }
 
             for (int i = 0; i < csr.length; i++) {
-                String fr[] = MosaicUtils.readAndSplit(csr[i] + File.separator + "JobID");
-                String fname = MosaicUtils.removeExtension(fr[2]);
-                String JobID = fr[0];
+                final String fr[] = MosaicUtils.readAndSplit(csr[i] + File.separator + "JobID");
+                final String fname = MosaicUtils.removeExtension(fr[2]);
+                final String JobID = fr[0];
 
-                int id = getIDfromFileList(tmp.result_imgs, fname);
+                final int id = getIDfromFileList(tmp.result_imgs, fname);
 
                 tmp.result_imgs[id] = tmp.result_imgs[id].replace("*", JobID);
             }
 
             // same things for csv
             for (int i = 0; i < cs.length; i++) {
-                String fr[] = MosaicUtils.readAndSplit(cs[i] + File.separator + "JobID");
-                String fname = MosaicUtils.removeExtension(fr[2]);
-                String JobID = fr[0];
+                final String fr[] = MosaicUtils.readAndSplit(cs[i] + File.separator + "JobID");
+                final String fname = MosaicUtils.removeExtension(fr[2]);
+                final String JobID = fr[0];
 
-                int id = getIDfromFileList(tmp.csv_results_rel, fname);
+                final int id = getIDfromFileList(tmp.csv_results_rel, fname);
 
                 tmp.csv_results_rel[id] = tmp.csv_results_rel[id].replace("*", JobID);
             }
 
             for (int i = 0; i < csr.length; i++) {
-                String fr[] = MosaicUtils.readAndSplit(csr[i] + File.separator + "JobID");
-                String fname = MosaicUtils.removeExtension(fr[2]);
-                String JobID = fr[0];
+                final String fr[] = MosaicUtils.readAndSplit(csr[i] + File.separator + "JobID");
+                final String fname = MosaicUtils.removeExtension(fr[2]);
+                final String JobID = fr[0];
 
-                int id = getIDfromFileList(tmp.csv_results, fname);
+                final int id = getIDfromFileList(tmp.csv_results, fname);
 
                 tmp.csv_results[id] = tmp.csv_results[id].replace("*", JobID);
             }
@@ -172,12 +172,12 @@ public class MosaicTest {
 
         int cnt = 0;
 
-        ImgOpener imgOpener = new ImgOpener(new Context(SCIFIOService.class, AppService.class, StatusService.class));
+        final ImgOpener imgOpener = new ImgOpener(new Context(SCIFIOService.class, AppService.class, StatusService.class));
         // By default ImgOpener produces a lot of logs, this is one of the ways
         // to switch it off.
         imgOpener.log().setLevel(0);
 
-        for (String rs : tmp.result_imgs) {
+        for (final String rs : tmp.result_imgs) {
             // open with ImgOpener. The type (e.g. ArrayImg, PlanarImg, CellImg)
             // is automatically determined. For a small image that fits in memory,
             // this should open as an ArrayImg.
@@ -192,10 +192,10 @@ public class MosaicTest {
                 // open the result image
                 image_rs = imgOpener.openImgs(filename).get(0);
             }
-            catch (ImgIOException e) {
+            catch (final ImgIOException e) {
                 e.printStackTrace();
             }
-            catch (java.lang.UnsupportedOperationException e) {
+            catch (final java.lang.UnsupportedOperationException e) {
                 e.printStackTrace();
                 fail("Error: Image " + rs + " does not match the result");
             }
@@ -216,20 +216,20 @@ public class MosaicTest {
         // Open csv
         cnt = 0;
 
-        for (String rs : tmp.csv_results) {
+        for (final String rs : tmp.csv_results) {
             wp.SetStatusMessage("Checking... " + new File(rs).getName());
 
-            CSV<T> iCSVsrc = new CSV<T>(cls);
+            final CSV<T> iCSVsrc = new CSV<T>(cls);
 
             String filename = null;
             filename = tmp_dir + File.separator + tmp.csv_results_rel[cnt];
 
             iCSVsrc.setCSVPreferenceFromFile(filename);
-            Vector<T> outsrc = iCSVsrc.Read(filename);
+            final Vector<T> outsrc = iCSVsrc.Read(filename);
 
-            CSV<T> iCSVdst = new CSV<T>(cls);
+            final CSV<T> iCSVdst = new CSV<T>(cls);
             iCSVdst.setCSVPreferenceFromFile(rs);
-            Vector<T> outdst = iCSVdst.Read(rs);
+            final Vector<T> outdst = iCSVdst.Read(rs);
 
             if (outsrc.size() != outdst.size() || outsrc.size() == 0) {
                 fail("Error: CSV outout does not match");
@@ -268,17 +268,17 @@ public class MosaicTest {
         BG.setIsOnTest(true);
 
         // Save on tmp and reopen
-        String tmp_dir = getTestEnvironment();
-        ProgressBarWin wp = new ProgressBarWin();
+        final String tmp_dir = getTestEnvironment();
+        final ProgressBarWin wp = new ProgressBarWin();
 
         // if macro options is different from "" or null filter the tests
-        String test_set = MosaicUtils.parseString("test", Macro.getOptions());
+        final String test_set = MosaicUtils.parseString("test", Macro.getOptions());
         if (test_set != null && test_set.length() != 0 && test_set.startsWith(testset) == false) {
             return;
         }
 
         // Get all test images
-        ImgTest imgT[] = MosaicUtils.getTestImages(testset, test_set);
+        final ImgTest imgT[] = MosaicUtils.getTestImages(testset, test_set);
 
         if (imgT == null) {
             fail("No Images to test");
@@ -286,21 +286,21 @@ public class MosaicTest {
         }
 
         // String
-        String original_options = Macro.getOptions();
+        final String original_options = Macro.getOptions();
 
         // for each image
-        for (ImgTest tmp : imgT) {
+        for (final ImgTest tmp : imgT) {
             prepareTestEnvironment(wp, tmp);
 
             // append the macro set options with the test specific options
-            String plugin_options = original_options + " " + tmp.options.replace("*", tmp.base);
+            final String plugin_options = original_options + " " + tmp.options.replace("*", tmp.base);
             Macro.setOptions(plugin_options);
 
             // Create a plugin filter
             int rt = 0;
             if (tmp.img.length == 1) {
-                String temp_img = tmp_dir + tmp.img[0].substring(tmp.img[0].lastIndexOf(File.separator) + 1);
-                ImagePlus img = MosaicUtils.openImg(temp_img);
+                final String temp_img = tmp_dir + tmp.img[0].substring(tmp.img[0].lastIndexOf(File.separator) + 1);
+                final ImagePlus img = MosaicUtils.openImg(temp_img);
                 img.show();
 
                 rt = BG.setup(plugin_options, img);

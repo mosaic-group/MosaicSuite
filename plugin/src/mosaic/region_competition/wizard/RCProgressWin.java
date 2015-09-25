@@ -80,7 +80,7 @@ class RCProgressWin extends JFrame implements MouseListener {
             return;
         }
 
-        GridBagConstraints gbc = new GridBagConstraints();
+        final GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = i;
         gbc.gridy = j;
         gbc.ipadx = 5;
@@ -91,7 +91,7 @@ class RCProgressWin extends JFrame implements MouseListener {
     void SetImage(double score, Settings st, ImagePlus new_img[]) {
         int i = 0;
 
-        for (ImageList l : img) {
+        for (final ImageList l : img) {
             if (l.score > score) {
                 break;
             }
@@ -148,7 +148,7 @@ class RCProgressWin extends JFrame implements MouseListener {
             }
 
             if (img[s].score != Double.MAX_VALUE) {
-                DecimalFormat df = new DecimalFormat("#.###");
+                final DecimalFormat df = new DecimalFormat("#.###");
                 score_l[s].setText(df.format(img[s].score));
             }
         }
@@ -187,7 +187,7 @@ class RCProgressWin extends JFrame implements MouseListener {
             try {
                 lock.wait();
             }
-            catch (InterruptedException e) {
+            catch (final InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -198,9 +198,9 @@ class RCProgressWin extends JFrame implements MouseListener {
     }
 
     void SetImage(double score, Settings s, String FileName[]) {
-        Opener o = new Opener();
-        ImagePlus img_p[] = new ImagePlus[nImg];
-        LabelImageRC img_l[] = new LabelImageRC[nImg];
+        final Opener o = new Opener();
+        final ImagePlus img_p[] = new ImagePlus[nImg];
+        final LabelImageRC img_l[] = new LabelImageRC[nImg];
         for (int j = 0; j < FileName.length; j++) {
             int l[];
             img_p[j] = o.openImage(FileName[j]);
@@ -242,12 +242,12 @@ class RCProgressWin extends JFrame implements MouseListener {
         contentPane.setLayout(new GridBagLayout());
 
         // Status message
-        JPanel contentMessage = new JPanel();
+        final JPanel contentMessage = new JPanel();
         contentMessage.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentMessage.setLayout(new GridLayout(0, 2, 0, 0));
         JLabel lblNewLabel = new JLabel("Status: ");
         contentMessage.add(lblNewLabel);
-        GridBagConstraints c = new GridBagConstraints();
+        final GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
         contentPane.add(contentMessage, c);
@@ -259,7 +259,7 @@ class RCProgressWin extends JFrame implements MouseListener {
         c.gridx = 0;
         c.gridy = 1;
         c.fill = GridBagConstraints.HORIZONTAL;
-        JProgressBar pbar = new JProgressBar();
+        final JProgressBar pbar = new JProgressBar();
         pbar.setStringPainted(true);
         Prog_s = pbar;
         contentPane.add(pbar, c);
@@ -290,7 +290,7 @@ class RCProgressWin extends JFrame implements MouseListener {
         c.gridx = 0;
         c.gridy = 3;
         c.anchor = GridBagConstraints.CENTER;
-        JButton btnOKButton = new JButton("Stop");
+        final JButton btnOKButton = new JButton("Stop");
         contentPane.add(btnOKButton, c);
         btnOKButton.addActionListener(new ActionListener() {
 
@@ -312,10 +312,10 @@ class RCProgressWin extends JFrame implements MouseListener {
     @Override
     public void mouseClicked(MouseEvent arg0) {
 
-        ImageCanvas c = (ImageCanvas) arg0.getComponent();
+        final ImageCanvas c = (ImageCanvas) arg0.getComponent();
 
-        GridBagConstraints bgc = ((GridBagLayout) contentImage.getLayout()).getConstraints(c);
-        int lab = bgc.gridx;
+        final GridBagConstraints bgc = ((GridBagLayout) contentImage.getLayout()).getConstraints(c);
+        final int lab = bgc.gridx;
 
         for (int i = 0; i < score_l.length; i++) {
             if (i == lab) {

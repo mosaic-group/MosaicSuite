@@ -27,15 +27,15 @@ public class Inpainting extends CurvatureFilterBase {
      */
     private void superResolution(FloatProcessor aInputIp, FloatProcessor aOriginalIp, CurvatureFilter aFilter, int aNumberOfIterations) {
         // Get dimensions of input image
-        int originalWidth = aOriginalIp.getWidth();
-        int originalHeight = aOriginalIp.getHeight();
+        final int originalWidth = aOriginalIp.getWidth();
+        final int originalHeight = aOriginalIp.getHeight();
 
         // Generate 2D array for image (it will be rounded up to be divisible
         // by 2). Possible additional points will be filled with last column/row
         // values in convertToArrayAndNormalize
-        int roundedWidth = (int) (Math.ceil(originalWidth / 2.0) * 2);
-        int roundedHeight = (int) (Math.ceil(originalHeight / 2.0) * 2);
-        float[][] img = new float[roundedHeight][roundedWidth];
+        final int roundedWidth = (int) (Math.ceil(originalWidth / 2.0) * 2);
+        final int roundedHeight = (int) (Math.ceil(originalHeight / 2.0) * 2);
+        final float[][] img = new float[roundedHeight][roundedWidth];
 
         // create (normalized) 2D array with input image
         float maxValueOfPixel = (float) aOriginalIp.getMax();
@@ -60,15 +60,15 @@ public class Inpainting extends CurvatureFilterBase {
     protected boolean setup(String aArgs) {
         setFilePrefix("inpainting_");
 
-        OpenDialog od = new OpenDialog("(Inpainting) Open mask file", "");
-        String directory = od.getDirectory();
-        String name = od.getFileName();
+        final OpenDialog od = new OpenDialog("(Inpainting) Open mask file", "");
+        final String directory = od.getDirectory();
+        final String name = od.getFileName();
 
         if (name != null) {
             iMask = new Opener().openImage(directory + name);
 
-            int iw = getInputImg().getWidth();
-            int ih = getInputImg().getHeight();
+            final int iw = getInputImg().getWidth();
+            final int ih = getInputImg().getHeight();
 
             if (iMask.getWidth() != iw || iMask.getHeight() != ih) {
                 IJ.error("Mask should have same dimensions as input image!" +

@@ -63,7 +63,7 @@ class LabelDispenser {
      * @throws NoSuchElementException - if this list is empty
      */
     public int getNewLabel() {
-        Integer result = labels.pollFirst();
+        final Integer result = labels.pollFirst();
         checkAndSetNewMax(result);
         return result;
     }
@@ -92,7 +92,7 @@ class LabelDispenser {
 
     public void setLabelsInUse(Collection<Integer> used) {
         labels.removeAll(used);
-        int max = Collections.max(used);
+        final int max = Collections.max(used);
         checkAndSetNewMax(max);
     }
 
@@ -128,7 +128,7 @@ class LabelDispenser {
                 return;
             }
 
-            int max = Collections.max(used);
+            final int max = Collections.max(used);
             if (max > label) {
                 label = max;
             }

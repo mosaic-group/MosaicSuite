@@ -102,7 +102,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
     private int[] iArray;						// Array containing RGB values of user selection
 
     // Some GUI elements
-    private JFrame ui = new JFrame("Point Selection");
+    private final JFrame ui = new JFrame("Point Selection");
     private JButton start;
     private JButton equalize;
     private JButton estimate;
@@ -113,8 +113,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
     private JScrollPane scroller;
 
     // Some elements for report file
-    private StringBuffer selections = new StringBuffer();
-    private String centroid = new String("%Centroid Positions:\n%\tx-coord\ty-coord");
+    private final StringBuffer selections = new StringBuffer();
+    private final String centroid = new String("%Centroid Positions:\n%\tx-coord\ty-coord");
 
 
     /**
@@ -157,7 +157,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         iArray = new int[3];	// RGB value of last selection on ColorProcessor of original image
 
         // Start Dialog to get necessary plugin parameters
-        GenericDialog gd = new GenericDialog("Configuration");
+        final GenericDialog gd = new GenericDialog("Configuration");
         gd.addMessage("Please enter necessary Information");
         //		gd.addNumericField("Apparent Radius of Point Sources [Pixel]", 3, 2);
         gd.addNumericField("Maximum Sampling Radius [Pixel]", 6, 2);
@@ -189,7 +189,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 
 
         // Add MouseListener to displayed image
-        ImageWindow win = imp.getWindow();
+        final ImageWindow win = imp.getWindow();
         canvas = win.getCanvas();
         canvas.addMouseListener(this);
 
@@ -236,7 +236,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
             num_of_particles = Positions.size();	// Update number of sources
 
             // Add Checkbox to GUI
-            JCheckBox chb = new JCheckBox("Refined Centroid Position: " + selected.x + ", " + selected.y + "  Width at Half Maximum: " + (int)(whm*100)/100.0 + " nm");
+            final JCheckBox chb = new JCheckBox("Refined Centroid Position: " + selected.x + ", " + selected.y + "  Width at Half Maximum: " + (int)(whm*100)/100.0 + " nm");
             chb.setSelected(true);
             checkbox_panel.setLayout(new GridLayout(num_of_particles,1));
             checkbox_panel.add(chb);
@@ -278,7 +278,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
      */
     @Override
     public void actionPerformed(ActionEvent ae){
-        Object source = ae.getSource();	// Get Button that was clicked
+        final Object source = ae.getSource();	// Get Button that was clicked
 
         // start new selection
         if (source == start){
@@ -328,7 +328,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
                 }
                 selections.append(centroid);
                 // Start the calculations
-                PsfSourcePosition[] particles = new PsfSourcePosition[num_of_particles];
+                final PsfSourcePosition[] particles = new PsfSourcePosition[num_of_particles];
                 EstimatePSF = new PsfPointSpreadFunction[num_of_particles];
                 // Loop over Point Sources
                 for (int i=0; i<num_of_particles; i++){
@@ -358,7 +358,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 
         // Write report file
         if (source == report){
-            SaveDialog sd = new SaveDialog("Save report", IJ.getDirectory("image"), "PSF_Report.txt");
+            final SaveDialog sd = new SaveDialog("Save report", IJ.getDirectory("image"), "PSF_Report.txt");
             if (sd.getDirectory() == null || sd.getFileName() == null) {
                 return;
             }
@@ -373,12 +373,12 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
      */
     private void deleteUnchecked(){
         // lets see which checkboxes are unchecked and delete the related sources
-        Component[] components = checkbox_panel.getComponents(  );
+        final Component[] components = checkbox_panel.getComponents(  );
         for (int i = components.length - 1; i >= 0; i--) {
-            JCheckBox cb = (JCheckBox)components[i];
+            final JCheckBox cb = (JCheckBox)components[i];
             if (!cb.isSelected(  )){
                 num_of_particles--;
-                PsfSourcePosition last = Positions.elementAt(i);
+                final PsfSourcePosition last = Positions.elementAt(i);
                 Positions.removeElementAt(i);
                 // Get original RGB-value and re-draw
                 iArray  = lastcolor.getPixel(Math.round(last.x), Math.round(last.y), iArray);
@@ -435,7 +435,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
      */
     //	TODO think about better ways to handle single/multiple selections
     private void singlePSF(PsfSourcePosition single_part){
-        PsfPointSpreadFunction single_estimate = new PsfPointSpreadFunction(org_ip, single_part, (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
+        final PsfPointSpreadFunction single_estimate = new PsfPointSpreadFunction(org_ip, single_part, (int)sample_radius, sample_points, mag_fact, mic_mag, pix_size);
         single_estimate.calculatePSF();
         PSF = single_estimate.getPSF();
         rad = single_estimate.getRadius();
@@ -449,7 +449,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
      * @return Width at half maximum
      */
     public double widthAtHalfMaximum(){
-        double d = 0.5;
+        final double d = 0.5;
         if (PSF[0]< d) {
             return 0.0;
         }
@@ -458,10 +458,10 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
             while (PSF[v] > d){
                 v++;
             }
-            double p0 = PSF[v-1];
-            double p1 = PSF[v];
-            double r0 = rad[v-1];
-            double r1 = rad[v];
+            final double p0 = PSF[v-1];
+            final double p1 = PSF[v];
+            final double r0 = rad[v-1];
+            final double r1 = rad[v];
             whm = r0 + (r1-r0)/(p1-p0)*(d-p0);
             return whm;
         }
@@ -473,13 +473,13 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
      * @see PlotWindow
      */
     private void drawPSF(String title){
-        Plot plotWin = new Plot(title, "Radius [nm]", "Intensity", rad, PSF);
+        final Plot plotWin = new Plot(title, "Radius [nm]", "Intensity", rad, PSF);
         plotWin.setLimits(0, rad[rad.length - 1], 0, 1);
-        double[] r = new double[rad.length];
+        final double[] r = new double[rad.length];
         for (int i=0; i<r.length; i++) {
             r[i] = rad[i];
         }
-        double[] thpsf = theoreticalPSF();
+        final double[] thpsf = theoreticalPSF();
         plotWin.setColor(Color.BLACK);
         plotWin.addLabel(0.5,0.4,"Theoretical PSF");
         plotWin.addPoints(r, thpsf, Plot.LINE);
@@ -488,8 +488,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         if (whm != 0.0f){
             plotWin.setColor(Color.BLUE);
             plotWin.addLabel(0.5,0.25,"Width at Half Maximum: " + (int)(whm*100)/100.0 + " nm");
-            double[] x = new double[2];
-            double[] y = new double[2];
+            final double[] x = new double[2];
+            final double[] y = new double[2];
             x[0] = 0;
             x[1] = whm;
             y[0] = 0.5;
@@ -505,8 +505,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
      * @return Theoretical PSF
      */
     private double[] theoreticalPSF(){
-        double arg = 2*Math.PI*na/lambda;
-        double[] b = new double[rad.length];
+        final double arg = 2*Math.PI*na/lambda;
+        final double[] b = new double[rad.length];
         //double barg = Math.PI*2.68;
         double barg;
         for (int i=0;i<rad.length;i++){
@@ -526,12 +526,12 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
         int max = 0;
         int min = 255;
         int c = 0;
-        int w = eq.getWidth();
-        int h = eq.getHeight();
+        final int w = eq.getWidth();
+        final int h = eq.getHeight();
 
         for (int v=0; v<h; v++) {
             for (int u=0; u<w; u++) {
-                int p = eq.getPixel(u,v);
+                final int p = eq.getPixel(u,v);
                 if (p>max) {
                     max = p;
                 }
@@ -544,8 +544,8 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
 
         for (int v=0; v<h; v++) {
             for (int u=0; u<w; u++) {
-                int p = eq.getPixel(u,v);
-                int q = (p-min)*255/c;
+                final int p = eq.getPixel(u,v);
+                final int q = (p-min)*255/c;
                 eq.putPixel(u,v,q);
             }
         }
@@ -563,14 +563,14 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
     private boolean write2File(String directory, String file_name, String info) {
         PrintWriter print_writer = null;
         try {
-            FileOutputStream fos = new FileOutputStream(directory + file_name);
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            final FileOutputStream fos = new FileOutputStream(directory + file_name);
+            final BufferedOutputStream bos = new BufferedOutputStream(fos);
             print_writer = new PrintWriter(bos);
             print_writer.print(info);
             print_writer.close();
             return true;
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             IJ.error("" + e);
             return false;
         }
@@ -583,7 +583,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
      * @return StringBuffer containing configuration parameters
      */
     private StringBuffer getConfiguration(){
-        StringBuffer configuration = new StringBuffer("%User Configuration:\n");
+        final StringBuffer configuration = new StringBuffer("%User Configuration:\n");
         configuration.append("%Apparent Radius of Point Sources [Pixel]:\t");
         configuration.append(radius + "\n");
         configuration.append("%Maximum Sampling Radius [Pixel]:\t");
@@ -609,7 +609,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
      * @return StringBuffer with PSF values
      */
     private StringBuffer getPSFdata(){
-        StringBuffer PSFdata = new StringBuffer("%PSF Data:\n");
+        final StringBuffer PSFdata = new StringBuffer("%PSF Data:\n");
         PSFdata.append("%\tRadius [nm]\t\tValue\n");
         for (int i=0;i<PSF.length;i++) {
             PSFdata.append("\t" + rad[i] + "\t\t" + PSF[i] + "\n");
@@ -627,7 +627,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
      * @return StringBuffer containing all program information
      */
     private StringBuffer getFullReport() {
-        StringBuffer report = new StringBuffer();
+        final StringBuffer report = new StringBuffer();
         report.append(this.getConfiguration());
         report.append("\n");
         report.append(this.selections);

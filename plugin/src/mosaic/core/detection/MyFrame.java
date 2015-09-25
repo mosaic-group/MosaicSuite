@@ -122,7 +122,7 @@ public class MyFrame {
         try {
             loadParticlesFromFileMultipleFrame(r);
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
     }
@@ -185,7 +185,7 @@ public class MyFrame {
             /* close file */
             r.close();
         }
-        catch (Exception e) {
+        catch (final Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -193,7 +193,7 @@ public class MyFrame {
             try {
                 if (r != null) r.close();
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 e.printStackTrace();
             }
         }
@@ -206,7 +206,7 @@ public class MyFrame {
     }
 
     private boolean loadParticlesFromFileMultipleFrame(BufferedReader r) throws IOException {
-        Vector<String[]> particles_info = new Vector<String[]>(); // a vector to
+        final Vector<String[]> particles_info = new Vector<String[]>(); // a vector to
         // hold all
         // particles
         // info as
@@ -264,7 +264,7 @@ public class MyFrame {
         /* initialise the particles array */
         this.particles = new Vector<Particle>();
 
-        Iterator<String[]> iter = particles_info.iterator();
+        final Iterator<String[]> iter = particles_info.iterator();
         int counter = 0;
 
         /*
@@ -319,7 +319,7 @@ public class MyFrame {
     }
 
     private boolean loadParticlesFromFile(BufferedReader r, String path) throws IOException {
-        Vector<String[]> particles_info = new Vector<String[]>(); // a vector to
+        final Vector<String[]> particles_info = new Vector<String[]>(); // a vector to
         // hold all
         // particles
         // info as
@@ -366,7 +366,7 @@ public class MyFrame {
         /* initialise the particles array */
         this.particles = new Vector<Particle>();
 
-        Iterator<String[]> iter = particles_info.iterator();
+        final Iterator<String[]> iter = particles_info.iterator();
         int counter = 0;
 
         /*
@@ -428,10 +428,10 @@ public class MyFrame {
      */
     private StringBuffer getFrameInfoAfterDiscrimination() {
 
-        DecimalFormat nf = new DecimalFormat("#####0.000000");
+        final DecimalFormat nf = new DecimalFormat("#####0.000000");
         nf.setGroupingUsed(false);
         // I work with StringBuffer since its faster than String
-        StringBuffer info = new StringBuffer("%\tParticles after non-particle discrimination (");
+        final StringBuffer info = new StringBuffer("%\tParticles after non-particle discrimination (");
         info.append(this.real_particles_number);
         info.append(" particles):\n");
         for (int i = 0; i < this.particles.size(); i++) {
@@ -461,11 +461,11 @@ public class MyFrame {
         // nf.setMaximumFractionDigits(6);
         // nf.setMinimumFractionDigits(6);
 
-        DecimalFormat nf = new DecimalFormat("#####0.000000");
+        final DecimalFormat nf = new DecimalFormat("#####0.000000");
         nf.setGroupingUsed(false);
 
         // I work with StringBuffer since its faster than String
-        StringBuffer info = new StringBuffer("% Frame ");
+        final StringBuffer info = new StringBuffer("% Frame ");
         info.append(this.frame_number);
         info.append(":\n");
         info.append("%\t");
@@ -504,7 +504,7 @@ public class MyFrame {
      * @see #info_before_discrimination
      */
     public StringBuffer getFullFrameInfo() {
-        StringBuffer info = new StringBuffer();
+        final StringBuffer info = new StringBuffer();
         info.append(info_before_discrimination);
         info.append(getFrameInfoAfterDiscrimination());
         return info;
@@ -533,9 +533,9 @@ public class MyFrame {
     public StringBuffer toStringBuffer() {
         // work with StringBuffer since its faster than String
 
-        DecimalFormat nf = new DecimalFormat("#####0.000000");
+        final DecimalFormat nf = new DecimalFormat("#####0.000000");
         nf.setGroupingUsed(false);
-        StringBuffer sb = new StringBuffer("% Frame ");
+        final StringBuffer sb = new StringBuffer("% Frame ");
         sb.append(this.frame_number);
         sb.append("\n");
         for (int j = 0; j < this.particles.size(); j++) {
@@ -584,9 +584,9 @@ public class MyFrame {
      * @see MyFrame#loadParticlesFromFile(String)
      */
     StringBuffer frameDetectedParticlesForSave(boolean with_momentum) {
-        DecimalFormat nf = new DecimalFormat("#####0.000000");
+        final DecimalFormat nf = new DecimalFormat("#####0.000000");
         nf.setGroupingUsed(false);
-        StringBuffer info1 = new StringBuffer("frame ");
+        final StringBuffer info1 = new StringBuffer("frame ");
         info1.append(this.frame_number);
         info1.append("\n");
         for (int i = 0; i < this.particles.size(); i++) {
@@ -623,9 +623,9 @@ public class MyFrame {
     // @Deprecated
     @SuppressWarnings("unused")
     private ImageStack createImage(int width, int height, int depth) {
-        ImageStack is = new ImageStack(width, height);
+        final ImageStack is = new ImageStack(width, height);
         for (int d = 0; d < depth; d++) {
-            ImageProcessor ip = new ByteProcessor(width, height);
+            final ImageProcessor ip = new ByteProcessor(width, height);
             ip.setColor(Color.black);
             ip.fill();
             is.addSlice(null, ip);
@@ -660,13 +660,13 @@ public class MyFrame {
             return new MyFrame[0];
         }
 
-        int n_frames = p.get(p.size() - 1).getFrame() + 1;
-        MyFrame[] f = new MyFrame[n_frames];
+        final int n_frames = p.get(p.size() - 1).getFrame() + 1;
+        final MyFrame[] f = new MyFrame[n_frames];
 
         int j = 0;
         int i = 0;
         while (i < p.size() - 1) {
-            Vector<Particle> part_frame = new Vector<Particle>();
+            final Vector<Particle> part_frame = new Vector<Particle>();
             while (i < p.size() - 1 && p.get(i).getFrame() == p.get(i + 1).getFrame()) {
                 part_frame.add(p.get(i));
                 i++;
@@ -685,8 +685,8 @@ public class MyFrame {
     }
 
     static private float[] getScaling(int dim, Calibration cal) {
-        float scaling[] = new float[dim];
-        float scaling_[] = new float[3];
+        final float scaling[] = new float[dim];
+        final float scaling_[] = new float[3];
 
         if (cal != null) {
             scaling[0] = (float) (cal.pixelWidth);
@@ -703,7 +703,7 @@ public class MyFrame {
             }
         }
 
-        float min_s = minScaling(scaling);
+        final float min_s = minScaling(scaling);
         scaling_[0] = scaling[0] / min_s;
         scaling_[1] = scaling[1] / min_s;
         if (scaling.length >= 3) {
@@ -714,9 +714,9 @@ public class MyFrame {
     }
 
     static private void drawParticlesWithRadius(RandomAccessibleInterval<ARGBType> out, List<Particle> pt, Calibration cal, float scaling, int col, int p_radius) {
-        RandomAccess<ARGBType> out_a = out.randomAccess();
+        final RandomAccess<ARGBType> out_a = out.randomAccess();
 
-        int sz[] = new int[out_a.numDimensions()];
+        final int sz[] = new int[out_a.numDimensions()];
 
         for (int d = 0; d < out_a.numDimensions(); ++d) {
             sz[d] = (int) out.dimension(d);
@@ -724,9 +724,9 @@ public class MyFrame {
 
         // Iterate on all particles
 
-        double radius = p_radius;
+        final double radius = p_radius;
 
-        float scaling_[] = getScaling(out_a.numDimensions(), cal);
+        final float scaling_[] = getScaling(out_a.numDimensions(), cal);
         for (int i = 0; i < scaling_.length; i++) {
             scaling_[i] /= scaling;
         }
@@ -741,15 +741,15 @@ public class MyFrame {
             if (rc < 1) {
                 rc = 1;
             }
-            CircleMask cm = new CircleMask(rc, (int) (2 * rc * scaling + 1), out_a.numDimensions(), scaling_);
+            final CircleMask cm = new CircleMask(rc, (int) (2 * rc * scaling + 1), out_a.numDimensions(), scaling_);
             rg_m = new RegionIteratorMask(cm, sz);
             CircleCache.put(rc, rg_m);
         }
 
-        Iterator<Particle> pt_it = pt.iterator();
+        final Iterator<Particle> pt_it = pt.iterator();
 
         while (pt_it.hasNext()) {
-            Particle ptt = pt_it.next();
+            final Particle ptt = pt_it.next();
 
             // Draw the Circle
 
@@ -764,7 +764,7 @@ public class MyFrame {
             rg_m.setMidPoint(p_c);
 
             while (rg_m.hasNext()) {
-                Point p = rg_m.nextP();
+                final Point p = rg_m.nextP();
 
                 if (p.isInside(sz)) {
                     out_a.setPosition(p.x);
@@ -786,9 +786,9 @@ public class MyFrame {
     }
 
     static private void drawParticles(RandomAccessibleInterval<ARGBType> out, List<Particle> pt, Calibration cal, float scaling, int col) {
-        RandomAccess<ARGBType> out_a = out.randomAccess();
+        final RandomAccess<ARGBType> out_a = out.randomAccess();
 
-        int sz[] = new int[out_a.numDimensions()];
+        final int sz[] = new int[out_a.numDimensions()];
 
         for (int d = 0; d < out_a.numDimensions(); ++d) {
             sz[d] = (int) out.dimension(d);
@@ -809,7 +809,7 @@ public class MyFrame {
                 radius = 1.0;
             }
 
-            float scaling_[] = getScaling(out_a.numDimensions(), cal);
+            final float scaling_[] = getScaling(out_a.numDimensions(), cal);
             for (int i = 0; i < scaling_.length; i++) {
                 scaling_[i] /= scaling;
             }
@@ -823,15 +823,15 @@ public class MyFrame {
                 if (rc < 1) {
                     rc = 1;
                 }
-                CircleMask cm = new CircleMask(rc, (int) (2 * rc * scaling + 1), out_a.numDimensions(), scaling_);
+                final CircleMask cm = new CircleMask(rc, (int) (2 * rc * scaling + 1), out_a.numDimensions(), scaling_);
                 rg_m = new RegionIteratorMask(cm, sz);
                 CircleCache.put(rc, rg_m);
             }
 
-            Iterator<Particle> pt_it = pt.iterator();
+            final Iterator<Particle> pt_it = pt.iterator();
 
             while (pt_it.hasNext()) {
-                Particle ptt = pt_it.next();
+                final Particle ptt = pt_it.next();
 
                 double radius_r;
                 if (out_a.numDimensions() == 2) {
@@ -861,7 +861,7 @@ public class MyFrame {
                     rg_m.setMidPoint(p_c);
 
                     while (rg_m.hasNext()) {
-                        Point p = rg_m.nextP();
+                        final Point p = rg_m.nextP();
 
                         if (p.isInside(sz)) {
                             out_a.setPosition(p.x);
@@ -884,15 +884,15 @@ public class MyFrame {
      */
     static private void drawLine(RandomAccessibleInterval<ARGBType> out, Particle p1, Particle p2, int col) {
         // the number of dimensions
-        int numDimensions = out.numDimensions();
+        final int numDimensions = out.numDimensions();
 
-        long dims[] = new long[numDimensions];
+        final long dims[] = new long[numDimensions];
         out.dimensions(dims);
 
-        RandomAccess<ARGBType> out_a = out.randomAccess();
+        final RandomAccess<ARGBType> out_a = out.randomAccess();
 
         int i, dx, dy, dz, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
-        long pixel[] = new long[3];
+        final long pixel[] = new long[3];
 
         pixel[0] = (int) p1.x;
         pixel[1] = (int) p1.y;
@@ -1035,9 +1035,9 @@ public class MyFrame {
             cal.pixelWidth = 1.0;
         }
 
-        RandomAccess<ARGBType> out_a = out.randomAccess();
+        final RandomAccess<ARGBType> out_a = out.randomAccess();
 
-        int sz[] = new int[out_a.numDimensions()];
+        final int sz[] = new int[out_a.numDimensions()];
 
         for (int d = 0; d < out_a.numDimensions(); ++d) {
             sz[d] = (int) out.dimension(d);
@@ -1045,12 +1045,12 @@ public class MyFrame {
 
         // Iterate on all lines
 
-        for (pParticle ptt : lines) {
+        for (final pParticle ptt : lines) {
             Particle p_end = new Particle(ptt.p1);
             Particle p_ini = new Particle(ptt.p2);
 
-            float scaling[] = new float[out_a.numDimensions()];
-            float scaling_[] = getScaling(out_a.numDimensions(), cal);
+            final float scaling[] = new float[out_a.numDimensions()];
+            final float scaling_[] = getScaling(out_a.numDimensions(), cal);
             for (int i = 0; i < scaling.length; i++) {
                 scaling_[i] /= scale;
             }
@@ -1067,9 +1067,9 @@ public class MyFrame {
 
             drawLine(out, p_ini, p_end, col);
 
-            double radius = Math.cbrt(ptt.p1.m0 / 3.0f * 4.0f);
+            final double radius = Math.cbrt(ptt.p1.m0 / 3.0f * 4.0f);
 
-            int rc = (int) radius;
+            final int rc = (int) radius;
 
             // draw several lines on z
 
@@ -1119,7 +1119,7 @@ public class MyFrame {
     private void drawParticles(Img<ARGBType> out, Calibration cal, float scale, int col) {
         // Create a list of particles
 
-        List<Particle> pt = new ArrayList<Particle>();
+        final List<Particle> pt = new ArrayList<Particle>();
 
         for (int i = 0; i < particles.size(); i++) {
             pt.add(particles.get(i));
@@ -1145,7 +1145,7 @@ public class MyFrame {
         // Create image
 
         final ImgFactory<ARGBType> imgFactory = new ArrayImgFactory<ARGBType>();
-        Img<ARGBType> out = imgFactory.create(vMax, new ARGBType());
+        final Img<ARGBType> out = imgFactory.create(vMax, new ARGBType());
 
         drawParticles(out, null, 1.0f, ARGBType.rgba(255, 0, 0, 255));
 
@@ -1167,30 +1167,30 @@ public class MyFrame {
         try {
             background.firstElement();
         }
-        catch (ClassCastException e) {
+        catch (final ClassCastException e) {
             IJ.error("Error unsupported format, please convert your image into 8-bit, 16-bit or float");
             return null;
         }
 
         // the number of dimensions
-        int numDimensions = background.numDimensions();
+        final int numDimensions = background.numDimensions();
 
-        long dims[] = new long[numDimensions];
+        final long dims[] = new long[numDimensions];
         background.dimensions(dims);
 
         // Create image
 
         final ImgFactory<ARGBType> imgFactory = new ArrayImgFactory<ARGBType>();
-        Img<ARGBType> out = imgFactory.create(dims, new ARGBType());
+        final Img<ARGBType> out = imgFactory.create(dims, new ARGBType());
 
-        Cursor<ARGBType> curOut = out.cursor();
-        Cursor<T> curBack = background.cursor();
+        final Cursor<ARGBType> curOut = out.cursor();
+        final Cursor<T> curBack = background.cursor();
 
         ToARGB conv = null;
         try {
             conv = MosaicUtils.getConversion(curBack.get(), background.cursor());
         }
-        catch (ClassCastException e) {
+        catch (final ClassCastException e) {
             IJ.error("Error unsupported format, please convert your image into 8-bit, 16-bit or float");
             return null;
         }
@@ -1246,14 +1246,14 @@ public class MyFrame {
 
     private static void TrajectoriesDraw(RandomAccessibleInterval<ARGBType> out, int nframe, Vector<Trajectory> tr, int start_frame, Rectangle focus, Calibration cal_, float scaling, DrawType typ,
             int p_radius) {
-        MyFrame f = new MyFrame();
+        final MyFrame f = new MyFrame();
 
         // Particles
-        Vector<Particle> vp = new Vector<Particle>();
+        final Vector<Particle> vp = new Vector<Particle>();
         // Lines that indicate the trajectory
-        Vector<pParticle> lines = new Vector<pParticle>();
+        final Vector<pParticle> lines = new Vector<pParticle>();
         // Lines that indicate trajectory jumps
-        Vector<pParticle> lines_jmp = new Vector<pParticle>();
+        final Vector<pParticle> lines_jmp = new Vector<pParticle>();
 
         for (int frame = 0; frame < nframe; frame++) {
             // For all the trajectory
@@ -1282,7 +1282,7 @@ public class MyFrame {
 
                     // Particle to draw
 
-                    Particle p = new Particle(tr.get(t).existing_particles[j]);
+                    final Particle p = new Particle(tr.get(t).existing_particles[j]);
                     if (focus != null) {
                         p.translate(focus);
                     }
@@ -1293,14 +1293,14 @@ public class MyFrame {
 
                     if (typ == DrawType.NEXT) {
                         if (j + 1 < tr.get(t).existing_particles.length) {
-                            pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
+                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
                             if (focus != null) {
                                 l1.translate(focus);
                             }
 
                             // Check if it is a jump
 
-                            boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
+                            final boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
 
                             if (jump == false) {
                                 lines.add(l1);
@@ -1312,14 +1312,14 @@ public class MyFrame {
                     }
                     else if (typ == DrawType.PREV) {
                         if (j - 1 >= 0) {
-                            pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
+                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
                             if (focus != null) {
                                 l1.translate(focus);
                             }
 
                             // Check if it is a jump
 
-                            boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
+                            final boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
 
                             if (jump == false) {
                                 lines.add(l1);
@@ -1331,14 +1331,14 @@ public class MyFrame {
                     }
                     else if (typ == DrawType.PREV_NEXT) {
                         if (j + 1 < tr.get(t).existing_particles.length) {
-                            pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
+                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
                             if (focus != null) {
                                 l1.translate(focus);
                             }
 
                             // Check if it is a jump
 
-                            boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
+                            final boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
 
                             if (jump == false) {
                                 lines.add(l1);
@@ -1348,14 +1348,14 @@ public class MyFrame {
                             }
                         }
                         if (j - 1 >= 0) {
-                            pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
+                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
                             if (focus != null) {
                                 l1.translate(focus);
                             }
 
                             // Check if it is a jump
 
-                            boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
+                            final boolean jump = (tr.get(t).existing_particles[j].getFrame() - tr.get(t).existing_particles[j - 1].getFrame() != 1);
 
                             if (jump == false) {
                                 lines.add(l1);
@@ -1370,14 +1370,14 @@ public class MyFrame {
                         // lines from j to the start of the trajectory
 
                         for (int i = j; i >= 1; i--) {
-                            pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]), new Particle(tr.get(t).existing_particles[i - 1]));
+                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]), new Particle(tr.get(t).existing_particles[i - 1]));
                             if (focus != null) {
                                 l1.translate(focus);
                             }
 
                             // Check if it is a jump
 
-                            boolean jump = (tr.get(t).existing_particles[i].getFrame() - tr.get(t).existing_particles[i - 1].getFrame() != 1);
+                            final boolean jump = (tr.get(t).existing_particles[i].getFrame() - tr.get(t).existing_particles[i - 1].getFrame() != 1);
 
                             if (jump == false) {
                                 lines.add(l1);
@@ -1389,14 +1389,14 @@ public class MyFrame {
                     }
                     else if (typ == DrawType.TRAJECTORY_HISTORY_WITH_NEXT) {
                         for (int i = j + 1; i >= 1; i--) {
-                            pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]), new Particle(tr.get(t).existing_particles[i - 1]));
+                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[i]), new Particle(tr.get(t).existing_particles[i - 1]));
                             if (focus != null) {
                                 l1.translate(focus);
                             }
 
                             // Check if it is a jump
 
-                            boolean jump = (tr.get(t).existing_particles[i].getFrame() - tr.get(t).existing_particles[i - 1].getFrame() != 1);
+                            final boolean jump = (tr.get(t).existing_particles[i].getFrame() - tr.get(t).existing_particles[i - 1].getFrame() != 1);
 
                             if (jump == false) {
                                 lines.add(l1);
@@ -1406,14 +1406,14 @@ public class MyFrame {
                             }
                         }
                         if (j + 1 < tr.get(t).existing_particles.length) {
-                            pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
+                            final pParticle l1 = f.new pParticle(new Particle(tr.get(t).existing_particles[j]), new Particle(tr.get(t).existing_particles[j + 1]));
                             if (focus != null) {
                                 l1.translate(focus);
                             }
 
                             // Check if it is a jump
 
-                            boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
+                            final boolean jump = (tr.get(t).existing_particles[j + 1].getFrame() - tr.get(t).existing_particles[j].getFrame() != 1);
 
                             if (jump == false) {
                                 lines.add(l1);
@@ -1464,7 +1464,7 @@ public class MyFrame {
     static public void updateImage(RandomAccessibleInterval<ARGBType> out, Rectangle focus, int start_frame, Vector<Trajectory> tr, Calibration cal, DrawType typ, int p_radius) {
         // Adjust calibration according to magnification
 
-        int scale_x = (int) (out.dimension(0) / focus.width);
+        final int scale_x = (int) (out.dimension(0) / focus.width);
 
         // Get image
 
@@ -1472,7 +1472,7 @@ public class MyFrame {
 
         //
 
-        int nframe = (int) out.dimension(out.numDimensions() - 1);
+        final int nframe = (int) out.dimension(out.numDimensions() - 1);
 
         // Draw trajectories
 
@@ -1492,7 +1492,7 @@ public class MyFrame {
     static public void updateImage(Img<ARGBType> out, Vector<Trajectory> tr, Calibration cal, DrawType typ, int p_radius) {
         for (int i = 0; i < tr.size(); i++) {
             new MyFrame();
-            int nframe = (int) out.dimension(out.numDimensions() - 1);
+            final int nframe = (int) out.dimension(out.numDimensions() - 1);
 
             // Collect particles to draw and spline to draw
             TrajectoriesDraw(out, nframe, tr, 0, null, cal, 1.0f, typ, p_radius);
@@ -1519,24 +1519,24 @@ public class MyFrame {
         }
 
         // the number of dimensions
-        int numDimensions = background.numDimensions();
+        final int numDimensions = background.numDimensions();
 
-        long dims[] = new long[numDimensions];
+        final long dims[] = new long[numDimensions];
         background.dimensions(dims);
 
         // Create image
 
         final ImgFactory<ARGBType> imgFactory = new ArrayImgFactory<ARGBType>();
-        Img<ARGBType> out = imgFactory.create(dims, new ARGBType());
+        final Img<ARGBType> out = imgFactory.create(dims, new ARGBType());
 
-        Cursor<ARGBType> curOut = out.cursor();
-        Cursor<T> curBack = background.cursor();
+        final Cursor<ARGBType> curOut = out.cursor();
+        final Cursor<T> curBack = background.cursor();
 
         ToARGB conv = null;
         try {
             conv = MosaicUtils.getConversion(curBack.get(), background.cursor());
         }
-        catch (ClassCastException e) {
+        catch (final ClassCastException e) {
             IJ.error("Error unsupported format, please convert your image into 8-bit, 16-bit or float");
             return null;
         }
@@ -1579,7 +1579,7 @@ public class MyFrame {
         // Create image
 
         final ImgFactory<ARGBType> imgFactory = new ArrayImgFactory<ARGBType>();
-        Img<ARGBType> out = imgFactory.create(vMax, new ARGBType());
+        final Img<ARGBType> out = imgFactory.create(vMax, new ARGBType());
 
         // Cursor<ARGBType> curOut = out.cursor();
 
@@ -1597,7 +1597,7 @@ public class MyFrame {
 
     public void removeDoubleParticles() {
         boolean f = false;
-        Vector<Particle> p = new Vector<Particle>();
+        final Vector<Particle> p = new Vector<Particle>();
 
         for (int i = 0; i < particles.size(); i++) {
             f = false;

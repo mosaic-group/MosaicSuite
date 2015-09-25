@@ -15,18 +15,18 @@ public class LaplaceFilter extends PlugInFloatBase { // NO_UCD
     @Override
     protected void processImg(FloatProcessor aOutputImg, FloatProcessor aOrigImg, int aChannelNumber) {
         // Convert input to Matrix
-        int w = aOutputImg.getWidth();
-        int h = aOutputImg.getHeight();
-        double[][] img = new double[h][w];
+        final int w = aOutputImg.getWidth();
+        final int h = aOutputImg.getHeight();
+        final double[][] img = new double[h][w];
         ImgUtils.ImgToYX2Darray(aOrigImg, img, 1.0);
-        Matrix imgMatrix = new Matrix(img);
+        final Matrix imgMatrix = new Matrix(img);
 
         // Laplacian matrix convolution with image
-        Matrix m1 = Matlab.imfilterSymmetric(imgMatrix, new Matrix(new double[][]{{ 0,  1,  0},
+        final Matrix m1 = Matlab.imfilterSymmetric(imgMatrix, new Matrix(new double[][]{{ 0,  1,  0},
                 { 1, -4,  1},
                 { 0,  1,  0}}));
         // Update output with reslt
-        double[][] result = m1.getArrayYX();
+        final double[][] result = m1.getArrayYX();
         ImgUtils.YX2DarrayToImg(result, aOutputImg, 1.0);
     }
 

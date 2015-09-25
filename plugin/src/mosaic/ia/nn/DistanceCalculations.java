@@ -27,7 +27,7 @@ public abstract class DistanceCalculations {
     protected ImagePlus mask;
 
     private float[][][] maskImage3d;
-    private double gridSize;
+    private final double gridSize;
 
     protected Point3d[] particleXSetCoord;
     protected Point3d[] particleYSetCoord;
@@ -62,7 +62,7 @@ public abstract class DistanceCalculations {
                 return true;
             }
         }
-        catch (ArrayIndexOutOfBoundsException e) // point outside array.
+        catch (final ArrayIndexOutOfBoundsException e) // point outside array.
         {
             return false;
         }
@@ -75,11 +75,11 @@ public abstract class DistanceCalculations {
     protected void stateDensity(double x1, double y1, double z1, double x2, double y2, double z2) // dgrid is 1/1000 of min-max
     {
 
-        double precision = 100d;
-        KernelEstimator ker = new KernelEstimator(1 / precision);
+        final double precision = 100d;
+        final KernelEstimator ker = new KernelEstimator(1 / precision);
 
-        int x_size = (int) Math.floor((Math.abs(x1 - x2) + 1) * xscale / gridSize); // x1=0,x2=0=> x_size=1.
-        int y_size = (int) Math.floor((Math.abs(y1 - y2) + 1) * yscale / gridSize);
+        final int x_size = (int) Math.floor((Math.abs(x1 - x2) + 1) * xscale / gridSize); // x1=0,x2=0=> x_size=1.
+        final int y_size = (int) Math.floor((Math.abs(y1 - y2) + 1) * yscale / gridSize);
         int z_size = (int) Math.floor((Math.abs(z1 - z2) + 1) * zscale / gridSize);
 
         if (z2 - z1 == 0) {
@@ -88,12 +88,12 @@ public abstract class DistanceCalculations {
 
         System.out.println("x_size,y_size,z_size" + x_size + "," + y_size + "," + z_size);
 
-        double[] q = new double[discretizationSize];
+        final double[] q = new double[discretizationSize];
         qOfD = new double[2][discretizationSize];
         double max = Double.MIN_VALUE, min = Double.MAX_VALUE;
         double distance;
-        double[] tempPosition = new double[3];
-        KDTreeNearestNeighbor kdtnn = new KDTreeNearestNeighbor();
+        final double[] tempPosition = new double[3];
+        final KDTreeNearestNeighbor kdtnn = new KDTreeNearestNeighbor();
         kdtnn.createKDTree(particleYSetCoord);
         if (mask == null) {
 
@@ -115,7 +115,7 @@ public abstract class DistanceCalculations {
                             }
                             ker.addValue(distance, kernelWeightq);
                         }
-                        catch (Exception e) {
+                        catch (final Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -141,7 +141,7 @@ public abstract class DistanceCalculations {
                                 }
                                 ker.addValue(distance, kernelWeightq);
                             }
-                            catch (Exception e) {
+                            catch (final Exception e) {
                                 e.printStackTrace();
                             }
                         }
@@ -154,7 +154,7 @@ public abstract class DistanceCalculations {
 
         qOfD[0][0] = 0;
 
-        double bin_size = (max - min) / discretizationSize;
+        final double bin_size = (max - min) / discretizationSize;
 
         q[0] = ker.getProbability(qOfD[1][0]); // how does this work?
 
@@ -185,8 +185,8 @@ public abstract class DistanceCalculations {
         if (mask == null) {
             return points;
         }
-        Vector<Point3d> vectorPoints = new Vector<Point3d>();
-        double[] coords = new double[3];
+        final Vector<Point3d> vectorPoints = new Vector<Point3d>();
+        final double[] coords = new double[3];
         int count = 0;
         for (int i = 0; i < points.length; i++) {
             points[i].get(coords);

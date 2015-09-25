@@ -127,21 +127,21 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
     }
 
     protected ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale, boolean convertToRgb) {
-        int nSlices = aOrigIp.getStackSize();
-        int w=aOrigIp.getWidth();
-        int h=aOrigIp.getHeight();
+        final int nSlices = aOrigIp.getStackSize();
+        final int w=aOrigIp.getWidth();
+        final int h=aOrigIp.getHeight();
 
         ImagePlus copyIp = aOrigIp.createImagePlus();
 
-        int newWidth = (int)aXscale*w;
-        int newHeight = (int)aYscale*h;
+        final int newWidth = (int)aXscale*w;
+        final int newHeight = (int)aYscale*h;
 
-        ImageStack origStack = aOrigIp.getStack();
-        ImageStack copyStack = new ImageStack(newWidth, newHeight);
+        final ImageStack origStack = aOrigIp.getStack();
+        final ImageStack copyStack = new ImageStack(newWidth, newHeight);
         ImageProcessor ip1, ip2;
         for (int i = 1; i <= nSlices; i++) {
             ip1 = origStack.getProcessor(i);
-            String label = origStack.getSliceLabel(i);
+            final String label = origStack.getSliceLabel(i);
             if (!convertToRgb) {
                 ip2 = ip1.createProcessor(newWidth, newHeight);
             }
@@ -155,13 +155,13 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
 
         copyIp.setStack(aTitle, copyStack);
 
-        Calibration cal = copyIp.getCalibration();
+        final Calibration cal = copyIp.getCalibration();
         if (cal.scaled()) {
             cal.pixelWidth *= 1.0 / aXscale;
             cal.pixelHeight *= 1.0 / aYscale;
         }
 
-        int[] dim = aOrigIp.getDimensions();
+        final int[] dim = aOrigIp.getDimensions();
         copyIp.setDimensions(dim[2], dim[3], dim[4]);
 
         if (aOrigIp.isComposite()) {

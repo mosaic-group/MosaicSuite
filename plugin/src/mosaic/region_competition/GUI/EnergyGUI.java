@@ -33,7 +33,7 @@ abstract class EnergyGUI extends GUImeMore {
     }
 
     public static EnergyGUI factory(Settings settings, String energy) {
-        EnergyFunctionalType type = EnergyFunctionalType.valueOf(energy);
+        final EnergyFunctionalType type = EnergyFunctionalType.valueOf(energy);
         return factory(settings, type);
     }
 }

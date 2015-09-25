@@ -34,10 +34,10 @@ public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
             objectOutput = new ObjectOutputStream(fileOutput);
             objectOutput.writeObject(aObject2Save);
             ret = true;
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             logger.debug("File [" + aSerializedFileName + "] cannot be written!");
             logger.error(ExceptionUtils.getStackTrace(e));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             logger.error("An error occured during writing serialized file [" + aSerializedFileName + "]");
             logger.error(ExceptionUtils.getStackTrace(e));
         } finally {
@@ -62,15 +62,15 @@ public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
             try {
                 readObj = objectInput.readObject();
                 ret = aClazz.cast(readObj);
-            } catch (ClassCastException e) {
-                String readObjName = (readObj == null) ? "null" : readObj.getClass().getName();
+            } catch (final ClassCastException e) {
+                final String readObjName = (readObj == null) ? "null" : readObj.getClass().getName();
                 logger.error("Different type of object read [" + readObjName + "] vs. [" + aClazz.getName() + "]");
                 logger.error(ExceptionUtils.getStackTrace(e));
                 ret = null;
             }
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             logger.debug("File [" + aSerializedFileName + "] not found.");
-        } catch (Exception e) {
+        } catch (final Exception e) {
             logger.error("An error occured during reading serialized file [" + aSerializedFileName + "]");
             logger.error(ExceptionUtils.getStackTrace(e));
         } finally {
@@ -83,7 +83,7 @@ public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
 
     @Override
     public T LoadFromFile(String aSerializedFileName, Class<T> aClazz, T aDefaultValue) {
-        T temp = LoadFromFile(aSerializedFileName, aClazz);
+        final T temp = LoadFromFile(aSerializedFileName, aClazz);
         if (temp != null) {
             return temp;
         }
@@ -96,7 +96,7 @@ public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
             try {
                 c.close();
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 logger.error(ExceptionUtils.getStackTrace(e));
             }
         }

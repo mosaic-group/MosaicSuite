@@ -127,9 +127,9 @@ public class CommonBase extends Info {
         Interpreter.batchMode = true;
 
         // Test plugin
-        for (String file : aInputFiles) {
+        for (final String file : aInputFiles) {
             logger.debug("Loading image for testing: [" + tmpPath + file + "]");
-            ImagePlus ip = loadImagePlus(tmpPath + file);
+            final ImagePlus ip = loadImagePlus(tmpPath + file);
             logger.debug("Testing plugin");
 
             // Change name of thread to begin with "Run$_". This is required by IJ to pass later
@@ -145,8 +145,8 @@ public class CommonBase extends Info {
             logger.debug("Comparing output of two images:");
             logger.debug("    ref: [" + tcPath + aReferenceFiles[0] + "]");
             logger.debug("    test:[" + aExpectedFiles[0] +"]");
-            Img<?> referenceImg = loadImage(tcPath + aReferenceFiles[0]);
-            Img<?> processedImg = loadImageByName(aExpectedFiles[0]);
+            final Img<?> referenceImg = loadImage(tcPath + aReferenceFiles[0]);
+            final Img<?> processedImg = loadImageByName(aExpectedFiles[0]);
             if (processedImg == null) {
                 throw new RuntimeException("No img: [" + aExpectedFiles[0] + "]");
             }
@@ -163,9 +163,9 @@ public class CommonBase extends Info {
     protected void prepareTestDirectory(final String[] aInputFiles, final String aTcPath, final String aTmpPath) {
 
         // Copy input file to temporary directory
-        for (String file : aInputFiles) {
-            File in = new File(aTcPath + file);
-            File out = new File(aTmpPath);
+        for (final String file : aInputFiles) {
+            final File in = new File(aTcPath + file);
+            final File out = new File(aTmpPath);
             SystemOperations.copyFileToDirectory(in, out);
         }
     }
@@ -179,10 +179,10 @@ public class CommonBase extends Info {
     protected boolean compare(Img<?> aRefImg, Img<?> aTestedImg)
     {
 
-        Cursor<?> ci1 = aRefImg.cursor();
-        RandomAccess<?> ci2 = aTestedImg.randomAccess();
+        final Cursor<?> ci1 = aRefImg.cursor();
+        final RandomAccess<?> ci2 = aTestedImg.randomAccess();
 
-        int loc[] = new int[aRefImg.numDimensions()];
+        final int loc[] = new int[aRefImg.numDimensions()];
         int countAll = 0;
         int countDifferent = 0;
         boolean firstDiffFound = false;
@@ -193,8 +193,8 @@ public class CommonBase extends Info {
             ci1.localize(loc);
             ci2.setPosition(loc);
 
-            Object t1 = ci1.get();
-            Object t2 = ci2.get();
+            final Object t1 = ci1.get();
+            final Object t2 = ci2.get();
 
             countAll++;
 
@@ -234,10 +234,10 @@ public class CommonBase extends Info {
      * @return ImagePlus or null if there is no such image
      */
     protected ImagePlus getImageByName(String aName) {
-        int[] ids = WindowManager.getIDList();
+        final int[] ids = WindowManager.getIDList();
         if (ids != null) {
-            for (int id : ids) {
-                ImagePlus img = WindowManager.getImage(id);
+            for (final int id : ids) {
+                final ImagePlus img = WindowManager.getImage(id);
                 if (img.getTitle().equals(aName)) {
                     return img;
                 }
@@ -268,12 +268,12 @@ public class CommonBase extends Info {
      */
     protected Img<?> loadImageByName(String aImageName) {
         logger.debug("Loading image from IJ WindowManager: [" + aImageName + "]");
-        String outputFileName = SystemOperations.getTestTmpPath() + aImageName + ".tif";
-        ImagePlus imageByName = getImageByName(aImageName);
+        final String outputFileName = SystemOperations.getTestTmpPath() + aImageName + ".tif";
+        final ImagePlus imageByName = getImageByName(aImageName);
         if (imageByName != null) {
             logger.debug("Saving [" + aImageName + "] as [" + outputFileName + "]");
             IJ.saveAsTiff(imageByName, outputFileName);
-            Img<?> img = loadImage(outputFileName);
+            final Img<?> img = loadImage(outputFileName);
 
             return img;
         }
@@ -295,11 +295,11 @@ public class CommonBase extends Info {
 
         try {
             logger.debug("Opening file: [" + aFileName + "]");
-            Img<?> img = iImgOpener.openImgs(aFileName).get(0);
+            final Img<?> img = iImgOpener.openImgs(aFileName).get(0);
             return img;
-        } catch (ImgIOException e) {
+        } catch (final ImgIOException e) {
             e.printStackTrace();
-            String errorMsg = "Failed to load: [" + aFileName + "]";
+            final String errorMsg = "Failed to load: [" + aFileName + "]";
             logger.error(errorMsg);
             fail(errorMsg);
         }
@@ -311,12 +311,12 @@ public class CommonBase extends Info {
      * @return List of all images opened in ImageJ (not necessarily visible)
      */
     protected List<String> getAllImagesByName() {
-        List<String> result = new ArrayList<String>();
-        int[] ids = WindowManager.getIDList();
+        final List<String> result = new ArrayList<String>();
+        final int[] ids = WindowManager.getIDList();
         if (ids != null) {
-            for (int id : ids) {
+            for (final int id : ids) {
                 logger.debug("WindowsManager picture id: " + id + " Name: [" + WindowManager.getImage(id).getTitle() + "]");
-                ImagePlus img = WindowManager.getImage(id);
+                final ImagePlus img = WindowManager.getImage(id);
                 result.add(img.getTitle());
             }
         }

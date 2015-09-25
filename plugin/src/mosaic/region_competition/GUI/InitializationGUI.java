@@ -39,8 +39,8 @@ abstract class InitializationGUI extends GUImeMore {
     }
 
     public static InitializationGUI factory(Settings settings, String s) {
-        InitializationType type = InitializationType.valueOf(s);
-        InitializationGUI result = factory(settings, type);
+        final InitializationType type = InitializationType.valueOf(s);
+        final InitializationGUI result = factory(settings, type);
         return result;
     }
 

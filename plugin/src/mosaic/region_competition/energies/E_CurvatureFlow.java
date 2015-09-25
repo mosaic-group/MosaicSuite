@@ -20,8 +20,8 @@ public class E_CurvatureFlow extends InternalEnergy// implements SettingsListene
 
     @Override
     public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel) {
-        int fromLabel = contourParticle.label;
-        double flow = curv.generateData(contourPoint, fromLabel, toLabel);
+        final int fromLabel = contourParticle.label;
+        final double flow = curv.generateData(contourPoint, fromLabel, toLabel);
         return new EnergyResult(flow, null);
     }
 

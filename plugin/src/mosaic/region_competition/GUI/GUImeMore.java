@@ -53,7 +53,7 @@ abstract class GUImeMore {
     public static GenericDialog getNoGUI() {
         GenericDialog noGUI;
         noGUI = new GenericDialog("No additional Options");
-        String text = "No additional options available";
+        final String text = "No additional options available";
         noGUI.addMessage(text);
         noGUI.hideCancelButton();
 

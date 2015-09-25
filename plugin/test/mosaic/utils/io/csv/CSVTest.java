@@ -50,7 +50,7 @@ public class CSVTest extends CommonBase {
 
         @Override
         public String toString() {
-            String str = "TestThing {ID: " + id + ", CalculatedValue: " + value + "}";
+            final String str = "TestThing {ID: " + id + ", CalculatedValue: " + value + "}";
             return str;
         }
 
@@ -62,7 +62,7 @@ public class CSVTest extends CommonBase {
             if (obj == null || obj.getClass() != this.getClass()) {
                 return false;
             }
-            TestThing cmp = (TestThing) obj;
+            final TestThing cmp = (TestThing) obj;
             if (cmp.id != this.id || cmp.value != this.value) {
                 return false;
             }
@@ -98,7 +98,7 @@ public class CSVTest extends CommonBase {
 
         @Override
         public String toString() {
-            String str = "TestSmall {ID: " + id + "}";
+            final String str = "TestSmall {ID: " + id + "}";
             return str;
         }
 
@@ -110,7 +110,7 @@ public class CSVTest extends CommonBase {
             if (obj == null || obj.getClass() != this.getClass()) {
                 return false;
             }
-            TestSmall cmp = (TestSmall) obj;
+            final TestSmall cmp = (TestSmall) obj;
             if (cmp.id != this.id) {
                 return false;
             }
@@ -126,9 +126,9 @@ public class CSVTest extends CommonBase {
     // --------------------- Helper methods -----------------------------------------------
     static String readFile(String aFullPathFile) {
         try {
-            byte[] encoded = Files.readAllBytes(Paths.get(aFullPathFile));
+            final byte[] encoded = Files.readAllBytes(Paths.get(aFullPathFile));
             return new String(encoded, Charset.defaultCharset());
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
             fail("Reading [" + aFullPathFile + "] file failed.");
         }
@@ -138,19 +138,19 @@ public class CSVTest extends CommonBase {
     static void saveFile(String aFullPathFile, String aContent) {
         try (PrintWriter out = new PrintWriter(aFullPathFile)) {
             out.print(aContent);
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             e.printStackTrace();
             fail("Writing [" + aFullPathFile + "] file failed.");
         }
     }
 
     static String fullFileName(String aFileName) {
-        String testDir = SystemOperations.getTestTmpPath();
+        final String testDir = SystemOperations.getTestTmpPath();
         return testDir + aFileName;
     }
 
     static void verifyFileContent(String aFileName, String aExpectedContent) {
-        String content = readFile(aFileName);
+        final String content = readFile(aFileName);
         assertEquals(aExpectedContent, content);
     }
 
@@ -168,10 +168,10 @@ public class CSVTest extends CommonBase {
 
     @Test
     public void testWrite() {
-        String fullFileName = fullFileName("testWrite.csv");
+        final String fullFileName = fullFileName("testWrite.csv");
 
         // Data to be written
-        List<TestThing> data = new ArrayList<TestThing>();
+        final List<TestThing> data = new ArrayList<TestThing>();
         data.add(new TestThing(1, 33.3));
         data.add(new TestThing(4, 99.1));
 
@@ -179,7 +179,7 @@ public class CSVTest extends CommonBase {
         csv.Write(fullFileName, data , oc , false);
 
         // Verify
-        String expectedContent = "ID,CalculatedValue\n" +
+        final String expectedContent = "ID,CalculatedValue\n" +
                                  "1,33.3\n" +
                                  "4,99.1\n";
         verifyFileContent(fullFileName, expectedContent);
@@ -187,19 +187,19 @@ public class CSVTest extends CommonBase {
 
     @Test
     public void testRead() {
-        String fullFileName = fullFileName("testRead.csv");
+        final String fullFileName = fullFileName("testRead.csv");
 
         // Prepare data
-        String expectedContent = "ID,CalculatedValue\n" +
+        final String expectedContent = "ID,CalculatedValue\n" +
                                  "1,33.3\n" +
                                  "4,99.1\n";
         saveFile(fullFileName, expectedContent);
 
         // Tested method
-        List<TestThing> outdst = csv.Read(fullFileName, oc);
+        final List<TestThing> outdst = csv.Read(fullFileName, oc);
 
         // Verify
-        List<TestThing> expectedData = new ArrayList<TestThing>();
+        final List<TestThing> expectedData = new ArrayList<TestThing>();
         expectedData.add(new TestThing(1, 33.3));
         expectedData.add(new TestThing(4, 99.1));
         assertEquals(expectedData, outdst);
@@ -207,10 +207,10 @@ public class CSVTest extends CommonBase {
 
     @Test
     public void testWriteMetaInformation() {
-        String fullFileName = fullFileName("testWriteMetaInformation.csv");
+        final String fullFileName = fullFileName("testWriteMetaInformation.csv");
 
         // Generate data
-        List<TestThing> data = new ArrayList<TestThing>();
+        final List<TestThing> data = new ArrayList<TestThing>();
         data.add(new TestThing(1, 5.2));
         csv.setMetaInformation("name1", "valueForName1");
         csv.setMetaInformation("name2", "valueForName2");
@@ -219,7 +219,7 @@ public class CSVTest extends CommonBase {
         csv.Write(fullFileName, data , oc , false);
 
         // Verify
-        String expectedContent = "ID,CalculatedValue\n" +
+        final String expectedContent = "ID,CalculatedValue\n" +
                                  "%name1:valueForName1\n" +
                                  "%name2:valueForName2\n" +
                                  "1,5.2\n";
@@ -228,20 +228,20 @@ public class CSVTest extends CommonBase {
 
     @Test
     public void testReadMetaInformation() {
-        String fullFileName = fullFileName("testReadMetaInformation.csv");
+        final String fullFileName = fullFileName("testReadMetaInformation.csv");
 
         // Prepare data
-        String expectedContent = "ID,CalculatedValue\n" +
+        final String expectedContent = "ID,CalculatedValue\n" +
                                  "%name1:valueForName1\n" +
                                  "%name2:valueForName2\n" +
                                  "4,5.2\n";
                 saveFile(fullFileName, expectedContent);
 
                 // Tested method
-                List<TestThing> outdst = csv.Read(fullFileName, oc);
+                final List<TestThing> outdst = csv.Read(fullFileName, oc);
 
                 // Verify
-                List<TestThing> expectedData = new ArrayList<TestThing>();
+                final List<TestThing> expectedData = new ArrayList<TestThing>();
                 expectedData.add(new TestThing(4, 5.2));
                 assertEquals(expectedData, outdst);
                 assertEquals("valueForName1", csv.getMetaInformation("name1"));
@@ -250,12 +250,12 @@ public class CSVTest extends CommonBase {
 
     @Test
     public void testWriteAppend() {
-        String fullFileName = fullFileName("testWriteAppend.csv");
+        final String fullFileName = fullFileName("testWriteAppend.csv");
 
         {  // Save first version of file
 
             // Generate data
-            List<TestThing> data = new ArrayList<TestThing>();
+            final List<TestThing> data = new ArrayList<TestThing>();
             data.add(new TestThing(1, 33.3));
             data.add(new TestThing(4, 99.1));
             csv.setMetaInformation("anyName", "anyValue");
@@ -264,7 +264,7 @@ public class CSVTest extends CommonBase {
             csv.Write(fullFileName, data , oc , false);
 
             // Verify
-            String expectedContent = "ID,CalculatedValue\n" +
+            final String expectedContent = "ID,CalculatedValue\n" +
                                      "%anyName:anyValue\n" +
                                      "1,33.3\n" +
                                      "4,99.1\n";
@@ -279,7 +279,7 @@ public class CSVTest extends CommonBase {
             csv.Write(fullFileName, Arrays.asList(new TestThing(5, 1.23)) , oc , true);
 
             // Verify
-            String expectedContent = "ID,CalculatedValue\n" +
+            final String expectedContent = "ID,CalculatedValue\n" +
                                      "%anyName:anyValue\n" +
                                      "1,33.3\n" +
                                      "4,99.1\n" +
@@ -290,8 +290,8 @@ public class CSVTest extends CommonBase {
 
     @Test
     public void testStitch() {
-        String fullFileName1 = fullFileName("testStitch1.csv");
-        String fullFileName2 = fullFileName("testStitch2.csv");
+        final String fullFileName1 = fullFileName("testStitch1.csv");
+        final String fullFileName2 = fullFileName("testStitch2.csv");
 
         {   // Generate first file
 
@@ -307,7 +307,7 @@ public class CSVTest extends CommonBase {
         }
 
         // Add additional meta information before joining files together
-        String fullFileName = fullFileName("testStitchEd.csv");
+        final String fullFileName = fullFileName("testStitchEd.csv");
         // Generate new CSV just to refresh state
         csv = new CSV<TestThing>(TestThing.class);
         csv.setMetaInformation("name3", "valueForName3");
@@ -316,7 +316,7 @@ public class CSVTest extends CommonBase {
         assertTrue(csv.Stitch(new String[] {fullFileName1, fullFileName2}, fullFileName , oc));
 
         // Verify
-        String expectedContent = "ID,CalculatedValue\n" +
+        final String expectedContent = "ID,CalculatedValue\n" +
                                  "%name3:valueForName3\n" +
                                  "%name1:valueForName1\n" +
                                  "%name2:valueForName2\n" +
@@ -327,10 +327,10 @@ public class CSVTest extends CommonBase {
 
     @Test
     public void testWriteChangedDelimieter() {
-        String fullFileName = fullFileName("testWriteChangedDelimieter.csv");
+        final String fullFileName = fullFileName("testWriteChangedDelimieter.csv");
 
         // Prepare data
-        List<TestThing> data = new ArrayList<TestThing>();
+        final List<TestThing> data = new ArrayList<TestThing>();
         data.add(new TestThing(1, 33.3));
         data.add(new TestThing(4, 99.1));
 
@@ -339,7 +339,7 @@ public class CSVTest extends CommonBase {
         csv.Write(fullFileName, data , oc , false);
 
         // Verify
-        String expectedContent = "ID;CalculatedValue\n" +
+        final String expectedContent = "ID;CalculatedValue\n" +
                                  "1;33.3\n" +
                                  "4;99.1\n";
         verifyFileContent(fullFileName, expectedContent);
@@ -347,20 +347,20 @@ public class CSVTest extends CommonBase {
 
     @Test
     public void testReadChangedDelimieter() {
-        String fullFileName = fullFileName("testReadChangedDelimieter.csv");
+        final String fullFileName = fullFileName("testReadChangedDelimieter.csv");
 
         // Prepare data
-        String expectedContent = "ID;CalculatedValue\n" +
+        final String expectedContent = "ID;CalculatedValue\n" +
                                  "1;33.3\n" +
                                  "4;99.1\n";
         saveFile(fullFileName, expectedContent);
 
         // Tested methods
         csv.setCSVPreferenceFromFile(fullFileName);
-        List<TestThing> outdst = csv.Read(fullFileName, oc);
+        final List<TestThing> outdst = csv.Read(fullFileName, oc);
 
         // Verify
-        List<TestThing> expectedData = new ArrayList<TestThing>();
+        final List<TestThing> expectedData = new ArrayList<TestThing>();
         expectedData.add(new TestThing(1, 33.3));
         expectedData.add(new TestThing(4, 99.1));
         assertEquals(expectedData, outdst);
@@ -368,19 +368,19 @@ public class CSVTest extends CommonBase {
 
     @Test
     public void testReadDefault() {
-        String fullFileName = fullFileName("testReadDefault.csv");
+        final String fullFileName = fullFileName("testReadDefault.csv");
 
         // Prepare data
-        String expectedContent = "ID,CalculatedValue\n" +
+        final String expectedContent = "ID,CalculatedValue\n" +
                                  "1,33.3\n" +
                                  "4,99.1\n";
         saveFile(fullFileName, expectedContent);
 
         // Tested method (do not specify columns with OutputChoose)
-        List<TestThing> outdst = csv.Read(fullFileName);
+        final List<TestThing> outdst = csv.Read(fullFileName);
 
         // Verify
-        List<TestThing> expectedData = new ArrayList<TestThing>();
+        final List<TestThing> expectedData = new ArrayList<TestThing>();
         expectedData.add(new TestThing(1, 33.3));
         expectedData.add(new TestThing(4, 99.1));
         assertEquals(expectedData, outdst);
@@ -392,20 +392,20 @@ public class CSVTest extends CommonBase {
         // In such case additional columns should be ignored and only fields defined
         // in given class should be set/loaded.
 
-        String fullFileName = fullFileName("testReadDefaultWithMissingColumn.csv");
+        final String fullFileName = fullFileName("testReadDefaultWithMissingColumn.csv");
 
         // Prepare data
-        String expectedContent = "ID,CalculatedValue\n" +
+        final String expectedContent = "ID,CalculatedValue\n" +
                                  "1,33.3\n" +
                                  "4,99.1\n";
         saveFile(fullFileName, expectedContent);
 
-        CSV<TestSmall> csv =  new CSV<TestSmall>(TestSmall.class);
+        final CSV<TestSmall> csv =  new CSV<TestSmall>(TestSmall.class);
         // Tested method (do not specify columns with OutputChoose)
-        List<TestSmall> outdst = csv.Read(fullFileName);
+        final List<TestSmall> outdst = csv.Read(fullFileName);
 
         // Verify
-        List<TestSmall> expectedData = new ArrayList<TestSmall>();
+        final List<TestSmall> expectedData = new ArrayList<TestSmall>();
         expectedData.add(new TestSmall(1));
         expectedData.add(new TestSmall(4));
         assertEquals(expectedData, outdst);
@@ -413,19 +413,19 @@ public class CSVTest extends CommonBase {
 
     @Test
     public void testWriteWithWronglySetupOfColumField() {
-        String fullFileName = fullFileName("testWriteWithWronglySetupOfColumField.csv");
+        final String fullFileName = fullFileName("testWriteWithWronglySetupOfColumField.csv");
 
         // Data to be written
-        List<TestThing> data = new ArrayList<TestThing>();
+        final List<TestThing> data = new ArrayList<TestThing>();
         data.add(new TestThing(1, 33.3));
         data.add(new TestThing(4, 99.1));
 
         // Tested method
-        CsvColumnConfig oc = new CsvColumnConfig(new String[] {"ID", null}, new CellProcessor[] {new ParseInt(), null});
+        final CsvColumnConfig oc = new CsvColumnConfig(new String[] {"ID", null}, new CellProcessor[] {new ParseInt(), null});
         csv.Write(fullFileName, data , oc , false);
 
         // Verify (in case when column is wrongly provided it will not be save in output file).
-        String expectedContent = "ID\n" +
+        final String expectedContent = "ID\n" +
                                  "1\n" +
                                  "4\n";
         verifyFileContent(fullFileName, expectedContent);

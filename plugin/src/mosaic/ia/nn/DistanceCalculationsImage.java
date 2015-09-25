@@ -14,7 +14,7 @@ import mosaic.ia.utils.ImageProcessUtils;
 
 public class DistanceCalculationsImage extends DistanceCalculations {
 
-    private ImagePlus X, Y;
+    private final ImagePlus X, Y;
 
     public DistanceCalculationsImage(ImagePlus X, ImagePlus Y, ImagePlus mask, double gridSize, double kernelWeightq, int discretizationSize) {
         super(mask, gridSize, kernelWeightq, discretizationSize);
@@ -25,7 +25,7 @@ public class DistanceCalculationsImage extends DistanceCalculations {
 
     private Point3d[] extractParticles(ImagePlus image) {
 
-        Calibration calibration = image.getCalibration();
+        final Calibration calibration = image.getCalibration();
 
         zscale = calibration.pixelDepth;
         xscale = calibration.pixelHeight;

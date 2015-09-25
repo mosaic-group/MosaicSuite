@@ -22,14 +22,14 @@ public class FilterKernelGc implements FilterKernel {
 
         // Calculate distances d0..d7
         float d0 = (u+d)-m2;
-        float d1 = (l+r)-m2;
-        float d2 = (lu+rd)-m2;
-        float d3 = (ru+ld)-m2;
+        final float d1 = (l+r)-m2;
+        final float d2 = (lu+rd)-m2;
+        final float d3 = (ru+ld)-m2;
 
         float d4 = (lu+u+l)-m3;
-        float d5 = (ru+u+r)-m3;
-        float d6 = (l+ld+d)-m3;
-        float d7 = (r+d+rd)-m3;
+        final float d5 = (ru+u+r)-m3;
+        final float d6 = (l+ld+d)-m3;
+        final float d7 = (r+d+rd)-m3;
 
         // And find minimum (absolute) change
         float da;

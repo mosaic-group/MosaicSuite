@@ -60,23 +60,23 @@ public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD
 
     @Override
     public void run(ImageProcessor aImageProcessor) {
-        float[] kernel = generateBesselKernel();
+        final float[] kernel = generateBesselKernel();
         aImageProcessor.convolve(kernel, mKernelWidth, mKernelHeight);
     }
 
     private float[] generateBesselKernel() {
-        int vXRadius = (int) (mRMax / mXResolution) + 1; // in pixel
-        int vYRadius = (int) (mRMax / mYResolution) + 1; // in pixel
+        final int vXRadius = (int) (mRMax / mXResolution) + 1; // in pixel
+        final int vYRadius = (int) (mRMax / mYResolution) + 1; // in pixel
         mKernelWidth = (vXRadius * 2 + 1);
         mKernelHeight = (vYRadius * 2 + 1);
-        float[] vKernel = new float[mKernelWidth * mKernelHeight];
+        final float[] vKernel = new float[mKernelWidth * mKernelHeight];
 
         // TODO: What to do (r=0 -> undefined)
-        double vBesselMax = bessel_PSF(mXResolution / 10, mLambda, mNA);
+        final double vBesselMax = bessel_PSF(mXResolution / 10, mLambda, mNA);
 
         for (int vYI = 0; vYI < mKernelHeight; vYI++) {
             for (int vXI = 0; vXI < mKernelWidth; vXI++) {
-                float vDist = (float) Math.sqrt((vXRadius - vXI) * mXResolution * (vXRadius - vXI) * mXResolution
+                final float vDist = (float) Math.sqrt((vXRadius - vXI) * mXResolution * (vXRadius - vXI) * mXResolution
                         + (vYRadius - vYI) * mYResolution * (vYRadius - vYI) * mYResolution);
                 vKernel[coords(vXI, vYI)] = (float) (bessel_PSF(vDist, mLambda, mNA) / vBesselMax);
             }
@@ -101,7 +101,7 @@ public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD
             return false;
         }
 
-        String vUnit = aImp.getCalibration().getUnit();
+        final String vUnit = aImp.getCalibration().getUnit();
         double vS = 0;
         if (vUnit.equalsIgnoreCase("km")) {
             vS = 0.001;
@@ -137,13 +137,13 @@ public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD
     }
 
     private double bessel_PSF(double aRadius, double aLambda, double aApparture) {
-        double vA = 2 * Math.PI * aApparture / aLambda;
-        double vR = 2 * bessel(aRadius * vA, 1, (int)(aRadius * vA + 10))[1] / aRadius;
+        final double vA = 2 * Math.PI * aApparture / aLambda;
+        final double vR = 2 * bessel(aRadius * vA, 1, (int)(aRadius * vA + 10))[1] / aRadius;
         return vR * vR;
     }
 
     private boolean showDialog() {
-        GenericDialog gd = new GenericDialog("Bessel PSF parameter");
+        final GenericDialog gd = new GenericDialog("Bessel PSF parameter");
         gd.addNumericField("wavelength", mLambda*1e9, 0, 5, "nm");
         gd.addNumericField("Numeric Aparture: ", mNA, 0, 5, "");
         gd.addNumericField("Max Radius",   mRMax*1e9, 0, 5, "nm");
@@ -176,9 +176,9 @@ public class BesselPSF_Convolver implements ExtendedPlugInFilter { // NO_UCD
      *(2) No warranties, express or implied, are made for this program.
      */
     private static double[] bessel(double x, int n, int nb) {
-        int nmax = n+nb;
-        double y[] = new double[n+1];
-        double z[] = new double[nmax+1];
+        final int nmax = n+nb;
+        final double y[] = new double[n+1];
+        final double z[] = new double[nmax+1];
 
         // Generate the Bessel function of 1st kind J_n(x)
         z[nmax-1] = 1;

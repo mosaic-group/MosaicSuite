@@ -130,7 +130,7 @@ public class RCOutput {
 
     @Override
     public boolean equals(Object rc) {
-        RCOutput rco = (RCOutput) rc;
+        final RCOutput rco = (RCOutput) rc;
 
         if (x != rco.x) {
             return false;

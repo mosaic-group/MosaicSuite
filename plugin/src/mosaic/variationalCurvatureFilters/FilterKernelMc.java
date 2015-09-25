@@ -21,13 +21,13 @@ public class FilterKernelMc implements FilterKernel {
         final float m8 = 8 * m;
 
         // Calculate distances d0..d3
-        float common1 = (u+d) * 2.5f - m8;
+        final float common1 = (u+d) * 2.5f - m8;
         float d0 = common1 + r * 5.0f - ru - rd;
-        float d1 = common1 + l * 5.0f - lu - ld;
+        final float d1 = common1 + l * 5.0f - lu - ld;
 
-        float common2 = (l+r) * 2.5f - m8;
-        float d2 = common2 + u * 5.0f - lu - ru;
-        float d3 = common2 + d * 5.0f - ld - rd;
+        final float common2 = (l+r) * 2.5f - m8;
+        final float d2 = common2 + u * 5.0f - lu - ru;
+        final float d3 = common2 + d * 5.0f - ld - rd;
 
         // And find minimal (absolute) change
         float d0a = Math.abs(d0);

@@ -34,13 +34,13 @@ public class BackgroundSubGUI {
     static public int getParameters() {
         final GenericDialog gd = new GenericDialog("Background subtractor options");
 
-        Font bf = new Font(null, Font.BOLD, 12);
+        final Font bf = new Font(null, Font.BOLD, 12);
 
         gd.setInsets(-10, 0, 3);
         gd.addMessage("Background subtractor", bf);
 
-        Panel p = new Panel();
-        Button help_b = new Button("help");
+        final Panel p = new Panel();
+        final Button help_b = new Button("help");
 
         p.add(help_b);
 
@@ -48,7 +48,7 @@ public class BackgroundSubGUI {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                Point p = gd.getLocationOnScreen();
+                final Point p = gd.getLocationOnScreen();
 
                 new BackgroundSubHelp(p.x, p.y);
 

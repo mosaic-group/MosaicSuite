@@ -11,10 +11,10 @@ import java.util.Arrays;
  */
 public class CubicSmoothingSpline {
     public Polynomial[] iSplines;
-    private double[] iX;
-    private double[] iY;
+    private final double[] iX;
+    private final double[] iY;
     private double[] iWeights;
-    private double iSmoothingParameter;
+    private final double iSmoothingParameter;
 
     /**
      * Creates smoothing spline. Note: Input parameters are not checked for validity!
@@ -120,7 +120,7 @@ public class CubicSmoothingSpline {
      * Returns all coefficients from each generated polynomial.
      */
     public double[][] getCoefficients() {
-        double[][] l = new double[iSplines.length][4];
+        final double[][] l = new double[iSplines.length][4];
         for (int i = 0; i < iSplines.length; ++i) {
             l[i] = iSplines[i].getCoefficients();
         }
@@ -139,7 +139,7 @@ public class CubicSmoothingSpline {
         result += Arrays.toString(iWeights);
         result += "\n\nPolynomials: \n";
         int count = 1;
-        for (Polynomial p : iSplines) {
+        for (final Polynomial p : iSplines) {
             result += count++;
             result += ": ";
             result += p;
@@ -162,7 +162,7 @@ public class CubicSmoothingSpline {
     private void Quincunx(double[] u,double[]  v,double[]  w,double[]  q)
     {
         int j;
-        int n = u.length;
+        final int n = u.length;
 
         //factorisation
         u[0] = 0;
@@ -207,16 +207,16 @@ public class CubicSmoothingSpline {
 
     private void resolve(double[] aX, double[] aY, Polynomial[] aSplines, double aLambda, double[] aWeights)  {
         int n = aX.length;
-        double[] h = new double[n];
-        double[] r = new double[n];
-        double[] f = new double[n];
-        double[] p = new double[n];
-        double[] u = new double[n];
-        double[] v = new double[n];
-        double[] w = new double[n];
-        double[] q = new double[n + 1];
+        final double[] h = new double[n];
+        final double[] r = new double[n];
+        final double[] f = new double[n];
+        final double[] p = new double[n];
+        final double[] u = new double[n];
+        final double[] v = new double[n];
+        final double[] w = new double[n];
+        final double[] q = new double[n + 1];
 
-        double[] sigma = new double[n];
+        final double[] sigma = new double[n];
         for (int i = 0; i < n; ++i) {
             sigma[i] = 1.0/aWeights[i];
         }
@@ -254,7 +254,7 @@ public class CubicSmoothingSpline {
         // For below line there seems to be mistake in original paper since
         // there is at the end of line "* sigma[0]", after changing index to 1
         // it gives same results as in Matlab
-        double nextD = aY[1] - mu * (f[1] * q[1] + r[1] * q[2]) * sigma[1];
+        final double nextD = aY[1] - mu * (f[1] * q[1] + r[1] * q[2]) * sigma[1];
         double a = q[1] / (3 * h[0]);
         double b = 0;
         double c = (nextD - d) / h[0] - q[1] * h[0]/3;

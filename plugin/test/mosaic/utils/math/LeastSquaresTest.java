@@ -30,8 +30,8 @@ public class LeastSquaresTest extends CommonBase {
     public void testNotPerfectMatch() {
         final double slope = 0.0;
         final double y0 = 1.5;
-        double[] xValues = {-2.0, -1.0, 1.0, 2.0};
-        double[] yValues = {2.0, 1.0, 1.0, 2.0};
+        final double[] xValues = {-2.0, -1.0, 1.0, 2.0};
+        final double[] yValues = {2.0, 1.0, 1.0, 2.0};
 
         iLeastSquares.calculate(xValues, yValues);
 
@@ -49,11 +49,11 @@ public class LeastSquaresTest extends CommonBase {
         final double y0 = -3.2;
         final int noOfPoints = 10;
 
-        double[] xValues = new double[noOfPoints];
-        double[] yValues = new double[noOfPoints];
+        final double[] xValues = new double[noOfPoints];
+        final double[] yValues = new double[noOfPoints];
 
         for (int i = 0; i < noOfPoints; ++i) {
-            double x = 1.0 * i;
+            final double x = 1.0 * i;
             xValues[i] = x;
             yValues[i] = slope * x + y0;
         }
@@ -88,7 +88,7 @@ public class LeastSquaresTest extends CommonBase {
      */
     private static void testExpectations(LeastSquares aLS, double aSlope, double aYaxisIntercept) {
         // Set some tolerance on double numbers comparisons
-        double epsilon = 0.000001;
+        final double epsilon = 0.000001;
         assertEquals("Slope should be equal", aSlope, aLS.getBeta(), epsilon);
         assertEquals("y-axis intercept should be equal", aYaxisIntercept, aLS.getAlpha(), epsilon);
     }

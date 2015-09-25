@@ -15,11 +15,11 @@ import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
 public class E_PS extends ExternalEnergy {
 
-    private int[] dimensions;
-    private int bgLabel;
+    private final int[] dimensions;
+    private final int bgLabel;
 
-    private float regionMergingThreshold;
-    private HashMap<Integer, LabelInformation> labelMap;
+    private final float regionMergingThreshold;
+    private final HashMap<Integer, LabelInformation> labelMap;
     SphereMask sphere;
     RegionIteratorMask sphereIt;
 
@@ -31,7 +31,7 @@ public class E_PS extends ExternalEnergy {
         this.labelMap = labelMap;
 
         this.regionMergingThreshold = regionMergingThreshold;
-        int rad = PSenergyRadius;
+        final int rad = PSenergyRadius;
         sphere = new SphereMask(rad, 2 * rad + 1, labelImage.getDim());
 
         // sphereIt is slower than separate version
@@ -51,8 +51,8 @@ public class E_PS extends ExternalEnergy {
      */
     @Override
     public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel) {
-        double value = contourParticle.intensity;
-        int fromLabel = contourParticle.label;
+        final double value = contourParticle.intensity;
+        final int fromLabel = contourParticle.label;
 
         // read out the size of the mask
         // vRegion is the size of our temporary window
@@ -69,18 +69,18 @@ public class E_PS extends ExternalEnergy {
         int vNTo = 0;
 
         while (sphereIt.hasNext()) {
-            int labelIdx = sphereIt.next();
+            final int labelIdx = sphereIt.next();
 
-            int dataIdx = labelIdx;
-            int absLabel = labelImage.getLabelAbs(labelIdx);
+            final int dataIdx = labelIdx;
+            final int absLabel = labelImage.getLabelAbs(labelIdx);
             if (absLabel == fromLabel) {
-                double data = intensityImage.get(dataIdx);
+                final double data = intensityImage.get(dataIdx);
                 vSumFrom += data;
                 vSumOfSqFrom += data * data;
                 vNFrom++;
             }
             else if (absLabel == toLabel) {
-                double data = intensityImage.get(dataIdx);
+                final double data = intensityImage.get(dataIdx);
                 vSumTo += data;
                 vSumOfSqTo += data * data;
                 vNTo++;
@@ -93,7 +93,7 @@ public class E_PS extends ExternalEnergy {
         double vVarFrom;
         if (vNTo == 0) // this should only happen with the BG label
         {
-            LabelInformation info = labelMap.get(toLabel);
+            final LabelInformation info = labelMap.get(toLabel);
             vMeanTo = info.mean;
             vVarTo = info.var;
         }
@@ -104,7 +104,7 @@ public class E_PS extends ExternalEnergy {
         }
 
         if (vNFrom == 0) {
-            LabelInformation info = labelMap.get(fromLabel);
+            final LabelInformation info = labelMap.get(fromLabel);
             vMeanFrom = info.mean;
             vVarFrom = info.var;
         }
@@ -118,13 +118,13 @@ public class E_PS extends ExternalEnergy {
         boolean vMerge = false;
 
         if (fromLabel != bgLabel && toLabel != bgLabel) {
-            double e = E_KLMergingCriterion.CalculateKLMergingCriterion(vMeanFrom, vMeanTo, vVarFrom, vVarTo, vNFrom, vNTo);
+            final double e = E_KLMergingCriterion.CalculateKLMergingCriterion(vMeanFrom, vMeanTo, vVarFrom, vVarTo, vNFrom, vNTo);
             if (e < regionMergingThreshold) {
                 vMerge = true;
             }
         }
 
-        double vEnergyDiff = (value - vMeanTo) * (value - vMeanTo) - (value - vMeanFrom) * (value - vMeanFrom);
+        final double vEnergyDiff = (value - vMeanTo) * (value - vMeanTo) - (value - vMeanFrom) * (value - vMeanFrom);
 
         return new EnergyResult(vEnergyDiff, vMerge);// <Double, Boolean>(vEnergyDiff, vMerge);
     }

@@ -76,15 +76,15 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
     }
 
     public void run() {
-        Font bf = new Font(null, Font.BOLD, 12);
+        final Font bf = new Font(null, Font.BOLD, 12);
 
-        GenericDialog gd = new GenericDialog("Cell masks");
+        final GenericDialog gd = new GenericDialog("Cell masks");
 
         gd.setInsets(-10, 0, 3);
         gd.addMessage("Cell masks (two channels images)", bf);
 
-        String sgroup3[] = { "Cell_mask_channel_1", "Cell_mask_channel_2" };
-        boolean bgroup3[] = { false, false };
+        final String sgroup3[] = { "Cell_mask_channel_1", "Cell_mask_channel_2" };
+        final boolean bgroup3[] = { false, false };
 
         bgroup3[0] = Analysis.p.usecellmaskX;
         bgroup3[1] = Analysis.p.usecellmaskY;
@@ -104,24 +104,24 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
         gd.addCheckboxGroup(1, 2, sgroup3, bgroup3);
 
         gd.addNumericField("Threshold_channel_1 (0 to 1)", Analysis.p.thresholdcellmask, 4);
-        Panel p1 = new Panel();
+        final Panel p1 = new Panel();
         p1.add(l1);
         p1.add(t1);
         gd.addPanel(p1);
 
-        Panel pz1 = new Panel();
+        final Panel pz1 = new Panel();
         pz1.add(lz1);
         pz1.add(tz1);
         gd.addPanel(pz1);
 
         gd.addNumericField("Threshold_channel_2 (0 to 1)", Analysis.p.thresholdcellmasky, 4);
 
-        Panel p2 = new Panel();
+        final Panel p2 = new Panel();
         p2.add(l2);
         p2.add(t2);
         gd.addPanel(p2);
 
-        Panel pz2 = new Panel();
+        final Panel pz2 = new Panel();
         pz2.add(lz2);
         pz2.add(tz2);
         gd.addPanel(pz2);
@@ -154,7 +154,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
         val2 = new Double((v2.getText()));
 
         if (imgch1 != null) {
-            int nslices = imgch1.getNSlices();
+            final int nslices = imgch1.getNSlices();
             if (nslices > 1) {
                 ns1 = imgch1.getSlice();
                 tz1.setMinimum(1);
@@ -171,7 +171,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
         }
 
         if (imgch2 != null) {
-            int nslices = imgch2.getNSlices();
+            final int nslices = imgch2.getNSlices();
             if (nslices > 1) {
                 ns2 = imgch2.getSlice();
                 tz2.setMinimum(1);
@@ -248,11 +248,11 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
     @Override
     public void itemStateChanged(ItemEvent e) {
-        Object source = e.getSource(); // Identify checkbox that was clicked
+        final Object source = e.getSource(); // Identify checkbox that was clicked
 
         boxval = true;
         if (source == m1) {
-            boolean b = m1.getState();
+            final boolean b = m1.getState();
             if (b) {
                 if (imgch1 != null) {
                     if (maska_im1 == null) {
@@ -277,7 +277,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
         }
 
         if (source == m2) {
-            boolean b = m2.getState();
+            final boolean b = m2.getState();
             if (b) {
                 if (imgch2 != null) {
                     if (maska_im2 == null) {
@@ -308,46 +308,46 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
     @Override
     public void textValueChanged(TextEvent e) {
-        Object source = e.getSource();
+        final Object source = e.getSource();
 
         if (!boxval && !sliderval) {// prevents looped calls
             fieldval = true;
             if (source == v1 && init1) {
-                double v = new Double((v1.getText()));
+                final double v = new Double((v1.getText()));
                 if (!sliderval && val1 != v && !refreshing) {
                     val1 = v;
                     previewBinaryCellMask(v, imgch1, maska_im1, 1);
-                    int vv = (int) (logvalue(v));
+                    final int vv = (int) (logvalue(v));
                     t1.setValue(vv);
 
                 }
 
             }
             else if (source == v2 && init2) {
-                double v = new Double((v2.getText()));
+                final double v = new Double((v2.getText()));
                 if (!sliderval && val2 != v && !refreshing) {
                     val2 = v;
                     previewBinaryCellMask(v, imgch2, maska_im2, 2);
-                    int vv = (int) (logvalue(v));
+                    final int vv = (int) (logvalue(v));
                     t2.setValue(vv);
 
                 }
             }
             else if (source == v1 && !init1) {
-                double v = new Double((v1.getText()));
+                final double v = new Double((v1.getText()));
                 if (!sliderval) {
 
-                    int vv = (int) (logvalue(v));
+                    final int vv = (int) (logvalue(v));
                     t1.setValue(vv);
 
                 }
 
             }
             else if (source == v2 && !init2) {
-                double v = new Double((v2.getText()));
+                final double v = new Double((v2.getText()));
                 if (!sliderval) {
 
-                    int vv = (int) (logvalue(v));
+                    final int vv = (int) (logvalue(v));
                     t2.setValue(vv);
 
                 }
@@ -359,7 +359,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
     @Override
     public void stateChanged(ChangeEvent e) {
-        Object origin = e.getSource();
+        final Object origin = e.getSource();
 
         if (origin == tz1 && maska_im1 != null) {
             maska_im1.setZ(tz1.getValue());
@@ -376,8 +376,8 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
         if (!boxval && !fieldval) {// prevents looped calls
             sliderval = true;
             if (origin == t1 && init1 && !t1.getValueIsAdjusting()) {
-                double value = t1.getValue();
-                double vv = expvalue(value);
+                final double value = t1.getValue();
+                final double vv = expvalue(value);
 
                 if (!fieldval && val1 != vv) {
                     v1.setText(String.format(Locale.US, "%.4f", vv));
@@ -388,8 +388,8 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
             }
 
             if ((origin == t1 && init1 && t1.getValueIsAdjusting()) || (origin == t1 && !init1)) {
-                double value = t1.getValue();
-                double vv = expvalue(value);
+                final double value = t1.getValue();
+                final double vv = expvalue(value);
                 if (!fieldval) {
                     v1.setText(String.format(Locale.US, "%.4f", vv));
                 }
@@ -397,8 +397,8 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
             }
 
             if (origin == t2 && init2 && !t2.getValueIsAdjusting()) {
-                double value = t2.getValue();
-                double vv = expvalue(value);
+                final double value = t2.getValue();
+                final double vv = expvalue(value);
                 if (!fieldval && val2 != vv) {
                     v2.setText(String.format(Locale.US, "%.4f", vv));
                     previewBinaryCellMask(vv, imgch2, maska_im2, 2);
@@ -408,8 +408,8 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
             }
 
             if ((origin == t2 && init2 && t2.getValueIsAdjusting()) || (origin == t2 && !init2)) {
-                double value = t2.getValue();
-                double vv = expvalue(value);
+                final double value = t2.getValue();
+                final double vv = expvalue(value);
                 if (!fieldval) {
                     v2.setText(String.format(Locale.US, "%.4f", vv));
                 }
@@ -474,7 +474,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
     // compute and display cell mask
     private void previewBinaryCellMask(double threshold_i, ImagePlus img, ImagePlus maska_im, int channel) {
 
-        int ns = img.getSlice();
+        final int ns = img.getSlice();
         double threshold;
 
         ImageProcessor imp;
@@ -486,12 +486,12 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
             threshold = threshold_i * (max2 - min2) + min2;
         }
 
-        ImageStack maska_ims = new ImageStack(ni, nj);
+        final ImageStack maska_ims = new ImageStack(ni, nj);
 
         for (int z = 0; z < nz; z++) {
             img.setSlice(z + 1);
             imp = img.getProcessor();
-            byte[] maska_bytes = new byte[ni * nj];
+            final byte[] maska_bytes = new byte[ni * nj];
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     if (imp.getPixel(i, j) > threshold) {
@@ -503,7 +503,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
                 }
             }
-            ByteProcessor bp = new ByteProcessor(ni, nj);
+            final ByteProcessor bp = new ByteProcessor(ni, nj);
             bp.setPixels(maska_bytes);
             maska_ims.addSlice("", bp);
         }

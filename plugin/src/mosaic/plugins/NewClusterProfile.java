@@ -56,7 +56,7 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
 
         fcp = new FileClusterProfile(null);
 
-        GenericDialog gd = new GenericDialog("New cluster profile");
+        final GenericDialog gd = new GenericDialog("New cluster profile");
 
         gd.setTitle("New cluster profile");
         if (cp != null)
@@ -67,9 +67,9 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
             gd.addStringField("run_dir", ((FileClusterProfile)cp).getRunningDirRaw());
 
             int totalq = 0;
-            for (hw hd : hw.values())
+            for (final hw hd : hw.values())
             {
-                QueueProfile[] qp = cp.getQueues(hd);
+                final QueueProfile[] qp = cp.getQueues(hd);
 
                 // Populate cq
 
@@ -80,12 +80,12 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
                 totalq += qp.length;
             }
 
-            String[] qs = new String[totalq];
+            final String[] qs = new String[totalq];
             int cnt = 0;
 
-            for (hw hd : hw.values())
+            for (final hw hd : hw.values())
             {
-                QueueProfile[] qp = cp.getQueues(hd);
+                final QueueProfile[] qp = cp.getQueues(hd);
                 for (int i = 0 ; i < qp.length ; i++)
                 {
                     qs[cnt] = qp[i].getqueue() + " " + qp[i].gethardware() + " " + qp[i].getlimit();
@@ -120,7 +120,7 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
             {
                 // Show the set queue window
 
-                GenericDialog gd = new GenericDialog("Set queue");
+                final GenericDialog gd = new GenericDialog("Set queue");
                 gd.addStringField("name", "");
                 gd.addNumericField("limit", 0.0,2);
                 gd.addStringField("hardware","CPU");
@@ -131,7 +131,7 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
                 {
                     // Store the queue profile
 
-                    QueueProfile q = new QueueProfile();
+                    final QueueProfile q = new QueueProfile();
                     q.setqueue(gd.getNextString());
                     q.setlimit(gd.getNextNumber());
                     q.sethardware(gd.getNextString());
@@ -165,12 +165,12 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
             {
                 // get the selected queue
 
-                int id = cc.get(1).getSelectedIndex();
-                QueueProfile q = cq.get(id);
+                final int id = cc.get(1).getSelectedIndex();
+                final QueueProfile q = cq.get(id);
 
                 // popup the window
 
-                GenericDialog gd = new GenericDialog("Set queue");
+                final GenericDialog gd = new GenericDialog("Set queue");
                 gd.addStringField("name", q.getqueue());
                 gd.addNumericField("limit", q.getlimit(),2);
                 gd.addStringField("hardware",q.gethardware());
@@ -213,7 +213,7 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
             {
                 // get the selected queue
 
-                int id = cc.get(1).getSelectedIndex();
+                final int id = cc.get(1).getSelectedIndex();
 
                 cq.remove(id);
 
@@ -242,13 +242,13 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                GenericDialog gd = new GenericDialog("Compression");
-                DataCompression dc = new DataCompression();
-                Vector<Algorithm> cl = dc.getCompressorList();
+                final GenericDialog gd = new GenericDialog("Compression");
+                final DataCompression dc = new DataCompression();
+                final Vector<Algorithm> cl = dc.getCompressorList();
 
                 // create compressor list
 
-                String [] compressors = new String[cl.size()];
+                final String [] compressors = new String[cl.size()];
                 for (int i = 0 ; i < cl.size() ; i++)
                 {
                     compressors[i] = cl.get(i).name;
@@ -260,7 +260,7 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
 
                 if (gd.wasOKed())
                 {
-                    String cmp = gd.getNextChoice();
+                    final String cmp = gd.getNextChoice();
 
                     fcp.setCompressorString(cmp);
 
@@ -294,8 +294,8 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                DataCompression dc = new DataCompression();
-                Vector<Algorithm> cl = dc.getCompressorList();
+                final DataCompression dc = new DataCompression();
+                final Vector<Algorithm> cl = dc.getCompressorList();
 
                 // Selected index
 
@@ -340,13 +340,13 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
             }
 
             ClusterGUI.createClusterProfileDir();
-            String dir = ClusterGUI.getClusterProfileDir() + File.separator + fcp.getProfileName() + ".csv";
+            final String dir = ClusterGUI.getClusterProfileDir() + File.separator + fcp.getProfileName() + ".csv";
             fcp.writeConfigFile(new File(dir));
         }
 
         // Reload cluster profiles
 
-        ClusterProfile[] cpA = ClusterGUI.getClusterProfiles();
+        final ClusterProfile[] cpA = ClusterGUI.getClusterProfiles();
 
         cpa.removeAll();
         for (int i = 0 ; i < cpA.length ; i++)
@@ -358,10 +358,10 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
     @Override
     public int setup(String arg0, ImagePlus arg1)
     {
-        GenericDialog gd = new GenericDialog("New/edit cluster profile");
+        final GenericDialog gd = new GenericDialog("New/edit cluster profile");
 
         final ClusterProfile[] cp = ClusterGUI.getClusterProfiles();
-        String cp_names[] = new String[cp.length];
+        final String cp_names[] = new String[cp.length];
 
         for (int i = 0 ; i < cp.length ; i++)
         {
@@ -400,7 +400,7 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                int id = cpa.getSelectedIndex();
+                final int id = cpa.getSelectedIndex();
                 popupClusterProfile(cp[id]);
             }
         });

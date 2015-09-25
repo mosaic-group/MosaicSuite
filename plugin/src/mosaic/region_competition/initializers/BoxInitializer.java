@@ -19,17 +19,17 @@ public class BoxInitializer extends Initializer {
      * @param r fraction of sizes of the guess
      */
     public void initRatio(double r) {
-        int[] region = dimensions.clone();
-        int[] ofs = dimensions.clone();
+        final int[] region = dimensions.clone();
+        final int[] ofs = dimensions.clone();
         for (int i = 0; i < dim; i++) {
             region[i] = (int) (region[i] * r);
             ofs[i] = (dimensions[i] - region[i]) / 2;
         }
 
-        int label = 1;
-        RegionIterator it = new RegionIterator(dimensions, region, ofs);
+        final int label = 1;
+        final RegionIterator it = new RegionIterator(dimensions, region, ofs);
         while (it.hasNext()) {
-            int idx = it.next();
+            final int idx = it.next();
             labelImage.setLabel(idx, label);
         }
     }

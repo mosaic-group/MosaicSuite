@@ -13,7 +13,7 @@ import mosaic.region_competition.Settings;
 
 public class OscillationDetection2 extends OscillationDetection {
 
-    private double alpha = 0.1; // exponential moving average factor
+    private final double alpha = 0.1; // exponential moving average factor
     // private double alpha2 = 0.01;
     // private double sum = 0;
 
@@ -23,7 +23,7 @@ public class OscillationDetection2 extends OscillationDetection {
 
     private boolean isFirstRound;
 
-    private int length = 10;
+    private final int length = 10;
     private double threshold = 0.02;
 
     public OscillationDetection2(Algorithm algo, Settings settings) {
@@ -44,7 +44,7 @@ public class OscillationDetection2 extends OscillationDetection {
     @Override
     public boolean DetectOscillations(HashMap<Point, ContourParticle> m_Candidates) {
         boolean result = false;
-        double sumNew = SumAllEnergies(m_Candidates);
+        final double sumNew = SumAllEnergies(m_Candidates);
 
         sums.add(sumNew);
 
@@ -53,14 +53,14 @@ public class OscillationDetection2 extends OscillationDetection {
             oldSumAvg = sumNew;
         }
 
-        double newSumAvg = alpha * sumNew + (1 - alpha) * oldSumAvg;
+        final double newSumAvg = alpha * sumNew + (1 - alpha) * oldSumAvg;
         sumsAvg.add(newSumAvg);
         sumAvg = newSumAvg;
 
-        double totstd = std(sumsAvg);
-        int n = sumsAvg.size();
-        int start = Math.max(0, n - length);
-        double winstd = std(sumsAvg.subList(start, n));
+        final double totstd = std(sumsAvg);
+        final int n = sumsAvg.size();
+        final int start = Math.max(0, n - length);
+        final double winstd = std(sumsAvg.subList(start, n));
 
         double fac = 1;
         if (!isFirstRound) {
@@ -81,7 +81,7 @@ public class OscillationDetection2 extends OscillationDetection {
     }
 
     private double mean(List<Double> data) {
-        int n = data.size();
+        final int n = data.size();
         double sum = 0;
         for (int i = 0; i < n; i++) {
             sum += data.get(i);
@@ -91,12 +91,12 @@ public class OscillationDetection2 extends OscillationDetection {
     }
 
     private double std(List<Double> data) {
-        double m = mean(data);
+        final double m = mean(data);
 
-        int n = data.size();
+        final int n = data.size();
         double sum = 0;
         for (int i = 0; i < n; i++) {
-            double d = m - data.get(i);
+            final double d = m - data.get(i);
             sum += (d * d);
         }
 

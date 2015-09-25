@@ -101,7 +101,7 @@ class ClusterStatusStack {
      */
 
     ImageStack CreateStack(JobStatus jb[]) {
-        ImageStack is = new ImageStack(200, 50);
+        final ImageStack is = new ImageStack(200, 50);
 
         for (int i = 0; i < jb.length; i++) {
             is.addSlice("Job " + i + 1, createResult(jb[i]));

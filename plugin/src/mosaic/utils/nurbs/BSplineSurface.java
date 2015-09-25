@@ -17,16 +17,16 @@ import net.jgeom.nurbs.util.InterpolationException;
 
  */
 public class BSplineSurface {
-    private int iDegreeInUdir;
-    private int iDegreeInVdir;
-    private int iOriginalU;
-    private int iOriginalV;
+    private final int iDegreeInUdir;
+    private final int iDegreeInVdir;
+    private final int iOriginalU;
+    private final int iOriginalV;
     double uMin;
     double vMin;
     double uMax;
     double vMax;
 
-    private Point3d[][] iPoints;
+    private final Point3d[][] iPoints;
 
     private BasicNurbsSurface iSurface;
     private int iCoeffLenU;
@@ -59,20 +59,20 @@ public class BSplineSurface {
 
         // TODO: add some check for provided parameters or decide not to :-)
 
-        double iOriginalStepU = (uMax - uMin) / (iOriginalU - 1);
-        double iOriginalStepV = (vMax - vMin) / (iOriginalV - 1);
+        final double iOriginalStepU = (uMax - uMin) / (iOriginalU - 1);
+        final double iOriginalStepV = (vMax - vMin) / (iOriginalV - 1);
 
-        int noOfStepsU = (int)(iOriginalU / aScaleU);
-        int noOfStepsV = (int)(iOriginalV / aScaleV);
+        final int noOfStepsU = (int)(iOriginalU / aScaleU);
+        final int noOfStepsV = (int)(iOriginalV / aScaleV);
 
-        double iStepU = (uMax - uMin) / (noOfStepsU - 1);
-        double iStepV = (vMax - vMin) / (noOfStepsV - 1);
+        final double iStepU = (uMax - uMin) / (noOfStepsU - 1);
+        final double iStepV = (vMax - vMin) / (noOfStepsV - 1);
 
         iPoints = new Point3d[noOfStepsU][noOfStepsV];
         for (int u = 0; u < noOfStepsU; ++u) {
             for (int v = 0; v < noOfStepsV; ++v) {
 
-                double uVal = u * iStepU + uMin;
+                final double uVal = u * iStepU + uMin;
 
                 int maxu=0;
                 int minu=0;
@@ -85,9 +85,9 @@ public class BSplineSurface {
                         break;
                     }
                 }
-                double shiftu = uVal - (minu * iStepU + uMin);
+                final double shiftu = uVal - (minu * iStepU + uMin);
 
-                double vVal = v * iStepV + vMin;
+                final double vVal = v * iStepV + vMin;
                 int maxv = 0;
                 int minv = 0;
                 for (int w = 0 ; w < iOriginalV; ++w) {
@@ -99,15 +99,15 @@ public class BSplineSurface {
                         break;
                     }
                 }
-                double shiftv = vVal - (minv * iStepV + vMin);
+                final double shiftv = vVal - (minv * iStepV + vMin);
 
-                double u11 = aPoints[minu][minv];
-                double u12 = aPoints[minu][maxv];
-                double u21 = aPoints[maxu][minv];
-                double u22 = aPoints[maxu][maxv];
+                final double u11 = aPoints[minu][minv];
+                final double u12 = aPoints[minu][maxv];
+                final double u21 = aPoints[maxu][minv];
+                final double u22 = aPoints[maxu][maxv];
                 // u11 u21
                 // u12 u22
-                double realV = (u21 * shiftu + u11 * (1-shiftu)) * (1 - shiftv) + (u22 * shiftu + u12 * (1-shiftu)) * shiftv;
+                final double realV = (u21 * shiftu + u11 * (1-shiftu)) * (1 - shiftv) + (u22 * shiftu + u12 * (1-shiftu)) * shiftv;
 
                 iPoints[u][v] = new Point3d(u * iStepU + uMin, v * iStepV + vMin, realV);
             }
@@ -118,8 +118,8 @@ public class BSplineSurface {
 
     public double getValue(double u, double v) {
 
-        double us =  (u - uMin)/(uMax - uMin);
-        double vs =  (v - vMin)/(vMax - vMin);
+        final double us =  (u - uMin)/(uMax - uMin);
+        final double vs =  (v - vMin)/(vMax - vMin);
 
         return iSurface.pointOnSurface(us, vs).z;
     }
@@ -130,13 +130,13 @@ public class BSplineSurface {
      * @return
      */
     public BSplineSurface normalizeCoefficients(double aMultiplier) {
-        double[][] coeff = getCoefficients();
+        final double[][] coeff = getCoefficients();
 
         // Find maximum (absolute) value of coefficient
         double max = 0;
         for (int u = 0; u < iCoeffLenU; ++u) {
             for (int v = 0; v < iCoeffLenV; ++v) {
-                double val = Math.abs(coeff[u][v]);
+                final double val = Math.abs(coeff[u][v]);
                 if (val > max) {
                     max = val;
                 }
@@ -161,7 +161,7 @@ public class BSplineSurface {
      * @return 2D array [u][v]-directions
      */
     public double[][] getCoefficients() {
-        double[][] coeff = new double[iCoeffLenU][iCoeffLenV];
+        final double[][] coeff = new double[iCoeffLenU][iCoeffLenV];
 
         for (int u = 0; u < iCoeffLenU; u++) {
             for (int v = 0; v < iCoeffLenV; v++) {
@@ -179,7 +179,7 @@ public class BSplineSurface {
     public void setCoefficients(double[][] aCoefficients) {
         for (int u = 0; u < iCoeffLenU; u++) {
             for (int v = 0; v < iCoeffLenV; v++) {
-                ControlPoint4f cp = iCtrlNet.get(u, v);
+                final ControlPoint4f cp = iCtrlNet.get(u, v);
                 cp.z =  aCoefficients[u][v];
                 iCtrlNet.set(u, v, cp);
             }
@@ -196,13 +196,13 @@ public class BSplineSurface {
 
 
         System.out.println("------------------------------");
-        ControlNet cn = iSurface.getControlNet();
-        int uLength = cn.uLength();
-        int vLength = cn.vLength();
+        final ControlNet cn = iSurface.getControlNet();
+        final int uLength = cn.uLength();
+        final int vLength = cn.vLength();
 
         System.out.println("Number coefficients in direction u:" + uLength + " v: " + vLength);
 
-        double[] coefs = new double[uLength];
+        final double[] coefs = new double[uLength];
         for (int v = 0; v < vLength; v++) {
             for (int u = 0; u < uLength; u++) {
                 coefs[u] = cn.get(u, v).z;
@@ -211,15 +211,15 @@ public class BSplineSurface {
         }
 
         System.out.println("------------------------------");
-        double[] uKnots = iSurface.getUKnots();
-        double[] uk = new double[uKnots.length];
+        final double[] uKnots = iSurface.getUKnots();
+        final double[] uk = new double[uKnots.length];
         for (int i = 0; i < uKnots.length; ++i) {
             uk[i] = uKnots[i] * (uMax - uMin) + uMin;
         }
         System.out.println("u-knots[" + uk.length + "] = " + Arrays.toString(uk));
 
-        double[] vKnots = iSurface.getVKnots();
-        double[] vk = new double[vKnots.length];
+        final double[] vKnots = iSurface.getVKnots();
+        final double[] vk = new double[vKnots.length];
         for (int i = 0; i < vKnots.length; ++i) {
             vk[i] = vKnots[i] * (vMax - vMin) + vMin;
         }
@@ -238,11 +238,11 @@ public class BSplineSurface {
      * @return
      */
     public BSplineSurface showMatlabCode(double aScaleU, double aScaleV) { // NO_UCD (unused code)
-        int noOfStepsU = (int)(iOriginalU / aScaleU);
-        int noOfStepsV = (int)(iOriginalV / aScaleV);
+        final int noOfStepsU = (int)(iOriginalU / aScaleU);
+        final int noOfStepsV = (int)(iOriginalV / aScaleV);
 
-        double iStepU = (uMax - uMin) / (noOfStepsU - 1);
-        double iStepV = (vMax - vMin) / (noOfStepsV - 1);
+        final double iStepU = (uMax - uMin) / (noOfStepsU - 1);
+        final double iStepV = (vMax - vMin) / (noOfStepsV - 1);
 
         String xv = "\nx = [ ";
         for (int u = 0; u < noOfStepsU; ++u) {
@@ -263,8 +263,8 @@ public class BSplineSurface {
         String zv = "z = [ ";
         for (int v = 0; v < noOfStepsV; ++v) {
             for (int u = 0; u < noOfStepsU; ++u) {
-                double us = uMin + u * iStepU;
-                double vs = vMin + v * iStepV;
+                final double us = uMin + u * iStepU;
+                final double vs = vMin + v * iStepV;
                 zv += getValue(us, vs);
                 zv += " ";
             }

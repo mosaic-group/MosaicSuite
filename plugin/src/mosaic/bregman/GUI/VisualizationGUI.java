@@ -35,15 +35,15 @@ public class VisualizationGUI {
     }
 
     public static int getParameters() {
-        Font bf = new Font(null, Font.BOLD, 12);
+        final Font bf = new Font(null, Font.BOLD, 12);
 
-        GenericDialog gd = new GenericDialog("Visualization and output options");
+        final GenericDialog gd = new GenericDialog("Visualization and output options");
 
         gd.setInsets(-10, 0, 3);
         gd.addMessage("Visualization and output", bf);
 
-        String sgroup2[] = { "Intermediate_steps", "Colored_objects", "Objects_intensities", "Labeled_objects", "Outlines_overlay", "Soft_Mask", "Save_objects_characteristics", };
-        boolean bgroup2[] = { false, false, false, false, false, false, false };
+        final String sgroup2[] = { "Intermediate_steps", "Colored_objects", "Objects_intensities", "Labeled_objects", "Outlines_overlay", "Soft_Mask", "Save_objects_characteristics", };
+        final boolean bgroup2[] = { false, false, false, false, false, false, false };
 
         bgroup2[0] = Analysis.p.livedisplay;
         bgroup2[1] = Analysis.p.dispcolors;
@@ -63,13 +63,13 @@ public class VisualizationGUI {
         //
         // gd.addCheckbox("Save object data in .csv file and save images", false);
 
-        Button b = new Button("Output options");
+        final Button b = new Button("Output options");
         b.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
 
-                OutputGUI og = new OutputGUI();
+                final OutputGUI og = new OutputGUI();
 
                 CSVOutput.occ = (SquasshOutputChoose) og.visualizeOutput(CSVOutput.oc, Analysis.p.oc_s);
             }
@@ -83,8 +83,8 @@ public class VisualizationGUI {
 
         gd.addNumericField("Number of conditions", Analysis.p.nbconditions, 0);
 
-        Button rscript = new Button("Set condition names and number of images per condition");
-        Panel p = new Panel();
+        final Button rscript = new Button("Set condition names and number of images per condition");
+        final Panel p = new Panel();
         p.add(rscript);
         rscript.addActionListener(new RScriptListener(gd, 0, 0));
 

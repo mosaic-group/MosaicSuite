@@ -100,9 +100,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
             }
         }
 
-        RandomAccess<S> out_a = out.randomAccess();
+        final RandomAccess<S> out_a = out.randomAccess();
 
-        int sz[] = new int [out_a.numDimensions()];
+        final int sz[] = new int [out_a.numDimensions()];
 
         for ( int d = 0; d < out_a.numDimensions(); ++d )
         {
@@ -111,13 +111,13 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         // Iterate on all particles
 
-        double radius = p_radius;
+        final double radius = p_radius;
 
         // Create a circle Mask and an iterator
 
         RegionIteratorMask rg_m = null;
 
-        float min_s = MyFrame.minScaling(cal);
+        final float min_s = MyFrame.minScaling(cal);
         Integer rc = (int) (radius / min_s);
         for (int i = 0 ; i < out.numDimensions() ; i++)
         {
@@ -138,11 +138,11 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         }
 
 
-        Point ptt = pt;
+        final Point ptt = pt;
 
         // Draw the Sphere
 
-        Point p_c = new Point(ptt);
+        final Point p_c = new Point(ptt);
         p_c.div(cal);
 
         rg_m.setMidPoint(p_c);
@@ -151,7 +151,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         while ( rg_m.hasNext() )
         {
-            Point p = rg_m.nextP();
+            final Point p = rg_m.nextP();
 
             if (p.isInside(sz))
             {
@@ -186,9 +186,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
             }
         }
 
-        RandomAccess<S> out_a = out.randomAccess();
+        final RandomAccess<S> out_a = out.randomAccess();
 
-        int sz[] = new int [out_a.numDimensions()];
+        final int sz[] = new int [out_a.numDimensions()];
 
         for ( int d = 0; d < out_a.numDimensions(); ++d )
         {
@@ -197,13 +197,13 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         // Iterate on all particles
 
-        double radius = p_radius;
+        final double radius = p_radius;
 
         // Create a circle Mask and an iterator
 
         RegionIteratorMask rg_m = null;
 
-        float min_s = MyFrame.minScaling(cal);
+        final float min_s = MyFrame.minScaling(cal);
         int rc = (int) (radius / min_s);
         for (int i = 0 ; i < out.numDimensions() ; i++)
         {
@@ -223,22 +223,22 @@ public class RegionCreator implements PlugInFilter // NO_UCD
             throw new RuntimeException();
         }
 
-        Iterator<Point> pt_it = pt.iterator();
+        final Iterator<Point> pt_it = pt.iterator();
 
         while (pt_it.hasNext())
         {
-            Point ptt = pt_it.next();
+            final Point ptt = pt_it.next();
 
             // Draw the Sphere
 
-            Point p_c = new Point(ptt);
+            final Point p_c = new Point(ptt);
             p_c.div(cal);
 
             rg_m.setMidPoint(p_c);
 
             while ( rg_m.hasNext() )
             {
-                Point p = rg_m.nextP();
+                final Point p = rg_m.nextP();
 
                 if (p.isInside(sz))
                 {
@@ -271,9 +271,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
             }
         }
 
-        RandomAccess<S> out_a = out.randomAccess();
+        final RandomAccess<S> out_a = out.randomAccess();
 
-        int sz[] = new int [out_a.numDimensions()];
+        final int sz[] = new int [out_a.numDimensions()];
 
         for ( int d = 0; d < out_a.numDimensions(); ++d )
         {
@@ -282,13 +282,13 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         // Iterate on all particles
 
-        double radius = p_radius;
+        final double radius = p_radius;
 
         // Create a circle Mask and an iterator
 
         RegionIteratorMask rg_m = null;
 
-        float min_s = MyFrame.minScaling(cal);
+        final float min_s = MyFrame.minScaling(cal);
         int rc = (int) (radius / min_s);
         for (int i = 0 ; i < out.numDimensions() ; i++)
         {
@@ -308,24 +308,24 @@ public class RegionCreator implements PlugInFilter // NO_UCD
             throw new RuntimeException();
         }
 
-        Iterator<Point> pt_it = pt.iterator();
-        Iterator<S> int_it = intensity.iterator();
+        final Iterator<Point> pt_it = pt.iterator();
+        final Iterator<S> int_it = intensity.iterator();
 
         while (pt_it.hasNext())
         {
-            Point ptt = pt_it.next();
-            S inte = int_it.next();
+            final Point ptt = pt_it.next();
+            final S inte = int_it.next();
 
             // Draw the Sphere
 
-            Point p_c = new Point(ptt);
+            final Point p_c = new Point(ptt);
             p_c.div(cal);
 
             rg_m.setMidPoint(p_c);
 
             while ( rg_m.hasNext() )
             {
-                Point p = rg_m.nextP();
+                final Point p = rg_m.nextP();
 
                 if (p.isInside(sz))
                 {
@@ -353,9 +353,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         final ImgFactory< T > imgFactory = new ArrayImgFactory< T >();
         try {
             out = imgFactory.create(Image_sz, cls.newInstance());
-        } catch (InstantiationException e) {
+        } catch (final InstantiationException e) {
             e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (final IllegalAccessException e) {
             e.printStackTrace();
         }
 
@@ -384,7 +384,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
             {break;}
         }
 
-        int [] gs = new int[szi];
+        final int [] gs = new int[szi];
 
         // Calculate the number of grid point
 
@@ -428,9 +428,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
     void FillGridPoint(Point p[], int i[], int spacing)
     {
         int cnt = 0;
-        RegionIterator rg = new RegionIterator(i);
+        final RegionIterator rg = new RegionIterator(i);
 
-        Point t = new Point(i.length);
+        final Point t = new Point(i.length);
         for (int s = 0 ; s < i.length ; s++)
         {
             t.x[s] = 1;
@@ -467,13 +467,13 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         // Vector if output region
 
-        Vector<Region3DTrack> pt_r = new Vector<Region3DTrack>();
+        final Vector<Region3DTrack> pt_r = new Vector<Region3DTrack>();
 
         // Grid of possible region
 
-        Img<T> out = createImage(cls);
+        final Img<T> out = createImage(cls);
 
-        Cursor<T> c = out.cursor();
+        final Cursor<T> c = out.cursor();
         while (c.hasNext())
         {
             c.next();
@@ -490,7 +490,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
             int gs[] = null;
             gs = calculateGridPoint(2*max_radius + 1);
-            long np = totalGridPoint(gs);
+            final long np = totalGridPoint(gs);
             if (np == 0)
             {
                 IJ.error("The size of the image is too small or the region too big");
@@ -503,7 +503,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
                 return;
             }
 
-            Point p[] = new Point[(int)np];
+            final Point p[] = new Point[(int)np];
             FillGridPoint(p,gs,2*max_radius+1);
 
             // shuffle
@@ -512,38 +512,38 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
             // Create a view of out fixing frame
 
-            IntervalView<T> vti = Views.hyperSlice(out, Image_sz.length-1, i);
+            final IntervalView<T> vti = Views.hyperSlice(out, Image_sz.length-1, i);
 
             // Draw spheres with radius and intensities
 
             for (int k = 0 ; k < N_region ; k++)
             {
-                double max_it = max_int.getRealDouble();
-                double min_it = min_int.getRealDouble();
-                double max_r = max_radius;
-                double min_r = min_radius;
-                Random r = new Random();
+                final double max_it = max_int.getRealDouble();
+                final double min_it = min_int.getRealDouble();
+                final double max_r = max_radius;
+                final double min_r = min_radius;
+                final Random r = new Random();
                 T inte_a = null;
                 try {
                     inte_a = cls.newInstance();
-                } catch (InstantiationException e) {
+                } catch (final InstantiationException e) {
                     e.printStackTrace();
                     throw new RuntimeException();
-                } catch (IllegalAccessException e) {
+                } catch (final IllegalAccessException e) {
                     e.printStackTrace();
                     throw new RuntimeException();
                 }
                 inte_a.setReal(min_it + (max_it - min_it) * r.nextDouble());
-                int radius = (int) (min_r + (max_r - min_r) * r.nextDouble());
+                final int radius = (int) (min_r + (max_r - min_r) * r.nextDouble());
 
-                Region3DTrack tmp = new Region3DTrack();
+                final Region3DTrack tmp = new Region3DTrack();
 
                 // Add a Noise to the position (ensuring that region does not touch)
 
-                double dif = (int) (max_r - radius);
+                final double dif = (int) (max_r - radius);
 
                 double tot = 0;
-                float x[] = new float [Image_sz.length-1];
+                final float x[] = new float [Image_sz.length-1];
                 for (int s = 0 ; s < Image_sz.length - 1 ; s++)
                 {
                     x[s] = r.nextFloat();
@@ -558,7 +558,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
                     p[k].x[s] += x[s];
                 }
 
-                int nsp = drawSphereWithRadius(vti,p[k],Spacing,inte_a,radius);
+                final int nsp = drawSphereWithRadius(vti,p[k],Spacing,inte_a,radius);
 
                 tmp.setData(p[k]);
                 tmp.setSize(nsp);
@@ -582,7 +582,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         // Output ground thruth
 
-        CSV<Region3DTrack> P_csv = new CSV<Region3DTrack>(Region3DTrack.class);
+        final CSV<Region3DTrack> P_csv = new CSV<Region3DTrack>(Region3DTrack.class);
 
         // get output folder
 
@@ -591,7 +591,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         //
 
-        CsvColumnConfig oc = new CsvColumnConfig(CSVOutput.Region3DTrack_map, CSVOutput.getRegion3DTrackCellProcessor());
+        final CsvColumnConfig oc = new CsvColumnConfig(CSVOutput.Region3DTrack_map, CSVOutput.getRegion3DTrackCellProcessor());
 
         P_csv.Write(output, pt_r, oc, false);
     }
@@ -601,9 +601,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
     {
         if (imageT.equals("8-bit"))
         {
-            UnsignedByteType bck = new UnsignedByteType();
-            UnsignedByteType max_int = new UnsignedByteType();
-            UnsignedByteType min_int = new UnsignedByteType();
+            final UnsignedByteType bck = new UnsignedByteType();
+            final UnsignedByteType max_int = new UnsignedByteType();
+            final UnsignedByteType min_int = new UnsignedByteType();
             bck.setReal(Background);
             max_int.setReal(Max_intensity);
             min_int.setReal(Min_intensity);
@@ -611,9 +611,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         }
         else if (imageT.equals("16-bit"))
         {
-            ShortType bck = new ShortType();
-            ShortType max_int = new ShortType();
-            ShortType min_int = new ShortType();
+            final ShortType bck = new ShortType();
+            final ShortType max_int = new ShortType();
+            final ShortType min_int = new ShortType();
             bck.setReal(Background);
             max_int.setReal(Max_intensity);
             min_int.setReal(Min_intensity);
@@ -621,9 +621,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         }
         else if (imageT.equals("float"))
         {
-            FloatType bck = new FloatType();
-            FloatType max_int = new FloatType();
-            FloatType min_int = new FloatType();
+            final FloatType bck = new FloatType();
+            final FloatType max_int = new FloatType();
+            final FloatType min_int = new FloatType();
             bck.setReal(Background);
             max_int.setReal(Max_intensity);
             min_int.setReal(Min_intensity);
@@ -643,9 +643,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         /* get user defined params and set more initial params accordingly 	*/
 
-        GenericDialog gd = new GenericDialog("Region creator");
+        final GenericDialog gd = new GenericDialog("Region creator");
 
-        String nsn[] = {"Poisson"};
+        final String nsn[] = {"Poisson"};
 
         gd.addNumericField("Background: ", 7, 3);
         gd.addNumericField("Max_radius", 10.0, 0);
@@ -677,7 +677,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
             }
         });
 
-        String nsc[] = {"Gauss"};
+        final String nsc[] = {"Gauss"};
 
         gd.addChoice("Blur", nsc, nsc[0]);
         cConv = (Choice)gd.getChoices().lastElement();
@@ -717,7 +717,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         Max_intensity = (int) gd.getNextNumber();
         Min_intensity = (int) gd.getNextNumber();
 
-        long[] tmp = new long[4];
+        final long[] tmp = new long[4];
         tmp[3] = (long) gd.getNextNumber();
         tmp[0] = (long) gd.getNextNumber();
         tmp[1] = (long) gd.getNextNumber();

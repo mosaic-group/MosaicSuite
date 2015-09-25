@@ -26,8 +26,8 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
 
     }
 
-    private Point3d[] X, Y; // unfiltered points
-    private double x1, x2, y1, y2, z1, z2; // ask for users input, if no mask. currently, force mask for csv.
+    private final Point3d[] X, Y; // unfiltered points
+    private final double x1, x2, y1, y2, z1, z2; // ask for users input, if no mask. currently, force mask for csv.
     boolean boundarySet = false;
 
     @Override
@@ -68,8 +68,8 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
 
     {
 
-        Vector<Point3d> vectorPoints = new Vector<Point3d>();
-        double[] coords = new double[3];
+        final Vector<Point3d> vectorPoints = new Vector<Point3d>();
+        final double[] coords = new double[3];
         int count = 0;
         for (int i = 0; i < points.length; i++) {
             points[i].get(coords);

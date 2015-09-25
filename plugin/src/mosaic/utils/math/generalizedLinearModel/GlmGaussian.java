@@ -29,7 +29,7 @@ public class GlmGaussian implements Glm {
         // MATLAB:
         // nll = weights.*(image-mu).^2;
         // snll = sum(nll(:));
-        Matrix nll = new Matrix(aImage).sub(aMu).pow2().elementMult(aWeights);
+        final Matrix nll = new Matrix(aImage).sub(aMu).pow2().elementMult(aWeights);
         return nll.sum();
     }
 

@@ -19,19 +19,19 @@ public class BilinearInterpolator extends PixelInterpolator {
 
     @Override
     public double getInterpolatedPixel(Point2D pnt) {
-        double x = pnt.getX();
-        double y = pnt.getY();
-        int u = (int) Math.floor(x);
-        int v = (int) Math.floor(y);
-        double a = x - u;
-        double b = y - v;
-        int A = ip.getPixel(u, v);
-        int B = ip.getPixel(u + 1, v);
-        int C = ip.getPixel(u, v + 1);
-        int D = ip.getPixel(u + 1, v + 1);
-        double E = A + a * (B - A);
-        double F = C + a * (D - C);
-        double G = E + b * (F - E);
+        final double x = pnt.getX();
+        final double y = pnt.getY();
+        final int u = (int) Math.floor(x);
+        final int v = (int) Math.floor(y);
+        final double a = x - u;
+        final double b = y - v;
+        final int A = ip.getPixel(u, v);
+        final int B = ip.getPixel(u + 1, v);
+        final int C = ip.getPixel(u, v + 1);
+        final int D = ip.getPixel(u + 1, v + 1);
+        final double E = A + a * (B - A);
+        final double F = C + a * (D - C);
+        final double G = E + b * (F - E);
         return G;
     }
 

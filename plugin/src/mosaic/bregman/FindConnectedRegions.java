@@ -81,18 +81,16 @@ class FindConnectedRegions {
         if (minvesiclesize < 0) {
             minvesiclesize = 0;
         }
-        boolean diagonal = false;
-        boolean display = false;
-        boolean showResults = false;
-        boolean mustHaveSameValue = false;
-        boolean startFromPointROI = false;
-        boolean autoSubtract = false;
-        double valuesOverDouble = threshold;
-        double minimumPointsInRegionDouble = minvesiclesize;
-        int stopAfterNumberOfRegions = -1;
+        final boolean diagonal = false;
+        final boolean display = false;
+        final boolean showResults = false;
+        final boolean autoSubtract = false;
+        final double valuesOverDouble = threshold;
+        final double minimumPointsInRegionDouble = minvesiclesize;
 
-        // IJ.log("thres" + valuesOverDouble);
-        // ImageCalculator iCalc = new ImageCalculator();
+        int stopAfterNumberOfRegions = -1;
+        boolean startFromPointROI = false;
+        boolean mustHaveSameValue = false;
 
         // ImagePlus imagePlus = IJ.getImage();
         if (imagePlus == null) {
@@ -100,7 +98,7 @@ class FindConnectedRegions {
             return;
         }
 
-        int type = imagePlus.getType();
+        final int type = imagePlus.getType();
 
         if (!(ImagePlus.GRAY8 == type || ImagePlus.COLOR_256 == type || ImagePlus.GRAY32 == type)) {
             IJ.error("The image must be either 8 bit or 32 bit for this plugin.");
@@ -117,7 +115,7 @@ class FindConnectedRegions {
             return;
         }
 
-        boolean startAtMaxValue = !mustHaveSameValue;
+        final boolean startAtMaxValue = !mustHaveSameValue;
 
         int point_roi_x = -1;
         int point_roi_y = -1;
@@ -125,7 +123,7 @@ class FindConnectedRegions {
 
         if (startFromPointROI) {
 
-            Roi roi = imagePlus.getRoi();
+            final Roi roi = imagePlus.getRoi();
             if (roi == null) {
                 IJ.error("There's no point selected in the image.");
                 return;
@@ -134,7 +132,7 @@ class FindConnectedRegions {
                 IJ.error("There's a selection in the image, but it's not a point selection.");
                 return;
             }
-            Polygon p = roi.getPolygon();
+            final Polygon p = roi.getPolygon();
             if (p.npoints > 1) {
                 IJ.error("You can only have one point selected.");
                 return;
@@ -147,9 +145,9 @@ class FindConnectedRegions {
             System.out.println("Fetched ROI with co-ordinates: " + p.xpoints[0] + ", " + p.ypoints[0]);
         }
 
-        int width = imagePlus.getWidth();
-        int height = imagePlus.getHeight();
-        int depth = imagePlus.getStackSize();
+        final int width = imagePlus.getWidth();
+        final int height = imagePlus.getHeight();
+        final int depth = imagePlus.getStackSize();
 
         if (maxvesiclesize < 0) {
             maxvesiclesize = width * height * depth;
@@ -160,7 +158,7 @@ class FindConnectedRegions {
             return;
         }
 
-        ImageStack stack = imagePlus.getStack();
+        final ImageStack stack = imagePlus.getStack();
 
         byte[][] sliceDataBytes = null;
         float[][] sliceDataFloats = null;
@@ -168,14 +166,14 @@ class FindConnectedRegions {
         if (byteImage) {
             sliceDataBytes = new byte[depth][];
             for (int z = 0; z < depth; ++z) {
-                ByteProcessor bp = (ByteProcessor) stack.getProcessor(z + 1);
+                final ByteProcessor bp = (ByteProcessor) stack.getProcessor(z + 1);
                 sliceDataBytes[z] = (byte[]) bp.getPixelsCopy();
             }
         }
         else {
             sliceDataFloats = new float[depth][];
             for (int z = 0; z < depth; ++z) {
-                FloatProcessor bp = (FloatProcessor) stack.getProcessor(z + 1);
+                final FloatProcessor bp = (FloatProcessor) stack.getProcessor(z + 1);
                 sliceDataFloats[z] = (float[]) bp.getPixelsCopy();
             }
         }
@@ -191,7 +189,7 @@ class FindConnectedRegions {
         // cm = stack.getColorModel();
         // }
 
-        ResultsTable rt = ResultsTable.getResultsTable();
+        final ResultsTable rt = ResultsTable.getResultsTable();
         rt.reset();
 
         // CancelDialog cancelDialog=new CancelDialog(this);
@@ -242,7 +240,7 @@ class FindConnectedRegions {
                 for (int z = 0; z < depth; ++z) {
                     for (int y = 0; y < height; ++y) {
                         for (int x = 0; x < width; ++x) {
-                            int value = sliceDataBytes[z][y * width + x] & 0xFF;
+                            final int value = sliceDataBytes[z][y * width + x] & 0xFF;
                             // if (x==78 && y==415){IJ.log("value " + value +
                             // "tr" + tr[z][x][y]);}
                             if (value > maxValueInt && value > tr[z][x][y] && value > minInt) {
@@ -275,7 +273,7 @@ class FindConnectedRegions {
                 for (int z = 0; z < depth && foundValueInt == -1; ++z) {
                     for (int y = 0; y < height && foundValueInt == -1; ++y) {
                         for (int x = 0; x < width; ++x) {
-                            int value = sliceDataBytes[z][y * width + x] & 0xFF;
+                            final int value = sliceDataBytes[z][y * width + x] & 0xFF;
                             if (value > tr[z][x][y]) {// valuesOverDouble) {
 
                                 initial_x = x;
@@ -301,7 +299,7 @@ class FindConnectedRegions {
                 for (int z = 0; z < depth; ++z) {
                     for (int y = 0; y < height; ++y) {
                         for (int x = 0; x < width; ++x) {
-                            float value = sliceDataFloats[z][y * width + x];
+                            final float value = sliceDataFloats[z][y * width + x];
                             if (value > tr[z][x][y]) {// valuesOverDouble) {
                                 initial_x = x;
                                 initial_y = y;
@@ -328,14 +326,14 @@ class FindConnectedRegions {
 
             firstTime = false;
 
-            int vint = foundValueInt;
+            final int vint = foundValueInt;
 
             int pointsInQueue = 0;
             int queueArrayLength = 1024;
             int[] queue = new int[queueArrayLength];
 
-            byte[] pointState = new byte[depth * width * height];
-            int i = width * (initial_z * height + initial_y) + initial_x;
+            final byte[] pointState = new byte[depth * width * height];
+            final int i = width * (initial_z * height + initial_y) + initial_x;
             pointState[i] = IN_QUEUE;
             queue[pointsInQueue++] = i;
 
@@ -348,13 +346,13 @@ class FindConnectedRegions {
                     break;
                 }
 
-                int nextIndex = queue[--pointsInQueue];
+                final int nextIndex = queue[--pointsInQueue];
 
-                int currentPointStateIndex = nextIndex;
-                int pz = nextIndex / (width * height);
-                int currentSliceIndex = nextIndex % (width * height);
-                int py = currentSliceIndex / width;
-                int px = currentSliceIndex % width;
+                final int currentPointStateIndex = nextIndex;
+                final int pz = nextIndex / (width * height);
+                final int currentSliceIndex = nextIndex % (width * height);
+                final int py = currentSliceIndex / width;
+                final int px = currentSliceIndex % width;
 
                 pointState[currentPointStateIndex] = ADDED;
 
@@ -366,21 +364,21 @@ class FindConnectedRegions {
                 }
                 ++pointsInThisRegion;
 
-                int x_unchecked_min = px - 1;
-                int y_unchecked_min = py - 1;
-                int z_unchecked_min = pz - 1;
+                final int x_unchecked_min = px - 1;
+                final int y_unchecked_min = py - 1;
+                final int z_unchecked_min = pz - 1;
 
-                int x_unchecked_max = px + 1;
-                int y_unchecked_max = py + 1;
-                int z_unchecked_max = pz + 1;
+                final int x_unchecked_max = px + 1;
+                final int y_unchecked_max = py + 1;
+                final int z_unchecked_max = pz + 1;
 
-                int x_min = (x_unchecked_min < 0) ? 0 : x_unchecked_min;
-                int y_min = (y_unchecked_min < 0) ? 0 : y_unchecked_min;
-                int z_min = (z_unchecked_min < 0) ? 0 : z_unchecked_min;
+                final int x_min = (x_unchecked_min < 0) ? 0 : x_unchecked_min;
+                final int y_min = (y_unchecked_min < 0) ? 0 : y_unchecked_min;
+                final int z_min = (z_unchecked_min < 0) ? 0 : z_unchecked_min;
 
-                int x_max = (x_unchecked_max >= width) ? width - 1 : x_unchecked_max;
-                int y_max = (y_unchecked_max >= height) ? height - 1 : y_unchecked_max;
-                int z_max = (z_unchecked_max >= depth) ? depth - 1 : z_unchecked_max;
+                final int x_max = (x_unchecked_max >= width) ? width - 1 : x_unchecked_max;
+                final int y_max = (y_unchecked_max >= height) ? height - 1 : y_unchecked_max;
+                final int z_max = (z_unchecked_max >= depth) ? depth - 1 : z_unchecked_max;
 
                 for (int z = z_min; z <= z_max; ++z) {
                     for (int y = y_min; y <= y_max; ++y) {
@@ -391,12 +389,12 @@ class FindConnectedRegions {
                             if ((!diagonal) && (x == x_unchecked_min || x == x_unchecked_max) && (y == y_unchecked_min || y == y_unchecked_max) && (z == z_unchecked_min || z == z_unchecked_max)) {
                                 continue;
                             }
-                            int newSliceIndex = y * width + x;
-                            int newPointStateIndex = width * (z * height + y) + x;
+                            final int newSliceIndex = y * width + x;
+                            final int newPointStateIndex = width * (z * height + y) + x;
 
                             if (byteImage) {
 
-                                int neighbourValue = sliceDataBytes[z][newSliceIndex] & 0xFF;
+                                final int neighbourValue = sliceDataBytes[z][newSliceIndex] & 0xFF;
 
                                 if (mustHaveSameValue) {
                                     if (neighbourValue != vint) {
@@ -417,7 +415,7 @@ class FindConnectedRegions {
                             }
                             else {
 
-                                float neighbourValue = sliceDataFloats[z][newSliceIndex];
+                                final float neighbourValue = sliceDataFloats[z][newSliceIndex];
 
                                 if (neighbourValue <= tr[z][x][y] || neighbourValue <= minInt) {// for
                                     // 3D
@@ -430,8 +428,8 @@ class FindConnectedRegions {
                             if (0 == pointState[newPointStateIndex]) {
                                 pointState[newPointStateIndex] = IN_QUEUE;
                                 if (pointsInQueue == queueArrayLength) {
-                                    int newArrayLength = (int) (queueArrayLength * 1.2);
-                                    int[] newArray = new int[newArrayLength];
+                                    final int newArrayLength = (int) (queueArrayLength * 1.2);
+                                    final int[] newArray = new int[newArrayLength];
                                     System.arraycopy(queue, 0, newArray, 0, pointsInQueue);
                                     queue = newArray;
                                     queueArrayLength = newArrayLength;
@@ -482,7 +480,7 @@ class FindConnectedRegions {
                     // byte[] sliceBytes = new byte[width * height];
                     for (int y = 0; y < height; ++y) {
                         for (int x = 0; x < width; ++x) {
-                            byte status = pointState[width * (z * height + y) + x];
+                            final byte status = pointState[width * (z * height + y) + x];
 
                             if (status == IN_QUEUE) {
                                 IJ.log("BUG: point " + x + "," + y + "," + z + " is still marked as IN_QUEUE");

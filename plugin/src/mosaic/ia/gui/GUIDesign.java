@@ -34,7 +34,7 @@ import mosaic.ia.utils.ImageProcessUtils;
 public class GUIDesign implements ActionListener {
 
     public JFrame frmInteractionAnalysis;
-    private String[] items = { "Hernquist", "Step", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
+    private final String[] items = { "Hernquist", "Step", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
     // private JTextField textField;
     // private JTextField textField_1;
 
@@ -47,8 +47,8 @@ public class GUIDesign implements ActionListener {
     private Analysis a;
     private int monteCarloRunsForTest = 1000;
     private int numReRuns = 10;
-    private double qkernelWeight = .001;
-    private double pkernelWeight = 1;
+    private final double qkernelWeight = .001;
+    private final double pkernelWeight = 1;
 
     private JButton help;
     private double alpha = .05;
@@ -109,12 +109,12 @@ public class GUIDesign implements ActionListener {
         help = new JButton("help");
         help.addActionListener(this);
 
-        JPanel panel_help = new JPanel();
-        JPanel panel_5 = new JPanel();
+        final JPanel panel_help = new JPanel();
+        final JPanel panel_5 = new JPanel();
         panel_5.setBorder(blackBorder);
-        JPanel panel_7 = new JPanel();
+        final JPanel panel_7 = new JPanel();
         panel_7.setBorder(blackBorder);
-        JPanel panel_6 = new JPanel();
+        final JPanel panel_6 = new JPanel();
         panel_6.setBorder(blackBorder);
         textArea = new JTextArea("Please refer to and cite: J. A. Helmuth, G. Paul, and I. F. Sbalzarini.\n" + "Beyond co-localization: inferring spatial interactions between sub-cellular \n"
                 + "structures from microscopy images. BMC Bioinformatics, 11:372, 2010.\n\n" + "A. Shivanandan, A. Radenovic, and I. F. Sbalzarini. MosaicIA: an ImageJ/Fiji\n"
@@ -122,7 +122,7 @@ public class GUIDesign implements ActionListener {
 
         textArea.setBackground(UIManager.getColor("Button.background"));
 
-        GroupLayout gl_panel_help = new GroupLayout(panel_help);
+        final GroupLayout gl_panel_help = new GroupLayout(panel_help);
         gl_panel_help.setHorizontalGroup(gl_panel_help.createParallelGroup(Alignment.LEADING).addGroup(
                 gl_panel_help.createSequentialGroup().addGap(198).addComponent(help, GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE).addGap(198)));
 
@@ -130,22 +130,22 @@ public class GUIDesign implements ActionListener {
                 gl_panel_help.createSequentialGroup().addComponent(help, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addContainerGap(9, Short.MAX_VALUE)));
         panel_help.setLayout(gl_panel_help);
 
-        GroupLayout gl_panel_6 = new GroupLayout(panel_6);
+        final GroupLayout gl_panel_6 = new GroupLayout(panel_6);
         gl_panel_6.setHorizontalGroup(gl_panel_6.createParallelGroup(Alignment.LEADING).addComponent(textArea, GroupLayout.DEFAULT_SIZE, 526, Short.MAX_VALUE));
         gl_panel_6.setVerticalGroup(gl_panel_6.createParallelGroup(Alignment.LEADING).addGroup(
                 gl_panel_6.createSequentialGroup().addComponent(textArea, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addContainerGap(9, Short.MAX_VALUE)));
         panel_6.setLayout(gl_panel_6);
 
-        JLabel lblHypothesisTesting = new JLabel("Hypothesis testing");
+        final JLabel lblHypothesisTesting = new JLabel("Hypothesis testing");
 
-        JLabel lblMonteCarloRuns = new JLabel("Monte carlo runs");
+        final JLabel lblMonteCarloRuns = new JLabel("Monte carlo runs");
 
         mCRuns = new JFormattedTextField();
         mCRuns.setHorizontalAlignment(SwingConstants.CENTER);
         mCRuns.setText("" + monteCarloRunsForTest);
         mCRuns.setColumns(10);
 
-        JLabel lblSignificanceLevel = new JLabel("Significance level");
+        final JLabel lblSignificanceLevel = new JLabel("Significance level");
 
         alphaField = new JFormattedTextField();
         alphaField.setHorizontalAlignment(SwingConstants.CENTER);
@@ -154,7 +154,7 @@ public class GUIDesign implements ActionListener {
         alphaField.addActionListener(this);
 
         test = new JButton("Test");
-        GroupLayout gl_panel_7 = new GroupLayout(panel_7);
+        final GroupLayout gl_panel_7 = new GroupLayout(panel_7);
         gl_panel_7.setHorizontalGroup(gl_panel_7
                 .createParallelGroup(Alignment.TRAILING)
                 .addGroup(
@@ -188,7 +188,7 @@ public class GUIDesign implements ActionListener {
                         .addPreferredGap(ComponentPlacement.RELATED, 11, Short.MAX_VALUE).addComponent(test).addContainerGap()));
         panel_7.setLayout(gl_panel_7);
 
-        JLabel lblPotentialEstimation = new JLabel("Potential estimation");
+        final JLabel lblPotentialEstimation = new JLabel("Potential estimation");
 
         jcb = new JComboBox<String>(items);
         // jcb.setModel(new DefaultComboBoxModel(potentialOptions));
@@ -197,7 +197,7 @@ public class GUIDesign implements ActionListener {
         estimate = new JButton("Estimate");
         estimate.setActionCommand("Estimate");
 
-        JLabel lblPotentialShape = new JLabel("Potential:");
+        final JLabel lblPotentialShape = new JLabel("Potential:");
 
         numSupport = new JFormattedTextField();
 
@@ -223,7 +223,7 @@ public class GUIDesign implements ActionListener {
         lblSmoothness = new JLabel("Smoothness:");
         lblSmoothness.setEnabled(false);
 
-        JLabel lblRepeatEstimation = new JLabel("Repeat estimation:");
+        final JLabel lblRepeatEstimation = new JLabel("Repeat estimation:");
 
         reRuns = new JFormattedTextField();
         reRuns.setColumns(10);
@@ -231,7 +231,7 @@ public class GUIDesign implements ActionListener {
         reRuns.setText(numReRuns + "");
         reRuns.addActionListener(this);
 
-        GroupLayout gl_panel_5 = new GroupLayout(panel_5);
+        final GroupLayout gl_panel_5 = new GroupLayout(panel_5);
         gl_panel_5.setHorizontalGroup(gl_panel_5
                 .createParallelGroup(Alignment.TRAILING)
                 .addGroup(gl_panel_5.createSequentialGroup().addGap(107).addComponent(estimate).addContainerGap(92, Short.MAX_VALUE))
@@ -257,12 +257,12 @@ public class GUIDesign implements ActionListener {
                         .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addComponent(estimate).addContainerGap()));
         panel_5.setLayout(gl_panel_5);
 
-        JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP);
+        final JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP);
         // tabbedPane.setEnabled(false);
 
-        JTabbedPane tabbedPane_1 = new JTabbedPane(SwingConstants.TOP);
+        final JTabbedPane tabbedPane_1 = new JTabbedPane(SwingConstants.TOP);
 
-        JPanel panel_3 = new JPanel();
+        final JPanel panel_3 = new JPanel();
         tabbedPane_1.addTab("Apply mask", null, panel_3, null);
         tabbedPane_1.setEnabledAt(0, true);
 
@@ -280,7 +280,7 @@ public class GUIDesign implements ActionListener {
         resetMask.setToolTipText("Reset mask ");
         panel_3.add(resetMask);
         resetMask.addActionListener(this);
-        JPanel panel_4 = new JPanel();
+        final JPanel panel_4 = new JPanel();
 
         btnCalculateDistances = new JButton("Calculate distances");
         btnCalculateDistances.setAlignmentX(SwingConstants.CENTER);
@@ -291,7 +291,7 @@ public class GUIDesign implements ActionListener {
         gridSizeInp.setText("" + gridSize);
         gridSizeInp.setColumns(6);
 
-        JLabel lblGridSize = new JLabel("Grid spacing:");
+        final JLabel lblGridSize = new JLabel("Grid spacing:");
 
         lblKernelWeightq = new JLabel("Kernel wt(q):");
 
@@ -306,7 +306,7 @@ public class GUIDesign implements ActionListener {
         kernelWeightp.setHorizontalAlignment(SwingConstants.CENTER);
         kernelWeightp.setText("35.9");
         kernelWeightp.setColumns(6);
-        GroupLayout gl_panel_4 = new GroupLayout(panel_4);
+        final GroupLayout gl_panel_4 = new GroupLayout(panel_4);
         gl_panel_4.setHorizontalGroup(gl_panel_4.createParallelGroup(Alignment.LEADING).addGroup(
                 gl_panel_4
                         .createSequentialGroup()
@@ -335,18 +335,18 @@ public class GUIDesign implements ActionListener {
 
         btnCalculateDistances.addActionListener(this);
 
-        JPanel panel_2 = new JPanel();
+        final JPanel panel_2 = new JPanel();
         tabbedPane.addTab("Load images", null, panel_2, null);
 
-        JLabel label = new JLabel("Image X");
+        final JLabel label = new JLabel("Image X");
 
         browseX = new JButton("Open X");
         browseX.addActionListener(this);
 
-        JLabel label_1 = new JLabel("Reference image Y");
+        final JLabel label_1 = new JLabel("Reference image Y");
         browseY = new JButton("Open Y");
         browseY.addActionListener(this);
-        GroupLayout gl_panel_2 = new GroupLayout(panel_2);
+        final GroupLayout gl_panel_2 = new GroupLayout(panel_2);
         gl_panel_2.setHorizontalGroup(gl_panel_2.createParallelGroup(Alignment.LEADING).addGap(0, 438, Short.MAX_VALUE)
                 .addGroup(gl_panel_2.createSequentialGroup().addGap(98).addComponent(label).addGap(74).addComponent(browseX))
                 .addGroup(gl_panel_2.createSequentialGroup().addGap(33).addComponent(label_1).addGap(74).addComponent(browseY)));
@@ -359,17 +359,17 @@ public class GUIDesign implements ActionListener {
                                 .addGroup(gl_panel_2.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_2.createSequentialGroup().addGap(5).addComponent(label_1)).addComponent(browseY))));
         panel_2.setLayout(gl_panel_2);
 
-        JPanel panel_8 = new JPanel();
+        final JPanel panel_8 = new JPanel();
         tabbedPane.addTab("Load coordinates", null, panel_8, null);
 
         btnLoadCsvFileX = new JButton("Open");
         btnLoadCsvFileX.setHorizontalAlignment(SwingConstants.RIGHT);
         btnLoadCsvFileX.addActionListener(this);
 
-        JLabel lblCsvFileOf = new JLabel("X Coordinates");
+        final JLabel lblCsvFileOf = new JLabel("X Coordinates");
         lblCsvFileOf.setHorizontalAlignment(SwingConstants.LEFT);
 
-        JLabel label_2 = new JLabel("Y (reference) Coordinates");
+        final JLabel label_2 = new JLabel("Y (reference) Coordinates");
 
         btnLoadCsvFileY = new JButton("Open");
         btnLoadCsvFileY.addActionListener(this);
@@ -403,7 +403,7 @@ public class GUIDesign implements ActionListener {
         txtZmax.setText("zmax");
         txtZmax.setColumns(6);
         txtZmax.addActionListener(this);
-        GroupLayout gl_panel_8 = new GroupLayout(panel_8);
+        final GroupLayout gl_panel_8 = new GroupLayout(panel_8);
         gl_panel_8.setHorizontalGroup(gl_panel_8.createParallelGroup(Alignment.LEADING).addGroup(
                 gl_panel_8
                         .createSequentialGroup()
@@ -433,7 +433,7 @@ public class GUIDesign implements ActionListener {
                                 gl_panel_8.createParallelGroup(Alignment.BASELINE).addComponent(label_2).addComponent(btnLoadCsvFileY).addComponent(txtXmax).addComponent(txtYmax)
                                         .addComponent(txtZmax)).addGap(13)));
         panel_8.setLayout(gl_panel_8);
-        GroupLayout groupLayout = new GroupLayout(frmInteractionAnalysis.getContentPane());
+        final GroupLayout groupLayout = new GroupLayout(frmInteractionAnalysis.getContentPane());
         groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
                 groupLayout
                         .createSequentialGroup()
@@ -568,7 +568,7 @@ public class GUIDesign implements ActionListener {
             return;
         }
         else if (e.getSource() == jcb) {
-            String selected = (String) jcb.getSelectedItem();
+            final String selected = (String) jcb.getSelectedItem();
             System.out.println("Selected: " + selected);
             if (selected == items[5]) {
                 // IJ.showMessage("Nonparametric estimation - feature under testing - may not be perfect");
@@ -701,7 +701,7 @@ public class GUIDesign implements ActionListener {
                     IJ.showMessage("Image Y is null: Cannot generate mask");
                 }
             }
-            catch (NullPointerException npe) {
+            catch (final NullPointerException npe) {
                 System.out.println("NPE caught");
                 IJ.showMessage("Image Y is null: Cannot generate mask");
             }
@@ -732,8 +732,8 @@ public class GUIDesign implements ActionListener {
     }
 
     private boolean checkIfImagesAreRightSize() {
-        Calibration imgxc = imgx.getCalibration();
-        Calibration imgyc = imgy.getCalibration();
+        final Calibration imgxc = imgx.getCalibration();
+        final Calibration imgyc = imgy.getCalibration();
         if ((imgx.getWidth() == imgy.getWidth()) && (imgx.getHeight() == imgy.getHeight()) && (imgx.getStackSize() == imgy.getStackSize()) && (imgxc.pixelDepth == imgyc.pixelDepth)
                 && (imgxc.pixelHeight == imgyc.pixelHeight) && (imgxc.pixelWidth == imgyc.pixelWidth) && (imgxc.getUnit().equals(imgyc.getUnit()))) {
             return true;

@@ -11,15 +11,15 @@ import mosaic.ia.utils.IAPUtils;
 
 class HypothesisTesting {
 
-    private double[] CDFGrid;
-    private double[] DGrid;
-    private double[] D;
+    private final double[] CDFGrid;
+    private final double[] DGrid;
+    private final double[] D;
     private double[] DRand;
     private double[] T;
-    private double[] params; // same convention
-    private int type;
-    private int K;
-    private double alpha;
+    private final double[] params; // same convention
+    private final int type;
+    private final int K;
+    private final double alpha;
     private double Tob;
 
     // private double [] tempTd;
@@ -205,7 +205,7 @@ class HypothesisTesting {
     public boolean rankTest() {
 
         calculateT();
-        PotentialCalculator pcOb = new PotentialCalculator(D, params, type);
+        final PotentialCalculator pcOb = new PotentialCalculator(D, params, type);
         pcOb.calculateWOEpsilon();
         // PlotUtils.plotDoubleArray("Estimated Pot", D, pcOb.getPotential());
         Tob = -1 * pcOb.getSumPotential();
@@ -345,7 +345,7 @@ class HypothesisTesting {
 
     private double calculateTk() {
         generateRandomD();
-        PotentialCalculator pc = new PotentialCalculator(DRand, params, type);
+        final PotentialCalculator pc = new PotentialCalculator(DRand, params, type);
         pc.calculateWOEpsilon();
         // PlotUtils.plotDoubleArray("Null Hyp Pot", D, pc.getPotential());
         /*
@@ -362,7 +362,7 @@ class HypothesisTesting {
     private void generateRandomD() {
 
         // not erasing contents of DRAND
-        Random rn = new Random(System.nanoTime());
+        final Random rn = new Random(System.nanoTime());
         double R = 0;
         // System.out.println("CDFGrid[0]: "+CDFGrid[0]);
         // System.out.println("CDFGrid[N-1]: "+CDFGrid[N-1]);

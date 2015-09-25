@@ -70,8 +70,8 @@ public abstract class PlugIn8bitBase extends PlugInBase {
             final int noOfChannels = aIp.getNChannels();
 
             // Lists to keep information about threads
-            List<Thread> th = new ArrayList<Thread>(noOfChannels);
-            List<ProcessOneChannel> poc = new ArrayList<ProcessOneChannel>(noOfChannels);
+            final List<Thread> th = new ArrayList<Thread>(noOfChannels);
+            final List<ProcessOneChannel> poc = new ArrayList<ProcessOneChannel>(noOfChannels);
             for (int i = 0; i < noOfChannels; ++i) {
                 ColorProcessor processedProcessor = null;
                 ByteProcessor result = null;
@@ -85,8 +85,8 @@ public abstract class PlugIn8bitBase extends PlugInBase {
                 original.setSliceNumber(aIp.getSliceNumber());
 
                 // Start separate thread on each channel
-                ProcessOneChannel p = new ProcessOneChannel(processedProcessor, result, original, channelNumber);
-                Thread t = new Thread(p);
+                final ProcessOneChannel p = new ProcessOneChannel(processedProcessor, result, original, channelNumber);
+                final Thread t = new Thread(p);
                 t.start();
                 th.add(t);
                 poc.add(p);
@@ -98,13 +98,13 @@ public abstract class PlugIn8bitBase extends PlugInBase {
                     th.get(i).join();
                     poc.get(i).update();
                 }
-                catch (InterruptedException e) {}
+                catch (final InterruptedException e) {}
             }
         }
         else if (aIp instanceof ByteProcessor) {
             // Must be handled separately. There is no common parent for ByteProcessor and ColorProcessor
             // to be used in ProcessOneChannel (like ImageProcessor could be but it missing setChannel method(!) ).
-            int slice = aIp.getSliceNumber();
+            final int slice = aIp.getSliceNumber();
             final ByteProcessor res = (ByteProcessor) iProcessedImg.getStack().getProcessor(slice);
             final ByteProcessor orig = (ByteProcessor)aIp;
             orig.setSliceNumber(aIp.getSliceNumber());

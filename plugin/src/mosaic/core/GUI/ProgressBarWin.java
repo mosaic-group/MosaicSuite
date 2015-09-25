@@ -28,14 +28,14 @@ public class ProgressBarWin extends JDialog {
     JProgressBar Prog_s;
     JLabel Status;
     @SuppressWarnings("unused")
-    private Object lock;
+    private final Object lock;
 
     public void SetStatusMessage(String Message) {
         Status.setText(Message);
 
         // Measure the text
 
-        Font font = Status.getFont();
+        final Font font = Status.getFont();
 
         // get metrics from the graphics
 
@@ -43,16 +43,16 @@ public class ProgressBarWin extends JDialog {
             setVisible(true);
         }
 
-        FontMetrics metrics = contentPane.getGraphics().getFontMetrics(font);
+        final FontMetrics metrics = contentPane.getGraphics().getFontMetrics(font);
         // get the height of a line of text in this
         // font and render context
-        int hgt = metrics.getHeight();
+        final int hgt = metrics.getHeight();
         // get the advance of my text in this font
         // and render context
-        int adv = metrics.stringWidth(Message);
+        final int adv = metrics.stringWidth(Message);
         // calculate the size of a box to hold the
         // text with some padding.
-        Dimension size = new Dimension(adv + 2, hgt + 2);
+        final Dimension size = new Dimension(adv + 2, hgt + 2);
 
         setSize(2 * size.width + 50, getSize().height);
     }
@@ -74,12 +74,12 @@ public class ProgressBarWin extends JDialog {
         contentPane.setLayout(new GridBagLayout());
 
         // Status message
-        JPanel contentMessage = new JPanel();
+        final JPanel contentMessage = new JPanel();
         contentMessage.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentMessage.setLayout(new GridLayout(0, 2, 0, 0));
         JLabel lblNewLabel = new JLabel("Status: ");
         contentMessage.add(lblNewLabel);
-        GridBagConstraints c = new GridBagConstraints();
+        final GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
         contentPane.add(contentMessage, c);
@@ -92,7 +92,7 @@ public class ProgressBarWin extends JDialog {
         c.gridx = 0;
         c.gridy = 1;
         c.fill = GridBagConstraints.HORIZONTAL;
-        JProgressBar pbar = new JProgressBar();
+        final JProgressBar pbar = new JProgressBar();
         pbar.setStringPainted(true);
         Prog_s = pbar;
         contentPane.add(pbar, c);

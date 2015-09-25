@@ -9,10 +9,10 @@ public class CsvMetaInfoTest extends CommonBase {
 
     @Test
     public void testGeneral() {
-        String parameter = "param1";
-        String value = "value1";
+        final String parameter = "param1";
+        final String value = "value1";
 
-        CsvMetaInfo cmi = new CsvMetaInfo(parameter, value);
+        final CsvMetaInfo cmi = new CsvMetaInfo(parameter, value);
 
         assertEquals(parameter, cmi.parameter);
         assertEquals(value, cmi.value);

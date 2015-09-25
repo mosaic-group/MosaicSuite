@@ -13,7 +13,7 @@ import weka.estimators.KernelEstimator;
 public class IAPUtils {
 
     public static double[] calculateCDF(double[] qofD) {
-        double[] QofD = new double[qofD.length];
+        final double[] QofD = new double[qofD.length];
         double sum = 0;
 
         for (int i = 0; i < qofD.length; i++) {
@@ -33,7 +33,7 @@ public class IAPUtils {
     public static double[] normalize(double[] array) {
 
         double sum = 0;
-        double[] retarray = new double[array.length];
+        final double[] retarray = new double[array.length];
         for (int i = 0; i < array.length; i++) {
             sum = sum + array[i];
         }
@@ -45,10 +45,10 @@ public class IAPUtils {
 
     public static float[][][] imageTo3Darray(ImagePlus image) {
 
-        ImageStack is = image.getStack();
+        final ImageStack is = image.getStack();
         ImageProcessor imageProc;// ,mgp;
 
-        float[][][] image3d = new float[is.getSize()][is.getWidth()][is.getHeight()];
+        final float[][][] image3d = new float[is.getSize()][is.getWidth()][is.getHeight()];
 
         for (int k = 0; k < is.getSize(); k++) {
             imageProc = is.getProcessor(k + 1);
@@ -61,7 +61,7 @@ public class IAPUtils {
     }
 
     public static double[] getMinMaxMeanD(double[] D) {
-        double[] minMax = new double[3];
+        final double[] minMax = new double[3];
         minMax[0] = Double.MAX_VALUE; // min
         minMax[1] = Double.MIN_VALUE;// max
         minMax[2] = 0;// mean
@@ -79,15 +79,15 @@ public class IAPUtils {
     }
 
     public static double linearInterpolation(double yl, double xl, double yr, double xr, double x) {
-        double m = (yl - yr) / (xl - xr);
-        double c = yl - m * xl;
+        final double m = (yl - yr) / (xl - xr);
+        final double c = yl - m * xl;
         return m * x + c;
 
     }
 
     public static KernelEstimator createkernelDensityEstimator(double[] distances, double weight) {
-        double precision = 100d;
-        KernelEstimator ker = new KernelEstimator(1 / precision);
+        final double precision = 100d;
+        final KernelEstimator ker = new KernelEstimator(1 / precision);
         System.out.println("Weight:" + weight);
         for (int i = 0; i < distances.length; i++) {
             ker.addValue(distances[i], weight); // weight is important, since
@@ -111,9 +111,9 @@ public class IAPUtils {
     }
 
     private static double calcSilvermanBandwidth(double[] distances) {
-        double q1 = getPercentile(distances, 0.25);
-        double q3 = getPercentile(distances, 0.75);
-        double silBandwidth = .9 * Math.min(IAPUtils.calcStandDev(distances), (q3 - q1) / 1.34) * Math.pow(distances.length, -.2);
+        final double q1 = getPercentile(distances, 0.25);
+        final double q3 = getPercentile(distances, 0.75);
+        final double silBandwidth = .9 * Math.min(IAPUtils.calcStandDev(distances), (q3 - q1) / 1.34) * Math.pow(distances.length, -.2);
         System.out.println("Silverman's bandwidth: " + silBandwidth);
 
         return silBandwidth;
@@ -121,9 +121,9 @@ public class IAPUtils {
 
     public static double calcWekaWeights(double[] distances) {
 
-        double[] minmaxmean = IAPUtils.getMinMaxMeanD(distances);
-        double range = minmaxmean[1] - minmaxmean[0];
-        double bw = calcSilvermanBandwidth(distances);
+        final double[] minmaxmean = IAPUtils.getMinMaxMeanD(distances);
+        final double range = minmaxmean[1] - minmaxmean[0];
+        final double bw = calcSilvermanBandwidth(distances);
 
         return ((1.0d / distances.length) * (range / bw) * (range / bw));
     }
@@ -131,16 +131,16 @@ public class IAPUtils {
     private static double calcStandDev(double[] distances) {
 
         double sum = 0.0;
-        for (double a : distances) {
+        for (final double a : distances) {
             sum += a;
         }
-        double mean = sum / distances.length;
+        final double mean = sum / distances.length;
 
         double temp = 0;
-        for (double a : distances) {
+        for (final double a : distances) {
             temp += (mean - a) * (mean - a);
         }
-        double var = temp / (distances.length - 1);
+        final double var = temp / (distances.length - 1);
 
         return Math.sqrt(var);
     }
@@ -172,12 +172,12 @@ public class IAPUtils {
         if (size == 1) {
             return values[0]; // always return single value for n = 1
         }
-        double n = size;
-        double pos = p * (n + 1);
-        double fpos = Math.floor(pos);
-        int intPos = (int) fpos;
-        double dif = pos - fpos;
-        double[] sorted = new double[size];
+        final double n = size;
+        final double pos = p * (n + 1);
+        final double fpos = Math.floor(pos);
+        final int intPos = (int) fpos;
+        final double dif = pos - fpos;
+        final double[] sorted = new double[size];
         System.arraycopy(values, 0, sorted, 0, size);
         Arrays.sort(sorted);
 
@@ -187,8 +187,8 @@ public class IAPUtils {
         if (pos >= n) {
             return sorted[size - 1];
         }
-        double lower = sorted[intPos - 1];
-        double upper = sorted[intPos];
+        final double lower = sorted[intPos - 1];
+        final double upper = sorted[intPos];
         return lower + dif * (upper - lower);
     }
 
@@ -199,12 +199,12 @@ public class IAPUtils {
      * Inspired from Fiji TMUtils.java
      */
     public static int getOptimBins(double[] values, int minBinNumber, int maxBinNumber) {
-        int size = values.length;
-        double q1 = getPercentile(values, 0.25);
-        double q3 = getPercentile(values, 0.75);
-        double interQRange = q3 - q1;
-        double binWidth = 2 * interQRange * Math.pow(size, -0.33);
-        double[] range = IAPUtils.getMinMaxMeanD(values);
+        final int size = values.length;
+        final double q1 = getPercentile(values, 0.25);
+        final double q3 = getPercentile(values, 0.75);
+        final double interQRange = q3 - q1;
+        final double binWidth = 2 * interQRange * Math.pow(size, -0.33);
+        final double[] range = IAPUtils.getMinMaxMeanD(values);
 
         int noBins = (int) ((range[1] - range[0]) / binWidth + 1);
         if (noBins > maxBinNumber) {

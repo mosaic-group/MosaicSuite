@@ -30,8 +30,8 @@ public class GlmPoisson implements Glm {
         // MATLAB:
         // nll = weights .* ( image .* log((image+eps)./(mu+eps)) + mu - image );
         // snll = sum(nll(:));
-        Matrix denominator = new Matrix(aMu).add(Math.ulp(1.0));
-        Matrix temp = new Matrix(aImage).add(Math.ulp(1.0)).elementDiv( denominator);
+        final Matrix denominator = new Matrix(aMu).add(Math.ulp(1.0));
+        final Matrix temp = new Matrix(aImage).add(Math.ulp(1.0)).elementDiv( denominator);
         temp.process(new MFunc() {
             // This part is different from algorithm in Matlab. It happens that we have here small negative
             // numbers. Matlab handles that via complex numbers but here... we just put small numbers just
@@ -43,7 +43,7 @@ public class GlmPoisson implements Glm {
                 return aElement > 0 ? aElement : 1;
             }});
 
-        Matrix nll = temp.log();
+        final Matrix nll = temp.log();
 
         nll.elementMult(aImage).add(aMu).sub(aImage).elementMult(aWeights);
 

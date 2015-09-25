@@ -10,12 +10,12 @@ import Jython.Refresh_Jython_Scripts;
 public class JythonLauncher implements PlugIn { // NO_UCD
     @Override
     public void run(String arg) {
-        InputStream stream = getClass().getResourceAsStream(arg);
+        final InputStream stream = getClass().getResourceAsStream(arg);
         new Refresh_Jython_Scripts().runScript(stream);
         try {
             stream.close();
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
     }

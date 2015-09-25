@@ -23,8 +23,8 @@ import org.supercsv.cellprocessor.ift.CellProcessor;
 
 public class FileClusterProfile extends GeneralProfile {
 
-    private CSV<QueueProfile> csv;
-    private CsvColumnConfig occ;
+    private final CSV<QueueProfile> csv;
+    private final CsvColumnConfig occ;
 
     public FileClusterProfile(File filename) {
         csv = new CSV<QueueProfile>(QueueProfile.class);
@@ -33,7 +33,7 @@ public class FileClusterProfile extends GeneralProfile {
         occ.cellProcessors = new CellProcessor[] { null, null, new ParseDouble() };
 
         if (filename != null) {
-            Vector<QueueProfile> cp = csv.Read(filename.getAbsolutePath(), occ);
+            final Vector<QueueProfile> cp = csv.Read(filename.getAbsolutePath(), occ);
 
             for (int i = 0; i < cp.size(); i++) {
                 if (cp.get(i).hardware.equals("CPU")) {
@@ -45,7 +45,7 @@ public class FileClusterProfile extends GeneralProfile {
                 setQueue(cp.get(i).limit, cp.get(i).queue);
             }
 
-            String batch = csv.getMetaInformation("batch");
+            final String batch = csv.getMetaInformation("batch");
 
             if (batch != null && batch.equals("LSF")) {
                 setBatchSystem(new LSFBatch(this));
@@ -88,7 +88,7 @@ public class FileClusterProfile extends GeneralProfile {
 
     @Override
     public String getRunningDir() {
-        String meta = csv.getMetaInformation("run_dir");
+        final String meta = csv.getMetaInformation("run_dir");
         if (meta.replace("*", getUsername()) == null) {
             return csv.getMetaInformation("run_dir") + File.separator;
         }
@@ -118,8 +118,8 @@ public class FileClusterProfile extends GeneralProfile {
             return true;
         }
 
-        String cp_name = a.name;
-        String has_cp = csv.getMetaInformation(cp_name);
+        final String cp_name = a.name;
+        final String has_cp = csv.getMetaInformation(cp_name);
 
         if (has_cp == null) {
             return false;
@@ -140,9 +140,9 @@ public class FileClusterProfile extends GeneralProfile {
      */
 
     public void writeConfigFile(File CsvFilename) {
-        Vector<QueueProfile> vq = new Vector<QueueProfile>();
-        for (hw Acc : hw.values()) {
-            QueueProfile[] q = getQueues(Acc);
+        final Vector<QueueProfile> vq = new Vector<QueueProfile>();
+        for (final hw Acc : hw.values()) {
+            final QueueProfile[] q = getQueues(Acc);
             for (int i = 0; i < q.length; i++) {
                 vq.add(q[i]);
             }
@@ -187,7 +187,7 @@ public class FileClusterProfile extends GeneralProfile {
      * @return return true if active
      */
     public boolean isActiveCompressorString(String cp) {
-        String s = csv.getMetaInformation(cp);
+        final String s = csv.getMetaInformation(cp);
 
         if (s == null) {
             return false;

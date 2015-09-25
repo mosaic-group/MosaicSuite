@@ -69,9 +69,9 @@ public class CurvatureBasedFlow {
         sphereIt.setMidPoint(origin);
 
         while (sphereIt.hasNext()) {
-            int idx = sphereIt.next();
+            final int idx = sphereIt.next();
 
-            int absLabel = labelImage.getLabelAbs(idx);
+            final int absLabel = labelImage.getLabelAbs(idx);
 
             // directly access data; only 1-2% faster
             // int absLabel=labelImage.labelIP.get(idx);
@@ -134,7 +134,7 @@ public class CurvatureBasedFlow {
 
         if (aFrom == labelImage.bgLabel) // growing
         {
-            int vN = vNto;
+            final int vN = vNto;
             if (dim == 2) {
                 vCurvatureFlow -= 3.0f * 3.141592f / r * ((vN) / vVolume - 0.5f);
             }
@@ -145,7 +145,7 @@ public class CurvatureBasedFlow {
         else {
             if (aTo == labelImage.bgLabel) // proper shrinking
             {
-                int vN = vNFrom;
+                final int vN = vNFrom;
                 // This is a point on the contour (innerlist) OR
                 // touching the contour (Outer list)
                 if (dim == 2) {

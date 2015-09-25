@@ -44,8 +44,8 @@ public class ShellCommand {
      * @throws InterruptedException
      */
     public static void exeCmdNoPrint(String cmd) throws IOException, InterruptedException {
-        String cmd_[] = produceShell(cmd);
-        Process tProcess = Runtime.getRuntime().exec(cmd_);
+        final String cmd_[] = produceShell(cmd);
+        final Process tProcess = Runtime.getRuntime().exec(cmd_);
 
         tProcess.waitFor();
     }
@@ -59,10 +59,10 @@ public class ShellCommand {
      */
 
     static String exeCmdString(String cmd) throws IOException, InterruptedException {
-        String cmd_[] = produceShell(cmd);
-        Process tProcess = Runtime.getRuntime().exec(cmd_);
+        final String cmd_[] = produceShell(cmd);
+        final Process tProcess = Runtime.getRuntime().exec(cmd_);
 
-        BufferedReader stdInput = new BufferedReader(new InputStreamReader(tProcess.getInputStream()));
+        final BufferedReader stdInput = new BufferedReader(new InputStreamReader(tProcess.getInputStream()));
 
         String out = new String();
         String s = null;
@@ -83,10 +83,10 @@ public class ShellCommand {
      * @throws InterruptedException
      */
     public static void exeCmd(String cmd) throws IOException, InterruptedException {
-        String cmd_[] = produceShell(cmd);
-        Process tProcess = Runtime.getRuntime().exec(cmd_);
+        final String cmd_[] = produceShell(cmd);
+        final Process tProcess = Runtime.getRuntime().exec(cmd_);
 
-        BufferedReader stdInput = new BufferedReader(new InputStreamReader(tProcess.getInputStream()));
+        final BufferedReader stdInput = new BufferedReader(new InputStreamReader(tProcess.getInputStream()));
 
         String s = null;
         while ((s = stdInput.readLine()) != null) {
@@ -107,27 +107,27 @@ public class ShellCommand {
      * @throws InterruptedException
      */
     public static void exeCmd(String cmd, File wdir, String env[]) throws IOException, InterruptedException {
-        Map<String, String> envi = System.getenv();
+        final Map<String, String> envi = System.getenv();
         if (env == null) {
             env = new String[0];
         }
-        String[] envi_p_env = new String[envi.size() + env.length];
+        final String[] envi_p_env = new String[envi.size() + env.length];
 
         int i = 0;
-        for (String envName : envi.keySet()) {
+        for (final String envName : envi.keySet()) {
             envi_p_env[i] = new String(envName + "=" + envi.get(envName));
             i++;
         }
 
-        for (String envName : env) {
+        for (final String envName : env) {
             envi_p_env[i] = new String(envName);
             i++;
         }
 
-        String cmd_[] = produceShell(cmd);
-        Process tProcess = Runtime.getRuntime().exec(cmd_, envi_p_env, wdir);
+        final String cmd_[] = produceShell(cmd);
+        final Process tProcess = Runtime.getRuntime().exec(cmd_, envi_p_env, wdir);
 
-        BufferedReader stdInput = new BufferedReader(new InputStreamReader(tProcess.getInputStream()));
+        final BufferedReader stdInput = new BufferedReader(new InputStreamReader(tProcess.getInputStream()));
 
         String s = null;
         while ((s = stdInput.readLine()) != null) {
@@ -149,27 +149,27 @@ public class ShellCommand {
      * @throws InterruptedException
      */
     public static void exeCmd(String cmd, File wdir, String env[], ShellProcessOutput out) throws IOException, InterruptedException {
-        Map<String, String> envi = System.getenv();
+        final Map<String, String> envi = System.getenv();
         if (env == null) {
             env = new String[0];
         }
-        String[] envi_p_env = new String[envi.size() + env.length];
+        final String[] envi_p_env = new String[envi.size() + env.length];
 
         int i = 0;
-        for (String envName : envi.keySet()) {
+        for (final String envName : envi.keySet()) {
             envi_p_env[i] = new String(envName + "=" + envi.get(envName));
             i++;
         }
 
-        for (String envName : env) {
+        for (final String envName : env) {
             envi_p_env[i] = new String(envName);
             i++;
         }
 
-        String cmd_[] = produceShell(cmd);
-        Process tProcess = Runtime.getRuntime().exec(cmd_, envi_p_env, wdir);
+        final String cmd_[] = produceShell(cmd);
+        final Process tProcess = Runtime.getRuntime().exec(cmd_, envi_p_env, wdir);
 
-        BufferedReader stdInput = new BufferedReader(new InputStreamReader(tProcess.getInputStream()));
+        final BufferedReader stdInput = new BufferedReader(new InputStreamReader(tProcess.getInputStream()));
 
         String s_full = new String();
         String s;
@@ -192,7 +192,7 @@ public class ShellCommand {
      * @param Optionally a progress bar window
      */
     public static void copy(File from, File to, ProgressBarWin wn) {
-        File[] f = from.listFiles();
+        final File[] f = from.listFiles();
 
         if (f == null) {
             return;
@@ -200,7 +200,7 @@ public class ShellCommand {
 
         int cnt = 0;
 
-        for (File t : f) {
+        for (final File t : f) {
             if (wn != null) {
                 if (t != null) {
                     wn.SetStatusMessage("Copy: " + t.getName());
@@ -211,10 +211,10 @@ public class ShellCommand {
             try {
                 if (t != null) exeCmd("cp -R " + t.getAbsoluteFile() + " " + to.getAbsolutePath());
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 e.printStackTrace();
             }
-            catch (InterruptedException e) {
+            catch (final InterruptedException e) {
                 e.printStackTrace();
             }
             cnt++;

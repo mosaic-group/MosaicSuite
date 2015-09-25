@@ -39,14 +39,14 @@ public class SegmentationGUI {
     public static int getParameters() {
         final GenericDialogCustom gd = new GenericDialogCustom("Segmentation options");
 
-        Font bf = new Font(null, Font.BOLD, 12);
+        final Font bf = new Font(null, Font.BOLD, 12);
 
         gd.setInsets(-10, 0, 3);
 
         gd.addMessage("    Segmentation parameters ", bf);
 
-        Panel pp = new Panel();
-        Button help_b = new Button("help");
+        final Panel pp = new Panel();
+        final Button help_b = new Button("help");
 
         pp.add(help_b);
 
@@ -55,7 +55,7 @@ public class SegmentationGUI {
             @Override
             public void actionPerformed(ActionEvent arg0) {
 
-                Point p = gd.getLocationOnScreen();
+                final Point p = gd.getLocationOnScreen();
 
                 new SegmentationGUIHelp(p.x, p.y);
 
@@ -86,10 +86,10 @@ public class SegmentationGUI {
         gd.addCheckbox("Subpixel_segmentation", Analysis.p.subpixel);
         gd.addCheckbox("Exclude_Z_edge", Analysis.p.exclude_z_edges);
 
-        String choice1[] = { "Automatic", "Low", "Medium", "High" };
+        final String choice1[] = { "Automatic", "Low", "Medium", "High" };
         gd.addChoice("Local_intensity_estimation ", choice1, choice1[Analysis.p.mode_intensity]);
 
-        String choice2[] = { "Poisson", "Gauss" };
+        final String choice2[] = { "Poisson", "Gauss" };
         gd.addChoice("Noise_Model ", choice2, choice2[Analysis.p.noise_model]);
 
         gd.addMessage("PSF model (Gaussian approximation)", bf);
@@ -101,16 +101,16 @@ public class SegmentationGUI {
         gd.addNumericField("Remove_region_with_intensities_<", Analysis.p.min_region_filter_intensities, 0);
 
         Panel p = new Panel();
-        Button b = new Button("Patch position");
+        final Button b = new Button("Patch position");
         b.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
 
-                JFileChooser fc = new JFileChooser();
+                final JFileChooser fc = new JFileChooser();
                 fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
                 fc.showOpenDialog(null);
-                File selFile = fc.getSelectedFile();
+                final File selFile = fc.getSelectedFile();
 
                 Analysis.p.patches_from_file = selFile.getAbsolutePath();
             }
@@ -119,7 +119,7 @@ public class SegmentationGUI {
         p.add(b);
         gd.addPanel(p);
 
-        Button bp = new Button("Estimate PSF from objective properties");
+        final Button bp = new Button("Estimate PSF from objective properties");
         bp.addActionListener(new PSFOpenerActionListener(gd));
         p = new Panel();
         p.add(bp);

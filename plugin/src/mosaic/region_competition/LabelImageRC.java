@@ -84,16 +84,16 @@ public class LabelImageRC extends LabelImage {
 
     @Override
     public void initContour() {
-        Connectivity conn = connFG;
+        final Connectivity conn = connFG;
 
-        for (int i : iterator.getIndexIterable()) {
-            int label = getLabelAbs(i);
+        for (final int i : iterator.getIndexIterable()) {
+            final int label = getLabelAbs(i);
             if (label != bgLabel && label != forbiddenLabel) // region pixel
             // && label<negOfs
             {
-                Point p = iterator.indexToPoint(i);
-                for (Point neighbor : conn.iterateNeighbors(p)) {
-                    int neighborLabel = getLabelAbs(neighbor);
+                final Point p = iterator.indexToPoint(i);
+                for (final Point neighbor : conn.iterateNeighbors(p)) {
+                    final int neighborLabel = getLabelAbs(neighbor);
                     if (neighborLabel != label) {
                         setLabel(p, labelToNeg(label));
 
@@ -150,18 +150,18 @@ public class LabelImageRC extends LabelImage {
     public void connectedComponents() {
         // TODO ! test this
 
-        HashSet<Integer> oldLabels = new HashSet<Integer>(); // set of the old
+        final HashSet<Integer> oldLabels = new HashSet<Integer>(); // set of the old
         // labels
-        ArrayList<Integer> newLabels = new ArrayList<Integer>(); // set of new
+        final ArrayList<Integer> newLabels = new ArrayList<Integer>(); // set of new
         // labels
 
         int newLabel = 1;
 
-        int size = iterator.getSize();
+        final int size = iterator.getSize();
 
         // what are the old labels?
         for (int i = 0; i < size; i++) {
-            int l = getLabel(i);
+            final int l = getLabel(i);
             if (l == forbiddenLabel || l == bgLabel) {
                 continue;
             }
@@ -169,15 +169,15 @@ public class LabelImageRC extends LabelImage {
         }
 
         for (int i = 0; i < size; i++) {
-            int l = getLabel(i);
+            final int l = getLabel(i);
             if (l == forbiddenLabel || l == bgLabel) {
                 continue;
             }
             if (oldLabels.contains(l)) {
                 // l is an old label
-                BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
+                final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
                 aMultiThsFunctionPtr.AddThresholdBetween(l, l);
-                FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iterator.indexToPoint(i));
+                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iterator.indexToPoint(i));
 
                 // find a new label
                 while (oldLabels.contains(newLabel)) {
@@ -188,7 +188,7 @@ public class LabelImageRC extends LabelImage {
                 newLabels.add(newLabel);
 
                 // set region to new label
-                for (Point p : ff) {
+                for (final Point p : ff) {
                     setLabel(p, newLabel);
                 }
                 // next new label
@@ -204,7 +204,7 @@ public class LabelImageRC extends LabelImage {
     public void calculateRegionsCenterOfMass() {
         // iterate through all the regions and reset mean_pos
 
-        for (Integer lbl : labelMap.keySet()) {
+        for (final Integer lbl : labelMap.keySet()) {
             for (int i = 0; i < labelMap.get(lbl).mean_pos.length; i++) {
                 labelMap.get(lbl).mean_pos[i] = 0.0;
             }
@@ -212,13 +212,13 @@ public class LabelImageRC extends LabelImage {
 
         // Iterate through all the region
 
-        RegionIterator rc = new RegionIterator(getDimensions());
+        final RegionIterator rc = new RegionIterator(getDimensions());
         while (rc.hasNext()) {
             rc.next();
-            Point p = rc.getPoint();
-            int lbl = getLabelAbs(p);
+            final Point p = rc.getPoint();
+            final int lbl = getLabelAbs(p);
 
-            LabelInformation lbi = labelMap.get(lbl);
+            final LabelInformation lbi = labelMap.get(lbl);
 
             // Label information
 
@@ -231,7 +231,7 @@ public class LabelImageRC extends LabelImage {
 
         // Iterate through all the regions
 
-        for (Entry<Integer, LabelInformation> entry : labelMap.entrySet()) {
+        for (final Entry<Integer, LabelInformation> entry : labelMap.entrySet()) {
             for (int i = 0; i < entry.getValue().mean_pos.length; i++) {
                 entry.getValue().mean_pos[i] /= entry.getValue().count;
             }
@@ -251,7 +251,7 @@ public class LabelImageRC extends LabelImage {
 
         final int n = dataLabel.length;
 
-        short[] shortData = new short[n];
+        final short[] shortData = new short[n];
         for (int i = 0; i < n; i++) {
             shortData[i] = (short) dataLabel[i];
         }
@@ -279,11 +279,11 @@ public class LabelImageRC extends LabelImage {
      * sets the outermost pixels of the labelimage to the forbidden label
      */
     public void initBoundary() {
-        for (int idx : iterator.getIndexIterable()) {
-            Point p = iterator.indexToPoint(idx);
-            int xs[] = p.x;
+        for (final int idx : iterator.getIndexIterable()) {
+            final Point p = iterator.indexToPoint(idx);
+            final int xs[] = p.x;
             for (int d = 0; d < dim; d++) {
-                int x = xs[d];
+                final int x = xs[d];
                 if (x == 0 || x == dimensions[d] - 1) {
                     setLabel(idx, forbiddenLabel);
                     break;
@@ -305,14 +305,14 @@ public class LabelImageRC extends LabelImage {
     public int createStatistics(IntensityImage intensityImage) {
         getLabelMap().clear();
 
-        HashSet<Integer> usedLabels = new HashSet<Integer>();
+        final HashSet<Integer> usedLabels = new HashSet<Integer>();
 
-        int size = iterator.getSize();
+        final int size = iterator.getSize();
         for (int i = 0; i < size; i++) {
             // int label = get(x, y);
             // int absLabel = labelToAbs(label);
 
-            int absLabel = getLabelAbs(i);
+            final int absLabel = getLabelAbs(i);
 
             if (absLabel != forbiddenLabel /* && absLabel != bgLabel */) {
                 usedLabels.add(absLabel);
@@ -322,7 +322,7 @@ public class LabelImageRC extends LabelImage {
                     stats = new LabelInformation(absLabel, dim);
                     labelMap.put(absLabel, stats);
                 }
-                double val = intensityImage.get(i);
+                final double val = intensityImage.get(i);
                 stats.count++;
 
                 stats.mean += val; // only sum up, mean and var are computed
@@ -341,10 +341,10 @@ public class LabelImageRC extends LabelImage {
 
         // now we have in all LabelInformation:
         // in mean the sum of the values, in var the sum of val^2
-        for (LabelInformation stat : labelMap.values()) {
-            int n = stat.count;
+        for (final LabelInformation stat : labelMap.values()) {
+            final int n = stat.count;
             if (n > 1) {
-                double var = (stat.var - stat.mean * stat.mean / n) / (n - 1);
+                final double var = (stat.var - stat.mean * stat.mean / n) / (n - 1);
                 stat.var = (var);
                 // stat.var = (stat.var - stat.mean*stat.mean / n) / (n-1);
             }
@@ -369,36 +369,36 @@ public class LabelImageRC extends LabelImage {
     public PointCM[] createCMModel() {
         // TODO ! test this
 
-        HashMap<Integer, PointCM> Labels = new HashMap<Integer, PointCM>(); // set
+        final HashMap<Integer, PointCM> Labels = new HashMap<Integer, PointCM>(); // set
         // of
         // the
         // old
         // labels
 
-        int size = iterator.getSize();
+        final int size = iterator.getSize();
 
         // what are the old labels?
         for (int i = 0; i < size; i++) {
-            int l = getLabel(i);
+            final int l = getLabel(i);
             if (l == forbiddenLabel || l == bgLabel) {
                 continue;
             }
             if (Labels.get(l) == null) {
-                PointCM tmp = new PointCM();
+                final PointCM tmp = new PointCM();
                 tmp.p = new Point(getDimensions().length);
                 Labels.put(l, tmp);
             }
         }
 
-        int[] off = new int[] { 0, 0 };
+        final int[] off = new int[] { 0, 0 };
 
-        RegionIterator img = new RegionIterator(getDimensions(), getDimensions(), off);
+        final RegionIterator img = new RegionIterator(getDimensions(), getDimensions(), off);
 
         while (img.hasNext()) {
-            Point p = img.getPoint();
-            int i = img.next();
+            final Point p = img.getPoint();
+            final int i = img.next();
             if (dataLabel[i] != bgLabel && dataLabel[i] != forbiddenLabel) {
-                int id = Math.abs(dataLabel[i]);
+                final int id = Math.abs(dataLabel[i]);
 
                 Labels.get(id).p = Labels.get(id).p.add(p);
                 Labels.get(id).count++;
@@ -407,7 +407,7 @@ public class LabelImageRC extends LabelImage {
             }
         }
 
-        for (PointCM p : Labels.values()) {
+        for (final PointCM p : Labels.values()) {
             p.p = p.p.div(p.count);
         }
 
@@ -429,11 +429,11 @@ public class LabelImageRC extends LabelImage {
     }
 
     private ImagePlus getProjected3D(boolean abs) {
-        ImageStack stack = get3DShortStack(abs);
-        int z = getDimensions()[2];
+        final ImageStack stack = get3DShortStack(abs);
+        final int z = getDimensions()[2];
 
         ImagePlus imp = new ImagePlus("Projection stack ", stack);
-        StackProjector projector = new StackProjector();
+        final StackProjector projector = new StackProjector();
         imp = projector.doIt(imp, z);
 
         return imp;
@@ -452,7 +452,7 @@ class StackProjector extends GroupedZProjector {
     public ImagePlus doIt(ImagePlus imp, int groupSize) {
         // method = ZProjector.SUM_METHOD;
         // method = ZProjector.AVG_METHOD;
-        ImagePlus imp2 = groupZProject(imp, method, groupSize);
+        final ImagePlus imp2 = groupZProject(imp, method, groupSize);
 
         return imp2;
     }

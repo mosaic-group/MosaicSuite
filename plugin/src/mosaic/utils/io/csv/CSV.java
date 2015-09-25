@@ -49,7 +49,7 @@ public class CSV<E> {
      * @param aMetaInfo - meta information
      */
     public void setMetaInformation(CsvMetaInfo aMetaInfo) {
-        String value = getMetaInformation(aMetaInfo.parameter);
+        final String value = getMetaInformation(aMetaInfo.parameter);
         if (value != null) {
             logger.debug("MetaInfo " + aMetaInfo + " added, but same parameter with value [" + value + "] already exists!");
         }
@@ -106,7 +106,7 @@ public class CSV<E> {
         try {
             beanReader = new CsvDozerBeanReader(new FileReader(aCsvFilename), iCsvPreference);
 
-            String[] map = beanReader.getHeader(true);
+            final String[] map = beanReader.getHeader(true);
             // In case when header map is equal to 1 it is probable that current delimiter is not correct
             // Try to find better. (Of course there is always a chanse that there is only one column).
             if (map.length == 1) {
@@ -115,14 +115,14 @@ public class CSV<E> {
                 }
             }
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
         finally {
             if (beanReader != null) {
                 try {
                     beanReader.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -147,7 +147,7 @@ public class CSV<E> {
      * @return container with values
      */
     public Vector<E> Read(String aCsvFilename, CsvColumnConfig aOutputChoose) {
-        Vector<E> out = new Vector<E>();
+        final Vector<E> out = new Vector<E>();
         readData(aCsvFilename, out, aOutputChoose);
 
         return out;
@@ -162,8 +162,8 @@ public class CSV<E> {
      */
     public void Write(String aCsvFilename, List<E> aOutputData, CsvColumnConfig aOutputChoose, boolean aShouldAppend) {
         // Make sure that OutputChoose does not contain empty (null) values for header
-        List<String> map = new ArrayList<String>();
-        List<CellProcessor> cp = new ArrayList<CellProcessor>();
+        final List<String> map = new ArrayList<String>();
+        final List<CellProcessor> cp = new ArrayList<CellProcessor>();
         boolean isErrorReported = false;
         for (int i = 0; i < aOutputChoose.fieldMapping.length; ++i) {
             if (aOutputChoose.fieldMapping[i] != null && !aOutputChoose.fieldMapping[i].equals("")) {
@@ -178,9 +178,9 @@ public class CSV<E> {
                 }
             }
         }
-        String[] mapString = map.toArray(new String[map.size()]);
-        CellProcessor[] cel = cp.toArray(new CellProcessor[cp.size()]);
-        CsvColumnConfig oc = new CsvColumnConfig(mapString, cel);
+        final String[] mapString = map.toArray(new String[map.size()]);
+        final CellProcessor[] cel = cp.toArray(new CellProcessor[cp.size()]);
+        final CsvColumnConfig oc = new CsvColumnConfig(mapString, cel);
 
         writeData(aCsvFilename, aOutputData, oc, aShouldAppend);
     }
@@ -218,8 +218,8 @@ public class CSV<E> {
             return false;
         }
 
-        Vector<E> out = new Vector<E>();
-        CsvColumnConfig occ = readData(aInputFileNames[0], out, aOutputChoose);
+        final Vector<E> out = new Vector<E>();
+        final CsvColumnConfig occ = readData(aInputFileNames[0], out, aOutputChoose);
         if (occ == null) {
             return false;
         }
@@ -246,7 +246,7 @@ public class CSV<E> {
             logger.info("Reading file: [" + aCsvFilename + "]");
             beanReader = new CsvDozerBeanReader(new FileReader(aCsvFilename), iCsvPreference);
 
-            String[] map = beanReader.getHeader(true);
+            final String[] map = beanReader.getHeader(true);
             if (map == null)
             {
                 return null; // we cannot get the header
@@ -262,13 +262,13 @@ public class CSV<E> {
                 aOutput.add(element);
             }
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         } finally {
             if (beanReader != null) {
                 try {
                     beanReader.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -293,12 +293,12 @@ public class CSV<E> {
                 beanWriter.writeHeader(aOutputChoose.fieldMapping);
 
                 // Write meta information
-                for (CsvMetaInfo mi : iMetaInfos) {
+                for (final CsvMetaInfo mi : iMetaInfos) {
                     beanWriter.writeComment("%" + mi.parameter + ":" + mi.value);
                 }
 
                 // write read meta information if specified
-                for (CsvMetaInfo mi : iMetaInfosRead) {
+                for (final CsvMetaInfo mi : iMetaInfosRead) {
                     beanWriter.writeComment("%" + mi.parameter + ":" + mi.value);
                 }
             }
@@ -306,24 +306,24 @@ public class CSV<E> {
             // write the beans
             try {
 
-                for (E element : aOutputData) {
+                for (final E element : aOutputData) {
                     beanWriter.write(element, aOutputChoose.cellProcessors);
                 }
 
-            } catch (SecurityException e) {
+            } catch (final SecurityException e) {
                 e.printStackTrace();
                 return;
-            } catch (IllegalArgumentException e) {
+            } catch (final IllegalArgumentException e) {
                 e.printStackTrace();
             }
 
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
         } finally {
             if (beanWriter != null) {
                 try {
                     beanWriter.close();
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -331,7 +331,7 @@ public class CSV<E> {
     }
 
     String getMetaInformation(List<CsvMetaInfo> aContainer, String aParameter) {
-        for (CsvMetaInfo mi : aContainer) {
+        for (final CsvMetaInfo mi : aContainer) {
             if (mi.parameter.equals(aParameter)) {
                 return mi.value;
             }
@@ -345,7 +345,7 @@ public class CSV<E> {
      * @return generated OutputChoose
      */
     private CsvColumnConfig generateOutputChoose(String[] aHeaderKeywords) {
-        CellProcessor c[] = new CellProcessor[aHeaderKeywords.length];
+        final CellProcessor c[] = new CellProcessor[aHeaderKeywords.length];
 
         for (int i = 0; i < c.length; i++) {
             try {
@@ -353,20 +353,20 @@ public class CSV<E> {
                 c[i] = null;
 
                 iClazz.getMethod("get" + aHeaderKeywords[i]);
-            } catch (NoSuchMethodException e) {
+            } catch (final NoSuchMethodException e) {
                 // getProcessor from above get(MethodName) is not existing
                 logger.info("Method not found: [" + "get" + aHeaderKeywords[i] + "], setting to default (ignore) setup. Class: " + iClazz.getName());
                 c[i] = null;
                 aHeaderKeywords[i] = null;
                 continue;
-            } catch (IllegalArgumentException e) {
+            } catch (final IllegalArgumentException e) {
                 e.printStackTrace();
-            } catch (SecurityException e) {
+            } catch (final SecurityException e) {
                 e.printStackTrace();
             }
         }
 
-        CsvColumnConfig occ = new CsvColumnConfig(aHeaderKeywords, c);
+        final CsvColumnConfig occ = new CsvColumnConfig(aHeaderKeywords, c);
         logger.debug("Generated field mapping: " + occ);
 
         return occ;
@@ -380,11 +380,11 @@ public class CSV<E> {
             // Comment style:
             // %parameter:value
             if (s.startsWith("%")) {
-                String[] pr = s.split(":");
+                final String[] pr = s.split(":");
 
                 if (pr.length == 2) {
-                    CsvMetaInfo mi = new CsvMetaInfo(pr[0].substring(1), pr[1].trim());
-                    String value = getMetaInformation(iMetaInfosRead, mi.parameter);
+                    final CsvMetaInfo mi = new CsvMetaInfo(pr[0].substring(1), pr[1].trim());
+                    final String value = getMetaInformation(iMetaInfosRead, mi.parameter);
                     if (value != null) {
                         logger.debug("MetaInfo " + mi + " added, but same parameter with value [" + value + "] already exists!");
                     }
@@ -397,7 +397,7 @@ public class CSV<E> {
     }
 
     private void setCsvPreference(char aDelimiter) {
-        CsvPreference.Builder bld = new CsvPreference.Builder('"', aDelimiter, "\n");
+        final CsvPreference.Builder bld = new CsvPreference.Builder('"', aDelimiter, "\n");
         bld.skipComments(new CommentExtendedCSV());
         iCsvPreference = bld.build();
     }

@@ -36,15 +36,15 @@ import mosaic.core.utils.ShellCommand;
 public class ClusterGUI extends JDialog {
 
     private static final long serialVersionUID = 1L;
-    private JPanel contentPane;
+    private final JPanel contentPane;
     ClusterProfile cp_sel;
     ClusterSession cl;
 
     JTextField tx_u;
-    private JTextField tx_e;
+    private final JTextField tx_e;
     JPasswordField tx_p;
     ClusterProfile[] cp = null;
-    private float estimated_time = 0;
+    private final float estimated_time = 0;
 
     public ClusterGUI() {
         setBounds(100, 100, 350, 150);
@@ -53,18 +53,18 @@ public class ClusterGUI extends JDialog {
         setContentPane(contentPane);
         contentPane.setLayout(new GridLayout(0, 2, 0, 0));
 
-        JLabel lblNewLabel = new JLabel("Cluster profile: ");
+        final JLabel lblNewLabel = new JLabel("Cluster profile: ");
         contentPane.add(lblNewLabel);
 
         // Check for file profile
         String dir = IJ.getDirectory("home");
         dir += File.separator + ".MosaicToolSuite" + File.separator + "clusterProfile";
-        File cpf[] = new File(dir).listFiles();
+        final File cpf[] = new File(dir).listFiles();
         if (cpf != null) {
             cp = new ClusterProfile[cpf.length + 1];
 
             int cnt = 0;
-            for (File tcpf : cpf) {
+            for (final File tcpf : cpf) {
                 cp[cnt] = new FileClusterProfile(tcpf);
                 cnt++;
             }
@@ -80,7 +80,7 @@ public class ClusterGUI extends JDialog {
 
         // Create a set of strings
 
-        String CBcp[] = new String[cp.length];
+        final String CBcp[] = new String[cp.length];
         for (int i = 0; i < cp.length; i++) {
             CBcp[i] = new String(cp[i].getProfileName());
         }
@@ -121,7 +121,7 @@ public class ClusterGUI extends JDialog {
 
         // OK and Cancel button
 
-        JButton btnOKButton = new JButton("OK");
+        final JButton btnOKButton = new JButton("OK");
         contentPane.add(btnOKButton);
         btnOKButton.addActionListener(new ActionListener() {
 
@@ -134,7 +134,7 @@ public class ClusterGUI extends JDialog {
             }
         });
 
-        JButton btnCancelButton = new JButton("Cancel");
+        final JButton btnCancelButton = new JButton("Cancel");
         btnCancelButton.addActionListener(new ActionListener() {
 
             @Override
@@ -148,7 +148,7 @@ public class ClusterGUI extends JDialog {
 
         // check if we have the username option in macro mode if yes avoid to
         // draw a window
-        String test_set = MosaicUtils.parseString("username", Macro.getOptions());
+        final String test_set = MosaicUtils.parseString("username", Macro.getOptions());
         if (test_set != null && test_set.length() != 0) {
             cp_sel.setUsername(MosaicUtils.parseString("username", Macro.getOptions()));
             cp_sel.setPassword(MosaicUtils.parseString("password", Macro.getOptions()));
@@ -200,16 +200,16 @@ public class ClusterGUI extends JDialog {
      */
 
     private static ClusterProfile[] getClusterProfiles(int s) {
-        String dir = getClusterProfileDir();
-        File cpf[] = new File(dir).listFiles();
+        final String dir = getClusterProfileDir();
+        final File cpf[] = new File(dir).listFiles();
         if (cpf == null) {
             return new ClusterProfile[s];
         }
 
-        ClusterProfile[] cp = new ClusterProfile[cpf.length + s];
+        final ClusterProfile[] cp = new ClusterProfile[cpf.length + s];
 
         int cnt = 0;
-        for (File tcpf : cpf) {
+        for (final File tcpf : cpf) {
             cp[cnt] = new FileClusterProfile(tcpf);
             cnt++;
         }
@@ -230,10 +230,10 @@ public class ClusterGUI extends JDialog {
         try {
             ShellCommand.exeCmd("mkdir " + dir);
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
-        catch (InterruptedException e) {
+        catch (final InterruptedException e) {
             e.printStackTrace();
         }
 
@@ -242,10 +242,10 @@ public class ClusterGUI extends JDialog {
         try {
             ShellCommand.exeCmd("mkdir " + dir);
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
-        catch (InterruptedException e) {
+        catch (final InterruptedException e) {
             e.printStackTrace();
         }
     }

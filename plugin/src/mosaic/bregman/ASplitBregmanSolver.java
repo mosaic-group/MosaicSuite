@@ -66,7 +66,7 @@ class ASplitBregmanSolver {
     protected double energy, lastenergy;
     protected double bestNrj;
     protected Parameters p;
-    private RegionStatisticsSolver RSS;
+    private final RegionStatisticsSolver RSS;
     private AnalysePatch Ap;
 
     ASplitBregmanSolver(Parameters params, double[][][] image, double[][][][] speedData, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
@@ -134,8 +134,8 @@ class ASplitBregmanSolver {
             nzmin = nz;
         }
 
-        int nimin = Math.max(7, ni);
-        int njmin = Math.max(7, nj);
+        final int nimin = Math.max(7, ni);
+        final int njmin = Math.max(7, nj);
 
         this.temp1 = new double[nl][nzmin][nimin][njmin];
         // IJ.log(" ni " + ni +" nj" +nj+ " nl " +nl+ " nzmin "+nzmin);
@@ -209,7 +209,7 @@ class ASplitBregmanSolver {
 
         stepk = 0;
         totaltime = 0;
-        int modulo = p.dispEmodulo;
+        final int modulo = p.dispEmodulo;
 
         if (p.firstphase) {
             IJ.showStatus("Computing segmentation");
@@ -304,7 +304,7 @@ class ASplitBregmanSolver {
         }
 
         if (iw3kbest < 50) { // use what iteration threshold ?
-            int iw3kbestold = iw3kbest;
+            final int iw3kbestold = iw3kbest;
             LocalTools.copytab(w3kbest[0], w3k[0]);
             iw3kbest = stepk - 1;
             bestNrj = energy;
@@ -341,12 +341,12 @@ class ASplitBregmanSolver {
     }
 
     protected void step() throws InterruptedException {
-        long lStartTime = new Date().getTime(); // start time
-        CountDownLatch RegionsTasksDoneSignal = new CountDownLatch(nl);// subprob
+        final long lStartTime = new Date().getTime(); // start time
+        final CountDownLatch RegionsTasksDoneSignal = new CountDownLatch(nl);// subprob
         // 1 and
         // 3
-        CountDownLatch UkDoneSignal = new CountDownLatch(nl);
-        CountDownLatch W3kDoneSignal = new CountDownLatch(1);
+        final CountDownLatch UkDoneSignal = new CountDownLatch(nl);
+        final CountDownLatch W3kDoneSignal = new CountDownLatch(1);
 
         for (int l = 0; l < nl; l++) {
             new Thread(new SingleRegionTask(RegionsTasksDoneSignal, UkDoneSignal, W3kDoneSignal, l, channel, this, LocalTools)).start();
@@ -380,9 +380,9 @@ class ASplitBregmanSolver {
             md.display(maxmask, "Masks");
         }
 
-        long lEndTime = new Date().getTime(); // end time
+        final long lEndTime = new Date().getTime(); // end time
 
-        long difference = lEndTime - lStartTime; // check different
+        final long difference = lEndTime - lStartTime; // check different
         totaltime += difference;
         // IJ.log("Elapsed milliseconds: " + difference);
 
@@ -400,12 +400,12 @@ class ASplitBregmanSolver {
     private void regions_intensity(double[][][] mask) {
         // short [] [] [] regions;
         // ArrayList<Region> regionslistr;
-        double thresh = 0.4;
+        final double thresh = 0.4;
 
-        ImagePlus mask_im = new ImagePlus();
-        ImageStack mask_ims = new ImageStack(p.ni, p.nj);
+        final ImagePlus mask_im = new ImagePlus();
+        final ImageStack mask_ims = new ImageStack(p.ni, p.nj);
         for (int z = 0; z < nz; z++) {
-            byte[] mask_bytes = new byte[p.ni * p.nj];
+            final byte[] mask_bytes = new byte[p.ni * p.nj];
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     if (mask[z][i][j] > thresh) {
@@ -417,7 +417,7 @@ class ASplitBregmanSolver {
                 }
             }
 
-            ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
+            final ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
             bp.setPixels(mask_bytes);
             mask_ims.addSlice("", bp);
 
@@ -429,8 +429,8 @@ class ASplitBregmanSolver {
         IJ.run(mask_im, "3-3-2 RGB", "");
         mask_im.show("Voronoi");
 
-        double thr = 254;
-        FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
+        final double thr = 254;
+        final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -444,9 +444,9 @@ class ASplitBregmanSolver {
 
         // regions=fcr.tempres;
         this.regionslistr = fcr.results;
-        int na = regionslistr.size();
+        final int na = regionslistr.size();
 
-        double total = Analysis.totalsize(regionslistr);
+        final double total = Analysis.totalsize(regionslistr);
         IJ.log(na + " Voronoi1 cells found, total area : " + Tools.round(total, 2) + " pixels.");
 
         RSS.cluster_region(Ri[0], Ro[0], regionslistr);
@@ -464,17 +464,17 @@ class ASplitBregmanSolver {
         }
         // IJ.log("thresh" + thresh);
         ImagePlus mask_im = new ImagePlus();
-        ImageStack mask_ims = new ImageStack(p.ni, p.nj);
+        final ImageStack mask_ims = new ImageStack(p.ni, p.nj);
 
         // construct mask as an imageplus
         for (int z = 0; z < nz; z++) {
-            float[] mask_float = new float[p.ni * p.nj];
+            final float[] mask_float = new float[p.ni * p.nj];
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     mask_float[j * p.ni + i] = (float) mask[z][i][j];
                 }
             }
-            FloatProcessor fp = new FloatProcessor(p.ni, p.nj);
+            final FloatProcessor fp = new FloatProcessor(p.ni, p.nj);
             fp.setPixels(mask_float);
             mask_ims.addSlice("", fp);
         }
@@ -482,7 +482,7 @@ class ASplitBregmanSolver {
         // mask_im.show("test");
 
         // project mask on single slice (maximum values)
-        ZProjector proj = new ZProjector(mask_im);
+        final ZProjector proj = new ZProjector(mask_im);
         proj.setImage(mask_im);
         proj.setStartSlice(1);
         proj.setStopSlice(nz);
@@ -493,7 +493,7 @@ class ASplitBregmanSolver {
         IJ.showProgress(0.52);
 
         // threshold mask
-        byte[] mask_bytes = new byte[p.ni * p.nj];
+        final byte[] mask_bytes = new byte[p.ni * p.nj];
         for (int i = 0; i < ni; i++) {
             for (int j = 0; j < nj; j++) {
                 if (((int) (255 * mask_im.getProcessor().getPixelValue(i, j))) > 255 * thresh) {
@@ -506,7 +506,7 @@ class ASplitBregmanSolver {
                 }
             }
         }
-        ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
+        final ByteProcessor bp = new ByteProcessor(p.ni, p.nj);
         bp.setPixels(mask_bytes);
         mask_im.setProcessor("Voronoi", bp);
 
@@ -519,7 +519,7 @@ class ASplitBregmanSolver {
          * mask
          */
 
-        EDM filtEDM = new EDM();
+        final EDM filtEDM = new EDM();
         filtEDM.setup("voronoi", mask_im);
         filtEDM.run(mask_im.getProcessor());
         mask_im.getProcessor().invert();
@@ -527,9 +527,9 @@ class ASplitBregmanSolver {
         IJ.showProgress(0.53);
 
         // expand Voronoi in 3D
-        ImageStack mask_ims3 = new ImageStack(p.ni, p.nj);
+        final ImageStack mask_ims3 = new ImageStack(p.ni, p.nj);
         for (int z = 0; z < nz; z++) {
-            byte[] mask_bytes3 = new byte[p.ni * p.nj];
+            final byte[] mask_bytes3 = new byte[p.ni * p.nj];
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     mask_bytes3[j * p.ni + i] = (byte) mask_im.getProcessor().getPixel(i, j);//
@@ -537,7 +537,7 @@ class ASplitBregmanSolver {
                     // & 0xFF);
                 }
             }
-            ByteProcessor bp3 = new ByteProcessor(p.ni, p.nj);
+            final ByteProcessor bp3 = new ByteProcessor(p.ni, p.nj);
             bp3.setPixels(mask_bytes3);
             mask_ims3.addSlice("", bp3);
         }
@@ -546,8 +546,8 @@ class ASplitBregmanSolver {
         // Here we are elaborating the Voronoi mask to get a nice subdivision
 
         // mask_im.duplicate().show();
-        double thr = 254;
-        FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
+        final double thr = 254;
+        final FindConnectedRegions fcr = new FindConnectedRegions(mask_im);
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -582,20 +582,20 @@ class ASplitBregmanSolver {
                 IJ.selectWindow("Mask Y");
             }
             IJ.run("8-bit", "stack");
-            ImagePlus imp2 = IJ.getImage();
+            final ImagePlus imp2 = IJ.getImage();
 
             // add images
-            ImageStack mask_ims2 = new ImageStack(p.ni, p.nj);
+            final ImageStack mask_ims2 = new ImageStack(p.ni, p.nj);
             for (int z = 0; z < nz; z++) {
                 // imp1.setSlice(z+1);
                 imp2.setSlice(z + 1);
-                byte[] mask_byte2 = new byte[p.ni * p.nj];
+                final byte[] mask_byte2 = new byte[p.ni * p.nj];
                 for (int i = 0; i < ni; i++) {
                     for (int j = 0; j < nj; j++) {
                         mask_byte2[j * p.ni + i] = (byte) Math.min((mask_im.getProcessor().getPixel(i, j) + imp2.getProcessor().getPixel(i, j)), 255);
                     }
                 }
-                ByteProcessor bp2 = new ByteProcessor(p.ni, p.nj);
+                final ByteProcessor bp2 = new ByteProcessor(p.ni, p.nj);
                 bp2.setPixels(mask_byte2);
                 mask_ims2.addSlice("", bp2);
             }
@@ -622,9 +622,9 @@ class ASplitBregmanSolver {
         // regions=fcr.tempres;
         regionslist = fcr.results;
         regionsvoronoi = regionslist;
-        int na = regionslist.size();
+        final int na = regionslist.size();
 
-        double total = Analysis.totalsize(regionslist);
+        final double total = Analysis.totalsize(regionslist);
         if (p.dispvoronoi) {
             IJ.log(na + " Voronoi cells found, total area : " + Tools.round(total, 2) + " pixels.");
         }
@@ -646,7 +646,7 @@ class ASplitBregmanSolver {
             RSS2 = new RegionStatisticsSolver(temp1[0], temp2[0], temp3[0], w3kbest[0], 10, p);
         }
 
-        long lStartTime = new Date().getTime(); // start time
+        final long lStartTime = new Date().getTime(); // start time
 
         if (p.mode_voronoi2) {
             RSS2.cluster_region_voronoi2(Ri[0], regionslist);
@@ -655,12 +655,12 @@ class ASplitBregmanSolver {
             RSS2.cluster_region(Ri[0], Ro[0], regionslist);
         }
 
-        long lEndTime = new Date().getTime(); // end time
+        final long lEndTime = new Date().getTime(); // end time
 
         IJ.showStatus("Computing segmentation  " + 54 + "%");
         IJ.showProgress(0.54);
 
-        long difference = lEndTime - lStartTime; // check different
+        final long difference = lEndTime - lStartTime; // check different
         totaltime += difference;
         if (p.dispvoronoi) {
             if (p.nz == 1) {

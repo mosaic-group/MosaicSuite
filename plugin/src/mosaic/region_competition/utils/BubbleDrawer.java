@@ -19,8 +19,8 @@ public class BubbleDrawer {
     public BubbleDrawer(LabelImageRC labelImage, int radius, int size) {
         this.labelImage = labelImage;
 
-        int dim = labelImage.getDim();
-        int[] input = labelImage.getDimensions();
+        final int dim = labelImage.getDim();
+        final int[] input = labelImage.getDimensions();
         sphere = new SphereMask(radius, size, dim);
         sphereIt = new RegionIteratorMask(sphere, input);
     }
@@ -32,7 +32,7 @@ public class BubbleDrawer {
     public void drawUpperLeft(Point ofs, int val) {
         sphereIt.setUpperLeft(ofs);
         while (sphereIt.hasNext()) {
-            int idx = sphereIt.next();
+            final int idx = sphereIt.next();
             labelImage.setLabel(idx, val);
         }
     }
@@ -40,7 +40,7 @@ public class BubbleDrawer {
     public void drawCenter(Point center, int val) {
         sphereIt.setMidPoint(center);
         while (sphereIt.hasNext()) {
-            int idx = sphereIt.next();
+            final int idx = sphereIt.next();
             labelImage.setLabel(idx, val);
         }
     }

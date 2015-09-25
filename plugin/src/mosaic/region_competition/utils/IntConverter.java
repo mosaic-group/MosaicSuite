@@ -17,15 +17,15 @@ public class IntConverter {
 
     public static ImagePlus IPtoInt(ImagePlus ip) {
 
-        ImageStack stack = ip.getStack();
-        int nSlices = stack.getSize();
+        final ImageStack stack = ip.getStack();
+        final int nSlices = stack.getSize();
 
-        ImageStack newStack = new ImageStack(ip.getWidth(), ip.getHeight());
+        final ImageStack newStack = new ImageStack(ip.getWidth(), ip.getHeight());
 
-        ImagePlus newIP = new ImagePlus();
+        final ImagePlus newIP = new ImagePlus();
         for (int i = 1; i <= nSlices; i++) {
-            ImageProcessor proc = stack.getProcessor(i);
-            ColorProcessor newProc = procToIntProc(proc);
+            final ImageProcessor proc = stack.getProcessor(i);
+            final ColorProcessor newProc = procToIntProc(proc);
             newStack.addSlice(stack.getSliceLabel(i), newProc);
         }
         newIP.setStack(newStack);
@@ -40,7 +40,7 @@ public class IntConverter {
      * @return copy or converted proc
      */
     public static ColorProcessor procToIntProc(ImageProcessor proc) {
-        Object pixels = proc.getPixels();
+        final Object pixels = proc.getPixels();
 
         int[] intArray = null;
         if (pixels instanceof int[]) {
@@ -50,7 +50,7 @@ public class IntConverter {
             intArray = arrayToInt(pixels);
         }
 
-        ColorProcessor newProc = new ColorProcessor(proc.getWidth(), proc.getHeight());
+        final ColorProcessor newProc = new ColorProcessor(proc.getWidth(), proc.getHeight());
         newProc.setPixels(intArray);
 
         return newProc;
@@ -82,8 +82,8 @@ public class IntConverter {
     }
 
     private static int[] floatToInt(float[] proc) {
-        int n = proc.length;
-        int[] pixels = new int[n];
+        final int n = proc.length;
+        final int[] pixels = new int[n];
 
         for (int i = 0; i < n; i++) {
             pixels[i] = (int) proc[i];
@@ -92,8 +92,8 @@ public class IntConverter {
     }
 
     private static int[] shortToInt(short[] proc) {
-        int n = proc.length;
-        int[] pixels = new int[n];
+        final int n = proc.length;
+        final int[] pixels = new int[n];
 
         for (int i = 0; i < n; i++) {
             pixels[i] = proc[i];
@@ -102,8 +102,8 @@ public class IntConverter {
     }
 
     private static int[] byteToInt(byte[] proc) {
-        int n = proc.length;
-        int[] pixels = new int[n];
+        final int n = proc.length;
+        final int[] pixels = new int[n];
 
         for (int i = 0; i < n; i++) {
             pixels[i] = proc[i];
@@ -124,8 +124,8 @@ public class IntConverter {
      * @return
      */
     private static short[] intToShort(int[] ints, boolean abs, boolean borderRemove, boolean clamp) {
-        int n = ints.length;
-        short[] shorts = new short[n];
+        final int n = ints.length;
+        final short[] shorts = new short[n];
 
         if (abs) {
             for (int i = 0; i < n; i++) {
@@ -169,12 +169,12 @@ public class IntConverter {
     public static int[] intStackToArray(ImageStack stack) {
         int[] result;
 
-        int zs = stack.getSize();
-        int area = stack.getWidth() * stack.getHeight();
+        final int zs = stack.getSize();
+        final int area = stack.getWidth() * stack.getHeight();
         result = new int[zs * area];
 
         for (int z = 0; z < zs; z++) {
-            int[] pixels = (int[]) stack.getPixels(z + 1);
+            final int[] pixels = (int[]) stack.getPixels(z + 1);
             for (int j = 0; j < area; j++) {
                 result[z * area + j] = pixels[j];
             }
@@ -204,17 +204,17 @@ public class IntConverter {
      */
 
     private static ImageStack intArrayToShortStack(int[] intData, int[] dims, boolean abs, boolean borderRemove, boolean clamp) {
-        short shortData[] = IntConverter.intToShort(intData, abs, borderRemove, clamp);
+        final short shortData[] = IntConverter.intToShort(intData, abs, borderRemove, clamp);
 
         int w, h, z;
         w = dims[0];
         h = dims[1];
         z = dims[2];
-        int area = w * h;
+        final int area = w * h;
 
-        ImageStack stack = new ImageStack(w, h);
+        final ImageStack stack = new ImageStack(w, h);
         for (int i = 0; i < z; i++) {
-            Object pixels = Arrays.copyOfRange(shortData, i * area, (i + 1) * area);
+            final Object pixels = Arrays.copyOfRange(shortData, i * area, (i + 1) * area);
             stack.addSlice("", pixels);
         }
 
@@ -228,7 +228,7 @@ public class IntConverter {
      * @return
      */
     public static ImageStack intArrayToStack(int[] intData, int[] dims) {
-        int dim = dims.length;
+        final int dim = dims.length;
 
         int w, h, z;
         w = dims[0];
@@ -237,11 +237,11 @@ public class IntConverter {
         if (dim == 3) {
             z = dims[2];
         }
-        int area = w * h;
+        final int area = w * h;
 
-        ImageStack stack = new ImageStack(w, h);
+        final ImageStack stack = new ImageStack(w, h);
         for (int i = 0; i < z; i++) {
-            Object pixels = Arrays.copyOfRange(intData, i * area, (i + 1) * area);
+            final Object pixels = Arrays.copyOfRange(intData, i * area, (i + 1) * area);
             stack.addSlice("", pixels);
         }
 

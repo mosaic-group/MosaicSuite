@@ -17,8 +17,8 @@ import java.util.NoSuchElementException;
 public class RegionIteratorMask {
 
     Mask mask;
-    private int[] input; // size of the input image
-    private int[] m_Size; // size of the mask
+    private final int[] input; // size of the input image
+    private final int[] m_Size; // size of the mask
     int[] ofs; // "upper left" coordinates of the sphere-region within input image
     int[] crop_s; // "left crop start"
     int[] crop_e; // "right left crop start"
@@ -59,16 +59,16 @@ public class RegionIteratorMask {
         jumpTable = new int[mask.getFgPoints()];
         jumpTableGeo = new Point[mask.getFgPoints()];
         maskAdjTable = new int[regionIt.getSize()];
-        List<RJmp> rJmpTmp = new ArrayList<RJmp>();
+        final List<RJmp> rJmpTmp = new ArrayList<RJmp>();
 
         while (regionIt.hasNext()) {
-            Point pt = regionIt.getPoint();
-            int idx = regionIt.nextRmask();
-            int reset = regionIt.getRMask();
-            int itMask = maskIt.next();
+            final Point pt = regionIt.getPoint();
+            final int idx = regionIt.nextRmask();
+            final int reset = regionIt.getRMask();
+            final int itMask = maskIt.next();
 
             if (reset != 0) {
-                RJmp tmp = new RJmp();
+                final RJmp tmp = new RJmp();
                 tmp.idx = jidx;
 
                 rJmpTmp.add(tmp);
@@ -98,7 +98,7 @@ public class RegionIteratorMask {
         }
 
         rJmp = rJmpTmp.toArray(new RJmp[rJmpTmp.size()]);
-        Point p = new Point(this.input.length);
+        final Point p = new Point(this.input.length);
         p.zero();
         setUpperLeft(p);
     }
@@ -111,11 +111,11 @@ public class RegionIteratorMask {
      */
     public RegionIteratorMask(Mask mask, int[] inputSize) {
         this.input = inputSize;
-        int[] tmpInputSize = new int[inputSize.length];
+        final int[] tmpInputSize = new int[inputSize.length];
         this.mask = mask;
         m_Size = mask.getDimensions();
 
-        int x[] = new int[inputSize.length];
+        final int x[] = new int[inputSize.length];
         for (int i = 0; i < inputSize.length; i++) {
             x[i] = 0;
         }
@@ -144,7 +144,7 @@ public class RegionIteratorMask {
      * @param midPoint
      */
     public void setMidPoint(Point midPoint) {
-        Point half = (new Point(m_Size)).div(2);
+        final Point half = (new Point(m_Size)).div(2);
         ofs = midPoint.sub(half).x;
         ofs_p = new Point(ofs);
         initIterators();
@@ -187,7 +187,7 @@ public class RegionIteratorMask {
         rjmp_idx = 0;
 
         if (simple == false) {
-            MovePoint tmpM = new MovePoint();
+            final MovePoint tmpM = new MovePoint();
 
             // Bug
 
@@ -305,7 +305,7 @@ public class RegionIteratorMask {
      */
     public int next() {
         if (cachedNext < 0) {
-            int result = calcNext();
+            final int result = calcNext();
             if (result < 0) {
                 throw new NoSuchElementException();
             }
@@ -313,7 +313,7 @@ public class RegionIteratorMask {
         }
         else {
             // there is a cached next. return and reset it
-            int result = cachedNext;
+            final int result = cachedNext;
             cachedNext = -1;
             return result;
         }
@@ -338,7 +338,7 @@ public class RegionIteratorMask {
     private int calcNext() {
         if (simple == true) {
             if (idx_j < jumpTable.length) {
-                int val = itInput + jumpTable[idx_j];
+                final int val = itInput + jumpTable[idx_j];
                 idx_j += 1;
                 return val;
             }
@@ -348,13 +348,13 @@ public class RegionIteratorMask {
         }
         else {
             if (jumpTableGeo[idx_j].x[0] < crop_e[0] && idx_j < next_idx_jump) {
-                int val = itInput + jumpTable[idx_j];
+                final int val = itInput + jumpTable[idx_j];
                 idx_j += 1;
                 return val;
             }
             else {
                 int val;
-                MovePoint p = new MovePoint();
+                final MovePoint p = new MovePoint();
                 p.p = new Point(jumpTableGeo[idx_j]);
                 while (isValidAndAdjust(p) == false) {
                     if (p.idx >= maskAdjTable.length) {

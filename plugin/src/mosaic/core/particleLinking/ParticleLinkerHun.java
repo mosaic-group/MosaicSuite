@@ -21,17 +21,17 @@ public class ParticleLinkerHun implements ParticleLinker {
 
     private float cost_link(Particle p1, Particle p2, linkerOptions l, int n, double max_cost) {
         double cost = 0.0;
-        float distance_sq = (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z);
+        final float distance_sq = (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z);
 
         cost = (float) (distance_sq * l.l_s + l.l_f * Math.cbrt(((p1.m0 - p2.m0) * (p1.m0 - p2.m0)) + (p1.m2 - p2.m2) * (p1.m2 - p2.m2)));
 
         if (l.force == true) {
             if (p1.distance >= 0.0) {
-                float lx = (p2.x - p1.x) / (n + 1) - p1.lx;
-                float ly = (p2.y - p1.y) / (n + 1) - p1.ly;
-                float lz = (p2.z - p1.z) / (n + 1) - p1.lz;
+                final float lx = (p2.x - p1.x) / (n + 1) - p1.lx;
+                final float ly = (p2.y - p1.y) / (n + 1) - p1.ly;
+                final float lz = (p2.z - p1.z) / (n + 1) - p1.lz;
 
-                float f_magn_sq = lx * lx + ly * ly + lz * lz;
+                final float f_magn_sq = lx * lx + ly * ly + lz * lz;
                 cost += l.l_d * f_magn_sq;
             }
             else {
@@ -43,24 +43,24 @@ public class ParticleLinkerHun implements ParticleLinker {
         else if (l.straight_line == true && p1.distance >= 0.0) {
             // Calculate the module
 
-            float l1_m = p1.linkModule();
+            final float l1_m = p1.linkModule();
 
-            float lx1 = p1.lx / l1_m;
-            float ly1 = p1.ly / l1_m;
-            float lz1 = p1.lz / l1_m;
+            final float lx1 = p1.lx / l1_m;
+            final float ly1 = p1.ly / l1_m;
+            final float lz1 = p1.lz / l1_m;
 
             float lx2 = (p2.x - p1.x + p1.lxa);
             float ly2 = (p2.y - p1.y + p1.lya);
             float lz2 = (p2.z - p1.z + p1.lza);
 
-            float l2_m = (float) Math.sqrt(lx2 * lx2 + ly2 * ly2 + lz2 * lz2);
+            final float l2_m = (float) Math.sqrt(lx2 * lx2 + ly2 * ly2 + lz2 * lz2);
 
             if (l2_m >= l.r_sq) {
                 lx2 /= l2_m;
                 ly2 /= l2_m;
                 lz2 /= l2_m;
 
-                float cos_phi = lx1 * lx2 + ly1 * ly2 + lz1 * lz2;
+                final float cos_phi = lx1 * lx2 + ly1 * ly2 + lz1 * lz2;
 
                 cost += (cos_phi - 1) * (cos_phi - 1) * l.displacement * l.displacement;
             }
@@ -133,7 +133,7 @@ public class ParticleLinkerHun implements ParticleLinker {
 
                 // Create a bipartite graph
 
-                BipartiteMatcher bpm = new BipartiteMatcher(nop + nop_next);
+                final BipartiteMatcher bpm = new BipartiteMatcher(nop + nop_next);
 
                 //
 
@@ -141,7 +141,7 @@ public class ParticleLinkerHun implements ParticleLinker {
                 for (i = 0; i < nop + nop_next; i++) {
                     for (j = 0; j < nop + nop_next; j++) {
                         if (i < nop && j < nop_next) {
-                            double cost = cost_link(p1.elementAt(i), p2.elementAt(j), l, n, max_cost);
+                            final double cost = cost_link(p1.elementAt(i), p2.elementAt(j), l, n, max_cost);
                             bpm.setWeight(i, j, max_cost - cost);
                         }
                         else {
@@ -150,7 +150,7 @@ public class ParticleLinkerHun implements ParticleLinker {
                     }
                 }
 
-                int[] mac = bpm.getMatching();
+                final int[] mac = bpm.getMatching();
 
                 /* After optimization, the particles needs to be linked */
                 for (i = 0; i < nop + nop_next; i++) {
@@ -189,7 +189,7 @@ public class ParticleLinkerHun implements ParticleLinker {
                         p2.elementAt(mac[i]).distance = 1.0f;
                     }
                     else if (l.straight_line == true) {
-                        float distance_sq = (float) Math.sqrt((p1.elementAt(i).x - p2.elementAt(mac[i]).x) * (p1.elementAt(i).x - p2.elementAt(mac[i]).x)
+                        final float distance_sq = (float) Math.sqrt((p1.elementAt(i).x - p2.elementAt(mac[i]).x) * (p1.elementAt(i).x - p2.elementAt(mac[i]).x)
                                 + (p1.elementAt(i).y - p2.elementAt(mac[i]).y) * (p1.elementAt(i).y - p2.elementAt(mac[i]).y) + (p1.elementAt(i).z - p2.elementAt(mac[i]).z)
                                 * (p1.elementAt(i).z - p2.elementAt(mac[i]).z));
 

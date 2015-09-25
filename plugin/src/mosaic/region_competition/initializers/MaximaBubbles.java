@@ -30,9 +30,9 @@ public class MaximaBubbles extends DataDrivenInitializer {
 
     public MaximaBubbles(IntensityImage intensityImage, LabelImageRC labelImage, int rad_t, double sigma_t, double tol_t, int r_t) {
         super(intensityImage, labelImage);
-        int dim = labelImage.getDim();
+        final int dim = labelImage.getDim();
         if (dim == 2) {
-            int[] dims = intensityImage.getDimensions();
+            final int[] dims = intensityImage.getDimensions();
             maximumFinder = new MaximumFinder2D(dims[0], dims[1]);
         }
         else if (dim == 3) {
@@ -67,17 +67,17 @@ public class MaximaBubbles extends DataDrivenInitializer {
         List<Point> list;
         list = maximumFinder.getMaximaPointList(intensityImage.dataIntensity, tolerance, excludeOnEdges);
 
-        BinarizedIntervalIntesityImage foo = new BinarizedIntervalIntesityImage(intensityImage);
+        final BinarizedIntervalIntesityImage foo = new BinarizedIntervalIntesityImage(intensityImage);
         int color = 1;
-        for (Point p : list) {
-            float val2 = intensityImage.get(p);
-            float val1 = (float) (val2 * (1.0 - 2 * tolerance));
+        for (final Point p : list) {
+            final float val2 = intensityImage.get(p);
+            final float val1 = (float) (val2 * (1.0 - 2 * tolerance));
             foo.AddThresholdBetween(val1, val2);
 
-            FloodFill ff = new FloodFill(labelImage.getConnFG(), foo, p);
+            final FloodFill ff = new FloodFill(labelImage.getConnFG(), foo, p);
 
             int n = 0;
-            for (Point pp : ff) {
+            for (final Point pp : ff) {
                 labelImage.setLabel(pp, color);
                 n++;
             }
@@ -86,7 +86,7 @@ public class MaximaBubbles extends DataDrivenInitializer {
 
             // if region was very small, draw a bubble
             if (n < regionThreshold) {
-                BubbleDrawer bd = new BubbleDrawer(labelImage, rad / 2, rad);
+                final BubbleDrawer bd = new BubbleDrawer(labelImage, rad / 2, rad);
                 bd.drawCenter(p, color);
             }
 
@@ -102,10 +102,10 @@ public class MaximaBubbles extends DataDrivenInitializer {
         List<Point> list;
         list = maximumFinder.getMaximaPointList(intensityImage.dataIntensity, tolerance, false);
 
-        BubbleDrawer bubbler = new BubbleDrawer(labelImage, rad, 2 * rad + 1);
+        final BubbleDrawer bubbler = new BubbleDrawer(labelImage, rad, 2 * rad + 1);
 
         int color = 1;
-        for (Point p : list) {
+        for (final Point p : list) {
             bubbler.drawCenter(p, color++);
         }
     }

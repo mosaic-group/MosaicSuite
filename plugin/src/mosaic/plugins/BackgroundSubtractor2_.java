@@ -79,7 +79,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         //		mLength = AutoDetectParameters(aImagePlus.getProcessor());
         try {
             mLength = Integer.parseInt(aArgs);
-        }catch(NumberFormatException aE) {
+        }catch(final NumberFormatException aE) {
             //nothing
         }
         int vWhatToDo = 2;
@@ -159,10 +159,10 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
             //      	vImageProcessor.setCalibrationTable(null);
             vImageProcessor = vImageProcessor.convertToFloat();
 
-            int vWidth =  vImageProcessor.getWidth();
-            int vHeight =  vImageProcessor.getHeight();
+            final int vWidth =  vImageProcessor.getWidth();
+            final int vHeight =  vImageProcessor.getHeight();
 
-            FloatProcessor vBackgroundProcessor = new FloatProcessor(vWidth, vHeight);
+            final FloatProcessor vBackgroundProcessor = new FloatProcessor(vWidth, vHeight);
             vImageProcessor.resetMinAndMax();
             mBinSize = (float)( vImageProcessor.getMax() -  vImageProcessor.getMin()) / mBins;
             if (mBinSize == 0f)
@@ -197,12 +197,12 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
                     vY = vHeight - 1; //reset to the last row if necessary
                 }
                 for (int vX = 0; vX < vWidth; vX++){
-                    int vA = vX % mStepSize;
+                    final int vA = vX % mStepSize;
                     if (vA == 0) {
                         continue;
                     }
-                    int vRightPixelIndex = (vX - vA + mStepSize < vWidth) ? vX - vA + mStepSize : vWidth - 1;
-                    float vShadedIntensity = (((float)(mStepSize - vA) / (float)mStepSize) * vBackgroundProcessor.getPixelValue(vX - vA, vY) +
+                    final int vRightPixelIndex = (vX - vA + mStepSize < vWidth) ? vX - vA + mStepSize : vWidth - 1;
+                    final float vShadedIntensity = (((float)(mStepSize - vA) / (float)mStepSize) * vBackgroundProcessor.getPixelValue(vX - vA, vY) +
                             ((float)vA / (float)(mStepSize)) * vBackgroundProcessor.getPixelValue(vRightPixelIndex, vY));
                     vBackgroundProcessor.setf(vX, vY, vShadedIntensity);
                 }
@@ -211,16 +211,16 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
             // shade the columns
             //
             for (int vY = 0; vY < vHeight; vY++){
-                int vB = vY % mStepSize;
+                final int vB = vY % mStepSize;
                 if (vB == 0) {
                     continue;
                 }
-                int vBottomPixelIndex = (vY - vB + mStepSize < vHeight) ? vY - vB + mStepSize : vHeight - 1;
+                final int vBottomPixelIndex = (vY - vB + mStepSize < vHeight) ? vY - vB + mStepSize : vHeight - 1;
                 for (int vX = 0; vX < vWidth + mStepSize - 1; vX = vX + mStepSize){
                     if (vX >= mWidth) {
                         vX = mWidth - 1;
                     }
-                    float vShadedIntensity = (((float)(mStepSize - vB) / (float)mStepSize) * vBackgroundProcessor.getPixelValue(vX, vY - vB) +
+                    final float vShadedIntensity = (((float)(mStepSize - vB) / (float)mStepSize) * vBackgroundProcessor.getPixelValue(vX, vY - vB) +
                             ((float)vB / (float)(mStepSize)) * vBackgroundProcessor.getPixelValue(vX, vBottomPixelIndex));
                     vBackgroundProcessor.setf(vX, vY, vShadedIntensity);
                 }
@@ -229,20 +229,20 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
             // shade the rest of the pixels
             //
             for (int vY = 0; vY < vHeight; vY++){
-                int vB = vY % mStepSize;
+                final int vB = vY % mStepSize;
                 if (vB == 0) {
                     continue;
                 }
-                int vBottomPixelIndex = (vY - vB + mStepSize < vHeight) ? vY - vB + mStepSize : vHeight - 1;
+                final int vBottomPixelIndex = (vY - vB + mStepSize < vHeight) ? vY - vB + mStepSize : vHeight - 1;
                 for (int vX = 0; vX < vWidth; vX++){
-                    int vA = vX % mStepSize;
+                    final int vA = vX % mStepSize;
                     if (vA == 0) {
                         continue;
                     }
-                    int vRightPixelIndex = (vX - vA + mStepSize < vWidth) ? vX - vA + mStepSize : vWidth - 1;
-                    float vShadedIntensityInX = (((float)(mStepSize - vA) / (float)mStepSize) * vBackgroundProcessor.getPixelValue(vX - vA, vY) +
+                    final int vRightPixelIndex = (vX - vA + mStepSize < vWidth) ? vX - vA + mStepSize : vWidth - 1;
+                    final float vShadedIntensityInX = (((float)(mStepSize - vA) / (float)mStepSize) * vBackgroundProcessor.getPixelValue(vX - vA, vY) +
                             ((float)vA / (float)(mStepSize)) * vBackgroundProcessor.getPixelValue(vRightPixelIndex, vY));
-                    float vShadedIntensityInY = (((float)(mStepSize - vB) / (float)mStepSize) * vBackgroundProcessor.getPixelValue(vX, vY  - vB) +
+                    final float vShadedIntensityInY = (((float)(mStepSize - vB) / (float)mStepSize) * vBackgroundProcessor.getPixelValue(vX, vY  - vB) +
                             ((float)vB / (float)(mStepSize)) * vBackgroundProcessor.getPixelValue(vX, vBottomPixelIndex));
                     vBackgroundProcessor.setf(vX, vY, (vShadedIntensityInX + vShadedIntensityInY) / 2f);
                 }
@@ -250,7 +250,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 
 
             //        	//should we do the blurring after shading???
-            float[] vKernel = GenerateGaussKernel(mGaussBlurRadius);
+            final float[] vKernel = GenerateGaussKernel(mGaussBlurRadius);
             vBackgroundProcessor.convolve(vKernel, vKernel.length, 1);
             vBackgroundProcessor.convolve(vKernel, 1, vKernel.length);
 
@@ -258,8 +258,8 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
                 mBackgroundImageStack.addSlice("", vBackgroundProcessor);
             }
 
-            float[] vPixels = (float[])vImageProcessor.getPixels();
-            float[] vBackgroundPixels = (float[])vBackgroundProcessor.getPixels();
+            final float[] vPixels = (float[])vImageProcessor.getPixels();
+            final float[] vBackgroundPixels = (float[])vBackgroundProcessor.getPixels();
             for (int vI = 0; vI < vPixels.length; vI++){
                 vPixels[vI] -= vBackgroundPixels[vI];
                 if (vPixels[vI] < 0){ //what to do?
@@ -317,9 +317,9 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
      * @return
      */
     public float GetBackgroundIntensityAt(int aX, int aY, ImageProcessor aImageProcessor) {
-        int[] vHistogramm = new int[mBins+1];
+        final int[] vHistogramm = new int[mBins+1];
         int vPointerOnMax = 0;
-        float vHistoStartIntensity = (float)aImageProcessor.getMin();
+        final float vHistoStartIntensity = (float)aImageProcessor.getMin();
         //		if (vHistoStartIntensity < 0) {
         //			//TODO: The filter will stop by a IndexOutOfBoundsException. Important is that it'll stop.
         //			IJ.showMessage("Error in BackgroundSubtractor", "The image contains below 0 values.");
@@ -346,7 +346,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
                     vPY = mHeight - 1;
                 }
 
-                float vV = aImageProcessor.getPixelValue(vPX, vPY);
+                final float vV = aImageProcessor.getPixelValue(vPX, vPY);
                 if (vPointerOnMax == 334) {
                     System.out.println("Stop");
                 }
@@ -364,8 +364,8 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
      * @return
      */
     public float[] GenerateGaussKernel(float aRadius){
-        float[] vKernel = new float[3 * (int)aRadius * 2 + 1];
-        int vM = vKernel.length / 2;
+        final float[] vKernel = new float[3 * (int)aRadius * 2 + 1];
+        final int vM = vKernel.length / 2;
         for (int vI = 0; vI < vM; vI++){
             vKernel[vI] = (float)(1f/(2f*Math.PI * aRadius * aRadius) * Math.exp(-(float)((vM-vI)*(vM-vI))/(2f * aRadius * aRadius)));
             vKernel[vKernel.length - vI - 1] = vKernel[vI];
@@ -410,7 +410,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         mAutoParamButton.addActionListener(this);
         //		mParameterDialog.addNumericField("Square Length", mLength, 0);
 
-        Panel vLengthParamPanel = new Panel();
+        final Panel vLengthParamPanel = new Panel();
         vLengthParamPanel.setLayout(new GridBagLayout());
         //		vLengthParamPanel.add(new Label("Square Length"));
         //		vLengthParamPanel.add(mLengthTextField);
@@ -440,7 +440,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 
     @Override
     public synchronized void actionPerformed(ActionEvent e) {
-        Object vSource = e.getSource();
+        final Object vSource = e.getSource();
         if (vSource == mAutoParamButton) {
             mLength = AutoDetectParameters(mOriginalImagePlus.getProcessor());
             //			mLengthTextField.setText("" + mLength);
@@ -460,13 +460,13 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
      */
     private int AutoDetectParameters(ImageProcessor aImageProcessor) {
 
-        ImageProcessor vInitProcessor = aImageProcessor.convertToFloat();
+        final ImageProcessor vInitProcessor = aImageProcessor.convertToFloat();
         float vThreshold  = (float)aImageProcessor.getMinThreshold();
-        float[] vPixels = (float[])vInitProcessor.getPixels();
+        final float[] vPixels = (float[])vInitProcessor.getPixels();
 
         if (aImageProcessor.getMinThreshold() == ImageProcessor.NO_THRESHOLD){
             //TODO: catch the stackoverlow
-            ImageStatistics vStats = ImageStatistics.getStatistics(vInitProcessor, Measurements.MIN_MAX /*+ Measurements.AREA + Measurements.MODE*/, null);
+            final ImageStatistics vStats = ImageStatistics.getStatistics(vInitProcessor, Measurements.MIN_MAX /*+ Measurements.AREA + Measurements.MODE*/, null);
             vThreshold = vInitProcessor.getAutoThreshold(vStats.histogram);
             vThreshold = (float)(vInitProcessor.getMin()+ (vThreshold/255.0)*(vInitProcessor.getMax()-vInitProcessor.getMin()));//scale up
         }
@@ -493,7 +493,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         Vector<Vector<Integer>> vAreas = null;
         try {
             vAreas = SearchAreasInBitmap(vBitmap);
-        }catch (StackOverflowError aSOE) { //TODO: not that nice solution.
+        }catch (final StackOverflowError aSOE) { //TODO: not that nice solution.
             IJ.showMessage("The parameter detection failed.\n" +
                     "Try again with the minimum threshold set.\n" +
                     "(Menu Image\\Adjust\\Threshold)");
@@ -505,15 +505,15 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
             }
         }
         //		for the largest area, get the boundary
-        Vector<Integer> vBoundary = SearchBoundary(vBitmap, vAreas.elementAt(vMaxPointer));
+        final Vector<Integer> vBoundary = SearchBoundary(vBitmap, vAreas.elementAt(vMaxPointer));
         float vMaxDist = 0;
         for (int vI = 0; vI < vBoundary.size(); vI++){
             for (int vJ = vI + 1; vJ < vBoundary.size(); vJ++){
-                int vX1 = vBoundary.elementAt(vI) % mWidth;
-                int vY1 = vBoundary.elementAt(vI) / mWidth;
-                int vX2 = vBoundary.elementAt(vJ) % mWidth;
-                int vY2 = vBoundary.elementAt(vJ) / mWidth;
-                float vD = (vX1 - vX2) * (vX1 - vX2) + (vY1 -vY2) * (vY1 - vY2);
+                final int vX1 = vBoundary.elementAt(vI) % mWidth;
+                final int vY1 = vBoundary.elementAt(vI) / mWidth;
+                final int vX2 = vBoundary.elementAt(vJ) % mWidth;
+                final int vY2 = vBoundary.elementAt(vJ) / mWidth;
+                final float vD = (vX1 - vX2) * (vX1 - vX2) + (vY1 -vY2) * (vY1 - vY2);
                 if (vD > vMaxDist) {
                     vMaxDist = vD;
                 }
@@ -529,8 +529,8 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
      * @return A vector with adjoining areas. A area is a vector containing the index of the pixels.
      */
     private Vector<Vector<Integer>> SearchAreasInBitmap(boolean[] aBitmap) {
-        Vector<Vector<Integer>> vAreas = new Vector<Vector<Integer>>();
-        boolean[] vAlreadyVisited = new boolean[aBitmap.length];
+        final Vector<Vector<Integer>> vAreas = new Vector<Vector<Integer>>();
+        final boolean[] vAlreadyVisited = new boolean[aBitmap.length];
         for (int vP = 0; vP < aBitmap.length; vP++){
             IJ.showProgress(vP,aBitmap.length);
             if (aBitmap[vP] && !vAlreadyVisited[vP]){
@@ -551,9 +551,9 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         if (!aBitmap[aPixel] || aAlreadyVisitedMask[aPixel]) {
             return new Vector<Integer>();
         }
-        int vWidth = mOriginalImagePlus.getWidth();
-        int vHeight = mOriginalImagePlus.getHeight();
-        Vector<Integer> vArea = new Vector<Integer>();
+        final int vWidth = mOriginalImagePlus.getWidth();
+        final int vHeight = mOriginalImagePlus.getHeight();
+        final Vector<Integer> vArea = new Vector<Integer>();
         vArea.add(aPixel);
         aAlreadyVisitedMask[aPixel] = true;
         if (aPixel % vWidth != vWidth - 1 && aBitmap[aPixel + 1] && !aAlreadyVisitedMask[aPixel + 1]) {
@@ -587,10 +587,10 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
      * @see SearchAreasInBitmap
      */
     private Vector<Integer> SearchBoundary(boolean[] aBitmap, Vector<Integer> aArea) {
-        Vector<Integer> vB = new Vector<Integer>();
-        int vWidth = mOriginalImagePlus.getWidth();
-        int vHeight = mOriginalImagePlus.getHeight();
-        for (int vP : aArea){
+        final Vector<Integer> vB = new Vector<Integer>();
+        final int vWidth = mOriginalImagePlus.getWidth();
+        final int vHeight = mOriginalImagePlus.getHeight();
+        for (final int vP : aArea){
             //
             // Get the neighbours, first handle the boundaries of the image
             //

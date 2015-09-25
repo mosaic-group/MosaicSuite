@@ -59,15 +59,15 @@ public class FocusStackWin extends StackWindow implements ItemListener {
      * Adds a Panel with filter options button and number of particles in it to this window
      */
     private void addPanel() {
-        Panel panel = new Panel(new GridLayout(2, 1));
+        final Panel panel = new Panel(new GridLayout(2, 1));
         Auto_Z = new Checkbox("Auto Z");
         Auto_Z.addItemListener(this);
         panel.add(Auto_Z);
         add(panel);
         pack();
-        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        Point loc = getLocation();
-        Dimension size = getSize();
+        final Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        final Point loc = getLocation();
+        final Dimension size = getSize();
         if (loc.y + size.height > screen.height) {
             getCanvas().zoomOut(0, 0);
         }
@@ -87,7 +87,7 @@ public class FocusStackWin extends StackWindow implements ItemListener {
                 frame = getImagePlus().getChannel() - 1;
             }
 
-            int slice = (int) (traj.existing_particles[frame].z / scal_z);
+            final int slice = (int) (traj.existing_particles[frame].z / scal_z);
             getImagePlus().setSlice(slice);
 
             if (getImagePlus().getNFrames() != 1) {
@@ -114,7 +114,7 @@ public class FocusStackWin extends StackWindow implements ItemListener {
                 frame = getImagePlus().getChannel() - 1;
             }
 
-            int slice = (int) (traj.existing_particles[frame].z / scal_z);
+            final int slice = (int) (traj.existing_particles[frame].z / scal_z);
             getImagePlus().setSlice(slice);
 
             if (getImagePlus().getNFrames() != 1) {

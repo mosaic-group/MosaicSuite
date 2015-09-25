@@ -28,7 +28,7 @@ public class OutputGUI extends JDialog {
 
         private static final long serialVersionUID = 1L;
 
-        private String[] columnNames = { "Enable", "Column", "Factor" };
+        private final String[] columnNames = { "Enable", "Column", "Factor" };
 
         Object[][] data;
 
@@ -130,7 +130,7 @@ public class OutputGUI extends JDialog {
         }
 
         out = out_;
-        String[] pn = new String[out.length];
+        final String[] pn = new String[out.length];
 
         for (int i = 0; i < out.length; i++) {
             pn[i] = out[i].name;
@@ -142,7 +142,7 @@ public class OutputGUI extends JDialog {
         setContentPane(contentPane);
         contentPane.setLayout(new GridBagLayout());
 
-        GridBagConstraints c = new GridBagConstraints();
+        final GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.gridy = 0;
         c.gridwidth = 2;
@@ -169,7 +169,7 @@ public class OutputGUI extends JDialog {
             @Override
             public void actionPerformed(ActionEvent arg0) {
                 if (arg0.getSource() == comboBox) {
-                    int idx = comboBox.getSelectedIndex();
+                    final int idx = comboBox.getSelectedIndex();
                     oc = out[idx];
                     outTM.setOutput(out[idx]);
                     outTM.fireTableDataChanged();
@@ -180,7 +180,7 @@ public class OutputGUI extends JDialog {
         outTM.setOutput(out[oc_s]);
         table = new JTable(outTM);
 
-        JScrollPane scrollPane = new JScrollPane(table);
+        final JScrollPane scrollPane = new JScrollPane(table);
         table.setFillsViewportHeight(true);
 
         scrollPane.setMinimumSize(new Dimension(450, 150));
@@ -198,7 +198,7 @@ public class OutputGUI extends JDialog {
         c.insets = new Insets(10, 0, 0, 10);
         c.fill = GridBagConstraints.NONE;
 
-        JButton bOK = new JButton("OK");
+        final JButton bOK = new JButton("OK");
         bOK.addActionListener(new ActionListener() {
 
             @Override
@@ -213,7 +213,7 @@ public class OutputGUI extends JDialog {
 
         c.gridx = 1;
         c.gridy = 3;
-        JButton bCancel = new JButton("Cancel");
+        final JButton bCancel = new JButton("Cancel");
         contentPane.add(bCancel, c);
 
         setModal(true);

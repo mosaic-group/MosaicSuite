@@ -120,7 +120,7 @@ public class Region3DColocRScript implements Outdata<Region> {
     @Override
     public boolean equals(Object r) {
         if (r instanceof Region3DColocRScript) {
-            Region3DColocRScript r_ = (Region3DColocRScript) r;
+            final Region3DColocRScript r_ = (Region3DColocRScript) r;
 
             if (Image_ID != r_.Image_ID) {
                 return false;

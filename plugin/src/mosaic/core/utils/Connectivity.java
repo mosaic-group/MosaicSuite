@@ -13,9 +13,9 @@ import java.util.Iterator;
 
 public class Connectivity implements Iterable<Point> {
 
-    private int VDim; // dimension
-    private int VCellDim; // connectivity
-    private int m_NeighborhoodSize; // complete neighborhood (size of unitcube)
+    private final int VDim; // dimension
+    private final int VCellDim; // connectivity
+    private final int m_NeighborhoodSize; // complete neighborhood (size of unitcube)
 
     int nNeighbors; // m_NumberOfNeighbors
     Point[] neighborsP;
@@ -42,7 +42,7 @@ public class Connectivity implements Iterable<Point> {
     private Connectivity neighborhoodConnectivity;
 
     private void initNeighborhoodConnectivity() {
-        int VCellDimN = (VCellDim == 0) ? 0 : VCellDim - 1;
+        final int VCellDimN = (VCellDim == 0) ? 0 : VCellDim - 1;
         neighborhoodConnectivity = new Connectivity(VDim, VCellDimN);
     }
 
@@ -96,8 +96,8 @@ public class Connectivity implements Iterable<Point> {
         int currentNbNeighbors = 0;
 
         for (int i = 0; i < m_NeighborhoodSize; ++i) {
-            Point p = ofsIndexToPoint(i);
-            int numberOfZeros = countZeros(p);
+            final Point p = ofsIndexToPoint(i);
+            final int numberOfZeros = countZeros(p);
 
             if (numberOfZeros != VDim && numberOfZeros >= VCellDim) {
                 neighborsP[currentNbNeighbors] = p;
@@ -112,7 +112,7 @@ public class Connectivity implements Iterable<Point> {
      * @return true if ofs is in neighborhood
      */
     public boolean isNeighborhoodOfs(Point ofs) {
-        for (Point p : neighborsP) {
+        for (final Point p : neighborsP) {
             if (ofs.equals(p)) {
                 return true;
             }
@@ -126,7 +126,7 @@ public class Connectivity implements Iterable<Point> {
      */
     public boolean isNeighborhoodOfs(int ofs) {
         // TODO to be tested
-        for (int idx : neighborsOfs) {
+        for (final int idx : neighborsOfs) {
             if (ofs == idx) {
                 return true;
             }
@@ -155,7 +155,7 @@ public class Connectivity implements Iterable<Point> {
      */
     public Point ofsIndexToPoint(int offset) {
         int remainder = offset;
-        int x[] = new int[VDim];
+        final int x[] = new int[VDim];
 
         for (int i = 0; i < this.VDim; ++i) {
             x[i] = remainder % 3; // x for this dimension
@@ -213,7 +213,7 @@ public class Connectivity implements Iterable<Point> {
      */
     private static int countZeros(Point p) {
         int count = 0;
-        for (int i : p.x) {
+        for (final int i : p.x) {
             if (i == 0) {
                 count++;
             }
@@ -295,7 +295,7 @@ public class Connectivity implements Iterable<Point> {
 
         @Override
         public Point next() {
-            Point result = neighborsP[cursor];
+            final Point result = neighborsP[cursor];
             cursor++;
             return result;
         }
@@ -319,7 +319,7 @@ public class Connectivity implements Iterable<Point> {
         // @Override
         @Override
         public Integer next() {
-            int result = neighborsOfs[cursor];
+            final int result = neighborsOfs[cursor];
             cursor++;
             return result;
         }
@@ -336,7 +336,7 @@ public class Connectivity implements Iterable<Point> {
      */
     private class NeighborIterator extends OfsIterator {
 
-        private Point point;
+        private final Point point;
 
         /**
          * @param p Arbitrary Point p
@@ -347,7 +347,7 @@ public class Connectivity implements Iterable<Point> {
 
         @Override
         public Point next() {
-            Point ofs = super.next();
+            final Point ofs = super.next();
             return point.add(ofs);
         }
     }
@@ -369,7 +369,7 @@ public class Connectivity implements Iterable<Point> {
             connectivities.add(new Connectivity[size]);
         }
 
-        Connectivity[] conns = connectivities.get(VDim);
+        final Connectivity[] conns = connectivities.get(VDim);
         Connectivity conn = conns[VCellDim];
 
         if (conn == null) {

@@ -16,14 +16,14 @@ public class NaturalizationTest extends CommonBase {
     @Test
     public void testColorRgb() {
         // Define test data
-        String tcDirName          = "Naturalization/flower/";
-        String setupString        = "run";
-        String[] inputFiles       = {"x.png"};
-        String[] expectedFiles    = {"naturalized_x.png"};
-        String[] referenceFiles   = {"x_nat.tif"};
+        final String tcDirName          = "Naturalization/flower/";
+        final String setupString        = "run";
+        final String[] inputFiles       = {"x.png"};
+        final String[] expectedFiles    = {"naturalized_x.png"};
+        final String[] referenceFiles   = {"x_nat.tif"};
 
         // Create tested plugin
-        Naturalization nt = new Naturalization();
+        final Naturalization nt = new Naturalization();
 
         // Test it
         testPlugin(nt, tcDirName,
@@ -34,14 +34,14 @@ public class NaturalizationTest extends CommonBase {
     @Test
     public void testGrey8() {
         // Define test data
-        String tcDirName          = "Naturalization/flower/";
-        String setupString        = "run";
-        String[] inputFiles       = {"x8bit.png"};
-        String[] expectedFiles    = {"naturalized_x8bit.png"};
-        String[] referenceFiles   = {"x8bit_nat.tif"};
+        final String tcDirName          = "Naturalization/flower/";
+        final String setupString        = "run";
+        final String[] inputFiles       = {"x8bit.png"};
+        final String[] expectedFiles    = {"naturalized_x8bit.png"};
+        final String[] referenceFiles   = {"x8bit_nat.tif"};
 
         // Create tested plugin
-        Naturalization nt = new Naturalization();
+        final Naturalization nt = new Naturalization();
 
         // Test it
         testPlugin(nt, tcDirName,
@@ -52,7 +52,7 @@ public class NaturalizationTest extends CommonBase {
     @Test
     public void testPSNR() {
         // Create tested plugin
-        Naturalization nt = new Naturalization();
+        final Naturalization nt = new Naturalization();
 
         // Check values
         logger.debug("Testting PSNR for different ranges of input values");

@@ -23,13 +23,13 @@ public class MaximumFinder2D extends MaximumFinder implements MaximumFinderInter
 
     @Override
     public List<Point> getMaximaPointList(float[] pixels, double tolerance, boolean excludeOnEdges) {
-        ImageProcessor ip = new FloatProcessor(width, height, pixels, null);
-        Polygon poly = getMaxima(ip, tolerance, excludeOnEdges);
-        int n = poly.npoints;
-        int[] xs = poly.xpoints;
-        int[] ys = poly.ypoints;
+        final ImageProcessor ip = new FloatProcessor(width, height, pixels, null);
+        final Polygon poly = getMaxima(ip, tolerance, excludeOnEdges);
+        final int n = poly.npoints;
+        final int[] xs = poly.xpoints;
+        final int[] ys = poly.ypoints;
 
-        ArrayList<Point> list = new ArrayList<Point>(n);
+        final ArrayList<Point> list = new ArrayList<Point>(n);
         for (int i = 0; i < n; i++) {
             list.add(new Point(new int[] { xs[i], ys[i] }));
         }

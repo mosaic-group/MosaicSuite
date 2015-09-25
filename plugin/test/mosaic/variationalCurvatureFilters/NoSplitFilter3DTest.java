@@ -49,9 +49,9 @@ public class NoSplitFilter3DTest {
         final int yLen = expectedOutput[0].length;
         final int xLen = expectedOutput[0][0].length;
 
-        float[][][] img = new float[zLen][yLen][xLen];
+        final float[][][] img = new float[zLen][yLen][xLen];
 
-        NoSplitFilter3D nsf = new NoSplitFilter3D(new IncreasingValueFilter());
+        final NoSplitFilter3D nsf = new NoSplitFilter3D(new IncreasingValueFilter());
         nsf.runFilter(img, noOfIncrements);
 
         for (int z = 0; z < zLen; ++z) {
@@ -95,9 +95,9 @@ public class NoSplitFilter3DTest {
         final int yLen = expectedOutput[0].length;
         final int xLen = expectedOutput[0][0].length;
 
-        float[][][] img = new float[zLen][yLen][xLen];
+        final float[][][] img = new float[zLen][yLen][xLen];
 
-        NoSplitFilter3D nsf = new NoSplitFilter3D(new IncreasingValueFilter());
+        final NoSplitFilter3D nsf = new NoSplitFilter3D(new IncreasingValueFilter());
         nsf.runFilter(img, noOfIncrements);
 
         for (int z = 0; z < zLen; ++z) {

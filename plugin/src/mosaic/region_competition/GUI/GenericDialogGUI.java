@@ -157,9 +157,9 @@ public class GenericDialogGUI implements InputReadable {
 
         gd.addNumericField("kbest", 0, 0);
 
-        String[] strings = new String[] { "Show_Progress", "Keep_Frames", "Show_Normalized", "Show_and_save_Statistics", };
+        final String[] strings = new String[] { "Show_Progress", "Keep_Frames", "Show_Normalized", "Show_and_save_Statistics", };
 
-        boolean[] bools = new boolean[] { useStack, keepAllFrames, showNormalized, showAndSaveStatistics, };
+        final boolean[] bools = new boolean[] { useStack, keepAllFrames, showNormalized, showAndSaveStatistics, };
 
         gd.addCheckboxGroup(2, strings.length, strings, bools);
 
@@ -172,7 +172,7 @@ public class GenericDialogGUI implements InputReadable {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                RCWWin w = new RCWWin();
+                final RCWWin w = new RCWWin();
                 w.start(settings);
             }
         });
@@ -195,7 +195,7 @@ public class GenericDialogGUI implements InputReadable {
 
         // Introduce a label with reference
 
-        JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br>" + "J. Cardinale, G. Paul, and I. F. Sbalzarini. Discrete region competition<br>"
+        final JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br>" + "J. Cardinale, G. Paul, and I. F. Sbalzarini. Discrete region competition<br>"
                 + " for unknown numbers of connected regions. IEEE Trans.<br>" + " Image Process., 21(8):3531–3545, 2012. " + "</html>");
         p = new Panel();
         p.add(labelJ);
@@ -214,15 +214,15 @@ public class GenericDialogGUI implements InputReadable {
         Button optionButton;
         GridBagConstraints c;
         int gridy = 0;
-        int gridx = 2;
+        final int gridx = 2;
 
         // components:
         final Choice choiceEnergy;
         final Choice choiceRegularization;
 
         // Energy Functional
-        EnergyFunctionalType[] energyValues = EnergyFunctionalType.values();
-        String[] energyItems = new String[energyValues.length];
+        final EnergyFunctionalType[] energyValues = EnergyFunctionalType.values();
+        final String[] energyItems = new String[energyValues.length];
         for (int i = 0; i < energyItems.length; i++) {
             energyItems[i] = energyValues[i].name();
         }
@@ -241,7 +241,7 @@ public class GenericDialogGUI implements InputReadable {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    String energy = choiceEnergy.getSelectedItem();
+                    final String energy = choiceEnergy.getSelectedItem();
                     energyGUI = EnergyGUI.factory(settings, energy);
                     energyGUI.createDialog();
                     energyGUI.showDialog();
@@ -252,9 +252,9 @@ public class GenericDialogGUI implements InputReadable {
 
         // Regularization
 
-        RegularizationType[] regularizationValues = RegularizationType.values();
-        int n = regularizationValues.length;
-        String[] regularizationItems = new String[n];
+        final RegularizationType[] regularizationValues = RegularizationType.values();
+        final int n = regularizationValues.length;
+        final String[] regularizationItems = new String[n];
         for (int i = 0; i < n; i++) {
             regularizationItems[i] = regularizationValues[i].name();
         }
@@ -273,8 +273,8 @@ public class GenericDialogGUI implements InputReadable {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    String type = choiceRegularization.getSelectedItem();
-                    RegularizationGUI gui = RegularizationGUI.factory(settings, type);
+                    final String type = choiceRegularization.getSelectedItem();
+                    final RegularizationGUI gui = RegularizationGUI.factory(settings, type);
                     gui.createDialog();
                     gui.showDialog();
                     gui.processDialog();
@@ -285,15 +285,15 @@ public class GenericDialogGUI implements InputReadable {
 
         // Label Image Initialization
 
-        InitializationType[] initTypes = InitializationType.values();
-        String[] initializationItems = new String[initTypes.length];
+        final InitializationType[] initTypes = InitializationType.values();
+        final String[] initializationItems = new String[initTypes.length];
 
         for (int i = 0; i < initializationItems.length; i++) {
             initializationItems[i] = initTypes[i].name();
         }
 
         // default choice
-        String defaultInit = settings.labelImageInitType.name();
+        final String defaultInit = settings.labelImageInitType.name();
 
         gd_p.addChoice(Initialization, initializationItems, defaultInit);
         // save reference to this choice, so we can handle it
@@ -312,8 +312,8 @@ public class GenericDialogGUI implements InputReadable {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    String type = initializationChoice.getSelectedItem();
-                    InitializationGUI gui = InitializationGUI.factory(settings, type);
+                    final String type = initializationChoice.getSelectedItem();
+                    final InitializationGUI gui = InitializationGUI.factory(settings, type);
                     gui.createDialog();
                     gui.showDialog();
                     gui.processDialog();
@@ -355,14 +355,14 @@ public class GenericDialogGUI implements InputReadable {
 
     private void addOpenedImageChooser() {
         nOpenedImages = 0;
-        int[] ids = WindowManager.getIDList();
+        final int[] ids = WindowManager.getIDList();
 
-        String[] names = new String[nOpenedImages + 1];
+        final String[] names = new String[nOpenedImages + 1];
         names[0] = emptyOpenedImage;
         if (ids != null) {
             nOpenedImages = ids.length;
             for (int i = 0; i < nOpenedImages; i++) {
-                ImagePlus ip = WindowManager.getImage(ids[i]);
+                final ImagePlus ip = WindowManager.getImage(ids[i]);
                 names[i + 1] = ip.getTitle();
             }
         }
@@ -374,7 +374,7 @@ public class GenericDialogGUI implements InputReadable {
             gd.addChoice("InputImage", names, names[0]);
             choiceInputImage = (Choice) gd.getChoices().lastElement();
             if (aImp != null) {
-                String title = aImp.getTitle();
+                final String title = aImp.getTitle();
                 choiceInputImage.select(title);
             }
 
@@ -385,7 +385,7 @@ public class GenericDialogGUI implements InputReadable {
             // select second image
             if (nOpenedImages >= 2 && aImp != null) {
                 WindowManager.putBehind();
-                String title = WindowManager.getCurrentImage().getTitle();
+                final String title = WindowManager.getCurrentImage().getTitle();
                 choiceLabelImage.select(title);
                 WindowManager.toFront(aImp.getWindow());
             }
@@ -395,8 +395,8 @@ public class GenericDialogGUI implements InputReadable {
 
                 @Override
                 public void itemStateChanged(ItemEvent e) {
-                    Choice choice = (Choice) e.getSource();
-                    int idx = choice.getSelectedIndex();
+                    final Choice choice = (Choice) e.getSource();
+                    final int idx = choice.getSelectedIndex();
 
                     if (idx > 0) {
                         setInitToFileInput();
@@ -418,8 +418,9 @@ public class GenericDialogGUI implements InputReadable {
      */
     private void addWheelListeners() {
         @SuppressWarnings("unchecked")
+        final
         Vector<TextField> v = gd.getNumericFields();
-        for (TextField tf : v) {
+        for (final TextField tf : v) {
             tf.addMouseWheelListener(new NumericFieldWheelListener(tf));
         }
     }
@@ -431,7 +432,7 @@ public class GenericDialogGUI implements InputReadable {
      */
 
     private boolean processParameters() {
-        boolean success = true;
+        final boolean success = true;
 
         if (gd_p.wasCanceled()) {
             return false;
@@ -439,15 +440,15 @@ public class GenericDialogGUI implements InputReadable {
 
         // Energy Choice
 
-        String energy = gd_p.getNextChoice();
+        final String energy = gd_p.getNextChoice();
         settings.m_EnergyFunctional = EnergyFunctionalType.valueOf(energy);
-        EnergyGUI eg = EnergyGUI.factory(settings, settings.m_EnergyFunctional);
+        final EnergyGUI eg = EnergyGUI.factory(settings, settings.m_EnergyFunctional);
         eg.createDialog();
         eg.processDialog();
 
         // Regularization Choice
 
-        String regularization = gd_p.getNextChoice();
+        final String regularization = gd_p.getNextChoice();
         settings.regularizationType = RegularizationType.valueOf(regularization);
 
         settings.m_EnergyContourLengthCoeff = (float) gd_p.getNextNumber();
@@ -456,10 +457,10 @@ public class GenericDialogGUI implements InputReadable {
         settings.m_OscillationThreshold = gd_p.getNextNumber();
 
         // Initialization
-        String initialization = gd_p.getNextChoice();
-        InitializationType type = InitializationType.valueOf(initialization);
+        final String initialization = gd_p.getNextChoice();
+        final InitializationType type = InitializationType.valueOf(initialization);
         settings.labelImageInitType = type;
-        InitializationGUI ig = InitializationGUI.factory(settings, settings.labelImageInitType);
+        final InitializationGUI ig = InitializationGUI.factory(settings, settings.labelImageInitType);
         ig.createDialog();
         ig.processDialog();
 
@@ -484,7 +485,7 @@ public class GenericDialogGUI implements InputReadable {
             return false;
         }
 
-        boolean success = true;
+        final boolean success = true;
 
         if (IJ.isMacro() == true) {
             filenameInput = gd.getNextString();
@@ -665,22 +666,23 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
         event.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
 
         // Get the transfer which can provide the dropped item data
-        Transferable transferable = event.getTransferable();
+        final Transferable transferable = event.getTransferable();
 
         // Get the data formats of the dropped item
-        DataFlavor[] flavors = transferable.getTransferDataFlavors();
+        final DataFlavor[] flavors = transferable.getTransferDataFlavors();
 
         // Loop through the flavors
-        for (DataFlavor flavor : flavors) {
+        for (final DataFlavor flavor : flavors) {
 
             try {
                 // If the drop items are files
                 if (flavor.isFlavorJavaFileListType()) {
                     // Get all of the dropped files
                     @SuppressWarnings("unchecked")
+                    final
                     List<File> files = (List<File>) transferable.getTransferData(flavor);
                     // Loop them through
-                    for (File file : files) {
+                    for (final File file : files) {
                         filename = file.getPath();
                         textArea.setText(filename);
 
@@ -692,11 +694,11 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
                     }
                 }
                 else if (flavor.isRepresentationClassInputStream()) {
-                    JTextArea ta = new JTextArea();
+                    final JTextArea ta = new JTextArea();
                     ta.read(new InputStreamReader((InputStream) transferable.getTransferData(flavor)), "from system clipboard");
 
-                    String dndString = ta.getText().trim();
-                    StringTokenizer tokenizer = new StringTokenizer(dndString);
+                    final String dndString = ta.getText().trim();
+                    final StringTokenizer tokenizer = new StringTokenizer(dndString);
                     String elem = "";
                     while (tokenizer.hasMoreElements()) {
                         elem = tokenizer.nextToken();
@@ -714,7 +716,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
                 }
 
             }
-            catch (Exception e) {
+            catch (final Exception e) {
                 // Print out the error stack
                 e.printStackTrace();
             }
@@ -730,18 +732,18 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
                 nixFileDataFlavor = new DataFlavor("text/uri-list;class=java.lang.String");
                 data = (String) transferable.getTransferData(nixFileDataFlavor);
             }
-            catch (ClassNotFoundException e) {
+            catch (final ClassNotFoundException e) {
                 e.printStackTrace();
             }
-            catch (UnsupportedFlavorException e) {
+            catch (final UnsupportedFlavorException e) {
                 e.printStackTrace();
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 e.printStackTrace();
             }
 
-            for (StringTokenizer st = new StringTokenizer(data, "\r\n"); st.hasMoreTokens();) {
-                String token = st.nextToken().trim();
+            for (final StringTokenizer st = new StringTokenizer(data, "\r\n"); st.hasMoreTokens();) {
+                final String token = st.nextToken().trim();
                 if (token.startsWith("#") || token.isEmpty()) {
                     // comment line, by RFC 2483
                     continue;
@@ -779,7 +781,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
     public void textValueChanged(TextEvent e) {
         // Change input choice to file if text in textfield was changed explicitly
 
-        String text = textArea.getText();
+        final String text = textArea.getText();
         if (text.isEmpty() || text.equals(defaultText)) {
             // changed to default, do nothing
         }
@@ -838,10 +840,10 @@ class FileOpenerActionListener implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        FileDialog fd = new FileDialog(gd);
+        final FileDialog fd = new FileDialog(gd);
         fd.setVisible(true);
-        String dir = fd.getDirectory();
-        String file = fd.getFile();
+        final String dir = fd.getDirectory();
+        final String file = fd.getFile();
 
         if (file != null && dir != null) {
             ta.setText(dir + file);

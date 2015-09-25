@@ -28,41 +28,41 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
     public double lem, lex, NA, n, pinhole, pix_xy, pix_z;
     public JDialog frame;
     // Initialize Buttons
-    private JPanel panel;
+    private final JPanel panel;
     private boolean confocal = true;
 
-    private String[] items = { "Confocal Microscope", "Wide Field Fluorescence Microscope" };
+    private final String[] items = { "Confocal Microscope", "Wide Field Fluorescence Microscope" };
 
     // jcb.setModel(new DefaultComboBoxModel(potentialOptions));
 
     NumberFormat nf = NumberFormat.getInstance(Locale.US);
 
-    private JFormattedTextField Vlem = new JFormattedTextField(nf);
-    private JFormattedTextField Vlex = new JFormattedTextField(nf);
-    private JFormattedTextField VNA = new JFormattedTextField(nf);
-    private JFormattedTextField Vn = new JFormattedTextField(nf);
-    private JFormattedTextField Vpinhole = new JFormattedTextField(nf);
-    private JFormattedTextField Vpix_xy = new JFormattedTextField(nf);
-    private JFormattedTextField Vpix_z = new JFormattedTextField(nf);
+    private final JFormattedTextField Vlem = new JFormattedTextField(nf);
+    private final JFormattedTextField Vlex = new JFormattedTextField(nf);
+    private final JFormattedTextField VNA = new JFormattedTextField(nf);
+    private final JFormattedTextField Vn = new JFormattedTextField(nf);
+    private final JFormattedTextField Vpinhole = new JFormattedTextField(nf);
+    private final JFormattedTextField Vpix_xy = new JFormattedTextField(nf);
+    private final JFormattedTextField Vpix_z = new JFormattedTextField(nf);
 
-    private JComboBox<String> micr = new JComboBox<String>(items);
-    private JButton estimate = new JButton("Compute PSF");
+    private final JComboBox<String> micr = new JComboBox<String>(items);
+    private final JButton estimate = new JButton("Compute PSF");
 
-    private JLabel ref = new JLabel("<html>" + "<div align=\"justify\">" + "Gaussian PSF approximation." + "<br>" + "<br>"
+    private final JLabel ref = new JLabel("<html>" + "<div align=\"justify\">" + "Gaussian PSF approximation." + "<br>" + "<br>"
             + "Model from: Gaussian approximations of fluorescence microscope point-spread function models. " + "B Zhang, J Zerubia, J C Olivo-Marin. Appl. Optics (46) 1819-29, 2007." + "</div>"
             + "</html>");
 
     // "Gaussian PSF model from : 'Gaussian approximations of fluorescence microscope point-spread function models. B Zhang, J Zerubia, J C Olivo-Marin. Appl. Optics (46) 1819-29, 2007.''");
-    private JLabel tlem = new JLabel("Emission wavelength (nm)");
-    private JLabel tlex = new JLabel("Excitation wavelength (nm)");
-    private JLabel tNA = new JLabel("Numerical aperture");
-    private JLabel tn = new JLabel("Refraction index");
-    private JLabel tpinhole = new JLabel("Pinhole size (Airy units)");
-    private JLabel tpix_xy = new JLabel("Lateral pixel size (nm)");
-    private JLabel tpix_z = new JLabel("Axial pixel size (nm)");
+    private final JLabel tlem = new JLabel("Emission wavelength (nm)");
+    private final JLabel tlex = new JLabel("Excitation wavelength (nm)");
+    private final JLabel tNA = new JLabel("Numerical aperture");
+    private final JLabel tn = new JLabel("Refraction index");
+    private final JLabel tpinhole = new JLabel("Pinhole size (Airy units)");
+    private final JLabel tpix_xy = new JLabel("Lateral pixel size (nm)");
+    private final JLabel tpix_z = new JLabel("Axial pixel size (nm)");
 
-    private JLabel result = new JLabel("");
-    private GenericDialogCustom gd;
+    private final JLabel result = new JLabel("");
+    private final GenericDialogCustom gd;
 
     public PSFWindow(int x, int y, GenericDialogCustom gd) {
         y = 0;
@@ -94,12 +94,12 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
         panel.setSize(panel.getPreferredSize());
         panel.setLayout(null);
 
-        JPanel pref = new JPanel(new BorderLayout());
+        final JPanel pref = new JPanel(new BorderLayout());
         pref.setPreferredSize(new Dimension(280, 120));
         pref.setSize(pref.getPreferredSize());
         pref.add(ref);
 
-        JPanel pres = new JPanel(new BorderLayout());
+        final JPanel pres = new JPanel(new BorderLayout());
         pres.setPreferredSize(new Dimension(280, 80));
         pres.setSize(pres.getPreferredSize());
         pres.add(result);
@@ -224,7 +224,7 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-        Object source = e.getSource();
+        final Object source = e.getSource();
         if (source == Vlem) {
             lem = (int) ((Number) Vlem.getValue()).doubleValue();
         }
@@ -250,11 +250,11 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
 
     @Override
     public void actionPerformed(ActionEvent ae) {
-        Object source = ae.getSource(); // Identify Button that was clicked
+        final Object source = ae.getSource(); // Identify Button that was clicked
 
         if (source == estimate) {
 
-            GaussianPSFModel psf = new GaussianPSFModel(lem, lex, NA, pinhole, n);
+            final GaussianPSFModel psf = new GaussianPSFModel(lem, lex, NA, pinhole, n);
 
             double sz, sx;
             if (confocal) {
@@ -266,8 +266,8 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
                 sx = 1000 * psf.lateral_WFFM();
             }
 
-            TextField tx = gd.getField(3);// field x
-            TextField tz = gd.getField(4);// filed z
+            final TextField tx = gd.getField(3);// field x
+            final TextField tz = gd.getField(4);// filed z
 
             tx.setText(String.format(Locale.US, "%.2f", sx / pix_xy));
             tz.setText(String.format(Locale.US, "%.2f", sz / pix_z));
@@ -278,7 +278,7 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
         }
 
         if (source == micr) {
-            String selected = (String) micr.getSelectedItem();
+            final String selected = (String) micr.getSelectedItem();
             // System.out.println("Selected: "+selected);
             if (selected == items[1]) {
                 // widefield

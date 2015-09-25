@@ -71,19 +71,19 @@ public class IndexIterator {
      */
     public Point indexToPoint(int idx) {
         int index = idx;
-        int x[] = new int[this.dim];
+        final int x[] = new int[this.dim];
 
         for (int i = 0; i < dim; i++) {
-            int r = index % dimensions[i];
+            final int r = index % dimensions[i];
             x[i] = r;
             index = index - r;
             index = index / dimensions[i];
         }
 
-        Point result = Point.CopyLessArray(x);
+        final Point result = Point.CopyLessArray(x);
 
         // TODO !!! test, is this correct?
-        int dummy = pointToIndex(result);
+        final int dummy = pointToIndex(result);
         if (dummy != idx) {
             System.out.println("indexToPoint is not correct");
             return null;

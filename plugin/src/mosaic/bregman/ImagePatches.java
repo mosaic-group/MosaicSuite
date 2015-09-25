@@ -39,7 +39,7 @@ class ImagePatches {
     double max;
     double min;
     public ArrayList<Region> regionslist_refined;
-    private ArrayList<Region> globalList;
+    private final ArrayList<Region> globalList;
     int channel;
     boolean fcallx, fcally;
 
@@ -95,7 +95,7 @@ class ImagePatches {
             // set all to background
             for (int z = 0; z < sz; z++) {
                 for (int i = 0; i < sx; i++) {
-                    int t = z * sx * sy * 3 + i * sy * 3;
+                    final int t = z * sx * sy * 3 + i * sy * 3;
                     for (int j = 0; j < sy; j++) {
                         imagecolor_c1[t + j * 3 + 0] = (byte) b0; // Red
                         imagecolor_c1[t + j * 3 + 1] = (byte) b1; // Green
@@ -130,8 +130,8 @@ class ImagePatches {
 
         nb_jobs = regionslist_refined.size();
         AnalysePatch ap;
-        for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
+            final Region r = it.next();
             // if (r.value==5){
             // IJ.log("call os " + p.oversampling2ndstep);
             // IJ.log("interp " + p.interpolation);
@@ -181,7 +181,7 @@ class ImagePatches {
             // IJ.log("await termination");
             threadPool.awaitTermination(1, TimeUnit.DAYS);
         }
-        catch (InterruptedException ex) {
+        catch (final InterruptedException ex) {
         }
 
         // long lStartTime = new Date().getTime(); //start time
@@ -192,12 +192,12 @@ class ImagePatches {
 
             // final LinkedBlockingQueue<Runnable> queue2 = new
             // LinkedBlockingQueue<Runnable>();
-            ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(1, 1, 1, TimeUnit.DAYS, queue);
+            final ThreadPoolExecutor threadPool2 = new ThreadPoolExecutor(1, 1, 1, TimeUnit.DAYS, queue);
 
             ObjectProperties Op;
             // calculate regions intensities
-            for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
-                Region r = it.next();
+            for (final Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
+                final Region r = it.next();
                 // IJ.log("int region :" +r.value);
                 Op = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, imagecolor_c1, regions_refined);
                 threadPool2.execute(Op);
@@ -210,7 +210,7 @@ class ImagePatches {
                 // Tools.showmem();
                 threadPool2.awaitTermination(1, TimeUnit.DAYS);
             }
-            catch (InterruptedException ex) {
+            catch (final InterruptedException ex) {
             }
 
             // here we analyse the patch
@@ -219,9 +219,9 @@ class ImagePatches {
 
             boolean changed = false;
 
-            ArrayList<Region> regionslist_refined_filter = new ArrayList<Region>();
+            final ArrayList<Region> regionslist_refined_filter = new ArrayList<Region>();
 
-            for (Region r : regionslist_refined) {
+            for (final Region r : regionslist_refined) {
                 if (r.intensity * (max - min) + min > p.min_region_filter_intensities) {
                     regionslist_refined_filter.add(r);
                 }
@@ -251,10 +251,10 @@ class ImagePatches {
         }
 
         // Tools.showmem();
-        int no = regionslist_refined.size();
+        final int no = regionslist_refined.size();
         if (channel == 0) {
             IJ.log(no + " objects found in X.");
-            Frame frame = WindowManager.getFrame("Log");
+            final Frame frame = WindowManager.getFrame("Log");
             if (frame != null) {
                 GenericGUI.setwindowlocation(100, 680, frame);
             }
@@ -265,11 +265,11 @@ class ImagePatches {
     }
 
     private void assemble(ArrayList<Region> regionslist_refined) {
-        for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
+            final Region r = it.next();
 
-            for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
-                Pix v = it2.next();
+            for (final Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
+                final Pix v = it2.next();
                 // count number of free edges
                 regions_refined[v.pz][v.px][v.py] = (short) r.value;
 
@@ -285,11 +285,11 @@ class ImagePatches {
      */
 
     static public void assemble(Collection<Region> regionslist_refined, short[][][] regions_refined) {
-        for (Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
+            final Region r = it.next();
 
-            for (Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
-                Pix v = it2.next();
+            for (final Iterator<Pix> it2 = r.pixels.iterator(); it2.hasNext();) {
+                final Pix v = it2.next();
                 regions_refined[v.pz][v.px][v.py] = (short) r.value;
 
             }
@@ -301,8 +301,8 @@ class ImagePatches {
         // if (localList.size()>1)
         // disp=true;
         int index;// build index of region (will be r.value)
-        for (Iterator<Region> it = localList.iterator(); it.hasNext();) {
-            Region r = it.next();
+        for (final Iterator<Region> it = localList.iterator(); it.hasNext();) {
+            final Region r = it.next();
             index = globalList.size() + 1;
             // if (disp){
             // IJ.log("index" + index + "size" + r.pixels.size());
@@ -327,7 +327,7 @@ class ImagePatches {
     }
 
     private void assemble_result(AnalysePatch ap, Region r) {
-        ArrayList<Pix> rpixels = new ArrayList<Pix>();
+        final ArrayList<Pix> rpixels = new ArrayList<Pix>();
         int pixcount = 0;
         for (int z = 0; z < ap.sz; z++) {
             for (int i = 0; i < ap.sx; i++) {
@@ -353,7 +353,7 @@ class ImagePatches {
 
     private void assemble_result_interpolated(AnalysePatch ap, Region r) {
 
-        ArrayList<Pix> rpixels = new ArrayList<Pix>();
+        final ArrayList<Pix> rpixels = new ArrayList<Pix>();
         int pixcount = 0;
         for (int z = 0; z < ap.isz; z++) {
             for (int i = 0; i < ap.isx; i++) {

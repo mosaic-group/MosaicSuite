@@ -110,7 +110,7 @@ public class GenericGUI {
 
         System.out.println("Batch window");
 
-        GenericDialogCustom gd = new GenericDialogCustom("Batch window");
+        final GenericDialogCustom gd = new GenericDialogCustom("Batch window");
 
         addTextArea(gd);
 
@@ -164,9 +164,9 @@ public class GenericGUI {
 
     private run_mode drawStandardWindow(GenericDialog gd, ImagePlus aImp) {
         // font for reference
-        Font bf = new Font(null, Font.BOLD, 12);
+        final Font bf = new Font(null, Font.BOLD, 12);
 
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         screensizex = (int) screenSize.getWidth();
         screensizey = (int) screenSize.getHeight();
 
@@ -175,14 +175,14 @@ public class GenericGUI {
         addTextArea(gd);
 
         // FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
-        FlowLayout fl = new FlowLayout(FlowLayout.LEFT, 75, 3);
+        final FlowLayout fl = new FlowLayout(FlowLayout.LEFT, 75, 3);
         Panel p = new Panel(fl);
 
-        Button b = new Button("Select File/Folder");
+        final Button b = new Button("Select File/Folder");
         b.addActionListener(new FileOpenerActionListener(gd.getTextArea1()));
         p.add(b);
 
-        Button bh = new Button("Help");
+        final Button bh = new Button("Help");
         bh.addActionListener(new HelpOpenerActionListener(gd));
         p.add(bh);
 
@@ -195,7 +195,7 @@ public class GenericGUI {
 
         // Background Options
 
-        Button backOption = new Button("Options");
+        final Button backOption = new Button("Options");
         Label label = new Label("Background subtraction");
         label.setFont(bf);
         p = new Panel();
@@ -205,7 +205,7 @@ public class GenericGUI {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                BackgroundSubGUI gds = new BackgroundSubGUI(posx, posy);
+                final BackgroundSubGUI gds = new BackgroundSubGUI(posx, posy);
                 gds.run();
             }
         });
@@ -213,7 +213,7 @@ public class GenericGUI {
 
         // seg Option button
 
-        Button segOption = new Button("Options");
+        final Button segOption = new Button("Options");
         label = new Label("Segmentation parameters");
         label.setFont(bf);
         p = new Panel();
@@ -223,13 +223,13 @@ public class GenericGUI {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                SegmentationGUI gds = new SegmentationGUI(posx, posy);
+                final SegmentationGUI gds = new SegmentationGUI(posx, posy);
                 gds.run();
             }
         });
         gd.addPanel(p);
 
-        Button colOption = new Button("Options");
+        final Button colOption = new Button("Options");
         label = new Label("Colocalization (two channels images)");
         label.setFont(bf);
         p = new Panel();
@@ -239,7 +239,7 @@ public class GenericGUI {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                ColocalizationGUI gds = new ColocalizationGUI(imgch1, imgch2, posx, posy);
+                final ColocalizationGUI gds = new ColocalizationGUI(imgch1, imgch2, posx, posy);
                 gds.run();
             }
         });
@@ -247,7 +247,7 @@ public class GenericGUI {
 
         // gd.addMessage("");
 
-        Button visOption = new Button("Options");
+        final Button visOption = new Button("Options");
         label = new Label("Vizualization and output");
         label.setFont(bf);
         p = new Panel();
@@ -257,7 +257,7 @@ public class GenericGUI {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                VisualizationGUI gds = new VisualizationGUI(posx, posy);
+                final VisualizationGUI gds = new VisualizationGUI(posx, posy);
                 gds.run();
             }
         });
@@ -272,7 +272,7 @@ public class GenericGUI {
 
         // Introduce a label with reference
 
-        JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br> G. Paul, J. Cardinale, and I. F. Sbalzarini.<br>" + "Coupling image restoration and segmentation:<br>"
+        final JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br> G. Paul, J. Cardinale, and I. F. Sbalzarini.<br>" + "Coupling image restoration and segmentation:<br>"
                 + "A generalized linear model/Bregman<br>" + "perspective. Int. J. Comput. Vis., 104(1):69–93, 2013.<br>" + "<br>" + "A. Rizk, G. Paul, P. Incardona, M. Bugarski, M. Mansouri,<br>"
                 + "A. Niemann, U. Ziegler, P. Berger, and I. F. Sbalzarini.<br>" + "Segmentation and quantification of subcellular structures<br>"
                 + "in fluorescence microscopy images using Squassh.<br>" + "Nature Protocols, 9(3):586–596, 2014. </html>");
@@ -289,8 +289,8 @@ public class GenericGUI {
 
         Analysis.p.wd = gd.getNextText();
 
-        Runtime runtime = Runtime.getRuntime();
-        int nrOfProcessors = runtime.availableProcessors();
+        final Runtime runtime = Runtime.getRuntime();
+        final int nrOfProcessors = runtime.availableProcessors();
         // IJ.log("Number of processors available to the Java Virtual Machine: " + nrOfProcessors);
         Analysis.p.nthreads = nrOfProcessors;
 
@@ -324,7 +324,7 @@ public class GenericGUI {
 
             }
             else {
-                GenericDialog gd = new NonBlockingGenericDialog("Squassh");
+                final GenericDialog gd = new NonBlockingGenericDialog("Squassh");
 
                 // Draw a standard window
 
@@ -338,7 +338,7 @@ public class GenericGUI {
             }
         }
         else {
-            GenericDialogCustom gd = new GenericDialogCustom("Squassh");
+            final GenericDialogCustom gd = new GenericDialogCustom("Squassh");
 
             gd.addStringField("config", "path", 10);
             gd.addStringField("filepath", "path", 10);
@@ -417,8 +417,8 @@ public class GenericGUI {
             else {
                 hd = new BLauncher(Analysis.p.wd);
 
-                Vector<String> pf = hd.getProcessedFiles();
-                File fl = new File(Analysis.p.wd);
+                final Vector<String> pf = hd.getProcessedFiles();
+                final File fl = new File(Analysis.p.wd);
                 if (fl.isDirectory() == true) {
                     savepath = Analysis.p.wd;
                 }
@@ -447,7 +447,7 @@ public class GenericGUI {
 
             if (Analysis.p.nchannels == 2) {
                 if (Analysis.p.save_images) {
-                    RScript script = new RScript(savepath, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3, Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames, Analysis.p.ch1,
+                    final RScript script = new RScript(savepath, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3, Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames, Analysis.p.ch1,
                             Analysis.p.ch2);
                     script.writeScript();
                 }
@@ -456,7 +456,7 @@ public class GenericGUI {
         else {
             // We run on cluster
 
-            Parameters p = new Parameters(Analysis.p);
+            final Parameters p = new Parameters(Analysis.p);
 
             // disabling display options
 
@@ -519,7 +519,7 @@ public class GenericGUI {
             if (BregmanGLM_Batch.test_mode == true) {
                 path = MosaicTest.getTestEnvironment();
             }
-            File dir = ClusterSession.processJobsData(path);
+            final File dir = ClusterSession.processJobsData(path);
 
             // if background is != null it mean that is a video or is an image so try to stitch
             if (Background != null) {
@@ -556,19 +556,19 @@ public class GenericGUI {
 
             String path;
             // with JFileChooser
-            JFileChooser fc = new JFileChooser();
+            final JFileChooser fc = new JFileChooser();
             fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
             fc.showOpenDialog(null);
-            File selFile = fc.getSelectedFile();
+            final File selFile = fc.getSelectedFile();
             if (selFile == null) {
                 return;
             }
             path = selFile.getAbsolutePath();
 
-            boolean processdirectory = (new File(path)).isDirectory();
+            final boolean processdirectory = (new File(path)).isDirectory();
             if (!processdirectory) {
 
-                ImagePlus img2 = IJ.openImage(path);
+                final ImagePlus img2 = IJ.openImage(path);
 
                 img2.show();
 
@@ -592,7 +592,7 @@ public class GenericGUI {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            Point p = gd.getLocationOnScreen();
+            final Point p = gd.getLocationOnScreen();
             // IJ.log("plugin location :" + p.toString());
             new Helpwindow(p.x, p.y);
         }
@@ -601,7 +601,7 @@ public class GenericGUI {
     private class Helpwindow extends HelpGUI {
 
         JFrame frame;
-        private JPanel panel;
+        private final JPanel panel;
 
         public Helpwindow(int x, int y) {
             frame = new JFrame();
@@ -614,7 +614,7 @@ public class GenericGUI {
             panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
             panel.setPreferredSize(new Dimension(575, 720));
 
-            JPanel pref = new JPanel(new GridBagLayout());
+            final JPanel pref = new JPanel(new GridBagLayout());
             // pref.setPreferredSize(new Dimension(555, 550));
             // pref.setSize(pref.getPreferredSize());
 

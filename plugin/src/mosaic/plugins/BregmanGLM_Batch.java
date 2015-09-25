@@ -45,11 +45,11 @@ public class BregmanGLM_Batch implements Segmentation {
             }
         }
 
-        String dir = IJ.getDirectory("temp");
+        final String dir = IJ.getDirectory("temp");
         savedSettings = dir + "spb_settings.dat";
         Analysis.p = getConfigHandler().LoadFromFile(savedSettings, Parameters.class, Analysis.p);
 
-        String path = findMatchedString(arg0, "config");
+        final String path = findMatchedString(arg0, "config");
         if (path != null) {
             Analysis.p = getConfigHandler().LoadFromFile(path, Parameters.class, Analysis.p);
         }
@@ -72,7 +72,7 @@ public class BregmanGLM_Batch implements Segmentation {
         this.OriginalImagePlus = active_img;
 
         // Check the argument
-        boolean batch = GraphicsEnvironment.isHeadless();
+        final boolean batch = GraphicsEnvironment.isHeadless();
 
         if (batch == true) {
             Analysis.p.dispwindows = false;
@@ -99,9 +99,9 @@ public class BregmanGLM_Batch implements Segmentation {
      * @return arguments for given parameter
      */
     private String findMatchedString(String aInputArgs, String aParameter) {
-        Pattern aParameterPattern = Pattern.compile(aParameter);
-        Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
-        Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
+        final Pattern aParameterPattern = Pattern.compile(aParameter);
+        final Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
+        final Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
         Matcher matcher = aParameterPattern.matcher(aInputArgs);
         if (matcher.find()) {
             String sub = aInputArgs.substring(matcher.end());
@@ -138,7 +138,7 @@ public class BregmanGLM_Batch implements Segmentation {
      */
     public static void saveConfig(String aFullFileName, Parameters aParams) {
         // Nullify PSF since it is not Serializable
-        psf<DoubleType> tempPsf = aParams.PSF;
+        final psf<DoubleType> tempPsf = aParams.PSF;
         aParams.PSF = null;
 
         getConfigHandler().SaveToFile(aFullFileName, aParams);
@@ -195,7 +195,7 @@ public class BregmanGLM_Batch implements Segmentation {
      */
     @Override
     public String[] getMask(ImagePlus aImp) {
-        String[] gM = new String[2];
+        final String[] gM = new String[2];
         gM[0] = new String(Analysis.out[outputF.MASK.getNumVal()].replace("*", "_") + File.separator
                 + Analysis.out[outputF.MASK.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
         gM[1] = new String(Analysis.out[outputF.MASK.getNumVal() + 1].replace("*", "_") + File.separator
@@ -211,7 +211,7 @@ public class BregmanGLM_Batch implements Segmentation {
      */
     @Override
     public String[] getRegionList(ImagePlus aImp) {
-        String[] gM = new String[4];
+        final String[] gM = new String[4];
         gM[0] = new String(Analysis.out[outputF.OBJECT.getNumVal()].replace("*", "_") + File.separator
                 + Analysis.out[outputF.OBJECT.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
         gM[1] = new String(Analysis.out[outputF.OBJECT.getNumVal() + 1].replace("*", "_")

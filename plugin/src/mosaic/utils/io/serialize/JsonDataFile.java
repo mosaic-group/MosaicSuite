@@ -28,8 +28,8 @@ public class JsonDataFile<T> implements DataFile<T> {
         logger.debug("SaveToFile ["+ aSerializedFileName +"]");
 
         // Generates nicer json string than just "new Gson();" would do
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(aObject2Save);
+        final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        final String json = gson.toJson(aObject2Save);
 
         FileOutputStream fileOutput = null;
 
@@ -37,10 +37,10 @@ public class JsonDataFile<T> implements DataFile<T> {
             fileOutput = new FileOutputStream(aSerializedFileName);
             fileOutput.write(json.getBytes());
             return true;
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             logger.debug("File [" + aSerializedFileName + "] cannot be written!");
             logger.error(ExceptionUtils.getStackTrace(e));
-        } catch (IOException e) {
+        } catch (final IOException e) {
             logger.error("An error occured during writing json file [" + aSerializedFileName + "]");
             logger.error(ExceptionUtils.getStackTrace(e));
         } finally {
@@ -48,7 +48,7 @@ public class JsonDataFile<T> implements DataFile<T> {
                 if (fileOutput != null) {
                     fileOutput.close();
                 }
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 logger.error(ExceptionUtils.getStackTrace(e));
             }
         }
@@ -59,25 +59,25 @@ public class JsonDataFile<T> implements DataFile<T> {
     public T LoadFromFile(String aSerializedFileName, Class<T> aClazz) {
         logger.debug("LoadFromFile [" + aSerializedFileName + "]");
 
-        Gson gson = new Gson();
+        final Gson gson = new Gson();
 
         try {
-            FileInputStream fileInput = new FileInputStream(aSerializedFileName);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(fileInput));
-            StringBuilder json = new StringBuilder(); //Holds the text
+            final FileInputStream fileInput = new FileInputStream(aSerializedFileName);
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(fileInput));
+            final StringBuilder json = new StringBuilder(); //Holds the text
             String aDataRow = "";
             while ((aDataRow = reader.readLine()) != null) {
                 json.append(aDataRow);
             }
             reader.close();
 
-            T obj = gson.fromJson(json.toString(), aClazz);
+            final T obj = gson.fromJson(json.toString(), aClazz);
 
             return obj;
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             logger.debug("File [" + aSerializedFileName + "] not found.");
             return null;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             logger.error("An error occured during reading json file [" + aSerializedFileName + "]");
             logger.error(ExceptionUtils.getStackTrace(e));
             return null;
@@ -86,7 +86,7 @@ public class JsonDataFile<T> implements DataFile<T> {
 
     @Override
     public T LoadFromFile(String aSerializedFileName, Class<T> aClazz, T aDefaultValue) {
-        T temp = LoadFromFile(aSerializedFileName, aClazz);
+        final T temp = LoadFromFile(aSerializedFileName, aClazz);
         if (temp != null) {
             return temp;
         }

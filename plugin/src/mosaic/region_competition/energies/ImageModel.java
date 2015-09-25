@@ -41,10 +41,10 @@ public class ImageModel {
     }
 
     public EnergyResult CalculateEnergyDifferenceForLabel(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel) {
-        float m_EnergyRegionCoeff = EnergyRegionCoeff;
+        final float m_EnergyRegionCoeff = EnergyRegionCoeff;
 
-        float vCurrentImageValue = aContourPointPtr.intensity;
-        int vCurrentLabel = aContourPointPtr.label;
+        final float vCurrentImageValue = aContourPointPtr.intensity;
+        final int vCurrentLabel = aContourPointPtr.label;
         Double vEnergy = 0.0;
         Boolean vMerge = false;
 
@@ -62,11 +62,11 @@ public class ImageModel {
         }
 
         // Contour Length (Regularization //
-        float m_EnergyContourLengthCoeff = settings.m_EnergyContourLengthCoeff;
+        final float m_EnergyContourLengthCoeff = settings.m_EnergyContourLengthCoeff;
         if (m_EnergyContourLengthCoeff != 0 && e_length != null) {
 
             vV = e_length.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel);
-            Double eCurv = vV.energyDifference;
+            final Double eCurv = vV.energyDifference;
             vEnergy += m_EnergyContourLengthCoeff * eCurv;
         }
 

@@ -12,12 +12,12 @@ public class PsfPointSpreadFunction {
 
     /* Internal variables */
     private float PSF[], Rad[];
-    private int rad_max, sample_number, fact;
-    private float pixel_size;
-    private float mag;
-    private PsfSourcePosition source; // an array Particle, holds all the particles selected
-    private ImageProcessor org; // Image Processor of original image
-    private StringBuffer psf_data = new StringBuffer("");
+    private final int rad_max, sample_number, fact;
+    private final float pixel_size;
+    private final float mag;
+    private final PsfSourcePosition source; // an array Particle, holds all the particles selected
+    private final ImageProcessor org; // Image Processor of original image
+    private final StringBuffer psf_data = new StringBuffer("");
 
     /**
      * Constructor
@@ -73,9 +73,9 @@ public class PsfPointSpreadFunction {
                 y_pos = source.y + radius * (float) Math.sin(phi);
                 psf_data.append("(" + x_pos + " , " + y_pos + ");");
                 // Interpolate intensity values TODO
-                BicubicInterpolator bi = new BicubicInterpolator();
+                final BicubicInterpolator bi = new BicubicInterpolator();
                 bi.setImageProcessor(org);
-                Point2D pnt = new Point2D.Float(x_pos, y_pos);
+                final Point2D pnt = new Point2D.Float(x_pos, y_pos);
                 val_int = (float) bi.getInterpolatedPixel(pnt);
                 PSF[j] += val_int;
             }
@@ -95,7 +95,7 @@ public class PsfPointSpreadFunction {
         float min = PSF[0];
         float c = 1;
         for (int v = 0; v < PSF.length; v++) {
-            float p = PSF[v];
+            final float p = PSF[v];
             if (p > max) {
                 max = p;
             }

@@ -66,7 +66,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
 
         iLogScale = new Checkbox("logarithmic scale", false);
 
-        Panel panel = new Panel(new GridLayout(3,1));
+        final Panel panel = new Panel(new GridLayout(3,1));
         panel.add(iMssButton);
         panel.add(iMsdButton);
         panel.add(iLogScale);
@@ -107,14 +107,14 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
             String aXlabel, String aYlabel, String aWindowLabel) {
 
         // Generate data for slop line
-        double[] slopeLine = new double[aX.length];
+        final double[] slopeLine = new double[aX.length];
         for (int i = 0; i < aX.length; ++i) {
             slopeLine[i] = aSlope * aX[i] + aY0;
         }
 
         // Calculate X/Y min/max for plot
-        double minX = aX[0];
-        double maxX = aX[aX.length-1];
+        final double minX = aX[0];
+        final double maxX = aX[aX.length-1];
         double minY = ArrayUtils.min(aY);
         double maxY = ArrayUtils.max(aY);
         minY = Math.min(minY, ArrayUtils.min(slopeLine));
@@ -122,7 +122,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
 
         // Create plot with slope line
         PlotWindow.noGridLines = false; // draw grid lines
-        Plot plot = new Plot("", aXlabel, aYlabel, aX, slopeLine);
+        final Plot plot = new Plot("", aXlabel, aYlabel, aX, slopeLine);
         plot.setSize(WIN_WIDTH, WIN_HEIGHT);
         setTitle(aWindowLabel);
         plot.setLimits(minX, maxX, minY, maxY);
@@ -173,7 +173,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
      * Plots MSD (mean square displacement -> mean moment order = 2) with log/linear plot
      */
     private void plotMsd() {
-        int order = 1; // special case for order=2 -> MSD (array starts with 0 for moment=1)
+        final int order = 1; // special case for order=2 -> MSD (array starts with 0 for moment=1)
 
         if (iLogScale.getState()) {
             updatePlot(iTrajectoryAnalysis.toLogScale(iTrajectoryAnalysis.getFrameShifts()),
@@ -196,7 +196,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        Object o = e.getSource();
+        final Object o = e.getSource();
 
         if (o == iMssButton) {
             plotMss();

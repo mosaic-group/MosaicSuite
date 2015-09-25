@@ -212,14 +212,14 @@ public class Particle {
 
         // I work with StringBuffer since its faster than String
         // At the end convert to String and return
-        StringBuffer sb = new StringBuffer();
-        StringBuffer sp = new StringBuffer(" ");
+        final StringBuffer sb = new StringBuffer();
+        final StringBuffer sp = new StringBuffer(" ");
 
         // format the number to look nice in print (same number of digits)
         // NumberFormat nf = NumberFormat.getInstance();
         // nf.setMaximumFractionDigits(6);
         // nf.setMinimumFractionDigits(6);
-        DecimalFormat nf = new DecimalFormat("######0.000000");
+        final DecimalFormat nf = new DecimalFormat("######0.000000");
         nf.setGroupingUsed(false);
         sb.append(this.getFrame());
 
@@ -263,7 +263,7 @@ public class Particle {
     }
 
     public double[] getPosition() {
-        double[] result = { x, y, z };
+        final double[] result = { x, y, z };
         return result;
     }
 

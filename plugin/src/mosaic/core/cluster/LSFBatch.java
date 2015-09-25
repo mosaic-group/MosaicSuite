@@ -40,7 +40,7 @@ class LSFBatch implements BatchInterface {
     @Override
     public String getScript(String img_script_, String session_id, double ext, int njob, int ns) {
         // Check if exist a queue
-        String queue = cp.getQueue(ext);
+        final String queue = cp.getQueue(ext);
         if (queue == null) {
             IJ.error("Error", "Error the following cluster has all the queues shorter than " + ext + " minutes");
             return null;
@@ -74,9 +74,9 @@ class LSFBatch implements BatchInterface {
     }
 
     private int jobArrayID(String aID) {
-        Pattern jobID = Pattern.compile("\\x5B[0-9]+\\x5D");
+        final Pattern jobID = Pattern.compile("\\x5B[0-9]+\\x5D");
 
-        Matcher matcher = jobID.matcher(aID);
+        final Matcher matcher = jobID.matcher(aID);
         if (matcher.find()) {
             String sub = matcher.group(0);
             sub = sub.substring(1, sub.length() - 1);
@@ -117,7 +117,7 @@ class LSFBatch implements BatchInterface {
             unparse_last = false;
         }
 
-        String[] elements = prs.split("\n");
+        final String[] elements = prs.split("\n");
         nele = elements.length - 1;
 
         if (unparse_last == false) {
@@ -136,8 +136,8 @@ class LSFBatch implements BatchInterface {
                 return "";
             }
 
-            Vector<String> vt = new Vector<String>();
-            String[] sub_elements = elements[i].split(" ");
+            final Vector<String> vt = new Vector<String>();
+            final String[] sub_elements = elements[i].split(" ");
             for (int j = 0; j < sub_elements.length; j++) {
                 if (sub_elements[j].length() != 0) {
                     vt.add(sub_elements[j]);
@@ -187,9 +187,9 @@ class LSFBatch implements BatchInterface {
     }
 
     private int parseJobID(String id) {
-        Pattern jobID = Pattern.compile("<[0-9]+>");
+        final Pattern jobID = Pattern.compile("<[0-9]+>");
 
-        Matcher matcher = jobID.matcher(id);
+        final Matcher matcher = jobID.matcher(id);
         if (matcher.find()) {
             String sub = matcher.group(0);
             sub = sub.substring(1, sub.length() - 1);
@@ -221,7 +221,7 @@ class LSFBatch implements BatchInterface {
         }
         else if (tp == OutputType.LAUNCH) {
             System.out.println("ParseJobID [" + str + "]");
-            int tmp = parseJobID(str);
+            final int tmp = parseJobID(str);
             if (tmp == 0) {
                 return str;
             }
@@ -252,7 +252,7 @@ class LSFBatch implements BatchInterface {
             try {
                 Thread.sleep(100);
             }
-            catch (InterruptedException e) {
+            catch (final InterruptedException e) {
                 e.printStackTrace();
             }
             ntime++;
@@ -260,7 +260,7 @@ class LSFBatch implements BatchInterface {
         try {
             Thread.sleep(100);
         }
-        catch (InterruptedException e) {
+        catch (final InterruptedException e) {
             e.printStackTrace();
         }
         System.out.println("Send Command");
@@ -276,32 +276,32 @@ class LSFBatch implements BatchInterface {
      * @return true if the folder contain data
      */
     private boolean loadDir(String dir, SecureShellSession ss, ClusterProfile cp_, String command) {
-        String tmp_dir = IJ.getDirectory("temp");
-        File[] fl = new File[1];
+        final String tmp_dir = IJ.getDirectory("temp");
+        final File[] fl = new File[1];
 
         fl[0] = new File(dir + File.separator + "JobID");
 
         try {
             ShellCommand.exeCmdNoPrint("mkdir " + tmp_dir);
         }
-        catch (IOException e1) {
+        catch (final IOException e1) {
             e1.printStackTrace();
         }
-        catch (InterruptedException e) {
+        catch (final InterruptedException e) {
             e.printStackTrace();
         }
 
         // Get the Job ID
-        File jid = new File(tmp_dir + "JobID");
+        final File jid = new File(tmp_dir + "JobID");
         jid.delete();
         ss.download(fl, new File(tmp_dir), null, cp);
         if (jid.exists() == false) {
             return false;
         }
 
-        String s[] = MosaicUtils.readAndSplit(tmp_dir + File.separator + "JobID");
+        final String s[] = MosaicUtils.readAndSplit(tmp_dir + File.separator + "JobID");
 
-        String tmp = new String(command);
+        final String tmp = new String(command);
         if (s.length < 3 && !s[2].equals(tmp.replace(" ", "_"))) {
             return false;
         }
@@ -324,15 +324,15 @@ class LSFBatch implements BatchInterface {
      */
     @Override
     public BatchInterface[] getAllJobs(SecureShellSession ss, String command) {
-        String[] dirs = ss.getDirs(cp.getRunningDir());
+        final String[] dirs = ss.getDirs(cp.getRunningDir());
         if (dirs == null) {
             return null;
         }
 
-        Vector<LSFBatch> bc_v = new Vector<LSFBatch>();
+        final Vector<LSFBatch> bc_v = new Vector<LSFBatch>();
 
         for (int i = 0; i < dirs.length; i++) {
-            LSFBatch tmp = new LSFBatch(cp);
+            final LSFBatch tmp = new LSFBatch(cp);
 
             if (tmp.loadDir(cp.getRunningDir() + dirs[i], ss, cp, command) == false) {
                 continue;
@@ -340,7 +340,7 @@ class LSFBatch implements BatchInterface {
             bc_v.add(tmp);
         }
 
-        LSFBatch[] bc_a = new LSFBatch[bc_v.size()];
+        final LSFBatch[] bc_a = new LSFBatch[bc_v.size()];
         bc_v.toArray(bc_a);
 
         return bc_a;
@@ -367,7 +367,7 @@ class LSFBatch implements BatchInterface {
      */
     @Override
     public void clean(SecureShellSession ss) {
-        String[] commands = new String[1];
+        final String[] commands = new String[1];
         commands[0] = new String("rm -rf " + lDir);
 
         ss.runCommands(commands);

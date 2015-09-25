@@ -21,24 +21,24 @@ public class MosaicImageProcessingTools {
      * @return the dilated copy of the given <code>ImageProcessor</code>
      */
     public static ImageStack dilateGeneric(ImageStack ips, int radius, int number_of_threads) {
-        FloatProcessor[] dilated_procs = new FloatProcessor[ips.getSize()];
-        AtomicInteger z = new AtomicInteger(-1);
-        Vector<Thread> threadsVector = new Vector<Thread>();
+        final FloatProcessor[] dilated_procs = new FloatProcessor[ips.getSize()];
+        final AtomicInteger z = new AtomicInteger(-1);
+        final Vector<Thread> threadsVector = new Vector<Thread>();
         for (int thread_counter = 0; thread_counter < number_of_threads; thread_counter++) {
             threadsVector.add(new DilateGenericThread(ips, radius, dilated_procs, z));
         }
-        for (Thread t : threadsVector) {
+        for (final Thread t : threadsVector) {
             t.start();
         }
-        for (Thread t : threadsVector) {
+        for (final Thread t : threadsVector) {
             try {
                 t.join();
             }
-            catch (InterruptedException ie) {
+            catch (final InterruptedException ie) {
                 IJ.showMessage("Calculation interrupted. An error occured in parallel dilation:\n" + ie.getMessage());
             }
         }
-        ImageStack dilated_ips = new ImageStack(ips.getWidth(), ips.getHeight());
+        final ImageStack dilated_ips = new ImageStack(ips.getWidth(), ips.getHeight());
         for (int s = 0; s < ips.getSize(); s++) {
             dilated_ips.addSlice(null, dilated_procs[s]);
         }
@@ -54,12 +54,12 @@ public class MosaicImageProcessingTools {
      */
     public static int[][] generateMask(int mask_radius) {
 
-        int width = (2 * mask_radius) + 1;
-        int[][] mask = new int[width][width * width];
+        final int width = (2 * mask_radius) + 1;
+        final int[][] mask = new int[width][width * width];
         for (int s = -mask_radius; s <= mask_radius; s++) {
             for (int i = -mask_radius; i <= mask_radius; i++) {
                 for (int j = -mask_radius; j <= mask_radius; j++) {
-                    int index = MosaicUtils.coord(i + mask_radius, j + mask_radius, width);
+                    final int index = MosaicUtils.coord(i + mask_radius, j + mask_radius, width);
                     if ((i * i) + (j * j) + (s * s) <= mask_radius * mask_radius) {
                         mask[s + mask_radius][index] = 1;
                     }
@@ -111,9 +111,9 @@ class DilateGenericThread extends Thread {
         while ((z = atomic_z.incrementAndGet()) < ips.getSize()) {
             // IJ.showStatus("Dilate Image: " + (z+1));
             // IJ.showProgress(z, ips.getSize());
-            FloatProcessor out_p = new FloatProcessor(image_width, image_height);
-            float[] output = (float[]) out_p.getPixels();
-            float[] dummy_processor = (float[]) ips.getPixels(z + 1);
+            final FloatProcessor out_p = new FloatProcessor(image_width, image_height);
+            final float[] output = (float[]) out_p.getPixels();
+            final float[] dummy_processor = (float[]) ips.getPixels(z + 1);
             for (int y = 0; y < image_height; y++) {
                 for (int x = 0; x < image_width; x++) {
                     // little big speed-up:
@@ -127,7 +127,7 @@ class DilateGenericThread extends Thread {
                         if (z + s < 0 || z + s >= ips.getSize()) {
                             continue;
                         }
-                        float[] current_processor_pixels = (float[]) ips.getPixels(z + s + 1);
+                        final float[] current_processor_pixels = (float[]) ips.getPixels(z + s + 1);
                         for (int b = -radius; b <= radius; b++) {
                             if (y + b < 0 || y + b >= ips.getHeight()) {
                                 continue;

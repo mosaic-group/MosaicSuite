@@ -32,7 +32,7 @@ public class Jtest {
         set.add(dir);
 
         if (dir.isDirectory()) {
-            for (File t : dir.listFiles()) {
+            for (final File t : dir.listFiles()) {
                 populate(set, t);
             }
         }
@@ -47,10 +47,10 @@ public class Jtest {
      */
     private static boolean compare(File a1, File a2) {
         //
-        HashSet<File> seta1 = new HashSet<File>();
+        final HashSet<File> seta1 = new HashSet<File>();
         populate(seta1, a1);
 
-        HashSet<File> seta2 = new HashSet<File>();
+        final HashSet<File> seta2 = new HashSet<File>();
         populate(seta2, a2);
 
         // Check if the two HashSet match
@@ -59,11 +59,11 @@ public class Jtest {
 
     @Test
     public void mergetest() {
-        MergeJobs mj = new MergeJobs();
+        final MergeJobs mj = new MergeJobs();
 
-        String dir = MosaicUtils.getTestDir();
-        String dir_test = dir + File.separator + "merge_jobs" + File.separator + "Test";
-        String dir_sample = dir + File.separator + "merge_jobs" + File.separator + "Sample";
+        final String dir = MosaicUtils.getTestDir();
+        final String dir_test = dir + File.separator + "merge_jobs" + File.separator + "Test";
+        final String dir_sample = dir + File.separator + "merge_jobs" + File.separator + "Sample";
 
         // Remove test dir, create test dir and copy sample dir
         try {
@@ -71,10 +71,10 @@ public class Jtest {
             ShellCommand.exeCmd("mkdir " + dir_test);
             ShellCommand.copy(new File(dir_sample), new File(dir_test), null);
         }
-        catch (IOException e) {
+        catch (final IOException e) {
             e.printStackTrace();
         }
-        catch (InterruptedException e) {
+        catch (final InterruptedException e) {
             e.printStackTrace();
         }
 
@@ -83,10 +83,10 @@ public class Jtest {
 
         // Check the result
 
-        String dir_result = dir + File.separator + "merge_jobs" + File.separator + "Result";
+        final String dir_result = dir + File.separator + "merge_jobs" + File.separator + "Result";
 
-        File result[] = new File(dir_result).listFiles();
-        File test[] = new File(dir_test).listFiles();
+        final File result[] = new File(dir_result).listFiles();
+        final File test[] = new File(dir_test).listFiles();
 
         if (result.length != test.length || result.length == 0 || test.length == 0) {
             fail("Error: Merging jobs");

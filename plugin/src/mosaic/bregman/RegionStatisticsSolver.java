@@ -22,15 +22,15 @@ import weka.clusterers.SimpleKMeans;
  */
 class RegionStatisticsSolver {
 
-    private double[][][] Z;
-    private double[][][] W;
-    private double[][][] mu;
-    private int max_iter;
-    private Parameters p;
+    private final double[][][] Z;
+    private final double[][][] W;
+    private final double[][][] mu;
+    private final int max_iter;
+    private final Parameters p;
 
     private double[][][] weights;
-    private double[][][] image;
-    private double[][][] KMask;
+    private final double[][][] image;
+    private final double[][][] KMask;
 
     public double betaMLEin, betaMLEout;
 
@@ -100,9 +100,9 @@ class RegionStatisticsSolver {
     }
 
     private void fill_weights() {
-        int ni = p.ni;
-        int nj = p.nj;
-        int nz = p.nz;
+        final int ni = p.ni;
+        final int nj = p.nj;
+        final int nz = p.nz;
         this.weights = new double[nz][ni][nj];
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -229,9 +229,9 @@ class RegionStatisticsSolver {
 
     public void eval(double[][][] Mask) {
 
-        int ni = p.ni;
-        int nj = p.nj;
-        int nz = p.nz;
+        final int ni = p.ni;
+        final int nj = p.nj;
+        final int nz = p.nz;
 
         // do 3D version
         // use mu as temp tab
@@ -352,9 +352,9 @@ class RegionStatisticsSolver {
     }
 
     private void scale_mask(double[][][] ScaledMask, double[][][] Mask) {
-        int ni = p.ni;
-        int nj = p.nj;
-        int nz = p.nz;
+        final int ni = p.ni;
+        final int nj = p.nj;
+        final int nz = p.nz;
 
         double max = 0;
         double min = Double.POSITIVE_INFINITY;
@@ -515,24 +515,24 @@ class RegionStatisticsSolver {
 
     void cluster_region(float[][][] Ri, float[][][] Ro, ArrayList<Region> regionslist) {
         int nk = 3;// 3
-        double[] pixel = new double[1];
-        double[] levels = new double[nk];
+        final double[] pixel = new double[1];
+        final double[] levels = new double[nk];
 
-        for (Iterator<Region> itr = regionslist.iterator(); itr.hasNext();) {
-            Region r = itr.next();
-            Dataset data = new DefaultDataset();
+        for (final Iterator<Region> itr = regionslist.iterator(); itr.hasNext();) {
+            final Region r = itr.next();
+            final Dataset data = new DefaultDataset();
             // IJ.log("Region " + r.value + "size :" + r.points);
             if (r.points < 6) {
                 continue;
             }
-            for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
-                Pix p = it.next();
-                int i = p.px;
-                int j = p.py;
-                int z = p.pz;
+            for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+                final Pix p = it.next();
+                final int i = p.px;
+                final int j = p.py;
+                final int z = p.pz;
                 // IJ.log("i j z " +i +" " +j+ " "+ z +"val" + image[z][i][j]);
                 pixel[0] = image[z][i][j];
-                Instance instance = new DenseInstance(pixel);
+                final Instance instance = new DenseInstance(pixel);
                 data.add(instance);
             }
 
@@ -545,25 +545,25 @@ class RegionStatisticsSolver {
             // //IJ.log("clust done ");
 
             /* Create Weka classifier */
-            SimpleKMeans xm = new SimpleKMeans();
+            final SimpleKMeans xm = new SimpleKMeans();
             try {
                 xm.setNumClusters(3);// 3
                 xm.setMaxIterations(100);
             }
-            catch (Exception ex) {
+            catch (final Exception ex) {
             }
 
             /* Wrap Weka clusterer in bridge */
-            Clusterer jmlxm = new WekaClusterer(xm);
+            final Clusterer jmlxm = new WekaClusterer(xm);
             /* Perform clustering */
-            Dataset[] data2 = jmlxm.cluster(data);
+            final Dataset[] data2 = jmlxm.cluster(data);
             /* Output results */
             // System.out.println(clusters.length);
 
             nk = data2.length;// get number of clusters really found (usually = 3 = setNumClusters but not always)
             for (int i = 0; i < nk; i++) {
                 // Instance inst =DatasetTools.minAttributes(data2[i]);
-                Instance inst = DatasetTools.average(data2[i]);
+                final Instance inst = DatasetTools.average(data2[i]);
                 levels[i] = inst.value(0);
             }
 
@@ -578,28 +578,28 @@ class RegionStatisticsSolver {
             nk = Math.min(Analysis.p.regionSegmentLevel, nk - 1);
             betaMLEin = levels[nk];// -1;
             // betaMLEout=levels[0];
-            int nkm1 = Math.max(nk - 1, 0);
+            final int nkm1 = Math.max(nk - 1, 0);
             betaMLEout = levels[nkm1];
 
             // IJ.log("bin " + betaMLEin + " bout "+betaMLEout);
 
             if (p.mode_voronoi2) {
-                for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+                for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 
-                    Pix p = it.next();
-                    int i = p.px;
-                    int j = p.py;
-                    int z = p.pz;
+                    final Pix p = it.next();
+                    final int i = p.px;
+                    final int j = p.py;
+                    final int z = p.pz;
                     Ri[z][i][j] = regionslist.indexOf(r);
                 }
             }
             else {
-                for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+                for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 
-                    Pix p = it.next();
-                    int i = p.px;
-                    int j = p.py;
-                    int z = p.pz;
+                    final Pix p = it.next();
+                    final int i = p.px;
+                    final int j = p.py;
+                    final int z = p.pz;
                     Ri[z][i][j] = (float) (255 * betaMLEin);
                     Ro[z][i][j] = (float) (255 * betaMLEout);
 
@@ -617,15 +617,15 @@ class RegionStatisticsSolver {
 
         // double [] levels= new double[nk];
 
-        for (Iterator<Region> itr = regionslist.iterator(); itr.hasNext();) {
-            Region r = itr.next();
+        for (final Iterator<Region> itr = regionslist.iterator(); itr.hasNext();) {
+            final Region r = itr.next();
             // IJ.log("region" + r.value);
-            for (Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
+            for (final Iterator<Pix> it = r.pixels.iterator(); it.hasNext();) {
 
-                Pix p = it.next();
-                int i = p.px;
-                int j = p.py;
-                int z = p.pz;
+                final Pix p = it.next();
+                final int i = p.px;
+                final int j = p.py;
+                final int z = p.pz;
                 Ri[z][i][j] = regionslist.indexOf(r);
                 // IJ.log("i"+i +"j"+j + "index" +regionslist.indexOf(r));
             }

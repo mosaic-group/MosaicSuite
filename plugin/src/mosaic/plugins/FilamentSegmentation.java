@@ -58,7 +58,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
     private final String PropNoOfIterations  = "FilamentSegmentation.noOfIterations";
 
     // Synchronized map used to collect segmentation data from all plugin threads
-    private Map<Integer, Map<Integer, List<CubicSmoothingSpline>>> m = new TreeMap<Integer, Map<Integer, List<CubicSmoothingSpline>>>();
+    private final Map<Integer, Map<Integer, List<CubicSmoothingSpline>>> m = new TreeMap<Integer, Map<Integer, List<CubicSmoothingSpline>>>();
     private synchronized void addNewFinding(List<CubicSmoothingSpline> aCubicSpline, Integer aSlieceNumber, Integer aChannelNumber) {
         if (m.get(aSlieceNumber) == null) {
             m.put(aSlieceNumber, new TreeMap<Integer, List<CubicSmoothingSpline>>());
@@ -81,11 +81,11 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         final int originalHeight = aOrigImg.getHeight();
 
         // Convert to array
-        double[][] img = new double[originalHeight][originalWidth];
+        final double[][] img = new double[originalHeight][originalWidth];
         ImgUtils.ImgToYX2Darray(aOrigImg, img, 1.0f);
 
         // --------------- SEGMENTATION --------------------------------------------
-        SegmentationAlgorithm sa = new SegmentationAlgorithm(img,
+        final SegmentationAlgorithm sa = new SegmentationAlgorithm(img,
                 iNoiseType,
                 iPsfType,
                 iPsfDimension,
@@ -93,7 +93,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                 /* scale */                  iCoefficientStep,
                 /* regularizer term */       iRegularizerTerm,
                 iNumberOfIterations);
-        List<CubicSmoothingSpline> ps = sa.performSegmentation();
+        final List<CubicSmoothingSpline> ps = sa.performSegmentation();
 
         // Save results and update output image
         addNewFinding(ps, aOrigImg.getSliceNumber(), aChannelNumber);
@@ -103,9 +103,9 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
     private synchronized void drawFinalImg(FloatProcessor aOrigImg, int aChannelNumber, List<CubicSmoothingSpline> ps) {
         // TODO: This is temporary implementation. After taking decision how to
         // proceed with filaments this method must be revised
-        ImageStack stack = iOutputColorImg.getStack();
-        ImageProcessor ip = stack.getProcessor(aOrigImg.getSliceNumber());
-        int noOfChannels = iInputImg.getStack().getProcessor(aOrigImg.getSliceNumber()).getNChannels();
+        final ImageStack stack = iOutputColorImg.getStack();
+        final ImageProcessor ip = stack.getProcessor(aOrigImg.getSliceNumber());
+        final int noOfChannels = iInputImg.getStack().getProcessor(aOrigImg.getSliceNumber()).getNChannels();
         if (noOfChannels != 1) {
             ip.setPixels(aChannelNumber, iInputImg.getStack().getProcessor(aOrigImg.getSliceNumber()).toFloat(aChannelNumber, null));
         }
@@ -114,21 +114,21 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                 ip.setPixels(c, iInputImg.getStack().getProcessor(aOrigImg.getSliceNumber()).toFloat(0, null));
             }
         }
-        int[] pixels = (int[]) ip.getPixels();
-        for (CubicSmoothingSpline css : ps) {
+        final int[] pixels = (int[]) ip.getPixels();
+        for (final CubicSmoothingSpline css : ps) {
             final CubicSmoothingSpline css1 = css;
-            double start = css1.getKnot(0);
-            double stop = css1.getKnot(css1.getNumberOfKNots() - 1);
+            final double start = css1.getKnot(0);
+            final double stop = css1.getKnot(css1.getNumberOfKNots() - 1);
 
             final Matrix x = Matlab.linspace(start, stop, 1000);
-            Matrix y = x.copy().process(new MFunc() {
+            final Matrix y = x.copy().process(new MFunc() {
                 @Override
                 public double f(double aElement, int aRow, int aCol) {
                     return css1.getValue(x.get(aRow, aCol));
                 }
             });
 
-            int w = ip.getWidth(), h = ip.getHeight();
+            final int w = ip.getWidth(), h = ip.getHeight();
             int color = 0;
             if (aChannelNumber == 0) {
                 color = 255 << 16;
@@ -140,8 +140,8 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                 color = 255 << 0;
             }
             for (int i = 0; i < x.size(); ++i) {
-                int xp = (int) (x.get(i)) - 1;
-                int yp = (int) (y.get(i)) - 1;
+                final int xp = (int) (x.get(i)) - 1;
+                final int yp = (int) (y.get(i)) - 1;
                 if (xp < 0 || xp >= w - 1 || yp < 0 || yp >= h - 1) {
                     continue;
                 }
@@ -167,16 +167,16 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         //        }
 
         PlotWindow.noGridLines = false; // draw grid lines
-        Plot plot = new Plot("All filaments", "X", "Y");
+        final Plot plot = new Plot("All filaments", "X", "Y");
         plot.setLimits(0, iInputImg.getWidth(), 0, iInputImg.getHeight());
 
 
         // Plot data
         plot.setColor(Color.blue);
-        for (Map<Integer, List<CubicSmoothingSpline>> ms : m.values()) {
-            for (List<CubicSmoothingSpline> ps : ms.values()) {
+        for (final Map<Integer, List<CubicSmoothingSpline>> ms : m.values()) {
+            for (final List<CubicSmoothingSpline> ps : ms.values()) {
                 int count = 0;
-                for (CubicSmoothingSpline css : ps) {
+                for (final CubicSmoothingSpline css : ps) {
                     switch(count) {
                         case 0: plot.setColor(Color.BLUE);break;
                         case 1: plot.setColor(Color.RED);break;
@@ -187,11 +187,11 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                     }
                     count++;
                     final CubicSmoothingSpline css1 = css;
-                    double start = css1.getKnot(0);
-                    double stop = css1.getKnot(css1.getNumberOfKNots() - 1);
+                    final double start = css1.getKnot(0);
+                    final double stop = css1.getKnot(css1.getNumberOfKNots() - 1);
 
                     final Matrix x = Matlab.linspace(start, stop, 100);
-                    Matrix y = x.copy().process(new MFunc() {
+                    final Matrix y = x.copy().process(new MFunc() {
                         @Override
                         public double f(double aElement, int aRow, int aCol) {
                             return css1.getValue(aElement);
@@ -209,7 +209,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
     @Override
     protected boolean showDialog() {
         // Create GUI for entering segmentation parameters
-        GenericDialog gd = new GenericDialog("Filament Segmentation Settings");
+        final GenericDialog gd = new GenericDialog("Filament Segmentation Settings");
 
         final String[] noiseType = {"Gaussian", "Poisson"};
         gd.addRadioButtonGroup("Noise_Type: ", noiseType, 3, 1, Prefs.get(PropNoiseType, noiseType[0]));
@@ -231,9 +231,9 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
 
         gd.addMessage("\n");
         final String info = "\"Generalized Linear Models and B-Spline\nLevel-Sets enable Automatic Optimal\nFilament Segmentation with Sub-pixel Accuracy\"\n\nXun Xiao, Veikko Geyer, Hugo Bowne-Anderson,\nJonathon Howard, Ivo F. Sbalzarini";
-        Panel panel = new Panel();
+        final Panel panel = new Panel();
         panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        TextArea ta = new TextArea(info, 7, 40, TextArea.SCROLLBARS_NONE);
+        final TextArea ta = new TextArea(info, 7, 40, TextArea.SCROLLBARS_NONE);
         ta.setBackground(SystemColor.control);
         ta.setEditable(false);
         ta.setFocusable(true);
@@ -247,14 +247,14 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         }
 
         // Read data from all fields and remember it in preferences
-        String noise = gd.getNextRadioButton();
-        String psf = gd.getNextRadioButton();
-        int psfx = (int)gd.getNextNumber();
-        int psfy = (int)gd.getNextNumber();
-        String subpixel = gd.getNextRadioButton();
-        String scale = gd.getNextRadioButton();
-        double lambda = gd.getNextNumber();
-        int iterations = (int)gd.getNextNumber();
+        final String noise = gd.getNextRadioButton();
+        final String psf = gd.getNextRadioButton();
+        final int psfx = (int)gd.getNextNumber();
+        final int psfy = (int)gd.getNextNumber();
+        final String subpixel = gd.getNextRadioButton();
+        final String scale = gd.getNextRadioButton();
+        final double lambda = gd.getNextNumber();
+        final int iterations = (int)gd.getNextNumber();
 
         Prefs.set(PropNoiseType, noise);
         Prefs.set(PropPsfType, psf);
@@ -289,7 +289,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
 
     @Override
     protected void postprocessFinal() {
-        ImageWindow window = iProcessedImg.getWindow();
+        final ImageWindow window = iProcessedImg.getWindow();
 
         // When in batch mode there is no window
         if (window != null) {

@@ -11,9 +11,9 @@ class SingleRegionTask implements Runnable {
     private final CountDownLatch RegionsTasksDoneSignal;
     private final CountDownLatch UkDoneSignal;
     private final CountDownLatch W3kDoneSignal;
-    private ASplitBregmanSolver AS;
-    private int l;
-    private int channel;
+    private final ASplitBregmanSolver AS;
+    private final int l;
+    private final int channel;
     public DoubleDCT_2D dct2d;
     public Tools Tools;
 
@@ -34,7 +34,7 @@ class SingleRegionTask implements Runnable {
         try {
             doWork();
         }
-        catch (InterruptedException ex) {
+        catch (final InterruptedException ex) {
         }
 
         RegionsTasksDoneSignal.countDown();

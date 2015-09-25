@@ -67,10 +67,10 @@ class Tools {
         // /if (ix <= 0 || kx <= 0) return ;
 
         // find center position of kernel (half of kernel size)
-        int sz[] = psf.getSuggestedImageSize();
+        final int sz[] = psf.getSuggestedImageSize();
         kCenterX = sz[0] / 2;
         kCenterY = sz[1] / 2;
-        double kernel[][] = psf.getImage2DAsDoubleArray();
+        final double kernel[][] = psf.getImage2DAsDoubleArray();
 
         for (i = 0; i < icols; ++i) // columns
         {
@@ -127,9 +127,9 @@ class Tools {
         double sum; // temp accumulation buffer
         int rowIndex, colIndex;
 
-        int[] sz = psf.getSuggestedImageSize();
-        double kernelx[] = psf.getSeparableImageAsDoubleArray(0);
-        double kernely[] = psf.getSeparableImageAsDoubleArray(1);
+        final int[] sz = psf.getSuggestedImageSize();
+        final double kernelx[] = psf.getSeparableImageAsDoubleArray(0);
+        final double kernely[] = psf.getSeparableImageAsDoubleArray(1);
 
         kCenterX = sz[0] / 2;
         kCenterY = sz[1] / 2;
@@ -209,10 +209,10 @@ class Tools {
         double sum; // temp accumulation buffer
         int rowIndex, colIndex, sliceIndex;
 
-        int[] sz = psf.getSuggestedImageSize();
-        double kernelx[] = psf.getSeparableImageAsDoubleArray(0);
-        double kernely[] = psf.getSeparableImageAsDoubleArray(1);
-        double kernelz[] = psf.getSeparableImageAsDoubleArray(2);
+        final int[] sz = psf.getSuggestedImageSize();
+        final double kernelx[] = psf.getSeparableImageAsDoubleArray(0);
+        final double kernely[] = psf.getSeparableImageAsDoubleArray(1);
+        final double kernelz[] = psf.getSeparableImageAsDoubleArray(2);
 
         kCenterX = sz[0] / 2;
         kCenterY = sz[1] / 2;
@@ -330,17 +330,17 @@ class Tools {
 
     void dctshift(double[][][] result, double[][][] PSF, int cc, int cr) {
         // check if non square image
-        int cols = PSF[0].length;
-        int rows = PSF[0][0].length;
-        int k = Math.min(cr - 1, Math.min(cc - 1, Math.min(rows - cr, cols - cc)));
+        final int cols = PSF[0].length;
+        final int rows = PSF[0][0].length;
+        final int k = Math.min(cr - 1, Math.min(cc - 1, Math.min(rows - cr, cols - cc)));
 
-        int frow = cr - k;
-        int lrow = cr + k;
-        int rowSize = lrow - frow + 1;
+        final int frow = cr - k;
+        final int lrow = cr + k;
+        final int rowSize = lrow - frow + 1;
 
-        int fcol = cc - k;
-        int lcol = cc + k;
-        int colSize = lcol - fcol + 1;
+        final int fcol = cc - k;
+        final int lcol = cc + k;
+        final int colSize = lcol - fcol + 1;
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -395,23 +395,23 @@ class Tools {
     void dctshift3D(double[][][] result, double[][][] PSF, int cr, int cc, int cs) {
 
         // check if non square image
-        int cols = PSF[0].length;
-        int rows = PSF[0][0].length;
-        int slices = PSF.length;
+        final int cols = PSF[0].length;
+        final int rows = PSF[0][0].length;
+        final int slices = PSF.length;
 
-        int k = Math.min(cr - 1, Math.min(cc - 1, Math.min(rows - cr, Math.min(cols - cc, Math.min(cs - 1, slices - cs)))));
+        final int k = Math.min(cr - 1, Math.min(cc - 1, Math.min(rows - cr, Math.min(cols - cc, Math.min(cs - 1, slices - cs)))));
 
-        int frow = cr - k;
-        int lrow = cr + k;
-        int rowSize = lrow - frow + 1;
+        final int frow = cr - k;
+        final int lrow = cr + k;
+        final int rowSize = lrow - frow + 1;
 
-        int fcol = cc - k;
-        int lcol = cc + k;
-        int colSize = lcol - fcol + 1;
+        final int fcol = cc - k;
+        final int lcol = cc + k;
+        final int colSize = lcol - fcol + 1;
 
-        int fslice = cs - k;
-        int lslice = cs + k;
-        int sliceSize = lslice - fslice + 1;
+        final int fslice = cs - k;
+        final int lslice = cs + k;
+        final int sliceSize = lslice - fslice + 1;
 
         // z1
         for (int z = 0; z < 1 + sliceSize - cs + fslice - 1; z++) {
@@ -588,7 +588,7 @@ class Tools {
 
     void createmask(double[][][][] res, double[][][] image, double[] cl) {
         // add 0 and 1 at extremities
-        double[] cltemp = new double[nlevels + 2];
+        final double[] cltemp = new double[nlevels + 2];
         cltemp[0] = 0;
         cltemp[nlevels + 1] = 1;
         for (int l = 1; l < nlevels + 1; l++) {
@@ -835,7 +835,7 @@ class Tools {
                 }
             }
         }
-        double energy = ldata * energyData + lreg * energyPrior;
+        final double energy = ldata * energyData + lreg * energyPrior;
 
         return energy;
     }
@@ -863,7 +863,7 @@ class Tools {
                 }
             }
         }
-        double energy = ldata * energyData + lreg * energyPrior;
+        final double energy = ldata * energyData + lreg * energyPrior;
 
         return energy;
     }
@@ -908,7 +908,7 @@ class Tools {
             }
         }
 
-        double energy = ldata * energyData + lreg * energyPrior;
+        final double energy = ldata * energyData + lreg * energyPrior;
         return energy;
 
     }
@@ -955,7 +955,7 @@ class Tools {
             }
         }
 
-        double energy = ldata * energyData + lreg * energyPrior;
+        final double energy = ldata * energyData + lreg * energyPrior;
 
         return energy;
     }
@@ -1038,7 +1038,7 @@ class Tools {
             }
         }
 
-        double energy = ldata * energyData + lreg * energyPrior;
+        final double energy = ldata * energyData + lreg * energyPrior;
         return energy;
     }
 
@@ -1108,7 +1108,7 @@ class Tools {
             }
         }
 
-        double energy = ldata * energyData + lreg * energyPrior;
+        final double energy = ldata * energyData + lreg * energyPrior;
         return energy;
     }
 

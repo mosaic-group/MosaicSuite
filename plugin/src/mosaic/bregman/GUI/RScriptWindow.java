@@ -20,9 +20,9 @@ class RScriptWindow {
     }
 
     public void run() {
-        Font bf = new Font(null, Font.BOLD, 12);
+        final Font bf = new Font(null, Font.BOLD, 12);
 
-        GenericDialog gd = new GenericDialog("Visualization and output options");
+        final GenericDialog gd = new GenericDialog("Visualization and output options");
 
         gd.setInsets(-10, 0, 3);
         gd.addMessage("Channel names", bf);

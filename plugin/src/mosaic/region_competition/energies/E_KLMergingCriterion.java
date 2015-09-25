@@ -24,8 +24,8 @@ public class E_KLMergingCriterion extends ExternalEnergy {
 
     @Override
     public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel) {
-        int fromLabel = contourParticle.label;
-        boolean merge = CalculateMergingEnergyForLabel(fromLabel, toLabel);
+        final int fromLabel = contourParticle.label;
+        final boolean merge = CalculateMergingEnergyForLabel(fromLabel, toLabel);
         return new EnergyResult(null, merge);
     }
 
@@ -35,7 +35,7 @@ public class E_KLMergingCriterion extends ExternalEnergy {
         if (aLabelA != bgLabel && aLabelB != bgLabel) // we are competeing.
         {
             // / test if merge should be performed:
-            double value = CalculateKLMergingCriterion(aLabelA, aLabelB);
+            final double value = CalculateKLMergingCriterion(aLabelA, aLabelB);
             // debug("KL: it="+m_iteration_counter+" "+aLabelA+" "+aLabelB+" "+value);
             if (value < m_RegionMergingThreshold) {
                 return true;
@@ -45,32 +45,32 @@ public class E_KLMergingCriterion extends ExternalEnergy {
     }
 
     private double CalculateKLMergingCriterion(int L1, int L2) {
-        LabelInformation aL1 = labelMap.get(L1);
-        LabelInformation aL2 = labelMap.get(L2);
+        final LabelInformation aL1 = labelMap.get(L1);
+        final LabelInformation aL2 = labelMap.get(L2);
 
-        double vMu1 = aL1.mean;
-        double vMu2 = aL2.mean;
-        double vVar1 = aL1.var;
-        double vVar2 = aL2.var;
-        int vN1 = aL1.count;
-        int vN2 = aL2.count;
+        final double vMu1 = aL1.mean;
+        final double vMu2 = aL2.mean;
+        final double vVar1 = aL1.var;
+        final double vVar2 = aL2.var;
+        final int vN1 = aL1.count;
+        final int vN2 = aL2.count;
 
         // debug("l1="+L1+" L2="+L2);
 
-        double result = CalculateKLMergingCriterion(vMu1, vMu2, vVar1, vVar2, vN1, vN2);
+        final double result = CalculateKLMergingCriterion(vMu1, vMu2, vVar1, vVar2, vN1, vN2);
         return result;
 
     }
 
     static double CalculateKLMergingCriterion(double aMu1, double aMu2, double aVar1, double aVar2, int aN1, int aN2) {
-        double vMu12 = (aN1 * aMu1 + aN2 * aMu2) / (aN1 + aN2);
+        final double vMu12 = (aN1 * aMu1 + aN2 * aMu2) / (aN1 + aN2);
 
         // System.out.println(vMu12);
 
-        double vSumOfSq1 = aVar1 * (aN1 - 1) + aN1 * aMu1 * aMu1;
-        double vSumOfSq2 = aVar2 * (aN2 - 1) + aN2 * aMu2 * aMu2;
+        final double vSumOfSq1 = aVar1 * (aN1 - 1) + aN1 * aMu1 * aMu1;
+        final double vSumOfSq2 = aVar2 * (aN2 - 1) + aN2 * aMu2 * aMu2;
 
-        double vVar12 = (1.0 / (aN1 + aN2 - 1.0)) * (vSumOfSq1 + vSumOfSq2 - (aN1 + aN2) * vMu12 * vMu12);
+        final double vVar12 = (1.0 / (aN1 + aN2 - 1.0)) * (vSumOfSq1 + vSumOfSq2 - (aN1 + aN2) * vMu12 * vMu12);
 
         if (vVar12 <= 0) {
             // System.out.print("vVar12==0");
@@ -84,11 +84,11 @@ public class E_KLMergingCriterion extends ExternalEnergy {
             aVar2 = 0;
         }
 
-        double vDKL1 = (aMu1 - vMu12) * (aMu1 - vMu12) / (2.0 * vVar12) + 0.5 * (aVar1 / vVar12 - 1.0 - Math.log(aVar1 / vVar12));
+        final double vDKL1 = (aMu1 - vMu12) * (aMu1 - vMu12) / (2.0 * vVar12) + 0.5 * (aVar1 / vVar12 - 1.0 - Math.log(aVar1 / vVar12));
 
-        double vDKL2 = (aMu2 - vMu12) * (aMu2 - vMu12) / (2.0 * vVar12) + 0.5 * (aVar2 / vVar12 - 1.0 - Math.log(aVar2 / vVar12));
+        final double vDKL2 = (aMu2 - vMu12) * (aMu2 - vMu12) / (2.0 * vVar12) + 0.5 * (aVar2 / vVar12 - 1.0 - Math.log(aVar2 / vVar12));
 
-        double result = vDKL1 + vDKL2;
+        final double result = vDKL1 + vDKL2;
         if (Double.isNaN(result)) {
             debug("CalculateKLMergingCriterion is NaN");
             throw new RuntimeException("Double.isNaN in CalculateKLMergingCriterion");

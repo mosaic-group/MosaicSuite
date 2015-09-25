@@ -81,10 +81,10 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
                 offset[i] = cl.newInstance();
             }
         }
-        catch (InstantiationException e) {
+        catch (final InstantiationException e) {
             e.printStackTrace();
         }
-        catch (IllegalAccessException e) {
+        catch (final IllegalAccessException e) {
             e.printStackTrace();
         }
     }
@@ -237,17 +237,17 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
             res *= 1.0 / Math.sqrt(2.0 * Math.PI) / var[i].getRealDouble()
                     * Math.exp(-(pos[i].getRealDouble() - offset[i].getRealDouble()) * (pos[i].getRealDouble() - offset[i].getRealDouble()) / (2.0 * var[i].getRealDouble() * var[i].getRealDouble()));
         }
-        RealType<T> rc = pos[0].createVariable();
+        final RealType<T> rc = pos[0].createVariable();
         rc.setReal(res);
         T rt = null;
         try {
             rt = clCreator.newInstance();
         }
-        catch (InstantiationException e) {
+        catch (final InstantiationException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
-        catch (IllegalAccessException e) {
+        catch (final IllegalAccessException e) {
             e.printStackTrace();
             throw new RuntimeException();
         }
@@ -264,7 +264,7 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
     public void getParamenters() {
         settings = getConfigHandler().LoadFromFile(IJ.getDirectory("temp") + File.separator + "psf_gauss_settings.dat", GaussPSFSettings.class, settings);
 
-        GenericDialog gd = new GenericDialog("Gauss PSF");
+        final GenericDialog gd = new GenericDialog("Gauss PSF");
 
         if (pos.length >= 1) {
             gd.addNumericField("sigma_X", 1.0, 3);
@@ -312,14 +312,14 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
             }
         }
 
-        RandomAccessible<S> infiniteImg = Views.extendValue(img, bound);
+        final RandomAccessible<S> infiniteImg = Views.extendValue(img, bound);
 
         // Convolve with gaussian;
 
         try {
             Gauss3.gauss(sigma, infiniteImg, img);
         }
-        catch (IncompatibleTypeException e) {
+        catch (final IncompatibleTypeException e) {
             e.printStackTrace();
         }
     }
@@ -363,10 +363,10 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
 
     @Override
     public int[] getSuggestedImageSize() {
-        int sz[] = new int[pos.length];
+        final int sz[] = new int[pos.length];
 
         for (int i = 0; i < pos.length; i++) {
-            int szo = (int) (var[i].getRealDouble() * 8.0) + 1;
+            final int szo = (int) (var[i].getRealDouble() * 8.0) + 1;
             if (szo % 2 == 0) {
                 sz[i] = szo + 1;
             }
@@ -391,8 +391,8 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
     @Override
     public double[] getSeparableImageAsDoubleArray(int dim) {
         if (sepDimD[dim] == null) {
-            int sz[] = getSuggestedImageSize();
-            int mid[] = new int[sz.length];
+            final int sz[] = getSuggestedImageSize();
+            final int mid[] = new int[sz.length];
             int[] old_mid = new int[sz.length];
 
             for (int i = 0; i < sz.length; i++) {
@@ -404,7 +404,7 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
             sepDimD[dim] = new double[sz[dim]];
 
             for (int i = 0; i < sepDimD[dim].length; i++) {
-                double res = 1.0 / Math.sqrt(2.0 * Math.PI) / var[dim].getRealDouble()
+                final double res = 1.0 / Math.sqrt(2.0 * Math.PI) / var[dim].getRealDouble()
                         * Math.exp(-(i - offset[dim].getRealDouble()) * (i - offset[dim].getRealDouble()) / (2.0 * var[dim].getRealDouble() * var[dim].getRealDouble()));
 
                 sepDimD[dim][i] = res;
@@ -447,7 +447,7 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
 
     @Override
     public int[] getCenter() {
-        int ofs[] = new int[pos.length];
+        final int ofs[] = new int[pos.length];
 
         for (int i = 0; i < ofs.length; i++) {
             ofs[i] = (int) offset[i].getRealDouble();

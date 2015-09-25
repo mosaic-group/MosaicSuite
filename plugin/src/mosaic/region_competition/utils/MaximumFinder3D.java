@@ -58,7 +58,7 @@ public class MaximumFinder3D implements MaximumFinderInterface {
     // private double progressDone; // for progress bar, fraction of work done so far
     // private int nPasses = 0; // for progress bar, how many images to process (sequentially or parallel threads)
     // the following are class variables for having shorter argument lists
-    private int width, height; // image dimensions
+    private final int width, height; // image dimensions
     /** directions to 8 neighboring pixels, clockwise: 0=North (-y), 1=NE, 2=East (+x), ... 7=NW */
     // private int[] dirOffset; // pixel offsets of neighbor pixels for direct addressing
     private int[][] points; // maxima found by findMaxima() when outputType is POINT_SELECTION
@@ -76,8 +76,8 @@ public class MaximumFinder3D implements MaximumFinderInterface {
     final static byte[] outputTypeMasks = new byte[] { MAX_POINT, MAX_AREA, MAX_AREA };
     final static float SQRT2 = 1.4142135624f;
 
-    private int depth;
-    private int size;
+    private final int depth;
+    private final int size;
     IndexIterator iterator;
     Connectivity conn;
 
@@ -116,27 +116,27 @@ public class MaximumFinder3D implements MaximumFinderInterface {
 
     @Override
     public List<Point> getMaximaPointList(float[] ip, double tolerance, boolean excludeOnEdges) {
-        int[][] points = getMaxima(ip, tolerance, excludeOnEdges);
+        final int[][] points = getMaxima(ip, tolerance, excludeOnEdges);
 
-        ArrayList<Point> list = new ArrayList<Point>();
+        final ArrayList<Point> list = new ArrayList<Point>();
 
         if (points == null) {
             System.out.println("no maxima");
             return list;
         }
 
-        int[] xs = points[0];
-        int[] ys = points[1];
-        int[] zs = points[2];
+        final int[] xs = points[0];
+        final int[] ys = points[1];
+        final int[] zs = points[2];
 
-        int n = xs.length;
+        final int n = xs.length;
         for (int i = 0; i < n; i++) {
-            int x = xs[i];
-            int y = ys[i];
-            int z = zs[i];
+            final int x = xs[i];
+            final int y = ys[i];
+            final int z = zs[i];
             // System.out.println(x+" "+y+" "+" "+z);
 
-            Point p = Point.CopyLessArray(new int[] { x, y, z });
+            final Point p = Point.CopyLessArray(new int[] { x, y, z });
             list.add(p);
         }
 
@@ -167,7 +167,7 @@ public class MaximumFinder3D implements MaximumFinderInterface {
         float globalMax = -Float.MAX_VALUE;
 
         for (int i = 0; i < size; i++) {
-            float v = ip[i];
+            final float v = ip[i];
             if (globalMin > v) {
                 globalMin = v;
             }
@@ -177,16 +177,16 @@ public class MaximumFinder3D implements MaximumFinderInterface {
         }
 
         // ByteProcessor typeP = new ByteProcessor(width, height); //will be a notepad for pixel types
-        byte[] types = new byte[size];
+        final byte[] types = new byte[size];
 
         if (threshold != ImageProcessor.NO_THRESHOLD) {
             threshold -= (globalMax - globalMin) * 1e-6;// avoid rounding errors
         }
         // for segmentation, exclusion of edge maxima cannot be done now but has to be done after segmentation:
-        boolean excludeEdgesNow = excludeOnEdges && outputType != SEGMENTED;
+        final boolean excludeEdgesNow = excludeOnEdges && outputType != SEGMENTED;
 
         IJ.showStatus("Getting sorted maxima...");
-        long[] maxPoints = getSortedMaxPoints(ip, types, excludeEdgesNow, globalMin, globalMax, threshold);
+        final long[] maxPoints = getSortedMaxPoints(ip, types, excludeEdgesNow, globalMin, globalMax, threshold);
 
         IJ.showStatus("Analyzing  maxima...");
         float maxSortingError = 0;
@@ -230,23 +230,23 @@ public class MaximumFinder3D implements MaximumFinderInterface {
      *         Note: Do not use the positions of the points marked as MAXIMUM in typeP, they are invalid for images with a roi.
      */
     private long[] getSortedMaxPoints(float[] ip, byte[] typeP, boolean excludeEdgesNow, float globalMin, float globalMax, double threshold) {
-        byte[] types = typeP;
+        final byte[] types = typeP;
         int nMax = 0; // counts local maxima
-        boolean checkThreshold = threshold != ImageProcessor.NO_THRESHOLD;
+        final boolean checkThreshold = threshold != ImageProcessor.NO_THRESHOLD;
 
         for (int i = 0; i < size; i++) {
-            Point p = iterator.indexToPoint(i);
-            int x = p.x[0];
-            int y = p.x[1];
-            int z = p.x[2];
+            final Point p = iterator.indexToPoint(i);
+            final int x = p.x[0];
+            final int y = p.x[1];
+            final int z = p.x[2];
 
-            float v = ip[i];
+            final float v = ip[i];
             if (v == globalMin) {
                 continue;
             }
 
-            boolean isBorder = (x == 0 || x == width - 1 || y == 0 || y == height - 1 || z == 0 || z == depth - 1);
-            boolean isInner = !isBorder;
+            final boolean isBorder = (x == 0 || x == width - 1 || y == 0 || y == height - 1 || z == 0 || z == depth - 1);
+            final boolean isInner = !isBorder;
 
             if (excludeEdgesNow && isBorder) {
                 continue;
@@ -256,9 +256,9 @@ public class MaximumFinder3D implements MaximumFinderInterface {
             }
             boolean isMax = true;
 
-            for (Point q : conn.iterateNeighbors(p)) {
+            for (final Point q : conn.iterateNeighbors(p)) {
                 if (isInner || iterator.isInBound(q)) {
-                    float vNeighbor = ip[iterator.pointToIndex(q)];// ip.getPixelValue(x+DIR_X_OFFSET[d], y+DIR_Y_OFFSET[d]);
+                    final float vNeighbor = ip[iterator.pointToIndex(q)];// ip.getPixelValue(x+DIR_X_OFFSET[d], y+DIR_Y_OFFSET[d]);
                     if (vNeighbor > v) {
                         isMax = false;
                         break;
@@ -272,14 +272,14 @@ public class MaximumFinder3D implements MaximumFinderInterface {
 
         } // for all pixels
 
-        float vFactor = (float) (2e9 / (globalMax - globalMin)); // for converting float values into a 32-bit int
-        long[] maxPoints = new long[nMax]; // value (int) is in the upper 32 bit, pixel offset in the lower
+        final float vFactor = (float) (2e9 / (globalMax - globalMin)); // for converting float values into a 32-bit int
+        final long[] maxPoints = new long[nMax]; // value (int) is in the upper 32 bit, pixel offset in the lower
         int iMax = 0;
 
         for (int i = 0; i < size; i++) {
             if (types[i] == MAXIMUM) {
-                float fValue = ip[i];
-                int iValue = (int) ((fValue - globalMin) * vFactor); // 32-bit int, linear function of float value
+                final float fValue = ip[i];
+                final int iValue = (int) ((fValue - globalMin) * vFactor); // 32-bit int, linear function of float value
                 maxPoints[iMax++] = (long) iValue << 32 | i;
             }
         }
@@ -306,12 +306,12 @@ public class MaximumFinder3D implements MaximumFinderInterface {
      * @param outputType
      */
     private void analyzeAndMarkMaxima(float[] ip, byte[] typeP, long[] maxPoints, boolean excludeEdgesNow, double tolerance, int outputType, float maxSortingError) {
-        byte[] types = typeP;
-        int nMax = maxPoints.length;
-        int[] pList = new int[size]; // here we enter points starting from a maximum
+        final byte[] types = typeP;
+        final int nMax = maxPoints.length;
+        final int[] pList = new int[size]; // here we enter points starting from a maximum
         Vector<int[]> xyVector = null;
 
-        boolean displayOrCount = outputType == POINT_SELECTION || outputType == LIST || outputType == COUNT;
+        final boolean displayOrCount = outputType == POINT_SELECTION || outputType == LIST || outputType == COUNT;
         if (displayOrCount) {
             xyVector = new Vector<int[]>();
         }
@@ -324,7 +324,7 @@ public class MaximumFinder3D implements MaximumFinderInterface {
                 // we create a list of connected points and start the list at the current maximum
             }
 
-            Point p = iterator.indexToPoint(offset0);
+            final Point p = iterator.indexToPoint(offset0);
 
             int x0 = p.x[0];
             int y0 = p.x[1];
@@ -346,18 +346,18 @@ public class MaximumFinder3D implements MaximumFinderInterface {
                 int nEqual = 1; // counts xEqual/yEqual points that we use for averaging
                 do // while neigbor list is not fully processed (to listLen)
                 {
-                    int offset = pList[listI];
-                    Point pp = iterator.indexToPoint(offset);
+                    final int offset = pList[listI];
+                    final Point pp = iterator.indexToPoint(offset);
 
-                    int x = pp.x[0];
-                    int y = pp.x[1];
-                    int z = pp.x[2];
+                    final int x = pp.x[0];
+                    final int y = pp.x[1];
+                    final int z = pp.x[2];
                     // not necessary, but faster than isWithin
-                    boolean isInner = (z != 0 && z != depth - 1) && (y != 0 && y != height - 1) && (x != 0 && x != width - 1);
+                    final boolean isInner = (z != 0 && z != depth - 1) && (y != 0 && y != height - 1) && (x != 0 && x != width - 1);
 
                     // for (int d=0; d<8; d++) //analyze all neighbors (in 8 directions) at the same level
-                    for (Point q : conn.iterateNeighbors(pp)) {
-                        int offset2 = iterator.pointToIndex(q);
+                    for (final Point q : conn.iterateNeighbors(pp)) {
+                        final int offset2 = iterator.pointToIndex(q);
                         // int offset2 = offset+dirOffset[d];
                         if ((isInner || iterator.isInBound(q)) && (types[offset2] & LISTED) == 0) {
                             if ((types[offset2] & PROCESSED) != 0) {
@@ -365,10 +365,10 @@ public class MaximumFinder3D implements MaximumFinderInterface {
                                 // if (x0<25&&y0<20)IJ.write("x0,y0="+x0+","+y0+":stop at processed neighbor from x,y="+x+","+y+", dir="+d);
                                 break;
                             }
-                            int x2 = q.x[0];
-                            int y2 = q.x[1];
-                            int z2 = q.x[2];
-                            float v2 = ip[offset2];
+                            final int x2 = q.x[0];
+                            final int y2 = q.x[1];
+                            final int z2 = q.x[2];
+                            final float v2 = ip[offset2];
                             if (v2 > v0 + maxSortingError) {
                                 maxPossible = false; // we have reached a higher point, thus it is no maximum
                                 // if (x0<25&&y0<20)IJ.write("x0,y0="+x0+","+y0+":stop at higher neighbor from x,y="+x+","+y+", dir="+d+",value,value2,v2-v="+v0+","+v2+","+(v2-v0));
@@ -413,25 +413,25 @@ public class MaximumFinder3D implements MaximumFinderInterface {
                     }
                 }
                 else {
-                    int resetMask = ~(maxPossible ? LISTED : (LISTED | EQUAL));
+                    final int resetMask = ~(maxPossible ? LISTED : (LISTED | EQUAL));
                     xEqual /= nEqual;
                     yEqual /= nEqual;
                     zEqual /= nEqual;
                     double minDist2 = 1e20;
                     int nearestI = 0;
                     for (listI = 0; listI < listLen; listI++) {
-                        int offset = pList[listI];
+                        final int offset = pList[listI];
 
-                        Point pp = iterator.indexToPoint(offset);
-                        int x = pp.x[0];
-                        int y = pp.x[1];
-                        int z = pp.x[2];
+                        final Point pp = iterator.indexToPoint(offset);
+                        final int x = pp.x[0];
+                        final int y = pp.x[1];
+                        final int z = pp.x[2];
                         types[offset] &= resetMask; // reset attributes no longer needed
                         types[offset] |= PROCESSED; // mark as processed
                         if (maxPossible) {
                             types[offset] |= MAX_AREA;
                             if ((types[offset] & EQUAL) != 0) {
-                                double dist2 = (xEqual - x) * (xEqual - x) + (yEqual - y) * (yEqual - y) + (zEqual - z) * (zEqual - z);
+                                final double dist2 = (xEqual - x) * (xEqual - x) + (yEqual - y) * (yEqual - y) + (zEqual - z) * (zEqual - z);
                                 if (dist2 < minDist2) {
                                     minDist2 = dist2; // this could be the best "single maximum" point
                                     nearestI = listI;
@@ -440,14 +440,14 @@ public class MaximumFinder3D implements MaximumFinderInterface {
                         }
                     } // for listI
                     if (maxPossible) {
-                        int offset = pList[nearestI];
+                        final int offset = pList[nearestI];
                         types[offset] |= MAX_POINT;
                         if (displayOrCount && xyVector != null && !(excludeOnEdges && isEdgeMaximum)) {
-                            Point pp = iterator.indexToPoint(offset);
+                            final Point pp = iterator.indexToPoint(offset);
 
-                            int x = pp.x[0];
-                            int y = pp.x[1];
-                            int z = pp.x[2];
+                            final int x = pp.x[0];
+                            final int y = pp.x[1];
+                            final int z = pp.x[2];
                             xyVector.addElement(new int[] { x, y, z });
                             
                         }
@@ -460,13 +460,13 @@ public class MaximumFinder3D implements MaximumFinderInterface {
             return;
         }
         if (displayOrCount && xyVector != null) {
-            int npoints = xyVector.size();
+            final int npoints = xyVector.size();
             if (outputType == POINT_SELECTION && npoints > 0) {
-                int[] xpoints = new int[npoints];
-                int[] ypoints = new int[npoints];
-                int[] zpoints = new int[npoints];
+                final int[] xpoints = new int[npoints];
+                final int[] ypoints = new int[npoints];
+                final int[] zpoints = new int[npoints];
                 for (int i = 0; i < npoints; i++) {
-                    int[] xy = xyVector.elementAt(i);
+                    final int[] xy = xyVector.elementAt(i);
                     xpoints[i] = xy[0];
                     ypoints[i] = xy[1];
                     zpoints[i] = xy[2];
@@ -476,9 +476,9 @@ public class MaximumFinder3D implements MaximumFinderInterface {
             }
             else if (outputType == LIST) {
                 Analyzer.resetCounter();
-                ResultsTable rt = ResultsTable.getResultsTable();
+                final ResultsTable rt = ResultsTable.getResultsTable();
                 for (int i = 0; i < npoints; i++) {
-                    int[] xy = xyVector.elementAt(i);
+                    final int[] xy = xyVector.elementAt(i);
                     rt.incrementCounter();
                     rt.addValue("X", xy[0]);
                     rt.addValue("Y", xy[1]);

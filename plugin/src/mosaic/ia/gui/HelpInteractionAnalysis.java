@@ -18,7 +18,7 @@ class HelpInteractionAnalysis extends HelpGUI implements ActionListener {
 
     public JFrame frame;
     // Initialize Buttons
-    private JPanel panel;
+    private final JPanel panel;
     private JButton Close;
 
     public HelpInteractionAnalysis(int x, int y) {
@@ -32,7 +32,7 @@ class HelpInteractionAnalysis extends HelpGUI implements ActionListener {
         panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panel.setPreferredSize(new Dimension(575, 720));
 
-        JPanel pref = new JPanel(new GridBagLayout());
+        final JPanel pref = new JPanel(new GridBagLayout());
         // pref.setPreferredSize(new Dimension(555, 550));
         // pref.setSize(pref.getPreferredSize());
 
@@ -76,7 +76,7 @@ class HelpInteractionAnalysis extends HelpGUI implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent ae) {
-        Object source = ae.getSource(); // Identify Button that was clicked
+        final Object source = ae.getSource(); // Identify Button that was clicked
 
         if (source == Close) {
             // IJ.log("close called");
