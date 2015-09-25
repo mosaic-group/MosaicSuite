@@ -1,32 +1,15 @@
 package mosaic.plugins;
 
 
-import java.awt.AWTEvent;
 import java.awt.Button;
-import java.awt.Checkbox;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.Label;
-import java.awt.Menu;
-import java.awt.MenuBar;
-import java.awt.MenuItem;
 import java.awt.Panel;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -54,24 +37,19 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.Macro;
-import ij.WindowManager;
-import ij.gui.GUI;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
-import ij.gui.StackWindow;
 import ij.gui.YesNoCancelDialog;
 import ij.io.FileInfo;
 import ij.io.OpenDialog;
 import ij.io.Opener;
-import ij.io.SaveDialog;
 import ij.measure.Calibration;
 import ij.measure.Measurements;
 import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
 import ij.process.StackConverter;
 import ij.process.StackStatistics;
-import ij.text.TextPanel;
 import mosaic.core.GUI.ParticleTrackerHelp;
 import mosaic.core.detection.FeaturePointDetector;
 import mosaic.core.detection.MyFrame;
@@ -86,10 +64,11 @@ import mosaic.core.particleLinking.linkerOptions;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.SegmentationInfo;
 import mosaic.core.utils.MosaicUtils.ToARGB;
+import mosaic.particleTracker.FocusStackWin;
+import mosaic.particleTracker.ResultsWindow;
 import mosaic.particleTracker.TrajectoriesReportXML;
 import mosaic.particleTracker.Trajectory;
 import mosaic.particleTracker.TrajectoryAnalysis;
-import mosaic.particleTracker.TrajectoryAnalysisPlot;
 import mosaic.particleTracker.TrajectoryStackWin;
 import mosaic.plugins.utils.PlugInFilterExt;
 import mosaic.utils.io.csv.CSV;
@@ -165,10 +144,10 @@ import net.imglib2.view.Views;
 
 public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements, PreviewInterface {
 
-    private Img<ARGBType> out;
+    public Img<ARGBType> out;
     public String background;
-    private boolean force;
-    private boolean straight_line;
+    public boolean force;
+    public boolean straight_line;
     private float l_s = 1.0f;
     private float l_f = 1.0f;
     private float l_d = 1.0f;
@@ -179,7 +158,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     public Vector<Trajectory> all_traj;// = new Vector();
     public int number_of_trajectories, frames_number, slices_number;
     private FeaturePointDetector detector;
-    private ParticleLinker linker;
+    public ParticleLinker linker;
     public String title;
 
     /* user defined parameters for linking */
@@ -187,8 +166,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     public double displacement = 10.0; // default
 
     // Fields required by trajectory analysis
-    private double pixelDimensions; // physical pixel dimensions in meters
-    private double timeInterval; // physical time interval between frames in seconds
+    public double pixelDimensions; // physical pixel dimensions in meters
+    public double timeInterval; // physical time interval between frames in seconds
 
     public NonBlockingGenericDialog gd;
 
@@ -391,7 +370,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         }
         else {
             /* Display results window */
-            results_window = new ResultsWindow("Results");
+            results_window = new ResultsWindow(this, "Results");
             results_window.configuration_panel.append(getConfiguration().toString());
             results_window.configuration_panel.append(getInputFramesInformation().toString());
             results_window.text_panel.appendLine("Particle Tracker DONE!");
@@ -988,721 +967,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
                         + "For more information go to http://weeman.inf.ethz.ch/particletracker/");
     }
 
-    /**
-     * Defines an overlay Canvas for a given <code>ImagePlus</code> on which the non
-     * filtered found trajectories are displayed for further displaying and analysis options
-     */
-    // private class TrajectoryCanvas extends ImageCanvas {
-    //
-    // private static final long serialVersionUID = 1L;
-    //
-    // /**
-    // * Constructor.
-    // * <br>Creates an instance of TrajectoryCanvas from a given <code>ImagePlus</code>
-    // * and <code>ImageCanvas</code>
-    // * <br>Displays the detected particles from the given <code>MyFrame</code>
-    // * @param aimp
-    // */
-    // private TrajectoryCanvas(ImagePlus aimp) {
-    // super(aimp);
-    // }
-    //
-    // /* (non-Javadoc)
-    // * @see java.awt.Component#paint(java.awt.Graphics)
-    // */
-    // public void paint(Graphics g) {
-    // super.paint(g);
-    // drawTrajectories(g);
-    // }
-    //
-    // /**
-    // * Draws each of the trajectories in <code>all_traj</code>
-    // * on this Canvas according to each trajectorys <code>to_display</code> value
-    // * @param g
-    // * @see Trajectory#drawStatic(Graphics, ImageCanvas)
-    // */
-    // private void drawTrajectories(Graphics g) {
-    //
-    // if (g == null) return;
-    // Iterator<Trajectory> iter = all_traj.iterator();
-    // // Iterate over all the trajectories
-    // while (iter.hasNext()) {
-    // Trajectory curr_traj = iter.next();
-    // // if the trajectory to_display value is true
-    // if (curr_traj.to_display) {
-    // curr_traj.drawStatic(g, this);
-    // }
-    // }
-    // }
-    // }
-    //
-
-    /**
-     * Class that visualize a window with a focused trajectory
-     *
-     * @author Pietro Incardona
-     */
-
-    private class FocusStackWin extends StackWindow implements ItemListener {
-
-        private static final long serialVersionUID = 1L;
-        private Checkbox Auto_Z;
-        Trajectory traj;
-        float scal_z;
-
-        /**
-         * Constructor.
-         * <br>
-         * Creates an instance of FocusStackWindow from a given <code>ImagePlus</code>
-         * and <code>ImageCanvas</code> and a creates GUI panel.
-         * <br>
-         * Adds this class as a <code>MouseListener</code> to the given <code>ImageCanvas</code>
-         * 
-         * @param aimp
-         * @param icanvas
-         */
-        private FocusStackWin(ImagePlus aimp, Trajectory traj_, float scal_z_) {
-            super(aimp);
-            addPanel();
-
-            traj = traj_;
-            scal_z = scal_z_;
-
-            // Add a listener on t scrollbar
-            if (tSelector != null) {
-                tSelector.addAdjustmentListener(this);
-            }
-            else if (zSelector != null) {
-                zSelector.addAdjustmentListener(this);
-            }
-            else if (cSelector != null) {
-                cSelector.addAdjustmentListener(this);
-            }
-        }
-
-        /**
-         * Adds a Panel with filter options button and number of particles in it to this window
-         */
-        private void addPanel() {
-            Panel panel = new Panel(new GridLayout(2, 1));
-            Auto_Z = new Checkbox("Auto Z");
-            Auto_Z.addItemListener(this);
-            panel.add(Auto_Z);
-            add(panel);
-            pack();
-            Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-            Point loc = getLocation();
-            Dimension size = getSize();
-            if (loc.y + size.height > screen.height) {
-                getCanvas().zoomOut(0, 0);
-            }
-        }
-
-        @Override
-        public synchronized void adjustmentValueChanged(AdjustmentEvent e) {
-            if (Auto_Z.getState() == true) {
-                int frame = 0;
-                if (getImagePlus().getNFrames() != 1) {
-                    frame = getImagePlus().getFrame() - 1;
-                }
-                else if (getImagePlus().getNSlices() != 1) {
-                    frame = getImagePlus().getSlice() - 1;
-                }
-                else if (getImagePlus().getNChannels() != 1) {
-                    frame = getImagePlus().getChannel() - 1;
-                }
-
-                int slice = (int) (traj.existing_particles[frame].z / scal_z);
-                getImagePlus().setSlice(slice);
-
-                if (getImagePlus().getNFrames() != 1) {
-                    getImagePlus().setPosition(getImagePlus().getChannel(), slice + 1, getImagePlus().getFrame());
-                }
-                else if (getImagePlus().getNSlices() != 1) {
-                    getImagePlus().setPosition(slice + 1, getImagePlus().getSlice(), getImagePlus().getFrame());
-                }
-            }
-            super.adjustmentValueChanged(e);
-        }
-
-        @Override
-        public void itemStateChanged(ItemEvent arg0) {
-            if (Auto_Z.getState() == true) {
-                int frame = 0;
-                if (getImagePlus().getNFrames() != 1) {
-                    frame = getImagePlus().getFrame() - 1;
-                }
-                else if (getImagePlus().getNSlices() != 1) {
-                    frame = getImagePlus().getSlice() - 1;
-                }
-                else if (getImagePlus().getNChannels() != 1) {
-                    frame = getImagePlus().getChannel() - 1;
-                }
-
-                int slice = (int) (traj.existing_particles[frame].z / scal_z);
-                getImagePlus().setSlice(slice);
-
-                if (getImagePlus().getNFrames() != 1) {
-                    getImagePlus().setPosition(getImagePlus().getChannel(), slice + 1, getImagePlus().getFrame());
-                }
-                else if (getImagePlus().getNSlices() != 1) {
-                    getImagePlus().setPosition(slice + 1, getImagePlus().getSlice(), getImagePlus().getFrame());
-                }
-            }
-
-        }
-    } // FocusStackWindow inner class
-
-    /**
-     * Defines a window to be the main user interface for result display and analysis
-     * upon completion of the algorithm.
-     * <br>
-     * All user requests will be listened to and engaged from the <code>actionPerformed</code>
-     * method implemented here
-     */
-    public class ResultsWindow extends Frame implements FocusListener, ActionListener {
-
-        private static final long serialVersionUID = 1L;
-        private TextPanel text_panel, configuration_panel;
-        private Button view_static, save_report, display_report, dummy, plot_particle, trajectory_focus, trajectory_info, traj_in_area_info, area_focus;
-
-        private Button transfer_particles, transfer_trajs; // in panel left
-        private Button mssButton, transfer_traj; // in panel center
-        private Button mssAllResultsButton;
-        private Button mssTrajectoryResultButton;
-
-        public Label per_traj_label;
-        private Label area_label;
-        private Label all_label;
-        private MenuItem tail, mag_factor, relink_particles;
-
-        /**
-         * Default constructor
-         */
-        private ResultsWindow() {
-            this("DEFAULT");
-        }
-
-        /**
-         * Constructor.
-         * <br>
-         * Creates an instance of a ResultsWindow with all GUI elements in it,
-         * sets its size and location on the screen.
-         * 
-         * @param title - title of the results window
-         */
-        private ResultsWindow(String title) {
-
-            super(title);
-            enableEvents(AWTEvent.WINDOW_EVENT_MASK);
-            addFocusListener(this);
-
-            /* Set the layout of the window */
-            GridBagLayout gridbag = new GridBagLayout();
-            GridBagConstraints c = new GridBagConstraints();
-            setLayout(gridbag);
-            c.anchor = GridBagConstraints.NORTHWEST;
-            c.fill = GridBagConstraints.BOTH;
-            c.gridwidth = GridBagConstraints.REMAINDER;
-
-            /* Add a TextPanel to the window for display of the configuration params */
-            c.weightx = 0.25;
-            c.weighty = 0.25;
-            configuration_panel = new TextPanel("configuration");
-            gridbag.setConstraints(configuration_panel, c);
-            add(configuration_panel);
-
-            /* Add a TextPanel to the window for display results from user queries */
-            c.weightx = 1;
-            c.weighty = 1;
-            text_panel = new TextPanel("Results");
-            text_panel.setTitle("Results");
-            gridbag.setConstraints(text_panel, c);
-            add(text_panel);
-
-            /*----------------------------------------------------*/
-            /* Panel to hold buttons for all trajectories options */
-            /*----------------------------------------------------*/
-            Panel all_options = new Panel();
-            all_options.setBackground(Color.LIGHT_GRAY);
-            all_options.setLayout(gridbag);
-
-            /* Create the label for this Panel */
-            all_label = new Label("All Trajectories", Label.CENTER);
-
-            /* Create 3 buttons and set this class to be their ActionListener */
-            save_report = new Button(" Save Full Report");
-            save_report.addActionListener(this);
-            display_report = new Button(" Display Full Report");
-            display_report.addActionListener(this);
-            view_static = new Button(" Visualize All Trajectories ");
-            view_static.addActionListener(this);
-            transfer_particles = new Button(" Segmented Particles to Table");
-            transfer_particles.addActionListener(this);
-            transfer_trajs = new Button(" All Trajectories to Table");
-            transfer_trajs.addActionListener(this);
-            mssAllResultsButton = new Button(" All MSS/MSD to Table ");
-            mssAllResultsButton.addActionListener(this);
-
-            /* Add the Label and 3 buttons to the all_options Panel */
-            gridbag.setConstraints(all_label, c);
-            all_options.add(all_label);
-            gridbag.setConstraints(view_static, c);
-            all_options.add(view_static);
-            gridbag.setConstraints(save_report, c);
-            all_options.add(save_report);
-            gridbag.setConstraints(display_report, c);
-            all_options.add(display_report);
-            gridbag.setConstraints(transfer_particles, c);
-            all_options.add(transfer_particles);
-            gridbag.setConstraints(transfer_trajs, c);
-            all_options.add(transfer_trajs);
-            gridbag.setConstraints(mssAllResultsButton, c);
-            all_options.add(mssAllResultsButton);
-
-            /*--------------------------------------------------*/
-
-            /*--------------------------------------------------*/
-            /* Panel to hold buttons for pre trajectory options */
-            /*--------------------------------------------------*/
-            Panel per_traj_options = new Panel();
-            per_traj_options.setBackground(Color.GRAY);
-            per_traj_options.setLayout(gridbag);
-
-            /* Create the label for this Panel */
-            per_traj_label = new Label("Trajectory (select from visual)", Label.CENTER);
-
-            /* Create 3 buttons and set this class to be their ActionListener */
-            trajectory_focus = new Button("Focus on Selected Trajectory");
-            trajectory_focus.addActionListener(this);
-            trajectory_info = new Button("Selected Trajectory Info");
-            trajectory_info.addActionListener(this);
-            plot_particle = new Button(" Plot ");
-            plot_particle.addActionListener(this);
-            mssButton = new Button(" MSS/MSD plots ");
-            mssButton.addActionListener(this);
-            transfer_traj = new Button("Selected Trajectory to Table");
-            transfer_traj.addActionListener(this);
-            mssTrajectoryResultButton = new Button(" MSS/MSD to Table");
-            mssTrajectoryResultButton.addActionListener(this);
-
-            /* Add the Label and 3 buttons to the per_traj_options Panel */
-            gridbag.setConstraints(per_traj_label, c);
-            per_traj_options.add(per_traj_label);
-            gridbag.setConstraints(trajectory_focus, c);
-            per_traj_options.add(trajectory_focus);
-            gridbag.setConstraints(trajectory_info, c);
-            per_traj_options.add(trajectory_info);
-            gridbag.setConstraints(plot_particle, c);
-            per_traj_options.add(plot_particle);
-            gridbag.setConstraints(transfer_traj, c);
-            per_traj_options.add(transfer_traj);
-            gridbag.setConstraints(mssButton, c);
-            per_traj_options.add(mssButton);
-            gridbag.setConstraints(mssTrajectoryResultButton, c);
-            per_traj_options.add(mssTrajectoryResultButton);
-
-            // the plot_particle option is only available for text_files_mode
-            if (!text_files_mode) {
-                plot_particle.setEnabled(false);
-                /*--------------------------------------------------*/
-            }
-
-            /*----------------------------------------*/
-            /* Panel to hold buttons for area options */
-            /*----------------------------------------*/
-            Panel area_options = new Panel();
-            area_options.setBackground(Color.LIGHT_GRAY);
-            area_options.setLayout(gridbag);
-
-            /* Create the label for this Panel */
-            area_label = new Label(" Area ", Label.CENTER);
-
-            /* Create 2 buttons and set this class to be their ActionListener */
-            area_focus = new Button(" Focus on Area ");
-            area_focus.addActionListener(this);
-            traj_in_area_info = new Button(" Trajectories in Area Info ");
-            traj_in_area_info.addActionListener(this);
-            /* Create 1 dummy button for coherent display */
-            dummy = new Button("");
-            dummy.setEnabled(false);
-
-            /* Add the Label and 3 buttons to the area_options Panel */
-            gridbag.setConstraints(area_label, c);
-            area_options.add(area_label);
-            gridbag.setConstraints(area_focus, c);
-            area_options.add(area_focus);
-            gridbag.setConstraints(traj_in_area_info, c);
-            area_options.add(traj_in_area_info);
-            gridbag.setConstraints(dummy, c);
-            area_options.add(dummy);
-            /*--------------------------------------------------*/
-
-            /* Create a Panel to contain all the 3 first panels */
-            Panel all_panels = new Panel(new GridLayout(1, 3));
-            all_panels.add(all_options);
-            all_panels.add(per_traj_options);
-            all_panels.add(area_options);
-
-            /* Add the all_panels Panel to the window */
-            c.weighty = 0.01;
-            gridbag.setConstraints(all_panels, c);
-            add(all_panels);
-
-            /* Create a Menu for viewing preferences */
-            Menu view = new Menu("View Preferences");
-            tail = new MenuItem("Trajecotry tail length");
-            tail.addActionListener(this);
-            mag_factor = new MenuItem("Magnification factor");
-            mag_factor.addActionListener(this);
-            view.add(tail);
-            view.add(mag_factor);
-
-            /* Create a Menu for re linking of particles */
-            Menu relink = new Menu("Relink Particles");
-            relink_particles = new MenuItem("set new parameters for linking");
-            relink_particles.addActionListener(this);
-            relink.add(relink_particles);
-
-            /* Set the MenuBar of this window to hold the 2 menus */
-            MenuBar mb = new MenuBar();
-            mb.add(view);
-            mb.add(relink);
-            this.setMenuBar(mb);
-
-            this.pack();
-            WindowManager.addWindow(this);
-            this.setSize((int) getMinimumSize().getWidth(), 512);
-            GUI.center(this);
-        }
-
-        /*
-         * (non-Javadoc)
-         * @see java.awt.Window#processWindowEvent(java.awt.event.WindowEvent)
-         */
-        @Override
-        public void processWindowEvent(WindowEvent e) {
-            super.processWindowEvent(e);
-            int id = e.getID();
-            if (id == WindowEvent.WINDOW_CLOSING) {
-                setVisible(false);
-                dispose();
-                WindowManager.removeWindow(this);
-            }
-            else if (id == WindowEvent.WINDOW_ACTIVATED) {
-                WindowManager.setWindow(this);
-            }
-        }
-
-        /*
-         * (non-Javadoc)
-         * @see java.awt.event.FocusListener#focusGained(java.awt.event.FocusEvent)
-         */
-        @Override
-        public void focusGained(FocusEvent e) {
-            WindowManager.setWindow(this);
-        }
-
-        // =====================================================================================
-
-        /*
-         * (non-Javadoc)
-         * @see java.awt.event.FocusListener#focusLost(java.awt.event.FocusEvent)
-         */
-        @Override
-        public void focusLost(FocusEvent e) {
-        }
-
-        /**
-         * Takes care about user actions.
-         */
-        @Override
-        public synchronized void actionPerformed(ActionEvent ae) {
-            Object source = ae.getSource();
-            Roi user_roi = null;
-
-            /* view all trajectories */
-            if (source == view_static) {
-                // a new view is requested so reset the filter and generate a NEW view
-                resetTrajectoriesFilter();
-                generateView(null, out);
-                return;
-            }
-            /* plot particle along a trajectory - ONLY TEXT MODE FILE */
-            if (source == plot_particle) {
-                // this can only be requested after selecting a trajectory from the view
-                if (chosen_traj == -1) {
-                    IJ.error("Please select a trajectory first\n" + "Click with the mouse on a trajectory in 'All trajectories' display");
-                    return;
-                }
-                // user selects trajectory according to serial number (starts with 1)
-                // but all_traj Vector starts from 0 so (chosen_traj-1)
-                int param_choice = (all_traj.elementAt(chosen_traj - 1)).getUserParamForPlotting();
-                if (param_choice == -1) {
-                    return;
-                }
-                (all_traj.elementAt(chosen_traj - 1)).plotParticleAlongTrajectory(param_choice);
-                return;
-            }
-
-            if (source == mssButton || source == mssTrajectoryResultButton || source == mssAllResultsButton) {
-
-                // Get all calibration data from image
-                double width = original_imp.getCalibration().pixelWidth;
-                double height = original_imp.getCalibration().pixelHeight;
-                double interval = original_imp.getCalibration().frameInterval;
-                String intervalUnit = original_imp.getCalibration().getTimeUnit();
-                String unit = original_imp.getCalibration().getUnit();
-
-                // Do checking and complain if necessary
-                String message = "";
-                if (width != height) {
-                    message += "Pixel width is different than height. \n";
-                }
-                else if (interval == 0) {
-                    message += "Frame interval is equall to 0. To perform analysis it must have correct value \n";
-                }
-                else if (!(unit.equals("nm") || unit.equals(IJ.micronSymbol + "m") || unit.equals("um") || unit.equals("mm") || unit.equals("m"))) {
-                    message += "Dimension unit must be one of: m, mm, um or (" + IJ.micronSymbol + "m), nm";
-                }
-                else if (!(intervalUnit.equals("us") || intervalUnit.equals(IJ.micronSymbol + "s") || intervalUnit.equals("ms") || intervalUnit.equals("sec") || intervalUnit.equals("s"))) {
-                    message += "Time interval unit must be one of: s, sec, ms, us, " + IJ.micronSymbol + "m";
-                }
-                if (!message.equals("")) {
-                    IJ.showMessage(message);
-                    IJ.run("Properties...");
-                    return;
-                }
-                else {
-                    // All provided data are correct! Get it and recalculate if
-                    // needed.
-
-                    pixelDimensions = width;
-                    timeInterval = interval;
-
-                    // Convert dimension unit to meters
-                    if (unit.equals("nm")) {
-                        pixelDimensions /= 1000000000; // convert from nm to m
-                    }
-                    else if (unit.equals(IJ.micronSymbol + "m") || unit.equals("um")) {
-                        pixelDimensions /= 1000000; // convert from um to m
-                    }
-                    else if (unit.equals("mm")) {
-                        pixelDimensions /= 1000; // convert from mm to nm
-                    }
-
-                    // convert time unit to seconds
-                    if (intervalUnit.equals(IJ.micronSymbol + "s") || intervalUnit.equals("us")) {
-                        timeInterval /= 1000000; // convert from us to s
-                    }
-                    else if (intervalUnit.equals("ms")) {
-                        timeInterval /= 1000; // convert from ms to s
-                    }
-
-                }
-            }
-
-            /* save full report to file */
-            if (source == save_report) {
-                // show save file user dialog with default file name 'Traj_{title}.txt'
-                SaveDialog sd = new SaveDialog("Save report", IJ.getDirectory("image"), "Traj_" + title, ".txt");
-                // if user cancelled the save dialog - return
-                if (sd.getDirectory() == null || sd.getFileName() == null) {
-                    return;
-                }
-                // write full report to file
-                MosaicUtils.write2File(sd.getDirectory(), sd.getFileName(), getFullReport().toString());
-                return;
-            }
-            /* display full report on the text_panel */
-            if (source == display_report) {
-                text_panel.selectAll();
-                text_panel.clearSelection();
-                text_panel.append(getFullReport().toString());
-                return;
-            }
-            /* check validity of state for area selection */
-            if (source == area_focus || source == traj_in_area_info) {
-                // for these options, an area (ROI) has to be selected on the display
-                // varify it here
-                user_roi = IJ.getImage().getRoi();
-                if (user_roi == null) {
-                    IJ.error("The active image does not have a selection\n" + "Please select an area of interest first\n" + "Click and drag the mouse on the active image.");
-                    return;
-                }
-
-                /* create area focus view */
-                if (source == area_focus) {
-                    generateAreaFocusView(magnification_factor);
-                    return;
-                }
-                /* display (on the text_panel) info about trajectories that are in the selected area */
-                if (source == traj_in_area_info) {
-                    results_window.text_panel.selectAll();
-                    results_window.text_panel.clearSelection();
-                    Iterator<Trajectory> iter = all_traj.iterator();
-                    // iterate of all trajectories
-                    while (iter.hasNext()) {
-                        Trajectory traj = iter.next();
-                        // for each trajectory - go over all particles
-                        for (int i = 0; i < traj.existing_particles.length; i++) {
-                            // if a particle in the trajectory is within the ROI
-                            // print traj information to screen and go to next trajectory
-                            if (user_roi.getBounds().contains(traj.existing_particles[i].y, traj.existing_particles[i].x) && traj.to_display) {
-                                results_window.text_panel.appendLine("%% Trajectory " + traj.serial_number);
-                                results_window.text_panel.append(trajectoryHeader());
-                                traj.setScaling(getScaling());
-                                results_window.text_panel.append(traj.toString());
-                                break;
-                            }
-                        } // for
-                    } // while
-                    return;
-                }
-            }
-            
-            /* check validity of state for Trajectory selection */
-            if (source == trajectory_focus || source == trajectory_info || source == transfer_traj || source == mssButton || source == mssTrajectoryResultButton) {
-                // These options can only be requested after selecting a trajectory from the view
-                // verify it here
-                if (chosen_traj == -1) {
-                    IJ.error("Please select a trajectory first\n" + "Click with the mouse on a trajectory in 'All trajectories' display");
-                    return;
-                }
-            }
-
-            /* create Trajectory focus view */
-            if (source == trajectory_focus) {
-                // user selects trajectory according to serial number (starts with 1)
-                // but all_traj Vector starts from 0 so (chosen_traj-1)
-                generateTrajFocusView(chosen_traj, magnification_factor);
-                return;
-            }
-            /* display (on the text_panel) info about the selected Trajectory */
-            if (source == trajectory_info) {
-                // user selects trajectory according to serial number (starts with 1)
-                // but all_traj Vector starts from 0 so (chosen_traj-1)
-                Trajectory traj = all_traj.elementAt(chosen_traj);
-                results_window.text_panel.selectAll();
-                results_window.text_panel.clearSelection();
-                results_window.text_panel.appendLine("%% Trajectory " + traj.serial_number);
-                results_window.text_panel.append(trajectoryHeader());
-                traj.setScaling(getScaling());
-                results_window.text_panel.append(traj.toString());
-                return;
-            }
-
-            if (source == transfer_traj) {
-                Trajectory traj = all_traj.elementAt(chosen_traj);
-                transferSelectedTrajectoriesToResultTable(traj);
-                return;
-            }
-
-            /* define the trajectory displayed tail */
-            if (source == tail) {
-                int ch_num = Math.max(frames_number / 50 + 2, 2);
-                if (frames_number % 50 == 0) {
-                    ch_num = frames_number / 50 + 1;
-                }
-                String[] choices = new String[ch_num];
-                int curr_length = 0;
-                for (int i = 0; i < choices.length; i++) {
-                    choices[i] = "" + curr_length;
-                    curr_length += 50;
-                }
-                choices[choices.length - 1] = "" + frames_number;
-                GenericDialog tail_dialog = new GenericDialog("Select Tarjectory Tail Length");
-                tail_dialog.addChoice("Tail Length", choices, "" + frames_number);
-                tail_dialog.showDialog();
-                if (tail_dialog.wasCanceled()) {
-                    return;
-                }
-                return;
-            }
-            /* define the mag factor for rescaling of focused view */
-            if (source == mag_factor) {
-                String[] mag_choices = { "1", "2", "4", "6", "8", "10" };
-                GenericDialog mag_dialog = new GenericDialog("Select Magnification Factor");
-                mag_dialog.addChoice("Magnification factor", mag_choices, "" + magnification_factor);
-                mag_dialog.showDialog();
-                if (mag_dialog.wasCanceled()) {
-                    return;
-                }
-                magnification_factor = Integer.parseInt(mag_dialog.getNextChoice());
-                return;
-            }
-            /* option to relink the deteced particles with new parameters */
-            if (source == relink_particles) {
-                GenericDialog relink_dialog = new GenericDialog("Select new linking parameters");
-                relink_dialog.addNumericField("Link Range", linkrange, 0);
-                relink_dialog.addNumericField("Displacement", displacement, 2);
-                relink_dialog.showDialog();
-                if (relink_dialog.wasCanceled()) {
-                    return;
-                }
-                linkrange = (int) relink_dialog.getNextNumber();
-                displacement = relink_dialog.getNextNumber();
-                all_traj = null;
-
-                /* link the particles found */
-                IJ.showStatus("Linking Particles");
-                linkerOptions lo = new linkerOptions();
-                lo.linkrange = linkrange;
-                lo.displacement = (float) displacement;
-                lo.force = force;
-                lo.straight_line = straight_line;
-                if (linker.linkParticles(frames, frames_number, lo) == false) {
-                    return;
-                }
-                IJ.freeMemory();
-
-                /* generate trajectories */
-                IJ.showStatus("Generating Trajectories");
-                generateTrajectories();
-                IJ.freeMemory();
-
-                results_window.configuration_panel.selectAll();
-                results_window.configuration_panel.clearSelection();
-                results_window.configuration_panel.append(getConfiguration().toString());
-                results_window.configuration_panel.append(getInputFramesInformation().toString());
-
-                results_window.text_panel.selectAll();
-                results_window.text_panel.clearSelection();
-                results_window.text_panel.appendLine("Relinking DONE!");
-                results_window.text_panel.appendLine("Found " + number_of_trajectories + " Trajectories");
-                return;
-            }
-            /* transfer segmented particle coordinates to ImageJ results window */
-            if (source == transfer_particles) {
-                transferParticlesToResultsTable(); // version 1.4 20101115
-                return;
-            }
-
-            /* transfer trajectory coordinates to ImageJ results window */
-            if (source == transfer_trajs) {
-                transferTrajectoriesToResultTable();
-                return;
-            }
-            if (source == mssTrajectoryResultButton) {
-                Trajectory trajectory = all_traj.elementAt(chosen_traj);
-                mssTrajectoryResultsToTable(trajectory);
-                return;
-            }
-
-            if (source == mssAllResultsButton) {
-                mssAllResultsToTable();
-                return;
-            }
-
-            if (source == mssButton) {
-                Trajectory trajectory = all_traj.elementAt(chosen_traj);
-                new TrajectoryAnalysisPlot(trajectory, pixelDimensions, timeInterval);
-                return;
-            }
-
-            IJ.error("Unhandled event: [" + ae.getActionCommand() + "]");
-        }
-    }
 
     /**
      * Generates <code>Trajectory</code> objects according to the information
@@ -1710,7 +974,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * <br>
      * Populates the <code>all_traj</code> Vector.
      */
-    private void generateTrajectories() {
+    public void generateTrajectories() {
 
         int i, j, k;
         int found, n, m;
@@ -1847,7 +1111,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     /*
      * Get scaling factor
      */
-    private double[] getScaling() {
+    public double[] getScaling() {
         Calibration cal = original_imp.getCalibration();
         double scaling[] = new double[3];
 
@@ -1861,7 +1125,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     /**
      * Generate a String header of each colum
      */
-    private String trajectoryHeader() {
+    public String trajectoryHeader() {
         Calibration cal = original_imp.getCalibration();
 
         return new String("%% frame x (" + cal.getUnit() + ")     y (" + cal.getUnit() + ")    z (" + cal.getUnit() + ")      m0 " + "        m1 " + "          m2 " + "          m3 " + "          m4 "
@@ -2043,7 +1307,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * Resets the trajectories filter so no trajectory is filtered by
      * setting the <code>to_display</code> param of each trajectory to true
      */
-    private void resetTrajectoriesFilter() {
+    public void resetTrajectoriesFilter() {
         Iterator<Trajectory> iter = all_traj.iterator();
         while (iter.hasNext()) {
             (iter.next()).to_display = true;
@@ -2063,7 +1327,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * 
      * @return a <code>StringBuffer</code> that holds this information
      */
-    private StringBuffer getConfiguration() {
+    public StringBuffer getConfiguration() {
         StringBuffer configuration = new StringBuffer("% Configuration:\n");
         if (!this.text_files_mode) {
             configuration.append("% \tKernel radius: ");
@@ -2105,7 +1369,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * 
      * @return a <code>StringBuffer</code> that holds this information
      */
-    private StringBuffer getInputFramesInformation() {
+    public StringBuffer getInputFramesInformation() {
         if (this.text_files_mode) {
             return new StringBuffer("Frames info was loaded from text files");
         }
