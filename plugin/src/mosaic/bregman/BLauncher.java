@@ -119,28 +119,25 @@ class BLauncher {
                 System.out.println("Display result (save images = " + Analysis.p.save_images + ")");
 
                 // Write a file info output
-
                 if (Analysis.p.save_images) {
                     saveAllImages(MosaicUtils.ValidFolderFromImage(aImp));
 
+                    String outFilename= "stitch";
+                    if (fl.length == 1) {
+                        outFilename = aImp.getTitle();
+                    }
+
                     try {
-                        if (fl.length != 1) {
-                            out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), "stitch", hcount - 1);
-                        }
-                        else {
-                            out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), aImp.getTitle(), 0);
-                        }
+                        out = writeImageDataCsv(out, MosaicUtils.ValidFolderFromImage(aImp), aImp.getTitle(), outFilename, hcount - 1);
                     }
                     catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
-                    finally {
-                        if (out != null) {
-                            out.close();
-                            out = null;
-                        }
-                    }
                 }
+            }
+            if (out != null) {
+                out.close();
+                out = null;
             }
 
             // Try to run the R script
