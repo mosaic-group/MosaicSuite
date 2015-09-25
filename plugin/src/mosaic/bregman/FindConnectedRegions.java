@@ -73,6 +73,7 @@ class FindConnectedRegions {
     private static final byte IN_QUEUE = 1;
     private static final byte ADDED = 2;
 
+    @SuppressWarnings("null")
     public void run(double threshold, int maxvesiclesize, int minvesiclesize, double minInt, float[][][] tr) {
 
         int tag = 0;

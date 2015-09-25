@@ -325,35 +325,6 @@ public class RegionIterator
 
     }
 
-    public static boolean test() {
-        int[] testinput = { 100, 100, 100 };
-        int[] testofs = { 50, 50, 50 };
-        int[] testregion = { 60, 60, 60 };
-
-        List<Integer> list1 = null;
-        List<Point> list2 = null;
-
-        for (int i = 0; i < 50; i++) {
-            list1 = RegionItTest(testinput, testofs, testregion);
-            list2 = naiveTest(testinput, testofs, testregion);
-        }
-
-        IndexIterator proofer = new IndexIterator(testinput);
-        for (int i = 0; i < list1.size(); i++) {
-            Point p = proofer.indexToPoint(list1.get(i));
-            if (!p.equals(list2.get(i))) {
-                return false;
-            }
-        }
-
-        // if (list1.equals(list2))
-        // return true;
-        // else
-        // return false;
-
-        return true;
-    }
-
     public static List<Integer> RegionItTest(int[] testinput, int[] testofs, int[] testregion) {
         ArrayList<Integer> list = new ArrayList<Integer>();
 

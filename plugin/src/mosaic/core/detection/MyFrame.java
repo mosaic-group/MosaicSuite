@@ -283,8 +283,8 @@ public class MyFrame {
                 this.particles.addElement(new Particle(Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), 0.0f, this.frame_number, particle_info, linkrange));
             }
             else {
-                this.particles.addElement(new Particle(Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), Float.parseFloat(particle_info[3]), this.frame_number, particle_info,
-                        linkrange));
+                this.particles.addElement(
+                        new Particle(Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), Float.parseFloat(particle_info[3]), this.frame_number, particle_info, linkrange));
             }
 
             // max_coord =
@@ -313,9 +313,8 @@ public class MyFrame {
             // }
             counter++;
         }
-        if (particles_info != null) {
-            particles_info.removeAllElements();
-        }
+        particles_info.removeAllElements();
+
         return true;
     }
 
@@ -386,8 +385,8 @@ public class MyFrame {
                 this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), 0.0f, this.frame_number, particle_info, linkrange));
             }
             else {
-                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), this.frame_number, particle_info,
-                        linkrange));
+                this.particles.addElement(
+                        new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), this.frame_number, particle_info, linkrange));
             }
 
             // max_coord =
@@ -416,9 +415,8 @@ public class MyFrame {
             // }
             counter++;
         }
-        if (particles_info != null) {
-            particles_info.removeAllElements();
-        }
+        particles_info.removeAllElements();
+        
         return true;
     }
 
@@ -1057,15 +1055,15 @@ public class MyFrame {
                 scaling_[i] /= scale;
             }
 
-            if (cal != null) {
-                p_ini.x /= scaling_[0];
-                p_ini.y /= scaling_[1];
-                p_ini.z /= scaling_[2];
 
-                p_end.x /= scaling_[0];
-                p_end.y /= scaling_[1];
-                p_end.z /= scaling_[2];
-            }
+            p_ini.x /= scaling_[0];
+            p_ini.y /= scaling_[1];
+            p_ini.z /= scaling_[2];
+
+            p_end.x /= scaling_[0];
+            p_end.y /= scaling_[1];
+            p_end.z /= scaling_[2];
+
 
             drawLine(out, p_ini, p_end, col);
 
@@ -1080,15 +1078,13 @@ public class MyFrame {
                     p_end = new Particle(ptt.p1);
                     p_ini = new Particle(ptt.p2);
 
-                    if (cal != null) {
-                        p_ini.x /= scaling_[0];
-                        p_ini.y /= scaling_[1];
-                        p_ini.z = p_ini.z / scaling[2] - i;
+                    p_ini.x /= scaling_[0];
+                    p_ini.y /= scaling_[1];
+                    p_ini.z = p_ini.z / scaling[2] - i;
 
-                        p_end.x /= scaling_[0];
-                        p_end.y /= scaling_[1];
-                        p_end.z = p_end.z / scaling_[2] - i;
-                    }
+                    p_end.x /= scaling_[0];
+                    p_end.y /= scaling_[1];
+                    p_end.z = p_end.z / scaling_[2] - i;
 
                     drawLine(out, p_ini, p_end, col);
                 }
@@ -1097,46 +1093,19 @@ public class MyFrame {
                     p_end = new Particle(ptt.p1);
                     p_ini = new Particle(ptt.p2);
 
-                    if (cal != null) {
-                        p_ini.x /= scaling_[0];
-                        p_ini.y /= scaling_[1];
-                        p_ini.z = p_ini.z / scaling_[2] + i;
+                    p_ini.x /= scaling_[0];
+                    p_ini.y /= scaling_[1];
+                    p_ini.z = p_ini.z / scaling_[2] + i;
 
-                        p_end.x /= scaling_[0];
-                        p_end.y /= scaling_[1];
-                        p_end.z = p_end.z / scaling_[2] + i;
-                    }
+                    p_end.x /= scaling_[0];
+                    p_end.y /= scaling_[1];
+                    p_end.z = p_end.z / scaling_[2] + i;
 
                     drawLine(out, p_ini, p_end, col);
                 }
             }
         }
     }
-
-    /**
-     * Draw particles on out image
-     *
-     * @param out Out image
-     * @param particles particles vector
-     * @param cal Calibration (scaling factor between particle position and the
-     *            image pixel)
-     * @param col Color
-     */
-
-    // static private void drawParticles(Img<ARGBType> out, Vector<Particle>
-    // particles, Calibration cal, int col)
-    // {
-    // // Create a list of particles
-    //
-    // List<Particle> pt = new ArrayList<Particle>();
-    //
-    // for (int i = 0 ; i < particles.size() ; i++)
-    // {
-    // pt.add(particles.get(i));
-    // }
-    //
-    // drawParticles(out,pt,cal,col);
-    // }
 
     /**
      * Draw particles on out image
@@ -1524,7 +1493,7 @@ public class MyFrame {
         for (int i = 0; i < tr.size(); i++) {
             new MyFrame();
             int nframe = (int) out.dimension(out.numDimensions() - 1);
-            
+
             // Collect particles to draw and spline to draw
             TrajectoriesDraw(out, nframe, tr, 0, null, cal, 1.0f, typ, p_radius);
         }

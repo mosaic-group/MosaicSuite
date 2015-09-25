@@ -1,18 +1,16 @@
 package mosaic.region_competition.utils;
 
 
-import ij.IJ;
-import ij.gui.Roi;
-import ij.measure.ResultsTable;
-import ij.plugin.filter.Analyzer;
-import ij.process.ImageProcessor;
-
 import java.awt.Label;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
+import ij.IJ;
+import ij.measure.ResultsTable;
+import ij.plugin.filter.Analyzer;
+import ij.process.ImageProcessor;
 import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.Point;
@@ -312,7 +310,7 @@ public class MaximumFinder3D implements MaximumFinderInterface {
         int nMax = maxPoints.length;
         int[] pList = new int[size]; // here we enter points starting from a maximum
         Vector<int[]> xyVector = null;
-        Roi roi = null;
+
         boolean displayOrCount = outputType == POINT_SELECTION || outputType == LIST || outputType == COUNT;
         if (displayOrCount) {
             xyVector = new Vector<int[]>();
@@ -444,15 +442,14 @@ public class MaximumFinder3D implements MaximumFinderInterface {
                     if (maxPossible) {
                         int offset = pList[nearestI];
                         types[offset] |= MAX_POINT;
-                        if (displayOrCount && !(excludeOnEdges && isEdgeMaximum)) {
+                        if (displayOrCount && xyVector != null && !(excludeOnEdges && isEdgeMaximum)) {
                             Point pp = iterator.indexToPoint(offset);
 
                             int x = pp.x[0];
                             int y = pp.x[1];
                             int z = pp.x[2];
-                            if (roi == null || roi.contains(x, y)) {
-                                xyVector.addElement(new int[] { x, y, z });
-                            }
+                            xyVector.addElement(new int[] { x, y, z });
+                            
                         }
                     }
                 } // if !sortingError

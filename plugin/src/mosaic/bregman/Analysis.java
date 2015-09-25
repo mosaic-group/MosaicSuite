@@ -220,7 +220,8 @@ public class Analysis {
                 out_soft_mask[0] = new ImagePlus();
             }
 
-            MosaicUtils.MergeFrames(out_soft_mask[0], rg.out_soft_mask[0]);
+            if (rg != null) MosaicUtils.MergeFrames(out_soft_mask[0], rg.out_soft_mask[0]);
+            else {throw new RuntimeException("rg is null");}
             out_soft_mask[0].setStack(out_soft_mask[0].getStack());
         }
     }
@@ -252,7 +253,8 @@ public class Analysis {
                 out_soft_mask[1] = new ImagePlus();
             }
 
-            MosaicUtils.MergeFrames(out_soft_mask[1], rg.out_soft_mask[1]);
+            if (rg != null)  MosaicUtils.MergeFrames(out_soft_mask[1], rg.out_soft_mask[1]);
+            else {throw new RuntimeException("rg is null");}
             out_soft_mask[1].setStack(out_soft_mask[1].getStack());
         }
     }

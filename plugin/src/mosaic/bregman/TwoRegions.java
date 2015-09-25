@@ -264,7 +264,7 @@ class TwoRegions extends NRegions {
                     Analysis.regions[0] = ipatches.regions_refined;
                 }
 
-                if (Analysis.p.refinement && Analysis.p.mode_classic) {
+                if (Analysis.p.refinement && Analysis.p.mode_classic && A_solver != null) {
                     ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[0], image, channel, A_solver.w3kbest[0], min, max);
                     A_solver = null;
                     ipatches.run();
@@ -409,7 +409,7 @@ class TwoRegions extends NRegions {
                     Analysis.regions[1] = ipatches.regions_refined;
                 }
 
-                if (Analysis.p.refinement && Analysis.p.mode_classic) {
+                if (Analysis.p.refinement && Analysis.p.mode_classic && A_solver != null) {
                     ImagePatches ipatches = new ImagePatches(p, Analysis.regionslist[1], image, channel, A_solver.w3kbest[0], min, max);
                     A_solver = null;
                     ipatches.run();

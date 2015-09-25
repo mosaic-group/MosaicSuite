@@ -386,9 +386,11 @@ public class LabelImage// implements
         }
         catch (InstantiationException e) {
             e.printStackTrace();
+            throw new RuntimeException();
         }
         catch (IllegalAccessException e) {
             e.printStackTrace();
+            throw new RuntimeException();
         }
         RandomAccess<T> randomAccess_it = it.randomAccess();
 

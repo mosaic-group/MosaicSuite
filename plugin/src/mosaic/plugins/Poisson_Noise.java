@@ -322,8 +322,10 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
                     meanT = cls.newInstance();
                 } catch (InstantiationException e) {
                     e.printStackTrace();
+                    throw new RuntimeException();
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
+                    throw new RuntimeException();
                 }
                 meanT.setReal(mean);
                 hset.put(meanT, hist);
@@ -368,8 +370,8 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
         {
             S s = null;
             try {s = clsS.newInstance();}
-            catch (InstantiationException e) {e.printStackTrace();}
-            catch (IllegalAccessException e) {e.printStackTrace();}
+            catch (InstantiationException e) {e.printStackTrace(); throw new RuntimeException();}
+            catch (IllegalAccessException e) {e.printStackTrace(); throw new RuntimeException();}
             s.setZero();
             erode(seg,cnv,s);
         }
@@ -382,8 +384,10 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
             bck = clsS.newInstance();
         } catch (InstantiationException e) {
             e.printStackTrace();
+            throw new RuntimeException();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
+            throw new RuntimeException();
         }
         bck.setZero();
         FindConnectedRegions(seg,pp,bck);
@@ -507,8 +511,10 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
                 mean_t = cls.newInstance();
             } catch (InstantiationException e) {
                 e.printStackTrace();
+                throw new RuntimeException();
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
+                throw new RuntimeException();
             }
             @SuppressWarnings("unchecked")
             T [] ipnt = (T[]) Array.newInstance(cls, (int)image.size());

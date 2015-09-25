@@ -209,7 +209,7 @@ public class ShellCommand {
             }
 
             try {
-                exeCmd("cp -R " + t.getAbsoluteFile() + " " + to.getAbsolutePath());
+                if (t != null) exeCmd("cp -R " + t.getAbsoluteFile() + " " + to.getAbsolutePath());
             }
             catch (IOException e) {
                 e.printStackTrace();

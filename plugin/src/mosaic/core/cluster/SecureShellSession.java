@@ -238,6 +238,9 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
             else if (IJ.isMacOSX()) {
                 p_key = new File("/Users/" + cprof.getUsername() + "/.ssh/id_rsa");
             }
+            else {
+                throw new RuntimeException("private key location unknown!");
+            }
 
             jsch.addIdentity(p_key.getAbsolutePath());
 

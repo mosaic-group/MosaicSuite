@@ -163,7 +163,7 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 
             randomAccess_it.get().set(randomAccess.get());
 
-            if (randomAccess_it_lb != null) {
+            if (randomAccess_it_lb != null && randomAccess_lb != null ) {
                 randomAccess_it_lb.get().set(randomAccess_lb.get());
             }
         }

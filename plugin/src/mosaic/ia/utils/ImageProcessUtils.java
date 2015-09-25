@@ -181,72 +181,72 @@ public class ImageProcessUtils {
         }
         finally {
             try {
+                if (CSVFile != null) CSVFile.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if (CSVFile != null) {
+            String dataRow = null;
+            double xtemp, ytemp, ztemp;
+            try {
+                dataRow = CSVFile.readLine();
+            }
+            catch (IOException e) {
+
+                e.printStackTrace();
+            }
+            String[] dataArray;
+            int count = 0, size = 0;
+            while (dataRow != null) {
+                dataArray = dataRow.split(",");
+                if (count == 0) {
+                    size = dataArray.length;
+                    if (size != 2 && size != 3) {
+                        return null;
+                    }
+                    count++;
+                }
+                if (dataArray.length != size) {
+                    return null;
+                }
+
+                xtemp = Double.parseDouble(dataArray[0]);
+                ytemp = Double.parseDouble(dataArray[1]);
+                if (size > 2) {
+                    ztemp = Double.parseDouble(dataArray[2]);
+                }
+                else {
+                    ztemp = 0f; // 2D -- if only 2 columns, assume 2D.
+                }
+
+                points.add(new Point3d(xtemp, ytemp, ztemp));
+
+                // particles.add(new Particle(Float.parseFloat(dataArray[0]),
+                // Float.parseFloat(dataArray[1]), Float.parseFloat(dataArray[2]),
+                // 0,dataArray, 0)); // frame =0, i.e only static images.
+                // dataArray3=sigmaXY
+                // particles.add(temp);
+
+                // (float x, float y, float z, int frame_num, String[] params, int
+                // linkrange)
+
+                try {
+                    dataRow = CSVFile.readLine();
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                } // Read next line of data.
+            }
+            // Close the file once all data has been read.
+            try {
                 CSVFile.close();
             }
             catch (IOException e) {
                 e.printStackTrace();
             }
         }
-
-        String dataRow = null;
-        double xtemp, ytemp, ztemp;
-        try {
-            dataRow = CSVFile.readLine();
-        }
-        catch (IOException e) {
-
-            e.printStackTrace();
-        }
-        String[] dataArray;
-        int count = 0, size = 0;
-        while (dataRow != null) {
-            dataArray = dataRow.split(",");
-            if (count == 0) {
-                size = dataArray.length;
-                if (size != 2 && size != 3) {
-                    return null;
-                }
-                count++;
-            }
-            if (dataArray.length != size) {
-                return null;
-            }
-
-            xtemp = Double.parseDouble(dataArray[0]);
-            ytemp = Double.parseDouble(dataArray[1]);
-            if (size > 2) {
-                ztemp = Double.parseDouble(dataArray[2]);
-            }
-            else {
-                ztemp = 0f; // 2D -- if only 2 columns, assume 2D.
-            }
-
-            points.add(new Point3d(xtemp, ytemp, ztemp));
-
-            // particles.add(new Particle(Float.parseFloat(dataArray[0]),
-            // Float.parseFloat(dataArray[1]), Float.parseFloat(dataArray[2]),
-            // 0,dataArray, 0)); // frame =0, i.e only static images.
-            // dataArray3=sigmaXY
-            // particles.add(temp);
-
-            // (float x, float y, float z, int frame_num, String[] params, int
-            // linkrange)
-
-            try {
-                dataRow = CSVFile.readLine();
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            } // Read next line of data.
-        }
-        // Close the file once all data has been read.
-        try {
-            CSVFile.close();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
         return points.toArray(new Point3d[points.size()]);
     }
 }

@@ -245,9 +245,11 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
         }
         catch (InstantiationException e) {
             e.printStackTrace();
+            throw new RuntimeException();
         }
         catch (IllegalAccessException e) {
             e.printStackTrace();
+            throw new RuntimeException();
         }
         rt.setReal(res);
         return rt;

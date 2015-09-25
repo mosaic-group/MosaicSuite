@@ -414,6 +414,7 @@ class BLauncher {
 
             if (img == null) {
                 IJ.error("No image to process");
+                return;
             }
 
             if (img.getType() == ImagePlus.COLOR_RGB) {

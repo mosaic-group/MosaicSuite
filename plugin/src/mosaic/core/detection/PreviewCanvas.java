@@ -17,7 +17,7 @@ public class PreviewCanvas extends ImageCanvas {
 
     private static final long serialVersionUID = 1L;
     private MyFrame preview_frame;
-    int magnification = 1;
+    int magnificationFactor = 1;
     private int preview_slice_calculated;
     private int radius;
 
@@ -37,7 +37,7 @@ public class PreviewCanvas extends ImageCanvas {
     PreviewCanvas(ImagePlus aimp, double mag) {
         super(aimp);
         this.preview_frame = null;
-        this.magnification = (int) mag;
+        this.magnificationFactor = (int) mag;
     }
 
     /**
@@ -113,7 +113,7 @@ public class PreviewCanvas extends ImageCanvas {
 
         int c_slice = this.imp.getCurrentSlice() % imp.getNSlices();
 
-        this.magnification = (int) Math.round(imp.getWindow().getCanvas().getMagnification());
+        this.magnificationFactor = (int) Math.round(imp.getWindow().getCanvas().getMagnification());
         // go over all the detected particle
         for (int i = 0; i < particlesToDisplay.size(); i++) {
             // draw a dot at the detected particle position (oval of height and width of 0)
@@ -124,8 +124,8 @@ public class PreviewCanvas extends ImageCanvas {
             if (z <= c_slice + 1 && z >= c_slice - 1) {
                 g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).y), this.screenYD(particlesToDisplay.elementAt(i).x), 0, 0);
                 // circle the the detected particle position according to the set radius
-                g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).y - radius / 1.0), this.screenYD(particlesToDisplay.elementAt(i).x - radius / 1.0), 2 * radius * this.magnification - 1, 2
-                        * radius * this.magnification - 1);
+                g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).y - radius / 1.0), this.screenYD(particlesToDisplay.elementAt(i).x - radius / 1.0), 2 * radius * this.magnificationFactor - 1, 2
+                        * radius * this.magnificationFactor - 1);
             }
         }
     }
@@ -150,7 +150,7 @@ public class PreviewCanvas extends ImageCanvas {
             return;
         }
         // System.out.println("Shifts " +shifts.size());
-        this.magnification = (int) Math.round(imp.getWindow().getCanvas().getMagnification());
+        this.magnificationFactor = (int) Math.round(imp.getWindow().getCanvas().getMagnification());
         // go over all the detected particle
         for (int i = 0; i < shifts.size(); i++) {
             // draw a dot at the detected particle position (oval of height and width of 0)

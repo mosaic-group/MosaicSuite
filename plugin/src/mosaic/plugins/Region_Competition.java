@@ -509,7 +509,6 @@ public class Region_Competition implements Segmentation {
         EnergyFunctionalType type = settings.m_EnergyFunctional;
 
         Energy e_merge_KL = new E_KLMergingCriterion(labelMap, labelImage.bgLabel, settings.m_RegionMergingThreshold);
-        Energy e_merge_NONE = null;
 
         switch (type) {
             case e_PC: {
@@ -520,7 +519,7 @@ public class Region_Competition implements Segmentation {
             case e_PS: {
                 e_data = new E_PS(labelImage, intensityImage, labelMap, settings.m_GaussPSEnergyRadius,
                         settings.m_RegionMergingThreshold);
-                e_merge = e_merge_NONE;
+                // e_merge == null
                 break;
             }
             case e_DeconvolutionPC: {
@@ -547,7 +546,7 @@ public class Region_Competition implements Segmentation {
                 break;
             }
             case None: {
-                e_length = null;
+                // e_length = null;
                 break;
             }
             default: {

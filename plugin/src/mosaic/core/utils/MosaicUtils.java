@@ -146,6 +146,9 @@ public class MosaicUtils {
         else if (data instanceof ARGBType) {
             conv = new ARGBToARGB();
         }
+        else {
+            throw new RuntimeException();
+        }
 
         // Get the min and max
 
@@ -158,9 +161,11 @@ public class MosaicUtils {
         }
         catch (InstantiationException e) {
             e.printStackTrace();
+            throw new RuntimeException();
         }
         catch (IllegalAccessException e) {
             e.printStackTrace();
+            throw new RuntimeException();
         }
         MosaicUtils.getMinMax(crs, min, max);
 
@@ -911,15 +916,14 @@ public class MosaicUtils {
         int nOpenedImages = 0;
         int[] ids = WindowManager.getIDList();
 
-        if (ids != null) {
-            nOpenedImages = ids.length;
-        }
-
         String[] names = new String[nOpenedImages + 1];
         names[0] = "";
-        for (int i = 0; i < nOpenedImages; i++) {
-            ImagePlus ip = WindowManager.getImage(ids[i]);
-            names[i + 1] = ip.getTitle();
+        if (ids != null) {
+            nOpenedImages = ids.length;
+            for (int i = 0; i < nOpenedImages; i++) {
+                ImagePlus ip = WindowManager.getImage(ids[i]);
+                names[i + 1] = ip.getTitle();
+            }
         }
 
         if (gd.getChoices() == null) {

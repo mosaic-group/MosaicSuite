@@ -357,16 +357,16 @@ public class GenericDialogGUI implements InputReadable {
         nOpenedImages = 0;
         int[] ids = WindowManager.getIDList();
 
-        if (ids != null) {
-            nOpenedImages = ids.length;
-        }
-
         String[] names = new String[nOpenedImages + 1];
         names[0] = emptyOpenedImage;
-        for (int i = 0; i < nOpenedImages; i++) {
-            ImagePlus ip = WindowManager.getImage(ids[i]);
-            names[i + 1] = ip.getTitle();
+        if (ids != null) {
+            nOpenedImages = ids.length;
+            for (int i = 0; i < nOpenedImages; i++) {
+                ImagePlus ip = WindowManager.getImage(ids[i]);
+                names[i + 1] = ip.getTitle();
+            }
         }
+
 
         // if (nOpenedImages>0)
         {

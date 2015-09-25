@@ -36,8 +36,8 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
     private TrajectoryAnalysis iTrajectoryAnalysis;
 
     // Dimensions of plot
-    private static final int WIDTH = 800;
-    private static final int HEIGHT = 600;
+    private static final int WIN_WIDTH = 800;
+    private static final int WIN_HEIGHT = 600;
 
     /**
      * @param aTrajectory Trajectory to be analyzed and plotted.
@@ -56,7 +56,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
     private TrajectoryAnalysisPlot(final Particle[] aParticles, double aPixelDim, double aTimeInterval) {
         // A little bit nasty but working method of setting window size (and further plot size).
         // Other methods like setSize(...) do not work even if applied to both - ImageWindow and Plot
-        super(new ImagePlus("Trajectory Analysis", new ByteProcessor(WIDTH,HEIGHT, new byte[WIDTH*HEIGHT], null)));
+        super(new ImagePlus("Trajectory Analysis", new ByteProcessor(WIN_WIDTH,WIN_HEIGHT, new byte[WIN_WIDTH*WIN_HEIGHT], null)));
 
         // Create UI for this window
         iMssButton = new Button(" MSS ");
@@ -123,7 +123,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
         // Create plot with slope line
         PlotWindow.noGridLines = false; // draw grid lines
         Plot plot = new Plot("", aXlabel, aYlabel, aX, slopeLine);
-        plot.setSize(WIDTH, HEIGHT);
+        plot.setSize(WIN_WIDTH, WIN_HEIGHT);
         setTitle(aWindowLabel);
         plot.setLimits(minX, maxX, minY, maxY);
         plot.setLineWidth(2);

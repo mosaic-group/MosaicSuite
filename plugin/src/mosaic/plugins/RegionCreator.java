@@ -133,6 +133,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
             cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal,true);
             rg_m = new RegionIteratorMask(cm, sz);
         }
+        else {
+            throw new RuntimeException();
+        }
 
 
         Point ptt = pt;
@@ -216,6 +219,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
             cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal,true);
             rg_m = new RegionIteratorMask(cm, sz);
         }
+        else {
+            throw new RuntimeException();
+        }
 
         Iterator<Point> pt_it = pt.iterator();
 
@@ -297,6 +303,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         {
             cm = new SphereMask(rc, 2*rc + 1, out_a.numDimensions(), cal,true);
             rg_m = new RegionIteratorMask(cm, sz);
+        }
+        else {
+            throw new RuntimeException();
         }
 
         Iterator<Point> pt_it = pt.iterator();
@@ -519,8 +528,10 @@ public class RegionCreator implements PlugInFilter // NO_UCD
                     inte_a = cls.newInstance();
                 } catch (InstantiationException e) {
                     e.printStackTrace();
+                    throw new RuntimeException();
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
+                    throw new RuntimeException();
                 }
                 inte_a.setReal(min_it + (max_it - min_it) * r.nextDouble());
                 int radius = (int) (min_r + (max_r - min_r) * r.nextDouble());

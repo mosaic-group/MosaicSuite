@@ -392,15 +392,14 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
         }
         byte[] outPixels = (byte[]) outIp.getPixels();
         // IJ.write("roi: "+roi.toString());
-        if (roi != null) {
-            for (int y = 0, i = 0; y < outIp.getHeight(); y++) { // delete everything outside roi
-                for (int x = 0; x < outIp.getWidth(); x++, i++) {
-                    if (x < roi.x || x >= roi.x + roi.width || y < roi.y || y >= roi.y + roi.height) {
-                        outPixels[i] = (byte) 0;
-                    }
-                    else if (mask != null && (mask[x - roi.x + roi.width * (y - roi.y)] == 0)) {
-                        outPixels[i] = (byte) 0;
-                    }
+
+        for (int y = 0, i = 0; y < outIp.getHeight(); y++) { // delete everything outside roi
+            for (int x = 0; x < outIp.getWidth(); x++, i++) {
+                if (x < roi.x || x >= roi.x + roi.width || y < roi.y || y >= roi.y + roi.height) {
+                    outPixels[i] = (byte) 0;
+                }
+                else if (mask != null && (mask[x - roi.x + roi.width * (y - roi.y)] == 0)) {
+                    outPixels[i] = (byte) 0;
                 }
             }
         }
@@ -633,7 +632,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                     if (maxPossible) {
                         int offset = pList[nearestI];
                         types[offset] |= MAX_POINT;
-                        if (displayOrCount && !(excludeOnEdges && isEdgeMaximum)) {
+                        if (displayOrCount && xyVector != null && !(excludeOnEdges && isEdgeMaximum)) {
                             int x = offset % width;
                             int y = offset / width;
                             if (roi == null || roi.contains(x, y)) {
@@ -1175,7 +1174,7 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
                     histogram[nextLevel] = newNextLevelEnd - levelStart[nextLevel];
                 }
             }
-            if (debug && (level > 170 || level > 100 && level < 110 || level < 10)) {
+            if (debug && movie != null && (level > 170 || level > 100 && level < 110 || level < 10)) {
                 movie.addSlice("level " + level, ip.duplicate());
             }
         }

@@ -29,7 +29,7 @@ public class CurvatureBasedFlow {
 
         float spacing[] = null;
         if (cal != null) {
-            if (labelImage.getDim() == 2 && cal != null) {
+            if (labelImage.getDim() == 2) {
                 spacing = new float[2];
                 spacing[0] = (float) cal.pixelWidth;
                 spacing[1] = (float) cal.pixelHeight;
