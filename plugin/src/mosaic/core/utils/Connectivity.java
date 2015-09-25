@@ -17,9 +17,9 @@ public class Connectivity implements Iterable<Point> {
     private int VCellDim; // connectivity
     private int m_NeighborhoodSize; // complete neighborhood (size of unitcube)
 
-    private int nNeighbors; // m_NumberOfNeighbors
-    private Point[] neighborsP;
-    private int[] neighborsOfs;
+    int nNeighbors; // m_NumberOfNeighbors
+    Point[] neighborsP;
+    int[] neighborsOfs;
 
     /**
      * @param VDim Cell dimension 2 for 2D, 3 for 3D , ..... and so on
@@ -286,6 +286,8 @@ public class Connectivity implements Iterable<Point> {
 
         private int cursor = 0;
 
+        protected OfsIterator() {}
+
         @Override
         public boolean hasNext() {
             return (cursor < nNeighbors);
@@ -305,7 +307,7 @@ public class Connectivity implements Iterable<Point> {
     }
 
     private class OfsIteratorInt implements Iterator<Integer> {
-
+        protected OfsIteratorInt() {}
         private int cursor = 0;
 
         // @Override
@@ -339,7 +341,7 @@ public class Connectivity implements Iterable<Point> {
         /**
          * @param p Arbitrary Point p
          */
-        private NeighborIterator(Point p) {
+        protected NeighborIterator(Point p) {
             this.point = p;
         }
 

@@ -89,7 +89,7 @@ public class Region_Competition implements Segmentation {
     private Region_Competition MVC; // interface to image application (imageJ)
     public Settings settings;
 
-    private Algorithm algorithm;
+    Algorithm algorithm;
     private LabelImageRC labelImage; // data structure mapping pixels to labels
     private IntensityImage intensityImage;
     private ImageModel imageModel;
@@ -97,8 +97,8 @@ public class Region_Competition implements Segmentation {
     private ImagePlus originalIP; // IP of the input image
     private final Vector<ImagePlus> OpenedImages;
 
-    private ImageStack stack; // stack saving the segmentation progress images
-    private ImagePlus stackImPlus; // IP showing the stack
+    ImageStack stack; // stack saving the segmentation progress images
+    ImagePlus stackImPlus; // IP showing the stack
     private boolean stackKeepFrames = false;
     private boolean normalize_ip = false;
 
@@ -1174,6 +1174,8 @@ public class Region_Competition implements Segmentation {
      * the new Windows.
      */
     private class StackWindowListener implements WindowListener {
+        protected StackWindowListener() {}
+
         @Override
         public void windowClosing(WindowEvent e) {
             //System.out.println("stackimp closing");

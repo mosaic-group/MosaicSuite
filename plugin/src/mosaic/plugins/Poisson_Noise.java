@@ -211,8 +211,7 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
      * @return The bin mapper
      */
 
-    @SuppressWarnings("unchecked")
-    private <T extends RealType<T>> BinMapper1d<T> createMapper(Class<T> cls,double min,double max)
+    @SuppressWarnings("unchecked") <T extends RealType<T>> BinMapper1d<T> createMapper(Class<T> cls,double min,double max)
     {
         T test = null;
         try {

@@ -394,7 +394,7 @@ public class PSF_Tool implements PlugInFilter, MouseListener, ActionListener, Wi
     /**
      * GUI for Point Source Selection and PSF estimation
      */
-    private void userInterface(){
+    void userInterface(){
     ui.setLayout(new BorderLayout());
     // Initialize Buttons and add ActionListener
     start = new JButton("Start New Selection");

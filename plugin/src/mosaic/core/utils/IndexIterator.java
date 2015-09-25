@@ -14,7 +14,7 @@ public class IndexIterator {
 
     private int dimensions[];
     private int dim;
-    private int size;
+    int size;
 
     /**
      * Create the index itarator

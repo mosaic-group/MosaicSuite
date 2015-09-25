@@ -31,11 +31,14 @@ public class RegionIteratorMask {
     MaskIterator maskIt;
 
     private class MovePoint {
+        protected MovePoint() {}
         public Point p;
         public int idx;
     }
 
     private class RJmp {
+        protected RJmp() {}
+
         public int idx = 0;
     }
 

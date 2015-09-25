@@ -58,7 +58,7 @@ import mosaic.region_competition.wizard.RCWWin;
  */
 public class GenericDialogGUI implements InputReadable {
 
-    private Settings settings;
+    Settings settings;
     private GenericDialog gd;
     private GenericDialog gd_p;
     private ImagePlus aImp; // active ImagePlus (argument of Plugin)
@@ -208,7 +208,7 @@ public class GenericDialogGUI implements InputReadable {
      * Create parameters dialog
      */
 
-    private void CreateParametersDialog() {
+    void CreateParametersDialog() {
         gd_p = new GenericDialog("Region Competition Parameters");
 
         Button optionButton;
@@ -590,7 +590,7 @@ public class GenericDialogGUI implements InputReadable {
 
     // //////////////////////////
 
-    private Choice initializationChoice; // reference to the awt.Choice for initialization
+    Choice initializationChoice; // reference to the awt.Choice for initialization
 
     // private String lastInitChoice; // choice before File_choice was set automatically
 

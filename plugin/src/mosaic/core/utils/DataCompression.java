@@ -21,7 +21,7 @@ public class DataCompression {
 
     public class Algorithm {
 
-        private Algorithm(String name_, String cmd_, String finger_print_, String cc, String uc) {
+        Algorithm(String name_, String cmd_, String finger_print_, String cc, String uc) {
             name = name_;
             cmd = cmd_;
             finger_print = finger_print_;

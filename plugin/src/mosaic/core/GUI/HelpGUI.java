@@ -218,7 +218,7 @@ public class HelpGUI {
         gridy++;
     }
 
-    private static void open(URI uri) {
+    static void open(URI uri) {
         if (Desktop.isDesktopSupported()) {
             try {
                 Desktop.getDesktop().browse(uri);

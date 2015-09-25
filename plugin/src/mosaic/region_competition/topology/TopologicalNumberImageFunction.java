@@ -128,7 +128,7 @@ public class TopologicalNumberImageFunction {
         public int FGNumber;
         public int BGNumber;
 
-        private TopologicalNumberPair(int fg, int bg) {
+        TopologicalNumberPair(int fg, int bg) {
             this.FGNumber = fg;
             this.BGNumber = bg;
         }
@@ -139,7 +139,7 @@ public class TopologicalNumberImageFunction {
         public int label;
         public TopologicalNumberPair topologicalNumberPair;
 
-        private TopologicalNumberResult(int label, TopologicalNumberPair tn) {
+        TopologicalNumberResult(int label, TopologicalNumberPair tn) {
             this.label = label;
             this.topologicalNumberPair = tn;
         }

@@ -49,11 +49,11 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
         Tissue, Cell, Other
     }
 
-    private Settings ref_save;
+    Settings ref_save;
     private JPanel contentPane;
     private JComboBox<String> b1;
     private ImagePlus img[];
-    private segType sT;
+    segType sT;
 
     public void start(Settings s) {
         ref_save = s;
@@ -181,7 +181,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
 
     }
 
-    private void ComputePar() {
+    void ComputePar() {
         int i = 0;
 
         // Get if is Tissue or Cell

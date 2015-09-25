@@ -72,7 +72,7 @@ public class GeneratePSF {
      * @param dim dimension of the psf
      */
 
-    private void selectPSF(int dim) {
+    void selectPSF(int dim) {
         String psf = PSFc.getSelectedItem();
 
         if (dim == 0) {

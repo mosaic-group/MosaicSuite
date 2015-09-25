@@ -148,9 +148,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     public String background;
     public boolean force;
     public boolean straight_line;
-    private float l_s = 1.0f;
-    private float l_f = 1.0f;
-    private float l_d = 1.0f;
+    float l_s = 1.0f;
+    float l_f = 1.0f;
+    float l_d = 1.0f;
     public ImageStack stack;
     public StackConverter sc;
     public ImagePlus original_imp;

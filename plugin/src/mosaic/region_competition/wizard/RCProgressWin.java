@@ -58,7 +58,7 @@ class RCProgressWin extends JFrame implements MouseListener {
     JPanel contentImage;
     JProgressBar Prog_s;
     JLabel Status;
-    private Object lock;
+    Object lock;
 
     public void SetStatusMessage(String Message) {
         Status.setText(Message);

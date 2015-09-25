@@ -25,6 +25,8 @@ public class Jtest {
 
         int cnt = 0;
 
+        protected segStub() {}
+
         @Override
         public void run(ImageProcessor arg0) {
             String Basefile = testImg[cnt].img[0].substring(0, testImg[cnt].img[0].lastIndexOf(File.separator)) + File.separator + "test";

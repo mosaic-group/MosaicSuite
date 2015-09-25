@@ -30,7 +30,9 @@ public class OutputGUI extends JDialog {
 
         private String[] columnNames = { "Enable", "Column", "Factor" };
 
-        private Object[][] data;
+        Object[][] data;
+
+        protected OutputTable() {}
 
         @Override
         public int getColumnCount() {
