@@ -1,6 +1,5 @@
 package mosaic.region_competition.output;
 
-
 /**
  * Region Competition internal data conversion
  *
@@ -155,5 +154,23 @@ public class RCOutput {
         }
 
         return true;
+    }
+    
+    @Override
+    public int hashCode() {
+        long doubleFieldBits = Double.doubleToLongBits(x);
+        int result = (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(y);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(z);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(mean);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(size);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(var);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        
+        return result;
     }
 }

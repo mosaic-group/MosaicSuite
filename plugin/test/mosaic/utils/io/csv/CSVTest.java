@@ -69,6 +69,11 @@ public class CSVTest extends CommonBase {
 
             return true;
         }
+        
+        @Override
+        public int hashCode() {
+            return (int)(32 * id + value);
+        }
     }
     
     /**
@@ -111,6 +116,10 @@ public class CSVTest extends CommonBase {
             }
 
             return true;
+        }
+        @Override
+        public int hashCode() {
+            return id;
         }
     }
 

@@ -190,4 +190,9 @@ public class Polynomial {
         }
         return Arrays.equals(cmp.iCoeffs, this.iCoeffs);
     }
+    
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(iCoeffs) + iDegree * 31;
+    }
 }

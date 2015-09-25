@@ -170,6 +170,36 @@ public class Region3DColocRScript implements Outdata<Region> {
     }
 
     @Override
+    public int hashCode() {
+        int result = Object_ID;
+        result = 31 * result + Image_ID;
+        long doubleFieldBits = Double.doubleToLongBits(Intensity);
+        result = (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(Perimeter);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(Size);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(Length);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(Overlap_with_ch);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(Coloc_object_size);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(Coloc_object_intensity);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        result = 31 * result + (Single_Coloc ? 0 : 1);
+        doubleFieldBits = Double.doubleToLongBits(Coloc_image_intensity);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(x);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(y);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(z);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        return result;
+    }
+    
+    @Override
     public void setFrame(int fr) {
         Image_ID = fr;
     }

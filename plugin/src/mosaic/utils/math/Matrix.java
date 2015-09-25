@@ -766,4 +766,9 @@ public class Matrix {
 
         return compare(cmp, 0.0);
     }
+    
+    @Override
+    public int hashCode() {
+        return iMatrix.hashCode();
+    }
 }

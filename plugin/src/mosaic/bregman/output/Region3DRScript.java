@@ -126,6 +126,25 @@ public class Region3DRScript implements Outdata<Region> {
     }
 
     @Override
+    public int hashCode() {
+        long doubleFieldBits = Double.doubleToLongBits(Intensity);
+        int result = (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(Perimeter);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(Size);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(Length);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(x);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(y);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        doubleFieldBits = Double.doubleToLongBits(z);
+        result = 31 * result + (int)(doubleFieldBits ^ (doubleFieldBits >>> 32));
+        return result;
+    }
+    
+    @Override
     public void setFrame(int fr) {
         Image_ID = fr;
     }
