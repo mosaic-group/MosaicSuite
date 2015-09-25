@@ -42,8 +42,6 @@ public class Trajectory {
     public Roi mouse_selection_area; // The Roi area where a mouse click will select this trajectory
     public Roi focus_area; // The Roi for focus display of this trajectory
 
-    double scaling[];
-
     /**
      * Constructor. <br>
      * Constructs a Trajectory from the given <code>Particle</code> array. <br>
@@ -68,13 +66,6 @@ public class Trajectory {
 
     public boolean toDisplay() {
         return to_display;
-    }
-
-    /**
-     * Set the <code>scaling</code> for this trajectory
-     */
-    public void setScaling(double scaling_[]) {
-        scaling = scaling_;
     }
 
     /**

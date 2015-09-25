@@ -39,7 +39,6 @@ class NRegions implements Runnable {
     // image and mask data
     public double[][][] image;// 3D image
     public double[][][][] mask;// nregions nslices ni nj
-    public int[][][] maxmask;
     double[][][][] Ei;
     public MasksDisplay md;
 

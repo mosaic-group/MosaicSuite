@@ -17,8 +17,6 @@ import mosaic.core.binarize.BinarizedImage;
 
 public class FloodFill implements Iterable<Point> {
 
-    Connectivity conn;
-
     Stack<Point> stack;
     Set<Point> checkedSet;
 
@@ -31,7 +29,6 @@ public class FloodFill implements Iterable<Point> {
      */
 
     public FloodFill(Connectivity conn, BinarizedImage foo, Point seed) {
-        this.conn = conn;
 
         stack = new Stack<Point>();
         checkedSet = new HashSet<Point>();

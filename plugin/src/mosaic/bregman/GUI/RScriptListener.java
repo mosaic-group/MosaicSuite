@@ -40,9 +40,6 @@ class RScriptListener implements ActionListener {
                 Analysis.p.groupnames[i] = "Condition " + (i + 1) + " name";
             }
             Analysis.p.nbconditions = nbgroups;
-            Analysis.p.initrsettings = false;
-            // Analysis.p.ch1="channel 1 name";
-            // Analysis.p.ch2="channel 2 name";
         }
 
         final RScriptWindow rw = new RScriptWindow(nbgroups, posx, posy);

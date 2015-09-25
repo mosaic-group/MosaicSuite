@@ -92,9 +92,6 @@ class IntToARGB implements ToARGB {
 
 class ARGBToARGB implements ToARGB {
 
-    double min = 0.0;
-    double max = 255;
-
     @Override
     public ARGBType toARGB(Object data) {
         return (ARGBType) data;
@@ -102,8 +99,7 @@ class ARGBToARGB implements ToARGB {
 
     @Override
     public void setMinMax(double min, double max) {
-        this.min = min;
-        this.max = max;
+        // Do nothing
     }
 }
 

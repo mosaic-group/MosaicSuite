@@ -32,7 +32,7 @@ class GaussPSFSettings implements Serializable {
 
     private static final long serialVersionUID = 1777976543628904166L;
 
-    float var[] = new float[16];
+    //float var[] = new float[16];
 }
 
 public class GaussPSF<T extends RealType<T>> implements psf<T> {
@@ -44,7 +44,6 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
     RealType<T> offset[];
     Class<T> clCreator;
     double[][] sepDimD;
-    float[][] sepDimF;
     double[][] Image2DD;
     double[][][] Image3DD;
     float[][] Image2DF;
@@ -71,7 +70,6 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
         var = (RealType<T>[]) Array.newInstance(cl, dim);
         offset = (RealType<T>[]) Array.newInstance(cl, dim);
         sepDimD = new double[dim][];
-        sepDimF = new float[dim][];
 
         try {
 

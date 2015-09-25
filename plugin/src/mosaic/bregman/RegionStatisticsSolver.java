@@ -605,8 +605,6 @@ class RegionStatisticsSolver {
 
                 }
             }
-            r.beta_in = (float) betaMLEin;
-            r.beta_out = (float) betaMLEout;
         }
         // IJ.log("Region cluster done");
 

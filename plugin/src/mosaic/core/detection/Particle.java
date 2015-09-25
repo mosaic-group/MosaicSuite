@@ -30,7 +30,6 @@ public class Particle {
     private int frame; // the number of the frame this particle belonges to (can be 0)
     public boolean special; // a flag that is used while detecting and linking particles
     public int[] next; // array that holds in position i the next particle number in frame i
-    public int[] prev; // array that holds in position i the previous particle number in frame -i
     // that this particle is linked to
     public int nbIterations = 0; // debug
     /* only relevant to particles detected in images */
@@ -43,8 +42,6 @@ public class Particle {
 
     /* only relevant to particles given as input */
     public String[] all_params; // all params that relate to this particle,
-    // 1st 2 should be x and y respectfully
-    int linkrange;
 
     /**
      * Create a particle from another particle
@@ -139,7 +136,6 @@ public class Particle {
         this.original_z = z;
         this.special = true;
         this.setFrame(frame_num);
-        this.linkrange = linkrange;
         this.next = new int[linkrange];
         distance = -1.0f;
     }
@@ -151,7 +147,6 @@ public class Particle {
      */
 
     void setLinkRange(int linkrange) {
-        this.linkrange = linkrange;
         this.next = new int[linkrange];
     }
 
@@ -173,7 +168,6 @@ public class Particle {
         this.all_params = params;
         this.special = true;
         this.setFrame(frame_num);
-        this.linkrange = linkrange;
         this.next = new int[linkrange];
         this.score = 0.0F;
         this.m0 = 0.0F;

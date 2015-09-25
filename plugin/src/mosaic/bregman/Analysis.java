@@ -278,7 +278,7 @@ public class Analysis {
 
         maska_im.setStack("test Ma", maska_ims);
 
-        final FindConnectedRegions fcr = new FindConnectedRegions(maska_im, maskA);// maska_im
+        final FindConnectedRegions fcr = new FindConnectedRegions(maska_im);// maska_im
         // only
         float[][][] Ri;
         if (p.mode_voronoi2) {
@@ -649,19 +649,7 @@ public class Analysis {
             r.rvoronoi = regionsvoronoi.get((int) ri[z][x][y]);
         }
     }
-
-    static void setregionsThresholds(ArrayList<Region> regionlist, float[][][] ri, float[][][] ro) {
-        int x, y, z;
-        for (final Iterator<Region> it = regionlist.iterator(); it.hasNext();) {
-            final Region r = it.next();
-            x = r.pixels.get(0).px;
-            y = r.pixels.get(0).py;
-            z = r.pixels.get(0).pz;
-            r.beta_in = ri[z][x][y] / 255;
-            r.beta_out = ro[z][x][y] / 255;
-        }
-    }
-
+    
     private static double regionsum(Region r, double[][][] image) {
 
         final int factor2 = Analysis.p.oversampling2ndstep * Analysis.p.interpolation;

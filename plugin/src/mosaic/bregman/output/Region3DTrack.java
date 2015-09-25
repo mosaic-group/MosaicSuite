@@ -20,15 +20,15 @@ public class Region3DTrack implements Outdata<Region> {
         Frame = fr;
     }
 
-    public void setx(double x_) {
+    public void setx(double x_) { // NO_UCD (unused code)
         x = x_;
     } // NO_UCD (unused code)
 
-    public void sety(double y_) {
+    public void sety(double y_) { // NO_UCD (unused code)
         y = y_;
     } // NO_UCD (unused code)
 
-    public void setz(double z_) {
+    public void setz(double z_) { // NO_UCD (unused code)
         z = z_;
     } // NO_UCD (unused code)
 
@@ -48,15 +48,15 @@ public class Region3DTrack implements Outdata<Region> {
         return Frame;
     }
 
-    public double getx() {
+    public double getx() { // NO_UCD (unused code)
         return x;
     } // NO_UCD (unused code)
 
-    public double gety() {
+    public double gety() { // NO_UCD (unused code)
         return y;
     } // NO_UCD (unused code)
 
-    public double getz() {
+    public double getz() { // NO_UCD (unused code)
         return z;
     } // NO_UCD (unused code)
 
@@ -112,18 +112,18 @@ public class Region3DTrack implements Outdata<Region> {
         Frame = Image_ID_;
     }
 
-    public void Coord_X(double Coord_X_) {
+    public void Coord_X(double Coord_X_) { // NO_UCD (unused code)
         x = Coord_X_;
-    } // NO_UCD (unused code)
-
-    public void Coord_Y(double Coord_Y_) {
+    }
+    
+    public void Coord_Y(double Coord_Y_) { // NO_UCD (unused code)
         y = Coord_Y_;
-    } // NO_UCD (unused code)
-
-    public void Coord_Z(double Coord_Z_) {
+    }
+    
+    public void Coord_Z(double Coord_Z_) { // NO_UCD (unused code)
         z = Coord_Z_;
-    } // NO_UCD (unused code)
-
+    } 
+    
     public void setCoord_X(double Coord_X_) {
         x = Coord_X_;
     }

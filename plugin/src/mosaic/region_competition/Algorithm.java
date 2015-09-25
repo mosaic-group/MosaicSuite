@@ -64,9 +64,6 @@ public class Algorithm {
     HashMap<Integer, LabelInformation> labelMap;
 
     /** Deconvolution Image **/
-
-    Img<FloatType> devImage;
-
     private HashMap<Point, LabelPair> m_CompetingRegionsMap;
 
     private final Connectivity connFG;

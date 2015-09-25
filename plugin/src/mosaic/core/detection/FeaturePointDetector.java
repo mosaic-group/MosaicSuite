@@ -59,7 +59,7 @@ public class FeaturePointDetector {
     public int radius = 3; // default
     public boolean absolute = false;
     // public float sigma_factor = 3;
-    int number_of_threads = 4;
+
     public int threshold_mode = PERCENTILE_MODE;
 
     private float threshold;

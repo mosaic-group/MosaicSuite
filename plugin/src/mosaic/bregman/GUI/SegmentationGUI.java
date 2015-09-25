@@ -1,8 +1,6 @@
 package mosaic.bregman.GUI;
 
 
-import ij.ImagePlus;
-
 import java.awt.Button;
 import java.awt.Font;
 import java.awt.Panel;
@@ -19,15 +17,7 @@ import mosaic.bregman.GenericGUI;
 
 
 public class SegmentationGUI {
-
-    ImagePlus imgch1;
-    ImagePlus imgch2;
-    int ni, nj, nz, nc;
-    int posx, posy;
-
-    public SegmentationGUI(int ParentPosx, int ParentPosy) {
-        posx = ParentPosx + 20;
-        posy = ParentPosy + 20;
+    public SegmentationGUI() {
     }
 
     public void run() {

@@ -38,8 +38,6 @@ public class Region implements Comparable<Region> {
     float overlap;
     float over_int;
     float over_size;
-    float beta_in;
-    float beta_out;
     boolean singlec;
     double coloc_o_int;
 

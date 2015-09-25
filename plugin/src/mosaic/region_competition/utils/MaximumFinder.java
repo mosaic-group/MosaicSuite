@@ -64,10 +64,6 @@ class MaximumFinder implements ExtendedPlugInFilter, DialogListener {
     // filter params
     /** maximum height difference between points that are not counted as separate maxima */
     private static double tolerance = 10;
-    /** Output type single points */
-    public final static int SINGLE_POINTS = 0;
-    /** Output type all points around the maximum within the tolerance */
-    public final static int IN_TOLERANCE = 1;
     /** Output type watershed-segmented image */
     public final static int SEGMENTED = 2;
     /** Do not create image, only mark points */

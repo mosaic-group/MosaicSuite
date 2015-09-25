@@ -80,7 +80,6 @@ public class GenericDialogGUI implements InputReadable {
     static final String EnergyFunctional = "E_data";
     EnergyGUI energyGUI;
     static final String Regularization = "E_length";
-    RegularizationGUI regularizationGUI;
 
     private static final String Initialization = "Initialization";
 

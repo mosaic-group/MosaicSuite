@@ -33,10 +33,8 @@ import net.imglib2.type.numeric.real.FloatType;
  */
 
 class PSFSettings implements Serializable {
-
     private static final long serialVersionUID = 3757876543608904166L;
 
-    int dim;
     String clist;
 }
 
@@ -387,7 +385,6 @@ public class GeneratePSF {
         }
 
         // Save settings
-        settings.dim = dim;
         settings.clist = choice;
         getConfigHandler().SaveToFile(IJ.getDirectory("temp") + File.separator + "psf_settings.dat", settings);
 

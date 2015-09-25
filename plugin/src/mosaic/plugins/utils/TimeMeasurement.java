@@ -91,14 +91,6 @@ public class TimeMeasurement {
 
     /**
      * Logs number of nanoseconds from last call to any "get(Lap)Time*" method.
-     * @param aName name used in log in format: "aName (ns): 12412"
-     */
-    public void logLapTimeNanoSec(String aName) {
-        logger.info(aName + " (ns): " + getLapTimeNanoSec());
-    }
-
-    /**
-     * Logs number of nanoseconds from last call to any "get(Lap)Time*" method.
      * @param aName name used in log in format: "aName (s): 12412"
      */
     public void logLapTimeSec(String aName) {

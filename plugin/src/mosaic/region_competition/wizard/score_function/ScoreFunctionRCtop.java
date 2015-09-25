@@ -1,12 +1,6 @@
 package mosaic.region_competition.wizard.score_function;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.gui.Line;
-import ij.gui.Roi;
-import ij.io.Opener;
-
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -23,11 +17,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.gui.Line;
+import ij.gui.Roi;
+import ij.io.Opener;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.plugins.Region_Competition;
-import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.PointCM;
 import mosaic.region_competition.Settings;
@@ -40,7 +38,6 @@ public class ScoreFunctionRCtop implements ScoreFunction {
 
     IntensityImage i[];
     LabelImageRC l[];
-    Algorithm al;
     Settings s;
 
     private final PointCM pntMod[][];

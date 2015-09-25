@@ -6,7 +6,6 @@ public class LabelInformation {
     public int label = 0; // label
     public int count; // number of pixels of label
     public double mean = 0; // mean of intensity
-    public double M2 = 0;
     public double var = 0; // variance of intensity
     public double median = 0;
     public double mean_pos[];
@@ -33,7 +32,6 @@ public class LabelInformation {
         label = 0;
         count = 0;
         mean = 0;
-        M2 = 0;
         var = 0;
         mean_pos = new double[dim];
     }

@@ -30,7 +30,7 @@ public class ColocalizationGUI implements ItemListener, ChangeListener, TextList
 
     ImagePlus imgch1;
     ImagePlus imgch2;
-    int ni, nj, nz, nc;
+    int ni, nj, nz;
 
     JSlider t1, t2;
     JSlider tz1, tz2;// slider for z stack preview

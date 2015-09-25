@@ -51,11 +51,6 @@ public class LabelImage// implements
     public IndexIterator iterator; // iterates over the labelImage
 
     public final int bgLabel = 0;
-    final int negOfs = 10000; // labels above this number stands for
-    // "negative numbers" (problem with displaying
-    // negative numbers in ij.ShortProcessor)
-    // private int m_MaxNLabels;
-    // private LabelDispenser labelDispenser;
 
     protected Connectivity connFG;
     protected Connectivity connBG;

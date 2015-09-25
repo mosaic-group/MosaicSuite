@@ -1,19 +1,14 @@
 package mosaic.bregman;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-
 import java.util.concurrent.CountDownLatch;
 
+import ij.IJ;
 import mosaic.core.psf.psf;
 import net.imglib2.type.numeric.real.DoubleType;
 
 
 class Tools {
-
-    static ImagePlus imgd = new ImagePlus();
-    static boolean disp = true;
     private int ni, nj, nz, nlevels;
 
     Tools(int nni, int nnj, int nnz) {

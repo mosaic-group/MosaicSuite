@@ -1,15 +1,13 @@
 package mosaic.bregman.GUI;
 
 
-import ij.ImagePlus;
-import ij.gui.GenericDialog;
-
 import java.awt.Button;
 import java.awt.Font;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import ij.gui.GenericDialog;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.GenericGUI;
 import mosaic.bregman.output.CSVOutput;
@@ -18,16 +16,7 @@ import mosaic.core.GUI.OutputGUI;
 
 
 public class VisualizationGUI {
-
-    ImagePlus imgch1;
-    ImagePlus imgch2;
-    int ni, nj, nz, nc;
-
-    int posx, posy;
-
-    public VisualizationGUI(int ParentPosx, int ParentPosy) {
-        posx = ParentPosx + 20;
-        posy = ParentPosy + 20;
+    public VisualizationGUI() {
     }
 
     public void run() {

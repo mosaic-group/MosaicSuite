@@ -1,12 +1,6 @@
 package mosaic.bregman;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.Macro;
-import ij.gui.GenericDialog;
-import ij.gui.NonBlockingGenericDialog;
-
 import java.awt.Button;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -30,6 +24,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.gui.GenericDialog;
+import ij.gui.NonBlockingGenericDialog;
 import mosaic.bregman.GUI.BackgroundSubGUI;
 import mosaic.bregman.GUI.ColocalizationGUI;
 import mosaic.bregman.GUI.SegmentationGUI;
@@ -51,7 +50,7 @@ public class GenericGUI {
     boolean clustermode;
     ImagePlus imgch1;
     ImagePlus imgch2;
-    int ni, nj, nz, nc;
+
     int posx, posy;
     static int screensizex, screensizey;
     BLauncher hd;
@@ -205,7 +204,7 @@ public class GenericGUI {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                final BackgroundSubGUI gds = new BackgroundSubGUI(posx, posy);
+                final BackgroundSubGUI gds = new BackgroundSubGUI();
                 gds.run();
             }
         });
@@ -223,7 +222,7 @@ public class GenericGUI {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                final SegmentationGUI gds = new SegmentationGUI(posx, posy);
+                final SegmentationGUI gds = new SegmentationGUI();
                 gds.run();
             }
         });
@@ -257,7 +256,7 @@ public class GenericGUI {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                final VisualizationGUI gds = new VisualizationGUI(posx, posy);
+                final VisualizationGUI gds = new VisualizationGUI();
                 gds.run();
             }
         });
@@ -306,9 +305,6 @@ public class GenericGUI {
         Boolean use_cluster = false;
         // String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
         // boolean bgroup1[] = {false, false};
-
-        // for rscript generation
-        Analysis.p.initrsettings = true;
 
         if (!clustermode) {
             run_mode rm = null;

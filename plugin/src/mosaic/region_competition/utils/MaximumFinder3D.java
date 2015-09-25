@@ -26,10 +26,6 @@ public class MaximumFinder3D implements MaximumFinderInterface {
     // filter params
     /** maximum height difference between points that are not counted as separate maxima */
     // private static double tolerance = 10;
-    /** Output type single points */
-    public final static int SINGLE_POINTS = 0;
-    /** Output type all points around the maximum within the tolerance */
-    public final static int IN_TOLERANCE = 1;
     /** Output type watershed-segmented image */
     public final static int SEGMENTED = 2;
     /** Do not create image, only mark points */
@@ -42,8 +38,6 @@ public class MaximumFinder3D implements MaximumFinderInterface {
     // private static int outputType;
     /** what type of output to create was chosen in the dialog (see constants above) */
     // private static int dialogOutputType = POINT_SELECTION;
-    /** output type names */
-    final static String[] outputTypeNames = new String[] { "Single Points", "Maxima Within Tolerance", "Segmented Particles", "Point Selection", "List", "Count" };
     /** whether to exclude maxima at the edge of the image */
     private static boolean excludeOnEdges;
     /** whether to accept maxima only in the thresholded height range */
@@ -62,8 +56,6 @@ public class MaximumFinder3D implements MaximumFinderInterface {
     /** directions to 8 neighboring pixels, clockwise: 0=North (-y), 1=NE, 2=East (+x), ... 7=NW */
     // private int[] dirOffset; // pixel offsets of neighbor pixels for direct addressing
     private int[][] points; // maxima found by findMaxima() when outputType is POINT_SELECTION
-    final static int[] DIR_X_OFFSET = new int[] { 0, 1, 1, 1, 0, -1, -1, -1 };
-    final static int[] DIR_Y_OFFSET = new int[] { -1, -1, 0, 1, 1, 1, 0, -1 };
     /** the following constants are used to set bits corresponding to pixel types */
     final static byte MAXIMUM = (byte) 1; // marks local maxima (irrespective of noise tolerance)
     final static byte LISTED = (byte) 2; // marks points currently in the list
@@ -71,7 +63,6 @@ public class MaximumFinder3D implements MaximumFinderInterface {
     final static byte MAX_AREA = (byte) 8; // marks areas near a maximum, within the tolerance
     final static byte EQUAL = (byte) 16; // marks contigous maximum points of equal level
     final static byte MAX_POINT = (byte) 32; // marks a single point standing for a maximum
-    final static byte ELIMINATED = (byte) 64; // marks maxima that have been eliminated before watershed
     /** type masks corresponding to the output types */
     final static byte[] outputTypeMasks = new byte[] { MAX_POINT, MAX_AREA, MAX_AREA };
     final static float SQRT2 = 1.4142135624f;

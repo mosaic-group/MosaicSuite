@@ -18,9 +18,6 @@ public class TopologicalNumberImageFunction {
     UnitCubeCCCounter m_ForegroundUnitCubeCCCounter;
     UnitCubeCCCounter m_BackgroundUnitCubeCCCounter;
 
-    protected boolean m_ComputeForegroundTN;
-    protected boolean m_ComputeBackgroundTN;
-
     protected char[] m_SubImage; // binary subimage (switching fg/bg)
     protected Point[] m_Offsets; // maps indexes to Points
     protected int[] m_DataSubImage; // cached input image

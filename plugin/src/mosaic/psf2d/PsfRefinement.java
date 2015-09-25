@@ -19,8 +19,6 @@ public class PsfRefinement {
     int[] mask;
     int lambda_n = 1;
     float[] kernel;
-    float global_min;
-    float global_max;
     PsfSourcePosition particle;
 
     ImageProcessor original_ip; // the original image

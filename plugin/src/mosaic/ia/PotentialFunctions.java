@@ -13,14 +13,11 @@ public class PotentialFunctions {
     public static double NONPARAM_SMOOTHNESS = .1; // fornonparam penalty; smaller the smoother (smaller => penalty is high => penalty minim gives
 
     public static int NONPARAM_WEIGHT_SIZE = 41; // 21st is 0
-    public static final int PARAM_NON_STEP = 3;
-    public static final int PARAM_STEP = 2;
     public static final int STEP = 1;
     public static final int HERNQUIST = 2;
     public static final int L1 = 3;
     public static final int L2 = 4;
     public static final int PlUMMER = 5;
-    public static final int COULOMB = 7;
     public static final int NONPARAM = 6;
 
     public static void initializeNonParamWeights(double min, double max) {

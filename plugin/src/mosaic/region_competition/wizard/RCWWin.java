@@ -230,8 +230,6 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
     public void mouseReleased(MouseEvent arg0) {
     }
 
-    JDialog g;
-
     private Settings OptimizeWithCMA(ScoreFunction fi, Settings s, double aDev[], String Question, double stop, boolean debug) {
         // Start a progress window
 

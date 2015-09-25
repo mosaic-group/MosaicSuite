@@ -45,29 +45,20 @@ import java.util.Collections;
 
 class FindConnectedRegions {
 
-    public static final String PLUGIN_VERSION = "1.2";
-    public byte[][][] softmask;
-
     public ImagePlus imagePlus;
     short[][][] tempres;
     public ArrayList<Region> results = new ArrayList<Region>();
 
     boolean pleaseStop = false;
 
-    public FindConnectedRegions(ImagePlus mask, byte[][][] smask) {
+    public FindConnectedRegions(ImagePlus mask) {
         this.imagePlus = mask;
-        this.softmask = smask;
         this.tempres = new short[Analysis.p.nz][Analysis.p.ni][Analysis.p.nj];
     }
 
     public FindConnectedRegions(ImagePlus mask, int nx, int ny, int nz) {
         this.imagePlus = mask;
         this.tempres = new short[nz][nx][ny];
-    }
-
-    public FindConnectedRegions(ImagePlus mask) {
-        this.imagePlus = mask;
-        this.tempres = new short[Analysis.p.nz][Analysis.p.ni][Analysis.p.nj];
     }
 
     private static final byte IN_QUEUE = 1;

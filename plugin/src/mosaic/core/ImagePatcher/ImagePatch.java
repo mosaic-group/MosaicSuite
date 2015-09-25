@@ -26,7 +26,6 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
     Img<E> lb;
     Img<E> rs;
 
-    int margins[];
     Point p1;
     Point p2;
 

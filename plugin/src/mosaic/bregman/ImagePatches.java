@@ -1,10 +1,6 @@
 package mosaic.bregman;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.WindowManager;
-
 import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,13 +11,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import ij.IJ;
+import ij.WindowManager;
+
 
 class ImagePatches {
 
-    ImagePlus regsresultx;
-    ImagePlus regsresulty;
     int interp;
-    int interpz;
     int jobs_done;
     int nb_jobs;
     // reg
@@ -41,7 +37,6 @@ class ImagePatches {
     public ArrayList<Region> regionslist_refined;
     private final ArrayList<Region> globalList;
     int channel;
-    boolean fcallx, fcally;
 
     public ImagePatches(Parameters pa, ArrayList<Region> regionslist, double[][][] imagei, int channeli, double[][][] w3k, double min, double max) {
         if (!pa.subpixel) {
@@ -51,8 +46,7 @@ class ImagePatches {
         else {
             pa.oversampling2ndstep = pa.overs;
         }
-        this.regsresulty = new ImagePlus();
-        this.regsresultx = new ImagePlus();
+
         this.w3kbest = w3k;
 
         this.channel = channeli;
@@ -71,7 +65,6 @@ class ImagePatches {
         if (p.nz == 1) {
             this.sz = 1;
             this.osz = 1;
-            this.interpz = 1;
         }
         else {
             this.sz = p.nz * p.oversampling2ndstep * pa.interpolation;

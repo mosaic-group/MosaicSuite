@@ -250,7 +250,7 @@ class TwoRegions extends NRegions {
                 // test
                 // IJ.log("start test" + "nlevels " +p.nlevels);
                 if (Analysis.p.refinement && Analysis.p.mode_voronoi2) {
-                    Analysis.setregionsThresholds(Analysis.regionslist[0], RiN, RoN);
+//                    Analysis.setregionsThresholds(Analysis.regionslist[0]);
                     Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[0], regions, RiN);
                     IJ.showStatus("Computing segmentation  " + 55 + "%");
                     IJ.showProgress(0.55);
@@ -397,7 +397,7 @@ class TwoRegions extends NRegions {
                 }
 
                 if (Analysis.p.refinement && Analysis.p.mode_voronoi2) {
-                    Analysis.setregionsThresholds(Analysis.regionslist[1], RiN, RoN);
+//                    Analysis.setregionsThresholds(Analysis.regionslist[1]);
                     Analysis.SetRegionsObjsVoronoi(Analysis.regionslist[1], regions, RiN);
                     IJ.showStatus("Computing segmentation  " + 55 + "%");
                     IJ.showProgress(0.55);

@@ -20,7 +20,7 @@ public class Region3DRScript implements Outdata<Region> {
         Image_ID = Image_ID_;
     }
 
-    public void setlabel(int aID) {
+    public void setlabel(int aID) { // NO_UCD (unused code)
         setImage_ID(aID);
     } // NO_UCD (unused code)
 
@@ -32,7 +32,7 @@ public class Region3DRScript implements Outdata<Region> {
         Size = Size_;
     }
 
-    public void setsize(double aSize) {
+    public void setsize(double aSize) { // NO_UCD (unused code)
         setSize(aSize);
     } // NO_UCD (unused code)
 
@@ -48,19 +48,19 @@ public class Region3DRScript implements Outdata<Region> {
         Intensity = Intensity_;
     }
 
-    public void setmean(double aVal) {
+    public void setmean(double aVal) { // NO_UCD (unused code)
         setIntensity(aVal);
     } // NO_UCD (unused code)
 
-    public void setx(double Coord_X_) {
+    public void setx(double Coord_X_) { // NO_UCD (unused code)
         x = Coord_X_;
     } // NO_UCD (unused code)
 
-    public void sety(double Coord_Y_) {
+    public void sety(double Coord_Y_) { // NO_UCD (unused code)
         y = Coord_Y_;
     } // NO_UCD (unused code)
 
-    public void setz(double Coord_Z_) {
+    public void setz(double Coord_Z_) { // NO_UCD (unused code)
         z = Coord_Z_;
     } // NO_UCD (unused code)
 
@@ -169,7 +169,7 @@ public class Region3DRScript implements Outdata<Region> {
         return Image_ID;
     }
 
-    public int getlabel() {
+    public int getlabel() { // NO_UCD (unused code)
         return getImage_ID();
     } // NO_UCD (unused code)
 
@@ -193,7 +193,7 @@ public class Region3DRScript implements Outdata<Region> {
         return Intensity;
     }
 
-    public double getmean() {
+    public double getmean() { // NO_UCD (unused code)
         return getIntensity();
     } // NO_UCD (unused code)
 
@@ -201,7 +201,7 @@ public class Region3DRScript implements Outdata<Region> {
         return Size;
     }
 
-    public double getsize() {
+    public double getsize() { // NO_UCD (unused code)
         return getSize();
     } // NO_UCD (unused code)
 
@@ -213,17 +213,17 @@ public class Region3DRScript implements Outdata<Region> {
         return Length;
     }
 
-    public double getx() {
+    public double getx() { // NO_UCD (unused code)
         return x;
-    } // NO_UCD (unused code)
+    } 
 
-    public double gety() {
+    public double gety() { // NO_UCD (unused code)
         return y;
-    } // NO_UCD (unused code)
+    } 
 
-    public double getz() {
+    public double getz() { // NO_UCD (unused code)
         return z;
-    } // NO_UCD (unused code)
+    } 
 
     public int getFrame() {
         return Image_ID;

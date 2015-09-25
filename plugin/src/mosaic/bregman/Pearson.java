@@ -14,11 +14,7 @@ import ij.process.ImageProcessor;
 
 class Pearson {
 
-    int width, height, nbSlices, depth, length, widthCostes, heightCostes, nbsliceCostes, lengthCostes;
-    String titleA, titleB;
-    int[] A, B;
-    int Amin, Amax, Bmin, Bmax;
-    double Amean, Bmean;
+    int width, height, nbSlices, depth;
     boolean[][][] cellmaskA;
     boolean[][][] cellmaskB;
     // boolean [][][] cellmask;
@@ -47,13 +43,6 @@ class Pearson {
             IJ.error("ImageColocalizer expects both images to have the same size and depth");
             return;
         }
-        this.length = this.width * this.height * this.nbSlices;
-        // this.A=new int[this.length];
-        // this.B=new int[this.length];
-        this.titleA = ipA.getTitle();
-        this.titleB = ipB.getTitle();
-
-        // buildArray( ipA, ipB);
 
         if (p.nz > 1) {
             osz = p.model_oversampling;

@@ -15,11 +15,9 @@ public class CurvatureBasedFlow {
 
     int dim;
     int[] inputDims;
-    int[] m_Size;
     int rad;
 
     SphereMask sphere;
-    byte[] mask;
 
     public CurvatureBasedFlow(int rad, LabelImageRC labelImage, Calibration cal) {
         this.rad = rad;
@@ -48,9 +46,6 @@ public class CurvatureBasedFlow {
         }
 
         sphereIt = new RegionIteratorMask(sphere, inputDims);
-
-        m_Size = sphere.getDimensions();
-        mask = sphere.mask;
     }
 
     /**

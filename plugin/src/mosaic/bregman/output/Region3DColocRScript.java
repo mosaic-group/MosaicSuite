@@ -45,15 +45,15 @@ public class Region3DColocRScript implements Outdata<Region> {
         Intensity = Intensity_;
     }
 
-    public void setx(double Coord_X_) {
+    public void setx(double Coord_X_) { // NO_UCD (unused code)
         x = Coord_X_;
     } // NO_UCD (unused code)
 
-    public void sety(double Coord_Y_) {
+    public void sety(double Coord_Y_) { // NO_UCD (unused code)
         y = Coord_Y_;
     } // NO_UCD (unused code)
 
-    public void setz(double Coord_Z_) {
+    public void setz(double Coord_Z_) { // NO_UCD (unused code)
         z = Coord_Z_;
     } // NO_UCD (unused code)
 
@@ -256,15 +256,15 @@ public class Region3DColocRScript implements Outdata<Region> {
         return Length;
     }
 
-    public double getx() {
+    public double getx() { // NO_UCD (unused code)
         return x;
     } // NO_UCD (unused code)
 
-    public double gety() {
+    public double gety() { // NO_UCD (unused code)
         return y;
     } // NO_UCD (unused code)
 
-    public double getz() {
+    public double getz() { // NO_UCD (unused code)
         return z;
     } // NO_UCD (unused code)
 

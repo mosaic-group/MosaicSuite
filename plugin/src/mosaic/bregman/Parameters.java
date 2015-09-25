@@ -15,7 +15,6 @@ public class Parameters implements Serializable {
 
     public int oc_s = 1;
     public String patches_from_file;
-    public int output_format = -1;
 
     // method parameters
     public boolean mode_classic = false;
@@ -26,7 +25,6 @@ public class Parameters implements Serializable {
     public String wd = null;
 
     public int overs = 2;
-    public boolean pearson = false;
     public boolean debug = false;
     public boolean blackbackground;
     public int noise_model = 0; // 0: poisson, 1:gauss
@@ -102,7 +100,6 @@ public class Parameters implements Serializable {
     public double min_region_filter_intensities = 0.0;
 
     // Rscript parameters
-    public boolean initrsettings = true;
     public String file1;
     public String file2;
     public String file3;

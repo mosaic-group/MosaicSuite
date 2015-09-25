@@ -59,11 +59,11 @@ public class MyFrame {
     // about this frame before particle discrimination
 
     /* only relevant to frames representing real images */
-    private ImageStack original_ips; // the original image, this is used for the
+    // the original image, this is used for the
     // featurePointDetector to access
     // corresponding the image data.
-    float threshold; // threshold for particle detection
-    boolean normalized = false;
+    private ImageStack original_ips; 
+    
     int linkrange;
     int p_radius = -1;
 

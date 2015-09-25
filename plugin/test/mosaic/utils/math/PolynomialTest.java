@@ -26,7 +26,7 @@ public class PolynomialTest {
 
     @Test
     public void test2ndDegree() {
-        final Polynomial f = new Polynomial(1.0, 2.0, 3.0);
+        final Polynomial f = new Polynomial(1.0, 2.0, 3.0).copy();
 
         assertEquals("Value", 3.0, f.getValue(0), 0.0);
         assertEquals("Value", 18.0, f.getValue(3), 0.0);

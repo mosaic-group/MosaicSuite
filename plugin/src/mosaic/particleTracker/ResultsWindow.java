@@ -437,7 +437,6 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
                         if (user_roi.getBounds().contains(traj.existing_particles[i].y, traj.existing_particles[i].x) && traj.to_display) {
                             particleTracker3DModular.results_window.text_panel.appendLine("%% Trajectory " + traj.serial_number);
                             particleTracker3DModular.results_window.text_panel.append(particleTracker3DModular.trajectoryHeader());
-                            traj.setScaling(particleTracker3DModular.getScaling());
                             particleTracker3DModular.results_window.text_panel.append(traj.toString());
                             break;
                         }
@@ -473,7 +472,6 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             particleTracker3DModular.results_window.text_panel.clearSelection();
             particleTracker3DModular.results_window.text_panel.appendLine("%% Trajectory " + traj.serial_number);
             particleTracker3DModular.results_window.text_panel.append(particleTracker3DModular.trajectoryHeader());
-            traj.setScaling(particleTracker3DModular.getScaling());
             particleTracker3DModular.results_window.text_panel.append(traj.toString());
             return;
         }

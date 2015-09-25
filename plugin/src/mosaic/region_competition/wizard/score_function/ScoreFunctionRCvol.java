@@ -1,15 +1,13 @@
 package mosaic.region_competition.wizard.score_function;
 
 
+import java.util.Collection;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.io.Opener;
-
-import java.util.Collection;
-
 import mosaic.core.utils.IntensityImage;
 import mosaic.plugins.Region_Competition;
-import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
@@ -26,7 +24,6 @@ public class ScoreFunctionRCvol implements ScoreFunction {
 
     IntensityImage i[];
     LabelImageRC l[];
-    Algorithm al;
     Settings s;
 
     public ScoreFunctionRCvol(IntensityImage i_[], LabelImageRC l_[], Settings s_) {

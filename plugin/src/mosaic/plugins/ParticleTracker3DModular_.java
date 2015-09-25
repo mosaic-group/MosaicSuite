@@ -1182,7 +1182,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             // -----------------------------------------------------------------------------
 
             traj_info.append(trajectoryHeader());
-            curr_traj.setScaling(getScaling());
             traj_info.append(curr_traj.toStringBuffer());
         }
 
