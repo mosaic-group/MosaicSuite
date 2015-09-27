@@ -11,9 +11,9 @@ import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
 public class E_KLMergingCriterion extends ExternalEnergy {
 
-    float m_RegionMergingThreshold;
-    int bgLabel;
-    HashMap<Integer, LabelInformation> labelMap;
+    private final float m_RegionMergingThreshold;
+    private final int bgLabel;
+    private final HashMap<Integer, LabelInformation> labelMap;
 
     public E_KLMergingCriterion(HashMap<Integer, LabelInformation> labelMap, int bgLabel, float m_RegionMergingThreshold) {
         super(null, null);

@@ -20,13 +20,13 @@ import mosaic.region_competition.utils.MaximumFinderInterface;
 
 public class MaximaBubbles extends DataDrivenInitializer {
 
-    MaximumFinderInterface maximumFinder;
-    int rad = 5; // bubble size
-    double sigma = 2.0; // smoothing gauss sigma
-    double tolerance = 0.005; // localmax tolerance
-    boolean excludeOnEdges = false;
+    private final MaximumFinderInterface maximumFinder;
+    private int rad = 5; // bubble size
+    private double sigma = 2.0; // smoothing gauss sigma
+    private double tolerance = 0.005; // localmax tolerance
+    private boolean excludeOnEdges = false;
 
-    int regionThreshold = 4; // regions smaller than this values will be bubbled
+    private int regionThreshold = 4; // regions smaller than this values will be bubbled
 
     public MaximaBubbles(IntensityImage intensityImage, LabelImageRC labelImage, int rad_t, double sigma_t, double tol_t, int r_t) {
         super(intensityImage, labelImage);

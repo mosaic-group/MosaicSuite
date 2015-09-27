@@ -10,15 +10,15 @@ import mosaic.region_competition.energies.Energy.EnergyResult;
 public class ImageModel {
     
     // Settings
-    public final float EnergyRegionCoeff = 1.0f;
-    public final float ConstantOutwardFlow = 0.0f; 
+    private final float EnergyRegionCoeff = 1.0f;
+    private final float ConstantOutwardFlow = 0.0f; 
     
     
-    Energy e_data;
-    Energy e_length;
-    Energy e_merge;
+    private final Energy e_data;
+    private final Energy e_length;
+    private final Energy e_merge;
 
-    Settings settings;
+    private final Settings settings;
 
     public ImageModel(Energy e_data, Energy e_length, Energy e_merge, Settings settings) {
         this.e_data = e_data;

@@ -7,7 +7,7 @@ package mosaic.variationalCurvatureFilters;
  * @author Krzysztof Gonciarz
  */
 public class NoSplitFilter3D implements CurvatureFilter3D {
-    FilterKernel3D iFk3D;
+    final private FilterKernel3D iFk3D;
 
     public NoSplitFilter3D(FilterKernel3D aFilterKernel) {
         iFk3D = aFilterKernel;

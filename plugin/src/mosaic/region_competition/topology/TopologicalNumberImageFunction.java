@@ -12,23 +12,23 @@ import mosaic.region_competition.LabelImageRC;
 
 public class TopologicalNumberImageFunction {
 
-    Connectivity TFGConnectivity;
-    Connectivity TBGConnectivity;
+    private final Connectivity TFGConnectivity;
+    private final Connectivity TBGConnectivity;
 
-    UnitCubeCCCounter m_ForegroundUnitCubeCCCounter;
-    UnitCubeCCCounter m_BackgroundUnitCubeCCCounter;
+    private final UnitCubeCCCounter m_ForegroundUnitCubeCCCounter;
+    private final UnitCubeCCCounter m_BackgroundUnitCubeCCCounter;
 
-    protected char[] m_SubImage; // binary subimage (switching fg/bg)
-    protected Point[] m_Offsets; // maps indexes to Points
-    protected int[] m_DataSubImage; // cached input image
+    private final char[] m_SubImage; // binary subimage (switching fg/bg)
+    private final Point[] m_Offsets; // maps indexes to Points
+    private final int[] m_DataSubImage; // cached input image
 
-    protected int m_IgnoreLabel;
+    private final int m_IgnoreLabel;
 
-    LabelImageRC labelImage;
-    protected int dimension;
-    protected int imageSize;
+    private final LabelImageRC labelImage;
+    private final int dimension;
+    private final int imageSize;
 
-    final int Zero = 0;
+    private final int Zero = 0;
 
     public TopologicalNumberImageFunction(LabelImageRC aLabelImage, Connectivity aTFGConnectivity, Connectivity aTBGConnectivity) {
         this.TFGConnectivity = aTFGConnectivity;
@@ -125,7 +125,7 @@ public class TopologicalNumberImageFunction {
         public int FGNumber;
         public int BGNumber;
 
-        TopologicalNumberPair(int fg, int bg) {
+        protected TopologicalNumberPair(int fg, int bg) {
             this.FGNumber = fg;
             this.BGNumber = bg;
         }
@@ -133,10 +133,10 @@ public class TopologicalNumberImageFunction {
 
     public static class TopologicalNumberResult {
 
-        public int label;
-        public TopologicalNumberPair topologicalNumberPair;
+        public final int label;
+        public final TopologicalNumberPair topologicalNumberPair;
 
-        TopologicalNumberResult(int label, TopologicalNumberPair tn) {
+        protected TopologicalNumberResult(int label, TopologicalNumberPair tn) {
             this.label = label;
             this.topologicalNumberPair = tn;
         }

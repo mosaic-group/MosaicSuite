@@ -38,7 +38,7 @@ import net.imglib2.type.numeric.real.FloatType;
 
 public class Algorithm {
 
-    boolean shrinkFirst = false;
+    private boolean shrinkFirst = false;
 
     private final Region_Competition MVC;
     /** interface to image program */
@@ -52,16 +52,16 @@ public class Algorithm {
     private final int bgLabel;
     private final int forbiddenLabel;
 
-    public LabelDispenser labelDispenser;
+    private LabelDispenser labelDispenser;
 
     // data structures
 
     /** stores the contour particles. access via coordinates */
-    public HashMap<Point, ContourParticle> m_InnerContourContainer;
+    HashMap<Point, ContourParticle> m_InnerContourContainer;
     private HashMap<Point, ContourParticle> m_Candidates;
 
     /** Maps the label(-number) to the information of a label */
-    HashMap<Integer, LabelInformation> labelMap;
+    final HashMap<Integer, LabelInformation> labelMap;
 
     /** Deconvolution Image **/
     private HashMap<Point, LabelPair> m_CompetingRegionsMap;
@@ -112,24 +112,24 @@ public class Algorithm {
 
     // ////////////////////////////////////////////////
 
-    public Settings settings;
+    private final Settings settings;
 
-    boolean m_converged;
+    private boolean m_converged;
     public float m_AcceptedPointsFactor;
-    int m_iteration_counter; // member for debugging
+    private int m_iteration_counter; // member for debugging
 
     // int m_OscillationsNumberHist[];
     // double m_OscillationsEnergyHist[];
     //
     // public int m_OscillationHistoryLength;
-    OscillationDetection oscillationDetection;
+    private OscillationDetection oscillationDetection;
 
-    EnergyFunctionalType m_EnergyFunctional;
+    private EnergyFunctionalType m_EnergyFunctional;
     private int m_MaxNLabels;
 
     // Settings
-    public final float AcceptedPointsFactor = 1;
-    public final boolean RemoveNonSignificantRegions = true;
+    private final float AcceptedPointsFactor = 1;
+    private final boolean RemoveNonSignificantRegions = true;
   
     
     // ///////////////////////////////////////////////////
@@ -404,7 +404,7 @@ public class Algorithm {
         return true;
     }
 
-    Vector<ImagePlus> OpenedImages = new Vector<ImagePlus>();
+    private final Vector<ImagePlus> OpenedImages = new Vector<ImagePlus>();
 
     /**
      * Initialize the energy function
@@ -1832,9 +1832,9 @@ public class Algorithm {
 
     // Control //////////////////////////////////////////////////
 
-    Object pauseMonitor = new Object();
-    boolean pause = false;
-    boolean abort = false;
+    private final Object pauseMonitor = new Object();
+    private boolean pause = false;
+    private boolean abort = false;
 
     /**
      * Close all created images

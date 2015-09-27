@@ -13,10 +13,10 @@ import mosaic.core.utils.Point;
 
 public class PickRegion implements MouseListener {
 
-    ImagePlus ip;
-    int offX;
-    int offY;
-    Vector<Point> aC;
+    private final ImagePlus ip;
+    private int offX;
+    private int offY;
+    private final Vector<Point> aC;
 
     public PickRegion(ImagePlus img) {
         final ImageCanvas canvas = img.getWindow().getCanvas();

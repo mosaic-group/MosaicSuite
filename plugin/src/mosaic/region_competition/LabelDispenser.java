@@ -9,14 +9,14 @@ import java.util.TreeSet;
 
 class LabelDispenser {
 
-    TreeSet<Integer> labels;
+    private final TreeSet<Integer> labels;
     // LinkedList<Integer> labels;
 
     /**
      * Labels freed up during an iteration gets collected in here
      * and added to labels at the end of the iteration.
      */
-    TreeSet<Integer> tempList;
+    private final TreeSet<Integer> tempList;
 
     private int highestLabelEverUsed;
 
@@ -105,7 +105,7 @@ class LabelDispenser {
      */
     public static class LabelDispenserInc extends LabelDispenser {
 
-        int label = 0;
+        private int label = 0;
 
         public LabelDispenserInc() {
             super(0);

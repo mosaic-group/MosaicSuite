@@ -10,8 +10,8 @@ import java.util.Arrays;
 public class Polynomial {
     // Keeps coefficients in Matlab style (first element of array is the coefficient for highest power of polynomial,
     // ... the last is constant).
-    double[] iCoeffs;
-    int iDegree;
+    private double[] iCoeffs;
+    private int iDegree;
 
     /**
      * Constructs polynomial from given coefficients. They should be given in Matlab style

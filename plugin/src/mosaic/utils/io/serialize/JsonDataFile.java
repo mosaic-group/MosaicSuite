@@ -21,7 +21,7 @@ import com.google.gson.GsonBuilder;
  */
 public class JsonDataFile<T> implements DataFile<T> {
 
-    protected static final Logger logger = Logger.getLogger(JsonDataFile.class);
+    private static final Logger logger = Logger.getLogger(JsonDataFile.class);
 
     @Override
     public boolean SaveToFile(String aSerializedFileName, T aObject2Save) {

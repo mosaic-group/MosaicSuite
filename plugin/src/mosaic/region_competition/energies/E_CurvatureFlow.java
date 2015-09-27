@@ -11,7 +11,7 @@ import mosaic.region_competition.energies.Energy.InternalEnergy;
 public class E_CurvatureFlow extends InternalEnergy// implements SettingsListener
 {
 
-    CurvatureBasedFlow curv;
+    private final CurvatureBasedFlow curv;
 
     public E_CurvatureFlow(LabelImageRC labelImage, int rad, Calibration cal) {
         super(labelImage);

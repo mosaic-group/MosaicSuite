@@ -6,7 +6,7 @@ package mosaic.variationalCurvatureFilters;
  * @author Krzysztof Gonciarz
  */
 public class NoSplitFilter implements CurvatureFilter {
-    FilterKernel iFk;
+    final private FilterKernel iFk;
 
     public NoSplitFilter(FilterKernel aFilterKernel) {
         iFk = aFilterKernel;

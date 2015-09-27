@@ -8,19 +8,19 @@ package mosaic.variationalCurvatureFilters;
  */
 public class SplitFilter implements CurvatureFilter {
     // Original image dimensions
-    int originalWidth;
-    int originalHeight;
+    private int originalWidth;
+    private int originalHeight;
 
     // Rounded up to divisible by 2 dimensions
-    int roundedWidth;
-    int roundedHeight;
+    private int roundedWidth;
+    private int roundedHeight;
 
     // rounded(Width/Height)/2
-    int halfWidth;
-    int halfHeight;
+    private int halfWidth;
+    private int halfHeight;
 
     // Keeps provided split filter kernel
-    FilterKernel iFk;
+    private final FilterKernel iFk;
 
     public SplitFilter(FilterKernel aFk) {
         iFk = aFk;

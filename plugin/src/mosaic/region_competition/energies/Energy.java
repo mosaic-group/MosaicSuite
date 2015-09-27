@@ -24,7 +24,7 @@ public abstract class Energy {
         }
 
         public Double energyDifference;
-        public Boolean merge;
+        public final Boolean merge;
     }
 
     /**
@@ -33,7 +33,7 @@ public abstract class Energy {
      */
     static abstract class InternalEnergy extends Energy {
 
-        protected LabelImageRC labelImage;
+        protected final LabelImageRC labelImage;
 
         InternalEnergy(LabelImageRC labelImage) {
             this.labelImage = labelImage;
@@ -45,8 +45,8 @@ public abstract class Energy {
      */
     static abstract class ExternalEnergy extends Energy {
 
-        protected IntensityImage intensityImage;
-        protected LabelImageRC labelImage;
+        protected final IntensityImage intensityImage;
+        protected final LabelImageRC labelImage;
 
         ExternalEnergy(LabelImageRC labelImage, IntensityImage intensityImage) {
             this.labelImage = labelImage;

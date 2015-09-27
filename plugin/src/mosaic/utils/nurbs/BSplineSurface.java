@@ -21,10 +21,10 @@ public class BSplineSurface {
     private final int iDegreeInVdir;
     private final int iOriginalU;
     private final int iOriginalV;
-    double uMin;
-    double vMin;
-    double uMax;
-    double vMax;
+    private final double uMin;
+    private final double vMin;
+    private final double uMax;
+    private final double vMax;
 
     private final Point3d[][] iPoints;
 

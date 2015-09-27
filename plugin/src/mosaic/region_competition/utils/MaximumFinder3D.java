@@ -27,28 +27,28 @@ public class MaximumFinder3D implements MaximumFinderInterface {
     /** maximum height difference between points that are not counted as separate maxima */
     // private static double tolerance = 10;
     /** Output type watershed-segmented image */
-    public final static int SEGMENTED = 2;
+    private final static int SEGMENTED = 2;
     /** Do not create image, only mark points */
-    public final static int POINT_SELECTION = 3;
+    private final static int POINT_SELECTION = 3;
     /** Do not create an image, just list x, y of maxima in the Results table */
-    public final static int LIST = 4;
+    private final static int LIST = 4;
     /** Do not create an image, just count maxima and add count to Results table */
-    public final static int COUNT = 5;
+    private final static int COUNT = 5;
     /** what type of output to create (see constants above) */
     // private static int outputType;
     /** what type of output to create was chosen in the dialog (see constants above) */
     // private static int dialogOutputType = POINT_SELECTION;
     /** whether to exclude maxima at the edge of the image */
-    private static boolean excludeOnEdges;
+    private static boolean excludeOnEdges = false;
     /** whether to accept maxima only in the thresholded height range */
     // private static boolean useMinThreshold;
     /** whether to find darkest points on light background */
     // private static boolean lightBackground;
     // private ImagePlus imp; // the ImagePlus of the setup call
     // private boolean thresholded; // whether the input image has a threshold
-    private boolean previewing; // true while dialog is displayed (processing for preview)
+    private final boolean previewing = false; // true while dialog is displayed (processing for preview)
     // private boolean thresholdWarningShown = false; // whether the warning "can't find minima with thresholding" has been shown
-    private Label messageArea; // reference to the textmessage area for displaying the number of maxima
+    private final Label messageArea = null; // reference to the textmessage area for displaying the number of maxima
     // private double progressDone; // for progress bar, fraction of work done so far
     // private int nPasses = 0; // for progress bar, how many images to process (sequentially or parallel threads)
     // the following are class variables for having shorter argument lists
@@ -57,20 +57,20 @@ public class MaximumFinder3D implements MaximumFinderInterface {
     // private int[] dirOffset; // pixel offsets of neighbor pixels for direct addressing
     private int[][] points; // maxima found by findMaxima() when outputType is POINT_SELECTION
     /** the following constants are used to set bits corresponding to pixel types */
-    final static byte MAXIMUM = (byte) 1; // marks local maxima (irrespective of noise tolerance)
-    final static byte LISTED = (byte) 2; // marks points currently in the list
-    final static byte PROCESSED = (byte) 4; // marks points processed previously
-    final static byte MAX_AREA = (byte) 8; // marks areas near a maximum, within the tolerance
-    final static byte EQUAL = (byte) 16; // marks contigous maximum points of equal level
-    final static byte MAX_POINT = (byte) 32; // marks a single point standing for a maximum
+    private final static byte MAXIMUM = (byte) 1; // marks local maxima (irrespective of noise tolerance)
+    private final static byte LISTED = (byte) 2; // marks points currently in the list
+    private final static byte PROCESSED = (byte) 4; // marks points processed previously
+    private final static byte MAX_AREA = (byte) 8; // marks areas near a maximum, within the tolerance
+    private final static byte EQUAL = (byte) 16; // marks contigous maximum points of equal level
+    private final static byte MAX_POINT = (byte) 32; // marks a single point standing for a maximum
     /** type masks corresponding to the output types */
-    final static byte[] outputTypeMasks = new byte[] { MAX_POINT, MAX_AREA, MAX_AREA };
-    final static float SQRT2 = 1.4142135624f;
+    private final static byte[] outputTypeMasks = new byte[] { MAX_POINT, MAX_AREA, MAX_AREA };
+    private final static float SQRT2 = 1.4142135624f;
 
     private final int depth;
     private final int size;
-    IndexIterator iterator;
-    Connectivity conn;
+    private final IndexIterator iterator;
+    private final Connectivity conn;
 
     public MaximumFinder3D(int[] dims) {
         this(dims[0], dims[1], dims[2]);

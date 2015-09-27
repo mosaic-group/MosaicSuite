@@ -9,7 +9,7 @@ public class LabelInformation {
     public double var = 0; // variance of intensity
     public double median = 0;
     public double mean_pos[];
-    public int dim;
+    private final int dim;
 
     /**
      * Create a label that store information

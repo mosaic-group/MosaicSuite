@@ -7,8 +7,8 @@ package mosaic.region_competition;
  */
 class LabelPair implements Comparable<LabelPair> {
 
-    int first; // smaller value
-    int second; // bigger value
+    final int first; // smaller value
+    final int second; // bigger value
 
     public LabelPair(int l1, int l2) {
         if (l1 < l2) {

@@ -14,8 +14,8 @@ public class BubbleInitializer extends Initializer {
     }
 
     // default values
-    int radius = 5;
-    int displacement = 15;
+    private final int radius = 5;
+    private final int displacement = 15;
 
     /**
      * Initializes bubbles by radius size and the gaps between the bubble center points

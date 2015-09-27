@@ -20,8 +20,8 @@ public class E_PS extends ExternalEnergy {
 
     private final float regionMergingThreshold;
     private final HashMap<Integer, LabelInformation> labelMap;
-    SphereMask sphere;
-    RegionIteratorMask sphereIt;
+    private final SphereMask sphere;
+    private final RegionIteratorMask sphereIt;
 
     public E_PS(LabelImageRC labelImage, IntensityImage intensityImage, HashMap<Integer, LabelInformation> labelMap, int PSenergyRadius, float regionMergingThreshold) {
         super(labelImage, intensityImage);

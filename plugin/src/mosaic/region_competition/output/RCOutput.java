@@ -8,13 +8,13 @@ package mosaic.region_competition.output;
 
 public class RCOutput {
 
-    int Frame;
-    double x;
-    double y;
-    double z;
-    double mean;
-    double size;
-    double var;
+    private int Frame;
+    private double x;
+    private double y;
+    private double z;
+    private double mean;
+    private double size;
+    private double var;
 
     public void setImage_ID(int Image_ID_) {
         Frame = Image_ID_;

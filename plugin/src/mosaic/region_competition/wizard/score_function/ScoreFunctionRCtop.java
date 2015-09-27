@@ -34,11 +34,11 @@ import mosaic.region_competition.wizard.PickRegion;
 
 public class ScoreFunctionRCtop implements ScoreFunction {
 
-    String[] file;
+    private final String[] file;
 
-    IntensityImage i[];
-    LabelImageRC l[];
-    Settings s;
+    private final IntensityImage i[];
+    private final LabelImageRC l[];
+    private final Settings s;
 
     private final PointCM pntMod[][];
 
@@ -338,7 +338,7 @@ public class ScoreFunctionRCtop implements ScoreFunction {
         }
     }
 
-    JDialog frm;
+    private JDialog frm;
 
     public void MergeAndDivideWin(LabelImageRC ip[]) {
         lock = new Object();
@@ -402,7 +402,7 @@ public class ScoreFunctionRCtop implements ScoreFunction {
         }
     }
 
-    Object lock;
+    protected Object lock;
 
     private void waitClose() {
         synchronized (lock) {

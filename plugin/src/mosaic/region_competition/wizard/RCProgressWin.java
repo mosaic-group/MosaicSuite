@@ -31,7 +31,7 @@ import mosaic.region_competition.Settings;
 class RCProgressWin extends JFrame implements MouseListener {
 
     private static final long serialVersionUID = 1L;
-    JLabel score_l[];
+    private final JLabel score_l[];
 
     private class ImageList {
 
@@ -49,16 +49,16 @@ class RCProgressWin extends JFrame implements MouseListener {
         RUNNING, STOP,
     }
 
-    StatusSel sStat = StatusSel.RUNNING;
-    int selection = -1;
-    int nbest;
-    int nImg;
-    ImageList img[];
-    JPanel contentPane;
-    JPanel contentImage;
-    JProgressBar Prog_s;
-    JLabel Status;
-    Object lock;
+    protected StatusSel sStat = StatusSel.RUNNING;
+    private int selection = -1;
+    private final int nbest;
+    private final int nImg;
+    private final ImageList img[];
+    private final JPanel contentPane;
+    private final JPanel contentImage;
+    private final JProgressBar Prog_s;
+    private final JLabel Status;
+    protected final Object lock;
 
     public void SetStatusMessage(String Message) {
         Status.setText(Message);

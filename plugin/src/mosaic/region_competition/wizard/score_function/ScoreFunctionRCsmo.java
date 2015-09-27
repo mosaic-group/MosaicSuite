@@ -20,13 +20,13 @@ import mosaic.region_competition.energies.EnergyFunctionalType;
 
 public class ScoreFunctionRCsmo implements ScoreFunction {
 
-    String[] file;
+    private final String[] file;
     private double smooth[];
     private int Area[];
 
-    IntensityImage i[];
-    LabelImageRC l[];
-    Settings s;
+    private final IntensityImage i[];
+    private final LabelImageRC l[];
+    private final Settings s;
 
     @Override
     public Settings createSettings(Settings s, double pop[]) {

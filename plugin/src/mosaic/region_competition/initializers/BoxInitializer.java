@@ -11,7 +11,7 @@ public class BoxInitializer extends Initializer {
         super(labelImage);
     }
 
-    double ratio = 0.95;
+    private final double ratio = 0.95;
 
     /**
      * creates an initial guess (of the size r*labelImageSize)

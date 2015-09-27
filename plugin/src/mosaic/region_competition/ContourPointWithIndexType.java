@@ -6,8 +6,8 @@ import mosaic.core.utils.Point;
 
 class ContourPointWithIndexType implements Comparable<ContourPointWithIndexType> {
 
-    Point pIndex;
-    ContourParticle p;
+    final Point pIndex;
+    final ContourParticle p;
 
     public ContourPointWithIndexType(Point index, ContourParticle p) {
         this.pIndex = index;

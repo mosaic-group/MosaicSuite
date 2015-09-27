@@ -10,16 +10,16 @@ import mosaic.region_competition.ContourParticle;
 
 public class OscillationDetection {
 
-    public final float AcceptedPointsReductionFactor = 0.5f;
-    Algorithm algorithm;
+    private final float AcceptedPointsReductionFactor = 0.5f;
+    final Algorithm algorithm;
 
-    int m_OscillationsNumberHist[];
-    double m_OscillationsEnergyHist[];
+    private final int m_OscillationsNumberHist[];
+    private final double m_OscillationsEnergyHist[];
     
     // Settings
-    int m_OscillationHistoryLength = 10;
+    private final int m_OscillationHistoryLength = 10;
 
-    float m_AcceptedPointsReductionFactor;
+    private final float m_AcceptedPointsReductionFactor;
 
     OscillationDetection(Algorithm algo) {
         this.algorithm = algo;

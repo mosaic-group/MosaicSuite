@@ -22,15 +22,15 @@ public class ControllerFrame extends JFrame {
 
     private static final long serialVersionUID = -2978938221002810146L;
 
-    Region_Competition MVC;
+    protected final Region_Competition MVC;
     // Algorithm algorithm;
 
-    JFrame controllerFrame;
-    JPanel panel;
+    protected final JFrame controllerFrame;
+    private final JPanel panel;
 
-    JButton resumeButton;
-    JButton stopButton;
-    JButton editButton;
+    protected final JButton resumeButton;
+    private final JButton stopButton;
+    private final JButton editButton;
 
     public ControllerFrame(Region_Competition mvc) {
         this.MVC = mvc;

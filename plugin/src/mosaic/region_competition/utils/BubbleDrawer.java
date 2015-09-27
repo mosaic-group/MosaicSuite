@@ -12,9 +12,9 @@ import mosaic.region_competition.LabelImageRC;
  */
 public class BubbleDrawer {
 
-    LabelImageRC labelImage;
-    RegionIteratorMask sphereIt;
-    SphereMask sphere;
+    private final LabelImageRC labelImage;
+    private final RegionIteratorMask sphereIt;
+    private final SphereMask sphere;
 
     public BubbleDrawer(LabelImageRC labelImage, int radius, int size) {
         this.labelImage = labelImage;

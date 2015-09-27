@@ -22,9 +22,9 @@ public class ScoreFunctionRCvol implements ScoreFunction {
     private int Area[];
     private final String[] file;
 
-    IntensityImage i[];
-    LabelImageRC l[];
-    Settings s;
+    private final IntensityImage i[];
+    private final LabelImageRC l[];
+    private final Settings s;
 
     public ScoreFunctionRCvol(IntensityImage i_[], LabelImageRC l_[], Settings s_) {
         i = i_;

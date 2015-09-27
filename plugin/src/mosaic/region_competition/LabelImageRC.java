@@ -442,7 +442,7 @@ public class LabelImageRC extends LabelImage {
 
 class StackProjector extends GroupedZProjector {
 
-    int method = ZProjector.MAX_METHOD;
+    private final int method = ZProjector.MAX_METHOD;
 
     public StackProjector() {
         // method = ZProjector.SUM_METHOD;

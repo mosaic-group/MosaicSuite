@@ -12,11 +12,11 @@ class UnitCubeCCCounter {
 
     boolean[] m_ConnectivityTest;
 
-    boolean m_UnitCubeNeighbors[][];
+    private final boolean m_UnitCubeNeighbors[][];
 
-    char[] m_Image;
-    Connectivity TConnectivity;
-    Connectivity TNeighborhoodConnectivity;
+    private char[] m_Image;
+    private final Connectivity TConnectivity;
+    private final Connectivity TNeighborhoodConnectivity;
 
     UnitCubeCCCounter(Connectivity TConnectivity) {
         this.TConnectivity = TConnectivity;

@@ -13,8 +13,8 @@ import mosaic.core.utils.Point;
 
 public class MaximumFinder2D extends MaximumFinder implements MaximumFinderInterface {
 
-    int width;
-    int height;
+    private final int width;
+    private final int height;
 
     public MaximumFinder2D(int width, int height) {
         this.width = width;

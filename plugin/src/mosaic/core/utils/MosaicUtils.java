@@ -1420,9 +1420,7 @@ public class MosaicUtils {
         CsvMetaInfo mt[] = null;
         if (bck != null) {
             mt = new CsvMetaInfo[1];
-            mt[0] = new CsvMetaInfo();
-            mt[0].parameter = new String("background");
-            mt[0].value = new String(bck);
+            mt[0] = new CsvMetaInfo("background", bck);
         }
         else {
             mt = new CsvMetaInfo[0];

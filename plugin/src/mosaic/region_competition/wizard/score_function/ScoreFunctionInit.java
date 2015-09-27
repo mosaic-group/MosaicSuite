@@ -16,13 +16,13 @@ import mosaic.region_competition.initializers.MaximaBubbles;
 
 public class ScoreFunctionInit implements ScoreFunction {
 
-    int off[];
-    int inc_step[];
-    int r_t = 8;
-    int rad = 8;
+    private final int off[];
+    private final int inc_step[];
+    private int r_t = 8;
+    private int rad = 8;
 
-    IntensityImage i[];
-    LabelImageRC l[];
+    private final IntensityImage i[];
+    private final LabelImageRC l[];
 
     public ScoreFunctionInit(IntensityImage i_[], LabelImageRC l_[], int r_t_, int rad_) {
         i = i_;

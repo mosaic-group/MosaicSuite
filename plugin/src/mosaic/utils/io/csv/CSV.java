@@ -20,9 +20,9 @@ import org.supercsv.prefs.CsvPreference;
 public class CSV<E> {
     protected static final Logger logger = Logger.getLogger(CSV.class);
 
-    final private Class<E> iClazz;
+    private final Class<E> iClazz;
     private CsvPreference iCsvPreference;
-    final private Vector<CsvMetaInfo> iMetaInfos;
+    private final Vector<CsvMetaInfo> iMetaInfos;
     final Vector<CsvMetaInfo> iMetaInfosRead;
 
     /**
@@ -48,7 +48,7 @@ public class CSV<E> {
      * Set Meta information
      * @param aMetaInfo - meta information
      */
-    public void setMetaInformation(CsvMetaInfo aMetaInfo) {
+    private void setMetaInformation(CsvMetaInfo aMetaInfo) {
         final String value = getMetaInformation(aMetaInfo.parameter);
         if (value != null) {
             logger.debug("MetaInfo " + aMetaInfo + " added, but same parameter with value [" + value + "] already exists!");
@@ -213,7 +213,7 @@ public class CSV<E> {
      * @param aOutputFileName - output stitched file
      * @return true when succeed
      */
-    public boolean Stitch(String[] aInputFileNames, String aOutputFileName, CsvColumnConfig aOutputChoose) {
+    boolean Stitch(String[] aInputFileNames, String aOutputFileName, CsvColumnConfig aOutputChoose) {
         if (aInputFileNames.length == 0) {
             return false;
         }

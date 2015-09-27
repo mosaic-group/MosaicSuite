@@ -8,7 +8,7 @@ import mosaic.region_competition.Settings;
 abstract class GUImeMore {
 
     protected GenericDialog gd;
-    protected Settings settings;
+    protected final Settings settings;
 
     protected GUImeMore(Settings settings) {
         this.settings = settings;

@@ -58,10 +58,10 @@ import mosaic.region_competition.wizard.RCWWin;
  */
 public class GenericDialogGUI implements InputReadable {
 
-    Settings settings;
-    private GenericDialog gd;
+    protected Settings settings;
+    private final GenericDialog gd;
     private GenericDialog gd_p;
-    private ImagePlus aImp; // active ImagePlus (argument of Plugin)
+    private final ImagePlus aImp; // active ImagePlus (argument of Plugin)
 
     private String filenameInput; // image to be processed
     private String filenameLabelImage; // initialization
@@ -73,20 +73,20 @@ public class GenericDialogGUI implements InputReadable {
     private boolean showAndSaveStatistics = true;
     private boolean showNormalized = false;
     private boolean useStack = true;
-    public boolean keepAllFrames = true; // keep result of last segmentation iteratior?
+    private boolean keepAllFrames = true; // keep result of last segmentation iteratior?
     // private boolean useRegularization;
     private boolean useCluster = false;
 
-    static final String EnergyFunctional = "E_data";
-    EnergyGUI energyGUI;
-    static final String Regularization = "E_length";
+    private static final String EnergyFunctional = "E_data";
+    protected EnergyGUI energyGUI;
+    private static final String Regularization = "E_length";
 
     private static final String Initialization = "Initialization";
 
     static final String TextDefaultInputImage = "Input Image: \n\n" + "Drop image here,\n" + "insert Path to file,\n" + "or press Button below";
     static final String TextDefaultLabelImage = "Drop Label Image here, or insert Path to file";
 
-    static final String emptyOpenedImage = "";
+    private static final String emptyOpenedImage = "";
 
     /**
      * Create main plugins dialog
@@ -207,7 +207,7 @@ public class GenericDialogGUI implements InputReadable {
      * Create parameters dialog
      */
 
-    void CreateParametersDialog() {
+    protected void CreateParametersDialog() {
         gd_p = new GenericDialog("Region Competition Parameters");
 
         Button optionButton;
@@ -349,8 +349,8 @@ public class GenericDialogGUI implements InputReadable {
     // Choice for open images in IJ
 
     private int nOpenedImages = 0;
-    Choice choiceLabelImage;
-    Choice choiceInputImage;
+    private Choice choiceLabelImage;
+    private Choice choiceInputImage;
 
     private void addOpenedImageChooser() {
         nOpenedImages = 0;
@@ -590,7 +590,7 @@ public class GenericDialogGUI implements InputReadable {
 
     // //////////////////////////
 
-    Choice initializationChoice; // reference to the awt.Choice for initialization
+    protected Choice initializationChoice; // reference to the awt.Choice for initialization
 
     // private String lastInitChoice; // choice before File_choice was set automatically
 
@@ -638,9 +638,9 @@ public class GenericDialogGUI implements InputReadable {
 class TextAreaListener implements DropTargetListener, TextListener, FocusListener // , MouseListener
 {
 
-    TextArea textArea;
-    String defaultText;
-    GenericDialogGUI gd;
+    private final TextArea textArea;
+    private final String defaultText;
+    private final GenericDialogGUI gd;
 
     public TextAreaListener(GenericDialogGUI gd, TextArea ta, String defaulftTxt) {
         this.gd = gd;
@@ -829,8 +829,8 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
  */
 class FileOpenerActionListener implements ActionListener {
 
-    GenericDialog gd;
-    TextArea ta;
+    private final GenericDialog gd;
+    private final TextArea ta;
 
     public FileOpenerActionListener(GenericDialog gd, TextArea ta) {
         this.gd = gd;
@@ -857,8 +857,8 @@ class FileOpenerActionListener implements ActionListener {
  */
 class NumericFieldWheelListener implements MouseWheelListener {
 
-    double fac = 0.1;
-    TextField tf;
+    private final double fac = 0.1;
+    private final TextField tf;
 
     public NumericFieldWheelListener(TextField tf) {
         this.tf = tf;

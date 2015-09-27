@@ -14,11 +14,11 @@ import mosaic.core.utils.Point;
 
 class ForestFire {
 
-    Algorithm algorithm;
-    LabelImageRC labelImage;
-    IntensityImage intensityImage;
+    private final Algorithm algorithm;
+    private final LabelImageRC labelImage;
+    private final IntensityImage intensityImage;
 
-    HashMap<Point, ContourParticle> m_InnerContourContainer;
+    private final HashMap<Point, ContourParticle> m_InnerContourContainer;
 
     public ForestFire(Algorithm algorithm, LabelImageRC labelImage, IntensityImage intensityImage) {
         this.algorithm = algorithm;

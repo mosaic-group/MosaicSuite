@@ -10,10 +10,10 @@ import java.util.Arrays;
  *
  */
 public class CubicSmoothingSpline {
-    public Polynomial[] iSplines;
+    private final Polynomial[] iSplines;
     private final double[] iX;
     private final double[] iY;
-    private double[] iWeights;
+    private final double[] iWeights;
     private final double iSmoothingParameter;
 
     /**

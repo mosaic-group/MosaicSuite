@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
  */
 public class SerializedDataFile<T extends Serializable> implements DataFile<T> {
 
-    protected static final Logger logger = Logger.getLogger(SerializedDataFile.class);
+    private static final Logger logger = Logger.getLogger(SerializedDataFile.class);
 
     @Override
     public boolean SaveToFile(String aSerializedFileName, T aObject2Save) {

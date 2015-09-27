@@ -10,14 +10,14 @@ import mosaic.region_competition.LabelImageRC;
 
 public class CurvatureBasedFlow {
 
-    RegionIteratorMask sphereIt;
-    LabelImageRC labelImage;
+    private final RegionIteratorMask sphereIt;
+    private final LabelImageRC labelImage;
 
-    int dim;
-    int[] inputDims;
-    int rad;
+    private final int dim;
+    private final int[] inputDims;
+    private final int rad;
 
-    SphereMask sphere;
+    private final SphereMask sphere;
 
     public CurvatureBasedFlow(int rad, LabelImageRC labelImage, Calibration cal) {
         this.rad = rad;
