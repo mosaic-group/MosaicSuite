@@ -65,8 +65,8 @@ public class Jtest implements PlugInFilter {
         final mosaic.region_competition.Jtest jtestRC = new mosaic.region_competition.Jtest();
         jtestRC.segmentation();
         tm.logLapTimeSec("========================== region_competition.Jtest");
-
-        logger.info("All tests SUCCESSFULLY completed");
+        
+        tm.logTimeSec("All tests SUCCESSFULLY completed");
 
         // Create a file that notify all test has been completed suceffuly
         try {

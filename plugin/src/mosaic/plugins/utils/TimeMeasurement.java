@@ -90,10 +90,18 @@ public class TimeMeasurement {
     }
 
     /**
-     * Logs number of nanoseconds from last call to any "get(Lap)Time*" method.
+     * Logs number of seconds from last call to any "get(Lap)Time*" method.
      * @param aName name used in log in format: "aName (s): 12412"
      */
     public void logLapTimeSec(String aName) {
         logger.info(aName + " (s): " + getLapTimeSec());
+    }
+    
+    /**
+     * Logs number of seconds from moment this object was created.
+     * @param aName name used in log in format: "aName (s): 12412"
+     */
+    public void logTimeSec(String aName) {
+        logger.info(aName + " (s): " + getTimeSec());
     }
 }
