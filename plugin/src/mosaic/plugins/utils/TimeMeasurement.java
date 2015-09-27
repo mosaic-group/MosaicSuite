@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class TimeMeasurement {
-    protected static final Logger logger = Logger.getLogger(TimeMeasurement.class);
+    private static final Logger logger = Logger.getLogger(TimeMeasurement.class);
 
     private final long startTime;
     private long lastTime;

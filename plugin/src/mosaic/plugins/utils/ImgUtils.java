@@ -122,7 +122,7 @@ public class ImgUtils {
      * @param aNewImgArray   Created 2D array to keep converted original image
      * @param aNormalizationValue Maximum pixel value of original image -> converted one will be normalized [0..1]
      */
-    static public void ImgToXY2Darray(final FloatProcessor aInputIp, float[][] aNewImgArray, float aNormalizationValue) {
+    static void ImgToXY2Darray(final FloatProcessor aInputIp, float[][] aNewImgArray, float aNormalizationValue) {
         final float[] pixels = (float[])aInputIp.getPixels();
         final int w = aInputIp.getWidth();
         final int h = aInputIp.getHeight();
@@ -153,7 +153,7 @@ public class ImgUtils {
      * @param aImg                 2D array (first dim X, second Y)
      * @param aNormalizationValue  Normalization value.
      */
-    static public void XY2DarrayToImg(final float[][] aImg, FloatProcessor aIp, float aNormalizationValue) {
+    static void XY2DarrayToImg(final float[][] aImg, FloatProcessor aIp, float aNormalizationValue) {
         final float[] pixels = (float[]) aIp.getPixels();
         final int w = aIp.getWidth();
         final int h = aIp.getHeight();
@@ -173,7 +173,7 @@ public class ImgUtils {
      * @param aInputImg      Original image array
      * @param aNewImgArray   Resized image array (must be created by user)
      */
-    static public void imgResize(float[][] aInputImg, float[][] aOutputImg) {
+    static void imgResize(float[][] aInputImg, float[][] aOutputImg) {
         final int w = aInputImg[0].length;
         final int h = aInputImg.length;
         final int arrayW = aOutputImg[0].length;
@@ -223,9 +223,9 @@ public class ImgUtils {
         }
     }
 
-    public static class MinMax<T> {
-        T min;
-        T max;
+    static class MinMax<T> {
+        private final T min;
+        private final T max;
 
         MinMax(T aMin, T aMax) {
             min = aMin;
@@ -241,7 +241,7 @@ public class ImgUtils {
         }
     }
 
-    static public MinMax<Float> findMinMax(final float[][] aImgArray) {
+    static MinMax<Float> findMinMax(final float[][] aImgArray) {
         final int arrayW = aImgArray[0].length;
         final int arrayH = aImgArray.length;
 
@@ -267,7 +267,7 @@ public class ImgUtils {
      * Normalize values in array to 0..1 range
      * @param aImgArray
      */
-    static public void normalize(final float[][] aImgArray) {
+    static void normalize(final float[][] aImgArray) {
         final int arrayW = aImgArray[0].length;
         final int arrayH = aImgArray.length;
 
@@ -335,7 +335,7 @@ public class ImgUtils {
      * @param aMultiply - multiplication factor
      * @param aShift - shift value
      */
-    static public void convertRange(final float[][] aImgArray, float aMultiply, float aShift) {
+    static void convertRange(final float[][] aImgArray, float aMultiply, float aShift) {
         final int arrayW = aImgArray[0].length;
         final int arrayH = aImgArray.length;
 

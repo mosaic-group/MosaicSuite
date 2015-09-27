@@ -13,17 +13,17 @@ import ij.process.ImageProcessor;
 public class PsfRefinement {
 
     /** Radius that defines area of position refinement */
-    public int radius;
+    private final int radius;
 
     // some variables for the refinement algorithm
-    int[] mask;
-    int lambda_n = 1;
-    float[] kernel;
-    PsfSourcePosition particle;
+    private int[] mask;
+    final private int lambda_n = 1;
+    private float[] kernel;
+    private final PsfSourcePosition particle;
 
-    ImageProcessor original_ip; // the original image
-    ImageProcessor original_fp; // the original image after convertion to float processor
-    ImageProcessor restored_fp; // the floating processor after image restoration
+    private final ImageProcessor original_ip; // the original image
+    private ImageProcessor original_fp; // the original image after convertion to float processor
+    private ImageProcessor restored_fp; // the floating processor after image restoration
 
     /**
      * Constructor

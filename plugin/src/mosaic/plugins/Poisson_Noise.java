@@ -68,11 +68,11 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
 {
     static final int FLAGS = DOES_8G + DOES_16 + DOES_32;
     ImagePlus imp;
-    int erodePixel;
-    public int mSeed = 8888;
+    final int erodePixel = 0;
+    public final int mSeed = 8888;
     private static final int BYTE=0, SHORT=1, FLOAT=2;
     NoiseSample<?> ns;
-    SegmentationInfo seg;
+    final SegmentationInfo seg = null;
     String NoiseModel;
     double dilatation = 1.0;
 

@@ -30,30 +30,30 @@ import mosaic.interpolators.BilinearInterpolator;
 //TODO: see further todo entries.
 public class PSF_estimator_3D implements  PlugInFilter{
     //parameters
-    int mMaskRadius = 5;
-    double mRInc = 0.001; //in px
-    double mPhiInc = Math.PI / 20.;
-    int mRMaxInNm = 800;
-    int mZMaxInNm = 1*1600; //only in one direction, the generated map will be twice as large.
-    int mMapSizeR = 1000;
-    int mMapSizeZ = 1000; // in both direction (total image width)
-    float mGaussPreprocessRadius = 1;
+    private final int mMaskRadius = 5;
+    protected double mRInc = 0.001; //in px
+    private final double mPhiInc = Math.PI / 20.;
+    protected int mRMaxInNm = 800;
+    protected int mZMaxInNm = 1*1600; //only in one direction, the generated map will be twice as large.
+    protected int mMapSizeR = 1000;
+    protected int mMapSizeZ = 1000; // in both direction (total image width)
+    private final float mGaussPreprocessRadius = 1;
 
     //member variables
-    int mMask[][][];
-    int mHeight;
-    int mWidth;
-    int mNSlices;
-    float mGlobalMin;
-    float mGlobalMax;
-    double mPxWidthInNm;
-    double mPxDepthInNm;
+    private int mMask[][][];
+    protected int mHeight;
+    protected int mWidth;
+    protected int mNSlices;
+    private float mGlobalMin;
+    private float mGlobalMax;
+    protected double mPxWidthInNm;
+    protected double mPxDepthInNm;
     protected ImagePlus mZProjectedImagePlus;
-    ImagePlus mOriginalImagePlus;
-    ImageStack mPreprocessedFrameImage;
-    int mPreprocessedFrameNb = 0;
-    Vector<Bead> mBeads = new Vector<Bead>();
-    ImagePlus mBeadImage;
+    private ImagePlus mOriginalImagePlus;
+    private ImageStack mPreprocessedFrameImage;
+    private int mPreprocessedFrameNb = 0;
+    protected final Vector<Bead> mBeads = new Vector<Bead>();
+    protected ImagePlus mBeadImage;
 
     //int mMaskHeight = 10;
 
@@ -113,7 +113,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
 
     }
 
-    protected boolean registerOrDeleteNewBeadAt(int aX, int aY) {
+    private boolean registerOrDeleteNewBeadAt(int aX, int aY) {
         //
         //centroid detection
         //
@@ -160,7 +160,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
         return true;
     }
 
-    public void boxCarBackgroundSubtractor(ImageStack is) {
+    private void boxCarBackgroundSubtractor(ImageStack is) {
         final Convolver convolver = new Convolver();
         final float[] kernel = new float[mMaskRadius * 2 +1];
         final int n = kernel.length;
@@ -175,7 +175,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
         }
     }
 
-    protected double[] centroidDetectionRefinement(ImageStack aIS, float aX, float aY, float aZ){
+    private double[] centroidDetectionRefinement(ImageStack aIS, float aX, float aY, float aZ){
         double vEpsX = 1.0;
         double vEpsY = 1.0;
         double vEpsZ = 1.0;
@@ -291,7 +291,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
      * Adapted from Ingo Oppermann implementation
      * @param mask_radius the radius of the mask (user defined)
      */
-    public int[][][] generateMask(int mask_radius) {
+    private int[][][] generateMask(int mask_radius) {
 
         final int width = (2 * mask_radius) + 1;
         final int[][][] vMask = new int[width][width][width];
@@ -373,7 +373,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
         }
     }
 
-    public float[] CalculateNormalizedGaussKernel(float aRadius){
+    private float[] CalculateNormalizedGaussKernel(float aRadius){
         int vL = (int)aRadius * 3 * 2 + 1;
         if (vL < 3) {
             vL = 3;
@@ -404,7 +404,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
      * @param aFrameNumber beginning with 1...#frames
      * @return The frame copy.
      */
-    public static ImageStack getAFrameCopy(ImagePlus aMovie, int aFrameNumber)
+    private static ImageStack getAFrameCopy(ImagePlus aMovie, int aFrameNumber)
     {
         if (aFrameNumber > aMovie.getNFrames() || aFrameNumber < 1) {
             throw new IllegalArgumentException("frame number = " + aFrameNumber);
@@ -431,7 +431,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
         return res;
     }
 
-    protected void doZProjection(ImagePlus aIMP)
+    private void doZProjection(ImagePlus aIMP)
     {
         final ImageStack vZProjectedStack = new ImageStack(mWidth, mHeight);
         final ZProjector vZProjector = new ZProjector(aIMP);
@@ -477,7 +477,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
     //		return vRes / vSumOfIntensities;
     //	}
 
-    public int getBrightestSliceIndexAt(int aX, int aY, ImageStack aIS) {
+    private int getBrightestSliceIndexAt(int aX, int aY, ImageStack aIS) {
         float vMaxInt = 0;
         int vMaxSlice = 0;
         for (int vZ = 0; vZ < mNSlices; vZ++) {
@@ -490,7 +490,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
         return vMaxSlice;
     }
 
-    protected void initVisualization()
+    private void initVisualization()
     {
         // generate the previewCanvas - while generating it the drawing will be done
         final DrawCanvas vDrawCanvas = new DrawCanvas(mZProjectedImagePlus);
@@ -499,7 +499,7 @@ public class PSF_estimator_3D implements  PlugInFilter{
         new TrajectoryStackWindow(mZProjectedImagePlus, vDrawCanvas);
     }
 
-    public Bead meanBeads(Vector<Bead> aBeads) {
+    private Bead meanBeads(Vector<Bead> aBeads) {
         final double[][] vMeanMap = new double[mMapSizeZ][mMapSizeR];
         final int[][] vMeanMapScaler = new int[mMapSizeZ][mMapSizeR];
 
@@ -1012,14 +1012,14 @@ public class PSF_estimator_3D implements  PlugInFilter{
 
     }
 
-    public void mouseClicked(int aXCoord, int aYCoord) {
+    protected void mouseClicked(int aXCoord, int aYCoord) {
         if (IJ.shiftKeyDown()){
             registerOrDeleteNewBeadAt(aXCoord, aYCoord);
             mZProjectedImagePlus.repaintWindow();
         }
     }
 
-    boolean getUserDefinedParams(){
+    private boolean getUserDefinedParams(){
         // Start Dialog to get necessary plugin parameters
         final GenericDialog gd = new GenericDialog("Configuration");
         gd.addMessage("Pease make sure to have correctly set the\n pixel size in nm in the image properties");

@@ -16,7 +16,7 @@ import mosaic.variationalCurvatureFilters.CurvatureFilter;
 public class Inpainting extends CurvatureFilterBase {
 
     // Mask with inpainting pixels
-    ImagePlus iMask;
+    protected ImagePlus iMask;
 
     /**
      * Run filter on given image.

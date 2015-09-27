@@ -63,7 +63,6 @@ public class RegionCreator implements PlugInFilter // NO_UCD
     int Min_radius;
     int Max_intensity;
     int Min_intensity;
-    int N_frame;
     long Image_sz[];
     float Spacing[];
     psf<FloatType> cPSF;
@@ -74,7 +73,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
     String nModel;
     Choice cNoise;
     String imageT;
-    String[] ImageType = {"8-bit","16-bit","float"};
+    final String[] ImageType = {"8-bit","16-bit","float"};
 
     HashMap<Integer,SphereMask> map;
 

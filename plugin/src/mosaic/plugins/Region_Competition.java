@@ -82,14 +82,14 @@ import org.apache.log4j.Logger;
 
 public class Region_Competition implements Segmentation {
 
-    protected static final Logger logger = Logger.getLogger(Region_Competition.class);
+    private static final Logger logger = Logger.getLogger(Region_Competition.class);
     
     private final String[] out = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
 
     private Region_Competition MVC; // interface to image application (imageJ)
     public Settings settings;
 
-    Algorithm algorithm;
+    protected Algorithm algorithm;
     private LabelImageRC labelImage; // data structure mapping pixels to labels
     private IntensityImage intensityImage;
     private ImageModel imageModel;
@@ -97,8 +97,8 @@ public class Region_Competition implements Segmentation {
     private ImagePlus originalIP; // IP of the input image
     private final Vector<ImagePlus> OpenedImages;
 
-    ImageStack stack; // stack saving the segmentation progress images
-    ImagePlus stackImPlus; // IP showing the stack
+    protected ImageStack stack; // stack saving the segmentation progress images
+    protected ImagePlus stackImPlus; // IP showing the stack
     private boolean stackKeepFrames = false;
     private boolean normalize_ip = false;
 

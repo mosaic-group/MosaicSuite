@@ -11,7 +11,7 @@ public class Convert {
      * @param aArray 2D array of doubles
      * @return 2D array of floats
      */
-    public static float[][] toFloat(double[][] aArray) {
+    static float[][] toFloat(double[][] aArray) {
         final int h = aArray.length; final int w = aArray[0].length;
         final float [][] result = new float[h][w];
         for (int y = 0; y < h; ++y) {
@@ -57,7 +57,7 @@ public class Convert {
      * @param aArray 1D array of floats
      * @return 1D array of doubles
      */
-    public static double[] toDouble(float[] aArray) {
+    static double[] toDouble(float[] aArray) {
         final int h = aArray.length;
         final double[] result = new double[h];
         for (int y = 0; y < h; ++y) {

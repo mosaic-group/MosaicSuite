@@ -148,15 +148,17 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     public String background;
     public boolean force;
     public boolean straight_line;
-    float l_s = 1.0f;
-    float l_f = 1.0f;
-    float l_d = 1.0f;
-    public ImageStack stack;
-    public StackConverter sc;
+    protected float l_s = 1.0f;
+    protected float l_f = 1.0f;
+    protected float l_d = 1.0f;
+    private ImageStack stack;
+    private StackConverter sc;
     public ImagePlus original_imp;
     public MyFrame[] frames;
     public Vector<Trajectory> all_traj;// = new Vector();
-    public int number_of_trajectories, frames_number, slices_number;
+    public int number_of_trajectories;
+    public int frames_number;
+    private int slices_number;
     private FeaturePointDetector detector;
     public ParticleLinker linker;
     public String title;
@@ -169,18 +171,18 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     public double pixelDimensions; // physical pixel dimensions in meters
     public double timeInterval; // physical time interval between frames in seconds
 
-    public NonBlockingGenericDialog gd;
+    protected NonBlockingGenericDialog gd;
 
     /* flags */
     public boolean text_files_mode = false;
-    public boolean only_detect = false;
+    private boolean only_detect = false;
     private boolean frames_processed = false;
 
     /* results display and file */
     public int magnification_factor = 4;
     public int chosen_traj = -1;
     public ResultsWindow results_window;
-    public PreviewCanvas preview_canvas = null;
+    private PreviewCanvas preview_canvas = null;
 
     /* preview vars */
     // public Button preview, save_detected;
@@ -188,13 +190,13 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     // public Label previewLabel = new Label("");
 
     /* vars for text_files_mode */
-    public String files_dir;
-    String[] files_list;
-    boolean one_file_multiple_frame;
-    boolean csv_format = false;
-    File Csv_region_list;
-    boolean create_bck_image = true;
-    boolean creating_traj_image = false;
+    private String files_dir;
+    private String[] files_list;
+    private boolean one_file_multiple_frame;
+    private boolean csv_format = false;
+    private File Csv_region_list;
+    private boolean create_bck_image = true;
+    private boolean creating_traj_image = false;
 
     /**
      * This method sets up the plugin filter for use.
@@ -439,8 +441,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         }
     }
 
-    int f_size = 0;
-    double f_intensity = 0.0;
+    private int f_size = 0;
+    private double f_intensity = 0.0;
     private String file_sel;
 
     private void featureFilteringStage() {
@@ -467,7 +469,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * @param p Particle vector
      */
 
-    public void rescaleWith(Calibration cal, Vector<Particle> vp) {
+    private void rescaleWith(Calibration cal, Vector<Particle> vp) {
         // ask for feature filtering stage
 
         featureFilteringStage();
@@ -526,7 +528,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * @see MyFrame
      * @see MyFrame#featurePointDetection()
      */
-    public boolean processFrames() {
+    private boolean processFrames() {
         if (frames_processed) {
             return true;
         }
@@ -704,7 +706,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * @see #makeKernel(int)
      * @see #generateBinaryMask(int)
      */
-    boolean getUserDefinedParams() {
+    private boolean getUserDefinedParams() {
         gd = new NonBlockingGenericDialog("Particle Tracker...");
         GenericDialog text_mode_gd;
         one_file_multiple_frame = false;
@@ -1239,7 +1241,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * @see MyFrame#featurePointDetection()
      * @see PreviewCanvas
      */
-    public synchronized void preview() {
+    private synchronized void preview() {
         if (original_imp == null) {
             return;
         }
@@ -1460,7 +1462,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
      * @param magnification is the scaling size (suppose to be > 1)
      */
 
-    <T extends RealType<T>> Img<ARGBType> copyScaleConvertToRGB(RandomAccessibleInterval<T> img, FinalInterval r, int magnification) {
+    private <T extends RealType<T>> Img<ARGBType> copyScaleConvertToRGB(RandomAccessibleInterval<T> img, FinalInterval r, int magnification) {
         // Create output image
 
         final long[] sz = new long[img.numDimensions()];
@@ -1961,7 +1963,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         return report;
     }
 
-    public void writeXMLFormatReport(String aFilename) {
+    private void writeXMLFormatReport(String aFilename) {
 
         try {
 

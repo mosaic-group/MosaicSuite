@@ -20,14 +20,14 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
     // Original input image
     protected ImagePlus iInputImg;
     protected ImagePlus iProcessedImg;
-    protected String iInputArgs;
+    private String iInputArgs;
 
     // Prefix added to filtered image
-    protected String iFilePrefix = "processed_";
+    private String iFilePrefix = "processed_";
 
     // Scale of output ImagePlus
-    protected double iScaleX = 1.0;
-    protected double iScaleY = 1.0;
+    private double iScaleX = 1.0;
+    private double iScaleY = 1.0;
 
     // Decides where result of processing shall be placed.
     /**

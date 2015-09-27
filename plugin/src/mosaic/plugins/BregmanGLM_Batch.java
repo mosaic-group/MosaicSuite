@@ -26,7 +26,7 @@ public class BregmanGLM_Batch implements Segmentation {
     private ImagePlus OriginalImagePlus = null;
     private String savedSettings;
     private GenericGUI window;
-    boolean gui_use_cluster = false;
+    private boolean gui_use_cluster = false;
 
     @Override
     public int setup(String arg0, ImagePlus active_img) {

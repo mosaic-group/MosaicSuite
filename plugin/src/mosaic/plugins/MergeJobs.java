@@ -19,7 +19,7 @@ import mosaic.core.cluster.ClusterSession;
 
 public class MergeJobs implements PlugInFilter
 {
-    String sd = null;
+    private String sd = null;
 
     /**
      *

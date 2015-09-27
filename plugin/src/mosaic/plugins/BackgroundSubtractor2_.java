@@ -46,13 +46,13 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
     //
     // parameters
     //
-    public int mLength = 20; //autodetected in setup() and maybe changed in shodDialog()
-    public int mBins = 255;
-    public int mStepSize = mLength / 2; //Init in showDialog()
+    private int mLength = 20; //autodetected in setup() and maybe changed in shodDialog()
+    private final int mBins = 255;
+    private int mStepSize = mLength / 2; //Init in showDialog()
     private float mBinSize = 0f;
-    public float mGaussBlurRadius = mStepSize; //Init in showDialog()
-    public boolean mShowBackgroundImage = true;
-    public boolean mDoAll = false;
+    private float mGaussBlurRadius = mStepSize; //Init in showDialog()
+    private boolean mShowBackgroundImage = true;
+    private boolean mDoAll = false;
 
     //
     // members just for simplicity
@@ -316,7 +316,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
      * @param aImageProcessor
      * @return
      */
-    public float GetBackgroundIntensityAt(int aX, int aY, ImageProcessor aImageProcessor) {
+    private float GetBackgroundIntensityAt(int aX, int aY, ImageProcessor aImageProcessor) {
         final int[] vHistogramm = new int[mBins+1];
         int vPointerOnMax = 0;
         final float vHistoStartIntensity = (float)aImageProcessor.getMin();
@@ -363,7 +363,7 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
      * @param aRadius
      * @return
      */
-    public float[] GenerateGaussKernel(float aRadius){
+    private float[] GenerateGaussKernel(float aRadius){
         final float[] vKernel = new float[3 * (int)aRadius * 2 + 1];
         final int vM = vKernel.length / 2;
         for (int vI = 0; vI < vM; vI++){
@@ -397,12 +397,12 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
 
     private Button mAutoParamButton;
     private boolean mProposeButtonClicked = false;
-    GenericDialog mParameterDialog = null;
+    private GenericDialog mParameterDialog = null;
     //	TextField mLengthTextField = null;
     /**
      * @return 0 if Dialog was cancelled, 1 if the propose button was clicked, 2 if ok button was clicked.
      */
-    public int showDialog() {
+    private int showDialog() {
         mParameterDialog = new GenericDialog("Background subtractor...");
         mParameterDialog.addNumericField("Length of sliding window (pixel)", mLength, 0);
         //		mLengthTextField = new TextField("" + mLength);
