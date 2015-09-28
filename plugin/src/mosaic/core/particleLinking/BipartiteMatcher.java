@@ -350,15 +350,6 @@ class BipartiteMatcher {
         }
     }
 
-    // private void printWeights() {
-    // for (int i = 0; i < n; i++) {
-    // for (int j = 0; j < n; j++) {
-    // System.out.print(weights[i][j] + " ");
-    // }
-    // System.out.println("");
-    // }
-    // }
-
     /**
      * Tolerance for comparisons to zero, to account for floating-point
      * imprecision. We consider a positive number to be essentially zero if it is

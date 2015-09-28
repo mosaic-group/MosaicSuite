@@ -115,19 +115,9 @@ public class FeaturePointDetector {
         findThreshold(restored_fps, percentile, absIntensityThreshold);
 
         pointLocationsEstimation(restored_fps, frame.frame_number, frame.linkrange);
-        //
-        // System.out.println("particles after location estimation:");
-        // for (Particle p : this.particles) {
-        // System.out.println("particle: " + p.toString());
-        // }
 
         /* Refinement of the point location - Step 3 of the algorithm */
         pointLocationsRefinement(restored_fps);
-        // new StackWindow(new ImagePlus("after location ref",restored_fps));
-        // System.out.println("particles after location refinement:");
-        // for (Particle p : this.particles) {
-        // System.out.println("particle: " + p.toString());
-        // }
 
         /* Non Particle Discrimination(set a flag to particles) - Step 4 of the algorithm */
         nonParticleDiscrimination();
@@ -224,12 +214,6 @@ public class FeaturePointDetector {
         }
         thold = 255 - thold + 1;
         this.setThreshold(((float) (thold / 255.0) * (max - min) + min));
-
-        // this.setThreshold(mode+sigma_factor*std);
-        // System.out.println("min= " + min + ", max=" + max );
-        // System.out.println("THRESHOLD: " + this.threshold);
-        // System.out.println("simga_fac=" + this.sigma_factor);
-
     }
 
     /**
@@ -259,18 +243,6 @@ public class FeaturePointDetector {
                         /* and add each particle that meets the criteria to the particles array */
                         // (the starting point is the middle of the pixel and exactly on a focal plane:)
                         particles.add(new Particle(j + .5f, i + .5f, s, frame_number, linkrange));
-
-                        /*
-                         * now we found a local maximum, we have to prevent that all connected pixel do
-                         * not generate a new particle. We thus set the dilated image around the current
-                         * location to 0.
-                         */
-                        // for (int ii = Math.max(i-radius+1,0); ii < Math.min(height, i+radius-1); ii++){
-                        // for (int jj = Math.max(j-radius, 0); jj < Math.min(width, j+radius-1); jj++){
-                        // ips_dilated_pixels[i*width+j] = -1;
-                        // }
-                        // }
-
                     }
                 }
             }
@@ -286,13 +258,6 @@ public class FeaturePointDetector {
         final int image_width = ips.getWidth();
         /* Set every value that is smaller than 0 to 0 */
         for (int s = 0; s < ips.getSize(); s++) {
-            // for (int i = 0; i < ips.getHeight(); i++) {
-            // for (int j = 0; j < ips.getWidth(); j++) {
-            // if (ips.getProcessor(s + 1).getPixelValue(j, i) < 0.0)
-            // ips.getProcessor(s + 1).putPixelValue(j, i, 0.0);
-            //
-            // }
-            // }
             final float[] pixels = (float[]) ips.getPixels(s + 1);
             for (int i = 0; i < pixels.length; i++) {
                 if (pixels[i] < 0) {
@@ -488,16 +453,6 @@ public class FeaturePointDetector {
      * @see MyFrame#nonParticleDiscrimination()
      */
     private void removeNonParticle() {
-
-        // Particle[] new_particles = new Particle[this.real_particles_number];
-        // int new_par_index = 0;
-        // for (int i = 0; i< this.particles.length; i++) {
-        // if (this.particles[i].special) {
-        // new_particles[new_par_index] = this.particles[i];
-        // new_par_index++;
-        // }
-        // }
-        // this.particles = new_particles;
         for (int i = this.particles.size() - 1; i >= 0; i--) {
             if (!this.particles.elementAt(i).special) {
                 this.particles.removeElementAt(i);
@@ -547,8 +502,6 @@ public class FeaturePointDetector {
                 GaussBlur3D(restored, 1 * lambda_n);
                 final BackgroundSubtractor2_ bgSubtractor = new BackgroundSubtractor2_();
                 for (int s = 1; s <= restored.getSize(); s++) {
-                    // IJ.showProgress(s, restored.getSize());
-                    // IJ.showStatus("Preprocessing: subtracting background...");
                     bgSubtractor.SubtractBackground(restored.getProcessor(s), radius * 4);
                 }
                 break;
@@ -663,9 +616,7 @@ public class FeaturePointDetector {
             vConvolver.convolve(vConvolvedSlice, vKernel_1D, 1, vKernelWidth);
             vResultStack.getProcessor(vI).copyBits(vConvolvedSlice, 0, 0, Blitter.ADD);
         }
-        // if (true) return vResultStack; //TODO: abort here? yes if gauss3d is scaled in z
-
-        //
+        
         // z dimension
         //
         // first get all the processors of the frame in an array since the getProcessor method is expensive
@@ -730,14 +681,6 @@ public class FeaturePointDetector {
      * @param mask_radius
      */
     private void generateMasks(int mask_radius) {
-        // the binary mask can be calculated already:
-        // int width = (2 * mask_radius) + 1;
-        // this.binary_mask = new short[width][width*width];
-        // generateBinaryMask(mask_radius);
-
-        // the weighted mask is just initialized with the new radius:
-        // this.weighted_mask = new float[width][width*width];
-
         // standard boolean mask
         mask = MosaicImageProcessingTools.generateMask(mask_radius);
 
@@ -750,14 +693,10 @@ public class FeaturePointDetector {
      * @see #generateMasks(int)
      */
     private void setUserDefinedParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute) {
-        // , float sigma_factor) {
 
         this.cutoff = cutoff;
         this.percentile = percentile;
         this.absIntensityThreshold = Threshold;
-        // this.sigma_factor = sigma_factor;
-        // this.preprocessing_mode = mode;
-        // this.setThresholdMode(thsmode);
         this.radius = radius;
         if (absolute == true) {
             this.threshold_mode = ABS_THRESHOLD_MODE;
@@ -778,25 +717,6 @@ public class FeaturePointDetector {
         gd.addNumericField("Per/Abs", percentile * 100, 5, 6, " ");
 
         gd.addCheckbox("Absolute", absolute);
-
-        // gd.addChoice("Threshold mode", new String[]{"Absolute Threshold","Percentile"}, "Percentile");
-        // ((Choice)gd.getChoices().firstElement()).addItemListener(new ItemListener(){
-        // public void itemStateChanged(ItemEvent e) {
-        // int mode = 0;
-        // if (e.getItem().toString().equals("Absolute Threshold")) {
-        // mode = ABS_THRESHOLD_MODE;
-        // }
-        // if (e.getItem().toString().equals("Percentile")) {
-        // mode = PERCENTILE_MODE;
-        // }
-        // thresholdModeChanged(mode);
-        // }});
-
-        // gd.addNumericField("Percentile", 0.001, 5);
-        // gd.addNumericField("Percentile / Abs.Threshold", 0.1, 5, 6, " % / Intensity");
-        // gd.addNumericField("sigma factor", sigma_factor, 5);
-        // gd.addPanel(makeThresholdPanel(), GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
-        // gd.addChoice("Preprocessing mode", new String[]{"none", "box-car avg.", "BG Subtraction", "Laplace Operation"}, "box-car avg.");
     }
 
     /**
@@ -991,212 +911,6 @@ public class FeaturePointDetector {
         return preview_frame;
     }
 
-    // /**
-    // * Second phase of the algorithm -
-    // * <br>Identifies points corresponding to the
-    // * same physical particle in subsequent frames and links the positions into trajectories
-    // * <br>The length of the particles next array will be reset here according to the current linkrange
-    // * <br>Adapted from Ingo Oppermann implementation
-    // */
-    // public void linkParticles(MyFrame[] frames, int frames_number, int linkrange, double displacement) {
-    //
-    // int m, i, j, k, nop, nop_next, n;
-    // int ok, prev, prev_s, x = 0, y = 0, curr_linkrange;
-    // int[] g;
-    // double min, z, max_cost;
-    // double[] cost;
-    // Vector<Particle> p1, p2;
-    //
-    // // set the length of the particles next array according to the linkrange
-    // // it is done now since link range can be modified after first run
-    // for (int fr = 0; fr<frames.length; fr++) {
-    // for (int pr = 0; pr<frames[fr].getParticles().size(); pr++) {
-    // frames[fr].getParticles().elementAt(pr).next = new int[linkrange];
-    // }
-    // }
-    // curr_linkrange = linkrange;
-    //
-    // /* If the linkrange is too big, set it the right value */
-    // if (frames_number < (curr_linkrange + 1))
-    // curr_linkrange = frames_number - 1;
-    //
-    // max_cost = displacement * displacement;
-    //
-    // for (m = 0; m < frames_number - curr_linkrange; m++) {
-    // nop = frames[m].getParticles().size();
-    // for (i = 0; i < nop; i++) {
-    // frames[m].getParticles().elementAt(i).special = false;
-    // for (n = 0; n < linkrange; n++)
-    // frames[m].getParticles().elementAt(i).next[n] = -1;
-    // }
-    //
-    // for (n = 0; n < curr_linkrange; n++) {
-    // max_cost = (double)(n + 1) * displacement * (double)(n + 1) * displacement;
-    //
-    // nop_next = frames[m + (n + 1)].getParticles().size();
-    //
-    // /* Set up the cost matrix */
-    // cost = new double[(nop + 1) * (nop_next + 1)];
-    //
-    // /* Set up the relation matrix */
-    // g = new int[(nop + 1) * (nop_next + 1)];
-    //
-    // /* Set g to zero */
-    // for (i = 0; i< g.length; i++) g[i] = 0;
-    //
-    // p1 = frames[m].getParticles();
-    // p2 = frames[m + (n + 1)].getParticles();
-    // // p1 = frames[m].particles;
-    // // p2 = frames[m + (n + 1)].particles;
-    //
-    //
-    // /* Fill in the costs */
-    // for (i = 0; i < nop; i++) {
-    // for (j = 0; j < nop_next; j++) {
-    // cost[coord(i, j, nop_next + 1)] =
-    // (p1.elementAt(i).x - p2.elementAt(j).x)*(p1.elementAt(i).x - p2.elementAt(j).x) +
-    // (p1.elementAt(i).y - p2.elementAt(j).y)*(p1.elementAt(i).y - p2.elementAt(j).y) +
-    // (p1.elementAt(i).z - p2.elementAt(j).z)*(p1.elementAt(i).z - p2.elementAt(j).z) +
-    // (p1.elementAt(i).m0 - p2.elementAt(j).m0)*(p1.elementAt(i).m0 - p2.elementAt(j).m0) +
-    // (p1.elementAt(i).m2 - p2.elementAt(j).m2)*(p1.elementAt(i).m2 - p2.elementAt(j).m2);
-    // }
-    // }
-    //
-    // for (i = 0; i < nop + 1; i++)
-    // cost[coord(i, nop_next, nop_next + 1)] = max_cost;
-    // for (j = 0; j < nop_next + 1; j++)
-    // cost[coord(nop, j, nop_next + 1)] = max_cost;
-    // cost[coord(nop, nop_next, nop_next + 1)] = 0.0;
-    //
-    // /* Initialize the relation matrix */
-    // for (i = 0; i < nop; i++) { // Loop over the x-axis
-    // min = max_cost;
-    // prev = 0;
-    // for (j = 0; j < nop_next; j++) { // Loop over the y-axis
-    // /* Let's see if we can use this coordinate */
-    // ok = 1;
-    // for (k = 0; k < nop + 1; k++) {
-    // if (g[coord(k, j, nop_next + 1)] == 1) {
-    // ok = 0;
-    // break;
-    // }
-    // }
-    // if (ok == 0) // No, we can't. Try the next column
-    // continue;
-    //
-    // /* This coordinate is OK */
-    // if (cost[coord(i, j, nop_next + 1)] < min) {
-    // min = cost[coord(i, j, nop_next + 1)];
-    // g[coord(i, prev, nop_next + 1)] = 0;
-    // prev = j;
-    // g[coord(i, prev, nop_next + 1)] = 1;
-    // }
-    // }
-    //
-    // /* Check if we have a dummy particle */
-    // if (min == max_cost) {
-    // g[coord(i, prev, nop_next + 1)] = 0;
-    // g[coord(i, nop_next, nop_next + 1)] = 1;
-    // }
-    // }
-    //
-    // /* Look for columns that are zero */
-    // for (j = 0; j < nop_next; j++) {
-    // ok = 1;
-    // for (i = 0; i < nop + 1; i++) {
-    // if (g[coord(i, j, nop_next + 1)] == 1)
-    // ok = 0;
-    // }
-    //
-    // if (ok == 1)
-    // g[coord(nop, j, nop_next + 1)] = 1;
-    // }
-    //
-    // /* The relation matrix is initilized */
-    //
-    // /* Now the relation matrix needs to be optimized */
-    // min = -1.0;
-    // while (min < 0.0) {
-    // min = 0.0;
-    // prev = 0;
-    // prev_s = 0;
-    // for (i = 0; i < nop + 1; i++) {
-    // for (j = 0; j < nop_next + 1; j++) {
-    // if (i == nop && j == nop_next)
-    // continue;
-    //
-    // if (g[coord(i, j, nop_next + 1)] == 0 &&
-    // cost[coord(i, j, nop_next + 1)] <= max_cost) {
-    // /* Calculate the reduced cost */
-    //
-    // // Look along the x-axis, including
-    // // the dummy particles
-    // for (k = 0; k < nop + 1; k++) {
-    // if (g[coord(k, j, nop_next + 1)] == 1) {
-    // x = k;
-    // break;
-    // }
-    // }
-    //
-    // // Look along the y-axis, including
-    // // the dummy particles
-    // for (k = 0; k < nop_next + 1; k++) {
-    // if (g[coord(i, k, nop_next + 1)] == 1) {
-    // y = k;
-    // break;
-    // }
-    // }
-    //
-    // /* z is the reduced cost */
-    // if (j == nop_next)
-    // x = nop;
-    // if (i == nop)
-    // y = nop_next;
-    //
-    // z = cost[coord(i, j, nop_next + 1)] +
-    // cost[coord(x, y, nop_next + 1)] -
-    // cost[coord(i, y, nop_next + 1)] -
-    // cost[coord(x, j, nop_next + 1)];
-    // if (z > -1.0e-10)
-    // z = 0.0;
-    // if (z < min) {
-    // min = z;
-    // prev = coord(i, j, nop_next + 1);
-    // prev_s = coord(x, y, nop_next + 1);
-    // }
-    // }
-    // }
-    // }
-    //
-    // if (min < 0.0) {
-    // g[prev] = 1;
-    // g[prev_s] = 1;
-    // g[coord(prev / (nop_next + 1), prev_s % (nop_next + 1), nop_next + 1)] = 0;
-    // g[coord(prev_s / (nop_next + 1), prev % (nop_next + 1), nop_next + 1)] = 0;
-    // }
-    // }
-    //
-    // /* After optimization, the particles needs to be linked */
-    // for (i = 0; i < nop; i++) {
-    // for (j = 0; j < nop_next; j++) {
-    // if (g[coord(i, j, nop_next + 1)] == 1)
-    // p1.elementAt(i).next[n] = j;
-    // }
-    // }
-    // }
-    //
-    // if (m == (frames_number - curr_linkrange - 1) && curr_linkrange > 1)
-    // curr_linkrange--;
-    // }
-    //
-    // /* At the last frame all trajectories end */
-    // for (i = 0; i < frames[frames_number - 1].getParticles().size(); i++) {
-    // frames[frames_number - 1].getParticles().elementAt(i).special = false;
-    // for (n = 0; n < linkrange; n++)
-    // frames[frames_number - 1].getParticles().elementAt(i).next[n] = -1;
-    // }
-    // }
-
     public void saveDetected(MyFrame[] frames) {
         /* show save file user dialog with default file name 'frame' */
         final SaveDialog sd = new SaveDialog("Save Detected Particles", IJ.getDirectory("image"), "frame", "");
@@ -1216,5 +930,4 @@ public class FeaturePointDetector {
 
         return;
     }
-
 }

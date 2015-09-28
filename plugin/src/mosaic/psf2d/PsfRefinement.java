@@ -68,25 +68,6 @@ public class PsfRefinement {
     }
 
     /**
-     * Normalizes a given <code>ImageProcessor</code> to [0,1]. <br>
-     * According to the pre determend global min and max pixel value in the movie. <br>
-     * All pixel intensity values I are normalized as (I-gMin)/(gMax-gMin)
-     * 
-     * @param ip ImageProcessor to be normalized
-     */
-    // private void normalizeFrameFloat(ImageProcessor ip) {
-    // global_max = (float)ip.getMax();
-    // global_min = (float)ip.getMin();
-    //
-    // float[] pixels=(float[])ip.getPixels();
-    // float tmp_pix_value;
-    // for (int i = 0; i < pixels.length; i++) {
-    // tmp_pix_value = (pixels[i]-global_min)/(global_max - global_min);
-    // pixels[i] = (tmp_pix_value);
-    // }
-    // }
-
-    /**
      * Corrects imperfections in the given <code>ImageProcessor</code> by
      * convolving it with the pre calculated <code>kernel</code>
      * 

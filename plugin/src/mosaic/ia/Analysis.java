@@ -210,21 +210,6 @@ public class Analysis {
 
         }
         IAPUtils.updateMacheps(); // for hyp testing...
-        /*
-         * PlotUtils.plotDoubleArrayPts("dVSQNorm","d","Normalized cumulative Q", D1, QD);
-         * PlotUtils.histPlotDoubleArray_imageJ("QDsum", QD);
-         * PlotUtils.plotDoubleArrayPts("nVSQNorm","n (Number of d_i < d)","Normalized cumulative Q", n, QD);
-         * PlotUtils.plotDoubleArrayPts("nVSQNorm","Threshold","n (Number of d_i < d)", D1,n);
-         * for (int j=0;j<5;j++)
-         * {
-         * double v= Math.exp(j*.01+.51);
-         * for (int i=0;i<D.length;i++)
-         * {
-         * likRatio[i]= Math.pow(Math.pow(v, n[i]/D.length)/(1+((v-1)*QD[i])),D.length);
-         * }
-         * PlotUtils.plotDoubleArrayPts("LikelihoodRatio for strength="+(j*.01+.51), "Threshold", "Likelihood ratio for strength="+(j*.01+.51), D1, likRatio);
-         * }
-         */
         IJ.showMessage("Suggested Kernel wt(p): " + IAPUtils.calcWekaWeights(D));
 
         return ret;
@@ -242,48 +227,6 @@ public class Analysis {
         }
 
     }
-
-    // private void fillQofD_grid(float D_grid[]) // just to run kernel density
-    // {
-    //
-    // // double min=Double.MAX_VALUE;
-    // double min = 0;
-    // double max = 0;
-    //
-    // for (int i = 0; i < D_grid.length; i++) {
-    //
-    // if (D_grid[i] > max)
-    // max = D_grid[i];
-    // }
-    // // updateKernelforNonParam(min,max);
-    // dgrid = new double[dgrid_size];
-    // dgrid[0] = 0;
-    //
-    // double bin_size = (max - min) / dgrid.length;
-    // System.out.println("Grid bin size" + bin_size);
-    // System.out.println("Grid bins length" + dgrid.length);
-    //
-    // q_D_grid = new double[dgrid.length];
-    // NN_D_grid = new double[dgrid.length];
-    // q_D_grid[0] = ke.getProbability(dgrid[0]); // how does this work?
-    // // q_D_grid is a histogram.
-    // // how do we give the bin
-    // // size to ke?
-    // NN_D_grid[0] = kep.getProbability(dgrid[0]);
-    // double sumProbability = 0;
-    // for (int i = 1; i < dgrid.length; i++) {
-    // dgrid[i] = dgrid[i - 1] + bin_size;
-    // q_D_grid[i] = ke.getProbability(dgrid[i]); // how does this work?
-    // // q_D_grid is a
-    // // histogram. how do we
-    // // give the bin size to
-    // // ke?
-    // NN_D_grid[i] = kep.getProbability(dgrid[i]);
-    // sumProbability = q_D_grid[i] + sumProbability;
-    // }
-    // System.out.println("Sum of q_D grid: " + sumProbability);
-    //
-    // }
 
     public boolean calcMask() {
 
@@ -601,13 +544,10 @@ public class Analysis {
 
                 plotWeight.setLineWidth(2);
                 plotWeight.show();
-                // IJ.showMessage(estim);
             }
             else if (potentialType == PotentialFunctions.STEP) {
                 best[bestFitnessindex][0] = Math.abs(best[bestFitnessindex][0]);// epsil
                 best[bestFitnessindex][1] = Math.abs(best[bestFitnessindex][1]);
-                // IJ.showMessage("Estimated parameters for best fitness: Epsilon, Threshold:"
-                // + best[0] + " " + best[bestFitnessindex][1]);
                 System.out.println("Best parameters: Epsilon, Threshold:" + best[0] + " " + best[bestFitnessindex][1]);
 
                 plot.addLabel(.65, .3, "Strength: " + format.format(best[bestFitnessindex][0]));
@@ -618,8 +558,6 @@ public class Analysis {
             else {
                 best[bestFitnessindex][0] = Math.abs(best[bestFitnessindex][0]);
                 best[bestFitnessindex][1] = Math.abs(best[bestFitnessindex][1]);
-                // IJ.showMessage("Estimated parameters for best fitness:  Epsilon, Sigma:"
-                // + best[bestFitnessindex][0] + " " + best[bestFitnessindex][1]);
                 System.out.println("Best parameters:  Epsilon, Sigma:" + best[bestFitnessindex][0] + " " + best[bestFitnessindex][1]);
                 plot.addLabel(.65, .3, "Strength: " + format.format(best[bestFitnessindex][0]));
                 plot.addLabel(.65, .4, "Scale: " + format.format(best[bestFitnessindex][1]));
@@ -628,29 +566,12 @@ public class Analysis {
             System.out.println("N= " + D.length);
             plot.show();
             double[] P_grid = fitfun.getPGrid();
-            /*
-             * int count = 0;
-             * for (int i = 0; i < D.length; i++) {
-             * if (D[i] <= best[bestFitnessindex][1]) {
-             * count++;
-             * }
-             * }
-             * System.out.println("Number of d< sigma: " + count);
-             */
 
             P_grid = IAPUtils.normalize(P_grid);
 
             plotQPNN(dgrid, P_grid, q, nnObserved);
 
         }
-
-        /*
-         * for (int i=0;i<cmaReRunTimes;i++)
-         * {
-         * System.out.println("Best parameters:  Epsilon, Sigma:"
-         * + best[i][0] + " " + best[i][1]);
-         * }
-         */
 
         return true;
 
@@ -761,39 +682,6 @@ public class Analysis {
             plot.addLabel(.65, .8, "Residual: " + format.format(allFitness[bestFitnessindex]));
         }
 
-        /*
-         * //calculate l1norm
-         * double [] l1norm=new double[nn.length];
-         * double [] l2norm=new double[nn.length];
-         * double l2Sum=0, l1Sum=0;
-         * for (int i=0;i<l1norm.length;i++)
-         * {
-         * l1norm[i]=Math.abs(nn[i]-p[i]);
-         * l2norm[i]=(nn[i]-p[i])*(nn[i]-p[i]);
-         * l1Sum=l1Sum+l1norm[i];
-         * l2Sum=l2Sum+l2norm[i];
-         * }
-         * System.out.println("L1Norm:"+ l1Sum);
-         * System.out.println("L2Norm:"+ l2Sum);
-         */
-        /*
-         * plot.setColor(Color.magenta);
-         * plot.addPoints(d, l1norm, PlotWindow.LINE);
-         * // plot.setLimits(-1, xMax, yMin, yMax);
-         * plot.addLabel(.7, .5, "----  ");
-         * plot.setColor(Color.black);
-         * plot.draw();
-         * plot.addLabel(.75, .5, "Residual: L1Norm");
-         * plot.show();
-         * plot.setColor(Color.darkGray);
-         * plot.addPoints(d, l2norm, PlotWindow.LINE);
-         * // plot.setLimits(-1, xMax, yMin, yMax);
-         * plot.addLabel(.7, .6, "----  ");
-         * plot.setColor(Color.black);
-         * plot.draw();
-         * plot.addLabel(.75, .6, "Residual: L2Norm");
-         */
-
         plot.show();
 
     }
@@ -811,7 +699,6 @@ public class Analysis {
         System.out.println("Running test with " + monteCarloRunsForTest + " and " + alpha);
         final HypothesisTesting ht = new HypothesisTesting(IAPUtils.calculateCDF(q_D_grid), dgrid, D, best[bestFitnessindex], potentialType, monteCarloRunsForTest, alpha);
         ht.rankTest();
-        // ht.nonParametricTest();
         return true;
     }
 

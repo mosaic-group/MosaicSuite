@@ -58,14 +58,6 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
     private final Label all_label;
     private final MenuItem tail, mag_factor, relink_particles;
 
-//    /**
-//     * Default constructor
-//     * @param particleTracker3DModular_ TODO
-//     */
-//    private ResultsWindow(ParticleTracker3DModular_ particleTracker3DModular_) {
-//        this(particleTracker3DModular, "DEFAULT");
-//    }
-
     /**
      * Constructor.
      * <br>

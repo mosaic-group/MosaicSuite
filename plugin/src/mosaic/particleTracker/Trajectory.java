@@ -174,69 +174,6 @@ public class Trajectory {
         }
     }
 
-    // private void drawStatic(Graphics g, ImageCanvas ic) {
-    // int i;
-    // g.setColor(this.color);
-    // for (i = 0; i<this.existing_particles.length-1; i++) {
-    // if (this.existing_particles[i+1].getFrame() - this.existing_particles[i].getFrame() > 1) {
-    // g.setColor(Color.red); //gap
-    // }
-    // g.drawLine(ic.screenXD(this.existing_particles[i].y),
-    // ic.screenYD(this.existing_particles[i].x),
-    // ic.screenXD(this.existing_particles[i+1].y),
-    // ic.screenYD(this.existing_particles[i+1].x));
-    //
-    // g.setColor(this.color);
-    // }
-    // //mark death of particle
-    // if ((this.existing_particles[this.existing_particles.length-1].getFrame()) < frames_number - 1){
-    // g.fillOval(ic.screenXD(this.existing_particles[this.existing_particles.length-1].y),
-    // ic.screenYD(this.existing_particles[this.existing_particles.length-1].x), 5, 5);
-    // }
-    // }
-
-    /**
-     * Converts a floating-point offscreen x-coordinate (particle position) to a <code>traj_stack</code> actual screen x-coordinate as accurate as possible according to the magnification of the
-     * display while taking into account that the <code>traj_stack</code> display can be only a part
-     * of the original image <br>
-     * since ImageJ doesn't work with floating point precision - rounding is also applied
-     * 
-     * @param particle_position floating-point offscreen x-coordinate (particle position <b>Y</b>)
-     * @param magnification the magnification factor for the <code>traj_stack</code>
-     * @return the converted coordinate
-     */
-    // private int getXDisplayPosition(float particle_position, int magnification) {
-    //
-    // int roi_x = 0;
-    // if (traj_stack.getHeight() != original_imp.getStack().getHeight() ||
-    // traj_stack.getWidth() != original_imp.getStack().getWidth()) {
-    // roi_x = IJ.getImage().getRoi().getBounds().x;
-    // }
-    // particle_position = (particle_position-roi_x)*magnification + (float)(magnification/2.0) - (float)0.5;
-    // return Math.round(particle_position);
-    // }
-
-    /**
-     * Converts a floating-point offscreen y-coordinate (particle position) to a <code>traj_stack</code> actual screen y-coordinate as accurate as possible according to the magnification of the
-     * display while taking into account that the <code>traj_stack</code> display can be only a part
-     * of the original image <br>
-     * since ImageJ doesn't work with floating point precision - rounding is also applied
-     * 
-     * @param particle_position floating-point offscreen y-coordinate (particle position <b>X</b>)
-     * @param magnification the magnification factor for the <code>traj_stack</code>
-     * @return the converted coordinate
-     */
-    // private int getYDisplayPosition(float particle_position, int magnification) {
-    //
-    // int roi_y = 0;
-    // if (traj_stack.getHeight() != original_imp.getStack().getHeight() ||
-    // traj_stack.getWidth() != original_imp.getStack().getWidth()) {
-    // roi_y = IJ.getImage().getRoi().getBounds().y;
-    // }
-    // particle_position = (particle_position-roi_y)*magnification + (float)(magnification/2.0) - (float)0.5;
-    // return Math.round(particle_position);
-    // }
-
     /**
      * debug helper method
      * 

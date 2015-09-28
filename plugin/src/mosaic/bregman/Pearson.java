@@ -1,16 +1,12 @@
 package mosaic.bregman;
 
 
-//import java.util.Arrays;
-
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
 
-
-//import ij.process.ImageStatistics;
 
 class Pearson {
 
@@ -105,43 +101,6 @@ class Pearson {
 
         return res;
     }
-
-    // private void buildArray(ImagePlus imgA, ImagePlus imgB){
-    // int index=0;
-    // this.Amin=(int) Math.pow(2, this.depth);
-    // this.Amax=0;
-    // this.Amean=0;
-    // this.Bmin=this.Amin;
-    // this.Bmax=0;
-    // this.Bmean=0;
-    //
-    // for (int z=1; z<=this.nbSlices; z++){
-    // imgA.setSlice(z);
-    // imgB.setSlice(z);
-    //
-    // ImageStatistics stA=imgA.getStatistics();
-    // ImageStatistics stB=imgB.getStatistics();
-    //
-    // this.Amin=Math.min(this.Amin, (int) stA.min);
-    // this.Bmin=Math.min(this.Bmin, (int) stB.min);
-    // this.Amax=Math.max(this.Amax, (int) stA.max);
-    // this.Bmax=Math.max(this.Bmax, (int) stB.max);
-    //
-    // this.Amean+=stA.pixelCount*stA.mean;
-    // this.Bmean+=stB.pixelCount*stB.mean;
-    //
-    // for (int y=0; y<this.height; y++){
-    // for (int x=0; x<this.width; x++){
-    // this.A[index]=imgA.getProcessor().getPixel(x,y);
-    // this.B[index]=imgB.getProcessor().getPixel(x,y);
-    // index++;
-    // }
-    // }
-    //
-    // this.Amean/=this.length;
-    // this.Bmean/=this.length;
-    // }
-    // }
 
     private double[] linreg(double[][][] Aarray, double[][][] Barray, int TA, int TB, int mask) {// mask == 0 no mask, 1 : mask, 2 : outside zet to zero only
         double num = 0;
@@ -264,12 +223,10 @@ class Pearson {
 
         IJ.run(maska_im, "Invert", "stack");
         //
-        // //IJ.run(maska_im, "Erode", "");
         IJ.run(maska_im, "Fill Holes", "stack");
         IJ.run(maska_im, "Open", "stack");
 
         IJ.run(maska_im, "Invert", "stack");
-        // maska_im.show("mask");
 
         for (int z = 0; z < nz; z++) {
             maska_im.setSlice(z + 1);
@@ -282,7 +239,5 @@ class Pearson {
         }
 
         return cellmask;
-
     }
-
 }

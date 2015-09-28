@@ -447,36 +447,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
         //		vZProjectedImage.show();
     }
 
-    /**
-     * Calculates the expected mean of a gaussian fitted to a ray trough the imagestack.
-     * @param aX The x position of the ray
-     * @param aY The y position of the ray
-     * @param aIS The imageStack where the intensities are read out.
-     * @return the expected z position of a Gaussian in [1; <code>aIS.getSize</code>]
-     */
-    //	private float calculateExpectedZPositionAt(int aX, int aY, ImageStack aIS)
-    //	{
-    //		float vMaxInt = 0;
-    //		int vMaxSlice = 0;
-    //		for (int vZ = 0; vZ < mNSlices; vZ++) {
-    //			float vThisInt;
-    //			if ((vThisInt = aIS.getProcessor(vZ+1).getf(aX, aY)) > vMaxInt) {
-    //				vMaxInt =  vThisInt;
-    //				vMaxSlice = vZ;
-    //			}
-    //
-    //		}
-    //		float vSumOfIntensities = 0f;
-    //		float vRes = 0f;
-    //		int vStartSlice = Math.max(1, vMaxSlice-2);
-    //		int vStopSlice = Math.min(mNSlices, vMaxSlice+2);
-    //		for (int vZ = vStartSlice; vZ <= vStopSlice; vZ++) {
-    //			vSumOfIntensities += aIS.getProcessor(vZ).getf(aX, aY);
-    //			vRes += (vZ + 1) * aIS.getProcessor(vZ).getf(aX, aY);
-    //		}
-    //		return vRes / vSumOfIntensities;
-    //	}
-
     private int getBrightestSliceIndexAt(int aX, int aY, ImageStack aIS) {
         float vMaxInt = 0;
         int vMaxSlice = 0;
@@ -721,50 +691,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
         }
 
         /**
-         * This method is deprecated: It constantly diffuses intensity in axial direction
-         * leading to a bias of too large PSF maps in z-direction if there is indeed a 0 entry
-         * at the boarder of the sparse map. It seems to be better to
-         * leave the edges unchanged and recording a lot of beads :-)
-         * @param aMap
-         */
-        //		protected void fillPSFmapEdges(double[][] aMap) {
-        //			int vFirstZ = -1;
-        //			int vLastZ = -1;
-        //			//search for first valuable row
-        //			for (int vZ = 0; vZ < aMap.length; vZ++) {
-        //				for (int vR = 0; vR < aMap[0].length; vR++) {
-        //					if (aMap[vZ][vR] > 0f) {
-        //						vFirstZ = vZ;
-        //						break;
-        //					}
-        //				}
-        //				if (vFirstZ >= 0) break;
-        //			}
-        //			//search for last valuable row
-        //			for (int vZ = aMap.length-1; vZ >= 0; vZ--) {
-        //				for (int vR = aMap[0].length-1; vR >= 0; vR--) {
-        //					if (aMap[vZ][vR] > 0f) {
-        //						vLastZ = vZ;
-        //						break;
-        //					}
-        //				}
-        //				if (vLastZ >= 0) break;
-        //			}
-        //			//copy the first valuable row to all rows before
-        //			for (int vZ = 0; vZ < vFirstZ; vZ++) {
-        //				for (int vR = 0; vR < aMap[0].length; vR++) {
-        //					aMap[vZ][vR] = aMap[vFirstZ][vR];
-        //				}
-        //			}
-        //			//copy the last valuable row to all rows after
-        //			for (int vZ = vLastZ+1; vZ < aMap.length; vZ++) {
-        //				for (int vR = 0; vR < aMap[0].length; vR++) {
-        //					aMap[vZ][vR] = aMap[vLastZ][vR];
-        //				}
-        //			}
-        //		}
-
-        /**
          *
          * @param aIS
          * @param aCentroid in image coordinates (in px)
@@ -920,32 +846,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
             final float vA = aX - aKnotsX[vI - 1];
             return aKnotsY[vI - 1] * (1.f-vA/vL) + aKnotsY[vI] * (vA/vL);
         }
-
-        //		public float interpolateQuadratic(float aX, float[] aKnotsX, float[] aKnotsY) {
-        //			//next bigger element is:
-        //			int vI = 0;
-        //			if (aX < aKnotsX[0] || aX > aKnotsX[aKnotsX.length-1])
-        //				throw new IllegalArgumentException("x is not in knot interval");
-        //			for (vI = 0; vI < aKnotsX.length; vI++) {
-        //				if (aX < aKnotsX[vI]) {
-        //					break;
-        //				}
-        //			}
-        //			//which one is closer?
-        //			if (aKnotsX[vI] - aX > aX - aKnotsX[vI -1]) {
-        //				vI = vI - 1;
-        //			}
-        //			//at the boundaries:
-        //			if (vI == 0) vI++;
-        //			if (vI == aKnotsX.length-1) vI--;
-        //
-        //			//now vI is the index of the mid-point
-        //			float vY = 0;
-        //			vY += aKnotsY[vI-1] * ((aX - aKnotsX[vI]) * (aX - aKnotsX[vI+1])) / ((aKnotsX[vI-1]-aKnotsX[vI])*(aKnotsX[vI-1] - aKnotsX[vI+1]));
-        //			vY += aKnotsY[vI]   * ((aX - aKnotsX[vI-1]) * (aX - aKnotsX[vI+1])) / ((aKnotsX[vI]-aKnotsX[vI-1])*(aKnotsX[vI] - aKnotsX[vI+1]));
-        //			vY += aKnotsY[vI+1] * ((aX - aKnotsX[vI-1]) * (aX - aKnotsX[vI])) / ((aKnotsX[vI+1]-aKnotsX[vI-1])*(aKnotsX[vI+1] - aKnotsX[vI]));
-        //			return vY;
-        //		}
 
         public double[][] getPSFMap() {
             return mPSFMap;

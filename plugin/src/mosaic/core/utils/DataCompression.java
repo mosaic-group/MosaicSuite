@@ -73,41 +73,8 @@ public class DataCompression {
     }
 
     /**
-     * Select internaly the best compressor starting from the j compressor
-     *
-     * @param j
-     */
-
-    // private void selectCompressor(int j)
-    // {
-    // int i = 0;
-    // for (i = j+1 ; i < al.size() ; i++)
-    // {
-    // String out = null;
-    // try {
-    // out = ShellCommand.exeCmdString(al.get(i).cmd);
-    // } catch (IOException e) {
-    // e.printStackTrace();
-    // return;
-    // } catch (InterruptedException e) {
-    // e.printStackTrace();
-    // return;
-    // }
-    //
-    // if (out.contains(al.get(i).finger_print))
-    // {
-    // selC = i;
-    // return;
-    // }
-    // }
-    //
-    // selC = i;
-    // }
-
-    /**
      * Select internaly the next compressor
      */
-
     public boolean nextCompressor() {
         if (selC >= al.size()) {
             return false;
@@ -121,7 +88,6 @@ public class DataCompression {
      *
      * @return the algorithm selected null there os no selection
      */
-
     public Algorithm getCompressor() {
         if (selC == -1 || selC >= al.size()) {
             return null;

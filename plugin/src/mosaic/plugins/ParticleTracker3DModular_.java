@@ -1688,55 +1688,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         return list;
     }
 
-    // /**
-    // * Generates the Convolution Kernel as described in the Image Restoration
-    // * part of the original algorithm
-    // * <code>kernel</code> is a var of class ParticleTracker_ and its modified internally here
-    // * @param kernel_radius (the radius of the kernel (user defined))
-    // */
-    // public void makeKernel(int kernel_radius){
-    //
-    // int kernel_width = (kernel_radius * 2) + 1;
-    // this.kernel = new float[kernel_width*kernel_width];
-    // double b = calculateB(kernel_radius, lambda_n);
-    // double norm_cons = calculateNormalizationConstant(b, kernel_radius, lambda_n);
-    //
-    //// COORD(a, b, c) (((a) * (c)) + (b));
-    // for (int i = -kernel_radius; i<=kernel_radius; i++){
-    // for (int j = -kernel_radius; j<=kernel_radius; j++){
-    // int index = (i + kernel_radius)*kernel_width + j + kernel_radius;
-    // this.kernel[index]= (float)((1.0/b)* Math.exp(-((i * i + j * j)/(4.0*lambda_n*lambda_n))));
-    // this.kernel[index]= this.kernel[index] - (float)(1.0/(kernel_width * kernel_width));
-    // this.kernel[index]= (float) ((double)this.kernel[index] / norm_cons);
-    // }
-    // }
-    // }
-
-    // /**
-    // * Generates a normalized gaussian convolution kernel using the member lamda_n as sigma.
-    // * @param kernel_radius the radius of the kernel (user defined)
-    // */
-    // public void makeKernel1D(int kernel_radius){
-    // int kernel_width = (kernel_radius * 2) + 1;
-    // this.kernel = new float[kernel_width];
-    // double b = Math.sqrt(calculateB(kernel_radius, lambda_n));
-    //
-    // for (int i = 1; i <= kernel_radius; i++){
-    // this.kernel[kernel_radius+i] = (float)((1.0/b)* Math.exp(-((i * i )/(2.0*lambda_n*lambda_n))))
-    // - (float)(1.0/(kernel_width * kernel_width));
-    // this.kernel[kernel_radius-i] = this.kernel[kernel_radius+i];
-    // }
-    // //normalize the kernel numerically:
-    // float sum = 0;
-    // for (int i = 0; i < kernel.length; i++){
-    // sum += kernel[i];
-    // }
-    // float scale = 1.0f/sum;
-    // for (int i = 0; i < kernel.length; i++){
-    // kernel[i] *= scale;
-    // }
-    // }
-
     public int[] getParticlesRange() {
         int vMax[] = new int[3];
 

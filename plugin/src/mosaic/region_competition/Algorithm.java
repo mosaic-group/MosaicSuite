@@ -1,9 +1,6 @@
 package mosaic.region_competition;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,6 +12,8 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.Vector;
 
+import ij.IJ;
+import ij.ImagePlus;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.IndexIterator;
@@ -71,9 +70,6 @@ public class Algorithm {
     private TopologicalNumberImageFunction m_TopologicalNumberFunction;
     private ForestFire forestFire;
 
-    // private List<Integer> m_MergingHist;
-    // private List<Integer> m_FramesHist;
-
     private final Set<Pair<Point, Integer>> m_Seeds = new HashSet<Pair<Point, Integer>>();
 
     /**
@@ -118,10 +114,6 @@ public class Algorithm {
     public float m_AcceptedPointsFactor;
     private int m_iteration_counter; // member for debugging
 
-    // int m_OscillationsNumberHist[];
-    // double m_OscillationsEnergyHist[];
-    //
-    // public int m_OscillationHistoryLength;
     private OscillationDetection oscillationDetection;
 
     private EnergyFunctionalType m_EnergyFunctional;
@@ -330,31 +322,9 @@ public class Algorithm {
 
             m_iteration_counter++;
             debug("=== iteration " + m_iteration_counter + " ===");
-            // std::cout << "number of points: "<<m_InnerContourContainer.size()
-            // << std::endl;
-            // m_ManyPointsToBeAdded.clear();
-            // m_ManyPointsToBeDeleted.clear();
 
             vConvergence = DoOneIteration();
             debug("time: " + timer.toc());
-
-            /*
-             * System.out.println("Maximal graph: " + max_graph);
-             * max_graph = 0;
-             */
-
-            /*
-             * boolean first = true;
-             * double FG = 0.20;
-             * for (LabelInformation l : labelImage.getLabelMap().values())
-             * {
-             * if (first == false)
-             * l.mean = FG;
-             * else
-             * l.mean = 0.0;
-             * first = false;
-             * }
-             */
 
             if (shrinkFirst && vConvergence) {
                 debug("Done with shrinking, now allow growing");
@@ -367,14 +337,9 @@ public class Algorithm {
             MVC.addSlice(labelImage, "iteration " + m_iteration_counter);
 
             MVC.updateProgress(m_iteration_counter, settings.m_MaxNbIterations);
-            // MVC.addSliceToStackAndShow("iteration " + m_iteration_counter,
-            // this.labelIP.getPixelsCopy());
-
         }
 
         MVC.addSlice(labelImage, "final image iteration " + m_iteration_counter);
-        // labelImage.displaySlice("final image iteration " +
-        // m_iteration_counter);
 
         m_converged = vConvergence;
 
@@ -1463,13 +1428,6 @@ public class Algorithm {
     // / method may be used to fuse 2 regions in the region competition mode.
 
     private void RelabelRegionsAfterFusion(LabelImageRC aLabelImage, Point aIndex, int aL1, Set<Integer> aCheckedLabels) {
-        // debug("Relabel after fusion at " + aIndex.toString() + " of label " +
-        // aL1);
-        // if (m_iteration_counter==6)
-        // {
-        // System.out.println(6);
-        // }
-        // MVC.selectPoint(aIndex);
 
         final BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
 
@@ -1504,17 +1462,8 @@ public class Algorithm {
             }
         }
         if (vMultiThsFunction.EvaluateAtIndex(aIndex)) {
-            // ForestFire(aLabelImage, aIndex, vMultiThsFunction,
-            // m_MaxNLabels++);
-            // ForestFire(aLabelImage, aIndex, vMultiThsFunction,
-            // labelDispenser.getNewLabel());
             forestFire.fire(aIndex, labelDispenser.getNewLabel(), vMultiThsFunction);
         }
-
-        // if (m_iteration_counter==6)
-        // {
-        // displaySlice(aIndex.toString());
-        // }
 
     }
 
@@ -1543,11 +1492,6 @@ public class Algorithm {
 
             final LabelInformation info = labelMap.get(vWorkingIt.label);
             if (info == null) {
-                // TODO debug
-                // MVC.addSlice(labelImage,
-                // "***info is null for: "+vIt.getKey());
-                // labelImage.displaySlice("***info is null for: "+vIt.getKey());
-                // MVC.selectPoint(vIt.getKey());
                 debug("***info is null for: " + vIt.getKey());
                 continue;
             }
@@ -1583,9 +1527,6 @@ public class Algorithm {
 
         int vNbElements = vSortedList.size();
         vNbElements = (int) (vNbElements * m_AcceptedPointsFactor + 0.5);
-        // if (vNbElements < 1) {
-        // vNbElements = 1;
-        // }
 
         // / Fill the container with the best candidate first, then
         // / the next best that does not intersect the tabu region of
@@ -1603,50 +1544,11 @@ public class Algorithm {
             final boolean vValid = true;
             while (vAcceptedCandIterator.hasNext()) {
                 vAcceptedCandIterator.next().getKey();
-
-                // TODO nothing happens in here. itk::2074
-                // itk commented
-
-                // float vDist = 0;
-                // for (unsigned int vD = 0; vD < m_Dim; vD++) {
-                // vDist += (vCIndex[vD] - vCandCIndex[vD]) * (vCIndex[vD] -
-                // vCandCIndex[vD]);
-                // }
-                // InternalImageSizeType vPSFsize =
-                // m_PSF->GetLargestPossibleRegion().GetSize();
-
-                // gong_test
-                // if (sqrt(vDist) < 0.001) {//< vPSFsize[vD] / 400) {
-                // /// This candidate didn't pass. Abort the test.
-                // vValid = false;
-                // break;
-                // }
-
-                /*
-                 * if (vNbElements > vConstNbElements * 0.9 && vNbElements <
-                 * vConstNbElements *
-                 * 0.5){
-                 * vValid = false;
-                 * }
-                 */
-
-                /*
-                 * if (vSortedListIterator->m_ContourPoint.m_energyDifference >
-                 * 0.2 * vBestEnergy
-                 * || vSortedListIterator->m_ContourPoint.m_energyDifference <
-                 * 0.7 *
-                 * vBestEnergy)
-                 * {
-                 * vValid=false;
-                 * }
-                 */
             }
             if (vValid) {
                 // / This candidate passed the test and is added to the
                 // TempRemoveCotainer:
                 aContainer.put(vSortedListIterator.pIndex, vSortedListIterator.p);
-                // aContainer[vSortedListIterator.pIndex] =
-                // vSortedListIterator.m_ContourPoint;
             }
         }
     }
@@ -1661,12 +1563,6 @@ public class Algorithm {
     }
 
     void FreeLabelStatistics(int vVisitedIt) {
-        // if (vVisitedIt==bgLabel)
-        // {
-        // //debug only
-        // debug("LabelImage.FreeLabelStatistics()");
-        // throw new RuntimeException("free bglabel in FreeLabelStatistics()");
-        // }
         labelMap.remove(vVisitedIt);
         labelDispenser.addFreedUpLabel(vVisitedIt);
     }
@@ -1724,28 +1620,6 @@ public class Algorithm {
         // / Add a sample point to the BG and remove it from the label-region:
         aToLabel.count++;
         aFromLabel.count--;
-
-        // / Update the lengths for each region:
-        // / ContourLengthFunction gives back the overall length change when
-        // changing
-        // / aFromLabel to aToLabel. This change applies to both regions.
-
-        // TODO m_ContourLengthFunction
-        /*
-         * double vLC = m_ContourLengthFunction->EvaluateLengthChange(
-         * aParticle->first, aFromLabel, aToLabel);
-         * m_Lengths[aFromLabel] += vLC;
-         * m_Lengths[aToLabel] += vLC;
-         * //update the moments map
-         * //Gong_test
-         * if (m_UseShapePrior) {
-         * if (aFromLabel == 1) {
-         * m_PointsToBeDeleted.push_back(vCurrentIndex);
-         * } else {
-         * m_PointsToBeAdded.push_back(vCurrentIndex);
-         * }
-         * }
-         */
     }
 
     // Settings

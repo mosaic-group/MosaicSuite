@@ -110,25 +110,6 @@ public class Point {
         return true;
     }
 
-    // public static Point PointWithDim(int dimension)
-    // {
-    // Point p = new Point();
-    // p.init(dimension);
-    // return p;
-    // }
-    //
-    // private void init(int dimension)
-    // {
-    // dim = dimension;
-    // x = new int[dim];
-    // }
-
-    // private void set(int p[])
-    // {
-    // //TODO efficiency
-    // x=p.clone();
-    // }
-
     /**
      * Distance between point
      *
