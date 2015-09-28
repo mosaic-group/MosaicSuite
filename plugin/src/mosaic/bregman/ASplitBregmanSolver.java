@@ -18,56 +18,56 @@ import edu.emory.mathcs.jtransforms.dct.DoubleDCT_2D;
 
 class ASplitBregmanSolver {
 
-    protected Tools LocalTools;
-    protected DoubleDCT_2D dct2d;
+    protected final Tools LocalTools;
+    protected final DoubleDCT_2D dct2d;
     protected double totaltime = 0;
     private boolean StopFlag;
 
     protected ArrayList<Region> regionsvoronoi;
     private ArrayList<Region> regionslistr;
-    protected MasksDisplay md;
-    protected double[][][] image;
+    protected final MasksDisplay md;
+    protected final double[][][] image;
     private double norm;
-    protected double[][][][] speedData; // used only
+    protected final double[][][][] speedData; // used only
 
-    protected double[][] eigenLaplacian;
+    protected final double[][] eigenLaplacian;
 
     protected int stepk;
 
-    protected int channel;
-    protected double[][][][] w1k;
-    protected double[][][][] w3k;
+    protected final int channel;
+    protected final double[][][][] w1k;
+    protected final double[][][][] w3k;
 
-    protected double[][][][] w2xk;
-    protected double[][][][] w2yk;
+    protected final double[][][][] w2xk;
+    protected final double[][][][] w2yk;
 
-    protected double[][][][] w3kbest;
+    protected final double[][][][] w3kbest;
     private int iw3kbest;
-    protected double[][][][] b2xk;
-    protected double[][][][] b2yk;
+    protected final double[][][][] b2xk;
+    protected final double[][][][] b2yk;
 
-    protected double[][][][] b1k;
-    protected double[][][][] b3k;
+    protected final double[][][][] b1k;
+    protected final double[][][][] b3k;
 
-    protected int[][][] maxmask;
+    protected final int[][][] maxmask;
 
     protected double[][][][] temp1;
     protected double[][][][] temp2;
     protected double[][][][] temp3;
     protected double[][][][] temp4;
 
-    protected float[][][][] Ri;
-    protected float[][][][] Ro;
+    protected final float[][][][] Ri;
+    protected final float[][][][] Ro;
 
-    protected double[] energytab;
-    protected double[] normtab;
-    protected int ni, nj, nz;
-    protected int nl;
+    protected final double[] energytab;
+    protected final double[] normtab;
+    protected final int ni, nj, nz;
+    protected final int nl;
     protected double energy, lastenergy;
-    protected double bestNrj;
-    protected Parameters p;
+    private double bestNrj;
+    protected final Parameters p;
     private final RegionStatisticsSolver RSS;
-    private AnalysePatch Ap;
+    private AnalysePatch Ap = null;
 
     ASplitBregmanSolver(Parameters params, double[][][] image, double[][][][] speedData, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         this(params, image, speedData, mask, md, channel);

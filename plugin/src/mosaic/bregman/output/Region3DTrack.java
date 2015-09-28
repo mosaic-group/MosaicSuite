@@ -7,13 +7,13 @@ import mosaic.core.utils.Point;
 
 public class Region3DTrack implements Outdata<Region> {
 
-    int Frame;
-    double x;
-    double y;
-    double z;
-    double Size;
-    double Intensity;
-    double Surface;
+    private int Frame;
+    private double x;
+    private double y;
+    private double z;
+    private double Size;
+    private double Intensity;
+    private double Surface;
 
     @Override
     public void setFrame(int fr) {

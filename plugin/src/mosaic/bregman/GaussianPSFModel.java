@@ -9,8 +9,8 @@ public class GaussianPSFModel {
     private final double NA, r, n;
     private final double kex, kem;
     private final double lex, lem;
-    double c1, c2;
-    double airy_unit;
+    private final double c1, c2;
+    private final double airy_unit;
 
     // PsfBessel bessel;
 

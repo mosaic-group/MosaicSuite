@@ -12,15 +12,15 @@ import java.util.Scanner;
 
 class RScript {
 
-    PrintWriter Script;
-    String ObjectsC1DataFile;
-    String ObjectsC2DataFile;
-    String ImagesDataFile;
-    int NumberOfGroups;
-    int[] ImagesPerGroup;
-    String[] GroupNames;
-    String Ch1Name;
-    String Ch2Name;
+    private PrintWriter Script;
+    private final String ObjectsC1DataFile;
+    private final String ObjectsC2DataFile;
+    private final String ImagesDataFile;
+    private final int NumberOfGroups;
+    private final int[] ImagesPerGroup;
+    private final String[] GroupNames;
+    private final String Ch1Name;
+    private final String Ch2Name;
 
     // generate file
 

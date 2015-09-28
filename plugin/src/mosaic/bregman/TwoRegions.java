@@ -30,7 +30,7 @@ import net.imglib2.type.numeric.real.DoubleType;
 
 class TwoRegions extends NRegions {
 
-    double[][][][] SpeedData;
+    private final double[][][][] SpeedData;
 
     public TwoRegions(ImagePlus img, Parameters params, CountDownLatch DoneSignal, int channel) {
         super(img, params, DoneSignal, channel);
@@ -98,7 +98,7 @@ class TwoRegions extends NRegions {
         }
     }
 
-    public ImagePlus out_soft_mask[] = new ImagePlus[2];
+    public final ImagePlus out_soft_mask[] = new ImagePlus[2];
 
     /**
      * Get the particles related to one frame

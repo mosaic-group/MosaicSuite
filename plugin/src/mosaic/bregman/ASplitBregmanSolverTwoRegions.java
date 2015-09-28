@@ -6,7 +6,7 @@ import java.util.Date;
 
 class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
 
-    int l = 0; // use mask etc of level 0
+    final int l = 0; // use mask etc of level 0
 
     public ASplitBregmanSolverTwoRegions(Parameters params, double[][][] image, double[][][][] speedData, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         super(params, image, speedData, mask, md, channel, ap);

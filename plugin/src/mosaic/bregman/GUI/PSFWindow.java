@@ -25,8 +25,8 @@ import mosaic.bregman.GenericDialogCustom;
 
 class PSFWindow implements ActionListener, PropertyChangeListener {
 
-    public double lem, lex, NA, n, pinhole, pix_xy, pix_z;
-    public JDialog frame;
+    private double lem, lex, NA, n, pinhole, pix_xy, pix_z;
+    private final JDialog frame;
     // Initialize Buttons
     private final JPanel panel;
     private boolean confocal = true;
@@ -35,7 +35,7 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
 
     // jcb.setModel(new DefaultComboBoxModel(potentialOptions));
 
-    NumberFormat nf = NumberFormat.getInstance(Locale.US);
+    private final NumberFormat nf = NumberFormat.getInstance(Locale.US);
 
     private final JFormattedTextField Vlem = new JFormattedTextField(nf);
     private final JFormattedTextField Vlex = new JFormattedTextField(nf);

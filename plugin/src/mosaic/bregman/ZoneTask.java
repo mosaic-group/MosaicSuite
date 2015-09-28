@@ -23,7 +23,7 @@ class ZoneTask implements Runnable {
     private final ASplitBregmanSolverTwoRegionsPSF AS;
     private final int iStart, iEnd, jStart, jEnd;
     private final int num;
-    public Tools LocalTools;
+    private final Tools LocalTools;
 
     ZoneTask(CountDownLatch ZoneDoneSignal, CountDownLatch Sync1, CountDownLatch Sync2, CountDownLatch Sync3, CountDownLatch Sync4, CountDownLatch Dct, CountDownLatch Sync5, CountDownLatch Sync6,
             CountDownLatch Sync7, CountDownLatch Sync8, CountDownLatch Sync9, CountDownLatch Sync10, CountDownLatch Sync11, CountDownLatch Sync12, int iStart, int iEnd, int jStart, int jEnd, int num,

@@ -8,11 +8,11 @@ import java.awt.event.ActionListener;
 import mosaic.bregman.GenericDialogCustom;
 
 
-public class PSFOpenerActionListener implements ActionListener {
+class PSFOpenerActionListener implements ActionListener {
 
-    GenericDialogCustom gd;
+    private final GenericDialogCustom gd;
 
-    public PSFOpenerActionListener(GenericDialogCustom gd) {
+    PSFOpenerActionListener(GenericDialogCustom gd) {
         this.gd = gd;
         // this.ta=ta;
     }

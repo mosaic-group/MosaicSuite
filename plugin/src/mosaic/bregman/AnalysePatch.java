@@ -61,16 +61,17 @@ class AnalysePatch implements Runnable {
     double[][][] object;
     double[][][] interpolated_object;
     private final double[][][][] mask;// nregions nslices ni nj
-    private double[][][][] speedData;// nregions nslices ni nj
+    // TODO: It is never created but used in code.
+    private final double[][][][] speedData = null;// nregions nslices ni nj
     private final Parameters p;
-    Region r;
+    final Region r;
     private final int channel;
     private double rescaled_min_int, rescaled_min_int_all;
     private final double[][][][] temp1;
     private final double[][][][] temp2;
     private final double[][][][] temp3;
     private double[][][] weights;
-    double firstminval;
+    final double firstminval;
     // double [][][] w3kbest;
     private final double[][][][] w3kpatch;
     // double [][][] refined_mask;
@@ -91,8 +92,6 @@ class AnalysePatch implements Runnable {
      */
 
     public AnalysePatch(double[][][] image, Region r, Parameters pa, int oversampling, int channel, short[][][] regionsf, ImagePatches impa) {
-        // IJ.log("creating patch :"+ r.value);
-        // this.w3kbest=w3k;
         cout = 0;
         cin = 1;
         mint = 0.2;

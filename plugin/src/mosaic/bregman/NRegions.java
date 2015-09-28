@@ -35,26 +35,26 @@ import net.sf.javaml.tools.DatasetTools;
 
 class NRegions implements Runnable {
 
-    Tools LocalTools;
+    final Tools LocalTools;
     // image and mask data
-    public double[][][] image;// 3D image
-    public double[][][][] mask;// nregions nslices ni nj
-    double[][][][] Ei;
+    public final double[][][] image;// 3D image
+    public final double[][][][] mask;// nregions nslices ni nj
+    final double[][][][] Ei;
     public MasksDisplay md;
 
     // levels value
 
     // double [] cl ={0.0027, 0.0480 ,0.09 ,0.1653 ,0.3901};
 
-    public Parameters p;
+    public final Parameters p;
 
     // properties
     // number of regions
-    int bits;
-    int ni, nj, nz;// 3 dimensions
-    int nl;
-    int channel;
-    CountDownLatch DoneSignal;
+    private final int bits;
+    final int ni, nj, nz;// 3 dimensions
+    final int nl;
+    final int channel;
+    final CountDownLatch DoneSignal;
     double min;
     double max;
 

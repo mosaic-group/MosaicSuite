@@ -13,7 +13,7 @@ import org.junit.Test;
 
 public class Jtest {
 
-    protected static final Logger logger = Logger.getLogger(Jtest.class);
+    private static final Logger logger = Logger.getLogger(Jtest.class);
 
     @Test
     public void segmentation() {

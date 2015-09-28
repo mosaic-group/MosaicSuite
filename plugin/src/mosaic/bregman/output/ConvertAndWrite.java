@@ -19,7 +19,7 @@ import mosaic.utils.io.csv.CsvColumnConfig;
  */
 public class ConvertAndWrite<T> {
 
-    Class<T> iClazz;
+    private final Class<T> iClazz;
 
     ConvertAndWrite(Class<T> aClazz) {
         iClazz = aClazz;
@@ -36,7 +36,7 @@ public class ConvertAndWrite<T> {
      * @param aData
      * @return
      */
-    public Vector<T> getVector(List<?> aData) {
+    Vector<T> getVector(List<?> aData) {
         final Vector<T> v = new Vector<T>();
         if (aData.size() == 0) {
             return v;

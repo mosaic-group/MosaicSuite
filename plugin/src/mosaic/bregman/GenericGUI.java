@@ -47,14 +47,14 @@ public class GenericGUI {
     }
 
     public static boolean bypass_GUI = false;
-    boolean clustermode;
-    ImagePlus imgch1;
-    ImagePlus imgch2;
+    private final boolean clustermode;
+    protected ImagePlus imgch1;
+    protected ImagePlus imgch2;
 
-    int posx, posy;
-    static int screensizex, screensizey;
-    BLauncher hd;
-    boolean gui_use_cluster = false;
+    protected int posx, posy;
+    private static int screensizex, screensizey;
+    private BLauncher hd;
+    private boolean gui_use_cluster = false;
 
     public GenericGUI(boolean mode, ImagePlus img_p) {
         imgch1 = img_p;
@@ -80,7 +80,7 @@ public class GenericGUI {
         }
     }
 
-    public static void setwindowlocation(int x, int y, Window w) {
+    static void setwindowlocation(int x, int y, Window w) {
         int wx, wy;
         wx = w.getWidth();
         wy = w.getHeight();

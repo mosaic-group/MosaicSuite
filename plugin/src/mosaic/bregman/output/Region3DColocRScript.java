@@ -6,20 +6,20 @@ import mosaic.bregman.Region;
 
 public class Region3DColocRScript implements Outdata<Region> {
 
-    int Image_ID;
-    int Object_ID;
-    double Size;
-    double Perimeter;
-    double Length;
-    double Intensity;
-    double Overlap_with_ch;
-    double Coloc_object_size;
-    double Coloc_object_intensity;
-    boolean Single_Coloc;
-    double Coloc_image_intensity;
-    double x;
-    double y;
-    double z;
+    private int Image_ID;
+    private int Object_ID;
+    private double Size;
+    private double Perimeter;
+    private double Length;
+    private double Intensity;
+    private double Overlap_with_ch;
+    private double Coloc_object_size;
+    private double Coloc_object_intensity;
+    private boolean Single_Coloc;
+    private double Coloc_image_intensity;
+    private double x;
+    private double y;
+    private double z;
 
     public void setImage_ID(int Image_ID_) {
         Image_ID = Image_ID_;

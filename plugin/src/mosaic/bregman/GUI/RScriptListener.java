@@ -12,10 +12,10 @@ import mosaic.bregman.Analysis;
 
 class RScriptListener implements ActionListener {
 
-    GenericDialog gd;
-    int nbgroups;
-    int posx;
-    int posy;
+    private final GenericDialog gd;
+    private int nbgroups;
+    private final int posx;
+    private final int posy;
 
     public RScriptListener(GenericDialog gd, int ParentPosx, int ParentPosy) {
         this.gd = gd;

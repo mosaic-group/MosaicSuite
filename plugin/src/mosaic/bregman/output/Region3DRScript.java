@@ -6,15 +6,15 @@ import mosaic.bregman.Region;
 
 public class Region3DRScript implements Outdata<Region> {
 
-    int Image_ID;
-    int Object_ID;
-    double Size;
-    double Perimeter;
-    double Length;
-    double Intensity;
-    double x;
-    double y;
-    double z;
+    private int Image_ID;
+    private int Object_ID;
+    private double Size;
+    private double Perimeter;
+    private double Length;
+    private double Intensity;
+    private double x;
+    private double y;
+    private double z;
 
     public void setImage_ID(int Image_ID_) {
         Image_ID = Image_ID_;

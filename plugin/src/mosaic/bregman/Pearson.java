@@ -14,17 +14,16 @@ import ij.process.ImageProcessor;
 
 class Pearson {
 
-    int width, height, nbSlices, depth;
-    boolean[][][] cellmaskA;
-    boolean[][][] cellmaskB;
-    // boolean [][][] cellmask;
-    int ni, nj, nz;
-    Parameters p;
-    int osz;
-    double sumA, sumB, sumAB, sumsqrA, Aarraymean, Barraymean;
-    double maxA, maxB;
-    double[][][] imageA;
-    double[][][] imageB;
+    private final int width, height, nbSlices, depth;
+    private boolean[][][] cellmaskA;
+    private boolean[][][] cellmaskB;
+    private final int ni, nj, nz;
+    private final Parameters p;
+    private int osz;
+    private double sumA, sumB, sumAB, sumsqrA, Aarraymean, Barraymean;
+    private double maxA, maxB;
+    private final double[][][] imageA;
+    private final double[][][] imageB;
 
     public Pearson(ImagePlus ipA, ImagePlus ipB, Parameters p) {
         this.p = p;

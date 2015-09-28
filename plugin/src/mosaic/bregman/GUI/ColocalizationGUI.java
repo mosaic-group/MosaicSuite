@@ -28,43 +28,43 @@ import mosaic.bregman.Analysis;
 
 public class ColocalizationGUI implements ItemListener, ChangeListener, TextListener {
 
-    ImagePlus imgch1;
-    ImagePlus imgch2;
-    int ni, nj, nz;
+    private ImagePlus imgch1;
+    private ImagePlus imgch2;
+    private int ni, nj, nz;
 
-    JSlider t1, t2;
-    JSlider tz1, tz2;// slider for z stack preview
+    private JSlider t1, t2;
+    private JSlider tz1, tz2;// slider for z stack preview
 
-    JLabel l1, lz1, l2, lz2;
-    TextField v1, v2;
-    Checkbox m1, m2;
+    private JLabel l1, lz1, l2, lz2;
+    private TextField v1, v2;
+    private Checkbox m1, m2;
 
-    boolean init1 = false;
-    boolean init2 = false;
-    ImagePlus maska_im1, maska_im2;
+    private boolean init1 = false;
+    private boolean init2 = false;
+    private ImagePlus maska_im1, maska_im2;
 
     // max and min intensity values in channel 1 and 2
-    double max = 0;
-    double min = Double.POSITIVE_INFINITY;
-    double max2 = 0;
-    double min2 = Double.POSITIVE_INFINITY;
+    private double max = 0;
+    private double min = Double.POSITIVE_INFINITY;
+    private double max2 = 0;
+    private double min2 = Double.POSITIVE_INFINITY;
 
-    double val1, val2;
+    private double val1, val2;
 
-    boolean fieldval = false;
-    boolean sliderval = false;
-    boolean boxval = false;
-    boolean refreshing = false;
+    private boolean fieldval = false;
+    private boolean sliderval = false;
+    private boolean boxval = false;
+    private boolean refreshing = false;
 
-    double minrange = 0.001;
-    double maxrange = 1;
-    double logmin = Math.log10(minrange);
-    double logspan = Math.log10(maxrange) - Math.log10(minrange);
-    int maxslider = 1000;
+    private final double minrange = 0.001;
+    private final double maxrange = 1;
+    private final double logmin = Math.log10(minrange);
+    private final double logspan = Math.log10(maxrange) - Math.log10(minrange);
+    private final int maxslider = 1000;
 
-    JLabel warning = new JLabel("");
-    int ns1, ns2; // slices position of imgaes whenlaunched
-    int posx, posy;
+    private final JLabel warning = new JLabel("");
+    private int ns1, ns2; // slices position of imgaes whenlaunched
+    private final int posx, posy;
 
     public ColocalizationGUI(ImagePlus ch1, ImagePlus ch2, int ParentPosx, int ParentPosy) {
         imgch1 = ch1;

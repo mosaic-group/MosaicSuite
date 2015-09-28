@@ -33,11 +33,11 @@ public class Analysis {
     }
 
     // This is the output for cluster
-    public static String out[] = { "*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", "*_mask_c1.zip", "*_mask_c2.zip", "*_ImagesData.csv", "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
+    public final static String out[] = { "*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", "*_mask_c1.zip", "*_mask_c2.zip", "*_ImagesData.csv", "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
             "*_intensities_c1.zip", "*_intensities_c2.zip", "*_seg_c1.zip", "*_seg_c2.zip", "*_coloc.zip", "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", "*.tif" };
 
     // This is the output local
-    public static String out_w[] = { "*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", "*_mask_c1.zip", "*_mask_c2.zip", "*_ImagesData.csv", "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
+    final static String out_w[] = { "*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", "*_mask_c1.zip", "*_mask_c2.zip", "*_ImagesData.csv", "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
             "*_intensities_c1.zip", "*_intensities_c2.zip", "*_seg_c1.zip", "*_seg_c2.zip", "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", "*_coloc.zip" };
 
     static String currentImage = "currentImage";
@@ -185,7 +185,7 @@ public class Analysis {
         return ps.run();
     }
 
-    static ImagePlus out_soft_mask[] = new ImagePlus[2];
+    final static ImagePlus out_soft_mask[] = new ImagePlus[2];
 
     /* Segment channel1 */
     static void segmentA() {

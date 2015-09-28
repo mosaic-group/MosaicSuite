@@ -17,26 +17,26 @@ import ij.WindowManager;
 
 class ImagePatches {
 
-    int interp;
-    int jobs_done;
-    int nb_jobs;
+    private final int interp;
+    private int jobs_done;
+    private int nb_jobs;
     // reg
-    int osxy;
-    int osz; // oversampling
-    int sx;
-    int sy;
-    int sz;// size of full image with oversampling
-    Parameters p;
-    public short[][][] regions_refined;
-    double[][][] image;
-    double[][][] w3kbest;
-    byte[] imagecolor_c1;// for display ints = new int [dz][di][dj][3];
+    private final int osxy;
+    private final int osz; // oversampling
+    private final int sx;
+    private final int sy;
+    private final int sz;// size of full image with oversampling
+    private final Parameters p;
+    public final short[][][] regions_refined;
+    private final double[][][] image;
+    final double[][][] w3kbest;
+    private byte[] imagecolor_c1;// for display ints = new int [dz][di][dj][3];
 
-    double max;
-    double min;
+    private final double max;
+    private final double min;
     public ArrayList<Region> regionslist_refined;
     private final ArrayList<Region> globalList;
-    int channel;
+    private final int channel;
 
     public ImagePatches(Parameters pa, ArrayList<Region> regionslist, double[][][] imagei, int channeli, double[][][] w3k, double min, double max) {
         if (!pa.subpixel) {
@@ -70,13 +70,8 @@ class ImagePatches {
             this.sz = p.nz * p.oversampling2ndstep * pa.interpolation;
             this.osz = p.oversampling2ndstep * pa.interpolation;
         }
-        // IJ.log("regions refined");
-        // Tools.showmem();
-        // Runtime.getRuntime().gc();
-        // Tools.showmem();
 
         regions_refined = new short[sz][sx][sy];
-        // Tools.showmem();
 
         if (p.dispint) {
             imagecolor_c1 = new byte[sz * sx * sy * 3]; // add fill background

@@ -22,7 +22,7 @@ class ZoneTask3D implements Runnable {
     private final CountDownLatch Sync13;
     private final CountDownLatch Dct;
     private final int iStart, iEnd, jStart, jEnd, nt;
-    public Tools LocalTools;
+    private final Tools LocalTools;
 
     private final ASplitBregmanSolverTwoRegions3DPSF AS;
 

@@ -10,8 +10,8 @@ import mosaic.bregman.Analysis;
 
 class RScriptWindow {
 
-    int nbgroups;
-    int posx, posy;
+    private final int nbgroups;
+    private final int posx, posy;
 
     public RScriptWindow(int nbgroups, int ParentPosx, int ParentPosy) {
         this.nbgroups = nbgroups;

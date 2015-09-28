@@ -7,9 +7,9 @@ import java.util.concurrent.CountDownLatch;
 
 class ASplitBregmanSolverTwoRegionsPSF extends ASplitBregmanSolverTwoRegions {
 
-    public double[][][] eigenPSF;
+    private final double[][][] eigenPSF;
     double c0, c1;
-    public double energytab2[];
+    public final double energytab2[];
 
     public ASplitBregmanSolverTwoRegionsPSF(Parameters params, double[][][] image, double[][][][] speedData, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         super(params, image, speedData, mask, md, channel, ap);

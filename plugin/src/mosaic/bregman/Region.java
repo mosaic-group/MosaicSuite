@@ -25,7 +25,7 @@ public class Region implements Comparable<Region> {
 
     ArrayList<Pix> pixels = new ArrayList<Pix>();
     // boolean byteImage;
-    public int points;
+    final int points;
     float rsize;
     // String materialName;
     int value;

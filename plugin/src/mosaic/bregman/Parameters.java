@@ -13,96 +13,96 @@ public class Parameters implements Serializable {
 
     //
 
-    public int oc_s = 1;
+    public final int oc_s = 1;
     public String patches_from_file;
 
     // method parameters
-    public boolean mode_classic = false;
-    public boolean mode_watershed = false;
+    boolean mode_classic = false;
+    private boolean mode_watershed = false;
     public boolean mode_voronoi2 = true;
 
     public boolean save_images = true;
-    public String wd = null;
+    String wd = null;
 
-    public int overs = 2;
+    int overs = 2;
     public boolean debug = false;
-    public boolean blackbackground;
+    boolean blackbackground;
     public int noise_model = 0; // 0: poisson, 1:gauss
-    public boolean firstphase = true;
+    boolean firstphase = true;
     public boolean dispwindows = true;
-    public boolean automatic_int = false;
+    final boolean automatic_int = false;
     public boolean subpixel = false;
     public boolean refinement = false;
-    public int model_oversampling = 1;
+    int model_oversampling = 1;
     public int oversampling2ndstep = 2;// 2
     public int interpolation = 2;// 4
     public boolean JunitTest = false;
-    public double ldata = 1;
+    double ldata = 1;
     public double lreg_[] = { 0.05, 0.05 };
     // region non psf test
-    public double gamma = 1;// was 10 : use 1 for two region PSF version
+    double gamma = 1;// was 10 : use 1 for two region PSF version
     public int size_rollingball = 10;
     public int max_nsb = 201;
-    public int nlevels = 2;
-    public double tol = 1e-7;// 1e-5
+    int nlevels = 2;
+    double tol = 1e-7;// 1e-5
     public boolean removebackground = false;
-    public boolean displowlevels = true;
+    boolean displowlevels = true;
     public boolean livedisplay = false;
-    public boolean usePSF = true;
-    public boolean cAB = true;
-    public boolean cBA = true;
-    public boolean cint = true;
-    public boolean cintY = true;
-    public boolean looptest = false;
-    public int maxves_size = -1;
+    boolean usePSF = true;
+    private boolean cAB = true;
+    private boolean cBA = true;
+    private boolean cint = true;
+    private boolean cintY = true;
+    boolean looptest = false;
+    int maxves_size = -1;
     public int minves_size = 5;// 5// set in genericgui now (pour mode voronoi2)
     public double min_intensity = 0.15;// 0.1
     public double min_intensityY = 0.15;// 0.1
-    public double colocthreshold = 0.5;
+    double colocthreshold = 0.5;
     public double sigma_gaussian = 0.8;
     public double zcorrec = 1;// was 2
-    public int RSSmodulo = 5000;
-    public boolean RSSinit = false;
-    public boolean initRegionsIntensity = false;
-    public boolean findregionthresh = true;
+    int RSSmodulo = 5000;
+    boolean RSSinit = false;
+    private boolean initRegionsIntensity = false;
+    boolean findregionthresh = true;
     public double regionthresh = 0.19; // pour mitochondria 0.25 //0.19
     public double regionthreshy = 0.19; // pour mitochondria 0.25 //0.19
     public boolean dispvoronoi = false;
-    public int RegionsIntensitymodulo = 3000;
-    public int nthreads = 8;
+    int RegionsIntensitymodulo = 3000;
+    int nthreads = 8;
     public boolean usecellmaskX = false;
     public boolean usecellmaskY = false;
-    public boolean dispvesicles = true;
+    private boolean dispvesicles = true;
     public double thresholdcellmask = 0.0015;
     public double thresholdcellmasky = 0.0015;// (RAB channel)
-    public int energyEvaluationModulo = 5;
-    public int dispEmodulo = 10;
+    int energyEvaluationModulo = 5;
+    final int dispEmodulo = 10;
     public boolean dispSoftMask = false;
     public int nbconditions = 1;
     public int regionSegmentLevel = 2;
-    public boolean remask = false;
+    boolean remask = false;
     public boolean exclude_z_edges = true;
 
-    public int nchannels = 2;
+    int nchannels = 2;
     public int mode_intensity = 0;// 0 automatic, 1 low int, 2 high int (by clustering)
 
-    public double thresh = 0.75;
-    public double betaMLEoutdefault = 0.0003;// 0.0298;//0.003;// 0.003 // 0.0027356;
+    double thresh = 0.75;
+    double betaMLEoutdefault = 0.0003;// 0.0298;//0.003;// 0.003 // 0.0027356;
     public double betaMLEindefault = 0.3;// 0.082;//0.3;// 0.25;//25;//1340026;//0..//0.45 for//0.3
     // mito segmentation 0.4 (in latest, was 0.45..)
 
-    public boolean fastsquassh = false;
+    boolean fastsquassh = false;
     public boolean dispint = false;
     public boolean displabels = false;
     public boolean dispcolors = false;
     public boolean dispoutline = true;
-    public boolean dispcoloc = false;
+    private boolean dispcoloc = false;
     public double min_region_filter_intensities = 0.0;
 
     // Rscript parameters
-    public String file1;
-    public String file2;
-    public String file3;
+    String file1;
+    String file2;
+    String file3;
     public int[] nbimages = { 1, 1, 1, 1, 1 };// init with size 5, extended if needed in Rscriptlistener
     public String[] groupnames = { "Condition " + 1 + " name", "Condition " + 2 + " name", "Condition " + 3 + " name", "Condition " + 4 + " name", "Condition " + 5 + " name" };
     public String ch1 = "channel 1 name";
@@ -110,9 +110,9 @@ public class Parameters implements Serializable {
 
     public psf<DoubleType> PSF;
 
-    public int ni, nj, nz;
+    int ni, nj, nz;
 
-    public double[] cl;
+    double[] cl;
 
     // todo : clean code by using ni nj nz in this parameters class
 
@@ -125,7 +125,7 @@ public class Parameters implements Serializable {
     }
 
     // copy constructor
-    public Parameters(Parameters p) {
+    Parameters(Parameters p) {
         this.save_images = p.save_images;
         this.wd = p.wd;
 

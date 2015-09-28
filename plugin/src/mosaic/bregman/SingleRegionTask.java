@@ -14,8 +14,8 @@ class SingleRegionTask implements Runnable {
     private final ASplitBregmanSolver AS;
     private final int l;
     private final int channel;
-    public DoubleDCT_2D dct2d;
-    public Tools Tools;
+    private final DoubleDCT_2D dct2d;
+    private final Tools Tools;
 
     SingleRegionTask(CountDownLatch RegionsTasksDoneSignal, CountDownLatch UkDoneSignal, CountDownLatch W3kDoneSignal, int level, int channel, ASplitBregmanSolver AS, Tools tTools) {
         this.Tools = tTools;

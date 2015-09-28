@@ -45,11 +45,11 @@ import java.util.Collections;
 
 class FindConnectedRegions {
 
-    public ImagePlus imagePlus;
-    short[][][] tempres;
-    public ArrayList<Region> results = new ArrayList<Region>();
+    private final ImagePlus imagePlus;
+    final short[][][] tempres;
+    public final ArrayList<Region> results = new ArrayList<Region>();
 
-    boolean pleaseStop = false;
+    private final boolean pleaseStop = false;
 
     public FindConnectedRegions(ImagePlus mask) {
         this.imagePlus = mask;

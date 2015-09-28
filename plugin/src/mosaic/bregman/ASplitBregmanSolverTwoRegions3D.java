@@ -8,11 +8,11 @@ import edu.emory.mathcs.jtransforms.dct.DoubleDCT_3D;
 
 class ASplitBregmanSolverTwoRegions3D extends ASplitBregmanSolverTwoRegions {
 
-    public double[][][][] w2zk;
-    public double[][][][] b2zk;
-    public double[][][][] ukz;
-    public double[][][] eigenLaplacian3D;
-    public DoubleDCT_3D dct3d;
+    public final double[][][][] w2zk;
+    public final double[][][][] b2zk;
+    public final double[][][][] ukz;
+    public final double[][][] eigenLaplacian3D;
+    public final DoubleDCT_3D dct3d;
 
     public ASplitBregmanSolverTwoRegions3D(Parameters params, double[][][] image, double[][][][] speedData, double[][][][] mask, MasksDisplay md, int channel, AnalysePatch ap) {
         super(params, image, speedData, mask, md, channel, ap);
