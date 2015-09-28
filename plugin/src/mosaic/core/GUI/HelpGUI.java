@@ -23,10 +23,10 @@ import javax.swing.JPanel;
 
 public class HelpGUI {
 
-    JPanel pref;
+    private JPanel pref;
 
-    int gridx = 0;
-    int gridy = 0;
+    private final int gridx = 0;
+    private int gridy = 0;
 
     public HelpGUI() {
     }
@@ -218,7 +218,7 @@ public class HelpGUI {
         gridy++;
     }
 
-    static void open(URI uri) {
+    protected static void open(URI uri) {
         if (Desktop.isDesktopSupported()) {
             try {
                 Desktop.getDesktop().browse(uri);

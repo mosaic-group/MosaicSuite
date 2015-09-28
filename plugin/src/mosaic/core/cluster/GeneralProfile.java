@@ -142,15 +142,16 @@ class GeneralProfile implements ClusterProfile {
         return bc;
     }
 
-    Vector<Algorithm> alc;
+    // TODO: WTF? alc is never assigned but searched in hasCompressor method (temporarily commented out)
+//    private final Vector<Algorithm> alc;
 
     @Override
     public boolean hasCompressor(Algorithm a) {
-        for (int i = 0; i < alc.size(); i++) {
-            if (alc.get(i) == a) {
-                return true;
-            }
-        }
+//        for (int i = 0; i < alc.size(); i++) {
+//            if (alc.get(i) == a) {
+//                return true;
+//            }
+//        }
 
         return true;
     }

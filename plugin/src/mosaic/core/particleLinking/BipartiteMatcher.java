@@ -366,30 +366,30 @@ class BipartiteMatcher {
      */
     private static final double TOL = 1e-10;
 
-    int n;
+    private int n;
 
-    double[][] weights;
-    double minWeight;
-    double maxWeight;
+    private double[][] weights;
+    private double minWeight;
+    private double maxWeight;
 
     // If (i, j) is in the mapping, then sMatches[i] = j and tMatches[j] = i.
     // If i is unmatched, then sMatches[i] = -1 (and likewise for tMatches).
-    int[] sMatches;
-    int[] tMatches;
+    private int[] sMatches;
+    private int[] tMatches;
 
-    static final int NO_LABEL = -1;
-    static final int EMPTY_LABEL = -2;
+    private static final int NO_LABEL = -1;
+    private static final int EMPTY_LABEL = -2;
 
-    int[] sLabels;
-    int[] tLabels;
+    private int[] sLabels;
+    private int[] tLabels;
 
-    double[] u;
-    double[] v;
+    private double[] u;
+    private double[] v;
 
-    double[] pi;
+    private double[] pi;
 
-    List<Integer> eligibleS = new ArrayList<Integer>();
-    List<Integer> eligibleT = new ArrayList<Integer>();
+    private final List<Integer> eligibleS = new ArrayList<Integer>();
+    private final List<Integer> eligibleT = new ArrayList<Integer>();
 
     public static void main(String[] args) {
         final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));

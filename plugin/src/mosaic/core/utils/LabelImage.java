@@ -38,22 +38,22 @@ public class LabelImage// implements
     // private final float imageMax; // maximal intensity of input image
 
     protected ImageProcessor labelIP; // map positions -> labels
-    protected ImagePlus labelPlus;
+    private ImagePlus labelPlus;
     // public float[] dataIntensity;
     public int[] dataLabel;
     // public short[] dataLabelShort;
 
-    int size;
+    private int size;
     protected int dim; // number of dimension
     protected int[] dimensions; // dimensions (width, height, depth, ...)
-    protected int width = 0;
-    protected int height = 0;
+    private int width = 0;
+    private int height = 0;
     public IndexIterator iterator; // iterates over the labelImage
 
     public final int bgLabel = 0;
 
     protected Connectivity connFG;
-    protected Connectivity connBG;
+    private Connectivity connBG;
 
     /**
      * Create a label image from an ImgLib2 image

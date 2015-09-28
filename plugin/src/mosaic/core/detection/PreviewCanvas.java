@@ -17,13 +17,16 @@ public class PreviewCanvas extends ImageCanvas {
 
     private static final long serialVersionUID = 1L;
     private MyFrame preview_frame;
-    int magnificationFactor = 1;
+    private int magnificationFactor = 1;
     private int preview_slice_calculated;
     private int radius;
 
-    public Vector<double[]> shifts;
-    public Vector<double[]> shiftPositions;
-    public Vector<Particle> particlesShiftedToDisplay;
+ // TODO: This variable is never created but used later in code. To be investigated.
+    private final Vector<double[]> shifts = null;
+    // TODO: This variable is never created but used later in code. To be investigated.
+    private final Vector<double[]> shiftPositions = null;
+    // TODO: This variable is never created but used later in code. To be investigated.
+    private final Vector<Particle> particlesShiftedToDisplay = null;
 
     /**
      * Constructor. <br>

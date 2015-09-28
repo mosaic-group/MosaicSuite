@@ -22,12 +22,12 @@ import net.imglib2.type.numeric.NumericType;
 
 public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends NativeType<E> & IntegerType<E>> {
 
-    Img<T> it;
-    Img<E> lb;
-    Img<E> rs;
+    private Img<T> it;
+    private Img<E> lb;
+    private Img<E> rs;
 
-    Point p1;
-    Point p2;
+    private final Point p1;
+    private final Point p2;
 
     /**
      * Create an image patch

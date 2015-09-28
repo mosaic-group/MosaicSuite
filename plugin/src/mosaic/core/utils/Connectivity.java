@@ -17,9 +17,9 @@ public class Connectivity implements Iterable<Point> {
     private final int VCellDim; // connectivity
     private final int m_NeighborhoodSize; // complete neighborhood (size of unitcube)
 
-    int nNeighbors; // m_NumberOfNeighbors
-    Point[] neighborsP;
-    int[] neighborsOfs;
+    protected final int nNeighbors; // m_NumberOfNeighbors
+    protected final Point[] neighborsP;
+    protected final int[] neighborsOfs;
 
     /**
      * @param VDim Cell dimension 2 for 2D, 3 for 3D , ..... and so on
@@ -352,7 +352,7 @@ public class Connectivity implements Iterable<Point> {
         }
     }
 
-    private static ArrayList<Connectivity[]> connectivities = new ArrayList<Connectivity[]>();
+    private final static ArrayList<Connectivity[]> connectivities = new ArrayList<Connectivity[]>();
 
     /**
      * @param VDim

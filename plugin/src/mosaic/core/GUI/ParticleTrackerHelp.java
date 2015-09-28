@@ -4,20 +4,16 @@ package mosaic.core.GUI;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 
-public class ParticleTrackerHelp extends HelpGUI implements ActionListener {
+public class ParticleTrackerHelp extends HelpGUI {
 
-    public JFrame frame;
-    // Initialize Buttons
+    private final JFrame frame;
     private final JPanel panel;
-    private JButton Close;
+
 
     public ParticleTrackerHelp(int x, int y) {
         frame = new JFrame("Particle Tracker Help");
@@ -53,35 +49,11 @@ public class ParticleTrackerHelp extends HelpGUI implements ActionListener {
         desc = new String("How many future frame are considered for the linking stage");
         createField("Link Range (R)", desc, "http://mosaic.mpi-cbg.de/docs/Sbalzarini2005a.pdf#page=4&zoom=150,0,-350");
 
-        // JPanel panel = new JPanel(new BorderLayout());
-
         panel.add(pref);
-        // panel.add(label, BorderLayout.NORTH);
 
         frame.add(panel);
 
-        // frame.repaint();
-
         frame.setVisible(true);
-        // frame.requestFocus();
-        // frame.setAlwaysOnTop(true);
-
-        // JOptionPane.showMessageDialog(frame,
-        // "Eggs are not supposed to be green.\n dsfdsfsd",
-        // "A plain message",
-        // JOptionPane.PLAIN_MESSAGE);
 
     }
-
-    @Override
-    public void actionPerformed(ActionEvent ae) {
-        final Object source = ae.getSource(); // Identify Button that was clicked
-
-        if (source == Close) {
-            // IJ.log("close called");
-            frame.dispose();
-        }
-
-    }
-
 }

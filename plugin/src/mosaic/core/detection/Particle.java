@@ -22,16 +22,17 @@ public class Particle {
 
     public static final String[] ParticleDetection_map = new String[] { "Frame", "x", "y", "z", "Size" };
 
-    public static CellProcessor[] ParticleDetectionCellProcessor = new CellProcessor[] { new ParseInt(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble() };
+    public final static CellProcessor[] ParticleDetectionCellProcessor = new CellProcessor[] { new ParseInt(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble() };
 
     public float x, y, z; // the originally given coordinates - to be refined
-    public float original_x; // the originally given coordinates - not to be changed
-    public float original_y, original_z;
+    float original_x = 0.0f; // the originally given coordinates - not to be changed
+    float original_y = 0.0f;
+    float original_z = 0.0f;
     private int frame; // the number of the frame this particle belonges to (can be 0)
     public boolean special; // a flag that is used while detecting and linking particles
     public int[] next; // array that holds in position i the next particle number in frame i
     // that this particle is linked to
-    public int nbIterations = 0; // debug
+    int nbIterations = 0; // debug
     /* only relevant to particles detected in images */
     public float m0; // intensity moment
     public float m1, m2, m3, m4;
@@ -41,7 +42,7 @@ public class Particle {
     public float lxa, lya, lza; // accumulation link
 
     /* only relevant to particles given as input */
-    public String[] all_params; // all params that relate to this particle,
+    public String[] all_params = null; // all params that relate to this particle,
 
     /**
      * Create a particle from another particle

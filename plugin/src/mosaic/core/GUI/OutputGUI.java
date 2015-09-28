@@ -22,7 +22,7 @@ import javax.swing.table.AbstractTableModel;
 public class OutputGUI extends JDialog {
 
     private static final long serialVersionUID = 1L;
-    JDialog myself;
+    protected final JDialog myself;
 
     private class OutputTable extends AbstractTableModel {
 
@@ -94,19 +94,13 @@ public class OutputGUI extends JDialog {
                 data[i][2] = new Double(1.0);
             }
         }
-
-        // void setChoose(int idx)
-        // {
-        // if (idx < 0)
-        // oc = out[idx];
-        // }
     }
 
-    JPanel contentPane;
-    JTable table;
-    GUIOutputChoose oc;
-    GUIOutputChoose out[];
-    OutputTable outTM;
+    private JPanel contentPane;
+    private JTable table;
+    protected GUIOutputChoose oc;
+    protected GUIOutputChoose out[];
+    protected OutputTable outTM;
 
     public OutputGUI() {
         oc = null;

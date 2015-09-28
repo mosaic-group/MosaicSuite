@@ -13,7 +13,7 @@ import net.imglib2.type.numeric.RealType;
 
 public class psfList {
 
-    static public String psfList[] = { "Gauss", "File" };
+    final static String psfList[] = { "Gauss", "File" };
 
     /**
      * Create a specified PSF

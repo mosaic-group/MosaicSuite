@@ -19,7 +19,7 @@ import org.junit.Test;
 
 public class Jtest {
 
-    protected static final Logger logger = Logger.getLogger(Jtest.class);
+    private static final Logger logger = Logger.getLogger(Jtest.class);
 
     private class segStub implements Segmentation {
 
@@ -74,7 +74,7 @@ public class Jtest {
     }
 
     ImgTest[] testImg;
-    String to;
+    protected String to;
 
     @Test
     public void testtestsegmentation() {

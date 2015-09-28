@@ -17,11 +17,11 @@ import mosaic.core.cluster.ShellProcessOutput;
 
 public class DataCompression {
 
-    int selC = -1;
+    private int selC = -1;
 
     public class Algorithm {
 
-        Algorithm(String name_, String cmd_, String finger_print_, String cc, String uc) {
+        protected Algorithm(String name_, String cmd_, String finger_print_, String cc, String uc) {
             name = name_;
             cmd = cmd_;
             finger_print = finger_print_;
@@ -29,14 +29,14 @@ public class DataCompression {
             uncompress_command = uc;
         }
 
-        public String name;
-        String cmd;
-        String finger_print;
-        String compress_command;
-        String uncompress_command;
+        public final String name;
+        protected final String cmd;
+        protected final String finger_print;
+        protected final String compress_command;
+        protected final String uncompress_command;
     }
 
-    Vector<Algorithm> al;
+    private final Vector<Algorithm> al;
 
     public DataCompression() {
         al = new Vector<Algorithm>();

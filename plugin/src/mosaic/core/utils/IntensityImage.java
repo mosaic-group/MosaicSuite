@@ -18,7 +18,7 @@ import net.imglib2.type.numeric.RealType;
 public class IntensityImage {
 
     public float[] dataIntensity;
-    IndexIterator iterator;
+    private final IndexIterator iterator;
     public ImagePlus imageIP;
 
     private int width;

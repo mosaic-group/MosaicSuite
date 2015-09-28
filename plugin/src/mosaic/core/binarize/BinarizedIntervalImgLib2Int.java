@@ -20,8 +20,9 @@ import net.imglib2.type.numeric.IntegerType;
 
 public class BinarizedIntervalImgLib2Int<T extends IntegerType<T>> extends IntervalsListInteger implements BinarizedImage {
 
-    Img<T> labelImage;
-    RandomAccess<T> raLb;
+    private Img<T> labelImage;
+    // TODO: Never crated but used later in code.
+    private final RandomAccess<T> raLb = null;
 
     public BinarizedIntervalImgLib2Int(Img<T> aLabelImage) {
         super();

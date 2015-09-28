@@ -3,15 +3,15 @@ package mosaic.core.utils;
 
 public class CircleMask extends Mask {
 
-    int dim;
-    int rad;
+    private final int dim;
+    private final int rad;
 
-    int m_Size[];
-    int m_Radius[];
-    float spacing[];
+    private final int m_Size[];
+    private final int m_Radius[];
+    private final float spacing[];
 
-    IndexIterator iterator;
-    int fgPoints = 0;
+    private final IndexIterator iterator;
+    private int fgPoints = 0;
 
     /**
      * Create a circle mask with radius and spacing

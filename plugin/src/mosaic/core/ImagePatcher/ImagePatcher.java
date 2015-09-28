@@ -32,9 +32,9 @@ import net.imglib2.type.numeric.NumericType;
 
 public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends NativeType<E> & IntegerType<E>> {
 
-    @SuppressWarnings("rawtypes")
+    private final @SuppressWarnings("rawtypes")
     ImagePatch[] img_p;
-    long[] dims;
+    private final long[] dims;
 
     public ImagePatcher(Img<T> img, Img<E> lbl, int margins[]) {
         dims = MosaicUtils.getImageLongDimensions(img);

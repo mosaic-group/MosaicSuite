@@ -38,11 +38,11 @@ public class ClusterGUI extends JDialog {
     private static final long serialVersionUID = 1L;
     private final JPanel contentPane;
     ClusterProfile cp_sel;
-    ClusterSession cl;
+    protected ClusterSession cl;
 
-    JTextField tx_u;
+    final JTextField tx_u;
     private final JTextField tx_e;
-    JPasswordField tx_p;
+    final JPasswordField tx_p;
     ClusterProfile[] cp = null;
     private final float estimated_time = 0;
 

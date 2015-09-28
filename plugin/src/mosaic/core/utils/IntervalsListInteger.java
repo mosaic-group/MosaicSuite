@@ -14,8 +14,8 @@ import java.util.List;
 
 public class IntervalsListInteger {
 
-    protected List<ThresholdIntervalInteger> m_Thresholds;
-    protected int m_NThresholds; // to not call size() of the vector at each evaluation.
+    private final List<ThresholdIntervalInteger> m_Thresholds;
+    private int m_NThresholds; // to not call size() of the vector at each evaluation.
 
     public IntervalsListInteger() {
         m_NThresholds = 0;
@@ -39,8 +39,8 @@ public class IntervalsListInteger {
 
 class ThresholdIntervalInteger {
 
-    public int lower;
-    public int higher;
+    public final int lower;
+    public final int higher;
 
     public ThresholdIntervalInteger(int lower, int higher) {
         this.lower = lower;

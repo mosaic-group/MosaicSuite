@@ -18,7 +18,7 @@ import mosaic.core.utils.Point;
 
 public class BinarizedIntervalLabelImage extends IntervalsListInteger implements BinarizedImage {
 
-    LabelImage labelImage;
+    private LabelImage labelImage;
 
     public BinarizedIntervalLabelImage(LabelImage aLabelImage) {
         super();

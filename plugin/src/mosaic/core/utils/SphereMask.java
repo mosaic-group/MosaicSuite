@@ -6,16 +6,16 @@ import java.util.Random;
 
 public class SphereMask extends Mask {
 
-    boolean rnd = false;
-    int dim;
-    int rad;
+    private boolean rnd = false;
+    private final int dim;
+    private final int rad;
 
-    int m_Size[];
-    int m_Radius[];
-    float spacing[];
+    private final int m_Size[];
+    private final int m_Radius[];
+    private final float spacing[];
 
-    IndexIterator iterator;
-    int fgPoints = 0;
+    private final IndexIterator iterator;
+    private int fgPoints = 0;
 
     /*
      * Get the number or Foreground points in the mask

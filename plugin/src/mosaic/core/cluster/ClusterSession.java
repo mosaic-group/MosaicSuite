@@ -41,7 +41,7 @@ import org.apache.log4j.Logger;
  */
 public class ClusterSession {
 
-    protected static final Logger logger = Logger.getLogger(ClusterSession.class);
+    private static final Logger logger = Logger.getLogger(ClusterSession.class);
 
     private int nImages;
     private final ClusterProfile cp;

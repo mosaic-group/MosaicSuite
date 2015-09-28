@@ -37,17 +37,17 @@ class GaussPSFSettings implements Serializable {
 
 public class GaussPSF<T extends RealType<T>> implements psf<T> {
 
-    GaussPSFSettings settings = new GaussPSFSettings();
+    private GaussPSFSettings settings = new GaussPSFSettings();
 
-    RealType<T> pos[];
-    RealType<T> var[];
-    RealType<T> offset[];
-    Class<T> clCreator;
-    double[][] sepDimD;
-    double[][] Image2DD;
-    double[][][] Image3DD;
-    float[][] Image2DF;
-    float[][][] Image3DF;
+    private final RealType<T> pos[];
+    private RealType<T> var[];
+    private final RealType<T> offset[];
+    private final Class<T> clCreator;
+    private final double[][] sepDimD;
+    private double[][] Image2DD;
+    private double[][][] Image3DD;
+    private float[][] Image2DF;
+    private float[][][] Image3DF;
 
     /**
      * Create a Gaussian object

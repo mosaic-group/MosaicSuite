@@ -54,16 +54,17 @@ class FilePSFSettings implements Serializable {
 
 class FilePSF<T extends RealType<T> & NativeType<T>> implements psf<T> {
 
-    FilePSFSettings settings = new FilePSFSettings();
-    Img<T> image;
-    RandomAccess<T> rd;
-    Class<T> clCreator;
-    String filename;
-    int offset[];
-    double[][] Image2DD;
-    double[][][] Image3DD;
-    float[][] Image2DF;
-    float[][][] Image3DF;
+    private FilePSFSettings settings = new FilePSFSettings();
+    private Img<T> image;
+    private RandomAccess<T> rd;
+    private final Class<T> clCreator;
+    protected String filename;
+    // TODO: This guy is never created! but used later in code.
+    private final int offset[] = null;
+    private double[][] Image2DD;
+    private double[][][] Image3DD;
+    private float[][] Image2DF;
+    private float[][][] Image3DF;
 
     /**
      * Create an object

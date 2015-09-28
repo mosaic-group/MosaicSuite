@@ -16,19 +16,19 @@ import java.util.NoSuchElementException;
  */
 public class RegionIteratorMask {
 
-    Mask mask;
+    private final Mask mask;
     private final int[] input; // size of the input image
     private final int[] m_Size; // size of the mask
-    int[] ofs; // "upper left" coordinates of the sphere-region within input image
-    int[] crop_s; // "left crop start"
-    int[] crop_e; // "right left crop start"
-    Point ofs_p;
+    private int[] ofs; // "upper left" coordinates of the sphere-region within input image
+    private int[] crop_s; // "left crop start"
+    private int[] crop_e; // "right left crop start"
+    private Point ofs_p;
 
     // iterator
-    int itInput = 0;
-    int cachedNext = -1; // detect if there is a next next.
-    RegionIterator regionIt;
-    MaskIterator maskIt;
+    private int itInput = 0;
+    private int cachedNext = -1; // detect if there is a next next.
+    private final RegionIterator regionIt;
+    private final MaskIterator maskIt;
 
     private class MovePoint {
         protected MovePoint() {}

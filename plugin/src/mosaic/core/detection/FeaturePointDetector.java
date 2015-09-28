@@ -42,22 +42,22 @@ import mosaic.plugins.BackgroundSubtractor2_;
 public class FeaturePointDetector {
 
     public static final int ABS_THRESHOLD_MODE = 0, PERCENTILE_MODE = 1;
-    public static final int NO_PREPROCESSING = 0, BOX_CAR_AVG = 1, BG_SUBTRACTOR = 2, LAPLACE_OP = 3;
+    private static final int NO_PREPROCESSING = 0, BOX_CAR_AVG = 1, BG_SUBTRACTOR = 2, LAPLACE_OP = 3;
 
     public float global_max, global_min;
-    Vector<Particle> particles;
-    int particles_number; // number of particles initialy detected
-    int real_particles_number; // number of "real" particles discrimination
+    private Vector<Particle> particles;
+    private int particles_number; // number of particles initialy detected
+    private int real_particles_number; // number of "real" particles discrimination
 
-    Label previewLabel = new Label("");
-    MyFrame preview_frame;
+    private final Label previewLabel = new Label("");
+    private MyFrame preview_frame;
 
     /* user defined parameters */
     public double cutoff = 3.0; // default
     public float percentile = 0.001F; // default (user input/100)
     public float absIntensityThreshold = 0.0f; // user input
     public int radius = 3; // default
-    public boolean absolute = false;
+    private boolean absolute = false;
     // public float sigma_factor = 3;
 
     public int threshold_mode = PERCENTILE_MODE;
@@ -67,9 +67,9 @@ public class FeaturePointDetector {
     /* image Restoration vars */
     // public short[][] binary_mask;
     // public float[][] weighted_mask;
-    public int[][] mask;
-    public float lambda_n = 1;
-    public int preprocessing_mode = BOX_CAR_AVG;
+    private int[][] mask;
+    private final float lambda_n = 1;
+    private final int preprocessing_mode = BOX_CAR_AVG;
 
     public FeaturePointDetector(float global_max, float global_min) {
         this.global_max = global_max;

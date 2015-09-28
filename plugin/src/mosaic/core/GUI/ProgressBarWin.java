@@ -24,9 +24,10 @@ import javax.swing.border.EmptyBorder;
 public class ProgressBarWin extends JDialog {
 
     private static final long serialVersionUID = 147834134785813L;
-    JPanel contentPane;
-    JProgressBar Prog_s;
-    JLabel Status;
+    private final JPanel contentPane;
+    private final JProgressBar Prog_s;
+    private final JLabel Status;
+    
     @SuppressWarnings("unused")
     private final Object lock;
 

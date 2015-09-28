@@ -25,7 +25,7 @@ public class linkerOptions {
      * indication of angle deviation
      */
 
-    public float r_sq = 9;
+    final float r_sq = 9;
 
     /**
      * introduce an angle deviation cost term

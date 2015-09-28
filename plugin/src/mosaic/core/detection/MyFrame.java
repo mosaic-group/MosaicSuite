@@ -45,16 +45,16 @@ import net.imglib2.view.Views;
  */
 public class MyFrame {
 
-    static Map<Integer, RegionIteratorMask> CircleCache;
-    static Map<Integer, RegionIteratorMask> RectangleCache;
+    private static Map<Integer, RegionIteratorMask> CircleCache;
+    private static Map<Integer, RegionIteratorMask> RectangleCache;
 
-    Vector<Particle> particles;
-    int particles_number; // number of particles initialy detected
+    private Vector<Particle> particles;
+    private int particles_number; // number of particles initialy detected
     public int real_particles_number; // number of "real" particles
     // discrimination
     public int frame_number; // Serial number of this frame in the movie (can be
     // 0)
-    StringBuffer info_before_discrimination;// holdes string with ready to print
+    private StringBuffer info_before_discrimination;// holdes string with ready to print
     // info
     // about this frame before particle discrimination
 
@@ -62,10 +62,10 @@ public class MyFrame {
     // the original image, this is used for the
     // featurePointDetector to access
     // corresponding the image data.
-    private ImageStack original_ips; 
+    private ImageStack original_ips = null; 
     
-    int linkrange;
-    int p_radius = -1;
+    int linkrange = 0;
+    private int p_radius = -1;
 
     /**
      * Cleanup circle cache

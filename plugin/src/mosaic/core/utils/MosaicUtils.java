@@ -46,8 +46,8 @@ import net.imglib2.view.Views;
 
 class FloatToARGB implements ToARGB {
 
-    double min = 0.0;
-    double max = 255;
+    private double min = 0.0;
+    private double max = 255;
 
     @Override
     public ARGBType toARGB(Object data) {
@@ -69,8 +69,8 @@ class FloatToARGB implements ToARGB {
 
 class IntToARGB implements ToARGB {
 
-    double min = 0.0;
-    double max = 255;
+    private double min = 0.0;
+    private double max = 255;
 
     @Override
     public ARGBType toARGB(Object data) {

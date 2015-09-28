@@ -14,8 +14,8 @@ import java.util.List;
 
 public class IntervalsListDouble {
 
-    protected List<ThresholdIntervalDouble> m_Thresholds;
-    protected int m_NThresholds; // to not call size() of the vector at each evaluation.
+    private final List<ThresholdIntervalDouble> m_Thresholds;
+    private int m_NThresholds; // to not call size() of the vector at each evaluation.
 
     public IntervalsListDouble() {
         m_NThresholds = 0;
@@ -44,8 +44,8 @@ public class IntervalsListDouble {
 
 class ThresholdIntervalDouble {
 
-    public double lower;
-    public double higher;
+    public final double lower;
+    public final double higher;
 
     public ThresholdIntervalDouble(double lower, double higher) {
         this.lower = lower;

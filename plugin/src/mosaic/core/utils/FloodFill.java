@@ -17,8 +17,8 @@ import mosaic.core.binarize.BinarizedImage;
 
 public class FloodFill implements Iterable<Point> {
 
-    Stack<Point> stack;
-    Set<Point> checkedSet;
+    private final Stack<Point> stack;
+    private final Set<Point> checkedSet;
 
     /**
      * Perform a Flood fill starting from a seed point

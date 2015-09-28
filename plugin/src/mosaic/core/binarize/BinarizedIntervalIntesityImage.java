@@ -18,7 +18,7 @@ import mosaic.core.utils.Point;
 
 public class BinarizedIntervalIntesityImage extends IntervalsListDouble implements BinarizedImage {
 
-    IntensityImage image;
+    private final IntensityImage image;
 
     public BinarizedIntervalIntesityImage(IntensityImage image) {
         this.image = image;

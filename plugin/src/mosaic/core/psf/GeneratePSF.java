@@ -40,14 +40,14 @@ class PSFSettings implements Serializable {
 
 public class GeneratePSF {
 
-    PSFSettings settings = new PSFSettings();
+    private PSFSettings settings = new PSFSettings();
 
-    int sz[];
+    private int sz[];
 
-    Choice PSFc;
+    private Choice PSFc;
 
-    psf<FloatType> psfc;
-    TextField dimF;
+    private psf<FloatType> psfc;
+    protected TextField dimF;
 
     /**
      * Get the parameters for the Psf
@@ -70,7 +70,7 @@ public class GeneratePSF {
      * @param dim dimension of the psf
      */
 
-    void selectPSF(int dim) {
+    protected void selectPSF(int dim) {
         final String psf = PSFc.getSelectedItem();
 
         if (dim == 0) {

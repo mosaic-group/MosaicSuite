@@ -16,13 +16,13 @@ public class RegionIterator
 // implements Iterator<Integer>, Iterable<Integer> // performance gain
 {
 
-    int dimensions;
-    int[] input; // dimensions of input
-    int[] region; // dimensions of region
-    int[] ofs; // offset
-    int[] crop_size; // crop
+    final int dimensions;
+    private int[] input; // dimensions of input
+    private int[] region; // dimensions of region
+    private int[] ofs; // offset
+    private final int[] crop_size; // crop
 
-    int size; // size of (cropped) region
+    private int size; // size of (cropped) region
 
     public int getSize() {
         return size;
@@ -150,8 +150,8 @@ public class RegionIterator
 
     // //////////// Bitwise Mask ///////////
 
-    int BitMaskN;
-    int BitMaskO;
+    private int BitMaskN;
+    private int BitMaskO;
 
     public int getRMask() {
         return BitMaskO;
