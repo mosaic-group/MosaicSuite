@@ -22,16 +22,13 @@ import mosaic.plugins.utils.TimeMeasurement;
  */
 public class Jtest implements PlugInFilter {
 
-    protected static final Logger logger = Logger.getLogger(Jtest.class);
+    private static final Logger logger = Logger.getLogger(Jtest.class);
 
     /**
      * Run JTest filter
      */
-
     @Override
-    public void run(ImageProcessor arg0) {
-
-    }
+    public void run(ImageProcessor arg0) {}
 
     @Override
     public int setup(String arg0, ImagePlus arg1) {
@@ -74,5 +71,4 @@ public class Jtest implements PlugInFilter {
 
         return DONE;
     }
-
 }
