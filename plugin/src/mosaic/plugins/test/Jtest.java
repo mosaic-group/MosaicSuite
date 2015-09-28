@@ -49,12 +49,6 @@ public class Jtest implements PlugInFilter {
         tm.logLapTimeSec("========================== bregman");
 
         // Test core utils
-        logger.info("========================== TestSuite: core.utils.Jtest ===================================");
-        final mosaic.core.utils.Jtest jtestTS = new mosaic.core.utils.Jtest();
-        jtestTS.testtestsegmentation();
-        tm.logLapTimeSec("========================== core.utils.Jtest");
-
-        // Test core utils
         logger.info("========================== TestSuite: core.cluster.Jtest ===================================");
         final mosaic.core.cluster.Jtest jtestMj = new mosaic.core.cluster.Jtest();
         jtestMj.mergetest();
