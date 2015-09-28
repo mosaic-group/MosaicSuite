@@ -15,8 +15,8 @@ import net.imglib2.type.numeric.RealType;
 
 class PoissonSampler<T extends RealType<T>> implements NoiseSample<T> {
 
-    Random mRandomGenerator;
-    double offset = 0.0;
+    private final Random mRandomGenerator;
+    private double offset;
 
     PoissonSampler(double offset_) {
         mRandomGenerator = new Random(8888);

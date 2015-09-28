@@ -12,7 +12,7 @@ import net.imglib2.type.numeric.RealType;
 
 public class noiseList {
 
-    static public String noiseList[] = { "Poisson" };
+    static public final String noiseList[] = { "Poisson" };
 
     /**
      * Create a specified noise distribution

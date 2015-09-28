@@ -22,9 +22,9 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
      * @author Pietro Incardona
      */
 
-    Random rnd;
-    Class<T> cls = null;
-    T center;
+    private final Random rnd;
+    private Class<T> cls;
+    private T center;
 
     private class InterpolateHistogram {
 
@@ -130,7 +130,7 @@ public class GenericNoiseSampler<T extends RealType<T>> implements NoiseSample<T
         long integral;
     }
 
-    Vector<Ihist> inteHist;
+    private final Vector<Ihist> inteHist;
 
     public GenericNoiseSampler(Class<T> cls_) {
         inteHist = new Vector<Ihist>();
