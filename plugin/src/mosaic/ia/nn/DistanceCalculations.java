@@ -17,16 +17,16 @@ import weka.estimators.KernelEstimator;
 
 public abstract class DistanceCalculations {
 
-    protected double[] D;
-    protected double[][] qOfD;
+    private double[] D;
+    private double[][] qOfD;
 
     public double[][] getqOfD() {
         return qOfD;
     }
 
-    protected ImagePlus mask;
+    private final ImagePlus mask;
 
-    private float[][][] maskImage3d;
+    private final float[][][] maskImage3d;
     private final double gridSize;
 
     protected Point3d[] particleXSetCoord;
@@ -36,10 +36,10 @@ public abstract class DistanceCalculations {
     protected double xscale = 1;
     protected double yscale = 1;
 
-    protected double kernelWeightq;
-    protected int discretizationSize;
+    private final double kernelWeightq;
+    private final int discretizationSize;
 
-    public DistanceCalculations(ImagePlus mask, double gridSize, double kernelWeightq, int discretizationSize) {
+    DistanceCalculations(ImagePlus mask, double gridSize, double kernelWeightq, int discretizationSize) {
         super();
         this.mask = mask;
         this.gridSize = gridSize;
@@ -47,6 +47,8 @@ public abstract class DistanceCalculations {
         this.discretizationSize = discretizationSize;
         if (mask != null) {
             maskImage3d = IAPUtils.imageTo3Darray(mask);
+        } else {
+            maskImage3d = null;
         }
     }
 

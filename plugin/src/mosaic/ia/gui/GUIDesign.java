@@ -60,7 +60,7 @@ public class GUIDesign implements ActionListener {
     private Border blackBorder;
     private JTextArea textArea;
 
-    JLabel lblsupportPts, lblSmoothness;
+    private JLabel lblsupportPts, lblSmoothness;
     private JFormattedTextField txtXmin;
     private JFormattedTextField txtYmin;
     private JFormattedTextField txtZmin;

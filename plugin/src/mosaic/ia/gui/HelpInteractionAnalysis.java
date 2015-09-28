@@ -4,38 +4,28 @@ package mosaic.ia.gui;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import mosaic.core.GUI.HelpGUI;
 
 
-class HelpInteractionAnalysis extends HelpGUI implements ActionListener {
+class HelpInteractionAnalysis extends HelpGUI {
 
-    public JFrame frame;
-    // Initialize Buttons
+    private final JFrame frame;
     private final JPanel panel;
-    private JButton Close;
+
 
     public HelpInteractionAnalysis(int x, int y) {
         frame = new JFrame("Interaction Analysis Help");
         frame.setSize(555, 780);
         frame.setLocation(x + 500, y - 50);
-        // frame.toFront();
-        // frame.setResizable(false);
-        // frame.setAlwaysOnTop(true);
 
         panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panel.setPreferredSize(new Dimension(575, 720));
 
         final JPanel pref = new JPanel(new GridBagLayout());
-        // pref.setPreferredSize(new Dimension(555, 550));
-        // pref.setSize(pref.getPreferredSize());
-
         setPanel(pref);
         setHelpTitle("Interaction Analysis ");
         createTutorial("http://mosaic.mpi-cbg.de/Downloads/IAPManual.pdf");
@@ -54,35 +44,11 @@ class HelpInteractionAnalysis extends HelpGUI implements ActionListener {
         createField("Repeat estimation", desc, "http://mosaic.mpi-cbg.de/Downloads/IAPManual.pdf#page=8&zoom=150,0,-610");
         createSection("Hypotesis", "http://mosaic.mpi-cbg.de/Downloads/IAPManual.pdf#page=11&zoom=150,0,0");
 
-        // JPanel panel = new JPanel(new BorderLayout());
-
         panel.add(pref);
-        // panel.add(label, BorderLayout.NORTH);
-
         frame.add(panel);
 
-        // frame.repaint();
-
         frame.setVisible(true);
-        // frame.requestFocus();
-        // frame.setAlwaysOnTop(true);
-
-        // JOptionPane.showMessageDialog(frame,
-        // "Eggs are not supposed to be green.\n dsfdsfsd",
-        // "A plain message",
-        // JOptionPane.PLAIN_MESSAGE);
-
     }
 
-    @Override
-    public void actionPerformed(ActionEvent ae) {
-        final Object source = ae.getSource(); // Identify Button that was clicked
-
-        if (source == Close) {
-            // IJ.log("close called");
-            frame.dispose();
-        }
-
-    }
 
 }

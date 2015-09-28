@@ -6,8 +6,8 @@ import mosaic.utils.math.Matrix;
 
 import org.apache.commons.math3.special.BesselJ;
 
-public class PhaseContrastPsf {
-    public static Matrix generate(double aR, double aW, double aM) {
+class PhaseContrastPsf {
+    static Matrix generate(double aR, double aW, double aM) {
         // Comments show equivalent in Matlab code:
         // --------------------------------------------------------------------
         // r = M;

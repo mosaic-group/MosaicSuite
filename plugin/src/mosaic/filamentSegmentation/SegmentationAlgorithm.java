@@ -78,9 +78,9 @@ public class SegmentationAlgorithm {
     private Matrix iPsf;
 
     // VLS - vector level set
-    BSplineSurface iPsi;
-    BSplineSurface iPhi;
-    Matrix iEnergyGradOfBases;
+    private BSplineSurface iPsi;
+    private BSplineSurface iPhi;
+    private Matrix iEnergyGradOfBases;
 
 
     public SegmentationAlgorithm(double[][] aImage, NoiseType aNoiseType, PsfType aPsfType, Dimension aPsfSize,
@@ -356,8 +356,8 @@ public class SegmentationAlgorithm {
             iH_f = aH_f;
         }
 
-        public Matrix iopt_MK; // best founded mask
-        public Matrix iH_f; // thresholded mask
+        final Matrix iopt_MK; // best founded mask
+        final Matrix iH_f; // thresholded mask
     }
 
     ThresholdFuzzyOutput ThresholdFuzzyVLS(double aTotalEnergy) {
@@ -413,9 +413,9 @@ public class SegmentationAlgorithm {
             iTotalEnergy = aTotalEnergy;
         }
 
-        public Matrix iMask;
-        public RegionStatisticsSolver iRss;
-        public double iTotalEnergy;
+        final Matrix iMask;
+        final RegionStatisticsSolver iRss;
+        final double iTotalEnergy;
     }
 
     /**

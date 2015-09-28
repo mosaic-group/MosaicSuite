@@ -17,7 +17,7 @@ import java.awt.geom.Point2D;
 
 public class BicubicInterpolator extends PixelInterpolator {
 
-    double a = 1;
+    private final double a = 1;
 
     public BicubicInterpolator() {
     }

@@ -19,8 +19,8 @@ import weka.core.neighboursearch.KDTree;
 
 public class KDTreeNearestNeighbor {
 
-    KDTree kdtree;
-    Instances pointsYinstances;
+    private KDTree kdtree;
+    private Instances pointsYinstances;
 
     public void createKDTree(Point3d[] pointsY) {
         final Attribute x = new Attribute("x");
@@ -73,7 +73,7 @@ public class KDTreeNearestNeighbor {
 
     }
 
-    public double getNNDistance(Point3d p) throws Exception {
+    double getNNDistance(Point3d p) throws Exception {
         final Attribute x = pointsYinstances.attribute(0);
         final Attribute y = pointsYinstances.attribute(1);
         final Attribute z = pointsYinstances.attribute(2);

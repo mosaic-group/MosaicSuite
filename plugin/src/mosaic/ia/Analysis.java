@@ -26,10 +26,10 @@ import weka.estimators.KernelEstimator;
 
 public class Analysis {
 
-    private ImagePlus X, Y;
+    private final ImagePlus X, Y;
     private ImagePlus mask, genMask;
-    private Point3d[] particleXSetCoordUnfiltered;
-    private Point3d[] particleYSetCoordUnfiltered;
+    private final Point3d[] particleXSetCoordUnfiltered;
+    private final Point3d[] particleYSetCoordUnfiltered;
 
     private final int dgrid_size = 1000;
     private double[] q_D_grid, NN_D_grid;
@@ -106,7 +106,8 @@ public class Analysis {
         this.X = X;
         this.Y = Y;
         isImage = true;
-        // System.out.println("1:"+X.getWidth());
+        this.particleXSetCoordUnfiltered = null;
+        this.particleYSetCoordUnfiltered = null;
     }
 
     public boolean isMaskSet() {
@@ -119,7 +120,8 @@ public class Analysis {
     public Analysis(Point3d[] Xcoords, Point3d[] Ycoords) {
         this.particleXSetCoordUnfiltered = Xcoords;
         this.particleYSetCoordUnfiltered = Ycoords;
-
+        this.X = null;
+        this.Y = null;
         isImage = false;
         // System.out.println("1:"+X.getWidth());
     }
