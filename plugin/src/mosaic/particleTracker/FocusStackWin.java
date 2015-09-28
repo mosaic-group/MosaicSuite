@@ -22,8 +22,8 @@ public class FocusStackWin extends StackWindow implements ItemListener {
 
     private static final long serialVersionUID = 1L;
     private Checkbox Auto_Z;
-    Trajectory traj;
-    float scal_z;
+    private final Trajectory traj;
+    private final float scal_z;
 
     /**
      * Constructor.

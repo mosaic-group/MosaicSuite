@@ -44,8 +44,8 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
      */
     private final ParticleTracker3DModular_ particleTracker3DModular;
     private static final long serialVersionUID = 1L;
-    public TextPanel text_panel;
-    public TextPanel configuration_panel;
+    public final TextPanel text_panel;
+    public final TextPanel configuration_panel;
     private final Button view_static, save_report, display_report, dummy, plot_particle, trajectory_focus, trajectory_info, traj_in_area_info, area_focus;
 
     private final Button transfer_particles, transfer_trajs; // in panel left
@@ -53,7 +53,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
     private final Button mssAllResultsButton;
     private final Button mssTrajectoryResultButton;
 
-    public Label per_traj_label;
+    final Label per_traj_label;
     private final Label area_label;
     private final Label all_label;
     private final MenuItem tail, mag_factor, relink_particles;

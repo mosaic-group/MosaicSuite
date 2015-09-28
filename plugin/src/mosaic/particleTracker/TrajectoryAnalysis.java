@@ -13,21 +13,21 @@ import mosaic.utils.math.LeastSquares;
  */
 public class TrajectoryAnalysis {
 
-    Particle[] iParticles;           // given trajectory's particles
-    int[] iMomentOrders;             // requested moment orders to be calculated
-    int[] iFrameShifts;              // requested frame shift (deltas)
-    double[][] iMSDs;                // moments of displacement for every moment order
-    double[] iGammasLogarithmic;     // vector of scaling coefficients (slopes) from logarithmic plot
-    double[] iGammasLogarithmicY0;   // vector of y-axis intercept for scaling coefficients
-    double[] iGammasLinear;          // vector of scaling coefficients (slopes) from linear plot
-    double[] iGammasLinearY0;        // vector of y-axis intercept for scaling coefficients
-    double[] iDiffusionCoefficients; // vector of diffusion coefficients
-    double iMSSlinear;               // slope of moments scaling spectrum for linear plot
-    double iMSSlinearY0;             // y-axis intercept of MSS for linear plot
-    double iMSSlogarithmic;          // slope of moments scaling spectrum for logarithmic plot
-    double iMSSlogarithmicY0;        // y-axis intercept of MSS for logarithmic plot
-    double iDX;                      // physical length of a pixel
-    double iDT;                      // physical time interval between frames
+    private final Particle[] iParticles;           // given trajectory's particles
+    private int[] iMomentOrders;             // requested moment orders to be calculated
+    private int[] iFrameShifts;              // requested frame shift (deltas)
+    private double[][] iMSDs;                // moments of displacement for every moment order
+    private double[] iGammasLogarithmic;     // vector of scaling coefficients (slopes) from logarithmic plot
+    private double[] iGammasLogarithmicY0;   // vector of y-axis intercept for scaling coefficients
+    private double[] iGammasLinear;          // vector of scaling coefficients (slopes) from linear plot
+    private double[] iGammasLinearY0;        // vector of y-axis intercept for scaling coefficients
+    private double[] iDiffusionCoefficients; // vector of diffusion coefficients
+    private double iMSSlinear;               // slope of moments scaling spectrum for linear plot
+    private double iMSSlinearY0;             // y-axis intercept of MSS for linear plot
+    private double iMSSlogarithmic;          // slope of moments scaling spectrum for logarithmic plot
+    private double iMSSlogarithmicY0;        // y-axis intercept of MSS for logarithmic plot
+    private double iDX;                      // physical length of a pixel
+    private double iDT;                      // physical time interval between frames
 
     public static final boolean SUCCESS = true;
     public static final boolean FAILURE = false;

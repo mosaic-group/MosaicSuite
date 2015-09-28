@@ -24,16 +24,16 @@ import net.sf.javaml.utils.ArrayUtils;
  *  This class is responsible for displaying MSS/MSD plots.
  *  @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
-public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
+class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
 
     private static final long serialVersionUID = 1L;
 
     // UI stuff
-    private Button iMssButton;
-    private Button iMsdButton;
-    private Checkbox iLogScale;
+    private final Button iMssButton;
+    private final Button iMsdButton;
+    private final Checkbox iLogScale;
 
-    private TrajectoryAnalysis iTrajectoryAnalysis;
+    private final TrajectoryAnalysis iTrajectoryAnalysis;
 
     // Dimensions of plot
     private static final int WIN_WIDTH = 800;
@@ -44,7 +44,7 @@ public class TrajectoryAnalysisPlot extends ImageWindow implements ActionListene
      * @param aPixelDim Dimensions of pixel in meters (needed for proper trajectory analysis)
      * @param aTimeInterval Time interval between frames used to calculate trajectory analysis.
      */
-    public TrajectoryAnalysisPlot(Trajectory aTrajectory, double aPixelDim, double aTimeInterval) {
+    TrajectoryAnalysisPlot(Trajectory aTrajectory, double aPixelDim, double aTimeInterval) {
         this(aTrajectory.existing_particles, aPixelDim, aTimeInterval);
     }
 

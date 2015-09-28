@@ -26,20 +26,20 @@ public class Trajectory {
 
     public int stop_frame;
     public int start_frame;
-    public Particle[] existing_particles; // holds all particles of this trajetory in order
-    public int length; // number of frames this trajectory spans on
-    public ImagePlus original_imp;
+    public final Particle[] existing_particles; // holds all particles of this trajetory in order
+    public final int length; // number of frames this trajectory spans on
+    private final ImagePlus original_imp;
 
-    ArrayList<int[]> gaps = new ArrayList<int[]>(); // holds arrays (int[]) of size 2 that holds
+    private final ArrayList<int[]> gaps = new ArrayList<int[]>(); // holds arrays (int[]) of size 2 that holds
     // 2 indexs of particles in the existing_particles.
     // These particles are the start and end points of a gap
     // in this trajectory
-    int num_of_gaps = 0;
+    private int num_of_gaps = 0;
 
     public int serial_number; // serial number of this trajectory (for report and display)
     public boolean to_display = true; // flag for display filter
     public Color color; // the display color of this Trajectory
-    public Roi mouse_selection_area; // The Roi area where a mouse click will select this trajectory
+    Roi mouse_selection_area; // The Roi area where a mouse click will select this trajectory
     public Roi focus_area; // The Roi for focus display of this trajectory
 
     /**
@@ -304,7 +304,7 @@ public class Trajectory {
      * 
      * @param param_choice the <b>position</b> of the parameter to plot in the Particle.all_params array
      */
-    public void plotParticleAlongTrajectory(int param_choice) {
+    void plotParticleAlongTrajectory(int param_choice) {
 
         if (param_choice >= this.existing_particles[0].all_params.length || param_choice < 0) {
             IJ.error("plotParticleAlongTrajectory\n" + "The given parameter choice (" + (param_choice + 1) + ") does not exits");
