@@ -1,19 +1,17 @@
 package mosaic.bregman;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-//import ij.io.FileSaver;
-import ij.process.ByteProcessor;
-import ij.process.ColorProcessor;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.process.ByteProcessor;
+import ij.process.ColorProcessor;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
 import mosaic.core.utils.MosaicUtils;
 
 
@@ -63,7 +61,6 @@ class MasksDisplay {
             colors[1][0] = 0;
             colors[1][2] = 0;
         }
-
     }
 
     void display(int[][][] maxmask, String s) {
@@ -264,15 +261,11 @@ class MasksDisplay {
 
         this.ims3d = new ImageStack(ni, nj);
         for (int z = 0; z < nz; z++) {
-            // IJ.log("add slice number :" + z);
-            // float [] [] temp= new float [ni][nj];
             final byte[] temp = new byte[ni * nj];
 
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     temp[j * p.ni + i] = (byte) ((int) (255 * array[z][i][j]));// (float)
-                    // array[z][i][j];
-                    // ims3d.setVoxel(i, j, z, array[z][i][j]);
                 }
             }
             final ImageProcessor bp = new ByteProcessor(ni, nj);
@@ -296,7 +289,6 @@ class MasksDisplay {
                 firstdispb = false;
             }
         }
-
     }
 
     /**
@@ -312,17 +304,12 @@ class MasksDisplay {
         final ImageStack ims3da = new ImageStack(ni, nj);
         final ImagePlus imgd = new ImagePlus();
 
-        // this.ims3d=new ImageStack(ni,nj);
         for (int z = 0; z < nz; z++) {
-            // IJ.log("add slice number :" + z);
-            // float [] [] temp= new float [ni][nj];
             final byte[] temp = new byte[ni * nj];
 
             for (int j = 0; j < nj; j++) {
                 for (int i = 0; i < ni; i++) {
                     temp[j * p.ni + i] = (byte) ((int) (array[z][i][j]));// (float)
-                    // array[z][i][j];
-                    // ims3d.setVoxel(i, j, z, array[z][i][j]);
                 }
             }
             final ImageProcessor bp = new ByteProcessor(ni, nj);
@@ -345,8 +332,7 @@ class MasksDisplay {
     /**
      * Display the colocalization image
      *
-     * @param savepath path + filename "_coloc.zip" is appended to the name,
-     *            extension is removed
+     * @param savepath path + filename "_coloc.zip" is appended to the name, extension is removed
      * @param regionslistA Regions list A
      * @param regionslistB Regions list B
      */
@@ -387,8 +373,6 @@ class MasksDisplay {
                 final Pix p = it2.next();
                 final int t = p.pz * ni * nj * 3 + p.px * nj * 3;
                 imagecolor[t + p.py * 3 + 0] = (byte) 255;
-                // red
-                // cpcoloc.putPixel(p.px, p.py, color);
             }
         }
 

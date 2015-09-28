@@ -4,9 +4,7 @@ package mosaic.bregman;
 import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.Collection;
-//import java.util.Date;
 import java.util.Iterator;
-//import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +18,6 @@ class ImagePatches {
     private final int interp;
     private int jobs_done;
     private int nb_jobs;
-    // reg
     private final int osxy;
     private final int osz; // oversampling
     private final int sx;
@@ -30,7 +27,7 @@ class ImagePatches {
     public final short[][][] regions_refined;
     private final double[][][] image;
     final double[][][] w3kbest;
-    private byte[] imagecolor_c1;// for display ints = new int [dz][di][dj][3];
+    private byte[] imagecolor_c1;
 
     private final double max;
     private final double min;
@@ -61,7 +58,7 @@ class ImagePatches {
         this.jobs_done = 0;
         this.max = max;
         this.min = min;
-        // IJ.log("sx " + sx);
+
         if (p.nz == 1) {
             this.sz = 1;
             this.osz = 1;
@@ -102,7 +99,6 @@ class ImagePatches {
     /**
      * Patch creation, distribution and assembly
      */
-
     private void distribute_regions() {
         // assuming rvoronoi and regionslists (objects) in same order (and same
         // length)
@@ -120,9 +116,6 @@ class ImagePatches {
         AnalysePatch ap;
         for (final Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
             final Region r = it.next();
-            // if (r.value==5){
-            // IJ.log("call os " + p.oversampling2ndstep);
-            // IJ.log("interp " + p.interpolation);
             if (p.interpolation > 1) {
                 p.subpixel = true;
             }
@@ -135,13 +128,7 @@ class ImagePatches {
             ap = new AnalysePatch(image, r, p, p.oversampling2ndstep, channel, regions_refined, this);
             if (p.mode_voronoi2) {
                 threadPool.execute(ap);
-                // IJ.log("size q:"+ queue.size());
             }
-            else {
-                // ap.run();//execute
-            }
-
-            // ///////////////
 
             // add refined result into regions refined :
             if (!p.mode_voronoi2) {
@@ -153,29 +140,17 @@ class ImagePatches {
                     assemble_result_interpolated(ap, r);
                 }
             }
-
-            // else{
-            // assemble_result_voronoi2(ap);
-            // }
-            // }
         }
-        // IJ.log("loop done");
-
-        //
 
         threadPool.shutdown();
 
         try {
-            // IJ.log("await termination");
             threadPool.awaitTermination(1, TimeUnit.DAYS);
         }
         catch (final InterruptedException ex) {
         }
 
-        // long lStartTime = new Date().getTime(); //start time
-
         if (p.mode_voronoi2) {
-            // find_regions();
             regionslist_refined = globalList;
 
             // final LinkedBlockingQueue<Runnable> queue2 = new
@@ -186,16 +161,12 @@ class ImagePatches {
             // calculate regions intensities
             for (final Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
                 final Region r = it.next();
-                // IJ.log("int region :" +r.value);
                 Op = new ObjectProperties(image, r, sx, sy, sz, p, osxy, osz, imagecolor_c1, regions_refined);
                 threadPool2.execute(Op);
-                // Op.run();
             }
 
             threadPool2.shutdown();
             try {
-                // IJ.log("await termination");
-                // Tools.showmem();
                 threadPool2.awaitTermination(1, TimeUnit.DAYS);
             }
             catch (final InterruptedException ex) {
@@ -204,7 +175,6 @@ class ImagePatches {
             // here we analyse the patch
             // if we have a big region with intensity near the background
             // kill that region
-
             boolean changed = false;
 
             final ArrayList<Region> regionslist_refined_filter = new ArrayList<Region>();
@@ -221,7 +191,6 @@ class ImagePatches {
             regionslist_refined = regionslist_refined_filter;
 
             // if changed, reassemble
-
             if (changed == true) {
                 for (int i = 0; i < regions_refined.length; i++) {
                     for (int j = 0; j < regions_refined[i].length; j++) {
@@ -233,12 +202,9 @@ class ImagePatches {
                 assemble(regionslist_refined);
             }
 
-            //
-
             regionslist_refined = regionslist_refined_filter;
         }
 
-        // Tools.showmem();
         final int no = regionslist_refined.size();
         if (channel == 0) {
             IJ.log(no + " objects found in X.");
@@ -271,7 +237,6 @@ class ImagePatches {
      * @param regionslist_refined List of regions to assemble
      * @param regions_refined regions refined
      */
-
     static public void assemble(Collection<Region> regionslist_refined, short[][][] regions_refined) {
         for (final Iterator<Region> it = regionslist_refined.iterator(); it.hasNext();) {
             final Region r = it.next();
@@ -285,16 +250,10 @@ class ImagePatches {
     }
 
     public synchronized void addRegionstoList(ArrayList<Region> localList) {
-        // boolean disp=false;
-        // if (localList.size()>1)
-        // disp=true;
         int index;// build index of region (will be r.value)
         for (final Iterator<Region> it = localList.iterator(); it.hasNext();) {
             final Region r = it.next();
             index = globalList.size() + 1;
-            // if (disp){
-            // IJ.log("index" + index + "size" + r.pixels.size());
-            // }
             r.value = index;
             globalList.add(r);
         }
@@ -303,7 +262,6 @@ class ImagePatches {
 
         IJ.showStatus("Computing segmentation  " + round(55 + (45 * ((double) jobs_done) / (nb_jobs)), 2) + "%");
         IJ.showProgress(0.55 + 0.45 * (jobs_done) / (nb_jobs));
-
     }
 
     private double round(double y, int z) {
@@ -326,10 +284,6 @@ class ImagePatches {
                         // rpixels.add(new Pix(z,i,j));
                         pixcount++;
                     }
-
-                    // else
-                    // regions_refined[z+ap.offsetz*osz][i+ap.offsetx*osxy][j+ap.offsety*osxy]
-                    // =0;
                 }
             }
         }
@@ -340,7 +294,6 @@ class ImagePatches {
     }
 
     private void assemble_result_interpolated(AnalysePatch ap, Region r) {
-
         final ArrayList<Pix> rpixels = new ArrayList<Pix>();
         int pixcount = 0;
         for (int z = 0; z < ap.isz; z++) {

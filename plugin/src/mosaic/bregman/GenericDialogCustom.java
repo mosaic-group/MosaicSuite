@@ -1,10 +1,9 @@
 package mosaic.bregman;
 
 
-import ij.gui.GenericDialog;
-//import ij.gui.NonBlockingGenericDialog;
-
 import java.awt.TextField;
+
+import ij.gui.GenericDialog;
 
 
 public class GenericDialogCustom extends GenericDialog {

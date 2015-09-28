@@ -1,21 +1,15 @@
 package mosaic.bregman;
 
 
+import java.util.Arrays;
+import java.util.concurrent.CountDownLatch;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.filter.BackgroundSubtracter;
-//import net.sf.javaml.tools.weka.WekaClusterer;
-//import ij.io.FileSaver;
 import ij.process.ByteProcessor;
 import ij.process.ImageProcessor;
-
-import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
-
-//import weka.clusterers.Cobweb;
-//import weka.clusterers.SimpleKMeans;
-//import weka.clusterers.XMeans;
 import net.sf.javaml.clustering.Clusterer;
 import net.sf.javaml.clustering.KMeans;
 import net.sf.javaml.core.Dataset;
@@ -32,7 +26,6 @@ import net.sf.javaml.tools.DatasetTools;
  *
  * @author Aurelien Ritz
  */
-
 class NRegions implements Runnable {
 
     final Tools LocalTools;
@@ -41,10 +34,6 @@ class NRegions implements Runnable {
     public final double[][][][] mask;// nregions nslices ni nj
     final double[][][][] Ei;
     public MasksDisplay md;
-
-    // levels value
-
-    // double [] cl ={0.0027, 0.0480 ,0.09 ,0.1653 ,0.3901};
 
     public final Parameters p;
 
@@ -59,9 +48,7 @@ class NRegions implements Runnable {
     double max;
 
     public NRegions(ImagePlus img, Parameters params, CountDownLatch DoneSignal, int channel) {
-        // IJ.log("Computing segmentation ..");
         final BackgroundSubtracter bs = new BackgroundSubtracter();
-        // Parameters params = new Parameters();
         this.p = params;
 
         this.LocalTools = new Tools(p.ni, p.nj, p.nz);
@@ -154,10 +141,6 @@ class NRegions implements Runnable {
                 bs.rollingBallBackground(imp, p.size_rollingball, false, false, false, true, true);
             }
 
-            // slidingparaboloid version test (do both lines)
-            // bs.rollingBallBackground(imp, 0.1, false, false, true, true, true);
-            // bs.rollingBallBackground(imp, 0.2, false, false, true, false, true);
-
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
                     image[z][i][j] = imp.getPixel(i / os, j / os);
@@ -234,21 +217,6 @@ class NRegions implements Runnable {
             IJ.log("automatic foreground:" + Tools.round(p.cl[1], 3));
         }
 
-        // double test [];
-        // test=cluster3();
-        // IJ.log("cl0 :" + test[0] + " cl1 " + test[1] + " cl2 " + test[2]);//" " + cl[3]+ " " + cl[4] );
-
-        // IJ.log("cl :" + p.cl[0] + " " + p.cl[1] + " " + p.cl[2] + " " + p.cl[3]+ " " + p.cl[4] );
-        // IJ.log(String.format(" cl0 :  %4.2e %ncl1 :  %4.2e %ncl2 :  %4.2e %ncl3 :  %4.2e %ncl4 :  %4.2e %n",
-        // p.cl[0],p.cl[1],p.cl[2],p.cl[3],p.cl[4]));
-
-        // if (p.livedisplay){
-        // IJ.log("Intensities :");
-        // for (int i=0; i <p.nlevels; i++){
-        // IJ.log("level "+ i +" :"+ p.cl[i]);
-        // }
-        // }
-
         if (p.JunitTest) {
             p.cl[0] = 0.00227;
             p.cl[1] = 0.0504;
@@ -268,12 +236,6 @@ class NRegions implements Runnable {
         }
     }
 
-    // private int returnpix(ImageProcessor imp){
-    //
-    // if (bits==32)
-    // Float.intBitsToFloat()
-    // }
-
     @Override
     public void run() {
         md = new MasksDisplay(ni, nj, nz, nl, p.cl, p);
@@ -290,9 +252,7 @@ class NRegions implements Runnable {
         final double minInt = Analysis.p.min_intensity;
         Analysis.p.min_intensity = 0;
         if (channel == 0) {
-            // Analysis.maxmaska=A_solver.maxmask;
             Analysis.setmaska(A_solver.maxmask);
-            // Analysis.maska=A_solver.w3k[0];
             if (!Analysis.p.looptest) {
                 if (p.nlevels == 2) {
                     Analysis.compute_connected_regions_a(0.5, null);
@@ -306,8 +266,6 @@ class NRegions implements Runnable {
         }
         else {
             Analysis.setmaskb(A_solver.maxmask);
-            // Analysis.maxmaskb=A_solver.maxmask;
-            // Analysis.maskb=A_solver.w3k[0];
             if (!Analysis.p.looptest) {
                 if (p.nlevels == 2) {
                     Analysis.compute_connected_regions_b(0.5, null);
@@ -330,7 +288,6 @@ class NRegions implements Runnable {
         final double[] pixel = new double[1];
         final int max = Math.max(2, nl);
         final double[] levels = new double[max];
-        // double [] levels2= new double[5];
 
         // get imagedata
         for (int z = 0; z < nz; z++) {
@@ -351,56 +308,10 @@ class NRegions implements Runnable {
         final Dataset[] data2 = km.cluster(data);
         for (int i = 0; i < nl; i++) {
             final Instance inst = DatasetTools.average(data2[i]);
-            // IJ.log("instance i" + i + "is " + inst.value(0));
             levels[i] = inst.value(0);
         }
 
         Arrays.sort(levels);
-
-        //
-        //
-        //
-        // //test Weka Xmeans clustering
-        // XMeans xm2 = new XMeans();
-        // try{
-        // // xm2.setNumClusters(4);//3
-        // //xm2.setMaxIterations(100);
-        //
-        // xm2.setMaxNumClusters(5);
-        // xm2.setMinNumClusters(2);
-        // xm2.setMaxIterations(5);
-        // //xm2.setCutOffFactor(0.5);
-        // }catch (Exception ex) {}
-        // Clusterer jmlxm2 = new WekaClusterer(xm2);
-        // // /* Perform clustering */
-        // Dataset[] clusts = jmlxm2.cluster(data);
-        // // /* Output results */
-        // // //System.out.println(clusters.length);
-        // //
-        // //
-        //
-        // int nk2=clusts.length;//get number of clusters really found (usually = 3 = setNumClusters but not always)
-        // IJ.log("xmeans clusts :" + nk2);
-        // for (int i=0; i<nk2; i++) {
-        // //Instance inst =DatasetTools.minAttributes(data2[i]);
-        // Instance inst =DatasetTools.average(clusts[i]);
-        // levels2[i]=inst.value(0);
-        // }
-        // //
-        // //
-        // Arrays.sort(levels2);
-        // //// IJ.log("");
-        // //// IJ.log("levels :");
-        // //// IJ.log("level 1 : " + levels[0]);
-        // //// IJ.log("level 2 : " + levels[1]);
-        // //// IJ.log("level 3 : " + levels[2]);
-        // //// IJ.log("level 4 : " + levels[3]);
-        // //
-        // IJ.log("levels2 :");
-        // for (int i=0; i<5; i++) {
-        // IJ.log("level2 "+(i+1) + " : " + levels2[i]);
-        // }
-        //
 
         return levels;
 
@@ -431,7 +342,6 @@ class NRegions implements Runnable {
         final Dataset[] data2 = km.cluster(data);
         for (int i = 0; i < nll; i++) {
             final Instance inst = DatasetTools.average(data2[i]);
-            // IJ.log("instance i test" + i + "is " + inst.value(0));
             levels[i] = inst.value(0);
         }
 
@@ -470,21 +380,15 @@ class NRegions implements Runnable {
         maska_im.setStack("Cell mask channel " + (channel + 1), maska_ims);
 
         IJ.run(maska_im, "Invert", "stack");
-        //
-        // //IJ.run(maska_im, "Erode", "");
         IJ.run(maska_im, "Fill Holes", "stack");
         IJ.run(maska_im, "Open", "stack");
-
         IJ.run(maska_im, "Invert", "stack");
-        // maska_im.show("mask");
 
         if (Analysis.p.dispwindows && Analysis.p.livedisplay) {
             maska_im.show();
         }
 
         if (Analysis.p.save_images) {
-            // FileSaver fs= new FileSaver(maska_im);
-            // //IJ.log(img.getTitle());
             String savepath;
             if (channel == 0) {
                 savepath = Analysis.p.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c1" + ".zip";
@@ -492,10 +396,6 @@ class NRegions implements Runnable {
             else {
                 savepath = Analysis.p.wd + img.getTitle().substring(0, img.getTitle().length() - 4) + "_mask_c2" + ".zip";
             }
-            // if (Analysis.p.nz >1) fs.saveAsTiffStack(savepath);
-            // else fs.saveAsTiff(savepath);
-
-            // IJ.log("save path cell mask: " + savepath);
             IJ.saveAs(maska_im, "ZIP", savepath);
 
         }
@@ -511,7 +411,5 @@ class NRegions implements Runnable {
         }
 
         return cellmask;
-
     }
-
 }
