@@ -35,9 +35,9 @@ import mosaic.bregman.GUI.SegmentationGUI;
 import mosaic.bregman.GUI.VisualizationGUI;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
-import mosaic.core.utils.MosaicTest;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.BregmanGLM_Batch;
+import mosaic.test.framework.SystemOperations;
 
 
 public class GenericGUI {
@@ -513,7 +513,7 @@ public class GenericGUI {
             // Get output format and Stitch the output in the output selected
             String path = MosaicUtils.ValidFolderFromImage(aImp);
             if (BregmanGLM_Batch.test_mode == true) {
-                path = MosaicTest.getTestEnvironment();
+                path = SystemOperations.getTestTmpPath();
             }
             final File dir = ClusterSession.processJobsData(path);
 

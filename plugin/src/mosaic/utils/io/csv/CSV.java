@@ -284,7 +284,7 @@ public class CSV<E> {
 
         ICsvDozerBeanWriter beanWriter = null;
         try {
-            logger.info("Writing file: [" + aCsvFilename + "]");
+            logger.info("Writing file: [" + aCsvFilename + "], append: " + aShouldAppend);
             beanWriter = new CsvDozerBeanWriter(new FileWriter(aCsvFilename, aShouldAppend), iCsvPreference);
             beanWriter.configureBeanMapping(iClazz, aOutputChoose.fieldMapping);
 

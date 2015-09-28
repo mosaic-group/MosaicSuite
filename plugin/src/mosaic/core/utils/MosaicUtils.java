@@ -1,16 +1,6 @@
 package mosaic.core.utils;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.WindowManager;
-import ij.gui.GenericDialog;
-import ij.io.Opener;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
-import ij.process.StackStatistics;
-
 import java.awt.Choice;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -25,6 +15,17 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.io.Opener;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import ij.process.StackStatistics;
 import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.cluster.ClusterSession;
@@ -104,7 +105,8 @@ class ARGBToARGB implements ToARGB {
 }
 
 public class MosaicUtils {
-
+    private static final Logger logger = Logger.getLogger(MosaicUtils.class);
+    
     public class SegmentationInfo {
 
         public File RegionList;
@@ -1109,7 +1111,7 @@ public class MosaicUtils {
         for (int i = 0; i < img.numDimensions(); i++) {
             dimensions[i] = (int) img.dimension(i);
         }
-
+        
         return dimensions;
     }
 
@@ -1124,7 +1126,7 @@ public class MosaicUtils {
         for (int i = 0; i < img.numDimensions(); i++) {
             dimensions_l[i] = img.dimension(i);
         }
-
+        
         return dimensions_l;
     }
 
@@ -1188,11 +1190,10 @@ public class MosaicUtils {
         String TestFolder = new String();
 
         TestFolder += getTestDir() + File.separator + plugin + File.separator;
-        IJ.log(TestFolder);
+        logger.info("Test data directory: [" + TestFolder + "]");
         ImgTest imgT = null;
 
         // List all directories
-
         final File fl = new File(TestFolder);
         final File dirs[] = fl.listFiles();
 

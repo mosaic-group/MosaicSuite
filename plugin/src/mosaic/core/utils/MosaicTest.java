@@ -2,26 +2,27 @@ package mosaic.core.utils;
 
 
 import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Vector;
+
+import org.scijava.Context;
+import org.scijava.app.AppService;
+import org.scijava.app.StatusService;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
 import io.scif.SCIFIOService;
 import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Vector;
-
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.plugins.utils.PlugInFilterExt;
+import mosaic.test.framework.SystemOperations;
 import mosaic.utils.io.csv.CSV;
 import net.imglib2.img.Img;
-
-import org.scijava.Context;
-import org.scijava.app.AppService;
-import org.scijava.app.StatusService;
 
 
 /**
@@ -31,15 +32,11 @@ import org.scijava.app.StatusService;
  */
 public class MosaicTest {
 
-    public static String getTestEnvironment() {
-        return IJ.getDirectory("temp") + File.separator + "test" + File.separator;
-    }
-
     private static void prepareTestEnvironment(ProgressBarWin wp, ImgTest tmp) {
         wp.SetStatusMessage("Testing... " + new File(tmp.base).getName());
 
         // Save on tmp and reopen
-        final String tmp_dir = getTestEnvironment();
+        final String tmp_dir = SystemOperations.getTestTmpPath();
 
         // Remove everything there
         try {
@@ -114,7 +111,7 @@ public class MosaicTest {
 
     private static <T> void processResult(PlugInFilterExt BG, ImgTest tmp, ProgressBarWin wp, Class<T> cls) {
         // Save on tmp and reopen
-        final String tmp_dir = getTestEnvironment();
+        final String tmp_dir = SystemOperations.getTestTmpPath();
 
         // Check if there are job directories
         final String[] cs = ClusterSession.getJobDirectories(0, tmp_dir);
@@ -268,7 +265,7 @@ public class MosaicTest {
         BG.setIsOnTest(true);
 
         // Save on tmp and reopen
-        final String tmp_dir = getTestEnvironment();
+        final String tmp_dir = SystemOperations.getTestTmpPath();
         final ProgressBarWin wp = new ProgressBarWin();
 
         // if macro options is different from "" or null filter the tests

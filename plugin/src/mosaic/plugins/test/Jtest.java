@@ -11,8 +11,8 @@ import org.scijava.util.FileUtils;
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
-import mosaic.core.utils.MosaicTest;
 import mosaic.plugins.utils.TimeMeasurement;
+import mosaic.test.framework.SystemOperations;
 
 
 /**
@@ -33,7 +33,7 @@ public class Jtest implements PlugInFilter {
     @Override
     public int setup(String arg0, ImagePlus arg1) {
         // Get the User home directory
-        final String test = MosaicTest.getTestEnvironment();
+        final String test = SystemOperations.getTestTmpPath();
         final File s_file = new File(test + File.separator + "succeful");
         FileUtils.deleteRecursively(s_file);
 
