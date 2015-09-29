@@ -1,12 +1,5 @@
 package mosaic.core.utils;
 
-
-import java.util.ArrayList;
-import java.util.List;
-
-import mosaic.region_competition.utils.Timer;
-
-
 /**
  * @author Stephan & Pietro Incardona
  *         Iterator to iterate over a (arbitrary dimensional) rectangular region
@@ -296,84 +289,84 @@ public class RegionIterator
 
     // //////////////////////////////////////////////////////
 
-    public static void tester() {
-        final int[] testinput = { 100, 100, 100 };
-        final int[] testofs = { -50, -50, -50 };
-        final int[] testregion = { 200, 200, 200 };
+//    public static void tester() {
+//        final int[] testinput = { 100, 100, 100 };
+//        final int[] testofs = { -50, -50, -50 };
+//        final int[] testregion = { 200, 200, 200 };
+//
+//        final IndexIterator it = new IndexIterator(testregion);
+//        final int size = it.getSize();
+//
+//        final int mask[] = new int[size];
+//        for (int i = 0; i < size; i++) {
+//            mask[i] = i;
+//        }
+//
+//        final RegionIterator regionIt = new RegionIterator(testinput, testregion, testofs);
+//        final MaskIterator maskIt = new MaskIterator(testinput, testregion, testofs);
+//
+//        while (regionIt.hasNext()) {
+//            // int idx = regionIt.next();
+//            final int imask = maskIt.next();
+//
+//            final int x = mask[imask];
+//
+//            System.out.println("" + it.indexToPoint(x) + " ");
+//        }
+//
+//        System.out.println("fertig");
+//
+//    }
 
-        final IndexIterator it = new IndexIterator(testregion);
-        final int size = it.getSize();
+//    public static List<Integer> RegionItTest(int[] testinput, int[] testofs, int[] testregion) {
+//        final ArrayList<Integer> list = new ArrayList<Integer>();
+//
+//        final RegionIterator testiterator = new RegionIterator(testinput, testregion, testofs);
+//        // IndexIterator proofer = new IndexIterator(testinput);
+//
+//        final Timer t = new Timer();
+//        t.tic();
+//
+//        while (testiterator.hasNext()) {
+//            final int index = testiterator.next();
+//            // Point p = proofer.indexToPoint(index);
+//            list.add(index);
+//        }
+//
+//        t.toc();
+//        System.out.println("region it = " + t.lastResult());
+//
+//        return list;
+//    }
 
-        final int mask[] = new int[size];
-        for (int i = 0; i < size; i++) {
-            mask[i] = i;
-        }
-
-        final RegionIterator regionIt = new RegionIterator(testinput, testregion, testofs);
-        final MaskIterator maskIt = new MaskIterator(testinput, testregion, testofs);
-
-        while (regionIt.hasNext()) {
-            // int idx = regionIt.next();
-            final int imask = maskIt.next();
-
-            final int x = mask[imask];
-
-            System.out.println("" + it.indexToPoint(x) + " ");
-        }
-
-        System.out.println("fertig");
-
-    }
-
-    public static List<Integer> RegionItTest(int[] testinput, int[] testofs, int[] testregion) {
-        final ArrayList<Integer> list = new ArrayList<Integer>();
-
-        final RegionIterator testiterator = new RegionIterator(testinput, testregion, testofs);
-        // IndexIterator proofer = new IndexIterator(testinput);
-
-        final Timer t = new Timer();
-        t.tic();
-
-        while (testiterator.hasNext()) {
-            final int index = testiterator.next();
-            // Point p = proofer.indexToPoint(index);
-            list.add(index);
-        }
-
-        t.toc();
-        System.out.println("region it = " + t.lastResult());
-
-        return list;
-    }
-
-    public static List<Point> naiveTest(int[] testinput, int[] testofs, int[] testregion) {
-
-        final ArrayList<Point> list = new ArrayList<Point>();
-
-        final IndexIterator iterator = new IndexIterator(testregion);
-        final IndexIterator labelImageIt = new IndexIterator(testinput);
-
-        final Timer t = new Timer();
-        t.tic();
-
-        final Point pstart = new Point(testofs);
-
-        final int size = iterator.getSize();
-        for (int i = 0; i < size; i++) // over region
-        {
-            final Point ofs = iterator.indexToPoint(i);
-            final Point p = pstart.add(ofs);
-            if (labelImageIt.isInBound(p)) {
-                list.add(p);
-                // System.out.println(p);
-            }
-        }
-
-        t.toc();
-
-        System.out.println("naive it  = " + t.lastResult());
-
-        return list;
-    }
+//    public static List<Point> naiveTest(int[] testinput, int[] testofs, int[] testregion) {
+//
+//        final ArrayList<Point> list = new ArrayList<Point>();
+//
+//        final IndexIterator iterator = new IndexIterator(testregion);
+//        final IndexIterator labelImageIt = new IndexIterator(testinput);
+//
+//        final Timer t = new Timer();
+//        t.tic();
+//
+//        final Point pstart = new Point(testofs);
+//
+//        final int size = iterator.getSize();
+//        for (int i = 0; i < size; i++) // over region
+//        {
+//            final Point ofs = iterator.indexToPoint(i);
+//            final Point p = pstart.add(ofs);
+//            if (labelImageIt.isInBound(p)) {
+//                list.add(p);
+//                // System.out.println(p);
+//            }
+//        }
+//
+//        t.toc();
+//
+//        System.out.println("naive it  = " + t.lastResult());
+//
+//        return list;
+//    }
 
 }
