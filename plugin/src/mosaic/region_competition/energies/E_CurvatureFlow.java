@@ -29,11 +29,4 @@ public class E_CurvatureFlow extends InternalEnergy// implements SettingsListene
     public Object atStart() {
         return null;
     }
-
-    // @Override
-    // public void settingsChanged(Settings settings)
-    // {
-    // initSphere((int)settings.m_CurvatureMaskRadius);
-    // }
-
 }

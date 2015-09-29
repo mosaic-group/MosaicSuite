@@ -334,7 +334,6 @@ public class GenericDialogGUI implements InputReadable {
 
         // Dialog destroyed
         // On OK, read parameters
-
         if (gd_p.wasOKed()) {
             processParameters();
         }
@@ -347,7 +346,6 @@ public class GenericDialogGUI implements InputReadable {
     }
 
     // Choice for open images in IJ
-
     private int nOpenedImages = 0;
     private Choice choiceLabelImage;
     private Choice choiceInputImage;
@@ -355,18 +353,17 @@ public class GenericDialogGUI implements InputReadable {
     private void addOpenedImageChooser() {
         nOpenedImages = 0;
         final int[] ids = WindowManager.getIDList();
-
+        if (ids != null) nOpenedImages = ids.length;
         final String[] names = new String[nOpenedImages + 1];
+
         names[0] = emptyOpenedImage;
         if (ids != null) {
-            nOpenedImages = ids.length;
             for (int i = 0; i < nOpenedImages; i++) {
                 final ImagePlus ip = WindowManager.getImage(ids[i]);
                 names[i + 1] = ip.getTitle();
             }
         }
-
-
+        
         // if (nOpenedImages>0)
         {
             // Input Image

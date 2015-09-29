@@ -81,34 +81,6 @@ public class CurvatureBasedFlow {
             }
         }
 
-        /*
-         * final byte fgVal = sphere.fgVal;
-         * RegionIterator it = new RegionIterator(labelImage.getDimensions(), this.m_Size, start.x);
-         * RegionIteratorMask maskIt = new RegionIteratorMask(inputDims, this.m_Size, start.x);
-         * while (it.hasNext()) // iterate over sphere region
-         * {
-         * int idx = it.next();
-         * int maskIdx = maskIt.next();
-         * int maskvalue = mask[maskIdx];
-         * if (maskvalue==fgVal)
-         * {
-         * int absLabel=labelImage.getLabelAbs(idx);
-         * //directly access data; only 1-2% faster
-         * // int absLabel=labelImage.labelIP.get(idx);
-         * // if (absLabel >= LabelImage.negOfs)
-         * // absLabel-=LabelImage.negOfs;
-         * if (absLabel==aTo)
-         * {
-         * vNto++;
-         * }
-         * else if (absLabel==aFrom)
-         * {
-         * vNFrom++;
-         * }
-         * } // is in region
-         * }
-         */
-
         double vCurvatureFlow = 0.0;
         double vVolume;
 
