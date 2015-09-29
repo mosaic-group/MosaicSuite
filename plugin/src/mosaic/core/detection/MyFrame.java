@@ -1,13 +1,6 @@
 package mosaic.core.detection;
 
 
-import ij.IJ;
-import ij.ImageStack;
-import ij.measure.Calibration;
-import ij.process.ByteProcessor;
-import ij.process.ImageProcessor;
-
-import java.awt.Color;
 import java.awt.Rectangle;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -20,6 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import ij.IJ;
+import ij.ImageStack;
+import ij.measure.Calibration;
 import mosaic.core.utils.CircleMask;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.ToARGB;
@@ -606,37 +602,6 @@ public class MyFrame {
         return info1;
     }
 
-    /**
-     * Creates a <code>ByteProcessor</code> and draws on it the particles
-     * defined in this MyFrame <br>
-     * The background color is <code>Color.black</code> <br>
-     * The color of the dots drawn for each particle is <code>Color.white</code> <br>
-     * particles position have floating point precision but can be drawn only at
-     * integer precision -
-     * therefore the created image is only an estimation
-     *
-     * @param width defines the width of the created <code>ByteProcessor</code>
-     * @param height defines the height of the created <code>ByteProcessor</code>
-     * @return the created processor
-     * @see ImageProcessor#drawDot(int, int)
-     */
-    // @Deprecated
-    @SuppressWarnings("unused")
-    private ImageStack createImage(int width, int height, int depth) {
-        final ImageStack is = new ImageStack(width, height);
-        for (int d = 0; d < depth; d++) {
-            final ImageProcessor ip = new ByteProcessor(width, height);
-            ip.setColor(Color.black);
-            ip.fill();
-            is.addSlice(null, ip);
-            ip.setColor(Color.white);
-        }
-        for (int i = 0; i < this.particles.size(); i++) {
-            is.getProcessor(Math.round(this.particles.elementAt(i).z) + 1).drawDot(Math.round(this.particles.elementAt(i).y), Math.round(this.particles.elementAt(i).x));
-        }
-        return is;
-    }
-
     void setParticles(Vector<Particle> particles, int particles_number) {
         this.particles = particles;
         this.particles_number = particles_number;
@@ -652,7 +617,6 @@ public class MyFrame {
      * @param p Vector of particles
      * @param linkrange for linking
      */
-
     public static MyFrame[] createFrames(Vector<Particle> p, int linkrange) {
         // Create the frames array
 
@@ -678,8 +642,6 @@ public class MyFrame {
             i++;
             j++;
         }
-
-        //
 
         return f;
     }

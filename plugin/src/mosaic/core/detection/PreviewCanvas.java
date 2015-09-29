@@ -43,20 +43,6 @@ public class PreviewCanvas extends ImageCanvas {
         this.magnificationFactor = (int) mag;
     }
 
-    /**
-     * Overloaded Constructor. <br>
-     * Creates an instance of PreviewCanvas from a given <code>ImagePlus</code> <br>
-     * Displays the detected particles from the given <code>MyFrame</code> <br>
-     * sets the magnification factor to 1
-     * 
-     * @param aimp
-     * @param preview_f
-     */
-    @SuppressWarnings("unused")
-    private PreviewCanvas(ImagePlus aimp) {
-        this(aimp, 1);
-    }
-
     public void setPreviewFrame(MyFrame aPreviewFrame) {
         this.preview_frame = aPreviewFrame;
     }
@@ -91,13 +77,6 @@ public class PreviewCanvas extends ImageCanvas {
                 }
             }
         }
-        // if (frames != null){
-        // particlesToDisplay = frames[frameToDisplay-1].getParticles();
-        // // the located particles display color is set to blue
-        // g.setColor(Color.blue);
-        // circleParticles(g, particlesToDisplay);
-        // }
-
     }
 
     /**

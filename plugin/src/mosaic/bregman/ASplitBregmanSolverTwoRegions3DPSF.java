@@ -15,17 +15,13 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
         super(params, image, speedData, mask, md, channel, ap);
 
         // Beta MLE in and out
-
         this.c0 = params.cl[0];
         this.c1 = params.cl[1];
 
         this.energytab2 = new double[p.nthreads];
-        // c0=p.betaMLEoutdefault;//0.0027356;
-        // c1=p.betaMLEindefault;//0.2340026;//sometimes not here ???
 
         final int[] sz = p.PSF.getSuggestedImageSize();
         eigenPSF = new double[Math.max(sz[2], nz)][Math.max(sz[0], ni)][Math.max(sz[1], nj)];
-        // IJ.log("nl " + nl);
 
         // Reallocate temps
         // Unfortunatelly is allocated in ASplitBregmanSolver
@@ -37,9 +33,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
 
         this.compute_eigenPSF3D();
 
-        // Tools.disp_vals(eigenPSF[2], "eigenPSF");
-        // Tools.disp_valsc(eigenPSF[0], "eigenPSF");
-        // eigenPSF OK
 
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -48,7 +41,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
                 }
             }
         }
-        // Tools.disp_vals(eigenLaplacian3D[2], "eigenlaplacian");
 
         Tools.convolve3Dseparable(temp3[l], mask[l], ni, nj, nz, p.PSF, temp4[l]);
         for (int z = 0; z < nz; z++) {
@@ -58,10 +50,8 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
                 }
             }
         }
-        // Tools.disp_vals(w1k[l][2], "w1k");
 
         for (int i = 0; i < nl; i++) {
-            // temp1=w2xk temp2=w2yk
             LocalTools.fgradx2D(temp1[i], mask[i]);
             LocalTools.fgrady2D(temp2[i], mask[i]);
         }
@@ -71,8 +61,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
     protected void init() {
         this.compute_eigenPSF();
 
-        // IJ.log("init");
-        // IJ.log("init c0 " + c0 + "c1 " + c1);
         Tools.convolve3Dseparable(temp3[l], w3k[l], ni, nj, nz, p.PSF, temp4[l]);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
@@ -83,7 +71,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
         }
 
         for (int i = 0; i < nl; i++) {
-            // temp1=w2xk temp2=w2yk
             LocalTools.fgradx2D(temp1[i], w3k[i]);
             LocalTools.fgrady2D(temp2[i], w3k[i]);
         }
@@ -95,10 +82,8 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
      *
      * @throws InterruptedException
      */
-
     private void step_multit() throws InterruptedException {
         final long lStartTime = new Date().getTime(); // start time
-        // energy=0;
 
         final CountDownLatch ZoneDoneSignal = new CountDownLatch(p.nthreads);// subprob 1 and 3
         final CountDownLatch Sync1 = new CountDownLatch(p.nthreads);
@@ -129,20 +114,11 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
         // if you do not do you can have race conditions in the
         // multi thread part
         // DO NOT REMOVE THEM EVEN IF THEY LOOK UNUSEFULL
-
-        @SuppressWarnings("unused")
-        final
-        double kernelx[] = p.PSF.getSeparableImageAsDoubleArray(0);
-        @SuppressWarnings("unused")
-        final
-        double kernely[] = p.PSF.getSeparableImageAsDoubleArray(1);
-        @SuppressWarnings("unused")
-        final
-        double kernelz[] = p.PSF.getSeparableImageAsDoubleArray(2);
+        p.PSF.getSeparableImageAsDoubleArray(0);
+        p.PSF.getSeparableImageAsDoubleArray(1);
+        p.PSF.getSeparableImageAsDoubleArray(2);
 
         for (int nt = 0; nt < p.nthreads - 1; nt++) {
-            // IJ.log("thread + istart iend jstart jend"+
-            // iStart +" " + (iStart+ichunk)+" " + jStart+" " + (jStart+jchunk));
             // Check if we can create threads
 
             t[nt] = new Thread(new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ichunk, jStart,
@@ -153,11 +129,7 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
             jStart += jchunk;
         }
 
-        // IJ.log("last thread + istart iend jstart jend"+
-        // iStart +" " + (iStart+ilastchunk)+" " + jStart+" " + (jStart+jlastchunk));
-
         // At least on linux you can go out of memory for threads
-
         final Thread T_ext = new Thread(new ZoneTask3D(ZoneDoneSignal, Sync1, Sync2, Sync3, Sync4, Sync5, Sync6, Sync7, Sync8, Sync9, Sync10, Sync11, Sync12, Sync13, Dct, iStart, iStart + ilastchunk,
                 jStart, jStart + jlastchunk, p.nthreads - 1, this, LocalTools));
 
@@ -207,28 +179,20 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
     /**
      * Single thread split Bregman
      */
-
     private void step_single() {
         final long lStartTime = new Date().getTime(); // start time
-        // energy=0;
 
         final int ilastchunk = p.ni;
         final int jlastchunk = p.nj;
         final int iStart = 0;
         final int jStart = 0;
 
-        // IJ.log("last thread + istart iend jstart jend"+
-        // iStart +" " + (iStart+ilastchunk)+" " + jStart+" " + (jStart+jlastchunk));
 
         // At least on linux you can go out of memory for threads
-
         final ZoneTask3D zt = new ZoneTask3D(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, iStart, iStart + ilastchunk, jStart, jStart + jlastchunk,
                 p.nthreads - 1, this, LocalTools);
 
         zt.run();
-
-        // energytab[l]=Tools.computeEnergyPSF3D(speedData[l], w3k[l], temp3[l], temp4[l], p.ldata, p.lreg,p,c0,c1,image);
-        // energy+=energytab[l];
 
         if (stepk % p.energyEvaluationModulo == 0) {
             energy = 0;
@@ -257,22 +221,16 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
         else {
             step_multit();
         }
-
     }
 
     private void compute_eigenPSF3D() {
         this.c0 = p.cl[0];
         this.c1 = p.cl[1];
 
-        // PSF2 = imfilter(PSF,PSF,'symmetric');
-
         int[] sz = p.PSF.getSuggestedImageSize();
 
         Tools.convolve3Dseparable(eigenPSF, p.PSF.getImage3DAsDoubleArray(), sz[0], sz[1], sz[2], p.PSF, temp4[l]);
 
-        // Tools.disp_vals(eigenPSF[2], "eigenPSF2");
-
-        // paddedPSF = padPSF(PSF2,dims);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -290,8 +248,6 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
             }
         }
 
-        // Tools.disp_vals(temp2[l][2], "padded");
-
         final int cr = (sz[0] / 2) + 1;
         final int cc = (sz[1] / 2) + 1;
         final int cs = (sz[2] / 2) + 1;
@@ -305,21 +261,11 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
             }
         }
 
-        // IJ.log("cr " + cr + "cc " + cc );
         temp1[l][0][0][0] = 1;
-
         LocalTools.dctshift3D(temp3[l], temp2[l], cr, cc, cs);
-
-        // Tools.disp_vals(temp3[l][2], "shifted");
-
         dct3d.forward(temp3[l], true);
-
         dct3d.forward(temp1[l], true);
 
-        // Tools.disp_vals(temp3[l][2], "dct3 t3");
-        // Tools.disp_vals(temp1[l][2], "dct3 t1");
-
-        // IJ.log("c0 " + c0 + "c1 " + c1);
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
@@ -327,16 +273,5 @@ class ASplitBregmanSolverTwoRegions3DPSF extends ASplitBregmanSolverTwoRegions3D
                 } //
             }
         }
-        // Tools.disp_vals(eigenPSF[2], "eigenPSF func");
-
-        // PSF2 = imfilter(PSF,PSF,'symmetric');
-        // paddedPSF = padPSF(PSF2,dims);
-        // center = ceil(size(PSF2)/2);
-        // e1 = zeros(dims);
-        // e1(1,1,1) = 1;
-        // S = dctn(dctshift(paddedPSF,center))./dctn(e1);
-        // eigenPSF = (betaMLE_in-betaMLE_out)^2*S;
-
     }
-
 }

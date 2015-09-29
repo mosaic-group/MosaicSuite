@@ -466,13 +466,10 @@ public class GenericGUI {
 
             // TODO: Why settings are saved twice to two different files? To be investigated.
             BregmanGLM_Batch.saveConfig("/tmp/settings.dat", p);
-
             // save locally
             BregmanGLM_Batch.saveConfig("/tmp/spb_settings.dat", p);
 
             // Check if we selected a directory
-            @SuppressWarnings("unused")
-            ClusterSession ss = null;
             File[] fileslist = null;
             File fl = null;
 
@@ -485,28 +482,26 @@ public class GenericGUI {
                     // we have a directory
 
                     fileslist = fl.listFiles();
-                    ss = ClusterSession.processFiles(fileslist, "Squassh", "", Analysis.out);
+                    ClusterSession.processFiles(fileslist, "Squassh", "", Analysis.out);
                 }
                 else if (fl.isFile()) {
                     // we process an image
 
-                    ss = ClusterSession.processFile(fl, "Squassh", "", Analysis.out);
+                    ClusterSession.processFile(fl, "Squassh", "", Analysis.out);
                     Background = fl.getAbsolutePath();
                 }
                 else {
                     // Nothing to do just get the result
-
-                    ss = ClusterSession.getFinishedJob(Analysis.out, "Squassh");
+                    ClusterSession.getFinishedJob(Analysis.out, "Squassh");
 
                     // Ask for a directory
-
                     fl = new File(IJ.getDirectory("Select output directory"));
                 }
             }
             else {
                 // It is a file
 
-                ss = ClusterSession.processImage(aImp, "Squassh", "", Analysis.out);
+                ClusterSession.processImage(aImp, "Squassh", "", Analysis.out);
                 Background = MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle();
             }
 

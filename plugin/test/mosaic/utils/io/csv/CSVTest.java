@@ -79,7 +79,6 @@ public class CSVTest extends CommonBase {
     /**
      * TestThing is a helper class used for testing CSV
      */
-    //@SuppressWarnings("unused") // get/set methods are accessed via reflection
     static public class TestSmall {
         // Definitions for CSV input/output
         public static final String[] Small_map = new String[] {"ID"};
@@ -164,6 +163,7 @@ public class CSVTest extends CommonBase {
         oc = new CsvColumnConfig( TestThing.Thing_map, TestThing.Thing_CellProcessor);
     }
 
+    
     // --------------------- Test methods -----------------------------------------------
 
     @Test

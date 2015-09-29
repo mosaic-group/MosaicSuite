@@ -27,19 +27,14 @@ public class ProgressBarWin extends JDialog {
     private final JPanel contentPane;
     private final JProgressBar Prog_s;
     private final JLabel Status;
-    
-    @SuppressWarnings("unused")
-    private final Object lock;
 
     public void SetStatusMessage(String Message) {
         Status.setText(Message);
 
         // Measure the text
-
         final Font font = Status.getFont();
 
         // get metrics from the graphics
-
         if (contentPane.getGraphics() == null) {
             setVisible(true);
         }
@@ -64,9 +59,6 @@ public class ProgressBarWin extends JDialog {
     }
 
     public ProgressBarWin() {
-
-        lock = new Object();
-
         setTitle("Processing...");
         setBounds(100, 100, 400, 100);
         contentPane = new JPanel();
@@ -97,6 +89,5 @@ public class ProgressBarWin extends JDialog {
         pbar.setStringPainted(true);
         Prog_s = pbar;
         contentPane.add(pbar, c);
-
     }
 }
