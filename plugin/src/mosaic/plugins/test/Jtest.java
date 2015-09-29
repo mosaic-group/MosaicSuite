@@ -138,7 +138,7 @@ public class Jtest implements PlugInFilter {
         return seta1.containsAll(seta2);
     }
 
-    public void mergetest() {
+    private void mergetest() {
         final MergeJobs mj = new MergeJobs();
 
         final String dir = MosaicUtils.getTestDir();
