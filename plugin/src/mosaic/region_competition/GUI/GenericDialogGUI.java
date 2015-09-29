@@ -503,11 +503,6 @@ public class GenericDialogGUI implements InputReadable {
             // if bug gets fixed, this will cause problems!
             gd.getTextArea1().setText("[]");
         }
-        // else
-        // {
-        // String s = filenameInput.replace('\\', '/');
-        // filenameInput = s;
-        // }
 
         // IJ Macro
 
@@ -521,11 +516,6 @@ public class GenericDialogGUI implements InputReadable {
                 gd.getTextArea2().setText("[]");
             }
         }
-        // else
-        // {
-        // String s = filenameLabelImage.replace('\\', '/');
-        // filenameLabelImage = s;
-        // }
 
         // TODO IJ BUG
         if (filenameLabelImage.equals("[]")) {
@@ -589,18 +579,9 @@ public class GenericDialogGUI implements InputReadable {
 
     protected Choice initializationChoice; // reference to the awt.Choice for initialization
 
-    // private String lastInitChoice; // choice before File_choice was set automatically
-
     void setInitToFileInput() {
-        // lastInitChoice=initializationChoice.getSelectedItem();
         initializationChoice.select(InitializationType.File.name());
     }
-
-    // void setInitToLastChoice()
-    // {
-    // System.out.println("change to last="+lastInitChoice);
-    // initializationChoice.select(lastInitChoice);
-    // }
 
     void setInputImageChoiceEmpty() {
         if (choiceInputImage != null) {

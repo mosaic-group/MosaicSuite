@@ -1,4 +1,4 @@
-package mosaic.plugins.test;
+package mosaic.plugins;
 
 
 import java.io.File;
@@ -19,9 +19,6 @@ import mosaic.core.utils.MosaicTest;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Segmentation;
 import mosaic.core.utils.ShellCommand;
-import mosaic.plugins.BregmanGLM_Batch;
-import mosaic.plugins.MergeJobs;
-import mosaic.plugins.Region_Competition;
 import mosaic.plugins.utils.TimeMeasurement;
 import mosaic.region_competition.output.RCOutput;
 import mosaic.test.framework.SystemOperations;

@@ -2,7 +2,6 @@ package mosaic.region_competition.utils;
 
 
 public class Timer {
-
     private long start;
     private long end;
     private long duration = 0;
@@ -27,18 +26,7 @@ public class Timer {
         return (duration) / 1000;
     }
 
-    // public void pause()
-    // {
-    // end = System.nanoTime();
-    // duration += end-start;
-    // }
-    // public void resume()
-    // {
-    // start = System.nanoTime();
-    // }
-
     public long lastResult() {
         return duration / 1000;
     }
-
 }

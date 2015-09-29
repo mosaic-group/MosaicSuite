@@ -55,8 +55,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
     protected final Vector<Bead> mBeads = new Vector<Bead>();
     protected ImagePlus mBeadImage;
 
-    //int mMaskHeight = 10;
-
     @Override
     public int setup(String arg, ImagePlus aOrigImp) {
         if (aOrigImp == null) {
@@ -122,15 +120,10 @@ public class PSF_estimator_3D implements  PlugInFilter{
             mPreprocessedFrameImage = getAFrameCopy(mOriginalImagePlus, vFrame);
             normalizeFrameFloat(mPreprocessedFrameImage);
             gaussBlur3D(mPreprocessedFrameImage, mGaussPreprocessRadius);
-            //			new StackWindow(new ImagePlus("after gauss blur", getSubStackFloatCopy(mPreprocessedFrameImage, 1, 30)));
             boxCarBackgroundSubtractor(mPreprocessedFrameImage);
-            //			new StackWindow(new ImagePlus("after BG subtraction", getSubStackFloatCopy(mPreprocessedFrameImage, 1, 30)));
             mPreprocessedFrameNb = vFrame;
-            //			new StackWindow(new ImagePlus("preprocessed image", getSubStackFloatCopy(mPreprocessedFrameImage, 1, 30)));
         }
 
-        //		double[] vCentroid = centroidDetectionRefinement(mPreprocessedFrameImage,
-        //				aX, aY, calculateExpectedZPositionAt(aX, aY, mPreprocessedFrameImage));
         final double[] vCentroid = centroidDetectionRefinement(mPreprocessedFrameImage,
                 aX, aY, getBrightestSliceIndexAt(aX, aY, mPreprocessedFrameImage));
 
@@ -151,7 +144,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
         //
         final ImageStack vIS = getAFrameCopy(mOriginalImagePlus, vFrame);
         mBeads.add(new Bead(vCentroid[0],vCentroid[1],vCentroid[2],vFrame,vIS));
-        //		mBeads.add(new Bead(vCentroid[0],vCentroid[1],vCentroid[2],vFrame,mPreprocessedFrameImage));
 
         final Bead meanBead = meanBeads(mBeads);
         meanBead.thresholdPSFMap(0.005f);
@@ -183,13 +175,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
         int vCounter = 10;
 
         for (int s = 0; s < aIS.getSize(); s++) {
-            //				for (int i = 0; i < ips.getHeight(); i++) {
-            //					for (int j = 0; j < ips.getWidth(); j++) {
-            //						if (ips.getProcessor(s + 1).getPixelValue(j, i) < 0.0)
-            //							ips.getProcessor(s + 1).putPixelValue(j, i, 0.0);
-            //
-            //					}
-            //				}
             final float[] pixels = (float[])aIS.getPixels(s+1);
             for (int i = 0; i < pixels.length; i++) {
                 if (pixels[i] < 0) {
@@ -282,7 +267,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
             }
         }
         return new double[]{aX + vEpsX + .5f, aY + vEpsY + .5f, aZ + vEpsZ + .5f};
-        //		return new float[]{aX + vEpsX , aY + vEpsY , aZ + vEpsZ };
     }
 
     /**
@@ -531,7 +515,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
             final double[] vCentroid = new double[]{mCentroidX, mCentroidY, mCentroidZ};
             System.out.println("Centroid: x = " + mCentroidX + ", y = " + mCentroidY + "z = " + mCentroidZ);
             mPSFMap = generatePSFmap(aIS, vCentroid, mRMaxInNm, mZMaxInNm, mMapSizeR, mMapSizeZ);
-            //			thresholdPSFMap(0.1f);
             normalizePSFMap();
         }
 
@@ -623,15 +606,10 @@ public class PSF_estimator_3D implements  PlugInFilter{
             final Vector<Integer> vValuableZIndices = new Vector<Integer>();
 
             for (int vZ = 0; vZ < aMap.length; vZ++) {
-                //boolean vRowAlreadyChosen = false;
                 for (int vR = 0; vR < aMap[vZ].length; vR++) {
                     if (aMap[vZ][vR] > 0f) {
-                        //if (!vRowAlreadyChosen) {
                         vValuableZIndices.add(vZ);
-                        //vRowAlreadyChosen = true;
-                        //continue;
                         break;
-                        //}
                     }
 
                 }
@@ -654,7 +632,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
                     if (aMap[vZ][vR] > 0f) {
                         continue;
                     }
-                    //					aMap[vZ][vR] = interpolateQuadratic(vZ, vNodeX, vNodeY);
                     aMap[vZ][vR] = interpolateLinear(vZ, vNodeX, vNodeY);
 
                 }
@@ -670,7 +647,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
             }
 
             interpolatePSFmap(vPSFmap);
-            //			fillPSFmapEdges(vPSFmap); deprecated!
             return vPSFmap;
 
         }
@@ -808,11 +784,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
                             continue;
                         }
 
-                        //						if ((int)((vZDistInPx + vMaxZInPx) / vZIncrementPerPxInPx) >= 1000 || (int)(vR / vRIncrementPerPxInPx) >= 1000) {
-                        //							System.out.print("stop");
-                        //						}
-                        //						vMap[(int)((vZDistInPx + vMaxZInPx) / vZIncrementPerPxInPx)][(int)(vR / vRIncrementPerPxInPx)] +=
-                        //							vBI.getInterpolatedPixel(new Point2D.Float(vX+.5f,vY+.5f));
                         vMap[(int)((vZDistInPx + vMaxZInPx) / vZIncrementPerPxInPx)][(int)(vR / vRIncrementPerPxInPx)] +=
                                 vInterpolatedIntensity;
                         vMapCount[(int)((vZDistInPx + vMaxZInPx) / vZIncrementPerPxInPx)][(int)(vR / vRIncrementPerPxInPx)]++;
@@ -883,26 +854,18 @@ public class PSF_estimator_3D implements  PlugInFilter{
 
         @Override
         public void mouseClicked(MouseEvent arg0) {
-
-
         }
 
         @Override
         public void mouseEntered(MouseEvent arg0) {
-
-
         }
 
         @Override
         public void mouseExited(MouseEvent arg0) {
-
-
         }
 
         @Override
         public void mousePressed(MouseEvent arg0) {
-
-
         }
 
         @Override
@@ -925,7 +888,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
         gd.addMessage("Pease make sure to have correctly set the\n pixel size in nm in the image properties");
         gd.addMessage("--------");
         gd.addMessage("Please enter necessary Information");
-        //		gd.addNumericField("Apparent Radius of Point Sources [Pixel]", 3, 2);
         gd.addNumericField("Maximum lateral sampling radius[nm]", mRMaxInNm, 0);
         gd.addNumericField("Maximum axial sampling radius[nm]", mZMaxInNm, 0);
         gd.addNumericField("Final lateral PSF map size [px]", mMapSizeR, 0);
@@ -936,7 +898,6 @@ public class PSF_estimator_3D implements  PlugInFilter{
             return false;
         }
         // Read user inputs
-        //		radius = gd.getNextNumber();
         mRMaxInNm = (int)gd.getNextNumber();
         mZMaxInNm = (int)gd.getNextNumber();
         mMapSizeR = (int)gd.getNextNumber();

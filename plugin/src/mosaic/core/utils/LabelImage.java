@@ -21,27 +21,17 @@ import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.IntegerType;
 
-
 /*
  //TODO TODOs
  - refactor LabelImage, extract what's not supposed to be there (eg energy calc)
  - does merging criterion have to be tested multiple times?
  */
 
-public class LabelImage// implements
-// MultipleThresholdImageFunction.ParamGetter<Integer>
+public class LabelImage
 {
-
-    // ImagePlus imageIP; // input image
-    // ImageProcessor imageProc;
-
-    // private final float imageMax; // maximal intensity of input image
-
     protected ImageProcessor labelIP; // map positions -> labels
     private ImagePlus labelPlus;
-    // public float[] dataIntensity;
     public int[] dataLabel;
-    // public short[] dataLabelShort;
 
     private int size;
     protected int dim; // number of dimension
@@ -60,14 +50,11 @@ public class LabelImage// implements
      * use always native type for computation are
      * much faster than imgLib2
      */
-
     public <T extends IntegerType<T>> LabelImage(Img<T> lbl) {
         // Get the image dimensions
-
         final int dimensions[] = MosaicUtils.getImageIntDimensions(lbl);
 
         // get int dimension
-
         init(dimensions);
         initImgLib2(lbl);
         iterator = new IndexIterator(dimensions);
@@ -197,7 +184,6 @@ public class LabelImage// implements
         this.labelIP = IntConverter.procToIntProc(ip);
         this.dataLabel = (int[]) labelIP.getPixels();
         this.labelPlus = new ImagePlus("labelImage", labelIP);
-        // this.dataLabelShort =(short[])ip.getPixels();
     }
 
     /**
@@ -310,18 +296,10 @@ public class LabelImage// implements
     public ImagePlus convert(Object title, int maxl) {
         if (getDim() == 3) {
             final ImagePlus imp = new ImagePlus("ResultWindow " + title, this.get3DShortStack(true));
-
-            // IJ.setMinAndMax(imp, 0, maxl);
-            // IJ.run(imp, "3-3-2 RGB", null);
-
-            // imp.show();
             return imp;
         }
 
-        // Colorprocessor doesn't support abs() (does nothing).
-        // li.absAll();
         final ImageProcessor imProc = getLabelImageProcessor();
-        // System.out.println(Arrays.toString((int[])(imProc.getPixels())));
 
         // convert it to short
         final short[] shorts = getShortCopy();
@@ -348,8 +326,6 @@ public class LabelImage// implements
         return imp;
     }
 
-    /* Particles delete */
-
     public void deleteParticles() {
         for (int i = 0; i < size; i++) {
             setLabel(i, getLabelAbs(i));
@@ -361,12 +337,10 @@ public class LabelImage// implements
      *
      * @return an ImgLib2 image
      */
-
     public <T extends NativeType<T> & IntegerType<T>> Img<T> getImgLib2(Class<T> cls) {
         final long lg[] = new long[getDim()];
 
         // Take the size
-
         final ImgFactory<T> imgFactory = new ArrayImgFactory<T>();
 
         for (int i = 0; i < getDim(); i++) {
@@ -374,7 +348,6 @@ public class LabelImage// implements
         }
 
         // create an Img of the same type of T and size of the imageLabel
-
         Img<T> it = null;
         try {
             it = imgFactory.create(lg, cls.newInstance());
@@ -390,7 +363,6 @@ public class LabelImage// implements
         final RandomAccess<T> randomAccess_it = it.randomAccess();
 
         // Region iterator
-
         final RegionIterator ri = new RegionIterator(getDimensions());
 
         while (ri.hasNext()) {
@@ -411,8 +383,6 @@ public class LabelImage// implements
      * @param li LabelImage
      */
     public void connectedComponents() {
-        // TODO ! test this
-
         final HashSet<Integer> oldLabels = new HashSet<Integer>(); // set of the old
         // labels
         final ArrayList<Integer> newLabels = new ArrayList<Integer>(); // set of new
@@ -459,12 +429,6 @@ public class LabelImage// implements
             }
         }
 
-        // labelDispenser.setLabelsInUse(newLabels);
-        // for (int label: oldLabels)
-        // {
-        // labelDispenser.addFreedUpLabel(label);
-        // }
-
     }
 
     public void initContour() {
@@ -473,7 +437,6 @@ public class LabelImage// implements
         for (final int i : iterator.getIndexIterable()) {
             final int label = getLabelAbs(i);
             if (label != bgLabel) // region pixel
-            // && label<negOfs
             {
                 final Point p = iterator.indexToPoint(i);
                 for (final Point neighbor : conn.iterateNeighbors(p)) {
@@ -542,11 +505,6 @@ public class LabelImage// implements
      */
     public boolean isContourLabel(int label) {
         return (label < 0);
-        // if (isForbiddenLabel(label)) {
-        // return false;
-        // } else {
-        // return (label > negOfs);
-        // }
     }
 
     /**
@@ -578,25 +536,12 @@ public class LabelImage// implements
     public int getLabelAbs(Point p) {
         final int idx = iterator.pointToIndex(p);
 
-        // if (idx >= dataLabel.length)
-        // {
-        // int debug = 0;
-        // debug++;
-        // }
-
         return Math.abs(dataLabel[idx]);
-        // return labelToAbs(getLabel(p));
     }
 
     public int getLabelAbs(int idx) {
-        // if (idx >= dataLabel.length)
-        // {
-        // int debug = 0;
-        // debug++;
-        // }
 
         return Math.abs(dataLabel[idx]);
-        // return labelToAbs(getLabel(idx));
     }
 
     /**
@@ -604,8 +549,6 @@ public class LabelImage// implements
      */
     public void setLabel(int idx, int label) {
         dataLabel[idx] = label;
-        // dataLabel[idx]=(short)val;
-        // labelIP.set(idx, val);
     }
 
     /**
@@ -614,7 +557,6 @@ public class LabelImage// implements
     public void setLabel(Point p, int label) {
         final int idx = iterator.pointToIndex(p);
         dataLabel[idx] = label;
-        // setLabel(idx, label);
     }
 
     /**

@@ -320,10 +320,6 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         final int[] vHistogramm = new int[mBins+1];
         int vPointerOnMax = 0;
         final float vHistoStartIntensity = (float)aImageProcessor.getMin();
-        //		if (vHistoStartIntensity < 0) {
-        //			//TODO: The filter will stop by a IndexOutOfBoundsException. Important is that it'll stop.
-        //			IJ.showMessage("Error in BackgroundSubtractor", "The image contains below 0 values.");
-        //		}
         for (int vSliderIndY = aY - mLength; vSliderIndY <= aY + mLength; vSliderIndY++) {
             for (int vSliderIndX = aX - mLength; vSliderIndX <= aX + mLength; vSliderIndX++) {
                 //				TODO: the following edge-handling stuff could be in a separate loop to increase performance a little bit.
@@ -373,27 +369,6 @@ public class BackgroundSubtractor2_  implements  PlugInFilter, ActionListener{
         vKernel[vM] = (float)(1f/(2f*Math.PI * aRadius * aRadius));
         return vKernel;
     }
-
-    //	private int AddColumnToHistogramm(int[] aHistogramm, float aHistogrammStartIntensity, float[] aColumn, int aPointer){
-    //		for (float vV : aColumn){
-    //			if (++aHistogramm[(int)((vV-aHistogrammStartIntensity) / mBinSize)] > aHistogramm[aPointer])
-    //				aPointer = (int)((vV-aHistogrammStartIntensity) / mBinSize);
-    //		}
-    //		return aPointer;
-    //	}
-    //
-    //	private int RemoveColumnFromHistogramm(int[] aHistogramm, float aHistogrammStartIntensity, float[] aColumn, int aPointer){
-    //		for (float vV : aColumn){
-    //			aHistogramm[(int)((vV - aHistogrammStartIntensity) / mBinSize)]--;
-    //		}
-    //		aPointer = 0;
-    //		for (int vI = 0; vI < aHistogramm.length; vI++){
-    //			if (aHistogramm[vI] > aHistogramm[aPointer]){
-    //				aPointer = vI;
-    //			}
-    //		}
-    //		return aPointer;
-    //	}
 
     private Button mAutoParamButton;
     private boolean mProposeButtonClicked = false;
