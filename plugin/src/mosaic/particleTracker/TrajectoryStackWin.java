@@ -1,5 +1,6 @@
 package mosaic.particleTracker;
 
+
 import java.awt.Button;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -24,18 +25,14 @@ import mosaic.plugins.ParticleTracker3DModular_;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.ARGBType;
 
+
 /**
- * Class that visualize a window with trajectory + insert a mouse listener to
- * select trajectory
+ * Class that visualize a window with trajectory + insert a mouse listener to select trajectory
  *
  * @author Pietro Incardona
  */
-
 public class TrajectoryStackWin extends StackWindow implements MouseListener {
 
-    /**
-     * 
-     */
     private final ParticleTracker3DModular_ particleTracker3DModular;
     private static final long serialVersionUID = 1L;
     private Button filter_length;
@@ -43,16 +40,13 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
     private Img<ARGBType> out;
 
     /**
-     * Constructor.
-     * <br>
-     * Creates an instance of TrajectoryStackWindow from a given <code>ImagePlus</code>
-     * and <code>ImageCanvas</code> and a creates GUI panel.
-     * <br>
+     * Constructor. <br>
+     * Creates an instance of TrajectoryStackWindow from a given <code>ImagePlus</code> and <code>ImageCanvas</code> and a creates GUI panel. <br>
      * Adds this class as a <code>MouseListener</code> to the given <code>ImageCanvas</code>
      * 
      * @param aimp
      * @param icanvas
-     * @param particleTracker3DModular_ TODO
+     * @param particleTracker3DModular_
      */
     public TrajectoryStackWin(ParticleTracker3DModular_ particleTracker3DModular_, ImagePlus aimp, ImageCanvas icanvas, Img<ARGBType> out_) {
         super(aimp, icanvas);
@@ -62,33 +56,22 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
         addPanel();
         changeParticleNumberLabel();
         out = out_;
-
-        // this.sliceSelector.addAdjustmentListener(new AdjustmentListener(){
-        // public void adjustmentValueChanged(AdjustmentEvent aE) {
-        // changeParticleNumberLabel();
-        // }
-        // });
-
     }
 
     private void changeParticleNumberLabel() {
         int currentframe = this.getImagePlus().getSlice() - 1;
 
         // understand the dimansionality
-
         final int nslices = this.getImagePlus().getNSlices();
         final int nframes = this.getImagePlus().getNFrames();
 
         // check the dimensionality
-
         if (nslices == 1) {
             // 2D
-
             currentframe = this.getImagePlus().getChannel();
         }
         else if (nframes == 1) {
             // 3D
-
             currentframe = this.getImagePlus().getSlice();
         }
 
@@ -111,7 +94,6 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
         filter_length.addActionListener(this);
         panel.add(filter_length);
         panel.add(numberOfParticlesLabel);
-        // pack();
         add(panel);
         pack();
         final Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -123,9 +105,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
     }
 
     /**
-     * Defines the action taken upon an <code>ActionEvent</code> triggered from buttons
-     * that have class <code>TrajectoryStackWindow</code> as their action listener:
-     * <br>
+     * Defines the action taken upon an <code>ActionEvent</code> triggered from buttons that have class <code>TrajectoryStackWindow</code> as their action listener: <br>
      * <code>Button filter_length</code>
      * 
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -140,17 +120,14 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
             }
         }
         // Regenerate the image
-
         out = particleTracker3DModular.createHyperStackFromFrames(particleTracker3DModular.background);
 
         // generate an updated view with the ImagePlus in this window according to the new filter
-
         particleTracker3DModular.generateView(this.imp, this.out);
     }
 
     /**
-     * Defines the action taken upon an <code>MouseEvent</code> triggered by left-clicking
-     * the mouse anywhere in this <code>TrajectoryStackWindow</code>
+     * Defines the action taken upon an <code>MouseEvent</code> triggered by left-clicking the mouse anywhere in this <code>TrajectoryStackWindow</code>
      * 
      * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
      */
@@ -158,7 +135,6 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
     public synchronized void mousePressed(MouseEvent e) {
 
         /* Reset selected trajectory */
-
         if (particleTracker3DModular.chosen_traj != -1) {
             final Vector<Trajectory> v = new Vector<Trajectory>();
             v.add(particleTracker3DModular.all_traj.get(particleTracker3DModular.chosen_traj));
@@ -181,10 +157,8 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
         final Iterator<Trajectory> iter = particleTracker3DModular.all_traj.iterator();
 
         /* Get pixel color */
-
         if (this.imp == null) {
             // there is not image this listener is dead remove it
-
             removeMouseListener(this);
             return;
         }
@@ -192,7 +166,6 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
         final int cl[] = this.imp.getPixel(offscreenX, offscreenY);
 
         /* find the best Trajectory to match the mouse click */
-
         int ct = 0;
         while (iter.hasNext()) {
             final Trajectory curr_traj = iter.next();
@@ -214,7 +187,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
 
             ct++;
 
-        } // while
+        }
 
         if (trajectory_clicked) {
             /* focus or mark the selected Trajectory according the the type of mouse click */
@@ -242,45 +215,23 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
         }
 
         // ?????????????? is this the only way to update
-
         this.showSlice(this.imp.getCurrentSlice() + 1);
         this.showSlice(this.imp.getCurrentSlice() - 1);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
-     */
     @Override
     public void mouseClicked(MouseEvent e) {
-        // Auto-generated method stub
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
-     */
     @Override
     public void mouseEntered(MouseEvent arg0) {
-        // Auto-generated method stub
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.awt.event.MouseListener#mouseExited(java.awt.event.MouseEvent)
-     */
     @Override
     public void mouseExited(MouseEvent arg0) {
-        // Auto-generated method stub
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
-     */
     @Override
     public void mouseReleased(MouseEvent arg0) {
-        // Auto-generated method stub
     }
-
-} // CustomStackWindow inner class
+}

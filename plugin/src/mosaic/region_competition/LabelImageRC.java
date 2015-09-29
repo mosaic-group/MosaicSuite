@@ -1,17 +1,16 @@
 package mosaic.region_competition;
 
 
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.plugin.GroupedZProjector;
-import ij.plugin.ZProjector;
-import ij.process.ImageProcessor;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.plugin.GroupedZProjector;
+import ij.plugin.ZProjector;
+import ij.process.ImageProcessor;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.FloodFill;
@@ -81,7 +80,6 @@ public class LabelImageRC extends LabelImage {
     /**
      * Initialize the countor setting it to (-)label
      */
-
     @Override
     public void initContour() {
         final Connectivity conn = connFG;
@@ -108,7 +106,6 @@ public class LabelImageRC extends LabelImage {
     /**
      * Eliminate forbidden region and particles
      */
-
     public void eliminateForbidden() {
         for (int i = 0; i < getSize(); i++) {
             if (dataLabel[i] == forbiddenLabel) {
@@ -132,28 +129,18 @@ public class LabelImageRC extends LabelImage {
         }
         else {
             return -label;
-            // return label + negOfs;
         }
     }
 
     /**
-     * Gives disconnected components in a labelImage distinct labels
-     * bg and forbidden label stay the same
-     * contour labels are treated as normal labels,
-     * so use this function only for BEFORE contour particles are added to the
-     * labelImage
-     * (eg. to process user input for region guesses)
+     * Gives disconnected components in a labelImage distinct labels bg and forbidden label stay the same contour labels are treated as normal labels, so use this function only for BEFORE contour particles are added to the labelImage (eg. to process user input for region guesses)
      *
      * @param li LabelImage
      */
     @Override
     public void connectedComponents() {
-        // TODO ! test this
-
         final HashSet<Integer> oldLabels = new HashSet<Integer>(); // set of the old
-        // labels
         final ArrayList<Integer> newLabels = new ArrayList<Integer>(); // set of new
-        // labels
 
         int newLabel = 1;
 
@@ -200,10 +187,8 @@ public class LabelImageRC extends LabelImage {
     /**
      * Calculate the center of Mass of the regions
      */
-
     public void calculateRegionsCenterOfMass() {
         // iterate through all the regions and reset mean_pos
-
         for (final Integer lbl : labelMap.keySet()) {
             for (int i = 0; i < labelMap.get(lbl).mean_pos.length; i++) {
                 labelMap.get(lbl).mean_pos[i] = 0.0;
@@ -211,7 +196,6 @@ public class LabelImageRC extends LabelImage {
         }
 
         // Iterate through all the region
-
         final RegionIterator rc = new RegionIterator(getDimensions());
         while (rc.hasNext()) {
             rc.next();
@@ -221,7 +205,6 @@ public class LabelImageRC extends LabelImage {
             final LabelInformation lbi = labelMap.get(lbl);
 
             // Label information
-
             if (lbi != null) {
                 for (int i = 0; i < p.x.length; i++) {
                     lbi.mean_pos[i] += p.x[i];
@@ -230,7 +213,6 @@ public class LabelImageRC extends LabelImage {
         }
 
         // Iterate through all the regions
-
         for (final Entry<Integer, LabelInformation> entry : labelMap.entrySet()) {
             for (int i = 0; i < entry.getValue().mean_pos.length; i++) {
                 entry.getValue().mean_pos[i] /= entry.getValue().count;
@@ -309,9 +291,6 @@ public class LabelImageRC extends LabelImage {
 
         final int size = iterator.getSize();
         for (int i = 0; i < size; i++) {
-            // int label = get(x, y);
-            // int absLabel = labelToAbs(label);
-
             final int absLabel = getLabelAbs(i);
 
             if (absLabel != forbiddenLabel /* && absLabel != bgLabel */) {
@@ -324,15 +303,13 @@ public class LabelImageRC extends LabelImage {
                 }
                 final double val = intensityImage.get(i);
                 stats.count++;
-
-                stats.mean += val; // only sum up, mean and var are computed
-                // below
+                // only sum up, mean and var are computed below
+                stats.mean += val;
                 stats.var = (stats.var + val * val);
             }
         }
 
         // if background label do not exist add it
-
         LabelInformation stats = labelMap.get(0);
         if (stats == null) {
             stats = new LabelInformation(0, dim);
@@ -360,20 +337,14 @@ public class LabelImageRC extends LabelImage {
             }
 
             // Median on start set equal to mean
-
             stat.median = stat.mean;
         }
         return usedLabels.size();
     }
 
     public PointCM[] createCMModel() {
-        // TODO ! test this
-
+        // set of the old labels
         final HashMap<Integer, PointCM> Labels = new HashMap<Integer, PointCM>(); // set
-        // of
-        // the
-        // old
-        // labels
 
         final int size = iterator.getSize();
 
@@ -402,20 +373,12 @@ public class LabelImageRC extends LabelImage {
 
                 Labels.get(id).p = Labels.get(id).p.add(p);
                 Labels.get(id).count++;
-
-                // Get the module of the curvature flow
             }
         }
 
         for (final PointCM p : Labels.values()) {
             p.p = p.p.div(p.count);
         }
-
-        // labelDispenser.setLabelsInUse(newLabels);
-        // for (int label: oldLabels)
-        // {
-        // labelDispenser.addFreedUpLabel(label);
-        // }
 
         return Labels.values().toArray(new PointCM[Labels.size()]);
     }
@@ -445,16 +408,10 @@ class StackProjector extends GroupedZProjector {
     private final int method = ZProjector.MAX_METHOD;
 
     public StackProjector() {
-        // method = ZProjector.SUM_METHOD;
-        // method = ZProjector.AVG_METHOD;
     }
 
     public ImagePlus doIt(ImagePlus imp, int groupSize) {
-        // method = ZProjector.SUM_METHOD;
-        // method = ZProjector.AVG_METHOD;
         final ImagePlus imp2 = groupZProject(imp, method, groupSize);
-
         return imp2;
     }
-
 }

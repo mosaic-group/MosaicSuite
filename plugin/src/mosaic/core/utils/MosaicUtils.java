@@ -913,11 +913,10 @@ public class MosaicUtils {
     public static Choice chooseImage(GenericDialog gd, ImagePlus imp) {
         int nOpenedImages = 0;
         final int[] ids = WindowManager.getIDList();
-
+        if (ids != null) nOpenedImages = ids.length;
         final String[] names = new String[nOpenedImages + 1];
         names[0] = "";
         if (ids != null) {
-            nOpenedImages = ids.length;
             for (int i = 0; i < nOpenedImages; i++) {
                 final ImagePlus ip = WindowManager.getImage(ids[i]);
                 names[i + 1] = ip.getTitle();
