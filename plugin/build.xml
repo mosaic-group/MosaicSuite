@@ -67,8 +67,6 @@
             <zipgroupfileset dir="lib" includes="commons-logging-1.1.3.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="dozer.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="javaml-0.1.7.jar" excludes="*.config" />
-            <zipgroupfileset dir="lib" includes="junit-4.12.jar" excludes="*.config" />
-            <zipgroupfileset dir="lib" includes="hamcrest-core-1.3" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="jtransforms-2.4.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="mines-jtk-20100113.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="super-csv-2.1.0.jar" excludes="*.config" />
