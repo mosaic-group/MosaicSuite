@@ -277,7 +277,6 @@ public class MosaicTest {
 
         if (imgT == null) {
             throw new RuntimeException("No Images to test");
-            return;
         }
 
         // String
