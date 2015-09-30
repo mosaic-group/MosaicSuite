@@ -1,10 +1,10 @@
-package mosaic.plugins.utils;
+package mosaic.utils;
 
 /**
  * Helper class for converting between Java's primitives
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
-public class Convert {
+public class ConvertArray {
 
     /**
      * Converts 2D array from double to float
@@ -62,6 +62,20 @@ public class Convert {
         final double[] result = new double[h];
         for (int y = 0; y < h; ++y) {
             result[y] = aArray[y];
+        }
+        return result;
+    }
+    
+    /**
+     * Converts 1D array from long to int (there is no safety check performed)
+     * @param aArray 1D array of long values
+     * @return 1D array of int
+     */
+    public static int[] toInt(long[] aArray) {
+        final int len = aArray.length;
+        final int [] result = new int[len];
+        for (int i = 0; i < len; ++i) {
+            result[i] = (int)aArray[i];
         }
         return result;
     }

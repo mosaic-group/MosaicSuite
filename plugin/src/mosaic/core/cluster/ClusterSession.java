@@ -20,7 +20,6 @@ import java.util.regex.Pattern;
 import mosaic.bregman.Analysis;
 import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.GUI.ProgressBarWin;
-import mosaic.core.utils.MM;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.ShellCommand;
 
@@ -865,6 +864,52 @@ public class ClusterSession {
         return processFiles(list, command, options, out, null);
     }
 
+    private static class MM {
+        protected MM() {}
+        public float min;
+        public float max;
+    }
+    
+    /**
+     * Get the maximum and the minimum of a video
+     *
+     * @param mm output min and max
+     */
+    private static void getMaxMin(File fl, MM mm) {
+        final Opener opener = new Opener();
+        final ImagePlus imp = opener.openImage(fl.getAbsolutePath());
+
+        float global_max = 0.0f;
+        float global_min = 0.0f;
+
+        if (imp != null) {
+            final StackStatistics stack_stats = new StackStatistics(imp);
+            global_max = (float) stack_stats.max;
+            global_min = (float) stack_stats.min;
+
+            // get the min and the max
+        }
+
+        if (global_max > mm.max) {
+            mm.max = global_max;
+        }
+
+        if (global_min < mm.min) {
+            mm.min = global_min;
+        }
+    }
+
+    /**
+     * Get the maximum and the minimum of a video
+     *
+     * @param mm output min and max
+     */
+    private static void getFilesMaxMin(File fls[], MM mm) {
+        for (final File fl : fls) {
+            getMaxMin(fl, mm);
+        }
+    }
+    
     /**
      * Process a list of files
      *
@@ -888,7 +933,7 @@ public class ClusterSession {
         mm.min = new Float(Float.MAX_VALUE);
         mm.max = new Float(0.0);
 
-        MosaicUtils.getFilesMaxMin(list, mm);
+        getFilesMaxMin(list, mm);
 
         for (final File fl : list) {
             // File

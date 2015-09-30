@@ -18,16 +18,15 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
-import ij.io.Opener;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import ij.process.StackStatistics;
 import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.plugins.BregmanGLM_Batch;
 import mosaic.test.framework.SystemOperations;
+import mosaic.utils.ConvertArray;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvMetaInfo;
 import net.imglib2.Cursor;
@@ -611,19 +610,7 @@ public class MosaicUtils {
             res.addSlice(is.getSliceLabel(i), is.getProcessor(i).convertToFloat().duplicate());
         }
         return res;
-    }
-
-    /**
-     * Returns a * c + b
-     *
-     * @param a: y-coordinate
-     * @param b: x-coordinate
-     * @param c: width
-     * @return
-     */
-    static int coord(int a, int b, int c) {
-        return (((a) * (c)) + (b));
-    }
+    }  
 
     /**
      * Writes the given <code>info</code> to given file information. <code>info</code> will be written to the beginning of the file,
@@ -937,67 +924,6 @@ public class MosaicUtils {
         return choiceInputImage;
     }
 
-    public static String getRegionMaskName(String filename) {
-        // remove the extension
-        final String s = filename.substring(0, filename.lastIndexOf("."));
-
-        return s + "_seg_c1.tif";
-    }
-
-    /**
-     * Get the CSV Region filename
-     *
-     * @param filename of the image
-     * @return the CSV region filename
-     */
-    public static String getRegionCSVName(String filename) {
-        // remove the extension
-
-        final String s = filename.substring(0, filename.lastIndexOf("."));
-
-        return s + "_ObjectsData_c1.csv";
-    }
-
-    /**
-     * Get the maximum and the minimum of a video
-     *
-     * @param mm output min and max
-     */
-    private static void getMaxMin(File fl, MM mm) {
-        final Opener opener = new Opener();
-        final ImagePlus imp = opener.openImage(fl.getAbsolutePath());
-
-        float global_max = 0.0f;
-        float global_min = 0.0f;
-
-        if (imp != null) {
-            final StackStatistics stack_stats = new StackStatistics(imp);
-            global_max = (float) stack_stats.max;
-            global_min = (float) stack_stats.min;
-
-            // get the min and the max
-        }
-
-        if (global_max > mm.max) {
-            mm.max = global_max;
-        }
-
-        if (global_min < mm.min) {
-            mm.min = global_min;
-        }
-    }
-
-    /**
-     * Get the maximum and the minimum of a video
-     *
-     * @param mm output min and max
-     */
-    public static void getFilesMaxMin(File fls[], MM mm) {
-        for (final File fl : fls) {
-            getMaxMin(fl, mm);
-        }
-    }
-
     /**
      * Parse the options string to get an argument
      *
@@ -1031,21 +957,6 @@ public class MosaicUtils {
     }
 
     /**
-     * Given an imglib2 image return the dimensions as an array of integer
-     *
-     * @param img Image
-     * @return array with the image dimensions
-     */
-    public static <T> int[] getImageIntDimensions(Img<T> img) {
-        final int dimensions[] = new int[img.numDimensions()];
-        for (int i = 0; i < img.numDimensions(); i++) {
-            dimensions[i] = (int) img.dimension(i);
-        }
-        
-        return dimensions;
-    }
-
-    /**
      * Given an imglib2 image return the dimensions as an array of long
      *
      * @param img Image
@@ -1053,11 +964,19 @@ public class MosaicUtils {
      */
     public static <T> long[] getImageLongDimensions(Img<T> img) {
         final long dimensions_l[] = new long[img.numDimensions()];
-        for (int i = 0; i < img.numDimensions(); i++) {
-            dimensions_l[i] = img.dimension(i);
-        }
+        img.dimensions(dimensions_l);
         
         return dimensions_l;
+    }
+
+    /**
+     * Given an imglib2 image return the dimensions as an array of integer
+     *
+     * @param img Image
+     * @return array with the image dimensions
+     */
+    public static <T> int[] getImageIntDimensions(Img<T> img) {
+        return ConvertArray.toInt(getImageLongDimensions(img));
     }
 
     /**

@@ -1,9 +1,9 @@
 package mosaic.utils.math;
 
-import mosaic.plugins.utils.Convert;
-
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
+
+import mosaic.utils.ConvertArray;
 
 /**
  * Wrapper for ejml library with additional number of helpful functions and operations.
@@ -60,7 +60,7 @@ public class Matrix {
      * @param aArray
      */
     public Matrix(float[][] aArray) {
-        iMatrix = new DenseMatrix64F(Convert.toDouble(aArray));
+        iMatrix = new DenseMatrix64F(ConvertArray.toDouble(aArray));
     }
 
     /**

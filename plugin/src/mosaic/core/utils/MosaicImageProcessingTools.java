@@ -47,6 +47,18 @@ public class MosaicImageProcessingTools {
     }
 
     /**
+     * Returns a * c + b
+     *
+     * @param a: y-coordinate
+     * @param b: x-coordinate
+     * @param c: width
+     * @return
+     */
+    private static int coord(int a, int b, int c) {
+        return (((a) * (c)) + (b));
+    }
+    
+    /**
      * Generates the dilation mask
      * Adapted from Ingo Oppermann implementation
      * 
@@ -59,7 +71,7 @@ public class MosaicImageProcessingTools {
         for (int s = -mask_radius; s <= mask_radius; s++) {
             for (int i = -mask_radius; i <= mask_radius; i++) {
                 for (int j = -mask_radius; j <= mask_radius; j++) {
-                    final int index = MosaicUtils.coord(i + mask_radius, j + mask_radius, width);
+                    final int index = coord(i + mask_radius, j + mask_radius, width);
                     if ((i * i) + (j * j) + (s * s) <= mask_radius * mask_radius) {
                         mask[s + mask_radius][index] = 1;
                     }

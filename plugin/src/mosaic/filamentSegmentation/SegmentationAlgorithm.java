@@ -18,9 +18,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import mosaic.core.utils.Point;
-import mosaic.plugins.utils.Convert;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.region_competition.utils.MaximumFinder2D;
+import mosaic.utils.ConvertArray;
 import mosaic.utils.math.CubicSmoothingSpline;
 import mosaic.utils.math.Matlab;
 import mosaic.utils.math.Matrix;
@@ -271,7 +271,7 @@ public class SegmentationAlgorithm {
     void generateCoordinatesOfFilament(Matrix selectedRegion, Matrix selectedFilament, List<Integer> aX, List<Integer> aY) {
 
         final MaximumFinder2D maximumFinder2D = new MaximumFinder2D(selectedFilament.numCols(), selectedFilament.numRows());
-        final List<Point> mm = maximumFinder2D.getMaximaPointList(Convert.toFloat(selectedFilament.getData()), 0.0, false);
+        final List<Point> mm = maximumFinder2D.getMaximaPointList(ConvertArray.toFloat(selectedFilament.getData()), 0.0, false);
 
         // Find local max intensity matrix by getting pixels from Maximum Finder and doing simple graph search.
         // If neighbor pixel have same intensity as those find by MaximumFinder they are will be also marked as 1
