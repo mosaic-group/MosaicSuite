@@ -1,8 +1,6 @@
 package mosaic.core.utils;
 
 
-import static org.junit.Assert.fail;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
@@ -120,7 +118,7 @@ public class MosaicTest {
 
             // Check if result_imgs has the same number
             if (csr.length % cs.length != 0) {
-                fail("Error: Image result does not match the result");
+                throw new RuntimeException("Error: Image result does not match the result");
             }
 
             // replace the result dir with the job id
@@ -194,12 +192,12 @@ public class MosaicTest {
             }
             catch (final java.lang.UnsupportedOperationException e) {
                 e.printStackTrace();
-                fail("Error: Image " + rs + " does not match the result");
+                throw new RuntimeException("Error: Image " + rs + " does not match the result");
             }
 
             // compare
             if (MosaicUtils.compare(image, image_rs) == false) {
-                fail("Error: Image " + rs + " does not match the result");
+                throw new RuntimeException("Error: Image " + rs + " does not match the result");
             }
 
             cnt++;
@@ -229,7 +227,7 @@ public class MosaicTest {
             final Vector<T> outdst = iCSVdst.Read(rs);
 
             if (outsrc.size() != outdst.size() || outsrc.size() == 0) {
-                fail("Error: CSV outout does not match");
+                throw new RuntimeException("Error: CSV outout does not match");
             }
 
             for (int i = 0; i < outsrc.size(); i++) {
@@ -243,7 +241,7 @@ public class MosaicTest {
                     }
 
                     if (j == outdst.size()) {
-                        fail("Error: CSV output does not match");
+                        throw new RuntimeException("Error: CSV output does not match");
                     }
                 }
             }
@@ -278,7 +276,7 @@ public class MosaicTest {
         final ImgTest imgT[] = MosaicUtils.getTestImages(testset, test_set);
 
         if (imgT == null) {
-            fail("No Images to test");
+            throw new RuntimeException("No Images to test");
             return;
         }
 
@@ -307,7 +305,7 @@ public class MosaicTest {
             }
 
             if (rt != tmp.setup_return) {
-                fail("Setup error expecting: " + tmp.setup_return + " getting: " + rt);
+                throw new RuntimeException("Setup error expecting: " + tmp.setup_return + " getting: " + rt);
             }
 
             // run the filter
