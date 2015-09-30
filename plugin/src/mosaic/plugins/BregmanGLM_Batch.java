@@ -1,15 +1,12 @@
 package mosaic.plugins;
 
+import java.awt.GraphicsEnvironment;
+import java.io.File;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
 import ij.process.ImageProcessor;
-
-import java.awt.GraphicsEnvironment;
-import java.io.File;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import mosaic.bregman.Analysis;
 import mosaic.bregman.Analysis.outputF;
 import mosaic.bregman.GenericGUI;
@@ -49,18 +46,18 @@ public class BregmanGLM_Batch implements Segmentation {
         savedSettings = dir + "spb_settings.dat";
         Analysis.p = getConfigHandler().LoadFromFile(savedSettings, Parameters.class, Analysis.p);
 
-        final String path = findMatchedString(arg0, "config");
+        final String path = MosaicUtils.parseString("config", arg0);
         if (path != null) {
             Analysis.p = getConfigHandler().LoadFromFile(path, Parameters.class, Analysis.p);
         }
 
-        String norm = findMatchedString(arg0, "min");
+        String norm = MosaicUtils.parseString("min", arg0);
         if (norm != null) {
             Analysis.norm_min = Double.parseDouble(norm);
             System.out.println("min norm " + Analysis.norm_min);
         }
 
-        norm = findMatchedString(arg0, "max");
+        norm = MosaicUtils.parseString("max", arg0);
         if (norm != null) {
             Analysis.norm_max = Double.parseDouble(norm);
             System.out.println("max norm " + Analysis.norm_max);
@@ -90,32 +87,6 @@ public class BregmanGLM_Batch implements Segmentation {
         Macro.setOptions(arg0);
 
         return DONE;
-    }
-
-    /**
-     * Find argument for given parameter
-     * @param aInputArgs - input string containing all parameters and arguments
-     * @param aParameter - search parameter name
-     * @return arguments for given parameter
-     */
-    private String findMatchedString(String aInputArgs, String aParameter) {
-        final Pattern aParameterPattern = Pattern.compile(aParameter);
-        final Pattern pathp = Pattern.compile("[a-zA-Z0-9/_.-]+");
-        final Pattern spaces = Pattern.compile("[\\s]*=[\\s]*");
-        Matcher matcher = aParameterPattern.matcher(aInputArgs);
-        if (matcher.find()) {
-            String sub = aInputArgs.substring(matcher.end());
-            matcher = spaces.matcher(sub);
-            if (matcher.find()) {
-                sub = sub.substring(matcher.end());
-                matcher = pathp.matcher(sub);
-                if (matcher.find()) {
-                    return matcher.group(0);
-                }
-            }
-        }
-
-        return null;
     }
 
     @Override

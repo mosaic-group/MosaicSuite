@@ -1,10 +1,13 @@
 package mosaic.core.utils;
 
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
 import org.scijava.Context;
 import org.scijava.app.AppService;
 import org.scijava.app.StatusService;
@@ -20,6 +23,8 @@ import mosaic.core.cluster.ClusterSession;
 import mosaic.plugins.utils.PlugInFilterExt;
 import mosaic.test.framework.SystemOperations;
 import mosaic.utils.io.csv.CSV;
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 
 
@@ -29,7 +34,8 @@ import net.imglib2.img.Img;
  * @author Pietro Incardona
  */
 public class MosaicTest {
-
+    private static final Logger logger = Logger.getLogger(MosaicTest.class);
+    
     private static void prepareTestEnvironment(ProgressBarWin wp, ImgTest tmp) {
         wp.SetStatusMessage("Testing... " + new File(tmp.base).getName());
 
@@ -84,6 +90,127 @@ public class MosaicTest {
         }
     }
 
+    /**
+     * Test data directory
+     *
+     * @return Test data directory
+     */
+    static public String getTestDir() {
+        return SystemOperations.getTestDataPath();
+    }
+
+    /**
+     * It return the set of test images to test
+     *
+     * @param name of the test set
+     * @param test name
+     * @return an array of test images
+     */
+    static ImgTest[] getTestImages(String plugin, String filter) {
+        // Search for test images
+
+        final Vector<ImgTest> it = new Vector<ImgTest>();
+
+        String TestFolder = new String();
+
+        TestFolder += getTestDir() + File.separator + plugin + File.separator;
+        logger.info("Test data directory: [" + TestFolder + "]");
+        ImgTest imgT = null;
+
+        // List all directories
+        final File fl = new File(TestFolder);
+        final File dirs[] = fl.listFiles();
+
+        if (dirs == null) {
+            return null;
+        }
+
+        for (final File dir : dirs) {
+            if (dir.isDirectory() == false) {
+                continue;
+            }
+
+            // open config
+
+            final String cfg = dir.getAbsolutePath() + File.separator + "config.cfg";
+
+            // Format
+            //
+            // Image
+            // options
+            // setup file
+            // Expected setup return
+            // number of images results
+            // ..... List of images result
+            // number of csv results
+            // ..... List of csv result
+
+            try {
+                if (filter != null && filter.length() != 0 && dir.getAbsolutePath().endsWith(filter.trim()) == false) {
+                    continue;
+                }
+
+                final BufferedReader br = new BufferedReader(new FileReader(cfg));
+
+                imgT = new ImgTest();
+
+                imgT.base = dir.getAbsolutePath();
+                final int nimage_file = Integer.parseInt(br.readLine());
+                imgT.img = new String[nimage_file];
+                for (int i = 0; i < imgT.img.length; i++) {
+                    imgT.img[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+                }
+
+                imgT.options = br.readLine();
+
+                final int nsetup_file = Integer.parseInt(br.readLine());
+                imgT.setup_files = new String[nsetup_file];
+
+                for (int i = 0; i < imgT.setup_files.length; i++) {
+                    imgT.setup_files[i] = dir.getAbsolutePath() + File.separator + br.readLine();
+                }
+
+                imgT.setup_return = Integer.parseInt(br.readLine());
+                final int n_images = Integer.parseInt(br.readLine());
+                imgT.result_imgs = new String[n_images];
+                imgT.result_imgs_rel = new String[n_images];
+                imgT.csv_results_rel = new String[n_images];
+
+                for (int i = 0; i < imgT.result_imgs.length; i++) {
+                    imgT.result_imgs_rel[i] = br.readLine();
+                    imgT.result_imgs[i] = dir.getAbsolutePath() + File.separator + imgT.result_imgs_rel[i];
+                }
+
+                final int n_csv_res = Integer.parseInt(br.readLine());
+
+                imgT.csv_results = new String[n_csv_res];
+                imgT.csv_results_rel = new String[n_csv_res];
+                for (int i = 0; i < imgT.csv_results.length; i++) {
+                    imgT.csv_results_rel[i] = br.readLine();
+                    imgT.csv_results[i] = dir.getAbsolutePath() + File.separator + imgT.csv_results_rel[i];
+                }
+                br.close();
+            }
+            catch (final IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+
+            it.add(imgT);
+        }
+
+        // Convert Vector to array
+
+        final ImgTest[] its = new ImgTest[it.size()];
+
+        for (int i = 0; i < its.length; i++) {
+            its[i] = it.get(i);
+        }
+
+        return its;
+    }
+
+    
     /**
      * Get a the path that contain the file
      * example:
@@ -196,7 +323,7 @@ public class MosaicTest {
             }
 
             // compare
-            if (MosaicUtils.compare(image, image_rs) == false) {
+            if (compare(image, image_rs) == false) {
                 throw new RuntimeException("Error: Image " + rs + " does not match the result");
             }
 
@@ -249,6 +376,37 @@ public class MosaicTest {
             cnt++;
         }
     }
+    
+    /**
+     * Compare two images
+     *
+     * @param img1 Image1
+     * @param img2 Image2
+     * @return true if they match, false otherwise
+     */
+
+    static boolean compare(Img<?> img1, Img<?> img2) {
+
+        final Cursor<?> ci1 = img1.cursor();
+        final RandomAccess<?> ci2 = img2.randomAccess();
+
+        final int loc[] = new int[img1.numDimensions()];
+
+        while (ci1.hasNext()) {
+            ci1.fwd();
+            ci1.localize(loc);
+            ci2.setPosition(loc);
+
+            final Object t1 = ci1.get();
+            final Object t2 = ci2.get();
+
+            if (!t1.equals(t2)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     /**
      * Test the plugin filter
@@ -273,7 +431,7 @@ public class MosaicTest {
         }
 
         // Get all test images
-        final ImgTest imgT[] = MosaicUtils.getTestImages(testset, test_set);
+        final ImgTest imgT[] = getTestImages(testset, test_set);
 
         if (imgT == null) {
             throw new RuntimeException("No Images to test");

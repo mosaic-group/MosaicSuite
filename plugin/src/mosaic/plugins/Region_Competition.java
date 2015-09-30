@@ -198,20 +198,16 @@ public class Region_Competition implements Segmentation {
         if (options != null) {
             // Command line interface search for config file
 
-            String path;
-
-            String tmp = null;
-            Boolean tmp_b = null;
-
             // normalize
-
-            if ((tmp_b = MosaicUtils.parseNormalize(options)) != null) {
-                normalize_ip = tmp_b;
+            String normalizeString = MosaicUtils.parseString("normalize", options);
+            if (normalizeString != null) {
+                normalize_ip = Boolean.parseBoolean(normalizeString);
             }
 
             // config
-
-            if ((tmp = MosaicUtils.parseConfig(options)) != null) {
+            String tmp = null;
+            String path;
+            if ((tmp = MosaicUtils.parseString("config", options)) != null) {
                 path = tmp;
                 settings = getConfigHandler().LoadFromFile(path, Settings.class);
             } else {
@@ -222,7 +218,7 @@ public class Region_Competition implements Segmentation {
                 settings = getConfigHandler().LoadFromFile(sv, Settings.class);
             }
 
-            output = MosaicUtils.parseOutput(options);
+            output = MosaicUtils.parseString("output", options);
 
             // no config file open the GUI
         } else {

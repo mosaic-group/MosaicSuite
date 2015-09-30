@@ -16,7 +16,6 @@ import ij.process.ImageProcessor;
 import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.bregman.output.Region3DRScript;
 import mosaic.core.utils.MosaicTest;
-import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Segmentation;
 import mosaic.core.utils.ShellCommand;
 import mosaic.plugins.utils.TimeMeasurement;
@@ -138,7 +137,7 @@ public class Jtest implements PlugInFilter {
     private void mergetest() {
         final MergeJobs mj = new MergeJobs();
 
-        final String dir = MosaicUtils.getTestDir();
+        final String dir = MosaicTest.getTestDir();
         final String dirOutTest = SystemOperations.getCleanTestTmpPath();
         final String dir_test = dirOutTest + File.separator + "merge_jobs" + File.separator + "Test";
         final String dir_sample = dir + File.separator + "merge_jobs" + File.separator + "Sample";
