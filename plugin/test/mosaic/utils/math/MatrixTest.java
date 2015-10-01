@@ -391,6 +391,13 @@ public class MatrixTest extends CommonBase {
 
             assertEquals(expected, m1.add(1.0));
         }
+        {   // sub
+            final Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
+
+            final Matrix expected = new Matrix(new double [][] {{0, 1}, {2, 3}, {4, 5}});
+
+            assertEquals(expected, m1.sub(1.0));
+        }
         {   // scale
             final Matrix m1 = new Matrix(new double [][] {{1, 2}, {3, 4}, {5, 6}});
 

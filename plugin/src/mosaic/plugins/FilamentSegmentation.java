@@ -21,11 +21,14 @@ import ij.gui.Plot;
 import ij.gui.PlotWindow;
 import ij.gui.PolygonRoi;
 import ij.gui.Roi;
+import ij.macro.Interpreter;
+import ij.measure.ResultsTable;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import mosaic.filamentSegmentation.SegmentationAlgorithm;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.NoiseType;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
+import mosaic.filamentSegmentation.SegmentationFunctions;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.PlugInFloatBase;
 import mosaic.utils.math.CubicSmoothingSpline;
@@ -65,12 +68,12 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
     private final String PropResultLayer     = "FilamentSegmentation.resultLayer";
     
     // Synchronized map used to collect segmentation data from all plugin threads
-    private final Map<Integer, Map<Integer, List<CubicSmoothingSpline>>> m = new TreeMap<Integer, Map<Integer, List<CubicSmoothingSpline>>>();
+    private final Map<Integer, Map<Integer, List<CubicSmoothingSpline>>> iFilamentsData = new TreeMap<Integer, Map<Integer, List<CubicSmoothingSpline>>>();
     private synchronized void addNewFinding(List<CubicSmoothingSpline> aCubicSpline, Integer aSlieceNumber, Integer aChannelNumber) {
-        if (m.get(aSlieceNumber) == null) {
-            m.put(aSlieceNumber, new TreeMap<Integer, List<CubicSmoothingSpline>>());
+        if (iFilamentsData.get(aSlieceNumber) == null) {
+            iFilamentsData.put(aSlieceNumber, new TreeMap<Integer, List<CubicSmoothingSpline>>());
         }
-        m.get(aSlieceNumber).put(aChannelNumber, aCubicSpline);
+        iFilamentsData.get(aSlieceNumber).put(aChannelNumber, aCubicSpline);
     }
 
     // Output image with marked filaments
@@ -104,55 +107,41 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
 
         // Save results and update output image
         addNewFinding(ps, aOrigImg.getSliceNumber(), aChannelNumber);
-        //drawFinalImg(aOrigImg, aChannelNumber, ps);
     }
 
     private synchronized void drawFinalImg() {
-        // TODO: This is temporary implementation. After taking decision how to 
-        // proceed with filaments this method must be revised
+        // Copy original image slices to output color image
         ImageStack stack = iOutputColorImg.getStack();
-        for (int sn : m.keySet()) {
+        for (int sn : iFilamentsData.keySet()) {
             ImageProcessor ip = stack.getProcessor(sn);
             int noOfChannels = iInputImg.getStack().getProcessor(sn).getNChannels();
-
+    
             if (noOfChannels != 1) {
                 for (int c = 0; c <= 2; ++c) {
                     ip.setPixels(c, iInputImg.getStack().getProcessor(sn).toFloat(c, null));
                 }
             }
             else {
+                // In case when input image is gray then copy it to all output channels (R,G,B)
                 for (int c = 0; c <= 2; ++c) {
                     ip.setPixels(c, iInputImg.getStack().getProcessor(sn).toFloat(0, null));   
                 }
             }
         }
         
+        // Put on image all found filmanents 
         Overlay overlay = new Overlay();
-        for (int sn : m.keySet()) {
-            Map<Integer, List<CubicSmoothingSpline>> ms  = m.get(sn);
+        for (int sn : iFilamentsData.keySet()) {
+            Map<Integer, List<CubicSmoothingSpline>> ms  = iFilamentsData.get(sn);
             ImageProcessor ip = stack.getProcessor(sn);
             for (Entry<Integer, List<CubicSmoothingSpline>> e : ms.entrySet()) {
                 int[] pixels = (int[]) ip.getPixels();
-                for (CubicSmoothingSpline css : e.getValue()) {
-                    final CubicSmoothingSpline css1 = css;
-                    double start = css1.getKnot(0);
-                    double stop = css1.getKnot(css1.getNumberOfKNots() - 1);
-        
-                    final Matrix x = Matlab.linspace(start, stop, 1000);
-                    Matrix y = x.copy().process(new MFunc() {
-                        @Override
-                        public double f(double aElement, int aRow, int aCol) {
-                            return css1.getValue(x.get(aRow, aCol));
-                        }
-                    });
-        
-                    // Adjust from 1..n range (used to be compatibilt wiht matlab code) to 0..n-1 as used for 
-                    // images in fiji.
-                    x.sub(1);
-                    y.sub(1);
+                for (final CubicSmoothingSpline css : e.getValue()) {
+                    
+                    FilamentXyCoordinates coordinates = GenerateXyCoordinatesForFilament(css);
                     
                     if (iVisualizationLayer == VisualizationLayer.OVERLAY) {
-                        Roi r = new PolygonRoi(x.getArrayYXasFloats()[0], y.getArrayYXasFloats()[0], Roi.POLYLINE);
+                        Roi r = new PolygonRoi(coordinates.x.getArrayYXasFloats()[0], coordinates.y.getArrayYXasFloats()[0], Roi.POLYLINE);
                         r.setPosition(sn);
                         overlay.add(r);
                     }
@@ -162,9 +151,9 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                         if (e.getKey() == 0) color = 255 << 8;
                         else if (e.getKey() == 1) color = 255 << 0;
                         else if (e.getKey() == 2) color = 255 << 16;
-                        for (int i = 0; i < x.size(); ++i) {
-                            int xp = (int) (x.get(i));
-                            int yp = (int) (y.get(i));
+                        for (int i = 0; i < coordinates.x.size(); ++i) {
+                            int xp = (int) (coordinates.x.get(i));
+                            int yp = (int) (coordinates.y.get(i));
                             if (xp < 0 || xp >= w - 1 || yp < 0 || yp >= h - 1)
                                 continue;
                             pixels[yp * w + xp] = pixels[yp * w + xp] | color;
@@ -172,40 +161,25 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                     }
                 }
             }
-            
-            
         }
+        
         if (iVisualizationLayer == VisualizationLayer.OVERLAY) {
             iOutputColorImg.setOverlay(overlay);
         }
     }
 
-    @Override
-    protected void postprocessBeforeShow() {
-        // TODO: Output that to table or to file(s)
-        // TODO: This is temporary implementation. After taking decision how to
-        // proceed with filaments this method must be revised
-        System.out.println(m.size());
-        //        for (Entry<Integer, List<CubicSmoothingSpline>> e : m.entrySet()) {
-        //            String lenstr = "";
-        //            for (CubicSmoothingSpline css : e.getValue()) {
-        //                lenstr += SegmentationFunctions.calcualteFilamentLenght(css);
-        //                lenstr += ", ";
-        //            }
-        //
-        //           System.out.println(e.getKey() +  ", " + lenstr);
-        //        }
-        drawFinalImg();
+    private Plot createPlot() {
         PlotWindow.noGridLines = false; // draw grid lines
         final Plot plot = new Plot("All filaments", "X", "Y");
         plot.setLimits(0, iInputImg.getWidth(), iInputImg.getHeight(), 0);
         
         // Plot data
         plot.setColor(Color.blue);
-        for (final Map<Integer, List<CubicSmoothingSpline>> ms : m.values()) {
+        for (final Map<Integer, List<CubicSmoothingSpline>> ms : iFilamentsData.values()) {
             for (final List<CubicSmoothingSpline> ps : ms.values()) {
                 int count = 0;
                 for (final CubicSmoothingSpline css : ps) {
+                    // Mix colors - it is good for spotting changes for single filament
                     switch(count) {
                         case 0: plot.setColor(Color.BLUE);break;
                         case 1: plot.setColor(Color.RED);break;
@@ -214,26 +188,73 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                         case 4: plot.setColor(Color.CYAN);break;
                         default:plot.setColor(Color.MAGENTA);break;
                     }
-                    count++;
-                    final CubicSmoothingSpline css1 = css;
-                    final double start = css1.getKnot(0);
-                    final double stop = css1.getKnot(css1.getNumberOfKNots() - 1);
-
-                    final Matrix x = Matlab.linspace(start, stop, 100);
-                    final Matrix y = x.copy().process(new MFunc() {
-                        @Override
-                        public double f(double aElement, int aRow, int aCol) {
-                            return css1.getValue(aElement);
-                        }
-                    });
-
-
-                    plot.addPoints(x.getData(),y.getData(), PlotWindow.LINE);
+                    count = (++count % 5);
+                    
+                    // Put stuff on plot
+                    FilamentXyCoordinates coordinates = GenerateXyCoordinatesForFilament(css);
+                    plot.addPoints(coordinates.x.getData(), coordinates.y.getData(), PlotWindow.LINE);
                 }
             }
         }
         
-        plot.show();
+        return plot;
+    }
+
+    private void generateResultsTable() {
+        // Create result table with all filaments
+        final ResultsTable rs = new ResultsTable();
+        for (final Integer frame : iFilamentsData.keySet()) {
+            final Map<Integer, List<CubicSmoothingSpline>> ms = iFilamentsData.get(frame);
+            for (final List<CubicSmoothingSpline> ps : ms.values()) {
+                int count = 1;
+                for (final CubicSmoothingSpline css : ps) {
+                    rs.incrementCounter();
+                    rs.addValue("Frame", frame);
+                    rs.addValue("Filament no", count);
+                    rs.addValue("Lenght", SegmentationFunctions.calcualteFilamentLenght(css));
+                    count++;
+                }
+            }
+        }
+
+        if (!Interpreter.isBatchMode()) {
+            rs.show("Filaments segmentation results");
+        }
+    }
+
+    private class FilamentXyCoordinates {
+        Matrix x;
+        Matrix y;
+        
+        protected FilamentXyCoordinates(Matrix aXvalues, Matrix aYvalues) {x = aXvalues; y = aYvalues;}
+    }
+    
+    private FilamentXyCoordinates GenerateXyCoordinatesForFilament(final CubicSmoothingSpline css) {
+        // Generate x,y coordinates for current filament
+        double start = css.getKnot(0);
+        double stop = css.getKnot(css.getNumberOfKNots() - 1);
+
+        final Matrix x = Matlab.linspace(start, stop, 1000);
+        Matrix y = x.copy().process(new MFunc() {
+            @Override
+            public double f(double aElement, int aRow, int aCol) {
+                return css.getValue(x.get(aRow, aCol));
+            }
+        });
+
+        // Adjust from 1..n range (used to be compatibilt wiht matlab code) to 0..n-1 as used for 
+        // images in fiji.
+        x.sub(1);
+        y.sub(1);
+        
+        return new FilamentXyCoordinates(x, y);
+    }
+    
+    @Override
+    protected void postprocessBeforeShow() {
+        drawFinalImg();
+        createPlot().show();
+        generateResultsTable();
     }
 
     @Override
