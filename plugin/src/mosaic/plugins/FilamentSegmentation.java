@@ -1,23 +1,29 @@
 package mosaic.plugins;
 
+import ij.ImageListener;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.Prefs;
 import ij.gui.GenericDialog;
+import ij.gui.ImageCanvas;
 import ij.gui.ImageWindow;
+import ij.gui.Overlay;
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
+import ij.gui.Roi;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.Panel;
 import java.awt.SystemColor;
 import java.awt.TextArea;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -28,10 +34,12 @@ import mosaic.filamentSegmentation.SegmentationAlgorithm.NoiseType;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.PlugInFloatBase;
+import mosaic.utils.ConvertArray;
 import mosaic.utils.math.CubicSmoothingSpline;
 import mosaic.utils.math.MFunc;
 import mosaic.utils.math.Matlab;
 import mosaic.utils.math.Matrix;
+import ij.gui.PolygonRoi;
 
 /**
  * Implementation of filament segmentation plugin.
@@ -57,6 +65,8 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
     private final String PropRegularizerTerm = "FilamentSegmentation.propRegularizerTerm";
     private final String PropNoOfIterations  = "FilamentSegmentation.noOfIterations";
 
+    private Roi r;
+    
     // Synchronized map used to collect segmentation data from all plugin threads
     private final Map<Integer, Map<Integer, List<CubicSmoothingSpline>>> m = new TreeMap<Integer, Map<Integer, List<CubicSmoothingSpline>>>();
     private synchronized void addNewFinding(List<CubicSmoothingSpline> aCubicSpline, Integer aSlieceNumber, Integer aChannelNumber) {
@@ -86,13 +96,13 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
 
         // --------------- SEGMENTATION --------------------------------------------
         final SegmentationAlgorithm sa = new SegmentationAlgorithm(img,
-                iNoiseType,
-                iPsfType,
-                iPsfDimension,
-                /* subpixel sampling */      iSubpixelSampling,
-                /* scale */                  iCoefficientStep,
-                /* regularizer term */       iRegularizerTerm,
-                iNumberOfIterations);
+                                                                   iNoiseType,
+                                                                   iPsfType,
+                                                                   iPsfDimension,
+                                      /* subpixel sampling */      iSubpixelSampling,
+                                      /* scale */                  iCoefficientStep,
+                                      /* regularizer term */       iRegularizerTerm,
+                                                                   iNumberOfIterations);
         final List<CubicSmoothingSpline> ps = sa.performSegmentation();
 
         // Save results and update output image
@@ -115,6 +125,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
             }
         }
         final int[] pixels = (int[]) ip.getPixels();
+        Overlay overlay = new Overlay();
         for (final CubicSmoothingSpline css : ps) {
             final CubicSmoothingSpline css1 = css;
             final double start = css1.getKnot(0);
@@ -127,7 +138,10 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                     return css1.getValue(x.get(aRow, aCol));
                 }
             });
-
+            x.sub(1);
+            y.sub(1);
+            r = new PolygonRoi(x.getArrayYXasFloats()[0], y.getArrayYXasFloats()[0], Roi.POLYLINE);
+            overlay.add(r);
             final int w = ip.getWidth(), h = ip.getHeight();
             int color = 0;
             if (aChannelNumber == 0) {
@@ -140,14 +154,17 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                 color = 255 << 0;
             }
             for (int i = 0; i < x.size(); ++i) {
-                final int xp = (int) (x.get(i)) - 1;
-                final int yp = (int) (y.get(i)) - 1;
+                final int xp = (int) (x.get(i));
+                final int yp = (int) (y.get(i));
                 if (xp < 0 || xp >= w - 1 || yp < 0 || yp >= h - 1) {
                     continue;
                 }
                 pixels[yp * w + xp] = pixels[yp * w + xp] | color;
             }
         }
+        
+        iOutputColorImg.setSliceWithoutUpdate(aOrigImg.getSliceNumber());
+        iOutputColorImg.setOverlay(overlay);
     }
 
     @Override
@@ -168,9 +185,8 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
 
         PlotWindow.noGridLines = false; // draw grid lines
         final Plot plot = new Plot("All filaments", "X", "Y");
-        plot.setLimits(0, iInputImg.getWidth(), 0, iInputImg.getHeight());
-
-
+        plot.setLimits(0, iInputImg.getWidth(), iInputImg.getHeight(), 0);
+        
         // Plot data
         plot.setColor(Color.blue);
         for (final Map<Integer, List<CubicSmoothingSpline>> ms : m.values()) {
@@ -203,6 +219,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                 }
             }
         }
+        
         plot.show();
     }
 
@@ -298,9 +315,42 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                 public void componentResized(ComponentEvent e)
                 {
                     // TODO: Add here implementation for drawing filaments when windows size/zoom is changed.
+                    System.out.println("RESIZED");
+                    iInputImg.updateAndDraw();
+                    ImageCanvas canvas = iProcessedImg.getCanvas();
+                    System.out.println(canvas.getHeight() + "x" + canvas.getWidth());
+                    Graphics g = canvas.getGraphics();
+                    g.setColor(Color.YELLOW);
+                    g.drawLine(0, 0, canvas.getWidth()-1, canvas.getHeight()-1);
                 }
             });
         }
+        
+//        ImagePlus.addImageListener(new ImageListener() {
+//            
+//            @Override
+//            public void imageUpdated(ImagePlus arg0) {
+//                System.out.println("imageUpdated");
+//                ImageCanvas canvas = iProcessedImg.getCanvas();
+//                System.out.println(canvas.getHeight() + "x" + canvas.getWidth());
+//                Graphics g = canvas.getGraphics();
+//                g.setColor(Color.RED);
+//                g.drawLine(0, 0, canvas.getWidth()-1, canvas.getHeight()-1);
+//                
+//            }
+//            
+//            @Override
+//            public void imageOpened(ImagePlus arg0) {
+//                System.out.println("imageOpened");
+//                
+//            }
+//            
+//            @Override
+//            public void imageClosed(ImagePlus arg0) {
+//                System.out.println("imageClosed");
+//                
+//            }
+//        });
     }
 
     @Override

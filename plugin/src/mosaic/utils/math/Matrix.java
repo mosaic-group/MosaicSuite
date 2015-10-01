@@ -433,6 +433,17 @@ public class Matrix {
         CommonOps.sub(this.iMatrix, aM.iMatrix, this.iMatrix);
         return this;
     }
+    
+    /**
+     * Adds scalar to every element of Matrix
+     *
+     * @param aM
+     * @return
+     */
+    public Matrix sub(double aVal) {
+        CommonOps.add(this.iMatrix, -aVal);
+        return this;
+    }
 
     /**
      * Scale (multiplies) each element of Matrix by given scalar
