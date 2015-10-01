@@ -188,7 +188,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                         case 4: plot.setColor(Color.CYAN);break;
                         default:plot.setColor(Color.MAGENTA);break;
                     }
-                    count = (++count % 5);
+                    count = (++count % 5); // Keeps all values in 0-5 range
                     
                     // Put stuff on plot
                     FilamentXyCoordinates coordinates = GenerateXyCoordinatesForFilament(css);
@@ -212,15 +212,19 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                     rs.addValue("Frame", frame);
                     rs.addValue("Filament no", count);
                     rs.addValue("Lenght", SegmentationFunctions.calcualteFilamentLenght(css));
-                    double x = css.getKnot(0);
-                    double xe = css.getKnot(css.getNumberOfKNots() - 1);
-                    double y = css.getValue(x);
-                    double ye = css.getValue(xe);
-                    // Decrease values to convert from matlab 1..n to ImageJ 0..n-1
-                    rs.addValue("begin x", --x);
-                    rs.addValue("begin y", --y);
-                    rs.addValue("end x", --xe);
-                    rs.addValue("end y", --ye);
+                    
+                    // Find and adjust coordinates from 1..n range (used to be compatibilt wiht matlab code) 
+                    // to 0..n-1 as used for images in fiji. 
+                    // Additionally for x should point to middle of a pixel (currently segmentation 
+                    // can found only integer values on x axis).
+                    double xBegin = css.getKnot(0);
+                    double xEnd = css.getKnot(css.getNumberOfKNots() - 1);
+                    double yBegin = css.getValue(xBegin);
+                    double yEnd = css.getValue(xEnd);
+                    rs.addValue("begin x", xBegin - 1 + 0.5);
+                    rs.addValue("begin y", yBegin - 1);
+                    rs.addValue("end x", xEnd - 1 + 0.5);
+                    rs.addValue("end y", yEnd - 1);
                     count++;
                 }
             }
@@ -252,8 +256,9 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         });
 
         // Adjust from 1..n range (used to be compatibilt wiht matlab code) to 0..n-1 as used for 
-        // images in fiji.
-        x.sub(1);
+        // images in fiji. Additionally for x should point to middle of a pixel (currently segmentation 
+        // can found only integer values on x axis).
+        x.sub(1 - 0.5);
         y.sub(1);
         
         return new FilamentXyCoordinates(x, y);
