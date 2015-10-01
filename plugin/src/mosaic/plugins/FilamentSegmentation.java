@@ -212,13 +212,22 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
                     rs.addValue("Frame", frame);
                     rs.addValue("Filament no", count);
                     rs.addValue("Lenght", SegmentationFunctions.calcualteFilamentLenght(css));
+                    double x = css.getKnot(0);
+                    double xe = css.getKnot(css.getNumberOfKNots() - 1);
+                    double y = css.getValue(x);
+                    double ye = css.getValue(xe);
+                    // Decrease values to convert from matlab 1..n to ImageJ 0..n-1
+                    rs.addValue("begin x", --x);
+                    rs.addValue("begin y", --y);
+                    rs.addValue("end x", --xe);
+                    rs.addValue("end y", --ye);
                     count++;
                 }
             }
         }
 
         if (!Interpreter.isBatchMode()) {
-            rs.show("Filaments segmentation results");
+            rs.show("Filaments segmentation results of " + iInputImg.getTitle());
         }
     }
 
