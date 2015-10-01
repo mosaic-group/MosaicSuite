@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.Prefs;
@@ -282,77 +283,102 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
 
     @Override
     protected boolean showDialog() {
-        // Create GUI for entering segmentation parameters
-        final GenericDialog gd = new GenericDialog("Filament Segmentation Settings");
+        boolean isConfigOK = true;
 
-        final String[] noiseType = {"Gaussian", "Poisson"};
-        gd.addRadioButtonGroup("Noise_Type: ", noiseType, 3, 1, Prefs.get(PropNoiseType, noiseType[0]));
-
-        final String[] psfType = {"Gaussian", "Dark Field", "Phase Contrast"};
-        gd.addRadioButtonGroup("PSF_Type: ", psfType, 3, 1, Prefs.get(PropPsfType, psfType[0]));
-        gd.addNumericField("PSF_dimensions:_____[rows]", (int)Prefs.get(PropPsfDimensionY, 1), 0);
-        gd.addNumericField("                 [columns]", (int)Prefs.get(PropPsfDimensionX, 1), 0);
-
-        final String[] subPixel = {"1x", "2x", "4x"};
-        gd.addRadioButtonGroup("Subpixel_sampling: ", subPixel, 1, 3, Prefs.get(PropSubpixel, subPixel[0]));
-
-        final String[] scales = {"100 %", "50 %", "25 %", "12.5 %", "6.25 %"};
-        gd.addRadioButtonGroup("Scale of level set mask (% of input image): ", scales, 5, 1, Prefs.get(PropScale, scales[1]));
-
-        gd.addMessage("");
-        gd.addNumericField("Regularizer (lambda): 0.001 * ", Prefs.get(PropRegularizerTerm, 0.1), 3);
-        gd.addNumericField("Maximum_number_of_iterations: ", (int)Prefs.get(PropNoOfIterations, 100), 0);
-
-        final String[] layers = {"Overlay", "Image"};
-        gd.addRadioButtonGroup("Filament visualization layer: ", layers, 2, 1, Prefs.get(PropResultLayer, layers[0]));
-        
-        gd.addMessage("\n");
-        final String info = "\"Generalized Linear Models and B-Spline\nLevel-Sets enable Automatic Optimal\nFilament Segmentation with Sub-pixel Accuracy\"\n\nXun Xiao, Veikko Geyer, Hugo Bowne-Anderson,\nJonathon Howard, Ivo F. Sbalzarini";
-        final Panel panel = new Panel();
-        panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        final TextArea ta = new TextArea(info, 7, 40, TextArea.SCROLLBARS_NONE);
-        ta.setBackground(SystemColor.control);
-        ta.setEditable(false);
-        ta.setFocusable(true);
-        panel.add(ta);
-        gd.addPanel(panel);
-
-        // Show and check if user want to continue
-        gd.showDialog();
-        if (gd.wasCanceled()) {
-            return false;
-        }
-
-        // Read data from all fields and remember it in preferences
-        final String noise = gd.getNextRadioButton();
-        final String psf = gd.getNextRadioButton();
-        final int psfx = (int)gd.getNextNumber();
-        final int psfy = (int)gd.getNextNumber();
-        final String subpixel = gd.getNextRadioButton();
-        final String scale = gd.getNextRadioButton();
-        final double lambda = gd.getNextNumber();
-        final int iterations = (int)gd.getNextNumber();
-        final String layer = gd.getNextRadioButton();
-        
-        Prefs.set(PropNoiseType, noise);
-        Prefs.set(PropPsfType, psf);
-        Prefs.set(PropPsfDimensionX, psfx);
-        Prefs.set(PropPsfDimensionY, psfy);
-        Prefs.set(PropSubpixel, subpixel);
-        Prefs.set(PropScale, scale);
-        Prefs.set(PropRegularizerTerm, lambda);
-        Prefs.set(PropNoOfIterations, iterations);
-        Prefs.set(PropResultLayer, layer);
-        
-        // Set segmentation paramters for futher use
-        iNoiseType = NoiseType.values()[Arrays.asList(noiseType).indexOf(noise)];
-        iPsfType = PsfType.values()[Arrays.asList(psfType).indexOf(psf)];
-        iPsfDimension = new Dimension(psfx, psfy);
-        iSubpixelSampling = 1/Math.pow(2, Arrays.asList(subPixel).indexOf(subpixel)); // 1, 0.5, 0.25
-        iCoefficientStep = Arrays.asList(scales).indexOf(scale);
-        iRegularizerTerm = lambda / 1000; // For easier user input it has scale * 1e-3
-        iNumberOfIterations = iterations;
-        iVisualizationLayer = VisualizationLayer.values()[Arrays.asList(layers).indexOf(layer)];
+        do {
+            // Set it for first (next) configuration loop
+            isConfigOK = true;
+            
+            // Create GUI for entering segmentation parameters
+            final GenericDialog gd = new GenericDialog("Filament Segmentation Settings");
+    
+            final String[] noiseType = {"Gaussian", "Poisson"};
+            gd.addRadioButtonGroup("Noise_Type: ", noiseType, 3, 1, Prefs.get(PropNoiseType, noiseType[0]));
+    
+            final String[] psfType = {"Gaussian", "Dark Field", "Phase Contrast"};
+            gd.addRadioButtonGroup("PSF_Type: ", psfType, 3, 1, Prefs.get(PropPsfType, psfType[0]));
+            gd.addNumericField("PSF_dimensions:_____[rows]", (int)Prefs.get(PropPsfDimensionY, 1), 0);
+            gd.addNumericField("                 [columns]", (int)Prefs.get(PropPsfDimensionX, 1), 0);
+    
+            final String[] subPixel = {"1x", "2x", "4x"};
+            gd.addRadioButtonGroup("Subpixel_sampling: ", subPixel, 1, 3, Prefs.get(PropSubpixel, subPixel[0]));
+    
+            final String[] scales = {"100 %", "50 %", "25 %", "12.5 %", "6.25 %"};
+            gd.addRadioButtonGroup("Scale of level set mask (% of input image): ", scales, 5, 1, Prefs.get(PropScale, scales[1]));
+    
+            gd.addMessage("");
+            gd.addNumericField("Regularizer (lambda): 0.001 * ", Prefs.get(PropRegularizerTerm, 0.1), 3);
+            gd.addNumericField("Maximum_number_of_iterations: ", (int)Prefs.get(PropNoOfIterations, 100), 0);
+    
+            final String[] layers = {"Overlay (zoomable)", "Image Data"};
+            gd.addRadioButtonGroup("Filament visualization layer: ", layers, 2, 1, Prefs.get(PropResultLayer, layers[0]));
+            
+            gd.addMessage("\n");
+            final String info = "\"Generalized Linear Models and B-Spline\nLevel-Sets enable Automatic Optimal\nFilament Segmentation with Sub-pixel Accuracy\"\n\nXun Xiao, Veikko Geyer, Hugo Bowne-Anderson,\nJonathon Howard, Ivo F. Sbalzarini";
+            final Panel panel = new Panel();
+            panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            final TextArea ta = new TextArea(info, 7, 40, TextArea.SCROLLBARS_NONE);
+            ta.setBackground(SystemColor.control);
+            ta.setEditable(false);
+            ta.setFocusable(true);
+            panel.add(ta);
+            gd.addPanel(panel);
+    
+            // Show and check if user want to continue
+            gd.showDialog();
+            if (gd.wasCanceled()) {
+                return false;
+            }
+    
+            // Read data from all fields and remember it in preferences
+            final String noise = gd.getNextRadioButton();
+            final String psf = gd.getNextRadioButton();
+            final int psfx = (int)gd.getNextNumber();
+            final int psfy = (int)gd.getNextNumber();
+            final String subpixel = gd.getNextRadioButton();
+            final String scale = gd.getNextRadioButton();
+            final double lambda = gd.getNextNumber();
+            final int iterations = (int)gd.getNextNumber();
+            final String layer = gd.getNextRadioButton();
+            
+            // Verify input (only things that can be entered not correctly)
+            String errorMsg = "";
+            if (iterations < 0) {
+                isConfigOK = false;
+                errorMsg += "Number of iteration cannot be lower that 0\n";
+            }
+            if (psfx < 1 || psfy < 1) {
+                isConfigOK = false;
+                errorMsg += "PSF dimensions cannot be lower than 1\n";
+            }
+            
+            if (isConfigOK) {
+                // OK -> read all settings
+                Prefs.set(PropNoiseType, noise);
+                Prefs.set(PropPsfType, psf);
+                Prefs.set(PropPsfDimensionX, psfx);
+                Prefs.set(PropPsfDimensionY, psfy);
+                Prefs.set(PropSubpixel, subpixel);
+                Prefs.set(PropScale, scale);
+                Prefs.set(PropRegularizerTerm, lambda);
+                Prefs.set(PropNoOfIterations, iterations);
+                Prefs.set(PropResultLayer, layer);
+                
+                // Set segmentation paramters for futher use
+                iNoiseType = NoiseType.values()[Arrays.asList(noiseType).indexOf(noise)];
+                iPsfType = PsfType.values()[Arrays.asList(psfType).indexOf(psf)];
+                iPsfDimension = new Dimension(psfx, psfy);
+                iSubpixelSampling = 1/Math.pow(2, Arrays.asList(subPixel).indexOf(subpixel)); // 1, 0.5, 0.25
+                iCoefficientStep = Arrays.asList(scales).indexOf(scale);
+                iRegularizerTerm = lambda / 1000; // For easier user input it has scale * 1e-3
+                iNumberOfIterations = iterations;
+                iVisualizationLayer = VisualizationLayer.values()[Arrays.asList(layers).indexOf(layer)];
+            }
+            else {
+                // Show message to user and start again
+                IJ.error(errorMsg);
+            }
+        } while(!isConfigOK);
         
         return true;
     }
