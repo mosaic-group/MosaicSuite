@@ -235,6 +235,9 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         }
     }
 
+    /**
+     * Internal class used to pass generated coordinates output
+     */
     private class FilamentXyCoordinates {
         Matrix x;
         Matrix y;
@@ -242,6 +245,11 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         protected FilamentXyCoordinates(Matrix aXvalues, Matrix aYvalues) {x = aXvalues; y = aYvalues;}
     }
     
+    /**
+     * Generates (x,y) coordinates from given cubic smoothing spline
+     * @param css - input spline
+     * @return 
+     */
     private FilamentXyCoordinates GenerateXyCoordinatesForFilament(final CubicSmoothingSpline css) {
         // Generate x,y coordinates for current filament
         double start = css.getKnot(0);
