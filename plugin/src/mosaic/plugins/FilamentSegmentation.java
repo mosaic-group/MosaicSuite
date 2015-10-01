@@ -1,45 +1,37 @@
 package mosaic.plugins;
 
-import ij.ImageListener;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Panel;
+import java.awt.SystemColor;
+import java.awt.TextArea;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.Prefs;
 import ij.gui.GenericDialog;
-import ij.gui.ImageCanvas;
-import ij.gui.ImageWindow;
 import ij.gui.Overlay;
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
+import ij.gui.PolygonRoi;
 import ij.gui.Roi;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Graphics;
-import java.awt.Panel;
-import java.awt.SystemColor;
-import java.awt.TextArea;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import mosaic.filamentSegmentation.SegmentationAlgorithm;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.NoiseType;
 import mosaic.filamentSegmentation.SegmentationAlgorithm.PsfType;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.plugins.utils.PlugInFloatBase;
-import mosaic.utils.ConvertArray;
 import mosaic.utils.math.CubicSmoothingSpline;
 import mosaic.utils.math.MFunc;
 import mosaic.utils.math.Matlab;
 import mosaic.utils.math.Matrix;
-import ij.gui.PolygonRoi;
 
 /**
  * Implementation of filament segmentation plugin.
@@ -55,6 +47,12 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
     private double iRegularizerTerm;
     private int iNumberOfIterations;
 
+    // Layer for visualization filaments
+    public static enum VisualizationLayer {
+        OVERLAY, IMAGE
+    }
+    VisualizationLayer iVisualizationLayer;
+    
     // Properties names for saving data from GUI
     private final String PropNoiseType       = "FilamentSegmentation.noiseType";
     private final String PropPsfType         = "FilamentSegmentation.psfType";
@@ -64,8 +62,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
     private final String PropScale           = "FilamentSegmentation.scale";
     private final String PropRegularizerTerm = "FilamentSegmentation.propRegularizerTerm";
     private final String PropNoOfIterations  = "FilamentSegmentation.noOfIterations";
-
-    private Roi r;
+    private final String PropResultLayer     = "FilamentSegmentation.resultLayer";
     
     // Synchronized map used to collect segmentation data from all plugin threads
     private final Map<Integer, Map<Integer, List<CubicSmoothingSpline>>> m = new TreeMap<Integer, Map<Integer, List<CubicSmoothingSpline>>>();
@@ -107,64 +104,80 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
 
         // Save results and update output image
         addNewFinding(ps, aOrigImg.getSliceNumber(), aChannelNumber);
-        drawFinalImg(aOrigImg, aChannelNumber, ps);
+        //drawFinalImg(aOrigImg, aChannelNumber, ps);
     }
 
-    private synchronized void drawFinalImg(FloatProcessor aOrigImg, int aChannelNumber, List<CubicSmoothingSpline> ps) {
-        // TODO: This is temporary implementation. After taking decision how to
+    private synchronized void drawFinalImg() {
+        // TODO: This is temporary implementation. After taking decision how to 
         // proceed with filaments this method must be revised
-        final ImageStack stack = iOutputColorImg.getStack();
-        final ImageProcessor ip = stack.getProcessor(aOrigImg.getSliceNumber());
-        final int noOfChannels = iInputImg.getStack().getProcessor(aOrigImg.getSliceNumber()).getNChannels();
-        if (noOfChannels != 1) {
-            ip.setPixels(aChannelNumber, iInputImg.getStack().getProcessor(aOrigImg.getSliceNumber()).toFloat(aChannelNumber, null));
-        }
-        else {
-            for (int c = 0; c <= 2; ++c) {
-                ip.setPixels(c, iInputImg.getStack().getProcessor(aOrigImg.getSliceNumber()).toFloat(0, null));
-            }
-        }
-        final int[] pixels = (int[]) ip.getPixels();
-        Overlay overlay = new Overlay();
-        for (final CubicSmoothingSpline css : ps) {
-            final CubicSmoothingSpline css1 = css;
-            final double start = css1.getKnot(0);
-            final double stop = css1.getKnot(css1.getNumberOfKNots() - 1);
+        ImageStack stack = iOutputColorImg.getStack();
+        for (int sn : m.keySet()) {
+            ImageProcessor ip = stack.getProcessor(sn);
+            int noOfChannels = iInputImg.getStack().getProcessor(sn).getNChannels();
 
-            final Matrix x = Matlab.linspace(start, stop, 1000);
-            final Matrix y = x.copy().process(new MFunc() {
-                @Override
-                public double f(double aElement, int aRow, int aCol) {
-                    return css1.getValue(x.get(aRow, aCol));
+            if (noOfChannels != 1) {
+                for (int c = 0; c <= 2; ++c) {
+                    ip.setPixels(c, iInputImg.getStack().getProcessor(sn).toFloat(c, null));
                 }
-            });
-            x.sub(1);
-            y.sub(1);
-            r = new PolygonRoi(x.getArrayYXasFloats()[0], y.getArrayYXasFloats()[0], Roi.POLYLINE);
-            overlay.add(r);
-            final int w = ip.getWidth(), h = ip.getHeight();
-            int color = 0;
-            if (aChannelNumber == 0) {
-                color = 255 << 16;
             }
-            else if (aChannelNumber == 1) {
-                color = 255 << 8;
-            }
-            else if (aChannelNumber == 2) {
-                color = 255 << 0;
-            }
-            for (int i = 0; i < x.size(); ++i) {
-                final int xp = (int) (x.get(i));
-                final int yp = (int) (y.get(i));
-                if (xp < 0 || xp >= w - 1 || yp < 0 || yp >= h - 1) {
-                    continue;
+            else {
+                for (int c = 0; c <= 2; ++c) {
+                    ip.setPixels(c, iInputImg.getStack().getProcessor(sn).toFloat(0, null));   
                 }
-                pixels[yp * w + xp] = pixels[yp * w + xp] | color;
             }
         }
         
-        iOutputColorImg.setSliceWithoutUpdate(aOrigImg.getSliceNumber());
-        iOutputColorImg.setOverlay(overlay);
+        Overlay overlay = new Overlay();
+        for (int sn : m.keySet()) {
+            Map<Integer, List<CubicSmoothingSpline>> ms  = m.get(sn);
+            ImageProcessor ip = stack.getProcessor(sn);
+            for (Entry<Integer, List<CubicSmoothingSpline>> e : ms.entrySet()) {
+                int[] pixels = (int[]) ip.getPixels();
+                for (CubicSmoothingSpline css : e.getValue()) {
+                    final CubicSmoothingSpline css1 = css;
+                    double start = css1.getKnot(0);
+                    double stop = css1.getKnot(css1.getNumberOfKNots() - 1);
+        
+                    final Matrix x = Matlab.linspace(start, stop, 1000);
+                    Matrix y = x.copy().process(new MFunc() {
+                        @Override
+                        public double f(double aElement, int aRow, int aCol) {
+                            return css1.getValue(x.get(aRow, aCol));
+                        }
+                    });
+        
+                    // Adjust from 1..n range (used to be compatibilt wiht matlab code) to 0..n-1 as used for 
+                    // images in fiji.
+                    x.sub(1);
+                    y.sub(1);
+                    
+                    if (iVisualizationLayer == VisualizationLayer.OVERLAY) {
+                        Roi r = new PolygonRoi(x.getArrayYXasFloats()[0], y.getArrayYXasFloats()[0], Roi.POLYLINE);
+                        r.setPosition(sn);
+                        overlay.add(r);
+                    }
+                    else if (iVisualizationLayer == VisualizationLayer.IMAGE) {
+                        int w = ip.getWidth(), h = ip.getHeight();
+                        int color = 0;
+                        if (e.getKey() == 0) color = 255 << 8;
+                        else if (e.getKey() == 1) color = 255 << 0;
+                        else if (e.getKey() == 2) color = 255 << 16;
+                        for (int i = 0; i < x.size(); ++i) {
+                            int xp = (int) (x.get(i));
+                            int yp = (int) (y.get(i));
+                            if (xp < 0 || xp >= w - 1 || yp < 0 || yp >= h - 1)
+                                continue;
+                            pixels[yp * w + xp] = pixels[yp * w + xp] | color;
+                        }
+                    }
+                }
+            }
+            
+            
+        }
+        if (iVisualizationLayer == VisualizationLayer.OVERLAY) {
+            iOutputColorImg.setOverlay(overlay);
+        }
     }
 
     @Override
@@ -182,7 +195,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         //
         //           System.out.println(e.getKey() +  ", " + lenstr);
         //        }
-
+        drawFinalImg();
         PlotWindow.noGridLines = false; // draw grid lines
         final Plot plot = new Plot("All filaments", "X", "Y");
         plot.setLimits(0, iInputImg.getWidth(), iInputImg.getHeight(), 0);
@@ -246,6 +259,9 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         gd.addNumericField("Regularizer (lambda): 0.001 * ", Prefs.get(PropRegularizerTerm, 0.1), 3);
         gd.addNumericField("Maximum_number_of_iterations: ", (int)Prefs.get(PropNoOfIterations, 100), 0);
 
+        final String[] layers = {"Overlay", "Image"};
+        gd.addRadioButtonGroup("Filament visualization layer: ", layers, 2, 1, Prefs.get(PropResultLayer, layers[0]));
+        
         gd.addMessage("\n");
         final String info = "\"Generalized Linear Models and B-Spline\nLevel-Sets enable Automatic Optimal\nFilament Segmentation with Sub-pixel Accuracy\"\n\nXun Xiao, Veikko Geyer, Hugo Bowne-Anderson,\nJonathon Howard, Ivo F. Sbalzarini";
         final Panel panel = new Panel();
@@ -272,7 +288,8 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         final String scale = gd.getNextRadioButton();
         final double lambda = gd.getNextNumber();
         final int iterations = (int)gd.getNextNumber();
-
+        final String layer = gd.getNextRadioButton();
+        
         Prefs.set(PropNoiseType, noise);
         Prefs.set(PropPsfType, psf);
         Prefs.set(PropPsfDimensionX, psfx);
@@ -281,7 +298,8 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         Prefs.set(PropScale, scale);
         Prefs.set(PropRegularizerTerm, lambda);
         Prefs.set(PropNoOfIterations, iterations);
-
+        Prefs.set(PropResultLayer, layer);
+        
         // Set segmentation paramters for futher use
         iNoiseType = NoiseType.values()[Arrays.asList(noiseType).indexOf(noise)];
         iPsfType = PsfType.values()[Arrays.asList(psfType).indexOf(psf)];
@@ -290,7 +308,8 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         iCoefficientStep = Arrays.asList(scales).indexOf(scale);
         iRegularizerTerm = lambda / 1000; // For easier user input it has scale * 1e-3
         iNumberOfIterations = iterations;
-
+        iVisualizationLayer = VisualizationLayer.values()[Arrays.asList(layers).indexOf(layer)];
+        
         return true;
     }
 
@@ -302,55 +321,6 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         setProcessedImg(iOutputColorImg);
 
         return true;
-    }
-
-    @Override
-    protected void postprocessFinal() {
-        final ImageWindow window = iProcessedImg.getWindow();
-
-        // When in batch mode there is no window
-        if (window != null) {
-            window.addComponentListener(new ComponentAdapter() {
-                @Override
-                public void componentResized(ComponentEvent e)
-                {
-                    // TODO: Add here implementation for drawing filaments when windows size/zoom is changed.
-                    System.out.println("RESIZED");
-                    iInputImg.updateAndDraw();
-                    ImageCanvas canvas = iProcessedImg.getCanvas();
-                    System.out.println(canvas.getHeight() + "x" + canvas.getWidth());
-                    Graphics g = canvas.getGraphics();
-                    g.setColor(Color.YELLOW);
-                    g.drawLine(0, 0, canvas.getWidth()-1, canvas.getHeight()-1);
-                }
-            });
-        }
-        
-//        ImagePlus.addImageListener(new ImageListener() {
-//            
-//            @Override
-//            public void imageUpdated(ImagePlus arg0) {
-//                System.out.println("imageUpdated");
-//                ImageCanvas canvas = iProcessedImg.getCanvas();
-//                System.out.println(canvas.getHeight() + "x" + canvas.getWidth());
-//                Graphics g = canvas.getGraphics();
-//                g.setColor(Color.RED);
-//                g.drawLine(0, 0, canvas.getWidth()-1, canvas.getHeight()-1);
-//                
-//            }
-//            
-//            @Override
-//            public void imageOpened(ImagePlus arg0) {
-//                System.out.println("imageOpened");
-//                
-//            }
-//            
-//            @Override
-//            public void imageClosed(ImagePlus arg0) {
-//                System.out.println("imageClosed");
-//                
-//            }
-//        });
     }
 
     @Override
