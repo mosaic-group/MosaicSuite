@@ -109,7 +109,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         addNewFinding(ps, aOrigImg.getSliceNumber(), aChannelNumber);
     }
 
-    private synchronized void drawFinalImg() {
+    private synchronized void drawFinalImgWithMarkedFilaments() {
         // Copy original image slices to output color image
         ImageStack stack = iOutputColorImg.getStack();
         for (int sn : iFilamentsData.keySet()) {
@@ -168,9 +168,9 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         }
     }
 
-    private Plot createPlot() {
+    private Plot createPlotWithAllCalculetedSplines() {
         PlotWindow.noGridLines = false; // draw grid lines
-        final Plot plot = new Plot("All filaments", "X", "Y");
+        final Plot plot = new Plot("All filaments from " + iInputImg.getTitle(), "X", "Y");
         plot.setLimits(0, iInputImg.getWidth(), iInputImg.getHeight(), 0);
         
         // Plot data
@@ -200,7 +200,7 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         return plot;
     }
 
-    private void generateResultsTable() {
+    private void generateResultsTableWithAllFilaments() {
         // Create result table with all filaments
         final ResultsTable rs = new ResultsTable();
         for (final Integer frame : iFilamentsData.keySet()) {
@@ -274,9 +274,10 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
     
     @Override
     protected void postprocessBeforeShow() {
-        drawFinalImg();
-        createPlot().show();
-        generateResultsTable();
+        // Show all segmentation results
+        drawFinalImgWithMarkedFilaments();
+        createPlotWithAllCalculetedSplines().show();
+        generateResultsTableWithAllFilaments();
     }
 
     @Override
