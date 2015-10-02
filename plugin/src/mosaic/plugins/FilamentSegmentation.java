@@ -47,8 +47,8 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
     //          listOfCubicSplines
     //         >
     //     >   
-    // TreeMap is intentionally used to have always sorted data.
-    //
+    // TreeMap is intentionally used to have always sorted data so output for example to
+    // results table is nice and clean.
     private final Map<Integer, Map<Integer, List<CubicSmoothingSpline>>> iFilamentsData = new TreeMap<Integer, Map<Integer, List<CubicSmoothingSpline>>>();
     private synchronized void addNewFinding(Integer aFrameNumber, Integer aChannelNumber, List<CubicSmoothingSpline> aCubicSpline) {
         if (iFilamentsData.get(aFrameNumber) == null) {
