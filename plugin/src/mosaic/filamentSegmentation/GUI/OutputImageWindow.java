@@ -27,11 +27,11 @@ public class OutputImageWindow {
     private final ImagePlus iInputImg;
     
     /**
-     * @param aInputImg Title for output image. It will be prefixed with 'segmented_'
+     * @param aInputImg Title for output image.
      */
-    public OutputImageWindow(ImagePlus aInputImg) {
+    public OutputImageWindow(ImagePlus aInputImg, String aTitle) {
         iInputImg = aInputImg;
-        iOutputColorImg = ImgUtils.createNewEmptyImgPlus(iInputImg, "segmented_" + iInputImg.getTitle(), 1, 1, true);     
+        iOutputColorImg = ImgUtils.createNewEmptyImgPlus(iInputImg, aTitle, 1, 1, true);     
     }
     
     /**
