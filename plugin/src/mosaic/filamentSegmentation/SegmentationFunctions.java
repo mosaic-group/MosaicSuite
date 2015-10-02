@@ -221,5 +221,42 @@ public class SegmentationFunctions {
 
         return length;
     }
+    
+    /**
+     * Internal class used to pass generated coordinates output
+     */
+    static public class FilamentXyCoordinates {
+        public Matrix x;
+        public Matrix y;
+        
+        protected FilamentXyCoordinates(Matrix aXvalues, Matrix aYvalues) {x = aXvalues; y = aYvalues;}
+    }
+    
+    /**
+     * Generates (x,y) coordinates from given cubic smoothing spline
+     * @param css - input spline
+     * @return 
+     */
+    static public FilamentXyCoordinates GenerateXyCoordinatesForFilament(final CubicSmoothingSpline css) {
+        // Generate x,y coordinates for current filament
+        double start = css.getKnot(0);
+        double stop = css.getKnot(css.getNumberOfKNots() - 1);
+
+        final Matrix x = Matlab.linspace(start, stop, 1000);
+        Matrix y = x.copy().process(new MFunc() {
+            @Override
+            public double f(double aElement, int aRow, int aCol) {
+                return css.getValue(x.get(aRow, aCol));
+            }
+        });
+
+        // Adjust from 1..n range (used to be compatibilt wiht matlab code) to 0..n-1 as used for 
+        // images in fiji. Additionally x should point to middle of a pixel (currently segmentation 
+        // can found only integer values on x axis) so additional correction by 0.5 value.
+        x.sub(1 - 0.5);
+        y.sub(1);
+        
+        return new FilamentXyCoordinates(x, y);
+    }
 
 }

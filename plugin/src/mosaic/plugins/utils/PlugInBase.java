@@ -1,15 +1,10 @@
 package mosaic.plugins.utils;
 
 
-import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
-import ij.ImageStack;
-import ij.measure.Calibration;
 import ij.plugin.filter.ExtendedPlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
-import ij.process.ColorProcessor;
-import ij.process.ImageProcessor;
 
 /**
  * Base for plugIns that use float values as a algorithm base.
@@ -123,59 +118,7 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
      * @return newly created ImagePlus
      */
     private ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale) {
-        return createNewEmptyImgPlus(aOrigIp, aTitle, aXscale, aYscale, false);
-    }
-
-    protected ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale, boolean convertToRgb) {
-        final int nSlices = aOrigIp.getStackSize();
-        final int w=aOrigIp.getWidth();
-        final int h=aOrigIp.getHeight();
-
-        ImagePlus copyIp = aOrigIp.createImagePlus();
-
-        final int newWidth = (int)aXscale*w;
-        final int newHeight = (int)aYscale*h;
-
-        final ImageStack origStack = aOrigIp.getStack();
-        final ImageStack copyStack = new ImageStack(newWidth, newHeight);
-        ImageProcessor ip1, ip2;
-        for (int i = 1; i <= nSlices; i++) {
-            ip1 = origStack.getProcessor(i);
-            final String label = origStack.getSliceLabel(i);
-            if (!convertToRgb) {
-                ip2 = ip1.createProcessor(newWidth, newHeight);
-            }
-            else {
-                ip2 = new ColorProcessor(newWidth, newHeight);
-            }
-            if (ip2 != null) {
-                copyStack.addSlice(label, ip2);
-            }
-        }
-
-        copyIp.setStack(aTitle, copyStack);
-
-        final Calibration cal = copyIp.getCalibration();
-        if (cal.scaled()) {
-            cal.pixelWidth *= 1.0 / aXscale;
-            cal.pixelHeight *= 1.0 / aYscale;
-        }
-
-        final int[] dim = aOrigIp.getDimensions();
-        copyIp.setDimensions(dim[2], dim[3], dim[4]);
-
-        if (aOrigIp.isComposite()) {
-            copyIp = new CompositeImage(copyIp, ((CompositeImage)aOrigIp).getMode());
-            ((CompositeImage)copyIp).copyLuts(aOrigIp);
-        }
-
-
-        if (aOrigIp.isHyperStack()) {
-            copyIp.setOpenAsHyperStack(true);
-        }
-        copyIp.changes = true;
-
-        return copyIp;
+        return ImgUtils.createNewEmptyImgPlus(aOrigIp, aTitle, aXscale, aYscale, false);
     }
 
     protected void setScaleX(double aScaleX) {
