@@ -661,17 +661,16 @@ public class SegmentationAlgorithm {
 
     @Override
     public String toString() {
-        String str =
-                "-------- Segmentation Algorithm Parameters --------\n";
-        str += "Input Img dims: " + iOriginalWidth + "x" + iOriginalHeight + "\n";
-        str += "NoiseType: " + iNoiseType.toString() + "\n";
-        str += "PsfType: " +  iPsfType.toString() + "\n";
-        str += "W/H: " + iPsfSize.width + "/" + iPsfSize.height + "\n";
-        str += "Subpixel sampling: " + iSubpixelSampling + "\n";
-        str += "StepScale: " + iCoeffsStepScale + "\n";
-        str += "No Of Iterations: " + iNoOfIterations + "\n";
-        str += "LambdaReg: " + iLambdaReg + "\n";
-        str += "---------------------------------------------------\n";
+        String str = "-------- Segmentation Algorithm Parameters --------\n";
+        str +=       "Input Img dims: " + iOriginalWidth + "x" + iOriginalHeight + "\n";
+        str +=       "NoiseType: " + iNoiseType.toString() + "\n";
+        str +=       "PsfType: " +  iPsfType.toString() + "\n";
+        str +=       "W/H: " + iPsfSize.width + "/" + iPsfSize.height + "\n";
+        str +=       "Subpixel sampling: " + iSubpixelSampling + "\n";
+        str +=       "StepScale: " + iCoeffsStepScale + "\n";
+        str +=       "No Of Iterations: " + iNoOfIterations + "\n";
+        str +=       "LambdaReg: " + iLambdaReg + "\n";
+        str +=       "---------------------------------------------------\n";
         return str;
     }
 }

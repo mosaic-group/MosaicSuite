@@ -265,8 +265,8 @@ public class FilamentSegmentation extends PlugInFloatBase { // NO_UCD
         });
 
         // Adjust from 1..n range (used to be compatibilt wiht matlab code) to 0..n-1 as used for 
-        // images in fiji. Additionally for x should point to middle of a pixel (currently segmentation 
-        // can found only integer values on x axis).
+        // images in fiji. Additionally x should point to middle of a pixel (currently segmentation 
+        // can found only integer values on x axis) so additional correction by 0.5 value.
         x.sub(1 - 0.5);
         y.sub(1);
         
