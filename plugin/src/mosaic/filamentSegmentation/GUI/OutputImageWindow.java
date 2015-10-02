@@ -42,7 +42,7 @@ public class OutputImageWindow {
     }
     
     /**
-     * Prepares output window with draw filaments
+     * Prepares output window with drawn filaments
      * @param iFilamentsData input data {@link mosaic.plugins.FilamentSegmentation#iFilamentsData check here for details of aFilamentsData structure}
      * @param iVisualizationLayer 
      */
