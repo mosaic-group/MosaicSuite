@@ -70,7 +70,7 @@ public class Parameters implements Serializable {
     public double regionthresh = 0.19; // pour mitochondria 0.25 //0.19
     public double regionthreshy = 0.19; // pour mitochondria 0.25 //0.19
     public double betaMLEindefault = 0.3;// 0.082;//0.3;// 0.25;//25;//1340026;//0..//0.45 for//0.3
-    String wd = null;
+    public String wd = null;
     public boolean dispwindows = true;
     
     // ==================================
@@ -83,23 +83,24 @@ public class Parameters implements Serializable {
     int RSSmodulo = 5000;
     boolean RSSinit = false;
     boolean findregionthresh = true;
-    int nthreads = 8;
+    public int nthreads = 8;
     final int dispEmodulo = 10;
     boolean remask = false;
-    int nchannels = 2;
+    public int nchannels = 2;
     double thresh = 0.75;
     double betaMLEoutdefault = 0.0003;// 0.0298;//0.003;// 0.003 // 0.0027356;
     public psf<DoubleType> PSF;
     int ni, nj, nz;
 
     // ===============================================
+    
     public Parameters() {
         final int max = Math.max(2, nlevels);
         cl = new double[max];
     }
 
     // copy constructor
-    Parameters(Parameters p) {
+    public Parameters(Parameters p) {
         this.save_images = p.save_images;
         this.wd = p.wd;
 

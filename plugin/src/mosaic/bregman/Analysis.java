@@ -37,7 +37,7 @@ public class Analysis {
             "*_intensities_c1.zip", "*_intensities_c2.zip", "*_seg_c1.zip", "*_seg_c2.zip", "*_coloc.zip", "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", "*.tif" };
 
     // This is the output local
-    final static String out_w[] = { "*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", "*_mask_c1.zip", "*_mask_c2.zip", "*_ImagesData.csv", "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
+    public final static String out_w[] = { "*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", "*_mask_c1.zip", "*_mask_c2.zip", "*_ImagesData.csv", "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
             "*_intensities_c1.zip", "*_intensities_c2.zip", "*_seg_c1.zip", "*_seg_c2.zip", "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", "*_coloc.zip" };
 
     static String currentImage = "currentImage";

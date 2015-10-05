@@ -9,7 +9,7 @@ import ij.Macro;
 import ij.process.ImageProcessor;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.Analysis.outputF;
-import mosaic.bregman.GenericGUI;
+import mosaic.bregman.GUI.GenericGUI;
 import mosaic.bregman.Parameters;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.psf.psf;

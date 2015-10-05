@@ -10,7 +10,7 @@ import java.io.PrintWriter;
 import java.util.Scanner;
 
 
-class RScript {
+public class RScript {
 
     private PrintWriter Script;
     private final String ObjectsC1DataFile;

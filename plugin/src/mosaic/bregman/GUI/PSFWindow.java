@@ -19,8 +19,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import ij.gui.GenericDialog;
 import mosaic.bregman.GaussianPSFModel;
-import mosaic.bregman.GenericDialogCustom;
 
 
 class PSFWindow implements ActionListener, PropertyChangeListener {
@@ -62,9 +62,9 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
     private final JLabel tpix_z = new JLabel("Axial pixel size (nm)");
 
     private final JLabel result = new JLabel("");
-    private final GenericDialogCustom gd;
+    private final GenericDialog gd;
 
-    public PSFWindow(int x, int y, GenericDialogCustom gd) {
+    public PSFWindow(int x, int y, GenericDialog gd) {
         y = 0;
         this.gd = gd;
 
@@ -266,8 +266,8 @@ class PSFWindow implements ActionListener, PropertyChangeListener {
                 sx = 1000 * psf.lateral_WFFM();
             }
 
-            final TextField tx = gd.getField(3);// field x
-            final TextField tz = gd.getField(4);// filed z
+            final TextField tx = (TextField) gd.getNumericFields().elementAt(3);// field x
+            final TextField tz = (TextField) gd.getNumericFields().elementAt(4);// filed z
 
             tx.setText(String.format(Locale.US, "%.2f", sx / pix_xy));
             tz.setText(String.format(Locale.US, "%.2f", sz / pix_z));

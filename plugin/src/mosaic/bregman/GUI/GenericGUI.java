@@ -1,4 +1,4 @@
-package mosaic.bregman;
+package mosaic.bregman.GUI;
 
 
 import java.awt.Button;
@@ -29,10 +29,10 @@ import ij.ImagePlus;
 import ij.Macro;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
-import mosaic.bregman.GUI.BackgroundSubGUI;
-import mosaic.bregman.GUI.ColocalizationGUI;
-import mosaic.bregman.GUI.SegmentationGUI;
-import mosaic.bregman.GUI.VisualizationGUI;
+import mosaic.bregman.Analysis;
+import mosaic.bregman.BLauncher;
+import mosaic.bregman.Parameters;
+import mosaic.bregman.RScript;
 import mosaic.core.GUI.HelpGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.utils.MosaicUtils;
@@ -66,7 +66,6 @@ public class GenericGUI {
      *
      * @param bl true to use the cluster option
      */
-
     public void setUseCluster(boolean bl) {
         gui_use_cluster = bl;
     }
@@ -80,7 +79,7 @@ public class GenericGUI {
         }
     }
 
-    static void setwindowlocation(int x, int y, Window w) {
+    static public void setwindowlocation(int x, int y, Window w) {
         int wx, wy;
         wx = w.getWidth();
         wy = w.getHeight();
@@ -94,7 +93,6 @@ public class GenericGUI {
      *
      * @param gd Generic dialog where to draw
      */
-
     private run_mode drawBatchWindow() {
         // No visualization is active by default
         if (GenericGUI.bypass_GUI == false) {
@@ -109,7 +107,7 @@ public class GenericGUI {
 
         System.out.println("Batch window");
 
-        final GenericDialogCustom gd = new GenericDialogCustom("Batch window");
+        final GenericDialog gd = new GenericDialog("Batch window");
 
         addTextArea(gd);
 
@@ -160,7 +158,6 @@ public class GenericGUI {
      * @param It output if we have to use the cluster
      * @return run mode, -1 when cancelled
      */
-
     private run_mode drawStandardWindow(GenericDialog gd, ImagePlus aImp) {
         // font for reference
         final Font bf = new Font(null, Font.BOLD, 12);
@@ -173,7 +170,6 @@ public class GenericGUI {
 
         addTextArea(gd);
 
-        // FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
         final FlowLayout fl = new FlowLayout(FlowLayout.LEFT, 75, 3);
         Panel p = new Panel(fl);
 
@@ -188,12 +184,10 @@ public class GenericGUI {
         gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 0, 0, 0));
 
         // Image chooser
-
         gd.addChoice("Input image", new String[] { "" }, "");
         MosaicUtils.chooseImage(gd, aImp);
 
         // Background Options
-
         final Button backOption = new Button("Options");
         Label label = new Label("Background subtraction");
         label.setFont(bf);
@@ -211,7 +205,6 @@ public class GenericGUI {
         gd.addPanel(p);
 
         // seg Option button
-
         final Button segOption = new Button("Options");
         label = new Label("Segmentation parameters");
         label.setFont(bf);
@@ -244,8 +237,6 @@ public class GenericGUI {
         });
         gd.addPanel(p);
 
-        // gd.addMessage("");
-
         final Button visOption = new Button("Options");
         label = new Label("Vizualization and output");
         label.setFont(bf);
@@ -270,7 +261,6 @@ public class GenericGUI {
         gd.setLocation(posx, posy);
 
         // Introduce a label with reference
-
         final JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br> G. Paul, J. Cardinale, and I. F. Sbalzarini.<br>" + "Coupling image restoration and segmentation:<br>"
                 + "A generalized linear model/Bregman<br>" + "perspective. Int. J. Comput. Vis., 104(1):69–93, 2013.<br>" + "<br>" + "A. Rizk, G. Paul, P. Incardona, M. Bugarski, M. Mansouri,<br>"
                 + "A. Niemann, U. Ziegler, P. Berger, and I. F. Sbalzarini.<br>" + "Segmentation and quantification of subcellular structures<br>"
@@ -302,31 +292,25 @@ public class GenericGUI {
     }
 
     public void run(ImagePlus aImp) {
-      String file1;
-      String file2;
-      String file3;
+        String file1;
+        String file2;
+        String file3;
         Boolean use_cluster = false;
-        // String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
-        // boolean bgroup1[] = {false, false};
 
         if (!clustermode) {
             run_mode rm = null;
 
             if (IJ.isMacro() == true) {
-                new GenericDialogCustom("Squassh");
+                new GenericDialog("Squassh");
                 // Draw a batch system window
 
                 rm = drawBatchWindow();
                 if (rm == run_mode.STOP) {
                     Macro.abort();
                 }
-
             }
             else {
                 final GenericDialog gd = new NonBlockingGenericDialog("Squassh");
-
-                // Draw a standard window
-
                 rm = drawStandardWindow(gd, aImp);
             }
 
@@ -337,7 +321,7 @@ public class GenericGUI {
             }
         }
         else {
-            final GenericDialogCustom gd = new GenericDialogCustom("Squassh");
+            final GenericDialog gd = new GenericDialog("Squassh");
 
             gd.addStringField("config", "path", 10);
             gd.addStringField("filepath", "path", 10);
@@ -380,10 +364,8 @@ public class GenericGUI {
         }
 
         // Two different way to run the Segmentation and colocalization
-
         if (clustermode || use_cluster == false) {
             // We run locally
-
             String savepath = null;
 
             hd = null;
@@ -442,8 +424,6 @@ public class GenericGUI {
                 }
             }
 
-            // hd.bcolocheadless(imagePlus);*/
-
             if (Analysis.p.nchannels == 2) {
                 if (Analysis.p.save_images) {
                     final RScript script = new RScript(savepath, file1, file2, file3, Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames, Analysis.p.ch1,
@@ -454,17 +434,13 @@ public class GenericGUI {
         }
         else {
             // We run on cluster
-
             final Parameters p = new Parameters(Analysis.p);
 
             // disabling display options
-
             p.dispwindows = false;
 
             // save for the cluster
-
             // For the cluster we have to nullify the directory option
-
             p.wd = null;
 
             // TODO: Why settings are saved twice to two different files? To be investigated.
@@ -522,11 +498,7 @@ public class GenericGUI {
             else {
                 MosaicUtils.StitchJobsCSV(dir.getAbsolutePath(), Analysis.out, null);
             }
-
-            // //////////////
         }
-
-        // Analysis.load2channels(imagePlus);
     }
 
     private class FileOpenerActionListener implements ActionListener {
@@ -561,22 +533,17 @@ public class GenericGUI {
 
             final boolean processdirectory = (new File(path)).isDirectory();
             if (!processdirectory) {
-
                 final ImagePlus img2 = IJ.openImage(path);
-
                 img2.show();
-
             }
 
-            if (path != null)// (file!=null && dir!=null)
-            {
+            if (path != null) {
                 ta.setText(path);
             }
         }
     }
 
     private class HelpOpenerActionListener implements ActionListener {
-
         GenericDialog gd;
 
         public HelpOpenerActionListener(GenericDialog gd) {
@@ -587,7 +554,6 @@ public class GenericGUI {
         @Override
         public void actionPerformed(ActionEvent e) {
             final Point p = gd.getLocationOnScreen();
-            // IJ.log("plugin location :" + p.toString());
             new Helpwindow(p.x, p.y);
         }
     }
@@ -601,16 +567,11 @@ public class GenericGUI {
             frame = new JFrame();
             frame.setSize(555, 480);
             frame.setLocation(x + 500, y - 50);
-            // frame.toFront();
-            // frame.setResizable(false);
-            // frame.setAlwaysOnTop(true);
 
             panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
             panel.setPreferredSize(new Dimension(575, 720));
 
             final JPanel pref = new JPanel(new GridBagLayout());
-            // pref.setPreferredSize(new Dimension(555, 550));
-            // pref.setSize(pref.getPreferredSize());
 
             setPanel(pref);
             setHelpTitle("Squassh");
@@ -629,16 +590,11 @@ public class GenericGUI {
             desc = new String("Select one or more output and visualization options");
             createField("Visualization and output", desc, null);
 
-            // JPanel panel = new JPanel(new BorderLayout());
-
             panel.add(pref);
-            // panel.add(label, BorderLayout.NORTH);
-
             frame.add(panel);
 
             frame.setVisible(true);
         }
 
     }
-
 }

@@ -11,9 +11,8 @@ import java.io.File;
 
 import javax.swing.JFileChooser;
 
+import ij.gui.GenericDialog;
 import mosaic.bregman.Analysis;
-import mosaic.bregman.GenericDialogCustom;
-import mosaic.bregman.GenericGUI;
 
 
 public class SegmentationGUI {
@@ -27,7 +26,7 @@ public class SegmentationGUI {
     }
 
     public static int getParameters() {
-        final GenericDialogCustom gd = new GenericDialogCustom("Segmentation options");
+        final GenericDialog gd = new GenericDialog("Segmentation options");
 
         final Font bf = new Font(null, Font.BOLD, 12);
 

@@ -39,7 +39,7 @@ import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.integer.ShortType;
 
 
-class BLauncher {
+public class BLauncher {
 
     private double colocAB;
     private double colocABnumber;
@@ -60,7 +60,7 @@ class BLauncher {
 
     private final Vector<String> pf = new Vector<String>();
 
-    Vector<String> getProcessedFiles() {
+    public Vector<String> getProcessedFiles() {
         return pf;
     }
 
@@ -69,7 +69,7 @@ class BLauncher {
      *
      * @param path
      */
-    BLauncher(String path) {
+    public BLauncher(String path) {
         final boolean processdirectory = (new File(path)).isDirectory();
         if (processdirectory) {
 
@@ -191,7 +191,7 @@ class BLauncher {
         }
     }
 
-    BLauncher(ImagePlus aImp_) {
+    public BLauncher(ImagePlus aImp_) {
         // start processing
         start(aImp_);
     }
@@ -880,7 +880,7 @@ class BLauncher {
     /**
      * Close all images
      */
-    void closeAll() {
+    public void closeAll() {
         for (int i = 0; i < ip.size(); i++) {
             ip.get(i).close();
         }

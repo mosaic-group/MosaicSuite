@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import ij.IJ;
 import ij.WindowManager;
+import mosaic.bregman.GUI.GenericGUI;
 
 
 class ImagePatches {

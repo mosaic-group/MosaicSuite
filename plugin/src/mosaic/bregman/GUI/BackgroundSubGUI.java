@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 
 import ij.gui.GenericDialog;
 import mosaic.bregman.Analysis;
-import mosaic.bregman.GenericGUI;
 
 
 public class BackgroundSubGUI {
