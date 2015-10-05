@@ -302,6 +302,9 @@ public class GenericGUI {
     }
 
     public void run(ImagePlus aImp) {
+      String file1;
+      String file2;
+      String file3;
         Boolean use_cluster = false;
         // String sgroup1[] = {"activate second step", ".. with subpixel resolution"};
         // boolean bgroup1[] = {false, false};
@@ -400,14 +403,14 @@ public class GenericGUI {
                 if (aImp.getNFrames() > 1) {
                     MosaicUtils.StitchCSV(savepath, Analysis.out, savepath + File.separator + aImp.getTitle());
 
-                    Analysis.p.file1 = savepath + File.separator + "stitch_ObjectsData_c1" + ".csv";
-                    Analysis.p.file2 = savepath + File.separator + "stitch_ObjectsData_c2" + ".csv";
-                    Analysis.p.file3 = savepath + File.separator + "stitch_ImagesData" + ".csv";
+                    file1 = savepath + File.separator + "stitch_ObjectsData_c1" + ".csv";
+                    file2 = savepath + File.separator + "stitch_ObjectsData_c2" + ".csv";
+                    file3 = savepath + File.separator + "stitch_ImagesData" + ".csv";
                 }
                 else {
-                    Analysis.p.file1 = savepath + File.separator + Analysis.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c1" + ".csv";
-                    Analysis.p.file2 = savepath + File.separator + Analysis.out_w[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c2" + ".csv";
-                    Analysis.p.file3 = savepath + File.separator + Analysis.out_w[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ImagesData" + ".csv";
+                    file1 = savepath + File.separator + Analysis.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c1" + ".csv";
+                    file2 = savepath + File.separator + Analysis.out_w[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ObjectsData_c2" + ".csv";
+                    file3 = savepath + File.separator + Analysis.out_w[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(aImp.getTitle()) + "_ImagesData" + ".csv";
                 }
             }
             else {
@@ -426,14 +429,14 @@ public class GenericGUI {
                     MosaicUtils.reorganize(Analysis.out_w, pf, Analysis.p.wd);
                     MosaicUtils.StitchCSV(fl.getAbsolutePath(), Analysis.out, null);
 
-                    Analysis.p.file1 = Analysis.p.wd + File.separator + "stitch__ObjectsData_c1" + ".csv";
-                    Analysis.p.file2 = Analysis.p.wd + File.separator + "stitch__ObjectsData_c2" + ".csv";
-                    Analysis.p.file3 = Analysis.p.wd + File.separator + "stitch_ImagesData" + ".csv";
+                    file1 = Analysis.p.wd + File.separator + "stitch__ObjectsData_c1" + ".csv";
+                    file2 = Analysis.p.wd + File.separator + "stitch__ObjectsData_c2" + ".csv";
+                    file3 = Analysis.p.wd + File.separator + "stitch_ImagesData" + ".csv";
                 }
                 else {
-                    Analysis.p.file1 = fl.getParent() + File.separator + Analysis.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c1" + ".csv";
-                    Analysis.p.file2 = fl.getParent() + File.separator + Analysis.out_w[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c2" + ".csv";
-                    Analysis.p.file3 = fl.getParent() + File.separator + Analysis.out_w[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ImagesData" + ".csv";
+                    file1 = fl.getParent() + File.separator + Analysis.out_w[0].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c1" + ".csv";
+                    file2 = fl.getParent() + File.separator + Analysis.out_w[1].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ObjectsData_c2" + ".csv";
+                    file3 = fl.getParent() + File.separator + Analysis.out_w[4].replace("*", "_") + File.separator + MosaicUtils.removeExtension(fl.getName()) + "_ImagesData" + ".csv";
 
                     MosaicUtils.reorganize(Analysis.out_w, pf, new File(Analysis.p.wd).getParent());
                 }
@@ -443,7 +446,7 @@ public class GenericGUI {
 
             if (Analysis.p.nchannels == 2) {
                 if (Analysis.p.save_images) {
-                    final RScript script = new RScript(savepath, Analysis.p.file1, Analysis.p.file2, Analysis.p.file3, Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames, Analysis.p.ch1,
+                    final RScript script = new RScript(savepath, file1, file2, file3, Analysis.p.nbconditions, Analysis.p.nbimages, Analysis.p.groupnames, Analysis.p.ch1,
                             Analysis.p.ch2);
                     script.writeScript();
                 }

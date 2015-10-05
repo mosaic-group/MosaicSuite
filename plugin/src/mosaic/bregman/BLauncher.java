@@ -442,7 +442,7 @@ class BLauncher {
         double Ttime = 0;
         final long lStartTime = new Date().getTime(); // start time
 
-        Analysis.p.blackbackground = ij.Prefs.blackBackground;
+        boolean tempBlackbackground = ij.Prefs.blackBackground;
         ij.Prefs.blackBackground = false;
         Analysis.p.nchannels = img2.getNChannels();
 
@@ -588,7 +588,7 @@ class BLauncher {
             hcount++;
 
         }
-        ij.Prefs.blackBackground = Analysis.p.blackbackground;
+        ij.Prefs.blackBackground = tempBlackbackground;
 
         final long lEndTime = new Date().getTime(); // start time
 

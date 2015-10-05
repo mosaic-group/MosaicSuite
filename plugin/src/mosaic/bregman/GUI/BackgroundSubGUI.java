@@ -64,7 +64,6 @@ public class BackgroundSubGUI {
             // IJ.log("rem back:" + Analysis.p.removebackground);
             Analysis.p.size_rollingball = (int) gd.getNextNumber();
         }
-        // Analysis.p.usePSF=gd.getNextBoolean();
         return 0;
     }
 

@@ -217,20 +217,9 @@ class NRegions implements Runnable {
             IJ.log("automatic foreground:" + Tools.round(p.cl[1], 3));
         }
 
-        if (p.JunitTest) {
-            p.cl[0] = 0.00227;
-            p.cl[1] = 0.0504;
-            p.cl[2] = 0.165;
-            p.cl[3] = 0.396;
-            p.cl[4] = 0.684;
-        }
-
-        // md= new MasksDisplay(ni,nj,nz,nl,p.cl,p);
         LocalTools.createmask(mask, image, p.cl);
-        // md.display2regionsnewd(mask[0][0], "mask init", 0);
         if (p.nlevels > 1 || !p.usePSF) {
             for (int i = 0; i < nl; i++) {
-                // Tools.nllMeanPoisson(Ei[i], image, p.cl[i], 1, p.ldata );
                 LocalTools.nllMean1(Ei[i], image, p.cl[i]);
             }
         }
