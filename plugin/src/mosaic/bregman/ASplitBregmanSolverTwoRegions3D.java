@@ -43,15 +43,11 @@ class ASplitBregmanSolverTwoRegions3D extends ASplitBregmanSolverTwoRegions {
                 }
             }
         }
-
-        // Tools.disp_vals(eigenLaplacian3D[5], "eigen3D");
-
     }
 
     @Override
     protected void step() throws InterruptedException {
         final long lStartTime = new Date().getTime(); // start time
-        // energy=0;
 
         // IJ.log("thread : " +l +"starting work");
         LocalTools.subtab(temp1[l], temp1[l], b2xk[l]);
@@ -147,19 +143,6 @@ class ASplitBregmanSolverTwoRegions3D extends ASplitBregmanSolverTwoRegions {
                 }
             }
         }
-        // Tools.disp_vals(b2xk[l][5], "b2xk");
-
-        // normtab[l]=0;
-        // for (int z=0; z<nz; z++){
-        // for (int i=0; i<ni; i++) {
-        // for (int j=0; j<nj; j++) {
-        // // l2normtab[l]+=Math.sqrt(Math.pow(w3k[l][z][i][j]-w3kp[l][z][i][j],2));
-        // normtab[l]+=Math.abs(w3k[l][z][i][j]-w3kp[l][z][i][j]);
-        // }
-        // }
-        // }
-
-        // Tools.copytab(w3kp[l], w3k[l]);
 
         energytab[l] = LocalTools.computeEnergy3D(speedData[l], w3k[l], temp3[l], temp4[l], ukz[l], p.ldata, p.lreg_[channel]);
 

@@ -1,6 +1,4 @@
-package mosaic.plugins.utils;
-
-import mosaic.utils.math.Matlab;
+package mosaic.utils.math;
 
 /**
  * Interpolation functionality with some support for Matlab style 'imresize' command (does not support antialiasing)

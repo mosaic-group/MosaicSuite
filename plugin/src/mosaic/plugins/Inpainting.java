@@ -67,8 +67,8 @@ public class Inpainting extends CurvatureFilterBase {
         if (name != null) {
             iMask = new Opener().openImage(directory + name);
 
-            final int iw = getInputImg().getWidth();
-            final int ih = getInputImg().getHeight();
+            final int iw = iInputImg.getWidth();
+            final int ih = iInputImg.getHeight();
 
             if (iMask.getWidth() != iw || iMask.getHeight() != ih) {
                 IJ.error("Mask should have same dimensions as input image!" +

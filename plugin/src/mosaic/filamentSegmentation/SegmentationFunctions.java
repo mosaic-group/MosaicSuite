@@ -164,7 +164,7 @@ public class SegmentationFunctions {
      */
     static Matrix calculateRegularizerEnergyMatrix(Matrix aM, Matrix aWeights, boolean aIsMatrixLogical) {
         // Calculate forward finite difference with Neumann Boundary Conditions
-        final Matrix stencilx = Matrix.mkRowVector(new double[] {0, -1, 1});
+        final Matrix stencilx = Matrix.mkRowVector(new double[] { -1, 1});
         Matrix gradX = Matlab.imfilterSymmetric(aM, stencilx);
         final Matrix stencily = stencilx.transpose();
         Matrix gradY = Matlab.imfilterSymmetric(aM, stencily);

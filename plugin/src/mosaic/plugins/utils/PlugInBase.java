@@ -81,7 +81,7 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
     protected void postprocessFinal() {}
 
     @Override
-    public int setup(final String aArgs, final ImagePlus aImp) {
+    final public int setup(final String aArgs, final ImagePlus aImp) {
         // Filter expects image to work on...
         if (aImp == null) {
             IJ.noImage();
@@ -112,7 +112,7 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
                 iProcessedImg = iInputImg;
             }
             else if (iResultOutput == ResultOutput.GENERATE_NEW){
-                iProcessedImg = createNewEmptyImgPlus(iInputImg, iFilePrefix + iInputImg.getTitle(), iScaleX, iScaleY);
+                iProcessedImg = ImgUtils.createNewEmptyImgPlus(iInputImg, iFilePrefix + iInputImg.getTitle(), iScaleX, iScaleY, false);
                 updateFlags(NO_CHANGES);
             } else {
                 updateFlags(NO_CHANGES);
@@ -123,32 +123,17 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
     }
 
     @Override
-    public void setNPasses(int arg0) {
+    final public void setNPasses(int arg0) {
         // Nothing to do here
     }
 
     @Override
-    public int showDialog(ImagePlus arg0, String arg1, PlugInFilterRunner arg2) {
+    final public int showDialog(ImagePlus arg0, String arg1, PlugInFilterRunner arg2) {
         if (!showDialog()) {
             return DONE;
         }
 
         return getFlags();
-    }
-
-    /**
-     * Creates new empty ImagePlus basing on information from original aOrigIp image.
-     * Newly generated img will have same structure (like slices/frames/channels, composite,
-     * calibration settings etc.). It can be rescaled if needed by providing aXscale and aYscale
-     * other than 1.0
-     * @param aOrigIp
-     * @param aTitle
-     * @param aXscale
-     * @param aYscale
-     * @return newly created ImagePlus
-     */
-    private ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale) {
-        return ImgUtils.createNewEmptyImgPlus(aOrigIp, aTitle, aXscale, aYscale, false);
     }
 
     protected void setScaleX(double aScaleX) {
@@ -165,13 +150,5 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
 
     protected void setFilePrefix(String aFilePrefix) {
         iFilePrefix = aFilePrefix;
-    }
-
-    protected ImagePlus getInputImg() {
-        return iInputImg;
-    }
-
-    protected void setProcessedImg(ImagePlus aProcessedImg) {
-        iProcessedImg = aProcessedImg;
     }
 }

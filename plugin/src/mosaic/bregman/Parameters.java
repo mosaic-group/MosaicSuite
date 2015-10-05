@@ -8,10 +8,7 @@ import net.imglib2.type.numeric.real.DoubleType;
 
 
 public class Parameters implements Serializable {
-
     private static final long serialVersionUID = 2894976420127964864L;
-
-    //
 
     public final int oc_s = 1;
     public String patches_from_file;

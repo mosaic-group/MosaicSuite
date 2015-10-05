@@ -1,12 +1,14 @@
-package mosaic.plugins.utils;
+package mosaic.utils.math;
 
-import static mosaic.plugins.utils.Interpolation.InterpolationMode.MATLAB;
-import static mosaic.plugins.utils.Interpolation.InterpolationMode.NONE;
-import static mosaic.plugins.utils.Interpolation.InterpolationMode.SMART;
-import static mosaic.plugins.utils.Interpolation.InterpolationType.BICUBIC;
-import static mosaic.plugins.utils.Interpolation.InterpolationType.BILINEAR;
-import static mosaic.plugins.utils.Interpolation.InterpolationType.NEAREST;
+import static mosaic.utils.math.Interpolation.InterpolationMode.MATLAB;
+import static mosaic.utils.math.Interpolation.InterpolationMode.NONE;
+import static mosaic.utils.math.Interpolation.InterpolationMode.SMART;
+import static mosaic.utils.math.Interpolation.InterpolationType.BICUBIC;
+import static mosaic.utils.math.Interpolation.InterpolationType.BILINEAR;
+import static mosaic.utils.math.Interpolation.InterpolationType.NEAREST;
 import static org.junit.Assert.assertTrue;
+
+import mosaic.utils.math.Interpolation;
 import mosaic.utils.math.Matrix;
 
 import org.junit.Test;
