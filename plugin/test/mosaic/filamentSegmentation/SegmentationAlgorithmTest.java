@@ -357,7 +357,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 /* scale */                  1,
                 /* regularizer term */       0.0001,
                 150);
-        sa.limitNumberOfPoints(xl, yl, wl, x, y);
+        sa.generateOutputPointsAndWeights(xl, yl, wl, x, y);
         final List<Double> expectedXY = Arrays.asList(0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 15.0, 17.0, 19.0, 21.0, 23.0, 25.0, 27.0, 29.0);
         final List<Double> expectedW  = Arrays.asList(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
 
@@ -398,7 +398,7 @@ public class SegmentationAlgorithmTest extends CommonBase {
                 /* scale */                  1,
                 /* regularizer term */       0.0001,
                 150);
-        sa.limitNumberOfPoints(xl, yl, wl, x, y);
+        sa.generateOutputPointsAndWeights(xl, yl, wl, x, y);
 
         // Small number of points, outputs should be equal to inputs
         assertEquals(expectedX, xl);

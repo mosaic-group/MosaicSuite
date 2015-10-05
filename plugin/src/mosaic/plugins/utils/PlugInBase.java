@@ -43,11 +43,41 @@ abstract class PlugInBase implements ExtendedPlugInFilter {
      * 6. shows output...
      */
 
-    abstract protected boolean showDialog();
-    abstract protected int getFlags();
-    abstract protected void updateFlags(int aFlag);
+    /**
+     * Called during setup phase. It allows plugin to make it own configuration 
+     * @param aArgs arguments passed to plugin
+     * @return true if setup phase is correct.
+     */
     abstract protected boolean setup(final String aArgs);
+    
+    /**
+     * Called after setup phase. Should return true on success or false otherwise. If false is returned
+     * execution is cancelled.
+     * @return true if success
+     */
+    abstract protected boolean showDialog();
+    
+    /**
+     * Should return flags ( DOES_8G ...) required by plugin
+     * @return
+     */
+    abstract protected int getFlags();
+    
+    /**
+     * Should allow to modify flags set by plugin (implementation like {iFlags |= aFlag;} should be 
+     * sufficient in many cases)
+     * @param aFlag
+     */
+    abstract protected void updateFlags(int aFlag);
+    
+    /**
+     * Called after run() phase is finished but before showing any result. 
+     */
     protected void postprocessBeforeShow() {}
+    
+    /**
+     * Called after results are shown to user (i.e. generated output images).
+     */
     protected void postprocessFinal() {}
 
     @Override

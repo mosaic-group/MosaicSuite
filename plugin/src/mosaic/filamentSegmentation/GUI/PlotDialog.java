@@ -62,7 +62,7 @@ public class PlotDialog {
                     count = (++count % 5); // Keeps all values in 0-5 range
                     
                     // Put stuff on plot
-                    FilamentXyCoordinates coordinates = SegmentationFunctions.GenerateXyCoordinatesForFilament(css);
+                    FilamentXyCoordinates coordinates = SegmentationFunctions.generateAdjustedXyCoordinatesForFilament(css);
                     plot.addPoints(coordinates.x.getData(), coordinates.y.getData(), PlotWindow.LINE);
                 }
             }

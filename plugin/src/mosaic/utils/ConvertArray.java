@@ -1,5 +1,7 @@
 package mosaic.utils;
 
+import java.util.List;
+
 /**
  * Helper class for converting between Java's primitives
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
@@ -62,6 +64,20 @@ public class ConvertArray {
         final double[] result = new double[h];
         for (int y = 0; y < h; ++y) {
             result[y] = aArray[y];
+        }
+        return result;
+    }
+    
+    /**
+     * Converts 1D array from float to double
+     * @param aArray 1D array of floats
+     * @return 1D array of doubles
+     */
+     static public double[] toDouble(List<Double> aList) {
+        final int h = aList.size();
+        final double[] result = new double[h];
+        for (int y = 0; y < h; ++y) {
+            result[y] = aList.get(y);
         }
         return result;
     }

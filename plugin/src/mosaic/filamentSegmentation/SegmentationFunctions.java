@@ -165,26 +165,15 @@ public class SegmentationFunctions {
     static Matrix calculateRegularizerEnergyMatrix(Matrix aM, Matrix aWeights, boolean aIsMatrixLogical) {
         // Calculate forward finite difference with Neumann Boundary Conditions
         final Matrix stencilx = Matrix.mkRowVector(new double[] {0, -1, 1});
-        final Matrix gradX = Matlab.imfilterSymmetric(aM, stencilx);
+        Matrix gradX = Matlab.imfilterSymmetric(aM, stencilx);
         final Matrix stencily = stencilx.transpose();
-        final Matrix gradY = Matlab.imfilterSymmetric(aM, stencily);
+        Matrix gradY = Matlab.imfilterSymmetric(aM, stencily);
 
         if (aIsMatrixLogical) {
-            final MFunc make1and0 = new MFunc() {
-
-                @Override
-                public double f(double aElement, int aRow, int aCol) {
-                    if (aElement > 0) {
-                        return 1;
-                    }
-                    return 0;
-                }
-            };
-
-            gradX.process(make1and0);
-            gradY.process(make1and0);
+            gradX = Matlab.logical(gradX, 0);
+            gradY = Matlab.logical(gradY, 0);
         }
-
+        
         // Calculate the regularizer energy
         final Matrix regEnergy = gradX.pow2().add(gradY.pow2()).sqrt().elementMult(aWeights);
 
@@ -197,27 +186,19 @@ public class SegmentationFunctions {
      * @return length of filament
      */
     static public double calcualteFilamentLenght(final CubicSmoothingSpline aCubicSmoothingSpline) {
-        final double start = aCubicSmoothingSpline.getKnot(0);
-        final double stop = aCubicSmoothingSpline.getKnot(aCubicSmoothingSpline.getNumberOfKNots() - 1);
-
-        final Matrix x  = Matlab.linspace(start, stop, 1000);
-        final Matrix y = x.copy().process(new MFunc() {
-            @Override
-            public double f(double aElement, int aRow, int aCol) {
-                return aCubicSmoothingSpline.getValue(x.get(aRow, aCol));
-            }
-        });
-
+        FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(aCubicSmoothingSpline);
+        final Matrix x = coordinates.x;
+        final Matrix y = coordinates.y;
+        
         double prevX = x.get(0);
         double prevY = y.get(0);
         double length = 0.0;
 
-        for (int i = 0; i < x.size(); ++i) {
+        for (int i = 1; i < x.size(); ++i) {
             length += Math.sqrt(Math.pow(x.get(i) - prevX,2) + Math.pow(y.get(i) - prevY,2));
             prevX = x.get(i);
             prevY = y.get(i);
         }
-
 
         return length;
     }
@@ -237,7 +218,7 @@ public class SegmentationFunctions {
      * @param css - input spline
      * @return 
      */
-    static public FilamentXyCoordinates GenerateXyCoordinatesForFilament(final CubicSmoothingSpline css) {
+    static public FilamentXyCoordinates generateXyCoordinatesForFilament(final CubicSmoothingSpline css) {
         // Generate x,y coordinates for current filament
         double start = css.getKnot(0);
         double stop = css.getKnot(css.getNumberOfKNots() - 1);
@@ -249,14 +230,25 @@ public class SegmentationFunctions {
                 return css.getValue(x.get(aRow, aCol));
             }
         });
+        
+        return new FilamentXyCoordinates(x, y);
+    }
+    
+    /**
+     * Generates (x,y) coordinates from given cubic smoothing spline
+     * @param css - input spline
+     * @return 
+     */
+    static public FilamentXyCoordinates generateAdjustedXyCoordinatesForFilament(final CubicSmoothingSpline css) {
+        FilamentXyCoordinates coordinates = generateXyCoordinatesForFilament(css);
 
         // Adjust from 1..n range (used to be compatibilt wiht matlab code) to 0..n-1 as used for 
         // images in fiji. Additionally x should point to middle of a pixel (currently segmentation 
         // can found only integer values on x axis) so additional correction by 0.5 value.
-        x.sub(1 - 0.5);
-        y.sub(1);
+        coordinates.x.sub(1 - 0.5);
+        coordinates.y.sub(1);
         
-        return new FilamentXyCoordinates(x, y);
+        return coordinates;
     }
 
 }

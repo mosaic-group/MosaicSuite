@@ -353,7 +353,17 @@ public class ImgUtils {
         }
     }
 
-    static public ImagePlus createNewEmptyImgPlus(ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale, boolean convertToRgb) {
+    /**
+     * Generates new empty (in terms of image data) ImagePlus basing on original provided one. Generated one, has all properties
+     * of input one - like same structure (noOfSlices/dimensions etc.), same calibration, composite, hyperstack settings.
+     * @param aOrigIp - original input image
+     * @param aTitle - title for newly generated image
+     * @param aXscale - scale for x dim
+     * @param aYscale - scale for y dim
+     * @param convertToRgb - should output ImagePlus be RGB regardless of input?
+     * @return
+     */
+    static public ImagePlus createNewEmptyImgPlus(final ImagePlus aOrigIp, String aTitle, double aXscale, double aYscale, boolean convertToRgb) {
         final int nSlices = aOrigIp.getStackSize();
         final int w=aOrigIp.getWidth();
         final int h=aOrigIp.getHeight();

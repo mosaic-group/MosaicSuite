@@ -64,7 +64,7 @@ public class OutputImageWindow {
                 
                 // and draw them one by one
                 for (final CubicSmoothingSpline css : e.getValue()) {
-                    FilamentXyCoordinates coordinates = SegmentationFunctions.GenerateXyCoordinatesForFilament(css);
+                    FilamentXyCoordinates coordinates = SegmentationFunctions.generateAdjustedXyCoordinatesForFilament(css);
                     if (iVisualizationLayer == VisualizationLayer.OVERLAY) {
                         drawFilamentsOnOverlay(overlay, frame, coordinates);
                     }
