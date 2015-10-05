@@ -1,7 +1,7 @@
 package mosaic.region_competition.GUI;
 
 
-import mosaic.region_competition.initializers.InitializationType;
+import mosaic.plugins.Region_Competition.InitializationType;
 
 
 /**

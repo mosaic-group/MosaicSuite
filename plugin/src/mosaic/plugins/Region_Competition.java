@@ -1,21 +1,6 @@
 package mosaic.plugins;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.ImageStack;
-import ij.Macro;
-import ij.gui.ImageCanvas;
-import ij.gui.Roi;
-import ij.gui.StackWindow;
-import ij.io.FileInfo;
-import ij.io.FileSaver;
-import ij.io.Opener;
-import ij.measure.Calibration;
-import ij.measure.ResultsTable;
-import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
-
 import java.awt.GraphicsEnvironment;
 import java.awt.Window;
 import java.awt.event.KeyEvent;
@@ -33,6 +18,22 @@ import java.util.Vector;
 
 import javax.swing.JFrame;
 
+import org.apache.log4j.Logger;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.ImageStack;
+import ij.Macro;
+import ij.gui.ImageCanvas;
+import ij.gui.Roi;
+import ij.gui.StackWindow;
+import ij.io.FileInfo;
+import ij.io.FileSaver;
+import ij.io.Opener;
+import ij.measure.Calibration;
+import ij.measure.ResultsTable;
+import ij.process.ImageProcessor;
+import ij.process.ShortProcessor;
 import mosaic.core.ImagePatcher.ImagePatch;
 import mosaic.core.ImagePatcher.ImagePatcher;
 import mosaic.core.cluster.ClusterGUI;
@@ -60,7 +61,6 @@ import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.energies.RegularizationType;
 import mosaic.region_competition.initializers.BoxInitializer;
 import mosaic.region_competition.initializers.BubbleInitializer;
-import mosaic.region_competition.initializers.InitializationType;
 import mosaic.region_competition.initializers.MaximaBubbles;
 import mosaic.region_competition.utils.IntConverter;
 import mosaic.region_competition.utils.Timer;
@@ -74,14 +74,19 @@ import net.imglib2.type.numeric.RealType;
 import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
 
-import org.apache.log4j.Logger;
-
 
 /**
  * @author Stephan Semmler, ETH Zurich
  * @version 2012.06.11
  */
 public class Region_Competition implements Segmentation {
+    /**
+     * enum to determine type of initialization
+     */
+    public enum InitializationType {
+        Rectangle, Bubbles, LocalMax, ROI_2D, File, File_Patcher
+    }
+    
     private static final Logger logger = Logger.getLogger(Region_Competition.class);
 
     private final String[] out = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };

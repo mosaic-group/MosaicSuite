@@ -1,12 +1,6 @@
 package mosaic.region_competition.GUI;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.WindowManager;
-import ij.gui.GenericDialog;
-import ij.gui.NonBlockingGenericDialog;
-
 import java.awt.Button;
 import java.awt.Choice;
 import java.awt.FileDialog;
@@ -45,11 +39,16 @@ import java.util.Vector;
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.gui.GenericDialog;
+import ij.gui.NonBlockingGenericDialog;
 import mosaic.plugins.Region_Competition;
+import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.EnergyFunctionalType;
 import mosaic.region_competition.energies.RegularizationType;
-import mosaic.region_competition.initializers.InitializationType;
 import mosaic.region_competition.wizard.RCWWin;
 
 

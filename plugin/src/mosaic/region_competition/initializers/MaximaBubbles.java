@@ -18,7 +18,7 @@ import mosaic.region_competition.utils.MaximumFinder3D;
 import mosaic.region_competition.utils.MaximumFinderInterface;
 
 
-public class MaximaBubbles extends DataDrivenInitializer {
+public class MaximaBubbles extends Initializer {
 
     private final MaximumFinderInterface maximumFinder;
     private int rad = 5; // bubble size
@@ -28,8 +28,11 @@ public class MaximaBubbles extends DataDrivenInitializer {
 
     private int regionThreshold = 4; // regions smaller than this values will be bubbled
 
+    IntensityImage intensityImage;
+    
     public MaximaBubbles(IntensityImage intensityImage, LabelImageRC labelImage, int rad_t, double sigma_t, double tol_t, int r_t) {
-        super(intensityImage, labelImage);
+        super(labelImage);
+        this.intensityImage = intensityImage;
         final int dim = labelImage.getDim();
         if (dim == 2) {
             final int[] dims = intensityImage.getDimensions();
@@ -94,25 +97,6 @@ public class MaximaBubbles extends DataDrivenInitializer {
 
             foo.clearThresholds();
         }
-    }
-
-    private void initBrightBubbles() {
-        smoothIntensityImage();
-
-        List<Point> list;
-        list = maximumFinder.getMaximaPointList(intensityImage.dataIntensity, tolerance, false);
-
-        final BubbleDrawer bubbler = new BubbleDrawer(labelImage, rad, 2 * rad + 1);
-
-        int color = 1;
-        for (final Point p : list) {
-            bubbler.drawCenter(p, color++);
-        }
-    }
-
-    @Override
-    public void initDefault() {
-        initBrightBubbles();
     }
 
     public void setGaussSigma(int sigma) {

@@ -1,8 +1,8 @@
 package mosaic.region_competition.GUI;
 
 
+import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.region_competition.Settings;
-import mosaic.region_competition.initializers.InitializationType;
 
 
 abstract class InitializationGUI extends GUImeMore {

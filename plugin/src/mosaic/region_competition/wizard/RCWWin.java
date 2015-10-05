@@ -1,13 +1,6 @@
 package mosaic.region_competition.wizard;
 
 
-import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
-import ij.ImagePlus;
-import ij.gui.GenericDialog;
-import ij.gui.Roi;
-import ij.plugin.frame.RoiManager;
-import ij.process.ImageProcessor;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -27,12 +20,18 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+import fr.inria.optimization.cmaes.CMAEvolutionStrategy;
+import ij.ImagePlus;
+import ij.gui.GenericDialog;
+import ij.gui.Roi;
+import ij.plugin.frame.RoiManager;
+import ij.process.ImageProcessor;
 import mosaic.core.utils.IntensityImage;
+import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.PointCM;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.EnergyFunctionalType;
-import mosaic.region_competition.initializers.InitializationType;
 import mosaic.region_competition.wizard.RCProgressWin.StatusSel;
 import mosaic.region_competition.wizard.score_function.ScoreFunction;
 import mosaic.region_competition.wizard.score_function.ScoreFunctionInit;

@@ -13,10 +13,6 @@ public class BubbleInitializer extends Initializer {
         super(labelImage);
     }
 
-    // default values
-    private final int radius = 5;
-    private final int displacement = 15;
-
     /**
      * Initializes bubbles by radius size and the gaps between the bubble center points
      * 
@@ -74,10 +70,5 @@ public class BubbleInitializer extends Initializer {
     public void initSizePaddig(int radius, int padding) {
         final int displ = padding + 2 * radius;
         initSizeDispl(radius, displ);
-    }
-
-    @Override
-    public void initDefault() {
-        initSizeDispl(radius, displacement);
     }
 }
