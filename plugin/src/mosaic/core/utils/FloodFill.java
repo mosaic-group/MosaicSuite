@@ -57,6 +57,10 @@ public class FloodFill implements Iterable<Point> {
         return checkedSet;
     }
 
+    public int size() {
+        return checkedSet.size();
+    }
+    
     // Iterable
     @Override
     public Iterator<Point> iterator() {

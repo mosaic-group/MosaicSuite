@@ -623,17 +623,17 @@ public class Region_Competition implements Segmentation {
             }
             case Rectangle: {
                 final BoxInitializer bi = new BoxInitializer(labelImage);
-                bi.initRatio(settings.l_BoxRatio);
+                bi.initialize(settings.l_BoxRatio);
                 break;
             }
             case Bubbles: {
                 final BubbleInitializer bi = new BubbleInitializer(labelImage);
-                bi.initSizePaddig(settings.m_BubblesRadius, settings.m_BubblesDispl);
+                bi.initialize(settings.m_BubblesRadius, settings.m_BubblesDispl);
                 break;
             }
             case LocalMax: {
-                final MaximaBubbles mb = new MaximaBubbles(intensityImage, labelImage, settings.l_BubblesRadius, settings.l_Sigma, settings.l_Tolerance, settings.l_RegionTolerance);
-                mb.initFloodFilled();
+                final MaximaBubbles mb = new MaximaBubbles(intensityImage, labelImage, settings.l_Sigma, settings.l_Tolerance, settings.l_BubblesRadius, settings.l_RegionTolerance);
+                mb.initialize();
                 break;
             }
             case File_Patcher:
@@ -1203,6 +1203,8 @@ public class Region_Competition implements Segmentation {
     private void showAndSaveStatistics(HashMap<Integer, LabelInformation> labelMap) {
         final ResultsTable rts = createStatistics(labelMap);
 
+        // TODO: Handle images that are created and not saved yet. There have no directory information and
+        //       below we receive null
         final String folder = MosaicUtils.ValidFolderFromImage(MVC.getOriginalImPlus());
 
         String fileName = MosaicUtils.removeExtension(MVC.getOriginalImPlus().getTitle());
@@ -1239,7 +1241,7 @@ public class Region_Competition implements Segmentation {
             e.printStackTrace();
         }
 
-        final String oip = originalIP.getTitle().substring(0, originalIP.getTitle().lastIndexOf("."));
+        final String oip = MosaicUtils.removeExtension(originalIP.getTitle());
 
         final boolean headless_check = GraphicsEnvironment.isHeadless();
 

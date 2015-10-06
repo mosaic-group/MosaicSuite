@@ -34,6 +34,7 @@ public class SphereMask extends Mask {
      */
 
     public SphereMask(int radius, int size, int dim) {
+        // TODO: It seems that it does not draw nice spheres - right/bottom pixels are cut (in 2D case) when size = 2 * radius
         this.dim = dim;
         rad = radius;
 

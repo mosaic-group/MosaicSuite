@@ -21,6 +21,10 @@ public class MaximumFinder2D extends MaximumFinder implements MaximumFinderInter
         this.height = height;
     }
 
+    public MaximumFinder2D(int[] dims) {
+        this(dims[0], dims[1]);
+    }
+    
     @Override
     public List<Point> getMaximaPointList(float[] pixels, double tolerance, boolean excludeOnEdges) {
         final ImageProcessor ip = new FloatProcessor(width, height, pixels, null);

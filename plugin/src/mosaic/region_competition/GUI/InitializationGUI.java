@@ -107,7 +107,7 @@ class LocalMaxGUI extends InitializationGUI {
     public void createDialog() {
         gd.addNumericField("Radius", settings.l_BubblesRadius, 1);
         gd.addNumericField("Sigma", settings.l_Sigma, 1);
-        gd.addNumericField("Tolerance", settings.l_Tolerance, 5);
+        gd.addNumericField("Tolerance (0-1)", settings.l_Tolerance, 5);
         gd.addNumericField("Region Tol", settings.l_RegionTolerance, 1);
     }
 

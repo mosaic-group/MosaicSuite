@@ -5,17 +5,17 @@ import mosaic.region_competition.LabelImageRC;
 
 
 /**
- * Abstract Initializer class that do not depend on input image
+ * Base for Initializers
  */
 abstract class Initializer {
 
-    final protected LabelImageRC labelImage;
-    final protected int dim;
-    final protected int[] dimensions;
+    final protected LabelImageRC iLabelImage;
+    final protected int iNumOfDimensions;
+    final protected int[] iDimensionsSize;
 
-    public Initializer(LabelImageRC labelImage) {
-        this.labelImage = labelImage;
-        this.dim = labelImage.getDim();
-        this.dimensions = labelImage.getDimensions();
+    public Initializer(LabelImageRC aLabelImage) {
+        this.iLabelImage = aLabelImage;
+        this.iNumOfDimensions = iLabelImage.getDim();
+        this.iDimensionsSize = iLabelImage.getDimensions();
     }
 }

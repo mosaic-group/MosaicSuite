@@ -66,8 +66,8 @@ public class ScoreFunctionInit implements ScoreFunction {
 
         for (int im = 0; im < i.length; im++) {
             l[im].initZero();
-            final MaximaBubbles b = new MaximaBubbles(i[im], l[im], rad, sigma, tol, r_t);
-            b.initFloodFilled();
+            final MaximaBubbles b = new MaximaBubbles(i[im], l[im], sigma, tol, rad, r_t);
+            b.initialize();
             final int c = l[im].createStatistics(i[im]);
             final HashMap<Integer, LabelInformation> Map = l[im].getLabelMap();
             Map.remove(0); // remove background
