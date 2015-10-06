@@ -65,7 +65,7 @@ import mosaic.region_competition.initializers.MaximaBubbles;
 import mosaic.region_competition.utils.IntConverter;
 import mosaic.region_competition.utils.Timer;
 import mosaic.utils.io.serialize.DataFile;
-import mosaic.utils.io.serialize.SerializedDataFile;
+import mosaic.utils.io.serialize.JsonDataFile;
 import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
@@ -269,7 +269,7 @@ public class Region_Competition implements Segmentation {
 
             // saving config file
             getConfigHandler().SaveToFile("/tmp/settings.dat", p);
-            // System.out.println(Debug.getJsonString(p));
+
             final ClusterGUI cg = new ClusterGUI();
             ClusterSession ss = cg.getClusterSession();
             ss.setInputArgument("text1");
@@ -344,8 +344,6 @@ public class Region_Competition implements Segmentation {
         }
         else {
             getConfigHandler().SaveToFile(sv, settings);
-            // System.out.println(Debug.getJsonString(settings));
-            // init the input image we need to open it before run
 
             // if is 3D save the originalIP
             if (aImp != null) {
@@ -378,7 +376,7 @@ public class Region_Competition implements Segmentation {
      * Returns handler for (un)serializing Settings objects.
      */
     public static DataFile<Settings> getConfigHandler() {
-        return new SerializedDataFile<Settings>();
+        return new JsonDataFile<Settings>();
     }
 
     private String output;
