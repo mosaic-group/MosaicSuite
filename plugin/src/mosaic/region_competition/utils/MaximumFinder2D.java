@@ -1,17 +1,17 @@
 package mosaic.region_competition.utils;
 
 
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
-
 import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.List;
 
+import ij.plugin.filter.MaximumFinder;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
 import mosaic.core.utils.Point;
 
 
-public class MaximumFinder2D extends MaximumFinder implements MaximumFinderInterface {
+public class MaximumFinder2D implements MaximumFinderInterface {
 
     private final int width;
     private final int height;
@@ -28,7 +28,8 @@ public class MaximumFinder2D extends MaximumFinder implements MaximumFinderInter
     @Override
     public List<Point> getMaximaPointList(float[] pixels, double tolerance, boolean excludeOnEdges) {
         final ImageProcessor ip = new FloatProcessor(width, height, pixels, null);
-        final Polygon poly = getMaxima(ip, tolerance, excludeOnEdges);
+        MaximumFinder mf = new MaximumFinder();
+        final Polygon poly = mf.getMaxima(ip, tolerance, excludeOnEdges);
         final int n = poly.npoints;
         final int[] xs = poly.xpoints;
         final int[] ys = poly.ypoints;

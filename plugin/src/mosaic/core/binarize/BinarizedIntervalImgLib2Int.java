@@ -27,8 +27,6 @@ public class BinarizedIntervalImgLib2Int<T extends IntegerType<T>> extends Inter
     public BinarizedIntervalImgLib2Int(Img<T> aLabelImage) {
         super();
         SetInputImage(aLabelImage);
-        // m_NThresholds = 0;
-        // m_Thresholds = new ArrayList<Pair<Double,Double>>();
     }
 
     private void SetInputImage(Img<T> labelImage) {

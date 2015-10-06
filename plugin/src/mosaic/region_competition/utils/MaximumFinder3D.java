@@ -98,10 +98,7 @@ public class MaximumFinder3D implements MaximumFinderInterface {
      * @return A Polygon containing the coordinates of the maxima
      */
     private int[][] getMaxima(float[] ip, double tolerance, boolean excludeOnEdges) {
-        findMaxima(ip, tolerance, ImageProcessor.NO_THRESHOLD, MaximumFinder.POINT_SELECTION, excludeOnEdges, false);
-        // if (points==null)
-        // return new Polygon();
-        // else
+        findMaxima(ip, tolerance, ImageProcessor.NO_THRESHOLD, POINT_SELECTION, excludeOnEdges, false);
         return points;
     }
 
@@ -125,14 +122,12 @@ public class MaximumFinder3D implements MaximumFinderInterface {
             final int x = xs[i];
             final int y = ys[i];
             final int z = zs[i];
-            // System.out.println(x+" "+y+" "+" "+z);
 
             final Point p = Point.CopyLessArray(new int[] { x, y, z });
             list.add(p);
         }
 
         return list;
-
     }
 
     /**
@@ -152,8 +147,6 @@ public class MaximumFinder3D implements MaximumFinderInterface {
      *         Returns null if outputType does not require an output or if cancelled by escape
      */
     private byte[] findMaxima(float[] ip, double tolerance, double threshold, int outputType, boolean excludeOnEdges, boolean isEDM) {
-        // if (dirOffset == null) makeDirectionOffsets(ip);
-
         float globalMin = Float.MAX_VALUE;
         float globalMax = -Float.MAX_VALUE;
 
@@ -201,11 +194,10 @@ public class MaximumFinder3D implements MaximumFinderInterface {
             }
             outIp = types;
         }
-        // IJ.write("roi: "+roi.toString());
 
         return outIp;
-    } // public ByteProcessor findMaxima
-
+    } 
+    
     /**
      * Find all local maxima (irrespective whether they finally qualify as maxima or not)
      * 
@@ -276,9 +268,8 @@ public class MaximumFinder3D implements MaximumFinderInterface {
         }
 
         Arrays.sort(maxPoints); // sort the maxima by value
-        // long t3 = System.currentTimeMillis();IJ.log("sort:"+(t3-t2));
         return maxPoints;
-    } // getSortedMaxPoints
+    } 
 
     /**
      * Check all maxima in list maxPoints, mark type of the points in typeP
@@ -309,7 +300,6 @@ public class MaximumFinder3D implements MaximumFinderInterface {
 
         for (int iMax = nMax - 1; iMax >= 0; iMax--) { // process all maxima now, starting from the highest
             int offset0 = (int) maxPoints[iMax]; // type cast gets 32 lower bits, where pixel index is encoded
-            // int offset0 = maxPoints[iMax].offset;
             if ((types[offset0] & PROCESSED) != 0) {
                 continue;
                 // we create a list of connected points and start the list at the current maximum
@@ -484,5 +474,4 @@ public class MaximumFinder3D implements MaximumFinderInterface {
             messageArea.setText((xyVector == null ? 0 : xyVector.size()) + " Maxima");
         }
     } // void analyzeAndMarkMaxima
-
 }

@@ -54,31 +54,31 @@ public class Jtest implements PlugInFilter {
         BG.bypass_GUI();
         final TimeMeasurement tm1 = new TimeMeasurement();
         // test the cluster
-        Jtest.logger.info("----------------------- TestCase: Squassh_cluster -----------------------");
-        BG.setUseCluster(true);
-        MosaicTest.<Region3DRScript> testPlugin(BG, "Squassh_cluster", Region3DRScript.class);
-        tm1.logLapTimeSec("----------------------- Squassh_cluster");
-        
-        Jtest.logger.info("----------------------- TestCase: Squassh_testa -----------------------");
-        BG.setUseCluster(false);
-        MosaicTest.<Region3DColocRScript> testPlugin(BG, "Squassh_testa", Region3DColocRScript.class);
-        tm1.logLapTimeSec("----------------------- Squassh_testa");
-        
-        Jtest.logger.info("----------------------- TestCase: Squassh -----------------------");
-        BG.setUseCluster(false);
-        MosaicTest.<Region3DRScript> testPlugin(BG, "Squassh", Region3DRScript.class);
-        tm1.logLapTimeSec("----------------------- Squassh");
-        tm.logLapTimeSec("========================== bregman");
-
-        // -----------------------------------------------------------------------------------
-        // Test core utils
-        logger.info("========================== TestSuite: core.cluster.Jtest ===================================");
-        mergetest();
-        tm.logLapTimeSec("========================== core.cluster.Jtest");
-
-        // -----------------------------------------------------------------------------------
-        // Test Region competition segmentation
-        logger.info("========================== TestSuite: region_competition.Jtest ===================================");
+//        Jtest.logger.info("----------------------- TestCase: Squassh_cluster -----------------------");
+//        BG.setUseCluster(true);
+//        MosaicTest.<Region3DRScript> testPlugin(BG, "Squassh_cluster", Region3DRScript.class);
+//        tm1.logLapTimeSec("----------------------- Squassh_cluster");
+//        
+//        Jtest.logger.info("----------------------- TestCase: Squassh_testa -----------------------");
+//        BG.setUseCluster(false);
+//        MosaicTest.<Region3DColocRScript> testPlugin(BG, "Squassh_testa", Region3DColocRScript.class);
+//        tm1.logLapTimeSec("----------------------- Squassh_testa");
+//        
+//        Jtest.logger.info("----------------------- TestCase: Squassh -----------------------");
+//        BG.setUseCluster(false);
+//        MosaicTest.<Region3DRScript> testPlugin(BG, "Squassh", Region3DRScript.class);
+//        tm1.logLapTimeSec("----------------------- Squassh");
+//        tm.logLapTimeSec("========================== bregman");
+//
+//        // -----------------------------------------------------------------------------------
+//        // Test core utils
+//        logger.info("========================== TestSuite: core.cluster.Jtest ===================================");
+//        mergetest();
+//        tm.logLapTimeSec("========================== core.cluster.Jtest");
+//
+//        // -----------------------------------------------------------------------------------
+//        // Test Region competition segmentation
+//        logger.info("========================== TestSuite: region_competition.Jtest ===================================");
         Jtest.logger.info("----------------------- TestCase: Region_Competition -----------------------");
         final Segmentation BG1 = new Region_Competition();
         MosaicTest.<RCOutput> testPlugin(BG1, "Region_Competition", RCOutput.class);
