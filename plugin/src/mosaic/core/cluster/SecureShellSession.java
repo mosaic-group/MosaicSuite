@@ -395,7 +395,7 @@ class SecureShellSession implements Runnable, ShellProcessOutput, SftpProgressMo
 
                         setShellProcessOutput(stmp);
 
-                        // //////////////////////////
+                        ///////////////////////////
 
                         if (wp != null) {
                             wp.SetProgress(33);

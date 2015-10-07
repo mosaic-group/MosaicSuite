@@ -242,7 +242,7 @@ public class Connectivity implements Iterable<Point> {
         return result;
     }
 
-    // /////////////////// Iterators /////////////////////////////
+    //////////////////// Iterators /////////////////////////////
 
     /**
      * Iterates over the neighbors of the midpoint, represented as Point offsets

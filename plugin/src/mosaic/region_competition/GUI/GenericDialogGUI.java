@@ -519,7 +519,7 @@ public class GenericDialogGUI  {
         return kbest;
     }
 
-    // //////////////////////////
+    ///////////////////////////
 
     protected Choice initializationChoice; // reference to the awt.Choice for initialization
 

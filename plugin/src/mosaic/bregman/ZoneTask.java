@@ -212,7 +212,7 @@ class ZoneTask implements Runnable {
         //
         LocalTools.addtab(AS.w2xk[AS.l], AS.temp3[AS.l], AS.b2xk[AS.l], iStart, iEnd);
         LocalTools.addtab(AS.w2yk[AS.l], AS.temp4[AS.l], AS.b2yk[AS.l], iStart, iEnd);
-        // //temp1 = w1xk temp2 = w2yk
+        ///temp1 = w1xk temp2 = w2yk
         LocalTools.shrink2D(AS.w2xk[AS.l], AS.w2yk[AS.l], AS.w2xk[AS.l], AS.w2yk[AS.l], AS.p.gamma, iStart, iEnd);
         //
         for (int z = 0; z < AS.nz; z++) {

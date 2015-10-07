@@ -59,7 +59,7 @@ public class SegmentationGUI {
         gd.addNumericField("Minimum_object_intensity_channel_1_(0_to_1)", Analysis.p.min_intensity, 3);
         gd.addNumericField("                        _channel_2_(0_to_1)", Analysis.p.min_intensityY, 3);
 
-        // ///////////// Patches positioning
+        ////////////// Patches positioning
 
         // FlowLayout fl = new FlowLayout(FlowLayout.LEFT,335,3);
         // p.setPreferredSize(new Dimension(565, 30));
@@ -70,7 +70,7 @@ public class SegmentationGUI {
         // b.addActionListener(new HelpOpenerActionListener(p,gd));
         // p.add(b);
 
-        // /////////////
+        //////////////
 
         gd.addCheckbox("Subpixel_segmentation", Analysis.p.subpixel);
         gd.addCheckbox("Exclude_Z_edge", Analysis.p.exclude_z_edges);

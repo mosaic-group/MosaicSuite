@@ -97,7 +97,7 @@ public class CurvatureBasedFlow {
             throw new RuntimeException("Curvature flow only implemented for 2D and 3D");
         }
 
-        // /////////////////////////////////////////////
+        //////////////////////////////////////////////
 
         if (aFrom == labelImage.bgLabel) // growing
         {

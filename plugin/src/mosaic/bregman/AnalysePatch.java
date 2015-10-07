@@ -127,7 +127,7 @@ class AnalysePatch implements Runnable {
             zmargin = sz_psf[2];
         }
 
-        // //////////////////////////////////////////////////
+        ///////////////////////////////////////////////////
 
         this.interpolation = pa.interpolation;
 
@@ -242,7 +242,7 @@ class AnalysePatch implements Runnable {
             p.cl[1] = cin;
         }
 
-        rescaled_min_int_all = Math.max(0, (rescaled_min_int - cout) / (cin - cout)); // /cin
+        rescaled_min_int_all = Math.max(0, (rescaled_min_int - cout) / (cin - cout)); //cin
         if (p.debug) {
             IJ.log(r.value + "min all " + rescaled_min_int_all);
         }
@@ -695,7 +695,7 @@ class AnalysePatch implements Runnable {
         }
 
         //
-        // /* Create Weka classifier */
+        //* Create Weka classifier */
         // SimpleKMeans xm4 = new SimpleKMeans();
         //
         //
@@ -704,12 +704,12 @@ class AnalysePatch implements Runnable {
         // xm4.setMaxIterations(100);
         // }catch (Exception ex) {}
 
-        // /* Wrap Weka clusterer in bridge */
+        //* Wrap Weka clusterer in bridge */
         // Clusterer jmlxm4 = new WekaClusterer(xm4);
-        // /* Perform clustering */
+        //* Perform clustering */
         // Dataset[] data2 = jmlxm4.cluster(data);
-        // /* Output results */
-        // //System.out.println(clusters.length);
+        //* Output results */
+        ///System.out.println(clusters.length);
 
         if (cpt_vals > 3) {
 
@@ -893,7 +893,7 @@ class AnalysePatch implements Runnable {
         // IJ.log("find bess thresh" +r.value +"cin " + cin + " coutfront " +
         // cout_front);
         for (t = 1; t > min_thresh; t -= 0.02) { // mint
-            // //rescaled_min_int_all*0.85
+            ///rescaled_min_int_all*0.85
             // 0.5*cout
             set_object(w3kbest, t);
 
@@ -939,7 +939,7 @@ class AnalysePatch implements Runnable {
             if (obj && !border_attained) {
                 estimate_int_weighted(object);
 
-                // //////////////
+                ///////////////
                 if (p.nz == 1) {
                     temp = ATools.computeEnergyPSF_weighted(temp1[0], object, temp2[0], temp3[0], weights, p.ldata, p.lreg_[channel], p, cout_front, cin, patch);
                 }

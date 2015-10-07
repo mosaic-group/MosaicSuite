@@ -141,7 +141,7 @@ public class RegionIterator
         itInputStart = itInput;
     }
 
-    // //////////// Bitwise Mask ///////////
+    ///////////// Bitwise Mask ///////////
 
     private int BitMaskN;
     private int BitMaskO;
@@ -150,7 +150,7 @@ public class RegionIterator
         return BitMaskO;
     }
 
-    // //////////// Iterator ///////////////
+    ///////////// Iterator ///////////////
 
     private int it = 0; // iterator in cropped region
     private int itInput = 0; // iterator in input
@@ -287,7 +287,7 @@ public class RegionIterator
         calcStartIndex();
     }
 
-    // //////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////
 
 //    public static void tester() {
 //        final int[] testinput = { 100, 100, 100 };

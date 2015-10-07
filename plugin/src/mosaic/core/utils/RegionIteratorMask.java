@@ -197,7 +197,7 @@ public class RegionIteratorMask {
             // debug++;
             // }
 
-            // /////
+            //////
             tmpM.p = new Point(jumpTableGeo[idx_j]);
 
             do {

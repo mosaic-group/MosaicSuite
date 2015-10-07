@@ -19,17 +19,17 @@ class Tools {
     }
 
     // public void showmem() {
-    // // Get current size of heap in bytes
+    /// Get current size of heap in bytes
     // long heapSize = Runtime.getRuntime().totalMemory();
     //
-    // // Get maximum size of heap in bytes. The heap cannot grow beyond this
-    // // size.
-    // // Any attempt will result in an OutOfMemoryException.
+    /// Get maximum size of heap in bytes. The heap cannot grow beyond this
+    /// size.
+    /// Any attempt will result in an OutOfMemoryException.
     // long heapMaxSize = Runtime.getRuntime().maxMemory();
     //
-    // // Get amount of free memory within the heap in bytes. This size will
-    // // increase
-    // // after garbage collection and decrease as new objects are created.
+    /// Get amount of free memory within the heap in bytes. This size will
+    /// increase
+    /// after garbage collection and decrease as new objects are created.
     // long heapFreeSize = Runtime.getRuntime().freeMemory();
     //
     // long used = heapSize - heapFreeSize;
@@ -59,7 +59,7 @@ class Tools {
 
         // check validity of params
         // if (!in || !out || !kernel) return ;
-        // /if (ix <= 0 || kx <= 0) return ;
+        //if (ix <= 0 || kx <= 0) return ;
 
         // find center position of kernel (half of kernel size)
         final int sz[] = psf.getSuggestedImageSize();

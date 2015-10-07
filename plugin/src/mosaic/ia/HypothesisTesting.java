@@ -106,7 +106,7 @@ class HypothesisTesting {
 
         for (int i = 0; i < D.length;) {
             R = rn.nextDouble();
-            if (R >= CDFGrid[0]) // / to make sure that random value will be gte the least in cdf
+            if (R >= CDFGrid[0]) // to make sure that random value will be gte the least in cdf
             {
                 DRand[i] = findD(R);
                 i++;

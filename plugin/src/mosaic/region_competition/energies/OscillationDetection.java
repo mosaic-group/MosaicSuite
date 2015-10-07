@@ -49,7 +49,7 @@ public class OscillationDetection {
             final double vSumOld = m_OscillationsEnergyHist[vI];
 
             if (m_Candidates.size() == m_OscillationsNumberHist[vI] && Math.abs(vSum - vSumOld) <= 1e-5 * Math.abs(vSum)) {
-                // / here we assume that we're oscillating,
+                // here we assume that we're oscillating,
                 // so we decrease the acceptance factor:
                 result = true;
                 algorithm.m_AcceptedPointsFactor *= m_AcceptedPointsReductionFactor;
@@ -58,14 +58,14 @@ public class OscillationDetection {
             }
         }
 
-        // / Shift the old elements:
+        // Shift the old elements:
         // TODO sts maybe optimize by modulo list?
         for (int vI = 1; vI < m_OscillationHistoryLength; vI++) {
             m_OscillationsEnergyHist[vI - 1] = m_OscillationsEnergyHist[vI];
             m_OscillationsNumberHist[vI - 1] = m_OscillationsNumberHist[vI];
         }
 
-        // / Fill the new elements:
+        // Fill the new elements:
         m_OscillationsEnergyHist[m_OscillationHistoryLength - 1] = vSum;
         m_OscillationsNumberHist[m_OscillationHistoryLength - 1] = m_Candidates.size();
 

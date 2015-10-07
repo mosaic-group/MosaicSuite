@@ -34,7 +34,7 @@ public class E_KLMergingCriterion extends ExternalEnergy {
         // the 2 regions.
         if (aLabelA != bgLabel && aLabelB != bgLabel) // we are competeing.
         {
-            // / test if merge should be performed:
+            // test if merge should be performed:
             final double value = CalculateKLMergingCriterion(aLabelA, aLabelB);
             // debug("KL: it="+m_iteration_counter+" "+aLabelA+" "+aLabelB+" "+value);
             if (value < m_RegionMergingThreshold) {

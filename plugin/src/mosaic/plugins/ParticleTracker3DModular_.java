@@ -819,7 +819,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         gd.addChoice("Dynamics: ", d_pos, d_pos[0]);
         //
         // gd.addMessage("Trajectory Analysis Data :\n");
-        // // These 2 params are relevant for both working modes
+        /// These 2 params are relevant for both working modes
         // gd.addNumericField("Length of pixel (in mm)", 1, 3);
         // gd.addNumericField("Time interval between frames (in s)", 1.0, 3);
 
@@ -1204,7 +1204,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         // IJ.error("You probably do not have the permission to write in the directory where your image is stored. Data are not written to disk.");
         // return;
         // }
-        // // write data to file
+        /// write data to file
         // write2File(newDir.getAbsolutePath(), vFI.fileName + "PT3D.txt", getFullReport().toString());
         MosaicUtils.write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
         writeXMLFormatReport(new File(vFI.directory, title + "_r_" + getRadius() + "_c_" + detector.cutoff + "_perc_" + detector.percentile + "_PT3Dresults.xml").getAbsolutePath());
@@ -1427,10 +1427,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             duplicated_imp = ImageJFunctions.wrap(out, new_title);
             duplicated_imp.show();
             // if (this.text_files_mode) {
-            // // there is no original image so set magnification to default(1)
+            /// there is no original image so set magnification to default(1)
             // magnification = 1;
             // } else {
-            // // Set magnification to the one of original_imp
+            /// Set magnification to the one of original_imp
             // magnification = original_imp.getWindow().getCanvas().getMagnification();
             // }
         }

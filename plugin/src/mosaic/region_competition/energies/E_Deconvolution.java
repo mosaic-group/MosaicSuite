@@ -126,8 +126,8 @@ public class E_Deconvolution extends ExternalEnergy {
          * For all FG regions (?), find the median of the scaling factor.
          */
 
-        // / The BG region is not fitted above(since it may be very large and thus
-        // / the mean is a good approx), set it to the mean value:
+        // The BG region is not fitted above(since it may be very large and thus
+        // the mean is a good approx), set it to the mean value:
         final double vOldBG = aInitImage.getLabelMap().get(0).median;
 
         // Time vs. Memory:
@@ -140,16 +140,16 @@ public class E_Deconvolution extends ExternalEnergy {
         // an array corresponding to the label. This is another 32-bit copy of
         // the image.
 
-        // / Set up a map datastructure that maps from labels to arrays of data
-        // / values. These arrays will be sorted to read out the median.
+        // Set up a map datastructure that maps from labels to arrays of data
+        // values. These arrays will be sorted to read out the median.
 
         final HashMap<Integer, Integer> vLabelCounter = new HashMap<Integer, Integer>();
         final HashMap<Integer, Float> vIntensitySum = new HashMap<Integer, Float>();
 
         final HashMap<Integer, ArrayList<Float>> vScalings3 = new HashMap<Integer, ArrayList<Float>>();
 
-        // / For all the active labels, create an entry in the map and initialize
-        // / an array as the corresponding value.
+        // For all the active labels, create an entry in the map and initialize
+        // an array as the corresponding value.
         final Iterator<Map.Entry<Integer, LabelInformation>> vActiveLabelsIt = aInitImage.getLabelMap().entrySet().iterator();
         while (vActiveLabelsIt.hasNext()) {
             final Map.Entry<Integer, LabelInformation> Label = vActiveLabelsIt.next();
@@ -185,12 +185,12 @@ public class E_Deconvolution extends ExternalEnergy {
             }
         }
 
-        // / For all the labels (except the BG ?) sort the scalar factors for all
-        // / the pixel. The median is in the middle of the sorted list.
-        // / TODO: check if fitting is necessary for the BG.
-        // / TODO: Depending on the size of the region, sorting takes too long and
-        // / a median of medians algorithm (O(N)) could provide a good
-        // / approximation of the median.
+        // For all the labels (except the BG ?) sort the scalar factors for all
+        // the pixel. The median is in the middle of the sorted list.
+        // TODO: check if fitting is necessary for the BG.
+        // TODO: Depending on the size of the region, sorting takes too long and
+        // a median of medians algorithm (O(N)) could provide a good
+        // approximation of the median.
 
         final Iterator<Map.Entry<Integer, ArrayList<Float>>> vScaling3It = vScalings3.entrySet().iterator();
         while (vScaling3It.hasNext()) {
@@ -203,10 +203,10 @@ public class E_Deconvolution extends ExternalEnergy {
                 vMedian = (float) aInitImage.getLabelMap().get(vLabel.getKey()).mean;
             }
 
-            // / TESTING: REMOVE THE NEXT LINE
+            // TESTING: REMOVE THE NEXT LINE
             // vMedian = vIntensitySum[vLabelAbs] / vLabelCounter[vLabelAbs];
 
-            // / Correct the old intensity values.
+            // Correct the old intensity values.
             if (vLabel.getKey() == 0) {
                 if (vMedian < 0) {
                     vMedian = 0;
@@ -298,7 +298,7 @@ public class E_Deconvolution extends ExternalEnergy {
          * Subtract a scaled psf from the ideal image
          */
 
-        // / Iterate through the region and subtract the psf from the conv image.
+        // Iterate through the region and subtract the psf from the conv image.
 
         final long dimlen[] = new long[m_PSF.numDimensions()];
         m_PSF.dimensions(dimlen);

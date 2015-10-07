@@ -98,7 +98,7 @@ class ASplitBregmanSolverTwoRegions extends ASplitBregmanSolver {
         // for (int z=0; z<nz; z++){
         // for (int i=0; i<ni; i++) {
         // for (int j=0; j<nj; j++) {
-        // // l2normtab[l]+=Math.sqrt(Math.pow(w3k[l][z][i][j]-w3kp[l][z][i][j],2));
+        /// l2normtab[l]+=Math.sqrt(Math.pow(w3k[l][z][i][j]-w3kp[l][z][i][j],2));
         // normtab[l]+=Math.abs(w3k[l][z][i][j]-w3kp[l][z][i][j]);
         // }
         // }

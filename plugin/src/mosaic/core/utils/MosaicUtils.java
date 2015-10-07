@@ -105,9 +105,9 @@ public class MosaicUtils {
         public File RegionMask;
     }
 
-    // ////////////////////////////////// Procedures for draw //////////////////
+    /////////////////////////////////// Procedures for draw //////////////////
 
-    // ///// Conversion to ARGB from different Type ////////////////////////////
+    ////// Conversion to ARGB from different Type ////////////////////////////
     public interface ToARGB {
 
         void setMinMax(double min, double max);

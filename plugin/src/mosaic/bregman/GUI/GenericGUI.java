@@ -269,7 +269,7 @@ public class GenericGUI {
         p.add(labelJ);
         gd.addPanel(p);
 
-        // ////////////////////////////////
+        /////////////////////////////////
 
         gd.showDialog();
         if (gd.wasCanceled()) {

@@ -27,7 +27,7 @@ public class MaximaBubbles extends Initializer {
     private int iRadius; 
     private double iSigma; 
     private double iTolerance;
-    private int iRegionThreshold; 
+    private int iMinimumRegionSize; 
     private IntensityImage iIntensityImage;
     
     /**
@@ -46,7 +46,7 @@ public class MaximaBubbles extends Initializer {
         iRadius = aRadius;
         iSigma = aSigma;
         iTolerance = aTolerance;
-        iRegionThreshold = aMinimumRegionSize;
+        iMinimumRegionSize = aMinimumRegionSize;
         iIntensityImage = aIntensityImage;
     }
 
@@ -72,7 +72,7 @@ public class MaximaBubbles extends Initializer {
    
         // Find all points connected to maximum
         final FloodFill ff = new FloodFill(iLabelImage.getConnFG(), aBinarizedImage, aMaximumPoint);
-        if (ff.size() < iRegionThreshold) {
+        if (ff.size() < iMinimumRegionSize) {
             // if region is very small, draw a bubble
             final BubbleDrawer bd = new BubbleDrawer(iLabelImage, iRadius / 2, iRadius);
             bd.drawCenter(aMaximumPoint, aLabel);
