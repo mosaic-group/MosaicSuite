@@ -1143,7 +1143,6 @@ public class Algorithm {
         if (imageModel.getEdataType() == EnergyFunctionalType.e_DeconvolutionPC) {
             ((E_Deconvolution) imageModel.getEdata()).UpdateConvolvedImage(vCurrentIndex, labelImage, vFromLabel, vToLabel);
         }
-        imageModel.updateStatisticsWhenJump();
 
         // / TODO: A bit a dirty hack: we store the old label for the relabeling
         // / procedure later on...either introduce a new variable or rename the

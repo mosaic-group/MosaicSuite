@@ -1,0 +1,22 @@
+{
+  "m_MaxNbIterations": 300,
+  "m_EnergyFunctional": "e_PC",
+  "m_GaussPSEnergyRadius": 8,
+  "m_RegionMergingThreshold": 0.01,
+  "m_BalloonForceCoeff": 0.003,
+  "regularizationType": "None",
+  "m_CurvatureMaskRadius": 4.0,
+  "m_EnergyContourLengthCoeff": 0.005,
+  "labelImageInitType": "Rectangle",
+  "m_AllowFusion": true,
+  "m_AllowFission": true,
+  "m_AllowHandles": true,
+  "m_OscillationThreshold": 0.01,
+  "m_BubblesRadius": 10,
+  "m_BubblesDispl": 10,
+  "l_BubblesRadius": 5,
+  "l_Sigma": 2.0,
+  "l_Tolerance": 0.0,
+  "l_RegionTolerance": 5,
+  "l_BoxRatio": 0.8
+}

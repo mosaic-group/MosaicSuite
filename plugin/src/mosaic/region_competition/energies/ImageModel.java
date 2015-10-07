@@ -13,12 +13,11 @@ public class ImageModel {
     private final float EnergyRegionCoeff = 1.0f;
     private final float ConstantOutwardFlow = 0.0f; 
     
+    private final Settings settings;
     
     private final Energy e_data;
     private final Energy e_length;
     private final Energy e_merge;
-
-    private final Settings settings;
 
     public ImageModel(Energy e_data, Energy e_length, Energy e_merge, Settings settings) {
         this.e_data = e_data;
@@ -35,11 +34,6 @@ public class ImageModel {
         return settings.m_EnergyFunctional;
     }
 
-    public void updateStatisticsWhenJump() {
-        // TODO
-        // not used yet
-    }
-
     public EnergyResult CalculateEnergyDifferenceForLabel(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel) {
         final float m_EnergyRegionCoeff = EnergyRegionCoeff;
 
@@ -50,18 +44,16 @@ public class ImageModel {
 
         EnergyResult vV;
 
-        // / Calculate the change in energy due to the change of intensity when
-        // changing
-        // / from one label 'from' to another 'to'.
+        // Calculate the change in energy due to the change of intensity when changing
+        // from one label 'from' to another 'to'.
         if (m_EnergyRegionCoeff != 0) {
             vV = e_data.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel);
             vEnergy += m_EnergyRegionCoeff * vV.energyDifference;
-            // vMerge may be null here and will be set below at the merge
-            // energy.
+            // vMerge may be null here and will be set below at the merge energy.
             vMerge = vV.merge;
         }
 
-        // Contour Length (Regularization //
+        // Contour Length (Regularization)
         final float m_EnergyContourLengthCoeff = settings.m_EnergyContourLengthCoeff;
         if (m_EnergyContourLengthCoeff != 0 && e_length != null) {
 
@@ -70,8 +62,8 @@ public class ImageModel {
             vEnergy += m_EnergyContourLengthCoeff * eCurv;
         }
 
-        // / add a balloon force and a constant outward flow. If fronts were
-        // / touching, no constant flow is imposed (cancels out).
+        // add a balloon force and a constant outward flow. If fronts were
+        // touching, no constant flow is imposed (cancels out).
         if (vCurrentLabel == 0) // growing
         {
             vEnergy -= ConstantOutwardFlow;
@@ -89,9 +81,8 @@ public class ImageModel {
             vEnergy += ConstantOutwardFlow;
         }
 
-        // / For the full-region based energy models, register competing regions
-        // / undergo a merge.
-
+        // For the full-region based energy models, register competing regions
+        // undergo a merge.
         if (e_merge != null) // use e_merge explicitly
         {
             vV = e_merge.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel);
@@ -99,6 +90,5 @@ public class ImageModel {
         }
 
         return new EnergyResult(vEnergy, vMerge);
-
     }
 }

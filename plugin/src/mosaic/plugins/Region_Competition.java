@@ -1247,10 +1247,13 @@ public class Region_Competition implements Segmentation {
         final ResultsTable rt = new ResultsTable();
 
         // over all labels
+        int rowNumber = 1;
         for (final Entry<Integer, LabelInformation> entry : labelMap.entrySet()) {
             final LabelInformation info = entry.getValue();
-
+            rt.showRowNumbers(false);
+            
             rt.incrementCounter();
+            rt.addValue("Id", rowNumber++);
             rt.addValue("Image_ID", 0);
             rt.addValue("label", info.label);
             rt.addValue("size", info.count);
