@@ -372,7 +372,6 @@ public class GenericDialogGUI  {
     }
 
     private void readOpenedImageChooser() {
-        // if (nOpenedImages>0)
         inputImageTitle = gd.getNextChoice();
         labelImageTitle = gd.getNextChoice();
     }
@@ -382,7 +381,6 @@ public class GenericDialogGUI  {
      * and saves them into the settings object. <br>
      * Input Processing (valid values)
      */
-
     private boolean processParameters() {
         final boolean success = true;
 
@@ -391,7 +389,6 @@ public class GenericDialogGUI  {
         }
 
         // Energy Choice
-
         final String energy = gd_p.getNextChoice();
         settings.m_EnergyFunctional = EnergyFunctionalType.valueOf(energy);
         final EnergyGUI eg = EnergyGUI.factory(settings, settings.m_EnergyFunctional);
@@ -399,7 +396,6 @@ public class GenericDialogGUI  {
         eg.processDialog();
 
         // Regularization Choice
-
         final String regularization = gd_p.getNextChoice();
         settings.regularizationType = RegularizationType.valueOf(regularization);
 
@@ -417,7 +413,6 @@ public class GenericDialogGUI  {
         ig.processDialog();
 
         // Topological constraints
-
         settings.m_AllowFusion = gd_p.getNextBoolean();
         settings.m_AllowFission = gd_p.getNextBoolean();
         settings.m_AllowHandles = gd_p.getNextBoolean();
@@ -623,7 +618,6 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
                     String elem = "";
                     while (tokenizer.hasMoreElements()) {
                         elem = tokenizer.nextToken();
-                        System.out.println("ELELM: " + elem);
                         if (elem.startsWith("file")) {
                             break;
                         }
