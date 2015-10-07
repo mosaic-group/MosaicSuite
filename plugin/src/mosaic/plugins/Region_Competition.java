@@ -48,7 +48,6 @@ import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.GUI.ControllerFrame;
 import mosaic.region_competition.GUI.GenericDialogGUI;
-import mosaic.region_competition.GUI.InputReadable;
 import mosaic.region_competition.energies.E_CV;
 import mosaic.region_competition.energies.E_CurvatureFlow;
 import mosaic.region_competition.energies.E_Deconvolution;
@@ -109,7 +108,7 @@ public class Region_Competition implements Segmentation {
 
     private ImageStack initialStack; // copy of the initial guess (without contour/boundary)
 
-    private InputReadable userDialog;
+    private GenericDialogGUI userDialog;
     private JFrame controllerFrame;
 
     /**
@@ -256,7 +255,7 @@ public class Region_Competition implements Segmentation {
         }
 
         if (userDialog.getInputImage() != null) {
-            originalIP = (ImagePlus) userDialog.getInputImage();
+            originalIP = userDialog.getInputImage();
             if (originalIP != null) {
                 cal = originalIP.getCalibration();
             }
@@ -323,7 +322,7 @@ public class Region_Competition implements Segmentation {
                     // upload label images
 
                     ss = cg.getClusterSession();
-                    ss.splitAndUpload((ImagePlus) userDialog.getLabelImage(), new File("label"), null);
+                    ss.splitAndUpload(userDialog.getLabelImage(), new File("label"), null);
                     opt += " text2=" + ss.getClusterDirectory() + File.separator + "label" + File.separator + ss.getSplitAndUploadFilename(0);
                 }
 
@@ -549,7 +548,7 @@ public class Region_Competition implements Segmentation {
         ImagePlus ip = null;
 
         final String file = userDialog.getInputImageFilename();
-        final ImagePlus choiceIP = (ImagePlus) userDialog.getInputImage();
+        final ImagePlus choiceIP = userDialog.getInputImage();
 
         // first try: filepath of inputReader
         if (file != null && !file.isEmpty()) {
@@ -641,7 +640,7 @@ public class Region_Competition implements Segmentation {
                 ImagePlus ip = null;
 
                 final String fileName = userDialog.getLabelImageFilename();
-                final ImagePlus choiceIP = (ImagePlus) userDialog.getLabelImage();
+                final ImagePlus choiceIP = userDialog.getLabelImage();
 
                 // first priority: filename was entered
                 if (fileName != null && !fileName.isEmpty()) {

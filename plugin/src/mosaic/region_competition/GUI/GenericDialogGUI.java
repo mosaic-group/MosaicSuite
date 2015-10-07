@@ -8,7 +8,6 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.Panel;
 import java.awt.TextArea;
-import java.awt.TextField;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -24,8 +23,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
 import java.io.File;
@@ -34,7 +31,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.Vector;
 
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
@@ -55,7 +51,7 @@ import mosaic.region_competition.wizard.RCWWin;
 /**
  * Adapts GenericDialog from ImageJ for our purposes
  */
-public class GenericDialogGUI implements InputReadable {
+public class GenericDialogGUI  {
 
     protected Settings settings;
     private final GenericDialog gd;
@@ -73,7 +69,6 @@ public class GenericDialogGUI implements InputReadable {
     private boolean showNormalized = false;
     private boolean useStack = true;
     private boolean keepAllFrames = true; // keep result of last segmentation iteratior?
-    // private boolean useRegularization;
     private boolean useCluster = false;
 
     private static final String EnergyFunctional = "E_data";
@@ -96,34 +91,24 @@ public class GenericDialogGUI implements InputReadable {
         aImp = aImg; // region_Competition.getOriginalImPlus();
 
         if (IJ.isMacro() == true) {
-            // Create a window with text1 and text2
-
             gd = new GenericDialog("Region Competition");
 
             // in case of script just add two argument for parsing them
-
             gd.addStringField("text1", "");
             gd.addStringField("text2", "");
 
             gd.addCheckbox("Show_and_save_Statistics", true);
-
             return;
         }
 
         gd = new NonBlockingGenericDialog("Region Competition");
-
-        // File path text areas
 
         gd.addTextAreas(TextDefaultInputImage, TextDefaultLabelImage, 5, 30);
 
         new TextAreaListener(this, gd.getTextArea1(), TextDefaultInputImage);
         new TextAreaListener(this, gd.getTextArea2(), TextDefaultLabelImage);
 
-        // File opener Buttons
-
         Panel p = new Panel();
-
-        // if script button are pointless
 
         Button b = new Button("Open Input Image");
         b.addActionListener(new FileOpenerActionListener(gd, gd.getTextArea1()));
@@ -134,8 +119,6 @@ public class GenericDialogGUI implements InputReadable {
         p.add(b);
 
         gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
-
-        // Parameter opener Buttons
 
         p = new Panel();
 
@@ -162,7 +145,6 @@ public class GenericDialogGUI implements InputReadable {
         gd.addCheckboxGroup(2, strings.length, strings, bools);
 
         // Parameter opener Buttons
-
         p = new Panel();
 
         b = new Button("Wizard");
@@ -191,21 +173,16 @@ public class GenericDialogGUI implements InputReadable {
 
         gd.addCheckbox("Process on computer cluster", false);
 
-        // Introduce a label with reference
-
         final JLabel labelJ = new JLabel("<html>Please refer to and cite:<br><br>" + "J. Cardinale, G. Paul, and I. F. Sbalzarini. Discrete region competition<br>"
                 + " for unknown numbers of connected regions. IEEE Trans.<br>" + " Image Process., 21(8):3531–3545, 2012. " + "</html>");
         p = new Panel();
         p.add(labelJ);
         gd.addPanel(p);
-
-        addWheelListeners();
     }
 
     /**
      * Create parameters dialog
      */
-
     protected void CreateParametersDialog() {
         gd_p = new GenericDialog("Region Competition Parameters");
 
@@ -249,7 +226,6 @@ public class GenericDialogGUI implements InputReadable {
         }
 
         // Regularization
-
         final RegularizationType[] regularizationValues = RegularizationType.values();
         final int n = regularizationValues.length;
         final String[] regularizationItems = new String[n];
@@ -282,7 +258,6 @@ public class GenericDialogGUI implements InputReadable {
         }
 
         // Label Image Initialization
-
         final InitializationType[] initTypes = InitializationType.values();
         final String[] initializationItems = new String[initTypes.length];
 
@@ -296,33 +271,29 @@ public class GenericDialogGUI implements InputReadable {
         gd_p.addChoice(Initialization, initializationItems, defaultInit);
         // save reference to this choice, so we can handle it
         initializationChoice = (Choice) gd_p.getChoices().lastElement();
-        // lastInitChoice=initializationChoice.getSelectedItem();
 
-        {
-            optionButton = new Button("Options");
-            c = new GridBagConstraints();
-            c.gridx = gridx;
-            c.gridy = gridy++;
-            c.anchor = GridBagConstraints.EAST;
-            gd_p.add(optionButton, c);
+        optionButton = new Button("Options");
+        c = new GridBagConstraints();
+        c.gridx = gridx;
+        c.gridy = gridy++;
+        c.anchor = GridBagConstraints.EAST;
+        gd_p.add(optionButton, c);
 
-            optionButton.addActionListener(new ActionListener() {
+        optionButton.addActionListener(new ActionListener() {
 
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    final String type = initializationChoice.getSelectedItem();
-                    final InitializationGUI gui = InitializationGUI.factory(settings, type);
-                    gui.createDialog();
-                    gui.showDialog();
-                    gui.processDialog();
-                }
-            });
-        }
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                final String type = initializationChoice.getSelectedItem();
+                final InitializationGUI gui = InitializationGUI.factory(settings, type);
+                gui.createDialog();
+                gui.showDialog();
+                gui.processDialog();
+            }
+        });
 
         gd_p.addCheckboxGroup(1, 4, new String[] { "Fusion", "Fission", "Handles" }, new boolean[] { settings.m_AllowFusion, settings.m_AllowFission, settings.m_AllowHandles });
 
         // Numeric Fields
-
         gd_p.addNumericField("Lambda E_length", settings.m_EnergyContourLengthCoeff, 4);
         gd_p.addNumericField("Theta E_merge", settings.m_RegionMergingThreshold, 4);
 
@@ -336,10 +307,8 @@ public class GenericDialogGUI implements InputReadable {
         if (gd_p.wasOKed()) {
             processParameters();
         }
-
     }
 
-    @Override
     public void showDialog() {
         gd.showDialog();
     }
@@ -409,18 +378,6 @@ public class GenericDialogGUI implements InputReadable {
     }
 
     /**
-     * Adds MouseWheelListeners to each NumericField in GenericDialog
-     */
-    private void addWheelListeners() {
-        @SuppressWarnings("unchecked")
-        final
-        Vector<TextField> v = gd.getNumericFields();
-        for (final TextField tf : v) {
-            tf.addMouseWheelListener(new NumericFieldWheelListener(tf));
-        }
-    }
-
-    /**
      * Reads out the values from the parameters mask
      * and saves them into the settings object. <br>
      * Input Processing (valid values)
@@ -473,7 +430,6 @@ public class GenericDialogGUI implements InputReadable {
      * and saves them into the settings object. <br>
      * Input Processing (valid values)
      */
-    @Override
     public boolean processInput() {
 
         if (gd.wasCanceled()) {
@@ -534,44 +490,38 @@ public class GenericDialogGUI implements InputReadable {
         return success;
     }
 
-    @Override
+    /**
+     * @return Reference to the label image. Type depends on Implementation.
+     */
     public InitializationType getLabelImageInitType() {
         return settings.labelImageInitType;
     }
 
-    @Override
+    /**
+     * @return The filepath as String or empty String if no file was chosen.
+     */
     public String getLabelImageFilename() {
         return filenameLabelImage;
     }
 
-    @Override
     public String getInputImageFilename() {
         return filenameInput;
     }
 
-    @Override
     public boolean useCluster() {
         return useCluster;
     }
 
-    @Override
     public boolean showAllFrames() {
         return this.keepAllFrames;
     }
 
-    @Override
     public boolean showAndSaveStatistics() {
         return showAndSaveStatistics;
     }
 
-    @Override
     public int getKBest() {
         return kbest;
-    }
-
-    @Override
-    public int getNumIterations() {
-        return settings.m_MaxNbIterations;
     }
 
     // //////////////////////////
@@ -594,16 +544,16 @@ public class GenericDialogGUI implements InputReadable {
         }
     }
 
-    @Override
+    /**
+     * @return Reference to the input image. Type depends on Implementation.
+     */
     public ImagePlus getInputImage() {
         return WindowManager.getImage(inputImageTitle);
     }
 
-    @Override
     public ImagePlus getLabelImage() {
         return WindowManager.getImage(labelImageTitle);
     }
-
 }
 
 /**
@@ -612,9 +562,8 @@ public class GenericDialogGUI implements InputReadable {
  * Usage: Just create a new instance,
  * with TextArea and DefaultText (Text shown in TextArea) in constructor
  */
-class TextAreaListener implements DropTargetListener, TextListener, FocusListener // , MouseListener
+class TextAreaListener implements DropTargetListener, TextListener, FocusListener
 {
-
     private final TextArea textArea;
     private final String defaultText;
     private final GenericDialogGUI gd;
@@ -626,16 +575,15 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
         new DropTarget(ta, this);
         ta.addTextListener(this);
         ta.addFocusListener(this);
-        // ta.addMouseListener(this);
     }
 
     @Override
-    public void dropActionChanged(DropTargetDragEvent dtde) {
-    }
+    public void dropActionChanged(DropTargetDragEvent dtde) {}
 
     @Override
     public void drop(DropTargetDropEvent event) {
         boolean failed = true;
+        boolean done = false;
         String filename;
 
         // Accept copy drops
@@ -652,24 +600,21 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 
             try {
                 // If the drop items are files
-                if (flavor.isFlavorJavaFileListType()) {
+                if (flavor.isFlavorJavaFileListType() && !done) {
                     // Get all of the dropped files
                     @SuppressWarnings("unchecked")
                     final
                     List<File> files = (List<File>) transferable.getTransferData(flavor);
-                    // Loop them through
                     for (final File file : files) {
                         filename = file.getPath();
                         textArea.setText(filename);
+                        textArea.validate();
 
-                        // IJ.open(filename);
-
-                        // Print out the file path
-                        System.out.println("File path is '" + filename + "'.");
                         failed = false;
+                        done = true;
                     }
                 }
-                else if (flavor.isRepresentationClassInputStream()) {
+                else if (flavor.isRepresentationClassInputStream() && !done) {
                     final JTextArea ta = new JTextArea();
                     ta.read(new InputStreamReader((InputStream) transferable.getTransferData(flavor)), "from system clipboard");
 
@@ -678,6 +623,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
                     String elem = "";
                     while (tokenizer.hasMoreElements()) {
                         elem = tokenizer.nextToken();
+                        System.out.println("ELELM: " + elem);
                         if (elem.startsWith("file")) {
                             break;
                         }
@@ -685,7 +631,6 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
                             elem = "";
                         }
                     }
-
                     textArea.setText(elem);
                     ta.setText(null);
                     break;
@@ -693,14 +638,12 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
 
             }
             catch (final Exception e) {
-                // Print out the error stack
                 e.printStackTrace();
             }
         }
 
         if (failed == true) {
             // This is for Linux, ( and maybe OSX )
-
             String data = null;
 
             DataFlavor nixFileDataFlavor;
@@ -726,9 +669,6 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
                 }
 
                 textArea.setText(token);
-
-                // Print out the file path
-                System.out.println("File path is '" + token + "'.");
             }
         }
 
@@ -737,21 +677,13 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
     }
 
     @Override
-    public void dragOver(DropTargetDragEvent dtde) {
-        System.out.println("dragOver " + dtde);
-    }
+    public void dragOver(DropTargetDragEvent dtde) {}
 
     @Override
-    public void dragExit(DropTargetEvent dte) {
-        System.out.println("dragExit " + dte);
-    }
+    public void dragExit(DropTargetEvent dte) {}
 
     @Override
-    public void dragEnter(DropTargetDragEvent dtde) {
-        System.out.println("dragEnter " + dtde);
-    }
-
-    // TextListener
+    public void dragEnter(DropTargetDragEvent dtde) {}
 
     @Override
     public void textValueChanged(TextEvent e) {
@@ -772,7 +704,6 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
                 gd.setInputImageChoiceEmpty();
             }
         }
-        // System.out.println("tf changed to: "+textArea.getText());
     }
 
     @Override
@@ -780,9 +711,6 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
         if (textArea.getText().equals(defaultText)) {
             // delete defaultText on focus gain to allow input
             textArea.setText("");
-        }
-        else {
-            // do nothing if text was edited
         }
     }
 
@@ -792,11 +720,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
             // there was no input. recover default text on focus lost
             textArea.setText(defaultText);
         }
-        else {
-            // do nothing if text was edited
-        }
     }
-
 }
 
 /**
@@ -827,58 +751,3 @@ class FileOpenerActionListener implements ActionListener {
     }
 }
 
-/**
- * MouseWheelListener for NumericField <br>
- * Value in NumericField grows/shrinks by factor fac per MouseWheel "click"
- * Field is assumed to be floating point.
- */
-class NumericFieldWheelListener implements MouseWheelListener {
-
-    private final double fac = 0.1;
-    private final TextField tf;
-
-    public NumericFieldWheelListener(TextField tf) {
-        this.tf = tf;
-    }
-
-    @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
-        int n = e.getWheelRotation();
-
-        boolean inc = false;
-        double f = 1.0;
-        if (n > 0) {
-            f = 1 - fac;
-        }
-        else {
-            f = 1 + fac;
-            inc = true;
-        }
-
-        n = Math.abs(n);
-
-        double val = Double.valueOf(tf.getText());
-
-        boolean isInteger = false;
-        if (val == Math.floor(val)) {
-            isInteger = true;
-        }
-
-        System.out.println(val);
-        for (int i = 0; i < n; i++) {
-            val *= f;
-        }
-        if (isInteger && !inc) {
-            val = Math.floor(val);
-        }
-        if (isInteger && inc) {
-            val = Math.ceil(val);
-        }
-        if (inc && val == 0) {
-            val = 1;
-        }
-        tf.setText(Double.toString(val));
-        System.out.println("wheeee " + val);
-    }
-
-}
