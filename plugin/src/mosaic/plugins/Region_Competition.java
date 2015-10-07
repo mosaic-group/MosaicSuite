@@ -813,13 +813,6 @@ public class Region_Competition implements Segmentation {
         initStack();
         initControls();
 
-        int n = 1;
-        if (userDialog != null) {
-            n = userDialog.getKBest();
-        }
-        if (n < 1) {
-            n = 1;
-        }
         final Timer t = new Timer();
 
         if (userDialog != null && userDialog.getKBest() > 0) {
@@ -845,13 +838,13 @@ public class Region_Competition implements Segmentation {
                 }
 
                 if (userDialog != null && output == null) {
-                    OpenedImages.add(labelImage.show("", algorithm.getBiggestLabel()));
+                    showFinalResult(labelImage);
                 }
             }
 
             logger.debug("--- kbest: (set in GenericDialogGui.kbest): " + Arrays.toString(list.toArray()));
             Collections.sort(list);
-            logger.debug("--- sorted: " + Arrays.toString(list.toArray()));
+            logger.debug("--- kbest sorted: " + Arrays.toString(list.toArray()));
 
         }
         else // no kbest

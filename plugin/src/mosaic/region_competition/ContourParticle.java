@@ -6,21 +6,19 @@ import java.util.List;
 
 import mosaic.core.utils.Point;
 
-
+/**
+ * Class representing countour particle. 
+ */
 public class ContourParticle {
-
-    boolean newlyCreated;
-
-    public int label = 0; // absLabel
+    // absolute label
+    public int label = 0;
     public float intensity = 0.0f;
-
     public int candidateLabel = 0;
     public double energyDifference = 0;
 
-    boolean isDaughter = false;
-    boolean isMother = false;
+    // mother - daughter indicator
+    boolean isMother = false; 
     int referenceCount = 0;
-
     boolean m_processed = false;
 
     private final List<Point> motherList = new LinkedList<Point>();
@@ -35,18 +33,20 @@ public class ContourParticle {
         return daughterList;
     }
 
-    List<Integer> getTestedList() {
-        return testedList;
-    }
-
     boolean hasLabelBeenTested(int aLabel) {
         return testedList.contains(aLabel);
     }
 
-    void setLabelHasBeenTested(int aLabel) {
+    void setTestedLabel(int aLabel) {
         testedList.add(aLabel);
     }
 
+    void clearLists() {
+        motherList.clear(); 
+        daughterList.clear();
+        testedList.clear();
+    }
+    
     @Override
     public String toString() {
         return "L=" + label + " val=" + intensity + " L'=" + candidateLabel;

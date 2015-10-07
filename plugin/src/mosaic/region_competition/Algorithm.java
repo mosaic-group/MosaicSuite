@@ -63,18 +63,18 @@ public class Algorithm {
     private TopologicalNumberImageFunction m_TopologicalNumberFunction;
 
     private class Seed {
-        private final Point iPoint;
+        private final Point iIndex;
         private final Integer iLabel;
         
-        protected Seed(Point aPoint, Integer aLabel) {iPoint = aPoint; iLabel = aLabel;}
-        protected Point getPoint() {return iPoint;}
+        protected Seed(Point aIndex, Integer aLabel) {iIndex = aIndex; iLabel = aLabel;}
+        protected Point getIndex() {return iIndex;}
         protected Integer getLabel() {return iLabel;}
        
         @Override
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + ((iPoint == null) ? 0 : iPoint.hashCode());
+            result = prime * result + ((iIndex == null) ? 0 : iIndex.hashCode());
             result = prime * result + ((iLabel == null) ? 0 : iLabel.hashCode());
             return result;
         }
@@ -87,8 +87,8 @@ public class Algorithm {
             Seed other = (Seed) obj;
             if (iLabel == null && other.iLabel != null) return false;
             else if (!iLabel.equals(other.iLabel)) return false;
-            if (iPoint == null && other.iPoint != null) return false;
-            else if (!iPoint.equals(other.iPoint)) return false;
+            if (iIndex == null && other.iIndex != null) return false;
+            else if (!iIndex.equals(other.iIndex)) return false;
             return true;
         }     
     }
@@ -629,7 +629,7 @@ public class Algorithm {
         boolean vMerge = false;
         
         for (final Seed vSeedIt : m_Seeds) {
-            RelabelRegionsAfterSplit(labelImage, vSeedIt.getPoint(), vSeedIt.getLabel());
+            RelabelRegionsAfterSplit(labelImage, vSeedIt.getIndex(), vSeedIt.getLabel());
             vSplit = true;
         }
 
@@ -723,13 +723,10 @@ public class Algorithm {
             vVal.candidateLabel = 0;
             vVal.referenceCount = 0; // doesn't matter for the BG
             vVal.isMother = true;
-            vVal.isDaughter = false;
             vVal.m_processed = false;
             vVal.energyDifference = CalculateEnergyDifferenceForLabel(vCurrentIndex, vVal, bgLabel).energyDifference;
-            vVal.getMotherList().clear(); // this is indeed necessary!
-            vVal.getDaughterList().clear(); // this is necessary!!
-            vVal.getTestedList().clear();
-            vVal.setLabelHasBeenTested(bgLabel);
+            vVal.clearLists();
+            vVal.setTestedLabel(bgLabel);
 
             aReturnContainer.put(vCurrentIndex, vVal);
         }
@@ -748,8 +745,6 @@ public class Algorithm {
 
             final Point vCurrentIndex = vPointIterator.getKey();
             final ContourParticle vVal = vPointIterator.getValue();
-
-            vVal.newlyCreated = false;
 
             final int vLabelOfPropagatingRegion = vVal.label;
             // vLabelImageIterator.SetLocation(vCurrentIndex);
@@ -777,19 +772,14 @@ public class Algorithm {
                         // has not been part of the contour so far.
 
                         final ContourParticle vOCCValue = new ContourParticle();
-                        // itk commented //
-                        // vOCCValue.m_candidates.insert(vCandidateElement);
-                        vOCCValue.newlyCreated = true;
-
                         vOCCValue.candidateLabel = vLabelOfPropagatingRegion;
                         vOCCValue.label = vLabelOfDefender;
                         vOCCValue.intensity = intensityImage.get(vNeighborIndex);
-                        vOCCValue.isDaughter = true;
                         vOCCValue.isMother = false;
                         vOCCValue.m_processed = false;
                         vOCCValue.referenceCount = 1;
                         vOCCValue.energyDifference = CalculateEnergyDifferenceForLabel(vNeighborIndex, vOCCValue, vLabelOfPropagatingRegion).energyDifference;
-                        vOCCValue.setLabelHasBeenTested(vLabelOfPropagatingRegion);
+                        vOCCValue.setTestedLabel(vLabelOfPropagatingRegion);
                         // Tell the daughter about the mother:
                         vOCCValue.getMotherList().add(vCurrentIndex);
 
@@ -798,7 +788,7 @@ public class Algorithm {
                     }
                     else // / the point is already part of the candidate list
                     {
-                        vContourPointItr.isDaughter = true;
+                        vContourPointItr.isMother = false;
                         // / Tell the daughter about the mother (label does not
                         // matter!):
                         vContourPointItr.getMotherList().add(vCurrentIndex);
@@ -807,7 +797,7 @@ public class Algorithm {
                         // label
                         // / has not yet been calculated.
                         if (!vContourPointItr.hasLabelBeenTested((vLabelOfPropagatingRegion))) {
-                            vContourPointItr.setLabelHasBeenTested(vLabelOfPropagatingRegion);
+                            vContourPointItr.setTestedLabel(vLabelOfPropagatingRegion);
 
                             final EnergyResult energyAndMerge = CalculateEnergyDifferenceForLabel(vNeighborIndex, vContourPointItr, vLabelOfPropagatingRegion);
 
@@ -908,7 +898,7 @@ public class Algorithm {
                  * Build the dependency network for this seed point:
                  */
                 final Stack<Point> vIndicesToVisit = new Stack<Point>();
-                final List<ContourPointWithIndexType> vSortedNetworkMembers = new LinkedList<ContourPointWithIndexType>();
+                final List<ContourParticleWithIndexType> vSortedNetworkMembers = new LinkedList<ContourParticleWithIndexType>();
                 vIndicesToVisit.push(pIndex);
                 p.m_processed = true;
 
@@ -917,7 +907,7 @@ public class Algorithm {
                     final ContourParticle vCurrentMother = m_Candidates.get(vSeedIndex);
 
                     // / Add the seed point to the network
-                    final ContourPointWithIndexType vSeedContourPointWithIndex = new ContourPointWithIndexType(vSeedIndex, vCurrentMother);
+                    final ContourParticleWithIndexType vSeedContourPointWithIndex = new ContourParticleWithIndexType(vSeedIndex, vCurrentMother);
                     vSortedNetworkMembers.add(vSeedContourPointWithIndex);
 
                     // Iterate all children of the seed, push to the stack if
@@ -939,7 +929,7 @@ public class Algorithm {
                                 vIndicesToVisit.push(vDaughterContourIndex);
                             }
                             else {
-                                final ContourPointWithIndexType vDaughterContourPointWithIndex = new ContourPointWithIndexType(vDaughterContourIndex, vDaughterContourPoint);
+                                final ContourParticleWithIndexType vDaughterContourPointWithIndex = new ContourParticleWithIndexType(vDaughterContourIndex, vDaughterContourPoint);
                                 vSortedNetworkMembers.add(vDaughterContourPointWithIndex);
                             }
 
@@ -976,7 +966,7 @@ public class Algorithm {
                 // TODO HashSet problem (maybe need hashmap)
                 final HashSet<Point> vSelectedCandidateIndices = new HashSet<Point>();
 
-                for (final ContourPointWithIndexType vNetworkIt : vSortedNetworkMembers) {
+                for (final ContourParticleWithIndexType vNetworkIt : vSortedNetworkMembers) {
 
                     // / If a mother is accepted, the reference count of all the
                     // / daughters (with the same label) has to be decreased.
@@ -996,8 +986,8 @@ public class Algorithm {
                     // / RULE 1: If c is a daughter point, the reference count
                     // r_c is > 0.
                     // /
-                    if (vNetworkIt.p.isDaughter) {
-                        final ContourParticle vCand = m_Candidates.get(vNetworkIt.pIndex);
+                    if (!vNetworkIt.iParticle.isMother) {
+                        final ContourParticle vCand = m_Candidates.get(vNetworkIt.iParticleIndex);
                         if (vCand.referenceCount < 1 && vCand.candidateLabel != 0) {
                             vLegalMove = false;
                         }
@@ -1013,13 +1003,13 @@ public class Algorithm {
                     // / holes in the FG region).
                     // /
 
-                    if (vLegalMove && vNetworkIt.p.isMother) {
+                    if (vLegalMove && vNetworkIt.iParticle.isMother) {
                         // / Iterate the daughters and check their reference
                         // count
 
                         boolean vRule3Fulfilled = false;
 
-                        for (final Point vDaughterIndicesIterator : vNetworkIt.p.getDaughterList()) {
+                        for (final Point vDaughterIndicesIterator : vNetworkIt.iParticle.getDaughterList()) {
                             final ContourParticle vDaughterPoint = m_Candidates.get(vDaughterIndicesIterator);
 
                             // / rule 2:
@@ -1029,7 +1019,7 @@ public class Algorithm {
                                 // / This daughter has been accepted
                                 // / and needs a reference count > 1,
                                 // / else the move is invalid.
-                                if (vDaughterPoint.candidateLabel == vNetworkIt.p.label && vDaughterPoint.referenceCount <= 1) {
+                                if (vDaughterPoint.candidateLabel == vNetworkIt.iParticle.label && vDaughterPoint.referenceCount <= 1) {
                                     vLegalMove = false;
                                     break;
                                 }
@@ -1047,7 +1037,7 @@ public class Algorithm {
                                     // / the daughter has been accepted, but may
                                     // / have another candidate label(rule 3b):
 
-                                    if (m_Candidates.get(vDaughterIndicesIterator).candidateLabel != vNetworkIt.p.label) {
+                                    if (m_Candidates.get(vDaughterIndicesIterator).candidateLabel != vNetworkIt.iParticle.label) {
                                         vRule3Fulfilled = true;
                                     }
                                 }
@@ -1062,24 +1052,24 @@ public class Algorithm {
                     if (vLegalMove) {
                         // / the move is legal, store the index in the container
                         // / with accepted candidates of this network.
-                        vSelectedCandidateIndices.add(vNetworkIt.pIndex);
+                        vSelectedCandidateIndices.add(vNetworkIt.iParticleIndex);
 
                         // / also store the candidate in the global candidate
                         // index container:
                         // TODO used nowhere
-                        vLegalIndices.add(vNetworkIt.pIndex);
+                        vLegalIndices.add(vNetworkIt.iParticleIndex);
 
                         // / decrease the references of its daughters(with the
                         // same 'old' label).
-                        for (final Point vDaughterIndicesIterator : vNetworkIt.p.getDaughterList()) {
+                        for (final Point vDaughterIndicesIterator : vNetworkIt.iParticle.getDaughterList()) {
                             final ContourParticle vDaughterPoint = m_Candidates.get(vDaughterIndicesIterator);
-                            if (vDaughterPoint.candidateLabel == vNetworkIt.p.label) {
+                            if (vDaughterPoint.candidateLabel == vNetworkIt.iParticle.label) {
                                 vDaughterPoint.referenceCount--;
                             }
                         }
                     }
                     else {
-                        vIllegalIndices.add(vNetworkIt.pIndex);
+                        vIllegalIndices.add(vNetworkIt.iParticleIndex);
                     }
                 }
             }
@@ -1391,10 +1381,10 @@ public class Algorithm {
 
         // Copy the candidates to a set (of ContourPointWithIndex). This
         // will sort them according to their energy gradients.
-        final List<ContourPointWithIndexType> vSortedList = new LinkedList<ContourPointWithIndexType>();
+        final List<ContourParticleWithIndexType> vSortedList = new LinkedList<ContourParticleWithIndexType>();
 
         for (final Entry<Point, ContourParticle> vPointIterator : aContainer.entrySet()) {
-            final ContourPointWithIndexType vCand = new ContourPointWithIndexType(vPointIterator.getKey(), vPointIterator.getValue());
+            final ContourParticleWithIndexType vCand = new ContourParticleWithIndexType(vPointIterator.getKey(), vPointIterator.getValue());
             vSortedList.add(vCand);
         }
 
@@ -1408,7 +1398,7 @@ public class Algorithm {
         // / all inserted points before.
         aContainer.clear();
 
-        for (final ContourPointWithIndexType vSortedListIterator : vSortedList) {
+        for (final ContourParticleWithIndexType vSortedListIterator : vSortedList) {
             if (!(vNbElements >= 1)) {
                 break;
             }
@@ -1423,7 +1413,7 @@ public class Algorithm {
             if (vValid) {
                 // / This candidate passed the test and is added to the
                 // TempRemoveCotainer:
-                aContainer.put(vSortedListIterator.pIndex, vSortedListIterator.p);
+                aContainer.put(vSortedListIterator.iParticleIndex, vSortedListIterator.iParticle);
             }
         }
     }
