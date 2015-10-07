@@ -14,8 +14,10 @@ import java.util.Vector;
 
 import ij.IJ;
 import ij.ImagePlus;
+import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.utils.Connectivity;
+import mosaic.core.utils.FloodFill;
 import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.Point;
@@ -28,7 +30,6 @@ import mosaic.region_competition.energies.OscillationDetection;
 import mosaic.region_competition.energies.OscillationDetection2;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction.TopologicalNumberResult;
-import mosaic.region_competition.utils.Pair;
 import mosaic.region_competition.utils.Timer;
 import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
@@ -40,20 +41,14 @@ public class Algorithm {
     private boolean shrinkFirst = false;
 
     private final Region_Competition MVC;
-    /** interface to image program */
     private final LabelImageRC labelImage;
     private final IntensityImage intensityImage;
     private final ImageModel imageModel;
-
-    // labelImage
     private final IndexIterator iterator; // iterates over the labelImage
 
     private final int bgLabel;
     private final int forbiddenLabel;
-
     private LabelDispenser labelDispenser;
-
-    // data structures
 
     /** stores the contour particles. access via coordinates */
     HashMap<Point, ContourParticle> m_InnerContourContainer;
@@ -62,23 +57,44 @@ public class Algorithm {
     /** Maps the label(-number) to the information of a label */
     final HashMap<Integer, LabelInformation> labelMap;
 
-    /** Deconvolution Image **/
     private HashMap<Point, LabelPair> m_CompetingRegionsMap;
-
     private final Connectivity connFG;
     private final Connectivity connBG;
     private TopologicalNumberImageFunction m_TopologicalNumberFunction;
-    private ForestFire forestFire;
 
-    private final Set<Pair<Point, Integer>> m_Seeds = new HashSet<Pair<Point, Integer>>();
+    private class Seed {
+        private final Point iPoint;
+        private final Integer iLabel;
+        
+        protected Seed(Point aPoint, Integer aLabel) {iPoint = aPoint; iLabel = aLabel;}
+        protected Point getPoint() {return iPoint;}
+        protected Integer getLabel() {return iLabel;}
+       
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((iPoint == null) ? 0 : iPoint.hashCode());
+            result = prime * result + ((iLabel == null) ? 0 : iLabel.hashCode());
+            return result;
+        }
+        
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            Seed other = (Seed) obj;
+            if (iLabel == null && other.iLabel != null) return false;
+            else if (!iLabel.equals(other.iLabel)) return false;
+            if (iPoint == null && other.iPoint != null) return false;
+            else if (!iPoint.equals(other.iPoint)) return false;
+            return true;
+        }     
+    }
+    private final Set<Seed> m_Seeds = new HashSet<Seed>();
 
-    /**
-     * creates a new LabelImage with size of ip
-     *
-     * @param proc is saved as originalIP
-     */
     public Algorithm(IntensityImage intensityImage, LabelImageRC labelImage, ImageModel model, Settings settings, Region_Competition mvc) {
-
         if (shrinkFirst) {
             IJ.showMessage("shrinkfirst=true");
         }
@@ -87,26 +103,19 @@ public class Algorithm {
         this.labelImage = labelImage;
         this.intensityImage = intensityImage;
         this.imageModel = model;
-
         this.settings = settings;
 
         bgLabel = labelImage.bgLabel;
         forbiddenLabel = labelImage.forbiddenLabel;
-
         iterator = labelImage.iterator;
-
         connFG = labelImage.getConnFG();
         connBG = labelImage.getConnBG();
-
         labelMap = labelImage.getLabelMap();
 
         initMembers();
-
         labelImage.initBoundary();
         initContour();
     }
-
-    // ////////////////////////////////////////////////
 
     private final Settings settings;
 
@@ -127,22 +136,12 @@ public class Algorithm {
     // ///////////////////////////////////////////////////
 
     private void initMembers() {
-        // m_MergingHist = new LinkedList<Integer>();
-        // m_FramesHist = new LinkedList<Integer>();
-
         m_InnerContourContainer = new HashMap<Point, ContourParticle>();
         m_Candidates = new HashMap<Point, ContourParticle>();
-        // labelMap = new HashMap<Integer, LabelInformation>();
         m_CompetingRegionsMap = new HashMap<Point, LabelPair>();
 
         m_TopologicalNumberFunction = new TopologicalNumberImageFunction(labelImage, connFG, connBG);
-        forestFire = new ForestFire(this, labelImage, intensityImage);
-
-        // TODO half dummy
         m_EnergyFunctional = settings.m_EnergyFunctional;
-        // END half dummy
-
-        // m_OscillationHistoryLength = settings.m_OscillationHistoryLength;
         oscillationDetection = new OscillationDetection2(this, settings);
 
         m_iteration_counter = 0;
@@ -164,7 +163,6 @@ public class Algorithm {
         for (final int i : iterator.getIndexIterable()) {
             final int label = labelImage.getLabelAbs(i);
             if (label != bgLabel && label != forbiddenLabel) // region pixel
-            // && label<negOfs
             {
                 final Point p = iterator.indexToPoint(i);
                 for (final Point neighbor : conn.iterateNeighbors(p)) {
@@ -178,8 +176,7 @@ public class Algorithm {
                         break;
                     }
                 }
-
-            } // if region pixel
+            }
         }
 
         // set contour to -label
@@ -192,7 +189,6 @@ public class Algorithm {
     }
 
     private void clearStats() {
-        // clear stats
         for (final LabelInformation stat : labelMap.values()) {
             stat.reset();
         }
@@ -211,9 +207,6 @@ public class Algorithm {
 
         final int size = iterator.getSize();
         for (int i = 0; i < size; i++) {
-            // int label = get(x, y);
-            // int absLabel = labelToAbs(label);
-
             final int absLabel = labelImage.getLabelAbs(i);
 
             if (absLabel != forbiddenLabel /* && absLabel != bgLabel */) {
@@ -230,14 +223,12 @@ public class Algorithm {
                 final double val = intensityImage.get(i);
                 stats.count++;
 
-                stats.mean += val; // only sum up, mean and var are computed
-                // below
+                stats.mean += val; // only sum up, mean and var are computed below
                 stats.var = (stats.var + val * val);
             }
         }
 
         // if background label do not exist add it
-
         LabelInformation stats = labelMap.get(0);
         if (stats == null) {
             stats = new LabelInformation(0, labelImage.getDim());
@@ -251,7 +242,6 @@ public class Algorithm {
             if (n > 1) {
                 final double var = (stat.var - stat.mean * stat.mean / n) / (n - 1);
                 stat.var = (var);
-                // stat.var = (stat.var - stat.mean*stat.mean / n) / (n-1);
             }
             else {
                 stat.var = 0;
@@ -265,7 +255,6 @@ public class Algorithm {
             }
 
             // Median on start set equal to mean
-
             stat.median = stat.mean;
         }
 
@@ -445,7 +434,6 @@ public class Algorithm {
     private boolean IterateContourContainerAndAdd() {
         m_Candidates.clear();
         m_Seeds.clear();
-
         // Convergence is set to false if a point moved
         boolean convergence;
 
@@ -607,7 +595,6 @@ public class Algorithm {
             }
 
             if (!vValidPoint) {
-                // m_Candidates.erase(vStoreIt);
                 vPointIterator.remove();
             }
 
@@ -623,55 +610,26 @@ public class Algorithm {
 
                 if (e.getValue().m_processed) {
                     RegisterSeedsAfterSplit(vCurrentIndex, vCurrentLabel, m_Candidates);
-                    final boolean wasContained = m_Seeds.remove(new Pair<Point, Integer>(vCurrentIndex, vCurrentLabel));
+                    Seed seed = new Seed(vCurrentIndex, vCurrentLabel);
+                    final boolean wasContained = m_Seeds.remove(seed);
                     if (!wasContained) {
                         throw new RuntimeException("no seed in set");
                     }
                 }
             }
 
-            // / safely remove the last element BEFORE the iterator
-            // m_Candidates.erase(vStoreIt);
-            // vPointIterator.remove();
-            // m_Candidates.remove(vCurrentIndex);
             if (m_Candidates.containsKey(vCurrentIndex)) {
                 vPointIterator.remove();
             }
 
-        } // while (vPointIterator.hasNext())
-
-        // / Now we filtered non valid points and collected the seeds for
-        // / relabeling. All moves remaining in the candidate list can now
-        // / be performed.
-
-        // displaySlice("pre ChangeContourPointLabelToCandidateLabel");
-        //
-        // for (Entry<Point, ContourParticle> entry : m_Candidates.entrySet())
-        // {
-        // ChangeContourPointLabelToCandidateLabel(entry);
-        // vConvergence = false;
-        // }
-
-        // displaySlice("post ChangeContourPointLabelToCandidateLabel");
+        } 
 
         // / Perform relabeling of the regions that did a split:
         boolean vSplit = false;
         boolean vMerge = false;
-
-        // debug seeds
-        // if (vSeeds.size()>0)
-        // {
-        // //TODO seed output == debugging
-        // debug("Seed points:");
-        // for (Pair<Point, Integer> vSeedIt : vSeeds)
-        // {
-        // debug(" "+vSeedIt.first+" label="+vSeedIt.second);
-        // }
-        // debug("End Seed points:");
-        // }
-
-        for (final Pair<Point, Integer> vSeedIt : m_Seeds) {
-            RelabelRegionsAfterSplit(labelImage, vSeedIt.first, vSeedIt.second);
+        
+        for (final Seed vSeedIt : m_Seeds) {
+            RelabelRegionsAfterSplit(labelImage, vSeedIt.getPoint(), vSeedIt.getLabel());
             vSplit = true;
         }
 
@@ -681,38 +639,24 @@ public class Algorithm {
             final Set<Integer> vCheckedLabels = new HashSet<Integer>();
 
             for (final Entry<Point, LabelPair> vCRit : m_CompetingRegionsMap.entrySet()) {
-                // Entry<Point, Pair<Integer, Integer>>
-                // vCRit=competingRegions[i];
-
                 final Point idx = vCRit.getKey();
                 final LabelPair labels = vCRit.getValue();
 
                 final int vLabel1 = labels.first;
                 final int vLabel2 = labels.second;
 
-                // m_MergingHist.add(m_iteration_counter);
-                // m_MergingHist.add(vLabel1);
-                // m_MergingHist.add(vLabel2);
-
                 if (vCheckedLabels.contains(vLabel1) || vCheckedLabels.contains(vLabel2)) {
-                    // do nothing, since this label was already in a
-                    // fusion-chain
+                    // do nothing, since this label was already in a fusion-chain
                 }
                 else {
-                    // vCheckedLabels.clear(); //TODO WEGWEGWEG
                     RelabelRegionsAfterFusion(labelImage, idx, vLabel1, vCheckedLabels);
                 }
                 vMerge = true;
             }
-            // debug("merged " + m_MergingHist.size()+ " region pairs.");
         }
 
         if (vSplit || vMerge) {
             if (m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
-                // TODO: this can be removed when the statistics are updated
-                // using
-                // seeds and flood fill iteartors.
-                // TODO sts
                 ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage);
             }
         }
@@ -726,10 +670,8 @@ public class Algorithm {
             final int vLabel = labelImage.getLabelAbs(vSeedIndex);
 
             if (vLabel == aLabel) {
-                final Pair<Point, Integer> vSeed = new Pair<Point, Integer>(vSeedIndex, vLabel);
-
+                final Seed vSeed = new Seed(vSeedIndex, vLabel);
                 m_Seeds.add(vSeed);
-
                 // / At the position where we put the seed, inform the particle
                 // / that it has to inform its neighbor in case it moves (if
                 // there
@@ -784,32 +726,15 @@ public class Algorithm {
             vVal.isDaughter = false;
             vVal.m_processed = false;
             vVal.energyDifference = CalculateEnergyDifferenceForLabel(vCurrentIndex, vVal, bgLabel).energyDifference;
-            // System.out.println("vVal.energyDifference "+vVal.energyDifference);
             vVal.getMotherList().clear(); // this is indeed necessary!
             vVal.getDaughterList().clear(); // this is necessary!!
             vVal.getTestedList().clear();
             vVal.setLabelHasBeenTested(bgLabel);
 
-            if (vVal.newlyCreated) {
-                // this point was created in the last iteration, don't delete it
-                // in this one.
-                // if balloon force is set, created pixels tend to disappear
-                // again.
-                // (balloon force boosts particles toward BG - without balloon
-                // force,
-                // deleting them again may be the move with the lowest energy)
-                // so let them at least one round to allow merging
-                // (if "delete" is the best energy, it will not merge)
-
-                // vVal.energyDifference = Short.MAX_VALUE;
-            }
-
             aReturnContainer.put(vCurrentIndex, vVal);
         }
 
         if (shrinkFirst) {
-            // WriteContourPointContainer("contourPointsAfterEnergyCheck.txt",
-            // vAllCandidates);
             return;
         }
 
@@ -845,15 +770,6 @@ public class Algorithm {
                     // TODO senseless lookup? use vVal instead of
                     // aReturnContainer.get(vCurrentIndex)
                     aReturnContainer.get(vCurrentIndex).getDaughterList().add(vNeighborIndex);
-
-                    // TODO test only
-                    // ContourParticle testtest =
-                    // aReturnContainer.get(vCurrentIndex);
-                    // if (testtest!=vVal)
-                    // {
-                    // System.out.println("Algorithm.RebuildCandidateList()");
-                    // throw new RuntimeException("doch kein sinnloser lookup");
-                    // }
 
                     final ContourParticle vContourPointItr = aReturnContainer.get(vNeighborIndex);
                     if (vContourPointItr == null) {
@@ -1231,7 +1147,6 @@ public class Algorithm {
         // / STATISTICS UPDATE
         // / Update the statistics of the propagating and the loser region.
         // /
-
         if (RC_free == false) {
             UpdateStatisticsWhenJump(aParticle, vFromLabel, vToLabel);
         }
@@ -1256,11 +1171,9 @@ public class Algorithm {
         }
 
         // /
-        // / Erase the point from the surface container in case it now belongs
-        // to
+        // / Erase the point from the surface container in case it now belongs to
         // / the background. Else, add the point to the container (or replace it
         // / in case it has been there already).
-        // /
         if (vToLabel == bgLabel) {
             m_InnerContourContainer.remove(vCurrentIndex);
         }
@@ -1278,9 +1191,8 @@ public class Algorithm {
             m_InnerContourContainer.put(vCurrentIndex, vContourPoint);
         }
 
-        // / Remove 'enclosed' contour points from the container. For the BG
-        // this
-        // / makes no sense.
+        // Remove 'enclosed' contour points from the container. For the BG
+        // this makes no sense.
         if (vToLabel != bgLabel) {
             MaintainNeighborsAtAdd(vToLabel, vCurrentIndex);
         }
@@ -1298,15 +1210,7 @@ public class Algorithm {
      * @param aAbsLabel old label of this point
      */
     private void AddNeighborsAtRemove(int aAbsLabel, Point pIndex) {
-
-        // TODO dummy
-        final Connectivity conn = connFG;
-        // END dummy
-
-        // TODO statistic update?
-
-        // ContourParticle p = m_InnerContourContainer.get(pIndex);
-        for (final Point qIndex : conn.iterateNeighbors(pIndex)) {
+        for (final Point qIndex : connFG.iterateNeighbors(pIndex)) {
             final int qLabel = labelImage.getLabel(qIndex);
 
             // TODO can the labels be negative? somewhere, they are set (maybe
@@ -1317,15 +1221,8 @@ public class Algorithm {
                 dummy = dummy + 0;
             }
 
-            if (labelImage.isInnerLabel(qLabel) && qLabel == aAbsLabel) // q is
-            // a
-            // inner
-            // point
-            // with
-            // the
-            // same
-            // label
-            // as p
+            // q is a inner point with the same label as p
+            if (labelImage.isInnerLabel(qLabel) && qLabel == aAbsLabel) 
             {
                 final ContourParticle q = new ContourParticle();
                 q.label = aAbsLabel;
@@ -1336,16 +1233,11 @@ public class Algorithm {
                 m_InnerContourContainer.put(qIndex, q);
             }
             // TODO this never can be true
-            // (since isContourLabel==> neg values AND (qLabel == aAbsLabel) =>
-            // pos labels
-            else if (labelImage.isContourLabel(qLabel) && qLabel == aAbsLabel) // q
-            // is
-            // contour
-            // of
-            // the
-            // same
-            // label
+            // (since isContourLabel==> neg values AND (qLabel == aAbsLabel) => pos labels
+            else if (labelImage.isContourLabel(qLabel) && qLabel == aAbsLabel) 
             {
+                // q is contour of the same label
+
                 // TODO itk Line 1520, modifiedcounter
                 // / the point is already in the contour. We reactivate it by
                 // / ensuring that the energy is calculated in the next
@@ -1403,20 +1295,12 @@ public class Algorithm {
      * a region that was split by another region (maybe BG region).
      */
     private void RelabelRegionsAfterSplit(LabelImageRC aLabelImage, Point aIndex, int aLabel) {
-        // debug("Split at " + aIndex.toString() + " of label " + aLabel);
-        // MVC.selectPoint(aIndex);
-        // template <class TInputImage, class TInitImage, class TOutputImage >
         if (aLabelImage.getLabelAbs(aIndex) == aLabel) {
             final BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
             vMultiThsFunction.AddThresholdBetween(aLabel, aLabel);
             final int negLabel = aLabelImage.labelToNeg(aLabel);
             vMultiThsFunction.AddThresholdBetween(negLabel, negLabel);
-
-            // ForestFire(aLabelImage, aIndex, vMultiThsFunction,
-            // m_MaxNLabels++);
-            // ForestFire(aLabelImage, aIndex, vMultiThsFunction,
-            // labelDispenser.getNewLabel());
-            forestFire.fire(aIndex, labelDispenser.getNewLabel(), vMultiThsFunction);
+            fire(aIndex, labelDispenser.getNewLabel(), vMultiThsFunction);
         }
     }
 
@@ -1426,7 +1310,6 @@ public class Algorithm {
     // / Relabel2AdjacentRegionsAfterToplogicalChange expects the label image to
     // / be updated already: both methods are connected via the seedpoint. This
     // / method may be used to fuse 2 regions in the region competition mode.
-
     private void RelabelRegionsAfterFusion(LabelImageRC aLabelImage, Point aIndex, int aL1, Set<Integer> aCheckedLabels) {
 
         final BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
@@ -1462,34 +1345,26 @@ public class Algorithm {
             }
         }
         if (vMultiThsFunction.EvaluateAtIndex(aIndex)) {
-            forestFire.fire(aIndex, labelDispenser.getNewLabel(), vMultiThsFunction);
+            fire(aIndex, labelDispenser.getNewLabel(), vMultiThsFunction);
         }
 
     }
 
     private void RemoveSinglePointRegions() {
 
-        // TODO: here we go first through contour points to find different
-        // labels
+        // TODO: here we go first through contour points to find different labels
         // and then checking for labelInfo.count==1.
-        // instead, we could iterate over all labels (fewer labels than contour
-        // points),
+        // instead, we could iterate over all labels (fewer labels than contour points),
         // detecting if one with count==1 exists, and only IFF one such label
         // exists searching for the point.
-        // but atm, im happy that it detects "orphan"-contourPoints (without
-        // attached labelInfo)
+        // but atm, im happy that it detects "orphan"-contourPoints (without attached labelInfo)
 
         final Object[] copy = m_InnerContourContainer.entrySet().toArray();
         for (final Object o : copy)
-        // for (Entry<Point, ContourParticle> vIt : copy)
         {
             @SuppressWarnings("unchecked")
-            final
-            Entry<Point, ContourParticle> vIt = (Entry<Point, ContourParticle>) o;
-
+            final Entry<Point, ContourParticle> vIt = (Entry<Point, ContourParticle>) o;
             final ContourParticle vWorkingIt = vIt.getValue();
-            // if (m_Count[vWorkingIt->second.m_label] == 1) {
-
             final LabelInformation info = labelMap.get(vWorkingIt.label);
             if (info == null) {
                 debug("***info is null for: " + vIt.getKey());
@@ -1713,7 +1588,6 @@ public class Algorithm {
     /**
      * Close all created images
      */
-
     public void close() {
         for (int i = 0; i < OpenedImages.size(); i++) {
             OpenedImages.get(i).close();
@@ -1748,6 +1622,70 @@ public class Algorithm {
 
     public HashMap<Integer, LabelInformation> getLabelMap() {
         return labelMap;
+    }
+    
+    private void fire(Point aIndex, int aNewLabel, BinarizedImage aMultiThsFunctionPtr) {
+        final Set<Integer> vVisitedOldLabels = new HashSet<Integer>();
+        final FloodFill ff = new FloodFill(labelImage.getConnFG(), aMultiThsFunctionPtr, aIndex);
+        final Iterator<Point> vLit = ff.iterator();
+        final Set<Point> vSetOfAncientContourIndices = new HashSet<Point>();
+
+        double vSum = 0;
+        double vSqSum = 0;
+        int vN = 0;
+
+        while (vLit.hasNext()) {
+            final Point vCurrentIndex = vLit.next();
+            final int vLabelValue = labelImage.getLabel(vCurrentIndex);
+            final int absLabel = labelImage.labelToAbs(vLabelValue);
+            final float vImageValue = intensityImage.get(vCurrentIndex);
+
+            // the visited labels statistics will be removed later.
+            vVisitedOldLabels.add(absLabel);
+
+            labelImage.setLabel(vCurrentIndex, aNewLabel);
+
+            if (labelImage.isContourLabel(vLabelValue)) {
+                vSetOfAncientContourIndices.add(vCurrentIndex);
+            }
+
+            vN++;
+            vSum += vImageValue;
+            vSqSum += vImageValue * vImageValue;
+
+        }
+
+        // / Delete the contour points that are not needed anymore:
+        for (final Point vCurrentCIndex : vSetOfAncientContourIndices) {
+            if (labelImage.isBoundaryPoint(vCurrentCIndex)) {
+                final ContourParticle vPoint = m_InnerContourContainer.get(vCurrentCIndex);
+                vPoint.label = aNewLabel;
+                labelImage.setLabel(vCurrentCIndex, labelImage.labelToNeg(aNewLabel));
+            }
+            else {
+                m_InnerContourContainer.remove(vCurrentCIndex);
+            }
+        }
+
+        // / Store the statistics of the new region (the vectors will
+        // / store more and more trash of old regions).
+        final double vN_ = vN;
+
+        // create a labelInformation for the new label, add to container
+        final LabelInformation newLabelInformation = new LabelInformation(aNewLabel, labelImage.getDim());
+        labelMap.put(aNewLabel, newLabelInformation);
+
+        newLabelInformation.mean = vSum / vN_;
+        final double var = (vN_ > 1) ? (vSqSum - vSum * vSum / vN_) / (vN_ - 1) : 0;
+        newLabelInformation.var = (var);
+        newLabelInformation.count = vN;
+
+        // Clean up the statistics of non valid regions.
+        for (final int vVisitedIt : vVisitedOldLabels) {
+            FreeLabelStatistics(vVisitedIt);
+        }
+
+        CleanUp();
     }
 
 }

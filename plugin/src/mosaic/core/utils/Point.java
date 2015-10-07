@@ -9,7 +9,6 @@ import java.util.Arrays;
  *
  * @author Stephan Seemmler & Pietro Incardona
  */
-
 public class Point {
 
     public int x[];
@@ -20,8 +19,7 @@ public class Point {
         this.x = new int[dim];
     }
 
-    public Point() {
-    }
+    private Point() {}
 
     /**
      * Constructs a Point by copying a Point
@@ -116,7 +114,6 @@ public class Point {
      * @param p
      * @return
      */
-
     public double distance(Point p) {
         double ret = 0.0;
         for (int i = 0; i < dim; i++) {
@@ -131,7 +128,6 @@ public class Point {
      * @param p Point to add
      * @return return the new Point
      */
-
     public Point add(Point p) {
         final Point result = new Point(dim);
         for (int i = 0; i < dim; i++) {
@@ -146,7 +142,6 @@ public class Point {
      * @param p Point to subtract
      * @return
      */
-
     public Point sub(Point p) {
         final Point result = new Point(dim);
         for (int i = 0; i < dim; i++) {
@@ -161,7 +156,6 @@ public class Point {
      * @param f factor
      * @return the new Point
      */
-
     public Point mult(int f) {
         final Point result = new Point(dim);
         for (int i = 0; i < dim; i++) {
@@ -224,39 +218,13 @@ public class Point {
     }
 
     /**
-     * Check if two points are equals
-     *
-     * @return true if they are equal false otherwise
-     */
-    @Override
-    public boolean equals(Object o) {
-        return Arrays.equals(x, ((Point) o).x);
-    }
-
-    /**
      * Clone the point
      *
      * @return the new point
      */
-
     @Override
     protected Object clone() throws CloneNotSupportedException {
         return new Point(this.x);
-    }
-
-    /**
-     * Hashing
-     *
-     * @return integer
-     */
-
-    @Override
-    public int hashCode() {
-        int sum = 0;
-        for (int i = 0; i < dim; i++) {
-            sum = sum * 1024 + x[i];
-        }
-        return sum;
     }
 
     /**
@@ -264,8 +232,27 @@ public class Point {
      *
      * @return space size
      */
-
     public int getDimension() {
         return dim;
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + dim;
+        result = prime * result + Arrays.hashCode(x);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        Point other = (Point) obj;
+        if (dim != other.dim) return false;
+        if (!Arrays.equals(x, other.x)) return false;
+        return true;
+    } 
 }
