@@ -14,33 +14,54 @@ import mosaic.region_competition.Algorithm;
 
 /**
  * Class that control the algorithm, you can stop or put on pause the algorithm
- *
  * @author Stephan Seemler
  */
-
 public class ControllerFrame extends JFrame {
-
     private static final long serialVersionUID = -2978938221002810146L;
 
-    protected final Region_Competition MVC;
-    // Algorithm algorithm;
+    public ControllerFrame(final Region_Competition aMVC) {
+        JPanel panel = new JPanel();
+        panel.add(addPauseResumeButton(aMVC));
+        panel.add(addStopButton(aMVC));
+        panel.add(addEditButton(aMVC));
 
-    protected final JFrame controllerFrame;
-    private final JPanel panel;
+        add(panel);
+        pack();
+        setLocationByPlatform(true);
+    }
 
-    protected final JButton resumeButton;
-    private final JButton stopButton;
-    private final JButton editButton;
+    private JButton addEditButton(final Region_Competition aMVC) {
+        JButton editButton = new JButton("Edit");
+        editButton.setToolTipText("Edit Parameters");
+        editButton.addActionListener(new ActionListener() {
 
-    public ControllerFrame(Region_Competition mvc) {
-        this.MVC = mvc;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                final GenericDialogGUI userDialog = new GenericDialogGUI(aMVC.settings, aMVC.getOriginalImPlus());
+                userDialog.showDialog();
+                userDialog.processInput();
+            }
+        });
+        return editButton;
+    }
 
-        controllerFrame = this;
+    private JButton addStopButton(final Region_Competition aMVC) {
+        JButton stopButton = new JButton("Stop");
+        stopButton.setToolTipText("Stops algorithm after current iteration");
+        stopButton.addActionListener(new ActionListener() {
 
-        panel = new JPanel();
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                final Algorithm algorithm = aMVC.getAlgorithm();
+                algorithm.stop();
+                dispose();
+            }
+        });
+        return stopButton;
+    }
 
-        // Pause/Resume
-        resumeButton = new JButton("Pause");
+    private JButton addPauseResumeButton(final Region_Competition aMVC) {
+        final JButton resumeButton = new JButton("Pause");
         resumeButton.setToolTipText("Pauses/Resumes algorithm after current iteration");
         resumeButton.addActionListener(new ActionListener() {
 
@@ -48,7 +69,7 @@ public class ControllerFrame extends JFrame {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                final Algorithm algorithm = MVC.getAlgorithm();
+                final Algorithm algorithm = aMVC.getAlgorithm();
 
                 if (!isPaused) {
                     isPaused = true;
@@ -61,54 +82,10 @@ public class ControllerFrame extends JFrame {
                     algorithm.resume();
                 }
 
-                controllerFrame.pack();
-                controllerFrame.validate();
+                pack();
+                validate();
             }
         });
-        panel.add(resumeButton);
-
-        // Stop
-        stopButton = new JButton("Stop");
-        stopButton.setToolTipText("Stops algorithm after current iteration");
-        stopButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                final Algorithm algorithm = MVC.getAlgorithm();
-                algorithm.stop();
-                // cancelButton.setVisible(false);
-                controllerFrame.dispose();
-            }
-        });
-        // p.setUndecorated(true);
-        panel.add(stopButton);
-
-        // Edit
-        editButton = new JButton("Edit");
-        editButton.setToolTipText("Edit Parameters");
-        editButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                final GenericDialogGUI userDialog = new GenericDialogGUI(MVC.settings, MVC.getOriginalImPlus());
-                userDialog.showDialog();
-                userDialog.processInput();
-            }
-        });
-        panel.add(editButton);
-
-        // /////////////////////////////////////////////
-
-        controllerFrame.add(panel);
-        controllerFrame.pack();
-        controllerFrame.setLocationByPlatform(true);
-
-        // cancelButton.setLocationRelativeTo(IJ.getInstance());
-        // java.awt.Point p = cancelButton.getLocation();
-        // p.x-=150;
-        // cancelButton.setLocation(p);
-
-        // controllerFrame.setVisible(true);
+        return resumeButton;
     }
-
 }
