@@ -72,7 +72,6 @@ import mosaic.particleTracker.TrajectoryAnalysis;
 import mosaic.particleTracker.TrajectoryStackWin;
 import mosaic.plugins.utils.PlugInFilterExt;
 import mosaic.utils.io.csv.CSV;
-import mosaic.utils.io.csv.CsvColumnConfig;
 import net.imglib2.Cursor;
 import net.imglib2.FinalInterval;
 import net.imglib2.IterableInterval;
@@ -542,8 +541,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             final CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
 
             P_csv.setCSVPreferenceFromFile(files_dir + File.separator + file_sel);
-            final Vector<Particle> p = P_csv.Read(files_dir + File.separator + file_sel, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
-
+            final Vector<Particle> p = P_csv.Read(files_dir + File.separator + file_sel, null);
+            
             if (p.size() == 0) {
                 IJ.error("No regions defined for this image,nothing to do");
                 return false;
@@ -1633,24 +1632,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         // Reset the active imageJ window to the one the ROI was selected on - info from the Roi is still needed
         IJ.selectWindow(roi_image_id);
 
-        // Iterate over all trajectories
-        /*
-         * Iterator<Trajectory> iter = all_traj.iterator();
-         * while (iter.hasNext()) {
-         * Trajectory traj = iter.next();
-         * // Iterate over all particles in the current trajectory
-         * for (int i = 0; i< traj.existing_particles.length; i++) {
-         * // if at least one particle of this trajectory is in the selected area of the user (ROI)
-         * // and this trajectory was not filtered - animate it
-         * if (user_roi.getBounds().contains(traj.existing_particles[i].y, traj.existing_particles[i].x)
-         * && traj.to_display) {
-         * traj.animate(magnification);
-         * break;
-         * }
-         * }
-         * }
-         * // set the new window to be the active one
-         */
         IJ.selectWindow(duplicated_imp.getID());
 
     }

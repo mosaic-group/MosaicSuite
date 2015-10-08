@@ -261,15 +261,21 @@ public class Particle {
         final double[] result = { x, y, z };
         return result;
     }
-
+    
+    public int getImage_ID() {
+        return frame;
+    }
+    
     public void setImage_ID(int Image_ID_) {
         frame = Image_ID_;
     }
-
+    
     public void setSize(double Size_) {
         m0 = (float) Size_;
     }
 
+
+    
     public void setIntensity(double Intensity_) {
         m2 = (float) Intensity_;
     }
