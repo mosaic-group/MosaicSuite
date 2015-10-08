@@ -55,9 +55,7 @@ import mosaic.region_competition.energies.E_Gamma;
 import mosaic.region_competition.energies.E_KLMergingCriterion;
 import mosaic.region_competition.energies.E_PS;
 import mosaic.region_competition.energies.Energy;
-import mosaic.region_competition.energies.EnergyFunctionalType;
 import mosaic.region_competition.energies.ImageModel;
-import mosaic.region_competition.energies.RegularizationType;
 import mosaic.region_competition.initializers.BoxInitializer;
 import mosaic.region_competition.initializers.BubbleInitializer;
 import mosaic.region_competition.initializers.MaximaBubbles;
@@ -84,6 +82,23 @@ public class Region_Competition implements Segmentation {
     public enum InitializationType {
         Rectangle, Bubbles, LocalMax, ROI_2D, File, File_Patcher
     }
+    
+    public enum EnergyFunctionalType {
+        e_PC {
+
+            @Override
+            public String toString() {
+                return "Piecewise Constant";
+            }
+        },
+        e_PS, 
+        e_DeconvolutionPC
+    }
+    
+    public enum RegularizationType {
+        Sphere_Regularization, Approximative, None,
+    }
+    
     
     private static final Logger logger = Logger.getLogger(Region_Competition.class);
 

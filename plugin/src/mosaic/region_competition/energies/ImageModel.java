@@ -2,6 +2,7 @@ package mosaic.region_competition.energies;
 
 
 import mosaic.core.utils.Point;
+import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.Energy.EnergyResult;

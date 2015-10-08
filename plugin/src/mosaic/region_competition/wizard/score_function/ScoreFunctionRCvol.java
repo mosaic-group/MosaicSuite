@@ -8,10 +8,10 @@ import ij.ImagePlus;
 import ij.io.Opener;
 import mosaic.core.utils.IntensityImage;
 import mosaic.plugins.Region_Competition;
+import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
-import mosaic.region_competition.energies.EnergyFunctionalType;
 
 
 // Score function try to find out the best segmentation with PC on all area selected
@@ -74,9 +74,6 @@ public class ScoreFunctionRCvol implements ScoreFunction {
     public double valueOf(double[] x) {
         double result = 0.0;
 
-        // s.m_RegionMergingThreshold = (float) x[0];
-        // s.m_EnergyContourLengthCoeff = (float) x[1];
-        // s.m_CurvatureMaskRadius = (float) x[2];
         s.m_GaussPSEnergyRadius = (int) x[0];
         s.m_BalloonForceCoeff = (float) x[1];
         if (s.m_GaussPSEnergyRadius > 2.0) {

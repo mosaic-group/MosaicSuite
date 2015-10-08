@@ -11,11 +11,11 @@ import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.plugins.Region_Competition;
+import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.CurvatureBasedFlow;
-import mosaic.region_competition.energies.EnergyFunctionalType;
 
 
 public class ScoreFunctionRCsmo implements ScoreFunction {

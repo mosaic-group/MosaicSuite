@@ -22,12 +22,11 @@ import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.Point;
 import mosaic.plugins.Region_Competition;
+import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.Energy.EnergyResult;
-import mosaic.region_competition.energies.EnergyFunctionalType;
 import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.energies.OscillationDetection;
-import mosaic.region_competition.energies.OscillationDetection2;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction.TopologicalNumberResult;
 import mosaic.region_competition.utils.Timer;
@@ -142,7 +141,7 @@ public class Algorithm {
 
         m_TopologicalNumberFunction = new TopologicalNumberImageFunction(labelImage, connFG, connBG);
         m_EnergyFunctional = settings.m_EnergyFunctional;
-        oscillationDetection = new OscillationDetection2(this, settings);
+        oscillationDetection = new OscillationDetection(this, settings);
 
         m_iteration_counter = 0;
         m_converged = false;
@@ -400,7 +399,6 @@ public class Algorithm {
         vConvergenceA = true;
 
         if (m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC && m_iteration_counter % 1 == 0) {
-            // TODO sts
             ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage);
         }
 

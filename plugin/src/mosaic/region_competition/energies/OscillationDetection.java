@@ -1,78 +1,79 @@
 package mosaic.region_competition.energies;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import mosaic.core.utils.Point;
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.ContourParticle;
+import mosaic.region_competition.Settings;
 
 
 public class OscillationDetection {
+    private final Algorithm algorithm;
+    private final double alpha = 0.1; // exponential moving average factor
+    private ArrayList<Double> sums;
+    private double sumAvg;
+    private ArrayList<Double> sumsAvg;
+    private boolean isFirstRound;
+    private final int length = 10;
+    private final double threshold;
 
-    private final float AcceptedPointsReductionFactor = 0.5f;
-    final Algorithm algorithm;
-
-    private final int m_OscillationsNumberHist[];
-    private final double m_OscillationsEnergyHist[];
-    
-    // Settings
-    private final int m_OscillationHistoryLength = 10;
-
-    private final float m_AcceptedPointsReductionFactor;
-
-    OscillationDetection(Algorithm algo) {
+    public OscillationDetection(Algorithm algo, Settings settings) {
         this.algorithm = algo;
-
-        this.m_AcceptedPointsReductionFactor = AcceptedPointsReductionFactor;
-
-        m_OscillationsNumberHist = new int[m_OscillationHistoryLength];
-        m_OscillationsEnergyHist = new double[m_OscillationHistoryLength];
-
-        for (int vI = 0; vI < m_OscillationHistoryLength; vI++) {
-            m_OscillationsNumberHist[vI] = 0;
-            m_OscillationsEnergyHist[vI] = 0;
-        }
+        
+        threshold = settings.m_OscillationThreshold;
+        initMembeers(settings.m_MaxNbIterations);
     }
 
-    /**
-     * Detect oscillations and store values in history.
-     */
+    private void initMembeers(int maxIt) {
+        sums = new ArrayList<Double>(maxIt);
+        sumsAvg = new ArrayList<Double>(maxIt);
+        sumAvg = 0;
+        isFirstRound = true;
+    }
+    
     public boolean DetectOscillations(HashMap<Point, ContourParticle> m_Candidates) {
-
         boolean result = false;
-
-        final double vSum = SumAllEnergies(m_Candidates);
-        debug("sum of energies: " + vSum);
-        debug("num of candidat: " + m_Candidates.size());
-        for (int vI = 0; vI < m_OscillationHistoryLength; vI++) {
-            final double vSumOld = m_OscillationsEnergyHist[vI];
-
-            if (m_Candidates.size() == m_OscillationsNumberHist[vI] && Math.abs(vSum - vSumOld) <= 1e-5 * Math.abs(vSum)) {
-                // here we assume that we're oscillating,
-                // so we decrease the acceptance factor:
-                result = true;
-                algorithm.m_AcceptedPointsFactor *= m_AcceptedPointsReductionFactor;
-                debug("nb of accepted points reduced to: " + algorithm.m_AcceptedPointsFactor);
-
-            }
+        final double sumNew = SumAllEnergies(m_Candidates);
+    
+        sums.add(sumNew);
+    
+        double oldSumAvg = sumAvg;
+        if (isFirstRound) {
+            oldSumAvg = sumNew;
         }
-
-        // Shift the old elements:
-        // TODO sts maybe optimize by modulo list?
-        for (int vI = 1; vI < m_OscillationHistoryLength; vI++) {
-            m_OscillationsEnergyHist[vI - 1] = m_OscillationsEnergyHist[vI];
-            m_OscillationsNumberHist[vI - 1] = m_OscillationsNumberHist[vI];
+    
+        final double newSumAvg = alpha * sumNew + (1 - alpha) * oldSumAvg;
+        sumsAvg.add(newSumAvg);
+        sumAvg = newSumAvg;
+    
+        final double totstd = std(sumsAvg);
+        final int n = sumsAvg.size();
+        final int start = Math.max(0, n - length);
+        final double winstd = std(sumsAvg.subList(start, n));
+    
+        double fac = 1;
+        if (!isFirstRound) {
+            fac = winstd / totstd;
         }
-
-        // Fill the new elements:
-        m_OscillationsEnergyHist[m_OscillationHistoryLength - 1] = vSum;
-        m_OscillationsNumberHist[m_OscillationHistoryLength - 1] = m_Candidates.size();
-
+    
+        debug("sum=" + sumNew + " sumAvg=" + sumAvg);
+        debug("fac=" + fac);
+    
+        isFirstRound = false;
+    
+        if (fac < threshold) {
+            result = true;
+            debug("***NEW Oscillation detected***");
+            algorithm.m_AcceptedPointsFactor /= 2.0;
+        }
         return result;
     }
 
-    protected double SumAllEnergies(HashMap<Point, ContourParticle> aContainer) {
+    private double SumAllEnergies(HashMap<Point, ContourParticle> aContainer) {
         double vTotalEnergyDiff = 0;
 
         for (final ContourParticle vPointIterator : aContainer.values()) {
@@ -81,8 +82,30 @@ public class OscillationDetection {
         return vTotalEnergyDiff;
     }
 
-    static void debug(@SuppressWarnings("unused") String s) {
-        //System.out.println(s);
+    private double mean(List<Double> data) {
+        double sum = 0.0;
+        for (Double d : data) {
+            sum += d;
+        }
+
+        return sum / data.size();
     }
 
+    private double std(List<Double> data) {
+        final double m = mean(data);
+
+        final int n = data.size();
+        double sum = 0;
+        for (int i = 0; i < n; i++) {
+            final double d = m - data.get(i);
+            sum += (d * d);
+        }
+        sum = sum / n;
+        
+        return Math.sqrt(sum);
+    }
+
+    private static void debug(@SuppressWarnings("unused") String s) {
+        //System.out.println(s);
+    }
 }

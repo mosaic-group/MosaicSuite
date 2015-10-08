@@ -41,10 +41,10 @@ import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import mosaic.plugins.Region_Competition;
+import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
+import mosaic.plugins.Region_Competition.RegularizationType;
 import mosaic.region_competition.Settings;
-import mosaic.region_competition.energies.EnergyFunctionalType;
-import mosaic.region_competition.energies.RegularizationType;
 import mosaic.region_competition.wizard.RCWWin;
 
 

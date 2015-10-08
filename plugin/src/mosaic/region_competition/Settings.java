@@ -3,9 +3,9 @@ package mosaic.region_competition;
 
 import java.io.Serializable;
 
+import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
-import mosaic.region_competition.energies.EnergyFunctionalType;
-import mosaic.region_competition.energies.RegularizationType;
+import mosaic.plugins.Region_Competition.RegularizationType;
 
 
 public class Settings implements Serializable {

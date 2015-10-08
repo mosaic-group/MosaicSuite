@@ -1,8 +1,8 @@
 package mosaic.region_competition.GUI;
 
 
+import mosaic.plugins.Region_Competition.RegularizationType;
 import mosaic.region_competition.Settings;
-import mosaic.region_competition.energies.RegularizationType;
 
 
 abstract class RegularizationGUI extends GUImeMore {
