@@ -99,10 +99,4 @@ public class E_KLMergingCriterion extends ExternalEnergy {
     private static void debug(@SuppressWarnings("unused") String s) {
         //System.out.println(s);
     }
-
-    @Override
-    public Object atStart() {
-        return null;
-    }
-
 }

@@ -24,9 +24,4 @@ public class E_CurvatureFlow extends InternalEnergy// implements SettingsListene
         final double flow = curv.generateData(contourPoint, fromLabel, toLabel);
         return new EnergyResult(flow, null);
     }
-
-    @Override
-    public Object atStart() {
-        return null;
-    }
 }

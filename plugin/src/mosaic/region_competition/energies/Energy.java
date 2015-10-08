@@ -9,8 +9,6 @@ import mosaic.region_competition.LabelImageRC;
 
 public abstract class Energy {
 
-    public abstract Object atStart();
-
     /**
      * @return EnergyResult, entries (energy or merge) are null if not calculated by this energy
      */

@@ -66,7 +66,6 @@ import mosaic.region_competition.utils.Timer;
 import mosaic.utils.io.serialize.DataFile;
 import mosaic.utils.io.serialize.JsonDataFile;
 import net.imglib2.img.Img;
-import net.imglib2.img.array.ArrayImgFactory;
 import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
@@ -481,16 +480,13 @@ public class Region_Competition implements Segmentation {
      */
 
     private void initEnergies() {
-        Energy e_data = null;
-        Energy e_length = null;
-        Energy e_merge = null;
 
         final HashMap<Integer, LabelInformation> labelMap = labelImage.getLabelMap();
-
         final EnergyFunctionalType type = settings.m_EnergyFunctional;
-
         final Energy e_merge_KL = new E_KLMergingCriterion(labelMap, labelImage.bgLabel, settings.m_RegionMergingThreshold);
 
+        Energy e_data = null;
+        Energy e_merge = null;
         switch (type) {
             case e_PC: {
                 e_data = new E_CV(labelMap);
@@ -503,8 +499,7 @@ public class Region_Competition implements Segmentation {
                 break;
             }
             case e_DeconvolutionPC: {
-                final int dims[] = intensityImage.getDimensions();
-                e_data = new E_Deconvolution(intensityImage, labelMap, new ArrayImgFactory<FloatType>(), dims);
+                e_data = new E_Deconvolution(intensityImage, labelMap);
                 break;
             }
             default: {
@@ -514,6 +509,7 @@ public class Region_Competition implements Segmentation {
             }
         }
 
+        Energy e_length = null;
         final RegularizationType rType = settings.regularizationType;
         switch (rType) {
             case Sphere_Regularization: {

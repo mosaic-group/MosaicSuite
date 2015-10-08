@@ -16,7 +16,6 @@ public class E_CV extends ExternalEnergy {
         this.labelMap = labelMap;
     }
 
-    // Algorithm algo;
     private final HashMap<Integer, LabelInformation> labelMap;
 
     /**
@@ -39,10 +38,4 @@ public class E_CV extends ExternalEnergy {
         final double energy = (aValue - vNewToMean) * (aValue - vNewToMean) - (aValue - from.mean) * (aValue - from.mean);
         return new EnergyResult(energy, false);
     }
-
-    @Override
-    public Object atStart() {
-        return null;
-    }
-
 }

@@ -15,12 +15,6 @@ public class E_Gamma extends InternalEnergy {
     }
 
     @Override
-    public Object atStart() {
-        // nothing to do
-        return null;
-    }
-
-    @Override
     public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel) {
         final Point pIndex = contourPoint;
         final int pLabel = contourParticle.candidateLabel;

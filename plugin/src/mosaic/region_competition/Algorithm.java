@@ -44,7 +44,7 @@ public class Algorithm {
     private final LabelImageRC labelImage;
     private final IntensityImage intensityImage;
     private final ImageModel imageModel;
-    private final IndexIterator iterator; // iterates over the labelImage
+    private final IndexIterator labelImageIterator; // iterates over the labelImage
 
     private final int bgLabel;
     private final int forbiddenLabel;
@@ -107,7 +107,7 @@ public class Algorithm {
 
         bgLabel = labelImage.bgLabel;
         forbiddenLabel = labelImage.forbiddenLabel;
-        iterator = labelImage.iterator;
+        labelImageIterator = labelImage.iterator;
         connFG = labelImage.getConnFG();
         connBG = labelImage.getConnBG();
         labelMap = labelImage.getLabelMap();
@@ -159,11 +159,11 @@ public class Algorithm {
     private void initContour() {
         final Connectivity conn = connFG;
 
-        for (final int i : iterator.getIndexIterable()) {
+        for (final int i : labelImageIterator.getIndexIterable()) {
             final int label = labelImage.getLabelAbs(i);
             if (label != bgLabel && label != forbiddenLabel) // region pixel
             {
-                final Point p = iterator.indexToPoint(i);
+                final Point p = labelImageIterator.indexToPoint(i);
                 for (final Point neighbor : conn.iterateNeighbors(p)) {
                     final int neighborLabel = labelImage.getLabelAbs(neighbor);
                     if (neighborLabel != label) {
@@ -204,7 +204,7 @@ public class Algorithm {
 
         final HashSet<Integer> usedLabels = new HashSet<Integer>();
 
-        final int size = iterator.getSize();
+        final int size = labelImageIterator.getSize();
         for (int i = 0; i < size; i++) {
             final int absLabel = labelImage.getLabelAbs(i);
 
@@ -388,7 +388,6 @@ public class Algorithm {
 
             ((E_Deconvolution) imageModel.getEdata()).setPSF(image_psf);
             ((E_Deconvolution) imageModel.getEdata()).GenerateModelImage(labelImage, labelMap);
-
             ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage);
         }
 

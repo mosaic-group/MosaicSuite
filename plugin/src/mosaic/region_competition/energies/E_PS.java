@@ -128,10 +128,4 @@ public class E_PS extends ExternalEnergy {
 
         return new EnergyResult(vEnergyDiff, vMerge);// <Double, Boolean>(vEnergyDiff, vMerge);
     }
-
-    @Override
-    public Object atStart() {
-        return null;
-    }
-
 }
