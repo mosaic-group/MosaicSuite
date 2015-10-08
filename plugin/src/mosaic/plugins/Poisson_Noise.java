@@ -1,5 +1,9 @@
 package mosaic.plugins;
 
+import java.awt.Rectangle;
+import java.lang.reflect.Array;
+import java.util.Arrays;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
@@ -11,29 +15,10 @@ import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
-import io.scif.img.ImgIOException;
-import io.scif.img.ImgOpener;
-
-import java.awt.Rectangle;
-import java.io.File;
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
-
-import mosaic.core.binarize.BinarizedIntervalImgLib2Int;
-import mosaic.core.utils.Connectivity;
-import mosaic.core.utils.FloodFill;
-import mosaic.core.utils.MosaicUtils.SegmentationInfo;
-import mosaic.core.utils.Point;
 import mosaic.noise_sample.GenericNoiseSampler;
 import mosaic.noise_sample.NoiseSample;
 import mosaic.noise_sample.noiseList;
 import net.imglib2.Cursor;
-import net.imglib2.RandomAccess;
 import net.imglib2.histogram.BinMapper1d;
 import net.imglib2.histogram.Histogram1d;
 import net.imglib2.histogram.Integer1dBinMapper;
@@ -43,7 +28,6 @@ import net.imglib2.img.Img;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.IntegerType;
 import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.integer.ShortType;
 import net.imglib2.type.numeric.integer.UnsignedByteType;
 import net.imglib2.type.numeric.real.FloatType;
@@ -72,7 +56,6 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
     public final int mSeed = 8888;
     private static final int BYTE=0, SHORT=1, FLOAT=2;
     NoiseSample<?> ns;
-    final SegmentationInfo seg = null;
     String NoiseModel;
     double dilatation = 1.0;
 
@@ -92,102 +75,7 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
         }
         return 0;
     }
-    /**
-     *
-     * Erode one iteration
-     *
-     * @param seg image
-     * @param cnv Connectivity
-     */
-
-    private <S extends IntegerType<S>> void erode(Img<S> seg, Connectivity cnv, S bck)
-    {
-        final Vector<Point> pToErode = new Vector<Point>();
-        final int lc[] = new int[seg.numDimensions()];
-        final Cursor<S> cur = seg.cursor();
-        final RandomAccess<S> ra = seg.randomAccess();
-
-        while (cur.hasNext())
-        {
-            boolean toErode = false;
-
-            if (cur.get().getInteger() == bck.getInteger()) {
-                continue;
-            }
-
-            for (final Point p : cnv)
-            {
-                cur.localize(lc);
-                Point pos = Point.CopyLessArray(lc);
-                pos = pos.add(p);
-                ra.setPosition(pos.x);
-
-                if (ra.get().getInteger() == bck.getInteger())
-                {
-                    toErode = true;
-                }
-            }
-
-            if (toErode == true)
-            {
-                cur.localize(lc);
-                pToErode.add(Point.CopyLessArray(lc));
-            }
-        }
-
-        // now erode
-
-        for (int i = 0 ; i < pToErode.size() ; i++)
-        {
-            ra.setPosition(pToErode.get(i).x);
-            ra.get().set(bck);
-        }
-    }
-
-    private interface ConnectedRegionsCB
-    {
-        public void regionProcess(Set<Point> pnt);
-    }
-
-
-    private <S extends IntegerType<S>> void FindConnectedRegions(Img<S> seg, ConnectedRegionsCB cb, S bck)
-    {
-        final int lc[] = new int [seg.numDimensions()];
-        final HashMap<Integer,Point> LabelsList = new HashMap<Integer,Point>();		// set of the old labels
-
-        final Cursor<S> cur = seg.cursor();
-
-        // Take all the labels in the image != bck
-
-        while (cur.hasNext())
-        {
-            cur.next();
-            if (cur.get().getInteger() == bck.getInteger() &&  LabelsList.get(cur.get().getInteger()) == null)
-            {
-                cur.localize(lc);
-                final Point p = new Point(lc);
-                LabelsList.put(cur.get().getInteger(),p);
-            }
-        }
-
-        // Create connectivity
-
-        final Connectivity cnv = new Connectivity(seg.numDimensions(),seg.numDimensions()-1);
-        final BinarizedIntervalImgLib2Int<S> img = new BinarizedIntervalImgLib2Int<S>(seg);
-
-        // Now flood fill to find regions
-
-        for (final Map.Entry<Integer,Point> entry : LabelsList.entrySet())
-        {
-            img.AddThresholdBetween(entry.getKey(), entry.getKey());
-            final FloodFill ff = new FloodFill(cnv,img,entry.getValue());
-
-            // Found a region and process it
-
-            cb.regionProcess(ff.getPoints());
-        }
-    }
-
+    
     /**
      *
      * Create an integer bin mapper
@@ -236,175 +124,6 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
         return null;
     }
 
-    private class processCCRegion<T extends RealType<T>> implements ConnectedRegionsCB
-    {
-        Img<T> img;
-        HashMap<T,Histogram1d<T>> hset;
-        Class<T> cls;
-
-        double max;
-        double min;
-
-        double intervalDelta;
-        double deltaHalf;
-
-        processCCRegion(Class<T> cls_)
-        {
-            //			ComputeMinMax<T> cMM = new ComputeMinMax<T>(img);
-
-            final int Nbin = getNBins(cls);
-
-            intervalDelta = (max - min) / Nbin;
-            deltaHalf = intervalDelta / 2;
-            cls = cls_;
-        }
-
-        /**
-         *
-         * Return the histograms
-         *
-         * @return histograms
-         */
-
-        HashMap<T,Histogram1d<T>> getHist()
-        {
-            return hset;
-        }
-
-        @Override
-        public void regionProcess(Set<Point> pnt)
-        {
-            final Iterator<Point> pnt_it = pnt.iterator();
-
-            // filter out if the region is smaller that 30 pixel
-
-            if (pnt.size() < 30) {
-                return;
-            }
-
-            // Calculate the mean
-
-            int tot_num = 0;
-            double mean = 0.0;
-            final RandomAccess<T> ra = img.randomAccess();
-
-            while (pnt_it.hasNext())
-            {
-                final Point p = pnt_it.next();
-                ra.setPosition(p.x);
-                mean += ra.get().getRealDouble();
-                tot_num++;
-            }
-
-            mean /= tot_num;
-
-            // Get the center of the mean
-
-            final int cbin = (int) (mean / intervalDelta);
-            mean = cbin * intervalDelta + deltaHalf;
-
-            // Get the histogram
-
-            Histogram1d<T> hs = null;
-
-            if ((hs = hset.get(mean)) == null)
-            {
-                // Create mapper
-
-                final BinMapper1d<T> b1d = createMapper(cls,max,min);
-
-                // Create histogram
-
-                final Histogram1d<T> hist = new Histogram1d<T>(b1d);
-                T meanT = null;
-                try {
-                    meanT = cls.newInstance();
-                } catch (final InstantiationException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException();
-                } catch (final IllegalAccessException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException();
-                }
-                meanT.setReal(mean);
-                hset.put(meanT, hist);
-                hs = hist;
-            }
-
-            // Add data
-
-            @SuppressWarnings("unchecked")
-            final
-            T [] ipnt = (T[]) Array.newInstance(cls, pnt.size());
-
-            while (pnt_it.hasNext())
-            {
-                final Point p = pnt_it.next();
-                ra.setPosition(p.x);
-                mean += ra.get().getRealDouble();
-            }
-
-            hs.addData(Arrays.asList(ipnt));
-        }
-
-    }
-
-    /**
-     *
-     * Create histograms from segmented image
-     *
-     * @param seg segmented image
-     * @param gn structure that store the noise profile
-     * @param clsS segmented type
-     * @param clsT intentity type
-     */
-
-    private <T extends RealType<T>,S extends IntegerType<S>> void createHistogramsFromSegImage(Img<S> seg , GenericNoiseSampler<T> gn , Class<S> clsS, Class<T> clsT)
-    {
-        // ImgLib2 does not have Erosion for dimension bigger that 2
-        // so manual implementation
-
-        final Connectivity cnv = new Connectivity(seg.numDimensions(),seg.numDimensions()-1);
-
-        for (int i = 0 ; i < erodePixel ; i++)
-        {
-            S s = null;
-            try {s = clsS.newInstance();}
-            catch (final InstantiationException e) {e.printStackTrace(); throw new RuntimeException();}
-            catch (final IllegalAccessException e) {e.printStackTrace(); throw new RuntimeException();}
-            s.setZero();
-            erode(seg,cnv,s);
-        }
-
-        // Find connected regions
-
-        final processCCRegion<T> pp = new processCCRegion<T>(clsT);
-        S bck = null;
-        try {
-            bck = clsS.newInstance();
-        } catch (final InstantiationException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        } catch (final IllegalAccessException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
-        bck.setZero();
-        FindConnectedRegions(seg,pp,bck);
-
-        // Founded the connected regions and get processed the histograms
-        // add them to GenericNoise
-
-        final HashMap<T,Histogram1d<T>> hists = pp.getHist();
-
-        for (final Map.Entry<T,Histogram1d<T>> entry : hists.entrySet())
-        {
-            // Ad the histograms to the general noise
-
-            gn.setHistogram(entry.getKey(), entry.getValue());
-        }
-    }
-
     /**
      *
      * Process generic noise from segmentation
@@ -415,68 +134,9 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
     private <T extends RealType<T>  & NativeType< T > > void setupGenericNoise(Class<T> cls)
     {
         // Create a generic noise
-
         final GenericNoiseSampler<T> gns = new GenericNoiseSampler<T>(cls);
 
-        // if segmentation is present process it
-
-        if (seg != null)
-        {
-
-            // check the type of the segmentation image
-
-            final ImgOpener imgOpener = new ImgOpener();
-            final File rgm = seg.RegionMask;
-
-            // Try to convert to unsigned byte, short and integer
-            // to infer the type
-
-            try
-            {
-                @SuppressWarnings("unchecked")
-                final
-                Img< UnsignedByteType > imageSeg = (Img< UnsignedByteType >) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0);
-
-                // Open the segmentation image, erode filter small region,
-                // and create histograms
-
-                createHistogramsFromSegImage(imageSeg,gns,UnsignedByteType.class,cls);
-            }
-            catch(final ClassCastException e) {}
-            catch(final ImgIOException e) {}
-
-            try
-            {
-                @SuppressWarnings({ "unchecked", "deprecation" })
-                final
-                Img< ShortType > imageSeg = (Img<ShortType>) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0).getImg();
-
-                // Open the segmentation image, erode filter small region,
-                // and create histograms
-
-                createHistogramsFromSegImage(imageSeg,gns,ShortType.class,cls);
-            }
-            catch(final ClassCastException e) {}
-            catch(final ImgIOException e) {}
-
-            try
-            {
-                @SuppressWarnings({ "unchecked", "deprecation" })
-                final
-                Img< IntType > imageSeg = (Img<IntType>) imgOpener.openImgs( rgm.getAbsolutePath() ).get(0).getImg();
-
-                // Open the segmentation image, erode filter small region,
-                // and create histograms
-
-                createHistogramsFromSegImage(imageSeg,gns,IntType.class,cls);
-
-            }
-            catch(final ClassCastException e) {}
-            catch(final ImgIOException e) {}
-        }
-
         // Create histograms by ROI
-
         RoiManager manager = RoiManager.getInstance();
         if (manager == null) {
             manager = new RoiManager();
