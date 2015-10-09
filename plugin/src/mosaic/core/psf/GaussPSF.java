@@ -63,7 +63,7 @@ public class GaussPSF<T extends RealType<T>> implements psf<T> {
      * @param cl give the class of the parameter T
      */
 
-//    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     public GaussPSF(int dim, Class<T> cl) {
         clCreator = cl;
         pos = (RealType<T>[]) Array.newInstance(cl, dim);
