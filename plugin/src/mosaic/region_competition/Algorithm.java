@@ -1329,12 +1329,9 @@ public class Algorithm {
         // detecting if one with count==1 exists, and only IFF one such label
         // exists searching for the point.
         // but atm, im happy that it detects "orphan"-contourPoints (without attached labelInfo)
-
-        final Object[] copy = m_InnerContourContainer.entrySet().toArray();
-        for (final Object o : copy)
+        
+        for (Entry<Point, ContourParticle> vIt : m_InnerContourContainer.entrySet())
         {
-            @SuppressWarnings("unchecked")
-            final Entry<Point, ContourParticle> vIt = (Entry<Point, ContourParticle>) o;
             final ContourParticle vWorkingIt = vIt.getValue();
             final LabelInformation info = labelMap.get(vWorkingIt.label);
             if (info == null) {
@@ -1545,7 +1542,7 @@ public class Algorithm {
     }
 
     private static void debug(@SuppressWarnings("unused") Object s) {
-        //System.out.println(s);
+        //System.out.println(s);       
     }
 
     // Control //////////////////////////////////////////////////

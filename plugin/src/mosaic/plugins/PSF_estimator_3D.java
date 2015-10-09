@@ -823,8 +823,9 @@ public class PSF_estimator_3D implements  PlugInFilter{
         }
     }
 
-    @SuppressWarnings("serial")
     private class DrawCanvas extends ImageCanvas {
+        private static final long serialVersionUID = 1L;
+        
         public DrawCanvas(ImagePlus aImagePlus){
             super(aImagePlus);
         }
@@ -844,8 +845,8 @@ public class PSF_estimator_3D implements  PlugInFilter{
         }
     }
 
-    @SuppressWarnings("serial")
     private class TrajectoryStackWindow extends StackWindow implements MouseListener{
+        private static final long serialVersionUID = 1L;
 
         public TrajectoryStackWindow(ImagePlus aIMP, ImageCanvas aIC) {
             super(aIMP, aIC);

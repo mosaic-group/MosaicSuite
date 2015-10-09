@@ -41,18 +41,13 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
     Choice cpa;
 
     /**
-     *
      * Popup a window to create a new/edit cluster profile configuration file
      *
      * @param cp Cluster profile
-     *
      */
-
-    @SuppressWarnings("unchecked")
     void popupClusterProfile(ClusterProfile cp)
     {
         final Vector<QueueProfile> cq = new Vector<QueueProfile>();
-        final Vector<Choice> cc;
 
         fcp = new FileClusterProfile(null);
 
@@ -104,7 +99,10 @@ public class NewClusterProfile implements PlugInFilter // NO_UCD
             gd.addChoice("queues", new String[]{""}, new String(""));
             gd.addChoice("compression", new String[]{""}, new String(""));
         }
-        cc = gd.getChoices();
+        
+        // Explicitly casting to Vector(Choice). This is the (only) type returned by getChoices().
+        @SuppressWarnings({ "cast", "unchecked" })
+        final Vector<Choice> cc = (Vector<Choice>) gd.getChoices();
 
         Button optionButton = new Button("Add");
         GridBagConstraints c = new GridBagConstraints();

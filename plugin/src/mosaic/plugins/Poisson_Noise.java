@@ -59,24 +59,7 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
     String NoiseModel;
     double dilatation = 1.0;
 
-    <T>int getNBins(T t)
-    {
-        if (t instanceof UnsignedByteType)
-        {
-            return 256;
-        }
-        else if (t instanceof ShortType)
-        {
-            return 16536;
-        }
-        else if (t instanceof FloatType)
-        {
-            return 16536;
-        }
-        return 0;
-    }
-    
-    /**
+   /**
      *
      * Create an integer bin mapper
      *
@@ -99,7 +82,8 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
      * @return The bin mapper
      */
 
-    @SuppressWarnings("unchecked") <T extends RealType<T>> BinMapper1d<T> createMapper(Class<T> cls,double min,double max)
+    @SuppressWarnings("unchecked") 
+    <T extends RealType<T>> BinMapper1d<T> createMapper(Class<T> cls,double min,double max)
     {
         T test = null;
         try {
@@ -113,10 +97,10 @@ public class Poisson_Noise implements ExtendedPlugInFilter // NO_UCD
         final Object test_o = test;
 
         if (test_o instanceof UnsignedByteType) {
-            return (BinMapper1d<T>)(BinMapper1d<?>) this.<UnsignedByteType>createIntegerMapper(256);
+            return (BinMapper1d<T>) this.<UnsignedByteType>createIntegerMapper(256);
         }
         else if (test_o instanceof ShortType) {
-            return (BinMapper1d<T>)(BinMapper1d<?>) this.<ShortType>createIntegerMapper(65536);
+            return (BinMapper1d<T>) this.<ShortType>createIntegerMapper(65536);
         }
         else if (test_o instanceof FloatType) {
             return new Real1dBinMapper<T>(min,max,65536,true);

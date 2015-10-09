@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
 
@@ -355,7 +356,7 @@ public class Region_Competition implements Segmentation {
 
             return NO_IMAGE_REQUIRED;
         }
-        else {
+        else {System.out.println("normal ..........");
             getConfigHandler().SaveToFile(sv, settings);
 
             // if is 3D save the originalIP
@@ -369,7 +370,7 @@ public class Region_Competition implements Segmentation {
                 originalIP = null;
                 return NO_IMAGE_REQUIRED;
             }
-
+            System.out.println("before ..........");
             if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
                 // Here, no PSF has been set by the user. Hence, Generate it
                 final GeneratePSF gPsf = new GeneratePSF();
@@ -380,6 +381,7 @@ public class Region_Competition implements Segmentation {
                 else {
                     image_psf = gPsf.generate(3);
                 }
+                System.out.println("2222222222");
             }
         }
         return DOES_ALL + NO_CHANGES;
@@ -408,7 +410,7 @@ public class Region_Competition implements Segmentation {
 
             // Patches the image
             final int margins[] = new int[intensityImage.getDim()];
-
+            System.out.println("55555555555");
             for (int i = 0; i < margins.length; i++) {
                 margins[i] = (int) (image_psf.dimension(i));
                 if (margins[i] < 50) {
@@ -419,23 +421,23 @@ public class Region_Competition implements Segmentation {
             final ImagePatcher<FloatType, IntType> ip = new ImagePatcher<FloatType, IntType>(intensityImage.getImgLib2(FloatType.class), labelImage.getImgLib2(IntType.class), margins);
 
             // for each patch run region competition
-            @SuppressWarnings("unchecked")
-            final ImagePatch<FloatType, IntType>[] ips = ip.getPathes();
+            List<ImagePatch<FloatType, IntType>> ips = ip.getPathes();
 
-            for (int i = 1; i < ips.length; i++) {
+            // TODO: why from 1 not from 0?
+            for (int i = 1; i < ips.size(); i++) {
                 settings.labelImageInitType = InitializationType.File;
 
                 // Run region competition on the patches image
-
-                ips[i].show();
+                ImagePatch<FloatType, IntType> imgPatch = ips.get(i);
+                imgPatch.show();
                 final Region_Competition RC = new Region_Competition();
                 RC.settings = settings;
                 RC.image_psf = image_psf;
                 RC.cal = cal;
-                RC.runOnImgLib2(ips[i].getImage(), ips[i].getLabelImage());
+                RC.runOnImgLib2(imgPatch.getImage(), imgPatch.getLabelImage());
                 RC.labelImage.eliminateForbidden();
-                ips[i].setResult(RC.labelImage.getImgLib2(IntType.class));
-                ips[i].showResult();
+                imgPatch.setResult(RC.labelImage.getImgLib2(IntType.class));
+                imgPatch.showResult();
             }
 
             // Assemble result
@@ -514,6 +516,7 @@ public class Region_Competition implements Segmentation {
                 break;
             }
             case e_DeconvolutionPC: {
+                System.out.println("1111111");
                 e_data = new E_Deconvolution(intensityImage, labelMap);
                 break;
             }
@@ -781,20 +784,16 @@ public class Region_Competition implements Segmentation {
         controllerFrame.addWindowListener(new WindowListener() {
 
             @Override
-            public void windowOpened(WindowEvent e) {
-            }
+            public void windowOpened(WindowEvent e) {}
 
             @Override
-            public void windowIconified(WindowEvent e) {
-            }
+            public void windowIconified(WindowEvent e) {}
 
             @Override
-            public void windowDeiconified(WindowEvent e) {
-            }
+            public void windowDeiconified(WindowEvent e) {}
 
             @Override
-            public void windowDeactivated(WindowEvent e) {
-            }
+            public void windowDeactivated(WindowEvent e) {}
 
             @Override
             public void windowClosing(WindowEvent e) {
@@ -811,8 +810,7 @@ public class Region_Competition implements Segmentation {
             }
 
             @Override
-            public void windowActivated(WindowEvent e) {
-            }
+            public void windowActivated(WindowEvent e) {}
         });
     }
 
@@ -835,6 +833,7 @@ public class Region_Competition implements Segmentation {
                 initEnergies();
 
                 initAlgorithm();
+                System.out.println("-33333333");
                 if (algorithm.GenerateData(image_psf) == false) {
                     return;
                 }
@@ -858,7 +857,7 @@ public class Region_Competition implements Segmentation {
 
         }
         else // no kbest
-        {
+        {System.out.println("+33333333");
             algorithm.GenerateData(image_psf);
 
             updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
@@ -1133,16 +1132,8 @@ public class Region_Competition implements Segmentation {
         IJ.run(stackImPlus, "3-3-2 RGB", null);
     }
 
-    public LabelImageRC getLabelImage() {
-        return this.labelImage;
-    }
-
     public Algorithm getAlgorithm() {
         return this.algorithm;
-    }
-
-    public ImagePlus getStackImPlus() {
-        return this.stackImPlus;
     }
 
     /**
@@ -1150,7 +1141,6 @@ public class Region_Competition implements Segmentation {
      *
      * @return
      */
-
     public ImagePlus getOriginalImPlus() {
         return this.originalIP;
     }

@@ -524,7 +524,10 @@ public class GenericDialogGUI  {
     protected Choice initializationChoice; // reference to the awt.Choice for initialization
 
     void setInitToFileInput() {
-        initializationChoice.select(InitializationType.File.name());
+        // TODO: I have no idea what is going on here. It is called from main window
+        //       but it is trying to set sth in parameters window which is not created. Just adding
+        //       check for null 
+        if (initializationChoice != null) initializationChoice.select(InitializationType.File.name());
     }
 
     void setInputImageChoiceEmpty() {
@@ -597,9 +600,13 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
                 // If the drop items are files
                 if (flavor.isFlavorJavaFileListType() && !done) {
                     // Get all of the dropped files
+                    
+                    // To transfer a list of files to/from Java (and the underlying platform) a DataFlavor of this type/subtype 
+                    // and representation class of java.util.List is used. Each element of the list is required/guaranteed t
+                    // o be of type java.io.File
+                    // Explicitly ignoring warning and casting to List<File>
                     @SuppressWarnings("unchecked")
-                    final
-                    List<File> files = (List<File>) transferable.getTransferData(flavor);
+                    final List<File> files = (List<File>) transferable.getTransferData(flavor);
                     for (final File file : files) {
                         filename = file.getPath();
                         textArea.setText(filename);

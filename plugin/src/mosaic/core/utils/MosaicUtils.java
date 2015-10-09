@@ -124,7 +124,6 @@ public class MosaicUtils {
      * @param data
      * @return
      */
-    @SuppressWarnings("unchecked")
     static public <T extends RealType<T>> ToARGB getConversion(Object data, Cursor<T> crs) {
         ToARGB conv = null;
         if (data instanceof RealType) {
@@ -140,27 +139,14 @@ public class MosaicUtils {
             throw new RuntimeException();
         }
 
-        // Get the min and max
-
-        T min = null;
-        T max = null;
         crs.next();
-        try {
-            min = (T) crs.get().getClass().newInstance();
-            max = (T) crs.get().getClass().newInstance();
-        }
-        catch (final InstantiationException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
-        catch (final IllegalAccessException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
+
+        // Get the min and max
+        T min = crs.get().createVariable();
+        T max = crs.get().createVariable();
         MosaicUtils.getMinMax(crs, min, max);
 
         // get conversion;
-
         conv.setMinMax(min.getRealDouble(), max.getRealDouble());
 
         return conv;
@@ -962,7 +948,7 @@ public class MosaicUtils {
      * @param img Image
      * @return array with the image dimensions
      */
-    public static <T> long[] getImageLongDimensions(Img<T> img) {
+    public static <T> long[] getImageDimensions(Img<T> img) {
         final long dimensions_l[] = new long[img.numDimensions()];
         img.dimensions(dimensions_l);
         
@@ -976,7 +962,7 @@ public class MosaicUtils {
      * @return array with the image dimensions
      */
     public static <T> int[] getImageIntDimensions(Img<T> img) {
-        return ConvertArray.toInt(getImageLongDimensions(img));
+        return ConvertArray.toInt(getImageDimensions(img));
     }
 
     /**
@@ -988,7 +974,6 @@ public class MosaicUtils {
      */
     private static <T extends RealType<T>> void getMinMax(Cursor<T> cur, T min, T max) {
         // Set min and max
-
         min.setReal(Double.MAX_VALUE);
         max.setReal(Double.MIN_VALUE);
 
