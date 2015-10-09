@@ -31,7 +31,7 @@ public class E_Deconvolution extends ExternalEnergy {
     private final HashMap<Integer, LabelInformation> labelMap;
     private final IntensityImage aDataImage;
 
-    public E_Deconvolution(IntensityImage aDI, HashMap<Integer, LabelInformation> labelMap) {
+    public E_Deconvolution(IntensityImage aDI, HashMap<Integer, LabelInformation> labelMap, Img<FloatType> image_psf) {
         super(null, null);
         final int dim[] = aDI.getDimensions();
         DevImage = new ArrayImgFactory<FloatType>().create(dim, new FloatType());
@@ -39,7 +39,7 @@ public class E_Deconvolution extends ExternalEnergy {
         /* Create boundary strategy 0.0 outside the image */
         infDevAccessIt = Views.extendPeriodic(DevImage).randomAccess();
 
-        m_PSF = null;
+        m_PSF = image_psf;
 
         this.labelMap = labelMap;
         aDataImage = aDI;

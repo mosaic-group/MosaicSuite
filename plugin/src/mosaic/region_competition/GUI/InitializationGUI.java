@@ -28,7 +28,6 @@ abstract class InitializationGUI extends GUImeMore {
                 break;
             }
             case File:
-            case File_Patcher:
             case ROI_2D:
             default: {
                 result = new DefaultInitGUI();

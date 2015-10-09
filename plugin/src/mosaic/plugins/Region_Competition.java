@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
 
@@ -35,8 +34,6 @@ import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
-import mosaic.core.ImagePatcher.ImagePatch;
-import mosaic.core.ImagePatcher.ImagePatcher;
 import mosaic.core.cluster.ClusterGUI;
 import mosaic.core.cluster.ClusterSession;
 import mosaic.core.psf.GeneratePSF;
@@ -66,9 +63,6 @@ import mosaic.utils.io.serialize.DataFile;
 import mosaic.utils.io.serialize.JsonDataFile;
 import net.imglib2.img.Img;
 import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.type.numeric.IntegerType;
-import net.imglib2.type.numeric.RealType;
-import net.imglib2.type.numeric.integer.IntType;
 import net.imglib2.type.numeric.real.FloatType;
 
 
@@ -81,7 +75,7 @@ public class Region_Competition implements Segmentation {
      * enum to determine type of initialization
      */
     public enum InitializationType {
-        Rectangle, Bubbles, LocalMax, ROI_2D, File, File_Patcher
+        Rectangle, Bubbles, LocalMax, ROI_2D, File
     }
     
     public enum EnergyFunctionalType {
@@ -186,21 +180,6 @@ public class Region_Competition implements Segmentation {
         return par;
     }
 
-    /**
-     * Run the segmentation on ImgLib2
-     *
-     * @param aArgs arguments
-     * @param img Image
-     * @param lbl Label image
-     * @return
-     */
-    private <T extends RealType<T>, E extends IntegerType<E>> void runOnImgLib2(Img<T> img, Img<E> lbl) {
-        initAndParse();
-
-        // Run Region Competition as usual
-        RCImageFilter(img, lbl);
-    }
-
     private String sv = null;
 
     private void initAndParse() {
@@ -249,8 +228,6 @@ public class Region_Competition implements Segmentation {
 
         MVC = this;
     }
-
-    private Img<FloatType> image_psf;
 
     @Override
     public int setup(String aArgs, ImagePlus aImp) {
@@ -356,7 +333,7 @@ public class Region_Competition implements Segmentation {
 
             return NO_IMAGE_REQUIRED;
         }
-        else {System.out.println("normal ..........");
+        else {
             getConfigHandler().SaveToFile(sv, settings);
 
             // if is 3D save the originalIP
@@ -370,19 +347,7 @@ public class Region_Competition implements Segmentation {
                 originalIP = null;
                 return NO_IMAGE_REQUIRED;
             }
-            System.out.println("before ..........");
-            if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
-                // Here, no PSF has been set by the user. Hence, Generate it
-                final GeneratePSF gPsf = new GeneratePSF();
 
-                if (aImp.getNSlices() == 1) {
-                    image_psf = gPsf.generate(2);
-                }
-                else {
-                    image_psf = gPsf.generate(3);
-                }
-                System.out.println("2222222222");
-            }
         }
         return DOES_ALL + NO_CHANGES;
     }
@@ -402,65 +367,19 @@ public class Region_Competition implements Segmentation {
 
     @Override
     public void run(ImageProcessor aImageP) {
-        if (settings.labelImageInitType == InitializationType.File_Patcher) {
-            // Open the label and intensity image with imgLib2
-
-            initInputImage();
-            initLabelImage();
-
-            // Patches the image
-            final int margins[] = new int[intensityImage.getDim()];
-            System.out.println("55555555555");
-            for (int i = 0; i < margins.length; i++) {
-                margins[i] = (int) (image_psf.dimension(i));
-                if (margins[i] < 50) {
-                    margins[i] = 50;
-                }
-            }
-
-            final ImagePatcher<FloatType, IntType> ip = new ImagePatcher<FloatType, IntType>(intensityImage.getImgLib2(FloatType.class), labelImage.getImgLib2(IntType.class), margins);
-
-            // for each patch run region competition
-            List<ImagePatch<FloatType, IntType>> ips = ip.getPathes();
-
-            // TODO: why from 1 not from 0?
-            for (int i = 1; i < ips.size(); i++) {
-                settings.labelImageInitType = InitializationType.File;
-
-                // Run region competition on the patches image
-                ImagePatch<FloatType, IntType> imgPatch = ips.get(i);
-                imgPatch.show();
-                final Region_Competition RC = new Region_Competition();
-                RC.settings = settings;
-                RC.image_psf = image_psf;
-                RC.cal = cal;
-                RC.runOnImgLib2(imgPatch.getImage(), imgPatch.getLabelImage());
-                RC.labelImage.eliminateForbidden();
-                imgPatch.setResult(RC.labelImage.getImgLib2(IntType.class));
-                imgPatch.showResult();
-            }
-
-            // Assemble result
-            ImageJFunctions.show(ip.assemble(IntType.class, 1));
-
+        try {
+            RCImageFilter();
         }
-        else {
-            // Run Region Competition as usual
-            try {
-                RCImageFilter();
+        catch (final Exception e) {
+            if (controllerFrame != null) {
+                controllerFrame.dispose();
             }
-            catch (final Exception e) {
-                if (controllerFrame != null) {
-                    controllerFrame.dispose();
-                }
-                e.printStackTrace();
-            }
+            e.printStackTrace();
         }
 
         final String folder = MosaicUtils.ValidFolderFromImage(MVC.getOriginalImPlus());
 
         // Remove eventually extension
-
         if (labelImage == null) {
             return;
         }
@@ -478,7 +397,7 @@ public class Region_Competition implements Segmentation {
         labelImage.calculateRegionsCenterOfMass();
 
         if (userDialog.showAndSaveStatistics() || test_mode == true) {
-            showAndSaveStatistics(algorithm.getLabelMap());
+             showAndSaveStatistics(algorithm.getLabelMap());
         }
     }
 
@@ -516,8 +435,23 @@ public class Region_Competition implements Segmentation {
                 break;
             }
             case e_DeconvolutionPC: {
-                System.out.println("1111111");
-                e_data = new E_Deconvolution(intensityImage, labelMap);
+                final GeneratePSF gPsf = new GeneratePSF();
+                Img<FloatType> image_psf = null;
+                if (originalIP.getNSlices() == 1) {
+                    image_psf = gPsf.generate(2);
+                }
+                else {
+                    image_psf = gPsf.generate(3);
+                }
+                // Normalize PSF to overall sum equal 1.0
+                final double Vol = IntensityImage.volume_image(image_psf);
+                IntensityImage.rescale_image(image_psf, (float) (1.0f / Vol));
+                
+                if (MVC.getHideProcess() == false) {
+                    OpenedImages.add(ImageJFunctions.show(image_psf));
+                }
+                
+                e_data = new E_Deconvolution(intensityImage, labelMap, image_psf);
                 break;
             }
             default: {
@@ -630,7 +564,6 @@ public class Region_Competition implements Segmentation {
 
         switch (input) {
             case ROI_2D: {
-                System.out.println("manualSelect");
                 manualSelect(labelImage);
                 break;
             }
@@ -649,7 +582,6 @@ public class Region_Competition implements Segmentation {
                 mb.initialize();
                 break;
             }
-            case File_Patcher:
             case File: {
                 ImagePlus ip = null;
 
@@ -833,8 +765,7 @@ public class Region_Competition implements Segmentation {
                 initEnergies();
 
                 initAlgorithm();
-                System.out.println("-33333333");
-                if (algorithm.GenerateData(image_psf) == false) {
+                if (algorithm.GenerateData() == false) {
                     return;
                 }
                 t.toc();
@@ -856,9 +787,9 @@ public class Region_Competition implements Segmentation {
             logger.debug("--- kbest sorted: " + Arrays.toString(list.toArray()));
 
         }
-        else // no kbest
-        {System.out.println("+33333333");
-            algorithm.GenerateData(image_psf);
+        else {
+            // no kbest
+            algorithm.GenerateData();
 
             updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
 
@@ -873,15 +804,6 @@ public class Region_Competition implements Segmentation {
         if (IJ.isMacro() == false) {
             controllerFrame.dispose();
         }
-    }
-
-    private <T extends RealType<T>, E extends IntegerType<E>> void RCImageFilter(Img<T> img, Img<E> lbl) {
-        labelImage = new LabelImageRC(lbl);
-        intensityImage = new IntensityImage(img);
-        initialStack = IntConverter.intArrayToStack(labelImage.dataLabel, labelImage.getDimensions());
-        labelImage.initBoundary();
-
-        doRC();
     }
 
     private void RCImageFilter() {

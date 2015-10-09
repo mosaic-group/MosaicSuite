@@ -30,9 +30,6 @@ import mosaic.region_competition.energies.OscillationDetection;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction.TopologicalNumberResult;
 import mosaic.region_competition.utils.Timer;
-import net.imglib2.img.Img;
-import net.imglib2.img.display.imagej.ImageJFunctions;
-import net.imglib2.type.numeric.real.FloatType;
 
 
 public class Algorithm {
@@ -263,7 +260,7 @@ public class Algorithm {
 
     static private boolean RC_free = false;
     
-    public boolean GenerateData(Img<FloatType> image_psf) {
+    public boolean GenerateData() {
         /**
          * Initialize standard statistics (mean, variances, length, area etc)
          */
@@ -273,7 +270,7 @@ public class Algorithm {
          * Depending on the functional to use, prepare stuff for faster
          * computation.
          */
-        if (PrepareEnergyCaluclation(image_psf) == false) {
+        if (PrepareEnergyCaluclation() == false) {
             return false;
         }
 
@@ -358,7 +355,7 @@ public class Algorithm {
      * @return
      */
 
-    private boolean PrepareEnergyCaluclation(Img<FloatType> image_psf) {
+    private boolean PrepareEnergyCaluclation() {
         /**
          * Deconvolution:
          * - prepare the PSF (if not set manually by the user)
@@ -366,26 +363,7 @@ public class Algorithm {
          */
         if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
             // Set deconvolution
-
-            // if not PSF has been generated stop
-
-            if (image_psf == null) {
-                IJ.error("Error no PSF generated");
-                return false;
-            }
-
-            final double Vol = IntensityImage.volume_image(image_psf);
-            IntensityImage.rescale_image(image_psf, (float) (1.0f / Vol));
-
-            // Show PSF Image
-
-            if (MVC.getHideProcess() == false) {
-                OpenedImages.add(ImageJFunctions.show(image_psf));
-            }
-
             // Ugly forced to be float
-
-            ((E_Deconvolution) imageModel.getEdata()).setPSF(image_psf);
             ((E_Deconvolution) imageModel.getEdata()).GenerateModelImage(labelImage, labelMap);
             ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage);
         }
@@ -704,6 +682,7 @@ public class Algorithm {
 
             vVal.candidateLabel = 0;
             vVal.referenceCount = 0; // doesn't matter for the BG
+            vVal.isDaughter = false;
             vVal.isMother = true;
             vVal.m_processed = false;
             vVal.energyDifference = CalculateEnergyDifferenceForLabel(vCurrentIndex, vVal, bgLabel).energyDifference;
@@ -758,6 +737,7 @@ public class Algorithm {
                         vOCCValue.label = vLabelOfDefender;
                         vOCCValue.intensity = intensityImage.get(vNeighborIndex);
                         vOCCValue.isMother = false;
+                        vOCCValue.isDaughter = true;
                         vOCCValue.m_processed = false;
                         vOCCValue.referenceCount = 1;
                         vOCCValue.energyDifference = CalculateEnergyDifferenceForLabel(vNeighborIndex, vOCCValue, vLabelOfPropagatingRegion).energyDifference;
@@ -770,7 +750,8 @@ public class Algorithm {
                     }
                     else // the point is already part of the candidate list
                     {
-                        vContourPointItr.isMother = false;
+                        vContourPointItr.isDaughter = true;
+
                         // Tell the daughter about the mother (label does not
                         // matter!):
                         vContourPointItr.getMotherList().add(vCurrentIndex);
@@ -968,7 +949,7 @@ public class Algorithm {
                     // RULE 1: If c is a daughter point, the reference count
                     // r_c is > 0.
                     //
-                    if (!vNetworkIt.iParticle.isMother) {
+                    if (vNetworkIt.iParticle.isDaughter) {
                         final ContourParticle vCand = m_Candidates.get(vNetworkIt.iParticleIndex);
                         if (vCand.referenceCount < 1 && vCand.candidateLabel != 0) {
                             vLegalMove = false;
@@ -1330,8 +1311,14 @@ public class Algorithm {
         // exists searching for the point.
         // but atm, im happy that it detects "orphan"-contourPoints (without attached labelInfo)
         
-        for (Entry<Point, ContourParticle> vIt : m_InnerContourContainer.entrySet())
+        // TODO: It must be converted to array since later code modifies keys of HashMap (!).
+        //       Without such "hack" it generates ConcurrentModificationException. Anyway.. this
+        //       "solution" must be revisited since it is very dangerous.
+        Object[] array = m_InnerContourContainer.entrySet().toArray();
+        for (Object o : array)
         {
+            @SuppressWarnings("unchecked")
+            Entry<Point, ContourParticle> vIt = (Entry<Point, ContourParticle>)o;
             final ContourParticle vWorkingIt = vIt.getValue();
             final LabelInformation info = labelMap.get(vWorkingIt.label);
             if (info == null) {

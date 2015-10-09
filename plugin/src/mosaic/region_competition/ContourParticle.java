@@ -16,8 +16,11 @@ public class ContourParticle {
     public int candidateLabel = 0;
     public double energyDifference = 0;
 
-    // mother - daughter indicator
+    // mother - daughter indicators
+    // Particle can have any combination of both.
     boolean isMother = false; 
+    boolean isDaughter = false;
+    
     int referenceCount = 0;
     boolean m_processed = false;
 
