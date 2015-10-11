@@ -270,9 +270,7 @@ public class Algorithm {
          * Depending on the functional to use, prepare stuff for faster
          * computation.
          */
-        if (PrepareEnergyCaluclation() == false) {
-            return false;
-        }
+         PrepareEnergyCaluclation();
 
         /**
          * Start time measurement
@@ -349,16 +347,12 @@ public class Algorithm {
 
     /**
      * Initialize the energy function
-     *
-     * @param img The PSF image optionally is de-convolving segmentation is
-     *            selected
      * @return
      */
 
-    private boolean PrepareEnergyCaluclation() {
+    private void PrepareEnergyCaluclation() {
         /**
          * Deconvolution:
-         * - prepare the PSF (if not set manually by the user)
          * - Alocate and initialize the 'ideal image'
          */
         if (settings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
@@ -367,8 +361,6 @@ public class Algorithm {
             ((E_Deconvolution) imageModel.getEdata()).GenerateModelImage(labelImage, labelMap);
             ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage);
         }
-
-        return true;
     }
 
     private boolean DoOneIteration() {
@@ -1165,12 +1157,9 @@ public class Algorithm {
         for (final Point qIndex : connFG.iterateNeighbors(pIndex)) {
             final int qLabel = labelImage.getLabel(qIndex);
 
-            // TODO can the labels be negative? somewhere, they are set (maybe
-            // only temporary) to neg values
+            // TODO can the labels be negative? somewhere, they are set (maybe only temporary) to neg values
             if (labelImage.isContourLabel(aAbsLabel)) {
                 debug("AddNeighborsAtRemove. one label is not absLabel\n");
-                int dummy = 0;
-                dummy = dummy + 0;
             }
 
             // q is a inner point with the same label as p
@@ -1183,19 +1172,6 @@ public class Algorithm {
 
                 labelImage.setLabel(qIndex, labelImage.labelToNeg(aAbsLabel));
                 m_InnerContourContainer.put(qIndex, q);
-            }
-            // TODO this never can be true
-            // (since isContourLabel==> neg values AND (qLabel == aAbsLabel) => pos labels
-            else if (labelImage.isContourLabel(qLabel) && qLabel == aAbsLabel) 
-            {
-                // q is contour of the same label
-
-                // TODO itk Line 1520, modifiedcounter
-                // the point is already in the contour. We reactivate it by
-                // ensuring that the energy is calculated in the next
-                // iteration:
-                // contourContainer.get(qIndex).m_modifiedCounter = 0;
-                // m_InnerContourContainer[vI].m_modifiedCounter = 0;
             }
         }
     }

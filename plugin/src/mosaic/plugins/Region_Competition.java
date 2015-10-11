@@ -8,12 +8,10 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -31,7 +29,6 @@ import ij.io.FileInfo;
 import ij.io.FileSaver;
 import ij.io.Opener;
 import ij.measure.Calibration;
-import ij.measure.ResultsTable;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import mosaic.core.cluster.ClusterGUI;
@@ -46,6 +43,7 @@ import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.GUI.ControllerFrame;
 import mosaic.region_competition.GUI.GenericDialogGUI;
+import mosaic.region_competition.GUI.StatisticsTable;
 import mosaic.region_competition.energies.E_CV;
 import mosaic.region_competition.energies.E_CurvatureFlow;
 import mosaic.region_competition.energies.E_Deconvolution;
@@ -196,15 +194,12 @@ public class Region_Competition implements Segmentation {
             }
 
             // config
-            String tmp = null;
-            String path;
-            if ((tmp = MosaicUtils.parseString("config", options)) != null) {
-                path = tmp;
+            String path = null;
+            if ((path = MosaicUtils.parseString("config", options)) != null) {
                 settings = getConfigHandler().LoadFromFile(path, Settings.class);
             }
             else {
                 // load config file
-
                 final String dir = IJ.getDirectory("temp");
                 sv = dir + "rc_settings.dat";
                 settings = getConfigHandler().LoadFromFile(sv, Settings.class);
@@ -397,7 +392,27 @@ public class Region_Competition implements Segmentation {
         labelImage.calculateRegionsCenterOfMass();
 
         if (userDialog.showAndSaveStatistics() || test_mode == true) {
-             showAndSaveStatistics(algorithm.getLabelMap());
+            // TODO: Handle images that are created and not saved yet. There have no directory information and
+            //       below we receive null
+            String directory = MosaicUtils.ValidFolderFromImage(originalIP);
+            final String fileNameNoExt = MosaicUtils.removeExtension(originalIP.getTitle());
+            String absoluteFileName = directory + File.separator + fileNameNoExt + "_ObjectsData_c1.csv";
+
+            // TODO: Is this needed? Can it be case when file is drag and dropped?
+            if (absoluteFileName.indexOf("file:") >= 0) {
+                absoluteFileName = absoluteFileName.substring(absoluteFileName.indexOf("file:") + 5);
+            }
+            
+            StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelMap().values());
+            statisticsTable.save(absoluteFileName);
+            
+            // if is headless do not show ...
+            // TODO: ... and reorganize (why?)
+            final boolean headless_check = GraphicsEnvironment.isHeadless();
+            if (headless_check == false) {
+                statisticsTable.show("statistics");
+                MosaicUtils.reorganize(out, fileNameNoExt, directory, 1);
+            }
         }
     }
 
@@ -1108,90 +1123,6 @@ public class Region_Competition implements Segmentation {
 
     public Region_Competition() {
         OpenedImages = new Vector<ImagePlus>();
-    }
-
-    /**
-     * Show and save statistics
-     *
-     * @param labelMap HashMap that contain the labels information
-     */
-    private void showAndSaveStatistics(HashMap<Integer, LabelInformation> labelMap) {
-        final ResultsTable rts = createStatistics(labelMap);
-
-        // TODO: Handle images that are created and not saved yet. There have no directory information and
-        //       below we receive null
-        final String folder = MosaicUtils.ValidFolderFromImage(MVC.getOriginalImPlus());
-
-        String fileName = MosaicUtils.removeExtension(MVC.getOriginalImPlus().getTitle());
-        fileName += "_ObjectsData_c1.csv";
-        saveStatistics(folder + File.separator + fileName, labelMap);
-
-        // if is headless do not show
-        final boolean headless_check = GraphicsEnvironment.isHeadless();
-
-        if (headless_check == false) {
-            rts.show("statistics");
-        }
-    }
-
-    /**
-     * Save the csv region statistics
-     *
-     * @param fold where to save
-     * @param labelMap HashMap that save the label information
-     */
-    private void saveStatistics(String fold, HashMap<Integer, LabelInformation> labelMap) {
-        // Remove the string file:
-
-        if (fold.indexOf("file:") >= 0) {
-            fold = fold.substring(fold.indexOf("file:") + 5);
-        }
-
-        final ResultsTable rts = createStatistics(labelMap);
-
-        try {
-            rts.saveAs(fold);
-        }
-        catch (final IOException e) {
-            e.printStackTrace();
-        }
-
-        final String oip = MosaicUtils.removeExtension(originalIP.getTitle());
-
-        final boolean headless_check = GraphicsEnvironment.isHeadless();
-
-        if (headless_check == false) {
-            MosaicUtils.reorganize(out, oip, fold.substring(0, fold.lastIndexOf(File.separator)), 1);
-        }
-    }
-
-    private ResultsTable createStatistics(HashMap<Integer, LabelInformation> labelMap) {
-        final ResultsTable rt = new ResultsTable();
-
-        // over all labels
-        int rowNumber = 1;
-        for (final Entry<Integer, LabelInformation> entry : labelMap.entrySet()) {
-            final LabelInformation info = entry.getValue();
-            rt.showRowNumbers(false);
-            
-            rt.incrementCounter();
-            rt.addValue("Id", rowNumber++);
-            rt.addValue("Image_ID", 0);
-            rt.addValue("label", info.label);
-            rt.addValue("size", info.count);
-            rt.addValue("mean", info.mean);
-            rt.addValue("variance", info.var);
-            rt.addValue("Coord_X", info.mean_pos[0]);
-            rt.addValue("Coord_Y", info.mean_pos[1]);
-            if (info.mean_pos.length > 2) {
-                rt.addValue("Coord_Z", info.mean_pos[2]);
-            }
-            else {
-                rt.addValue("Coord_Z", 0.0);
-            }
-        }
-
-        return rt;
     }
 
     /**
