@@ -41,6 +41,11 @@ public class StatisticsTable {
         }
     }
 
+    /**
+     * Creates ResultsTable and fills it with LabelInformation data
+     * @param collection LabelInformation data
+     * @return created table with data
+     */
     private ResultsTable createStatistics(Collection<LabelInformation> collection) {
         final ResultsTable rt = new ResultsTable();
         rt.showRowNumbers(false);

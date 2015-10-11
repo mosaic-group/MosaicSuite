@@ -8,9 +8,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -56,7 +53,6 @@ import mosaic.region_competition.initializers.BoxInitializer;
 import mosaic.region_competition.initializers.BubbleInitializer;
 import mosaic.region_competition.initializers.MaximaBubbles;
 import mosaic.region_competition.utils.IntConverter;
-import mosaic.region_competition.utils.Timer;
 import mosaic.utils.io.serialize.DataFile;
 import mosaic.utils.io.serialize.JsonDataFile;
 import net.imglib2.img.Img;
@@ -69,13 +65,14 @@ import net.imglib2.type.numeric.real.FloatType;
  * @version 2012.06.11
  */
 public class Region_Competition implements Segmentation {
+
     /**
      * enum to determine type of initialization
      */
     public enum InitializationType {
         Rectangle, Bubbles, LocalMax, ROI_2D, File
     }
-    
+
     public enum EnergyFunctionalType {
         e_PC {
 
@@ -84,34 +81,33 @@ public class Region_Competition implements Segmentation {
                 return "Piecewise Constant";
             }
         },
-        e_PS, 
-        e_DeconvolutionPC
+        e_PS, e_DeconvolutionPC
     }
-    
+
     public enum RegularizationType {
         Sphere_Regularization, Approximative, None,
     }
-    
-    
+
     private static final Logger logger = Logger.getLogger(Region_Competition.class);
 
     private final String[] out = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
 
-    private Region_Competition MVC; // interface to image application (imageJ)
-    public Settings settings;
+    public Settings settings = null;
 
     protected Algorithm algorithm;
     private LabelImageRC labelImage; // data structure mapping pixels to labels
     private IntensityImage intensityImage;
     private ImageModel imageModel;
+    
     private Calibration cal;
     private ImagePlus originalIP; // IP of the input image
+    
     private final Vector<ImagePlus> OpenedImages;
 
     protected ImageStack stack; // stack saving the segmentation progress images
     protected ImagePlus stackImPlus; // IP showing the stack
     private boolean stackKeepFrames = false;
-    private boolean normalize_ip = false;
+    private boolean normalize_ip = true;
 
     private ImageStack initialStack; // copy of the initial guess (without contour/boundary)
 
@@ -178,14 +174,12 @@ public class Region_Competition implements Segmentation {
         return par;
     }
 
-    private String sv = null;
-
-    private void initAndParse() {
+    private void initSettingsAndParseMacroOptions() {
+        settings = null;
+        
         final String options = Macro.getOptions();
-
-        normalize_ip = true;
         if (options != null) {
-            // Command line interface search for config file
+            // Command line interface
 
             // normalize
             String normalizeString = MosaicUtils.parseString("normalize", options);
@@ -193,35 +187,26 @@ public class Region_Competition implements Segmentation {
                 normalize_ip = Boolean.parseBoolean(normalizeString);
             }
 
-            // config
-            String path = null;
-            if ((path = MosaicUtils.parseString("config", options)) != null) {
+            // config file
+            String path = MosaicUtils.parseString("config", options);
+            if (path != null) {
                 settings = getConfigHandler().LoadFromFile(path, Settings.class);
             }
-            else {
-                // load config file
-                final String dir = IJ.getDirectory("temp");
-                sv = dir + "rc_settings.dat";
-                settings = getConfigHandler().LoadFromFile(sv, Settings.class);
-            }
 
+            // output file
             output = MosaicUtils.parseString("output", options);
-
-            // no config file open the GUI
-        }
-        else {
-            // load config file
-
-            final String dir = IJ.getDirectory("temp");
-            sv = dir + "rc_settings.dat";
-            settings = getConfigHandler().LoadFromFile(sv, Settings.class);
         }
 
         if (settings == null) {
-            settings = new Settings();
+            // load default config file
+            configFilePath();
+            settings = getConfigHandler().LoadFromFile(configFilePath(), Settings.class, new Settings());
         }
+    }
 
-        MVC = this;
+    private String configFilePath() {
+        final String dir = IJ.getDirectory("temp");
+        return dir + "rc_settings.dat";
     }
 
     @Override
@@ -230,121 +215,125 @@ public class Region_Competition implements Segmentation {
             return DONE;
         }
 
-        initAndParse();
+        initSettingsAndParseMacroOptions();
 
+        // Save input stuff
         originalIP = aImp;
-        userDialog = new GenericDialogGUI(this.settings, this.getOriginalImPlus());
-        userDialog.showDialog();
 
-        final boolean success = userDialog.processInput();
-        if (!success) {
+        // Get information from user
+        userDialog = new GenericDialogGUI(settings, originalIP);
+        userDialog.showDialog();
+        if (!userDialog.processInput()) {
             return DONE;
         }
-
+        
         if (userDialog.getInputImage() != null) {
             originalIP = userDialog.getInputImage();
             if (originalIP != null) {
                 cal = originalIP.getCalibration();
             }
-        }
+        } 
 
         if (userDialog.useCluster() == true) {
-            // We run on cluster
-            // Copying parameters
-            final Settings p = new Settings(settings);
-
-            // saving config file
-            getConfigHandler().SaveToFile("/tmp/settings.dat", p);
-
-            final ClusterGUI cg = new ClusterGUI();
-            ClusterSession ss = cg.getClusterSession();
-            ss.setInputArgument("text1");
-            ss.setSlotPerProcess(1);
-            File[] fileslist = null;
-
-            // Check if we selected a directory
-            if (aImp == null) {
-                final File fl = new File(userDialog.getInputImageFilename());
-                final File fl_l = new File(userDialog.getLabelImageFilename());
-                if (fl.isDirectory() == true) {
-                    // we have a directory
-
-                    String opt = getOptions(fl);
-                    if (settings.labelImageInitType == InitializationType.File) {
-                        // upload label images
-
-                        ss = cg.getClusterSession();
-                        fileslist = fl_l.listFiles();
-                        final File dir = new File("label");
-                        ss.upload(dir, fileslist);
-                        opt += " text2=" + ss.getClusterDirectory() + File.separator + dir.getPath();
-                    }
-
-                    fileslist = fl.listFiles();
-
-                    ss = ClusterSession.processFiles(fileslist, "Region Competition", opt + " show_and_save_statistics", out, cg);
-                }
-                else if (fl.isFile()) {
-                    String opt = getOptions(fl);
-                    if (settings.labelImageInitType == InitializationType.File) {
-                        // upload label images
-                        ss = cg.getClusterSession();
-                        fileslist = new File[1];
-                        fileslist[0] = fl_l;
-                        ss.upload(fileslist);
-                        opt += " text2=" + ss.getClusterDirectory() + File.separator + fl_l.getName();
-                    }
-
-                    ss = ClusterSession.processFile(fl, "Region Competition", opt + " show_and_save_statistics", out, cg);
-                }
-                else {
-                    ss = ClusterSession.getFinishedJob(out, "Region Competition", cg);
-                }
-            }
-            else {
-                // It is an image
-                String opt = getOptions(aImp);
-
-                if (settings.labelImageInitType == InitializationType.File) {
-                    // upload label images
-
-                    ss = cg.getClusterSession();
-                    ss.splitAndUpload(userDialog.getLabelImage(), new File("label"), null);
-                    opt += " text2=" + ss.getClusterDirectory() + File.separator + "label" + File.separator + ss.getSplitAndUploadFilename(0);
-                }
-
-                ss = ClusterSession.processImage(aImp, "Region Competition", opt + " show_and_save_statistics", out, cg);
-            }
-
-            // Get output format and Stitch the output in the output selected
-            final File f = ClusterSession.processJobsData(MosaicUtils.ValidFolderFromImage(aImp));
-
-            if (aImp != null) {
-                MosaicUtils.StitchCSV(MosaicUtils.ValidFolderFromImage(aImp), out, MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle());
-            }
-            else {
-                MosaicUtils.StitchCSV(f.getParent(), out, null);
-            }
-
-            return NO_IMAGE_REQUIRED;
+            return runClusterMode(aImp);
         }
         else {
-            getConfigHandler().SaveToFile(sv, settings);
+            getConfigHandler().SaveToFile(configFilePath(), settings);
 
-            // if is 3D save the originalIP
             if (aImp != null) {
+                // if is 3D save the originalIP
                 if (aImp.getNSlices() != 1) {
                     originalIP = aImp;
-
                 }
             }
             else {
                 originalIP = null;
                 return NO_IMAGE_REQUIRED;
             }
-
         }
+
         return DOES_ALL + NO_CHANGES;
+    }
+
+    private int runClusterMode(ImagePlus aImp) {
+        // We run on cluster
+        // Copying parameters
+        final Settings p = new Settings(settings);
+
+        // saving config file
+        getConfigHandler().SaveToFile("/tmp/settings.dat", p);
+
+        final ClusterGUI cg = new ClusterGUI();
+        ClusterSession ss = cg.getClusterSession();
+        ss.setInputArgument("text1");
+        ss.setSlotPerProcess(1);
+        File[] fileslist = null;
+
+        // Check if we selected a directory
+        if (aImp == null) {
+            final File fl = new File(userDialog.getInputImageFilename());
+            final File fl_l = new File(userDialog.getLabelImageFilename());
+            if (fl.isDirectory() == true) {
+                // we have a directory
+
+                String opt = getOptions(fl);
+                if (settings.labelImageInitType == InitializationType.File) {
+                    // upload label images
+
+                    ss = cg.getClusterSession();
+                    fileslist = fl_l.listFiles();
+                    final File dir = new File("label");
+                    ss.upload(dir, fileslist);
+                    opt += " text2=" + ss.getClusterDirectory() + File.separator + dir.getPath();
+                }
+
+                fileslist = fl.listFiles();
+
+                ss = ClusterSession.processFiles(fileslist, "Region Competition", opt + " show_and_save_statistics", out, cg);
+            }
+            else if (fl.isFile()) {
+                String opt = getOptions(fl);
+                if (settings.labelImageInitType == InitializationType.File) {
+                    // upload label images
+                    ss = cg.getClusterSession();
+                    fileslist = new File[1];
+                    fileslist[0] = fl_l;
+                    ss.upload(fileslist);
+                    opt += " text2=" + ss.getClusterDirectory() + File.separator + fl_l.getName();
+                }
+
+                ss = ClusterSession.processFile(fl, "Region Competition", opt + " show_and_save_statistics", out, cg);
+            }
+            else {
+                ss = ClusterSession.getFinishedJob(out, "Region Competition", cg);
+            }
+        }
+        else {
+            // It is an image
+            String opt = getOptions(aImp);
+
+            if (settings.labelImageInitType == InitializationType.File) {
+                // upload label images
+
+                ss = cg.getClusterSession();
+                ss.splitAndUpload(userDialog.getLabelImage(), new File("label"), null);
+                opt += " text2=" + ss.getClusterDirectory() + File.separator + "label" + File.separator + ss.getSplitAndUploadFilename(0);
+            }
+
+            ss = ClusterSession.processImage(aImp, "Region Competition", opt + " show_and_save_statistics", out, cg);
+        }
+
+        // Get output format and Stitch the output in the output selected
+        final File f = ClusterSession.processJobsData(MosaicUtils.ValidFolderFromImage(aImp));
+
+        if (aImp != null) {
+            MosaicUtils.StitchCSV(MosaicUtils.ValidFolderFromImage(aImp), out, MosaicUtils.ValidFolderFromImage(aImp) + File.separator + aImp.getTitle());
+        }
+        else {
+            MosaicUtils.StitchCSV(f.getParent(), out, null);
+        }
+
+        return NO_IMAGE_REQUIRED;
     }
 
     /**
@@ -372,7 +361,7 @@ public class Region_Competition implements Segmentation {
             e.printStackTrace();
         }
 
-        final String folder = MosaicUtils.ValidFolderFromImage(MVC.getOriginalImPlus());
+        final String folder = MosaicUtils.ValidFolderFromImage(originalIP);
 
         // Remove eventually extension
         if (labelImage == null) {
@@ -380,7 +369,7 @@ public class Region_Competition implements Segmentation {
         }
 
         if (output == null) {
-            String fileName = MosaicUtils.removeExtension(MVC.getOriginalImPlus().getTitle());
+            String fileName = MosaicUtils.removeExtension(originalIP.getTitle());
             fileName += "_seg_c1.tif";
 
             labelImage.save(folder + File.separator + fileName);
@@ -393,7 +382,7 @@ public class Region_Competition implements Segmentation {
 
         if (userDialog.showAndSaveStatistics() || test_mode == true) {
             // TODO: Handle images that are created and not saved yet. There have no directory information and
-            //       below we receive null
+            // below we receive null
             String directory = MosaicUtils.ValidFolderFromImage(originalIP);
             final String fileNameNoExt = MosaicUtils.removeExtension(originalIP.getTitle());
             String absoluteFileName = directory + File.separator + fileNameNoExt + "_ObjectsData_c1.csv";
@@ -402,10 +391,10 @@ public class Region_Competition implements Segmentation {
             if (absoluteFileName.indexOf("file:") >= 0) {
                 absoluteFileName = absoluteFileName.substring(absoluteFileName.indexOf("file:") + 5);
             }
-            
+
             StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelMap().values());
             statisticsTable.save(absoluteFileName);
-            
+
             // if is headless do not show ...
             // TODO: ... and reorganize (why?)
             final boolean headless_check = GraphicsEnvironment.isHeadless();
@@ -461,11 +450,11 @@ public class Region_Competition implements Segmentation {
                 // Normalize PSF to overall sum equal 1.0
                 final double Vol = IntensityImage.volume_image(image_psf);
                 IntensityImage.rescale_image(image_psf, (float) (1.0f / Vol));
-                
-                if (MVC.getHideProcess() == false) {
+
+                if (getHideProcess() == false) {
                     OpenedImages.add(ImageJFunctions.show(image_psf));
                 }
-                
+
                 e_data = new E_Deconvolution(intensityImage, labelMap, image_psf);
                 break;
             }
@@ -541,13 +530,7 @@ public class Region_Competition implements Segmentation {
 
         if (ip != null) {
             originalIP = ip;
-
-            if (normalize_ip) {
-                intensityImage = new IntensityImage(originalIP);
-            }
-            else {
-                intensityImage = new IntensityImage(originalIP, false);
-            }
+            intensityImage = new IntensityImage(originalIP, normalize_ip);
 
             // image loaded
             final boolean showOriginal = true;
@@ -762,60 +745,26 @@ public class Region_Competition implements Segmentation {
     }
 
     private void doRC() {
+        // Initialize needed stuff
         initEnergies();
         initAlgorithm();
-
         initStack();
         initControls();
 
-        final Timer t = new Timer();
+        // Run segmentation
+        algorithm.GenerateData();
+        
+        // Do some post process stuff
+        updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
 
-        if (userDialog != null && userDialog.getKBest() > 0) {
-            final ArrayList<Long> list = new ArrayList<Long>();
-
-            for (int i = 0; i < userDialog.getKBest(); i++) {
-                t.tic();
-                labelImage.initMembers();
-                labelImage.initWithStack(initialStack);
-                initEnergies();
-
-                initAlgorithm();
-                if (algorithm.GenerateData() == false) {
-                    return;
-                }
-                t.toc();
-
-                updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
-                list.add(t.lastResult());
-
-                if (stackImPlus != null) {
-                    IJ.setMinAndMax(stackImPlus, 0, algorithm.getBiggestLabel());
-                }
-
-                if (userDialog != null && output == null) {
-                    showFinalResult(labelImage);
-                }
-            }
-
-            logger.debug("--- kbest: (set in GenericDialogGui.kbest): " + Arrays.toString(list.toArray()));
-            Collections.sort(list);
-            logger.debug("--- kbest sorted: " + Arrays.toString(list.toArray()));
-
+        if (stackImPlus != null) {
+            IJ.setMinAndMax(stackImPlus, 0, algorithm.getBiggestLabel());
         }
-        else {
-            // no kbest
-            algorithm.GenerateData();
-
-            updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
-
-            if (stackImPlus != null) {
-                IJ.setMinAndMax(stackImPlus, 0, algorithm.getBiggestLabel());
-            }
-            if (userDialog != null) {
-                showFinalResult(labelImage);
-            }
+        
+        if (userDialog != null) {
+            showFinalResult(labelImage);
         }
-
+        
         if (IJ.isMacro() == false) {
             controllerFrame.dispose();
         }
@@ -1079,7 +1028,7 @@ public class Region_Competition implements Segmentation {
      * @return
      */
     public ImagePlus getOriginalImPlus() {
-        return this.originalIP;
+        return originalIP;
     }
 
     /**
@@ -1106,19 +1055,24 @@ public class Region_Competition implements Segmentation {
         }
 
         @Override
-        public void windowOpened(WindowEvent e) {}
+        public void windowOpened(WindowEvent e) {
+        }
 
         @Override
-        public void windowIconified(WindowEvent e) {}
+        public void windowIconified(WindowEvent e) {
+        }
 
         @Override
-        public void windowDeiconified(WindowEvent e) {}
+        public void windowDeiconified(WindowEvent e) {
+        }
 
         @Override
-        public void windowDeactivated(WindowEvent e) {}
+        public void windowDeactivated(WindowEvent e) {
+        }
 
         @Override
-        public void windowActivated(WindowEvent e) {}
+        public void windowActivated(WindowEvent e) {
+        }
     }
 
     public Region_Competition() {

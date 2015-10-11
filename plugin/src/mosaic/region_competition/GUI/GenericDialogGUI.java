@@ -64,7 +64,6 @@ public class GenericDialogGUI  {
     private String inputImageTitle;
     private String labelImageTitle;
 
-    private int kbest = 1;
     private boolean showAndSaveStatistics = true;
     private boolean showNormalized = false;
     private boolean useStack = true;
@@ -135,8 +134,6 @@ public class GenericDialogGUI  {
         gd.addPanel(p, GridBagConstraints.CENTER, new Insets(0, 25, 0, 0));
 
         addOpenedImageChooser();
-
-        gd.addNumericField("kbest", 0, 0);
 
         final String[] strings = new String[] { "Show_Progress", "Keep_Frames", "Show_Normalized", "Show_and_save_Statistics", };
 
@@ -473,7 +470,6 @@ public class GenericDialogGUI  {
         }
 
         readOpenedImageChooser();
-        kbest = (int) gd.getNextNumber();
 
         useStack = gd.getNextBoolean();
         keepAllFrames = gd.getNextBoolean();
@@ -513,10 +509,6 @@ public class GenericDialogGUI  {
 
     public boolean showAndSaveStatistics() {
         return showAndSaveStatistics;
-    }
-
-    public int getKBest() {
-        return kbest;
     }
 
     ///////////////////////////

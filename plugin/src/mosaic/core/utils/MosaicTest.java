@@ -442,6 +442,7 @@ public class MosaicTest {
 
         // for each image
         for (final ImgTest tmp : imgT) {
+            logger.info("Testing: " + tmp.base);
             prepareTestEnvironment(wp, tmp);
 
             // append the macro set options with the test specific options

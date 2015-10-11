@@ -29,7 +29,6 @@ import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.energies.OscillationDetection;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction.TopologicalNumberResult;
-import mosaic.region_competition.utils.Timer;
 
 
 public class Algorithm {
@@ -273,18 +272,10 @@ public class Algorithm {
          PrepareEnergyCaluclation();
 
         /**
-         * Start time measurement
-         */
-
-        final Timer timer = new Timer();
-        timer.tic();
-
-        /**
          * Main loop of the algorithm
          */
 
         boolean vConvergence = false;
-
         while (RC_free == true || (settings.m_MaxNbIterations > m_iteration_counter && !(vConvergence))) {
             synchronized (pauseMonitor) {
                 if (pause) {
@@ -306,7 +297,6 @@ public class Algorithm {
             debug("=== iteration " + m_iteration_counter + " ===");
 
             vConvergence = DoOneIteration();
-            debug("time: " + timer.toc());
 
             if (shrinkFirst && vConvergence) {
                 debug("Done with shrinking, now allow growing");
@@ -323,15 +313,9 @@ public class Algorithm {
 
         m_converged = vConvergence;
 
-        timer.toc();
-        debug("Total time: " + timer.lastResult());
-
         /**
          * Debugging Output
          */
-
-        final long executionTime = timer.lastResult();
-        debug("time per iteration: " + executionTime / m_iteration_counter);
 
         if (m_converged) {
             debug("convergence after " + m_iteration_counter + " iterations.");
