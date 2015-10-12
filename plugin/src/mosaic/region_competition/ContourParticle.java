@@ -52,6 +52,6 @@ public class ContourParticle {
     
     @Override
     public String toString() {
-        return "L=" + label + " val=" + intensity + " L'=" + candidateLabel;
+        return "[L=" + label + " val=" + intensity + " L'=" + candidateLabel + "]";
     }
 }

@@ -39,7 +39,7 @@ import org.scijava.app.StatusService;
 @Ignore
 public class CommonBase extends Info {
 
-    protected static final Logger logger = Logger.getLogger(CommonBase.class);
+    private static final Logger logger = Logger.getLogger(CommonBase.class);
     private static ImgOpener iImgOpener = null;
 
     @BeforeClass

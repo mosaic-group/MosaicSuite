@@ -213,7 +213,7 @@ public class Point {
         for (i = 0; i < x.length - 1; i++) {
             result = result + x[i] + ", ";
         }
-        result = result + x[i] + "]";
+        result = result + x[i] + "](" + dim+ ")";
         return result;
     }
 

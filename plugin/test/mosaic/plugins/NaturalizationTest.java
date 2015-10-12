@@ -3,6 +3,7 @@ package mosaic.plugins;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.apache.log4j.Logger;
 import org.junit.Test;
 
 import mosaic.test.framework.CommonBase;
@@ -12,7 +13,8 @@ import mosaic.test.framework.CommonBase;
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class NaturalizationTest extends CommonBase {
-
+    private static final Logger logger = Logger.getLogger(NaturalizationTest.class);
+    
     @Test
     public void testColorRgb() {
         // Define test data

@@ -256,6 +256,8 @@ public class Region_Competition implements Segmentation {
     }
 
     private int runClusterMode(ImagePlus aImp) {
+        logger.info("Running RC on cluster");
+        
         // We run on cluster
         // Copying parameters
         final Settings p = new Settings(settings);
