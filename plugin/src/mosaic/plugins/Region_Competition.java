@@ -11,8 +11,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Vector;
 
-import javax.swing.JFrame;
-
 import org.apache.log4j.Logger;
 
 import ij.IJ;
@@ -38,7 +36,7 @@ import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
-import mosaic.region_competition.GUI.ControllerFrame;
+import mosaic.region_competition.GUI.Controller;
 import mosaic.region_competition.GUI.GenericDialogGUI;
 import mosaic.region_competition.GUI.StatisticsTable;
 import mosaic.region_competition.energies.E_CV;
@@ -112,7 +110,7 @@ public class Region_Competition implements Segmentation {
     private ImageStack initialStack; // copy of the initial guess (without contour/boundary)
 
     private GenericDialogGUI userDialog;
-    private JFrame controllerFrame;
+    private Controller iController = null;
 
     /**
      * Return the dimension of a file
@@ -357,9 +355,7 @@ public class Region_Competition implements Segmentation {
             RCImageFilter();
         }
         catch (final Exception e) {
-            if (controllerFrame != null) {
-                controllerFrame.dispose();
-            }
+            closeControls();
             e.printStackTrace();
         }
 
@@ -703,49 +699,13 @@ public class Region_Competition implements Segmentation {
     }
 
     private void initControls() {
-        // no control when is a script
-
-        if (IJ.isMacro() == true) {
-            return;
-        }
-
-        controllerFrame = new ControllerFrame(this);
-        controllerFrame.setVisible(true);
-
-        // Stop the algorithm if controllerframe is closed
-        controllerFrame.addWindowListener(new WindowListener() {
-
-            @Override
-            public void windowOpened(WindowEvent e) {}
-
-            @Override
-            public void windowIconified(WindowEvent e) {}
-
-            @Override
-            public void windowDeiconified(WindowEvent e) {}
-
-            @Override
-            public void windowDeactivated(WindowEvent e) {}
-
-            @Override
-            public void windowClosing(WindowEvent e) {
-                if (algorithm != null) {
-                    algorithm.stop();
-                }
-            }
-
-            @Override
-            public void windowClosed(WindowEvent e) {
-                if (algorithm != null) {
-                    algorithm.stop();
-                }
-            }
-
-            @Override
-            public void windowActivated(WindowEvent e) {}
-        });
+        iController = new Controller(/* aShowWindow */ !IJ.isMacro());
     }
-
+    
+    private void closeControls() {
+       iController.close();
+    }
+        
     private void doRC() {
         // Initialize needed stuff
         initEnergies();
@@ -758,11 +718,16 @@ public class Region_Competition implements Segmentation {
         int iteration = 0;
         updateProgress(iteration, settings.m_MaxNbIterations);
         while (iteration < settings.m_MaxNbIterations && !isDone) {
+            // Perform one iteration of RC
             ++iteration;
             showStatus("Iteration: " + iteration + "/" + settings.m_MaxNbIterations);
             updateProgress(iteration, settings.m_MaxNbIterations);
             isDone = algorithm.GenerateData();
             
+            // Check if we should pause for a moment or if simulation is not aborted by user
+            isDone = iController.waitIfStopeed() ? true : isDone;
+
+            // Add slice with iteration output
             addSliceToStack(labelImage, "iteration " + iteration);
             updateProgress(iteration, settings.m_MaxNbIterations);
         }
@@ -779,9 +744,7 @@ public class Region_Competition implements Segmentation {
             showFinalResult(labelImage);
         }
         
-        if (IJ.isMacro() == false) {
-            controllerFrame.dispose();
-        }
+        closeControls();
     }
 
     private void RCImageFilter() {
@@ -795,12 +758,12 @@ public class Region_Competition implements Segmentation {
         OpenedImages.add(li.show("", algorithm.getBiggestLabel()));
     }
 
-    public void showStatus(String s) {
+    private void showStatus(String s) {
         IJ.showStatus(s);
     }
 
     /**
-     * Invoke this method after done an itation
+     * Invoke this method after done an iteration
      */
     public void updateProgress(int iteration, int maxIterations) {
         IJ.showProgress(iteration, maxIterations);
@@ -1069,36 +1032,24 @@ public class Region_Competition implements Segmentation {
         }
 
         @Override
-        public void windowOpened(WindowEvent e) {
-        }
+        public void windowOpened(WindowEvent e) {}
 
         @Override
-        public void windowIconified(WindowEvent e) {
-        }
+        public void windowIconified(WindowEvent e) {}
 
         @Override
-        public void windowDeiconified(WindowEvent e) {
-        }
+        public void windowDeiconified(WindowEvent e) {}
 
         @Override
-        public void windowDeactivated(WindowEvent e) {
-        }
+        public void windowDeactivated(WindowEvent e) {}
 
         @Override
-        public void windowActivated(WindowEvent e) {
-        }
+        public void windowActivated(WindowEvent e) {}
     }
 
     public Region_Competition() {
         OpenedImages = new Vector<ImagePlus>();
     }
-
-    /**
-     * Get CSV regions list name output
-     *
-     * @param aImp image
-     * @return set of possible output
-     */
 
     @Override
     public String[] getRegionList(ImagePlus aImp) {

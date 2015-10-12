@@ -270,21 +270,7 @@ public class Algorithm {
 
     public boolean GenerateData() {
 
-        synchronized (pauseMonitor) {
-            if (pause) {
-                try {
-                    debug("enter pause");
-                    pauseMonitor.wait();
-                    debug("exit pause");
-                }
-                catch (final InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (abort) {
-                return true; // Pretend that we finished
-            }
-        }
+
 
         boolean vConvergence = DoOneIteration();
 
@@ -1429,38 +1415,12 @@ public class Algorithm {
 
     // Control //////////////////////////////////////////////////
 
-    private final Object pauseMonitor = new Object();
-    private boolean pause = false;
-    private boolean abort = false;
-
     /**
      * Close all created images
      */
     public void close() {
         for (int i = 0; i < OpenedImages.size(); i++) {
             OpenedImages.get(i).close();
-        }
-    }
-
-    /**
-     * Stops the algorithm after actual iteration
-     */
-    public void stop() {
-        synchronized (pauseMonitor) {
-            abort = true;
-            pause = false;
-            pauseMonitor.notify();
-        }
-    }
-
-    public void pause() {
-        pause = true;
-    }
-
-    public void resume() {
-        synchronized (pauseMonitor) {
-            pause = false;
-            pauseMonitor.notify();
         }
     }
 
