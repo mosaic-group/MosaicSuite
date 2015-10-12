@@ -21,7 +21,6 @@ import mosaic.core.utils.FloodFill;
 import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.Point;
-import mosaic.plugins.Region_Competition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.Energy.EnergyResult;
@@ -35,7 +34,6 @@ public class Algorithm {
 
     private boolean shrinkFirst = false;
 
-    private final Region_Competition MVC;
     private final LabelImageRC labelImage;
     private final IntensityImage intensityImage;
     private final ImageModel imageModel;
@@ -100,12 +98,11 @@ public class Algorithm {
 
     private final Set<Seed> m_Seeds = new HashSet<Seed>();
 
-    public Algorithm(IntensityImage intensityImage, LabelImageRC labelImage, ImageModel model, Settings settings, Region_Competition mvc) {
+    public Algorithm(IntensityImage intensityImage, LabelImageRC labelImage, ImageModel model, Settings settings) {
         if (shrinkFirst) {
             IJ.showMessage("shrinkfirst=true");
         }
 
-        this.MVC = mvc;
         this.labelImage = labelImage;
         this.intensityImage = intensityImage;
         this.imageModel = model;
@@ -121,13 +118,21 @@ public class Algorithm {
         initMembers();
         labelImage.initBoundary();
         initContour();
+        
+        /**
+         * Initialize standard statistics (mean, variances, length, area etc)
+         */
+        renewStatistics();
+
+        /**
+         * Depending on the functional to use, prepare stuff for faster computation.
+         */
+        PrepareEnergyCaluclation();
     }
 
     private final Settings settings;
 
-    private boolean m_converged;
     public float m_AcceptedPointsFactor;
-    private int m_iteration_counter; // member for debugging
 
     private OscillationDetection oscillationDetection;
 
@@ -149,8 +154,6 @@ public class Algorithm {
         m_EnergyFunctional = settings.m_EnergyFunctional;
         oscillationDetection = new OscillationDetection(this, settings);
 
-        m_iteration_counter = 0;
-        m_converged = false;
         m_AcceptedPointsFactor = AcceptedPointsFactor;
 
         labelDispenser = new LabelDispenser();
@@ -266,70 +269,33 @@ public class Algorithm {
     }
 
     public boolean GenerateData() {
-        /**
-         * Initialize standard statistics (mean, variances, length, area etc)
-         */
-        renewStatistics();
 
-        /**
-         * Depending on the functional to use, prepare stuff for faster computation.
-         */
-        PrepareEnergyCaluclation();
-
-        /**
-         * Main loop of the algorithm
-         */
-
-        boolean vConvergence = false;
-        while (settings.m_MaxNbIterations > m_iteration_counter && !vConvergence) {
-            synchronized (pauseMonitor) {
-                if (pause) {
-                    try {
-                        debug("enter pause");
-                        pauseMonitor.wait();
-                        debug("exit pause");
-                    }
-                    catch (final InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        synchronized (pauseMonitor) {
+            if (pause) {
+                try {
+                    debug("enter pause");
+                    pauseMonitor.wait();
+                    debug("exit pause");
                 }
-                if (abort) {
-                    break;
+                catch (final InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
-
-            m_iteration_counter++;
-            debug("=== iteration " + m_iteration_counter + " ===");
-
-            vConvergence = DoOneIteration();
-
-            if (shrinkFirst && vConvergence) {
-                debug("Done with shrinking, now allow growing");
-                vConvergence = false;
-                shrinkFirst = false;
-                m_AcceptedPointsFactor = AcceptedPointsFactor;
+            if (abort) {
+                return true; // Pretend that we finished
             }
-
-            MVC.addSlice(labelImage, "iteration " + m_iteration_counter);
-            MVC.updateProgress(m_iteration_counter, settings.m_MaxNbIterations);
         }
 
-        MVC.addSlice(labelImage, "final image iteration " + m_iteration_counter);
+        boolean vConvergence = DoOneIteration();
 
-        m_converged = vConvergence;
-
-        /**
-         * Debugging Output
-         */
-
-        if (m_converged) {
-            debug("convergence after " + m_iteration_counter + " iterations.");
+        if (shrinkFirst && vConvergence) {
+            debug("Done with shrinking, now allow growing");
+            vConvergence = false;
+            shrinkFirst = false;
+            m_AcceptedPointsFactor = AcceptedPointsFactor;
         }
-        else {
-            debug("no convergence !");
-        }
-
-        return true;
+        
+        return vConvergence;
     }
 
     private final Vector<ImagePlus> OpenedImages = new Vector<ImagePlus>();
@@ -353,11 +319,7 @@ public class Algorithm {
     }
 
     private boolean DoOneIteration() {
-
-        boolean vConvergenceA;
-        vConvergenceA = true;
-
-        if (m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC && m_iteration_counter % 1 == 0) {
+        if (m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
             ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage);
         }
 
@@ -366,10 +328,10 @@ public class Algorithm {
             RemoveNotSignificantRegions();
         }
 
-        vConvergenceA = IterateContourContainerAndAdd();
+        boolean vConvergenceA = IterateContourContainerAndAdd();
         CleanUp();
 
-        MVC.showStatus("Done");
+        debug("Done");
         return vConvergenceA;
     }
 
@@ -383,18 +345,18 @@ public class Algorithm {
         // RebuildCandidateList:
         m_CompetingRegionsMap.clear();
 
-        MVC.showStatus("Rebuild Candidates");
+        debug("Rebuild Candidates");
         RebuildCandidateList(m_Candidates);
 
-        MVC.showStatus("Filter Candidates");
+        debug("Filter Candidates");
         FilterCandidates(m_Candidates);
 
-        MVC.showStatus("Detect Oscillations");
+        debug("Detect Oscillations");
         DetectOscillations(m_Candidates);
 
         FilterCandidatesContainerUsingRanks(m_Candidates);
 
-        MVC.showStatus("Move Points");
+        debug("Move Points");
         convergence = MoveCandidates(m_Candidates);
 
         return convergence;
@@ -650,11 +612,7 @@ public class Algorithm {
         // (Things get easier afterwards if this is done in advance.)
 
         // calculate energy for change to BG (shrinking)
-        int counter = 0;
-        int size = m_InnerContourContainer.size();
         for (final Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) {
-            MVC.updateProgress(counter++, size);
-
             final Point vCurrentIndex = vPointIterator.getKey();
             final ContourParticle vVal = vPointIterator.getValue();
 
@@ -677,16 +635,12 @@ public class Algorithm {
         // Iterate the contour list and visit all the neighbors in the
         // FG-Neighborhood.
         // calculate energy for expanding into neighborhood (growing)
-        counter = 0;
-        size = m_InnerContourContainer.size();
         for (final Entry<Point, ContourParticle> vPointIterator : m_InnerContourContainer.entrySet()) {
-            MVC.updateProgress(counter++, size);
 
             final Point vCurrentIndex = vPointIterator.getKey();
             final ContourParticle vVal = vPointIterator.getValue();
 
             final int vLabelOfPropagatingRegion = vVal.label;
-            // vLabelImageIterator.SetLocation(vCurrentIndex);
 
             final Connectivity conn = connFG;
             for (final Point q : conn.iterateNeighbors(vCurrentIndex)) {
@@ -1581,5 +1535,4 @@ public class Algorithm {
 
         CleanUp();
     }
-
 }

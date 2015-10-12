@@ -495,7 +495,7 @@ public class Region_Competition implements Segmentation {
     }
 
     private void initAlgorithm() {
-        algorithm = new Algorithm(intensityImage, labelImage, imageModel, settings, this);
+        algorithm = new Algorithm(intensityImage, labelImage, imageModel, settings);
     }
 
     private void initInputImage() {
@@ -690,11 +690,11 @@ public class Region_Competition implements Segmentation {
         for (int i = 1; i <= initialStack.getSize(); i++) {
             final Object pixels = initialStack.getPixels(i);
             final short[] shortData = IntConverter.intToShort((int[]) pixels);
-            addSliceToStackAndShow("init", shortData);
+            addSliceToStackAndShow("init without countours", shortData);
         }
 
         // next stack image is start of algo
-        addSlice(labelImage, "init");
+        addSliceToStack(labelImage, "init with contours");
 
         IJ.setMinAndMax(stackImPlus, 0, maxLabel);
         IJ.run(stackImPlus, "3-3-2 RGB", null); // stack has to contain at least
@@ -754,7 +754,19 @@ public class Region_Competition implements Segmentation {
         initControls();
 
         // Run segmentation
-        algorithm.GenerateData();
+        boolean isDone = false;
+        int iteration = 0;
+        updateProgress(iteration, settings.m_MaxNbIterations);
+        while (iteration < settings.m_MaxNbIterations && !isDone) {
+            ++iteration;
+            showStatus("Iteration: " + iteration + "/" + settings.m_MaxNbIterations);
+            updateProgress(iteration, settings.m_MaxNbIterations);
+            isDone = algorithm.GenerateData();
+            
+            addSliceToStack(labelImage, "iteration " + iteration);
+            updateProgress(iteration, settings.m_MaxNbIterations);
+        }
+        addSliceToStack(labelImage, "final image iteration " + iteration);
         
         // Do some post process stuff
         updateProgress(settings.m_MaxNbIterations, settings.m_MaxNbIterations);
@@ -865,7 +877,7 @@ public class Region_Competition implements Segmentation {
 
     }
 
-    public void addSlice(LabelImageRC labelImage, String title) {
+    private void addSliceToStack(LabelImageRC labelImage, String title) {
         final int dim = labelImage.getDim();
         if (dim == 2) {
             addSliceToStackAndShow(title, labelImage.getSlice());
