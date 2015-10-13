@@ -20,7 +20,7 @@ public class Controller {
         }
     }
     
-    public boolean waitIfStopeed() {
+    public boolean hasAborted() {
         // Check if we should pause for a moment or if simulation is not aborted by user
         synchronized (pauseMonitor) {
             if (pause) {

@@ -40,7 +40,6 @@ import ij.ImagePlus;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
-import mosaic.plugins.Region_Competition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.plugins.Region_Competition.RegularizationType;
@@ -160,8 +159,7 @@ public class GenericDialogGUI  {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                settings = new Settings();
-                Region_Competition.getConfigHandler().SaveToFile("/tmp/rc_settings.dat", settings);
+                settings.copy(new Settings());
             }
         });
         p.add(b);
@@ -428,8 +426,6 @@ public class GenericDialogGUI  {
             return false;
         }
 
-        final boolean success = true;
-
         if (IJ.isMacro() == true) {
             filenameInput = gd.getNextString();
             filenameLabelImage = gd.getNextString();
@@ -478,7 +474,7 @@ public class GenericDialogGUI  {
 
         useCluster = gd.getNextBoolean();
 
-        return success;
+        return true;
     }
 
     /**

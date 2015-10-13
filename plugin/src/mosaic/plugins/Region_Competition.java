@@ -46,7 +46,6 @@ import mosaic.region_competition.utils.IntConverter;
 import mosaic.utils.io.serialize.DataFile;
 import mosaic.utils.io.serialize.JsonDataFile;
 import net.imglib2.img.Img;
-import net.imglib2.img.display.imagej.ImageJFunctions;
 import net.imglib2.type.numeric.real.FloatType;
 
 
@@ -69,7 +68,7 @@ public class Region_Competition implements PlugInFilterExt {
     }
 
     // Output file names
-    // TODO: It is not nice should be refactored.
+    // TODO: It is not nice way of defining output files and should be refactored.
     private final String[] out = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
 
     // Settings
@@ -89,12 +88,11 @@ public class Region_Competition implements PlugInFilterExt {
     private ImagePlus originalIP; // IP of the input image
     private SegmentationProcessWindow stackProcess;
     private GenericDialogGUI userDialog;
-    private Controller iController = null;
-
     
     @Override
     public int setup(String aArgs, ImagePlus aImp) {
         showGUI = !(IJ.isMacro() || Interpreter.batchMode);
+        
         initSettingsAndParseMacroOptions();
     
         // Save input stuff
@@ -107,11 +105,12 @@ public class Region_Competition implements PlugInFilterExt {
             return DONE;
         }
         
+        // Save new settings from user input.
+        getConfigHandler().SaveToFile(configFilePath(), settings);
+        
         if (userDialog.getInputImage() != null) {
             originalIP = userDialog.getInputImage();
-            if (originalIP != null) {
-                cal = originalIP.getCalibration();
-            }
+            cal = originalIP.getCalibration();
         } 
     
         if (userDialog.useCluster() == true) {
@@ -124,8 +123,6 @@ public class Region_Competition implements PlugInFilterExt {
             return NO_IMAGE_REQUIRED;
         }
         else {
-            getConfigHandler().SaveToFile(configFilePath(), settings);
-    
             if (aImp != null) {
                 // if is 3D save the originalIP
                 if (aImp.getNSlices() != 1) {
@@ -227,12 +224,11 @@ public class Region_Competition implements PlugInFilterExt {
      */
     private void initEnergies() {
         final HashMap<Integer, LabelInformation> labelMap = labelImage.getLabelMap();
-        final EnergyFunctionalType type = settings.m_EnergyFunctional;
         final Energy e_merge_KL = new E_KLMergingCriterion(labelMap, labelImage.bgLabel, settings.m_RegionMergingThreshold);
 
         Energy e_data = null;
-        Energy e_merge = null;
-        switch (type) {
+        Energy e_merge;
+        switch (settings.m_EnergyFunctional) {
             case e_PC: {
                 e_data = new E_CV(labelMap);
                 e_merge = e_merge_KL;
@@ -240,7 +236,7 @@ public class Region_Competition implements PlugInFilterExt {
             }
             case e_PS: {
                 e_data = new E_PS(labelImage, intensityImage, labelMap, settings.m_GaussPSEnergyRadius, settings.m_RegionMergingThreshold);
-                // e_merge == null
+                e_merge = null;
                 break;
             }
             case e_DeconvolutionPC: {
@@ -256,9 +252,8 @@ public class Region_Competition implements PlugInFilterExt {
                 final double Vol = IntensityImage.volume_image(image_psf);
                 IntensityImage.rescale_image(image_psf, (float) (1.0f / Vol));
 
-                OpenedImages.add(ImageJFunctions.show(image_psf));
-
                 e_data = new E_Deconvolution(intensityImage, labelMap, image_psf);
+                e_merge = null;
                 break;
             }
             default: {
@@ -268,12 +263,10 @@ public class Region_Competition implements PlugInFilterExt {
             }
         }
 
-        Energy e_length = null;
-        final RegularizationType rType = settings.regularizationType;
-        switch (rType) {
+        Energy e_length;
+        switch (settings.regularizationType) {
             case Sphere_Regularization: {
-                final int rad = (int) settings.m_CurvatureMaskRadius;
-                e_length = new E_CurvatureFlow(labelImage, rad, cal);
+                e_length = new E_CurvatureFlow(labelImage, (int)settings.m_CurvatureMaskRadius, cal);
                 break;
             }
             case Approximative: {
@@ -281,7 +274,7 @@ public class Region_Competition implements PlugInFilterExt {
                 break;
             }
             case None: {
-                // e_length = null;
+                e_length = null;
                 break;
             }
             default: {
@@ -433,7 +426,7 @@ public class Region_Competition implements PlugInFilterExt {
             initialStack.getProcessor(i);
         }
 
-        // Generate countours and add second image to stack
+        // Generate contours and add second image to stack
         labelImage.initBoundary();
         stackProcess.addSliceToStack(labelImage, "init with contours", 0);
     }
@@ -444,7 +437,7 @@ public class Region_Competition implements PlugInFilterExt {
         initEnergies();
         initStack();
         
-        iController = new Controller(/* aShowWindow */ showGUI);
+        Controller iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
         algorithm = new Algorithm(intensityImage, labelImage, imageModel, settings);
@@ -459,7 +452,8 @@ public class Region_Competition implements PlugInFilterExt {
             isDone = algorithm.GenerateData();
             
             // Check if we should pause for a moment or if simulation is not aborted by user
-            isDone = iController.waitIfStopeed() ? true : isDone;
+            // If aborted pretend that we have finished segmentation (isDone=true)
+            isDone = iController.hasAborted() ? true : isDone;
 
             // Add slice with iteration output
             stackProcess.addSliceToStack(labelImage, "iteration " + iteration, algorithm.getBiggestLabel());
