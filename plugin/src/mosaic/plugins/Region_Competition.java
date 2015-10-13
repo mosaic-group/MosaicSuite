@@ -190,7 +190,8 @@ public class Region_Competition implements PlugInFilterExt {
         final String options = Macro.getOptions();
         if (options != null) {
             // Command line interface
-
+        	// TODO: seems that normalize/config/output things are used by wizard. Can it be made better?
+        	
             // normalize
             String normalizeString = MosaicUtils.parseString("normalize", options);
             if (normalizeString != null) {

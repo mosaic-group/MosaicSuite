@@ -14,15 +14,10 @@ public interface ScoreFunction extends IObjectiveFunction {
         FILENAME, IMAGEPLUS
     }
 
-    abstract void show();
-
-    abstract TypeImage getTypeImage();
-
-    abstract ImagePlus[] getImagesIP();
-
-    abstract String[] getImagesString();
-
-    abstract Settings createSettings(Settings s, double pop[]);
-
-    abstract double[] getAMean(Settings s);
+    void show();
+    TypeImage getTypeImage();
+    ImagePlus[] getImagesIP();
+    String[] getImagesString();
+    Settings createSettings(Settings s, double pop[]);
+    double[] getAMean(Settings s);
 }

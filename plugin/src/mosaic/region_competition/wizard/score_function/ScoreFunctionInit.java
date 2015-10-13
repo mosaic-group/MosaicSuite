@@ -13,7 +13,6 @@ import mosaic.region_competition.initializers.MaximaBubbles;
 
 
 // Type images
-
 public class ScoreFunctionInit implements ScoreFunction {
 
     private final int off[];
@@ -36,7 +35,6 @@ public class ScoreFunctionInit implements ScoreFunction {
     /*
      * Set the number of objects
      */
-
     public void setObject(int i, int off_) {
         off[i] = off_;
         if (2 * off_ / 5 >= 1) {
