@@ -16,6 +16,7 @@ import ij.gui.ImageCanvas;
 import ij.gui.Roi;
 import ij.io.FileInfo;
 import ij.io.Opener;
+import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.process.ImageProcessor;
 import mosaic.core.psf.GeneratePSF;
@@ -72,10 +73,11 @@ public class Region_Competition implements PlugInFilterExt {
     private final String[] out = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
 
     // Settings
-    public Settings settings = null;
+    private Settings settings = null;
     private String output = null;
     private boolean normalize_ip = true;
-
+    private boolean showGUI = true;
+    
     // Algorithm and its input stuff
     protected Algorithm algorithm;
     private LabelImageRC labelImage;
@@ -85,16 +87,14 @@ public class Region_Competition implements PlugInFilterExt {
     // User interface and images
     private Calibration cal;
     private ImagePlus originalIP; // IP of the input image
-    SegmentationProcessWindow stackProcess;
+    private SegmentationProcessWindow stackProcess;
     private GenericDialogGUI userDialog;
     private Controller iController = null;
 
+    
     @Override
     public int setup(String aArgs, ImagePlus aImp) {
-        if (MosaicUtils.checkRequirement() == false) {
-            return DONE;
-        }
-    
+        showGUI = !(IJ.isMacro() || Interpreter.batchMode);
         initSettingsAndParseMacroOptions();
     
         // Save input stuff
@@ -141,9 +141,6 @@ public class Region_Competition implements PlugInFilterExt {
         return DOES_ALL + NO_CHANGES;
     }
 
-    /**
-     * Run region competition plugins
-     */
     @Override
     public void run(ImageProcessor aImageP) {
         doRC();
@@ -173,11 +170,11 @@ public class Region_Competition implements PlugInFilterExt {
     
             StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelMap().values());
             statisticsTable.save(absoluteFileName);
+            if (showGUI) statisticsTable.show("statistics");
     
-            // TODO: if is headless do not show  ... and reorganize (why?)
+            // TODO: if is headless reorganize (why?) Is this leftover of cluster mode?
             final boolean headless_check = GraphicsEnvironment.isHeadless();
             if (headless_check == false) {
-                statisticsTable.show("statistics");
                 MosaicUtils.reorganize(out, fileNameNoExt, directory, 1);
             }
         }
@@ -297,12 +294,7 @@ public class Region_Competition implements PlugInFilterExt {
         imageModel = new ImageModel(e_data, e_length, e_merge, settings);
     }
 
-    private void initAlgorithm() {
-        algorithm = new Algorithm(intensityImage, labelImage, imageModel, settings);
-    }
-
     private void initInputImage() {
-
         final String file = userDialog.getInputImageFilename();
         final ImagePlus choiceIP = userDialog.getInputImage();
 
@@ -354,13 +346,10 @@ public class Region_Competition implements PlugInFilterExt {
 
     private void initLabelImage() {
         labelImage = new LabelImageRC(intensityImage.getDimensions());
-        InitializationType input;
 
+        InitializationType input = settings.labelImageInitType;
         if (userDialog != null) {
             input = userDialog.getLabelImageInitType();
-        }
-        else {
-            input = settings.labelImageInitType;
         }
 
         switch (input) {
@@ -421,17 +410,9 @@ public class Region_Competition implements PlugInFilterExt {
                 throw new RuntimeException("No valid input option in User Input. Abort");
             }
         }
-
-        if (labelImage == null) {
-            throw new RuntimeException("Not able to build a LabelImage.");
-        }
     }
 
     private void initStack() {
-        if (IJ.isMacro() == true) {
-            return;
-        }
-
         boolean stackKeepFrames = false;
         if (userDialog != null) {
             stackKeepFrames = userDialog.showAllFrames();
@@ -442,7 +423,6 @@ public class Region_Competition implements PlugInFilterExt {
         final int height = dims[1];
         
         ImageStack initialStack = IntConverter.intArrayToStack(labelImage.dataLabel, labelImage.getDimensions());
-
         stackProcess = new SegmentationProcessWindow(width, height, stackKeepFrames);
         
         // first stack image without boundary&contours
@@ -451,7 +431,6 @@ public class Region_Competition implements PlugInFilterExt {
             final short[] shortData = IntConverter.intToShort((int[]) pixels);
             stackProcess.addSliceToStackAndShow("init without countours", shortData);
             initialStack.getProcessor(i);
-           
         }
 
         // Generate countours and add second image to stack
@@ -459,23 +438,17 @@ public class Region_Competition implements PlugInFilterExt {
         stackProcess.addSliceToStack(labelImage, "init with contours", 0);
     }
 
-    private void initControls() {
-        iController = new Controller(/* aShowWindow */ !IJ.isMacro());
-    }
-    
-    private void closeControls() {
-       iController.close();
-    }
-        
     private void doRC() {
         initInputImage();
         initLabelImage();
         initEnergies();
         initStack();
-        initAlgorithm();
-        initControls();
+        
+        iController = new Controller(/* aShowWindow */ showGUI);
 
         // Run segmentation
+        algorithm = new Algorithm(intensityImage, labelImage, imageModel, settings);
+        
         boolean isDone = false;
         int iteration = 0;
         while (iteration < settings.m_MaxNbIterations && !isDone) {
@@ -500,7 +473,7 @@ public class Region_Competition implements PlugInFilterExt {
             OpenedImages.add(labelImage.show("", algorithm.getBiggestLabel()));
         }
         
-        closeControls();
+        iController.close();
     }
 
     /**
