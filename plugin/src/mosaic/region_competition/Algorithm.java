@@ -10,10 +10,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
-import java.util.Vector;
 
 import ij.IJ;
-import ij.ImagePlus;
 import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.utils.Connectivity;
@@ -283,8 +281,6 @@ public class Algorithm {
         
         return vConvergence;
     }
-
-    private final Vector<ImagePlus> OpenedImages = new Vector<ImagePlus>();
 
     /**
      * Initialize the energy function
@@ -1414,15 +1410,6 @@ public class Algorithm {
     }
 
     // Control //////////////////////////////////////////////////
-
-    /**
-     * Close all created images
-     */
-    public void close() {
-        for (int i = 0; i < OpenedImages.size(); i++) {
-            OpenedImages.get(i).close();
-        }
-    }
 
     public int getBiggestLabel() {
         return labelDispenser.getHighestLabelEverUsed();

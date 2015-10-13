@@ -18,8 +18,6 @@ import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
-import net.imglib2.img.Img;
-import net.imglib2.type.numeric.IntegerType;
 
 
 public class LabelImageRC extends LabelImage {
@@ -27,14 +25,6 @@ public class LabelImageRC extends LabelImage {
     /** Maps the label(-number) to the information of a label */
     public final int forbiddenLabel = Integer.MAX_VALUE; // short
     private HashMap<Integer, LabelInformation> labelMap;
-
-    /**
-     * Create a labelImageRC from an imgLib2
-     */
-
-    public <T extends IntegerType<T>> LabelImageRC(Img<T> img) {
-        super(img);
-    }
 
     /**
      * Create a labelImageRC from another labelImageRC
@@ -55,15 +45,6 @@ public class LabelImageRC extends LabelImage {
     @Override
     public void initWithIP(ImagePlus imagePlus) {
         super.initWithIP(imagePlus);
-        initBoundary();
-    }
-
-    /**
-     * @param stack Stack of Int processors
-     */
-    @Override
-    public void initWithStack(ImageStack stack) {
-        super.initWithStack(stack);
         initBoundary();
     }
 
@@ -100,21 +81,6 @@ public class LabelImageRC extends LabelImage {
                 }
 
             } // if region pixel
-        }
-    }
-
-    /**
-     * Eliminate forbidden region and particles
-     */
-    public void eliminateForbidden() {
-        for (int i = 0; i < getSize(); i++) {
-            if (dataLabel[i] == forbiddenLabel) {
-                dataLabel[i] = 0;
-            }
-
-            if (dataLabel[i] < 0) {
-                dataLabel[i] = Math.abs(dataLabel[i]);
-            }
         }
     }
 
@@ -238,15 +204,6 @@ public class LabelImageRC extends LabelImage {
             shortData[i] = (short) dataLabel[i];
         }
         return shortData;
-    }
-
-    public Object getSlice() {
-        if (dim == 3) {
-            return get3DShortStack(false);
-        }
-        else {
-            return getShortCopy();
-        }
     }
 
     @Override
@@ -401,17 +358,17 @@ public class LabelImageRC extends LabelImage {
 
         return imp;
     }
+
+    private class StackProjector extends GroupedZProjector {
+        
+        private final int method = ZProjector.MAX_METHOD;
+        
+        protected StackProjector() {}
+        
+        protected ImagePlus doIt(ImagePlus imp, int groupSize) {
+            final ImagePlus imp2 = groupZProject(imp, method, groupSize);
+            return imp2;
+        }
+    }
 }
 
-class StackProjector extends GroupedZProjector {
-
-    private final int method = ZProjector.MAX_METHOD;
-
-    public StackProjector() {
-    }
-
-    public ImagePlus doIt(ImagePlus imp, int groupSize) {
-        final ImagePlus imp2 = groupZProject(imp, method, groupSize);
-        return imp2;
-    }
-}
