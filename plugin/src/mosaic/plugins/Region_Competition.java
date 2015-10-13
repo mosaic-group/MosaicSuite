@@ -312,12 +312,6 @@ public class Region_Competition implements PlugInFilterExt {
             ip = originalIP;
         }
 
-        // debug
-        // next try: default image
-        if (ip == null) {
-            new Opener();
-        }
-
         if (ip != null) {
             originalIP = ip;
             intensityImage = new IntensityImage(originalIP, normalize_ip);
@@ -538,6 +532,7 @@ public class Region_Competition implements PlugInFilterExt {
     }
 
     // Current test interface methods and variables - will vanish in future
+    // -----------------------------------------------------------------------------------------------
     private boolean test_mode;
     private final Vector<ImagePlus> OpenedImages = new Vector<ImagePlus>();
     
