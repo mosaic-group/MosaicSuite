@@ -341,9 +341,6 @@ public class Region_Competition implements PlugInFilterExt {
         labelImage = new LabelImageRC(intensityImage.getDimensions());
 
         InitializationType input = settings.labelImageInitType;
-        if (userDialog != null) {
-            input = userDialog.getLabelImageInitType();
-        }
 
         switch (input) {
             case ROI_2D: {

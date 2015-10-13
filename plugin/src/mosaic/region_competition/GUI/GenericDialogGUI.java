@@ -47,43 +47,31 @@ import mosaic.region_competition.Settings;
 import mosaic.region_competition.wizard.RCWWin;
 
 
-/**
- * Adapts GenericDialog from ImageJ for our purposes
- */
 public class GenericDialogGUI  {
 
     protected Settings settings;
+    
     private final GenericDialog gd;
     private GenericDialog gd_p;
-    private final ImagePlus aImp; // active ImagePlus (argument of Plugin)
 
-    private String filenameInput; // image to be processed
-    private String filenameLabelImage; // initialization
+    private String filenameInput;
+    private String filenameLabelImage;
 
     private String inputImageTitle;
     private String labelImageTitle;
 
     private boolean showAndSaveStatistics = true;
     private boolean showNormalized = false;
-    private boolean useStack = true;
     private boolean keepAllFrames = true; // keep result of last segmentation iteratior?
     private boolean useCluster = false;
-
-    private static final String EnergyFunctional = "E_data";
-    protected EnergyGUI energyGUI;
-    private static final String Regularization = "E_length";
-
-    private static final String Initialization = "Initialization";
 
     static final String TextDefaultInputImage = "Input Image: \n\n" + "Drop image here,\n" + "insert Path to file,\n" + "or press Button below";
     static final String TextDefaultLabelImage = "Drop Label Image here, or insert Path to file";
 
-    private static final String emptyOpenedImage = "";
-
+    private final ImagePlus aImp; // active ImagePlus (argument of Plugin)
     /**
      * Create main plugins dialog
      */
-
     public GenericDialogGUI(Settings aSettings, ImagePlus aImg) {
         settings = aSettings; // region_Competition.settings;
         aImp = aImg; // region_Competition.getOriginalImPlus();
@@ -134,9 +122,9 @@ public class GenericDialogGUI  {
 
         addOpenedImageChooser();
 
-        final String[] strings = new String[] { "Show_Progress", "Keep_Frames", "Show_Normalized", "Show_and_save_Statistics", };
+        final String[] strings = new String[] { "Keep_Frames", "Show_Normalized", "Show_and_save_Statistics", };
 
-        final boolean[] bools = new boolean[] { useStack, keepAllFrames, showNormalized, showAndSaveStatistics, };
+        final boolean[] bools = new boolean[] { keepAllFrames, showNormalized, showAndSaveStatistics, };
 
         gd.addCheckboxGroup(2, strings.length, strings, bools);
 
@@ -197,7 +185,7 @@ public class GenericDialogGUI  {
             energyItems[i] = energyValues[i].name();
         }
 
-        gd_p.addChoice(EnergyFunctional, energyItems, settings.m_EnergyFunctional.name());
+        gd_p.addChoice("E_data", energyItems, settings.m_EnergyFunctional.name());
         choiceEnergy = (Choice) gd_p.getChoices().lastElement();
         {
             optionButton = new Button("Options");
@@ -212,7 +200,7 @@ public class GenericDialogGUI  {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     final String energy = choiceEnergy.getSelectedItem();
-                    energyGUI = EnergyGUI.factory(settings, energy);
+                    EnergyGUI energyGUI = EnergyGUI.factory(settings, energy);
                     energyGUI.createDialog();
                     energyGUI.showDialog();
                     energyGUI.processDialog();
@@ -227,7 +215,7 @@ public class GenericDialogGUI  {
         for (int i = 0; i < n; i++) {
             regularizationItems[i] = regularizationValues[i].name();
         }
-        gd_p.addChoice(Regularization, regularizationItems, settings.regularizationType.name());
+        gd_p.addChoice("E_length", regularizationItems, settings.regularizationType.name());
         choiceRegularization = (Choice) gd_p.getChoices().lastElement();
 
         {
@@ -263,7 +251,7 @@ public class GenericDialogGUI  {
         // default choice
         final String defaultInit = settings.labelImageInitType.name();
 
-        gd_p.addChoice(Initialization, initializationItems, defaultInit);
+        gd_p.addChoice("Initialization", initializationItems, defaultInit);
         // save reference to this choice, so we can handle it
         initializationChoice = (Choice) gd_p.getChoices().lastElement();
 
@@ -319,7 +307,7 @@ public class GenericDialogGUI  {
         if (ids != null) nOpenedImages = ids.length;
         final String[] names = new String[nOpenedImages + 1];
 
-        names[0] = emptyOpenedImage;
+        names[0] = "";
         if (ids != null) {
             for (int i = 0; i < nOpenedImages; i++) {
                 final ImagePlus ip = WindowManager.getImage(ids[i]);
@@ -467,7 +455,6 @@ public class GenericDialogGUI  {
 
         readOpenedImageChooser();
 
-        useStack = gd.getNextBoolean();
         keepAllFrames = gd.getNextBoolean();
         showNormalized = gd.getNextBoolean();
         showAndSaveStatistics = gd.getNextBoolean();
@@ -475,13 +462,6 @@ public class GenericDialogGUI  {
         useCluster = gd.getNextBoolean();
 
         return true;
-    }
-
-    /**
-     * @return Reference to the label image. Type depends on Implementation.
-     */
-    public InitializationType getLabelImageInitType() {
-        return settings.labelImageInitType;
     }
 
     /**
@@ -554,7 +534,7 @@ class TextAreaListener implements DropTargetListener, TextListener, FocusListene
     private final String defaultText;
     private final GenericDialogGUI gd;
 
-    public TextAreaListener(GenericDialogGUI gd, TextArea ta, String defaulftTxt) {
+    protected TextAreaListener(GenericDialogGUI gd, TextArea ta, String defaulftTxt) {
         this.gd = gd;
         this.textArea = ta;
         this.defaultText = defaulftTxt;
@@ -722,7 +702,7 @@ class FileOpenerActionListener implements ActionListener {
     private final GenericDialog gd;
     private final TextArea ta;
 
-    public FileOpenerActionListener(GenericDialog gd, TextArea ta) {
+    protected FileOpenerActionListener(GenericDialog gd, TextArea ta) {
         this.gd = gd;
         this.ta = ta;
     }
@@ -739,4 +719,3 @@ class FileOpenerActionListener implements ActionListener {
         }
     }
 }
-
