@@ -2051,9 +2051,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
                     rt.setValue("NPscore", rownum, p.score);
                 }
 
-                if (IJ.isMacro() == false) {
-                    rt.show("Results");
-                }
+            }
+            if (IJ.isMacro() == false) {
+                rt.show("Results");
             }
         }
         return rt;
