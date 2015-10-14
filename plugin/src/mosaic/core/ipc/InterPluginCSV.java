@@ -132,10 +132,14 @@ public class InterPluginCSV<E extends ICSVGeneral>
 			{
 				String[] pr = s.split(":");
 				
-				if (pr.length == 2)
+				String header = pr[0];
+				String value = new String();
+				
+				for (int i = 0 ; i < pr.length-1 ; i++)
 				{
-					fld_r.add(new ExtParam(pr[0].substring(1),pr[1].trim()));
+					value += pr[i+1];
 				}
+				fld_r.add(new ExtParam(pr[0].substring(1),value.trim()));
 				
 				return true;
 			}
