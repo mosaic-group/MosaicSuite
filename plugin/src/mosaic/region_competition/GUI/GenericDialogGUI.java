@@ -40,6 +40,7 @@ import ij.ImagePlus;
 import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
+import ij.gui.Roi;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.plugins.Region_Competition.RegularizationType;
@@ -51,7 +52,74 @@ public class GenericDialogGUI  {
 
     protected Settings settings;
     
-    private final GenericDialog gd;
+    /**
+     * Some extenstions for NonBlockingGenericDialog in order to perform additional checks before user's "OK" is accepted.
+     */
+    private class CustomDialog extends NonBlockingGenericDialog {
+        private static final long serialVersionUID = 1L;
+
+        public CustomDialog(String title) {
+            super(title);
+        }
+        
+        /**
+         * During additional setup of GenericDialog standard keyListener for OK button is exchanged in order
+         * to perform additional checking(s). If everything is OK same ActionEvent is passed to GenericDialog.
+         * If something is wrong than proper message is shown to user and depending on problem - dialog is closed or 
+         * stays open.
+         */
+        @Override
+        protected void setup() {
+          Button[] buttons = getButtons();
+          final Button ok = buttons[0]; // first button -> OK
+          final Button cancel = buttons[1]; // second button -> Cancel
+          ok.removeActionListener(this);
+          ok.addActionListener(new ActionListener() {
+              
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                  if (settings.labelImageInitType == InitializationType.ROI_2D) {
+                      Roi roi = null;
+                      if (aImp == null) {
+                          IJ.showMessage("Before starting Region Competition plugin please open image with selected ROI(s).");
+                          
+                          // Dialog must be close since it is initiated with image when it is crated. Pretend that "Cancel" button is pressed.
+                          gd.actionPerformed(new ActionEvent(cancel, 0, "Cancel pressed"));
+                          return;
+                      }
+                      else {
+                          roi = aImp.getRoi();
+                      }
+                      if (roi == null) {
+                          IJ.showMessage("You have chosen initialization type to ROI.\nPlease add ROI region(s) to plugin input image (" + aImp.getTitle() + ").");
+                          
+                          // Generic dialog stays opened. User may select region or/and change initialization and try to click "OK" again.
+                      }
+                      else {
+                          // Everything is fine. ROI is found.
+                          itIsOK(e);
+                      }
+                  }
+                  else {
+                      // Nothing to do just proxy an event.
+                      itIsOK(e);
+                  }
+              }
+              
+              /**
+               * Change back to standard listener for OK button and passes given (original) ActionEvent.
+               * @param e
+               */
+              void itIsOK(ActionEvent e) {
+                  ok.removeActionListener(this);
+                  ok.addActionListener(gd);
+                  gd.actionPerformed(e);
+              }
+          });
+        }
+    }
+    
+    final CustomDialog gd;
     private GenericDialog gd_p;
 
     private String filenameInput;
@@ -68,7 +136,7 @@ public class GenericDialogGUI  {
     static final String TextDefaultInputImage = "Input Image: \n\n" + "Drop image here,\n" + "insert Path to file,\n" + "or press Button below";
     static final String TextDefaultLabelImage = "Drop Label Image here, or insert Path to file";
 
-    private final ImagePlus aImp; // active ImagePlus (argument of Plugin)
+    final ImagePlus aImp; // active ImagePlus (argument of Plugin)
     /**
      * Create main plugins dialog
      */
@@ -77,7 +145,7 @@ public class GenericDialogGUI  {
         aImp = aImg; // region_Competition.getOriginalImPlus();
 
         if (IJ.isMacro() == true) {
-            gd = new GenericDialog("Region Competition");
+            gd = new CustomDialog("Region Competition");
 
             // in case of script just add two argument for parsing them
             gd.addStringField("text1", "");
@@ -87,7 +155,7 @@ public class GenericDialogGUI  {
             return;
         }
 
-        gd = new NonBlockingGenericDialog("Region Competition");
+        gd = new CustomDialog("Region Competition");
 
         gd.addTextAreas(TextDefaultInputImage, TextDefaultLabelImage, 5, 30);
 
@@ -293,7 +361,25 @@ public class GenericDialogGUI  {
     }
 
     public void showDialog() {
+//        Button[] buttons = gd.getButtons();
+//        Button ok = buttons[0];
+//        ok.removeActionListener(gd);
+//        ok.addActionListener(new ActionListener() {
+//            
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                Roi roi = aImp.getRoi();
+//                if (roi == null) {
+//                    IJ.showMessage("Add ROI regions to your picture!");
+//                }
+//                else {
+//                    gd.dispose();
+//                }
+//            }
+//        });
+        System.out.println("BEFORE>...");
         gd.showDialog();
+        System.out.println("AFTER...");
     }
 
     // Choice for open images in IJ

@@ -2,8 +2,6 @@ package mosaic.plugins;
 
 
 import java.awt.GraphicsEnvironment;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Vector;
@@ -12,7 +10,6 @@ import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.Macro;
-import ij.gui.ImageCanvas;
 import ij.gui.Roi;
 import ij.io.FileInfo;
 import ij.io.Opener;
@@ -73,7 +70,7 @@ public class Region_Competition implements PlugInFilterExt {
 
     // Settings
     private Settings settings = null;
-    private String output = null;
+    private String outputSegmentedImageLabelFilename = null;
     private boolean normalize_ip = true;
     private boolean showGUI = true;
     
@@ -142,14 +139,14 @@ public class Region_Competition implements PlugInFilterExt {
     public void run(ImageProcessor aImageP) {
         doRC();
     
-        if (output == null) {
+        if (outputSegmentedImageLabelFilename == null) {
             final String folder = MosaicUtils.ValidFolderFromImage(originalIP);
             String fileName = MosaicUtils.removeExtension(originalIP.getTitle());
             fileName += "_seg_c1.tif";
     
-            output = folder + File.separator + fileName;
+            outputSegmentedImageLabelFilename = folder + File.separator + fileName;
         }
-        labelImage.save(output);
+        labelImage.save(outputSegmentedImageLabelFilename);
     
         labelImage.calculateRegionsCenterOfMass();
     
@@ -192,20 +189,17 @@ public class Region_Competition implements PlugInFilterExt {
             // Command line interface
         	// TODO: seems that normalize/config/output things are used by wizard. Can it be made better?
         	
-            // normalize
             String normalizeString = MosaicUtils.parseString("normalize", options);
             if (normalizeString != null) {
                 normalize_ip = Boolean.parseBoolean(normalizeString);
             }
 
-            // config file
             String path = MosaicUtils.parseString("config", options);
             if (path != null) {
                 settings = getConfigHandler().LoadFromFile(path, Settings.class);
             }
 
-            // output file
-            output = MosaicUtils.parseString("output", options);
+            outputSegmentedImageLabelFilename = MosaicUtils.parseString("output", options);
         }
 
         if (settings == null) {
@@ -216,8 +210,7 @@ public class Region_Competition implements PlugInFilterExt {
     }
 
     private String configFilePath() {
-        final String dir = IJ.getDirectory("temp");
-        return dir + "rc_settings.dat";
+        return IJ.getDirectory("temp") + "rc_settings.dat";
     }
 
     /**
@@ -225,14 +218,13 @@ public class Region_Competition implements PlugInFilterExt {
      */
     private void initEnergies() {
         final HashMap<Integer, LabelInformation> labelMap = labelImage.getLabelMap();
-        final Energy e_merge_KL = new E_KLMergingCriterion(labelMap, labelImage.bgLabel, settings.m_RegionMergingThreshold);
 
-        Energy e_data = null;
+        Energy e_data;
         Energy e_merge;
         switch (settings.m_EnergyFunctional) {
             case e_PC: {
                 e_data = new E_CV(labelMap);
-                e_merge = e_merge_KL;
+                e_merge = new E_KLMergingCriterion(labelMap, labelImage.bgLabel, settings.m_RegionMergingThreshold);
                 break;
             }
             case e_PS: {
@@ -326,7 +318,6 @@ public class Region_Competition implements PlugInFilterExt {
 
         if (ip == null) {
             // failed to load anything
-            originalIP = null;
             IJ.noImage();
             throw new RuntimeException("Failed to load an input image.");
         }
@@ -381,7 +372,6 @@ public class Region_Competition implements PlugInFilterExt {
                     labelImage.connectedComponents();
                 }
                 else {
-                    labelImage = null;
                     final String msg = "Failed to load LabelImage (" + fileName + ")";
                     IJ.showMessage(msg);
                     throw new RuntimeException(msg);
@@ -391,7 +381,6 @@ public class Region_Competition implements PlugInFilterExt {
             }
             default: {
                 // was aborted
-                labelImage = null;
                 throw new RuntimeException("No valid input option in User Input. Abort");
             }
         }
@@ -464,72 +453,14 @@ public class Region_Competition implements PlugInFilterExt {
 
     /**
      * Initializes labelImage with ROI <br>
-     * If there was no ROI in input image, asks user to draw a roi.
      */
     private void initializeRoi(final LabelImageRC labelImg) {
         Roi roi = originalIP.getRoi();
-        if (roi == null) {
-            roi = getRoiFromUser(labelImg);
-        }
 
-        // now we have a roi
         labelImg.getLabelImageProcessor().setValue(1);
         labelImg.getLabelImageProcessor().fill(roi);
         labelImg.initBoundary();
         labelImg.connectedComponents();
-    }
-
-    private Roi getRoiFromUser(final LabelImageRC labelImg) {
-        final ImageCanvas canvas = originalIP.getCanvas();
-       
-        // save old keylisteners, remove them (so we can use all keys to select guess ROIs)
-        final KeyListener[] kls = canvas.getKeyListeners();
-        for (final KeyListener kl : kls) {
-            canvas.removeKeyListener(kl);
-        }
-
-        final KeyListener keyListener = new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                synchronized (labelImg) {
-                    labelImg.notifyAll();
-                }
-            }
-
-            @Override
-            public void keyReleased(KeyEvent e) {}
-
-            @Override
-            public void keyPressed(KeyEvent e) {}
-        };
-        canvas.addKeyListener(keyListener);
-
-        Roi roi = null;
-        // try to get a ROI from user
-        while (roi == null) {
-            synchronized (labelImg) {
-                try {
-                    System.out.println("Waiting for user input (pressing space");
-                    labelImg.wait();
-                }
-                catch (final InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                roi = originalIP.getRoi();
-                if (roi == null) {
-                    IJ.showMessage("No ROI selcted. maybe wrong window");
-                }
-            }
-        }
-        
-        // we have a roi, remove keylistener and reattach the old ones
-        canvas.removeKeyListener(keyListener);
-        for (final KeyListener kl : kls) {
-            canvas.addKeyListener(kl);
-        }
-        
-        return roi;
     }
 
     // Current test interface methods and variables - will vanish in future
