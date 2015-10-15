@@ -1016,6 +1016,28 @@ public class MosaicUtils {
             return str.substring(0, idp);
         }
     }
+    
+    /**
+     * Return absolut path with fileName or null if info not available.
+     */
+    public static String getAbsolutFileName(ImagePlus aImagePlus) {
+        return getAbsolutFileName(aImagePlus, false);
+    }
+    
+    public static String getAbsolutFileName(ImagePlus aImagePlus, boolean aRemoveExtension) {
+        if (aImagePlus == null) return null;
+        
+        final String folder = MosaicUtils.ValidFolderFromImage(aImagePlus);
+        String fileName = aImagePlus.getTitle();
+        
+        if (folder == null || fileName == null || fileName.equals("")) return null;
+            
+        if (aRemoveExtension) {
+            fileName = MosaicUtils.removeExtension(fileName);
+        }
+        
+        return folder + File.separator + fileName;
+    }
 
     /**
      * Filter out the csv output dir

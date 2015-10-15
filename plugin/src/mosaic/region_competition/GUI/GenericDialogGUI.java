@@ -41,19 +41,25 @@ import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
 import ij.gui.Roi;
+import ij.io.FileInfo;
+import ij.io.Opener;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.plugins.Region_Competition.RegularizationType;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.wizard.RCWWin;
 
-
+/**
+ * TODO: ALL this GUI stuff must be rewritten. It is now too patched and over-complicated.
+ */
 public class GenericDialogGUI  {
 
     protected Settings settings;
     
     /**
      * Some extenstions for NonBlockingGenericDialog in order to perform additional checks before user's "OK" is accepted.
+     * 
+     * TODO: This is of course temporary solution - must be changed to something handling user interaction much more intuitively
      */
     private class CustomDialog extends NonBlockingGenericDialog {
         private static final long serialVersionUID = 1L;
@@ -78,21 +84,27 @@ public class GenericDialogGUI  {
               
               @Override
               public void actionPerformed(ActionEvent e) {
+                  if (!areInputParametersRead) {
+                      configurationResult = processInput();
+                      areInputParametersRead = true;
+                  }
                   if (settings.labelImageInitType == InitializationType.ROI_2D) {
                       Roi roi = null;
-                      if (aImp == null) {
+                      if (inputImage == null) {
                           IJ.showMessage("Before starting Region Competition plugin please open image with selected ROI(s).");
                           
-                          // Dialog must be close since it is initiated with image when it is crated. Pretend that "Cancel" button is pressed.
+                          // Because there is no input image and parameters from GenericDialgo cannot be read again then dialog must 
+                          // be close. Pretend that "Cancel" button is pressed.
+                          configurationResult = false;
                           gd.actionPerformed(new ActionEvent(cancel, 0, "Cancel pressed"));
                           return;
                       }
                       else {
-                          roi = aImp.getRoi();
+                          roi = inputImage.getRoi();
                       }
                       if (roi == null) {
-                          IJ.showMessage("You have chosen initialization type to ROI.\nPlease add ROI region(s) to plugin input image (" + aImp.getTitle() + ").");
-                          
+                          IJ.showMessage("You have chosen initialization type to ROI.\nPlease add ROI region(s) to plugin input image (" + inputImage.getTitle() + ").");
+                          inputImage.show();
                           // Generic dialog stays opened. User may select region or/and change initialization and try to click "OK" again.
                       }
                       else {
@@ -359,29 +371,21 @@ public class GenericDialogGUI  {
             processParameters();
         }
     }
-
+    boolean configurationResult = false;
+    boolean areInputParametersRead = false;
+    
     public void showDialog() {
-//        Button[] buttons = gd.getButtons();
-//        Button ok = buttons[0];
-//        ok.removeActionListener(gd);
-//        ok.addActionListener(new ActionListener() {
-//            
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                Roi roi = aImp.getRoi();
-//                if (roi == null) {
-//                    IJ.showMessage("Add ROI regions to your picture!");
-//                }
-//                else {
-//                    gd.dispose();
-//                }
-//            }
-//        });
-        System.out.println("BEFORE>...");
+        areInputParametersRead = false;
         gd.showDialog();
-        System.out.println("AFTER...");
+        
     }
-
+    public boolean configurationValid() {
+        if (!areInputParametersRead) {
+            configurationResult = processInput();
+        }
+        return configurationResult;
+    }
+    
     // Choice for open images in IJ
     private int nOpenedImages = 0;
     private Choice choiceLabelImage;
@@ -499,11 +503,12 @@ public class GenericDialogGUI  {
         if (gd.wasCanceled()) {
             return false;
         }
-
+        
+        
         if (IJ.isMacro() == true) {
+            inputImage = getInputImageFile();
             filenameInput = gd.getNextString();
             filenameLabelImage = gd.getNextString();
-
             showAndSaveStatistics = gd.getNextBoolean();
 
             return true;
@@ -519,6 +524,7 @@ public class GenericDialogGUI  {
             // set text to [] due to a bug in GenericDialog
             // if bug gets fixed, this will cause problems!
             gd.getTextArea1().setText("[]");
+            filenameInput = null;
         }
 
         // IJ Macro
@@ -527,29 +533,26 @@ public class GenericDialogGUI  {
         if (filenameLabelImage == null || filenameLabelImage.isEmpty() || filenameLabelImage.equals(TextDefaultLabelImage)) {
             // TODO IJ BUG
             // set text to [] due to a bug in GenericDialog
-            // (cannot macro read boolean after empty text field)
             // if bug gets fixed, this will cause problems!
+            // (cannot macro read boolean after empty text field)
             if (IJ.isMacro() == false) {
                 gd.getTextArea2().setText("[]");
             }
-        }
-
-        // TODO IJ BUG
-        if (filenameLabelImage.equals("[]")) {
-            filenameLabelImage = "";
+            filenameLabelImage = null;
         }
 
         readOpenedImageChooser();
-
+        inputImage = getInputImageFile();
+        
         keepAllFrames = gd.getNextBoolean();
         showNormalized = gd.getNextBoolean();
         showAndSaveStatistics = gd.getNextBoolean();
 
         useCluster = gd.getNextBoolean();
-
+        
         return true;
     }
-
+    ImagePlus inputImage;
     /**
      * @return The filepath as String or empty String if no file was chosen.
      */
@@ -573,6 +576,52 @@ public class GenericDialogGUI  {
         return showAndSaveStatistics;
     }
 
+    public ImagePlus getInputImageFile() {
+        final String file = getInputImageFilename();
+        ImagePlus inputImage = getInputImageInternal();
+        ImagePlus ip = getImage(file, inputImage, aImp);
+        
+        return ip;
+    }
+    public ImagePlus getInputImage() {
+        return inputImage;
+    }
+    public ImagePlus getInputLabelImage() {
+        final String fileName = getLabelImageFilename();
+        final ImagePlus choiceIP = getLabelImageInternal();
+        
+        ImagePlus ip = getImage(fileName, choiceIP, /* no default image */ null);
+        
+        return ip;
+        
+    }
+    
+    private ImagePlus getImage(final String file, ImagePlus inputImage, ImagePlus aDefault) {
+        ImagePlus ip = null;
+        
+        // 1. Try to read file from text areas (drag & drop)
+        if (file != null && !file.isEmpty()) {
+            final Opener o = new Opener();
+            ip = o.openImage(file);
+            if (ip != null) {
+                final FileInfo fi = ip.getFileInfo();
+                fi.directory = file.substring(0, file.lastIndexOf(File.separator));
+                ip.setFileInfo(fi);
+            }
+        }
+        
+        // 2. If still null then try to get image from choice/comboboxes  
+        if (ip == null) {
+            ip = inputImage;
+        }
+
+        // 3. Still null, just use given default image
+        if (ip == null) {
+            ip = aDefault;
+        }
+
+        return ip;
+    }
     ///////////////////////////
 
     protected Choice initializationChoice; // reference to the awt.Choice for initialization
@@ -599,11 +648,11 @@ public class GenericDialogGUI  {
     /**
      * @return Reference to the input image. Type depends on Implementation.
      */
-    public ImagePlus getInputImage() {
+    public ImagePlus getInputImageInternal() {
         return WindowManager.getImage(inputImageTitle);
     }
 
-    public ImagePlus getLabelImage() {
+    public ImagePlus getLabelImageInternal() {
         return WindowManager.getImage(labelImageTitle);
     }
 }

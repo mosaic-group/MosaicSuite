@@ -78,7 +78,7 @@ class BoxInitGUI extends InitializationGUI {
 
     @Override
     public void createDialog() {
-        gd.addNumericField("Box fill ratio", 0.8, 2);
+        gd.addNumericField("Box fill ratio", settings.l_BoxRatio, 2);
 
     }
 
@@ -89,9 +89,6 @@ class BoxInitGUI extends InitializationGUI {
         }
 
         settings.l_BoxRatio = gd.getNextNumber();
-
-        // TODO save to settings
-
     }
 }
 
@@ -120,9 +117,6 @@ class LocalMaxGUI extends InitializationGUI {
         settings.l_Sigma = (int) gd.getNextNumber();
         settings.l_Tolerance = gd.getNextNumber();
         settings.l_RegionTolerance = (int) gd.getNextNumber();
-
-        // TODO save to settings
-
     }
 }
 

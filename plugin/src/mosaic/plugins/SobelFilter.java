@@ -22,13 +22,13 @@ public class SobelFilter extends PlugInFloatBase { // NO_UCD
         final Matrix imgMatrix = new Matrix(img);
 
         // Sobel Filter    resutl = sqrt((K1*img)^2 + (K2*img)^2)
-        final Matrix m1 = Matlab.imfilterSymmetric(imgMatrix, new Matrix(new double[][]{{-1,  0,  1},
-                {-2,  0,  2},
-                {-1,  0,  1}}));
+        final Matrix m1 = Matlab.imfilterSymmetric(imgMatrix, new Matrix(new double[][] { { -1, 0, 1 }, 
+                                                                                          { -2, 0, 2 }, 
+                                                                                          { -1, 0, 1 } }));
 
-        final Matrix m2 = Matlab.imfilterSymmetric(imgMatrix, new Matrix(new double[][]{{-1, -2, -1},
-                { 0,  0,  0},
-                { 1,  2,  1}}));
+        final Matrix m2 = Matlab.imfilterSymmetric(imgMatrix, new Matrix(new double[][] { {-1, -2, -1},
+                                                                                          { 0,  0,  0},
+                                                                                          { 1,  2,  1}}));
         m1.elementMult(m1);
         m2.elementMult(m2);
         m1.add(m2);

@@ -16,12 +16,18 @@ import mosaic.plugins.Region_Competition.InitializationType;
 
 /**
  * Moved here from Region_Competition. 
- * TODO: Should be checked if corrected and refactored.
+ * TODO: Should be refactored!!!
  */
 public class ClusterModeRC {
     private static final Logger logger = Logger.getLogger(ClusterModeRC.class);
 
-    public static void runClusterMode(ImagePlus aImp, Settings settings, String[] out, String labelImageFilename, String inputImageFilename, ImagePlus labelImage) {
+    public static void runClusterMode(ImagePlus aImp, ImagePlus labelImage, Settings settings, String[] out) {
+        // The only modification to old implementation:
+        String labelImageFilename = MosaicUtils.getAbsolutFileName(aImp);
+        String inputImageFilename = MosaicUtils.getAbsolutFileName(labelImage);
+        // -------
+        
+        
         logger.info("Running RC on cluster");
         
         // We run on cluster

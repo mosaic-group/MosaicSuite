@@ -2,23 +2,23 @@ package mosaic.plugins;
 
 
 import java.awt.GraphicsEnvironment;
-import java.io.File;
 import java.util.HashMap;
 import java.util.Vector;
+
+import org.apache.log4j.Logger;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.Macro;
 import ij.gui.Roi;
-import ij.io.FileInfo;
-import ij.io.Opener;
 import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.process.ImageProcessor;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.plugins.utils.Debug;
 import mosaic.plugins.utils.PlugInFilterExt;
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.ClusterModeRC;
@@ -47,10 +47,13 @@ import net.imglib2.type.numeric.real.FloatType;
 
 
 /**
+ * Region Competion plugin implementation
+ * 
  * @author Stephan Semmler, ETH Zurich
- * @version 2012.06.11
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class Region_Competition implements PlugInFilterExt {
+    private static final Logger logger = Logger.getLogger(Region_Competition.class);
 
     public enum InitializationType {
         Rectangle, Bubbles, LocalMax, ROI_2D, File
@@ -65,14 +68,24 @@ public class Region_Competition implements PlugInFilterExt {
     }
 
     // Output file names
-    // TODO: It is not nice way of defining output files and should be refactored.
-    private final String[] out = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
+    private final String[] outputFileNamesSuffixes = { "*_ObjectsData_c1.csv", "*_seg_c1.tif" };
 
     // Settings
     private Settings settings = null;
     private String outputSegmentedImageLabelFilename = null;
     private boolean normalize_ip = true;
     private boolean showGUI = true;
+    private boolean useCluster = false;
+    
+    // Get some more settings and images from dialog
+    private boolean showAndSaveStatistics; 
+    private boolean showAllFrames;
+
+    // Images to be processed
+    private Calibration inputImageCalibration;
+    private ImagePlus originalInputImage;
+    private ImagePlus inputImageChosenByUser;
+    private ImagePlus inputLabelImageChosenByUser; 
     
     // Algorithm and its input stuff
     protected Algorithm algorithm;
@@ -80,105 +93,124 @@ public class Region_Competition implements PlugInFilterExt {
     private IntensityImage intensityImage;
     private ImageModel imageModel;
     
-    // User interface and images
-    private Calibration cal;
-    private ImagePlus originalIP; // IP of the input image
+    // User interfaces
     private SegmentationProcessWindow stackProcess;
     private GenericDialogGUI userDialog;
     
+    
     @Override
     public int setup(String aArgs, ImagePlus aImp) {
-        showGUI = !(IJ.isMacro() || Interpreter.batchMode);
-        
+        // Save input stuff
+        originalInputImage = aImp;
+
+        // Read settings and macro options
         initSettingsAndParseMacroOptions();
     
-        // Save input stuff
-        originalIP = aImp;
-    
         // Get information from user
-        userDialog = new GenericDialogGUI(settings, originalIP);
+        userDialog = new GenericDialogGUI(settings, originalInputImage);
         userDialog.showDialog();
-        if (!userDialog.processInput()) {
+        if (!userDialog.configurationValid()) {
             return DONE;
         }
         
+        // Get some more settings and images
+        showGUI = !(IJ.isMacro() || Interpreter.batchMode);
+        showAndSaveStatistics = userDialog.showAndSaveStatistics();
+        showAllFrames = userDialog.showAllFrames();
+        inputLabelImageChosenByUser = userDialog.getInputLabelImage();
+        inputImageChosenByUser = userDialog.getInputImage();
+        if (inputImageChosenByUser != null) inputImageCalibration = inputImageChosenByUser.getCalibration();
+        useCluster = userDialog.useCluster();
+        
+        logger.info("Input image [" + (inputImageChosenByUser != null ? inputImageChosenByUser.getTitle() : "<no file>") + "]");
+        logger.info("Label image [" + (inputLabelImageChosenByUser != null ? inputLabelImageChosenByUser.getTitle() : "<no file>") + "]");
+        logger.info("showAndSaveStatistics: " + showAndSaveStatistics + 
+                    ", showAllFrames: " + showAllFrames + 
+                    ", useCluster: " + useCluster +
+                    ", showGui: " + showGUI);
+        logger.debug("Settings:\n" + Debug.getJsonString(settings));
+        
         // Save new settings from user input.
         getConfigHandler().SaveToFile(configFilePath(), settings);
-        
-        if (userDialog.getInputImage() != null) {
-            originalIP = userDialog.getInputImage();
-            cal = originalIP.getCalibration();
-        } 
     
-        if (userDialog.useCluster() == true) {
-            ClusterModeRC.runClusterMode(aImp, 
-                                         settings, 
-                                         out, 
-                                         userDialog.getLabelImageFilename(), 
-                                         userDialog.getInputImageFilename(), 
-                                         userDialog.getLabelImage());
+        // If there were no input image when plugin was started then return NO_IMAGE_REQUIRED 
+        // since user must have chosen image in dialog - they will be processed later.
+        if (inputImageChosenByUser != null && originalInputImage == null) {
             return NO_IMAGE_REQUIRED;
-        }
+        } 
         else {
-            if (aImp != null) {
-                // if is 3D save the originalIP
-                if (aImp.getNSlices() != 1) {
-                    originalIP = aImp;
-                }
-            }
-            else {
-                originalIP = null;
-                return NO_IMAGE_REQUIRED;
-            }
+            return DOES_ALL + NO_CHANGES;
         }
-    
-        return DOES_ALL + NO_CHANGES;
     }
 
     @Override
     public void run(ImageProcessor aImageP) {
-        doRC();
-    
-        if (outputSegmentedImageLabelFilename == null) {
-            final String folder = MosaicUtils.ValidFolderFromImage(originalIP);
-            String fileName = MosaicUtils.removeExtension(originalIP.getTitle());
-            fileName += "_seg_c1.tif";
-    
-            outputSegmentedImageLabelFilename = folder + File.separator + fileName;
+        // ================= Run segmentation ==============================
+        //
+        if (useCluster == true) {
+            ClusterModeRC.runClusterMode(inputImageChosenByUser, 
+                                         inputLabelImageChosenByUser,
+                                         settings, 
+                                         outputFileNamesSuffixes);
+            
+            // Finish - nothing to do more here...
+            return;
         }
-        labelImage.save(outputSegmentedImageLabelFilename);
-    
-        labelImage.calculateRegionsCenterOfMass();
-    
-        if (userDialog.showAndSaveStatistics() || test_mode == true) {
-            // TODO: Handle images that are created and not saved yet. There have no directory information and
-            // below we receive null
-            String directory = MosaicUtils.ValidFolderFromImage(originalIP);
-            final String fileNameNoExt = MosaicUtils.removeExtension(originalIP.getTitle());
-            String absoluteFileName = directory + File.separator + fileNameNoExt + "_ObjectsData_c1.csv";
-    
-            // TODO: Is this needed? Can it be case when file is drag and dropped?
-            if (absoluteFileName.indexOf("file:") >= 0) {
-                absoluteFileName = absoluteFileName.substring(absoluteFileName.indexOf("file:") + 5);
-            }
-    
-            StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelMap().values());
-            statisticsTable.save(absoluteFileName);
-            if (showGUI) statisticsTable.show("statistics");
-    
-            // TODO: if is headless reorganize (why?) Is this leftover of cluster mode?
-            final boolean headless_check = GraphicsEnvironment.isHeadless();
-            if (headless_check == false) {
-                MosaicUtils.reorganize(out, fileNameNoExt, directory, 1);
-            }
+        else {
+            runRegionCompetion();
         }
+        
+        // ================= Save segmented image and statistics ==========
+        //
+        String absoluteFileNameNoExt= MosaicUtils.getAbsolutFileName(inputImageChosenByUser, /* remove ext */ true);
+        
+        saveSegmentedImage(absoluteFileNameNoExt);
+        saveStatistics(absoluteFileNameNoExt);
     }
-
+    
     /**
      * Returns handler for (un)serializing Settings objects.
      */
     public static DataFile<Settings> getConfigHandler() {
         return new JsonDataFile<Settings>();
+    }
+
+    private void saveStatistics(String absoluteFileNameNoExt) {
+        if (showAndSaveStatistics || test_mode == true) {
+            if (absoluteFileNameNoExt == null) {
+                logger.error("Cannot save segmentation statistics. Filename for saving not available!");
+                return;
+            }
+            String absoluteFileName = absoluteFileNameNoExt + outputFileNamesSuffixes[0].replace("*", "");
+    
+            labelImage.calculateRegionsCenterOfMass();
+            StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelMap().values());
+            logger.info("Saving segmentation statistics [" + absoluteFileName + "]");
+            statisticsTable.save(absoluteFileName);
+            if (showGUI && !test_mode) {
+                statisticsTable.show("statistics");
+            }
+    
+            final boolean headless_check = GraphicsEnvironment.isHeadless();
+            if (headless_check == false) {
+                final String directory = MosaicUtils.ValidFolderFromImage(inputImageChosenByUser);
+                final String fileNameNoExt = MosaicUtils.removeExtension(inputImageChosenByUser.getTitle());
+                MosaicUtils.reorganize(outputFileNamesSuffixes, fileNameNoExt, directory, 1);
+            }
+        }
+    }
+
+    private void saveSegmentedImage(String absoluteFileNameNoExt) {
+        if (outputSegmentedImageLabelFilename == null && absoluteFileNameNoExt != null) {
+                outputSegmentedImageLabelFilename = absoluteFileNameNoExt + outputFileNamesSuffixes[1].replace("*", "");
+        }
+        if (outputSegmentedImageLabelFilename != null) { 
+            logger.info("Saving segmented image [" + outputSegmentedImageLabelFilename + "]");
+            labelImage.save(outputSegmentedImageLabelFilename);
+        }
+        else {
+            logger.error("Cannot save segmentation result. Filename for saving not available!");
+        }
     }
 
     private void initSettingsAndParseMacroOptions() {
@@ -187,8 +219,7 @@ public class Region_Competition implements PlugInFilterExt {
         final String options = Macro.getOptions();
         if (options != null) {
             // Command line interface
-        	// TODO: seems that normalize/config/output things are used by wizard. Can it be made better?
-        	
+            
             String normalizeString = MosaicUtils.parseString("normalize", options);
             if (normalizeString != null) {
                 normalize_ip = Boolean.parseBoolean(normalizeString);
@@ -235,7 +266,7 @@ public class Region_Competition implements PlugInFilterExt {
             case e_DeconvolutionPC: {
                 final GeneratePSF gPsf = new GeneratePSF();
                 Img<FloatType> image_psf = null;
-                if (originalIP.getNSlices() == 1) {
+                if (inputImageChosenByUser.getNSlices() == 1) {
                     image_psf = gPsf.generate(2);
                 }
                 else {
@@ -259,7 +290,7 @@ public class Region_Competition implements PlugInFilterExt {
         Energy e_length;
         switch (settings.regularizationType) {
             case Sphere_Regularization: {
-                e_length = new E_CurvatureFlow(labelImage, (int)settings.m_CurvatureMaskRadius, cal);
+                e_length = new E_CurvatureFlow(labelImage, (int)settings.m_CurvatureMaskRadius, inputImageCalibration);
                 break;
             }
             case Approximative: {
@@ -281,43 +312,13 @@ public class Region_Competition implements PlugInFilterExt {
     }
 
     private void initInputImage() {
-        final String file = userDialog.getInputImageFilename();
-        final ImagePlus choiceIP = userDialog.getInputImage();
-
-        // first try: filepath of inputReader
-        ImagePlus ip = null;
-        if (file != null && !file.isEmpty()) {
-            final Opener o = new Opener();
-            ip = o.openImage(file);
-            if (ip != null) {
-                final FileInfo fi = ip.getFileInfo();
-                fi.directory = file.substring(0, file.lastIndexOf(File.separator));
-                ip.setFileInfo(fi);
-            }
+        // We should have a image or...
+        if (inputImageChosenByUser != null) {
+            intensityImage = new IntensityImage(inputImageChosenByUser, normalize_ip);
+            inputImageChosenByUser.show();
         }
-        else // selected opened file
-        {
-            ip = choiceIP;
-        }
-
-        // next try: opened image
-        if (ip == null) {
-            ip = originalIP;
-        }
-
-        if (ip != null) {
-            originalIP = ip;
-            intensityImage = new IntensityImage(originalIP, normalize_ip);
-
-            // image loaded
-            final boolean showOriginal = true;
-            if (showOriginal && userDialog != null) {
-                originalIP.show();
-            }
-        }
-
-        if (ip == null) {
-            // failed to load anything
+        else {
+            // ... we have failed to load anything
             IJ.noImage();
             throw new RuntimeException("Failed to load an input image.");
         }
@@ -349,30 +350,13 @@ public class Region_Competition implements PlugInFilterExt {
                 break;
             }
             case File: {
-                final String fileName = userDialog.getLabelImageFilename();
-                final ImagePlus choiceIP = userDialog.getLabelImage();
-
-                // first priority: filename was entered
-                ImagePlus ip = null;
-                if (fileName != null && !fileName.isEmpty()) {
-                    final Opener o = new Opener();
-                    ip = o.openImage(fileName);
-                    if (ip == null) {
-                        ip = choiceIP;
-                    }
-                }
-                else // no filename. fileName == null || fileName()
-                {
-                    ip = choiceIP;
-                }
-
-                if (ip != null) {
-                    labelImage.initWithIP(ip);
+                if (inputLabelImageChosenByUser != null) {
+                    labelImage.initWithIP(inputLabelImageChosenByUser);
                     labelImage.initBoundary();
                     labelImage.connectedComponents();
                 }
                 else {
-                    final String msg = "Failed to load LabelImage (" + fileName + ")";
+                    final String msg = "No valid label image given.";
                     IJ.showMessage(msg);
                     throw new RuntimeException(msg);
                 }
@@ -387,17 +371,12 @@ public class Region_Competition implements PlugInFilterExt {
     }
 
     private void initStack() {
-        boolean stackKeepFrames = false;
-        if (userDialog != null) {
-            stackKeepFrames = userDialog.showAllFrames();
-        }
-
         final int[] dims = labelImage.getDimensions();
         final int width = dims[0];
         final int height = dims[1];
         
         ImageStack initialStack = IntConverter.intArrayToStack(labelImage.dataLabel, labelImage.getDimensions());
-        stackProcess = new SegmentationProcessWindow(width, height, stackKeepFrames);
+        stackProcess = new SegmentationProcessWindow(width, height, showAllFrames);
         
         // first stack image without boundary&contours
         for (int i = 1; i <= initialStack.getSize(); i++) {
@@ -412,7 +391,7 @@ public class Region_Competition implements PlugInFilterExt {
         stackProcess.addSliceToStack(labelImage, "init with contours", 0);
     }
 
-    private void doRC() {
+    private void runRegionCompetion() {
         initInputImage();
         initLabelImage();
         initEnergies();
@@ -443,10 +422,7 @@ public class Region_Competition implements PlugInFilterExt {
 
         // Do some post process stuff
         stackProcess.addSliceToStack(labelImage, "final image iteration " + iteration, algorithm.getBiggestLabel());
-       
-        if (userDialog != null) {
-            OpenedImages.add(labelImage.show("", algorithm.getBiggestLabel()));
-        }
+        OpenedImages.add(labelImage.show("", algorithm.getBiggestLabel()));
         
         iController.close();
     }
@@ -455,7 +431,7 @@ public class Region_Competition implements PlugInFilterExt {
      * Initializes labelImage with ROI <br>
      */
     private void initializeRoi(final LabelImageRC labelImg) {
-        Roi roi = originalIP.getRoi();
+        Roi roi = inputImageChosenByUser.getRoi();
 
         labelImg.getLabelImageProcessor().setValue(1);
         labelImg.getLabelImageProcessor().fill(roi);
@@ -479,8 +455,11 @@ public class Region_Competition implements PlugInFilterExt {
         if (stackProcess != null) {
             stackProcess.close();
         }
-        if (originalIP != null) {
-            originalIP.close();
+        if (originalInputImage != null) {
+            originalInputImage.close();
+        }
+        if (inputImageChosenByUser != null) {
+            inputImageChosenByUser.close();
         }
         for (int i = 0; i < OpenedImages.size(); i++) {
             OpenedImages.get(i).close();
