@@ -313,7 +313,7 @@ public class LabelImageRC extends LabelImage {
             }
             if (Labels.get(l) == null) {
                 final PointCM tmp = new PointCM();
-                tmp.p = new Point(getDimensions().length);
+                tmp.p = new Point(new int [getDimensions().length]);
                 Labels.put(l, tmp);
             }
         }

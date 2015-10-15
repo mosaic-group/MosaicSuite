@@ -80,7 +80,7 @@ public class IndexIterator {
             index = index / dimensions[i];
         }
 
-        final Point result = Point.CopyLessArray(x);
+        final Point result = new Point(x);
 
         // TODO !!! test, is this correct?
         final int dummy = pointToIndex(result);

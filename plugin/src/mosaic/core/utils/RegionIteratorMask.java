@@ -98,8 +98,7 @@ public class RegionIteratorMask {
         }
 
         rJmp = rJmpTmp.toArray(new RJmp[rJmpTmp.size()]);
-        final Point p = new Point(this.input.length);
-        p.zero();
+        final Point p = new Point(new int [this.input.length]);
         setUpperLeft(p);
     }
 
@@ -158,7 +157,7 @@ public class RegionIteratorMask {
      */
     public void setUpperLeft(Point upperleft) {
         this.ofs = upperleft.x;
-        ofs_p = new Point(ofs);
+        ofs_p = new Point(ofs.clone());
         initIterators();
     }
 

@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelImageRC;
@@ -265,7 +266,6 @@ public class E_Deconvolution extends ExternalEnergy {
     }
     
     private void subtractPsfFromConvImage(Point currentPos, final float fromLabel, final float toLabel) {
-        Point pos = new Point(m_PSF.numDimensions());
         final int loc[] = new int[m_PSF.numDimensions()];
         final Cursor<FloatType> vPSF = m_PSF.localizingCursor();
 
@@ -273,8 +273,7 @@ public class E_Deconvolution extends ExternalEnergy {
             vPSF.fwd();
 
             vPSF.localize(loc);
-            pos.zero();
-            pos = pos.add(new Point(loc));
+            Point pos = new Point(loc);
             pos = pos.add(currentPos);
 
             infDevAccessIt.setPosition(pos.x);
@@ -283,13 +282,11 @@ public class E_Deconvolution extends ExternalEnergy {
     }
 
     private Point calculateMiddlePoint() {
-        final long dimlen[] = new long[m_PSF.numDimensions()];
-        m_PSF.dimensions(dimlen);
-
-        for (int i = 0; i < m_PSF.numDimensions(); i++) {
-            dimlen[i] = dimlen[i] / 2;
+        int[] imageDims = MosaicUtils.getImageIntDimensions(m_PSF);
+        for (int i = 0; i < imageDims.length; i++) {
+            imageDims[i] = imageDims[i] / 2;
         }
-        Point middle = new Point(dimlen);
+        Point middle = new Point(imageDims);
 
         return middle;
     }

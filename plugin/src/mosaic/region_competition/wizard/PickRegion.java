@@ -48,15 +48,9 @@ public class PickRegion implements MouseListener {
         offX = ip.getWindow().getCanvas().offScreenX(x);
         offY = ip.getWindow().getCanvas().offScreenY(y);
 
-        final Point p = new Point(2);
-        p.x[0] = offX;
-        p.x[1] = offY;
+        final Point p = new Point(new int [] {offX, offY});
 
         aC.add(p);
-
-        // int size[] = ip.getDimensions();
-
-        // id = ip.getLabel(offscreenX+offscreenY*size[0]);
     }
 
     @Override

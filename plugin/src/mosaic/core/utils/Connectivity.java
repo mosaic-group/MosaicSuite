@@ -164,7 +164,7 @@ public class Connectivity implements Iterable<Point> {
             x[i]--; // x would have range [0, 1, 2]
             // but we want ofs from midpoint [-1,0,1]
         }
-        return Point.CopyLessArray(x);
+        return new Point(x);
     }
 
     /**

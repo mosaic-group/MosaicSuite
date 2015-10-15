@@ -219,7 +219,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         int cnt = 0;
         final RegionIterator rg = new RegionIterator(i);
 
-        final Point t = new Point(i.length);
+        final Point t = new Point(new int [i.length]);
         for (int s = 0; s < i.length; s++) {
             t.x[s] = 1;
         }

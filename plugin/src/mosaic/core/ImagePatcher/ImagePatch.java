@@ -36,8 +36,8 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
      */
 
     ImagePatch(int dim) {
-        p1 = new Point(dim);
-        p2 = new Point(dim);
+        p1 = new Point(new int[dim]);
+        p2 = new Point(new int[dim]);
 
         // Initialize point
 

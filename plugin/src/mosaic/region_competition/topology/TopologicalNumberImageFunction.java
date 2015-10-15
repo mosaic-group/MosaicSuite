@@ -53,7 +53,7 @@ public class TopologicalNumberImageFunction {
     private void initOffsets() {
         // allocate points
         for (int i = 0; i < imageSize; i++) {
-            m_Offsets[i] = new Point(dimension);
+            m_Offsets[i] = new Point(new int[dimension]);
         }
 
         // get the ofs for the whole neighborhood.

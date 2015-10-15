@@ -255,12 +255,10 @@ public class ScoreFunctionRCtop implements ScoreFunction {
                 final int deltax = x2 - x1;
                 final int deltay = y2 - y1;
 
-                final Point p = new Point(2);
                 final double deltaerr = Math.abs((double) deltay / deltax);
                 double error = 0;
 
-                p.x[1] = y1;
-                p.x[0] = x1;
+                final Point p = new Point(new int[] {x1, y1});
 
                 final int Col[] = new int[3];
 

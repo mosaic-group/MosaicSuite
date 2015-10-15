@@ -113,7 +113,7 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 
         final Point offset = pt.getP1();
         final Cursor<E> cur = pt.getResult().cursor();
-        final Point p = new Point(img.numDimensions());
+        final Point p = new Point(new int [img.numDimensions()]);
 
         while (cur.hasNext()) {
             cur.next();

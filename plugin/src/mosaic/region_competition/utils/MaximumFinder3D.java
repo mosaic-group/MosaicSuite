@@ -123,7 +123,7 @@ public class MaximumFinder3D implements MaximumFinderInterface {
             final int y = ys[i];
             final int z = zs[i];
 
-            final Point p = Point.CopyLessArray(new int[] { x, y, z });
+            final Point p = new Point(new int[] { x, y, z });
             list.add(p);
         }
 
