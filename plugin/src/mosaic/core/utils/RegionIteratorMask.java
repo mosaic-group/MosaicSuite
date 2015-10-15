@@ -144,7 +144,7 @@ public class RegionIteratorMask {
      */
     public void setMidPoint(Point midPoint) {
         final Point half = (new Point(m_Size)).div(2);
-        ofs = midPoint.sub(half).x;
+        ofs = midPoint.sub(half).iCoords;
         ofs_p = new Point(ofs);
         initIterators();
     }
@@ -156,7 +156,7 @@ public class RegionIteratorMask {
      * @param upperleft Offset of the mask region
      */
     public void setUpperLeft(Point upperleft) {
-        this.ofs = upperleft.x;
+        this.ofs = upperleft.iCoords;
         ofs_p = new Point(ofs.clone());
         initIterators();
     }
@@ -253,46 +253,46 @@ public class RegionIteratorMask {
         boolean val = true;
         p.idx = 0;
         int i = 0;
-        for (i = 0; i < p.p.x.length - 1; i++) {
-            if (p.p.x[i] < crop_s[i]) {
-                p.p.x[i] = crop_s[i];
+        for (i = 0; i < p.p.iCoords.length - 1; i++) {
+            if (p.p.iCoords[i] < crop_s[i]) {
+                p.p.iCoords[i] = crop_s[i];
                 for (int s = 0; s < i - 1; s++) {
-                    p.p.x[s] = 0;
+                    p.p.iCoords[s] = 0;
                 }
                 p.idx = 0;
                 val = false;
             }
-            else if (p.p.x[i] >= crop_e[i]) {
+            else if (p.p.iCoords[i] >= crop_e[i]) {
                 p.idx = 0;
                 int faci = 1;
                 for (int s = 0; s < i - 1; s++) {
-                    p.p.x[s] = crop_s[s];
+                    p.p.iCoords[s] = crop_s[s];
                     p.idx += crop_s[s] * faci;
                     faci *= m_Size[s];
                 }
                 p.idx += crop_s[i] * faci;
-                p.p.x[i] = crop_s[i];
-                p.p.x[i + 1]++;
+                p.p.iCoords[i] = crop_s[i];
+                p.p.iCoords[i + 1]++;
                 val = false;
             }
-            p.idx += p.p.x[i] * fac;
+            p.idx += p.p.iCoords[i] * fac;
             fac *= m_Size[i];
         }
 
-        if (p.p.x[i] < crop_s[i]) {
-            p.p.x[i] = crop_s[i];
+        if (p.p.iCoords[i] < crop_s[i]) {
+            p.p.iCoords[i] = crop_s[i];
             for (int s = i - 1; s >= 0; s--) {
-                p.p.x[s] = 0;
+                p.p.iCoords[s] = 0;
             }
             p.idx = 0;
             val = false;
         }
-        else if (p.p.x[i] >= crop_e[i]) {
+        else if (p.p.iCoords[i] >= crop_e[i]) {
             p.idx = m_Size[i] * fac;
             return false;
         }
 
-        p.idx += p.p.x[i] * fac;
+        p.idx += p.p.iCoords[i] * fac;
 
         return val;
     }
@@ -346,7 +346,7 @@ public class RegionIteratorMask {
             }
         }
         else {
-            if (jumpTableGeo[idx_j].x[0] < crop_e[0] && idx_j < next_idx_jump) {
+            if (jumpTableGeo[idx_j].iCoords[0] < crop_e[0] && idx_j < next_idx_jump) {
                 final int val = itInput + jumpTable[idx_j];
                 idx_j += 1;
                 return val;

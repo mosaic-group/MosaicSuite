@@ -729,7 +729,7 @@ public class MyFrame {
                 final Point p = rg_m.nextP();
 
                 if (p.isInside(sz)) {
-                    out_a.setPosition(p.x);
+                    out_a.setPosition(p.iCoords);
                     out_a.get().set(col);
                 }
             }
@@ -826,7 +826,7 @@ public class MyFrame {
                         final Point p = rg_m.nextP();
 
                         if (p.isInside(sz)) {
-                            out_a.setPosition(p.x);
+                            out_a.setPosition(p.iCoords);
                             out_a.get().set(col);
                         }
                     }

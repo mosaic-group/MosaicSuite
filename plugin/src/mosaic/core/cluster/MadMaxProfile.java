@@ -1,9 +1,5 @@
 package mosaic.core.cluster;
 
-
-import mosaic.core.utils.DataCompression;
-
-
 /**
  * Hard coded implementation of the Mad Max profile
  *

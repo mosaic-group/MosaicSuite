@@ -1,4 +1,4 @@
-package mosaic.core.utils;
+package mosaic.core.test;
 
 
 import java.io.BufferedReader;
@@ -20,7 +20,8 @@ import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
 import mosaic.core.GUI.ProgressBarWin;
 import mosaic.core.cluster.ClusterSession;
-import mosaic.plugins.utils.PlugInFilterExt;
+import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.ShellCommand;
 import mosaic.test.framework.SystemOperations;
 import mosaic.utils.io.csv.CSV;
 import net.imglib2.Cursor;

@@ -2,7 +2,7 @@ package mosaic.core.utils;
 
 
 import ij.ImagePlus;
-import mosaic.plugins.utils.PlugInFilterExt;
+import mosaic.core.test.PlugInFilterExt;
 
 
 /**

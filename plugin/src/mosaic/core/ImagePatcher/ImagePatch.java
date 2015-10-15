@@ -42,8 +42,8 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
         // Initialize point
 
         for (int i = 0; i < dim; i++) {
-            p1.x[i] = Integer.MAX_VALUE;
-            p2.x[i] = Integer.MIN_VALUE;
+            p1.iCoords[i] = Integer.MAX_VALUE;
+            p2.iCoords[i] = Integer.MIN_VALUE;
         }
     }
 
@@ -56,17 +56,17 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
     void extendPoint(Point p) {
         // check if lower bound respected
 
-        for (int i = 0; i < p.getDimension(); i++) {
+        for (int i = 0; i < p.getNumOfDimensions(); i++) {
             // lower bound
 
-            if (p.x[i] < p1.x[i]) {
-                p1.x[i] = p.x[i];
+            if (p.iCoords[i] < p1.iCoords[i]) {
+                p1.iCoords[i] = p.iCoords[i];
             }
 
             // upper bound
 
-            if (p.x[i] > p2.x[i]) {
-                p2.x[i] = p.x[i];
+            if (p.iCoords[i] > p2.iCoords[i]) {
+                p2.iCoords[i] = p.iCoords[i];
             }
         }
     }
@@ -79,7 +79,7 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 
     void SubToP1(int p[]) {
         for (int i = 0; i < p.length; i++) {
-            p1.x[i] -= p[i];
+            p1.iCoords[i] -= p[i];
         }
     }
 
@@ -91,7 +91,7 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 
     void AddToP2(int p[]) {
         for (int i = 0; i < p.length; i++) {
-            p2.x[i] += p[i];
+            p2.iCoords[i] += p[i];
         }
     }
 
@@ -115,12 +115,12 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 
         // Crop p1 and p2 to remain internally
 
-        for (int i = 0; i < p1.x.length; i++) {
-            if (p1.x[i] < 0) {
-                p1.x[i] = 0;
+        for (int i = 0; i < p1.iCoords.length; i++) {
+            if (p1.iCoords[i] < 0) {
+                p1.iCoords[i] = 0;
             }
-            if (p2.x[i] > dimensions[i]) {
-                p2.x[i] = dimensions[i];
+            if (p2.iCoords[i] > dimensions[i]) {
+                p2.iCoords[i] = dimensions[i];
             }
         }
 
@@ -133,31 +133,31 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
 
         // create an Img of the same type of T and create the patch
 
-        it = imgFactory.create(sz.x, img.firstElement());
+        it = imgFactory.create(sz.iCoords, img.firstElement());
         final RandomAccess<T> randomAccess_it = it.randomAccess();
 
         RandomAccess<E> randomAccess_it_lb = null;
         if (lbl != null) {
-            lb = imgFactory_lbl.create(sz.x, lbl.firstElement());
+            lb = imgFactory_lbl.create(sz.iCoords, lbl.firstElement());
             randomAccess_it_lb = lb.randomAccess();
         }
 
-        final RegionIterator rg_b = new RegionIterator(sz.x);
-        final RegionIterator rg = new RegionIterator(dimensions, sz.x, p1.x);
+        final RegionIterator rg_b = new RegionIterator(sz.iCoords);
+        final RegionIterator rg = new RegionIterator(dimensions, sz.iCoords, p1.iCoords);
         while (rg.hasNext()) {
             final Point p = rg.getPoint();
             final Point pp = rg_b.getPoint();
             rg.next();
             rg_b.next();
 
-            randomAccess.setPosition(p.x);
+            randomAccess.setPosition(p.iCoords);
             if (randomAccess_lb != null) {
-                randomAccess_lb.setPosition(p.x);
+                randomAccess_lb.setPosition(p.iCoords);
             }
 
-            randomAccess_it.setPosition(pp.x);
+            randomAccess_it.setPosition(pp.iCoords);
             if (randomAccess_it_lb != null) {
-                randomAccess_it_lb.setPosition(pp.x);
+                randomAccess_it_lb.setPosition(pp.iCoords);
             }
 
             randomAccess_it.get().set(randomAccess.get());

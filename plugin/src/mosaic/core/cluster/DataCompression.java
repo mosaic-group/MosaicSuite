@@ -1,11 +1,11 @@
-package mosaic.core.utils;
+package mosaic.core.cluster;
 
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
 
-import mosaic.core.cluster.ShellProcessOutput;
+import mosaic.core.utils.ShellCommand;
 
 
 /**

@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.Vector;
 
 import mosaic.core.GUI.ProgressBarWin;
-import mosaic.core.utils.DataCompression;
 
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelSftp;

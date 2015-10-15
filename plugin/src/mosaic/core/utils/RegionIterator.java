@@ -221,7 +221,7 @@ public class RegionIterator
     public Point getPoint() {
         final Point tmp = new Point(new int [dimensions]);
         for (int i = 0; i < dimensions; i++) {
-            tmp.x[i] = itDim[i] + ofs[i];
+            tmp.iCoords[i] = itDim[i] + ofs[i];
         }
 
         return tmp;

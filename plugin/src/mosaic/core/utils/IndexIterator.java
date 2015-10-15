@@ -56,7 +56,7 @@ public class IndexIterator {
         int idx = 0;
         int fac = 1;
         for (int i = 0; i < dim; i++) {
-            idx += fac * p.x[i];
+            idx += fac * p.iCoords[i];
             fac *= dimensions[i];
         }
 
@@ -99,7 +99,7 @@ public class IndexIterator {
      */
     public boolean isInBound(Point p) {
         for (int d = 0; d < dim; d++) {
-            if (p.x[d] < 0 || p.x[d] >= dimensions[d]) {
+            if (p.iCoords[d] < 0 || p.iCoords[d] >= dimensions[d]) {
                 return false;
             }
         }

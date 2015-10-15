@@ -178,7 +178,7 @@ public class Connectivity implements Iterable<Point> {
         int offset = 0;
         int factor = 1;
         for (int i = 0; i < VDim; i++) {
-            offset += factor * (p.x[i] + 1);
+            offset += factor * (p.iCoords[i] + 1);
             factor *= 3;
         }
         return offset;
@@ -213,7 +213,7 @@ public class Connectivity implements Iterable<Point> {
      */
     private static int countZeros(Point p) {
         int count = 0;
-        for (final int i : p.x) {
+        for (final int i : p.iCoords) {
             if (i == 0) {
                 count++;
             }

@@ -42,12 +42,12 @@ public class BinarizedIntervalImgLib2Int<T extends IntegerType<T>> extends Inter
     @Override
     public boolean EvaluateAtIndex(Point p) {
         for (int i = 0; i < labelImage.numDimensions(); i++) {
-            if (p.x[i] >= labelImage.dimension(i)) {
+            if (p.iCoords[i] >= labelImage.dimension(i)) {
                 return false;
             }
         }
 
-        raLb.localize(p.x);
+        raLb.localize(p.iCoords);
 
         final int value = raLb.get().getInteger();
         return Evaluate(value);

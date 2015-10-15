@@ -262,20 +262,20 @@ public class ScoreFunctionRCtop implements ScoreFunction {
 
                 final int Col[] = new int[3];
 
-                while (p.x[0] != x2 && p.x[1] != y2) {
+                while (p.iCoords[0] != x2 && p.iCoords[1] != y2) {
                     ip[i].setLabel(p, 0);
                     Col[0] = 0;
 
-                    ipp[i].getProcessor().putPixel(p.x[0], p.x[1], Col);
+                    ipp[i].getProcessor().putPixel(p.iCoords[0], p.iCoords[1], Col);
                     error = error + deltaerr;
 
                     while (error >= 0.5) {
-                        p.x[1] += yp;
+                        p.iCoords[1] += yp;
                         error = error - 1.0;
                         ip[i].setLabel(p, 0);
-                        ipp[i].getProcessor().putPixel(p.x[0], p.x[1], Col);
+                        ipp[i].getProcessor().putPixel(p.iCoords[0], p.iCoords[1], Col);
                     }
-                    p.x[0] += xp;
+                    p.iCoords[0] += xp;
                 }
 
                 ipp[i].updateAndDraw();
@@ -326,7 +326,7 @@ public class ScoreFunctionRCtop implements ScoreFunction {
                         final Point p = itImg.getPoint();
                         if (ip[i].getLabelAbs(k) == from) {
                             ip[i].setLabel(k, to);
-                            ipp[i].getProcessor().putPixel(p.x[0], p.x[1], Col);
+                            ipp[i].getProcessor().putPixel(p.iCoords[0], p.iCoords[1], Col);
                         }
                     }
                 }

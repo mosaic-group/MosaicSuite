@@ -58,7 +58,7 @@ public class ShellCommand {
      * @throws InterruptedException
      */
 
-    static String exeCmdString(String cmd) throws IOException, InterruptedException {
+    public static String exeCmdString(String cmd) throws IOException, InterruptedException {
         final String cmd_[] = produceShell(cmd);
         final Process tProcess = Runtime.getRuntime().exec(cmd_);
 
@@ -106,7 +106,7 @@ public class ShellCommand {
      * @throws IOException
      * @throws InterruptedException
      */
-    static void exeCmd(String cmd, File wdir, String env[]) throws IOException, InterruptedException {
+    public static void exeCmd(String cmd, File wdir, String env[]) throws IOException, InterruptedException {
         final Map<String, String> envi = System.getenv();
         if (env == null) {
             env = new String[0];
@@ -148,7 +148,7 @@ public class ShellCommand {
      * @throws IOException
      * @throws InterruptedException
      */
-    static void exeCmd(String cmd, File wdir, String env[], ShellProcessOutput out) throws IOException, InterruptedException {
+    public static void exeCmd(String cmd, File wdir, String env[], ShellProcessOutput out) throws IOException, InterruptedException {
         final Map<String, String> envi = System.getenv();
         if (env == null) {
             env = new String[0];

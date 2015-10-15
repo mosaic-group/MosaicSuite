@@ -447,13 +447,13 @@ public class SegmentationAlgorithm {
             final List<Point> q = new ArrayList<Point>();
             final List<Point> d = new ArrayList<Point>();
             q.add(p);
-            final float val = (float)selectedFilament.get(p.x[1], p.x[0]);
+            final float val = (float)selectedFilament.get(p.iCoords[1], p.iCoords[0]);
             while (!q.isEmpty()) {
                 // Get first element on the list and remove it
                 final Point id = q.remove(0);
                 d.add(id);
-                final int x = id.x[0];
-                final int y = id.x[1];
+                final int x = id.iCoords[0];
+                final int y = id.iCoords[1];
 
                 // Mark pixel as belonging to local maximum
                 localMaxIntensity.set(y, x, 1.0);

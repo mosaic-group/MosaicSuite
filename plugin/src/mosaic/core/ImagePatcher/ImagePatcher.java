@@ -117,11 +117,11 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 
         while (cur.hasNext()) {
             cur.next();
-            cur.localize(p.x);
+            cur.localize(p.iCoords);
 
             final Point psum = offset.add(p);
 
-            randomAccess.setPosition(psum.x);
+            randomAccess.setPosition(psum.iCoords);
             randomAccess.get().set(cur.get());
         }
     }

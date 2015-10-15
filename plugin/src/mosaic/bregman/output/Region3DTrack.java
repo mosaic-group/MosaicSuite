@@ -165,14 +165,14 @@ public class Region3DTrack implements Outdata<Region> {
     }
 
     public void setData(Point point) {
-        if (point.x.length >= 3) {
-            x = point.x[0];
-            y = point.x[1];
-            z = point.x[2];
+        if (point.iCoords.length >= 3) {
+            x = point.iCoords[0];
+            y = point.iCoords[1];
+            z = point.iCoords[2];
         }
         else {
-            x = point.x[0];
-            y = point.x[1];
+            x = point.iCoords[0];
+            y = point.iCoords[1];
         }
     }
 

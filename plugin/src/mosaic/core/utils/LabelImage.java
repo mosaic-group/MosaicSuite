@@ -105,11 +105,11 @@ public class LabelImage
      */
 
     public boolean isOutOfBound(Point p) {
-        for (int i = 0; i < p.x.length; i++) {
-            if (p.x[i] < 0) {
+        for (int i = 0; i < p.iCoords.length; i++) {
+            if (p.iCoords[i] < 0) {
                 return true;
             }
-            if (p.x[i] >= dimensions[i]) {
+            if (p.iCoords[i] >= dimensions[i]) {
                 return true;
             }
         }
@@ -204,7 +204,7 @@ public class LabelImage
             final Point p = rg.getPoint();
             final int id = rg.next();
 
-            ra.setPosition(p.x);
+            ra.setPosition(p.iCoords);
             dataLabel[id] = ra.get().getInteger();
         }
     }
@@ -369,7 +369,7 @@ public class LabelImage
             final Point p = ri.getPoint();
             final int id = ri.next();
 
-            randomAccess_it.setPosition(p.x);
+            randomAccess_it.setPosition(p.iCoords);
             randomAccess_it.get().setInteger(dataLabel[id]);
         }
 

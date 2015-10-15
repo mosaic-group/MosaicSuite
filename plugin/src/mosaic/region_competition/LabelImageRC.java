@@ -172,8 +172,8 @@ public class LabelImageRC extends LabelImage {
 
             // Label information
             if (lbi != null) {
-                for (int i = 0; i < p.x.length; i++) {
-                    lbi.mean_pos[i] += p.x[i];
+                for (int i = 0; i < p.iCoords.length; i++) {
+                    lbi.mean_pos[i] += p.iCoords[i];
                 }
             }
         }
@@ -220,7 +220,7 @@ public class LabelImageRC extends LabelImage {
     public void initBoundary() {
         for (final int idx : iterator.getIndexIterable()) {
             final Point p = iterator.indexToPoint(idx);
-            final int xs[] = p.x;
+            final int xs[] = p.iCoords;
             for (int d = 0; d < dim; d++) {
                 final int x = xs[d];
                 if (x == 0 || x == dimensions[d] - 1) {

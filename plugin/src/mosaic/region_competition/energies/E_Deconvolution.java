@@ -50,7 +50,7 @@ public class E_Deconvolution extends ExternalEnergy {
     public EnergyResult CalculateEnergyDifference(Point aIndex, ContourParticle contourParticle, int aToLabel) {
     
         final int aFromLabel = contourParticle.label;
-        infDevAccessIt.setPosition(aIndex.x/* pos.x */);
+        infDevAccessIt.setPosition(aIndex.iCoords/* pos.x */);
     
         final EnergyResult vEnergyDiff = new EnergyResult(0.0, false);
     
@@ -70,7 +70,7 @@ public class E_Deconvolution extends ExternalEnergy {
             Point pos = new Point(LowerCorner);
             pos = pos.add(new Point(loc));
     
-            infDevAccessIt.setPosition(pos.x);
+            infDevAccessIt.setPosition(pos.iCoords);
     
             float vEOld = (infDevAccessIt.get().get() - aDataImage.getSafe(pos));
             vEOld = vEOld * vEOld;
@@ -276,7 +276,7 @@ public class E_Deconvolution extends ExternalEnergy {
             Point pos = new Point(loc);
             pos = pos.add(currentPos);
 
-            infDevAccessIt.setPosition(pos.x);
+            infDevAccessIt.setPosition(pos.iCoords);
             infDevAccessIt.get().set(infDevAccessIt.get().get() - (fromLabel - toLabel) * vPSF.get().get());
         }
     }

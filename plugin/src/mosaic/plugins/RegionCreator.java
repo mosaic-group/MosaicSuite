@@ -130,7 +130,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
             final Point p = rg_m.nextP();
 
             if (p.isInside(sz)) {
-                out_a.setPosition(p.x);
+                out_a.setPosition(p.iCoords);
                 out_a.get().set(intensity);
                 sp++;
             }
@@ -221,7 +221,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
 
         final Point t = new Point(new int [i.length]);
         for (int s = 0; s < i.length; s++) {
-            t.x[s] = 1;
+            t.iCoords[s] = 1;
         }
 
         while (rg.hasNext() && cnt < p.length) {
@@ -320,7 +320,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
                 for (int s = 0; s < Image_sz.length - 1; s++) {
                     x[s] /= tot;
                     x[s] *= dif;
-                    p[k].x[s] += x[s];
+                    p[k].iCoords[s] += x[s];
                 }
 
                 final int nsp = drawSphereWithRadius(vti, p[k], Spacing, inte_a, radius);

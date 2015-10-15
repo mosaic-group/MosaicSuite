@@ -97,7 +97,7 @@ public class SphereMask extends Mask {
             {
                 final Point ofs = iterator.indexToPoint(i);
 
-                final int[] vIndex = (ofs).x;
+                final int[] vIndex = (ofs).iCoords;
 
                 float vHypEllipse = 0;
                 for (int vD = 0; vD < dim; vD++) {
@@ -132,7 +132,7 @@ public class SphereMask extends Mask {
             {
                 final Point ofs = iterator.indexToPoint(i);
 
-                final int[] vIndex = (ofs).x;
+                final int[] vIndex = (ofs).iCoords;
 
                 float vHypEllipse = 0;
                 for (int vD = 0; vD < dim; vD++) {

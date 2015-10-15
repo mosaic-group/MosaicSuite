@@ -1,4 +1,4 @@
-package mosaic.plugins;
+package mosaic.core.test;
 
 
 import java.io.File;
@@ -15,8 +15,10 @@ import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.bregman.output.Region3DRScript;
-import mosaic.core.utils.MosaicTest;
 import mosaic.core.utils.ShellCommand;
+import mosaic.plugins.BregmanGLM_Batch;
+import mosaic.plugins.MergeJobs;
+import mosaic.plugins.Region_Competition;
 import mosaic.plugins.utils.TimeMeasurement;
 import mosaic.region_competition.output.RCOutput;
 import mosaic.test.framework.SystemOperations;

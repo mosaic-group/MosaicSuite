@@ -90,9 +90,9 @@ class TwoRegions extends NRegions {
             while (rg_m.hasNext()) {
                 final Point p = rg_m.nextP();
 
-                if (p.x[0] < sz[0] && p.x[0] >= 0 && p.x[1] < sz[1] && p.x[1] >= 0 && p.x[2] < sz[2] && p.x[2] >= 0) {
-                    out[p.x[2]][p.x[0]][p.x[1]] = 255.0f;
-                    mask[p.x[2]][p.x[0]][p.x[1]] = 1.0f;
+                if (p.iCoords[0] < sz[0] && p.iCoords[0] >= 0 && p.iCoords[1] < sz[1] && p.iCoords[1] >= 0 && p.iCoords[2] < sz[2] && p.iCoords[2] >= 0) {
+                    out[p.iCoords[2]][p.iCoords[0]][p.iCoords[1]] = 255.0f;
+                    mask[p.iCoords[2]][p.iCoords[0]][p.iCoords[1]] = 1.0f;
                 }
             }
         }
@@ -333,11 +333,11 @@ class TwoRegions extends NRegions {
                         Region r = r_list.get(lbl);
                         if (r == null) {
                             r = new Region(lbl, 0);
-                            r.pixels.add(new Pix(p.x[2], p.x[0], p.x[1]));
+                            r.pixels.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
                             r_list.put(lbl, r);
                         }
                         else {
-                            r.pixels.add(new Pix(p.x[2], p.x[0], p.x[1]));
+                            r.pixels.add(new Pix(p.iCoords[2], p.iCoords[0], p.iCoords[1]));
                         }
                     }
                 }

@@ -126,7 +126,7 @@ class UnitCubeCCCounter {
 
                     boolean inUnitCube = true;
                     for (int d = 0; d < dim && inUnitCube; d++) {
-                        if (sum.x[d] < -1 || sum.x[d] > +1) {
+                        if (sum.iCoords[d] < -1 || sum.iCoords[d] > +1) {
                             inUnitCube = false;
                         }
                     }

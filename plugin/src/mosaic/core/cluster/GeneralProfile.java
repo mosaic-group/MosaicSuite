@@ -3,7 +3,7 @@ package mosaic.core.cluster;
 
 import java.util.Vector;
 
-import mosaic.core.utils.DataCompression.Algorithm;
+import mosaic.core.cluster.DataCompression.Algorithm;
 
 
 /**

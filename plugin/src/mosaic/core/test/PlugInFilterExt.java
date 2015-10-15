@@ -1,4 +1,4 @@
-package mosaic.plugins.utils;
+package mosaic.core.test;
 
 import ij.plugin.filter.PlugInFilter;
 

@@ -65,8 +65,8 @@ public class IntensityImage {
      * @return true if aPoint lays outside dimensions of IntensityImage
      */
     public boolean isOutOfBound(Point aPoint) {
-        for (int i = 0; i < aPoint.x.length; ++i) {
-            if (aPoint.x[i] < 0 || aPoint.x[i] >= iDimensions[i]) {
+        for (int i = 0; i < aPoint.iCoords.length; ++i) {
+            if (aPoint.iCoords[i] < 0 || aPoint.iCoords[i] >= iDimensions[i]) {
                 return true;
             }
         }
