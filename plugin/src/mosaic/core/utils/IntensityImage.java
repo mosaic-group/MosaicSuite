@@ -3,387 +3,178 @@ package mosaic.core.utils;
 
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
-import ij.process.ImageStatistics;
-import net.imglib2.Cursor;
-import net.imglib2.RandomAccess;
-import net.imglib2.img.Img;
-import net.imglib2.img.ImgFactory;
-import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.type.NativeType;
-import net.imglib2.type.numeric.RealType;
 
 
+/**
+ * IntensityImage class for easier access to all pixels of (if needed normalized) input ImagePlus
+ */
 public class IntensityImage {
 
-    public float[] dataIntensity;
-    private final IndexIterator iterator;
-    public ImagePlus imageIP;
+    private final ImagePlus iInputImg;
+    
+    private int iWidth;
+    private int iHeight;
+    private int[] iDimensions;
+    private IndexIterator iterator;
+    private float[] dataIntensity;
 
-    private int width;
-    private int height;
-    private int dim;
-    private int[] dimensions;
-    private int size;
-
-    public boolean isOutOfBound(Point p) {
-        for (int i = 0; i < p.x.length; i++) {
-            if (p.x[i] < 0) {
-                return true;
-            }
-            if (p.x[i] >= dimensions[i]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public int getDim() {
-        return dim;
-    }
-
+    
     /**
-     * Close the image
-     */
-
-    public void close() {
-        if (imageIP != null) {
-            imageIP.close();
-        }
-    }
-
-    /**
-     * Calculate the sum of all pixels
+     * Initialize an intensity image from an Image Plus and normalize
      *
-     * @param ip
-     * @return
+     * @param aInputImg
      */
-
-    public static <T extends RealType<T>> double volume_image(Img<T> ip) {
-        double Vol = 0.0f;
-        final Cursor<T> cur = ip.cursor();
-
-        while (cur.hasNext()) {
-            cur.fwd();
-
-            Vol += cur.get().getRealDouble();
-
-        }
-
-        return Vol;
-    }
-
-    /**
-     * It rescale all the pixels of a factor r
-     *
-     * @param image_psf Image
-     * @param r factor to rescale
-     */
-
-    public static <T extends RealType<T>> void rescale_image(Img<T> image_psf, float r) {
-        final Cursor<T> cur = image_psf.cursor();
-
-        while (cur.hasNext()) {
-            cur.fwd();
-
-            cur.get().setReal(cur.get().getRealFloat() * r);
-
-        }
-    }
-
-    /**
-     * Initialize an intensity image from an ImgLib2
-     *
-     * @param ip
-     */
-
-    public <T extends RealType<T>> IntensityImage(Img<T> ip) {
-        this.imageIP = null;
-
-        final int[] dims = MosaicUtils.getImageIntDimensions(ip);
-        initDimensions(dims);
-        iterator = new IndexIterator(dims);
-
-        initIntensityData(ip);
-    }
-
-    /**
-     * Initialize an intensity image from an Image Plus
-     *
-     * @param ip
-     */
-
-    public IntensityImage(ImagePlus ip) {
-        this(ip, true);
+    public IntensityImage(ImagePlus aInputImg) {
+        this(aInputImg, true);
     }
 
     /**
      * Initialize an intensity image from an Image Plus
      * choosing is normalizing or not
      *
-     * @param ip ImagePlus
-     * @param nrm true normalize false don' t
+     * @param aInputImg ImagePlus
+     * @param aShouldNormalize true normalize false don' t
      */
-
-    public IntensityImage(ImagePlus ip, boolean nrm) {
-        this.imageIP = ip;
-
-        final int[] dims = dimensionsFromIP(ip);
-        initDimensions(dims);
-        iterator = new IndexIterator(dims);
-
-        if (nrm == true) {
-            this.imageIP = normalize(ip);
+    public IntensityImage(ImagePlus aInputImg, boolean aShouldNormalize) {
+        if (aShouldNormalize == true) {
+            iInputImg = MosaicUtils.normalizeAllSlices(aInputImg);
+        } else {
+            iInputImg = aInputImg;
         }
-        initIntensityData(imageIP);
-    }
-
-    private void initDimensions(int[] dims) {
-        this.dimensions = dims;
-        this.dim = dimensions.length;
-        if (dim > 3) {
-            throw new RuntimeException("Dim > 3 not supported");
-        }
-
-        this.width = dims[0];
-        this.height = dims[1];
-
-        size = 1;
-        for (int i = 0; i < dim; i++) {
-            size *= dimensions[i];
-        }
+    
+        initMembers(getDimensions(aInputImg));
+        initIntensityData(iInputImg);
     }
 
     /**
-     * Initialize intensity data
-     *
-     * @param ip Image
+     * @return container with intensity of data
      */
-
-    private <T extends RealType<T>> void initIntensityData(Img<T> ip) {
-        final RandomAccess<T> ra = ip.randomAccess();
-
-        // Allocate data intensity
-
-        dataIntensity = new float[size];
-
-        // Calculate min/max
-
-        double max = Double.MIN_VALUE;
-        double min = Double.MAX_VALUE;
-        final Cursor<T> cur = ip.cursor();
-
-        while (cur.hasNext()) {
-            cur.next();
-            if (cur.get().getRealDouble() > max) {
-                max = cur.get().getRealDouble();
-            }
-            else if (cur.get().getRealDouble() < min) {
-                min = cur.get().getRealDouble();
-            }
-        }
-
-        // Create a region iterator
-
-        final RegionIterator rg = new RegionIterator(MosaicUtils.getImageIntDimensions(ip));
-
-        // load the image
-
-        while (rg.hasNext()) {
-            final Point p = rg.getPoint();
-            final int id = rg.next();
-
-            ra.setPosition(p.x);
-            dataIntensity[id] = (float) ((ra.get().getRealFloat() - min) / max);
-        }
+    public float[] getDataIntensity() {
+        return dataIntensity;
+    }
+    
+    /**
+     * @return original ImagePlus from which intensity data were taken
+     */
+    public ImagePlus getImageIP() {
+        return iInputImg;
     }
 
-    private void initIntensityData(ImagePlus ip) {
-        final ImageProcessor proc = ip.getProcessor();
-        final Object test = proc.getPixels();
-        if (!(test instanceof float[])) {
-            throw new RuntimeException("ImageProcessor has to be of type FloatProcessor");
-        }
-
-        final int nSlices = ip.getStackSize();
-        final int area = width * height;
-
-        dataIntensity = new float[size];
-
-        final ImageStack stack = ip.getStack();
-
-        float[] pixels;
-        for (int i = 1; i <= nSlices; i++) {
-            pixels = (float[]) stack.getPixels(i);
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    dataIntensity[(i - 1) * area + y * width + x] = pixels[y * width + x];
-                }
+    /**
+     * @param aPoint input point
+     * @return true if aPoint lays outside dimensions of IntensityImage
+     */
+    public boolean isOutOfBound(Point aPoint) {
+        for (int i = 0; i < aPoint.x.length; ++i) {
+            if (aPoint.x[i] < 0 || aPoint.x[i] >= iDimensions[i]) {
+                return true;
             }
         }
+        return false;
     }
 
-    public static ImagePlus normalize(ImagePlus ip) {
-        ImagePlus dataNormalizedIP;
-
-        // scale all values in all slices to floats between 0.0 and 1.0
-        final int nSlices = ip.getStackSize();
-
-        ImageStack stack = ip.getStack();
-
-        double minimum = Double.POSITIVE_INFINITY;
-        double maximum = Double.NEGATIVE_INFINITY;
-
-        final ImageStack normalizedStack = new ImageStack(stack.getWidth(), stack.getHeight());
-
-        for (int i = 1; i <= nSlices; i++) {
-            final ImageProcessor p = stack.getProcessor(i);
-            final ImageStatistics stat = p.getStatistics();
-
-            final double min = stat.min;
-            final double max = stat.max;
-
-            if (max > maximum) {
-                maximum = max;
-            }
-            if (min < minimum) {
-                minimum = min;
-            }
-        }
-
-        double range = maximum - minimum;
-
-        if (range == 0.0) {
-            if (maximum != 0.0) {
-                range = maximum;
-                minimum = 0.0;
-            }
-            else {
-                range = 1.0;
-                minimum = 0.0;
-            }
-        }
-
-        for (int i = 1; i <= nSlices; i++) {
-            final ImageProcessor p = stack.getProcessor(i);
-            // p.setColorModel(null); // force IJ to directly convert to float
-            // (else it would first go to RGB)
-            final FloatProcessor fp = (FloatProcessor) p.convertToFloat();
-            fp.subtract(minimum);
-            fp.multiply(1.0 / range);
-            // IJ.run(ip, "Divide...", "value=1.250000000");
-
-            // double newMax = fp.getStatistics().max;
-            // double newMin = fp.getStatistics().min;
-            // System.out.println("intensity max = "+newMax);
-            // System.out.println("intensity min = "+newMin);
-
-            final String oldTitle = stack.getSliceLabel(i);
-            normalizedStack.addSlice(oldTitle, fp);
-
-            // stack.setPixels(fp.getPixels(), i);
-        }
-
-        stack = normalizedStack;
-
-        dataNormalizedIP = new ImagePlus("Normalized", stack);
-
-        return dataNormalizedIP;
+    /**
+     * @return number of dimensions of IntensityImage
+     */
+    public int getNumOfDimensions() {
+        return iDimensions.length;
     }
 
+    /**
+     * @return dimensions (width, height, numOfSlices)
+     */
+    public int[] getDimensions() {
+        return this.iDimensions;
+    }
+
+    /**
+     * @return value for given index
+     */
+    public float get(int idx) {
+        return dataIntensity[idx];
+    }
+    
     /**
      * returns the image data of the originalIP at Point p
      */
     public float get(Point p) {
         return get(iterator.pointToIndex(p));
     }
+    
+    /**
+     * returns the image data of the originalIP at Point p, if out of bounds then returns 0
+     */
+    public float getSafe(Point aPoint) {
+        if (isOutOfBound(aPoint)) return 0.0f;
 
-    public float getSafe(Point p) {
-        for (int i = 0; i < p.x.length; i++) {
-            if (p.x[i] < 0) {
-                return 0.0f;
-            }
-            if (p.x[i] >= dimensions[i]) {
-                return 0.0f;
-            }
-        }
-
-        return get(iterator.pointToIndex(p));
-    }
-
-    public float get(int idx) {
-        return dataIntensity[idx];
-    }
-
-    public int[] getDimensions() {
-        return this.dimensions;
+        return get(iterator.pointToIndex(aPoint));
     }
 
     /**
-     * Get an ImgLib2 from a intensity image
-     *
-     * @return an ImgLib2 image
+     * Initializes all internal data of IntensityImage
+     * @param aDimensions of input image
      */
-
-    public <T extends NativeType<T> & RealType<T>> Img<T> getImgLib2(Class<T> cls) {
-        final long lg[] = new long[getDim()];
-
-        // Take the size
-
-        final ImgFactory<T> imgFactory = new ArrayImgFactory<T>();
-
-        for (int i = 0; i < getDim(); i++) {
-            lg[i] = getDimensions()[i];
+    private void initMembers(int[] aDimensions) {
+        iDimensions = aDimensions;
+        
+        // Verify dimensions - only 2D and 3D is supported
+        if (iDimensions.length > 3) {
+            throw new RuntimeException("Dim > 3 not supported");
         }
 
-        // create an Img of the same type of T and size of the imageLabel
+        iterator = new IndexIterator(aDimensions);
 
-        Img<T> it = null;
-        try {
-            it = imgFactory.create(lg, cls.newInstance());
+        iWidth = aDimensions[0];
+        iHeight = aDimensions[1];
+
+        // Calculate size of all data from dimensions and create needed container
+        int size = 1;
+        for (int i = 0; i < iDimensions.length; ++i) {
+            size *= iDimensions[i];
         }
-        catch (final InstantiationException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
-        catch (final IllegalAccessException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
-        final RandomAccess<T> randomAccess_it = it.randomAccess();
-
-        // Region iterator
-
-        final RegionIterator ri = new RegionIterator(getDimensions());
-
-        while (ri.hasNext()) {
-            final Point p = ri.getPoint();
-            final int id = ri.next();
-
-            randomAccess_it.setPosition(p.x);
-            randomAccess_it.get().setReal(dataIntensity[id]);
-        }
-
-        return it;
+        dataIntensity = new float[size];
     }
 
-    private static int[] dimensionsFromIP(ImagePlus ip) {
-        // IJ 1.46r bug, force to update internal dim
-        // call before getNDimensions() or it won't return the correct value
-        ip.getStackSize();
-
-        final int dim = ip.getNDimensions();
-        final int[] dims = new int[dim];
-
-        for (int i = 0; i < 2; i++) {
-            dims[i] = ip.getDimensions()[i];
+    /**
+     * Fill dataIntensity container with data from input image
+     */
+    private void initIntensityData(ImagePlus aImage) {
+        if (aImage.getType() != ImagePlus.GRAY32) {
+            throw new RuntimeException("ImageProcessor has to be of type FloatProcessor");
         }
-        if (dim == 3) {
-            dims[2] = ip.getStackSize();
+
+        final int nSlices = aImage.getStackSize();
+        final int sizeOfOneImage = iWidth * iHeight;
+        final ImageStack stack = aImage.getStack();
+
+        for (int i = 0; i < nSlices; ++i) {
+            float[] pixels = (float[]) stack.getPixels(i + 1);
+            int imageIndex = 0;
+            for (int y = 0; y < iHeight; ++y) {
+                for (int x = 0; x < iWidth; ++x) {
+                    dataIntensity[i * sizeOfOneImage + imageIndex] = pixels[imageIndex];
+                    ++imageIndex;
+                }
+            }
         }
+    }
+
+    /**
+     * Gets dimensions from input image 
+     * @param aImage input image
+     * @return dimensions (width, height, numOfSlices)
+     */
+    private static int[] getDimensions(ImagePlus aImage) {
+        final int[] dims = new int[aImage.getNDimensions()];
+
+        // width, height, nChannels, nSlices, nFrames
+        final int[] imageDimensions = aImage.getDimensions();
+        
+        dims[0] = imageDimensions[0];
+        dims[1] = imageDimensions[1];
+        // No matter what is a configuration of 3rd dim - get just stack size
+        if (dims.length > 2) dims[2] = aImage.getStackSize();
 
         return dims;
     }
-
 }

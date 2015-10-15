@@ -27,6 +27,7 @@ import ij.gui.Roi;
 import ij.plugin.frame.RoiManager;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.region_competition.LabelImageRC;
@@ -194,7 +195,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
             final Rectangle b = roi.getBounds();
 
             // Convert the whole image to float and normalize
-            img[i] = new ImagePlus(roi.getName(), IntensityImage.normalize(ij.WindowManager.getImage(roi.getImageID())).getProcessor());
+            img[i] = new ImagePlus(roi.getName(), MosaicUtils.normalizeAllSlices(ij.WindowManager.getImage(roi.getImageID())).getProcessor());
             final ImageProcessor ip = img[i].getProcessor();
             ip.setRoi(b.x, b.y, b.width, b.height);
             img[i].setProcessor(null, ip.crop());
@@ -413,16 +414,16 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
             for (int i = 0; i < img.length; i++) {
                 in[i] = new IntensityImage(img[i], false);
                 lb[i] = new LabelImageRC(in[i].getDimensions());
-                in[i].imageIP.show();
+                in[i].getImageIP().show();
             }
 
             fi = new ScoreFunctionInit(in, lb, r_t, rad);
             for (int i = 0; i < img.length; i++) {
                 if (sT == segType.Tissue) {
-                    fi.setObject(i, (int) (1.5 * Ask("Question", "How many edge do you see on " + in[i].imageIP.getShortTitle() + "?")));
+                    fi.setObject(i, (int) (1.5 * Ask("Question", "How many edge do you see on " + in[i].getImageIP().getShortTitle() + "?")));
                 }
                 else {
-                    fi.setObject(i, (int) Ask("Question", "How many object do you see on " + in[i].imageIP.getShortTitle() + "?"));
+                    fi.setObject(i, (int) Ask("Question", "How many object do you see on " + in[i].getImageIP().getShortTitle() + "?"));
                 }
             }
         }
@@ -493,7 +494,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
                 final double factor[] = new double[in.length];
 
                 for (int i = 0; i < in.length; i++) {
-                    factor[i] = Ask("Area fix", "Increase the region by a factor of " + in[i].imageIP.getShortTitle());
+                    factor[i] = Ask("Area fix", "Increase the region by a factor of " + in[i].getImageIP().getShortTitle());
                     stop[i] = (int) (Math.abs(((factor[i] * sizeA[i]) - sizeA[i])) / 100.0 * 50.0);
                     sizeA[i] = (int) (factor[i] * sizeA[i]);
                 }

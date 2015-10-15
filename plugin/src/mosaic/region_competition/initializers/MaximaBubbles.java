@@ -53,7 +53,7 @@ public class MaximaBubbles extends Initializer {
     public void initialize() {
         smoothIntensityImage();
 
-        List<Point> list = iMaximumFinder.getMaximaPointList(iIntensityImage.dataIntensity, iTolerance, /* excludeOnEdges */ false);
+        List<Point> list = iMaximumFinder.getMaximaPointList(iIntensityImage.getDataIntensity(), iTolerance, /* excludeOnEdges */ false);
         final BinarizedIntervalIntesityImage binarizedImage = new BinarizedIntervalIntesityImage(iIntensityImage);
         
         int label = 1;
@@ -92,7 +92,7 @@ public class MaximaBubbles extends Initializer {
     private MaximumFinderInterface createMaximumFinder(IntensityImage aIntensityImage) {
         MaximumFinderInterface maximumFinder;
         
-        final int dim = aIntensityImage.getDim();
+        final int dim = aIntensityImage.getNumOfDimensions();
         if (dim == 2) {
             maximumFinder = new MaximumFinder2D(aIntensityImage.getDimensions());
         }
@@ -111,7 +111,7 @@ public class MaximaBubbles extends Initializer {
      * one. Smoothing by gaussian blur with sigma.
      */
     private void smoothIntensityImage() {
-        ImagePlus imp = new Duplicator().run(iIntensityImage.imageIP);
+        ImagePlus imp = new Duplicator().run(iIntensityImage.getImageIP());
         IJ.run(imp, "Gaussian Blur...", "sigma=" + iSigma + " stack");
         iIntensityImage = new IntensityImage(imp);
     }

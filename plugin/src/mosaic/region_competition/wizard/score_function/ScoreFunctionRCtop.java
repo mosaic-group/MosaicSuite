@@ -136,7 +136,7 @@ public class ScoreFunctionRCtop implements ScoreFunction {
         Region_Competition.getConfigHandler().SaveToFile(IJ.getDirectory("temp") + "RC_top" + x[0], s);
 
         for (int im = 0; im < i.length; im++) {
-            IJ.run(i[im].imageIP, "Region Competition", "config=" + IJ.getDirectory("temp") + "RC_top" + x[0] + "  " + "output=" + IJ.getDirectory("temp") + "RC_top" + x[0] + ".tif"
+            IJ.run(i[im].getImageIP(), "Region Competition", "config=" + IJ.getDirectory("temp") + "RC_top" + x[0] + "  " + "output=" + IJ.getDirectory("temp") + "RC_top" + x[0] + ".tif"
                     + " normalize=false");
 
             // Read Label Image

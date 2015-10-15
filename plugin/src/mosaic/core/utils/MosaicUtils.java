@@ -20,6 +20,7 @@ import ij.WindowManager;
 import ij.gui.GenericDialog;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
+import ij.process.ImageStatistics;
 import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.core.GUI.ChooseGUI;
 import mosaic.core.cluster.ClusterSession;
@@ -1171,5 +1172,93 @@ public class MosaicUtils {
             return false;
         }
         return true;
+    }
+    
+    /**
+     * Calculate the sum of all pixels
+     *
+     * @param ip
+     * @return
+     */
+    public static <T extends RealType<T>> double volume_image(Img<T> ip) {
+        double Vol = 0.0f;
+        final Cursor<T> cur = ip.cursor();
+
+        while (cur.hasNext()) {
+            cur.fwd();
+            Vol += cur.get().getRealDouble();
+        }
+
+        return Vol;
+    }
+
+    /**
+     * It rescale all the pixels of a factor r
+     *
+     * @param image_psf Image
+     * @param r factor to rescale
+     */
+    public static <T extends RealType<T>> void rescale_image(Img<T> image_psf, float r) {
+        final Cursor<T> cur = image_psf.cursor();
+
+        while (cur.hasNext()) {
+            cur.fwd();
+            cur.get().setReal(cur.get().getRealFloat() * r);
+        }
+    }
+    
+    /**
+     * Scale all values in all slices to floats between 0.0 and 1.0
+     * @param aImage input image
+     * @return normalized copy of input image
+     */
+    public static ImagePlus normalizeAllSlices(ImagePlus aImage) {
+        final int nSlices = aImage.getStackSize();
+        ImageStack stack = aImage.getStack();
+        
+        // Find minimum and maximum in all slices
+        double minimum = Double.POSITIVE_INFINITY;
+        double maximum = Double.NEGATIVE_INFINITY;
+    
+        for (int i = 1; i <= nSlices; ++i) {
+            final ImageStatistics stats = stack.getProcessor(i).getStatistics();
+            final double min = stats.min;
+            final double max = stats.max;
+    
+            if (max > maximum) {
+                maximum = max;
+            }
+            if (min < minimum) {
+                minimum = min;
+            }
+        }
+    
+        // Adjust data in case when maximum = minimum
+        double range = maximum - minimum;
+        if (range == 0.0) {
+            if (maximum != 0.0) {
+                // normalize maximum values to 1.0f
+                range = maximum;
+                minimum = 0.0;
+            }
+            else {
+                // this range and minimum will do nothing later
+                range = 1.0;
+                minimum = 0.0;
+            }
+        }
+    
+        // Normalize all stacks and crate new ImagePlus with this stack
+        final ImageStack normalizedStack = new ImageStack(stack.getWidth(), stack.getHeight());
+        for (int i = 1; i <= nSlices; ++i) {
+            final FloatProcessor fp = (FloatProcessor) stack.getProcessor(i).convertToFloat();
+            fp.subtract(minimum);
+            fp.multiply(1.0 / range);
+    
+            final String oldTitle = stack.getSliceLabel(i);
+            normalizedStack.addSlice(oldTitle, fp);
+        }
+    
+        return new ImagePlus("Normalized", normalizedStack);
     }
 }

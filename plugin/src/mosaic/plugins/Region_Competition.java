@@ -273,8 +273,8 @@ public class Region_Competition implements PlugInFilterExt {
                     image_psf = gPsf.generate(3);
                 }
                 // Normalize PSF to overall sum equal 1.0
-                final double Vol = IntensityImage.volume_image(image_psf);
-                IntensityImage.rescale_image(image_psf, (float) (1.0f / Vol));
+                final double Vol = MosaicUtils.volume_image(image_psf);
+                MosaicUtils.rescale_image(image_psf, (float) (1.0f / Vol));
 
                 e_data = new E_Deconvolution(intensityImage, labelMap, image_psf);
                 e_merge = null;
@@ -448,9 +448,6 @@ public class Region_Competition implements PlugInFilterExt {
     public void closeAll() {
         if (labelImage != null) {
             labelImage.close();
-        }
-        if (intensityImage != null) {
-            intensityImage.close();
         }
         if (stackProcess != null) {
             stackProcess.close();
