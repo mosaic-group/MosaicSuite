@@ -13,7 +13,7 @@ import mosaic.region_competition.initializers.MaximaBubbles;
 
 
 // Type images
-public class ScoreFunctionInit implements ScoreFunction {
+public class ScoreFunctionInit extends ScoreFunctionBase {
 
     private final int off[];
     private final int inc_step[];
@@ -66,7 +66,7 @@ public class ScoreFunctionInit implements ScoreFunction {
             l[im].initZero();
             final MaximaBubbles b = new MaximaBubbles(i[im], l[im], sigma, tol, rad, r_t);
             b.initialize();
-            final int c = l[im].createStatistics(i[im]);
+            final int c = createStatistics(l[im], i[im]);
             final HashMap<Integer, LabelInformation> Map = l[im].getLabelMap();
             Map.remove(0); // remove background
             for (final LabelInformation lb : Map.values()) {

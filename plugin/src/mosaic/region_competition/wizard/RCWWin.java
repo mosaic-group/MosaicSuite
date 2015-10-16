@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.HashMap;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -28,6 +29,8 @@ import ij.plugin.frame.RoiManager;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIterator;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
 import mosaic.region_competition.LabelImageRC;
@@ -374,6 +377,49 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
         return s;
     }
 
+    
+    public static PointCM[] createCMModel(LabelImageRC lirc) {
+        // set of the old labels
+        final HashMap<Integer, PointCM> Labels = new HashMap<Integer, PointCM>(); // set
+
+        final int size = lirc.getSize();
+
+        // what are the old labels?
+        for (int i = 0; i < size; i++) {
+            final int l = lirc.getLabel(i);
+            if (lirc.isSpecialLabel(l)) {
+                continue;
+            }
+            if (Labels.get(l) == null) {
+                final PointCM tmp = new PointCM();
+                tmp.p = new Point(new int [lirc.getDimensions().length]);
+                Labels.put(l, tmp);
+            }
+        }
+
+        final int[] off = new int[] { 0, 0 };
+
+        final RegionIterator img = new RegionIterator(lirc.getDimensions(), lirc.getDimensions(), off);
+
+        while (img.hasNext()) {
+            final Point p = img.getPoint();
+            final int i = img.next();
+//            if (lirc.getDataLabel()[i] != LabelImage.BGLabel && lirc.getDataLabel()[i] != LabelImageRC.ForbiddenLabel) {
+            if (!lirc.isSpecialLabel(lirc.getDataLabel()[i])) {
+                final int id = Math.abs(lirc.getDataLabel()[i]);
+
+                Labels.get(id).p = Labels.get(id).p.add(p);
+                Labels.get(id).count++;
+            }
+        }
+
+        for (final PointCM p : Labels.values()) {
+            p.p = p.p.div(p.count);
+        }
+
+        return Labels.values().toArray(new PointCM[Labels.size()]);
+    }
+    
     @Override
     public void run() {
         // Start with standard settings
@@ -546,7 +592,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
                 //
 
                 for (int i = 0; i < lb.length; i++) {
-                    final PointCM mod[] = lb[i].createCMModel();
+                    final PointCM mod[] = createCMModel(lb[i]);
                     fiRC.setCMModel(mod, i);
                 }
 

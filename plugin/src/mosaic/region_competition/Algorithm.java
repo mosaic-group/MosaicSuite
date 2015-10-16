@@ -39,7 +39,6 @@ public class Algorithm {
     private final IndexIterator labelImageIterator; // iterates over the labelImage
 
     private final int bgLabel;
-    private final int forbiddenLabel;
     private LabelDispenser labelDispenser;
 
     /** stores the contour particles. access via coordinates */
@@ -108,7 +107,6 @@ public class Algorithm {
         this.settings = settings;
 
         bgLabel = LabelImage.BGLabel;
-        forbiddenLabel = labelImage.forbiddenLabel;
         labelImageIterator = labelImage.iIterator;
         connFG = labelImage.getConnFG();
         connBG = labelImage.getConnBG();
@@ -167,7 +165,7 @@ public class Algorithm {
 
         for (final int i : labelImageIterator.getIndexIterable()) {
             final int label = labelImage.getLabelAbs(i);
-            if (label != bgLabel && label != forbiddenLabel) // region pixel
+            if (!labelImage.isSpecialLabel(label)) // region pixel
             {
                 final Point p = labelImageIterator.indexToPoint(i);
                 for (final Point neighbor : conn.iterateNeighbors(p)) {
@@ -213,7 +211,7 @@ public class Algorithm {
         for (int i = 0; i < size; i++) {
             final int absLabel = labelImage.getLabelAbs(i);
 
-            if (absLabel != forbiddenLabel /* && absLabel != bgLabel */) {
+            if (!labelImage.isForbiddenLabel(absLabel) /* && absLabel != bgLabel */) {
                 usedLabels.add(absLabel);
                 if (absLabel > m_MaxNLabels) {
                     m_MaxNLabels = absLabel;
@@ -628,7 +626,7 @@ public class Algorithm {
             final Connectivity conn = connFG;
             for (final Point q : conn.iterateNeighbors(vCurrentIndex)) {
                 final int vLabelOfDefender = labelImage.getLabelAbs(q);
-                if (vLabelOfDefender == forbiddenLabel) {
+                if (labelImage.isForbiddenLabel(vLabelOfDefender)) {
                     continue;
                 }
 

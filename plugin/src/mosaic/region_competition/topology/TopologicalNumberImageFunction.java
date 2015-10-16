@@ -22,8 +22,6 @@ public class TopologicalNumberImageFunction {
     private final Point[] m_Offsets; // maps indexes to Points
     private final int[] m_DataSubImage; // cached input image
 
-    private final int m_IgnoreLabel;
-
     private final LabelImageRC labelImage;
     private final int dimension;
     private final int imageSize;
@@ -40,7 +38,6 @@ public class TopologicalNumberImageFunction {
         this.labelImage = aLabelImage;
         this.dimension = aLabelImage.getNumOfDimensions();
 
-        m_IgnoreLabel = labelImage.forbiddenLabel;
         imageSize = TFGConnectivity.GetNeighborhoodSize();
         m_DataSubImage = new int[imageSize];
 
@@ -66,7 +63,7 @@ public class TopologicalNumberImageFunction {
         for (int i = 0; i < imageSize; ++i) {
             // TODO CubeIterator at Connectivity?
             m_DataSubImage[i] = labelImage.getLabelAbs(p.add(m_Offsets[i]));
-            if (m_DataSubImage[i] == m_IgnoreLabel) {
+            if (labelImage.isForbiddenLabel(m_DataSubImage[i])) {
                 m_DataSubImage[i] = Zero;
             }
         }

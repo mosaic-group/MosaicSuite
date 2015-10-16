@@ -22,6 +22,9 @@ import net.imglib2.img.Img;
 import net.imglib2.type.numeric.IntegerType;
 
 
+/**
+ * LabelImage keeps information about label value assigned to particular point/pixel.
+ */
 public class LabelImage extends BaseImage
 {
     public static final int BGLabel = 0;
@@ -224,6 +227,13 @@ public class LabelImage extends BaseImage
         return iConnectivityBG;
     }
     
+    protected boolean isSpecialLabel(int aLabel) {
+        if (aLabel == BGLabel) {
+            return true;
+        }
+        return false;
+    }
+    
     /**
      * Gives disconnected components in a labelImage. If two disconnected components had same label
      * after calling this method they will have separate label numbers.
@@ -235,7 +245,7 @@ public class LabelImage extends BaseImage
         // what are the old labels?
         for (int i = 0; i < size; ++i) {
             final int l = getLabel(i);
-            if (l == BGLabel) {
+            if (isSpecialLabel(l)) {
                 continue;
             }
             oldLabels.add(l);
@@ -245,7 +255,7 @@ public class LabelImage extends BaseImage
         int newLabel = 1;
         for (int idx = 0; idx < size; ++idx) {
             final int label = getLabel(idx);
-            if (label != BGLabel && oldLabels.contains(label)) {
+            if (oldLabels.contains(label)) {
                 // l is an old label
                 final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
                 aMultiThsFunctionPtr.AddThresholdBetween(label, label);

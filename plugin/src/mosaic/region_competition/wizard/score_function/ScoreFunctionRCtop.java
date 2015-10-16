@@ -30,9 +30,10 @@ import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.PointCM;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.wizard.PickRegion;
+import mosaic.region_competition.wizard.RCWWin;
 
 
-public class ScoreFunctionRCtop implements ScoreFunction {
+public class ScoreFunctionRCtop extends ScoreFunctionBase {
 
     private final String[] file;
 
@@ -70,7 +71,7 @@ public class ScoreFunctionRCtop implements ScoreFunction {
         Arrays.fill(off, 0);
         new RegionIterator(l.getDimensions(), l.getDimensions(), off);
 
-        final PointCM Reg[] = l.createCMModel();
+        final PointCM Reg[] = RCWWin.createCMModel(l);
 
         final Vector<PointCM> pntModV = new Vector<PointCM>(Arrays.asList(pntMod));
         final Vector<PointCM> RegV = new Vector<PointCM>(Arrays.asList(Reg));
@@ -146,7 +147,7 @@ public class ScoreFunctionRCtop implements ScoreFunction {
             final ImagePlus ip = o.openImage(file[im]);
 
             l[im].initWithImg(ip);
-            l[im].createStatistics(i[im]);
+            createStatistics(l[im], i[im]);
 
             // Scoring
 

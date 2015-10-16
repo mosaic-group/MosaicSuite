@@ -18,7 +18,7 @@ public class LabelInformation {
      * @param dim dimensions of the problem
      */
 
-    LabelInformation(int label, int dim) {
+    public LabelInformation(int label, int dim) {
         this.label = label;
         this.dim = dim;
         mean_pos = new double[dim];

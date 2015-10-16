@@ -130,7 +130,7 @@ public class E_Deconvolution extends ExternalEnergy {
         for (int i = 0; i < size && cVModelImage.hasNext(); i++) {
             cVModelImage.fwd();
             int vLabel = aLabelImage.getLabelAbs(i);
-            if (vLabel == aLabelImage.forbiddenLabel) {
+            if (aLabelImage.isForbiddenLabel(vLabel)) {
                 vLabel = 0; // Set Background value ??
             }
 
@@ -177,7 +177,7 @@ public class E_Deconvolution extends ExternalEnergy {
         while (vActiveLabelsIt.hasNext()) {
             final Map.Entry<Integer, LabelInformation> Label = vActiveLabelsIt.next();
             final int vLabel = Label.getKey();
-            if (vLabel == aInitImage.forbiddenLabel) {
+            if (aInitImage.isForbiddenLabel(vLabel)) {
                 continue;
             }
             vScalings3.put(vLabel, new ArrayList<Float>());
@@ -190,7 +190,7 @@ public class E_Deconvolution extends ExternalEnergy {
         for (int i = 0; i < size && cVDevImage.hasNext(); i++) {
             cVDevImage.fwd();
             final int vLabelAbs = aInitImage.getLabelAbs(i);
-            if (vLabelAbs == aInitImage.forbiddenLabel) {
+            if (aInitImage.isForbiddenLabel(vLabelAbs)) {
                 continue;
             }
             vLabelCounter.put(vLabelAbs, vLabelCounter.get(vLabelAbs) + 1);

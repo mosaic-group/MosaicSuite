@@ -7,5 +7,5 @@ import mosaic.core.utils.Point;
 public class PointCM {
 
     public Point p;
-    int count;
+    public int count;
 }

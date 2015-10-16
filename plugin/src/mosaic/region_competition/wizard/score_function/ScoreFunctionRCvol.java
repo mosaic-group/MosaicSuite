@@ -17,7 +17,7 @@ import mosaic.region_competition.Settings;
 // Score function try to find out the best segmentation with PC on all area selected
 // use setPS() to select PS
 
-public class ScoreFunctionRCvol implements ScoreFunction {
+public class ScoreFunctionRCvol extends ScoreFunctionBase {
 
     private int Area[];
     private final String[] file;
@@ -97,7 +97,7 @@ public class ScoreFunctionRCvol implements ScoreFunction {
             final ImagePlus ip = o.openImage(file[im]);
 
             l[im].initWithImg(ip);
-            l[im].createStatistics(i[im]);
+            createStatistics(l[im], i[im]);
 
             // Scoring
 

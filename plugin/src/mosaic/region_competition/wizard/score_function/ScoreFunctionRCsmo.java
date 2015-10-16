@@ -18,7 +18,7 @@ import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.CurvatureBasedFlow;
 
 
-public class ScoreFunctionRCsmo implements ScoreFunction {
+public class ScoreFunctionRCsmo extends ScoreFunctionBase {
 
     private final String[] file;
     private double smooth[];
@@ -267,7 +267,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
             final ImagePlus ip = o.openImage(file[im]);
 
             l[im].initWithImg(ip);
-            l[im].createStatistics(i[im]);
+            createStatistics(l[im], i[im]);
 
             // Scoring
 
