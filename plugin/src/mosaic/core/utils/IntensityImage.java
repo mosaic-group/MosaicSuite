@@ -8,14 +8,9 @@ import ij.ImageStack;
 /**
  * IntensityImage class for easier access to all pixels of (if needed normalized) input ImagePlus
  */
-public class IntensityImage {
+public class IntensityImage extends BaseImage {
 
     private final ImagePlus iInputImg;
-    
-    private int iWidth;
-    private int iHeight;
-    private int[] iDimensions;
-    private IndexIterator iterator;
     private float[] dataIntensity;
 
     
@@ -36,13 +31,13 @@ public class IntensityImage {
      * @param aShouldNormalize true normalize false don' t
      */
     public IntensityImage(ImagePlus aInputImg, boolean aShouldNormalize) {
+        super(getDimensions(aInputImg), /* max num of dimensions */ 3);
+        
         if (aShouldNormalize == true) {
             iInputImg = MosaicUtils.normalizeAllSlices(aInputImg);
         } else {
             iInputImg = aInputImg;
         }
-    
-        initMembers(getDimensions(aInputImg));
         initIntensityData(iInputImg);
     }
 
@@ -61,33 +56,6 @@ public class IntensityImage {
     }
 
     /**
-     * @param aPoint input point
-     * @return true if aPoint lays outside dimensions of IntensityImage
-     */
-    public boolean isOutOfBound(Point aPoint) {
-        for (int i = 0; i < aPoint.iCoords.length; ++i) {
-            if (aPoint.iCoords[i] < 0 || aPoint.iCoords[i] >= iDimensions[i]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * @return number of dimensions of IntensityImage
-     */
-    public int getNumOfDimensions() {
-        return iDimensions.length;
-    }
-
-    /**
-     * @return dimensions (width, height, numOfSlices)
-     */
-    public int[] getDimensions() {
-        return this.iDimensions;
-    }
-
-    /**
      * @return value for given index
      */
     public float get(int idx) {
@@ -98,7 +66,7 @@ public class IntensityImage {
      * returns the image data of the originalIP at Point p
      */
     public float get(Point p) {
-        return get(iterator.pointToIndex(p));
+        return get(iIterator.pointToIndex(p));
     }
     
     /**
@@ -107,32 +75,7 @@ public class IntensityImage {
     public float getSafe(Point aPoint) {
         if (isOutOfBound(aPoint)) return 0.0f;
 
-        return get(iterator.pointToIndex(aPoint));
-    }
-
-    /**
-     * Initializes all internal data of IntensityImage
-     * @param aDimensions of input image
-     */
-    private void initMembers(int[] aDimensions) {
-        iDimensions = aDimensions;
-        
-        // Verify dimensions - only 2D and 3D is supported
-        if (iDimensions.length > 3) {
-            throw new RuntimeException("Dim > 3 not supported");
-        }
-
-        iterator = new IndexIterator(aDimensions);
-
-        iWidth = aDimensions[0];
-        iHeight = aDimensions[1];
-
-        // Calculate size of all data from dimensions and create needed container
-        int size = 1;
-        for (int i = 0; i < iDimensions.length; ++i) {
-            size *= iDimensions[i];
-        }
-        dataIntensity = new float[size];
+        return get(iIterator.pointToIndex(aPoint));
     }
 
     /**
@@ -142,7 +85,9 @@ public class IntensityImage {
         if (aImage.getType() != ImagePlus.GRAY32) {
             throw new RuntimeException("ImageProcessor has to be of type FloatProcessor");
         }
-
+        
+        // Create container for image data and fill it
+        dataIntensity = new float[getSizeOfAllData()];
         final int nSlices = aImage.getStackSize();
         final int sizeOfOneImage = iWidth * iHeight;
         final ImageStack stack = aImage.getStack();

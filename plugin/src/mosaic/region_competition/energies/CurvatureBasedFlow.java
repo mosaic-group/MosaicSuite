@@ -2,6 +2,7 @@ package mosaic.region_competition.energies;
 
 
 import ij.measure.Calibration;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
@@ -21,13 +22,13 @@ public class CurvatureBasedFlow {
 
     public CurvatureBasedFlow(int rad, LabelImageRC labelImage, Calibration cal) {
         this.rad = rad;
-        this.dim = labelImage.getDim();
+        this.dim = labelImage.getNumOfDimensions();
         this.inputDims = labelImage.getDimensions();
         this.labelImage = labelImage;
 
         float spacing[] = null;
         if (cal != null) {
-            if (labelImage.getDim() == 2) {
+            if (labelImage.getNumOfDimensions() == 2) {
                 spacing = new float[2];
                 spacing[0] = (float) cal.pixelWidth;
                 spacing[1] = (float) cal.pixelHeight;
@@ -99,7 +100,7 @@ public class CurvatureBasedFlow {
 
         //////////////////////////////////////////////
 
-        if (aFrom == labelImage.bgLabel) // growing
+        if (aFrom == LabelImage.BGLabel) // growing
         {
             final int vN = vNto;
             if (dim == 2) {
@@ -110,7 +111,7 @@ public class CurvatureBasedFlow {
             }
         }
         else {
-            if (aTo == labelImage.bgLabel) // proper shrinking
+            if (aTo == LabelImage.BGLabel) // proper shrinking
             {
                 final int vN = vNFrom;
                 // This is a point on the contour (innerlist) OR

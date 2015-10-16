@@ -18,6 +18,7 @@ import ij.process.ImageProcessor;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.test.PlugInFilterExt;
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.utils.Debug;
 import mosaic.region_competition.Algorithm;
@@ -255,7 +256,7 @@ public class Region_Competition implements PlugInFilterExt {
         switch (settings.m_EnergyFunctional) {
             case e_PC: {
                 e_data = new E_CV(labelMap);
-                e_merge = new E_KLMergingCriterion(labelMap, labelImage.bgLabel, settings.m_RegionMergingThreshold);
+                e_merge = new E_KLMergingCriterion(labelMap, LabelImage.BGLabel, settings.m_RegionMergingThreshold);
                 break;
             }
             case e_PS: {

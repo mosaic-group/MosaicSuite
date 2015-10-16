@@ -38,7 +38,7 @@ public class TopologicalNumberImageFunction {
         this.m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(TBGConnectivity);
 
         this.labelImage = aLabelImage;
-        this.dimension = aLabelImage.getDim();
+        this.dimension = aLabelImage.getNumOfDimensions();
 
         m_IgnoreLabel = labelImage.forbiddenLabel;
         imageSize = TFGConnectivity.GetNeighborhoodSize();

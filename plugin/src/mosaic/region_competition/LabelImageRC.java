@@ -49,8 +49,8 @@ public class LabelImageRC extends LabelImage {
     }
 
     @Override
-    protected void init(int dims[]) {
-        super.init(dims);
+    protected void init() {
+        super.init();
         initMembers();
     }
 
@@ -65,12 +65,12 @@ public class LabelImageRC extends LabelImage {
     public void initContour() {
         final Connectivity conn = connFG;
 
-        for (final int i : iterator.getIndexIterable()) {
+        for (final int i : iIterator.getIndexIterable()) {
             final int label = getLabelAbs(i);
-            if (label != bgLabel && label != forbiddenLabel) // region pixel
+            if (label != BGLabel && label != forbiddenLabel) // region pixel
             // && label<negOfs
             {
-                final Point p = iterator.indexToPoint(i);
+                final Point p = iIterator.indexToPoint(i);
                 for (final Point neighbor : conn.iterateNeighbors(p)) {
                     final int neighborLabel = getLabelAbs(neighbor);
                     if (neighborLabel != label) {
@@ -90,7 +90,7 @@ public class LabelImageRC extends LabelImage {
      */
     @Override
     protected int labelToNeg(int label) {
-        if (label == bgLabel || isForbiddenLabel(label) || isContourLabel(label)) {
+        if (label == BGLabel || isForbiddenLabel(label) || isContourLabel(label)) {
             return label;
         }
         else {
@@ -110,12 +110,12 @@ public class LabelImageRC extends LabelImage {
 
         int newLabel = 1;
 
-        final int size = iterator.getSize();
+        final int size = iIterator.getSize();
 
         // what are the old labels?
         for (int i = 0; i < size; i++) {
             final int l = getLabel(i);
-            if (l == forbiddenLabel || l == bgLabel) {
+            if (l == forbiddenLabel || l == BGLabel) {
                 continue;
             }
             oldLabels.add(l);
@@ -123,14 +123,14 @@ public class LabelImageRC extends LabelImage {
 
         for (int i = 0; i < size; i++) {
             final int l = getLabel(i);
-            if (l == forbiddenLabel || l == bgLabel) {
+            if (l == forbiddenLabel || l == BGLabel) {
                 continue;
             }
             if (oldLabels.contains(l)) {
                 // l is an old label
                 final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
                 aMultiThsFunctionPtr.AddThresholdBetween(l, l);
-                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iterator.indexToPoint(i));
+                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iIterator.indexToPoint(i));
 
                 // find a new label
                 while (oldLabels.contains(newLabel)) {
@@ -193,7 +193,7 @@ public class LabelImageRC extends LabelImage {
      */
     @Override
     public short[] getShortCopy() {
-        if (dim == 3) {
+        if (iDimensions.length == 3) {
             return (short[]) getProjected3D(false).getProcessor().getPixels();
         }
 
@@ -208,7 +208,7 @@ public class LabelImageRC extends LabelImage {
 
     @Override
     public ImageProcessor getLabelImageProcessor() {
-        if (dim == 3) {
+        if (iDimensions.length == 3) {
             return getProjected3D(true).getProcessor();
         }
         return labelIP;
@@ -218,12 +218,12 @@ public class LabelImageRC extends LabelImage {
      * sets the outermost pixels of the labelimage to the forbidden label
      */
     public void initBoundary() {
-        for (final int idx : iterator.getIndexIterable()) {
-            final Point p = iterator.indexToPoint(idx);
+        for (final int idx : iIterator.getIndexIterable()) {
+            final Point p = iIterator.indexToPoint(idx);
             final int xs[] = p.iCoords;
-            for (int d = 0; d < dim; d++) {
+            for (int d = 0; d < iDimensions.length; d++) {
                 final int x = xs[d];
-                if (x == 0 || x == dimensions[d] - 1) {
+                if (x == 0 || x == iDimensions[d] - 1) {
                     setLabel(idx, forbiddenLabel);
                     break;
                 }
@@ -233,7 +233,7 @@ public class LabelImageRC extends LabelImage {
 
     @Override
     protected boolean isInnerLabel(int label) {
-        if (label == forbiddenLabel || label == bgLabel || isContourLabel(label)) {
+        if (label == forbiddenLabel || label == BGLabel || isContourLabel(label)) {
             return false;
         }
         else {
@@ -246,7 +246,7 @@ public class LabelImageRC extends LabelImage {
 
         final HashSet<Integer> usedLabels = new HashSet<Integer>();
 
-        final int size = iterator.getSize();
+        final int size = iIterator.getSize();
         for (int i = 0; i < size; i++) {
             final int absLabel = getLabelAbs(i);
 
@@ -255,7 +255,7 @@ public class LabelImageRC extends LabelImage {
 
                 LabelInformation stats = labelMap.get(absLabel);
                 if (stats == null) {
-                    stats = new LabelInformation(absLabel, dim);
+                    stats = new LabelInformation(absLabel, iDimensions.length);
                     labelMap.put(absLabel, stats);
                 }
                 final double val = intensityImage.get(i);
@@ -269,7 +269,7 @@ public class LabelImageRC extends LabelImage {
         // if background label do not exist add it
         LabelInformation stats = labelMap.get(0);
         if (stats == null) {
-            stats = new LabelInformation(0, dim);
+            stats = new LabelInformation(0, iDimensions.length);
             labelMap.put(0, stats);
         }
 
@@ -303,12 +303,12 @@ public class LabelImageRC extends LabelImage {
         // set of the old labels
         final HashMap<Integer, PointCM> Labels = new HashMap<Integer, PointCM>(); // set
 
-        final int size = iterator.getSize();
+        final int size = iIterator.getSize();
 
         // what are the old labels?
         for (int i = 0; i < size; i++) {
             final int l = getLabel(i);
-            if (l == forbiddenLabel || l == bgLabel) {
+            if (l == forbiddenLabel || l == BGLabel) {
                 continue;
             }
             if (Labels.get(l) == null) {
@@ -325,7 +325,7 @@ public class LabelImageRC extends LabelImage {
         while (img.hasNext()) {
             final Point p = img.getPoint();
             final int i = img.next();
-            if (dataLabel[i] != bgLabel && dataLabel[i] != forbiddenLabel) {
+            if (dataLabel[i] != BGLabel && dataLabel[i] != forbiddenLabel) {
                 final int id = Math.abs(dataLabel[i]);
 
                 Labels.get(id).p = Labels.get(id).p.add(p);

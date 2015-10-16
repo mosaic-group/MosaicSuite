@@ -58,7 +58,7 @@ public class SegmentationProcessWindow {
             return;
         }
         
-        final int dim = aLabelImage.getDim();
+        final int dim = aLabelImage.getNumOfDimensions();
         if (dim == 2) {
             addSliceToStackAndShow(aTitle, aLabelImage.getShortCopy());
         }

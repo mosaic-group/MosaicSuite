@@ -1,6 +1,9 @@
 package mosaic.core.utils;
 
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -8,39 +11,21 @@ import ij.WindowManager;
 import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.region_competition.utils.IntConverter;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
-import net.imglib2.img.ImgFactory;
-import net.imglib2.img.array.ArrayImgFactory;
-import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.IntegerType;
 
-/*
- //TODO TODOs
- - refactor LabelImage, extract what's not supposed to be there (eg energy calc)
- - does merging criterion have to be tested multiple times?
- */
 
-public class LabelImage
+public class LabelImage extends BaseImage
 {
+    public static final int BGLabel = 0;
+
     protected ImageProcessor labelIP; // map positions -> labels
     private ImagePlus labelPlus;
+    
     public int[] dataLabel;
-
-    private int size;
-    protected int dim; // number of dimension
-    protected int[] dimensions; // dimensions (width, height, depth, ...)
-    private int width = 0;
-    private int height = 0;
-    public IndexIterator iterator; // iterates over the labelImage
-
-    public final int bgLabel = 0;
 
     protected Connectivity connFG;
     private Connectivity connBG;
@@ -51,105 +36,44 @@ public class LabelImage
      * much faster than imgLib2
      */
     public <T extends IntegerType<T>> LabelImage(Img<T> lbl) {
-        // Get the image dimensions
-        final int dimensions[] = MosaicUtils.getImageIntDimensions(lbl);
-
-        // get int dimension
-        init(dimensions);
+        super(MosaicUtils.getImageIntDimensions(lbl), 3);
+        init();
         initImgLib2(lbl);
-        iterator = new IndexIterator(dimensions);
     }
 
     /**
      * Create a labelImage from another label Image
-     *
      * @param l LabelImage
      */
     public LabelImage(LabelImage l) {
-        init(l.getDimensions());
+        super(l.getDimensions(), 3);
+        init();
         initWithIP(l.labelPlus);
-        iterator = new IndexIterator(l.getDimensions());
     }
 
     /**
      * Create a labelImage from a short 3D array
-     *
-     * @param img short array
+     * @param img short array (z, x, y)
      */
     // @Deprecated
     public LabelImage(short[][][] img) {
-        final int dims[] = new int[3];
-        dims[2] = img.length;
-        dims[0] = img[0].length;
-        dims[1] = img[0][0].length;
-        init(dims);
+        super(new int[] {img[0].length, img[0][0].length, img.length}, 3);
+        init();
         initWith3DArray(img);
-        iterator = new IndexIterator(dims);
     }
 
     /**
      * Create an empty label image of a given dimension
-     *
      * @param dims dimensions of the LabelImage
      */
-
     public LabelImage(int dims[]) {
-        init(dims);
+        super(dims, 3);
+        init();
     }
 
-    /**
-     * Check of p is inside the label image
-     *
-     * @param p Point
-     * @return true if is inside
-     */
-
-    public boolean isOutOfBound(Point p) {
-        for (int i = 0; i < p.iCoords.length; i++) {
-            if (p.iCoords[i] < 0) {
-                return true;
-            }
-            if (p.iCoords[i] >= dimensions[i]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    protected void init(int dims[]) {
-        initDimensions(dims);
-        initConnectivities(dim);
-        iterator = new IndexIterator(dims);
+    protected void init() {
+        initConnectivities(getNumOfDimensions());
         initLabelData();
-    }
-
-    private void initDimensions(int[] dims) {
-        this.dimensions = dims;
-        this.dim = dimensions.length;
-        if (dim > 3) {
-            throw new RuntimeException("Dim > 3 not supported");
-        }
-
-        this.width = dims[0];
-        this.height = dims[1];
-
-        size = 1;
-        for (int i = 0; i < dim; i++) {
-            size *= dimensions[i];
-        }
-    }
-
-    private void initLabelData() {
-        if (dim == 3) {
-            labelPlus = null;
-            labelIP = null;
-            dataLabel = new int[size];
-        }
-        else {
-            labelIP = new ColorProcessor(width, height);
-            dataLabel = (int[]) labelIP.getPixels();
-            labelPlus = new ImagePlus("LabelImage", labelIP);
-        }
     }
 
     private void initConnectivities(int d) {
@@ -157,17 +81,24 @@ public class LabelImage
         connBG = connFG.getComplementaryConnectivity();
     }
 
-    public ImagePlus getLabelPlus() {
-        return labelPlus;
+    private void initLabelData() {
+        if (getNumOfDimensions() == 3) {
+            labelPlus = null;
+            labelIP = null;
+            dataLabel = new int[getSizeOfAllData()];
+        }
+        else {
+            labelIP = new ColorProcessor(iWidth, iHeight);
+            dataLabel = (int[]) labelIP.getPixels();
+            labelPlus = new ImagePlus("LabelImage", labelIP);
+        }
     }
-
-    /////////////////////////////////////////////////////////////////
 
     /**
      * Initializes label image data to all zero
      */
     public void initZero() {
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < getSizeOfAllData(); i++) {
             setLabel(i, 0);
         }
     }
@@ -188,18 +119,15 @@ public class LabelImage
 
     /**
      * LabelImage loaded from an imgLib2 image
-     *
      * @param imgLib2
      */
     private <T extends IntegerType<T>> void initImgLib2(Img<T> img) {
         final RandomAccess<T> ra = img.randomAccess();
 
         // Create a region iterator
-
         final RegionIterator rg = new RegionIterator(MosaicUtils.getImageIntDimensions(img));
 
         // load the image
-
         while (rg.hasNext()) {
             final Point p = rg.getPoint();
             final int id = rg.next();
@@ -215,13 +143,13 @@ public class LabelImage
     public void initWithIP(ImagePlus imagePlus) {
         final ImagePlus ip = IntConverter.IPtoInt(imagePlus);
 
-        if (dim == 3) {
+        if (getNumOfDimensions() == 3) {
             this.labelPlus = ip;
             final ImageStack stack = ip.getImageStack();
             this.dataLabel = IntConverter.intStackToArray(stack);
             this.labelIP = null;
         }
-        if (dim == 2) {
+        if (getNumOfDimensions() == 2) {
             initWithImageProc(ip.getProcessor());
         }
     }
@@ -233,7 +161,7 @@ public class LabelImage
         for (int i = 0; i < ar.length; i++) {
             for (int j = 0; j < ar[0].length; j++) {
                 for (int k = 0; k < ar[0][0].length; k++) {
-                    dataLabel[j + k * dimensions[0] + i * dimensions[1] * dimensions[0]] = ar[i][j][k];
+                    dataLabel[j + k * iDimensions[0] + i * iDimensions[1] * iDimensions[0]] = ar[i][j][k];
                 }
             }
         }
@@ -242,7 +170,6 @@ public class LabelImage
     /**
      * Close all the images
      */
-
     public void close() {
         if (labelPlus != null) {
             labelPlus.close();
@@ -250,25 +177,11 @@ public class LabelImage
     }
 
     /**
-     * @param stack Stack of Int processors
-     */
-    public void initWithStack(ImageStack stack) {
-        this.dataLabel = IntConverter.intStackToArray(stack);
-    }
-
-    /**
      * Save the label image as tiff
      *
      * @param file where to save (full or relative path)
      */
-
     public void save(String file) {
-        // Remove eventually the "file:" string
-
-        if (file.indexOf("file:") >= 0) {
-            file = file.substring(file.indexOf("file:") + 5);
-        }
-
         final ImagePlus ip = convert("save", 256);
         IJ.save(ip, file);
         ip.close();
@@ -280,7 +193,6 @@ public class LabelImage
 
     /**
      * Gets a copy of the labelImage as a short array.
-     *
      * @return short[] representation of the labelImage
      */
     public short[] getShortCopy() {
@@ -294,7 +206,7 @@ public class LabelImage
     }
 
     public ImagePlus convert(Object title, int maxl) {
-        if (getDim() == 3) {
+        if (getNumOfDimensions() == 3) {
             final ImagePlus imp = new ImagePlus("ResultWindow " + title, this.get3DShortStack(true));
             return imp;
         }
@@ -327,75 +239,28 @@ public class LabelImage
     }
 
     public void deleteParticles() {
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < getSizeOfAllData(); i++) {
             setLabel(i, getLabelAbs(i));
         }
     }
 
     /**
-     * Get an ImgLib2 from a intensity image
-     *
-     * @return an ImgLib2 image
-     */
-    public <T extends NativeType<T> & IntegerType<T>> Img<T> getImgLib2(Class<T> cls) {
-        final long lg[] = new long[getDim()];
-
-        // Take the size
-        final ImgFactory<T> imgFactory = new ArrayImgFactory<T>();
-
-        for (int i = 0; i < getDim(); i++) {
-            lg[i] = getDimensions()[i];
-        }
-
-        // create an Img of the same type of T and size of the imageLabel
-        Img<T> it = null;
-        try {
-            it = imgFactory.create(lg, cls.newInstance());
-        }
-        catch (final InstantiationException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
-        catch (final IllegalAccessException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
-        final RandomAccess<T> randomAccess_it = it.randomAccess();
-
-        // Region iterator
-        final RegionIterator ri = new RegionIterator(getDimensions());
-
-        while (ri.hasNext()) {
-            final Point p = ri.getPoint();
-            final int id = ri.next();
-
-            randomAccess_it.setPosition(p.iCoords);
-            randomAccess_it.get().setInteger(dataLabel[id]);
-        }
-
-        return it;
-    }
-
-    /**
      * Gives disconnected components in a labelImage distinct labels
      * (eg. to process user input for region guesses)
-     *
      * @param li LabelImage
      */
     public void connectedComponents() {
         final HashSet<Integer> oldLabels = new HashSet<Integer>(); // set of the old
-        // labels
         final ArrayList<Integer> newLabels = new ArrayList<Integer>(); // set of new
-        // labels
 
         int newLabel = 1;
 
-        final int size = iterator.getSize();
+        final int size = iIterator.getSize();
 
         // what are the old labels?
         for (int i = 0; i < size; i++) {
             final int l = getLabel(i);
-            if (l == bgLabel) {
+            if (l == BGLabel) {
                 continue;
             }
             oldLabels.add(l);
@@ -403,14 +268,14 @@ public class LabelImage
 
         for (int i = 0; i < size; i++) {
             final int l = getLabel(i);
-            if (l == bgLabel) {
+            if (l == BGLabel) {
                 continue;
             }
             if (oldLabels.contains(l)) {
                 // l is an old label
                 final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
                 aMultiThsFunctionPtr.AddThresholdBetween(l, l);
-                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iterator.indexToPoint(i));
+                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iIterator.indexToPoint(i));
 
                 // find a new label
                 while (oldLabels.contains(newLabel)) {
@@ -428,18 +293,15 @@ public class LabelImage
                 newLabel++;
             }
         }
-
     }
 
     public void initContour() {
-        final Connectivity conn = connFG;
-
-        for (final int i : iterator.getIndexIterable()) {
+        for (final int i : iIterator.getIndexIterable()) {
             final int label = getLabelAbs(i);
-            if (label != bgLabel) // region pixel
+            if (label != BGLabel) // region pixel
             {
-                final Point p = iterator.indexToPoint(i);
-                for (final Point neighbor : conn.iterateNeighbors(p)) {
+                final Point p = iIterator.indexToPoint(i);
+                for (final Point neighbor : connFG.iterateNeighbors(p)) {
                     final int neighborLabel = getLabelAbs(neighbor);
                     if (neighborLabel != label) {
                         setLabel(p, labelToNeg(label));
@@ -447,18 +309,15 @@ public class LabelImage
                         break;
                     }
                 }
-
             } // if region pixel
         }
     }
 
     /**
      * Is the point at the boundary
-     *
      * @param aIndex Point
      * @return true if is at the boundary false otherwise
      */
-
     public boolean isBoundaryPoint(Point aIndex) {
         final int vLabelAbs = getLabelAbs(aIndex);
         for (final Point q : connFG.iterateNeighbors(aIndex)) {
@@ -472,14 +331,12 @@ public class LabelImage
 
     /**
      * is point surrounded by points of the same (abs) label
-     *
      * @param aIndex
      * @return
      */
     public boolean isEnclosedByLabel(Point pIndex, int pLabel) {
         final int absLabel = labelToAbs(pLabel);
-        final Connectivity conn = connFG;
-        for (final Point qIndex : conn.iterateNeighbors(pIndex)) {
+        for (final Point qIndex : connFG.iterateNeighbors(pIndex)) {
             if (labelToAbs(getLabel(qIndex)) != absLabel) {
                 return false;
             }
@@ -488,15 +345,13 @@ public class LabelImage
     }
 
     protected boolean isInnerLabel(int label) {
-        if (label == bgLabel || isContourLabel(label)) {
+        if (label == BGLabel || isContourLabel(label)) {
             return false;
         }
         else {
             return true;
         }
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * @param label
@@ -513,10 +368,8 @@ public class LabelImage
      * @param index position
      * @return the label value
      */
-
     public int getLabel(int index) {
         return dataLabel[index];
-        // return labelIP.get(index);
     }
 
     /**
@@ -525,16 +378,15 @@ public class LabelImage
      *         Point p.
      */
     public int getLabel(Point p) {
-        final int idx = iterator.pointToIndex(p);
+        final int idx = iIterator.pointToIndex(p);
         return dataLabel[idx];
-        // return getLabel(idx);
     }
 
     /**
      * @return the abs (no contour information) label at Point p
      */
     public int getLabelAbs(Point p) {
-        final int idx = iterator.pointToIndex(p);
+        final int idx = iIterator.pointToIndex(p);
 
         return Math.abs(dataLabel[idx]);
     }
@@ -555,7 +407,7 @@ public class LabelImage
      * sets the labelImage to val at Point p
      */
     public void setLabel(Point p, int label) {
-        final int idx = iterator.pointToIndex(p);
+        final int idx = iIterator.pointToIndex(p);
         dataLabel[idx] = label;
     }
 
@@ -572,7 +424,7 @@ public class LabelImage
      * @return the contour form of the label
      */
     protected int labelToNeg(int label) {
-        if (label == bgLabel || isContourLabel(label)) {
+        if (label == BGLabel || isContourLabel(label)) {
             return label;
         }
         else {
@@ -581,26 +433,10 @@ public class LabelImage
     }
 
     /**
-     * @return The number of dimensions of this LabelImage
-     */
-    public int getDim() {
-        return this.dim;
-    }
-
-    /**
-     * The size of each dimension of this LabelImage as an int array
-     *
-     * @return Reference to the dimensions
-     */
-    public int[] getDimensions() {
-        return this.dimensions;
-    }
-
-    /**
      * @return The number of pixels of this LabelImage
      */
     public int getSize() {
-        return this.size;
+        return this.getSizeOfAllData();
     }
 
     /**
@@ -619,7 +455,6 @@ public class LabelImage
 
     /**
      * if 3D image, converts to a stack of ShortProcessors
-     *
      * @return
      */
     public ImageStack get3DShortStack(boolean clean) {
@@ -630,5 +465,4 @@ public class LabelImage
 
         return stack;
     }
-
 }

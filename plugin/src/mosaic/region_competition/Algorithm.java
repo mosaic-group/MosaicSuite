@@ -18,6 +18,7 @@ import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.FloodFill;
 import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.energies.E_Deconvolution;
@@ -106,9 +107,9 @@ public class Algorithm {
         this.imageModel = model;
         this.settings = settings;
 
-        bgLabel = labelImage.bgLabel;
+        bgLabel = LabelImage.BGLabel;
         forbiddenLabel = labelImage.forbiddenLabel;
-        labelImageIterator = labelImage.iterator;
+        labelImageIterator = labelImage.iIterator;
         connFG = labelImage.getConnFG();
         connBG = labelImage.getConnBG();
         labelMap = labelImage.getLabelMap();
@@ -220,7 +221,7 @@ public class Algorithm {
 
                 LabelInformation stats = labelMap.get(absLabel);
                 if (stats == null) {
-                    stats = new LabelInformation(absLabel, labelImage.getDim());
+                    stats = new LabelInformation(absLabel, labelImage.getNumOfDimensions());
                     labelMap.put(absLabel, stats);
                 }
                 final double val = intensityImage.get(i);
@@ -234,7 +235,7 @@ public class Algorithm {
         // if background label do not exist add it
         LabelInformation stats = labelMap.get(0);
         if (stats == null) {
-            stats = new LabelInformation(0, labelImage.getDim());
+            stats = new LabelInformation(0, labelImage.getNumOfDimensions());
             labelMap.put(0, stats);
         }
 
@@ -1467,7 +1468,7 @@ public class Algorithm {
         final double vN_ = vN;
 
         // create a labelInformation for the new label, add to container
-        final LabelInformation newLabelInformation = new LabelInformation(aNewLabel, labelImage.getDim());
+        final LabelInformation newLabelInformation = new LabelInformation(aNewLabel, labelImage.getNumOfDimensions());
         labelMap.put(aNewLabel, newLabelInformation);
 
         newLabelInformation.mean = vSum / vN_;

@@ -113,7 +113,7 @@ public class ScoreFunctionRCtop implements ScoreFunction {
             ret += reoMod1[i].p.distance(reoMod2[i].p);
         }
 
-        final double expo = 1.0 / l.getDim();
+        final double expo = 1.0 / l.getNumOfDimensions();
         ret += Math.abs(reoMod1.length - reoMod2.length) * Math.pow(l.getSize() / pntMod.length, expo);
 
         if (reoMod1.length - reoMod2.length > 0) {

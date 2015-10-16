@@ -54,7 +54,7 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
         // what are the old labels?
         for (int i = 0; i < size; i++) {
             final int l = labelImg.getLabel(i);
-            if (l == labelImg.bgLabel) {
+            if (l == LabelImage.BGLabel) {
                 continue;
             }
             oldLabels.add(l);
@@ -62,14 +62,14 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
 
         for (int i = 0; i < size; i++) {
             final int l = labelImg.getLabel(i);
-            if (l == labelImg.bgLabel) {
+            if (l == LabelImage.BGLabel) {
                 continue;
             }
             if (oldLabels.contains(l)) {
                 // l is an old label
                 final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(labelImg);
                 aMultiThsFunctionPtr.AddThresholdBetween(l, l);
-                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, labelImg.iterator.indexToPoint(i));
+                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, labelImg.iIterator.indexToPoint(i));
 
                 // find a new label
                 while (oldLabels.contains(newLabel)) {

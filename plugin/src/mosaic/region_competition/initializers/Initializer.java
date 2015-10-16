@@ -15,7 +15,7 @@ abstract class Initializer {
 
     public Initializer(LabelImageRC aLabelImage) {
         this.iLabelImage = aLabelImage;
-        this.iNumOfDimensions = iLabelImage.getDim();
+        this.iNumOfDimensions = iLabelImage.getNumOfDimensions();
         this.iDimensionsSize = iLabelImage.getDimensions();
     }
 }

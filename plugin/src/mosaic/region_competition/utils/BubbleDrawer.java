@@ -19,7 +19,7 @@ public class BubbleDrawer {
     public BubbleDrawer(LabelImageRC labelImage, int radius, int size) {
         this.labelImage = labelImage;
 
-        final int dim = labelImage.getDim();
+        final int dim = labelImage.getNumOfDimensions();
         final int[] input = labelImage.getDimensions();
         sphere = new SphereMask(radius, size, dim);
         sphereIt = new RegionIteratorMask(sphere, input);
