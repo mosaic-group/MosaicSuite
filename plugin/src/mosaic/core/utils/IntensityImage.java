@@ -11,7 +11,7 @@ import ij.ImageStack;
 public class IntensityImage extends BaseImage {
 
     private final ImagePlus iInputImg;
-    private float[] dataIntensity;
+    private float[] iDataIntensity;
 
     
     /**
@@ -45,7 +45,7 @@ public class IntensityImage extends BaseImage {
      * @return container with intensity of data
      */
     public float[] getDataIntensity() {
-        return dataIntensity;
+        return iDataIntensity;
     }
     
     /**
@@ -59,7 +59,7 @@ public class IntensityImage extends BaseImage {
      * @return value for given index
      */
     public float get(int idx) {
-        return dataIntensity[idx];
+        return iDataIntensity[idx];
     }
     
     /**
@@ -87,17 +87,17 @@ public class IntensityImage extends BaseImage {
         }
         
         // Create container for image data and fill it
-        dataIntensity = new float[getSizeOfAllData()];
+        iDataIntensity = new float[getSize()];
         final int nSlices = aImage.getStackSize();
-        final int sizeOfOneImage = iWidth * iHeight;
+        final int sizeOfOneImage = getWidth() * getHeight();
         final ImageStack stack = aImage.getStack();
 
         for (int i = 0; i < nSlices; ++i) {
             float[] pixels = (float[]) stack.getPixels(i + 1);
             int imageIndex = 0;
-            for (int y = 0; y < iHeight; ++y) {
-                for (int x = 0; x < iWidth; ++x) {
-                    dataIntensity[i * sizeOfOneImage + imageIndex] = pixels[imageIndex];
+            for (int y = 0; y < getHeight(); ++y) {
+                for (int x = 0; x < getWidth(); ++x) {
+                    iDataIntensity[i * sizeOfOneImage + imageIndex] = pixels[imageIndex];
                     ++imageIndex;
                 }
             }

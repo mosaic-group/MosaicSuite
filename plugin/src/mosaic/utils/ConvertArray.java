@@ -95,4 +95,60 @@ public class ConvertArray {
         }
         return result;
     }
+    
+    /**
+     * Converts 1D array from short to int (there is no safety check performed)
+     * @param aArray 1D array of short values
+     * @return 1D array of int
+     */
+    public static int[] toInt(short[] aArray) {
+        final int len = aArray.length;
+        final int [] result = new int[len];
+        for (int i = 0; i < len; ++i) {
+            result[i] = aArray[i];
+        }
+        return result;
+    }
+    
+    /**
+     * Converts 1D array from byte to int (there is no safety check performed)
+     * @param aArray 1D array of byte values
+     * @return 1D array of int
+     */
+    public static int[] toInt(byte[] aArray) {
+        final int len = aArray.length;
+        final int [] result = new int[len];
+        for (int i = 0; i < len; ++i) {
+            result[i] = aArray[i];
+        }
+        return result;
+    }
+    
+    /**
+     * Converts 1D array from float to int (there is no safety check performed)
+     * @param aArray 1D array of float values
+     * @return 1D array of int
+     */
+    public static int[] toInt(float[] aArray) {
+        final int len = aArray.length;
+        final int [] result = new int[len];
+        for (int i = 0; i < len; ++i) {
+            result[i] = (int)aArray[i];
+        }
+        return result;
+    }
+    
+    /**
+     * Converts 1D array from int to short (there is no safety check performed)
+     * @param aArray 1D array of int values
+     * @return 1D array of short
+     */
+    public static short[] toShort(int[] aArray) {
+        final int len = aArray.length;
+        final short [] result = new short[len];
+        for (int i = 0; i < len; ++i) {
+            result[i] = (short) aArray[i];
+        }
+        return result;
+    }
 }

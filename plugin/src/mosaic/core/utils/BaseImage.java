@@ -5,11 +5,8 @@ package mosaic.core.utils;
  */
 public class BaseImage {
     
-    protected int iWidth;
-    protected int iHeight;
-    protected int[] iDimensions;
     public IndexIterator iIterator;
-    private int iMaxNumDimensions;
+    private final int[] iDimensions;
     
     /**
      * Initialize an intensity image from an Image Plus
@@ -19,8 +16,13 @@ public class BaseImage {
      * @param aShouldNormalize true normalize false don' t
      */
     public BaseImage(int aDimensions[], int aMaxDimensions) {
-        iMaxNumDimensions = aMaxDimensions;
-        initMembers(aDimensions);
+        // Verify dimensions
+        if (aDimensions.length > aMaxDimensions) {
+            throw new RuntimeException("Dimensions number bigger than " + aMaxDimensions + " is not supported!");
+        }
+
+        iIterator = new IndexIterator(aDimensions);
+        iDimensions = aDimensions;
     }
 
     /**
@@ -44,38 +46,46 @@ public class BaseImage {
     }
 
     /**
-     * @return dimensions (width, height, numOfSlices)
+     * @return dimensions 2D (width, height),  3D (width, height, numOfSlices)
      */
     public int[] getDimensions() {
-        return this.iDimensions;
+        return iDimensions;
     }
 
     /**
-     * Initializes all internal data of IntensityImage
-     * @param aDimensions of input image
+     * Returns dimension length for given index
+     * @param aDimensionIndex
+     * @return
      */
-    private void initMembers(int[] aDimensions) {
-        iDimensions = aDimensions;
-        
-        // Verify dimensions - only 2D and 3D is supported
-        if (iDimensions.length > iMaxNumDimensions) {
-            throw new RuntimeException("Dimensions number bigger than " + iMaxNumDimensions + " is not supported!");
-        }
-
-        iIterator = new IndexIterator(aDimensions);
-
-        iWidth = aDimensions[0];
-        iHeight = aDimensions[1];
+    public int getDimension(int aDimensionIndex) {
+        return iDimensions[aDimensionIndex];
+    }
+    
+    /**
+     * @return Returns width (dimension index 0)
+     */
+    public int getWidth() {
+        return iDimensions[0];
+    }
+    
+    /**
+     * @return Returns width (dimension index 1)
+     */
+    public int getHeight() {
+        return iDimensions[1];
+    }
+    
+    /**
+     * @return Returns width (dimension index 1)
+     */
+    public int getNumOfSlices() {
+        return getNumOfDimensions() == 2 ? 1 : iDimensions[2];
     }
     
     /**
      * Calculate size of data needed to keep image (for all dimensions)
      */
-    protected int getSizeOfAllData() {
-        int size = 1;
-        for (int i = 0; i < iDimensions.length; ++i) {
-            size *= iDimensions[i];
-        }
-        return size;
+    public int getSize() {
+        return iIterator.getSize();
     }
 }

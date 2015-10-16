@@ -96,7 +96,7 @@ public class ScoreFunctionRCvol implements ScoreFunction {
             file[im] = new String(IJ.getDirectory("temp") + "RC_" + x[0] + "_" + x[1] + "_" + im + "_" + ".tif");
             final ImagePlus ip = o.openImage(file[im]);
 
-            l[im].initWithIP(ip);
+            l[im].initWithImg(ip);
             l[im].createStatistics(i[im]);
 
             // Scoring

@@ -145,7 +145,7 @@ public class ScoreFunctionRCtop implements ScoreFunction {
             file[im] = new String(IJ.getDirectory("temp") + "RC_top" + x[0] + ".tif");
             final ImagePlus ip = o.openImage(file[im]);
 
-            l[im].initWithIP(ip);
+            l[im].initWithImg(ip);
             l[im].createStatistics(i[im]);
 
             // Scoring

@@ -7,10 +7,6 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 
 import ij.ImagePlus;
-import ij.ImageStack;
-import ij.plugin.GroupedZProjector;
-import ij.plugin.ZProjector;
-import ij.process.ImageProcessor;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.utils.Connectivity;
 import mosaic.core.utils.FloodFill;
@@ -33,25 +29,21 @@ public class LabelImageRC extends LabelImage {
      */
     public LabelImageRC(LabelImageRC l) {
         super(l);
+        initMembers();
     }
 
     public LabelImageRC(int[] dims) {
         super(dims);
+        initMembers();
     }
 
     /**
      * LabelImage loaded from file
      */
     @Override
-    public void initWithIP(ImagePlus imagePlus) {
-        super.initWithIP(imagePlus);
+    public void initWithImg(ImagePlus imagePlus) {
+        super.initWithImg(imagePlus);
         initBoundary();
-    }
-
-    @Override
-    protected void init() {
-        super.init();
-        initMembers();
     }
 
     public void initMembers() {
@@ -61,17 +53,14 @@ public class LabelImageRC extends LabelImage {
     /**
      * Initialize the countor setting it to (-)label
      */
-    @Override
     public void initContour() {
-        final Connectivity conn = connFG;
-
         for (final int i : iIterator.getIndexIterable()) {
             final int label = getLabelAbs(i);
             if (label != BGLabel && label != forbiddenLabel) // region pixel
             // && label<negOfs
             {
                 final Point p = iIterator.indexToPoint(i);
-                for (final Point neighbor : conn.iterateNeighbors(p)) {
+                for (final Point neighbor : iConnectivityFG.iterateNeighbors(p)) {
                     final int neighborLabel = getLabelAbs(neighbor);
                     if (neighborLabel != label) {
                         setLabel(p, labelToNeg(label));
@@ -79,7 +68,6 @@ public class LabelImageRC extends LabelImage {
                         break;
                     }
                 }
-
             } // if region pixel
         }
     }
@@ -130,7 +118,7 @@ public class LabelImageRC extends LabelImage {
                 // l is an old label
                 final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
                 aMultiThsFunctionPtr.AddThresholdBetween(l, l);
-                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iIterator.indexToPoint(i));
+                final FloodFill ff = new FloodFill(iConnectivityFG, aMultiThsFunctionPtr, iIterator.indexToPoint(i));
 
                 // find a new label
                 while (oldLabels.contains(newLabel)) {
@@ -187,43 +175,15 @@ public class LabelImageRC extends LabelImage {
     }
 
     /**
-     * Gets a copy of the labelImage as a short array.
-     *
-     * @return short[] representation of the labelImage
-     */
-    @Override
-    public short[] getShortCopy() {
-        if (iDimensions.length == 3) {
-            return (short[]) getProjected3D(false).getProcessor().getPixels();
-        }
-
-        final int n = dataLabel.length;
-
-        final short[] shortData = new short[n];
-        for (int i = 0; i < n; i++) {
-            shortData[i] = (short) dataLabel[i];
-        }
-        return shortData;
-    }
-
-    @Override
-    public ImageProcessor getLabelImageProcessor() {
-        if (iDimensions.length == 3) {
-            return getProjected3D(true).getProcessor();
-        }
-        return labelIP;
-    }
-
-    /**
      * sets the outermost pixels of the labelimage to the forbidden label
      */
     public void initBoundary() {
         for (final int idx : iIterator.getIndexIterable()) {
             final Point p = iIterator.indexToPoint(idx);
             final int xs[] = p.iCoords;
-            for (int d = 0; d < iDimensions.length; d++) {
+            for (int d = 0; d < getNumOfDimensions(); d++) {
                 final int x = xs[d];
-                if (x == 0 || x == iDimensions[d] - 1) {
+                if (x == 0 || x == getDimension(d) - 1) {
                     setLabel(idx, forbiddenLabel);
                     break;
                 }
@@ -255,7 +215,7 @@ public class LabelImageRC extends LabelImage {
 
                 LabelInformation stats = labelMap.get(absLabel);
                 if (stats == null) {
-                    stats = new LabelInformation(absLabel, iDimensions.length);
+                    stats = new LabelInformation(absLabel, getNumOfDimensions());
                     labelMap.put(absLabel, stats);
                 }
                 final double val = intensityImage.get(i);
@@ -269,7 +229,7 @@ public class LabelImageRC extends LabelImage {
         // if background label do not exist add it
         LabelInformation stats = labelMap.get(0);
         if (stats == null) {
-            stats = new LabelInformation(0, iDimensions.length);
+            stats = new LabelInformation(0, getNumOfDimensions());
             labelMap.put(0, stats);
         }
 
@@ -325,8 +285,8 @@ public class LabelImageRC extends LabelImage {
         while (img.hasNext()) {
             final Point p = img.getPoint();
             final int i = img.next();
-            if (dataLabel[i] != BGLabel && dataLabel[i] != forbiddenLabel) {
-                final int id = Math.abs(dataLabel[i]);
+            if (getDataLabel()[i] != BGLabel && getDataLabel()[i] != forbiddenLabel) {
+                final int id = Math.abs(getDataLabel()[i]);
 
                 Labels.get(id).p = Labels.get(id).p.add(p);
                 Labels.get(id).count++;
@@ -346,29 +306,6 @@ public class LabelImageRC extends LabelImage {
 
     public HashMap<Integer, LabelInformation> getLabelMap() {
         return this.labelMap;
-    }
-
-    private ImagePlus getProjected3D(boolean abs) {
-        final ImageStack stack = get3DShortStack(abs);
-        final int z = getDimensions()[2];
-
-        ImagePlus imp = new ImagePlus("Projection stack ", stack);
-        final StackProjector projector = new StackProjector();
-        imp = projector.doIt(imp, z);
-
-        return imp;
-    }
-
-    private class StackProjector extends GroupedZProjector {
-        
-        private final int method = ZProjector.MAX_METHOD;
-        
-        protected StackProjector() {}
-        
-        protected ImagePlus doIt(ImagePlus imp, int groupSize) {
-            final ImagePlus imp2 = groupZProject(imp, method, groupSize);
-            return imp2;
-        }
     }
 }
 

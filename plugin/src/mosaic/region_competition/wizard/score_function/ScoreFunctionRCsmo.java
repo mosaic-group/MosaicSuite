@@ -90,9 +90,9 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
         while (img.hasNext()) {
             final Point p = img.getPoint();
             final int i = img.next();
-            if (l.dataLabel[i] < 0) {
+            if (l.getDataLabel()[i] < 0) {
                 np++;
-                final int id = Math.abs(l.dataLabel[i]);
+                final int id = Math.abs(l.getDataLabel()[i]);
 
                 final CurvatureBasedFlow f2 = new CurvatureBasedFlow(2, l, null);
                 final CurvatureBasedFlow f4 = new CurvatureBasedFlow(4, l, null);
@@ -180,8 +180,8 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
         while (img.hasNext()) {
             final Point p = img.getPoint();
             final int i = img.next();
-            if (l.dataLabel[i] < 0) {
-                final int id = Math.abs(l.dataLabel[i]);
+            if (l.getDataLabel()[i] < 0) {
+                final int id = Math.abs(l.getDataLabel()[i]);
 
                 final CurvatureBasedFlow f2 = new CurvatureBasedFlow(2, l, null);
                 final CurvatureBasedFlow f4 = new CurvatureBasedFlow(4, l, null);
@@ -266,7 +266,7 @@ public class ScoreFunctionRCsmo implements ScoreFunction {
             file[im] = new String(IJ.getDirectory("temp") + "RC_smo" + x[0] + "_" + x[1] + "_" + im + "_" + ".tif");
             final ImagePlus ip = o.openImage(file[im]);
 
-            l[im].initWithIP(ip);
+            l[im].initWithImg(ip);
             l[im].createStatistics(i[im]);
 
             // Scoring

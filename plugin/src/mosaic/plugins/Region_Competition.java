@@ -352,7 +352,7 @@ public class Region_Competition implements PlugInFilterExt {
             }
             case File: {
                 if (inputLabelImageChosenByUser != null) {
-                    labelImage.initWithIP(inputLabelImageChosenByUser);
+                    labelImage.initWithImg(inputLabelImageChosenByUser);
                     labelImage.initBoundary();
                     labelImage.connectedComponents();
                 }
@@ -376,17 +376,15 @@ public class Region_Competition implements PlugInFilterExt {
         final int width = dims[0];
         final int height = dims[1];
         
-        ImageStack initialStack = IntConverter.intArrayToStack(labelImage.dataLabel, labelImage.getDimensions());
+        ImageStack initialStack = labelImage.getShortStack(true); 
         stackProcess = new SegmentationProcessWindow(width, height, showAllFrames);
-        
+      
         // first stack image without boundary&contours
         for (int i = 1; i <= initialStack.getSize(); i++) {
-            final Object pixels = initialStack.getPixels(i);
-            final short[] shortData = IntConverter.intToShort((int[]) pixels);
-            stackProcess.addSliceToStackAndShow("init without countours", shortData);
+            stackProcess.addSliceToStackAndShow("init without countours", (short[])initialStack.getPixels(i));
             initialStack.getProcessor(i);
         }
-
+        
         // Generate contours and add second image to stack
         labelImage.initBoundary();
         stackProcess.addSliceToStack(labelImage, "init with contours", 0);
@@ -432,10 +430,7 @@ public class Region_Competition implements PlugInFilterExt {
      * Initializes labelImage with ROI <br>
      */
     private void initializeRoi(final LabelImageRC labelImg) {
-        Roi roi = inputImageChosenByUser.getRoi();
-
-        labelImg.getLabelImageProcessor().setValue(1);
-        labelImg.getLabelImageProcessor().fill(roi);
+        labelImg.initLabelsWithRoi(inputImageChosenByUser.getRoi());
         labelImg.initBoundary();
         labelImg.connectedComponents();
     }
@@ -447,9 +442,6 @@ public class Region_Competition implements PlugInFilterExt {
     
     @Override
     public void closeAll() {
-        if (labelImage != null) {
-            labelImage.close();
-        }
         if (stackProcess != null) {
             stackProcess.close();
         }

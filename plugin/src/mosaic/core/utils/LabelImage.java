@@ -1,13 +1,17 @@
 package mosaic.core.utils;
 
 
-import java.util.ArrayList;
 import java.util.HashSet;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.WindowManager;
+import ij.gui.Roi;
+import ij.plugin.GroupedZProjector;
+import ij.plugin.ZProjector;
 import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
@@ -22,447 +26,368 @@ public class LabelImage extends BaseImage
 {
     public static final int BGLabel = 0;
 
-    protected ImageProcessor labelIP; // map positions -> labels
-    private ImagePlus labelPlus;
-    
-    public int[] dataLabel;
-
-    protected Connectivity connFG;
-    private Connectivity connBG;
+    protected Connectivity iConnectivityFG;
+    private Connectivity iConnectivityBG;
+    private int[] iDataLabel;
 
     /**
-     * Create a label image from an ImgLib2 image
-     * use always native type for computation are
-     * much faster than imgLib2
+     * Create a label image from an ImgLib2
      */
-    public <T extends IntegerType<T>> LabelImage(Img<T> lbl) {
-        super(MosaicUtils.getImageIntDimensions(lbl), 3);
-        init();
-        initImgLib2(lbl);
+    public <T extends IntegerType<T>> LabelImage(Img<T> aLabelImg) {
+        super(MosaicUtils.getImageIntDimensions(aLabelImg), 3);
+        initConnectivities();
+        initDataLabel(aLabelImg);
     }
 
     /**
-     * Create a labelImage from another label Image
-     * @param l LabelImage
+     * Create a labelImage from another LabelImage
      */
-    public LabelImage(LabelImage l) {
-        super(l.getDimensions(), 3);
-        init();
-        initWithIP(l.labelPlus);
+    public LabelImage(LabelImage aLabelImg) {
+        super(aLabelImg.getDimensions(), aLabelImg.getNumOfDimensions());
+        initConnectivities();
+        iDataLabel = ArrayUtils.clone(aLabelImg.iDataLabel);
     }
 
     /**
-     * Create a labelImage from a short 3D array
-     * @param img short array (z, x, y)
+     * Create an empty LabelImage of a given dimension
+     * @param aDimensions dimensions of the LabelImage
      */
-    // @Deprecated
+    public LabelImage(int aDimensions[]) {
+        super(aDimensions, 3);
+        initConnectivities();
+        iDataLabel = new int[getSize()];
+    }
+
+    /**
+     * Create a labelImage from a short 3D array [z][x][y]
+     * @Deprecated
+     */
     public LabelImage(short[][][] img) {
         super(new int[] {img[0].length, img[0][0].length, img.length}, 3);
-        init();
-        initWith3DArray(img);
-    }
-
-    /**
-     * Create an empty label image of a given dimension
-     * @param dims dimensions of the LabelImage
-     */
-    public LabelImage(int dims[]) {
-        super(dims, 3);
-        init();
-    }
-
-    protected void init() {
-        initConnectivities(getNumOfDimensions());
-        initLabelData();
-    }
-
-    private void initConnectivities(int d) {
-        connFG = new Connectivity(d, d - 1);
-        connBG = connFG.getComplementaryConnectivity();
-    }
-
-    private void initLabelData() {
-        if (getNumOfDimensions() == 3) {
-            labelPlus = null;
-            labelIP = null;
-            dataLabel = new int[getSizeOfAllData()];
-        }
-        else {
-            labelIP = new ColorProcessor(iWidth, iHeight);
-            dataLabel = (int[]) labelIP.getPixels();
-            labelPlus = new ImagePlus("LabelImage", labelIP);
-        }
-    }
-
-    /**
-     * Initializes label image data to all zero
-     */
-    public void initZero() {
-        for (int i = 0; i < getSizeOfAllData(); i++) {
-            setLabel(i, 0);
-        }
-    }
-
-    /**
-     * Only 2D
-     * Initializes label image with a predefined IP (by copying it)
-     * ip: without contour pixels/boundary
-     * (invoke initBoundary() and generateContour();
-     */
-    @Deprecated
-    private void initWithImageProc(ImageProcessor ip) {
-        // TODO check for dimensions etc
-        this.labelIP = IntConverter.procToIntProc(ip);
-        this.dataLabel = (int[]) labelIP.getPixels();
-        this.labelPlus = new ImagePlus("labelImage", labelIP);
+        initConnectivities();
+        initDataLabel(img);
     }
 
     /**
      * LabelImage loaded from an imgLib2 image
-     * @param imgLib2
      */
-    private <T extends IntegerType<T>> void initImgLib2(Img<T> img) {
-        final RandomAccess<T> ra = img.randomAccess();
-
-        // Create a region iterator
-        final RegionIterator rg = new RegionIterator(MosaicUtils.getImageIntDimensions(img));
-
-        // load the image
+    private <T extends IntegerType<T>> void initDataLabel(Img<T> aImage) {
+        iDataLabel = new int[getSize()];
+        
+        final RegionIterator rg = new RegionIterator(MosaicUtils.getImageIntDimensions(aImage));
+        final RandomAccess<T> ra = aImage.randomAccess();
+    
         while (rg.hasNext()) {
+            // TODO: What should be order of next() / getPoint() in different places in code 
+            //       order is different! It is not intuitive.
             final Point p = rg.getPoint();
-            final int id = rg.next();
-
+            final int idx = rg.next();
             ra.setPosition(p.iCoords);
-            dataLabel[id] = ra.get().getInteger();
+            iDataLabel[idx] = ra.get().getInteger();
         }
     }
 
     /**
-     * LabelImage loaded from file
+     * Initialize data from 3D array [z][x][y]
      */
-    public void initWithIP(ImagePlus imagePlus) {
-        final ImagePlus ip = IntConverter.IPtoInt(imagePlus);
+    private void initDataLabel(short[][][] aArray) {
+        iDataLabel = new int[getSize()];
 
-        if (getNumOfDimensions() == 3) {
-            this.labelPlus = ip;
-            final ImageStack stack = ip.getImageStack();
-            this.dataLabel = IntConverter.intStackToArray(stack);
-            this.labelIP = null;
-        }
-        if (getNumOfDimensions() == 2) {
-            initWithImageProc(ip.getProcessor());
-        }
-    }
-
-    /**
-     * LabelImage loaded from 3D array
-     */
-    private void initWith3DArray(short[][][] ar) {
-        for (int i = 0; i < ar.length; i++) {
-            for (int j = 0; j < ar[0].length; j++) {
-                for (int k = 0; k < ar[0][0].length; k++) {
-                    dataLabel[j + k * iDimensions[0] + i * iDimensions[1] * iDimensions[0]] = ar[i][j][k];
+        final int width = getWidth();
+        final int height = getHeight();
+        for (int z = 0; z < aArray.length; z++) {
+            for (int x = 0; x < aArray[0].length; x++) {
+                for (int y = 0; y < aArray[0][0].length; y++) {
+                    iDataLabel[x + y * width + z * height * width] = aArray[z][x][y];
                 }
             }
         }
     }
 
     /**
-     * Close all the images
+     * Initialize both - FG and BG - connectivities
      */
-    public void close() {
-        if (labelPlus != null) {
-            labelPlus.close();
-        }
+    private void initConnectivities() {
+        int numOfDimensions = getNumOfDimensions();
+        iConnectivityFG = new Connectivity(numOfDimensions, numOfDimensions - 1);
+        iConnectivityBG = iConnectivityFG.getComplementaryConnectivity();
     }
 
     /**
-     * Save the label image as tiff
-     *
-     * @param file where to save (full or relative path)
+     * Initializes LabelImage data to zeros
      */
-    public void save(String file) {
-        final ImagePlus ip = convert("save", 256);
-        IJ.save(ip, file);
-        ip.close();
+    public void initZero() {
+        for (int i = 0; i < iDataLabel.length; i++) {
+            setLabel(i, 0);
+        }
     }
-
-    public ImageProcessor getLabelImageProcessor() {
-        return labelIP;
-    }
-
+    
     /**
-     * Gets a copy of the labelImage as a short array.
-     * @return short[] representation of the labelImage
+     *  Initializes LabelImage data to consecutive numbers
      */
-    public short[] getShortCopy() {
-        final int n = dataLabel.length;
-
-        final short[] shortData = new short[n];
-        for (int i = 0; i < n; i++) {
-            shortData[i] = (short) dataLabel[i];
-        }
-        return shortData;
-    }
-
-    public ImagePlus convert(Object title, int maxl) {
-        if (getNumOfDimensions() == 3) {
-            final ImagePlus imp = new ImagePlus("ResultWindow " + title, this.get3DShortStack(true));
-            return imp;
-        }
-
-        final ImageProcessor imProc = getLabelImageProcessor();
-
-        // convert it to short
-        final short[] shorts = getShortCopy();
-        for (int i = 0; i < shorts.length; i++) {
-            shorts[i] = (short) Math.abs(shorts[i]);
-        }
-        final ShortProcessor shortProc = new ShortProcessor(imProc.getWidth(), imProc.getHeight());
-        shortProc.setPixels(shorts);
-
-        // TODO !!!! imProc.convertToShort() does not work, first converts to
-        // byte, then to short...
-        final String s = "ResultWindow " + title;
-        final String titleUnique = WindowManager.getUniqueName(s);
-
-        final ImagePlus imp = new ImagePlus(titleUnique, shortProc);
-        IJ.setMinAndMax(imp, 0, maxl);
-        IJ.run(imp, "3-3-2 RGB", null);
-        return imp;
-    }
-
-    public ImagePlus show(Object title, int maxl) {
-        final ImagePlus imp = convert(title, maxl);
-        imp.show();
-        return imp;
-    }
-
     public void deleteParticles() {
-        for (int i = 0; i < getSizeOfAllData(); i++) {
+        for (int i = 0; i < iDataLabel.length; i++) {
             setLabel(i, getLabelAbs(i));
         }
     }
-
+    
     /**
-     * Gives disconnected components in a labelImage distinct labels
-     * (eg. to process user input for region guesses)
-     * @param li LabelImage
+     * Sets the LabelImage at given aIndex to aLabel
      */
-    public void connectedComponents() {
-        final HashSet<Integer> oldLabels = new HashSet<Integer>(); // set of the old
-        final ArrayList<Integer> newLabels = new ArrayList<Integer>(); // set of new
-
-        int newLabel = 1;
-
-        final int size = iIterator.getSize();
-
-        // what are the old labels?
-        for (int i = 0; i < size; i++) {
-            final int l = getLabel(i);
-            if (l == BGLabel) {
-                continue;
-            }
-            oldLabels.add(l);
-        }
-
-        for (int i = 0; i < size; i++) {
-            final int l = getLabel(i);
-            if (l == BGLabel) {
-                continue;
-            }
-            if (oldLabels.contains(l)) {
-                // l is an old label
-                final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
-                aMultiThsFunctionPtr.AddThresholdBetween(l, l);
-                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, iIterator.indexToPoint(i));
-
-                // find a new label
-                while (oldLabels.contains(newLabel)) {
-                    newLabel++;
-                }
-
-                // newLabel is now an unused label
-                newLabels.add(newLabel);
-
-                // set region to new label
-                for (final Point p : ff) {
-                    setLabel(p, newLabel);
-                }
-                // next new label
-                newLabel++;
-            }
-        }
-    }
-
-    public void initContour() {
-        for (final int i : iIterator.getIndexIterable()) {
-            final int label = getLabelAbs(i);
-            if (label != BGLabel) // region pixel
-            {
-                final Point p = iIterator.indexToPoint(i);
-                for (final Point neighbor : connFG.iterateNeighbors(p)) {
-                    final int neighborLabel = getLabelAbs(neighbor);
-                    if (neighborLabel != label) {
-                        setLabel(p, labelToNeg(label));
-
-                        break;
-                    }
-                }
-            } // if region pixel
-        }
+    public void setLabel(int aIndex, int aLabel) {
+        iDataLabel[aIndex] = aLabel;
     }
 
     /**
-     * Is the point at the boundary
-     * @param aIndex Point
-     * @return true if is at the boundary false otherwise
+     * Sets the LabelImage at given aPoint to aLabel
      */
-    public boolean isBoundaryPoint(Point aIndex) {
-        final int vLabelAbs = getLabelAbs(aIndex);
-        for (final Point q : connFG.iterateNeighbors(aIndex)) {
-            if (getLabelAbs(q) != vLabelAbs) {
-                return true;
-            }
-        }
-
-        return false;
+    public void setLabel(Point aPoint, int aLabel) {
+        iDataLabel[iIterator.pointToIndex(aPoint)] = aLabel;
+    }
+    
+    /**
+     * Returns the label at the position aIndex
+     */
+    public int getLabel(int aIndex) {
+        return iDataLabel[aIndex];
     }
 
     /**
-     * is point surrounded by points of the same (abs) label
-     * @param aIndex
-     * @return
+     * Returns the label at the position aIndex
      */
-    public boolean isEnclosedByLabel(Point pIndex, int pLabel) {
-        final int absLabel = labelToAbs(pLabel);
-        for (final Point qIndex : connFG.iterateNeighbors(pIndex)) {
-            if (labelToAbs(getLabel(qIndex)) != absLabel) {
-                return false;
-            }
+    public int getLabel(Point aPoint) {
+        return iDataLabel[iIterator.pointToIndex(aPoint)];
+    }
+    
+    /**
+     * @return absolute (no contour information) label at aPoint
+     */
+    public int getLabelAbs(Point aPoint) {
+        return Math.abs(getLabel(aPoint));
+    }
+
+    /**
+     * @return absolute (no contour information) label at aIndex
+     */
+    public int getLabelAbs(int aIndex) {
+        return Math.abs(getLabel(aIndex));
+    }
+    
+    /**
+     * @return True if aLable is not inner label
+     */
+    protected boolean isInnerLabel(int aLabel) {
+        if (aLabel == BGLabel || isContourLabel(aLabel)) {
+            return false;
         }
         return true;
     }
 
-    protected boolean isInnerLabel(int label) {
-        if (label == BGLabel || isContourLabel(label)) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-
     /**
-     * @param label
-     * @return true, if label is a contour label
-     *         ofset version
+     * @param aLabel - input label
+     * @return true, if aLabel is a contour label
      */
-    public boolean isContourLabel(int label) {
-        return (label < 0);
+    public boolean isContourLabel(int aLabel) {
+        return (aLabel < 0);
     }
 
     /**
-     * return the label at the position index (linearized)
-     *
-     * @param index position
-     * @return the label value
-     */
-    public int getLabel(int index) {
-        return dataLabel[index];
-    }
-
-    /**
-     * @param p
-     * @return Returns the (raw; contour information) value of the LabelImage at
-     *         Point p.
-     */
-    public int getLabel(Point p) {
-        final int idx = iIterator.pointToIndex(p);
-        return dataLabel[idx];
-    }
-
-    /**
-     * @return the abs (no contour information) label at Point p
-     */
-    public int getLabelAbs(Point p) {
-        final int idx = iIterator.pointToIndex(p);
-
-        return Math.abs(dataLabel[idx]);
-    }
-
-    public int getLabelAbs(int idx) {
-
-        return Math.abs(dataLabel[idx]);
-    }
-
-    /**
-     * sets the labelImage to val at point x,y
-     */
-    public void setLabel(int idx, int label) {
-        dataLabel[idx] = label;
-    }
-
-    /**
-     * sets the labelImage to val at Point p
-     */
-    public void setLabel(Point p, int label) {
-        final int idx = iIterator.pointToIndex(p);
-        dataLabel[idx] = label;
-    }
-
-    /**
-     * @param label a label
+     * @param aLabel - input label
      * @return if label was a contour label, get the absolute/inner label
      */
-    public int labelToAbs(int label) {
-        return Math.abs(label);
+    public int labelToAbs(int aLabel) {
+        return Math.abs(aLabel);
     }
 
     /**
-     * @param label a label
+     * @param aLabel a label
      * @return the contour form of the label
      */
-    protected int labelToNeg(int label) {
-        if (label == BGLabel || isContourLabel(label)) {
-            return label;
+    protected int labelToNeg(int aLabel) {
+        if (!isInnerLabel(aLabel)) {
+            return aLabel;
         }
-        else {
-            return -label;
-        }
-    }
-
-    /**
-     * @return The number of pixels of this LabelImage
-     */
-    public int getSize() {
-        return this.getSizeOfAllData();
+        return -aLabel;
     }
 
     /**
      * @return Connectivity of the foreground
      */
     public Connectivity getConnFG() {
-        return connFG;
+        return iConnectivityFG;
     }
 
     /**
      * @return Connectivity of the background
      */
     public Connectivity getConnBG() {
-        return connBG;
+        return iConnectivityBG;
+    }
+    
+    /**
+     * Gives disconnected components in a labelImage. If two disconnected components had same label
+     * after calling this method they will have separate label numbers.
+     */
+    public void connectedComponents() {
+        final HashSet<Integer> oldLabels = new HashSet<Integer>();
+        final int size = getSize();
+    
+        // what are the old labels?
+        for (int i = 0; i < size; ++i) {
+            final int l = getLabel(i);
+            if (l == BGLabel) {
+                continue;
+            }
+            oldLabels.add(l);
+        }
+    
+        // relabel connected components
+        int newLabel = 1;
+        for (int idx = 0; idx < size; ++idx) {
+            final int label = getLabel(idx);
+            if (label != BGLabel && oldLabels.contains(label)) {
+                // l is an old label
+                final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
+                aMultiThsFunctionPtr.AddThresholdBetween(label, label);
+                final FloodFill ff = new FloodFill(iConnectivityFG, aMultiThsFunctionPtr, iIterator.indexToPoint(idx));
+    
+                // find a new label
+                while (oldLabels.contains(newLabel)) {
+                    ++newLabel;
+                }
+    
+                // set region to new label
+                for (final Point p : ff) {
+                    setLabel(p, newLabel);
+                }
+                
+                // next new label
+                ++newLabel;
+            }
+        }
     }
 
     /**
-     * if 3D image, converts to a stack of ShortProcessors
-     * @return
+     * Is the point at the boundary
+     * @param aPoint point to be checked
+     * @return true if is at the boundary false otherwise
      */
-    public ImageStack get3DShortStack(boolean clean) {
-        final int dims[] = getDimensions();
-        final int labeldata[] = dataLabel;
+    public boolean isBoundaryPoint(Point aPoint) {
+        final int inLabel = getLabel(aPoint);
+        return !isEnclosedByLabel(aPoint, inLabel);
+    }
 
-        final ImageStack stack = IntConverter.intArrayToShortStack(labeldata, dims, clean);
+    /**
+     * Is aP surrounded by points of the given aLabel
+     * @return true if yes
+     */
+    public boolean isEnclosedByLabel(Point pPoint, int aLabel) {
+        final int absLabel = labelToAbs(aLabel);
+        for (final Point q : iConnectivityFG.iterateNeighbors(pPoint)) {
+            if (getLabelAbs(q) != absLabel) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-        return stack;
+    
+    //
+    // Below are all function dependent on ImageJ implementation (ImagePlus, ImageProcessor, Roi...)
+    // TODO: It should be verify if this is the best place for them after ImageLabelRC is cleaned up
+    //
+    
+    
+    /**
+     * LabelImage loaded from file
+     */
+    public void initWithImg(ImagePlus aImagePlus) {
+        iDataLabel = IntConverter.toIntArray(aImagePlus);
+    }
+
+    /**
+     * Save the LabelImage as tiff
+     * @param aFileName where to save (full or relative path)
+     */
+    public void save(String aFileName) {
+        final ImagePlus ip = convert("save", 256);
+        IJ.save(ip, aFileName);
+        ip.close();
+    }
+
+    /**
+     * Shows LabelImage
+     */
+    public ImagePlus show(String aTitle, int aMaxValue) {
+        final ImagePlus imp = convert(aTitle, aMaxValue);
+        imp.show();
+        return imp;
+    }
+    
+    /**
+     * Converts LabelImage to ImagePlus (ShortProcessor)
+     */
+    public ImagePlus convert(String aTitle, int aMaxValue) {
+        final String title = "ResultWindow " + aTitle;
+        final ImagePlus imp;
+        
+        if (getNumOfDimensions() == 3) {
+            imp = new ImagePlus(title, getShortStack(true));
+        }
+        else {
+            // convert it to absolute shorts
+            final short[] shorts = (short[]) getImagePlus(false).getProcessor().getPixels();
+            for (int i = 0; i < shorts.length; i++) {
+                shorts[i] = (short) Math.abs(shorts[i]);
+            }
+            
+            // Create ImagePlus with data
+            final ShortProcessor shortProc = new ShortProcessor(getWidth(), getHeight(), shorts, null);
+            imp = new ImagePlus(WindowManager.getUniqueName(title), shortProc);
+            IJ.setMinAndMax(imp, 0, aMaxValue);
+            IJ.run(imp, "3-3-2 RGB", null);
+        }
+        return imp;
+    }
+
+    /**
+     * Add labels (=1) to LabelImage where in aRoi regions.
+     * TODO: Should be done in nicer way...
+     */
+    public void initLabelsWithRoi(Roi aRoi) {
+        ImageProcessor ip = null;
+        if (getNumOfDimensions() == 3) {
+            ip = getImagePlus(true).getProcessor();
+        }
+        else {
+            ip = new ColorProcessor(getWidth(), getHeight(), iDataLabel);
+        }
+        ip.setValue(1);
+        ip.fill(aRoi);
+    }
+
+    /**
+     * Returns representation of LableImage as a ImagePlus. In case of 3D data all pixels are projected along z-axis to
+     * its maximum.
+     * @param aClean it true all values are: absolute, in +/- short range and Short.MAX_VALUE is set to 0
+     */
+    private ImagePlus getImagePlus(boolean aClean) {
+        return new GroupedZProjector().groupZProject(new ImagePlus("Projection stack ", getShortStack(aClean)), 
+                                                     ZProjector.MAX_METHOD, 
+                                                     getNumOfSlices());
+    }
+    
+    /**
+     * Converts LabelImage to a stack of ShortProcessors
+     */
+    public ImageStack getShortStack(boolean clean) {
+        return IntConverter.intArrayToShortStack(iDataLabel, getWidth(), getHeight(), getNumOfSlices(), clean);
+    }
+
+    /**
+     * Returns internal data structure keeping labels
+     */
+    public int[] getDataLabel() {
+        return iDataLabel;
     }
 }

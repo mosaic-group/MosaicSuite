@@ -216,7 +216,7 @@ class RCProgressWin extends JFrame implements MouseListener {
                 l[1] = img_p[j].getDimensions()[1];
             }
             img_l[j] = new LabelImageRC(l);
-            img_l[j].initWithIP(img_p[j]);
+            img_l[j].initWithImg(img_p[j]);
             img_p[j] = img_l[j].convert("image", 255);
         }
 
