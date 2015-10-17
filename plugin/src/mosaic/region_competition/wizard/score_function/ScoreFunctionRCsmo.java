@@ -3,16 +3,17 @@ package mosaic.region_competition.wizard.score_function;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.io.Opener;
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.plugins.Region_Competition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
-import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.CurvatureBasedFlow;
@@ -25,7 +26,7 @@ public class ScoreFunctionRCsmo extends ScoreFunctionBase {
     private int Area[];
 
     private final IntensityImage i[];
-    private final LabelImageRC l[];
+    private final LabelImage l[];
     private final Settings s;
 
     @Override
@@ -38,7 +39,7 @@ public class ScoreFunctionRCsmo extends ScoreFunctionBase {
         return st;
     }
 
-    public ScoreFunctionRCsmo(IntensityImage i_[], LabelImageRC l_[], Settings s_) {
+    public ScoreFunctionRCsmo(IntensityImage i_[], LabelImage l_[], Settings s_) {
         i = i_;
         l = l_;
 
@@ -46,7 +47,7 @@ public class ScoreFunctionRCsmo extends ScoreFunctionBase {
         file = new String[l.length];
     }
 
-    public LabelImageRC getLabel(int im) {
+    public LabelImage getLabel(int im) {
         return l[im];
     }
 
@@ -58,12 +59,7 @@ public class ScoreFunctionRCsmo extends ScoreFunctionBase {
         Area = sizeA;
     }
 
-    // private double frm(double t)
-    // {
-    // return 1.0/(1.0 + Math.exp(-t));
-    // }
-
-    static double SmoothNorm(LabelImageRC l) {
+    static double SmoothNorm(LabelImage l) {
         // Scan for particles
 
         final int off[] = l.getDimensions().clone();
@@ -154,7 +150,7 @@ public class ScoreFunctionRCsmo extends ScoreFunctionBase {
         return (eCurv_tot_p - eCurv_tot_n) / np / 8.0;
     }
 
-    public double Smooth(LabelImageRC l) {
+    public double Smooth(LabelImage l) {
         // Scan for particles
 
         final int off[] = l.getDimensions().clone();
@@ -267,22 +263,16 @@ public class ScoreFunctionRCsmo extends ScoreFunctionBase {
             final ImagePlus ip = o.openImage(file[im]);
 
             l[im].initWithImg(ip);
-            createStatistics(l[im], i[im]);
+            HashMap<Integer, LabelInformation> labelMap = new HashMap<Integer, LabelInformation>();
+            createStatistics(l[im], i[im], labelMap);
 
             // Scoring
-
             int count = 0;
-            // double a1 = 0.0;
-
-            final Collection<LabelInformation> li = l[im].getLabelMap().values();
-
-            // a1 = ((LabelInformation)li.toArray()[0]).mean;
+            final Collection<LabelInformation> li = labelMap.values();
 
             for (int i = 1; i < li.toArray().length; i++) {
-                /* a2 += ((LabelInformation)li.toArray()[i]).mean*((LabelInformation)li.toArray()[i]).count; */
                 count += ((LabelInformation) li.toArray()[i]).count;
             }
-            // a2 /= count;
 
             l[im].initBoundary();
             l[im].initContour();
@@ -293,8 +283,6 @@ public class ScoreFunctionRCsmo extends ScoreFunctionBase {
             else {
                 result += (Smooth(l[im]) - smooth[im]) * (Smooth(l[im]) - smooth[im]);
             }
-
-            // result += 10.0/Math.abs(a1 - a2);
         }
 
         return result;
@@ -303,7 +291,7 @@ public class ScoreFunctionRCsmo extends ScoreFunctionBase {
     @Override
     public boolean isFeasible(double[] x) {
         int minSz = Integer.MAX_VALUE;
-        for (final LabelImageRC lbt : l) {
+        for (final LabelImage lbt : l) {
             for (final int d : lbt.getDimensions()) {
                 if (d < minSz) {
                     minSz = d;

@@ -1,10 +1,6 @@
 package mosaic.region_competition.wizard;
 
 
-import ij.ImagePlus;
-import ij.gui.ImageCanvas;
-import ij.io.Opener;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -24,7 +20,10 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
 
-import mosaic.region_competition.LabelImageRC;
+import ij.ImagePlus;
+import ij.gui.ImageCanvas;
+import ij.io.Opener;
+import mosaic.core.utils.LabelImage;
 import mosaic.region_competition.Settings;
 
 
@@ -200,7 +199,7 @@ class RCProgressWin extends JFrame implements MouseListener {
     void SetImage(double score, Settings s, String FileName[]) {
         final Opener o = new Opener();
         final ImagePlus img_p[] = new ImagePlus[nImg];
-        final LabelImageRC img_l[] = new LabelImageRC[nImg];
+        final LabelImage img_l[] = new LabelImage[nImg];
         for (int j = 0; j < FileName.length; j++) {
             int l[];
             img_p[j] = o.openImage(FileName[j]);
@@ -215,7 +214,7 @@ class RCProgressWin extends JFrame implements MouseListener {
                 l[0] = img_p[j].getDimensions()[0];
                 l[1] = img_p[j].getDimensions()[1];
             }
-            img_l[j] = new LabelImageRC(l);
+            img_l[j] = new LabelImage(l);
             img_l[j].initWithImg(img_p[j]);
             img_p[j] = img_l[j].convert("image", 255);
         }

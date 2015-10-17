@@ -9,7 +9,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.StackWindow;
 import ij.process.ShortProcessor;
-import mosaic.region_competition.LabelImageRC;
+import mosaic.core.utils.LabelImage;
 
 /**
  * This class is used for showing results of segmentation (step by step if requested).
@@ -52,7 +52,7 @@ public class SegmentationProcessWindow {
      * @param aTitle - title for image
      * @param aBiggestLabelSoFar - maximum label number used so far
      */
-    void addSliceToStack(LabelImageRC aLabelImage, String aTitle, int aBiggestLabelSoFar ) {
+    void addSliceToStack(LabelImage aLabelImage, String aTitle, int aBiggestLabelSoFar ) {
         if (iStack == null) {
             // stack was closed by user, don't reopen
             return;

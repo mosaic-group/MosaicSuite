@@ -13,29 +13,27 @@ public class E_KLMergingCriterion extends ExternalEnergy {
 
     private final float m_RegionMergingThreshold;
     private final int bgLabel;
-    private final HashMap<Integer, LabelInformation> labelMap;
 
-    public E_KLMergingCriterion(HashMap<Integer, LabelInformation> labelMap, int bgLabel, float m_RegionMergingThreshold) {
+    public E_KLMergingCriterion(int bgLabel, float m_RegionMergingThreshold) {
         super(null, null);
-        this.labelMap = labelMap;
         this.bgLabel = bgLabel;
         this.m_RegionMergingThreshold = m_RegionMergingThreshold;
     }
 
     @Override
-    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel) {
+    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelInformation> labelMap) {
         final int fromLabel = contourParticle.label;
-        final boolean merge = CalculateMergingEnergyForLabel(fromLabel, toLabel);
+        final boolean merge = CalculateMergingEnergyForLabel(fromLabel, toLabel, labelMap);
         return new EnergyResult(null, merge);
     }
 
-    private boolean CalculateMergingEnergyForLabel(int aLabelA, int aLabelB) {
+    private boolean CalculateMergingEnergyForLabel(int aLabelA, int aLabelB, HashMap<Integer, LabelInformation> labelMap) {
         // store this event to check afterwards if we should merge
         // the 2 regions.
         if (aLabelA != bgLabel && aLabelB != bgLabel) // we are competeing.
         {
             // test if merge should be performed:
-            final double value = CalculateKLMergingCriterion(aLabelA, aLabelB);
+            final double value = CalculateKLMergingCriterion(aLabelA, aLabelB, labelMap);
             // debug("KL: it="+m_iteration_counter+" "+aLabelA+" "+aLabelB+" "+value);
             if (value < m_RegionMergingThreshold) {
                 return true;
@@ -44,7 +42,7 @@ public class E_KLMergingCriterion extends ExternalEnergy {
         return false;
     }
 
-    private double CalculateKLMergingCriterion(int L1, int L2) {
+    private double CalculateKLMergingCriterion(int L1, int L2, HashMap<Integer, LabelInformation> labelMap) {
         final LabelInformation aL1 = labelMap.get(L1);
         final LabelInformation aL2 = labelMap.get(L2);
 

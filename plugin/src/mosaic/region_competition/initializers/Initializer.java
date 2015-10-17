@@ -1,7 +1,7 @@
 package mosaic.region_competition.initializers;
 
 
-import mosaic.region_competition.LabelImageRC;
+import mosaic.core.utils.LabelImage;
 
 
 /**
@@ -9,11 +9,11 @@ import mosaic.region_competition.LabelImageRC;
  */
 abstract class Initializer {
 
-    final protected LabelImageRC iLabelImage;
+    final protected LabelImage iLabelImage;
     final protected int iNumOfDimensions;
     final protected int[] iDimensionsSize;
 
-    public Initializer(LabelImageRC aLabelImage) {
+    public Initializer(LabelImage aLabelImage) {
         this.iLabelImage = aLabelImage;
         this.iNumOfDimensions = iLabelImage.getNumOfDimensions();
         this.iDimensionsSize = iLabelImage.getDimensions();

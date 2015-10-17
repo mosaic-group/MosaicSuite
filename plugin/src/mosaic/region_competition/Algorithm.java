@@ -20,6 +20,7 @@ import mosaic.core.utils.IndexIterator;
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
+import mosaic.core.utils.RegionIterator;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.Energy.EnergyResult;
@@ -33,7 +34,7 @@ public class Algorithm {
 
     private boolean shrinkFirst = false;
 
-    private final LabelImageRC labelImage;
+    private final LabelImage labelImage;
     private final IntensityImage intensityImage;
     private final ImageModel imageModel;
     private final IndexIterator labelImageIterator; // iterates over the labelImage
@@ -46,7 +47,7 @@ public class Algorithm {
     private HashMap<Point, ContourParticle> m_Candidates;
 
     /** Maps the label(-number) to the information of a label */
-    final HashMap<Integer, LabelInformation> labelMap;
+    final HashMap<Integer, LabelInformation> labelMap = new HashMap<Integer, LabelInformation>();
 
     private HashMap<Point, LabelPair> m_CompetingRegionsMap;
     private final Connectivity connFG;
@@ -96,7 +97,7 @@ public class Algorithm {
 
     private final Set<Seed> m_Seeds = new HashSet<Seed>();
 
-    public Algorithm(IntensityImage intensityImage, LabelImageRC labelImage, ImageModel model, Settings settings) {
+    public Algorithm(IntensityImage intensityImage, LabelImage labelImage, ImageModel model, Settings settings) {
         if (shrinkFirst) {
             IJ.showMessage("shrinkfirst=true");
         }
@@ -110,7 +111,6 @@ public class Algorithm {
         labelImageIterator = labelImage.iIterator;
         connFG = labelImage.getConnFG();
         connBG = labelImage.getConnBG();
-        labelMap = labelImage.getLabelMap();
 
         initMembers();
         labelImage.initBoundary();
@@ -295,13 +295,13 @@ public class Algorithm {
             // Set deconvolution
             // Ugly forced to be float
             ((E_Deconvolution) imageModel.getEdata()).GenerateModelImage(labelImage, labelMap);
-            ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage);
+            ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage, labelMap);
         }
     }
 
     private boolean DoOneIteration() {
         if (m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
-            ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage);
+            ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage, labelMap);
         }
 
         if (RemoveNonSignificantRegions) {
@@ -540,7 +540,7 @@ public class Algorithm {
 
         if (vSplit || vMerge) {
             if (m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
-                ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage);
+                ((E_Deconvolution) imageModel.getEdata()).RenewDeconvolution(labelImage, labelMap);
             }
         }
 
@@ -1007,7 +1007,7 @@ public class Algorithm {
         //
         UpdateStatisticsWhenJump(aParticle, vFromLabel, vToLabel);
         if (imageModel.getEdataType() == EnergyFunctionalType.e_DeconvolutionPC) {
-            ((E_Deconvolution) imageModel.getEdata()).UpdateConvolvedImage(vCurrentIndex, labelImage, vFromLabel, vToLabel);
+            ((E_Deconvolution) imageModel.getEdata()).UpdateConvolvedImage(vCurrentIndex, vFromLabel, vToLabel, labelMap);
         }
 
         // TODO: A bit a dirty hack: we store the old label for the relabeling
@@ -1123,7 +1123,7 @@ public class Algorithm {
     /**
      * The function relabels a region starting from the position aIndex. This method assumes the label image to be updated. It is used to relabel a region that was split by another region (maybe BG region).
      */
-    private void RelabelRegionsAfterSplit(LabelImageRC aLabelImage, Point aIndex, int aLabel) {
+    private void RelabelRegionsAfterSplit(LabelImage aLabelImage, Point aIndex, int aLabel) {
         if (aLabelImage.getLabelAbs(aIndex) == aLabel) {
             final BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
             vMultiThsFunction.AddThresholdBetween(aLabel, aLabel);
@@ -1139,7 +1139,7 @@ public class Algorithm {
     // Relabel2AdjacentRegionsAfterToplogicalChange expects the label image to
     // be updated already: both methods are connected via the seedpoint. This
     // method may be used to fuse 2 regions in the region competition mode.
-    private void RelabelRegionsAfterFusion(LabelImageRC aLabelImage, Point aIndex, int aL1, Set<Integer> aCheckedLabels) {
+    private void RelabelRegionsAfterFusion(LabelImage aLabelImage, Point aIndex, int aL1, Set<Integer> aCheckedLabels) {
 
         final BinarizedIntervalLabelImage vMultiThsFunction = new BinarizedIntervalLabelImage(aLabelImage);
 
@@ -1261,7 +1261,7 @@ public class Algorithm {
     }
 
     private EnergyResult CalculateEnergyDifferenceForLabel(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel) {
-        final EnergyResult result = imageModel.CalculateEnergyDifferenceForLabel(aContourIndex, aContourPointPtr, aToLabel);
+        final EnergyResult result = imageModel.CalculateEnergyDifferenceForLabel(aContourIndex, aContourPointPtr, aToLabel, labelMap);
         return result;
     }
 
@@ -1404,6 +1404,42 @@ public class Algorithm {
 
     }
 
+    /**
+     * Calculate the center of Mass of the regions
+     */
+    public void calculateRegionsCenterOfMass() {
+        // iterate through all the regions and reset mean_pos
+        for (final Integer lbl : labelMap.keySet()) {
+            for (int i = 0; i < labelMap.get(lbl).mean_pos.length; i++) {
+                labelMap.get(lbl).mean_pos[i] = 0.0;
+            }
+        }
+
+        // Iterate through all the region
+        final RegionIterator ri = new RegionIterator(labelImage.getDimensions());
+        while (ri.hasNext()) {
+            ri.next();
+            final Point p = ri.getPoint();
+            final int lbl = labelImage.getLabelAbs(p);
+
+            final LabelInformation lbi = labelMap.get(lbl);
+
+            // Label information
+            if (lbi != null) {
+                for (int i = 0; i < p.iCoords.length; i++) {
+                    lbi.mean_pos[i] += p.iCoords[i];
+                }
+            }
+        }
+
+        // Iterate through all the regions
+        for (final Entry<Integer, LabelInformation> entry : labelMap.entrySet()) {
+            for (int i = 0; i < entry.getValue().mean_pos.length; i++) {
+                entry.getValue().mean_pos[i] /= entry.getValue().count;
+            }
+        }
+    }
+    
     private static void debug(@SuppressWarnings("unused") Object s) {
         // System.out.println(s);
     }

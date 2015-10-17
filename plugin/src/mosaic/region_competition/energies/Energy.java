@@ -1,18 +1,22 @@
 package mosaic.region_competition.energies;
 
 
+import java.util.HashMap;
+
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelImageRC;
+import mosaic.region_competition.LabelInformation;
 
 
 public abstract class Energy {
 
     /**
+     * @param labelMap 
      * @return EnergyResult, entries (energy or merge) are null if not calculated by this energy
      */
-    public abstract EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel);
+    public abstract EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelInformation> labelMap);
 
     public static class EnergyResult {
 
@@ -31,9 +35,9 @@ public abstract class Energy {
      */
     static abstract class InternalEnergy extends Energy {
 
-        protected final LabelImageRC labelImage;
+        protected final LabelImage labelImage;
 
-        InternalEnergy(LabelImageRC labelImage) {
+        InternalEnergy(LabelImage labelImage) {
             this.labelImage = labelImage;
         }
     }
@@ -44,9 +48,9 @@ public abstract class Energy {
     static abstract class ExternalEnergy extends Energy {
 
         protected final IntensityImage intensityImage;
-        protected final LabelImageRC labelImage;
+        protected final LabelImage labelImage;
 
-        ExternalEnergy(LabelImageRC labelImage, IntensityImage intensityImage) {
+        ExternalEnergy(LabelImage labelImage, IntensityImage intensityImage) {
             this.labelImage = labelImage;
             this.intensityImage = intensityImage;
         }

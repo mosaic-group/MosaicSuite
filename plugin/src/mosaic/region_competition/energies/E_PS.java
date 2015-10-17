@@ -9,7 +9,6 @@ import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
@@ -20,16 +19,13 @@ public class E_PS extends ExternalEnergy {
     private final int bgLabel;
 
     private final float regionMergingThreshold;
-    private final HashMap<Integer, LabelInformation> labelMap;
     private final SphereMask sphere;
     private final RegionIteratorMask sphereIt;
 
-    public E_PS(LabelImageRC labelImage, IntensityImage intensityImage, HashMap<Integer, LabelInformation> labelMap, int PSenergyRadius, float regionMergingThreshold) {
+    public E_PS(LabelImage labelImage, IntensityImage intensityImage, int PSenergyRadius, float regionMergingThreshold) {
         super(labelImage, intensityImage);
         this.dimensions = labelImage.getDimensions();
         this.bgLabel = LabelImage.BGLabel;
-
-        this.labelMap = labelMap;
 
         this.regionMergingThreshold = regionMergingThreshold;
         final int rad = PSenergyRadius;
@@ -51,7 +47,7 @@ public class E_PS extends ExternalEnergy {
      * than 1 pixel/voxel.
      */
     @Override
-    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel) {
+    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelInformation> labelMap) {
         final double value = contourParticle.intensity;
         final int fromLabel = contourParticle.label;
 

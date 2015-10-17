@@ -28,12 +28,12 @@ import ij.gui.Roi;
 import ij.plugin.frame.RoiManager;
 import ij.process.ImageProcessor;
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
-import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.PointCM;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.wizard.RCProgressWin.StatusSel;
@@ -378,7 +378,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
     }
 
     
-    public static PointCM[] createCMModel(LabelImageRC lirc) {
+    public static PointCM[] createCMModel(LabelImage lirc) {
         // set of the old labels
         final HashMap<Integer, PointCM> Labels = new HashMap<Integer, PointCM>(); // set
 
@@ -445,11 +445,11 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
         rad = 0;
 
         final IntensityImage in[] = new IntensityImage[img.length];
-        final LabelImageRC lb[] = new LabelImageRC[img.length];
+        final LabelImage lb[] = new LabelImage[img.length];
 
         for (int i = 0; i < img.length; i++) {
             in[i] = new IntensityImage(img[i], false);
-            lb[i] = new LabelImageRC(in[i].getDimensions());
+            lb[i] = new LabelImage(in[i].getDimensions());
         }
 
         // Set initialization local minima
@@ -459,7 +459,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
         if (sT == segType.Cell || sT == segType.Tissue) {
             for (int i = 0; i < img.length; i++) {
                 in[i] = new IntensityImage(img[i], false);
-                lb[i] = new LabelImageRC(in[i].getDimensions());
+                lb[i] = new LabelImage(in[i].getDimensions());
                 in[i].getImageIP().show();
             }
 
@@ -513,7 +513,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
         for (int i = 0; i < lb.length; i++) {
             final ScoreFunctionRCvol tmpA = new ScoreFunctionRCvol(in, lb, s);
             sizeA[i] = tmpA.Area(lb[i]);
-            final LabelImageRC lbtmp = new LabelImageRC(lb[i]);
+            final LabelImage lbtmp = new LabelImage(lb[i]);
             final ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in, lb, s);
             lbtmp.initBoundary();
             lbtmp.initContour();
@@ -558,7 +558,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
                     sizeA[i] = fiRC.Area(fiRC.getLabel(i));
                     System.out.println("Area: " + sizeA[i]);
                     final ScoreFunctionRCsmo tmpS = new ScoreFunctionRCsmo(in, lb, s);
-                    final LabelImageRC lbtmp = fiRC.getLabel(i);
+                    final LabelImage lbtmp = fiRC.getLabel(i);
                     lbtmp.initBoundary();
                     lbtmp.initContour();
                     sizeS[i] = tmpS.Smooth(lbtmp);
@@ -628,7 +628,7 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
                     System.out.println("Area target: " + sizeA[i]);
                     sizeA[i] = tmpS.Area(fiRC.getLabel(i));
                     System.out.println("Area: " + sizeA[i]);
-                    final LabelImageRC lbtmp = fiRC.getLabel(i);
+                    final LabelImage lbtmp = fiRC.getLabel(i);
                     lbtmp.initBoundary();
                     lbtmp.initContour();
                     sizeS[i] = fiRC.Smooth(lbtmp);

@@ -2,14 +2,15 @@ package mosaic.region_competition.wizard.score_function;
 
 
 import java.util.Collection;
+import java.util.HashMap;
 
 import ij.IJ;
 import ij.ImagePlus;
 import ij.io.Opener;
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.LabelImage;
 import mosaic.plugins.Region_Competition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
-import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
 
@@ -23,10 +24,10 @@ public class ScoreFunctionRCvol extends ScoreFunctionBase {
     private final String[] file;
 
     private final IntensityImage i[];
-    private final LabelImageRC l[];
+    private final LabelImage l[];
     private final Settings s;
 
-    public ScoreFunctionRCvol(IntensityImage i_[], LabelImageRC l_[], Settings s_) {
+    public ScoreFunctionRCvol(IntensityImage i_[], LabelImage l_[], Settings s_) {
         i = i_;
         l = l_;
 
@@ -34,7 +35,7 @@ public class ScoreFunctionRCvol extends ScoreFunctionBase {
         file = new String[l.length];
     }
 
-    public LabelImageRC getLabel(int im) {
+    public LabelImage getLabel(int im) {
         return l[im];
     }
 
@@ -42,20 +43,15 @@ public class ScoreFunctionRCvol extends ScoreFunctionBase {
         Area = a;
     }
 
-    public int Area(LabelImageRC l) {
+    public int Area(@SuppressWarnings("unused") LabelImage l) {
+        IJ.error("ScoreFunctionRCVol is not working, [labelMap moved from LabelImageRC to Algorithm]");
         int count = 0;
-        // double a1 = 0.0;
-        // double a2 = 0.0;
-
-        final Collection<LabelInformation> li = l.getLabelMap().values();
-
-        // a1 = ((LabelInformation)li.toArray()[0]).mean;
-
-        for (int i = 1; i < li.toArray().length; i++) {
-            /* a2 += ((LabelInformation)li.toArray()[i]).mean*((LabelInformation)li.toArray()[i]).count; */
-            count += ((LabelInformation) li.toArray()[i]).count;
-        }
-        // a2 /= count;
+// TODO: Commented out because of labelMap
+//        final Collection<LabelInformation> li = l.getLabelMap().values();
+//
+//        for (int i = 1; i < li.toArray().length; i++) {
+//            count += ((LabelInformation) li.toArray()[i]).count;
+//        }
 
         return count;
     }
@@ -97,19 +93,13 @@ public class ScoreFunctionRCvol extends ScoreFunctionBase {
             final ImagePlus ip = o.openImage(file[im]);
 
             l[im].initWithImg(ip);
-            createStatistics(l[im], i[im]);
+            
+            HashMap<Integer, LabelInformation> labelMap = new HashMap<Integer, LabelInformation>();
+            createStatistics(l[im], i[im], labelMap);
 
             // Scoring
-
-            // result += Math.abs(l[im].getLabelMap().size()-off[im]);
-
             int count = 0;
-            // double a1 = 0.0;
-            // double a2 = 0.0;
-
-            final Collection<LabelInformation> li = l[im].getLabelMap().values();
-
-            // a1 = ((LabelInformation)li.toArray()[0]).mean;
+            final Collection<LabelInformation> li = labelMap.values();
 
             for (int i = 1; i < li.toArray().length; i++) {
                 /* a2 += ((LabelInformation)li.toArray()[i]).mean*((LabelInformation)li.toArray()[i]).count; */
@@ -128,7 +118,7 @@ public class ScoreFunctionRCvol extends ScoreFunctionBase {
     @Override
     public boolean isFeasible(double[] x) {
         int minSz = Integer.MAX_VALUE;
-        for (final LabelImageRC lbt : l) {
+        for (final LabelImage lbt : l) {
             for (final int d : lbt.getDimensions()) {
                 if (d < minSz) {
                     minSz = d;

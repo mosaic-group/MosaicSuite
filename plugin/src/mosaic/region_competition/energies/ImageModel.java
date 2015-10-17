@@ -1,9 +1,12 @@
 package mosaic.region_competition.energies;
 
 
+import java.util.HashMap;
+
 import mosaic.core.utils.Point;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.ContourParticle;
+import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.Energy.EnergyResult;
 
@@ -35,7 +38,7 @@ public class ImageModel {
         return settings.m_EnergyFunctional;
     }
 
-    public EnergyResult CalculateEnergyDifferenceForLabel(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel) {
+    public EnergyResult CalculateEnergyDifferenceForLabel(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel, HashMap<Integer, LabelInformation> labelMap) {
         final float m_EnergyRegionCoeff = EnergyRegionCoeff;
 
         final float vCurrentImageValue = aContourPointPtr.intensity;
@@ -48,7 +51,7 @@ public class ImageModel {
         // Calculate the change in energy due to the change of intensity when changing
         // from one label 'from' to another 'to'.
         if (m_EnergyRegionCoeff != 0) {
-            vV = e_data.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel);
+            vV = e_data.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, labelMap);
             vEnergy += m_EnergyRegionCoeff * vV.energyDifference;
             // vMerge may be null here and will be set below at the merge energy.
             vMerge = vV.merge;
@@ -58,7 +61,7 @@ public class ImageModel {
         final float m_EnergyContourLengthCoeff = settings.m_EnergyContourLengthCoeff;
         if (m_EnergyContourLengthCoeff != 0 && e_length != null) {
 
-            vV = e_length.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel);
+            vV = e_length.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, labelMap);
             final Double eCurv = vV.energyDifference;
             vEnergy += m_EnergyContourLengthCoeff * eCurv;
         }
@@ -86,7 +89,7 @@ public class ImageModel {
         // undergo a merge.
         if (e_merge != null) // use e_merge explicitly
         {
-            vV = e_merge.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel);
+            vV = e_merge.CalculateEnergyDifference(aContourIndex, aContourPointPtr, aToLabel, labelMap);
             vMerge = vV.merge;
         }
 

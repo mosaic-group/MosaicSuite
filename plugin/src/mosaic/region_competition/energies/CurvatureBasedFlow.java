@@ -6,13 +6,12 @@ import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
-import mosaic.region_competition.LabelImageRC;
 
 
 public class CurvatureBasedFlow {
 
     private final RegionIteratorMask sphereIt;
-    private final LabelImageRC labelImage;
+    private final LabelImage labelImage;
 
     private final int dim;
     private final int[] inputDims;
@@ -20,7 +19,7 @@ public class CurvatureBasedFlow {
 
     private final SphereMask sphere;
 
-    public CurvatureBasedFlow(int rad, LabelImageRC labelImage, Calibration cal) {
+    public CurvatureBasedFlow(int rad, LabelImage labelImage, Calibration cal) {
         this.rad = rad;
         this.dim = labelImage.getNumOfDimensions();
         this.inputDims = labelImage.getDimensions();

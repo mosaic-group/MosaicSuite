@@ -6,8 +6,8 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import mosaic.core.utils.Connectivity;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
-import mosaic.region_competition.LabelImageRC;
 
 
 public class TopologicalNumberImageFunction {
@@ -22,13 +22,13 @@ public class TopologicalNumberImageFunction {
     private final Point[] m_Offsets; // maps indexes to Points
     private final int[] m_DataSubImage; // cached input image
 
-    private final LabelImageRC labelImage;
+    private final LabelImage labelImage;
     private final int dimension;
     private final int imageSize;
 
     private final int Zero = 0;
 
-    public TopologicalNumberImageFunction(LabelImageRC aLabelImage, Connectivity aTFGConnectivity, Connectivity aTBGConnectivity) {
+    public TopologicalNumberImageFunction(LabelImage aLabelImage, Connectivity aTFGConnectivity, Connectivity aTBGConnectivity) {
         this.TFGConnectivity = aTFGConnectivity;
         this.TBGConnectivity = aTBGConnectivity;
 

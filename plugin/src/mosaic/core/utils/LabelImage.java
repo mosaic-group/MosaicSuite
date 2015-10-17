@@ -28,7 +28,8 @@ import net.imglib2.type.numeric.IntegerType;
 public class LabelImage extends BaseImage
 {
     public static final int BGLabel = 0;
-
+    protected static final int ForbiddenLabel = Integer.MAX_VALUE;
+    
     protected Connectivity iConnectivityFG;
     private Connectivity iConnectivityBG;
     private int[] iDataLabel;
@@ -177,15 +178,29 @@ public class LabelImage extends BaseImage
     }
     
     /**
+     * Is aLabel forbidden?
+     */
+    public boolean isForbiddenLabel(int aLabel) {
+        return (aLabel == ForbiddenLabel);
+    }
+    
+    /**
      * @return True if aLable is not inner label
      */
-    protected boolean isInnerLabel(int aLabel) {
-        if (aLabel == BGLabel || isContourLabel(aLabel)) {
+    public boolean isInnerLabel(int aLabel) {
+        if (isSpecialLabel(aLabel) || isContourLabel(aLabel)) {
             return false;
         }
         return true;
     }
 
+    public boolean isSpecialLabel(int aLabel) {
+        if (aLabel == BGLabel || aLabel == ForbiddenLabel) {
+            return true;
+        }
+        return false;
+    }
+    
     /**
      * @param aLabel - input label
      * @return true, if aLabel is a contour label
@@ -206,7 +221,7 @@ public class LabelImage extends BaseImage
      * @param aLabel a label
      * @return the contour form of the label
      */
-    protected int labelToNeg(int aLabel) {
+    public int labelToNeg(int aLabel) {
         if (!isInnerLabel(aLabel)) {
             return aLabel;
         }
@@ -225,13 +240,6 @@ public class LabelImage extends BaseImage
      */
     public Connectivity getConnBG() {
         return iConnectivityBG;
-    }
-    
-    protected boolean isSpecialLabel(int aLabel) {
-        if (aLabel == BGLabel) {
-            return true;
-        }
-        return false;
     }
     
     /**
@@ -301,6 +309,42 @@ public class LabelImage extends BaseImage
         return true;
     }
 
+    /**
+     * sets the outermost pixels of the LabelImage to the forbidden label
+     */
+    public void initBoundary() {
+        for (final int idx : iIterator.getIndexIterable()) {
+            final Point p = iIterator.indexToPoint(idx);
+            final int xs[] = p.iCoords;
+            for (int d = 0; d < getNumOfDimensions(); d++) {
+                final int x = xs[d];
+                if (x == 0 || x == getDimension(d) - 1) {
+                    setLabel(idx, ForbiddenLabel);
+                    break;
+                }
+            }
+        }
+    }
+    
+    /**
+     * Initialize the contour setting it to (-)label
+     */
+    public void initContour() {
+        for (final int i : iIterator.getIndexIterable()) {
+            final int label = getLabelAbs(i);
+            if (!isSpecialLabel(label)) // region pixel && label<negOfs
+            {
+                final Point p = iIterator.indexToPoint(i);
+                for (final Point neighbor : iConnectivityFG.iterateNeighbors(p)) {
+                    final int neighborLabel = getLabelAbs(neighbor);
+                    if (neighborLabel != label) {
+                        setLabel(p, labelToNeg(label));
+                        break;
+                    }
+                }
+            }
+        }
+    }
     
     //
     // Below are all function dependent on ImageJ implementation (ImagePlus, ImageProcessor, Roi...)
@@ -313,6 +357,7 @@ public class LabelImage extends BaseImage
      */
     public void initWithImg(ImagePlus aImagePlus) {
         iDataLabel = IntConverter.toIntArray(aImagePlus);
+        initBoundary();
     }
 
     /**

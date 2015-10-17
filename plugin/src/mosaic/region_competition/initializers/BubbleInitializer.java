@@ -2,8 +2,8 @@ package mosaic.region_competition.initializers;
 
 
 import mosaic.core.utils.IndexIterator;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
-import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.utils.BubbleDrawer;
 
 /**
@@ -13,7 +13,7 @@ import mosaic.region_competition.utils.BubbleDrawer;
  */
 public class BubbleInitializer extends Initializer {
 
-    public BubbleInitializer(LabelImageRC labelImage) {
+    public BubbleInitializer(LabelImage labelImage) {
         super(labelImage);
     }
 

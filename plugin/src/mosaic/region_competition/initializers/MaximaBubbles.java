@@ -10,8 +10,8 @@ import java.util.List;
 import mosaic.core.binarize.BinarizedIntervalIntesityImage;
 import mosaic.core.utils.FloodFill;
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
-import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.utils.BubbleDrawer;
 import mosaic.region_competition.utils.MaximumFinder2D;
 import mosaic.region_competition.utils.MaximumFinder3D;
@@ -39,7 +39,7 @@ public class MaximaBubbles extends Initializer {
      * @param aRadius - radius of bubble - in case when maxima point region (with threshold) is too small, then radius bubble is drawn
      * @param aMinimumRegionSize - if number of found points around maixmum is less then aMinimumRegionSize then sphere bubble with aRadius is drawn in maximum point
      */
-    public MaximaBubbles(IntensityImage aIntensityImage, LabelImageRC aLabelImage, double aSigma, double aTolerance, int aRadius, int aMinimumRegionSize) {
+    public MaximaBubbles(IntensityImage aIntensityImage, LabelImage aLabelImage, double aSigma, double aTolerance, int aRadius, int aMinimumRegionSize) {
         super(aLabelImage);
         
         iMaximumFinder = createMaximumFinder(aIntensityImage);

@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -23,10 +24,11 @@ import ij.gui.Line;
 import ij.gui.Roi;
 import ij.io.Opener;
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.plugins.Region_Competition;
-import mosaic.region_competition.LabelImageRC;
+import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.PointCM;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.wizard.PickRegion;
@@ -38,7 +40,7 @@ public class ScoreFunctionRCtop extends ScoreFunctionBase {
     private final String[] file;
 
     private final IntensityImage i[];
-    private final LabelImageRC l[];
+    private final LabelImage l[];
     private final Settings s;
 
     private final PointCM pntMod[][];
@@ -53,7 +55,7 @@ public class ScoreFunctionRCtop extends ScoreFunctionBase {
         return st;
     }
 
-    public ScoreFunctionRCtop(IntensityImage i_[], LabelImageRC l_[], Settings s_) {
+    public ScoreFunctionRCtop(IntensityImage i_[], LabelImage l_[], Settings s_) {
         i = i_;
         l = l_;
 
@@ -66,7 +68,7 @@ public class ScoreFunctionRCtop extends ScoreFunctionBase {
         pntMod[i] = mod;
     }
 
-    private double Topo(LabelImageRC l, PointCM pntMod[], double pop[]) {
+    private double Topo(LabelImage l, PointCM pntMod[], double pop[]) {
         final int off[] = l.getDimensions().clone();
         Arrays.fill(off, 0);
         new RegionIterator(l.getDimensions(), l.getDimensions(), off);
@@ -147,10 +149,10 @@ public class ScoreFunctionRCtop extends ScoreFunctionBase {
             final ImagePlus ip = o.openImage(file[im]);
 
             l[im].initWithImg(ip);
-            createStatistics(l[im], i[im]);
+            HashMap<Integer, LabelInformation> labelMap = new HashMap<Integer, LabelInformation>();
+            createStatistics(l[im], i[im], labelMap);
 
             // Scoring
-
             result = Topo(l[im], pntMod[im], x);
 
             // result += 10.0/Math.abs(a1 - a2);
@@ -162,7 +164,7 @@ public class ScoreFunctionRCtop extends ScoreFunctionBase {
     @Override
     public boolean isFeasible(double[] x) {
         int minSz = Integer.MAX_VALUE;
-        for (final LabelImageRC lbt : l) {
+        for (final LabelImage lbt : l) {
             for (final int d : lbt.getDimensions()) {
                 if (d < minSz) {
                     minSz = d;
@@ -212,10 +214,10 @@ public class ScoreFunctionRCtop extends ScoreFunctionBase {
 
     private class DivideBtn implements ActionListener {
 
-        LabelImageRC ip[];
+        LabelImage ip[];
         ImagePlus ipp[];
 
-        DivideBtn(LabelImageRC ip_[], ImagePlus ipp_[]) {
+        DivideBtn(LabelImage ip_[], ImagePlus ipp_[]) {
             ip = ip_;
             ipp = ipp_;
         }
@@ -287,11 +289,11 @@ public class ScoreFunctionRCtop extends ScoreFunctionBase {
 
     private class MergeBtn implements ActionListener {
 
-        LabelImageRC ip[];
+        LabelImage ip[];
         ImagePlus ipp[];
         PickRegion pr[];
 
-        MergeBtn(LabelImageRC ip_[]) {
+        MergeBtn(LabelImage ip_[]) {
             ip = ip_;
             pr = new PickRegion[ip_.length];
             ipp = new ImagePlus[ip_.length];
@@ -339,7 +341,7 @@ public class ScoreFunctionRCtop extends ScoreFunctionBase {
 
     private JDialog frm;
 
-    public void MergeAndDivideWin(LabelImageRC ip[]) {
+    public void MergeAndDivideWin(LabelImage ip[]) {
         lock = new Object();
         frm = new JDialog();
 

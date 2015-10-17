@@ -8,10 +8,10 @@ import java.util.Iterator;
 import java.util.Map;
 
 import mosaic.core.utils.IntensityImage;
+import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelImageRC;
 import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 import net.imglib2.Cursor;
@@ -29,10 +29,9 @@ public class E_Deconvolution extends ExternalEnergy {
     private final RandomAccess<FloatType> infDevAccessIt;
 
     private Img<FloatType> m_PSF;
-    private final HashMap<Integer, LabelInformation> labelMap;
     private final IntensityImage aDataImage;
 
-    public E_Deconvolution(IntensityImage aDI, HashMap<Integer, LabelInformation> labelMap, Img<FloatType> image_psf) {
+    public E_Deconvolution(IntensityImage aDI, Img<FloatType> image_psf) {
         super(null, null);
         final int dim[] = aDI.getDimensions();
         DevImage = new ArrayImgFactory<FloatType>().create(dim, new FloatType());
@@ -42,12 +41,11 @@ public class E_Deconvolution extends ExternalEnergy {
 
         m_PSF = image_psf;
 
-        this.labelMap = labelMap;
         aDataImage = aDI;
     }
 
     @Override
-    public EnergyResult CalculateEnergyDifference(Point aIndex, ContourParticle contourParticle, int aToLabel) {
+    public EnergyResult CalculateEnergyDifference(Point aIndex, ContourParticle contourParticle, int aToLabel, HashMap<Integer, LabelInformation> labelMap) {
     
         final int aFromLabel = contourParticle.label;
         infDevAccessIt.setPosition(aIndex.iCoords/* pos.x */);
@@ -124,7 +122,7 @@ public class E_Deconvolution extends ExternalEnergy {
         m_PSF = psfImg;
     }
 
-    public void GenerateModelImage(LabelImageRC aLabelImage, HashMap<Integer, LabelInformation> labelMap) {
+    public void GenerateModelImage(LabelImage aLabelImage, HashMap<Integer, LabelInformation> labelMap) {
         final Cursor<FloatType> cVModelImage = DevImage.cursor();
         final int size = aLabelImage.getSize();
         for (int i = 0; i < size && cVModelImage.hasNext(); i++) {
@@ -142,7 +140,7 @@ public class E_Deconvolution extends ExternalEnergy {
 
     }
 
-    public void RenewDeconvolution(LabelImageRC aInitImage) {
+    public void RenewDeconvolution(LabelImage aInitImage, HashMap<Integer, LabelInformation> aLabelMap) {
         /**
          * Generate a model image using rough estimates of the intensities. Here,
          * we use the old intensity values.
@@ -151,7 +149,7 @@ public class E_Deconvolution extends ExternalEnergy {
 
         // The BG region is not fitted above(since it may be very large and thus
         // the mean is a good approx), set it to the mean value:
-        final double vOldBG = aInitImage.getLabelMap().get(0).median;
+        final double vOldBG = aLabelMap.get(0).median;
 
         // Time vs. Memory:
         // Memory efficient: iterate the label image: for all new seed points (new label found),
@@ -173,7 +171,7 @@ public class E_Deconvolution extends ExternalEnergy {
 
         // For all the active labels, create an entry in the map and initialize
         // an array as the corresponding value.
-        final Iterator<Map.Entry<Integer, LabelInformation>> vActiveLabelsIt = aInitImage.getLabelMap().entrySet().iterator();
+        final Iterator<Map.Entry<Integer, LabelInformation>> vActiveLabelsIt = aLabelMap.entrySet().iterator();
         while (vActiveLabelsIt.hasNext()) {
             final Map.Entry<Integer, LabelInformation> Label = vActiveLabelsIt.next();
             final int vLabel = Label.getKey();
@@ -219,11 +217,11 @@ public class E_Deconvolution extends ExternalEnergy {
         while (vScaling3It.hasNext()) {
             final Map.Entry<Integer, ArrayList<Float>> vLabel = vScaling3It.next();
             float vMedian;
-            if (aInitImage.getLabelMap().get(vLabel.getKey()).count > 2) {
+            if (aLabelMap.get(vLabel.getKey()).count > 2) {
                 vMedian = Median(vScalings3.get(vLabel.getKey()));
             }
             else {
-                vMedian = (float) aInitImage.getLabelMap().get(vLabel.getKey()).mean;
+                vMedian = (float) aLabelMap.get(vLabel.getKey()).mean;
             }
 
             // Correct the old intensity values.
@@ -231,7 +229,7 @@ public class E_Deconvolution extends ExternalEnergy {
                 if (vMedian < 0) {
                     vMedian = 0;
                 }
-                aInitImage.getLabelMap().get(vLabel.getKey()).median = vMedian;
+                aLabelMap.get(vLabel.getKey()).median = vMedian;
             }
             else {
                 // Avoid Nan
@@ -240,27 +238,27 @@ public class E_Deconvolution extends ExternalEnergy {
                     vMedian = Median(vScalings3.get(vLabel.getKey()));
                 }
 
-                aInitImage.getLabelMap().get(vLabel.getKey()).median = (aInitImage.getLabelMap().get(vLabel.getKey()).median - vOldBG) * vMedian + aInitImage.getLabelMap().get(0).median;
+                aLabelMap.get(vLabel.getKey()).median = (aLabelMap.get(vLabel.getKey()).median - vOldBG) * vMedian + aLabelMap.get(0).median;
             }
         }
 
         // The model image has to be renewed as well to match the new statistic values:
-        GenerateModelImage(aInitImage, aInitImage.getLabelMap());
+        GenerateModelImage(aInitImage, aLabelMap);
     }
 
-    public void UpdateConvolvedImage(Point aIndex, LabelImageRC aLabelImage, int aFromLabel, int aToLabel) {
+    public void UpdateConvolvedImage(Point aIndex, int aFromLabel, int aToLabel, HashMap<Integer, LabelInformation> aLabelMap) {
         Point currentPos = calculateMiddlePoint();
         currentPos = aIndex.sub(currentPos);
         
         if (aToLabel == 0) { 
             // ...the point is removed and set to BG To avoid the operator map::[] in the loop:
-            final float vIntensity_FromLabel = (float) aLabelImage.getLabelMap().get(aFromLabel).median;
-            final float vIntensity_BGLabel = (float) aLabelImage.getLabelMap().get(aToLabel).median;
+            final float vIntensity_FromLabel = (float) aLabelMap.get(aFromLabel).median;
+            final float vIntensity_BGLabel = (float) aLabelMap.get(aToLabel).median;
             subtractPsfFromConvImage(currentPos, vIntensity_FromLabel, vIntensity_BGLabel);
         }
         else {
-            final float vIntensity_ToLabel = (float) aLabelImage.getLabelMap().get(aToLabel).median;
-            final float vIntensity_BGLabel = (float) aLabelImage.getLabelMap().get(0).median;
+            final float vIntensity_ToLabel = (float) aLabelMap.get(aToLabel).median;
+            final float vIntensity_BGLabel = (float) aLabelMap.get(0).median;
             subtractPsfFromConvImage(currentPos, vIntensity_BGLabel, vIntensity_ToLabel);
         }
     }

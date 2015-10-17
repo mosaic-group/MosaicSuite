@@ -11,12 +11,9 @@ import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
 public class E_CV extends ExternalEnergy {
 
-    public E_CV(HashMap<Integer, LabelInformation> labelMap) {
+    public E_CV() {
         super(null, null);
-        this.labelMap = labelMap;
     }
-
-    private final HashMap<Integer, LabelInformation> labelMap;
 
     /**
      * Here we have the possibility to either put the current pixel
@@ -29,7 +26,7 @@ public class E_CV extends ExternalEnergy {
      * than 1 pixel/voxel.
      */
     @Override
-    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel) {
+    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelInformation> labelMap) {
         final int fromLabel = contourParticle.label;
         final float aValue = contourParticle.intensity;
         final LabelInformation to = labelMap.get(toLabel);

@@ -2,7 +2,6 @@ package mosaic.plugins;
 
 
 import java.awt.GraphicsEnvironment;
-import java.util.HashMap;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -22,8 +21,6 @@ import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.utils.Debug;
 import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.ClusterModeRC;
-import mosaic.region_competition.LabelImageRC;
-import mosaic.region_competition.LabelInformation;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.GUI.Controller;
 import mosaic.region_competition.GUI.GenericDialogGUI;
@@ -88,7 +85,7 @@ public class Region_Competition implements PlugInFilterExt {
     
     // Algorithm and its input stuff
     protected Algorithm algorithm;
-    private LabelImageRC labelImage;
+    private LabelImage labelImage;
     private IntensityImage intensityImage;
     private ImageModel imageModel;
     
@@ -182,7 +179,7 @@ public class Region_Competition implements PlugInFilterExt {
             }
             String absoluteFileName = absoluteFileNameNoExt + outputFileNamesSuffixes[0].replace("*", "");
     
-            labelImage.calculateRegionsCenterOfMass();
+            algorithm.calculateRegionsCenterOfMass();
             StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelMap().values());
             logger.info("Saving segmentation statistics [" + absoluteFileName + "]");
             statisticsTable.save(absoluteFileName);
@@ -247,18 +244,16 @@ public class Region_Competition implements PlugInFilterExt {
      * Initialize the energy function
      */
     private void initEnergies() {
-        final HashMap<Integer, LabelInformation> labelMap = labelImage.getLabelMap();
-
         Energy e_data;
         Energy e_merge;
         switch (settings.m_EnergyFunctional) {
             case e_PC: {
-                e_data = new E_CV(labelMap);
-                e_merge = new E_KLMergingCriterion(labelMap, LabelImage.BGLabel, settings.m_RegionMergingThreshold);
+                e_data = new E_CV();
+                e_merge = new E_KLMergingCriterion(LabelImage.BGLabel, settings.m_RegionMergingThreshold);
                 break;
             }
             case e_PS: {
-                e_data = new E_PS(labelImage, intensityImage, labelMap, settings.m_GaussPSEnergyRadius, settings.m_RegionMergingThreshold);
+                e_data = new E_PS(labelImage, intensityImage, settings.m_GaussPSEnergyRadius, settings.m_RegionMergingThreshold);
                 e_merge = null;
                 break;
             }
@@ -275,7 +270,7 @@ public class Region_Competition implements PlugInFilterExt {
                 final double Vol = MosaicUtils.volume_image(image_psf);
                 MosaicUtils.rescale_image(image_psf, (float) (1.0f / Vol));
 
-                e_data = new E_Deconvolution(intensityImage, labelMap, image_psf);
+                e_data = new E_Deconvolution(intensityImage, image_psf);
                 e_merge = null;
                 break;
             }
@@ -324,7 +319,7 @@ public class Region_Competition implements PlugInFilterExt {
     }
 
     private void initLabelImage() {
-        labelImage = new LabelImageRC(intensityImage.getDimensions());
+        labelImage = new LabelImage(intensityImage.getDimensions());
 
         InitializationType input = settings.labelImageInitType;
 
@@ -427,7 +422,7 @@ public class Region_Competition implements PlugInFilterExt {
     /**
      * Initializes labelImage with ROI <br>
      */
-    private void initializeRoi(final LabelImageRC labelImg) {
+    private void initializeRoi(final LabelImage labelImg) {
         labelImg.initLabelsWithRoi(inputImageChosenByUser.getRoi());
         labelImg.initBoundary();
         labelImg.connectedComponents();
