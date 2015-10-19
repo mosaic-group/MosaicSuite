@@ -467,7 +467,7 @@ public class Algorithm {
         boolean convergence = DoOneIteration();
 
         if (shrinkFirst && convergence) {
-            debug("Done with shrinking, now allow growing");
+            // Done with shrinking, now allow growing
             convergence = false;
             shrinkFirst = false;
             m_AcceptedPointsFactor = AcceptedPointsFactor;
@@ -493,18 +493,10 @@ public class Algorithm {
     }
 
     private boolean IterateContourContainerAndAdd() {
-        debug("Rebuild Candidates");
         RebuildCandidateList();
-
-        debug("Filter Candidates");
         FilterCandidates();
-
-        debug("Detect Oscillations");
         DetectOscillations();
-
         FilterCandidatesContainerUsingRanks();
-
-        debug("Move Points");
         return MoveCandidates();
     }
 
@@ -1215,11 +1207,6 @@ public class Algorithm {
         // Add a sample point to the BG and remove it from the label-region:
         toLabelStats.count++;
         fromLabelStats.count--;
-    }
-
-
-    private static void debug(@SuppressWarnings("unused") Object s) {
-        // System.out.println(s);
     }
 
     private void fire(Point aIndex, int aNewLabel, BinarizedImage aMultiThsFunctionPtr) {
