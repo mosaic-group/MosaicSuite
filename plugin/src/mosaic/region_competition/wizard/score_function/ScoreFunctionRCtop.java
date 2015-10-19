@@ -29,9 +29,9 @@ import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.LabelInformation;
-import mosaic.region_competition.PointCM;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.wizard.PickRegion;
+import mosaic.region_competition.wizard.PointCM;
 import mosaic.region_competition.wizard.RCWWin;
 
 

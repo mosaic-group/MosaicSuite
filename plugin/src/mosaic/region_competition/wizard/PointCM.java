@@ -1,4 +1,4 @@
-package mosaic.region_competition;
+package mosaic.region_competition.wizard;
 
 
 import mosaic.core.utils.Point;

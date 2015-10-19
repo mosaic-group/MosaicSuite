@@ -34,7 +34,6 @@ import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIterator;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
-import mosaic.region_competition.PointCM;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.wizard.RCProgressWin.StatusSel;
 import mosaic.region_competition.wizard.score_function.ScoreFunction;
