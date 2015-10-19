@@ -12,8 +12,8 @@ import mosaic.core.utils.Point;
 public class ContourParticle {
     // absolute label
     public int label = 0;
-    public float intensity = 0.0f;
     public int candidateLabel = 0;
+    public float intensity = 0.0f;
     public double energyDifference = 0;
 
     // mother - daughter indicators
@@ -22,7 +22,7 @@ public class ContourParticle {
     boolean isDaughter = false;
     
     int referenceCount = 0;
-    boolean m_processed = false;
+    boolean isProcessed = false;
 
     private final List<Point> motherList = new LinkedList<Point>();
     private final List<Point> daughterList = new LinkedList<Point>();
