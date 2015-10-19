@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelInformation;
+import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
 
@@ -26,11 +26,11 @@ public class E_CV extends ExternalEnergy {
      * than 1 pixel/voxel.
      */
     @Override
-    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelInformation> labelMap) {
+    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelStatistics> labelMap) {
         final int fromLabel = contourParticle.label;
         final float aValue = contourParticle.intensity;
-        final LabelInformation to = labelMap.get(toLabel);
-        final LabelInformation from = labelMap.get(fromLabel);
+        final LabelStatistics to = labelMap.get(toLabel);
+        final LabelStatistics from = labelMap.get(fromLabel);
         final double vNewToMean = (to.mean * to.count + aValue) / (to.count + 1);
         final double energy = (aValue - vNewToMean) * (aValue - vNewToMean) - (aValue - from.mean) * (aValue - from.mean);
         return new EnergyResult(energy, false);

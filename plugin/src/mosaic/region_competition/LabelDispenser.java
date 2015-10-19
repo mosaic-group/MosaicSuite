@@ -1,9 +1,5 @@
 package mosaic.region_competition;
 
-
-import java.util.Collection;
-import java.util.Collections;
-
 /**
  * This class provides (always increasing) label number.
  */
@@ -20,14 +16,9 @@ class LabelDispenser {
         return ++iLabelNumber;
     }
 
-    public void setLabelsInUse(Collection<Integer> aUsedLabels) {
-        if (aUsedLabels.isEmpty()) {
-            return;
-        }
-
-        final int max = Collections.max(aUsedLabels);
-        if (max > iLabelNumber) {
-            iLabelNumber = max;
+    public void setMaxValueOfUsedLabel(Integer aNumOfUsedLabels) {
+        if (aNumOfUsedLabels > iLabelNumber) {
+            iLabelNumber = aNumOfUsedLabels;
         }
     }
 }

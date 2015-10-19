@@ -7,7 +7,7 @@ import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelInformation;
+import mosaic.region_competition.LabelStatistics;
 
 
 public abstract class Energy {
@@ -16,7 +16,7 @@ public abstract class Energy {
      * @param labelMap 
      * @return EnergyResult, entries (energy or merge) are null if not calculated by this energy
      */
-    public abstract EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelInformation> labelMap);
+    public abstract EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelStatistics> labelMap);
 
     public static class EnergyResult {
 

@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.LabelImage;
-import mosaic.region_competition.LabelInformation;
+import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.initializers.MaximaBubbles;
 
@@ -66,10 +66,10 @@ public class ScoreFunctionInit extends ScoreFunctionBase {
             l[im].initZero();
             final MaximaBubbles b = new MaximaBubbles(i[im], l[im], sigma, tol, rad, r_t);
             b.initialize();
-            HashMap<Integer, LabelInformation> labelMap = new HashMap<Integer, LabelInformation>();
+            HashMap<Integer, LabelStatistics> labelMap = new HashMap<Integer, LabelStatistics>();
             final int c = createStatistics(l[im], i[im], labelMap);
             labelMap.remove(0); // remove background
-            for (final LabelInformation lb : labelMap.values()) {
+            for (final LabelStatistics lb : labelMap.values()) {
                 result += 2.0 * Math.abs(lb.count - l[im].getSize() / 4.0 / off[im]) / l[im].getSize();
             }
 

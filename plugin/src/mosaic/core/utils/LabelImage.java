@@ -2,6 +2,8 @@ package mosaic.core.utils;
 
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -327,30 +329,34 @@ public class LabelImage extends BaseImage
     }
     
     /**
-     * Initialize the contour setting it to (-)label
+     * Initialize the contour by setting it to (-)label value.
+     * @return List of contour points.
      */
-    public void initContour() {
+    public List<Point> initContour() {
+        List<Point> contourPoints = new LinkedList<Point>();
         for (final int i : iIterator.getIndexIterable()) {
             final int label = getLabelAbs(i);
-            if (!isSpecialLabel(label)) // region pixel && label<negOfs
-            {
+            if (!isSpecialLabel(label)) {
                 final Point p = iIterator.indexToPoint(i);
                 for (final Point neighbor : iConnectivityFG.iterateNeighbors(p)) {
                     final int neighborLabel = getLabelAbs(neighbor);
                     if (neighborLabel != label) {
                         setLabel(p, labelToNeg(label));
+                        contourPoints.add(p);
                         break;
                     }
                 }
             }
         }
+        
+        return contourPoints;
     }
+    
     
     //
     // Below are all function dependent on ImageJ implementation (ImagePlus, ImageProcessor, Roi...)
     // TODO: It should be verify if this is the best place for them after ImageLabelRC is cleaned up
     //
-    
     
     /**
      * LabelImage loaded from file

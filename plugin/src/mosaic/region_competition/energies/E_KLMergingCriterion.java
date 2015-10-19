@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelInformation;
+import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
 
@@ -21,13 +21,13 @@ public class E_KLMergingCriterion extends ExternalEnergy {
     }
 
     @Override
-    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelInformation> labelMap) {
+    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelStatistics> labelMap) {
         final int fromLabel = contourParticle.label;
         final boolean merge = CalculateMergingEnergyForLabel(fromLabel, toLabel, labelMap);
         return new EnergyResult(null, merge);
     }
 
-    private boolean CalculateMergingEnergyForLabel(int aLabelA, int aLabelB, HashMap<Integer, LabelInformation> labelMap) {
+    private boolean CalculateMergingEnergyForLabel(int aLabelA, int aLabelB, HashMap<Integer, LabelStatistics> labelMap) {
         // store this event to check afterwards if we should merge
         // the 2 regions.
         if (aLabelA != bgLabel && aLabelB != bgLabel) // we are competeing.
@@ -42,9 +42,9 @@ public class E_KLMergingCriterion extends ExternalEnergy {
         return false;
     }
 
-    private double CalculateKLMergingCriterion(int L1, int L2, HashMap<Integer, LabelInformation> labelMap) {
-        final LabelInformation aL1 = labelMap.get(L1);
-        final LabelInformation aL2 = labelMap.get(L2);
+    private double CalculateKLMergingCriterion(int L1, int L2, HashMap<Integer, LabelStatistics> labelMap) {
+        final LabelStatistics aL1 = labelMap.get(L1);
+        final LabelStatistics aL2 = labelMap.get(L2);
 
         final double vMu1 = aL1.mean;
         final double vMu2 = aL2.mean;

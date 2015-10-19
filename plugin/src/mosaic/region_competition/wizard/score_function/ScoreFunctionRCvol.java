@@ -11,7 +11,7 @@ import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.LabelImage;
 import mosaic.plugins.Region_Competition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
-import mosaic.region_competition.LabelInformation;
+import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.Settings;
 
 
@@ -94,16 +94,16 @@ public class ScoreFunctionRCvol extends ScoreFunctionBase {
 
             l[im].initWithImg(ip);
             
-            HashMap<Integer, LabelInformation> labelMap = new HashMap<Integer, LabelInformation>();
+            HashMap<Integer, LabelStatistics> labelMap = new HashMap<Integer, LabelStatistics>();
             createStatistics(l[im], i[im], labelMap);
 
             // Scoring
             int count = 0;
-            final Collection<LabelInformation> li = labelMap.values();
+            final Collection<LabelStatistics> li = labelMap.values();
 
             for (int i = 1; i < li.toArray().length; i++) {
                 /* a2 += ((LabelInformation)li.toArray()[i]).mean*((LabelInformation)li.toArray()[i]).count; */
-                count += ((LabelInformation) li.toArray()[i]).count;
+                count += ((LabelStatistics) li.toArray()[i]).count;
             }
             // a2 /= count;
 

@@ -1,9 +1,9 @@
 package mosaic.region_competition;
 
 
-public class LabelInformation {
+public class LabelStatistics {
 
-    public int label = 0; // label
+    public int label = 0; // absolute label
     public int count; // number of pixels of label
     public double mean = 0; // mean of intensity
     public double var = 0; // variance of intensity
@@ -18,7 +18,7 @@ public class LabelInformation {
      * @param dim dimensions of the problem
      */
 
-    public LabelInformation(int label, int dim) {
+    public LabelStatistics(int label, int dim) {
         this.label = label;
         this.dim = dim;
         mean_pos = new double[dim];
@@ -29,7 +29,7 @@ public class LabelInformation {
      */
 
     void reset() {
-        label = 0;
+        label = 0; // TODO: should be set explicitly to background value?
         count = 0;
         mean = 0;
         var = 0;

@@ -5,10 +5,10 @@ import java.util.HashSet;
 
 import mosaic.core.utils.IntensityImage;
 import mosaic.core.utils.LabelImage;
-import mosaic.region_competition.LabelInformation;
+import mosaic.region_competition.LabelStatistics;
 
 public abstract class ScoreFunctionBase implements ScoreFunction {
-    public int createStatistics(LabelImage lirc, IntensityImage intensityImage, HashMap<Integer, LabelInformation> labelMap) {
+    public int createStatistics(LabelImage lirc, IntensityImage intensityImage, HashMap<Integer, LabelStatistics> labelMap) {
         labelMap.clear();
 
         final HashSet<Integer> usedLabels = new HashSet<Integer>();
@@ -20,9 +20,9 @@ public abstract class ScoreFunctionBase implements ScoreFunction {
             if (!lirc.isForbiddenLabel(absLabel) /* && absLabel != bgLabel */) {
                 usedLabels.add(absLabel);
 
-                LabelInformation stats = labelMap.get(absLabel);
+                LabelStatistics stats = labelMap.get(absLabel);
                 if (stats == null) {
-                    stats = new LabelInformation(absLabel, lirc.getNumOfDimensions());
+                    stats = new LabelStatistics(absLabel, lirc.getNumOfDimensions());
                     labelMap.put(absLabel, stats);
                 }
                 final double val = intensityImage.get(i);
@@ -34,15 +34,15 @@ public abstract class ScoreFunctionBase implements ScoreFunction {
         }
 
         // if background label do not exist add it
-        LabelInformation stats = labelMap.get(0);
+        LabelStatistics stats = labelMap.get(0);
         if (stats == null) {
-            stats = new LabelInformation(0, lirc.getNumOfDimensions());
+            stats = new LabelStatistics(0, lirc.getNumOfDimensions());
             labelMap.put(0, stats);
         }
 
         // now we have in all LabelInformation:
         // in mean the sum of the values, in var the sum of val^2
-        for (final LabelInformation stat : labelMap.values()) {
+        for (final LabelStatistics stat : labelMap.values()) {
             final int n = stat.count;
             if (n > 1) {
                 final double var = (stat.var - stat.mean * stat.mean / n) / (n - 1);

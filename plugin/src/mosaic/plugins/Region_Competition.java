@@ -180,7 +180,7 @@ public class Region_Competition implements PlugInFilterExt {
             String absoluteFileName = absoluteFileNameNoExt + outputFileNamesSuffixes[0].replace("*", "");
     
             algorithm.calculateRegionsCenterOfMass();
-            StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelMap().values());
+            StatisticsTable statisticsTable = new StatisticsTable(algorithm.getLabelStatistics().values());
             logger.info("Saving segmentation statistics [" + absoluteFileName + "]");
             statisticsTable.save(absoluteFileName);
             if (showGUI && !test_mode) {
@@ -401,7 +401,7 @@ public class Region_Competition implements PlugInFilterExt {
             ++iteration;
             IJ.showStatus("Iteration: " + iteration + "/" + settings.m_MaxNbIterations);
             IJ.showProgress(iteration, settings.m_MaxNbIterations);
-            isDone = algorithm.GenerateData();
+            isDone = algorithm.performIteration();
             
             // Check if we should pause for a moment or if simulation is not aborted by user
             // If aborted pretend that we have finished segmentation (isDone=true)

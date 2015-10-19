@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import ij.measure.ResultsTable;
-import mosaic.region_competition.LabelInformation;
+import mosaic.region_competition.LabelStatistics;
 
 /**
  * StatisticsTable class for handling output of LabelInformation
@@ -17,7 +17,7 @@ public class StatisticsTable {
     /**
      * @param aLabelInfos container with all LabelInformation objects to be shown or/and save in file
      */
-    public StatisticsTable(Collection<LabelInformation> aLabelInfos) {
+    public StatisticsTable(Collection<LabelStatistics> aLabelInfos) {
         iResultsTable = createStatistics(aLabelInfos);
     }
     
@@ -46,12 +46,12 @@ public class StatisticsTable {
      * @param collection LabelInformation data
      * @return created table with data
      */
-    private ResultsTable createStatistics(Collection<LabelInformation> collection) {
+    private ResultsTable createStatistics(Collection<LabelStatistics> collection) {
         final ResultsTable rt = new ResultsTable();
         rt.showRowNumbers(false);
 
         int rowNumber = 1;
-        for (final LabelInformation info : collection) {
+        for (final LabelStatistics info : collection) {
             rt.incrementCounter();
             rt.addValue("Id", rowNumber++);
             rt.addValue("Image_ID", 0);

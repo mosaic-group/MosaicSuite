@@ -9,7 +9,7 @@ import mosaic.core.utils.Point;
 import mosaic.core.utils.RegionIteratorMask;
 import mosaic.core.utils.SphereMask;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelInformation;
+import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 
 
@@ -47,7 +47,7 @@ public class E_PS extends ExternalEnergy {
      * than 1 pixel/voxel.
      */
     @Override
-    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelInformation> labelMap) {
+    public EnergyResult CalculateEnergyDifference(Point contourPoint, ContourParticle contourParticle, int toLabel, HashMap<Integer, LabelStatistics> labelMap) {
         final double value = contourParticle.intensity;
         final int fromLabel = contourParticle.label;
 
@@ -90,7 +90,7 @@ public class E_PS extends ExternalEnergy {
         double vVarFrom;
         if (vNTo == 0) // this should only happen with the BG label
         {
-            final LabelInformation info = labelMap.get(toLabel);
+            final LabelStatistics info = labelMap.get(toLabel);
             vMeanTo = info.mean;
             vVarTo = info.var;
         }
@@ -101,7 +101,7 @@ public class E_PS extends ExternalEnergy {
         }
 
         if (vNFrom == 0) {
-            final LabelInformation info = labelMap.get(fromLabel);
+            final LabelStatistics info = labelMap.get(fromLabel);
             vMeanFrom = info.mean;
             vVarFrom = info.var;
         }

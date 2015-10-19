@@ -12,7 +12,7 @@ import mosaic.core.utils.LabelImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelInformation;
+import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
@@ -45,7 +45,7 @@ public class E_Deconvolution extends ExternalEnergy {
     }
 
     @Override
-    public EnergyResult CalculateEnergyDifference(Point aIndex, ContourParticle contourParticle, int aToLabel, HashMap<Integer, LabelInformation> labelMap) {
+    public EnergyResult CalculateEnergyDifference(Point aIndex, ContourParticle contourParticle, int aToLabel, HashMap<Integer, LabelStatistics> labelMap) {
     
         final int aFromLabel = contourParticle.label;
         infDevAccessIt.setPosition(aIndex.iCoords/* pos.x */);
@@ -122,7 +122,7 @@ public class E_Deconvolution extends ExternalEnergy {
         m_PSF = psfImg;
     }
 
-    public void GenerateModelImage(LabelImage aLabelImage, HashMap<Integer, LabelInformation> labelMap) {
+    public void GenerateModelImage(LabelImage aLabelImage, HashMap<Integer, LabelStatistics> labelMap) {
         final Cursor<FloatType> cVModelImage = DevImage.cursor();
         final int size = aLabelImage.getSize();
         for (int i = 0; i < size && cVModelImage.hasNext(); i++) {
@@ -140,7 +140,7 @@ public class E_Deconvolution extends ExternalEnergy {
 
     }
 
-    public void RenewDeconvolution(LabelImage aInitImage, HashMap<Integer, LabelInformation> aLabelMap) {
+    public void RenewDeconvolution(LabelImage aInitImage, HashMap<Integer, LabelStatistics> aLabelMap) {
         /**
          * Generate a model image using rough estimates of the intensities. Here,
          * we use the old intensity values.
@@ -171,9 +171,9 @@ public class E_Deconvolution extends ExternalEnergy {
 
         // For all the active labels, create an entry in the map and initialize
         // an array as the corresponding value.
-        final Iterator<Map.Entry<Integer, LabelInformation>> vActiveLabelsIt = aLabelMap.entrySet().iterator();
+        final Iterator<Map.Entry<Integer, LabelStatistics>> vActiveLabelsIt = aLabelMap.entrySet().iterator();
         while (vActiveLabelsIt.hasNext()) {
-            final Map.Entry<Integer, LabelInformation> Label = vActiveLabelsIt.next();
+            final Map.Entry<Integer, LabelStatistics> Label = vActiveLabelsIt.next();
             final int vLabel = Label.getKey();
             if (aInitImage.isForbiddenLabel(vLabel)) {
                 continue;
@@ -246,7 +246,7 @@ public class E_Deconvolution extends ExternalEnergy {
         GenerateModelImage(aInitImage, aLabelMap);
     }
 
-    public void UpdateConvolvedImage(Point aIndex, int aFromLabel, int aToLabel, HashMap<Integer, LabelInformation> aLabelMap) {
+    public void UpdateConvolvedImage(Point aIndex, int aFromLabel, int aToLabel, HashMap<Integer, LabelStatistics> aLabelMap) {
         Point currentPos = calculateMiddlePoint();
         currentPos = aIndex.sub(currentPos);
         

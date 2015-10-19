@@ -6,7 +6,7 @@ import java.util.HashMap;
 import mosaic.core.utils.Point;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.LabelInformation;
+import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.Energy.EnergyResult;
 
@@ -38,7 +38,7 @@ public class ImageModel {
         return settings.m_EnergyFunctional;
     }
 
-    public EnergyResult CalculateEnergyDifferenceForLabel(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel, HashMap<Integer, LabelInformation> labelMap) {
+    public EnergyResult CalculateEnergyDifferenceForLabel(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel, HashMap<Integer, LabelStatistics> labelMap) {
         final float m_EnergyRegionCoeff = EnergyRegionCoeff;
 
         final float vCurrentImageValue = aContourPointPtr.intensity;
