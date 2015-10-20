@@ -38,7 +38,7 @@ public class ImageModel {
         return settings.m_EnergyFunctional;
     }
 
-    public EnergyResult CalculateEnergyDifferenceForLabel(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel, HashMap<Integer, LabelStatistics> labelMap) {
+    public EnergyResult calculateDeltaEnergy(Point aContourIndex, ContourParticle aContourPointPtr, int aToLabel, HashMap<Integer, LabelStatistics> labelMap) {
         final float m_EnergyRegionCoeff = EnergyRegionCoeff;
 
         final float vCurrentImageValue = aContourPointPtr.intensity;

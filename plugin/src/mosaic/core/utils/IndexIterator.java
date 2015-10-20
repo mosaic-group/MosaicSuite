@@ -51,11 +51,9 @@ public class IndexIterator {
      * @return integer index
      */
     public int pointToIndex(Point p) {
-        // TODO test
-
         int idx = 0;
         int fac = 1;
-        for (int i = 0; i < dim; i++) {
+        for (int i = 0; i < dim; ++i) {
             idx += fac * p.iCoords[i];
             fac *= dimensions[i];
         }

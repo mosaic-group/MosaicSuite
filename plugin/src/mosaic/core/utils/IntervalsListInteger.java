@@ -26,6 +26,10 @@ public class IntervalsListInteger {
         m_Thresholds.add(new ThresholdIntervalInteger(lower, upper));
         m_NThresholds += 1;
     }
+    
+    public void AddOneValThreshold(int aTresholdValue) {
+        AddThresholdBetween(aTresholdValue, aTresholdValue);
+    }
 
     public boolean Evaluate(int value) {
         for (int vI = 0; vI < m_NThresholds; vI++) {
