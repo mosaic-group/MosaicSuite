@@ -41,7 +41,7 @@ public class Algorithm {
     private final Settings iSettings;
 
     // Just aliases for stuff from labelImage
-    private final int bgLabel;
+    private final static int BGLabel = LabelImage.BGLabel;
     private final Connectivity connFG;
     private final Connectivity connBG;
 
@@ -104,7 +104,6 @@ public class Algorithm {
         iImageModel = aModel;
         iSettings = aSettings;
 
-        bgLabel = LabelImage.BGLabel;
         connFG = iLabelImage.getConnFG();
         connBG = iLabelImage.getConnBG();
 
@@ -161,10 +160,10 @@ public class Algorithm {
         }
 
         // If background label do not exist add it to collection
-        LabelStatistics stats = iLabelStatistics.get(bgLabel);
+        LabelStatistics stats = iLabelStatistics.get(BGLabel);
         if (stats == null) {
-            stats = new LabelStatistics(bgLabel, iLabelImage.getNumOfDimensions());
-            iLabelStatistics.put(bgLabel, stats);
+            stats = new LabelStatistics(BGLabel, iLabelImage.getNumOfDimensions());
+            iLabelStatistics.put(BGLabel, stats);
         }
 
         // Finally - calculate variance, median and mean for each found label
@@ -259,7 +258,7 @@ public class Algorithm {
         while (labelStatsIt.hasNext()) {
             final Entry<Integer, LabelStatistics> entry = labelStatsIt.next();
             if (entry.getValue().count == 0) {
-                if (entry.getKey() != bgLabel) {
+                if (entry.getKey() != BGLabel) {
                     labelStatsIt.remove();
                     continue;
                 }
@@ -285,7 +284,7 @@ public class Algorithm {
                 // q is a inner point with the same label as p
                 final ContourParticle q = new ContourParticle();
                 q.label = aAbsLabel;
-                q.candidateLabel = bgLabel;
+                q.candidateLabel = BGLabel;
                 q.intensity = iIntensityImage.get(p);
                 iLabelImage.setLabel(p, iLabelImage.labelToNeg(aAbsLabel));
                 iContourParticles.put(p, q);
@@ -342,13 +341,13 @@ public class Algorithm {
 
         // The loser region (if it is not the BG region) has to add the
         // neighbors of the lost point to the contour list.
-        if (fromLabel != bgLabel) {
+        if (fromLabel != BGLabel) {
             changeNeighboursOfParticleToCountour(fromLabel, point);
         }
 
         // Erase the point from the surface container in case it now belongs to the background.
         // Otherwise add the point to the container (or replace it in case it has been there already).
-        if (toLabel == bgLabel) {
+        if (toLabel == BGLabel) {
             iContourParticles.remove(point);
         }
         else {
@@ -388,7 +387,7 @@ public class Algorithm {
                 continue;
             }
             else if (labelStat.count == 1) {
-                contourParticle.candidateLabel = bgLabel;
+                contourParticle.candidateLabel = BGLabel;
                 changeContourPointLabelToCandidateLabelAndUpdateNeighbours(vIt);
             }
         }
@@ -402,7 +401,7 @@ public class Algorithm {
         // Iterate through the active labels and check for significance.
         for (final Entry<Integer, LabelStatistics> labelStats : iLabelStatistics.entrySet()) {
             final int label = labelStats.getKey();
-            if (label == bgLabel) {
+            if (label == BGLabel) {
                 continue;
             }
             else if (labelStats.getValue().count <= MinimumAreaSize) {
@@ -432,7 +431,7 @@ public class Algorithm {
             final Iterator<Entry<Point, ContourParticle>> iter = labelParticles.entrySet().iterator();
             while (iter.hasNext()) {
                 final Entry<Point, ContourParticle> tmp = iter.next();
-                tmp.getValue().candidateLabel = bgLabel;
+                tmp.getValue().candidateLabel = BGLabel;
                 changeContourPointLabelToCandidateLabelAndUpdateNeighbours(tmp);
                 iter.remove();
             }
@@ -822,7 +821,7 @@ public class Algorithm {
      * Builds mothers, daughters, computes energies and fills m_CompetingRegionsMap
      */
     private void RebuildCandidateList() {
-        // Put all current countour particles into candidates
+        // Put all current contour particles into candidates
         iCandidates.clear();
         iCandidates.putAll(iContourParticles);
         
@@ -832,13 +831,13 @@ public class Algorithm {
             final ContourParticle contour = iter.getValue();
 
             contour.candidateLabel = 0;
-            contour.referenceCount = 0; // doesn't matter for the BG
-            contour.isDaughter = false;
             contour.isMother = true;
+            contour.isDaughter = false;
             contour.isProcessed = false;
-            contour.energyDifference = iImageModel.calculateDeltaEnergy(point, contour, bgLabel, iLabelStatistics).energyDifference;
+            contour.referenceCount = 0; // doesn't matter for the BG
+            contour.energyDifference = iImageModel.calculateDeltaEnergy(point, contour, BGLabel, iLabelStatistics).energyDifference;
             contour.clearLists();
-            contour.setTestedLabel(bgLabel);
+            contour.setTestedLabel(BGLabel);
         }
 
         if (shrinkFirst) {
@@ -847,10 +846,12 @@ public class Algorithm {
 
         // Iterate the contour list and visit all the neighbors in the FG-Neighborhood.
         // Calculate energy for expanding into neighborhood (growing)
+        // Until that point iContourParticles = iCandidates, we keep iterating on first one since iCandidates will grow (possibly)
         iCompetingRegions.clear();
         for (final Entry<Point, ContourParticle> iter : iContourParticles.entrySet()) {
             final Point point = iter.getKey();
-            final int propagatingRegionLabel = iter.getValue().label;
+            ContourParticle contour = iter.getValue();
+            final int propagatingRegionLabel = contour.label;
 
             for (final Point neighbor : connFG.iterateNeighbors(point)) {
                 final int labelOfDefender = iLabelImage.getLabelAbs(neighbor);
@@ -859,8 +860,7 @@ public class Algorithm {
                     continue;
                 }
 
-                // Tell the mother about the daughter
-                iCandidates.get(point).getDaughterList().add(neighbor);
+                contour.getDaughterList().add(neighbor);
                 
                 final ContourParticle contourCandidate = iCandidates.get(neighbor);
                 if (contourCandidate == null) {
@@ -875,14 +875,11 @@ public class Algorithm {
                     newContour.referenceCount = 1;
                     newContour.energyDifference = iImageModel.calculateDeltaEnergy(neighbor, newContour, propagatingRegionLabel, iLabelStatistics).energyDifference;
                     newContour.setTestedLabel(propagatingRegionLabel);
-                    // Tell the daughter about the mother:
                     newContour.getMotherList().add(point);
                     iCandidates.put(neighbor, newContour);
                 }
                 else {
                     // Neighbor is another region contour
-
-                    // Tell the daughter about the mother (label does not matter!):
                     contourCandidate.isDaughter = true;
                     contourCandidate.getMotherList().add(point);
 
@@ -897,16 +894,13 @@ public class Algorithm {
                             contourCandidate.energyDifference = energyResult.energyDifference;
                             contourCandidate.referenceCount = 1;
 
-                            if (energyResult.merge && contourCandidate.label != bgLabel && contourCandidate.candidateLabel != bgLabel) {
-                                final int L1 = contourCandidate.candidateLabel;
-                                final int L2 = contourCandidate.label;
-                                iCompetingRegions.put(point, new LabelPair(L1, L2));
+                            if (energyResult.merge && contourCandidate.label != BGLabel && contourCandidate.candidateLabel != BGLabel) {
+                                iCompetingRegions.put(point, new LabelPair(contourCandidate.candidateLabel, contourCandidate.label));
                             }
                         }
                     }
                     else {
-                        // If the propagating label is the same as the candidate label,
-                        // we have found 2 or more mothers of for this contour point.ten
+                        // If the propagatingRegionLabel is the same as the candidateLabel, we have found 2 or more mothers of for this contour point.
                         if (contourCandidate.candidateLabel == propagatingRegionLabel) {
                             contourCandidate.referenceCount++;
                         }

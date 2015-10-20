@@ -46,15 +46,11 @@ public class E_Deconvolution extends ExternalEnergy {
 
     @Override
     public EnergyResult CalculateEnergyDifference(Point aIndex, ContourParticle contourParticle, int aToLabel, HashMap<Integer, LabelStatistics> labelMap) {
-    
-        final int aFromLabel = contourParticle.label;
-        infDevAccessIt.setPosition(aIndex.iCoords/* pos.x */);
-    
         final EnergyResult vEnergyDiff = new EnergyResult(0.0, false);
     
-        final float vIntensity_FromLabel = (float) labelMap.get(aFromLabel).median;
-        final float vIntensity_ToLabel = (float) labelMap.get(aToLabel).median;
-    
+        final int aFromLabel = contourParticle.label;
+        final float intensityDelta = (float)(labelMap.get(aToLabel).median - labelMap.get(aFromLabel).median);
+        
         final Point middle = calculateMiddlePoint();
         final Point LowerCorner = aIndex.sub(middle);
     
@@ -63,18 +59,16 @@ public class E_Deconvolution extends ExternalEnergy {
         
         while (vPSF.hasNext()) {
             vPSF.fwd();
-    
             vPSF.localize(loc);
-            Point pos = new Point(LowerCorner);
-            pos = pos.add(new Point(loc));
+            
+            Point pos = LowerCorner.add(new Point(loc));
     
             infDevAccessIt.setPosition(pos.iCoords);
     
-            float vEOld = (infDevAccessIt.get().get() - aDataImage.getSafe(pos));
+            float vEOld = infDevAccessIt.get().get() - aDataImage.getSafe(pos);
+            float vENew = vEOld + intensityDelta * vPSF.get().get();
             vEOld = vEOld * vEOld;
-            float vENew = (infDevAccessIt.get().get() - aDataImage.getSafe(pos) + (vIntensity_ToLabel - vIntensity_FromLabel) * vPSF.get().get());
             vENew = vENew * vENew;
-    
             vEnergyDiff.energyDifference += vENew - vEOld;
         }
     
@@ -116,10 +110,6 @@ public class E_Deconvolution extends ExternalEnergy {
                 return (lower + upper) / 2.0f;
             }
         }
-    }
-
-    public void setPSF(Img<FloatType> psfImg) {
-        m_PSF = psfImg;
     }
 
     public void GenerateModelImage(LabelImage aLabelImage, HashMap<Integer, LabelStatistics> labelMap) {
