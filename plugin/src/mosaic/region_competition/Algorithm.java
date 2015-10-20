@@ -392,7 +392,7 @@ public class Algorithm {
                 changeContourPointLabelToCandidateLabelAndUpdateNeighbours(vIt);
             }
         }
-//        removeEmptyStatistics();
+        removeEmptyStatistics();
     }
     
     /**
@@ -409,7 +409,7 @@ public class Algorithm {
                 removeRegion(label);
             }
         }
-//        removeEmptyStatistics();
+        removeEmptyStatistics();
     }
 
     /**
@@ -537,7 +537,7 @@ public class Algorithm {
         for (final int oldLabel : oldLabels) {
             iLabelStatistics.remove(oldLabel);
         }
-//        removeEmptyStatistics();
+        removeEmptyStatistics();
     }
     
     /**
@@ -557,6 +557,7 @@ public class Algorithm {
             for (final LabelPair mergingPair : iCompetingRegions.values()) {
                 final int label1 = mergingPair.first;
                 final int label2 = mergingPair.second;
+                
                 // If any of merging labels is equal to labelToCheck add second to containers and add new threshold for labelArea
                 if (label1 == labelToCheck) addNewThreshold(aCheckedLabels, labelArea, labelsToCheck, label2);
                 if (label2 == labelToCheck) addNewThreshold(aCheckedLabels, labelArea, labelsToCheck, label1);
@@ -592,6 +593,19 @@ public class Algorithm {
             labelArea.AddOneValThreshold(aLabel);
             labelArea.AddOneValThreshold(iLabelImage.labelToNeg(aLabel));
             relabelRegionAtPoint(aStartPoint, labelDispenser.getNewLabel(), labelArea);
+        }
+    }
+    
+    /**
+     * Removes from candidate list particles which have energyDifference >= 0
+     */
+    private void removeCandidatesWithNonNegativeDeltaEnergy() {
+        final Iterator<Entry<Point, ContourParticle>> iter = iCandidates.entrySet().iterator();
+        while (iter.hasNext()) {
+            ContourParticle particle = iter.next().getValue();
+            if (particle.energyDifference >= 0) {
+                iter.remove();
+            }
         }
     }
     
@@ -637,8 +651,6 @@ public class Algorithm {
         boolean vConvergence = true;
         final Set<Seed> seeds = new HashSet<Seed>();
         
-        List<TopologicalNumberResult> vFGTNvector;
-
         while (vChange && !iCandidates.isEmpty()) {
             vChange = false;
 
@@ -647,7 +659,7 @@ public class Algorithm {
                 final Entry<Point, ContourParticle> vStoreIt = vPointIterator.next();
                 final Point vCurrentIndex = vStoreIt.getKey();
 
-                vFGTNvector = m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex);
+                List<TopologicalNumberResult> vFGTNvector = m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex);
                 boolean vSimple = true;
                 // Check for FG-simplicity:
                 for (final TopologicalNumberResult vTopoNbItr : vFGTNvector) {
@@ -688,7 +700,7 @@ public class Algorithm {
 
             boolean vValidPoint = true;
 
-            vFGTNvector = m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex);
+            List<TopologicalNumberResult> vFGTNvector = m_TopologicalNumberFunction.EvaluateAdjacentRegionsFGTNAtIndex(vCurrentIndex);
 
             // Check for handles:
             // if the point was not disqualified already and we disallow introducing handles (not only self fusion!), 
@@ -698,7 +710,6 @@ public class Algorithm {
                     if (vTopoNbItr.label == vCandidateLabel) {
                         if (vTopoNbItr.topologicalNumberPair.FGNumber > 1) {
                             vValidPoint = false;
-                            // break;
                         }
                     }
 
@@ -726,7 +737,7 @@ public class Algorithm {
                 }
                 if (vSplit) {
                     if (iSettings.m_AllowFission) {
-                        RegisterSeedsAfterSplit(seeds, vCurrentIndex, vCurrentLabel);
+                        registerNeighbourSeedsWithSameLabel(seeds, vCurrentIndex, vCurrentLabel);
                     }
                     else {
                         // disallow the move.
@@ -748,10 +759,8 @@ public class Algorithm {
                 vConvergence = false;
 
                 if (e.getValue().isProcessed) {
-                    RegisterSeedsAfterSplit(seeds, vCurrentIndex, vCurrentLabel);
-                    Seed seed = new Seed(vCurrentIndex, vCurrentLabel);
-                    final boolean wasContained = seeds.remove(seed);
-                    if (!wasContained) {
+                    registerNeighbourSeedsWithSameLabel(seeds, vCurrentIndex, vCurrentLabel);
+                    if (!seeds.remove(new Seed(vCurrentIndex, vCurrentLabel))) {
                         throw new RuntimeException("no seed in set");
                     }
                 }
@@ -763,12 +772,11 @@ public class Algorithm {
         }
 
         // Perform relabeling of the regions that did a split:
-        boolean didSplit = false;
-        boolean didMerge = false;
+        boolean didSplitOrMerge = false;
 
         for (final Seed vSeedIt : seeds) {
             relabelRegion(vSeedIt.getPoint(), vSeedIt.getLabel());
-            didSplit = true;
+            didSplitOrMerge = true;
         }
 
         // Merge the the competing regions if they meet merging criterion.
@@ -777,11 +785,11 @@ public class Algorithm {
             for (final Entry<Point, LabelPair> vCRit : iCompetingRegions.entrySet()) {
                 final Point idx = vCRit.getKey();
                 relabelMergedRegions(idx, vCRit.getValue().first, vCheckedLabels);
-                didMerge = true;
+                didSplitOrMerge = true;
             }
         }
 
-        if (didSplit || didMerge) {
+        if (didSplitOrMerge) {
             if (iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
                 ((E_Deconvolution) iImageModel.getEdata()).RenewDeconvolution(iLabelImage, iLabelStatistics);
             }
@@ -790,8 +798,7 @@ public class Algorithm {
         return vConvergence;
     }
 
-    private void RegisterSeedsAfterSplit(Set<Seed> aSeeds, Point aPoint, int aLabel) {
-
+    private void registerNeighbourSeedsWithSameLabel(Set<Seed> aSeeds, Point aPoint, int aLabel) {
         for (final Point neighbour : connFG.iterateNeighbors(aPoint)) {
             final int label = iLabelImage.getLabelAbs(neighbour);
 
@@ -914,13 +921,7 @@ public class Algorithm {
      */
     private void FilterCandidates() {
         if (shrinkFirst) {
-            final Iterator<Entry<Point, ContourParticle>> it = iCandidates.entrySet().iterator();
-            while (it.hasNext()) {
-                final Entry<Point, ContourParticle> vStoreIt = it.next(); // iterator
-                if (vStoreIt.getValue().energyDifference >= 0) {
-                    it.remove();
-                }
-            }
+            removeCandidatesWithNonNegativeDeltaEnergy();
             return;
         }
 
@@ -934,14 +935,14 @@ public class Algorithm {
 
             // Check if this point already was processed
             if (!contourParticle.isProcessed) {
-                // Check if it is a mother: only mothers can be seed points
-                // of topological networks. Daughters are always part of a topo network of a mother.
+                // Check if it is a mother: only mothers can be seed points of topological networks. 
+                // Daughters are always part of a topo network of a mother.
                 if (!contourParticle.isMother) {
                     continue;
                 }
+                contourParticle.isProcessed = true;
 
                  // Build the dependency network for this seed point:
-                contourParticle.isProcessed = true;
                 final List<ContourParticleWithIndex> vSortedNetworkMembers = buildDependencyNetwork(pIndex);
 
                 // Filtering: Accept all members in ascending order that are compatible with the already selected members in the network.
@@ -951,7 +952,7 @@ public class Algorithm {
 
                     // If a mother is accepted, the reference count of all the daughters (with the same label) has to be decreased.
                     // Rules: a candidate in the network is a legal candidate if:
-                    // - If (daughter): The reference count >= 1. (Except the the candidate label is the BG - this allows creating BG regions inbetween two competing regions).
+                    // - If (daughter): The reference count >= 1. (Except the the candidate label is the BG - this allows creating BG regions in between two competing regions).
                     // - If ( mother ): All daughters (with the same 'old' label) in the accepted list have still a reference count > 1.
                     boolean vLegalMove = true;
 
@@ -1030,16 +1031,7 @@ public class Algorithm {
             iCandidates.remove(vIlligalIndicesIt);
         }
 
-        /**
-         * Filter candidates according to their energy
-         */
-        final Iterator<Entry<Point, ContourParticle>> it = iCandidates.entrySet().iterator();
-        while (it.hasNext()) {
-            final Entry<Point, ContourParticle> vStoreIt = it.next(); // iterator to
-            if (vStoreIt.getValue().energyDifference >= 0) {
-                it.remove();
-            }
-        }
+        removeCandidatesWithNonNegativeDeltaEnergy();
     }
 
     private List<ContourParticleWithIndex> buildDependencyNetwork(final Point aStartPoint) {
