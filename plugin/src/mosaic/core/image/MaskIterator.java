@@ -1,5 +1,4 @@
-package mosaic.core.utils;
-
+package mosaic.core.image;
 
 /**
  * Iterates over a Region within an InputImage,

@@ -11,8 +11,8 @@ import ij.IJ;
 import ij.measure.ResultsTable;
 import ij.plugin.filter.Analyzer;
 import ij.process.ImageProcessor;
-import mosaic.core.utils.Connectivity;
-import mosaic.core.utils.IndexIterator;
+import mosaic.core.image.Connectivity;
+import mosaic.core.image.IndexIterator;
 import mosaic.core.utils.Point;
 
 

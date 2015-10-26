@@ -3,8 +3,8 @@ package mosaic.region_competition.energies;
 
 import java.util.HashMap;
 
-import mosaic.core.utils.Connectivity;
-import mosaic.core.utils.LabelImage;
+import mosaic.core.image.Connectivity;
+import mosaic.core.image.LabelImage;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelStatistics;

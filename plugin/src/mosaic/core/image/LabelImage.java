@@ -1,4 +1,4 @@
-package mosaic.core.utils;
+package mosaic.core.image;
 
 
 import java.util.HashSet;
@@ -18,6 +18,8 @@ import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
+import mosaic.core.utils.MosaicUtils;
+import mosaic.core.utils.Point;
 import mosaic.region_competition.utils.IntConverter;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;

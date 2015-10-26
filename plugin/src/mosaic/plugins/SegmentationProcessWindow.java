@@ -9,7 +9,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.gui.StackWindow;
 import ij.process.ShortProcessor;
-import mosaic.core.utils.LabelImage;
+import mosaic.core.image.LabelImage;
 
 /**
  * This class is used for showing results of segmentation (step by step if requested).

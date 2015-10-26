@@ -1,4 +1,4 @@
-package mosaic.core.utils;
+package mosaic.core.binarize;
 
 
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import java.util.List;
  * @author Pietro Incardona
  */
 
-public class IntervalsListInteger {
+class IntervalsListInteger {
 
     private final List<ThresholdIntervalInteger> m_Thresholds;
     private int m_NThresholds; // to not call size() of the vector at each evaluation.
@@ -39,15 +39,16 @@ public class IntervalsListInteger {
         }
         return false;
     }
-}
 
-class ThresholdIntervalInteger {
-
-    public final int lower;
-    public final int higher;
-
-    public ThresholdIntervalInteger(int lower, int higher) {
-        this.lower = lower;
-        this.higher = higher;
+    private class ThresholdIntervalInteger {
+        
+        public final int lower;
+        public final int higher;
+        
+        protected ThresholdIntervalInteger(int lower, int higher) {
+            this.lower = lower;
+            this.higher = higher;
+        }
     }
 }
+

@@ -3,8 +3,8 @@ package mosaic.region_competition.wizard.score_function;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import mosaic.core.utils.IntensityImage;
-import mosaic.core.utils.LabelImage;
+import mosaic.core.image.IntensityImage;
+import mosaic.core.image.LabelImage;
 import mosaic.region_competition.LabelStatistics;
 
 public abstract class ScoreFunctionBase implements ScoreFunction {

@@ -175,49 +175,47 @@ public class ImageProcessUtils {
         final Vector<Point3d> points = new Vector<Point3d>();
         try {
             CSVFile = new BufferedReader(new FileReader(file));
-            if (CSVFile != null) {
-                String dataRow = null;
-                double xtemp, ytemp, ztemp;
+            String dataRow = null;
+            double xtemp, ytemp, ztemp;
+            try {
+                dataRow = CSVFile.readLine();
+            }
+            catch (final IOException e) {
+
+                e.printStackTrace();
+            }
+            String[] dataArray;
+            int count = 0, size = 0;
+            while (dataRow != null) {
+                dataArray = dataRow.split(",");
+                if (count == 0) {
+                    size = dataArray.length;
+                    if (size != 2 && size != 3) {
+                        return null;
+                    }
+                    count++;
+                }
+                if (dataArray.length != size) {
+                    return null;
+                }
+
+                xtemp = Double.parseDouble(dataArray[0]);
+                ytemp = Double.parseDouble(dataArray[1]);
+                if (size > 2) {
+                    ztemp = Double.parseDouble(dataArray[2]);
+                }
+                else {
+                    ztemp = 0f; // 2D -- if only 2 columns, assume 2D.
+                }
+
+                points.add(new Point3d(xtemp, ytemp, ztemp));
+
                 try {
                     dataRow = CSVFile.readLine();
                 }
                 catch (final IOException e) {
-
                     e.printStackTrace();
-                }
-                String[] dataArray;
-                int count = 0, size = 0;
-                while (dataRow != null) {
-                    dataArray = dataRow.split(",");
-                    if (count == 0) {
-                        size = dataArray.length;
-                        if (size != 2 && size != 3) {
-                            return null;
-                        }
-                        count++;
-                    }
-                    if (dataArray.length != size) {
-                        return null;
-                    }
-
-                    xtemp = Double.parseDouble(dataArray[0]);
-                    ytemp = Double.parseDouble(dataArray[1]);
-                    if (size > 2) {
-                        ztemp = Double.parseDouble(dataArray[2]);
-                    }
-                    else {
-                        ztemp = 0f; // 2D -- if only 2 columns, assume 2D.
-                    }
-
-                    points.add(new Point3d(xtemp, ytemp, ztemp));
-
-                    try {
-                        dataRow = CSVFile.readLine();
-                    }
-                    catch (final IOException e) {
-                        e.printStackTrace();
-                    } // Read next line of data.
-                }
+                } // Read next line of data.
             }
         }
         catch (final FileNotFoundException e) {

@@ -23,7 +23,7 @@ import javax.swing.border.EmptyBorder;
 import ij.ImagePlus;
 import ij.gui.ImageCanvas;
 import ij.io.Opener;
-import mosaic.core.utils.LabelImage;
+import mosaic.core.image.LabelImage;
 import mosaic.region_competition.Settings;
 
 

@@ -5,8 +5,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
-import mosaic.core.utils.Connectivity;
-import mosaic.core.utils.LabelImage;
+import mosaic.core.image.Connectivity;
+import mosaic.core.image.LabelImage;
 import mosaic.core.utils.Point;
 
 

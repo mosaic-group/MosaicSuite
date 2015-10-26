@@ -1,8 +1,8 @@
 package mosaic.region_competition.initializers;
 
 
-import mosaic.core.utils.IndexIterator;
-import mosaic.core.utils.LabelImage;
+import mosaic.core.image.IndexIterator;
+import mosaic.core.image.LabelImage;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.utils.BubbleDrawer;
 

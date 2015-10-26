@@ -1,5 +1,6 @@
-package mosaic.core.utils;
+package mosaic.core.image;
 
+import mosaic.core.utils.Point;
 
 public class CircleMask extends Mask {
 

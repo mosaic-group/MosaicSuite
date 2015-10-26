@@ -1,9 +1,9 @@
 package mosaic.core.ImagePatcher;
 
 
+import mosaic.core.image.RegionIterator;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
-import mosaic.core.utils.RegionIterator;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.img.ImgFactory;

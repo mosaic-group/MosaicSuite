@@ -6,9 +6,9 @@ import java.util.HashSet;
 import java.util.Vector;
 
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
-import mosaic.core.utils.Connectivity;
-import mosaic.core.utils.FloodFill;
-import mosaic.core.utils.LabelImage;
+import mosaic.core.image.Connectivity;
+import mosaic.core.image.FloodFill;
+import mosaic.core.image.LabelImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import net.imglib2.Cursor;

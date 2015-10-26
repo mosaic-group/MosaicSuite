@@ -8,9 +8,9 @@ import ij.plugin.Duplicator;
 import java.util.List;
 
 import mosaic.core.binarize.BinarizedIntervalIntesityImage;
-import mosaic.core.utils.FloodFill;
-import mosaic.core.utils.IntensityImage;
-import mosaic.core.utils.LabelImage;
+import mosaic.core.image.FloodFill;
+import mosaic.core.image.IntensityImage;
+import mosaic.core.image.LabelImage;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.utils.BubbleDrawer;
 import mosaic.region_competition.utils.MaximumFinder2D;

@@ -1,7 +1,7 @@
 package mosaic.region_competition.initializers;
 
 
-import mosaic.core.utils.LabelImage;
+import mosaic.core.image.LabelImage;
 
 
 /**

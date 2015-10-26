@@ -1,7 +1,6 @@
 package mosaic.core.binarize;
 
 
-import mosaic.core.utils.IntervalsListInteger;
 import mosaic.core.utils.Point;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;

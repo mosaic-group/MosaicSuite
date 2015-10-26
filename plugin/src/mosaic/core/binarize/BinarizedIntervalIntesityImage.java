@@ -1,8 +1,7 @@
 package mosaic.core.binarize;
 
 
-import mosaic.core.utils.IntensityImage;
-import mosaic.core.utils.IntervalsListDouble;
+import mosaic.core.image.IntensityImage;
 import mosaic.core.utils.Point;
 
 

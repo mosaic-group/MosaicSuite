@@ -15,12 +15,12 @@ import org.apache.log4j.Logger;
 
 import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
-import mosaic.core.utils.Connectivity;
-import mosaic.core.utils.FloodFill;
-import mosaic.core.utils.IntensityImage;
-import mosaic.core.utils.LabelImage;
+import mosaic.core.image.Connectivity;
+import mosaic.core.image.FloodFill;
+import mosaic.core.image.IntensityImage;
+import mosaic.core.image.LabelImage;
+import mosaic.core.image.RegionIterator;
 import mosaic.core.utils.Point;
-import mosaic.core.utils.RegionIterator;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.Energy.EnergyResult;

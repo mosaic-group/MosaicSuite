@@ -1,8 +1,10 @@
-package mosaic.core.utils;
+package mosaic.core.image;
 
 
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import mosaic.core.utils.Point;
 
 
 /**

@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import mosaic.core.utils.IntensityImage;
-import mosaic.core.utils.LabelImage;
+import mosaic.core.image.IntensityImage;
+import mosaic.core.image.LabelImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.Point;
 import mosaic.region_competition.ContourParticle;

@@ -5,8 +5,8 @@ import ij.ImagePlus;
 
 import java.util.HashMap;
 
-import mosaic.core.utils.IntensityImage;
-import mosaic.core.utils.LabelImage;
+import mosaic.core.image.IntensityImage;
+import mosaic.core.image.LabelImage;
 import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.initializers.MaximaBubbles;

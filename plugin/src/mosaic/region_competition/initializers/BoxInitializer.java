@@ -1,8 +1,8 @@
 package mosaic.region_competition.initializers;
 
 
-import mosaic.core.utils.LabelImage;
-import mosaic.core.utils.RegionIterator;
+import mosaic.core.image.LabelImage;
+import mosaic.core.image.RegionIterator;
 
 
 /**

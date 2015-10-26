@@ -1,4 +1,6 @@
-package mosaic.core.utils;
+package mosaic.core.image;
+
+import mosaic.core.utils.Point;
 
 /**
  * @author Stephan & Pietro Incardona

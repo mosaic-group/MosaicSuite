@@ -1,9 +1,11 @@
-package mosaic.core.utils;
+package mosaic.core.image;
 
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import mosaic.core.utils.Point;
 
 
 /**
