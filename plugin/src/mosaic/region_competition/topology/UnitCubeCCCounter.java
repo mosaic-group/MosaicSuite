@@ -5,7 +5,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import mosaic.core.image.Connectivity;
-import mosaic.core.utils.Point;
+import mosaic.core.image.Point;
 
 
 class UnitCubeCCCounter {

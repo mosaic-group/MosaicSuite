@@ -3,8 +3,6 @@ package mosaic.core.image;
 
 import java.util.Iterator;
 
-import mosaic.core.utils.Point;
-
 
 /**
  * IndexIterator is a class to interate on a Hypercube

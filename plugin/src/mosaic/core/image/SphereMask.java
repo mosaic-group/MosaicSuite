@@ -3,8 +3,6 @@ package mosaic.core.image;
 
 import java.util.Random;
 
-import mosaic.core.utils.Point;
-
 
 public class SphereMask extends Mask {
 

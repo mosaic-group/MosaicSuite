@@ -1,7 +1,5 @@
 package mosaic.core.image;
 
-import mosaic.core.utils.Point;
-
 /**
  * @author Stephan & Pietro Incardona
  *         Iterator to iterate over a (arbitrary dimensional) rectangular region

@@ -19,7 +19,6 @@ import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.core.utils.Point;
 import mosaic.region_competition.utils.IntConverter;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
@@ -34,7 +33,7 @@ public class LabelImage extends BaseImage
     public static final int BGLabel = 0;
     protected static final int ForbiddenLabel = Integer.MAX_VALUE;
     
-    protected Connectivity iConnectivityFG;
+    private Connectivity iConnectivityFG;
     private Connectivity iConnectivityBG;
     private int[] iDataLabel;
 
@@ -303,9 +302,9 @@ public class LabelImage extends BaseImage
      * Is aP surrounded by points of the given aLabel
      * @return true if yes
      */
-    public boolean isEnclosedByLabel(Point pPoint, int aLabel) {
+    public boolean isEnclosedByLabel(Point aPoint, int aLabel) {
         final int absLabel = labelToAbs(aLabel);
-        for (final Point q : iConnectivityFG.iterateNeighbors(pPoint)) {
+        for (final Point q : iConnectivityFG.iterateNeighbors(aPoint)) {
             if (getLabelAbs(q) != absLabel) {
                 return false;
             }

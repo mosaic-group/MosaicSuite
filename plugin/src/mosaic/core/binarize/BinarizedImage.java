@@ -1,7 +1,7 @@
 package mosaic.core.binarize;
 
 
-import mosaic.core.utils.Point;
+import mosaic.core.image.Point;
 
 
 /**

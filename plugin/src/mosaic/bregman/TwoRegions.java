@@ -12,11 +12,11 @@ import java.util.concurrent.CountDownLatch;
 
 import mosaic.core.detection.Particle;
 import mosaic.core.image.LabelImage;
+import mosaic.core.image.Point;
 import mosaic.core.image.RegionIterator;
 import mosaic.core.image.RegionIteratorMask;
 import mosaic.core.image.SphereMask;
 import mosaic.core.psf.GaussPSF;
-import mosaic.core.utils.Point;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 import net.imglib2.type.numeric.real.DoubleType;

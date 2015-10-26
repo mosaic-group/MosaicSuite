@@ -1,7 +1,5 @@
 package mosaic.core.image;
 
-import mosaic.core.utils.Point;
-
 /**
  * Base image class containing universal dimension-base calculations and methods.
  */

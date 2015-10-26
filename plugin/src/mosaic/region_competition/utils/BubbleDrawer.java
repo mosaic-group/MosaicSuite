@@ -2,9 +2,9 @@ package mosaic.region_competition.utils;
 
 
 import mosaic.core.image.LabelImage;
+import mosaic.core.image.Point;
 import mosaic.core.image.RegionIteratorMask;
 import mosaic.core.image.SphereMask;
-import mosaic.core.utils.Point;
 
 
 /**

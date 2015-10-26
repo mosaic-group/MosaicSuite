@@ -1,7 +1,7 @@
 package mosaic.core.binarize;
 
 
-import mosaic.core.utils.Point;
+import mosaic.core.image.Point;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.Img;
 import net.imglib2.type.numeric.IntegerType;

@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import mosaic.core.utils.Point;
-
 
 /**
  * Given a mask and an imput imae, it produce a fast jumping table to

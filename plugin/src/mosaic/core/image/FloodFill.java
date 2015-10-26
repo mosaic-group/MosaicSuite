@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.Stack;
 
 import mosaic.core.binarize.BinarizedImage;
-import mosaic.core.utils.Point;
 
 
 /**

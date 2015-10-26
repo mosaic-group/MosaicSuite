@@ -1,4 +1,4 @@
-package mosaic.core.utils;
+package mosaic.core.image;
 
 
 import java.util.Arrays;

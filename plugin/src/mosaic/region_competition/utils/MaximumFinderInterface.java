@@ -3,7 +3,7 @@ package mosaic.region_competition.utils;
 
 import java.util.List;
 
-import mosaic.core.utils.Point;
+import mosaic.core.image.Point;
 
 
 public interface MaximumFinderInterface {

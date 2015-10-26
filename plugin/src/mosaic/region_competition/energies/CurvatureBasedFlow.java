@@ -3,9 +3,9 @@ package mosaic.region_competition.energies;
 
 import ij.measure.Calibration;
 import mosaic.core.image.LabelImage;
+import mosaic.core.image.Point;
 import mosaic.core.image.RegionIteratorMask;
 import mosaic.core.image.SphereMask;
-import mosaic.core.utils.Point;
 
 
 public class CurvatureBasedFlow {

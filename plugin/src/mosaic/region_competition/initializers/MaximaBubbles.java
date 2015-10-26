@@ -11,7 +11,7 @@ import mosaic.core.binarize.BinarizedIntervalIntesityImage;
 import mosaic.core.image.FloodFill;
 import mosaic.core.image.IntensityImage;
 import mosaic.core.image.LabelImage;
-import mosaic.core.utils.Point;
+import mosaic.core.image.Point;
 import mosaic.region_competition.utils.BubbleDrawer;
 import mosaic.region_competition.utils.MaximumFinder2D;
 import mosaic.region_competition.utils.MaximumFinder3D;

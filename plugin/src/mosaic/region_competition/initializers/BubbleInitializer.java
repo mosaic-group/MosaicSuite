@@ -3,7 +3,7 @@ package mosaic.region_competition.initializers;
 
 import mosaic.core.image.IndexIterator;
 import mosaic.core.image.LabelImage;
-import mosaic.core.utils.Point;
+import mosaic.core.image.Point;
 import mosaic.region_competition.utils.BubbleDrawer;
 
 /**

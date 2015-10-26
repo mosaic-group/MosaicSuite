@@ -7,7 +7,7 @@ import java.util.Set;
 
 import mosaic.core.image.Connectivity;
 import mosaic.core.image.LabelImage;
-import mosaic.core.utils.Point;
+import mosaic.core.image.Point;
 
 
 public class TopologicalNumberImageFunction {

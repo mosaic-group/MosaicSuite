@@ -1,25 +1,20 @@
 package mosaic.core.image;
 
 
-import java.util.ArrayList;
 import java.util.Iterator;
-
-import mosaic.core.utils.Point;
 
 
 /**
  * Connectivity class, iterate across the neighborhood af a point
- *
  * @author Stephan Semmler
  */
-
-public class Connectivity implements Iterable<Point> {
+public class Connectivity {//implements Iterable<Point> {
 
     private final int VDim; // dimension
     private final int VCellDim; // connectivity
     private final int m_NeighborhoodSize; // complete neighborhood (size of unitcube)
 
-    protected final int nNeighbors; // m_NumberOfNeighbors
+    protected final int nNeighbors;
     protected final Point[] neighborsP;
     protected final int[] neighborsOfs;
 
@@ -41,13 +36,6 @@ public class Connectivity implements Iterable<Point> {
         initOffsets();
     }
 
-    private Connectivity neighborhoodConnectivity;
-
-    private void initNeighborhoodConnectivity() {
-        final int VCellDimN = (VCellDim == 0) ? 0 : VCellDim - 1;
-        neighborhoodConnectivity = new Connectivity(VDim, VCellDimN);
-    }
-
     /**
      * This is NOT the corresponding BG connectivity.
      * It is used for UnitCubeCCCounter and Topo numbers.
@@ -57,10 +45,8 @@ public class Connectivity implements Iterable<Point> {
      * @return A new created NeighborhoodConnectivity
      */
     public Connectivity getNeighborhoodConnectivity() {
-        if (neighborhoodConnectivity == null) {
-            initNeighborhoodConnectivity();
-        }
-        return neighborhoodConnectivity;
+        final int VCellDimN = (VCellDim == 0) ? 0 : VCellDim - 1;
+        return new Connectivity(VDim, VCellDimN);
     }
 
     /**
@@ -69,8 +55,6 @@ public class Connectivity implements Iterable<Point> {
      *         (d,d-1) if this is not, and (d,0) otherwise
      */
     public Connectivity getComplementaryConnectivity() {
-        // TODO zwischenspeichern
-
         if (VCellDim == VDim - 1) {
             return new Connectivity(VDim, 0);
         }
@@ -127,7 +111,6 @@ public class Connectivity implements Iterable<Point> {
      * @return true if ofs is in neighborhood
      */
     public boolean isNeighborhoodOfs(int ofs) {
-        // TODO to be tested
         for (final int idx : neighborsOfs) {
             if (ofs == idx) {
                 return true;
@@ -140,7 +123,6 @@ public class Connectivity implements Iterable<Point> {
      * Checks if two points are neighbors in this connectivity
      * Dimensions of the points have to match
      * the dimension of the connectivity (VDim)
-     *
      * @param p1 Arbitrary point
      * @param p2 Arbitrary point
      * @return true, if they are neighbors
@@ -151,7 +133,6 @@ public class Connectivity implements Iterable<Point> {
 
     /**
      * Converts an integer (midpoint-) offset to a Point offset
-     * 
      * @param offset integer value in [0, m_NeighborhoodSize]
      * @return Point/Vector representation of the offset (e.g [-1,-1] for the upper left corner in 2D)
      */
@@ -231,8 +212,8 @@ public class Connectivity implements Iterable<Point> {
      */
     private static int factorial(int n) {
         int fac = 1;
-        for (int i = 1; i <= n; i++) {
-            fac = i * fac;
+        for (int i = 2; i <= n; ++i) {
+            fac *= i;
         }
         return fac;
     }
@@ -248,12 +229,16 @@ public class Connectivity implements Iterable<Point> {
 
     /**
      * Iterates over the neighbors of the midpoint, represented as Point offsets
-     * 
      * @return Neighbors as Point offsets
      */
-    @Override
-    public Iterator<Point> iterator() {
-        return new OfsIterator();
+    public Iterable<Point> iterator() {
+        return new Iterable<Point>() {
+
+            @Override
+            public Iterator<Point> iterator() {
+                return new OfsIterator();
+            }
+        };
     }
 
     public Iterable<Integer> itOfsInt() {
@@ -312,13 +297,11 @@ public class Connectivity implements Iterable<Point> {
         protected OfsIteratorInt() {}
         private int cursor = 0;
 
-        // @Override
         @Override
         public boolean hasNext() {
             return (cursor < nNeighbors);
         }
 
-        // @Override
         @Override
         public Integer next() {
             final int result = neighborsOfs[cursor];
@@ -326,7 +309,6 @@ public class Connectivity implements Iterable<Point> {
             return result;
         }
 
-        // @Override
         @Override
         public void remove() {
             // do nothing
@@ -353,49 +335,4 @@ public class Connectivity implements Iterable<Point> {
             return point.add(ofs);
         }
     }
-
-    private final static ArrayList<Connectivity[]> connectivities = new ArrayList<Connectivity[]>();
-
-    /**
-     * @param VDim
-     * @param VCellDim
-     * @return Singleton connectivity of type (VDim, VCellDim)
-     */
-    private static Connectivity getConnectivity(int VDim, int VCellDim) {
-        // ensure there is place for connectivities of dimension VDim
-        connectivities.ensureCapacity(VDim + 1);
-
-        int size = connectivities.size();
-        while (size <= VDim) {
-            size++;
-            connectivities.add(new Connectivity[size]);
-        }
-
-        final Connectivity[] conns = connectivities.get(VDim);
-        Connectivity conn = conns[VCellDim];
-
-        if (conn == null) {
-            conn = new Connectivity(VDim, VCellDim);
-            conns[VCellDim] = conn;
-        }
-        return conn;
-    }
-
-    public static boolean test() {
-        Connectivity c;
-        c = Connectivity.getConnectivity(1, 1);
-        c = Connectivity.getConnectivity(3, 2);
-        c = Connectivity.getConnectivity(3, 2);
-        c = Connectivity.getConnectivity(3, 1);
-        c = Connectivity.getConnectivity(3, 0);
-        c = Connectivity.getConnectivity(2, 2);
-        c = Connectivity.getConnectivity(2, 2);
-        c = Connectivity.getConnectivity(2, 1);
-        c = Connectivity.getConnectivity(0, 0);
-
-        System.out.println(c);
-
-        return true;
-    }
-
 }

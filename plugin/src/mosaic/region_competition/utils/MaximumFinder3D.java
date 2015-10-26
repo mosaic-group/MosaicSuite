@@ -13,7 +13,7 @@ import ij.plugin.filter.Analyzer;
 import ij.process.ImageProcessor;
 import mosaic.core.image.Connectivity;
 import mosaic.core.image.IndexIterator;
-import mosaic.core.utils.Point;
+import mosaic.core.image.Point;
 
 
 /**

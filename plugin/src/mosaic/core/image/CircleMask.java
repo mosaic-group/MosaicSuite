@@ -1,7 +1,5 @@
 package mosaic.core.image;
 
-import mosaic.core.utils.Point;
-
 public class CircleMask extends Mask {
 
     private final int dim;
@@ -51,7 +49,7 @@ public class CircleMask extends Mask {
     }
 
     private boolean isBoundary(Point ps, Connectivity c) {
-        for (Point p : c) {
+        for (Point p : c.iterator()) {
             p = p.add(ps);
             final float vHypEllipse = rHypEllipse(p.iCoords);
             if (vHypEllipse >= 1.0f) {
