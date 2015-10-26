@@ -11,20 +11,16 @@ import java.util.List;
  *
  * @author Pietro Incardona
  */
-
 class IntervalsListInteger {
 
     private final List<ThresholdIntervalInteger> m_Thresholds;
-    private int m_NThresholds; // to not call size() of the vector at each evaluation.
 
     public IntervalsListInteger() {
-        m_NThresholds = 0;
         m_Thresholds = new ArrayList<ThresholdIntervalInteger>();
     }
 
     public void AddThresholdBetween(int lower, int upper) {
         m_Thresholds.add(new ThresholdIntervalInteger(lower, upper));
-        m_NThresholds += 1;
     }
     
     public void AddOneValThreshold(int aTresholdValue) {
@@ -32,7 +28,7 @@ class IntervalsListInteger {
     }
 
     public boolean Evaluate(int value) {
-        for (int vI = 0; vI < m_NThresholds; vI++) {
+        for (int vI = m_Thresholds.size() - 1; vI >= 0; --vI) {
             if (m_Thresholds.get(vI).lower <= value && value <= m_Thresholds.get(vI).higher) {
                 return true;
             }
@@ -41,7 +37,6 @@ class IntervalsListInteger {
     }
 
     private class ThresholdIntervalInteger {
-        
         public final int lower;
         public final int higher;
         
@@ -51,4 +46,3 @@ class IntervalsListInteger {
         }
     }
 }
-

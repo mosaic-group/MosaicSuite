@@ -11,24 +11,20 @@ import java.util.List;
  *
  * @author Pietro Incardona
  */
-
 class IntervalsListDouble {
 
     private final List<ThresholdIntervalDouble> m_Thresholds;
-    private int m_NThresholds; // to not call size() of the vector at each evaluation.
 
     public IntervalsListDouble() {
-        m_NThresholds = 0;
         m_Thresholds = new ArrayList<ThresholdIntervalDouble>();
     }
 
     public void AddThresholdBetween(double lower, double upper) {
         m_Thresholds.add(new ThresholdIntervalDouble(lower, upper));
-        m_NThresholds += 1;
     }
 
     public boolean Evaluate(double value) {
-        for (int vI = 0; vI < m_NThresholds; vI++) {
+        for (int vI = m_Thresholds.size() - 1; vI >= 0; --vI) {
             if (m_Thresholds.get(vI).lower <= value && value <= m_Thresholds.get(vI).higher) {
                 return true;
             }
@@ -37,12 +33,10 @@ class IntervalsListDouble {
     }
 
     public void clearThresholds() {
-        m_NThresholds = 0;
         m_Thresholds.clear();
     }
     
     private class ThresholdIntervalDouble {
-        
         public final double lower;
         public final double higher;
         
@@ -52,4 +46,3 @@ class IntervalsListDouble {
         }
     }
 }
-
