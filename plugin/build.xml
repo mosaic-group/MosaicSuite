@@ -1,4 +1,4 @@
-<project name="MosaicToolbox" default="" basedir=".">
+<project name="MosaicSuite" default="" basedir=".">
 
     <description>
         Mosaic Toolbox build file
