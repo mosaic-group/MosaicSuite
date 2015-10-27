@@ -7,8 +7,19 @@ import mosaic.utils.math.MathOps;
 
 
 /**
- * Connectivity class, iterate across the neighborhood af a point
+ * Connectivity class
  * @author Stephan Semmler
+ * 
+ * It provides "offset Points" or "index" of neighbors connectivity information.
+ *  
+ * For example 2D 4-connectivity would be:
+ * Indexes:  Point offsets:
+ * 0 1 2     -1,-1   0,-1   1,-1
+ * 3 4 5     -1, 0   0, 0   1, 0
+ * 6 7 8     -1, 1   0, 1   1, 1
+ * 
+ * Neighbor indexes: 1 3 5 7
+ * Neighbor point offsets: 0,-1  -1,0  1,0  0,1
  */
 public class Connectivity {
     // Input parameters
