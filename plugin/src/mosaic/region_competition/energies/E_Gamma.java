@@ -33,8 +33,8 @@ public class E_Gamma extends InternalEnergy {
         }
 
         // TODO is this true? conn.getNNeighbors
-        final int nOtherNeighbors = conn.getNNeighbors() - nSameNeighbors;
-        final double dGamma = (nOtherNeighbors - nSameNeighbors) / (double) conn.GetNeighborhoodSize();
+        final int nOtherNeighbors = conn.getNumOfNeighbors() - nSameNeighbors;
+        final double dGamma = (nOtherNeighbors - nSameNeighbors) / (double) conn.getNeighborhoodSize();
         return new EnergyResult(dGamma, false);
     }
 

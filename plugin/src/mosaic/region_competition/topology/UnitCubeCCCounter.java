@@ -20,7 +20,7 @@ class UnitCubeCCCounter {
 
     UnitCubeCCCounter(Connectivity TConnectivity) {
         this.TConnectivity = TConnectivity;
-        this.TNeighborhoodConnectivity = TConnectivity.getNeighborhoodConnectivity();
+        this.TNeighborhoodConnectivity = TConnectivity.getIncreasedConnectivity();
 
         m_ConnectivityTest = CreateConnectivityTest(TConnectivity);
 
@@ -43,18 +43,18 @@ class UnitCubeCCCounter {
      *         if offset i is in neighborhood for <tt>conn</tt>
      */
     private static boolean[] CreateConnectivityTest(Connectivity conn) {
-        final int neighborhoodSize = conn.GetNeighborhoodSize();
+        final int neighborhoodSize = conn.getNeighborhoodSize();
         final boolean[] result = new boolean[neighborhoodSize];
 
         for (int i = 0; i < neighborhoodSize; i++) {
-            result[i] = conn.isNeighborhoodOfs(i);
+            result[i] = conn.isNeighbor(i);
         }
         return result;
     }
 
     int connectedComponents() {
 
-        final int neighborhoodSize = TConnectivity.GetNeighborhoodSize();
+        final int neighborhoodSize = TConnectivity.getNeighborhoodSize();
         int seed = 0;
         // Find first seed
         while (seed != neighborhoodSize && (m_Image[seed] == 0 || !m_ConnectivityTest[seed])) {
@@ -109,20 +109,20 @@ class UnitCubeCCCounter {
      * @return
      */
     private static boolean[][] initUnitCubeNeighbors(Connectivity connectivity, Connectivity neighborhoodConnectivity) {
-        final int neighborhoodSize = connectivity.GetNeighborhoodSize();
+        final int neighborhoodSize = connectivity.getNeighborhoodSize();
         final boolean neighborsInUnitCube[][] = new boolean[neighborhoodSize][neighborhoodSize];
 
-        final int dim = connectivity.getDim();
+        final int dim = connectivity.getNumOfDimensions();
 
         for (int neighbor1 = 0; neighbor1 < neighborhoodSize; neighbor1++) {
-            final Point p1 = connectivity.ofsIndexToPoint(neighbor1);
+            final Point p1 = connectivity.toPoint(neighbor1);
 
-            if (neighborhoodConnectivity.isNeighborhoodOfs(p1)) {
+            if (neighborhoodConnectivity.isNeighbor(p1)) {
                 for (int neighbor2 = 0; neighbor2 < neighborhoodSize; neighbor2++) {
-                    final Point p2 = connectivity.ofsIndexToPoint(neighbor2);
+                    final Point p2 = connectivity.toPoint(neighbor2);
 
                     final Point sum = p1.add(p2);
-                    final int sumOffset = connectivity.pointToOffset(sum);
+                    final int sumOffset = connectivity.toIndex(sum);
 
                     boolean inUnitCube = true;
                     for (int d = 0; d < dim && inUnitCube; d++) {
@@ -131,7 +131,7 @@ class UnitCubeCCCounter {
                         }
                     }
 
-                    if (inUnitCube && connectivity.areNeighbors(p1, sum)) {
+                    if (inUnitCube && connectivity.isNeighbor(p1.sub(sum))) {
                         neighborsInUnitCube[neighbor1][sumOffset] = true;
                     }
                 }

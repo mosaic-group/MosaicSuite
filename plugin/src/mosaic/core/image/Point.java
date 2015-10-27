@@ -137,9 +137,24 @@ public class Point {
             iCoords[i] = 0;
         }
     }
+    
+    /**
+     * Counts the number of zeros in the coordinates of a Point
+     * @param p A point representing an offset to the midpoint
+     * @return number of zeros
+     */
+    public int numOfZerosInCoordinates() {
+        int count = 0;
+        for (final int i : iCoords) {
+            if (i == 0) {
+                ++count;
+            }
+        }
+        return count;
+    }
 
     /**
-     * Get the point coordiantes as a String
+     * Get the point coordinates as a String
      * @return string
      */
     @Override

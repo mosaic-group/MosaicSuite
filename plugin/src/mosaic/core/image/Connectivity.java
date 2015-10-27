@@ -3,103 +3,75 @@ package mosaic.core.image;
 
 import java.util.Iterator;
 
+import mosaic.utils.math.MathOps;
+
 
 /**
  * Connectivity class, iterate across the neighborhood af a point
  * @author Stephan Semmler
  */
-public class Connectivity {//implements Iterable<Point> {
-
-    private final int VDim; // dimension
-    private final int VCellDim; // connectivity
-    private final int m_NeighborhoodSize; // complete neighborhood (size of unitcube)
-
-    protected final int nNeighbors;
-    protected final Point[] neighborsP;
-    protected final int[] neighborsOfs;
+public class Connectivity {
+    // Input parameters
+    private final int iNumOfDimensions;
+    private final int iConnectivity;
+    
+    // Internal data
+    private final int iNeighborhoodSize;
+    protected final int iNumOfNeighbors;
+    protected final Point[] iPointOffsetsNeighbors;
+    protected final int[] iIndexedNeighbors;
 
     /**
-     * @param VDim Cell dimension 2 for 2D, 3 for 3D , ..... and so on
-     * @param VCellDim type of connectyvity 2D, (1 is a 4 way 2, 8 way)
-     *            3D, (1, 8 way, 2 18 way, 3 26 way)
+     * @param aNumOfDimensions 2 for 2D, 3 for 3D, ...
+     * @param aConnectivity type of connectivity in range [0, aNumOfDimensions - 1].
+     *                      For aNumDimensions-1 it has minimum available connectivity, when number is decreased
+     *                      connectivity is "one dimension more lax" and with 0 it reaches maximum possible connectivity.
+     *                      Example: for 2D - 1 is a 4-way; 0 is a 8-way connectivity
+     *                               for 3D - 2 is a 6-way; 1 is a 18-way; 3  is a 26-way connectivity
      */
-    public Connectivity(int VDim, int VCellDim) {
-        this.VDim = VDim;
-        this.VCellDim = VCellDim;
+    public Connectivity(final int aNumOfDimensions, final int aConnectivity) {
+        iNumOfDimensions = aNumOfDimensions;
+        iConnectivity = aConnectivity;
 
-        m_NeighborhoodSize = (int) Math.pow(3, VDim);
-        nNeighbors = ComputeNumberOfNeighbors();
+        iNeighborhoodSize = (int) Math.pow(3, aNumOfDimensions);
+        iNumOfNeighbors = computeNumberOfNeighbors();
 
-        neighborsP = new Point[nNeighbors];
-        neighborsOfs = new int[nNeighbors];
+        iPointOffsetsNeighbors = new Point[iNumOfNeighbors];
+        iIndexedNeighbors = new int[iNumOfNeighbors];
 
         initOffsets();
     }
 
     /**
+     * @return Corresponding foreground/background connectivity
+     *         such they are compatible (Jordan's theorem)
+     */
+    public Connectivity getComplementaryConnectivity() {
+        if (iConnectivity == iNumOfDimensions - 1) {
+            return new Connectivity(iNumOfDimensions, 0);
+        }
+        return new Connectivity(iNumOfDimensions, iNumOfDimensions - 1);
+    }
+
+    /**
      * This is NOT the corresponding BG connectivity.
-     * It is used for UnitCubeCCCounter and Topo numbers.
      * It returns a connectivity that's "one dimension more lax",
      * that is, reaches minimal more neighbors than THIS connectivity
      * 
      * @return A new created NeighborhoodConnectivity
      */
-    public Connectivity getNeighborhoodConnectivity() {
-        final int VCellDimN = (VCellDim == 0) ? 0 : VCellDim - 1;
-        return new Connectivity(VDim, VCellDimN);
+    public Connectivity getIncreasedConnectivity() {
+        final int newConnectivity = (iConnectivity == 0) ? 0 : iConnectivity - 1;
+        return new Connectivity(iNumOfDimensions, newConnectivity);
     }
 
     /**
-     * @return Corresponding foreground/background connectivity
-     *         such they are compatible (Jordan's theorem) <br>
-     *         (d,d-1) if this is not, and (d,0) otherwise
+     * @param aOffset - Point representing offset to midpoint
+     * @return true if aOffset is in neighborhood
      */
-    public Connectivity getComplementaryConnectivity() {
-        if (VCellDim == VDim - 1) {
-            return new Connectivity(VDim, 0);
-        }
-        else {
-            return new Connectivity(VDim, VDim - 1);
-        }
-    }
-
-    /**
-     * @return Number of neighbors (Number of points connected to the midpoint)
-     */
-    private int ComputeNumberOfNeighbors() {
-        int numberOfNeighbors = 0;
-        for (int i = VCellDim; i <= VDim - 1; ++i) {
-            numberOfNeighbors += factorial(VDim) / (factorial(VDim - i) * factorial(i)) * (1 << (VDim - i));
-        }
-        return numberOfNeighbors;
-    }
-
-    /**
-     * Calculate the offsets of neighbors for the connectivity specified in the constructor
-     * and saves them in the form of Point offsets (neighborsP) and integer offsets (neighborsOfs)
-     */
-    private void initOffsets() {
-        int currentNbNeighbors = 0;
-
-        for (int i = 0; i < m_NeighborhoodSize; ++i) {
-            final Point p = ofsIndexToPoint(i);
-            final int numberOfZeros = countZeros(p);
-
-            if (numberOfZeros != VDim && numberOfZeros >= VCellDim) {
-                neighborsP[currentNbNeighbors] = p;
-                neighborsOfs[currentNbNeighbors] = i;
-                currentNbNeighbors++;
-            }
-        }
-    }
-
-    /**
-     * @param ofs Point representing offset to midpoint
-     * @return true if ofs is in neighborhood
-     */
-    public boolean isNeighborhoodOfs(Point ofs) {
-        for (final Point p : neighborsP) {
-            if (ofs.equals(p)) {
+    public boolean isNeighbor(Point aOffset) {
+        for (final Point p : iPointOffsetsNeighbors) {
+            if (aOffset.equals(p)) {
                 return true;
             }
         }
@@ -107,12 +79,12 @@ public class Connectivity {//implements Iterable<Point> {
     }
 
     /**
-     * @param ofs Offset represented as integer offset (in the context of a unit cube)
-     * @return true if ofs is in neighborhood
+     * @param aIndex - index of point in unit cube
+     * @return true if aIndex is in neighborhood
      */
-    public boolean isNeighborhoodOfs(int ofs) {
-        for (final int idx : neighborsOfs) {
-            if (ofs == idx) {
+    public boolean isNeighbor(int aIndex) {
+        for (final int idx : iIndexedNeighbors) {
+            if (aIndex == idx) {
                 return true;
             }
         }
@@ -120,112 +92,100 @@ public class Connectivity {//implements Iterable<Point> {
     }
 
     /**
-     * Checks if two points are neighbors in this connectivity
-     * Dimensions of the points have to match
-     * the dimension of the connectivity (VDim)
-     * @param p1 Arbitrary point
-     * @param p2 Arbitrary point
-     * @return true, if they are neighbors
+     * Converts an index to a Point offset
+     * @param aIndex integer value in [0, iNeighborhoodSize - 1]
+     * @return Point representation of the offset (e.g [-1,-1] for the upper left corner in 2D)
      */
-    public boolean areNeighbors(Point p1, Point p2) {
-        return isNeighborhoodOfs(p1.sub(p2));
-    }
-
-    /**
-     * Converts an integer (midpoint-) offset to a Point offset
-     * @param offset integer value in [0, m_NeighborhoodSize]
-     * @return Point/Vector representation of the offset (e.g [-1,-1] for the upper left corner in 2D)
-     */
-    public Point ofsIndexToPoint(int offset) {
-        int remainder = offset;
-        final int x[] = new int[VDim];
-
-        for (int i = 0; i < this.VDim; ++i) {
-            x[i] = remainder % 3; // x for this dimension
-            remainder -= x[i]; //
-            remainder /= 3; // get rid of this dimension
-            x[i]--; // x would have range [0, 1, 2]
-            // but we want ofs from midpoint [-1,0,1]
+    public Point toPoint(int aIndex) {
+        int remainder = aIndex;
+        final int[] x = new int[iNumOfDimensions];
+    
+        for (int i = 0; i < iNumOfDimensions; ++i) {
+            // x for this dimension
+            x[i] = remainder % 3;
+            // x would have range [0, 1, 2] but we want offsets from midpoint [-1,0,1]
+            x[i]--;
+            // get rid of this dimension
+            remainder /= 3;
         }
+        
         return new Point(x);
     }
 
     /**
-     * Converts an a Point offset to an integer (midpoint-) offset <br>
-     * Inverse to ofsIndexToPoint()
+     * Converts an a Point offset to an index in unit cube
      * 
      * @param p Point offset
      * @return Integer offset
      */
-    public int pointToOffset(Point p) {
+    public int toIndex(Point aOffset) {
         int offset = 0;
         int factor = 1;
-        for (int i = 0; i < VDim; i++) {
-            offset += factor * (p.iCoords[i] + 1);
+        for (int i = 0; i < iNumOfDimensions; ++i) {
+            // +1 since we want to move offsets from [-1, 0, 1] to [0, 1, 2]
+            offset += factor * (aOffset.iCoords[i] + 1);
             factor *= 3;
         }
         return offset;
     }
 
     /**
-     * @return Number of elements in the unit cube
+     * @return Number of elements in the unit cube (including middle point)
      */
-    public int GetNeighborhoodSize() {
-        return m_NeighborhoodSize;
+    public int getNeighborhoodSize() {
+        return iNeighborhoodSize;
     }
 
     /**
      * @return The number of actual neighbors of the connectivity
      */
-    public int getNNeighbors() {
-        return nNeighbors;
+    public int getNumOfNeighbors() {
+        return iNumOfNeighbors;
     }
 
     /**
-     * @return Dimension of the unitcube
+     * @return Dimension of the connectivity
      */
-    public int getDim() {
-        return VDim;
-    }
-
-    /**
-     * Counts the number of zeros in the coordinates of a Point
-     * 
-     * @param p A point representing an offset to the midpoint
-     * @return number of zeros
-     */
-    private static int countZeros(Point p) {
-        int count = 0;
-        for (final int i : p.iCoords) {
-            if (i == 0) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    /**
-     * computes the factorial of n
-     * 
-     * @param n
-     * @return n!
-     */
-    private static int factorial(int n) {
-        int fac = 1;
-        for (int i = 2; i <= n; ++i) {
-            fac *= i;
-        }
-        return fac;
+    public int getNumOfDimensions() {
+        return iNumOfDimensions;
     }
 
     @Override
     public String toString() {
-        String result = "Connectivity (" + VDim + ", " + VCellDim + ")";
-        result = result + " = " + nNeighbors + "-Connectivity";
-        return result;
+        return "Connectivity (" + iNumOfDimensions + "D, " + iNumOfNeighbors + "-connectivity)";
     }
 
     //////////////////// Iterators /////////////////////////////
+
+    /**
+     * @return Number of neighbors (Number of points connected to the midpoint)
+     */
+    private int computeNumberOfNeighbors() {
+        int numberOfNeighbors = 0;
+        for (int i = iConnectivity; i <= iNumOfDimensions - 1; ++i) {
+            numberOfNeighbors += MathOps.factorial(iNumOfDimensions) * (1 << (iNumOfDimensions - i)) / 
+                                (MathOps.factorial(iNumOfDimensions - i) * MathOps.factorial(i));
+        }
+        return numberOfNeighbors;
+    }
+
+    /**
+     * Calculate the offsets of neighbors for the connectivity specified in the constructor
+     */
+    private void initOffsets() {
+        int currentNbNeighbors = 0;
+    
+        for (int i = 0; i < iNeighborhoodSize; ++i) {
+            final Point p = toPoint(i);
+            final int numberOfZeros = p.numOfZerosInCoordinates();
+    
+            if (numberOfZeros != iNumOfDimensions && numberOfZeros >= iConnectivity) {
+                iPointOffsetsNeighbors[currentNbNeighbors] = p;
+                iIndexedNeighbors[currentNbNeighbors] = i;
+                ++currentNbNeighbors;
+            }
+        }
+    }
 
     /**
      * Iterates over the neighbors of the midpoint, represented as Point offsets
@@ -240,29 +200,7 @@ public class Connectivity {//implements Iterable<Point> {
             }
         };
     }
-
-    public Iterable<Integer> itOfsInt() {
-        return new Iterable<Integer>() {
-
-            @Override
-            public Iterator<Integer> iterator() {
-                return new OfsIteratorInt();
-            }
-        };
-    }
-
-    /**
-     * Iterates over the neighbors of Point p in the context of this connectivity
-     */
-    public Iterable<Point> iterateNeighbors(final Point p) {
-        return new Iterable<Point>() {
-
-            @Override
-            public Iterator<Point> iterator() {
-                return new NeighborIterator(p);
-            }
-        };
-    }
+    
 
     /**
      * Iterator class to iterate over the neighborhood,
@@ -277,12 +215,12 @@ public class Connectivity {//implements Iterable<Point> {
 
         @Override
         public boolean hasNext() {
-            return (cursor < nNeighbors);
+            return (cursor < iNumOfNeighbors);
         }
 
         @Override
         public Point next() {
-            final Point result = neighborsP[cursor];
+            final Point result = iPointOffsetsNeighbors[cursor];
             cursor++;
             return result;
         }
@@ -292,29 +230,7 @@ public class Connectivity {//implements Iterable<Point> {
             // do nothing
         }
     }
-
-    private class OfsIteratorInt implements Iterator<Integer> {
-        protected OfsIteratorInt() {}
-        private int cursor = 0;
-
-        @Override
-        public boolean hasNext() {
-            return (cursor < nNeighbors);
-        }
-
-        @Override
-        public Integer next() {
-            final int result = neighborsOfs[cursor];
-            cursor++;
-            return result;
-        }
-
-        @Override
-        public void remove() {
-            // do nothing
-        }
-    }
-
+    
     /**
      * Iterator class to iterate through neighbors of a point
      */
@@ -333,6 +249,52 @@ public class Connectivity {//implements Iterable<Point> {
         public Point next() {
             final Point ofs = super.next();
             return point.add(ofs);
+        }
+    }
+    
+    /**
+     * Iterates over the neighbors of Point p in the context of this connectivity
+     */
+    public Iterable<Point> iterateNeighbors(final Point p) {
+        return new Iterable<Point>() {
+
+            @Override
+            public Iterator<Point> iterator() {
+                return new NeighborIterator(p);
+            }
+        };
+    }
+    
+
+    public Iterable<Integer> itOfsInt() {
+        return new Iterable<Integer>() {
+
+            @Override
+            public Iterator<Integer> iterator() {
+                return new OfsIteratorInt();
+            }
+        };
+    }
+
+    private class OfsIteratorInt implements Iterator<Integer> {
+        protected OfsIteratorInt() {}
+        private int cursor = 0;
+
+        @Override
+        public boolean hasNext() {
+            return (cursor < iNumOfNeighbors);
+        }
+
+        @Override
+        public Integer next() {
+            final int result = iIndexedNeighbors[cursor];
+            cursor++;
+            return result;
+        }
+
+        @Override
+        public void remove() {
+            // do nothing
         }
     }
 }

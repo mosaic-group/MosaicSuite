@@ -38,7 +38,7 @@ public class TopologicalNumberImageFunction {
         this.labelImage = aLabelImage;
         this.dimension = aLabelImage.getNumOfDimensions();
 
-        imageSize = TFGConnectivity.GetNeighborhoodSize();
+        imageSize = TFGConnectivity.getNeighborhoodSize();
         m_DataSubImage = new int[imageSize];
 
         m_SubImage = new char[imageSize];
@@ -55,7 +55,7 @@ public class TopologicalNumberImageFunction {
 
         // get the ofs for the whole neighborhood.
         for (int i = 0; i < imageSize; ++i) {
-            m_Offsets[i] = TFGConnectivity.ofsIndexToPoint(i);
+            m_Offsets[i] = TFGConnectivity.toPoint(i);
         }
     }
 
