@@ -5,7 +5,7 @@ package mosaic.core.image;
  */
 public class BaseImage {
     
-    public IndexIterator iIterator;
+    protected IndexIterator iIterator;
     private final int[] iDimensions;
     
     /**
@@ -43,7 +43,7 @@ public class BaseImage {
      * @return true if aPoint lays outside dimensions of IntensityImage
      */
     public boolean isOutOfBound(Integer aIndex) {
-        if (aIndex < 0 && aIndex >= iIterator.getSize()) return true;
+        if (aIndex < 0 || aIndex >= getSize()) return true;
         return false;
     }
 
@@ -96,6 +96,14 @@ public class BaseImage {
      */
     public int getSize() {
         return iIterator.getSize();
+    }
+    
+    public int pointToIndex(Point aPoint) {
+        return iIterator.pointToIndex(aPoint);
+    }
+    
+    public Point indexToPoint(int aIndex) {
+        return iIterator.indexToPoint(aIndex);
     }
     
     @Override

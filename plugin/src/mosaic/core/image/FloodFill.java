@@ -44,7 +44,7 @@ public class FloodFill {
     }
     
     public FloodFill(LabelImage img, BinarizedImage foo, Point seed) {
-        stackIdx.add(img.iIterator.pointToIndex(seed));
+        stackIdx.add(img.pointToIndex(seed));
 
         while (!stackIdx.isEmpty()) {
             final Integer p = stackIdx.pop();

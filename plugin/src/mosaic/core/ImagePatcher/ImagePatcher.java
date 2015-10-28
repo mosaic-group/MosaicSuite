@@ -69,7 +69,7 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
                 // l is an old label
                 final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(labelImg);
                 aMultiThsFunctionPtr.AddThresholdBetween(l, l);
-                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, labelImg.iIterator.indexToPoint(i));
+                final FloodFill ff = new FloodFill(connFG, aMultiThsFunctionPtr, labelImg.indexToPoint(i));
 
                 // find a new label
                 while (oldLabels.contains(newLabel)) {

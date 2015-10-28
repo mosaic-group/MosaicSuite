@@ -67,7 +67,7 @@ public class IntensityImage extends BaseImage {
      * returns the image data of the originalIP at Point p
      */
     public float get(Point p) {
-        return get(iIterator.pointToIndex(p));
+        return get(pointToIndex(p));
     }
     
     /**
@@ -76,7 +76,7 @@ public class IntensityImage extends BaseImage {
     public float getSafe(Point aPoint) {
         if (isOutOfBound(aPoint)) return 0.0f;
 
-        return get(iIterator.pointToIndex(aPoint));
+        return get(pointToIndex(aPoint));
     }
 
     /**

@@ -125,7 +125,7 @@ public class LabelImage extends BaseImage
         iNeighbourIndexes = new int[iConnectivityFG.getNumOfNeighbors()];
         int idx = 0;
         for (Point p : iConnectivityFG.iterator()) {
-            iNeighbourIndexes[idx++] = iIterator.pointToIndex(p);
+            iNeighbourIndexes[idx++] = pointToIndex(p);
         }
     }
 
@@ -158,7 +158,7 @@ public class LabelImage extends BaseImage
      * Sets the LabelImage at given aPoint to aLabel
      */
     public void setLabel(Point aPoint, int aLabel) {
-        iDataLabel[iIterator.pointToIndex(aPoint)] = aLabel;
+        iDataLabel[pointToIndex(aPoint)] = aLabel;
     }
     
     /**
@@ -172,7 +172,7 @@ public class LabelImage extends BaseImage
      * Returns the label at the position aIndex
      */
     public int getLabel(Point aPoint) {
-        return iDataLabel[iIterator.pointToIndex(aPoint)];
+        return iDataLabel[pointToIndex(aPoint)];
     }
     
     /**
@@ -282,7 +282,8 @@ public class LabelImage extends BaseImage
                 // l is an old label
                 final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
                 aMultiThsFunctionPtr.AddThresholdBetween(label, label);
-                final FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, iIterator.indexToPoint(idx));
+                System.out.println(indexToPoint(idx) + " " + idx + " " + super.toString());
+                final FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, indexToPoint(idx));
     
                 // find a new label
                 while (oldLabels.contains(newLabel)) {
@@ -315,7 +316,7 @@ public class LabelImage extends BaseImage
      * @return true if yes
      */
     public boolean isEnclosedByLabel(Point aPoint, int aLabel) {
-        return isEnclosedByLabel(iIterator.pointToIndex(aPoint), aLabel);
+        return isEnclosedByLabel(pointToIndex(aPoint), aLabel);
     }
 
     /**
@@ -337,7 +338,7 @@ public class LabelImage extends BaseImage
      */
     public void initBoundary() {
         for (final int idx : iIterator.getIndexIterable()) {
-            final Point p = iIterator.indexToPoint(idx);
+            final Point p = indexToPoint(idx);
             final int xs[] = p.iCoords;
             for (int d = 0; d < getNumOfDimensions(); d++) {
                 final int x = xs[d];
@@ -358,7 +359,7 @@ public class LabelImage extends BaseImage
         for (final int i : iIterator.getIndexIterable()) {
             final int label = getLabelAbs(i);
             if (!isSpecialLabel(label)) {
-                final Point p = iIterator.indexToPoint(i);
+                final Point p = indexToPoint(i);
                 for (final Integer neighbor : iterateNeighbours(p)) {
                     final int neighborLabel = getLabelAbs(neighbor);
                     if (neighborLabel != label) {
@@ -383,7 +384,7 @@ public class LabelImage extends BaseImage
 
             @Override
             public Iterator<Integer> iterator() {
-                return new NeighbourConnIterator(iIterator.pointToIndex(aPoint));
+                return new NeighbourConnIterator(pointToIndex(aPoint));
             }
         };
     }

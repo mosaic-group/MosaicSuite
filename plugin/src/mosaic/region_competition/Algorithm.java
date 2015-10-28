@@ -281,7 +281,7 @@ public class Algorithm {
                 q.candidateLabel = BGLabel;
                 q.intensity = iIntensityImage.get(p);
                 iLabelImage.setLabel(p, iLabelImage.labelToNeg(aAbsLabel));
-                iContourParticles.put(iLabelImage.iIterator.indexToPoint(p), q);
+                iContourParticles.put(iLabelImage.indexToPoint(p), q);
             }
         }
     }
@@ -293,7 +293,7 @@ public class Algorithm {
     private void removeEnclosedNeighboursFromContour(int aLabelAbs, Point aPoint) {
         for (final int qIndex : iLabelImage.iterateNeighbours(aPoint)) {
             if (iLabelImage.getLabel(qIndex) == iLabelImage.labelToNeg(aLabelAbs) && iLabelImage.isEnclosedByLabel(qIndex, aLabelAbs)) {
-                iContourParticles.remove(iLabelImage.iIterator.indexToPoint(qIndex));
+                iContourParticles.remove(iLabelImage.indexToPoint(qIndex));
                 iLabelImage.setLabel(qIndex, aLabelAbs);
             }
         }
@@ -497,7 +497,7 @@ public class Algorithm {
             // the visited labels statistics will be removed later.
             oldLabels.add(iLabelImage.labelToAbs(oldLabel));
             if (iLabelImage.isContourLabel(oldLabel)) {
-                oldContours.add(iLabelImage.iIterator.indexToPoint(currentPoint));
+                oldContours.add(iLabelImage.indexToPoint(currentPoint));
             }
 
             final float val = iIntensityImage.get(currentPoint);
@@ -794,7 +794,7 @@ public class Algorithm {
     private void registerNeighbourSeedsWithSameLabel(Set<Seed> aSeeds, Point aPoint, int aLabel) {
         for (final Integer neighbour : iLabelImage.iterateNeighbours(aPoint)) {
             final int label = iLabelImage.getLabelAbs(neighbour);
-            final Point neighbourPoint = iLabelImage.iIterator.indexToPoint(neighbour);
+            final Point neighbourPoint = iLabelImage.indexToPoint(neighbour);
             
             if (label == aLabel) {
                 aSeeds.add(new Seed(neighbourPoint, label));
@@ -854,7 +854,7 @@ public class Algorithm {
                     // Skip forbidden and same region labels
                     continue;
                 }
-                final Point neighbourPoint = iLabelImage.iIterator.indexToPoint(neighbor);
+                final Point neighbourPoint = iLabelImage.indexToPoint(neighbor);
                 contour.getDaughterList().add(neighbourPoint);
                 
                 final ContourParticle contourCandidate = iCandidates.get(neighbourPoint);
