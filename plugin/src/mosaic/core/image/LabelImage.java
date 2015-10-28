@@ -2,6 +2,7 @@ package mosaic.core.image;
 
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,10 +34,12 @@ public class LabelImage extends BaseImage
     public static final int BGLabel = 0;
     protected static final int ForbiddenLabel = Integer.MAX_VALUE;
     
-    private Connectivity iConnectivityFG;
-    private Connectivity iConnectivityBG;
     private int[] iDataLabel;
 
+    private Connectivity iConnectivityFG;
+    private Connectivity iConnectivityBG;
+    protected int[] iNeighbourIndexes;
+    
     /**
      * Create a label image from an ImgLib2
      */
@@ -118,6 +121,12 @@ public class LabelImage extends BaseImage
         int numOfDimensions = getNumOfDimensions();
         iConnectivityFG = new Connectivity(numOfDimensions, numOfDimensions - 1);
         iConnectivityBG = iConnectivityFG.getComplementaryConnectivity();
+        
+        iNeighbourIndexes = new int[iConnectivityFG.getNumOfNeighbors()];
+        int idx = 0;
+        for (Point p : iConnectivityFG.iterator()) {
+            iNeighbourIndexes[idx++] = iIterator.pointToIndex(p);
+        }
     }
 
     /**
@@ -197,6 +206,9 @@ public class LabelImage extends BaseImage
         return true;
     }
 
+    /**
+     * @return true if label is Special (background, forbidden)
+     */
     public boolean isSpecialLabel(int aLabel) {
         if (aLabel == BGLabel || aLabel == ForbiddenLabel) {
             return true;
@@ -270,7 +282,7 @@ public class LabelImage extends BaseImage
                 // l is an old label
                 final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
                 aMultiThsFunctionPtr.AddThresholdBetween(label, label);
-                final FloodFill ff = new FloodFill(iConnectivityFG, aMultiThsFunctionPtr, iIterator.indexToPoint(idx));
+                final FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, iIterator.indexToPoint(idx));
     
                 // find a new label
                 while (oldLabels.contains(newLabel)) {
@@ -278,7 +290,7 @@ public class LabelImage extends BaseImage
                 }
     
                 // set region to new label
-                for (final Point p : ff) {
+                for (final int p : ff.iteratorIdx()) {
                     setLabel(p, newLabel);
                 }
                 
@@ -299,19 +311,27 @@ public class LabelImage extends BaseImage
     }
 
     /**
-     * Is aP surrounded by points of the given aLabel
+     * Is aPoint surrounded by points of the given aLabel
      * @return true if yes
      */
     public boolean isEnclosedByLabel(Point aPoint, int aLabel) {
+        return isEnclosedByLabel(iIterator.pointToIndex(aPoint), aLabel);
+    }
+
+    /**
+     * Is point with aIndex surrounded by points of the given aLabel
+     * @return true if yes
+     */
+    public boolean isEnclosedByLabel(Integer aIndex, int aLabel) {
         final int absLabel = labelToAbs(aLabel);
-        for (final Point q : iConnectivityFG.iterateNeighbors(aPoint)) {
-            if (getLabelAbs(q) != absLabel) {
+        for (final int idx : iterateNeighbours(aIndex)) {
+            if (getLabelAbs(idx) != absLabel) {
                 return false;
             }
         }
         return true;
     }
-
+    
     /**
      * sets the outermost pixels of the LabelImage to the forbidden label
      */
@@ -339,7 +359,7 @@ public class LabelImage extends BaseImage
             final int label = getLabelAbs(i);
             if (!isSpecialLabel(label)) {
                 final Point p = iIterator.indexToPoint(i);
-                for (final Point neighbor : iConnectivityFG.iterateNeighbors(p)) {
+                for (final Integer neighbor : iterateNeighbours(p)) {
                     final int neighborLabel = getLabelAbs(neighbor);
                     if (neighborLabel != label) {
                         setLabel(p, labelToNeg(label));
@@ -353,6 +373,48 @@ public class LabelImage extends BaseImage
         return contourPoints;
     }
     
+// ================== TEST ========================
+    
+    public Iterable<Integer> iterateNeighbours(final Point aPoint) {
+        return new Iterable<Integer>() {
+
+            @Override
+            public Iterator<Integer> iterator() {
+                return new NeighbourConnIterator(iIterator.pointToIndex(aPoint));
+            }
+        };
+    }
+    
+    public Iterable<Integer> iterateNeighbours(final Integer aIndex) {
+        return new Iterable<Integer>() {
+
+            @Override
+            public Iterator<Integer> iterator() {
+                return new NeighbourConnIterator(aIndex);
+            }
+        };
+    }
+    
+    private class NeighbourConnIterator implements Iterator<Integer> {
+        private int cursor = 0;
+        private final int inputIndex;
+        
+        NeighbourConnIterator(Integer aIndex) {
+            inputIndex = aIndex;
+        }
+        
+        @Override
+        public boolean hasNext() {
+            return (cursor < iNeighbourIndexes.length);
+        }
+
+        @Override
+        public Integer next() {
+            return inputIndex + iNeighbourIndexes[cursor++];
+        }
+        
+    }
+// =====================================
     
     //
     // Below are all function dependent on ImageJ implementation (ImagePlus, ImageProcessor, Roi...)

@@ -32,4 +32,13 @@ public class BinarizedIntervalIntesityImage extends IntervalsListDouble implemen
         return Evaluate(value);
     }
 
+    @Override
+    public boolean EvaluateAtIndex(Integer p) {
+        if (image.isOutOfBound(p) == true) {
+            return false;
+        }
+        final float value = image.get(p);
+        return Evaluate(value);
+    }
+
 }

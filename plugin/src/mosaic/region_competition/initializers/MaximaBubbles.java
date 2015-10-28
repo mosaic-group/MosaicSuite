@@ -78,7 +78,7 @@ public class MaximaBubbles extends Initializer {
             bd.drawCenter(aMaximumPoint, aLabel);
         } 
         else {
-            for (final Point p : ff) {
+            for (final Point p : ff.iteratorPoint()) {
                 iLabelImage.setLabel(p, aLabel);
             }
         }

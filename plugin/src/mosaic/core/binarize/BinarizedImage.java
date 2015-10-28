@@ -19,4 +19,5 @@ public interface BinarizedImage {
      * @return the value of the pixel 0 or 1 (true pr false)
      */
     public abstract boolean EvaluateAtIndex(Point p);
+    public abstract boolean EvaluateAtIndex(Integer p);
 }

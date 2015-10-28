@@ -15,7 +15,6 @@ import org.apache.log4j.Logger;
 
 import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
-import mosaic.core.image.Connectivity;
 import mosaic.core.image.FloodFill;
 import mosaic.core.image.IntensityImage;
 import mosaic.core.image.LabelImage;
@@ -42,8 +41,6 @@ public class Algorithm {
 
     // Just aliases for stuff from labelImage
     private final static int BGLabel = LabelImage.BGLabel;
-    private final Connectivity connFG;
-    private final Connectivity connBG;
 
     private boolean shrinkFirst = false;
     // TODO: This var is changed only in OscilationDetection class... It should be moved there or sth.
@@ -104,11 +101,8 @@ public class Algorithm {
         iImageModel = aModel;
         iSettings = aSettings;
 
-        connFG = iLabelImage.getConnFG();
-        connBG = iLabelImage.getConnBG();
-
         oscillationDetection = new OscillationDetection(this, iSettings);
-        m_TopologicalNumberFunction = new TopologicalNumberImageFunction(iLabelImage, connFG, connBG);
+        m_TopologicalNumberFunction = new TopologicalNumberImageFunction(iLabelImage);
 
         // Initialize label image
         iLabelImage.initBoundary();
@@ -278,7 +272,7 @@ public class Algorithm {
             logger.error("AddNeighborsAtRemove. one label is not absLabel " + aAbsLabel + " at " + aPoint);
         }
 
-        for (final Point p : connFG.iterateNeighbors(aPoint)) {
+        for (final Integer p : iLabelImage.iterateNeighbours(aPoint)) {
             final int label = iLabelImage.getLabel(p);
             if (iLabelImage.isInnerLabel(label) && label == aAbsLabel) {
                 // q is a inner point with the same label as p
@@ -287,7 +281,7 @@ public class Algorithm {
                 q.candidateLabel = BGLabel;
                 q.intensity = iIntensityImage.get(p);
                 iLabelImage.setLabel(p, iLabelImage.labelToNeg(aAbsLabel));
-                iContourParticles.put(p, q);
+                iContourParticles.put(iLabelImage.iIterator.indexToPoint(p), q);
             }
         }
     }
@@ -297,9 +291,9 @@ public class Algorithm {
      * type to interior.
      */
     private void removeEnclosedNeighboursFromContour(int aLabelAbs, Point aPoint) {
-        for (final Point qIndex : connFG.iterateNeighbors(aPoint)) {
+        for (final int qIndex : iLabelImage.iterateNeighbours(aPoint)) {
             if (iLabelImage.getLabel(qIndex) == iLabelImage.labelToNeg(aLabelAbs) && iLabelImage.isEnclosedByLabel(qIndex, aLabelAbs)) {
-                iContourParticles.remove(qIndex);
+                iContourParticles.remove(iLabelImage.iIterator.indexToPoint(qIndex));
                 iLabelImage.setLabel(qIndex, aLabelAbs);
             }
         }
@@ -488,14 +482,14 @@ public class Algorithm {
     private void relabelRegionAtPoint(Point aPoint, int aNewLabel, BinarizedImage aAreaWithOldLabels) {
         final Set<Integer> oldLabels = new HashSet<Integer>();
         final Set<Point> oldContours = new HashSet<Point>();
-        final Iterator<Point> regionIterator = new FloodFill(connFG, aAreaWithOldLabels, aPoint).iterator();
-
+        final Iterator<Integer> regionIterator = new FloodFill(iLabelImage, aAreaWithOldLabels, aPoint).iteratorIndex();
+        
         double sumOfVal = 0;
         double sumOfSqVal = 0;
         int count = 0;
 
         while (regionIterator.hasNext()) {
-            final Point currentPoint = regionIterator.next();
+            final int currentPoint = regionIterator.next();
             final int oldLabel = iLabelImage.getLabel(currentPoint);
 
             iLabelImage.setLabel(currentPoint, aNewLabel);
@@ -503,7 +497,7 @@ public class Algorithm {
             // the visited labels statistics will be removed later.
             oldLabels.add(iLabelImage.labelToAbs(oldLabel));
             if (iLabelImage.isContourLabel(oldLabel)) {
-                oldContours.add(currentPoint);
+                oldContours.add(iLabelImage.iIterator.indexToPoint(currentPoint));
             }
 
             final float val = iIntensityImage.get(currentPoint);
@@ -798,17 +792,18 @@ public class Algorithm {
     }
 
     private void registerNeighbourSeedsWithSameLabel(Set<Seed> aSeeds, Point aPoint, int aLabel) {
-        for (final Point neighbour : connFG.iterateNeighbors(aPoint)) {
+        for (final Integer neighbour : iLabelImage.iterateNeighbours(aPoint)) {
             final int label = iLabelImage.getLabelAbs(neighbour);
-
+            final Point neighbourPoint = iLabelImage.iIterator.indexToPoint(neighbour);
+            
             if (label == aLabel) {
-                aSeeds.add(new Seed(neighbour, label));
+                aSeeds.add(new Seed(neighbourPoint, label));
                 // At the position where we put the seed, inform the particle
                 // that it has to inform its neighbor in case it moves (if there
                 // is a particle at all at this spot; else we don't have a problem
                 // because the label will not move at the spot and therefore
                 // the seed will be effective).
-                final ContourParticle contourParticle = iCandidates.get(neighbour);
+                final ContourParticle contourParticle = iCandidates.get(neighbourPoint);
                 if (contourParticle != null) {
                     contourParticle.isProcessed = true;
                 }
@@ -853,16 +848,16 @@ public class Algorithm {
             ContourParticle contour = iter.getValue();
             final int propagatingRegionLabel = contour.label;
 
-            for (final Point neighbor : connFG.iterateNeighbors(point)) {
+            for (final Integer neighbor : iLabelImage.iterateNeighbours(point)) {
                 final int labelOfDefender = iLabelImage.getLabelAbs(neighbor);
                 if (iLabelImage.isForbiddenLabel(labelOfDefender) || labelOfDefender == propagatingRegionLabel) {
                     // Skip forbidden and same region labels
                     continue;
                 }
-
-                contour.getDaughterList().add(neighbor);
+                final Point neighbourPoint = iLabelImage.iIterator.indexToPoint(neighbor);
+                contour.getDaughterList().add(neighbourPoint);
                 
-                final ContourParticle contourCandidate = iCandidates.get(neighbor);
+                final ContourParticle contourCandidate = iCandidates.get(neighbourPoint);
                 if (contourCandidate == null) {
                     // Neighbor is a background
                     final ContourParticle newContour = new ContourParticle();
@@ -873,10 +868,10 @@ public class Algorithm {
                     newContour.isDaughter = true;
                     newContour.isProcessed = false;
                     newContour.referenceCount = 1;
-                    newContour.energyDifference = iImageModel.calculateDeltaEnergy(neighbor, newContour, propagatingRegionLabel, iLabelStatistics).energyDifference;
+                    newContour.energyDifference = iImageModel.calculateDeltaEnergy(neighbourPoint, newContour, propagatingRegionLabel, iLabelStatistics).energyDifference;
                     newContour.setTestedLabel(propagatingRegionLabel);
                     newContour.getMotherList().add(point);
-                    iCandidates.put(neighbor, newContour);
+                    iCandidates.put(neighbourPoint, newContour);
                 }
                 else {
                     // Neighbor is another region contour
@@ -887,7 +882,7 @@ public class Algorithm {
                     if (!contourCandidate.hasLabelBeenTested((propagatingRegionLabel))) {
                         contourCandidate.setTestedLabel(propagatingRegionLabel);
 
-                        final EnergyResult energyResult = iImageModel.calculateDeltaEnergy(neighbor, contourCandidate, propagatingRegionLabel, iLabelStatistics);
+                        final EnergyResult energyResult = iImageModel.calculateDeltaEnergy(neighbourPoint, contourCandidate, propagatingRegionLabel, iLabelStatistics);
                         if (energyResult.energyDifference < contourCandidate.energyDifference) {
 
                             contourCandidate.candidateLabel = propagatingRegionLabel;

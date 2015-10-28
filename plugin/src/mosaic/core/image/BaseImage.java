@@ -37,6 +37,15 @@ public class BaseImage {
         }
         return false;
     }
+    
+    /**
+     * @param aPoint input point
+     * @return true if aPoint lays outside dimensions of IntensityImage
+     */
+    public boolean isOutOfBound(Integer aIndex) {
+        if (aIndex < 0 && aIndex >= iIterator.getSize()) return true;
+        return false;
+    }
 
     /**
      * @return number of dimensions of IntensityImage
@@ -87,5 +96,17 @@ public class BaseImage {
      */
     public int getSize() {
         return iIterator.getSize();
+    }
+    
+    @Override
+    public String toString() {
+        String result = "BaseImage [";
+        for (int i = 0; i < iDimensions.length; ++i) {
+            result += iDimensions[i];
+            result += ", ";
+        }
+        result = result.substring(0, result.length()-2);
+        result += "]";
+        return result;
     }
 }

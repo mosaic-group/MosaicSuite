@@ -84,7 +84,7 @@ public class ImagePatcher<T extends NativeType<T> & NumericType<T>, E extends Na
                 final ImagePatch<T, E> ip = imgagePatches.get(imgagePatches.size() - 1);
 
                 // set region to new label
-                for (final Point p : ff) {
+                for (final Point p : ff.iteratorPoint()) {
                     labelImg.setLabel(p, newLabel);
 
                     // check and extend the border

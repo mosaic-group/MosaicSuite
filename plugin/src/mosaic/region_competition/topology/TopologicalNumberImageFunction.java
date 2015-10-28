@@ -28,9 +28,9 @@ public class TopologicalNumberImageFunction {
 
     private final int Zero = 0;
 
-    public TopologicalNumberImageFunction(LabelImage aLabelImage, Connectivity aTFGConnectivity, Connectivity aTBGConnectivity) {
-        this.TFGConnectivity = aTFGConnectivity;
-        this.TBGConnectivity = aTBGConnectivity;
+    public TopologicalNumberImageFunction(LabelImage aLabelImage) {
+        this.TFGConnectivity = aLabelImage.getConnFG();
+        this.TBGConnectivity = aLabelImage.getConnBG();
 
         this.m_ForegroundUnitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity);
         this.m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(TBGConnectivity);
