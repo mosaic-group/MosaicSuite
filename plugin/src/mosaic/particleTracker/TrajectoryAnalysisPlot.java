@@ -135,10 +135,10 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
         // add label
         plot.setColor(Color.DARK_GRAY);
         plot.changeFont(new Font("Helvetica", Font.BOLD, 14));
-        plot.addLabel(0.05, 0.10, String.format("slope = %4.3f", aSlope));
-        plot.addLabel(0.05, 0.15, String.format("y0 intercept = %5.3f", aY0));
+        plot.addLabel(0.05, 0.10, String.format("slope = %4.8f", aSlope));
+        plot.addLabel(0.05, 0.15, String.format("y0 intercept = %5.8f", aY0));
         if (aDiffusionCoefficient != null) {
-            plot.addLabel(0.05, 0.20, String.format("diffusion coefficient D2 = %5.3e", aDiffusionCoefficient));
+            plot.addLabel(0.05, 0.20, String.format("diffusion coefficient D2 = %5.8e", aDiffusionCoefficient));
         }
 
         // color for slope line
@@ -174,9 +174,14 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
      */
     private void plotMsd() {
         final int order = 1; // special case for order=2 -> MSD (array starts with 0 for moment=1)
-
+        int size = iTrajectoryAnalysis.getFrameShifts().length;
+        double[] timeSteps = new double[size];
+        for (int i = 0; i < size; ++i) {
+            timeSteps[i] = iTrajectoryAnalysis.getFrameShifts()[i] * iTrajectoryAnalysis.getTimeInterval();
+        }
+               
         if (iLogScale.getState()) {
-            updatePlot(iTrajectoryAnalysis.toLogScale(iTrajectoryAnalysis.getFrameShifts()),
+            updatePlot(iTrajectoryAnalysis.toLogScale(timeSteps),
                     iTrajectoryAnalysis.toLogScale(iTrajectoryAnalysis.getMSDforMomentIdx(order)),
                     iTrajectoryAnalysis.getGammasLogarithmic()[order],
                     iTrajectoryAnalysis.getGammasLogarithmicY0()[order],
@@ -184,7 +189,7 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
                     "log(\u03B4t)", "log(\u03BC(\u03B4t))", "MSD (log)");
         }
         else {
-            updatePlot(iTrajectoryAnalysis.toDouble(iTrajectoryAnalysis.getFrameShifts()),
+            updatePlot(timeSteps,
                     iTrajectoryAnalysis.getMSDforMomentIdx(order),
                     iTrajectoryAnalysis.getGammasLinear()[order],
                     iTrajectoryAnalysis.getGammasLinearY0()[order],

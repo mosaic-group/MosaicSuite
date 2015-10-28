@@ -1,5 +1,8 @@
 package mosaic.particleTracker;
 
+import org.apache.commons.lang3.ArrayUtils;
+
+import ij.util.ArrayUtil;
 import mosaic.core.detection.Particle;
 import mosaic.utils.math.LeastSquares;
 
@@ -213,6 +216,13 @@ public class TrajectoryAnalysis {
      */
     public void setTimeInterval(final double aInterval) {
         iDT = aInterval;
+    }
+    
+    /**
+     * @return a physical time interval between frames (default 1.0) in seconds
+     */
+    public double getTimeInterval() {
+        return iDT;
     }
 
     /**
