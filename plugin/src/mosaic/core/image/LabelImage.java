@@ -373,8 +373,11 @@ public class LabelImage extends BaseImage
         return contourPoints;
     }
     
-// ================== TEST ========================
-    
+    /**
+     * 
+     * @param aPoint
+     * @return
+     */
     public Iterable<Integer> iterateNeighbours(final Point aPoint) {
         return new Iterable<Integer>() {
 
@@ -413,9 +416,12 @@ public class LabelImage extends BaseImage
             return inputIndex + iNeighbourIndexes[cursor++];
         }
         
+        @Override
+        public void remove() {
+            // do nothing
+        }
     }
-// =====================================
-    
+
     //
     // Below are all function dependent on ImageJ implementation (ImagePlus, ImageProcessor, Roi...)
     // TODO: It should be verify if this is the best place for them after ImageLabelRC is cleaned up
