@@ -258,8 +258,8 @@ public class LabelImage extends BaseImage
     }
     
     /**
-     * Gives disconnected components in a labelImage. If two disconnected components had same label
-     * after calling this method they will have separate label numbers.
+     * Makes disconnected components to have different labels. If two disconnected components had same label
+     * after calling this method they will have different labels assigned.
      */
     public void connectedComponents() {
         final HashSet<Integer> oldLabels = new HashSet<Integer>();
@@ -282,7 +282,6 @@ public class LabelImage extends BaseImage
                 // l is an old label
                 final BinarizedIntervalLabelImage aMultiThsFunctionPtr = new BinarizedIntervalLabelImage(this);
                 aMultiThsFunctionPtr.AddThresholdBetween(label, label);
-                System.out.println(indexToPoint(idx) + " " + idx + " " + super.toString());
                 final FloodFill ff = new FloodFill(this, aMultiThsFunctionPtr, indexToPoint(idx));
     
                 // find a new label

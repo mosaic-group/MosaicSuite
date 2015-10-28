@@ -1,6 +1,8 @@
 package mosaic.region_competition;
 
 
+import static mosaic.core.image.LabelImage.BGLabel;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,7 +30,6 @@ import mosaic.region_competition.energies.OscillationDetection;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction;
 import mosaic.region_competition.topology.TopologicalNumberImageFunction.TopologicalNumberResult;
 
-
 public class Algorithm {
 
     private static final Logger logger = Logger.getLogger(Algorithm.class);
@@ -38,13 +39,6 @@ public class Algorithm {
     private final IntensityImage iIntensityImage;
     private final ImageModel iImageModel;
     private final Settings iSettings;
-
-    // Just aliases for stuff from labelImage
-    private final static int BGLabel = LabelImage.BGLabel;
-
-    private boolean shrinkFirst = false;
-    // TODO: This var is changed only in OscilationDetection class... It should be moved there or sth.
-    public float m_AcceptedPointsFactor = AcceptedPointsFactor;
 
     private final HashMap<Point, ContourParticle> iContourParticles = new HashMap<Point, ContourParticle>();
     private final HashMap<Integer, LabelStatistics> iLabelStatistics = new HashMap<Integer, LabelStatistics>();
@@ -59,6 +53,9 @@ public class Algorithm {
     private static final float AcceptedPointsFactor = 1;
     private static final boolean RemoveNonSignificantRegions = true;
     private static final int MinimumAreaSize = 1;
+    private boolean shrinkFirst = false;
+    // TODO: This var is changed only in OscilationDetection class... It should be moved there or sth.
+    public float m_AcceptedPointsFactor = AcceptedPointsFactor;
 
     private class Seed {
         private final Point iPoint;
