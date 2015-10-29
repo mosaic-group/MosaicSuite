@@ -25,15 +25,18 @@ public class E_Gamma extends InternalEnergy {
         final Connectivity conn = labelImage.getConnFG();
 
         int nSameNeighbors = 0;
-        for (final Point neighbor : conn.iterateNeighbors(pIndex)) {
+        int nOtherNeighbors = 0;
+        for (final int neighbor : labelImage.iterateNeighbours(pIndex)) {
             final int neighborLabel = labelImage.getLabelAbs(neighbor);
             if (neighborLabel == pLabel) {
                 nSameNeighbors++;
             }
+            else {
+                nOtherNeighbors++;
+            }
         }
 
         // TODO is this true? conn.getNNeighbors
-        final int nOtherNeighbors = conn.getNumOfNeighbors() - nSameNeighbors;
         final double dGamma = (nOtherNeighbors - nSameNeighbors) / (double) conn.getNeighborhoodSize();
         return new EnergyResult(dGamma, false);
     }

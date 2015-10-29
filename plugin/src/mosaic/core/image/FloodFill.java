@@ -61,6 +61,10 @@ public class FloodFill {
         return checkedSet.size();
     }
     
+    public int sizeIdx() {
+        return checkedSetIdx.size();
+    }
+    
     public Iterable<Point> iteratorPoint() {
         return new Iterable<Point>() {
 

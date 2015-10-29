@@ -166,8 +166,6 @@ public class Connectivity {
         return "Connectivity (" + iNumOfDimensions + "D, " + iNumOfNeighbors + "-connectivity)";
     }
 
-    //////////////////// Iterators /////////////////////////////
-
     /**
      * @return Number of neighbors (Number of points connected to the midpoint)
      */
@@ -219,21 +217,18 @@ public class Connectivity {
      * Doesn't allow to remove() an element.
      */
     private class OfsIterator implements Iterator<Point> {
-
         private int cursor = 0;
 
         protected OfsIterator() {}
 
         @Override
         public boolean hasNext() {
-            return (cursor < iNumOfNeighbors);
+            return cursor < iNumOfNeighbors;
         }
 
         @Override
         public Point next() {
-            final Point result = iPointOffsetsNeighbors[cursor];
-            cursor++;
-            return result;
+            return iPointOffsetsNeighbors[cursor++];
         }
 
         @Override
@@ -242,6 +237,19 @@ public class Connectivity {
         }
     }
     
+    /**
+     * Iterates over the neighbors of Point p in the context of this connectivity
+     */
+    public Iterable<Point> iterateNeighbors(final Point p) {
+        return new Iterable<Point>() {
+            
+            @Override
+            public Iterator<Point> iterator() {
+                return new NeighborIterator(p);
+            }
+        };
+    }
+
     /**
      * Iterator class to iterate through neighbors of a point
      */
@@ -262,20 +270,6 @@ public class Connectivity {
             return point.add(ofs);
         }
     }
-    
-    /**
-     * Iterates over the neighbors of Point p in the context of this connectivity
-     */
-    public Iterable<Point> iterateNeighbors(final Point p) {
-        return new Iterable<Point>() {
-
-            @Override
-            public Iterator<Point> iterator() {
-                return new NeighborIterator(p);
-            }
-        };
-    }
-    
 
     public Iterable<Integer> itOfsInt() {
         return new Iterable<Integer>() {

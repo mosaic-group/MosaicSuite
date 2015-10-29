@@ -1,12 +1,5 @@
 package mosaic.particleTracker;
 
-import ij.IJ;
-import ij.ImagePlus;
-import ij.gui.ImageWindow;
-import ij.gui.Plot;
-import ij.gui.PlotWindow;
-import ij.process.ByteProcessor;
-
 import java.awt.Button;
 import java.awt.Checkbox;
 import java.awt.Color;
@@ -16,6 +9,12 @@ import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.gui.ImageWindow;
+import ij.gui.Plot;
+import ij.gui.PlotWindow;
+import ij.process.ByteProcessor;
 import mosaic.core.detection.Particle;
 import net.sf.javaml.utils.ArrayUtils;
 
@@ -64,7 +63,7 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
         iMsdButton = new Button(" MSD ");
         iMsdButton.addActionListener(this);
 
-        iLogScale = new Checkbox("logarithmic scale", false);
+        iLogScale = new Checkbox("logarithmic scale", true);
 
         final Panel panel = new Panel(new GridLayout(3,1));
         panel.add(iMssButton);
@@ -156,7 +155,7 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
                     iTrajectoryAnalysis.getMSSlogarithmic(),
                     iTrajectoryAnalysis.getMSSlogarithmicY0(),
                     null,
-                    "log(moment order \uD835\uDF08)", "log(scaling coefficient \u213D)", "MSS (log)");
+                    "log(moment order \u03BD)", "log(scaling coefficient \u213D)", "MSS (log)");
         }
         else {
             updatePlot(iTrajectoryAnalysis.toDouble(iTrajectoryAnalysis.getMomentOrders()),
@@ -164,7 +163,7 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
                     iTrajectoryAnalysis.getMSSlinear(),
                     iTrajectoryAnalysis.getMSSlinearY0(),
                     null,
-                    "moment order \uD835\uDF08", "scaling coefficient \u213D", "MSS");
+                    "moment order \u03BD", "scaling coefficient \u213D", "MSS");
 
         }
     }
@@ -179,7 +178,6 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
         for (int i = 0; i < size; ++i) {
             timeSteps[i] = iTrajectoryAnalysis.getFrameShifts()[i] * iTrajectoryAnalysis.getTimeInterval();
         }
-               
         if (iLogScale.getState()) {
             updatePlot(iTrajectoryAnalysis.toLogScale(timeSteps),
                     iTrajectoryAnalysis.toLogScale(iTrajectoryAnalysis.getMSDforMomentIdx(order)),
@@ -208,6 +206,6 @@ class TrajectoryAnalysisPlot extends ImageWindow implements ActionListener {
         }
         else if (o == iMsdButton) {
             plotMsd();
-        }
+        } 
     }
 }

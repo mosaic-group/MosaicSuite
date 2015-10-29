@@ -1,8 +1,5 @@
 package mosaic.particleTracker;
 
-import org.apache.commons.lang3.ArrayUtils;
-
-import ij.util.ArrayUtil;
 import mosaic.core.detection.Particle;
 import mosaic.utils.math.LeastSquares;
 
@@ -47,12 +44,11 @@ public class TrajectoryAnalysis {
      */
     TrajectoryAnalysis(final Particle[] aParticles) {
         iParticles = aParticles;
-
+        
         // set some default data for calculations, it can be overwritten by user
         if (iParticles != null && iParticles.length > 0) {
             setFrameShifts(1, (iParticles[iParticles.length - 1].getFrame() - iParticles[0].getFrame() + 1)/3);
         }
-
         setMomentOrders(1, 10);
 
         iDX = 1.0;
