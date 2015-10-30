@@ -382,10 +382,14 @@ public class CSV<E> {
             if (s.startsWith("%")) {
                 final String[] pr = s.split(":");
 
-                if (pr.length == 2) {
-                    final CsvMetaInfo mi = new CsvMetaInfo(pr[0].substring(1), pr[1].trim());
-                    final String value = getMetaInformation(iMetaInfosRead, mi.parameter);
-                    if (value != null) {
+                if (pr.length >= 2) {
+                    // Skip first sign "%"
+                    String param = pr[0].substring(1);
+                    // Parameter value is all after ":". Trim it to remove unneeded spaces.
+                    String value = s.substring(pr[0].length() + 1, s.length()).trim();
+                    final CsvMetaInfo mi = new CsvMetaInfo(param, value);
+                    final String currentValue = getMetaInformation(iMetaInfosRead, mi.parameter);
+                    if (currentValue != null) {
                         logger.debug("MetaInfo " + mi + " added, but same parameter with value [" + value + "] already exists!");
                     }
                     iMetaInfosRead.add(mi);

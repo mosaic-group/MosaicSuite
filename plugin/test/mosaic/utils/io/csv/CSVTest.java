@@ -232,9 +232,10 @@ public class CSVTest extends CommonBase {
 
         // Prepare data
         final String expectedContent = "ID,CalculatedValue\n" +
-                                 "%name1:valueForName1\n" +
-                                 "%name2:valueForName2\n" +
-                                 "4,5.2\n";
+                                       "%name1:valueForName1\n" +
+                                       "%name2:valueForName2\n" +
+                                       "%name3:c:\\Windows\\Path\n" +
+                                       "4,5.2\n";
                 saveFile(fullFileName, expectedContent);
 
                 // Tested method
@@ -246,6 +247,7 @@ public class CSVTest extends CommonBase {
                 assertEquals(expectedData, outdst);
                 assertEquals("valueForName1", csv.getMetaInformation("name1"));
                 assertEquals("valueForName2", csv.getMetaInformation("name2"));
+                assertEquals("c:\\Windows\\Path", csv.getMetaInformation("name3"));
     }
 
     @Test
