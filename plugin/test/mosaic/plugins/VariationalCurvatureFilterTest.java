@@ -10,60 +10,81 @@ public class VariationalCurvatureFilterTest extends CommonBase {
     @Test
     public void testGcSplitGrey8()  {
         // Define test data
-        String tcDirName          = "VCF/";
-        String setupString        = "run";
-        String macroOptions       = "filter=GC method=Split number=10";
-        String[] inputFiles       = {"x8bit.png"};
-        String[] expectedFiles    = {"filtered_x8bit.png"};
-        String[] referenceFiles   = {"filteredGcSplit10_x8bit.tif"};
-        
+        final String tcDirName          = "VCF/";
+        final String setupString        = "run";
+        final String macroOptions       = "filter=[GC (Gaussian Curvature)] method=Split number=10";
+        final String[] inputFiles       = {"x8bit.png"};
+        final String[] expectedFiles    = {"filtered_x8bit.png"};
+        final String[] referenceFiles   = {"filteredGcSplit10_x8bit.tif"};
+
         // Create tested plugIn
-        CurvatureFilterBase nt = new VariationalCurvatureFilter();
-       
+        final CurvatureFilterBase nt = new VariationalCurvatureFilter();
+
         // Test it
-        testPlugin(nt, tcDirName, 
-                   inputFiles, expectedFiles, referenceFiles, 
-                   setupString, macroOptions);
+        testPlugin(nt, tcDirName,
+                inputFiles, expectedFiles, referenceFiles,
+                setupString, macroOptions);
 
     }
 
     @Test
     public void testTvNoSplitRgb()  {
         // Define test data
-        String tcDirName          = "VCF/";
-        String setupString        = "run";
-        String macroOptions       = "filter=TV method=[No Split] number=10";
-        String[] inputFiles       = {"x.png"};
-        String[] expectedFiles    = {"filtered_x.png"};
-        String[] referenceFiles   = {"filteredTvNoSplit10_x.tif"};
-        
+        final String tcDirName          = "VCF/";
+        final String setupString        = "run";
+        final String macroOptions       = "filter=[TV (Total Variation)] method=[No Split] number=10";
+        final String[] inputFiles       = {"x.png"};
+        final String[] expectedFiles    = {"filtered_x.png"};
+        final String[] referenceFiles   = {"filteredTvNoSplit10_x.tif"};
+
         // Create tested plugIn
-        CurvatureFilterBase nt = new VariationalCurvatureFilter();
-       
+        final CurvatureFilterBase nt = new VariationalCurvatureFilter();
+
         // Test it
-        testPlugin(nt, tcDirName, 
-                   inputFiles, expectedFiles, referenceFiles, 
-                   setupString, macroOptions);
+        testPlugin(nt, tcDirName,
+                inputFiles, expectedFiles, referenceFiles,
+                setupString, macroOptions);
 
     }
-    
+
     @Test
     public void testMcSplitGrey8()  {
         // Define test data
-        String tcDirName          = "VCF/";
-        String setupString        = "run";
-        String macroOptions       = "filter=MC method=Split number=2";
-        String[] inputFiles       = {"x8bit.png"};
-        String[] expectedFiles    = {"filtered_x8bit.png"};
-        String[] referenceFiles   = {"filteredMcSplit2_x8bit.tif"};
-        
+        final String tcDirName          = "VCF/";
+        final String setupString        = "run";
+        final String macroOptions       = "filter=[MC (Mean Curvature)] method=Split number=2";
+        final String[] inputFiles       = {"x8bit.png"};
+        final String[] expectedFiles    = {"filtered_x8bit.png"};
+        final String[] referenceFiles   = {"filteredMcSplit2_x8bit.tif"};
+
         // Create tested plugIn
-        CurvatureFilterBase nt = new VariationalCurvatureFilter();
-       
+        final CurvatureFilterBase nt = new VariationalCurvatureFilter();
+
         // Test it
-        testPlugin(nt, tcDirName, 
-                   inputFiles, expectedFiles, referenceFiles, 
-                   setupString, macroOptions);
+        testPlugin(nt, tcDirName,
+                inputFiles, expectedFiles, referenceFiles,
+                setupString, macroOptions);
 
     }
+
+    @Test
+    public void testBernsteinSplitGrey8()  {
+        // Define test data
+        final String tcDirName          = "VCF/";
+        final String setupString        = "run";
+        final String macroOptions       = "filter=[Bernstein] method=Split number=5";
+        final String[] inputFiles       = {"x8bit.png"};
+        final String[] expectedFiles    = {"filtered_x8bit.png"};
+        final String[] referenceFiles   = {"filteredBernsteinSplit5_x8bit.tif"};
+
+        // Create tested plugIn
+        final CurvatureFilterBase nt = new VariationalCurvatureFilter();
+
+        // Test it
+        testPlugin(nt, tcDirName,
+                inputFiles, expectedFiles, referenceFiles,
+                setupString, macroOptions);
+
+    }
+
 }

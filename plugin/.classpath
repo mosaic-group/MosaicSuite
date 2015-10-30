@@ -15,7 +15,6 @@
 	<classpathentry kind="lib" path="lib/imglib2-ij-2.0.0-beta-30.jar"/>
 	<classpathentry kind="lib" path="lib/jama-1.0.3.jar"/>
 	<classpathentry kind="lib" path="lib/javaml-0.1.7.jar"/>
-	<classpathentry kind="lib" path="lib/jsch-0.1.49.jar"/>
 	<classpathentry kind="lib" path="lib/logback-classic-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/logback-core-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/mapdb-1.0.3.jar"/>
@@ -60,5 +59,8 @@
 	<classpathentry kind="lib" path="lib/scifio-hdf5-0.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/scifio-ome-xml-0.13.0.jar"/>
 	<classpathentry kind="lib" path="lib/scijava-common-2.44.2.jar"/>
+	<classpathentry kind="lib" path="lib/gson-2.2.4.jar"/>
+	<classpathentry kind="lib" path="lib/cmaes_java.jar"/>
+	<classpathentry kind="lib" path="lib/jsch-0.1.53.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

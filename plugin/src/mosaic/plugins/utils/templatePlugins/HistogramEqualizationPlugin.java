@@ -1,23 +1,23 @@
 package mosaic.plugins.utils.templatePlugins;
 
-import mosaic.plugins.utils.PlugIn8bitBase;
 import ij.process.ByteProcessor;
+import mosaic.plugins.utils.PlugIn8bitBase;
 
 /**
  * This class serves as a example of how PlugIn8BitBase should be used.
  * @author Krzysztof Gonciarz
  */
-public class HistogramEqualizationPlugin extends PlugIn8bitBase {
+public class HistogramEqualizationPlugin extends PlugIn8bitBase { // NO_UCD (unused code)
 
     @Override
     protected void processImg(ByteProcessor aOutputImg, ByteProcessor aOrigImg, int aChannelNumber) {
-    	// get input/original image pixels
-    	byte[] pixels = (byte[]) aOrigImg.getPixelsCopy();
-    	
-    	// perform equalization
-    	do8bitHistogramEqualization(pixels);
+        // get input/original image pixels
+        final byte[] pixels = (byte[]) aOrigImg.getPixelsCopy();
 
-    	// set processed pixels to output image
+        // perform equalization
+        do8bitHistogramEqualization(pixels);
+
+        // set processed pixels to output image
         aOutputImg.setPixels(pixels);
     }
 
@@ -26,40 +26,40 @@ public class HistogramEqualizationPlugin extends PlugIn8bitBase {
      * images only.
      * @param aImgPixels Input image
      */
-	private void do8bitHistogramEqualization(byte[] aImgPixels) {
-		final int GRAY_LEVELS = 256;
-		
-		// Calculate histogram of a image
-		int[] hist = new int[GRAY_LEVELS];
-    	for (int i = 0; i < aImgPixels.length; ++i) {
-    		int pv = aImgPixels[i] & 0xff;
-    		hist[pv] += 1; 
-    	}
-    	
-    	// Calculate cumulative image histogram
-    	for (int i = 1; i < GRAY_LEVELS; ++i) {
-    		hist[i] = hist[i] + hist[i-1];
-    	}
-    	
-    	// Calculate  transformation 'T' of image brightness
-    	double[] T = new double[GRAY_LEVELS];
-    	final double G = GRAY_LEVELS;
-    	final double N_M = aImgPixels.length; // N * M -> width * height
-    	for (int i = 0; i < GRAY_LEVELS; ++i) {
-    		T[i] = (hist[i]) * (G-1)/(N_M);
-    	}
+    private void do8bitHistogramEqualization(byte[] aImgPixels) {
+        final int GRAY_LEVELS = 256;
 
-    	// Apply new scale of brightness to image
-    	for (int i = 0; i < aImgPixels.length; ++i) {
-    		int pv = aImgPixels[i] & 0xff;
-    		double d = T[pv];
-    		aImgPixels[i] = (byte)d; 
-    	}
-	}
+        // Calculate histogram of a image
+        final int[] hist = new int[GRAY_LEVELS];
+        for (int i = 0; i < aImgPixels.length; ++i) {
+            final int pv = aImgPixels[i] & 0xff;
+            hist[pv] += 1;
+        }
+
+        // Calculate cumulative image histogram
+        for (int i = 1; i < GRAY_LEVELS; ++i) {
+            hist[i] = hist[i] + hist[i-1];
+        }
+
+        // Calculate  transformation 'T' of image brightness
+        final double[] T = new double[GRAY_LEVELS];
+        final double G = GRAY_LEVELS;
+        final double N_M = aImgPixels.length; // N * M -> width * height
+        for (int i = 0; i < GRAY_LEVELS; ++i) {
+            T[i] = (hist[i]) * (G-1)/(N_M);
+        }
+
+        // Apply new scale of brightness to image
+        for (int i = 0; i < aImgPixels.length; ++i) {
+            final int pv = aImgPixels[i] & 0xff;
+            final double d = T[pv];
+            aImgPixels[i] = (byte)d;
+        }
+    }
 
     @Override
     protected boolean showDialog() {
-    	// No dialog - just return
+        // No dialog - just return
         return true;
     }
 

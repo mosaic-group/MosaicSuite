@@ -7,6 +7,8 @@ source ~/.bashrc_custom
 
 cd plugin
 
+export ANT_OPTS="-Xms1024m -Xmx4096m -XX:PermSize=1024m -XX:MaxPermSize=2048m"
+
 ant main
 if [ $? -ne 0 ]
 then
@@ -24,7 +26,8 @@ fi
 
 cd $FIJI_MOSAIC_PLUGIN_PATH/../..
 
-./ImageJ-linux64 --system -batch test.ijm "username=incardon"
+# During build log4j.properties file is copied to bin directory.
+./ImageJ-linux64 -Dlog4j.configuration=file:"$MOSAIC_PLUGIN_PATH/bin/log4j.properties" -- --system -batch test.ijm "username=incardon"
 
 # check if tmp/test has succeful file
 

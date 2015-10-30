@@ -10,22 +10,22 @@ public class InpaintingTest extends CommonBase  {
     @Test
     public void testTvNoSplitGrey8()  {
         // Define test data
-        String tcDirName          = "VCF/";
-        String setupString        = "run";
+        final String tcDirName          = "VCF/";
+        final String setupString        = "run";
         final String tcPath = SystemOperations.getTestDataPath() + tcDirName;
-        final String maskFile = tcPath + "inpaint_mask.png"; 
-        String macroOptions       = "(inpainting)=" + maskFile + " filter=TV number=20";
-        String[] inputFiles       = {"inpaint.png"};
-        String[] expectedFiles    = {"inpainting_inpaint.png"};
-        String[] referenceFiles   = {"inpaintTvNoSplit20.tif"};
-        
+        final String maskFile = tcPath + "inpaint_mask.png";
+        final String macroOptions       = "(inpainting)=" + maskFile + " filter=[TV (Total Variation)] number=20";
+        final String[] inputFiles       = {"inpaint.png"};
+        final String[] expectedFiles    = {"inpainting_inpaint.png"};
+        final String[] referenceFiles   = {"inpaintTvNoSplit20.tif"};
+
         // Create tested plugin
-        Inpainting nt = new Inpainting();
-       
+        final Inpainting nt = new Inpainting();
+
         // Test it
-        testPlugin(nt, tcDirName, 
-                    inputFiles, expectedFiles, referenceFiles, 
-                    setupString, macroOptions);
+        testPlugin(nt, tcDirName,
+                inputFiles, expectedFiles, referenceFiles,
+                setupString, macroOptions);
 
     }
 

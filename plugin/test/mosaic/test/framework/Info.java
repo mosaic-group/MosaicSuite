@@ -6,6 +6,6 @@ import org.junit.runner.RunWith;
 @Ignore
 @RunWith(CustomRunner.class)
 public class Info {
-        public static String iTestCaseName;
-        public static String iTestSuiteName;
+    public static String iTestCaseName;
+    public static String iTestSuiteName;
 }

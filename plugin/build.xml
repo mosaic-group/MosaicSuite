@@ -1,4 +1,4 @@
-<project name="MosaicToolbox" default="" basedir=".">
+<project name="MosaicSuite" default="" basedir=".">
 
     <description>
         Mosaic Toolbox build file
@@ -23,7 +23,6 @@
     <property name="jarfilename" value="Mosaic_ToolSuite" />
 
     <target name="jtest" depends="build">
-        <copy file="${test}/log4j.properties" todir="${build}"/>
         <junit printsummary="yes" haltonfailure="yes">
             <classpath>
                 <pathelement location="bin" />    
@@ -68,14 +67,13 @@
             <zipgroupfileset dir="lib" includes="commons-logging-1.1.3.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="dozer.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="javaml-0.1.7.jar" excludes="*.config" />
-            <zipgroupfileset dir="lib" includes="junit-4.12.jar" excludes="*.config" />
-            <zipgroupfileset dir="lib" includes="hamcrest-core-1.3" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="jtransforms-2.4.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="mines-jtk-20100113.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="super-csv-2.1.0.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="super-csv-dozer-2.1.0.jar" excludes="*.config" />
             <zipgroupfileset dir="lib" includes="jgeom-core.jar" excludes="*.config" />
-
+            <zipgroupfileset dir="lib" includes="cmaes_java.jar" excludes="*.config" />
+            
             <manifest>
                 <attribute name="Built-By" value="${name}" />
             </manifest>
@@ -87,7 +85,8 @@
             Deleting files...
         </echo>
         <mkdir dir="${build}" />
-        <delete>
+        <mkdir dir="${pluginsDir}" />
+	<delete>
             <fileset dir="${pluginsDir}" includes="${jarfilename}.jar" />
         </delete>
         <delete includeEmptyDirs="true">
@@ -109,6 +108,10 @@
 
     <target name="build">
         <mkdir dir="${build}" />
+        <copy file="${test}/log4j.properties" todir="${build}"/>
+        <copy file="${test}/logging.properties" todir="${build}"/>
+        <copy file="${test}/logback-test.xml" todir="${build}"/>
+
         <javac debug="true" includeantruntime="false" srcdir="src/:test/" destdir="bin/" classpathref="build.classpath" classpath="${build.classpath}" source="1.7" target="1.7">
                     <compilerarg value="-Xlint:all" />
                     <compilerarg value="-Xlint:-path" />

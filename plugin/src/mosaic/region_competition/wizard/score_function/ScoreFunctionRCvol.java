@@ -1,221 +1,169 @@
 package mosaic.region_competition.wizard.score_function;
 
 
+import java.util.Collection;
+import java.util.HashMap;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.io.Opener;
-
-import java.io.IOException;
-import java.util.Collection;
-
-import mosaic.core.utils.IntensityImage;
+import mosaic.core.image.IntensityImage;
+import mosaic.core.image.LabelImage;
 import mosaic.plugins.Region_Competition;
-import mosaic.region_competition.Algorithm;
-import mosaic.region_competition.LabelImageRC;
-import mosaic.region_competition.LabelInformation;
+import mosaic.plugins.Region_Competition.EnergyFunctionalType;
+import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.Settings;
-import mosaic.region_competition.energies.EnergyFunctionalType;
 
 
 // Score function try to find out the best segmentation with PC on all area selected
 // use setPS() to select PS
 
-public class ScoreFunctionRCvol implements ScoreFunction
-{
-	private int Area[];
-	private String[] file;
-	
-	IntensityImage i[];
-	LabelImageRC l[];
-	Algorithm al;
-	Settings s;
+public class ScoreFunctionRCvol extends ScoreFunctionBase {
 
-	public ScoreFunctionRCvol(IntensityImage i_[], LabelImageRC l_[], Settings s_)
-	{
-		i = i_;
-		l = l_;
+    private int Area[];
+    private final String[] file;
 
-		s = s_;
-		file = new String[l.length];
-	}
+    private final IntensityImage i[];
+    private final LabelImage l[];
+    private final Settings s;
 
-	public LabelImageRC getLabel(int im)
-	{
-		return l[im];
-	}
+    public ScoreFunctionRCvol(IntensityImage i_[], LabelImage l_[], Settings s_) {
+        i = i_;
+        l = l_;
 
-	public void setArea(int a[])
-	{
-		Area = a;
-	}
-		
-	public int Area(LabelImageRC l)
-	{	
-		int count = 0;
-//		double a1 = 0.0;
-//		double a2 = 0.0;
-	
-		Collection<LabelInformation> li = l.getLabelMap().values();
+        s = s_;
+        file = new String[l.length];
+    }
 
-//		a1 = ((LabelInformation)li.toArray()[0]).mean;
+    public LabelImage getLabel(int im) {
+        return l[im];
+    }
 
-		for (int i = 1 ; i < li.toArray().length ; i++)
-		{
-			/*a2 += ((LabelInformation)li.toArray()[i]).mean*((LabelInformation)li.toArray()[i]).count;*/
-			count += ((LabelInformation)li.toArray()[i]).count;
-		}
-//		a2 /= count;
+    public void setArea(int a[]) {
+        Area = a;
+    }
 
-		return count;
-	}
-		
-	public Settings createSettings(Settings s, double pop[])
-	{
-		Settings st = new Settings(s);
+    public int Area(@SuppressWarnings("unused") LabelImage l) {
+        IJ.error("ScoreFunctionRCVol is not working, [labelMap moved from LabelImageRC to Algorithm]");
+        int count = 0;
+// TODO: Commented out because of labelMap
+//        final Collection<LabelInformation> li = l.getLabelMap().values();
+//
+//        for (int i = 1; i < li.toArray().length; i++) {
+//            count += ((LabelInformation) li.toArray()[i]).count;
+//        }
 
-		st.m_GaussPSEnergyRadius = (int) pop[0];
-		st.m_BalloonForceCoeff = (float) pop[1];
+        return count;
+    }
 
-		return st;
-	}
-		
-	@Override
-	public double valueOf(double[] x) 
-	{	
-		double result = 0.0;
+    @Override
+    public Settings createSettings(Settings s, double pop[]) {
+        final Settings st = new Settings(s);
 
-//		s.m_RegionMergingThreshold = (float) x[0];
-//		s.m_EnergyContourLengthCoeff = (float) x[1];
-//		s.m_CurvatureMaskRadius = (float) x[2];
-		s.m_GaussPSEnergyRadius = (int) x[0];
-		s.m_BalloonForceCoeff = (float)x[1];
-		if (s.m_GaussPSEnergyRadius > 2.0)
-			s.m_EnergyFunctional = EnergyFunctionalType.e_PS;
-		else
-			s.m_EnergyFunctional = EnergyFunctionalType.e_PC;
+        st.m_GaussPSEnergyRadius = (int) pop[0];
+        st.m_BalloonForceCoeff = (float) pop[1];
 
-		// write the settings
-			
-		try {
-			Region_Competition.SaveConfigFile(IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1], s);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-			
-		for (int im = 0 ; im < i.length ; im++)
-		{
-			IJ.run(i[im].imageIP,"Region Competition","config="+IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1] + "  " + "output=" +IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_" + im + "_" +".tif"  + " normalize=false");
-			
-			// Read Label Image
-			
-			Opener o = new Opener();
-			file[im] = new String(IJ.getDirectory("temp")+"RC_"+x[0]+"_"+x[1]+"_" + im + "_" +".tif");
-			ImagePlus ip = o.openImage(file[im]);
-			
-			l[im].initWithIP(ip);
-			l[im].createStatistics(i[im]);
+        return st;
+    }
 
-			// Scoring
-				
-//			result += Math.abs(l[im].getLabelMap().size()-off[im]);
-	
-			int count = 0;
-//			double a1 = 0.0;
-//			double a2 = 0.0;
+    @Override
+    public double valueOf(double[] x) {
+        double result = 0.0;
 
-			Collection<LabelInformation> li = l[im].getLabelMap().values();
+        s.m_GaussPSEnergyRadius = (int) x[0];
+        s.m_BalloonForceCoeff = (float) x[1];
+        if (s.m_GaussPSEnergyRadius > 2.0) {
+            s.m_EnergyFunctional = EnergyFunctionalType.e_PS;
+        }
+        else {
+            s.m_EnergyFunctional = EnergyFunctionalType.e_PC;
+        }
 
-//			a1 = ((LabelInformation)li.toArray()[0]).mean;
+        // write the settings
+        Region_Competition.getConfigHandler().SaveToFile(IJ.getDirectory("temp") + "RC_" + x[0] + "_" + x[1], s);
 
-			for (int i = 1 ; i < li.toArray().length ; i++)
-			{
-				/*a2 += ((LabelInformation)li.toArray()[i]).mean*((LabelInformation)li.toArray()[i]).count;*/
-				count += ((LabelInformation)li.toArray()[i]).count;
-			}
-//			a2 /= count;
-	
-			result += (count - Area[im])*(count - Area[im]);
-				
-//			result += 10.0/Math.abs(a1 - a2);
-		}
-			
-		return result;
-	}
+        for (int im = 0; im < i.length; im++) {
+            IJ.run(i[im].getImageIP(), "Region Competition", "config=" + IJ.getDirectory("temp") + "RC_" + x[0] + "_" + x[1] + "  " + "output=" + IJ.getDirectory("temp") + "RC_" + x[0] + "_" + x[1] + "_"
+                    + im + "_" + ".tif" + " normalize=false");
 
-	@Override
-	public boolean isFeasible(double[] x) 
-	{
-		int minSz = Integer.MAX_VALUE;
-		for (LabelImageRC lbt : l)
-		{
-			for (int d : lbt.getDimensions())
-			{
-				if (d < minSz)
-				{
-					minSz = d;
-				}
-			}
-		}
-			
-		if (x[0] <= 0.0 || x[1] <= 0.0 || x[0] > minSz/4 || x[1] > 1.0)
-			return false;
-			
-		// TODO Auto-generated method stub
-		return true;
-	}
+            // Read Label Image
 
-	@Override
-	public void incrementStep() {
-		// TODO Auto-generated method stub
-			
-	}
+            final Opener o = new Opener();
+            file[im] = new String(IJ.getDirectory("temp") + "RC_" + x[0] + "_" + x[1] + "_" + im + "_" + ".tif");
+            final ImagePlus ip = o.openImage(file[im]);
 
-	@Override
-	public void show() {
-		// TODO Auto-generated method stub
-		
-		for (int im = 0 ;  im < l.length ; im++)
-			l[im].show("init", 255);
-			
-	}
+            l[im].initWithImg(ip);
+            
+            HashMap<Integer, LabelStatistics> labelMap = new HashMap<Integer, LabelStatistics>();
+            createStatistics(l[im], i[im], labelMap);
 
-	@Override
-	public int getNImg() {
-		// TODO Auto-generated method stub
-		return l.length;
-	}
+            // Scoring
+            int count = 0;
+            final Collection<LabelStatistics> li = labelMap.values();
 
-	@Override
-	public TypeImage getTypeImage() 
-	{
-		// TODO Auto-generated method stub
-		return TypeImage.FILENAME;
-	}
+            for (int i = 1; i < li.toArray().length; i++) {
+                /* a2 += ((LabelInformation)li.toArray()[i]).mean*((LabelInformation)li.toArray()[i]).count; */
+                count += ((LabelStatistics) li.toArray()[i]).count;
+            }
+            // a2 /= count;
 
-	@Override
-	public ImagePlus[] getImagesIP() {
-			// TODO Auto-generated method stub
-			return null;
-		}
+            result += (count - Area[im]) * (count - Area[im]);
 
-		@Override
-		public String[] getImagesString() 
-		{
-			// TODO Auto-generated method stub
-			return file;
-		}
+            // result += 10.0/Math.abs(a1 - a2);
+        }
 
-		@Override
-		public double[] getAMean(Settings s) 
-		{
-			// TODO Auto-generated method stub
-			double [] aMean = new double [2];
-			
-			aMean[1] = s.m_BalloonForceCoeff;
-			aMean[0] = s.m_GaussPSEnergyRadius;
-			
-			return aMean;
-		}
-	}
-	
+        return result;
+    }
+
+    @Override
+    public boolean isFeasible(double[] x) {
+        int minSz = Integer.MAX_VALUE;
+        for (final LabelImage lbt : l) {
+            for (final int d : lbt.getDimensions()) {
+                if (d < minSz) {
+                    minSz = d;
+                }
+            }
+        }
+
+        if (x[0] <= 0.0 || x[1] <= 0.0 || x[0] > minSz / 4 || x[1] > 1.0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public void show() {
+
+        for (int im = 0; im < l.length; im++) {
+            l[im].show("init", 255);
+        }
+
+    }
+
+    @Override
+    public TypeImage getTypeImage() {
+        return TypeImage.FILENAME;
+    }
+
+    @Override
+    public ImagePlus[] getImagesIP() {
+        return null;
+    }
+
+    @Override
+    public String[] getImagesString() {
+        return file;
+    }
+
+    @Override
+    public double[] getAMean(Settings s) {
+        final double[] aMean = new double[2];
+
+        aMean[1] = s.m_BalloonForceCoeff;
+        aMean[0] = s.m_GaussPSEnergyRadius;
+
+        return aMean;
+    }
+}

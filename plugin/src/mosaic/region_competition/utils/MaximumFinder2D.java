@@ -1,66 +1,44 @@
 package mosaic.region_competition.utils;
 
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
 
 import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.List;
 
-import mosaic.core.utils.Point;
-import net.imglib2.Cursor;
-import net.imglib2.img.Img;
-import net.imglib2.type.numeric.real.FloatType;
+import ij.plugin.filter.MaximumFinder;
+import ij.process.FloatProcessor;
+import ij.process.ImageProcessor;
+import mosaic.core.image.Point;
 
 
+public class MaximumFinder2D implements MaximumFinderInterface {
 
-public class MaximumFinder2D extends MaximumFinder implements MaximumFinderInterface
-{
-	int width;
-	int height;
-	
-	public MaximumFinder2D(int width, int height)
-	{
-		this.width = width;
-		this.height = height;
-	}
-	
-	@Override
-    public List<Point> getMaximaPointList(float[] pixels, double tolerance, boolean excludeOnEdges)
-    {
-    	ImageProcessor ip = new FloatProcessor(width, height, pixels,null);
-    	Polygon poly = getMaxima(ip, tolerance, excludeOnEdges);
-    	int n = poly.npoints;
-    	int[] xs = poly.xpoints;
-    	int[] ys = poly.ypoints;
-    	
-    	ArrayList<Point> list = new ArrayList<Point>(n);
-    	for (int i=0; i<n; i++)
-    	{
-    		list.add(new Point(new int[]{xs[i], ys[i]}));
-    	}
-    	
-    	return list;
-    }
-	
-	@Override
-    public List<Point> getMaximaPointList(Img< FloatType > pixels, double tolerance, boolean excludeOnEdges)
-    {
-		float pixels_prc[] = new float [(int) pixels.size()];
-		Cursor < FloatType > vCrs = pixels.cursor();
-		
-		int loc[] = new int [2];
-		
-		while (vCrs.hasNext())
-		{
-			vCrs.fwd();
-			vCrs.localize(loc);
-			pixels_prc[loc[1]*width+loc[0]] = vCrs.get().get();
-		}
-		
-		List<Point> list = getMaximaPointList(pixels_prc,tolerance,excludeOnEdges);
-    	
-    	return list;
+    private final int width;
+    private final int height;
+
+    public MaximumFinder2D(int width, int height) {
+        this.width = width;
+        this.height = height;
     }
 
+    public MaximumFinder2D(int[] dims) {
+        this(dims[0], dims[1]);
+    }
+    
+    @Override
+    public List<Point> getMaximaPointList(float[] pixels, double tolerance, boolean excludeOnEdges) {
+        final ImageProcessor ip = new FloatProcessor(width, height, pixels, null);
+        MaximumFinder mf = new MaximumFinder();
+        final Polygon poly = mf.getMaxima(ip, tolerance, excludeOnEdges);
+        final int n = poly.npoints;
+        final int[] xs = poly.xpoints;
+        final int[] ys = poly.ypoints;
+
+        final ArrayList<Point> list = new ArrayList<Point>(n);
+        for (int i = 0; i < n; i++) {
+            list.add(new Point(new int[] { xs[i], ys[i] }));
+        }
+
+        return list;
+    }
 }

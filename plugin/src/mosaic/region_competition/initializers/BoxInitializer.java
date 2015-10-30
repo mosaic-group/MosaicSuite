@@ -1,48 +1,38 @@
 package mosaic.region_competition.initializers;
 
-import mosaic.core.utils.RegionIterator;
-import mosaic.region_competition.LabelImageRC;
 
-public class BoxInitializer extends Initializer
-{
+import mosaic.core.image.LabelImage;
+import mosaic.core.image.RegionIterator;
 
-	public BoxInitializer(LabelImageRC labelImage)
-	{
-		super(labelImage);
-	}
-	
-	double ratio = 0.95;
-	
 
-	/**
-	 * creates an initial guess (of the size r*labelImageSize)
-	 * @param r fraction of sizes of the guess
-	 */
-	public void initRatio(double r)
-	{
-		int[] region = dimensions.clone();
-		int[] ofs = dimensions.clone();
-		for (int i=0; i<dim; i++)
-		{
-			region[i]=(int)(region[i]*r);
-			ofs[i] = (dimensions[i]-region[i])/2;
-		}
-		
-		
-		
-		int label = 1;
-		RegionIterator it = new RegionIterator(dimensions, region, ofs);
-		while (it.hasNext())
-		{
-			int idx = it.next();
-			labelImage.setLabel(idx, label);
-		}
-	}
+/**
+ * Initialize label image with a box which size is a ratio of labelImage size.
+ */
+public class BoxInitializer extends Initializer {
 
-	@Override
-	public void initDefault()
-	{
-		initRatio(ratio);
-	}
+    public BoxInitializer(LabelImage aLabelImage) {
+        super(aLabelImage);
+    }
 
+    /**
+     * creates an initial guess (of the size r*labelImageSize)
+     * @param aRatio fraction of sizes of the guess
+     */
+    public void initialize(double aRatio) {
+        // Calculate size of region for iteration and offset in original dimensions "space"
+        final int[] regionDimensions = iDimensionsSize.clone();
+        final int[] offsets = iDimensionsSize.clone();
+        for (int i = 0; i < iNumOfDimensions; i++) {
+            regionDimensions[i] = (int) (regionDimensions[i] * aRatio);
+            offsets[i] = (iDimensionsSize[i] - regionDimensions[i]) / 2;
+        }
+
+        // Mark chosen region with '1' label
+        final int label = 1;
+        final RegionIterator it = new RegionIterator(iDimensionsSize, regionDimensions, offsets);
+        while (it.hasNext()) {
+            final int idx = it.next();
+            iLabelImage.setLabel(idx, label);
+        }
+    }
 }

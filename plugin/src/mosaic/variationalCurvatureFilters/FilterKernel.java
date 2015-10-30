@@ -8,13 +8,13 @@ public interface FilterKernel {
     /**
      * This method calculates delta value which should be applied to middle 'm' pixel
      * Naming:
-     * 
+     *
      *       lu | u | ru
      *       ---+---+---
      *       l  | m |  r
      *       ---+---+---
      *       ld | d | rd
-     *       
+     *
      * @param lu
      * @param u
      * @param ru

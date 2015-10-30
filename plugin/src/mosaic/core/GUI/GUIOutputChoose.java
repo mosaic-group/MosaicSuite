@@ -1,12 +1,12 @@
 package mosaic.core.GUI;
 
-import mosaic.core.ipc.OutputChoose;
+
+import mosaic.utils.io.csv.CsvColumnConfig;
 
 
-
-public class GUIOutputChoose extends OutputChoose
+public class GUIOutputChoose
 {
-	public String name;
-	public Object pojoC;
-	public double factor[];
-};
+    public String name;
+    double factor[];
+    public CsvColumnConfig outputChoose;
+}

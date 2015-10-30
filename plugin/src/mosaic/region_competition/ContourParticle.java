@@ -1,81 +1,57 @@
 package mosaic.region_competition;
 
+
 import java.util.LinkedList;
 import java.util.List;
 
-import mosaic.core.utils.Point;
+import mosaic.core.image.Point;
 
+/**
+ * Class representing countour particle. 
+ */
+public class ContourParticle {
+    // absolute label
+    public int label = 0;
+    public int candidateLabel = 0;
+    public float intensity = 0.0f;
+    public double energyDifference = 0;
 
-public class ContourParticle 
-{
-	//TODO Ref to Point?
-	
-	boolean newlyCreated;
-	
-	
-	public int label = 0;			// absLabel
-	public float intensity = 0.0f;
-	
-	public int candidateLabel = 0;
-	public double energyDifference = 0;
-	
-	boolean isDaughter = false;
-	boolean isMother = false;
-	int referenceCount = 0;
-	
-	boolean m_processed = false; //TODO 
-	
-	private List<Point> motherList = new LinkedList<Point>();
-	private List<Point> daughterList = new LinkedList<Point>();
-	private List<Integer> testedList = new LinkedList<Integer>();
-	
-	List<Point> getMotherList() {
-		return motherList;
-	}
-	
-	List<Point> getDaughterList() {
-		return daughterList;
-	}
+    // mother - daughter indicators
+    // Particle can have any combination of both.
+    boolean isMother = false; 
+    boolean isDaughter = false;
+    
+    int referenceCount = 0;
+    boolean isProcessed = false;
 
-	List<Integer> getTestedList() {
-		return testedList;
-	}
+    private final List<Point> motherList = new LinkedList<Point>();
+    private final List<Point> daughterList = new LinkedList<Point>();
+    private final List<Integer> testedList = new LinkedList<Integer>();
 
-	
+    List<Point> getMotherList() {
+        return motherList;
+    }
+
+    List<Point> getDaughterList() {
+        return daughterList;
+    }
+
     boolean hasLabelBeenTested(int aLabel) {
         return testedList.contains(aLabel);
     }
 
-    void setLabelHasBeenTested(int aLabel) {
+    void setTestedLabel(int aLabel) {
         testedList.add(aLabel);
     }
-	
-	
-	void reset()
-	{
-		label = 0;
-		intensity = 0;
-		candidateLabel = 0;
-		energyDifference = 0f;
-		
-		isDaughter = false;
-		isMother = false;
-		referenceCount = 0;
-		
-		m_processed = false; 
-		
-		motherList.clear();
-		daughterList.clear();
-		testedList.clear();
-	}
-	
-	@Override
-	public String toString()
-	{
-		return 	"L=" + label 
-				+ " val=" + intensity 
-				+ " L'=" + candidateLabel;
-		//		+ " deltaE" + energyDifference;
-	}
-	
+
+    void clearLists() {
+        motherList.clear(); 
+        daughterList.clear();
+        testedList.clear();
+    }
+    
+    @Override
+    public String toString() {
+        return "[L=" + label + " val=" + intensity + " L'=" + candidateLabel + "]";
+    }
 }

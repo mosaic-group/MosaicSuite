@@ -17,51 +17,51 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import mosaic.core.utils.Point;
-import mosaic.generalizedLinearModel.Glm;
-import mosaic.generalizedLinearModel.GlmGaussian;
-import mosaic.generalizedLinearModel.GlmPoisson;
-import mosaic.math.CubicSmoothingSpline;
-import mosaic.math.Matlab;
-import mosaic.math.Matrix;
-import mosaic.math.RegionStatisticsSolver;
-import mosaic.nurbs.BSplineSurface;
-import mosaic.plugins.utils.Convert;
+import mosaic.core.image.Point;
 import mosaic.plugins.utils.ImgUtils;
 import mosaic.region_competition.utils.MaximumFinder2D;
+import mosaic.utils.ConvertArray;
+import mosaic.utils.math.CubicSmoothingSpline;
+import mosaic.utils.math.Matlab;
+import mosaic.utils.math.Matrix;
+import mosaic.utils.math.RegionStatisticsSolver;
+import mosaic.utils.math.generalizedLinearModel.Glm;
+import mosaic.utils.math.generalizedLinearModel.GlmGaussian;
+import mosaic.utils.math.generalizedLinearModel.GlmPoisson;
+import mosaic.utils.nurbs.BSplineSurface;
 
 
 /**
  * Implementation of filament segmentation algorithm.
- * 
- * "Generalized Linear Models and B_Spline Level-Sets enable Automatic Optimal 
+ *
+ * "Generalized Linear Models and B_Spline Level-Sets enable Automatic Optimal
  *  Filament Segmentation with Sub-pixel Accuracy"
  *  Xun Xiao, Veikko Geyer, Hugo Bowne-Anderson, Jonathon Howard, Ivo F. Sbalzarini
- *  
+ *
  * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
  */
 public class SegmentationAlgorithm {
-    
+
     // Possible noise type of input image
     public static enum NoiseType {
         GAUSSIAN, POISSON
-    };
+    }
 
     // PSF kernel type / Microscopy type
     public static enum PsfType {
         GAUSSIAN, DARK_FIELD, PHASE_CONTRAST, NONE
-    };
+    }
 
     // Input data
-    private double[][] iImage;
-    private NoiseType iNoiseType;
-    private PsfType iPsfType;
-    private Dimension iPsfSize;
-    private double iSubpixelSampling;
-    private int iCoeffsStepScale;
-    private double iLambdaReg;
+    private final double[][] iImage;
+    private final NoiseType iNoiseType;
+    private final PsfType iPsfType;
+    private final Dimension iPsfSize;
+    private final double iSubpixelSampling;
+    private final int iCoeffsStepScale;
+    private final double iLambdaReg;
 
-    private int iNoOfIterations;
+    private final int iNoOfIterations;
 
     // Calculated segmentation data
     private int iStepSize;
@@ -78,13 +78,14 @@ public class SegmentationAlgorithm {
     private Matrix iPsf;
 
     // VLS - vector level set
-    BSplineSurface iPsi;
-    BSplineSurface iPhi;
-    Matrix iEnergyGradOfBases;
+    private BSplineSurface iPsi;
+    private BSplineSurface iPhi;
+    private Matrix iEnergyGradOfBases;
 
 
     public SegmentationAlgorithm(double[][] aImage, NoiseType aNoiseType, PsfType aPsfType, Dimension aPsfSize,
-            double aSubpixelSampling, int aCoeffsStepScale, double aRegularizerTerm, int aMaxNoOfIterations) {
+                                 double aSubpixelSampling, int aCoeffsStepScale, double aRegularizerTerm, 
+                                 int aMaxNoOfIterations) {
         iImage = aImage;
         iNoiseType = aNoiseType;
         iPsfType = aPsfType;
@@ -103,88 +104,219 @@ public class SegmentationAlgorithm {
      * @return List of generated cubis smoothing splines for each found filament.
      */
     public List<CubicSmoothingSpline> performSegmentation() {
-        
+
         // Step 1 - Minimize total energy
-        EnergyOutput resultOfEnergyMinimalization = minimizeEnergy();
+        final EnergyOutput resultOfEnergyMinimalization = minimizeEnergy();
 
         // Step 2 - find best threshold values basing on found energy value
-        ThresholdFuzzyOutput resultOfthresholdFuzzyVLS = ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
+        final ThresholdFuzzyOutput resultOfthresholdFuzzyVLS = ThresholdFuzzyVLS(resultOfEnergyMinimalization.iTotalEnergy);
 
-        // Step 3 - generate cubic smoothing splines for each found filament 
+        // Step 3 - generate cubic smoothing splines for each found filament
         //          (filter filaments shorter than 10 points)
-        List<CubicSmoothingSpline> filamentInfo = generateFilamentInfo(resultOfthresholdFuzzyVLS);
-        
+        final List<CubicSmoothingSpline> filamentInfo = generateFilamentInfo(resultOfthresholdFuzzyVLS);
+
         return filamentInfo;
     }
+
+    class EnergyOutput {
+        protected EnergyOutput(Matrix aMask, RegionStatisticsSolver aRss, double aTotalEnergy) {
+            iMask = aMask;
+            iRss = aRss;
+            iTotalEnergy = aTotalEnergy;
+        }
     
+        final Matrix iMask;
+        final RegionStatisticsSolver iRss;
+        final double iTotalEnergy;
+    }
+
     /**
-     * Generates filament information - for each found filament longer or equal 10 pixels CubicSmoothingSpline is 
+     * Performs first part of algorithm. Tries to minimize energy between generated
+     * mask (based on phi/psi b-splines) and input image.
+     */
+    EnergyOutput minimizeEnergy() {
+        // Calculate initial energy
+        Matrix mask = generateMask(true /* resize */);
+        RegionStatisticsSolver rss = calculateRss(mask);
+        Matrix mu = rss.getModelImage();
+    
+        double totalEnergy = calculateTotalEnergy(iImageData, mask, mu, false);
+    
+        Matrix phiCoefs = new Matrix(iPhi.getCoefficients());
+        Matrix psiCoefs = new Matrix(iPsi.getCoefficients());
+    
+        // Initiate best founded matches - they can be updated during
+        // next iterations
+        Matrix finalMask = mask;
+        RegionStatisticsSolver finalRss = rss;
+        Matrix finalPhiCoefs = phiCoefs;
+        Matrix finalPsiCoefs = psiCoefs;
+    
+        boolean isEnergyOptimal = false;
+    
+        for (int i = 0; i < iNoOfIterations && isEnergyOptimal == false; ++i) {
+    
+            final Matrix[] grads = calculateEnergyGradients(mu, rss);
+            final Matrix grad_Phi = grads[0];
+            final Matrix grad_Psi = grads[1];
+    
+            double diffEnergy = 0.0;
+            Matrix phiCoefsTemp = null;
+            Matrix psiCoefsTemp = null;
+    
+            // Number of steps in range 1..0
+            final int noOfSteps = 16;
+            int alphaCount = noOfSteps;
+            for (; alphaCount > 0; --alphaCount) {
+                final double alpha = (double) alphaCount / noOfSteps;
+    
+                // Adjust coefficients of B-splines
+                phiCoefsTemp = grad_Phi.copy().scale(-alpha).add(phiCoefs).normalize();
+                iPhi.setCoefficients(phiCoefsTemp.getArrayYX());
+                psiCoefsTemp = grad_Psi.copy().scale(-alpha).add(psiCoefs).normalize();
+                iPsi.setCoefficients(psiCoefsTemp.getArrayYX());
+    
+                // Recalculate energy with new coefficients
+                mask = generateMask(true /* resize */);
+                rss = calculateRss(mask);
+                mu = rss.getModelImage();
+                final double tempEngy = calculateTotalEnergy(iImageData, mask, mu, false);
+    
+                // Remember all best matches found so far
+                diffEnergy = tempEngy - totalEnergy;
+    
+                if (diffEnergy < 0) {
+                    totalEnergy = tempEngy;
+                    finalMask = mask;
+                    finalRss = rss;
+                    finalPhiCoefs = phiCoefsTemp;
+                    finalPsiCoefs = psiCoefsTemp;
+                    break;
+                }
+            }
+    
+            // Update B-spline coefficients with the best match
+            phiCoefs = phiCoefsTemp;
+            psiCoefs = psiCoefsTemp;
+    
+            if (diffEnergy > 0 && alphaCount == 0) {
+                // Not able to minimize energy further
+                isEnergyOptimal = true;
+            }
+        }
+    
+        // Set the best matching coefficients
+        iPhi.setCoefficients(finalPhiCoefs.getArrayYX());
+        iPsi.setCoefficients(finalPsiCoefs.getArrayYX());
+    
+        return new EnergyOutput(finalMask, finalRss, totalEnergy);
+    }
+
+    class ThresholdFuzzyOutput {
+        ThresholdFuzzyOutput(Matrix aopt_MK, Matrix aH_f) {
+            iopt_MK = aopt_MK;
+            iH_f = aH_f;
+        }
+    
+        final Matrix iopt_MK; // best founded mask
+        final Matrix iH_f; // thresholded mask
+    }
+
+    ThresholdFuzzyOutput ThresholdFuzzyVLS(double aTotalEnergy) {
+        final Matrix mask = generateMask(false /* resize */);
+    
+        // Thresholding constants
+        final double key_pts_th = 0.70;
+        final double th_step = 0.02;
+    
+        int noOfIterations = (int) (key_pts_th / th_step);
+        final Matrix maskLogical = Matlab.logical(mask, key_pts_th);
+        final List<Matrix> BMK = new ArrayList<Matrix>(noOfIterations);
+        final List<Double> energies = new ArrayList<Double>(noOfIterations);
+        for (; noOfIterations >= 0; noOfIterations--) {
+            final double treshold = th_step * noOfIterations;
+            final double diffEnergy = calculateEnergyForGivenTreshold(aTotalEnergy, mask, maskLogical, BMK, treshold);
+            energies.add(diffEnergy);
+        }
+        final int minIndex = energies.indexOf(Collections.min(energies));
+        final Matrix opt_Mask = BMK.get(minIndex);
+        final Matrix H_f = mask.elementMult(opt_Mask);
+    
+        return new ThresholdFuzzyOutput(opt_Mask, H_f);
+    }
+
+    /**
+     * Generates filament information - for each found filament longer or equal 10 pixels CubicSmoothingSpline is
      * generated.
      * @param aResultOfthresholdFuzzyVLS - input with masks after thresholding
      * @return list of all CubicSmoothingSplines for each filament
      */
     List<CubicSmoothingSpline> generateFilamentInfo(ThresholdFuzzyOutput aResultOfthresholdFuzzyVLS) {
-        List<CubicSmoothingSpline> result = new ArrayList<CubicSmoothingSpline>();
 
         // best founded mask
-        Matrix mk = aResultOfthresholdFuzzyVLS.iopt_MK;
+        final Matrix mk = aResultOfthresholdFuzzyVLS.iopt_MK;
         // thresholded mask
-        Matrix H_f = aResultOfthresholdFuzzyVLS.iH_f;
-        
+        final Matrix H_f = aResultOfthresholdFuzzyVLS.iH_f;
+
         // Find all possible location of filaments
-        Map<Integer, List<Integer>> cc = Matlab.bwconncomp(mk, true /* 8-connected */);
-        int nComp = cc.size();
+        final Map<Integer, List<Integer>> cc = Matlab.bwconncomp(mk, true /* 8-connected */);
+        final int nComp = cc.size();
+        final List<CubicSmoothingSpline> result = new ArrayList<CubicSmoothingSpline>();
         if (nComp == 0) {
             // nothing was found... return empty list
             return result;
         }
 
         // Go through each founded connected region and try fit cubic smoothing spline into it.
-        for (Entry<Integer, List<Integer>> e : cc.entrySet()) {
-            // Create new Matrix from mask with only one filament (zero pixels outside of current region)
-            List<Integer> PxIdx = e.getValue();
-            Matrix selectedRegion = new Matrix(mk.numRows(), mk.numCols()).zeros();
-            for (int idx : PxIdx) {
-                selectedRegion.set(idx, 1);
-            }
-            Matrix selectedFilament = H_f.copy().elementMult(selectedRegion);
-
+        for (final Entry<Integer, List<Integer>> e : cc.entrySet()) {
             // Generate coordinates for filament being processed.
-            List<Integer> x = new ArrayList<Integer>();
-            List<Integer> y = new ArrayList<Integer>();
-            generateCoordinatesOfFilament(selectedRegion, selectedFilament, x, y);
+            final List<Integer> x = new ArrayList<Integer>();
+            final List<Integer> y = new ArrayList<Integer>();
+            generateCoordinatesOfOneFilament(mk, H_f, e, x, y);
 
             // If data set is too small just continue with next filament
             // If it's big enough then limit number of point to be processed if necessary
-            int size = x.size();
-            if (size < 10) continue;
-            List<Double> xv = new ArrayList<Double>();
-            List<Double> yv= new ArrayList<Double>();
-            List<Double> wv= new ArrayList<Double>();
-            limitNumberOfPoints(xv,yv,wv, x, y);
-            
-            // Merge points with same x values and adequately calculate y (mean value) and weights (sum of weights).
-            mergePointsWithSameX(xv, yv, wv);
-            
+            final int size = x.size();
+            if (size < 10) {
+                continue;
+            }
+            final List<Double> xv = new ArrayList<Double>();
+            final List<Double> yv= new ArrayList<Double>();
+            final List<Double> wv= new ArrayList<Double>();
+            generateOutputPointsAndWeights(xv,yv,wv, x, y);
+
             // Check if after merging we have enough points to generate css.
             if (xv.size() > 1) {
-                // Calculate cubic smoothing spline for calculated points and weights
-                double[] xz = new double[xv.size()]; 
-                double[] yz = new double[xv.size()]; 
-                double[] wz = new double[xv.size()];
-                for (int i = 0; i < xv.size(); ++i) { 
-                    xz[i] = xv.get(i);
-                    yz[i] = yv.get(i);
-                    wz[i] = wv.get(i);
-                }
-                CubicSmoothingSpline css = new CubicSmoothingSpline(xz, yz, 0.01, wz);
-                
+                final CubicSmoothingSpline css = calculateCubicSmoothingSpline(xv, yv, wv);
+
                 // Save result and continue
                 result.add(css);
             }
         }
-        
+
         return result;
+    }
+
+    private void generateCoordinatesOfOneFilament(final Matrix mk, final Matrix H_f, final Entry<Integer, List<Integer>> e, final List<Integer> x, final List<Integer> y) {
+        // Create new Matrix from mask with only one filament (zero pixels outside of current region)
+        final List<Integer> PxIdx = e.getValue();
+        final Matrix selectedRegion = new Matrix(mk.numRows(), mk.numCols()).zeros();
+        for (final int idx : PxIdx) {
+            selectedRegion.set(idx, 1);
+        }
+        final Matrix selectedFilament = H_f.copy().elementMult(selectedRegion);
+
+        generateCoordinatesOfFilament(selectedRegion, selectedFilament, x, y);
+    }
+
+    private CubicSmoothingSpline calculateCubicSmoothingSpline(final List<Double> xv, final List<Double> yv, final List<Double> wv) {
+        // Calculate cubic smoothing spline for calculated points and weights
+        final double[] xz = ConvertArray.toDouble(xv);
+        final double[] yz = ConvertArray.toDouble(yv);
+        final double[] wz = ConvertArray.toDouble(wv);
+
+        final CubicSmoothingSpline css = new CubicSmoothingSpline(xz, yz, 0.01, wz);
+        return css;
     }
 
     /**
@@ -196,9 +328,9 @@ public class SegmentationAlgorithm {
      * @param aOriginalX - input x points
      * @param aOriginalY - intpu y points
      */
-    void limitNumberOfPoints(List<Double> aOutputX, List<Double> aOutputY, List<Double> aOutputWeights, List<Integer> aOriginalX, List<Integer> aOriginalY) {
-        int size = aOriginalX.size();
-        
+    void generateOutputPointsAndWeights(List<Double> aOutputX, List<Double> aOutputY, List<Double> aOutputWeights, List<Integer> aOriginalX, List<Integer> aOriginalY) {
+        final int size = aOriginalX.size();
+
         // Choose divider to limit number of points for further calculation. Original implementation
         // from Matlab decides about divider using logic commented below. It seems not to be very correct since it limits
         // points in the beginning and then fix divider to 2...
@@ -208,20 +340,23 @@ public class SegmentationAlgorithm {
         // else if (size < 100) divider = 4;
         // else divider = 2;
         // ====================================
-        int divider = (size/20) + 1;
-        
-        Matrix indices = Matlab.linspace(0, size - 1, size/divider);
+        final int divider = (size/20) + 1;
 
-        for (int i = 0; i < indices.size(); ++i) { 
+        final Matrix indices = Matlab.linspace(0, size - 1, size/divider);
+
+        for (int i = 0; i < indices.size(); ++i) {
             aOutputX.add((double) aOriginalX.get((int)(indices.get(i)+0.5)));
             aOutputY.add((double) aOriginalY.get((int)(indices.get(i)+0.5)));
             aOutputWeights.add(1.0);
         }
+        
+        // Merge points with same x values and adequately calculate y (mean value) and weights (sum of weights).
+        mergePointsWithSameX(aOutputX, aOutputY, aOutputWeights);
     }
-    
+
     /**
-     * Merge points with same X coordinates. Y values for given X are averaged and 
-     * weights are added. After merging input containers are shrunk to fit new number 
+     * Merge points with same X coordinates. Y values for given X are averaged and
+     * weights are added. After merging input containers are shrunk to fit new number
      * of elements.
      * @param aX - input X
      * @param aY - input Y
@@ -234,7 +369,7 @@ public class SegmentationAlgorithm {
         int count = 1;
         int outIndex = 0;
         for (int i = 0; i < aX.size(); ++i) {
-            int xIdx = aX.get(i).intValue();
+            final int xIdx = aX.get(i).intValue();
             if (xIdx != lastIdx) {
                 if (lastIdx != -1) {
                     aX.set(outIndex, (double)lastIdx);
@@ -253,7 +388,7 @@ public class SegmentationAlgorithm {
                 count++;
             }
         }
-        
+
         // Save last point being processed
         aX.set(outIndex, (double)lastIdx);
         aY.set(outIndex, sum/count);
@@ -265,28 +400,60 @@ public class SegmentationAlgorithm {
         aY.subList(outIndex, aY.size()).clear();
         aWeights.subList(outIndex, aWeights.size()).clear();
     }
-    
+
     void generateCoordinatesOfFilament(Matrix selectedRegion, Matrix selectedFilament, List<Integer> aX, List<Integer> aY) {
-        
-        MaximumFinder2D maximumFinder2D = new MaximumFinder2D(selectedFilament.numCols(), selectedFilament.numRows());
-        List<Point> mm = maximumFinder2D.getMaximaPointList(Convert.toFloat(selectedFilament.getData()), 0.0, false);
-        
+
+        final MaximumFinder2D maximumFinder2D = new MaximumFinder2D(selectedFilament.numCols(), selectedFilament.numRows());
+        final List<Point> mm = maximumFinder2D.getMaximaPointList(ConvertArray.toFloat(selectedFilament.getData()), 0.0, false);
+
         // Find local max intensity matrix by getting pixels from Maximum Finder and doing simple graph search.
         // If neighbor pixel have same intensity as those find by MaximumFinder they are will be also marked as 1
         // in localMaxIntensity matrix.
-        Matrix localMaxIntensity = new Matrix(selectedFilament.numRows(), selectedFilament.numCols()).zeros();
-        for (Point p : mm) {
-            boolean aIs8connected = true;
-            List<Point> q = new ArrayList<Point>();
-            List<Point> d = new ArrayList<Point>();
+        final Matrix localMaxIntensity = new Matrix(selectedFilament.numRows(), selectedFilament.numCols()).zeros();
+        findLocalMaxIntensityPoints(selectedFilament, mm, localMaxIntensity);
+
+        selectedFilament = selectedFilament.elementMult(localMaxIntensity);
+        for (int col = 0; col < selectedFilament.numCols(); ++col) {
+            double maxVal = 0.0;
+            int idx = -1;
+            for (int row = 0; row < selectedFilament.numRows(); ++row) {
+                final double val = selectedFilament.get(row, col);
+                if (val > maxVal) {
+                    maxVal = val;
+                    idx = row;
+                }
+            }
+            if (idx == -1) {
+                continue;
+            }
+            selectedRegion.insertCol(new Matrix(selectedRegion.numRows(), 1).zeros(), col);
+            selectedRegion.set(idx, col, 1.0);
+        }
+
+        // Find all (filament) points and put them into containers. Add 1 to
+        // all elements to be compatible with Matlab (Indexing starts from 1).
+        for (int col = 0; col < selectedFilament.numCols(); ++col) {
+            for (int row = 0; row < selectedFilament.numRows(); ++row) {
+                if (selectedRegion.get(row, col) > 0) {
+                    aX.add((int)(col * iSubpixelSampling) + 1);
+                    aY.add((int)(row * iSubpixelSampling) + 1);
+                }
+            }
+        }
+    }
+
+    private void findLocalMaxIntensityPoints(Matrix selectedFilament, final List<Point> mm, final Matrix localMaxIntensity) {
+        for (final Point p : mm) {
+            final List<Point> q = new ArrayList<Point>();
+            final List<Point> d = new ArrayList<Point>();
             q.add(p);
-            float val = (float)selectedFilament.get(p.x[1], p.x[0]);
+            final float val = (float)selectedFilament.get(p.iCoords[1], p.iCoords[0]);
             while (!q.isEmpty()) {
                 // Get first element on the list and remove it
-                Point id = q.remove(0);
+                final Point id = q.remove(0);
                 d.add(id);
-                int x = id.x[0];
-                int y = id.x[1];
+                final int x = id.iCoords[0];
+                final int y = id.iCoords[1];
 
                 // Mark pixel as belonging to local maximum
                 localMaxIntensity.set(y, x, 1.0);
@@ -297,210 +464,57 @@ public class SegmentationAlgorithm {
                 for (int dx = -1; dx <= 1; dx++) {
                     for (int dy = -1; dy <= 1; dy++) {
                         if (dx != 0 || dy != 0) {
-                            int indX = x + dx;
-                            int indY = y + dy;
+                            final int indX = x + dx;
+                            final int indY = y + dy;
                             if (indX >= 0 && indX < localMaxIntensity.numCols() && indY >= 0 && indY < localMaxIntensity.numRows()) {
-                                if (aIs8connected || (dy * dx == 0)) {
+                                // final boolean aIs8connected = true;
+                                // if (aIs8connected || (dy * dx == 0)) {
                                     // Intentionally cast to float to match float result from MaximumFinder2D
                                     if ((float)selectedFilament.get(indY, indX) == val) {
-                                        Point idx = new Point(indX, indY, 0);
+                                        final Point idx = new Point(indX, indY, 0);
                                         if (!q.contains(idx) && !d.contains(idx)) {
-                                            // If element was not visited yet put it
-                                            // on list
+                                            // If element was not visited yet put it on list
                                             q.add(idx);
                                         }
                                     }
-                                }
+                                // }
                             }
                         }
                     }
                 }
             }
         }
-        
-        selectedFilament = selectedFilament.elementMult(localMaxIntensity);
-        for (int col = 0; col < selectedFilament.numCols(); ++col) {
-            double maxVal = 0.0;
-            int idx = -1;
-            for (int row = 0; row < selectedFilament.numRows(); ++row) {
-                double val = selectedFilament.get(row, col);
-                if (val > maxVal) {
-                    maxVal = val;
-                    idx = row;
-                }
+    }
+
+    private double calculateEnergyForGivenTreshold(double aTotalEnergy, final Matrix mask, final Matrix maskLogical, final List<Matrix> BMK, final double th) {
+        final Matrix bmk = Matlab.logical(mask, th);
+        final Map<Integer, List<Integer>> cc = Matlab.bwconncomp(bmk, true /* 8-connected */);
+        for (final List<Integer> list : cc.values()) {
+            final Matrix tmk = new Matrix(bmk.numRows(), bmk.numCols()).zeros();
+            for (final int idx : list) {
+                tmk.set(idx, 1);
             }
-            if (idx == -1)
-                continue;
-            selectedRegion.insertCol(new Matrix(selectedRegion.numRows(), 1).zeros(), col);
-            selectedRegion.set(idx, col, 1.0);
-        }
-        
-        // Find all (filament) points and put them into containers. Add 1 to 
-        // all elements to be compatible with Matlab (Indexing starts from 1).
-        for (int col = 0; col < selectedFilament.numCols(); ++col) {
-            for (int row = 0; row < selectedFilament.numRows(); ++row) {
-                if (selectedRegion.get(row, col) > 0) {
-                    aX.add((int)(col * iSubpixelSampling) + 1); 
-                    aY.add((int)(row * iSubpixelSampling) + 1);
+            final double flag = tmk.elementMult(maskLogical).sum();
+            if (flag == 0.0) {
+                for (final int idx : list) {
+                    bmk.set(idx, 0);
                 }
             }
         }
-    }
+        BMK.add(bmk);
 
-    class ThresholdFuzzyOutput {
-        ThresholdFuzzyOutput(Matrix aopt_MK, Matrix aH_f) {
-            iopt_MK = aopt_MK;
-            iH_f = aH_f;
-        }
-
-        public Matrix iopt_MK; // best founded mask
-        public Matrix iH_f; // thresholded mask
-    }
-
-    ThresholdFuzzyOutput ThresholdFuzzyVLS(double aTotalEnergy) {
-        final Matrix mask = generateMask(false /* resize */);
-
-        // Thresholding constants
-        final double key_pts_th = 0.70;
-        final double th_step = 0.02;
-
-        int noOfIterations = (int) (key_pts_th / th_step);
-        Matrix maskLogical = Matlab.logical(mask, key_pts_th);
-        List<Matrix> BMK = new ArrayList<Matrix>(noOfIterations);
-        List<Double> energies = new ArrayList<Double>(noOfIterations);
-        for (; noOfIterations >= 0; noOfIterations--) {
-            final double th = th_step * noOfIterations;
-
-            Matrix bmk = Matlab.logical(mask, th);
-            Map<Integer, List<Integer>> cc = Matlab.bwconncomp(bmk, true /* 8-connected */);
-            for (List<Integer> list : cc.values()) {
-                Matrix tmk = new Matrix(bmk.numRows(), bmk.numCols()).zeros();
-                for (int idx : list)
-                    tmk.set(idx, 1);
-                double flag = tmk.elementMult(maskLogical).sum();
-                if (flag == 0.0) {
-                    for (int idx : list)
-                        bmk.set(idx, 0);
-                }
-            }
-            BMK.add(bmk);
-
-            Matrix rmk = Matlab.imresize(bmk, iSubpixelSampling);
-            Matrix Krmk = Matlab.logical(Matlab.imfilterSymmetric(rmk, iPsf), 0.49999);
-            RegionStatisticsSolver rss = new RegionStatisticsSolver(iImageData, Krmk, iGlm, iImageData, 2).calculate();
-            double totalEnergy = calculateTotalEnergy(iImageData, rmk, rss.getModelImage(), true);
-            double diffEnergy = totalEnergy - aTotalEnergy;
-
-            energies.add(diffEnergy);
-        }
-        int minIndex = energies.indexOf(Collections.min(energies));
-
-        Matrix opt_Mask = BMK.get(minIndex);
-        Matrix H_f = mask.elementMult(opt_Mask);
-
-        return new ThresholdFuzzyOutput(opt_Mask, H_f);
-    }
-
-    class EnergyOutput {
-        EnergyOutput(Matrix aMask, RegionStatisticsSolver aRss, double aTotalEnergy) {
-            iMask = aMask;
-            iRss = aRss;
-            iTotalEnergy = aTotalEnergy;
-        }
-
-        public Matrix iMask;
-        public RegionStatisticsSolver iRss;
-        public double iTotalEnergy;
-    }
-
-    /**
-     * Performs first part of algorithm. Tries to minimize energy between generated 
-     * mask (based on phi/psi b-splines) and input image.
-     */
-    EnergyOutput minimizeEnergy() {
-        // Calculate initial energy
-        Matrix mask = generateMask(true /* resize */);
-        RegionStatisticsSolver rss = generateRss(mask);
-        Matrix mu = rss.getModelImage();
-        
-        double totalEnergy = calculateTotalEnergy(iImageData, mask, mu, false);
-       
-        Matrix phiCoefs = new Matrix(iPhi.getCoefficients());
-        Matrix psiCoefs = new Matrix(iPsi.getCoefficients());
-
-        // Initiate best founded matches - they can be updated during 
-        // next iterations
-        Matrix finalMask = mask;
-        RegionStatisticsSolver finalRss = rss;
-        Matrix finalPhiCoefs = phiCoefs;
-        Matrix finalPsiCoefs = psiCoefs;
-        
-        boolean isEnergyOptimal = false;
-
-        for (int i = 0; i < iNoOfIterations && isEnergyOptimal == false; ++i) {
-                    
-            Matrix[] grads = calculateEnergyGradients(mu, rss);
-            Matrix grad_Phi = grads[0];
-            Matrix grad_Psi = grads[1];
-
-            // Number of steps in range 1..0
-            final int noOfSteps = 16;
-
-            int alphaCount = noOfSteps;
-            double diffEnergy = 0.0;
-            Matrix phiCoefsTemp = null;
-            Matrix psiCoefsTemp = null;
-
-            for (; alphaCount > 0; --alphaCount) {
-                double alpha = (double) alphaCount / noOfSteps;
-
-                // Adjust coefficients of B-splines
-                phiCoefsTemp = grad_Phi.copy().scale(-alpha).add(phiCoefs).normalize();
-                iPhi.setCoefficients(phiCoefsTemp.getArrayYX());
-                psiCoefsTemp = grad_Psi.copy().scale(-alpha).add(psiCoefs).normalize();
-                iPsi.setCoefficients(psiCoefsTemp.getArrayYX());
-
-                // Recalculate energy with new coefficients
-                mask = generateMask(true /* resize */);
-                rss = generateRss(mask);
-                mu = rss.getModelImage();            
-                double tempEngy = calculateTotalEnergy(iImageData, mask, mu, false);
-                
-                // Remember all best matches found so far
-                diffEnergy = tempEngy - totalEnergy;
-        
-                if (diffEnergy < 0) {
-                    totalEnergy = tempEngy;
-                    finalMask = mask;
-                    finalRss = rss;
-                    finalPhiCoefs = phiCoefsTemp;
-                    finalPsiCoefs = psiCoefsTemp;
-                    break;
-                }
-            }
-
-            // Update B-spline coefficients with the best match
-            phiCoefs = phiCoefsTemp;
-            psiCoefs = psiCoefsTemp;
-            
-            if (diffEnergy > 0 && alphaCount == 0) {
-                // Not able to minimize energy further
-                isEnergyOptimal = true;
-            }
-        }
-        
-        // Set the best matching coefficients
-        iPhi.setCoefficients(finalPhiCoefs.getArrayYX());
-        iPsi.setCoefficients(finalPsiCoefs.getArrayYX());
-        
-        
-        return new EnergyOutput(finalMask, finalRss, totalEnergy);
+        final Matrix rmk = Matlab.imresize(bmk, iSubpixelSampling);
+        final Matrix Krmk = Matlab.logical(Matlab.imfilterSymmetric(rmk, iPsf), 0.49999);
+        final RegionStatisticsSolver rss = new RegionStatisticsSolver(iImageData, Krmk, iGlm, iImageData, 2).calculate();
+        final double totalEnergy = calculateTotalEnergy(iImageData, rmk, rss.getModelImage(), true);
+        final double diffEnergy = totalEnergy - aTotalEnergy;
+        return diffEnergy;
     }
 
     private double calculateTotalEnergy(Matrix aImageData, Matrix mask, Matrix mu, boolean aIsMatrixLogical) {
-        double dataEnergy = iGlm.nllMean(aImageData, mu, iGlm.priorWeights(aImageData));
-        double regularizerEnergy = calculateRegularizerEnergy(mask, iWeightBoundary, aIsMatrixLogical);
-        double totalEnergy = iLambdaData * dataEnergy + iLambdaReg * regularizerEnergy;
+        final double dataEnergy = iGlm.nllMean(aImageData, mu, iGlm.priorWeights(aImageData));
+        final double regularizerEnergy = calculateRegularizerEnergy(mask, iWeightBoundary, aIsMatrixLogical);
+        final double totalEnergy = iLambdaData * dataEnergy + iLambdaReg * regularizerEnergy;
 
         return totalEnergy;
     }
@@ -513,75 +527,99 @@ public class SegmentationAlgorithm {
      * @return array Matrix[2] (index 0 -> gradient of Phi, index 1 -> gradient of Psi)
      */
     private Matrix[] calculateEnergyGradients(Matrix aMu, RegionStatisticsSolver aRss) {
-        Matrix w_g0 = null;
-        switch (iNoiseType) {
-        case GAUSSIAN:
-            w_g0 = iImageData.copy().sub(aMu).scale(2 * (aRss.getBetaMLEout() - aRss.getBetaMLEin()));
-            break;
-        case POISSON:
-            w_g0 = iImageData.copy().ones().sub(iImageData.copy().elementDiv(aMu))
-                    .scale(aRss.getBetaMLEin() - aRss.getBetaMLEout());
-            break;
-        default:
-            new RuntimeException("Uknown NoiseType: [" + iNoiseType + "]");
-            break;
-        }
+        Matrix w_g0 = calculateBregmanDivergance(aMu);
+        w_g0.scale(aRss.getBetaMLEin() - aRss.getBetaMLEout());
         
-        Matrix phiPts2 = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), 1, iPhi);
-        Matrix psiPts2 = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), 1, iPsi);
-        
-        Matrix der_phi = calculateDiffDirac(phiPts2).elementMult(calculateHeavySide(psiPts2));
-        Matrix der_psi = calculateDirac(phiPts2).elementMult(calculateDirac(psiPts2));
+        final Matrix phiPts2 = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), 1, iPhi);
+        final Matrix psiPts2 = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), 1, iPsi);
 
-        Matrix grad_Phi = calculateEnergyGradient(w_g0, der_phi, false /* shouldConvolve */).transpose();
-        Matrix grad_Psi = calculateEnergyGradient(w_g0, der_psi, true /* shouldConvolve */).transpose();
+        final Matrix der_phi = calculateDiffDirac(phiPts2).elementMult(calculateHeavySide(psiPts2));
+        final Matrix der_psi = calculateDirac(phiPts2).elementMult(calculateDirac(psiPts2));
+
+        final Matrix grad_Phi = calculateEnergyGradient(w_g0, der_phi, false /* shouldConvolve */).transpose();
+        final Matrix grad_Psi = calculateEnergyGradient(w_g0, der_psi, true /* shouldConvolve */).transpose();
 
         return new Matrix[] { grad_Phi, grad_Psi };
     }
 
     /**
-     * Helper method for calculating energy gradient for given Phi/Psi set of values 
+     * Calcualtes Bregman divergence basing on current noise type settings.
+     * @param aMu Input matrix (divergence is calculated with respect to iImageData)
+     * @return bregman divergance
+     */
+    private Matrix calculateBregmanDivergance(Matrix aMu) {
+        Matrix w_g0 = null;
+        switch (iNoiseType) {
+            case GAUSSIAN:
+                w_g0 = iImageData.copy().sub(aMu).scale(-2);
+                break;
+            case POISSON:
+                w_g0 = iImageData.copy().ones().sub(iImageData.copy().elementDiv(aMu));
+                break;
+            default:
+                new RuntimeException("Uknown NoiseType: [" + iNoiseType + "]");
+                break;
+        }
+        
+        return w_g0;
+    }
+
+    /**
+     * Helper method for calculating energy gradient for given Phi/Psi set of values
      * @param w_g0
      * @param aFuncPoints - Matrix with calculated values of Psi/Phi
      * @param aShouldConvolve - if true then convolves if not then runs symmetric filter
      * @return
      */
     private Matrix calculateEnergyGradient(Matrix w_g0, Matrix aFuncPoints, boolean aShouldConvolve) {
-        Matrix rEngyPhi = calculateRegularizerEnergyMatrix(aFuncPoints, iWeightBoundary, false);
-        
+        final Matrix rEngyPhi = calculateRegularizerEnergyMatrix(aFuncPoints, iWeightBoundary, false);
+
         Matrix w_g = w_g0.copy().elementMult(aFuncPoints).add(rEngyPhi.copy().scale(iLambdaReg)).normalize();
 
-        if (aShouldConvolve)
+        if (aShouldConvolve) {
             w_g = Matlab.imfilterConv(w_g, iPsf);
-        else
+        }
+        else {
             w_g = Matlab.imfilterSymmetric(w_g, iPsf);
+        }
 
         // Run filter for both - rows and columns.
         Matrix grad = Matlab.imfilterSymmetric(
-                        Matlab.imfilterSymmetric(w_g, iEnergyGradOfBases.copy().transpose()), 
-                        iEnergyGradOfBases);
-        
+                Matlab.imfilterSymmetric(w_g, iEnergyGradOfBases.copy().transpose()),
+                iEnergyGradOfBases);
+
         // Resize gradient to original image size by choosing each iStepSize value from each row/col.
         grad = grad.resize(0, 0, iStepSize, iStepSize);
-        
+
         return grad;
     }
 
-    private RegionStatisticsSolver generateRss(Matrix mask) {
-        Matrix kmask = Matlab.imfilterSymmetric(mask, iPsf);
-        RegionStatisticsSolver rss = new RegionStatisticsSolver(iImageData, kmask, iGlm, iImageData, 6).calculate();
-        
+    /**
+     * calculates Region Statistics Solver / MLE / model image for given mask. 
+     * @param mask
+     * @return
+     */
+    private RegionStatisticsSolver calculateRss(Matrix mask) {
+        final Matrix kmask = Matlab.imfilterSymmetric(mask, iPsf);
+        final RegionStatisticsSolver rss = new RegionStatisticsSolver(iImageData, kmask, iGlm, iImageData, 6).calculate();
+
         return rss;
     }
-
+    
+    /**
+     * Generates mask basing on current values of Phi/Psi functions, and subpixel segmentation settings.
+     * @param aResizeMask - should mask be resize to original dimensions if subpixelsampling is != 1?
+     * @return generated mask
+     */
     private Matrix generateMask(boolean aResizeMask) {
-        Matrix phiPts = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), iSubpixelSampling, iPhi);
-        Matrix psiPts = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), iSubpixelSampling, iPsi);
-        
+        final Matrix phiPts = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), iSubpixelSampling, iPhi);
+        final Matrix psiPts = calculateBSplinePoints(iImageData.numCols(), iImageData.numRows(), iSubpixelSampling, iPsi);
+
         Matrix mask = generateNormalizedMask(phiPts, psiPts);
 
-        if (aResizeMask)
+        if (aResizeMask) {
             mask = Matlab.imresize(mask, iSubpixelSampling);
+        }
 
         return mask;
     }
@@ -597,14 +635,14 @@ public class SegmentationAlgorithm {
         // Normalize and resize original image according to step size
         iOriginalWidth = iImage[0].length;
         iOriginalHeight = iImage.length;
-        int width = (int) (Math.ceil((double) iOriginalWidth / iStepSize) * iStepSize);
-        int height = (int) (Math.ceil((double) iOriginalHeight / iStepSize) * iStepSize);
-        double[][] img = new double[height][width];
+        final int width = (int) (Math.ceil((double) iOriginalWidth / iStepSize) * iStepSize);
+        final int height = (int) (Math.ceil((double) iOriginalHeight / iStepSize) * iStepSize);
+        final double[][] img = new double[height][width];
         ImgUtils.imgResize(iImage, img);
         ImgUtils.normalize(img);
         iImageData = new Matrix(img);
-        
-        
+
+
         // --------------------------------------------------------------
         // IMM data (subpixel sampling, regularizer term are already given)
 
@@ -650,20 +688,19 @@ public class SegmentationAlgorithm {
         iPhi = generatePhi(iImageData.numCols(), iImageData.numRows(), iStepSize);
         iEnergyGradOfBases = EnergyGriadientsOfBasesFunctions.getEnergyGradients(iCoeffsStepScale);
     }
-    
+
     @Override
     public String toString() {
-        String str = 
-               "-------- Segmentation Algorithm Parameters --------\n";
-        str += "Input Img dims: " + iOriginalWidth + "x" + iOriginalHeight + "\n";
-        str += "NoiseType: " + iNoiseType.toString() + "\n";
-        str += "PsfType: " +  iPsfType.toString() + "\n";
-        str += "W/H: " + iPsfSize.width + "/" + iPsfSize.height + "\n";
-        str += "Subpixel sampling: " + iSubpixelSampling + "\n";
-        str += "StepScale: " + iCoeffsStepScale + "\n";
-        str += "No Of Iterations: " + iNoOfIterations + "\n";
-        str += "LambdaReg: " + iLambdaReg + "\n";
-        str += "---------------------------------------------------\n";
+        String str = "-------- Segmentation Algorithm Parameters --------\n";
+        str +=       "Input Img dims: " + iOriginalWidth + "x" + iOriginalHeight + "\n";
+        str +=       "NoiseType: " + iNoiseType.toString() + "\n";
+        str +=       "PsfType: " +  iPsfType.toString() + "\n";
+        str +=       "W/H: " + iPsfSize.width + "/" + iPsfSize.height + "\n";
+        str +=       "Subpixel sampling: " + iSubpixelSampling + "\n";
+        str +=       "StepScale: " + iCoeffsStepScale + "\n";
+        str +=       "No Of Iterations: " + iNoOfIterations + "\n";
+        str +=       "LambdaReg: " + iLambdaReg + "\n";
+        str +=       "---------------------------------------------------\n";
         return str;
     }
 }
