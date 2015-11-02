@@ -118,9 +118,7 @@ public class Algorithm {
      */
     private void initContourContainer(List<Point> aContourPoints) {
         for (Point point : aContourPoints) {
-            final ContourParticle particle = new ContourParticle();
-            particle.label = iLabelImage.getLabelAbs(point);
-            particle.intensity = iIntensityImage.get(point);
+            final ContourParticle particle = new ContourParticle(iLabelImage.getLabelAbs(point), iIntensityImage.get(point));
             iContourParticles.put(point, particle);
         }
     }
@@ -273,10 +271,8 @@ public class Algorithm {
             final int label = iLabelImage.getLabel(p);
             if (iLabelImage.isInnerLabel(label) && label == aAbsLabel) {
                 // q is a inner point with the same label as p
-                final ContourParticle q = new ContourParticle();
-                q.label = aAbsLabel;
+                final ContourParticle q = new ContourParticle(aAbsLabel, iIntensityImage.get(p));
                 q.candidateLabel = BGLabel;
-                q.intensity = iIntensityImage.get(p);
                 iLabelImage.setLabel(p, iLabelImage.labelToNeg(aAbsLabel));
                 iContourParticles.put(iLabelImage.indexToPoint(p), q);
             }
@@ -284,7 +280,7 @@ public class Algorithm {
     }
     
     /**
-     * If neighbours of changed particle are enclosed, remove them from ContourParticles container and change their
+     * If neighbors of changed particle are enclosed, remove them from ContourParticles container and change their
      * type to interior.
      */
     private void removeEnclosedNeighboursFromContour(int aLabelAbs, Point aPoint) {
@@ -466,7 +462,7 @@ public class Algorithm {
                 break;
             }
             // This candidate passed the test and is added to the TempRemoveCotainer:
-            iCandidates.put(vSortedListIterator.iParticleIndex, vSortedListIterator.iParticle);
+            iCandidates.put(vSortedListIterator.iPoint, vSortedListIterator.iContourParticle);
         }
     }
     
@@ -592,17 +588,14 @@ public class Algorithm {
     private void removeCandidatesWithNonNegativeDeltaEnergy() {
         final Iterator<Entry<Point, ContourParticle>> iter = iCandidates.entrySet().iterator();
         while (iter.hasNext()) {
-            ContourParticle particle = iter.next().getValue();
+            Entry<Point, ContourParticle> next = iter.next();
+            ContourParticle particle = next.getValue();
             if (particle.energyDifference >= 0) {
                 iter.remove();
             }
         }
     }
     
-    ////////////////////////////////////////////////////////////
-    // ---------------------------------------------------------
-    ////////////////////////////////////////////////////////////
-
     public boolean performIteration() {
         if (iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
             ((E_Deconvolution) iImageModel.getEdata()).RenewDeconvolution(iLabelImage, iLabelStatistics);
@@ -613,22 +606,118 @@ public class Algorithm {
             removeNotSignificantRegions();
         }
         
-        RebuildCandidateList();
-        FilterCandidates();
+        buildCandidateList();
+        filterCandidates();
         oscillationDetection.DetectOscillations(iCandidates);
         limitNumberOfCandidates();
         boolean convergence = MoveCandidates();
         removeEmptyStatistics();
-
+        
         if (shrinkFirst && convergence) {
             // Done with shrinking, now allow growing
             convergence = false;
             shrinkFirst = false;
             m_AcceptedPointsFactor = AcceptedPointsFactor;
         }
-
+        
         return convergence;
     }
+
+    /**
+     * Iterates through ContourParticles in iContourParticles container. Calculates energies for shrinking (contour particle becoming BG) 
+     * and growing scenarios (contour particle expands on nearby BG region or on other region contour)
+     */
+    private void buildCandidateList() {
+        // Put all current contour particles into candidates
+        initiateCandidateList();
+        
+        // Calculate energy for change to BG (shrinking)
+        for (final Entry<Point, ContourParticle> iter : iCandidates.entrySet()) {
+            final Point point = iter.getKey();
+            final ContourParticle contour = iter.getValue();
+
+            contour.candidateLabel = BGLabel;
+            contour.referenceCount = 0; // doesn't matter for the BG
+            contour.energyDifference = iImageModel.calculateDeltaEnergy(point, contour, BGLabel, iLabelStatistics).energyDifference;
+            contour.setTestedLabel(BGLabel);
+        }
+
+        if (shrinkFirst) {
+            return;
+        }
+
+        // Iterate the contour list and visit all the neighbors in the FG-Neighborhood.
+        // Calculate energy for expanding into neighborhood (growing)
+        // Until that point iContourParticles = iCandidates, we keep iterating on first one since iCandidates will grow (possibly)
+        iCompetingRegions.clear();
+        for (final Entry<Point, ContourParticle> iter : iContourParticles.entrySet()) {
+            final Point propagatingPoint = iter.getKey();
+            ContourParticle propagatingContour = iter.getValue();
+            final int propagatingRegionLabel = propagatingContour.label;
+
+            for (final Integer neighbor : iLabelImage.iterateNeighbours(propagatingPoint)) {
+                final int labelOfDefender = iLabelImage.getLabelAbs(neighbor);
+                if (iLabelImage.isForbiddenLabel(labelOfDefender) || labelOfDefender == propagatingRegionLabel) {
+                    // Skip forbidden and same region labels
+                    continue;
+                }
+                final Point neighbourPoint = iLabelImage.indexToPoint(neighbor);
+                propagatingContour.addDaughter(neighbourPoint);
+                
+                // Get contour candidate, if it does not exist it is a background point (create), otherwise
+                // it is another region contour.
+                ContourParticle contourCandidate = iCandidates.get(neighbourPoint);
+                if (contourCandidate == null) {
+                    contourCandidate = new ContourParticle(labelOfDefender, iIntensityImage.get(neighbor));
+                    iCandidates.put(neighbourPoint, contourCandidate);
+                }
+                
+                contourCandidate.isDaughter = true;
+                contourCandidate.addMother(propagatingPoint);
+
+                // Check if the energy difference for this candidate label has not yet been calculated.
+                if (!contourCandidate.hasLabelBeenTested((propagatingRegionLabel))) {
+                    contourCandidate.setTestedLabel(propagatingRegionLabel);
+
+                    final EnergyResult energyResult = iImageModel.calculateDeltaEnergy(neighbourPoint, contourCandidate, propagatingRegionLabel, iLabelStatistics);
+                    if (energyResult.energyDifference < contourCandidate.energyDifference) {
+
+                        contourCandidate.candidateLabel = propagatingRegionLabel;
+                        contourCandidate.referenceCount = 1;
+                        contourCandidate.energyDifference = energyResult.energyDifference;
+
+                        if (energyResult.merge && contourCandidate.label != BGLabel && contourCandidate.candidateLabel != BGLabel) {
+                            iCompetingRegions.put(propagatingPoint, new LabelPair(contourCandidate.candidateLabel, contourCandidate.label));
+                        }
+                    }
+                }
+                else {
+                    // If the propagatingRegionLabel is the same as the candidateLabel, we have found 2 or more mothers of for this contour point.
+                    if (contourCandidate.candidateLabel == propagatingRegionLabel) {
+                        contourCandidate.referenceCount++;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Initiates candidate list. Every current contour point is a new candidate mother without any other mother/daughter in her lists.
+     */
+    private void initiateCandidateList() {
+        iCandidates.clear();
+        iCandidates.putAll(iContourParticles);
+        for (ContourParticle contour : iCandidates.values()) {
+            contour.isMother = true;
+            contour.isDaughter = false;
+            contour.isProcessed = false;
+            contour.clearLists();
+        }
+    }
+    
+    ////////////////////////////////////////////////////////////
+    // ---------------------------------------------------------
+    ////////////////////////////////////////////////////////////
 
     /**
      * Move the points in the candidate list
@@ -809,255 +898,151 @@ public class Algorithm {
     }
 
     /**
-     * Iterates through ContourParticles in iContourParticles
-     * Builds mothers, daughters, computes energies and fills m_CompetingRegionsMap
-     */
-    private void RebuildCandidateList() {
-        // Put all current contour particles into candidates
-        iCandidates.clear();
-        iCandidates.putAll(iContourParticles);
-        
-        // Calculate energy for change to BG (shrinking)
-        for (final Entry<Point, ContourParticle> iter : iContourParticles.entrySet()) {
-            final Point point = iter.getKey();
-            final ContourParticle contour = iter.getValue();
-
-            contour.candidateLabel = 0;
-            contour.isMother = true;
-            contour.isDaughter = false;
-            contour.isProcessed = false;
-            contour.referenceCount = 0; // doesn't matter for the BG
-            contour.energyDifference = iImageModel.calculateDeltaEnergy(point, contour, BGLabel, iLabelStatistics).energyDifference;
-            contour.clearLists();
-            contour.setTestedLabel(BGLabel);
-        }
-
-        if (shrinkFirst) {
-            return;
-        }
-
-        // Iterate the contour list and visit all the neighbors in the FG-Neighborhood.
-        // Calculate energy for expanding into neighborhood (growing)
-        // Until that point iContourParticles = iCandidates, we keep iterating on first one since iCandidates will grow (possibly)
-        iCompetingRegions.clear();
-        for (final Entry<Point, ContourParticle> iter : iContourParticles.entrySet()) {
-            final Point point = iter.getKey();
-            ContourParticle contour = iter.getValue();
-            final int propagatingRegionLabel = contour.label;
-
-            for (final Integer neighbor : iLabelImage.iterateNeighbours(point)) {
-                final int labelOfDefender = iLabelImage.getLabelAbs(neighbor);
-                if (iLabelImage.isForbiddenLabel(labelOfDefender) || labelOfDefender == propagatingRegionLabel) {
-                    // Skip forbidden and same region labels
-                    continue;
-                }
-                final Point neighbourPoint = iLabelImage.indexToPoint(neighbor);
-                contour.getDaughterList().add(neighbourPoint);
-                
-                final ContourParticle contourCandidate = iCandidates.get(neighbourPoint);
-                if (contourCandidate == null) {
-                    // Neighbor is a background
-                    final ContourParticle newContour = new ContourParticle();
-                    newContour.candidateLabel = propagatingRegionLabel;
-                    newContour.label = labelOfDefender;
-                    newContour.intensity = iIntensityImage.get(neighbor);
-                    newContour.isMother = false;
-                    newContour.isDaughter = true;
-                    newContour.isProcessed = false;
-                    newContour.referenceCount = 1;
-                    newContour.energyDifference = iImageModel.calculateDeltaEnergy(neighbourPoint, newContour, propagatingRegionLabel, iLabelStatistics).energyDifference;
-                    newContour.setTestedLabel(propagatingRegionLabel);
-                    newContour.getMotherList().add(point);
-                    iCandidates.put(neighbourPoint, newContour);
-                }
-                else {
-                    // Neighbor is another region contour
-                    contourCandidate.isDaughter = true;
-                    contourCandidate.getMotherList().add(point);
-
-                    // Check if the energy difference for this candidate label has not yet been calculated.
-                    if (!contourCandidate.hasLabelBeenTested((propagatingRegionLabel))) {
-                        contourCandidate.setTestedLabel(propagatingRegionLabel);
-
-                        final EnergyResult energyResult = iImageModel.calculateDeltaEnergy(neighbourPoint, contourCandidate, propagatingRegionLabel, iLabelStatistics);
-                        if (energyResult.energyDifference < contourCandidate.energyDifference) {
-
-                            contourCandidate.candidateLabel = propagatingRegionLabel;
-                            contourCandidate.energyDifference = energyResult.energyDifference;
-                            contourCandidate.referenceCount = 1;
-
-                            if (energyResult.merge && contourCandidate.label != BGLabel && contourCandidate.candidateLabel != BGLabel) {
-                                iCompetingRegions.put(point, new LabelPair(contourCandidate.candidateLabel, contourCandidate.label));
-                            }
-                        }
-                    }
-                    else {
-                        // If the propagatingRegionLabel is the same as the candidateLabel, we have found 2 or more mothers of for this contour point.
-                        if (contourCandidate.candidateLabel == propagatingRegionLabel) {
-                            contourCandidate.referenceCount++;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * Filters topological incompatible candidates (topological dependencies) and non-improving energies.
      */
-    private void FilterCandidates() {
-        if (shrinkFirst) {
-            removeCandidatesWithNonNegativeDeltaEnergy();
-            return;
-        }
+    private void filterCandidates() {
+        if (!shrinkFirst) {
+            //Find topologically compatible candidates
+            final List<Point> illegalPoints = new LinkedList<Point>();
+            for (final Entry<Point, ContourParticle> e : iCandidates.entrySet()) {
+                final Point point = e.getKey();
+                final ContourParticle contour = e.getValue();
 
-        /**
-         * Find topologically compatible candidates
-         */
-        final List<Point> vIllegalIndices = new LinkedList<Point>();
-        for (final Entry<Point, ContourParticle> vPointIterator : iCandidates.entrySet()) {
-            final Point pIndex = vPointIterator.getKey();
-            final ContourParticle contourParticle = vPointIterator.getValue();
+                // Check if this point already was processed and if it is a mother: 
+                // Only mothers can be seed points of topological networks. Daughters are always part of a topological network of a mother.
+                if (!contour.isProcessed && contour.isMother) {
+                    contour.isProcessed = true;
 
-            // Check if this point already was processed
-            if (!contourParticle.isProcessed) {
-                // Check if it is a mother: only mothers can be seed points of topological networks. 
-                // Daughters are always part of a topo network of a mother.
-                if (!contourParticle.isMother) {
-                    continue;
-                }
-                contourParticle.isProcessed = true;
+                    // Build the dependency network for this seed point:
+                    final List<ContourParticleWithIndex> networkMembers = buildDependencyNetwork(point);
 
-                 // Build the dependency network for this seed point:
-                final List<ContourParticleWithIndex> vSortedNetworkMembers = buildDependencyNetwork(pIndex);
+                    // Filtering: Accept all members in ascending order that are compatible with the already selected members in the network.
+                    final HashSet<Point> selectedCandidatesPoints = new HashSet<Point>();
 
-                // Filtering: Accept all members in ascending order that are compatible with the already selected members in the network.
-                final HashSet<Point> vSelectedCandidateIndices = new HashSet<Point>();
+                    for (final ContourParticleWithIndex networkPoint : networkMembers) {
+                        // Rules: a candidate in the network is a legal candidate if:
+                        // - If (daughter): The reference count >= 1. (Except the the candidate label is the BG - this allows creating BG regions in between two competing regions).
+                        // - If ( mother ): All daughters (with the same 'old' label) in the accepted list have still a reference count > 1.
+                        boolean isMoveLegal = true;
+                        ContourParticle currentContour = networkPoint.iContourParticle;
+                        Point currentPoint = networkPoint.iPoint;
 
-                for (final ContourParticleWithIndex vNetworkIt : vSortedNetworkMembers) {
-
-                    // If a mother is accepted, the reference count of all the daughters (with the same label) has to be decreased.
-                    // Rules: a candidate in the network is a legal candidate if:
-                    // - If (daughter): The reference count >= 1. (Except the the candidate label is the BG - this allows creating BG regions in between two competing regions).
-                    // - If ( mother ): All daughters (with the same 'old' label) in the accepted list have still a reference count > 1.
-                    boolean vLegalMove = true;
-
-                    // RULE 1: If c is a daughter point, the reference count r_c is > 0.
-                    if (vNetworkIt.iParticle.isDaughter) {
-                        final ContourParticle vCand = iCandidates.get(vNetworkIt.iParticleIndex);
-                        if (vCand.referenceCount < 1 && vCand.candidateLabel != 0) {
-                            vLegalMove = false;
-                        }
-                    }
-
-                    // RULE 2: All daughters already accepted the label of this mother have at least one another mother.
-                    // AND
-                    // RULE 3: Mothers are still valid mothers (to not introduce holes in the FG region).
-                    if (vLegalMove && vNetworkIt.iParticle.isMother) {
-                        // Iterate the daughters and check their reference count
-                        boolean vRule3Fulfilled = false;
-
-                        for (final Point vDaughterIndicesIterator : vNetworkIt.iParticle.getDaughterList()) {
-                            final ContourParticle vDaughterPoint = iCandidates.get(vDaughterIndicesIterator);
-
-                            // rule 2:
-                            final boolean vAcceptedDaugtherItContained = vSelectedCandidateIndices.contains(vDaughterIndicesIterator);
-                            if (vAcceptedDaugtherItContained) {
-                                // This daughter has been accepted and needs a reference count > 1, else the move is invalid.
-                                if (vDaughterPoint.candidateLabel == vNetworkIt.iParticle.label && vDaughterPoint.referenceCount <= 1) {
-                                    vLegalMove = false;
-                                    break;
-                                }
+                        // RULE 1: If networkPoint is a daughter point, the reference count is > 0 (if not BG label).
+                        if (currentContour.isDaughter) {
+                            if (currentContour.referenceCount < 1 && currentContour.candidateLabel != BGLabel) {
+                                isMoveLegal = false;
                             }
+                        }
 
-                            // rule 3:
-                            if (!vRule3Fulfilled) {
-                                if (!vAcceptedDaugtherItContained) {
-                                    // There is a daughter that has not yet been accepted.
-                                    vRule3Fulfilled = true;
+                        // RULE 2: All daughters already accepted the label of this mother have at least one another mother.
+                        // RULE 3: Mothers are still valid mothers (to not introduce holes in the FG region).
+                        if (isMoveLegal && currentContour.isMother) {
+                            // Iterate the daughters and check their reference count
+                            boolean rule3Fulfilled = false;
+
+                            for (final Point daughter : currentContour.getDaughterList()) {
+                                final ContourParticle daughterContour = iCandidates.get(daughter);
+
+                                // rule 2:
+                                final boolean alreadyAccepted = selectedCandidatesPoints.contains(daughter);
+                                if (alreadyAccepted) {
+                                    // This daughter has been accepted and needs a reference count > 1, else the move is invalid.
+                                    if (daughterContour.candidateLabel == currentContour.label && daughterContour.referenceCount <= 1) {
+                                        isMoveLegal = false;
+                                        break;
+                                    }
                                 }
-                                else {
-                                    // the daughter has been accepted, but may have another candidate label(rule 3b):
-                                    if (iCandidates.get(vDaughterIndicesIterator).candidateLabel != vNetworkIt.iParticle.label) {
-                                        vRule3Fulfilled = true;
+
+                                // rule 3:
+                                if (!rule3Fulfilled) {
+                                    if (!alreadyAccepted) {
+                                        // There is a daughter that has not yet been accepted.
+                                        rule3Fulfilled = true;
+                                    }
+                                    else {
+                                        // the daughter has been accepted, but may have another candidate label(rule 3b):
+                                        if (daughterContour.candidateLabel != currentContour.label) {
+                                            rule3Fulfilled = true;
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        if (!vRule3Fulfilled) {
-                            vLegalMove = false;
-                        }
-                    }
-
-                    if (vLegalMove) {
-                        // the move is legal, store the index in the container
-                        // with accepted candidates of this network.
-                        vSelectedCandidateIndices.add(vNetworkIt.iParticleIndex);
-
-                        // decrease the references of its daughters(with the same 'old' label).
-                        for (final Point vDaughterIndicesIterator : vNetworkIt.iParticle.getDaughterList()) {
-                            final ContourParticle vDaughterPoint = iCandidates.get(vDaughterIndicesIterator);
-                            if (vDaughterPoint.candidateLabel == vNetworkIt.iParticle.label) {
-                                vDaughterPoint.referenceCount--;
+                            if (!rule3Fulfilled) {
+                                isMoveLegal = false;
                             }
                         }
-                    }
-                    else {
-                        vIllegalIndices.add(vNetworkIt.iParticleIndex);
+
+                        if (isMoveLegal) {
+                            selectedCandidatesPoints.add(currentPoint);
+                            // If a mother is accepted, the reference count of all the daughters (with the same label) has to be decreased.
+                            for (final Point daughter : currentContour.getDaughterList()) {
+                                final ContourParticle daughterContour = iCandidates.get(daughter);
+                                if (daughterContour.candidateLabel == currentContour.label) {
+                                    daughterContour.referenceCount--;
+                                }
+                            }
+                        }
+                        else {
+                            illegalPoints.add(currentPoint);
+                        }
                     }
                 }
             }
-        }
 
-        /**
-         * Filter all candidates with the illegal indices
-         */
-        for (final Point vIlligalIndicesIt : vIllegalIndices) {
-            iCandidates.remove(vIlligalIndicesIt);
+            //Filter all candidates with the illegal indices
+            for (final Point illegalPoint : illegalPoints) {
+                iCandidates.remove(illegalPoint);
+            }
         }
 
         removeCandidatesWithNonNegativeDeltaEnergy();
     }
 
-    private List<ContourParticleWithIndex> buildDependencyNetwork(final Point aStartPoint) {
-        final Stack<Point> pointsToVisit = new Stack<Point>();
+    /**
+     * Creates sorted container (by energy difference) with all contour particles which are in interest of given mother (aMotherPoint) 
+     * + all other mothers interested in the same point with its children (it repeates that process to find complete dependency network). 
+     * @param aMotherPoint - input mother point for which network is going to be build
+     * @return all dependencies of input mother
+     */
+    private List<ContourParticleWithIndex> buildDependencyNetwork(final Point aMotherPoint) {
         final List<ContourParticleWithIndex> networkMembers = new LinkedList<ContourParticleWithIndex>();
         
-        pointsToVisit.push(aStartPoint);
+        final Stack<Point> pointsToVisit = new Stack<Point>();
+        pointsToVisit.push(aMotherPoint);
         while (!pointsToVisit.empty()) {
-            final Point point = pointsToVisit.pop();
-            final ContourParticle currentMother = iCandidates.get(point);
-
+            final Point motherPoint = pointsToVisit.pop();
+            final ContourParticle motherContour = iCandidates.get(motherPoint);
+            
             // Add the seed point to the network
-            networkMembers.add(new ContourParticleWithIndex(point, currentMother));
+            networkMembers.add(new ContourParticleWithIndex(motherPoint, motherContour));
 
             // Iterate all children of the seed, push to the stack if there is a mother.
-            for (final Point daughterPoint : currentMother.getDaughterList()) {
-                final ContourParticle daughterContourPoint = iCandidates.get(daughterPoint);
+            for (final Point daughterPoint : motherContour.getDaughterList()) {
+                final ContourParticle daughterContour = iCandidates.get(daughterPoint);
 
-                if (!daughterContourPoint.isProcessed) {
-                    daughterContourPoint.isProcessed = true;
+                if (!daughterContour.isProcessed) {
+                    daughterContour.isProcessed = true;
 
-                    if (daughterContourPoint.isMother) {
+                    if (daughterContour.isMother) {
                         pointsToVisit.push(daughterPoint);
                     }
                     else {
-                        networkMembers.add(new ContourParticleWithIndex(daughterPoint, daughterContourPoint));
+                        networkMembers.add(new ContourParticleWithIndex(daughterPoint, daughterContour));
                     }
 
                     // Push all the non-processed mothers of this daughter to the stack
-                    for (final Point motherPoint : daughterContourPoint.getMotherList()) {
-                        final ContourParticle motherContourPoint = iCandidates.get(motherPoint);
+                    for (final Point mother : daughterContour.getMotherList()) {
+                        final ContourParticle motherContourPoint = iCandidates.get(mother);
                         if (!motherContourPoint.isProcessed) {
                             motherContourPoint.isProcessed = true;
-                            pointsToVisit.push(motherPoint);
+                            pointsToVisit.push(mother);
                         }
                     }
                 }
             }
         }
-
+        
         //sort the network
         Collections.sort(networkMembers);
         return networkMembers;

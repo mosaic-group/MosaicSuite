@@ -14,7 +14,7 @@ public class ContourParticle {
     public int label = 0;
     public int candidateLabel = 0;
     public float intensity = 0.0f;
-    public double energyDifference = 0;
+    public double energyDifference = Double.MAX_VALUE;
 
     // mother - daughter indicators
     // Particle can have any combination of both.
@@ -28,14 +28,27 @@ public class ContourParticle {
     private final List<Point> daughterList = new LinkedList<Point>();
     private final List<Integer> testedList = new LinkedList<Integer>();
 
+    public ContourParticle(int aLabel, float aIntensity) {
+        label = aLabel;
+        intensity = aIntensity;
+    }
+    
     List<Point> getMotherList() {
         return motherList;
     }
 
+    void addMother(Point aMother) {
+        motherList.add(aMother);
+    }
+    
     List<Point> getDaughterList() {
         return daughterList;
     }
 
+    void addDaughter(Point aDaughter) {
+        daughterList.add(aDaughter);
+    }
+    
     boolean hasLabelBeenTested(int aLabel) {
         return testedList.contains(aLabel);
     }
