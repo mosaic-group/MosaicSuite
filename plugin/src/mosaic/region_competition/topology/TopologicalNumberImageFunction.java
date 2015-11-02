@@ -1,8 +1,9 @@
 package mosaic.region_competition.topology;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import mosaic.core.image.Connectivity;
@@ -13,7 +14,6 @@ import mosaic.core.image.Point;
 public class TopologicalNumberImageFunction {
 
     private final Connectivity TFGConnectivity;
-    private final Connectivity TBGConnectivity;
 
     private final UnitCubeCCCounter m_ForegroundUnitCubeCCCounter;
     private final UnitCubeCCCounter m_BackgroundUnitCubeCCCounter;
@@ -23,24 +23,20 @@ public class TopologicalNumberImageFunction {
     private final int[] m_DataSubImage; // cached input image
 
     private final LabelImage labelImage;
-    private final int dimension;
     private final int imageSize;
 
-    private final int Zero = 0;
+    private final static int ValueForForbiddenPoints = 0;
 
     public TopologicalNumberImageFunction(LabelImage aLabelImage) {
         this.TFGConnectivity = aLabelImage.getConnFG();
-        this.TBGConnectivity = aLabelImage.getConnBG();
 
         this.m_ForegroundUnitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity);
-        this.m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(TBGConnectivity);
+        this.m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(aLabelImage.getConnBG());
 
         this.labelImage = aLabelImage;
-        this.dimension = aLabelImage.getNumOfDimensions();
 
         imageSize = TFGConnectivity.getNeighborhoodSize();
         m_DataSubImage = new int[imageSize];
-
         m_SubImage = new char[imageSize];
         m_Offsets = new Point[imageSize];
 
@@ -48,10 +44,10 @@ public class TopologicalNumberImageFunction {
     }
 
     private void initOffsets() {
-        // allocate points
-        for (int i = 0; i < imageSize; i++) {
-            m_Offsets[i] = new Point(new int[dimension]);
-        }
+//        // allocate points
+//        for (int i = 0; i < imageSize; i++) {
+//            m_Offsets[i] = new Point(new int[labelImage.getNumOfDimensions()]);
+//        }
 
         // get the ofs for the whole neighborhood.
         for (int i = 0; i < imageSize; ++i) {
@@ -64,7 +60,7 @@ public class TopologicalNumberImageFunction {
             // TODO CubeIterator at Connectivity?
             m_DataSubImage[i] = labelImage.getLabelAbs(p.add(m_Offsets[i]));
             if (labelImage.isForbiddenLabel(m_DataSubImage[i])) {
-                m_DataSubImage[i] = Zero;
+                m_DataSubImage[i] = ValueForForbiddenPoints;
             }
         }
     }
@@ -73,19 +69,16 @@ public class TopologicalNumberImageFunction {
      * @param index
      * @return List(AbjacentLabel, (nFGconnected, nBGconnected))
      */
-    public LinkedList<TopologicalNumberResult> EvaluateAdjacentRegionsFGTNAtIndex(Point index) {
-
-        final LinkedList<TopologicalNumberResult> vTNvector = new LinkedList<TopologicalNumberResult>();
+    public List<TopologicalNumberResult> EvaluateAdjacentRegionsFGTN(Point index) {
         final Set<Integer> vAdjacentLabels = new HashSet<Integer>();
-
         readImageData(index);
-
         for (final int vLinearIndex : TFGConnectivity.itOfsInt()) {
-            if (m_DataSubImage[vLinearIndex] != Zero) {
+            if (m_DataSubImage[vLinearIndex] != ValueForForbiddenPoints) {
                 vAdjacentLabels.add(m_DataSubImage[vLinearIndex]);
             }
         }
 
+        final List<TopologicalNumberResult> vTNvector = new ArrayList<TopologicalNumberResult>(vAdjacentLabels.size());
         for (final int vLabelsIt : vAdjacentLabels) {
             for (int i = 0; i < imageSize; ++i) {
                 m_SubImage[i] = (char) ((m_DataSubImage[i] == vLabelsIt) ? 255 : 0);
@@ -93,11 +86,9 @@ public class TopologicalNumberImageFunction {
             final int middle = imageSize / 2;
             m_SubImage[middle] = 0;
 
-            final TopologicalNumberPair vFGBGTopoPair = new TopologicalNumberPair(0, 0);
-
             // Topological number in the foreground
             m_ForegroundUnitCubeCCCounter.SetImage(m_SubImage);
-            vFGBGTopoPair.FGNumber = m_ForegroundUnitCubeCCCounter.connectedComponents();
+            int FGNumber = m_ForegroundUnitCubeCCCounter.connectedComponents();
 
             // Invert the sub-image
             for (int bit = 0; bit < middle; ++bit) {
@@ -108,35 +99,23 @@ public class TopologicalNumberImageFunction {
             }
 
             // Topological number in the background
-
             m_BackgroundUnitCubeCCCounter.SetImage(m_SubImage);
-            vFGBGTopoPair.BGNumber = m_BackgroundUnitCubeCCCounter.connectedComponents();
-            vTNvector.add(new TopologicalNumberResult(vLabelsIt, vFGBGTopoPair));
+            int BGNumber = m_BackgroundUnitCubeCCCounter.connectedComponents();
+            vTNvector.add(new TopologicalNumberResult(vLabelsIt, FGNumber, BGNumber));
 
         }
         return vTNvector;
     }
 
-    public static class TopologicalNumberPair {
-
+    public static class TopologicalNumberResult {
+        public final int label;
         public int FGNumber;
         public int BGNumber;
-
-        protected TopologicalNumberPair(int fg, int bg) {
-            this.FGNumber = fg;
-            this.BGNumber = bg;
-        }
-    }
-
-    public static class TopologicalNumberResult {
-
-        public final int label;
-        public final TopologicalNumberPair topologicalNumberPair;
-
-        protected TopologicalNumberResult(int label, TopologicalNumberPair tn) {
+        
+        protected TopologicalNumberResult(int label, int FGNumber, int BGNumber) {
             this.label = label;
-            this.topologicalNumberPair = tn;
+            this.FGNumber = FGNumber;
+            this.BGNumber = BGNumber;
         }
     }
-
 }
