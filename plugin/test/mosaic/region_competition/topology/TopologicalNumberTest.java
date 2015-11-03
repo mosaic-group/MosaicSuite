@@ -28,21 +28,26 @@ public class TopologicalNumberTest {
         TopologicalNumber tn = new TopologicalNumber(li);
         
         {   // Testing non-FG-simple point
-            List<TopologicalNumberResult> result = tn.getTopologicalNumbersForAllAdjacentLabels(new Point(4,1));
+            Point testedPoint = new Point(4, 1);
+            List<TopologicalNumberResult> result = tn.getTopologicalNumbersForAllAdjacentLabels(testedPoint);
             
             assertEquals(2, result.size());
             assertEquals(new TopologicalNumberResult(2, 1, 1), result.get(0));
             assertEquals(new TopologicalNumberResult(3, 2, 2), result.get(1));
+            
+            assertFalse(tn.isPointFgSimple(testedPoint));
         }
         {   // 3 region-labels around point
-            List<TopologicalNumberResult> result = tn.getTopologicalNumbersForAllAdjacentLabels(new Point(2, 2));
-            System.out.println(result);
+            Point testedPoint = new Point(2, 2);
+            List<TopologicalNumberResult> result = tn.getTopologicalNumbersForAllAdjacentLabels(testedPoint);
+            
             assertEquals(3, result.size());
             assertEquals(new TopologicalNumberResult(1, 1, 1), result.get(0));
             assertEquals(new TopologicalNumberResult(2, 1, 1), result.get(1));
             assertEquals(new TopologicalNumberResult(3, 1, 1), result.get(2));
+            
+            assertTrue(tn.isPointFgSimple(testedPoint));
         }
-        
     }
 
 }

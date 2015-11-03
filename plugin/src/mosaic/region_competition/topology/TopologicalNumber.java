@@ -75,21 +75,12 @@ public class TopologicalNumber {
     public List<TopologicalNumberResult> getTopologicalNumbersForAllAdjacentLabels(Point aMiddlePoint) {
         getSubImage(aMiddlePoint);
 
-        // Find all labels of FG neighbors of aMiddlePoint
-        final Set<Integer> adjacentLabels = new HashSet<Integer>();
-        for (final int index : iFgConnectivity.itOfsInt()) {
-            if (iSubImage[index] != ValueForForbiddenPoints) {
-                adjacentLabels.add(iSubImage[index]);
-            }
-        }
+        final Set<Integer> adjacentLabels = findAllLabelsInFgNeighborhood();
         
         // Calculate number of connected components for each label in FG and BG
         final List<TopologicalNumberResult> topologicalNumsResult = new ArrayList<TopologicalNumberResult>(adjacentLabels.size());
         for (final int label : adjacentLabels) {
-            for (int i = 0; i < iUnitCubeSize; ++i) {
-                iOneLabelSubImageFg[i] = (char) ((iSubImage[i] == label) ? 1 : 0);
-                iOneLabelSubImageBg[i] = (char) (1 - iOneLabelSubImageFg[i]);
-            }
+            generateFgAndBgSubImagesForLabel(label);
             
             int FGNumber = iFgConnectedComponentsCounter.SetImage(iOneLabelSubImageFg).getNumberOfConnectedComponents();
             int BGNumber = iBgConnectedComponentsCounter.SetImage(iOneLabelSubImageBg).getNumberOfConnectedComponents();
@@ -99,6 +90,46 @@ public class TopologicalNumber {
         return topologicalNumsResult; 
     }
 
+    /**
+     * Simplified getTopologicalNumbersForAllAdjacentLabels method. Just gives an answer if Point is FG-simple.
+     * @param aMiddlePoint - around that point connected components are searched (in unit cube)
+     * @return is point FG-simple?
+     */
+    public boolean isPointFgSimple(Point aMiddlePoint) {
+        getSubImage(aMiddlePoint);
+
+        final Set<Integer> adjacentLabels = findAllLabelsInFgNeighborhood();
+        
+        for (final int label : adjacentLabels) {
+            generateFgAndBgSubImagesForLabel(label);
+            
+            int FGNumber = iFgConnectedComponentsCounter.SetImage(iOneLabelSubImageFg).getNumberOfConnectedComponents();
+            int BGNumber = iBgConnectedComponentsCounter.SetImage(iOneLabelSubImageBg).getNumberOfConnectedComponents();
+            
+            // If we found first non-FG-simple situation we can simply end searching.
+            if (FGNumber != 1 || BGNumber != 1) return false;
+        }
+        
+        return true; 
+    }
+
+    private Set<Integer> findAllLabelsInFgNeighborhood() {
+        final Set<Integer> adjacentLabels = new HashSet<Integer>();
+        for (final int index : iFgConnectivity.itOfsInt()) {
+            if (iSubImage[index] != ValueForForbiddenPoints) {
+                adjacentLabels.add(iSubImage[index]);
+            }
+        }
+        return adjacentLabels;
+    }
+
+    private void generateFgAndBgSubImagesForLabel(final int label) {
+        for (int i = 0; i < iUnitCubeSize; ++i) {
+            iOneLabelSubImageFg[i] = (char) ((iSubImage[i] == label) ? 1 : 0);
+            iOneLabelSubImageBg[i] = (char) (1 - iOneLabelSubImageFg[i]);
+        }
+    }
+    
     /**
      * Result for finding topological numbers.
      * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>

@@ -47,7 +47,7 @@ public class Algorithm {
 
     private final LabelDispenser labelDispenser = new LabelDispenser();
     private final OscillationDetection oscillationDetection;
-    private final TopologicalNumber iTopologicalNumberFunction;
+    private final TopologicalNumber iTopologicalNumber;
 
     // Settings
     private static final float AcceptedPointsFactor = 1;
@@ -99,7 +99,7 @@ public class Algorithm {
         iSettings = aSettings;
 
         oscillationDetection = new OscillationDetection(this, iSettings);
-        iTopologicalNumberFunction = new TopologicalNumber(iLabelImage);
+        iTopologicalNumber = new TopologicalNumber(iLabelImage);
 
         // Initialize label image
         iLabelImage.initBoundary();
@@ -887,21 +887,13 @@ public class Algorithm {
                 final Point currentPoint = entry.getKey();
                 final ContourParticle currentContour = entry.getValue();
                 
-                // Check for FG-simplicity:
-                List<TopologicalNumberResult> topologicalNumbersFG = iTopologicalNumberFunction.getTopologicalNumbersForAllAdjacentLabels(currentPoint);
-                boolean isPointFgSimple = true;
-                for (final TopologicalNumberResult topologicalNumber : topologicalNumbersFG) {
-                    if (!(topologicalNumber.iNumOfConnectedComponentsFG == 1 && topologicalNumber.iNumOfConnectedComponentsBG == 1)) {
-                        isPointFgSimple = false;
-                        break;
-                    }
-                }
-                if (isPointFgSimple) {
+                if (iTopologicalNumber.isPointFgSimple(currentPoint)) {
                     changeContourPointLabelToCandidateLabelAndUpdateNeighbours(currentPoint, currentContour);
                     candidateIter.remove();
                     candidateWereMoved = true;
                     convergenceResult = false;
                 }
+                
                 // we will reuse the processed flag to indicate if a particle is a seed
                 currentContour.isProcessed = false;
             }
@@ -931,7 +923,7 @@ public class Algorithm {
 
             boolean vValidPoint = true;
 
-            List<TopologicalNumberResult> vFGTNvector = iTopologicalNumberFunction.getTopologicalNumbersForAllAdjacentLabels(currentPoint);
+            List<TopologicalNumberResult> vFGTNvector = iTopologicalNumber.getTopologicalNumbersForAllAdjacentLabels(currentPoint);
 
             // Check for handles:
             // if the point was not disqualified already and we disallow introducing handles (not only self fusion!), 
