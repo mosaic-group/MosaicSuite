@@ -10,20 +10,24 @@ import mosaic.region_competition.Settings;
 
 
 public class OscillationDetection {
-    private final ArrayList<Double> iAllSumsAvg;
-    private final double iOscillationThreshold;
     
+    // Settings
+    private final double iOscillationThreshold;
     private static final double Alpha = 0.1; // exponential moving average factor
     private static final int Length = 10; // how many energies calculation back should be taken into account
 
-    private boolean isFirstRound = true;
+    private final ArrayList<Double> iAllSumsAvg;
     private double iSumAvg = 0;
+    private boolean isFirstRound = true;
 
     public OscillationDetection(Settings aSettings) {
         iOscillationThreshold = aSettings.m_OscillationThreshold;
         iAllSumsAvg = new ArrayList<Double>(aSettings.m_MaxNbIterations);
     }
 
+    /**
+     * @return returns true if oscillation detected
+     */
     public boolean DetectOscillations(Collection<ContourParticle> aParticles) {
         final double sumNew = sumAllEnergies(aParticles);
         
@@ -36,7 +40,7 @@ public class OscillationDetection {
             final int n = iAllSumsAvg.size();
             final int start = Math.max(0, n - Length);
             final double winstd = calculateStdDev(iAllSumsAvg.subList(start, n));
-
+            
             if (winstd / totstd < iOscillationThreshold) {
                 // new oscillation detected
                 return true;
@@ -56,22 +60,32 @@ public class OscillationDetection {
         return totalEnergyDiff;
     }
 
-    private double calculateMean(List<Double> data) {
+    /**
+     * Calculates a mean of given data
+     * @param data
+     * @return
+     */
+    private double calculateMean(List<Double> aData) {
         double sum = 0.0;
-        for (Double d : data) {
+        for (Double d : aData) {
             sum += d;
         }
 
-        return sum / data.size();
+        return sum / aData.size();
     }
 
-    private double calculateStdDev(List<Double> data) {
-        final double meanValue = calculateMean(data);
+    /**
+     * Calculates standard deviation of given data
+     * @param data
+     * @return
+     */
+    private double calculateStdDev(List<Double> aData) {
+        final double meanValue = calculateMean(aData);
 
-        final int n = data.size();
+        final int n = aData.size();
         double sum = 0;
         for (int i = 0; i < n; ++i) {
-            sum += Math.pow(meanValue - data.get(i), 2);
+            sum += Math.pow(meanValue - aData.get(i), 2);
         }
         sum = sum / n;
         

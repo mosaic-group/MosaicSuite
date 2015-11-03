@@ -73,8 +73,8 @@ public class TopologicalNumberTest {
         {   // 3D - point on surface of same labels
             Point testedPoint = new Point(1, 1, 1);
             List<TopologicalNumberResult> result = tn.getTopologicalNumbersForAllAdjacentLabels(testedPoint);
-            System.out.println(result);
-            assertEquals(2, result.size());
+            
+            assertEquals(1, result.size());
             assertEquals(new TopologicalNumberResult(1, 1, 2), result.get(0));
             
             assertFalse(tn.isPointFgSimple(testedPoint));
