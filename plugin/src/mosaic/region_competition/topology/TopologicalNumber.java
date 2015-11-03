@@ -10,7 +10,10 @@ import mosaic.core.image.Connectivity;
 import mosaic.core.image.LabelImage;
 import mosaic.core.image.Point;
 
-
+/**
+ * Calculates topological numbers for all labels at given point in input LabelImage.
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+ */
 public class TopologicalNumber {
 
     private final Connectivity iFgConnectivity;
@@ -28,6 +31,9 @@ public class TopologicalNumber {
 
     private final static int ValueForForbiddenPoints = 0; // background
 
+    /**
+     * @param aLabelImage - input LabelImage for later processing.
+     */
     public TopologicalNumber(LabelImage aLabelImage) {
         iFgConnectivity = aLabelImage.getConnFG();
         iFgConnectedComponentsCounter = new UnitCubeConnectedComponenetsCounter(iFgConnectivity);
@@ -62,6 +68,7 @@ public class TopologicalNumber {
     }
 
     /**
+     * Calculates topological numbers for all labels in neighborhood of given point
      * @param aMiddlePoint - around that point connected components are searched (in unit cube)
      * @return list of results
      */
@@ -92,6 +99,10 @@ public class TopologicalNumber {
         return topologicalNumsResult; 
     }
 
+    /**
+     * Result for finding topological numbers.
+     * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+     */
     public static class TopologicalNumberResult {
         public final int iLabel;
         public int iNumOfConnectedComponentsFG;
