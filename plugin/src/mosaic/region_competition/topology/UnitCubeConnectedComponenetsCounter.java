@@ -9,18 +9,26 @@ import java.util.Stack;
 import mosaic.core.image.Connectivity;
 import mosaic.core.image.Point;
 
-
+/**
+ * Class responsible for calculating number of connected components in provided unit cube image.
+ */
 class UnitCubeConnectedComponenetsCounter {
+    
     private final Connectivity iConnectivity;
     private final Connectivity iNeighborhoodConnectivity;
     
     private final boolean[] iIndex2NeighbourMap;
     private final boolean[][] iUnitCubeNeighborsMap;
 
-    final Queue<Integer> iQueue;
+    // Queue allocated in constructor for performance reasons.
+    private final Queue<Integer> iQueue;
     
+    // Input (unit cube) image for processing.
     private char[] iImage;
 
+    /**
+     * @param aConnectivity Connectivity for searching connected components
+     */
     public UnitCubeConnectedComponenetsCounter(Connectivity aConnectivity) {
         iConnectivity = aConnectivity;
         iNeighborhoodConnectivity = aConnectivity.getIncreasedConnectivity();
