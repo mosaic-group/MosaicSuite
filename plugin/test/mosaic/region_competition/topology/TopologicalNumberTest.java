@@ -49,5 +49,36 @@ public class TopologicalNumberTest {
             assertTrue(tn.isPointFgSimple(testedPoint));
         }
     }
+    
+    @Test
+    public void testGetTopologicalNumbersForAllAdjacentLabels3D() {
+        // Label image and two test points below are taken from paper
+        int[] img = new int[] { 0, 0, 0, 
+                                0, 0, 0,
+                                0, 0, 0,
+                                
+                                1, 1, 1, 
+                                1, 1, 1,
+                                1, 1, 1,
+                                
+                                0, 0, 0, 
+                                0, 0, 0,
+                                0, 0, 0,
+                              };
+        LabelImage li = new LabelImage(new int[] {3, 3, 3});
+        for (int i = 0; i < li.getSize(); ++i) li.setLabel(i, img[i]);
+        
+        TopologicalNumber tn = new TopologicalNumber(li);
+        
+        {   // 3D - point on surface of same labels
+            Point testedPoint = new Point(1, 1, 1);
+            List<TopologicalNumberResult> result = tn.getTopologicalNumbersForAllAdjacentLabels(testedPoint);
+            System.out.println(result);
+            assertEquals(2, result.size());
+            assertEquals(new TopologicalNumberResult(1, 1, 2), result.get(0));
+            
+            assertFalse(tn.isPointFgSimple(testedPoint));
+        }
+    }
 
 }

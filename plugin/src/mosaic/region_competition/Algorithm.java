@@ -54,8 +54,7 @@ public class Algorithm {
     private static final boolean RemoveNonSignificantRegions = true;
     private static final int MinimumAreaSize = 1;
     private boolean shrinkFirst = false;
-    // TODO: This var is changed only in OscilationDetection class... It should be moved there or sth.
-    public float m_AcceptedPointsFactor = AcceptedPointsFactor;
+    private float acceptedPointsFactor = AcceptedPointsFactor;
 
     private class Seed {
         private final Point iPoint;
@@ -98,7 +97,7 @@ public class Algorithm {
         iImageModel = aModel;
         iSettings = aSettings;
 
-        oscillationDetection = new OscillationDetection(this, iSettings);
+        oscillationDetection = new OscillationDetection(iSettings);
         iTopologicalNumber = new TopologicalNumber(iLabelImage);
 
         // Initialize label image
@@ -439,7 +438,7 @@ public class Algorithm {
      *      numOfCandidates * iAcceptedPointsFactor 
      */
     private void limitNumberOfCandidates() {
-        if (m_AcceptedPointsFactor >= 1) {
+        if (acceptedPointsFactor >= 1) {
             // accept all - nothing to do here
             return;
         }
@@ -455,7 +454,7 @@ public class Algorithm {
 
         // Fill the container with the best candidate first
         iCandidates.clear();
-        int vNbElements =  (int) (sortedCandidates.size() * m_AcceptedPointsFactor + 0.5);
+        int vNbElements =  (int) (sortedCandidates.size() * acceptedPointsFactor + 0.5);
 
         for (final ContourParticleWithIndex vSortedListIterator : sortedCandidates) {
             if (vNbElements-- < 1) {
@@ -608,7 +607,9 @@ public class Algorithm {
         
         buildCandidateList();
         filterCandidates();
-        oscillationDetection.DetectOscillations(iCandidates);
+        if (oscillationDetection.DetectOscillations(iCandidates.values())) {
+            acceptedPointsFactor /= 2.0;
+        }
         limitNumberOfCandidates();
         boolean convergence = moveCandidates();
         removeEmptyStatistics();
@@ -617,7 +618,7 @@ public class Algorithm {
             // Done with shrinking, now allow growing
             convergence = false;
             shrinkFirst = false;
-            m_AcceptedPointsFactor = AcceptedPointsFactor;
+            acceptedPointsFactor = AcceptedPointsFactor;
         }
         
         return convergence;
@@ -866,21 +867,18 @@ public class Algorithm {
         return networkMembers;
     }
     
-    ////////////////////////////////////////////////////////////
-    // ---------------------------------------------------------
-    ////////////////////////////////////////////////////////////
-
     /**
-     * Move the points in the candidate list
+     * Moves all FG-simple points
+     * @return
      */
-    private boolean moveCandidates() {
+    private boolean moveAllFgSimplePoints() {
         boolean convergenceResult = true;
         
-        // We first move all the FG-simple points. We do that because it happens that points that are not simple at the first 
-        // place get simple after the change of other points. The non-simple points will be treated in a separate loop afterwards.
-        while (!iCandidates.isEmpty()) {
-            boolean candidateWereMoved = false;
-
+        // It happens that points that are not simple at the first place get simple after the change of other points. 
+        // Iterate through all candidates until there is no more FG-simple points in container.
+        boolean candidateWereMoved = true;
+        while (!iCandidates.isEmpty() && candidateWereMoved) {
+            candidateWereMoved = false;
             final Iterator<Entry<Point, ContourParticle>> candidateIter = iCandidates.entrySet().iterator();
             while (candidateIter.hasNext()) {
                 final Entry<Point, ContourParticle> entry = candidateIter.next();
@@ -897,135 +895,178 @@ public class Algorithm {
                 // we will reuse the processed flag to indicate if a particle is a seed
                 currentContour.isProcessed = false;
             }
-            
-            if (!candidateWereMoved) break;
         }
-
-        // Now we know that all the points in the list are 'currently' not simple.
-        // We move them anyway (if topological constraints allow) but record
-        // (for every particle) where to relabel (using the seed set). Placing
-        // the seed is necessary for every particle to ensure relabeling even
-        // if a bunch of neighboring particles change. The seed will be ignored
-        // later on if the corresponding FG region is not present in the neighborhood anymore.
-        // TODO: The following code is dependent on the iteration order if splits/handles
-        // are not allowed. A solution would be to sort the candidates beforehand.
-        // This should be computationally not too expensive since we assume there
-        // are not many non-simple points.
-        final Iterator<Entry<Point, ContourParticle>> vPointIterator = iCandidates.entrySet().iterator();
-
-        final Set<Seed> seeds = new HashSet<Seed>();
-        while (vPointIterator.hasNext()) {
-            final Entry<Point, ContourParticle> e = vPointIterator.next();
-            final Point currentPoint = e.getKey();
-            final ContourParticle currentParticle = e.getValue();
-            final int vCurrentLabel = currentParticle.label;
-            final int vCandidateLabel = currentParticle.candidateLabel;
-
-            boolean vValidPoint = true;
-
-            List<TopologicalNumberResult> vFGTNvector = iTopologicalNumber.getTopologicalNumbersForAllAdjacentLabels(currentPoint);
-
-            // Check for handles:
-            // if the point was not disqualified already and we disallow introducing handles (not only self fusion!), 
-            // we check if there is an introduction of a handle.
-            if (vValidPoint && !iSettings.m_AllowHandles) {
-                for (final TopologicalNumberResult vTopoNbItr : vFGTNvector) {
-                    if (vTopoNbItr.iLabel == vCandidateLabel) {
-                        if (vTopoNbItr.iNumOfConnectedComponentsFG > 1) {
-                            vValidPoint = false;
-                        }
-                    }
-
-                    // criterion to detect surface points (only 3D?)
-                    if (vTopoNbItr.iNumOfConnectedComponentsFG == 1 && vTopoNbItr.iNumOfConnectedComponentsBG > 1) {
-                        vValidPoint = false;
-                    }
-                }
-            }
-
-            // Check for splits:
-            // This we have to do either to forbid
-            // the change in topology or to register the seed point for relabeling.
-            // if the point was not disqualified already and we disallow splits, then we check if the 'old' label undergoes a split.
-            if (vValidPoint) {
+        
+        return convergenceResult;
+    }
+    
+    /**
+     * @param currentCandidateLabel - current candidate label
+     * @param topologicalNumbers - calculated topological numbers for current point
+     * @return true if there is no handles introduced (or if new handles are allowed)
+     */
+    private boolean checkForHandles(final int currentCandidateLabel, List<TopologicalNumberResult> topologicalNumbers) {
+        // if the point was not disqualified already and we disallow introducing handles (not only self fusion!), 
+        // we check if there is an introduction of a handle.
+        boolean validPoint = true;
+        if (!iSettings.m_AllowHandles) {
+            for (final TopologicalNumberResult tn : topologicalNumbers) {
                 // - "allow introducing holes": T_FG(x, L = l') > 1
-                // - "allow splits": T_FG > 2 && T_BG == 1
-                boolean vSplit = false;
-                for (final TopologicalNumberResult vTopoNbItr : vFGTNvector) {
-                    if (vTopoNbItr.iLabel == vCurrentLabel) {
-                        if (vTopoNbItr.iNumOfConnectedComponentsFG > 1) {
-                            vSplit = true;
-                        }
-                    }
+                if (tn.iLabel == currentCandidateLabel && tn.iNumOfConnectedComponentsFG > 1) {
+                    // Changing that point label to currentCandidateLabel would make fusion of FG regions, 
+                    // and make a hole, disallow! 
+                    validPoint = false;
                 }
-                if (vSplit) {
-                    if (iSettings.m_AllowFission) {
-                        registerNeighbourSeedsWithSameLabel(seeds, currentPoint, vCurrentLabel);
-                    }
-                    else {
-                        // disallow the move.
-                        vValidPoint = false;
-                    }
+
+                // criterion to detect surface points (>= 3D), allowing to changing label would make a hole (with different
+                // label) surrounded by current label.
+                if (tn.iNumOfConnectedComponentsFG == 1 && tn.iNumOfConnectedComponentsBG > 1) {
+                    validPoint = false;
                 }
             }
-
-            if (!vValidPoint) {
-                vPointIterator.remove();
+        }
+        
+        return validPoint;
+    }
+    
+    /**
+     * @param seeds - container with seeds, it will be updated if point will (and can) make a split
+     * @param currentPoint - current Point
+     * @param currentLabel - current Label
+     * @param topologicalNumbers - calculated topological numbers for current point
+     * @return false if it is going to split but splits are not allowed
+     */
+    private boolean checkForSplits(final Set<Seed> seeds, final Point currentPoint, final int currentLabel, List<TopologicalNumberResult> topologicalNumbers) {
+        boolean validPoint = true;
+        
+        // This we have to do either to forbid the change in topology or to register the seed point for relabeling.
+        // if the point was not disqualified already and we disallow splits, then we check if the 'old' label undergoes a split.
+        
+        // Check first if "moving" current point would make a split
+        boolean isItGoingToSplit = false;
+        for (final TopologicalNumberResult tn : topologicalNumbers) {
+            // - "allow splits": T_FG >= 2
+            if (tn.iLabel == currentLabel && tn.iNumOfConnectedComponentsFG > 1) {
+                isItGoingToSplit = true;
+                break;
+            }
+        }
+        
+        if (isItGoingToSplit) {
+            if (iSettings.m_AllowFission) {
+                registerNeighbourSeedsWithSameLabel(seeds, currentPoint, currentLabel);
             }
             else {
-            // If the move doesn't change topology or is allowed (and registered
-            // as seed) to change the topology, perform the move (in the
-            // second iteration; in the first iteration seed points need to
-            // be collected):
+                validPoint = false;
+            }
+        }
+        
+        return validPoint;
+    }
+    
+    /**
+     * Merge competing regions if it is allowed
+     * @return false if there is no merge
+     */
+    private boolean mergeRegions() {
+        boolean didMerge = false;
+        if (iSettings.m_AllowFusion) {
+            final Set<Integer> checkedLabels = new HashSet<Integer>();
+            for (final Entry<Point, LabelPair> iter : iCompetingRegions.entrySet()) {
+                final Point point = iter.getKey();
+                final int firstLabel = iter.getValue().first;
+                relabelMergedRegions(point, firstLabel, checkedLabels);
+                didMerge = true;
+            }
+        }
+        return didMerge;
+    }
+
+    /**
+     * Relabel split regions
+     * @param seeds - points from split regions
+     * @return false if there is no split
+     */
+    private boolean relabelSplitRegions(final Set<Seed> seeds) {
+        boolean didSplit = false;
+        for (final Seed seed : seeds) {
+            relabelRegion(seed.getPoint(), seed.getLabel());
+            didSplit = true;
+        }
+        return didSplit;
+    }
+    
+    /**
+     * Move the points in the candidate list
+     */
+    private boolean moveCandidates() {
+        // We first move all the FG-simple points. We do that because it happens that points that are not simple at the first 
+        // place get simple after the change of other points. The non-simple points will be treated in a separate loop afterwards.
+        boolean convergenceResult = moveAllFgSimplePoints();
+        
+        // Now we know that all the points in the list are not FG-simple. We move them anyway 
+        // (if topological constraints allow) but record (for every particle) where to relabel (using the seed set). 
+        // Placing the seed is necessary for every particle to ensure relabeling even if a bunch of neighboring particles 
+        // change. The seed will be ignored later on if the corresponding FG region is not present in the neighborhood anymore.
+        // TODO: The following code is dependent on the iteration order if splits/handles are not allowed. 
+        // A solution would be to sort the candidates beforehand.
+        final Iterator<Entry<Point, ContourParticle>> pointIterator = iCandidates.entrySet().iterator();
+        final Set<Seed> seeds = new HashSet<Seed>();
+        while (pointIterator.hasNext()) {
+            final Entry<Point, ContourParticle> e = pointIterator.next();
+            final Point currentPoint = e.getKey();
+            final ContourParticle currentParticle = e.getValue();
+            final int currentLabel = currentParticle.label;
+            final int currentCandidateLabel = currentParticle.candidateLabel;
+            
+            // Precalculate topological numbers for current point
+            List<TopologicalNumberResult> topologicalNumbers = iTopologicalNumber.getTopologicalNumbersForAllAdjacentLabels(currentPoint);
+            
+            // Check for handles:
+            boolean validPoint = checkForHandles(currentCandidateLabel, topologicalNumbers);
+            
+            // Check for splits:
+            validPoint = validPoint && checkForSplits(seeds, currentPoint, currentLabel, topologicalNumbers);
+            
+            if (validPoint) {
+                // If the move doesn't change topology or is allowed (and registered as seed) to change the topology, 
+                // perform the move (in the second iteration; in the first iteration seed points need to be collected):
                 changeContourPointLabelToCandidateLabelAndUpdateNeighbours(currentPoint, currentParticle);
                 convergenceResult = false;
-
-                if (e.getValue().isProcessed) {
-                    registerNeighbourSeedsWithSameLabel(seeds, currentPoint, vCurrentLabel);
-                    if (!seeds.remove(new Seed(currentPoint, vCurrentLabel))) {
+                
+                if (currentParticle.isProcessed) {
+                    registerNeighbourSeedsWithSameLabel(seeds, currentPoint, currentLabel);
+                    if (!seeds.remove(new Seed(currentPoint, currentLabel))) {
                         throw new RuntimeException("no seed in set");
                     }
                 }
             }
-
+            
             if (iCandidates.containsKey(currentPoint)) {
-                vPointIterator.remove();
+                // TODO: is this check needed? Can this point be removed somewhere else?
+                pointIterator.remove();
             }
         }
-
-        // Perform relabeling of the regions that did a split:
+        
         boolean didSplitOrMerge = false;
-
-        for (final Seed vSeedIt : seeds) {
-            relabelRegion(vSeedIt.getPoint(), vSeedIt.getLabel());
-            didSplitOrMerge = true;
-        }
-
-        // Merge the the competing regions if they meet merging criterion.
-        if (iSettings.m_AllowFusion) {
-            final Set<Integer> vCheckedLabels = new HashSet<Integer>();
-            for (final Entry<Point, LabelPair> vCRit : iCompetingRegions.entrySet()) {
-                final Point idx = vCRit.getKey();
-                relabelMergedRegions(idx, vCRit.getValue().first, vCheckedLabels);
-                didSplitOrMerge = true;
-            }
-        }
-
+        if (relabelSplitRegions(seeds)) didSplitOrMerge = true;
+        if (mergeRegions()) didSplitOrMerge = true;
+        
         if (didSplitOrMerge) {
             if (iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
                 ((E_Deconvolution) iImageModel.getEdata()).RenewDeconvolution(iLabelImage, iLabelStatistics);
             }
         }
-
+        
         return convergenceResult;
     }
-
+    
     private void registerNeighbourSeedsWithSameLabel(Set<Seed> aSeeds, Point aPoint, int aLabel) {
         for (final Integer neighbour : iLabelImage.iterateNeighbours(aPoint)) {
             final int label = iLabelImage.getLabelAbs(neighbour);
-            final Point neighbourPoint = iLabelImage.indexToPoint(neighbour);
             
             if (label == aLabel) {
+                final Point neighbourPoint = iLabelImage.indexToPoint(neighbour);
                 aSeeds.add(new Seed(neighbourPoint, label));
                 // At the position where we put the seed, inform the particle
                 // that it has to inform its neighbor in case it moves (if there
