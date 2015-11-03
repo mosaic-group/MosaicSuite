@@ -421,7 +421,7 @@ public class LabelImage extends BaseImage
             // do nothing
         }
     }
-
+    
     //
     // Below are all function dependent on ImageJ implementation (ImagePlus, ImageProcessor, Roi...)
     // TODO: It should be verify if this is the best place for them after ImageLabelRC is cleaned up

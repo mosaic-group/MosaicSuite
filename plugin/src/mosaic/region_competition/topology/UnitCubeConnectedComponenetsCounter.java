@@ -2,9 +2,7 @@ package mosaic.region_competition.topology;
 
 
 import java.util.ArrayDeque;
-import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Stack;
 
 import mosaic.core.image.Connectivity;
 import mosaic.core.image.Point;

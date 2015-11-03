@@ -271,6 +271,10 @@ public class Connectivity {
         }
     }
 
+    /**
+     * Iterates through all neighbors of point.
+     * @return indices of neighbors
+     */
     public Iterable<Integer> itOfsInt() {
         return new Iterable<Integer>() {
 

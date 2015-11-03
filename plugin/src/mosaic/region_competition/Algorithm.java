@@ -27,8 +27,8 @@ import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.Energy.EnergyResult;
 import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.energies.OscillationDetection;
-import mosaic.region_competition.topology.TopologicalNumberImageFunction;
-import mosaic.region_competition.topology.TopologicalNumberImageFunction.TopologicalNumberResult;
+import mosaic.region_competition.topology.TopologicalNumber;
+import mosaic.region_competition.topology.TopologicalNumber.TopologicalNumberResult;
 
 public class Algorithm {
 
@@ -47,7 +47,7 @@ public class Algorithm {
 
     private final LabelDispenser labelDispenser = new LabelDispenser();
     private final OscillationDetection oscillationDetection;
-    private final TopologicalNumberImageFunction iTopologicalNumberFunction;
+    private final TopologicalNumber iTopologicalNumberFunction;
 
     // Settings
     private static final float AcceptedPointsFactor = 1;
@@ -99,7 +99,7 @@ public class Algorithm {
         iSettings = aSettings;
 
         oscillationDetection = new OscillationDetection(this, iSettings);
-        iTopologicalNumberFunction = new TopologicalNumberImageFunction(iLabelImage);
+        iTopologicalNumberFunction = new TopologicalNumber(iLabelImage);
 
         // Initialize label image
         iLabelImage.initBoundary();
@@ -888,10 +888,10 @@ public class Algorithm {
                 final ContourParticle currentContour = entry.getValue();
                 
                 // Check for FG-simplicity:
-                List<TopologicalNumberResult> topologicalNumbersFG = iTopologicalNumberFunction.EvaluateAdjacentRegionsFGTN(currentPoint);
+                List<TopologicalNumberResult> topologicalNumbersFG = iTopologicalNumberFunction.getTopologicalNumbersForAllAdjacentLabels(currentPoint);
                 boolean isPointFgSimple = true;
                 for (final TopologicalNumberResult topologicalNumber : topologicalNumbersFG) {
-                    if (!(topologicalNumber.FGNumber == 1 && topologicalNumber.BGNumber == 1)) {
+                    if (!(topologicalNumber.iNumOfConnectedComponentsFG == 1 && topologicalNumber.iNumOfConnectedComponentsBG == 1)) {
                         isPointFgSimple = false;
                         break;
                     }
@@ -931,21 +931,21 @@ public class Algorithm {
 
             boolean vValidPoint = true;
 
-            List<TopologicalNumberResult> vFGTNvector = iTopologicalNumberFunction.EvaluateAdjacentRegionsFGTN(currentPoint);
+            List<TopologicalNumberResult> vFGTNvector = iTopologicalNumberFunction.getTopologicalNumbersForAllAdjacentLabels(currentPoint);
 
             // Check for handles:
             // if the point was not disqualified already and we disallow introducing handles (not only self fusion!), 
             // we check if there is an introduction of a handle.
             if (vValidPoint && !iSettings.m_AllowHandles) {
                 for (final TopologicalNumberResult vTopoNbItr : vFGTNvector) {
-                    if (vTopoNbItr.label == vCandidateLabel) {
-                        if (vTopoNbItr.FGNumber > 1) {
+                    if (vTopoNbItr.iLabel == vCandidateLabel) {
+                        if (vTopoNbItr.iNumOfConnectedComponentsFG > 1) {
                             vValidPoint = false;
                         }
                     }
 
                     // criterion to detect surface points (only 3D?)
-                    if (vTopoNbItr.FGNumber == 1 && vTopoNbItr.BGNumber > 1) {
+                    if (vTopoNbItr.iNumOfConnectedComponentsFG == 1 && vTopoNbItr.iNumOfConnectedComponentsBG > 1) {
                         vValidPoint = false;
                     }
                 }
@@ -960,8 +960,8 @@ public class Algorithm {
                 // - "allow splits": T_FG > 2 && T_BG == 1
                 boolean vSplit = false;
                 for (final TopologicalNumberResult vTopoNbItr : vFGTNvector) {
-                    if (vTopoNbItr.label == vCurrentLabel) {
-                        if (vTopoNbItr.FGNumber > 1) {
+                    if (vTopoNbItr.iLabel == vCurrentLabel) {
+                        if (vTopoNbItr.iNumOfConnectedComponentsFG > 1) {
                             vSplit = true;
                         }
                     }
