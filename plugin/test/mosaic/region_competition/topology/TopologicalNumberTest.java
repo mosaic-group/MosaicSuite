@@ -40,7 +40,7 @@ public class TopologicalNumberTest {
             assertEquals(3, result.size());
             assertEquals(new TopologicalNumberResult(1, 1, 1), result.get(0));
             assertEquals(new TopologicalNumberResult(2, 1, 1), result.get(1));
-            assertEquals(new TopologicalNumberResult(3, 1, 1), result.get(1));
+            assertEquals(new TopologicalNumberResult(3, 1, 1), result.get(2));
         }
         
     }
