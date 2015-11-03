@@ -15,8 +15,8 @@ public class TopologicalNumberImageFunction {
 
     private final Connectivity TFGConnectivity;
 
-    private final UnitCubeCCCounter m_ForegroundUnitCubeCCCounter;
-    private final UnitCubeCCCounter m_BackgroundUnitCubeCCCounter;
+    private final UnitCubeConnectedComponenetsCounter m_ForegroundUnitCubeCCCounter;
+    private final UnitCubeConnectedComponenetsCounter m_BackgroundUnitCubeCCCounter;
 
     private final char[] m_SubImage; // binary subimage (switching fg/bg)
     private final Point[] m_Offsets; // maps indexes to Points
@@ -30,8 +30,8 @@ public class TopologicalNumberImageFunction {
     public TopologicalNumberImageFunction(LabelImage aLabelImage) {
         this.TFGConnectivity = aLabelImage.getConnFG();
 
-        this.m_ForegroundUnitCubeCCCounter = new UnitCubeCCCounter(TFGConnectivity);
-        this.m_BackgroundUnitCubeCCCounter = new UnitCubeCCCounter(aLabelImage.getConnBG());
+        this.m_ForegroundUnitCubeCCCounter = new UnitCubeConnectedComponenetsCounter(TFGConnectivity);
+        this.m_BackgroundUnitCubeCCCounter = new UnitCubeConnectedComponenetsCounter(aLabelImage.getConnBG());
 
         this.labelImage = aLabelImage;
 
@@ -70,37 +70,34 @@ public class TopologicalNumberImageFunction {
      * @return List(AbjacentLabel, (nFGconnected, nBGconnected))
      */
     public List<TopologicalNumberResult> EvaluateAdjacentRegionsFGTN(Point index) {
-        final Set<Integer> vAdjacentLabels = new HashSet<Integer>();
         readImageData(index);
+
+        final Set<Integer> vAdjacentLabels = new HashSet<Integer>();
         for (final int vLinearIndex : TFGConnectivity.itOfsInt()) {
             if (m_DataSubImage[vLinearIndex] != ValueForForbiddenPoints) {
                 vAdjacentLabels.add(m_DataSubImage[vLinearIndex]);
             }
         }
+        
+        final int middle = imageSize / 2;
 
         final List<TopologicalNumberResult> vTNvector = new ArrayList<TopologicalNumberResult>(vAdjacentLabels.size());
         for (final int vLabelsIt : vAdjacentLabels) {
             for (int i = 0; i < imageSize; ++i) {
                 m_SubImage[i] = (char) ((m_DataSubImage[i] == vLabelsIt) ? 255 : 0);
             }
-            final int middle = imageSize / 2;
             m_SubImage[middle] = 0;
-
             // Topological number in the foreground
-            m_ForegroundUnitCubeCCCounter.SetImage(m_SubImage);
-            int FGNumber = m_ForegroundUnitCubeCCCounter.connectedComponents();
+            int FGNumber = m_ForegroundUnitCubeCCCounter.SetImage(m_SubImage).getNumberOfConnectedComponents();
 
             // Invert the sub-image
-            for (int bit = 0; bit < middle; ++bit) {
+            for (int bit = 0; bit < imageSize; ++bit) {
                 m_SubImage[bit] = (char) (255 - m_SubImage[bit]);
             }
-            for (int bit = middle; bit < imageSize - 1; bit++) {
-                m_SubImage[bit + 1] = (char) (255 - m_SubImage[bit + 1]);
-            }
-
+            m_SubImage[middle] = 0;
             // Topological number in the background
-            m_BackgroundUnitCubeCCCounter.SetImage(m_SubImage);
-            int BGNumber = m_BackgroundUnitCubeCCCounter.connectedComponents();
+            int BGNumber = m_BackgroundUnitCubeCCCounter.SetImage(m_SubImage).getNumberOfConnectedComponents();
+            
             vTNvector.add(new TopologicalNumberResult(vLabelsIt, FGNumber, BGNumber));
 
         }
