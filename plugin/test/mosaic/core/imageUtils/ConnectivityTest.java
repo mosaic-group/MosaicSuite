@@ -1,4 +1,4 @@
-package mosaic.core.image;
+package mosaic.core.imageUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

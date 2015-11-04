@@ -57,7 +57,6 @@ public class CurvatureBasedFlow {
             vVolume = 1.3333333f * 3.141592f * rad * rad * rad;
         }
         else {
-            vVolume = 0.0;
             throw new RuntimeException("Curvature flow only implemented for 2D and 3D");
         }
     }

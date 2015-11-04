@@ -198,14 +198,14 @@ public class LabelImage extends BaseImage
      * @return absolute (no contour information) label at aPoint
      */
     public int getLabelAbs(Point aPoint) {
-        return Math.abs(getLabel(aPoint));
+        return Math.abs(iDataLabel[pointToIndex(aPoint)]);
     }
 
     /**
      * @return absolute (no contour information) label at aIndex
      */
     public int getLabelAbs(int aIndex) {
-        return Math.abs(getLabel(aIndex));
+        return Math.abs(iDataLabel[aIndex]);
     }
     
     /**
