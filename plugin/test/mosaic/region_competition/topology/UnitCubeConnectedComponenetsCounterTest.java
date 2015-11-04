@@ -6,10 +6,10 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import mosaic.core.image.Connectivity;
+import mosaic.core.imageUtils.Connectivity;
 
 
-public class UnitCubeCCCounterTest {
+public class UnitCubeConnectedComponenetsCounterTest {
 
     @Test
     public void testCrateUnitCubeNeighborsMap() {

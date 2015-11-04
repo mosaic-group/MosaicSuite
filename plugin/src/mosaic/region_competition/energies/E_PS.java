@@ -3,11 +3,11 @@ package mosaic.region_competition.energies;
 
 import java.util.HashMap;
 
-import mosaic.core.image.IntensityImage;
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
-import mosaic.core.image.RegionIteratorMask;
-import mosaic.core.image.SphereMask;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.RegionIteratorMask;
+import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.core.imageUtils.images.LabelImage;
+import mosaic.core.imageUtils.masks.SphereMask;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
@@ -22,8 +22,12 @@ public class E_PS extends ExternalEnergy {
     private final SphereMask sphere;
     private final RegionIteratorMask sphereIt;
 
+    protected final IntensityImage intensityImage;
+    protected final LabelImage labelImage;
+    
     public E_PS(LabelImage labelImage, IntensityImage intensityImage, int PSenergyRadius, float regionMergingThreshold) {
-        super(labelImage, intensityImage);
+        this.labelImage = labelImage;
+        this.intensityImage = intensityImage;
         this.dimensions = labelImage.getDimensions();
         this.bgLabel = LabelImage.BGLabel;
 

@@ -4,7 +4,7 @@ package mosaic.region_competition;
 import java.util.LinkedList;
 import java.util.List;
 
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
 
 /**
  * Class representing countour particle. 

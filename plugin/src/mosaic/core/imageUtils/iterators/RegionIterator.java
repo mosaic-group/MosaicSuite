@@ -1,4 +1,6 @@
-package mosaic.core.image;
+package mosaic.core.imageUtils.iterators;
+
+import mosaic.core.imageUtils.Point;
 
 /**
  * @author Stephan & Pietro Incardona
@@ -237,7 +239,7 @@ public class RegionIterator
      *         see RegionIteratorSphere)
      */
 
-    int nextRmask() {
+    public int nextRmask() {
         final int result = itInput;
 
         // calculate indices for next step

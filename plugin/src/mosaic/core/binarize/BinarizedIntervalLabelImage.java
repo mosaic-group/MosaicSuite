@@ -1,8 +1,8 @@
 package mosaic.core.binarize;
 
 
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.LabelImage;
 
 
 /**

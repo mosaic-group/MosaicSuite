@@ -1,4 +1,4 @@
-package mosaic.core.image;
+package mosaic.core.imageUtils.masks;
 
 
 /**
@@ -7,7 +7,7 @@ package mosaic.core.image;
  * @author Pietro Incardona
  */
 
-abstract class Mask {
+public abstract class Mask {
 
     public final byte bgVal = 0;
     public final byte fgVal = 1;

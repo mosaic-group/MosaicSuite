@@ -1,4 +1,4 @@
-package mosaic.core.image;
+package mosaic.core.imageUtils.images;
 
 
 import java.util.HashSet;
@@ -19,6 +19,10 @@ import ij.process.ColorProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
+import mosaic.core.imageUtils.Connectivity;
+import mosaic.core.imageUtils.FloodFill;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.iterators.RegionIterator;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.utils.IntConverter;
 import net.imglib2.RandomAccess;
@@ -62,10 +66,25 @@ public class LabelImage extends BaseImage
      * Create an empty LabelImage of a given dimension
      * @param aDimensions dimensions of the LabelImage
      */
-    public LabelImage(int aDimensions[]) {
+    public LabelImage(int[] aDimensions) {
         super(aDimensions, 3);
         initConnectivities();
         iDataLabel = new int[getSize()];
+    }
+    
+    /**
+     * Create an empty LabelImage of a given dimension and initialize it with a provided data.
+     * @param aData - data of image (it is not copied)
+     * @param aDimensions dimensions of the LabelImage
+     */
+    public LabelImage(int[] aData, int[] aDimensions) {
+        super(aDimensions, 3);
+        if (aData.length != getSize()) {
+            throw new RuntimeException("Provided image data size is not compatibile with given dimensions! " + 
+                                        aData.length + " vs. " + super.toString() + " (" + getSize() + ")");
+        }
+        initConnectivities();
+        iDataLabel = aData;
     }
 
     /**

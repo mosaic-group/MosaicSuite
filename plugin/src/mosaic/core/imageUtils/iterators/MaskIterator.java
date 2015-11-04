@@ -1,10 +1,10 @@
-package mosaic.core.image;
+package mosaic.core.imageUtils.iterators;
 
 /**
  * Iterates over a Region within an InputImage,
  * but returns indices relative to the region (and not input)
  */
-class MaskIterator extends RegionIterator {
+public class MaskIterator extends RegionIterator {
 
     /**
      * Iterating over region is implemented in such a way,

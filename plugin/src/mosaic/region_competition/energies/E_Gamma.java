@@ -3,9 +3,9 @@ package mosaic.region_competition.energies;
 
 import java.util.HashMap;
 
-import mosaic.core.image.Connectivity;
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Connectivity;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.energies.Energy.InternalEnergy;
@@ -13,8 +13,10 @@ import mosaic.region_competition.energies.Energy.InternalEnergy;
 
 public class E_Gamma extends InternalEnergy {
 
+    protected final LabelImage labelImage;
+    
     public E_Gamma(LabelImage labelImage) {
-        super(labelImage);
+        this.labelImage = labelImage;
     }
 
     @Override

@@ -1,10 +1,10 @@
 package mosaic.region_competition.utils;
 
 
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
-import mosaic.core.image.RegionIteratorMask;
-import mosaic.core.image.SphereMask;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.RegionIteratorMask;
+import mosaic.core.imageUtils.images.LabelImage;
+import mosaic.core.imageUtils.masks.SphereMask;
 
 
 /**

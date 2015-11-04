@@ -4,8 +4,8 @@ package mosaic.region_competition.topology;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-import mosaic.core.image.Connectivity;
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Connectivity;
+import mosaic.core.imageUtils.Point;
 
 /**
  * Class responsible for calculating number of connected components in provided unit cube image.
@@ -37,7 +37,7 @@ class UnitCubeConnectedComponenetsCounter {
     }
 
     /**
-     * Set the sub image (data of unit cube). Midpoint has to be 0!
+     * Set the sub image (data of unit cube).
      * @param aImage of unit cube as linear array of pixels
      */
     public UnitCubeConnectedComponenetsCounter SetImage(char[] aImage) {

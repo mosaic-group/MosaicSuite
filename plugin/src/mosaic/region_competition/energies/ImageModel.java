@@ -3,12 +3,14 @@ package mosaic.region_competition.energies;
 
 import java.util.HashMap;
 
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.Settings;
 import mosaic.region_competition.energies.Energy.EnergyResult;
+import mosaic.region_competition.energies.Energy.ExternalEnergy;
+import mosaic.region_competition.energies.Energy.InternalEnergy;
 
 
 public class ImageModel {
@@ -19,11 +21,11 @@ public class ImageModel {
     
     private final Settings settings;
     
-    private final Energy e_data;
-    private final Energy e_length;
-    private final Energy e_merge;
+    private final ExternalEnergy e_data;
+    private final InternalEnergy e_length;
+    private final ExternalEnergy e_merge;
 
-    public ImageModel(Energy e_data, Energy e_length, Energy e_merge, Settings settings) {
+    public ImageModel(ExternalEnergy e_data, InternalEnergy e_length, ExternalEnergy e_merge, Settings settings) {
         this.e_data = e_data;
         this.e_length = e_length;
         this.e_merge = e_merge;

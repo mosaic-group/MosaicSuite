@@ -3,7 +3,7 @@ package mosaic.region_competition.energies;
 
 import java.util.HashMap;
 
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
@@ -15,7 +15,6 @@ public class E_KLMergingCriterion extends ExternalEnergy {
     private final int bgLabel;
 
     public E_KLMergingCriterion(int bgLabel, float m_RegionMergingThreshold) {
-        super(null, null);
         this.bgLabel = bgLabel;
         this.m_RegionMergingThreshold = m_RegionMergingThreshold;
     }

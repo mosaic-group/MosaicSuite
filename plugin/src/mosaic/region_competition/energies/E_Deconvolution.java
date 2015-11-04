@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import mosaic.core.image.IntensityImage;
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelStatistics;
@@ -32,7 +32,6 @@ public class E_Deconvolution extends ExternalEnergy {
     private final IntensityImage aDataImage;
 
     public E_Deconvolution(IntensityImage aDI, Img<FloatType> image_psf) {
-        super(null, null);
         final int dim[] = aDI.getDimensions();
         DevImage = new ArrayImgFactory<FloatType>().create(dim, new FloatType());
 
@@ -46,8 +45,6 @@ public class E_Deconvolution extends ExternalEnergy {
 
     @Override
     public EnergyResult CalculateEnergyDifference(Point aIndex, ContourParticle contourParticle, int aToLabel, HashMap<Integer, LabelStatistics> labelMap) {
-        final EnergyResult vEnergyDiff = new EnergyResult(0.0, false);
-    
         final int aFromLabel = contourParticle.label;
         final float intensityDelta = (float)(labelMap.get(aToLabel).median - labelMap.get(aFromLabel).median);
         
@@ -56,7 +53,7 @@ public class E_Deconvolution extends ExternalEnergy {
     
         final int loc[] = new int[m_PSF.numDimensions()];
         final Cursor<FloatType> vPSF = m_PSF.localizingCursor();
-        
+        double energyDifference = 0.0;
         while (vPSF.hasNext()) {
             vPSF.fwd();
             vPSF.localize(loc);
@@ -69,10 +66,10 @@ public class E_Deconvolution extends ExternalEnergy {
             float vENew = vEOld + intensityDelta * vPSF.get().get();
             vEOld = vEOld * vEOld;
             vENew = vENew * vENew;
-            vEnergyDiff.energyDifference += vENew - vEOld;
+            energyDifference += vENew - vEOld;
         }
     
-        return vEnergyDiff;
+        return new EnergyResult(energyDifference, false);
     }
 
     private static float Median(ArrayList<Float> values) {
@@ -125,7 +122,6 @@ public class E_Deconvolution extends ExternalEnergy {
             cVModelImage.get().set((float) labelMap.get(vLabel).median);
         }
 
-        // Convolve
         new FFTConvolution<FloatType>(DevImage, m_PSF).convolve();
 
     }

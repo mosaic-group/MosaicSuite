@@ -1,7 +1,9 @@
-package mosaic.core.image;
+package mosaic.core.imageUtils.iterators;
 
 
 import java.util.Iterator;
+
+import mosaic.core.imageUtils.Point;
 
 
 /**

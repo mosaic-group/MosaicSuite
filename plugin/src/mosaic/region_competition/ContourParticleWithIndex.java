@@ -1,7 +1,7 @@
 package mosaic.region_competition;
 
 
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
 
 
 class ContourParticleWithIndex implements Comparable<ContourParticleWithIndex> {

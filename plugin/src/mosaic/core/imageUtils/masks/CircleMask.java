@@ -1,4 +1,8 @@
-package mosaic.core.image;
+package mosaic.core.imageUtils.masks;
+
+import mosaic.core.imageUtils.Connectivity;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.iterators.IndexIterator;
 
 public class CircleMask extends Mask {
 

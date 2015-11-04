@@ -1,9 +1,13 @@
-package mosaic.core.image;
+package mosaic.core.imageUtils;
 
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import mosaic.core.imageUtils.iterators.MaskIterator;
+import mosaic.core.imageUtils.iterators.RegionIterator;
+import mosaic.core.imageUtils.masks.Mask;
 
 
 /**

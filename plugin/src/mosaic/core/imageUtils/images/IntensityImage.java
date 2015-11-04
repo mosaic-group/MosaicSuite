@@ -1,8 +1,9 @@
-package mosaic.core.image;
+package mosaic.core.imageUtils.images;
 
 
 import ij.ImagePlus;
 import ij.ImageStack;
+import mosaic.core.imageUtils.Point;
 import mosaic.core.utils.MosaicUtils;
 
 

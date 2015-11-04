@@ -1,4 +1,7 @@
-package mosaic.core.image;
+package mosaic.core.imageUtils.images;
+
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.iterators.IndexIterator;
 
 /**
  * Base image class containing universal dimension-base calculations and methods.

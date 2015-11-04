@@ -1,7 +1,10 @@
-package mosaic.core.image;
+package mosaic.core.imageUtils.masks;
 
 
 import java.util.Random;
+
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.iterators.IndexIterator;
 
 
 public class SphereMask extends Mask {

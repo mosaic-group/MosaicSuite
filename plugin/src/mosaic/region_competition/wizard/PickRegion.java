@@ -3,7 +3,7 @@ package mosaic.region_competition.wizard;
 
 import ij.ImagePlus;
 import ij.gui.ImageCanvas;
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;

@@ -1,7 +1,7 @@
 package mosaic.region_competition;
 
 
-import static mosaic.core.image.LabelImage.BGLabel;
+import static mosaic.core.imageUtils.images.LabelImage.BGLabel;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,11 +17,11 @@ import org.apache.log4j.Logger;
 
 import mosaic.core.binarize.BinarizedImage;
 import mosaic.core.binarize.BinarizedIntervalLabelImage;
-import mosaic.core.image.FloodFill;
-import mosaic.core.image.IntensityImage;
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
-import mosaic.core.image.RegionIterator;
+import mosaic.core.imageUtils.FloodFill;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.core.imageUtils.images.LabelImage;
+import mosaic.core.imageUtils.iterators.RegionIterator;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.Energy.EnergyResult;
@@ -97,7 +97,7 @@ public class Algorithm {
         iImageModel = aModel;
         iSettings = aSettings;
 
-        oscillationDetection = new OscillationDetection(iSettings);
+        oscillationDetection = new OscillationDetection(iSettings.m_OscillationThreshold, iSettings.m_MaxNbIterations);
         iTopologicalNumber = new TopologicalNumber(iLabelImage);
 
         // Initialize label image
@@ -108,7 +108,6 @@ public class Algorithm {
         // Initialize standard statistics (mean, variances, length, area etc)
         initStatistics();
 
-        // Depending on the functional to use, prepare stuff for faster computation.
         initEnergies();
     }
 
@@ -186,19 +185,17 @@ public class Algorithm {
      * Initialize the energy function
      */
     private void initEnergies() {
-        /**
-         * Deconvolution: - Alocate and initialize the 'ideal image'
-         */
         if (iSettings.m_EnergyFunctional == EnergyFunctionalType.e_DeconvolutionPC) {
+            // Deconvolution: - Alocate and initialize the 'ideal image'
             // TODO: This is not OOP, handling energies should be redesigned
-            // Deconvolution: Allocate and initialize the 'ideal image'
             ((E_Deconvolution) iImageModel.getEdata()).GenerateModelImage(iLabelImage, iLabelStatistics);
             ((E_Deconvolution) iImageModel.getEdata()).RenewDeconvolution(iLabelImage, iLabelStatistics);
         }
     }
 
     /**
-     * Calculates the center of mass of each region (for each label) TODO: should mean_pos be part of LabelStatistics and this method here? It is one time use from RC
+     * Calculates the center of mass of each region (for each label) 
+     * TODO: should calculateRegionsCenterOfMass be part of LabelStatistics and this method here? It is one time use from RC
      */
     public void calculateRegionsCenterOfMass() {
         // Reset mean position for all labels

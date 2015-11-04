@@ -6,23 +6,23 @@ import java.util.Collection;
 import java.util.List;
 
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.Settings;
 
 
 public class OscillationDetection {
     
     // Settings
     private final double iOscillationThreshold;
-    private static final double Alpha = 0.1; // exponential moving average factor
-    private static final int Length = 10; // how many energies calculation back should be taken into account
+    private static final double AverageFactor = 0.1; // exponential moving average factor
+    private static final int LengthOfLastResultsWindow = 10; // how many energies calculation back should be taken into account
 
+    // Internal data
     private final ArrayList<Double> iAllSumsAvg;
     private double iSumAvg = 0;
     private boolean isFirstRound = true;
 
-    public OscillationDetection(Settings aSettings) {
-        iOscillationThreshold = aSettings.m_OscillationThreshold;
-        iAllSumsAvg = new ArrayList<Double>(aSettings.m_MaxNbIterations);
+    public OscillationDetection(double aOscillationThreshold, int aMaxNumOfIterations) {
+        iOscillationThreshold = aOscillationThreshold; //aSettings.m_OscillationThreshold;
+        iAllSumsAvg = new ArrayList<Double>(aMaxNumOfIterations); //aSettings.m_MaxNbIterations);
     }
 
     /**
@@ -32,16 +32,16 @@ public class OscillationDetection {
         final double sumNew = sumAllEnergies(aParticles);
         
         double oldSumAvg = isFirstRound ? sumNew : iSumAvg;
-        iSumAvg = Alpha * sumNew + (1 - Alpha) * oldSumAvg;
+        iSumAvg = AverageFactor * sumNew + (1 - AverageFactor) * oldSumAvg;
         iAllSumsAvg.add(iSumAvg);
     
         if (!isFirstRound) {
             final double totstd = calculateStdDev(iAllSumsAvg);
             final int n = iAllSumsAvg.size();
-            final int start = Math.max(0, n - Length);
+            final int start = Math.max(0, n - LengthOfLastResultsWindow);
             final double winstd = calculateStdDev(iAllSumsAvg.subList(start, n));
             
-            if (winstd / totstd < iOscillationThreshold) {
+            if ((winstd / totstd) < iOscillationThreshold) {
                 // new oscillation detected
                 return true;
             }
@@ -67,7 +67,7 @@ public class OscillationDetection {
      */
     private double calculateMean(List<Double> aData) {
         double sum = 0.0;
-        for (Double d : aData) {
+        for (double d : aData) {
             sum += d;
         }
 

@@ -6,8 +6,8 @@ import java.util.List;
 
 import org.junit.Test;
 
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.region_competition.topology.TopologicalNumber.TopologicalNumberResult;
 
 
@@ -22,8 +22,7 @@ public class TopologicalNumberTest {
                                 1, 1, 2, 2, 3, 3,
                                 1, 1, 2, 2, 3, 0,
                                 0, 0, 3, 3, 3, 3};
-        LabelImage li = new LabelImage(new int[] {6, 4});
-        for (int i = 0; i < li.getSize(); ++i) li.setLabel(i, img[i]);
+        LabelImage li = new LabelImage(img, new int[] {6, 4});
         
         TopologicalNumber tn = new TopologicalNumber(li);
         
@@ -65,8 +64,7 @@ public class TopologicalNumberTest {
                                 0, 0, 0,
                                 0, 0, 0,
                               };
-        LabelImage li = new LabelImage(new int[] {3, 3, 3});
-        for (int i = 0; i < li.getSize(); ++i) li.setLabel(i, img[i]);
+        LabelImage li = new LabelImage(img, new int[] {3, 3, 3});
         
         TopologicalNumber tn = new TopologicalNumber(li);
         

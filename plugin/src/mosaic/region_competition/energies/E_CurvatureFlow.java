@@ -4,20 +4,19 @@ package mosaic.region_competition.energies;
 import java.util.HashMap;
 
 import ij.measure.Calibration;
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.energies.Energy.InternalEnergy;
 
 
-public class E_CurvatureFlow extends InternalEnergy// implements SettingsListener
+public class E_CurvatureFlow extends InternalEnergy
 {
 
     private final CurvatureBasedFlow curv;
 
     public E_CurvatureFlow(LabelImage labelImage, int rad, Calibration cal) {
-        super(labelImage);
         curv = new CurvatureBasedFlow(rad, labelImage, cal);
     }
 

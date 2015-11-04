@@ -3,7 +3,7 @@ package mosaic.region_competition.energies;
 
 import java.util.HashMap;
 
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
@@ -12,7 +12,6 @@ import mosaic.region_competition.energies.Energy.ExternalEnergy;
 public class E_CV extends ExternalEnergy {
 
     public E_CV() {
-        super(null, null);
     }
 
     /**

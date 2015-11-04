@@ -1,4 +1,4 @@
-package mosaic.core.image;
+package mosaic.core.imageUtils;
 
 
 import java.util.HashSet;
@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import mosaic.core.binarize.BinarizedImage;
+import mosaic.core.imageUtils.images.LabelImage;
 
 
 /**

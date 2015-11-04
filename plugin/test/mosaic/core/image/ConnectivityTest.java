@@ -9,6 +9,9 @@ import java.util.List;
 
 import org.junit.Test;
 
+import mosaic.core.imageUtils.Connectivity;
+import mosaic.core.imageUtils.Point;
+
 
 public class ConnectivityTest {
     
