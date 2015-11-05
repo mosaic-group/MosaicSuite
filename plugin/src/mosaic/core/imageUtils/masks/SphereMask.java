@@ -11,7 +11,6 @@ public class SphereMask extends Mask {
 
     private boolean rnd = false;
     private final int dim;
-    private final int rad;
 
     private final int m_Size[];
     private final int m_Radius[];
@@ -35,29 +34,8 @@ public class SphereMask extends Mask {
      * @param size Size of the region containing the sphere
      * @param dim dimensionality
      */
-
     public SphereMask(int radius, int size, int dim) {
-        // TODO: It seems that it does not draw nice spheres - right/bottom pixels are cut (in 2D case) when size = 2 * radius
-        this.dim = dim;
-        rad = radius;
-
-        m_Size = new int[dim];
-        m_Radius = new int[dim];
-
-        for (int i = 0; i < dim; i++) {
-            m_Radius[i] = radius;
-            m_Size[i] = size;
-        }
-
-        iterator = new IndexIterator(m_Size);
-
-        spacing = new float[dim];
-        for (int i = 0; i < dim; i++) {
-            spacing[i] = 1.0f;
-        }
-
-        mask = new byte[iterator.getSize()];
-        fillMask();
+        this(radius, size, dim, null, false);
     }
 
     /**
@@ -70,10 +48,9 @@ public class SphereMask extends Mask {
      * @param rnd subpixel randomizer
      */
     public SphereMask(int radius, int size, int dim, float[] spacing, boolean rnd_) {
+        // TODO: It seems that it does not draw nice spheres - right/bottom pixels are cut (in 2D case) when size = 2 * radius
         this.dim = dim;
-        rad = radius;
         rnd = rnd_;
-
         m_Size = new int[dim];
         m_Radius = new int[dim];
 
@@ -84,7 +61,16 @@ public class SphereMask extends Mask {
 
         iterator = new IndexIterator(m_Size);
 
-        this.spacing = spacing;
+        if (spacing != null) {
+            this.spacing = spacing;
+        }
+        else {
+            this.spacing = new float[dim];
+            for (int i = 0; i < dim; i++) {
+                this.spacing[i] = 1.0f;
+            }
+        }
+        
         mask = new byte[iterator.getSize()];
         fillMask();
     }
@@ -120,15 +106,13 @@ public class SphereMask extends Mask {
 
                     if (vHypEllipse <= 1.0f) {
                         fgPoints++;
-
-                        // is in region
                         mask[i] = fgVal;
                     }
                     else {
                         mask[i] = bgVal;
                     }
                 }
-            } // for
+            } 
         }
         else {
             for (int i = 0; i < size; i++) // over region
@@ -144,14 +128,12 @@ public class SphereMask extends Mask {
 
                 if (vHypEllipse <= 1.0f) {
                     fgPoints++;
-
-                    // is in region
                     mask[i] = fgVal;
                 }
                 else {
                     mask[i] = bgVal;
                 }
-            } // for
+            }
         }
     }
 
@@ -160,13 +142,8 @@ public class SphereMask extends Mask {
         return mask[idx] == fgVal;
     }
 
-    public int getRadius() {
-        return this.rad;
-    }
-
     @Override
     public int[] getDimensions() {
         return this.m_Size;
     }
-
 }

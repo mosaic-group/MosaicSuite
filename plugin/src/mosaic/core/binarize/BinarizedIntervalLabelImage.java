@@ -29,7 +29,7 @@ public class BinarizedIntervalLabelImage extends IntervalsListInteger implements
      */
     @Override
     public boolean EvaluateAtIndex(Point p) {
-        if (labelImage.isOutOfBound(p) == true) {
+        if (!labelImage.isInBound(p)) {
             return false;
         }
         final int value = labelImage.getLabel(p);
@@ -38,7 +38,7 @@ public class BinarizedIntervalLabelImage extends IntervalsListInteger implements
 
     @Override
     public boolean EvaluateAtIndex(Integer p) {
-        if (labelImage.isOutOfBound(p) == true) {
+        if (labelImage.isInBound(p)) {
             return false;
         }
         final int value = labelImage.getLabel(p);

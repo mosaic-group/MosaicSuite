@@ -9,7 +9,6 @@ import mosaic.core.imageUtils.iterators.IndexIterator;
 public class BaseImage {
     
     protected IndexIterator iIterator;
-    private final int[] iDimensions;
     
     /**
      * Initialize an intensity image from an Image Plus
@@ -25,43 +24,36 @@ public class BaseImage {
         }
 
         iIterator = new IndexIterator(aDimensions);
-        iDimensions = aDimensions;
     }
 
     /**
      * @param aPoint input point
      * @return true if aPoint lays outside dimensions of IntensityImage
      */
-    public boolean isOutOfBound(Point aPoint) {
-        for (int i = 0; i < aPoint.iCoords.length; ++i) {
-            if (aPoint.iCoords[i] < 0 || aPoint.iCoords[i] >= iDimensions[i]) {
-                return true;
-            }
-        }
-        return false;
+    public boolean isInBound(Point aPoint) {
+        return iIterator.isInBound(aPoint);
     }
     
     /**
-     * @param aPoint input point
-     * @return true if aPoint lays outside dimensions of IntensityImage
+     * @param aIndex input index
+     * @return true if aIndex lays outside dimensions of IntensityImage
      */
-    public boolean isOutOfBound(Integer aIndex) {
-        if (aIndex < 0 || aIndex >= getSize()) return true;
-        return false;
+    public boolean isInBound(Integer aIndex) {
+        return iIterator.isInBound(aIndex);
     }
 
     /**
-     * @return number of dimensions of IntensityImage
+     * @return number of dimensions of BaseImage
      */
     public int getNumOfDimensions() {
-        return iDimensions.length;
+        return iIterator.getNumOfDimensions();
     }
 
     /**
      * @return dimensions 2D (width, height),  3D (width, height, numOfSlices)
      */
     public int[] getDimensions() {
-        return iDimensions;
+        return iIterator.getDimensions();
     }
 
     /**
@@ -70,28 +62,28 @@ public class BaseImage {
      * @return
      */
     public int getDimension(int aDimensionIndex) {
-        return iDimensions[aDimensionIndex];
+        return iIterator.getDimensions()[aDimensionIndex];
     }
     
     /**
      * @return Returns width (dimension index 0)
      */
     public int getWidth() {
-        return iDimensions[0];
+        return iIterator.getDimensions()[0];
     }
     
     /**
      * @return Returns width (dimension index 1)
      */
     public int getHeight() {
-        return iDimensions[1];
+        return iIterator.getDimensions()[1];
     }
     
     /**
      * @return Returns width (dimension index 1)
      */
     public int getNumOfSlices() {
-        return getNumOfDimensions() == 2 ? 1 : iDimensions[2];
+        return getNumOfDimensions() == 2 ? 1 : iIterator.getDimensions()[2];
     }
     
     /**
@@ -112,8 +104,8 @@ public class BaseImage {
     @Override
     public String toString() {
         String result = "BaseImage [";
-        for (int i = 0; i < iDimensions.length; ++i) {
-            result += iDimensions[i];
+        for (int i = 0; i < iIterator.getNumOfDimensions(); ++i) {
+            result += iIterator.getDimensions()[i];
             result += ", ";
         }
         result = result.substring(0, result.length()-2);

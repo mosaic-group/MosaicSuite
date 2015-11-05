@@ -75,7 +75,7 @@ public class IntensityImage extends BaseImage {
      * returns the image data of the originalIP at Point p, if out of bounds then returns 0
      */
     public float getSafe(Point aPoint) {
-        if (isOutOfBound(aPoint)) return 0.0f;
+        if (!isInBound(aPoint)) return 0.0f;
 
         return get(pointToIndex(aPoint));
     }

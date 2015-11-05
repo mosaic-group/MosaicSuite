@@ -7,57 +7,49 @@ import mosaic.core.imageUtils.Point;
 
 
 /**
- * IndexIterator is a class to interate on a Hypercube
- *
+ * IndexIterator is a class to iterate on a Hypercube
  * @author Pietro Incardona
  */
-
 public class IndexIterator {
 
-    private int dimensions[];
-    private int dim;
-    protected int size;
+    private final int iDimensions[];
+    private final int iNumOfDimensions;
+    protected final int iSize;
 
     /**
-     * Create the index itarator
-     *
-     * @param dims integer array of dimensions (width/height/depth/...)
+     * Create the index iterator
+     * @param aDimensions (width/height/depth/...)
      */
-    public IndexIterator(int[] dims) {
-        init(dims);
-    }
-
-    private void init(int[] dims) {
-        dimensions = dims.clone();
-        dim = dimensions.length;
-
-        size = 1;
-        for (int i = 0; i < dim; i++) {
-            size *= dimensions[i];
+    public IndexIterator(int... aDimensions) {
+        iDimensions = aDimensions.clone();
+        iNumOfDimensions = iDimensions.length;
+        
+        int tempSize = 1;
+        for (int i = 0; i < iNumOfDimensions; ++i) {
+            tempSize *= iDimensions[i];
         }
+        iSize = tempSize;
     }
 
     /**
-     * Get the total size of the iterator
-     *
+     * Get the total size of the iterator (iterated space)
      * @return total number of pixels = width*height*...
      */
     public int getSize() {
-        return size;
+        return iSize;
     }
 
     /**
      * Converts a Point index into an integer index
-     * 
-     * @param p Point index
+     * @param aPoint Point index
      * @return integer index
      */
-    public int pointToIndex(Point p) {
+    public int pointToIndex(Point aPoint) {
         int idx = 0;
         int fac = 1;
-        for (int i = 0; i < dim; ++i) {
-            idx += fac * p.iCoords[i];
-            fac *= dimensions[i];
+        for (int i = 0; i < iNumOfDimensions; ++i) {
+            idx += fac * aPoint.iCoords[i];
+            fac *= iDimensions[i];
         }
 
         return idx;
@@ -65,41 +57,31 @@ public class IndexIterator {
 
     /**
      * Converts an integer index into a Point index
-     * 
-     * @param idx integer index
-     * @return Point index
+     * @param aIndex integer index
+     * @return Point - a point representation of input index
      */
-    public Point indexToPoint(int idx) {
-        int index = idx;
-        final int x[] = new int[this.dim];
+    public Point indexToPoint(int aIndex) {
+        int index = aIndex;
+        final int x[] = new int[iNumOfDimensions];
 
-        for (int i = 0; i < dim; i++) {
-            final int r = index % dimensions[i];
+        for (int i = 0; i < iNumOfDimensions; ++i) {
+            final int r = index % iDimensions[i];
             x[i] = r;
-            index = index - r;
-            index = index / dimensions[i];
+            index -= r;
+            index = index / iDimensions[i];
         }
 
-        final Point result = new Point(x);
-
-        // TODO !!! test, is this correct?
-        final int dummy = pointToIndex(result);
-        if (dummy != idx) {
-            System.out.println("indexToPoint is not correct");
-            return null;
-        }
-        return result;
+        return new Point(x);
     }
 
     /**
      * Check is the point is inside the boundary
-     *
-     * @param p Point index
-     * @return true, if Point is within bounds of this Iterator
+     * @param aPoint Point index
+     * @return true, if aPoint is within bounds of this Iterator
      */
-    public boolean isInBound(Point p) {
-        for (int d = 0; d < dim; d++) {
-            if (p.iCoords[d] < 0 || p.iCoords[d] >= dimensions[d]) {
+    public boolean isInBound(Point aPoint) {
+        for (int d = 0; d < iNumOfDimensions; ++d) {
+            if (aPoint.iCoords[d] < 0 || aPoint.iCoords[d] >= iDimensions[d]) {
                 return false;
             }
         }
@@ -107,19 +89,40 @@ public class IndexIterator {
     }
 
     /**
+     * Check is the index is inside the boundary
+     * @param aIndex index
+     * @return true, if aIndex is within bounds of this Iterator
+     */
+    public boolean isInBound(int aIndex) {
+        if (aIndex < 0 || aIndex >= getSize()) return false;
+        return true;
+    }
+    
+    /**
+     * @return number of dimensions of iterator
+     */
+    public int getNumOfDimensions() {
+        return iNumOfDimensions;
+    }
+    
+    /**
+     * @return dimensions array (with sizes of each dimension)
+     */
+    public int[] getDimensions() {
+        return iDimensions;
+    }
+    
+    /**
      * Get an iterator of Point of the defined region
-     *
      * @return an iterator of points
      */
-
     public Iterator<Point> getPointIterator() {
         return new Iterator<Point>() {
-
             int i = 0;
 
             @Override
             public boolean hasNext() {
-                return i < size;
+                return i < iSize;
             }
 
             @Override
@@ -128,16 +131,12 @@ public class IndexIterator {
             }
 
             @Override
-            public void remove() {
-                // not needed
-            }
+            public void remove() { /* not needed */ }
         };
     }
 
     /**
      * Get an iterator of Point of the defined region
-     * Iterable for extended for-loops
-     *
      * @return Iterable<Point>
      */
     public Iterable<Point> getPointIterable() {
@@ -152,36 +151,29 @@ public class IndexIterator {
 
     /**
      * Get an iterator of Integer of the defined region
-     *
      * @return Iterator<Point>
      */
     public Iterator<Integer> getIndexIterator() {
         return new Iterator<Integer>() {
-
             int i = 0;
 
             @Override
             public boolean hasNext() {
-                return i < size;
+                return i < iSize;
             }
 
             @Override
             public Integer next() {
-                // TODO +++
                 return (i++);
             }
 
             @Override
-            public void remove() {
-                // not needed
-            }
+            public void remove() { /* not needed */ }
         };
     }
 
     /**
      * Get an Iterable of integer for the region
-     * Iterable for extended for-loops, returns Integer indexes
-     *
      * @return Iterable<Integer>
      */
     public Iterable<Integer> getIndexIterable() {
@@ -193,5 +185,4 @@ public class IndexIterator {
             }
         };
     }
-
 }

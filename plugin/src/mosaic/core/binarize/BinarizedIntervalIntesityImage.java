@@ -25,7 +25,7 @@ public class BinarizedIntervalIntesityImage extends IntervalsListDouble implemen
 
     @Override
     public boolean EvaluateAtIndex(Point p) {
-        if (image.isOutOfBound(p) == true) {
+        if (!image.isInBound(p)) {
             return false;
         }
         final float value = image.get(p);
@@ -34,7 +34,7 @@ public class BinarizedIntervalIntesityImage extends IntervalsListDouble implemen
 
     @Override
     public boolean EvaluateAtIndex(Integer p) {
-        if (image.isOutOfBound(p) == true) {
+        if (!image.isInBound(p)) {
             return false;
         }
         final float value = image.get(p);
