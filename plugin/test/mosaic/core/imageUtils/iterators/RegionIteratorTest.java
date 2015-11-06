@@ -3,6 +3,8 @@ package mosaic.core.imageUtils.iterators;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import java.util.Iterator;
+
 import org.junit.Test;
 
 import mosaic.core.imageUtils.Point;
@@ -74,7 +76,7 @@ public class RegionIteratorTest {
                                     1, 1, 1, 1};
             
             RegionIterator ri = new RegionIterator(new int []{4, 3});
-            
+
             // Create empty/zeroed array and increase value for each index.
             // Each element should be visited exactly once.
             int[] testArray = new int[referenceArray.length];

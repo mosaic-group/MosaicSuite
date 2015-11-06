@@ -1,20 +1,19 @@
 package mosaic.bregman;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
+import ij.IJ;
+import ij.ImagePlus;
 import mosaic.core.detection.Particle;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.RegionIteratorMask;
 import mosaic.core.imageUtils.images.LabelImage;
-import mosaic.core.imageUtils.iterators.RegionIterator;
+import mosaic.core.imageUtils.iterators.IndexIterator;
 import mosaic.core.imageUtils.masks.SphereMask;
 import mosaic.core.psf.GaussPSF;
 import mosaic.utils.io.csv.CSV;
@@ -322,10 +321,9 @@ class TwoRegions extends NRegions {
 
                 // Run on all pixels of the label to add pixels to the regions
 
-                final RegionIterator rit = new RegionIterator(img.getDimensions());
+                final Iterator<Point> rit = new IndexIterator(img.getDimensions()).getPointIterator();
                 while (rit.hasNext()) {
-                    rit.next();
-                    final Point p = rit.getPoint();
+                    final Point p = rit.next();
                     final int lbl = img.getLabel(p);
                     if (lbl != 0) {
                         // foreground

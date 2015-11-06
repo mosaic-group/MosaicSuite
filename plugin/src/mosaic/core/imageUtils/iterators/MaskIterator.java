@@ -4,8 +4,10 @@ package mosaic.core.imageUtils.iterators;
  * Iterates over a Region within an InputImage,
  * but returns indices relative to the region (and not input)
  */
-public class MaskIterator extends RegionIterator {
+public class MaskIterator {
 
+    RegionIterator it = null;
+    
     /**
      * Iterating over region is implemented in such a way,
      * that region is used as input' (for RegionIterator) and
@@ -14,14 +16,12 @@ public class MaskIterator extends RegionIterator {
      * So the indices are returned relative to old(region).
      */
     public MaskIterator(int[] input, int[] region, int[] ofs) {
-
         // sets the "input size" to the region size
-        super(region, region, ofs);
         final int[] maskSizes = region.clone();
-        final int[] maskOfs = new int[iNumOfDimensions];
+        final int[] maskOfs = ofs.clone();
 
         // TODO: this is cropping, actually?
-        for (int i = 0; i < iNumOfDimensions; i++) {
+        for (int i = 0; i < region.length; i++) {
             if (ofs[i] < 0) {
                 // if ofs < 0, then region is cropped, and the iterator' doesn't start at 0,0
                 // but starts at an ofs which points to the intersection(input, region)
@@ -39,9 +39,10 @@ public class MaskIterator extends RegionIterator {
             }
         }
 
-        setRegion(maskSizes);
-        setOfs(maskOfs);
-        crop(); // recalculates startindex and new size, cropping should be done already.
+        it = new RegionIterator(region, maskSizes, maskOfs);
     }
-
+    
+    public int next() {
+        return it.next();
+    }
 }

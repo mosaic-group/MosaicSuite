@@ -10,6 +10,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -26,6 +27,7 @@ import ij.io.Opener;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
+import mosaic.core.imageUtils.iterators.IndexIterator;
 import mosaic.core.imageUtils.iterators.RegionIterator;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.LabelStatistics;
@@ -321,12 +323,13 @@ public class ScoreFunctionRCtop extends ScoreFunctionBase {
                     from = ip[i].getLabel(pC.get(j));
                     to = ip[i].getLabel(pC.get(j + 1));
 
-                    final RegionIterator itImg = new RegionIterator(ip[i].getDimensions());
+                    IndexIterator ii = new IndexIterator(ip[i].getDimensions());
+                    final Iterator<Integer> itImg = ii.getIndexIterator();
 
                     Col[0] = to;
                     while (itImg.hasNext()) {
                         final int k = itImg.next();
-                        final Point p = itImg.getPoint();
+                        final Point p = ii.indexToPoint(k);
                         if (ip[i].getLabelAbs(k) == from) {
                             ip[i].setLabel(k, to);
                             ipp[i].getProcessor().putPixel(p.iCoords[0], p.iCoords[1], Col);
