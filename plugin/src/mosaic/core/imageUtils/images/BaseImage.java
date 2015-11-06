@@ -1,14 +1,14 @@
 package mosaic.core.imageUtils.images;
 
 import mosaic.core.imageUtils.Point;
-import mosaic.core.imageUtils.iterators.IndexIterator;
+import mosaic.core.imageUtils.iterators.SpaceIterator;
 
 /**
  * Base image class containing universal dimension-base calculations and methods.
  */
 public class BaseImage {
     
-    protected IndexIterator iIterator;
+    protected SpaceIterator iIterator;
     
     /**
      * Initialize an intensity image from an Image Plus
@@ -23,7 +23,7 @@ public class BaseImage {
             throw new RuntimeException("Dimensions number bigger than " + aMaxDimensions + " is not supported!");
         }
 
-        iIterator = new IndexIterator(aDimensions);
+        iIterator = new SpaceIterator(aDimensions);
     }
 
     /**

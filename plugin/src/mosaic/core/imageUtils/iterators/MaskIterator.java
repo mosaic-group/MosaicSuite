@@ -22,7 +22,7 @@ package mosaic.core.imageUtils.iterators;
  */
 public class MaskIterator extends BaseIterator {
 
-    IndexIterator iRegionIt;
+    SpaceIterator iRegionIt;
     
     /**
      * @param iInputDims dimensions of the input image
@@ -31,7 +31,7 @@ public class MaskIterator extends BaseIterator {
      */
     public MaskIterator(int[] iInputDims, int[] iRegionDims, int[] iRegionOffset) {
         super(iInputDims, iRegionDims, iRegionOffset);
-        iRegionIt = new IndexIterator(iRegionDims);
+        iRegionIt = new SpaceIterator(iRegionDims);
     }
     
     @Override

@@ -2,7 +2,7 @@ package mosaic.core.imageUtils.masks;
 
 import mosaic.core.imageUtils.Connectivity;
 import mosaic.core.imageUtils.Point;
-import mosaic.core.imageUtils.iterators.IndexIterator;
+import mosaic.core.imageUtils.iterators.SpaceIterator;
 
 public class CircleMask extends Mask {
 
@@ -13,7 +13,7 @@ public class CircleMask extends Mask {
     private final int m_Radius[];
     private final float spacing[];
 
-    private final IndexIterator iterator;
+    private final SpaceIterator iterator;
     private int fgPoints = 0;
 
     /**
@@ -36,7 +36,7 @@ public class CircleMask extends Mask {
             m_Size[i] = size;
         }
 
-        iterator = new IndexIterator(m_Size);
+        iterator = new SpaceIterator(m_Size);
 
         this.spacing = spacing;
         mask = new byte[iterator.getSize()];

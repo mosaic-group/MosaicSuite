@@ -21,7 +21,7 @@ import mosaic.core.imageUtils.FloodFill;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
-import mosaic.core.imageUtils.iterators.IndexIterator;
+import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.Energy.EnergyResult;
@@ -206,7 +206,7 @@ public class Algorithm {
         }
 
         // Iterate through whole label image and update mean position (only sum all coordinate values)
-        final Iterator<Point> ri = new IndexIterator(iLabelImage.getDimensions()).getPointIterator();
+        final Iterator<Point> ri = new SpaceIterator(iLabelImage.getDimensions()).getPointIterator();
         while (ri.hasNext()) {
             final Point point = ri.next();
             int label = iLabelImage.getLabel(point);

@@ -13,7 +13,7 @@ import ij.plugin.filter.Analyzer;
 import ij.process.ImageProcessor;
 import mosaic.core.imageUtils.Connectivity;
 import mosaic.core.imageUtils.Point;
-import mosaic.core.imageUtils.iterators.IndexIterator;
+import mosaic.core.imageUtils.iterators.SpaceIterator;
 
 
 /**
@@ -69,7 +69,7 @@ public class MaximumFinder3D implements MaximumFinderInterface {
 
     private final int depth;
     private final int size;
-    private final IndexIterator iterator;
+    private final SpaceIterator iterator;
     private final Connectivity conn;
 
     public MaximumFinder3D(int[] dims) {
@@ -84,7 +84,7 @@ public class MaximumFinder3D implements MaximumFinderInterface {
         conn = new Connectivity(3, 0);
 
         this.size = width * height * depth;
-        iterator = new IndexIterator(new int[] { width, height, depth });
+        iterator = new SpaceIterator(new int[] { width, height, depth });
     }
 
     /**

@@ -12,15 +12,15 @@ public class IndexIteratorTest {
     @Test
     public void testSize() {
         {
-            IndexIterator ii = new IndexIterator(4, 3);
+            SpaceIterator ii = new SpaceIterator(4, 3);
             assertEquals(12, ii.getSize());
         }
         {
-            IndexIterator ii = new IndexIterator(3, 4);
+            SpaceIterator ii = new SpaceIterator(3, 4);
             assertEquals(12, ii.getSize());
         }
         {
-            IndexIterator ii = new IndexIterator(4, 3, 5);
+            SpaceIterator ii = new SpaceIterator(4, 3, 5);
             assertEquals(60, ii.getSize());
         }
     }
@@ -28,17 +28,17 @@ public class IndexIteratorTest {
     @Test
     public void testPointToIndexToPoint() {
         {
-            IndexIterator ii = new IndexIterator(4, 3);
+            SpaceIterator ii = new SpaceIterator(4, 3);
             assertEquals(5, ii.pointToIndex(new Point(1,1)));
             assertEquals(new Point(1,1), ii.indexToPoint(5));
         }
         {
-            IndexIterator ii = new IndexIterator(3, 4);
+            SpaceIterator ii = new SpaceIterator(3, 4);
             assertEquals(4, ii.pointToIndex(new Point(1,1)));
             assertEquals(new Point(1,1), ii.indexToPoint(4));
         }
         {
-            IndexIterator ii = new IndexIterator(4, 3, 5);
+            SpaceIterator ii = new SpaceIterator(4, 3, 5);
             assertEquals(29, ii.pointToIndex(new Point(1,1,2)));
             assertEquals(new Point(1,1,2), ii.indexToPoint(29));
         }
@@ -47,7 +47,7 @@ public class IndexIteratorTest {
     @Test
     public void testIsInBound() {
         {
-            IndexIterator ii = new IndexIterator(4, 2);
+            SpaceIterator ii = new SpaceIterator(4, 2);
             assertTrue(ii.isInBound(new Point(0,0)));
             assertTrue(ii.isInBound(new Point(3,1)));
             assertTrue(ii.isInBound(new Point(3,0)));
@@ -62,7 +62,7 @@ public class IndexIteratorTest {
             assertFalse(ii.isInBound(8));
         }
         {
-            IndexIterator ii = new IndexIterator(4, 3, 5);
+            SpaceIterator ii = new SpaceIterator(4, 3, 5);
             assertTrue(ii.isInBound(new Point(3,0,4)));
             assertTrue(ii.isInBound(new Point(3,2,4)));
             assertTrue(ii.isInBound(new Point(0,0,0)));
@@ -79,7 +79,7 @@ public class IndexIteratorTest {
     
     @Test
     public void testGetDimensions() {
-        IndexIterator ii = new IndexIterator(4, 2);
+        SpaceIterator ii = new SpaceIterator(4, 2);
         assertArrayEquals(new int[] {4, 2}, ii.getDimensions());
         assertEquals(2, ii.getNumOfDimensions());
     }
@@ -89,7 +89,7 @@ public class IndexIteratorTest {
         // 8 elements
         int[] referenceArray = {1, 1, 1, 1, 1, 1, 1, 1};
 
-        IndexIterator ii = new IndexIterator(4, 2);
+        SpaceIterator ii = new SpaceIterator(4, 2);
         
         // Create empty/zeroed array and increase value for each index.
         // Each element should be visited exactly once.
@@ -107,7 +107,7 @@ public class IndexIteratorTest {
         // 9 elements
         int[] referenceArray = {1, 1, 1, 1, 1, 1, 1, 1, 1};
 
-        IndexIterator ii = new IndexIterator(3, 3);
+        SpaceIterator ii = new SpaceIterator(3, 3);
         
         // Create empty/zeroed array and increase value for each index.
         // Each element should be visited exactly once.

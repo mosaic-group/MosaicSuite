@@ -10,7 +10,7 @@ import mosaic.core.imageUtils.Point;
  * IndexIterator is a class to iterate on a Hypercube
  * @author Pietro Incardona
  */
-public class IndexIterator {
+public class SpaceIterator {
 
     private final int iDimensions[];
     private final int iNumOfDimensions;
@@ -20,7 +20,7 @@ public class IndexIterator {
      * Create the index iterator
      * @param aDimensions (width/height/depth/...)
      */
-    public IndexIterator(int... aDimensions) {
+    public SpaceIterator(int... aDimensions) {
         iDimensions = aDimensions.clone();
         iNumOfDimensions = iDimensions.length;
         

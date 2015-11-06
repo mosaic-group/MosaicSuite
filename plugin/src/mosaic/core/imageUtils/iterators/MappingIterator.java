@@ -30,7 +30,7 @@ import mosaic.core.imageUtils.Point;
  */
 public class MappingIterator extends BaseIterator
 {
-    IndexIterator iInputIt;
+    SpaceIterator iInputIt;
     Point iLastPointRegionBased = null;
     boolean iDimensionChanged = false;
     
@@ -41,7 +41,7 @@ public class MappingIterator extends BaseIterator
      */
     public MappingIterator(int[] iInputDims, int[] iRegionDims, int[] iRegionOffset) {
         super(iInputDims, iRegionDims, iRegionOffset);
-        iInputIt = new IndexIterator(iInputDims);
+        iInputIt = new SpaceIterator(iInputDims);
     }
 
     @Override

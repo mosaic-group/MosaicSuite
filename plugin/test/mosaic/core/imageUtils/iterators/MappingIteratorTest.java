@@ -17,7 +17,7 @@ public class MappingIteratorTest {
             int[] dimensions = new int []{10, 10};
             int[] offset = new int [] {2, 1};
             MappingIterator ri = new MappingIterator(dimensions, new int [] {2, 3}, offset);
-            IndexIterator ii = new IndexIterator(dimensions);
+            SpaceIterator ii = new SpaceIterator(dimensions);
             
             int i = 0;
             while(ri.hasNext()) {

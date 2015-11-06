@@ -108,7 +108,7 @@ public class RegionIteratorTest {
     public void testGetPoint() {
         int[] dimensions = {6, 4};
         RegionIterator ri = new RegionIterator(dimensions, new int [] {15, 8}, new int [] {2, 1});
-        IndexIterator ii = new IndexIterator(dimensions);
+        SpaceIterator ii = new SpaceIterator(dimensions);
         
         while(ri.hasNext()) {
             int index = ri.next();

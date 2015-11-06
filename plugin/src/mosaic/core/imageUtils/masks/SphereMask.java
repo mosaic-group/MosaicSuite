@@ -4,7 +4,7 @@ package mosaic.core.imageUtils.masks;
 import java.util.Random;
 
 import mosaic.core.imageUtils.Point;
-import mosaic.core.imageUtils.iterators.IndexIterator;
+import mosaic.core.imageUtils.iterators.SpaceIterator;
 
 
 public class SphereMask extends Mask {
@@ -16,7 +16,7 @@ public class SphereMask extends Mask {
     private final int m_Radius[];
     private final float spacing[];
 
-    private final IndexIterator iterator;
+    private final SpaceIterator iterator;
     private int fgPoints = 0;
 
     /*
@@ -59,7 +59,7 @@ public class SphereMask extends Mask {
             m_Size[i] = size;
         }
 
-        iterator = new IndexIterator(m_Size);
+        iterator = new SpaceIterator(m_Size);
 
         if (spacing != null) {
             this.spacing = spacing;

@@ -23,7 +23,7 @@ import mosaic.bregman.output.Region3DTrack;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.RegionIteratorMask;
-import mosaic.core.imageUtils.iterators.IndexIterator;
+import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.SphereMask;
 import mosaic.core.psf.psf;
 import mosaic.core.psf.psfList;
@@ -218,7 +218,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
      */
     private void FillGridPoint(Point p[], int i[], int spacing) {
         int cnt = 0;
-        final Iterator<Point> rg = new IndexIterator(i).getPointIterator();
+        final Iterator<Point> rg = new SpaceIterator(i).getPointIterator();
 
         final Point t = new Point(new int [i.length]);
         for (int s = 0; s < i.length; s++) {

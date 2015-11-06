@@ -6,7 +6,7 @@ import mosaic.core.imageUtils.Point;
 
 public abstract class BaseIterator {
     protected final int iNumOfDimensions;
-    IndexIterator iIntersectionIt;
+    SpaceIterator iIntersectionIt;
     Iterator<Point> iIntersectionPointIt;
     
     protected Point iLastPoint = null;
@@ -34,7 +34,7 @@ public abstract class BaseIterator {
         }
         
         iOffsetPoint = new Point(offsetPoint);
-        iIntersectionIt = new IndexIterator(dimensionsOfIntersection);
+        iIntersectionIt = new SpaceIterator(dimensionsOfIntersection);
         iIntersectionPointIt = iIntersectionIt.getPointIterator();
     }
 

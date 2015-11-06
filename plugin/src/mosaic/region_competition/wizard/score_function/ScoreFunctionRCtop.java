@@ -27,7 +27,7 @@ import ij.io.Opener;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
-import mosaic.core.imageUtils.iterators.IndexIterator;
+import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.iterators.RegionIterator;
 import mosaic.plugins.Region_Competition;
 import mosaic.region_competition.LabelStatistics;
@@ -323,7 +323,7 @@ public class ScoreFunctionRCtop extends ScoreFunctionBase {
                     from = ip[i].getLabel(pC.get(j));
                     to = ip[i].getLabel(pC.get(j + 1));
 
-                    IndexIterator ii = new IndexIterator(ip[i].getDimensions());
+                    SpaceIterator ii = new SpaceIterator(ip[i].getDimensions());
                     final Iterator<Integer> itImg = ii.getIndexIterator();
 
                     Col[0] = to;

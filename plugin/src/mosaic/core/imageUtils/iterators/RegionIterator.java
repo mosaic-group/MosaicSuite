@@ -24,7 +24,7 @@ import mosaic.core.imageUtils.Point;
  */
 public class RegionIterator extends BaseIterator
 {
-    IndexIterator iInputIt;
+    SpaceIterator iInputIt;
     Point iLastPointRegionBased = null;
     
     /**
@@ -34,7 +34,7 @@ public class RegionIterator extends BaseIterator
      */
     public RegionIterator(int[] iInputDims, int[] iRegionDims, int[] iRegionOffset) {
         super(iInputDims, iRegionDims, iRegionOffset);
-        iInputIt = new IndexIterator(iInputDims);
+        iInputIt = new SpaceIterator(iInputDims);
     }
 
     @Override

@@ -37,7 +37,7 @@ public class MaskIteratorTest {
     public void testGetPoint() {
         int[] dimensions = {9, 4};
         MaskIterator mi = new MaskIterator(new int []{4, 3}, dimensions, new int [] {2, 1});
-        IndexIterator ii = new IndexIterator(dimensions);
+        SpaceIterator ii = new SpaceIterator(dimensions);
         
         while(mi.hasNext()) {
             int index = mi.next();

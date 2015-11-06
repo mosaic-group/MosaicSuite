@@ -13,7 +13,7 @@ import mosaic.core.detection.Particle;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.RegionIteratorMask;
 import mosaic.core.imageUtils.images.LabelImage;
-import mosaic.core.imageUtils.iterators.IndexIterator;
+import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.SphereMask;
 import mosaic.core.psf.GaussPSF;
 import mosaic.utils.io.csv.CSV;
@@ -321,7 +321,7 @@ class TwoRegions extends NRegions {
 
                 // Run on all pixels of the label to add pixels to the regions
 
-                final Iterator<Point> rit = new IndexIterator(img.getDimensions()).getPointIterator();
+                final Iterator<Point> rit = new SpaceIterator(img.getDimensions()).getPointIterator();
                 while (rit.hasNext()) {
                     final Point p = rit.next();
                     final int lbl = img.getLabel(p);

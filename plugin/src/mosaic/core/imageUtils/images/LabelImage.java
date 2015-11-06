@@ -22,7 +22,7 @@ import mosaic.core.binarize.BinarizedIntervalLabelImage;
 import mosaic.core.imageUtils.Connectivity;
 import mosaic.core.imageUtils.FloodFill;
 import mosaic.core.imageUtils.Point;
-import mosaic.core.imageUtils.iterators.IndexIterator;
+import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.region_competition.utils.IntConverter;
 import net.imglib2.RandomAccess;
@@ -102,7 +102,7 @@ public class LabelImage extends BaseImage
      */
     private <T extends IntegerType<T>> void initDataLabel(Img<T> aImage) {
         iDataLabel = new int[getSize()];
-        IndexIterator indexIterator = new IndexIterator(MosaicUtils.getImageIntDimensions(aImage));
+        SpaceIterator indexIterator = new SpaceIterator(MosaicUtils.getImageIntDimensions(aImage));
         final Iterator<Integer> rg = indexIterator.getIndexIterator();
         final RandomAccess<T> ra = aImage.randomAccess();
     
