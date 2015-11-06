@@ -4,6 +4,24 @@ import java.util.Iterator;
 
 import mosaic.core.imageUtils.Point;
 
+/**
+ * Region iterator is responsible for iterating over some region inside input coordinates.
+ * It handles all cropping stuff (if region with its offset goes beyond input coordinates, or if region is bigger than input).
+ * 
+ * Input image
+ * +-----+-------------------+
+ * |                         |
+ * |               Region    |
+ * +               O-----+   |   O = offset, P - first point of iterator, 'dot' - rest of points to be iterated.
+ * |               |P....|   |
+ * |               |.....|   |
+ * |               +-----+   |
+ * |                         |
+ * +-------------------------+
+ * 
+ *   
+ * @author Krzysztof Gonciarz <gonciarz@mpi-cbg.de>
+ */
 public class RegionIterator
 {
     final int iNumOfDimensions;
@@ -57,7 +75,7 @@ public class RegionIterator
     }
 
     /**
-     * @return index to the next point in input image coordinates
+     * @return index to the next index in input image coordinates
      */
     public int next() {
         ilastPoint = iOffsetPoint.add(iRegionPointIt.next());
@@ -77,15 +95,25 @@ public class RegionIterator
     public int getSize() {
         return iRegionIt.getSize();
     }
-
+    
     /**
-     * next point keep track of the resetting index
-     * (Example 00 01 02 03 04 05 10) from 05 to 10
-     * we reset last index
-     *
-     * @return index of the point inside the mask extended
-     *         of the size of the image (used to create for fast iterators
-     *         see RegionIteratorSphere)
+     * Input image
+     * +-----+-------------------+
+     * |I    | Index mapping     |
+     * |     |                   |
+     * |     |         Region    |
+     * +-----+         +-----+   |
+     * |               |P    |   |
+     * |   ^           |     |   |
+     * |    \____      |     |   |
+     * |     mapped    +-----+   |
+     * |                         |
+     * +-------------------------+
+     * 
+     * Special iterator. It will iterate over all region points. After calling nextRmask we will have:
+     * - getPoint will return point in input image coordinates (default behavior) - will return 'P' coordinates , but
+     * - nextRmask will return index in input image coordinates as if region was mapped to beginning of 
+     *   coordinates of Input image (for first point it will return index for 'I')
      */
     public int nextRmask() {
         Point p = iRegionPointIt.next();
@@ -93,8 +121,9 @@ public class RegionIterator
         ilastPoint = iOffsetPoint.add(p);
         return  iInputIt.pointToIndex(p);
     }
+    
     boolean iDimensionChanged = false;
-    public int getRMask() {
-        return iDimensionChanged ? 1 : 0;
+    public boolean getRMask() {
+        return iDimensionChanged;
     }
 }

@@ -135,7 +135,7 @@ public class RegionIteratorTest {
     public void testIteratorR() {
         { 
             int[] indexArray = {0, 1, 10, 11, 20, 21};
-            int[] dimChangeArray = {0, 0, 1, 0, 1, 0};
+            boolean[] dimChangeArray = {false, false, true, false, true, false};
             int[] dimensions = new int []{10, 10};
             int[] offset = new int [] {2, 1};
             RegionIterator ri = new RegionIterator(dimensions, new int [] {2, 3}, offset);
@@ -145,8 +145,7 @@ public class RegionIteratorTest {
             while(ri.hasNext()) {
                 int idx = ri.nextRmask();
                 Point p = ri.getPoint();
-                int dimChange = ri.getRMask();
-                
+                boolean dimChange = ri.getRMask();
                 assertEquals(indexArray[i], idx);
                 assertEquals(ii.indexToPoint(idx).add(new Point(offset)), p);
                 assertEquals(dimChangeArray[i], dimChange);
