@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Vector;
 
@@ -22,7 +23,7 @@ import mosaic.bregman.output.Region3DTrack;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.RegionIteratorMask;
-import mosaic.core.imageUtils.iterators.RegionIterator;
+import mosaic.core.imageUtils.iterators.IndexIterator;
 import mosaic.core.imageUtils.masks.SphereMask;
 import mosaic.core.psf.psf;
 import mosaic.core.psf.psfList;
@@ -217,7 +218,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
      */
     private void FillGridPoint(Point p[], int i[], int spacing) {
         int cnt = 0;
-        final RegionIterator rg = new RegionIterator(i);
+        final Iterator<Point> rg = new IndexIterator(i).getPointIterator();
 
         final Point t = new Point(new int [i.length]);
         for (int s = 0; s < i.length; s++) {
@@ -225,8 +226,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         }
 
         while (rg.hasNext() && cnt < p.length) {
-            rg.next();
-            p[cnt] = rg.getPoint();
+            p[cnt] = rg.next();
             p[cnt] = p[cnt].add(t);
             p[cnt] = p[cnt].mult(spacing);
             p[cnt] = p[cnt].div(Spacing);

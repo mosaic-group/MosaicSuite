@@ -1,7 +1,10 @@
 package mosaic.core.ImagePatcher;
 
 
+import java.util.Iterator;
+
 import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.iterators.IndexIterator;
 import mosaic.core.imageUtils.iterators.RegionIterator;
 import mosaic.core.utils.MosaicUtils;
 import net.imglib2.RandomAccess;
@@ -142,13 +145,12 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
             randomAccess_it_lb = lb.randomAccess();
         }
 
-        final RegionIterator rg_b = new RegionIterator(sz.iCoords);
+        final Iterator<Point> rg_b = new IndexIterator(sz.iCoords).getPointIterator();
         final RegionIterator rg = new RegionIterator(dimensions, sz.iCoords, p1.iCoords);
         while (rg.hasNext()) {
+            final Point pp = rg_b.next();
             rg.next();
-            rg_b.next();
             final Point p = rg.getPoint();
-            final Point pp = rg_b.getPoint();
 
             randomAccess.setPosition(p.iCoords);
             if (randomAccess_lb != null) {

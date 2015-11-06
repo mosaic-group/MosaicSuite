@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import mosaic.core.imageUtils.iterators.MappingIterator;
 import mosaic.core.imageUtils.iterators.MaskIterator;
-import mosaic.core.imageUtils.iterators.RegionIterator;
 import mosaic.core.imageUtils.masks.Mask;
 
 
@@ -31,7 +31,7 @@ public class RegionIteratorMask {
     // iterator
     private int itInput = 0;
     private int cachedNext = -1; // detect if there is a next next.
-    private final RegionIterator regionIt;
+    private final MappingIterator regionIt;
     private final MaskIterator maskIt;
 
     private class MovePoint {
@@ -66,9 +66,9 @@ public class RegionIteratorMask {
         final List<RJmp> rJmpTmp = new ArrayList<RJmp>();
 
         while (regionIt.hasNext()) {
-            final int idx = regionIt.nextRmask();
+            final int idx = regionIt.next();
             final Point pt = regionIt.getPoint();
-            final boolean reset = regionIt.getRMask();
+            final boolean reset = regionIt.hasDimensionWrapped();
             final int itMask = maskIt.next();
             
             if (reset) {
@@ -133,7 +133,7 @@ public class RegionIteratorMask {
             }
         }
 
-        regionIt = new RegionIterator(tmpInputSize, this.m_Size, x);
+        regionIt = new MappingIterator(tmpInputSize, this.m_Size, x);
 
         maskIt = new MaskIterator(tmpInputSize, this.m_Size, x);
         fillJump();
