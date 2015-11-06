@@ -18,10 +18,10 @@ public class MaskIterator extends RegionIterator {
         // sets the "input size" to the region size
         super(region, region, ofs);
         final int[] maskSizes = region.clone();
-        final int[] maskOfs = new int[dimensions];
+        final int[] maskOfs = new int[iNumOfDimensions];
 
         // TODO: this is cropping, actually?
-        for (int i = 0; i < dimensions; i++) {
+        for (int i = 0; i < iNumOfDimensions; i++) {
             if (ofs[i] < 0) {
                 // if ofs < 0, then region is cropped, and the iterator' doesn't start at 0,0
                 // but starts at an ofs which points to the intersection(input, region)

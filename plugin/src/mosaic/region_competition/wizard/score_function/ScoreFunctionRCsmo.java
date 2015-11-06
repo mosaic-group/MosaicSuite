@@ -84,8 +84,8 @@ public class ScoreFunctionRCsmo extends ScoreFunctionBase {
         final RegionIterator img = new RegionIterator(l.getDimensions(), l.getDimensions(), off);
 
         while (img.hasNext()) {
-            final Point p = img.getPoint();
             final int i = img.next();
+            final Point p = img.getPoint();
             if (l.getDataLabel()[i] < 0) {
                 np++;
                 final int id = Math.abs(l.getDataLabel()[i]);
@@ -174,8 +174,8 @@ public class ScoreFunctionRCsmo extends ScoreFunctionBase {
         final RegionIterator img = new RegionIterator(l.getDimensions(), l.getDimensions(), off);
 
         while (img.hasNext()) {
-            final Point p = img.getPoint();
             final int i = img.next();
+            final Point p = img.getPoint();
             if (l.getDataLabel()[i] < 0) {
                 final int id = Math.abs(l.getDataLabel()[i]);
 

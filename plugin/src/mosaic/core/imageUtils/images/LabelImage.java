@@ -107,10 +107,8 @@ public class LabelImage extends BaseImage
         final RandomAccess<T> ra = aImage.randomAccess();
     
         while (rg.hasNext()) {
-            // TODO: What should be order of next() / getPoint() in different places in code 
-            //       order is different! It is not intuitive.
-            final Point p = rg.getPoint();
             final int idx = rg.next();
+            final Point p = rg.getPoint();
             ra.setPosition(p.iCoords);
             iDataLabel[idx] = ra.get().getInteger();
         }

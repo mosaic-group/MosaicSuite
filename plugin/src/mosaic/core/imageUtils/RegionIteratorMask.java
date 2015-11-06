@@ -66,11 +66,10 @@ public class RegionIteratorMask {
         final List<RJmp> rJmpTmp = new ArrayList<RJmp>();
 
         while (regionIt.hasNext()) {
-            final Point pt = regionIt.getPoint();
             final int idx = regionIt.nextRmask();
+            final Point pt = regionIt.getPoint();
             final int reset = regionIt.getRMask();
             final int itMask = maskIt.next();
-
             if (reset != 0) {
                 final RJmp tmp = new RJmp();
                 tmp.idx = jidx;

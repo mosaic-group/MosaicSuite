@@ -63,14 +63,12 @@ public class IndexIterator {
     public Point indexToPoint(int aIndex) {
         int index = aIndex;
         final int x[] = new int[iNumOfDimensions];
-
         for (int i = 0; i < iNumOfDimensions; ++i) {
             final int r = index % iDimensions[i];
             x[i] = r;
             index -= r;
             index = index / iDimensions[i];
         }
-
         return new Point(x);
     }
 

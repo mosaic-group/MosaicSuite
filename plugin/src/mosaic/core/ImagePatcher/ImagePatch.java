@@ -145,10 +145,10 @@ public class ImagePatch<T extends NativeType<T> & NumericType<T>, E extends Nati
         final RegionIterator rg_b = new RegionIterator(sz.iCoords);
         final RegionIterator rg = new RegionIterator(dimensions, sz.iCoords, p1.iCoords);
         while (rg.hasNext()) {
-            final Point p = rg.getPoint();
-            final Point pp = rg_b.getPoint();
             rg.next();
             rg_b.next();
+            final Point p = rg.getPoint();
+            final Point pp = rg_b.getPoint();
 
             randomAccess.setPosition(p.iCoords);
             if (randomAccess_lb != null) {
