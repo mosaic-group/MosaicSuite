@@ -2,37 +2,29 @@ package mosaic.core.imageUtils.masks;
 
 
 /**
- * Mask base class
- *
- * @author Pietro Incardona
+ * Mask interface
  */
+public interface Mask {
 
-public abstract class Mask {
-
-    public final byte bgVal = 0;
-    public final byte fgVal = 1;
-
-    public byte mask[]; // Java uses bytes for bools anyway; Alternative: java.util.BitSet
+    public static final boolean BgVal = false;
+    public static final boolean FgVal = true;
 
     /**
-     * Check whetever idx is a valid mask idx
-     *
-     * @param idx A valid mask-index
+     * Check weather aIndex is a mask index
+     * @param aIndex true if a mask index
      * @return
      */
-    public abstract boolean isInMask(int idx);
+    boolean isInMask(int aIndex);
 
     /**
-     * Get the size of the mask
-     *
-     * @return int[] size of the mask
+     * Get the dimensions of the mask
+     * @return dimensions of a mask
      */
-    public abstract int[] getDimensions();
+     int[] getDimensions();
 
     /**
      * Get the number of foreground points in the mask
-     *
      * @return
      */
-    public abstract int getFgPoints();
+    int getNumOfFgPoints();
 }

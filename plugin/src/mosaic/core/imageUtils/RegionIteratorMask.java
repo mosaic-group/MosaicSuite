@@ -60,8 +60,8 @@ public class RegionIteratorMask {
 
     private void fillJump() {
         int jidx = 0;
-        jumpTable = new int[mask.getFgPoints()];
-        jumpTableGeo = new Point[mask.getFgPoints()];
+        jumpTable = new int[mask.getNumOfFgPoints()];
+        jumpTableGeo = new Point[mask.getNumOfFgPoints()];
         maskAdjTable = new int[regionIt.getSize()];
         final List<RJmp> rJmpTmp = new ArrayList<RJmp>();
 

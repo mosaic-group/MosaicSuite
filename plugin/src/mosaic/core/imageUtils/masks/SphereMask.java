@@ -7,23 +7,25 @@ import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 
 
-public class SphereMask extends Mask {
+public class SphereMask implements Mask {
 
     private boolean rnd = false;
     private final int dim;
 
     private final int m_Size[];
-    private final int m_Radius[];
+    private final float m_Radius[];
     private final float spacing[];
 
     private final SpaceIterator iterator;
     private int fgPoints = 0;
 
+    private final boolean mask[];
+    
     /*
      * Get the number or Foreground points in the mask
      */
     @Override
-    public int getFgPoints() {
+    public int getNumOfFgPoints() {
         return fgPoints;
     }
 
@@ -34,7 +36,7 @@ public class SphereMask extends Mask {
      * @param size Size of the region containing the sphere
      * @param dim dimensionality
      */
-    public SphereMask(int radius, int size, int dim) {
+    public SphereMask(float radius, int size, int dim) {
         this(radius, size, dim, null, false);
     }
 
@@ -47,12 +49,12 @@ public class SphereMask extends Mask {
      * @param spacing Coordinate spacing
      * @param rnd subpixel randomizer
      */
-    public SphereMask(int radius, int size, int dim, float[] spacing, boolean rnd_) {
+    public SphereMask(float radius, int size, int dim, float[] spacing, boolean rnd_) {
         // TODO: It seems that it does not draw nice spheres - right/bottom pixels are cut (in 2D case) when size = 2 * radius
         this.dim = dim;
         rnd = rnd_;
         m_Size = new int[dim];
-        m_Radius = new int[dim];
+        m_Radius = new float[dim];
 
         for (int i = 0; i < dim; i++) {
             m_Radius[i] = radius;
@@ -71,7 +73,7 @@ public class SphereMask extends Mask {
             }
         }
         
-        mask = new byte[iterator.getSize()];
+        mask = new boolean[iterator.getSize()];
         fillMask();
     }
 
@@ -99,17 +101,17 @@ public class SphereMask extends Mask {
                     fgPoints++;
 
                     // is in region
-                    mask[i] = fgVal;
+                    mask[i] = FgVal;
                 }
                 else {
                     vHypEllipse += 3.0 * (r.nextFloat() - 0.001f) / (m_Radius[0] * m_Radius[0]);
 
                     if (vHypEllipse <= 1.0f) {
                         fgPoints++;
-                        mask[i] = fgVal;
+                        mask[i] = FgVal;
                     }
                     else {
-                        mask[i] = bgVal;
+                        mask[i] = BgVal;
                     }
                 }
             } 
@@ -123,15 +125,15 @@ public class SphereMask extends Mask {
 
                 float vHypEllipse = 0;
                 for (int vD = 0; vD < dim; vD++) {
-                    vHypEllipse += (vIndex[vD] - (m_Size[vD]) / 2.0) * spacing[vD] * (vIndex[vD] - (m_Size[vD]) / 2.0) * spacing[vD] / (m_Radius[vD] * m_Radius[vD]);
+                    vHypEllipse += (vIndex[vD] + 0.5 - (m_Size[vD]) / 2.0) * spacing[vD] * (vIndex[vD]+ 0.5 - (m_Size[vD]) / 2.0) * spacing[vD] / (m_Radius[vD] * m_Radius[vD]);
                 }
 
                 if (vHypEllipse <= 1.0f) {
                     fgPoints++;
-                    mask[i] = fgVal;
+                    mask[i] = FgVal;
                 }
                 else {
-                    mask[i] = bgVal;
+                    mask[i] = BgVal;
                 }
             }
         }
@@ -139,7 +141,7 @@ public class SphereMask extends Mask {
 
     @Override
     public boolean isInMask(int idx) {
-        return mask[idx] == fgVal;
+        return mask[idx] == FgVal;
     }
 
     @Override
