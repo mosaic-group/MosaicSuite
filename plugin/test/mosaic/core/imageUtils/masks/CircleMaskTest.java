@@ -24,7 +24,7 @@ public class CircleMaskTest {
                             "-----------";
         
         int size = 11;
-        Mask cm = new CircleMask(2.5f, size, new float[] {1, 1});
+        Mask cm = new SphereMask(2.5f, size, new float[] {1, 1});
         MappingIterator mi = new MappingIterator(new int[] {size,size}, new int[]{size,size}, new int[]{0,0});
         StringBuilder sb = new StringBuilder();
         while(mi.hasNext()) {
@@ -50,7 +50,7 @@ public class CircleMaskTest {
                             "----------";
         
         int size = 10;
-        Mask cm = new CircleMask(2.5f, size, new float[] {1, 1});
+        Mask cm = new SphereMask(2.5f, size, new float[] {1, 1});
         MappingIterator mi = new MappingIterator(new int[] {size,size}, new int[]{size,size}, new int[]{0,0});
         StringBuilder sb = new StringBuilder();
         while(mi.hasNext()) {
@@ -74,7 +74,7 @@ public class CircleMaskTest {
                             "--8888--";
         
         int size = 8;
-        Mask cm = new CircleMask(4f, size, new float[] {1, 1});
+        Mask cm = new SphereMask(4f, size, new float[] {1, 1});
         MappingIterator mi = new MappingIterator(new int[] {size,size}, new int[]{size,size}, new int[]{0,0});
         StringBuilder sb = new StringBuilder();
         while(mi.hasNext()) {
@@ -99,7 +99,7 @@ public class CircleMaskTest {
                             "----8----";
         
         int size = 9;
-        Mask cm = new CircleMask(4f, size, new float[] {1, 1});
+        Mask cm = new SphereMask(4f, size, new float[] {1, 1});
         MappingIterator mi = new MappingIterator(new int[] {size,size}, new int[]{size,size}, new int[]{0,0});
         StringBuilder sb = new StringBuilder();
         while(mi.hasNext()) {
@@ -126,7 +126,7 @@ public class CircleMaskTest {
                             "-----------";
         
         int size = 11;
-        Mask cm = new CircleMask(5f, size, new float[] {2, 2});
+        Mask cm = new SphereMask(5f, size, new float[] {2, 2});
         MappingIterator mi = new MappingIterator(new int[] {size,size}, new int[]{size,size}, new int[]{0,0});
         StringBuilder sb = new StringBuilder();
         while(mi.hasNext()) {

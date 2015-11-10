@@ -6,8 +6,8 @@ package mosaic.core.imageUtils.masks;
  */
 public interface Mask {
 
-    public static final boolean BgVal = false;
     public static final boolean FgVal = true;
+    public static final boolean BgVal = !FgVal;
 
     /**
      * Check weather aIndex is a mask index

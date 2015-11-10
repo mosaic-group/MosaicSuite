@@ -18,7 +18,7 @@ import ij.ImageStack;
 import ij.measure.Calibration;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.RegionIteratorMask;
-import mosaic.core.imageUtils.masks.CircleMask;
+import mosaic.core.imageUtils.masks.SphereMask;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.particleTracker.Trajectory;
@@ -703,7 +703,7 @@ public class MyFrame {
             if (rc < 1) {
                 rc = 1;
             }
-            final CircleMask cm = new CircleMask(rc, (int) (2 * rc * scaling + 1), scaling_);
+            final SphereMask cm = new SphereMask(rc, (int) (2 * rc * scaling + 1), scaling_);
             rg_m = new RegionIteratorMask(cm, sz);
             CircleCache.put(rc, rg_m);
         }
@@ -785,7 +785,7 @@ public class MyFrame {
                 if (rc < 1) {
                     rc = 1;
                 }
-                final CircleMask cm = new CircleMask(rc, (int) (2 * rc * scaling + 1), scaling_);
+                final SphereMask cm = new SphereMask(rc, (int) (2 * rc * scaling + 1), scaling_);
                 rg_m = new RegionIteratorMask(cm, sz);
                 CircleCache.put(rc, rg_m);
             }

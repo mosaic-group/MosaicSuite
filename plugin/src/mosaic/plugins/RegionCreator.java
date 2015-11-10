@@ -24,7 +24,7 @@ import mosaic.core.detection.MyFrame;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.RegionIteratorMask;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
-import mosaic.core.imageUtils.masks.SphereMask;
+import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.psf;
 import mosaic.core.psf.psfList;
 import mosaic.core.utils.MosaicUtils;
@@ -68,7 +68,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
     protected Choice cConv;
     private String imageT;
     private final String[] ImageType = { "8-bit", "16-bit", "float" };
-    private HashMap<Integer, SphereMask> map;
+    private HashMap<Integer, BallMask> map;
 
     /**
      * Draw a Sphere with radius on out
@@ -108,9 +108,9 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         if (rc < 1) {
             rc = 1;
         }
-        SphereMask cm = null;
+        BallMask cm = null;
         if ((cm = map.get(rc)) == null) {
-            cm = new SphereMask(rc, 2 * rc + 1, out_a.numDimensions(), cal, true);
+            cm = new BallMask(rc, 2 * rc + 1, cal);
             rg_m = new RegionIteratorMask(cm, sz);
         }
         else {
@@ -241,7 +241,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
      * @param intensity of the region
      */
     private <T extends RealType<T> & NativeType<T>> void Process(T Background, T max_int, T min_int, int max_radius, int min_radius, Class<T> cls) {
-        map = new HashMap<Integer, SphereMask>();
+        map = new HashMap<Integer, BallMask>();
 
         // Vector if output region
         final Vector<Region3DTrack> pt_r = new Vector<Region3DTrack>();

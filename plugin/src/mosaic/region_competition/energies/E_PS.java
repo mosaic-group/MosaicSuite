@@ -8,7 +8,7 @@ import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.RegionIteratorMask;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
-import mosaic.core.imageUtils.masks.SphereMask;
+import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
@@ -20,7 +20,7 @@ public class E_PS extends ExternalEnergy {
     private final int bgLabel;
 
     private final float regionMergingThreshold;
-    private final SphereMask sphere;
+    private final BallMask sphere;
     private final RegionIteratorMask sphereIt;
 
     protected final IntensityImage intensityImage;
@@ -34,7 +34,11 @@ public class E_PS extends ExternalEnergy {
 
         this.regionMergingThreshold = regionMergingThreshold;
         final int rad = PSenergyRadius;
-        sphere = new SphereMask(rad, 2 * rad + 1, labelImage.getNumOfDimensions());
+        float[] scaling = new float[labelImage.getNumOfDimensions()];
+        for (int i = 0; i < labelImage.getNumOfDimensions(); i++) {
+            scaling[i] = 1.0f;
+        }
+        sphere = new BallMask(rad, 2 * rad + 1, scaling);
 
         // sphereIt is slower than separate version
         System.out.println("SPHERE IT: " + Arrays.toString(dimensions) + " " + Arrays.toString(sphere.getDimensions()));

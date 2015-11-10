@@ -5,7 +5,7 @@ import ij.measure.Calibration;
 import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.RegionIteratorMask;
 import mosaic.core.imageUtils.images.LabelImage;
-import mosaic.core.imageUtils.masks.SphereMask;
+import mosaic.core.imageUtils.masks.BallMask;
 
 
 public class CurvatureBasedFlow {
@@ -17,7 +17,7 @@ public class CurvatureBasedFlow {
     private final int[] inputDims;
     private final float rad;
 
-    private final SphereMask sphere;
+    private final BallMask sphere;
 
     // Helpers
     private final double vVolume;
@@ -34,18 +34,22 @@ public class CurvatureBasedFlow {
                 spacing = new float[2];
                 spacing[0] = (float) cal.pixelWidth;
                 spacing[1] = (float) cal.pixelHeight;
-                sphere = new SphereMask(rad, 2 * rad + 1, dim, spacing, false);
+                sphere = new BallMask(rad, 2 * rad + 1, spacing);
             }
             else {
                 spacing = new float[3];
                 spacing[0] = (float) cal.pixelWidth;
                 spacing[1] = (float) cal.pixelHeight;
                 spacing[2] = (float) cal.pixelDepth;
-                sphere = new SphereMask(rad, 2 * rad + 1, dim, spacing, false);
+                sphere = new BallMask(rad, 2 * rad + 1, spacing);
             }
         }
         else {
-            sphere = new SphereMask(rad, 2 * rad + 1, dim);
+            float[] spac = new float[dim];
+            for (int i = 0; i < dim; i++) {
+                spac[i] = 1.0f;
+            }
+            sphere = new BallMask(rad, 2 * rad + 1, spac);
         }
 
         sphereIt = new RegionIteratorMask(sphere, inputDims);

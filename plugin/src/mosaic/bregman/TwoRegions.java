@@ -14,7 +14,7 @@ import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.RegionIteratorMask;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
-import mosaic.core.imageUtils.masks.SphereMask;
+import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.GaussPSF;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
@@ -71,8 +71,11 @@ class TwoRegions extends NRegions {
         sz[2] = out.length;
 
         // Create a circle Mask and an iterator
-
-        final SphereMask cm = new SphereMask(radius, 2 * radius + 1, 3);
+        float[] spac = new float[3];
+        for (int i = 0; i < 3; i++) {
+            spac[i] = 1.0f;
+        }
+        final BallMask cm = new BallMask(radius, 2 * radius + 1, spac);
         final RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
 
         final Iterator<Particle> pt_it = pt.iterator();
