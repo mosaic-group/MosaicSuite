@@ -7,7 +7,7 @@ import org.junit.Test;
 import mosaic.core.imageUtils.iterators.MappingIterator;
 
 
-public class CircleMaskTest {
+public class SphereMaskTest {
 
     @Test
     public void testCircleOddRadiusOddSize() {
