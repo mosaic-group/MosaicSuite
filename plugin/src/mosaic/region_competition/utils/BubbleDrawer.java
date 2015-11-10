@@ -2,7 +2,10 @@ package mosaic.region_competition.utils;
 
 
 import mosaic.core.imageUtils.Point;
-import mosaic.core.imageUtils.RegionIteratorMask;
+
+import java.util.Arrays;
+
+import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.masks.BallMask;
 
@@ -13,7 +16,7 @@ import mosaic.core.imageUtils.masks.BallMask;
 public class BubbleDrawer {
 
     private final LabelImage labelImage;
-    private final RegionIteratorMask sphereIt;
+    private final MaskOnSpaceMapper sphereIt;
     private final BallMask sphere;
 
     public BubbleDrawer(LabelImage labelImage, int radius, int size) {
@@ -26,7 +29,7 @@ public class BubbleDrawer {
             scaling[i] = 1.0f;
         }
         sphere = new BallMask(radius, size, scaling);
-        sphereIt = new RegionIteratorMask(sphere, input);
+        sphereIt = new MaskOnSpaceMapper(sphere, input);
     }
 
     /**

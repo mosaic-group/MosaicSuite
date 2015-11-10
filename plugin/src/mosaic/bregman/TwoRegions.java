@@ -11,7 +11,7 @@ import ij.IJ;
 import ij.ImagePlus;
 import mosaic.core.detection.Particle;
 import mosaic.core.imageUtils.Point;
-import mosaic.core.imageUtils.RegionIteratorMask;
+import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.BallMask;
@@ -76,7 +76,7 @@ class TwoRegions extends NRegions {
             spac[i] = 1.0f;
         }
         final BallMask cm = new BallMask(radius, 2 * radius + 1, spac);
-        final RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
+        final MaskOnSpaceMapper rg_m = new MaskOnSpaceMapper(cm, sz);
 
         final Iterator<Particle> pt_it = pt.iterator();
 

@@ -10,9 +10,9 @@ import mosaic.core.imageUtils.masks.Mask;
 import mosaic.core.imageUtils.masks.SphereMask;
 
 
-public class RegionIteratorMaskTest {
+public class MaskOnSpaceMapperTest {
 
-    RegionIteratorMask it;
+    MaskOnSpaceMapper it;
     char[] image;
     int sizeX;
     int sizeY;
@@ -22,7 +22,7 @@ public class RegionIteratorMaskTest {
         sizeX = 10;
         sizeY =  9;
         Mask sm = new SphereMask(2.5f, 5, new float[] {1, 1});
-        it = new RegionIteratorMask(sm, new int[] {sizeX , sizeY});
+        it = new MaskOnSpaceMapper(sm, new int[] {sizeX , sizeY});
         
         image = new char[sizeX * sizeY];
         for (int i = 0; i < image.length; ++i) image[i] = '-';
@@ -61,6 +61,48 @@ public class RegionIteratorMaskTest {
                             "----8---8-\n";
         
         it.setUpperLeft(new Point(4,6));
+        while(it.hasNext()) {
+            int idx = it.next();
+            image[idx] = '8';
+        }
+        String result = generateAsciiImage();
+        assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testCrop3() {
+        String expected =   "----------\n" + 
+                            "----------\n" + 
+                            "----------\n" + 
+                            "----------\n" + 
+                            "----------\n" + 
+                            "----------\n" + 
+                            "888-------\n" + 
+                            "---8------\n" + 
+                            "---8------\n";
+        
+        it.setUpperLeft(new Point(-1,6));
+        while(it.hasNext()) {
+            int idx = it.next();
+            image[idx] = '8';
+        }
+        String result = generateAsciiImage();
+        assertEquals(expected, result);
+    }
+    
+    @Test
+    public void testCrop2() {
+        String expected =   "----------\n" + 
+                            "----------\n" + 
+                            "----------\n" + 
+                            "----------\n" + 
+                            "----------\n" + 
+                            "----------\n" + 
+                            "-------888\n" + 
+                            "------8---\n" + 
+                            "------8---\n";
+        
+        it.setUpperLeft(new Point(6,6));
         while(it.hasNext()) {
             int idx = it.next();
             image[idx] = '8';
@@ -140,7 +182,7 @@ public class RegionIteratorMaskTest {
         
         SpaceIterator si = new SpaceIterator(sizeX, sizeY);
         Mask sm = new SphereMask(3f, 6, new float[] {1, 1});
-        it = new RegionIteratorMask(sm, new int[] {sizeX , sizeY});
+        it = new MaskOnSpaceMapper(sm, new int[] {sizeX , sizeY});
         
         it.setMidPoint(new Point(3,3));
         while(it.hasNext()) {
@@ -149,7 +191,6 @@ public class RegionIteratorMaskTest {
         }
         
         String result = generateAsciiImage();
-        System.out.println(result);
         assertEquals(expected, result);
     }
 

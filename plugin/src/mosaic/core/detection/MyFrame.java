@@ -17,7 +17,7 @@ import ij.IJ;
 import ij.ImageStack;
 import ij.measure.Calibration;
 import mosaic.core.imageUtils.Point;
-import mosaic.core.imageUtils.RegionIteratorMask;
+import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.masks.SphereMask;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.ToARGB;
@@ -41,8 +41,8 @@ import net.imglib2.view.Views;
  */
 public class MyFrame {
 
-    private static Map<Integer, RegionIteratorMask> CircleCache;
-    private static Map<Integer, RegionIteratorMask> RectangleCache;
+    private static Map<Integer, MaskOnSpaceMapper> CircleCache;
+    private static Map<Integer, MaskOnSpaceMapper> RectangleCache;
 
     private Vector<Particle> particles;
     private int particles_number; // number of particles initialy detected
@@ -77,8 +77,8 @@ public class MyFrame {
      */
 
     static public void initCache() {
-        CircleCache = new HashMap<Integer, RegionIteratorMask>();
-        RectangleCache = new HashMap<Integer, RegionIteratorMask>();
+        CircleCache = new HashMap<Integer, MaskOnSpaceMapper>();
+        RectangleCache = new HashMap<Integer, MaskOnSpaceMapper>();
     }
 
     /**
@@ -697,14 +697,14 @@ public class MyFrame {
 
         // Create a circle Mask and an iterator
 
-        RegionIteratorMask rg_m = null;
+        MaskOnSpaceMapper rg_m = null;
 
         if ((rg_m = CircleCache.get(rc)) == null) {
             if (rc < 1) {
                 rc = 1;
             }
             final SphereMask cm = new SphereMask(rc, (int) (2 * rc * scaling + 1), scaling_);
-            rg_m = new RegionIteratorMask(cm, sz);
+            rg_m = new MaskOnSpaceMapper(cm, sz);
             CircleCache.put(rc, rg_m);
         }
 
@@ -778,7 +778,7 @@ public class MyFrame {
 
             // Create a circle Mask and an iterator
 
-            RegionIteratorMask rg_m = null;
+            MaskOnSpaceMapper rg_m = null;
 
             int rc = (int) radius;
             if ((rg_m = CircleCache.get(rc)) == null) {
@@ -786,7 +786,7 @@ public class MyFrame {
                     rc = 1;
                 }
                 final SphereMask cm = new SphereMask(rc, (int) (2 * rc * scaling + 1), scaling_);
-                rg_m = new RegionIteratorMask(cm, sz);
+                rg_m = new MaskOnSpaceMapper(cm, sz);
                 CircleCache.put(rc, rg_m);
             }
 

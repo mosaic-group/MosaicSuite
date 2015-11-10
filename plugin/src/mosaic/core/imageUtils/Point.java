@@ -131,11 +131,24 @@ public class Point {
 
     /**
      * Set coordinates to zero
+     * @return 
      */
-    public void zero() {
+    public Point zero() {
         for (int i = 0; i < iCoords.length; i++) {
             iCoords[i] = 0;
         }
+        return this;
+    }
+    
+    /**
+     * Set coordinates to one
+     * @return 
+     */
+    public Point one() {
+        for (int i = 0; i < iCoords.length; i++) {
+            iCoords[i] = 1;
+        }
+        return this;
     }
     
     /**

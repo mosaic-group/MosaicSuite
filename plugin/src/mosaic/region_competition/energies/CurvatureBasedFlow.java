@@ -1,16 +1,18 @@
 package mosaic.region_competition.energies;
 
 
+import java.util.Arrays;
+
 import ij.measure.Calibration;
 import mosaic.core.imageUtils.Point;
-import mosaic.core.imageUtils.RegionIteratorMask;
+import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.masks.BallMask;
 
 
 public class CurvatureBasedFlow {
 
-    private final RegionIteratorMask sphereIt;
+    private final MaskOnSpaceMapper sphereIt;
     private final LabelImage labelImage;
 
     private final int dim;
@@ -51,8 +53,7 @@ public class CurvatureBasedFlow {
             }
             sphere = new BallMask(rad, 2 * rad + 1, spac);
         }
-
-        sphereIt = new RegionIteratorMask(sphere, inputDims);
+        sphereIt = new MaskOnSpaceMapper(sphere, inputDims);
         
         if (dim == 2) {
             vVolume = 3.141592f * rad * rad;

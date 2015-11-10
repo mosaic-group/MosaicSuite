@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import mosaic.core.imageUtils.Point;
-import mosaic.core.imageUtils.RegionIteratorMask;
+import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.masks.BallMask;
@@ -21,7 +21,7 @@ public class E_PS extends ExternalEnergy {
 
     private final float regionMergingThreshold;
     private final BallMask sphere;
-    private final RegionIteratorMask sphereIt;
+    private final MaskOnSpaceMapper sphereIt;
 
     protected final IntensityImage intensityImage;
     protected final LabelImage labelImage;
@@ -42,7 +42,7 @@ public class E_PS extends ExternalEnergy {
 
         // sphereIt is slower than separate version
         System.out.println("SPHERE IT: " + Arrays.toString(dimensions) + " " + Arrays.toString(sphere.getDimensions()));
-        sphereIt = new RegionIteratorMask(sphere, dimensions);
+        sphereIt = new MaskOnSpaceMapper(sphere, dimensions);
     }
 
     /**

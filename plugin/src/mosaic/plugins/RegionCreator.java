@@ -21,8 +21,8 @@ import ij.process.ImageProcessor;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Region3DTrack;
 import mosaic.core.detection.MyFrame;
+import mosaic.core.imageUtils.MaskOnSpaceMapper;
 import mosaic.core.imageUtils.Point;
-import mosaic.core.imageUtils.RegionIteratorMask;
 import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.psf;
@@ -97,7 +97,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         final double radius = p_radius;
 
         // Create a circle Mask and an iterator
-        RegionIteratorMask rg_m = null;
+        MaskOnSpaceMapper rg_m = null;
 
         final float min_s = MyFrame.minScaling(cal);
         Integer rc = (int) (radius / min_s);
@@ -111,7 +111,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         BallMask cm = null;
         if ((cm = map.get(rc)) == null) {
             cm = new BallMask(rc, 2 * rc + 1, cal);
-            rg_m = new RegionIteratorMask(cm, sz);
+            rg_m = new MaskOnSpaceMapper(cm, sz);
         }
         else {
             throw new RuntimeException();
