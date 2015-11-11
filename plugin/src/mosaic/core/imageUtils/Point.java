@@ -3,8 +3,6 @@ package mosaic.core.imageUtils;
 
 import java.util.Arrays;
 
-import mosaic.utils.ConvertArray;
-
 
 /**
  * It define a Point in an N dimensional space
@@ -23,7 +21,7 @@ public class Point {
     }
 
     /**
-     * Constructs a Point taking ownership of coords
+     * Constructs a Point taking ownership of aCoords
      * @param iCoords
      */
     public Point(int... aCoords) {
@@ -31,17 +29,9 @@ public class Point {
     }
     
     /**
-     * Constructs a Point by copying the coords
-     * @param iCoords (long)
+     * Is the point inside area with upper right pointed aMaxValues (excluded)
      */
-    public Point(long aCoords[]) {
-        iCoords = ConvertArray.toInt(aCoords);
-    }
-
-    /**
-     * Is the point inside
-     */
-    public boolean isInside(int aMaxValues[]) {
+    public boolean isInside(int... aMaxValues) {
         for (int i = 0; i < aMaxValues.length; i++) {
             if (iCoords[i] >= aMaxValues[i]) {
                 return false;
@@ -167,17 +157,6 @@ public class Point {
     }
     
     /**
-     * Set coordinates to one
-     * @return 
-     */
-    public Point one() {
-        for (int i = 0; i < iCoords.length; i++) {
-            iCoords[i] = 1;
-        }
-        return this;
-    }
-    
-    /**
      * Counts the number of zeros in the coordinates of a Point
      * @param p A point representing an offset to the midpoint
      * @return number of zeros
@@ -205,15 +184,6 @@ public class Point {
         }
         result = result + iCoords[i] + "]";
         return result;
-    }
-
-    /**
-     * Clone the point
-     * @return the new point
-     */
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        return new Point(iCoords);
     }
 
     /**
