@@ -452,11 +452,6 @@ public class MyFrame {
      * @see #info_before_discrimination
      */
     void generateFrameInfoBeforeDiscrimination() {
-
-        // NumberFormat nf = NumberFormat.getInstance();
-        // nf.setMaximumFractionDigits(6);
-        // nf.setMinimumFractionDigits(6);
-
         final DecimalFormat nf = new DecimalFormat("#####0.000000");
         nf.setGroupingUsed(false);
 

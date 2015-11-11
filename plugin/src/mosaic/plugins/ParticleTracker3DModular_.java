@@ -1317,12 +1317,12 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             configuration.append("% \tCutoff radius: ");
             configuration.append(detector.getCutoff());
             configuration.append("\n");
-            if (detector.threshold_mode == Mode.PERCENTILE_MODE) {
+            if (detector.getThresholdMode() == Mode.PERCENTILE_MODE) {
                 configuration.append("% \tPercentile: ");
                 configuration.append((detector.getPercentile() * 100));
                 configuration.append("\n");
             }
-            else if (detector.threshold_mode == Mode.ABS_THRESHOLD_MODE) {
+            else if (detector.getThresholdMode() == Mode.ABS_THRESHOLD_MODE) {
                 configuration.append("% \tAbsolute threshold: ");
                 configuration.append((detector.getAbsIntensityThreshold()));
                 configuration.append("\n");
@@ -2167,10 +2167,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     }
 
     public String getThresholdMode() {
-        if (detector.threshold_mode == Mode.PERCENTILE_MODE) {
+        if (detector.getThresholdMode() == Mode.PERCENTILE_MODE) {
             return "percentile";
         }
-        else if (detector.threshold_mode == Mode.ABS_THRESHOLD_MODE) {
+        else if (detector.getThresholdMode() == Mode.ABS_THRESHOLD_MODE) {
             return "Absolute";
         }
         else {
@@ -2179,10 +2179,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     }
 
     public String getThresholdValue() {
-        if (detector.threshold_mode == Mode.PERCENTILE_MODE) {
+        if (detector.getThresholdMode() == Mode.PERCENTILE_MODE) {
             return "" + (detector.getPercentile() * 100);
         }
-        else if (detector.threshold_mode == Mode.ABS_THRESHOLD_MODE) {
+        else if (detector.getThresholdMode() == Mode.ABS_THRESHOLD_MODE) {
             return "" + detector.getAbsIntensityThreshold();
         }
         else {

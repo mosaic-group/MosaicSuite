@@ -125,14 +125,13 @@ public class ImageProcessUtils {
         // detect particles in this frame
         featurePointDetector.featurePointDetection(preview_frame);
 //        featurePointDetector.setPreviewLabel("#Particles: " + featurePointDetector.preview_frame.getParticles().size());
-        final MyFrame myFrame = preview_frame;
 
-        myFrame.setParticleRadius(featurePointDetector.getRadius());
-        final Img<ARGBType> detected = myFrame.createImage(background, imp.getCalibration());
+        preview_frame.setParticleRadius(featurePointDetector.getRadius());
+        final Img<ARGBType> detected = preview_frame.createImage(background, imp.getCalibration());
         ImageJFunctions.show(detected);
 
         /* previewCanvas.repaint(); */
-        return myFrame.getParticles();
+        return preview_frame.getParticles();
     }
 
     /**

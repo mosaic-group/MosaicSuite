@@ -37,7 +37,7 @@ public class GUIhelper {
         final float intThreshold = per * 100;
         final boolean absolute = gd.getNextBoolean();
 
-        return fpd.setUserDefinedParameters(cut, per, rad, intThreshold, absolute);
+        return fpd.setDetectionParameters(cut, per, rad, intThreshold, absolute);
     }
 
     /**
@@ -59,7 +59,7 @@ public class GUIhelper {
 
         // even if the frames were already processed (particles detected) but
         // the user changed the detection params then the frames needs to be processed again
-        return fpd.setUserDefinedParameters(cut, per, rad, intThreshold, absolute);// , sigma_fac);
+        return fpd.setDetectionParameters(cut, per, rad, intThreshold, absolute);// , sigma_fac);
     }
     
     public static void addUserDefinedParametersDialog(GenericDialog gd, FeaturePointDetector fpd) {

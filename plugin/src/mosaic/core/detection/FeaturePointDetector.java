@@ -21,26 +21,26 @@ import mosaic.core.utils.MosaicUtils;
 public class FeaturePointDetector {
     public static enum Mode { ABS_THRESHOLD_MODE, PERCENTILE_MODE }
 
+    // user defined parameters and settings
     private float iGlobalMax;
     private float iGlobalMin;
-    
-    private Vector<Particle> particles;
-    private int particles_number; // number of particles initialy detected
-    private int real_particles_number; // number of "real" particles discrimination
+    private double iCutoff;
+    private float iPercentile;
+    private int iRadius;
+    private float iAbsIntensityThreshold;
+    private Mode iThresholdMode = Mode.PERCENTILE_MODE;
 
-    /* user defined parameters */
-    private int radius = 3; // default
-    private double cutoff = 3.0; // default
-    private float percentile = 0.001F; // default (user input/100)
-    private float absIntensityThreshold = 0.0f; // user input
-    public Mode threshold_mode = Mode.PERCENTILE_MODE;
-
+    // Internal stuff
+    private Vector<Particle> iParticles;
+    private int iNumOfInitialyDetectedParticles;
+    private int iNumOfRealParticles;
     private int[][] mask;
+    
     
     public FeaturePointDetector(float aGlobalMax, float aGlobalMin) {
         iGlobalMax = aGlobalMax;
         iGlobalMin = aGlobalMin;
-        generateDilationMasks(this.radius);
+        setDetectionParameters(3.0f, 0.001f, 3, 0.0f, false);
     }
 
     /**
@@ -84,15 +84,15 @@ public class FeaturePointDetector {
         nonParticleDiscrimination();
 
         /* Save frame information before particle discrimination/deletion - it will be lost otherwise */
-        frame.setParticles(particles, particles_number);
+        frame.setParticles(iParticles, iNumOfInitialyDetectedParticles);
         frame.generateFrameInfoBeforeDiscrimination();
 
         /* remove all the "false" particles from particles array */
         removeNonParticle();
-        frame.setParticles(particles, real_particles_number);
+        frame.setParticles(iParticles, iNumOfRealParticles);
 
         /* Set the real_particle_number */
-        frame.real_particles_number = real_particles_number;
+        frame.real_particles_number = iNumOfRealParticles;
     }
 
     /**
@@ -127,7 +127,7 @@ public class FeaturePointDetector {
      * @return 
      */
     private float findThreshold(ImageStack ips, double percent, float absIntensityThreshold2) {
-        if (threshold_mode == Mode.ABS_THRESHOLD_MODE) {
+        if (iThresholdMode == Mode.ABS_THRESHOLD_MODE) {
             // the percent parameter corresponds to an absolute value (not percent)
             return absIntensityThreshold2 - iGlobalMin / (iGlobalMax - iGlobalMin);
         }
@@ -186,11 +186,11 @@ public class FeaturePointDetector {
      * @param ip ImageProcessor, should be after conversion, normalization and restoration
      */
     private void pointLocationsEstimation(ImageStack ips, int frame_number, int linkrange) {
-        float threshold = findThreshold(ips, percentile, absIntensityThreshold);
+        float threshold = findThreshold(ips, iPercentile, iAbsIntensityThreshold);
         /* do a grayscale dilation */
-        final ImageStack dilated_ips = MosaicImageProcessingTools.dilateGeneric(ips, radius, 4);
+        final ImageStack dilated_ips = MosaicImageProcessingTools.dilateGeneric(ips, iRadius, 4);
         // new StackWindow(new ImagePlus("dilated ", dilated_ips));
-        particles = new Vector<Particle>();
+        iParticles = new Vector<Particle>();
         /* loop over all pixels */
         final int height = ips.getHeight();
         final int width = ips.getWidth();
@@ -203,19 +203,19 @@ public class FeaturePointDetector {
 
                         /* and add each particle that meets the criteria to the particles array */
                         // (the starting point is the middle of the pixel and exactly on a focal plane:)
-                        particles.add(new Particle(j + .5f, i + .5f, s, frame_number, linkrange));
+                        iParticles.add(new Particle(j + .5f, i + .5f, s, frame_number, linkrange));
                     }
                 }
             }
         }
-        particles_number = particles.size();
+        iNumOfInitialyDetectedParticles = iParticles.size();
     }
 
     private void pointLocationsRefinement(ImageStack ips) {
         int m, k, l, x, y, z, tx, ty, tz;
         float epsx, epsy, epsz, c;
 
-        final int mask_width = 2 * radius + 1;
+        final int mask_width = 2 * iRadius + 1;
         final int image_width = ips.getWidth();
         /* Set every value that is smaller than 0 to 0 */
         for (int s = 0; s < ips.getSize(); s++) {
@@ -228,60 +228,60 @@ public class FeaturePointDetector {
         }
 
         /* Loop over all particles */
-        for (m = 0; m < this.particles.size(); m++) {
-            this.particles.elementAt(m).special = true;
-            this.particles.elementAt(m).score = 0.0F;
+        for (m = 0; m < iParticles.size(); m++) {
+            iParticles.elementAt(m).special = true;
+            iParticles.elementAt(m).score = 0.0F;
             epsx = epsy = epsz = 1.0F;
 
             while (epsx > 0.5 || epsx < -0.5 || epsy > 0.5 || epsy < -0.5 || epsz > 0.5 || epsz < -0.5) {
-                this.particles.elementAt(m).nbIterations++;
-                this.particles.elementAt(m).m0 = 0.0F;
-                this.particles.elementAt(m).m1 = 0.0F;
-                this.particles.elementAt(m).m2 = 0.0F;
-                this.particles.elementAt(m).m3 = 0.0F;
-                this.particles.elementAt(m).m4 = 0.0F;
+                iParticles.elementAt(m).nbIterations++;
+                iParticles.elementAt(m).m0 = 0.0F;
+                iParticles.elementAt(m).m1 = 0.0F;
+                iParticles.elementAt(m).m2 = 0.0F;
+                iParticles.elementAt(m).m3 = 0.0F;
+                iParticles.elementAt(m).m4 = 0.0F;
                 epsx = 0.0F;
                 epsy = 0.0F;
                 epsz = 0.0F;
-                for (int s = -radius; s <= radius; s++) {
-                    if (((int) this.particles.elementAt(m).z + s) < 0 || ((int) this.particles.elementAt(m).z + s) >= ips.getSize()) {
+                for (int s = -iRadius; s <= iRadius; s++) {
+                    if (((int) iParticles.elementAt(m).z + s) < 0 || ((int) iParticles.elementAt(m).z + s) >= ips.getSize()) {
                         continue;
                     }
-                    z = (int) this.particles.elementAt(m).z + s;
-                    for (k = -radius; k <= radius; k++) {
-                        if (((int) this.particles.elementAt(m).y + k) < 0 || ((int) this.particles.elementAt(m).y + k) >= ips.getHeight()) {
+                    z = (int) iParticles.elementAt(m).z + s;
+                    for (k = -iRadius; k <= iRadius; k++) {
+                        if (((int) iParticles.elementAt(m).y + k) < 0 || ((int) iParticles.elementAt(m).y + k) >= ips.getHeight()) {
                             continue;
                         }
-                        x = (int) this.particles.elementAt(m).y + k;
+                        x = (int) iParticles.elementAt(m).y + k;
 
-                        for (l = -radius; l <= radius; l++) {
-                            if (((int) this.particles.elementAt(m).x + l) < 0 || ((int) this.particles.elementAt(m).x + l) >= ips.getWidth()) {
+                        for (l = -iRadius; l <= iRadius; l++) {
+                            if (((int) iParticles.elementAt(m).x + l) < 0 || ((int) iParticles.elementAt(m).x + l) >= ips.getWidth()) {
                                 continue;
                             }
-                            y = (int) this.particles.elementAt(m).x + l;
+                            y = (int) iParticles.elementAt(m).x + l;
                             //
                             // c =   ips.getProcessor(z + 1).getPixelValue(y, x) * (float)mask[s + radius][(k + radius) * mask_width + (l + radius)];
-                            c = ((float[]) (ips.getPixels(z + 1)))[x * image_width + y] * mask[s + radius][(k + radius) * mask_width + (l + radius)];
+                            c = ((float[]) (ips.getPixels(z + 1)))[x * image_width + y] * mask[s + iRadius][(k + iRadius) * mask_width + (l + iRadius)];
 
-                            this.particles.elementAt(m).m0 += c;
+                            iParticles.elementAt(m).m0 += c;
                             epsx += k * c;
                             epsy += l * c;
                             epsz += s * c;
-                            this.particles.elementAt(m).m2 += (k * k + l * l + s * s) * c;
-                            this.particles.elementAt(m).m1 += (float) Math.sqrt(k * k + l * l + s * s) * c;
-                            this.particles.elementAt(m).m3 += (float) Math.pow(k * k + l * l + s * s, 1.5f) * c;
-                            this.particles.elementAt(m).m4 += (float) Math.pow(k * k + l * l + s * s, 2) * c;
+                            iParticles.elementAt(m).m2 += (k * k + l * l + s * s) * c;
+                            iParticles.elementAt(m).m1 += (float) Math.sqrt(k * k + l * l + s * s) * c;
+                            iParticles.elementAt(m).m3 += (float) Math.pow(k * k + l * l + s * s, 1.5f) * c;
+                            iParticles.elementAt(m).m4 += (float) Math.pow(k * k + l * l + s * s, 2) * c;
                         }
                     }
                 }
 
-                epsx /= this.particles.elementAt(m).m0;
-                epsy /= this.particles.elementAt(m).m0;
-                epsz /= this.particles.elementAt(m).m0;
-                this.particles.elementAt(m).m2 /= this.particles.elementAt(m).m0;
-                this.particles.elementAt(m).m1 /= this.particles.elementAt(m).m0;
-                this.particles.elementAt(m).m3 /= this.particles.elementAt(m).m0;
-                this.particles.elementAt(m).m4 /= this.particles.elementAt(m).m0;
+                epsx /= iParticles.elementAt(m).m0;
+                epsy /= iParticles.elementAt(m).m0;
+                epsz /= iParticles.elementAt(m).m0;
+                iParticles.elementAt(m).m2 /= iParticles.elementAt(m).m0;
+                iParticles.elementAt(m).m1 /= iParticles.elementAt(m).m0;
+                iParticles.elementAt(m).m3 /= iParticles.elementAt(m).m0;
+                iParticles.elementAt(m).m4 /= iParticles.elementAt(m).m0;
 
                 // This is a little hack to avoid numerical inaccuracy
                 tx = (int) (10.0 * epsx);
@@ -289,33 +289,33 @@ public class FeaturePointDetector {
                 tz = (int) (10.0 * epsz);
 
                 if ((tx) / 10.0 > 0.5) {
-                    if ((int) this.particles.elementAt(m).y + 1 < ips.getHeight()) {
-                        this.particles.elementAt(m).y++;
+                    if ((int) iParticles.elementAt(m).y + 1 < ips.getHeight()) {
+                        iParticles.elementAt(m).y++;
                     }
                 }
                 else if ((tx) / 10.0 < -0.5) {
-                    if ((int) this.particles.elementAt(m).y - 1 >= 0) {
-                        this.particles.elementAt(m).y--;
+                    if ((int) iParticles.elementAt(m).y - 1 >= 0) {
+                        iParticles.elementAt(m).y--;
                     }
                 }
                 if ((ty) / 10.0 > 0.5) {
-                    if ((int) this.particles.elementAt(m).x + 1 < ips.getWidth()) {
-                        this.particles.elementAt(m).x++;
+                    if ((int) iParticles.elementAt(m).x + 1 < ips.getWidth()) {
+                        iParticles.elementAt(m).x++;
                     }
                 }
                 else if ((ty) / 10.0 < -0.5) {
-                    if ((int) this.particles.elementAt(m).x - 1 >= 0) {
-                        this.particles.elementAt(m).x--;
+                    if ((int) iParticles.elementAt(m).x - 1 >= 0) {
+                        iParticles.elementAt(m).x--;
                     }
                 }
                 if ((tz) / 10.0 > 0.5) {
-                    if ((int) this.particles.elementAt(m).z + 1 < ips.getSize()) {
-                        this.particles.elementAt(m).z++;
+                    if ((int) iParticles.elementAt(m).z + 1 < ips.getSize()) {
+                        iParticles.elementAt(m).z++;
                     }
                 }
                 else if ((tz) / 10.0 < -0.5) {
-                    if ((int) this.particles.elementAt(m).z - 1 >= 0) {
-                        this.particles.elementAt(m).z--;
+                    if ((int) iParticles.elementAt(m).z - 1 >= 0) {
+                        iParticles.elementAt(m).z--;
                     }
                 }
 
@@ -323,10 +323,10 @@ public class FeaturePointDetector {
                     break;
                 }
             }
-            // System.out.println("iterations for particle " + m + ": " + this.particles.elementAt(m).nbIterations);
-            this.particles.elementAt(m).y += epsx;
-            this.particles.elementAt(m).x += epsy;
-            this.particles.elementAt(m).z += epsz;
+            // System.out.println("iterations for particle " + m + ": " + particles.elementAt(m).nbIterations);
+            iParticles.elementAt(m).y += epsx;
+            iParticles.elementAt(m).x += epsy;
+            iParticles.elementAt(m).z += epsz;
         }
     }
 
@@ -342,29 +342,28 @@ public class FeaturePointDetector {
         int j, k;
         double score;
         int max_x = 1, max_y = 1, max_z = 1;
-        this.real_particles_number = this.particles_number;
-        if (this.particles.size() == 1) {
-            this.particles.elementAt(0).score = Float.MAX_VALUE;
+        iNumOfRealParticles = iNumOfInitialyDetectedParticles;
+        if (iParticles.size() == 1) {
+            iParticles.elementAt(0).score = Float.MAX_VALUE;
         }
-        for (j = 0; j < this.particles.size(); j++) {
+        for (j = 0; j < iParticles.size(); j++) {
             // int accepted = 1;
-            max_x = Math.max((int) this.particles.elementAt(j).x, max_x);
-            max_y = Math.max((int) this.particles.elementAt(j).y, max_y);
-            max_z = Math.max((int) this.particles.elementAt(j).z, max_z);
+            max_x = Math.max((int) iParticles.elementAt(j).x, max_x);
+            max_y = Math.max((int) iParticles.elementAt(j).y, max_y);
+            max_z = Math.max((int) iParticles.elementAt(j).z, max_z);
 
-            for (k = j + 1; k < this.particles.size(); k++) {
+            for (k = j + 1; k < iParticles.size(); k++) {
                 score = (1.0 / (2.0 * Math.PI * 0.1 * 0.1))
-                        * Math.exp(-(this.particles.elementAt(j).m0 - this.particles.elementAt(k).m0) * (this.particles.elementAt(j).m0 - this.particles.elementAt(k).m0) / (2.0 * 0.1)
-                                - (this.particles.elementAt(j).m2 - this.particles.elementAt(k).m2) * (this.particles.elementAt(j).m2 - this.particles.elementAt(k).m2) / (2.0 * 0.1));
-                this.particles.elementAt(j).score += score;
-                this.particles.elementAt(k).score += score;
+                        * Math.exp(-(iParticles.elementAt(j).m0 - iParticles.elementAt(k).m0) * (iParticles.elementAt(j).m0 - iParticles.elementAt(k).m0) / (2.0 * 0.1)
+                                - (iParticles.elementAt(j).m2 - iParticles.elementAt(k).m2) * (iParticles.elementAt(j).m2 - iParticles.elementAt(k).m2) / (2.0 * 0.1));
+                iParticles.elementAt(j).score += score;
+                iParticles.elementAt(k).score += score;
             }
-            if (this.particles.elementAt(j).score < cutoff) {
-                this.particles.elementAt(j).special = false;
-                this.real_particles_number--;
-                // accepted = 0;
+            if (iParticles.elementAt(j).score < iCutoff) {
+                iParticles.elementAt(j).special = false;
+                iNumOfRealParticles--;
             }
-            // System.out.println(j + "\t" + this.particles.elementAt(j).m0 + "\t" + this.particles.elementAt(j).m2 + "\t" + accepted);
+            // System.out.println(j + "\t" + particles.elementAt(j).m0 + "\t" + particles.elementAt(j).m2 + "\t" + accepted);
         }
 
         /*
@@ -380,12 +379,12 @@ public class FeaturePointDetector {
             }
         }
 
-        for (j = 0; j < this.particles.size(); j++) {
+        for (j = 0; j < iParticles.size(); j++) {
             boolean vParticleInNeighborhood = false;
             for (int oz = -1; !vParticleInNeighborhood && oz <= 1; oz++) {
                 for (int oy = -1; !vParticleInNeighborhood && oy <= 1; oy++) {
                     for (int ox = -1; !vParticleInNeighborhood && ox <= 1; ox++) {
-                        if (vBitmap[(int) this.particles.elementAt(j).z + 1 + oz][(int) this.particles.elementAt(j).y + 1 + oy][(int) this.particles.elementAt(j).x + 1 + ox]) {
+                        if (vBitmap[(int) iParticles.elementAt(j).z + 1 + oz][(int) iParticles.elementAt(j).y + 1 + oy][(int) iParticles.elementAt(j).x + 1 + ox]) {
                             vParticleInNeighborhood = true;
                         }
                     }
@@ -393,11 +392,11 @@ public class FeaturePointDetector {
             }
 
             if (vParticleInNeighborhood) {
-                this.particles.elementAt(j).special = false;
-                this.real_particles_number--;
+                iParticles.elementAt(j).special = false;
+                iNumOfRealParticles--;
             }
             else {
-                vBitmap[(int) this.particles.elementAt(j).z + 1][(int) this.particles.elementAt(j).y + 1][(int) this.particles.elementAt(j).x + 1] = true;
+                vBitmap[(int) iParticles.elementAt(j).z + 1][(int) iParticles.elementAt(j).y + 1][(int) iParticles.elementAt(j).x + 1] = true;
             }
         }
 
@@ -412,9 +411,9 @@ public class FeaturePointDetector {
      * @see MyFrame#nonParticleDiscrimination()
      */
     private void removeNonParticle() {
-        for (int i = this.particles.size() - 1; i >= 0; i--) {
-            if (!this.particles.elementAt(i).special) {
-                this.particles.removeElementAt(i);
+        for (int i = iParticles.size() - 1; i >= 0; i--) {
+            if (!iParticles.elementAt(i).special) {
+                iParticles.removeElementAt(i);
             }
         }
     }
@@ -434,11 +433,11 @@ public class FeaturePointDetector {
         // pad the imagestack
         if (is.getSize() > 1) {
             // 3D mode
-            restored = MosaicUtils.padImageStack3D(is, radius);
+            restored = MosaicUtils.padImageStack3D(is, iRadius);
         }
         else {
             // we're in 2D mode
-            final ImageProcessor rp = MosaicUtils.padImageStack2D(is.getProcessor(1), radius);
+            final ImageProcessor rp = MosaicUtils.padImageStack2D(is.getProcessor(1), iRadius);
             restored = new ImageStack(rp.getWidth(), rp.getHeight());
             restored.addSlice("", rp);
         }
@@ -456,11 +455,11 @@ public class FeaturePointDetector {
         if (is.getSize() > 1) {
             // again, 3D crop
             // new StackWindow(new ImagePlus("before cropping",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
-            restored = MosaicUtils.cropImageStack3D(restored, radius);
+            restored = MosaicUtils.cropImageStack3D(restored, iRadius);
         }
         else {
             // 2D crop
-            final ImageProcessor rp = MosaicUtils.cropImageStack2D(restored.getProcessor(1), radius);
+            final ImageProcessor rp = MosaicUtils.cropImageStack2D(restored.getProcessor(1), iRadius);
             restored = new ImageStack(rp.getWidth(), rp.getHeight());
             restored.addSlice("", rp);
         }
@@ -512,7 +511,7 @@ public class FeaturePointDetector {
 
     private void boxCarBackgroundSubtractor(ImageStack is) {
         final Convolver convolver = new Convolver();
-        final float[] kernel = new float[radius * 2 + 1];
+        final float[] kernel = new float[iRadius * 2 + 1];
         final int n = kernel.length;
         for (int i = 0; i < kernel.length; i++) {
             kernel[i] = 1f / n;
@@ -568,32 +567,32 @@ public class FeaturePointDetector {
      * 
      * @see #generateDilationMasks(int)
      */
-    public boolean setUserDefinedParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute) {
-        final boolean changed = (radius != this.radius || cutoff != this.cutoff || (percentile != this.percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
+    public boolean setDetectionParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute) {
+        final boolean changed = (radius != iRadius || cutoff != iCutoff || (percentile != iPercentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
         
-        this.cutoff = cutoff;
-        this.percentile = percentile;
-        this.absIntensityThreshold = Threshold;
-        this.radius = radius;
+        iCutoff = cutoff;
+        iPercentile = percentile;
+        iAbsIntensityThreshold = Threshold;
+        iRadius = radius;
         if (absolute == true) {
-            this.threshold_mode = Mode.ABS_THRESHOLD_MODE;
+            iThresholdMode = Mode.ABS_THRESHOLD_MODE;
         }
         else {
-            this.threshold_mode = Mode.PERCENTILE_MODE;
+            iThresholdMode = Mode.PERCENTILE_MODE;
         }
 
         // create Mask for Dilation with the user defined radius
-        generateDilationMasks(this.radius);
+        generateDilationMasks(iRadius);
         
         return changed;
     }
 
     public int getRadius() {
-        return radius;
+        return iRadius;
     }
     
     public Mode getThresholdMode() {
-        return threshold_mode;
+        return iThresholdMode;
     }
     
     public float getGlobalMax() {
@@ -613,14 +612,14 @@ public class FeaturePointDetector {
     }
     
     public double getCutoff() {
-        return cutoff;
+        return iCutoff;
     }
 
     public float getPercentile() {
-        return percentile;
+        return iPercentile;
     }
     
     public float getAbsIntensityThreshold() {
-        return absIntensityThreshold;
+        return iAbsIntensityThreshold;
     }
 }
