@@ -5,23 +5,19 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import mosaic.test.framework.CommonBase;
-import mosaic.test.framework.SystemOperations;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.supercsv.cellprocessor.ParseDouble;
 import org.supercsv.cellprocessor.ParseInt;
 import org.supercsv.cellprocessor.ift.CellProcessor;
+
+import mosaic.test.framework.CommonBase;
+import mosaic.test.framework.SystemOperations;
 
 public class CSVTest extends CommonBase {
 
@@ -123,17 +119,6 @@ public class CSVTest extends CommonBase {
     }
 
     // --------------------- Helper methods -----------------------------------------------
-    static String readFile(String aFullPathFile) {
-        try {
-            final byte[] encoded = Files.readAllBytes(Paths.get(aFullPathFile));
-            return new String(encoded, Charset.defaultCharset());
-        } catch (final IOException e) {
-            e.printStackTrace();
-            fail("Reading [" + aFullPathFile + "] file failed.");
-        }
-        return null;
-    }
-
     static void saveFile(String aFullPathFile, String aContent) {
         try (PrintWriter out = new PrintWriter(aFullPathFile)) {
             out.print(aContent);

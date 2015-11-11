@@ -2,24 +2,15 @@ package mosaic.test.framework;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.Macro;
-import ij.WindowManager;
-import ij.macro.Interpreter;
-import ij.plugin.filter.PlugInFilter;
-import ij.plugin.filter.PlugInFilterRunner;
-import io.scif.SCIFIOService;
-import io.scif.img.ImgIOException;
-import io.scif.img.ImgOpener;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
-import net.imglib2.Cursor;
-import net.imglib2.RandomAccess;
-import net.imglib2.img.Img;
 
 import org.apache.log4j.Logger;
 import org.junit.After;
@@ -30,6 +21,20 @@ import org.junit.Ignore;
 import org.scijava.Context;
 import org.scijava.app.AppService;
 import org.scijava.app.StatusService;
+
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.WindowManager;
+import ij.macro.Interpreter;
+import ij.plugin.filter.PlugInFilter;
+import ij.plugin.filter.PlugInFilterRunner;
+import io.scif.SCIFIOService;
+import io.scif.img.ImgIOException;
+import io.scif.img.ImgOpener;
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
+import net.imglib2.img.Img;
 
 
 /**
@@ -87,10 +92,16 @@ public class CommonBase extends Info {
             final String aTcDirName, final String[] aInputFiles,
             final String[] aExpectedFiles, final String[] aReferenceFiles,
             final String aSetupString) {
-        testPlugin(aTestedPlugin, aTcDirName, aInputFiles, aExpectedFiles,
-                aReferenceFiles, aSetupString, null);
+        testPlugin(aTestedPlugin, aTcDirName, aInputFiles, aExpectedFiles, 
+                aReferenceFiles, null, null, aSetupString, null);
     }
-
+    protected void testPlugin(PlugInFilter aTestedPlugin,
+            final String aTcDirName, final String[] aInputFiles,
+            final String[] aExpectedFiles, final String[] aReferenceFiles,
+            final String aSetupString, final String aMacroOptions) {
+        testPlugin(aTestedPlugin, aTcDirName, aInputFiles, aExpectedFiles,
+                aReferenceFiles,  null, null, aSetupString, aMacroOptions);
+    }
     /**
      * Tests plugin (one image input, one image output)
      * TODO: this method should be refactored to handle many-to-many cases
@@ -108,10 +119,12 @@ public class CommonBase extends Info {
             final String[] aInputFiles,
             final String[] aExpectedFiles,
             final String[] aReferenceFiles,
+            final String[] aExpectedCsvFiles,
+            final String[] aReferenceCsvFiles,
             final String aSetupArg,
             final String aMacroOptions) {
         // TODO: extend test base functionality
-        if (aInputFiles.length != 1 || aExpectedFiles.length != 1 || aReferenceFiles.length != 1) {
+        if (aInputFiles.length != 1 || aExpectedFiles.length > 1 || aReferenceFiles.length > 1) {
             logger.error("Wrong lenght of input file's array");
             fail("Wrong test data");
         }
@@ -142,15 +155,28 @@ public class CommonBase extends Info {
             new PlugInFilterRunner(aTestedPlugin, "pluginTest", aSetupArg);
             debugOutput();
             // compare output from plugin with reference images
-            logger.debug("Comparing output of two images:");
-            logger.debug("    ref: [" + tcPath + aReferenceFiles[0] + "]");
-            logger.debug("    test:[" + aExpectedFiles[0] +"]");
-            final Img<?> referenceImg = loadImage(tcPath + aReferenceFiles[0]);
-            final Img<?> processedImg = loadImageByName(aExpectedFiles[0]);
-            if (processedImg == null) {
-                throw new RuntimeException("No img: [" + aExpectedFiles[0] + "]");
+            for (int i = 0; i < aExpectedFiles.length; ++i) {
+                logger.debug("Comparing output of two images:");
+                logger.debug("    ref: [" + tcPath + aReferenceFiles[i] + "]");
+                logger.debug("    test:[" + aExpectedFiles[i] +"]");
+                final Img<?> referenceImg = loadImage(tcPath + aReferenceFiles[i]);
+                final Img<?> processedImg = loadImageByName(aExpectedFiles[i]);
+                if (processedImg == null) {
+                    throw new RuntimeException("No img: [" + aExpectedFiles[i] + "]");
+                }
+                assertTrue("Reference vs. processed file.", compare(referenceImg, processedImg));
             }
-            assertTrue("Reference vs. processed file.", compare(referenceImg, processedImg));
+            
+            if (aExpectedCsvFiles != null && aReferenceCsvFiles != null) {
+                for (int i = 0; i < aExpectedCsvFiles.length; ++i) {
+                    logger.debug("Comparing output of two CSV:");
+                    logger.debug("    ref: [" + tcPath + aReferenceCsvFiles[i] + "]");
+                    logger.debug("    test:[" + tmpPath + aExpectedCsvFiles[i] +"]");
+                    String expected = readFile(tcPath + aReferenceCsvFiles[i]);
+                    String result = readFile(tmpPath + aExpectedCsvFiles[i]);
+                    assertEquals(expected, result);
+                }
+            }
         }
     }
 
@@ -331,5 +357,16 @@ public class CommonBase extends Info {
         logger.debug("getWindowCount(): " + WindowManager.getWindowCount());
         logger.debug("getBatchModeImageCount(): " + Interpreter.getBatchModeImageCount());
         getAllImagesByName();
+    }
+    
+    protected static String readFile(String aFullPathFile) {
+        try {
+            final byte[] encoded = Files.readAllBytes(Paths.get(aFullPathFile));
+            return new String(encoded, Charset.defaultCharset());
+        } catch (final IOException e) {
+            e.printStackTrace();
+            fail("Reading [" + aFullPathFile + "] file failed.");
+        }
+        return null;
     }
 }

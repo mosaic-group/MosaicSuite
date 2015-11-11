@@ -736,7 +736,7 @@ public class MyFrame {
         }
     }
 
-    public static float minScaling(float s[]) {
+    private static float minScaling(float s[]) {
         float min = Float.MAX_VALUE;
         for (int i = 0; i < s.length; i++) {
             if (s[i] < min) {

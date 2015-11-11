@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class MosaicImageProcessingTools {
-
     /**
      * Dilates all values larger than <code>threshold</code> and returns a copy of the input image.
      * A spherical structuring element of radius <code>radius</code> is used.
@@ -47,31 +46,19 @@ public class MosaicImageProcessingTools {
     }
 
     /**
-     * Returns a * c + b
-     *
-     * @param a: y-coordinate
-     * @param b: x-coordinate
-     * @param c: width
-     * @return
-     */
-    private static int coord(int a, int b, int c) {
-        return (((a) * (c)) + (b));
-    }
-    
-    /**
      * Generates the dilation mask
      * Adapted from Ingo Oppermann implementation
      * 
      * @param mask_radius the radius of the mask (user defined)
      */
     public static int[][] generateMask(int mask_radius) {
-
         final int width = (2 * mask_radius) + 1;
         final int[][] mask = new int[width][width * width];
         for (int s = -mask_radius; s <= mask_radius; s++) {
+            
             for (int i = -mask_radius; i <= mask_radius; i++) {
                 for (int j = -mask_radius; j <= mask_radius; j++) {
-                    final int index = coord(i + mask_radius, j + mask_radius, width);
+                    final int index = (i + mask_radius) * (width) + (j + mask_radius);
                     if ((i * i) + (j * j) + (s * s) <= mask_radius * mask_radius) {
                         mask[s + mask_radius][index] = 1;
                     }
@@ -81,6 +68,7 @@ public class MosaicImageProcessingTools {
 
                 }
             }
+            
         }
         return mask;
     }
@@ -99,21 +87,17 @@ class DilateGenericThread extends Thread {
     private int mask[][];
 
     DilateGenericThread(ImageStack is, int aRadius, ImageProcessor[] dilated_is, AtomicInteger z) {
-        initMembers(is, aRadius, Float.NEGATIVE_INFINITY, dilated_is, z);
-    }
-
-    private void initMembers(ImageStack is, int aRadius, float aThreshold, ImageProcessor[] dilated_is, AtomicInteger z) {
         ips = is;
         dilated_ips = dilated_is;
         atomic_z = z;
-
+        
         radius = aRadius;
         kernel_width = radius * 2 + 1;
         image_width = ips.getWidth();
         image_height = ips.getHeight();
-
+        
         mask = MosaicImageProcessingTools.generateMask(radius);
-        threshold = aThreshold;
+        threshold = Float.NEGATIVE_INFINITY;
     }
 
     @Override
@@ -121,8 +105,6 @@ class DilateGenericThread extends Thread {
         float max;
         int z;
         while ((z = atomic_z.incrementAndGet()) < ips.getSize()) {
-            // IJ.showStatus("Dilate Image: " + (z+1));
-            // IJ.showProgress(z, ips.getSize());
             final FloatProcessor out_p = new FloatProcessor(image_width, image_height);
             final float[] output = (float[]) out_p.getPixels();
             final float[] dummy_processor = (float[]) ips.getPixels(z + 1);

@@ -299,7 +299,7 @@ public class FeaturePointDetector {
                             }
                             y = (int) this.particles.elementAt(m).x + l;
                             //
-                            // c = ips.getProcessor(z + 1).getPixelValue(y, x) * (float)mask[s + radius][(k + radius)*mask_width + (l + radius)];
+                            // c =   ips.getProcessor(z + 1).getPixelValue(y, x) * (float)mask[s + radius][(k + radius) * mask_width + (l + radius)];
                             c = ((float[]) (ips.getPixels(z + 1)))[x * image_width + y] * mask[s + radius][(k + radius) * mask_width + (l + radius)];
 
                             this.particles.elementAt(m).m0 += c;
