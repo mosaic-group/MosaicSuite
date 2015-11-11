@@ -1,11 +1,8 @@
 package mosaic.region_competition.utils;
 
 
-import mosaic.core.imageUtils.Point;
-
-import java.util.Arrays;
-
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
+import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.masks.BallMask;
 
@@ -45,7 +42,7 @@ public class BubbleDrawer {
     }
 
     public void drawCenter(Point center, int val) {
-        sphereIt.setMidPoint(center);
+        sphereIt.setMiddlePoint(center);
         while (sphereIt.hasNext()) {
             final int idx = sphereIt.next();
             labelImage.setLabel(idx, val);

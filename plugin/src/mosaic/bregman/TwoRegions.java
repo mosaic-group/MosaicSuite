@@ -87,10 +87,10 @@ class TwoRegions extends NRegions {
 
             final Point p_c = new Point((int) (ptt.x), (int) (ptt.y), (int) (ptt.z));
 
-            rg_m.setMidPoint(p_c);
+            rg_m.setMiddlePoint(p_c);
 
             while (rg_m.hasNext()) {
-                final Point p = rg_m.nextP();
+                final Point p = rg_m.nextPoint();
 
                 if (p.iCoords[0] < sz[0] && p.iCoords[0] >= 0 && p.iCoords[1] < sz[1] && p.iCoords[1] >= 0 && p.iCoords[2] < sz[2] && p.iCoords[2] >= 0) {
                     out[p.iCoords[2]][p.iCoords[0]][p.iCoords[1]] = 255.0f;

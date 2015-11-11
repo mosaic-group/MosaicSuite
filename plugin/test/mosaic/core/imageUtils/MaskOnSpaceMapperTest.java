@@ -152,14 +152,14 @@ public class MaskOnSpaceMapperTest {
                             "----8---8-\n";
         SpaceIterator si = new SpaceIterator(sizeX, sizeY);
         
-        it.setMidPoint(new Point(6,8));
+        it.setMiddlePoint(new Point(6,8));
         while(it.hasNext()) {
-            Point point = it.nextP();
+            Point point = it.nextPoint();
             image[si.pointToIndex(point)] = '8';
         }
-        it.setMidPoint(new Point(4,-1));
+        it.setMiddlePoint(new Point(4,-1));
         while(it.hasNext()) {
-            Point point = it.nextP();
+            Point point = it.nextPoint();
             image[si.pointToIndex(point)] = '8';
         }
         
@@ -184,9 +184,9 @@ public class MaskOnSpaceMapperTest {
         Mask sm = new SphereMask(3f, 6, new float[] {1, 1});
         it = new MaskOnSpaceMapper(sm, new int[] {sizeX , sizeY});
         
-        it.setMidPoint(new Point(3,3));
+        it.setMiddlePoint(new Point(3,3));
         while(it.hasNext()) {
-            Point point = it.nextP();
+            Point point = it.nextPoint();
             image[si.pointToIndex(point)] = '8';
         }
         

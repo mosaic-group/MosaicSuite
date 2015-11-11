@@ -1,11 +1,9 @@
 package mosaic.region_competition.energies;
 
 
-import java.util.Arrays;
-
 import ij.measure.Calibration;
-import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
+import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.masks.BallMask;
 
@@ -79,7 +77,7 @@ public class CurvatureBasedFlow {
          * Point start = origin.sub(half); // "upper left point"
          */
 
-        sphereIt.setMidPoint(origin);
+        sphereIt.setMiddlePoint(origin);
 
         while (sphereIt.hasNext()) {
             final int idx = sphereIt.next();

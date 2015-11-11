@@ -123,12 +123,12 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         final Point p_c = new Point(ptt);
         p_c.div(cal);
 
-        rg_m.setMidPoint(p_c);
+        rg_m.setMiddlePoint(p_c);
 
         int sp = 0;
 
         while (rg_m.hasNext()) {
-            final Point p = rg_m.nextP();
+            final Point p = rg_m.nextPoint();
 
             if (p.isInside(sz)) {
                 out_a.setPosition(p.iCoords);

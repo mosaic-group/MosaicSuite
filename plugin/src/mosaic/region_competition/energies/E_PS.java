@@ -63,7 +63,7 @@ public class E_PS extends ExternalEnergy {
         // read out the size of the mask
         // vRegion is the size of our temporary window
 
-        sphereIt.setMidPoint(contourPoint);
+        sphereIt.setMiddlePoint(contourPoint);
 
         // vOffset is basically the difference of the center and the start of the window
 

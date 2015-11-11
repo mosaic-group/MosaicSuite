@@ -723,10 +723,10 @@ public class MyFrame {
                 p_c = new Point((int) (ptt.x / scaling_[0]), (int) (ptt.y / scaling_[1]), (int) (ptt.z / scaling_[2]));
             }
 
-            rg_m.setMidPoint(p_c);
+            rg_m.setMiddlePoint(p_c);
 
             while (rg_m.hasNext()) {
-                final Point p = rg_m.nextP();
+                final Point p = rg_m.nextPoint();
 
                 if (p.isInside(sz)) {
                     out_a.setPosition(p.iCoords);
@@ -820,10 +820,10 @@ public class MyFrame {
                         p_c = new Point((int) (ptt.x / scaling_[0]), (int) (ptt.y / scaling_[1]), (int) (ptt.z / scaling_[2]));
                     }
 
-                    rg_m.setMidPoint(p_c);
+                    rg_m.setMiddlePoint(p_c);
 
                     while (rg_m.hasNext()) {
-                        final Point p = rg_m.nextP();
+                        final Point p = rg_m.nextPoint();
 
                         if (p.isInside(sz)) {
                             out_a.setPosition(p.iCoords);
