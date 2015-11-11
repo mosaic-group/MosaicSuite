@@ -307,7 +307,7 @@ public class LabelImage extends BaseImage
                 }
     
                 // set region to new label
-                for (final int p : ff.iteratorIdx()) {
+                for (final int p : ff) {
                     setLabel(p, newLabel);
                 }
                 

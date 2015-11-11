@@ -76,6 +76,19 @@ public class Point {
         }
         return result;
     }
+    
+    /**
+     * Add a scalar to each coordinate of a Point
+     * @param aValue value to add
+     * @return returns new Point
+     */
+    public Point add(double aValue) {
+        final Point result = new Point(iCoords.clone());
+        for (int i = 0; i < iCoords.length; i++) {
+            result.iCoords[i] += aValue;
+        }
+        return result;
+    }
 
     /**
      * Subtract a point to a Point
@@ -90,6 +103,19 @@ public class Point {
         return result;
     }
 
+    /**
+     * Subtract a scalar to each coordinate of a Point
+     * @param aValue value to subtract
+     * @return returns new Point
+     */
+    public Point sub(double aValue) {
+        final Point result = new Point(iCoords.clone());
+        for (int i = 0; i < iCoords.length; i++) {
+            result.iCoords[i] -= aValue;
+        }
+        return result;
+    }
+    
     /**
      * Multiply a Point by a factor
      * @param aValue scaling factor

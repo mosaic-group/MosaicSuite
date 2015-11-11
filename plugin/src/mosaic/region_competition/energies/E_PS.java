@@ -1,11 +1,10 @@
 package mosaic.region_competition.energies;
 
 
-import java.util.Arrays;
 import java.util.HashMap;
 
-import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.MaskOnSpaceMapper;
+import mosaic.core.imageUtils.Point;
 import mosaic.core.imageUtils.images.IntensityImage;
 import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.imageUtils.masks.BallMask;
@@ -41,7 +40,6 @@ public class E_PS extends ExternalEnergy {
         sphere = new BallMask(rad, 2 * rad + 1, scaling);
 
         // sphereIt is slower than separate version
-        System.out.println("SPHERE IT: " + Arrays.toString(dimensions) + " " + Arrays.toString(sphere.getDimensions()));
         sphereIt = new MaskOnSpaceMapper(sphere, dimensions);
     }
 

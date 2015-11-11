@@ -11,86 +11,51 @@ import mosaic.core.imageUtils.images.LabelImage;
 
 
 /**
- * This class provide a Flood fill algorithm
- *
- * @author Stephan Semmler
+ * Flood fill algorithm implementation. 
  */
+public class FloodFill implements Iterator<Integer>,  Iterable<Integer> {
 
-public class FloodFill {
-
-    private final Stack<Point> stack = new Stack<Point>();
-    private final Set<Point> checkedSet  = new HashSet<Point>();
-    private final Stack<Integer> stackIdx = new Stack<Integer>();
-    private final Set<Integer> checkedSetIdx = new HashSet<Integer>();
-    /**
-     * Perform a Flood fill starting from a seed point
-     *
-     * @param conn Connectivity
-     * @param foo Image
-     * @param seed point
-     */
-
-    public FloodFill(Connectivity conn, BinarizedImage foo, Point seed) {
-        stack.add(seed);
-
-        while (!stack.isEmpty()) {
-            final Point p = stack.pop();
-            for (final Point q : conn.iterateNeighbors(p)) {
-                if (foo.EvaluateAtIndex(q) && !checkedSet.contains(q)) {
-                    stack.add(q);
-                }
-            }
-            checkedSet.add(p);
-        }
-    }
+    private final Set<Integer> iFoundIndices = new HashSet<Integer>();
+    private final Iterator<Integer> iIterator;
     
-    public FloodFill(LabelImage img, BinarizedImage foo, Point seed) {
-        stackIdx.add(img.pointToIndex(seed));
-
+    public FloodFill(LabelImage aInputImg, BinarizedImage aAreaForProcessing, Point aPointSeed) {
+        final Stack<Integer> stackIdx = new Stack<Integer>();
+        
+        Integer inputIndex = aInputImg.pointToIndex(aPointSeed);
+        if (aAreaForProcessing.EvaluateAtIndex(inputIndex)) stackIdx.add(inputIndex);
         while (!stackIdx.isEmpty()) {
-            final Integer p = stackIdx.pop();
-            for (final int q : img.iterateNeighbours(p)) {
-                if (foo.EvaluateAtIndex(q) && !checkedSetIdx.contains(q)) {
-                    stackIdx.add(q);
+            final Integer idx = stackIdx.pop();
+            for (final int neighbourIdx : aInputImg.iterateNeighbours(idx)) {
+                if (aAreaForProcessing.EvaluateAtIndex(neighbourIdx) && !iFoundIndices.contains(neighbourIdx)) {
+                    stackIdx.add(neighbourIdx);
                 }
             }
-            checkedSetIdx.add(p);
+            iFoundIndices.add(idx);
         }
+        iIterator = iFoundIndices.iterator();
     }
-    
+
     public int size() {
-        return checkedSet.size();
+        return iFoundIndices.size();
     }
-    
-    public int sizeIdx() {
-        return checkedSetIdx.size();
-    }
-    
-    public Iterable<Point> iteratorPoint() {
-        return new Iterable<Point>() {
 
-            @Override
-            public Iterator<Point> iterator() {
-                return iteratorPointOffset();
-            }
-        };
+    // Iterator implementations
+    @Override
+    public boolean hasNext() {
+        return iIterator.hasNext();
     }
-    
-    public Iterator<Point> iteratorPointOffset() {
-        return checkedSet.iterator();
-    }
-    
-    public Iterable<Integer> iteratorIdx() {
-        return new Iterable<Integer>() {
 
-            @Override
-            public Iterator<Integer> iterator() {
-                return iteratorIndex();
-            }
-        };
+    @Override
+    public Integer next() {
+        return iIterator.next();
     }
+
+    @Override
+    public void remove() { /* no action - needed by Java < 1.8 */ }
     
-    public Iterator<Integer> iteratorIndex() {
-        return checkedSetIdx.iterator();
+    // Iterable implementations
+    @Override
+    public Iterator<Integer> iterator() {
+        return iIterator;
     }
 }

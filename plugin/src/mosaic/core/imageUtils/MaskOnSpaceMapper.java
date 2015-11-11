@@ -49,7 +49,7 @@ public class MaskOnSpaceMapper {
     public MaskOnSpaceMapper(Mask aMask, int[] aInputDimensions) {
         iInputIterator = new SpaceIterator(aInputDimensions);
         iMaskMidPoint = new Point(aMask.getDimensions()).div(2);
-        iMaskRightDown = new Point(aMask.getDimensions()).sub(new Point(aMask.getDimensions().clone()).one());
+        iMaskRightDown = new Point(aMask.getDimensions()).sub(1);
 
         iFgIndexes = new int[aMask.getNumOfFgPoints()];
         SpaceIterator maskIterator = new SpaceIterator(aMask.getDimensions());

@@ -20,7 +20,6 @@ public class BinarizedIntervalLabelImage extends IntervalsListInteger implements
     private final LabelImage labelImage;
 
     public BinarizedIntervalLabelImage(LabelImage aLabelImage) {
-        super();
         labelImage = aLabelImage;
     }
 

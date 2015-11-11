@@ -72,13 +72,13 @@ public class MaximaBubbles extends Initializer {
    
         // Find all points connected to maximum
         final FloodFill ff = new FloodFill(iLabelImage, aBinarizedImage, aMaximumPoint);
-        if (ff.sizeIdx() < iMinimumRegionSize) {
+        if (ff.size() < iMinimumRegionSize) {
             // if region is very small, draw a bubble
             final BubbleDrawer bd = new BubbleDrawer(iLabelImage, iRadius / 2, iRadius);
             bd.drawCenter(aMaximumPoint, aLabel);
         } 
         else {
-            for (final int p : ff.iteratorIdx()) {
+            for (final int p : ff) {
                 iLabelImage.setLabel(p, aLabel);
             }
         }

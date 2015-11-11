@@ -470,14 +470,13 @@ public class Algorithm {
     private void relabelRegionAtPoint(Point aPoint, int aNewLabel, BinarizedImage aAreaWithOldLabels) {
         final Set<Integer> oldLabels = new HashSet<Integer>();
         final Set<Point> oldContours = new HashSet<Point>();
-        final Iterator<Integer> regionIterator = new FloodFill(iLabelImage, aAreaWithOldLabels, aPoint).iteratorIndex();
+        final FloodFill ff = new FloodFill(iLabelImage, aAreaWithOldLabels, aPoint);
         
         double sumOfVal = 0;
         double sumOfSqVal = 0;
         int count = 0;
 
-        while (regionIterator.hasNext()) {
-            final int currentPoint = regionIterator.next();
+        for(Integer currentPoint : ff) {
             final int oldLabel = iLabelImage.getLabel(currentPoint);
 
             iLabelImage.setLabel(currentPoint, aNewLabel);
