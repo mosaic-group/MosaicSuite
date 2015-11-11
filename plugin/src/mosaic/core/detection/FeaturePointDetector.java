@@ -115,10 +115,10 @@ public class FeaturePointDetector {
         findThreshold(restored_fps, percentile, absIntensityThreshold);
 
         pointLocationsEstimation(restored_fps, frame.frame_number, frame.linkrange);
-        if (frame.frame_number == 1) System.out.println("ESTIMATION: \n" + particles);
+        
         /* Refinement of the point location - Step 3 of the algorithm */
         pointLocationsRefinement(restored_fps);
-        if (frame.frame_number == 1)  System.out.println("REFI: \n" + particles);
+        
         /* Non Particle Discrimination(set a flag to particles) - Step 4 of the algorithm */
         nonParticleDiscrimination();
 

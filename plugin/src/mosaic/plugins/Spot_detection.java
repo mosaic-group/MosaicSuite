@@ -18,132 +18,84 @@ import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
 
 /**
- *
- * Plugin to detect spot
- *
- * @author Pietro Incardona
- *
- */
-
-
+* Spot detection plugin.
+* @author Pietro Incardona
+*/
 public class Spot_detection implements PlugInFilter // NO_UCD
 {
-
-    String dir;
-    FeaturePointDetector detector;
-    ImagePlus aImp;
-    ImageStack stack;
-    int slices_number;
-    int frames_number;
-    MyFrame frames[];
-
-    private void fillSize(Vector<Particle> pt, int radius)
-    {
-        for (int i = 0 ; i < pt.size() ; i++)
-        {
-            pt.get(i).m0 = radius;
-        }
-    }
-
-    /**
-     *
-     * Run the plugin
-     *
-     * @param Image where to run the spot detection
-     *
-     */
+    ImagePlus iOriginalImp;
+    FeaturePointDetector iDetector;
 
     @Override
-    public void run(ImageProcessor arg0)
+    public void run(ImageProcessor aArgs)
     {
+        int numOfSlices = iOriginalImp.getNSlices();
+        int numOfFrames = iOriginalImp.getNFrames();
+        MyFrame[] frames = new MyFrame[numOfFrames];
 
-        frames = new MyFrame[frames_number];
+        // Detect points in all frames
+        for (int frameIdx = 0; frameIdx < numOfFrames; ++frameIdx) {
+            final ImageStack subStack = MosaicUtils.GetSubStackInFloat(iOriginalImp.getStack(), (frameIdx) * numOfSlices + 1, (frameIdx + 1) * numOfSlices);
+            final MyFrame frame = new MyFrame(subStack, frameIdx, 1);
 
-        // process all frames
-        for (int frame_i = 0; frame_i < frames_number; frame_i++)
-        {
-            // sequence of images mode:
-            // construct each frame from the corresponding image
-            final MyFrame current_frame = new MyFrame(MosaicUtils.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i, 1);
+            // Detect feature points in current frame
+            IJ.showStatus("Detecting Particles in Frame " + (frameIdx + 1) + "/" + numOfFrames);
+            iDetector.featurePointDetection(frame);
+            frames[frame.frame_number] = frame;
+        }
 
-            // Detect feature points in this frame
-            IJ.showStatus("Detecting Particles in Frame " + (frame_i+1) + "/" + frames_number);
-            detector.featurePointDetection(current_frame);
-            frames[current_frame.frame_number] = current_frame;
-            IJ.freeMemory();
-        } // for
-
-        final CSV<Particle> P_csv = new CSV<Particle>(Particle.class);
-
-        final Vector<Particle> pt = new Vector<Particle>();
-
-        for (int i = 0 ; i < frames.length ; i++)
-        {
-            final int old_i = pt.size();
-
-            pt.addAll(frames[i].getParticles());
-
-            final int new_i = pt.size();
+        // Fill container with all found particles and set correct frame number and m0 for each.
+        final Vector<Particle> particles = new Vector<Particle>();
+        for (int i = 0 ; i < numOfFrames ; ++i) {
+            final int currentFrameFromIdx= particles.size();
+            particles.addAll(frames[i].getParticles());
+            final int currentFrameToIdx = particles.size();
 
             // Set the frame number for the particles
-
-            for (int j = old_i ; j < new_i ; j++)
-            {
-                pt.get(j).setFrame(i);
+            for (int j = currentFrameFromIdx; j < currentFrameToIdx ; ++j) {
+                particles.get(j).setFrame(i);
+                particles.get(j).m0 = iDetector.getRadius();
             }
         }
 
-        fillSize(pt,detector.getRadius());
-
-        dir = MosaicUtils.ValidFolderFromImage(aImp);
+        // Get results directory
+        String dir = MosaicUtils.ValidFolderFromImage(iOriginalImp);
         if (dir == null) {
-            dir = IJ.getDirectory("Choose output directory");
+            dir = IJ.getDirectory("Choose output directory for CSV file");
         }
 
-        final CsvColumnConfig oc = new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor);
-
-        P_csv.Write(dir + aImp.getTitle() + "det.csv", pt , oc , false);
+        // Save results (particle data) in CSV file
+        final CsvColumnConfig columnConfig = new CsvColumnConfig(Particle.ParticleDetection_map, 
+                                                                 Particle.ParticleDetectionCellProcessor);
+        final CSV<Particle> csv = new CSV<Particle>(Particle.class);
+        csv.Write(dir + iOriginalImp.getTitle() + "det.csv", particles , columnConfig , false);
     }
 
     @Override
-    public int setup(String arg0, ImagePlus original_imp)
+    public int setup(String aArgs, ImagePlus aInputImp)
     {
-        /* get user defined params and set more initial params accordingly 	*/
-
-        aImp = original_imp;
-        final GenericDialog gd = new GenericDialog("Spot detection...");
-
-        // initialize ImageStack stack
-
-        if (original_imp == null)
-        {
+        // Check and save input for later processing
+        if (aInputImp == null) {
             IJ.error("There is no image");
             return DONE;
         }
+        iOriginalImp = aInputImp;
 
-        stack = original_imp.getStack();
-
-        // get global minimum and maximum
-        final StackStatistics stack_stats = new StackStatistics(original_imp);
+        // Get statistics and create detector
+        final StackStatistics stack_stats = new StackStatistics(iOriginalImp);
         final float global_max = (float)stack_stats.max;
         final float global_min = (float)stack_stats.min;
-        slices_number = original_imp.getNSlices();
-        frames_number = original_imp.getNFrames();
+        iDetector = new FeaturePointDetector(global_max, global_min);
 
-        detector = new FeaturePointDetector(global_max, global_min);
-
-        detector.addUserDefinedParametersDialog(gd);
-
+        // GUI and user input
+        final GenericDialog gd = new GenericDialog("Spot detection...");
+        iDetector.addUserDefinedParametersDialog(gd);
         gd.showDialog();
-
-        if (gd.wasCanceled())
-        {
+        if (gd.wasCanceled()) {
             return DONE;
         }
-
-        detector.getUserDefinedParameters(gd);
+        iDetector.getUserDefinedParameters(gd);
 
         return DOES_ALL;
     }
-
 }

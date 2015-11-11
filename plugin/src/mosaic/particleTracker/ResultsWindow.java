@@ -38,10 +38,6 @@ import mosaic.plugins.ParticleTracker3DModular_;
  * method implemented here
  */
 public class ResultsWindow extends Frame implements FocusListener, ActionListener {
-
-    /**
-     * 
-     */
     private final ParticleTracker3DModular_ particleTracker3DModular;
     private static final long serialVersionUID = 1L;
     public final TextPanel text_panel;
@@ -530,12 +526,10 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             if (particleTracker3DModular.linker.linkParticles(particleTracker3DModular.frames, particleTracker3DModular.frames_number, lo) == false) {
                 return;
             }
-            IJ.freeMemory();
 
             /* generate trajectories */
             IJ.showStatus("Generating Trajectories");
             particleTracker3DModular.generateTrajectories();
-            IJ.freeMemory();
 
             particleTracker3DModular.results_window.configuration_panel.selectAll();
             particleTracker3DModular.results_window.configuration_panel.clearSelection();

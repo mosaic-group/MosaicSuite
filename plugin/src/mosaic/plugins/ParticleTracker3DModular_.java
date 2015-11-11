@@ -358,12 +358,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             return;
         }
 
-        IJ.freeMemory();
-
         /* generate trajectories */
         IJ.showStatus("Generating Trajectories");
         generateTrajectories();
-        IJ.freeMemory();
 
         if (IJ.isMacro()) {
             /* Write data to disk */
@@ -383,16 +380,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
             out = createHyperStackFromFrames(background);
         }
-
-        IJ.freeMemory();
-
-        // Output image with trajectory
     }
 
     private MyFrame[] convertIntoFrames(Vector<Particle> p) {
 
         // Read the first background
-
         Calibration cal = null;
         if (background != null) {
             if (original_imp == null) {
@@ -615,7 +607,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
                     return false;
                 }
                 frames[current_frame.frame_number] = current_frame;
-                IJ.freeMemory();
             } // for
 
             // Here check that all frames are created
@@ -659,7 +650,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             tmf.add(new MyFrame(r));
             while (tmf.lastElement().getParticles() != null) {
                 tmf.add(new MyFrame(r));
-                IJ.freeMemory();
             }
 
             // remove any null object
@@ -1619,7 +1609,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         // ImageJ macro command to rescale and image the select ROI in the active window
         // this will create a new ImagePlus (stack) that will be the active window
         IJ.run("Scale...", "x=" + magnification + " y=" + magnification + " process create title=" + new_title);
-        IJ.freeMemory();
 
         // Get the new-scaled image (stack) and assign it duplicated_imp
         final ImagePlus duplicated_imp = IJ.getImage();
@@ -1627,7 +1616,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         // Convert the stack to RGB so color can been drawn on it and get its ImageStack
         IJ.run("RGB Color");
         // traj_stack = duplicated_imp.getStack();
-        IJ.freeMemory();
 
         // Reset the active imageJ window to the one the ROI was selected on - info from the Roi is still needed
         IJ.selectWindow(roi_image_id);
