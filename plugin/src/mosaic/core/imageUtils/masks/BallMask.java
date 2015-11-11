@@ -11,6 +11,23 @@ public class BallMask extends EllipseBase {
      * @param aSizeOfRegion Size of the region containing the circle
      * @param aScaling Coordinate spacing
      */
+    public BallMask(float aRadius, int aNumOfDimensions) {
+        super(aRadius, (int)Math.floor(2 * aRadius), new float[aNumOfDimensions]);
+        float[] scaling = new float[aNumOfDimensions];
+        for (int i = 0; i < aNumOfDimensions; ++i) {
+            scaling[i] = 1.0f;
+        }
+        iScaling = scaling;
+        fillMask();
+    }
+    
+    /**
+     * Create a ball mask with radius and provided scaling. In case
+     * of 2D this is a disk (obviously).
+     * @param aRadius Radius of the circle
+     * @param aSizeOfRegion Size of the region containing the circle
+     * @param aScaling Coordinate spacing
+     */
     public BallMask(float aRadius, int aSizeOfRegion, float[] aScaling) {
         super(aRadius, aSizeOfRegion, aScaling);
         fillMask();

@@ -30,26 +30,22 @@ public class CurvatureBasedFlow {
 
         float spacing[] = null;
         if (cal != null) {
-            if (labelImage.getNumOfDimensions() == 2) {
+            if (dim == 2) {
                 spacing = new float[2];
                 spacing[0] = (float) cal.pixelWidth;
                 spacing[1] = (float) cal.pixelHeight;
-                sphere = new BallMask(rad, 2 * rad + 1, spacing);
+                sphere = new BallMask(rad, 2 * rad, spacing);
             }
             else {
                 spacing = new float[3];
                 spacing[0] = (float) cal.pixelWidth;
                 spacing[1] = (float) cal.pixelHeight;
                 spacing[2] = (float) cal.pixelDepth;
-                sphere = new BallMask(rad, 2 * rad + 1, spacing);
+                sphere = new BallMask(rad, 2 * rad, spacing);
             }
         }
         else {
-            float[] spac = new float[dim];
-            for (int i = 0; i < dim; i++) {
-                spac[i] = 1.0f;
-            }
-            sphere = new BallMask(rad, 2 * rad + 1, spac);
+            sphere = new BallMask(rad, dim);
         }
         sphereIt = new MaskOnSpaceMapper(sphere, inputDims);
         

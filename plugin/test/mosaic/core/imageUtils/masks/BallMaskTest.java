@@ -74,7 +74,7 @@ public class BallMaskTest {
                             "--8888--";
         
         int size = 8;
-        Mask cm = new BallMask(4f, size, new float[] {1, 1});
+        Mask cm = new BallMask(4f, 2);
         MappingIterator mi = new MappingIterator(new int[] {size,size}, new int[]{size,size}, new int[]{0,0});
         StringBuilder sb = new StringBuilder();
         while(mi.hasNext()) {

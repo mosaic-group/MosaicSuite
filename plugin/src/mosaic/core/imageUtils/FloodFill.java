@@ -11,13 +11,20 @@ import mosaic.core.imageUtils.images.LabelImage;
 
 
 /**
- * Flood fill algorithm implementation. 
+ * Flood fill algorithm implementation. It iterates on all indices in given area (thresholds)
+ * starting at given seed.
  */
 public class FloodFill implements Iterator<Integer>,  Iterable<Integer> {
 
     private final Set<Integer> iFoundIndices = new HashSet<Integer>();
     private final Iterator<Integer> iIterator;
     
+    /**
+     * @param aInputImg - input label image
+     * @param aAreaForProcessing - provided thresholds for iterated values
+     * @param aPointSeed - start point, if its value is outside of input area FloodFill will not iterate
+     *                     on any index.
+     */
     public FloodFill(LabelImage aInputImg, BinarizedImage aAreaForProcessing, Point aPointSeed) {
         final Stack<Integer> stackIdx = new Stack<Integer>();
         
@@ -39,7 +46,7 @@ public class FloodFill implements Iterator<Integer>,  Iterable<Integer> {
         return iFoundIndices.size();
     }
 
-    // Iterator implementations
+    // --------------  Iterator implementations
     @Override
     public boolean hasNext() {
         return iIterator.hasNext();
@@ -53,7 +60,7 @@ public class FloodFill implements Iterator<Integer>,  Iterable<Integer> {
     @Override
     public void remove() { /* no action - needed by Java < 1.8 */ }
     
-    // Iterable implementations
+    //  --------------  Iterable implementations
     @Override
     public Iterator<Integer> iterator() {
         return iIterator;

@@ -6,8 +6,8 @@ import mosaic.core.imageUtils.iterators.SpaceIterator;
 public abstract class EllipseBase implements Mask {
     private final float iMiddlePoint[];
     private final float iRadius[];
-    private final float iScaling[];
-
+    
+    protected float iScaling[];
     protected final int[] iDimensions;
     protected final boolean iMask[];
     protected final SpaceIterator iIterator;

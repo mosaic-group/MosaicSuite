@@ -33,13 +33,7 @@ public class E_PS extends ExternalEnergy {
 
         this.regionMergingThreshold = regionMergingThreshold;
         final int rad = PSenergyRadius;
-        float[] scaling = new float[labelImage.getNumOfDimensions()];
-        for (int i = 0; i < labelImage.getNumOfDimensions(); i++) {
-            scaling[i] = 1.0f;
-        }
-        sphere = new BallMask(rad, 2 * rad + 1, scaling);
-
-        // sphereIt is slower than separate version
+        sphere = new BallMask(rad, labelImage.getNumOfDimensions());
         sphereIt = new MaskOnSpaceMapper(sphere, dimensions);
     }
 
