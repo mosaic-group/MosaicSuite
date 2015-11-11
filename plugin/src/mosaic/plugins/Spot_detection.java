@@ -11,6 +11,7 @@ import ij.process.StackStatistics;
 import java.util.Vector;
 
 import mosaic.core.detection.FeaturePointDetector;
+import mosaic.core.detection.GUIhelper;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
 import mosaic.core.utils.MosaicUtils;
@@ -89,12 +90,12 @@ public class Spot_detection implements PlugInFilter // NO_UCD
 
         // GUI and user input
         final GenericDialog gd = new GenericDialog("Spot detection...");
-        iDetector.addUserDefinedParametersDialog(gd);
+        GUIhelper.addUserDefinedParametersDialog(gd, iDetector);
         gd.showDialog();
         if (gd.wasCanceled()) {
             return DONE;
         }
-        iDetector.getUserDefinedParameters(gd);
+        GUIhelper.getUserDefinedParameters(gd, iDetector);
 
         return DOES_ALL;
     }

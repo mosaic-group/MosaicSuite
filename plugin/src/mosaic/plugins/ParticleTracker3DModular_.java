@@ -44,6 +44,7 @@ import ij.gui.YesNoCancelDialog;
 import ij.io.FileInfo;
 import ij.io.OpenDialog;
 import ij.io.Opener;
+import ij.io.SaveDialog;
 import ij.measure.Calibration;
 import ij.measure.Measurements;
 import ij.measure.ResultsTable;
@@ -52,6 +53,8 @@ import ij.process.StackConverter;
 import ij.process.StackStatistics;
 import mosaic.core.GUI.ParticleTrackerHelp;
 import mosaic.core.detection.FeaturePointDetector;
+import static mosaic.core.detection.FeaturePointDetector.Mode;
+import mosaic.core.detection.GUIhelper;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.MyFrame.DrawType;
 import mosaic.core.detection.Particle;
@@ -327,7 +330,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         initializeMembers();
         System.out.println("IJ macro is running: " + IJ.isMacro());
         if (!text_files_mode && !IJ.isMacro()) {
-            preview_canvas = detector.generatePreviewCanvas(original_imp);
+            preview_canvas = GUIhelper.generatePreviewCanvas(original_imp);
         }
 
         /* get user defined params and set more initial params accordingly */
@@ -786,9 +789,9 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             }
         }
         else {
-            detector.addUserDefinedParametersDialog(gd);
+            GUIhelper.addUserDefinedParametersDialog(gd, detector);
 
-            gd.addPanel(detector.makePreviewPanel(this, original_imp), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));
+            gd.addPanel(GUIhelper.makePreviewPanel(this, original_imp), GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));
 
             // check if the original images are not GRAY8, 16 or 32
             if (this.original_imp.getType() != ImagePlus.GRAY8 && this.original_imp.getType() != ImagePlus.GRAY16 && this.original_imp.getType() != ImagePlus.GRAY32) {
@@ -872,7 +875,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
         // retrieve params from user
         if (!text_files_mode) {
-            final Boolean changed = detector.getUserDefinedParameters(gd);
+            final Boolean changed = GUIhelper.getUserDefinedParameters(gd, detector);
             // even if the frames were already processed (particles detected) but
             // the user changed the detection params then the frames needs to be processed again
             if (changed) {
@@ -925,24 +928,12 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             stack = original_imp.getStack();
             this.title = original_imp.getTitle();
             final StackStatistics stack_stats = new StackStatistics(original_imp);
-            detector.global_max = (float) stack_stats.max;
-            detector.global_min = (float) stack_stats.min;
+            detector.setGlobalMax((float) stack_stats.max);
+            detector.setGlobalMin((float) stack_stats.min);
             frames_number = original_imp.getNFrames(); // ??maybe not necessary
         }
         return true;
     }
-
-    // private void thresholdModeChanged(int aThresholdMode) {
-    // setThresholdMode(aThresholdMode);
-    // if (aThresholdMode == ABS_THRESHOLD_MODE) {
-    // int defaultIntensity = (int)(global_max - (global_max-global_min) / 5);
-    // ((TextField)gd.getNumericFields().elementAt(2)).setText("" + defaultIntensity);
-    // }
-    // if (aThresholdMode == PERCENTILE_MODE) {
-    // ((TextField)gd.getNumericFields().elementAt(2)).setText(IJ.d2s(0.1, 5));
-    // }
-    //
-    // }
 
     /**
      * Shows an ImageJ message with info about this plugin
@@ -1196,7 +1187,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         /// write data to file
         // write2File(newDir.getAbsolutePath(), vFI.fileName + "PT3D.txt", getFullReport().toString());
         MosaicUtils.write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
-        writeXMLFormatReport(new File(vFI.directory, title + "_r_" + getRadius() + "_c_" + detector.cutoff + "_perc_" + detector.percentile + "_PT3Dresults.xml").getAbsolutePath());
+        writeXMLFormatReport(new File(vFI.directory, title + "_r_" + getRadius() + "_c_" + detector.getCutoff() + "_perc_" + detector.getPercentile() + "_PT3Dresults.xml").getAbsolutePath());
         new TrajectoriesReportXML(new File(vFI.directory, "report.xml").getAbsolutePath(), this);
         final ResultsTable rt = transferTrajectoriesToResultTable();
         try {
@@ -1216,7 +1207,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     public int getRadius() {
         int radius = -1;
         if (detector != null) {
-            radius = detector.radius;
+            radius = detector.getRadius();
         }
 
         return radius;
@@ -1235,7 +1226,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             return;
         }
 
-        detector.getUserDefinedPreviewParams(gd);
+        GUIhelper.getUserDefinedPreviewParams(gd, detector);
 
         final ImagePlus frame = MosaicUtils.getImageFrame(original_imp, original_imp.getFrame());
 
@@ -1324,16 +1315,16 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             configuration.append(getRadius());
             configuration.append("\n");
             configuration.append("% \tCutoff radius: ");
-            configuration.append(detector.cutoff);
+            configuration.append(detector.getCutoff());
             configuration.append("\n");
-            if (detector.threshold_mode == FeaturePointDetector.PERCENTILE_MODE) {
+            if (detector.threshold_mode == Mode.PERCENTILE_MODE) {
                 configuration.append("% \tPercentile: ");
-                configuration.append((detector.percentile * 100));
+                configuration.append((detector.getPercentile() * 100));
                 configuration.append("\n");
             }
-            else if (detector.threshold_mode == FeaturePointDetector.ABS_THRESHOLD_MODE) {
+            else if (detector.threshold_mode == Mode.ABS_THRESHOLD_MODE) {
                 configuration.append("% \tAbsolute threshold: ");
-                configuration.append((detector.absIntensityThreshold));
+                configuration.append((detector.getAbsIntensityThreshold()));
                 configuration.append("\n");
             }
 
@@ -1374,10 +1365,10 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         info.append(slices_number);
         info.append(" slices\n");
         info.append("% \tGlobal minimum: ");
-        info.append(detector.global_min);
+        info.append(detector.getGlobalMin());
         info.append("\n");
         info.append("% \tGlobal maximum: ");
-        info.append(detector.global_max);
+        info.append(detector.getGlobalMax());
         info.append("\n");
         return info;
     }
@@ -1959,16 +1950,35 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     @Override
     public void saveDetected(ActionEvent e) {
         /* set the user defined pramars according to the valus in the dialog box */
-        detector.getUserDefinedPreviewParams(gd);
+        GUIhelper.getUserDefinedPreviewParams(gd, detector);
 
         /* detect particles and save to files */
         if (this.processFrames()) { // process the frames
-            detector.saveDetected(this.frames);
+            saveDetected(this.frames);
         }
         preview_canvas.repaint();
         return;
     }
 
+    public void saveDetected(MyFrame[] frames) {
+        /* show save file user dialog with default file name 'frame' */
+        final SaveDialog sd = new SaveDialog("Save Detected Particles", IJ.getDirectory("image"), "frame", "");
+        // if user cancelled the save dialog
+        if (sd.getDirectory() == null || sd.getFileName() == null) {
+            return;
+        }
+
+        // for each frame - save the detected particles
+        for (int i = 0; i < frames.length; i++) {
+            if (!MosaicUtils.write2File(sd.getDirectory(), sd.getFileName() + "_" + i, frames[i].frameDetectedParticlesForSave(false).toString())) {
+                // upon any problam savingto file - return
+                IJ.log("Problem occured while writing to file.");
+                return;
+            }
+        }
+
+        return;
+    }
     /**
      * Extracts spot segmentation results <br>
      * and show in in ImageJ static Results Table
@@ -2153,14 +2163,14 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     }
 
     public double getCutoffRadius() {
-        return detector.cutoff;
+        return detector.getCutoff();
     }
 
     public String getThresholdMode() {
-        if (detector.threshold_mode == FeaturePointDetector.PERCENTILE_MODE) {
+        if (detector.threshold_mode == Mode.PERCENTILE_MODE) {
             return "percentile";
         }
-        else if (detector.threshold_mode == FeaturePointDetector.ABS_THRESHOLD_MODE) {
+        else if (detector.threshold_mode == Mode.ABS_THRESHOLD_MODE) {
             return "Absolute";
         }
         else {
@@ -2169,11 +2179,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     }
 
     public String getThresholdValue() {
-        if (detector.threshold_mode == FeaturePointDetector.PERCENTILE_MODE) {
-            return "" + (detector.percentile * 100);
+        if (detector.threshold_mode == Mode.PERCENTILE_MODE) {
+            return "" + (detector.getPercentile() * 100);
         }
-        else if (detector.threshold_mode == FeaturePointDetector.ABS_THRESHOLD_MODE) {
-            return "" + detector.absIntensityThreshold;
+        else if (detector.threshold_mode == Mode.ABS_THRESHOLD_MODE) {
+            return "" + detector.getAbsIntensityThreshold();
         }
         else {
             return "0";
@@ -2193,11 +2203,11 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     }
 
     public float getGlobalMinimum() {
-        return detector.global_min;
+        return detector.getGlobalMin();
     }
 
     public float getGlobalMaximum() {
-        return detector.global_max;
+        return detector.getGlobalMax();
     }
 
     public int getNumberOfFrames() {

@@ -3,6 +3,7 @@ package mosaic.ia.utils;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.ImageStack;
 import ij.gui.GenericDialog;
 import ij.io.OpenDialog;
 import ij.io.Opener;
@@ -21,8 +22,10 @@ import java.util.Vector;
 import javax.vecmath.Point3d;
 
 import mosaic.core.detection.FeaturePointDetector;
+import mosaic.core.detection.GUIhelper;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.Particle;
+import mosaic.core.utils.MosaicUtils;
 import mosaic.ia.nn.KDTreeNearestNeighbor;
 import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
@@ -60,9 +63,18 @@ public class ImageProcessUtils {
                 return null;
             }
         }
-
     }
 
+    /**
+     * @param sliceIndex: 1..#slices
+     * @return a frame index: 1..#frames
+     */
+    public static int getFrameNumberFromSlice(int sliceIndex, int slices_number) {
+        return (sliceIndex - 1) / slices_number + 1;
+    }
+    
+    public static MyFrame preview_frame;
+    
     /**
      * Detect the particle in a stack from an image using particle tracker
      * The generic parameter is the type of the image
@@ -81,7 +93,7 @@ public class ImageProcessUtils {
 
         System.out.println("No of N slices: " + imp.getNSlices());
 
-        featurePointDetector.addUserDefinedParametersDialog(gd);
+        GUIhelper.addUserDefinedParametersDialog(gd, featurePointDetector);
 
         // gd.addPanel(detector.makePreviewPanel(this, impA),
         // GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));
@@ -92,12 +104,30 @@ public class ImageProcessUtils {
 
         // featurePointDetector.generatePreviewCanvas(imp);
         gd.showDialog();
-        featurePointDetector.getUserDefinedParameters(gd);
+        GUIhelper.getUserDefinedParameters(gd, featurePointDetector);
+        
+        
+        /**
+         * Detects particles in the current displayed frame according to the parameters currently set
+         * Draws dots on the positions of the detected partciles on the frame and circles them
+         */
+        
         final Img<T> background = ImagePlusAdapter.wrap(imp);
-        featurePointDetector.preview(imp, gd);
-        final MyFrame myFrame = featurePointDetector.getPreviewFrame();
+        // the stack of the original loaded image (it can be 1 frame)
+        final ImageStack stack = imp.getStack();
+        
+        GUIhelper.getUserDefinedPreviewParams(gd, featurePointDetector);
+        
+        final int first_slice = imp.getCurrentSlice(); // TODO check what should be here, figure out how slices and frames numbers work(getFrameNumberFromSlice(impA.getCurrentSlice())-1) * impA.getNSlices() + 1;
+        // create a new MyFrame from the current_slice in the stack, linkrange should not matter for a previewframe
+        preview_frame = new MyFrame(MosaicUtils.GetSubStackCopyInFloat(stack, first_slice, first_slice + imp.getNSlices() - 1), getFrameNumberFromSlice(imp.getCurrentSlice(), imp.getNSlices()) - 1, 1);
+        
+        // detect particles in this frame
+        featurePointDetector.featurePointDetection(preview_frame);
+//        featurePointDetector.setPreviewLabel("#Particles: " + featurePointDetector.preview_frame.getParticles().size());
+        final MyFrame myFrame = preview_frame;
 
-        myFrame.setParticleRadius(featurePointDetector.radius);
+        myFrame.setParticleRadius(featurePointDetector.getRadius());
         final Img<ARGBType> detected = myFrame.createImage(background, imp.getCalibration());
         ImageJFunctions.show(detected);
 

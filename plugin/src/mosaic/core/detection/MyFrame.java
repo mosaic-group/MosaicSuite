@@ -579,7 +579,7 @@ public class MyFrame {
      * @return the <code>StringBuffer</code> with this information
      * @see MyFrame#loadParticlesFromFile(String)
      */
-    StringBuffer frameDetectedParticlesForSave(boolean with_momentum) {
+    public StringBuffer frameDetectedParticlesForSave(boolean with_momentum) {
         final DecimalFormat nf = new DecimalFormat("#####0.000000");
         nf.setGroupingUsed(false);
         final StringBuffer info1 = new StringBuffer("frame ");

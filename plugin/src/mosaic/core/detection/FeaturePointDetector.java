@@ -1,81 +1,46 @@
 package mosaic.core.detection;
 
 
-import ij.IJ;
+import java.util.Vector;
+
 import ij.ImagePlus;
 import ij.ImageStack;
-import ij.gui.GenericDialog;
-import ij.gui.StackWindow;
-import ij.io.SaveDialog;
 import ij.measure.Measurements;
 import ij.plugin.filter.Convolver;
 import ij.process.Blitter;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
-
-import java.awt.Button;
-import java.awt.Checkbox;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Label;
-import java.awt.Panel;
-import java.awt.Scrollbar;
-import java.awt.TextField;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
-import java.util.Vector;
-
 import mosaic.core.utils.MosaicImageProcessingTools;
 import mosaic.core.utils.MosaicUtils;
-import mosaic.plugins.BackgroundSubtractor2_;
 
 
 /**
- * <br>
- * FeaturePointDetector class has all the necessary methods to detect the "real" particles
- * for them to be linked.
+ * FeaturePointDetector detects the "real" particles in provided frames.
  */
-
 public class FeaturePointDetector {
+    public static enum Mode { ABS_THRESHOLD_MODE, PERCENTILE_MODE }
 
-    public static final int ABS_THRESHOLD_MODE = 0, PERCENTILE_MODE = 1;
-    private static final int NO_PREPROCESSING = 0, BOX_CAR_AVG = 1, BG_SUBTRACTOR = 2, LAPLACE_OP = 3;
-
-    public float global_max, global_min;
+    private float iGlobalMax;
+    private float iGlobalMin;
+    
     private Vector<Particle> particles;
     private int particles_number; // number of particles initialy detected
     private int real_particles_number; // number of "real" particles discrimination
 
-    private final Label previewLabel = new Label("");
-    private MyFrame preview_frame;
-
     /* user defined parameters */
-    public double cutoff = 3.0; // default
-    public float percentile = 0.001F; // default (user input/100)
-    public float absIntensityThreshold = 0.0f; // user input
-    public int radius = 3; // default
-    private boolean absolute = false;
-    // public float sigma_factor = 3;
+    private int radius = 3; // default
+    private double cutoff = 3.0; // default
+    private float percentile = 0.001F; // default (user input/100)
+    private float absIntensityThreshold = 0.0f; // user input
+    public Mode threshold_mode = Mode.PERCENTILE_MODE;
 
-    public int threshold_mode = PERCENTILE_MODE;
-
-    private float threshold;
-
-    /* image Restoration vars */
-    // public short[][] binary_mask;
-    // public float[][] weighted_mask;
     private int[][] mask;
-    private final float lambda_n = 1;
-    private final int preprocessing_mode = BOX_CAR_AVG;
-
-    public FeaturePointDetector(float global_max, float global_min) {
-        this.global_max = global_max;
-        this.global_min = global_min;
-        // create Mask for Dilation
-        generateMasks(this.radius);
+    
+    public FeaturePointDetector(float aGlobalMax, float aGlobalMin) {
+        iGlobalMax = aGlobalMax;
+        iGlobalMin = aGlobalMin;
+        generateDilationMasks(this.radius);
     }
 
     /**
@@ -86,7 +51,6 @@ public class FeaturePointDetector {
      * 
      * @see ImageProcessor#convertToFloat()
      */
-
     public void featurePointDetection(MyFrame frame) {
         /*
          * Converting the original imageProcessor to float
@@ -94,7 +58,6 @@ public class FeaturePointDetector {
          * value in 16bit and 8bit image processors in ImageJ therefore, if the image is not
          * converted to 32bit floating point, false particles get detected
          */
-
         final ImageStack original_ips = frame.getOriginalImageStack();
         ImageStack restored_fps = new ImageStack(original_ips.getWidth(), original_ips.getHeight());
 
@@ -104,7 +67,7 @@ public class FeaturePointDetector {
         }
 
         /* The algorithm is initialized by normalizing the frame */
-        normalizeFrameFloat(restored_fps, global_min, global_max);
+        normalizeFrameFloat(restored_fps, iGlobalMin, iGlobalMax);
         // new StackWindow(new ImagePlus("after normalization",restored_fps));
 
         /* Image Restoration - Step 1 of the algorithm */
@@ -112,8 +75,6 @@ public class FeaturePointDetector {
         // new StackWindow(new ImagePlus("after restoration",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored_fps, 1, restored_fps.getSize())));
 
         /* Estimation of the point location - Step 2 of the algorithm */
-        findThreshold(restored_fps, percentile, absIntensityThreshold);
-
         pointLocationsEstimation(restored_fps, frame.frame_number, frame.linkrange);
         
         /* Refinement of the point location - Step 3 of the algorithm */
@@ -131,7 +92,6 @@ public class FeaturePointDetector {
         frame.setParticles(particles, real_particles_number);
 
         /* Set the real_particle_number */
-
         frame.real_particles_number = real_particles_number;
     }
 
@@ -164,12 +124,12 @@ public class FeaturePointDetector {
      * @param ip ImageProcessor after conversion, normalization and restoration
      * @param percent the upper rth percentile to be considered as candidate Particles
      * @param absIntensityThreshold2 a intensity value which defines a threshold.
+     * @return 
      */
-    private void findThreshold(ImageStack ips, double percent, float absIntensityThreshold2) {
-        if (getThresholdMode() == ABS_THRESHOLD_MODE) {
+    private float findThreshold(ImageStack ips, double percent, float absIntensityThreshold2) {
+        if (threshold_mode == Mode.ABS_THRESHOLD_MODE) {
             // the percent parameter corresponds to an absolute value (not percent)
-            this.setThreshold(absIntensityThreshold2 - global_min / (global_max - global_min));
-            return;
+            return absIntensityThreshold2 - iGlobalMin / (iGlobalMax - iGlobalMin);
         }
         int s, i, j, thold, width;
         width = ips.getWidth();
@@ -213,7 +173,7 @@ public class FeaturePointDetector {
             }
         }
         thold = 255 - thold + 1;
-        this.setThreshold(((float) (thold / 255.0) * (max - min) + min));
+        return ((float) (thold / 255.0) * (max - min) + min);
     }
 
     /**
@@ -226,6 +186,7 @@ public class FeaturePointDetector {
      * @param ip ImageProcessor, should be after conversion, normalization and restoration
      */
     private void pointLocationsEstimation(ImageStack ips, int frame_number, int linkrange) {
+        float threshold = findThreshold(ips, percentile, absIntensityThreshold);
         /* do a grayscale dilation */
         final ImageStack dilated_ips = MosaicImageProcessingTools.dilateGeneric(ips, radius, 4);
         // new StackWindow(new ImagePlus("dilated ", dilated_ips));
@@ -238,7 +199,7 @@ public class FeaturePointDetector {
             final float[] ips_dilated_pixels = (float[]) dilated_ips.getProcessor(s + 1).getPixels();
             for (int i = 0; i < height; i++) {
                 for (int j = 0; j < width; j++) {
-                    if (ips_pixels[i * width + j] > this.threshold && ips_pixels[i * width + j] == ips_dilated_pixels[i * width + j]) { // check if pixel is a local maximum
+                    if (ips_pixels[i * width + j] > threshold && ips_pixels[i * width + j] == ips_dilated_pixels[i * width + j]) { // check if pixel is a local maximum
 
                         /* and add each particle that meets the criteria to the particles array */
                         // (the starting point is the middle of the pixel and exactly on a focal plane:)
@@ -420,8 +381,6 @@ public class FeaturePointDetector {
         }
 
         for (j = 0; j < this.particles.size(); j++) {
-            // for (k = j + 1; k < this.particles.size(); k++) {
-            // }
             boolean vParticleInNeighborhood = false;
             for (int oz = -1; !vParticleInNeighborhood && oz <= 1; oz++) {
                 for (int oy = -1; !vParticleInNeighborhood && oy <= 1; oy++) {
@@ -484,36 +443,16 @@ public class FeaturePointDetector {
             restored.addSlice("", rp);
         }
 
-        switch (preprocessing_mode) {
-            case NO_PREPROCESSING:
-                GaussBlur3D(restored, 1 * lambda_n);
-                break;
-            case BOX_CAR_AVG:
-                // There was found to be a 2*lambda_n for the sigma of the Gaussian kernel.
-                // Set it back to 1*lambda_n to match the 2D implementation.
-                GaussBlur3D(restored, 1 * lambda_n);
-                // new StackWindow(new ImagePlus("convolved 3d",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
+        // Old switch statement for:  case BOX_CAR_AVG:
+        // There was found to be a 2*lambda_n for the sigma of the Gaussian kernel.
+        // Set it back to 1*lambda_n to match the 2D implementation.
+        final float lambda_n = 1;
+        GaussBlur3D(restored, 1 * lambda_n);
+        // new StackWindow(new ImagePlus("convolved 3d",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
+        boxCarBackgroundSubtractor(restored);
+        // new StackWindow(new ImagePlus("after bg subtraction",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
 
-                boxCarBackgroundSubtractor(restored);// TODO:3D? ->else: pad!
-                // new StackWindow(new ImagePlus("after bg subtraction",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
 
-                break;
-            case BG_SUBTRACTOR:
-                GaussBlur3D(restored, 1 * lambda_n);
-                final BackgroundSubtractor2_ bgSubtractor = new BackgroundSubtractor2_();
-                for (int s = 1; s <= restored.getSize(); s++) {
-                    bgSubtractor.SubtractBackground(restored.getProcessor(s), radius * 4);
-                }
-                break;
-            case LAPLACE_OP:
-                // remove noise then do the laplace op
-                GaussBlur3D(restored, 1 * lambda_n);
-                MosaicUtils.repadImageStack3D(restored, radius);
-                restored = Laplace_Separable_3D(restored);
-                break;
-            default:
-                break;
-        }
         if (is.getSize() > 1) {
             // again, 3D crop
             // new StackWindow(new ImagePlus("before cropping",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
@@ -548,10 +487,6 @@ public class FeaturePointDetector {
         if (is.getSize() == 1) {
             return;
         }
-
-        // TODO: which kernel? since lambda_n = 1 pixel, it does not depend on the resolution -->not rescale
-        // rescale the kernel for z dimension
-        // vKernel = CalculateNormalizedGaussKernel((float)(aRadius / (original_imp.getCalibration().pixelDepth / original_imp.getCalibration().pixelWidth)));
 
         kernel_radius = vKernel.length / 2;
         // to speed up the method, store the processor in an array (not invoke getProcessor()):
@@ -590,65 +525,6 @@ public class FeaturePointDetector {
         }
     }
 
-    private ImageStack Laplace_Separable_3D(ImageStack aIS) {
-        final float[] vKernel_1D = new float[] { -1, 2, -1 };
-        final ImageStack vResultStack = new ImageStack(aIS.getWidth(), aIS.getHeight());
-        final int vKernelWidth = vKernel_1D.length;
-        final int vKernelRadius = vKernel_1D.length / 2;
-        final int vWidth = aIS.getWidth();
-        //
-        // in x dimension
-        //
-        for (int vI = 1; vI <= aIS.getSize(); vI++) {
-            final ImageProcessor vConvolvedSlice = aIS.getProcessor(vI).duplicate();
-            final Convolver vConvolver = new Convolver();
-            vConvolver.setNormalize(false);
-            vConvolver.convolve(vConvolvedSlice, vKernel_1D, vKernelWidth, 1);
-            vResultStack.addSlice(null, vConvolvedSlice);
-        }
-        //
-        // in y dimension and sum it to the result
-        //
-        for (int vI = 1; vI <= aIS.getSize(); vI++) {
-            final ImageProcessor vConvolvedSlice = aIS.getProcessor(vI).duplicate();
-            final Convolver vConvolver = new Convolver();
-            vConvolver.setNormalize(false);
-            vConvolver.convolve(vConvolvedSlice, vKernel_1D, 1, vKernelWidth);
-            vResultStack.getProcessor(vI).copyBits(vConvolvedSlice, 0, 0, Blitter.ADD);
-        }
-        
-        // z dimension
-        //
-        // first get all the processors of the frame in an array since the getProcessor method is expensive
-        final float[][] vOriginalStackPixels = new float[aIS.getSize()][];
-        final float[][] vConvolvedStackPixels = new float[aIS.getSize()][];
-        final float[][] vResultStackPixels = new float[aIS.getSize()][];
-        for (int vS = 0; vS < aIS.getSize(); vS++) {
-            vOriginalStackPixels[vS] = (float[]) aIS.getProcessor(vS + 1).getPixels();
-            vConvolvedStackPixels[vS] = (float[]) aIS.getProcessor(vS + 1).getPixelsCopy();
-            vResultStackPixels[vS] = (float[]) vResultStack.getProcessor(vS + 1).getPixels();
-        }
-        for (int vY = 0; vY < aIS.getHeight(); vY++) {
-            for (int vX = 0; vX < aIS.getWidth(); vX++) {
-                for (int vS = vKernelRadius; vS < aIS.getSize() - vKernelRadius; vS++) {
-                    float vSum = 0;
-                    for (int vI = -vKernelRadius; vI <= vKernelRadius; vI++) {
-                        vSum += vKernel_1D[vI + vKernelRadius] * vOriginalStackPixels[vS + vI][vY * vWidth + vX];
-                    }
-                    vConvolvedStackPixels[vS][vY * vWidth + vX] = vSum;
-                }
-            }
-        }
-        // add the results
-        for (int vS = vKernelRadius; vS < aIS.getSize() - vKernelRadius; vS++) {
-            for (int vI = 0; vI < vResultStackPixels[vS].length; vI++) {
-                vResultStackPixels[vS][vI] += vConvolvedStackPixels[vS][vI];
-            }
-        }
-        // new StackWindow(new ImagePlus("after laplace copy",GetSubStackCopyInFloat(vResultStack, 1, vResultStack.getSize())));
-        return vResultStack;
-    }
-
     private float[] CalculateNormalizedGaussKernel(float aSigma) {
         int vL = (int) aSigma * 3 * 2 + 1;
         if (vL < 3) {
@@ -680,254 +556,71 @@ public class FeaturePointDetector {
      * 
      * @param mask_radius
      */
-    private void generateMasks(int mask_radius) {
+    private void generateDilationMasks(int mask_radius) {
         // standard boolean mask
         mask = MosaicImageProcessingTools.generateMask(mask_radius);
-
     }
 
     /**
      * Sets user defined params that are necessary to particle detection
      * and generates the <code>mask</code> according to these params
+     * @return 
      * 
-     * @see #generateMasks(int)
+     * @see #generateDilationMasks(int)
      */
-    private void setUserDefinedParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute) {
-
+    public boolean setUserDefinedParameters(double cutoff, float percentile, int radius, float Threshold, boolean absolute) {
+        final boolean changed = (radius != this.radius || cutoff != this.cutoff || (percentile != this.percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
+        
         this.cutoff = cutoff;
         this.percentile = percentile;
         this.absIntensityThreshold = Threshold;
         this.radius = radius;
         if (absolute == true) {
-            this.threshold_mode = ABS_THRESHOLD_MODE;
+            this.threshold_mode = Mode.ABS_THRESHOLD_MODE;
         }
         else {
-            this.threshold_mode = PERCENTILE_MODE;
+            this.threshold_mode = Mode.PERCENTILE_MODE;
         }
 
         // create Mask for Dilation with the user defined radius
-        generateMasks(this.radius);
-    }
-
-    public void addUserDefinedParametersDialog(GenericDialog gd) {
-        gd.addMessage("Particle Detection:");
-        // These 3 params are only relevant for non text_files_mode
-        gd.addNumericField("Radius", radius, 0);
-        gd.addNumericField("Cutoff", cutoff, 1);
-        gd.addNumericField("Per/Abs", percentile * 100, 5, 6, " ");
-
-        gd.addCheckbox("Absolute", absolute);
-    }
-
-    /**
-     * gd has to be shown with showDialog and handles the fields added to the dialog
-     * with addUserDefinedParamtersDialog(gd).
-     * 
-     * @param gd <code>GenericDialog</code> at which the UserDefinedParameter fields where added.
-     * @return true if user changed the parameters and false if the user didn't changed them.
-     */
-    public Boolean getUserDefinedParameters(GenericDialog gd) {
-        final int rad = (int) gd.getNextNumber();
-        // this.radius = (int)gd.getNextNumber();
-        final double cut = gd.getNextNumber();
-        // this.cutoff = gd.getNextNumber();
-        final float per = ((float) gd.getNextNumber()) / 100;
-        final float intThreshold = per * 100;
-        absolute = gd.getNextBoolean();
-
-        // this.percentile = ((float)gd.getNextNumber())/100;
-
-        // int thsmode = gd.getNextChoiceIndex();
-        // setThresholdMode(thsmode);
-
-        // int mode = gd.getNextChoiceIndex();
-        // float sigma_fac = ((float)gd.getNextNumber());
-
-        final Boolean changed = (rad != radius || cut != cutoff || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
-        setUserDefinedParameters(cut, per, rad, intThreshold, absolute);
-        // this.preprocessing_mode = mode;
+        generateDilationMasks(this.radius);
+        
         return changed;
-    }
-
-    /**
-     * Gets user defined params that are necessary to display the preview of particle detection.
-     */
-    public Boolean getUserDefinedPreviewParams(GenericDialog gd) {
-
-        @SuppressWarnings("unchecked")
-        final
-        // the warning is due to old imagej code.
-        Vector<TextField> vec = gd.getNumericFields();
-        final int rad = Integer.parseInt((vec.elementAt(0)).getText());
-        final double cut = Double.parseDouble((vec.elementAt(1)).getText());
-        final float per = (Float.parseFloat((vec.elementAt(2)).getText())) / 100;
-        // float sigma_fac = (Float.parseFloat((vec.elementAt(3)).getText()));
-        final float intThreshold = per * 100;
-        @SuppressWarnings("unchecked")
-        final
-        // the warning is due to old imagej code
-        Vector<Checkbox> vecb = gd.getCheckboxes();
-        final boolean absolute = vecb.elementAt(0).getState();
-        // int thsmode = ((Choice)gd.getChoices().elementAt(0)).getSelectedIndex();
-        // int mode = ((Choice)gd.getChoices().elementAt(1)).getSelectedIndex();
-
-        // even if the frames were already processed (particles detected) but
-        // the user changed the detection params then the frames needs to be processed again
-        final Boolean changed = (rad != radius || cut != cutoff || (per != percentile));// && intThreshold != absIntensityThreshold || mode != getThresholdMode() || thsmode != getThresholdMode();
-        setUserDefinedParameters(cut, per, rad, intThreshold, absolute);// , sigma_fac);
-        return changed;
-    }
-
-    /**
-     * Creates the preview panel that gives the options to preview and save the detected particles,
-     * and also a scroll bar to navigate through the slices of the movie <br>
-     * Buttons and scrollbar created here use this PreviewInterface previewHandler as <code>ActionListener</code> and <code>AdjustmentListener</code>
-     * 
-     * @return the preview panel
-     */
-
-    public Panel makePreviewPanel(final PreviewInterface previewHandler, final ImagePlus img) {
-
-        final Panel preview_panel = new Panel();
-        final GridBagLayout gridbag = new GridBagLayout();
-        final GridBagConstraints c = new GridBagConstraints();
-        preview_panel.setLayout(gridbag);
-        c.fill = GridBagConstraints.BOTH;
-        c.gridwidth = GridBagConstraints.REMAINDER;
-
-        /* scroll bar to navigate through the slices of the movie */
-        final Scrollbar preview_scrollbar = new Scrollbar(Scrollbar.HORIZONTAL, img.getCurrentSlice(), 1, 1, img.getStackSize() + 1);
-        preview_scrollbar.addAdjustmentListener(new AdjustmentListener() {
-
-            @Override
-            public void adjustmentValueChanged(AdjustmentEvent e) {
-                // set the current visible slice to the one selected on the bar
-                img.setSlice(preview_scrollbar.getValue());
-                // update the preview view to this silce
-                // this.preview();
-            }
-        });
-        preview_scrollbar.setUnitIncrement(1);
-        preview_scrollbar.setBlockIncrement(1);
-
-        /* button to generate preview of the detected particles */
-        final Button preview = new Button("Preview Detected");
-        preview.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                previewHandler.preview(e);
-            }
-        });
-
-        /* button to save the detected particles */
-        final Button save_detected = new Button("Save Detected");
-        save_detected.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                previewHandler.saveDetected(e);
-            }
-        });
-        final Label seperation = new Label("______________", Label.CENTER);
-        gridbag.setConstraints(preview, c);
-        preview_panel.add(preview);
-        gridbag.setConstraints(preview_scrollbar, c);
-        preview_panel.add(preview_scrollbar);
-        gridbag.setConstraints(save_detected, c);
-        preview_panel.add(save_detected);
-        gridbag.setConstraints(previewLabel, c);
-        preview_panel.add(previewLabel);
-        gridbag.setConstraints(seperation, c);
-        preview_panel.add(seperation);
-        return preview_panel;
-    }
-
-    public void setPreviewLabel(String previewLabelText) {
-        this.previewLabel.setText(previewLabelText);
-    }
-
-    public PreviewCanvas generatePreviewCanvas(ImagePlus imp) {
-        // save the current magnification factor of the current image window
-        final double magnification = imp.getWindow().getCanvas().getMagnification();
-
-        // generate the previewCanvas - while generating the drawing will be done
-        final PreviewCanvas preview_canvas = new PreviewCanvas(imp, magnification);
-
-        // display the image and canvas in a stackWindow
-        final StackWindow sw = new StackWindow(imp, preview_canvas);
-
-        // magnify the canvas to match the original image magnification
-        while (sw.getCanvas().getMagnification() < magnification) {
-            preview_canvas.zoomIn(0, 0);
-        }
-        return preview_canvas;
-    }
-
-    /**
-     * Detects particles in the current displayed frame according to the parameters currently set
-     * Draws dots on the positions of the detected partciles on the frame and circles them
-     * 
-     * @see #getUserDefinedPreviewParams()
-     * @see MyFrame#featurePointDetection()
-     */
-    public synchronized void preview(ImagePlus imp, GenericDialog gd) {
-
-        // the stack of the original loaded image (it can be 1 frame)
-        final ImageStack stack = imp.getStack();
-
-        getUserDefinedPreviewParams(gd);
-
-        final int first_slice = imp.getCurrentSlice(); // TODO check what should be here, figure out how slices and frames numbers work(getFrameNumberFromSlice(impA.getCurrentSlice())-1) * impA.getNSlices() + 1;
-        // create a new MyFrame from the current_slice in the stack, linkrange should not matter for a previewframe
-        preview_frame = new MyFrame(MosaicUtils.GetSubStackCopyInFloat(stack, first_slice, first_slice + imp.getNSlices() - 1), getFrameNumberFromSlice(imp.getCurrentSlice(), imp.getNSlices()) - 1, 1);
-
-        // detect particles in this frame
-        featurePointDetection(preview_frame);
-        setPreviewLabel("#Particles: " + preview_frame.getParticles().size());
-    }
-
-    /**
-     * @param sliceIndex: 1..#slices
-     * @return a frame index: 1..#frames
-     */
-    private int getFrameNumberFromSlice(int sliceIndex, int slices_number) {
-        return (sliceIndex - 1) / slices_number + 1;
-    }
-
-    private void setThreshold(float threshold) {
-        this.threshold = threshold;
-    }
-
-    private int getThresholdMode() {
-        return threshold_mode;
     }
 
     public int getRadius() {
         return radius;
     }
-
-    public MyFrame getPreviewFrame() {
-        return preview_frame;
+    
+    public Mode getThresholdMode() {
+        return threshold_mode;
+    }
+    
+    public float getGlobalMax() {
+        return iGlobalMax;
+    }
+    
+    public float getGlobalMin() {
+        return iGlobalMin;
     }
 
-    public void saveDetected(MyFrame[] frames) {
-        /* show save file user dialog with default file name 'frame' */
-        final SaveDialog sd = new SaveDialog("Save Detected Particles", IJ.getDirectory("image"), "frame", "");
-        // if user cancelled the save dialog
-        if (sd.getDirectory() == null || sd.getFileName() == null) {
-            return;
-        }
+    public void setGlobalMax(float aValue) {
+        iGlobalMax = aValue;
+    }
 
-        // for each frame - save the detected particles
-        for (int i = 0; i < frames.length; i++) {
-            if (!MosaicUtils.write2File(sd.getDirectory(), sd.getFileName() + "_" + i, frames[i].frameDetectedParticlesForSave(false).toString())) {
-                // upon any problam savingto file - return
-                IJ.log("Problem occured while writing to file.");
-                return;
-            }
-        }
+    public void setGlobalMin(float aValue) {
+        iGlobalMin = aValue;
+    }
+    
+    public double getCutoff() {
+        return cutoff;
+    }
 
-        return;
+    public float getPercentile() {
+        return percentile;
+    }
+    
+    public float getAbsIntensityThreshold() {
+        return absIntensityThreshold;
     }
 }
