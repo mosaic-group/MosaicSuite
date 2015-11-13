@@ -84,7 +84,6 @@ public class ImageProcessUtils {
      */
 
     private static <T extends RealType<T> & NativeType<T>> Vector<Particle> detectParticlesinStackType(ImagePlus imp) {
-        // init the circle cache
         MyFrame.initCache();
         final ImageStatistics imageStat = imp.getStatistics();
         final FeaturePointDetector featurePointDetector = new FeaturePointDetector((float) imageStat.max, (float) imageStat.min);
@@ -95,14 +94,8 @@ public class ImageProcessUtils {
 
         GUIhelper.addUserDefinedParametersDialog(gd, featurePointDetector);
 
-        // gd.addPanel(detector.makePreviewPanel(this, impA),
-        // GridBagConstraints.CENTER, new Insets(5, 0, 0, 0));
-
-        // show the image
-
         imp.show();
 
-        // featurePointDetector.generatePreviewCanvas(imp);
         gd.showDialog();
         GUIhelper.getUserDefinedParameters(gd, featurePointDetector);
         

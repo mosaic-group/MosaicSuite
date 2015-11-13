@@ -37,6 +37,10 @@ public class FeaturePointDetector {
     private int[][] mask;
     
     
+    /**
+     * @param aGlobalMax - global maximum taken from processed movie / image sequence
+     * @param aGlobalMin - global minimum
+     */
     public FeaturePointDetector(float aGlobalMax, float aGlobalMin) {
         iGlobalMax = aGlobalMax;
         iGlobalMin = aGlobalMin;
@@ -212,121 +216,125 @@ public class FeaturePointDetector {
     }
 
     private void pointLocationsRefinement(ImageStack ips) {
-        int m, k, l, x, y, z, tx, ty, tz;
-        float epsx, epsy, epsz, c;
-
         final int mask_width = 2 * iRadius + 1;
-        final int image_width = ips.getWidth();
+        final int imageWidth = ips.getWidth();
+        final int imageHeight = ips.getHeight();
+        final int imageDepth = ips.getSize();
+        
         /* Set every value that is smaller than 0 to 0 */
-        for (int s = 0; s < ips.getSize(); s++) {
+        for (int s = 0; s < ips.getSize(); ++s) {
             final float[] pixels = (float[]) ips.getPixels(s + 1);
-            for (int i = 0; i < pixels.length; i++) {
+            for (int i = 0; i < pixels.length; ++i) {
                 if (pixels[i] < 0) {
-                    pixels[i] = 0f;
+                    pixels[i] = 0;
                 }
             }
         }
 
-        /* Loop over all particles */
-        for (m = 0; m < iParticles.size(); m++) {
-            iParticles.elementAt(m).special = true;
-            iParticles.elementAt(m).score = 0.0F;
-            epsx = epsy = epsz = 1.0F;
-
-            while (epsx > 0.5 || epsx < -0.5 || epsy > 0.5 || epsy < -0.5 || epsz > 0.5 || epsz < -0.5) {
-                iParticles.elementAt(m).nbIterations++;
-                iParticles.elementAt(m).m0 = 0.0F;
-                iParticles.elementAt(m).m1 = 0.0F;
-                iParticles.elementAt(m).m2 = 0.0F;
-                iParticles.elementAt(m).m3 = 0.0F;
-                iParticles.elementAt(m).m4 = 0.0F;
-                epsx = 0.0F;
-                epsy = 0.0F;
-                epsz = 0.0F;
-                for (int s = -iRadius; s <= iRadius; s++) {
-                    if (((int) iParticles.elementAt(m).z + s) < 0 || ((int) iParticles.elementAt(m).z + s) >= ips.getSize()) {
+        for (int m = 0; m < iParticles.size(); ++m) {
+            final Particle currentParticle = iParticles.elementAt(m);
+            currentParticle.special = true;
+            currentParticle.score = 0;
+            float epsx = 0;
+            float epsy = 0;
+            float epsz = 0;
+            
+            do {
+                currentParticle.nbIterations++;
+                currentParticle.m0 = 0;
+                currentParticle.m1 = 0;
+                currentParticle.m2 = 0;
+                currentParticle.m3 = 0;
+                currentParticle.m4 = 0;
+                epsx = 0;
+                epsy = 0;
+                epsz = 0;
+                
+                for (int s = -iRadius; s <= iRadius; ++s) {
+                    if (((int) currentParticle.z + s) < 0 || ((int) currentParticle.z + s) >= imageDepth) {
                         continue;
                     }
-                    z = (int) iParticles.elementAt(m).z + s;
-                    for (k = -iRadius; k <= iRadius; k++) {
-                        if (((int) iParticles.elementAt(m).y + k) < 0 || ((int) iParticles.elementAt(m).y + k) >= ips.getHeight()) {
+                    int z = (int) currentParticle.z + s;
+                    float[] pixels = (float[]) ips.getPixels(z + 1);
+                    
+                    for (int k = -iRadius; k <= iRadius; ++k) {
+                        if (((int) currentParticle.y + k) < 0 || ((int) currentParticle.y + k) >= imageHeight) {
                             continue;
                         }
-                        x = (int) iParticles.elementAt(m).y + k;
+                        int y = (int) currentParticle.y + k;
 
-                        for (l = -iRadius; l <= iRadius; l++) {
-                            if (((int) iParticles.elementAt(m).x + l) < 0 || ((int) iParticles.elementAt(m).x + l) >= ips.getWidth()) {
+                        for (int l = -iRadius; l <= iRadius; ++l) {
+                            if (((int) currentParticle.x + l) < 0 || ((int) currentParticle.x + l) >= imageWidth) {
                                 continue;
                             }
-                            y = (int) iParticles.elementAt(m).x + l;
-                            //
-                            // c =   ips.getProcessor(z + 1).getPixelValue(y, x) * (float)mask[s + radius][(k + radius) * mask_width + (l + radius)];
-                            c = ((float[]) (ips.getPixels(z + 1)))[x * image_width + y] * mask[s + iRadius][(k + iRadius) * mask_width + (l + iRadius)];
+                            int x = (int) currentParticle.x + l;
+                            
+                            float c = pixels[y * imageWidth + x] * mask[s + iRadius][(k + iRadius) * mask_width + (l + iRadius)];
 
-                            iParticles.elementAt(m).m0 += c;
-                            epsx += k * c;
-                            epsy += l * c;
+                            epsx += l * c;
+                            epsy += k * c;
                             epsz += s * c;
-                            iParticles.elementAt(m).m2 += (k * k + l * l + s * s) * c;
-                            iParticles.elementAt(m).m1 += (float) Math.sqrt(k * k + l * l + s * s) * c;
-                            iParticles.elementAt(m).m3 += (float) Math.pow(k * k + l * l + s * s, 1.5f) * c;
-                            iParticles.elementAt(m).m4 += (float) Math.pow(k * k + l * l + s * s, 2) * c;
+                            currentParticle.m0 += c;
+                            int squaredDistance = k * k + l * l + s * s;
+                            currentParticle.m1 += (float) Math.sqrt(squaredDistance) * c;
+                            currentParticle.m2 += squaredDistance * c;
+                            currentParticle.m3 += (float) Math.pow(squaredDistance, 1.5f) * c;
+                            currentParticle.m4 += (float) Math.pow(squaredDistance, 2) * c;
                         }
                     }
                 }
 
-                epsx /= iParticles.elementAt(m).m0;
-                epsy /= iParticles.elementAt(m).m0;
-                epsz /= iParticles.elementAt(m).m0;
-                iParticles.elementAt(m).m2 /= iParticles.elementAt(m).m0;
-                iParticles.elementAt(m).m1 /= iParticles.elementAt(m).m0;
-                iParticles.elementAt(m).m3 /= iParticles.elementAt(m).m0;
-                iParticles.elementAt(m).m4 /= iParticles.elementAt(m).m0;
+                epsx /= currentParticle.m0;
+                epsy /= currentParticle.m0;
+                epsz /= currentParticle.m0;
+                currentParticle.m1 /= currentParticle.m0;
+                currentParticle.m2 /= currentParticle.m0;
+                currentParticle.m3 /= currentParticle.m0;
+                currentParticle.m4 /= currentParticle.m0;
 
-                // This is a little hack to avoid numerical inaccuracy
-                tx = (int) (10.0 * epsx);
-                ty = (int) (10.0 * epsy);
-                tz = (int) (10.0 * epsz);
+                int tx = (int) (10.0 * epsx);
+                int ty = (int) (10.0 * epsy);
+                int tz = (int) (10.0 * epsz);
 
                 if ((tx) / 10.0 > 0.5) {
-                    if ((int) iParticles.elementAt(m).y + 1 < ips.getHeight()) {
-                        iParticles.elementAt(m).y++;
+                    if ((int) currentParticle.x + 1 < imageWidth) {
+                        currentParticle.x++;
                     }
                 }
                 else if ((tx) / 10.0 < -0.5) {
-                    if ((int) iParticles.elementAt(m).y - 1 >= 0) {
-                        iParticles.elementAt(m).y--;
+                    if ((int) currentParticle.x - 1 >= 0) {
+                        currentParticle.x--;
                     }
                 }
                 if ((ty) / 10.0 > 0.5) {
-                    if ((int) iParticles.elementAt(m).x + 1 < ips.getWidth()) {
-                        iParticles.elementAt(m).x++;
+                    if ((int) currentParticle.y + 1 < imageHeight) {
+                        currentParticle.y++;
                     }
                 }
                 else if ((ty) / 10.0 < -0.5) {
-                    if ((int) iParticles.elementAt(m).x - 1 >= 0) {
-                        iParticles.elementAt(m).x--;
+                    if ((int) currentParticle.y - 1 >= 0) {
+                        currentParticle.y--;
                     }
                 }
                 if ((tz) / 10.0 > 0.5) {
-                    if ((int) iParticles.elementAt(m).z + 1 < ips.getSize()) {
-                        iParticles.elementAt(m).z++;
+                    if ((int) currentParticle.z + 1 < imageDepth) {
+                        currentParticle.z++;
                     }
                 }
                 else if ((tz) / 10.0 < -0.5) {
-                    if ((int) iParticles.elementAt(m).z - 1 >= 0) {
-                        iParticles.elementAt(m).z--;
+                    if ((int) currentParticle.z - 1 >= 0) {
+                        currentParticle.z--;
                     }
                 }
 
                 if ((tx) / 10.0 <= 0.5 && (tx) / 10.0 >= -0.5 && (ty) / 10.0 <= 0.5 && (ty) / 10.0 >= -0.5 && (tz) / 10.0 <= 0.5 && (tz) / 10.0 >= -0.5) {
                     break;
                 }
-            }
-            // System.out.println("iterations for particle " + m + ": " + particles.elementAt(m).nbIterations);
-            iParticles.elementAt(m).y += epsx;
-            iParticles.elementAt(m).x += epsy;
-            iParticles.elementAt(m).z += epsz;
+            } while (epsx > 0.5 || epsx < -0.5 || epsy > 0.5 || epsy < -0.5 || epsz > 0.5 || epsz < -0.5);
+            
+            currentParticle.x += epsx;
+            currentParticle.y += epsy;
+            currentParticle.z += epsz;
         }
     }
 
@@ -338,7 +346,6 @@ public class FeaturePointDetector {
      * Adapted "as is" from Ingo Oppermann implementation
      */
     private void nonParticleDiscrimination() {
-
         int j, k;
         double score;
         int max_x = 1, max_y = 1, max_z = 1;
@@ -366,9 +373,7 @@ public class FeaturePointDetector {
             // System.out.println(j + "\t" + particles.elementAt(j).m0 + "\t" + particles.elementAt(j).m2 + "\t" + accepted);
         }
 
-        /*
-         * Remove duplicates (happens when dealing with artificial images)
-         */
+        // Remove duplicates (happens when dealing with artificial images)
         // Create a bitmap (with ghostlayers to not have to perform bounds checking)
         final boolean[][][] vBitmap = new boolean[max_z + 3][max_y + 3][max_x + 3];
         for (int z = 0; z < max_z + 3; z++) {
@@ -450,7 +455,6 @@ public class FeaturePointDetector {
         // new StackWindow(new ImagePlus("convolved 3d",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
         boxCarBackgroundSubtractor(restored);
         // new StackWindow(new ImagePlus("after bg subtraction",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
-
 
         if (is.getSize() > 1) {
             // again, 3D crop
