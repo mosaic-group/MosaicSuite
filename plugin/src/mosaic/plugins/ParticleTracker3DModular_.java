@@ -817,7 +817,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
                 gd.addMessage("weight of different contributions for linking\n relative to the distance normalized to one");
 
                 gd.addNumericField("Object feature", l_f, 3);
-                gd.addNumericField("Dynamics", l_d, 3);
+                gd.addNumericField("Dynamics_", l_d, 3);
 
                 final String sc[] = new String[2];
 
