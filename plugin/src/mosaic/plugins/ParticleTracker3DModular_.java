@@ -10,9 +10,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -176,11 +174,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     public ResultsWindow results_window;
     private PreviewCanvas preview_canvas = null;
 
-    /* preview vars */
-    // public Button preview, save_detected;
-    // public Scrollbar preview_scrollbar;
-    // public Label previewLabel = new Label("");
-
     /* vars for text_files_mode */
     private String files_dir;
     private String[] files_list;
@@ -191,6 +184,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     private boolean creating_traj_image = false;
 
     private FileInfo vFI = null;
+    private boolean isGuiMode = false;
     
     /**
      * This method sets up the plugin filter for use.
@@ -221,6 +215,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         if (MosaicUtils.checkRequirement() == false) {
             return DONE;
         }
+        
+        isGuiMode = !(IJ.isMacro() || Interpreter.batchMode);
 
         if (arg.equals("about")) {
             showAbout();
@@ -320,7 +316,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     @Override
     public void run(ImageProcessor ip) {
         initializeMembers();
-        if (!text_files_mode && !IJ.isMacro() && !Interpreter.batchMode) {
+        if (!text_files_mode && isGuiMode) {
             preview_canvas = GUIhelper.generatePreviewCanvas(original_imp);
         }
 
@@ -356,7 +352,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         IJ.showStatus("Generating Trajectories");
         generateTrajectories();
 
-        if (IJ.isMacro() || Interpreter.batchMode) {
+        if (!isGuiMode) {
             /* Write data to disk */
             writeDataToDisk();
         }
@@ -606,7 +602,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             } // for
 
             // Here check that all frames are created
-
             for (int i = 0; i < frames.length; i++) {
                 if (frames[i] == null) {
                     IJ.showMessage("Error, frame: " + i + " does not exist");
@@ -625,41 +620,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             }
         }
         else {
-            final Vector<MyFrame> tmf = new Vector<MyFrame>();
-            BufferedReader r = null;
-            try {
-                r = new BufferedReader(new FileReader(this.files_dir + files_list[0]));
-            }
-            catch (final Exception e) {
-                IJ.error(e.getMessage());
-                return false;
-            }
-            finally {
-                if (r != null) try {
-                    r.close();
-                }
-                catch (final IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            tmf.add(new MyFrame(r));
-            while (tmf.lastElement().getParticles() != null) {
-                tmf.add(new MyFrame(r));
-            }
-
-            // remove any null object
-
-            tmf.remove(tmf.size() - 1);
-
-            // copy the frames and discharge the vector
-
-            frames = new MyFrame[tmf.size()];
-
-            for (int i = 0; i < tmf.size(); i++) {
-                frames[i] = tmf.get(i);
-            }
-            frames_number = frames.length;
+            throw new RuntimeException("Unsupported input file");
         }
 
         frames_processed = true;
@@ -802,54 +763,22 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
         final String d_pos[] = { "Brownian", "straight", "constant velocity" };
         gd.addChoice("Dynamics: ", d_pos, d_pos[0]);
-        //
-        // gd.addMessage("Trajectory Analysis Data :\n");
-        /// These 2 params are relevant for both working modes
-        // gd.addNumericField("Length of pixel (in mm)", 1, 3);
-        // gd.addNumericField("Time interval between frames (in s)", 1.0, 3);
 
         // Create advanced option panel
-
         final Button a_opt = new Button("Advanced options");
         a_opt.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                final GenericDialog gd = new GenericDialog("Link factor");
-
-                gd.addMessage("weight of different contributions for linking\n relative to the distance normalized to one");
-
-                gd.addNumericField("Object feature", l_f, 3);
-                gd.addNumericField("Dynamics_", l_d, 3);
-
-                final String sc[] = new String[2];
-
-                sc[0] = new String("Greedy");
-                sc[1] = new String("Hungarian");
-
-                gd.addChoice("Optimizer", sc, sc[0]);
-
-                gd.showDialog();
-
-                if (gd.wasCanceled() == true) {
-                    return;
-                }
-
-                l_s = (float) 1.0;
-                l_f = (float) gd.getNextNumber();
-                l_d = (float) gd.getNextNumber();
-
-                final String dm = gd.getNextChoice();
-
-                if (dm.equals("Greedy")) {
-                    linker = new ParticleLinkerBestOnePerm();
-                }
-                else {
-                    linker = new ParticleLinkerHun();
-                }
+                createLinkFactorDialog();
             }
         });
 
+        if (!isGuiMode) {
+            // In no gui mode creating that dialog allows to read
+            // parameters from macro arguments
+            createLinkFactorDialog();
+        }
         final Panel preview_panel = new Panel();
 
         preview_panel.add(a_opt);
@@ -1079,7 +1008,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
     private String getUnit() {
         final Calibration cal = original_imp.getCalibration();
-
         return cal.getUnit();
     }
 
@@ -1385,31 +1313,16 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             // generate a new image by duplicating the original image
             duplicated_imp = ImageJFunctions.wrap(out, new_title);
             duplicated_imp.show();
-            // if (this.text_files_mode) {
-            /// there is no original image so set magnification to default(1)
-            // magnification = 1;
-            // } else {
-            /// Set magnification to the one of original_imp
-            // magnification = original_imp.getWindow().getCanvas().getMagnification();
-            // }
         }
         else {
             // if the view is generated on an already existing image,
             // set the updated view scale (magnification) to be the same as in the existing image
             // magnification = duplicated_imp.getWindow().getCanvas().getMagnification();
-
             duplicated_imp.setImage(ImageJFunctions.wrap(out, new_title));
         }
 
         // Create a new window to hold the image and canvas
         new TrajectoryStackWin(this, duplicated_imp, duplicated_imp.getWindow().getCanvas(), out);
-
-        // zoom the window until its magnification will reach the set magnification magnification
-        /*
-         * while (tsw.getCanvas().getMagnification() < magnification) {
-         * tc.zoomIn(0,0);
-         * }
-         */
     }
 
     /**
@@ -2147,5 +2060,40 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     @Override
     public boolean isOnTest() {
         return test_mode;
+    }
+
+    void createLinkFactorDialog() {
+        final GenericDialog gd = new GenericDialog("Link factor");
+
+        gd.addMessage("weight of different contributions for linking\n relative to the distance normalized to one");
+
+        gd.addNumericField("Object feature", l_f, 3);
+        gd.addNumericField("Dynamics_", l_d, 3);
+
+        final String sc[] = new String[2];
+
+        sc[0] = new String("Greedy");
+        sc[1] = new String("Hungarian");
+
+        gd.addChoice("Optimizer", sc, sc[0]);
+
+        gd.showDialog();
+
+        if (gd.wasCanceled() == true) {
+            return;
+        }
+
+        l_s = (float) 1.0;
+        l_f = (float) gd.getNextNumber();
+        l_d = (float) gd.getNextNumber();
+
+        final String dm = gd.getNextChoice();
+
+        if (dm.equals("Greedy")) {
+            linker = new ParticleLinkerBestOnePerm();
+        }
+        else {
+            linker = new ParticleLinkerHun();
+        }
     }
 }
