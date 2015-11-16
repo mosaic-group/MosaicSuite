@@ -70,6 +70,21 @@ public class SystemOperations {
     }
 
     /**
+     * Copies directory to directory
+     * @param aSrcDir
+     * @param aDestDir
+     */
+    public static void copyDirectoryToDirectory(File aSrcDir, File aDestDir) {
+        try {
+            FileUtils.copyDirectoryToDirectory(aSrcDir, aDestDir);
+        } catch (final IOException e) {
+            e.printStackTrace();
+            // intentionally break execution
+            throw new RuntimeException("Cannot copy directory [" + aSrcDir + "] to dir [" + aDestDir + "] [" + e.getMessage() + "]");
+        }
+    }
+    
+    /**
      * Copies file to new file
      * @param aSrcFile
      * @param aDestFile

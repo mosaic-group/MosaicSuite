@@ -618,13 +618,12 @@ public class MyFrame {
         if (p.size() == 0) {
             return new MyFrame[0];
         }
-
         final int n_frames = p.get(p.size() - 1).getFrame() + 1;
         final MyFrame[] f = new MyFrame[n_frames];
 
         int j = 0;
         int i = 0;
-        while (i < p.size() - 1) {
+        while (i < p.size()) {
             final Vector<Particle> part_frame = new Vector<Particle>();
             while (i < p.size() - 1 && p.get(i).getFrame() == p.get(i + 1).getFrame()) {
                 part_frame.add(p.get(i));

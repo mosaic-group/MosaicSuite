@@ -190,6 +190,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     private boolean create_bck_image = true;
     private boolean creating_traj_image = false;
 
+    private FileInfo vFI = null;
+    
     /**
      * This method sets up the plugin filter for use.
      * <br>
@@ -250,7 +252,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         }
         else {
             // we have an image, we do not need to create an image
-
+            vFI = this.original_imp.getOriginalFileInfo();
             create_bck_image = false;
         }
 
@@ -318,7 +320,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     @Override
     public void run(ImageProcessor ip) {
         initializeMembers();
-        System.out.println("IJ macro is running: " + IJ.isMacro());
         if (!text_files_mode && !IJ.isMacro() && !Interpreter.batchMode) {
             preview_canvas = GUIhelper.generatePreviewCanvas(original_imp);
         }
@@ -397,7 +398,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             cal.pixelWidth = 1.0f;
             rescaleWith(cal, p);
         }
-
         return MyFrame.createFrames(p, linkrange);
     }
 
@@ -518,7 +518,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         }
 
         /* Initialise frames array */
-
+        vFI = new FileInfo();
+        vFI.directory = files_dir;
         MyFrame current_frame = null;
 
         if (csv_format == true) {
@@ -527,18 +528,17 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
             P_csv.setCSVPreferenceFromFile(files_dir + File.separator + file_sel);
             final Vector<Particle> p = P_csv.Read(files_dir + File.separator + file_sel, null);
+
             
             if (p.size() == 0) {
                 IJ.error("No regions defined for this image,nothing to do");
                 return false;
             }
-
             background = P_csv.getMetaInformation("background");
 
             IJ.showStatus("Creating frames with particles ...");
 
             frames = convertIntoFrames(p);
-
             // It can happen that the segmentation algorithm produce
             // double output on the CSV
 
@@ -1161,14 +1161,13 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     }
 
     private void writeDataToDisk() {
-        final FileInfo vFI = this.original_imp.getOriginalFileInfo();
         if (vFI == null) {
             IJ.error("You're running a macro. Data are written to disk at the directory where your image is stored. Please store youre image first.");
             return;
         }
 
         MosaicUtils.write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
-        new TrajectoriesReportXML(new File(vFI.directory, "report.xml").getAbsolutePath(), this);
+        if (!text_files_mode) new TrajectoriesReportXML(new File(vFI.directory, "report.xml").getAbsolutePath(), this);
         final ResultsTable rt = transferTrajectoriesToResultTable();
         try {
             rt.saveAs(new File(vFI.directory, "Traj_" + title + ".csv").getAbsolutePath());

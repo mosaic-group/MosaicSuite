@@ -46,7 +46,9 @@ public class CommonBase extends Info {
 
     private static final Logger logger = Logger.getLogger(CommonBase.class);
     private static ImgOpener iImgOpener = null;
-
+    protected String tmpPath;
+    protected String tcPath;
+    
     @BeforeClass
     static public void setUpSuit() {
         logger.info("========================================================");
@@ -66,6 +68,10 @@ public class CommonBase extends Info {
     public void setUpTc() {
         logger.info("-----------------------");
         logger.info("----- TestCase[START]: " + iTestCaseName);
+        
+        // Prepare needed paths
+        logger.debug("Preparing test directory");
+        tmpPath = SystemOperations.getCleanTestTmpPath();
     }
 
     @After
@@ -104,28 +110,26 @@ public class CommonBase extends Info {
             final String[] aReferenceFiles) {
 
         // ===================  Prepare plugin env. =================================
-        // Prepare needed paths
-        final String tmpPath = SystemOperations.getCleanTestTmpPath();
-        final String tcPath = SystemOperations.getTestDataPath() + aTcDirName;
-
-        logger.debug("Preparing test directory");
+        tcPath = SystemOperations.getTestDataPath() + aTcDirName;
+        
         prepareTestDirectory(aInputFile, tcPath, tmpPath);
 
         // Make IJ running in batch mode (no GUI)
         Interpreter.batchMode = true;
 
         // ===================  Test plugin =========================================
-        logger.debug("Loading image for testing: [" + tmpPath + aInputFile + "]");
-        final ImagePlus ip = loadImagePlus(tmpPath + aInputFile);
-        logger.debug("Testing plugin");
-
-        // Change name of thread to begin with "Run$_". This is required by IJ to pass later
         // options to plugin
         Thread.currentThread().setName("Run$_" + aTestedPlugin.getClass().getSimpleName());
         Macro.setOptions(Thread.currentThread(), aMacroOptions);
 
         // Set active image and run plugin
-        WindowManager.setTempCurrentImage(ip);
+        if (aInputFile != null) {
+            logger.debug("Loading image for testing: [" + tmpPath + aInputFile + "]");
+            final ImagePlus ip = loadImagePlus(tmpPath + aInputFile);
+            logger.debug("Testing plugin");
+            WindowManager.setTempCurrentImage(ip);
+        }
+        // Change name of thread to begin with "Run$_". This is required by IJ to pass later
         new PlugInFilterRunner(aTestedPlugin, "pluginTest", aSetupArg);
         
         // ===================  Verify plugin output================================
@@ -186,9 +190,18 @@ public class CommonBase extends Info {
      * @param aTmpPath destination temporary path
      */
     protected void prepareTestDirectory(final String aInputFile, final String aTcPath, final String aTmpPath) {
-        final File in = new File(aTcPath + aInputFile);
-        final File out = new File(aTmpPath);
-        SystemOperations.copyFileToDirectory(in, out);
+        if (aInputFile != null) {
+            final File in = new File(aTcPath + aInputFile);
+            final File out = new File(aTmpPath);
+            logger.debug("Copy [" + aTcPath + aInputFile + "] to [" + aTmpPath + "]");
+            if (in.isDirectory()) {
+                SystemOperations.copyDirectoryToDirectory(in, out);
+            }
+            else {
+                SystemOperations.copyFileToDirectory(in, out);
+            }
+            
+        }
     }
 
     /**
