@@ -13,7 +13,7 @@ public class Spot_detectionTest extends CommonBase {
         final String tcDirName          = "FeaturePointDetection/singleFrame/";
         final String setupString        = "run";
         final String macroOptions       = "radius=2 cutoff=0.1 per/abs=0.6";
-        final String[] inputFiles       = {"spots.tif"};
+        final String inputFile          = "spots.tif";
         final String[] expectedFiles    = {};
         final String[] referenceFiles   = {};
         final String[] expectedCsvFiles    = {"spots.tifdet.csv"};
@@ -24,10 +24,10 @@ public class Spot_detectionTest extends CommonBase {
 
         // Test it
         testPlugin(nt, tcDirName,
-                   inputFiles, 
+                   macroOptions, 
+                   setupString, inputFile,
                    expectedFiles, referenceFiles,
-                   expectedCsvFiles, referenceCsvFiles,
-                   setupString, macroOptions);
+                   expectedCsvFiles, referenceCsvFiles);
     }
     
     @Test
@@ -36,7 +36,7 @@ public class Spot_detectionTest extends CommonBase {
         final String tcDirName          = "FeaturePointDetection/threeFrames/";
         final String setupString        = "run";
         final String macroOptions       = "radius=3 cutoff=0.0 per/abs=0.4";
-        final String[] inputFiles       = {"threeFrames.tif"};
+        final String inputFile          = "threeFrames.tif";
         final String[] expectedFiles    = {};
         final String[] referenceFiles   = {};
         final String[] expectedCsvFiles    = {"threeFrames.tifdet.csv"};
@@ -47,10 +47,10 @@ public class Spot_detectionTest extends CommonBase {
 
         // Test it
         testPlugin(nt, tcDirName,
-                   inputFiles, 
+                   macroOptions, 
+                   setupString, inputFile,
                    expectedFiles, referenceFiles,
-                   expectedCsvFiles, referenceCsvFiles,
-                   setupString, macroOptions);
+                   expectedCsvFiles, referenceCsvFiles);
     }
 
     @Test
@@ -59,7 +59,7 @@ public class Spot_detectionTest extends CommonBase {
         final String tcDirName          = "FeaturePointDetection/3d/";
         final String setupString        = "run";
         final String macroOptions       = "radius=3 cutoff=3 per/abs=0.1";
-        final String[] inputFiles       = {"3Dframe.tif"};
+        final String inputFile          = "3Dframe.tif";
         final String[] expectedFiles    = {};
         final String[] referenceFiles   = {};
         final String[] expectedCsvFiles    = {"3Dframe.tifdet.csv"};
@@ -70,9 +70,9 @@ public class Spot_detectionTest extends CommonBase {
 
         // Test it
         testPlugin(nt, tcDirName,
-                   inputFiles, 
+                   macroOptions, 
+                   setupString, inputFile,
                    expectedFiles, referenceFiles,
-                   expectedCsvFiles, referenceCsvFiles,
-                   setupString, macroOptions);
+                   expectedCsvFiles, referenceCsvFiles);
     }
 }

@@ -555,12 +555,9 @@ public class FeaturePointDetector {
 
     /**
      * (Re)Initialize the binary and weighted masks. This is necessary if the radius changed.
-     * The memory allocations are performed in advance (in this method) for efficiency reasons.
-     * 
      * @param mask_radius
      */
     private void generateDilationMasks(int mask_radius) {
-        // standard boolean mask
         mask = MosaicImageProcessingTools.generateMask(mask_radius);
     }
 

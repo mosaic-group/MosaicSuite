@@ -13,7 +13,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         final String tcDirName          = "VCF/";
         final String setupString        = "run";
         final String macroOptions       = "filter=[GC (Gaussian Curvature)] method=Split number=10";
-        final String[] inputFiles       = {"x8bit.png"};
+        final String inputFile          = "x8bit.png";
         final String[] expectedFiles    = {"filtered_x8bit.png"};
         final String[] referenceFiles   = {"filteredGcSplit10_x8bit.tif"};
 
@@ -22,9 +22,9 @@ public class VariationalCurvatureFilterTest extends CommonBase {
 
         // Test it
         testPlugin(nt, tcDirName,
-                inputFiles, expectedFiles, referenceFiles,
-                setupString, macroOptions);
-
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedFiles, referenceFiles);
     }
 
     @Test
@@ -33,7 +33,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         final String tcDirName          = "VCF/";
         final String setupString        = "run";
         final String macroOptions       = "filter=[TV (Total Variation)] method=[No Split] number=10";
-        final String[] inputFiles       = {"x.png"};
+        final String inputFile          = "x.png";
         final String[] expectedFiles    = {"filtered_x.png"};
         final String[] referenceFiles   = {"filteredTvNoSplit10_x.tif"};
 
@@ -42,9 +42,9 @@ public class VariationalCurvatureFilterTest extends CommonBase {
 
         // Test it
         testPlugin(nt, tcDirName,
-                inputFiles, expectedFiles, referenceFiles,
-                setupString, macroOptions);
-
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedFiles, referenceFiles);
     }
 
     @Test
@@ -53,7 +53,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         final String tcDirName          = "VCF/";
         final String setupString        = "run";
         final String macroOptions       = "filter=[MC (Mean Curvature)] method=Split number=2";
-        final String[] inputFiles       = {"x8bit.png"};
+        final String inputFiles         = "x8bit.png";
         final String[] expectedFiles    = {"filtered_x8bit.png"};
         final String[] referenceFiles   = {"filteredMcSplit2_x8bit.tif"};
 
@@ -62,9 +62,9 @@ public class VariationalCurvatureFilterTest extends CommonBase {
 
         // Test it
         testPlugin(nt, tcDirName,
-                inputFiles, expectedFiles, referenceFiles,
-                setupString, macroOptions);
-
+                   macroOptions, 
+                   setupString, inputFiles,
+                   expectedFiles, referenceFiles);
     }
 
     @Test
@@ -73,7 +73,7 @@ public class VariationalCurvatureFilterTest extends CommonBase {
         final String tcDirName          = "VCF/";
         final String setupString        = "run";
         final String macroOptions       = "filter=[Bernstein] method=Split number=5";
-        final String[] inputFiles       = {"x8bit.png"};
+        final String inputFile          = "x8bit.png";
         final String[] expectedFiles    = {"filtered_x8bit.png"};
         final String[] referenceFiles   = {"filteredBernsteinSplit5_x8bit.tif"};
 
@@ -82,9 +82,9 @@ public class VariationalCurvatureFilterTest extends CommonBase {
 
         // Test it
         testPlugin(nt, tcDirName,
-                inputFiles, expectedFiles, referenceFiles,
-                setupString, macroOptions);
-
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedFiles, referenceFiles);
     }
 
 }

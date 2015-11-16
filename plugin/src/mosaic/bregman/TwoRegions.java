@@ -187,9 +187,7 @@ class TwoRegions extends NRegions {
 
         if (Analysis.p.patches_from_file == null) {
             try {
-                // Tools.showmem();
                 A_solver.first_run();
-                // Tools.showmem();
             }
             catch (final InterruptedException ex) {
             }
@@ -197,25 +195,18 @@ class TwoRegions extends NRegions {
         else {
             // Here we have patches
             // Load particles
-
-            Vector<Particle> pt;
-
             final CSV<Particle> csv = new CSV<Particle>(Particle.class);
 
             csv.setCSVPreferenceFromFile(Analysis.p.patches_from_file);
-            pt = csv.Read(Analysis.p.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
+            Vector<Particle> pt = csv.Read(Analysis.p.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
 
             // Get the particle related inly to one frames
-
             final Vector<Particle> pt_f = getPart(pt, Analysis.frame - 1);
 
             // create a mask Image
-
             final double img[][][] = new double[p.nz][p.ni][p.nj];
 
             drawParticles(img, A_solver.w3kbest[0], pt_f, (int) 3.0);
-
-            // Tools.disp_array3D_new(img, "particles");
 
             A_solver.regions_intensity_findthresh(img);
         }

@@ -45,7 +45,7 @@ public class Spot_detection implements PlugInFilter // NO_UCD
             frames[frame.frame_number] = frame;
         }
 
-        // Fill container with all found particles and set correct frame number and m0 for each.
+        // Fill container with all found particles and set m0 for each.
         final Vector<Particle> particles = new Vector<Particle>();
         for (int i = 0 ; i < numOfFrames ; ++i) {
             final int currentFrameFromIdx= particles.size();
@@ -54,7 +54,6 @@ public class Spot_detection implements PlugInFilter // NO_UCD
 
             // Set the frame number for the particles
             for (int j = currentFrameFromIdx; j < currentFrameToIdx ; ++j) {
-                particles.get(j).setFrame(i);
                 particles.get(j).m0 = iDetector.getRadius();
             }
         }

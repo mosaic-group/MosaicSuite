@@ -12,7 +12,7 @@ public class GaussianCurvature3DTest extends CommonBase {
         final String tcDirName          = "VCF/";
         final String setupString        = "run";
         final String macroOptions       = "number_of_iterations=2";
-        final String[] inputFiles       = {"sphereSmall.tif"};
+        final String inputFile          =  "sphereSmall.tif";
         final String[] expectedFiles    = {"filtered_sphereSmall.tif"};
         final String[] referenceFiles   = {"filteredGc2_sphereSmall.tif"};
 
@@ -21,8 +21,8 @@ public class GaussianCurvature3DTest extends CommonBase {
 
         // Test it
         testPlugin(nt, tcDirName,
-                inputFiles, expectedFiles, referenceFiles,
-                setupString, macroOptions);
-
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedFiles, referenceFiles);
     }
 }

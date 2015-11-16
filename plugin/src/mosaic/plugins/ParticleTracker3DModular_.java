@@ -21,17 +21,6 @@ import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JLabel;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -45,6 +34,7 @@ import ij.io.FileInfo;
 import ij.io.OpenDialog;
 import ij.io.Opener;
 import ij.io.SaveDialog;
+import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.measure.Measurements;
 import ij.measure.ResultsTable;
@@ -53,7 +43,7 @@ import ij.process.StackConverter;
 import ij.process.StackStatistics;
 import mosaic.core.GUI.ParticleTrackerHelp;
 import mosaic.core.detection.FeaturePointDetector;
-import static mosaic.core.detection.FeaturePointDetector.Mode;
+import mosaic.core.detection.FeaturePointDetector.Mode;
 import mosaic.core.detection.GUIhelper;
 import mosaic.core.detection.MyFrame;
 import mosaic.core.detection.MyFrame.DrawType;
@@ -329,7 +319,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     public void run(ImageProcessor ip) {
         initializeMembers();
         System.out.println("IJ macro is running: " + IJ.isMacro());
-        if (!text_files_mode && !IJ.isMacro()) {
+        if (!text_files_mode && !IJ.isMacro() && !Interpreter.batchMode) {
             preview_canvas = GUIhelper.generatePreviewCanvas(original_imp);
         }
 
@@ -365,7 +355,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         IJ.showStatus("Generating Trajectories");
         generateTrajectories();
 
-        if (IJ.isMacro()) {
+        if (IJ.isMacro() || Interpreter.batchMode) {
             /* Write data to disk */
             writeDataToDisk();
         }
@@ -1171,23 +1161,13 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
     }
 
     private void writeDataToDisk() {
-        // get original file location
         final FileInfo vFI = this.original_imp.getOriginalFileInfo();
         if (vFI == null) {
             IJ.error("You're running a macro. Data are written to disk at the directory where your image is stored. Please store youre image first.");
             return;
         }
 
-        // create new directory
-        // File newDir = new File(vFI.directory,"ParticleTracker3DResults");
-        // if (!newDir.mkdir() && !newDir.exists()) {
-        // IJ.error("You probably do not have the permission to write in the directory where your image is stored. Data are not written to disk.");
-        // return;
-        // }
-        /// write data to file
-        // write2File(newDir.getAbsolutePath(), vFI.fileName + "PT3D.txt", getFullReport().toString());
         MosaicUtils.write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
-        writeXMLFormatReport(new File(vFI.directory, title + "_r_" + getRadius() + "_c_" + detector.getCutoff() + "_perc_" + detector.getPercentile() + "_PT3Dresults.xml").getAbsolutePath());
         new TrajectoriesReportXML(new File(vFI.directory, "report.xml").getAbsolutePath(), this);
         final ResultsTable rt = transferTrajectoriesToResultTable();
         try {
@@ -1200,10 +1180,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
     /**
      * Get the radius of the particles
-     *
      * @return the radius of the particles, return -1 if this parameter is not set (like segmented data)
      */
-
     public int getRadius() {
         int radius = -1;
         if (detector != null) {
@@ -1872,69 +1850,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         report.append(getTrajectoriesInfo());
 
         return report;
-    }
-
-    private void writeXMLFormatReport(String aFilename) {
-
-        try {
-
-            final DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-            final DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-
-            // root elements
-            final Document doc = docBuilder.newDocument();
-            final Element rootElement = doc.createElement("root");
-            doc.appendChild(rootElement);
-
-            // staff elements
-            final Element TrackContest = doc.createElement("TrackContestISBI2012");
-            rootElement.appendChild(TrackContest);
-
-            // set attributes
-            // TrackContest.setAttribute("SNR", "__SNR__");
-            // TrackContest.setAttribute("density", "__density__");
-            // SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm::ss z yyyy");
-            // TrackContest.setAttribute("generationDateTime", sdf.format(Calendar.getInstance().getTime()));
-            // TrackContest.setAttribute("info", "http://bioimageanalysis.org/track/");
-            // TrackContest.setAttribute("scenario", "__scenario__");
-
-            // for each trajectory, generate a (ISBI-)particle element:
-            final Iterator<Trajectory> iter = all_traj.iterator();
-            boolean isFirst = true;
-            while (iter.hasNext() && isFirst) {
-                isFirst = false;
-                final Element particleElement = doc.createElement("particle");
-                final Trajectory curr_traj = iter.next();
-
-                for (final Particle vP : curr_traj.existing_particles) {
-                    final Element detectionElement = doc.createElement("detection");
-                    detectionElement.setAttribute("t", "" + vP.getFrame());
-                    detectionElement.setAttribute("x", "" + (vP.y - 0.5f));
-                    detectionElement.setAttribute("y", "" + (vP.x - 0.5f));
-                    detectionElement.setAttribute("z", "" + vP.z);
-                    particleElement.appendChild(detectionElement);
-                }
-                TrackContest.appendChild(particleElement);
-            }
-
-            // write the content into xml file
-            final TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            final Transformer transformer = transformerFactory.newTransformer();
-            final DOMSource source = new DOMSource(doc);
-            final StreamResult result = new StreamResult(new File(aFilename));
-
-            // Output to console for testing
-            // StreamResult result = new StreamResult(System.out);
-
-            transformer.transform(source, result);
-
-        }
-        catch (final ParserConfigurationException pce) {
-            pce.printStackTrace();
-        }
-        catch (final TransformerException tfe) {
-            tfe.printStackTrace();
-        }
     }
 
     @Override

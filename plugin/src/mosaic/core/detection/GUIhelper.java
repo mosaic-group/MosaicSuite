@@ -78,7 +78,7 @@ public class GUIhelper {
     
     public static PreviewCanvas generatePreviewCanvas(ImagePlus imp) {
         // save the current magnification factor of the current image window
-        final double magnification = imp.getWindow().getCanvas().getMagnification();
+        final double magnification = imp.getWindow() != null ? imp.getWindow().getCanvas().getMagnification() : 1;
 
         // generate the previewCanvas - while generating the drawing will be done
         final PreviewCanvas preview_canvas = new PreviewCanvas(imp, magnification);
