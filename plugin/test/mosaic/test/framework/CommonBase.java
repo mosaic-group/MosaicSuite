@@ -76,7 +76,8 @@ public class CommonBase extends Info {
 
     @After
     public void tearDownTc() {
-        //
+        closeAllImageJimages();
+        
         logger.info("----- TestCase[END]:   " + iTestCaseName);
         logger.info("-----------------------");
         logger.info("");
@@ -355,6 +356,13 @@ public class CommonBase extends Info {
         return result;
     }
 
+    protected void closeAllImageJimages() {
+        ImagePlus img;
+        while ((img = WindowManager.getCurrentImage()) != null) {
+            logger.debug("Closing [" + img.getTitle() + "]");
+            img.close();
+        }
+    }
     /**
      * Logs images available in IJ internal structures. Helpful during new TC writing.
      */

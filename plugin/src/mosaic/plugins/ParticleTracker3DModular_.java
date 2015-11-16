@@ -518,8 +518,7 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
         }
 
         /* Initialise frames array */
-        vFI = new FileInfo();
-        vFI.directory = files_dir;
+
         MyFrame current_frame = null;
 
         if (csv_format == true) {
@@ -529,6 +528,8 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             P_csv.setCSVPreferenceFromFile(files_dir + File.separator + file_sel);
             final Vector<Particle> p = P_csv.Read(files_dir + File.separator + file_sel, null);
 
+            vFI = new FileInfo();
+            vFI.directory = files_dir;
             
             if (p.size() == 0) {
                 IJ.error("No regions defined for this image,nothing to do");
@@ -567,9 +568,12 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             }
         }
         else if (one_file_multiple_frame == false) {
+            if (text_files_mode) {
+                vFI = new FileInfo();
+                vFI.directory = files_dir;
+            }
             frames = new MyFrame[frames_number];
             for (int frame_i = 0, file_index = 0; frame_i < frames_number; frame_i++, file_index++) {
-
                 if (text_files_mode) {
                     if (files_list[file_index].startsWith(".") || files_list[file_index].endsWith("~")) {
                         frame_i--;
@@ -586,7 +590,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
 
                 }
                 else {
-
                     // sequence of images mode:
                     // construct each frame from the corresponding image
                     current_frame = new MyFrame(MosaicUtils.GetSubStackInFloat(stack, (frame_i) * slices_number + 1, (frame_i + 1) * slices_number), frame_i, linkrange);
@@ -1165,7 +1168,6 @@ public class ParticleTracker3DModular_ implements PlugInFilterExt, Measurements,
             IJ.error("You're running a macro. Data are written to disk at the directory where your image is stored. Please store youre image first.");
             return;
         }
-
         MosaicUtils.write2File(vFI.directory, "Traj_" + title + ".txt", getFullReport().toString());
         if (!text_files_mode) new TrajectoriesReportXML(new File(vFI.directory, "report.xml").getAbsolutePath(), this);
         final ResultsTable rt = transferTrajectoriesToResultTable();
