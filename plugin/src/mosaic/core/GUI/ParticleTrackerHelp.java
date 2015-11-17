@@ -14,21 +14,15 @@ public class ParticleTrackerHelp extends HelpGUI {
     private final JFrame frame;
     private final JPanel panel;
 
-
     public ParticleTrackerHelp(int x, int y) {
         frame = new JFrame("Particle Tracker Help");
         frame.setSize(555, 780);
         frame.setLocation(x + 500, y - 50);
-        // frame.toFront();
-        // frame.setResizable(false);
-        // frame.setAlwaysOnTop(true);
 
         panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         panel.setPreferredSize(new Dimension(575, 720));
 
         final JPanel pref = new JPanel(new GridBagLayout());
-        // pref.setPreferredSize(new Dimension(555, 550));
-        // pref.setSize(pref.getPreferredSize());
 
         setPanel(pref);
         setHelpTitle("Particle Tracker");
@@ -50,10 +44,8 @@ public class ParticleTrackerHelp extends HelpGUI {
         createField("Link Range (R)", desc, "http://mosaic.mpi-cbg.de/docs/Sbalzarini2005a.pdf#page=4&zoom=150,0,-350");
 
         panel.add(pref);
-
         frame.add(panel);
 
         frame.setVisible(true);
-
     }
 }

@@ -80,7 +80,6 @@ public class ParticleTracker3DModular_Test extends CommonBase {
                    expectedImgFiles, referenceImgFiles,
                    expectedFiles, referenceFiles);
     }
-    //multiple test=/Users/gonciarz/Documents/MOSAIC/work/repo/MosaicSuite/plugin/Jtest_data/ParticleTracker/LoadFromText/textFrames/frame_0 link=2 displacement=10 dynamics=Brownian
     
     @Test
     public void testLoadFromTextFiles()  {

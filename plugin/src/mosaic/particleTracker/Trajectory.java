@@ -3,8 +3,6 @@ package mosaic.particleTracker;
 
 import ij.IJ;
 import ij.ImagePlus;
-import ij.gui.GenericDialog;
-import ij.gui.Plot;
 import ij.gui.Roi;
 
 import java.awt.Color;
@@ -210,53 +208,6 @@ public class Trajectory {
             write(new StringBuffer(","));
             write(new StringBuffer(Math.round((this.existing_particles[((int[]) gaps_tmp[i])[1]]).x)));
         }
-    }
-
-    /**
-     * Creates and show a dialog for the user the select the parameter of the particles to plot
-     * 
-     * @return the <b>position</b> of the parameter the user selected in the <code>Particle.all_params</code> array. -1 if the user cancelled the dialo
-     */
-    public int getUserParamForPlotting() {
-
-        final GenericDialog plot_dialog = new GenericDialog("Choose particle param to plot");
-
-        final String[] param_list = new String[this.existing_particles[0].all_params.length];
-        for (int i = 0; i < param_list.length; i++) {
-            param_list[i] = "" + (i + 1);
-        }
-        plot_dialog.addChoice("Select Particle info", param_list, "1");
-        plot_dialog.showDialog();
-        if (plot_dialog.wasCanceled()) {
-            return -1;
-        }
-        final int param_choice = plot_dialog.getNextChoiceIndex();
-        return param_choice;
-    }
-
-    /**
-     * creates a <code>PlotWindow</code> and plots the given param position in the <code>Particle.all_params</code> array of the particles along this trajectory
-     * The X values are the frame number of the particle
-     * The Y values are the <code>Particle.all_params[param_choice]</code>
-     * 
-     * @param param_choice the <b>position</b> of the parameter to plot in the Particle.all_params array
-     */
-    void plotParticleAlongTrajectory(int param_choice) {
-
-        if (param_choice >= this.existing_particles[0].all_params.length || param_choice < 0) {
-            IJ.error("plotParticleAlongTrajectory\n" + "The given parameter choice (" + (param_choice + 1) + ") does not exits");
-            return;
-        }
-        final double[] x_values = new double[this.existing_particles.length];
-        for (int i = 0; i < this.existing_particles.length; i++) {
-            x_values[i] = this.existing_particles[i].getFrame();
-        }
-        final double[] y_values = new double[this.existing_particles.length];
-        for (int i = 0; i < this.existing_particles.length; i++) {
-            y_values[i] = Double.parseDouble(this.existing_particles[i].all_params[param_choice]);
-        }
-        final Plot pw = new Plot("Particle Data along trajectory " + this.serial_number, "frame number", "param number " + (param_choice + 1) + " value", x_values, y_values);
-        pw.draw();
     }
 
     /**

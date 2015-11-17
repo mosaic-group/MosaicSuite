@@ -21,7 +21,8 @@ public class ParticleLinkerBestOnePerm implements ParticleLinker {
      * Optimized with ideas from Mark Kittisopikul, UT Southwestern
      */
     @Override
-    public boolean linkParticles(MyFrame[] frames, int frames_number, linkerOptions l) {
+    public boolean linkParticles(MyFrame[] frames, linkerOptions l) {
+        int frames_number = frames.length;
         int m, i, j, nop, nop_next, n;
         int ok, prev, x = 0, y = 0, curr_linkrange;
         /** The association matirx g */

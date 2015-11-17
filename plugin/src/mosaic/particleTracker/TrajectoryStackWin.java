@@ -120,7 +120,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
             }
         }
         // Regenerate the image
-        out = particleTracker3DModular.createHyperStackFromFrames(particleTracker3DModular.background);
+        out = particleTracker3DModular.createHyperStackFromFrames();
 
         // generate an updated view with the ImagePlus in this window according to the new filter
         particleTracker3DModular.generateView(this.imp, this.out);
@@ -193,8 +193,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
             /* focus or mark the selected Trajectory according the the type of mouse click */
             this.imp.killRoi();
             this.imp.updateImage();
-            // show the number of the selected Trajectory on the per trajectory
-            // panel in the results window
+            // show the number of the selected Trajectory on the per trajectory panel in the results window
             particleTracker3DModular.results_window.per_traj_label.setText("Trajectory " + (particleTracker3DModular.chosen_traj + 1));
             if (e.getClickCount() == 2) {
                 // "double-click"

@@ -69,7 +69,8 @@ public class ParticleLinkerHun implements ParticleLinker {
     }
 
     @Override
-    public boolean linkParticles(MyFrame[] frames, int frames_number, linkerOptions l) {
+    public boolean linkParticles(MyFrame[] frames, linkerOptions l) {
+        int frames_number = frames.length;
         int m, i, j, nop, nop_next, n;
         int curr_linkrange;
 
