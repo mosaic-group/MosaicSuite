@@ -41,18 +41,13 @@ import net.imglib2.view.Views;
  */
 public class MyFrame {
 
-    private static Map<Integer, MaskOnSpaceMapper> CircleCache;
-    private static Map<Integer, MaskOnSpaceMapper> RectangleCache;
-
     private Vector<Particle> particles;
     private int particles_number; // number of particles initialy detected
-    public int real_particles_number; // number of "real" particles
-    // discrimination
-    public int frame_number; // Serial number of this frame in the movie (can be
-    // 0)
-    private StringBuffer info_before_discrimination;// holdes string with ready to print
-    // info
-    // about this frame before particle discrimination
+    public int real_particles_number; // number of "real" particles discrimination
+    public int frame_number; // Serial number of this frame in the movie (can be 0)
+
+    // holdes string with ready to print info about this frame before particle discrimination
+    private StringBuffer info_before_discrimination;
 
     /* only relevant to frames representing real images */
     // the original image, this is used for the
@@ -63,29 +58,7 @@ public class MyFrame {
     int linkrange = 0;
     private int p_radius = -1;
 
-    /**
-     * Cleanup circle cache
-     */
-
-    static public void cleanCache() {
-        CircleCache.clear();
-        RectangleCache.clear();
-    }
-
-    /**
-     * Init the Cache circle
-     */
-
-    static public void initCache() {
-        CircleCache = new HashMap<Integer, MaskOnSpaceMapper>();
-        RectangleCache = new HashMap<Integer, MaskOnSpaceMapper>();
-    }
-
-    /**
-     * Default constructor
-     */
-    public MyFrame() {
-    }
+    public MyFrame() {}
 
     /**
      * Constructor for ImageProcessor based MyFrame. <br>
@@ -544,6 +517,7 @@ public class MyFrame {
     }
 
     static private void drawParticlesWithRadius(RandomAccessibleInterval<ARGBType> out, List<Particle> pt, Calibration cal, float scaling, int col, int p_radius) {
+        Map<Integer, MaskOnSpaceMapper> CircleCache = new HashMap<Integer, MaskOnSpaceMapper>();
         final RandomAccess<ARGBType> out_a = out.randomAccess();
 
         final int sz[] = new int[out_a.numDimensions()];
@@ -616,6 +590,7 @@ public class MyFrame {
     }
 
     static private void drawParticles(RandomAccessibleInterval<ARGBType> out, List<Particle> pt, Calibration cal, float scaling, int col) {
+        Map<Integer, MaskOnSpaceMapper> CircleCache = new HashMap<Integer, MaskOnSpaceMapper>();
         final RandomAccess<ARGBType> out_a = out.randomAccess();
 
         final int sz[] = new int[out_a.numDimensions()];
@@ -623,8 +598,6 @@ public class MyFrame {
         for (int d = 0; d < out_a.numDimensions(); ++d) {
             sz[d] = (int) out.dimension(d);
         }
-
-        // Iterate on all particles
 
         while (pt.size() != 0) {
             double radius;
@@ -644,10 +617,7 @@ public class MyFrame {
                 scaling_[i] /= scaling;
             }
 
-            // Create a circle Mask and an iterator
-
             MaskOnSpaceMapper rg_m = null;
-
             int rc = (int) radius;
             if ((rg_m = CircleCache.get(rc)) == null) {
                 if (rc < 1) {
@@ -674,8 +644,6 @@ public class MyFrame {
                 if (radius_r <= 1.0) {
                     radius_r = 1;
                 }
-
-                // if particle has the same radius
 
                 if (radius_r == radius) {
                     // Draw the Circle
@@ -713,10 +681,7 @@ public class MyFrame {
      * @param col Color of the line
      */
     static private void drawLine(RandomAccessibleInterval<ARGBType> out, Particle p1, Particle p2, int col) {
-        // the number of dimensions
-        final int numDimensions = out.numDimensions();
-
-        final long dims[] = new long[numDimensions];
+        final long dims[] = new long[out.numDimensions()];
         out.dimensions(dims);
 
         final RandomAccess<ARGBType> out_a = out.randomAccess();

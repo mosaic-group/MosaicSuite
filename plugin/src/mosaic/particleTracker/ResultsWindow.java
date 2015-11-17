@@ -299,11 +299,11 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
         if (source == mssButton || source == mssTrajectoryResultButton || source == mssAllResultsButton) {
 
             // Get all calibration data from image
-            final double width = particleTracker3DModular.original_imp.getCalibration().pixelWidth;
-            final double height = particleTracker3DModular.original_imp.getCalibration().pixelHeight;
-            final double interval = particleTracker3DModular.original_imp.getCalibration().frameInterval;
-            final String intervalUnit = particleTracker3DModular.original_imp.getCalibration().getTimeUnit();
-            final String unit = particleTracker3DModular.original_imp.getCalibration().getUnit();
+            final double width = particleTracker3DModular.iInputImage.getCalibration().pixelWidth;
+            final double height = particleTracker3DModular.iInputImage.getCalibration().pixelHeight;
+            final double interval = particleTracker3DModular.iInputImage.getCalibration().frameInterval;
+            final String intervalUnit = particleTracker3DModular.iInputImage.getCalibration().getTimeUnit();
+            final String unit = particleTracker3DModular.iInputImage.getCalibration().getUnit();
 
             // Do checking and complain if necessary
             String message = "";
@@ -321,7 +321,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
             }
             if (!message.equals("")) {
                 IJ.showMessage(message);
-                WindowManager.setCurrentWindow(particleTracker3DModular.original_imp.getWindow());
+                WindowManager.setCurrentWindow(particleTracker3DModular.iInputImage.getWindow());
                 IJ.run("Properties...");
                 return;
             }
@@ -444,7 +444,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
 
         if (source == transfer_traj) {
             final Trajectory traj = particleTracker3DModular.all_traj.elementAt(particleTracker3DModular.chosen_traj);
-            particleTracker3DModular.transferSelectedTrajectoriesToResultTable(traj);
+            particleTracker3DModular.transferSelectedTrajectoriesToResultTable(traj).show("Results");
             return;
         }
         /* define the mag factor for rescaling of focused view */
@@ -502,7 +502,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
 
         /* transfer trajectory coordinates to ImageJ results window */
         if (source == transfer_trajs) {
-            particleTracker3DModular.transferTrajectoriesToResultTable();
+            particleTracker3DModular.transferTrajectoriesToResultTable().show("Results");
             return;
         }
         if (source == mssTrajectoryResultButton) {

@@ -75,7 +75,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
             currentframe = this.getImagePlus().getSlice();
         }
 
-        numberOfParticlesLabel.setText("Frame " + currentframe + ": " + particleTracker3DModular.frames[currentframe - 1].real_particles_number + " particles");
+        numberOfParticlesLabel.setText("Frame " + currentframe + ": " + particleTracker3DModular.iFrames[currentframe - 1].real_particles_number + " particles");
     }
 
     @Override
@@ -139,7 +139,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
             final Vector<Trajectory> v = new Vector<Trajectory>();
             v.add(particleTracker3DModular.all_traj.get(particleTracker3DModular.chosen_traj));
 
-            final Calibration cal = particleTracker3DModular.original_imp.getCalibration();
+            final Calibration cal = particleTracker3DModular.iInputImage.getCalibration();
 
             MyFrame.updateImage(out, v, cal, DrawType.TRAJECTORY_HISTORY, particleTracker3DModular.getRadius());
 
@@ -176,7 +176,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
                 final Vector<Trajectory> v = new Vector<Trajectory>();
                 v.add(curr_traj);
 
-                final Calibration cal = particleTracker3DModular.original_imp.getCalibration();
+                final Calibration cal = particleTracker3DModular.iInputImage.getCalibration();
 
                 MyFrame.updateImage(out, v, cal, DrawType.TRAJECTORY_HISTORY, particleTracker3DModular.getRadius());
 

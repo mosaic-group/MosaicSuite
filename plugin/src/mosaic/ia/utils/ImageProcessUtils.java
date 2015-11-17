@@ -46,7 +46,6 @@ public class ImageProcessUtils {
      * @param imp Image
      * @return Vector of particle detected
      */
-
     public static Vector<Particle> detectParticlesinStack(ImagePlus imp) {
         switch (imp.getType()) {
             case ImagePlus.GRAY8: {
@@ -82,9 +81,7 @@ public class ImageProcessUtils {
      * @param imp Image
      * @return Vector of particle detected
      */
-
     private static <T extends RealType<T> & NativeType<T>> Vector<Particle> detectParticlesinStackType(ImagePlus imp) {
-        MyFrame.initCache();
         final ImageStatistics imageStat = imp.getStatistics();
         final FeaturePointDetector featurePointDetector = new FeaturePointDetector((float) imageStat.max, (float) imageStat.min);
 
