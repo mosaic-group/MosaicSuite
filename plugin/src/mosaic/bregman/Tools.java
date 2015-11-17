@@ -1171,11 +1171,13 @@ class Tools {
         }
     }
 
-    static double round(double y, int z) {
-        // Special tip to round numbers to 10^-2
-        y *= Math.pow(10, z);
+    // Round y to z-places after comma
+    static double round(double y, final int z) {
+        // Special tip to round numbers to 10^-z
+        final double factor = Math.pow(10,  z);
+        y *= factor;
         y = (int) y;
-        y /= Math.pow(10, z);
+        y /= factor;
         return y;
     }
 }

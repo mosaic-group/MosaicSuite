@@ -339,8 +339,8 @@ public class TrajectoryAnalysis {
             for (int j = i + 1; j < noOfParticles; ++j) {
                 final Particle pj = iParticles[j];
                 if (pj.getFrame() == pi.getFrame() + aDelta) {
-                    final double dx = (pj.x - pi.x);
-                    final double dy = (pj.y - pi.y);
+                    final double dx = (pj.iX - pi.iX);
+                    final double dy = (pj.iY - pi.iY);
 
                     // Calculate Euclidean norm to get distance between particles
                     // (also convert distance from pixel based to physical units)

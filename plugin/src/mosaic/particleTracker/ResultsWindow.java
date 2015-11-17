@@ -400,7 +400,7 @@ public class ResultsWindow extends Frame implements FocusListener, ActionListene
                     for (int i = 0; i < traj.existing_particles.length; i++) {
                         // if a particle in the trajectory is within the ROI
                         // print traj information to screen and go to next trajectory
-                        if (user_roi.getBounds().contains(traj.existing_particles[i].y, traj.existing_particles[i].x) && traj.to_display) {
+                        if (user_roi.getBounds().contains(traj.existing_particles[i].iY, traj.existing_particles[i].iX) && traj.to_display) {
                             text_panel.appendLine("%% Trajectory " + traj.serial_number);
                             text_panel.append(particleTracker3DModular.trajectoryHeader());
                             text_panel.append(traj.toString());

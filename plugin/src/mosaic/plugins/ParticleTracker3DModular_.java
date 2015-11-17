@@ -422,9 +422,9 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
             final Particle p = i.next();
 
             if (p.m0 >= f_size && p.m2 > f_intensity) {
-                p.x *= cal.pixelWidth;
-                p.y *= cal.pixelHeight;
-                p.z *= cal.pixelDepth;
+                p.iX *= cal.pixelWidth;
+                p.iY *= cal.pixelHeight;
+                p.iZ *= cal.pixelDepth;
             }
             else {
                 i.remove();
@@ -1381,14 +1381,14 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
         for (int i = 0; i < iFrames.length; i++) {
             for (int p = 0; p < iFrames[i].getParticles().size(); p++) {
                 final Particle vParticle = iFrames[i].getParticles().elementAt(p);
-                if (vParticle.x > vMax[0]) {
-                    vMax[0] = (int) Math.ceil(vParticle.x);
+                if (vParticle.iX > vMax[0]) {
+                    vMax[0] = (int) Math.ceil(vParticle.iX);
                 }
-                if (vParticle.y > vMax[1]) {
-                    vMax[1] = (int) Math.ceil(vParticle.y);
+                if (vParticle.iY > vMax[1]) {
+                    vMax[1] = (int) Math.ceil(vParticle.iY);
                 }
-                if (vParticle.z > vMax[2]) {
-                    vMax[2] = (int) Math.ceil(vParticle.z);
+                if (vParticle.iZ > vMax[2]) {
+                    vMax[2] = (int) Math.ceil(vParticle.iZ);
                 }
             }
         }
@@ -1710,15 +1710,15 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
     private void addParticleInfo(final ResultsTable rt, int rownum, final Particle p) {
         rt.setValue("Frame", rownum, p.getFrame());
-        rt.setValue("x", rownum, p.x);
-        rt.setValue("y", rownum, p.y);
-        rt.setValue("z", rownum, p.z);
+        rt.setValue("x", rownum, p.iX);
+        rt.setValue("y", rownum, p.iY);
+        rt.setValue("z", rownum, p.iZ);
         rt.setValue("m0", rownum, p.m0);
         rt.setValue("m1", rownum, p.m1);
         rt.setValue("m2", rownum, p.m2);
         rt.setValue("m3", rownum, p.m3);
         rt.setValue("m4", rownum, p.m4);
-        rt.setValue("NPscore", rownum, p.score);
+        rt.setValue("NPscore", rownum, p.nonParticleDiscriminationScore);
     }
 
     private ResultsTable getResultsTable() {

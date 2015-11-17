@@ -83,15 +83,15 @@ public class Trajectory {
         }
 
         /* find the min and max values of the x and y positions */
-        float min_x = this.existing_particles[0].x;
-        float min_y = this.existing_particles[0].y;
-        float max_x = this.existing_particles[0].x;
-        float max_y = this.existing_particles[0].y;
+        float min_x = this.existing_particles[0].iX;
+        float min_y = this.existing_particles[0].iY;
+        float max_x = this.existing_particles[0].iX;
+        float max_y = this.existing_particles[0].iY;
         for (int i = 0; i < this.existing_particles.length; i++) {
-            min_x = Math.min(this.existing_particles[i].x, min_x);
-            min_y = Math.min(this.existing_particles[i].y, min_y);
-            max_x = Math.max(this.existing_particles[i].x, max_x);
-            max_y = Math.max(this.existing_particles[i].y, max_y);
+            min_x = Math.min(this.existing_particles[i].iX, min_x);
+            min_y = Math.min(this.existing_particles[i].iY, min_y);
+            max_x = Math.max(this.existing_particles[i].iX, max_x);
+            max_y = Math.max(this.existing_particles[i].iY, max_y);
         }
 
         /*
@@ -127,15 +127,15 @@ public class Trajectory {
      */
     public void setMouseSelectionArea() {
         /* find the min and max values of the x and y positions */
-        float min_x = this.existing_particles[0].x;
-        float min_y = this.existing_particles[0].y;
-        float max_x = this.existing_particles[0].x;
-        float max_y = this.existing_particles[0].y;
+        float min_x = this.existing_particles[0].iX;
+        float min_y = this.existing_particles[0].iY;
+        float max_x = this.existing_particles[0].iX;
+        float max_y = this.existing_particles[0].iY;
         for (int i = 0; i < this.existing_particles.length; i++) {
-            min_x = Math.min(this.existing_particles[i].x, min_x);
-            min_y = Math.min(this.existing_particles[i].y, min_y);
-            max_x = Math.max(this.existing_particles[i].x, max_x);
-            max_y = Math.max(this.existing_particles[i].y, max_y);
+            min_x = Math.min(this.existing_particles[i].iX, min_x);
+            min_y = Math.min(this.existing_particles[i].iY, min_y);
+            max_x = Math.max(this.existing_particles[i].iX, max_x);
+            max_y = Math.max(this.existing_particles[i].iY, max_y);
         }
 
         /*
@@ -200,13 +200,13 @@ public class Trajectory {
         }
         final Object[] gaps_tmp = gaps.toArray();
         for (int i = 0; i < num_of_gaps; i++) {
-            write(new StringBuffer(Math.round((this.existing_particles[((int[]) gaps_tmp[i])[0]]).y)));
+            write(new StringBuffer(Math.round((this.existing_particles[((int[]) gaps_tmp[i])[0]]).iY)));
             write(new StringBuffer(","));
-            write(new StringBuffer(Math.round((this.existing_particles[((int[]) gaps_tmp[i])[0]]).x)));
+            write(new StringBuffer(Math.round((this.existing_particles[((int[]) gaps_tmp[i])[0]]).iX)));
             write(new StringBuffer(","));
-            write(new StringBuffer(Math.round((this.existing_particles[((int[]) gaps_tmp[i])[1]]).y)));
+            write(new StringBuffer(Math.round((this.existing_particles[((int[]) gaps_tmp[i])[1]]).iY)));
             write(new StringBuffer(","));
-            write(new StringBuffer(Math.round((this.existing_particles[((int[]) gaps_tmp[i])[1]]).x)));
+            write(new StringBuffer(Math.round((this.existing_particles[((int[]) gaps_tmp[i])[1]]).iX)));
         }
     }
 
@@ -233,7 +233,6 @@ public class Trajectory {
         final StringBuffer s = new StringBuffer();
         for (int i = 0; i < existing_particles.length; i++) {
             s.append(existing_particles[i].toStringBuffer());
-            // s.append(evaluateMomentaAfterDeath(existing_particles[i]));
         }
         s.append("\n");
         return s;

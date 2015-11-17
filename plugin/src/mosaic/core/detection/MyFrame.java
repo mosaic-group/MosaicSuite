@@ -46,7 +46,7 @@ public class MyFrame {
     public int real_particles_number; // number of "real" particles discrimination
     public int frame_number; // Serial number of this frame in the movie (can be 0)
 
-    // holdes string with ready to print info about this frame before particle discrimination
+    // holds string with ready to print info about this frame before particle discrimination
     private StringBuffer info_before_discrimination;
 
     /* only relevant to frames representing real images */
@@ -163,12 +163,8 @@ public class MyFrame {
 
     private boolean loadParticlesFromFile(BufferedReader r, String path) throws IOException {
         final Vector<String[]> particles_info = new Vector<String[]>(); // a vector to
-        // hold all
-        // particles
-        // info as
-        // String[]
-        String[] particle_info; // will hold all the info for one particle
-        // (splitted)
+        // hold all particles info as String[]
+        String[] particle_info; // will hold all the info for one particle (splitted)
         String[] frame_number_info; // will fold the frame info line (splitted)
         String line;
 
@@ -188,10 +184,7 @@ public class MyFrame {
             this.frame_number = Integer.parseInt(frame_number_info[1]);
         }
 
-        /*
-         * go over all lines, count number of particles and save the information
-         * as String
-         */
+        // go over all lines, count number of particles and save the information as String
         while (true) {
             line = r.readLine();
             if (line == null) {
@@ -212,10 +205,7 @@ public class MyFrame {
         final Iterator<String[]> iter = particles_info.iterator();
         int counter = 0;
 
-        /*
-         * go over all particles String info and construct Particles Objects
-         * from it
-         */
+        // go over all particles String info and construct Particles Objects from it
         while (iter.hasNext()) {
             particle_info = iter.next();
 
@@ -225,23 +215,17 @@ public class MyFrame {
             }
 
             if (particle_info.length == 2) {
-                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), 0.0f, this.frame_number, particle_info, linkrange));
+//                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), 0.0f, this.frame_number, particle_info, linkrange));
+                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), 0.0f, this.frame_number, linkrange));
             }
             else {
-                this.particles.addElement(
-                        new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), this.frame_number, particle_info, linkrange));
+//                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), this.frame_number, particle_info, linkrange));
+                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), this.frame_number, linkrange));
             }
 
-            // max_coord =
-            // Math.max((int)Math.max(this.particles.elementAt(counter).x,
-            // this.particles.elementAt(counter).y), max_coord);
-            // if (momentum_from_text) {
             if (particle_info.length < 8 || particle_info[3] == null || particle_info[4] == null || particle_info[5] == null || particle_info[6] == null || particle_info[7] == null
                     || particle_info[8] == null) {
-                // IJ.error("File: " + path +
-                // "\ndoes not have momentum values at positions 4 to 8 for all particles");
-                // this.particles = null;
-                // return false;
+                // IJ.error("File: " + path + "\ndoes not have momentum values at positions 4 to 8 for all particles");
                 this.particles.elementAt(counter).m0 = 0;
                 this.particles.elementAt(counter).m1 = 0;
                 this.particles.elementAt(counter).m2 = 0;
@@ -255,7 +239,6 @@ public class MyFrame {
                 this.particles.elementAt(counter).m3 = Float.parseFloat(particle_info[6]);
                 this.particles.elementAt(counter).m4 = Float.parseFloat(particle_info[7]);
             }
-            // }
             counter++;
         }
         particles_info.removeAllElements();
@@ -279,11 +262,11 @@ public class MyFrame {
         info.append(" particles):\n");
         for (int i = 0; i < this.particles.size(); i++) {
             info.append("%\t\t");
-            info.append(nf.format(this.particles.elementAt(i).x));
+            info.append(nf.format(this.particles.elementAt(i).iX));
             info.append(" ");
-            info.append(nf.format(this.particles.elementAt(i).y));
+            info.append(nf.format(this.particles.elementAt(i).iY));
             info.append(" ");
-            info.append(nf.format(this.particles.elementAt(i).z));
+            info.append(nf.format(this.particles.elementAt(i).iZ));
 
             info.append("\n");
 
@@ -322,11 +305,11 @@ public class MyFrame {
         info.append("%\tParticles after position refinement:\n");
         for (int i = 0; i < this.particles.size(); i++) {
             info.append("%\t\t");
-            info.append(nf.format(this.particles.elementAt(i).x));
+            info.append(nf.format(this.particles.elementAt(i).iX));
             info.append(" ");
-            info.append(nf.format(this.particles.elementAt(i).y));
+            info.append(nf.format(this.particles.elementAt(i).iY));
             info.append(" ");
-            info.append(nf.format(this.particles.elementAt(i).z));
+            info.append(nf.format(this.particles.elementAt(i).iZ));
 
             info.append("\n");
         }
@@ -380,11 +363,11 @@ public class MyFrame {
             sb.append("%\tParticle ");
             sb.append(j);
             sb.append(" (");
-            sb.append(nf.format(this.particles.elementAt(j).x));
+            sb.append(nf.format(this.particles.elementAt(j).iX));
             sb.append(", ");
-            sb.append(nf.format(this.particles.elementAt(j).y));
+            sb.append(nf.format(this.particles.elementAt(j).iY));
             sb.append(", ");
-            sb.append(nf.format(this.particles.elementAt(j).z));
+            sb.append(nf.format(this.particles.elementAt(j).iZ));
             sb.append(")\n");
             for (int k = 0; k < linkrange; k++) {
                 sb.append("%\t\tlinked to particle ");
@@ -428,11 +411,11 @@ public class MyFrame {
         info1.append(this.frame_number);
         info1.append("\n");
         for (int i = 0; i < this.particles.size(); i++) {
-            info1.append(nf.format(this.particles.elementAt(i).x));
+            info1.append(nf.format(this.particles.elementAt(i).iX));
             info1.append(" ");
-            info1.append(nf.format(this.particles.elementAt(i).y));
+            info1.append(nf.format(this.particles.elementAt(i).iY));
             info1.append(" ");
-            info1.append(nf.format(this.particles.elementAt(i).z));
+            info1.append(nf.format(this.particles.elementAt(i).iZ));
             if (with_momentum) {
                 info1.append(" ");
                 info1.append(nf.format(this.particles.elementAt(i).m0));
@@ -559,10 +542,10 @@ public class MyFrame {
 
             Point p_c = null;
             if (out_a.numDimensions() == 2) {
-                p_c = new Point((int) (ptt.x / scaling_[0]), (int) (ptt.y / scaling_[1]));
+                p_c = new Point((int) (ptt.iX / scaling_[0]), (int) (ptt.iY / scaling_[1]));
             }
             else {
-                p_c = new Point((int) (ptt.x / scaling_[0]), (int) (ptt.y / scaling_[1]), (int) (ptt.z / scaling_[2]));
+                p_c = new Point((int) (ptt.iX / scaling_[0]), (int) (ptt.iY / scaling_[1]), (int) (ptt.iZ / scaling_[2]));
             }
 
             rg_m.setMiddlePoint(p_c);
@@ -650,10 +633,10 @@ public class MyFrame {
 
                     Point p_c = null;
                     if (out_a.numDimensions() == 2) {
-                        p_c = new Point((int) (ptt.x / scaling_[0]), (int) (ptt.y / scaling_[1]));
+                        p_c = new Point((int) (ptt.iX / scaling_[0]), (int) (ptt.iY / scaling_[1]));
                     }
                     else {
-                        p_c = new Point((int) (ptt.x / scaling_[0]), (int) (ptt.y / scaling_[1]), (int) (ptt.z / scaling_[2]));
+                        p_c = new Point((int) (ptt.iX / scaling_[0]), (int) (ptt.iY / scaling_[1]), (int) (ptt.iZ / scaling_[2]));
                     }
 
                     rg_m.setMiddlePoint(p_c);
@@ -689,12 +672,12 @@ public class MyFrame {
         int i, dx, dy, dz, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
         final long pixel[] = new long[3];
 
-        pixel[0] = (int) p1.x;
-        pixel[1] = (int) p1.y;
-        pixel[2] = (int) p1.z;
-        dx = (int) (p2.x - p1.x);
-        dy = (int) (p2.y - p1.y);
-        dz = (int) (p2.z - p1.z);
+        pixel[0] = (int) p1.iX;
+        pixel[1] = (int) p1.iY;
+        pixel[2] = (int) p1.iZ;
+        dx = (int) (p2.iX - p1.iX);
+        dy = (int) (p2.iY - p1.iY);
+        dz = (int) (p2.iZ - p1.iZ);
         x_inc = (dx < 0) ? -1 : 1;
         l = Math.abs(dx);
         y_inc = (dy < 0) ? -1 : 1;
@@ -851,13 +834,13 @@ public class MyFrame {
             }
 
 
-            p_ini.x /= scaling_[0];
-            p_ini.y /= scaling_[1];
-            p_ini.z /= scaling_[2];
+            p_ini.iX /= scaling_[0];
+            p_ini.iY /= scaling_[1];
+            p_ini.iZ /= scaling_[2];
 
-            p_end.x /= scaling_[0];
-            p_end.y /= scaling_[1];
-            p_end.z /= scaling_[2];
+            p_end.iX /= scaling_[0];
+            p_end.iY /= scaling_[1];
+            p_end.iZ /= scaling_[2];
 
 
             drawLine(out, p_ini, p_end, col);
@@ -869,32 +852,32 @@ public class MyFrame {
             // draw several lines on z
 
             for (int i = 1; i <= rc; i++) {
-                if (ptt.p1.z / (float) cal.pixelDepth - i >= 0 && ptt.p2.z / (float) cal.pixelDepth - i >= 0) {
+                if (ptt.p1.iZ / (float) cal.pixelDepth - i >= 0 && ptt.p2.iZ / (float) cal.pixelDepth - i >= 0) {
                     p_end = new Particle(ptt.p1);
                     p_ini = new Particle(ptt.p2);
 
-                    p_ini.x /= scaling_[0];
-                    p_ini.y /= scaling_[1];
-                    p_ini.z = p_ini.z / scaling[2] - i;
+                    p_ini.iX /= scaling_[0];
+                    p_ini.iY /= scaling_[1];
+                    p_ini.iZ = p_ini.iZ / scaling[2] - i;
 
-                    p_end.x /= scaling_[0];
-                    p_end.y /= scaling_[1];
-                    p_end.z = p_end.z / scaling_[2] - i;
+                    p_end.iX /= scaling_[0];
+                    p_end.iY /= scaling_[1];
+                    p_end.iZ = p_end.iZ / scaling_[2] - i;
 
                     drawLine(out, p_ini, p_end, col);
                 }
 
-                if (ptt.p2.x / (float) cal.pixelDepth + i < out.dimension(out.numDimensions() - 1) && ptt.p1.z / (float) cal.pixelDepth + i < out.dimension(out.numDimensions() - 1)) {
+                if (ptt.p2.iX / (float) cal.pixelDepth + i < out.dimension(out.numDimensions() - 1) && ptt.p1.iZ / (float) cal.pixelDepth + i < out.dimension(out.numDimensions() - 1)) {
                     p_end = new Particle(ptt.p1);
                     p_ini = new Particle(ptt.p2);
 
-                    p_ini.x /= scaling_[0];
-                    p_ini.y /= scaling_[1];
-                    p_ini.z = p_ini.z / scaling_[2] + i;
+                    p_ini.iX /= scaling_[0];
+                    p_ini.iY /= scaling_[1];
+                    p_ini.iZ = p_ini.iZ / scaling_[2] + i;
 
-                    p_end.x /= scaling_[0];
-                    p_end.y /= scaling_[1];
-                    p_end.z = p_end.z / scaling_[2] + i;
+                    p_end.iX /= scaling_[0];
+                    p_end.iY /= scaling_[1];
+                    p_end.iZ = p_end.iZ / scaling_[2] + i;
 
                     drawLine(out, p_ini, p_end, col);
                 }
@@ -1364,21 +1347,13 @@ public class MyFrame {
 
     public Img<ARGBType> createImage(int vMax[], Vector<Trajectory> tr, int frame, DrawType typ) {
         // if you have no trajectory draw use the other function
-
         if (tr == null) {
             return createImage(vMax);
         }
 
-        // the number of dimensions
-
         // Create image
-
         final ImgFactory<ARGBType> imgFactory = new ArrayImgFactory<ARGBType>();
         final Img<ARGBType> out = imgFactory.create(vMax, new ARGBType());
-
-        // Cursor<ARGBType> curOut = out.cursor();
-
-        //
 
         TrajectoriesDraw(out, 1, tr, frame, null, null, 1.0f, typ, p_radius);
 
@@ -1389,7 +1364,6 @@ public class MyFrame {
      * Remove double particles in the frame, needed for segmentation
      * some tool produce double regions
      */
-
     public void removeDoubleParticles() {
         boolean f = false;
         final Vector<Particle> p = new Vector<Particle>();

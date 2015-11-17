@@ -85,7 +85,7 @@ class TwoRegions extends NRegions {
 
             // Draw the sphere
 
-            final Point p_c = new Point((int) (ptt.x), (int) (ptt.y), (int) (ptt.z));
+            final Point p_c = new Point((int) (ptt.iX), (int) (ptt.iY), (int) (ptt.iZ));
 
             rg_m.setMiddlePoint(p_c);
 

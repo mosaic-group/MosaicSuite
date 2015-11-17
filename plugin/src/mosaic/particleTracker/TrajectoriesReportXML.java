@@ -124,7 +124,7 @@ public class TrajectoriesReportXML {
             intensity.setAttribute("m3", "" + p.m3);
             intensity.setAttribute("m4", "" + p.m4);
 
-            addElementWithAttr(frame, "NonParticleDiscriminationScore", "value", p.score);
+            addElementWithAttr(frame, "NonParticleDiscriminationScore", "value", p.nonParticleDiscriminationScore);
         }
     }
 

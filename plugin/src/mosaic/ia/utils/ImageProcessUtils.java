@@ -130,26 +130,14 @@ public class ImageProcessUtils {
      * @param particles
      * @return
      */
-
     public static Point3d[] getCoordinates(Vector<Particle> particles) {
-        double[] tempPosition = new double[3];
         final Point3d[] tempCoords = new Point3d[particles.size()];
 
         final Iterator<Particle> iter = particles.iterator();
         int i = 0;
         while (iter.hasNext()) {
-            tempPosition = iter.next().getPosition();
-            // System.out.println("position: "+tempPosition[0]+tempPosition[1]+tempPosition[2]);
-            try {
-                tempCoords[i] = new Point3d(tempPosition); // duplicate
-                // initialization?
-                // System.out.println(tempPosition[2]);
-            }
-            catch (final NullPointerException e) {
-                e.printStackTrace();
-                System.out.println("i= " + i + ", size:" + tempCoords.length + " temp position 0: " + tempPosition[0]);
-            }
-            i++;
+            Particle r = iter.next();
+            tempCoords[i++] = new Point3d(r.iX, r.iY, r.iZ);
         }
 
         return tempCoords;

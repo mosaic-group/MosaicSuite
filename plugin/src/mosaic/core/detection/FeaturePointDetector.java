@@ -234,13 +234,12 @@ public class FeaturePointDetector {
         for (int m = 0; m < iParticles.size(); ++m) {
             final Particle currentParticle = iParticles.elementAt(m);
             currentParticle.special = true;
-            currentParticle.score = 0;
+            currentParticle.nonParticleDiscriminationScore = 0;
             float epsx = 0;
             float epsy = 0;
             float epsz = 0;
             
             do {
-                currentParticle.nbIterations++;
                 currentParticle.m0 = 0;
                 currentParticle.m1 = 0;
                 currentParticle.m2 = 0;
@@ -251,23 +250,23 @@ public class FeaturePointDetector {
                 epsz = 0;
                 
                 for (int s = -iRadius; s <= iRadius; ++s) {
-                    if (((int) currentParticle.z + s) < 0 || ((int) currentParticle.z + s) >= imageDepth) {
+                    if (((int) currentParticle.iZ + s) < 0 || ((int) currentParticle.iZ + s) >= imageDepth) {
                         continue;
                     }
-                    int z = (int) currentParticle.z + s;
+                    int z = (int) currentParticle.iZ + s;
                     float[] pixels = (float[]) ips.getPixels(z + 1);
                     
                     for (int k = -iRadius; k <= iRadius; ++k) {
-                        if (((int) currentParticle.y + k) < 0 || ((int) currentParticle.y + k) >= imageHeight) {
+                        if (((int) currentParticle.iY + k) < 0 || ((int) currentParticle.iY + k) >= imageHeight) {
                             continue;
                         }
-                        int y = (int) currentParticle.y + k;
+                        int y = (int) currentParticle.iY + k;
 
                         for (int l = -iRadius; l <= iRadius; ++l) {
-                            if (((int) currentParticle.x + l) < 0 || ((int) currentParticle.x + l) >= imageWidth) {
+                            if (((int) currentParticle.iX + l) < 0 || ((int) currentParticle.iX + l) >= imageWidth) {
                                 continue;
                             }
-                            int x = (int) currentParticle.x + l;
+                            int x = (int) currentParticle.iX + l;
                             
                             float c = pixels[y * imageWidth + x] * mask[s + iRadius][(k + iRadius) * mask_width + (l + iRadius)];
 
@@ -297,33 +296,33 @@ public class FeaturePointDetector {
                 int tz = (int) (10.0 * epsz);
 
                 if ((tx) / 10.0 > 0.5) {
-                    if ((int) currentParticle.x + 1 < imageWidth) {
-                        currentParticle.x++;
+                    if ((int) currentParticle.iX + 1 < imageWidth) {
+                        currentParticle.iX++;
                     }
                 }
                 else if ((tx) / 10.0 < -0.5) {
-                    if ((int) currentParticle.x - 1 >= 0) {
-                        currentParticle.x--;
+                    if ((int) currentParticle.iX - 1 >= 0) {
+                        currentParticle.iX--;
                     }
                 }
                 if ((ty) / 10.0 > 0.5) {
-                    if ((int) currentParticle.y + 1 < imageHeight) {
-                        currentParticle.y++;
+                    if ((int) currentParticle.iY + 1 < imageHeight) {
+                        currentParticle.iY++;
                     }
                 }
                 else if ((ty) / 10.0 < -0.5) {
-                    if ((int) currentParticle.y - 1 >= 0) {
-                        currentParticle.y--;
+                    if ((int) currentParticle.iY - 1 >= 0) {
+                        currentParticle.iY--;
                     }
                 }
                 if ((tz) / 10.0 > 0.5) {
-                    if ((int) currentParticle.z + 1 < imageDepth) {
-                        currentParticle.z++;
+                    if ((int) currentParticle.iZ + 1 < imageDepth) {
+                        currentParticle.iZ++;
                     }
                 }
                 else if ((tz) / 10.0 < -0.5) {
-                    if ((int) currentParticle.z - 1 >= 0) {
-                        currentParticle.z--;
+                    if ((int) currentParticle.iZ - 1 >= 0) {
+                        currentParticle.iZ--;
                     }
                 }
 
@@ -332,9 +331,9 @@ public class FeaturePointDetector {
                 }
             } while (epsx > 0.5 || epsx < -0.5 || epsy > 0.5 || epsy < -0.5 || epsz > 0.5 || epsz < -0.5);
             
-            currentParticle.x += epsx;
-            currentParticle.y += epsy;
-            currentParticle.z += epsz;
+            currentParticle.iX += epsx;
+            currentParticle.iY += epsy;
+            currentParticle.iZ += epsz;
         }
     }
 
@@ -351,22 +350,22 @@ public class FeaturePointDetector {
         int max_x = 1, max_y = 1, max_z = 1;
         iNumOfRealParticles = iNumOfInitialyDetectedParticles;
         if (iParticles.size() == 1) {
-            iParticles.elementAt(0).score = Float.MAX_VALUE;
+            iParticles.elementAt(0).nonParticleDiscriminationScore = Float.MAX_VALUE;
         }
         for (j = 0; j < iParticles.size(); j++) {
             // int accepted = 1;
-            max_x = Math.max((int) iParticles.elementAt(j).x, max_x);
-            max_y = Math.max((int) iParticles.elementAt(j).y, max_y);
-            max_z = Math.max((int) iParticles.elementAt(j).z, max_z);
+            max_x = Math.max((int) iParticles.elementAt(j).iX, max_x);
+            max_y = Math.max((int) iParticles.elementAt(j).iY, max_y);
+            max_z = Math.max((int) iParticles.elementAt(j).iZ, max_z);
 
             for (k = j + 1; k < iParticles.size(); k++) {
                 score = (1.0 / (2.0 * Math.PI * 0.1 * 0.1))
                         * Math.exp(-(iParticles.elementAt(j).m0 - iParticles.elementAt(k).m0) * (iParticles.elementAt(j).m0 - iParticles.elementAt(k).m0) / (2.0 * 0.1)
                                 - (iParticles.elementAt(j).m2 - iParticles.elementAt(k).m2) * (iParticles.elementAt(j).m2 - iParticles.elementAt(k).m2) / (2.0 * 0.1));
-                iParticles.elementAt(j).score += score;
-                iParticles.elementAt(k).score += score;
+                iParticles.elementAt(j).nonParticleDiscriminationScore += score;
+                iParticles.elementAt(k).nonParticleDiscriminationScore += score;
             }
-            if (iParticles.elementAt(j).score < iCutoff) {
+            if (iParticles.elementAt(j).nonParticleDiscriminationScore < iCutoff) {
                 iParticles.elementAt(j).special = false;
                 iNumOfRealParticles--;
             }
@@ -389,7 +388,7 @@ public class FeaturePointDetector {
             for (int oz = -1; !vParticleInNeighborhood && oz <= 1; oz++) {
                 for (int oy = -1; !vParticleInNeighborhood && oy <= 1; oy++) {
                     for (int ox = -1; !vParticleInNeighborhood && ox <= 1; ox++) {
-                        if (vBitmap[(int) iParticles.elementAt(j).z + 1 + oz][(int) iParticles.elementAt(j).y + 1 + oy][(int) iParticles.elementAt(j).x + 1 + ox]) {
+                        if (vBitmap[(int) iParticles.elementAt(j).iZ + 1 + oz][(int) iParticles.elementAt(j).iY + 1 + oy][(int) iParticles.elementAt(j).iX + 1 + ox]) {
                             vParticleInNeighborhood = true;
                         }
                     }
@@ -401,7 +400,7 @@ public class FeaturePointDetector {
                 iNumOfRealParticles--;
             }
             else {
-                vBitmap[(int) iParticles.elementAt(j).z + 1][(int) iParticles.elementAt(j).y + 1][(int) iParticles.elementAt(j).x + 1] = true;
+                vBitmap[(int) iParticles.elementAt(j).iZ + 1][(int) iParticles.elementAt(j).iY + 1][(int) iParticles.elementAt(j).iX + 1] = true;
             }
         }
 
