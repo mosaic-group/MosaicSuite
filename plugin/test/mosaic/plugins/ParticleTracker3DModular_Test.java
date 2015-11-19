@@ -71,7 +71,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
 
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
-        prepareTestDirectory("test.csv", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("test.csv", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
         
         // Test it
         testPlugin(plugin, tcDirName,
@@ -96,7 +96,7 @@ public class ParticleTracker3DModular_Test extends CommonBase {
 
         // Create tested plugIn
         final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
-        prepareTestDirectory("textFrames", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("textFrames", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
         
         // Test it
         testPlugin(plugin, tcDirName,

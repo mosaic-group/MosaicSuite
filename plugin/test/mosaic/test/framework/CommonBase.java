@@ -113,7 +113,7 @@ public class CommonBase extends Info {
         // ===================  Prepare plugin env. =================================
         tcPath = SystemOperations.getTestDataPath() + aTcDirName;
         
-        prepareTestDirectory(aInputFile, tcPath, tmpPath);
+        copyTestResources(aInputFile, tcPath, tmpPath);
 
         // Make IJ running in batch mode (no GUI)
         Interpreter.batchMode = true;
@@ -163,7 +163,10 @@ public class CommonBase extends Info {
         logger.debug("    ref: [" + aReferenceFileName + "]");
         logger.debug("    test:[" + aGeneratedImageWindowName +"]");
         final Img<?> referenceImg = loadImage(aReferenceFileName);
-        final Img<?> processedImg = loadImageByName(aGeneratedImageWindowName);
+        Img<?> processedImg = loadImageByName(aGeneratedImageWindowName);
+        if (processedImg == null) {
+            processedImg = loadImage(tmpPath + aGeneratedImageWindowName);
+        }
         if (processedImg == null) {
             throw new RuntimeException("No img: [" + aGeneratedImageWindowName + "]");
         }
@@ -171,7 +174,7 @@ public class CommonBase extends Info {
     }
 
     /**
-     * Comprae two text files.
+     * Compare two text files.
      * @param refFile - absolute path to reference file
      * @param testFile - absolute path to tested file
      */
@@ -185,16 +188,16 @@ public class CommonBase extends Info {
     }
 
     /**
-     * Copies aInputFile from test case data directory to temporary path
-     * @param aInputFile input files
-     * @param aTcPath source test case path
-     * @param aTmpPath destination temporary path
+     * Copies aInputFileOrDirectory from inputPath to given destinationPath
+     * @param aInputFileOrDirectory input file or directory
+     * @param aInputPath source test case path
+     * @param aDestinationPath destination temporary path
      */
-    protected void prepareTestDirectory(final String aInputFile, final String aTcPath, final String aTmpPath) {
-        if (aInputFile != null) {
-            final File in = new File(aTcPath + aInputFile);
-            final File out = new File(aTmpPath);
-            logger.debug("Copy [" + aTcPath + aInputFile + "] to [" + aTmpPath + "]");
+    protected void copyTestResources(final String aInputFileOrDirectory, final String aInputPath, final String aDestinationPath) {
+        if (aInputFileOrDirectory != null) {
+            final File in = new File(aInputPath + aInputFileOrDirectory);
+            final File out = new File(aDestinationPath);
+            logger.debug("Copy [" + aInputPath + aInputFileOrDirectory + "] to [" + aDestinationPath + "]");
             if (in.isDirectory()) {
                 SystemOperations.copyDirectoryToDirectory(in, out);
             }

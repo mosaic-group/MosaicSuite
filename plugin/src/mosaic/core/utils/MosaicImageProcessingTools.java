@@ -87,8 +87,8 @@ class DilateGenericThread extends Thread {
         ips = is;
         dilated_ips = dilated_is;
         atomic_z = z;
-        
         radius = aRadius;
+        
         kernel_width = radius * 2 + 1;
         image_width = ips.getWidth();
         image_height = ips.getHeight();
