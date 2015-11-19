@@ -10,29 +10,21 @@ public class Region implements Comparable<Region> {
     boolean colocpositive = false;
 
     Region(int value, int points) {
-        // byteImage = true;
         this.value = value;
-        // this.materialName = materialName;
         this.points = points;
-        // this.sameValue = sameValue;
     }
 
     Region(int points) {
-        // byteImage = false;
         this.points = points;
-        // this.sameValue = sameValue;
     }
 
     ArrayList<Pix> pixels = new ArrayList<Pix>();
-    // boolean byteImage;
     final int points;
     float rsize;
-    // String materialName;
     int value;
     double perimeter;
     double length;
     Region rvoronoi;
-    // boolean sameValue;
     double intensity;
     float cx, cy, cz;
     float overlap;
@@ -43,7 +35,6 @@ public class Region implements Comparable<Region> {
 
     @Override
     public int compareTo(Region otherRegion) {
-        // Region o = (Region) otherRegion;
         return (value < otherRegion.value) ? 1 : ((value > otherRegion.value) ? -1 : 0);
     }
 
@@ -94,5 +85,4 @@ public class Region implements Comparable<Region> {
     public double getcoloc_image_intensity() {
         return coloc_o_int;
     }
-
 }
