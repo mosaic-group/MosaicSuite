@@ -9,7 +9,6 @@ public class LabelStatistics {
     public double var = 0; // variance of intensity
     public double median = 0;
     public double mean_pos[];
-    private final int dim;
 
     /**
      * Create a label that store information
@@ -20,19 +19,6 @@ public class LabelStatistics {
 
     public LabelStatistics(int label, int dim) {
         this.label = label;
-        this.dim = dim;
-        mean_pos = new double[dim];
-    }
-
-    /**
-     * Reset all the values of the label
-     */
-
-    void reset() {
-        label = 0; // TODO: should be set explicitly to background value?
-        count = 0;
-        mean = 0;
-        var = 0;
         mean_pos = new double[dim];
     }
 
