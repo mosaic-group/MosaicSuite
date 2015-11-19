@@ -37,17 +37,17 @@ public class NoSplitFilter3D implements CurvatureFilter3D {
                 final int seqCode = sequence[seq];
                 final int dep = seqCode & 0x00f;
                 final int row = (seqCode & 0x0f0) >> 4;
-            final int col = (seqCode & 0xf00) >> 8;
-
-            for (int z = dep; z < Z; z += 2) {
-                for (int y = row; y < Y; y += 2) {
-                    for (int x = col; x < X; x += 2) {
-
-                        aImg[z][y][x] += iFk3D.filterKernel(aImg, x, y, z);
-
+                final int col = (seqCode & 0xf00) >> 8;
+    
+                for (int z = dep; z < Z; z += 2) {
+                    for (int y = row; y < Y; y += 2) {
+                        for (int x = col; x < X; x += 2) {
+    
+                            aImg[z][y][x] += iFk3D.filterKernel(aImg, x, y, z);
+    
+                        }
                     }
                 }
-            }
             }
         }
     }

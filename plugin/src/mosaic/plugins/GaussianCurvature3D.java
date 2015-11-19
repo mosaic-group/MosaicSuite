@@ -1,5 +1,6 @@
 package mosaic.plugins;
 
+import ij.IJ;
 import ij.Prefs;
 import ij.gui.GenericDialog;
 import ij.process.FloatProcessor;
@@ -40,7 +41,11 @@ public class GaussianCurvature3D extends PlugInFloat3DBase {
 
         // Run filter on image data.
         final CurvatureFilter3D filter = new NoSplitFilter3D(new FilterKernelGc3D());
-        filter.runFilter(img, iNumberOfIterations);
+        for (int iteration = 0; iteration < iNumberOfIterations; ++iteration) {
+            IJ.showProgress((double)iteration/iNumberOfIterations);
+            IJ.showStatus("Running iteration: " + (iteration + 1) + "/" + iNumberOfIterations);
+            filter.runFilter(img, 1);
+        }
 
         // Generate output image from processed data
         for (int slice = 0; slice < noOfSlices; ++slice) {
