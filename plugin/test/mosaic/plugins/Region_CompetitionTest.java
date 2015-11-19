@@ -32,4 +32,107 @@ public class Region_CompetitionTest extends CommonBase {
                    expectedImgFiles, referenceImgFiles,
                    expectedFiles, referenceFiles);
     }
+    
+    @Test
+    public void testPsf()  {
+        
+        // Define test data
+        final String tcDirName           = "Region_Competition/uc_psf/";
+        final String setupString         = "run";
+        final String macroOptions        = "show_and_save_statistics";
+        final String inputFile           = "uc_data.tif";
+        final String[] expectedImgFiles  = {"__seg_c1.tif/uc_data_seg_c1.tif"};
+        final String[] referenceImgFiles = {"__seg_c1.tif/uc_data_seg_c1.tif"};
+        final String[] expectedFiles     = {"__ObjectsData_c1.csv/uc_data_ObjectsData_c1.csv"};
+        final String[] referenceFiles    = {"__ObjectsData_c1.csv/uc_data_ObjectsData_c1.csv"};
+
+        // Create tested plugIn
+        final Region_Competition plugin = new Region_Competition();
+        copyTestResources("rc_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("psf_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("psf_file_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("uc_psf.tif", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
+    
+    @Test
+    public void testFusionCheck()  {
+        
+        // Define test data
+        final String tcDirName           = "Region_Competition/fusionCheck/";
+        final String setupString         = "run";
+        final String macroOptions        = "show_and_save_statistics";
+        final String inputFile           = "1thing.tif";
+        final String[] expectedImgFiles  = {"__seg_c1.tif/1thing_seg_c1.tif"};
+        final String[] referenceImgFiles = {"__seg_c1.tif/1thing_seg_c1.tif"};
+        final String[] expectedFiles     = {"__ObjectsData_c1.csv/1thing_ObjectsData_c1.csv"};
+        final String[] referenceFiles    = {"__ObjectsData_c1.csv/1thing_ObjectsData_c1.csv"};
+
+        // Create tested plugIn
+        final Region_Competition plugin = new Region_Competition();
+        copyTestResources("rc_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
+    
+    @Test
+    public void testSphere3D()  {
+        
+        // Define test data
+        final String tcDirName           = "Region_Competition/sphere_3d/";
+        final String setupString         = "run";
+        final String macroOptions        = "show_and_save_statistics";
+        final String inputFile           = "sphere.tif";
+        final String[] expectedImgFiles  = {"__seg_c1.tif/sphere_seg_c1.tif"};
+        final String[] referenceImgFiles = {"__seg_c1.tif/sphere_seg_c1.tif"};
+        final String[] expectedFiles     = {"__ObjectsData_c1.csv/sphere_ObjectsData_c1.csv"};
+        final String[] referenceFiles    = {"__ObjectsData_c1.csv/sphere_ObjectsData_c1.csv"};
+
+        // Create tested plugIn
+        final Region_Competition plugin = new Region_Competition();
+        copyTestResources("rc_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
+    
+    @Test
+    public void testTwoBars()  {
+        
+        // Define test data
+        final String tcDirName           = "Region_Competition/twoBars/";
+        final String setupString         = "run";
+        final String macroOptions        = "show_and_save_statistics";
+        final String inputFile           = "twoBars.tif";
+        final String[] expectedImgFiles  = {"__seg_c1.tif/twoBars_seg_c1.tif"};
+        final String[] referenceImgFiles = {"__seg_c1.tif/twoBars_seg_c1.tif"};
+        final String[] expectedFiles     = {"__ObjectsData_c1.csv/twoBars_ObjectsData_c1.csv"};
+        final String[] referenceFiles    = {"__ObjectsData_c1.csv/twoBars_ObjectsData_c1.csv"};
+
+        // Create tested plugIn
+        final Region_Competition plugin = new Region_Competition();
+        copyTestResources("rc_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
 }

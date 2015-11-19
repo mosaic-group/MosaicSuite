@@ -26,17 +26,6 @@
 	<classpathentry kind="lib" path="lib/super-csv-2.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/super-csv-dozer-2.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/weka-dev-3.7.11.jar"/>
-	<classpathentry kind="lib" path="lib/bio-formats/formats-api-5.0.7.jar"/>
-	<classpathentry kind="lib" path="lib/bio-formats/formats-bsd-5.0.7.jar"/>
-	<classpathentry kind="lib" path="lib/bio-formats/formats-common-5.0.7.jar"/>
-	<classpathentry kind="lib" path="lib/bio-formats/formats-gpl-5.0.7.jar"/>
-	<classpathentry kind="lib" path="lib/bio-formats/jai_imageio-5.0.7.jar"/>
-	<classpathentry kind="lib" path="lib/bio-formats/mdbtools-java-5.0.7.jar"/>
-	<classpathentry kind="lib" path="lib/bio-formats/metakit-5.0.7.jar"/>
-	<classpathentry kind="lib" path="lib/bio-formats/ome-poi-5.0.7.jar"/>
-	<classpathentry kind="lib" path="lib/bio-formats/ome-xml-5.0.7.jar"/>
-	<classpathentry kind="lib" path="lib/bio-formats/specification-5.0.7.jar"/>
-	<classpathentry kind="lib" path="lib/bio-formats/turbojpeg-5.0.7.jar"/>
 	<classpathentry kind="lib" path="lib/junit-4.12.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
 	<classpathentry kind="lib" path="lib/fiji-scripting-2.0.0-SNAPSHOT.jar"/>
@@ -62,5 +51,18 @@
 	<classpathentry kind="lib" path="lib/gson-2.2.4.jar"/>
 	<classpathentry kind="lib" path="lib/cmaes_java.jar"/>
 	<classpathentry kind="lib" path="lib/jsch-0.1.53.jar"/>
+	<classpathentry kind="lib" path="lib/imglib2-algorithm-fft-0.1.2.jar"/>
+	<classpathentry kind="lib" path="lib/bio-formats/formats-api-5.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/bio-formats/formats-bsd-5.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/bio-formats/formats-common-5.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/bio-formats/formats-gpl-5.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/bio-formats/jai_imageio-5.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/bio-formats/mdbtools-java-5.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/bio-formats/metakit-5.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/bio-formats/ome-poi-5.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/bio-formats/ome-xml-5.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/bio-formats/specification-5.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/bio-formats/turbojpeg-5.1.6.jar"/>
+	<classpathentry kind="lib" path="lib/guava-17.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
