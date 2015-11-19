@@ -21,15 +21,15 @@ public class ParticleLinkerHun implements ParticleLinker {
 
     private float cost_link(Particle p1, Particle p2, linkerOptions l, int n, double max_cost) {
         double cost = 0.0;
-        final float distance_sq = (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z);
+        final float distance_sq = (p1.iX - p2.iX) * (p1.iX - p2.iX) + (p1.iY - p2.iY) * (p1.iY - p2.iY) + (p1.iZ - p2.iZ) * (p1.iZ - p2.iZ);
 
         cost = (float) (distance_sq * l.l_s + l.l_f * Math.cbrt(((p1.m0 - p2.m0) * (p1.m0 - p2.m0)) + (p1.m2 - p2.m2) * (p1.m2 - p2.m2)));
 
         if (l.force == true) {
             if (p1.distance >= 0.0) {
-                final float lx = (p2.x - p1.x) / (n + 1) - p1.lx;
-                final float ly = (p2.y - p1.y) / (n + 1) - p1.ly;
-                final float lz = (p2.z - p1.z) / (n + 1) - p1.lz;
+                final float lx = (p2.iX - p1.iX) / (n + 1) - p1.lx;
+                final float ly = (p2.iY - p1.iY) / (n + 1) - p1.ly;
+                final float lz = (p2.iZ - p1.iZ) / (n + 1) - p1.lz;
 
                 final float f_magn_sq = lx * lx + ly * ly + lz * lz;
                 cost += l.l_d * f_magn_sq;
@@ -49,9 +49,9 @@ public class ParticleLinkerHun implements ParticleLinker {
             final float ly1 = p1.ly / l1_m;
             final float lz1 = p1.lz / l1_m;
 
-            float lx2 = (p2.x - p1.x + p1.lxa);
-            float ly2 = (p2.y - p1.y + p1.lya);
-            float lz2 = (p2.z - p1.z + p1.lza);
+            float lx2 = (p2.iX - p1.iX + p1.lxa);
+            float ly2 = (p2.iY - p1.iY + p1.lya);
+            float lz2 = (p2.iZ - p1.iZ + p1.lza);
 
             final float l2_m = (float) Math.sqrt(lx2 * lx2 + ly2 * ly2 + lz2 * lz2);
 
@@ -69,7 +69,8 @@ public class ParticleLinkerHun implements ParticleLinker {
     }
 
     @Override
-    public boolean linkParticles(MyFrame[] frames, int frames_number, linkerOptions l) {
+    public boolean linkParticles(MyFrame[] frames, linkerOptions l) {
+        int frames_number = frames.length;
         int m, i, j, nop, nop_next, n;
         int curr_linkrange;
 
@@ -180,23 +181,23 @@ public class ParticleLinkerHun implements ParticleLinker {
                     // Calculate the square distance and store the normalized linking vector
 
                     if (l.force == true) {
-                        p2.elementAt(mac[i]).lx = (p2.elementAt(mac[i]).x - p1.elementAt(i).x) / (n + 1);
-                        p2.elementAt(mac[i]).ly = (p2.elementAt(mac[i]).y - p1.elementAt(i).y) / (n + 1);
-                        p2.elementAt(mac[i]).lz = (p2.elementAt(mac[i]).z - p1.elementAt(i).z) / (n + 1);
+                        p2.elementAt(mac[i]).lx = (p2.elementAt(mac[i]).iX - p1.elementAt(i).iX) / (n + 1);
+                        p2.elementAt(mac[i]).ly = (p2.elementAt(mac[i]).iY - p1.elementAt(i).iY) / (n + 1);
+                        p2.elementAt(mac[i]).lz = (p2.elementAt(mac[i]).iZ - p1.elementAt(i).iZ) / (n + 1);
 
                         // We do not use distance is just to indicate that the particle has a link vector
 
                         p2.elementAt(mac[i]).distance = 1.0f;
                     }
                     else if (l.straight_line == true) {
-                        final float distance_sq = (float) Math.sqrt((p1.elementAt(i).x - p2.elementAt(mac[i]).x) * (p1.elementAt(i).x - p2.elementAt(mac[i]).x)
-                                + (p1.elementAt(i).y - p2.elementAt(mac[i]).y) * (p1.elementAt(i).y - p2.elementAt(mac[i]).y) + (p1.elementAt(i).z - p2.elementAt(mac[i]).z)
-                                * (p1.elementAt(i).z - p2.elementAt(mac[i]).z));
+                        final float distance_sq = (float) Math.sqrt((p1.elementAt(i).iX - p2.elementAt(mac[i]).iX) * (p1.elementAt(i).iX - p2.elementAt(mac[i]).iX)
+                                + (p1.elementAt(i).iY - p2.elementAt(mac[i]).iY) * (p1.elementAt(i).iY - p2.elementAt(mac[i]).iY) + (p1.elementAt(i).iZ - p2.elementAt(mac[i]).iZ)
+                                * (p1.elementAt(i).iZ - p2.elementAt(mac[i]).iZ));
 
                         if (distance_sq >= l.r_sq) {
-                            p2.elementAt(mac[i]).lx = (p2.elementAt(mac[i]).x - p1.elementAt(i).x) + p1.elementAt(i).lxa;
-                            p2.elementAt(mac[i]).ly = (p2.elementAt(mac[i]).y - p1.elementAt(i).y) + p1.elementAt(i).lya;
-                            p2.elementAt(mac[i]).lz = (p2.elementAt(mac[i]).z - p1.elementAt(i).z) + p1.elementAt(i).lza;
+                            p2.elementAt(mac[i]).lx = (p2.elementAt(mac[i]).iX - p1.elementAt(i).iX) + p1.elementAt(i).lxa;
+                            p2.elementAt(mac[i]).ly = (p2.elementAt(mac[i]).iY - p1.elementAt(i).iY) + p1.elementAt(i).lya;
+                            p2.elementAt(mac[i]).lz = (p2.elementAt(mac[i]).iZ - p1.elementAt(i).iZ) + p1.elementAt(i).lza;
                         }
                         else {
                             // Propagate the previous link vector
@@ -205,9 +206,9 @@ public class ParticleLinkerHun implements ParticleLinker {
                             p2.elementAt(mac[i]).ly = p1.elementAt(i).ly;
                             p2.elementAt(mac[i]).lz = p1.elementAt(i).lz;
 
-                            p2.elementAt(mac[i]).lxa += (p2.elementAt(mac[i]).x - p1.elementAt(i).x) + p1.elementAt(i).lxa;
-                            p2.elementAt(mac[i]).lya += (p2.elementAt(mac[i]).y - p1.elementAt(i).y) + p1.elementAt(i).lya;
-                            p2.elementAt(mac[i]).lza += (p2.elementAt(mac[i]).z - p1.elementAt(i).z) + p1.elementAt(i).lza;
+                            p2.elementAt(mac[i]).lxa += (p2.elementAt(mac[i]).iX - p1.elementAt(i).iX) + p1.elementAt(i).lxa;
+                            p2.elementAt(mac[i]).lya += (p2.elementAt(mac[i]).iY - p1.elementAt(i).iY) + p1.elementAt(i).lya;
+                            p2.elementAt(mac[i]).lza += (p2.elementAt(mac[i]).iZ - p1.elementAt(i).iZ) + p1.elementAt(i).lza;
 
                             if (p2.elementAt(mac[i]).linkModuleASq() >= l.r_sq) {
                                 p2.elementAt(mac[i]).lx = p2.elementAt(mac[i]).lxa;

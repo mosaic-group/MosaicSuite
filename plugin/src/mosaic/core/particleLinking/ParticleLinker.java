@@ -12,6 +12,6 @@ public interface ParticleLinker {
      * same physical particle in subsequent frames and links the positions into trajectories <br>
      * The length of the particles next array will be reset here according to the current linkrange
      */
-    public boolean linkParticles(MyFrame[] frames, int frames_number, linkerOptions l);
+    public boolean linkParticles(MyFrame[] frames, linkerOptions l);
 
 }

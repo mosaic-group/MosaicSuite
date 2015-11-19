@@ -87,7 +87,7 @@ public class FocusStackWin extends StackWindow implements ItemListener {
                 frame = getImagePlus().getChannel() - 1;
             }
 
-            final int slice = (int) (traj.existing_particles[frame].z / scal_z);
+            final int slice = (int) (traj.existing_particles[frame].iZ / scal_z);
             getImagePlus().setSlice(slice);
 
             if (getImagePlus().getNFrames() != 1) {
@@ -114,7 +114,7 @@ public class FocusStackWin extends StackWindow implements ItemListener {
                 frame = getImagePlus().getChannel() - 1;
             }
 
-            final int slice = (int) (traj.existing_particles[frame].z / scal_z);
+            final int slice = (int) (traj.existing_particles[frame].iZ / scal_z);
             getImagePlus().setSlice(slice);
 
             if (getImagePlus().getNFrames() != 1) {

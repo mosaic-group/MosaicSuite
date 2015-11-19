@@ -20,7 +20,7 @@ public class NaturalizationTest extends CommonBase {
         // Define test data
         final String tcDirName          = "Naturalization/flower/";
         final String setupString        = "run";
-        final String[] inputFiles       = {"x.png"};
+        final String inputFile          = "x.png";
         final String[] expectedFiles    = {"naturalized_x.png"};
         final String[] referenceFiles   = {"x_nat.tif"};
 
@@ -28,9 +28,10 @@ public class NaturalizationTest extends CommonBase {
         final Naturalization nt = new Naturalization();
 
         // Test it
-        testPlugin(nt, tcDirName,
-                inputFiles, expectedFiles, referenceFiles,
-                setupString);
+        testPlugin(nt, tcDirName, 
+                   null, 
+                   setupString, inputFile, 
+                   expectedFiles, referenceFiles);
     }
 
     @Test
@@ -38,7 +39,7 @@ public class NaturalizationTest extends CommonBase {
         // Define test data
         final String tcDirName          = "Naturalization/flower/";
         final String setupString        = "run";
-        final String[] inputFiles       = {"x8bit.png"};
+        final String inputFile          = "x8bit.png";
         final String[] expectedFiles    = {"naturalized_x8bit.png"};
         final String[] referenceFiles   = {"x8bit_nat.tif"};
 
@@ -46,9 +47,10 @@ public class NaturalizationTest extends CommonBase {
         final Naturalization nt = new Naturalization();
 
         // Test it
-        testPlugin(nt, tcDirName,
-                inputFiles, expectedFiles, referenceFiles,
-                setupString);
+        testPlugin(nt, tcDirName, 
+                   null, 
+                   setupString, inputFile, 
+                   expectedFiles, referenceFiles);
     }
 
     @Test

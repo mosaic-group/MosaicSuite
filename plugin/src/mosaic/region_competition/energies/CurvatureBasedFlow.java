@@ -2,23 +2,26 @@ package mosaic.region_competition.energies;
 
 
 import ij.measure.Calibration;
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
-import mosaic.core.image.RegionIteratorMask;
-import mosaic.core.image.SphereMask;
+import mosaic.core.imageUtils.MaskOnSpaceMapper;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.LabelImage;
+import mosaic.core.imageUtils.masks.BallMask;
 
 
 public class CurvatureBasedFlow {
 
-    private final RegionIteratorMask sphereIt;
+    private final MaskOnSpaceMapper sphereIt;
     private final LabelImage labelImage;
 
     private final int dim;
     private final int[] inputDims;
-    private final int rad;
+    private final float rad;
 
-    private final SphereMask sphere;
+    private final BallMask sphere;
 
+    // Helpers
+    private final double vVolume;
+    
     public CurvatureBasedFlow(int rad, LabelImage labelImage, Calibration cal) {
         this.rad = rad;
         this.dim = labelImage.getNumOfDimensions();
@@ -27,25 +30,34 @@ public class CurvatureBasedFlow {
 
         float spacing[] = null;
         if (cal != null) {
-            if (labelImage.getNumOfDimensions() == 2) {
+            if (dim == 2) {
                 spacing = new float[2];
                 spacing[0] = (float) cal.pixelWidth;
                 spacing[1] = (float) cal.pixelHeight;
-                sphere = new SphereMask(rad, 2 * rad + 1, dim, spacing, false);
+                sphere = new BallMask(rad, 2 * rad, spacing);
             }
             else {
                 spacing = new float[3];
                 spacing[0] = (float) cal.pixelWidth;
                 spacing[1] = (float) cal.pixelHeight;
                 spacing[2] = (float) cal.pixelDepth;
-                sphere = new SphereMask(rad, 2 * rad + 1, dim, spacing, false);
+                sphere = new BallMask(rad, 2 * rad, spacing);
             }
         }
         else {
-            sphere = new SphereMask(rad, 2 * rad + 1, dim);
+            sphere = new BallMask(rad, dim);
         }
-
-        sphereIt = new RegionIteratorMask(sphere, inputDims);
+        sphereIt = new MaskOnSpaceMapper(sphere, inputDims);
+        
+        if (dim == 2) {
+            vVolume = 3.141592f * rad * rad;
+        }
+        else if (dim == 3) {
+            vVolume = 1.3333333f * 3.141592f * rad * rad * rad;
+        }
+        else {
+            throw new RuntimeException("Curvature flow only implemented for 2D and 3D");
+        }
     }
 
     /**
@@ -61,17 +73,11 @@ public class CurvatureBasedFlow {
          * Point start = origin.sub(half); // "upper left point"
          */
 
-        sphereIt.setMidPoint(origin);
+        sphereIt.setMiddlePoint(origin);
 
         while (sphereIt.hasNext()) {
             final int idx = sphereIt.next();
-
             final int absLabel = labelImage.getLabelAbs(idx);
-
-            // directly access data; only 1-2% faster
-            // int absLabel=labelImage.labelIP.get(idx);
-            // if (absLabel >= LabelImage.negOfs)
-            // absLabel-=LabelImage.negOfs;
 
             if (absLabel == aTo) {
                 vNto++;
@@ -82,31 +88,14 @@ public class CurvatureBasedFlow {
         }
 
         double vCurvatureFlow = 0.0;
-        double vVolume;
-
-        final float r = this.rad;
-
-        if (dim == 2) {
-            vVolume = 3.141592f * r * r;
-        }
-        else if (dim == 3) {
-            vVolume = 1.3333333f * 3.141592f * r * r * r;
-        }
-        else {
-            vVolume = 0.0;
-            throw new RuntimeException("Curvature flow only implemented for 2D and 3D");
-        }
-
-        //////////////////////////////////////////////
-
         if (aFrom == LabelImage.BGLabel) // growing
         {
             final int vN = vNto;
             if (dim == 2) {
-                vCurvatureFlow -= 3.0f * 3.141592f / r * ((vN) / vVolume - 0.5f);
+                vCurvatureFlow -= 3.0f * 3.141592f / rad * ((vN) / vVolume - 0.5f);
             }
             else if (dim == 3) {
-                vCurvatureFlow -= 16.0f / (3.0f * r) * ((vN) / vVolume - 0.5f);
+                vCurvatureFlow -= 16.0f / (3.0f * rad) * ((vN) / vVolume - 0.5f);
             }
         }
         else {
@@ -116,24 +105,22 @@ public class CurvatureBasedFlow {
                 // This is a point on the contour (innerlist) OR
                 // touching the contour (Outer list)
                 if (dim == 2) {
-                    vCurvatureFlow += 3.0f * 3.141592f / r * ((vN) / vVolume - 0.5f);
+                    vCurvatureFlow += 3.0f * 3.141592f / rad * ((vN) / vVolume - 0.5f);
                 }
                 else if (dim == 3) {
-                    vCurvatureFlow += 16.0f / (3.0f * r) * ((vN) / vVolume - 0.5f);
+                    vCurvatureFlow += 16.0f / (3.0f * rad) * ((vN) / vVolume - 0.5f);
                 }
             }
             else // fighting fronts
             {
                 if (dim == 2) {
-                    vCurvatureFlow -= 3.0f * 3.141592f / r * ((vNto) / vVolume - 0.5f);
-                    vCurvatureFlow += 3.0f * 3.141592f / r * ((vNFrom) / vVolume - 0.5f);
+                    vCurvatureFlow -= 3.0f * 3.141592f / rad * ((vNto) / vVolume - 0.5f);
+                    vCurvatureFlow += 3.0f * 3.141592f / rad * ((vNFrom) / vVolume - 0.5f);
                 }
                 else if (dim == 3) {
-                    vCurvatureFlow -= 16.0f / (3.0f * r) * ((vNto) / vVolume - 0.5f);
-                    vCurvatureFlow += 16.0f / (3.0f * r) * ((vNFrom) / vVolume - 0.5f);
+                    vCurvatureFlow -= 16.0f / (3.0f * rad) * ((vNto) / vVolume - 0.5f);
+                    vCurvatureFlow += 16.0f / (3.0f * rad) * ((vNFrom) / vVolume - 0.5f);
                 }
-                // vCurvatureFlow *= 0.5f;
-
             }
         }
 

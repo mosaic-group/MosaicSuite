@@ -1,8 +1,8 @@
 package mosaic.core.binarize;
 
 
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.LabelImage;
 
 
 /**
@@ -20,7 +20,6 @@ public class BinarizedIntervalLabelImage extends IntervalsListInteger implements
     private final LabelImage labelImage;
 
     public BinarizedIntervalLabelImage(LabelImage aLabelImage) {
-        super();
         labelImage = aLabelImage;
     }
 
@@ -29,7 +28,7 @@ public class BinarizedIntervalLabelImage extends IntervalsListInteger implements
      */
     @Override
     public boolean EvaluateAtIndex(Point p) {
-        if (labelImage.isOutOfBound(p) == true) {
+        if (!labelImage.isInBound(p)) {
             return false;
         }
         final int value = labelImage.getLabel(p);
@@ -38,7 +37,7 @@ public class BinarizedIntervalLabelImage extends IntervalsListInteger implements
 
     @Override
     public boolean EvaluateAtIndex(Integer p) {
-        if (labelImage.isOutOfBound(p) == true) {
+        if (!labelImage.isInBound(p)) {
             return false;
         }
         final int value = labelImage.getLabel(p);

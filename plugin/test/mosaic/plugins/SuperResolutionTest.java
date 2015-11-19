@@ -12,7 +12,7 @@ public class SuperResolutionTest extends CommonBase {
         final String tcDirName          = "VCF/";
         final String setupString        = "run";
         final String macroOptions       = "filter=[TV (Total Variation)] method=Split number=20";
-        final String[] inputFiles       = {"lenaSmall.tif"};
+        final String inputFile          = "lenaSmall.tif";
         final String[] expectedFiles    = {"resized_lenaSmall.tif"};
         final String[] referenceFiles   = {"resizedLenaSmall.tif"};
 
@@ -21,9 +21,9 @@ public class SuperResolutionTest extends CommonBase {
 
         // Test it
         testPlugin(nt, tcDirName,
-                inputFiles, expectedFiles, referenceFiles,
-                setupString, macroOptions);
-
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedFiles, referenceFiles);
     }
 
 }

@@ -1,7 +1,7 @@
 package mosaic.region_competition.wizard;
 
 
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
 
 
 public class PointCM {

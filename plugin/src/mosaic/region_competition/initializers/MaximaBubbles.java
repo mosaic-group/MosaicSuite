@@ -8,10 +8,10 @@ import ij.plugin.Duplicator;
 import java.util.List;
 
 import mosaic.core.binarize.BinarizedIntervalIntesityImage;
-import mosaic.core.image.FloodFill;
-import mosaic.core.image.IntensityImage;
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.FloodFill;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.region_competition.utils.BubbleDrawer;
 import mosaic.region_competition.utils.MaximumFinder2D;
 import mosaic.region_competition.utils.MaximumFinder3D;
@@ -72,13 +72,13 @@ public class MaximaBubbles extends Initializer {
    
         // Find all points connected to maximum
         final FloodFill ff = new FloodFill(iLabelImage, aBinarizedImage, aMaximumPoint);
-        if (ff.sizeIdx() < iMinimumRegionSize) {
+        if (ff.size() < iMinimumRegionSize) {
             // if region is very small, draw a bubble
             final BubbleDrawer bd = new BubbleDrawer(iLabelImage, iRadius / 2, iRadius);
             bd.drawCenter(aMaximumPoint, aLabel);
         } 
         else {
-            for (final int p : ff.iteratorIdx()) {
+            for (final int p : ff) {
                 iLabelImage.setLabel(p, aLabel);
             }
         }

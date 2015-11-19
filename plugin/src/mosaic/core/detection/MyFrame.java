@@ -16,9 +16,9 @@ import java.util.Vector;
 import ij.IJ;
 import ij.ImageStack;
 import ij.measure.Calibration;
-import mosaic.core.image.CircleMask;
-import mosaic.core.image.Point;
-import mosaic.core.image.RegionIteratorMask;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.MaskOnSpaceMapper;
+import mosaic.core.imageUtils.masks.SphereMask;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.core.utils.MosaicUtils.ToARGB;
 import mosaic.particleTracker.Trajectory;
@@ -41,18 +41,13 @@ import net.imglib2.view.Views;
  */
 public class MyFrame {
 
-    private static Map<Integer, RegionIteratorMask> CircleCache;
-    private static Map<Integer, RegionIteratorMask> RectangleCache;
-
     private Vector<Particle> particles;
     private int particles_number; // number of particles initialy detected
-    public int real_particles_number; // number of "real" particles
-    // discrimination
-    public int frame_number; // Serial number of this frame in the movie (can be
-    // 0)
-    private StringBuffer info_before_discrimination;// holdes string with ready to print
-    // info
-    // about this frame before particle discrimination
+    public int real_particles_number; // number of "real" particles discrimination
+    public int frame_number; // Serial number of this frame in the movie (can be 0)
+
+    // holds string with ready to print info about this frame before particle discrimination
+    private StringBuffer info_before_discrimination;
 
     /* only relevant to frames representing real images */
     // the original image, this is used for the
@@ -63,29 +58,7 @@ public class MyFrame {
     int linkrange = 0;
     private int p_radius = -1;
 
-    /**
-     * Cleanup circle cache
-     */
-
-    static public void cleanCache() {
-        CircleCache.clear();
-        RectangleCache.clear();
-    }
-
-    /**
-     * Init the Cache circle
-     */
-
-    static public void initCache() {
-        CircleCache = new HashMap<Integer, RegionIteratorMask>();
-        RectangleCache = new HashMap<Integer, RegionIteratorMask>();
-    }
-
-    /**
-     * Default constructor
-     */
-    public MyFrame() {
-    }
+    public MyFrame() {}
 
     /**
      * Constructor for ImageProcessor based MyFrame. <br>
@@ -108,19 +81,6 @@ public class MyFrame {
     // @Deprecated
     public MyFrame(String path) {
         loadParticlesFromFile(path);
-    }
-
-    /**
-     * Constructor for text mode
-     */
-    // @Deprecated
-    public MyFrame(BufferedReader r) {
-        try {
-            loadParticlesFromFileMultipleFrame(r);
-        }
-        catch (final IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -201,127 +161,10 @@ public class MyFrame {
         p_radius = pt_radius;
     }
 
-    private boolean loadParticlesFromFileMultipleFrame(BufferedReader r) throws IOException {
-        final Vector<String[]> particles_info = new Vector<String[]>(); // a vector to
-        // hold all
-        // particles
-        // info as
-        // String[]
-        String[] particle_info; // will hold all the info for one particle
-        // (splitted)
-        String[] frame_number_info; // will fold the frame info line (splitted)
-        String line;
-
-        /* set this frame number from the first line */
-        r.mark(1024);
-        line = r.readLine();
-
-        if (line == null) {
-            return false;
-        }
-
-        line = line.trim();
-        frame_number_info = line.split(",");
-        if (frame_number_info.length < 2) {
-            IJ.error("Malformed line, expacting \"frame x\", founded " + line);
-            return false;
-        }
-        if (frame_number_info[0] != null) {
-            this.frame_number = Integer.parseInt(frame_number_info[0]);
-        }
-
-        r.reset();
-        /*
-         * go over all lines, count number of particles and save the information
-         * as String
-         */
-        while (true) {
-            r.mark(1024);
-            line = r.readLine();
-            if (line == null) {
-                break;
-            }
-
-            line = line.trim();
-            if (line.startsWith("%")) {
-                line = line.substring(1);
-            }
-            line = line.trim();
-            particles_info.addElement(line.split(","));
-            if (frame_number != Integer.parseInt(particles_info.lastElement()[0])) {
-                particles_info.remove(particles_info.size() - 1);
-                r.reset();
-                break;
-            }
-
-            this.particles_number++;
-        }
-
-        /* initialise the particles array */
-        this.particles = new Vector<Particle>();
-
-        final Iterator<String[]> iter = particles_info.iterator();
-        int counter = 0;
-
-        /*
-         * go over all particles String info and construct Particles Ojectes
-         * from it
-         */
-        while (iter.hasNext()) {
-            particle_info = iter.next();
-
-            if (particle_info.length < 2) {
-                IJ.error("Malformed line, expacting 2 float, feeding: " + Integer.toString(particle_info.length));
-                return false;
-            }
-
-            if (particle_info.length <= 3) {
-                this.particles.addElement(new Particle(Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), 0.0f, this.frame_number, particle_info, linkrange));
-            }
-            else {
-                this.particles.addElement(
-                        new Particle(Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), Float.parseFloat(particle_info[3]), this.frame_number, particle_info, linkrange));
-            }
-
-            // max_coord =
-            // Math.max((int)Math.max(this.particles.elementAt(counter).x,
-            // this.particles.elementAt(counter).y), max_coord);
-            // if (momentum_from_text) {
-            if (particle_info.length < 8 || particle_info[3] == null || particle_info[4] == null || particle_info[5] == null || particle_info[6] == null || particle_info[7] == null
-                    || particle_info[8] == null) {
-                // IJ.error("File: " + path +
-                // "\ndoes not have momentum values at positions 4 to 8 for all particles");
-                // this.particles = null;
-                // return false;
-                this.particles.elementAt(counter).m0 = 0;
-                this.particles.elementAt(counter).m1 = 0;
-                this.particles.elementAt(counter).m2 = 0;
-                this.particles.elementAt(counter).m3 = 0;
-                this.particles.elementAt(counter).m4 = 0;
-            }
-            else {
-                this.particles.elementAt(counter).m0 = Float.parseFloat(particle_info[3]);
-                this.particles.elementAt(counter).m1 = Float.parseFloat(particle_info[4]);
-                this.particles.elementAt(counter).m2 = Float.parseFloat(particle_info[5]);
-                this.particles.elementAt(counter).m3 = Float.parseFloat(particle_info[6]);
-                this.particles.elementAt(counter).m4 = Float.parseFloat(particle_info[7]);
-            }
-            // }
-            counter++;
-        }
-        particles_info.removeAllElements();
-
-        return true;
-    }
-
     private boolean loadParticlesFromFile(BufferedReader r, String path) throws IOException {
         final Vector<String[]> particles_info = new Vector<String[]>(); // a vector to
-        // hold all
-        // particles
-        // info as
-        // String[]
-        String[] particle_info; // will hold all the info for one particle
-        // (splitted)
+        // hold all particles info as String[]
+        String[] particle_info; // will hold all the info for one particle (splitted)
         String[] frame_number_info; // will fold the frame info line (splitted)
         String line;
 
@@ -341,10 +184,7 @@ public class MyFrame {
             this.frame_number = Integer.parseInt(frame_number_info[1]);
         }
 
-        /*
-         * go over all lines, count number of particles and save the information
-         * as String
-         */
+        // go over all lines, count number of particles and save the information as String
         while (true) {
             line = r.readLine();
             if (line == null) {
@@ -365,10 +205,7 @@ public class MyFrame {
         final Iterator<String[]> iter = particles_info.iterator();
         int counter = 0;
 
-        /*
-         * go over all particles String info and construct Particles Objects
-         * from it
-         */
+        // go over all particles String info and construct Particles Objects from it
         while (iter.hasNext()) {
             particle_info = iter.next();
 
@@ -378,23 +215,17 @@ public class MyFrame {
             }
 
             if (particle_info.length == 2) {
-                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), 0.0f, this.frame_number, particle_info, linkrange));
+//                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), 0.0f, this.frame_number, particle_info, linkrange));
+                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), 0.0f, this.frame_number, linkrange));
             }
             else {
-                this.particles.addElement(
-                        new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), this.frame_number, particle_info, linkrange));
+//                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), this.frame_number, particle_info, linkrange));
+                this.particles.addElement(new Particle(Float.parseFloat(particle_info[0]), Float.parseFloat(particle_info[1]), Float.parseFloat(particle_info[2]), this.frame_number, linkrange));
             }
 
-            // max_coord =
-            // Math.max((int)Math.max(this.particles.elementAt(counter).x,
-            // this.particles.elementAt(counter).y), max_coord);
-            // if (momentum_from_text) {
             if (particle_info.length < 8 || particle_info[3] == null || particle_info[4] == null || particle_info[5] == null || particle_info[6] == null || particle_info[7] == null
                     || particle_info[8] == null) {
-                // IJ.error("File: " + path +
-                // "\ndoes not have momentum values at positions 4 to 8 for all particles");
-                // this.particles = null;
-                // return false;
+                // IJ.error("File: " + path + "\ndoes not have momentum values at positions 4 to 8 for all particles");
                 this.particles.elementAt(counter).m0 = 0;
                 this.particles.elementAt(counter).m1 = 0;
                 this.particles.elementAt(counter).m2 = 0;
@@ -408,7 +239,6 @@ public class MyFrame {
                 this.particles.elementAt(counter).m3 = Float.parseFloat(particle_info[6]);
                 this.particles.elementAt(counter).m4 = Float.parseFloat(particle_info[7]);
             }
-            // }
             counter++;
         }
         particles_info.removeAllElements();
@@ -432,11 +262,11 @@ public class MyFrame {
         info.append(" particles):\n");
         for (int i = 0; i < this.particles.size(); i++) {
             info.append("%\t\t");
-            info.append(nf.format(this.particles.elementAt(i).x));
+            info.append(nf.format(this.particles.elementAt(i).iX));
             info.append(" ");
-            info.append(nf.format(this.particles.elementAt(i).y));
+            info.append(nf.format(this.particles.elementAt(i).iY));
             info.append(" ");
-            info.append(nf.format(this.particles.elementAt(i).z));
+            info.append(nf.format(this.particles.elementAt(i).iZ));
 
             info.append("\n");
 
@@ -452,11 +282,6 @@ public class MyFrame {
      * @see #info_before_discrimination
      */
     void generateFrameInfoBeforeDiscrimination() {
-
-        // NumberFormat nf = NumberFormat.getInstance();
-        // nf.setMaximumFractionDigits(6);
-        // nf.setMinimumFractionDigits(6);
-
         final DecimalFormat nf = new DecimalFormat("#####0.000000");
         nf.setGroupingUsed(false);
 
@@ -480,11 +305,11 @@ public class MyFrame {
         info.append("%\tParticles after position refinement:\n");
         for (int i = 0; i < this.particles.size(); i++) {
             info.append("%\t\t");
-            info.append(nf.format(this.particles.elementAt(i).x));
+            info.append(nf.format(this.particles.elementAt(i).iX));
             info.append(" ");
-            info.append(nf.format(this.particles.elementAt(i).y));
+            info.append(nf.format(this.particles.elementAt(i).iY));
             info.append(" ");
-            info.append(nf.format(this.particles.elementAt(i).z));
+            info.append(nf.format(this.particles.elementAt(i).iZ));
 
             info.append("\n");
         }
@@ -538,11 +363,11 @@ public class MyFrame {
             sb.append("%\tParticle ");
             sb.append(j);
             sb.append(" (");
-            sb.append(nf.format(this.particles.elementAt(j).x));
+            sb.append(nf.format(this.particles.elementAt(j).iX));
             sb.append(", ");
-            sb.append(nf.format(this.particles.elementAt(j).y));
+            sb.append(nf.format(this.particles.elementAt(j).iY));
             sb.append(", ");
-            sb.append(nf.format(this.particles.elementAt(j).z));
+            sb.append(nf.format(this.particles.elementAt(j).iZ));
             sb.append(")\n");
             for (int k = 0; k < linkrange; k++) {
                 sb.append("%\t\tlinked to particle ");
@@ -579,18 +404,18 @@ public class MyFrame {
      * @return the <code>StringBuffer</code> with this information
      * @see MyFrame#loadParticlesFromFile(String)
      */
-    StringBuffer frameDetectedParticlesForSave(boolean with_momentum) {
+    public StringBuffer frameDetectedParticlesForSave(boolean with_momentum) {
         final DecimalFormat nf = new DecimalFormat("#####0.000000");
         nf.setGroupingUsed(false);
         final StringBuffer info1 = new StringBuffer("frame ");
         info1.append(this.frame_number);
         info1.append("\n");
         for (int i = 0; i < this.particles.size(); i++) {
-            info1.append(nf.format(this.particles.elementAt(i).x));
+            info1.append(nf.format(this.particles.elementAt(i).iX));
             info1.append(" ");
-            info1.append(nf.format(this.particles.elementAt(i).y));
+            info1.append(nf.format(this.particles.elementAt(i).iY));
             info1.append(" ");
-            info1.append(nf.format(this.particles.elementAt(i).z));
+            info1.append(nf.format(this.particles.elementAt(i).iZ));
             if (with_momentum) {
                 info1.append(" ");
                 info1.append(nf.format(this.particles.elementAt(i).m0));
@@ -623,13 +448,12 @@ public class MyFrame {
         if (p.size() == 0) {
             return new MyFrame[0];
         }
-
         final int n_frames = p.get(p.size() - 1).getFrame() + 1;
         final MyFrame[] f = new MyFrame[n_frames];
 
         int j = 0;
         int i = 0;
-        while (i < p.size() - 1) {
+        while (i < p.size()) {
             final Vector<Particle> part_frame = new Vector<Particle>();
             while (i < p.size() - 1 && p.get(i).getFrame() == p.get(i + 1).getFrame()) {
                 part_frame.add(p.get(i));
@@ -676,6 +500,7 @@ public class MyFrame {
     }
 
     static private void drawParticlesWithRadius(RandomAccessibleInterval<ARGBType> out, List<Particle> pt, Calibration cal, float scaling, int col, int p_radius) {
+        Map<Integer, MaskOnSpaceMapper> CircleCache = new HashMap<Integer, MaskOnSpaceMapper>();
         final RandomAccess<ARGBType> out_a = out.randomAccess();
 
         final int sz[] = new int[out_a.numDimensions()];
@@ -697,14 +522,14 @@ public class MyFrame {
 
         // Create a circle Mask and an iterator
 
-        RegionIteratorMask rg_m = null;
+        MaskOnSpaceMapper rg_m = null;
 
         if ((rg_m = CircleCache.get(rc)) == null) {
             if (rc < 1) {
                 rc = 1;
             }
-            final CircleMask cm = new CircleMask(rc, (int) (2 * rc * scaling + 1), out_a.numDimensions(), scaling_);
-            rg_m = new RegionIteratorMask(cm, sz);
+            final SphereMask cm = new SphereMask(rc, (int) (2 * rc * scaling + 1), scaling_);
+            rg_m = new MaskOnSpaceMapper(cm, sz);
             CircleCache.put(rc, rg_m);
         }
 
@@ -717,16 +542,16 @@ public class MyFrame {
 
             Point p_c = null;
             if (out_a.numDimensions() == 2) {
-                p_c = new Point((int) (ptt.x / scaling_[0]), (int) (ptt.y / scaling_[1]));
+                p_c = new Point((int) (ptt.iX / scaling_[0]), (int) (ptt.iY / scaling_[1]));
             }
             else {
-                p_c = new Point((int) (ptt.x / scaling_[0]), (int) (ptt.y / scaling_[1]), (int) (ptt.z / scaling_[2]));
+                p_c = new Point((int) (ptt.iX / scaling_[0]), (int) (ptt.iY / scaling_[1]), (int) (ptt.iZ / scaling_[2]));
             }
 
-            rg_m.setMidPoint(p_c);
+            rg_m.setMiddlePoint(p_c);
 
             while (rg_m.hasNext()) {
-                final Point p = rg_m.nextP();
+                final Point p = rg_m.nextPoint();
 
                 if (p.isInside(sz)) {
                     out_a.setPosition(p.iCoords);
@@ -736,7 +561,7 @@ public class MyFrame {
         }
     }
 
-    public static float minScaling(float s[]) {
+    private static float minScaling(float s[]) {
         float min = Float.MAX_VALUE;
         for (int i = 0; i < s.length; i++) {
             if (s[i] < min) {
@@ -748,6 +573,7 @@ public class MyFrame {
     }
 
     static private void drawParticles(RandomAccessibleInterval<ARGBType> out, List<Particle> pt, Calibration cal, float scaling, int col) {
+        Map<Integer, MaskOnSpaceMapper> CircleCache = new HashMap<Integer, MaskOnSpaceMapper>();
         final RandomAccess<ARGBType> out_a = out.randomAccess();
 
         final int sz[] = new int[out_a.numDimensions()];
@@ -755,8 +581,6 @@ public class MyFrame {
         for (int d = 0; d < out_a.numDimensions(); ++d) {
             sz[d] = (int) out.dimension(d);
         }
-
-        // Iterate on all particles
 
         while (pt.size() != 0) {
             double radius;
@@ -776,17 +600,14 @@ public class MyFrame {
                 scaling_[i] /= scaling;
             }
 
-            // Create a circle Mask and an iterator
-
-            RegionIteratorMask rg_m = null;
-
+            MaskOnSpaceMapper rg_m = null;
             int rc = (int) radius;
             if ((rg_m = CircleCache.get(rc)) == null) {
                 if (rc < 1) {
                     rc = 1;
                 }
-                final CircleMask cm = new CircleMask(rc, (int) (2 * rc * scaling + 1), out_a.numDimensions(), scaling_);
-                rg_m = new RegionIteratorMask(cm, sz);
+                final SphereMask cm = new SphereMask(rc, (int) (2 * rc * scaling + 1), scaling_);
+                rg_m = new MaskOnSpaceMapper(cm, sz);
                 CircleCache.put(rc, rg_m);
             }
 
@@ -807,23 +628,21 @@ public class MyFrame {
                     radius_r = 1;
                 }
 
-                // if particle has the same radius
-
                 if (radius_r == radius) {
                     // Draw the Circle
 
                     Point p_c = null;
                     if (out_a.numDimensions() == 2) {
-                        p_c = new Point((int) (ptt.x / scaling_[0]), (int) (ptt.y / scaling_[1]));
+                        p_c = new Point((int) (ptt.iX / scaling_[0]), (int) (ptt.iY / scaling_[1]));
                     }
                     else {
-                        p_c = new Point((int) (ptt.x / scaling_[0]), (int) (ptt.y / scaling_[1]), (int) (ptt.z / scaling_[2]));
+                        p_c = new Point((int) (ptt.iX / scaling_[0]), (int) (ptt.iY / scaling_[1]), (int) (ptt.iZ / scaling_[2]));
                     }
 
-                    rg_m.setMidPoint(p_c);
+                    rg_m.setMiddlePoint(p_c);
 
                     while (rg_m.hasNext()) {
-                        final Point p = rg_m.nextP();
+                        final Point p = rg_m.nextPoint();
 
                         if (p.isInside(sz)) {
                             out_a.setPosition(p.iCoords);
@@ -845,10 +664,7 @@ public class MyFrame {
      * @param col Color of the line
      */
     static private void drawLine(RandomAccessibleInterval<ARGBType> out, Particle p1, Particle p2, int col) {
-        // the number of dimensions
-        final int numDimensions = out.numDimensions();
-
-        final long dims[] = new long[numDimensions];
+        final long dims[] = new long[out.numDimensions()];
         out.dimensions(dims);
 
         final RandomAccess<ARGBType> out_a = out.randomAccess();
@@ -856,12 +672,12 @@ public class MyFrame {
         int i, dx, dy, dz, l, m, n, x_inc, y_inc, z_inc, err_1, err_2, dx2, dy2, dz2;
         final long pixel[] = new long[3];
 
-        pixel[0] = (int) p1.x;
-        pixel[1] = (int) p1.y;
-        pixel[2] = (int) p1.z;
-        dx = (int) (p2.x - p1.x);
-        dy = (int) (p2.y - p1.y);
-        dz = (int) (p2.z - p1.z);
+        pixel[0] = (int) p1.iX;
+        pixel[1] = (int) p1.iY;
+        pixel[2] = (int) p1.iZ;
+        dx = (int) (p2.iX - p1.iX);
+        dy = (int) (p2.iY - p1.iY);
+        dz = (int) (p2.iZ - p1.iZ);
         x_inc = (dx < 0) ? -1 : 1;
         l = Math.abs(dx);
         y_inc = (dy < 0) ? -1 : 1;
@@ -1018,13 +834,13 @@ public class MyFrame {
             }
 
 
-            p_ini.x /= scaling_[0];
-            p_ini.y /= scaling_[1];
-            p_ini.z /= scaling_[2];
+            p_ini.iX /= scaling_[0];
+            p_ini.iY /= scaling_[1];
+            p_ini.iZ /= scaling_[2];
 
-            p_end.x /= scaling_[0];
-            p_end.y /= scaling_[1];
-            p_end.z /= scaling_[2];
+            p_end.iX /= scaling_[0];
+            p_end.iY /= scaling_[1];
+            p_end.iZ /= scaling_[2];
 
 
             drawLine(out, p_ini, p_end, col);
@@ -1036,32 +852,32 @@ public class MyFrame {
             // draw several lines on z
 
             for (int i = 1; i <= rc; i++) {
-                if (ptt.p1.z / (float) cal.pixelDepth - i >= 0 && ptt.p2.z / (float) cal.pixelDepth - i >= 0) {
+                if (ptt.p1.iZ / (float) cal.pixelDepth - i >= 0 && ptt.p2.iZ / (float) cal.pixelDepth - i >= 0) {
                     p_end = new Particle(ptt.p1);
                     p_ini = new Particle(ptt.p2);
 
-                    p_ini.x /= scaling_[0];
-                    p_ini.y /= scaling_[1];
-                    p_ini.z = p_ini.z / scaling[2] - i;
+                    p_ini.iX /= scaling_[0];
+                    p_ini.iY /= scaling_[1];
+                    p_ini.iZ = p_ini.iZ / scaling[2] - i;
 
-                    p_end.x /= scaling_[0];
-                    p_end.y /= scaling_[1];
-                    p_end.z = p_end.z / scaling_[2] - i;
+                    p_end.iX /= scaling_[0];
+                    p_end.iY /= scaling_[1];
+                    p_end.iZ = p_end.iZ / scaling_[2] - i;
 
                     drawLine(out, p_ini, p_end, col);
                 }
 
-                if (ptt.p2.x / (float) cal.pixelDepth + i < out.dimension(out.numDimensions() - 1) && ptt.p1.z / (float) cal.pixelDepth + i < out.dimension(out.numDimensions() - 1)) {
+                if (ptt.p2.iX / (float) cal.pixelDepth + i < out.dimension(out.numDimensions() - 1) && ptt.p1.iZ / (float) cal.pixelDepth + i < out.dimension(out.numDimensions() - 1)) {
                     p_end = new Particle(ptt.p1);
                     p_ini = new Particle(ptt.p2);
 
-                    p_ini.x /= scaling_[0];
-                    p_ini.y /= scaling_[1];
-                    p_ini.z = p_ini.z / scaling_[2] + i;
+                    p_ini.iX /= scaling_[0];
+                    p_ini.iY /= scaling_[1];
+                    p_ini.iZ = p_ini.iZ / scaling_[2] + i;
 
-                    p_end.x /= scaling_[0];
-                    p_end.y /= scaling_[1];
-                    p_end.z = p_end.z / scaling_[2] + i;
+                    p_end.iX /= scaling_[0];
+                    p_end.iY /= scaling_[1];
+                    p_end.iZ = p_end.iZ / scaling_[2] + i;
 
                     drawLine(out, p_ini, p_end, col);
                 }
@@ -1531,21 +1347,13 @@ public class MyFrame {
 
     public Img<ARGBType> createImage(int vMax[], Vector<Trajectory> tr, int frame, DrawType typ) {
         // if you have no trajectory draw use the other function
-
         if (tr == null) {
             return createImage(vMax);
         }
 
-        // the number of dimensions
-
         // Create image
-
         final ImgFactory<ARGBType> imgFactory = new ArrayImgFactory<ARGBType>();
         final Img<ARGBType> out = imgFactory.create(vMax, new ARGBType());
-
-        // Cursor<ARGBType> curOut = out.cursor();
-
-        //
 
         TrajectoriesDraw(out, 1, tr, frame, null, null, 1.0f, typ, p_radius);
 
@@ -1556,7 +1364,6 @@ public class MyFrame {
      * Remove double particles in the frame, needed for segmentation
      * some tool produce double regions
      */
-
     public void removeDoubleParticles() {
         boolean f = false;
         final Vector<Particle> p = new Vector<Particle>();

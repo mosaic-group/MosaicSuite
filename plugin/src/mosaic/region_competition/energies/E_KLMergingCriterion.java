@@ -3,7 +3,7 @@ package mosaic.region_competition.energies;
 
 import java.util.HashMap;
 
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
@@ -15,7 +15,6 @@ public class E_KLMergingCriterion extends ExternalEnergy {
     private final int bgLabel;
 
     public E_KLMergingCriterion(int bgLabel, float m_RegionMergingThreshold) {
-        super(null, null);
         this.bgLabel = bgLabel;
         this.m_RegionMergingThreshold = m_RegionMergingThreshold;
     }
@@ -81,11 +80,11 @@ public class E_KLMergingCriterion extends ExternalEnergy {
         if (aVar2 < 0) {
             aVar2 = 0;
         }
-
         final double vDKL1 = (aMu1 - vMu12) * (aMu1 - vMu12) / (2.0 * vVar12) + 0.5 * (aVar1 / vVar12 - 1.0 - Math.log(aVar1 / vVar12));
-
         final double vDKL2 = (aMu2 - vMu12) * (aMu2 - vMu12) / (2.0 * vVar12) + 0.5 * (aVar2 / vVar12 - 1.0 - Math.log(aVar2 / vVar12));
-
+        // TODO: Is this working? result=Infinity in cases that were checked (including tests) but it is not 
+        // recognized by isNan below...
+        //        double R = (aMu1 - vMu12) * (aMu1 - vMu12) *(aMu2 - vMu12) * (aMu2 - vMu12) / (2.0 * vVar12) + 0.5 * ((aVar1 + aVar2) / vVar12 - 2.0 - Math.log(aVar2 * aVar1 / vVar12));
         final double result = vDKL1 + vDKL2;
         if (Double.isNaN(result)) {
             debug("CalculateKLMergingCriterion is NaN");

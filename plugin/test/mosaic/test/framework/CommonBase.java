@@ -2,24 +2,15 @@ package mosaic.test.framework;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import ij.IJ;
-import ij.ImagePlus;
-import ij.Macro;
-import ij.WindowManager;
-import ij.macro.Interpreter;
-import ij.plugin.filter.PlugInFilter;
-import ij.plugin.filter.PlugInFilterRunner;
-import io.scif.SCIFIOService;
-import io.scif.img.ImgIOException;
-import io.scif.img.ImgOpener;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-
-import net.imglib2.Cursor;
-import net.imglib2.RandomAccess;
-import net.imglib2.img.Img;
 
 import org.apache.log4j.Logger;
 import org.junit.After;
@@ -31,6 +22,20 @@ import org.scijava.Context;
 import org.scijava.app.AppService;
 import org.scijava.app.StatusService;
 
+import ij.IJ;
+import ij.ImagePlus;
+import ij.Macro;
+import ij.WindowManager;
+import ij.macro.Interpreter;
+import ij.plugin.filter.PlugInFilter;
+import ij.plugin.filter.PlugInFilterRunner;
+import io.scif.SCIFIOService;
+import io.scif.img.ImgIOException;
+import io.scif.img.ImgOpener;
+import net.imglib2.Cursor;
+import net.imglib2.RandomAccess;
+import net.imglib2.img.Img;
+
 
 /**
  * Common stuff for MOSAIC suit testing
@@ -41,7 +46,9 @@ public class CommonBase extends Info {
 
     private static final Logger logger = Logger.getLogger(CommonBase.class);
     private static ImgOpener iImgOpener = null;
-
+    protected String tmpPath;
+    protected String tcPath;
+    
     @BeforeClass
     static public void setUpSuit() {
         logger.info("========================================================");
@@ -61,112 +68,143 @@ public class CommonBase extends Info {
     public void setUpTc() {
         logger.info("-----------------------");
         logger.info("----- TestCase[START]: " + iTestCaseName);
+        
+        // Prepare needed paths
+        logger.debug("Preparing test directory");
+        tmpPath = SystemOperations.getCleanTestTmpPath();
     }
 
     @After
     public void tearDownTc() {
-        //
+        closeAllImageJimages();
+        
         logger.info("----- TestCase[END]:   " + iTestCaseName);
         logger.info("-----------------------");
         logger.info("");
     }
 
-    /**
-     * This method uses original PlugInFilterRunner which makes it suitable to test
-     * any kind of plugin.
-     * TODO: This should be default plugin tester. Possible the others are not needed.
-     * @param aTestedPlugin
-     * @param aTcDirName
-     * @param aInputFiles
-     * @param aExpectedFiles
-     * @param aReferenceFiles
-     * @param aSetupString
-     * @param aExpectedSetupRetValue
-     */
     protected void testPlugin(PlugInFilter aTestedPlugin,
-            final String aTcDirName, final String[] aInputFiles,
-            final String[] aExpectedFiles, final String[] aReferenceFiles,
-            final String aSetupString) {
-        testPlugin(aTestedPlugin, aTcDirName, aInputFiles, aExpectedFiles,
-                aReferenceFiles, aSetupString, null);
+            final String aTcDirName, final String aMacroOptions,
+            final String aSetupString, final String aInputFile,
+            final String[] aExpectedImgFiles, final String[] aReferenceImgFiles) {
+        testPlugin(aTestedPlugin, aTcDirName, aMacroOptions, aSetupString,
+                aInputFile,  aExpectedImgFiles, aReferenceImgFiles, null, null);
     }
-
     /**
      * Tests plugin (one image input, one image output)
-     * TODO: this method should be refactored to handle many-to-many cases
-     *       (for example 1 img input -> 3 img output or opposite)
      * @param aTestedPlugin Tested plugin
      * @param aTcDirName Directory name with input files
-     * @param aInputFiles Input files used to test plugin
-     * @param aExpectedFiles Expected output files (WindowManager)
-     * @param aReferenceFiles Reference files used to compare values
-     * @param aSetupArg Setup string passed to plugin
      * @param aMacroOptions Macro options if needed (to not show GUI elements)
+     * @param aSetupArg Setup string passed to plugin
+     * @param aExpectedImgFiles Expected output files (WindowManager)
+     * @param aReferenceImgFiles Reference files used to compare values
+     * @param aInputFiles Input files used to test plugin
      */
     protected void testPlugin(PlugInFilter aTestedPlugin,
             final String aTcDirName,
-            final String[] aInputFiles,
-            final String[] aExpectedFiles,
-            final String[] aReferenceFiles,
+            final String aMacroOptions,
             final String aSetupArg,
-            final String aMacroOptions) {
-        // TODO: extend test base functionality
-        if (aInputFiles.length != 1 || aExpectedFiles.length != 1 || aReferenceFiles.length != 1) {
-            logger.error("Wrong lenght of input file's array");
-            fail("Wrong test data");
-        }
+            final String aInputFile,
+            final String[] aExpectedImgFiles,
+            final String[] aReferenceImgFiles,
+            final String[] aExpectedFiles,
+            final String[] aReferenceFiles) {
 
-        // Prepare needed paths
-        final String tmpPath = SystemOperations.getCleanTestTmpPath();
-        final String tcPath = SystemOperations.getTestDataPath() + aTcDirName;
+        // ===================  Prepare plugin env. =================================
+        tcPath = SystemOperations.getTestDataPath() + aTcDirName;
+        
+        copyTestResources(aInputFile, tcPath, tmpPath);
 
-        logger.debug("Preparing test directory");
-        prepareTestDirectory(aInputFiles, tcPath, tmpPath);
-
-        // Make it running in batch mode (no GUI)
+        // Make IJ running in batch mode (no GUI)
         Interpreter.batchMode = true;
 
-        // Test plugin
-        for (final String file : aInputFiles) {
-            logger.debug("Loading image for testing: [" + tmpPath + file + "]");
-            final ImagePlus ip = loadImagePlus(tmpPath + file);
+        // ===================  Test plugin =========================================
+        // options to plugin
+        Thread.currentThread().setName("Run$_" + aTestedPlugin.getClass().getSimpleName());
+        Macro.setOptions(Thread.currentThread(), aMacroOptions);
+
+        // Set active image and run plugin
+        if (aInputFile != null) {
+            logger.debug("Loading image for testing: [" + tmpPath + aInputFile + "]");
+            final ImagePlus ip = loadImagePlus(tmpPath + aInputFile);
             logger.debug("Testing plugin");
-
-            // Change name of thread to begin with "Run$_". This is required by IJ to pass later
-            // options to plugin
-            Thread.currentThread().setName("Run$_" + aTestedPlugin.getClass().getSimpleName());
-            Macro.setOptions(Thread.currentThread(), aMacroOptions);
-
-            // Set active image and run plugin
             WindowManager.setTempCurrentImage(ip);
-            new PlugInFilterRunner(aTestedPlugin, "pluginTest", aSetupArg);
-            debugOutput();
-            // compare output from plugin with reference images
-            logger.debug("Comparing output of two images:");
-            logger.debug("    ref: [" + tcPath + aReferenceFiles[0] + "]");
-            logger.debug("    test:[" + aExpectedFiles[0] +"]");
-            final Img<?> referenceImg = loadImage(tcPath + aReferenceFiles[0]);
-            final Img<?> processedImg = loadImageByName(aExpectedFiles[0]);
-            if (processedImg == null) {
-                throw new RuntimeException("No img: [" + aExpectedFiles[0] + "]");
+        }
+        // Change name of thread to begin with "Run$_". This is required by IJ to pass later
+        new PlugInFilterRunner(aTestedPlugin, "pluginTest", aSetupArg);
+        
+        // ===================  Verify plugin output================================
+        // Show what images are opened in ImageJ internal structures.
+        debugOutput();
+        
+        // compare output from plugin with reference images
+        for (int i = 0; i < aExpectedImgFiles.length; ++i) {
+            String refFile = tcPath + aReferenceImgFiles[i];
+            String testFile = aExpectedImgFiles[i];
+            compareImageFromIJ(refFile, testFile);
+        }
+
+        if (aExpectedFiles != null && aReferenceFiles != null) {
+            for (int i = 0; i < aExpectedFiles.length; ++i) {
+                String refFile = tcPath + aReferenceFiles[i];
+                String testFile = tmpPath + aExpectedFiles[i];
+                compareTextFiles(refFile, testFile);
             }
-            assertTrue("Reference vs. processed file.", compare(referenceImg, processedImg));
         }
     }
 
     /**
-     * Copies aInputFiles from test case data directory to temporary path
-     * @param aInputFiles array of input files
-     * @param aTcPath source test case path
-     * @param aTmpPath destination temporary path
+     * Compare two images, tested one will be read from IJ by its name (it is usually image generated by plugin)
+     * @param aReferenceFileName - absolute path to reference file
+     * @param aGeneratedImageWindowName - name of window containing tested image
      */
-    protected void prepareTestDirectory(final String[] aInputFiles, final String aTcPath, final String aTmpPath) {
+    private void compareImageFromIJ(String aReferenceFileName, String aGeneratedImageWindowName) {
+        logger.debug("Comparing output of two images:");
+        logger.debug("    ref: [" + aReferenceFileName + "]");
+        logger.debug("    test:[" + aGeneratedImageWindowName +"]");
+        final Img<?> referenceImg = loadImage(aReferenceFileName);
+        Img<?> processedImg = loadImageByName(aGeneratedImageWindowName);
+        if (processedImg == null) {
+            processedImg = loadImage(tmpPath + aGeneratedImageWindowName);
+        }
+        if (processedImg == null) {
+            throw new RuntimeException("No img: [" + aGeneratedImageWindowName + "]");
+        }
+        assertTrue("Reference vs. processed file.", compareImages(referenceImg, processedImg));
+    }
 
-        // Copy input file to temporary directory
-        for (final String file : aInputFiles) {
-            final File in = new File(aTcPath + file);
-            final File out = new File(aTmpPath);
-            SystemOperations.copyFileToDirectory(in, out);
+    /**
+     * Compare two text files.
+     * @param refFile - absolute path to reference file
+     * @param testFile - absolute path to tested file
+     */
+    private void compareTextFiles(String refFile, String testFile) {
+        logger.debug("Comparing output of two text files:");
+        logger.debug("    ref: [" + refFile + "]");
+        logger.debug("    test:[" + testFile + "]");
+        String expected = readFile(refFile);
+        String result = readFile(testFile);
+        assertEquals(expected, result);
+    }
+
+    /**
+     * Copies aInputFileOrDirectory from inputPath to given destinationPath
+     * @param aInputFileOrDirectory input file or directory
+     * @param aInputPath source test case path
+     * @param aDestinationPath destination temporary path
+     */
+    protected void copyTestResources(final String aInputFileOrDirectory, final String aInputPath, final String aDestinationPath) {
+        if (aInputFileOrDirectory != null) {
+            final File in = new File(aInputPath + aInputFileOrDirectory);
+            final File out = new File(aDestinationPath);
+            logger.debug("Copy [" + aInputPath + aInputFileOrDirectory + "] to [" + aDestinationPath + "]");
+            if (in.isDirectory()) {
+                SystemOperations.copyDirectoryToDirectory(in, out);
+            }
+            else {
+                SystemOperations.copyFileToDirectory(in, out);
+            }
+            
         }
     }
 
@@ -176,9 +214,7 @@ public class CommonBase extends Info {
      * @param aTestedImg Image2
      * @return true if they match, false otherwise
      */
-    protected boolean compare(Img<?> aRefImg, Img<?> aTestedImg)
-    {
-
+    protected boolean compareImages(Img<?> aRefImg, Img<?> aTestedImg) {
         final Cursor<?> ci1 = aRefImg.cursor();
         final RandomAccess<?> ci2 = aTestedImg.randomAccess();
 
@@ -202,6 +238,8 @@ public class CommonBase extends Info {
             {
                 countDifferent++;
                 if (!firstDiffFound) {
+                    firstDiffFound = true;
+
                     // Produce error log with coordinates and values of first
                     // not matching location
                     String errorMsg = "Images differ. First occurence at: [";
@@ -213,11 +251,8 @@ public class CommonBase extends Info {
                     }
                     errorMsg += "] Values: [" + t1 + "] vs. [" + t2 + "]";
                     logger.error(errorMsg);
-                    firstDiffFound = true;
                 }
-                //return false;
             }
-
         }
 
         if (firstDiffFound) {
@@ -324,6 +359,13 @@ public class CommonBase extends Info {
         return result;
     }
 
+    protected void closeAllImageJimages() {
+        ImagePlus img;
+        while ((img = WindowManager.getCurrentImage()) != null) {
+            logger.debug("Closing [" + img.getTitle() + "]");
+            img.close();
+        }
+    }
     /**
      * Logs images available in IJ internal structures. Helpful during new TC writing.
      */
@@ -331,5 +373,16 @@ public class CommonBase extends Info {
         logger.debug("getWindowCount(): " + WindowManager.getWindowCount());
         logger.debug("getBatchModeImageCount(): " + Interpreter.getBatchModeImageCount());
         getAllImagesByName();
+    }
+    
+    protected static String readFile(String aFullPathFile) {
+        try {
+            final byte[] encoded = Files.readAllBytes(Paths.get(aFullPathFile));
+            return new String(encoded, Charset.defaultCharset());
+        } catch (final IOException e) {
+            e.printStackTrace();
+            fail("Reading [" + aFullPathFile + "] file failed.");
+        }
+        return null;
     }
 }

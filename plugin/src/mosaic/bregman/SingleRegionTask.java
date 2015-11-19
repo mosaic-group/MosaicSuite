@@ -88,9 +88,7 @@ class SingleRegionTask implements Runnable {
             for (int i = 0; i < AS.ni; i++) {
                 for (int j = 0; j < AS.nj; j++) {
                     AS.b1k[l][z][i][j] = AS.b1k[l][z][i][j] + AS.temp1[l][z][i][j] - AS.w1k[l][z][i][j];
-
                     AS.b3k[l][z][i][j] = AS.b3k[l][z][i][j] + AS.temp1[l][z][i][j] - AS.w3k[l][z][i][j];
-                    // mask[l][z][i][j]=w3k[l][z][i][j];
                 }
             }
         }
@@ -108,26 +106,13 @@ class SingleRegionTask implements Runnable {
         for (int z = 0; z < AS.nz; z++) {
             for (int i = 0; i < AS.ni; i++) {
                 for (int j = 0; j < AS.nj; j++) {
-
                     AS.b2xk[l][z][i][j] = AS.b2xk[l][z][i][j] + AS.temp3[l][z][i][j] - AS.temp1[l][z][i][j];
                     AS.b2yk[l][z][i][j] = AS.b2yk[l][z][i][j] + AS.temp4[l][z][i][j] - AS.temp2[l][z][i][j];
-
-                    // mask[l][z][i][j]=w3k[l][z][i][j];
                 }
             }
         }
 
         AS.normtab[l] = 0;
-        for (int z = 0; z < AS.nz; z++) {
-            for (int i = 0; i < AS.ni; i++) {
-                for (int j = 0; j < AS.nj; j++) {
-                    // AS.l2normtab[l]+=Math.sqrt(Math.pow(AS.w3k[l][z][i][j]-AS.w3kp[l][z][i][j],2));
-                    // AS.normtab[l]+=Math.abs(AS.w3k[l][z][i][j]-AS.w3kp[l][z][i][j]);
-                }
-            }
-        }
-
-        // Tools.copytab(AS.w3kp[l], AS.w3k[l]);
 
         AS.energytab[l] = Tools.computeEnergy(AS.speedData[l], AS.w3k[l], AS.temp3[l], AS.temp4[l], AS.p.ldata, AS.p.lreg_[channel]);
 

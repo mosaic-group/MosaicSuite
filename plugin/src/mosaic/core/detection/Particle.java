@@ -10,332 +10,228 @@ import org.supercsv.cellprocessor.ift.CellProcessor;
 
 
 /**
- * Defines a particle that holds all the relevant info for it.
- * A particle is detected in an image or given as input in test file mode
- * X and Y coordinates are not in the usual graph coordinates sense but in the image sense;
- * (0,0) is the upper left corner
- * x is vertical top to bottom
- * y is horizontal left to right
+ * Defines a particle
  */
-
 public class Particle {
 
-    public static final String[] ParticleDetection_map = new String[] { "Frame", "x", "y", "z", "Size" };
-
-    public final static CellProcessor[] ParticleDetectionCellProcessor = new CellProcessor[] { new ParseInt(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble() };
-
-    public float x, y, z; // the originally given coordinates - to be refined
-    float original_x = 0.0f; // the originally given coordinates - not to be changed
-    float original_y = 0.0f;
-    float original_z = 0.0f;
-    private int frame; // the number of the frame this particle belonges to (can be 0)
-    public boolean special; // a flag that is used while detecting and linking particles
+    public float iX, iY, iZ;
+    public float m0 = 0;
+    public float m1 = 0;
+    public float m2 = 0; 
+    public float m3 = 0;
+    public float m4 = 0;
+    public float nonParticleDiscriminationScore = 0;
+    
+    // detection/linking stuff
+    public float distance = -1;
+    public boolean special = true; // a flag that is used while detecting and linking particles
+    private int frame = 0; // the number of the frame this particle belongs to (can be 0)
+    float original_x = 0; // the originally given coordinates - not to be changed
+    float original_y = 0;
+    float original_z = 0;
     public int[] next; // array that holds in position i the next particle number in frame i
-    // that this particle is linked to
-    int nbIterations = 0; // debug
-    /* only relevant to particles detected in images */
-    public float m0; // intensity moment
-    public float m1, m2, m3, m4;
-    public float score; // non-particle discrimination score
-    public float distance;
     public float lx, ly, lz; // previous Linking x,y,z
     public float lxa, lya, lza; // accumulation link
 
-    /* only relevant to particles given as input */
-    public String[] all_params = null; // all params that relate to this particle,
-
     /**
      * Create a particle from another particle
-     *
-     * @param p Particle
+     * @param aParticle Particle
      */
-
-    Particle(Particle p) {
-        this.frame = p.frame;
-        this.x = p.x;
-        this.y = p.y;
-        this.z = p.z;
-        this.m0 = p.m0;
-        this.m1 = p.m1;
-        this.m2 = p.m2;
-        this.m3 = p.m3;
-        this.m4 = p.m4;
+    Particle(Particle aParticle) {
+        iX = aParticle.iX;
+        iY = aParticle.iY;
+        iZ = aParticle.iZ;
+        m0 = aParticle.m0;
+        m1 = aParticle.m1;
+        m2 = aParticle.m2;
+        m3 = aParticle.m3;
+        m4 = aParticle.m4;
+        frame = aParticle.frame;
     }
 
     /**
-     * Set the particle data
-     *
-     * @param p Particle
+     * @param aX - original x coordinates
+     * @param aY - original y coordinates
+     * @param aFrameNumber - the number of the frame this particle belonges to
+     * @param aLinkRange linking range
      */
-
-    public void setData(Particle p) {
-        this.frame = p.frame;
-        this.x = p.x;
-        this.y = p.y;
-        this.z = p.z;
-        this.m0 = p.m0;
-        this.m1 = p.m1;
-        this.m2 = p.m2;
-        this.m3 = p.m3;
-        this.m4 = p.m4;
+    public Particle(float aX, float aY, float aZ, int aFrameNumber, int aLinkRange) {
+        iX = aX;
+        original_x = aX;
+        iY = aY;
+        original_y = aY;
+        iZ = aZ;
+        original_z = aZ;
+        
+        frame = aFrameNumber;
+        next = new int[aLinkRange];
     }
+    
+    /**
+     * Create a default particle (needed currently by CSV, accessed via reflection)
+     */
+    public Particle() {}
 
     /**
-     * translate coordinate according to a focus area
-     *
-     * @param rectangle of the focus area
-     */
-    void translate(Rectangle focus) {
-        x = x - focus.x;
-        y = y - focus.y;
-    }
-
-    /**
-     * Get the module of the linking vector
-     *
-     * @return the module of the linking vector
-     */
-
-    public float linkModule() {
-        return (float) Math.sqrt(lx * lx + ly * ly + lz * lz);
-    }
-
-    /**
-     * Get the square of the accumulated linking vector
-     *
      * @return the square of the accumulated linking vector
      */
-
     public float linkModuleASq() {
         return lxa * lxa + lya * lya + lza * lza;
     }
 
     /**
-     * Create a particle
+     * @param rectangle of the focus area
      */
-
-    public Particle() {
-        this.special = true;
-
-        distance = -1.0f;
+    void translate(Rectangle focus) {
+        iX = iX - focus.x;
+        iY = iY - focus.y;
     }
-
+    
     /**
-     * constructor.
-     * 
-     * @param x - original x coordinates
-     * @param y - original y coordinates
-     * @param frame_num - the number of the frame this particle belonges to
-     * @param aLinkRange linking range
+     * @return the module of the linking vector
      */
-    public Particle(float x, float y, float z, int frame_num, int linkrange) {
-        this.x = x;
-        this.original_x = x;
-        this.y = y;
-        this.original_y = y;
-        this.z = z;
-        this.original_z = z;
-        this.special = true;
-        this.setFrame(frame_num);
-        this.next = new int[linkrange];
-        distance = -1.0f;
+    public float linkModule() {
+        return (float) Math.sqrt(lx * lx + ly * ly + lz * lz);
     }
 
     /**
      * Set particle link range
-     *
      * @param aLinkRange
      */
-
     void setLinkRange(int linkrange) {
-        this.next = new int[linkrange];
+        next = new int[linkrange];
     }
 
-    /**
-     * constructor for particles created from text files.
-     * 
-     * @param x - original x coordinates
-     * @param y - original y coordinates
-     * @param frame_num - the number of the frame this particle is in
-     * @param params - all params that relate to this particle, first 2 should be x and y respectfully
-     */
-    Particle(float x, float y, float z, int frame_num, String[] params, int linkrange) {
-        this.x = x;
-        this.original_x = x;
-        this.y = y;
-        this.original_y = y;
-        this.z = z;
-        this.original_z = z;
-        this.all_params = params;
-        this.special = true;
-        this.setFrame(frame_num);
-        this.next = new int[linkrange];
-        this.score = 0.0F;
-        this.m0 = 0.0F;
-        this.m1 = 0.0F;
-        this.m2 = 0.0F;
-        this.m3 = 0.0F;
-        this.m4 = 0.0F;
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         return toStringBuffer().toString();
     }
 
     /**
-     * The method <code>toString()</code> calls this method <br>
-     * Generates (in real time) a "ready to print" <code>StringBuffer</code> with information
-     * about this Particle:
-     * <ul>
-     * <li>frame
-     * <li>x
-     * <li>y
-     * <li>m0
-     * <li>m2
-     * <li>score
-     * </ul>
-     * For text files mode - just prints all the information given for the particles
-     * 
-     * @return a StringBuffer with this infomation
+     * @return StringBuffer with this information about particle (x, y, z, m0...)
      */
     public StringBuffer toStringBuffer() {
-
-        // I work with StringBuffer since its faster than String
-        // At the end convert to String and return
-        final StringBuffer sb = new StringBuffer();
-        final StringBuffer sp = new StringBuffer(" ");
-
-        // format the number to look nice in print (same number of digits)
-        // NumberFormat nf = NumberFormat.getInstance();
-        // nf.setMaximumFractionDigits(6);
-        // nf.setMinimumFractionDigits(6);
+        final StringBuffer result = new StringBuffer();
+        final String space = " ";
+        
         final DecimalFormat nf = new DecimalFormat("######0.000000");
         nf.setGroupingUsed(false);
-        sb.append(this.getFrame());
+        
+        result.append(getFrame());
+        result.append(space);
+        result.append(nf.format(iX));
+        result.append(space);
+        result.append(nf.format(iY));
+        result.append(space);
+        result.append(nf.format(iZ));
+        result.append(space);
+        result.append(nf.format(m0));
+        result.append(space);
+        result.append(nf.format(m1));
+        result.append(space);
+        result.append(nf.format(m2));
+        result.append(space);
+        result.append(nf.format(m3));
+        result.append(space);
+        result.append(nf.format(m4));
+        result.append(space);
+        result.append(nf.format(nonParticleDiscriminationScore));
+        result.append("\n");
 
-        sb.append(sp);
-        sb.append(nf.format(this.x));
-        sb.append(sp);
-        sb.append(nf.format(this.y));
-        sb.append(sp);
-        sb.append(nf.format(this.z));
-        sb.append(sp);
-        sb.append(nf.format(this.m0));
-        sb.append(sp);
-        sb.append(nf.format(this.m1));
-        sb.append(sp);
-        sb.append(nf.format(this.m2));
-        sb.append(sp);
-        sb.append(nf.format(this.m3));
-        sb.append(sp);
-        sb.append(nf.format(this.m4));
-        sb.append(sp);
-        sb.append(nf.format(this.score));
-        sb.append("\n");
-
-        return sb;
+        return result;
     }
 
-    boolean match(Particle p) {
-        if (this.x == p.x && this.y == p.y && this.z == p.z && this.m0 == p.m0 && this.m1 == p.m1 && this.m2 == p.m2 && this.m3 == p.m3 && this.m4 == p.m4) {
+    boolean match(Particle aParticle) {
+        if (iX == aParticle.iX && 
+            iY == aParticle.iY && 
+            iZ == aParticle.iZ && 
+            m0 == aParticle.m0 && 
+            m1 == aParticle.m1 && 
+            m2 == aParticle.m2 && 
+            m3 == aParticle.m3 && 
+            m4 == aParticle.m4) 
+        {
             return true;
         }
 
         return false;
     }
 
-    public void setFrame(int frame) {
-        this.frame = frame;
+    // ------------------------------------------------------------------------
+    // CSV definitions and setters/getters used by Particle itself
+    public static final String[] ParticleDetection_map = new String[] { "Frame", "x", "y", "z", "Size" };
+    public final static CellProcessor[] ParticleDetectionCellProcessor = new CellProcessor[] { new ParseInt(), new ParseDouble(), new ParseDouble(), new ParseDouble(), new ParseDouble() };
+    
+    public void setFrame(int aFrameNumber) {
+        this.frame = aFrameNumber;
     }
-
     public int getFrame() {
         return frame;
     }
 
-    public double[] getPosition() {
-        final double[] result = { x, y, z };
-        return result;
+    public void setx(double aX) {
+        iX = (float) aX;
+    }
+    public double getx() {
+        return iX;
+    }
+
+    public void sety(double aY) {
+        iY = (float) aY;
+    }
+    public double gety() {
+        return iY;
     }
     
+    public void setz(double aZ) {
+        iZ = (float) aZ;
+    }
+    public double getz() {
+        return iZ;
+    }
+    
+    public void setSize(double aSize) {
+        m0 = (float) aSize;
+    }
+    public double getSize() {
+        return m0;
+    }
+    
+    // ------------------------------------------------------------------------
+    // CSV definitions and setters/getters used when reading Squassh output 
+    // TODO: this is terrible solution, it should be handled differently 
+    public void setImage_ID(int aImageId) {
+        frame = aImageId;
+    }
     public int getImage_ID() {
         return frame;
     }
     
-    public void setImage_ID(int Image_ID_) {
-        frame = Image_ID_;
+    public void setIntensity(double aIntensity) {
+        m2 = (float) aIntensity;
     }
-    
-    public void setSize(double Size_) {
-        m0 = (float) Size_;
-    }
-
-
-    
-    public void setIntensity(double Intensity_) {
-        m2 = (float) Intensity_;
-    }
-
-    public void setx(double Coord_X_) // NO_UCD (unused code)
-    {
-        x = (float) Coord_X_;
-    }
-
-    public void sety(double Coord_Y_) // NO_UCD (unused code)
-    {
-        y = (float) Coord_Y_;
-    }
-
-    public void setz(double Coord_Z_) // NO_UCD (unused code)
-    {
-        z = (float) Coord_Z_;
-    }
-
-    public void setCoord_X(double Coord_X_) {
-        x = (float) Coord_X_;
-    }
-
-    public void setCoord_Y(double Coord_Y_) {
-        y = (float) Coord_Y_;
-    }
-
-    public void setCoord_Z(double Coord_Z_) {
-        z = (float) Coord_Z_;
-    }
-
-    public double getCoord_X() {
-        return x;
-    }
-
-    public double getCoord_Y() {
-        return y;
-    }
-
-    public double getCoord_Z() {
-        return z;
-    }
-
-    public double getSize() {
-        return m0;
-    }
-
     public double getIntensity() {
         return m2;
     }
 
-    public double getx() {
-        return x;
+    public void setCoord_X(double aX) {
+        iX = (float) aX;
+    }
+    public double getCoord_X() {
+        return iX;
     }
 
-    public double gety() {
-        return y;
+    public void setCoord_Y(double aY) {
+        iY = (float) aY;
+    }
+    public double getCoord_Y() {
+        return iY;
     }
 
-    public double getz() {
-        return z;
+    public void setCoord_Z(double aZ) {
+        iZ = (float) aZ;
+    }
+    public double getCoord_Z() {
+        return iZ;
     }
 }

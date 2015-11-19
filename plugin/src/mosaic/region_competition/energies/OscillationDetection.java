@@ -2,110 +2,93 @@ package mosaic.region_competition.energies;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 
-import mosaic.core.image.Point;
-import mosaic.region_competition.Algorithm;
 import mosaic.region_competition.ContourParticle;
-import mosaic.region_competition.Settings;
 
 
 public class OscillationDetection {
-    private final Algorithm algorithm;
-    private final double alpha = 0.1; // exponential moving average factor
-    private ArrayList<Double> sums;
-    private double sumAvg;
-    private ArrayList<Double> sumsAvg;
-    private boolean isFirstRound;
-    private final int length = 10;
-    private final double threshold;
+    
+    // Settings
+    private final double iOscillationThreshold;
+    private static final double AverageFactor = 0.1; // exponential moving average factor
+    private static final int LengthOfLastResultsWindow = 10; // how many energies calculation back should be taken into account
 
-    public OscillationDetection(Algorithm algo, Settings settings) {
-        this.algorithm = algo;
+    // Internal data
+    private final ArrayList<Double> iAllSumsAvg;
+    private double iSumAvg = 0;
+    private boolean isFirstRound = true;
+
+    public OscillationDetection(double aOscillationThreshold, int aMaxNumOfIterations) {
+        iOscillationThreshold = aOscillationThreshold; //aSettings.m_OscillationThreshold;
+        iAllSumsAvg = new ArrayList<Double>(aMaxNumOfIterations); //aSettings.m_MaxNbIterations);
+    }
+
+    /**
+     * @return returns true if oscillation detected
+     */
+    public boolean DetectOscillations(Collection<ContourParticle> aParticles) {
+        final double sumNew = sumAllEnergies(aParticles);
         
-        threshold = settings.m_OscillationThreshold;
-        initMembeers(settings.m_MaxNbIterations);
-    }
-
-    private void initMembeers(int maxIt) {
-        sums = new ArrayList<Double>(maxIt);
-        sumsAvg = new ArrayList<Double>(maxIt);
-        sumAvg = 0;
-        isFirstRound = true;
-    }
+        double oldSumAvg = isFirstRound ? sumNew : iSumAvg;
+        iSumAvg = AverageFactor * sumNew + (1 - AverageFactor) * oldSumAvg;
+        iAllSumsAvg.add(iSumAvg);
     
-    public boolean DetectOscillations(HashMap<Point, ContourParticle> m_Candidates) {
-        boolean result = false;
-        final double sumNew = SumAllEnergies(m_Candidates);
-    
-        sums.add(sumNew);
-    
-        double oldSumAvg = sumAvg;
-        if (isFirstRound) {
-            oldSumAvg = sumNew;
-        }
-    
-        final double newSumAvg = alpha * sumNew + (1 - alpha) * oldSumAvg;
-        sumsAvg.add(newSumAvg);
-        sumAvg = newSumAvg;
-    
-        final double totstd = std(sumsAvg);
-        final int n = sumsAvg.size();
-        final int start = Math.max(0, n - length);
-        final double winstd = std(sumsAvg.subList(start, n));
-    
-        double fac = 1;
         if (!isFirstRound) {
-            fac = winstd / totstd;
+            final double totstd = calculateStdDev(iAllSumsAvg);
+            final int n = iAllSumsAvg.size();
+            final int start = Math.max(0, n - LengthOfLastResultsWindow);
+            final double winstd = calculateStdDev(iAllSumsAvg.subList(start, n));
+            
+            if ((winstd / totstd) < iOscillationThreshold) {
+                // new oscillation detected
+                return true;
+            }
         }
-    
-        debug("sum=" + sumNew + " sumAvg=" + sumAvg);
-        debug("fac=" + fac);
-    
         isFirstRound = false;
-    
-        if (fac < threshold) {
-            result = true;
-            debug("***NEW Oscillation detected***");
-            algorithm.m_AcceptedPointsFactor /= 2.0;
-        }
-        return result;
+        
+        return false;
     }
 
-    private double SumAllEnergies(HashMap<Point, ContourParticle> aContainer) {
-        double vTotalEnergyDiff = 0;
-
-        for (final ContourParticle vPointIterator : aContainer.values()) {
-            vTotalEnergyDiff += vPointIterator.energyDifference;
+    private double sumAllEnergies(Collection<ContourParticle> aContainer) {
+        double totalEnergyDiff = 0;
+        for (final ContourParticle vPointIterator : aContainer) {
+            totalEnergyDiff += vPointIterator.energyDifference;
         }
-        return vTotalEnergyDiff;
+        
+        return totalEnergyDiff;
     }
 
-    private double mean(List<Double> data) {
+    /**
+     * Calculates a mean of given data
+     * @param data
+     * @return
+     */
+    private double calculateMean(List<Double> aData) {
         double sum = 0.0;
-        for (Double d : data) {
+        for (double d : aData) {
             sum += d;
         }
 
-        return sum / data.size();
+        return sum / aData.size();
     }
 
-    private double std(List<Double> data) {
-        final double m = mean(data);
+    /**
+     * Calculates standard deviation of given data
+     * @param data
+     * @return
+     */
+    private double calculateStdDev(List<Double> aData) {
+        final double meanValue = calculateMean(aData);
 
-        final int n = data.size();
+        final int n = aData.size();
         double sum = 0;
-        for (int i = 0; i < n; i++) {
-            final double d = m - data.get(i);
-            sum += (d * d);
+        for (int i = 0; i < n; ++i) {
+            sum += Math.pow(meanValue - aData.get(i), 2);
         }
         sum = sum / n;
         
         return Math.sqrt(sum);
-    }
-
-    private static void debug(@SuppressWarnings("unused") String s) {
-        //System.out.println(s);
     }
 }

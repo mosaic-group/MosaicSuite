@@ -8,7 +8,7 @@ import java.util.List;
 import ij.plugin.filter.MaximumFinder;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
 
 
 public class MaximumFinder2D implements MaximumFinderInterface {

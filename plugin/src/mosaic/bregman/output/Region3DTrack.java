@@ -2,7 +2,7 @@ package mosaic.bregman.output;
 
 
 import mosaic.bregman.Region;
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
 
 
 public class Region3DTrack implements Outdata<Region> {

@@ -1,21 +1,20 @@
 package mosaic.bregman;
 
 
-import ij.IJ;
-import ij.ImagePlus;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.CountDownLatch;
 
+import ij.IJ;
+import ij.ImagePlus;
 import mosaic.core.detection.Particle;
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
-import mosaic.core.image.RegionIterator;
-import mosaic.core.image.RegionIteratorMask;
-import mosaic.core.image.SphereMask;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.MaskOnSpaceMapper;
+import mosaic.core.imageUtils.images.LabelImage;
+import mosaic.core.imageUtils.iterators.SpaceIterator;
+import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.GaussPSF;
 import mosaic.utils.io.csv.CSV;
 import mosaic.utils.io.csv.CsvColumnConfig;
@@ -72,9 +71,12 @@ class TwoRegions extends NRegions {
         sz[2] = out.length;
 
         // Create a circle Mask and an iterator
-
-        final SphereMask cm = new SphereMask(radius, 2 * radius + 1, 3);
-        final RegionIteratorMask rg_m = new RegionIteratorMask(cm, sz);
+        float[] spac = new float[3];
+        for (int i = 0; i < 3; i++) {
+            spac[i] = 1.0f;
+        }
+        final BallMask cm = new BallMask(radius, 2 * radius + 1, spac);
+        final MaskOnSpaceMapper rg_m = new MaskOnSpaceMapper(cm, sz);
 
         final Iterator<Particle> pt_it = pt.iterator();
 
@@ -83,12 +85,12 @@ class TwoRegions extends NRegions {
 
             // Draw the sphere
 
-            final Point p_c = new Point((int) (ptt.x), (int) (ptt.y), (int) (ptt.z));
+            final Point p_c = new Point((int) (ptt.iX), (int) (ptt.iY), (int) (ptt.iZ));
 
-            rg_m.setMidPoint(p_c);
+            rg_m.setMiddlePoint(p_c);
 
             while (rg_m.hasNext()) {
-                final Point p = rg_m.nextP();
+                final Point p = rg_m.nextPoint();
 
                 if (p.iCoords[0] < sz[0] && p.iCoords[0] >= 0 && p.iCoords[1] < sz[1] && p.iCoords[1] >= 0 && p.iCoords[2] < sz[2] && p.iCoords[2] >= 0) {
                     out[p.iCoords[2]][p.iCoords[0]][p.iCoords[1]] = 255.0f;
@@ -185,9 +187,7 @@ class TwoRegions extends NRegions {
 
         if (Analysis.p.patches_from_file == null) {
             try {
-                // Tools.showmem();
                 A_solver.first_run();
-                // Tools.showmem();
             }
             catch (final InterruptedException ex) {
             }
@@ -195,25 +195,18 @@ class TwoRegions extends NRegions {
         else {
             // Here we have patches
             // Load particles
-
-            Vector<Particle> pt;
-
             final CSV<Particle> csv = new CSV<Particle>(Particle.class);
 
             csv.setCSVPreferenceFromFile(Analysis.p.patches_from_file);
-            pt = csv.Read(Analysis.p.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
+            Vector<Particle> pt = csv.Read(Analysis.p.patches_from_file, new CsvColumnConfig(Particle.ParticleDetection_map, Particle.ParticleDetectionCellProcessor));
 
             // Get the particle related inly to one frames
-
             final Vector<Particle> pt_f = getPart(pt, Analysis.frame - 1);
 
             // create a mask Image
-
             final double img[][][] = new double[p.nz][p.ni][p.nj];
 
             drawParticles(img, A_solver.w3kbest[0], pt_f, (int) 3.0);
-
-            // Tools.disp_array3D_new(img, "particles");
 
             A_solver.regions_intensity_findthresh(img);
         }
@@ -322,10 +315,9 @@ class TwoRegions extends NRegions {
 
                 // Run on all pixels of the label to add pixels to the regions
 
-                final RegionIterator rit = new RegionIterator(img.getDimensions());
+                final Iterator<Point> rit = new SpaceIterator(img.getDimensions()).getPointIterator();
                 while (rit.hasNext()) {
-                    rit.next();
-                    final Point p = rit.getPoint();
+                    final Point p = rit.next();
                     final int lbl = img.getLabel(p);
                     if (lbl != 0) {
                         // foreground

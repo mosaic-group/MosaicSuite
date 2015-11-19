@@ -8,10 +8,10 @@ import java.util.HashMap;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.io.Opener;
-import mosaic.core.image.IntensityImage;
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
-import mosaic.core.image.RegionIterator;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.core.imageUtils.images.LabelImage;
+import mosaic.core.imageUtils.iterators.RegionIterator;
 import mosaic.plugins.Region_Competition;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.region_competition.LabelStatistics;
@@ -84,8 +84,8 @@ public class ScoreFunctionRCsmo extends ScoreFunctionBase {
         final RegionIterator img = new RegionIterator(l.getDimensions(), l.getDimensions(), off);
 
         while (img.hasNext()) {
-            final Point p = img.getPoint();
             final int i = img.next();
+            final Point p = img.getPoint();
             if (l.getDataLabel()[i] < 0) {
                 np++;
                 final int id = Math.abs(l.getDataLabel()[i]);
@@ -174,8 +174,8 @@ public class ScoreFunctionRCsmo extends ScoreFunctionBase {
         final RegionIterator img = new RegionIterator(l.getDimensions(), l.getDimensions(), off);
 
         while (img.hasNext()) {
-            final Point p = img.getPoint();
             final int i = img.next();
+            final Point p = img.getPoint();
             if (l.getDataLabel()[i] < 0) {
                 final int id = Math.abs(l.getDataLabel()[i]);
 

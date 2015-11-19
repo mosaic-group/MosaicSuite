@@ -9,13 +9,16 @@ import net.imglib2.type.numeric.real.DoubleType;
 
 
 class Tools {
-    private int ni, nj, nz, nlevels;
-
+    final private int ni, nj, nz, nlevels;
     Tools(int nni, int nnj, int nnz) {
+        this(nni, nnj, nnz, 1);
+    }
+    
+    Tools(int nni, int nnj, int nnz, int levels) {
         this.ni = nni;
         this.nj = nnj;
         this.nz = nnz;
-        this.nlevels = 1;
+        this.nlevels = levels;
     }
 
     // public void showmem() {
@@ -41,13 +44,6 @@ class Tools {
     // IJ.log("Used mem" + round(used / Math.pow(2, 20), 2));
     // IJ.log(" ");
     // }
-
-    void setDims(int i, int j, int z, int n) {
-        ni = i;
-        nj = j;
-        nz = z;
-        nlevels = n;
-    }
 
     // convolution with symmetric boundaries extension
     static void convolve2D(double[][] out, double[][] in, int icols, int irows, psf<DoubleType> psf) {
@@ -810,29 +806,21 @@ class Tools {
 
     double computeEnergy(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double ldata, double lreg) {
 
-        double energyData = 0;
-        for (int z = 0; z < nz; z++) {
-            for (int i = 0; i < ni; i++) {
-                for (int j = 0; j < nj; j++) {
-                    energyData += speedData[z][i][j] * mask[z][i][j];
-                }
-            }
-        }
-
         fgradx2D(maskx, mask);
         fgrady2D(masky, mask);
 
+        double energyData = 0;
         double energyPrior = 0;
         for (int z = 0; z < nz; z++) {
             for (int i = 0; i < ni; i++) {
                 for (int j = 0; j < nj; j++) {
+                    energyData += speedData[z][i][j] * mask[z][i][j];
                     energyPrior += Math.sqrt(Math.pow(maskx[z][i][j], 2) + Math.pow(masky[z][i][j], 2));
                 }
             }
         }
-        final double energy = ldata * energyData + lreg * energyPrior;
 
-        return energy;
+        return ldata * energyData + lreg * energyPrior;
     }
 
     double computeEnergy3D(double[][][] speedData, double[][][] mask, double[][][] maskx, double[][][] masky, double[][][] maskz, double ldata, double lreg) {
@@ -1171,11 +1159,13 @@ class Tools {
         }
     }
 
-    static double round(double y, int z) {
-        // Special tip to round numbers to 10^-2
-        y *= Math.pow(10, z);
+    // Round y to z-places after comma
+    static double round(double y, final int z) {
+        // Special tip to round numbers to 10^-z
+        final double factor = Math.pow(10,  z);
+        y *= factor;
         y = (int) y;
-        y /= Math.pow(10, z);
+        y /= factor;
         return y;
     }
 }

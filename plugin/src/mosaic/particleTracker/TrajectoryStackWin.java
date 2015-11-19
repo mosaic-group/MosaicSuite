@@ -75,7 +75,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
             currentframe = this.getImagePlus().getSlice();
         }
 
-        numberOfParticlesLabel.setText("Frame " + currentframe + ": " + particleTracker3DModular.frames[currentframe - 1].real_particles_number + " particles");
+        numberOfParticlesLabel.setText("Frame " + currentframe + ": " + particleTracker3DModular.iFrames[currentframe - 1].real_particles_number + " particles");
     }
 
     @Override
@@ -120,7 +120,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
             }
         }
         // Regenerate the image
-        out = particleTracker3DModular.createHyperStackFromFrames(particleTracker3DModular.background);
+        out = particleTracker3DModular.createHyperStackFromFrames();
 
         // generate an updated view with the ImagePlus in this window according to the new filter
         particleTracker3DModular.generateView(this.imp, this.out);
@@ -139,7 +139,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
             final Vector<Trajectory> v = new Vector<Trajectory>();
             v.add(particleTracker3DModular.all_traj.get(particleTracker3DModular.chosen_traj));
 
-            final Calibration cal = particleTracker3DModular.original_imp.getCalibration();
+            final Calibration cal = particleTracker3DModular.iInputImage.getCalibration();
 
             MyFrame.updateImage(out, v, cal, DrawType.TRAJECTORY_HISTORY, particleTracker3DModular.getRadius());
 
@@ -176,7 +176,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
                 final Vector<Trajectory> v = new Vector<Trajectory>();
                 v.add(curr_traj);
 
-                final Calibration cal = particleTracker3DModular.original_imp.getCalibration();
+                final Calibration cal = particleTracker3DModular.iInputImage.getCalibration();
 
                 MyFrame.updateImage(out, v, cal, DrawType.TRAJECTORY_HISTORY, particleTracker3DModular.getRadius());
 
@@ -193,8 +193,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
             /* focus or mark the selected Trajectory according the the type of mouse click */
             this.imp.killRoi();
             this.imp.updateImage();
-            // show the number of the selected Trajectory on the per trajectory
-            // panel in the results window
+            // show the number of the selected Trajectory on the per trajectory panel in the results window
             particleTracker3DModular.results_window.per_traj_label.setText("Trajectory " + (particleTracker3DModular.chosen_traj + 1));
             if (e.getClickCount() == 2) {
                 // "double-click"

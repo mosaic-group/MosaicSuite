@@ -27,10 +27,10 @@ import ij.gui.GenericDialog;
 import ij.gui.Roi;
 import ij.plugin.frame.RoiManager;
 import ij.process.ImageProcessor;
-import mosaic.core.image.IntensityImage;
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
-import mosaic.core.image.RegionIterator;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.core.imageUtils.images.LabelImage;
+import mosaic.core.imageUtils.iterators.RegionIterator;
 import mosaic.core.utils.MosaicUtils;
 import mosaic.plugins.Region_Competition.EnergyFunctionalType;
 import mosaic.plugins.Region_Competition.InitializationType;
@@ -401,8 +401,8 @@ public class RCWWin extends JDialog implements MouseListener, Runnable {
         final RegionIterator img = new RegionIterator(lirc.getDimensions(), lirc.getDimensions(), off);
 
         while (img.hasNext()) {
-            final Point p = img.getPoint();
             final int i = img.next();
+            final Point p = img.getPoint();
 //            if (lirc.getDataLabel()[i] != LabelImage.BGLabel && lirc.getDataLabel()[i] != LabelImageRC.ForbiddenLabel) {
             if (!lirc.isSpecialLabel(lirc.getDataLabel()[i])) {
                 final int id = Math.abs(lirc.getDataLabel()[i]);

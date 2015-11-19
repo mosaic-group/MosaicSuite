@@ -51,7 +51,6 @@ class NRegions implements Runnable {
         final BackgroundSubtracter bs = new BackgroundSubtracter();
         this.p = params;
 
-        this.LocalTools = new Tools(p.ni, p.nj, p.nz);
         this.DoneSignal = DoneSignal;
         this.nl = p.nlevels;
         ImageProcessor imp;
@@ -80,7 +79,7 @@ class NRegions implements Runnable {
 
         this.channel = channel;
 
-        LocalTools.setDims(ni, nj, nz, nl);
+        this.LocalTools = new Tools(ni, nj, nz, nl);
 
         // allocate
         image = new double[nz][ni][nj];

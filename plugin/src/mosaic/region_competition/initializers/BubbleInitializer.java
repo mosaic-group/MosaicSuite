@@ -1,9 +1,9 @@
 package mosaic.region_competition.initializers;
 
 
-import mosaic.core.image.IndexIterator;
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.LabelImage;
+import mosaic.core.imageUtils.iterators.SpaceIterator;
 import mosaic.region_competition.utils.BubbleDrawer;
 
 /**
@@ -73,7 +73,7 @@ public class BubbleInitializer extends Initializer {
         final Point offset = new Point(aBorderOffset);
 
         final BubbleDrawer bd = new BubbleDrawer(iLabelImage, aRadius, 2 * aRadius);
-        final IndexIterator it = new IndexIterator(aGrid);
+        final SpaceIterator it = new SpaceIterator(aGrid);
         int bubbleLabel = 1;
         for (Point ofs : it.getPointIterable()) {
             ofs = ofs.mult(aPadding + 2 * aRadius).add(offset);

@@ -386,8 +386,8 @@ public class BLauncher {
             final double meanLA = Analysis.meanlength(Analysis.regionslist[0]);
             final double meanLB = Analysis.meanlength(Analysis.regionslist[1]);
 
-            out.print(filename + ";" + hcount + ";" + Analysis.na + ";" + mosaic.bregman.Tools.round(Analysis.meana, 4) + ";" + mosaic.bregman.Tools.round(meanSA, 4) + ";"
-                    + mosaic.bregman.Tools.round(meanLA, 4) + ";" + +Analysis.nb + ";" + mosaic.bregman.Tools.round(Analysis.meanb, 4) + ";" + mosaic.bregman.Tools.round(meanSB, 4) + ";"
+            out.print(filename + ";" + hcount + ";" + Analysis.regionslist[0].size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.regionslist[0]), 4) + ";" + mosaic.bregman.Tools.round(meanSA, 4) + ";"
+                    + mosaic.bregman.Tools.round(meanLA, 4) + ";" + +Analysis.regionslist[1].size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.regionslist[1]), 4) + ";" + mosaic.bregman.Tools.round(meanSB, 4) + ";"
                     + mosaic.bregman.Tools.round(meanLB, 4) + ";" + colocAB + ";" + colocBA + ";" + colocABsize + ";" + colocBAsize + ";" + colocABnumber + ";" + colocBAnumber + ";" + colocA + ";"
                     + colocB + ";" + mosaic.bregman.Tools.round(corr, 4) + ";" + mosaic.bregman.Tools.round(corr_mask, 4));
             out.println();
@@ -397,7 +397,7 @@ public class BLauncher {
             final double meanSA = Analysis.meansurface(Analysis.regionslist[0]);
             final double meanLA = Analysis.meanlength(Analysis.regionslist[0]);
 
-            out.print(filename + ";" + hcount + ";" + Analysis.na + ";" + mosaic.bregman.Tools.round(Analysis.meana, 4) + ";" + mosaic.bregman.Tools.round(meanSA, 4) + ";"
+            out.print(filename + ";" + hcount + ";" + Analysis.regionslist[0].size() + ";" + mosaic.bregman.Tools.round(Analysis.meansize(Analysis.regionslist[0]), 4) + ";" + mosaic.bregman.Tools.round(meanSA, 4) + ";"
                     + mosaic.bregman.Tools.round(meanLA, 4));
             out.println();
             out.flush();
@@ -503,12 +503,6 @@ public class BLauncher {
             final MasksDisplay md = new MasksDisplay(Analysis.p.ni * factor2, Analysis.p.nj * factor2, Analysis.p.nz * fz2, Analysis.p.nlevels, Analysis.p.cl, Analysis.p);
             md.displaycoloc(MosaicUtils.ValidFolderFromImage(img2) + img2.getTitle(), Analysis.regionslist[0], Analysis.regionslist[1], ip);
 
-            Analysis.na = Analysis.regionslist[0].size();
-            Analysis.nb = Analysis.regionslist[1].size();
-
-            Analysis.meana = Analysis.meansize(Analysis.regionslist[0]);
-            Analysis.meanb = Analysis.meansize(Analysis.regionslist[1]);
-
             if (Analysis.p.save_images) {
                 // Write object 2 list
                 String savepath = null;
@@ -561,8 +555,6 @@ public class BLauncher {
         }
 
         if (Analysis.p.nchannels == 1) {
-            Analysis.na = Analysis.regionslist[0].size();
-            Analysis.meana = Analysis.meansize(Analysis.regionslist[0]);
             if (Analysis.p.save_images) {
                 String savepath = null;
                 savepath = MosaicUtils.ValidFolderFromImage(aImp);

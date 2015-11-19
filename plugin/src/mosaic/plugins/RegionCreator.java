@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Vector;
 
@@ -19,11 +20,10 @@ import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.bregman.output.Region3DTrack;
-import mosaic.core.detection.MyFrame;
-import mosaic.core.image.Point;
-import mosaic.core.image.RegionIterator;
-import mosaic.core.image.RegionIteratorMask;
-import mosaic.core.image.SphereMask;
+import mosaic.core.imageUtils.MaskOnSpaceMapper;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.iterators.SpaceIterator;
+import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.core.psf.psf;
 import mosaic.core.psf.psfList;
 import mosaic.core.utils.MosaicUtils;
@@ -67,7 +67,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
     protected Choice cConv;
     private String imageT;
     private final String[] ImageType = { "8-bit", "16-bit", "float" };
-    private HashMap<Integer, SphereMask> map;
+    private HashMap<Integer, BallMask> map;
 
     /**
      * Draw a Sphere with radius on out
@@ -96,9 +96,15 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         final double radius = p_radius;
 
         // Create a circle Mask and an iterator
-        RegionIteratorMask rg_m = null;
+        MaskOnSpaceMapper rg_m = null;
+        float min = Float.MAX_VALUE;
+        for (int i1 = 0; i1 < cal.length; i1++) {
+            if (cal[i1] < min) {
+                min = cal[i1];
+            }
+        }
 
-        final float min_s = MyFrame.minScaling(cal);
+        final float min_s = min;
         Integer rc = (int) (radius / min_s);
         for (int i = 0; i < out.numDimensions(); i++) {
             cal[i] /= min_s;
@@ -107,10 +113,10 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         if (rc < 1) {
             rc = 1;
         }
-        SphereMask cm = null;
+        BallMask cm = null;
         if ((cm = map.get(rc)) == null) {
-            cm = new SphereMask(rc, 2 * rc + 1, out_a.numDimensions(), cal, true);
-            rg_m = new RegionIteratorMask(cm, sz);
+            cm = new BallMask(rc, 2 * rc + 1, cal);
+            rg_m = new MaskOnSpaceMapper(cm, sz);
         }
         else {
             throw new RuntimeException();
@@ -122,12 +128,12 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         final Point p_c = new Point(ptt);
         p_c.div(cal);
 
-        rg_m.setMidPoint(p_c);
+        rg_m.setMiddlePoint(p_c);
 
         int sp = 0;
 
         while (rg_m.hasNext()) {
-            final Point p = rg_m.nextP();
+            final Point p = rg_m.nextPoint();
 
             if (p.isInside(sz)) {
                 out_a.setPosition(p.iCoords);
@@ -217,7 +223,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
      */
     private void FillGridPoint(Point p[], int i[], int spacing) {
         int cnt = 0;
-        final RegionIterator rg = new RegionIterator(i);
+        final Iterator<Point> rg = new SpaceIterator(i).getPointIterator();
 
         final Point t = new Point(new int [i.length]);
         for (int s = 0; s < i.length; s++) {
@@ -225,8 +231,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
         }
 
         while (rg.hasNext() && cnt < p.length) {
-            rg.next();
-            p[cnt] = rg.getPoint();
+            p[cnt] = rg.next();
             p[cnt] = p[cnt].add(t);
             p[cnt] = p[cnt].mult(spacing);
             p[cnt] = p[cnt].div(Spacing);
@@ -241,7 +246,7 @@ public class RegionCreator implements PlugInFilter // NO_UCD
      * @param intensity of the region
      */
     private <T extends RealType<T> & NativeType<T>> void Process(T Background, T max_int, T min_int, int max_radius, int min_radius, Class<T> cls) {
-        map = new HashMap<Integer, SphereMask>();
+        map = new HashMap<Integer, BallMask>();
 
         // Vector if output region
         final Vector<Region3DTrack> pt_r = new Vector<Region3DTrack>();

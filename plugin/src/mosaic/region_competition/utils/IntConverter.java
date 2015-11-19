@@ -83,17 +83,6 @@ public class IntConverter {
         return IntConverter.intStackToArray(ip.getImageStack());
     }
     
-    /**
-     * @param clean Takes absolute values, clamp to short values and remove
-     *            boundary
-     */
-    public static ImageStack intArrayToShortStack(int[] intData, int[] dims, boolean clean) {
-        int w = dims[0];
-        int h = dims[1];
-        int z = dims[2];
-        return intArrayToShortStack(intData, w, h, z, clean, clean, clean);
-    }
-    
     public static ImageStack intArrayToShortStack(int[] intData, int w, int h, int z, boolean clean) {
         return intArrayToShortStack(intData, w, h, z, clean, clean, clean);
     }
@@ -113,32 +102,6 @@ public class IntConverter {
 
         return stack;
 
-    }
-    
-    /**
-     * @param intData can be reference, method makes copy
-     * @param dims
-     * @return
-     */
-    public static ImageStack intArrayToStack(int[] intData, int[] dims) {
-        final int dim = dims.length;
-    
-        int w, h, z;
-        w = dims[0];
-        h = dims[1];
-        z = 1;
-        if (dim == 3) {
-            z = dims[2];
-        }
-        final int area = w * h;
-    
-        final ImageStack stack = new ImageStack(w, h);
-        for (int i = 0; i < z; i++) {
-            final Object pixels = Arrays.copyOfRange(intData, i * area, (i + 1) * area);
-            stack.addSlice("", pixels);
-        }
-    
-        return stack;
     }
 
     /**

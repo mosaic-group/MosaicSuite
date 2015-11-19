@@ -35,8 +35,6 @@ public class GUIDesign implements ActionListener {
 
     public JFrame frmInteractionAnalysis;
     private final String[] items = { "Hernquist", "Step", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
-    // private JTextField textField;
-    // private JTextField textField_1;
 
     private double gridSize = .5;
     private ImagePlus imgx, imgy;
@@ -69,26 +67,6 @@ public class GUIDesign implements ActionListener {
     private JFormattedTextField txtZmax;
     private double xmin = Double.MAX_VALUE, ymin = Double.MAX_VALUE, zmin = Double.MAX_VALUE, xmax = Double.MAX_VALUE, ymax = Double.MAX_VALUE, zmax = Double.MAX_VALUE;
     private JLabel lblKernelWeightq, lblKernelWeightp;
-
-    // private int state=GUIStates.LOAD_IMAGES;
-
-    /**
-     * Launch the application.
-     */
-    /*
-     * public static void main(String[] args) {
-     * EventQueue.invokeLater(new Runnable() {
-     * public void run() {
-     * try {
-     * GUIDesign window = new GUIDesign();
-     * window.frmInteractionAnalysis.setVisible(true);
-     * } catch (Exception e) {
-     * e.printStackTrace();
-     * }
-     * }
-     * });
-     * }
-     */
 
     /**
      * Create the application.
@@ -477,8 +455,6 @@ public class GUIDesign implements ActionListener {
             new HelpInteractionAnalysis(0, 0);
         }
         else if (e.getSource() == browseX) {
-            // imgx=new ImagePlus();
-            // a=null; garbage collection OK?
             imgx = ImageProcessUtils.openImage("");
             if (imgx == null) {
                 IJ.showMessage("Cancelled/Filetype not recognized");
@@ -502,8 +478,6 @@ public class GUIDesign implements ActionListener {
             return;
         }
         else if (e.getSource() == browseY) {
-            // a=null;
-            // imgy=new ImagePlus();
             imgy = ImageProcessUtils.openImage("");
 
             if (imgy == null) {
@@ -512,7 +486,6 @@ public class GUIDesign implements ActionListener {
             }
             imgy.show("Image Y");
             browseY.setText(imgy.getTitle());
-            // System.out.println("ImageY size"+imgy.getWidth()+"x"+imgy.getHeight());
             if (imgy != null && imgx != null) {
                 if (!checkIfImagesAreRightSize()) {
                     System.out.println("Distance calc: different image sizes");
@@ -528,8 +501,6 @@ public class GUIDesign implements ActionListener {
             return;
         }
         else if (e.getSource() == btnLoadCsvFileX) {
-
-            // IJ.showMessage("TestX");
 
             // Problem: how to make masks, how to calculate q(d), etc
             Xcoords = ImageProcessUtils.openCSVFile("Open CSV file for image X", "");
@@ -547,8 +518,6 @@ public class GUIDesign implements ActionListener {
             return;
         }
         else if (e.getSource() == btnLoadCsvFileY) {
-
-            // MyFrame myframe=new MyFrame();
 
             Ycoords = ImageProcessUtils.openCSVFile("Open CSV file for image Y", "");
             if (Ycoords == null) {
@@ -571,9 +540,6 @@ public class GUIDesign implements ActionListener {
             final String selected = (String) jcb.getSelectedItem();
             System.out.println("Selected: " + selected);
             if (selected == items[5]) {
-                // IJ.showMessage("Nonparametric estimation - feature under testing - may not be perfect");
-
-                // System.out.println("Min:"+minMax[0]+" Max:"+minMax[1]+"Mean:"+minMax[2]);
                 potentialType = PotentialFunctions.NONPARAM;
                 numSupport.setEnabled(true);
                 smoothnessNP.setEnabled(true);
@@ -588,30 +554,20 @@ public class GUIDesign implements ActionListener {
                 lblsupportPts.setEnabled(false);
                 if (selected == items[1]) {
                     potentialType = PotentialFunctions.STEP;
-                    // System.out.println("Step's gonna work");
                 }
                 if (selected == items[0]) {
                     potentialType = PotentialFunctions.HERNQUIST;
-                    // System.out.println("HERNQUIST gonna work");
                 }
                 if (selected == items[2]) {
                     potentialType = PotentialFunctions.L1;
-                    // System.out.println("HERNQUIST gonna work");
                 }
                 if (selected == items[3]) {
                     potentialType = PotentialFunctions.L2;
-                    // System.out.println("HERNQUIST gonna work");
                 }
                 if (selected == items[4]) {
                     potentialType = PotentialFunctions.PlUMMER;
-                    // System.out.println("HERNQUIST gonna work");
                 }
             }
-
-            // if (selected==items[6])
-            // {
-            // potentialType=PotentialFunctions.COULOMB;
-            // }
 
             a.setPotentialType(potentialType);
             return;

@@ -1,0 +1,47 @@
+% Configuration:
+% 	Displacement : 10.0
+% 	Linkrange    : 2
+Frames info was loaded from text files
+%	Per frame information (verbose output):
+null%	Particles after non-particle discrimination (1 particles):
+%		13.310000 12.923000 0.000000
+null%	Particles after non-particle discrimination (1 particles):
+%		13.455000 12.993000 0.000000
+null%	Particles after non-particle discrimination (1 particles):
+%		13.409000 13.117000 0.000000
+null%	Particles after non-particle discrimination (1 particles):
+%		13.804000 13.222000 0.000000
+null%	Particles after non-particle discrimination (1 particles):
+%		14.299000 12.958000 0.000000
+null%	Particles after non-particle discrimination (1 particles):
+%		14.302000 13.096000 0.000000
+% Trajectory linking (verbose output):
+% Frame 0
+%	Particle 0 (13.310000, 12.923000, 0.000000)
+% Frame 1
+%	Particle 0 (13.455000, 12.993000, 0.000000)
+% Frame 2
+%	Particle 0 (13.409000, 13.117000, 0.000000)
+% Frame 3
+%	Particle 0 (13.804000, 13.222000, 0.000000)
+% Frame 4
+%	Particle 0 (14.299000, 12.958000, 0.000000)
+% Frame 5
+%	Particle 0 (14.302000, 13.096000, 0.000000)
+
+%% Trajectories:
+%%	 1st column: frame number
+%%	 2nd column: x coordinate top-down(pixel)
+%%	 3rd column: y coordinate left-right(pixel)
+%%	 4th column: z coordinate bottom-top(pixel)
+%%	 next columns: other information provided for each particle in the given order
+
+%% Trajectory 1
+%% frame x (pixel)     y (pixel)    z (pixel)      m0         m1           m2           m3           m4           s 
+0 13.310000 12.923000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
+1 13.455000 12.993000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
+2 13.409000 13.117000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
+3 13.804000 13.222000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
+4 14.299000 12.958000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
+5 14.302000 13.096000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
+

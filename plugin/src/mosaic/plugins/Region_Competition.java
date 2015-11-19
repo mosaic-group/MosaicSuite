@@ -13,8 +13,8 @@ import ij.Macro;
 import ij.macro.Interpreter;
 import ij.measure.Calibration;
 import ij.process.ImageProcessor;
-import mosaic.core.image.IntensityImage;
-import mosaic.core.image.LabelImage;
+import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.core.imageUtils.images.LabelImage;
 import mosaic.core.psf.GeneratePSF;
 import mosaic.core.test.PlugInFilterExt;
 import mosaic.core.utils.MosaicUtils;
@@ -31,7 +31,8 @@ import mosaic.region_competition.energies.E_Deconvolution;
 import mosaic.region_competition.energies.E_Gamma;
 import mosaic.region_competition.energies.E_KLMergingCriterion;
 import mosaic.region_competition.energies.E_PS;
-import mosaic.region_competition.energies.Energy;
+import mosaic.region_competition.energies.Energy.ExternalEnergy;
+import mosaic.region_competition.energies.Energy.InternalEnergy;
 import mosaic.region_competition.energies.ImageModel;
 import mosaic.region_competition.initializers.BoxInitializer;
 import mosaic.region_competition.initializers.BubbleInitializer;
@@ -244,8 +245,8 @@ public class Region_Competition implements PlugInFilterExt {
      * Initialize the energy function
      */
     private void initEnergies() {
-        Energy e_data;
-        Energy e_merge;
+        ExternalEnergy e_data;
+        ExternalEnergy e_merge;
         switch (settings.m_EnergyFunctional) {
             case e_PC: {
                 e_data = new E_CV();
@@ -281,7 +282,7 @@ public class Region_Competition implements PlugInFilterExt {
             }
         }
 
-        Energy e_length;
+        InternalEnergy e_length;
         switch (settings.regularizationType) {
             case Sphere_Regularization: {
                 e_length = new E_CurvatureFlow(labelImage, (int)settings.m_CurvatureMaskRadius, inputImageCalibration);

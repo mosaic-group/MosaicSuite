@@ -1,25 +1,27 @@
 package mosaic.region_competition;
 
 
-import mosaic.core.image.Point;
+import mosaic.core.imageUtils.Point;
 
 
 class ContourParticleWithIndex implements Comparable<ContourParticleWithIndex> {
 
-    final Point iParticleIndex;
-    final ContourParticle iParticle;
+    final Point iPoint;
+    final ContourParticle iContourParticle;
 
-    public ContourParticleWithIndex(final Point aIndex, final ContourParticle aParticle) {
-        this.iParticleIndex = aIndex;
-        this.iParticle = aParticle;
+    public ContourParticleWithIndex(final Point aPoint, final ContourParticle aParticle) {
+        this.iPoint = aPoint;
+        this.iContourParticle = aParticle;
     }
 
     @Override
     public int compareTo(ContourParticleWithIndex o) {
-        if (this.iParticle.energyDifference > o.iParticle.energyDifference) {
+        // Sort with increasing energy difference
+        
+        if (this.iContourParticle.energyDifference > o.iContourParticle.energyDifference) {
             return 1;
         }
-        else if (this.iParticle.energyDifference < o.iParticle.energyDifference) {
+        else if (this.iContourParticle.energyDifference < o.iContourParticle.energyDifference) {
             return -1;
         }
         else {

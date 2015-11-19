@@ -3,11 +3,11 @@ package mosaic.region_competition.energies;
 
 import java.util.HashMap;
 
-import mosaic.core.image.IntensityImage;
-import mosaic.core.image.LabelImage;
-import mosaic.core.image.Point;
-import mosaic.core.image.RegionIteratorMask;
-import mosaic.core.image.SphereMask;
+import mosaic.core.imageUtils.MaskOnSpaceMapper;
+import mosaic.core.imageUtils.Point;
+import mosaic.core.imageUtils.images.IntensityImage;
+import mosaic.core.imageUtils.images.LabelImage;
+import mosaic.core.imageUtils.masks.BallMask;
 import mosaic.region_competition.ContourParticle;
 import mosaic.region_competition.LabelStatistics;
 import mosaic.region_competition.energies.Energy.ExternalEnergy;
@@ -19,21 +19,22 @@ public class E_PS extends ExternalEnergy {
     private final int bgLabel;
 
     private final float regionMergingThreshold;
-    private final SphereMask sphere;
-    private final RegionIteratorMask sphereIt;
+    private final BallMask sphere;
+    private final MaskOnSpaceMapper sphereIt;
 
+    protected final IntensityImage intensityImage;
+    protected final LabelImage labelImage;
+    
     public E_PS(LabelImage labelImage, IntensityImage intensityImage, int PSenergyRadius, float regionMergingThreshold) {
-        super(labelImage, intensityImage);
+        this.labelImage = labelImage;
+        this.intensityImage = intensityImage;
         this.dimensions = labelImage.getDimensions();
         this.bgLabel = LabelImage.BGLabel;
 
         this.regionMergingThreshold = regionMergingThreshold;
         final int rad = PSenergyRadius;
-        sphere = new SphereMask(rad, 2 * rad + 1, labelImage.getNumOfDimensions());
-
-        // sphereIt is slower than separate version
-
-        sphereIt = new RegionIteratorMask(sphere, dimensions);
+        sphere = new BallMask(rad, labelImage.getNumOfDimensions());
+        sphereIt = new MaskOnSpaceMapper(sphere, dimensions);
     }
 
     /**
@@ -54,7 +55,7 @@ public class E_PS extends ExternalEnergy {
         // read out the size of the mask
         // vRegion is the size of our temporary window
 
-        sphereIt.setMidPoint(contourPoint);
+        sphereIt.setMiddlePoint(contourPoint);
 
         // vOffset is basically the difference of the center and the start of the window
 

@@ -101,12 +101,12 @@ public class PreviewCanvas extends ImageCanvas {
             // draw a dot at the detected particle position (oval of height and width of 0)
             // the members x, y of the Particle object are opposite to the screen X and Y axis
             // The x-axis points top-down and the y-axis is oriented left-right in the image plane.
-            final double z = particlesToDisplay.elementAt(i).z + 1;
+            final double z = particlesToDisplay.elementAt(i).iZ + 1;
 
             if (z <= c_slice + 1 && z >= c_slice - 1) {
-                g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).y), this.screenYD(particlesToDisplay.elementAt(i).x), 0, 0);
+                g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).iY), this.screenYD(particlesToDisplay.elementAt(i).iX), 0, 0);
                 // circle the the detected particle position according to the set radius
-                g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).y - radius / 1.0), this.screenYD(particlesToDisplay.elementAt(i).x - radius / 1.0), 2 * radius * this.magnificationFactor - 1, 2
+                g.drawOval(this.screenXD(particlesToDisplay.elementAt(i).iY - radius / 1.0), this.screenYD(particlesToDisplay.elementAt(i).iX - radius / 1.0), 2 * radius * this.magnificationFactor - 1, 2
                         * radius * this.magnificationFactor - 1);
             }
         }

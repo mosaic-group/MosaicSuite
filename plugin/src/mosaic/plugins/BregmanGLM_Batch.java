@@ -8,9 +8,8 @@ import ij.ImagePlus;
 import ij.Macro;
 import ij.process.ImageProcessor;
 import mosaic.bregman.Analysis;
-import mosaic.bregman.Analysis.outputF;
-import mosaic.bregman.GUI.GenericGUI;
 import mosaic.bregman.Parameters;
+import mosaic.bregman.GUI.GenericGUI;
 import mosaic.bregman.output.CSVOutput;
 import mosaic.core.psf.psf;
 import mosaic.core.utils.MosaicUtils;
@@ -25,6 +24,20 @@ public class BregmanGLM_Batch implements Segmentation {
     private GenericGUI window;
     private boolean gui_use_cluster = false;
 
+    private enum outputF {
+        MASK(2), OBJECT(0);
+
+        private final int numVal;
+
+        outputF(int numVal) {
+            this.numVal = numVal;
+        }
+
+        public int getNumVal() {
+            return numVal;
+        }
+    }
+    
     @Override
     public int setup(String arg0, ImagePlus active_img) {
         if (MosaicUtils.checkRequirement() == false) {
