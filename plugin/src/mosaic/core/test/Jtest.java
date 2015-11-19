@@ -18,9 +18,7 @@ import mosaic.bregman.output.Region3DRScript;
 import mosaic.core.utils.ShellCommand;
 import mosaic.plugins.BregmanGLM_Batch;
 import mosaic.plugins.MergeJobs;
-import mosaic.plugins.Region_Competition;
 import mosaic.plugins.utils.TimeMeasurement;
-import mosaic.region_competition.output.RCOutput;
 import mosaic.test.framework.SystemOperations;
 
 
@@ -76,14 +74,6 @@ public class Jtest implements PlugInFilter {
         logger.info("========================== TestSuite: core.cluster.Jtest ===================================");
         mergetest();
         tm.logLapTimeSec("========================== core.cluster.Jtest");
-
-        // -----------------------------------------------------------------------------------
-        // Test Region competition segmentation
-        logger.info("========================== TestSuite: region_competition.Jtest ===================================");
-        Jtest.logger.info("----------------------- TestCase: Region_Competition -----------------------");
-        final Region_Competition RC = new Region_Competition();
-        MosaicTest.<RCOutput> testPlugin(RC, "Region_Competition", RCOutput.class);
-        tm.logLapTimeSec("========================== region_competition.Jtest");
         
         tm.logTimeSec("All tests SUCCESSFULLY completed");
 
