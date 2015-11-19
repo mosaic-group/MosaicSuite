@@ -2,6 +2,9 @@ package mosaic.plugins;
 
 import org.junit.Test;
 
+import ij.ImagePlus;
+import ij.WindowManager;
+import ij.macro.Interpreter;
 import mosaic.test.framework.CommonBase;
 import mosaic.test.framework.SystemOperations;
 
@@ -135,4 +138,35 @@ public class Region_CompetitionTest extends CommonBase {
                    expectedImgFiles, referenceImgFiles,
                    expectedFiles, referenceFiles);
     }
+    
+    @Test
+    public void testLabelImageFromFile()  {
+        
+        // Define test data
+        final String tcDirName           = "Region_Competition/labelImgFromFile/";
+        final String setupString         = "run";
+        final String macroOptions        = "inputimage=object.tif labelimage=label.tif show_and_save_statistics";
+        final String inputFile           = "object.tif";
+        final String[] expectedImgFiles  = {"__seg_c1.tif/object_seg_c1.tif"};
+        final String[] referenceImgFiles = {"__seg_c1.tif/object_seg_c1.tif"};
+        final String[] expectedFiles     = {"__ObjectsData_c1.csv/object_ObjectsData_c1.csv"};
+        final String[] referenceFiles    = {"__ObjectsData_c1.csv/object_ObjectsData_c1.csv"};
+
+        // Create tested plugIn
+        final Region_Competition plugin = new Region_Competition();
+        copyTestResources("rc_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("label.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        
+        // A little hack - I have no found the other way to load second image for test purposes.
+        Interpreter.batchMode = true;
+        Interpreter.addBatchModeImage(loadImagePlus(tmpPath + "/label.tif"));
+
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
+    
 }
