@@ -17,21 +17,6 @@ import mosaic.core.utils.MosaicUtils;
 
 
 public class Analysis {
-
-    public enum outputF {
-        MASK(2), OBJECT(0);
-
-        private final int numVal;
-
-        outputF(int numVal) {
-            this.numVal = numVal;
-        }
-
-        public int getNumVal() {
-            return numVal;
-        }
-    }
-
     // This is the output for cluster
     public final static String out[] = { "*_ObjectsData_c1.csv", "*_ObjectsData_c2.csv", "*_mask_c1.zip", "*_mask_c2.zip", "*_ImagesData.csv", "*_outline_overlay_c1.zip", "*_outline_overlay_c2.zip",
             "*_intensities_c1.zip", "*_intensities_c2.zip", "*_seg_c1.zip", "*_seg_c2.zip", "*_coloc.zip", "*_soft_mask_c1.tiff", "*_soft_mask_c2.tiff", "*.tif" };
@@ -51,10 +36,6 @@ public class Analysis {
     static boolean[][][] cellMaskABinary;// =new double [p.nz][p.ni][p.nj];
     static boolean[][][] cellMaskBBinary;// =new double [p.nz][p.ni][p.nj];
     private static boolean[][][] overallCellMaskBinary;// =new double
-    // [p.nz][p.ni][p.nj];
-    static int nb;
-    static int na;
-    static double meana, meanb;
 
     static int frame;
 
@@ -72,10 +53,6 @@ public class Analysis {
     private static CountDownLatch DoneSignalb;
     static double[][][] imageb;// = new double [p.nz][p.ni][p.nj];
     static double[][][] imagea;// = new double [p.nz][p.ni][p.nj];
-    private static double maxb = 0;
-    private static double minb = Double.POSITIVE_INFINITY;
-    private static double maxa = 0;
-    private static double mina = Double.POSITIVE_INFINITY;
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public static void init() {
@@ -316,14 +293,12 @@ public class Analysis {
 
         regions[0] = fcr.tempres;
         regionslist[0] = fcr.results;
-        na = regionslist[0].size();
         if (!p.mode_voronoi2) {
-            meana = meansize(regionslist[0]);
             if (p.nz > 1) {
-                IJ.log(na + " objects found in X, mean volume : " + Tools.round(meana, 2) + " pixels.");
+                IJ.log(regionslist[0].size() + " objects found in X, mean volume : " + Tools.round(meansize(regionslist[0]), 2) + " pixels.");
             }
             else {
-                IJ.log(na + " objects found in X, mean area : " + Tools.round(meana, 2) + " pixels.");
+                IJ.log(regionslist[0].size() + " objects found in X, mean area : " + Tools.round(meansize(regionslist[0]), 2) + " pixels.");
             }
         }
     }
@@ -389,14 +364,12 @@ public class Analysis {
 
         regions[1] = fcr.tempres;
         regionslist[1] = fcr.results;
-        nb = regionslist[1].size();
         if (!p.mode_voronoi2) {
-            meanb = meansize(regionslist[1]);
             if (p.nz > 1) {
-                IJ.log(nb + " objects found in Y, mean volume : " + Tools.round(meanb, 2) + " pixels.");
+                IJ.log(regionslist[1].size() + " objects found in Y, mean volume : " + Tools.round(meansize(regionslist[1]), 2) + " pixels.");
             }
             else {
-                IJ.log(nb + " objects found in Y, mean area : " + Tools.round(meanb, 2) + " pixels.");
+                IJ.log(regionslist[1].size() + " objects found in Y, mean area : " + Tools.round(meansize(regionslist[1]), 2) + " pixels.");
             }
         }
     }
@@ -414,8 +387,8 @@ public class Analysis {
     }
 
     private static void setimagea() {
-        maxa = 0;
-        mina = Double.POSITIVE_INFINITY;
+        double maxa = 0;
+        double mina = Double.POSITIVE_INFINITY;
 
         ImageProcessor imp;
 
@@ -447,8 +420,8 @@ public class Analysis {
     }
 
     private static void setimageb() {
-        maxb = 0;
-        minb = Double.POSITIVE_INFINITY;
+        double maxb = 0;
+        double minb = Double.POSITIVE_INFINITY;
 
         ImageProcessor imp;
 
