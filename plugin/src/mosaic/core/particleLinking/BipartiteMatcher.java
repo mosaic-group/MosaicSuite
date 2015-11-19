@@ -37,12 +37,8 @@
 package mosaic.core.particleLinking;
 
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 
 /**
@@ -71,14 +67,6 @@ import java.util.StringTokenizer;
  * not be a perfect matching, and an exception will be thrown.
  */
 class BipartiteMatcher {
-
-    /**
-     * Creates a BipartiteMatcher without specifying the graph size. Calling any
-     * other method before calling reset will yield an IllegalStateException.
-     */
-    public BipartiteMatcher() {
-        n = -1;
-    }
 
     /**
      * Creates a BipartiteMatcher and prepares it to run on an n x n graph. All
@@ -381,37 +369,4 @@ class BipartiteMatcher {
 
     private final List<Integer> eligibleS = new ArrayList<Integer>();
     private final List<Integer> eligibleT = new ArrayList<Integer>();
-
-    public static void main(String[] args) {
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        final BipartiteMatcher matcher = new BipartiteMatcher();
-        int n = 0;
-
-        try {
-            System.out.print("Num nodes on each side> ");
-            final String num = reader.readLine();
-            n = Integer.parseInt(num);
-            matcher.reset(n);
-
-            for (int i = 0; i < n; i++) {
-                System.out.print("Weights out of node " + i + "> ");
-                final String weightStr = reader.readLine();
-
-                final StringTokenizer tokenizer = new StringTokenizer(weightStr);
-                for (int j = 0; j < n; j++) {
-                    final double w = Double.parseDouble(tokenizer.nextToken());
-                    matcher.setWeight(i, j, w);
-                }
-            }
-        }
-        catch (final IOException e) {
-            e.printStackTrace();
-        }
-
-        final int[] matching = matcher.getMatching();
-        System.out.println("Maximum-weight matching:");
-        for (int i = 0; i < n; i++) {
-            System.out.println(i + ": " + matching[i]);
-        }
-    }
 }

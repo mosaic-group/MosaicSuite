@@ -2,8 +2,6 @@ package mosaic.plugins;
 
 import org.junit.Test;
 
-import ij.ImagePlus;
-import ij.WindowManager;
 import ij.macro.Interpreter;
 import mosaic.test.framework.CommonBase;
 import mosaic.test.framework.SystemOperations;
