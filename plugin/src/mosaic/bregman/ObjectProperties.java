@@ -1,16 +1,14 @@
 package mosaic.bregman;
 
 
-import ij.IJ;
+import java.util.Iterator;
+
+import Skeletonize3D_.Skeletonize3D_;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ByteProcessor;
-
-import java.util.Iterator;
-
 import mosaic.core.psf.GaussPSF;
 import net.imglib2.type.numeric.real.DoubleType;
-import Skeletonize3D_.Skeletonize3D_;
 
 class ObjectProperties implements Runnable {
 

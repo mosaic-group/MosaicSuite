@@ -65,7 +65,7 @@ public class Jtest implements PlugInFilter {
         
         Jtest.logger.info("----------------------- TestCase: Squassh -----------------------");
         BG.setUseCluster(false);
-        MosaicTest.<Region3DRScript> testPlugin(BG, "Squassh", Region3DRScript.class);
+        MosaicTest.<Region3DRScript> testPlugin(BG, "SquasshOld", Region3DRScript.class);
         tm1.logLapTimeSec("----------------------- Squassh");
         
         tm.logLapTimeSec("========================== bregman");
