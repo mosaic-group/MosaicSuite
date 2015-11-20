@@ -166,4 +166,43 @@ public class BregmanGLM_BatchTest extends CommonBase{
                    expectedImgFiles, referenceImgFiles,
                    expectedFiles, referenceFiles);
     }
+    
+    @Test
+    public void testColocalization()  {
+        
+        // Define test data
+        final String tcDirName           = "Squassh/Colocalization/";
+        final String setupString         = "run";
+        final String macroOptions        = "";
+        final String inputFile           = "coloc_test.tif";
+        final String[] expectedImgFiles  = {"coloc_test_intensities_c1.tif",
+                                            "coloc_test_intensities_c2.tif",
+                                            "coloc_test_mask_c1.tif",
+                                            "coloc_test_mask_c2.tif",
+                                            "coloc_test_outline_overlay_c1.tif",
+                                            "coloc_test_outline_overlay_c2.tif",
+                                            "coloc_test_seg_c1.tif",
+                                            "coloc_test_seg_c2.tif"};
+        final String[] referenceImgFiles = {"__intensities_c1.zip/coloc_test_intensities_c1.tif",
+                                            "__intensities_c2.zip/coloc_test_intensities_c2.tif",
+                                            "__mask_c1.zip/coloc_test_mask_c1.tif",
+                                            "__mask_c2.zip/coloc_test_mask_c2.tif",
+                                            "__outline_overlay_c1.zip/coloc_test_outline_overlay_c1.tif",
+                                            "__outline_overlay_c2.zip/coloc_test_outline_overlay_c2.tif",
+                                            "__seg_c1.zip/coloc_test_seg_c1.tif",
+                                            "__seg_c2.zip/coloc_test_seg_c2.tif"};
+        final String[] expectedFiles     = {"__ObjectsData_c1.csv/coloc_test_ObjectsData_c1.csv", "__ObjectsData_c2.csv/coloc_test_ObjectsData_c2.csv"};
+        final String[] referenceFiles    = {"__ObjectsData_c1.csv/coloc_test_ObjectsData_c1.csv", "__ObjectsData_c2.csv/coloc_test_ObjectsData_c2.csv"};
+
+        // Create tested plugIn
+        final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
+        copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
 }
