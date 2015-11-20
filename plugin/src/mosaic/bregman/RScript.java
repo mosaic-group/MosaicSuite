@@ -113,7 +113,7 @@ public class RScript {
         try {
             // works when plugin running from .jar plugin file
             IJ.log("RSCRIPT..........");
-            in = this.getClass().getClassLoader().getResourceAsStream("./mosaic/plugins/scripts/Rscript.r");
+            in = getClass().getResourceAsStream("Rscript.r");
             System.out.println("[" + this.getClass().getResource(".") + "]");
             System.out.println("[" + this.getClass().getClassLoader().getResource(".") + "]");
             final Scanner scanner = new Scanner(in);
