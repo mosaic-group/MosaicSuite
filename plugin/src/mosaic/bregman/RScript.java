@@ -111,16 +111,10 @@ public class RScript {
 
         InputStream in = null;
         try {
-            // works when plugin running from .jar plugin file
-            IJ.log("RSCRIPT.........."); 
-            in = this.getClass().getResourceAsStream("Rscript.r");
-            System.out.println(this.getClass().getResourceAsStream("Rscript.r"));
-            System.out.println(this.getClass().getResourceAsStream("/mosaic/bregman/Rscript.r"));
-            System.out.println(this.getClass().getClassLoader().getResourceAsStream("mosaic/bregman/Rscript.r"));
-            System.out.println(this.getClass().getClassLoader().getResourceAsStream("Rscript.r"));
-            
-            System.out.println("[" + this.getClass().getResource(".") + "]");
-            System.out.println("[" + this.getClass().getClassLoader().getResource(".") + "]");
+            in = getClass().getResourceAsStream("Rscript.r");
+            if (in == null) {
+                IJ.log("RSCRIPT generation has not succeed (cannot find Rscript.r resource)");
+            }
             final Scanner scanner = new Scanner(in);
             final String content = scanner.useDelimiter("\\Z").next();
 

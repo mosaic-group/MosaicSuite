@@ -3,18 +3,18 @@
 ###Mandatory parameters###################################################################### 
 
 ##file names 
-file_1="/home/i-bird/Desktop/MOSAIC/Luis/Test_r_script_2//stitch_ObjectsData_c1.csv"  #(objA channel)
-file_2="/home/i-bird/Desktop/MOSAIC/Luis/Test_r_script_2//stitch_ObjectsData_c2.csv"  #(objB channel)
-file_3="/home/i-bird/Desktop/MOSAIC/Luis/Test_r_script_2//stitch_ImagesData.csv"  #(images mean results)
+file_1="/tmp/test/stitch__ObjectsData_c1.csv"  #(objA channel)
+file_2="/tmp/test/stitch__ObjectsData_c2.csv"  #(objB channel)
+file_3="/tmp/test/stitch_ImagesData.csv"  #(images mean results)
 
 #Data Properties 
-NR=4
-NCR=c(3,3,3,3) #Number of images per group (should have as many values as number of groups)
+NR=1
+NCR=c(1) #Number of images per group (should have as many values as number of groups)
 
 #display parameters 
-objA="LD" 	#ch1 name
-objB="PO" 	#ch2 name
-ConditionsNames=c("0h Ctrl","0h OA","2h Ctrl","2h OA") #group names (should have as many names as number of groups)
+objA="channel 1 name" 	#ch1 name
+objB="channel 2 name" 	#ch2 name
+ConditionsNames=c("Condition 1 name") #group names (should have as many names as number of groups)
 
 ###########################################################################################
 ###Optional parameters#####################################################################

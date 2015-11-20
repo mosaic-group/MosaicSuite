@@ -53,27 +53,15 @@ public class Jtest implements PlugInFilter {
         BG.bypass_GUI();
         final TimeMeasurement tm1 = new TimeMeasurement();
         
-//        Jtest.logger.info("----------------------- TestCase: Squassh_cluster -----------------------");
-//        BG.setUseCluster(true);
-//        MosaicTest.<Region3DRScript> testPlugin(BG, "Squassh_cluster", Region3DRScript.class);
-//        tm1.logLapTimeSec("----------------------- Squassh_cluster");
+        Jtest.logger.info("----------------------- TestCase: Squassh_cluster -----------------------");
+        BG.setUseCluster(true);
+        MosaicTest.<Region3DRScript> testPlugin(BG, "Squassh_cluster", Region3DRScript.class);
+        tm1.logLapTimeSec("----------------------- Squassh_cluster");
         
-//        Jtest.logger.info("----------------------- TestCase: Squassh_testa -----------------------");
-//        BG.setUseCluster(false);
-//        MosaicTest.<Region3DColocRScript> testPlugin(BG, "Squassh_testa", Region3DColocRScript.class);
-//        tm1.logLapTimeSec("----------------------- Squassh_testa");
-//        
-        Jtest.logger.info("----------------------- TestCase: Squassh -----------------------");
+        Jtest.logger.info("----------------------- TestCase: Squassh_testa -----------------------");
         BG.setUseCluster(false);
-        MosaicTest.<Region3DRScript> testPlugin(BG, "SquasshOld", Region3DRScript.class);
-        try {
-            ShellCommand.exeCmd("cp /tmp/test/R_analysis.R /tmp/oldR");
-        }
-        catch (IOException | InterruptedException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
-        tm1.logLapTimeSec("----------------------- Squassh");
+        MosaicTest.<Region3DColocRScript> testPlugin(BG, "Squassh_testa", Region3DColocRScript.class);
+        tm1.logLapTimeSec("----------------------- Squassh_testa");
         
         tm.logLapTimeSec("========================== bregman");
 
