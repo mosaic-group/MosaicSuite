@@ -47,12 +47,12 @@ public class Jtest implements PlugInFilter {
         final TimeMeasurement tm = new TimeMeasurement();
         
         // -----------------------------------------------------------------------------------
-        // Test Squassh segmentation
+        
         logger.info("========================== TestSuite: bregman.Jtest  ===================================");
         final BregmanGLM_Batch BG = new BregmanGLM_Batch();
         BG.bypass_GUI();
         final TimeMeasurement tm1 = new TimeMeasurement();
-        // test the cluster
+        
         Jtest.logger.info("----------------------- TestCase: Squassh_cluster -----------------------");
         BG.setUseCluster(true);
         MosaicTest.<Region3DRScript> testPlugin(BG, "Squassh_cluster", Region3DRScript.class);
@@ -67,17 +67,16 @@ public class Jtest implements PlugInFilter {
         BG.setUseCluster(false);
         MosaicTest.<Region3DRScript> testPlugin(BG, "Squassh", Region3DRScript.class);
         tm1.logLapTimeSec("----------------------- Squassh");
+        
         tm.logLapTimeSec("========================== bregman");
 
-        // -----------------------------------------------------------------------------------
-        // Test core utils
         logger.info("========================== TestSuite: core.cluster.Jtest ===================================");
         mergetest();
         tm.logLapTimeSec("========================== core.cluster.Jtest");
         
+        // -----------------------------------------------------------------------------------
         tm.logTimeSec("All tests SUCCESSFULLY completed");
 
-        // -----------------------------------------------------------------------------------
         // Create a file that notify all test has been completed suceffuly
         try {
             final PrintWriter succeful = new PrintWriter(test + File.separator + "succeful");
