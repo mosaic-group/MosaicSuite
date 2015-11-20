@@ -112,7 +112,7 @@ public class RScript {
         InputStream in = null;
         try {
             // works when plugin running from .jar plugin file
-            IJ.log("RSCRIPT..........");
+            IJ.log("RSCRIPT.........."); 
             in = this.getClass().getResourceAsStream("Rscript.r");
             System.out.println(this.getClass().getResourceAsStream("Rscript.r"));
             System.out.println(this.getClass().getResourceAsStream("/mosaic/bregman/Rscript.r"));
