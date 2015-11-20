@@ -108,4 +108,62 @@ public class BregmanGLM_BatchTest extends CommonBase{
                    expectedImgFiles, referenceImgFiles,
                    expectedFiles, referenceFiles);
     }
+    
+    @Test
+    public void testScriptR()  {
+        
+        // Define test data
+        final String tcDirName           = "Squassh/ScriptR/";
+        final String setupString         = "run";
+        final String macroOptions        = "";
+        final String inputFile           = "1 Ctrl 1.tif";
+        final String[] expectedImgFiles  = {"__outline_overlay_c1.zip/1 Ctrl 1_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/1 Ctrl 2_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/1 Ctrl 3_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/2 OA1_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/2 OA2_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/2 OA4_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/3 Ctrl1_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/3 Ctrl2_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/3 Ctrl3_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/4 OA1_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/4 OA3_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/4 OA4_outline_overlay_c1.zip"};
+        final String[] referenceImgFiles = {"__outline_overlay_c1.zip/1 Ctrl 1_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/1 Ctrl 2_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/1 Ctrl 3_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/2 OA1_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/2 OA2_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/2 OA4_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/3 Ctrl1_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/3 Ctrl2_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/3 Ctrl3_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/4 OA1_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/4 OA3_outline_overlay_c1.zip", 
+                                            "__outline_overlay_c1.zip/4 OA4_outline_overlay_c1.zip"};
+        final String[] expectedFiles     = {"stitch_ImagesData.csv"};
+        final String[] referenceFiles    = {"stitch_ImagesData.csv"};
+
+        // Create tested plugIn
+        final BregmanGLM_Batch plugin = new BregmanGLM_Batch();
+        copyTestResources("spb_settings.dat", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
+        copyTestResources("1 Ctrl 2.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("1 Ctrl 3.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("2 OA1.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("2 OA2.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("2 OA4.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("3 Ctrl1.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("3 Ctrl2.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("3 Ctrl3.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("4 OA1.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("4 OA3.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("4 OA4.tif", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
 }

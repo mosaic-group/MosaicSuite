@@ -66,6 +66,13 @@ public class Jtest implements PlugInFilter {
         Jtest.logger.info("----------------------- TestCase: Squassh -----------------------");
         BG.setUseCluster(false);
         MosaicTest.<Region3DRScript> testPlugin(BG, "SquasshOld", Region3DRScript.class);
+        try {
+            ShellCommand.exeCmd("cp /tmp/test/R_analysis.R /tmp/oldR");
+        }
+        catch (IOException | InterruptedException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
         tm1.logLapTimeSec("----------------------- Squassh");
         
         tm.logLapTimeSec("========================== bregman");

@@ -195,9 +195,9 @@ public class CommonBase extends Info {
      */
     protected void copyTestResources(final String aInputFileOrDirectory, final String aInputPath, final String aDestinationPath) {
         if (aInputFileOrDirectory != null) {
+            logger.debug("Copy [" + aInputPath + aInputFileOrDirectory + "] to [" + aDestinationPath + "]");
             final File in = new File(aInputPath + aInputFileOrDirectory);
             final File out = new File(aDestinationPath);
-            logger.debug("Copy [" + aInputPath + aInputFileOrDirectory + "] to [" + aDestinationPath + "]");
             if (in.isDirectory()) {
                 SystemOperations.copyDirectoryToDirectory(in, out);
             }

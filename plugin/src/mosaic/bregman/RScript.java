@@ -2,8 +2,10 @@ package mosaic.bregman;
 
 
 import ij.IJ;
+import mosaic.test.framework.SystemOperations;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -111,7 +113,9 @@ public class RScript {
         try {
             // works when plugin running from .jar plugin file
             IJ.log("RSCRIPT..........");
-            in = this.getClass().getResourceAsStream("/src/mosaic/plugins/scripts/Rscript.r");
+            in = this.getClass().getClassLoader().getResourceAsStream("./mosaic/plugins/scripts/Rscript.r");
+            System.out.println("[" + this.getClass().getResource(".") + "]");
+            System.out.println("[" + this.getClass().getClassLoader().getResource(".") + "]");
             final Scanner scanner = new Scanner(in);
             final String content = scanner.useDelimiter("\\Z").next();
 
