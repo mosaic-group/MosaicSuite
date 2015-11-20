@@ -10,7 +10,7 @@ import java.util.Iterator;
 
 import mosaic.core.psf.GaussPSF;
 import net.imglib2.type.numeric.real.DoubleType;
-
+import Skeletonize3D_.Skeletonize3D_;
 
 class ObjectProperties implements Runnable {
 
@@ -415,8 +415,11 @@ class ObjectProperties implements Runnable {
         skeleton.setStack(is);
 
         // do voronoi in 2D on Z projection
-        IJ.run(skeleton, "Skeletonize (2D/3D)", "");
-
+        //IJ.run(skeleton, "Skeletonize (2D/3D)", "");
+        Skeletonize3D_ skel = new Skeletonize3D_();
+        skel.setup("", skeleton);
+        skel.run(skeleton.getProcessor());
+        
         regionlength(r, skeleton);
     }
 
