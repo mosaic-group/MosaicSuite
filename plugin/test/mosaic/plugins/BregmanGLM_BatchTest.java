@@ -183,14 +183,14 @@ public class BregmanGLM_BatchTest extends CommonBase{
                                             "coloc_test_outline_overlay_c2.tif",
                                             "coloc_test_seg_c1.tif",
                                             "coloc_test_seg_c2.tif"};
-        final String[] referenceImgFiles = {"__intensities_c1.zip/coloc_test_intensities_c1.tif",
-                                            "__intensities_c2.zip/coloc_test_intensities_c2.tif",
-                                            "__mask_c1.zip/coloc_test_mask_c1.tif",
-                                            "__mask_c2.zip/coloc_test_mask_c2.tif",
-                                            "__outline_overlay_c1.zip/coloc_test_outline_overlay_c1.tif",
-                                            "__outline_overlay_c2.zip/coloc_test_outline_overlay_c2.tif",
-                                            "__seg_c1.zip/coloc_test_seg_c1.tif",
-                                            "__seg_c2.zip/coloc_test_seg_c2.tif"};
+        final String[] referenceImgFiles = {"__intensities_c1.zip/coloc_test_intensities_c1.zip",
+                                            "__intensities_c2.zip/coloc_test_intensities_c2.zip",
+                                            "__mask_c1.zip/coloc_test_mask_c1.zip",
+                                            "__mask_c2.zip/coloc_test_mask_c2.zip",
+                                            "__outline_overlay_c1.zip/coloc_test_outline_overlay_c1.zip",
+                                            "__outline_overlay_c2.zip/coloc_test_outline_overlay_c2.zip",
+                                            "__seg_c1.zip/coloc_test_seg_c1.zip",
+                                            "__seg_c2.zip/coloc_test_seg_c2.zip"};
         final String[] expectedFiles     = {"__ObjectsData_c1.csv/coloc_test_ObjectsData_c1.csv", "__ObjectsData_c2.csv/coloc_test_ObjectsData_c2.csv"};
         final String[] referenceFiles    = {"__ObjectsData_c1.csv/coloc_test_ObjectsData_c1.csv", "__ObjectsData_c2.csv/coloc_test_ObjectsData_c2.csv"};
 

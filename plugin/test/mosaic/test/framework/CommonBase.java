@@ -34,6 +34,7 @@ import io.scif.img.ImgIOException;
 import io.scif.img.ImgOpener;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
+import net.imglib2.img.ImagePlusAdapter;
 import net.imglib2.img.Img;
 
 
@@ -171,6 +172,7 @@ public class CommonBase extends Info {
             throw new RuntimeException("No img: [" + aGeneratedImageWindowName + "]");
         }
         assertTrue("Reference vs. processed file.", compareImages(referenceImg, processedImg));
+        logger.debug("Files match!");
     }
 
     /**
@@ -321,25 +323,38 @@ public class CommonBase extends Info {
      * @return Img
      */
     protected Img<?> loadImage(String aFileName) {
-        if (iImgOpener == null) {
-            // Create ImgOpener with some default context, without it, it search for already existing one
-            iImgOpener = new ImgOpener(new Context(SCIFIOService.class, AppService.class, StatusService.class ));
-            // By default ImgOpener produces a lot of logs, this is one of the ways to switch it off.
-            iImgOpener.log().setLevel(0);
+        logger.debug("Opening file: [" + aFileName + "]");
+        ImagePlus ip = loadImagePlus(aFileName);
+        if (ip == null) {
+            logger.error("Failed to load: [" + aFileName + "]");
         }
-
-        try {
-            logger.debug("Opening file: [" + aFileName + "]");
-            final Img<?> img = iImgOpener.openImgs(aFileName).get(0);
-            return img;
-        } catch (final ImgIOException e) {
-            e.printStackTrace();
-            final String errorMsg = "Failed to load: [" + aFileName + "]";
-            logger.error(errorMsg);
-            fail(errorMsg);
-        }
-
-        return null;
+        return ImagePlusAdapter.wrap(ip);
+        
+        // Code below is intentionally commented out. It seems that ImgOpener works well on regular files (tiff.. ) but 
+        // when it comes to zip'ed tif files (*.zip) it is extremally slow. For image 1000x1000 it takes >> 10s to open which is not a case 
+        // when the same file is unzipped.
+        // TODO: It should be checked with new versions of imglib how it behaves and reverted.
+        //       Until that time legacy opener with imglib2 wrapper is good enough.
+        
+//        if (iImgOpener == null) {
+//            // Create ImgOpener with some default context, without it, it search for already existing one
+//            iImgOpener = new ImgOpener(new Context(SCIFIOService.class, AppService.class, StatusService.class ));
+//            // By default ImgOpener produces a lot of logs, this is one of the ways to switch it off.
+//            iImgOpener.log().setLevel(0);
+//        }
+//
+//        try {
+//            logger.debug("Opening file: [" + aFileName + "]");
+//            final Img<?> img = iImgOpener.openImgs(aFileName).get(0);
+//            return img;
+//        } catch (final ImgIOException e) {
+//            e.printStackTrace();
+//            final String errorMsg = "Failed to load: [" + aFileName + "]";
+//            logger.error(errorMsg);
+//            fail(errorMsg);
+//        }
+//
+//        return null;
     }
 
     /**
