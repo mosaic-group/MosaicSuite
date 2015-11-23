@@ -224,7 +224,6 @@ public class CommonBase extends Info {
         int countAll = 0;
         int countDifferent = 0;
         boolean firstDiffFound = false;
-
         while (ci1.hasNext())
         {
             ci1.fwd();
@@ -235,13 +234,13 @@ public class CommonBase extends Info {
             final Object t2 = ci2.get();
 
             countAll++;
-
-            if (!t1.equals(t2))
+            
+            // TODO: Currently compares strings..., it seems that t1.equals(t2) sometimes fails event if they have same information about point
+            if (!t2.toString().equals(t1.toString()))
             {
                 countDifferent++;
                 if (!firstDiffFound) {
                     firstDiffFound = true;
-
                     // Produce error log with coordinates and values of first
                     // not matching location
                     String errorMsg = "Images differ. First occurence at: [";
