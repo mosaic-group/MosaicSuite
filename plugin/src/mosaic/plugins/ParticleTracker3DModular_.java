@@ -534,7 +534,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
                     // Detect feature points in this frame
                     IJ.showStatus("Detecting Particles in Frame " + (frame_i + 1) + "/" + frames_number);
-                    detector.featurePointDetection(current_frame);
+                    Vector<Particle> detectedParticles = detector.featurePointDetection(current_frame.getOriginalImageStack());
+                    current_frame.setParticles(detectedParticles);
                 }
                 if (current_frame.frame_number >= iFrames.length) {
                     IJ.showMessage("Error, frame " + current_frame.frame_number + "  is out of range, enumeration must not have hole, and must start from 0");
@@ -1030,7 +1031,8 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
         final MyFrame preview_frame = new MyFrame(frame.getStack(), iInputImage.getFrame(), linkrange);
 
-        detector.featurePointDetection(preview_frame);
+        Vector<Particle> detectedParticles = detector.featurePointDetection(preview_frame.getOriginalImageStack());
+        preview_frame.setParticles(detectedParticles);
         final Img<FloatType> backgroundImg = ImagePlusAdapter.convertFloat(frame);
 
         preview_frame.setParticleRadius(getRadius());

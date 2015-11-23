@@ -3,7 +3,7 @@
 % 	Linkrange    : 2
 Frames info was loaded from text files
 %	Per frame information (verbose output):
-null%	Particles after non-particle discrimination (0 particles):
+null%	Particles after non-particle discrimination (10 particles):
 %		13.342629 12.786936 0.000000
 %		12.814926 23.287825 0.000000
 %		13.284862 33.308849 0.000000
@@ -14,7 +14,7 @@ null%	Particles after non-particle discrimination (0 particles):
 %		13.232578 83.290543 0.000000
 %		13.229496 92.821892 0.000000
 %		13.231180 103.227158 0.000000
-null%	Particles after non-particle discrimination (0 particles):
+null%	Particles after non-particle discrimination (10 particles):
 %		13.461634 12.767108 0.000000
 %		13.313541 23.255817 0.000000
 %		13.514600 33.251968 0.000000
@@ -25,7 +25,7 @@ null%	Particles after non-particle discrimination (0 particles):
 %		13.425709 83.275543 0.000000
 %		13.403280 93.180305 0.000000
 %		13.296630 103.243019 0.000000
-null%	Particles after non-particle discrimination (0 particles):
+null%	Particles after non-particle discrimination (10 particles):
 %		13.499110 13.185205 0.000000
 %		13.553947 22.732864 0.000000
 %		13.498642 32.756474 0.000000
@@ -36,7 +36,7 @@ null%	Particles after non-particle discrimination (0 particles):
 %		13.426614 82.789001 0.000000
 %		13.532570 93.380554 0.000000
 %		13.342211 103.282623 0.000000
-null%	Particles after non-particle discrimination (0 particles):
+null%	Particles after non-particle discrimination (10 particles):
 %		13.691485 13.373509 0.000000
 %		13.577721 22.643230 0.000000
 %		13.695532 32.704826 0.000000
@@ -47,7 +47,7 @@ null%	Particles after non-particle discrimination (0 particles):
 %		13.608681 83.278107 0.000000
 %		13.692577 92.724373 0.000000
 %		13.646385 103.289833 0.000000
-null%	Particles after non-particle discrimination (0 particles):
+null%	Particles after non-particle discrimination (10 particles):
 %		14.392442 12.667573 0.000000
 %		14.273563 22.753605 0.000000
 %		14.328149 32.698334 0.000000
@@ -58,7 +58,7 @@ null%	Particles after non-particle discrimination (0 particles):
 %		14.366311 83.285599 0.000000
 %		14.219478 93.199181 0.000000
 %		13.789104 103.259560 0.000000
-null%	Particles after non-particle discrimination (0 particles):
+null%	Particles after non-particle discrimination (10 particles):
 %		14.334488 12.805585 0.000000
 %		14.401235 23.277847 0.000000
 %		14.473009 33.199509 0.000000

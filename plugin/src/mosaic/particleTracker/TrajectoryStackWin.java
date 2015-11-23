@@ -75,7 +75,7 @@ public class TrajectoryStackWin extends StackWindow implements MouseListener {
             currentframe = this.getImagePlus().getSlice();
         }
 
-        numberOfParticlesLabel.setText("Frame " + currentframe + ": " + particleTracker3DModular.iFrames[currentframe - 1].real_particles_number + " particles");
+        numberOfParticlesLabel.setText("Frame " + currentframe + ": " + particleTracker3DModular.iFrames[currentframe - 1].getParticles().size() + " particles");
     }
 
     @Override

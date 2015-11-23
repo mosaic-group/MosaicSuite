@@ -113,7 +113,8 @@ public class ImageProcessUtils {
         preview_frame = new MyFrame(MosaicUtils.GetSubStackCopyInFloat(stack, first_slice, first_slice + imp.getNSlices() - 1), getFrameNumberFromSlice(imp.getCurrentSlice(), imp.getNSlices()) - 1, 1);
         
         // detect particles in this frame
-        featurePointDetector.featurePointDetection(preview_frame);
+        Vector<Particle> detectedParticles = featurePointDetector.featurePointDetection(preview_frame.getOriginalImageStack());
+        preview_frame.setParticles(detectedParticles);
 //        featurePointDetector.setPreviewLabel("#Particles: " + featurePointDetector.preview_frame.getParticles().size());
 
         preview_frame.setParticleRadius(featurePointDetector.getRadius());

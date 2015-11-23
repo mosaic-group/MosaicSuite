@@ -32,8 +32,6 @@ public class FeaturePointDetector {
 
     // Internal stuff
     private Vector<Particle> iParticles;
-    private int iNumOfInitialyDetectedParticles;
-    private int iNumOfRealParticles;
     private int[][] mask;
     
     
@@ -52,17 +50,17 @@ public class FeaturePointDetector {
      * Determines the "real" particles in this frame (only for frame constructed from Image) <br>
      * Converts the <code>original_ip</code> to <code>FloatProcessor</code>, normalizes it, convolutes and dilates it,
      * finds the particles, refine their position and filters out non particles
+     * @return 
      * 
      * @see ImageProcessor#convertToFloat()
      */
-    public void featurePointDetection(MyFrame frame) {
+    public Vector<Particle> featurePointDetection(ImageStack original_ips) {
         /*
          * Converting the original imageProcessor to float
          * This is a constraint caused by the lack of floating point precision of pixels
          * value in 16bit and 8bit image processors in ImageJ therefore, if the image is not
          * converted to 32bit floating point, false particles get detected
          */
-        final ImageStack original_ips = frame.getOriginalImageStack();
         ImageStack restored_fps = new ImageStack(original_ips.getWidth(), original_ips.getHeight());
 
         for (int i = 1; i <= original_ips.getSize(); i++) {
@@ -79,7 +77,7 @@ public class FeaturePointDetector {
         // new StackWindow(new ImagePlus("after restoration",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored_fps, 1, restored_fps.getSize())));
 
         /* Estimation of the point location - Step 2 of the algorithm */
-        pointLocationsEstimation(restored_fps, frame.frame_number, frame.linkrange);
+        pointLocationsEstimation(restored_fps);
         
         /* Refinement of the point location - Step 3 of the algorithm */
         pointLocationsRefinement(restored_fps);
@@ -87,16 +85,7 @@ public class FeaturePointDetector {
         /* Non Particle Discrimination(set a flag to particles) - Step 4 of the algorithm */
         nonParticleDiscrimination();
 
-        /* Save frame information before particle discrimination/deletion - it will be lost otherwise */
-        frame.setParticles(iParticles, iNumOfInitialyDetectedParticles);
-        frame.generateFrameInfoBeforeDiscrimination();
-
-        /* remove all the "false" particles from particles array */
-        removeNonParticle();
-        frame.setParticles(iParticles, iNumOfRealParticles);
-
-        /* Set the real_particle_number */
-        frame.real_particles_number = iNumOfRealParticles;
+        return iParticles;
     }
 
     /**
@@ -189,7 +178,7 @@ public class FeaturePointDetector {
      * 
      * @param ip ImageProcessor, should be after conversion, normalization and restoration
      */
-    private void pointLocationsEstimation(ImageStack ips, int frame_number, int linkrange) {
+    private void pointLocationsEstimation(ImageStack ips) {
         float threshold = findThreshold(ips, iPercentile, iAbsIntensityThreshold);
         /* do a grayscale dilation */
         final ImageStack dilated_ips = DilateImage.dilate(ips, iRadius, 4);
@@ -207,12 +196,11 @@ public class FeaturePointDetector {
 
                         /* and add each particle that meets the criteria to the particles array */
                         // (the starting point is the middle of the pixel and exactly on a focal plane:)
-                        iParticles.add(new Particle(j + .5f, i + .5f, s, frame_number, linkrange));
+                        iParticles.add(new Particle(j + .5f, i + .5f, s, -1, 0));
                     }
                 }
             }
         }
-        iNumOfInitialyDetectedParticles = iParticles.size();
     }
 
     private void pointLocationsRefinement(ImageStack ips) {
@@ -348,7 +336,6 @@ public class FeaturePointDetector {
         int j, k;
         double score;
         int max_x = 1, max_y = 1, max_z = 1;
-        iNumOfRealParticles = iNumOfInitialyDetectedParticles;
         if (iParticles.size() == 1) {
             iParticles.elementAt(0).nonParticleDiscriminationScore = Float.MAX_VALUE;
         }
@@ -367,7 +354,6 @@ public class FeaturePointDetector {
             }
             if (iParticles.elementAt(j).nonParticleDiscriminationScore < iCutoff) {
                 iParticles.elementAt(j).special = false;
-                iNumOfRealParticles--;
             }
             // System.out.println(j + "\t" + particles.elementAt(j).m0 + "\t" + particles.elementAt(j).m2 + "\t" + accepted);
         }
@@ -397,29 +383,12 @@ public class FeaturePointDetector {
 
             if (vParticleInNeighborhood) {
                 iParticles.elementAt(j).special = false;
-                iNumOfRealParticles--;
             }
             else {
                 vBitmap[(int) iParticles.elementAt(j).iZ + 1][(int) iParticles.elementAt(j).iY + 1][(int) iParticles.elementAt(j).iX + 1] = true;
             }
         }
 
-    }
-
-    /**
-     * removes particles that were discarded by the <code>nonParticleDiscrimination</code> method
-     * from the particles array. <br>
-     * Non particles will be removed from the <code>particles</code> array so if their info is
-     * needed, it should be saved before calling this method
-     * 
-     * @see MyFrame#nonParticleDiscrimination()
-     */
-    private void removeNonParticle() {
-        for (int i = iParticles.size() - 1; i >= 0; i--) {
-            if (!iParticles.elementAt(i).special) {
-                iParticles.removeElementAt(i);
-            }
-        }
     }
 
     /**
