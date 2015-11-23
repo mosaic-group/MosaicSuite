@@ -27,7 +27,7 @@ fi
 cd $FIJI_MOSAIC_PLUGIN_PATH/../..
 
 # During build log4j.properties file is copied to bin directory.
-./ImageJ-linux64 -Dlog4j.configuration=file:"$MOSAIC_PLUGIN_PATH/bin/log4j.properties" -- --system -batch test.ijm "username=incardon"
+./ImageJ-linux64 -Dlog4j.configuration=file:"$MOSAIC_PLUGIN_PATH/bin/log4j.properties" -- --system -batch test.ijm "username=jenkins"
 
 # check if tmp/test has succeful file
 
