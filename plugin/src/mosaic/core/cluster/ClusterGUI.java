@@ -70,7 +70,7 @@ public class ClusterGUI extends JDialog {
             }
         }
         else {
-            cp = new ClusterProfile[1];
+            cp = new ClusterProfile[2];
         }
 
         // Set coded profile
