@@ -306,7 +306,9 @@ public class GenericGUI {
         if (!clustermode) {
             run_mode rm = null;
 
-            if (IJ.isMacro() == true || Interpreter.batchMode) {
+            // TODO: It should be also nice to have " || Interpreter.batchMode == true" but it seems that 
+            // it does not work. Should be investigated why...
+            if (IJ.isMacro() == true) {
                 logger.debug("Macro setting for mode");
                 new GenericDialog("Squassh");
                 // Draw a batch system window
