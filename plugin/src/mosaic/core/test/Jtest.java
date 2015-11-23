@@ -13,7 +13,6 @@ import org.scijava.util.FileUtils;
 import ij.ImagePlus;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
-import mosaic.bregman.output.Region3DColocRScript;
 import mosaic.bregman.output.Region3DRScript;
 import mosaic.core.utils.ShellCommand;
 import mosaic.plugins.BregmanGLM_Batch;

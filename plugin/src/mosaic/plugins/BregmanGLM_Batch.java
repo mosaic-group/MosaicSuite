@@ -196,18 +196,12 @@ public class BregmanGLM_Batch implements Segmentation {
     @Override
     public String[] getRegionList(ImagePlus aImp) {
         final String[] gM = new String[4];
-        gM[0] = new String(Analysis.out[outputF.OBJECT.getNumVal()].replace("*", "_") + File.separator
-                + Analysis.out[outputF.OBJECT.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
-        gM[1] = new String(Analysis.out[outputF.OBJECT.getNumVal() + 1].replace("*", "_")
-                + File.separator
-                + Analysis.out[outputF.OBJECT.getNumVal() + 1].replace("*",
-                        MosaicUtils.removeExtension(aImp.getTitle())));
+        gM[0] = new String(Analysis.out[outputF.OBJECT.getNumVal()].replace("*", "_") + File.separator + Analysis.out[outputF.OBJECT.getNumVal()].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
+        gM[1] = new String(Analysis.out[outputF.OBJECT.getNumVal() + 1].replace("*", "_") + File.separator + Analysis.out[outputF.OBJECT.getNumVal() + 1].replace("*", MosaicUtils.removeExtension(aImp.getTitle())));
 
         // This is produced if there is a stitch operation
-        gM[2] = new String(MosaicUtils.removeExtension(aImp.getTitle())
-                + Analysis.out[outputF.OBJECT.getNumVal()].replace("*", "_"));
-        gM[3] = new String(MosaicUtils.removeExtension(aImp.getTitle())
-                + Analysis.out[outputF.OBJECT.getNumVal() + 1].replace("*", "_"));
+        gM[2] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + Analysis.out[outputF.OBJECT.getNumVal()].replace("*", "_"));
+        gM[3] = new String(MosaicUtils.removeExtension(aImp.getTitle()) + Analysis.out[outputF.OBJECT.getNumVal() + 1].replace("*", "_"));
 
         return gM;
     }

@@ -20,6 +20,8 @@ import java.util.Vector;
 
 import javax.swing.JLabel;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
@@ -124,7 +126,8 @@ import net.imglib2.view.Views;
  */
 
 public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, PreviewInterface {
-
+    private static final Logger logger = Logger.getLogger(ParticleTracker3DModular_.class);
+    
     public Img<ARGBType> out;
     public ImagePlus iInputImage;
     public String resultFilesTitle;
@@ -224,12 +227,21 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
         // Check if there are segmentation information
         if (MosaicUtils.checkSegmentationInfo(aInputImage, null)) {
-            final YesNoCancelDialog YN_dialog = new YesNoCancelDialog(null, "Segmentation", "A segmentation has been founded for this image, do you want to track the regions");
-
-            if (YN_dialog.yesPressed() == true) {
-                SegmentationInfo info;
-                info = MosaicUtils.getSegmentationInfo(aInputImage);
-
+            boolean shouldProceed = false;
+            if (isGuiMode) {
+                final YesNoCancelDialog YN_dialog = new YesNoCancelDialog(null, "Segmentation", "A segmentation has been founded for this image, do you want to track the regions");
+                if (YN_dialog.yesPressed() == true) shouldProceed = true;
+            }
+            else {
+                // Macro mode
+                shouldProceed = true;
+            }
+            if (shouldProceed) {
+                SegmentationInfo info = MosaicUtils.getSegmentationInfo(aInputImage);
+                vFI = aInputImage.getOriginalFileInfo();
+                logger.debug("Taking input from segmentation results (file = [" + aInputImage.getTitle() + "], dir = [" + vFI.directory + "]) ");
+                
+                resultFilesTitle = aInputImage.getTitle();
                 text_files_mode = true;
                 csv_format = true;
                 Csv_region_list = info.RegionList;
@@ -304,7 +316,6 @@ public class ParticleTracker3DModular_ implements PlugInFilter, Measurements, Pr
 
         IJ.showStatus("Generating Trajectories");
         generateTrajectories();
-
         if (!isGuiMode) {
             writeDataToDisk();
         }

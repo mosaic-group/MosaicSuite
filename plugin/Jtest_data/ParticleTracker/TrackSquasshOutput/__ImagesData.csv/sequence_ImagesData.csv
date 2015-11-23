@@ -1,0 +1,5 @@
+File;Image ID;Objects ch1;Mean size in ch1;Mean surface in ch1;Mean length in ch1
+%Parameters: background removal  false window size 10 stddev PSF xy  0.8 stddev PSF z  0.8 Regularization 0.05 0.05 Min intensity ch1 0.15 Min intensity ch2 0.15 subpixel false Cell mask ch1 false mask threshold ch1 0.0015 Cell mask ch2 false mask threshold ch2 0.0015 Intensity estimation Automatic Noise model Poisson;
+sequence.tif;0;38;51.7894;28.3421;3.8684
+sequence.tif;1;37;54.7567;28.1891;3.3513
+sequence.tif;2;41;49.4634;25.7317;3.1463

@@ -1,0 +1,8 @@
+File;Image_ID
+%background:/private/tmp/2//sequence.tif
+%background:/private/tmp/2//sequence.tif
+%background:/private/tmp/2//sequence.tif
+%Parameters:background removal  false window size 10 stddev PSF xy  0.8 stddev PSF z  0.8 Regularization 0.05 0.05 Min intensity ch1 0.15 Min intensity ch2 0.15 subpixel false Cell mask ch1 false mask threshold ch1 0.0015 Cell mask ch2 false mask threshold ch2 0.0015 Intensity estimation Automatic Noise model Poisson;
+;0
+;1
+;2

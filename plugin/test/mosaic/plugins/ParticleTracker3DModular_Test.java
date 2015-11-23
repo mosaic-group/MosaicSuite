@@ -105,4 +105,33 @@ public class ParticleTracker3DModular_Test extends CommonBase {
                    expectedImgFiles, referenceImgFiles,
                    expectedFiles, referenceFiles);
     }
+    
+    @Test
+    public void testOutputFromSquassh()  {
+        
+        // Define test data
+        final String tcDirName           = "ParticleTracker/TrackSquasshOutput/";
+        final String setupString         = "run";
+        final String macroOptions        = "link=3 displacement=10 dynamics=Brownian size=0 intensity=-1";
+        final String inputFile           = "sequence.tif";
+        final String[] expectedImgFiles  = {};
+        final String[] referenceImgFiles = {};
+        final String[] expectedFiles     = {"__ObjectsData_c1.csv/Traj_sequence.tif.csv", "__ObjectsData_c1.csv/Traj_sequence.tif.txt"};
+        final String[] referenceFiles    = {"Traj_sequence.tif.csv", "Traj_sequence.tif.txt"};
+
+        // Create tested plugIn
+        final ParticleTracker3DModular_ plugin = new ParticleTracker3DModular_();
+        copyTestResources("__ImagesData.csv", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("__ObjectsData_c1.csv", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("__outline_overlay_c1.zip", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("stitch__ImagesData.csv", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        copyTestResources("stitch__ObjectsData_c1.csv", SystemOperations.getTestDataPath() + tcDirName, tmpPath);
+        
+        // Test it
+        testPlugin(plugin, tcDirName,
+                   macroOptions, 
+                   setupString, inputFile,
+                   expectedImgFiles, referenceImgFiles,
+                   expectedFiles, referenceFiles);
+    }
 }

@@ -1,8 +1,8 @@
 package mosaic.test.framework;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +18,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
-import org.scijava.Context;
-import org.scijava.app.AppService;
-import org.scijava.app.StatusService;
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -29,9 +26,6 @@ import ij.WindowManager;
 import ij.macro.Interpreter;
 import ij.plugin.filter.PlugInFilter;
 import ij.plugin.filter.PlugInFilterRunner;
-import io.scif.SCIFIOService;
-import io.scif.img.ImgIOException;
-import io.scif.img.ImgOpener;
 import net.imglib2.Cursor;
 import net.imglib2.RandomAccess;
 import net.imglib2.img.ImagePlusAdapter;
@@ -46,7 +40,10 @@ import net.imglib2.img.Img;
 public class CommonBase extends Info {
 
     private static final Logger logger = Logger.getLogger(CommonBase.class);
-    private static ImgOpener iImgOpener = null;
+    
+    // TODO: Commented out until "protected Img<?> loadImage(String aFileName)" is fixed
+//    private static ImgOpener iImgOpener = null;
+    
     protected String tmpPath;
     protected String tcPath;
     
