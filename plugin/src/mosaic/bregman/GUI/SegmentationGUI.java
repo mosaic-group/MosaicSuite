@@ -21,8 +21,6 @@ public class SegmentationGUI {
 
     public void run() {
         getParameters();
-
-        // Analysis.load2channels(imagePlus);
     }
 
     public static int getParameters() {

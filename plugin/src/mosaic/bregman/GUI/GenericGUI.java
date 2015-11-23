@@ -31,7 +31,6 @@ import ij.ImagePlus;
 import ij.Macro;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
-import ij.macro.Interpreter;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.BLauncher;
 import mosaic.bregman.Parameters;
@@ -120,7 +119,9 @@ public class GenericGUI {
             if (gd.wasCanceled()) {
                 return run_mode.STOP;
             }
+            
             Analysis.p.wd = gd.getNextText();
+            logger.debug("wd = [" + Analysis.p.wd + "]");
         }
 
         if (BackgroundSubGUI.getParameters() == -1) {
@@ -444,19 +445,19 @@ public class GenericGUI {
         }
         else {
             // We run on cluster
-            final Parameters p = new Parameters(Analysis.p);
+            final Parameters tempParams = new Parameters(Analysis.p);
 
             // disabling display options
-            p.dispwindows = false;
+            tempParams.dispwindows = false;
 
             // save for the cluster
             // For the cluster we have to nullify the directory option
-            p.wd = null;
+            tempParams.wd = null;
 
             // TODO: Why settings are saved twice to two different files? To be investigated.
-            BregmanGLM_Batch.saveConfig("/tmp/settings.dat", p);
+            BregmanGLM_Batch.saveConfig("/tmp/settings.dat", tempParams);
             // save locally
-            BregmanGLM_Batch.saveConfig("/tmp/spb_settings.dat", p);
+            BregmanGLM_Batch.saveConfig("/tmp/spb_settings.dat", tempParams);
 
             // Check if we selected a directory
             File[] fileslist = null;

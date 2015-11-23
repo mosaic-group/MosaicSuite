@@ -105,8 +105,6 @@ public class BregmanGLM_Batch implements Segmentation {
 
         saveConfig(savedSettings, Analysis.p);
 
-        System.out.println("Setting macro options: " + arg0);
-
         // Re-set the arguments
         Macro.setOptions(arg0);
 
