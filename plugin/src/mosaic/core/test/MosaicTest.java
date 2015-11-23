@@ -306,10 +306,10 @@ public class MosaicTest {
             // this should open as an ArrayImg.
             Img<?> image = null;
             Img<?> image_rs = null;
+            String filename = "<no file>";
             try {
                 wp.SetStatusMessage("Checking... " + new File(rs).getName());
                 image = imgOpener.openImgs(rs).get(0);
-                String filename = null;
                 filename = tmp_dir + File.separator + tmp.result_imgs_rel[cnt];
 
                 // open the result image
@@ -324,6 +324,8 @@ public class MosaicTest {
             }
 
             // compare
+            logger.error("File [" + filename + "] differs from [" + rs + "]");
+            
             if (compare(image, image_rs) == false) {
                 throw new RuntimeException("Error: Image " + rs + " does not match the result");
             }
