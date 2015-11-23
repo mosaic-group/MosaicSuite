@@ -324,7 +324,7 @@ public class MosaicTest {
             }
 
             // compare
-            logger.error("File [" + filename + "] differs from [" + rs + "]");
+            logger.debug("Comparing output file [" + filename + "] with reference [" + rs + "]");
             
             if (compare(image, image_rs) == false) {
                 throw new RuntimeException("Error: Image " + rs + " does not match the result");

@@ -24,6 +24,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
@@ -41,7 +43,8 @@ import mosaic.test.framework.SystemOperations;
 
 
 public class GenericGUI {
-
+    private static final Logger logger = Logger.getLogger(GenericGUI.class);
+    
     private enum run_mode {
         USE_CLUSTER, LOCAL, STOP
     }
@@ -297,6 +300,8 @@ public class GenericGUI {
         String file3;
         Boolean use_cluster = false;
 
+        logger.debug("clustermode = " + clustermode);
+        
         if (!clustermode) {
             run_mode rm = null;
 
@@ -313,7 +318,7 @@ public class GenericGUI {
                 final GenericDialog gd = new NonBlockingGenericDialog("Squassh");
                 rm = drawStandardWindow(gd, aImp);
             }
-
+            logger.debug("runmode = " + rm);
             use_cluster = (rm == run_mode.USE_CLUSTER);
 
             if (rm == run_mode.STOP) {
@@ -338,7 +343,7 @@ public class GenericGUI {
             Analysis.p.wd = gd.getNextString();
         }
 
-        System.out.println("Paramenters: " + Analysis.p);
+        System.out.println("Parameters: " + Analysis.p);
 
         if (Analysis.p.mode_voronoi2) {
             // betamleout to be determined by clustering of whole image
@@ -362,7 +367,7 @@ public class GenericGUI {
         if (use_cluster == false && clustermode == false) {
             Analysis.p.dispwindows = true;
         }
-
+        logger.debug("use_cluster = " + use_cluster);
         // Two different way to run the Segmentation and colocalization
         if (clustermode || use_cluster == false) {
             // We run locally

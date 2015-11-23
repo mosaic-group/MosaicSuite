@@ -3,6 +3,8 @@ package mosaic.plugins;
 import java.awt.GraphicsEnvironment;
 import java.io.File;
 
+import org.apache.log4j.Logger;
+
 import ij.IJ;
 import ij.ImagePlus;
 import ij.Macro;
@@ -19,6 +21,8 @@ import mosaic.utils.io.serialize.SerializedDataFile;
 import net.imglib2.type.numeric.real.DoubleType;
 
 public class BregmanGLM_Batch implements Segmentation {
+    private static final Logger logger = Logger.getLogger(BregmanGLM_Batch.class);
+    
     private ImagePlus OriginalImagePlus = null;
     private String savedSettings;
     private GenericGUI window;
@@ -64,15 +68,15 @@ public class BregmanGLM_Batch implements Segmentation {
             Analysis.p = getConfigHandler().LoadFromFile(path, Parameters.class, Analysis.p);
         }
 
-        String norm = MosaicUtils.parseString("min", arg0);
-        if (norm != null) {
-            Analysis.norm_min = Double.parseDouble(norm);
+        String normmin = MosaicUtils.parseString("min", arg0);
+        if (normmin != null) {
+            Analysis.norm_min = Double.parseDouble(normmin);
             System.out.println("min norm " + Analysis.norm_min);
         }
 
-        norm = MosaicUtils.parseString("max", arg0);
-        if (norm != null) {
-            Analysis.norm_max = Double.parseDouble(norm);
+        String normmax = MosaicUtils.parseString("max", arg0);
+        if (normmax != null) {
+            Analysis.norm_max = Double.parseDouble(normmax);
             System.out.println("max norm " + Analysis.norm_max);
         }
 
@@ -87,7 +91,13 @@ public class BregmanGLM_Batch implements Segmentation {
         if (batch == true) {
             Analysis.p.dispwindows = false;
         }
-
+        logger.debug("isHeadless = " + batch);
+        logger.debug("settings dir = [" + dir + "]");
+        logger.debug("config path = [" + path + "]");
+        logger.debug("norm min = [" + normmin + "]");
+        logger.debug("norm max = [" + normmax + "]");
+        logger.debug("input img = [" + (active_img != null ? active_img.getTitle() : "<no img>") + "]");
+        
         window = new GenericGUI(batch, active_img);
         window.setUseCluster(gui_use_cluster);
         window.run(active_img);
