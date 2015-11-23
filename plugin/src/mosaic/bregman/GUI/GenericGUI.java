@@ -31,6 +31,7 @@ import ij.ImagePlus;
 import ij.Macro;
 import ij.gui.GenericDialog;
 import ij.gui.NonBlockingGenericDialog;
+import ij.macro.Interpreter;
 import mosaic.bregman.Analysis;
 import mosaic.bregman.BLauncher;
 import mosaic.bregman.Parameters;
@@ -305,7 +306,8 @@ public class GenericGUI {
         if (!clustermode) {
             run_mode rm = null;
 
-            if (IJ.isMacro() == true) {
+            if (IJ.isMacro() == true || Interpreter.batchMode) {
+                logger.debug("Macro setting for mode");
                 new GenericDialog("Squassh");
                 // Draw a batch system window
 
@@ -315,6 +317,7 @@ public class GenericGUI {
                 }
             }
             else {
+                logger.debug("Non-Macro setting for mode");
                 final GenericDialog gd = new NonBlockingGenericDialog("Squassh");
                 rm = drawStandardWindow(gd, aImp);
             }

@@ -92,6 +92,7 @@ public class BregmanGLM_Batch implements Segmentation {
             Analysis.p.dispwindows = false;
         }
         logger.debug("isHeadless = " + batch);
+        logger.debug("gui_use_cluster = " + gui_use_cluster);
         logger.debug("settings dir = [" + dir + "]");
         logger.debug("config path = [" + path + "]");
         logger.debug("norm min = [" + normmin + "]");
