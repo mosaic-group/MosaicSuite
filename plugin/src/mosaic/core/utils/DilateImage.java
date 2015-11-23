@@ -10,7 +10,7 @@ import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class MosaicImageProcessingTools {
+public class DilateImage {
     /**
      * Dilates all values larger than <code>threshold</code> and returns a copy of the input image.
      * A spherical structuring element of radius <code>radius</code> is used.
@@ -19,12 +19,12 @@ public class MosaicImageProcessingTools {
      * @param ip ImageProcessor to do the dilation with
      * @return the dilated copy of the given <code>ImageProcessor</code>
      */
-    public static ImageStack dilateGeneric(ImageStack ips, int radius, int number_of_threads) {
+    public static ImageStack dilate(ImageStack ips, int radius, int number_of_threads) {
         final FloatProcessor[] dilated_procs = new FloatProcessor[ips.getSize()];
         final AtomicInteger z = new AtomicInteger(-1);
         final Vector<Thread> threadsVector = new Vector<Thread>(number_of_threads);
         for (int thread_counter = 0; thread_counter < number_of_threads; thread_counter++) {
-            threadsVector.add(new DilateGenericThread(ips, radius, dilated_procs, z));
+            threadsVector.add(new DilateThread(ips, radius, dilated_procs, z));
         }
         for (final Thread t : threadsVector) {
             t.start();
@@ -69,72 +69,74 @@ public class MosaicImageProcessingTools {
         }
         return mask;
     }
-}
 
-class DilateGenericThread extends Thread {
-
-    private final ImageStack ips;
-    private final ImageProcessor[] dilated_ips;
-    private final AtomicInteger atomic_z;
-    private final int kernel_width;
-    private final int image_width;
-    private final int image_height;
-    private final int image_depth;
-    private final int radius;
-    private final int mask[][];
-
-    DilateGenericThread(ImageStack is, int aRadius, ImageProcessor[] dilated_is, AtomicInteger z) {
-        ips = is;
-        dilated_ips = dilated_is;
-        atomic_z = z;
-        radius = aRadius;
+    static class DilateThread extends Thread {
         
-        kernel_width = radius * 2 + 1;
-        image_width = ips.getWidth();
-        image_height = ips.getHeight();
-        image_depth = ips.getSize();
+        private final ImageStack ips;
+        private final ImageProcessor[] dilated_ips;
+        private final AtomicInteger atomic_z;
+        private final int kernel_width;
+        private final int image_width;
+        private final int image_height;
+        private final int image_depth;
+        private final int radius;
+        private final int mask[][];
         
-        mask = MosaicImageProcessingTools.generateMask(radius);
-    }
-
-    @Override
-    public void run() {
-        float max;
-        int z;
-        while ((z = atomic_z.incrementAndGet()) < image_depth) {
-            final FloatProcessor out_p = new FloatProcessor(image_width, image_height);
-            final float[] output = (float[]) out_p.getPixels();
-            for (int y = 0; y < image_height; y++) {
-                for (int x = 0; x < image_width; x++) {
-                    max = Float.NEGATIVE_INFINITY;
-
-                    // a,b,s are the kernel coordinates corresponding to x,y,z
-                    for (int s = -radius; s <= radius; s++) {
-                        if (z + s < 0 || z + s >= image_depth) {
-                            continue;
-                        }
-                        final float[] current_processor_pixels = (float[]) ips.getPixels(z + s + 1);
-                        for (int b = -radius; b <= radius; b++) {
-                            if (y + b < 0 || y + b >= image_height) {
+        DilateThread(ImageStack is, int aRadius, ImageProcessor[] dilated_is, AtomicInteger z) {
+            ips = is;
+            dilated_ips = dilated_is;
+            atomic_z = z;
+            radius = aRadius;
+            
+            kernel_width = radius * 2 + 1;
+            image_width = ips.getWidth();
+            image_height = ips.getHeight();
+            image_depth = ips.getSize();
+            
+            mask = DilateImage.generateMask(radius);
+        }
+        
+        @Override
+        public void run() {
+            float max;
+            int z;
+            while ((z = atomic_z.incrementAndGet()) < image_depth) {
+                final FloatProcessor out_p = new FloatProcessor(image_width, image_height);
+                final float[] output = (float[]) out_p.getPixels();
+                for (int y = 0; y < image_height; y++) {
+                    for (int x = 0; x < image_width; x++) {
+                        max = Float.NEGATIVE_INFINITY;
+                        
+                        // a,b,s are the kernel coordinates corresponding to x,y,z
+                        for (int s = -radius; s <= radius; s++) {
+                            if (z + s < 0 || z + s >= image_depth) {
                                 continue;
                             }
-                            for (int a = -radius; a <= radius; a++) {
-                                if (x + a < 0 || x + a >= image_width) {
+                            final float[] current_processor_pixels = (float[]) ips.getPixels(z + s + 1);
+                            for (int b = -radius; b <= radius; b++) {
+                                if (y + b < 0 || y + b >= image_height) {
                                     continue;
                                 }
-                                if (mask[s + radius][(a + radius) * kernel_width + (b + radius)] == 1) {
-                                    float t;
-                                    if ((t = current_processor_pixels[(y + b) * image_width + (x + a)]) > max) {
-                                        max = t;
+                                for (int a = -radius; a <= radius; a++) {
+                                    if (x + a < 0 || x + a >= image_width) {
+                                        continue;
+                                    }
+                                    if (mask[s + radius][(a + radius) * kernel_width + (b + radius)] == 1) {
+                                        float t;
+                                        if ((t = current_processor_pixels[(y + b) * image_width + (x + a)]) > max) {
+                                            max = t;
+                                        }
                                     }
                                 }
                             }
                         }
+                        output[y * image_width + x] = max;
                     }
-                    output[y * image_width + x] = max;
                 }
+                dilated_ips[z] = out_p;
             }
-            dilated_ips[z] = out_p;
         }
     }
+    
 }
+

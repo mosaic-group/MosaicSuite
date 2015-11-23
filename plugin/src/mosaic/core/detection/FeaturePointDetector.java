@@ -11,7 +11,7 @@ import ij.process.Blitter;
 import ij.process.ImageProcessor;
 import ij.process.ImageStatistics;
 import ij.process.StackStatistics;
-import mosaic.core.utils.MosaicImageProcessingTools;
+import mosaic.core.utils.DilateImage;
 import mosaic.core.utils.MosaicUtils;
 
 
@@ -192,7 +192,7 @@ public class FeaturePointDetector {
     private void pointLocationsEstimation(ImageStack ips, int frame_number, int linkrange) {
         float threshold = findThreshold(ips, iPercentile, iAbsIntensityThreshold);
         /* do a grayscale dilation */
-        final ImageStack dilated_ips = MosaicImageProcessingTools.dilateGeneric(ips, iRadius, 4);
+        final ImageStack dilated_ips = DilateImage.dilate(ips, iRadius, 4);
         // new StackWindow(new ImagePlus("dilated ", dilated_ips));
         iParticles = new Vector<Particle>();
         /* loop over all pixels */
@@ -557,7 +557,7 @@ public class FeaturePointDetector {
      * @param mask_radius
      */
     private void generateDilationMasks(int mask_radius) {
-        mask = MosaicImageProcessingTools.generateMask(mask_radius);
+        mask = DilateImage.generateMask(mask_radius);
     }
 
     /**
