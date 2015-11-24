@@ -337,6 +337,7 @@ public class ImgUtils {
 
     /**
      * Converts range of values in array computing for each element:  (elem * aMultiply + aShift)
+     * Technically it makes opposite operation than normalization.
      * @param aImgArray - array to be converted
      * @param aMultiply - multiplication factor
      * @param aShift - shift value

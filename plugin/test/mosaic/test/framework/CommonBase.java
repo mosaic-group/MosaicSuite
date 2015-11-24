@@ -183,7 +183,7 @@ public class CommonBase extends Info {
         logger.debug("    test:[" + testFile + "]");
         String expected = readFile(refFile);
         String result = readFile(testFile);
-        assertEquals(expected, result);
+        assertEquals("Files differ!", expected, result);
     }
 
     /**

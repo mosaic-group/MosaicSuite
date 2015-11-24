@@ -50,9 +50,7 @@ public class FeaturePointDetector {
      * Determines the "real" particles in this frame (only for frame constructed from Image) <br>
      * Converts the <code>original_ip</code> to <code>FloatProcessor</code>, normalizes it, convolutes and dilates it,
      * finds the particles, refine their position and filters out non particles
-     * @return 
-     * 
-     * @see ImageProcessor#convertToFloat()
+     * @return container with disovered particles
      */
     public Vector<Particle> featurePointDetection(ImageStack original_ips) {
         /*
@@ -100,10 +98,8 @@ public class FeaturePointDetector {
     private void normalizeFrameFloat(ImageStack is, float global_min, float global_max) {
         for (int s = 1; s <= is.getSize(); s++) {
             final float[] pixels = (float[]) is.getPixels(s);
-            float tmp_pix_value;
             for (int i = 0; i < pixels.length; i++) {
-                tmp_pix_value = (pixels[i] - global_min) / (global_max - global_min);
-                pixels[i] = tmp_pix_value;
+                pixels[i] = (pixels[i] - global_min) / (global_max - global_min);
             }
         }
     }
@@ -333,26 +329,29 @@ public class FeaturePointDetector {
      * Adapted "as is" from Ingo Oppermann implementation
      */
     private void nonParticleDiscrimination() {
-        int j, k;
-        double score;
-        int max_x = 1, max_y = 1, max_z = 1;
         if (iParticles.size() == 1) {
+            // If there is only one particle it should not be discriminated - big enough value will do the job.
             iParticles.elementAt(0).nonParticleDiscriminationScore = Float.MAX_VALUE;
         }
-        for (j = 0; j < iParticles.size(); j++) {
-            max_x = Math.max((int) iParticles.elementAt(j).iX, max_x);
-            max_y = Math.max((int) iParticles.elementAt(j).iY, max_y);
-            max_z = Math.max((int) iParticles.elementAt(j).iZ, max_z);
+        
+        int max_x = 1;
+        int max_y = 1;
+        int max_z = 1;
+        for (int j = 0; j < iParticles.size(); j++) {
+            final Particle pJ = iParticles.elementAt(j);
+            max_x = Math.max((int) pJ.iX, max_x);
+            max_y = Math.max((int) pJ.iY, max_y);
+            max_z = Math.max((int) pJ.iZ, max_z);
 
-            for (k = j + 1; k < iParticles.size(); k++) {
-                score = (1.0 / (2.0 * Math.PI * 0.1 * 0.1))
-                        * Math.exp(-(iParticles.elementAt(j).m0 - iParticles.elementAt(k).m0) * (iParticles.elementAt(j).m0 - iParticles.elementAt(k).m0) / (2.0 * 0.1)
-                                - (iParticles.elementAt(j).m2 - iParticles.elementAt(k).m2) * (iParticles.elementAt(j).m2 - iParticles.elementAt(k).m2) / (2.0 * 0.1));
-                iParticles.elementAt(j).nonParticleDiscriminationScore += score;
-                iParticles.elementAt(k).nonParticleDiscriminationScore += score;
+            for (int k = j + 1; k < iParticles.size(); k++) {
+                final Particle pK = iParticles.elementAt(k);
+                double score = (1.0 / (2.0 * Math.PI * 0.1 * 0.1)) * Math.exp(- Math.pow((pJ.m0 - pK.m0), 2) / (2.0 * 0.1) - Math.pow((pJ.m2 - pK.m2), 2) / (2.0 * 0.1) );
+                pJ.nonParticleDiscriminationScore += score;
+                pK.nonParticleDiscriminationScore += score;
             }
-            if (iParticles.elementAt(j).nonParticleDiscriminationScore < iCutoff) {
-                iParticles.elementAt(j).special = false;
+            
+            if (pJ.nonParticleDiscriminationScore < iCutoff) {
+                pJ.special = false;
             }
         }
 
@@ -367,12 +366,13 @@ public class FeaturePointDetector {
             }
         }
 
-        for (j = 0; j < iParticles.size(); j++) {
+        for (int j = 0; j < iParticles.size(); j++) {
+            final Particle pJ = iParticles.elementAt(j);
             boolean vParticleInNeighborhood = false;
             for (int oz = -1; !vParticleInNeighborhood && oz <= 1; oz++) {
                 for (int oy = -1; !vParticleInNeighborhood && oy <= 1; oy++) {
                     for (int ox = -1; !vParticleInNeighborhood && ox <= 1; ox++) {
-                        if (vBitmap[(int) iParticles.elementAt(j).iZ + 1 + oz][(int) iParticles.elementAt(j).iY + 1 + oy][(int) iParticles.elementAt(j).iX + 1 + ox]) {
+                        if (vBitmap[(int) pJ.iZ + 1 + oz][(int) pJ.iY + 1 + oy][(int) pJ.iX + 1 + ox]) {
                             vParticleInNeighborhood = true;
                         }
                     }
@@ -380,10 +380,10 @@ public class FeaturePointDetector {
             }
 
             if (vParticleInNeighborhood) {
-                iParticles.elementAt(j).special = false;
+                pJ.special = false;
             }
             else {
-                vBitmap[(int) iParticles.elementAt(j).iZ + 1][(int) iParticles.elementAt(j).iY + 1][(int) iParticles.elementAt(j).iX + 1] = true;
+                vBitmap[(int) pJ.iZ + 1][(int) pJ.iY + 1][(int) pJ.iX + 1] = true;
             }
         }
 
@@ -395,10 +395,8 @@ public class FeaturePointDetector {
      * 
      * @param is ImageStack to be restored
      * @return the restored <code>ImageProcessor</code>
-     * @see Convolver#convolve(ij.process.ImageProcessor, float[], int, int)
      */
     private ImageStack imageRestoration(ImageStack is) {
-        // remove the clutter
         ImageStack restored = null;
 
         // pad the imagestack
@@ -422,7 +420,6 @@ public class FeaturePointDetector {
 
         if (is.getSize() > 1) {
             // again, 3D crop
-            // new StackWindow(new ImagePlus("before cropping",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
             restored = MosaicUtils.cropImageStack3D(restored, iRadius);
         }
         else {
@@ -431,8 +428,8 @@ public class FeaturePointDetector {
             restored = new ImageStack(rp.getWidth(), rp.getHeight());
             restored.addSlice("", rp);
         }
+        
         return restored;
-
     }
 
     private void GaussBlur3D(ImageStack is, float aSigma) {
