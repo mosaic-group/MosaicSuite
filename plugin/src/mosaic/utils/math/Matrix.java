@@ -49,6 +49,16 @@ public class Matrix {
      *
      * @param aArray
      */
+    public Matrix(double[] aArray, int aNumOfRows, int aNumOfCols) {
+        iMatrix = new DenseMatrix64F(aNumOfRows, aNumOfCols, true, aArray);
+    }
+    
+    /**
+     * Creates new Matrix from provided 2D array first dimension is rows and
+     * then cols ([r][c] or [y][x]).
+     *
+     * @param aArray
+     */
     public Matrix(double[][] aArray) {
         iMatrix = new DenseMatrix64F(aArray);
     }

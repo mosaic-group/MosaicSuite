@@ -5,6 +5,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.util.Arrays;
+
 import mosaic.test.framework.CommonBase;
 
 import org.junit.Test;
@@ -69,6 +72,14 @@ public class MatrixTest extends CommonBase {
             assertEquals("Matrices should be same", new Matrix(yxDouble, true), new Matrix(yxFloat, true));
             assertEquals("Matrices should be same", new Matrix(yxDouble, false), new Matrix(yxFloat, false));
             assertEquals("Matrices should be same", new Matrix(yxDouble), new Matrix(yxFloat));
+        }
+        {
+            final double[] data = {1, 2, 3, 4, 5, 6};
+            Matrix m = new Matrix(data, 3, 2);
+            m.pow(2);
+            assertEquals(3, m.numRows());
+            assertEquals(2, m.numCols());
+            assertArrayEquals("Input array should not be changed.", new double[] {1, 2, 3, 4, 5, 6}, data, 0.0);
         }
     }
 
