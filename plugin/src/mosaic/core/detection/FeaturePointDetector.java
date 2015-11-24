@@ -340,7 +340,6 @@ public class FeaturePointDetector {
             iParticles.elementAt(0).nonParticleDiscriminationScore = Float.MAX_VALUE;
         }
         for (j = 0; j < iParticles.size(); j++) {
-            // int accepted = 1;
             max_x = Math.max((int) iParticles.elementAt(j).iX, max_x);
             max_y = Math.max((int) iParticles.elementAt(j).iY, max_y);
             max_z = Math.max((int) iParticles.elementAt(j).iZ, max_z);
@@ -355,7 +354,6 @@ public class FeaturePointDetector {
             if (iParticles.elementAt(j).nonParticleDiscriminationScore < iCutoff) {
                 iParticles.elementAt(j).special = false;
             }
-            // System.out.println(j + "\t" + particles.elementAt(j).m0 + "\t" + particles.elementAt(j).m2 + "\t" + accepted);
         }
 
         // Remove duplicates (happens when dealing with artificial images)
@@ -420,9 +418,7 @@ public class FeaturePointDetector {
         // Set it back to 1*lambda_n to match the 2D implementation.
         final float lambda_n = 1;
         GaussBlur3D(restored, 1 * lambda_n);
-        // new StackWindow(new ImagePlus("convolved 3d",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
         boxCarBackgroundSubtractor(restored);
-        // new StackWindow(new ImagePlus("after bg subtraction",mosaic.core.utils.MosaicUtils.GetSubStackCopyInFloat(restored, 1, restored.getSize())));
 
         if (is.getSize() > 1) {
             // again, 3D crop
@@ -435,7 +431,6 @@ public class FeaturePointDetector {
             restored = new ImageStack(rp.getWidth(), rp.getHeight());
             restored.addSlice("", rp);
         }
-        // new StackWindow(new ImagePlus("restored", GetSubStackCopyInFloat(restored, 1, restored.getSize())));
         return restored;
 
     }
