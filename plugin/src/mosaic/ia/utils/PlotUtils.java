@@ -2,18 +2,21 @@ package mosaic.ia.utils;
 
 
 import ij.ImagePlus;
+import ij.gui.HistogramWindow;
 import ij.process.FloatProcessor;
 
 
 public class PlotUtils {
 
-    public static void histPlotDoubleArray_imageJ(String title, double[] array, int bins) {
-        final float floatArray[][] = new float[array.length][1];
-        for (int i = 0; i < array.length; i++) {
-            floatArray[i][0] = (float) array[i];
-
-        }
-        final FloatProcessor hist = new FloatProcessor(floatArray);
-        new ij.gui.HistogramWindow(title, new ImagePlus(title, hist), bins);
+    /**
+     * Plots histogram for provided values using aNumOfBins
+     * @param aTitle title of diagram
+     * @param aValues
+     * @param aNumOfBins
+     * @return number of elements in each bin
+     */
+    public static HistogramWindow plotHistogram(String aTitle, double[] aValues, int aNumOfBins) {
+        final FloatProcessor hist = new FloatProcessor(aValues.length, 1, aValues);
+        return new ij.gui.HistogramWindow(aTitle, new ImagePlus(aTitle, hist), aNumOfBins);
     }
 }
