@@ -44,13 +44,15 @@ public class Matrix {
     }
 
     /**
-     * Creates new Matrix from provided 2D array first dimension is rows and
-     * then cols ([r][c] or [y][x]).
-     *
-     * @param aArray
+     * Creates new Matrix from provided values. Number of provided values 
+     * should equal aNumOfRows * aNumOfCols (it is not checked!). 
+     * Provided values are put in matrix row-major.
+     * @param aNumOfRows
+     * @param aNumOfCols
+     * @param aValues
      */
-    public Matrix(double[] aArray, int aNumOfRows, int aNumOfCols) {
-        iMatrix = new DenseMatrix64F(aNumOfRows, aNumOfCols, true, aArray);
+    public Matrix(int aNumOfRows, int aNumOfCols, double... aValues) {
+        iMatrix = new DenseMatrix64F(aNumOfRows, aNumOfCols, true, aValues);
     }
     
     /**
