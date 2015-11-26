@@ -1,7 +1,6 @@
 package mosaic.plugins;
 
 import ij.plugin.PlugIn;
-import mosaic.core.utils.MosaicUtils;
 import mosaic.ia.gui.GUIDesign;
 
 
@@ -11,13 +10,9 @@ import mosaic.ia.gui.GUIDesign;
  * sorting array of NN: might be dangerous.
  */
 public class IAPMosaic_ implements PlugIn { // NO_UCD
+    
     @Override
     public void run(String arg0) {
-        if (MosaicUtils.checkRequirement() == false) {
-            return;
-        }
-
-        final GUIDesign window = new GUIDesign();
-        window.frmInteractionAnalysis.setVisible(true);
+        new GUIDesign();
     }
 }

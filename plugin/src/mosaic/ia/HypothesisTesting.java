@@ -1,11 +1,10 @@
 package mosaic.ia;
 
 
-import ij.IJ;
-
 import java.util.Arrays;
 import java.util.Random;
 
+import ij.IJ;
 import mosaic.ia.utils.IAPUtils;
 
 
@@ -34,7 +33,6 @@ class HypothesisTesting {
     }
 
     public boolean rankTest() {
-
         calculateT();
         final PotentialCalculator pcOb = new PotentialCalculator(D, params, type);
         pcOb.calculateWOEpsilon();
@@ -69,13 +67,11 @@ class HypothesisTesting {
                 System.out.println("Null hypothesis rejected, rank: " + i + " out of " + K + " p-value: " + ((double) K - i) / K);
                 IJ.showMessage("Null hypothesis: No interaction - Rejected, rank: " + i + " out of " + K + "MC runs with alpha= " + alpha + " p-value: " + ((double) K - i) / K);
             }
-            // displayResult();
             return true;
         }
         else {
             IJ.showMessage("Null hypothesis accepted, rank: " + i + " out of " + K + " MC runs with alpha= " + alpha + " p-value: " + ((double) K - i) / K);
             System.out.println("Null hypothesis: No interaction - Accepted, rank: " + i + " out of " + K + " MC runs with alpha= " + alpha + " p-value: " + ((double) K - i) / K);
-            // displayResult();
             return false;
         }
 
@@ -86,7 +82,6 @@ class HypothesisTesting {
         T = new double[K];
 
         for (int i = 0; i < K; i++) {
-            // System.out.println("Calculating TK, K= "+i);
             T[i] = calculateTk();
         }
         Arrays.sort(T);

@@ -33,7 +33,7 @@ import mosaic.ia.utils.ImageProcessUtils;
 
 public class GUIDesign implements ActionListener {
 
-    public JFrame frmInteractionAnalysis;
+    private JFrame frmInteractionAnalysis;
     private final String[] items = { "Hernquist", "Step", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
 
     private double gridSize = .5;
@@ -73,6 +73,7 @@ public class GUIDesign implements ActionListener {
      */
     public GUIDesign() {
         initialize();
+        frmInteractionAnalysis.setVisible(true);
     }
 
     /**
@@ -446,7 +447,6 @@ public class GUIDesign implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
         if (e.getSource() == help) {
             new HelpInteractionAnalysis(0, 0);
         }
@@ -457,25 +457,13 @@ public class GUIDesign implements ActionListener {
                 return;
             }
             imgx.show("Image X");
-
             browseX.setText(imgx.getTitle());
             if (imgy != null && imgx != null) {
-                if (!checkIfImagesAreRightSize()) {
-                    System.out.println("Distance calc: different image sizes");
-                    IJ.showMessage("Error: Image sizes/scale/unit do not match");
-                    return;
-                }
-                a = new Analysis(imgx, imgy);
-                a.setCmaReRunTimes(numReRuns);
-                a.setKernelWeightq(qkernelWeight);
-                a.setKernelWeightp(pkernelWeight);
-                System.out.println("p set to:" + pkernelWeight);
+                initializeImages();
             }
-            return;
         }
         else if (e.getSource() == browseY) {
             imgy = ImageProcessUtils.openImage();
-
             if (imgy == null) {
                 IJ.showMessage("Cancelled/Filetype not recognized");
                 return;
@@ -483,45 +471,20 @@ public class GUIDesign implements ActionListener {
             imgy.show("Image Y");
             browseY.setText(imgy.getTitle());
             if (imgy != null && imgx != null) {
-                if (!checkIfImagesAreRightSize()) {
-                    System.out.println("Distance calc: different image sizes");
-                    IJ.showMessage("Error: Image sizes/scale do not match");
-                    return;
-                }
-                a = new Analysis(imgx, imgy);
-                a.setCmaReRunTimes(numReRuns);
-                a.setKernelWeightq(qkernelWeight);
-                a.setKernelWeightp(pkernelWeight);
-                System.out.println("p set to:" + pkernelWeight);
+                initializeImages();
             }
-            return;
         }
         else if (e.getSource() == btnLoadCsvFileX) {
             Xcoords = ImageProcessUtils.openCsvFile("Open CSV file for image X");
-            if (Xcoords == null) {
-                return;
-            }
             if (Xcoords != null && Ycoords != null) {
-                a = new Analysis(Xcoords, Ycoords);
-                a.setCmaReRunTimes(numReRuns);
-                a.setKernelWeightq(qkernelWeight);
-                a.setKernelWeightp(pkernelWeight);
+                initializeAnalysis(Xcoords, Ycoords);
             }
-            return;
         }
         else if (e.getSource() == btnLoadCsvFileY) {
             Ycoords = ImageProcessUtils.openCsvFile("Open CSV file for image Y");
-            if (Ycoords == null) {
-                return;
-            }
-
             if (Xcoords != null && Ycoords != null) {
-                a = new Analysis(Xcoords, Ycoords);
-                a.setCmaReRunTimes(numReRuns);
-                a.setKernelWeightq(qkernelWeight);
-                a.setKernelWeightp(pkernelWeight);
+                initializeAnalysis(Xcoords, Ycoords);
             }
-            return;
         }
         else if (e.getSource() == jcb) {
             final String selected = (String) jcb.getSelectedItem();
@@ -557,7 +520,6 @@ public class GUIDesign implements ActionListener {
             }
 
             a.setPotentialType(potentialType);
-            return;
         }
         else if (e.getSource() == btnCalculateDistances) {
             gridSize = Double.parseDouble(gridSizeInp.getText());
@@ -590,8 +552,6 @@ public class GUIDesign implements ActionListener {
             if (!a.calcDist(gridSize)) {
                 IJ.showMessage("No X and Y images/coords loaded. Cannot calculate distance");
             }
-
-            return;
         }
         else if (e.getSource() == estimate) {
             PotentialFunctions.NONPARAM_WEIGHT_SIZE = Integer.parseInt(numSupport.getText());
@@ -607,7 +567,6 @@ public class GUIDesign implements ActionListener {
             if (!a.cmaOptimization()) {
                 IJ.showMessage("Error: Calculate distances first!");
             }
-            return;
         }
         else if (e.getSource() == test) {
             monteCarloRunsForTest = Integer.parseInt(mCRuns.getText());
@@ -616,19 +575,14 @@ public class GUIDesign implements ActionListener {
             if (!a.hypTest(monteCarloRunsForTest, alpha)) {
                 IJ.showMessage("Error: Run estimation first");
             }
-            return;
         }
         else if (e.getSource() == numSupport) {
             PotentialFunctions.NONPARAM_WEIGHT_SIZE = Integer.parseInt(e.getActionCommand());
-
             System.out.println("Weight size changed to:" + PotentialFunctions.NONPARAM_WEIGHT_SIZE);
-
-            return;
         }
         else if (e.getSource() == smoothnessNP) {
             PotentialFunctions.NONPARAM_SMOOTHNESS = Double.parseDouble(e.getActionCommand());
             System.out.println("Smoothness:" + PotentialFunctions.NONPARAM_SMOOTHNESS);
-            return;
         }
         else if (e.getSource() == genMask) {
             try {
@@ -645,7 +599,6 @@ public class GUIDesign implements ActionListener {
                 System.out.println("NPE caught");
                 IJ.showMessage("Image Y is null: Cannot generate mask");
             }
-            return;
         }
         else if (e.getSource() == loadMask) {
             a.loadMask();
@@ -656,17 +609,40 @@ public class GUIDesign implements ActionListener {
             else {
                 IJ.showMessage("No mask to apply! Load/Generate a mask.");
             }
-            return;
         }
         else if (e.getSource() == resetMask) {
             a.resetMask();
             IJ.showMessage("Mask reset to Null");
-            return;
         }
         else if (a == null) {
             IJ.showMessage("Load images/coordinates first");
-            return;
         }
+    }
+
+    private void initializeImages() {
+        if (!checkIfImagesAreRightSize()) {
+            System.out.println("Distance calc: different image sizes");
+            IJ.showMessage("Error: Image sizes/scale/unit do not match");
+        }
+        else {
+            initializeAnalysis(imgx, imgy);
+        }
+    }
+
+    private void initializeAnalysis(ImagePlus X, ImagePlus Y) {
+        a = new Analysis(X, Y);
+        a.setCmaReRunTimes(numReRuns);
+        a.setKernelWeightq(qkernelWeight);
+        a.setKernelWeightp(pkernelWeight);
+        System.out.println("[ImagePlus] p set to:" + pkernelWeight);
+    }
+    
+    private void initializeAnalysis(Point3d[] X, Point3d[] Y) {
+        a = new Analysis(X, Y);
+        a.setCmaReRunTimes(numReRuns);
+        a.setKernelWeightq(qkernelWeight);
+        a.setKernelWeightp(pkernelWeight);
+        System.out.println("[Point3d] p set to:" + pkernelWeight);
     }
 
     private boolean checkIfImagesAreRightSize() {

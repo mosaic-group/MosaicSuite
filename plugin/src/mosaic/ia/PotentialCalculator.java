@@ -22,10 +22,6 @@ class PotentialCalculator {
     private final int type;
     private final double[] params;
 
-    // params: threshold, epsilon: for step function
-    // threshold, epsilon,sigma for all other parametric functions
-    // weights for nonparam
-
     public PotentialCalculator(double[] D_sample, double[] params, int type) // for non parametric
     {
         super();
@@ -54,11 +50,9 @@ class PotentialCalculator {
                     final double threshold = 0;
 
                     final double sigma = Math.abs(params[1]); // if sigma is large, z=d/sigma= small => -1/(1+z) is large => will be chosen during maximum likelihood.
-                    // double sigma=1;
 
                     final double epsilon = Math.abs(params[0]);
                     potential[i] = epsilon * PotentialFunctions.hernquistPotential(D_sample[i], threshold, sigma);
-                    // System.out.println("d:"+D_sample[i]+"pot:"+potential[i]);
                     sumPotential = sumPotential + potential[i];
                     gibbspotential[i] = Math.exp(-1 * potential[i]);
                 }
@@ -200,6 +194,4 @@ class PotentialCalculator {
 
         }
     }
-    // still not exponentiated
-
 }

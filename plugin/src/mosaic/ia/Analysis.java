@@ -110,20 +110,19 @@ public class Analysis {
         this.particleYSetCoordUnfiltered = null;
     }
 
-    public boolean isMaskSet() {
-        if (mask != null) {
-            return true;
-        }
-        return false;
-    }
-
     public Analysis(Point3d[] Xcoords, Point3d[] Ycoords) {
         this.particleXSetCoordUnfiltered = Xcoords;
         this.particleYSetCoordUnfiltered = Ycoords;
         this.X = null;
         this.Y = null;
         isImage = false;
-        // System.out.println("1:"+X.getWidth());
+    }
+
+    public boolean isMaskSet() {
+        if (mask != null) {
+            return true;
+        }
+        return false;
     }
 
     public void setPotentialType(int potentialType) {
@@ -139,7 +138,6 @@ public class Analysis {
     }
 
     public boolean calcDist(double gridSize) {
-
         boolean ret;
         DistanceCalculations dci;
         if (isImage == true) {
@@ -210,19 +208,14 @@ public class Analysis {
 
     private void generateKernelDensityforD() // just to run kernel density
     {
-
-        // double min=Double.MAX_VALUE;
-
         NN_D_grid = new double[dgrid.length];
         NN_D_grid[0] = kep.getProbability(dgrid[0]);
         for (int i = 1; i < dgrid.length; i++) {
             NN_D_grid[i] = kep.getProbability(dgrid[i]);
         }
-
     }
 
     public boolean calcMask() {
-
         genMask = new ImagePlus();
         if (Y != null) {
             genMask = ImageProcessUtils.generateMask(Y);
@@ -245,9 +238,6 @@ public class Analysis {
     }
 
     public boolean loadMask() {
-        // open file dialog, open image, test if it is binary, set
-        // genMask=loaded image
-
         ImagePlus tempMask = new ImagePlus();
         tempMask = ImageProcessUtils.openImage();
         if (tempMask == null) {
@@ -258,7 +248,6 @@ public class Analysis {
 
         if (tempMask.getType() != ImagePlus.GRAY8) {
             IJ.showMessage("ERROR: Loaded mask not 8 bit gray");
-
             return false;
         }
 
@@ -276,24 +265,11 @@ public class Analysis {
 
     public boolean resetMask() {
         mask = null;
-
         return true;
     }
 
-    /**
-     *
-     */
     public boolean cmaOptimization() {
-        // PlotUtils.plotDoubleArray("CDF",iam.getDgrid(),
-        // IAPUtils.calculateCDF(iam.getQ_D_grid()));
-
         final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(dgrid, q_D_grid, D, potentialType, IAPUtils.normalize(NN_D_grid));
-        /*
-         * double [] P1=fitfun.likelihood(initGuess);
-         * PlotUtils.plotDoubleArray("Loglikelihood", iam.getD(), P1); return
-         * true;
-         */
-
         if (potentialType == PotentialFunctions.NONPARAM) {
             best = new double[cmaReRunTimes][PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
         }
@@ -303,19 +279,7 @@ public class Analysis {
         allFitness = new double[cmaReRunTimes];
         double bestFitness = Double.MAX_VALUE;
         final ResultsTable rt = new ResultsTable();
-        /*
-         * Analyzer.getResultsTable();
-         * if (rt == null) {
-         * rt = new ResultsTable();
-         * Analyzer.setResultsTable(rt);
-         * }
-         * int rowNums=rt.getCounter();
-         * for (int i=0;i<rowNums;i++)
-         * rt.deleteRow(i);
-         * rt.updateResults();
-         */
         boolean diffFitness = false;
-        // cma.options.stopTolUpXFactor=10000;
         for (int k = 0; k < cmaReRunTimes; k++) {
             final CMAEvolutionStrategy cma = new CMAEvolutionStrategy();
             cma.options.writeDisplayToFile = 0;
@@ -343,65 +307,48 @@ public class Analysis {
                 final double[] initialX = new double[2];
 
                 final double[] initialsigma = new double[2];
-                initialX[0] = rn.nextDouble() * 5; // epsilon. average strength
-                // of 5
+                initialX[0] = rn.nextDouble() * 5; // epsilon. average strength of 5
 
                 if (meanD != 0) {
                     initialX[1] = rn.nextDouble() * meanD;
                     initialsigma[1] = initialX[1] / 3;
-                    //
                 }
                 else {
                     initialX[1] = 0;
                     initialsigma[1] = 1E-3;
                 }
 
-                // cma.setInitialX(initialX);
                 initialsigma[0] = initialX[0] / 3;
 
                 cma.setTypicalX(initialX);
                 cma.setInitialStandardDeviations(initialsigma);
-
             }
             else {
-
                 cma.setDimension(2);
                 final double[] initialX = new double[2];
 
                 final double[] initialsigma = new double[2];
-                initialX[0] = rn.nextDouble() * 5; // epsilon. average strength
-                // of 5
+                initialX[0] = rn.nextDouble() * 5; // epsilon. average strength of 5
 
                 if (meanD != 0) {
                     initialX[1] = rn.nextDouble() * meanD;
                     initialsigma[1] = initialX[1] / 3;
-                    //
                 }
                 else {
                     initialX[1] = 0;
                     initialsigma[1] = 1E-3;
                 }
 
-                // cma.setInitialX(initialX);
                 initialsigma[0] = initialX[0] / 3;
 
                 cma.setTypicalX(initialX);
                 cma.setInitialStandardDeviations(initialsigma);
-
             }
 
-            // cma.setInitialX(l, u);
-
-            // cma.options.lowerStandardDeviations=new double[]{1e-5,1e-5};
             // initialize cma and get fitness array to fill in later
-            final double[] fitness = cma.init(); // new
-            // double[cma.parameters.getPopulationSize()];
-
-            // initial output to files
-            // cma.writeToDefaultFilesHeaders(0); // 0 == overwrites old files
+            final double[] fitness = cma.init();
 
             // iteration loop
-
             while (cma.stopConditions.getNumber() == 0) {
 
                 // --- core iteration step ---
@@ -416,27 +363,17 @@ public class Analysis {
                     // assumes that the feasible domain is convex, the optimum
                     // is
                     while (!fitfun.isFeasible(pop[i])) {
-                        // not located on (or very close to) the domain
-                        // boundary,
+                        // not located on (or very close to) the domain boundary,
                         pop[i] = cma.resampleSingle(i); // initialX is feasible
                     }
-                    // and
-                    // initialStandardDeviations
-                    // are
-                    // sufficiently small to
-                    // prevent
-                    // quasi-infinite
-                    // looping here
-                    // compute fitness/objective value
-                    fitness[i] = fitfun.valueOf(pop[i]); // fitfun.valueOf() is
-                    // to be minimized
+                    // and initialStandardDeviations are sufficiently small to
+                    // prevent quasi-infinite looping here compute fitness/objective value
+                    fitness[i] = fitfun.valueOf(pop[i]); // fitfun.valueOf() is to be minimized
                 }
                 cma.updateDistribution(fitness); // pass fitness array to update
                 // search distribution
                 // --- end core iteration step ---
 
-                // output to files and console
-                // cma.writeToDefaultFiles();
                 final int outmod = 150;
                 if (cma.getCountIter() % (15 * outmod) == 1) {
                     cma.printlnAnnotation(); // might write file as well
@@ -446,20 +383,14 @@ public class Analysis {
                 }
             }
             // evaluate mean value as it is the best estimator for the optimum
-            cma.setFitnessOfMeanX(fitfun.valueOf(cma.getMeanX())); // updates
-            // the best
-            // ever
-            // solution
+            cma.setFitnessOfMeanX(fitfun.valueOf(cma.getMeanX())); // updates the best ever solution
 
-            // final output
-            // cma.writeToDefaultFiles(1);
             cma.println();
             cma.println("Terminated due to");
             for (final String s : cma.stopConditions.getMessages()) {
                 cma.println("  " + s);
             }
             cma.println("best function value " + cma.getBestFunctionValue() + " at evaluation " + cma.getBestEvaluationNumber());
-            // double [] best;
 
             allFitness[k] = cma.getBestFunctionValue();
             if (allFitness[k] < bestFitness) {
@@ -488,8 +419,6 @@ public class Analysis {
 
             IJ.showMessage("Warning: Optimization returned different results for reruns. The results may not be accurate. Displaying the parameters and the plots corr. to best fitness.");
         }
-
-        // System.out.println("Best parameters: Threshold, Sigma, Epsilon"+best[0]+" "+best[1]+" "+best[2]);
 
         if (!showAllRerunResults) { // show only best
             final double[] fitPotential = fitfun.getPotential(best[bestFitnessindex]);
@@ -562,11 +491,9 @@ public class Analysis {
             P_grid = IAPUtils.normalize(P_grid);
 
             plotQPNN(dgrid, P_grid, q, nnObserved);
-
         }
 
         return true;
-
     }
 
     private void plotQP(double[] d, double[] q, double[] nn) {
@@ -589,7 +516,6 @@ public class Analysis {
         }
         plot.setLimits(d[0], d[d.length - 1], 0, max);
         plot.setColor(Color.BLUE);
-        // plot.setLimits(0, 1, 0, 10);
         plot.setLineWidth(2);
         plot.addLabel(.7, .2, "----  ");
 
@@ -607,7 +533,6 @@ public class Analysis {
         plot.addLabel(.75, .3, "q(d): Context");
 
         plot.show();
-
     }
 
     private void plotQPNN(double[] d, double[] p, double[] q, double[] nn) {
@@ -636,7 +561,6 @@ public class Analysis {
         }
         plot.setLimits(d[0], d[d.length - 1], 0, max);
         plot.setColor(Color.BLUE);
-        // plot.setLimits(0, 1, 0, 10);
         plot.setLineWidth(2);
         plot.addLabel(.65, .2, "----  ");
         plot.draw();
@@ -654,7 +578,6 @@ public class Analysis {
 
         plot.setColor(Color.green);
         plot.addPoints(d, p, PlotWindow.LINE);
-        // plot.setLimits(-1, xMax, yMin, yMax);
         plot.addLabel(.65, .4, "----  ");
         plot.setColor(Color.black);
         plot.draw();
@@ -675,7 +598,6 @@ public class Analysis {
         }
 
         plot.show();
-
     }
 
     public boolean hypTest(int monteCarloRunsForTest, double alpha) {
@@ -721,5 +643,4 @@ public class Analysis {
     public void setKernelWeightp(double kernelWeightp) {
         this.kernelWeightp = kernelWeightp;
     }
-
 }
