@@ -95,8 +95,7 @@ public abstract class DistanceCalculations {
         double max = Double.MIN_VALUE, min = Double.MAX_VALUE;
         double distance;
         final double[] tempPosition = new double[3];
-        final KDTreeNearestNeighbor kdtnn = new KDTreeNearestNeighbor();
-        kdtnn.createKDTree(particleYSetCoord);
+        final KDTreeNearestNeighbor kdtnn = new KDTreeNearestNeighbor(particleYSetCoord);
         if (mask == null) {
 
             for (int i = 0; i < x_size; i++) {

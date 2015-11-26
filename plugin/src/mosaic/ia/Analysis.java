@@ -160,8 +160,6 @@ public class Analysis {
         // System.out.println("Weka weight:"+IAPUtils.calcWekaWeights(D));
         kep = IAPUtils.createkernelDensityEstimator(D, kernelWeightp);
 
-        // ke = IAPUtils.createkernelDensityEstimator(dci.getDGrid(), kernelWeightq);
-        // fillQofD_grid(dci.getDGrid());
         generateKernelDensityforD();
         ret = true;
         if (ret == true) {
@@ -184,9 +182,6 @@ public class Analysis {
         D1 = D;
         Arrays.sort(D1);
         SumNormQ[0] = q[0];
-        // ImageProcessUtils.saveArraytoFile(new File("/Users/arun/Documents/matlab/nonParam/q.txt"), q);
-        // ImageProcessUtils.saveArraytoFile(new File("/Users/arun/Documents/matlab/nonParam/d.txt"), dgrid);
-        // ImageProcessUtils.saveArraytoFile(new File("/Users/arun/Documents/matlab/nonParam/Dfile.txt"), D);
         for (int i = 1; i < dgrid.length; i++) {
             SumNormQ[i] = SumNormQ[i - 1] + q[i];
         }
@@ -195,8 +190,6 @@ public class Analysis {
             for (int j = 1; j < dgrid.length; j++) {
                 if (dgrid[j - 1] <= D1[i] && dgrid[j] > D1[i]) {
                     QD[i] = IAPUtils.linearInterpolation(SumNormQ[j - 1], dgrid[j - 1], SumNormQ[j], dgrid[j], D1[i]);
-                    // (SumNormQ[j-1]+SumNormQ[j])/2;
-                    // QD[i]=(SumNormQ[j-1]);
                 }
 
             }
@@ -233,9 +226,9 @@ public class Analysis {
         genMask = new ImagePlus();
         if (Y != null) {
             genMask = ImageProcessUtils.generateMask(Y);
+            System.out.println("Generated mask: " + genMask.getType());
             return true;
         }
-        // System.out.println(genMask.getType());
         return false;
     }
 
@@ -243,7 +236,6 @@ public class Analysis {
         if (genMask == null) {
             return false;
         }
-        // new Macro_Runner().run("Convert to Mask");
         genMask.updateImage();
 
         System.out.println("Mask size is same");
@@ -257,7 +249,7 @@ public class Analysis {
         // genMask=loaded image
 
         ImagePlus tempMask = new ImagePlus();
-        tempMask = ImageProcessUtils.openImage("");
+        tempMask = ImageProcessUtils.openImage();
         if (tempMask == null) {
             IJ.showMessage("Filetype not recognized");
             return false;

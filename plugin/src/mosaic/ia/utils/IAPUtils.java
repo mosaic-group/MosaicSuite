@@ -31,7 +31,6 @@ public class IAPUtils {
     }
 
     public static double[] normalize(double[] array) {
-
         double sum = 0;
         final double[] retarray = new double[array.length];
         for (int i = 0; i < array.length; i++) {
@@ -44,20 +43,15 @@ public class IAPUtils {
     }
 
     public static float[][][] imageTo3Darray(ImagePlus image) {
-
         final ImageStack is = image.getStack();
-        ImageProcessor imageProc;// ,mgp;
-
         final float[][][] image3d = new float[is.getSize()][is.getWidth()][is.getHeight()];
 
         for (int k = 0; k < is.getSize(); k++) {
-            imageProc = is.getProcessor(k + 1);
-            // mgp=mgs.getProcessor(k+1);
-
+            ImageProcessor imageProc = is.getProcessor(k + 1);
             image3d[k] = imageProc.getFloatArray();
         }
+        
         return image3d;
-
     }
 
     public static double[] getMinMaxMeanD(double[] D) {
@@ -90,9 +84,8 @@ public class IAPUtils {
         final KernelEstimator ker = new KernelEstimator(1 / precision);
         System.out.println("Weight:" + weight);
         for (int i = 0; i < distances.length; i++) {
-            ker.addValue(distances[i], weight); // weight is important, since
-            // bandwidth is calculated with
-            // it:
+            ker.addValue(distances[i], weight); 
+            // weight is important, since bandwidth is calculated with it:
             // http://stackoverflow.com/questions/3511012/how-ist-the-bandwith-calculated-in-weka-kernelestimator-class
             // depending on the changes to the grid, this might have to be changed.
             // System.out.println("Added values to kernel:"+ke.getNumKernels());
@@ -193,8 +186,7 @@ public class IAPUtils {
     }
 
     /**
-     * Return the optimal bin number for a histogram of the data given in array,
-     * using the
+     * Return the optimal bin number for a histogram of the data given in array, sing the
      * Freedman and Diaconis rule (bin_space = 2*IQR/n^(1/3)).
      * Inspired from Fiji TMUtils.java
      */
@@ -215,5 +207,4 @@ public class IAPUtils {
         }
         return noBins;
     }
-
 }

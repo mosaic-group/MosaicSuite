@@ -205,9 +205,9 @@ public class CSVTest extends CommonBase {
 
         // Verify
         final String expectedContent = "ID,CalculatedValue\n" +
-                                 "%name1:valueForName1\n" +
-                                 "%name2:valueForName2\n" +
-                                 "1,5.2\n";
+                                        "%name1:valueForName1\n" +
+                                        "%name2:valueForName2\n" +
+                                        "1,5.2\n";
         verifyFileContent(fullFileName, expectedContent);
     }
 
@@ -252,9 +252,9 @@ public class CSVTest extends CommonBase {
 
             // Verify
             final String expectedContent = "ID,CalculatedValue\n" +
-                                     "%anyName:anyValue\n" +
-                                     "1,33.3\n" +
-                                     "4,99.1\n";
+                                            "%anyName:anyValue\n" +
+                                            "1,33.3\n" +
+                                            "4,99.1\n";
             verifyFileContent(fullFileName, expectedContent);
         }
         {  // Append additional data to that file
@@ -267,10 +267,10 @@ public class CSVTest extends CommonBase {
 
             // Verify
             final String expectedContent = "ID,CalculatedValue\n" +
-                                     "%anyName:anyValue\n" +
-                                     "1,33.3\n" +
-                                     "4,99.1\n" +
-                                     "5,1.23\n";
+                                            "%anyName:anyValue\n" +
+                                            "1,33.3\n" +
+                                            "4,99.1\n" +
+                                            "5,1.23\n";
             verifyFileContent(fullFileName, expectedContent);
         }
     }
@@ -304,11 +304,11 @@ public class CSVTest extends CommonBase {
 
         // Verify
         final String expectedContent = "ID,CalculatedValue\n" +
-                                 "%name3:valueForName3\n" +
-                                 "%name1:valueForName1\n" +
-                                 "%name2:valueForName2\n" +
-                                 "5,1.23\n" +
-                                 "3,3.14\n";
+                                        "%name3:valueForName3\n" +
+                                        "%name1:valueForName1\n" +
+                                        "%name2:valueForName2\n" +
+                                        "5,1.23\n" +
+                                        "3,3.14\n";
         verifyFileContent(fullFileName, expectedContent);
     }
 
@@ -327,8 +327,8 @@ public class CSVTest extends CommonBase {
 
         // Verify
         final String expectedContent = "ID;CalculatedValue\n" +
-                                 "1;33.3\n" +
-                                 "4;99.1\n";
+                                       "1;33.3\n" +
+                                       "4;99.1\n";
         verifyFileContent(fullFileName, expectedContent);
     }
 
@@ -338,12 +338,12 @@ public class CSVTest extends CommonBase {
 
         // Prepare data
         final String expectedContent = "ID;CalculatedValue\n" +
-                                 "1;33.3\n" +
-                                 "4;99.1\n";
+                                       "1;33.3\n" +
+                                       "4;99.1\n";
         saveFile(fullFileName, expectedContent);
 
         // Tested methods
-        csv.setCSVPreferenceFromFile(fullFileName);
+        assertEquals(2, csv.setCSVPreferenceFromFile(fullFileName));
         final List<TestThing> outdst = csv.Read(fullFileName, oc);
 
         // Verify
@@ -416,5 +416,24 @@ public class CSVTest extends CommonBase {
                                  "1\n" +
                                  "4\n";
         verifyFileContent(fullFileName, expectedContent);
+    }
+    
+    @Test
+    public void testReadNoHeader() {
+        final String fullFileName = fullFileName("testRead.csv");
+
+        // Prepare data
+        final String expectedContent = "1,33.3\n" +
+                                       "4,99.1\n";
+        saveFile(fullFileName, expectedContent);
+
+        // Tested method
+        final List<TestThing> outdst = csv.Read(fullFileName, oc, /* skipHeader */ true);
+
+        // Verify
+        final List<TestThing> expectedData = new ArrayList<TestThing>();
+        expectedData.add(new TestThing(1, 33.3));
+        expectedData.add(new TestThing(4, 99.1));
+        assertEquals(expectedData, outdst);
     }
 }

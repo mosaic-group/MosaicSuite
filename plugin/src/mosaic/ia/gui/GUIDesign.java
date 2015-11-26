@@ -79,7 +79,6 @@ public class GUIDesign implements ActionListener {
      * Initialize the contents of the frame.
      */
     private void initialize() {
-
         frmInteractionAnalysis = new JFrame("Interaction Analysis");
         blackBorder = BorderFactory.createLineBorder(Color.black);
         browseX = new JButton("Open");
@@ -169,7 +168,6 @@ public class GUIDesign implements ActionListener {
         final JLabel lblPotentialEstimation = new JLabel("Potential estimation");
 
         jcb = new JComboBox<String>(items);
-        // jcb.setModel(new DefaultComboBoxModel(potentialOptions));
         jcb.addActionListener(this);
 
         estimate = new JButton("Estimate");
@@ -236,8 +234,6 @@ public class GUIDesign implements ActionListener {
         panel_5.setLayout(gl_panel_5);
 
         final JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP);
-        // tabbedPane.setEnabled(false);
-
         final JTabbedPane tabbedPane_1 = new JTabbedPane(SwingConstants.TOP);
 
         final JPanel panel_3 = new JPanel();
@@ -455,7 +451,7 @@ public class GUIDesign implements ActionListener {
             new HelpInteractionAnalysis(0, 0);
         }
         else if (e.getSource() == browseX) {
-            imgx = ImageProcessUtils.openImage("");
+            imgx = ImageProcessUtils.openImage();
             if (imgx == null) {
                 IJ.showMessage("Cancelled/Filetype not recognized");
                 return;
@@ -478,7 +474,7 @@ public class GUIDesign implements ActionListener {
             return;
         }
         else if (e.getSource() == browseY) {
-            imgy = ImageProcessUtils.openImage("");
+            imgy = ImageProcessUtils.openImage();
 
             if (imgy == null) {
                 IJ.showMessage("Cancelled/Filetype not recognized");
@@ -501,14 +497,10 @@ public class GUIDesign implements ActionListener {
             return;
         }
         else if (e.getSource() == btnLoadCsvFileX) {
-
-            // Problem: how to make masks, how to calculate q(d), etc
-            Xcoords = ImageProcessUtils.openCSVFile("Open CSV file for image X", "");
+            Xcoords = ImageProcessUtils.openCsvFile("Open CSV file for image X");
             if (Xcoords == null) {
-                IJ.showMessage("Error: Wrong CSV format");
                 return;
             }
-            System.out.println("Loaded X with size" + Xcoords.length);
             if (Xcoords != null && Ycoords != null) {
                 a = new Analysis(Xcoords, Ycoords);
                 a.setCmaReRunTimes(numReRuns);
@@ -518,16 +510,11 @@ public class GUIDesign implements ActionListener {
             return;
         }
         else if (e.getSource() == btnLoadCsvFileY) {
-
-            Ycoords = ImageProcessUtils.openCSVFile("Open CSV file for image Y", "");
+            Ycoords = ImageProcessUtils.openCsvFile("Open CSV file for image Y");
             if (Ycoords == null) {
-                IJ.showMessage("Error: Wrong CSV format");
                 return;
             }
 
-            System.out.println("Loaded Y with size" + Ycoords.length);
-            // ImageProcessUtils.openCSVFile("Open CSV file for image Y", "");
-            // a.loadYCoordinates();
             if (Xcoords != null && Ycoords != null) {
                 a = new Analysis(Xcoords, Ycoords);
                 a.setCmaReRunTimes(numReRuns);
@@ -577,8 +564,6 @@ public class GUIDesign implements ActionListener {
             a.setKernelWeightq(Double.parseDouble(kernelWeightq.getText()));
             a.setKernelWeightp(Double.parseDouble(kernelWeightp.getText()));
 
-            // a.setImageList(imgx, imgy);
-
             if (!a.getIsImage()) {
                 xmin = Double.parseDouble(txtXmin.getText());
                 ymin = Double.parseDouble(txtYmin.getText());
@@ -619,7 +604,6 @@ public class GUIDesign implements ActionListener {
                 PotentialFunctions.initializeNonParamWeights(a.getMinD(), a.getMaxD());
             }
             a.setPotentialType(potentialType); // for the first time
-            // a.test();
             if (!a.cmaOptimization()) {
                 IJ.showMessage("Error: Calculate distances first!");
             }
@@ -647,11 +631,11 @@ public class GUIDesign implements ActionListener {
             return;
         }
         else if (e.getSource() == genMask) {
-            if (!a.getIsImage()) {
-                IJ.showMessage("Cannot generate mask for coordinates. Load a mask instead");
-                return;
-            }
             try {
+                if (!a.getIsImage()) {
+                    IJ.showMessage("Cannot generate mask for coordinates. Load a mask instead");
+                    return;
+                }
 
                 if (!a.calcMask()) {
                     IJ.showMessage("Image Y is null: Cannot generate mask");
@@ -664,7 +648,6 @@ public class GUIDesign implements ActionListener {
             return;
         }
         else if (e.getSource() == loadMask) {
-
             a.loadMask();
 
             if (a.applyMask() == true) {
@@ -676,7 +659,6 @@ public class GUIDesign implements ActionListener {
             return;
         }
         else if (e.getSource() == resetMask) {
-
             a.resetMask();
             IJ.showMessage("Mask reset to Null");
             return;
@@ -703,5 +685,4 @@ public class GUIDesign implements ActionListener {
 
         }
     }
-
 }
