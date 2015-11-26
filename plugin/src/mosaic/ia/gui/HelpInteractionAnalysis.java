@@ -16,7 +16,6 @@ class HelpInteractionAnalysis extends HelpGUI {
     private final JFrame frame;
     private final JPanel panel;
 
-
     public HelpInteractionAnalysis(int x, int y) {
         frame = new JFrame("Interaction Analysis Help");
         frame.setSize(555, 780);
@@ -49,6 +48,4 @@ class HelpInteractionAnalysis extends HelpGUI {
 
         frame.setVisible(true);
     }
-
-
 }

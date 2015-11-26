@@ -13,10 +13,6 @@ import weka.core.Instances;
 import weka.core.neighboursearch.KDTree;
 
 
-/*
- * Notation: pointsY: base set of points, pointsX: query points.
- */
-
 public class KDTreeNearestNeighbor {
 
     private KDTree kdtree;
@@ -45,10 +41,8 @@ public class KDTreeNearestNeighbor {
 
         try {
             kdtree.setInstances(pointsYinstances);
-
             final EuclideanDistance df = (EuclideanDistance) kdtree.getDistanceFunction();
             df.setDontNormalize(true);
-
         }
         catch (final Exception e) {
             e.printStackTrace();

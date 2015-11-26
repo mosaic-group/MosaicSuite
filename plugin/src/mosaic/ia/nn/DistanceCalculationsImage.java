@@ -20,7 +20,6 @@ public class DistanceCalculationsImage extends DistanceCalculations {
         super(mask, gridSize, kernelWeightq, discretizationSize);
         this.X = X;
         this.Y = Y;
-
     }
 
     private Point3d[] extractParticles(ImagePlus image) {
@@ -32,35 +31,23 @@ public class DistanceCalculationsImage extends DistanceCalculations {
         yscale = calibration.pixelWidth;
 
         // X and Y should be 1.0 Z any
-
         yscale /= xscale;
         zscale /= xscale;
         xscale = 1.0;
 
-        Vector<Particle> particle = new Vector<Particle>();
-
-        particle = ImageProcessUtils.detectParticlesinStack(image);
-
+        Vector<Particle> particle = ImageProcessUtils.detectParticlesinStack(image);
         return applyMaskandgetCoordinates(ImageProcessUtils.getCoordinates(particle));
     }
 
     private void genStateDensityForImages() {
-
         stateDensity(0, 0, 0, X.getHeight() - 1, X.getWidth() - 1, X.getNSlices() - 1);
-
     }
 
     @Override
     public void calcDistances() {
-
         particleXSetCoord = extractParticles(X);
         particleYSetCoord = extractParticles(Y);
-        // ImageProcessUtils.saveCoordinates(particleXSetCoord, particleYSetCoord);
-
-        // DGrid=genD_grid();
         genStateDensityForImages();
         calcD();
-
     }
-
 }

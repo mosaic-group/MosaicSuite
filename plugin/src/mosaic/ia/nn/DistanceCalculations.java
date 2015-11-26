@@ -12,9 +12,6 @@ import mosaic.ia.utils.ImageProcessUtils;
 import weka.estimators.KernelEstimator;
 
 
-//this class should take images/mask/coords and return D, dgrid
-//DistanceClassesImage and DistanceClassesCoords extend this.
-
 public abstract class DistanceCalculations {
 
     private double[] D;
@@ -40,7 +37,6 @@ public abstract class DistanceCalculations {
     private final int discretizationSize;
 
     DistanceCalculations(ImagePlus mask, double gridSize, double kernelWeightq, int discretizationSize) {
-        super();
         this.mask = mask;
         this.gridSize = gridSize;
         this.kernelWeightq = kernelWeightq;
@@ -57,26 +53,21 @@ public abstract class DistanceCalculations {
     }
 
     private boolean isInsideMask(double[] coords) {
-
         try {
             if (maskImage3d[(int) Math.floor(coords[2])][(int) Math.floor(coords[1])][(int) Math.floor(coords[0])] > 0) {
-
                 return true;
             }
         }
-        catch (final ArrayIndexOutOfBoundsException e) // point outside array.
-        {
+        catch (final ArrayIndexOutOfBoundsException e) {
             return false;
         }
 
         return false;
-
     }
 
     // this method should return a double array , 1st row: values of dgrid - q(min)-q(max) /1000, and 2nd: pdf(normalized) at these points.
     protected void stateDensity(double x1, double y1, double z1, double x2, double y2, double z2) // dgrid is 1/1000 of min-max
     {
-
         final double precision = 100d;
         final KernelEstimator ker = new KernelEstimator(1 / precision);
 
@@ -152,7 +143,6 @@ public abstract class DistanceCalculations {
         }
 
         // make dgrid
-
         qOfD[0][0] = 0;
 
         final double bin_size = (max - min) / discretizationSize;
@@ -162,26 +152,17 @@ public abstract class DistanceCalculations {
         for (int i = 1; i < discretizationSize; i++) {
             qOfD[0][i] = qOfD[0][i - 1] + bin_size;
             q[i] = ker.getProbability(qOfD[0][i]);
-            // System.out.println("q,i"+q[i]+","+i);
         }
         qOfD[1] = IAPUtils.normalize(q);
-        // return qOfD;
-
-        for (int i = 0; i < discretizationSize; i++) {
-            // System.out.println("q,qofD0,qofD1,i"+q[i]+","+qOfD[0][i]+","+qOfD[1][i]+","+i);
-        }
-
     }
 
     public abstract void calcDistances();
 
     protected void calcD() {
         D = ImageProcessUtils.KDTreeDistCalc(particleXSetCoord, particleYSetCoord);
-
     }
 
     protected Point3d[] applyMaskandgetCoordinates(Point3d[] points) // if mask==null, dont use this. this is used to filter the point3d array with the mask.
-
     {
         if (mask == null) {
             return points;
@@ -193,12 +174,9 @@ public abstract class DistanceCalculations {
             points[i].get(coords);
             if (isInsideMask(coords)) {
                 vectorPoints.add(new Point3d(coords[0] * xscale, coords[1] * yscale, coords[2] * zscale));
-                // vectorPoints.add(points[i]);
                 count++;
             }
         }
         return vectorPoints.toArray(new Point3d[count]);
-
     }
-
 }

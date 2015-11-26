@@ -7,8 +7,7 @@ import ij.ImagePlus;
 
 public class DistanceCalculationsCoords extends DistanceCalculations {
 
-    public DistanceCalculationsCoords(Point3d[] X, Point3d[] Y, ImagePlus mask, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, double gridSize, double kernelWeightq,
-            int discretizationSize) {
+    public DistanceCalculationsCoords(Point3d[] X, Point3d[] Y, ImagePlus mask, double xmin, double ymin, double zmin, double xmax, double ymax, double zmax, double gridSize, double kernelWeightq, int discretizationSize) {
         super(mask, gridSize, kernelWeightq, discretizationSize);
         this.X = X;
         this.Y = Y;
@@ -25,13 +24,11 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
 
     @Override
     public void calcDistances() {
-
         particleXSetCoord = applyMaskandgetCoordinates(X);
         particleYSetCoord = applyMaskandgetCoordinates(Y);
         
         genStateDensityForCoords();
         calcD();
-
     }
 
     private void genStateDensityForCoords() {

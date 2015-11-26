@@ -110,8 +110,7 @@ class PotentialCalculator {
                 break;
 
             default:
-                break; // is this required?
-
+                break;
         }
     }
 
@@ -190,8 +189,7 @@ class PotentialCalculator {
                 break;
 
             default:
-                break; // is this required?
-
+                break;
         }
     }
 }
