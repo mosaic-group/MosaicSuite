@@ -5,9 +5,18 @@ import mosaic.ia.gui.GUIDesign;
 
 
 /**
+ * Interaction Analysis plugin for Fiji/ImageJ. 
+ * Based on:
+ * 
+ * Beyond co-localization: inferring spatial interactions between sub-cellular structures from microscopy images. 
+ * J. A. Helmuth, G. Paul, and I. F. Sbalzarini. 
+ * BMC Bioinformatics, 11:372, 2010.
+ * 
+ * MosaicIA: an ImageJ/Fiji plugin for spatial pattern and interaction analysis. 
+ * A. Shivanandan, A. Radenovic, and I. F. Sbalzarini. 
+ * BMC Bioinformatics, 14:349, 2013.
+ * 
  * @author arun.shivanandan@inf.ethz.ch
- * To do: Mask check. for q(d), p(d). ROI. h in q(d).3D
- * sorting array of NN: might be dangerous.
  */
 public class IAPMosaic_ implements PlugIn { // NO_UCD
     
