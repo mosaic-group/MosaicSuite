@@ -42,7 +42,7 @@ public class GUIDesign implements ActionListener {
     private int potentialType = PotentialFunctions.HERNQUIST;
     private Point3d[] Xcoords, Ycoords;
 
-    private Analysis a;
+    private Analysis iAnalysis;
     private int monteCarloRunsForTest = 1000;
     private int numReRuns = 10;
     private final double qkernelWeight = .001;
@@ -502,31 +502,31 @@ public class GUIDesign implements ActionListener {
                 smoothnessNP.setEnabled(false);
                 lblSmoothness.setEnabled(false);
                 lblsupportPts.setEnabled(false);
-                if (selected == items[1]) {
-                    potentialType = PotentialFunctions.STEP;
-                }
                 if (selected == items[0]) {
                     potentialType = PotentialFunctions.HERNQUIST;
                 }
-                if (selected == items[2]) {
+                else if (selected == items[1]) {
+                    potentialType = PotentialFunctions.STEP;
+                }
+                else if (selected == items[2]) {
                     potentialType = PotentialFunctions.L1;
                 }
-                if (selected == items[3]) {
+                else if (selected == items[3]) {
                     potentialType = PotentialFunctions.L2;
                 }
-                if (selected == items[4]) {
+                else if (selected == items[4]) {
                     potentialType = PotentialFunctions.PlUMMER;
                 }
             }
 
-            a.setPotentialType(potentialType);
+            iAnalysis.setPotentialType(potentialType);
         }
         else if (e.getSource() == btnCalculateDistances) {
             gridSize = Double.parseDouble(gridSizeInp.getText());
-            a.setKernelWeightq(Double.parseDouble(kernelWeightq.getText()));
-            a.setKernelWeightp(Double.parseDouble(kernelWeightp.getText()));
+            iAnalysis.setKernelWeightq(Double.parseDouble(kernelWeightq.getText()));
+            iAnalysis.setKernelWeightp(Double.parseDouble(kernelWeightp.getText()));
 
-            if (!a.getIsImage()) {
+            if (!iAnalysis.getIsImage()) {
                 xmin = Double.parseDouble(txtXmin.getText());
                 ymin = Double.parseDouble(txtYmin.getText());
                 zmin = Double.parseDouble(txtZmin.getText());
@@ -539,17 +539,16 @@ public class GUIDesign implements ActionListener {
                     IJ.showMessage("Error: boundary values are not correct");
                     return;
                 }
-                a.setX1(xmin);
-                a.setX2(xmax);
-                a.setY1(ymin);
-                a.setY2(ymax);
-                a.setZ1(zmin);
-                a.setZ2(zmax);
+                iAnalysis.setX1(xmin);
+                iAnalysis.setX2(xmax);
+                iAnalysis.setY1(ymin);
+                iAnalysis.setY2(ymax);
+                iAnalysis.setZ1(zmin);
+                iAnalysis.setZ2(zmax);
                 System.out.println("Boundary:" + xmin + "," + xmax + ";" + ymin + "," + ymax + ";" + zmin + "," + zmax);
-
             }
 
-            if (!a.calcDist(gridSize)) {
+            if (!iAnalysis.calcDist(gridSize)) {
                 IJ.showMessage("No X and Y images/coords loaded. Cannot calculate distance");
             }
         }
@@ -557,14 +556,14 @@ public class GUIDesign implements ActionListener {
             PotentialFunctions.NONPARAM_WEIGHT_SIZE = Integer.parseInt(numSupport.getText());
             PotentialFunctions.NONPARAM_SMOOTHNESS = Double.parseDouble(smoothnessNP.getText());
             numReRuns = Integer.parseInt(reRuns.getText());
-            a.setCmaReRunTimes(numReRuns);
+            iAnalysis.setCmaReRunTimes(numReRuns);
 
             System.out.println("Estimating with potential type:" + potentialType);
             if (potentialType == PotentialFunctions.NONPARAM) {
-                PotentialFunctions.initializeNonParamWeights(a.getMinD(), a.getMaxD());
+                PotentialFunctions.initializeNonParamWeights(iAnalysis.getMinD(), iAnalysis.getMaxD());
             }
-            a.setPotentialType(potentialType); // for the first time
-            if (!a.cmaOptimization()) {
+            iAnalysis.setPotentialType(potentialType); // for the first time
+            if (!iAnalysis.cmaOptimization()) {
                 IJ.showMessage("Error: Calculate distances first!");
             }
         }
@@ -572,7 +571,7 @@ public class GUIDesign implements ActionListener {
             monteCarloRunsForTest = Integer.parseInt(mCRuns.getText());
             alpha = Double.parseDouble(alphaField.getText());
 
-            if (!a.hypTest(monteCarloRunsForTest, alpha)) {
+            if (!iAnalysis.hypTest(monteCarloRunsForTest, alpha)) {
                 IJ.showMessage("Error: Run estimation first");
             }
         }
@@ -586,12 +585,12 @@ public class GUIDesign implements ActionListener {
         }
         else if (e.getSource() == genMask) {
             try {
-                if (!a.getIsImage()) {
+                if (!iAnalysis.getIsImage()) {
                     IJ.showMessage("Cannot generate mask for coordinates. Load a mask instead");
                     return;
                 }
 
-                if (!a.calcMask()) {
+                if (!iAnalysis.calcMask()) {
                     IJ.showMessage("Image Y is null: Cannot generate mask");
                 }
             }
@@ -601,20 +600,20 @@ public class GUIDesign implements ActionListener {
             }
         }
         else if (e.getSource() == loadMask) {
-            a.loadMask();
+            iAnalysis.loadMask();
 
-            if (a.applyMask() == true) {
-                IJ.showMessage("Mask set to:" + a.getMaskTitle());
+            if (iAnalysis.applyMask() == true) {
+                IJ.showMessage("Mask set to:" + iAnalysis.getMaskTitle());
             }
             else {
                 IJ.showMessage("No mask to apply! Load/Generate a mask.");
             }
         }
         else if (e.getSource() == resetMask) {
-            a.resetMask();
+            iAnalysis.resetMask();
             IJ.showMessage("Mask reset to Null");
         }
-        else if (a == null) {
+        else if (iAnalysis == null) {
             IJ.showMessage("Load images/coordinates first");
         }
     }
@@ -630,18 +629,18 @@ public class GUIDesign implements ActionListener {
     }
 
     private void initializeAnalysis(ImagePlus X, ImagePlus Y) {
-        a = new Analysis(X, Y);
-        a.setCmaReRunTimes(numReRuns);
-        a.setKernelWeightq(qkernelWeight);
-        a.setKernelWeightp(pkernelWeight);
+        iAnalysis = new Analysis(X, Y);
+        iAnalysis.setCmaReRunTimes(numReRuns);
+        iAnalysis.setKernelWeightq(qkernelWeight);
+        iAnalysis.setKernelWeightp(pkernelWeight);
         System.out.println("[ImagePlus] p set to:" + pkernelWeight);
     }
     
     private void initializeAnalysis(Point3d[] X, Point3d[] Y) {
-        a = new Analysis(X, Y);
-        a.setCmaReRunTimes(numReRuns);
-        a.setKernelWeightq(qkernelWeight);
-        a.setKernelWeightp(pkernelWeight);
+        iAnalysis = new Analysis(X, Y);
+        iAnalysis.setCmaReRunTimes(numReRuns);
+        iAnalysis.setKernelWeightq(qkernelWeight);
+        iAnalysis.setKernelWeightp(pkernelWeight);
         System.out.println("[Point3d] p set to:" + pkernelWeight);
     }
 
