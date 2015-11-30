@@ -23,9 +23,7 @@ public class DistanceCalculationsImage extends DistanceCalculations {
     }
 
     private Point3d[] extractParticles(ImagePlus image) {
-
         final Calibration calibration = image.getCalibration();
-
         zscale = calibration.pixelDepth;
         xscale = calibration.pixelHeight;
         yscale = calibration.pixelWidth;
@@ -36,18 +34,15 @@ public class DistanceCalculationsImage extends DistanceCalculations {
         xscale = 1.0;
 
         Vector<Particle> particle = ImageProcessUtils.detectParticlesinStack(image);
+        System.out.println("NUM OF PARTICLES: " + particle.size());
         return applyMaskandgetCoordinates(ImageProcessUtils.getCoordinates(particle));
-    }
-
-    private void genStateDensityForImages() {
-        stateDensity(0, 0, 0, X.getHeight() - 1, X.getWidth() - 1, X.getNSlices() - 1);
     }
 
     @Override
     public void calcDistances() {
         particleXSetCoord = extractParticles(X);
         particleYSetCoord = extractParticles(Y);
-        genStateDensityForImages();
+        stateDensity(0, 0, 0, X.getHeight() - 1, X.getWidth() - 1, X.getNSlices() - 1);
         calcD();
     }
 }

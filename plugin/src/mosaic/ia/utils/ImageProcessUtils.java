@@ -161,12 +161,22 @@ public class ImageProcessUtils {
     }
     
     public static Point3d[] openCsvFile(String aTitle) {
-        // Let user choose a input file
-        final OpenDialog od = new OpenDialog(aTitle);
-        if (od.getDirectory() == null || od.getFileName() == null) {
-            return null;
+        return openCsvFile(aTitle, null);
+    }
+    
+    public static Point3d[] openCsvFile(String aTitle, String aFileName) {
+        File file = null;
+        if (aFileName == null) {
+            // Let user choose a input file
+            final OpenDialog od = new OpenDialog(aTitle);
+            if (od.getDirectory() == null || od.getFileName() == null) {
+                return null;
+            }
+            file = new File(od.getDirectory() + od.getFileName());
         }
-        final File file = new File(od.getDirectory() + od.getFileName());
+        else {
+            file = new File(aFileName);
+        }
         if (!file.exists()) {
             IJ.showMessage("There is no file [" + file.getName() + "]");
             return null;

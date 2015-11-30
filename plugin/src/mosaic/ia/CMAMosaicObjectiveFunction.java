@@ -21,6 +21,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
         this.observedDGrid = observedDGrid;
         this.potentialType = potentialType;
         findInterpInterval(); // position of data d in dgrid
+        updateMacheps();
     }
 
     public double[] getD_grid() {
@@ -73,6 +74,17 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
         return sum * s * s;
     }
 
+    private static double MACHEPS = 2E-16;
+
+    // to update machine epsilon
+    private static void updateMacheps() {
+        MACHEPS = 1.0d;
+        do {
+            MACHEPS /= 2.0d;
+        } while (1 + MACHEPS / 2 != 1);
+        System.out.println("Machine epsilon: " + MACHEPS);
+    }
+    
     @Override
     public boolean isFeasible(double[] x) {
         // if non param, return true.
@@ -85,7 +97,7 @@ class CMAMosaicObjectiveFunction extends AbstractObjectiveFunction {
             final double[] minmaxmeanDg = IAPUtils.getMinMaxMeanD(D_grid);
             final double[] minmaxmeanD = IAPUtils.getMinMaxMeanD(D);
 
-            if (x[0] >= IAPUtils.MACHEPS && x[0] <= 50 && x[1] >= Math.max(Math.min(minmaxmeanDg[0], minmaxmeanD[0]), IAPUtils.MACHEPS) && x[1] <= Math.max(minmaxmeanDg[1], minmaxmeanD[1])) {
+            if (x[0] >= MACHEPS && x[0] <= 50 && x[1] >= Math.max(Math.min(minmaxmeanDg[0], minmaxmeanD[0]), MACHEPS) && x[1] <= Math.max(minmaxmeanDg[1], minmaxmeanD[1])) {
                 // 50 is aribtrary. but log(Double.MAXVAL)= log((2-(2^-52))*(2^1023))= 709.7827
                 return true;
             }

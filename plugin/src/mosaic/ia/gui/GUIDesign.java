@@ -3,11 +3,15 @@ package mosaic.ia.gui;
 
 import ij.IJ;
 import ij.ImagePlus;
+import ij.macro.Interpreter;
 import ij.measure.Calibration;
+import ij.measure.ResultsTable;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -28,6 +32,7 @@ import javax.vecmath.Point3d;
 
 import mosaic.ia.Analysis;
 import mosaic.ia.PotentialFunctions;
+import mosaic.ia.Analysis.Result;
 import mosaic.ia.utils.ImageProcessUtils;
 
 
@@ -38,7 +43,7 @@ public class GUIDesign implements ActionListener {
 
     private double gridSize = .5;
     private ImagePlus imgx, imgy;
-    private JComboBox<String> jcb;
+    private JComboBox<String> potentialComboBox;
     private int potentialType = PotentialFunctions.HERNQUIST;
     private Point3d[] Xcoords, Ycoords;
 
@@ -168,8 +173,8 @@ public class GUIDesign implements ActionListener {
 
         final JLabel lblPotentialEstimation = new JLabel("Potential estimation");
 
-        jcb = new JComboBox<String>(items);
-        jcb.addActionListener(this);
+        potentialComboBox = new JComboBox<String>(items);
+        potentialComboBox.addActionListener(this);
 
         estimate = new JButton("Estimate");
         estimate.setActionCommand("Estimate");
@@ -224,11 +229,11 @@ public class GUIDesign implements ActionListener {
                                                                 .addPreferredGap(ComponentPlacement.RELATED, 51, Short.MAX_VALUE).addComponent(lblSmoothness).addGap(18).addComponent(smoothnessNP))
                                                 .addGroup(
                                                         gl_panel_5.createSequentialGroup().addContainerGap().addComponent(lblPotentialShape).addPreferredGap(ComponentPlacement.RELATED)
-                                                                .addComponent(jcb).addGap(18).addComponent(lblRepeatEstimation).addPreferredGap(ComponentPlacement.RELATED).addComponent(reRuns)))
+                                                                .addComponent(potentialComboBox).addGap(18).addComponent(lblRepeatEstimation).addPreferredGap(ComponentPlacement.RELATED).addComponent(reRuns)))
                                 .addContainerGap()));
         gl_panel_5.setVerticalGroup(gl_panel_5.createParallelGroup(Alignment.TRAILING).addGroup(
                 gl_panel_5.createSequentialGroup().addContainerGap().addComponent(lblPotentialEstimation).addPreferredGap(ComponentPlacement.RELATED)
-                        .addGroup(gl_panel_5.createParallelGroup(Alignment.BASELINE).addComponent(lblPotentialShape).addComponent(jcb).addComponent(lblRepeatEstimation).addComponent(reRuns))
+                        .addGroup(gl_panel_5.createParallelGroup(Alignment.BASELINE).addComponent(lblPotentialShape).addComponent(potentialComboBox).addComponent(lblRepeatEstimation).addComponent(reRuns))
                         .addPreferredGap(ComponentPlacement.RELATED)
                         .addGroup(gl_panel_5.createParallelGroup(Alignment.BASELINE).addComponent(smoothnessNP).addComponent(lblsupportPts).addComponent(numSupport).addComponent(lblSmoothness))
                         .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addComponent(estimate).addContainerGap()));
@@ -486,8 +491,8 @@ public class GUIDesign implements ActionListener {
                 initializeAnalysis(Xcoords, Ycoords);
             }
         }
-        else if (e.getSource() == jcb) {
-            final String selected = (String) jcb.getSelectedItem();
+        else if (e.getSource() == potentialComboBox) {
+            final String selected = (String) potentialComboBox.getSelectedItem();
             System.out.println("Selected: " + selected);
             if (selected == items[5]) {
                 potentialType = PotentialFunctions.NONPARAM;
@@ -563,8 +568,24 @@ public class GUIDesign implements ActionListener {
                 PotentialFunctions.initializeNonParamWeights(iAnalysis.getMinD(), iAnalysis.getMaxD());
             }
             iAnalysis.setPotentialType(potentialType); // for the first time
-            if (!iAnalysis.cmaOptimization()) {
+            List<Result> results = new ArrayList<Result>();
+            if (!iAnalysis.cmaOptimization(results)) {
                 IJ.showMessage("Error: Calculate distances first!");
+            }
+            else {
+                if (!Interpreter.batchMode) {
+                    final ResultsTable rt = new ResultsTable();
+                    for (Analysis.Result r : results) {
+                        rt.incrementCounter();
+                        if (potentialType != PotentialFunctions.NONPARAM) {
+                            rt.addValue("Strength", r.iStrength);
+                            rt.addValue("Threshold/Scale", r.iThresholdScale);
+                        }
+                        rt.addValue("Residual", r.iResidual);
+                    }
+                    rt.updateResults();
+                    rt.show("Results");
+                }
             }
         }
         else if (e.getSource() == test) {
@@ -590,7 +611,7 @@ public class GUIDesign implements ActionListener {
                     return;
                 }
 
-                if (!iAnalysis.calcMask()) {
+                if (!iAnalysis.generateMask()) {
                     IJ.showMessage("Image Y is null: Cannot generate mask");
                 }
             }
@@ -647,8 +668,14 @@ public class GUIDesign implements ActionListener {
     private boolean checkIfImagesAreRightSize() {
         final Calibration imgxc = imgx.getCalibration();
         final Calibration imgyc = imgy.getCalibration();
-        if ((imgx.getWidth() == imgy.getWidth()) && (imgx.getHeight() == imgy.getHeight()) && (imgx.getStackSize() == imgy.getStackSize()) && (imgxc.pixelDepth == imgyc.pixelDepth)
-                && (imgxc.pixelHeight == imgyc.pixelHeight) && (imgxc.pixelWidth == imgyc.pixelWidth) && (imgxc.getUnit().equals(imgyc.getUnit()))) {
+        if ((imgx.getWidth() == imgy.getWidth()) && 
+            (imgx.getHeight() == imgy.getHeight()) && 
+            (imgx.getStackSize() == imgy.getStackSize()) && 
+            (imgxc.pixelDepth == imgyc.pixelDepth) &&
+            (imgxc.pixelHeight == imgyc.pixelHeight) && 
+            (imgxc.pixelWidth == imgyc.pixelWidth) && 
+            (imgxc.getUnit().equals(imgyc.getUnit()))) 
+        {
             return true;
         }
         else {
@@ -657,7 +684,6 @@ public class GUIDesign implements ActionListener {
                     + imgyc.getUnit());
 
             return false;
-
         }
     }
 }

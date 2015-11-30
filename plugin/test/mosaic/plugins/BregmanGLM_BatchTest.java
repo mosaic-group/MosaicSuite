@@ -5,7 +5,7 @@ import org.junit.Test;
 import mosaic.test.framework.CommonBase;
 import mosaic.test.framework.SystemOperations;
 
-public class BregmanGLM_BatchTest extends CommonBase{
+public class BregmanGLM_BatchTest extends CommonBase {
     
     @Test
     public void testTest2D()  {

@@ -138,17 +138,6 @@ public class IAPUtils {
         return Math.sqrt(var);
     }
 
-    public static double MACHEPS = 2E-16;
-
-    // to update machine epsilon
-    public static void updateMacheps() {
-        MACHEPS = 1.0d;
-        do {
-            MACHEPS /= 2.0d;
-        } while (1 + MACHEPS / 2 != 1);
-        System.out.println("Machine epsilon: " + MACHEPS);
-    }
-
     /**
      * Returns an estimate of the <code>p</code>th percentile of the values
      * in the <code>values</code> array. Taken from commons-math.

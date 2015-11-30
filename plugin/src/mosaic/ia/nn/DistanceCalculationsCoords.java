@@ -26,12 +26,7 @@ public class DistanceCalculationsCoords extends DistanceCalculations {
     public void calcDistances() {
         particleXSetCoord = applyMaskandgetCoordinates(X);
         particleYSetCoord = applyMaskandgetCoordinates(Y);
-        
-        genStateDensityForCoords();
-        calcD();
-    }
-
-    private void genStateDensityForCoords() {
         stateDensity(x1, y1, z1, x2, y2, z2);
+        calcD();
     }
 }

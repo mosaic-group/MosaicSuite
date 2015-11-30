@@ -48,7 +48,7 @@ public abstract class DistanceCalculations {
         }
     }
 
-    public double[] getD() {
+    public double[] getDistances() {
         return D;
     }
 
