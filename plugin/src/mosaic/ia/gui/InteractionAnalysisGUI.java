@@ -38,60 +38,55 @@ import mosaic.ia.utils.ImageProcessUtils;
 
 public class InteractionAnalysisGUI implements ActionListener {
 
-    private JFrame frmInteractionAnalysis;
-    private final String[] items = { "Hernquist", "Step", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
+    private Analysis iAnalysis;
+    
+    private JButton help;
 
-    private double gridSize = .5;
+    private JButton browseY, browseX;
     private ImagePlus imgx, imgy;
+    private JButton btnLoadCsvFileX, btnLoadCsvFileY;
+    private Point3d[] Xcoords, Ycoords;
+    private JFormattedTextField txtXmin, txtYmin, txtZmin, txtXmax,txtYmax, txtZmax;
+    private double xmin = Double.MAX_VALUE, ymin = Double.MAX_VALUE, zmin = Double.MAX_VALUE, xmax = Double.MAX_VALUE, ymax = Double.MAX_VALUE, zmax = Double.MAX_VALUE;
+    private JButton genMask, loadMask, resetMask;
+    private ImagePlus genMaskIP;
+
+    private JFormattedTextField gridSizeInp;
+    private double gridSize = .5;
+    private JFormattedTextField  kernelWeightq;
+    private double qkernelWeight = .001;
+    private JFormattedTextField  kernelWeightp;
+    private double pkernelWeight = 1;
+    private JButton btnCalculateDistances;
+    
+    private final String[] items = { "Hernquist", "Step", "Linear type 1", "Linear type 2", "Plummer", "Non-parametric" };
     private JComboBox<String> potentialComboBox;
     private int potentialType = PotentialFunctions.HERNQUIST;
-    private Point3d[] Xcoords, Ycoords;
-
-    private Analysis iAnalysis;
-    private int monteCarloRunsForTest = 1000;
+    private JFormattedTextField reRuns;
     private int numReRuns = 10;
-    private final double qkernelWeight = .001;
-    private final double pkernelWeight = 1;
-
-    private JButton help;
-    private double alpha = .05;
-    private JFormattedTextField mCRuns, numSupport, smoothnessNP, gridSizeInp, reRuns, kernelWeightq, kernelWeightp;
-
+    private JFormattedTextField numSupport, smoothnessNP;
+    private JButton estimate;
+    
+    private JFormattedTextField mCRuns;
+    private int monteCarloRunsForTest = 1000;
     private JFormattedTextField alphaField;
+    private double alpha = .05;
+    private JButton test;
+    
     private JTabbedPane tabbedPane;
-    private JButton browseY, browseX, btnCalculateDistances, estimate, test, genMask, loadMask, resetMask, btnLoadCsvFileX, btnLoadCsvFileY;
-    private Border blackBorder;
-    private JTextArea textArea;
-
     private JLabel lblsupportPts, lblSmoothness;
-    private JFormattedTextField txtXmin;
-    private JFormattedTextField txtYmin;
-    private JFormattedTextField txtZmin;
-    private JFormattedTextField txtXmax;
-    private JFormattedTextField txtYmax;
-    private JFormattedTextField txtZmax;
-    private double xmin = Double.MAX_VALUE, ymin = Double.MAX_VALUE, zmin = Double.MAX_VALUE, xmax = Double.MAX_VALUE, ymax = Double.MAX_VALUE, zmax = Double.MAX_VALUE;
-    private JLabel lblKernelWeightq, lblKernelWeightp;
-    private ImagePlus genMaskIP;
+    
     /**
      * Create the application.
      */
     public InteractionAnalysisGUI() {
-        initialize();
-        frmInteractionAnalysis.setVisible(true);
-    }
-
-    /**
-     * Initialize the contents of the frame.
-     */
-    private void initialize() {
-        frmInteractionAnalysis = new JFrame("Interaction Analysis");
-        blackBorder = BorderFactory.createLineBorder(Color.black);
+        JFrame frmInteractionAnalysis = new JFrame("Interaction Analysis");
+        Border blackBorder = BorderFactory.createLineBorder(Color.black);
         browseX = new JButton("Open");
         browseY = new JButton("Open");
         help = new JButton("help");
         help.addActionListener(this);
-
+        
         final JPanel panel_help = new JPanel();
         final JPanel panel_5 = new JPanel();
         panel_5.setBorder(blackBorder);
@@ -99,43 +94,43 @@ public class InteractionAnalysisGUI implements ActionListener {
         panel_7.setBorder(blackBorder);
         final JPanel panel_6 = new JPanel();
         panel_6.setBorder(blackBorder);
-        textArea = new JTextArea("Please refer to and cite: J. A. Helmuth, G. Paul, and I. F. Sbalzarini.\n" + "Beyond co-localization: inferring spatial interactions between sub-cellular \n"
+        JTextArea textArea = new JTextArea("Please refer to and cite: J. A. Helmuth, G. Paul, and I. F. Sbalzarini.\n" + "Beyond co-localization: inferring spatial interactions between sub-cellular \n"
                 + "structures from microscopy images. BMC Bioinformatics, 11:372, 2010.\n\n" + "A. Shivanandan, A. Radenovic, and I. F. Sbalzarini. MosaicIA: an ImageJ/Fiji\n"
                 + "plugin for spatial pattern and interaction analysis. BMC Bioinformatics, \n" + "14:349, 2013. ");
-
+        
         textArea.setBackground(UIManager.getColor("Button.background"));
-
+        
         final GroupLayout gl_panel_help = new GroupLayout(panel_help);
         gl_panel_help.setHorizontalGroup(gl_panel_help.createParallelGroup(Alignment.LEADING).addGroup(
                 gl_panel_help.createSequentialGroup().addGap(198).addComponent(help, GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE).addGap(198)));
-
+        
         gl_panel_help.setVerticalGroup(gl_panel_help.createParallelGroup(Alignment.LEADING).addGroup(
                 gl_panel_help.createSequentialGroup().addComponent(help, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addContainerGap(9, Short.MAX_VALUE)));
         panel_help.setLayout(gl_panel_help);
-
+        
         final GroupLayout gl_panel_6 = new GroupLayout(panel_6);
         gl_panel_6.setHorizontalGroup(gl_panel_6.createParallelGroup(Alignment.LEADING).addComponent(textArea, GroupLayout.DEFAULT_SIZE, 526, Short.MAX_VALUE));
         gl_panel_6.setVerticalGroup(gl_panel_6.createParallelGroup(Alignment.LEADING).addGroup(
                 gl_panel_6.createSequentialGroup().addComponent(textArea, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addContainerGap(9, Short.MAX_VALUE)));
         panel_6.setLayout(gl_panel_6);
-
+        
         final JLabel lblHypothesisTesting = new JLabel("Hypothesis testing");
-
+        
         final JLabel lblMonteCarloRuns = new JLabel("Monte carlo runs");
-
+        
         mCRuns = new JFormattedTextField();
         mCRuns.setHorizontalAlignment(SwingConstants.CENTER);
         mCRuns.setText("" + monteCarloRunsForTest);
         mCRuns.setColumns(10);
-
+        
         final JLabel lblSignificanceLevel = new JLabel("Significance level");
-
+        
         alphaField = new JFormattedTextField();
         alphaField.setHorizontalAlignment(SwingConstants.CENTER);
         alphaField.setText("" + alpha);
         alphaField.setColumns(10);
         alphaField.addActionListener(this);
-
+        
         test = new JButton("Test");
         final GroupLayout gl_panel_7 = new GroupLayout(panel_7);
         gl_panel_7.setHorizontalGroup(gl_panel_7
@@ -170,49 +165,49 @@ public class InteractionAnalysisGUI implements ActionListener {
                                         .addComponent(alphaField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(ComponentPlacement.RELATED, 11, Short.MAX_VALUE).addComponent(test).addContainerGap()));
         panel_7.setLayout(gl_panel_7);
-
+        
         final JLabel lblPotentialEstimation = new JLabel("Potential estimation");
-
+        
         potentialComboBox = new JComboBox<String>(items);
         potentialComboBox.addActionListener(this);
-
+        
         estimate = new JButton("Estimate");
         estimate.setActionCommand("Estimate");
-
+        
         final JLabel lblPotentialShape = new JLabel("Potential:");
-
+        
         numSupport = new JFormattedTextField();
-
+        
         numSupport.setHorizontalAlignment(SwingConstants.CENTER);
-
+        
         numSupport.setText("" + PotentialFunctions.NONPARAM_WEIGHT_SIZE);
         numSupport.setColumns(10);
         numSupport.setEnabled(false);
         numSupport.addActionListener(this);
-
+        
         smoothnessNP = new JFormattedTextField();
-
+        
         smoothnessNP.setHorizontalAlignment(SwingConstants.CENTER);
-
+        
         smoothnessNP.setText("" + PotentialFunctions.NONPARAM_SMOOTHNESS);
         smoothnessNP.setColumns(10);
         smoothnessNP.setEnabled(false);
         smoothnessNP.addActionListener(this);
-
+        
         lblsupportPts = new JLabel("#Support pts:");
         lblsupportPts.setEnabled(false);
-
+        
         lblSmoothness = new JLabel("Smoothness:");
         lblSmoothness.setEnabled(false);
-
+        
         final JLabel lblRepeatEstimation = new JLabel("Repeat estimation:");
-
+        
         reRuns = new JFormattedTextField();
         reRuns.setColumns(10);
         reRuns.setHorizontalAlignment(SwingConstants.CENTER);
         reRuns.setText(numReRuns + "");
         reRuns.addActionListener(this);
-
+        
         final GroupLayout gl_panel_5 = new GroupLayout(panel_5);
         gl_panel_5.setHorizontalGroup(gl_panel_5
                 .createParallelGroup(Alignment.TRAILING)
@@ -238,50 +233,50 @@ public class InteractionAnalysisGUI implements ActionListener {
                         .addGroup(gl_panel_5.createParallelGroup(Alignment.BASELINE).addComponent(smoothnessNP).addComponent(lblsupportPts).addComponent(numSupport).addComponent(lblSmoothness))
                         .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE).addComponent(estimate).addContainerGap()));
         panel_5.setLayout(gl_panel_5);
-
+        
         tabbedPane = new JTabbedPane(SwingConstants.TOP);
         final JTabbedPane tabbedPane_1 = new JTabbedPane(SwingConstants.TOP);
-
+        
         final JPanel panel_3 = new JPanel();
         tabbedPane_1.addTab("Apply mask", null, panel_3, null);
         tabbedPane_1.setEnabledAt(0, true);
-
+        
         genMask = new JButton("Generate");
         genMask.setToolTipText("Generate a new mask from the opened Reference image");
         panel_3.add(genMask);
         genMask.addActionListener(this);
-
+        
         loadMask = new JButton("Load");
         loadMask.setToolTipText("Load an existing mask from a file");
         panel_3.add(loadMask);
         loadMask.addActionListener(this);
-
+        
         resetMask = new JButton("Reset");
         resetMask.setToolTipText("Reset mask ");
         panel_3.add(resetMask);
         resetMask.addActionListener(this);
         final JPanel panel_4 = new JPanel();
-
+        
         btnCalculateDistances = new JButton("Calculate distances");
         btnCalculateDistances.setAlignmentX(SwingConstants.CENTER);
-
+        
         gridSizeInp = new JFormattedTextField();
         gridSizeInp.setHorizontalAlignment(SwingConstants.CENTER);
-
+        
         gridSizeInp.setText("" + gridSize);
         gridSizeInp.setColumns(6);
-
+        
         final JLabel lblGridSize = new JLabel("Grid spacing:");
-
-        lblKernelWeightq = new JLabel("Kernel wt(q):");
-
+        
+        JLabel lblKernelWeightq = new JLabel("Kernel wt(q):");
+        
         kernelWeightq = new JFormattedTextField();
         kernelWeightq.setHorizontalAlignment(SwingConstants.CENTER);
         kernelWeightq.setText(qkernelWeight + "");
         kernelWeightq.setColumns(6);
-
-        lblKernelWeightp = new JLabel("Kernel wt(p):");
-
+        
+        JLabel lblKernelWeightp = new JLabel("Kernel wt(p):");
+        
         kernelWeightp = new JFormattedTextField();
         kernelWeightp.setHorizontalAlignment(SwingConstants.CENTER);
         kernelWeightp.setText("35.9");
@@ -312,17 +307,17 @@ public class InteractionAnalysisGUI implements ActionListener {
                                         .addComponent(lblKernelWeightp).addComponent(kernelWeightp)).addGap(21).addComponent(btnCalculateDistances)));
         panel_4.setLayout(gl_panel_4);
         kernelWeightp.addActionListener(this);
-
+        
         btnCalculateDistances.addActionListener(this);
-
+        
         final JPanel panel_2 = new JPanel();
         tabbedPane.addTab("Load images", null, panel_2, null);
-
+        
         final JLabel label = new JLabel("Image X");
-
+        
         browseX = new JButton("Open X");
         browseX.addActionListener(this);
-
+        
         final JLabel label_1 = new JLabel("Reference image Y");
         browseY = new JButton("Open Y");
         browseY.addActionListener(this);
@@ -338,47 +333,47 @@ public class InteractionAnalysisGUI implements ActionListener {
                                 .addGroup(gl_panel_2.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_2.createSequentialGroup().addGap(5).addComponent(label)).addComponent(browseX)).addGap(6)
                                 .addGroup(gl_panel_2.createParallelGroup(Alignment.LEADING).addGroup(gl_panel_2.createSequentialGroup().addGap(5).addComponent(label_1)).addComponent(browseY))));
         panel_2.setLayout(gl_panel_2);
-
+        
         final JPanel panel_8 = new JPanel();
         tabbedPane.addTab("Load coordinates", null, panel_8, null);
-
+        
         btnLoadCsvFileX = new JButton("Open");
         btnLoadCsvFileX.setHorizontalAlignment(SwingConstants.RIGHT);
         btnLoadCsvFileX.addActionListener(this);
-
+        
         final JLabel lblCsvFileOf = new JLabel("X Coordinates");
         lblCsvFileOf.setHorizontalAlignment(SwingConstants.LEFT);
-
+        
         final JLabel label_2 = new JLabel("Y (reference) Coordinates");
-
+        
         btnLoadCsvFileY = new JButton("Open");
         btnLoadCsvFileY.addActionListener(this);
-
+        
         txtXmin = new JFormattedTextField();
         txtXmin.setText("xmin");
         txtXmin.setColumns(6);
         txtXmin.addActionListener(this);
-
+        
         txtYmin = new JFormattedTextField();
         txtYmin.setText("ymin");
         txtYmin.setColumns(6);
         txtYmin.addActionListener(this);
-
+        
         txtZmin = new JFormattedTextField();
         txtZmin.setText("zmin");
         txtZmin.setColumns(6);
         txtZmin.addActionListener(this);
-
+        
         txtXmax = new JFormattedTextField();
         txtXmax.setText("xmax");
         txtXmax.setColumns(6);
         txtXmax.addActionListener(this);
-
+        
         txtYmax = new JFormattedTextField();
         txtYmax.setText("ymax");
         txtYmax.setColumns(6);
         txtYmax.addActionListener(this);
-
+        
         txtZmax = new JFormattedTextField();
         txtZmax.setText("zmax");
         txtZmax.setColumns(6);
@@ -447,7 +442,7 @@ public class InteractionAnalysisGUI implements ActionListener {
         estimate.addActionListener(this);
         test.addActionListener(this);
         mCRuns.addActionListener(this);
-
+        frmInteractionAnalysis.setVisible(true);
     }
 
     @Override
@@ -516,9 +511,10 @@ public class InteractionAnalysisGUI implements ActionListener {
         }
         else if (e.getSource() == btnCalculateDistances) {
             gridSize = Double.parseDouble(gridSizeInp.getText());
-            double qkernel = Double.parseDouble(kernelWeightq.getText());
-            double pkernel = Double.parseDouble(kernelWeightp.getText());
-            iAnalysis = null;
+            qkernelWeight = Double.parseDouble(kernelWeightq.getText());
+            pkernelWeight = Double.parseDouble(kernelWeightp.getText());
+            iAnalysis = new Analysis();
+            boolean result = false;
             if (tabbedPane.getSelectedIndex() == 1) {
                 // coordinates
                 xmin = Double.parseDouble(txtXmin.getText());
@@ -527,17 +523,17 @@ public class InteractionAnalysisGUI implements ActionListener {
                 xmax = Double.parseDouble(txtXmax.getText());
                 ymax = Double.parseDouble(txtYmax.getText());
                 zmax = Double.parseDouble(txtZmax.getText());
-                if (xmax < xmin || ymax < ymin || zmax < zmin) 
-                {
+                if (xmax < xmin || ymax < ymin || zmax < zmin) {
                     IJ.showMessage("Error: boundary values are not correct");
                     return;
                 }
                 
                 if (Xcoords != null && Ycoords != null) {
-                    iAnalysis = new Analysis(Xcoords, Ycoords, genMaskIP, xmin, xmax, ymin, ymax, zmin, zmax);
+                    iAnalysis = new Analysis();
                     System.out.println("[Point3d] p set to:" + pkernelWeight);
                 }
                 System.out.println("Boundary:" + xmin + "," + xmax + ";" + ymin + "," + ymax + ";" + zmin + "," + zmax);
+                result = iAnalysis.calcDist(gridSize, qkernelWeight, pkernelWeight, genMaskIP, Xcoords, Ycoords, xmin, xmax, ymin, ymax, zmin, zmax);
             }
             else {
                 // image
@@ -547,13 +543,14 @@ public class InteractionAnalysisGUI implements ActionListener {
                         IJ.showMessage("Error: Image sizes/scale/unit do not match");
                     }
                     else {
-                        iAnalysis = new Analysis(imgx, imgy, genMaskIP);
+                        iAnalysis = new Analysis();
                         System.out.println("[ImagePlus] p set to:" + pkernelWeight);
+                        result = iAnalysis.calcDist(gridSize, qkernelWeight, pkernelWeight, genMaskIP, imgx, imgy);
                     }
                 }
             }
 
-            if (iAnalysis == null || !iAnalysis.calcDist(gridSize, qkernel, pkernel)) {
+            if (!result) {
                 IJ.showMessage("No X and Y images/coords loaded. Cannot calculate distance");
             }
         }
@@ -563,9 +560,6 @@ public class InteractionAnalysisGUI implements ActionListener {
             numReRuns = Integer.parseInt(reRuns.getText());
 
             System.out.println("Estimating with potential type:" + potentialType);
-            if (potentialType == PotentialFunctions.NONPARAM) {
-                PotentialFunctions.initializeNonParamWeights(iAnalysis.getMinD(), iAnalysis.getMaxD());
-            }
             iAnalysis.setPotentialType(potentialType); // for the first time
             List<Result> results = new ArrayList<Result>();
             if (!iAnalysis.cmaOptimization(results, numReRuns)) {

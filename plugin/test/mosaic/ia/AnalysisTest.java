@@ -38,8 +38,8 @@ public class AnalysisTest extends CommonBase {
         }
         Point3d[] y = yl.toArray(new Point3d[0]);
 
-        Analysis analysis = new Analysis(x, y, null, 0, 5, 0, 5, 0, 0);
-        analysis.calcDist(0.5, 0.001, 2.974);
+        Analysis analysis = new Analysis();
+        analysis.calcDist(0.5, 0.001, 2.974, null, x, y, 0, 5, 0, 5, 0, 0);
         
         double epsilon = 1e-10;
         assertEquals(0, analysis.getMinD(), epsilon);
@@ -81,8 +81,8 @@ public class AnalysisTest extends CommonBase {
         copyTestResources("Endosome.csv", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
         Point3d[] y = ImageProcessUtils.openCsvFile("Y", "/tmp/" + "Endosome.csv");
         
-        Analysis analysis = new Analysis(x, y, null, 0, 385, 0, 511, 0, 0);
-        analysis.calcDist(0.5, 0.001, 35.9);
+        Analysis analysis = new Analysis();
+        analysis.calcDist(0.5, 0.001, 35.9, null, x, y, 0, 385, 0, 511, 0, 0);
         return analysis;
     }
     

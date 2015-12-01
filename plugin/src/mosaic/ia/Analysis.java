@@ -19,75 +19,43 @@ import mosaic.ia.nn.DistanceCalculations;
 import mosaic.ia.nn.DistanceCalculationsCoords;
 import mosaic.ia.nn.DistanceCalculationsImage;
 import mosaic.ia.utils.IAPUtils;
-import mosaic.ia.utils.ImageProcessUtils;
 import weka.estimators.KernelEstimator;
 
 
 public class Analysis {
-    private final ImagePlus iImageX, iImageY;
-    private ImagePlus genMask;
-    private final Point3d[] particleXSetCoordUnfiltered;
-    private final Point3d[] particleYSetCoordUnfiltered;
-
     private final int dgrid_size = 1000;
-    private double[] q_D_grid, NN_D_grid;
-    private double x1, y1, x2, y2, z1, z2;
     private boolean showAllRerunResults = false;
-    private int bestFitnessindex = 0;
+    private int potentialType; // 1 is step, 2 is hernquist, 5 is nonparam
 
     private double[] iDistances; // Nearest neighbour;
-    private int potentialType; // 1 is step, 2 is hernquist, 5 is nonparam
+    private double[] q_D_grid, dgrid;
+    private double[] nnObserved, NN_D_grid;
     private double[][] best;
-    private double[] allFitness;
-    private double[] q, nnObserved, dgrid;
-
+    private int bestFitnessindex = 0;
     private double minD, maxD, meanD;
-    private final boolean isImage; // to distinguish b/wimage and coords
 
-    public Analysis(ImagePlus X, ImagePlus Y, ImagePlus genMask) {
-        this.iImageX = X;
-        this.iImageY = Y;
-        isImage = true;
-        this.particleXSetCoordUnfiltered = null;
-        this.particleYSetCoordUnfiltered = null;
-        this.genMask = genMask;
-    }
 
-    public Analysis(Point3d[] Xcoords, Point3d[] Ycoords, ImagePlus genMask,
-            double x1,double x2,double y1,double y2,double z1,double z2) {
-        this.particleXSetCoordUnfiltered = Xcoords;
-        this.particleYSetCoordUnfiltered = Ycoords;
-        this.iImageX = null;
-        this.iImageY = null;
-        isImage = false;
-        
-        this.x1 = x1;
-        this.x2 = x2;
-        this.y1 = y1;
-        this.y2 = y2;
-        this.z1 = z1;
-        this.z2 = z2;
-        
-        this.genMask = genMask;
-    }
-
-    public boolean calcDist(double gridSize, double kernelWeightq, double kernelWeightp) {
+    public boolean calcDist(double gridSize, double kernelWeightq, double kernelWeightp, ImagePlus genMask, ImagePlus iImageX, ImagePlus iImageY) {
         DistanceCalculations dci;
-        if (isImage == true) {
-            dci = new DistanceCalculationsImage(iImageX, iImageY, genMask, gridSize, kernelWeightq, dgrid_size);
-            dci.calcDistances();
-        }
-        else {
-            dci = new DistanceCalculationsCoords(particleXSetCoordUnfiltered, particleYSetCoordUnfiltered, genMask, x1, y1, z1, x2, y2, z2, gridSize, kernelWeightq, dgrid_size);
-            dci.calcDistances();
-        }
+        dci = new DistanceCalculationsImage(iImageX, iImageY, genMask, gridSize, kernelWeightq, dgrid_size);
+        dci.calcDistances();
+        return calcDist(dci, kernelWeightp);
+    }
+    
+    public boolean calcDist(double gridSize, double kernelWeightq, double kernelWeightp, ImagePlus genMask, Point3d[] particleXSetCoordUnfiltered, Point3d[] particleYSetCoordUnfiltered, double x1,double x2,double y1,double y2,double z1,double z2) {
+        DistanceCalculations dci;
+        dci = new DistanceCalculationsCoords(particleXSetCoordUnfiltered, particleYSetCoordUnfiltered, genMask, x1, y1, z1, x2, y2, z2, gridSize, kernelWeightq, dgrid_size);
+        dci.calcDistances();
+        return calcDist(dci, kernelWeightp);
+    }
+    
+    public boolean calcDist(DistanceCalculations dci, double kernelWeightp) {
         iDistances = dci.getDistances();
     
         dgrid = dci.getqOfD()[0];
-        q = dci.getqOfD()[1];
-        q_D_grid = q; // q_D_grid is supposed to be not normalized - will be normalized again in CMAObj... but its OK.
+        // q_D_grid is supposed to be not normalized - will be normalized again in CMAObj... but its OK.
+        q_D_grid = dci.getqOfD()[1];
         System.out.println("p set to:" + kernelWeightp);
-        // System.out.println("Weka weight:"+IAPUtils.calcWekaWeights(D));
         KernelEstimator kernelEstimatorNN = IAPUtils.createkernelDensityEstimator(iDistances, kernelWeightp);
     
         // generateKernelDensityforD
@@ -98,12 +66,7 @@ public class Analysis {
         }
         nnObserved = IAPUtils.normalize(NN_D_grid);
         
-        String xlabel = "Distance";
-        if (isImage) {
-            xlabel = xlabel + " (" + iImageX.getCalibration().getUnit() + ")";
-        }
-        PlotQP.plot(xlabel, dgrid, q, nnObserved);
-        
+        PlotQP.plot("Distance", dgrid, q_D_grid, nnObserved);
         PlotHistogram.plot("ObservedDistances", iDistances, IAPUtils.getOptimBins(iDistances, 8, iDistances.length / 8));
         
         final double[] minMaxMean = IAPUtils.getMinMaxMeanD(iDistances);
@@ -136,12 +99,13 @@ public class Analysis {
     public boolean cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes) {
         final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(dgrid, q_D_grid, iDistances, potentialType, IAPUtils.normalize(NN_D_grid));
         if (potentialType == PotentialFunctions.NONPARAM) {
+            PotentialFunctions.initializeNonParamWeights(minD, maxD);
             best = new double[cmaReRunTimes][PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
         }
         else {
             best = new double[cmaReRunTimes][2];
         }
-        allFitness = new double[cmaReRunTimes];
+        double[] allFitness = new double[cmaReRunTimes];
         double bestFitness = Double.MAX_VALUE;
         boolean diffFitness = false;
         for (int k = 0; k < cmaReRunTimes; k++) {
@@ -333,12 +297,8 @@ public class Analysis {
             
             double[] P_grid = fitfun.getPGrid();
             P_grid = IAPUtils.normalize(P_grid);
-            
-            String xlabel = "Distance";
-            if (isImage) {
-                xlabel = xlabel + " (" + iImageX.getCalibration().getUnit() + ")";
-            }
-            PlotQPNN.plot(xlabel, dgrid, P_grid, q, nnObserved, potentialType, best, allFitness, bestFitnessindex);
+
+            PlotQPNN.plot("Distance", dgrid, P_grid, q_D_grid, nnObserved, potentialType, best, allFitness, bestFitnessindex);
         }
     
         return true;
