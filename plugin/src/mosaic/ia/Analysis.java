@@ -40,7 +40,6 @@ public class Analysis {
     private int potentialType; // 1 is step, 2 is hernquist, 5 is nonparam
     private double[][] best;
     private double[] allFitness;
-    private double kernelWeightq, kernelWeightp;
     private double[] q, nnObserved, dgrid;
 
     private double minD, maxD, meanD;
@@ -70,7 +69,7 @@ public class Analysis {
         this.z2 = z2;
     }
 
-    public boolean calcDist(double gridSize) {
+    public boolean calcDist(double gridSize, double kernelWeightq, double kernelWeightp) {
         DistanceCalculations dci;
         if (isImage == true) {
             dci = new DistanceCalculationsImage(iImageX, iImageY, mask, gridSize, kernelWeightq, dgrid_size);
@@ -410,6 +409,10 @@ public class Analysis {
         mask = null;
         return true;
     }
+    
+    public String getMaskTitle() {
+        return mask.getTitle();
+    }
 
     public double getMinD() {
         return minD;
@@ -427,23 +430,7 @@ public class Analysis {
         this.potentialType = potentialType;
     }
 
-    public String getMaskTitle() {
-        return mask.getTitle();
-    }
-
-    public boolean getIsImage() {
-        return isImage;
-    }
-
     public void setCmaReRunTimes(int cmaReRunTimes) {
         this.cmaReRunTimes = cmaReRunTimes;
-    }
-
-    public void setKernelWeightq(double kernelWeightq) {
-        this.kernelWeightq = kernelWeightq;
-    }
-
-    public void setKernelWeightp(double kernelWeightp) {
-        this.kernelWeightp = kernelWeightp;
     }
 }

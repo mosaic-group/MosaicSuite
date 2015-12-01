@@ -517,17 +517,11 @@ public class InteractionAnalysisGUI implements ActionListener {
             iAnalysis.setPotentialType(potentialType);
         }
         else if (e.getSource() == btnCalculateDistances) {
-            
-            
-            
-            
-            
             gridSize = Double.parseDouble(gridSizeInp.getText());
             double qkernel = Double.parseDouble(kernelWeightq.getText());
             double pkernel = Double.parseDouble(kernelWeightp.getText());
-            int selectedIndex = tabbedPane.getSelectedIndex();
             iAnalysis = null;
-            if (selectedIndex == 1) {
+            if (tabbedPane.getSelectedIndex() == 1) {
                 // coordinates
                 xmin = Double.parseDouble(txtXmin.getText());
                 ymin = Double.parseDouble(txtYmin.getText());
@@ -546,8 +540,6 @@ public class InteractionAnalysisGUI implements ActionListener {
                 
                 if (Xcoords != null && Ycoords != null) {
                     iAnalysis = new Analysis(Xcoords, Ycoords, 0, 0, 0, 0, 0, 0);
-                    iAnalysis.setKernelWeightq(qkernel);
-                    iAnalysis.setKernelWeightp(pkernel);
                     System.out.println("[Point3d] p set to:" + pkernelWeight);
                 }
                 System.out.println("Boundary:" + xmin + "," + xmax + ";" + ymin + "," + ymax + ";" + zmin + "," + zmax);
@@ -561,21 +553,14 @@ public class InteractionAnalysisGUI implements ActionListener {
                     }
                     else {
                         iAnalysis = new Analysis(imgx, imgy);
-                        iAnalysis.setKernelWeightq(qkernel);
-                        iAnalysis.setKernelWeightp(pkernel);
                         System.out.println("[ImagePlus] p set to:" + pkernelWeight);
                     }
                 }
             }
 
-            if (iAnalysis == null || !iAnalysis.calcDist(gridSize)) {
+            if (iAnalysis == null || !iAnalysis.calcDist(gridSize, qkernel, pkernel)) {
                 IJ.showMessage("No X and Y images/coords loaded. Cannot calculate distance");
             }
-            
-            
-            
-            
-            
         }
         else if (e.getSource() == estimate) {
             PotentialFunctions.NONPARAM_WEIGHT_SIZE = Integer.parseInt(numSupport.getText());
@@ -626,7 +611,7 @@ public class InteractionAnalysisGUI implements ActionListener {
         }
         else if (e.getSource() == genMask) {
             try {
-                if (!iAnalysis.getIsImage()) {
+                if (tabbedPane.getSelectedIndex() == 1) {
                     IJ.showMessage("Cannot generate mask for coordinates. Load a mask instead");
                     return;
                 }
