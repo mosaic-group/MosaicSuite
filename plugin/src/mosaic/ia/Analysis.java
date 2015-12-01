@@ -25,14 +25,13 @@ import weka.estimators.KernelEstimator;
 
 public class Analysis {
     private final ImagePlus iImageX, iImageY;
-    private ImagePlus mask, genMask;
+    private ImagePlus genMask;
     private final Point3d[] particleXSetCoordUnfiltered;
     private final Point3d[] particleYSetCoordUnfiltered;
 
     private final int dgrid_size = 1000;
     private double[] q_D_grid, NN_D_grid;
     private double x1, y1, x2, y2, z1, z2;
-    private int cmaReRunTimes;
     private boolean showAllRerunResults = false;
     private int bestFitnessindex = 0;
 
@@ -45,15 +44,16 @@ public class Analysis {
     private double minD, maxD, meanD;
     private final boolean isImage; // to distinguish b/wimage and coords
 
-    public Analysis(ImagePlus X, ImagePlus Y) {
+    public Analysis(ImagePlus X, ImagePlus Y, ImagePlus genMask) {
         this.iImageX = X;
         this.iImageY = Y;
         isImage = true;
         this.particleXSetCoordUnfiltered = null;
         this.particleYSetCoordUnfiltered = null;
+        this.genMask = genMask;
     }
 
-    public Analysis(Point3d[] Xcoords, Point3d[] Ycoords, 
+    public Analysis(Point3d[] Xcoords, Point3d[] Ycoords, ImagePlus genMask,
             double x1,double x2,double y1,double y2,double z1,double z2) {
         this.particleXSetCoordUnfiltered = Xcoords;
         this.particleYSetCoordUnfiltered = Ycoords;
@@ -67,12 +67,14 @@ public class Analysis {
         this.y2 = y2;
         this.z1 = z1;
         this.z2 = z2;
+        
+        this.genMask = genMask;
     }
 
     public boolean calcDist(double gridSize, double kernelWeightq, double kernelWeightp) {
         DistanceCalculations dci;
         if (isImage == true) {
-            dci = new DistanceCalculationsImage(iImageX, iImageY, mask, gridSize, kernelWeightq, dgrid_size);
+            dci = new DistanceCalculationsImage(iImageX, iImageY, genMask, gridSize, kernelWeightq, dgrid_size);
             dci.calcDistances();
         }
         else {
@@ -95,12 +97,15 @@ public class Analysis {
             NN_D_grid[i1] = kernelEstimatorNN.getProbability(dgrid[i1]);
         }
         nnObserved = IAPUtils.normalize(NN_D_grid);
+        
         String xlabel = "Distance";
         if (isImage) {
             xlabel = xlabel + " (" + iImageX.getCalibration().getUnit() + ")";
         }
         PlotQP.plot(xlabel, dgrid, q, nnObserved);
+        
         PlotHistogram.plot("ObservedDistances", iDistances, IAPUtils.getOptimBins(iDistances, 8, iDistances.length / 8));
+        
         final double[] minMaxMean = IAPUtils.getMinMaxMeanD(iDistances);
         minD = minMaxMean[0];
         maxD = minMaxMean[1];
@@ -128,7 +133,7 @@ public class Analysis {
             return "[strength="+ iStrength + ", threshold/scale="+iThresholdScale+", residual="+iResidual+"]";
         }
     }
-    public boolean cmaOptimization(List<Result> aResultsOutput) {
+    public boolean cmaOptimization(List<Result> aResultsOutput, int cmaReRunTimes) {
         final CMAMosaicObjectiveFunction fitfun = new CMAMosaicObjectiveFunction(dgrid, q_D_grid, iDistances, potentialType, IAPUtils.normalize(NN_D_grid));
         if (potentialType == PotentialFunctions.NONPARAM) {
             best = new double[cmaReRunTimes][PotentialFunctions.NONPARAM_WEIGHT_SIZE - 1];
@@ -275,17 +280,8 @@ public class Analysis {
             final double[] fitPotential = fitfun.getPotential(best[bestFitnessindex]);
             fitfun.l2Norm(best[bestFitnessindex]); // to calc pgrid for best params
             final Plot plot = new Plot("Estimated potential", "distance", "Potential value", fitfun.getD_grid(), fitPotential);
-            double min = Double.MAX_VALUE, max = Double.MIN_VALUE;
-            for (int i = 0; i < fitPotential.length; i++) {
-                if (fitPotential[i] < min) {
-                    min = fitPotential[i];
-                }
-                if (fitPotential[i] > max) {
-                    max = fitPotential[i];
-                }
-            }
-    
-            plot.setLimits(fitfun.getD_grid()[0] - 1, fitfun.getD_grid()[fitfun.getD_grid().length - 1], min, max);
+            final double[] minMaxMean = IAPUtils.getMinMaxMeanD(fitPotential);
+            plot.setLimits(fitfun.getD_grid()[0] - 1, fitfun.getD_grid()[fitfun.getD_grid().length - 1], minMaxMean[0], minMaxMean[1]);
             plot.setColor(Color.BLUE);
             plot.setLineWidth(2);
             final DecimalFormat format = new DecimalFormat("#.####E0");
@@ -337,6 +333,7 @@ public class Analysis {
             
             double[] P_grid = fitfun.getPGrid();
             P_grid = IAPUtils.normalize(P_grid);
+            
             String xlabel = "Distance";
             if (isImage) {
                 xlabel = xlabel + " (" + iImageX.getCalibration().getUnit() + ")";
@@ -347,9 +344,10 @@ public class Analysis {
         return true;
     }
 
-    public boolean hypTest(int monteCarloRunsForTest, double alpha) {
+    public boolean hypothesisTesting(int monteCarloRunsForTest, double alpha) {
         if (best == null) {
             IJ.showMessage("Error: Run estimation first");
+            return false;
         }
         else if (potentialType == PotentialFunctions.NONPARAM) {
             IJ.showMessage("Hypothesis test is not applicable for Non Parametric potential \n since it does not have 'strength' parameter");
@@ -360,58 +358,6 @@ public class Analysis {
         final HypothesisTesting ht = new HypothesisTesting(IAPUtils.calculateCDF(q_D_grid), dgrid, iDistances, best[bestFitnessindex], potentialType, monteCarloRunsForTest, alpha);
         ht.rankTest();
         return true;
-    }
-
-    public boolean generateMask() {
-        genMask = new ImagePlus();
-        if (iImageY != null) {
-            genMask = ImageProcessUtils.generateMask(iImageY);
-            System.out.println("Generated mask: " + genMask.getType());
-            return true;
-        }
-        return false;
-    }
-
-    public boolean loadMask() {
-        ImagePlus tempMask = ImageProcessUtils.openImage();
-        if (tempMask == null) {
-            IJ.showMessage("Filetype not recognized");
-            return false;
-        }
-        tempMask.show("Mask loaded" + tempMask.getTitle());
-    
-        if (tempMask.getType() != ImagePlus.GRAY8) {
-            IJ.showMessage("ERROR: Loaded mask not 8 bit gray");
-            return false;
-        }
-    
-        if (isImage) {
-            if (tempMask.getHeight() != iImageY.getHeight() || tempMask.getWidth() != iImageY.getWidth() || tempMask.getNSlices() != iImageY.getNSlices()) {
-                IJ.showMessage("ERROR: Loaded mask size does not match with image size");
-                return false;
-            }
-        }
-    
-        genMask = tempMask;
-        return true;
-    }
-
-    public boolean applyMask() {
-        if (genMask == null) {
-            return false;
-        }
-        genMask.updateImage();
-        mask = genMask;
-        return true;
-    }
-
-    public boolean resetMask() {
-        mask = null;
-        return true;
-    }
-    
-    public String getMaskTitle() {
-        return mask.getTitle();
     }
 
     public double getMinD() {
@@ -428,9 +374,5 @@ public class Analysis {
     
     public void setPotentialType(int potentialType) {
         this.potentialType = potentialType;
-    }
-
-    public void setCmaReRunTimes(int cmaReRunTimes) {
-        this.cmaReRunTimes = cmaReRunTimes;
     }
 }

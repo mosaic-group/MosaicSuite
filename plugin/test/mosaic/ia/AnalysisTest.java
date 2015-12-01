@@ -38,7 +38,7 @@ public class AnalysisTest extends CommonBase {
         }
         Point3d[] y = yl.toArray(new Point3d[0]);
 
-        Analysis analysis = new Analysis(x, y, 0, 5, 0, 5, 0, 0);
+        Analysis analysis = new Analysis(x, y, null, 0, 5, 0, 5, 0, 0);
         analysis.calcDist(0.5, 0.001, 2.974);
         
         double epsilon = 1e-10;
@@ -56,9 +56,8 @@ public class AnalysisTest extends CommonBase {
         assertEquals(112.924864, analysis.getMaxD(), epsilon);
         assertEquals(77.255365, IAPUtils.calcWekaWeights(analysis.getDistances()), epsilon);
         analysis.setPotentialType(PotentialFunctions.HERNQUIST);
-        analysis.setCmaReRunTimes(1);
         List<Result> results = new ArrayList<Result>();
-        analysis.cmaOptimization(results);
+        analysis.cmaOptimization(results, 1);
         System.out.println(results);
         
         // Results may vary quite a lot - change epsilon to relax expectations
@@ -68,7 +67,7 @@ public class AnalysisTest extends CommonBase {
         assertEquals(0.001399, results.get(0).iResidual, epsilon);
         
         // No testing anything - just running to catch any unwanted null things..
-        analysis.hypTest(100, 0.01);
+        analysis.hypothesisTesting(100, 0.01);
     }
 
     private Analysis prepereIaForTest() {
@@ -82,7 +81,7 @@ public class AnalysisTest extends CommonBase {
         copyTestResources("Endosome.csv", SystemOperations.getTestDataPath() + tcDirName, "/tmp");
         Point3d[] y = ImageProcessUtils.openCsvFile("Y", "/tmp/" + "Endosome.csv");
         
-        Analysis analysis = new Analysis(x, y, 0, 385, 0, 511, 0, 0);
+        Analysis analysis = new Analysis(x, y, null, 0, 385, 0, 511, 0, 0);
         analysis.calcDist(0.5, 0.001, 35.9);
         return analysis;
     }
@@ -101,9 +100,8 @@ public class AnalysisTest extends CommonBase {
         PotentialFunctions.NONPARAM_SMOOTHNESS = 0.1;
         PotentialFunctions.initializeNonParamWeights(analysis.getMinD(), analysis.getMaxD());
         
-        analysis.setCmaReRunTimes(1);
         List<Result> results = new ArrayList<Result>();
-        analysis.cmaOptimization(results);
+        analysis.cmaOptimization(results, 1);
         System.out.println(results);
         
         // Results may vary quite a lot - change epsilon to relax expectations
@@ -113,7 +111,7 @@ public class AnalysisTest extends CommonBase {
         assertEquals(0.008895, results.get(0).iResidual, epsilon);
         
         // No testing anything - just running to catch any unwanted null things..
-        analysis.hypTest(100, 0.01);
+        analysis.hypothesisTesting(100, 0.01);
     }
     
     @Test
@@ -126,9 +124,8 @@ public class AnalysisTest extends CommonBase {
         assertEquals(77.255365, IAPUtils.calcWekaWeights(analysis.getDistances()), epsilon);
         analysis.setPotentialType(PotentialFunctions.STEP);
 
-        analysis.setCmaReRunTimes(1);
         List<Result> results = new ArrayList<Result>();
-        analysis.cmaOptimization(results);
+        analysis.cmaOptimization(results, 1);
         System.out.println(results);
         
         // Results may vary quite a lot - change epsilon to relax expectations
@@ -138,6 +135,6 @@ public class AnalysisTest extends CommonBase {
         assertEquals(0.002122, results.get(0).iResidual, epsilon);
         
         // No testing anything - just running to catch any unwanted null things..
-        analysis.hypTest(100, 0.01);
+        analysis.hypothesisTesting(100, 0.01);
     }
 }

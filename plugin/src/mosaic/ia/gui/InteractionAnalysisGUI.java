@@ -72,7 +72,7 @@ public class InteractionAnalysisGUI implements ActionListener {
     private JFormattedTextField txtZmax;
     private double xmin = Double.MAX_VALUE, ymin = Double.MAX_VALUE, zmin = Double.MAX_VALUE, xmax = Double.MAX_VALUE, ymax = Double.MAX_VALUE, zmax = Double.MAX_VALUE;
     private JLabel lblKernelWeightq, lblKernelWeightp;
-
+    private ImagePlus genMaskIP;
     /**
      * Create the application.
      */
@@ -513,8 +513,6 @@ public class InteractionAnalysisGUI implements ActionListener {
                     potentialType = PotentialFunctions.PlUMMER;
                 }
             }
-
-            iAnalysis.setPotentialType(potentialType);
         }
         else if (e.getSource() == btnCalculateDistances) {
             gridSize = Double.parseDouble(gridSizeInp.getText());
@@ -529,17 +527,14 @@ public class InteractionAnalysisGUI implements ActionListener {
                 xmax = Double.parseDouble(txtXmax.getText());
                 ymax = Double.parseDouble(txtYmax.getText());
                 zmax = Double.parseDouble(txtZmax.getText());
-                if (xmin > Double.MAX_VALUE - 1 || xmax > Double.MAX_VALUE - 1 ||
-                    ymin > Double.MAX_VALUE - 1 || ymax > Double.MAX_VALUE - 1 || 
-                    zmin > Double.MAX_VALUE - 1 || zmax > Double.MAX_VALUE - 1 || 
-                    xmax < xmin || ymax < ymin || zmax < zmin) 
+                if (xmax < xmin || ymax < ymin || zmax < zmin) 
                 {
                     IJ.showMessage("Error: boundary values are not correct");
                     return;
                 }
                 
                 if (Xcoords != null && Ycoords != null) {
-                    iAnalysis = new Analysis(Xcoords, Ycoords, 0, 0, 0, 0, 0, 0);
+                    iAnalysis = new Analysis(Xcoords, Ycoords, genMaskIP, xmin, xmax, ymin, ymax, zmin, zmax);
                     System.out.println("[Point3d] p set to:" + pkernelWeight);
                 }
                 System.out.println("Boundary:" + xmin + "," + xmax + ";" + ymin + "," + ymax + ";" + zmin + "," + zmax);
@@ -552,7 +547,7 @@ public class InteractionAnalysisGUI implements ActionListener {
                         IJ.showMessage("Error: Image sizes/scale/unit do not match");
                     }
                     else {
-                        iAnalysis = new Analysis(imgx, imgy);
+                        iAnalysis = new Analysis(imgx, imgy, genMaskIP);
                         System.out.println("[ImagePlus] p set to:" + pkernelWeight);
                     }
                 }
@@ -566,7 +561,6 @@ public class InteractionAnalysisGUI implements ActionListener {
             PotentialFunctions.NONPARAM_WEIGHT_SIZE = Integer.parseInt(numSupport.getText());
             PotentialFunctions.NONPARAM_SMOOTHNESS = Double.parseDouble(smoothnessNP.getText());
             numReRuns = Integer.parseInt(reRuns.getText());
-            iAnalysis.setCmaReRunTimes(numReRuns);
 
             System.out.println("Estimating with potential type:" + potentialType);
             if (potentialType == PotentialFunctions.NONPARAM) {
@@ -574,7 +568,7 @@ public class InteractionAnalysisGUI implements ActionListener {
             }
             iAnalysis.setPotentialType(potentialType); // for the first time
             List<Result> results = new ArrayList<Result>();
-            if (!iAnalysis.cmaOptimization(results)) {
+            if (!iAnalysis.cmaOptimization(results, numReRuns)) {
                 IJ.showMessage("Error: Calculate distances first!");
             }
             else {
@@ -597,7 +591,7 @@ public class InteractionAnalysisGUI implements ActionListener {
             monteCarloRunsForTest = Integer.parseInt(mCRuns.getText());
             alpha = Double.parseDouble(alphaField.getText());
 
-            if (!iAnalysis.hypTest(monteCarloRunsForTest, alpha)) {
+            if (!iAnalysis.hypothesisTesting(monteCarloRunsForTest, alpha)) {
                 IJ.showMessage("Error: Run estimation first");
             }
         }
@@ -616,7 +610,7 @@ public class InteractionAnalysisGUI implements ActionListener {
                     return;
                 }
 
-                if (!iAnalysis.generateMask()) {
+                if (!generateMask()) {
                     IJ.showMessage("Image Y is null: Cannot generate mask");
                 }
             }
@@ -626,17 +620,12 @@ public class InteractionAnalysisGUI implements ActionListener {
             }
         }
         else if (e.getSource() == loadMask) {
-            iAnalysis.loadMask();
-
-            if (iAnalysis.applyMask() == true) {
-                IJ.showMessage("Mask set to:" + iAnalysis.getMaskTitle());
-            }
-            else {
-                IJ.showMessage("No mask to apply! Load/Generate a mask.");
+            if (loadMask() == true) {
+                IJ.showMessage("Mask set to:" + getMaskTitle());
             }
         }
         else if (e.getSource() == resetMask) {
-            iAnalysis.resetMask();
+            resetMask();
             IJ.showMessage("Mask reset to Null");
         }
         else if (iAnalysis == null) {
@@ -697,5 +686,47 @@ public class InteractionAnalysisGUI implements ActionListener {
 
             return false;
         }
+    }
+    
+    public boolean generateMask() {
+        genMaskIP = new ImagePlus();
+        if (imgy != null) {
+            genMaskIP = ImageProcessUtils.generateMask(imgy);
+            System.out.println("Generated mask: " + genMaskIP.getType());
+            return true;
+        }
+        return false;
+    }
+
+    public boolean loadMask() {
+        ImagePlus tempMask = ImageProcessUtils.openImage();
+        if (tempMask == null) {
+            IJ.showMessage("Filetype not recognized");
+            return false;
+        }
+        else if (tempMask.getType() != ImagePlus.GRAY8) {
+            IJ.showMessage("ERROR: Loaded mask not 8 bit gray");
+            return false;
+        }
+        else if (!(tabbedPane.getSelectedIndex() == 1)) {
+            if (tempMask.getHeight() != imgy.getHeight() || tempMask.getWidth() != imgy.getWidth() || tempMask.getNSlices() != imgy.getNSlices()) {
+                IJ.showMessage("ERROR: Loaded mask size does not match with image size");
+                return false;
+            }
+        }
+    
+        tempMask.show("Mask loaded" + tempMask.getTitle());
+        genMaskIP = tempMask;
+        genMaskIP.updateImage();
+        return true;
+    }
+
+    public boolean resetMask() {
+        genMaskIP = null;
+        return true;
+    }
+    
+    public String getMaskTitle() {
+        return genMaskIP.getTitle();
     }
 }
